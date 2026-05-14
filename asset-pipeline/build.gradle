@@ -1,0 +1,92 @@
+plugins {
+    id 'java-library'
+}
+
+group = 'com.dillon.starsectormarines'
+version = '0.1.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 17
+    options.encoding = 'UTF-8'
+}
+
+repositories {
+    mavenCentral()
+}
+
+// Two source sets:
+//   main  — runtime, ships in the mod jar. No LWJGL 3, no Assimp. JOML + plain Java only.
+//   tool  — build-time importer. Runs OUTSIDE Starsector; can use Assimp + LWJGL 3 + Log4j 2 freely.
+sourceSets {
+    tool {
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+}
+
+configurations {
+    toolImplementation.extendsFrom implementation
+    toolCompileOnly.extendsFrom compileOnly
+    toolAnnotationProcessor.extendsFrom annotationProcessor
+    toolRuntimeOnly.extendsFrom runtimeOnly
+}
+
+dependencies {
+    // ---- main (runtime) ----
+    api "org.joml:joml:${jomlVersion}"
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+    // ---- tool (build-time importer) ----
+    toolImplementation platform("org.lwjgl:lwjgl-bom:${lwjglVersion}")
+    toolImplementation "org.lwjgl:lwjgl-assimp"
+    toolImplementation "org.lwjgl:lwjgl-stb"
+    toolImplementation "org.apache.logging.log4j:log4j-api:${log4j2Version}"
+    toolImplementation "org.apache.logging.log4j:log4j-core:${log4j2Version}"
+    toolCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+    toolAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+    toolRuntimeOnly "org.lwjgl:lwjgl:${lwjglVersion}:natives-windows"
+    toolRuntimeOnly "org.lwjgl:lwjgl-assimp:${lwjglVersion}:natives-windows"
+    toolRuntimeOnly "org.lwjgl:lwjgl-stb:${lwjglVersion}:natives-windows"
+    toolRuntimeOnly "org.lwjgl:lwjgl-assimp:${lwjglVersion}:natives-linux"
+    toolRuntimeOnly "org.lwjgl:lwjgl-stb:${lwjglVersion}:natives-linux"
+    toolRuntimeOnly "org.lwjgl:lwjgl-assimp:${lwjglVersion}:natives-macos"
+    toolRuntimeOnly "org.lwjgl:lwjgl-stb:${lwjglVersion}:natives-macos"
+
+    // ---- tests ----
+    testImplementation platform("org.junit:junit-bom:${junitVersion}")
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+// Build-time task: convert FBX/BVH source models to .mlmodel binaries.
+def javaToolchains = project.extensions.getByType(JavaToolchainService)
+
+tasks.register('processModels', JavaExec) {
+    description 'Convert FBX/BVH model files into pre-processed .mlmodel binary format'
+    group 'build'
+
+    classpath = sourceSets.tool.runtimeClasspath
+    mainClass = 'com.dillon.starsectormarines.assets.pipeline.ProcessModelsTask'
+
+    def inputDir  = file('src/tool/resources')
+    def outputDir = file("${layout.buildDirectory.get()}/processed-models")
+
+    inputs.dir inputDir
+    outputs.dir outputDir
+    args inputDir.absolutePath, outputDir.absolutePath
+
+    jvmArgs '--enable-native-access=ALL-UNNAMED'
+    javaLauncher = javaToolchains.launcherFor(project.java.toolchain)
+}

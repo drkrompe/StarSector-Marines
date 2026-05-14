@@ -48,6 +48,14 @@ dependencies {
             new File(starsectorCore, 'fs.common_obf.jar'),
     )
 
+    // Asset-pipeline runtime classes (mesh data, model serializer, scene/skeleton/animation PODs).
+    // Bundled into the mod jar via the fat-jar config below.
+    implementation project(':asset-pipeline')
+
+    // Lombok — same convention as the asset-pipeline module so shared style works.
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
     testImplementation platform('org.junit:junit-bom:6.0.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -63,9 +71,17 @@ test {
 }
 
 jar {
+    dependsOn ':asset-pipeline:jar'
     archiveBaseName = modName
     archiveVersion = ''
     destinationDirectory = modJarsDir
+    // Fat jar — bundle the asset-pipeline runtime classes and our runtime deps (JOML)
+    // so the mod ships as a single jar listed in mod_info.json.
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
 }
 
 tasks.register('deployMod', Sync) {
