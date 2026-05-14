@@ -43,3 +43,32 @@ The `mod/` folder in this repo is what ships. `mod_info.json` lists the jar at
 - Version in `mod_info.json` and `build.gradle` should match.
 - Do not edit anything under `C:\Program Files (x86)\Fractal Softworks\Starsector` — it's
   read-only reference. Vanilla files there are the canonical examples for data schemas.
+
+## Multi-project layout
+
+- `:` (root) — the mod itself. `src/main/java` holds `StarsectorMarinesModPlugin`, the
+  bridge intel plugin, the scene-graph renderer.
+- `:asset-pipeline` — vendored copy of MoonLight Engine's asset code. Two source sets:
+    - `main` (runtime) — MeshData, LoadedModel, MaterialInfo, Animation, Skeleton, Bone,
+      BvhParser, AnimationRetargeter, ModelSerializer. **Bundled into the mod jar via
+      fat-jar.** Depends only on JOML at runtime. No Lombok, no Log4j 2, no LWJGL 3.
+    - `tool` (build-time importer) — ModelLoader, MeshExtractor, MaterialExtractor,
+      AnimationExtractor, BoneRemapConfig, ProcessModelsTask, ConventionNormalizer,
+      AssetConventionConfig. Uses Assimp + LWJGL 3 + Log4j 2. **Never ships.**
+      Invoke via `gradlew :asset-pipeline:processModels`.
+- The mod's `jar` task pulls in `:asset-pipeline:main` outputs + JOML via the
+  runtime classpath, producing a single fat jar at `mod/jars/StarsectorMarines.jar`.
+
+## Marine roster persistence
+
+`com.dillon.starsectormarines.marine.MarineRosterScript` is an `EveryFrameScript`
+registered on the sector via `Global.getSector().addScript(...)`. Starsector's
+xstream save format walks the script graph, so any plain `Serializable` POJO held
+by a registered script — including the captain list — round-trips through save/load
+with no custom serialization. `MarineRosterScript.getInstance()` finds the
+registered instance by scanning `sector.getScripts()`.
+
+When adding new persistent gameplay state, prefer this pattern: a thin
+`EveryFrameScript` holding POJOs, registered once in `onGameLoad` (idempotent —
+check via `getInstance()` first). Don't reach for `MemoryAPI` unless the data is
+genuinely just key/value primitives.
