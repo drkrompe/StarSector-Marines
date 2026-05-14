@@ -4,6 +4,7 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CustomUIPanelPlugin;
 import com.fs.starfarer.api.campaign.CustomVisualDialogDelegate;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
+import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.ui.CustomPanelAPI;
 import org.apache.log4j.Logger;
 
@@ -27,10 +28,11 @@ public class MarineOpsDialogDelegate implements CustomVisualDialogDelegate {
     private static final Logger LOG = Global.getLogger(MarineOpsDialogDelegate.class);
 
     private final InteractionDialogAPI parent;
-    private final MarineOpsPanelPlugin panel = new MarineOpsPanelPlugin();
+    private final MarineOpsPanelPlugin panel;
 
-    public MarineOpsDialogDelegate(InteractionDialogAPI parent) {
+    public MarineOpsDialogDelegate(InteractionDialogAPI parent, PlanetAPI planet) {
         this.parent = parent;
+        this.panel = new MarineOpsPanelPlugin(planet);
     }
 
     @Override

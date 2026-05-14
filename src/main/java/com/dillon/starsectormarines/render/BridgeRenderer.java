@@ -48,14 +48,21 @@ public class BridgeRenderer {
     private int fboWidth;
     private int fboHeight;
 
-    private float rotation;
-
     private SceneNode sceneRoot;
-    private SceneNode cubeNode;
     private Camera    camera;
 
+    /**
+     * Hand the renderer an externally-built scene + camera. The renderer doesn't
+     * own scene state; the caller ticks nodes per-frame and the renderer walks
+     * whatever's there at draw time. Pass {@code null} to clear.
+     */
+    public void setScene(SceneNode sceneRoot, Camera camera) {
+        this.sceneRoot = sceneRoot;
+        this.camera = camera;
+    }
+
     public void render(float panelX, float panelY, float panelW, float panelH,
-                       float dt, float alphaMult) {
+                       float alphaMult) {
         if (broken) return;
 
         if (DEBUG_DIRECT_QUADRANTS) {
@@ -76,8 +83,6 @@ public class BridgeRenderer {
         int pxH = Math.max(1, Math.round(panelH * scaleY()));
         ensureFbo(pxW, pxH);
         if (broken) return;
-
-        rotation += dt;
 
         if (!diagLogged) {
             diagLogged = true;
@@ -148,14 +153,11 @@ public class BridgeRenderer {
         glDisable(GL_CULL_FACE);
         glDisable(GL_TEXTURE_2D);
 
-        camera.aspect = (float) fboWidth / (float) fboHeight;
-
-        // Drive the cube's spin from accumulated dt
-        cubeNode.rotation[0] = rotation * 0.6f;
-        cubeNode.rotation[1] = rotation;
-
-        float[] viewProj = camera.getViewProjection();
-        renderNode(sceneRoot, viewProj, Mat4.identity());
+        if (sceneRoot != null && camera != null) {
+            camera.aspect = (float) fboWidth / (float) fboHeight;
+            float[] viewProj = camera.getViewProjection();
+            renderNode(sceneRoot, viewProj, Mat4.identity());
+        }
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
@@ -199,22 +201,11 @@ public class BridgeRenderer {
             LOG.info("GL_VERSION: " + glGetString(GL_VERSION));
             LOG.info("GL_RENDERER: " + glGetString(GL_RENDERER));
             LOG.info("GL_SHADING_LANGUAGE_VERSION: " + glGetString(GL_SHADING_LANGUAGE_VERSION));
-            buildScene();
             initialized = true;
         } catch (RuntimeException e) {
             LOG.error("BridgeRenderer init failed", e);
             broken = true;
         }
-    }
-
-    private void buildScene() {
-        sceneRoot = new SceneNode();
-        cubeNode = new SceneNode();
-        cubeNode.drawable = new ProceduralCubeDrawable();
-        sceneRoot.addChild(cubeNode);
-
-        camera = new Camera();
-        // eye 4 units back, looking at origin, +Y up — defaults on Camera already.
     }
 
     private void ensureFbo(int w, int h) {

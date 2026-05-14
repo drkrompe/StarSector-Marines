@@ -3,6 +3,8 @@ package com.fs.starfarer.api.impl.campaign.rulecmd;
 import com.dillon.starsectormarines.ops.MarineOpsDialogDelegate;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
+import com.fs.starfarer.api.campaign.PlanetAPI;
+import com.fs.starfarer.api.campaign.SectorEntityToken;
 import com.fs.starfarer.api.campaign.rules.MemoryAPI;
 import com.fs.starfarer.api.util.Misc.Token;
 import org.apache.log4j.Logger;
@@ -49,7 +51,9 @@ public class MarineOpsCMD extends BaseCommandPlugin {
             dialog.hideTextPanel();
             dialog.hideVisualPanel();
 
-            dialog.showCustomVisualDialog(w, h, new MarineOpsDialogDelegate(dialog));
+            SectorEntityToken target = dialog.getInteractionTarget();
+            PlanetAPI planet = target instanceof PlanetAPI ? (PlanetAPI) target : null;
+            dialog.showCustomVisualDialog(w, h, new MarineOpsDialogDelegate(dialog, planet));
             return true;
         }
         LOG.warn("MarineOpsCMD: unknown sub-command '" + sub + "'");

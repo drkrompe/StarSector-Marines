@@ -1,0 +1,24 @@
+{
+	# Starsector Marines i18n namespace.
+	#
+	# Translators: copy this file into a translation mod, change the values
+	# (NOT the keys), and load it after Starsector Marines in your mod list —
+	# Starsector merges later JSONs on top.
+
+	"marineOps": {
+		"opsTitle":          "Marine Operations",
+		"colClients":        "Clients",
+		"colTacticalMap":    "Tactical Map",
+		"colIntel":          "Planet Intel",
+		"actionBack":        "Back",
+		"noPlanetFallback":  "Unknown Location",
+
+		# Planet intel section labels — each is a heading followed by data
+		"intelTypeLabel":         "Type:",
+		"intelFactionLabel":      "Controlled by:",
+		"intelSizeLabel":         "Population:",
+		"intelConditionsLabel":   "Conditions:",
+		"intelUninhabited":       "Uninhabited",
+		"intelSizeFmt":           "Class {0}"
+	}
+}
