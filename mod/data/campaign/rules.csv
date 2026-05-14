@@ -1,0 +1,4 @@
+id,trigger,conditions,script,text,options,notes
+marineOpsAddOption,PopulateOptions,"$hasMarket
+$menuState == main",,,30:marineOpsOpen:Marine operations,Adds 'Marine operations' to the planet menu when interacting with a populated market
+marineOpsOpenSel,DialogOptionSelected,$option == marineOpsOpen,MarineOpsCMD open,,,Opens the Marine Ops full-canvas custom dialog
