@@ -1,0 +1,99 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.dillon.starsectormarines'
+version = '0.1.0'
+
+def starsectorDir = file(providers.gradleProperty('starsectorDir').get())
+def starsectorCore = new File(starsectorDir, 'starsector-core')
+def starsectorModsDir = new File(starsectorDir, 'mods')
+
+def modName = 'StarsectorMarines'
+def modOutputDir = file("$projectDir/mod")
+def modJarsDir = new File(modOutputDir, 'jars')
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 17
+    options.encoding = 'UTF-8'
+}
+
+repositories {
+    mavenCentral()
+    flatDir {
+        dirs starsectorCore
+    }
+}
+
+configurations {
+    starsector
+}
+
+dependencies {
+    // Starsector runtime — provided by the game, never bundled into our jar.
+    compileOnly files(
+            new File(starsectorCore, 'starfarer.api.jar'),
+            new File(starsectorCore, 'starfarer_obf.jar'),
+            new File(starsectorCore, 'lwjgl.jar'),
+            new File(starsectorCore, 'lwjgl_util.jar'),
+            new File(starsectorCore, 'json.jar'),
+            new File(starsectorCore, 'log4j-1.2.9.jar'),
+            new File(starsectorCore, 'xstream-1.4.10.jar'),
+            new File(starsectorCore, 'fs.common_obf.jar'),
+    )
+
+    testImplementation platform('org.junit:junit-bom:6.0.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation files(
+            new File(starsectorCore, 'starfarer.api.jar'),
+            new File(starsectorCore, 'json.jar'),
+            new File(starsectorCore, 'log4j-1.2.9.jar'),
+    )
+}
+
+test {
+    useJUnitPlatform()
+}
+
+jar {
+    archiveBaseName = modName
+    archiveVersion = ''
+    destinationDirectory = modJarsDir
+}
+
+tasks.register('deployMod', Sync) {
+    group = 'starsector'
+    description = "Copy the mod folder into the Starsector mods directory ($starsectorModsDir)"
+    dependsOn jar
+    from modOutputDir
+    into new File(starsectorModsDir, modName)
+    preserve {
+        // Saves and logs the user might drop in the mod folder while testing.
+        include '.git/**'
+    }
+}
+
+tasks.register('undeployMod', Delete) {
+    group = 'starsector'
+    description = "Remove the deployed mod from $starsectorModsDir"
+    delete new File(starsectorModsDir, modName)
+}
+
+tasks.register('runStarsector', Exec) {
+    group = 'starsector'
+    description = 'Launch Starsector after deploying the mod'
+    dependsOn 'deployMod'
+    workingDir new File(starsectorDir, 'starsector-core')
+    commandLine 'cmd', '/c', 'starsector.bat'
+}
+
+clean {
+    delete modJarsDir
+}

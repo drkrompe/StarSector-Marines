@@ -1,0 +1,45 @@
+# Project: Starsector Marines
+
+A Starsector mod (game version 0.98a-RC8). Source-of-truth game install is at
+`C:\Program Files (x86)\Fractal Softworks\Starsector` — read-only reference, never edit.
+
+## Build & deploy
+
+- Toolchain: Eclipse Adoptium JDK 25 (registered via Gradle's auto-detected toolchain).
+- Bytecode target: Java 17 (`--release 17`). The game ships Zulu 17.0.10 + `--enable-preview`,
+  so do NOT use language features newer than Java 17, and do NOT rely on preview features
+  at compile time.
+- `gradlew.bat build` → `mod/jars/StarsectorMarines.jar` (directly into the mod folder; no
+  intermediate copy step).
+- `gradlew.bat deployMod` → syncs `mod/` into `<starsectorDir>/mods/StarsectorMarines/`.
+- `gradlew.bat runStarsector` → deploys then launches via `starsector-core/starsector.bat`.
+
+## Mod layout
+
+The `mod/` folder in this repo is what ships. `mod_info.json` lists the jar at
+`jars/StarsectorMarines.jar`. The `modPlugin` entry point is
+`com.dillon.starsectormarines.StarsectorMarinesModPlugin`.
+
+## Starsector API conventions
+
+- Compile-only deps (never bundle into the jar): `starfarer.api.jar`, `starfarer_obf.jar`,
+  `lwjgl.jar`, `lwjgl_util.jar`, `json.jar`, `log4j-1.2.9.jar`, `xstream-1.4.10.jar`,
+  `fs.common_obf.jar` — all live in `<starsectorDir>/starsector-core/`.
+- API sources are in `<starsectorDir>/starsector-core/starfarer.api.zip` — unzip locally
+  for IDE attachment, do not check in.
+- Logging: `Global.getLogger(Class)` returns a log4j 1.2 `Logger`. Game logs to
+  `<starsectorDir>/starsector-core/starsector.log`.
+- The `BaseModPlugin` lifecycle: `onApplicationLoad` (once at game start, before any save),
+  `onNewGame`/`onNewGameAfterEconomyLoad`/`onNewGameAfterTimePass`, `onGameLoad(newGame)`
+  (every load), `beforeGameSave`/`afterGameSave`.
+- Faction definitions: `mod/data/world/factions/<id>.faction` (JSON despite the extension).
+- Hulls/variants: `mod/data/hulls/`, `mod/data/variants/` mirroring vanilla.
+- Strings (for i18n): `mod/data/strings/strings.json`.
+
+## Conventions for this repo
+
+- Package root: `com.dillon.starsectormarines`.
+- Mod ID: `starsector_marines` (snake_case is the Starsector convention).
+- Version in `mod_info.json` and `build.gradle` should match.
+- Do not edit anything under `C:\Program Files (x86)\Fractal Softworks\Starsector` — it's
+  read-only reference. Vanilla files there are the canonical examples for data schemas.
