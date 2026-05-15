@@ -17,6 +17,7 @@ mod/jars/*.jar
 .idea/compiler.xml
 .idea/libraries/
 .idea/vcs.xml
+.idea/gradle.xml
 *.iws
 *.iml
 *.ipr
