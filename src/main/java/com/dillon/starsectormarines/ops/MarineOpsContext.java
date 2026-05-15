@@ -40,6 +40,8 @@ public class MarineOpsContext {
     public final List<Client> clients;
 
     private Client selectedClient;
+    private Mission selectedMission;
+    private ScreenId currentScreen = ScreenId.MISSION_SELECT;
 
     /** Mission lists cached per client so positions stay stable across re-layouts. */
     private final Map<String, List<Mission>> missionsByClient = new HashMap<>();
@@ -65,6 +67,23 @@ public class MarineOpsContext {
 
     public void setSelectedClient(Client client) {
         this.selectedClient = client;
+    }
+
+    public Mission getSelectedMission() {
+        return selectedMission;
+    }
+
+    public void setSelectedMission(Mission mission) {
+        this.selectedMission = mission;
+    }
+
+    public ScreenId getCurrentScreen() {
+        return currentScreen;
+    }
+
+    /** Request a screen transition; the plugin observes this and re-attaches. */
+    public void goTo(ScreenId screen) {
+        this.currentScreen = screen;
     }
 
     /**

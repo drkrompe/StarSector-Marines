@@ -60,8 +60,9 @@ public class TacticalMapPanel extends OpsPanel {
     }
 
     private void onMissionClicked(Mission mission) {
-        // Selection / next-screen routing lands in the next slice. For now just log.
         LOG.info("MarineOps: mission clicked id=" + mission.id + " name='" + mission.name + "'");
+        ctx.setSelectedMission(mission);
+        ctx.goTo(ScreenId.BRIEFING);
     }
 
     @Override
