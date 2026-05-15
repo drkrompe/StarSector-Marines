@@ -10,8 +10,11 @@ import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.LabelWidget;
 import com.dillon.starsectormarines.ui.WidgetRoot;
+import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.graphics.SpriteAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
+import org.apache.log4j.Logger;
 
 import java.awt.Color;
 import java.util.List;
@@ -44,6 +47,8 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
  */
 public class BattleScreen implements Screen {
 
+    private static final Logger LOG = Global.getLogger(BattleScreen.class);
+
     private static final Color FLOOR_COLOR    = new Color(0x18, 0x22, 0x30);
     private static final Color WALL_COLOR     = new Color(0x06, 0x0A, 0x10);
     private static final Color GRID_LINE      = new Color(0x25, 0x32, 0x44);
@@ -57,13 +62,26 @@ public class BattleScreen implements Screen {
     private static final Color VICTORY_COLOR  = new Color(0x80, 0xE0, 0x80);
     private static final Color DEFEAT_COLOR   = new Color(0xE0, 0x60, 0x60);
 
-    private static final float UNIT_FRAC      = 0.70f; // unit quad is 70% of cell
+    private static final float UNIT_FRAC      = 1.00f; // sprite fills the cell
     private static final float HP_BAR_H       = 3f;
-    private static final float HP_BAR_GAP     = 3f;
+    private static final float HP_BAR_GAP     = 2f;
     private static final float SPEED_BTN_W    = 60f;
     private static final float SPEED_BTN_H    = 32f;
     private static final float SPEED_BTN_GAP  = 6f;
     private static final float SPEED_MARK_H   = 3f;
+
+    /** Marine sprite sheet path (Starsector resource lookup). */
+    private static final String MARINE_SHEET  = "graphics/battle/marine.png";
+    /**
+     * Slot count across the sheet. 8 slots reserved for an even power-of-2 strip,
+     * 7 actually drawn — slot 7 is intentionally empty (south weapon-up is a
+     * vertical flip of slot 6).
+     */
+    private static final int   SHEET_SLOTS    = 8;
+    /** Window (s) after a unit fires during which we show the weapon-up pose. */
+    private static final float WEAPON_UP_TIME = 0.25f;
+    /** Multiplicative tint applied to defender sprites (marines are untinted). */
+    private static final Color DEFENDER_TINT  = new Color(0xE0, 0x90, 0x90);
 
     private static final float[] SPEED_OPTIONS = {0f, 1f, 2f, 4f};
     private static final String[] SPEED_KEYS   = {
@@ -79,13 +97,40 @@ public class BattleScreen implements Screen {
     /** Pixel x-center of each speed button, captured at layout time for the active-marker dot. */
     private final float[] speedBtnCenterX = new float[SPEED_OPTIONS.length];
     private float speedBtnBottomY;
+    /** Tracks the last-seen sim completion flag so we can rebuild widgets when it flips. */
+    private boolean lastSimComplete;
+    /** Cached marine sprite sheet — lazy-loaded once per Screen lifetime. Null if load failed. */
+    private SpriteAPI marineSheet;
+    private boolean marineSheetLoadAttempted;
 
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
         this.position = position;
         this.ctx = ctx;
         this.speedMultiplier = 1f;
+        ensureMarineSheet();
         rebuild();
+    }
+
+    /**
+     * Lazy-loads the marine sprite sheet on first attach. {@code getSprite}
+     * alone returns a wrapper whose backing texture is null until
+     * {@code loadTexture} is called — same pattern BitmapFont uses for font
+     * pages. Survives across multiple attach calls via the cached field.
+     */
+    private void ensureMarineSheet() {
+        if (marineSheetLoadAttempted) return;
+        marineSheetLoadAttempted = true;
+        try {
+            Global.getSettings().loadTexture(MARINE_SHEET);
+            marineSheet = Global.getSettings().getSprite(MARINE_SHEET);
+            if (marineSheet == null) {
+                LOG.warn("BattleScreen: getSprite returned null for " + MARINE_SHEET);
+            }
+        } catch (Exception e) {
+            LOG.error("BattleScreen: failed to load marine sheet " + MARINE_SHEET, e);
+            marineSheet = null;
+        }
     }
 
     private void rebuild() {
@@ -96,14 +141,16 @@ public class BattleScreen implements Screen {
         int gridW = sim != null ? sim.getGrid().getWidth()  : BattleSetup.GRID_W;
         int gridH = sim != null ? sim.getGrid().getHeight() : BattleSetup.GRID_H;
         layout = new BattleLayout(position, gridW, gridH);
+        lastSimComplete = sim != null && sim.isComplete();
 
-        // Back button (bottom-left)
-        ButtonWidget back = new ButtonWidget(layout.backX, layout.backY,
+        // Bottom-left action button — Back when in-progress, Continue when done.
+        String actionLabelKey = lastSimComplete ? "battleContinue" : "actionBack";
+        ButtonWidget actionBtn = new ButtonWidget(layout.backX, layout.backY,
                 BattleLayout.BACK_W, BattleLayout.BACK_H,
-                () -> ctx.goTo(ScreenId.MISSION_SELECT));
-        widgets.add(back);
+                () -> onBackOrContinue());
+        widgets.add(actionBtn);
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                Strings.get("actionBack"),
+                Strings.get(actionLabelKey),
                 layout.backX + 12f, layout.backY + BattleLayout.BACK_H - 6f, HEADER_COLOR));
 
         // Speed buttons (top-right of controls strip)
@@ -135,6 +182,28 @@ public class BattleScreen implements Screen {
         if (sim == null) return;
         if (speedMultiplier > 0f) {
             sim.advance(dt * speedMultiplier);
+        }
+        // Rebuild widgets when the sim transitions to complete so the bottom
+        // action button swaps from Back to Continue.
+        if (sim.isComplete() != lastSimComplete) {
+            lastSimComplete = sim.isComplete();
+            rebuild();
+        }
+    }
+
+    private void onBackOrContinue() {
+        if (ctx == null) return;
+        BattleSimulation sim = ctx.getBattleSimulation();
+        if (sim != null && sim.isComplete()) {
+            // Compute + apply outcome once, then hand off to RESULTS.
+            Mission mission = ctx.getSelectedMission();
+            MissionOutcome outcome = MissionResolver.compute(sim, mission, ctx.getSelectedCaptain());
+            MissionResolver.apply(outcome);
+            ctx.setLastOutcome(outcome);
+            ctx.goTo(ScreenId.RESULTS);
+        } else {
+            // Abandon mid-battle — no resolution, no penalty.
+            ctx.goTo(ScreenId.MISSION_SELECT);
         }
     }
 
@@ -206,27 +275,65 @@ public class BattleScreen implements Screen {
     private void renderUnits(List<Unit> units, float alphaMult) {
         float unitSize = layout.cellSize * UNIT_FRAC;
         float half = unitSize / 2f;
-        float cellHalf = layout.cellSize / 2f;
 
-        // Unit quads
-        glDisable(GL_TEXTURE_2D);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glBegin(GL_QUADS);
-        for (Unit u : units) {
-            if (!u.isAlive()) continue;
-            Color c = (u.faction == Faction.MARINE) ? MARINE_COLOR : DEFENDER_COLOR;
-            glColor4f(c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, alphaMult);
-            float cx = layout.gridX + (u.renderX + 0.5f) * layout.cellSize;
-            float cy = layout.gridY + (u.renderY + 0.5f) * layout.cellSize;
-            glVertex2f(cx - half, cy - half);
-            glVertex2f(cx + half, cy - half);
-            glVertex2f(cx + half, cy + half);
-            glVertex2f(cx - half, cy + half);
+        SpriteAPI sheet = marineSheet;
+        if (sheet != null) {
+            float texW = sheet.getTextureWidth();
+            float texH = sheet.getTextureHeight();
+            float frameW = texW / SHEET_SLOTS;
+
+            for (Unit u : units) {
+                if (!u.isAlive()) continue;
+
+                Facing facing = computeFacing(u);
+                boolean weaponUp = u.cooldownTimer > (u.attackCooldown - WEAPON_UP_TIME)
+                        && u.cooldownTimer > 0f;
+                int frameIdx = pickFrame(facing, weaponUp);
+                boolean flipY = weaponUp && facing == Facing.SOUTH;
+
+                sheet.setTexX(frameIdx * frameW);
+                sheet.setTexWidth(frameW);
+                if (flipY) {
+                    // Vertical mirror of slot 6 (weapon-up north) to fake south.
+                    sheet.setTexY(texH);
+                    sheet.setTexHeight(-texH);
+                } else {
+                    sheet.setTexY(0f);
+                    sheet.setTexHeight(texH);
+                }
+                sheet.setSize(unitSize, unitSize);
+                sheet.setAlphaMult(alphaMult);
+                sheet.setNormalBlend();
+                sheet.setColor(u.faction == Faction.MARINE ? Color.WHITE : DEFENDER_TINT);
+
+                float cx = layout.gridX + (u.renderX + 0.5f) * layout.cellSize;
+                float cy = layout.gridY + (u.renderY + 0.5f) * layout.cellSize;
+                sheet.renderAtCenter(cx, cy);
+            }
+            // Reset tint so the singleton sprite doesn't carry our red into
+            // anything that draws it next session.
+            sheet.setColor(Color.WHITE);
+        } else {
+            // Sprite missing — fall back to colored quads so the sim is still readable.
+            glDisable(GL_TEXTURE_2D);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glBegin(GL_QUADS);
+            for (Unit u : units) {
+                if (!u.isAlive()) continue;
+                Color c = (u.faction == Faction.MARINE) ? MARINE_COLOR : DEFENDER_COLOR;
+                glColor4f(c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, alphaMult);
+                float cx = layout.gridX + (u.renderX + 0.5f) * layout.cellSize;
+                float cy = layout.gridY + (u.renderY + 0.5f) * layout.cellSize;
+                glVertex2f(cx - half, cy - half);
+                glVertex2f(cx + half, cy - half);
+                glVertex2f(cx + half, cy + half);
+                glVertex2f(cx - half, cy + half);
+            }
+            glEnd();
         }
-        glEnd();
 
-        // HP bars above each unit
+        // HP bars above each unit (always, regardless of sprite fallback)
         for (Unit u : units) {
             if (!u.isAlive()) continue;
             float cx = layout.gridX + (u.renderX + 0.5f) * layout.cellSize;
@@ -234,12 +341,53 @@ public class BattleScreen implements Screen {
             float barW = unitSize;
             float barX = cx - barW / 2f;
             float barY = cy + half + HP_BAR_GAP;
-            // background (full red)
             fillRect(barX, barY, barW, HP_BAR_H, HP_BG, alphaMult);
-            // foreground (green proportional)
             float frac = Math.max(0f, Math.min(1f, u.hp / u.maxHp));
             fillRect(barX, barY, barW * frac, HP_BAR_H, HP_FG, alphaMult);
         }
+    }
+
+    private enum Facing { WEST, NORTH, EAST, SOUTH }
+
+    /** Prefer target direction (units face their target while attacking); fall back to movement; default south. */
+    private static Facing computeFacing(Unit u) {
+        if (u.target != null && u.target.isAlive()) {
+            int dx = u.target.cellX - u.cellX;
+            int dy = u.target.cellY - u.cellY;
+            if (dx != 0 || dy != 0) return facingFromDelta(dx, dy);
+        }
+        if (!u.path.isEmpty() && u.pathIdx < u.path.size()) {
+            int[] next = u.path.get(u.pathIdx);
+            int dx = next[0] - u.cellX;
+            int dy = next[1] - u.cellY;
+            if (dx != 0 || dy != 0) return facingFromDelta(dx, dy);
+        }
+        return Facing.SOUTH;
+    }
+
+    private static Facing facingFromDelta(int dx, int dy) {
+        if (Math.abs(dx) > Math.abs(dy)) return dx > 0 ? Facing.EAST : Facing.WEST;
+        return dy > 0 ? Facing.NORTH : Facing.SOUTH;
+    }
+
+    /** Maps (facing, weaponUp) to a slot in the sheet. South+weaponUp uses slot 6 + a vertical flip. */
+    private static int pickFrame(Facing facing, boolean weaponUp) {
+        if (weaponUp) {
+            switch (facing) {
+                case WEST:  return 4;
+                case EAST:  return 5;
+                case NORTH: return 6;
+                case SOUTH: return 6; // vertical mirror applied at draw time
+            }
+        } else {
+            switch (facing) {
+                case WEST:  return 0;
+                case NORTH: return 1;
+                case EAST:  return 2;
+                case SOUTH: return 3;
+            }
+        }
+        return 3;
     }
 
     /** Amber underline under whichever speed button is currently active. */

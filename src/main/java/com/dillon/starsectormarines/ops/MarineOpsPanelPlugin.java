@@ -37,6 +37,7 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
         screens.put(ScreenId.MISSION_SELECT, new MissionSelectScreen());
         screens.put(ScreenId.BRIEFING,       new BriefingScreen());
         screens.put(ScreenId.BATTLE,         new BattleScreen());
+        screens.put(ScreenId.RESULTS,        new ResultsScreen());
     }
 
     public void setOnBack(Runnable dismissDialog) {

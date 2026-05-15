@@ -48,6 +48,8 @@ public class MarineOpsContext {
     private String selectedCaptainId;
     /** Current battle simulation — built by BriefingScreen.onAccept, read by BattleScreen. */
     private BattleSimulation battleSimulation;
+    /** Frozen outcome from the most recent applied mission — read by ResultsScreen. */
+    private MissionOutcome lastOutcome;
     private ScreenId currentScreen = ScreenId.MISSION_SELECT;
 
     /** Mission lists cached per client so positions stay stable across re-layouts. */
@@ -120,6 +122,14 @@ public class MarineOpsContext {
 
     public void setBattleSimulation(BattleSimulation simulation) {
         this.battleSimulation = simulation;
+    }
+
+    public MissionOutcome getLastOutcome() {
+        return lastOutcome;
+    }
+
+    public void setLastOutcome(MissionOutcome outcome) {
+        this.lastOutcome = outcome;
     }
 
     /**
