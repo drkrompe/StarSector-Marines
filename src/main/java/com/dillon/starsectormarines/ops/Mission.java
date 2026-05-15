@@ -15,6 +15,7 @@ public final class Mission {
     public final int         payout;
     public final RiskLevel   risk;
     public final String      requirements;
+    public final String      flavor;
     public final float       normalizedX;
     public final float       normalizedY;
 
@@ -24,6 +25,7 @@ public final class Mission {
                    int payout,
                    RiskLevel risk,
                    String requirements,
+                   String flavor,
                    float normalizedX,
                    float normalizedY) {
         this.id           = id;
@@ -32,6 +34,7 @@ public final class Mission {
         this.payout       = payout;
         this.risk         = risk;
         this.requirements = requirements;
+        this.flavor       = flavor;
         this.normalizedX  = normalizedX;
         this.normalizedY  = normalizedY;
     }

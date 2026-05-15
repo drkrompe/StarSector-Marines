@@ -46,6 +46,31 @@ public final class MissionGenerator {
             "Smuggle Out Engineer",
     };
 
+    private static final String[] ASSAULT_FLAVORS = {
+            "Heavy resistance expected at the perimeter. Breach team will need to push fast or get pinned behind cover.",
+            "Garrison estimated as company-grade. Anticipate hardened entry points and at least one fortified strongpoint inside.",
+            "Defenders are dug in deep. Plan on prolonged engagement before reaching the objective; bring extra ammunition.",
+            "Intel reports rotating patrols every twenty minutes. Strike between rotations or get caught in the response curve.",
+    };
+    private static final String[] SABOTAGE_FLAVORS = {
+            "Stealth is the priority. Visible casualties will trigger lockdown protocols and pull reinforcements from the surrounding sector.",
+            "Target infrastructure is networked; coordinated charges across multiple nodes are needed for full disruption.",
+            "Security relies on automated systems. Expect surveillance drones and motion-triggered alarms throughout the facility.",
+            "Charges must be placed and detonated within a thirty-minute window before the night shift comes on duty.",
+    };
+    private static final String[] RAID_FLAVORS = {
+            "Cargo containers are scattered across the receiving yard. Prioritize high-value goods and get out before the response team mobilizes.",
+            "Convoy schedule is predictable but escorts are heavy. A diversionary action elsewhere would significantly improve odds.",
+            "Warehouses are lightly guarded but the alarm reaches local militia in under five minutes. In and out is the only viable plan.",
+            "Most of the take will be in sealed containers — bring breaching tools or accept that half the score stays behind.",
+    };
+    private static final String[] EXTRACTION_FLAVORS = {
+            "The asset is mobile but compromised. Approach window is narrow; arrive before the opposition consolidates their hold.",
+            "Subject is held in a secured medical wing. Expect at least one armed escort during transit.",
+            "Local sympathizers may help, but trust is cheap and the cordon tightens hourly. Move quickly.",
+            "Extraction route depends on the dropship window. Miss it and the team is on foot through hostile territory.",
+    };
+
     private MissionGenerator() {}
 
     public static List<Mission> generate(PlanetAPI planet, Client client) {
@@ -59,15 +84,17 @@ public final class MissionGenerator {
             MissionType type = MissionType.values()[r.nextInt(MissionType.values().length)];
             RiskLevel   risk = RiskLevel.values()[r.nextInt(RiskLevel.values().length)];
 
-            String[] pool;
+            String[] namePool;
+            String[] flavorPool;
             switch (type) {
-                case ASSAULT:    pool = ASSAULT_NAMES;    break;
-                case SABOTAGE:   pool = SABOTAGE_NAMES;   break;
-                case RAID:       pool = RAID_NAMES;       break;
-                case EXTRACTION: pool = EXTRACTION_NAMES; break;
-                default:         pool = ASSAULT_NAMES;
+                case ASSAULT:    namePool = ASSAULT_NAMES;    flavorPool = ASSAULT_FLAVORS;    break;
+                case SABOTAGE:   namePool = SABOTAGE_NAMES;   flavorPool = SABOTAGE_FLAVORS;   break;
+                case RAID:       namePool = RAID_NAMES;       flavorPool = RAID_FLAVORS;       break;
+                case EXTRACTION: namePool = EXTRACTION_NAMES; flavorPool = EXTRACTION_FLAVORS; break;
+                default:         namePool = ASSAULT_NAMES;    flavorPool = ASSAULT_FLAVORS;
             }
-            String name = pool[r.nextInt(pool.length)];
+            String name   = namePool[r.nextInt(namePool.length)];
+            String flavor = flavorPool[r.nextInt(flavorPool.length)];
 
             int payout = (1 + r.nextInt(8)) * 5000;
             switch (risk) {
@@ -81,7 +108,7 @@ public final class MissionGenerator {
             float y = 0.08f + r.nextFloat() * 0.84f;
 
             String id = client.factionId + ":" + i;
-            out.add(new Mission(id, name, type, payout, risk, requirements, x, y));
+            out.add(new Mission(id, name, type, payout, risk, requirements, flavor, x, y));
         }
 
         return out;

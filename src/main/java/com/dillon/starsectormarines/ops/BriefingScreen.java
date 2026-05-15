@@ -49,6 +49,7 @@ public class BriefingScreen implements Screen {
     private static final Color HEADER_COLOR  = new Color(0xC8, 0xE0, 0xFF);
     private static final Color LABEL_COLOR   = new Color(0x8F, 0xA8, 0xC0);
     private static final Color VALUE_COLOR   = new Color(0xE0, 0xE8, 0xFF);
+    private static final Color FLAVOR_COLOR  = new Color(0xC0, 0xD0, 0xE8);
     private static final Color ACCEPT_COLOR  = new Color(0xC8, 0xFF, 0xE0);
     private static final Color RETICLE_COLOR = new Color(0xFF, 0xB8, 0x00);
 
@@ -60,6 +61,12 @@ public class BriefingScreen implements Screen {
     private static final float LABEL_COL_W   = 96f;
     private static final float BTN_H         = 32f;
     private static final float BTN_GAP       = 12f;
+    private static final float SECTION_GAP   = 16f;
+
+    /** Top-y of the flavor paragraph in the info zone, cached for renderFlavor. */
+    private float flavorY;
+    /** Wrap width for the flavor paragraph (info zone width minus pads). */
+    private float flavorW;
 
     private static final int   RETICLE_SEGS  = 24;
     private static final float RETICLE_INNER = 6f;
@@ -101,7 +108,8 @@ public class BriefingScreen implements Screen {
 
     private void buildInfoRows(Mission m) {
         float x = layout.infoZone.x + INNER_PAD;
-        float y = layout.infoZone.y + layout.infoZone.h - INNER_PAD;
+        float topY = layout.infoZone.y + layout.infoZone.h - INNER_PAD;
+        float y = topY;
         float labelX = x;
         float valueX = x + LABEL_COL_W;
 
@@ -130,6 +138,14 @@ public class BriefingScreen implements Screen {
                 labelX, y, LABEL_COLOR));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20, m.requirements,
                 valueX, y, VALUE_COLOR));
+        y -= ROW_GAP;
+
+        // Stash flavor paragraph extent for renderFlavor — drawStringWrapped
+        // doesn't fit the single-line LabelWidget model so it's drawn inline
+        // during render. measureWrappedHeight wasn't called here (renderFlavor
+        // recomputes) since flavor only feeds the squad section in step 6.
+        flavorY = y - SECTION_GAP;
+        flavorW = layout.infoZone.w - 2 * INNER_PAD;
     }
 
     private void buildButtons() {
@@ -179,7 +195,16 @@ public class BriefingScreen implements Screen {
         drawFrame(layout.mapZone,  alphaMult);
         drawFrame(layout.infoZone, alphaMult);
         renderReticle(alphaMult);
+        renderFlavor(alphaMult);
         widgets.render(alphaMult);
+    }
+
+    private void renderFlavor(float alphaMult) {
+        if (ctx == null) return;
+        Mission m = ctx.getSelectedMission();
+        if (m == null || m.flavor == null || m.flavor.isEmpty()) return;
+        float x = layout.infoZone.x + INNER_PAD;
+        Fonts.ORBITRON_20.drawStringWrapped(m.flavor, x, flavorY, flavorW, FLAVOR_COLOR, alphaMult);
     }
 
     private void renderMapZone(float alphaMult) {
