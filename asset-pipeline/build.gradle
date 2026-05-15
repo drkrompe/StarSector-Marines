@@ -49,6 +49,7 @@ dependencies {
     toolImplementation "org.lwjgl:lwjgl-stb"
     toolImplementation "org.apache.logging.log4j:log4j-api:${log4j2Version}"
     toolImplementation "org.apache.logging.log4j:log4j-core:${log4j2Version}"
+    toolImplementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
     toolCompileOnly "org.projectlombok:lombok:${lombokVersion}"
     toolAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
@@ -88,5 +89,24 @@ tasks.register('processModels', JavaExec) {
     args inputDir.absolutePath, outputDir.absolutePath
 
     jvmArgs '--enable-native-access=ALL-UNNAMED'
+    javaLauncher = javaToolchains.launcherFor(project.java.toolchain)
+}
+
+// Transcode WAV/OGG source clips listed in src/tool/resources/audio/audio.json into Ogg Vorbis
+// files written directly into the shipped mod folder (mod/sounds/). Requires ffmpeg on PATH.
+tasks.register('processAudio', JavaExec) {
+    description 'Transcode WAV/OGG source clips into Ogg Vorbis under mod/sounds/ (requires ffmpeg)'
+    group 'build'
+
+    classpath = sourceSets.tool.runtimeClasspath
+    mainClass = 'com.dillon.starsectormarines.assets.pipeline.ProcessAudioTask'
+
+    def inputDir  = file('src/tool/resources/audio')
+    def outputDir = file("${rootDir}/mod/sounds")
+
+    inputs.dir inputDir
+    outputs.dir outputDir
+    args inputDir.absolutePath, outputDir.absolutePath
+
     javaLauncher = javaToolchains.launcherFor(project.java.toolchain)
 }

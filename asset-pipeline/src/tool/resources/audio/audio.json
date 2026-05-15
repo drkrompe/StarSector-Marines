@@ -1,0 +1,74 @@
+// Per-clip manifest for the audio pipeline. Source files live alongside this manifest under
+// small-arms/, ambient-machinery/, explosions/, voice-dead-lines/, etc. Run
+// `gradlew :asset-pipeline:processAudio` to encode into mod/sounds/.
+//
+// Each entry:
+//   id     — output filename (sans .ogg) and the Starsector sound-id you reference from sounds.json
+//   source — path relative to this manifest (asset-pipeline/src/tool/resources/audio/)
+//   kind   — "ui" | "positional" | "music"
+//              ui         → stereo, for showCustomVisualDialog / non-positional playback
+//              positional → mono, for in-world combat-engine spatialized sounds
+//              music      → stereo, full-length tracks (use with playCustomMusic)
+//   out    — subfolder under mod/sounds/ to write to (empty/omitted = mod/sounds/ root)
+//
+// Comments and trailing commas are tolerated. ffmpeg must be on PATH (or $FFMPEG set).
+{
+  "clips": [
+    // ----- small arms -----
+    { "id": "marines_smallarms_rifle_01",  "source": "small-arms/Futuristic Assault Rifle Single Shot 01.wav", "kind": "ui", "out": "battle/small-arms" },
+    { "id": "marines_smallarms_rifle_02",  "source": "small-arms/Futuristic Assault Rifle Single Shot 02.wav", "kind": "ui", "out": "battle/small-arms" },
+    { "id": "marines_smallarms_reload",    "source": "small-arms/reload-small-arm.wav",                        "kind": "ui", "out": "battle/small-arms" },
+
+    // ----- explosions -----
+    { "id": "marines_explosion_muffled_distant", "source": "explosions/explosion-muffled-distant.wav", "kind": "ui", "out": "battle/explosions" },
+    { "id": "marines_explosion_01",              "source": "explosions/explosion01.wav",               "kind": "ui", "out": "battle/explosions" },
+    { "id": "marines_explosion_02",              "source": "explosions/explosion02.wav",               "kind": "ui", "out": "battle/explosions" },
+    { "id": "marines_explosion_03",              "source": "explosions/explosion03.wav",               "kind": "ui", "out": "battle/explosions" },
+    { "id": "marines_explosion_04",              "source": "explosions/explosion04.wav",               "kind": "ui", "out": "battle/explosions" },
+    { "id": "marines_explosion_05",              "source": "explosions/explosion05.wav",               "kind": "ui", "out": "battle/explosions" },
+    { "id": "marines_explosion_06",              "source": "explosions/explosion06.wav",               "kind": "ui", "out": "battle/explosions" },
+    { "id": "marines_explosion_07",              "source": "explosions/explosion07.wav",               "kind": "ui", "out": "battle/explosions" },
+    { "id": "marines_explosion_08",              "source": "explosions/explosion08.wav",               "kind": "ui", "out": "battle/explosions" },
+    { "id": "marines_explosion_09",              "source": "explosions/explosion09.wav",               "kind": "ui", "out": "battle/explosions" },
+
+    // ----- ambient machinery (intended for playUILoop) -----
+    { "id": "marines_ambient_fan_noise",        "source": "ambient-machinery/fan_noise.wav",          "kind": "ui", "out": "battle/ambient" },
+    { "id": "marines_ambient_fan_reso_1",       "source": "ambient-machinery/fan_reso_1.wav",         "kind": "ui", "out": "battle/ambient" },
+    { "id": "marines_ambient_fan_reso_2",       "source": "ambient-machinery/fan_reso_2.wav",         "kind": "ui", "out": "battle/ambient" },
+    { "id": "marines_ambient_fan_reso_3",       "source": "ambient-machinery/fan_reso_3.wav",         "kind": "ui", "out": "battle/ambient" },
+    { "id": "marines_ambient_hair_dryer",       "source": "ambient-machinery/hair-dryer.wav",         "kind": "ui", "out": "battle/ambient" },
+    { "id": "marines_ambient_helicopter_2",     "source": "ambient-machinery/helicopter_2.wav",       "kind": "ui", "out": "battle/ambient" },
+    { "id": "marines_ambient_loudmotor_3",      "source": "ambient-machinery/loudmotor3.wav",         "kind": "ui", "out": "battle/ambient" },
+    { "id": "marines_ambient_motor_1",          "source": "ambient-machinery/motor_1.wav",            "kind": "ui", "out": "battle/ambient" },
+    { "id": "marines_ambient_motor_2",          "source": "ambient-machinery/motor_2.wav",            "kind": "ui", "out": "battle/ambient" },
+    { "id": "marines_ambient_radiator_1",       "source": "ambient-machinery/radiator_1.wav",         "kind": "ui", "out": "battle/ambient" },
+    { "id": "marines_ambient_sprinkler_1",      "source": "ambient-machinery/sprinkler_1.wav",        "kind": "ui", "out": "battle/ambient" },
+    { "id": "marines_ambient_subway_train",     "source": "ambient-machinery/subwayTrain_B-line.wav", "kind": "ui", "out": "battle/ambient" },
+    { "id": "marines_ambient_vinyl_flex_1",     "source": "ambient-machinery/vinly_flex_1.wav",       "kind": "ui", "out": "battle/ambient" },
+    { "id": "marines_ambient_wind_up_long_1",   "source": "ambient-machinery/wind_up_long_1.wav",     "kind": "ui", "out": "battle/ambient" },
+
+    // ----- marine death-line voice clips -----
+    { "id": "marines_voice_dead_01", "source": "voice-dead-lines/1.mp3",  "kind": "ui", "out": "battle/voice-dead" },
+    { "id": "marines_voice_dead_02", "source": "voice-dead-lines/2.mp3",  "kind": "ui", "out": "battle/voice-dead" },
+    { "id": "marines_voice_dead_03", "source": "voice-dead-lines/3.mp3",  "kind": "ui", "out": "battle/voice-dead" },
+    { "id": "marines_voice_dead_04", "source": "voice-dead-lines/4.mp3",  "kind": "ui", "out": "battle/voice-dead" },
+    { "id": "marines_voice_dead_05", "source": "voice-dead-lines/5.mp3",  "kind": "ui", "out": "battle/voice-dead" },
+    { "id": "marines_voice_dead_06", "source": "voice-dead-lines/6.mp3",  "kind": "ui", "out": "battle/voice-dead" },
+    { "id": "marines_voice_dead_07", "source": "voice-dead-lines/7.mp3",  "kind": "ui", "out": "battle/voice-dead" },
+    { "id": "marines_voice_dead_08", "source": "voice-dead-lines/8.mp3",  "kind": "ui", "out": "battle/voice-dead" },
+    { "id": "marines_voice_dead_09", "source": "voice-dead-lines/9.mp3",  "kind": "ui", "out": "battle/voice-dead" },
+    { "id": "marines_voice_dead_10", "source": "voice-dead-lines/10.mp3", "kind": "ui", "out": "battle/voice-dead" },
+    { "id": "marines_voice_dead_11", "source": "voice-dead-lines/11.mp3", "kind": "ui", "out": "battle/voice-dead" },
+    { "id": "marines_voice_dead_12", "source": "voice-dead-lines/12.mp3", "kind": "ui", "out": "battle/voice-dead" },
+    { "id": "marines_voice_dead_13", "source": "voice-dead-lines/13.mp3", "kind": "ui", "out": "battle/voice-dead" },
+    { "id": "marines_voice_dead_14", "source": "voice-dead-lines/14.mp3", "kind": "ui", "out": "battle/voice-dead" },
+    { "id": "marines_voice_dead_15", "source": "voice-dead-lines/15.mp3", "kind": "ui", "out": "battle/voice-dead" },
+    { "id": "marines_voice_dead_16", "source": "voice-dead-lines/16.mp3", "kind": "ui", "out": "battle/voice-dead" },
+    { "id": "marines_voice_dead_17", "source": "voice-dead-lines/17.mp3", "kind": "ui", "out": "battle/voice-dead" },
+    { "id": "marines_voice_dead_18", "source": "voice-dead-lines/18.mp3", "kind": "ui", "out": "battle/voice-dead" },
+    { "id": "marines_voice_dead_19", "source": "voice-dead-lines/19.mp3", "kind": "ui", "out": "battle/voice-dead" },
+
+    // ----- misc -----
+    { "id": "marines_ticking_clock", "source": "ticking-clock.wav", "kind": "ui", "out": "battle" }
+  ]
+}

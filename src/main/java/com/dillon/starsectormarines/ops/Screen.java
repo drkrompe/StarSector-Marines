@@ -35,4 +35,12 @@ public interface Screen {
     void render(float alphaMult);
 
     void processInput(List<InputEventAPI> events);
+
+    /**
+     * Called by the router when a different screen is becoming active. Default
+     * no-op — only override for screens that hold global side-effect state
+     * (e.g., custom music, audio loops, suspended default music playback) that
+     * must be torn down even though the screen instance lives on for re-entry.
+     */
+    default void detach() {}
 }

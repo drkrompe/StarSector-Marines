@@ -1,0 +1,120 @@
+{
+#collapseopen MUSIC
+
+	"music":{
+		# Battle background track. Played via Global.getSoundPlayer().playCustomMusic(..., "marines_battle_music", true).
+		# Music entries need both "file" (filename) and "source" (directory or .bin) — vanilla schema requirement.
+		"marines_battle_music":[
+			{"file":"combat_evil_chanting.ogg","source":"sounds/battle/music","volume":0.7},
+		],
+	},
+
+#collapseclose
+
+#collapseopen MARINE BATTLE SFX
+
+	# Volume defaults are tuned so playUISound(id, pitch, 1.0) sounds balanced; scale at the call site as needed.
+
+	# ----- voice: marine death-lines (pool of 19; random pick per call) -----
+	"marines_voice_dead":[
+		{"file":"sounds/battle/voice-dead/marines_voice_dead_01.ogg","pitch":1,"volume":1.0},
+		{"file":"sounds/battle/voice-dead/marines_voice_dead_02.ogg","pitch":1,"volume":1.0},
+		{"file":"sounds/battle/voice-dead/marines_voice_dead_03.ogg","pitch":1,"volume":1.0},
+		{"file":"sounds/battle/voice-dead/marines_voice_dead_04.ogg","pitch":1,"volume":1.0},
+		{"file":"sounds/battle/voice-dead/marines_voice_dead_05.ogg","pitch":1,"volume":1.0},
+		{"file":"sounds/battle/voice-dead/marines_voice_dead_06.ogg","pitch":1,"volume":1.0},
+		{"file":"sounds/battle/voice-dead/marines_voice_dead_07.ogg","pitch":1,"volume":1.0},
+		{"file":"sounds/battle/voice-dead/marines_voice_dead_08.ogg","pitch":1,"volume":1.0},
+		{"file":"sounds/battle/voice-dead/marines_voice_dead_09.ogg","pitch":1,"volume":1.0},
+		{"file":"sounds/battle/voice-dead/marines_voice_dead_10.ogg","pitch":1,"volume":1.0},
+		{"file":"sounds/battle/voice-dead/marines_voice_dead_11.ogg","pitch":1,"volume":1.0},
+		{"file":"sounds/battle/voice-dead/marines_voice_dead_12.ogg","pitch":1,"volume":1.0},
+		{"file":"sounds/battle/voice-dead/marines_voice_dead_13.ogg","pitch":1,"volume":1.0},
+		{"file":"sounds/battle/voice-dead/marines_voice_dead_14.ogg","pitch":1,"volume":1.0},
+		{"file":"sounds/battle/voice-dead/marines_voice_dead_15.ogg","pitch":1,"volume":1.0},
+		{"file":"sounds/battle/voice-dead/marines_voice_dead_16.ogg","pitch":1,"volume":1.0},
+		{"file":"sounds/battle/voice-dead/marines_voice_dead_17.ogg","pitch":1,"volume":1.0},
+		{"file":"sounds/battle/voice-dead/marines_voice_dead_18.ogg","pitch":1,"volume":1.0},
+		{"file":"sounds/battle/voice-dead/marines_voice_dead_19.ogg","pitch":1,"volume":1.0},
+	],
+
+	# ----- explosions: numbered pool (random pick) + a distinct muffled-distant variant -----
+	"marines_explosion":[
+		{"file":"sounds/battle/explosions/marines_explosion_01.ogg","pitch":1,"volume":0.9},
+		{"file":"sounds/battle/explosions/marines_explosion_02.ogg","pitch":1,"volume":0.9},
+		{"file":"sounds/battle/explosions/marines_explosion_03.ogg","pitch":1,"volume":0.9},
+		{"file":"sounds/battle/explosions/marines_explosion_04.ogg","pitch":1,"volume":0.9},
+		{"file":"sounds/battle/explosions/marines_explosion_05.ogg","pitch":1,"volume":0.9},
+		{"file":"sounds/battle/explosions/marines_explosion_06.ogg","pitch":1,"volume":0.9},
+		{"file":"sounds/battle/explosions/marines_explosion_07.ogg","pitch":1,"volume":0.9},
+		{"file":"sounds/battle/explosions/marines_explosion_08.ogg","pitch":1,"volume":0.9},
+		{"file":"sounds/battle/explosions/marines_explosion_09.ogg","pitch":1,"volume":0.9},
+	],
+	"marines_explosion_muffled":[
+		{"file":"sounds/battle/explosions/marines_explosion_muffled_distant.ogg","pitch":1,"volume":0.8},
+	],
+
+	# ----- small arms: rifle shots (pool of 2) + reload -----
+	"marines_smallarms_rifle":[
+		{"file":"sounds/battle/small-arms/marines_smallarms_rifle_01.ogg","pitch":1,"volume":0.7},
+		{"file":"sounds/battle/small-arms/marines_smallarms_rifle_02.ogg","pitch":1,"volume":0.7},
+	],
+	"marines_smallarms_reload":[
+		{"file":"sounds/battle/small-arms/marines_smallarms_reload.ogg","pitch":1,"volume":0.8},
+	],
+
+	# ----- ambient loops: one ID per source (each loop is its own thing; use playUILoop) -----
+	"marines_ambient_fan_noise":[
+		{"file":"sounds/battle/ambient/marines_ambient_fan_noise.ogg","pitch":1,"volume":0.5},
+	],
+	"marines_ambient_fan_reso_1":[
+		{"file":"sounds/battle/ambient/marines_ambient_fan_reso_1.ogg","pitch":1,"volume":0.5},
+	],
+	"marines_ambient_fan_reso_2":[
+		{"file":"sounds/battle/ambient/marines_ambient_fan_reso_2.ogg","pitch":1,"volume":0.5},
+	],
+	"marines_ambient_fan_reso_3":[
+		{"file":"sounds/battle/ambient/marines_ambient_fan_reso_3.ogg","pitch":1,"volume":0.5},
+	],
+	"marines_ambient_hair_dryer":[
+		{"file":"sounds/battle/ambient/marines_ambient_hair_dryer.ogg","pitch":1,"volume":0.5},
+	],
+	"marines_ambient_helicopter_2":[
+		{"file":"sounds/battle/ambient/marines_ambient_helicopter_2.ogg","pitch":1,"volume":0.5},
+	],
+	"marines_ambient_loudmotor_3":[
+		{"file":"sounds/battle/ambient/marines_ambient_loudmotor_3.ogg","pitch":1,"volume":0.5},
+	],
+	"marines_ambient_motor_1":[
+		{"file":"sounds/battle/ambient/marines_ambient_motor_1.ogg","pitch":1,"volume":0.5},
+	],
+	"marines_ambient_motor_2":[
+		{"file":"sounds/battle/ambient/marines_ambient_motor_2.ogg","pitch":1,"volume":0.5},
+	],
+	"marines_ambient_radiator_1":[
+		{"file":"sounds/battle/ambient/marines_ambient_radiator_1.ogg","pitch":1,"volume":0.5},
+	],
+	"marines_ambient_sprinkler_1":[
+		{"file":"sounds/battle/ambient/marines_ambient_sprinkler_1.ogg","pitch":1,"volume":0.5},
+	],
+	"marines_ambient_subway_train":[
+		{"file":"sounds/battle/ambient/marines_ambient_subway_train.ogg","pitch":1,"volume":0.5},
+	],
+	"marines_ambient_vinyl_flex_1":[
+		{"file":"sounds/battle/ambient/marines_ambient_vinyl_flex_1.ogg","pitch":1,"volume":0.5},
+	],
+	"marines_ambient_wind_up_long_1":[
+		{"file":"sounds/battle/ambient/marines_ambient_wind_up_long_1.ogg","pitch":1,"volume":0.5},
+	],
+
+	# ----- mission flavor: ticking clock loops over every mission, shuttle engine plays during fly-in/out -----
+	"marines_ticking_clock":[
+		{"file":"sounds/battle/marines_ticking_clock.ogg","pitch":1,"volume":0.5},
+	],
+	"marines_shuttle_engine":[
+		{"file":"sounds/battle/engine_hum.ogg","pitch":1,"volume":0.7},
+	],
+
+#collapseclose
+
+}

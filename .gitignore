@@ -47,5 +47,9 @@ bin/
 ### VS Code ###
 .vscode/
 
+### Claude Code per-machine overrides ###
+.claude/settings.local.json
+.claude/worktrees/
+
 ### Mac OS ###
 .DS_Store

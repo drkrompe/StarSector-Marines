@@ -68,6 +68,7 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
         // ticking it so it has its widgets in place.
         ScreenId id = ctx.getCurrentScreen();
         if (id != lastScreenId) {
+            if (lastScreenId != null) screens.get(lastScreenId).detach();
             lastScreenId = id;
             screens.get(id).attach(position, ctx, dismissDialog);
         }

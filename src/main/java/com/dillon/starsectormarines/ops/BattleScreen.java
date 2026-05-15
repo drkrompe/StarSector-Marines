@@ -85,6 +85,12 @@ public class BattleScreen implements Screen {
 
     /** Marine sprite sheet path (Starsector resource lookup). */
     private static final String MARINE_SHEET  = "graphics/battle/marine.png";
+
+    /** Sound IDs declared in mod/data/config/sounds.json. */
+    private static final String MUSIC_BATTLE  = "marines_battle_music";
+    private static final String LOOP_TICKING  = "marines_ticking_clock";
+    /** Crossfade duration (seconds, whole numbers required) for entering / leaving the battle music. */
+    private static final int MUSIC_FADE_SECS  = 2;
     /** Window (s) after a unit fires during which we show the weapon-up pose. */
     private static final float WEAPON_UP_TIME = 0.25f;
     /** Multiplicative tint applied to defender sprites (marines are untinted). */
@@ -126,6 +132,12 @@ public class BattleScreen implements Screen {
      */
     private final java.util.EnumMap<ShuttleType, ShuttleSpriteCache> shuttleSprites = new java.util.EnumMap<>(ShuttleType.class);
     private boolean shuttleSpritesLoadAttempted;
+    /**
+     * True while this screen owns the audio side effects (custom music + ticking-clock loop
+     * + suspended default playback). Guarded so attach() re-runs from dialog resizes don't
+     * restart the music mid-battle, and detach() doesn't double-stop on already-cleaned exits.
+     */
+    private boolean audioActive;
 
     private static final class ShuttleSpriteCache {
         final SpriteAPI sprite;
@@ -144,7 +156,22 @@ public class BattleScreen implements Screen {
         ensureMarineSheet();
         ensureTileSheet();
         ensureShuttleSprites();
+        startBattleAudio();
         rebuild();
+    }
+
+    /**
+     * Suspend the campaign music player and crossfade into our looping battle track.
+     * Guarded so re-entry from a dialog resize (attach() is documented as idempotent)
+     * doesn't restart the music mid-battle. The ticking-clock loop itself is started
+     * lazily on the first {@link #advance(float)} — {@code playUILoop} must be called
+     * every frame anyway, so there's no benefit to kicking it off here.
+     */
+    private void startBattleAudio() {
+        if (audioActive) return;
+        audioActive = true;
+        Global.getSoundPlayer().setSuspendDefaultMusicPlayback(true);
+        Global.getSoundPlayer().playCustomMusic(MUSIC_FADE_SECS, MUSIC_FADE_SECS, MUSIC_BATTLE, true);
     }
 
     /**
@@ -296,6 +323,12 @@ public class BattleScreen implements Screen {
     @Override
     public void advance(float dt) {
         widgets.advance(dt);
+        // playUILoop is documented as "must be called every frame or the loop will fade out" —
+        // re-arming it every advance is how Starsector expects loops to be driven. When this
+        // screen stops being current, advance() stops firing and the loop fades automatically.
+        if (audioActive) {
+            Global.getSoundPlayer().playUILoop(LOOP_TICKING, 1f, 1f);
+        }
         BattleSimulation sim = ctx != null ? ctx.getBattleSimulation() : null;
         if (sim == null) return;
         if (speedMultiplier > 0f) {
@@ -307,6 +340,15 @@ public class BattleScreen implements Screen {
             lastSimComplete = sim.isComplete();
             rebuild();
         }
+    }
+
+    @Override
+    public void detach() {
+        if (!audioActive) return;
+        audioActive = false;
+        // Fade out our track without queuing a replacement, then let the campaign music resume.
+        Global.getSoundPlayer().playCustomMusic(MUSIC_FADE_SECS, 0, null);
+        Global.getSoundPlayer().setSuspendDefaultMusicPlayback(false);
     }
 
     private void onBackOrContinue() {
