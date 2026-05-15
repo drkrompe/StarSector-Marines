@@ -3,6 +3,11 @@
 A Starsector mod (game version 0.98a-RC8). Source-of-truth game install is at
 `C:\Program Files (x86)\Fractal Softworks\Starsector` — read-only reference, never edit.
 
+For project vision, current focus, immediate next-up, and per-session handoff
+notes, see [`roadmap/`](roadmap/). Read `roadmap/README.md` first; the most
+recent file in `roadmap/sessions/` has the latest state. Update the session
+log at the end of each working session.
+
 ## Build & deploy
 
 - Toolchain: Eclipse Adoptium JDK 25 (registered via Gradle's auto-detected toolchain).
