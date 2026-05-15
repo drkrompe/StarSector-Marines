@@ -92,6 +92,8 @@ public class BattleScreen implements Screen {
     private static final String LOOP_ENGINE   = "marines_shuttle_engine";
     private static final String SFX_RIFLE     = "marines_smallarms_rifle";
     private static final String SFX_VOICE_DEAD = "marines_voice_dead";
+    private static final String SFX_DISTANT_BOOM = "marines_explosion_muffled";
+    private static final String SFX_NEAR_EXPLOSION = "marines_explosion";
     /** Crossfade duration (seconds, whole numbers required) for entering / leaving the battle music. */
     private static final int MUSIC_FADE_SECS  = 2;
     /** Pitch lerp endpoints for the shuttle engine loop: idle on the ground → full at cruise. */
@@ -100,6 +102,38 @@ public class BattleScreen implements Screen {
     /** Half-width of the rifle pitch jitter — ±10% on top of 1.0, so the 2-clip pool feels richer than 2 clips. */
     private static final float RIFLE_PITCH_JITTER = 0.10f;
     private static final float RIFLE_VOLUME       = 0.5f;
+
+    /**
+     * Pool of ambient loop sound-ids the battle picks 1-2 from at attach time for environmental
+     * background. Subway-train and wind-up-long are intentionally excluded — they feel more like
+     * situational cues than ambient bed; trivial to flip in if a battle wants the urban-rail or
+     * winding-mechanism vibe.
+     */
+    private static final String[] AMBIENT_LOOP_POOL = {
+            "marines_ambient_fan_noise",
+            "marines_ambient_fan_reso_1",
+            "marines_ambient_fan_reso_2",
+            "marines_ambient_fan_reso_3",
+            "marines_ambient_motor_1",
+            "marines_ambient_motor_2",
+            "marines_ambient_loudmotor_3",
+            "marines_ambient_radiator_1",
+            "marines_ambient_helicopter_2",
+    };
+    /** Volume for ambient loops — quiet bed, well under foreground SFX. Multiplied with the per-clip base in sounds.json. */
+    private static final float AMBIENT_VOLUME = 0.2f;
+    /** Real-time gap (seconds) between sporadic distant explosions. Range is rolled each time. */
+    private static final float DISTANT_BOOM_MIN_GAP = 4f;
+    private static final float DISTANT_BOOM_MAX_GAP = 12f;
+    /** Volume for the dedicated muffled-distant explosion clip. */
+    private static final float DISTANT_BOOM_VOLUME  = 0.4f;
+    /** When repurposing a pool explosion as a distant boom: drop pitch + volume to fake distance. */
+    private static final float NEAR_AS_DISTANT_PITCH  = 0.6f;
+    private static final float NEAR_AS_DISTANT_VOLUME = 0.3f;
+    /** Pitch jitter (±) on each distant boom so the same clip doesn't read as the same blast each time. */
+    private static final float DISTANT_BOOM_PITCH_JITTER = 0.15f;
+    /** Probability that a distant-boom event uses the dedicated muffled clip; otherwise pull from the pool and pitch-down. */
+    private static final float DISTANT_BOOM_MUFFLED_CHANCE = 0.6f;
     /** Window (s) after a unit fires during which we show the weapon-up pose. */
     private static final float WEAPON_UP_TIME = 0.25f;
     /** Multiplicative tint applied to defender sprites (marines are untinted). */
@@ -147,6 +181,12 @@ public class BattleScreen implements Screen {
      * restart the music mid-battle, and detach() doesn't double-stop on already-cleaned exits.
      */
     private boolean audioActive;
+    /** Ambient loop ids picked at battle start. Re-rolled on each fresh attach so revisits get new flavor. */
+    private String[] activeAmbientLoops = new String[0];
+    /** Real-time countdown (seconds) until the next sporadic distant explosion. */
+    private float distantBoomTimer;
+    /** RNG for audio variety — separate from sim.rng so audio randomness doesn't perturb sim determinism. */
+    private final java.util.Random audioRng = new java.util.Random();
 
     private static final class ShuttleSpriteCache {
         final SpriteAPI sprite;
@@ -181,6 +221,20 @@ public class BattleScreen implements Screen {
         audioActive = true;
         Global.getSoundPlayer().setSuspendDefaultMusicPlayback(true);
         Global.getSoundPlayer().playCustomMusic(MUSIC_FADE_SECS, MUSIC_FADE_SECS, MUSIC_BATTLE, true);
+        activeAmbientLoops = pickAmbientLoops();
+        distantBoomTimer = nextDistantBoomGap();
+    }
+
+    /** Picks 1-2 random ambient loop ids from {@link #AMBIENT_LOOP_POOL} for this battle. */
+    private String[] pickAmbientLoops() {
+        int count = 1 + audioRng.nextInt(2); // 1 or 2
+        java.util.List<String> shuffled = new java.util.ArrayList<>(java.util.Arrays.asList(AMBIENT_LOOP_POOL));
+        java.util.Collections.shuffle(shuffled, audioRng);
+        return shuffled.subList(0, Math.min(count, shuffled.size())).toArray(new String[0]);
+    }
+
+    private float nextDistantBoomGap() {
+        return DISTANT_BOOM_MIN_GAP + audioRng.nextFloat() * (DISTANT_BOOM_MAX_GAP - DISTANT_BOOM_MIN_GAP);
     }
 
     /**
@@ -334,9 +388,10 @@ public class BattleScreen implements Screen {
         widgets.advance(dt);
         // playUILoop is documented as "must be called every frame or the loop will fade out" —
         // re-arming it every advance is how Starsector expects loops to be driven. When this
-        // screen stops being current, advance() stops firing and the loop fades automatically.
+        // screen stops being current, advance() stops firing and all loops fade automatically.
         if (audioActive) {
             Global.getSoundPlayer().playUILoop(LOOP_TICKING, 1f, 1f);
+            driveAmbientBackground(dt);
         }
         BattleSimulation sim = ctx != null ? ctx.getBattleSimulation() : null;
         if (sim == null) return;
@@ -360,6 +415,39 @@ public class BattleScreen implements Screen {
         // Fade out our track without queuing a replacement, then let the campaign music resume.
         Global.getSoundPlayer().playCustomMusic(MUSIC_FADE_SECS, 0, null);
         Global.getSoundPlayer().setSuspendDefaultMusicPlayback(false);
+    }
+
+    /**
+     * Drives the per-battle ambient bed and the sporadic distant-explosion atmosphere. Ambient
+     * loops are re-armed every frame at low volume — sets a sonic floor without dominating the
+     * mix. Distant booms tick on real-time dt (not sim time): one fires every
+     * {@link #DISTANT_BOOM_MIN_GAP}..{@link #DISTANT_BOOM_MAX_GAP} seconds, alternating between
+     * the dedicated muffled clip and a pool-explosion pitched + attenuated to read as far away.
+     *
+     * <p>Using real dt means the atmosphere keeps going during sim pause — pausing to inspect
+     * the map shouldn't make the world go silent. Same reason the music doesn't pause.
+     */
+    private void driveAmbientBackground(float dt) {
+        for (String id : activeAmbientLoops) {
+            Global.getSoundPlayer().playUILoop(id, 1f, AMBIENT_VOLUME);
+        }
+        distantBoomTimer -= dt;
+        if (distantBoomTimer <= 0f) {
+            playDistantBoom();
+            distantBoomTimer = nextDistantBoomGap();
+        }
+    }
+
+    private void playDistantBoom() {
+        float jitter = 1f + (audioRng.nextFloat() * 2f - 1f) * DISTANT_BOOM_PITCH_JITTER;
+        if (audioRng.nextFloat() < DISTANT_BOOM_MUFFLED_CHANCE) {
+            Global.getSoundPlayer().playUISound(SFX_DISTANT_BOOM, jitter, DISTANT_BOOM_VOLUME);
+        } else {
+            // Pool explosion + sub-1 pitch + low volume reads as a far-off blast (the muffled clip
+            // is great but having only one source for distant booms gets repetitive).
+            Global.getSoundPlayer().playUISound(SFX_NEAR_EXPLOSION,
+                    NEAR_AS_DISTANT_PITCH * jitter, NEAR_AS_DISTANT_VOLUME);
+        }
     }
 
     /**
