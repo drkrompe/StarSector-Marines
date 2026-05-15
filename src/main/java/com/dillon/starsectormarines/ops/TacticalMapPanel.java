@@ -71,6 +71,12 @@ public class TacticalMapPanel extends OpsPanel {
         try {
             SpriteAPI flat = Global.getSettings().getSprite(ctx.planetTexture);
             if (flat == null) return;
+            // Reset texture region — BriefingScreen crops this same sprite, and
+            // SpriteAPI's setTex* values persist on the singleton.
+            flat.setTexX(0f);
+            flat.setTexY(0f);
+            flat.setTexWidth(flat.getTextureWidth());
+            flat.setTexHeight(flat.getTextureHeight());
             float drawW = rect.w - 2 * PAD_INNER;
             float drawH = rect.h - 2 * PAD_INNER;
             flat.setSize(drawW, drawH);

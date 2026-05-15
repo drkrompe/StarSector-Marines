@@ -36,6 +36,10 @@
 		"riskLow":                "Low",
 		"riskMedium":             "Medium",
 		"riskHigh":               "High",
-		"payoutFmt":              "Cr. {0}"
+		"payoutFmt":              "Cr. {0}",
+
+		# Briefing screen
+		"briefingHeader":         "Briefing",
+		"briefingAccept":         "Accept Mission"
 	}
 }
