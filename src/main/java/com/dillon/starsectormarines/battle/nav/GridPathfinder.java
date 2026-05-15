@@ -33,6 +33,13 @@ public final class GridPathfinder {
 
     public static boolean USE_CARDINAL_NAVIGATION = false;
 
+    /**
+     * Per-occupant extra cost added when stepping into a cell. A penalty of 2 makes
+     * an occupied cell effectively cost 3 to enter (1 for the move + 2 for occupancy),
+     * so A* prefers detours up to ~2 cells longer over walking through an ally.
+     */
+    public static final float OCCUPANCY_PENALTY = 2f;
+
     private static final float SQRT2 = (float) Math.sqrt(2.0);
     private static final float INF = Float.MAX_VALUE;
 
@@ -169,7 +176,20 @@ public final class GridPathfinder {
     // ----- Public API -----
 
     public static List<int[]> findPath(NavigationGrid grid, int startX, int startY, int goalX, int goalY) {
-        return findPath(grid, startX, startY, goalX, goalY, USE_CARDINAL_NAVIGATION);
+        return findPath(grid, startX, startY, goalX, goalY, USE_CARDINAL_NAVIGATION, null);
+    }
+
+    /**
+     * Overload accepting a per-cell occupancy count — typically the unit count
+     * standing on each cell, packed into a {@code byte[]} indexed by
+     * {@link NavigationGrid#index(int, int)}. The pathfinder adds
+     * {@link #OCCUPANCY_PENALTY} × {@code occupancy[idx]} to the cost of
+     * stepping into each cell, so A* routes around stacked allies when a
+     * reasonable detour exists. Pass {@code null} for vanilla pathing.
+     */
+    public static List<int[]> findPath(NavigationGrid grid, int startX, int startY, int goalX, int goalY,
+                                       byte[] occupancy) {
+        return findPath(grid, startX, startY, goalX, goalY, USE_CARDINAL_NAVIGATION, occupancy);
     }
 
     /**
@@ -178,7 +198,7 @@ public final class GridPathfinder {
      * the start and goal are both included when a path is returned.
      */
     public static List<int[]> findPath(NavigationGrid grid, int startX, int startY, int goalX, int goalY,
-                                       boolean cardinalOnly) {
+                                       boolean cardinalOnly, byte[] occupancy) {
         if (!grid.isWalkable(startX, startY) || !grid.isWalkable(goalX, goalY)) {
             return Collections.emptyList();
         }
@@ -268,7 +288,12 @@ public final class GridPathfinder {
 
                 if (heapPos[nIdx] == CLOSED) continue;
 
-                float tentativeG = gCost[currentIdx] + DIR_COST[dirI];
+                float stepCost = DIR_COST[dirI];
+                if (occupancy != null) {
+                    int occCount = occupancy[nIdx] & 0xFF;
+                    if (occCount > 0) stepCost += OCCUPANCY_PENALTY * occCount;
+                }
+                float tentativeG = gCost[currentIdx] + stepCost;
 
                 if (tentativeG < gCost[nIdx]) {
                     if (heapPos[nIdx] == UNSEEN) ws.touch(nIdx);

@@ -142,4 +142,35 @@ public class NavigationGrid {
         Arrays.fill(cellFlags, (byte) 0);
         Arrays.fill(edgePassability, (byte) 0);
     }
+
+    // ----- Line of sight -----
+
+    /**
+     * Bresenham trace from {@code (x0,y0)} to {@code (x1,y1)} — returns false
+     * if any non-endpoint cell on the line is non-walkable. Endpoints are
+     * exempt so a shooter can stand in a cell flagged non-walkable (they
+     * normally don't) and a target's cell never blocks the shot at itself.
+     *
+     * <p>Basic Bresenham — doesn't visit every cell the geometric line
+     * crosses, so a diagonal "tunnel" through corner-touching walls reads as
+     * visible. Acceptable for an auto-battler; tighten with supercover
+     * Bresenham if it becomes visually weird.
+     */
+    public boolean hasLineOfSight(int x0, int y0, int x1, int y1) {
+        int dx = Math.abs(x1 - x0);
+        int dy = Math.abs(y1 - y0);
+        int sx = x0 < x1 ? 1 : -1;
+        int sy = y0 < y1 ? 1 : -1;
+        int err = dx - dy;
+        int x = x0;
+        int y = y0;
+        while (true) {
+            boolean endpoint = (x == x0 && y == y0) || (x == x1 && y == y1);
+            if (!endpoint && !isWalkable(x, y)) return false;
+            if (x == x1 && y == y1) return true;
+            int e2 = err << 1;
+            if (e2 > -dy) { err -= dy; x += sx; }
+            if (e2 <  dx) { err += dx; y += sy; }
+        }
+    }
 }

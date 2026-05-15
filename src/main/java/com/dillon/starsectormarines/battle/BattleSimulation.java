@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -45,6 +46,8 @@ public class BattleSimulation {
     private static final float FIRING_OCCUPANCY_COST = 4f;
     /** Minimum cell-distance from target when picking a firing position. Avoids picking the target's own cell. */
     private static final float FIRING_MIN_DISTANCE = 0.7f;
+    /** Per-adjacent-wall bonus subtracted from firing-position score. Pushes units to peek from corners and wall edges instead of standing in the open. */
+    private static final float FIRING_COVER_BONUS = 3f;
 
     /** Sim seconds a tracer stays visible after being fired. */
     private static final float SHOT_LIFETIME = 0.15f;
@@ -52,10 +55,26 @@ public class BattleSimulation {
     private static final float MISS_OFFSET_MIN = 0.5f;
     private static final float MISS_OFFSET_MAX = 2.0f;
 
+    /** Probability that, after firing, a unit picks a different firing position. Models routine sidestepping between shots. */
+    private static final float REPOSITION_CHANCE = 0.30f;
+    /** Probability a hit puts the target into fall-back. Rolled once per hit; ignored if already falling back. */
+    private static final float FALLBACK_CHANCE   = 0.25f;
+    /** Sim seconds a unit stays in fall-back state once entered. After this, normal engagement resumes. */
+    private static final float FALLBACK_DURATION = 3.5f;
+    /** Cell radius searched for a fall-back position around the hit unit. */
+    private static final int   FALLBACK_SCAN_RANGE = 8;
+    /** Per-ally-on-cell penalty in fall-back scoring. */
+    private static final float FALLBACK_OCCUPANCY_COST = 4f;
+    /** Per-adjacent-wall bonus in fall-back scoring (cover preference). */
+    private static final float FALLBACK_COVER_BONUS    = 2f;
+
     private final NavigationGrid grid;
     private final List<Unit> units = new ArrayList<>();
     private final List<ShotEvent> activeShots = new ArrayList<>();
     private final Random rng = new Random();
+
+    /** Per-cell unit count, rebuilt at the start of each tick. Passed to the pathfinder so units route around ally-held cells. */
+    private final byte[] occupancyMap;
 
     private float tickAccumulator = 0f;
     private boolean complete = false;
@@ -63,6 +82,7 @@ public class BattleSimulation {
 
     public BattleSimulation(NavigationGrid grid) {
         this.grid = grid;
+        this.occupancyMap = new byte[grid.getWidth() * grid.getHeight()];
     }
 
     public NavigationGrid getGrid()        { return grid; }
@@ -91,12 +111,90 @@ public class BattleSimulation {
     }
 
     private void tick() {
+        rebuildOccupancyMap();
         for (Unit u : units) {
             if (!u.isAlive()) continue;
             updateUnit(u);
         }
         advanceShots();
         checkWinCondition();
+    }
+
+    /**
+     * Counts alive units per cell into {@link #occupancyMap}, including each
+     * unit's path destination cell (if different from its current cell). This
+     * makes destination cells visible to firing-position and fall-back scoring,
+     * so units don't all converge on the same goal. Saturates at 255.
+     *
+     * <p>The map is also incrementally updated within a tick — when a unit
+     * re-paths in {@link #updateUnit}, the old destination is decremented and
+     * the new one incremented — so units picking positions later in the same
+     * tick see the freshest information.
+     */
+    private void rebuildOccupancyMap() {
+        Arrays.fill(occupancyMap, (byte) 0);
+        for (Unit u : units) {
+            if (!u.isAlive()) continue;
+            incrementOccupancy(u.cellX, u.cellY);
+            int[] dest = pathDestination(u);
+            if (dest != null && (dest[0] != u.cellX || dest[1] != u.cellY)) {
+                incrementOccupancy(dest[0], dest[1]);
+            }
+        }
+    }
+
+    private void incrementOccupancy(int x, int y) {
+        if (!grid.inBounds(x, y)) return;
+        int idx = y * grid.getWidth() + x;
+        int cur = occupancyMap[idx] & 0xFF;
+        if (cur < 255) occupancyMap[idx] = (byte) (cur + 1);
+    }
+
+    private void decrementOccupancy(int x, int y) {
+        if (!grid.inBounds(x, y)) return;
+        int idx = y * grid.getWidth() + x;
+        int cur = occupancyMap[idx] & 0xFF;
+        if (cur > 0) occupancyMap[idx] = (byte) (cur - 1);
+    }
+
+    /** Returns the unit's final path cell, or null if the path is empty. */
+    private static int[] pathDestination(Unit u) {
+        return u.path.isEmpty() ? null : u.path.get(u.path.size() - 1);
+    }
+
+    /**
+     * Occupancy count at cell (cx, cy), excluding self's own contributions
+     * (current cell + path destination). Used so a unit doesn't penalize
+     * itself when scoring its own current/intended position.
+     */
+    private int occupantsExcludingSelf(Unit self, int cx, int cy) {
+        if (!grid.inBounds(cx, cy)) return 0;
+        int n = occupancyMap[cy * grid.getWidth() + cx] & 0xFF;
+        if (cx == self.cellX && cy == self.cellY) n--;
+        int[] selfDest = pathDestination(self);
+        if (selfDest != null && selfDest[0] == cx && selfDest[1] == cy
+                && (selfDest[0] != self.cellX || selfDest[1] != self.cellY)) {
+            n--;
+        }
+        return Math.max(0, n);
+    }
+
+    /**
+     * Replaces a unit's path and keeps {@link #occupancyMap} in sync — the old
+     * destination loses its occupancy contribution and the new destination
+     * gains one (subject to start-cell guards).
+     */
+    private void setPath(Unit u, List<int[]> newPath) {
+        int[] oldDest = pathDestination(u);
+        if (oldDest != null && (oldDest[0] != u.cellX || oldDest[1] != u.cellY)) {
+            decrementOccupancy(oldDest[0], oldDest[1]);
+        }
+        u.path = newPath;
+        u.pathIdx = newPath.isEmpty() ? 0 : 1;
+        int[] newDest = pathDestination(u);
+        if (newDest != null && (newDest[0] != u.cellX || newDest[1] != u.cellY)) {
+            incrementOccupancy(newDest[0], newDest[1]);
+        }
     }
 
     /** Ages every active shot by one tick and drops expired ones. Reverse iteration for in-place removal. */
@@ -109,6 +207,26 @@ public class BattleSimulation {
     }
 
     private void updateUnit(Unit u) {
+        // Fall-back state — unit was recently hit and is breaking contact.
+        // Path toward an out-of-LOS cell, then hold until the timer expires.
+        if (u.fallbackTimer > 0f) {
+            u.fallbackTimer -= TICK_DT;
+            int fx = u.fallbackCellX;
+            int fy = u.fallbackCellY;
+            if (u.cellX == fx && u.cellY == fy) {
+                setPath(u, Collections.emptyList());
+                u.moveProgress = 0f;
+                u.renderX = u.cellX;
+                u.renderY = u.cellY;
+                return;
+            }
+            if (u.moveProgress == 0f) {
+                setPath(u, GridPathfinder.findPath(grid, u.cellX, u.cellY, fx, fy, occupancyMap));
+            }
+            advanceMovement(u);
+            return;
+        }
+
         if (u.target == null || !u.target.isAlive()) {
             u.target = findBestTarget(u);
         }
@@ -117,31 +235,38 @@ public class BattleSimulation {
         if (u.cooldownTimer > 0f) u.cooldownTimer -= TICK_DT;
 
         float dist = cellDistance(u.cellX, u.cellY, u.target.cellX, u.target.cellY);
-        if (dist <= u.attackRange) {
-            // In range — snap to current cell, stop, fire when off cooldown.
-            u.path = Collections.emptyList();
-            u.pathIdx = 0;
-            u.moveProgress = 0f;
-            u.renderX = u.cellX;
-            u.renderY = u.cellY;
-
+        boolean inRange = dist <= u.attackRange;
+        boolean visible = grid.hasLineOfSight(u.cellX, u.cellY, u.target.cellX, u.target.cellY);
+        if (inRange && visible) {
             if (u.cooldownTimer <= 0f) {
                 fireShot(u, u.target);
                 u.cooldownTimer = u.attackCooldown;
+                // Reposition roll — set a path to a different firing position.
+                // Path runs while cooldown counts down; the unit fires from the
+                // new spot once cooldown clears, producing visible "shoot, sidestep,
+                // shoot" cadence instead of static turrets.
+                if (rng.nextFloat() < REPOSITION_CHANCE) {
+                    int[] firingPos = findFiringPosition(u, u.target, u.cellX, u.cellY);
+                    if (firingPos[0] != u.cellX || firingPos[1] != u.cellY) {
+                        setPath(u, GridPathfinder.findPath(grid, u.cellX, u.cellY, firingPos[0], firingPos[1], occupancyMap));
+                    }
+                }
+            }
+            // Continue any path in progress (from a recent reposition). If no
+            // path, hold position and let renderX/Y snap to the logical cell.
+            if (!u.path.isEmpty() && u.pathIdx < u.path.size()) {
+                advanceMovement(u);
+            } else {
+                u.moveProgress = 0f;
+                u.renderX = u.cellX;
+                u.renderY = u.cellY;
             }
         } else {
-            // Out of range — path to a free cell at attackRange around the target,
-            // not the target's own cell. With 12v12 piling on a single defender,
-            // pathing straight at the target bunches everyone on one tile;
-            // firing positions naturally spread the squad into a ring.
-            //
-            // Re-path only between cells so mid-step movement doesn't snap. The
-            // unit always commits to its current step before reacting to a moved
-            // target or a shifted firing position.
+            // Out of range or out of sight — path to a firing position near target.
+            // Re-path only between cells so mid-step movement doesn't snap.
             if (u.moveProgress == 0f) {
                 int[] firingPos = findFiringPosition(u, u.target);
-                u.path = GridPathfinder.findPath(grid, u.cellX, u.cellY, firingPos[0], firingPos[1]);
-                u.pathIdx = 1; // path[0] is the cell we're already in
+                setPath(u, GridPathfinder.findPath(grid, u.cellX, u.cellY, firingPos[0], firingPos[1], occupancyMap));
             }
             advanceMovement(u);
         }
@@ -177,26 +302,36 @@ public class BattleSimulation {
 
     /**
      * Picks the lowest-scored enemy where score = cell-distance + a per-engager
-     * crowding penalty. Without the penalty all squadmates target the nearest
-     * defender and dogpile; the penalty makes a defender 6 cells "further" for
-     * every ally already engaging it, so the squad spreads fire across the
-     * defender line.
+     * crowding penalty. The squad spreads fire across the defender line instead
+     * of dogpiling.
+     *
+     * <p>Prefers targets the unit has line-of-sight to. If none of the enemies
+     * are visible from this cell, falls back to the nearest enemy (any LOS) so
+     * the unit pathfinders toward them and visibility eventually opens.
      */
     private Unit findBestTarget(Unit self) {
-        Unit best = null;
-        float bestScore = Float.MAX_VALUE;
+        Unit bestVisible = null;
+        float bestVisibleScore = Float.MAX_VALUE;
+        Unit bestAny = null;
+        float bestAnyDist = Float.MAX_VALUE;
+
         for (Unit other : units) {
             if (!other.isAlive()) continue;
             if (other.faction == self.faction) continue;
             float d = cellDistance(self.cellX, self.cellY, other.cellX, other.cellY);
+            if (d < bestAnyDist) {
+                bestAnyDist = d;
+                bestAny = other;
+            }
+            if (!grid.hasLineOfSight(self.cellX, self.cellY, other.cellX, other.cellY)) continue;
             int engagers = countAlliesTargeting(self, other);
             float score = d + TARGET_CROWDING_COST * engagers;
-            if (score < bestScore) {
-                bestScore = score;
-                best = other;
+            if (score < bestVisibleScore) {
+                bestVisibleScore = score;
+                bestVisible = other;
             }
         }
-        return best;
+        return bestVisible != null ? bestVisible : bestAny;
     }
 
     private int countAlliesTargeting(Unit self, Unit target) {
@@ -210,16 +345,25 @@ public class BattleSimulation {
     }
 
     /**
-     * Picks a free walkable cell at attack range from the target, minimizing
-     * (distance from self) + (occupancy penalty). With 12 attackers and a
-     * range-4 ring, ~40 candidate cells exist around one target — plenty for
-     * the squad to ring up without stacking.
+     * Picks a walkable cell at attack range from the target, minimizing
+     * {@code distFromSelf + occupancy_penalty - cover_bonus}. Candidates must
+     * have line of sight to the target — a cell on the far side of a wall is
+     * useless even at range.
+     *
+     * <p>The cover bonus rewards cells with adjacent walls. With the bonus,
+     * units gravitate to building corners and wall edges and "peek" around
+     * them at the target rather than standing in open lanes.
      *
      * <p>Returns the target's own cell as a fallback if no candidate is found
-     * (e.g., target boxed in by walls); the in-range check in updateUnit then
-     * still triggers fire once we close to melee.
+     * (e.g., target boxed in by walls, no visible spots in range); the
+     * in-range + LOS check in updateUnit then keeps the unit pathing closer
+     * until something opens.
      */
     private int[] findFiringPosition(Unit self, Unit target) {
+        return findFiringPosition(self, target, Integer.MIN_VALUE, Integer.MIN_VALUE);
+    }
+
+    private int[] findFiringPosition(Unit self, Unit target, int rejectX, int rejectY) {
         int range = Math.max(1, (int) Math.floor(self.attackRange));
         int tx = target.cellX;
         int ty = target.cellY;
@@ -231,14 +375,19 @@ public class BattleSimulation {
                 int cx = tx + dx;
                 int cy = ty + dy;
                 if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) continue;
+                if (cx == rejectX && cy == rejectY) continue;
 
                 float distFromTarget = (float) Math.sqrt(dx * dx + dy * dy);
                 if (distFromTarget > self.attackRange) continue;
                 if (distFromTarget < FIRING_MIN_DISTANCE) continue;
+                if (!grid.hasLineOfSight(cx, cy, tx, ty)) continue;
 
-                int occupants = countUnitsAt(self, cx, cy);
+                int occupants = occupantsExcludingSelf(self, cx, cy);
+                int coverWalls = countAdjacentWalls(cx, cy);
                 float distFromSelf = cellDistance(self.cellX, self.cellY, cx, cy);
-                float score = distFromSelf + FIRING_OCCUPANCY_COST * occupants;
+                float score = distFromSelf
+                        + FIRING_OCCUPANCY_COST * occupants
+                        - FIRING_COVER_BONUS * coverWalls;
                 if (score < bestScore) {
                     bestScore = score;
                     best = new int[]{cx, cy};
@@ -246,6 +395,16 @@ public class BattleSimulation {
             }
         }
         return best != null ? best : new int[]{tx, ty};
+    }
+
+    /** Count of cardinal-neighbor cells that are walls or out of bounds — used as a cover heuristic. */
+    private int countAdjacentWalls(int cx, int cy) {
+        int n = 0;
+        if (!grid.inBounds(cx + 1, cy) || !grid.isWalkable(cx + 1, cy)) n++;
+        if (!grid.inBounds(cx - 1, cy) || !grid.isWalkable(cx - 1, cy)) n++;
+        if (!grid.inBounds(cx, cy + 1) || !grid.isWalkable(cx, cy + 1)) n++;
+        if (!grid.inBounds(cx, cy - 1) || !grid.isWalkable(cx, cy - 1)) n++;
+        return n;
     }
 
     /**
@@ -256,7 +415,22 @@ public class BattleSimulation {
      */
     private void fireShot(Unit shooter, Unit target) {
         boolean hit = rng.nextFloat() < shooter.accuracy;
-        if (hit) target.hp -= shooter.attackDamage;
+        if (hit) {
+            target.hp -= shooter.attackDamage;
+            // Roll fall-back on hit. Skip if target is dead or already breaking contact.
+            if (target.isAlive() && target.fallbackTimer <= 0f
+                    && rng.nextFloat() < FALLBACK_CHANCE) {
+                int[] fallback = findFallbackPosition(target);
+                if (fallback[0] != target.cellX || fallback[1] != target.cellY) {
+                    target.fallbackCellX = fallback[0];
+                    target.fallbackCellY = fallback[1];
+                    target.fallbackTimer = FALLBACK_DURATION;
+                    // Stale path no longer applies — target will re-path to the
+                    // fall-back cell on its next updateUnit pass.
+                    setPath(target, Collections.emptyList());
+                }
+            }
+        }
 
         float fromX = shooter.cellX + 0.5f;
         float fromY = shooter.cellY + 0.5f;
@@ -273,14 +447,50 @@ public class BattleSimulation {
         activeShots.add(new ShotEvent(fromX, fromY, toX, toY, hit, shooter.faction, SHOT_LIFETIME));
     }
 
-    /** Count of other (non-self) alive units occupying or moving toward cell (cx, cy). */
-    private int countUnitsAt(Unit self, int cx, int cy) {
-        int n = 0;
-        for (Unit u : units) {
-            if (u == self || !u.isAlive()) continue;
-            if (u.cellX == cx && u.cellY == cy) n++;
+    /**
+     * Scans cells within {@link #FALLBACK_SCAN_RANGE} of {@code self} for a
+     * walkable spot with no LOS to any alive enemy. Scores candidates by
+     * {@code distFromSelf + occupancyPenalty - coverBonus} — cells close to
+     * self, off everyone else's path, with cover-adjacent walls.
+     *
+     * <p>Falls through to {@code self}'s current cell if nothing qualifies —
+     * the unit just holds in place for the fall-back duration and re-engages
+     * from where they were hit.
+     */
+    private int[] findFallbackPosition(Unit self) {
+        int sx = self.cellX;
+        int sy = self.cellY;
+        int[] best = null;
+        float bestScore = Float.MAX_VALUE;
+        for (int dy = -FALLBACK_SCAN_RANGE; dy <= FALLBACK_SCAN_RANGE; dy++) {
+            for (int dx = -FALLBACK_SCAN_RANGE; dx <= FALLBACK_SCAN_RANGE; dx++) {
+                int cx = sx + dx;
+                int cy = sy + dy;
+                if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) continue;
+                if (!isHiddenFromAllEnemies(self, cx, cy)) continue;
+
+                int occupants = occupantsExcludingSelf(self, cx, cy);
+                int coverWalls = countAdjacentWalls(cx, cy);
+                float distFromSelf = cellDistance(sx, sy, cx, cy);
+                float score = distFromSelf
+                        + FALLBACK_OCCUPANCY_COST * occupants
+                        - FALLBACK_COVER_BONUS * coverWalls;
+                if (score < bestScore) {
+                    bestScore = score;
+                    best = new int[]{cx, cy};
+                }
+            }
         }
-        return n;
+        return best != null ? best : new int[]{sx, sy};
+    }
+
+    private boolean isHiddenFromAllEnemies(Unit self, int cx, int cy) {
+        for (Unit other : units) {
+            if (!other.isAlive()) continue;
+            if (other.faction == self.faction) continue;
+            if (grid.hasLineOfSight(cx, cy, other.cellX, other.cellY)) return false;
+        }
+        return true;
     }
 
     private void checkWinCondition() {

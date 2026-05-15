@@ -44,12 +44,17 @@ public class Unit {
     public float maxHp         = 10f;
     public float hp            = 10f;
     public float attackDamage  = 2f;
-    public float attackRange   = 4.0f;  // cells; gives ~40 firing-position candidates around a target for the squad to ring up
+    public float attackRange   = 24.0f; // cells; long rifle range — quarter of the map width, makes cross-map sight lanes matter
     public float attackCooldown = 1.0f; // seconds between shots
     public float cooldownTimer  = 0f;
     public float accuracy       = 0.6f; // probability a fired shot deals damage; misses still emit a visual tracer
 
     public Unit target;
+
+    /** Sim-seconds remaining in fall-back state. >0 means the unit is breaking contact toward {@link #fallbackCellX}/{@link #fallbackCellY}. */
+    public float fallbackTimer = 0f;
+    public int fallbackCellX = -1;
+    public int fallbackCellY = -1;
 
     public Unit(String id, Faction faction, int cellX, int cellY) {
         this.id = id;
