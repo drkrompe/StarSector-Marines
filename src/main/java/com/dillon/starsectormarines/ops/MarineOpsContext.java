@@ -10,8 +10,10 @@ import com.fs.starfarer.api.impl.campaign.ids.Factions;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -39,6 +41,9 @@ public class MarineOpsContext {
 
     private Client selectedClient;
 
+    /** Mission lists cached per client so positions stay stable across re-layouts. */
+    private final Map<String, List<Mission>> missionsByClient = new HashMap<>();
+
     public MarineOpsContext(PlanetAPI planet) {
         this.planet = planet;
         MarketAPI m = null;
@@ -60,6 +65,22 @@ public class MarineOpsContext {
 
     public void setSelectedClient(Client client) {
         this.selectedClient = client;
+    }
+
+    /**
+     * Returns the mission list for this client at this planet, generating + caching
+     * lazily. Cache key is the client's factionId so the same planet+client always
+     * returns the same list across re-layouts (markers don't shuffle when the player
+     * clicks around).
+     */
+    public List<Mission> getMissionsFor(Client client) {
+        if (client == null) return Collections.emptyList();
+        List<Mission> cached = missionsByClient.get(client.factionId);
+        if (cached != null) return cached;
+        List<Mission> generated = Collections.unmodifiableList(
+                MissionGenerator.generate(planet, client));
+        missionsByClient.put(client.factionId, generated);
+        return generated;
     }
 
     private static List<Client> resolveClients(PlanetAPI planet, MarketAPI market) {

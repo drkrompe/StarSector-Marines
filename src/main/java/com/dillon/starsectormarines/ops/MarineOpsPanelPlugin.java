@@ -63,6 +63,7 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
     private ColumnLayout layout;
     private Runnable onBack;
     private boolean attached;
+    private Client lastSelectedClient;
 
     public MarineOpsPanelPlugin(PlanetAPI planet) {
         this.ctx = new MarineOpsContext(planet);
@@ -108,6 +109,15 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
     public void advance(float amount) {
         widgets.advance(amount);
         for (OpsPanel p : panels) p.onAdvance(amount);
+
+        // Rebuild widget tree when the player picks a different client so the
+        // tactical map's mission markers refresh. ClientRowWidgets lose their
+        // hover state for one frame on rebuild — acceptable for now.
+        Client current = ctx.getSelectedClient();
+        if (current != lastSelectedClient) {
+            lastSelectedClient = current;
+            if (position != null && onBack != null) tryAttach();
+        }
     }
 
     @Override

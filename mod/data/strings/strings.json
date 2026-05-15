@@ -22,6 +22,20 @@
 		"intelSizeFmt":           "Class {0}",
 
 		# Client list row labels
-		"clientLockedHostile":    "Hostile - unreachable"
+		"clientLockedHostile":    "Hostile - unreachable",
+
+		# Mission popup labels + values
+		"missionPopupType":       "Type:",
+		"missionPopupRisk":       "Risk:",
+		"missionPopupPayout":     "Payout:",
+		"missionPopupRequires":   "Requires:",
+		"missionTypeAssault":     "Assault",
+		"missionTypeSabotage":    "Sabotage",
+		"missionTypeRaid":        "Raid",
+		"missionTypeExtraction":  "Extraction",
+		"riskLow":                "Low",
+		"riskMedium":             "Medium",
+		"riskHigh":               "High",
+		"payoutFmt":              "Cr. {0}"
 	}
 }

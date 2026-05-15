@@ -5,17 +5,27 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.apache.log4j.Logger;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * Middle column: planet's equirectangular unwrap as a flat "tactical map."
- * Direct {@link SpriteAPI#render} draw inside the column body — no FBO,
- * no scene graph, no shader. The flat is the canvas that future mission node
- * sprites will be overlaid on.
+ * Middle column: planet's equirectangular unwrap as a flat "tactical map,"
+ * with clickable {@link MissionNodeWidget} markers placed at each mission's
+ * normalized position. Markers populate from {@code ctx.selectedClient}'s
+ * mission list; the {@code MissionPopupOverlay} renders details for whichever
+ * marker is hovered.
+ *
+ * <p>If no client is selected, the column shows just the planet — the empty
+ * state for the loop.
  */
 public class TacticalMapPanel extends OpsPanel {
 
     private static final Logger LOG = Global.getLogger(TacticalMapPanel.class);
 
     private static final float PAD_INNER = 8f;
+    private static final float NODE_SIZE = 26f;
+
+    private final List<MissionNodeWidget> nodes = new ArrayList<>();
 
     @Override
     public String getHeaderKey() {
@@ -24,7 +34,34 @@ public class TacticalMapPanel extends OpsPanel {
 
     @Override
     protected void onLayout(WidgetRoot widgets) {
-        // Map is non-widget content; nothing to register in the widget tree (yet).
+        nodes.clear();
+
+        Client selected = ctx.getSelectedClient();
+        if (selected == null) return;
+
+        List<Mission> missions = ctx.getMissionsFor(selected);
+        if (missions.isEmpty()) return;
+
+        float mapX = rect.x + PAD_INNER;
+        float mapY = rect.y + PAD_INNER;
+        float mapW = rect.w - 2 * PAD_INNER;
+        float mapH = rect.h - 2 * PAD_INNER;
+
+        for (Mission m : missions) {
+            float cx = mapX + m.normalizedX * mapW;
+            float cy = mapY + m.normalizedY * mapH;
+            MissionNodeWidget node = new MissionNodeWidget(m, cx, cy, NODE_SIZE, this::onMissionClicked);
+            nodes.add(node);
+            widgets.add(node);
+        }
+
+        // Popup overlay must render AFTER nodes so it paints on top.
+        widgets.add(new MissionPopupOverlay(nodes, mapX, mapY, mapW, mapH));
+    }
+
+    private void onMissionClicked(Mission mission) {
+        // Selection / next-screen routing lands in the next slice. For now just log.
+        LOG.info("MarineOps: mission clicked id=" + mission.id + " name='" + mission.name + "'");
     }
 
     @Override
