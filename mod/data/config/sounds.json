@@ -76,9 +76,6 @@
 	"marines_ambient_fan_reso_3":[
 		{"file":"sounds/battle/ambient/marines_ambient_fan_reso_3.ogg","pitch":1,"volume":0.5},
 	],
-	"marines_ambient_hair_dryer":[
-		{"file":"sounds/battle/ambient/marines_ambient_hair_dryer.ogg","pitch":1,"volume":0.5},
-	],
 	"marines_ambient_helicopter_2":[
 		{"file":"sounds/battle/ambient/marines_ambient_helicopter_2.ogg","pitch":1,"volume":0.5},
 	],
@@ -94,14 +91,8 @@
 	"marines_ambient_radiator_1":[
 		{"file":"sounds/battle/ambient/marines_ambient_radiator_1.ogg","pitch":1,"volume":0.5},
 	],
-	"marines_ambient_sprinkler_1":[
-		{"file":"sounds/battle/ambient/marines_ambient_sprinkler_1.ogg","pitch":1,"volume":0.5},
-	],
 	"marines_ambient_subway_train":[
 		{"file":"sounds/battle/ambient/marines_ambient_subway_train.ogg","pitch":1,"volume":0.5},
-	],
-	"marines_ambient_vinyl_flex_1":[
-		{"file":"sounds/battle/ambient/marines_ambient_vinyl_flex_1.ogg","pitch":1,"volume":0.5},
 	],
 	"marines_ambient_wind_up_long_1":[
 		{"file":"sounds/battle/ambient/marines_ambient_wind_up_long_1.ogg","pitch":1,"volume":0.5},

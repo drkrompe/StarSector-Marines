@@ -89,8 +89,17 @@ public class BattleScreen implements Screen {
     /** Sound IDs declared in mod/data/config/sounds.json. */
     private static final String MUSIC_BATTLE  = "marines_battle_music";
     private static final String LOOP_TICKING  = "marines_ticking_clock";
+    private static final String LOOP_ENGINE   = "marines_shuttle_engine";
+    private static final String SFX_RIFLE     = "marines_smallarms_rifle";
+    private static final String SFX_VOICE_DEAD = "marines_voice_dead";
     /** Crossfade duration (seconds, whole numbers required) for entering / leaving the battle music. */
     private static final int MUSIC_FADE_SECS  = 2;
+    /** Pitch lerp endpoints for the shuttle engine loop: idle on the ground → full at cruise. */
+    private static final float ENGINE_PITCH_IDLE   = 0.7f;
+    private static final float ENGINE_PITCH_CRUISE = 1.0f;
+    /** Half-width of the rifle pitch jitter — ±10% on top of 1.0, so the 2-clip pool feels richer than 2 clips. */
+    private static final float RIFLE_PITCH_JITTER = 0.10f;
+    private static final float RIFLE_VOLUME       = 0.5f;
     /** Window (s) after a unit fires during which we show the weapon-up pose. */
     private static final float WEAPON_UP_TIME = 0.25f;
     /** Multiplicative tint applied to defender sprites (marines are untinted). */
@@ -331,9 +340,11 @@ public class BattleScreen implements Screen {
         }
         BattleSimulation sim = ctx != null ? ctx.getBattleSimulation() : null;
         if (sim == null) return;
-        if (speedMultiplier > 0f) {
-            sim.advance(dt * speedMultiplier);
-        }
+        // Always tick — dt=0 makes the sim a no-op but still clears the per-frame event lists,
+        // so a paused caller doesn't keep replaying the previous frame's shot/death sounds.
+        sim.advance(dt * speedMultiplier);
+        driveShuttleEngineLoop(sim);
+        playCombatEventSounds(sim);
         // Rebuild widgets when the sim transitions to complete so the bottom
         // action button swaps from Back to Continue.
         if (sim.isComplete() != lastSimComplete) {
@@ -349,6 +360,57 @@ public class BattleScreen implements Screen {
         // Fade out our track without queuing a replacement, then let the campaign music resume.
         Global.getSoundPlayer().playCustomMusic(MUSIC_FADE_SECS, 0, null);
         Global.getSoundPlayer().setSuspendDefaultMusicPlayback(false);
+    }
+
+    /**
+     * Drives the shared shuttle engine loop from the loudest visible shuttle each frame.
+     * playUILoop has no per-entity identifier (unlike the positional playLoop), so three
+     * shuttles cruising in at once share a single loop voice — taking the max means N
+     * landing shuttles don't N-times the volume. When no shuttles are visible, we skip
+     * the call entirely and the loop self-fades over Starsector's default UI-loop hold.
+     *
+     * <p>Pitch sweeps {@link #ENGINE_PITCH_IDLE} → {@link #ENGINE_PITCH_CRUISE} across the
+     * intensity range; volume is the intensity itself (multiplied by the per-clip base in
+     * sounds.json, so on-ground idle still reads as audible but not pushy).
+     */
+    private void driveShuttleEngineLoop(BattleSimulation sim) {
+        float maxIntensity = 0f;
+        for (Shuttle s : sim.getShuttles()) {
+            if (!s.isVisible()) continue;
+            float i = s.engineIntensity();
+            if (i > maxIntensity) maxIntensity = i;
+        }
+        if (maxIntensity <= 0f) return;
+        float pitch = ENGINE_PITCH_IDLE + (ENGINE_PITCH_CRUISE - ENGINE_PITCH_IDLE) * maxIntensity;
+        Global.getSoundPlayer().playUILoop(LOOP_ENGINE, pitch, maxIntensity);
+    }
+
+    /**
+     * One-shot SFX for events the sim emitted during the last tick: every shot plays a
+     * rifle clip with pitch jitter (random pick from the 2-file pool + ±10% pitch makes
+     * the variety read as much richer than 2 distinct samples), every marine death plays
+     * one voice-dead clip.
+     *
+     * <p>Death audio is capped at one clip per frame — multiple marines dropping in the
+     * same tick all trigger the pool, but only the first plays. Five overlapping screams
+     * read as garbage; one is dramatic.
+     *
+     * <p>Defenders are silent on death for now: the voice pool is recorded as marines and
+     * playing a "noooo" for an enemy would feel wrong. We can wire a separate defender /
+     * alien death pool here when those clips exist.
+     */
+    private void playCombatEventSounds(BattleSimulation sim) {
+        java.util.Random rng = java.util.concurrent.ThreadLocalRandom.current();
+        for (ShotEvent ignored : sim.getShotsThisFrame()) {
+            float pitch = 1f + (rng.nextFloat() * 2f - 1f) * RIFLE_PITCH_JITTER;
+            Global.getSoundPlayer().playUISound(SFX_RIFLE, pitch, RIFLE_VOLUME);
+        }
+        for (Unit u : sim.getDeathsThisFrame()) {
+            if (u.faction == Faction.MARINE) {
+                Global.getSoundPlayer().playUISound(SFX_VOICE_DEAD, 1f, 1f);
+                break;  // one voice per frame
+            }
+        }
     }
 
     private void onBackOrContinue() {

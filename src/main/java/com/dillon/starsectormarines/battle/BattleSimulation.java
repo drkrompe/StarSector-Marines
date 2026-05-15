@@ -76,6 +76,10 @@ public class BattleSimulation {
     private final List<Unit> units = new ArrayList<>();
     private final List<Shuttle> shuttles = new ArrayList<>();
     private final List<ShotEvent> activeShots = new ArrayList<>();
+    /** Shots fired during the last {@link #advance(float)} call. Cleared on each advance, populated per tick. Drives one-shot audio in the renderer. */
+    private final List<ShotEvent> shotsThisFrame = new ArrayList<>();
+    /** Units that transitioned from alive to dead during the last {@link #advance(float)} call. Same lifecycle as {@link #shotsThisFrame}. */
+    private final List<Unit> deathsThisFrame = new ArrayList<>();
     private final Random rng = new Random();
 
     /** Counter for IDs of marines deboarded from shuttles. Bumped per spawn — "m0", "m1", ... like the pre-shuttle setup. */
@@ -116,6 +120,8 @@ public class BattleSimulation {
     public List<Unit> getUnits()           { return units; }
     public List<Shuttle> getShuttles()     { return shuttles; }
     public List<ShotEvent> getActiveShots(){ return activeShots; }
+    public List<ShotEvent> getShotsThisFrame() { return shotsThisFrame; }
+    public List<Unit> getDeathsThisFrame()     { return deathsThisFrame; }
     public boolean isComplete()            { return complete; }
     public Faction getWinner()             { return winner; }
 
@@ -133,6 +139,9 @@ public class BattleSimulation {
      * Returns immediately once the battle is complete.
      */
     public void advance(float dt) {
+        // Clear unconditionally so a paused caller doesn't keep replaying the previous frame's events.
+        shotsThisFrame.clear();
+        deathsThisFrame.clear();
         if (complete) return;
         tickAccumulator += dt;
         while (tickAccumulator >= TICK_DT) {
@@ -451,7 +460,11 @@ public class BattleSimulation {
     private void fireShot(Unit shooter, Unit target) {
         boolean hit = rng.nextFloat() < shooter.accuracy;
         if (hit) {
+            boolean wasAlive = target.isAlive();
             target.hp -= shooter.attackDamage;
+            if (wasAlive && !target.isAlive()) {
+                deathsThisFrame.add(target);
+            }
             // Roll fall-back on hit. Skip if target is dead or already breaking contact.
             if (target.isAlive() && target.fallbackTimer <= 0f
                     && rng.nextFloat() < FALLBACK_CHANCE) {
@@ -479,7 +492,9 @@ public class BattleSimulation {
             toX = target.cellX + 0.5f + (float) Math.cos(angle) * spread;
             toY = target.cellY + 0.5f + (float) Math.sin(angle) * spread;
         }
-        activeShots.add(new ShotEvent(fromX, fromY, toX, toY, hit, shooter.faction, SHOT_LIFETIME));
+        ShotEvent evt = new ShotEvent(fromX, fromY, toX, toY, hit, shooter.faction, SHOT_LIFETIME);
+        activeShots.add(evt);
+        shotsThisFrame.add(evt);
     }
 
     /**

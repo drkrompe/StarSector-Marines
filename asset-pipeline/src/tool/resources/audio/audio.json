@@ -36,15 +36,12 @@
     { "id": "marines_ambient_fan_reso_1",       "source": "ambient-machinery/fan_reso_1.wav",         "kind": "ui", "out": "battle/ambient" },
     { "id": "marines_ambient_fan_reso_2",       "source": "ambient-machinery/fan_reso_2.wav",         "kind": "ui", "out": "battle/ambient" },
     { "id": "marines_ambient_fan_reso_3",       "source": "ambient-machinery/fan_reso_3.wav",         "kind": "ui", "out": "battle/ambient" },
-    { "id": "marines_ambient_hair_dryer",       "source": "ambient-machinery/hair-dryer.wav",         "kind": "ui", "out": "battle/ambient" },
     { "id": "marines_ambient_helicopter_2",     "source": "ambient-machinery/helicopter_2.wav",       "kind": "ui", "out": "battle/ambient" },
     { "id": "marines_ambient_loudmotor_3",      "source": "ambient-machinery/loudmotor3.wav",         "kind": "ui", "out": "battle/ambient" },
     { "id": "marines_ambient_motor_1",          "source": "ambient-machinery/motor_1.wav",            "kind": "ui", "out": "battle/ambient" },
     { "id": "marines_ambient_motor_2",          "source": "ambient-machinery/motor_2.wav",            "kind": "ui", "out": "battle/ambient" },
     { "id": "marines_ambient_radiator_1",       "source": "ambient-machinery/radiator_1.wav",         "kind": "ui", "out": "battle/ambient" },
-    { "id": "marines_ambient_sprinkler_1",      "source": "ambient-machinery/sprinkler_1.wav",        "kind": "ui", "out": "battle/ambient" },
     { "id": "marines_ambient_subway_train",     "source": "ambient-machinery/subwayTrain_B-line.wav", "kind": "ui", "out": "battle/ambient" },
-    { "id": "marines_ambient_vinyl_flex_1",     "source": "ambient-machinery/vinly_flex_1.wav",       "kind": "ui", "out": "battle/ambient" },
     { "id": "marines_ambient_wind_up_long_1",   "source": "ambient-machinery/wind_up_long_1.wav",     "kind": "ui", "out": "battle/ambient" },
 
     // ----- marine death-line voice clips -----

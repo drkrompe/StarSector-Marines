@@ -113,6 +113,28 @@ public class Shuttle {
     }
 
     /**
+     * Normalized engine loudness/pitch driver for the shuttle engine loop, in [0, 1].
+     * Full throttle as the shuttle appears, eases to {@code IDLE_INTENSITY} at touchdown,
+     * holds at idle while LANDED (engines spinning on the ground), then mirrors back up
+     * to full as it takes off. PENDING and GONE return 0 so off-screen shuttles don't
+     * contribute to the loop.
+     *
+     * <p>The driving loop in {@code BattleScreen} takes the max across visible shuttles —
+     * three simultaneous landings don't triple the volume; the loudest one wins.
+     */
+    public float engineIntensity() {
+        switch (state) {
+            case INCOMING:  return 1f - (1f - IDLE_INTENSITY) * legProgress;
+            case LANDED:    return IDLE_INTENSITY;
+            case DEPARTING: return IDLE_INTENSITY + (1f - IDLE_INTENSITY) * legProgress;
+            default:        return 0f;
+        }
+    }
+
+    /** Engine intensity while parked on the ground — quiet hum, not silent. */
+    private static final float IDLE_INTENSITY = 0.3f;
+
+    /**
      * Returns the Starsector setAngle value (degrees, CCW from north) for a
      * sprite traveling from ({@code fromX,fromY}) to ({@code toX,toY}) in our
      * Y-up cell-coord space. Math: angle of velocity vector minus 90° because
