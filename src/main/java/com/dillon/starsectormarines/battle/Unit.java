@@ -44,9 +44,10 @@ public class Unit {
     public float maxHp         = 10f;
     public float hp            = 10f;
     public float attackDamage  = 2f;
-    public float attackRange   = 1.5f;  // cells; 1.5 covers cardinal + diagonal melee
+    public float attackRange   = 4.0f;  // cells; gives ~40 firing-position candidates around a target for the squad to ring up
     public float attackCooldown = 1.0f; // seconds between shots
     public float cooldownTimer  = 0f;
+    public float accuracy       = 0.6f; // probability a fired shot deals damage; misses still emit a visual tracer
 
     public Unit target;
 

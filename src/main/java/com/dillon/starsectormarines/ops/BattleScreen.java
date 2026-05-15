@@ -3,8 +3,10 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.BattleSetup;
 import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.ShotEvent;
 import com.dillon.starsectormarines.battle.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.SpriteSheetSlicer;
+import com.dillon.starsectormarines.battle.TileManifest;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.i18n.Strings;
@@ -65,6 +67,11 @@ public class BattleScreen implements Screen {
     private static final Color BANNER_BG      = new Color(0x10, 0x14, 0x1E);
     private static final Color VICTORY_COLOR  = new Color(0x80, 0xE0, 0x80);
     private static final Color DEFEAT_COLOR   = new Color(0xE0, 0x60, 0x60);
+    private static final Color MARINE_TRACER  = new Color(0xFF, 0xE0, 0x70);
+    private static final Color DEFENDER_TRACER = new Color(0xFF, 0x70, 0x40);
+
+    /** Sim-seconds shots live for — must match {@code BattleSimulation.SHOT_LIFETIME}. Used to fade tracer alpha. */
+    private static final float SHOT_LIFETIME_REF = 0.15f;
 
     private static final float UNIT_FRAC      = 1.00f; // sprite fills the cell
     private static final float HP_BAR_H       = 3f;
@@ -102,6 +109,12 @@ public class BattleScreen implements Screen {
     /** Detected sprite bounding boxes on {@link #marineSheet}. Null until sheet is loaded. */
     private SpriteSheetFrames marineFrames;
     private boolean marineSheetLoadAttempted;
+    /** Cached tileset sheet — lazy-loaded once per Screen lifetime. Null if load failed. */
+    private SpriteAPI tileSheet;
+    /** Pixel dimensions of the tileset PNG content (pre-POT-padding). */
+    private int tileSheetPxW;
+    private int tileSheetPxH;
+    private boolean tileSheetLoadAttempted;
 
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
@@ -109,7 +122,43 @@ public class BattleScreen implements Screen {
         this.ctx = ctx;
         this.speedMultiplier = 1f;
         ensureMarineSheet();
+        ensureTileSheet();
         rebuild();
+    }
+
+    /**
+     * Lazy-loads the battle tileset on first attach. Reads the raw PNG to
+     * capture content dimensions — {@code SpriteAPI.getTextureWidth()} reports
+     * the POT-padded texture size, but per-tile UV math needs the content
+     * width to compute texture-fraction coords correctly. Cached across attach
+     * calls; survives screen re-entry without re-decoding the PNG.
+     */
+    private void ensureTileSheet() {
+        if (tileSheetLoadAttempted) return;
+        tileSheetLoadAttempted = true;
+        try {
+            Global.getSettings().loadTexture(TileManifest.SHEET);
+            tileSheet = Global.getSettings().getSprite(TileManifest.SHEET);
+            if (tileSheet == null) {
+                LOG.warn("BattleScreen: getSprite returned null for " + TileManifest.SHEET);
+                return;
+            }
+            try (java.io.InputStream stream = Global.getSettings().openStream(TileManifest.SHEET)) {
+                BufferedImage img = ImageIO.read(stream);
+                if (img == null) {
+                    LOG.warn("BattleScreen: ImageIO.read returned null for " + TileManifest.SHEET);
+                    tileSheet = null;
+                    return;
+                }
+                tileSheetPxW = img.getWidth();
+                tileSheetPxH = img.getHeight();
+                LOG.info("BattleScreen: loaded tileset " + TileManifest.SHEET
+                        + " (" + tileSheetPxW + "x" + tileSheetPxH + ")");
+            }
+        } catch (Exception e) {
+            LOG.error("BattleScreen: failed to load tileset " + TileManifest.SHEET, e);
+            tileSheet = null;
+        }
     }
 
     /**
@@ -238,6 +287,7 @@ public class BattleScreen implements Screen {
         if (sim != null) {
             renderGrid(sim.getGrid(), alphaMult);
             renderUnits(sim.getUnits(), alphaMult);
+            renderShots(sim.getActiveShots(), alphaMult);
         }
 
         renderSpeedMarker(alphaMult);
@@ -251,43 +301,156 @@ public class BattleScreen implements Screen {
 
     // ---- rendering ---------------------------------------------------------
 
+    /** Hide grid lines below this cell size — at small scales they read as visual noise rather than structure. */
+    private static final float GRID_LINE_MIN_CELL = 16f;
+
+    /**
+     * Renders walkable cells as floor tiles from the manifest's floor pool and
+     * non-walkable cells as wall variants from the manifest's wall pool. Both
+     * picks are deterministic via {@link #cellHash} so tiles stay stable across
+     * frames and reload — no flicker.
+     *
+     * <p>Walls render with a 2-tall source frame squashed into one cell. No
+     * directional / autotile inspection — the source sheet's wall inventory
+     * doesn't form a clean autotile pattern. Variety comes from the pool;
+     * edge / corner pieces wait for a later polish pass.
+     */
+    private void renderTiledFloorsAndWalls(NavigationGrid grid, float alphaMult) {
+        float texW = tileSheet.getTextureWidth();
+        float texH = tileSheet.getTextureHeight();
+        float texXScale = texW / tileSheetPxW;
+        float texYScale = texH / tileSheetPxH;
+        int sheetPxH = tileSheetPxH;
+
+        TileManifest.TileFrame[] floorPool = TileManifest.FLOOR_POOL;
+        TileManifest.TileFrame[] wallPool  = TileManifest.WALL_POOL;
+
+        // Floor pass — every walkable cell gets a pool sample.
+        for (int y = 0; y < grid.getHeight(); y++) {
+            for (int x = 0; x < grid.getWidth(); x++) {
+                if (!grid.isWalkable(x, y)) continue;
+                TileManifest.TileFrame f = floorPool[cellHash(x, y) % floorPool.length];
+                drawTile(f, x, y, texXScale, texYScale, sheetPxH, alphaMult);
+            }
+        }
+
+        // Wall pass — interior cells get the roof tile, edge cells get a pooled variant.
+        for (int y = 0; y < grid.getHeight(); y++) {
+            for (int x = 0; x < grid.getWidth(); x++) {
+                if (grid.isWalkable(x, y)) continue;
+                TileManifest.TileFrame tile = isInteriorWall(grid, x, y)
+                        ? TileManifest.INTERIOR_ROOF
+                        : wallPool[cellHash(x, y) % wallPool.length];
+                drawTile(tile, x, y, texXScale, texYScale, sheetPxH, alphaMult);
+            }
+        }
+    }
+
+    /** A wall cell is "interior" when all 4 cardinal neighbors are also walls (or out of bounds). */
+    private static boolean isInteriorWall(NavigationGrid grid, int x, int y) {
+        return isWallOrOob(grid, x + 1, y)
+                && isWallOrOob(grid, x - 1, y)
+                && isWallOrOob(grid, x, y + 1)
+                && isWallOrOob(grid, x, y - 1);
+    }
+
+    private static boolean isWallOrOob(NavigationGrid grid, int x, int y) {
+        if (!grid.inBounds(x, y)) return true;
+        return !grid.isWalkable(x, y);
+    }
+
+    /**
+     * Draws a single {@link TileManifest.TileFrame} into one grid cell. For
+     * frames with {@code heightTiles > 1} the source region is the full multi-row
+     * rectangle but the destination is always one cellSize × cellSize — so 2-tall
+     * walls render visually compressed but contain both upper and lower detail
+     * from the source pair.
+     */
+    private void drawTile(TileManifest.TileFrame f, int gridX, int gridY,
+                          float texXScale, float texYScale, int sheetPxH, float alphaMult) {
+        int srcPxX = f.col * TileManifest.TILE_SIZE;
+        int srcTopPxY = f.row * TileManifest.TILE_SIZE;
+        int srcPxW = TileManifest.TILE_SIZE;
+        int srcPxH = f.heightTiles * TileManifest.TILE_SIZE;
+
+        tileSheet.setTexX(srcPxX * texXScale);
+        tileSheet.setTexY((sheetPxH - (srcTopPxY + srcPxH)) * texYScale);
+        tileSheet.setTexWidth(srcPxW * texXScale);
+        tileSheet.setTexHeight(srcPxH * texYScale);
+        tileSheet.setSize(layout.cellSize, layout.cellSize);
+        tileSheet.setAlphaMult(alphaMult);
+        tileSheet.setColor(Color.WHITE);
+        tileSheet.setNormalBlend();
+
+        float cx = layout.gridX + (gridX + 0.5f) * layout.cellSize;
+        float cy = layout.gridY + (gridY + 0.5f) * layout.cellSize;
+        tileSheet.renderAtCenter(cx, cy);
+    }
+
+    /** Stable per-cell hash for picking from tile pools — same cell always picks the same tile. */
+    private static int cellHash(int x, int y) {
+        int h = x * 73856093 ^ y * 19349663;
+        return h & 0x7FFFFFFF;
+    }
+
     private void renderGrid(NavigationGrid grid, float alphaMult) {
-        // One big GL_QUADS pass — walls and floor in a single bind-free run.
         glDisable(GL_TEXTURE_2D);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        // One floor quad covering the whole arena. Acts as the floor color when
+        // the tileset hasn't loaded, and as a safety underlay if any tile sprite
+        // happens to be transparent.
+        glColor4f(FLOOR_COLOR.getRed() / 255f, FLOOR_COLOR.getGreen() / 255f,
+                FLOOR_COLOR.getBlue() / 255f, alphaMult);
         glBegin(GL_QUADS);
-        for (int y = 0; y < grid.getHeight(); y++) {
-            for (int x = 0; x < grid.getWidth(); x++) {
-                Color c = grid.isWalkable(x, y) ? FLOOR_COLOR : WALL_COLOR;
-                glColor4f(c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, alphaMult);
-                float x0 = layout.gridX + x * layout.cellSize;
-                float y0 = layout.gridY + y * layout.cellSize;
-                float x1 = x0 + layout.cellSize;
-                float y1 = y0 + layout.cellSize;
-                glVertex2f(x0, y0);
-                glVertex2f(x1, y0);
-                glVertex2f(x1, y1);
-                glVertex2f(x0, y1);
-            }
-        }
+        glVertex2f(layout.gridX,                  layout.gridY);
+        glVertex2f(layout.gridX + layout.gridW,   layout.gridY);
+        glVertex2f(layout.gridX + layout.gridW,   layout.gridY + layout.gridH);
+        glVertex2f(layout.gridX,                  layout.gridY + layout.gridH);
         glEnd();
 
-        // Subtle grid lines so cells read individually.
-        glColor4f(GRID_LINE.getRed() / 255f, GRID_LINE.getGreen() / 255f,
-                GRID_LINE.getBlue() / 255f, 0.4f * alphaMult);
-        glBegin(org.lwjgl.opengl.GL11.GL_LINES);
-        for (int x = 0; x <= grid.getWidth(); x++) {
-            float px = layout.gridX + x * layout.cellSize;
-            glVertex2f(px, layout.gridY);
-            glVertex2f(px, layout.gridY + layout.gridH);
+        if (tileSheet != null) {
+            renderTiledFloorsAndWalls(grid, alphaMult);
+        } else {
+            // Fallback — solid-color walls. Same path the renderer used before
+            // the tileset landed; kept so the sim still reads if texture load fails.
+            glColor4f(WALL_COLOR.getRed() / 255f, WALL_COLOR.getGreen() / 255f,
+                    WALL_COLOR.getBlue() / 255f, alphaMult);
+            glBegin(GL_QUADS);
+            for (int y = 0; y < grid.getHeight(); y++) {
+                for (int x = 0; x < grid.getWidth(); x++) {
+                    if (grid.isWalkable(x, y)) continue;
+                    float x0 = layout.gridX + x * layout.cellSize;
+                    float y0 = layout.gridY + y * layout.cellSize;
+                    float x1 = x0 + layout.cellSize;
+                    float y1 = y0 + layout.cellSize;
+                    glVertex2f(x0, y0);
+                    glVertex2f(x1, y0);
+                    glVertex2f(x1, y1);
+                    glVertex2f(x0, y1);
+                }
+            }
+            glEnd();
         }
-        for (int y = 0; y <= grid.getHeight(); y++) {
-            float py = layout.gridY + y * layout.cellSize;
-            glVertex2f(layout.gridX,                py);
-            glVertex2f(layout.gridX + layout.gridW, py);
+
+        // Grid lines — only when cells are big enough to read.
+        if (layout.cellSize >= GRID_LINE_MIN_CELL) {
+            glColor4f(GRID_LINE.getRed() / 255f, GRID_LINE.getGreen() / 255f,
+                    GRID_LINE.getBlue() / 255f, 0.4f * alphaMult);
+            glBegin(org.lwjgl.opengl.GL11.GL_LINES);
+            for (int x = 0; x <= grid.getWidth(); x++) {
+                float px = layout.gridX + x * layout.cellSize;
+                glVertex2f(px, layout.gridY);
+                glVertex2f(px, layout.gridY + layout.gridH);
+            }
+            for (int y = 0; y <= grid.getHeight(); y++) {
+                float py = layout.gridY + y * layout.cellSize;
+                glVertex2f(layout.gridX,                py);
+                glVertex2f(layout.gridX + layout.gridW, py);
+            }
+            glEnd();
         }
-        glEnd();
     }
 
     private void renderUnits(List<Unit> units, float alphaMult) {
@@ -374,6 +537,34 @@ public class BattleScreen implements Screen {
             float frac = Math.max(0f, Math.min(1f, u.hp / u.maxHp));
             fillRect(barX, barY, barW * frac, HP_BAR_H, HP_FG, alphaMult);
         }
+    }
+
+    /**
+     * Renders active tracers as faction-colored lines, fading alpha over
+     * remaining lifetime. Hits draw a clean shooter-to-target line; misses
+     * draw to the randomized near-miss endpoint baked into the {@link ShotEvent}
+     * on emit, so misses read as stray rounds whizzing past the target.
+     */
+    private void renderShots(List<ShotEvent> shots, float alphaMult) {
+        if (shots.isEmpty()) return;
+        glDisable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        org.lwjgl.opengl.GL11.glLineWidth(2f);
+        glBegin(org.lwjgl.opengl.GL11.GL_LINES);
+        for (ShotEvent s : shots) {
+            float t = Math.max(0f, Math.min(1f, s.lifetime / SHOT_LIFETIME_REF));
+            Color c = s.shooterFaction == Faction.MARINE ? MARINE_TRACER : DEFENDER_TRACER;
+            glColor4f(c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, t * alphaMult);
+            float x0 = layout.gridX + s.fromX * layout.cellSize;
+            float y0 = layout.gridY + s.fromY * layout.cellSize;
+            float x1 = layout.gridX + s.toX   * layout.cellSize;
+            float y1 = layout.gridY + s.toY   * layout.cellSize;
+            glVertex2f(x0, y0);
+            glVertex2f(x1, y1);
+        }
+        glEnd();
+        org.lwjgl.opengl.GL11.glLineWidth(1f);
     }
 
     private enum Facing { WEST, NORTH, EAST, SOUTH }

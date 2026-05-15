@@ -27,9 +27,14 @@ public class ClientListPanel extends OpsPanel {
     private static final float FOOTER_GAP    = 12f;
 
     private Runnable onBack;
+    private Runnable onTilesetDebug;
 
     public void setOnBack(Runnable onBack) {
         this.onBack = onBack;
+    }
+
+    public void setOnTilesetDebug(Runnable onTilesetDebug) {
+        this.onTilesetDebug = onTilesetDebug;
     }
 
     @Override
@@ -39,13 +44,23 @@ public class ClientListPanel extends OpsPanel {
 
     @Override
     protected void onLayout(WidgetRoot widgets) {
-        // Back footer at column bottom
+        // Footer at column bottom — Back on the left, optional Tiles dev button on the right.
         if (onBack != null) {
-            ButtonWidget back = new ButtonWidget(rect.x, rect.y, rect.w, BACK_H, onBack);
+            float backW = onTilesetDebug != null ? rect.w * 0.55f - 4f : rect.w;
+            ButtonWidget back = new ButtonWidget(rect.x, rect.y, backW, BACK_H, onBack);
             widgets.add(back);
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                     Strings.get("actionBack"),
                     rect.x + 12f, rect.y + BACK_H - 6f, HEADER_COLOR));
+        }
+        if (onTilesetDebug != null) {
+            float devX = rect.x + rect.w * 0.55f + 4f;
+            float devW = rect.w * 0.45f - 4f;
+            ButtonWidget tiles = new ButtonWidget(devX, rect.y, devW, BACK_H, onTilesetDebug);
+            widgets.add(tiles);
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    "Tiles",
+                    devX + 12f, rect.y + BACK_H - 6f, HEADER_COLOR));
         }
 
         // Client rows — top-down from the column top

@@ -10,5 +10,6 @@ public enum ScreenId {
     MISSION_SELECT,
     BRIEFING,
     BATTLE,
-    RESULTS
+    RESULTS,
+    TILESET_DEBUG
 }

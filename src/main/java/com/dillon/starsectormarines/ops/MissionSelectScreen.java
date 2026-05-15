@@ -66,6 +66,7 @@ public class MissionSelectScreen implements Screen {
         layout = new ColumnLayout(position);
 
         clientList.setOnBack(dismissDialog);
+        clientList.setOnTilesetDebug(() -> ctx.goTo(ScreenId.TILESET_DEBUG));
         clientList.attach(layout.left,   ctx, widgets);
         tacticalMap.attach(layout.middle, ctx, widgets);
         planetIntel.attach(layout.right, ctx, widgets);
