@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.marine.MarineCaptain;
+import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.FactionAPI;
 import com.fs.starfarer.api.campaign.PlanetAPI;
@@ -41,6 +43,8 @@ public class MarineOpsContext {
 
     private Client selectedClient;
     private Mission selectedMission;
+    /** Captain chosen to lead the accepted mission. Sticky across screen swaps. */
+    private String selectedCaptainId;
     private ScreenId currentScreen = ScreenId.MISSION_SELECT;
 
     /** Mission lists cached per client so positions stay stable across re-layouts. */
@@ -84,6 +88,27 @@ public class MarineOpsContext {
     /** Request a screen transition; the plugin observes this and re-attaches. */
     public void goTo(ScreenId screen) {
         this.currentScreen = screen;
+    }
+
+    public String getSelectedCaptainId() {
+        return selectedCaptainId;
+    }
+
+    public void setSelectedCaptainId(String captainId) {
+        this.selectedCaptainId = captainId;
+    }
+
+    /**
+     * Resolves the selected captain id against the live roster. Returns null if
+     * nothing is selected, the roster script isn't installed, or the captain id
+     * no longer exists (e.g. dismissed mid-flight). Call sites should re-check
+     * status if they need {@code ACTIVE}-only.
+     */
+    public MarineCaptain getSelectedCaptain() {
+        if (selectedCaptainId == null) return null;
+        MarineRosterScript script = MarineRosterScript.getInstance();
+        if (script == null) return null;
+        return script.roster().byId(selectedCaptainId);
     }
 
     /**

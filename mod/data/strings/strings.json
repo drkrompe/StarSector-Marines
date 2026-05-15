@@ -40,6 +40,8 @@
 
 		# Briefing screen
 		"briefingHeader":         "Briefing",
-		"briefingAccept":         "Accept Mission"
+		"briefingAccept":         "Accept Mission",
+		"briefingSquadLead":      "Squad Lead",
+		"briefingNoCaptains":     "No captains on roster"
 	}
 }

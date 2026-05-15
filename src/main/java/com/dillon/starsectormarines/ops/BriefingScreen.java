@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.marine.MarineCaptain;
+import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.LabelWidget;
@@ -72,6 +74,9 @@ public class BriefingScreen implements Screen {
     private static final float RETICLE_INNER = 6f;
     private static final float RETICLE_OUTER = 18f;
 
+    private static final float SQUAD_ROW_H   = 32f;
+    private static final float SQUAD_ROW_GAP = 4f;
+
     private final WidgetRoot widgets = new WidgetRoot();
 
     private PositionAPI position;
@@ -90,6 +95,16 @@ public class BriefingScreen implements Screen {
         if (position == null || ctx == null) return;
         layout = new BriefingLayout(position);
 
+        // Default to the first ACTIVE captain if nothing's selected yet — saves
+        // a click for the common case. User's pick survives across re-attaches.
+        if (ctx.getSelectedCaptainId() == null) {
+            MarineRosterScript script = MarineRosterScript.getInstance();
+            if (script != null) {
+                java.util.List<MarineCaptain> active = script.roster().active();
+                if (!active.isEmpty()) ctx.setSelectedCaptainId(active.get(0).id());
+            }
+        }
+
         Mission m = ctx.getSelectedMission();
 
         // Map zone header — mission name (large)
@@ -103,6 +118,7 @@ public class BriefingScreen implements Screen {
                 layout.infoZone.x, layout.infoZone.headerTextY, HEADER_COLOR));
 
         if (m != null) buildInfoRows(m);
+        if (m != null) buildSquadSection(m);
         buildButtons();
     }
 
@@ -148,6 +164,48 @@ public class BriefingScreen implements Screen {
         flavorW = layout.infoZone.w - 2 * INNER_PAD;
     }
 
+    private void buildSquadSection(Mission m) {
+        float x = layout.infoZone.x + INNER_PAD;
+        float w = layout.infoZone.w - 2 * INNER_PAD;
+
+        // Position below flavor — pre-measure with the same wrap width so
+        // the section moves down by however many lines the prose takes.
+        float flavorHeight = m.flavor != null
+                ? Fonts.ORBITRON_20.measureWrappedHeight(m.flavor, flavorW)
+                : 0f;
+        float sectionTop = flavorY - flavorHeight - SECTION_GAP;
+
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                Strings.get("briefingSquadLead"),
+                x, sectionTop, HEADER_COLOR));
+
+        // Captain rows fill from below the header down to where the buttons begin.
+        float listTop = sectionTop - 28f;
+        float buttonsTop = layout.infoZone.y + INNER_PAD + BTN_H + SECTION_GAP;
+
+        MarineRosterScript script = MarineRosterScript.getInstance();
+        java.util.List<MarineCaptain> captains = script != null
+                ? script.roster().active()
+                : java.util.Collections.<MarineCaptain>emptyList();
+
+        if (captains.isEmpty()) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    Strings.get("briefingNoCaptains"),
+                    x, listTop, LABEL_COLOR));
+            return;
+        }
+
+        float rowY = listTop - SQUAD_ROW_H;
+        for (MarineCaptain c : captains) {
+            if (rowY < buttonsTop) break; // out of room, overflow handled in a polish pass
+            widgets.add(new CaptainRowWidget(
+                    c, x, rowY, w, SQUAD_ROW_H,
+                    ctx::getSelectedCaptainId,
+                    ctx::setSelectedCaptainId));
+            rowY -= SQUAD_ROW_H + SQUAD_ROW_GAP;
+        }
+    }
+
     private void buildButtons() {
         float availableW = layout.infoZone.w - 2 * INNER_PAD;
         float btnW = (availableW - BTN_GAP) / 2f;
@@ -169,7 +227,10 @@ public class BriefingScreen implements Screen {
     private void onAccept() {
         Mission m = ctx.getSelectedMission();
         if (m == null) return;
-        LOG.info("MarineOps: accept mission id=" + m.id + " name='" + m.name + "'");
+        MarineCaptain c = ctx.getSelectedCaptain();
+        String captainStr = c != null ? c.id() + " (" + c.name() + ")" : "none";
+        LOG.info("MarineOps: accept mission id=" + m.id + " name='" + m.name
+                + "' captain=" + captainStr);
         // Mission resolution (consume marines, roll outcome, apply XP/casualties) lands next slice.
     }
 
