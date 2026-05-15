@@ -19,6 +19,9 @@
 		"intelSizeLabel":         "Population:",
 		"intelConditionsLabel":   "Conditions:",
 		"intelUninhabited":       "Uninhabited",
-		"intelSizeFmt":           "Class {0}"
+		"intelSizeFmt":           "Class {0}",
+
+		# Client list row labels
+		"clientLockedHostile":    "Hostile - unreachable"
 	}
 }

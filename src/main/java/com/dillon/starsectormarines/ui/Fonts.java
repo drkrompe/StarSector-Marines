@@ -13,9 +13,11 @@ public final class Fonts {
 
     private Fonts() {}
 
+    // UI minimum is Orbitron 20 — Victor 10 / similar small fonts are deliberately
+    // not exposed here. Past playtest feedback: small fonts are unreadable in this
+    // dense 3-column layout. Re-add only if a specific secondary-text need arises.
     public static final BitmapFont ORBITRON_20 = new BitmapFont("graphics/fonts/orbitron20aa.fnt");
     public static final BitmapFont ORBITRON_20_BOLD = new BitmapFont("graphics/fonts/orbitron20aabold.fnt");
     public static final BitmapFont ORBITRON_24_BOLD = new BitmapFont("graphics/fonts/orbitron24aabold.fnt");
-    public static final BitmapFont VICTOR_10 = new BitmapFont("graphics/fonts/victor10.fnt");
     public static final BitmapFont INSIGNIA_LARGE = new BitmapFont("graphics/fonts/insignia21LTaa.fnt");
 }
