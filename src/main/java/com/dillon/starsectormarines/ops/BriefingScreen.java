@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.BattleSetup;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -231,7 +232,11 @@ public class BriefingScreen implements Screen {
         String captainStr = c != null ? c.id() + " (" + c.name() + ")" : "none";
         LOG.info("MarineOps: accept mission id=" + m.id + " name='" + m.name
                 + "' captain=" + captainStr);
-        // Mission resolution (consume marines, roll outcome, apply XP/casualties) lands next slice.
+
+        // Spin up a fresh battle simulation and hand off to the BATTLE screen.
+        // Placeholder map until mission-driven map generation lands.
+        ctx.setBattleSimulation(BattleSetup.createPlaceholder());
+        ctx.goTo(ScreenId.BATTLE);
     }
 
     private void onBack() {

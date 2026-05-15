@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.fs.starfarer.api.Global;
@@ -45,6 +46,8 @@ public class MarineOpsContext {
     private Mission selectedMission;
     /** Captain chosen to lead the accepted mission. Sticky across screen swaps. */
     private String selectedCaptainId;
+    /** Current battle simulation — built by BriefingScreen.onAccept, read by BattleScreen. */
+    private BattleSimulation battleSimulation;
     private ScreenId currentScreen = ScreenId.MISSION_SELECT;
 
     /** Mission lists cached per client so positions stay stable across re-layouts. */
@@ -109,6 +112,14 @@ public class MarineOpsContext {
         MarineRosterScript script = MarineRosterScript.getInstance();
         if (script == null) return null;
         return script.roster().byId(selectedCaptainId);
+    }
+
+    public BattleSimulation getBattleSimulation() {
+        return battleSimulation;
+    }
+
+    public void setBattleSimulation(BattleSimulation simulation) {
+        this.battleSimulation = simulation;
     }
 
     /**

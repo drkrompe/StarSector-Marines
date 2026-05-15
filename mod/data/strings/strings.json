@@ -42,6 +42,14 @@
 		"briefingHeader":         "Briefing",
 		"briefingAccept":         "Accept Mission",
 		"briefingSquadLead":      "Squad Lead",
-		"briefingNoCaptains":     "No captains on roster"
+		"briefingNoCaptains":     "No captains on roster",
+
+		# Battle screen
+		"battleSpeedPause":       "Pause",
+		"battleSpeed1x":          "1x",
+		"battleSpeed2x":          "2x",
+		"battleSpeed4x":          "4x",
+		"battleVictory":          "Victory",
+		"battleDefeat":           "Defeat"
 	}
 }
