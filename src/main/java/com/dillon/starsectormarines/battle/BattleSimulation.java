@@ -3,11 +3,15 @@ package com.dillon.starsectormarines.battle;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Queue;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * Headless auto-battler simulation. Owns the {@link NavigationGrid}, the unit
@@ -70,8 +74,31 @@ public class BattleSimulation {
 
     private final NavigationGrid grid;
     private final List<Unit> units = new ArrayList<>();
+    private final List<Shuttle> shuttles = new ArrayList<>();
     private final List<ShotEvent> activeShots = new ArrayList<>();
     private final Random rng = new Random();
+
+    /** Counter for IDs of marines deboarded from shuttles. Bumped per spawn — "m0", "m1", ... like the pre-shuttle setup. */
+    private int deboardedMarineCount = 0;
+    /** Max BFS radius from the LZ when looking for a free deboard cell. Past this we drop the deboard for this tick. */
+    private static final int DEBOARD_SCAN_RADIUS = 5;
+
+    /** Visual scale of a shuttle at cruising altitude (sells "I am up high"). Lerped down to 1.0 at touchdown. */
+    private static final float SHUTTLE_CRUISE_SCALE = 1.5f;
+    /** Per-leg max bow as a fraction of the leg's chord length. Capped by {@link #SHUTTLE_CURVE_ABS_MAX} to keep long legs from arcing across the map. */
+    private static final float SHUTTLE_CURVE_REL_MAX = 0.15f;
+    /** Absolute cell-cap on the perpendicular bow. */
+    private static final float SHUTTLE_CURVE_ABS_MAX = 8f;
+    /** Floor so even short legs get a little wobble — straight-line shuttles read as cardboard. */
+    private static final float SHUTTLE_CURVE_MIN = 1.5f;
+    /** Frequency (Hz) of the in-flight scale wobble. Slower than a heartbeat — reads as atmospheric drift, not a flicker. */
+    private static final float SHUTTLE_WOBBLE_HZ = 0.7f;
+    /** Peak amplitude of the wobble, in scale units. ±0.04 on top of a 1.5 cruise = ~2.7%; well inside the 5% target. */
+    private static final float SHUTTLE_WOBBLE_AMPLITUDE = 0.04f;
+    /** Curve-strength multiplier for the DEPARTING leg — wider bow than INCOMING so takeoff reads as a banking loop, not a straight climb. */
+    private static final float SHUTTLE_DEPART_CURVE_MULT = 2.5f;
+    /** Fraction of the DEPARTING leg over which facing eases from landed direction into the leg tangent. */
+    private static final float SHUTTLE_DEPART_FACING_EASE = 0.4f;
 
     /** Per-cell unit count, rebuilt at the start of each tick. Passed to the pathfinder so units route around ally-held cells. */
     private final byte[] occupancyMap;
@@ -87,12 +114,17 @@ public class BattleSimulation {
 
     public NavigationGrid getGrid()        { return grid; }
     public List<Unit> getUnits()           { return units; }
+    public List<Shuttle> getShuttles()     { return shuttles; }
     public List<ShotEvent> getActiveShots(){ return activeShots; }
     public boolean isComplete()            { return complete; }
     public Faction getWinner()             { return winner; }
 
     public void addUnit(Unit u) {
         units.add(u);
+    }
+
+    public void addShuttle(Shuttle s) {
+        shuttles.add(s);
     }
 
     /**
@@ -116,6 +148,9 @@ public class BattleSimulation {
             if (!u.isAlive()) continue;
             updateUnit(u);
         }
+        // Shuttles tick AFTER units so new deboarded marines aren't iterated
+        // mid-loop. They'll be picked up by next tick's occupancy + target pass.
+        advanceShuttles();
         advanceShots();
         checkWinCondition();
     }
@@ -500,8 +535,21 @@ public class BattleSimulation {
             if (!u.isAlive()) continue;
             if (u.faction == Faction.MARINE)        marineAlive = true;
             else if (u.faction == Faction.DEFENDER) defenderAlive = true;
-            if (marineAlive && defenderAlive) return; // both sides still in
         }
+        // Pending / inbound / deboarding shuttles count as marines-in-play —
+        // otherwise the first tick would insta-complete as defender win before
+        // any marine has touched the ground.
+        if (!marineAlive) {
+            for (Shuttle s : shuttles) {
+                if (s.marinesRemaining > 0
+                        && s.state != Shuttle.State.DEPARTING
+                        && s.state != Shuttle.State.GONE) {
+                    marineAlive = true;
+                    break;
+                }
+            }
+        }
+        if (marineAlive && defenderAlive) return;
         complete = true;
         winner = marineAlive ? Faction.MARINE
                 : (defenderAlive ? Faction.DEFENDER : null);
@@ -511,5 +559,224 @@ public class BattleSimulation {
         float dx = x1 - x0;
         float dy = y1 - y0;
         return (float) Math.sqrt(dx * dx + dy * dy);
+    }
+
+    /**
+     * Advances each shuttle's state machine by one tick. PENDING burns down the
+     * stagger delay; INCOMING/DEPARTING fly along their entry→LZ / LZ→exit
+     * vectors at {@link ShuttleType#flightSpeed}; LANDED ticks a deboard timer
+     * and spawns a marine on each fire.
+     */
+    private void advanceShuttles() {
+        for (Shuttle s : shuttles) {
+            switch (s.state) {
+                case PENDING:
+                    s.pendingDelay -= TICK_DT;
+                    if (s.pendingDelay <= 0f) {
+                        setupShuttleLeg(s, s.entryX, s.entryY, s.lzX, s.lzY, 1f);
+                        s.state = Shuttle.State.INCOMING;
+                    }
+                    break;
+
+                case INCOMING:
+                    if (stepShuttleAlongLeg(s, s.entryX, s.entryY, s.lzX, s.lzY)) {
+                        // Snap to LZ on touchdown — sin² envelope is zero at endpoint
+                        // so this matches the curve's natural value, but be explicit.
+                        s.worldX = s.lzX;
+                        s.worldY = s.lzY;
+                        s.scaleMult = 1f;
+                        s.landedFacing = s.facingDegrees;
+                        s.state = Shuttle.State.LANDED;
+                        s.deboardCountdown = s.type.deboardInterval;
+                    }
+                    break;
+
+                case LANDED:
+                    s.deboardCountdown -= TICK_DT;
+                    if (s.deboardCountdown <= 0f && s.marinesRemaining > 0) {
+                        if (tryDeboardMarine(s)) {
+                            s.marinesRemaining--;
+                        }
+                        s.deboardCountdown = s.type.deboardInterval;
+                    }
+                    if (s.marinesRemaining == 0) {
+                        setupShuttleLeg(s, s.lzX, s.lzY, s.exitX, s.exitY, SHUTTLE_DEPART_CURVE_MULT);
+                        s.state = Shuttle.State.DEPARTING;
+                    }
+                    break;
+
+                case DEPARTING:
+                    if (stepShuttleAlongLeg(s, s.lzX, s.lzY, s.exitX, s.exitY)) {
+                        s.state = Shuttle.State.GONE;
+                    }
+                    break;
+
+                case GONE:
+                default:
+                    break;
+            }
+        }
+    }
+
+    /**
+     * Initializes a shuttle's progress, chord length, and randomized curve
+     * params for a new leg. {@code strengthMult} scales both the floor and
+     * cap of the random curve strength — INCOMING passes 1.0 for a gentle
+     * approach; DEPARTING passes a larger value so takeoff bows wide enough
+     * to read as a banking loop.
+     *
+     * <p>Does NOT overwrite {@code facingDegrees} — the first tick of
+     * {@link #stepShuttleAlongLeg} computes facing from the tangent (or, for
+     * DEPARTING, eases from the preserved {@code landedFacing}).
+     */
+    private void setupShuttleLeg(Shuttle s, float fromX, float fromY, float toX, float toY, float strengthMult) {
+        s.legProgress = 0f;
+        float dx = toX - fromX;
+        float dy = toY - fromY;
+        s.legChordLength = Math.max(0.001f, (float) Math.sqrt(dx * dx + dy * dy));
+        float cap = Math.min(s.legChordLength * SHUTTLE_CURVE_REL_MAX, SHUTTLE_CURVE_ABS_MAX) * strengthMult;
+        float floor = Math.min(SHUTTLE_CURVE_MIN * strengthMult, cap);
+        s.curveStrength = floor + rng.nextFloat() * Math.max(0f, cap - floor);
+        s.curveSide = rng.nextBoolean() ? 1 : -1;
+        s.flightPhase = rng.nextFloat() * (float) (2 * Math.PI);
+        s.worldX = fromX;
+        s.worldY = fromY;
+    }
+
+    /**
+     * Advances the shuttle one tick along the current leg's curved path and
+     * updates its world position, facing tangent, and scale multiplier. Returns
+     * {@code true} the tick the shuttle reaches the leg's endpoint (caller
+     * transitions to the next state).
+     *
+     * <p>Path is a straight-line interpolation plus a perpendicular bow with
+     * a sin² envelope:
+     * <pre>{@code
+     *   pos(t) = lerp(from, to, t) + perp * sin²(πt) * strength * side
+     * }</pre>
+     * The sin² envelope is zero AND has zero derivative at both endpoints, so
+     * facing exactly matches the straight-line direction at entry and
+     * touchdown — no banked-landing artifact — while the midflight tangent
+     * rotates smoothly through the curve.
+     */
+    private boolean stepShuttleAlongLeg(Shuttle s, float fromX, float fromY, float toX, float toY) {
+        s.legProgress += (s.type.flightSpeed * TICK_DT) / s.legChordLength;
+        boolean done = s.legProgress >= 1f;
+        if (done) s.legProgress = 1f;
+        float t = s.legProgress;
+
+        float legDx = toX - fromX;
+        float legDy = toY - fromY;
+        float perpX = -legDy / s.legChordLength;
+        float perpY =  legDx / s.legChordLength;
+
+        // sin²(πt) envelope. Peaks at t=0.5; zero (with zero slope) at t=0 and t=1.
+        float sinPiT = (float) Math.sin(t * Math.PI);
+        float envelope = sinPiT * sinPiT;
+        float bow = envelope * s.curveStrength * s.curveSide;
+
+        float linearX = fromX + legDx * t;
+        float linearY = fromY + legDy * t;
+        s.worldX = linearX + perpX * bow;
+        s.worldY = linearY + perpY * bow;
+
+        // Tangent for facing: d/dt of position. d(sin²(πt))/dt = π·sin(2πt).
+        float dEnvelopeDt = (float) (Math.PI * Math.sin(2.0 * Math.PI * t));
+        float dBowDt = dEnvelopeDt * s.curveStrength * s.curveSide;
+        float tangentX = legDx + perpX * dBowDt;
+        float tangentY = legDy + perpY * dBowDt;
+        float tangentFacing = Shuttle.facingTowards(0f, 0f, tangentX, tangentY);
+
+        // Departure pivot — for the first SHUTTLE_DEPART_FACING_EASE of progress,
+        // smoothly rotate from the held landed facing into the leg tangent.
+        // Smoothstep (3t²-2t³) gives an ease-in-out so the rotation accelerates
+        // away from the landed pose and decelerates into the cruise heading.
+        if (s.state == Shuttle.State.DEPARTING && t < SHUTTLE_DEPART_FACING_EASE) {
+            float u = t / SHUTTLE_DEPART_FACING_EASE;
+            float ease = u * u * (3f - 2f * u);
+            s.facingDegrees = lerpAngleDeg(s.landedFacing, tangentFacing, ease);
+        } else {
+            s.facingDegrees = tangentFacing;
+        }
+
+        // Altitude scale — cruise on entry, ground at touchdown. Mirrored on takeoff.
+        // INCOMING: t=0 → cruise, t=1 → 1.0. DEPARTING: t=0 → 1.0, t=1 → cruise.
+        float altitudeT = (s.state == Shuttle.State.DEPARTING) ? t : (1f - t);
+        float baseScale = 1f + (SHUTTLE_CRUISE_SCALE - 1f) * altitudeT;
+        // In-flight wobble. Tapered with the same sin² envelope as the bow so
+        // it's zero (and zero-slope) at the endpoints — touchdown snaps cleanly
+        // to the cruise→1.0 baseline with no wobble residue.
+        s.flightPhase += TICK_DT * 2f * (float) Math.PI * SHUTTLE_WOBBLE_HZ;
+        float wobble = (float) Math.sin(s.flightPhase) * SHUTTLE_WOBBLE_AMPLITUDE * envelope;
+        s.scaleMult = baseScale + wobble;
+        return done;
+    }
+
+    /**
+     * Finds a free cell adjacent to the LZ and spawns a marine there as a fresh
+     * {@link Unit}. Returns {@code false} when no nearby cell is available this
+     * tick (rare — only happens if the area around the LZ is fully clogged with
+     * units or walls); caller leaves {@code marinesRemaining} unchanged and the
+     * shuttle re-tries next interval.
+     */
+    private boolean tryDeboardMarine(Shuttle s) {
+        int lzCellX = (int) Math.floor(s.lzX);
+        int lzCellY = (int) Math.floor(s.lzY);
+        int[] cell = findDeboardCell(lzCellX, lzCellY);
+        if (cell == null) return false;
+        Unit marine = new Unit("m" + deboardedMarineCount++, s.faction, cell[0], cell[1]);
+        addUnit(marine);
+        return true;
+    }
+
+    /**
+     * BFS outward from the LZ cell for the first walkable, unoccupied cell at
+     * distance >= 1. Distance 0 (the LZ itself) is skipped so the marine
+     * sprite doesn't draw directly under the parked shuttle. Returns
+     * {@code null} if no eligible cell is found within {@link #DEBOARD_SCAN_RADIUS}.
+     */
+    private int[] findDeboardCell(int lzX, int lzY) {
+        Set<Long> seen = new HashSet<>();
+        Queue<int[]> q = new ArrayDeque<>();
+        q.add(new int[]{lzX, lzY, 0});
+        seen.add(((long) lzX << 32) | (lzY & 0xFFFFFFFFL));
+        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        while (!q.isEmpty()) {
+            int[] p = q.poll();
+            if (p[2] > DEBOARD_SCAN_RADIUS) continue;
+            if (p[2] > 0
+                    && grid.inBounds(p[0], p[1])
+                    && grid.isWalkable(p[0], p[1])
+                    && !cellHasLiveUnit(p[0], p[1])) {
+                return new int[]{p[0], p[1]};
+            }
+            for (int[] d : dirs) {
+                int nx = p[0] + d[0];
+                int ny = p[1] + d[1];
+                if (!grid.inBounds(nx, ny)) continue;
+                long k = ((long) nx << 32) | (ny & 0xFFFFFFFFL);
+                if (!seen.add(k)) continue;
+                q.add(new int[]{nx, ny, p[2] + 1});
+            }
+        }
+        return null;
+    }
+
+    private boolean cellHasLiveUnit(int x, int y) {
+        for (Unit u : units) {
+            if (!u.isAlive()) continue;
+            if (u.cellX == x && u.cellY == y) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Linearly interpolates between two angles in degrees, taking the shortest
+     * arc through the ±180° wrap. Standard ({@code (b-a+540) mod 360 - 180})
+     * trick to fold the delta into the [-180, 180] range before scaling.
+     */
+    private static float lerpAngleDeg(float a, float b, float t) {
+        float delta = ((b - a + 540f) % 360f) - 180f;
+        return a + t * delta;
     }
 }

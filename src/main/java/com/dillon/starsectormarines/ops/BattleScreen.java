@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.BattleSetup;
 import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.ShotEvent;
+import com.dillon.starsectormarines.battle.Shuttle;
+import com.dillon.starsectormarines.battle.ShuttleType;
 import com.dillon.starsectormarines.battle.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.SpriteSheetSlicer;
 import com.dillon.starsectormarines.battle.TileManifest;
@@ -116,6 +118,24 @@ public class BattleScreen implements Screen {
     private int tileSheetPxH;
     private boolean tileSheetLoadAttempted;
 
+    /**
+     * Cached shuttle sprite + natural aspect ratio (width/height) per ShuttleType.
+     * Captured at load time before any setSize call mutates getWidth/getHeight.
+     * EnumMap is overkill for one variant today; map keeps the door open for
+     * Valkyrie + heavier dropships in Phase 2 without restructuring.
+     */
+    private final java.util.EnumMap<ShuttleType, ShuttleSpriteCache> shuttleSprites = new java.util.EnumMap<>(ShuttleType.class);
+    private boolean shuttleSpritesLoadAttempted;
+
+    private static final class ShuttleSpriteCache {
+        final SpriteAPI sprite;
+        final float aspect;
+        ShuttleSpriteCache(SpriteAPI sprite, float aspect) {
+            this.sprite = sprite;
+            this.aspect = aspect;
+        }
+    }
+
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
         this.position = position;
@@ -123,6 +143,7 @@ public class BattleScreen implements Screen {
         this.speedMultiplier = 1f;
         ensureMarineSheet();
         ensureTileSheet();
+        ensureShuttleSprites();
         rebuild();
     }
 
@@ -158,6 +179,36 @@ public class BattleScreen implements Screen {
         } catch (Exception e) {
             LOG.error("BattleScreen: failed to load tileset " + TileManifest.SHEET, e);
             tileSheet = null;
+        }
+    }
+
+    /**
+     * Lazy-loads each {@link ShuttleType}'s sprite via the vanilla path lookup.
+     * Captures the natural aspect ratio before any setSize call mutates it, so
+     * render math can preserve the ship's drawn proportions across cellSize
+     * changes. Same lazy-load pattern as the marine sheet — getSprite returns
+     * a wrapper whose backing texture is null until loadTexture is called.
+     */
+    private void ensureShuttleSprites() {
+        if (shuttleSpritesLoadAttempted) return;
+        shuttleSpritesLoadAttempted = true;
+        for (ShuttleType type : ShuttleType.values()) {
+            try {
+                Global.getSettings().loadTexture(type.spritePath);
+                SpriteAPI sprite = Global.getSettings().getSprite(type.spritePath);
+                if (sprite == null) {
+                    LOG.warn("BattleScreen: getSprite returned null for " + type.spritePath);
+                    continue;
+                }
+                float w = sprite.getWidth();
+                float h = sprite.getHeight();
+                float aspect = (h > 0f) ? w / h : 1f;
+                shuttleSprites.put(type, new ShuttleSpriteCache(sprite, aspect));
+                LOG.info("BattleScreen: loaded shuttle " + type.spritePath
+                        + " (" + w + "x" + h + ", aspect=" + aspect + ")");
+            } catch (Exception e) {
+                LOG.error("BattleScreen: failed to load shuttle sprite " + type.spritePath, e);
+            }
         }
     }
 
@@ -287,6 +338,9 @@ public class BattleScreen implements Screen {
         if (sim != null) {
             renderGrid(sim.getGrid(), alphaMult);
             renderUnits(sim.getUnits(), alphaMult);
+            // Shuttles draw over units — flying shuttles are above the ground;
+            // landed shuttles cover the LZ cell that marines deboarded off of.
+            renderShuttles(sim.getShuttles(), alphaMult);
             renderShots(sim.getActiveShots(), alphaMult);
         }
 
@@ -536,6 +590,42 @@ public class BattleScreen implements Screen {
             fillRect(barX, barY, barW, HP_BAR_H, HP_BG, alphaMult);
             float frac = Math.max(0f, Math.min(1f, u.hp / u.maxHp));
             fillRect(barX, barY, barW * frac, HP_BAR_H, HP_FG, alphaMult);
+        }
+    }
+
+    /**
+     * Renders each visible shuttle as a rotated sprite at its world position.
+     * Length is {@link ShuttleType#visualLengthCells} cell-widths in the
+     * sprite's forward (height) axis; width is derived from the cached natural
+     * aspect ratio so taller-than-wide ship sprites render with their drawn
+     * proportions intact.
+     */
+    private void renderShuttles(List<Shuttle> shuttles, float alphaMult) {
+        if (shuttles.isEmpty()) return;
+        for (Shuttle s : shuttles) {
+            if (!s.isVisible()) continue;
+            ShuttleSpriteCache cache = shuttleSprites.get(s.type);
+            if (cache == null) continue;
+            SpriteAPI sprite = cache.sprite;
+            // scaleMult drives the altitude lerp (cruise → 1.0 across the leg)
+            // plus the in-flight wobble. Multiplied through both axes so the
+            // sprite keeps its native aspect.
+            float pxLen = s.type.visualLengthCells * layout.cellSize * s.scaleMult;
+            float pxH = pxLen;
+            float pxW = pxLen * cache.aspect;
+            sprite.setSize(pxW, pxH);
+            sprite.setAngle(s.facingDegrees);
+            sprite.setAlphaMult(alphaMult);
+            sprite.setNormalBlend();
+            sprite.setColor(Color.WHITE);
+            float cx = layout.gridX + s.worldX * layout.cellSize;
+            float cy = layout.gridY + s.worldY * layout.cellSize;
+            sprite.renderAtCenter(cx, cy);
+        }
+        // Reset angle so the singleton sprite doesn't carry our rotation
+        // into whatever else might draw it.
+        for (ShuttleSpriteCache cache : shuttleSprites.values()) {
+            cache.sprite.setAngle(0f);
         }
     }
 
