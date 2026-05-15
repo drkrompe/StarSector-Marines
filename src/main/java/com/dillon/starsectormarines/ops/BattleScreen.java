@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.BattleSetup;
 import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.SpriteSheetFrames;
+import com.dillon.starsectormarines.battle.SpriteSheetSlicer;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.i18n.Strings;
@@ -16,7 +18,9 @@ import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
 import org.apache.log4j.Logger;
 
+import javax.imageio.ImageIO;
 import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.util.List;
 
 import static org.lwjgl.opengl.GL11.GL_BLEND;
@@ -72,12 +76,6 @@ public class BattleScreen implements Screen {
 
     /** Marine sprite sheet path (Starsector resource lookup). */
     private static final String MARINE_SHEET  = "graphics/battle/marine.png";
-    /**
-     * Slot count across the sheet. 8 slots reserved for an even power-of-2 strip,
-     * 7 actually drawn — slot 7 is intentionally empty (south weapon-up is a
-     * vertical flip of slot 6).
-     */
-    private static final int   SHEET_SLOTS    = 8;
     /** Window (s) after a unit fires during which we show the weapon-up pose. */
     private static final float WEAPON_UP_TIME = 0.25f;
     /** Multiplicative tint applied to defender sprites (marines are untinted). */
@@ -101,6 +99,8 @@ public class BattleScreen implements Screen {
     private boolean lastSimComplete;
     /** Cached marine sprite sheet — lazy-loaded once per Screen lifetime. Null if load failed. */
     private SpriteAPI marineSheet;
+    /** Detected sprite bounding boxes on {@link #marineSheet}. Null until sheet is loaded. */
+    private SpriteSheetFrames marineFrames;
     private boolean marineSheetLoadAttempted;
 
     @Override
@@ -113,10 +113,16 @@ public class BattleScreen implements Screen {
     }
 
     /**
-     * Lazy-loads the marine sprite sheet on first attach. {@code getSprite}
-     * alone returns a wrapper whose backing texture is null until
-     * {@code loadTexture} is called — same pattern BitmapFont uses for font
-     * pages. Survives across multiple attach calls via the cached field.
+     * Lazy-loads the marine sprite sheet on first attach and auto-slices it
+     * into per-frame bounding boxes. {@code getSprite} alone returns a wrapper
+     * whose backing texture is null until {@code loadTexture} is called — same
+     * pattern BitmapFont uses for font pages. Survives across multiple attach
+     * calls via the cached fields.
+     *
+     * <p>{@link SpriteSheetSlicer} runs on the raw PNG bytes via
+     * {@code openStream + ImageIO} — it handles both clean uniform-grid sheets
+     * (the reference marine sprite) and AI-generated sheets with irregular
+     * sprite spacing, so we don't have to keep the source art on a strict grid.
      */
     private void ensureMarineSheet() {
         if (marineSheetLoadAttempted) return;
@@ -126,10 +132,22 @@ public class BattleScreen implements Screen {
             marineSheet = Global.getSettings().getSprite(MARINE_SHEET);
             if (marineSheet == null) {
                 LOG.warn("BattleScreen: getSprite returned null for " + MARINE_SHEET);
+                return;
+            }
+            try (java.io.InputStream stream = Global.getSettings().openStream(MARINE_SHEET)) {
+                BufferedImage img = ImageIO.read(stream);
+                if (img == null) {
+                    LOG.warn("BattleScreen: ImageIO.read returned null for " + MARINE_SHEET);
+                    return;
+                }
+                marineFrames = SpriteSheetSlicer.slice(img);
+                LOG.info("BattleScreen: auto-sliced " + MARINE_SHEET + " — "
+                        + marineFrames.frames.length + " frames detected");
             }
         } catch (Exception e) {
             LOG.error("BattleScreen: failed to load marine sheet " + MARINE_SHEET, e);
             marineSheet = null;
+            marineFrames = null;
         }
     }
 
@@ -277,10 +295,12 @@ public class BattleScreen implements Screen {
         float half = unitSize / 2f;
 
         SpriteAPI sheet = marineSheet;
-        if (sheet != null) {
+        SpriteSheetFrames frames = marineFrames;
+        if (sheet != null && frames != null && frames.frames.length > 0) {
             float texW = sheet.getTextureWidth();
             float texH = sheet.getTextureHeight();
-            float frameW = texW / SHEET_SLOTS;
+            int sheetW = frames.sheetWidth;
+            int sheetH = frames.sheetHeight;
 
             for (Unit u : units) {
                 if (!u.isAlive()) continue;
@@ -289,19 +309,28 @@ public class BattleScreen implements Screen {
                 boolean weaponUp = u.cooldownTimer > (u.attackCooldown - WEAPON_UP_TIME)
                         && u.cooldownTimer > 0f;
                 int frameIdx = pickFrame(facing, weaponUp);
+                if (frameIdx >= frames.frames.length) frameIdx = 0; // safety
                 boolean flipY = weaponUp && facing == Facing.SOUTH;
+                SpriteSheetFrames.Frame f = frames.frames[frameIdx];
 
-                sheet.setTexX(frameIdx * frameW);
-                sheet.setTexWidth(frameW);
+                // Convert pixel bbox into the texture-fraction coords setTex* expects.
+                // V is measured from the bottom of the texture in Starsector's GL convention.
+                sheet.setTexX((float) f.x * texW / sheetW);
+                sheet.setTexWidth((float) f.w * texW / sheetW);
                 if (flipY) {
-                    // Vertical mirror of slot 6 (weapon-up north) to fake south.
-                    sheet.setTexY(texH);
-                    sheet.setTexHeight(-texH);
+                    // Vertical mirror — negative texHeight, anchor at the top of the frame.
+                    sheet.setTexY((float) (sheetH - f.y) * texH / sheetH);
+                    sheet.setTexHeight(-(float) f.h * texH / sheetH);
                 } else {
-                    sheet.setTexY(0f);
-                    sheet.setTexHeight(texH);
+                    sheet.setTexY((float) (sheetH - f.y - f.h) * texH / sheetH);
+                    sheet.setTexHeight((float) f.h * texH / sheetH);
                 }
-                sheet.setSize(unitSize, unitSize);
+
+                // Preserve the frame's aspect ratio so weapon-up poses with extended
+                // guns can be wider than idle poses without squishing.
+                float targetH = unitSize;
+                float targetW = targetH * f.w / (float) f.h;
+                sheet.setSize(targetW, targetH);
                 sheet.setAlphaMult(alphaMult);
                 sheet.setNormalBlend();
                 sheet.setColor(u.faction == Faction.MARINE ? Color.WHITE : DEFENDER_TINT);
