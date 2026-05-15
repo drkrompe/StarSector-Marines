@@ -5,7 +5,9 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.apache.log4j.Logger;
 
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.lwjgl.opengl.GL11.GL_BLEND;
@@ -93,6 +95,91 @@ public class BitmapFont {
         if (!ensureLoaded()) return;
         if (s == null || s.isEmpty()) return;
 
+        beginTextDraw(color, alphaMult);
+        glBegin(GL_QUADS);
+        emitLineQuads(s, x, y);
+        glEnd();
+        endTextDraw();
+    }
+
+    /**
+     * Wraps {@code s} to {@code maxWidth} and draws starting with the top of the first line
+     * at (x, y) — same coord convention as {@link #drawString}. Wraps at whitespace; falls
+     * back to char-break for words longer than maxWidth. {@code '\n'} is a hard break.
+     * Returns total height consumed (line count * lineHeight).
+     */
+    public float drawStringWrapped(String s, float x, float y, float maxWidth, Color color, float alphaMult) {
+        if (!ensureLoaded()) return 0f;
+        if (s == null || s.isEmpty()) return 0f;
+
+        List<String> lines = wrapLines(s, maxWidth);
+        if (lines.isEmpty()) return 0f;
+
+        beginTextDraw(color, alphaMult);
+        // Single glBegin/glEnd across every glyph on every line — cheaper than per-line.
+        glBegin(GL_QUADS);
+        for (int i = 0; i < lines.size(); i++) {
+            emitLineQuads(lines.get(i), x, y - lineHeight * i);
+        }
+        glEnd();
+        endTextDraw();
+
+        return lines.size() * (float) lineHeight;
+    }
+
+    /** Preflight: returns the height {@link #drawStringWrapped} would consume, without drawing. */
+    public float measureWrappedHeight(String s, float maxWidth) {
+        if (!ensureLoaded() || s == null || s.isEmpty()) return 0f;
+        return wrapLines(s, maxWidth).size() * (float) lineHeight;
+    }
+
+    /** Helper that returns the wrapped lines (exposed in case callers need finer control). */
+    public List<String> wrapLines(String s, float maxWidth) {
+        List<String> out = new ArrayList<>();
+        if (s == null || s.isEmpty()) return out;
+        if (!ensureLoaded()) {
+            out.add(s);
+            return out;
+        }
+
+        // maxWidth <= 0 means no width-based wrapping; still honor hard breaks.
+        boolean noWrap = maxWidth <= 0f;
+
+        // Split into hard-break paragraphs first; each gets word-wrapped independently.
+        int n = s.length();
+        int paraStart = 0;
+        for (int i = 0; i <= n; i++) {
+            if (i == n || s.charAt(i) == '\n') {
+                String paragraph = s.substring(paraStart, i);
+                if (noWrap) {
+                    out.add(paragraph);
+                } else {
+                    wrapParagraph(paragraph, maxWidth, out);
+                }
+                paraStart = i + 1;
+            }
+        }
+        return out;
+    }
+
+    public float measureWidth(String s) {
+        if (!ensureLoaded() || s == null) return 0f;
+        float w = 0f;
+        for (int i = 0; i < s.length(); i++) {
+            Glyph g = glyphs.get((int) s.charAt(i));
+            if (g != null) w += g.xadvance;
+        }
+        return w;
+    }
+
+    public int getLineHeight() {
+        return lineHeight;
+    }
+
+    // ---- internal helpers -------------------------------------------------
+
+    /** Sets shader / blend / color / texture binding shared by all text draws. */
+    private void beginTextDraw(Color color, float alphaMult) {
         glUseProgram(0);
         glEnable(GL_TEXTURE_2D);
         glEnable(GL_BLEND);
@@ -103,12 +190,19 @@ public class BitmapFont {
                 color.getGreen() / 255f,
                 color.getBlue()  / 255f,
                 color.getAlpha() / 255f * alphaMult);
+    }
 
+    private void endTextDraw() {
+        glDisable(GL_TEXTURE_2D);
+    }
+
+    /** Emits textured quads for one line. Caller must wrap with glBegin/glEnd(GL_QUADS). */
+    private void emitLineQuads(String s, float x, float y) {
+        if (s == null || s.isEmpty()) return;
         float texU = page.getTextureWidth();
         float texV = page.getTextureHeight();
 
         float cursorX = x;
-        glBegin(GL_QUADS);
         for (int i = 0; i < s.length(); i++) {
             Glyph g = glyphs.get((int) s.charAt(i));
             if (g == null) continue;
@@ -130,23 +224,100 @@ public class BitmapFont {
             }
             cursorX += g.xadvance;
         }
-        glEnd();
-
-        glDisable(GL_TEXTURE_2D);
     }
 
-    public float measureWidth(String s) {
-        if (!ensureLoaded() || s == null) return 0f;
-        float w = 0f;
-        for (int i = 0; i < s.length(); i++) {
-            Glyph g = glyphs.get((int) s.charAt(i));
-            if (g != null) w += g.xadvance;
+    /** Greedy word-wrap for one paragraph (no embedded '\n'). Appends one or more lines to out. */
+    private void wrapParagraph(String paragraph, float maxWidth, List<String> out) {
+        if (paragraph.isEmpty()) {
+            out.add("");
+            return;
         }
-        return w;
+
+        StringBuilder current = new StringBuilder();
+        float currentWidth = 0f;
+        boolean sawAnyWord = false;
+
+        int n = paragraph.length();
+        int i = 0;
+        while (i < n) {
+            // Skip a run of whitespace between words. A leading space on a new line is dropped.
+            while (i < n && isWrapSpace(paragraph.charAt(i))) i++;
+            if (i >= n) break;
+
+            // Find end of this word (next whitespace or end-of-string).
+            int wordEnd = i;
+            while (wordEnd < n && !isWrapSpace(paragraph.charAt(wordEnd))) wordEnd++;
+            String word = paragraph.substring(i, wordEnd);
+            i = wordEnd;
+            sawAnyWord = true;
+
+            float wordWidth = measureWidth(word);
+            float spaceWidth = current.length() == 0 ? 0f : measureWidth(" ");
+
+            if (current.length() == 0) {
+                // First word on the line: take it as-is, char-break only if it itself overflows.
+                if (wordWidth <= maxWidth) {
+                    current.append(word);
+                    currentWidth = wordWidth;
+                } else {
+                    charBreakWord(word, maxWidth, out, current);
+                    currentWidth = measureWidth(current.toString());
+                }
+            } else if (currentWidth + spaceWidth + wordWidth <= maxWidth) {
+                current.append(' ').append(word);
+                currentWidth += spaceWidth + wordWidth;
+            } else {
+                // Word doesn't fit on current line: flush and start fresh.
+                out.add(current.toString());
+                current.setLength(0);
+                currentWidth = 0f;
+                if (wordWidth <= maxWidth) {
+                    current.append(word);
+                    currentWidth = wordWidth;
+                } else {
+                    charBreakWord(word, maxWidth, out, current);
+                    currentWidth = measureWidth(current.toString());
+                }
+            }
+        }
+
+        if (current.length() > 0) out.add(current.toString());
+        else if (!sawAnyWord) out.add(""); // whitespace-only paragraph still consumes a line
     }
 
-    public int getLineHeight() {
-        return lineHeight;
+    /** Spaces/tabs separate words during wrapping. '\n' is consumed by the paragraph splitter. */
+    private static boolean isWrapSpace(char c) {
+        return c == ' ' || c == '\t';
+    }
+
+    /**
+     * Splits a word that's longer than maxWidth into char-sized chunks. Fills the current
+     * line first (if non-empty, it gets flushed), then keeps emitting full lines, leaving
+     * any leftover tail in {@code current} for subsequent words to extend.
+     */
+    private void charBreakWord(String word, float maxWidth, List<String> out, StringBuilder current) {
+        // Flush any existing content first so the broken word starts on a fresh line.
+        if (current.length() > 0) {
+            out.add(current.toString());
+            current.setLength(0);
+        }
+
+        StringBuilder chunk = new StringBuilder();
+        float chunkWidth = 0f;
+        for (int i = 0; i < word.length(); i++) {
+            char c = word.charAt(i);
+            Glyph g = glyphs.get((int) c);
+            float adv = g == null ? 0f : g.xadvance;
+            if (chunk.length() > 0 && chunkWidth + adv > maxWidth) {
+                out.add(chunk.toString());
+                chunk.setLength(0);
+                chunkWidth = 0f;
+            }
+            chunk.append(c);
+            chunkWidth += adv;
+        }
+        // Leave the trailing partial chunk in current so the next word can extend the line.
+        current.append(chunk);
     }
 
     /** Returns the page file name from the manifest. */
