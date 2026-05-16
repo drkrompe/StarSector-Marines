@@ -23,8 +23,9 @@ package com.dillon.starsectormarines.battle;
  *       objective. Fires opportunistically en route.</li>
  *   <li>{@link #FLEE} — non-combatant who panics when combatants get close.
  *       Used by ambient civilians (CIVILIAN/ENGINEER/SCIENTIST types) — they
- *       wander idle until gunfire enters their perception, then path away from
- *       the threat toward the nearest map edge. Distinct from VIP, which is a
+ *       wander between random nearby cells with brief dwell pauses until
+ *       gunfire enters their perception, then path away from the threat
+ *       toward the nearest map edge. Distinct from VIP, which is a
  *       mission-controlled non-combatant with an exfil objective.</li>
  * </ul>
  *

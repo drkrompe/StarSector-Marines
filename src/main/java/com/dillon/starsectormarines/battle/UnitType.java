@@ -22,11 +22,11 @@ public enum UnitType {
     MILITIA    ("graphics/battle/militia.png",     true,  15f, 1.5f, 2.0f, 0.22f, 1.2f, 18.0f),
     /** Hostile fauna / xeno boarder. Aggressive brawler — high HP, high damage, slightly faster, mid accuracy. */
     ALIEN      ("graphics/battle/alien.png",       true,  30f, 3.0f, 2.2f, 0.32f, 1.1f, 22.0f),
-    /** Random urban resident. Flees gunfire. Non-combatant; combat stats are unused but kept zero-safe. */
+    /** Random urban resident. Wanders the map and flees gunfire. Non-combatant; combat stats are unused but kept zero-safe. */
     CIVILIAN   ("graphics/battle/civilian.png",    false,  8f, 0f,   2.4f, 0f,    1f,   0f),
-    /** Maintenance / industrial worker. Same role as civilian — flees. */
+    /** Maintenance / industrial worker. Same role as civilian — wanders, flees. */
     ENGINEER   ("graphics/battle/engineer.png",    false, 10f, 0f,   2.2f, 0f,    1f,   0f),
-    /** Lab tech. Same role as civilian — flees. Lower HP than engineer; same speed. */
+    /** Lab tech. Same role as civilian — wanders, flees. Lower HP than engineer; same speed. */
     SCIENTIST  ("graphics/battle/scientist.png",   false,  8f, 0f,   2.2f, 0f,    1f,   0f);
 
     public final String spritePath;

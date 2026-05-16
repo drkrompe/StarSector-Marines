@@ -72,6 +72,9 @@ public class Unit {
     public int fallbackCellX = -1;
     public int fallbackCellY = -1;
 
+    /** {@link UnitRole#FLEE} idle pause between wander legs. While >0 the civilian stands at their current cell instead of picking a new destination. Rolled fresh on arrival; ignored when a threat is in range. */
+    public float wanderDwellTimer = 0f;
+
     public Unit(String id, Faction faction, UnitType type, int cellX, int cellY) {
         this.id = id;
         this.faction = faction;

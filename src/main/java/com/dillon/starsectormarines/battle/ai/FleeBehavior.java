@@ -6,12 +6,23 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.Collections;
+import java.util.Random;
 
 /**
- * Non-combatant panic behavior. The unit wanders idle until any armed unit
- * comes within {@link #PERCEPTION_RADIUS} cells — then it picks a flee target
- * on the opposite side of the map from the nearest threat and paths there.
- * On arrival (or when the threat clears) it idles again.
+ * Non-combatant ambient behavior. Two modes, gated by whether an armed unit is
+ * within {@link #PERCEPTION_RADIUS} cells of the civilian:
+ *
+ * <ul>
+ *   <li><b>Threatened</b> — picks a flee target on the opposite side of the map
+ *       from the nearest threat and paths there. Re-picks after
+ *       {@link #REPATH_CELL_THRESHOLD} cells of progress so the destination
+ *       tracks the threat's motion.</li>
+ *   <li><b>Idle</b> — wanders. The civilian walks to a random walkable cell
+ *       within {@link #WANDER_MAX_RADIUS} cells, dwells there
+ *       {@link #DWELL_MIN_SECONDS}..{@link #DWELL_MAX_SECONDS} seconds, then
+ *       picks a new destination. Produces foot traffic on the map without any
+ *       authored waypoint data.</li>
+ * </ul>
  *
  * <p>Civilians never fire and don't pick combat targets; they're invisible to
  * {@link TacticalScoring#findBestTarget} (which filters by combatant flag) so
@@ -28,21 +39,36 @@ public final class FleeBehavior implements UnitBehavior {
     /** Minimum cell-distance the flee destination must be from the threat. Anything closer doesn't count as "away" and is rejected in favor of staying put. */
     private static final float MIN_DISTANCE_FROM_THREAT = 8f;
 
+    /** Minimum cell radius of a wander leg. Below this it reads as fidgeting instead of going somewhere. */
+    private static final int   WANDER_MIN_RADIUS = 4;
+    /** Maximum cell radius of a wander leg. Capped so civilians don't cross the whole map per trip — they look like they have local errands. */
+    private static final int   WANDER_MAX_RADIUS = 14;
+    /** Random destination sampling attempts before giving up this tick. A failure rolls a short dwell and we try again later. */
+    private static final int   WANDER_SAMPLE_ATTEMPTS = 8;
+    /** Dwell range when a civilian arrives at a wander destination. Long enough that 8 ambient civilians don't all look like they're sprint-pacing. */
+    private static final float DWELL_MIN_SECONDS = 3f;
+    private static final float DWELL_MAX_SECONDS = 8f;
+    /** Short dwell when we couldn't find a wander cell this tick. Avoids re-rolling the (expensive) sample loop every single tick. */
+    private static final float FAILED_SAMPLE_DWELL = 1f;
+
     private FleeBehavior() {}
 
     @Override
     public void update(Unit u, BattleSimulation sim) {
         Unit threat = findNearestThreat(u, sim);
-        if (threat == null) {
-            // Nothing scary nearby — stop where we are. Civilians don't wander
-            // procedurally; standing around looking at phones is in-character.
-            sim.setPath(u, Collections.emptyList());
-            u.moveProgress = 0f;
-            u.renderX = u.cellX;
-            u.renderY = u.cellY;
+        if (threat != null) {
+            updateFleeing(u, threat, sim);
             return;
         }
+        updateIdle(u, sim);
+    }
 
+    /**
+     * Threat present — rebuild the flee path periodically and run. Cancels any
+     * in-flight wander dwell so the civilian doesn't stand around mid-panic.
+     */
+    private static void updateFleeing(Unit u, Unit threat, BattleSimulation sim) {
+        u.wanderDwellTimer = 0f;
         boolean needsRepath = u.path.isEmpty()
                 || u.pathIdx >= u.path.size()
                 || cellsTraveled(u) >= REPATH_CELL_THRESHOLD;
@@ -51,6 +77,44 @@ public final class FleeBehavior implements UnitBehavior {
             if (dest != null) {
                 sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), u.cellX, u.cellY, dest[0], dest[1], sim.getOccupancyMap()));
             }
+        }
+        sim.advanceMovement(u);
+    }
+
+    /**
+     * No threat in range — wander. Advances any active wander path; on arrival
+     * starts a dwell, and when dwell expires picks a new destination.
+     */
+    private static void updateIdle(Unit u, BattleSimulation sim) {
+        if (!u.path.isEmpty() && u.pathIdx < u.path.size()) {
+            sim.advanceMovement(u);
+            if (u.pathIdx >= u.path.size()) {
+                // Arrived this tick — clear the path and start dwelling.
+                sim.setPath(u, Collections.emptyList());
+                u.wanderDwellTimer = randomDwellSeconds(sim.getRng());
+            }
+            return;
+        }
+
+        if (u.wanderDwellTimer > 0f) {
+            u.wanderDwellTimer -= BattleSimulation.TICK_DT;
+            u.renderX = u.cellX;
+            u.renderY = u.cellY;
+            u.moveProgress = 0f;
+            return;
+        }
+
+        if (u.moveProgress != 0f) return;
+        int[] dest = pickWanderDestination(u, sim);
+        if (dest == null) {
+            u.wanderDwellTimer = FAILED_SAMPLE_DWELL;
+            return;
+        }
+        sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), u.cellX, u.cellY, dest[0], dest[1], sim.getOccupancyMap()));
+        if (u.path.isEmpty()) {
+            // Pathfinder found no route (isolated room, blocked by walls). Dwell briefly and try elsewhere.
+            u.wanderDwellTimer = FAILED_SAMPLE_DWELL;
+            return;
         }
         sim.advanceMovement(u);
     }
@@ -109,6 +173,34 @@ public final class FleeBehavior implements UnitBehavior {
             }
         }
         return best;
+    }
+
+    /**
+     * Samples random cells inside a square ring around the civilian and returns
+     * the first walkable one at least {@link #WANDER_MIN_RADIUS} cells away.
+     * Square-ring sampling is biased toward the corners but is cheap and the
+     * bias doesn't read in motion — the destinations still look local.
+     */
+    private static int[] pickWanderDestination(Unit u, BattleSimulation sim) {
+        NavigationGrid grid = sim.getGrid();
+        Random rng = sim.getRng();
+        int span = WANDER_MAX_RADIUS * 2 + 1;
+        for (int i = 0; i < WANDER_SAMPLE_ATTEMPTS; i++) {
+            int dx = rng.nextInt(span) - WANDER_MAX_RADIUS;
+            int dy = rng.nextInt(span) - WANDER_MAX_RADIUS;
+            if (Math.abs(dx) + Math.abs(dy) < WANDER_MIN_RADIUS) continue;
+            int cx = u.cellX + dx;
+            int cy = u.cellY + dy;
+            if (!grid.inBounds(cx, cy)) continue;
+            if (!grid.isWalkable(cx, cy)) continue;
+            if (cx == u.cellX && cy == u.cellY) continue;
+            return new int[]{cx, cy};
+        }
+        return null;
+    }
+
+    private static float randomDwellSeconds(Random rng) {
+        return DWELL_MIN_SECONDS + rng.nextFloat() * (DWELL_MAX_SECONDS - DWELL_MIN_SECONDS);
     }
 
     /**
