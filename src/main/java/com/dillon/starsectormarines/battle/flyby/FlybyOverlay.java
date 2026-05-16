@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.ops.BattleLayout;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.apache.log4j.Logger;
+import org.lwjgl.util.vector.Vector2f;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -63,10 +64,8 @@ public final class FlybyOverlay {
     private static final String SPRITE_ENGINE_GLOW  = "graphics/fx/engineglow32.png";
 
     // ---- Spawn pacing ---------------------------------------------------------
-    private static final float SPAWN_GAP_MIN = 4f;
-    private static final float SPAWN_GAP_MAX = 10f;
-    private static final float SPAWN_INITIAL_DELAY = 3f;
-    private static final int MAX_CONCURRENT = 4;
+    /** Safety cap on simultaneous flybys. The roster's own schedule normally keeps things sane; this protects against an over-eager mission roll. */
+    private static final int MAX_CONCURRENT = 6;
     /** Cells of off-map slack a fighter spawns / despawns past. */
     private static final float OFFMAP_PAD = 8f;
 
@@ -92,8 +91,10 @@ public final class FlybyOverlay {
     private static final float STRAFE_CONE_HALF_DEG = 40f;
     private static final float STRAFE_RANGE_CELLS   = 14f;
     private static final float STRAFE_REARM_SEC     = 3.5f;
-    /** Per-shot pitch jitter (±). Wide because Starsector's sound system collapses repeated same-id playUISound calls into a single voice when pitch is identical — varying the pitch keeps each round audible. */
+    /** Per-shot pitch jitter (±). Wide because the sound system folds identical-pitch repeats into a single voice; varying the pitch keeps each round audible. */
     private static final float SFX_PITCH_JITTER     = 0.15f;
+    /** Cells → OpenAL world units, for positional fire/listener placement. 30 puts a typical battlefield (~24 cells) at ~720 units — vanilla-combat-ish scale where the engine's distance attenuation reads cleanly. */
+    private static final float AUDIO_WORLD_UNITS_PER_CELL = 30f;
 
     // ---- Deliberate strafing run (multi-target AoE) ---------------------------
     /** Sim-seconds between cluster scans during CRUISE. Cheap loop, but no need to run it every tick. */
@@ -151,7 +152,15 @@ public final class FlybyOverlay {
     private boolean spritesLoadAttempted;
 
     private final Random rng = new Random();
-    private float spawnTimer = SPAWN_INITIAL_DELAY;
+
+    /** Sim-seconds since the current battle started — drives roster spawn scheduling. Reset when the sim instance changes. */
+    private float simTime = 0f;
+    /** Identity of the last sim we ticked; on change we treat it as a new battle and reset spawn tracking + visual state. */
+    private BattleSimulation lastSim;
+    /** Roster currently being driven; cached for change-detection. */
+    private FlybyRoster lastRoster;
+    /** Sortie counter per wing in {@link #lastRoster}, parallel to its wings list. */
+    private int[] sortiesSpawned = new int[0];
 
     /**
      * Drives the overlay one sim-time step. Pass the same {@code dt} you feed
@@ -160,17 +169,29 @@ public final class FlybyOverlay {
      */
     public void advance(float dt, BattleSimulation sim, BattleLayout layout) {
         if (dt <= 0f || layout == null) return;
+        // Park the OpenAL listener at the battlefield center so positional fire
+        // sounds pan / attenuate around a fixed observer. setListenerPosOverrideOneFrame
+        // is a one-frame override, so we re-arm it every advance — same pattern as playUILoop.
+        // Outside a CombatEngine the listener has no other driver, so this is the only place
+        // it gets set; if we later add a scrolling camera, swap this for camera-center.
+        float gridCellsW = layout.gridW / Math.max(0.001f, layout.cellSize);
+        float gridCellsH = layout.gridH / Math.max(0.001f, layout.cellSize);
+        Global.getSoundPlayer().setListenerPosOverrideOneFrame(new Vector2f(
+                (gridCellsW * 0.5f) * AUDIO_WORLD_UNITS_PER_CELL,
+                (gridCellsH * 0.5f) * AUDIO_WORLD_UNITS_PER_CELL));
+        // New battle? Wipe state — between-battle leftovers shouldn't bleed into the next mission.
+        if (sim != lastSim) {
+            lastSim = sim;
+            resetForNewBattle();
+        }
         // Freeze the overlay once the sim resolves — no new spawns, no fire,
         // no damage. Existing fighters and particles stop in place; the
         // victory / defeat banner reads cleanly without flyby losses
         // continuing to mutate the casualty count.
         if (sim != null && sim.isComplete()) return;
 
-        spawnTimer -= dt;
-        if (spawnTimer <= 0f && fighters.size() < MAX_CONCURRENT) {
-            spawnFighter(layout);
-            spawnTimer = SPAWN_GAP_MIN + rng.nextFloat() * (SPAWN_GAP_MAX - SPAWN_GAP_MIN);
-        }
+        simTime += dt;
+        maybeSpawnFromRoster(sim, layout);
 
         applyDogfightAggro();
 
@@ -607,7 +628,14 @@ public final class FlybyOverlay {
     private void playFireSound(Fighter f) {
         float pitch = f.profile.fireSoundPitch
                 + (rng.nextFloat() * 2f - 1f) * SFX_PITCH_JITTER;
-        Global.getSoundPlayer().playUISound(f.profile.fireSoundId, pitch, f.profile.fireSoundVolume);
+        // playSound (not playUISound) — vanilla weapon SFX are mono, which is what
+        // the positional pipeline requires; UI-routed mono buffers play silently.
+        // Location + velocity feed OpenAL spatialization + Doppler for fast banking jets.
+        Vector2f loc = new Vector2f(f.worldX * AUDIO_WORLD_UNITS_PER_CELL,
+                                    f.worldY * AUDIO_WORLD_UNITS_PER_CELL);
+        Vector2f vel = new Vector2f(f.vx * AUDIO_WORLD_UNITS_PER_CELL,
+                                    f.vy * AUDIO_WORLD_UNITS_PER_CELL);
+        Global.getSoundPlayer().playSound(f.profile.fireSoundId, pitch, f.profile.fireSoundVolume, loc, vel);
     }
 
     /** Pairwise proximity check for dogfight aggro. O(n²) but n ≤ MAX_CONCURRENT. */
@@ -628,12 +656,40 @@ public final class FlybyOverlay {
     }
 
     /**
-     * Spawns a fighter at a random map edge with a base heading toward the
-     * opposite edge. Stores entry + exit so cruise weave can resolve to a
-     * coherent through-line and post-RUN re-cruise re-anchors to the original
-     * exit (rather than drifting toward the strafe centroid).
+     * Walks the active roster's wings and spawns any sortie whose schedule has
+     * come due. Sortie {@code k} of a wing fires at {@code firstArrivalSec + k * spawnIntervalSec}.
+     * {@link #MAX_CONCURRENT} acts as a backstop for pathological rosters; the
+     * generator normally schedules wings far enough apart that we never hit it.
      */
-    private void spawnFighter(BattleLayout layout) {
+    private void maybeSpawnFromRoster(BattleSimulation sim, BattleLayout layout) {
+        if (sim == null) return;
+        FlybyRoster roster = sim.getFlybyRoster();
+        if (roster == null || roster.isEmpty()) return;
+
+        // Re-arm sortie tracking if the roster object changed under us — e.g. a
+        // re-attach with a different mission while the FlybyOverlay instance is reused.
+        if (roster != lastRoster) {
+            lastRoster = roster;
+            sortiesSpawned = new int[roster.wings.size()];
+        }
+
+        for (int i = 0; i < roster.wings.size(); i++) {
+            if (fighters.size() >= MAX_CONCURRENT) return;
+            FighterWing wing = roster.wings.get(i);
+            if (sortiesSpawned[i] >= wing.sortieCount) continue;
+            float nextSpawnAt = wing.firstArrivalSec + sortiesSpawned[i] * wing.spawnIntervalSec;
+            if (simTime < nextSpawnAt) continue;
+            spawnFromWing(wing, layout);
+            sortiesSpawned[i]++;
+        }
+    }
+
+    /**
+     * Spawns one fighter from a wing — wing dictates profile + side, the rest
+     * (entry edge, exit, speed, weave params) is rolled per-sortie so a wing's
+     * multiple sorties don't trace identical paths.
+     */
+    private void spawnFromWing(FighterWing wing, BattleLayout layout) {
         int gridCellsW = (int) (layout.gridW / Math.max(0.001f, layout.cellSize));
         int gridCellsH = (int) (layout.gridH / Math.max(0.001f, layout.cellSize));
         if (gridCellsW <= 0 || gridCellsH <= 0) return;
@@ -652,8 +708,8 @@ public final class FlybyOverlay {
         }
 
         Fighter f = new Fighter();
-        f.profile = FighterProfile.values()[rng.nextInt(FighterProfile.values().length)];
-        f.side = rng.nextBoolean() ? Faction.MARINE : Faction.DEFENDER;
+        f.profile = wing.profile;
+        f.side = wing.side;
         f.worldX = sx; f.worldY = sy;
         f.exitX = ex;  f.exitY = ey;
         f.speed = SPEED_MIN + rng.nextFloat() * (SPEED_MAX - SPEED_MIN);
@@ -665,6 +721,16 @@ public final class FlybyOverlay {
         f.weaveAmpDeg = WEAVE_AMP_DEG_MIN + rng.nextFloat() * (WEAVE_AMP_DEG_MAX - WEAVE_AMP_DEG_MIN);
         f.runScanTimer = RUN_TRIGGER_INTERVAL_SEC;
         fighters.add(f);
+    }
+
+    /** Clears all transient overlay state. Called when the sim instance changes — leftover fighters / sortie counters from the prior battle would otherwise bleed across. */
+    private void resetForNewBattle() {
+        fighters.clear();
+        tracers.clear();
+        particles.clear();
+        simTime = 0f;
+        lastRoster = null;
+        sortiesSpawned = new int[0];
     }
 
     private static boolean isOffMap(Fighter f, BattleLayout layout) {
