@@ -16,6 +16,8 @@ import java.util.Arrays;
  * <ul>
  *   <li>Bit 0: walkable (agent can stand here)</li>
  *   <li>Bit 1: floor (has a floor surface — currently informational only)</li>
+ *   <li>Bit 2: rubble (cell used to be a wall; now walkable but renders + scores
+ *       differently from a normal floor)</li>
  * </ul>
  *
  * <p>Edge passability byte layout:
@@ -32,6 +34,7 @@ public class NavigationGrid {
 
     private static final int WALKABLE_BIT = 0;
     private static final int FLOOR_BIT    = 1;
+    private static final int RUBBLE_BIT   = 2;
 
     /** Maximum cover level. 0 = open ground, MAX = heavy cover (all sides walled). */
     public static final int MAX_COVER = 3;
@@ -40,8 +43,10 @@ public class NavigationGrid {
     private final int height;
     private final byte[] cellFlags;
     private final byte[] edgePassability;
-    /** Per-cell cover level 0..{@link #MAX_COVER}. Baked once by the map generator from the surrounding wall layout; consulted at fire time for damage reduction and at scoring time for firing-position / fall-back preference. */
+    /** Per-cell cover level 0..{@link #MAX_COVER}. Initially baked by the map generator from the wall layout; locally recomputed when {@link #damageCell} flips a wall to rubble. */
     private final byte[] coverValues;
+    /** Per-cell wall hit points. Non-zero only for non-walkable cells initialized as walls; ignored once a cell becomes walkable (rubble or floor). */
+    private final int[] wallHp;
 
     public NavigationGrid(int width, int height) {
         this.width = width;
@@ -50,6 +55,7 @@ public class NavigationGrid {
         this.cellFlags = new byte[size];
         this.edgePassability = new byte[size];
         this.coverValues = new byte[size];
+        this.wallHp = new int[size];
     }
 
     public int getWidth()  { return width;  }
@@ -154,6 +160,70 @@ public class NavigationGrid {
         coverValues[index(x, y)] = (byte) clamped;
     }
 
+    /**
+     * Recomputes cover for the cell at (x, y) from its 4 cardinal neighbors —
+     * same rule as the map generator's initial bake, just one cell at a time.
+     * No-op for non-walkable cells (cover only applies to standable cells).
+     */
+    public void recomputeCoverAt(int x, int y) {
+        if (!inBounds(x, y) || !isWalkable(x, y)) return;
+        int walls = 0;
+        if (!isWalkable(x + 1, y)) walls++;
+        if (!isWalkable(x - 1, y)) walls++;
+        if (!isWalkable(x, y + 1)) walls++;
+        if (!isWalkable(x, y - 1)) walls++;
+        setCoverAt(x, y, walls);
+    }
+
+    // ----- Rubble + destructible walls -----
+
+    public boolean isRubble(int x, int y) {
+        if (!inBounds(x, y)) return false;
+        return (cellFlags[index(x, y)] & (1 << RUBBLE_BIT)) != 0;
+    }
+
+    /** Initial wall HP at (x, y). Caller sets this for non-walkable wall cells at map-gen time. */
+    public void setWallHp(int x, int y, int hp) {
+        if (!inBounds(x, y)) return;
+        wallHp[index(x, y)] = Math.max(0, hp);
+    }
+
+    public int getWallHp(int x, int y) {
+        if (!inBounds(x, y)) return 0;
+        return wallHp[index(x, y)];
+    }
+
+    /**
+     * Applies {@code amount} damage to a wall cell. Returns {@code true} the
+     * call that knocks the wall down — flipping it to walkable + rubble,
+     * opening its edges, and re-baking cover for the cell and its 4 cardinal
+     * neighbors. Idempotent on already-walkable cells (returns false).
+     *
+     * <p>The grid only ever becomes <em>more</em> permissive — rubble stays
+     * walkable forever. That sidesteps the "wall lands on a unit mid-path"
+     * invalidation problem: existing paths only ever gain shortcuts, never
+     * lose cells, so units pick up new routes on their next normal re-path.
+     */
+    public boolean damageCell(int x, int y, int amount) {
+        if (!inBounds(x, y) || amount <= 0) return false;
+        int idx = index(x, y);
+        if ((cellFlags[idx] & (1 << WALKABLE_BIT)) != 0) return false;
+        int remaining = wallHp[idx] - amount;
+        if (remaining > 0) {
+            wallHp[idx] = remaining;
+            return false;
+        }
+        wallHp[idx] = 0;
+        cellFlags[idx] |= (byte) ((1 << WALKABLE_BIT) | (1 << FLOOR_BIT) | (1 << RUBBLE_BIT));
+        edgePassability[idx] = (byte) 0xFF;
+        recomputeCoverAt(x, y);
+        recomputeCoverAt(x + 1, y);
+        recomputeCoverAt(x - 1, y);
+        recomputeCoverAt(x, y + 1);
+        recomputeCoverAt(x, y - 1);
+        return true;
+    }
+
     // ----- Raw arrays (for the pathfinder's hot path) -----
 
     public byte[] getCellFlagsArray()        { return cellFlags;       }
@@ -163,6 +233,7 @@ public class NavigationGrid {
         Arrays.fill(cellFlags, (byte) 0);
         Arrays.fill(edgePassability, (byte) 0);
         Arrays.fill(coverValues, (byte) 0);
+        Arrays.fill(wallHp, 0);
     }
 
     // ----- Line of sight -----

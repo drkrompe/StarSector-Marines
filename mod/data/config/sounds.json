@@ -108,4 +108,31 @@
 
 #collapseclose
 
+#collapseopen FLYBY OVERLAY SFX
+
+	# Re-uses vanilla weapon sounds — no redistribution, just resolves against the core install at runtime.
+	# Distinct ids per "feel" (heavy ballistic, light ballistic, energy, missile, impact) — fighters pick one in FighterProfile.
+
+	"marines_flyby_gun_heavy":[
+		{"file":"sounds/sfx_wpn_guns/chaingun_fire_01.ogg","pitch":1,"volume":0.5},
+		{"file":"sounds/sfx_wpn_guns/heavy_machinegun_fire_01.ogg","pitch":1,"volume":0.5},
+	],
+	"marines_flyby_gun_light":[
+		{"file":"sounds/sfx_wpn_guns/autocannon_fire_01.ogg","pitch":1,"volume":0.5},
+	],
+	"marines_flyby_gun_energy":[
+		{"file":"sounds/sfx_wpn_energy/heavy_blaster_fire_01.ogg","pitch":1,"volume":0.5},
+		{"file":"sounds/sfx_wpn_energy/autopulse_laser_fire_01.ogg","pitch":1,"volume":0.5},
+	],
+	"marines_flyby_missile":[
+		{"file":"sounds/sfx_wpn_missiles/atropos_fire_01.ogg","pitch":1,"volume":0.6},
+	],
+	"marines_flyby_impact":[
+		{"file":"sounds/sfx_impacts/beam_hit_01.ogg","pitch":1,"volume":0.4},
+		{"file":"sounds/sfx_impacts/beam_hit_02.ogg","pitch":1,"volume":0.4},
+		{"file":"sounds/sfx_impacts/beam_hit_03.ogg","pitch":1,"volume":0.4},
+	],
+
+#collapseclose
+
 }

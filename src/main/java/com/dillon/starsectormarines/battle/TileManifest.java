@@ -61,6 +61,18 @@ public final class TileManifest {
             wallPair(2, 7),
     };
 
+    /**
+     * Rubble variants — drawn on cells that used to be walls but have been
+     * destroyed and flipped to walkable. We re-use the corner-wall tiles that
+     * the floor pool deliberately excludes: they carry stray wall geometry,
+     * which reads exactly right as "this used to be a wall." Same pool / hash
+     * shape as {@link #FLOOR_POOL}, so the renderer treats them identically.
+     */
+    public static final TileFrame[] RUBBLE_POOL = {
+            floor(2, 1),
+            floor(3, 1),
+    };
+
     private TileManifest() {}
 
     private static TileFrame floor(int col, int row) {

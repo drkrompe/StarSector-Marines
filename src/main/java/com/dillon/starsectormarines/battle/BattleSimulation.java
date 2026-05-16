@@ -485,6 +485,26 @@ public class BattleSimulation {
     }
 
     /**
+     * Applies damage from an external source (flyby strafing run) to a unit
+     * already tracked by the sim. Mirrors the post-hit half of {@link #fireShot}:
+     * cover-reduces, applies HP, emits death + equipment drop if applicable.
+     * Skips accuracy roll (the overlay already decided the round connected) and
+     * fall-back (strafes pin you down rather than break contact). No
+     * {@link ShotEvent} is emitted — flyby tracers are drawn by the overlay
+     * itself, not the ground combat tracer pass.
+     */
+    public void applyExternalDamage(Unit target, float damage) {
+        if (target == null || !target.isAlive() || damage <= 0f) return;
+        int cover = grid.getCoverAt(target.cellX, target.cellY);
+        float dr = COVER_DAMAGE_REDUCTION[Math.min(cover, COVER_DAMAGE_REDUCTION.length - 1)];
+        target.hp -= damage * (1f - dr);
+        if (!target.isAlive()) {
+            deathsThisFrame.add(target);
+            emitEquipmentDropIfApplicable(target);
+        }
+    }
+
+    /**
      * Battle ends when one faction's objectives are all complete, or when any
      * of their objectives is failed (which immediately hands the win to the
      * opposing faction). Mutual-failure ties resolve to no winner.

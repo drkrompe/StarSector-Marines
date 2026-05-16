@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.SpriteSheetSlicer;
 import com.dillon.starsectormarines.battle.TileManifest;
 import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.flyby.FlybyOverlay;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.objective.Objective;
@@ -202,6 +203,8 @@ public class BattleScreen implements Screen {
     private SpriteAPI iconDanger;
     private SpriteAPI iconStar;
     private boolean iconsLoadAttempted;
+    /** Atmosphere layer — vanilla fighters flying overhead, strafing targets of opportunity. Survives across attach() calls; lazy-loads sprites on first render. */
+    private final FlybyOverlay flybyOverlay = new FlybyOverlay();
     /**
      * True while this screen owns the audio side effects (custom music + ticking-clock loop
      * + suspended default playback). Guarded so attach() re-runs from dialog resizes don't
@@ -456,6 +459,9 @@ public class BattleScreen implements Screen {
         // Always tick — dt=0 makes the sim a no-op but still clears the per-frame event lists,
         // so a paused caller doesn't keep replaying the previous frame's shot/death sounds.
         sim.advance(dt * speedMultiplier);
+        // Flyby fighters run on the same scaled clock as the sim so pause / 1x / 2x / 4x
+        // applies uniformly — spawning, strafing, and dogfighting all freeze on pause.
+        flybyOverlay.advance(dt * speedMultiplier, sim, layout);
         driveShuttleEngineLoop(sim);
         playCombatEventSounds(sim);
         // Rebuild widgets when the sim transitions to complete so the bottom
@@ -578,6 +584,39 @@ public class BattleScreen implements Screen {
     @Override
     public void processInput(List<InputEventAPI> events) {
         widgets.processInput(events);
+        handleDebugDamageInput(events);
+    }
+
+    /**
+     * Debug-only: Shift + right-click in the grid area destroys the wall cell
+     * under the cursor (one shot levels it to rubble — bypasses HP). Used to
+     * validate {@link NavigationGrid#damageCell} flow and the rubble rendering
+     * without an aerial-strike entity wired up.
+     *
+     * <p>RMB instead of LMB so widget clicks aren't shadowed; Shift gate so a
+     * stray right-click can't accidentally rearrange the map.
+     */
+    private void handleDebugDamageInput(List<InputEventAPI> events) {
+        if (events == null || layout == null || ctx == null) return;
+        BattleSimulation sim = ctx.getBattleSimulation();
+        if (sim == null) return;
+        NavigationGrid grid = sim.getGrid();
+        for (InputEventAPI e : events) {
+            if (e.isConsumed()) continue;
+            if (!e.isRMBDownEvent() || !e.isShiftDown()) continue;
+            float px = e.getX();
+            float py = e.getY();
+            if (px < layout.gridX || px >= layout.gridX + layout.gridW
+                    || py < layout.gridY || py >= layout.gridY + layout.gridH) continue;
+            int cx = (int) Math.floor((px - layout.gridX) / layout.cellSize);
+            int cy = (int) Math.floor((py - layout.gridY) / layout.cellSize);
+            if (!grid.inBounds(cx, cy)) continue;
+            // One-shot demolition — pass the cell's full HP so any wall hit
+            // flips to rubble regardless of starting durability.
+            int hp = grid.getWallHp(cx, cy);
+            if (hp > 0) grid.damageCell(cx, cy, hp);
+            e.consume();
+        }
     }
 
     @Override
@@ -595,6 +634,9 @@ public class BattleScreen implements Screen {
             renderObjectiveMarkers(sim, alphaMult);
             renderShuttles(sim.getShuttles(), alphaMult);
             renderShots(sim.getActiveShots(), alphaMult);
+            // Flyby layer lives above everything ground-side so strafing tracers and
+            // engine glows punch over units / shots / shuttles without being occluded.
+            flybyOverlay.render(layout, alphaMult);
         }
 
         renderSpeedMarker(alphaMult);
@@ -629,14 +671,18 @@ public class BattleScreen implements Screen {
         float texYScale = texH / tileSheetPxH;
         int sheetPxH = tileSheetPxH;
 
-        TileManifest.TileFrame[] floorPool = TileManifest.FLOOR_POOL;
-        TileManifest.TileFrame[] wallPool  = TileManifest.WALL_POOL;
+        TileManifest.TileFrame[] floorPool  = TileManifest.FLOOR_POOL;
+        TileManifest.TileFrame[] wallPool   = TileManifest.WALL_POOL;
+        TileManifest.TileFrame[] rubblePool = TileManifest.RUBBLE_POOL;
 
-        // Floor pass — every walkable cell gets a pool sample.
+        // Floor pass — every walkable cell gets a pool sample. Rubble cells
+        // (formerly walls) pull from the rubble pool so a breached building
+        // reads as broken masonry rather than fresh street.
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
                 if (!grid.isWalkable(x, y)) continue;
-                TileManifest.TileFrame f = floorPool[cellHash(x, y) % floorPool.length];
+                TileManifest.TileFrame[] pool = grid.isRubble(x, y) ? rubblePool : floorPool;
+                TileManifest.TileFrame f = pool[cellHash(x, y) % pool.length];
                 drawTile(f, x, y, texXScale, texYScale, sheetPxH, alphaMult);
             }
         }

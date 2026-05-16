@@ -34,6 +34,8 @@ public final class UrbanMapGenerator {
     private static final float PLAZA_CHANCE   = 0.12f;
     /** Inset between block boundary and building footprint — keeps buildings off the curb. */
     private static final int BUILDING_INSET   = 1;
+    /** Starting HP for every wall cell. Sized so a typical strafe shot chips, a missile breaches in one or two hits. Tune alongside damage values. */
+    private static final int WALL_HP_DEFAULT  = 100;
 
     public static final class Result {
         public final NavigationGrid grid;
@@ -80,12 +82,29 @@ public final class UrbanMapGenerator {
             }
         }
 
+        seedWallHp(grid);
         bakeCoverFromWalls(grid);
 
         int[] marine   = findNearestWalkable(grid, 2,             2);
         int[] defender = findNearestWalkable(grid, width - 3,     height - 3);
 
         return new Result(grid, marine[0], marine[1], defender[0], defender[1], pois);
+    }
+
+    /**
+     * Initial wall HP pass — every non-walkable cell gets {@link #WALL_HP_DEFAULT}.
+     * Out-of-bounds cells don't exist in the grid and stay "indestructible" by
+     * virtue of having no cell to damage. Run after building placement so we
+     * tag the right cells.
+     */
+    private static void seedWallHp(NavigationGrid grid) {
+        int w = grid.getWidth();
+        int h = grid.getHeight();
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                if (!grid.isWalkable(x, y)) grid.setWallHp(x, y, WALL_HP_DEFAULT);
+            }
+        }
     }
 
     /**
