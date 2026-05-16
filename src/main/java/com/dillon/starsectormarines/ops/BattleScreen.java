@@ -965,9 +965,16 @@ public class BattleScreen implements Screen {
         //   4. Courtyard: private interior pavement inside a super-block — dark steel
         //      autotile from the road sheet, framed against the surrounding buildings.
         //   5. Interior floor: anything else walkable (inside a building, or doorway).
+        //
+        // Exclusion is keyed on WALL rather than !walkable so the ground layer
+        // is "everywhere except walls". Vehicles, future emplacements,
+        // sandbags, etc. stamp non-walkable + their own topology tag without
+        // having to opt back into the floor pass — the underlying surface
+        // (street / courtyard / floor) renders here as before and the obstacle
+        // sprite is drawn on top in its own pass.
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
-                if (!grid.isWalkable(x, y)) continue;
+                if (topology.isWall(x, y)) continue;
                 boolean nWall = isInBoundsWall(topology, x, y + 1);
                 boolean sWall = isInBoundsWall(topology, x, y - 1);
                 boolean eWall = isInBoundsWall(topology, x + 1, y);
@@ -1388,31 +1395,16 @@ public class BattleScreen implements Screen {
         java.util.List<MapVehicle> vehicles = sim.getVehicles();
         if (vehicles.isEmpty()) return;
 
-        // Pass 1 — fill each footprint with the road color so the cells beneath
-        // a sprite with transparent edges blend into the surrounding pavement.
-        glDisable(GL_TEXTURE_2D);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glBegin(GL_QUADS);
-        glColor4f(ROAD_FILL.getRed() / 255f, ROAD_FILL.getGreen() / 255f,
-                ROAD_FILL.getBlue() / 255f, alphaMult);
-        float cellPx = camera.cellPxSize();
-        for (MapVehicle v : vehicles) {
-            float footX = camera.cellToScreenX(v.cellX);
-            float footY = camera.cellToScreenY(v.cellY);
-            float footW = v.kind.footprintCellsX * cellPx;
-            float footH = v.kind.footprintCellsY * cellPx;
-            glVertex2f(footX,        footY);
-            glVertex2f(footX + footW, footY);
-            glVertex2f(footX + footW, footY + footH);
-            glVertex2f(footX,        footY + footH);
-        }
-        glEnd();
+        // The floor pass in renderTiledFloorsAndWalls already painted the
+        // underlying tile (street / courtyard / floor) for every vehicle cell,
+        // so transparent margins inside the truck sprite blend with the real
+        // pavement — no separate fill quad needed here.
 
-        // Pass 2 — slice the right frame off each sheet, scale it to fit the
-        // footprint (preserve aspect), and draw centered. The set of sheets
-        // we touch this frame is reset to white afterward so leftover state
-        // doesn't bleed into other passes that share the same SpriteAPI.
+        // Slice the right frame off each sheet, scale it to fit the footprint
+        // (preserve aspect), and draw centered. The set of sheets we touch
+        // this frame is reset to white afterward so leftover state doesn't
+        // bleed into other passes that share the same SpriteAPI.
+        float cellPx = camera.cellPxSize();
         java.util.Set<VehicleKind.VehicleSheet> touched = new java.util.HashSet<>();
         for (MapVehicle v : vehicles) {
             UnitSpriteCache cache = vehicleSheets.get(v.kind.sheet);
@@ -1433,10 +1425,10 @@ public class BattleScreen implements Screen {
 
             float footW = v.kind.footprintCellsX * cellPx;
             float footH = v.kind.footprintCellsY * cellPx;
-            // Preserve frame aspect inside the footprint. The shorter axis fills
-            // the footprint and the longer axis is letterboxed against the road
-            // fill we just drew — that way a tall sprite doesn't squish into a
-            // wide footprint or vice versa.
+            // Preserve frame aspect inside the footprint. The shorter axis
+            // fills the footprint and the longer axis is letterboxed against
+            // the underlying floor tile painted by the floor pass — that way a
+            // tall sprite doesn't squish into a wide footprint or vice versa.
             float frameAspect = (float) f.w / (float) f.h;
             float footAspect  = footW / footH;
             float drawW, drawH;
