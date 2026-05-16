@@ -81,6 +81,18 @@ public class Shuttle {
     public float flightPhase = 0f;
 
     /**
+     * Secondary weave layered on top of the primary {@link #curveStrength} bow.
+     * A higher-frequency perpendicular wiggle modulated by the same {@code sin²(πt)}
+     * envelope, so both displacement and slope stay zero at endpoints — touchdown
+     * facing is unchanged. {@link #weaveAmp} is the peak perpendicular displacement
+     * (cells), {@link #weaveFreq} the number of cycles per leg, {@link #weavePhase}
+     * a random initial phase so simultaneous shuttles wiggle out of sync.
+     */
+    public float weaveAmp = 0f;
+    public float weaveFreq = 0f;
+    public float weavePhase = 0f;
+
+    /**
      * Facing captured at the INCOMING → LANDED transition. Used as the start
      * point of the DEPARTING facing ease — the shuttle smoothly rotates from
      * this angle into the new leg's tangent rather than snapping. Without

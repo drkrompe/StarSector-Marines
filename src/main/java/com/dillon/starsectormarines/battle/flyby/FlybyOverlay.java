@@ -29,77 +29,113 @@ import static org.lwjgl.opengl.GL11.glEnd;
 import static org.lwjgl.opengl.GL11.glVertex2f;
 
 /**
- * Atmosphere layer that flies vanilla fighter sprites across the battle map,
- * lets them strafe targets of opportunity on the ground, and pulls them into
- * brief dogfight stand-offs when they cross paths. Purely a visual + audio
- * layer with one narrow coupling to the sim: {@link BattleSimulation#applyExternalDamage}
- * for connecting strafe rounds.
+ * Atmosphere layer — vanilla fighter sprites cruise across the battle map on
+ * gentle weaving curves, occasionally bank around to commit to a deliberate
+ * strafing run on a cluster of opposing units, and lock into brief dogfight
+ * stand-offs when they cross paths. Purely visual + audio with one narrow
+ * coupling to the sim: {@link BattleSimulation#applyExternalDamage} for hits.
  *
- * <p>Coordinate system matches units + shuttles — fighters live in <em>cell</em>
- * coords; the layout maps to pixels at draw time. Sprite paths reference the
- * core install directly (the resource loader resolves against core + enabled
- * mods, so no redistribution is needed).
+ * <p>Movement is heading-based with a clamped turn rate, so paths naturally
+ * arc instead of snapping along straight chords. Cruise direction is a
+ * randomized weave (sinusoidal offset on top of a base heading); strafing
+ * runs override the weave with explicit run-in / run-out waypoints, which
+ * the steering turns toward at the same max rate — producing a continuous
+ * banked loop rather than a teleport.
  *
- * <p>Lifecycle ownership: created once per {@code BattleScreen.attach} and
- * thrown away on detach — the singleton SpriteAPIs the cache holds belong to
- * the engine and persist; we just reset their mutable state (size, angle,
- * color, alpha) before each draw.
+ * <p>Coordinate system matches units + shuttles. Sprite paths resolve against
+ * the vanilla install at runtime (no redistribution). Singleton SpriteAPIs are
+ * reused across fighters of the same profile; mutable state is reset between
+ * fighters.
  */
 public final class FlybyOverlay {
 
     private static final Logger LOG = Global.getLogger(FlybyOverlay.class);
 
-    // ---- Sound ids exposed for FighterProfile (declared in mod/data/config/sounds.json). ----
+    // ---- Sound ids (declared in mod/data/config/sounds.json). -----------------
     public static final String SFX_GUN_HEAVY  = "marines_flyby_gun_heavy";
     public static final String SFX_GUN_LIGHT  = "marines_flyby_gun_light";
     public static final String SFX_GUN_ENERGY = "marines_flyby_gun_energy";
     public static final String SFX_IMPACT     = "marines_flyby_impact";
 
-    // ---- Shared FX sprite paths — soft particles re-used for shadows / flashes / hits. ----
+    // ---- Shared FX sprite paths (vanilla particles). --------------------------
     private static final String SPRITE_SHADOW       = "graphics/fx/particlealpha64linear.png";
     private static final String SPRITE_GLOW         = "graphics/fx/glow64.png";
     private static final String SPRITE_ENGINE_GLOW  = "graphics/fx/engineglow32.png";
 
     // ---- Spawn pacing ---------------------------------------------------------
-    /** Min/max sim-seconds between spawns. Re-rolled after each spawn. */
     private static final float SPAWN_GAP_MIN = 4f;
     private static final float SPAWN_GAP_MAX = 10f;
-    /** First spawn delay — long enough that the player sees the ground action before fighters appear. */
     private static final float SPAWN_INITIAL_DELAY = 3f;
-    /** Hard cap on simultaneous flybys. 4+ starts to feel cluttered over a 96x48 grid. */
     private static final int MAX_CONCURRENT = 4;
-
-    /** Cells of off-map slack a fighter spawns / despawns past. Above the grid edge so its entry/exit reads as smooth. */
+    /** Cells of off-map slack a fighter spawns / despawns past. */
     private static final float OFFMAP_PAD = 8f;
-    /** Fighter speed range, cells/sec. ~6-10 = comfortably above marine 2 cell/sec, reads as overhead. */
-    private static final float SPEED_MIN = 6f;
-    private static final float SPEED_MAX = 10f;
+
+    // ---- Motion ---------------------------------------------------------------
+    /** Speed bounds (cells/sec). 1.5x the pre-curve numbers so fighters read as atmospheric jets, not patrolling drones. */
+    private static final float SPEED_MIN = 9f;
+    private static final float SPEED_MAX = 15f;
+    /** Max yaw rate (degrees/sec). Caps how tight a fighter can bank — keeps strafing loops feeling like real arcs, not pivots in place. */
+    private static final float TURN_RATE_DEG_PER_SEC = 80f;
+    /** Weave parameters during CRUISE — sinusoid added to base heading, so the path snakes lazily instead of running straight. */
+    private static final float WEAVE_FREQ_HZ_MIN  = 0.15f;
+    private static final float WEAVE_FREQ_HZ_MAX  = 0.45f;
+    private static final float WEAVE_AMP_DEG_MIN  = 12f;
+    private static final float WEAVE_AMP_DEG_MAX  = 35f;
 
     // ---- Dogfight gating ------------------------------------------------------
-    /** Cell radius below which two opposing fighters are considered to be tangling. */
     private static final float DOGFIGHT_RADIUS = 6f;
-    /** Sim-seconds of aggro applied per tick of proximity. Refreshed each tick they're close, so they're locked in until separation. */
     private static final float DOGFIGHT_AGGRO_REFRESH = 2.5f;
-    /** Cosmetic facing wobble while dogfighting — sells the chase even though paths stay straight. */
     private static final float DOGFIGHT_WOBBLE_DEG = 25f;
     private static final float DOGFIGHT_WOBBLE_HZ  = 1.8f;
 
-    // ---- Strafe parameters ----------------------------------------------------
-    /** Forward cone half-angle (degrees) for target acquisition. ~40 covers a generous strafe lane. */
+    // ---- Opportunistic strafe (single-target during CRUISE) -------------------
     private static final float STRAFE_CONE_HALF_DEG = 40f;
-    /** Max target range (cells) along the strafe lane. */
     private static final float STRAFE_RANGE_CELLS   = 14f;
-    /** Long cooldown after a burst finishes before another strafe is even considered. */
     private static final float STRAFE_REARM_SEC     = 3.5f;
-    /** Per-tracer pitch jitter (±) — same trick as the rifle pool, gives audio variety from a small clip pool. */
-    private static final float SFX_PITCH_JITTER     = 0.05f;
+    /** Per-shot pitch jitter (±). Wide because Starsector's sound system collapses repeated same-id playUISound calls into a single voice when pitch is identical — varying the pitch keeps each round audible. */
+    private static final float SFX_PITCH_JITTER     = 0.15f;
+
+    // ---- Deliberate strafing run (multi-target AoE) ---------------------------
+    /** Sim-seconds between cluster scans during CRUISE. Cheap loop, but no need to run it every tick. */
+    private static final float RUN_TRIGGER_INTERVAL_SEC = 1.5f;
+    /** Probability a viable cluster gets a commit, rolled at each scan. <1 keeps runs feeling like choices, not reflexes. */
+    private static final float RUN_TRIGGER_PROBABILITY = 0.45f;
+    /** Minimum opposing-faction units inside {@link #CLUSTER_RADIUS_CELLS} of each other to count as a strafe-worthy cluster. */
+    private static final int CLUSTER_MIN_UNITS = 3;
+    private static final float CLUSTER_RADIUS_CELLS = 8f;
+    /** Distance from the cluster centroid the run-in / run-out waypoints sit on. */
+    private static final float RUN_WAYPOINT_DISTANCE = 18f;
+    /** Sim-seconds the fighter spends in RUN state laying down fire. After this it returns to CRUISE regardless of waypoint progress. */
+    private static final float RUN_DURATION_SEC = 2.8f;
+    /** Cell distance from waypoint that counts as "arrived." Loose because turn rate keeps the fighter from snapping to it. */
+    private static final float RUN_WAYPOINT_ARRIVAL = 4f;
+    /** Failsafe — if BANK_BACK takes longer than this, give up and start the run from current heading. */
+    private static final float RUN_BANK_BACK_TIMEOUT = 6f;
+    /** Cooldown between successive runs from the same fighter, so a single fighter doesn't loop forever. */
+    private static final float RUN_REARM_COOLDOWN = 9f;
+    private static final float RUN_FIRE_INTERVAL_SEC = 0.09f;
+    /** Spread half-angle (degrees) of run fire. Wide on purpose — most rounds go errant. */
+    private static final float RUN_SPREAD_DEG = 22f;
+    /** Visual tracer reach for RUN tracers — they don't have a specific target, so this fixes how far ahead they paint. */
+    private static final float RUN_TRACER_RANGE_CELLS = 16f;
+    /** Cell radius around each tracer endpoint that catches "hit" units. */
+    private static final float RUN_AOE_RADIUS_CELLS = 1.6f;
+    /** Damage applied to each unit caught in a tracer's AoE. Small — runs spam many tracers, so total damage scales with hits, not per-round. */
+    private static final float RUN_DAMAGE_PER_HIT = 0.9f;
+    /** Wall HP a single RUN tracer chips off if its endpoint lands on a wall cell. Walls start at 100 (UrbanMapGenerator.WALL_HP_DEFAULT) — ~5 connecting tracers flatten a wall, so a sustained strafing run reshapes buildings. */
+    private static final int RUN_WALL_DAMAGE = 20;
+    /** Wall HP a CRUISE opportunistic round chips. Lower than RUN damage — the burst is aimed at a unit, so wall hits are spillover. */
+    private static final int CRUISE_WALL_DAMAGE = 8;
+    /** Tint for the dust burst when a wall collapses. Cooler grey so it reads distinct from the warm muzzle/impact glows. */
+    private static final Color WALL_RUBBLE_DUST = new Color(0xB0, 0xA8, 0x98);
+    /** Small dust speck spawned when a tracer chips a wall but doesn't collapse it. Lighter than {@link #WALL_RUBBLE_DUST} so chip vs. collapse reads at a glance. */
+    private static final Color WALL_CHIP_DUST   = new Color(0xD0, 0xC4, 0xB0);
+    /** Small dirt kick spawned when a tracer hits walkable ground. Warm brown so it differs from the cool wall dust. */
+    private static final Color FLOOR_KICK_DUST  = new Color(0x88, 0x6E, 0x50);
 
     // ---- Visual feel ----------------------------------------------------------
-    /** Drop-shadow offset (cells, downward in screen space) — sells altitude. */
     private static final float SHADOW_Y_OFFSET = -0.7f;
-    /** Shadow base alpha. */
     private static final float SHADOW_ALPHA    = 0.45f;
-    /** Engine glow tail length factor relative to fighter visual length. */
     private static final float ENGINE_GLOW_LEN_MULT = 0.7f;
     private static final float MUZZLE_FLASH_LIFETIME = 0.08f;
     private static final float IMPACT_FLASH_LIFETIME = 0.22f;
@@ -108,25 +144,27 @@ public final class FlybyOverlay {
     private final List<Fighter> fighters = new ArrayList<>();
     private final List<Tracer> tracers = new ArrayList<>();
     private final List<Particle> particles = new ArrayList<>();
-    /** Per-profile sprite cache (singleton SpriteAPIs reused across fighters of the same type). */
     private final EnumMap<FighterProfile, SpriteAPI> sprites = new EnumMap<>(FighterProfile.class);
     private SpriteAPI shadowSprite;
     private SpriteAPI glowSprite;
     private SpriteAPI engineSprite;
     private boolean spritesLoadAttempted;
 
-    /** Real-time seed; flyby visuals are intentionally non-deterministic. */
     private final Random rng = new Random();
     private float spawnTimer = SPAWN_INITIAL_DELAY;
 
     /**
      * Drives the overlay one sim-time step. Pass the same {@code dt} you feed
-     * the simulation (already scaled for pause / 1x / 2x / 4x). The sim is used
-     * for target acquisition + the strafe damage hook — null is fine and
-     * disables those features without stopping the visual.
+     * the simulation (already scaled for pause / 1x / 2x / 4x). Null sim
+     * disables targeting + damage but the visual layer keeps running.
      */
     public void advance(float dt, BattleSimulation sim, BattleLayout layout) {
         if (dt <= 0f || layout == null) return;
+        // Freeze the overlay once the sim resolves — no new spawns, no fire,
+        // no damage. Existing fighters and particles stop in place; the
+        // victory / defeat banner reads cleanly without flyby losses
+        // continuing to mutate the casualty count.
+        if (sim != null && sim.isComplete()) return;
 
         spawnTimer -= dt;
         if (spawnTimer <= 0f && fighters.size() < MAX_CONCURRENT) {
@@ -134,50 +172,104 @@ public final class FlybyOverlay {
             spawnTimer = SPAWN_GAP_MIN + rng.nextFloat() * (SPAWN_GAP_MAX - SPAWN_GAP_MIN);
         }
 
-        // 1. Apply dogfight aggro from proximity. Refresh both sides on contact so
-        //    they stay tangled while they're close, and clean up naturally on separation.
         applyDogfightAggro();
 
-        // 2. Tick each fighter — movement, aggro decay, burst state, strafe attempts.
         for (int i = fighters.size() - 1; i >= 0; i--) {
             Fighter f = fighters.get(i);
             tickFighter(f, dt, sim, layout);
             if (isOffMap(f, layout)) fighters.remove(i);
         }
 
-        // 3. Age active tracers + particles in place.
         for (int i = tracers.size() - 1; i >= 0; i--) {
-            Tracer t = tracers.get(i);
-            t.lifetimeRemaining -= dt;
-            if (t.lifetimeRemaining <= 0f) tracers.remove(i);
+            if ((tracers.get(i).lifetimeRemaining -= dt) <= 0f) tracers.remove(i);
         }
         for (int i = particles.size() - 1; i >= 0; i--) {
-            Particle p = particles.get(i);
-            p.lifetimeRemaining -= dt;
-            if (p.lifetimeRemaining <= 0f) particles.remove(i);
+            if ((particles.get(i).lifetimeRemaining -= dt) <= 0f) particles.remove(i);
         }
     }
 
+    /**
+     * Per-tick fighter update. Steers heading toward the state-driven target
+     * heading at a clamped rate (so paths arc, never snap), advances position
+     * along the new heading, then runs state-specific firing logic.
+     */
     private void tickFighter(Fighter f, float dt, BattleSimulation sim, BattleLayout layout) {
-        // Move.
+        // 1. Determine target heading based on current state.
+        float targetHeading = pickTargetHeading(f, dt);
+
+        // 2. Steer toward it at the clamped rate. Wobble overlay (aggro) is added
+        //    AFTER steering so it doesn't fight the heading lock-in for state goals.
+        float diff = wrapAngleDiffDeg(targetHeading - f.headingDeg);
+        float maxStep = TURN_RATE_DEG_PER_SEC * dt;
+        f.headingDeg += clamp(diff, -maxStep, maxStep);
+        f.headingDeg = wrap360(f.headingDeg);
+
+        // 3. Cosmetic wobble while dogfighting — affects facing only, not motion.
+        f.wobblePhase += dt * 2f * (float) Math.PI * DOGFIGHT_WOBBLE_HZ;
+        float drawnFacing = f.headingDeg
+                + (f.aggroTimer > 0f ? (float) Math.sin(f.wobblePhase) * DOGFIGHT_WOBBLE_DEG : 0f);
+        f.facingDeg = drawnFacing;
+
+        // 4. Aggro decay — and aggro cancels any active strafing run (you don't strafe while being chased).
+        if (f.aggroTimer > 0f) {
+            f.aggroTimer = Math.max(0f, f.aggroTimer - dt);
+            if (f.runState != RunState.NONE) {
+                f.runState = RunState.NONE;
+                f.runRearmTimer = RUN_REARM_COOLDOWN;
+            }
+        }
+
+        // 5. Move along heading.
+        float rad = (float) Math.toRadians(f.headingDeg);
+        f.vx = (float) Math.cos(rad) * f.speed;
+        f.vy = (float) Math.sin(rad) * f.speed;
         f.worldX += f.vx * dt;
         f.worldY += f.vy * dt;
 
-        // Aggro decays; while aggro'd, layer in a cosmetic facing wobble.
-        f.aggroTimer = Math.max(0f, f.aggroTimer - dt);
-        f.wobblePhase += dt * 2f * (float) Math.PI * DOGFIGHT_WOBBLE_HZ;
-        float baseFacing = facingDeg(f.vx, f.vy);
-        f.facingDeg = (f.aggroTimer > 0f)
-                ? baseFacing + (float) Math.sin(f.wobblePhase) * DOGFIGHT_WOBBLE_DEG
-                : baseFacing;
+        // 6. State-specific firing + transitions.
+        f.runRearmTimer = Math.max(0f, f.runRearmTimer - dt);
+        switch (f.runState) {
+            case NONE:
+                tickCruise(f, dt, sim);
+                break;
+            case BANK_BACK:
+                tickBankBack(f, dt);
+                break;
+            case RUN:
+                tickRun(f, dt, sim);
+                break;
+        }
+    }
 
-        f.strafeRearmTimer = Math.max(0f, f.strafeRearmTimer - dt);
+    /**
+     * In CRUISE: weave the base heading via sinusoid (lazy snake). In BANK_BACK / RUN:
+     * point at the active waypoint. Aggro doesn't override — the wobble is layered
+     * onto facing for visual chase only.
+     */
+    private float pickTargetHeading(Fighter f, float dt) {
+        switch (f.runState) {
+            case BANK_BACK:
+                return headingTo(f.worldX, f.worldY, f.runInX, f.runInY);
+            case RUN:
+                return headingTo(f.worldX, f.worldY, f.runOutX, f.runOutY);
+            case NONE:
+            default:
+                f.weavePhase += dt * 2f * (float) Math.PI * f.weaveFreq;
+                return f.baseHeadingDeg + (float) Math.sin(f.weavePhase) * f.weaveAmpDeg;
+        }
+    }
 
-        // Drive an active burst, or look for a new target if we're rearmed + not aggro'd.
+    /**
+     * Cruise behavior: opportunistic single-target bursts (existing) plus a
+     * periodic cluster scan that can commit the fighter to a deliberate
+     * strafing run. Aggro and run-rearm both gate the strafing-run check.
+     */
+    private void tickCruise(Fighter f, float dt, BattleSimulation sim) {
+        // Drive any active opportunistic burst — fire each scheduled round, then enter rearm cooldown.
         if (f.burstRemaining > 0) {
             f.burstNextFireIn -= dt;
             while (f.burstNextFireIn <= 0f && f.burstRemaining > 0) {
-                fireOneTracer(f, sim);
+                fireOneTracerAt(f, f.burstTarget, sim);
                 f.burstNextFireIn += f.profile.burstInterval;
                 f.burstRemaining--;
             }
@@ -185,23 +277,142 @@ public final class FlybyOverlay {
                 f.strafeRearmTimer = STRAFE_REARM_SEC;
                 f.burstTarget = null;
             }
-        } else if (f.aggroTimer <= 0f && f.strafeRearmTimer <= 0f && sim != null) {
+            return; // bursts and cluster scans are mutually exclusive — finish what you started
+        }
+
+        f.strafeRearmTimer = Math.max(0f, f.strafeRearmTimer - dt);
+
+        // Cluster scan for strafing-run commit, rate-limited.
+        f.runScanTimer -= dt;
+        if (f.runScanTimer <= 0f) {
+            f.runScanTimer = RUN_TRIGGER_INTERVAL_SEC;
+            if (sim != null && f.aggroTimer <= 0f && f.runRearmTimer <= 0f
+                    && rng.nextFloat() < RUN_TRIGGER_PROBABILITY
+                    && tryPlanStrafingRun(f, sim)) {
+                f.runState = RunState.BANK_BACK;
+                f.runStateTimer = 0f;
+                return;
+            }
+        }
+
+        // Otherwise, opportunistic single-target strafe (small tight burst).
+        if (f.aggroTimer <= 0f && f.strafeRearmTimer <= 0f && sim != null) {
             Unit target = acquireStrafeTarget(f, sim);
             if (target != null) {
                 f.burstTarget = target;
                 f.burstRemaining = f.profile.burstSize;
-                f.burstNextFireIn = 0f; // fire the first round next tick
+                f.burstNextFireIn = 0f;
             }
         }
     }
 
-    /** Forward-cone search for an opposing-faction live unit, weighted by distance. */
+    /**
+     * BANK_BACK turns the fighter toward its run-in waypoint. We arrive when
+     * we're within {@link #RUN_WAYPOINT_ARRIVAL} cells, OR after the timeout —
+     * the timeout exists because tight turn rates can leave a fighter circling
+     * a waypoint it can't quite reach.
+     */
+    private void tickBankBack(Fighter f, float dt) {
+        f.runStateTimer += dt;
+        float dx = f.runInX - f.worldX, dy = f.runInY - f.worldY;
+        float distSq = dx * dx + dy * dy;
+        if (distSq <= RUN_WAYPOINT_ARRIVAL * RUN_WAYPOINT_ARRIVAL
+                || f.runStateTimer >= RUN_BANK_BACK_TIMEOUT) {
+            f.runState = RunState.RUN;
+            f.runStateTimer = 0f;
+            f.runFireAccumulator = 0f;
+        }
+    }
+
+    /**
+     * RUN ticks the run duration timer, sprays wide-spread tracers on the
+     * fire interval, and lands AoE damage on any opposing units within
+     * {@link #RUN_AOE_RADIUS_CELLS} of each tracer's endpoint. Most tracers
+     * miss entirely — that's the point.
+     */
+    private void tickRun(Fighter f, float dt, BattleSimulation sim) {
+        f.runStateTimer += dt;
+        f.runFireAccumulator -= dt;
+        while (f.runFireAccumulator <= 0f) {
+            fireRunTracer(f, sim);
+            f.runFireAccumulator += RUN_FIRE_INTERVAL_SEC;
+        }
+        // Exit run on duration or on passing the run-out waypoint.
+        float dx = f.runOutX - f.worldX, dy = f.runOutY - f.worldY;
+        boolean passedWaypoint = dx * dx + dy * dy <= RUN_WAYPOINT_ARRIVAL * RUN_WAYPOINT_ARRIVAL;
+        if (passedWaypoint || f.runStateTimer >= RUN_DURATION_SEC) {
+            f.runState = RunState.NONE;
+            f.runRearmTimer = RUN_REARM_COOLDOWN;
+            // Snap base heading back toward original exit so cruise weave doesn't
+            // immediately yank the fighter back over the cluster.
+            f.baseHeadingDeg = headingTo(f.worldX, f.worldY, f.exitX, f.exitY);
+        }
+    }
+
+    /**
+     * Finds a cluster of opposing units and plans run-in / run-out waypoints.
+     * Cluster definition: any opposing unit with ≥ {@code CLUSTER_MIN_UNITS - 1}
+     * other opposing units within {@code CLUSTER_RADIUS_CELLS}. Centroid is the
+     * average position of the cluster members. Run line passes through the
+     * centroid, oriented toward the fighter's current heading so the bank-back
+     * arc is a reasonable U-turn rather than a full 360°.
+     */
+    private boolean tryPlanStrafingRun(Fighter f, BattleSimulation sim) {
+        Faction enemy = (f.side == Faction.MARINE) ? Faction.DEFENDER : Faction.MARINE;
+        float clusterR2 = CLUSTER_RADIUS_CELLS * CLUSTER_RADIUS_CELLS;
+        List<Unit> enemies = new ArrayList<>();
+        for (Unit u : sim.getUnits()) {
+            if (u.isAlive() && u.faction == enemy) enemies.add(u);
+        }
+        if (enemies.size() < CLUSTER_MIN_UNITS) return false;
+
+        // For each enemy, count neighbors within cluster radius. The best
+        // anchor is the one with the most neighbors — its neighbors form the
+        // cluster we strafe.
+        Unit bestAnchor = null;
+        int bestCount = 0;
+        List<Unit> bestNeighbors = new ArrayList<>();
+        for (Unit a : enemies) {
+            List<Unit> neighbors = new ArrayList<>();
+            for (Unit b : enemies) {
+                float dx = (b.renderX + 0.5f) - (a.renderX + 0.5f);
+                float dy = (b.renderY + 0.5f) - (a.renderY + 0.5f);
+                if (dx * dx + dy * dy <= clusterR2) neighbors.add(b);
+            }
+            if (neighbors.size() > bestCount) {
+                bestCount = neighbors.size();
+                bestAnchor = a;
+                bestNeighbors = neighbors;
+            }
+        }
+        if (bestCount < CLUSTER_MIN_UNITS || bestAnchor == null) return false;
+
+        // Centroid of the cluster.
+        float cx = 0f, cy = 0f;
+        for (Unit u : bestNeighbors) { cx += u.renderX + 0.5f; cy += u.renderY + 0.5f; }
+        cx /= bestNeighbors.size();
+        cy /= bestNeighbors.size();
+
+        // Run-line: aligned with the fighter's current heading so the bank-back
+        // arc is a reasonable U-turn. Run-in waypoint sits behind the fighter
+        // (opposite its current heading offset from the centroid), run-out
+        // waypoint sits ahead of the centroid in the same direction.
+        float headRad = (float) Math.toRadians(f.headingDeg);
+        float runDirX = (float) Math.cos(headRad);
+        float runDirY = (float) Math.sin(headRad);
+        f.runInX  = cx - runDirX * RUN_WAYPOINT_DISTANCE;
+        f.runInY  = cy - runDirY * RUN_WAYPOINT_DISTANCE;
+        f.runOutX = cx + runDirX * RUN_WAYPOINT_DISTANCE;
+        f.runOutY = cy + runDirY * RUN_WAYPOINT_DISTANCE;
+        return true;
+    }
+
+    /** Forward-cone search used by opportunistic CRUISE strafe (single target). */
     private Unit acquireStrafeTarget(Fighter f, BattleSimulation sim) {
         Faction enemy = (f.side == Faction.MARINE) ? Faction.DEFENDER : Faction.MARINE;
         float cosThreshold = (float) Math.cos(Math.toRadians(STRAFE_CONE_HALF_DEG));
-        float dirLen = (float) Math.sqrt(f.vx * f.vx + f.vy * f.vy);
-        if (dirLen < 0.0001f) return null;
-        float dx = f.vx / dirLen, dy = f.vy / dirLen;
+        float rad = (float) Math.toRadians(f.headingDeg);
+        float dx = (float) Math.cos(rad), dy = (float) Math.sin(rad);
 
         Unit best = null;
         float bestDist = STRAFE_RANGE_CELLS;
@@ -220,21 +431,16 @@ public final class FlybyOverlay {
     }
 
     /**
-     * Emits one tracer with scatter, plays the fire sound, applies damage to
-     * the held burst target. Damage applies instantly on fire — same convention
-     * as {@link BattleSimulation#fireShot}; the visual tracer carries the read,
-     * not the physics. A hit-glow particle pops at the target if damage lands.
+     * Fires one round at a specific target with the profile's burst spread.
+     * Used by CRUISE opportunistic bursts — applies damage on hit, with a
+     * muzzle flash + impact glow.
      */
-    private void fireOneTracer(Fighter f, BattleSimulation sim) {
-        if (f.burstTarget == null) return;
-        // Apply burst spread to the actual fire direction. Bigger spread =
-        // shorter dwell + more "spray-and-pray" feel; small spread = surgical.
+    private void fireOneTracerAt(Fighter f, Unit target, BattleSimulation sim) {
+        if (target == null) return;
         float spreadRad = (float) Math.toRadians((rng.nextFloat() * 2f - 1f) * f.profile.burstSpreadDeg);
-
-        float tx = f.burstTarget.renderX + 0.5f;
-        float ty = f.burstTarget.renderY + 0.5f;
-        float dx = tx - f.worldX;
-        float dy = ty - f.worldY;
+        float tx = target.renderX + 0.5f;
+        float ty = target.renderY + 0.5f;
+        float dx = tx - f.worldX, dy = ty - f.worldY;
         float len = (float) Math.sqrt(dx * dx + dy * dy);
         if (len < 0.001f) return;
         float cos = (float) Math.cos(spreadRad), sin = (float) Math.sin(spreadRad);
@@ -242,7 +448,130 @@ public final class FlybyOverlay {
         float ndy = (dx * sin + dy * cos) / len;
         float endX = f.worldX + ndx * len;
         float endY = f.worldY + ndy * len;
+        spawnTracer(f, endX, endY);
+        spawnMuzzleFlash(f);
+        if (sim != null) {
+            sim.applyExternalDamage(target, f.profile.perTracerDamage);
+            spawnImpact(endX, endY, f.profile.tracerColor);
+            // Spread that carried the round onto a wall instead chips the wall —
+            // emergent collateral, no extra branching needed.
+            damageWallAtEndpoint(sim, endX, endY, CRUISE_WALL_DAMAGE);
+        }
+        playFireSound(f);
+    }
 
+    /**
+     * Fires one tracer during a RUN — direction is current heading ± wide
+     * spread, range is fixed (the run isn't aiming at a single unit). AoE
+     * damage lands on every opposing unit within
+     * {@link #RUN_AOE_RADIUS_CELLS} of the tracer endpoint, so a single
+     * lucky tracer can clip multiple units in a cluster.
+     */
+    private void fireRunTracer(Fighter f, BattleSimulation sim) {
+        float spreadRad = (float) Math.toRadians((rng.nextFloat() * 2f - 1f) * RUN_SPREAD_DEG);
+        float headRad = (float) Math.toRadians(f.headingDeg) + spreadRad;
+        float ndx = (float) Math.cos(headRad);
+        float ndy = (float) Math.sin(headRad);
+        float endX = f.worldX + ndx * RUN_TRACER_RANGE_CELLS;
+        float endY = f.worldY + ndy * RUN_TRACER_RANGE_CELLS;
+        spawnTracer(f, endX, endY);
+        spawnMuzzleFlash(f);
+
+        // AoE damage check — anyone close to the tracer endpoint catches a round.
+        boolean anyHit = false;
+        if (sim != null) {
+            Faction enemy = (f.side == Faction.MARINE) ? Faction.DEFENDER : Faction.MARINE;
+            float r2 = RUN_AOE_RADIUS_CELLS * RUN_AOE_RADIUS_CELLS;
+            for (Unit u : sim.getUnits()) {
+                if (!u.isAlive() || u.faction != enemy) continue;
+                float ux = (u.renderX + 0.5f) - endX;
+                float uy = (u.renderY + 0.5f) - endY;
+                if (ux * ux + uy * uy <= r2) {
+                    sim.applyExternalDamage(u, RUN_DAMAGE_PER_HIT);
+                    anyHit = true;
+                }
+            }
+        }
+        if (anyHit) {
+            // Bright tracer-color glow on a connecting hit — same read as the
+            // CRUISE opportunistic burst.
+            spawnImpact(endX, endY, f.profile.tracerColor);
+        } else {
+            // Most RUN tracers miss; show where they landed so the player can
+            // see the strafe pattern punching the ground / walls instead of
+            // just disappearing into the void.
+            spawnTerrainImpact(sim, endX, endY, f.profile.tracerColor);
+        }
+        // Wide-spread runs frequently spray walls — chip them. A sustained
+        // run can flatten a wall, opening line-of-sight + new paths for the
+        // sim's pathfinder to discover on its next re-route. The dust on
+        // collapse is louder than the chip dust above so the destroy event reads.
+        if (sim != null) damageWallAtEndpoint(sim, endX, endY, RUN_WALL_DAMAGE);
+
+        // Audio plays per-tracer — the wider SFX_PITCH_JITTER above is what
+        // keeps the sound system from collapsing repeated same-id voices.
+        playFireSound(f);
+    }
+
+    /**
+     * Spawns a small spark + dust speck at the tracer endpoint when it didn't
+     * connect with a unit. Differentiates wall vs. open ground via the grid;
+     * gives the strafing run a visual touchdown on every round even when the
+     * fire is going wide (which is most of it).
+     */
+    private void spawnTerrainImpact(BattleSimulation sim, float endX, float endY, Color tracerColor) {
+        // Always show a small tracer-color spark — round visibly hit *something*.
+        Particle spark = new Particle();
+        spark.x = endX;
+        spark.y = endY;
+        spark.lifetimeRemaining = 0.16f;
+        spark.lifetimeMax = 0.16f;
+        spark.radiusCells = 0.32f;
+        spark.color = tracerColor;
+        particles.add(spark);
+
+        if (sim == null) return;
+        int cellX = (int) Math.floor(endX);
+        int cellY = (int) Math.floor(endY);
+        if (!sim.getGrid().inBounds(cellX, cellY)) return;
+        boolean isWall = !sim.getGrid().isWalkable(cellX, cellY);
+        Particle dust = new Particle();
+        dust.x = endX;
+        dust.y = endY;
+        dust.lifetimeRemaining = isWall ? 0.32f : 0.24f;
+        dust.lifetimeMax = dust.lifetimeRemaining;
+        dust.radiusCells = isWall ? 0.45f : 0.30f;
+        dust.color = isWall ? WALL_CHIP_DUST : FLOOR_KICK_DUST;
+        particles.add(dust);
+    }
+
+    /**
+     * Forwards wall damage to {@link BattleSimulation#damageCell} — that path
+     * pipes through to the grid AND triggers a ZoneGraph rebuild on collapse,
+     * which keeps the AI's zone vocabulary in sync. Spawns a dust burst only on
+     * the collapse frame; chip damage gets the lighter chip dust spawned by
+     * {@link #spawnTerrainImpact}, so chip vs. destroy reads at a glance.
+     */
+    private void damageWallAtEndpoint(BattleSimulation sim, float endX, float endY, int amount) {
+        int cellX = (int) Math.floor(endX);
+        int cellY = (int) Math.floor(endY);
+        if (sim.damageCell(cellX, cellY, amount)) {
+            spawnDustBurst(cellX + 0.5f, cellY + 0.5f);
+        }
+    }
+
+    private void spawnDustBurst(float x, float y) {
+        Particle p = new Particle();
+        p.x = x;
+        p.y = y;
+        p.lifetimeRemaining = 0.45f;
+        p.lifetimeMax = 0.45f;
+        p.radiusCells = 1.2f;
+        p.color = WALL_RUBBLE_DUST;
+        particles.add(p);
+    }
+
+    private void spawnTracer(Fighter f, float endX, float endY) {
         Tracer t = new Tracer();
         t.profile = f.profile;
         t.fromX = f.worldX;
@@ -251,42 +580,37 @@ public final class FlybyOverlay {
         t.toY = endY;
         t.lifetimeRemaining = f.profile.tracerLifetime;
         tracers.add(t);
+    }
 
-        // Muzzle flash at the fighter nose.
-        Particle muzzle = new Particle();
-        muzzle.x = f.worldX;
-        muzzle.y = f.worldY;
-        muzzle.lifetimeRemaining = MUZZLE_FLASH_LIFETIME;
-        muzzle.lifetimeMax = MUZZLE_FLASH_LIFETIME;
-        muzzle.radiusCells = 0.5f;
-        muzzle.color = f.profile.tracerColor;
-        particles.add(muzzle);
+    private void spawnMuzzleFlash(Fighter f) {
+        Particle p = new Particle();
+        p.x = f.worldX;
+        p.y = f.worldY;
+        p.lifetimeRemaining = MUZZLE_FLASH_LIFETIME;
+        p.lifetimeMax = MUZZLE_FLASH_LIFETIME;
+        p.radiusCells = 0.5f;
+        p.color = f.profile.tracerColor;
+        particles.add(p);
+    }
 
-        // Apply damage + impact glow only if the round actually lands (spread=0 hits target cell-center).
-        // Within burstSpreadDeg the target is "in the cone"; we apply damage to model the strafe pinning.
-        if (sim != null) {
-            sim.applyExternalDamage(f.burstTarget, f.profile.perTracerDamage);
-            Particle impact = new Particle();
-            impact.x = endX;
-            impact.y = endY;
-            impact.lifetimeRemaining = IMPACT_FLASH_LIFETIME;
-            impact.lifetimeMax = IMPACT_FLASH_LIFETIME;
-            impact.radiusCells = 0.6f;
-            impact.color = f.profile.tracerColor;
-            particles.add(impact);
-        }
+    private void spawnImpact(float x, float y, Color color) {
+        Particle p = new Particle();
+        p.x = x;
+        p.y = y;
+        p.lifetimeRemaining = IMPACT_FLASH_LIFETIME;
+        p.lifetimeMax = IMPACT_FLASH_LIFETIME;
+        p.radiusCells = 0.6f;
+        p.color = color;
+        particles.add(p);
+    }
 
-        // Audio — fire + a quieter impact tick so the strafe reads aurally.
+    private void playFireSound(Fighter f) {
         float pitch = f.profile.fireSoundPitch
                 + (rng.nextFloat() * 2f - 1f) * SFX_PITCH_JITTER;
         Global.getSoundPlayer().playUISound(f.profile.fireSoundId, pitch, f.profile.fireSoundVolume);
     }
 
-    /**
-     * Pairwise opposing-fighter proximity check — both fighters get their aggro
-     * timer refreshed when they're within {@link #DOGFIGHT_RADIUS}. O(n²) but
-     * n ≤ {@link #MAX_CONCURRENT}, so cheap.
-     */
+    /** Pairwise proximity check for dogfight aggro. O(n²) but n ≤ MAX_CONCURRENT. */
     private void applyDogfightAggro() {
         for (int i = 0; i < fighters.size(); i++) {
             Fighter a = fighters.get(i);
@@ -295,8 +619,7 @@ public final class FlybyOverlay {
                 if (a.side == b.side) continue;
                 float dx = a.worldX - b.worldX;
                 float dy = a.worldY - b.worldY;
-                float distSq = dx * dx + dy * dy;
-                if (distSq < DOGFIGHT_RADIUS * DOGFIGHT_RADIUS) {
+                if (dx * dx + dy * dy < DOGFIGHT_RADIUS * DOGFIGHT_RADIUS) {
                     a.aggroTimer = DOGFIGHT_AGGRO_REFRESH;
                     b.aggroTimer = DOGFIGHT_AGGRO_REFRESH;
                 }
@@ -305,101 +628,99 @@ public final class FlybyOverlay {
     }
 
     /**
-     * Spawns a fighter at a random map edge with a velocity toward the opposing
-     * edge. We pick the entry side, then derive the destination side as the
-     * opposite, then jitter both endpoints within the grid for variety.
+     * Spawns a fighter at a random map edge with a base heading toward the
+     * opposite edge. Stores entry + exit so cruise weave can resolve to a
+     * coherent through-line and post-RUN re-cruise re-anchors to the original
+     * exit (rather than drifting toward the strafe centroid).
      */
     private void spawnFighter(BattleLayout layout) {
         int gridCellsW = (int) (layout.gridW / Math.max(0.001f, layout.cellSize));
         int gridCellsH = (int) (layout.gridH / Math.max(0.001f, layout.cellSize));
         if (gridCellsW <= 0 || gridCellsH <= 0) return;
 
-        int side = rng.nextInt(4); // 0=top, 1=right, 2=bottom, 3=left
+        int side = rng.nextInt(4);
         float sx, sy, ex, ey;
         switch (side) {
-            case 0:  // top → bottom
-                sx = rng.nextFloat() * gridCellsW;       sy = gridCellsH + OFFMAP_PAD;
-                ex = rng.nextFloat() * gridCellsW;       ey = -OFFMAP_PAD;
-                break;
-            case 1:  // right → left
-                sx = gridCellsW + OFFMAP_PAD;            sy = rng.nextFloat() * gridCellsH;
-                ex = -OFFMAP_PAD;                        ey = rng.nextFloat() * gridCellsH;
-                break;
-            case 2:  // bottom → top
-                sx = rng.nextFloat() * gridCellsW;       sy = -OFFMAP_PAD;
-                ex = rng.nextFloat() * gridCellsW;       ey = gridCellsH + OFFMAP_PAD;
-                break;
-            default: // left → right
-                sx = -OFFMAP_PAD;                        sy = rng.nextFloat() * gridCellsH;
-                ex = gridCellsW + OFFMAP_PAD;            ey = rng.nextFloat() * gridCellsH;
-                break;
+            case 0:  sx = rng.nextFloat() * gridCellsW; sy = gridCellsH + OFFMAP_PAD;
+                     ex = rng.nextFloat() * gridCellsW; ey = -OFFMAP_PAD; break;
+            case 1:  sx = gridCellsW + OFFMAP_PAD; sy = rng.nextFloat() * gridCellsH;
+                     ex = -OFFMAP_PAD;             ey = rng.nextFloat() * gridCellsH; break;
+            case 2:  sx = rng.nextFloat() * gridCellsW; sy = -OFFMAP_PAD;
+                     ex = rng.nextFloat() * gridCellsW; ey = gridCellsH + OFFMAP_PAD; break;
+            default: sx = -OFFMAP_PAD;             sy = rng.nextFloat() * gridCellsH;
+                     ex = gridCellsW + OFFMAP_PAD; ey = rng.nextFloat() * gridCellsH; break;
         }
-        float dx = ex - sx, dy = ey - sy;
-        float chord = (float) Math.sqrt(dx * dx + dy * dy);
-        if (chord < 0.001f) return;
-        float speed = SPEED_MIN + rng.nextFloat() * (SPEED_MAX - SPEED_MIN);
 
         Fighter f = new Fighter();
         f.profile = FighterProfile.values()[rng.nextInt(FighterProfile.values().length)];
         f.side = rng.nextBoolean() ? Faction.MARINE : Faction.DEFENDER;
         f.worldX = sx; f.worldY = sy;
-        f.vx = dx / chord * speed;
-        f.vy = dy / chord * speed;
-        f.facingDeg = facingDeg(f.vx, f.vy);
+        f.exitX = ex;  f.exitY = ey;
+        f.speed = SPEED_MIN + rng.nextFloat() * (SPEED_MAX - SPEED_MIN);
+        f.baseHeadingDeg = headingTo(sx, sy, ex, ey);
+        f.headingDeg = f.baseHeadingDeg;
+        f.facingDeg = f.baseHeadingDeg;
+        f.weavePhase = rng.nextFloat() * (float) (2 * Math.PI);
+        f.weaveFreq = WEAVE_FREQ_HZ_MIN + rng.nextFloat() * (WEAVE_FREQ_HZ_MAX - WEAVE_FREQ_HZ_MIN);
+        f.weaveAmpDeg = WEAVE_AMP_DEG_MIN + rng.nextFloat() * (WEAVE_AMP_DEG_MAX - WEAVE_AMP_DEG_MIN);
+        f.runScanTimer = RUN_TRIGGER_INTERVAL_SEC;
         fighters.add(f);
     }
 
     private static boolean isOffMap(Fighter f, BattleLayout layout) {
         float gridCellsW = layout.gridW / Math.max(0.001f, layout.cellSize);
         float gridCellsH = layout.gridH / Math.max(0.001f, layout.cellSize);
-        float pad = OFFMAP_PAD + 2f; // a touch of hysteresis past spawn pad
+        float pad = OFFMAP_PAD + 2f;
         return f.worldX < -pad || f.worldX > gridCellsW + pad
                 || f.worldY < -pad || f.worldY > gridCellsH + pad;
     }
 
-    /** Starsector-convention sprite facing: 0 = +Y (up), increasing CCW. */
-    private static float facingDeg(float vx, float vy) {
-        return (float) Math.toDegrees(Math.atan2(vy, vx)) - 90f;
+    /** Math-standard angle (0=+X, CCW positive) in degrees. */
+    private static float headingTo(float fromX, float fromY, float toX, float toY) {
+        return (float) Math.toDegrees(Math.atan2(toY - fromY, toX - fromX));
+    }
+
+    /** Folds an angle delta into [-180, 180] so steering takes the short way around. */
+    private static float wrapAngleDiffDeg(float deg) {
+        return ((deg + 540f) % 360f) - 180f;
+    }
+
+    private static float wrap360(float deg) {
+        float r = deg % 360f;
+        return r < 0f ? r + 360f : r;
+    }
+
+    private static float clamp(float v, float lo, float hi) {
+        return v < lo ? lo : (v > hi ? hi : v);
     }
 
     // ---- Rendering ------------------------------------------------------------
 
     /**
-     * Draws shadows → engine glows → fighters → tracers → impact flashes in
-     * that order so additive bits land on top of the unit layer. Caller is
-     * expected to render this AFTER ground units / shots / shuttles but
-     * BEFORE the victory banner.
+     * Draws shadows → engine glows → fighters → tracers → impact flashes. Caller
+     * is expected to invoke this AFTER ground units / shots / shuttles but BEFORE
+     * the victory banner. Sprite facing converts heading (math-standard, 0=+X)
+     * to Starsector convention (0=+Y) by subtracting 90°.
      */
     public void render(BattleLayout layout, float alphaMult) {
         if (layout == null) return;
         ensureSprites();
 
-        // 1. Drop shadows — normal blend at low alpha, low on the stack so
-        //    everything else punches over them.
         if (shadowSprite != null) {
-            for (Fighter f : fighters) {
-                drawShadow(f, layout, alphaMult);
-            }
+            for (Fighter f : fighters) drawShadow(f, layout, alphaMult);
         }
-
-        // 2. Engine glows — additive, behind the hull.
         if (engineSprite != null) {
-            for (Fighter f : fighters) {
-                drawEngineGlow(f, layout, alphaMult);
-            }
+            for (Fighter f : fighters) drawEngineGlow(f, layout, alphaMult);
         }
-
-        // 3. Fighter hulls — per-profile shared sprite, rotated to facing.
         for (Fighter f : fighters) {
             SpriteAPI sprite = sprites.get(f.profile);
             if (sprite == null) continue;
             float pxLen = f.profile.visualLengthCells * layout.cellSize;
-            // Preserve native aspect: width = pxLen * (w/h).
             float texW = sprite.getWidth();
             float texH = sprite.getHeight();
             float aspect = (texH > 0f) ? texW / texH : 1f;
             sprite.setSize(pxLen * aspect, pxLen);
-            sprite.setAngle(f.facingDeg);
+            sprite.setAngle(f.facingDeg - 90f);
             sprite.setAlphaMult(alphaMult);
             sprite.setColor(Color.WHITE);
             sprite.setNormalBlend();
@@ -407,30 +728,22 @@ public final class FlybyOverlay {
             float py = layout.gridY + f.worldY * layout.cellSize;
             sprite.renderAtCenter(px, py);
         }
-        // Reset shared sprite state — singletons leak rotation otherwise.
         for (SpriteAPI s : sprites.values()) {
             if (s != null) s.setAngle(0f);
         }
 
-        // 4. Tracers — additive colored quads, no texture. Lifetime drives alpha falloff.
         if (!tracers.isEmpty()) {
             glDisable(GL_TEXTURE_2D);
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE);
             glBegin(GL_QUADS);
-            for (Tracer t : tracers) {
-                drawTracerQuad(t, layout, alphaMult);
-            }
+            for (Tracer t : tracers) drawTracerQuad(t, layout, alphaMult);
             glEnd();
-            // Restore normal blend so we don't poison subsequent draws.
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         }
 
-        // 5. Particles (muzzle flashes + impacts) — additive glow sprites.
         if (glowSprite != null) {
-            for (Particle p : particles) {
-                drawParticle(p, layout, alphaMult);
-            }
+            for (Particle p : particles) drawParticle(p, layout, alphaMult);
         }
     }
 
@@ -447,16 +760,15 @@ public final class FlybyOverlay {
     }
 
     private void drawEngineGlow(Fighter f, BattleLayout layout, float alphaMult) {
-        float glowLenCells = f.profile.visualLengthCells * ENGINE_GLOW_LEN_MULT;
-        // Position the glow behind the fighter relative to its velocity.
         float speed = (float) Math.sqrt(f.vx * f.vx + f.vy * f.vy);
         if (speed < 0.001f) return;
         float nx = f.vx / speed, ny = f.vy / speed;
         float backOffset = f.profile.visualLengthCells * 0.45f;
         float gx = f.worldX - nx * backOffset;
         float gy = f.worldY - ny * backOffset;
+        float glowLenCells = f.profile.visualLengthCells * ENGINE_GLOW_LEN_MULT;
         engineSprite.setSize(glowLenCells * 0.6f * layout.cellSize, glowLenCells * layout.cellSize);
-        engineSprite.setAngle(f.facingDeg);
+        engineSprite.setAngle(f.facingDeg - 90f);
         engineSprite.setAlphaMult(alphaMult * 0.9f);
         engineSprite.setColor(new Color(0xFF, 0xC8, 0x80));
         engineSprite.setAdditiveBlend();
@@ -466,26 +778,18 @@ public final class FlybyOverlay {
         engineSprite.setAngle(0f);
     }
 
-    /** Draws one tracer as a rotated rectangle in additive color. Lifetime ratio drives alpha. */
     private void drawTracerQuad(Tracer t, BattleLayout layout, float alphaMult) {
         float fromPx = layout.gridX + t.fromX * layout.cellSize;
         float fromPy = layout.gridY + t.fromY * layout.cellSize;
         float toPx   = layout.gridX + t.toX   * layout.cellSize;
         float toPy   = layout.gridY + t.toY   * layout.cellSize;
-
-        // Tracer is drawn as a fixed-length segment from origin along the
-        // direction to target, regardless of target distance — gives the
-        // "muzzle-velocity round whipping out" read instead of stretching to
-        // the impact point. Length & thickness scale with cellSize so the
-        // tracer reads at any zoom.
         float dx = toPx - fromPx, dy = toPy - fromPy;
         float dist = (float) Math.sqrt(dx * dx + dy * dy);
         if (dist < 0.001f) return;
         float nx = dx / dist, ny = dy / dist;
-        float scale = layout.cellSize / 32f; // normalize sprite-px sizes to current zoom
+        float scale = layout.cellSize / 32f;
         float tracerLen = t.profile.tracerPxLen * scale;
         float half = (t.profile.tracerPxThick * scale) * 0.5f;
-        // Anchor the trailing end at the muzzle, head leads ahead toward target.
         float headX = fromPx + nx * tracerLen;
         float headY = fromPy + ny * tracerLen;
         float perpX = -ny * half, perpY = nx * half;
@@ -519,7 +823,6 @@ public final class FlybyOverlay {
     private void ensureSprites() {
         if (spritesLoadAttempted) return;
         spritesLoadAttempted = true;
-
         for (FighterProfile profile : FighterProfile.values()) {
             SpriteAPI sprite = loadSpriteOrNull(profile.spritePath);
             if (sprite != null) sprites.put(profile, sprite);
@@ -547,22 +850,45 @@ public final class FlybyOverlay {
 
     // ---- Inner data types -----------------------------------------------------
 
+    private enum RunState { NONE, BANK_BACK, RUN }
+
     private static final class Fighter {
         FighterProfile profile;
         Faction side;
+
+        // Position + motion. Heading is math-standard (0=+X, CCW); we steer it
+        // toward state-dependent targets at TURN_RATE_DEG_PER_SEC.
         float worldX, worldY;
-        float vx, vy;
-        float facingDeg;
-        /** Sim-seconds remaining of dogfight aggro — while >0, the fighter skips strafe attempts. */
+        float vx, vy;          // derived from heading + speed each tick; cached for engine-glow render
+        float speed;
+        float headingDeg;
+        float facingDeg;       // headingDeg + cosmetic wobble; what the sprite draws at
+        float exitX, exitY;    // original exit waypoint (for re-anchoring base heading after a RUN)
+
+        // Cruise weave — sin-wave offset to base heading.
+        float baseHeadingDeg;
+        float weavePhase;
+        float weaveFreq;
+        float weaveAmpDeg;
+
+        // Dogfight aggro.
         float aggroTimer;
-        /** Sin phase for cosmetic wobble while aggro'd. */
         float wobblePhase;
-        /** Active strafe burst — when >0, drives fireOneTracer on each tick. */
+
+        // Opportunistic CRUISE burst (single target).
         int burstRemaining;
         float burstNextFireIn;
         Unit burstTarget;
-        /** Cooldown between successive strafe attempts (set after a burst completes). */
         float strafeRearmTimer;
+
+        // Strafing run state machine.
+        RunState runState = RunState.NONE;
+        float runStateTimer;
+        float runScanTimer;
+        float runRearmTimer;
+        float runInX, runInY;
+        float runOutX, runOutY;
+        float runFireAccumulator;
     }
 
     private static final class Tracer {

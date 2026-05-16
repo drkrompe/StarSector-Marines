@@ -104,6 +104,18 @@ public class BattleSimulation {
     private static final float SHUTTLE_DEPART_CURVE_MULT = 2.5f;
     /** Fraction of the DEPARTING leg over which facing eases from landed direction into the leg tangent. */
     private static final float SHUTTLE_DEPART_FACING_EASE = 0.4f;
+    /**
+     * Secondary weave layered onto the primary bow so the shuttle wiggles its way
+     * to the LZ rather than tracing one clean arc. Same {@code sin²(πt)} envelope
+     * gates both displacement and slope to zero at endpoints, so this is a
+     * no-op for touchdown facing — only mid-flight motion gains organic snake.
+     */
+    private static final float SHUTTLE_WEAVE_AMP_REL_MAX = 0.025f;
+    private static final float SHUTTLE_WEAVE_AMP_ABS_MAX = 2.0f;
+    private static final float SHUTTLE_WEAVE_AMP_MIN     = 0.4f;
+    /** Cycles per leg — 1.5-3.5 reads as drift, not jitter. */
+    private static final float SHUTTLE_WEAVE_FREQ_MIN    = 1.5f;
+    private static final float SHUTTLE_WEAVE_FREQ_MAX    = 3.5f;
 
     /** Per-cell unit count, rebuilt at the start of each tick. Passed to the pathfinder so units route around ally-held cells. */
     private final byte[] occupancyMap;
@@ -640,6 +652,16 @@ public class BattleSimulation {
         s.curveStrength = floor + rng.nextFloat() * Math.max(0f, cap - floor);
         s.curveSide = rng.nextBoolean() ? 1 : -1;
         s.flightPhase = rng.nextFloat() * (float) (2 * Math.PI);
+
+        // Secondary weave parameters. Amplitude scales with leg length (so short
+        // hops don't snake disproportionately) and is capped absolutely. Frequency
+        // and phase are random per leg so each shuttle's wiggle pattern is unique.
+        float weaveCap = Math.min(s.legChordLength * SHUTTLE_WEAVE_AMP_REL_MAX, SHUTTLE_WEAVE_AMP_ABS_MAX);
+        float weaveFloor = Math.min(SHUTTLE_WEAVE_AMP_MIN, weaveCap);
+        s.weaveAmp = weaveFloor + rng.nextFloat() * Math.max(0f, weaveCap - weaveFloor);
+        s.weaveFreq = SHUTTLE_WEAVE_FREQ_MIN + rng.nextFloat() * (SHUTTLE_WEAVE_FREQ_MAX - SHUTTLE_WEAVE_FREQ_MIN);
+        s.weavePhase = rng.nextFloat() * (float) (2 * Math.PI);
+
         s.worldX = fromX;
         s.worldY = fromY;
     }
@@ -676,16 +698,33 @@ public class BattleSimulation {
         float envelope = sinPiT * sinPiT;
         float bow = envelope * s.curveStrength * s.curveSide;
 
+        // Secondary weave — higher-frequency perpendicular wiggle, same envelope.
+        // Because the envelope contributes both factor and derivative at endpoints,
+        // adding weave to displacement AND tangent keeps the touchdown math intact:
+        // pos and dpos/dt are both still exactly zero perpendicular displacement
+        // at t=0 and t=1.
+        float weaveArg = 2f * (float) Math.PI * s.weaveFreq * t + s.weavePhase;
+        float weaveSin = (float) Math.sin(weaveArg);
+        float weaveCos = (float) Math.cos(weaveArg);
+        float weave = envelope * s.weaveAmp * weaveSin;
+        float perpDisp = bow + weave;
+
         float linearX = fromX + legDx * t;
         float linearY = fromY + legDy * t;
-        s.worldX = linearX + perpX * bow;
-        s.worldY = linearY + perpY * bow;
+        s.worldX = linearX + perpX * perpDisp;
+        s.worldY = linearY + perpY * perpDisp;
 
-        // Tangent for facing: d/dt of position. d(sin²(πt))/dt = π·sin(2πt).
+        // Tangent for facing: d/dt of position. Each perpendicular term contributes
+        // its own derivative.
+        //   d(envelope)/dt = π·sin(2πt)
+        //   d(weave)/dt    = d(envelope)/dt · amp · sin(...)  +  envelope · amp · 2π·freq · cos(...)
         float dEnvelopeDt = (float) (Math.PI * Math.sin(2.0 * Math.PI * t));
         float dBowDt = dEnvelopeDt * s.curveStrength * s.curveSide;
-        float tangentX = legDx + perpX * dBowDt;
-        float tangentY = legDy + perpY * dBowDt;
+        float dWeaveDt = dEnvelopeDt * s.weaveAmp * weaveSin
+                + envelope * s.weaveAmp * 2f * (float) Math.PI * s.weaveFreq * weaveCos;
+        float dPerpDispDt = dBowDt + dWeaveDt;
+        float tangentX = legDx + perpX * dPerpDispDt;
+        float tangentY = legDy + perpY * dPerpDispDt;
         float tangentFacing = Shuttle.facingTowards(0f, 0f, tangentX, tangentY);
 
         // Departure pivot — for the first SHUTTLE_DEPART_FACING_EASE of progress,

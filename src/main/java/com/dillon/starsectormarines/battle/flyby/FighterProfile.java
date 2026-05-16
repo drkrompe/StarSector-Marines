@@ -19,25 +19,25 @@ public enum FighterProfile {
     TALON("graphics/ships/talon/talon.png", 1.5f,
             new Color(0xFF, 0xE0, 0x70), 22f, 2.5f, 0.06f,
             7, 0.06f, 0.8f, 1.0f,
-            FlybyOverlay.SFX_GUN_LIGHT, 0.9f, 0.7f),
+            FlybyOverlay.SFX_GUN_LIGHT, 0.9f, 1.0f),
 
     /** Wasp — small drone with a pulse laser. */
     WASP("graphics/ships/wasp_ftr.png", 1.3f,
             new Color(0x88, 0xFF, 0xFF), 18f, 3.0f, 0.10f,
             4, 0.10f, 1.2f, 1.5f,
-            FlybyOverlay.SFX_GUN_ENERGY, 1.1f, 0.6f),
+            FlybyOverlay.SFX_GUN_ENERGY, 1.1f, 0.9f),
 
     /** Broadsword — heavy fighter, dual chaingun. The strafe of choice. */
     BROADSWORD("graphics/ships/broadsword.png", 2.0f,
             new Color(0xFF, 0xE0, 0x70), 30f, 3.5f, 0.08f,
             10, 0.05f, 0.6f, 1.5f,
-            FlybyOverlay.SFX_GUN_HEAVY, 1.0f, 0.8f),
+            FlybyOverlay.SFX_GUN_HEAVY, 1.0f, 1.1f),
 
     /** Thunder — interceptor with twin ion bolts. */
     THUNDER("graphics/ships/thunder.png", 1.7f,
             new Color(0x70, 0xC8, 0xFF), 24f, 3.0f, 0.10f,
             6, 0.08f, 0.9f, 1.4f,
-            FlybyOverlay.SFX_GUN_ENERGY, 1.0f, 0.7f);
+            FlybyOverlay.SFX_GUN_ENERGY, 1.0f, 1.0f);
 
     /** Vanilla sprite path. Lazy-loaded once per overlay. */
     public final String spritePath;
