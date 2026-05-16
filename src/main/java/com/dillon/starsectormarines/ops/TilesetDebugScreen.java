@@ -37,10 +37,10 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
  * {@code (col,row)} index overlay so the user can call out which indices are
  * floor / wall / door / doodad without having to count tiles in an image editor.
  *
- * <p>Layout splits the sheet into N horizontal slabs side-by-side — at 384×1530
- * with 48px tiles that's 8×31 cells, which doesn't fit a typical dialog at 1:1.
- * The slabs let each cell render at native size so the (col,row) labels fit
- * cleanly in a corner instead of overlapping the tile art.
+ * <p>Layout splits the sheet into N horizontal slabs side-by-side so each cell
+ * renders at native size — the (col,row) labels fit cleanly in a corner
+ * instead of overlapping the tile art when a sheet is too tall to scale to the
+ * dialog at 1:1.
  *
  * <p>Empty-cell detection uses the same alpha threshold pattern as
  * {@link com.dillon.starsectormarines.battle.SpriteSheetSlicer} — anything below
@@ -51,8 +51,8 @@ public class TilesetDebugScreen implements Screen {
 
     private static final Logger LOG = Global.getLogger(TilesetDebugScreen.class);
 
-    private static final String SHEET_PATH = "graphics/battle/scifi_space_rpg_tiles.png";
-    private static final int TILE_SIZE = 48;
+    private static final String SHEET_PATH = "graphics/tilesets/urban-tileset.png";
+    private static final int TILE_SIZE = 32;
     private static final int SLAB_COUNT = 2;
     private static final int ALPHA_THRESHOLD = 16;
 

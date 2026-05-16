@@ -39,6 +39,13 @@ public final class UrbanMapGenerator {
     /** Building footprints with both dimensions ≥ this are carved hollow (walkable interior + one doorway). Smaller fall back to solid. */
     private static final int HOLLOW_MIN_SIZE  = 4;
 
+    /** Probability a hollow building gets at least one prop placed. */
+    private static final float DOODAD_PER_BUILDING_CHANCE = 0.8f;
+    /** Cap on doodads per building — small interiors look junked with too many. */
+    private static final int DOODAD_MAX_PER_BUILDING = 3;
+    /** Probability each interior cell (after the first) gets a prop, until the cap is hit. */
+    private static final float DOODAD_EXTRA_CELL_CHANCE = 0.4f;
+
     public static final class Result {
         public final NavigationGrid grid;
         public final int marineSpawnX;
@@ -46,17 +53,20 @@ public final class UrbanMapGenerator {
         public final int defenderSpawnX;
         public final int defenderSpawnY;
         public final List<PointOfInterest> pointsOfInterest;
+        public final List<Doodad> doodads;
 
         public Result(NavigationGrid grid,
                       int marineSpawnX, int marineSpawnY,
                       int defenderSpawnX, int defenderSpawnY,
-                      List<PointOfInterest> pointsOfInterest) {
+                      List<PointOfInterest> pointsOfInterest,
+                      List<Doodad> doodads) {
             this.grid = grid;
             this.marineSpawnX = marineSpawnX;
             this.marineSpawnY = marineSpawnY;
             this.defenderSpawnX = defenderSpawnX;
             this.defenderSpawnY = defenderSpawnY;
             this.pointsOfInterest = pointsOfInterest;
+            this.doodads = doodads;
         }
     }
 
@@ -87,10 +97,49 @@ public final class UrbanMapGenerator {
         seedWallHp(grid);
         bakeCoverFromWalls(grid);
 
+        List<Doodad> doodads = scatterDoodads(grid, pois, rng);
+
         int[] marine   = findNearestWalkable(grid, 2,             2);
         int[] defender = findNearestWalkable(grid, width - 3,     height - 3);
 
-        return new Result(grid, marine[0], marine[1], defender[0], defender[1], pois);
+        return new Result(grid, marine[0], marine[1], defender[0], defender[1], pois, doodads);
+    }
+
+    /**
+     * Scatters chair/crate/chest props through hollow building interiors.
+     * Each POI's footprint is interior-only (the perimeter is wall), so we
+     * sample {@link PointOfInterest#left}+1..{@link PointOfInterest#right}-1
+     * × {@link PointOfInterest#top}+1..{@link PointOfInterest#bottom}-1.
+     * Doorways are excluded so a prop doesn't stamp on top of the door
+     * overlay. Solid (non-hollow) buildings get nothing — there's no interior
+     * to dress.
+     */
+    private static List<Doodad> scatterDoodads(NavigationGrid grid, List<PointOfInterest> pois, Random rng) {
+        List<Doodad> out = new ArrayList<>();
+        for (PointOfInterest poi : pois) {
+            if (rng.nextFloat() >= DOODAD_PER_BUILDING_CHANCE) continue;
+            List<int[]> interior = new ArrayList<>();
+            for (int y = poi.top + 1; y <= poi.bottom - 1; y++) {
+                for (int x = poi.left + 1; x <= poi.right - 1; x++) {
+                    if (!grid.isWalkable(x, y)) continue;
+                    if (grid.isDoorway(x, y))   continue;
+                    interior.add(new int[]{x, y});
+                }
+            }
+            if (interior.isEmpty()) continue;
+
+            // First placement is guaranteed; subsequent are a coin flip until
+            // the cap is hit. Keeps small rooms from collecting four chairs.
+            for (int i = 0; i < interior.size() && i < DOODAD_MAX_PER_BUILDING; i++) {
+                if (i > 0 && rng.nextFloat() >= DOODAD_EXTRA_CELL_CHANCE) break;
+                int pickIdx = rng.nextInt(interior.size());
+                int[] cell = interior.remove(pickIdx);
+                TileManifest.TileFrame tile = TileManifest.DOODAD_POOL[rng.nextInt(TileManifest.DOODAD_POOL.length)];
+                out.add(new Doodad(cell[0], cell[1], tile));
+                if (interior.isEmpty()) break;
+            }
+        }
+        return out;
     }
 
     /**

@@ -2,104 +2,131 @@ package com.dillon.starsectormarines.battle;
 
 /**
  * Hand-curated mapping from semantic battle-tile categories to source
- * {@code (col, row)} positions in {@code graphics/battle/scifi_space_rpg_tiles.png}.
- * Labels came from a manual pass through {@code TilesetDebugScreen} — any new
- * tile additions should go through the debug viewer first so indices match
- * what's visible on the sheet.
+ * {@code (col, row)} positions in {@code graphics/tilesets/urban-tileset.png}.
  *
- * <p>Wall tiles in this sheet are drawn as 2-tile-tall pairs (3/4 perspective):
- * the lower image-Y row is the wall's base, the upper image-Y row is the wall's
- * top edge. The auto-battler's nav grid only allocates one cell per wall, so
- * {@link TileFrame#heightTiles} = 2 frames render with a 2-tall source squashed
- * into one cell. Walls end up looking vertically compressed but read cleanly
- * as walls instead of getting cut off at the bottom edge.
+ * <p>This sheet is a top-down 32px set with no 2-tall walls (the previous sheet
+ * had wall pieces drawn in 3/4 perspective, which had to be squashed vertically
+ * and looked awkward next to the marine sprites). All tiles here are 1×1, so
+ * walls slot cleanly into one nav-grid cell.
+ *
+ * <p>Layout on the sheet (10×10 cells):
+ * <ul>
+ *   <li>{@code (0..2, 0..2)} — clean floor 3×3 (nine variants pulled into the floor pool)</li>
+ *   <li>{@code (3..5, 0..2)} — clean wall 3×3 autotile, center cell empty</li>
+ *   <li>{@code (6, 2)} — closed door with green LED (decorative doodad)</li>
+ *   <li>{@code (7, 2)} — open door overhead (transparent overlay rendered above floor at doorway cells)</li>
+ *   <li>{@code (0..2, 4..6)} — damaged floor 3×3 (rubble pool)</li>
+ *   <li>{@code (3..5, 4..6)} — damaged wall 3×3 autotile, center cell empty (reserved for a future "damaged-but-standing" wall state)</li>
+ *   <li>row 7 cols 6-9 — chairs + chest doodads</li>
+ *   <li>row 3 cols 3-4, row 1 cols 8-9 — crate doodads</li>
+ *   <li>remaining cells — grates, bookshelves, terminals, rubble piles (reserved for prop placement later)</li>
+ * </ul>
+ *
+ * <p>Walls are picked via {@link #pickWallTile} from the 4-neighbor exposure
+ * pattern — top-edge cells use the top row, left-edge use the left column,
+ * corners use the matching corner cell. The center cell {@code (4, 1)} is
+ * transparent in the source art and is reserved for the "all four neighbors
+ * are walls" case — the renderer paints a solid color there instead of stamping
+ * the empty tile.
  */
 public final class TileManifest {
 
-    public static final String SHEET = "graphics/battle/scifi_space_rpg_tiles.png";
-    public static final int TILE_SIZE = 48;
+    public static final String SHEET = "graphics/tilesets/urban-tileset.png";
+    public static final int TILE_SIZE = 32;
+
+    /** Top-left cell of the clean-wall 3×3 autotile block. */
+    private static final int WALL_COL_ORIGIN = 3;
+    private static final int WALL_ROW_ORIGIN = 0;
+    /** Top-left cell of the clean-floor 3×3 autotile block. Center (1,1) has no frame edges and renders for open floor. */
+    private static final int FLOOR_COL_ORIGIN = 0;
+    private static final int FLOOR_ROW_ORIGIN = 0;
+    /** Top-left cell of the damaged-floor 3×3 autotile block. Same directional shape as clean floor, just at row 4. */
+    private static final int RUBBLE_COL_ORIGIN = 0;
+    private static final int RUBBLE_ROW_ORIGIN = 4;
 
     /**
-     * Floor variants for walkable cells. Per-cell hash picks deterministically
-     * from this pool so floors stay stable across frames and reload. Excludes:
-     * <ul>
-     *   <li>(2,1) and (3,1) — corner-wall variants (would carry stray wall geometry).</li>
-     *   <li>(0,2) through (1,4) and (2,4) — text-stamped variants that read as
-     *       visual noise at small cell sizes; dropped per playtest feedback.</li>
-     * </ul>
+     * Overhead-door overlay stamped on top of the floor for doorway cells (the
+     * cells {@link com.dillon.starsectormarines.battle.UrbanMapGenerator#punchDoorway
+     * punches} through building perimeters). Source art is mostly transparent
+     * with a slim overhead bar — units walk underneath cleanly.
      */
-    public static final TileFrame[] FLOOR_POOL = {
-            floor(0, 1), floor(1, 1),                           floor(4, 1), floor(5, 1), floor(6, 1), floor(7, 1),
-                                      floor(2, 2), floor(3, 2), floor(4, 2), floor(5, 2), floor(6, 2), floor(7, 2),
-                                      floor(2, 3), floor(3, 3), floor(4, 3), floor(5, 3), floor(6, 3), floor(7, 3),
-                                                                floor(3, 4), floor(4, 4), floor(5, 4), floor(6, 4), floor(7, 4),
+    public static final TileFrame DOOR_OPEN = new TileFrame(7, 2);
+
+    /**
+     * Pool of decorative props scattered through hollow building interiors.
+     * Visual-only — placed on walkable cells, never block movement. Mix of
+     * crates, chairs, a chest, and the closed-door panel to read as
+     * lived-in rooms.
+     */
+    public static final TileFrame[] DOODAD_POOL = {
+            new TileFrame(8, 1), new TileFrame(9, 1),       // tan + amber crates
+            new TileFrame(3, 3), new TileFrame(4, 3),       // gold + green crates
+            new TileFrame(6, 7),                            // bench / paired-seat
+            new TileFrame(7, 7),                            // brown chest
+            new TileFrame(8, 7), new TileFrame(9, 7),       // small stools
+            new TileFrame(6, 2),                            // closed-door panel (decoration only)
     };
 
     /**
-     * The all-black tile at (0,0) — used as a "roof" for wall cells whose 4
-     * cardinal neighbors are all walls (i.e., interior of a building). Stops
-     * the wall variant pool from being stamped through the middle of a wall
-     * block where there's no visible wall edge anyway.
-     */
-    public static final TileFrame INTERIOR_ROOF = new TileFrame(0, 0, 1);
-
-    /**
-     * Wall variants — 2-tile-tall in source (anchored at the top row), squashed
-     * 2:1 into one cell when rendered. Pooled and picked per-cell by hash so
-     * adjacent walls don't all share the same texture and a building reads as
-     * varied masonry rather than a stamped repeat.
+     * Returns the wall tile for a cell given which cardinal neighbors are also
+     * walls (or out-of-bounds — treated identically). Returns {@code null} when
+     * the cell is fully interior (all four neighbors are walls) — the caller
+     * paints a solid fill there because the source sheet's center cell is
+     * transparent.
      *
-     * <p>From the user's manual labeling: (0,7+0,8), (1,7+1,8), (2,7+2,8) are
-     * the three 2-tall wall variants. No directional / autotile system yet —
-     * the sheet's wall inventory doesn't form a clean 3×3 autotile block, so
-     * variant variety is the cheap win and edge/corner pieces wait for a
-     * future polish pass.
+     * <p>Mapping picks the column from east/west exposure and the row from
+     * north/south independently, which yields the correct corner/edge tile for
+     * every perimeter case our buildings produce. Stranded-wall edge cases
+     * (e.g., a 1-wide wall strip exposed on opposite sides) fall through to a
+     * matching edge tile rather than the empty center.
      */
-    public static final TileFrame[] WALL_POOL = {
-            wallPair(0, 7),
-            wallPair(1, 7),
-            wallPair(2, 7),
-    };
+    public static TileFrame pickWallTile(boolean nWall, boolean sWall, boolean eWall, boolean wWall) {
+        if (nWall && sWall && eWall && wWall) return null;
+
+        int col = !wWall ? 0 : (!eWall ? 2 : 1);
+        int row = !nWall ? 0 : (!sWall ? 2 : 1);
+
+        // (1,1) is the empty middle of the source 3×3. Only reachable if both N+S
+        // are walls AND both E+W are walls — which already returned null above.
+        return new TileFrame(WALL_COL_ORIGIN + col, WALL_ROW_ORIGIN + row);
+    }
 
     /**
-     * Rubble variants — drawn on cells that used to be walls but have been
-     * destroyed and flipped to walkable. We re-use the corner-wall tiles that
-     * the floor pool deliberately excludes: they carry stray wall geometry,
-     * which reads exactly right as "this used to be a wall." Same pool / hash
-     * shape as {@link #FLOOR_POOL}, so the renderer treats them identically.
+     * Returns the clean-floor tile for a walkable cell given which cardinal
+     * neighbors are walls (in-bounds non-walkable cells only — OOB is treated
+     * as open so streets at the map edge stay center-tiled). The floor 3×3 has
+     * its frame edges drawn on the side that touches a wall, so picking
+     * directionally makes the floor "kiss" each wall it abuts. Cells with no
+     * wall neighbors get the open-floor center {@code (1, 1)}.
      */
-    public static final TileFrame[] RUBBLE_POOL = {
-            floor(2, 1),
-            floor(3, 1),
-    };
+    public static TileFrame pickFloorTile(boolean nWall, boolean sWall, boolean eWall, boolean wWall) {
+        int col = wWall ? 0 : (eWall ? 2 : 1);
+        int row = nWall ? 0 : (sWall ? 2 : 1);
+        return new TileFrame(FLOOR_COL_ORIGIN + col, FLOOR_ROW_ORIGIN + row);
+    }
+
+    /**
+     * Damaged-floor counterpart to {@link #pickFloorTile} — same directional
+     * shape, drawn from the damaged 3×3 block. Used on rubble cells (former
+     * walls that were knocked down by damage) so the breach reads as broken
+     * masonry rather than fresh paneling.
+     */
+    public static TileFrame pickRubbleTile(boolean nWall, boolean sWall, boolean eWall, boolean wWall) {
+        int col = wWall ? 0 : (eWall ? 2 : 1);
+        int row = nWall ? 0 : (sWall ? 2 : 1);
+        return new TileFrame(RUBBLE_COL_ORIGIN + col, RUBBLE_ROW_ORIGIN + row);
+    }
 
     private TileManifest() {}
 
-    private static TileFrame floor(int col, int row) {
-        return new TileFrame(col, row, 1);
-    }
-
-    /** Constructs a 2-tile-tall frame anchored at {@code topRow} (image-Y, decreases upward in pixels). */
-    private static TileFrame wallPair(int col, int topRow) {
-        return new TileFrame(col, topRow, 2);
-    }
-
-    /**
-     * Source-sheet region for a single semantic tile.
-     *
-     * <p>{@code row} is in image-Y coordinates (top of sheet = row 0). For
-     * multi-tile-tall sprites (e.g., {@code heightTiles=2}), the frame spans
-     * rows {@code [row, row + heightTiles)}; {@code row} is the topmost row.
-     */
+    /** Source-sheet region for a single 1×1 tile. */
     public static final class TileFrame {
         public final int col;
         public final int row;
-        public final int heightTiles;
 
-        public TileFrame(int col, int row, int heightTiles) {
+        public TileFrame(int col, int row) {
             this.col = col;
             this.row = row;
-            this.heightTiles = heightTiles;
         }
     }
 }

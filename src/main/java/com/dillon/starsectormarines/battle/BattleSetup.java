@@ -67,6 +67,7 @@ public final class BattleSetup {
     public static BattleSimulation createSabotage(long seed) {
         UrbanMapGenerator.Result map = UrbanMapGenerator.generate(GRID_W, GRID_H, seed);
         BattleSimulation sim = new BattleSimulation(map.grid);
+        for (Doodad d : map.doodads) sim.addDoodad(d);
 
         // Pick charge sites: prefer high-value POIs (lab/comms/depot) in the
         // defender half of the map. Fall back to any POI if not enough qualify.
@@ -163,6 +164,7 @@ public final class BattleSetup {
     public static BattleSimulation createPlaceholder(long seed) {
         UrbanMapGenerator.Result map = UrbanMapGenerator.generate(GRID_W, GRID_H, seed);
         BattleSimulation sim = new BattleSimulation(map.grid);
+        for (Doodad d : map.doodads) sim.addDoodad(d);
 
         // Default ASSAULT objectives — eliminate the other side. Mission-specific
         // setups (sabotage, raid, extraction) will swap or add to this pair.

@@ -73,6 +73,7 @@ public class BattleSimulation {
     private final List<Shuttle> shuttles = new ArrayList<>();
     private final List<Objective> objectives = new ArrayList<>();
     private final List<EquipmentDrop> equipmentDrops = new ArrayList<>();
+    private final List<Doodad> doodads = new ArrayList<>();
     private final Map<Integer, Squad> squads = new HashMap<>();
     /** Next squad id to assign on shuttle deboard. Monotonically increasing across the battle's lifetime. */
     private int nextSquadId = 0;
@@ -153,6 +154,8 @@ public class BattleSimulation {
     public List<Shuttle> getShuttles()     { return shuttles; }
     public List<Objective> getObjectives() { return objectives; }
     public List<EquipmentDrop> getEquipmentDrops() { return equipmentDrops; }
+    public List<Doodad> getDoodads()       { return doodads; }
+    public void addDoodad(Doodad d)        { doodads.add(d); }
     public List<ShotEvent> getActiveShots(){ return activeShots; }
     public List<ShotEvent> getShotsThisFrame() { return shotsThisFrame; }
     public List<Unit> getDeathsThisFrame()     { return deathsThisFrame; }

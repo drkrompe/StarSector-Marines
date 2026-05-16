@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.BattleSetup;
+import com.dillon.starsectormarines.battle.Doodad;
 import com.dillon.starsectormarines.battle.EquipmentDrop;
 import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.ShotEvent;
@@ -643,6 +644,7 @@ public class BattleScreen implements Screen {
         if (sim != null) {
             renderGrid(sim.getGrid(), alphaMult);
             if (debugZonesVisible) renderZoneOverlay(sim, alphaMult);
+            renderDoodads(sim, alphaMult);
             renderUnits(sim.getUnits(), alphaMult);
             // Charge sites + equipment drops sit above units so the player can
             // always see where the objectives are — even while a marine stands
@@ -671,15 +673,24 @@ public class BattleScreen implements Screen {
     private static final float GRID_LINE_MIN_CELL = 16f;
 
     /**
-     * Renders walkable cells as floor tiles from the manifest's floor pool and
-     * non-walkable cells as wall variants from the manifest's wall pool. Both
-     * picks are deterministic via {@link #cellHash} so tiles stay stable across
-     * frames and reload — no flicker.
+     * Renders walkable cells as directional floor (or rubble) tiles and
+     * non-walkable cells as wall autotiles, both picked from 4-neighbor
+     * exposure. Floors connect their frame edges to adjacent walls; walls pick
+     * the matching corner/edge piece.
      *
-     * <p>Walls render with a 2-tall source frame squashed into one cell. No
-     * directional / autotile inspection — the source sheet's wall inventory
-     * doesn't form a clean autotile pattern. Variety comes from the pool;
-     * edge / corner pieces wait for a later polish pass.
+     * <p>For floor picking, out-of-bounds counts as <em>not</em> a wall — a
+     * street at the map edge should look open, not framed. For wall picking,
+     * out-of-bounds counts as a wall so a building flush against the edge
+     * gets a real edge tile.
+     *
+     * <p>Doorway cells (perimeter cuts that were never walls) get the
+     * open-door overhead stamped on top of the floor; rubble doorways
+     * (breached walls) skip the overhead — those are holes blasted through,
+     * not real doors.
+     *
+     * <p>Fully-interior wall cells (all four cardinal neighbors are walls)
+     * fall back to a solid {@link #WALL_COLOR} fill — the source sheet's
+     * center wall cell is transparent on purpose and there's no roof art.
      */
     private void renderTiledFloorsAndWalls(NavigationGrid grid, float alphaMult) {
         float texW = tileSheet.getTextureWidth();
@@ -688,32 +699,54 @@ public class BattleScreen implements Screen {
         float texYScale = texH / tileSheetPxH;
         int sheetPxH = tileSheetPxH;
 
-        TileManifest.TileFrame[] floorPool  = TileManifest.FLOOR_POOL;
-        TileManifest.TileFrame[] wallPool   = TileManifest.WALL_POOL;
-        TileManifest.TileFrame[] rubblePool = TileManifest.RUBBLE_POOL;
-
-        // Floor pass — every walkable cell gets a pool sample. Rubble cells
-        // (formerly walls) pull from the rubble pool so a breached building
-        // reads as broken masonry rather than fresh street.
+        // Floor pass — directional autotile pick. OOB reads as open, so map-edge streets stay center-tiled.
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
                 if (!grid.isWalkable(x, y)) continue;
-                TileManifest.TileFrame[] pool = grid.isRubble(x, y) ? rubblePool : floorPool;
-                TileManifest.TileFrame f = pool[cellHash(x, y) % pool.length];
-                drawTile(f, x, y, texXScale, texYScale, sheetPxH, alphaMult);
+                boolean nWall = isInBoundsWall(grid, x, y + 1);
+                boolean sWall = isInBoundsWall(grid, x, y - 1);
+                boolean eWall = isInBoundsWall(grid, x + 1, y);
+                boolean wWall = isInBoundsWall(grid, x - 1, y);
+                TileManifest.TileFrame floor = grid.isRubble(x, y)
+                        ? TileManifest.pickRubbleTile(nWall, sWall, eWall, wWall)
+                        : TileManifest.pickFloorTile(nWall, sWall, eWall, wWall);
+                drawTile(floor, x, y, texXScale, texYScale, sheetPxH, alphaMult);
+
+                // Original doorway (punched through a wall at gen time) gets
+                // the overhead door overlay. Breached cells are flagged rubble
+                // AND doorway — the !isRubble guard keeps the overhead off
+                // those, since they're holes blasted through, not real doors.
+                if (grid.isDoorway(x, y) && !grid.isRubble(x, y)) {
+                    drawTile(TileManifest.DOOR_OPEN, x, y, texXScale, texYScale, sheetPxH, alphaMult);
+                }
             }
         }
 
-        // Wall pass — interior cells get the roof tile, edge cells get a pooled variant.
+        // Wall pass — autotile pick from neighbor exposure. Interior walls
+        // (all four neighbors are walls) draw a solid fill since the source's
+        // interior cell is transparent.
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
                 if (grid.isWalkable(x, y)) continue;
-                TileManifest.TileFrame tile = isInteriorWall(grid, x, y)
-                        ? TileManifest.INTERIOR_ROOF
-                        : wallPool[cellHash(x, y) % wallPool.length];
-                drawTile(tile, x, y, texXScale, texYScale, sheetPxH, alphaMult);
+                boolean nWall = isWallOrOob(grid, x, y + 1);
+                boolean sWall = isWallOrOob(grid, x, y - 1);
+                boolean eWall = isWallOrOob(grid, x + 1, y);
+                boolean wWall = isWallOrOob(grid, x - 1, y);
+                TileManifest.TileFrame tile = TileManifest.pickWallTile(nWall, sWall, eWall, wWall);
+                if (tile == null) {
+                    fillCell(x, y, WALL_COLOR, alphaMult);
+                } else {
+                    drawTile(tile, x, y, texXScale, texYScale, sheetPxH, alphaMult);
+                }
             }
         }
+    }
+
+    /** Solid quad covering one nav-grid cell — used as the interior-wall fallback. */
+    private void fillCell(int gridX, int gridY, Color color, float alphaMult) {
+        float x0 = layout.gridX + gridX * layout.cellSize;
+        float y0 = layout.gridY + gridY * layout.cellSize;
+        fillRect(x0, y0, layout.cellSize, layout.cellSize, color, alphaMult);
     }
 
     /**
@@ -755,32 +788,38 @@ public class BattleScreen implements Screen {
         glEnd();
     }
 
-    /** A wall cell is "interior" when all 4 cardinal neighbors are also walls (or out of bounds). */
-    private static boolean isInteriorWall(NavigationGrid grid, int x, int y) {
-        return isWallOrOob(grid, x + 1, y)
-                && isWallOrOob(grid, x - 1, y)
-                && isWallOrOob(grid, x, y + 1)
-                && isWallOrOob(grid, x, y - 1);
-    }
-
+    /** Out-of-bounds cells act as walls for autotile purposes — a building flush against the map edge gets a real edge tile, not an open-air tile. */
     private static boolean isWallOrOob(NavigationGrid grid, int x, int y) {
         if (!grid.inBounds(x, y)) return true;
         return !grid.isWalkable(x, y);
     }
 
-    /**
-     * Draws a single {@link TileManifest.TileFrame} into one grid cell. For
-     * frames with {@code heightTiles > 1} the source region is the full multi-row
-     * rectangle but the destination is always one cellSize × cellSize — so 2-tall
-     * walls render visually compressed but contain both upper and lower detail
-     * from the source pair.
-     */
+    /** True for in-bounds non-walkable cells. Out-of-bounds reads as open ground for floor picking — streets at the map edge stay center-tiled instead of getting framed against nothing. */
+    private static boolean isInBoundsWall(NavigationGrid grid, int x, int y) {
+        if (!grid.inBounds(x, y)) return false;
+        return !grid.isWalkable(x, y);
+    }
+
+    /** Renders the doodad layer (chairs, crates, chest, etc.) on top of floors and below units. */
+    private void renderDoodads(BattleSimulation sim, float alphaMult) {
+        if (tileSheet == null) return;
+        float texW = tileSheet.getTextureWidth();
+        float texH = tileSheet.getTextureHeight();
+        float texXScale = texW / tileSheetPxW;
+        float texYScale = texH / tileSheetPxH;
+        int sheetPxH = tileSheetPxH;
+        for (Doodad d : sim.getDoodads()) {
+            drawTile(d.tile, d.cellX, d.cellY, texXScale, texYScale, sheetPxH, alphaMult);
+        }
+    }
+
+    /** Draws a single 1×1 {@link TileManifest.TileFrame} into one grid cell. */
     private void drawTile(TileManifest.TileFrame f, int gridX, int gridY,
                           float texXScale, float texYScale, int sheetPxH, float alphaMult) {
         int srcPxX = f.col * TileManifest.TILE_SIZE;
         int srcTopPxY = f.row * TileManifest.TILE_SIZE;
         int srcPxW = TileManifest.TILE_SIZE;
-        int srcPxH = f.heightTiles * TileManifest.TILE_SIZE;
+        int srcPxH = TileManifest.TILE_SIZE;
 
         tileSheet.setTexX(srcPxX * texXScale);
         tileSheet.setTexY((sheetPxH - (srcTopPxY + srcPxH)) * texYScale);
