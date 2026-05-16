@@ -24,8 +24,13 @@ import java.util.List;
  */
 public class Unit {
 
+    /** Sentinel value for {@link #squadId} when the unit isn't part of a squad — defenders, solo combatants, anyone not deboarded from a marine shuttle. */
+    public static final int NO_SQUAD = -1;
+
     public final String id;
     public final Faction faction;
+    /** Squad identity. Set to a positive int when this unit deboarded as part of a fireteam; {@link #NO_SQUAD} for solo units. */
+    public int squadId = NO_SQUAD;
 
     // Logical cell (pathfinder sees these).
     public int cellX;

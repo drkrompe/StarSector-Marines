@@ -97,6 +97,15 @@ public class Shuttle {
      */
     public MarineLoadout[] marineLoadout;
 
+    /**
+     * Squad identity assigned to all marines deboarded from this shuttle.
+     * Lazily set to a fresh id on the first successful deboard;
+     * {@link Unit#NO_SQUAD} means "no squad has been created for this shuttle
+     * yet." Defenders' shuttles (none today, but the field is faction-agnostic)
+     * would get their own squad on the same path.
+     */
+    public int squadId = Unit.NO_SQUAD;
+
     public Shuttle(ShuttleType type, Faction faction,
                    float lzX, float lzY,
                    float entryX, float entryY,

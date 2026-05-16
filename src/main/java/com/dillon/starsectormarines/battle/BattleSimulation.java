@@ -1,8 +1,12 @@
 package com.dillon.starsectormarines.battle;
 
-import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.ai.CombatantBehavior;
+import com.dillon.starsectormarines.battle.ai.FallbackBehavior;
+import com.dillon.starsectormarines.battle.ai.KitRetrieverBehavior;
+import com.dillon.starsectormarines.battle.ai.PlanterBehavior;
+import com.dillon.starsectormarines.battle.ai.TacticalScoring;
+import com.dillon.starsectormarines.battle.ai.UnitBehavior;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.objective.EliminateFactionObjective;
 import com.dillon.starsectormarines.battle.objective.Objective;
 
@@ -10,8 +14,10 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
@@ -47,15 +53,6 @@ public class BattleSimulation {
     /** Fixed simulation timestep — 30Hz. */
     public static final float TICK_DT = 1f / 30f;
 
-    /** Per-engaging-ally penalty added to target selection — pushes the squad to spread fire instead of dogpiling the closest enemy. */
-    private static final float TARGET_CROWDING_COST = 6f;
-    /** Per-ally-on-cell penalty added when picking a firing position around a target — pushes units into a spread ring. */
-    private static final float FIRING_OCCUPANCY_COST = 4f;
-    /** Minimum cell-distance from target when picking a firing position. Avoids picking the target's own cell. */
-    private static final float FIRING_MIN_DISTANCE = 0.7f;
-    /** Per-cover-level bonus subtracted from firing-position score. Pushes units to peek from corners and wall edges instead of standing in the open. */
-    private static final float FIRING_COVER_BONUS = 3f;
-
     /** Damage reduction per cover level (0..MAX_COVER). Open ground = 0%; 1 wall = 15%; 2 = 30%; 3+ = 45%. Applied multiplicatively in {@link #fireShot}. */
     private static final float[] COVER_DAMAGE_REDUCTION = { 0f, 0.15f, 0.30f, 0.45f };
 
@@ -65,24 +62,19 @@ public class BattleSimulation {
     private static final float MISS_OFFSET_MIN = 0.5f;
     private static final float MISS_OFFSET_MAX = 2.0f;
 
-    /** Probability that, after firing, a unit picks a different firing position. Models routine sidestepping between shots. */
-    private static final float REPOSITION_CHANCE = 0.30f;
     /** Probability a hit puts the target into fall-back. Rolled once per hit; ignored if already falling back. */
     private static final float FALLBACK_CHANCE   = 0.25f;
     /** Sim seconds a unit stays in fall-back state once entered. After this, normal engagement resumes. */
     private static final float FALLBACK_DURATION = 3.5f;
-    /** Cell radius searched for a fall-back position around the hit unit. */
-    private static final int   FALLBACK_SCAN_RANGE = 8;
-    /** Per-ally-on-cell penalty in fall-back scoring. */
-    private static final float FALLBACK_OCCUPANCY_COST = 4f;
-    /** Per-adjacent-wall bonus in fall-back scoring (cover preference). */
-    private static final float FALLBACK_COVER_BONUS    = 2f;
 
     private final NavigationGrid grid;
     private final List<Unit> units = new ArrayList<>();
     private final List<Shuttle> shuttles = new ArrayList<>();
     private final List<Objective> objectives = new ArrayList<>();
     private final List<EquipmentDrop> equipmentDrops = new ArrayList<>();
+    private final Map<Integer, Squad> squads = new HashMap<>();
+    /** Next squad id to assign on shuttle deboard. Monotonically increasing across the battle's lifetime. */
+    private int nextSquadId = 0;
     private final List<ShotEvent> activeShots = new ArrayList<>();
     /** Shots fired during the last {@link #advance(float)} call. Cleared on each advance, populated per tick. Drives one-shot audio in the renderer. */
     private final List<ShotEvent> shotsThisFrame = new ArrayList<>();
@@ -134,6 +126,11 @@ public class BattleSimulation {
     public List<Unit> getDeathsThisFrame()     { return deathsThisFrame; }
     public boolean isComplete()            { return complete; }
     public Faction getWinner()             { return winner; }
+    /** Per-cell unit count, indexed by {@link NavigationGrid#index(int, int)}. Exposed for AI scoring; do not mutate directly — go through {@link #setPath}. */
+    public byte[] getOccupancyMap()        { return occupancyMap; }
+    public Random getRng()                 { return rng; }
+    /** Returns the squad with the given id, or {@code null} if {@code id == Unit.NO_SQUAD} or the squad was never registered. */
+    public Squad getSquad(int id)          { return id == Unit.NO_SQUAD ? null : squads.get(id); }
 
     public void addUnit(Unit u) {
         units.add(u);
@@ -230,28 +227,13 @@ public class BattleSimulation {
     }
 
     /**
-     * Occupancy count at cell (cx, cy), excluding self's own contributions
-     * (current cell + path destination). Used so a unit doesn't penalize
-     * itself when scoring its own current/intended position.
-     */
-    private int occupantsExcludingSelf(Unit self, int cx, int cy) {
-        if (!grid.inBounds(cx, cy)) return 0;
-        int n = occupancyMap[cy * grid.getWidth() + cx] & 0xFF;
-        if (cx == self.cellX && cy == self.cellY) n--;
-        int[] selfDest = pathDestination(self);
-        if (selfDest != null && selfDest[0] == cx && selfDest[1] == cy
-                && (selfDest[0] != self.cellX || selfDest[1] != self.cellY)) {
-            n--;
-        }
-        return Math.max(0, n);
-    }
-
-    /**
      * Replaces a unit's path and keeps {@link #occupancyMap} in sync — the old
      * destination loses its occupancy contribution and the new destination
-     * gains one (subject to start-cell guards).
+     * gains one (subject to start-cell guards). Public so AI behaviors in
+     * {@code battle.ai} can route their movement through this method instead
+     * of touching {@code u.path} directly.
      */
-    private void setPath(Unit u, List<int[]> newPath) {
+    public void setPath(Unit u, List<int[]> newPath) {
         int[] oldDest = pathDestination(u);
         if (oldDest != null && (oldDest[0] != u.cellX || oldDest[1] != u.cellY)) {
             decrementOccupancy(oldDest[0], oldDest[1]);
@@ -279,120 +261,29 @@ public class BattleSimulation {
      * VIP currently fall through to combatant behavior; mission-specific
      * subsystems (SABOTAGE first) override these branches as they land.
      */
+    /**
+     * Routes the per-tick update for one unit. Fall-back is a pre-dispatch
+     * override so it applies regardless of role; otherwise the per-role
+     * behavior instance handles the unit. Behavior classes live in
+     * {@code battle.ai}; this method holds no per-role logic.
+     */
     private void updateUnit(Unit u) {
         if (u.fallbackTimer > 0f) {
-            advanceFallback(u);
+            FallbackBehavior.INSTANCE.update(u, this);
             return;
         }
-        switch (u.role) {
-            case PLANTER:
-                updatePlanter(u);
-                return;
-            case KIT_RETRIEVER:
-                updateKitRetriever(u);
-                return;
+        behaviorFor(u.role).update(u, this);
+    }
+
+    private UnitBehavior behaviorFor(UnitRole role) {
+        switch (role) {
+            case PLANTER:        return PlanterBehavior.INSTANCE;
+            case KIT_RETRIEVER:  return KitRetrieverBehavior.INSTANCE;
             case OBJECTIVE_CAMPER:
             case VIP:
             case COMBATANT:
-            default:
-                updateCombatant(u);
+            default:             return CombatantBehavior.INSTANCE;
         }
-    }
-
-    /**
-     * Planter behavior: head to the assigned charge site, dwell on the anchor
-     * cell to let {@link ChargeSiteObjective#tick(BattleSimulation)} accumulate
-     * plant progress, fire opportunistically at any visible enemy in range so
-     * they aren't a sitting duck during the channel. If the assigned objective
-     * is already complete or null, falls through to combatant behavior — finished
-     * planters rejoin the fight.
-     */
-    private void updatePlanter(Unit u) {
-        if (!(u.assignedObjective instanceof ChargeSiteObjective)
-                || u.assignedObjective.isComplete()) {
-            // Demote — otherwise the unit's role label stays PLANTER forever
-            // and the kit-reassignment pass skips them as "still busy."
-            u.role = UnitRole.COMBATANT;
-            u.assignedObjective = null;
-            updateCombatant(u);
-            return;
-        }
-        ChargeSiteObjective site = (ChargeSiteObjective) u.assignedObjective;
-        int sx = site.cellX();
-        int sy = site.cellY();
-
-        // Re-acquire target so we can fire while channeling.
-        if (u.target == null || !u.target.isAlive()) {
-            u.target = findBestTarget(u);
-        }
-        if (u.cooldownTimer > 0f) u.cooldownTimer -= TICK_DT;
-        if (u.target != null) {
-            float dist = cellDistance(u.cellX, u.cellY, u.target.cellX, u.target.cellY);
-            boolean canFire = dist <= u.attackRange
-                    && grid.hasLineOfSight(u.cellX, u.cellY, u.target.cellX, u.target.cellY)
-                    && u.cooldownTimer <= 0f;
-            if (canFire) {
-                fireShot(u, u.target);
-                u.cooldownTimer = u.attackCooldown;
-            }
-        }
-
-        if (u.cellX == sx && u.cellY == sy) {
-            // On-site — hold position so the channel accumulates. Plant
-            // progress itself is driven by ChargeSiteObjective.tick.
-            if (!u.path.isEmpty()) setPath(u, Collections.emptyList());
-            u.moveProgress = 0f;
-            u.renderX = u.cellX;
-            u.renderY = u.cellY;
-            return;
-        }
-
-        // Path to the site. Same "only re-path between cells" rule as combatant
-        // movement so mid-step transitions don't snap.
-        if (u.moveProgress == 0f) {
-            setPath(u, GridPathfinder.findPath(grid, u.cellX, u.cellY, sx, sy, occupancyMap));
-        }
-        advanceMovement(u);
-    }
-
-    /**
-     * Kit-retriever behavior: head for the assigned drop, fire opportunistically
-     * along the way. If the drop has been consumed by someone else (or the
-     * pointer is null), demote back to combatant — the unit will pick up combat
-     * targeting normally next tick.
-     *
-     * <p>Pickup itself isn't handled here: {@link #processEquipmentDrops}
-     * sweeps every tick and promotes whoever happens to be standing on a
-     * drop cell (this retriever or any opportunist who walked over).
-     */
-    private void updateKitRetriever(Unit u) {
-        EquipmentDrop drop = u.equipmentDropTarget;
-        if (drop == null || drop.consumed) {
-            u.role = UnitRole.COMBATANT;
-            u.equipmentDropTarget = null;
-            updateCombatant(u);
-            return;
-        }
-
-        if (u.target == null || !u.target.isAlive()) {
-            u.target = findBestTarget(u);
-        }
-        if (u.cooldownTimer > 0f) u.cooldownTimer -= TICK_DT;
-        if (u.target != null) {
-            float dist = cellDistance(u.cellX, u.cellY, u.target.cellX, u.target.cellY);
-            boolean canFire = dist <= u.attackRange
-                    && grid.hasLineOfSight(u.cellX, u.cellY, u.target.cellX, u.target.cellY)
-                    && u.cooldownTimer <= 0f;
-            if (canFire) {
-                fireShot(u, u.target);
-                u.cooldownTimer = u.attackCooldown;
-            }
-        }
-
-        if (u.moveProgress == 0f) {
-            setPath(u, GridPathfinder.findPath(grid, u.cellX, u.cellY, drop.cellX, drop.cellY, occupancyMap));
-        }
-        advanceMovement(u);
     }
 
     /**
@@ -495,7 +386,7 @@ public class BattleSimulation {
             if (u.role == UnitRole.KIT_RETRIEVER
                     && u.equipmentDropTarget != null
                     && !u.equipmentDropTarget.consumed) continue;
-            float d = cellDistance(u.cellX, u.cellY, cx, cy);
+            float d = TacticalScoring.cellDistance(u.cellX, u.cellY, cx, cy);
             if (d < bestDist) {
                 bestDist = d;
                 best = u;
@@ -505,78 +396,11 @@ public class BattleSimulation {
     }
 
     /**
-     * Fall-back state — unit was recently hit and is breaking contact.
-     * Paths toward an out-of-LOS cell, then holds until the timer expires.
+     * Advances a unit one tick along its current path. Public so behaviors
+     * call this after re-pathing or as the last step of their per-tick
+     * update.
      */
-    private void advanceFallback(Unit u) {
-        u.fallbackTimer -= TICK_DT;
-        int fx = u.fallbackCellX;
-        int fy = u.fallbackCellY;
-        if (u.cellX == fx && u.cellY == fy) {
-            setPath(u, Collections.emptyList());
-            u.moveProgress = 0f;
-            u.renderX = u.cellX;
-            u.renderY = u.cellY;
-            return;
-        }
-        if (u.moveProgress == 0f) {
-            setPath(u, GridPathfinder.findPath(grid, u.cellX, u.cellY, fx, fy, occupancyMap));
-        }
-        advanceMovement(u);
-    }
-
-    /**
-     * Default combat loop: acquire target, fire when in range with LOS, otherwise
-     * path to a firing position. The behavior every unit had before the role
-     * system landed.
-     */
-    private void updateCombatant(Unit u) {
-        if (u.target == null || !u.target.isAlive()) {
-            u.target = findBestTarget(u);
-        }
-        if (u.target == null) return; // nothing to do — usually a win-condition frame
-
-        if (u.cooldownTimer > 0f) u.cooldownTimer -= TICK_DT;
-
-        float dist = cellDistance(u.cellX, u.cellY, u.target.cellX, u.target.cellY);
-        boolean inRange = dist <= u.attackRange;
-        boolean visible = grid.hasLineOfSight(u.cellX, u.cellY, u.target.cellX, u.target.cellY);
-        if (inRange && visible) {
-            if (u.cooldownTimer <= 0f) {
-                fireShot(u, u.target);
-                u.cooldownTimer = u.attackCooldown;
-                // Reposition roll — set a path to a different firing position.
-                // Path runs while cooldown counts down; the unit fires from the
-                // new spot once cooldown clears, producing visible "shoot, sidestep,
-                // shoot" cadence instead of static turrets.
-                if (rng.nextFloat() < REPOSITION_CHANCE) {
-                    int[] firingPos = findFiringPosition(u, u.target, u.cellX, u.cellY);
-                    if (firingPos[0] != u.cellX || firingPos[1] != u.cellY) {
-                        setPath(u, GridPathfinder.findPath(grid, u.cellX, u.cellY, firingPos[0], firingPos[1], occupancyMap));
-                    }
-                }
-            }
-            // Continue any path in progress (from a recent reposition). If no
-            // path, hold position and let renderX/Y snap to the logical cell.
-            if (!u.path.isEmpty() && u.pathIdx < u.path.size()) {
-                advanceMovement(u);
-            } else {
-                u.moveProgress = 0f;
-                u.renderX = u.cellX;
-                u.renderY = u.cellY;
-            }
-        } else {
-            // Out of range or out of sight — path to a firing position near target.
-            // Re-path only between cells so mid-step movement doesn't snap.
-            if (u.moveProgress == 0f) {
-                int[] firingPos = findFiringPosition(u, u.target);
-                setPath(u, GridPathfinder.findPath(grid, u.cellX, u.cellY, firingPos[0], firingPos[1], occupancyMap));
-            }
-            advanceMovement(u);
-        }
-    }
-
-    private void advanceMovement(Unit u) {
+    public void advanceMovement(Unit u) {
         if (u.path.isEmpty() || u.pathIdx >= u.path.size()) return;
 
         int[] nextCell = u.path.get(u.pathIdx);
@@ -605,103 +429,6 @@ public class BattleSimulation {
     }
 
     /**
-     * Picks the lowest-scored enemy where score = cell-distance + a per-engager
-     * crowding penalty. The squad spreads fire across the defender line instead
-     * of dogpiling.
-     *
-     * <p>Prefers targets the unit has line-of-sight to. If none of the enemies
-     * are visible from this cell, falls back to the nearest enemy (any LOS) so
-     * the unit pathfinders toward them and visibility eventually opens.
-     */
-    private Unit findBestTarget(Unit self) {
-        Unit bestVisible = null;
-        float bestVisibleScore = Float.MAX_VALUE;
-        Unit bestAny = null;
-        float bestAnyDist = Float.MAX_VALUE;
-
-        for (Unit other : units) {
-            if (!other.isAlive()) continue;
-            if (other.faction == self.faction) continue;
-            float d = cellDistance(self.cellX, self.cellY, other.cellX, other.cellY);
-            if (d < bestAnyDist) {
-                bestAnyDist = d;
-                bestAny = other;
-            }
-            if (!grid.hasLineOfSight(self.cellX, self.cellY, other.cellX, other.cellY)) continue;
-            int engagers = countAlliesTargeting(self, other);
-            float score = d + TARGET_CROWDING_COST * engagers;
-            if (score < bestVisibleScore) {
-                bestVisibleScore = score;
-                bestVisible = other;
-            }
-        }
-        return bestVisible != null ? bestVisible : bestAny;
-    }
-
-    private int countAlliesTargeting(Unit self, Unit target) {
-        int n = 0;
-        for (Unit u : units) {
-            if (u == self || !u.isAlive()) continue;
-            if (u.faction != self.faction) continue;
-            if (u.target == target) n++;
-        }
-        return n;
-    }
-
-    /**
-     * Picks a walkable cell at attack range from the target, minimizing
-     * {@code distFromSelf + occupancy_penalty - cover_bonus}. Candidates must
-     * have line of sight to the target — a cell on the far side of a wall is
-     * useless even at range.
-     *
-     * <p>The cover bonus rewards cells with adjacent walls. With the bonus,
-     * units gravitate to building corners and wall edges and "peek" around
-     * them at the target rather than standing in open lanes.
-     *
-     * <p>Returns the target's own cell as a fallback if no candidate is found
-     * (e.g., target boxed in by walls, no visible spots in range); the
-     * in-range + LOS check in updateUnit then keeps the unit pathing closer
-     * until something opens.
-     */
-    private int[] findFiringPosition(Unit self, Unit target) {
-        return findFiringPosition(self, target, Integer.MIN_VALUE, Integer.MIN_VALUE);
-    }
-
-    private int[] findFiringPosition(Unit self, Unit target, int rejectX, int rejectY) {
-        int range = Math.max(1, (int) Math.floor(self.attackRange));
-        int tx = target.cellX;
-        int ty = target.cellY;
-
-        int[] best = null;
-        float bestScore = Float.MAX_VALUE;
-        for (int dy = -range; dy <= range; dy++) {
-            for (int dx = -range; dx <= range; dx++) {
-                int cx = tx + dx;
-                int cy = ty + dy;
-                if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) continue;
-                if (cx == rejectX && cy == rejectY) continue;
-
-                float distFromTarget = (float) Math.sqrt(dx * dx + dy * dy);
-                if (distFromTarget > self.attackRange) continue;
-                if (distFromTarget < FIRING_MIN_DISTANCE) continue;
-                if (!grid.hasLineOfSight(cx, cy, tx, ty)) continue;
-
-                int occupants = occupantsExcludingSelf(self, cx, cy);
-                int cover = grid.getCoverAt(cx, cy);
-                float distFromSelf = cellDistance(self.cellX, self.cellY, cx, cy);
-                float score = distFromSelf
-                        + FIRING_OCCUPANCY_COST * occupants
-                        - FIRING_COVER_BONUS * cover;
-                if (score < bestScore) {
-                    bestScore = score;
-                    best = new int[]{cx, cy};
-                }
-            }
-        }
-        return best != null ? best : new int[]{tx, ty};
-    }
-
-    /**
      * Rolls accuracy, applies damage on a hit, and emits a {@link ShotEvent}
      * either way so the renderer can draw a tracer. The miss endpoint is a
      * random angle + 0.5..2.0 cell offset from target cell-center — it reads
@@ -710,8 +437,11 @@ public class BattleSimulation {
      * <p>Damage is scaled by the target cell's cover level — a target in heavy
      * cover takes ~half what they would in the open, so urban positioning has
      * a real mechanical payoff on top of the LOS routing it already affects.
+     *
+     * <p>Public so behaviors call this when firing; fall-back is also rolled
+     * here, which can mutate the target's path through {@link #setPath}.
      */
-    private void fireShot(Unit shooter, Unit target) {
+    public void fireShot(Unit shooter, Unit target) {
         boolean hit = rng.nextFloat() < shooter.accuracy;
         if (hit) {
             boolean wasAlive = target.isAlive();
@@ -725,7 +455,7 @@ public class BattleSimulation {
             // Roll fall-back on hit. Skip if target is dead or already breaking contact.
             if (target.isAlive() && target.fallbackTimer <= 0f
                     && rng.nextFloat() < FALLBACK_CHANCE) {
-                int[] fallback = findFallbackPosition(target);
+                int[] fallback = TacticalScoring.findFallbackPosition(target, this);
                 if (fallback[0] != target.cellX || fallback[1] != target.cellY) {
                     target.fallbackCellX = fallback[0];
                     target.fallbackCellY = fallback[1];
@@ -752,52 +482,6 @@ public class BattleSimulation {
         ShotEvent evt = new ShotEvent(fromX, fromY, toX, toY, hit, shooter.faction, SHOT_LIFETIME);
         activeShots.add(evt);
         shotsThisFrame.add(evt);
-    }
-
-    /**
-     * Scans cells within {@link #FALLBACK_SCAN_RANGE} of {@code self} for a
-     * walkable spot with no LOS to any alive enemy. Scores candidates by
-     * {@code distFromSelf + occupancyPenalty - coverBonus} — cells close to
-     * self, off everyone else's path, with cover-adjacent walls.
-     *
-     * <p>Falls through to {@code self}'s current cell if nothing qualifies —
-     * the unit just holds in place for the fall-back duration and re-engages
-     * from where they were hit.
-     */
-    private int[] findFallbackPosition(Unit self) {
-        int sx = self.cellX;
-        int sy = self.cellY;
-        int[] best = null;
-        float bestScore = Float.MAX_VALUE;
-        for (int dy = -FALLBACK_SCAN_RANGE; dy <= FALLBACK_SCAN_RANGE; dy++) {
-            for (int dx = -FALLBACK_SCAN_RANGE; dx <= FALLBACK_SCAN_RANGE; dx++) {
-                int cx = sx + dx;
-                int cy = sy + dy;
-                if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) continue;
-                if (!isHiddenFromAllEnemies(self, cx, cy)) continue;
-
-                int occupants = occupantsExcludingSelf(self, cx, cy);
-                int cover = grid.getCoverAt(cx, cy);
-                float distFromSelf = cellDistance(sx, sy, cx, cy);
-                float score = distFromSelf
-                        + FALLBACK_OCCUPANCY_COST * occupants
-                        - FALLBACK_COVER_BONUS * cover;
-                if (score < bestScore) {
-                    bestScore = score;
-                    best = new int[]{cx, cy};
-                }
-            }
-        }
-        return best != null ? best : new int[]{sx, sy};
-    }
-
-    private boolean isHiddenFromAllEnemies(Unit self, int cx, int cy) {
-        for (Unit other : units) {
-            if (!other.isAlive()) continue;
-            if (other.faction == self.faction) continue;
-            if (grid.hasLineOfSight(cx, cy, other.cellX, other.cellY)) return false;
-        }
-        return true;
     }
 
     /**
@@ -836,12 +520,6 @@ public class BattleSimulation {
         else if (marineFailed && !defenderFailed) winner = Faction.DEFENDER;
         else if (defenderFailed && !marineFailed) winner = Faction.MARINE;
         else                                 winner = null;
-    }
-
-    private static float cellDistance(int x0, int y0, int x1, int y1) {
-        float dx = x1 - x0;
-        float dy = y1 - y0;
-        return (float) Math.sqrt(dx * dx + dy * dy);
     }
 
     /**
@@ -1015,6 +693,15 @@ public class BattleSimulation {
             marine.role = loadout.role;
             marine.assignedObjective = loadout.objective;
         }
+        // Squad assignment — first deboard from a shuttle mints a new squad
+        // and takes the leader slot; subsequent deboards join the same squad.
+        if (s.squadId == Unit.NO_SQUAD) {
+            Squad squad = new Squad(nextSquadId++, s.faction);
+            squad.leader = marine;
+            squads.put(squad.id, squad);
+            s.squadId = squad.id;
+        }
+        marine.squadId = s.squadId;
         addUnit(marine);
         return true;
     }
