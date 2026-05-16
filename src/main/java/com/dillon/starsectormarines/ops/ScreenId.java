@@ -11,5 +11,6 @@ public enum ScreenId {
     BRIEFING,
     BATTLE,
     RESULTS,
-    TILESET_DEBUG
+    TILESET_DEBUG,
+    UNIT_DEBUG
 }

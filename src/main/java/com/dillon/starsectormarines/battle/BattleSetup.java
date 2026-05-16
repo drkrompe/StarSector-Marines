@@ -11,6 +11,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
+import java.util.Random;
 import java.util.Set;
 
 /**
@@ -39,6 +40,13 @@ public final class BattleSetup {
 
     /** BFS radius around the defender anchor we scan for candidate spawn cells. Larger than {@link #DEFENDER_COUNT} so we have a pool to cherry-pick high-cover cells from. */
     private static final int DEFENDER_SPAWN_SCAN_RADIUS = 14;
+
+    /** How many of the {@link #DEFENDER_COUNT} defenders are stiffening regulars (red marines) instead of militia. The rest are militia. */
+    private static final int DEFENDER_ELITE_COUNT = 3;
+    /** Total ambient civilians (mix of CIVILIAN/ENGINEER/SCIENTIST) scattered around residential POIs as map flavor. */
+    private static final int AMBIENT_CIVILIAN_COUNT = 8;
+    /** BFS radius around each residential POI when looking for civilian spawn cells. */
+    private static final int CIVILIAN_SPAWN_RADIUS = 5;
 
     /** SABOTAGE: number of charge sites to plant. One per shuttle = one planter per drop. */
     private static final int SABOTAGE_CHARGE_SITES = 3;
@@ -85,6 +93,7 @@ public final class BattleSetup {
     public static BattleSimulation createSabotage(long seed, List<ShuttleAssignment> manifest) {
         UrbanMapGenerator.Result map = UrbanMapGenerator.generate(GRID_W, GRID_H, seed);
         BattleSimulation sim = new BattleSimulation(map.grid);
+        Random rng = new Random(seed);
         for (Doodad d : map.doodads) sim.addDoodad(d);
 
         // Pick charge sites: prefer high-value POIs (lab/comms/depot) in the
@@ -138,10 +147,8 @@ public final class BattleSetup {
         }
 
         List<int[]> defenderCells = pickDefensiveCluster(map.grid, map.defenderSpawnX, map.defenderSpawnY, DEFENDER_COUNT);
-        for (int i = 0; i < defenderCells.size(); i++) {
-            int[] p = defenderCells.get(i);
-            sim.addUnit(new Unit("d" + i, Faction.DEFENDER, p[0], p[1]));
-        }
+        spawnDefenderMix(sim, defenderCells);
+        spawnAmbientCivilians(sim, map, rng);
         return sim;
     }
 
@@ -215,6 +222,7 @@ public final class BattleSetup {
     public static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest) {
         UrbanMapGenerator.Result map = UrbanMapGenerator.generate(GRID_W, GRID_H, seed);
         BattleSimulation sim = new BattleSimulation(map.grid);
+        Random rng = new Random(seed);
         for (Doodad d : map.doodads) sim.addDoodad(d);
 
         // Default ASSAULT objectives — eliminate the other side. Mission-specific
@@ -254,11 +262,87 @@ public final class BattleSetup {
         // they prepared the position. Falls back to plain BFS order if the
         // local area is open (e.g., a plaza right at the anchor).
         List<int[]> defenderCells = pickDefensiveCluster(map.grid, map.defenderSpawnX, map.defenderSpawnY, DEFENDER_COUNT);
-        for (int i = 0; i < defenderCells.size(); i++) {
-            int[] p = defenderCells.get(i);
-            sim.addUnit(new Unit("d" + i, Faction.DEFENDER, p[0], p[1]));
-        }
+        spawnDefenderMix(sim, defenderCells);
+        spawnAmbientCivilians(sim, map, rng);
         return sim;
+    }
+
+    /**
+     * Spawns defenders from a pre-chosen cell list, mixing in
+     * {@link #DEFENDER_ELITE_COUNT} red-marine elites among the militia. Elites
+     * take the first slots (which are the highest-cover positions per
+     * {@link #pickDefensiveCluster}'s sort), so the stiffening regulars are
+     * tucked into the best firing posts and the militia fills the perimeter.
+     */
+    private static void spawnDefenderMix(BattleSimulation sim, List<int[]> cells) {
+        for (int i = 0; i < cells.size(); i++) {
+            int[] p = cells.get(i);
+            UnitType type = (i < DEFENDER_ELITE_COUNT) ? UnitType.MARINE_RED : UnitType.MILITIA;
+            sim.addUnit(new Unit("d" + i, Faction.DEFENDER, type, p[0], p[1]));
+        }
+    }
+
+    /**
+     * Scatters {@link #AMBIENT_CIVILIAN_COUNT} non-combatants near residential
+     * POIs as map flavor — they panic and flee gunfire via
+     * {@code FleeBehavior}. Civilians belong to {@link Faction#CIVILIAN}, which
+     * means they don't count toward either side's elimination objective and
+     * aren't targeted by combatants. If no residential POIs were carved (rare
+     * — small or unusually industrial seeds), this is a no-op.
+     */
+    private static void spawnAmbientCivilians(BattleSimulation sim, UrbanMapGenerator.Result map, Random rng) {
+        List<PointOfInterest> residential = new ArrayList<>();
+        for (PointOfInterest poi : map.pointsOfInterest) {
+            if (poi.kind == PointOfInterest.Kind.RESIDENTIAL) residential.add(poi);
+        }
+        if (residential.isEmpty()) return;
+        UnitType[] roles = { UnitType.CIVILIAN, UnitType.ENGINEER, UnitType.SCIENTIST };
+        Set<Long> claimed = new HashSet<>();
+        int spawned = 0;
+        int attempts = 0;
+        while (spawned < AMBIENT_CIVILIAN_COUNT && attempts < AMBIENT_CIVILIAN_COUNT * 8) {
+            attempts++;
+            PointOfInterest poi = residential.get(rng.nextInt(residential.size()));
+            int[] cell = findCivilianCell(map.grid, poi.anchorCellX, poi.anchorCellY, claimed, rng);
+            if (cell == null) continue;
+            UnitType type = roles[rng.nextInt(roles.length)];
+            Unit u = new Unit("c" + spawned, Faction.CIVILIAN, type, cell[0], cell[1]);
+            u.role = UnitRole.FLEE;
+            sim.addUnit(u);
+            claimed.add(key(cell[0], cell[1]));
+            spawned++;
+        }
+    }
+
+    /**
+     * Random walkable cell within {@link #CIVILIAN_SPAWN_RADIUS} BFS-steps of
+     * (cx, cy) that isn't already claimed by another civilian. Returns null if
+     * the area is fully clogged. Picks via reservoir-style random selection
+     * rather than first-found so multiple civilians on the same POI don't all
+     * cluster on its anchor cell.
+     */
+    private static int[] findCivilianCell(NavigationGrid grid, int cx, int cy, Set<Long> claimed, Random rng) {
+        List<int[]> candidates = new ArrayList<>();
+        Set<Long> seen = new HashSet<>();
+        Queue<int[]> q = new ArrayDeque<>();
+        q.add(new int[]{cx, cy, 0});
+        seen.add(key(cx, cy));
+        while (!q.isEmpty()) {
+            int[] p = q.poll();
+            if (p[2] > CIVILIAN_SPAWN_RADIUS) continue;
+            if (grid.isWalkable(p[0], p[1]) && !claimed.contains(key(p[0], p[1]))) {
+                candidates.add(new int[]{p[0], p[1]});
+            }
+            int[][] nbrs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+            for (int[] d : nbrs) {
+                int nx = p[0] + d[0];
+                int ny = p[1] + d[1];
+                if (!grid.inBounds(nx, ny)) continue;
+                if (!seen.add(key(nx, ny))) continue;
+                q.add(new int[]{nx, ny, p[2] + 1});
+            }
+        }
+        return candidates.isEmpty() ? null : candidates.get(rng.nextInt(candidates.size()));
     }
 
     /**

@@ -21,6 +21,11 @@ package com.dillon.starsectormarines.battle;
  *       dropped equipment kit ({@link EquipmentDrop}). Paths to the drop cell;
  *       on contact the sim promotes them to {@link #PLANTER} with the kit's
  *       objective. Fires opportunistically en route.</li>
+ *   <li>{@link #FLEE} — non-combatant who panics when combatants get close.
+ *       Used by ambient civilians (CIVILIAN/ENGINEER/SCIENTIST types) — they
+ *       wander idle until gunfire enters their perception, then path away from
+ *       the threat toward the nearest map edge. Distinct from VIP, which is a
+ *       mission-controlled non-combatant with an exfil objective.</li>
  * </ul>
  *
  * <p>Mission setup assigns roles when populating the simulation. Roles can
@@ -33,5 +38,6 @@ public enum UnitRole {
     PLANTER,
     OBJECTIVE_CAMPER,
     VIP,
-    KIT_RETRIEVER
+    KIT_RETRIEVER,
+    FLEE
 }

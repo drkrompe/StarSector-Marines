@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.SpriteSheetSlicer;
 import com.dillon.starsectormarines.battle.TileManifest;
 import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.UnitType;
 import com.dillon.starsectormarines.battle.flyby.FlybyOverlay;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.objective.ChargeSiteObjective;
@@ -66,6 +67,7 @@ public class BattleScreen implements Screen {
     private static final Color WALL_COLOR     = new Color(0x06, 0x0A, 0x10);
     private static final Color MARINE_COLOR   = new Color(0x5A, 0xA0, 0xE0);
     private static final Color DEFENDER_COLOR = new Color(0xE0, 0x6A, 0x6A);
+    private static final Color CIVILIAN_COLOR = new Color(0xC8, 0xC8, 0x80);
     private static final Color HP_BG          = new Color(0x60, 0x20, 0x20);
     private static final Color HP_FG          = new Color(0x40, 0xC0, 0x40);
     private static final Color HEADER_COLOR   = new Color(0xC8, 0xE0, 0xFF);
@@ -86,9 +88,6 @@ public class BattleScreen implements Screen {
     private static final float SPEED_BTN_H    = 32f;
     private static final float SPEED_BTN_GAP  = 6f;
     private static final float SPEED_MARK_H   = 3f;
-
-    /** Marine sprite sheet path (Starsector resource lookup). */
-    private static final String MARINE_SHEET  = "graphics/battle/marine.png";
 
     /** Objective marker icons — white-on-transparent shapes tinted at render time. */
     private static final String ICON_ALARM   = "graphics/icons/Alarm 512 px.png";
@@ -158,8 +157,6 @@ public class BattleScreen implements Screen {
     private static final float DISTANT_BOOM_MUFFLED_CHANCE = 0.6f;
     /** Window (s) after a unit fires during which we show the weapon-up pose. */
     private static final float WEAPON_UP_TIME = 0.25f;
-    /** Multiplicative tint applied to defender sprites (marines are untinted). */
-    private static final Color DEFENDER_TINT  = new Color(0xE0, 0x90, 0x90);
 
     private static final float[] SPEED_OPTIONS = {0f, 1f, 2f, 4f};
     private static final String[] SPEED_KEYS   = {
@@ -177,11 +174,18 @@ public class BattleScreen implements Screen {
     private float speedBtnBottomY;
     /** Tracks the last-seen sim completion flag so we can rebuild widgets when it flips. */
     private boolean lastSimComplete;
-    /** Cached marine sprite sheet — lazy-loaded once per Screen lifetime. Null if load failed. */
-    private SpriteAPI marineSheet;
-    /** Detected sprite bounding boxes on {@link #marineSheet}. Null until sheet is loaded. */
-    private SpriteSheetFrames marineFrames;
-    private boolean marineSheetLoadAttempted;
+    /** Per-{@link UnitType} sprite sheet cache. Each entry's sheet + frames pair is null if that type's load failed; the renderer falls through to its color-quad fallback for that unit. */
+    private final java.util.EnumMap<UnitType, UnitSpriteCache> unitSprites = new java.util.EnumMap<>(UnitType.class);
+    private boolean unitSpritesLoadAttempted;
+
+    private static final class UnitSpriteCache {
+        final SpriteAPI sheet;
+        final SpriteSheetFrames frames;
+        UnitSpriteCache(SpriteAPI sheet, SpriteSheetFrames frames) {
+            this.sheet = sheet;
+            this.frames = frames;
+        }
+    }
     /** Cached tileset sheet — lazy-loaded once per Screen lifetime. Null if load failed. */
     private SpriteAPI tileSheet;
     /** Pixel dimensions of the tileset PNG content (pre-POT-padding). */
@@ -252,7 +256,7 @@ public class BattleScreen implements Screen {
         this.position = position;
         this.ctx = ctx;
         this.speedMultiplier = 1f;
-        ensureMarineSheet();
+        ensureUnitSheets();
         ensureTileSheet();
         ensureRoadSheet();
         ensureShuttleSprites();
@@ -425,30 +429,41 @@ public class BattleScreen implements Screen {
         }
     }
 
-    private void ensureMarineSheet() {
-        if (marineSheetLoadAttempted) return;
-        marineSheetLoadAttempted = true;
+    /**
+     * Loads every {@link UnitType} sprite sheet on first call and auto-slices
+     * each into per-frame bounding boxes. A type whose load fails is recorded
+     * with a null entry so its units fall back to the color-quad path without
+     * retrying every frame.
+     */
+    private void ensureUnitSheets() {
+        if (unitSpritesLoadAttempted) return;
+        unitSpritesLoadAttempted = true;
+        for (UnitType type : UnitType.values()) {
+            unitSprites.put(type, loadUnitSheet(type.spritePath));
+        }
+    }
+
+    private UnitSpriteCache loadUnitSheet(String path) {
         try {
-            Global.getSettings().loadTexture(MARINE_SHEET);
-            marineSheet = Global.getSettings().getSprite(MARINE_SHEET);
-            if (marineSheet == null) {
-                LOG.warn("BattleScreen: getSprite returned null for " + MARINE_SHEET);
-                return;
+            Global.getSettings().loadTexture(path);
+            SpriteAPI sprite = Global.getSettings().getSprite(path);
+            if (sprite == null) {
+                LOG.warn("BattleScreen: getSprite returned null for " + path);
+                return null;
             }
-            try (java.io.InputStream stream = Global.getSettings().openStream(MARINE_SHEET)) {
+            try (java.io.InputStream stream = Global.getSettings().openStream(path)) {
                 BufferedImage img = ImageIO.read(stream);
                 if (img == null) {
-                    LOG.warn("BattleScreen: ImageIO.read returned null for " + MARINE_SHEET);
-                    return;
+                    LOG.warn("BattleScreen: ImageIO.read returned null for " + path);
+                    return null;
                 }
-                marineFrames = SpriteSheetSlicer.slice(img);
-                LOG.info("BattleScreen: auto-sliced " + MARINE_SHEET + " — "
-                        + marineFrames.frames.length + " frames detected");
+                SpriteSheetFrames frames = SpriteSheetSlicer.slice(img);
+                LOG.info("BattleScreen: auto-sliced " + path + " — " + frames.frames.length + " frames detected");
+                return new UnitSpriteCache(sprite, frames);
             }
         } catch (Exception e) {
-            LOG.error("BattleScreen: failed to load marine sheet " + MARINE_SHEET, e);
-            marineSheet = null;
-            marineFrames = null;
+            LOG.error("BattleScreen: failed to load unit sheet " + path, e);
+            return null;
         }
     }
 
@@ -1043,77 +1058,34 @@ public class BattleScreen implements Screen {
         float unitSize = layout.cellSize * UNIT_FRAC;
         float half = unitSize / 2f;
 
-        SpriteAPI sheet = marineSheet;
-        SpriteSheetFrames frames = marineFrames;
-        if (sheet != null && frames != null && frames.frames.length > 0) {
-            float texW = sheet.getTextureWidth();
-            float texH = sheet.getTextureHeight();
-            int sheetW = frames.sheetWidth;
-            int sheetH = frames.sheetHeight;
-
-            for (Unit u : units) {
-                if (!u.isAlive()) continue;
-
-                Facing facing = computeFacing(u);
-                boolean weaponUp = u.cooldownTimer > (u.attackCooldown - WEAPON_UP_TIME)
-                        && u.cooldownTimer > 0f;
-                int frameIdx = pickFrame(facing, weaponUp);
-                if (frameIdx >= frames.frames.length) frameIdx = 0; // safety
-                boolean flipY = weaponUp && facing == Facing.SOUTH;
-                SpriteSheetFrames.Frame f = frames.frames[frameIdx];
-
-                // Convert pixel bbox into the texture-fraction coords setTex* expects.
-                // V is measured from the bottom of the texture in Starsector's GL convention.
-                sheet.setTexX((float) f.x * texW / sheetW);
-                sheet.setTexWidth((float) f.w * texW / sheetW);
-                if (flipY) {
-                    // Vertical mirror — negative texHeight, anchor at the top of the frame.
-                    sheet.setTexY((float) (sheetH - f.y) * texH / sheetH);
-                    sheet.setTexHeight(-(float) f.h * texH / sheetH);
-                } else {
-                    sheet.setTexY((float) (sheetH - f.y - f.h) * texH / sheetH);
-                    sheet.setTexHeight((float) f.h * texH / sheetH);
-                }
-
-                // Preserve the frame's aspect ratio so weapon-up poses with extended
-                // guns can be wider than idle poses without squishing.
-                float targetH = unitSize;
-                float targetW = targetH * f.w / (float) f.h;
-                sheet.setSize(targetW, targetH);
-                sheet.setAlphaMult(alphaMult);
-                sheet.setNormalBlend();
-                sheet.setColor(u.faction == Faction.MARINE ? Color.WHITE : DEFENDER_TINT);
-
-                float cx = layout.gridX + (u.renderX + 0.5f) * layout.cellSize;
-                float cy = layout.gridY + (u.renderY + 0.5f) * layout.cellSize;
-                sheet.renderAtCenter(cx, cy);
-            }
-            // Reset tint so the singleton sprite doesn't carry our red into
-            // anything that draws it next session.
-            sheet.setColor(Color.WHITE);
-        } else {
-            // Sprite missing — fall back to colored quads so the sim is still readable.
-            glDisable(GL_TEXTURE_2D);
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            glBegin(GL_QUADS);
-            for (Unit u : units) {
-                if (!u.isAlive()) continue;
-                Color c = (u.faction == Faction.MARINE) ? MARINE_COLOR : DEFENDER_COLOR;
-                glColor4f(c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, alphaMult);
-                float cx = layout.gridX + (u.renderX + 0.5f) * layout.cellSize;
-                float cy = layout.gridY + (u.renderY + 0.5f) * layout.cellSize;
-                glVertex2f(cx - half, cy - half);
-                glVertex2f(cx + half, cy - half);
-                glVertex2f(cx + half, cy + half);
-                glVertex2f(cx - half, cy + half);
-            }
-            glEnd();
-        }
-
-        // HP bars above each unit (always, regardless of sprite fallback)
+        // Per-unit sheet pick — every UnitType has its own sheet cache. The
+        // singleton SpriteAPI is shared across all units of the same type;
+        // we reset tint at the end so a tinted civilian doesn't bleed into
+        // the next render pass.
+        java.util.Set<UnitSpriteCache> tintedThisFrame = new java.util.HashSet<>();
         for (Unit u : units) {
             if (!u.isAlive()) continue;
+            UnitSpriteCache cache = unitSprites.get(u.type);
+            if (cache == null || cache.sheet == null || cache.frames == null
+                    || cache.frames.frames.length == 0) {
+                renderUnitQuadFallback(u, unitSize, half, alphaMult);
+                continue;
+            }
+            renderUnitSprite(u, cache, unitSize, alphaMult);
+            tintedThisFrame.add(cache);
+        }
+        // Reset every sheet we touched so leftover tint/alpha doesn't bleed
+        // into other passes that share these SpriteAPI singletons.
+        for (UnitSpriteCache cache : tintedThisFrame) {
+            cache.sheet.setColor(Color.WHITE);
+        }
+
+        // HP bars above each unit (always, regardless of sprite fallback).
+        // Skip non-combatants — civilians/scientists with HP bars looks weird
+        // and they don't really "fight" in a sense the bar communicates.
+        for (Unit u : units) {
+            if (!u.isAlive()) continue;
+            if (!u.type.combatant) continue;
             float cx = layout.gridX + (u.renderX + 0.5f) * layout.cellSize;
             float cy = layout.gridY + (u.renderY + 0.5f) * layout.cellSize;
             float barW = unitSize;
@@ -1123,6 +1095,69 @@ public class BattleScreen implements Screen {
             float frac = Math.max(0f, Math.min(1f, u.hp / u.maxHp));
             fillRect(barX, barY, barW * frac, HP_BAR_H, HP_FG, alphaMult);
         }
+    }
+
+    /**
+     * Draws one unit using its type-specific sheet. Non-combatants never enter
+     * weapon-up state — their weapon-up slots are interaction poses
+     * (clipboard, coffee) that don't track cooldowns. The DEFENDER tint is
+     * gone now that each side has a distinct sprite; sheets render at white.
+     */
+    private void renderUnitSprite(Unit u, UnitSpriteCache cache, float unitSize, float alphaMult) {
+        SpriteAPI sheet = cache.sheet;
+        SpriteSheetFrames frames = cache.frames;
+        float texW = sheet.getTextureWidth();
+        float texH = sheet.getTextureHeight();
+        int sheetW = frames.sheetWidth;
+        int sheetH = frames.sheetHeight;
+
+        Facing facing = computeFacing(u);
+        boolean weaponUp = u.type.combatant
+                && u.cooldownTimer > (u.attackCooldown - WEAPON_UP_TIME)
+                && u.cooldownTimer > 0f;
+        int frameIdx = pickFrame(facing, weaponUp);
+        if (frameIdx >= frames.frames.length) frameIdx = 0;
+        boolean flipY = weaponUp && facing == Facing.SOUTH;
+        SpriteSheetFrames.Frame f = frames.frames[frameIdx];
+
+        sheet.setTexX((float) f.x * texW / sheetW);
+        sheet.setTexWidth((float) f.w * texW / sheetW);
+        if (flipY) {
+            sheet.setTexY((float) (sheetH - f.y) * texH / sheetH);
+            sheet.setTexHeight(-(float) f.h * texH / sheetH);
+        } else {
+            sheet.setTexY((float) (sheetH - f.y - f.h) * texH / sheetH);
+            sheet.setTexHeight((float) f.h * texH / sheetH);
+        }
+        float targetH = unitSize;
+        float targetW = targetH * f.w / (float) f.h;
+        sheet.setSize(targetW, targetH);
+        sheet.setAlphaMult(alphaMult);
+        sheet.setNormalBlend();
+        sheet.setColor(Color.WHITE);
+        float cx = layout.gridX + (u.renderX + 0.5f) * layout.cellSize;
+        float cy = layout.gridY + (u.renderY + 0.5f) * layout.cellSize;
+        sheet.renderAtCenter(cx, cy);
+    }
+
+    /** Fallback colored-quad path when a unit's sprite sheet failed to load. */
+    private void renderUnitQuadFallback(Unit u, float unitSize, float half, float alphaMult) {
+        Color c;
+        if (u.faction == Faction.MARINE)       c = MARINE_COLOR;
+        else if (u.faction == Faction.DEFENDER) c = DEFENDER_COLOR;
+        else                                    c = CIVILIAN_COLOR;
+        glDisable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBegin(GL_QUADS);
+        glColor4f(c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, alphaMult);
+        float cx = layout.gridX + (u.renderX + 0.5f) * layout.cellSize;
+        float cy = layout.gridY + (u.renderY + 0.5f) * layout.cellSize;
+        glVertex2f(cx - half, cy - half);
+        glVertex2f(cx + half, cy - half);
+        glVertex2f(cx + half, cy + half);
+        glVertex2f(cx - half, cy + half);
+        glEnd();
     }
 
     /**

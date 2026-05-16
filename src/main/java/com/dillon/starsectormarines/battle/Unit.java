@@ -29,6 +29,8 @@ public class Unit {
 
     public final String id;
     public final Faction faction;
+    /** Archetype — drives sprite + base stat block. Set once at construction. */
+    public final UnitType type;
     /** Squad identity. Set to a positive int when this unit deboarded as part of a fireteam; {@link #NO_SQUAD} for solo units. */
     public int squadId = NO_SQUAD;
 
@@ -45,16 +47,16 @@ public class Unit {
     public int pathIdx = 0;
     public float moveProgress = 0f; // 0..1 toward path[pathIdx]
 
-    // Placeholder stats — same numbers per side until we drive these from
-    // captain traits + mission difficulty in a later slice.
-    public float moveSpeed     = 2.0f;  // cells/second
-    public float maxHp         = 25f;
-    public float hp            = 25f;
-    public float attackDamage  = 2f;
-    public float attackRange   = 24.0f; // cells; long rifle range — quarter of the map width, makes cross-map sight lanes matter
-    public float attackCooldown = 1.0f; // seconds between shots
-    public float cooldownTimer  = 0f;
-    public float accuracy       = 0.35f; // probability a fired shot deals damage; misses still emit a visual tracer. Tuned with HP25/dmg2 for ~2-3 min engagements.
+    // Stats — initialized from UnitType, then mutable per-unit so captain traits
+    // and mission modifiers can adjust an individual without changing the archetype.
+    public float moveSpeed;
+    public float maxHp;
+    public float hp;
+    public float attackDamage;
+    public float attackRange;
+    public float attackCooldown;
+    public float cooldownTimer = 0f;
+    public float accuracy;
 
     public Unit target;
 
@@ -70,13 +72,21 @@ public class Unit {
     public int fallbackCellX = -1;
     public int fallbackCellY = -1;
 
-    public Unit(String id, Faction faction, int cellX, int cellY) {
+    public Unit(String id, Faction faction, UnitType type, int cellX, int cellY) {
         this.id = id;
         this.faction = faction;
+        this.type = type;
         this.cellX = cellX;
         this.cellY = cellY;
         this.renderX = cellX;
         this.renderY = cellY;
+        this.moveSpeed = type.moveSpeed;
+        this.maxHp = type.maxHp;
+        this.hp = type.maxHp;
+        this.attackDamage = type.attackDamage;
+        this.attackRange = type.attackRange;
+        this.attackCooldown = type.attackCooldown;
+        this.accuracy = type.accuracy;
     }
 
     public boolean isAlive() {

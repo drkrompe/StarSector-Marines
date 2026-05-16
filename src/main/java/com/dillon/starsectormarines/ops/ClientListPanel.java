@@ -28,6 +28,7 @@ public class ClientListPanel extends OpsPanel {
 
     private Runnable onBack;
     private Runnable onTilesetDebug;
+    private Runnable onUnitDebug;
 
     public void setOnBack(Runnable onBack) {
         this.onBack = onBack;
@@ -37,6 +38,10 @@ public class ClientListPanel extends OpsPanel {
         this.onTilesetDebug = onTilesetDebug;
     }
 
+    public void setOnUnitDebug(Runnable onUnitDebug) {
+        this.onUnitDebug = onUnitDebug;
+    }
+
     @Override
     public String getHeaderKey() {
         return "colClients";
@@ -44,23 +49,38 @@ public class ClientListPanel extends OpsPanel {
 
     @Override
     protected void onLayout(WidgetRoot widgets) {
-        // Footer at column bottom — Back on the left, optional Tiles dev button on the right.
+        // Footer at column bottom — Back on the left, optional dev buttons (Tiles, Units)
+        // packed evenly along the rest of the row. Layout adapts so we don't leave dead
+        // space when only Tiles is wired and a future widening drops the Units button.
+        int devCount = (onTilesetDebug != null ? 1 : 0) + (onUnitDebug != null ? 1 : 0);
+        float backFrac = devCount == 0 ? 1f : (devCount == 1 ? 0.55f : 0.40f);
         if (onBack != null) {
-            float backW = onTilesetDebug != null ? rect.w * 0.55f - 4f : rect.w;
+            float backW = rect.w * backFrac - (devCount > 0 ? 4f : 0f);
             ButtonWidget back = new ButtonWidget(rect.x, rect.y, backW, BACK_H, onBack);
             widgets.add(back);
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                     Strings.get("actionBack"),
                     rect.x + 12f, rect.y + BACK_H - 6f, HEADER_COLOR));
         }
-        if (onTilesetDebug != null) {
-            float devX = rect.x + rect.w * 0.55f + 4f;
-            float devW = rect.w * 0.45f - 4f;
-            ButtonWidget tiles = new ButtonWidget(devX, rect.y, devW, BACK_H, onTilesetDebug);
-            widgets.add(tiles);
-            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                    "Tiles",
-                    devX + 12f, rect.y + BACK_H - 6f, HEADER_COLOR));
+        if (devCount > 0) {
+            float devTotalW = rect.w * (1f - backFrac) - 4f;
+            float devSlotW = (devTotalW - 4f * (devCount - 1)) / devCount;
+            float devX = rect.x + rect.w * backFrac + 4f;
+            if (onTilesetDebug != null) {
+                ButtonWidget tiles = new ButtonWidget(devX, rect.y, devSlotW, BACK_H, onTilesetDebug);
+                widgets.add(tiles);
+                widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                        "Tiles",
+                        devX + 12f, rect.y + BACK_H - 6f, HEADER_COLOR));
+                devX += devSlotW + 4f;
+            }
+            if (onUnitDebug != null) {
+                ButtonWidget units = new ButtonWidget(devX, rect.y, devSlotW, BACK_H, onUnitDebug);
+                widgets.add(units);
+                widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                        "Units",
+                        devX + 12f, rect.y + BACK_H - 6f, HEADER_COLOR));
+            }
         }
 
         // Client rows — top-down from the column top

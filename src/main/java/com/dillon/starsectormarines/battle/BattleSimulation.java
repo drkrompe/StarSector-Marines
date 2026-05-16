@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle;
 
 import com.dillon.starsectormarines.battle.ai.CombatantBehavior;
 import com.dillon.starsectormarines.battle.ai.FallbackBehavior;
+import com.dillon.starsectormarines.battle.ai.FleeBehavior;
 import com.dillon.starsectormarines.battle.ai.KitRetrieverBehavior;
 import com.dillon.starsectormarines.battle.ai.PlanterBehavior;
 import com.dillon.starsectormarines.battle.ai.TacticalScoring;
@@ -321,6 +322,7 @@ public class BattleSimulation {
         switch (role) {
             case PLANTER:        return PlanterBehavior.INSTANCE;
             case KIT_RETRIEVER:  return KitRetrieverBehavior.INSTANCE;
+            case FLEE:           return FleeBehavior.INSTANCE;
             case OBJECTIVE_CAMPER:
             case VIP:
             case COMBATANT:
@@ -792,7 +794,7 @@ public class BattleSimulation {
         int lzCellY = (int) Math.floor(s.lzY);
         int[] cell = findDeboardCell(lzCellX, lzCellY);
         if (cell == null) return false;
-        Unit marine = new Unit("m" + deboardedMarineCount++, s.faction, cell[0], cell[1]);
+        Unit marine = new Unit("m" + deboardedMarineCount++, s.faction, UnitType.MARINE, cell[0], cell[1]);
         int slot = s.type.capacity - s.marinesRemaining;
         MarineLoadout loadout = (s.marineLoadout != null && slot < s.marineLoadout.length)
                 ? s.marineLoadout[slot] : null;

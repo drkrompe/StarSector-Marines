@@ -67,6 +67,10 @@ public final class TacticalScoring {
         for (Unit other : units) {
             if (!other.isAlive()) continue;
             if (other.faction == self.faction) continue;
+            // Civilians and other non-combatants don't draw fire — they're
+            // bystanders. A separate "rules of engagement" toggle could relax
+            // this for pirate atrocity scenarios later.
+            if (!other.type.combatant) continue;
             float d = cellDistance(self.cellX, self.cellY, other.cellX, other.cellY);
             if (d < bestAnyDist) {
                 bestAnyDist = d;
