@@ -78,6 +78,10 @@ public final class FlybyOverlay {
     private static final int FIRE_FIRST_FRAME         = 8;   // start of row 2
     private static final int FIRE_FRAME_COUNT         = 8;   // bottom 2 rows
 
+    /** Atmospheric wind for smoke/embers in cells/sec. Subtle — adds drift without making the battlefield feel airy. Eastward bias matches the visual sun-from-screen-left convention. */
+    private static final float WIND_X = 0.5f;
+    private static final float WIND_Y = 0f;
+
     // ---- Spawn pacing ---------------------------------------------------------
     /** Safety cap on simultaneous flybys. The roster's own schedule normally keeps things sane; this protects against an over-eager mission roll. */
     private static final int MAX_CONCURRENT = 6;
@@ -224,7 +228,17 @@ public final class FlybyOverlay {
             if ((tracers.get(i).lifetimeRemaining -= dt) <= 0f) tracers.remove(i);
         }
         for (int i = particles.size() - 1; i >= 0; i--) {
-            if ((particles.get(i).lifetimeRemaining -= dt) <= 0f) particles.remove(i);
+            Particle p = particles.get(i);
+            p.lifetimeRemaining -= dt;
+            if (p.lifetimeRemaining <= 0f) {
+                particles.remove(i);
+                continue;
+            }
+            // Smoke / fire have non-zero velocity + growth; static FX (flash, ring,
+            // explosion frame) have zeros so they stay parked at the spawn point.
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            p.radiusCells += p.radiusGrowthPerSec * dt;
         }
     }
 
@@ -624,7 +638,14 @@ public final class FlybyOverlay {
         int cellX = (int) Math.floor(endX);
         int cellY = (int) Math.floor(endY);
         if (sim.damageCell(cellX, cellY, amount)) {
-            spawnDustBurst(cellX + 0.5f, cellY + 0.5f);
+            float cx = cellX + 0.5f, cy = cellY + 0.5f;
+            spawnDustBurst(cx, cy);
+            // One smoke puff per collapse so a Broadsword's lucky wall-break reads
+            // — small + brief, in keeping with the "incidental" framing. Missile
+            // detonations get a much bigger smoke cluster from detonateProjectile.
+            spawnSmokePuff(cx + (rng.nextFloat() * 2f - 1f) * 0.2f,
+                          cy + (rng.nextFloat() * 2f - 1f) * 0.2f,
+                          0.5f, 1.0f);
         }
     }
 
@@ -698,6 +719,17 @@ public final class FlybyOverlay {
         if (p.fuseRemaining <= 0f) {
             detonateProjectile(p, sim);
             return true;
+        }
+        // Continuous smoke trail — spawn one puff every ~0.08s behind the missile.
+        // Per-puff jitter on velocity (inside spawnSmokePuff) keeps the trail from
+        // looking like a rigid translating ribbon; each puff drifts on its own.
+        p.smokeTrailTimer -= dt;
+        if (p.smokeTrailTimer <= 0f) {
+            p.smokeTrailTimer = 0.08f;
+            float rad = (float) Math.toRadians(p.headingDeg);
+            float backX = p.worldX - (float) Math.cos(rad) * 0.4f;
+            float backY = p.worldY - (float) Math.sin(rad) * 0.4f;
+            spawnSmokePuff(backX, backY, 0.35f, 0.9f);
         }
         // Steer toward target if it's still alive — clamped turn rate, so a fast
         // unit running perpendicular can outrun the lock and force a miss.
@@ -816,6 +848,26 @@ public final class FlybyOverlay {
             ring.sprite = explosionRingSprite;
             particles.add(ring);
         }
+
+        // 4. Fire bursts scattered inside the AoE — flipbook frames give per-burst animation.
+        int fireBursts = 4 + rng.nextInt(3);
+        for (int i = 0; i < fireBursts; i++) {
+            float a = rng.nextFloat() * 2f * (float) Math.PI;
+            float r = rng.nextFloat() * radiusCells * 0.8f;
+            float fx = x + (float) Math.cos(a) * r;
+            float fy = y + (float) Math.sin(a) * r;
+            spawnFireBurst(fx, fy, 0.6f + rng.nextFloat() * 0.4f, 0.5f + rng.nextFloat() * 0.25f);
+        }
+
+        // 5. Smoke that lingers — outlasts the fire so the impact site reads "still smoldering" for a beat.
+        int smokePuffs = 3 + rng.nextInt(3);
+        for (int i = 0; i < smokePuffs; i++) {
+            float a = rng.nextFloat() * 2f * (float) Math.PI;
+            float r = rng.nextFloat() * radiusCells * 0.9f;
+            float sx = x + (float) Math.cos(a) * r;
+            float sy = y + (float) Math.sin(a) * r;
+            spawnSmokePuff(sx, sy, 0.8f + rng.nextFloat() * 0.5f, 1.4f + rng.nextFloat() * 0.6f);
+        }
     }
 
     /** Wraps a degree value to (-180, 180]. */
@@ -823,6 +875,49 @@ public final class FlybyOverlay {
         while (deg >  180f) deg -= 360f;
         while (deg <= -180f) deg += 360f;
         return deg;
+    }
+
+    /** Spawns one smoke puff — flipbook plays once over the lifetime, rises with wind drift, billows outward. Normal-alpha so it occludes rather than glows. */
+    private void spawnSmokePuff(float x, float y, float radiusCells, float lifetime) {
+        if (particleSheetSprite == null) return;
+        Particle p = new Particle();
+        p.x = x; p.y = y;
+        // Smoke rises (positive vy) at slightly randomized speed + wind drift on
+        // the X axis. Each puff gets its own jitter so multi-puff bursts spread
+        // into a convincing cloud rather than translating as a rigid block.
+        p.vx = WIND_X + (rng.nextFloat() * 2f - 1f) * 0.35f;
+        p.vy = WIND_Y + 0.8f + rng.nextFloat() * 0.6f;
+        p.radiusGrowthPerSec = 0.6f + rng.nextFloat() * 0.4f;
+        p.lifetimeRemaining = lifetime;
+        p.lifetimeMax = lifetime;
+        p.radiusCells = radiusCells;
+        p.color = new Color(0xC8, 0xC8, 0xC8);
+        p.sprite = particleSheetSprite;
+        p.firstFrame = SMOKE_FIRST_FRAME;
+        p.frameCount = SMOKE_FRAME_COUNT;
+        p.additive = false;
+        p.angleDeg = rng.nextFloat() * 360f;
+        particles.add(p);
+    }
+
+    /** Spawns one fire burst — flipbook plays once over the lifetime. Slight upward kick plus wind, modest growth. Additive so it reads as hot incandescence. */
+    private void spawnFireBurst(float x, float y, float radiusCells, float lifetime) {
+        if (particleSheetSprite == null) return;
+        Particle p = new Particle();
+        p.x = x; p.y = y;
+        p.vx = WIND_X * 0.5f + (rng.nextFloat() * 2f - 1f) * 0.45f;
+        p.vy = WIND_Y + 0.25f + rng.nextFloat() * 0.45f;
+        p.radiusGrowthPerSec = 0.25f + rng.nextFloat() * 0.25f;
+        p.lifetimeRemaining = lifetime;
+        p.lifetimeMax = lifetime;
+        p.radiusCells = radiusCells;
+        p.color = Color.WHITE;
+        p.sprite = particleSheetSprite;
+        p.firstFrame = FIRE_FIRST_FRAME;
+        p.frameCount = FIRE_FRAME_COUNT;
+        p.additive = true;
+        p.angleDeg = rng.nextFloat() * 360f;
+        particles.add(p);
     }
 
     private void playFireSound(Fighter f) {
@@ -1118,15 +1213,16 @@ public final class FlybyOverlay {
         s.setColor(p.color);
         if (p.additive) s.setAdditiveBlend(); else s.setNormalBlend();
         // Flipbook: subdivide the sheet by frame index advanced over the particle's
-        // lifetime. UVs are pixel coords on the texture, so width/height come from
-        // the sprite's reported size divided by sheet columns / rows.
+        // lifetime. setTexX/Y/Width/Height are in TEXTURE pixels, not rendered
+        // pixels — getWidth() returns the size we just set via setSize(), so the
+        // texture-cell dimensions have to come from getTextureWidth/Height.
         if (p.frameCount > 0) {
             int playFrame = (int) ((1f - lifeFrac) * p.frameCount);
             if (playFrame >= p.frameCount) playFrame = p.frameCount - 1;
             int frameIdx = p.firstFrame + playFrame;
             int rows = (FIRE_FIRST_FRAME + FIRE_FRAME_COUNT) / PARTICLE_SHEET_COLS;  // 4 rows
-            float cellW = s.getWidth() / PARTICLE_SHEET_COLS;
-            float cellH = s.getHeight() / rows;
+            float cellW = s.getTextureWidth() / PARTICLE_SHEET_COLS;
+            float cellH = s.getTextureHeight() / rows;
             int col = frameIdx % PARTICLE_SHEET_COLS;
             int row = frameIdx / PARTICLE_SHEET_COLS;
             s.setTexX(col * cellW);
@@ -1142,8 +1238,8 @@ public final class FlybyOverlay {
         if (p.frameCount > 0) {
             s.setTexX(0f);
             s.setTexY(0f);
-            s.setTexWidth(s.getWidth());
-            s.setTexHeight(s.getHeight());
+            s.setTexWidth(s.getTextureWidth());
+            s.setTexHeight(s.getTextureHeight());
         }
     }
 
@@ -1238,9 +1334,13 @@ public final class FlybyOverlay {
 
     private static final class Particle {
         float x, y;
+        /** Velocity in cells/sec. Defaults to 0 — set by spawn helpers (smoke rises, embers drift) so static FX (flash, ring, blast frame) stay parked at the impact point. */
+        float vx, vy;
         float lifetimeRemaining;
         float lifetimeMax;
         float radiusCells;
+        /** Per-second radius growth in cells. Smoke billows outward; explosion frames don't grow. */
+        float radiusGrowthPerSec;
         Color color;
         /** Optional sprite override — null = render with the shared glow sprite. Used by explosion FX to render vanilla 128px explosion frames. */
         SpriteAPI sprite;
@@ -1262,5 +1362,7 @@ public final class FlybyOverlay {
         float headingDeg;
         Unit target;            // may be null or stale; tickProjectile defensively checks isAlive()
         float fuseRemaining;
+        /** Sim-seconds until the next smoke trail puff spawns behind the missile. */
+        float smokeTrailTimer;
     }
 }
