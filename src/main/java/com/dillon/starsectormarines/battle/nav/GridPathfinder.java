@@ -234,7 +234,7 @@ public final class GridPathfinder {
         heapPos[startIdx] = 0;
         int heapSize = 1;
 
-        byte[] cellFlags = grid.getCellFlagsArray();
+        long[] cellFlags = grid.getCellFlagsArray();
         byte[] edgePass  = grid.getEdgePassabilityArray();
 
         while (heapSize > 0) {
@@ -264,7 +264,7 @@ public final class GridPathfinder {
 
                 int nIdx = ny * w + nx;
 
-                if ((cellFlags[nIdx] & 1) == 0) continue;
+                if ((cellFlags[nIdx] & 1L) == 0L) continue;
                 // Dual-side edge check: source cell's edge AND destination's reciprocal.
                 if ((edgePass[currentIdx] & DIR_EDGE_MASK[dirI]) == 0) continue;
                 if ((edgePass[nIdx]       & DIR_OPP_EDGE_MASK[dirI]) == 0) continue;
@@ -282,8 +282,8 @@ public final class GridPathfinder {
                     int a2y = cy + DIR_ADJ2_DY[dirI];
                     if (a1x < 0 || a1x >= w || a1y < 0 || a1y >= h) continue;
                     if (a2x < 0 || a2x >= w || a2y < 0 || a2y >= h) continue;
-                    if ((cellFlags[a1y * w + a1x] & 1) == 0) continue;
-                    if ((cellFlags[a2y * w + a2x] & 1) == 0) continue;
+                    if ((cellFlags[a1y * w + a1x] & 1L) == 0L) continue;
+                    if ((cellFlags[a2y * w + a2x] & 1L) == 0L) continue;
                 }
 
                 if (heapPos[nIdx] == CLOSED) continue;

@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.flyby;
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.Unit;
-import com.dillon.starsectormarines.ops.BattleLayout;
+import com.dillon.starsectormarines.ops.battleview.BattleCamera;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.apache.log4j.Logger;
@@ -186,18 +186,16 @@ public final class FlybyOverlay {
      * the simulation (already scaled for pause / 1x / 2x / 4x). Null sim
      * disables targeting + damage but the visual layer keeps running.
      */
-    public void advance(float dt, BattleSimulation sim, BattleLayout layout) {
-        if (dt <= 0f || layout == null) return;
-        // Park the OpenAL listener at the battlefield center so positional fire
-        // sounds pan / attenuate around a fixed observer. setListenerPosOverrideOneFrame
+    public void advance(float dt, BattleSimulation sim, BattleCamera camera) {
+        if (dt <= 0f || camera == null) return;
+        // Park the OpenAL listener at whatever the camera is currently looking
+        // at, so positional fire sounds pan / attenuate around the player's
+        // gaze rather than around the map center. setListenerPosOverrideOneFrame
         // is a one-frame override, so we re-arm it every advance — same pattern as playUILoop.
-        // Outside a CombatEngine the listener has no other driver, so this is the only place
-        // it gets set; if we later add a scrolling camera, swap this for camera-center.
-        float gridCellsW = layout.gridW / Math.max(0.001f, layout.cellSize);
-        float gridCellsH = layout.gridH / Math.max(0.001f, layout.cellSize);
+        // Outside a CombatEngine the listener has no other driver, so this is the only place it gets set.
         Global.getSoundPlayer().setListenerPosOverrideOneFrame(new Vector2f(
-                (gridCellsW * 0.5f) * AUDIO_WORLD_UNITS_PER_CELL,
-                (gridCellsH * 0.5f) * AUDIO_WORLD_UNITS_PER_CELL));
+                camera.panCellX() * AUDIO_WORLD_UNITS_PER_CELL,
+                camera.panCellY() * AUDIO_WORLD_UNITS_PER_CELL));
         // New battle? Wipe state — between-battle leftovers shouldn't bleed into the next mission.
         if (sim != lastSim) {
             lastSim = sim;
@@ -210,14 +208,14 @@ public final class FlybyOverlay {
         if (sim != null && sim.isComplete()) return;
 
         simTime += dt;
-        maybeSpawnFromRoster(sim, layout);
+        maybeSpawnFromRoster(sim, camera);
 
         applyDogfightAggro();
 
         for (int i = fighters.size() - 1; i >= 0; i--) {
             Fighter f = fighters.get(i);
-            tickFighter(f, dt, sim, layout);
-            if (isOffMap(f, layout)) fighters.remove(i);
+            tickFighter(f, dt, sim);
+            if (isOffMap(f, camera)) fighters.remove(i);
         }
 
         for (int i = projectiles.size() - 1; i >= 0; i--) {
@@ -247,7 +245,7 @@ public final class FlybyOverlay {
      * heading at a clamped rate (so paths arc, never snap), advances position
      * along the new heading, then runs state-specific firing logic.
      */
-    private void tickFighter(Fighter f, float dt, BattleSimulation sim, BattleLayout layout) {
+    private void tickFighter(Fighter f, float dt, BattleSimulation sim) {
         // 1. Determine target heading based on current state.
         float targetHeading = pickTargetHeading(f, dt);
 
@@ -956,7 +954,7 @@ public final class FlybyOverlay {
      * {@link #MAX_CONCURRENT} acts as a backstop for pathological rosters; the
      * generator normally schedules wings far enough apart that we never hit it.
      */
-    private void maybeSpawnFromRoster(BattleSimulation sim, BattleLayout layout) {
+    private void maybeSpawnFromRoster(BattleSimulation sim, BattleCamera camera) {
         if (sim == null) return;
         FlybyRoster roster = sim.getFlybyRoster();
         if (roster == null || roster.isEmpty()) return;
@@ -974,7 +972,7 @@ public final class FlybyOverlay {
             if (sortiesSpawned[i] >= wing.sortieCount) continue;
             float nextSpawnAt = wing.firstArrivalSec + sortiesSpawned[i] * wing.spawnIntervalSec;
             if (simTime < nextSpawnAt) continue;
-            spawnFromWing(wing, layout);
+            spawnFromWing(wing, camera);
             sortiesSpawned[i]++;
         }
     }
@@ -984,9 +982,9 @@ public final class FlybyOverlay {
      * (entry edge, exit, speed, weave params) is rolled per-sortie so a wing's
      * multiple sorties don't trace identical paths.
      */
-    private void spawnFromWing(FighterWing wing, BattleLayout layout) {
-        int gridCellsW = (int) (layout.gridW / Math.max(0.001f, layout.cellSize));
-        int gridCellsH = (int) (layout.gridH / Math.max(0.001f, layout.cellSize));
+    private void spawnFromWing(FighterWing wing, BattleCamera camera) {
+        int gridCellsW = camera.worldCellsW();
+        int gridCellsH = camera.worldCellsH();
         if (gridCellsW <= 0 || gridCellsH <= 0) return;
 
         int side = rng.nextInt(4);
@@ -1029,9 +1027,9 @@ public final class FlybyOverlay {
         sortiesSpawned = new int[0];
     }
 
-    private static boolean isOffMap(Fighter f, BattleLayout layout) {
-        float gridCellsW = layout.gridW / Math.max(0.001f, layout.cellSize);
-        float gridCellsH = layout.gridH / Math.max(0.001f, layout.cellSize);
+    private static boolean isOffMap(Fighter f, BattleCamera camera) {
+        float gridCellsW = camera.worldCellsW();
+        float gridCellsH = camera.worldCellsH();
         float pad = OFFMAP_PAD + 2f;
         return f.worldX < -pad || f.worldX > gridCellsW + pad
                 || f.worldY < -pad || f.worldY > gridCellsH + pad;
@@ -1064,20 +1062,21 @@ public final class FlybyOverlay {
      * the victory banner. Sprite facing converts heading (math-standard, 0=+X)
      * to Starsector convention (0=+Y) by subtracting 90°.
      */
-    public void render(BattleLayout layout, float alphaMult) {
-        if (layout == null) return;
+    public void render(BattleCamera camera, float alphaMult) {
+        if (camera == null) return;
         ensureSprites();
 
+        float cellPx = camera.cellPxSize();
         if (shadowSprite != null) {
-            for (Fighter f : fighters) drawShadow(f, layout, alphaMult);
+            for (Fighter f : fighters) drawShadow(f, camera, cellPx, alphaMult);
         }
         if (engineSprite != null) {
-            for (Fighter f : fighters) drawEngineGlow(f, layout, alphaMult);
+            for (Fighter f : fighters) drawEngineGlow(f, camera, cellPx, alphaMult);
         }
         for (Fighter f : fighters) {
             SpriteAPI sprite = sprites.get(f.profile);
             if (sprite == null) continue;
-            float pxLen = f.profile.visualLengthCells * layout.cellSize;
+            float pxLen = f.profile.visualLengthCells * cellPx;
             float texW = sprite.getWidth();
             float texH = sprite.getHeight();
             float aspect = (texH > 0f) ? texW / texH : 1f;
@@ -1086,8 +1085,8 @@ public final class FlybyOverlay {
             sprite.setAlphaMult(alphaMult);
             sprite.setColor(Color.WHITE);
             sprite.setNormalBlend();
-            float px = layout.gridX + f.worldX * layout.cellSize;
-            float py = layout.gridY + f.worldY * layout.cellSize;
+            float px = camera.cellToScreenX(f.worldX);
+            float py = camera.cellToScreenY(f.worldY);
             sprite.renderAtCenter(px, py);
         }
         for (SpriteAPI s : sprites.values()) {
@@ -1099,39 +1098,39 @@ public final class FlybyOverlay {
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE);
             glBegin(GL_QUADS);
-            for (Tracer t : tracers) drawTracerQuad(t, layout, alphaMult);
+            for (Tracer t : tracers) drawTracerQuad(t, camera, cellPx, alphaMult);
             glEnd();
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         }
 
-        for (Projectile p : projectiles) drawProjectile(p, layout, alphaMult);
+        for (Projectile p : projectiles) drawProjectile(p, camera, cellPx, alphaMult);
 
         if (glowSprite != null) {
-            for (Particle p : particles) drawParticle(p, layout, alphaMult);
+            for (Particle p : particles) drawParticle(p, camera, cellPx, alphaMult);
         }
     }
 
     /** Renders one in-flight missile — body sprite rotated to heading, plus a small additive engine glow trail. */
-    private void drawProjectile(Projectile p, BattleLayout layout, float alphaMult) {
+    private void drawProjectile(Projectile p, BattleCamera camera, float cellPx, float alphaMult) {
         SpriteAPI body = projectileSprites.get(p.profile);
-        float px = layout.gridX + p.worldX * layout.cellSize;
-        float py = layout.gridY + p.worldY * layout.cellSize;
+        float px = camera.cellToScreenX(p.worldX);
+        float py = camera.cellToScreenY(p.worldY);
         if (engineSprite != null) {
             float rad = (float) Math.toRadians(p.headingDeg);
             float backX = p.worldX - (float) Math.cos(rad) * 0.45f;
             float backY = p.worldY - (float) Math.sin(rad) * 0.45f;
-            engineSprite.setSize(0.5f * layout.cellSize, 0.9f * layout.cellSize);
+            engineSprite.setSize(0.5f * cellPx, 0.9f * cellPx);
             engineSprite.setAngle(p.headingDeg - 90f);
             engineSprite.setAlphaMult(alphaMult * 0.9f);
             engineSprite.setColor(p.profile.tracerColor);
             engineSprite.setAdditiveBlend();
             engineSprite.renderAtCenter(
-                    layout.gridX + backX * layout.cellSize,
-                    layout.gridY + backY * layout.cellSize);
+                    camera.cellToScreenX(backX),
+                    camera.cellToScreenY(backY));
             engineSprite.setAngle(0f);
         }
         if (body != null) {
-            float pxLen = 0.8f * layout.cellSize;
+            float pxLen = 0.8f * cellPx;
             float texW = body.getWidth();
             float texH = body.getHeight();
             float aspect = (texH > 0f) ? texW / texH : 1f;
@@ -1145,11 +1144,11 @@ public final class FlybyOverlay {
         }
     }
 
-    private void drawShadow(Fighter f, BattleLayout layout, float alphaMult) {
+    private void drawShadow(Fighter f, BattleCamera camera, float cellPx, float alphaMult) {
         float sizeCells = f.profile.visualLengthCells * 1.1f;
-        float px = layout.gridX + f.worldX * layout.cellSize;
-        float py = layout.gridY + (f.worldY + SHADOW_Y_OFFSET) * layout.cellSize;
-        shadowSprite.setSize(sizeCells * layout.cellSize, sizeCells * 0.5f * layout.cellSize);
+        float px = camera.cellToScreenX(f.worldX);
+        float py = camera.cellToScreenY(f.worldY + SHADOW_Y_OFFSET);
+        shadowSprite.setSize(sizeCells * cellPx, sizeCells * 0.5f * cellPx);
         shadowSprite.setAngle(0f);
         shadowSprite.setAlphaMult(alphaMult * SHADOW_ALPHA);
         shadowSprite.setColor(Color.BLACK);
@@ -1157,7 +1156,7 @@ public final class FlybyOverlay {
         shadowSprite.renderAtCenter(px, py);
     }
 
-    private void drawEngineGlow(Fighter f, BattleLayout layout, float alphaMult) {
+    private void drawEngineGlow(Fighter f, BattleCamera camera, float cellPx, float alphaMult) {
         float speed = (float) Math.sqrt(f.vx * f.vx + f.vy * f.vy);
         if (speed < 0.001f) return;
         float nx = f.vx / speed, ny = f.vy / speed;
@@ -1165,27 +1164,27 @@ public final class FlybyOverlay {
         float gx = f.worldX - nx * backOffset;
         float gy = f.worldY - ny * backOffset;
         float glowLenCells = f.profile.visualLengthCells * ENGINE_GLOW_LEN_MULT;
-        engineSprite.setSize(glowLenCells * 0.6f * layout.cellSize, glowLenCells * layout.cellSize);
+        engineSprite.setSize(glowLenCells * 0.6f * cellPx, glowLenCells * cellPx);
         engineSprite.setAngle(f.facingDeg - 90f);
         engineSprite.setAlphaMult(alphaMult * 0.9f);
         engineSprite.setColor(new Color(0xFF, 0xC8, 0x80));
         engineSprite.setAdditiveBlend();
         engineSprite.renderAtCenter(
-                layout.gridX + gx * layout.cellSize,
-                layout.gridY + gy * layout.cellSize);
+                camera.cellToScreenX(gx),
+                camera.cellToScreenY(gy));
         engineSprite.setAngle(0f);
     }
 
-    private void drawTracerQuad(Tracer t, BattleLayout layout, float alphaMult) {
-        float fromPx = layout.gridX + t.fromX * layout.cellSize;
-        float fromPy = layout.gridY + t.fromY * layout.cellSize;
-        float toPx   = layout.gridX + t.toX   * layout.cellSize;
-        float toPy   = layout.gridY + t.toY   * layout.cellSize;
+    private void drawTracerQuad(Tracer t, BattleCamera camera, float cellPx, float alphaMult) {
+        float fromPx = camera.cellToScreenX(t.fromX);
+        float fromPy = camera.cellToScreenY(t.fromY);
+        float toPx   = camera.cellToScreenX(t.toX);
+        float toPy   = camera.cellToScreenY(t.toY);
         float dx = toPx - fromPx, dy = toPy - fromPy;
         float dist = (float) Math.sqrt(dx * dx + dy * dy);
         if (dist < 0.001f) return;
         float nx = dx / dist, ny = dy / dist;
-        float scale = layout.cellSize / 32f;
+        float scale = cellPx / 32f;
         float tracerLen = t.profile.tracerPxLen * scale;
         float half = (t.profile.tracerPxThick * scale) * 0.5f;
         float headX = fromPx + nx * tracerLen;
@@ -1203,9 +1202,9 @@ public final class FlybyOverlay {
         glVertex2f(headX - perpX, headY - perpY);
     }
 
-    private void drawParticle(Particle p, BattleLayout layout, float alphaMult) {
+    private void drawParticle(Particle p, BattleCamera camera, float cellPx, float alphaMult) {
         float lifeFrac = Math.max(0f, p.lifetimeRemaining / Math.max(0.001f, p.lifetimeMax));
-        float radiusPx = p.radiusCells * layout.cellSize;
+        float radiusPx = p.radiusCells * cellPx;
         SpriteAPI s = p.sprite != null ? p.sprite : glowSprite;
         s.setSize(radiusPx * 2f, radiusPx * 2f);
         s.setAngle(p.angleDeg);
@@ -1231,8 +1230,8 @@ public final class FlybyOverlay {
             s.setTexHeight(cellH);
         }
         s.renderAtCenter(
-                layout.gridX + p.x * layout.cellSize,
-                layout.gridY + p.y * layout.cellSize);
+                camera.cellToScreenX(p.x),
+                camera.cellToScreenY(p.y));
         // Reset UVs on the shared sheet sprite so the next particle that uses it
         // doesn't inherit a frame index. (Cheap — just four setters.)
         if (p.frameCount > 0) {

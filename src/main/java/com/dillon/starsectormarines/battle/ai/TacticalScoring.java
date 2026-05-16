@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -156,17 +157,36 @@ public final class TacticalScoring {
 
     /**
      * Scans cells within {@link #FALLBACK_SCAN_RANGE} of {@code self} for a
-     * walkable spot with no LOS to any alive enemy. Scores by
-     * {@code distFromSelf + occupancyPenalty - coverBonus}. Falls through to
-     * {@code self}'s current cell if nothing qualifies.
+     * walkable, out-of-LOS spot, scored by
+     * {@code distFromSelf + occupancyPenalty - coverBonus - zoneControlBonus}.
+     *
+     * <p>The top-scored cell only helps if the unit can actually walk to it —
+     * and the wall that hides a cell from enemies is exactly the kind of wall
+     * that can also seal it off from us. Without a reachability check the
+     * picker happily returns sealed pockets and the unit freezes for the
+     * entire fall-back duration waiting on an empty path. We filter using
+     * {@link ZoneGraph#areConnected} (BFS over the portal graph, cheaper than
+     * per-cell A*) and walk the sorted list until a reachable candidate
+     * shows up.
+     *
+     * <p>If the top-scored cell is unreachable we first try its four cardinal
+     * neighbors before falling through to the next-best candidate. The dud is
+     * almost always shadowed by a wall, and the cardinal on our side of that
+     * wall inherits the same cover while staying in our zone. Cardinals are
+     * tried in order of distance from the average enemy cell (farthest first)
+     * so the consolation pick doesn't accidentally march us into the firing
+     * lane. Falls through to {@code self}'s current cell only if nothing
+     * qualifies — caller treats that as "don't enter fall-back."
      */
     public static int[] findFallbackPosition(Unit self, BattleSimulation sim) {
         NavigationGrid grid = sim.getGrid();
+        ZoneGraph zones = sim.getZoneGraph();
         int sx = self.cellX;
         int sy = self.cellY;
+        int selfZone = zones.zoneIdAt(sx, sy);
         int[] zoneControl = computeZoneControl(self, sim);
-        int[] best = null;
-        float bestScore = Float.MAX_VALUE;
+
+        List<float[]> candidates = new ArrayList<>();
         for (int dy = -FALLBACK_SCAN_RANGE; dy <= FALLBACK_SCAN_RANGE; dy++) {
             for (int dx = -FALLBACK_SCAN_RANGE; dx <= FALLBACK_SCAN_RANGE; dx++) {
                 int cx = sx + dx;
@@ -176,20 +196,90 @@ public final class TacticalScoring {
 
                 int occupants = occupantsExcludingSelf(self, cx, cy, sim);
                 int cover = grid.getCoverAt(cx, cy);
-                int zoneId = sim.getZoneGraph().zoneIdAt(cx, cy);
+                int zoneId = zones.zoneIdAt(cx, cy);
                 int control = (zoneId >= 0 && zoneId < zoneControl.length) ? zoneControl[zoneId] : 0;
                 float distFromSelf = cellDistance(sx, sy, cx, cy);
                 float score = distFromSelf
                         + FALLBACK_OCCUPANCY_COST * occupants
                         - FALLBACK_COVER_BONUS * cover
                         - FALLBACK_FRIENDLY_ZONE_BONUS * control;
-                if (score < bestScore) {
-                    bestScore = score;
-                    best = new int[]{cx, cy};
-                }
+                candidates.add(new float[]{score, cx, cy});
             }
         }
-        return best != null ? best : new int[]{sx, sy};
+        candidates.sort((a, b) -> Float.compare(a[0], b[0]));
+
+        int[] threatRef = averageEnemyCell(self, sim);
+        for (float[] cand : candidates) {
+            int cx = (int) cand[1];
+            int cy = (int) cand[2];
+            if (zones.areConnected(selfZone, zones.zoneIdAt(cx, cy))) {
+                return new int[]{cx, cy};
+            }
+            int[] consolation = cardinalConsolation(grid, zones, selfZone, sx, sy, cx, cy, threatRef);
+            if (consolation != null) return consolation;
+        }
+        return new int[]{sx, sy};
+    }
+
+    /**
+     * Average alive-enemy cell from {@code self}'s perspective, or {@code
+     * null} when there are no enemies. Used as the "don't march toward this"
+     * reference for cardinal-neighbor ordering in fall-back consolation.
+     */
+    private static int[] averageEnemyCell(Unit self, BattleSimulation sim) {
+        float sumX = 0f, sumY = 0f;
+        int count = 0;
+        for (Unit u : sim.getUnits()) {
+            if (!u.isAlive() || u.faction == self.faction) continue;
+            if (!u.type.combatant) continue;
+            sumX += u.cellX;
+            sumY += u.cellY;
+            count++;
+        }
+        if (count == 0) return null;
+        return new int[]{Math.round(sumX / count), Math.round(sumY / count)};
+    }
+
+    /**
+     * Picks a walkable cardinal neighbor of {@code (dudX, dudY)} in a zone
+     * reachable from {@code selfZone}. Cardinals are tried farthest-from-
+     * {@code threatRef} first so the consolation cell — taken when the
+     * best-scored hide turns out to be sealed off — doesn't slide the unit
+     * toward the threat. Returns {@code null} if no cardinal qualifies.
+     */
+    private static int[] cardinalConsolation(NavigationGrid grid, ZoneGraph zones,
+                                             int selfZone, int sx, int sy,
+                                             int dudX, int dudY, int[] threatRef) {
+        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        int[] order = {0, 1, 2, 3};
+        float[] threatDist = new float[4];
+        for (int i = 0; i < 4; i++) {
+            int nx = dudX + dirs[i][0];
+            int ny = dudY + dirs[i][1];
+            threatDist[i] = (threatRef == null)
+                    ? 0f
+                    : cellDistance(nx, ny, threatRef[0], threatRef[1]);
+        }
+        // Insertion sort by threatDist DESCENDING (farthest from threat first).
+        for (int i = 1; i < 4; i++) {
+            int slot = order[i];
+            float d = threatDist[slot];
+            int j = i;
+            while (j > 0 && threatDist[order[j - 1]] < d) {
+                order[j] = order[j - 1];
+                j--;
+            }
+            order[j] = slot;
+        }
+        for (int oi : order) {
+            int nx = dudX + dirs[oi][0];
+            int ny = dudY + dirs[oi][1];
+            if (!grid.inBounds(nx, ny) || !grid.isWalkable(nx, ny)) continue;
+            if (nx == sx && ny == sy) continue;
+            if (!zones.areConnected(selfZone, zones.zoneIdAt(nx, ny))) continue;
+            return new int[]{nx, ny};
+        }
+        return null;
     }
 
     /**

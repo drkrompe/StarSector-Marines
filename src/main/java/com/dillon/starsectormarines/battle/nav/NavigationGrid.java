@@ -47,21 +47,29 @@ import java.util.Arrays;
  */
 public class NavigationGrid {
 
-    private static final int WALKABLE_BIT          = 0;
-    private static final int FLOOR_BIT             = 1;
-    private static final int RUBBLE_BIT            = 2;
-    private static final int DOORWAY_BIT           = 3;
-    private static final int STREET_BIT            = 4;
-    private static final int CROSSWALK_BIT         = 5;
-    private static final int CROSSWALK_HORIZ_BIT   = 6;
-    private static final int COURTYARD_BIT         = 7;
+    /**
+     * Tags the pathfinder + zone graph care about. Strictly nav concerns —
+     * rendering / categorization tags (FLOOR, STREET, RUBBLE, WALL, VEHICLE,
+     * etc.) live on {@link com.dillon.starsectormarines.battle.map.CellTopology}
+     * instead.
+     *
+     * <p>WALKABLE MUST stay at ordinal 0 — the pathfinder masks against
+     * {@code 1L} on the hot path.
+     */
+    public enum CellTag {
+        WALKABLE,
+        /** Zone-graph partition cell. Treated as a portal between adjacent zones rather than collapsing them into one. Punched at gen time on building doorways and on wall breaches. */
+        DOORWAY;
+
+        public long mask() { return 1L << ordinal(); }
+    }
 
     /** Maximum cover level. 0 = open ground, MAX = heavy cover (all sides walled). */
     public static final int MAX_COVER = 3;
 
     private final int width;
     private final int height;
-    private final byte[] cellFlags;
+    private final long[] cellFlags;
     private final byte[] edgePassability;
     /** Per-cell cover level 0..{@link #MAX_COVER}. Initially baked by the map generator from the wall layout; locally recomputed when {@link #damageCell} flips a wall to rubble. */
     private final byte[] coverValues;
@@ -72,11 +80,30 @@ public class NavigationGrid {
         this.width = width;
         this.height = height;
         int size = width * height;
-        this.cellFlags = new byte[size];
+        this.cellFlags = new long[size];
         this.edgePassability = new byte[size];
         this.coverValues = new byte[size];
         this.wallHp = new int[size];
     }
+
+    // ----- Tag access (generic) -----
+
+    public boolean hasTag(int x, int y, CellTag tag) {
+        if (!inBounds(x, y)) return false;
+        return (cellFlags[index(x, y)] & tag.mask()) != 0L;
+    }
+
+    public boolean hasTagAt(int idx, CellTag tag) {
+        return (cellFlags[idx] & tag.mask()) != 0L;
+    }
+
+    public void setTag(int x, int y, CellTag tag, boolean on) {
+        if (!inBounds(x, y)) return;
+        int idx = index(x, y);
+        if (on) cellFlags[idx] |=  tag.mask();
+        else    cellFlags[idx] &= ~tag.mask();
+    }
+
 
     public int getWidth()  { return width;  }
     public int getHeight() { return height; }
@@ -93,43 +120,21 @@ public class NavigationGrid {
     // ----- Hot-path accessors (no bounds check — caller guarantees validity) -----
 
     public boolean isWalkableAt(int idx) {
-        return (cellFlags[idx] & (1 << WALKABLE_BIT)) != 0;
+        return (cellFlags[idx] & CellTag.WALKABLE.mask()) != 0L;
     }
 
     public boolean isEdgePassableAt(int idx, int mask) {
         return (edgePassability[idx] & mask) != 0;
     }
 
-    // ----- Cell flags (bounds-checked) -----
+    // ----- Cell flags (bounds-checked typed wrappers around hasTag/setTag) -----
 
-    public boolean isWalkable(int x, int y) {
-        if (!inBounds(x, y)) return false;
-        return (cellFlags[index(x, y)] & (1 << WALKABLE_BIT)) != 0;
-    }
+    public boolean isWalkable(int x, int y)            { return hasTag(x, y, CellTag.WALKABLE); }
+    public void    setWalkable(int x, int y, boolean v){ setTag(x, y, CellTag.WALKABLE, v); }
 
-    public void setWalkable(int x, int y, boolean walkable) {
-        if (!inBounds(x, y)) return;
-        int idx = index(x, y);
-        if (walkable) cellFlags[idx] |= (byte) (1 << WALKABLE_BIT);
-        else          cellFlags[idx] &= (byte) ~(1 << WALKABLE_BIT);
-    }
-
-    public boolean hasFloor(int x, int y) {
-        if (!inBounds(x, y)) return false;
-        return (cellFlags[index(x, y)] & (1 << FLOOR_BIT)) != 0;
-    }
-
-    public void setFloor(int x, int y, boolean floor) {
-        if (!inBounds(x, y)) return;
-        int idx = index(x, y);
-        if (floor) cellFlags[idx] |= (byte) (1 << FLOOR_BIT);
-        else       cellFlags[idx] &= (byte) ~(1 << FLOOR_BIT);
-    }
-
-    /** Marks the cell walkable + floor and opens all eight edges. */
+    /** Marks the cell walkable and opens all eight edges. */
     public void setWalkableFloor(int x, int y) {
         setWalkable(x, y, true);
-        setFloor(x, y, true);
         openAllEdges(x, y);
     }
 
@@ -197,86 +202,11 @@ public class NavigationGrid {
 
     // ----- Doorways (zone-graph barriers) -----
 
-    public boolean isDoorway(int x, int y) {
-        if (!inBounds(x, y)) return false;
-        return (cellFlags[index(x, y)] & (1 << DOORWAY_BIT)) != 0;
-    }
+    public boolean isDoorway(int x, int y)             { return hasTag(x, y, CellTag.DOORWAY); }
+    public boolean isDoorwayAt(int idx)                { return hasTagAt(idx, CellTag.DOORWAY); }
+    public void    setDoorway(int x, int y, boolean v) { setTag(x, y, CellTag.DOORWAY, v); }
 
-    public boolean isDoorwayAt(int idx) {
-        return (cellFlags[idx] & (1 << DOORWAY_BIT)) != 0;
-    }
-
-    public void setDoorway(int x, int y, boolean doorway) {
-        if (!inBounds(x, y)) return;
-        int idx = index(x, y);
-        if (doorway) cellFlags[idx] |= (byte) (1 << DOORWAY_BIT);
-        else         cellFlags[idx] &= (byte) ~(1 << DOORWAY_BIT);
-    }
-
-    // ----- Street (outdoor vs interior) -----
-
-    /** True for outdoor walkable cells. Building interiors and doorways have this cleared. */
-    public boolean isStreet(int x, int y) {
-        if (!inBounds(x, y)) return false;
-        return (cellFlags[index(x, y)] & (1 << STREET_BIT)) != 0;
-    }
-
-    public void setStreet(int x, int y, boolean street) {
-        if (!inBounds(x, y)) return;
-        int idx = index(x, y);
-        if (street) cellFlags[idx] |= (byte) (1 << STREET_BIT);
-        else        cellFlags[idx] &= (byte) ~(1 << STREET_BIT);
-    }
-
-    // ----- Crosswalks -----
-
-    /** True for crosswalk-painted road cells. Set by the map generator outside building doorways. */
-    public boolean isCrosswalk(int x, int y) {
-        if (!inBounds(x, y)) return false;
-        return (cellFlags[index(x, y)] & (1 << CROSSWALK_BIT)) != 0;
-    }
-
-    public void setCrosswalk(int x, int y, boolean crosswalk) {
-        if (!inBounds(x, y)) return;
-        int idx = index(x, y);
-        if (crosswalk) cellFlags[idx] |= (byte) (1 << CROSSWALK_BIT);
-        else           cellFlags[idx] &= (byte) ~(1 << CROSSWALK_BIT);
-    }
-
-    /** Only meaningful when {@link #isCrosswalk} is true. True = stripes run E-W (pedestrian crossing N-S). */
-    public boolean isCrosswalkStripesHorizontal(int x, int y) {
-        if (!inBounds(x, y)) return false;
-        return (cellFlags[index(x, y)] & (1 << CROSSWALK_HORIZ_BIT)) != 0;
-    }
-
-    public void setCrosswalkStripesHorizontal(int x, int y, boolean horizontal) {
-        if (!inBounds(x, y)) return;
-        int idx = index(x, y);
-        if (horizontal) cellFlags[idx] |= (byte) (1 << CROSSWALK_HORIZ_BIT);
-        else            cellFlags[idx] &= (byte) ~(1 << CROSSWALK_HORIZ_BIT);
-    }
-
-    // ----- Courtyard (private outdoor pavement inside a super-block) -----
-
-    /** True for walkable cells that are private interior pavement (super-block courtyards), not public road or indoor floor. */
-    public boolean isCourtyard(int x, int y) {
-        if (!inBounds(x, y)) return false;
-        return (cellFlags[index(x, y)] & (1 << COURTYARD_BIT)) != 0;
-    }
-
-    public void setCourtyard(int x, int y, boolean courtyard) {
-        if (!inBounds(x, y)) return;
-        int idx = index(x, y);
-        if (courtyard) cellFlags[idx] |= (byte) (1 << COURTYARD_BIT);
-        else           cellFlags[idx] &= (byte) ~(1 << COURTYARD_BIT);
-    }
-
-    // ----- Rubble + destructible walls -----
-
-    public boolean isRubble(int x, int y) {
-        if (!inBounds(x, y)) return false;
-        return (cellFlags[index(x, y)] & (1 << RUBBLE_BIT)) != 0;
-    }
+    // ----- Destructible walls (HP storage; "is this a wall" lives on CellTopology) -----
 
     /** Initial wall HP at (x, y). Caller sets this for non-walkable wall cells at map-gen time. */
     public void setWallHp(int x, int y, int hp) {
@@ -303,17 +233,20 @@ public class NavigationGrid {
     public boolean damageCell(int x, int y, int amount) {
         if (!inBounds(x, y) || amount <= 0) return false;
         int idx = index(x, y);
-        if ((cellFlags[idx] & (1 << WALKABLE_BIT)) != 0) return false;
+        if ((cellFlags[idx] & CellTag.WALKABLE.mask()) != 0L) return false;
         int remaining = wallHp[idx] - amount;
         if (remaining > 0) {
             wallHp[idx] = remaining;
             return false;
         }
         wallHp[idx] = 0;
-        // Flag the breach as a doorway so the zone graph treats it as a portal
-        // cell — the two previously-separated zones gain a connection without
-        // merging into one giant zone. AI keeps its "inside the lab" vocabulary.
-        cellFlags[idx] |= (byte) ((1 << WALKABLE_BIT) | (1 << FLOOR_BIT) | (1 << RUBBLE_BIT) | (1 << DOORWAY_BIT));
+        // Flag the breach walkable + doorway so the zone graph treats it as a
+        // portal cell — the two previously-separated zones gain a connection
+        // without merging into one giant zone. The visual swap (clear WALL,
+        // set RUBBLE, set FLOOR on the topology) is handled by the caller
+        // (BattleSimulation.damageCell), since the rendering tag-bag isn't
+        // visible from this class.
+        cellFlags[idx] |= CellTag.WALKABLE.mask() | CellTag.DOORWAY.mask();
         edgePassability[idx] = (byte) 0xFF;
         recomputeCoverAt(x, y);
         recomputeCoverAt(x + 1, y);
@@ -325,11 +258,11 @@ public class NavigationGrid {
 
     // ----- Raw arrays (for the pathfinder's hot path) -----
 
-    public byte[] getCellFlagsArray()        { return cellFlags;       }
+    public long[] getCellFlagsArray()        { return cellFlags;       }
     public byte[] getEdgePassabilityArray()  { return edgePassability; }
 
     public void clear() {
-        Arrays.fill(cellFlags, (byte) 0);
+        Arrays.fill(cellFlags, 0L);
         Arrays.fill(edgePassability, (byte) 0);
         Arrays.fill(coverValues, (byte) 0);
         Arrays.fill(wallHp, 0);

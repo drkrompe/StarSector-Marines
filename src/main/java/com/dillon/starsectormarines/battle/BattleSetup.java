@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle;
 
+import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.objective.EliminateFactionObjective;
@@ -48,6 +49,10 @@ public final class BattleSetup {
     /** BFS radius around each residential POI when looking for civilian spawn cells. */
     private static final int CIVILIAN_SPAWN_RADIUS = 5;
 
+    /** Min/max parked vehicles scattered on streets and courtyards. Trucks block pathing + LOS, so they act as movable map terrain. */
+    private static final int VEHICLE_COUNT_MIN = 3;
+    private static final int VEHICLE_COUNT_MAX = 6;
+
     /** SABOTAGE: number of charge sites to plant. One per shuttle = one planter per drop. */
     private static final int SABOTAGE_CHARGE_SITES = 3;
     /** SABOTAGE: sim-seconds a planter must dwell on a charge site to complete the plant. */
@@ -92,8 +97,12 @@ public final class BattleSetup {
      */
     public static BattleSimulation createSabotage(long seed, List<ShuttleAssignment> manifest) {
         UrbanMapGenerator.Result map = UrbanMapGenerator.generate(GRID_W, GRID_H, seed);
-        BattleSimulation sim = new BattleSimulation(map.grid);
         Random rng = new Random(seed);
+        // Vehicles stamp before sim construction so the BattleSimulation's
+        // zone-graph rebuild sees the final walkability — trucks partition zones.
+        List<MapVehicle> vehiclePlacements = stampVehicles(map.grid, map.topology, rng);
+        BattleSimulation sim = new BattleSimulation(map.grid, map.topology);
+        for (MapVehicle v : vehiclePlacements) sim.addVehicle(v);
         for (Doodad d : map.doodads) sim.addDoodad(d);
 
         // Pick charge sites: prefer high-value POIs (lab/comms/depot) in the
@@ -221,8 +230,10 @@ public final class BattleSetup {
 
     public static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest) {
         UrbanMapGenerator.Result map = UrbanMapGenerator.generate(GRID_W, GRID_H, seed);
-        BattleSimulation sim = new BattleSimulation(map.grid);
         Random rng = new Random(seed);
+        List<MapVehicle> vehiclePlacements = stampVehicles(map.grid, map.topology, rng);
+        BattleSimulation sim = new BattleSimulation(map.grid, map.topology);
+        for (MapVehicle v : vehiclePlacements) sim.addVehicle(v);
         for (Doodad d : map.doodads) sim.addDoodad(d);
 
         // Default ASSAULT objectives — eliminate the other side. Mission-specific
@@ -449,6 +460,66 @@ public final class BattleSetup {
             }
         }
         return picked;
+    }
+
+    /**
+     * Picks 3-6 random vehicle placements on open outdoor pavement (streets or
+     * super-block courtyards). Each placement flags its footprint cells
+     * non-walkable on the grid, then recomputes cover for the surrounding ring
+     * so cells adjacent to the truck inherit the cover bonus.
+     *
+     * <p>Vehicle anchors are required to sit on a street or courtyard cell,
+     * never on an indoor floor — a truck parked in a living room would read
+     * wrong. Doorway cells are also excluded so we don't accidentally seal
+     * a building's only entrance.
+     */
+    private static List<MapVehicle> stampVehicles(NavigationGrid grid, CellTopology topology, Random rng) {
+        int target = VEHICLE_COUNT_MIN + rng.nextInt(VEHICLE_COUNT_MAX - VEHICLE_COUNT_MIN + 1);
+        VehicleKind[] kinds = VehicleKind.values();
+        List<MapVehicle> placed = new ArrayList<>(target);
+        int attempts = 0;
+        int maxAttempts = target * 50;
+        while (placed.size() < target && attempts < maxAttempts) {
+            attempts++;
+            VehicleKind kind = kinds[rng.nextInt(kinds.length)];
+            int x = rng.nextInt(Math.max(1, grid.getWidth()  - kind.footprintCellsX));
+            int y = rng.nextInt(Math.max(1, grid.getHeight() - kind.footprintCellsY));
+            if (!canPlaceVehicle(grid, topology, x, y, kind)) continue;
+            stampOneVehicle(grid, topology, x, y, kind);
+            placed.add(new MapVehicle(kind, x, y));
+        }
+        return placed;
+    }
+
+    private static boolean canPlaceVehicle(NavigationGrid grid, CellTopology topology, int x, int y, VehicleKind kind) {
+        for (int dy = 0; dy < kind.footprintCellsY; dy++) {
+            for (int dx = 0; dx < kind.footprintCellsX; dx++) {
+                int cx = x + dx;
+                int cy = y + dy;
+                if (!grid.inBounds(cx, cy)) return false;
+                if (!grid.isWalkable(cx, cy)) return false;
+                if (grid.isDoorway(cx, cy)) return false;
+                if (!topology.isStreet(cx, cy) && !topology.isCourtyard(cx, cy)) return false;
+            }
+        }
+        return true;
+    }
+
+    private static void stampOneVehicle(NavigationGrid grid, CellTopology topology, int x, int y, VehicleKind kind) {
+        for (int dy = 0; dy < kind.footprintCellsY; dy++) {
+            for (int dx = 0; dx < kind.footprintCellsX; dx++) {
+                grid.setWalkable(x + dx, y + dy, false);
+                topology.setVehicle(x + dx, y + dy, true);
+            }
+        }
+        // Refresh cover for the 1-cell ring around the footprint so units who
+        // stand next to a truck pick up the +1 cover bonus on their next
+        // firing-position score.
+        for (int dy = -1; dy <= kind.footprintCellsY; dy++) {
+            for (int dx = -1; dx <= kind.footprintCellsX; dx++) {
+                grid.recomputeCoverAt(x + dx, y + dy);
+            }
+        }
     }
 
     private static long key(int x, int y) {

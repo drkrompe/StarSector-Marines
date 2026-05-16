@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.ai.PlanterBehavior;
 import com.dillon.starsectormarines.battle.ai.TacticalScoring;
 import com.dillon.starsectormarines.battle.ai.UnitBehavior;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
+import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.objective.EliminateFactionObjective;
@@ -71,11 +72,13 @@ public class BattleSimulation {
     private static final float FALLBACK_DURATION = 3.5f;
 
     private final NavigationGrid grid;
+    private final CellTopology topology;
     private final List<Unit> units = new ArrayList<>();
     private final List<Shuttle> shuttles = new ArrayList<>();
     private final List<Objective> objectives = new ArrayList<>();
     private final List<EquipmentDrop> equipmentDrops = new ArrayList<>();
     private final List<Doodad> doodads = new ArrayList<>();
+    private final List<MapVehicle> vehicles = new ArrayList<>();
     private final Map<Integer, Squad> squads = new HashMap<>();
     /** Next squad id to assign on shuttle deboard. Monotonically increasing across the battle's lifetime. */
     private int nextSquadId = 0;
@@ -132,14 +135,17 @@ public class BattleSimulation {
     /** Fighter wings committed to this battle. Lives on the sim so the overlay can read it without coupling to the briefing screen. */
     private FlybyRoster flybyRoster = FlybyRoster.EMPTY;
 
-    public BattleSimulation(NavigationGrid grid) {
+    public BattleSimulation(NavigationGrid grid, CellTopology topology) {
         this.grid = grid;
+        this.topology = topology;
         this.occupancyMap = new byte[grid.getWidth() * grid.getHeight()];
         this.zoneGraph = new ZoneGraph(grid);
         this.zoneGraph.rebuild();
     }
 
     public NavigationGrid getGrid()        { return grid; }
+    /** Categorization tags (street / rubble / wall / vehicle / etc.) for renderer + placement filters. Sibling to {@link #grid}; the pathfinder doesn't touch this. */
+    public CellTopology getTopology()      { return topology; }
     /** Zone+portal graph layered on the {@link NavigationGrid}. Rebuilt on wall destruction so AI queries reflect the current map. */
     public ZoneGraph getZoneGraph()        { return zoneGraph; }
 
@@ -152,6 +158,14 @@ public class BattleSimulation {
      */
     public boolean damageCell(int x, int y, int amount) {
         if (!grid.damageCell(x, y, amount)) return false;
+        // A wall that just collapsed is now walkable + a zone-graph portal
+        // (handled inside grid.damageCell). Topology needs the visual swap:
+        // clear WALL so the wall pass stops drawing tile art, set RUBBLE so
+        // the floor pass picks the damaged-floor autotile, set FLOOR so the
+        // doorway overhead overlay reads against it.
+        topology.setWall(x, y, false);
+        topology.setRubble(x, y, true);
+        topology.setFloor(x, y, true);
         zoneGraph.rebuild();
         return true;
     }
@@ -161,6 +175,9 @@ public class BattleSimulation {
     public List<EquipmentDrop> getEquipmentDrops() { return equipmentDrops; }
     public List<Doodad> getDoodads()       { return doodads; }
     public void addDoodad(Doodad d)        { doodads.add(d); }
+    /** Parked vehicles that occupy multi-cell footprints. Cells were flagged non-walkable at setup time, so the sim doesn't need to consult this list for pathing/LOS — only the renderer does. */
+    public List<MapVehicle> getVehicles()  { return vehicles; }
+    public void addVehicle(MapVehicle v)   { vehicles.add(v); }
     /** Fighter wings committed to this battle. {@code FlybyOverlay} reads this on first tick and drives spawns from the per-wing schedules. Defaults to {@link FlybyRoster#EMPTY}; missions assign via {@link #setFlybyRoster}. */
     public FlybyRoster getFlybyRoster()    { return flybyRoster; }
     public void setFlybyRoster(FlybyRoster roster) { this.flybyRoster = roster != null ? roster : FlybyRoster.EMPTY; }

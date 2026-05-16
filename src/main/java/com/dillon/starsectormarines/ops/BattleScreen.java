@@ -10,14 +10,18 @@ import com.dillon.starsectormarines.battle.Shuttle;
 import com.dillon.starsectormarines.battle.ShuttleType;
 import com.dillon.starsectormarines.battle.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.SpriteSheetSlicer;
+import com.dillon.starsectormarines.battle.MapVehicle;
 import com.dillon.starsectormarines.battle.TileManifest;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.UnitType;
+import com.dillon.starsectormarines.battle.VehicleKind;
+import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.flyby.FlybyOverlay;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.objective.Objective;
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.ops.battleview.BattleCamera;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.LabelWidget;
@@ -36,6 +40,8 @@ import java.util.List;
 import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_QUADS;
+import static org.lwjgl.opengl.GL11.GL_SCISSOR_BIT;
+import static org.lwjgl.opengl.GL11.GL_SCISSOR_TEST;
 import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.glBegin;
@@ -44,6 +50,9 @@ import static org.lwjgl.opengl.GL11.glColor4f;
 import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glEnd;
+import static org.lwjgl.opengl.GL11.glPopAttrib;
+import static org.lwjgl.opengl.GL11.glPushAttrib;
+import static org.lwjgl.opengl.GL11.glScissor;
 import static org.lwjgl.opengl.GL11.glVertex2f;
 
 /**
@@ -168,6 +177,15 @@ public class BattleScreen implements Screen {
     private PositionAPI position;
     private MarineOpsContext ctx;
     private BattleLayout layout;
+    private BattleCamera camera;
+    /** Pan-drag state: true while RMB is held (without shift, which routes to debug damage). */
+    private boolean panDragging;
+    private int lastDragX;
+    private int lastDragY;
+    /** Held-key pan state, polled in advance() so WASD/arrow holds keep panning between key events. */
+    private boolean panKeyW, panKeyA, panKeyS, panKeyD;
+    /** Cells per second of keyboard-pan, in world cells (the camera converts to pixels per its zoom). */
+    private static final float KEY_PAN_CELLS_PER_SEC = 18f;
     private float speedMultiplier = 1f;
     /** Pixel x-center of each speed button, captured at layout time for the active-marker dot. */
     private final float[] speedBtnCenterX = new float[SPEED_OPTIONS.length];
@@ -186,6 +204,11 @@ public class BattleScreen implements Screen {
             this.frames = frames;
         }
     }
+
+    /** Per-{@link VehicleKind.VehicleSheet} sprite cache for parked truck sprites. Same lazy-load + auto-slice pattern as the unit sheets. */
+    private final java.util.EnumMap<VehicleKind.VehicleSheet, UnitSpriteCache> vehicleSheets =
+            new java.util.EnumMap<>(VehicleKind.VehicleSheet.class);
+    private boolean vehicleSheetsLoadAttempted;
     /** Cached tileset sheet — lazy-loaded once per Screen lifetime. Null if load failed. */
     private SpriteAPI tileSheet;
     /** Pixel dimensions of the tileset PNG content (pre-POT-padding). */
@@ -257,6 +280,7 @@ public class BattleScreen implements Screen {
         this.ctx = ctx;
         this.speedMultiplier = 1f;
         ensureUnitSheets();
+        ensureVehicleSheets();
         ensureTileSheet();
         ensureRoadSheet();
         ensureShuttleSprites();
@@ -443,6 +467,14 @@ public class BattleScreen implements Screen {
         }
     }
 
+    private void ensureVehicleSheets() {
+        if (vehicleSheetsLoadAttempted) return;
+        vehicleSheetsLoadAttempted = true;
+        for (VehicleKind.VehicleSheet sheet : VehicleKind.VehicleSheet.values()) {
+            vehicleSheets.put(sheet, loadUnitSheet(sheet.path));
+        }
+    }
+
     private UnitSpriteCache loadUnitSheet(String path) {
         try {
             Global.getSettings().loadTexture(path);
@@ -475,6 +507,13 @@ public class BattleScreen implements Screen {
         int gridW = sim != null ? sim.getGrid().getWidth()  : BattleSetup.GRID_W;
         int gridH = sim != null ? sim.getGrid().getHeight() : BattleSetup.GRID_H;
         layout = new BattleLayout(position, gridW, gridH);
+        // Camera survives rebuilds (so the player's pan/zoom isn't lost when the
+        // sim transitions to complete and we rebuild widgets). Only construct
+        // it the first time, then refresh the viewport rect on subsequent rebuilds.
+        if (camera == null || camera.worldCellsW() != gridW || camera.worldCellsH() != gridH) {
+            camera = new BattleCamera(gridW, gridH);
+        }
+        camera.setViewport(layout.gridX, layout.gridY, layout.gridW, layout.gridH, layout.cellSize);
         lastSimComplete = sim != null && sim.isComplete();
 
         // Bottom-left action button — Back when in-progress, Continue when done.
@@ -512,6 +551,19 @@ public class BattleScreen implements Screen {
     @Override
     public void advance(float dt) {
         widgets.advance(dt);
+        // Keyboard pan integrates on real dt (not sim-time) so the camera still
+        // moves while the sim is paused — the player should be able to look
+        // around the map without unpausing. Diagonal holds aren't normalized;
+        // pressing two axes just sums them, which gives a slightly faster
+        // diagonal pan and feels right for a top-down map.
+        if (camera != null) {
+            float dx = (panKeyD ? 1f : 0f) - (panKeyA ? 1f : 0f);
+            float dy = (panKeyW ? 1f : 0f) - (panKeyS ? 1f : 0f);
+            if (dx != 0f || dy != 0f) {
+                camera.panByCells(dx * KEY_PAN_CELLS_PER_SEC * dt,
+                                  dy * KEY_PAN_CELLS_PER_SEC * dt);
+            }
+        }
         // playUILoop is documented as "must be called every frame or the loop will fade out" —
         // re-arming it every advance is how Starsector expects loops to be driven. When this
         // screen stops being current, advance() stops firing and all loops fade automatically.
@@ -526,7 +578,7 @@ public class BattleScreen implements Screen {
         sim.advance(dt * speedMultiplier);
         // Flyby fighters run on the same scaled clock as the sim so pause / 1x / 2x / 4x
         // applies uniformly — spawning, strafing, and dogfighting all freeze on pause.
-        flybyOverlay.advance(dt * speedMultiplier, sim, layout);
+        flybyOverlay.advance(dt * speedMultiplier, sim, camera);
         driveShuttleEngineLoop(sim);
         playCombatEventSounds(sim);
         // Rebuild widgets when the sim transitions to complete so the bottom
@@ -649,8 +701,76 @@ public class BattleScreen implements Screen {
     @Override
     public void processInput(List<InputEventAPI> events) {
         widgets.processInput(events);
+        // Debug damage runs BEFORE pan-drag so shift+RMB consumes the event
+        // and the plain-RMB pan handler never sees it. Plain RMB (no shift)
+        // is unclaimed and falls through to pan.
         handleDebugDamageInput(events);
+        handleCameraInput(events);
         handleDebugZoneToggle(events);
+    }
+
+    /**
+     * Camera input: wheel-to-zoom (zoom-to-cursor — the world point under the
+     * mouse stays under the mouse), RMB-drag-to-pan (no shift; shift+RMB is
+     * the debug wall-damage gesture and gets consumed earlier), and
+     * WASD/arrow-key pan (the key flags are flipped here on down/up events
+     * and the actual pan integration happens in {@link #advance} so a held
+     * key keeps panning between events).
+     */
+    private void handleCameraInput(List<InputEventAPI> events) {
+        if (events == null || camera == null) return;
+        for (InputEventAPI e : events) {
+            if (e.isConsumed()) continue;
+            // Mouse wheel — zoom-to-cursor when over the grid area, ignored elsewhere
+            // so scrolling outside the play area doesn't fight other dialogs.
+            if (e.isMouseScrollEvent()) {
+                if (!camera.containsScreen(e.getX(), e.getY())) continue;
+                // Wheel deltas come through as raw LWJGL values (typically ±120 per
+                // notch on Windows; ±1 on some Linux builds). Normalize to ±1 notch
+                // so zoom magnitude is consistent regardless of platform conventions.
+                int raw = e.getEventValue();
+                float notches = raw > 0 ? 1f : (raw < 0 ? -1f : 0f);
+                camera.zoomAt(notches, e.getX(), e.getY());
+                e.consume();
+                continue;
+            }
+            // RMB-drag pan (no shift — shift+RMB is the debug damage gesture).
+            if (e.isRMBDownEvent() && !e.isShiftDown()) {
+                if (!camera.containsScreen(e.getX(), e.getY())) continue;
+                panDragging = true;
+                lastDragX = e.getX();
+                lastDragY = e.getY();
+                e.consume();
+                continue;
+            }
+            if (e.isRMBUpEvent()) {
+                panDragging = false;
+                continue;
+            }
+            if (panDragging && e.isMouseMoveEvent()) {
+                int x = e.getX();
+                int y = e.getY();
+                // Pan opposite to the mouse delta — dragging right pulls the world
+                // right (i.e. the camera moves left over the world). panByPixels
+                // already negates internally, so we pass the raw mouse delta.
+                camera.panByPixels(x - lastDragX, y - lastDragY);
+                lastDragX = x;
+                lastDragY = y;
+                e.consume();
+                continue;
+            }
+            // Keyboard pan — WASD + arrow keys, both directions. We just track
+            // the held state here; advance() integrates the pan per dt so a held
+            // key doesn't depend on key-repeat firing rate.
+            if (e.isKeyDownEvent() || e.isKeyUpEvent()) {
+                boolean down = e.isKeyDownEvent();
+                int key = e.getEventValue();
+                if (key == org.lwjgl.input.Keyboard.KEY_W || key == org.lwjgl.input.Keyboard.KEY_UP)    { panKeyW = down; }
+                else if (key == org.lwjgl.input.Keyboard.KEY_S || key == org.lwjgl.input.Keyboard.KEY_DOWN)  { panKeyS = down; }
+                else if (key == org.lwjgl.input.Keyboard.KEY_A || key == org.lwjgl.input.Keyboard.KEY_LEFT)  { panKeyA = down; }
+                else if (key == org.lwjgl.input.Keyboard.KEY_D || key == org.lwjgl.input.Keyboard.KEY_RIGHT) { panKeyD = down; }
+            }
+        }
     }
 
     /** Debug-only: Z toggles {@link #debugZonesVisible}. Used to eyeball-verify the zone graph after wall breaches. */
@@ -675,7 +795,7 @@ public class BattleScreen implements Screen {
      * stray right-click can't accidentally rearrange the map.
      */
     private void handleDebugDamageInput(List<InputEventAPI> events) {
-        if (events == null || layout == null || ctx == null) return;
+        if (events == null || layout == null || camera == null || ctx == null) return;
         BattleSimulation sim = ctx.getBattleSimulation();
         if (sim == null) return;
         NavigationGrid grid = sim.getGrid();
@@ -684,10 +804,9 @@ public class BattleScreen implements Screen {
             if (!e.isRMBDownEvent() || !e.isShiftDown()) continue;
             float px = e.getX();
             float py = e.getY();
-            if (px < layout.gridX || px >= layout.gridX + layout.gridW
-                    || py < layout.gridY || py >= layout.gridY + layout.gridH) continue;
-            int cx = (int) Math.floor((px - layout.gridX) / layout.cellSize);
-            int cy = (int) Math.floor((py - layout.gridY) / layout.cellSize);
+            if (!camera.containsScreen(px, py)) continue;
+            int cx = (int) Math.floor(camera.screenToCellX(px));
+            int cy = (int) Math.floor(camera.screenToCellY(py));
             if (!grid.inBounds(cx, cy)) continue;
             // One-shot demolition — pass the cell's full HP so any wall hit
             // flips to rubble regardless of starting durability. Routed
@@ -704,8 +823,20 @@ public class BattleScreen implements Screen {
         BattleSimulation sim = ctx != null ? ctx.getBattleSimulation() : null;
 
         if (sim != null) {
-            renderGrid(sim.getGrid(), alphaMult);
+            // Bracket the world layer with a scissor clip locked to the grid
+            // viewport — under zoom, content (units near the edge, the world
+            // floor quad, tracers, fighter shadows) projects outside the grid
+            // rect and would otherwise bleed over the speed-button strip and
+            // Back button. Starsector hands us a scissor already enabled (see
+            // gl_state_gotchas), so push the SCISSOR_BIT to capture + restore
+            // both the prior box and the enable state rather than overwriting them.
+            glPushAttrib(GL_SCISSOR_BIT);
+            glEnable(GL_SCISSOR_TEST);
+            glScissor((int) layout.gridX, (int) layout.gridY,
+                      (int) layout.gridW, (int) layout.gridH);
+            renderGrid(sim.getGrid(), sim.getTopology(), alphaMult);
             if (debugZonesVisible) renderZoneOverlay(sim, alphaMult);
+            renderVehicles(sim, alphaMult);
             renderDoodads(sim, alphaMult);
             renderUnits(sim.getUnits(), alphaMult);
             // Charge sites + equipment drops sit above units so the player can
@@ -717,7 +848,8 @@ public class BattleScreen implements Screen {
             renderShots(sim.getActiveShots(), alphaMult);
             // Flyby layer lives above everything ground-side so strafing tracers and
             // engine glows punch over units / shots / shuttles without being occluded.
-            flybyOverlay.render(layout, alphaMult);
+            flybyOverlay.render(camera, alphaMult);
+            glPopAttrib();
         }
 
         renderSpeedMarker(alphaMult);
@@ -751,7 +883,7 @@ public class BattleScreen implements Screen {
      * fall back to a solid {@link #WALL_COLOR} fill — the source sheet's
      * center wall cell is transparent on purpose and there's no roof art.
      */
-    private void renderTiledFloorsAndWalls(NavigationGrid grid, float alphaMult) {
+    private void renderTiledFloorsAndWalls(NavigationGrid grid, CellTopology topology, float alphaMult) {
         float texW = tileSheet.getTextureWidth();
         float texH = tileSheet.getTextureHeight();
         float texXScale = texW / tileSheetPxW;
@@ -770,33 +902,33 @@ public class BattleScreen implements Screen {
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
                 if (!grid.isWalkable(x, y)) continue;
-                boolean nWall = isInBoundsWall(grid, x, y + 1);
-                boolean sWall = isInBoundsWall(grid, x, y - 1);
-                boolean eWall = isInBoundsWall(grid, x + 1, y);
-                boolean wWall = isInBoundsWall(grid, x - 1, y);
+                boolean nWall = isInBoundsWall(topology, x, y + 1);
+                boolean sWall = isInBoundsWall(topology, x, y - 1);
+                boolean eWall = isInBoundsWall(topology, x + 1, y);
+                boolean wWall = isInBoundsWall(topology, x - 1, y);
 
-                if (grid.isRubble(x, y)) {
+                if (topology.isRubble(x, y)) {
                     TileManifest.TileFrame f = TileManifest.pickRubbleTile(nWall, sWall, eWall, wWall);
                     drawTile(f, x, y, texXScale, texYScale, sheetPxH, alphaMult);
-                } else if (grid.isStreet(x, y) && roadSheet != null) {
-                    if (isSidewalkCell(grid, x, y)) {
+                } else if (topology.isStreet(x, y) && roadSheet != null) {
+                    if (isSidewalkCell(grid, topology, x, y)) {
                         drawRoadTile(TileManifest.SIDEWALK, x, y, alphaMult);
                     } else {
-                        boolean nB = isRoadBoundary(grid, x, y + 1);
-                        boolean sB = isRoadBoundary(grid, x, y - 1);
-                        boolean eB = isRoadBoundary(grid, x + 1, y);
-                        boolean wB = isRoadBoundary(grid, x - 1, y);
+                        boolean nB = isRoadBoundary(grid, topology, x, y + 1);
+                        boolean sB = isRoadBoundary(grid, topology, x, y - 1);
+                        boolean eB = isRoadBoundary(grid, topology, x + 1, y);
+                        boolean wB = isRoadBoundary(grid, topology, x - 1, y);
                         TileManifest.TileFrame f = TileManifest.pickRoadTile(nB, sB, eB, wB);
                         if (f == null) {
                             fillCell(x, y, ROAD_FILL, alphaMult);
                         } else {
                             drawRoadTile(f, x, y, alphaMult);
                         }
-                        if (grid.isCrosswalk(x, y)) {
-                            drawCrosswalkStripes(x, y, grid.isCrosswalkStripesHorizontal(x, y), alphaMult);
+                        if (topology.isCrosswalk(x, y)) {
+                            drawCrosswalkStripes(x, y, topology.isCrosswalkStripesHorizontal(x, y), alphaMult);
                         }
                     }
-                } else if (grid.isCourtyard(x, y) && roadSheet != null) {
+                } else if (topology.isCourtyard(x, y) && roadSheet != null) {
                     // Courtyard autotile frames itself against any non-walkable
                     // neighbor (the surrounding super-block buildings).
                     TileManifest.TileFrame f = TileManifest.pickCourtyardTile(nWall, sWall, eWall, wWall);
@@ -814,7 +946,7 @@ public class BattleScreen implements Screen {
                 // the overhead door overlay. Breached cells are flagged rubble
                 // AND doorway — the !isRubble guard keeps the overhead off
                 // those, since they're holes blasted through, not real doors.
-                if (grid.isDoorway(x, y) && !grid.isRubble(x, y)) {
+                if (grid.isDoorway(x, y) && !topology.isRubble(x, y)) {
                     drawTile(TileManifest.DOOR_OPEN, x, y, texXScale, texYScale, sheetPxH, alphaMult);
                 }
             }
@@ -822,14 +954,16 @@ public class BattleScreen implements Screen {
 
         // Wall pass — autotile pick from neighbor exposure. Interior walls
         // (all four neighbors are walls) draw a solid fill since the source's
-        // interior cell is transparent.
+        // interior cell is transparent. Iteration keys on grid.isWall directly
+        // so vehicle cells (non-walkable but not walls) are skipped without
+        // any extra guard.
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
-                if (grid.isWalkable(x, y)) continue;
-                boolean nWall = isWallOrOob(grid, x, y + 1);
-                boolean sWall = isWallOrOob(grid, x, y - 1);
-                boolean eWall = isWallOrOob(grid, x + 1, y);
-                boolean wWall = isWallOrOob(grid, x - 1, y);
+                if (!topology.isWall(x, y)) continue;
+                boolean nWall = isWallOrOob(topology, x, y + 1);
+                boolean sWall = isWallOrOob(topology, x, y - 1);
+                boolean eWall = isWallOrOob(topology, x + 1, y);
+                boolean wWall = isWallOrOob(topology, x - 1, y);
                 TileManifest.TileFrame tile = TileManifest.pickWallTile(nWall, sWall, eWall, wWall);
                 if (tile == null) {
                     fillCell(x, y, WALL_COLOR, alphaMult);
@@ -842,9 +976,10 @@ public class BattleScreen implements Screen {
 
     /** Solid quad covering one nav-grid cell — used as the interior-wall fallback. */
     private void fillCell(int gridX, int gridY, Color color, float alphaMult) {
-        float x0 = layout.gridX + gridX * layout.cellSize;
-        float y0 = layout.gridY + gridY * layout.cellSize;
-        fillRect(x0, y0, layout.cellSize, layout.cellSize, color, alphaMult);
+        float x0 = camera.cellToScreenX(gridX);
+        float y0 = camera.cellToScreenY(gridY);
+        float c = camera.cellPxSize();
+        fillRect(x0, y0, c, c, color, alphaMult);
     }
 
     /**
@@ -873,10 +1008,11 @@ public class BattleScreen implements Screen {
                 float g = ((h >>> 8 ) & 0xFF) / 255f;
                 float b = ((h >>> 16) & 0xFF) / 255f;
                 glColor4f(r, g, b, 0.30f * alphaMult);
-                float x0 = layout.gridX + x * layout.cellSize;
-                float y0 = layout.gridY + y * layout.cellSize;
-                float x1 = x0 + layout.cellSize;
-                float y1 = y0 + layout.cellSize;
+                float x0 = camera.cellToScreenX(x);
+                float y0 = camera.cellToScreenY(y);
+                float c = camera.cellPxSize();
+                float x1 = x0 + c;
+                float y1 = y0 + c;
                 glVertex2f(x0, y0);
                 glVertex2f(x1, y0);
                 glVertex2f(x1, y1);
@@ -886,32 +1022,42 @@ public class BattleScreen implements Screen {
         glEnd();
     }
 
-    /** Out-of-bounds cells act as walls for autotile purposes — a building flush against the map edge gets a real edge tile, not an open-air tile. */
-    private static boolean isWallOrOob(NavigationGrid grid, int x, int y) {
-        if (!grid.inBounds(x, y)) return true;
-        return !grid.isWalkable(x, y);
+    /**
+     * Out-of-bounds cells act as walls for autotile purposes — a building flush
+     * against the map edge gets a real edge tile, not an open-air tile. Reads
+     * the WALL tag from topology rather than inferring from {@code !isWalkable},
+     * so other non-walkable cell types (vehicles, future hazards/water) don't
+     * bleed into wall autotile picks.
+     */
+    private static boolean isWallOrOob(CellTopology topology, int x, int y) {
+        if (!topology.inBounds(x, y)) return true;
+        return topology.isWall(x, y);
     }
 
-    /** True for in-bounds non-walkable cells. Out-of-bounds reads as open ground for floor picking — streets at the map edge stay center-tiled instead of getting framed against nothing. */
-    private static boolean isInBoundsWall(NavigationGrid grid, int x, int y) {
-        if (!grid.inBounds(x, y)) return false;
-        return !grid.isWalkable(x, y);
+    /** True for in-bounds cells tagged WALL. See {@link #isWallOrOob} for the not-just-non-walkable rationale. */
+    private static boolean isInBoundsWall(CellTopology topology, int x, int y) {
+        return topology.inBounds(x, y) && topology.isWall(x, y);
     }
 
     /** Street cell directly adjacent to an in-bounds wall — gets the sidewalk panel instead of the road autotile. */
-    private static boolean isSidewalkCell(NavigationGrid grid, int x, int y) {
-        if (!grid.inBounds(x, y) || !grid.isWalkable(x, y) || !grid.isStreet(x, y)) return false;
-        return isInBoundsWall(grid, x + 1, y)
-                || isInBoundsWall(grid, x - 1, y)
-                || isInBoundsWall(grid, x, y + 1)
-                || isInBoundsWall(grid, x, y - 1);
+    private static boolean isSidewalkCell(NavigationGrid grid, CellTopology topology, int x, int y) {
+        if (!grid.inBounds(x, y) || !grid.isWalkable(x, y) || !topology.isStreet(x, y)) return false;
+        return isInBoundsWall(topology, x + 1, y)
+                || isInBoundsWall(topology, x - 1, y)
+                || isInBoundsWall(topology, x, y + 1)
+                || isInBoundsWall(topology, x, y - 1);
     }
 
-    /** What the road autotile considers a boundary: in-bounds walls and sidewalk cells. OOB stays open so map-edge roads don't pick up an edge marking against nothing. */
-    private static boolean isRoadBoundary(NavigationGrid grid, int x, int y) {
+    /**
+     * What the road autotile considers a boundary: in-bounds wall cells and
+     * sidewalk cells. OOB stays open so map-edge roads don't pick up an edge
+     * marking against nothing. Vehicle cells aren't walls (just non-walkable),
+     * so the road tiles right up to them without an edge marking.
+     */
+    private static boolean isRoadBoundary(NavigationGrid grid, CellTopology topology, int x, int y) {
         if (!grid.inBounds(x, y)) return false;
-        if (!grid.isWalkable(x, y)) return true;
-        return isSidewalkCell(grid, x, y);
+        if (topology.isWall(x, y)) return true;
+        return isSidewalkCell(grid, topology, x, y);
     }
 
     /**
@@ -921,9 +1067,9 @@ public class BattleScreen implements Screen {
      * two margins, then each band is filled as a quad.
      */
     private void drawCrosswalkStripes(int gridX, int gridY, boolean stripesHorizontal, float alphaMult) {
-        float cell = layout.cellSize;
-        float x0 = layout.gridX + gridX * cell;
-        float y0 = layout.gridY + gridY * cell;
+        float cell = camera.cellPxSize();
+        float x0 = camera.cellToScreenX(gridX);
+        float y0 = camera.cellToScreenY(gridY);
         float stripeW = cell * CROSSWALK_STRIPE_FRAC;
         float gapW    = cell * CROSSWALK_GAP_FRAC;
         float bandSpan = CROSSWALK_STRIPE_COUNT * stripeW + (CROSSWALK_STRIPE_COUNT - 1) * gapW;
@@ -970,17 +1116,18 @@ public class BattleScreen implements Screen {
         int srcPxW = TileManifest.TILE_SIZE;
         int srcPxH = TileManifest.TILE_SIZE;
 
+        float cellPx = camera.cellPxSize();
         roadSheet.setTexX(srcPxX * texXScale);
         roadSheet.setTexY((roadSheetPxH - (srcTopPxY + srcPxH)) * texYScale);
         roadSheet.setTexWidth(srcPxW * texXScale);
         roadSheet.setTexHeight(srcPxH * texYScale);
-        roadSheet.setSize(layout.cellSize, layout.cellSize);
+        roadSheet.setSize(cellPx, cellPx);
         roadSheet.setAlphaMult(alphaMult);
         roadSheet.setColor(Color.WHITE);
         roadSheet.setNormalBlend();
 
-        float cx = layout.gridX + (gridX + 0.5f) * layout.cellSize;
-        float cy = layout.gridY + (gridY + 0.5f) * layout.cellSize;
+        float cx = camera.cellToScreenX(gridX + 0.5f);
+        float cy = camera.cellToScreenY(gridY + 0.5f);
         roadSheet.renderAtCenter(cx, cy);
     }
 
@@ -992,17 +1139,18 @@ public class BattleScreen implements Screen {
         int srcPxW = TileManifest.TILE_SIZE;
         int srcPxH = TileManifest.TILE_SIZE;
 
+        float cellPx = camera.cellPxSize();
         tileSheet.setTexX(srcPxX * texXScale);
         tileSheet.setTexY((sheetPxH - (srcTopPxY + srcPxH)) * texYScale);
         tileSheet.setTexWidth(srcPxW * texXScale);
         tileSheet.setTexHeight(srcPxH * texYScale);
-        tileSheet.setSize(layout.cellSize, layout.cellSize);
+        tileSheet.setSize(cellPx, cellPx);
         tileSheet.setAlphaMult(alphaMult);
         tileSheet.setColor(Color.WHITE);
         tileSheet.setNormalBlend();
 
-        float cx = layout.gridX + (gridX + 0.5f) * layout.cellSize;
-        float cy = layout.gridY + (gridY + 0.5f) * layout.cellSize;
+        float cx = camera.cellToScreenX(gridX + 0.5f);
+        float cy = camera.cellToScreenY(gridY + 0.5f);
         tileSheet.renderAtCenter(cx, cy);
     }
 
@@ -1012,38 +1160,46 @@ public class BattleScreen implements Screen {
         return h & 0x7FFFFFFF;
     }
 
-    private void renderGrid(NavigationGrid grid, float alphaMult) {
+    private void renderGrid(NavigationGrid grid, CellTopology topology, float alphaMult) {
         glDisable(GL_TEXTURE_2D);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        // One floor quad covering the whole arena. Acts as the floor color when
-        // the tileset hasn't loaded, and as a safety underlay if any tile sprite
-        // happens to be transparent.
+        // One floor quad covering the whole world rect (in screen-space, after
+        // camera projection). Acts as the floor color when the tileset hasn't
+        // loaded, and as a safety underlay if any tile sprite happens to be
+        // transparent. The quad is the world rect — pan/zoom shrink or shift
+        // it inside the viewport, and the scissor cap from render() keeps it
+        // from bleeding outside the grid area.
+        float worldX0 = camera.cellToScreenX(0);
+        float worldY0 = camera.cellToScreenY(0);
+        float worldX1 = camera.cellToScreenX(grid.getWidth());
+        float worldY1 = camera.cellToScreenY(grid.getHeight());
         glColor4f(FLOOR_COLOR.getRed() / 255f, FLOOR_COLOR.getGreen() / 255f,
                 FLOOR_COLOR.getBlue() / 255f, alphaMult);
         glBegin(GL_QUADS);
-        glVertex2f(layout.gridX,                  layout.gridY);
-        glVertex2f(layout.gridX + layout.gridW,   layout.gridY);
-        glVertex2f(layout.gridX + layout.gridW,   layout.gridY + layout.gridH);
-        glVertex2f(layout.gridX,                  layout.gridY + layout.gridH);
+        glVertex2f(worldX0, worldY0);
+        glVertex2f(worldX1, worldY0);
+        glVertex2f(worldX1, worldY1);
+        glVertex2f(worldX0, worldY1);
         glEnd();
 
         if (tileSheet != null) {
-            renderTiledFloorsAndWalls(grid, alphaMult);
+            renderTiledFloorsAndWalls(grid, topology, alphaMult);
         } else {
             // Fallback — solid-color walls. Same path the renderer used before
             // the tileset landed; kept so the sim still reads if texture load fails.
+            float cellPx = camera.cellPxSize();
             glColor4f(WALL_COLOR.getRed() / 255f, WALL_COLOR.getGreen() / 255f,
                     WALL_COLOR.getBlue() / 255f, alphaMult);
             glBegin(GL_QUADS);
             for (int y = 0; y < grid.getHeight(); y++) {
                 for (int x = 0; x < grid.getWidth(); x++) {
                     if (grid.isWalkable(x, y)) continue;
-                    float x0 = layout.gridX + x * layout.cellSize;
-                    float y0 = layout.gridY + y * layout.cellSize;
-                    float x1 = x0 + layout.cellSize;
-                    float y1 = y0 + layout.cellSize;
+                    float x0 = camera.cellToScreenX(x);
+                    float y0 = camera.cellToScreenY(y);
+                    float x1 = x0 + cellPx;
+                    float y1 = y0 + cellPx;
                     glVertex2f(x0, y0);
                     glVertex2f(x1, y0);
                     glVertex2f(x1, y1);
@@ -1055,7 +1211,7 @@ public class BattleScreen implements Screen {
     }
 
     private void renderUnits(List<Unit> units, float alphaMult) {
-        float unitSize = layout.cellSize * UNIT_FRAC;
+        float unitSize = camera.cellPxSize() * UNIT_FRAC;
         float half = unitSize / 2f;
 
         // Per-unit sheet pick — every UnitType has its own sheet cache. The
@@ -1086,8 +1242,8 @@ public class BattleScreen implements Screen {
         for (Unit u : units) {
             if (!u.isAlive()) continue;
             if (!u.type.combatant) continue;
-            float cx = layout.gridX + (u.renderX + 0.5f) * layout.cellSize;
-            float cy = layout.gridY + (u.renderY + 0.5f) * layout.cellSize;
+            float cx = camera.cellToScreenX(u.renderX + 0.5f);
+            float cy = camera.cellToScreenY(u.renderY + 0.5f);
             float barW = unitSize;
             float barX = cx - barW / 2f;
             float barY = cy + half + HP_BAR_GAP;
@@ -1135,9 +1291,96 @@ public class BattleScreen implements Screen {
         sheet.setAlphaMult(alphaMult);
         sheet.setNormalBlend();
         sheet.setColor(Color.WHITE);
-        float cx = layout.gridX + (u.renderX + 0.5f) * layout.cellSize;
-        float cy = layout.gridY + (u.renderY + 0.5f) * layout.cellSize;
+        float cx = camera.cellToScreenX(u.renderX + 0.5f);
+        float cy = camera.cellToScreenY(u.renderY + 0.5f);
         sheet.renderAtCenter(cx, cy);
+    }
+
+    /**
+     * Renders parked vehicle sprites on top of the floor pass and below units.
+     * Each vehicle's footprint cells are first painted with the road fill so
+     * any transparent margins inside the truck sprite blend with the
+     * surrounding street rather than showing the GL clear color. Sprite
+     * aspect is preserved and centered inside the footprint.
+     */
+    private void renderVehicles(BattleSimulation sim, float alphaMult) {
+        java.util.List<MapVehicle> vehicles = sim.getVehicles();
+        if (vehicles.isEmpty()) return;
+
+        // Pass 1 — fill each footprint with the road color so the cells beneath
+        // a sprite with transparent edges blend into the surrounding pavement.
+        glDisable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBegin(GL_QUADS);
+        glColor4f(ROAD_FILL.getRed() / 255f, ROAD_FILL.getGreen() / 255f,
+                ROAD_FILL.getBlue() / 255f, alphaMult);
+        float cellPx = camera.cellPxSize();
+        for (MapVehicle v : vehicles) {
+            float footX = camera.cellToScreenX(v.cellX);
+            float footY = camera.cellToScreenY(v.cellY);
+            float footW = v.kind.footprintCellsX * cellPx;
+            float footH = v.kind.footprintCellsY * cellPx;
+            glVertex2f(footX,        footY);
+            glVertex2f(footX + footW, footY);
+            glVertex2f(footX + footW, footY + footH);
+            glVertex2f(footX,        footY + footH);
+        }
+        glEnd();
+
+        // Pass 2 — slice the right frame off each sheet, scale it to fit the
+        // footprint (preserve aspect), and draw centered. The set of sheets
+        // we touch this frame is reset to white afterward so leftover state
+        // doesn't bleed into other passes that share the same SpriteAPI.
+        java.util.Set<VehicleKind.VehicleSheet> touched = new java.util.HashSet<>();
+        for (MapVehicle v : vehicles) {
+            UnitSpriteCache cache = vehicleSheets.get(v.kind.sheet);
+            if (cache == null || cache.sheet == null || cache.frames == null) continue;
+            if (v.kind.frameIndex >= cache.frames.frames.length) continue;
+            SpriteAPI sheet = cache.sheet;
+            SpriteSheetFrames frames = cache.frames;
+            SpriteSheetFrames.Frame f = frames.frames[v.kind.frameIndex];
+
+            float texW = sheet.getTextureWidth();
+            float texH = sheet.getTextureHeight();
+            int sheetW = frames.sheetWidth;
+            int sheetH = frames.sheetHeight;
+            sheet.setTexX((float) f.x * texW / sheetW);
+            sheet.setTexY((float) (sheetH - f.y - f.h) * texH / sheetH);
+            sheet.setTexWidth((float) f.w * texW / sheetW);
+            sheet.setTexHeight((float) f.h * texH / sheetH);
+
+            float footW = v.kind.footprintCellsX * cellPx;
+            float footH = v.kind.footprintCellsY * cellPx;
+            // Preserve frame aspect inside the footprint. The shorter axis fills
+            // the footprint and the longer axis is letterboxed against the road
+            // fill we just drew — that way a tall sprite doesn't squish into a
+            // wide footprint or vice versa.
+            float frameAspect = (float) f.w / (float) f.h;
+            float footAspect  = footW / footH;
+            float drawW, drawH;
+            if (frameAspect > footAspect) {
+                drawW = footW;
+                drawH = footW / frameAspect;
+            } else {
+                drawH = footH;
+                drawW = footH * frameAspect;
+            }
+            sheet.setSize(drawW, drawH);
+            sheet.setAlphaMult(alphaMult);
+            sheet.setNormalBlend();
+            sheet.setColor(Color.WHITE);
+            float cx = camera.cellToScreenX(v.cellX + v.kind.footprintCellsX / 2f);
+            float cy = camera.cellToScreenY(v.cellY + v.kind.footprintCellsY / 2f);
+            sheet.renderAtCenter(cx, cy);
+            touched.add(v.kind.sheet);
+        }
+        // Reset state on each touched sheet so the singleton SpriteAPI carries
+        // no leftover UVs into the next pass.
+        for (VehicleKind.VehicleSheet s : touched) {
+            UnitSpriteCache cache = vehicleSheets.get(s);
+            if (cache != null && cache.sheet != null) cache.sheet.setColor(Color.WHITE);
+        }
     }
 
     /** Fallback colored-quad path when a unit's sprite sheet failed to load. */
@@ -1151,8 +1394,8 @@ public class BattleScreen implements Screen {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glBegin(GL_QUADS);
         glColor4f(c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, alphaMult);
-        float cx = layout.gridX + (u.renderX + 0.5f) * layout.cellSize;
-        float cy = layout.gridY + (u.renderY + 0.5f) * layout.cellSize;
+        float cx = camera.cellToScreenX(u.renderX + 0.5f);
+        float cy = camera.cellToScreenY(u.renderY + 0.5f);
         glVertex2f(cx - half, cy - half);
         glVertex2f(cx + half, cy - half);
         glVertex2f(cx + half, cy + half);
@@ -1177,7 +1420,7 @@ public class BattleScreen implements Screen {
             // scaleMult drives the altitude lerp (cruise → 1.0 across the leg)
             // plus the in-flight wobble. Multiplied through both axes so the
             // sprite keeps its native aspect.
-            float pxLen = s.type.visualLengthCells * layout.cellSize * s.scaleMult;
+            float pxLen = s.type.visualLengthCells * camera.cellPxSize() * s.scaleMult;
             float pxH = pxLen;
             float pxW = pxLen * cache.aspect;
             sprite.setSize(pxW, pxH);
@@ -1185,8 +1428,8 @@ public class BattleScreen implements Screen {
             sprite.setAlphaMult(alphaMult);
             sprite.setNormalBlend();
             sprite.setColor(Color.WHITE);
-            float cx = layout.gridX + s.worldX * layout.cellSize;
-            float cy = layout.gridY + s.worldY * layout.cellSize;
+            float cx = camera.cellToScreenX(s.worldX);
+            float cy = camera.cellToScreenY(s.worldY);
             sprite.renderAtCenter(cx, cy);
         }
         // Reset angle so the singleton sprite doesn't carry our rotation
@@ -1209,36 +1452,37 @@ public class BattleScreen implements Screen {
     private void renderObjectiveMarkers(BattleSimulation sim, float alphaMult) {
         float now = (float) (System.currentTimeMillis() / 1000.0);
 
+        float cellPx = camera.cellPxSize();
         for (Objective o : sim.getObjectives()) {
             if (!(o instanceof ChargeSiteObjective)) continue;
             ChargeSiteObjective site = (ChargeSiteObjective) o;
-            float cx = layout.gridX + (site.cellX() + 0.5f) * layout.cellSize;
-            float cy = layout.gridY + (site.cellY() + 0.5f) * layout.cellSize;
+            float cx = camera.cellToScreenX(site.cellX() + 0.5f);
+            float cy = camera.cellToScreenY(site.cellY() + 0.5f);
             if (site.isComplete()) {
                 drawTintedIcon(iconDanger, cx, cy,
-                        layout.cellSize * CHARGE_ICON_SIZE,
+                        cellPx * CHARGE_ICON_SIZE,
                         CHARGE_TINT_COMPLETE, alphaMult);
             } else {
                 float pulse = site.planterOnSite()
                         ? 1f + CHARGE_PULSE_AMP * (float) Math.sin(now * 2.0 * Math.PI * CHARGE_PULSE_HZ)
                         : 1f;
                 drawTintedIcon(iconAlarm, cx, cy,
-                        layout.cellSize * CHARGE_ICON_SIZE * pulse,
+                        cellPx * CHARGE_ICON_SIZE * pulse,
                         CHARGE_TINT_ACTIVE, alphaMult);
                 float progress = site.progress() / Math.max(0.001f, site.plantDuration());
-                float innerR = layout.cellSize * 0.55f;
-                float outerR = innerR + Math.max(3f, layout.cellSize * 0.12f);
+                float innerR = cellPx * 0.55f;
+                float outerR = innerR + Math.max(3f, cellPx * 0.12f);
                 drawProgressArc(cx, cy, innerR, outerR, progress, CHARGE_TINT_ARC, alphaMult);
             }
         }
 
         for (EquipmentDrop drop : sim.getEquipmentDrops()) {
             if (drop.consumed) continue;
-            float cx = layout.gridX + (drop.cellX + 0.5f) * layout.cellSize;
-            float cy = layout.gridY + (drop.cellY + 0.5f) * layout.cellSize;
+            float cx = camera.cellToScreenX(drop.cellX + 0.5f);
+            float cy = camera.cellToScreenY(drop.cellY + 0.5f);
             float pulse = 1f + KIT_DROP_PULSE_AMP * (float) Math.sin(now * 2.0 * Math.PI * KIT_DROP_PULSE_HZ);
             drawTintedIcon(iconStar, cx, cy,
-                    layout.cellSize * KIT_DROP_SIZE * pulse,
+                    cellPx * KIT_DROP_SIZE * pulse,
                     KIT_DROP_TINT, alphaMult);
         }
     }
@@ -1313,10 +1557,10 @@ public class BattleScreen implements Screen {
             float t = Math.max(0f, Math.min(1f, s.lifetime / SHOT_LIFETIME_REF));
             Color c = s.shooterFaction == Faction.MARINE ? MARINE_TRACER : DEFENDER_TRACER;
             glColor4f(c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, t * alphaMult);
-            float x0 = layout.gridX + s.fromX * layout.cellSize;
-            float y0 = layout.gridY + s.fromY * layout.cellSize;
-            float x1 = layout.gridX + s.toX   * layout.cellSize;
-            float y1 = layout.gridY + s.toY   * layout.cellSize;
+            float x0 = camera.cellToScreenX(s.fromX);
+            float y0 = camera.cellToScreenY(s.fromY);
+            float x1 = camera.cellToScreenX(s.toX);
+            float y1 = camera.cellToScreenY(s.toY);
             glVertex2f(x0, y0);
             glVertex2f(x1, y1);
         }
@@ -1391,6 +1635,10 @@ public class BattleScreen implements Screen {
         float padY = 12f;
         float boxW = textW + 2 * padX;
         float boxH = textH + 2 * padY;
+        // Centered on the viewport (the on-screen grid rect), NOT on the world
+        // rect — under pan the world rect slides around inside the viewport,
+        // and the victory/defeat banner should sit still where the player
+        // expects it: dead-center over the play area.
         float boxX = layout.gridX + (layout.gridW - boxW) / 2f;
         float boxY = layout.gridY + (layout.gridH - boxH) / 2f;
 

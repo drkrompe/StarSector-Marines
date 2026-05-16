@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle;
 
+import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.ArrayDeque;
@@ -82,6 +83,7 @@ public final class UrbanMapGenerator {
 
     public static final class Result {
         public final NavigationGrid grid;
+        public final CellTopology topology;
         public final int marineSpawnX;
         public final int marineSpawnY;
         public final int defenderSpawnX;
@@ -89,12 +91,13 @@ public final class UrbanMapGenerator {
         public final List<PointOfInterest> pointsOfInterest;
         public final List<Doodad> doodads;
 
-        public Result(NavigationGrid grid,
+        public Result(NavigationGrid grid, CellTopology topology,
                       int marineSpawnX, int marineSpawnY,
                       int defenderSpawnX, int defenderSpawnY,
                       List<PointOfInterest> pointsOfInterest,
                       List<Doodad> doodads) {
             this.grid = grid;
+            this.topology = topology;
             this.marineSpawnX = marineSpawnX;
             this.marineSpawnY = marineSpawnY;
             this.defenderSpawnX = defenderSpawnX;
@@ -109,6 +112,7 @@ public final class UrbanMapGenerator {
     public static Result generate(int width, int height, long seed) {
         Random rng = new Random(seed);
         NavigationGrid grid = new NavigationGrid(width, height);
+        CellTopology topology = new CellTopology(width, height);
 
         // Everything starts walkable + street; placing buildings clears walkable
         // (perimeter) or just the street flag (interior) so what remains street
@@ -116,7 +120,8 @@ public final class UrbanMapGenerator {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 grid.setWalkableFloor(x, y);
-                grid.setStreet(x, y, true);
+                topology.setFloor(x, y, true);
+                topology.setStreet(x, y, true);
             }
         }
 
@@ -138,7 +143,7 @@ public final class UrbanMapGenerator {
             for (int c = 0; c < blockColsX.size(); c++) {
                 int[] col = blockColsX.get(c);
                 DistrictTheme theme = megaBlocks.get(megaIndex[r][c]).theme;
-                PointOfInterest poi = placeBuilding(grid, col[0], row[0], col[1], row[1], rng, theme);
+                PointOfInterest poi = placeBuilding(grid, topology, col[0], row[0], col[1], row[1], rng, theme);
                 if (poi != null) {
                     pois.add(poi);
                     poiThemes.put(poi, theme);
@@ -159,11 +164,11 @@ public final class UrbanMapGenerator {
         // merged cells into private interior. Has to run after placeBuilding so
         // the wall perimeters are in place — the dissolution preserves walls
         // and only clears the street flag on the walkable in-between cells.
-        dissolveMegaInteriors(grid, megaBlocks, blockRowsY, blockColsX);
+        dissolveMegaInteriors(grid, topology, megaBlocks, blockRowsY, blockColsX);
 
         seedWallHp(grid);
         bakeCoverFromWalls(grid);
-        paintCrosswalks(grid);
+        paintCrosswalks(grid, topology);
 
         List<Doodad> doodads = scatterDoodads(grid, pois, poiThemes, rng);
         for (int[] plaza : skyPortPlazas) {
@@ -173,7 +178,14 @@ public final class UrbanMapGenerator {
         int[] marine   = pickSpawnAnchor(grid, skyPortPlazas, 1, 1, width / 2,        height - 1, rng);
         int[] defender = pickSpawnAnchor(grid, skyPortPlazas, width / 2, 1, width - 1, height - 1, rng);
 
-        return new Result(grid, marine[0], marine[1], defender[0], defender[1], pois, doodads);
+        // Flag every remaining non-walkable cell as a wall so the renderer's
+        // wall pass and adjacency predicates can ask topology.isWall(x,y)
+        // directly — without inferring it from "non-walkable AND not any other
+        // kind of non-walkable thing". Vehicles stamp AFTER this in
+        // BattleSetup, so they keep WALL cleared.
+        topology.tagDefaultWalls(grid);
+
+        return new Result(grid, topology, marine[0], marine[1], defender[0], defender[1], pois, doodads);
     }
 
     /**
@@ -382,7 +394,8 @@ public final class UrbanMapGenerator {
      * public roads (with sidewalks against the mega's outer perimeter walls,
      * via the renderer's normal autotile path).
      */
-    private static void dissolveMegaInteriors(NavigationGrid grid, List<MegaBlock> megaBlocks,
+    private static void dissolveMegaInteriors(NavigationGrid grid, CellTopology topology,
+                                              List<MegaBlock> megaBlocks,
                                               List<int[]> blockRowsY, List<int[]> blockColsX) {
         for (MegaBlock m : megaBlocks) {
             if (m.r0 == m.r1 && m.c0 == m.c1) continue;
@@ -396,13 +409,13 @@ public final class UrbanMapGenerator {
                     // skip cells that already had their street flag cleared by
                     // placeBuilding, which are the hollow building interiors
                     // and doorways. Those keep rendering as indoor floor.
-                    if (!grid.isWalkable(x, y) || !grid.isStreet(x, y)) continue;
-                    grid.setStreet(x, y, false);
+                    if (!grid.isWalkable(x, y) || !topology.isStreet(x, y)) continue;
+                    topology.setStreet(x, y, false);
                     // Tag as courtyard so the renderer paints it with the
                     // dark steel autotile from the road sheet — reads as
                     // private open-air pavement, distinct from both indoor
                     // floor and public road.
-                    grid.setCourtyard(x, y, true);
+                    topology.setCourtyard(x, y, true);
                 }
             }
         }
@@ -455,7 +468,8 @@ public final class UrbanMapGenerator {
      * automatically as a portal, so AI gets multi-room vocabulary inside one
      * building for free.
      */
-    private static PointOfInterest placeBuilding(NavigationGrid grid, int l, int t, int r, int b, Random rng, DistrictTheme theme) {
+    private static PointOfInterest placeBuilding(NavigationGrid grid, CellTopology topology,
+                                                 int l, int t, int r, int b, Random rng, DistrictTheme theme) {
         if (rng.nextFloat() < PLAZA_CHANCE) return null;
         int bl = l + BUILDING_INSET;
         int bt = t + BUILDING_INSET;
@@ -480,15 +494,15 @@ public final class UrbanMapGenerator {
             }
             for (int y = bt + 1; y <= bb - 1; y++) {
                 for (int x = bl + 1; x <= br - 1; x++) {
-                    grid.setStreet(x, y, false);
+                    topology.setStreet(x, y, false);
                 }
             }
             // Subdivide first so the perimeter-doorway picker can align with
             // the partition (vertical wall → left/right doors; horizontal
             // wall → top/bottom doors), giving each room its own exterior
             // access when the building scores a 2nd doorway.
-            InteriorWall wall = maybeAddInteriorWall(grid, bl, bt, br, bb, rng);
-            punchPerimeterDoorways(grid, bl, bt, br, bb, wall, rng);
+            InteriorWall wall = maybeAddInteriorWall(grid, topology, bl, bt, br, bb, rng);
+            punchPerimeterDoorways(grid, topology, bl, bt, br, bb, wall, rng);
         } else {
             // Too small to enclose anything readable — solid block.
             for (int y = bt; y <= bb; y++) {
@@ -517,7 +531,8 @@ public final class UrbanMapGenerator {
      * besides "I'm being shot at." Multiple entries make interiors
      * shortcut/flank routes, not dead-end fallback zones.
      */
-    private static void punchPerimeterDoorways(NavigationGrid grid, int bl, int bt, int br, int bb,
+    private static void punchPerimeterDoorways(NavigationGrid grid, CellTopology topology,
+                                               int bl, int bt, int br, int bb,
                                                InteriorWall wall, Random rng) {
         int w = br - bl + 1;
         int h = bb - bt + 1;
@@ -526,7 +541,7 @@ public final class UrbanMapGenerator {
                         && rng.nextFloat() < SECOND_DOORWAY_CHANCE;
 
         if (!twoDoors) {
-            punchDoorwayOnSide(grid, bl, bt, br, bb, rng.nextInt(4), wall, rng);
+            punchDoorwayOnSide(grid, topology, bl, bt, br, bb, rng.nextInt(4), wall, rng);
             return;
         }
 
@@ -539,8 +554,8 @@ public final class UrbanMapGenerator {
             case HORIZONTAL: firstSide = rng.nextBoolean() ? 0 : 1; break;
             default:         firstSide = rng.nextInt(4);           break;
         }
-        punchDoorwayOnSide(grid, bl, bt, br, bb, firstSide,     wall, rng);
-        punchDoorwayOnSide(grid, bl, bt, br, bb, firstSide ^ 1, wall, rng);
+        punchDoorwayOnSide(grid, topology, bl, bt, br, bb, firstSide,     wall, rng);
+        punchDoorwayOnSide(grid, topology, bl, bt, br, bb, firstSide ^ 1, wall, rng);
     }
 
     /**
@@ -558,7 +573,8 @@ public final class UrbanMapGenerator {
      * {@code 3}=right. The XOR-with-1 trick in {@link #punchPerimeterDoorways}
      * relies on this pairing.
      */
-    private static void punchDoorwayOnSide(NavigationGrid grid, int bl, int bt, int br, int bb,
+    private static void punchDoorwayOnSide(NavigationGrid grid, CellTopology topology,
+                                           int bl, int bt, int br, int bb,
                                            int side, InteriorWall wall, Random rng) {
         int doorX, doorY;
         switch (side) {
@@ -584,12 +600,12 @@ public final class UrbanMapGenerator {
                 break;
         }
         grid.setWalkable(doorX, doorY, true);
-        grid.setFloor(doorX, doorY, true);
         grid.setDoorway(doorX, doorY, true);
+        grid.openAllEdges(doorX, doorY);
+        topology.setFloor(doorX, doorY, true);
         // Doorway is part of the building (door overhead overlay reads against
         // interior floor underneath), so clear the street flag.
-        grid.setStreet(doorX, doorY, false);
-        grid.openAllEdges(doorX, doorY);
+        topology.setStreet(doorX, doorY, false);
     }
 
     /**
@@ -666,7 +682,8 @@ public final class UrbanMapGenerator {
      * a single-sided edge tile — the visible "face" of the wall ends up on
      * one room's side, which reads as functional but not perfectly symmetric.
      */
-    private static InteriorWall maybeAddInteriorWall(NavigationGrid grid, int bl, int bt, int br, int bb, Random rng) {
+    private static InteriorWall maybeAddInteriorWall(NavigationGrid grid, CellTopology topology,
+                                                     int bl, int bt, int br, int bb, Random rng) {
         int w = br - bl + 1;
         int h = bb - bt + 1;
         boolean canVert  = w >= MULTI_ROOM_MIN_DIM;
@@ -696,7 +713,7 @@ public final class UrbanMapGenerator {
             // partition continues above and below it (or terminates against
             // the perimeter on the far side if the doorway is at the end).
             int dy = bt + 1 + rng.nextInt(h - 2);
-            openInteriorDoorway(grid, wx, dy);
+            openInteriorDoorway(grid, topology, wx, dy);
             return new InteriorWall(InteriorWallOrient.VERTICAL, wx);
         } else {
             int wy = bt + 3 + rng.nextInt(h - 6);
@@ -704,18 +721,18 @@ public final class UrbanMapGenerator {
                 grid.setWalkable(x, wy, false);
             }
             int dx = bl + 1 + rng.nextInt(w - 2);
-            openInteriorDoorway(grid, dx, wy);
+            openInteriorDoorway(grid, topology, dx, wy);
             return new InteriorWall(InteriorWallOrient.HORIZONTAL, wy);
         }
     }
 
     /** Restores a single partition cell to a doorway (walkable + interior floor + zone-graph portal). */
-    private static void openInteriorDoorway(NavigationGrid grid, int x, int y) {
+    private static void openInteriorDoorway(NavigationGrid grid, CellTopology topology, int x, int y) {
         grid.setWalkable(x, y, true);
-        grid.setFloor(x, y, true);
         grid.setDoorway(x, y, true);
-        grid.setStreet(x, y, false);
         grid.openAllEdges(x, y);
+        topology.setFloor(x, y, true);
+        topology.setStreet(x, y, false);
     }
 
     /**
@@ -732,34 +749,34 @@ public final class UrbanMapGenerator {
      * Stripes are oriented perpendicular to traffic flow (zebra-crossing
      * convention): N-S road gets horizontal stripes, E-W road gets vertical.
      */
-    private static void paintCrosswalks(NavigationGrid grid) {
+    private static void paintCrosswalks(NavigationGrid grid, CellTopology topology) {
         int w = grid.getWidth();
         int h = grid.getHeight();
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
-                if (!grid.isStreet(x, y)) continue;
-                if (isSidewalkCell(grid, x, y)) continue;
+                if (!topology.isStreet(x, y)) continue;
+                if (isSidewalkCell(grid, topology, x, y)) continue;
 
-                boolean ewRoad = isSidewalkCell(grid, x, y + 1) && isSidewalkCell(grid, x, y - 1);
-                boolean nsRoad = isSidewalkCell(grid, x + 1, y) && isSidewalkCell(grid, x - 1, y);
+                boolean ewRoad = isSidewalkCell(grid, topology, x, y + 1) && isSidewalkCell(grid, topology, x, y - 1);
+                boolean nsRoad = isSidewalkCell(grid, topology, x + 1, y) && isSidewalkCell(grid, topology, x - 1, y);
 
                 if (ewRoad && !nsRoad) {
                     // Road runs E-W between two N/S buildings. Check whether
                     // the next cell east or west breaks the sidewalk pattern.
-                    boolean eOpen = !isSidewalkCell(grid, x + 1, y + 1) || !isSidewalkCell(grid, x + 1, y - 1);
-                    boolean wOpen = !isSidewalkCell(grid, x - 1, y + 1) || !isSidewalkCell(grid, x - 1, y - 1);
+                    boolean eOpen = !isSidewalkCell(grid, topology, x + 1, y + 1) || !isSidewalkCell(grid, topology, x + 1, y - 1);
+                    boolean wOpen = !isSidewalkCell(grid, topology, x - 1, y + 1) || !isSidewalkCell(grid, topology, x - 1, y - 1);
                     if (eOpen || wOpen) {
-                        grid.setCrosswalk(x, y, true);
+                        topology.setCrosswalk(x, y, true);
                         // E-W traffic flow → N-S oriented stripes (vertical).
-                        grid.setCrosswalkStripesHorizontal(x, y, false);
+                        topology.setCrosswalkStripesHorizontal(x, y, false);
                     }
                 } else if (nsRoad && !ewRoad) {
-                    boolean nOpen = !isSidewalkCell(grid, x + 1, y + 1) || !isSidewalkCell(grid, x - 1, y + 1);
-                    boolean sOpen = !isSidewalkCell(grid, x + 1, y - 1) || !isSidewalkCell(grid, x - 1, y - 1);
+                    boolean nOpen = !isSidewalkCell(grid, topology, x + 1, y + 1) || !isSidewalkCell(grid, topology, x - 1, y + 1);
+                    boolean sOpen = !isSidewalkCell(grid, topology, x + 1, y - 1) || !isSidewalkCell(grid, topology, x - 1, y - 1);
                     if (nOpen || sOpen) {
-                        grid.setCrosswalk(x, y, true);
+                        topology.setCrosswalk(x, y, true);
                         // N-S traffic flow → E-W oriented stripes (horizontal).
-                        grid.setCrosswalkStripesHorizontal(x, y, true);
+                        topology.setCrosswalkStripesHorizontal(x, y, true);
                     }
                 }
             }
@@ -767,10 +784,10 @@ public final class UrbanMapGenerator {
     }
 
     /** Mirror of the renderer's same-named check — needed at gen time so {@link #paintCrosswalks} can decide where intersections begin. */
-    private static boolean isSidewalkCell(NavigationGrid grid, int x, int y) {
+    private static boolean isSidewalkCell(NavigationGrid grid, CellTopology topology, int x, int y) {
         if (!grid.inBounds(x, y)) return false;
         if (!grid.isWalkable(x, y)) return false;
-        if (!grid.isStreet(x, y))   return false;
+        if (!topology.isStreet(x, y))   return false;
         return isInBoundsWall(grid, x + 1, y)
                 || isInBoundsWall(grid, x - 1, y)
                 || isInBoundsWall(grid, x, y + 1)
