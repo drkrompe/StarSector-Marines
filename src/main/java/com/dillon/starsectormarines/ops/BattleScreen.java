@@ -64,7 +64,6 @@ public class BattleScreen implements Screen {
 
     private static final Color FLOOR_COLOR    = new Color(0x18, 0x22, 0x30);
     private static final Color WALL_COLOR     = new Color(0x06, 0x0A, 0x10);
-    private static final Color GRID_LINE      = new Color(0x25, 0x32, 0x44);
     private static final Color MARINE_COLOR   = new Color(0x5A, 0xA0, 0xE0);
     private static final Color DEFENDER_COLOR = new Color(0xE0, 0x6A, 0x6A);
     private static final Color HP_BG          = new Color(0x60, 0x20, 0x20);
@@ -189,6 +188,12 @@ public class BattleScreen implements Screen {
     private int tileSheetPxW;
     private int tileSheetPxH;
     private boolean tileSheetLoadAttempted;
+    /** Cached road tileset (second sheet, outdoor street autotile). Same lazy-load pattern as {@link #tileSheet}. */
+    private SpriteAPI roadSheet;
+    private int roadSheetPxW;
+    private int roadSheetPxH;
+    private boolean roadSheetLoadAttempted;
+    private static final Color ROAD_FILL = new Color(TileManifest.ROAD_FILL_RGB);
 
     /**
      * Cached shuttle sprite + natural aspect ratio (width/height) per ShuttleType.
@@ -237,6 +242,7 @@ public class BattleScreen implements Screen {
         this.speedMultiplier = 1f;
         ensureMarineSheet();
         ensureTileSheet();
+        ensureRoadSheet();
         ensureShuttleSprites();
         ensureObjectiveIcons();
         startBattleAudio();
@@ -303,6 +309,35 @@ public class BattleScreen implements Screen {
         } catch (Exception e) {
             LOG.error("BattleScreen: failed to load tileset " + TileManifest.SHEET, e);
             tileSheet = null;
+        }
+    }
+
+    /** Same lazy-load pattern as {@link #ensureTileSheet} — the road sheet is its own PNG so updates don't churn the indoor floor cache. */
+    private void ensureRoadSheet() {
+        if (roadSheetLoadAttempted) return;
+        roadSheetLoadAttempted = true;
+        try {
+            Global.getSettings().loadTexture(TileManifest.ROAD_SHEET);
+            roadSheet = Global.getSettings().getSprite(TileManifest.ROAD_SHEET);
+            if (roadSheet == null) {
+                LOG.warn("BattleScreen: getSprite returned null for " + TileManifest.ROAD_SHEET);
+                return;
+            }
+            try (java.io.InputStream stream = Global.getSettings().openStream(TileManifest.ROAD_SHEET)) {
+                BufferedImage img = ImageIO.read(stream);
+                if (img == null) {
+                    LOG.warn("BattleScreen: ImageIO.read returned null for " + TileManifest.ROAD_SHEET);
+                    roadSheet = null;
+                    return;
+                }
+                roadSheetPxW = img.getWidth();
+                roadSheetPxH = img.getHeight();
+                LOG.info("BattleScreen: loaded road tileset " + TileManifest.ROAD_SHEET
+                        + " (" + roadSheetPxW + "x" + roadSheetPxH + ")");
+            }
+        } catch (Exception e) {
+            LOG.error("BattleScreen: failed to load road tileset " + TileManifest.ROAD_SHEET, e);
+            roadSheet = null;
         }
     }
 
@@ -669,9 +704,6 @@ public class BattleScreen implements Screen {
 
     // ---- rendering ---------------------------------------------------------
 
-    /** Hide grid lines below this cell size — at small scales they read as visual noise rather than structure. */
-    private static final float GRID_LINE_MIN_CELL = 16f;
-
     /**
      * Renders walkable cells as directional floor (or rubble) tiles and
      * non-walkable cells as wall autotiles, both picked from 4-neighbor
@@ -699,7 +731,10 @@ public class BattleScreen implements Screen {
         float texYScale = texH / tileSheetPxH;
         int sheetPxH = tileSheetPxH;
 
-        // Floor pass — directional autotile pick. OOB reads as open, so map-edge streets stay center-tiled.
+        // Floor pass — three subtypes of walkable cell:
+        //   1. Rubble: damaged-floor autotile from the main sheet.
+        //   2. Street: road autotile from the road sheet (open road = solid fill).
+        //   3. Interior floor: clean-floor autotile from the main sheet.
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
                 if (!grid.isWalkable(x, y)) continue;
@@ -707,10 +742,21 @@ public class BattleScreen implements Screen {
                 boolean sWall = isInBoundsWall(grid, x, y - 1);
                 boolean eWall = isInBoundsWall(grid, x + 1, y);
                 boolean wWall = isInBoundsWall(grid, x - 1, y);
-                TileManifest.TileFrame floor = grid.isRubble(x, y)
-                        ? TileManifest.pickRubbleTile(nWall, sWall, eWall, wWall)
-                        : TileManifest.pickFloorTile(nWall, sWall, eWall, wWall);
-                drawTile(floor, x, y, texXScale, texYScale, sheetPxH, alphaMult);
+
+                if (grid.isRubble(x, y)) {
+                    TileManifest.TileFrame f = TileManifest.pickRubbleTile(nWall, sWall, eWall, wWall);
+                    drawTile(f, x, y, texXScale, texYScale, sheetPxH, alphaMult);
+                } else if (grid.isStreet(x, y) && roadSheet != null) {
+                    TileManifest.TileFrame f = TileManifest.pickRoadTile(nWall, sWall, eWall, wWall);
+                    if (f == null) {
+                        fillCell(x, y, ROAD_FILL, alphaMult);
+                    } else {
+                        drawRoadTile(f, x, y, alphaMult);
+                    }
+                } else {
+                    TileManifest.TileFrame f = TileManifest.pickFloorTile(nWall, sWall, eWall, wWall);
+                    drawTile(f, x, y, texXScale, texYScale, sheetPxH, alphaMult);
+                }
 
                 // Original doorway (punched through a wall at gen time) gets
                 // the overhead door overlay. Breached cells are flagged rubble
@@ -813,6 +859,31 @@ public class BattleScreen implements Screen {
         }
     }
 
+    /** Stamps a 1×1 tile from the road sheet — counterpart to {@link #drawTile}, kept separate so the two sheets' UV scales stay independent. */
+    private void drawRoadTile(TileManifest.TileFrame f, int gridX, int gridY, float alphaMult) {
+        float texW = roadSheet.getTextureWidth();
+        float texH = roadSheet.getTextureHeight();
+        float texXScale = texW / roadSheetPxW;
+        float texYScale = texH / roadSheetPxH;
+        int srcPxX = f.col * TileManifest.TILE_SIZE;
+        int srcTopPxY = f.row * TileManifest.TILE_SIZE;
+        int srcPxW = TileManifest.TILE_SIZE;
+        int srcPxH = TileManifest.TILE_SIZE;
+
+        roadSheet.setTexX(srcPxX * texXScale);
+        roadSheet.setTexY((roadSheetPxH - (srcTopPxY + srcPxH)) * texYScale);
+        roadSheet.setTexWidth(srcPxW * texXScale);
+        roadSheet.setTexHeight(srcPxH * texYScale);
+        roadSheet.setSize(layout.cellSize, layout.cellSize);
+        roadSheet.setAlphaMult(alphaMult);
+        roadSheet.setColor(Color.WHITE);
+        roadSheet.setNormalBlend();
+
+        float cx = layout.gridX + (gridX + 0.5f) * layout.cellSize;
+        float cy = layout.gridY + (gridY + 0.5f) * layout.cellSize;
+        roadSheet.renderAtCenter(cx, cy);
+    }
+
     /** Draws a single 1×1 {@link TileManifest.TileFrame} into one grid cell. */
     private void drawTile(TileManifest.TileFrame f, int gridX, int gridY,
                           float texXScale, float texYScale, int sheetPxH, float alphaMult) {
@@ -878,24 +949,6 @@ public class BattleScreen implements Screen {
                     glVertex2f(x1, y1);
                     glVertex2f(x0, y1);
                 }
-            }
-            glEnd();
-        }
-
-        // Grid lines — only when cells are big enough to read.
-        if (layout.cellSize >= GRID_LINE_MIN_CELL) {
-            glColor4f(GRID_LINE.getRed() / 255f, GRID_LINE.getGreen() / 255f,
-                    GRID_LINE.getBlue() / 255f, 0.4f * alphaMult);
-            glBegin(org.lwjgl.opengl.GL11.GL_LINES);
-            for (int x = 0; x <= grid.getWidth(); x++) {
-                float px = layout.gridX + x * layout.cellSize;
-                glVertex2f(px, layout.gridY);
-                glVertex2f(px, layout.gridY + layout.gridH);
-            }
-            for (int y = 0; y <= grid.getHeight(); y++) {
-                float py = layout.gridY + y * layout.cellSize;
-                glVertex2f(layout.gridX,                py);
-                glVertex2f(layout.gridX + layout.gridW, py);
             }
             glEnd();
         }

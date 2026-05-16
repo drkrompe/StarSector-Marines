@@ -34,6 +34,19 @@ public final class TileManifest {
     public static final String SHEET = "graphics/tilesets/urban-tileset.png";
     public static final int TILE_SIZE = 32;
 
+    /**
+     * Second sheet — road autotile lives here. Same 32px cell size, drawn
+     * separately from {@link #SHEET} so the road art (dashed perimeter +
+     * red safety stripe) can iterate independently of the indoor floor set.
+     */
+    public static final String ROAD_SHEET = "graphics/tilesets/urban-tileset-2.png";
+
+    /** Top-left cell of the road 3×3 autotile block on {@link #ROAD_SHEET}. Hollow center like the wall autotile — open road draws a solid {@link #ROAD_FILL_RGB} quad. */
+    private static final int ROAD_COL_ORIGIN = 6;
+    private static final int ROAD_ROW_ORIGIN = 0;
+    /** Open-road surface color (sampled from the road tile's gray interior). Renderer uses this as the no-wall-neighbor fallback. */
+    public static final int ROAD_FILL_RGB = 0x4D5267; // 77, 82, 103
+
     /** Top-left cell of the clean-wall 3×3 autotile block. */
     private static final int WALL_COL_ORIGIN = 3;
     private static final int WALL_ROW_ORIGIN = 0;
@@ -115,6 +128,29 @@ public final class TileManifest {
         int col = wWall ? 0 : (eWall ? 2 : 1);
         int row = nWall ? 0 : (sWall ? 2 : 1);
         return new TileFrame(RUBBLE_COL_ORIGIN + col, RUBBLE_ROW_ORIGIN + row);
+    }
+
+    /**
+     * Returns the road tile (from {@link #ROAD_SHEET}) for a street cell given
+     * which cardinal neighbors are walls. Same hollow-perimeter shape as the
+     * wall picker — returns {@code null} for the open-road case (no wall
+     * neighbors). The caller paints a solid {@link #ROAD_FILL_RGB} quad for
+     * the null case because the source 3×3's center cell is transparent.
+     *
+     * <p>Out-of-bounds is treated as <em>not</em> a wall here (matches floor
+     * picker semantics) so a road at the map edge stays open instead of
+     * picking up an edge marking against nothing.
+     */
+    public static TileFrame pickRoadTile(boolean nWall, boolean sWall, boolean eWall, boolean wWall) {
+        if (!nWall && !sWall && !eWall && !wWall) return null;
+
+        // Same convention as pickFloorTile: the decorated edge of the road
+        // faces the wall it abuts. Inverted from pickWallTile, which orients
+        // its edges outward toward the open side.
+        int col = wWall ? 0 : (eWall ? 2 : 1);
+        int row = nWall ? 0 : (sWall ? 2 : 1);
+
+        return new TileFrame(ROAD_COL_ORIGIN + col, ROAD_ROW_ORIGIN + row);
     }
 
     private TileManifest() {}

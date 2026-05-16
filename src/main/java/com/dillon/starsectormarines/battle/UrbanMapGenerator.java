@@ -76,10 +76,13 @@ public final class UrbanMapGenerator {
         Random rng = new Random(seed);
         NavigationGrid grid = new NavigationGrid(width, height);
 
-        // Everything starts walkable; we'll carve buildings into the block interiors.
+        // Everything starts walkable + street; placing buildings clears walkable
+        // (perimeter) or just the street flag (interior) so what remains street
+        // is exactly the outdoor cells the road autotile should render.
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 grid.setWalkableFloor(x, y);
+                grid.setStreet(x, y, true);
             }
         }
 
@@ -238,6 +241,7 @@ public final class UrbanMapGenerator {
 
         if (hollow) {
             // Perimeter only — interior stays walkable from the initial pass.
+            // Interior cells are no longer street — they're indoor floor.
             for (int x = bl; x <= br; x++) {
                 grid.setWalkable(x, bt, false);
                 grid.setWalkable(x, bb, false);
@@ -245,6 +249,11 @@ public final class UrbanMapGenerator {
             for (int y = bt + 1; y <= bb - 1; y++) {
                 grid.setWalkable(bl, y, false);
                 grid.setWalkable(br, y, false);
+            }
+            for (int y = bt + 1; y <= bb - 1; y++) {
+                for (int x = bl + 1; x <= br - 1; x++) {
+                    grid.setStreet(x, y, false);
+                }
             }
             punchDoorway(grid, bl, bt, br, bb, rng);
         } else {
@@ -285,6 +294,9 @@ public final class UrbanMapGenerator {
         grid.setWalkable(doorX, doorY, true);
         grid.setFloor(doorX, doorY, true);
         grid.setDoorway(doorX, doorY, true);
+        // Doorway is part of the building (door overhead overlay reads against
+        // interior floor underneath), so clear the street flag.
+        grid.setStreet(doorX, doorY, false);
         grid.openAllEdges(doorX, doorY);
     }
 

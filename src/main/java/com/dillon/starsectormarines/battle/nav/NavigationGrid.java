@@ -21,6 +21,9 @@ import java.util.Arrays;
  *   <li>Bit 3: doorway (cell is a zone-graph barrier — walkable, but the
  *       {@link com.dillon.starsectormarines.battle.nav.zone.ZoneDetector} treats it
  *       as a partition so it becomes its own 1-cell zone with portals on each side)</li>
+ *   <li>Bit 4: street (outdoor walkable cell — renders with the road autotile;
+ *       building interiors and doorways have this cleared so they render with
+ *       the interior floor tileset)</li>
  * </ul>
  *
  * <p>Edge passability byte layout:
@@ -39,6 +42,7 @@ public class NavigationGrid {
     private static final int FLOOR_BIT    = 1;
     private static final int RUBBLE_BIT   = 2;
     private static final int DOORWAY_BIT  = 3;
+    private static final int STREET_BIT   = 4;
 
     /** Maximum cover level. 0 = open ground, MAX = heavy cover (all sides walled). */
     public static final int MAX_COVER = 3;
@@ -195,6 +199,21 @@ public class NavigationGrid {
         int idx = index(x, y);
         if (doorway) cellFlags[idx] |= (byte) (1 << DOORWAY_BIT);
         else         cellFlags[idx] &= (byte) ~(1 << DOORWAY_BIT);
+    }
+
+    // ----- Street (outdoor vs interior) -----
+
+    /** True for outdoor walkable cells. Building interiors and doorways have this cleared. */
+    public boolean isStreet(int x, int y) {
+        if (!inBounds(x, y)) return false;
+        return (cellFlags[index(x, y)] & (1 << STREET_BIT)) != 0;
+    }
+
+    public void setStreet(int x, int y, boolean street) {
+        if (!inBounds(x, y)) return;
+        int idx = index(x, y);
+        if (street) cellFlags[idx] |= (byte) (1 << STREET_BIT);
+        else        cellFlags[idx] &= (byte) ~(1 << STREET_BIT);
     }
 
     // ----- Rubble + destructible walls -----
