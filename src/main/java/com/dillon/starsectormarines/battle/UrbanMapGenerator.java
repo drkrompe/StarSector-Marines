@@ -36,6 +36,8 @@ public final class UrbanMapGenerator {
     private static final int BUILDING_INSET   = 1;
     /** Starting HP for every wall cell. Sized so a typical strafe shot chips, a missile breaches in one or two hits. Tune alongside damage values. */
     private static final int WALL_HP_DEFAULT  = 100;
+    /** Building footprints with both dimensions ≥ this are carved hollow (walkable interior + one doorway). Smaller fall back to solid. */
+    private static final int HOLLOW_MIN_SIZE  = 4;
 
     public static final class Result {
         public final NavigationGrid grid;
@@ -164,6 +166,14 @@ public final class UrbanMapGenerator {
      * or {@code null} if the block was left as a plaza or was too small to
      * fit a footprint. POI kind is rolled with weights leaning toward
      * residential (most common in urban combat scenes).
+     *
+     * <p>Buildings larger than the {@link #HOLLOW_MIN_SIZE} threshold are carved
+     * <em>hollow</em>: only the perimeter is wall, the interior is walkable
+     * floor, and one perimeter cell is punched out as a {@link NavigationGrid#isDoorway doorway}.
+     * Smaller footprints fall back to solid (no interior to enclose). Hollow
+     * buildings give the zone-graph layer something to chew on — each interior
+     * is its own zone, the doorway becomes a portal, and breaching a wall
+     * cleanly emits a new portal between the interior and the street.
      */
     private static PointOfInterest placeBuilding(NavigationGrid grid, int l, int t, int r, int b, Random rng) {
         if (rng.nextFloat() < PLAZA_CHANCE) return null;
@@ -172,16 +182,61 @@ public final class UrbanMapGenerator {
         int br = r - BUILDING_INSET;
         int bb = b - BUILDING_INSET;
         if (br - bl < 1 || bb - bt < 1) return null;
-        for (int y = bt; y <= bb; y++) {
+
+        int w = br - bl + 1;
+        int h = bb - bt + 1;
+        boolean hollow = w >= HOLLOW_MIN_SIZE && h >= HOLLOW_MIN_SIZE;
+
+        if (hollow) {
+            // Perimeter only — interior stays walkable from the initial pass.
             for (int x = bl; x <= br; x++) {
-                grid.setWalkable(x, y, false);
+                grid.setWalkable(x, bt, false);
+                grid.setWalkable(x, bb, false);
+            }
+            for (int y = bt + 1; y <= bb - 1; y++) {
+                grid.setWalkable(bl, y, false);
+                grid.setWalkable(br, y, false);
+            }
+            punchDoorway(grid, bl, bt, br, bb, rng);
+        } else {
+            // Too small to enclose anything readable — solid block.
+            for (int y = bt; y <= bb; y++) {
+                for (int x = bl; x <= br; x++) {
+                    grid.setWalkable(x, y, false);
+                }
             }
         }
+
         PointOfInterest.Kind kind = pickPoiKind(rng);
         int cx = (bl + br) / 2;
         int cy = (bt + bb) / 2;
         int[] anchor = findNearestWalkableFromBuilding(grid, cx, cy, bl, bt, br, bb);
         return new PointOfInterest(kind, bl, bt, br, bb, anchor[0], anchor[1]);
+    }
+
+    /**
+     * Picks one perimeter wall cell (not a corner) and flips it to walkable +
+     * doorway. The doorway cell becomes its own 1-cell zone in the graph,
+     * with portals connecting the building interior to the street outside.
+     *
+     * <p>Corners are excluded because a corner doorway would face diagonally
+     * into nothing — the agent on the outside would step diagonally onto the
+     * doorway, which reads as awkward "wall hugger" geometry.
+     */
+    private static void punchDoorway(NavigationGrid grid, int bl, int bt, int br, int bb, Random rng) {
+        // Edge-cell candidates: non-corner cells on each side.
+        int side = rng.nextInt(4);
+        int doorX, doorY;
+        switch (side) {
+            case 0: doorX = bl + 1 + rng.nextInt(br - bl - 1); doorY = bt;     break; // top
+            case 1: doorX = bl + 1 + rng.nextInt(br - bl - 1); doorY = bb;     break; // bottom
+            case 2: doorX = bl;     doorY = bt + 1 + rng.nextInt(bb - bt - 1); break; // left
+            default: doorX = br;    doorY = bt + 1 + rng.nextInt(bb - bt - 1); break; // right
+        }
+        grid.setWalkable(doorX, doorY, true);
+        grid.setFloor(doorX, doorY, true);
+        grid.setDoorway(doorX, doorY, true);
+        grid.openAllEdges(doorX, doorY);
     }
 
     /**

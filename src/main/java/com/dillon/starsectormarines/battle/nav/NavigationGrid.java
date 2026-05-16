@@ -18,6 +18,9 @@ import java.util.Arrays;
  *   <li>Bit 1: floor (has a floor surface — currently informational only)</li>
  *   <li>Bit 2: rubble (cell used to be a wall; now walkable but renders + scores
  *       differently from a normal floor)</li>
+ *   <li>Bit 3: doorway (cell is a zone-graph barrier — walkable, but the
+ *       {@link com.dillon.starsectormarines.battle.nav.zone.ZoneDetector} treats it
+ *       as a partition so it becomes its own 1-cell zone with portals on each side)</li>
  * </ul>
  *
  * <p>Edge passability byte layout:
@@ -35,6 +38,7 @@ public class NavigationGrid {
     private static final int WALKABLE_BIT = 0;
     private static final int FLOOR_BIT    = 1;
     private static final int RUBBLE_BIT   = 2;
+    private static final int DOORWAY_BIT  = 3;
 
     /** Maximum cover level. 0 = open ground, MAX = heavy cover (all sides walled). */
     public static final int MAX_COVER = 3;
@@ -175,6 +179,24 @@ public class NavigationGrid {
         setCoverAt(x, y, walls);
     }
 
+    // ----- Doorways (zone-graph barriers) -----
+
+    public boolean isDoorway(int x, int y) {
+        if (!inBounds(x, y)) return false;
+        return (cellFlags[index(x, y)] & (1 << DOORWAY_BIT)) != 0;
+    }
+
+    public boolean isDoorwayAt(int idx) {
+        return (cellFlags[idx] & (1 << DOORWAY_BIT)) != 0;
+    }
+
+    public void setDoorway(int x, int y, boolean doorway) {
+        if (!inBounds(x, y)) return;
+        int idx = index(x, y);
+        if (doorway) cellFlags[idx] |= (byte) (1 << DOORWAY_BIT);
+        else         cellFlags[idx] &= (byte) ~(1 << DOORWAY_BIT);
+    }
+
     // ----- Rubble + destructible walls -----
 
     public boolean isRubble(int x, int y) {
@@ -214,7 +236,10 @@ public class NavigationGrid {
             return false;
         }
         wallHp[idx] = 0;
-        cellFlags[idx] |= (byte) ((1 << WALKABLE_BIT) | (1 << FLOOR_BIT) | (1 << RUBBLE_BIT));
+        // Flag the breach as a doorway so the zone graph treats it as a portal
+        // cell — the two previously-separated zones gain a connection without
+        // merging into one giant zone. AI keeps its "inside the lab" vocabulary.
+        cellFlags[idx] |= (byte) ((1 << WALKABLE_BIT) | (1 << FLOOR_BIT) | (1 << RUBBLE_BIT) | (1 << DOORWAY_BIT));
         edgePassability[idx] = (byte) 0xFF;
         recomputeCoverAt(x, y);
         recomputeCoverAt(x + 1, y);

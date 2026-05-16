@@ -205,6 +205,8 @@ public class BattleScreen implements Screen {
     private boolean iconsLoadAttempted;
     /** Atmosphere layer — vanilla fighters flying overhead, strafing targets of opportunity. Survives across attach() calls; lazy-loads sprites on first render. */
     private final FlybyOverlay flybyOverlay = new FlybyOverlay();
+    /** Debug toggle (Z) — tints each navigation zone with a stable per-id color so the partitioning + new portals from wall breaches are eyeball-verifiable. */
+    private boolean debugZonesVisible;
     /**
      * True while this screen owns the audio side effects (custom music + ticking-clock loop
      * + suspended default playback). Guarded so attach() re-runs from dialog resizes don't
@@ -585,6 +587,19 @@ public class BattleScreen implements Screen {
     public void processInput(List<InputEventAPI> events) {
         widgets.processInput(events);
         handleDebugDamageInput(events);
+        handleDebugZoneToggle(events);
+    }
+
+    /** Debug-only: Z toggles {@link #debugZonesVisible}. Used to eyeball-verify the zone graph after wall breaches. */
+    private void handleDebugZoneToggle(List<InputEventAPI> events) {
+        if (events == null) return;
+        for (InputEventAPI e : events) {
+            if (e.isConsumed()) continue;
+            if (e.isKeyDownEvent() && e.getEventValue() == org.lwjgl.input.Keyboard.KEY_Z) {
+                debugZonesVisible = !debugZonesVisible;
+                e.consume();
+            }
+        }
     }
 
     /**
@@ -612,9 +627,10 @@ public class BattleScreen implements Screen {
             int cy = (int) Math.floor((py - layout.gridY) / layout.cellSize);
             if (!grid.inBounds(cx, cy)) continue;
             // One-shot demolition — pass the cell's full HP so any wall hit
-            // flips to rubble regardless of starting durability.
+            // flips to rubble regardless of starting durability. Routed
+            // through the sim so the zone graph rebuilds on a successful hit.
             int hp = grid.getWallHp(cx, cy);
-            if (hp > 0) grid.damageCell(cx, cy, hp);
+            if (hp > 0) sim.damageCell(cx, cy, hp);
             e.consume();
         }
     }
@@ -626,6 +642,7 @@ public class BattleScreen implements Screen {
 
         if (sim != null) {
             renderGrid(sim.getGrid(), alphaMult);
+            if (debugZonesVisible) renderZoneOverlay(sim, alphaMult);
             renderUnits(sim.getUnits(), alphaMult);
             // Charge sites + equipment drops sit above units so the player can
             // always see where the objectives are — even while a marine stands
@@ -697,6 +714,45 @@ public class BattleScreen implements Screen {
                 drawTile(tile, x, y, texXScale, texYScale, sheetPxH, alphaMult);
             }
         }
+    }
+
+    /**
+     * Debug overlay — tints each cell by its zone id so the partitioning is
+     * visible at a glance. Per-id color comes from a stable hash so toggling
+     * the overlay never reshuffles which zone reads as which color, and a
+     * wall breach that materializes a new portal zone gets its own fresh
+     * color rather than reusing an existing one.
+     *
+     * <p>Drawn between the tile pass and the unit pass so units stay readable
+     * on top. Low alpha (~0.30) so floor / rubble texture still shows through.
+     */
+    private void renderZoneOverlay(BattleSimulation sim, float alphaMult) {
+        com.dillon.starsectormarines.battle.nav.zone.ZoneGraph zones = sim.getZoneGraph();
+        NavigationGrid grid = sim.getGrid();
+        glDisable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBegin(GL_QUADS);
+        for (int y = 0; y < grid.getHeight(); y++) {
+            for (int x = 0; x < grid.getWidth(); x++) {
+                int zoneId = zones.zoneIdAt(x, y);
+                if (zoneId < 0) continue;
+                int h = zoneId * 0x9E3779B1; // Knuth multiplicative hash for stable color spread
+                float r = ((h       ) & 0xFF) / 255f;
+                float g = ((h >>> 8 ) & 0xFF) / 255f;
+                float b = ((h >>> 16) & 0xFF) / 255f;
+                glColor4f(r, g, b, 0.30f * alphaMult);
+                float x0 = layout.gridX + x * layout.cellSize;
+                float y0 = layout.gridY + y * layout.cellSize;
+                float x1 = x0 + layout.cellSize;
+                float y1 = y0 + layout.cellSize;
+                glVertex2f(x0, y0);
+                glVertex2f(x1, y0);
+                glVertex2f(x1, y1);
+                glVertex2f(x0, y1);
+            }
+        }
+        glEnd();
     }
 
     /** A wall cell is "interior" when all 4 cardinal neighbors are also walls (or out of bounds). */

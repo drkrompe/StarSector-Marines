@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.ai;
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 
 import java.util.List;
 
@@ -44,6 +45,8 @@ public final class TacticalScoring {
     public static final float FALLBACK_OCCUPANCY_COST = 4f;
     /** Per-cover-level bonus in fall-back scoring. */
     public static final float FALLBACK_COVER_BONUS    = 2f;
+    /** Bonus subtracted from fall-back score per net ally in the candidate cell's zone. Pulls retreating units toward where their squad lives rather than the nearest blind corner. */
+    public static final float FALLBACK_FRIENDLY_ZONE_BONUS = 1.5f;
 
     private TacticalScoring() {}
 
@@ -157,6 +160,7 @@ public final class TacticalScoring {
         NavigationGrid grid = sim.getGrid();
         int sx = self.cellX;
         int sy = self.cellY;
+        int[] zoneControl = computeZoneControl(self, sim);
         int[] best = null;
         float bestScore = Float.MAX_VALUE;
         for (int dy = -FALLBACK_SCAN_RANGE; dy <= FALLBACK_SCAN_RANGE; dy++) {
@@ -168,10 +172,13 @@ public final class TacticalScoring {
 
                 int occupants = occupantsExcludingSelf(self, cx, cy, sim);
                 int cover = grid.getCoverAt(cx, cy);
+                int zoneId = sim.getZoneGraph().zoneIdAt(cx, cy);
+                int control = (zoneId >= 0 && zoneId < zoneControl.length) ? zoneControl[zoneId] : 0;
                 float distFromSelf = cellDistance(sx, sy, cx, cy);
                 float score = distFromSelf
                         + FALLBACK_OCCUPANCY_COST * occupants
-                        - FALLBACK_COVER_BONUS * cover;
+                        - FALLBACK_COVER_BONUS * cover
+                        - FALLBACK_FRIENDLY_ZONE_BONUS * control;
                 if (score < bestScore) {
                     bestScore = score;
                     best = new int[]{cx, cy};
@@ -179,6 +186,25 @@ public final class TacticalScoring {
             }
         }
         return best != null ? best : new int[]{sx, sy};
+    }
+
+    /**
+     * Per-zone allies-minus-enemies from {@code self}'s perspective.
+     * Indexed by zone id; positive = friendly-controlled, negative = hostile.
+     * Computed once per {@link #findFallbackPosition} call so a 17×17 candidate
+     * scan does at most O(zones + units) work instead of re-scanning units
+     * per cell.
+     */
+    private static int[] computeZoneControl(Unit self, BattleSimulation sim) {
+        ZoneGraph zones = sim.getZoneGraph();
+        int[] control = new int[zones.getZones().size()];
+        for (Unit u : sim.getUnits()) {
+            if (!u.isAlive()) continue;
+            int zid = zones.zoneIdAt(u.cellX, u.cellY);
+            if (zid < 0 || zid >= control.length) continue;
+            control[zid] += (u.faction == self.faction) ? 1 : -1;
+        }
+        return control;
     }
 
     public static boolean isHiddenFromAllEnemies(Unit self, int cx, int cy, BattleSimulation sim) {

@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.ai.PlanterBehavior;
 import com.dillon.starsectormarines.battle.ai.TacticalScoring;
 import com.dillon.starsectormarines.battle.ai.UnitBehavior;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.objective.EliminateFactionObjective;
 import com.dillon.starsectormarines.battle.objective.Objective;
 
@@ -111,12 +112,31 @@ public class BattleSimulation {
     private boolean complete = false;
     private Faction winner;
 
+    private final ZoneGraph zoneGraph;
+
     public BattleSimulation(NavigationGrid grid) {
         this.grid = grid;
         this.occupancyMap = new byte[grid.getWidth() * grid.getHeight()];
+        this.zoneGraph = new ZoneGraph(grid);
+        this.zoneGraph.rebuild();
     }
 
     public NavigationGrid getGrid()        { return grid; }
+    /** Zone+portal graph layered on the {@link NavigationGrid}. Rebuilt on wall destruction so AI queries reflect the current map. */
+    public ZoneGraph getZoneGraph()        { return zoneGraph; }
+
+    /**
+     * Wall-damage entry point that callers should prefer over
+     * {@link NavigationGrid#damageCell} directly — it pipes through to the
+     * grid and triggers a {@link ZoneGraph#rebuild()} when a wall actually
+     * collapses, so the AI's zone vocabulary stays in sync with reality.
+     * Returns true the call that knocks the wall down.
+     */
+    public boolean damageCell(int x, int y, int amount) {
+        if (!grid.damageCell(x, y, amount)) return false;
+        zoneGraph.rebuild();
+        return true;
+    }
     public List<Unit> getUnits()           { return units; }
     public List<Shuttle> getShuttles()     { return shuttles; }
     public List<Objective> getObjectives() { return objectives; }
