@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle;
 
+import com.dillon.starsectormarines.battle.objective.Objective;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -41,15 +43,22 @@ public class Unit {
     // Placeholder stats — same numbers per side until we drive these from
     // captain traits + mission difficulty in a later slice.
     public float moveSpeed     = 2.0f;  // cells/second
-    public float maxHp         = 10f;
-    public float hp            = 10f;
+    public float maxHp         = 25f;
+    public float hp            = 25f;
     public float attackDamage  = 2f;
     public float attackRange   = 24.0f; // cells; long rifle range — quarter of the map width, makes cross-map sight lanes matter
     public float attackCooldown = 1.0f; // seconds between shots
     public float cooldownTimer  = 0f;
-    public float accuracy       = 0.6f; // probability a fired shot deals damage; misses still emit a visual tracer
+    public float accuracy       = 0.35f; // probability a fired shot deals damage; misses still emit a visual tracer. Tuned with HP25/dmg2 for ~2-3 min engagements.
 
     public Unit target;
+
+    /** Role drives behavior dispatch in the sim. Default {@link UnitRole#COMBATANT} matches pre-role behavior. */
+    public UnitRole role = UnitRole.COMBATANT;
+    /** Objective this unit is acting on, when the role requires one (charge site for a planter, exfil zone for a VIP, position to camp for an objective camper). Null for plain combatants. */
+    public Objective assignedObjective;
+    /** {@link UnitRole#KIT_RETRIEVER} target — the dropped kit this unit is heading to recover. Cleared when picked up or when the drop is consumed by someone else. */
+    public EquipmentDrop equipmentDropTarget;
 
     /** Sim-seconds remaining in fall-back state. >0 means the unit is breaking contact toward {@link #fallbackCellX}/{@link #fallbackCellY}. */
     public float fallbackTimer = 0f;

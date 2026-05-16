@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.BattleSetup;
+import com.dillon.starsectormarines.battle.EquipmentDrop;
 import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.ShotEvent;
 import com.dillon.starsectormarines.battle.Shuttle;
@@ -11,6 +12,8 @@ import com.dillon.starsectormarines.battle.SpriteSheetSlicer;
 import com.dillon.starsectormarines.battle.TileManifest;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.objective.ChargeSiteObjective;
+import com.dillon.starsectormarines.battle.objective.Objective;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
@@ -85,6 +88,24 @@ public class BattleScreen implements Screen {
 
     /** Marine sprite sheet path (Starsector resource lookup). */
     private static final String MARINE_SHEET  = "graphics/battle/marine.png";
+
+    /** Objective marker icons — white-on-transparent shapes tinted at render time. */
+    private static final String ICON_ALARM   = "graphics/icons/Alarm 512 px.png";
+    private static final String ICON_DANGER  = "graphics/icons/Danger sign 1 512 px.png";
+    private static final String ICON_STAR    = "graphics/icons/Star 512 px.png";
+
+    /** Icon tints + sizes. Sizes are fractions of {@code layout.cellSize}. */
+    private static final Color  CHARGE_TINT_ACTIVE   = new Color(0xFF, 0x9A, 0x40);
+    private static final Color  CHARGE_TINT_COMPLETE = new Color(0xE0, 0x40, 0x40);
+    private static final Color  CHARGE_TINT_ARC      = new Color(0xFF, 0xC8, 0x70);
+    private static final Color  KIT_DROP_TINT        = new Color(0x80, 0xE8, 0xFF);
+    private static final float  CHARGE_ICON_SIZE     = 1.5f;
+    private static final float  KIT_DROP_SIZE        = 1.0f;
+    private static final float  CHARGE_PULSE_AMP     = 0.10f;
+    private static final float  CHARGE_PULSE_HZ      = 1.5f;
+    private static final float  KIT_DROP_PULSE_AMP   = 0.10f;
+    private static final float  KIT_DROP_PULSE_HZ    = 0.6f;
+    private static final int    PROGRESS_ARC_SEGMENTS = 32;
 
     /** Sound IDs declared in mod/data/config/sounds.json. */
     private static final String MUSIC_BATTLE  = "marines_battle_music";
@@ -175,6 +196,12 @@ public class BattleScreen implements Screen {
      */
     private final java.util.EnumMap<ShuttleType, ShuttleSpriteCache> shuttleSprites = new java.util.EnumMap<>(ShuttleType.class);
     private boolean shuttleSpritesLoadAttempted;
+
+    /** Lazy-loaded objective marker icons. Null entries fall back to colored rectangles. */
+    private SpriteAPI iconAlarm;
+    private SpriteAPI iconDanger;
+    private SpriteAPI iconStar;
+    private boolean iconsLoadAttempted;
     /**
      * True while this screen owns the audio side effects (custom music + ticking-clock loop
      * + suspended default playback). Guarded so attach() re-runs from dialog resizes don't
@@ -205,6 +232,7 @@ public class BattleScreen implements Screen {
         ensureMarineSheet();
         ensureTileSheet();
         ensureShuttleSprites();
+        ensureObjectiveIcons();
         startBattleAudio();
         rebuild();
     }
@@ -314,6 +342,36 @@ public class BattleScreen implements Screen {
      * (the reference marine sprite) and AI-generated sheets with irregular
      * sprite spacing, so we don't have to keep the source art on a strict grid.
      */
+    /**
+     * Lazy-loads the SABOTAGE objective marker icons. Each PNG is a 512px white
+     * shape on transparent — tinted at draw time via {@code setColor}. Same
+     * sprite-lazy-load gotcha as the tileset: {@code getSprite} returns a wrapper
+     * whose backing texture is null until {@code loadTexture} is called.
+     */
+    private void ensureObjectiveIcons() {
+        if (iconsLoadAttempted) return;
+        iconsLoadAttempted = true;
+        iconAlarm  = loadIconOrNull(ICON_ALARM);
+        iconDanger = loadIconOrNull(ICON_DANGER);
+        iconStar   = loadIconOrNull(ICON_STAR);
+    }
+
+    private SpriteAPI loadIconOrNull(String path) {
+        try {
+            Global.getSettings().loadTexture(path);
+            SpriteAPI sprite = Global.getSettings().getSprite(path);
+            if (sprite == null) {
+                LOG.warn("BattleScreen: getSprite returned null for " + path);
+                return null;
+            }
+            LOG.info("BattleScreen: loaded icon " + path);
+            return sprite;
+        } catch (Exception e) {
+            LOG.error("BattleScreen: failed to load icon " + path, e);
+            return null;
+        }
+    }
+
     private void ensureMarineSheet() {
         if (marineSheetLoadAttempted) return;
         marineSheetLoadAttempted = true;
@@ -530,8 +588,11 @@ public class BattleScreen implements Screen {
         if (sim != null) {
             renderGrid(sim.getGrid(), alphaMult);
             renderUnits(sim.getUnits(), alphaMult);
-            // Shuttles draw over units — flying shuttles are above the ground;
-            // landed shuttles cover the LZ cell that marines deboarded off of.
+            // Charge sites + equipment drops sit above units so the player can
+            // always see where the objectives are — even while a marine stands
+            // on top of one. Shuttles still draw on top of the markers when
+            // landing on a LZ.
+            renderObjectiveMarkers(sim, alphaMult);
             renderShuttles(sim.getShuttles(), alphaMult);
             renderShots(sim.getActiveShots(), alphaMult);
         }
@@ -819,6 +880,106 @@ public class BattleScreen implements Screen {
         for (ShuttleSpriteCache cache : shuttleSprites.values()) {
             cache.sprite.setAngle(0f);
         }
+    }
+
+    /**
+     * Renders SABOTAGE charge-site markers and dropped equipment kits on top
+     * of the unit layer. Charge sites pulse and grow a progress arc while a
+     * planter channels; on completion the alarm icon swaps to the danger sign
+     * and the arc disappears. Kit drops gently bob to catch the eye.
+     *
+     * <p>Time source for animation is wall-clock — pulses keep playing while
+     * the sim is paused, which is desirable: a paused player still needs the
+     * progress visualization to read clearly.
+     */
+    private void renderObjectiveMarkers(BattleSimulation sim, float alphaMult) {
+        float now = (float) (System.currentTimeMillis() / 1000.0);
+
+        for (Objective o : sim.getObjectives()) {
+            if (!(o instanceof ChargeSiteObjective)) continue;
+            ChargeSiteObjective site = (ChargeSiteObjective) o;
+            float cx = layout.gridX + (site.cellX() + 0.5f) * layout.cellSize;
+            float cy = layout.gridY + (site.cellY() + 0.5f) * layout.cellSize;
+            if (site.isComplete()) {
+                drawTintedIcon(iconDanger, cx, cy,
+                        layout.cellSize * CHARGE_ICON_SIZE,
+                        CHARGE_TINT_COMPLETE, alphaMult);
+            } else {
+                float pulse = site.planterOnSite()
+                        ? 1f + CHARGE_PULSE_AMP * (float) Math.sin(now * 2.0 * Math.PI * CHARGE_PULSE_HZ)
+                        : 1f;
+                drawTintedIcon(iconAlarm, cx, cy,
+                        layout.cellSize * CHARGE_ICON_SIZE * pulse,
+                        CHARGE_TINT_ACTIVE, alphaMult);
+                float progress = site.progress() / Math.max(0.001f, site.plantDuration());
+                float innerR = layout.cellSize * 0.55f;
+                float outerR = innerR + Math.max(3f, layout.cellSize * 0.12f);
+                drawProgressArc(cx, cy, innerR, outerR, progress, CHARGE_TINT_ARC, alphaMult);
+            }
+        }
+
+        for (EquipmentDrop drop : sim.getEquipmentDrops()) {
+            if (drop.consumed) continue;
+            float cx = layout.gridX + (drop.cellX + 0.5f) * layout.cellSize;
+            float cy = layout.gridY + (drop.cellY + 0.5f) * layout.cellSize;
+            float pulse = 1f + KIT_DROP_PULSE_AMP * (float) Math.sin(now * 2.0 * Math.PI * KIT_DROP_PULSE_HZ);
+            drawTintedIcon(iconStar, cx, cy,
+                    layout.cellSize * KIT_DROP_SIZE * pulse,
+                    KIT_DROP_TINT, alphaMult);
+        }
+    }
+
+    /**
+     * Draws a sprite tinted by {@code tint}, centered at ({@code cx}, {@code cy}),
+     * sized to a {@code size}x{@code size} square. Falls through to a colored
+     * square if the sprite failed to load — fallback keeps the map readable.
+     * Resets the sprite's color to white afterward so the singleton doesn't
+     * carry our tint into the next caller.
+     */
+    private void drawTintedIcon(SpriteAPI sprite, float cx, float cy, float size, Color tint, float alphaMult) {
+        if (sprite == null) {
+            fillRect(cx - size / 2f, cy - size / 2f, size, size, tint, alphaMult);
+            return;
+        }
+        sprite.setSize(size, size);
+        sprite.setColor(tint);
+        sprite.setAlphaMult(alphaMult);
+        sprite.setNormalBlend();
+        sprite.renderAtCenter(cx, cy);
+        sprite.setColor(Color.WHITE);
+    }
+
+    /**
+     * Draws a clockwise-filling ring from the 12 o'clock position. Built as a
+     * fan of quads — each segment is one slice of the ring annulus between
+     * {@code innerR} and {@code outerR}. The final segment is capped at the
+     * exact progress angle so the leading edge doesn't snap between steps.
+     */
+    private void drawProgressArc(float cx, float cy, float innerR, float outerR,
+                                 float progress, Color color, float alphaMult) {
+        progress = Math.max(0f, Math.min(1f, progress));
+        if (progress <= 0f) return;
+        glDisable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glColor4f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f, alphaMult);
+
+        int filled = (int) Math.ceil(PROGRESS_ARC_SEGMENTS * progress);
+        glBegin(GL_QUADS);
+        for (int i = 0; i < filled; i++) {
+            float t1 = (float) i / PROGRESS_ARC_SEGMENTS;
+            float t2 = Math.min(progress, (float) (i + 1) / PROGRESS_ARC_SEGMENTS);
+            // Start at 12 o'clock (math angle = +π/2), sweep clockwise (decreasing angle).
+            float a1 = (float) (Math.PI / 2.0) - t1 * (float) (Math.PI * 2.0);
+            float a2 = (float) (Math.PI / 2.0) - t2 * (float) (Math.PI * 2.0);
+            float c1 = (float) Math.cos(a1), s1 = (float) Math.sin(a1);
+            float c2 = (float) Math.cos(a2), s2 = (float) Math.sin(a2);
+            glVertex2f(cx + c1 * innerR, cy + s1 * innerR);
+            glVertex2f(cx + c1 * outerR, cy + s1 * outerR);
+            glVertex2f(cx + c2 * outerR, cy + s2 * outerR);
+            glVertex2f(cx + c2 * innerR, cy + s2 * innerR);
+        }
+        glEnd();
     }
 
     /**

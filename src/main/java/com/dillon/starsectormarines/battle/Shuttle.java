@@ -88,6 +88,15 @@ public class Shuttle {
      */
     public float landedFacing = 0f;
 
+    /**
+     * Per-deboard loadouts. {@code marineLoadout[i]} is the spec for the
+     * (i+1)-th marine to leave this shuttle (i.e., index = type.capacity -
+     * marinesRemaining). Null entries — and a null array — fall back to a
+     * plain {@link MarineLoadout#COMBATANT} marine, so existing ASSAULT
+     * code keeps working without touching it.
+     */
+    public MarineLoadout[] marineLoadout;
+
     public Shuttle(ShuttleType type, Faction faction,
                    float lzX, float lzY,
                    float entryX, float entryY,

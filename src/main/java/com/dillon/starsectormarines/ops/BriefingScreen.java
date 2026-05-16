@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.BattleSetup;
+import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -231,11 +232,22 @@ public class BriefingScreen implements Screen {
         MarineCaptain c = ctx.getSelectedCaptain();
         String captainStr = c != null ? c.id() + " (" + c.name() + ")" : "none";
         LOG.info("MarineOps: accept mission id=" + m.id + " name='" + m.name
-                + "' captain=" + captainStr);
+                + "' type=" + m.type + " captain=" + captainStr);
 
-        // Spin up a fresh battle simulation and hand off to the BATTLE screen.
-        // Placeholder map until mission-driven map generation lands.
-        ctx.setBattleSimulation(BattleSetup.createPlaceholder());
+        // Mission-type-specific setup. Each type wires its own objectives and
+        // loadouts; falls back to ASSAULT for types not yet built out.
+        BattleSimulation sim;
+        switch (m.type) {
+            case SABOTAGE:
+                sim = BattleSetup.createSabotage();
+                break;
+            case ASSAULT:
+            case RAID:
+            case EXTRACTION:
+            default:
+                sim = BattleSetup.createPlaceholder();
+        }
+        ctx.setBattleSimulation(sim);
         ctx.goTo(ScreenId.BATTLE);
     }
 

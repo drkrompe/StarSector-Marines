@@ -41,15 +41,18 @@ public final class UrbanMapGenerator {
         public final int marineSpawnY;
         public final int defenderSpawnX;
         public final int defenderSpawnY;
+        public final List<PointOfInterest> pointsOfInterest;
 
         public Result(NavigationGrid grid,
                       int marineSpawnX, int marineSpawnY,
-                      int defenderSpawnX, int defenderSpawnY) {
+                      int defenderSpawnX, int defenderSpawnY,
+                      List<PointOfInterest> pointsOfInterest) {
             this.grid = grid;
             this.marineSpawnX = marineSpawnX;
             this.marineSpawnY = marineSpawnY;
             this.defenderSpawnX = defenderSpawnX;
             this.defenderSpawnY = defenderSpawnY;
+            this.pointsOfInterest = pointsOfInterest;
         }
     }
 
@@ -69,16 +72,46 @@ public final class UrbanMapGenerator {
         List<int[]> blockRowsY = blockStripsAlongAxis(height, rng);
         List<int[]> blockColsX = blockStripsAlongAxis(width,  rng);
 
+        List<PointOfInterest> pois = new ArrayList<>();
         for (int[] row : blockRowsY) {
             for (int[] col : blockColsX) {
-                placeBuilding(grid, col[0], row[0], col[1], row[1], rng);
+                PointOfInterest poi = placeBuilding(grid, col[0], row[0], col[1], row[1], rng);
+                if (poi != null) pois.add(poi);
             }
         }
+
+        bakeCoverFromWalls(grid);
 
         int[] marine   = findNearestWalkable(grid, 2,             2);
         int[] defender = findNearestWalkable(grid, width - 3,     height - 3);
 
-        return new Result(grid, marine[0], marine[1], defender[0], defender[1]);
+        return new Result(grid, marine[0], marine[1], defender[0], defender[1], pois);
+    }
+
+    /**
+     * Sets each walkable cell's cover level to the count of its cardinal neighbors
+     * that are non-walkable (walls or out-of-bounds), clamped to
+     * {@link NavigationGrid#MAX_COVER}. Run after all buildings are placed so the
+     * cover map sees the final wall layout.
+     *
+     * <p>Cardinal-only (4-neighbor) because diagonal adjacency reads as "you're
+     * standing in a corner" not "you're covered" — the bias should be toward
+     * peeking out from along a wall edge.
+     */
+    private static void bakeCoverFromWalls(NavigationGrid grid) {
+        int w = grid.getWidth();
+        int h = grid.getHeight();
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                if (!grid.isWalkable(x, y)) continue;
+                int walls = 0;
+                if (!grid.isWalkable(x + 1, y)) walls++;
+                if (!grid.isWalkable(x - 1, y)) walls++;
+                if (!grid.isWalkable(x, y + 1)) walls++;
+                if (!grid.isWalkable(x, y - 1)) walls++;
+                grid.setCoverAt(x, y, walls);
+            }
+        }
     }
 
     /**
@@ -107,18 +140,71 @@ public final class UrbanMapGenerator {
         return blocks;
     }
 
-    private static void placeBuilding(NavigationGrid grid, int l, int t, int r, int b, Random rng) {
-        if (rng.nextFloat() < PLAZA_CHANCE) return;
+    /**
+     * Carves a building in the block and returns a tagged POI describing it,
+     * or {@code null} if the block was left as a plaza or was too small to
+     * fit a footprint. POI kind is rolled with weights leaning toward
+     * residential (most common in urban combat scenes).
+     */
+    private static PointOfInterest placeBuilding(NavigationGrid grid, int l, int t, int r, int b, Random rng) {
+        if (rng.nextFloat() < PLAZA_CHANCE) return null;
         int bl = l + BUILDING_INSET;
         int bt = t + BUILDING_INSET;
         int br = r - BUILDING_INSET;
         int bb = b - BUILDING_INSET;
-        if (br - bl < 1 || bb - bt < 1) return;
+        if (br - bl < 1 || bb - bt < 1) return null;
         for (int y = bt; y <= bb; y++) {
             for (int x = bl; x <= br; x++) {
                 grid.setWalkable(x, y, false);
             }
         }
+        PointOfInterest.Kind kind = pickPoiKind(rng);
+        int cx = (bl + br) / 2;
+        int cy = (bt + bb) / 2;
+        int[] anchor = findNearestWalkableFromBuilding(grid, cx, cy, bl, bt, br, bb);
+        return new PointOfInterest(kind, bl, bt, br, bb, anchor[0], anchor[1]);
+    }
+
+    /**
+     * Picks a POI kind. Residential weight is intentionally higher so that
+     * landmark buildings (lab, comms, depot) stand out as unusual targets on
+     * a map dominated by ordinary structures.
+     */
+    private static PointOfInterest.Kind pickPoiKind(Random rng) {
+        float r = rng.nextFloat();
+        if (r < 0.55f) return PointOfInterest.Kind.RESIDENTIAL;
+        if (r < 0.75f) return PointOfInterest.Kind.DEPOT;
+        if (r < 0.90f) return PointOfInterest.Kind.LABORATORY;
+        return PointOfInterest.Kind.COMMS;
+    }
+
+    /**
+     * BFS outward from (cx, cy), returning the first walkable cell that is NOT
+     * inside the building footprint. This is the "stand here to interact with
+     * this building" cell — used as the anchor for placing planters, loot
+     * crates, VIPs, etc.
+     */
+    private static int[] findNearestWalkableFromBuilding(NavigationGrid grid, int cx, int cy, int bl, int bt, int br, int bb) {
+        boolean[] visited = new boolean[grid.getWidth() * grid.getHeight()];
+        Queue<int[]> q = new ArrayDeque<>();
+        q.add(new int[]{cx, cy});
+        if (grid.inBounds(cx, cy)) visited[cy * grid.getWidth() + cx] = true;
+        while (!q.isEmpty()) {
+            int[] p = q.poll();
+            boolean inBuilding = p[0] >= bl && p[0] <= br && p[1] >= bt && p[1] <= bb;
+            if (!inBuilding && grid.isWalkable(p[0], p[1])) return p;
+            int[][] nbrs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+            for (int[] d : nbrs) {
+                int nx = p[0] + d[0];
+                int ny = p[1] + d[1];
+                if (!grid.inBounds(nx, ny)) continue;
+                int idx = ny * grid.getWidth() + nx;
+                if (visited[idx]) continue;
+                visited[idx] = true;
+                q.add(new int[]{nx, ny});
+            }
+        }
+        return new int[]{cx, cy};
     }
 
     private static int[] findNearestWalkable(NavigationGrid grid, int sx, int sy) {

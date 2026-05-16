@@ -33,10 +33,15 @@ public class NavigationGrid {
     private static final int WALKABLE_BIT = 0;
     private static final int FLOOR_BIT    = 1;
 
+    /** Maximum cover level. 0 = open ground, MAX = heavy cover (all sides walled). */
+    public static final int MAX_COVER = 3;
+
     private final int width;
     private final int height;
     private final byte[] cellFlags;
     private final byte[] edgePassability;
+    /** Per-cell cover level 0..{@link #MAX_COVER}. Baked once by the map generator from the surrounding wall layout; consulted at fire time for damage reduction and at scoring time for firing-position / fall-back preference. */
+    private final byte[] coverValues;
 
     public NavigationGrid(int width, int height) {
         this.width = width;
@@ -44,6 +49,7 @@ public class NavigationGrid {
         int size = width * height;
         this.cellFlags = new byte[size];
         this.edgePassability = new byte[size];
+        this.coverValues = new byte[size];
     }
 
     public int getWidth()  { return width;  }
@@ -133,6 +139,21 @@ public class NavigationGrid {
         setEdgePassable(x, y, dir, true);
     }
 
+    // ----- Cover -----
+
+    /** Returns the cover level at (x, y), or 0 if out of bounds. */
+    public int getCoverAt(int x, int y) {
+        if (!inBounds(x, y)) return 0;
+        return coverValues[index(x, y)] & 0xFF;
+    }
+
+    /** Sets the cover level at (x, y). Clamped to [0, {@link #MAX_COVER}]. */
+    public void setCoverAt(int x, int y, int level) {
+        if (!inBounds(x, y)) return;
+        int clamped = Math.max(0, Math.min(MAX_COVER, level));
+        coverValues[index(x, y)] = (byte) clamped;
+    }
+
     // ----- Raw arrays (for the pathfinder's hot path) -----
 
     public byte[] getCellFlagsArray()        { return cellFlags;       }
@@ -141,6 +162,7 @@ public class NavigationGrid {
     public void clear() {
         Arrays.fill(cellFlags, (byte) 0);
         Arrays.fill(edgePassability, (byte) 0);
+        Arrays.fill(coverValues, (byte) 0);
     }
 
     // ----- Line of sight -----

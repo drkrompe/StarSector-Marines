@@ -2,6 +2,9 @@ package com.dillon.starsectormarines.battle;
 
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.objective.ChargeSiteObjective;
+import com.dillon.starsectormarines.battle.objective.EliminateFactionObjective;
+import com.dillon.starsectormarines.battle.objective.Objective;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -50,8 +53,11 @@ public class BattleSimulation {
     private static final float FIRING_OCCUPANCY_COST = 4f;
     /** Minimum cell-distance from target when picking a firing position. Avoids picking the target's own cell. */
     private static final float FIRING_MIN_DISTANCE = 0.7f;
-    /** Per-adjacent-wall bonus subtracted from firing-position score. Pushes units to peek from corners and wall edges instead of standing in the open. */
+    /** Per-cover-level bonus subtracted from firing-position score. Pushes units to peek from corners and wall edges instead of standing in the open. */
     private static final float FIRING_COVER_BONUS = 3f;
+
+    /** Damage reduction per cover level (0..MAX_COVER). Open ground = 0%; 1 wall = 15%; 2 = 30%; 3+ = 45%. Applied multiplicatively in {@link #fireShot}. */
+    private static final float[] COVER_DAMAGE_REDUCTION = { 0f, 0.15f, 0.30f, 0.45f };
 
     /** Sim seconds a tracer stays visible after being fired. */
     private static final float SHOT_LIFETIME = 0.15f;
@@ -75,6 +81,8 @@ public class BattleSimulation {
     private final NavigationGrid grid;
     private final List<Unit> units = new ArrayList<>();
     private final List<Shuttle> shuttles = new ArrayList<>();
+    private final List<Objective> objectives = new ArrayList<>();
+    private final List<EquipmentDrop> equipmentDrops = new ArrayList<>();
     private final List<ShotEvent> activeShots = new ArrayList<>();
     /** Shots fired during the last {@link #advance(float)} call. Cleared on each advance, populated per tick. Drives one-shot audio in the renderer. */
     private final List<ShotEvent> shotsThisFrame = new ArrayList<>();
@@ -119,6 +127,8 @@ public class BattleSimulation {
     public NavigationGrid getGrid()        { return grid; }
     public List<Unit> getUnits()           { return units; }
     public List<Shuttle> getShuttles()     { return shuttles; }
+    public List<Objective> getObjectives() { return objectives; }
+    public List<EquipmentDrop> getEquipmentDrops() { return equipmentDrops; }
     public List<ShotEvent> getActiveShots(){ return activeShots; }
     public List<ShotEvent> getShotsThisFrame() { return shotsThisFrame; }
     public List<Unit> getDeathsThisFrame()     { return deathsThisFrame; }
@@ -131,6 +141,10 @@ public class BattleSimulation {
 
     public void addShuttle(Shuttle s) {
         shuttles.add(s);
+    }
+
+    public void addObjective(Objective o) {
+        objectives.add(o);
     }
 
     /**
@@ -152,6 +166,13 @@ public class BattleSimulation {
     }
 
     private void tick() {
+        // Backstop: if a caller (currently BattleSetup) hasn't registered
+        // objectives, install the default eliminate-each-other pair so the
+        // old behavior keeps working untouched. Run-once on first tick.
+        if (objectives.isEmpty()) {
+            objectives.add(new EliminateFactionObjective(Faction.MARINE, Faction.DEFENDER));
+            objectives.add(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
+        }
         rebuildOccupancyMap();
         for (Unit u : units) {
             if (!u.isAlive()) continue;
@@ -161,6 +182,8 @@ public class BattleSimulation {
         // mid-loop. They'll be picked up by next tick's occupancy + target pass.
         advanceShuttles();
         advanceShots();
+        processEquipmentDrops();
+        for (Objective o : objectives) o.tick(this);
         checkWinCondition();
     }
 
@@ -250,27 +273,264 @@ public class BattleSimulation {
         }
     }
 
+    /**
+     * Dispatch entry point — pulls fall-back out so it applies to every role,
+     * then routes to the role-specific behavior. PLANTER / OBJECTIVE_CAMPER /
+     * VIP currently fall through to combatant behavior; mission-specific
+     * subsystems (SABOTAGE first) override these branches as they land.
+     */
     private void updateUnit(Unit u) {
-        // Fall-back state — unit was recently hit and is breaking contact.
-        // Path toward an out-of-LOS cell, then hold until the timer expires.
         if (u.fallbackTimer > 0f) {
-            u.fallbackTimer -= TICK_DT;
-            int fx = u.fallbackCellX;
-            int fy = u.fallbackCellY;
-            if (u.cellX == fx && u.cellY == fy) {
-                setPath(u, Collections.emptyList());
-                u.moveProgress = 0f;
-                u.renderX = u.cellX;
-                u.renderY = u.cellY;
+            advanceFallback(u);
+            return;
+        }
+        switch (u.role) {
+            case PLANTER:
+                updatePlanter(u);
                 return;
+            case KIT_RETRIEVER:
+                updateKitRetriever(u);
+                return;
+            case OBJECTIVE_CAMPER:
+            case VIP:
+            case COMBATANT:
+            default:
+                updateCombatant(u);
+        }
+    }
+
+    /**
+     * Planter behavior: head to the assigned charge site, dwell on the anchor
+     * cell to let {@link ChargeSiteObjective#tick(BattleSimulation)} accumulate
+     * plant progress, fire opportunistically at any visible enemy in range so
+     * they aren't a sitting duck during the channel. If the assigned objective
+     * is already complete or null, falls through to combatant behavior — finished
+     * planters rejoin the fight.
+     */
+    private void updatePlanter(Unit u) {
+        if (!(u.assignedObjective instanceof ChargeSiteObjective)
+                || u.assignedObjective.isComplete()) {
+            // Demote — otherwise the unit's role label stays PLANTER forever
+            // and the kit-reassignment pass skips them as "still busy."
+            u.role = UnitRole.COMBATANT;
+            u.assignedObjective = null;
+            updateCombatant(u);
+            return;
+        }
+        ChargeSiteObjective site = (ChargeSiteObjective) u.assignedObjective;
+        int sx = site.cellX();
+        int sy = site.cellY();
+
+        // Re-acquire target so we can fire while channeling.
+        if (u.target == null || !u.target.isAlive()) {
+            u.target = findBestTarget(u);
+        }
+        if (u.cooldownTimer > 0f) u.cooldownTimer -= TICK_DT;
+        if (u.target != null) {
+            float dist = cellDistance(u.cellX, u.cellY, u.target.cellX, u.target.cellY);
+            boolean canFire = dist <= u.attackRange
+                    && grid.hasLineOfSight(u.cellX, u.cellY, u.target.cellX, u.target.cellY)
+                    && u.cooldownTimer <= 0f;
+            if (canFire) {
+                fireShot(u, u.target);
+                u.cooldownTimer = u.attackCooldown;
             }
-            if (u.moveProgress == 0f) {
-                setPath(u, GridPathfinder.findPath(grid, u.cellX, u.cellY, fx, fy, occupancyMap));
-            }
-            advanceMovement(u);
+        }
+
+        if (u.cellX == sx && u.cellY == sy) {
+            // On-site — hold position so the channel accumulates. Plant
+            // progress itself is driven by ChargeSiteObjective.tick.
+            if (!u.path.isEmpty()) setPath(u, Collections.emptyList());
+            u.moveProgress = 0f;
+            u.renderX = u.cellX;
+            u.renderY = u.cellY;
             return;
         }
 
+        // Path to the site. Same "only re-path between cells" rule as combatant
+        // movement so mid-step transitions don't snap.
+        if (u.moveProgress == 0f) {
+            setPath(u, GridPathfinder.findPath(grid, u.cellX, u.cellY, sx, sy, occupancyMap));
+        }
+        advanceMovement(u);
+    }
+
+    /**
+     * Kit-retriever behavior: head for the assigned drop, fire opportunistically
+     * along the way. If the drop has been consumed by someone else (or the
+     * pointer is null), demote back to combatant — the unit will pick up combat
+     * targeting normally next tick.
+     *
+     * <p>Pickup itself isn't handled here: {@link #processEquipmentDrops}
+     * sweeps every tick and promotes whoever happens to be standing on a
+     * drop cell (this retriever or any opportunist who walked over).
+     */
+    private void updateKitRetriever(Unit u) {
+        EquipmentDrop drop = u.equipmentDropTarget;
+        if (drop == null || drop.consumed) {
+            u.role = UnitRole.COMBATANT;
+            u.equipmentDropTarget = null;
+            updateCombatant(u);
+            return;
+        }
+
+        if (u.target == null || !u.target.isAlive()) {
+            u.target = findBestTarget(u);
+        }
+        if (u.cooldownTimer > 0f) u.cooldownTimer -= TICK_DT;
+        if (u.target != null) {
+            float dist = cellDistance(u.cellX, u.cellY, u.target.cellX, u.target.cellY);
+            boolean canFire = dist <= u.attackRange
+                    && grid.hasLineOfSight(u.cellX, u.cellY, u.target.cellX, u.target.cellY)
+                    && u.cooldownTimer <= 0f;
+            if (canFire) {
+                fireShot(u, u.target);
+                u.cooldownTimer = u.attackCooldown;
+            }
+        }
+
+        if (u.moveProgress == 0f) {
+            setPath(u, GridPathfinder.findPath(grid, u.cellX, u.cellY, drop.cellX, drop.cellY, occupancyMap));
+        }
+        advanceMovement(u);
+    }
+
+    /**
+     * Emits an {@link EquipmentDrop} at the dying unit's cell if they were
+     * carrying a kit — i.e., a PLANTER (or a KIT_RETRIEVER whose pointer maps
+     * to an objective). Skips drops that would point at a completed objective.
+     * The drop is placed at the unit's current cell; mission code should
+     * ensure the cell is walkable for normal combat, so retrieval is reachable.
+     */
+    private void emitEquipmentDropIfApplicable(Unit dead) {
+        Objective carried = null;
+        if (dead.role == UnitRole.PLANTER) {
+            carried = dead.assignedObjective;
+        } else if (dead.role == UnitRole.KIT_RETRIEVER && dead.equipmentDropTarget != null
+                && !dead.equipmentDropTarget.consumed) {
+            // Retriever was carrying nothing in-hand, but their target kit
+            // is still on the ground. We don't emit a new drop — the existing
+            // one remains in the world for someone else to grab.
+            return;
+        }
+        if (carried == null || carried.isComplete()) return;
+        equipmentDrops.add(new EquipmentDrop(dead.cellX, dead.cellY, carried));
+    }
+
+    /**
+     * Per-tick sweep over active equipment drops:
+     * <ol>
+     *   <li>Any alive marine on a drop cell consumes it and is promoted to
+     *       {@link UnitRole#PLANTER} with the drop's objective. Their old role
+     *       is wiped — including any other kit they were currently chasing.</li>
+     *   <li>Unconsumed drops without an assigned retriever recruit the nearest
+     *       alive {@link UnitRole#COMBATANT} marine, promoting them to
+     *       {@link UnitRole#KIT_RETRIEVER}. Existing planters and other
+     *       retrievers are skipped so they keep their current task.</li>
+     *   <li>Consumed drops fall off the list.</li>
+     * </ol>
+     */
+    private void processEquipmentDrops() {
+        if (equipmentDrops.isEmpty()) return;
+
+        // Pickup pass — any marine standing on a drop cell takes the kit.
+        for (EquipmentDrop drop : equipmentDrops) {
+            if (drop.consumed) continue;
+            if (drop.objective.isComplete()) { drop.consumed = true; continue; }
+            for (Unit u : units) {
+                if (!u.isAlive() || u.faction != Faction.MARINE) continue;
+                if (u.cellX != drop.cellX || u.cellY != drop.cellY) continue;
+                u.role = UnitRole.PLANTER;
+                u.assignedObjective = drop.objective;
+                u.equipmentDropTarget = null;
+                drop.consumed = true;
+                break;
+            }
+        }
+
+        // Assignment pass — make sure each unconsumed drop has a retriever.
+        for (EquipmentDrop drop : equipmentDrops) {
+            if (drop.consumed) continue;
+            if (hasLivingRetriever(drop)) continue;
+            Unit nearest = nearestAvailableMarine(drop.cellX, drop.cellY);
+            if (nearest != null) {
+                nearest.role = UnitRole.KIT_RETRIEVER;
+                nearest.equipmentDropTarget = drop;
+                // Wipe any stale path so the retriever re-pathfinds to the drop
+                // next tick instead of continuing toward their old target.
+                setPath(nearest, Collections.emptyList());
+            }
+        }
+
+        // Cleanup.
+        for (int i = equipmentDrops.size() - 1; i >= 0; i--) {
+            if (equipmentDrops.get(i).consumed) equipmentDrops.remove(i);
+        }
+    }
+
+    private boolean hasLivingRetriever(EquipmentDrop drop) {
+        for (Unit u : units) {
+            if (!u.isAlive()) continue;
+            if (u.role == UnitRole.KIT_RETRIEVER && u.equipmentDropTarget == drop) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Nearest alive marine that isn't actively occupied with an incomplete
+     * objective. Skip-by-state instead of skip-by-role so stale role labels
+     * (e.g., a PLANTER whose site already blew but didn't tick through their
+     * own update yet) don't strand drops with no retriever. Anyone idle —
+     * combatant, finished planter, retriever whose kit got picked up — is
+     * eligible. Returns null only when every alive marine is genuinely busy.
+     */
+    private Unit nearestAvailableMarine(int cx, int cy) {
+        Unit best = null;
+        float bestDist = Float.MAX_VALUE;
+        for (Unit u : units) {
+            if (!u.isAlive() || u.faction != Faction.MARINE) continue;
+            if (u.role == UnitRole.PLANTER
+                    && u.assignedObjective != null
+                    && !u.assignedObjective.isComplete()) continue;
+            if (u.role == UnitRole.KIT_RETRIEVER
+                    && u.equipmentDropTarget != null
+                    && !u.equipmentDropTarget.consumed) continue;
+            float d = cellDistance(u.cellX, u.cellY, cx, cy);
+            if (d < bestDist) {
+                bestDist = d;
+                best = u;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * Fall-back state — unit was recently hit and is breaking contact.
+     * Paths toward an out-of-LOS cell, then holds until the timer expires.
+     */
+    private void advanceFallback(Unit u) {
+        u.fallbackTimer -= TICK_DT;
+        int fx = u.fallbackCellX;
+        int fy = u.fallbackCellY;
+        if (u.cellX == fx && u.cellY == fy) {
+            setPath(u, Collections.emptyList());
+            u.moveProgress = 0f;
+            u.renderX = u.cellX;
+            u.renderY = u.cellY;
+            return;
+        }
+        if (u.moveProgress == 0f) {
+            setPath(u, GridPathfinder.findPath(grid, u.cellX, u.cellY, fx, fy, occupancyMap));
+        }
+        advanceMovement(u);
+    }
+
+    /**
+     * Default combat loop: acquire target, fire when in range with LOS, otherwise
+     * path to a firing position. The behavior every unit had before the role
+     * system landed.
+     */
+    private void updateCombatant(Unit u) {
         if (u.target == null || !u.target.isAlive()) {
             u.target = findBestTarget(u);
         }
@@ -427,11 +687,11 @@ public class BattleSimulation {
                 if (!grid.hasLineOfSight(cx, cy, tx, ty)) continue;
 
                 int occupants = occupantsExcludingSelf(self, cx, cy);
-                int coverWalls = countAdjacentWalls(cx, cy);
+                int cover = grid.getCoverAt(cx, cy);
                 float distFromSelf = cellDistance(self.cellX, self.cellY, cx, cy);
                 float score = distFromSelf
                         + FIRING_OCCUPANCY_COST * occupants
-                        - FIRING_COVER_BONUS * coverWalls;
+                        - FIRING_COVER_BONUS * cover;
                 if (score < bestScore) {
                     bestScore = score;
                     best = new int[]{cx, cy};
@@ -441,29 +701,26 @@ public class BattleSimulation {
         return best != null ? best : new int[]{tx, ty};
     }
 
-    /** Count of cardinal-neighbor cells that are walls or out of bounds — used as a cover heuristic. */
-    private int countAdjacentWalls(int cx, int cy) {
-        int n = 0;
-        if (!grid.inBounds(cx + 1, cy) || !grid.isWalkable(cx + 1, cy)) n++;
-        if (!grid.inBounds(cx - 1, cy) || !grid.isWalkable(cx - 1, cy)) n++;
-        if (!grid.inBounds(cx, cy + 1) || !grid.isWalkable(cx, cy + 1)) n++;
-        if (!grid.inBounds(cx, cy - 1) || !grid.isWalkable(cx, cy - 1)) n++;
-        return n;
-    }
-
     /**
      * Rolls accuracy, applies damage on a hit, and emits a {@link ShotEvent}
      * either way so the renderer can draw a tracer. The miss endpoint is a
      * random angle + 0.5..2.0 cell offset from target cell-center — it reads
      * as a stray round whizzing past the target rather than a deleted dud.
+     *
+     * <p>Damage is scaled by the target cell's cover level — a target in heavy
+     * cover takes ~half what they would in the open, so urban positioning has
+     * a real mechanical payoff on top of the LOS routing it already affects.
      */
     private void fireShot(Unit shooter, Unit target) {
         boolean hit = rng.nextFloat() < shooter.accuracy;
         if (hit) {
             boolean wasAlive = target.isAlive();
-            target.hp -= shooter.attackDamage;
+            int targetCover = grid.getCoverAt(target.cellX, target.cellY);
+            float dr = COVER_DAMAGE_REDUCTION[Math.min(targetCover, COVER_DAMAGE_REDUCTION.length - 1)];
+            target.hp -= shooter.attackDamage * (1f - dr);
             if (wasAlive && !target.isAlive()) {
                 deathsThisFrame.add(target);
+                emitEquipmentDropIfApplicable(target);
             }
             // Roll fall-back on hit. Skip if target is dead or already breaking contact.
             if (target.isAlive() && target.fallbackTimer <= 0f
@@ -520,11 +777,11 @@ public class BattleSimulation {
                 if (!isHiddenFromAllEnemies(self, cx, cy)) continue;
 
                 int occupants = occupantsExcludingSelf(self, cx, cy);
-                int coverWalls = countAdjacentWalls(cx, cy);
+                int cover = grid.getCoverAt(cx, cy);
                 float distFromSelf = cellDistance(sx, sy, cx, cy);
                 float score = distFromSelf
                         + FALLBACK_OCCUPANCY_COST * occupants
-                        - FALLBACK_COVER_BONUS * coverWalls;
+                        - FALLBACK_COVER_BONUS * cover;
                 if (score < bestScore) {
                     bestScore = score;
                     best = new int[]{cx, cy};
@@ -543,31 +800,42 @@ public class BattleSimulation {
         return true;
     }
 
+    /**
+     * Battle ends when one faction's objectives are all complete, or when any
+     * of their objectives is failed (which immediately hands the win to the
+     * opposing faction). Mutual-failure ties resolve to no winner.
+     *
+     * <p>The "complete" check is conjunctive per side ({@link Objective#isComplete()}
+     * across all marine objectives, then all defender ones); "failed" is
+     * disjunctive (any single failure flips the side to lost). With only the
+     * default {@link EliminateFactionObjective} pair, this reduces to the old
+     * "last faction standing" behavior — but mission-specific objectives
+     * (charge sites, extraction, raid crates) layer in without changing this
+     * code.
+     */
     private void checkWinCondition() {
-        boolean marineAlive = false;
-        boolean defenderAlive = false;
-        for (Unit u : units) {
-            if (!u.isAlive()) continue;
-            if (u.faction == Faction.MARINE)        marineAlive = true;
-            else if (u.faction == Faction.DEFENDER) defenderAlive = true;
-        }
-        // Pending / inbound / deboarding shuttles count as marines-in-play —
-        // otherwise the first tick would insta-complete as defender win before
-        // any marine has touched the ground.
-        if (!marineAlive) {
-            for (Shuttle s : shuttles) {
-                if (s.marinesRemaining > 0
-                        && s.state != Shuttle.State.DEPARTING
-                        && s.state != Shuttle.State.GONE) {
-                    marineAlive = true;
-                    break;
-                }
+        boolean marineFailed = false, marineAllComplete = true, marineHasObjective = false;
+        boolean defenderFailed = false, defenderAllComplete = true, defenderHasObjective = false;
+        for (Objective o : objectives) {
+            if (o.owningFaction() == Faction.MARINE) {
+                marineHasObjective = true;
+                if (o.isFailed()) marineFailed = true;
+                if (!o.isComplete()) marineAllComplete = false;
+            } else if (o.owningFaction() == Faction.DEFENDER) {
+                defenderHasObjective = true;
+                if (o.isFailed()) defenderFailed = true;
+                if (!o.isComplete()) defenderAllComplete = false;
             }
         }
-        if (marineAlive && defenderAlive) return;
+        boolean marineWin = marineHasObjective && marineAllComplete && !marineFailed;
+        boolean defenderWin = defenderHasObjective && defenderAllComplete && !defenderFailed;
+        if (!marineWin && !defenderWin && !marineFailed && !defenderFailed) return;
         complete = true;
-        winner = marineAlive ? Faction.MARINE
-                : (defenderAlive ? Faction.DEFENDER : null);
+        if (marineWin && !defenderWin)       winner = Faction.MARINE;
+        else if (defenderWin && !marineWin)  winner = Faction.DEFENDER;
+        else if (marineFailed && !defenderFailed) winner = Faction.DEFENDER;
+        else if (defenderFailed && !marineFailed) winner = Faction.MARINE;
+        else                                 winner = null;
     }
 
     private static float cellDistance(int x0, int y0, int x1, int y1) {
@@ -740,6 +1008,13 @@ public class BattleSimulation {
         int[] cell = findDeboardCell(lzCellX, lzCellY);
         if (cell == null) return false;
         Unit marine = new Unit("m" + deboardedMarineCount++, s.faction, cell[0], cell[1]);
+        int slot = s.type.capacity - s.marinesRemaining;
+        MarineLoadout loadout = (s.marineLoadout != null && slot < s.marineLoadout.length)
+                ? s.marineLoadout[slot] : null;
+        if (loadout != null) {
+            marine.role = loadout.role;
+            marine.assignedObjective = loadout.objective;
+        }
         addUnit(marine);
         return true;
     }
