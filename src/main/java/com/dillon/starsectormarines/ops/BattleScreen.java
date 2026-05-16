@@ -194,6 +194,16 @@ public class BattleScreen implements Screen {
     private int roadSheetPxH;
     private boolean roadSheetLoadAttempted;
     private static final Color ROAD_FILL = new Color(TileManifest.ROAD_FILL_RGB);
+    /** Painted crosswalk stripe color. Slightly off-white so it doesn't compete with HP-bar greens. */
+    private static final Color CROSSWALK_STRIPE = new Color(0xE8, 0xE8, 0xD0);
+    /** Stripes per crosswalk cell. 5 is the classic zebra-crossing count and fits cleanly inside one cell. */
+    private static final int CROSSWALK_STRIPE_COUNT = 5;
+    /** Crosswalk stripe + gap widths as fractions of the cell — chosen so 5 stripes + 4 gaps + 2 margins fill the cell width. */
+    private static final float CROSSWALK_STRIPE_FRAC = 0.10f;
+    private static final float CROSSWALK_GAP_FRAC    = 0.10f;
+    private static final float CROSSWALK_ALPHA       = 0.85f;
+    /** Inset along the perpendicular axis — stripes don't quite reach the cell edge, leaving the road surface visible at the curb. */
+    private static final float CROSSWALK_INSET_FRAC  = 0.08f;
 
     /**
      * Cached shuttle sprite + natural aspect ratio (width/height) per ShuttleType.
@@ -731,10 +741,13 @@ public class BattleScreen implements Screen {
         float texYScale = texH / tileSheetPxH;
         int sheetPxH = tileSheetPxH;
 
-        // Floor pass — three subtypes of walkable cell:
+        // Floor pass — four subtypes of walkable cell:
         //   1. Rubble: damaged-floor autotile from the main sheet.
-        //   2. Street: road autotile from the road sheet (open road = solid fill).
-        //   3. Interior floor: clean-floor autotile from the main sheet.
+        //   2. Sidewalk: street cell adjacent to a wall — clean panel from the road sheet.
+        //   3. Road: street cell not adjacent to a wall — road autotile, with sidewalk
+        //      neighbors treated as boundary so the dashed/red edge lights up against
+        //      the sidewalk ring instead of pressing straight into the building.
+        //   4. Interior floor: anything else walkable (inside a building, or doorway).
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
                 if (!grid.isWalkable(x, y)) continue;
@@ -747,11 +760,22 @@ public class BattleScreen implements Screen {
                     TileManifest.TileFrame f = TileManifest.pickRubbleTile(nWall, sWall, eWall, wWall);
                     drawTile(f, x, y, texXScale, texYScale, sheetPxH, alphaMult);
                 } else if (grid.isStreet(x, y) && roadSheet != null) {
-                    TileManifest.TileFrame f = TileManifest.pickRoadTile(nWall, sWall, eWall, wWall);
-                    if (f == null) {
-                        fillCell(x, y, ROAD_FILL, alphaMult);
+                    if (isSidewalkCell(grid, x, y)) {
+                        drawRoadTile(TileManifest.SIDEWALK, x, y, alphaMult);
                     } else {
-                        drawRoadTile(f, x, y, alphaMult);
+                        boolean nB = isRoadBoundary(grid, x, y + 1);
+                        boolean sB = isRoadBoundary(grid, x, y - 1);
+                        boolean eB = isRoadBoundary(grid, x + 1, y);
+                        boolean wB = isRoadBoundary(grid, x - 1, y);
+                        TileManifest.TileFrame f = TileManifest.pickRoadTile(nB, sB, eB, wB);
+                        if (f == null) {
+                            fillCell(x, y, ROAD_FILL, alphaMult);
+                        } else {
+                            drawRoadTile(f, x, y, alphaMult);
+                        }
+                        if (grid.isCrosswalk(x, y)) {
+                            drawCrosswalkStripes(x, y, grid.isCrosswalkStripesHorizontal(x, y), alphaMult);
+                        }
                     }
                 } else {
                     TileManifest.TileFrame f = TileManifest.pickFloorTile(nWall, sWall, eWall, wWall);
@@ -846,7 +870,51 @@ public class BattleScreen implements Screen {
         return !grid.isWalkable(x, y);
     }
 
-    /** Renders the doodad layer (chairs, crates, chest, etc.) on top of floors and below units. */
+    /** Street cell directly adjacent to an in-bounds wall — gets the sidewalk panel instead of the road autotile. */
+    private static boolean isSidewalkCell(NavigationGrid grid, int x, int y) {
+        if (!grid.inBounds(x, y) || !grid.isWalkable(x, y) || !grid.isStreet(x, y)) return false;
+        return isInBoundsWall(grid, x + 1, y)
+                || isInBoundsWall(grid, x - 1, y)
+                || isInBoundsWall(grid, x, y + 1)
+                || isInBoundsWall(grid, x, y - 1);
+    }
+
+    /** What the road autotile considers a boundary: in-bounds walls and sidewalk cells. OOB stays open so map-edge roads don't pick up an edge marking against nothing. */
+    private static boolean isRoadBoundary(NavigationGrid grid, int x, int y) {
+        if (!grid.inBounds(x, y)) return false;
+        if (!grid.isWalkable(x, y)) return true;
+        return isSidewalkCell(grid, x, y);
+    }
+
+    /**
+     * Paints zebra-crossing stripes over a crosswalk cell. {@code stripesHorizontal}
+     * runs the stripes east-west (pedestrian walks north-south); otherwise they
+     * run north-south. The cell is divided into N stripe + (N-1) gap bands plus
+     * two margins, then each band is filled as a quad.
+     */
+    private void drawCrosswalkStripes(int gridX, int gridY, boolean stripesHorizontal, float alphaMult) {
+        float cell = layout.cellSize;
+        float x0 = layout.gridX + gridX * cell;
+        float y0 = layout.gridY + gridY * cell;
+        float stripeW = cell * CROSSWALK_STRIPE_FRAC;
+        float gapW    = cell * CROSSWALK_GAP_FRAC;
+        float bandSpan = CROSSWALK_STRIPE_COUNT * stripeW + (CROSSWALK_STRIPE_COUNT - 1) * gapW;
+        float marginAlong = (cell - bandSpan) / 2f;
+        float perpInset = cell * CROSSWALK_INSET_FRAC;
+        float alpha = CROSSWALK_ALPHA * alphaMult;
+        for (int i = 0; i < CROSSWALK_STRIPE_COUNT; i++) {
+            float bandStart = marginAlong + i * (stripeW + gapW);
+            if (stripesHorizontal) {
+                // Bands stack vertically; each stripe spans the cell horizontally.
+                fillRect(x0 + perpInset, y0 + bandStart, cell - 2 * perpInset, stripeW, CROSSWALK_STRIPE, alpha);
+            } else {
+                // Bands stack horizontally; each stripe spans the cell vertically.
+                fillRect(x0 + bandStart, y0 + perpInset, stripeW, cell - 2 * perpInset, CROSSWALK_STRIPE, alpha);
+            }
+        }
+    }
+
+    /** Renders the doodad layer (chairs, crates, chest, LZ pads, etc.) on top of floors and below units. Branches on which sheet each doodad indexes into. */
     private void renderDoodads(BattleSimulation sim, float alphaMult) {
         if (tileSheet == null) return;
         float texW = tileSheet.getTextureWidth();
@@ -855,7 +923,11 @@ public class BattleScreen implements Screen {
         float texYScale = texH / tileSheetPxH;
         int sheetPxH = tileSheetPxH;
         for (Doodad d : sim.getDoodads()) {
-            drawTile(d.tile, d.cellX, d.cellY, texXScale, texYScale, sheetPxH, alphaMult);
+            if (d.fromRoadSheet) {
+                if (roadSheet != null) drawRoadTile(d.tile, d.cellX, d.cellY, alphaMult);
+            } else {
+                drawTile(d.tile, d.cellX, d.cellY, texXScale, texYScale, sheetPxH, alphaMult);
+            }
         }
     }
 

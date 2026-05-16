@@ -47,6 +47,24 @@ public final class TileManifest {
     /** Open-road surface color (sampled from the road tile's gray interior). Renderer uses this as the no-wall-neighbor fallback. */
     public static final int ROAD_FILL_RGB = 0x4D5267; // 77, 82, 103
 
+    /**
+     * Sidewalk panel tile (clean frame with dark corner studs) on
+     * {@link #ROAD_SHEET}. Stamped on any street cell adjacent to a building
+     * wall — forms a 1-cell buffer ring around every building. The road
+     * autotile treats sidewalk cells as a boundary, so the road's dashed/red
+     * perimeter art lights up against the sidewalk edge instead of pressing
+     * straight into the wall.
+     */
+    public static final TileFrame SIDEWALK = new TileFrame(11, 1);
+
+    /**
+     * Landing-zone pad tile (yellow-striped perimeter, central marker dot) on
+     * {@link #ROAD_SHEET}. Stamped under each shuttle's touchdown cell so the
+     * descent reads as a deliberate landing on a marked pad rather than the
+     * shuttle plopping onto random pavement.
+     */
+    public static final TileFrame LZ_PAD = new TileFrame(16, 2);
+
     /** Top-left cell of the clean-wall 3×3 autotile block. */
     private static final int WALL_COL_ORIGIN = 3;
     private static final int WALL_ROW_ORIGIN = 0;
@@ -69,7 +87,8 @@ public final class TileManifest {
      * Pool of decorative props scattered through hollow building interiors.
      * Visual-only — placed on walkable cells, never block movement. Mix of
      * crates, chairs, a chest, and the closed-door panel to read as
-     * lived-in rooms.
+     * lived-in rooms. This is the {@link DistrictTheme#MIXED} fallback;
+     * themed districts pull from the narrower pools below.
      */
     public static final TileFrame[] DOODAD_POOL = {
             new TileFrame(8, 1), new TileFrame(9, 1),       // tan + amber crates
@@ -79,6 +98,37 @@ public final class TileManifest {
             new TileFrame(8, 7), new TileFrame(9, 7),       // small stools
             new TileFrame(6, 2),                            // closed-door panel (decoration only)
     };
+
+    /** Homely furnishings — chairs, chest. Used inside RESIDENTIAL districts. */
+    public static final TileFrame[] RESIDENTIAL_DOODADS = {
+            new TileFrame(6, 7),                            // bench / paired-seat
+            new TileFrame(7, 7),                            // chest
+            new TileFrame(8, 7), new TileFrame(9, 7),       // small stools
+    };
+
+    /** Stacked crates only — fills warehouse interiors with cargo. */
+    public static final TileFrame[] WAREHOUSE_DOODADS = {
+            new TileFrame(8, 1), new TileFrame(9, 1),
+            new TileFrame(3, 3), new TileFrame(4, 3),
+    };
+
+    /** Cargo + a chest + the marker panel — sky-port stations mix crates and freight. */
+    public static final TileFrame[] SKYPORT_DOODADS = {
+            new TileFrame(8, 1), new TileFrame(9, 1),
+            new TileFrame(7, 7),                            // chest
+            new TileFrame(6, 2),                            // marker panel
+    };
+
+    /** Returns the per-theme doodad pool. {@link DistrictTheme#MIXED} returns the full {@link #DOODAD_POOL}. */
+    public static TileFrame[] doodadPoolFor(DistrictTheme theme) {
+        switch (theme) {
+            case RESIDENTIAL: return RESIDENTIAL_DOODADS;
+            case WAREHOUSE:   return WAREHOUSE_DOODADS;
+            case SKY_PORT:    return SKYPORT_DOODADS;
+            case MIXED:
+            default:          return DOODAD_POOL;
+        }
+    }
 
     /**
      * Returns the wall tile for a cell given which cardinal neighbors are also

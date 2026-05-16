@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.objective.EliminateFactionObjective;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -47,11 +48,28 @@ public final class BattleSetup {
     private BattleSetup() {}
 
     public static BattleSimulation createPlaceholder() {
-        return createPlaceholder(System.currentTimeMillis());
+        return createPlaceholder(System.currentTimeMillis(), defaultManifest());
+    }
+
+    public static BattleSimulation createPlaceholder(long seed) {
+        return createPlaceholder(seed, defaultManifest());
     }
 
     public static BattleSimulation createSabotage() {
-        return createSabotage(System.currentTimeMillis());
+        return createSabotage(System.currentTimeMillis(), defaultManifest());
+    }
+
+    public static BattleSimulation createSabotage(long seed) {
+        return createSabotage(seed, defaultManifest());
+    }
+
+    /** Default manifest used by no-arg factories — three single-cycle Aeroshuttles, matching pre-cycling behavior. */
+    private static List<ShuttleAssignment> defaultManifest() {
+        List<ShuttleAssignment> out = new ArrayList<>(SHUTTLE_COUNT);
+        for (int i = 0; i < SHUTTLE_COUNT; i++) {
+            out.add(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1));
+        }
+        return out;
     }
 
     /**
@@ -64,7 +82,7 @@ public final class BattleSetup {
      * one marine is alive when the last charge sets. Defender win: kill every
      * marine before the charges go off.
      */
-    public static BattleSimulation createSabotage(long seed) {
+    public static BattleSimulation createSabotage(long seed, List<ShuttleAssignment> manifest) {
         UrbanMapGenerator.Result map = UrbanMapGenerator.generate(GRID_W, GRID_H, seed);
         BattleSimulation sim = new BattleSimulation(map.grid);
         for (Doodad d : map.doodads) sim.addDoodad(d);
@@ -83,12 +101,18 @@ public final class BattleSetup {
         }
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
 
-        // Marines: same shuttle drops as ASSAULT, but each shuttle's first
-        // deboard is a PLANTER pointed at one of the charge sites. Pair them
-        // one-to-one if counts match; otherwise wrap around.
-        List<int[]> lzCells = pickLandingZones(map.grid, map.marineSpawnX, map.marineSpawnY, SHUTTLE_COUNT);
+        // Marines: one Shuttle per assignment, each flying assignment.cycles
+        // sorties. Each sortie counts as one "drop"; the globalDropIdx threads
+        // through assignments + cycles so per-cycle planter targeting hits a
+        // different charge site each time (cycle 0 of shuttle 0 → site 0,
+        // cycle 1 of shuttle 0 → site 1, etc.).
+        List<ShuttleAssignment> assignments = resolveManifest(manifest);
+        List<int[]> lzCells = pickLandingZones(map.grid, map.marineSpawnX, map.marineSpawnY, assignments.size());
+        stampLzPads(sim, lzCells);
         float topEdgeY = GRID_H;
+        int globalDropIdx = 0;
         for (int i = 0; i < lzCells.size(); i++) {
+            ShuttleAssignment a = assignments.get(i % assignments.size());
             int[] lz = lzCells.get(i);
             float lzCenterX = lz[0] + 0.5f;
             float lzCenterY = lz[1] + 0.5f;
@@ -97,12 +121,19 @@ public final class BattleSetup {
             float exitX  = lzCenterX;
             float exitY  = topEdgeY + SHUTTLE_OFFMAP_Y + 4f;
             Shuttle shuttle = new Shuttle(
-                    ShuttleType.BASIC_SHUTTLE, Faction.MARINE,
+                    a.type, Faction.MARINE,
                     lzCenterX, lzCenterY,
                     entryX, entryY,
                     exitX, exitY,
                     i * SHUTTLE_DROP_STAGGER_SEC);
-            shuttle.marineLoadout = buildSabotageLoadout(shuttle.type.capacity, objectives, i);
+            shuttle.totalCycles = a.cycles;
+            MarineLoadout[][] cycleLoadouts = new MarineLoadout[a.cycles][];
+            for (int c = 0; c < a.cycles; c++) {
+                cycleLoadouts[c] = buildSabotageLoadout(shuttle.type.capacity, objectives, globalDropIdx);
+                globalDropIdx++;
+            }
+            shuttle.cycleLoadouts = cycleLoadouts;
+            shuttle.marineLoadout = cycleLoadouts[0];
             sim.addShuttle(shuttle);
         }
 
@@ -112,6 +143,19 @@ public final class BattleSetup {
             sim.addUnit(new Unit("d" + i, Faction.DEFENDER, p[0], p[1]));
         }
         return sim;
+    }
+
+    /** Falls back to the default manifest when callers pass null or an empty list. Keeps test entry points working without a manifest. */
+    private static List<ShuttleAssignment> resolveManifest(List<ShuttleAssignment> manifest) {
+        if (manifest == null || manifest.isEmpty()) return defaultManifest();
+        return manifest;
+    }
+
+    /** Drops a yellow-striped landing-pad doodad under each LZ cell so the touchdown reads as a deliberate landing on a marked pad. Lives on the road sheet, drawn between floor and units. */
+    private static void stampLzPads(BattleSimulation sim, List<int[]> lzCells) {
+        for (int[] lz : lzCells) {
+            sim.addDoodad(new Doodad(lz[0], lz[1], TileManifest.LZ_PAD, true));
+        }
     }
 
     /**
@@ -151,17 +195,24 @@ public final class BattleSetup {
      * by shuttle index, wrapping around if shuttle count and site count differ).
      * Remaining slots are plain combatants.
      */
-    private static MarineLoadout[] buildSabotageLoadout(int capacity, List<ChargeSiteObjective> sites, int shuttleIndex) {
+    /**
+     * Builds one sortie's loadout — slot 0 is a PLANTER targeting the charge
+     * site keyed by {@code dropIndex}, the rest are plain combatants. {@code
+     * dropIndex} is the GLOBAL drop number across all shuttles + cycles (not
+     * the shuttle index), so a single cycling shuttle hits each site in turn
+     * on successive sorties.
+     */
+    private static MarineLoadout[] buildSabotageLoadout(int capacity, List<ChargeSiteObjective> sites, int dropIndex) {
         MarineLoadout[] roster = new MarineLoadout[capacity];
         for (int i = 0; i < capacity; i++) roster[i] = MarineLoadout.COMBATANT;
         if (!sites.isEmpty()) {
-            ChargeSiteObjective site = sites.get(shuttleIndex % sites.size());
+            ChargeSiteObjective site = sites.get(dropIndex % sites.size());
             roster[0] = new MarineLoadout(UnitRole.PLANTER, site);
         }
         return roster;
     }
 
-    public static BattleSimulation createPlaceholder(long seed) {
+    public static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest) {
         UrbanMapGenerator.Result map = UrbanMapGenerator.generate(GRID_W, GRID_H, seed);
         BattleSimulation sim = new BattleSimulation(map.grid);
         for (Doodad d : map.doodads) sim.addDoodad(d);
@@ -171,11 +222,15 @@ public final class BattleSetup {
         sim.addObjective(new EliminateFactionObjective(Faction.MARINE, Faction.DEFENDER));
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
 
-        // Marines: schedule SHUTTLE_COUNT staggered drops, each at its own LZ.
-        // Marines spawn when each shuttle reaches LANDED and the deboard timer fires.
-        List<int[]> lzCells = pickLandingZones(map.grid, map.marineSpawnX, map.marineSpawnY, SHUTTLE_COUNT);
+        // Marines: one Shuttle per assignment, each flying assignment.cycles sorties.
+        // ASSAULT has no per-cycle role distinction (everyone is a combatant), so no
+        // cycleLoadouts setup is needed — Shuttle.totalCycles drives repeat behavior.
+        List<ShuttleAssignment> assignments = resolveManifest(manifest);
+        List<int[]> lzCells = pickLandingZones(map.grid, map.marineSpawnX, map.marineSpawnY, assignments.size());
+        stampLzPads(sim, lzCells);
         float topEdgeY = GRID_H;
         for (int i = 0; i < lzCells.size(); i++) {
+            ShuttleAssignment a = assignments.get(i % assignments.size());
             int[] lz = lzCells.get(i);
             float lzCenterX = lz[0] + 0.5f;
             float lzCenterY = lz[1] + 0.5f;
@@ -185,12 +240,14 @@ public final class BattleSetup {
             float entryY = topEdgeY + SHUTTLE_OFFMAP_Y;
             float exitX  = lzCenterX;
             float exitY  = topEdgeY + SHUTTLE_OFFMAP_Y + 4f;
-            sim.addShuttle(new Shuttle(
-                    ShuttleType.BASIC_SHUTTLE, Faction.MARINE,
+            Shuttle shuttle = new Shuttle(
+                    a.type, Faction.MARINE,
                     lzCenterX, lzCenterY,
                     entryX, entryY,
                     exitX, exitY,
-                    i * SHUTTLE_DROP_STAGGER_SEC));
+                    i * SHUTTLE_DROP_STAGGER_SEC);
+            shuttle.totalCycles = a.cycles;
+            sim.addShuttle(shuttle);
         }
 
         // Defenders pre-spawn around their anchor, biased to high-cover cells —

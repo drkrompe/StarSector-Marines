@@ -14,10 +14,17 @@ public final class Doodad {
     public final int cellX;
     public final int cellY;
     public final TileManifest.TileFrame tile;
+    /** When true, {@link #tile} indexes into {@link TileManifest#ROAD_SHEET} instead of the main {@link TileManifest#SHEET}. Lets LZ pads and other road-sheet props live in the same list as interior doodads. */
+    public final boolean fromRoadSheet;
 
     public Doodad(int cellX, int cellY, TileManifest.TileFrame tile) {
+        this(cellX, cellY, tile, false);
+    }
+
+    public Doodad(int cellX, int cellY, TileManifest.TileFrame tile, boolean fromRoadSheet) {
         this.cellX = cellX;
         this.cellY = cellY;
         this.tile = tile;
+        this.fromRoadSheet = fromRoadSheet;
     }
 }

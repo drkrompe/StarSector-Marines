@@ -24,6 +24,11 @@ import java.util.Arrays;
  *   <li>Bit 4: street (outdoor walkable cell — renders with the road autotile;
  *       building interiors and doorways have this cleared so they render with
  *       the interior floor tileset)</li>
+ *   <li>Bit 5: crosswalk (street cell painted with pedestrian stripes; tagged
+ *       at gen time outside building doorways)</li>
+ *   <li>Bit 6: crosswalk-stripes-horizontal (only meaningful when bit 5 is set;
+ *       1 = stripes run east-west (pedestrian walking north-south), 0 = stripes
+ *       run north-south (pedestrian walking east-west))</li>
  * </ul>
  *
  * <p>Edge passability byte layout:
@@ -38,11 +43,13 @@ import java.util.Arrays;
  */
 public class NavigationGrid {
 
-    private static final int WALKABLE_BIT = 0;
-    private static final int FLOOR_BIT    = 1;
-    private static final int RUBBLE_BIT   = 2;
-    private static final int DOORWAY_BIT  = 3;
-    private static final int STREET_BIT   = 4;
+    private static final int WALKABLE_BIT          = 0;
+    private static final int FLOOR_BIT             = 1;
+    private static final int RUBBLE_BIT            = 2;
+    private static final int DOORWAY_BIT           = 3;
+    private static final int STREET_BIT            = 4;
+    private static final int CROSSWALK_BIT         = 5;
+    private static final int CROSSWALK_HORIZ_BIT   = 6;
 
     /** Maximum cover level. 0 = open ground, MAX = heavy cover (all sides walled). */
     public static final int MAX_COVER = 3;
@@ -214,6 +221,34 @@ public class NavigationGrid {
         int idx = index(x, y);
         if (street) cellFlags[idx] |= (byte) (1 << STREET_BIT);
         else        cellFlags[idx] &= (byte) ~(1 << STREET_BIT);
+    }
+
+    // ----- Crosswalks -----
+
+    /** True for crosswalk-painted road cells. Set by the map generator outside building doorways. */
+    public boolean isCrosswalk(int x, int y) {
+        if (!inBounds(x, y)) return false;
+        return (cellFlags[index(x, y)] & (1 << CROSSWALK_BIT)) != 0;
+    }
+
+    public void setCrosswalk(int x, int y, boolean crosswalk) {
+        if (!inBounds(x, y)) return;
+        int idx = index(x, y);
+        if (crosswalk) cellFlags[idx] |= (byte) (1 << CROSSWALK_BIT);
+        else           cellFlags[idx] &= (byte) ~(1 << CROSSWALK_BIT);
+    }
+
+    /** Only meaningful when {@link #isCrosswalk} is true. True = stripes run E-W (pedestrian crossing N-S). */
+    public boolean isCrosswalkStripesHorizontal(int x, int y) {
+        if (!inBounds(x, y)) return false;
+        return (cellFlags[index(x, y)] & (1 << CROSSWALK_HORIZ_BIT)) != 0;
+    }
+
+    public void setCrosswalkStripesHorizontal(int x, int y, boolean horizontal) {
+        if (!inBounds(x, y)) return;
+        int idx = index(x, y);
+        if (horizontal) cellFlags[idx] |= (byte) (1 << CROSSWALK_HORIZ_BIT);
+        else            cellFlags[idx] &= (byte) ~(1 << CROSSWALK_HORIZ_BIT);
     }
 
     // ----- Rubble + destructible walls -----

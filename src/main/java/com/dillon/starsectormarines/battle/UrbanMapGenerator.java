@@ -90,22 +90,80 @@ public final class UrbanMapGenerator {
         List<int[]> blockColsX = blockStripsAlongAxis(width,  rng);
 
         List<PointOfInterest> pois = new ArrayList<>();
+        // Per-POI theme map so doodad scatter can match each building's flavor
+        // without re-rolling.
+        java.util.Map<PointOfInterest, DistrictTheme> poiThemes = new java.util.HashMap<>();
+        List<int[]> skyPortPlazas = new ArrayList<>();
         for (int[] row : blockRowsY) {
             for (int[] col : blockColsX) {
-                PointOfInterest poi = placeBuilding(grid, col[0], row[0], col[1], row[1], rng);
-                if (poi != null) pois.add(poi);
+                DistrictTheme theme = pickTheme(rng);
+                PointOfInterest poi = placeBuilding(grid, col[0], row[0], col[1], row[1], rng, theme);
+                if (poi != null) {
+                    pois.add(poi);
+                    poiThemes.put(poi, theme);
+                } else if (theme == DistrictTheme.SKY_PORT) {
+                    // Plaza in a sky-port = open landing pad area. Stamp at the
+                    // block center; placement avoids the curb so the pad reads
+                    // as a deliberate clearing.
+                    int cx = (col[0] + col[1]) / 2;
+                    int cy = (row[0] + row[1]) / 2;
+                    if (grid.inBounds(cx, cy) && grid.isWalkable(cx, cy)) {
+                        skyPortPlazas.add(new int[]{cx, cy});
+                    }
+                }
             }
         }
 
         seedWallHp(grid);
         bakeCoverFromWalls(grid);
+        paintCrosswalks(grid);
 
-        List<Doodad> doodads = scatterDoodads(grid, pois, rng);
+        List<Doodad> doodads = scatterDoodads(grid, pois, poiThemes, rng);
+        for (int[] plaza : skyPortPlazas) {
+            doodads.add(new Doodad(plaza[0], plaza[1], TileManifest.LZ_PAD, true));
+        }
 
-        int[] marine   = findNearestWalkable(grid, 2,             2);
-        int[] defender = findNearestWalkable(grid, width - 3,     height - 3);
+        int[] marine   = pickSpawnAnchor(grid, skyPortPlazas, 1, 1, width / 2,        height - 1, rng);
+        int[] defender = pickSpawnAnchor(grid, skyPortPlazas, width / 2, 1, width - 1, height - 1, rng);
 
         return new Result(grid, marine[0], marine[1], defender[0], defender[1], pois, doodads);
+    }
+
+    /**
+     * Picks a spawn anchor in the rectangle {@code [xMin, xMax) × [yMin, yMax)}.
+     * Prefers a sky-port plaza inside the rect — marines land at the spaceport,
+     * defenders dig in around theirs. Falls back to a random walkable cell, then
+     * to a linear scan if that fails (very tight maps). The legacy hardcoded
+     * (2, 2) / (width-3, height-3) anchors always ended up at the same corner;
+     * randomization gives each generated map a different "where do they meet"
+     * shape.
+     */
+    private static int[] pickSpawnAnchor(NavigationGrid grid, List<int[]> skyPortPlazas,
+                                          int xMin, int yMin, int xMax, int yMax, Random rng) {
+        List<int[]> halfPlazas = new ArrayList<>();
+        for (int[] plaza : skyPortPlazas) {
+            if (plaza[0] >= xMin && plaza[0] < xMax && plaza[1] >= yMin && plaza[1] < yMax) {
+                halfPlazas.add(plaza);
+            }
+        }
+        if (!halfPlazas.isEmpty()) {
+            return halfPlazas.get(rng.nextInt(halfPlazas.size()));
+        }
+        int spanX = Math.max(1, xMax - xMin);
+        int spanY = Math.max(1, yMax - yMin);
+        for (int attempt = 0; attempt < 64; attempt++) {
+            int x = xMin + rng.nextInt(spanX);
+            int y = yMin + rng.nextInt(spanY);
+            if (grid.inBounds(x, y) && grid.isWalkable(x, y)) {
+                return new int[]{x, y};
+            }
+        }
+        for (int y = yMin; y < yMax; y++) {
+            for (int x = xMin; x < xMax; x++) {
+                if (grid.isWalkable(x, y)) return new int[]{x, y};
+            }
+        }
+        return new int[]{(xMin + xMax) / 2, (yMin + yMax) / 2};
     }
 
     /**
@@ -117,7 +175,9 @@ public final class UrbanMapGenerator {
      * overlay. Solid (non-hollow) buildings get nothing — there's no interior
      * to dress.
      */
-    private static List<Doodad> scatterDoodads(NavigationGrid grid, List<PointOfInterest> pois, Random rng) {
+    private static List<Doodad> scatterDoodads(NavigationGrid grid, List<PointOfInterest> pois,
+                                               java.util.Map<PointOfInterest, DistrictTheme> poiThemes,
+                                               Random rng) {
         List<Doodad> out = new ArrayList<>();
         for (PointOfInterest poi : pois) {
             if (rng.nextFloat() >= DOODAD_PER_BUILDING_CHANCE) continue;
@@ -131,13 +191,16 @@ public final class UrbanMapGenerator {
             }
             if (interior.isEmpty()) continue;
 
+            DistrictTheme theme = poiThemes.getOrDefault(poi, DistrictTheme.MIXED);
+            TileManifest.TileFrame[] pool = TileManifest.doodadPoolFor(theme);
+
             // First placement is guaranteed; subsequent are a coin flip until
             // the cap is hit. Keeps small rooms from collecting four chairs.
             for (int i = 0; i < interior.size() && i < DOODAD_MAX_PER_BUILDING; i++) {
                 if (i > 0 && rng.nextFloat() >= DOODAD_EXTRA_CELL_CHANCE) break;
                 int pickIdx = rng.nextInt(interior.size());
                 int[] cell = interior.remove(pickIdx);
-                TileManifest.TileFrame tile = TileManifest.DOODAD_POOL[rng.nextInt(TileManifest.DOODAD_POOL.length)];
+                TileManifest.TileFrame tile = pool[rng.nextInt(pool.length)];
                 out.add(new Doodad(cell[0], cell[1], tile));
                 if (interior.isEmpty()) break;
             }
@@ -227,7 +290,7 @@ public final class UrbanMapGenerator {
      * is its own zone, the doorway becomes a portal, and breaching a wall
      * cleanly emits a new portal between the interior and the street.
      */
-    private static PointOfInterest placeBuilding(NavigationGrid grid, int l, int t, int r, int b, Random rng) {
+    private static PointOfInterest placeBuilding(NavigationGrid grid, int l, int t, int r, int b, Random rng, DistrictTheme theme) {
         if (rng.nextFloat() < PLAZA_CHANCE) return null;
         int bl = l + BUILDING_INSET;
         int bt = t + BUILDING_INSET;
@@ -265,7 +328,7 @@ public final class UrbanMapGenerator {
             }
         }
 
-        PointOfInterest.Kind kind = pickPoiKind(rng);
+        PointOfInterest.Kind kind = pickPoiKindForTheme(theme, rng);
         int cx = (bl + br) / 2;
         int cy = (bt + bb) / 2;
         int[] anchor = findNearestWalkableFromBuilding(grid, cx, cy, bl, bt, br, bb);
@@ -286,9 +349,9 @@ public final class UrbanMapGenerator {
         int side = rng.nextInt(4);
         int doorX, doorY;
         switch (side) {
-            case 0: doorX = bl + 1 + rng.nextInt(br - bl - 1); doorY = bt;     break; // top
-            case 1: doorX = bl + 1 + rng.nextInt(br - bl - 1); doorY = bb;     break; // bottom
-            case 2: doorX = bl;     doorY = bt + 1 + rng.nextInt(bb - bt - 1); break; // left
+            case 0:  doorX = bl + 1 + rng.nextInt(br - bl - 1); doorY = bt; break; // top
+            case 1:  doorX = bl + 1 + rng.nextInt(br - bl - 1); doorY = bb; break; // bottom
+            case 2:  doorX = bl;     doorY = bt + 1 + rng.nextInt(bb - bt - 1); break; // left
             default: doorX = br;    doorY = bt + 1 + rng.nextInt(bb - bt - 1); break; // right
         }
         grid.setWalkable(doorX, doorY, true);
@@ -301,16 +364,102 @@ public final class UrbanMapGenerator {
     }
 
     /**
-     * Picks a POI kind. Residential weight is intentionally higher so that
-     * landmark buildings (lab, comms, depot) stand out as unusual targets on
-     * a map dominated by ordinary structures.
+     * Paints crosswalk stripes on road cells that mark the entrance to a street
+     * intersection. A road cell qualifies when:
+     * <ul>
+     *   <li>It's a street cell that's not itself a sidewalk (mid-road, not at the curb).</li>
+     *   <li>Two opposite cardinal neighbors are sidewalks — meaning the cell is
+     *       between two buildings (a "throat" segment of road).</li>
+     *   <li>The next cell along the road's flow direction breaks that pattern
+     *       (one or both perpendicular sidewalks ends) — i.e., the road opens
+     *       into a perpendicular street.</li>
+     * </ul>
+     * Stripes are oriented perpendicular to traffic flow (zebra-crossing
+     * convention): N-S road gets horizontal stripes, E-W road gets vertical.
      */
-    private static PointOfInterest.Kind pickPoiKind(Random rng) {
+    private static void paintCrosswalks(NavigationGrid grid) {
+        int w = grid.getWidth();
+        int h = grid.getHeight();
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                if (!grid.isStreet(x, y)) continue;
+                if (isSidewalkCell(grid, x, y)) continue;
+
+                boolean ewRoad = isSidewalkCell(grid, x, y + 1) && isSidewalkCell(grid, x, y - 1);
+                boolean nsRoad = isSidewalkCell(grid, x + 1, y) && isSidewalkCell(grid, x - 1, y);
+
+                if (ewRoad && !nsRoad) {
+                    // Road runs E-W between two N/S buildings. Check whether
+                    // the next cell east or west breaks the sidewalk pattern.
+                    boolean eOpen = !isSidewalkCell(grid, x + 1, y + 1) || !isSidewalkCell(grid, x + 1, y - 1);
+                    boolean wOpen = !isSidewalkCell(grid, x - 1, y + 1) || !isSidewalkCell(grid, x - 1, y - 1);
+                    if (eOpen || wOpen) {
+                        grid.setCrosswalk(x, y, true);
+                        // E-W traffic flow → N-S oriented stripes (vertical).
+                        grid.setCrosswalkStripesHorizontal(x, y, false);
+                    }
+                } else if (nsRoad && !ewRoad) {
+                    boolean nOpen = !isSidewalkCell(grid, x + 1, y + 1) || !isSidewalkCell(grid, x - 1, y + 1);
+                    boolean sOpen = !isSidewalkCell(grid, x + 1, y - 1) || !isSidewalkCell(grid, x - 1, y - 1);
+                    if (nOpen || sOpen) {
+                        grid.setCrosswalk(x, y, true);
+                        // N-S traffic flow → E-W oriented stripes (horizontal).
+                        grid.setCrosswalkStripesHorizontal(x, y, true);
+                    }
+                }
+            }
+        }
+    }
+
+    /** Mirror of the renderer's same-named check — needed at gen time so {@link #paintCrosswalks} can decide where intersections begin. */
+    private static boolean isSidewalkCell(NavigationGrid grid, int x, int y) {
+        if (!grid.inBounds(x, y)) return false;
+        if (!grid.isWalkable(x, y)) return false;
+        if (!grid.isStreet(x, y))   return false;
+        return isInBoundsWall(grid, x + 1, y)
+                || isInBoundsWall(grid, x - 1, y)
+                || isInBoundsWall(grid, x, y + 1)
+                || isInBoundsWall(grid, x, y - 1);
+    }
+
+    private static boolean isInBoundsWall(NavigationGrid grid, int x, int y) {
+        if (!grid.inBounds(x, y)) return false;
+        return !grid.isWalkable(x, y);
+    }
+
+    /**
+     * Picks a POI kind biased by the block's theme. {@link DistrictTheme#MIXED}
+     * falls through to the legacy weighted roll where residential dominates so
+     * landmark buildings (lab, comms, depot) stand out.
+     */
+    private static PointOfInterest.Kind pickPoiKindForTheme(DistrictTheme theme, Random rng) {
+        switch (theme) {
+            case RESIDENTIAL: return PointOfInterest.Kind.RESIDENTIAL;
+            case WAREHOUSE:   return PointOfInterest.Kind.DEPOT;
+            case SKY_PORT:    return rng.nextFloat() < 0.5f ? PointOfInterest.Kind.COMMS : PointOfInterest.Kind.DEPOT;
+            case MIXED:
+            default: {
+                float r = rng.nextFloat();
+                if (r < 0.55f) return PointOfInterest.Kind.RESIDENTIAL;
+                if (r < 0.75f) return PointOfInterest.Kind.DEPOT;
+                if (r < 0.90f) return PointOfInterest.Kind.LABORATORY;
+                return PointOfInterest.Kind.COMMS;
+            }
+        }
+    }
+
+    /**
+     * Picks a per-block theme. Weighting leans heavily toward {@link DistrictTheme#MIXED}
+     * so themed districts read as occasional landmark blocks rather than a city
+     * built entirely out of warehouses or sky-ports. Tune the cutoffs to shift
+     * the mix.
+     */
+    private static DistrictTheme pickTheme(Random rng) {
         float r = rng.nextFloat();
-        if (r < 0.55f) return PointOfInterest.Kind.RESIDENTIAL;
-        if (r < 0.75f) return PointOfInterest.Kind.DEPOT;
-        if (r < 0.90f) return PointOfInterest.Kind.LABORATORY;
-        return PointOfInterest.Kind.COMMS;
+        if (r < 0.20f) return DistrictTheme.RESIDENTIAL;
+        if (r < 0.35f) return DistrictTheme.WAREHOUSE;
+        if (r < 0.45f) return DistrictTheme.SKY_PORT;
+        return DistrictTheme.MIXED;
     }
 
     /**
