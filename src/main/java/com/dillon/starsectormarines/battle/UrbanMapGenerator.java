@@ -487,8 +487,8 @@ public final class UrbanMapGenerator {
             // the partition (vertical wall → left/right doors; horizontal
             // wall → top/bottom doors), giving each room its own exterior
             // access when the building scores a 2nd doorway.
-            InteriorWallOrient wallOrient = maybeAddInteriorWall(grid, bl, bt, br, bb, rng);
-            punchPerimeterDoorways(grid, bl, bt, br, bb, wallOrient, rng);
+            InteriorWall wall = maybeAddInteriorWall(grid, bl, bt, br, bb, rng);
+            punchPerimeterDoorways(grid, bl, bt, br, bb, wall, rng);
         } else {
             // Too small to enclose anything readable — solid block.
             for (int y = bt; y <= bb; y++) {
@@ -518,7 +518,7 @@ public final class UrbanMapGenerator {
      * shortcut/flank routes, not dead-end fallback zones.
      */
     private static void punchPerimeterDoorways(NavigationGrid grid, int bl, int bt, int br, int bb,
-                                               InteriorWallOrient wall, Random rng) {
+                                               InteriorWall wall, Random rng) {
         int w = br - bl + 1;
         int h = bb - bt + 1;
         boolean twoDoors = w >= SECOND_DOORWAY_MIN_DIM
@@ -526,7 +526,7 @@ public final class UrbanMapGenerator {
                         && rng.nextFloat() < SECOND_DOORWAY_CHANCE;
 
         if (!twoDoors) {
-            punchDoorwayOnSide(grid, bl, bt, br, bb, rng.nextInt(4), rng);
+            punchDoorwayOnSide(grid, bl, bt, br, bb, rng.nextInt(4), wall, rng);
             return;
         }
 
@@ -534,13 +534,13 @@ public final class UrbanMapGenerator {
         // codes 0/1 are top/bottom (vertical axis), 2/3 are left/right
         // (horizontal axis); XOR with 1 toggles between paired sides.
         int firstSide;
-        switch (wall) {
+        switch (wall.orient) {
             case VERTICAL:   firstSide = rng.nextBoolean() ? 2 : 3; break;
             case HORIZONTAL: firstSide = rng.nextBoolean() ? 0 : 1; break;
             default:         firstSide = rng.nextInt(4);           break;
         }
-        punchDoorwayOnSide(grid, bl, bt, br, bb, firstSide,     rng);
-        punchDoorwayOnSide(grid, bl, bt, br, bb, firstSide ^ 1, rng);
+        punchDoorwayOnSide(grid, bl, bt, br, bb, firstSide,     wall, rng);
+        punchDoorwayOnSide(grid, bl, bt, br, bb, firstSide ^ 1, wall, rng);
     }
 
     /**
@@ -549,18 +549,39 @@ public final class UrbanMapGenerator {
      * the agent on the outside would step diagonally onto the doorway, which
      * reads as awkward "wall hugger" geometry.
      *
+     * <p>When {@code wall} is a vertical partition and the side is top/bottom,
+     * the partition's column is skipped from the random offset — otherwise
+     * the doorway opens directly onto the interior wall and the agent can't
+     * step through. Same for a horizontal partition with a left/right side.
+     *
      * <p>Side codes: {@code 0}=top, {@code 1}=bottom, {@code 2}=left,
      * {@code 3}=right. The XOR-with-1 trick in {@link #punchPerimeterDoorways}
      * relies on this pairing.
      */
     private static void punchDoorwayOnSide(NavigationGrid grid, int bl, int bt, int br, int bb,
-                                           int side, Random rng) {
+                                           int side, InteriorWall wall, Random rng) {
         int doorX, doorY;
         switch (side) {
-            case 0:  doorX = bl + 1 + rng.nextInt(br - bl - 1); doorY = bt; break; // top
-            case 1:  doorX = bl + 1 + rng.nextInt(br - bl - 1); doorY = bb; break; // bottom
-            case 2:  doorX = bl;     doorY = bt + 1 + rng.nextInt(bb - bt - 1); break; // left
-            default: doorX = br;     doorY = bt + 1 + rng.nextInt(bb - bt - 1); break; // right
+            case 0:  // top
+                doorX = pickAlongRangeExcluding(bl + 1, br - 1,
+                            wall.orient == InteriorWallOrient.VERTICAL ? wall.axis : Integer.MIN_VALUE, rng);
+                doorY = bt;
+                break;
+            case 1:  // bottom
+                doorX = pickAlongRangeExcluding(bl + 1, br - 1,
+                            wall.orient == InteriorWallOrient.VERTICAL ? wall.axis : Integer.MIN_VALUE, rng);
+                doorY = bb;
+                break;
+            case 2:  // left
+                doorX = bl;
+                doorY = pickAlongRangeExcluding(bt + 1, bb - 1,
+                            wall.orient == InteriorWallOrient.HORIZONTAL ? wall.axis : Integer.MIN_VALUE, rng);
+                break;
+            default: // right
+                doorX = br;
+                doorY = pickAlongRangeExcluding(bt + 1, bb - 1,
+                            wall.orient == InteriorWallOrient.HORIZONTAL ? wall.axis : Integer.MIN_VALUE, rng);
+                break;
         }
         grid.setWalkable(doorX, doorY, true);
         grid.setFloor(doorX, doorY, true);
@@ -572,11 +593,54 @@ public final class UrbanMapGenerator {
     }
 
     /**
-     * Orientation tag returned by {@link #maybeAddInteriorWall}, consumed by
-     * {@link #punchPerimeterDoorways} so the 2-door pair can be aligned with
-     * the partition (each room gets its own exterior door).
+     * Returns a uniformly-random integer in {@code [min, max]} (inclusive)
+     * skipping {@code exclude} if it falls inside the range. Used by
+     * {@link #punchDoorwayOnSide} to avoid landing on the column/row occupied
+     * by an interior partition wall — that would point the doorway into a
+     * wall cell and seal the room off from the outside.
+     */
+    private static int pickAlongRangeExcluding(int min, int max, int exclude, Random rng) {
+        int size = max - min + 1;
+        boolean hasExclude = exclude >= min && exclude <= max;
+        if (hasExclude) size -= 1;
+        if (size <= 0) return min; // pathological — shouldn't happen given min building sizes
+        int pick = rng.nextInt(size);
+        int v = min + pick;
+        if (hasExclude && v >= exclude) v += 1;
+        return v;
+    }
+
+    /**
+     * Orientation tag carried inside {@link InteriorWall}. Three cases the
+     * doorway pickers need to distinguish: no partition (free placement),
+     * vertical partition (avoid the partition column on top/bottom doors),
+     * horizontal partition (avoid the partition row on left/right doors).
      */
     private enum InteriorWallOrient { NONE, VERTICAL, HORIZONTAL }
+
+    /**
+     * Tag returned by {@link #maybeAddInteriorWall} describing the partition
+     * (if any). {@link #axis} is the partition column when
+     * {@link #orient} is {@link InteriorWallOrient#VERTICAL}, the partition
+     * row when {@link InteriorWallOrient#HORIZONTAL}, and {@code -1} for
+     * {@link InteriorWallOrient#NONE}.
+     *
+     * <p>{@link #punchPerimeterDoorways} uses {@link #orient} to align the
+     * 2-door side pair; {@link #punchDoorwayOnSide} uses {@link #axis} to
+     * skip the partition coordinate when its side's varying-axis would
+     * collide — fixes the bug where a top doorway picked at the partition
+     * column would open onto an interior wall cell and leave the building
+     * unreachable.
+     */
+    private static final class InteriorWall {
+        static final InteriorWall NONE = new InteriorWall(InteriorWallOrient.NONE, -1);
+        final InteriorWallOrient orient;
+        final int axis;
+        InteriorWall(InteriorWallOrient orient, int axis) {
+            this.orient = orient;
+            this.axis = axis;
+        }
+    }
 
     /**
      * Optionally subdivides a hollow building with one interior partition wall
@@ -602,13 +666,13 @@ public final class UrbanMapGenerator {
      * a single-sided edge tile — the visible "face" of the wall ends up on
      * one room's side, which reads as functional but not perfectly symmetric.
      */
-    private static InteriorWallOrient maybeAddInteriorWall(NavigationGrid grid, int bl, int bt, int br, int bb, Random rng) {
+    private static InteriorWall maybeAddInteriorWall(NavigationGrid grid, int bl, int bt, int br, int bb, Random rng) {
         int w = br - bl + 1;
         int h = bb - bt + 1;
         boolean canVert  = w >= MULTI_ROOM_MIN_DIM;
         boolean canHoriz = h >= MULTI_ROOM_MIN_DIM;
-        if (!canVert && !canHoriz) return InteriorWallOrient.NONE;
-        if (rng.nextFloat() >= MULTI_ROOM_CHANCE) return InteriorWallOrient.NONE;
+        if (!canVert && !canHoriz) return InteriorWall.NONE;
+        if (rng.nextFloat() >= MULTI_ROOM_CHANCE) return InteriorWall.NONE;
 
         // Split the longer dimension so rooms come out roughly square. If only
         // one dimension qualifies, take it. Equal dims fall back to a coin flip.
@@ -633,7 +697,7 @@ public final class UrbanMapGenerator {
             // the perimeter on the far side if the doorway is at the end).
             int dy = bt + 1 + rng.nextInt(h - 2);
             openInteriorDoorway(grid, wx, dy);
-            return InteriorWallOrient.VERTICAL;
+            return new InteriorWall(InteriorWallOrient.VERTICAL, wx);
         } else {
             int wy = bt + 3 + rng.nextInt(h - 6);
             for (int x = bl + 1; x <= br - 1; x++) {
@@ -641,7 +705,7 @@ public final class UrbanMapGenerator {
             }
             int dx = bl + 1 + rng.nextInt(w - 2);
             openInteriorDoorway(grid, dx, wy);
-            return InteriorWallOrient.HORIZONTAL;
+            return new InteriorWall(InteriorWallOrient.HORIZONTAL, wy);
         }
     }
 
