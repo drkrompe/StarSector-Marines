@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.ai.KitRetrieverBehavior;
 import com.dillon.starsectormarines.battle.ai.PlanterBehavior;
 import com.dillon.starsectormarines.battle.ai.TacticalScoring;
 import com.dillon.starsectormarines.battle.ai.UnitBehavior;
+import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.objective.EliminateFactionObjective;
@@ -127,6 +128,9 @@ public class BattleSimulation {
 
     private final ZoneGraph zoneGraph;
 
+    /** Fighter wings committed to this battle. Lives on the sim so the overlay can read it without coupling to the briefing screen. */
+    private FlybyRoster flybyRoster = FlybyRoster.EMPTY;
+
     public BattleSimulation(NavigationGrid grid) {
         this.grid = grid;
         this.occupancyMap = new byte[grid.getWidth() * grid.getHeight()];
@@ -156,6 +160,9 @@ public class BattleSimulation {
     public List<EquipmentDrop> getEquipmentDrops() { return equipmentDrops; }
     public List<Doodad> getDoodads()       { return doodads; }
     public void addDoodad(Doodad d)        { doodads.add(d); }
+    /** Fighter wings committed to this battle. {@code FlybyOverlay} reads this on first tick and drives spawns from the per-wing schedules. Defaults to {@link FlybyRoster#EMPTY}; missions assign via {@link #setFlybyRoster}. */
+    public FlybyRoster getFlybyRoster()    { return flybyRoster; }
+    public void setFlybyRoster(FlybyRoster roster) { this.flybyRoster = roster != null ? roster : FlybyRoster.EMPTY; }
     public List<ShotEvent> getActiveShots(){ return activeShots; }
     public List<ShotEvent> getShotsThisFrame() { return shotsThisFrame; }
     public List<Unit> getDeathsThisFrame()     { return deathsThisFrame; }
@@ -623,7 +630,25 @@ public class BattleSimulation {
 
                 case DEPARTING:
                     if (stepShuttleAlongLeg(s, s.lzX, s.lzY, s.exitX, s.exitY)) {
-                        s.state = Shuttle.State.GONE;
+                        if (s.currentCycle + 1 < s.totalCycles) {
+                            // Recycle for another sortie. The shuttle drops out of
+                            // view (PENDING is invisible + engine-silent) for
+                            // s.rearmDelay sim-seconds, then re-enters INCOMING
+                            // with a fresh randomized curve. Per-cycle loadout
+                            // refreshes here so SABOTAGE planters target the
+                            // next charge site on each return trip.
+                            s.currentCycle++;
+                            if (s.cycleLoadouts != null && s.currentCycle < s.cycleLoadouts.length) {
+                                s.marineLoadout = s.cycleLoadouts[s.currentCycle];
+                            }
+                            s.marinesRemaining = s.type.capacity;
+                            s.pendingDelay = s.rearmDelay;
+                            s.worldX = s.entryX;
+                            s.worldY = s.entryY;
+                            s.state = Shuttle.State.PENDING;
+                        } else {
+                            s.state = Shuttle.State.GONE;
+                        }
                     }
                     break;
 

@@ -2,6 +2,12 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.BattleSetup;
 import com.dillon.starsectormarines.battle.BattleSimulation;
+import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.ShuttleAssignment;
+import com.dillon.starsectormarines.battle.ShuttleType;
+import com.dillon.starsectormarines.battle.flyby.FighterWing;
+import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
+import com.dillon.starsectormarines.battle.flyby.PlayerFleetWings;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -56,6 +62,8 @@ public class BriefingScreen implements Screen {
     private static final Color FLAVOR_COLOR  = new Color(0xC0, 0xD0, 0xE8);
     private static final Color ACCEPT_COLOR  = new Color(0xC8, 0xFF, 0xE0);
     private static final Color RETICLE_COLOR = new Color(0xFF, 0xB8, 0x00);
+    /** Red used for the Transport row + Accept label when the player can't actually fly the mission. */
+    private static final Color BLOCKED_COLOR = new Color(0xFF, 0x80, 0x80);
 
     /** Fraction of the texture's width/height visible inside the map zone. */
     private static final float CROP_FRAC = 0.30f;
@@ -85,6 +93,20 @@ public class BriefingScreen implements Screen {
     private MarineOpsContext ctx;
     private BriefingLayout layout;
 
+    /**
+     * Indices into {@link #cachedAvailable} that the player has deselected for
+     * the current mission's dropship loadout. Default empty = all selected. Reset
+     * when the selected mission changes (tracked via {@link #lastSelectedMissionId}).
+     */
+    private final java.util.Set<Integer> deselectedTransports = new java.util.HashSet<>();
+    private String lastSelectedMissionId;
+    /**
+     * Snapshot of {@link PlayerFleetShuttles#queryAvailable()} taken at the start of
+     * each {@link #rebuild()}. Indices are stable within a single briefing layout,
+     * so the deselection set keeps referring to the same ships even as rows are redrawn.
+     */
+    private List<ShuttleType> cachedAvailable = java.util.Collections.emptyList();
+
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
         this.position = position;
@@ -108,6 +130,15 @@ public class BriefingScreen implements Screen {
         }
 
         Mission m = ctx.getSelectedMission();
+
+        // Selection scope is per-mission — clear the deselection set when the
+        // player switches missions so they don't carry over hidden state.
+        if (m != null && !m.id.equals(lastSelectedMissionId)) {
+            lastSelectedMissionId = m.id;
+            deselectedTransports.clear();
+        }
+        // Snapshot the available transports once per build so toggle indices are stable.
+        cachedAvailable = PlayerFleetShuttles.queryAvailable();
 
         // Map zone header — mission name (large)
         widgets.add(new LabelWidget(Fonts.ORBITRON_24_BOLD,
@@ -157,6 +188,79 @@ public class BriefingScreen implements Screen {
         widgets.add(new LabelWidget(Fonts.ORBITRON_20, m.requirements,
                 valueX, y, VALUE_COLOR));
         y -= ROW_GAP;
+
+        // Air support rows — what each side brings. Allied = employer support
+        // + the player's own fitted fighter bays (queried live so swapping
+        // fighters in the refit screen between visits is reflected here).
+        FlybyRoster allied = effectiveAlliedRoster(m);
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("briefingAlliedAir"),
+                labelX, y, LABEL_COLOR));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                summarizeWings(allied, Faction.MARINE),
+                valueX, y, VALUE_COLOR));
+        y -= ROW_GAP;
+
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("briefingEnemyAir"),
+                labelX, y, LABEL_COLOR));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                summarizeWings(m.enemyFighterSupport, Faction.DEFENDER),
+                valueX, y, VALUE_COLOR));
+        y -= ROW_GAP;
+
+        // Drop-ship section — header then toggle rows. Each available transport
+        // is a clickable row; selection drives the manifest. Gate becomes
+        // "at least 1 selected, or employer covers everything" — cycling lets
+        // a single selected transport carry all required drops if needed.
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("briefingTransport"),
+                labelX, y, LABEL_COLOR));
+        y -= ROW_GAP;
+
+        List<ShuttleAssignment> manifest = buildShuttleManifest(m, effectivePlayerShuttles());
+        java.util.Map<Integer, Integer> playerCyclesByIndex = computePlayerCyclesByIndex(m, manifest);
+        for (int i = 0; i < cachedAvailable.size(); i++) {
+            final int idx = i;
+            ShuttleType type = cachedAvailable.get(i);
+            boolean selected = !deselectedTransports.contains(idx);
+            String marker = selected ? "[x]" : "[ ]";
+            int cycles = playerCyclesByIndex.getOrDefault(idx, 0);
+            StringBuilder rowLabel = new StringBuilder();
+            rowLabel.append(marker).append(" 1× ").append(shuttleDisplayName(type));
+            if (selected && cycles > 1) {
+                rowLabel.append(" (").append(cycles).append(" sorties)");
+            } else if (!selected) {
+                rowLabel.append(" — held back");
+            }
+            Color rowColor = selected ? VALUE_COLOR : LABEL_COLOR;
+            ButtonWidget toggle = new ButtonWidget(valueX, y - BTN_H + 6f,
+                    layout.infoZone.w - (valueX - layout.infoZone.x) - INNER_PAD,
+                    BTN_H,
+                    () -> {
+                        if (deselectedTransports.contains(idx)) deselectedTransports.remove(idx);
+                        else deselectedTransports.add(idx);
+                        rebuild();
+                    });
+            widgets.add(toggle);
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, rowLabel.toString(),
+                    valueX + 6f, y, rowColor));
+            y -= ROW_GAP;
+        }
+
+        // Employer line — non-interactive, just informational.
+        if (m.employerShuttles > 0) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    m.employerShuttles + "× employer Aeroshuttle",
+                    valueX + 6f, y, VALUE_COLOR));
+            y -= ROW_GAP;
+        }
+
+        // Gate status line — only render when something's off (no transports at all).
+        boolean transportOk = isTransportSufficient(m, effectivePlayerShuttles());
+        if (!transportOk) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    "Need at least 1 transport (your fleet or employer)",
+                    valueX + 6f, y, BLOCKED_COLOR));
+            y -= ROW_GAP;
+        }
 
         // Stash flavor paragraph extent for renderFlavor — drawStringWrapped
         // doesn't fit the single-line LabelWidget model so it's drawn inline
@@ -215,15 +319,214 @@ public class BriefingScreen implements Screen {
         float acceptX = layout.infoZone.x + INNER_PAD;
         float backX   = acceptX + btnW + BTN_GAP;
 
-        ButtonWidget accept = new ButtonWidget(acceptX, btnY, btnW, BTN_H, this::onAccept);
+        // Accept gating — when transport is short, the button is non-functional
+        // and the label flips to a red "Insufficient Transport". The button shape
+        // still renders (no visual disable state on ButtonWidget yet) so the
+        // player has a clear "what would have been Accept" target — they read
+        // the label and the red Transport row to know why it's blocked.
+        Mission m = ctx.getSelectedMission();
+        boolean canAccept = m == null || isTransportSufficient(m, effectivePlayerShuttles());
+
+        ButtonWidget accept = new ButtonWidget(acceptX, btnY, btnW, BTN_H,
+                canAccept ? this::onAccept : null);
         widgets.add(accept);
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("briefingAccept"),
-                acceptX + INNER_PAD, btnY + BTN_H - 6f, ACCEPT_COLOR));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                Strings.get(canAccept ? "briefingAccept" : "briefingAcceptBlocked"),
+                acceptX + INNER_PAD, btnY + BTN_H - 6f,
+                canAccept ? ACCEPT_COLOR : BLOCKED_COLOR));
 
         ButtonWidget back = new ButtonWidget(backX, btnY, btnW, BTN_H, this::onBack);
         widgets.add(back);
         widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("actionBack"),
                 backX + INNER_PAD, btnY + BTN_H - 6f, HEADER_COLOR));
+    }
+
+    /**
+     * Combined marine-side roster: mission employer's support plus whatever the
+     * player has fitted in their own carrier bays. Used by both the briefing
+     * display and {@link #onAccept} so the two never drift.
+     */
+    private FlybyRoster effectiveAlliedRoster(Mission m) {
+        return FlybyRoster.combine(m.clientFighterSupport, PlayerFleetWings.fromPlayerFleet());
+    }
+
+    /**
+     * Compact one-line summary of the wings on a side. Example output:
+     * {@code "2× Broadsword, 1× Talon"} or "None" when empty. Counts collapse
+     * multiple wings of the same profile so a 3-sortie + 2-sortie Broadsword
+     * pair reads as "5× Broadsword" rather than two separate entries.
+     */
+    private static String summarizeWings(FlybyRoster roster, Faction side) {
+        if (roster == null) return Strings.get("briefingAirNone");
+        java.util.LinkedHashMap<String, Integer> counts = new java.util.LinkedHashMap<>();
+        for (FighterWing w : roster.wingsForSide(side)) {
+            String key = profileDisplayName(w.profile.name());
+            counts.merge(key, w.sortieCount, Integer::sum);
+        }
+        if (counts.isEmpty()) return Strings.get("briefingAirNone");
+        StringBuilder sb = new StringBuilder();
+        for (java.util.Map.Entry<String, Integer> e : counts.entrySet()) {
+            if (sb.length() > 0) sb.append(", ");
+            sb.append(e.getValue()).append("× ").append(e.getKey());
+        }
+        return sb.toString();
+    }
+
+    /** Title-cases the enum name (TALON → Talon, BROADSWORD → Broadsword). */
+    private static String profileDisplayName(String enumName) {
+        if (enumName == null || enumName.isEmpty()) return "";
+        return enumName.charAt(0) + enumName.substring(1).toLowerCase();
+    }
+
+    /**
+     * Mission has a transport — the floor is "at least one source delivering
+     * marines." Employer contributes drops up to their cover; selected player
+     * transports cycle to fill any remaining gap. A single selected Valkyrie
+     * covers a 3-drop mission entirely via cycling; an employer-covered 3/3
+     * lets the player commit zero transports of their own.
+     *
+     * <p>If both the employer and the player's selection are empty, the mission
+     * is blocked — no marines would land.
+     */
+    private static boolean isTransportSufficient(Mission m, List<ShuttleType> selectedShuttles) {
+        return m.employerShuttles >= 1 || !selectedShuttles.isEmpty();
+    }
+
+    /**
+     * Transport summary that communicates both the sprites and the pacing.
+     * Examples:
+     * <pre>
+     *   "1× Valkyrie (3 sorties)"                 - cycling
+     *   "1× Valkyrie + 1× Buffalo + 1× employer"  - parallel, 3 drops total
+     *   "1× Valkyrie (2 sorties) + 1× Buffalo"    - mixed
+     *   "Insufficient — need 1 transport"         - blocked, employer didn't cover
+     * </pre>
+     */
+    private static String summarizeTransport(Mission m, List<ShuttleType> playerShuttles) {
+        if (!isTransportSufficient(m, playerShuttles)) {
+            int gap = m.requiredDrops - m.employerShuttles;
+            return "Insufficient — need 1 transport (or employer cover for " + gap + " drops)";
+        }
+        List<ShuttleAssignment> manifest = buildShuttleManifest(m, playerShuttles);
+        // Collapse identical (type, cycles) pairs so two Valkyries each doing 1
+        // sortie read as "2× Valkyrie" and a single Valkyrie cycling twice reads
+        // as "1× Valkyrie (2 sorties)". These are different gameplay realities
+        // — same total drops, different pacing — and the briefing has to make
+        // that distinction.
+        java.util.LinkedHashMap<java.util.Map.Entry<ShuttleType, Integer>, Integer> playerGroups =
+                new java.util.LinkedHashMap<>();
+        int employerCount = 0;
+        int leadingAero = 0;
+        for (ShuttleAssignment a : manifest) {
+            if (leadingAero < m.employerShuttles
+                    && a.type == ShuttleType.AEROSHUTTLE && a.cycles == 1) {
+                employerCount++;
+                leadingAero++;
+            } else {
+                java.util.Map.Entry<ShuttleType, Integer> key =
+                        new java.util.AbstractMap.SimpleEntry<>(a.type, a.cycles);
+                playerGroups.merge(key, 1, Integer::sum);
+            }
+        }
+        StringBuilder sb = new StringBuilder();
+        for (java.util.Map.Entry<java.util.Map.Entry<ShuttleType, Integer>, Integer> g
+                : playerGroups.entrySet()) {
+            if (sb.length() > 0) sb.append(" + ");
+            sb.append(g.getValue()).append("× ").append(shuttleDisplayName(g.getKey().getKey()));
+            if (g.getKey().getValue() > 1) {
+                sb.append(" (").append(g.getKey().getValue()).append(" sorties)");
+            }
+        }
+        if (employerCount > 0) {
+            if (sb.length() > 0) sb.append(" + ");
+            sb.append(employerCount).append("× employer");
+        }
+        return sb.toString();
+    }
+
+    /** Title-cased shuttle name for display (VALKYRIE → "Valkyrie"). */
+    private static String shuttleDisplayName(ShuttleType t) {
+        String n = t.name();
+        return n.charAt(0) + n.substring(1).toLowerCase();
+    }
+
+    /**
+     * Currently-selected subset of {@link #cachedAvailable}, preserving the
+     * priority-sorted order. Feeds the manifest + gate logic.
+     */
+    private List<ShuttleType> effectivePlayerShuttles() {
+        List<ShuttleType> out = new java.util.ArrayList<>();
+        for (int i = 0; i < cachedAvailable.size(); i++) {
+            if (!deselectedTransports.contains(i)) out.add(cachedAvailable.get(i));
+        }
+        return out;
+    }
+
+    /**
+     * Maps each {@link #cachedAvailable} index to the cycle count the manifest
+     * actually assigned it. Deselected and unused transports are absent from
+     * the map (caller treats missing as 0).
+     */
+    private java.util.Map<Integer, Integer> computePlayerCyclesByIndex(
+            Mission m, List<ShuttleAssignment> manifest) {
+        java.util.Map<Integer, Integer> out = new java.util.HashMap<>();
+        // Selected indices in cachedAvailable order — same iteration order
+        // buildShuttleManifest uses to pick its player entries.
+        List<Integer> selectedIndices = new java.util.ArrayList<>();
+        for (int i = 0; i < cachedAvailable.size(); i++) {
+            if (!deselectedTransports.contains(i)) selectedIndices.add(i);
+        }
+        // The manifest's leading entries are employer Aeroshuttles; the rest
+        // are player entries in selected order.
+        for (int k = 0; k < selectedIndices.size()
+                && (m.employerShuttles + k) < manifest.size(); k++) {
+            ShuttleAssignment a = manifest.get(m.employerShuttles + k);
+            out.put(selectedIndices.get(k), a.cycles);
+        }
+        return out;
+    }
+
+    /**
+     * Builds the full {@link ShuttleAssignment} list — what ships fly and how
+     * many sorties each performs. Employer slots come first as single-cycle
+     * Aeroshuttles (parallel drops); the player's selected transports cover
+     * the remaining drops via cycling.
+     *
+     * <p>Distribution: with {@code N} player transports needing to cover
+     * {@code D} drops, the first {@code (D mod N)} transports get
+     * {@code ceil(D/N)} cycles and the rest get {@code floor(D/N)}. The
+     * player's best transports (priority-sorted) get the extra cycle, so a
+     * Valkyrie works harder than a Mudskipper when the math is uneven.
+     *
+     * <p>When the player has selected zero transports and the employer doesn't
+     * cover all the drops, the manifest only covers the employer's portion —
+     * battle runs short-handed. The briefing gate blocks before that's an
+     * issue, but the function itself doesn't assume gate enforcement.
+     */
+    private static java.util.List<ShuttleAssignment> buildShuttleManifest(
+            Mission m, java.util.List<ShuttleType> playerShuttles) {
+        java.util.List<ShuttleAssignment> out = new java.util.ArrayList<>();
+        for (int i = 0; i < m.employerShuttles; i++) {
+            out.add(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1));
+        }
+        int playerDrops = Math.max(0, m.requiredDrops - m.employerShuttles);
+        if (playerDrops == 0) return out;
+        int transportsUsed = Math.min(playerDrops, playerShuttles.size());
+        if (transportsUsed == 0) {
+            // Gated normally, but if somehow we get here pad with employer-style
+            // aeroshuttles so the battle still functions.
+            for (int i = 0; i < playerDrops; i++) {
+                out.add(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1));
+            }
+            return out;
+        }
+        int baseCycles = playerDrops / transportsUsed;
+        int extraCycles = playerDrops % transportsUsed;
+        for (int i = 0; i < transportsUsed; i++) {
+            int cycles = baseCycles + (i < extraCycles ? 1 : 0);
+            out.add(new ShuttleAssignment(playerShuttles.get(i), cycles));
+        }
+        return out;
     }
 
     private void onAccept() {
@@ -234,19 +537,35 @@ public class BriefingScreen implements Screen {
         LOG.info("MarineOps: accept mission id=" + m.id + " name='" + m.name
                 + "' type=" + m.type + " captain=" + captainStr);
 
+        // Resolve the shuttle manifest. Player's best transports get picked
+        // first up to the requirement; if employer is covering the gap, fewer
+        // player ships get drawn from. Either way the final list is exactly
+        // requiredShuttles long, and each entry is the ShuttleType that'll
+        // spawn in battle — so the player sees the same hulls in the brief and
+        // on the LZ.
+        // Use the selected subset, not the full available list — players who
+        // deselect a transport in the briefing shouldn't see it fly anyway.
+        List<ShuttleAssignment> manifest = buildShuttleManifest(m, effectivePlayerShuttles());
+
         // Mission-type-specific setup. Each type wires its own objectives and
         // loadouts; falls back to ASSAULT for types not yet built out.
         BattleSimulation sim;
+        long seed = System.currentTimeMillis();
         switch (m.type) {
             case SABOTAGE:
-                sim = BattleSetup.createSabotage();
+                sim = BattleSetup.createSabotage(seed, manifest);
                 break;
             case ASSAULT:
             case RAID:
             case EXTRACTION:
             default:
-                sim = BattleSetup.createPlaceholder();
+                sim = BattleSetup.createPlaceholder(seed, manifest);
         }
+        // Fold employer support + the player's own fitted bays + enemy support
+        // into a single roster the overlay drives spawns from. Re-queries the
+        // player fleet here (instead of trusting the briefing-display result)
+        // because the player can refit between viewing and accepting.
+        sim.setFlybyRoster(FlybyRoster.combine(effectiveAlliedRoster(m), m.enemyFighterSupport));
         ctx.setBattleSimulation(sim);
         ctx.goTo(ScreenId.BATTLE);
     }

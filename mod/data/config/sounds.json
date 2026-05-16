@@ -129,6 +129,11 @@
 	"marines_flyby_missile":[
 		{"file":"sounds/sfx_wpn_missiles/atropos_fire_01.ogg","pitch":1,"volume":0.9},
 	],
+	# Missile detonation — paired with the launch sound above for PROJECTILE-class flyby fighters (Dagger etc.).
+	"marines_flyby_missile_impact":[
+		{"file":"sounds/sfx_impacts/explosion_missile_01.ogg","pitch":1,"volume":1.0},
+		{"file":"sounds/sfx_impacts/explosion_missile_02.ogg","pitch":1,"volume":1.0},
+	],
 	"marines_flyby_impact":[
 		{"file":"sounds/sfx_impacts/beam_hit_01.ogg","pitch":1,"volume":0.6},
 		{"file":"sounds/sfx_impacts/beam_hit_02.ogg","pitch":1,"volume":0.6},

@@ -101,13 +101,30 @@ public class Shuttle {
     public float landedFacing = 0f;
 
     /**
-     * Per-deboard loadouts. {@code marineLoadout[i]} is the spec for the
-     * (i+1)-th marine to leave this shuttle (i.e., index = type.capacity -
-     * marinesRemaining). Null entries — and a null array — fall back to a
-     * plain {@link MarineLoadout#COMBATANT} marine, so existing ASSAULT
-     * code keeps working without touching it.
+     * Per-deboard loadouts for the <em>current</em> sortie. {@code marineLoadout[i]}
+     * is the spec for the (i+1)-th marine to leave this shuttle (i.e., index =
+     * type.capacity - marinesRemaining). Null entries — and a null array — fall
+     * back to a plain {@link MarineLoadout#COMBATANT} marine.
+     *
+     * <p>When this shuttle is cycling ({@link #totalCycles} > 1), this field is
+     * refreshed on each new sortie from {@link #cycleLoadouts} so the per-cycle
+     * planter targeting (and any future per-cycle roles) lands correctly.
      */
     public MarineLoadout[] marineLoadout;
+
+    /**
+     * Full per-sortie loadout schedule when this shuttle cycles. Length equals
+     * {@link #totalCycles}. {@code null} (or a null entry) falls back to plain
+     * combatants for that cycle, matching the default for non-SABOTAGE missions.
+     */
+    public MarineLoadout[][] cycleLoadouts;
+
+    /** Sortie index within {@link #totalCycles}. 0 on first launch; incremented after each successful DEPARTING. */
+    public int currentCycle = 0;
+    /** Total sorties this shuttle will fly across the battle. 1 = single drop (no cycling); larger = repeat the state machine that many times. */
+    public int totalCycles = 1;
+    /** Sim-seconds of "offstage rearm" between sorties when cycling. The shuttle drops out of view (state = PENDING) for this long before re-entering INCOMING. */
+    public float rearmDelay = 8f;
 
     /**
      * Squad identity assigned to all marines deboarded from this shuttle.

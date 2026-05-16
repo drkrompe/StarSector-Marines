@@ -43,6 +43,11 @@
 		"briefingAccept":         "Accept Mission",
 		"briefingSquadLead":      "Squad Lead",
 		"briefingNoCaptains":     "No captains on roster",
+		"briefingAlliedAir":      "Allied Air",
+		"briefingEnemyAir":       "Enemy Air",
+		"briefingAirNone":        "None",
+		"briefingTransport":      "Transport",
+		"briefingAcceptBlocked":  "Insufficient Transport",
 
 		# Battle screen
 		"battleSpeedPause":       "Pause",

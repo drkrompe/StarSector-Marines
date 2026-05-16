@@ -53,15 +53,30 @@ public final class FlybyOverlay {
     private static final Logger LOG = Global.getLogger(FlybyOverlay.class);
 
     // ---- Sound ids (declared in mod/data/config/sounds.json). -----------------
-    public static final String SFX_GUN_HEAVY  = "marines_flyby_gun_heavy";
-    public static final String SFX_GUN_LIGHT  = "marines_flyby_gun_light";
-    public static final String SFX_GUN_ENERGY = "marines_flyby_gun_energy";
-    public static final String SFX_IMPACT     = "marines_flyby_impact";
+    public static final String SFX_GUN_HEAVY      = "marines_flyby_gun_heavy";
+    public static final String SFX_GUN_LIGHT      = "marines_flyby_gun_light";
+    public static final String SFX_GUN_ENERGY     = "marines_flyby_gun_energy";
+    public static final String SFX_IMPACT         = "marines_flyby_impact";
+    public static final String SFX_MISSILE_LAUNCH = "marines_flyby_missile";
+    public static final String SFX_MISSILE_IMPACT = "marines_flyby_missile_impact";
 
     // ---- Shared FX sprite paths (vanilla particles). --------------------------
-    private static final String SPRITE_SHADOW       = "graphics/fx/particlealpha64linear.png";
-    private static final String SPRITE_GLOW         = "graphics/fx/glow64.png";
-    private static final String SPRITE_ENGINE_GLOW  = "graphics/fx/engineglow32.png";
+    private static final String SPRITE_SHADOW         = "graphics/fx/particlealpha64linear.png";
+    private static final String SPRITE_GLOW           = "graphics/fx/glow64.png";
+    private static final String SPRITE_ENGINE_GLOW    = "graphics/fx/engineglow32.png";
+    private static final String SPRITE_EXPLOSION_RING = "graphics/fx/explosion_ring0.png";
+    private static final String[] SPRITE_EXPLOSIONS   = {
+            "graphics/fx/explosion0.png", "graphics/fx/explosion1.png", "graphics/fx/explosion2.png",
+            "graphics/fx/explosion3.png", "graphics/fx/explosion4.png", "graphics/fx/explosion5.png",
+            "graphics/fx/explosion6.png",
+    };
+    /** Mod-shipped 4×4 sheet of 16px frames: top 2 rows = smoke (8 frames), bottom 2 rows = fire (8 frames). Played as a flipbook via Particle's frame-index UV math. */
+    private static final String SPRITE_PARTICLE_SHEET = "graphics/particle/smokeAndFire.png";
+    private static final int PARTICLE_SHEET_COLS      = 4;
+    private static final int SMOKE_FIRST_FRAME        = 0;   // top-left of sheet
+    private static final int SMOKE_FRAME_COUNT        = 8;   // top 2 rows
+    private static final int FIRE_FIRST_FRAME         = 8;   // start of row 2
+    private static final int FIRE_FRAME_COUNT         = 8;   // bottom 2 rows
 
     // ---- Spawn pacing ---------------------------------------------------------
     /** Safety cap on simultaneous flybys. The roster's own schedule normally keeps things sane; this protects against an over-eager mission roll. */
@@ -114,7 +129,6 @@ public final class FlybyOverlay {
     private static final float RUN_BANK_BACK_TIMEOUT = 6f;
     /** Cooldown between successive runs from the same fighter, so a single fighter doesn't loop forever. */
     private static final float RUN_REARM_COOLDOWN = 9f;
-    private static final float RUN_FIRE_INTERVAL_SEC = 0.09f;
     /** Spread half-angle (degrees) of run fire. Wide on purpose — most rounds go errant. */
     private static final float RUN_SPREAD_DEG = 22f;
     /** Visual tracer reach for RUN tracers — they don't have a specific target, so this fixes how far ahead they paint. */
@@ -123,10 +137,6 @@ public final class FlybyOverlay {
     private static final float RUN_AOE_RADIUS_CELLS = 1.6f;
     /** Damage applied to each unit caught in a tracer's AoE. Small — runs spam many tracers, so total damage scales with hits, not per-round. */
     private static final float RUN_DAMAGE_PER_HIT = 0.9f;
-    /** Wall HP a single RUN tracer chips off if its endpoint lands on a wall cell. Walls start at 100 (UrbanMapGenerator.WALL_HP_DEFAULT) — ~5 connecting tracers flatten a wall, so a sustained strafing run reshapes buildings. */
-    private static final int RUN_WALL_DAMAGE = 20;
-    /** Wall HP a CRUISE opportunistic round chips. Lower than RUN damage — the burst is aimed at a unit, so wall hits are spillover. */
-    private static final int CRUISE_WALL_DAMAGE = 8;
     /** Tint for the dust burst when a wall collapses. Cooler grey so it reads distinct from the warm muzzle/impact glows. */
     private static final Color WALL_RUBBLE_DUST = new Color(0xB0, 0xA8, 0x98);
     /** Small dust speck spawned when a tracer chips a wall but doesn't collapse it. Lighter than {@link #WALL_RUBBLE_DUST} so chip vs. collapse reads at a glance. */
@@ -145,10 +155,15 @@ public final class FlybyOverlay {
     private final List<Fighter> fighters = new ArrayList<>();
     private final List<Tracer> tracers = new ArrayList<>();
     private final List<Particle> particles = new ArrayList<>();
+    private final List<Projectile> projectiles = new ArrayList<>();
     private final EnumMap<FighterProfile, SpriteAPI> sprites = new EnumMap<>(FighterProfile.class);
+    private final EnumMap<FighterProfile, SpriteAPI> projectileSprites = new EnumMap<>(FighterProfile.class);
     private SpriteAPI shadowSprite;
     private SpriteAPI glowSprite;
     private SpriteAPI engineSprite;
+    private SpriteAPI explosionRingSprite;
+    private final SpriteAPI[] explosionSprites = new SpriteAPI[SPRITE_EXPLOSIONS.length];
+    private SpriteAPI particleSheetSprite;
     private boolean spritesLoadAttempted;
 
     private final Random rng = new Random();
@@ -201,6 +216,10 @@ public final class FlybyOverlay {
             if (isOffMap(f, layout)) fighters.remove(i);
         }
 
+        for (int i = projectiles.size() - 1; i >= 0; i--) {
+            Projectile p = projectiles.get(i);
+            if (tickProjectile(p, dt, sim)) projectiles.remove(i);
+        }
         for (int i = tracers.size() - 1; i >= 0; i--) {
             if ((tracers.get(i).lifetimeRemaining -= dt) <= 0f) tracers.remove(i);
         }
@@ -290,7 +309,7 @@ public final class FlybyOverlay {
         if (f.burstRemaining > 0) {
             f.burstNextFireIn -= dt;
             while (f.burstNextFireIn <= 0f && f.burstRemaining > 0) {
-                fireOneTracerAt(f, f.burstTarget, sim);
+                fireBurstShot(f, f.burstTarget, sim);
                 f.burstNextFireIn += f.profile.burstInterval;
                 f.burstRemaining--;
             }
@@ -355,8 +374,8 @@ public final class FlybyOverlay {
         f.runStateTimer += dt;
         f.runFireAccumulator -= dt;
         while (f.runFireAccumulator <= 0f) {
-            fireRunTracer(f, sim);
-            f.runFireAccumulator += RUN_FIRE_INTERVAL_SEC;
+            fireRunShot(f, sim);
+            f.runFireAccumulator += f.profile.runFireInterval;
         }
         // Exit run on duration or on passing the run-out waypoint.
         float dx = f.runOutX - f.worldX, dy = f.runOutY - f.worldY;
@@ -451,6 +470,19 @@ public final class FlybyOverlay {
         return best;
     }
 
+    /** CRUISE-burst fire dispatcher — picks the per-class resolution path. */
+    private void fireBurstShot(Fighter f, Unit target, BattleSimulation sim) {
+        switch (f.profile.weaponClass) {
+            case TRACER:
+                fireOneTracerAt(f, target, sim);
+                return;
+            case PROJECTILE:
+                spawnProjectile(f, target);
+                playFireSound(f);
+                return;
+        }
+    }
+
     /**
      * Fires one round at a specific target with the profile's burst spread.
      * Used by CRUISE opportunistic bursts — applies damage on hit, with a
@@ -476,7 +508,7 @@ public final class FlybyOverlay {
             spawnImpact(endX, endY, f.profile.tracerColor);
             // Spread that carried the round onto a wall instead chips the wall —
             // emergent collateral, no extra branching needed.
-            damageWallAtEndpoint(sim, endX, endY, CRUISE_WALL_DAMAGE);
+            damageWallAtEndpoint(sim, endX, endY, f.profile.wallDamage);
         }
         playFireSound(f);
     }
@@ -488,6 +520,21 @@ public final class FlybyOverlay {
      * {@link #RUN_AOE_RADIUS_CELLS} of the tracer endpoint, so a single
      * lucky tracer can clip multiple units in a cluster.
      */
+    private void fireRunShot(Fighter f, BattleSimulation sim) {
+        switch (f.profile.weaponClass) {
+            case TRACER:
+                fireRunTracer(f, sim);
+                return;
+            case PROJECTILE:
+                // Bombers don't spray — pick an in-cone target each fire tick, miss the tick if nothing's there.
+                Unit target = sim != null ? acquireStrafeTarget(f, sim) : null;
+                if (target == null) return;
+                spawnProjectile(f, target);
+                playFireSound(f);
+                return;
+        }
+    }
+
     private void fireRunTracer(Fighter f, BattleSimulation sim) {
         float spreadRad = (float) Math.toRadians((rng.nextFloat() * 2f - 1f) * RUN_SPREAD_DEG);
         float headRad = (float) Math.toRadians(f.headingDeg) + spreadRad;
@@ -527,7 +574,7 @@ public final class FlybyOverlay {
         // run can flatten a wall, opening line-of-sight + new paths for the
         // sim's pathfinder to discover on its next re-route. The dust on
         // collapse is louder than the chip dust above so the destroy event reads.
-        if (sim != null) damageWallAtEndpoint(sim, endX, endY, RUN_WALL_DAMAGE);
+        if (sim != null) damageWallAtEndpoint(sim, endX, endY, f.profile.wallDamage);
 
         // Audio plays per-tracer — the wider SFX_PITCH_JITTER above is what
         // keeps the sound system from collapsing repeated same-id voices.
@@ -623,6 +670,159 @@ public final class FlybyOverlay {
         p.radiusCells = 0.6f;
         p.color = color;
         particles.add(p);
+    }
+
+    // ---- Projectile (PROJECTILE class) ----------------------------------------
+
+    /** Launches one missile toward the target. The projectile lives in {@link #projectiles} and ticks each frame until it impacts, hits a wall, or its fuse runs out. */
+    private void spawnProjectile(Fighter f, Unit target) {
+        if (target == null) return;
+        Projectile p = new Projectile();
+        p.profile = f.profile;
+        p.side = f.side;
+        p.worldX = f.worldX;
+        p.worldY = f.worldY;
+        p.speed = f.profile.projectileSpeed;
+        p.headingDeg = f.headingDeg;
+        float rad = (float) Math.toRadians(p.headingDeg);
+        p.vx = (float) Math.cos(rad) * p.speed;
+        p.vy = (float) Math.sin(rad) * p.speed;
+        p.target = target;
+        p.fuseRemaining = f.profile.projectileFuseSec;
+        projectiles.add(p);
+    }
+
+    /** Ticks one projectile. Returns true if it should be removed (detonated / dropped). */
+    private boolean tickProjectile(Projectile p, float dt, BattleSimulation sim) {
+        p.fuseRemaining -= dt;
+        if (p.fuseRemaining <= 0f) {
+            detonateProjectile(p, sim);
+            return true;
+        }
+        // Steer toward target if it's still alive — clamped turn rate, so a fast
+        // unit running perpendicular can outrun the lock and force a miss.
+        Unit target = (p.target != null && p.target.isAlive()) ? p.target : null;
+        if (target != null) {
+            float dx = (target.renderX + 0.5f) - p.worldX;
+            float dy = (target.renderY + 0.5f) - p.worldY;
+            float desiredDeg = (float) Math.toDegrees(Math.atan2(dy, dx));
+            float diff = wrap180(desiredDeg - p.headingDeg);
+            float maxTurn = p.profile.projectileTurnRateDegPerSec * dt;
+            if (diff >  maxTurn) diff =  maxTurn;
+            if (diff < -maxTurn) diff = -maxTurn;
+            p.headingDeg = wrap180(p.headingDeg + diff);
+            float rad = (float) Math.toRadians(p.headingDeg);
+            p.vx = (float) Math.cos(rad) * p.speed;
+            p.vy = (float) Math.sin(rad) * p.speed;
+        }
+        // Advance and check impact. We arrive when we're inside the AoE radius
+        // of the target (or where the target was when it died), or when we
+        // cross a wall cell.
+        p.worldX += p.vx * dt;
+        p.worldY += p.vy * dt;
+        if (target != null) {
+            float dx = (target.renderX + 0.5f) - p.worldX;
+            float dy = (target.renderY + 0.5f) - p.worldY;
+            float aoeRadius = p.profile.projectileAoeRadiusCells;
+            if (dx * dx + dy * dy <= aoeRadius * aoeRadius * 0.25f) {
+                detonateProjectile(p, sim);
+                return true;
+            }
+        }
+        if (sim != null) {
+            int cx = (int) Math.floor(p.worldX);
+            int cy = (int) Math.floor(p.worldY);
+            if (sim.getGrid().inBounds(cx, cy) && !sim.getGrid().isWalkable(cx, cy)) {
+                detonateProjectile(p, sim);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Detonates the missile — AoE damage to enemy units + wall cells, plus a fat layered explosion FX. */
+    private void detonateProjectile(Projectile p, BattleSimulation sim) {
+        float r = p.profile.projectileAoeRadiusCells;
+        if (sim != null) {
+            Faction enemy = (p.side == Faction.MARINE) ? Faction.DEFENDER : Faction.MARINE;
+            float r2 = r * r;
+            for (Unit u : sim.getUnits()) {
+                if (!u.isAlive() || u.faction != enemy) continue;
+                float ux = (u.renderX + 0.5f) - p.worldX;
+                float uy = (u.renderY + 0.5f) - p.worldY;
+                if (ux * ux + uy * uy <= r2) {
+                    sim.applyExternalDamage(u, p.profile.projectileAoeDamage);
+                }
+            }
+            // Chip every wall cell inside the blast — at projectile-class wall
+            // damage (typically 150+) this flattens an entire wall section in
+            // one detonation.
+            int minX = (int) Math.floor(p.worldX - r);
+            int maxX = (int) Math.floor(p.worldX + r);
+            int minY = (int) Math.floor(p.worldY - r);
+            int maxY = (int) Math.floor(p.worldY + r);
+            for (int cy = minY; cy <= maxY; cy++) {
+                for (int cx = minX; cx <= maxX; cx++) {
+                    float dx = (cx + 0.5f) - p.worldX;
+                    float dy = (cy + 0.5f) - p.worldY;
+                    if (dx * dx + dy * dy > r2) continue;
+                    if (sim.damageCell(cx, cy, p.profile.wallDamage)) {
+                        spawnDustBurst(cx + 0.5f, cy + 0.5f);
+                    }
+                }
+            }
+        }
+        spawnExplosionFx(p.worldX, p.worldY, r, p.profile.tracerColor);
+        // Positional detonation audio — mono pool, plays alongside Doppler launch.
+        Vector2f loc = new Vector2f(p.worldX * AUDIO_WORLD_UNITS_PER_CELL,
+                                    p.worldY * AUDIO_WORLD_UNITS_PER_CELL);
+        Vector2f vel = new Vector2f(0f, 0f);
+        Global.getSoundPlayer().playSound(SFX_MISSILE_IMPACT, 1f, 1f, loc, vel);
+    }
+
+    /** Layered explosion: bright flash + random vanilla explosion sprite + expanding ring. */
+    private void spawnExplosionFx(float x, float y, float radiusCells, Color tint) {
+        // 1. Bright flash — glow64, short lifetime, white-hot.
+        Particle flash = new Particle();
+        flash.x = x; flash.y = y;
+        flash.lifetimeRemaining = 0.12f;
+        flash.lifetimeMax = 0.12f;
+        flash.radiusCells = radiusCells * 0.6f;
+        flash.color = new Color(0xFF, 0xF0, 0xC0);
+        particles.add(flash);
+
+        // 2. Fat explosion frame — random vanilla sprite, full AoE size, tinted by the launcher's color.
+        SpriteAPI explo = explosionSprites[rng.nextInt(explosionSprites.length)];
+        if (explo != null) {
+            Particle blast = new Particle();
+            blast.x = x; blast.y = y;
+            blast.lifetimeRemaining = 0.55f;
+            blast.lifetimeMax = 0.55f;
+            blast.radiusCells = radiusCells;
+            blast.color = tint;
+            blast.sprite = explo;
+            blast.angleDeg = rng.nextFloat() * 360f;
+            particles.add(blast);
+        }
+
+        // 3. Expanding shockwave ring — bigger than the blast, shorter lifetime.
+        if (explosionRingSprite != null) {
+            Particle ring = new Particle();
+            ring.x = x; ring.y = y;
+            ring.lifetimeRemaining = 0.45f;
+            ring.lifetimeMax = 0.45f;
+            ring.radiusCells = radiusCells * 1.4f;
+            ring.color = tint;
+            ring.sprite = explosionRingSprite;
+            particles.add(ring);
+        }
+    }
+
+    /** Wraps a degree value to (-180, 180]. */
+    private static float wrap180(float deg) {
+        while (deg >  180f) deg -= 360f;
+        while (deg <= -180f) deg += 360f;
+        return deg;
     }
 
     private void playFireSound(Fighter f) {
@@ -728,6 +928,7 @@ public final class FlybyOverlay {
         fighters.clear();
         tracers.clear();
         particles.clear();
+        projectiles.clear();
         simTime = 0f;
         lastRoster = null;
         sortiesSpawned = new int[0];
@@ -808,8 +1009,44 @@ public final class FlybyOverlay {
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         }
 
+        for (Projectile p : projectiles) drawProjectile(p, layout, alphaMult);
+
         if (glowSprite != null) {
             for (Particle p : particles) drawParticle(p, layout, alphaMult);
+        }
+    }
+
+    /** Renders one in-flight missile — body sprite rotated to heading, plus a small additive engine glow trail. */
+    private void drawProjectile(Projectile p, BattleLayout layout, float alphaMult) {
+        SpriteAPI body = projectileSprites.get(p.profile);
+        float px = layout.gridX + p.worldX * layout.cellSize;
+        float py = layout.gridY + p.worldY * layout.cellSize;
+        if (engineSprite != null) {
+            float rad = (float) Math.toRadians(p.headingDeg);
+            float backX = p.worldX - (float) Math.cos(rad) * 0.45f;
+            float backY = p.worldY - (float) Math.sin(rad) * 0.45f;
+            engineSprite.setSize(0.5f * layout.cellSize, 0.9f * layout.cellSize);
+            engineSprite.setAngle(p.headingDeg - 90f);
+            engineSprite.setAlphaMult(alphaMult * 0.9f);
+            engineSprite.setColor(p.profile.tracerColor);
+            engineSprite.setAdditiveBlend();
+            engineSprite.renderAtCenter(
+                    layout.gridX + backX * layout.cellSize,
+                    layout.gridY + backY * layout.cellSize);
+            engineSprite.setAngle(0f);
+        }
+        if (body != null) {
+            float pxLen = 0.8f * layout.cellSize;
+            float texW = body.getWidth();
+            float texH = body.getHeight();
+            float aspect = (texH > 0f) ? texW / texH : 1f;
+            body.setSize(pxLen * aspect, pxLen);
+            body.setAngle(p.headingDeg - 90f);
+            body.setAlphaMult(alphaMult);
+            body.setColor(Color.WHITE);
+            body.setNormalBlend();
+            body.renderAtCenter(px, py);
+            body.setAngle(0f);
         }
     }
 
@@ -874,14 +1111,40 @@ public final class FlybyOverlay {
     private void drawParticle(Particle p, BattleLayout layout, float alphaMult) {
         float lifeFrac = Math.max(0f, p.lifetimeRemaining / Math.max(0.001f, p.lifetimeMax));
         float radiusPx = p.radiusCells * layout.cellSize;
-        glowSprite.setSize(radiusPx * 2f, radiusPx * 2f);
-        glowSprite.setAngle(0f);
-        glowSprite.setAlphaMult(alphaMult * lifeFrac);
-        glowSprite.setColor(p.color);
-        glowSprite.setAdditiveBlend();
-        glowSprite.renderAtCenter(
+        SpriteAPI s = p.sprite != null ? p.sprite : glowSprite;
+        s.setSize(radiusPx * 2f, radiusPx * 2f);
+        s.setAngle(p.angleDeg);
+        s.setAlphaMult(alphaMult * lifeFrac);
+        s.setColor(p.color);
+        if (p.additive) s.setAdditiveBlend(); else s.setNormalBlend();
+        // Flipbook: subdivide the sheet by frame index advanced over the particle's
+        // lifetime. UVs are pixel coords on the texture, so width/height come from
+        // the sprite's reported size divided by sheet columns / rows.
+        if (p.frameCount > 0) {
+            int playFrame = (int) ((1f - lifeFrac) * p.frameCount);
+            if (playFrame >= p.frameCount) playFrame = p.frameCount - 1;
+            int frameIdx = p.firstFrame + playFrame;
+            int rows = (FIRE_FIRST_FRAME + FIRE_FRAME_COUNT) / PARTICLE_SHEET_COLS;  // 4 rows
+            float cellW = s.getWidth() / PARTICLE_SHEET_COLS;
+            float cellH = s.getHeight() / rows;
+            int col = frameIdx % PARTICLE_SHEET_COLS;
+            int row = frameIdx / PARTICLE_SHEET_COLS;
+            s.setTexX(col * cellW);
+            s.setTexY(row * cellH);
+            s.setTexWidth(cellW);
+            s.setTexHeight(cellH);
+        }
+        s.renderAtCenter(
                 layout.gridX + p.x * layout.cellSize,
                 layout.gridY + p.y * layout.cellSize);
+        // Reset UVs on the shared sheet sprite so the next particle that uses it
+        // doesn't inherit a frame index. (Cheap — just four setters.)
+        if (p.frameCount > 0) {
+            s.setTexX(0f);
+            s.setTexY(0f);
+            s.setTexWidth(s.getWidth());
+            s.setTexHeight(s.getHeight());
+        }
     }
 
     // ---- Sprite loading -------------------------------------------------------
@@ -892,10 +1155,19 @@ public final class FlybyOverlay {
         for (FighterProfile profile : FighterProfile.values()) {
             SpriteAPI sprite = loadSpriteOrNull(profile.spritePath);
             if (sprite != null) sprites.put(profile, sprite);
+            if (profile.projectileSpritePath != null) {
+                SpriteAPI body = loadSpriteOrNull(profile.projectileSpritePath);
+                if (body != null) projectileSprites.put(profile, body);
+            }
         }
-        shadowSprite = loadSpriteOrNull(SPRITE_SHADOW);
-        glowSprite   = loadSpriteOrNull(SPRITE_GLOW);
-        engineSprite = loadSpriteOrNull(SPRITE_ENGINE_GLOW);
+        shadowSprite        = loadSpriteOrNull(SPRITE_SHADOW);
+        glowSprite          = loadSpriteOrNull(SPRITE_GLOW);
+        engineSprite        = loadSpriteOrNull(SPRITE_ENGINE_GLOW);
+        explosionRingSprite = loadSpriteOrNull(SPRITE_EXPLOSION_RING);
+        for (int i = 0; i < SPRITE_EXPLOSIONS.length; i++) {
+            explosionSprites[i] = loadSpriteOrNull(SPRITE_EXPLOSIONS[i]);
+        }
+        particleSheetSprite = loadSpriteOrNull(SPRITE_PARTICLE_SHEET);
     }
 
     private SpriteAPI loadSpriteOrNull(String path) {
@@ -970,5 +1242,25 @@ public final class FlybyOverlay {
         float lifetimeMax;
         float radiusCells;
         Color color;
+        /** Optional sprite override — null = render with the shared glow sprite. Used by explosion FX to render vanilla 128px explosion frames. */
+        SpriteAPI sprite;
+        /** Render rotation in degrees. 0 for the glow path (radial); randomized for explosion sprites so they don't all face the same way. */
+        float angleDeg;
+        /** Flipbook frame count — 0 means render the full sprite (current behavior). >0 means {@link #sprite} is a {@link FlybyOverlay#PARTICLE_SHEET_COLS}-wide spritesheet and we play frames {@code firstFrame .. firstFrame + frameCount - 1} over the particle's lifetime. */
+        int frameCount;
+        int firstFrame;
+        /** Blend mode override — true (default) = additive (good for fire / glows / hot impacts); false = normal alpha (good for smoke, which should occlude rather than brighten). */
+        boolean additive = true;
+    }
+
+    private static final class Projectile {
+        FighterProfile profile;
+        Faction side;
+        float worldX, worldY;
+        float vx, vy;
+        float speed;
+        float headingDeg;
+        Unit target;            // may be null or stale; tickProjectile defensively checks isAlive()
+        float fuseRemaining;
     }
 }
