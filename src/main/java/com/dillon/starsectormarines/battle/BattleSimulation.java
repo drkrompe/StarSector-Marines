@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.ai.FleeBehavior;
 import com.dillon.starsectormarines.battle.ai.KitRetrieverBehavior;
 import com.dillon.starsectormarines.battle.ai.PlanterBehavior;
 import com.dillon.starsectormarines.battle.ai.TacticalScoring;
+import com.dillon.starsectormarines.battle.ai.TurretBehavior;
 import com.dillon.starsectormarines.battle.ai.UnitBehavior;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.map.CellTopology;
@@ -235,6 +236,10 @@ public class BattleSimulation {
             if (!u.isAlive()) continue;
             updateUnit(u);
         }
+        // Convert any turrets that just died into walkable rubble so the next
+        // tick's pathfinding + zone graph sees the hole, and the floor pass
+        // picks the cell up as rubble.
+        demolishDeadTurrets();
         // Shuttles tick AFTER units so new deboarded marines aren't iterated
         // mid-loop. They'll be picked up by next tick's occupancy + target pass.
         advanceShuttles();
@@ -306,6 +311,35 @@ public class BattleSimulation {
         }
     }
 
+    /**
+     * Flips destroyed-turret mount cells from non-walkable obstacle to walkable
+     * rubble. Mirrors the wall-collapse half of {@link NavigationGrid#damageCell}:
+     * opens the cell + edges, recomputes cover on the cell and its 4 cardinal
+     * neighbors, tags topology rubble for the renderer, and rebuilds the zone
+     * graph once if at least one turret went down this tick. Guarded by
+     * {@link MapTurret#demolished} so successive ticks don't re-process a wreck.
+     */
+    private void demolishDeadTurrets() {
+        boolean anyDemolished = false;
+        for (Unit u : units) {
+            if (!(u instanceof MapTurret)) continue;
+            MapTurret t = (MapTurret) u;
+            if (t.isAlive() || t.demolished) continue;
+            grid.setWalkable(t.cellX, t.cellY, true);
+            grid.openAllEdges(t.cellX, t.cellY);
+            topology.setRubble(t.cellX, t.cellY, true);
+            topology.setFloor(t.cellX, t.cellY, true);
+            grid.recomputeCoverAt(t.cellX, t.cellY);
+            grid.recomputeCoverAt(t.cellX + 1, t.cellY);
+            grid.recomputeCoverAt(t.cellX - 1, t.cellY);
+            grid.recomputeCoverAt(t.cellX, t.cellY + 1);
+            grid.recomputeCoverAt(t.cellX, t.cellY - 1);
+            t.demolished = true;
+            anyDemolished = true;
+        }
+        if (anyDemolished) zoneGraph.rebuild();
+    }
+
     /** Ages every active shot by one tick and drops expired ones. Reverse iteration for in-place removal. */
     private void advanceShots() {
         for (int i = activeShots.size() - 1; i >= 0; i--) {
@@ -340,6 +374,7 @@ public class BattleSimulation {
             case PLANTER:        return PlanterBehavior.INSTANCE;
             case KIT_RETRIEVER:  return KitRetrieverBehavior.INSTANCE;
             case FLEE:           return FleeBehavior.INSTANCE;
+            case TURRET:         return TurretBehavior.INSTANCE;
             case OBJECTIVE_CAMPER:
             case VIP:
             case COMBATANT:
@@ -513,8 +548,10 @@ public class BattleSimulation {
                 deathsThisFrame.add(target);
                 emitEquipmentDropIfApplicable(target);
             }
-            // Roll fall-back on hit. Skip if target is dead or already breaking contact.
+            // Roll fall-back on hit. Skip if target is dead, already breaking
+            // contact, or a bolted-down turret (those fight to the last HP).
             if (target.isAlive() && target.fallbackTimer <= 0f
+                    && !(target instanceof MapTurret)
                     && rng.nextFloat() < FALLBACK_CHANCE) {
                 int[] fallback = TacticalScoring.findFallbackPosition(target, this);
                 if (fallback[0] != target.cellX || fallback[1] != target.cellY) {

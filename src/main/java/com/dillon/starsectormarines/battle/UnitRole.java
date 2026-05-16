@@ -27,6 +27,11 @@ package com.dillon.starsectormarines.battle;
  *       gunfire enters their perception, then path away from the threat
  *       toward the nearest map edge. Distinct from VIP, which is a
  *       mission-controlled non-combatant with an exfil objective.</li>
+ *   <li>{@link #TURRET} — static defense. Immobile; tracks the nearest visible
+ *       enemy combatant within range, rotates toward it, and fires when the
+ *       barrel is aligned. Assigned to {@link MapTurret} units stamped by
+ *       {@link BattleSetup}; routed to {@code TurretBehavior} for per-tick
+ *       update.</li>
  * </ul>
  *
  * <p>Mission setup assigns roles when populating the simulation. Roles can
@@ -40,5 +45,6 @@ public enum UnitRole {
     OBJECTIVE_CAMPER,
     VIP,
     KIT_RETRIEVER,
-    FLEE
+    FLEE,
+    TURRET
 }

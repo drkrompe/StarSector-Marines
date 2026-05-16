@@ -53,6 +53,12 @@ public final class BattleSetup {
     private static final int VEHICLE_COUNT_MIN = 3;
     private static final int VEHICLE_COUNT_MAX = 6;
 
+    /** Min/max defender-side static turrets stamped on streets/courtyards. Vanilla weapon sprites pulled in via {@link com.dillon.starsectormarines.battle.TurretKind}. */
+    private static final int TURRET_COUNT_MIN = 2;
+    private static final int TURRET_COUNT_MAX = 4;
+    /** Min cell-distance between any two turret placements. Stops them from clustering on one block — defenders typically spread emplacements across the line of approach. */
+    private static final int TURRET_MIN_SEPARATION = 8;
+
     /** SABOTAGE: number of charge sites to plant. One per shuttle = one planter per drop. */
     private static final int SABOTAGE_CHARGE_SITES = 3;
     /** SABOTAGE: sim-seconds a planter must dwell on a charge site to complete the plant. */
@@ -101,9 +107,11 @@ public final class BattleSetup {
         // Vehicles stamp before sim construction so the BattleSimulation's
         // zone-graph rebuild sees the final walkability — trucks partition zones.
         List<MapVehicle> vehiclePlacements = stampVehicles(map.grid, map.topology, rng);
+        List<TurretPlacement> turretPlacements = stampTurrets(map.grid, map.topology, rng);
         BattleSimulation sim = new BattleSimulation(map.grid, map.topology);
         for (MapVehicle v : vehiclePlacements) sim.addVehicle(v);
         for (Doodad d : map.doodads) sim.addDoodad(d);
+        spawnTurrets(sim, turretPlacements);
 
         // Pick charge sites: prefer high-value POIs (lab/comms/depot) in the
         // defender half of the map. Fall back to any POI if not enough qualify.
@@ -232,9 +240,11 @@ public final class BattleSetup {
         UrbanMapGenerator.Result map = UrbanMapGenerator.generate(GRID_W, GRID_H, seed);
         Random rng = new Random(seed);
         List<MapVehicle> vehiclePlacements = stampVehicles(map.grid, map.topology, rng);
+        List<TurretPlacement> turretPlacements = stampTurrets(map.grid, map.topology, rng);
         BattleSimulation sim = new BattleSimulation(map.grid, map.topology);
         for (MapVehicle v : vehiclePlacements) sim.addVehicle(v);
         for (Doodad d : map.doodads) sim.addDoodad(d);
+        spawnTurrets(sim, turretPlacements);
 
         // Default ASSAULT objectives — eliminate the other side. Mission-specific
         // setups (sabotage, raid, extraction) will swap or add to this pair.
@@ -519,6 +529,87 @@ public final class BattleSetup {
             for (int dx = -1; dx <= kind.footprintCellsX; dx++) {
                 grid.recomputeCoverAt(x + dx, y + dy);
             }
+        }
+    }
+
+    /**
+     * Picks 2-4 turret placements on outdoor pavement in the defender half of
+     * the map ({@code x >= GRID_W/2}), spaced at least {@link #TURRET_MIN_SEPARATION}
+     * cells apart. Each placement flags its single mount cell non-walkable, then
+     * recomputes cover for the surrounding ring — same pattern as
+     * {@link #stampVehicles} on a 1×1 footprint. Returns the kind/cell pairs for
+     * the caller to spawn as {@link MapTurret} units after sim construction.
+     *
+     * <p>Defender-half-only because that's where they'd be staged in lore — a
+     * planetary garrison places turrets between their command post and the
+     * marine approach axis. Spreading them out matters more than tight cover
+     * adjacency: a clustered pair gets flanked by one charge, where two on
+     * opposite blocks force the marines to split fire.
+     */
+    private static List<TurretPlacement> stampTurrets(NavigationGrid grid, CellTopology topology, Random rng) {
+        int target = TURRET_COUNT_MIN + rng.nextInt(TURRET_COUNT_MAX - TURRET_COUNT_MIN + 1);
+        TurretKind[] kinds = TurretKind.values();
+        List<TurretPlacement> placed = new ArrayList<>(target);
+        int halfX = grid.getWidth() / 2;
+        int minSepSq = TURRET_MIN_SEPARATION * TURRET_MIN_SEPARATION;
+        int attempts = 0;
+        int maxAttempts = target * 100;
+        while (placed.size() < target && attempts < maxAttempts) {
+            attempts++;
+            int x = halfX + rng.nextInt(Math.max(1, grid.getWidth() - halfX));
+            int y = rng.nextInt(grid.getHeight());
+            if (!canPlaceTurret(grid, topology, x, y)) continue;
+            boolean farEnough = true;
+            for (TurretPlacement prev : placed) {
+                int dx = prev.cellX - x;
+                int dy = prev.cellY - y;
+                if (dx * dx + dy * dy < minSepSq) { farEnough = false; break; }
+            }
+            if (!farEnough) continue;
+            TurretKind kind = kinds[rng.nextInt(kinds.length)];
+            stampOneTurret(grid, x, y);
+            placed.add(new TurretPlacement(kind, x, y));
+        }
+        return placed;
+    }
+
+    private static boolean canPlaceTurret(NavigationGrid grid, CellTopology topology, int x, int y) {
+        if (!grid.inBounds(x, y)) return false;
+        if (!grid.isWalkable(x, y)) return false;
+        if (grid.isDoorway(x, y)) return false;
+        if (!topology.isStreet(x, y) && !topology.isCourtyard(x, y)) return false;
+        return true;
+    }
+
+    private static void stampOneTurret(NavigationGrid grid, int x, int y) {
+        grid.setWalkable(x, y, false);
+        // Don't tag CellTopology.WALL — the wall pass would draw building art
+        // here. Don't tag VEHICLE either — that'd trigger the vehicle render
+        // path. The renderer's turret pass paints the platform fill explicitly.
+        for (int dy = -1; dy <= 1; dy++) {
+            for (int dx = -1; dx <= 1; dx++) {
+                grid.recomputeCoverAt(x + dx, y + dy);
+            }
+        }
+    }
+
+    private static void spawnTurrets(BattleSimulation sim, List<TurretPlacement> placements) {
+        int i = 0;
+        for (TurretPlacement p : placements) {
+            sim.addUnit(new MapTurret("t" + i++, Faction.DEFENDER, p.kind, p.cellX, p.cellY));
+        }
+    }
+
+    /** Immutable pair of (kind, anchor cell) emitted by {@link #stampTurrets} and consumed by {@link #spawnTurrets}. Lives here to keep the BattleSetup-internal flow self-contained. */
+    private static final class TurretPlacement {
+        final TurretKind kind;
+        final int cellX;
+        final int cellY;
+
+        TurretPlacement(TurretKind kind, int cellX, int cellY) {
+            this.kind = kind;
+            this.cellX = cellX;
+            this.cellY = cellY;
         }
     }
 

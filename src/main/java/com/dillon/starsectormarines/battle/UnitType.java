@@ -27,7 +27,9 @@ public enum UnitType {
     /** Maintenance / industrial worker. Same role as civilian — wanders, flees. */
     ENGINEER   ("graphics/battle/engineer.png",    false, 10f, 0f,   2.2f, 0f,    1f,   0f),
     /** Lab tech. Same role as civilian — wanders, flees. Lower HP than engineer; same speed. */
-    SCIENTIST  ("graphics/battle/scientist.png",   false,  8f, 0f,   2.2f, 0f,    1f,   0f);
+    SCIENTIST  ("graphics/battle/scientist.png",   false,  8f, 0f,   2.2f, 0f,    1f,   0f),
+    /** Static ground turret. Combatant so it targets and gets targeted, but its sprite + stats come from {@link MapTurret#kind} at construction — the values here are zero placeholders that {@link MapTurret} overwrites. */
+    TURRET     ("",                                true,   0f, 0f,   0f,   0f,    1f,   0f);
 
     public final String spritePath;
     public final boolean combatant;

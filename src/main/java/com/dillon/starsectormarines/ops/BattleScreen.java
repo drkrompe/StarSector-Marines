@@ -10,8 +10,10 @@ import com.dillon.starsectormarines.battle.Shuttle;
 import com.dillon.starsectormarines.battle.ShuttleType;
 import com.dillon.starsectormarines.battle.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.SpriteSheetSlicer;
+import com.dillon.starsectormarines.battle.MapTurret;
 import com.dillon.starsectormarines.battle.MapVehicle;
 import com.dillon.starsectormarines.battle.TileManifest;
+import com.dillon.starsectormarines.battle.TurretKind;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.UnitType;
 import com.dillon.starsectormarines.battle.VehicleKind;
@@ -209,6 +211,10 @@ public class BattleScreen implements Screen {
     private final java.util.EnumMap<VehicleKind.VehicleSheet, UnitSpriteCache> vehicleSheets =
             new java.util.EnumMap<>(VehicleKind.VehicleSheet.class);
     private boolean vehicleSheetsLoadAttempted;
+    /** Per-{@link TurretKind} sprite + native aspect cache. Same shape as {@link ShuttleSpriteCache}: the sprite is single-frame and rotated at draw time, so no auto-slicing. */
+    private final java.util.EnumMap<TurretKind, ShuttleSpriteCache> turretSprites =
+            new java.util.EnumMap<>(TurretKind.class);
+    private boolean turretSpritesLoadAttempted;
     /** Cached tileset sheet — lazy-loaded once per Screen lifetime. Null if load failed. */
     private SpriteAPI tileSheet;
     /** Pixel dimensions of the tileset PNG content (pre-POT-padding). */
@@ -281,6 +287,7 @@ public class BattleScreen implements Screen {
         this.speedMultiplier = 1f;
         ensureUnitSheets();
         ensureVehicleSheets();
+        ensureTurretSprites();
         ensureTileSheet();
         ensureRoadSheet();
         ensureShuttleSprites();
@@ -463,6 +470,9 @@ public class BattleScreen implements Screen {
         if (unitSpritesLoadAttempted) return;
         unitSpritesLoadAttempted = true;
         for (UnitType type : UnitType.values()) {
+            // TURRET sprite is per-instance via MapTurret.kind, not per-type —
+            // its spritePath is intentionally empty so we skip the load here.
+            if (type == UnitType.TURRET) continue;
             unitSprites.put(type, loadUnitSheet(type.spritePath));
         }
     }
@@ -472,6 +482,37 @@ public class BattleScreen implements Screen {
         vehicleSheetsLoadAttempted = true;
         for (VehicleKind.VehicleSheet sheet : VehicleKind.VehicleSheet.values()) {
             vehicleSheets.put(sheet, loadUnitSheet(sheet.path));
+        }
+    }
+
+    /**
+     * Lazy-loads each {@link TurretKind}'s vanilla weapon sprite. Same wrapper-
+     * after-loadTexture gotcha as every other sheet, plus aspect capture before
+     * {@code setSize} clobbers {@code getWidth/getHeight}. Sprites live under
+     * {@code graphics/weapons/} in the Starsector install; Starsector's
+     * resource loader resolves them transparently — we don't ship copies in
+     * the mod folder.
+     */
+    private void ensureTurretSprites() {
+        if (turretSpritesLoadAttempted) return;
+        turretSpritesLoadAttempted = true;
+        for (TurretKind kind : TurretKind.values()) {
+            try {
+                Global.getSettings().loadTexture(kind.spritePath);
+                SpriteAPI sprite = Global.getSettings().getSprite(kind.spritePath);
+                if (sprite == null) {
+                    LOG.warn("BattleScreen: getSprite returned null for " + kind.spritePath);
+                    continue;
+                }
+                float w = sprite.getWidth();
+                float h = sprite.getHeight();
+                float aspect = (h > 0f) ? w / h : 1f;
+                turretSprites.put(kind, new ShuttleSpriteCache(sprite, aspect));
+                LOG.info("BattleScreen: loaded turret " + kind.spritePath
+                        + " (" + w + "x" + h + ", aspect=" + aspect + ")");
+            } catch (Exception e) {
+                LOG.error("BattleScreen: failed to load turret sprite " + kind.spritePath, e);
+            }
         }
     }
 
@@ -827,13 +868,38 @@ public class BattleScreen implements Screen {
             // viewport — under zoom, content (units near the edge, the world
             // floor quad, tracers, fighter shadows) projects outside the grid
             // rect and would otherwise bleed over the speed-button strip and
-            // Back button. Starsector hands us a scissor already enabled (see
-            // gl_state_gotchas), so push the SCISSOR_BIT to capture + restore
-            // both the prior box and the enable state rather than overwriting them.
+            // Back button.
+            //
+            // glScissor takes FRAMEBUFFER pixels, but layout.gridX/Y/W/H are
+            // in Starsector's UI-space units (which scale with the user's UI
+            // scale setting and the framebuffer DPI). Feeding UI units to
+            // glScissor directly clips at the wrong place — visible as the
+            // top of the play area going black at zoom.
+            //
+            // Starsector hands us a scissor already enabled around the dialog
+            // rect (see gl_state_gotchas), so we can sample it to recover the
+            // UI-to-FB scale: query the inherited scissor box (= dialog rect
+            // in FB px), compare against the dialog rect in UI units (from
+            // position), and apply the same scale to the grid sub-rect.
+            // Push SCISSOR_BIT so we restore both the prior box and the
+            // enable state on pop.
             glPushAttrib(GL_SCISSOR_BIT);
+            java.nio.IntBuffer scissorBuf = org.lwjgl.BufferUtils.createIntBuffer(16);
+            org.lwjgl.opengl.GL11.glGetInteger(org.lwjgl.opengl.GL11.GL_SCISSOR_BOX, scissorBuf);
+            int dialogFbX = scissorBuf.get(0);
+            int dialogFbY = scissorBuf.get(1);
+            int dialogFbW = scissorBuf.get(2);
+            int dialogFbH = scissorBuf.get(3);
+            float uiDialogW = Math.max(0.001f, position.getWidth());
+            float uiDialogH = Math.max(0.001f, position.getHeight());
+            float sx = dialogFbW / uiDialogW;
+            float sy = dialogFbH / uiDialogH;
+            int gridFbX = dialogFbX + Math.round((layout.gridX - position.getX()) * sx);
+            int gridFbY = dialogFbY + Math.round((layout.gridY - position.getY()) * sy);
+            int gridFbW = Math.round(layout.gridW * sx);
+            int gridFbH = Math.round(layout.gridH * sy);
             glEnable(GL_SCISSOR_TEST);
-            glScissor((int) layout.gridX, (int) layout.gridY,
-                      (int) layout.gridW, (int) layout.gridH);
+            glScissor(gridFbX, gridFbY, gridFbW, gridFbH);
             renderGrid(sim.getGrid(), sim.getTopology(), alphaMult);
             if (debugZonesVisible) renderZoneOverlay(sim, alphaMult);
             renderVehicles(sim, alphaMult);
@@ -1214,6 +1280,12 @@ public class BattleScreen implements Screen {
         float unitSize = camera.cellPxSize() * UNIT_FRAC;
         float half = unitSize / 2f;
 
+        // Turrets render in their own pass first — pavement plate + rotated
+        // weapon sprite — so marines walking adjacent to a turret draw over
+        // the barrel rather than under it. (Z-order is iteration order; this
+        // pass runs before the marine pass.)
+        renderTurrets(units, alphaMult);
+
         // Per-unit sheet pick — every UnitType has its own sheet cache. The
         // singleton SpriteAPI is shared across all units of the same type;
         // we reset tint at the end so a tinted civilian doesn't bleed into
@@ -1221,6 +1293,7 @@ public class BattleScreen implements Screen {
         java.util.Set<UnitSpriteCache> tintedThisFrame = new java.util.HashSet<>();
         for (Unit u : units) {
             if (!u.isAlive()) continue;
+            if (u instanceof MapTurret) continue; // handled by renderTurrets above
             UnitSpriteCache cache = unitSprites.get(u.type);
             if (cache == null || cache.sheet == null || cache.frames == null
                     || cache.frames.frames.length == 0) {
@@ -1239,6 +1312,8 @@ public class BattleScreen implements Screen {
         // HP bars above each unit (always, regardless of sprite fallback).
         // Skip non-combatants — civilians/scientists with HP bars looks weird
         // and they don't really "fight" in a sense the bar communicates.
+        // Turrets get their bar pushed above their visual envelope, since
+        // visualCells > 1 means a cell-top bar would draw inside the sprite.
         for (Unit u : units) {
             if (!u.isAlive()) continue;
             if (!u.type.combatant) continue;
@@ -1246,7 +1321,13 @@ public class BattleScreen implements Screen {
             float cy = camera.cellToScreenY(u.renderY + 0.5f);
             float barW = unitSize;
             float barX = cx - barW / 2f;
-            float barY = cy + half + HP_BAR_GAP;
+            float barY;
+            if (u instanceof MapTurret) {
+                float visual = ((MapTurret) u).kind.visualCells;
+                barY = cy + visual * camera.cellPxSize() / 2f + HP_BAR_GAP;
+            } else {
+                barY = cy + half + HP_BAR_GAP;
+            }
             fillRect(barX, barY, barW, HP_BAR_H, HP_BG, alphaMult);
             float frac = Math.max(0f, Math.min(1f, u.hp / u.maxHp));
             fillRect(barX, barY, barW * frac, HP_BAR_H, HP_FG, alphaMult);
@@ -1381,6 +1462,97 @@ public class BattleScreen implements Screen {
             UnitSpriteCache cache = vehicleSheets.get(s);
             if (cache != null && cache.sheet != null) cache.sheet.setColor(Color.WHITE);
         }
+    }
+
+    /**
+     * Renders MapTurret entries: a pavement plate under each mount (so the
+     * non-walkable cell isn't dark void) plus a rotated vanilla weapon sprite
+     * sized to {@link TurretKind#visualCells}. Skips destroyed turrets — the
+     * sim has already flipped those cells to rubble, so the floor pass renders
+     * them as damaged terrain and we don't redraw the weapon wreck (v1; a
+     * destroyed-base sprite can come later).
+     *
+     * <p>Sprite barrel points UP in the source PNG, so {@code setAngle(facing)}
+     * works directly without an offset — facing is degrees clockwise from north
+     * matching {@code Shuttle.facingTowards}.
+     */
+    private void renderTurrets(List<Unit> units, float alphaMult) {
+        boolean any = false;
+        for (Unit u : units) {
+            if (u instanceof MapTurret && u.isAlive()) { any = true; break; }
+        }
+        if (!any) return;
+
+        float cellPx = camera.cellPxSize();
+
+        // Pass 1 — pavement plate fill under each turret mount cell. Mirrors
+        // the road-fill underlay renderVehicles draws so transparent margins
+        // in the sprite blend with the surrounding street.
+        glDisable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBegin(GL_QUADS);
+        glColor4f(ROAD_FILL.getRed() / 255f, ROAD_FILL.getGreen() / 255f,
+                ROAD_FILL.getBlue() / 255f, alphaMult);
+        for (Unit u : units) {
+            if (!(u instanceof MapTurret) || !u.isAlive()) continue;
+            float x0 = camera.cellToScreenX(u.cellX);
+            float y0 = camera.cellToScreenY(u.cellY);
+            glVertex2f(x0,          y0);
+            glVertex2f(x0 + cellPx, y0);
+            glVertex2f(x0 + cellPx, y0 + cellPx);
+            glVertex2f(x0,          y0 + cellPx);
+        }
+        glEnd();
+
+        // Pass 2 — rotated sprite per turret.
+        java.util.Set<TurretKind> touched = new java.util.HashSet<>();
+        for (Unit u : units) {
+            if (!(u instanceof MapTurret) || !u.isAlive()) continue;
+            MapTurret t = (MapTurret) u;
+            ShuttleSpriteCache cache = turretSprites.get(t.kind);
+            if (cache == null) {
+                renderTurretQuadFallback(t, cellPx * UNIT_FRAC, alphaMult);
+                continue;
+            }
+            SpriteAPI sprite = cache.sprite;
+            // Long axis (sprite height = barrel length) maps to visualCells.
+            float pxH = t.kind.visualCells * cellPx;
+            float pxW = pxH * cache.aspect;
+            sprite.setSize(pxW, pxH);
+            sprite.setAngle(t.facingDegrees);
+            sprite.setAlphaMult(alphaMult);
+            sprite.setNormalBlend();
+            sprite.setColor(Color.WHITE);
+            float cx = camera.cellToScreenX(t.cellX + 0.5f);
+            float cy = camera.cellToScreenY(t.cellY + 0.5f);
+            sprite.renderAtCenter(cx, cy);
+            touched.add(t.kind);
+        }
+        // Reset angle on touched sprites so the singleton SpriteAPI doesn't
+        // carry rotation into other passes that reuse it.
+        for (TurretKind k : touched) {
+            ShuttleSpriteCache c = turretSprites.get(k);
+            if (c != null) c.sprite.setAngle(0f);
+        }
+    }
+
+    /** Fallback for turrets whose sprite failed to load — small red square so the unit is at least visible at the mount cell. */
+    private void renderTurretQuadFallback(MapTurret t, float size, float alphaMult) {
+        float half = size / 2f;
+        glDisable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBegin(GL_QUADS);
+        glColor4f(DEFENDER_COLOR.getRed() / 255f, DEFENDER_COLOR.getGreen() / 255f,
+                DEFENDER_COLOR.getBlue() / 255f, alphaMult);
+        float cx = camera.cellToScreenX(t.cellX + 0.5f);
+        float cy = camera.cellToScreenY(t.cellY + 0.5f);
+        glVertex2f(cx - half, cy - half);
+        glVertex2f(cx + half, cy - half);
+        glVertex2f(cx + half, cy + half);
+        glVertex2f(cx - half, cy + half);
+        glEnd();
     }
 
     /** Fallback colored-quad path when a unit's sprite sheet failed to load. */
