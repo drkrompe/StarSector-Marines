@@ -48,6 +48,19 @@ public final class TileManifest {
     public static final int ROAD_FILL_RGB = 0x4D5267; // 77, 82, 103
 
     /**
+     * Top-left cell of the courtyard 3×3 autotile block on {@link #ROAD_SHEET}.
+     * Dark steel-framed pavement — visually distinct from both the red-bordered
+     * road autotile and the light beige indoor floor. Used on private interior
+     * pavement inside multi-cell super-blocks (see {@link NavigationGrid#isCourtyard}),
+     * so a row-house or warehouse complex with a shared courtyard reads as one
+     * plot rather than two buildings across a street.
+     */
+    private static final int COURTYARD_COL_ORIGIN = 0;
+    private static final int COURTYARD_ROW_ORIGIN = 0;
+    /** Open-courtyard surface color (sampled from the autotile's inner fill — bluer + darker than the road). */
+    public static final int COURTYARD_FILL_RGB = 0x29344A; // 41, 52, 74
+
+    /**
      * Sidewalk panel tile (clean frame with dark corner studs) on
      * {@link #ROAD_SHEET}. Stamped on any street cell adjacent to a building
      * wall — forms a 1-cell buffer ring around every building. The road
@@ -201,6 +214,23 @@ public final class TileManifest {
         int row = nWall ? 0 : (sWall ? 2 : 1);
 
         return new TileFrame(ROAD_COL_ORIGIN + col, ROAD_ROW_ORIGIN + row);
+    }
+
+    /**
+     * Courtyard counterpart to {@link #pickRoadTile} — same hollow-perimeter
+     * shape on the dark steel autotile. Returns {@code null} for the open-
+     * courtyard case (no wall neighbors) — caller paints a solid
+     * {@link #COURTYARD_FILL_RGB} quad because the source center is transparent.
+     *
+     * <p>The "wall" inputs here include any non-walkable cell that bounds the
+     * courtyard — typically the perimeter of a super-block's member buildings.
+     * Out-of-bounds is treated as <em>not</em> a wall (same as floor/road).
+     */
+    public static TileFrame pickCourtyardTile(boolean nWall, boolean sWall, boolean eWall, boolean wWall) {
+        if (!nWall && !sWall && !eWall && !wWall) return null;
+        int col = wWall ? 0 : (eWall ? 2 : 1);
+        int row = nWall ? 0 : (sWall ? 2 : 1);
+        return new TileFrame(COURTYARD_COL_ORIGIN + col, COURTYARD_ROW_ORIGIN + row);
     }
 
     private TileManifest() {}

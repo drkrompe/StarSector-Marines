@@ -29,6 +29,10 @@ import java.util.Arrays;
  *   <li>Bit 6: crosswalk-stripes-horizontal (only meaningful when bit 5 is set;
  *       1 = stripes run east-west (pedestrian walking north-south), 0 = stripes
  *       run north-south (pedestrian walking east-west))</li>
+ *   <li>Bit 7: courtyard (private interior pavement — outdoor walkable space
+ *       absorbed into a super-block. Renders with the courtyard autotile from
+ *       the road sheet so it reads distinct from both public road and indoor
+ *       building floor)</li>
  * </ul>
  *
  * <p>Edge passability byte layout:
@@ -50,6 +54,7 @@ public class NavigationGrid {
     private static final int STREET_BIT            = 4;
     private static final int CROSSWALK_BIT         = 5;
     private static final int CROSSWALK_HORIZ_BIT   = 6;
+    private static final int COURTYARD_BIT         = 7;
 
     /** Maximum cover level. 0 = open ground, MAX = heavy cover (all sides walled). */
     public static final int MAX_COVER = 3;
@@ -249,6 +254,21 @@ public class NavigationGrid {
         int idx = index(x, y);
         if (horizontal) cellFlags[idx] |= (byte) (1 << CROSSWALK_HORIZ_BIT);
         else            cellFlags[idx] &= (byte) ~(1 << CROSSWALK_HORIZ_BIT);
+    }
+
+    // ----- Courtyard (private outdoor pavement inside a super-block) -----
+
+    /** True for walkable cells that are private interior pavement (super-block courtyards), not public road or indoor floor. */
+    public boolean isCourtyard(int x, int y) {
+        if (!inBounds(x, y)) return false;
+        return (cellFlags[index(x, y)] & (1 << COURTYARD_BIT)) != 0;
+    }
+
+    public void setCourtyard(int x, int y, boolean courtyard) {
+        if (!inBounds(x, y)) return;
+        int idx = index(x, y);
+        if (courtyard) cellFlags[idx] |= (byte) (1 << COURTYARD_BIT);
+        else           cellFlags[idx] &= (byte) ~(1 << COURTYARD_BIT);
     }
 
     // ----- Rubble + destructible walls -----

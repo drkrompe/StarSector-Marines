@@ -194,6 +194,8 @@ public class BattleScreen implements Screen {
     private int roadSheetPxH;
     private boolean roadSheetLoadAttempted;
     private static final Color ROAD_FILL = new Color(TileManifest.ROAD_FILL_RGB);
+    /** Solid fill for the open-courtyard case (no wall-neighbor autotile lookup hits a frame variant). */
+    private static final Color COURTYARD_FILL = new Color(TileManifest.COURTYARD_FILL_RGB);
     /** Painted crosswalk stripe color. Slightly off-white so it doesn't compete with HP-bar greens. */
     private static final Color CROSSWALK_STRIPE = new Color(0xE8, 0xE8, 0xD0);
     /** Stripes per crosswalk cell. 5 is the classic zebra-crossing count and fits cleanly inside one cell. */
@@ -741,13 +743,15 @@ public class BattleScreen implements Screen {
         float texYScale = texH / tileSheetPxH;
         int sheetPxH = tileSheetPxH;
 
-        // Floor pass — four subtypes of walkable cell:
+        // Floor pass — five subtypes of walkable cell:
         //   1. Rubble: damaged-floor autotile from the main sheet.
         //   2. Sidewalk: street cell adjacent to a wall — clean panel from the road sheet.
         //   3. Road: street cell not adjacent to a wall — road autotile, with sidewalk
         //      neighbors treated as boundary so the dashed/red edge lights up against
         //      the sidewalk ring instead of pressing straight into the building.
-        //   4. Interior floor: anything else walkable (inside a building, or doorway).
+        //   4. Courtyard: private interior pavement inside a super-block — dark steel
+        //      autotile from the road sheet, framed against the surrounding buildings.
+        //   5. Interior floor: anything else walkable (inside a building, or doorway).
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
                 if (!grid.isWalkable(x, y)) continue;
@@ -776,6 +780,15 @@ public class BattleScreen implements Screen {
                         if (grid.isCrosswalk(x, y)) {
                             drawCrosswalkStripes(x, y, grid.isCrosswalkStripesHorizontal(x, y), alphaMult);
                         }
+                    }
+                } else if (grid.isCourtyard(x, y) && roadSheet != null) {
+                    // Courtyard autotile frames itself against any non-walkable
+                    // neighbor (the surrounding super-block buildings).
+                    TileManifest.TileFrame f = TileManifest.pickCourtyardTile(nWall, sWall, eWall, wWall);
+                    if (f == null) {
+                        fillCell(x, y, COURTYARD_FILL, alphaMult);
+                    } else {
+                        drawRoadTile(f, x, y, alphaMult);
                     }
                 } else {
                     TileManifest.TileFrame f = TileManifest.pickFloorTile(nWall, sWall, eWall, wWall);

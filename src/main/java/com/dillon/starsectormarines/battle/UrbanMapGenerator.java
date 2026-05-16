@@ -18,6 +18,11 @@ import java.util.Random;
  * <p>Deterministic given the seed. Streets and blocks are laid out by walking
  * each axis once, alternating street strip → block strip → street → block →
  * ..., then carving a building inside each (blockRow × blockCol) rectangle.
+ * Some adjacent block cells are merged into multi-cell super-blocks before
+ * placement (see {@link #buildMegaBlocks} / {@link #dissolveMegaInteriors})
+ * so the city has occasional larger plots with multiple buildings sharing a
+ * private interior, instead of every house standing across a public street
+ * from the next.
  *
  * <p>The result hands back two spawn anchor cells — top-left for marines,
  * bottom-right for defenders. Callers BFS outward from each anchor to place
@@ -32,12 +37,41 @@ public final class UrbanMapGenerator {
     private static final int BLOCK_LEN_MAX    = 14;
     /** Probability a block is left as an open plaza instead of carrying a building. */
     private static final float PLAZA_CHANCE   = 0.12f;
+    /**
+     * Per-direction roll for merging a block-grid cell with its E or S neighbor
+     * into a multi-cell super-block. Two passing rolls produce a 2×2 merge
+     * (subject to the SE corner being free); a single pass produces 2×1 or
+     * 1×2. The resulting mega-block keeps each member cell's individual
+     * building but dissolves the street/sidewalk between them into shared
+     * private interior — reads as a city block with multiple buildings sharing
+     * a courtyard, instead of standalone houses across a public road.
+     */
+    private static final float MEGA_BLOCK_CHANCE = 0.30f;
     /** Inset between block boundary and building footprint — keeps buildings off the curb. */
     private static final int BUILDING_INSET   = 1;
     /** Starting HP for every wall cell. Sized so a typical strafe shot chips, a missile breaches in one or two hits. Tune alongside damage values. */
     private static final int WALL_HP_DEFAULT  = 100;
     /** Building footprints with both dimensions ≥ this are carved hollow (walkable interior + one doorway). Smaller fall back to solid. */
     private static final int HOLLOW_MIN_SIZE  = 4;
+    /**
+     * Minimum building dimension along the split axis to qualify for an
+     * interior partition wall. With a 1-cell-thick wall and ≥2 walkable cells
+     * on each side, the split axis needs at least 5 interior cells (so the
+     * outer footprint needs ≥7 in that direction). Below this the rooms come
+     * out too narrow to feel like separate spaces.
+     */
+    private static final int MULTI_ROOM_MIN_DIM = 7;
+    /** Chance a sufficiently-large hollow building gets subdivided into multiple rooms. */
+    private static final float MULTI_ROOM_CHANCE = 0.65f;
+    /** Minimum dim (both axes) for a hollow building to qualify for a second perimeter doorway. */
+    private static final int SECOND_DOORWAY_MIN_DIM = 5;
+    /**
+     * Chance a qualifying hollow building gets a second perimeter doorway on
+     * the opposite side. Two-door buildings act as throughways — AI uses them
+     * as shortcuts between street segments and as flanking cover rather than
+     * just defensive fallback positions.
+     */
+    private static final float SECOND_DOORWAY_CHANCE = 0.7f;
 
     /** Probability a hollow building gets at least one prop placed. */
     private static final float DOODAD_PER_BUILDING_CHANCE = 0.8f;
@@ -89,14 +123,21 @@ public final class UrbanMapGenerator {
         List<int[]> blockRowsY = blockStripsAlongAxis(height, rng);
         List<int[]> blockColsX = blockStripsAlongAxis(width,  rng);
 
+        // Decide super-block membership before placing any buildings so each
+        // member cell can be tagged with its mega-block's shared theme.
+        List<MegaBlock> megaBlocks = buildMegaBlocks(blockRowsY.size(), blockColsX.size(), rng);
+        int[][] megaIndex = indexMegaBlocks(megaBlocks, blockRowsY.size(), blockColsX.size());
+
         List<PointOfInterest> pois = new ArrayList<>();
         // Per-POI theme map so doodad scatter can match each building's flavor
         // without re-rolling.
         java.util.Map<PointOfInterest, DistrictTheme> poiThemes = new java.util.HashMap<>();
         List<int[]> skyPortPlazas = new ArrayList<>();
-        for (int[] row : blockRowsY) {
-            for (int[] col : blockColsX) {
-                DistrictTheme theme = pickTheme(rng);
+        for (int r = 0; r < blockRowsY.size(); r++) {
+            int[] row = blockRowsY.get(r);
+            for (int c = 0; c < blockColsX.size(); c++) {
+                int[] col = blockColsX.get(c);
+                DistrictTheme theme = megaBlocks.get(megaIndex[r][c]).theme;
                 PointOfInterest poi = placeBuilding(grid, col[0], row[0], col[1], row[1], rng, theme);
                 if (poi != null) {
                     pois.add(poi);
@@ -113,6 +154,12 @@ public final class UrbanMapGenerator {
                 }
             }
         }
+
+        // Now that every building is carved, fold the absorbed strips between
+        // merged cells into private interior. Has to run after placeBuilding so
+        // the wall perimeters are in place — the dissolution preserves walls
+        // and only clears the street flag on the walkable in-between cells.
+        dissolveMegaInteriors(grid, megaBlocks, blockRowsY, blockColsX);
 
         seedWallHp(grid);
         bakeCoverFromWalls(grid);
@@ -251,6 +298,117 @@ public final class UrbanMapGenerator {
     }
 
     /**
+     * Block-grid rectangle describing one super-block. {@code (r0, c0)}..{@code (r1, c1)}
+     * are inclusive indices into {@code blockRowsY} / {@code blockColsX}. A
+     * singleton mega-block has {@code r0 == r1 && c0 == c1} and is just a
+     * regular standalone block — the theme is still rolled once and applied
+     * uniformly. Theme is per mega-block (not per cell) so all sub-buildings
+     * inside a merge share an identity.
+     */
+    private static final class MegaBlock {
+        final int r0, c0, r1, c1;
+        final DistrictTheme theme;
+        MegaBlock(int r0, int c0, int r1, int c1, DistrictTheme theme) {
+            this.r0 = r0; this.c0 = c0;
+            this.r1 = r1; this.c1 = c1;
+            this.theme = theme;
+        }
+    }
+
+    /**
+     * Walks the block grid greedily in row-major order, deciding for each
+     * un-claimed cell whether to extend E and/or S into a 2×1, 1×2, or 2×2
+     * super-block. The greedy walk is stable: each cell decides its own
+     * extension once, with no back-tracking, so the resulting partition is
+     * deterministic given the seed. The SE-corner check prevents a 2×2 merge
+     * from clobbering a cell already claimed by an earlier mega — keeps the
+     * partition shape rectangular (no L-shapes).
+     */
+    private static List<MegaBlock> buildMegaBlocks(int rows, int cols, Random rng) {
+        List<MegaBlock> out = new ArrayList<>();
+        boolean[][] taken = new boolean[rows][cols];
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                if (taken[r][c]) continue;
+                boolean canExtE = c + 1 < cols && !taken[r][c + 1];
+                boolean canExtS = r + 1 < rows && !taken[r + 1][c];
+                boolean extE = canExtE && rng.nextFloat() < MEGA_BLOCK_CHANCE;
+                boolean extS = canExtS && rng.nextFloat() < MEGA_BLOCK_CHANCE;
+                if (extE && extS && taken[r + 1][c + 1]) {
+                    // SE corner is already claimed — can't form a 2×2. Drop one
+                    // direction to keep the mega-block rectangular.
+                    if (rng.nextBoolean()) extE = false; else extS = false;
+                }
+                int r1 = extS ? r + 1 : r;
+                int c1 = extE ? c + 1 : c;
+                for (int rr = r; rr <= r1; rr++) {
+                    for (int cc = c; cc <= c1; cc++) {
+                        taken[rr][cc] = true;
+                    }
+                }
+                out.add(new MegaBlock(r, c, r1, c1, pickTheme(rng)));
+            }
+        }
+        return out;
+    }
+
+    /** Inverts the mega-block list so each block-grid cell can look up its owning mega in O(1). */
+    private static int[][] indexMegaBlocks(List<MegaBlock> megas, int rows, int cols) {
+        int[][] idx = new int[rows][cols];
+        for (int i = 0; i < megas.size(); i++) {
+            MegaBlock m = megas.get(i);
+            for (int r = m.r0; r <= m.r1; r++) {
+                for (int c = m.c0; c <= m.c1; c++) {
+                    idx[r][c] = i;
+                }
+            }
+        }
+        return idx;
+    }
+
+    /**
+     * For every multi-cell super-block, clears the street flag on each walkable
+     * cell within the mega-block's nav-cell bounds. This dissolves both the
+     * absorbed street strip(s) between merged cells AND the sidewalk-inset
+     * cells around each member building, leaving them as indoor-floor cells
+     * that render with directional autotiles against the perimeter walls.
+     *
+     * <p>The visual result: a 2×1 merge becomes two buildings sharing a
+     * private alley; a 2×2 merge becomes four buildings around a +-shaped
+     * private courtyard. Singleton megas are skipped — nothing to dissolve.
+     *
+     * <p>The dissolution only touches cells inside the mega-block's bounding
+     * box, so the street segments north/south/east/west of the mega remain
+     * public roads (with sidewalks against the mega's outer perimeter walls,
+     * via the renderer's normal autotile path).
+     */
+    private static void dissolveMegaInteriors(NavigationGrid grid, List<MegaBlock> megaBlocks,
+                                              List<int[]> blockRowsY, List<int[]> blockColsX) {
+        for (MegaBlock m : megaBlocks) {
+            if (m.r0 == m.r1 && m.c0 == m.c1) continue;
+            int xMin = blockColsX.get(m.c0)[0];
+            int xMax = blockColsX.get(m.c1)[1];
+            int yMin = blockRowsY.get(m.r0)[0];
+            int yMax = blockRowsY.get(m.r1)[1];
+            for (int y = yMin; y <= yMax; y++) {
+                for (int x = xMin; x <= xMax; x++) {
+                    // Only convert what's currently outdoor street/sidewalk —
+                    // skip cells that already had their street flag cleared by
+                    // placeBuilding, which are the hollow building interiors
+                    // and doorways. Those keep rendering as indoor floor.
+                    if (!grid.isWalkable(x, y) || !grid.isStreet(x, y)) continue;
+                    grid.setStreet(x, y, false);
+                    // Tag as courtyard so the renderer paints it with the
+                    // dark steel autotile from the road sheet — reads as
+                    // private open-air pavement, distinct from both indoor
+                    // floor and public road.
+                    grid.setCourtyard(x, y, true);
+                }
+            }
+        }
+    }
+
+    /**
      * Walks one axis (length cells), alternating street → block → street → block,
      * starting and ending on a street. Returns inclusive [start, end] for each
      * block strip; street cells fill the gaps by elimination and don't need
@@ -289,6 +447,13 @@ public final class UrbanMapGenerator {
      * buildings give the zone-graph layer something to chew on — each interior
      * is its own zone, the doorway becomes a portal, and breaching a wall
      * cleanly emits a new portal between the interior and the street.
+     *
+     * <p>Hollow buildings that exceed {@link #MULTI_ROOM_MIN_DIM} on at least
+     * one axis also get a chance to receive an interior partition wall + door
+     * (see {@link #addInteriorWall}), turning the single shell into two
+     * connected rooms. The zone graph picks up the interior doorway
+     * automatically as a portal, so AI gets multi-room vocabulary inside one
+     * building for free.
      */
     private static PointOfInterest placeBuilding(NavigationGrid grid, int l, int t, int r, int b, Random rng, DistrictTheme theme) {
         if (rng.nextFloat() < PLAZA_CHANCE) return null;
@@ -318,7 +483,12 @@ public final class UrbanMapGenerator {
                     grid.setStreet(x, y, false);
                 }
             }
-            punchDoorway(grid, bl, bt, br, bb, rng);
+            // Subdivide first so the perimeter-doorway picker can align with
+            // the partition (vertical wall → left/right doors; horizontal
+            // wall → top/bottom doors), giving each room its own exterior
+            // access when the building scores a 2nd doorway.
+            InteriorWallOrient wallOrient = maybeAddInteriorWall(grid, bl, bt, br, bb, rng);
+            punchPerimeterDoorways(grid, bl, bt, br, bb, wallOrient, rng);
         } else {
             // Too small to enclose anything readable — solid block.
             for (int y = bt; y <= bb; y++) {
@@ -336,23 +506,61 @@ public final class UrbanMapGenerator {
     }
 
     /**
-     * Picks one perimeter wall cell (not a corner) and flips it to walkable +
-     * doorway. The doorway cell becomes its own 1-cell zone in the graph,
-     * with portals connecting the building interior to the street outside.
+     * Picks 1 or 2 perimeter doorways for a hollow building. Single-door
+     * buildings get a random side; two-door buildings get opposite sides
+     * (top/bottom or left/right) so the building reads as a throughway. When
+     * the building has an interior partition, the side pair is aligned with
+     * the partition so each room receives its own exterior door — vertical
+     * wall → left+right pair, horizontal wall → top+bottom pair.
      *
-     * <p>Corners are excluded because a corner doorway would face diagonally
-     * into nothing — the agent on the outside would step diagonally onto the
-     * doorway, which reads as awkward "wall hugger" geometry.
+     * <p>Two-door buildings exist so the AI has reasons to enter buildings
+     * besides "I'm being shot at." Multiple entries make interiors
+     * shortcut/flank routes, not dead-end fallback zones.
      */
-    private static void punchDoorway(NavigationGrid grid, int bl, int bt, int br, int bb, Random rng) {
-        // Edge-cell candidates: non-corner cells on each side.
-        int side = rng.nextInt(4);
+    private static void punchPerimeterDoorways(NavigationGrid grid, int bl, int bt, int br, int bb,
+                                               InteriorWallOrient wall, Random rng) {
+        int w = br - bl + 1;
+        int h = bb - bt + 1;
+        boolean twoDoors = w >= SECOND_DOORWAY_MIN_DIM
+                        && h >= SECOND_DOORWAY_MIN_DIM
+                        && rng.nextFloat() < SECOND_DOORWAY_CHANCE;
+
+        if (!twoDoors) {
+            punchDoorwayOnSide(grid, bl, bt, br, bb, rng.nextInt(4), rng);
+            return;
+        }
+
+        // Pick a side pair that matches the interior partition (if any). Side
+        // codes 0/1 are top/bottom (vertical axis), 2/3 are left/right
+        // (horizontal axis); XOR with 1 toggles between paired sides.
+        int firstSide;
+        switch (wall) {
+            case VERTICAL:   firstSide = rng.nextBoolean() ? 2 : 3; break;
+            case HORIZONTAL: firstSide = rng.nextBoolean() ? 0 : 1; break;
+            default:         firstSide = rng.nextInt(4);           break;
+        }
+        punchDoorwayOnSide(grid, bl, bt, br, bb, firstSide,     rng);
+        punchDoorwayOnSide(grid, bl, bt, br, bb, firstSide ^ 1, rng);
+    }
+
+    /**
+     * Stamps a single perimeter doorway on the specified side. Corners are
+     * excluded because a corner doorway would face diagonally into nothing —
+     * the agent on the outside would step diagonally onto the doorway, which
+     * reads as awkward "wall hugger" geometry.
+     *
+     * <p>Side codes: {@code 0}=top, {@code 1}=bottom, {@code 2}=left,
+     * {@code 3}=right. The XOR-with-1 trick in {@link #punchPerimeterDoorways}
+     * relies on this pairing.
+     */
+    private static void punchDoorwayOnSide(NavigationGrid grid, int bl, int bt, int br, int bb,
+                                           int side, Random rng) {
         int doorX, doorY;
         switch (side) {
             case 0:  doorX = bl + 1 + rng.nextInt(br - bl - 1); doorY = bt; break; // top
             case 1:  doorX = bl + 1 + rng.nextInt(br - bl - 1); doorY = bb; break; // bottom
             case 2:  doorX = bl;     doorY = bt + 1 + rng.nextInt(bb - bt - 1); break; // left
-            default: doorX = br;    doorY = bt + 1 + rng.nextInt(bb - bt - 1); break; // right
+            default: doorX = br;     doorY = bt + 1 + rng.nextInt(bb - bt - 1); break; // right
         }
         grid.setWalkable(doorX, doorY, true);
         grid.setFloor(doorX, doorY, true);
@@ -361,6 +569,89 @@ public final class UrbanMapGenerator {
         // interior floor underneath), so clear the street flag.
         grid.setStreet(doorX, doorY, false);
         grid.openAllEdges(doorX, doorY);
+    }
+
+    /**
+     * Orientation tag returned by {@link #maybeAddInteriorWall}, consumed by
+     * {@link #punchPerimeterDoorways} so the 2-door pair can be aligned with
+     * the partition (each room gets its own exterior door).
+     */
+    private enum InteriorWallOrient { NONE, VERTICAL, HORIZONTAL }
+
+    /**
+     * Optionally subdivides a hollow building with one interior partition wall
+     * plus a doorway through it, turning a single hollow shell into two
+     * connected rooms. Wall orientation is picked to split the longer
+     * dimension (so the resulting rooms are as square as possible); a 1-cell
+     * doorway is punched at a random position along the partition so each
+     * room is reachable.
+     *
+     * <p>Returns the orientation so the caller can align the perimeter doors
+     * to the partition. {@link InteriorWallOrient#VERTICAL} means the wall
+     * runs N-S (splitting the building into left + right rooms);
+     * {@link InteriorWallOrient#HORIZONTAL} means E-W (top + bottom rooms).
+     *
+     * <p>Connectivity is preserved: each exterior doorway opens into one
+     * room, and that room reaches the other via the interior doorway. The
+     * {@link com.dillon.starsectormarines.battle.nav.zone.ZoneDetector} picks
+     * up the interior doorway as a 1-cell zone with portals on each side, so
+     * the room graph naturally inherits the multi-room shape.
+     *
+     * <p>The interior wall cell is left to the renderer's existing autotile
+     * picker. With floor on both E and W (or N and S), the picker resolves to
+     * a single-sided edge tile — the visible "face" of the wall ends up on
+     * one room's side, which reads as functional but not perfectly symmetric.
+     */
+    private static InteriorWallOrient maybeAddInteriorWall(NavigationGrid grid, int bl, int bt, int br, int bb, Random rng) {
+        int w = br - bl + 1;
+        int h = bb - bt + 1;
+        boolean canVert  = w >= MULTI_ROOM_MIN_DIM;
+        boolean canHoriz = h >= MULTI_ROOM_MIN_DIM;
+        if (!canVert && !canHoriz) return InteriorWallOrient.NONE;
+        if (rng.nextFloat() >= MULTI_ROOM_CHANCE) return InteriorWallOrient.NONE;
+
+        // Split the longer dimension so rooms come out roughly square. If only
+        // one dimension qualifies, take it. Equal dims fall back to a coin flip.
+        boolean vertical;
+        if (canVert && canHoriz) {
+            if (w > h)      vertical = true;
+            else if (h > w) vertical = false;
+            else            vertical = rng.nextBoolean();
+        } else {
+            vertical = canVert;
+        }
+
+        if (vertical) {
+            // wx is the partition column. Leave ≥2 walkable cells of room on
+            // each side: range is [bl+3, br-3].
+            int wx = bl + 3 + rng.nextInt(w - 6);
+            for (int y = bt + 1; y <= bb - 1; y++) {
+                grid.setWalkable(wx, y, false);
+            }
+            // Doorway anywhere along the partition's interior length — the
+            // partition continues above and below it (or terminates against
+            // the perimeter on the far side if the doorway is at the end).
+            int dy = bt + 1 + rng.nextInt(h - 2);
+            openInteriorDoorway(grid, wx, dy);
+            return InteriorWallOrient.VERTICAL;
+        } else {
+            int wy = bt + 3 + rng.nextInt(h - 6);
+            for (int x = bl + 1; x <= br - 1; x++) {
+                grid.setWalkable(x, wy, false);
+            }
+            int dx = bl + 1 + rng.nextInt(w - 2);
+            openInteriorDoorway(grid, dx, wy);
+            return InteriorWallOrient.HORIZONTAL;
+        }
+    }
+
+    /** Restores a single partition cell to a doorway (walkable + interior floor + zone-graph portal). */
+    private static void openInteriorDoorway(NavigationGrid grid, int x, int y) {
+        grid.setWalkable(x, y, true);
+        grid.setFloor(x, y, true);
+        grid.setDoorway(x, y, true);
+        grid.setStreet(x, y, false);
+        grid.openAllEdges(x, y);
     }
 
     /**
