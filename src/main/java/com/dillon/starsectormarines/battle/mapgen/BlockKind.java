@@ -42,4 +42,13 @@ public enum BlockKind {
 
     /** Broken ground — damaged-floor + damaged-wall art with rubble decals and damaged doodads. Ambush territory. */
     WASTELAND_RUBBLE,
+
+    /**
+     * Dense urban infill — 2×2 sub-buildings packed tight inside the leaf
+     * with 1-cell alleys between them instead of proper roads. Reads as
+     * tenements, market alleys, or shanty quarters depending on doodads.
+     * The leaf still has the BSP road frame around it (the macro street);
+     * density is internal. Multi-room close-quarters combat is the point.
+     */
+    DENSE_BLOCK,
 }

@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.mapgen.MapResult;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.BuildingCommercialFiller;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.BuildingIndustrialFiller;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.BuildingResidentialFiller;
+import com.dillon.starsectormarines.battle.mapgen.bsp.fill.DenseBlockFiller;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.FortifiedPostFiller;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.IndustrialYardFiller;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.LandingZoneFiller;
@@ -80,6 +81,7 @@ public final class BspCityGenerator implements MapGenerator {
         register(new IndustrialYardFiller());
         register(new WastelandRubbleFiller());
         register(new WaterfrontFiller());
+        register(new DenseBlockFiller());
     }
 
     /** Swap in a per-kind filler. Idempotent — last write wins. */
@@ -105,10 +107,18 @@ public final class BspCityGenerator implements MapGenerator {
 
         // Step 1 — segment.
         Bsp.Partition partition = Bsp.partition(width, height, rng);
-        LOG.info("BspCityGenerator: " + partition.leaves.size() + " leaves on " + width + "x" + height + " grid");
 
-        // Step 2 — label each leaf.
-        labelLeaves(partition, rng);
+        // Step 1b — lay down a district overlay. The labeler then samples each
+        // leaf's BlockKind from the district's theme weights so blocks cluster
+        // (residential next to park next to plaza, instead of pure hodgepodge).
+        DistrictMap districtMap = new DistrictMap(width, height, rng);
+        LOG.info("BspCityGenerator: " + partition.leaves.size() + " leaves on "
+                + width + "x" + height + " grid, "
+                + districtMap.districtsX() + "x" + districtMap.districtsY() + " districts");
+        this.lastDistrictMap = districtMap;
+
+        // Step 2 — label each leaf using its district's theme.
+        labelLeaves(partition, districtMap, rng);
 
         // Step 3 — dispatch fillers. Each filler owns its leaf's cells (NOT
         // the road frame around it).
@@ -133,34 +143,27 @@ public final class BspCityGenerator implements MapGenerator {
     }
 
     /**
-     * First-cut labeling: pure weighted random by leaf size class. The
-     * adjacency constraint pass (LANDING_ZONE needs road, WATERFRONT needs
-     * map edge) comes online as those fillers do — for now every kind is
-     * stubbed and the labels are mostly cosmetic, but the dispatch contract
-     * is exercised end-to-end.
+     * Labels each leaf using the {@link com.dillon.starsectormarines.battle.mapgen.MapDistrictTheme}
+     * weights of the district its center sits in. That clusters same-kind
+     * leaves into thematic neighborhoods (e.g., a {@code RESIDENTIAL}
+     * district fills mostly with houses and parks; an {@code INDUSTRIAL}
+     * district fills mostly with factories and yards).
+     *
+     * <p>Constraint guard: only WATERFRONT-theme districts can produce
+     * WATERFRONT blocks (the theme's weight table is the only one that
+     * includes the kind). DistrictMap already constrains WATERFRONT theme
+     * to map-edge districts, so by transitivity WATERFRONT blocks only
+     * appear on edges.
      */
-    private void labelLeaves(Bsp.Partition partition, Random rng) {
+    private void labelLeaves(Bsp.Partition partition, DistrictMap districtMap, Random rng) {
         for (BlockLeaf leaf : partition.leaves) {
-            leaf.kind = pickKind(leaf, rng);
+            leaf.kind = districtMap.themeAt(leaf.centerX(), leaf.centerY()).pickBlockKind(rng);
         }
     }
 
-    private BlockKind pickKind(BlockLeaf leaf, Random rng) {
-        // Edge-leaf preference for WATERFRONT — bumps probability if the leaf
-        // touches the map edge, otherwise the kind doesn't appear at all.
-        if (leaf.touchesMapEdge && rng.nextFloat() < 0.10f) return BlockKind.WATERFRONT;
-
-        float r = rng.nextFloat();
-        if (r < 0.35f) return BlockKind.BUILDING_RESIDENTIAL;
-        if (r < 0.50f) return BlockKind.BUILDING_COMMERCIAL;
-        if (r < 0.62f) return BlockKind.BUILDING_INDUSTRIAL;
-        if (r < 0.70f) return BlockKind.PARK;
-        if (r < 0.78f) return BlockKind.INDUSTRIAL_YARD;
-        if (r < 0.85f) return BlockKind.PLAZA;
-        if (r < 0.92f) return BlockKind.WASTELAND_RUBBLE;
-        if (r < 0.97f) return BlockKind.FORTIFIED_POST;
-        return BlockKind.LANDING_ZONE;
-    }
+    /** Last district map produced by {@link #generate} — exposed for the preview test's overlay rendering. Not part of {@link com.dillon.starsectormarines.battle.mapgen.MapResult} because nothing at runtime needs it. */
+    private DistrictMap lastDistrictMap;
+    public DistrictMap getLastDistrictMap() { return lastDistrictMap; }
 
     /** Every non-walkable cell gets a starting HP. Mirrors legacy seed. */
     private void seedWallHp(NavigationGrid grid) {

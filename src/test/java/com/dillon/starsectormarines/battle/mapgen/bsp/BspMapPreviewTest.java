@@ -4,7 +4,9 @@ import com.dillon.starsectormarines.battle.Doodad;
 import com.dillon.starsectormarines.battle.PointOfInterest;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.mapgen.MapDistrictTheme;
 import com.dillon.starsectormarines.battle.mapgen.MapResult;
+// DistrictMap lives in the bsp sub-package (same as this test).
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import org.junit.jupiter.api.Test;
 
@@ -80,6 +82,17 @@ public class BspMapPreviewTest {
         GROUND_COLORS.put(GroundKind.RUBBLE,    new Color(120,  90,  80));
     }
 
+    /** District-theme accent colors used in the boundary overlay. Picked to read as colored highlights against any ground. */
+    private static final Map<MapDistrictTheme, Color> DISTRICT_COLORS = new EnumMap<>(MapDistrictTheme.class);
+    static {
+        DISTRICT_COLORS.put(MapDistrictTheme.RESIDENTIAL, new Color(150, 220, 150));
+        DISTRICT_COLORS.put(MapDistrictTheme.INDUSTRIAL, new Color(220, 150,  80));
+        DISTRICT_COLORS.put(MapDistrictTheme.CIVIC,      new Color(140, 200, 255));
+        DISTRICT_COLORS.put(MapDistrictTheme.MIXED,      new Color(200, 200, 220));
+        DISTRICT_COLORS.put(MapDistrictTheme.WATERFRONT, new Color(120, 180, 255));
+        DISTRICT_COLORS.put(MapDistrictTheme.OUTSKIRTS,  new Color(180, 160, 130));
+    }
+
     @Test
     void renderPreviewBatch() throws Exception {
         Files.createDirectories(OUT_DIR);
@@ -90,7 +103,7 @@ public class BspMapPreviewTest {
             long seed = SEEDS[i];
             MapResult map = gen.generate(GRID_W, GRID_H, seed);
             assertConnected(map, seed);
-            BufferedImage img = renderMap(map, seed);
+            BufferedImage img = renderMap(map, seed, gen.getLastDistrictMap());
             perSeed[i] = img;
             Path out = OUT_DIR.resolve(String.format("seed-%04d.png", (int) seed));
             ImageIO.write(img, "PNG", out.toFile());
@@ -149,7 +162,7 @@ public class BspMapPreviewTest {
                         seed, finalReached, finalTotal));
     }
 
-    private static BufferedImage renderMap(MapResult map, long seed) {
+    private static BufferedImage renderMap(MapResult map, long seed, DistrictMap districts) {
         NavigationGrid grid = map.grid;
         CellTopology topo = map.topology;
         int w = grid.getWidth(), h = grid.getHeight();
@@ -220,11 +233,17 @@ public class BspMapPreviewTest {
             g.drawRect(x0, y0, width - 1, height - 1);
         }
 
-        // Pass 7 — spawn anchors.
+        // Pass 7 — district boundaries + theme labels. Drawn over the map but
+        // under spawn markers so the partition shape stays readable.
+        if (districts != null) {
+            drawDistrictOverlay(g, districts, h, imgW);
+        }
+
+        // Pass 8 — spawn anchors.
         drawDiamond(g, new Color(80, 230, 110), map.marineSpawnX,   map.marineSpawnY,   h);
         drawDiamond(g, new Color(240, 80,  80), map.defenderSpawnX, map.defenderSpawnY, h);
 
-        // Pass 8 — bottom label strip.
+        // Pass 9 — bottom label strip.
         g.setComposite(AlphaComposite.SrcOver);
         g.setColor(new Color(0, 0, 0, 200));
         g.fillRect(0, h * CELL_PX, imgW, 24);
@@ -236,6 +255,40 @@ public class BspMapPreviewTest {
 
         g.dispose();
         return img;
+    }
+
+    /**
+     * Paint a thick translucent border around every district plus a small
+     * theme glyph in the corner. Boundary color = theme accent so a coherent
+     * cluster reads as one large bordered region.
+     */
+    private static void drawDistrictOverlay(Graphics2D g, DistrictMap districts, int gridH, int imgW) {
+        int cellW = districts.districtCellWidth();
+        int cellH = districts.districtCellHeight();
+        g.setStroke(new BasicStroke(2f));
+        for (int dx = 0; dx < districts.districtsX(); dx++) {
+            for (int dy = 0; dy < districts.districtsY(); dy++) {
+                MapDistrictTheme theme = districts.themeAtDistrict(dx, dy);
+                Color base = DISTRICT_COLORS.getOrDefault(theme, Color.WHITE);
+                Color line = new Color(base.getRed(), base.getGreen(), base.getBlue(), 200);
+
+                int x0 = dx * cellW * CELL_PX;
+                // Image-y is grid-y flipped — district at grid-y=0 lives at image-bottom.
+                int y0 = (gridH - (dy + 1) * cellH) * CELL_PX;
+                int w  = cellW * CELL_PX;
+                int hPx = cellH * CELL_PX;
+
+                g.setColor(line);
+                g.drawRect(x0, y0, w - 1, hPx - 1);
+
+                // Theme glyph: small filled square + first 3 letters of theme name.
+                g.fillRect(x0 + 4, y0 + 4, 10, 10);
+                g.setColor(Color.BLACK);
+                g.setFont(new Font("SansSerif", Font.BOLD, 9));
+                g.drawString(theme.name().substring(0, Math.min(3, theme.name().length())),
+                        x0 + 4, y0 + 22);
+            }
+        }
     }
 
     private static void drawDiamond(Graphics2D g, Color c, int cellX, int cellY, int gridH) {
