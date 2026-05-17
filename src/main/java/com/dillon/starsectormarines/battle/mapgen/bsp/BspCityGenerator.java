@@ -232,6 +232,16 @@ public final class BspCityGenerator implements MapGenerator {
             applyBiomeGroundOverrides(grid, topology, biomeMap);
         }
 
+        // Step 3c — fortress super-wall. Stamps the Kremlin-style perimeter
+        // around the FORTRESS_DISTRICT biome — wall rectangle inset into the
+        // biome (kill-zone buffer between biome edge and wall), corner towers
+        // + periodic heavy mid-towers, MG nests in the gaps, 1-3 gates on the
+        // attacker-facing edge, and 2-4 forward bunkers in the kill zone.
+        // Runs after fill so the wall overrides whatever BSP put under it.
+        if (biomeMap != null) {
+            FortressWallStamper.stamp(grid, topology, axis, biomeMap, doodads, rng);
+        }
+
         // Step 4 — finalize: HP on walls, cover bake, wall flag, spawn anchors.
         seedWallHp(grid);
         bakeCoverFromWalls(grid);
@@ -240,8 +250,8 @@ public final class BspCityGenerator implements MapGenerator {
         int[] marine;
         int[] defender;
         if (axis != null) {
-            marine   = pickBiomeSpawn(grid, biomeMap, BiomeKind.BEACH,             rng);
-            defender = pickBiomeSpawn(grid, biomeMap, BiomeKind.FORTRESS_DISTRICT, rng);
+            marine   = pickBiomeSpawn(grid, biomeMap, BiomeKind.BEACH,             rng, axis, false);
+            defender = pickBiomeSpawn(grid, biomeMap, BiomeKind.FORTRESS_DISTRICT, rng, axis, true);
         } else {
             marine   = pickSpawnAnchor(grid, 1, 1, width / 2, height - 1, rng);
             defender = pickSpawnAnchor(grid, width / 2, 1, width - 1, height - 1, rng);
@@ -338,8 +348,16 @@ public final class BspCityGenerator implements MapGenerator {
      * with {@code biome}. Falls back to a linear scan of every biome cell if
      * 64 random tries miss, then to map center if no walkable cell exists
      * inside the biome (shouldn't happen on real-size maps).
+     *
+     * <p>When {@code deepBias} is true the search rect is truncated to the
+     * deepest 60% of the biome along the traversal {@code axis} (high y for
+     * SOUTH_TO_NORTH, high x for WEST_TO_EAST). Used for the defender spawn
+     * so it lands <em>inside</em> the fortress wall rather than in the kill
+     * zone — the wall sits at ~30% inset from the biome's attacker-facing
+     * edge, so 60% reliably lands past it.
      */
-    private int[] pickBiomeSpawn(NavigationGrid grid, BiomeMap biomeMap, BiomeKind biome, Random rng) {
+    private int[] pickBiomeSpawn(NavigationGrid grid, BiomeMap biomeMap, BiomeKind biome,
+                                 Random rng, TraversalAxis axis, boolean deepBias) {
         int w = grid.getWidth();
         int h = grid.getHeight();
         int lo = Integer.MAX_VALUE, hi = Integer.MIN_VALUE, top = Integer.MAX_VALUE, bot = Integer.MIN_VALUE;
@@ -354,6 +372,13 @@ public final class BspCityGenerator implements MapGenerator {
         }
         if (lo == Integer.MAX_VALUE) {
             return new int[]{ w / 2, h / 2 };
+        }
+        if (deepBias) {
+            if (axis == TraversalAxis.SOUTH_TO_NORTH) {
+                top = top + (int) ((bot - top) * 0.4f);
+            } else {
+                lo = lo + (int) ((hi - lo) * 0.4f);
+            }
         }
         int spanX = Math.max(1, hi - lo + 1);
         int spanY = Math.max(1, bot - top + 1);
