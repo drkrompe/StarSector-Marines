@@ -4,12 +4,14 @@ import com.dillon.starsectormarines.battle.Doodad;
 import com.dillon.starsectormarines.battle.PointOfInterest;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.mapgen.BiomeKind;
 import com.dillon.starsectormarines.battle.mapgen.BlockFiller;
 import com.dillon.starsectormarines.battle.mapgen.BlockKind;
 import com.dillon.starsectormarines.battle.mapgen.BlockLeaf;
 import com.dillon.starsectormarines.battle.mapgen.MapDistrictTheme;
 import com.dillon.starsectormarines.battle.mapgen.MapGenerator;
 import com.dillon.starsectormarines.battle.mapgen.MapResult;
+import com.dillon.starsectormarines.battle.mapgen.TraversalAxis;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.BuildingCommercialFiller;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.BuildingIndustrialFiller;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.BuildingResidentialFiller;
@@ -106,6 +108,23 @@ public final class BspCityGenerator implements MapGenerator {
 
     @Override
     public MapResult generate(int width, int height, long seed) {
+        return generate(width, height, seed, null);
+    }
+
+    /**
+     * Conquest-aware generation. When {@code axis} is non-null the generator
+     * lays a {@link BiomeMap} along the axis (beach → port → city → fortress
+     * district), overrides leaf theme lookups to consult the biome rather than
+     * the legacy {@link DistrictMap}, repaints walkable open ground in the
+     * BEACH biome as {@link GroundKind#SAND}, and pins the marine spawn to
+     * the beach end and the defender spawn to the fortress end.
+     *
+     * <p>When {@code axis} is null this delegates to the legacy district-driven
+     * pipeline — used by the smaller 80×80 preview path and any non-conquest
+     * generation. Eventually the legacy path will be retired once biome mode
+     * covers every variant we generate.
+     */
+    public MapResult generate(int width, int height, long seed, TraversalAxis axis) {
         Random rng = new Random(seed);
         NavigationGrid grid = new NavigationGrid(width, height);
         CellTopology topology = new CellTopology(width, height);
@@ -144,24 +163,34 @@ public final class BspCityGenerator implements MapGenerator {
         }
         Bsp.Partition partition = new Bsp.Partition(leaves, plan.roadCells, width, height);
 
-        // Step 1c — lay down a district overlay. The labeler then samples each
-        // leaf's BlockKind from the district's theme weights so blocks cluster
-        // (residential next to park next to plaza, instead of pure hodgepodge).
-        DistrictMap districtMap = new DistrictMap(width, height, rng);
-        // Bias the district at the trunk intersection toward CIVIC — the
-        // crossing of two arterials is the natural downtown. forceThemeAt
-        // skips WATERFRONT districts so coastal intersections stay coastal.
-        int ixCenterX = (plan.intersection.x0 + plan.intersection.x1) / 2;
-        int ixCenterY = (plan.intersection.y0 + plan.intersection.y1) / 2;
-        districtMap.forceThemeAt(ixCenterX, ixCenterY, MapDistrictTheme.CIVIC);
-        LOG.info("BspCityGenerator: " + partition.leaves.size() + " leaves on "
-                + width + "x" + height + " grid, "
-                + plan.trunks.size() + " trunk(s), "
-                + districtMap.districtsX() + "x" + districtMap.districtsY() + " districts");
-        this.lastDistrictMap = districtMap;
+        // Step 1c — lay down the zoning overlay. In conquest mode (axis set)
+        // a BiomeMap takes precedence — biome bands run along the traversal
+        // axis and fully drive theme picks. In legacy mode a DistrictMap
+        // scatters themes uniformly with a CIVIC nudge at the trunk crossing.
+        DistrictMap districtMap = null;
+        BiomeMap biomeMap = null;
+        if (axis != null) {
+            biomeMap = new BiomeMap(width, height, axis, rng);
+            this.lastBiomeMap = biomeMap;
+            this.lastDistrictMap = null;
+            LOG.info("BspCityGenerator: " + partition.leaves.size() + " leaves on "
+                    + width + "x" + height + " grid, "
+                    + plan.trunks.size() + " trunk(s), biome axis=" + axis);
+        } else {
+            districtMap = new DistrictMap(width, height, rng);
+            int ixCenterX = (plan.intersection.x0 + plan.intersection.x1) / 2;
+            int ixCenterY = (plan.intersection.y0 + plan.intersection.y1) / 2;
+            districtMap.forceThemeAt(ixCenterX, ixCenterY, MapDistrictTheme.CIVIC);
+            this.lastDistrictMap = districtMap;
+            this.lastBiomeMap = null;
+            LOG.info("BspCityGenerator: " + partition.leaves.size() + " leaves on "
+                    + width + "x" + height + " grid, "
+                    + plan.trunks.size() + " trunk(s), "
+                    + districtMap.districtsX() + "x" + districtMap.districtsY() + " districts");
+        }
 
-        // Step 2 — label each leaf using its district's theme.
-        labelLeaves(partition, districtMap, rng);
+        // Step 2 — label each leaf using the active zoning overlay.
+        labelLeaves(partition, biomeMap, districtMap, rng);
 
         // Step 2b — claim multi-leaf compounds (e.g. military bases). Each
         // compound's seed leaf keeps its BlockKind; absorbed neighbor leaves
@@ -194,13 +223,29 @@ public final class BspCityGenerator implements MapGenerator {
             filler.fill(leaf, grid, topology, pois, doodads, rng);
         }
 
+        // Step 3b — biome ground overrides. In conquest mode the BEACH biome
+        // repaints its walkable non-building, non-water ground as SAND so the
+        // beach reads as a continuous sandy landing zone rather than the
+        // generator's default STREET grey. Runs after fill so we know which
+        // cells are INDOOR (skip) vs outdoors (paint).
+        if (biomeMap != null) {
+            applyBiomeGroundOverrides(grid, topology, biomeMap);
+        }
+
         // Step 4 — finalize: HP on walls, cover bake, wall flag, spawn anchors.
         seedWallHp(grid);
         bakeCoverFromWalls(grid);
         topology.tagDefaultWalls(grid);
 
-        int[] marine   = pickSpawnAnchor(grid, 1, 1, width / 2, height - 1, rng);
-        int[] defender = pickSpawnAnchor(grid, width / 2, 1, width - 1, height - 1, rng);
+        int[] marine;
+        int[] defender;
+        if (axis != null) {
+            marine   = pickBiomeSpawn(grid, biomeMap, BiomeKind.BEACH,             rng);
+            defender = pickBiomeSpawn(grid, biomeMap, BiomeKind.FORTRESS_DISTRICT, rng);
+        } else {
+            marine   = pickSpawnAnchor(grid, 1, 1, width / 2, height - 1, rng);
+            defender = pickSpawnAnchor(grid, width / 2, 1, width - 1, height - 1, rng);
+        }
 
         return new MapResult(grid, topology,
                 marine[0], marine[1], defender[0], defender[1],
@@ -208,27 +253,34 @@ public final class BspCityGenerator implements MapGenerator {
     }
 
     /**
-     * Labels each leaf using the {@link com.dillon.starsectormarines.battle.mapgen.MapDistrictTheme}
-     * weights of the district its center sits in. That clusters same-kind
-     * leaves into thematic neighborhoods (e.g., a {@code RESIDENTIAL}
-     * district fills mostly with houses and parks; an {@code INDUSTRIAL}
-     * district fills mostly with factories and yards).
+     * Labels each leaf using whichever zoning overlay is active. In conquest
+     * mode {@code biomeMap} drives the theme pick (biome-band placement along
+     * the traversal axis); in legacy mode {@code districtMap} drives it
+     * (uniform district scatter). Exactly one of the two is non-null.
      *
-     * <p>Constraint guard: only WATERFRONT-theme districts can produce
-     * WATERFRONT blocks (the theme's weight table is the only one that
-     * includes the kind). DistrictMap already constrains WATERFRONT theme
-     * to map-edge districts, so by transitivity WATERFRONT blocks only
-     * appear on edges.
+     * <p>Constraint guard for legacy mode: only WATERFRONT-theme districts
+     * can produce WATERFRONT blocks; DistrictMap constrains that theme to
+     * map-edge districts. Conquest mode lets WATERFRONT appear in BEACH
+     * theme as well — accepting the occasional interior misfire because
+     * BEACH biome cells get a SAND ground override that still sells the look.
      */
-    private void labelLeaves(Bsp.Partition partition, DistrictMap districtMap, Random rng) {
+    private void labelLeaves(Bsp.Partition partition, BiomeMap biomeMap,
+                              DistrictMap districtMap, Random rng) {
         for (BlockLeaf leaf : partition.leaves) {
-            leaf.kind = districtMap.themeAt(leaf.centerX(), leaf.centerY()).pickBlockKind(rng);
+            MapDistrictTheme theme = (biomeMap != null)
+                    ? biomeMap.themeAt(leaf.centerX(), leaf.centerY())
+                    : districtMap.themeAt(leaf.centerX(), leaf.centerY());
+            leaf.kind = theme.pickBlockKind(rng);
         }
     }
 
-    /** Last district map produced by {@link #generate} — exposed for the preview test's overlay rendering. Not part of {@link com.dillon.starsectormarines.battle.mapgen.MapResult} because nothing at runtime needs it. */
+    /** Last district map produced by {@link #generate} — exposed for the preview test's overlay rendering. Null in conquest (biome) mode. */
     private DistrictMap lastDistrictMap;
     public DistrictMap getLastDistrictMap() { return lastDistrictMap; }
+
+    /** Last biome map produced by {@link #generate} — non-null when called with a {@link TraversalAxis}. Exposed for the preview test's overlay rendering. */
+    private BiomeMap lastBiomeMap;
+    public BiomeMap getLastBiomeMap() { return lastBiomeMap; }
 
     /** Last compound list produced by {@link #generate} — exposed for preview rendering. Empty if no compound was claimed. */
     private List<Compound> lastCompounds = new ArrayList<>();
@@ -256,6 +308,66 @@ public final class BspCityGenerator implements MapGenerator {
                 grid.setCoverAt(x, y, walls);
             }
         }
+    }
+
+    /**
+     * Repaint walkable outdoor cells inside the BEACH biome as
+     * {@link GroundKind#SAND}. Skips {@link GroundKind#INDOOR} (preserve
+     * building floors) and {@link GroundKind#WATER} (preserve waterfront
+     * water bands), but rewrites STREET / COURTYARD / GRASS / DIRT / STONE
+     * / TILE / etc. The visual effect: the entire beach reads as continuous
+     * sand even though the BSP infill still produced varied block kinds
+     * (parks become sand "scrub," roads become "beach paths").
+     */
+    private void applyBiomeGroundOverrides(NavigationGrid grid, CellTopology topology, BiomeMap biomeMap) {
+        int w = grid.getWidth();
+        int h = grid.getHeight();
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                if (!grid.isWalkable(x, y)) continue;
+                if (biomeMap.biomeAt(x, y) != BiomeKind.BEACH) continue;
+                GroundKind g = topology.getGroundKind(x, y);
+                if (g == GroundKind.INDOOR || g == GroundKind.WATER) continue;
+                topology.setGroundKind(x, y, GroundKind.SAND);
+            }
+        }
+    }
+
+    /**
+     * Random walkable cell inside the rect that bounds every cell tagged
+     * with {@code biome}. Falls back to a linear scan of every biome cell if
+     * 64 random tries miss, then to map center if no walkable cell exists
+     * inside the biome (shouldn't happen on real-size maps).
+     */
+    private int[] pickBiomeSpawn(NavigationGrid grid, BiomeMap biomeMap, BiomeKind biome, Random rng) {
+        int w = grid.getWidth();
+        int h = grid.getHeight();
+        int lo = Integer.MAX_VALUE, hi = Integer.MIN_VALUE, top = Integer.MAX_VALUE, bot = Integer.MIN_VALUE;
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                if (biomeMap.biomeAt(x, y) != biome) continue;
+                if (x < lo)  lo = x;
+                if (x > hi)  hi = x;
+                if (y < top) top = y;
+                if (y > bot) bot = y;
+            }
+        }
+        if (lo == Integer.MAX_VALUE) {
+            return new int[]{ w / 2, h / 2 };
+        }
+        int spanX = Math.max(1, hi - lo + 1);
+        int spanY = Math.max(1, bot - top + 1);
+        for (int i = 0; i < 64; i++) {
+            int x = lo + rng.nextInt(spanX);
+            int y = top + rng.nextInt(spanY);
+            if (biomeMap.biomeAt(x, y) == biome && grid.isWalkable(x, y)) return new int[]{x, y};
+        }
+        for (int y = top; y <= bot; y++) {
+            for (int x = lo; x <= hi; x++) {
+                if (biomeMap.biomeAt(x, y) == biome && grid.isWalkable(x, y)) return new int[]{x, y};
+            }
+        }
+        return new int[]{ (lo + hi) / 2, (top + bot) / 2 };
     }
 
     /**

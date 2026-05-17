@@ -38,7 +38,16 @@ public enum MapDistrictTheme {
     WATERFRONT,
 
     /** Sparse city edges — wasteland, parks, scattered houses, occasional fortified position. */
-    OUTSKIRTS;
+    OUTSKIRTS,
+
+    /** Beach landing zone — open scrub / wasteland with sparse cover and bunkers; pairs with the BEACH biome's SAND ground overlay. */
+    COASTAL_BEACH,
+
+    /** Harbor / docks — warehouses, industrial yards, fortified harbor batteries. Used for the PORT biome inland of the beach. */
+    HARBOR_PORT,
+
+    /** Defender stronghold — heavy fortified posts, depots, motor pools, military bases. Used for the FORTRESS_DISTRICT biome at the far end of the traversal axis. */
+    MILITARY_FORT;
 
     private WeightedTable<BlockKind> table;
 
@@ -119,6 +128,51 @@ public enum MapDistrictTheme {
                 .add(BlockKind.BUILDING_COMMERCIAL,   5)
                 .add(BlockKind.PLAZA,                 5)
                 .add(BlockKind.MILITARY_BASE,         3)  // outskirts garrison
+                .build();
+
+        // Beach biome — wide-open landing terrain. Most leaves end up as PARK
+        // or WASTELAND_RUBBLE for traversability; FORTIFIED_POST scattered for
+        // beach bunkers; WATERFRONT only fires when a leaf actually touches
+        // the map edge (the labeler can't tell, so we accept occasional
+        // misfires and the SAND ground overlay will still sell the look).
+        COASTAL_BEACH.table = WeightedTable.<BlockKind>builder()
+                .add(BlockKind.PARK,                 30)
+                .add(BlockKind.WASTELAND_RUBBLE,     25)
+                .add(BlockKind.FORTIFIED_POST,       18)
+                .add(BlockKind.WATERFRONT,           12)  // map-edge cells only — fallback if interior
+                .add(BlockKind.INDUSTRIAL_YARD,       7)
+                .add(BlockKind.BUILDING_COMMERCIAL,   4)  // beach kiosk / lifeguard
+                .add(BlockKind.BUILDING_RESIDENTIAL,  4)  // beach hut
+                .build();
+
+        // Port / harbor — warehouses, yards, commercial offices, the
+        // occasional harbor battery. No WATERFRONT here in v1 (it expects to
+        // sit on the map edge); commit-2 work will revisit interior water if
+        // we want piers cutting into the port.
+        HARBOR_PORT.table = WeightedTable.<BlockKind>builder()
+                .add(BlockKind.BUILDING_INDUSTRIAL,  28)
+                .add(BlockKind.INDUSTRIAL_YARD,      22)
+                .add(BlockKind.BUILDING_COMMERCIAL,  14)
+                .add(BlockKind.WASTELAND_RUBBLE,     10)
+                .add(BlockKind.FORTIFIED_POST,        9)
+                .add(BlockKind.BUILDING_RESIDENTIAL,  6)
+                .add(BlockKind.PLAZA,                 6)
+                .add(BlockKind.DENSE_BLOCK,           5)  // dockside tenements
+                .build();
+
+        // Military fortress district — heavy fortified posts, depots, motor
+        // pools. MILITARY_BASE seeds the claim pass; LANDING_ZONE makes
+        // airfields / heli pads (the airbase the user wants for defender
+        // fighters re-arming). Almost no civilian buildings.
+        MILITARY_FORT.table = WeightedTable.<BlockKind>builder()
+                .add(BlockKind.FORTIFIED_POST,       32)
+                .add(BlockKind.INDUSTRIAL_YARD,      18)
+                .add(BlockKind.MILITARY_BASE,        14)  // claim-pass seed
+                .add(BlockKind.BUILDING_INDUSTRIAL,  12)
+                .add(BlockKind.WASTELAND_RUBBLE,      8)
+                .add(BlockKind.LANDING_ZONE,          7)  // airfield / heli pad
+                .add(BlockKind.BUILDING_RESIDENTIAL,  5)  // barracks
+                .add(BlockKind.PLAZA,                 4)  // parade ground
                 .build();
     }
 

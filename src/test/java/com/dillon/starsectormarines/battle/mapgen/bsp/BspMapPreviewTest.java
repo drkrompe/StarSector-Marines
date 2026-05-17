@@ -4,10 +4,11 @@ import com.dillon.starsectormarines.battle.Doodad;
 import com.dillon.starsectormarines.battle.PointOfInterest;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.mapgen.BiomeKind;
 import com.dillon.starsectormarines.battle.mapgen.MapDistrictTheme;
 import com.dillon.starsectormarines.battle.mapgen.MapResult;
-// Compound lives in the bsp sub-package (same as this test).
-// DistrictMap lives in the bsp sub-package (same as this test).
+import com.dillon.starsectormarines.battle.mapgen.TraversalAxis;
+// Compound, DistrictMap, BiomeMap live in the bsp sub-package (same as this test).
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import org.junit.jupiter.api.Test;
 
@@ -63,6 +64,11 @@ public class BspMapPreviewTest {
     private static final int CELL_PX = 8;
     private static final long[] SEEDS = { 1L, 42L, 100L, 777L, 1234L, 9999L };
 
+    private static final int CONQUEST_W = 240;
+    private static final int CONQUEST_H = 160;
+    private static final int CONQUEST_CELL_PX = 5;
+    private static final long[] CONQUEST_SEEDS = { 1L, 42L, 100L, 777L };
+
     private static final Path OUT_DIR = Paths.get("build/map-previews");
 
     /** Color per GroundKind — picked to be visually distinct on screen. */
@@ -86,12 +92,63 @@ public class BspMapPreviewTest {
     /** District-theme accent colors used in the boundary overlay. Picked to read as colored highlights against any ground. */
     private static final Map<MapDistrictTheme, Color> DISTRICT_COLORS = new EnumMap<>(MapDistrictTheme.class);
     static {
-        DISTRICT_COLORS.put(MapDistrictTheme.RESIDENTIAL, new Color(150, 220, 150));
-        DISTRICT_COLORS.put(MapDistrictTheme.INDUSTRIAL, new Color(220, 150,  80));
-        DISTRICT_COLORS.put(MapDistrictTheme.CIVIC,      new Color(140, 200, 255));
-        DISTRICT_COLORS.put(MapDistrictTheme.MIXED,      new Color(200, 200, 220));
-        DISTRICT_COLORS.put(MapDistrictTheme.WATERFRONT, new Color(120, 180, 255));
-        DISTRICT_COLORS.put(MapDistrictTheme.OUTSKIRTS,  new Color(180, 160, 130));
+        DISTRICT_COLORS.put(MapDistrictTheme.RESIDENTIAL,   new Color(150, 220, 150));
+        DISTRICT_COLORS.put(MapDistrictTheme.INDUSTRIAL,    new Color(220, 150,  80));
+        DISTRICT_COLORS.put(MapDistrictTheme.CIVIC,         new Color(140, 200, 255));
+        DISTRICT_COLORS.put(MapDistrictTheme.MIXED,         new Color(200, 200, 220));
+        DISTRICT_COLORS.put(MapDistrictTheme.WATERFRONT,    new Color(120, 180, 255));
+        DISTRICT_COLORS.put(MapDistrictTheme.OUTSKIRTS,     new Color(180, 160, 130));
+        DISTRICT_COLORS.put(MapDistrictTheme.COASTAL_BEACH, new Color(230, 210, 110));
+        DISTRICT_COLORS.put(MapDistrictTheme.HARBOR_PORT,   new Color(140, 180, 220));
+        DISTRICT_COLORS.put(MapDistrictTheme.MILITARY_FORT, new Color(220, 110, 110));
+    }
+
+    /** Biome accent colors for the conquest-mode overlay. Picked to read as colored band labels against any ground. */
+    private static final Map<BiomeKind, Color> BIOME_COLORS = new EnumMap<>(BiomeKind.class);
+    static {
+        BIOME_COLORS.put(BiomeKind.BEACH,             new Color(245, 225, 130, 220));
+        BIOME_COLORS.put(BiomeKind.PORT,              new Color(120, 180, 220, 220));
+        BIOME_COLORS.put(BiomeKind.CITY,              new Color(200, 200, 220, 220));
+        BIOME_COLORS.put(BiomeKind.FORTRESS_DISTRICT, new Color(230, 100, 100, 230));
+        BIOME_COLORS.put(BiomeKind.OUTSKIRTS,         new Color(180, 160, 130, 220));
+    }
+
+    /**
+     * Conquest-mode preview. Generates 240×160 maps with a
+     * {@link TraversalAxis#SOUTH_TO_NORTH} biome layout — beach at the south
+     * edge, fortress district at the north edge, harbor and city in between.
+     * The contact sheet shows the four-biome banding and where the marine
+     * spawn lands (south beach) vs. the defender (north fortress).
+     */
+    @Test
+    void renderConquestBatch() throws Exception {
+        Files.createDirectories(OUT_DIR);
+        BspCityGenerator gen = new BspCityGenerator();
+
+        BufferedImage[] perSeed = new BufferedImage[CONQUEST_SEEDS.length];
+        java.util.List<String> failures = new java.util.ArrayList<>();
+        for (int i = 0; i < CONQUEST_SEEDS.length; i++) {
+            long seed = CONQUEST_SEEDS[i];
+            MapResult map = gen.generate(CONQUEST_W, CONQUEST_H, seed, TraversalAxis.SOUTH_TO_NORTH);
+            BufferedImage img = renderMap(map, seed, null, gen.getLastBiomeMap(),
+                    gen.getLastCompounds(), CONQUEST_CELL_PX);
+            perSeed[i] = img;
+            Path out = OUT_DIR.resolve(String.format("conquest-seed-%04d.png", (int) seed));
+            ImageIO.write(img, "PNG", out.toFile());
+            System.out.println("  wrote " + out.toAbsolutePath());
+            try {
+                assertConnected(map, seed);
+            } catch (AssertionError ae) {
+                failures.add(ae.getMessage());
+            }
+        }
+        if (!failures.isEmpty()) {
+            throw new AssertionError(String.join("\n", failures));
+        }
+        BufferedImage contact = composeContactSheet(perSeed, 2);
+        Path contactPath = OUT_DIR.resolve("conquest-contact.png");
+        ImageIO.write(contact, "PNG", contactPath.toFile());
+        System.out.println("  wrote " + contactPath.toAbsolutePath());
     }
 
     @Test
@@ -104,7 +161,8 @@ public class BspMapPreviewTest {
         for (int i = 0; i < SEEDS.length; i++) {
             long seed = SEEDS[i];
             MapResult map = gen.generate(GRID_W, GRID_H, seed);
-            BufferedImage img = renderMap(map, seed, gen.getLastDistrictMap(), gen.getLastCompounds());
+            BufferedImage img = renderMap(map, seed, gen.getLastDistrictMap(), null,
+                    gen.getLastCompounds(), CELL_PX);
             perSeed[i] = img;
             Path out = OUT_DIR.resolve(String.format("seed-%04d.png", (int) seed));
             ImageIO.write(img, "PNG", out.toFile());
@@ -196,12 +254,13 @@ public class BspMapPreviewTest {
                 + ":" + map.topology.getGroundKind(nx, ny);
     }
 
-    private static BufferedImage renderMap(MapResult map, long seed, DistrictMap districts, List<Compound> compounds) {
+    private static BufferedImage renderMap(MapResult map, long seed, DistrictMap districts,
+                                            BiomeMap biomes, List<Compound> compounds, int cellPx) {
         NavigationGrid grid = map.grid;
         CellTopology topo = map.topology;
         int w = grid.getWidth(), h = grid.getHeight();
-        int imgW = w * CELL_PX;
-        int imgH = h * CELL_PX + 24; // bottom strip for seed label + counts
+        int imgW = w * cellPx;
+        int imgH = h * cellPx + 24; // bottom strip for seed label + counts
 
         BufferedImage img = new BufferedImage(imgW, imgH, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = img.createGraphics();
@@ -212,7 +271,7 @@ public class BspMapPreviewTest {
             for (int x = 0; x < w; x++) {
                 Color c = GROUND_COLORS.getOrDefault(topo.getGroundKind(x, y), Color.MAGENTA);
                 g.setColor(c);
-                g.fillRect(x * CELL_PX, (h - 1 - y) * CELL_PX, CELL_PX, CELL_PX);
+                g.fillRect(x * cellPx, (h - 1 - y) * cellPx, cellPx, cellPx);
             }
         }
 
@@ -221,7 +280,7 @@ public class BspMapPreviewTest {
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 if (topo.isWall(x, y)) {
-                    g.fillRect(x * CELL_PX, (h - 1 - y) * CELL_PX, CELL_PX, CELL_PX);
+                    g.fillRect(x * cellPx, (h - 1 - y) * cellPx, cellPx, cellPx);
                 }
             }
         }
@@ -231,7 +290,7 @@ public class BspMapPreviewTest {
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 if (topo.isVehicle(x, y)) {
-                    g.fillRect(x * CELL_PX, (h - 1 - y) * CELL_PX, CELL_PX, CELL_PX);
+                    g.fillRect(x * cellPx, (h - 1 - y) * cellPx, cellPx, cellPx);
                 }
             }
         }
@@ -241,8 +300,8 @@ public class BspMapPreviewTest {
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 if (grid.isDoorway(x, y)) {
-                    int cx = x * CELL_PX + CELL_PX / 2;
-                    int cy = (h - 1 - y) * CELL_PX + CELL_PX / 2;
+                    int cx = x * cellPx + cellPx / 2;
+                    int cy = (h - 1 - y) * cellPx + cellPx / 2;
                     g.fillOval(cx - 2, cy - 2, 4, 4);
                 }
             }
@@ -251,8 +310,8 @@ public class BspMapPreviewTest {
         // Pass 5 — doodads (white pixels).
         g.setColor(Color.WHITE);
         for (Doodad d : map.doodads) {
-            int cx = d.cellX * CELL_PX + CELL_PX / 2;
-            int cy = (h - 1 - d.cellY) * CELL_PX + CELL_PX / 2;
+            int cx = d.cellX * cellPx + cellPx / 2;
+            int cy = (h - 1 - d.cellY) * cellPx + cellPx / 2;
             g.fillRect(cx - 1, cy - 1, 2, 2);
         }
 
@@ -260,39 +319,42 @@ public class BspMapPreviewTest {
         g.setColor(new Color(220, 80, 220));
         g.setStroke(new BasicStroke(1f));
         for (PointOfInterest p : map.pointsOfInterest) {
-            int x0 = p.left * CELL_PX;
-            int y0 = (h - 1 - p.bottom) * CELL_PX;
-            int width  = (p.right  - p.left + 1) * CELL_PX;
-            int height = (p.bottom - p.top  + 1) * CELL_PX;
+            int x0 = p.left * cellPx;
+            int y0 = (h - 1 - p.bottom) * cellPx;
+            int width  = (p.right  - p.left + 1) * cellPx;
+            int height = (p.bottom - p.top  + 1) * cellPx;
             g.drawRect(x0, y0, width - 1, height - 1);
         }
 
-        // Pass 7 — district boundaries + theme labels. Drawn over the map but
+        // Pass 7 — zoning overlay. Conquest mode renders BiomeMap bands;
+        // legacy mode renders the DistrictMap grid. Drawn over the map but
         // under spawn markers so the partition shape stays readable.
-        if (districts != null) {
-            drawDistrictOverlay(g, districts, h, imgW);
+        if (biomes != null) {
+            drawBiomeOverlay(g, biomes, h, cellPx);
+        } else if (districts != null) {
+            drawDistrictOverlay(g, districts, h, imgW, cellPx);
         }
 
         // Pass 7b — compound bounding rects. A bright magenta outline traces
         // each compound's bounding box so the multi-leaf claim is visible at
         // a glance even when the wall ring blends with adjacent building art.
         if (compounds != null && !compounds.isEmpty()) {
-            drawCompoundOverlay(g, compounds, h);
+            drawCompoundOverlay(g, compounds, h, cellPx);
         }
 
         // Pass 8 — spawn anchors.
-        drawDiamond(g, new Color(80, 230, 110), map.marineSpawnX,   map.marineSpawnY,   h);
-        drawDiamond(g, new Color(240, 80,  80), map.defenderSpawnX, map.defenderSpawnY, h);
+        drawDiamond(g, new Color(80, 230, 110), map.marineSpawnX,   map.marineSpawnY,   h, cellPx);
+        drawDiamond(g, new Color(240, 80,  80), map.defenderSpawnX, map.defenderSpawnY, h, cellPx);
 
         // Pass 9 — bottom label strip.
         g.setComposite(AlphaComposite.SrcOver);
         g.setColor(new Color(0, 0, 0, 200));
-        g.fillRect(0, h * CELL_PX, imgW, 24);
+        g.fillRect(0, h * cellPx, imgW, 24);
         g.setColor(Color.WHITE);
         g.setFont(new Font("SansSerif", Font.PLAIN, 12));
         String label = String.format("seed=%d  %dx%d  POIs=%d  doodads=%d",
                 seed, w, h, map.pointsOfInterest.size(), map.doodads.size());
-        g.drawString(label, 6, h * CELL_PX + 16);
+        g.drawString(label, 6, h * cellPx + 16);
 
         g.dispose();
         return img;
@@ -303,7 +365,8 @@ public class BspMapPreviewTest {
      * theme glyph in the corner. Boundary color = theme accent so a coherent
      * cluster reads as one large bordered region.
      */
-    private static void drawDistrictOverlay(Graphics2D g, DistrictMap districts, int gridH, int imgW) {
+    private static void drawDistrictOverlay(Graphics2D g, DistrictMap districts,
+                                             int gridH, int imgW, int cellPx) {
         int cellW = districts.districtCellWidth();
         int cellH = districts.districtCellHeight();
         g.setStroke(new BasicStroke(2f));
@@ -313,11 +376,11 @@ public class BspMapPreviewTest {
                 Color base = DISTRICT_COLORS.getOrDefault(theme, Color.WHITE);
                 Color line = new Color(base.getRed(), base.getGreen(), base.getBlue(), 200);
 
-                int x0 = dx * cellW * CELL_PX;
+                int x0 = dx * cellW * cellPx;
                 // Image-y is grid-y flipped — district at grid-y=0 lives at image-bottom.
-                int y0 = (gridH - (dy + 1) * cellH) * CELL_PX;
-                int w  = cellW * CELL_PX;
-                int hPx = cellH * CELL_PX;
+                int y0 = (gridH - (dy + 1) * cellH) * cellPx;
+                int w  = cellW * cellPx;
+                int hPx = cellH * cellPx;
 
                 g.setColor(line);
                 g.drawRect(x0, y0, w - 1, hPx - 1);
@@ -333,18 +396,82 @@ public class BspMapPreviewTest {
     }
 
     /**
+     * Conquest-mode biome overlay. Draws a thin contrasting outline along the
+     * boundary between biome regions and a translucent biome-color label band
+     * at each biome's centroid so the four-stage progression
+     * (beach → port → city → fortress) reads at a glance.
+     *
+     * <p>Only paints the per-cell boundary line — the underlying ground colors
+     * remain visible, so individual leaf fills (SAND for beach, INDOOR for
+     * buildings, etc.) still drive the visual.
+     */
+    private static void drawBiomeOverlay(Graphics2D g, BiomeMap biomes, int gridH, int cellPx) {
+        int w = biomes.width();
+        int h = biomes.height();
+
+        // Per-cell boundary line: cells whose biome differs from the
+        // neighbor on the perpendicular-to-axis side get a 1-pixel outline.
+        g.setStroke(new BasicStroke(1.5f));
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                BiomeKind here = biomes.biomeAt(x, y);
+                BiomeKind below = (y > 0)     ? biomes.biomeAt(x, y - 1) : here;
+                BiomeKind left  = (x > 0)     ? biomes.biomeAt(x - 1, y) : here;
+                int sx = x * cellPx;
+                int sy = (gridH - 1 - y) * cellPx;
+                if (here != below) {
+                    Color base = BIOME_COLORS.getOrDefault(here, Color.WHITE);
+                    g.setColor(new Color(base.getRed(), base.getGreen(), base.getBlue(), 230));
+                    g.drawLine(sx, sy + cellPx, sx + cellPx, sy + cellPx);
+                }
+                if (here != left) {
+                    Color base = BIOME_COLORS.getOrDefault(here, Color.WHITE);
+                    g.setColor(new Color(base.getRed(), base.getGreen(), base.getBlue(), 230));
+                    g.drawLine(sx, sy, sx, sy + cellPx);
+                }
+            }
+        }
+
+        // Biome label at the centroid of each biome's footprint. Centroid
+        // computed in a single linear pass over the grid.
+        Map<BiomeKind, long[]> sums = new EnumMap<>(BiomeKind.class);
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                BiomeKind b = biomes.biomeAt(x, y);
+                long[] s = sums.computeIfAbsent(b, k -> new long[3]);
+                s[0] += x;
+                s[1] += y;
+                s[2] += 1;
+            }
+        }
+        g.setFont(new Font("SansSerif", Font.BOLD, 14));
+        for (Map.Entry<BiomeKind, long[]> e : sums.entrySet()) {
+            long[] s = e.getValue();
+            if (s[2] == 0) continue;
+            int cx = (int) (s[0] / s[2]) * cellPx;
+            int cy = (gridH - 1 - (int) (s[1] / s[2])) * cellPx;
+            Color base = BIOME_COLORS.getOrDefault(e.getKey(), Color.WHITE);
+            g.setColor(new Color(0, 0, 0, 180));
+            String name = e.getKey().name();
+            g.drawString(name, cx + 1, cy + 1);
+            g.setColor(base);
+            g.drawString(name, cx, cy);
+        }
+    }
+
+    /**
      * Draw a colored outline around each compound's union bounding rect plus
      * a kind glyph in the top-left corner of the rect. Reads as "this cluster
      * of leaves was claimed as one compound" without interfering with the
      * underlying ground / wall / doorway art.
      */
-    private static void drawCompoundOverlay(Graphics2D g, List<Compound> compounds, int gridH) {
+    private static void drawCompoundOverlay(Graphics2D g, List<Compound> compounds, int gridH, int cellPx) {
         g.setStroke(new BasicStroke(2f));
         for (Compound c : compounds) {
-            int x0 = c.left * CELL_PX - 1;
-            int y0 = (gridH - 1 - c.bottom) * CELL_PX - 1;
-            int wPx = c.width()  * CELL_PX + 2;
-            int hPx = c.height() * CELL_PX + 2;
+            int x0 = c.left * cellPx - 1;
+            int y0 = (gridH - 1 - c.bottom) * cellPx - 1;
+            int wPx = c.width()  * cellPx + 2;
+            int hPx = c.height() * cellPx + 2;
             Color outline = new Color(255, 80, 200, 230);
             g.setColor(outline);
             g.drawRect(x0, y0, wPx, hPx);
@@ -363,11 +490,11 @@ public class BspMapPreviewTest {
         }
     }
 
-    private static void drawDiamond(Graphics2D g, Color c, int cellX, int cellY, int gridH) {
+    private static void drawDiamond(Graphics2D g, Color c, int cellX, int cellY, int gridH, int cellPx) {
         g.setColor(c);
-        int cx = cellX * CELL_PX + CELL_PX / 2;
-        int cy = (gridH - 1 - cellY) * CELL_PX + CELL_PX / 2;
-        int r = CELL_PX;
+        int cx = cellX * cellPx + cellPx / 2;
+        int cy = (gridH - 1 - cellY) * cellPx + cellPx / 2;
+        int r = cellPx;
         int[] xs = { cx, cx + r, cx, cx - r };
         int[] ys = { cy - r, cy, cy + r, cy };
         g.fillPolygon(xs, ys, 4);
