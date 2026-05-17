@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.mapgen.BlockFiller;
 import com.dillon.starsectormarines.battle.mapgen.BlockKind;
 import com.dillon.starsectormarines.battle.mapgen.BlockLeaf;
+import com.dillon.starsectormarines.battle.mapgen.MapDistrictTheme;
 import com.dillon.starsectormarines.battle.mapgen.MapGenerator;
 import com.dillon.starsectormarines.battle.mapgen.MapResult;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.BuildingCommercialFiller;
@@ -105,15 +106,43 @@ public final class BspCityGenerator implements MapGenerator {
             }
         }
 
-        // Step 1 — segment.
-        Bsp.Partition partition = Bsp.partition(width, height, rng);
+        // Step 1a — plan the trunk skeleton. Trunks (the city's arterials)
+        // get painted into the shared road mask before BSP runs, plus the
+        // matching GroundKind onto the topology so the renderer reads them
+        // as boulevards rather than ordinary back-streets.
+        TrunkPlan.Plan plan = TrunkPlan.generate(width, height, rng);
+        for (TrunkPlan.TrunkSegment trunk : plan.trunks) {
+            for (int y = trunk.top; y <= trunk.bottom; y++) {
+                for (int x = trunk.left; x <= trunk.right; x++) {
+                    topology.setGroundKind(x, y, trunk.kind.ground);
+                }
+            }
+        }
 
-        // Step 1b — lay down a district overlay. The labeler then samples each
+        // Step 1b — run BSP independently inside each sub-rect between
+        // trunks/edges. All sub-rects share one road mask so connectivity
+        // falls out by construction: every BSP road frame butts against the
+        // trunk or perimeter cells already marked road in the mask.
+        List<BlockLeaf> leaves = new ArrayList<>();
+        for (TrunkPlan.SubRect r : plan.subRects) {
+            Bsp.partitionRect(r.x0, r.y0, r.x1, r.y1, width, height,
+                    Bsp.ROAD_WIDTH_MAX_WITH_TRUNKS, plan.roadCells, leaves, rng);
+        }
+        Bsp.Partition partition = new Bsp.Partition(leaves, plan.roadCells, width, height);
+
+        // Step 1c — lay down a district overlay. The labeler then samples each
         // leaf's BlockKind from the district's theme weights so blocks cluster
         // (residential next to park next to plaza, instead of pure hodgepodge).
         DistrictMap districtMap = new DistrictMap(width, height, rng);
+        // Bias the district at the trunk intersection toward CIVIC — the
+        // crossing of two arterials is the natural downtown. forceThemeAt
+        // skips WATERFRONT districts so coastal intersections stay coastal.
+        int ixCenterX = (plan.intersection.x0 + plan.intersection.x1) / 2;
+        int ixCenterY = (plan.intersection.y0 + plan.intersection.y1) / 2;
+        districtMap.forceThemeAt(ixCenterX, ixCenterY, MapDistrictTheme.CIVIC);
         LOG.info("BspCityGenerator: " + partition.leaves.size() + " leaves on "
                 + width + "x" + height + " grid, "
+                + plan.trunks.size() + " trunk(s), "
                 + districtMap.districtsX() + "x" + districtMap.districtsY() + " districts");
         this.lastDistrictMap = districtMap;
 

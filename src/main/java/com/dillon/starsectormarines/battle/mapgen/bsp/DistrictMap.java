@@ -67,6 +67,20 @@ public final class DistrictMap {
         return themes[dx][dy];
     }
 
+    /**
+     * Force the theme of the district containing nav-grid cell ({@code navX},
+     * {@code navY}). Used by the orchestrator to seed CIVIC at the trunk-road
+     * intersection (the natural city center). No-op if the resolved district
+     * is already WATERFRONT — preserving the "coast stays coastal" invariant
+     * even when an intersection lands on the map edge.
+     */
+    public void forceThemeAt(int navX, int navY, MapDistrictTheme theme) {
+        int dx = Math.max(0, Math.min(districtsX - 1, navX / cellW));
+        int dy = Math.max(0, Math.min(districtsY - 1, navY / cellH));
+        if (themes[dx][dy] == MapDistrictTheme.WATERFRONT) return;
+        themes[dx][dy] = theme;
+    }
+
     private void assignThemes(Random rng) {
         for (int dx = 0; dx < districtsX; dx++) {
             for (int dy = 0; dy < districtsY; dy++) {
