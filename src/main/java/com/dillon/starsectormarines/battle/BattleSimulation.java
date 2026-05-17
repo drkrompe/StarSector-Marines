@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.battle;
 
-import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.air.AirSimContext;
+import com.dillon.starsectormarines.battle.air.AirSystem;
 import com.dillon.starsectormarines.battle.air.Shuttle;
-import com.dillon.starsectormarines.battle.air.SteeringMode;
 import com.dillon.starsectormarines.battle.ai.CombatantBehavior;
 import com.dillon.starsectormarines.battle.ai.FallbackBehavior;
 import com.dillon.starsectormarines.battle.ai.FleeBehavior;
@@ -18,17 +18,13 @@ import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.objective.EliminateFactionObjective;
 import com.dillon.starsectormarines.battle.objective.Objective;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Random;
-import java.util.Set;
 
 /**
  * Headless auto-battler simulation. Owns the {@link NavigationGrid}, the unit
@@ -56,7 +52,7 @@ import java.util.Set;
  * 24×16 grid it's a few thousand cell expansions per second, well inside the
  * budget. Spatial indexing for target search can come later if we scale up.
  */
-public class BattleSimulation {
+public class BattleSimulation implements AirSimContext {
 
     /** Fixed simulation timestep — 30Hz. */
     public static final float TICK_DT = 1f / 30f;
@@ -78,7 +74,7 @@ public class BattleSimulation {
     private final NavigationGrid grid;
     private final CellTopology topology;
     private final List<Unit> units = new ArrayList<>();
-    private final List<Shuttle> shuttles = new ArrayList<>();
+    private final AirSystem airSystem = new AirSystem();
     private final List<Objective> objectives = new ArrayList<>();
     private final List<EquipmentDrop> equipmentDrops = new ArrayList<>();
     private final List<Doodad> doodads = new ArrayList<>();
@@ -110,21 +106,8 @@ public class BattleSimulation {
     private final List<Unit> deathsThisFrame = new ArrayList<>();
     private final Random rng = new Random();
 
-    /** Counter for IDs of marines deboarded from shuttles. Bumped per spawn — "m0", "m1", ... like the pre-shuttle setup. */
+    /** Counter for IDs of marines deboarded from shuttles. Bumped via {@link #nextMarineId()} when {@link AirSystem} deboards. Format: "m0", "m1", ... matches the pre-shuttle setup convention. */
     private int deboardedMarineCount = 0;
-    /** Max BFS radius from the LZ when looking for a free deboard cell. Past this we drop the deboard for this tick. */
-    private static final int DEBOARD_SCAN_RADIUS = 5;
-
-    /** Visual scale of a shuttle at cruising altitude (sells "I am up high"). Driven by {@code Shuttle.altitudeT}; ground scale is 1.0. */
-    private static final float SHUTTLE_CRUISE_SCALE = 1.5f;
-    /** Frequency (Hz) of the in-flight scale wobble. Slower than a heartbeat — reads as atmospheric drift, not a flicker. */
-    private static final float SHUTTLE_WOBBLE_HZ = 0.7f;
-    /** Peak amplitude of the wobble, in scale units. ±0.04 on top of a 1.5 cruise = ~2.7%; well inside the 5% target. */
-    private static final float SHUTTLE_WOBBLE_AMPLITUDE = 0.04f;
-    /** Distance threshold (cells) at which an INCOMING shuttle snaps to the LZ and transitions to LANDED. Tight enough that the snap is invisible; loose enough that the asymptotic brake-to-station taper doesn't stall short. */
-    private static final float SHUTTLE_LZ_ARRIVAL_DIST = 0.2f;
-    /** Distance threshold (cells) at which a DEPARTING shuttle transitions to GONE / next cycle. Larger than the LZ threshold because exit points sit well off-map and we don't need pinpoint accuracy. */
-    private static final float SHUTTLE_EXIT_ARRIVAL_DIST = 1.0f;
 
     /** Per-cell unit count, rebuilt at the start of each tick. Passed to the pathfinder so units route around ally-held cells. */
     private final byte[] occupancyMap;
@@ -146,7 +129,7 @@ public class BattleSimulation {
         this.zoneGraph.rebuild();
     }
 
-    public NavigationGrid getGrid()        { return grid; }
+    @Override public NavigationGrid getGrid() { return grid; }
     /** Categorization tags (street / rubble / wall / vehicle / etc.) for renderer + placement filters. Sibling to {@link #grid}; the pathfinder doesn't touch this. */
     public CellTopology getTopology()      { return topology; }
     /** Zone+portal graph layered on the {@link NavigationGrid}. Rebuilt on wall destruction so AI queries reflect the current map. */
@@ -171,7 +154,7 @@ public class BattleSimulation {
         return true;
     }
     public List<Unit> getUnits()           { return units; }
-    public List<Shuttle> getShuttles()     { return shuttles; }
+    public List<Shuttle> getShuttles()     { return airSystem.getShuttles(); }
     public List<Objective> getObjectives() { return objectives; }
     public List<EquipmentDrop> getEquipmentDrops() { return equipmentDrops; }
     public List<Doodad> getDoodads()       { return doodads; }
@@ -199,16 +182,41 @@ public class BattleSimulation {
     public Faction getWinner()             { return winner; }
     /** Per-cell unit count, indexed by {@link NavigationGrid#index(int, int)}. Exposed for AI scoring; do not mutate directly — go through {@link #setPath}. */
     public byte[] getOccupancyMap()        { return occupancyMap; }
-    public Random getRng()                 { return rng; }
+    @Override public Random getRng()       { return rng; }
     /** Returns the squad with the given id, or {@code null} if {@code id == Unit.NO_SQUAD} or the squad was never registered. */
     public Squad getSquad(int id)          { return id == Unit.NO_SQUAD ? null : squads.get(id); }
 
+    @Override
     public void addUnit(Unit u) {
         units.add(u);
     }
 
     public void addShuttle(Shuttle s) {
-        shuttles.add(s);
+        airSystem.add(s);
+    }
+
+    // ---- AirSimContext: services the AirSystem reaches back for during a tick ----
+
+    @Override
+    public boolean isCellOccupied(int x, int y) {
+        for (Unit u : units) {
+            if (!u.isAlive()) continue;
+            if (u.cellX == x && u.cellY == y) return true;
+        }
+        return false;
+    }
+
+    @Override
+    public String nextMarineId() {
+        return "m" + deboardedMarineCount++;
+    }
+
+    @Override
+    public int mintSquad(Faction faction, Unit leader) {
+        Squad squad = new Squad(nextSquadId++, faction);
+        squad.leader = leader;
+        squads.put(squad.id, squad);
+        return squad.id;
     }
 
     public void addObjective(Objective o) {
@@ -271,9 +279,9 @@ public class BattleSimulation {
         spawnMechWrecks();
         // Age smoking wrecks + emit any puff events that came due this tick.
         tickSmokingWrecks();
-        // Shuttles tick AFTER units so new deboarded marines aren't iterated
+        // Air vehicles tick AFTER units so new deboarded marines aren't iterated
         // mid-loop. They'll be picked up by next tick's occupancy + target pass.
-        advanceShuttles();
+        airSystem.tick(this, TICK_DT);
         advanceShots();
         processEquipmentDrops();
         for (Objective o : objectives) o.tick(this);
@@ -1058,210 +1066,6 @@ public class BattleSimulation {
         else if (marineFailed && !defenderFailed) winner = Faction.DEFENDER;
         else if (defenderFailed && !marineFailed) winner = Faction.MARINE;
         else                                 winner = null;
-    }
-
-    /**
-     * Advances each shuttle's state machine by one tick. PENDING burns down the
-     * stagger delay; INCOMING/DEPARTING steer the {@link com.dillon.starsectormarines.battle.air.AirBody}
-     * toward their LZ / exit waypoint under the shuttle's
-     * {@link ShuttleType} handling profile; LANDED ticks a deboard timer and
-     * spawns a marine on each fire.
-     *
-     * <p>The "boat" feel — slow buses pendulum, nimble craft snap into headings —
-     * falls out of the per-type turn rate and lateral damping in
-     * {@link com.dillon.starsectormarines.battle.air.AirHandling}. No
-     * parametric per-leg curve is needed; the arc is what kinematic-limited
-     * steering produces.
-     */
-    private void advanceShuttles() {
-        for (Shuttle s : shuttles) {
-            switch (s.state) {
-                case PENDING:
-                    s.pendingDelay -= TICK_DT;
-                    if (s.pendingDelay <= 0f) {
-                        beginShuttleLeg(s, s.lzX, s.lzY);
-                        s.state = Shuttle.State.INCOMING;
-                    }
-                    break;
-
-                case INCOMING:
-                    s.body.tickToward(s.lzX, s.lzY, SteeringMode.BRAKE_TO_STATION, s.type, TICK_DT);
-                    updateShuttleAltitude(s, s.lzX, s.lzY, /*incoming=*/true);
-                    if (s.body.distanceTo(s.lzX, s.lzY) < SHUTTLE_LZ_ARRIVAL_DIST) {
-                        // Snap to the LZ — the BRAKE_TO_STATION taper is
-                        // asymptotic, so without this the shuttle would creep
-                        // the last fraction of a cell at near-zero speed.
-                        s.body.teleport(s.lzX, s.lzY, s.body.facingDegrees);
-                        s.altitudeT = 0f;
-                        s.scaleMult = 1f;
-                        s.state = Shuttle.State.LANDED;
-                        s.deboardCountdown = s.type.deboardInterval;
-                    }
-                    break;
-
-                case LANDED:
-                    s.deboardCountdown -= TICK_DT;
-                    if (s.deboardCountdown <= 0f && s.marinesRemaining > 0) {
-                        if (tryDeboardMarine(s)) {
-                            s.marinesRemaining--;
-                        }
-                        s.deboardCountdown = s.type.deboardInterval;
-                    }
-                    if (s.marinesRemaining == 0) {
-                        beginShuttleLeg(s, s.exitX, s.exitY);
-                        s.state = Shuttle.State.DEPARTING;
-                    }
-                    break;
-
-                case DEPARTING:
-                    s.body.tickToward(s.exitX, s.exitY, SteeringMode.CRUISE, s.type, TICK_DT);
-                    updateShuttleAltitude(s, s.exitX, s.exitY, /*incoming=*/false);
-                    if (s.body.distanceTo(s.exitX, s.exitY) < SHUTTLE_EXIT_ARRIVAL_DIST) {
-                        if (s.currentCycle + 1 < s.totalCycles) {
-                            // Recycle for another sortie. The shuttle drops out of
-                            // view (PENDING is invisible + engine-silent) for
-                            // s.rearmDelay sim-seconds, then re-enters INCOMING.
-                            // Per-cycle loadout refreshes here so SABOTAGE planters
-                            // target the next charge site on each return trip.
-                            s.currentCycle++;
-                            if (s.cycleLoadouts != null && s.currentCycle < s.cycleLoadouts.length) {
-                                s.marineLoadout = s.cycleLoadouts[s.currentCycle];
-                            }
-                            s.marinesRemaining = s.type.capacity;
-                            s.pendingDelay = s.rearmDelay;
-                            s.body.teleport(s.entryX, s.entryY,
-                                    AirBody.facingToward(s.lzX - s.entryX, s.lzY - s.entryY));
-                            s.altitudeT = 1f;
-                            s.state = Shuttle.State.PENDING;
-                        } else {
-                            s.state = Shuttle.State.GONE;
-                        }
-                    }
-                    break;
-
-                case GONE:
-                default:
-                    break;
-            }
-        }
-    }
-
-    /**
-     * Caches the leg's straight-line distance so {@link #updateShuttleAltitude}
-     * can lerp scale + engine intensity by remaining-distance ratio. Body
-     * position is left untouched — it's already at the previous waypoint (the
-     * entry point, or the LZ).
-     */
-    private void beginShuttleLeg(Shuttle s, float toX, float toY) {
-        s.legStartDist = Math.max(0.001f, s.body.distanceTo(toX, toY));
-    }
-
-    /**
-     * Per-tick altitude / scale update. {@code altitudeT} runs 1 → 0 on
-     * INCOMING (high at entry, ground at LZ) and 0 → 1 on DEPARTING. Drives
-     * {@link Shuttle#scaleMult} via {@link #SHUTTLE_CRUISE_SCALE} plus a small
-     * sine wobble that's gated by altitudeT so it dies cleanly on the ground.
-     */
-    private void updateShuttleAltitude(Shuttle s, float toX, float toY, boolean incoming) {
-        float remaining = s.body.distanceTo(toX, toY);
-        float ratio = remaining / s.legStartDist;
-        if (ratio < 0f) ratio = 0f;
-        if (ratio > 1f) ratio = 1f;
-        s.altitudeT = incoming ? ratio : (1f - ratio);
-
-        float baseScale = 1f + (SHUTTLE_CRUISE_SCALE - 1f) * s.altitudeT;
-        s.flightPhase += TICK_DT * 2f * (float) Math.PI * SHUTTLE_WOBBLE_HZ;
-        float wobble = (float) Math.sin(s.flightPhase) * SHUTTLE_WOBBLE_AMPLITUDE * s.altitudeT;
-        s.scaleMult = baseScale + wobble;
-    }
-
-    /**
-     * Finds a free cell adjacent to the LZ and spawns a marine there as a fresh
-     * {@link Unit}. Returns {@code false} when no nearby cell is available this
-     * tick (rare — only happens if the area around the LZ is fully clogged with
-     * units or walls); caller leaves {@code marinesRemaining} unchanged and the
-     * shuttle re-tries next interval.
-     */
-    private boolean tryDeboardMarine(Shuttle s) {
-        int lzCellX = (int) Math.floor(s.lzX);
-        int lzCellY = (int) Math.floor(s.lzY);
-        int[] cell = findDeboardCell(lzCellX, lzCellY);
-        if (cell == null) return false;
-        Unit marine = new Unit("m" + deboardedMarineCount++, s.faction, UnitType.MARINE, cell[0], cell[1]);
-        int slot = s.type.capacity - s.marinesRemaining;
-        MarineLoadout loadout = (s.marineLoadout != null && slot < s.marineLoadout.length)
-                ? s.marineLoadout[slot] : null;
-        if (loadout != null) {
-            marine.role = loadout.role;
-            marine.assignedObjective = loadout.objective;
-            // Apply primary weapon stats — overrides the UnitType.MARINE
-            // defaults baked into the Unit at construction. If the loadout
-            // didn't specify a weapon (legacy callers), the marine keeps
-            // the type defaults and behaves as before.
-            if (loadout.primary != null) {
-                marine.primaryWeapon = loadout.primary;
-                marine.attackRange = loadout.primary.range;
-                marine.attackDamage = loadout.primary.damage;
-                marine.accuracy = loadout.primary.accuracy;
-                marine.attackCooldown = loadout.primary.cooldown;
-            }
-            if (loadout.secondary != null && loadout.secondaryAmmo > 0) {
-                marine.secondaryWeapon = loadout.secondary;
-                marine.secondaryAmmo = loadout.secondaryAmmo;
-            }
-        }
-        // Squad assignment — first deboard from a shuttle mints a new squad
-        // and takes the leader slot; subsequent deboards join the same squad.
-        if (s.squadId == Unit.NO_SQUAD) {
-            Squad squad = new Squad(nextSquadId++, s.faction);
-            squad.leader = marine;
-            squads.put(squad.id, squad);
-            s.squadId = squad.id;
-        }
-        marine.squadId = s.squadId;
-        addUnit(marine);
-        return true;
-    }
-
-    /**
-     * BFS outward from the LZ cell for the first walkable, unoccupied cell at
-     * distance >= 1. Distance 0 (the LZ itself) is skipped so the marine
-     * sprite doesn't draw directly under the parked shuttle. Returns
-     * {@code null} if no eligible cell is found within {@link #DEBOARD_SCAN_RADIUS}.
-     */
-    private int[] findDeboardCell(int lzX, int lzY) {
-        Set<Long> seen = new HashSet<>();
-        Queue<int[]> q = new ArrayDeque<>();
-        q.add(new int[]{lzX, lzY, 0});
-        seen.add(((long) lzX << 32) | (lzY & 0xFFFFFFFFL));
-        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-        while (!q.isEmpty()) {
-            int[] p = q.poll();
-            if (p[2] > DEBOARD_SCAN_RADIUS) continue;
-            if (p[2] > 0
-                    && grid.inBounds(p[0], p[1])
-                    && grid.isWalkable(p[0], p[1])
-                    && !cellHasLiveUnit(p[0], p[1])) {
-                return new int[]{p[0], p[1]};
-            }
-            for (int[] d : dirs) {
-                int nx = p[0] + d[0];
-                int ny = p[1] + d[1];
-                if (!grid.inBounds(nx, ny)) continue;
-                long k = ((long) nx << 32) | (ny & 0xFFFFFFFFL);
-                if (!seen.add(k)) continue;
-                q.add(new int[]{nx, ny, p[2] + 1});
-            }
-        }
-        return null;
-    }
-
-    private boolean cellHasLiveUnit(int x, int y) {
-        for (Unit u : units) {
-            if (!u.isAlive()) continue;
-            if (u.cellX == x && u.cellY == y) return true;
-        }
-        return false;
     }
 
 }
