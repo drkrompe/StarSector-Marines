@@ -60,6 +60,21 @@ public final class FlybyOverlay {
     public static final String SFX_MISSILE_LAUNCH = "marines_flyby_missile";
     public static final String SFX_MISSILE_IMPACT = "marines_flyby_missile_impact";
 
+    /**
+     * Per-fighter engine resonance loops — each fighter picks one of these three at spawn
+     * and plays it positionally every frame so the airy fan/reso texture banks past the
+     * camera as the jet does. Doppler is handled by OpenAL via the velocity arg.
+     */
+    private static final String[] ENGINE_LOOP_IDS = {
+            "marines_ambient_fan_reso_1",
+            "marines_ambient_fan_reso_2",
+            "marines_ambient_fan_reso_3",
+    };
+    /** Base volume for a single fighter's resonance loop. Distance attenuation does the rest as the fighter approaches and recedes from the listener. */
+    private static final float ENGINE_LOOP_VOLUME = 0.5f;
+    /** ±pitch range applied per-fighter so simultaneous fighters drawing the same clip don't phase-lock. */
+    private static final float ENGINE_LOOP_PITCH_JITTER = 0.10f;
+
     // ---- Shared FX sprite paths (vanilla particles). --------------------------
     private static final String SPRITE_SHADOW         = "graphics/fx/particlealpha64linear.png";
     private static final String SPRITE_GLOW           = "graphics/fx/glow64.png";
@@ -217,6 +232,7 @@ public final class FlybyOverlay {
             tickFighter(f, dt, sim);
             if (isOffMap(f, camera)) fighters.remove(i);
         }
+        driveEngineLoops();
 
         for (int i = projectiles.size() - 1; i >= 0; i--) {
             Projectile p = projectiles.get(i);
@@ -933,6 +949,25 @@ public final class FlybyOverlay {
         particles.add(p);
     }
 
+    /**
+     * Re-arms the positional engine resonance loop for every visible fighter every frame —
+     * playLoop has to be called each tick or the loop fades, same contract as playUILoop.
+     * Each fighter uses itself as the {@code playingEntity} key so simultaneous fighters
+     * sharing a clip id don't collapse into one voice; their position + velocity drive
+     * OpenAL panning, attenuation, and Doppler.
+     */
+    private void driveEngineLoops() {
+        for (Fighter f : fighters) {
+            String loopId = ENGINE_LOOP_IDS[f.engineLoopIdx];
+            Vector2f loc = new Vector2f(f.worldX * AUDIO_WORLD_UNITS_PER_CELL,
+                                        f.worldY * AUDIO_WORLD_UNITS_PER_CELL);
+            Vector2f vel = new Vector2f(f.vx * AUDIO_WORLD_UNITS_PER_CELL,
+                                        f.vy * AUDIO_WORLD_UNITS_PER_CELL);
+            Global.getSoundPlayer().playLoop(loopId, f, 1f + f.enginePitchOffset,
+                    ENGINE_LOOP_VOLUME, loc, vel);
+        }
+    }
+
     private void playFireSound(Fighter f) {
         float pitch = f.profile.fireSoundPitch
                 + (rng.nextFloat() * 2f - 1f) * SFX_PITCH_JITTER;
@@ -1028,6 +1063,8 @@ public final class FlybyOverlay {
         f.weaveFreq = WEAVE_FREQ_HZ_MIN + rng.nextFloat() * (WEAVE_FREQ_HZ_MAX - WEAVE_FREQ_HZ_MIN);
         f.weaveAmpDeg = WEAVE_AMP_DEG_MIN + rng.nextFloat() * (WEAVE_AMP_DEG_MAX - WEAVE_AMP_DEG_MIN);
         f.runScanTimer = RUN_TRIGGER_INTERVAL_SEC;
+        f.engineLoopIdx = rng.nextInt(ENGINE_LOOP_IDS.length);
+        f.enginePitchOffset = (rng.nextFloat() * 2f - 1f) * ENGINE_LOOP_PITCH_JITTER;
         fighters.add(f);
     }
 
@@ -1337,6 +1374,12 @@ public final class FlybyOverlay {
         float runInX, runInY;
         float runOutX, runOutY;
         float runFireAccumulator;
+
+        // Per-fighter positional engine loop — index into ENGINE_LOOP_IDS and a small
+        // pitch offset, both rolled once at spawn so the fighter sounds consistent
+        // across its lifetime but distinct from its wing-mates.
+        int engineLoopIdx;
+        float enginePitchOffset;
     }
 
     private static final class Tracer {

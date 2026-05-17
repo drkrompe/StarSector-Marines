@@ -150,19 +150,36 @@ public class BattleScreen implements Screen {
      * Pool of ambient loop sound-ids the battle picks 1-2 from at attach time for environmental
      * background. Subway-train and wind-up-long are intentionally excluded — they feel more like
      * situational cues than ambient bed; trivial to flip in if a battle wants the urban-rail or
-     * winding-mechanism vibe.
+     * winding-mechanism vibe. The fan_reso_1/2/3 clips also live in {@link #VEHICLE_ENGINE_LOOPS}
+     * and follow shuttles + flyby fighters as positional engine resonance — they read as airy
+     * overhead-mechanical noise that's distinctive enough that hearing it in the static ambient
+     * bed reads as "another shuttle nearby," so we keep them out of the bed.
      */
     private static final String[] AMBIENT_LOOP_POOL = {
             "marines_ambient_fan_noise",
-            "marines_ambient_fan_reso_1",
-            "marines_ambient_fan_reso_2",
-            "marines_ambient_fan_reso_3",
             "marines_ambient_motor_1",
             "marines_ambient_motor_2",
             "marines_ambient_loudmotor_3",
             "marines_ambient_radiator_1",
             "marines_ambient_helicopter_2",
     };
+
+    /**
+     * Per-vehicle positional engine resonance loops. Each visible shuttle (and each flyby fighter,
+     * driven from {@link FlybyOverlay}) picks one of these three by stable hash and plays it at
+     * its world position every frame — OpenAL spatialization gives each vehicle a distinct
+     * doppler-shifted whoosh as it banks overhead. Cycling across three clips means three shuttles
+     * landing simultaneously each contribute a unique texture instead of folding into one voice.
+     */
+    private static final String[] VEHICLE_ENGINE_LOOPS = {
+            "marines_ambient_fan_reso_1",
+            "marines_ambient_fan_reso_2",
+            "marines_ambient_fan_reso_3",
+    };
+    /** Volume scalar on the shuttle resonance loop. Layered on top of the existing UI engine hum, so kept moderate — the hum is the bass, this is the airy top layer. */
+    private static final float SHUTTLE_RESONANCE_VOLUME = 0.5f;
+    /** ±range of the per-shuttle pitch offset, so simultaneous shuttles playing the same reso clip don't beat against each other in lockstep. */
+    private static final float SHUTTLE_RESONANCE_PITCH_JITTER = 0.08f;
     /** Volume for ambient loops — quiet bed, well under foreground SFX. Multiplied with the per-clip base in sounds.json. */
     private static final float AMBIENT_VOLUME = 0.2f;
     /** Real-time gap (seconds) between sporadic distant explosions. Range is rolled each time. */
@@ -828,6 +845,7 @@ public class BattleScreen implements Screen {
         }
         impactFx.advance(dt * speedMultiplier);
         driveShuttleEngineLoop(sim);
+        driveShuttleResonanceLoops(sim);
         playCombatEventSounds(sim);
         // Rebuild widgets when the sim transitions to complete so the bottom
         // action button swaps from Back to Continue.
@@ -917,6 +935,59 @@ public class BattleScreen implements Screen {
         if (maxIntensity <= 0f) return;
         float pitch = ENGINE_PITCH_IDLE + (ENGINE_PITCH_CRUISE - ENGINE_PITCH_IDLE) * maxIntensity;
         Global.getSoundPlayer().playUILoop(LOOP_ENGINE, pitch, maxIntensity);
+    }
+
+    /**
+     * Per-shuttle positional resonance loops — every visible shuttle emits one of three
+     * {@code marines_ambient_fan_reso_*} clips at its world position, so the airy fan/reso
+     * texture follows the actual vehicle rather than sitting in a fixed ambient bed anchor.
+     *
+     * <p>Assignment is by {@link System#identityHashCode(Object)} mod 3 — stable for the
+     * shuttle's lifetime, and we don't care about save/load consistency (audio is not
+     * persisted state). The {@code playingEntity} key is the shuttle itself, which keeps
+     * three simultaneous shuttles on three voices even when they share the same clip id.
+     *
+     * <p>Pitch carries a small per-shuttle deterministic offset so two shuttles drawing the
+     * same reso clip don't run in phase lock; volume scales by {@link Shuttle#engineIntensity()}
+     * so off-screen / on-ground reads quieter. Velocity is fed through so OpenAL applies
+     * Doppler as a shuttle banks over the camera.
+     */
+    private void driveShuttleResonanceLoops(BattleSimulation sim) {
+        for (Shuttle s : sim.getShuttles()) {
+            if (!s.isVisible()) continue;
+            float intensity = s.engineIntensity();
+            if (intensity <= 0f) continue;
+            int idHash = System.identityHashCode(s);
+            int resoIdx = (idHash & 0x7fffffff) % VEHICLE_ENGINE_LOOPS.length;
+            String loopId = VEHICLE_ENGINE_LOOPS[resoIdx];
+            // Deterministic ±jitter from the hash so the offset doesn't change frame-to-frame.
+            float pitchOffset = (((idHash >> 8) & 0xff) / 255f * 2f - 1f) * SHUTTLE_RESONANCE_PITCH_JITTER;
+            Vector2f loc = new Vector2f(s.worldX * AUDIO_WORLD_UNITS_PER_CELL,
+                                        s.worldY * AUDIO_WORLD_UNITS_PER_CELL);
+            // Approximate per-frame velocity from leg geometry — we don't store an explicit
+            // velocity vector on Shuttle. Tangent of (entry→lz) during INCOMING and (lz→exit)
+            // during DEPARTING; zero while LANDED. Doppler is subtle but readable on a banking pass.
+            Vector2f vel = shuttleVelocity(s);
+            Global.getSoundPlayer().playLoop(loopId, s, 1f + pitchOffset,
+                    SHUTTLE_RESONANCE_VOLUME * intensity, loc, vel);
+        }
+    }
+
+    /** Crude per-frame velocity for {@link #driveShuttleResonanceLoops} Doppler — direction toward the active waypoint, magnitude scaled by leg chord, zero on the ground. */
+    private static Vector2f shuttleVelocity(Shuttle s) {
+        float tx, ty;
+        switch (s.state) {
+            case INCOMING:  tx = s.lzX;   ty = s.lzY;   break;
+            case DEPARTING: tx = s.exitX; ty = s.exitY; break;
+            default:        return new Vector2f(0f, 0f);
+        }
+        float dx = tx - s.worldX, dy = ty - s.worldY;
+        float len = (float) Math.sqrt(dx * dx + dy * dy);
+        if (len < 0.001f) return new Vector2f(0f, 0f);
+        // Rough cruise speed (cells/sec) — exact value doesn't matter for Doppler readability.
+        float speed = 12f;
+        return new Vector2f(dx / len * speed * AUDIO_WORLD_UNITS_PER_CELL,
+                            dy / len * speed * AUDIO_WORLD_UNITS_PER_CELL);
     }
 
     /**
