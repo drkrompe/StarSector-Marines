@@ -1,0 +1,71 @@
+{
+  "entries": [
+    {
+      "col": 8,
+      "description": "",
+      "name": "water-edge-s",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "",
+      "name": "water-edge-se",
+      "row": 1
+    },
+    {
+      "col": 10,
+      "description": "",
+      "name": "water-edge-sw",
+      "row": 1
+    },
+    {
+      "col": 6,
+      "description": "",
+      "name": "water-edge-e",
+      "row": 2
+    },
+    {
+      "col": 10,
+      "description": "",
+      "name": "water-edge-w",
+      "row": 2
+    },
+    {
+      "col": 6,
+      "description": "",
+      "name": "water-edge-ne",
+      "row": 3
+    },
+    {
+      "col": 10,
+      "description": "",
+      "name": "water-edge-nw",
+      "row": 3
+    },
+    {
+      "col": 8,
+      "description": "",
+      "name": "water-edge-n",
+      "row": 4
+    },
+    {
+      "col": 6,
+      "description": "",
+      "name": "water-1",
+      "row": 7
+    },
+    {
+      "col": 7,
+      "description": "",
+      "name": "water-2",
+      "row": 7
+    },
+    {
+      "col": 8,
+      "description": "",
+      "name": "water-3",
+      "row": 7
+    }
+  ],
+  "sheet": "graphics/tilesets/Water_tiles.png"
+}

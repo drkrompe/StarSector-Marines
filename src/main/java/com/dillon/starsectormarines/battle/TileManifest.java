@@ -41,40 +41,71 @@ public final class TileManifest {
      */
     public static final String ROAD_SHEET = "graphics/tilesets/urban-tileset-2.png";
 
-    /** Top-left cell of the road 3×3 autotile block on {@link #ROAD_SHEET}. Hollow center like the wall autotile — open road draws a solid {@link #ROAD_FILL_RGB} quad. */
-    private static final int ROAD_COL_ORIGIN = 6;
+    /**
+     * Third sheet — outdoor surface autotiles (grass, dirt, stone, sand,
+     * snow) plus the polished interior {@code fl-tile} cluster. Drawn at
+     * 16px source-cell size and upscaled 2x to fit the 32px nav grid.
+     */
+    public static final String FLOORS_SHEET = "graphics/tilesets/Floors_Tiles.png";
+    public static final int FLOORS_TILE_SIZE = 16;
+
+    /** Fourth sheet — water autotile. 16px cells, upscaled 2x like {@link #FLOORS_SHEET}. */
+    public static final String WATER_SHEET = "graphics/tilesets/Water_tiles.png";
+
+    /**
+     * Top-left cell of the road 3×3 autotile block on {@link #ROAD_SHEET}.
+     * Center cell (13, 1) is the open-road interior; pickRoadTile returns it
+     * for the all-walls-around-me case and falls back to {@link #ROAD_FILL_RGB}
+     * only for fully-interior cells (no wall neighbors at all). Ground-truth
+     * for this cell is {@code mod/data/tilesets/urban-tileset-2.catalog.json}'s
+     * {@code road-nw} entry — moved here from col 6 after the sheet was redrawn.
+     */
+    private static final int ROAD_COL_ORIGIN = 12;
     private static final int ROAD_ROW_ORIGIN = 0;
-    /** Open-road surface color (sampled from the road tile's gray interior). Renderer uses this as the no-wall-neighbor fallback. */
-    public static final int ROAD_FILL_RGB = 0x4D5267; // 77, 82, 103
+    /** Open-road surface color, sampled at the center pixel of the road autotile center cell (13, 1). Verified by {@code TileManifestFillColorTest}. */
+    public static final int ROAD_FILL_RGB = 0x7983A1; // 121, 131, 161
 
     /**
      * Top-left cell of the courtyard 3×3 autotile block on {@link #ROAD_SHEET}.
-     * Dark steel-framed pavement — visually distinct from both the red-bordered
-     * road autotile and the light beige indoor floor. Used on private interior
-     * pavement inside multi-cell super-blocks (see {@link NavigationGrid#isCourtyard}),
+     * Dark navy bevelled stone — visually distinct from both the road autotile
+     * and the light beige indoor floor. Used on private interior pavement
+     * inside multi-cell super-blocks (see {@link NavigationGrid#isCourtyard}),
      * so a row-house or warehouse complex with a shared courtyard reads as one
      * plot rather than two buildings across a street.
+     *
+     * <p>Note: the catalog file currently has no entries for cells (0..2, 0..2)
+     * because the in-game labeller's alpha-threshold misses the dark navy stone
+     * art. Visually the cells ARE present and the renderer reads them fine —
+     * this is a known catalog gap, not an art gap.
      */
     private static final int COURTYARD_COL_ORIGIN = 0;
     private static final int COURTYARD_ROW_ORIGIN = 0;
-    /** Open-courtyard surface color (sampled from the autotile's inner fill — bluer + darker than the road). */
-    public static final int COURTYARD_FILL_RGB = 0x29344A; // 41, 52, 74
+    /** Open-courtyard surface color, sampled inside the open-area quadrant of the courtyard NW edge tile. Verified by {@code TileManifestFillColorTest}. */
+    public static final int COURTYARD_FILL_RGB = 0x555A74; // 85, 90, 116
 
     /**
-     * Sidewalk panel tile (clean frame with dark corner studs) on
-     * {@link #ROAD_SHEET}. Stamped on any street cell adjacent to a building
-     * wall — forms a 1-cell buffer ring around every building. The road
-     * autotile treats sidewalk cells as a boundary, so the road's dashed/red
-     * perimeter art lights up against the sidewalk edge instead of pressing
-     * straight into the wall.
+     * Sidewalk tile stamped on any street cell adjacent to a building wall —
+     * forms a 1-cell buffer ring around every building. The road autotile
+     * treats sidewalk cells as a boundary, so the road's dashed perimeter
+     * art lights up against the sidewalk edge instead of pressing straight
+     * into the wall.
+     *
+     * <p>Placeholder: the current sheet has no dedicated sidewalk art, so
+     * we point at cell (11, 1) — labelled {@code fl-3} in the catalog, a
+     * plain-floor variant. Reads visually as light pavement next to the
+     * darker road autotile, which is close enough to "sidewalk" for now.
+     * Replace once a real sidewalk tile gets added to the sheet.
      */
     public static final TileFrame SIDEWALK = new TileFrame(11, 1);
 
     /**
-     * Landing-zone pad tile (yellow-striped perimeter, central marker dot) on
-     * {@link #ROAD_SHEET}. Stamped under each shuttle's touchdown cell so the
-     * descent reads as a deliberate landing on a marked pad rather than the
-     * shuttle plopping onto random pavement.
+     * Landing-zone pad decal stamped under each shuttle's touchdown cell.
+     *
+     * <p>Placeholder: the current sheet has no dedicated LZ pad art, so we
+     * point at cell (16, 2) — labelled {@code grate-2} in the catalog. Visually
+     * it's a small grate, not a yellow-striped pad; the sky-port plaza still
+     * reads as deliberate because of the surrounding open ground, but the
+     * decal itself is off. Replace once a real LZ marker tile gets added.
      */
     public static final TileFrame LZ_PAD = new TileFrame(16, 2);
 
@@ -231,6 +262,214 @@ public final class TileManifest {
         int col = wWall ? 0 : (eWall ? 2 : 1);
         int row = nWall ? 0 : (sWall ? 2 : 1);
         return new TileFrame(COURTYARD_COL_ORIGIN + col, COURTYARD_ROW_ORIGIN + row);
+    }
+
+    // -----------------------------------------------------------------------
+    // Floors_Tiles autotile origins. The grass / stone / dirt blocks each
+    // occupy a 5x5 region with corners on the inner cells and edges on the
+    // outer cells, "facing-outward" layout (a tile on the top row of the
+    // block has its decorated edge on the SOUTH side, i.e. that cell has no
+    // same-kind neighbor below). Snow / sand use a more conventional 3x3
+    // layout centered in their region. Pickers below resolve all 9 logical
+    // cases to explicit PNG (col, row) coords.
+    // -----------------------------------------------------------------------
+
+    /** Grass block top-left on {@link #FLOORS_SHEET}. Edge tiles span rows 5..9, cols 0..4; center variants at row 10 cols 1..3. */
+    private static final int GRASS_COL_ORIGIN = 0;
+    private static final int GRASS_ROW_ORIGIN = 5;
+    private static final int STONE_COL_ORIGIN = 5;
+    private static final int STONE_ROW_ORIGIN = 5;
+    private static final int DIRT_COL_ORIGIN  = 10;
+    private static final int DIRT_ROW_ORIGIN  = 5;
+
+    /** Snow autotile centered around (2, 14). Standard 3x3 layout — edges directly opposite from their named direction. */
+    private static final int SNOW_CENTER_COL = 2;
+    private static final int SNOW_CENTER_ROW = 14;
+    /** Sand autotile centered around (7, 14). */
+    private static final int SAND_CENTER_COL = 7;
+    private static final int SAND_CENTER_ROW = 14;
+
+    /** Water autotile lives on {@link #WATER_SHEET}; edges arranged on cols 6/10 and rows 0/4 with conventional 3x3 logic. Center variants at row 7. */
+    private static final int WATER_EAST_COL  = 6;
+    private static final int WATER_WEST_COL  = 10;
+    private static final int WATER_NORTH_ROW = 4;
+    private static final int WATER_SOUTH_ROW = 0;
+    private static final int WATER_CENTER_ROW = 7;
+
+    /**
+     * Returns the grass autotile cell for the 9-case neighbor mask.
+     * "Wall" inputs here are negated — they represent "neighbor is NOT
+     * grass" (i.e., the edge faces that direction). When all four neighbors
+     * are grass, picks one of 3 center variants by {@code (x, y)} hash.
+     */
+    public static TileFrame pickGrassTile(boolean nNotKind, boolean sNotKind, boolean eNotKind, boolean wNotKind, int x, int y) {
+        return pickFloorsAutotile(GRASS_COL_ORIGIN, GRASS_ROW_ORIGIN, nNotKind, sNotKind, eNotKind, wNotKind, x, y);
+    }
+
+    /** Stone counterpart to {@link #pickGrassTile}. Same 5x5 block layout, offset on the sheet. */
+    public static TileFrame pickStoneTile(boolean nNotKind, boolean sNotKind, boolean eNotKind, boolean wNotKind, int x, int y) {
+        return pickFloorsAutotile(STONE_COL_ORIGIN, STONE_ROW_ORIGIN, nNotKind, sNotKind, eNotKind, wNotKind, x, y);
+    }
+
+    /** Dirt counterpart to {@link #pickGrassTile}. */
+    public static TileFrame pickDirtTile(boolean nNotKind, boolean sNotKind, boolean eNotKind, boolean wNotKind, int x, int y) {
+        return pickFloorsAutotile(DIRT_COL_ORIGIN, DIRT_ROW_ORIGIN, nNotKind, sNotKind, eNotKind, wNotKind, x, y);
+    }
+
+    /**
+     * Shared resolver for the grass / stone / dirt 5x5 blocks. The blocks
+     * are laid out "facing-outward":
+     * <pre>
+     *               W not-kind   middle      E not-kind
+     * N not-kind:   (+4, +3)     (+2, +4)    (+0, +3)
+     * middle:       (+4, +2)     center      (+0, +2)
+     * S not-kind:   (+3, +0)     (+2, +0)    (+1, +0)
+     * </pre>
+     * Center variants live at row+5 cols+1..3 (3 variants picked by hash).
+     */
+    private static TileFrame pickFloorsAutotile(int originCol, int originRow,
+                                                boolean nNot, boolean sNot, boolean eNot, boolean wNot,
+                                                int x, int y) {
+        // No neighbors are different — pick a center variant by stable hash.
+        if (!nNot && !sNot && !eNot && !wNot) {
+            int variant = stableHash(x, y) % 3;
+            return new TileFrame(originCol + 1 + variant, originRow + 5);
+        }
+        int dCol, dRow;
+        if (nNot && wNot)        { dCol = 4; dRow = 3; }   // NW corner — N+W not kind
+        else if (nNot && eNot)   { dCol = 0; dRow = 3; }   // NE corner
+        else if (sNot && wNot)   { dCol = 3; dRow = 0; }   // SW corner
+        else if (sNot && eNot)   { dCol = 1; dRow = 0; }   // SE corner
+        else if (nNot)           { dCol = 2; dRow = 4; }   // N edge
+        else if (sNot)           { dCol = 2; dRow = 0; }   // S edge
+        else if (wNot)           { dCol = 4; dRow = 2; }   // W edge
+        else /* eNot */          { dCol = 0; dRow = 2; }   // E edge
+        return new TileFrame(originCol + dCol, originRow + dRow);
+    }
+
+    /**
+     * Snow autotile — conventional 3x3 layout drawn around {@link #SNOW_CENTER_COL},
+     * {@link #SNOW_CENTER_ROW}. Edges sit one cell away from center in the
+     * named direction. Center variants live on the center row at cols 1..3.
+     */
+    public static TileFrame pickSnowTile(boolean nNot, boolean sNot, boolean eNot, boolean wNot, int x, int y) {
+        return pickStandard3x3(SNOW_CENTER_COL, SNOW_CENTER_ROW, nNot, sNot, eNot, wNot, x, y, /*centerVariants=*/3);
+    }
+
+    /** Sand counterpart to {@link #pickSnowTile}. */
+    public static TileFrame pickSandTile(boolean nNot, boolean sNot, boolean eNot, boolean wNot, int x, int y) {
+        return pickStandard3x3(SAND_CENTER_COL, SAND_CENTER_ROW, nNot, sNot, eNot, wNot, x, y, /*centerVariants=*/3);
+    }
+
+    /**
+     * Standard 3x3 autotile resolver. Edges are at center ± 1 in the named
+     * direction; corners at the diagonals; "no-different-neighbors" picks
+     * from {@code centerVariants} center cells (always taken from the center
+     * row, cols starting at centerCol - 1).
+     */
+    private static TileFrame pickStandard3x3(int centerCol, int centerRow,
+                                             boolean nNot, boolean sNot, boolean eNot, boolean wNot,
+                                             int x, int y, int centerVariants) {
+        if (!nNot && !sNot && !eNot && !wNot) {
+            int variant = (centerVariants <= 1) ? 0 : (stableHash(x, y) % centerVariants);
+            return new TileFrame(centerCol - 1 + variant, centerRow);
+        }
+        int dCol, dRow;
+        // Image-space rows: y grows downward, so "north" = row - 1.
+        if (nNot && wNot)        { dCol = -1; dRow = -1; }
+        else if (nNot && eNot)   { dCol = +1; dRow = -1; }
+        else if (sNot && wNot)   { dCol = -1; dRow = +1; }
+        else if (sNot && eNot)   { dCol = +1; dRow = +1; }
+        else if (nNot)           { dCol = 0;  dRow = -2; }   // top edge sits 2 rows above center for snow/sand
+        else if (sNot)           { dCol = 0;  dRow = +2; }
+        else if (wNot)           { dCol = -2; dRow = 0; }
+        else /* eNot */          { dCol = +2; dRow = 0; }
+        return new TileFrame(centerCol + dCol, centerRow + dRow);
+    }
+
+    /**
+     * Water autotile (Water_tiles sheet). Same outward-facing layout as the
+     * grass block but on a different sheet: vertical edges live at cols
+     * {@link #WATER_EAST_COL} (E-not-water tiles) and {@link #WATER_WEST_COL}
+     * (W-not-water); horizontal edges at row {@link #WATER_NORTH_ROW}
+     * (N-not-water) and {@link #WATER_SOUTH_ROW}. Center variants on
+     * {@link #WATER_CENTER_ROW} cols 6..8.
+     */
+    public static TileFrame pickWaterTile(boolean nNot, boolean sNot, boolean eNot, boolean wNot, int x, int y) {
+        if (!nNot && !sNot && !eNot && !wNot) {
+            int variant = stableHash(x, y) % 3;
+            return new TileFrame(6 + variant, WATER_CENTER_ROW);
+        }
+        int col, row;
+        if (nNot && wNot)        { col = WATER_WEST_COL; row = 3; }
+        else if (nNot && eNot)   { col = WATER_EAST_COL; row = 3; }
+        else if (sNot && wNot)   { col = WATER_WEST_COL; row = 1; }
+        else if (sNot && eNot)   { col = WATER_EAST_COL; row = 1; }
+        else if (nNot)           { col = 8;              row = WATER_NORTH_ROW; }
+        else if (sNot)           { col = 8;              row = WATER_SOUTH_ROW; }
+        else if (wNot)           { col = WATER_WEST_COL; row = 2; }
+        else /* eNot */          { col = WATER_EAST_COL; row = 2; }
+        return new TileFrame(col, row);
+    }
+
+    /** Five interior-tile center variants (fl-tile-1..5) on {@link #ROAD_SHEET}. No edge pieces — these read as polished commercial flooring. */
+    private static final TileFrame[] FL_TILE_VARIANTS = {
+            new TileFrame(17, 1), // fl-tile-1
+            new TileFrame(16, 2), // fl-tile-2
+            new TileFrame(17, 2), // fl-tile-3
+            new TileFrame(18, 2), // fl-tile-4
+            new TileFrame(17, 3), // fl-tile-5
+    };
+
+    /**
+     * Picks one of the polished {@code fl-tile} variants by stable per-cell
+     * hash. There's no autotile here — every cell is a "center" tile;
+     * variation comes from the 5-element pool. NOTE: lives on
+     * {@link #ROAD_SHEET}, not {@link #FLOORS_SHEET}.
+     */
+    public static TileFrame pickTileGroundTile(int x, int y) {
+        return FL_TILE_VARIANTS[stableHash(x, y) % FL_TILE_VARIANTS.length];
+    }
+
+    /**
+     * Yellow-striped factory floor autotile on {@link #ROAD_SHEET}, cols 6..8
+     * rows 0..2 — standard 3x3 (named direction = side the edge is drawn on
+     * = neighbor on that side is not striped). Center cell (7, 1) is empty on
+     * the sheet, so the open case falls back to fl-striped-s for now.
+     */
+    public static TileFrame pickStripedTile(boolean nNot, boolean sNot, boolean eNot, boolean wNot) {
+        int col, row;
+        if (!nNot && !sNot && !eNot && !wNot) {
+            // No dedicated striped center variant on the sheet — pick the
+            // south-edge piece as a stand-in until art adds a proper center.
+            return new TileFrame(7, 2);
+        }
+        if (nNot && wNot)        { col = 6; row = 0; }
+        else if (nNot && eNot)   { col = 8; row = 0; }
+        else if (sNot && wNot)   { col = 6; row = 2; }
+        else if (sNot && eNot)   { col = 8; row = 2; }
+        else if (nNot)           { col = 7; row = 0; }
+        else if (sNot)           { col = 7; row = 2; }
+        else if (wNot)           { col = 6; row = 1; }
+        else /* eNot */          { col = 8; row = 1; }
+        return new TileFrame(col, row);
+    }
+
+    /**
+     * Landing-zone marker decal — points at the grate-2 tile on
+     * {@link #ROAD_SHEET}. Same coords as the existing {@link #LZ_PAD}
+     * placeholder; exposed as its own picker so the renderer can dispatch
+     * uniformly on {@code GroundKind.LZ_MARKER}. Replace once real LZ art
+     * lands.
+     */
+    public static TileFrame pickLzMarkerTile() {
+        return new TileFrame(16, 2);
+    }
+
+    /** Stable per-cell hash used for picking from variant pools. Same shape as the renderer's cellHash but a static helper here so pickers don't need an RNG. */
+    private static int stableHash(int x, int y) {
+        int h = x * 73856093 ^ y * 19349663;
+        return h & 0x7FFFFFFF;
     }
 
     private TileManifest() {}

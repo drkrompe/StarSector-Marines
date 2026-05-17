@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.battle;
 
 import com.dillon.starsectormarines.battle.map.CellTopology;
+import com.dillon.starsectormarines.battle.mapgen.MapGenerator;
+import com.dillon.starsectormarines.battle.mapgen.MapResult;
+import com.dillon.starsectormarines.battle.mapgen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.objective.EliminateFactionObjective;
@@ -59,6 +62,16 @@ public final class BattleSetup {
     /** Min cell-distance between any two turret placements. Stops them from clustering on one block — defenders typically spread emplacements across the line of approach. */
     private static final int TURRET_MIN_SEPARATION = 8;
 
+    /**
+     * The active {@link MapGenerator}. {@link BspCityGenerator} produces
+     * irregular block-mosaic maps with per-{@link com.dillon.starsectormarines.battle.mapgen.BlockKind}
+     * fillers (parks, plazas, industrial yards, waterfronts, fortified posts,
+     * landing zones, etc.) on top of a BSP partition. {@link UrbanMapGenerator}
+     * is kept around as a legacy fallback — flip this line if the new gen
+     * needs to be temporarily disabled.
+     */
+    private static final MapGenerator MAP_GEN = new BspCityGenerator();
+
     /** SABOTAGE: number of charge sites to plant. One per shuttle = one planter per drop. */
     private static final int SABOTAGE_CHARGE_SITES = 3;
     /** SABOTAGE: sim-seconds a planter must dwell on a charge site to complete the plant. */
@@ -102,7 +115,7 @@ public final class BattleSetup {
      * marine before the charges go off.
      */
     public static BattleSimulation createSabotage(long seed, List<ShuttleAssignment> manifest) {
-        UrbanMapGenerator.Result map = UrbanMapGenerator.generate(GRID_W, GRID_H, seed);
+        MapResult map = MAP_GEN.generate(GRID_W, GRID_H, seed);
         Random rng = new Random(seed);
         // Vehicles stamp before sim construction so the BattleSimulation's
         // zone-graph rebuild sees the final walkability — trucks partition zones.
@@ -271,7 +284,7 @@ public final class BattleSetup {
     }
 
     public static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest) {
-        UrbanMapGenerator.Result map = UrbanMapGenerator.generate(GRID_W, GRID_H, seed);
+        MapResult map = MAP_GEN.generate(GRID_W, GRID_H, seed);
         Random rng = new Random(seed);
         List<MapVehicle> vehiclePlacements = stampVehicles(map.grid, map.topology, rng);
         List<TurretPlacement> turretPlacements = stampTurrets(map.grid, map.topology, rng);
@@ -353,7 +366,7 @@ public final class BattleSetup {
      * aren't targeted by combatants. If no residential POIs were carved (rare
      * — small or unusually industrial seeds), this is a no-op.
      */
-    private static void spawnAmbientCivilians(BattleSimulation sim, UrbanMapGenerator.Result map, Random rng) {
+    private static void spawnAmbientCivilians(BattleSimulation sim, MapResult map, Random rng) {
         List<PointOfInterest> residential = new ArrayList<>();
         for (PointOfInterest poi : map.pointsOfInterest) {
             if (poi.kind == PointOfInterest.Kind.RESIDENTIAL) residential.add(poi);

@@ -1,0 +1,209 @@
+{
+  "entries": [
+    {
+      "col": 3,
+      "description": "",
+      "name": "turret-wall-nw",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "description": "",
+      "name": "turret-wall-n",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "description": "",
+      "name": "turret-wall-ne",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "",
+      "name": "fl-striped-nw",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "description": "",
+      "name": "fl-striped-n",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "description": "",
+      "name": "fl-striped-ne",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "description": "",
+      "name": "fl-1",
+      "row": 0
+    },
+    {
+      "col": 11,
+      "description": "",
+      "name": "fl-2",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "description": "",
+      "name": "road-nw",
+      "row": 0
+    },
+    {
+      "col": 13,
+      "description": "",
+      "name": "road-n",
+      "row": 0
+    },
+    {
+      "col": 14,
+      "description": "",
+      "name": "road-ne",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "",
+      "name": "turret-wall-w",
+      "row": 1
+    },
+    {
+      "col": 5,
+      "description": "",
+      "name": "turret-wall-e",
+      "row": 1
+    },
+    {
+      "col": 6,
+      "description": "",
+      "name": "fl-striped-w",
+      "row": 1
+    },
+    {
+      "col": 8,
+      "description": "",
+      "name": "fl-striped-e",
+      "row": 1
+    },
+    {
+      "col": 9,
+      "description": "",
+      "name": "fl-arrow-se",
+      "row": 1
+    },
+    {
+      "col": 10,
+      "description": "",
+      "name": "fl-arrow-sw",
+      "row": 1
+    },
+    {
+      "col": 11,
+      "description": "",
+      "name": "fl-3",
+      "row": 1
+    },
+    {
+      "col": 12,
+      "description": "",
+      "name": "road-w",
+      "row": 1
+    },
+    {
+      "col": 13,
+      "description": "",
+      "name": "road",
+      "row": 1
+    },
+    {
+      "col": 14,
+      "description": "",
+      "name": "road-e",
+      "row": 1
+    },
+    {
+      "col": 3,
+      "description": "",
+      "name": "turret-wall-sw",
+      "row": 2
+    },
+    {
+      "col": 4,
+      "description": "",
+      "name": "turret-wall-s",
+      "row": 2
+    },
+    {
+      "col": 5,
+      "description": "",
+      "name": "turret-wall-se",
+      "row": 2
+    },
+    {
+      "col": 6,
+      "description": "",
+      "name": "fl-striped-sw",
+      "row": 2
+    },
+    {
+      "col": 7,
+      "description": "",
+      "name": "fl-striped-s",
+      "row": 2
+    },
+    {
+      "col": 8,
+      "description": "",
+      "name": "fl-striped-se",
+      "row": 2
+    },
+    {
+      "col": 9,
+      "description": "",
+      "name": "fl-arrow-ne",
+      "row": 2
+    },
+    {
+      "col": 10,
+      "description": "",
+      "name": "fl-arrow-nw",
+      "row": 2
+    },
+    {
+      "col": 11,
+      "description": "",
+      "name": "grate-1",
+      "row": 2
+    },
+    {
+      "col": 12,
+      "description": "",
+      "name": "road-sw",
+      "row": 2
+    },
+    {
+      "col": 13,
+      "description": "",
+      "name": "road-s",
+      "row": 2
+    },
+    {
+      "col": 14,
+      "description": "",
+      "name": "road-se",
+      "row": 2
+    },
+    {
+      "col": 16,
+      "description": "",
+      "name": "grate-2",
+      "row": 2
+    }
+  ],
+  "sheet": "graphics/tilesets/urban-tileset-2.png"
+}

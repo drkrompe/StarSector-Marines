@@ -176,12 +176,10 @@ public class BattleSimulation {
         if (!grid.damageCell(x, y, amount)) return false;
         // A wall that just collapsed is now walkable + a zone-graph portal
         // (handled inside grid.damageCell). Topology needs the visual swap:
-        // clear WALL so the wall pass stops drawing tile art, set RUBBLE so
-        // the floor pass picks the damaged-floor autotile, set FLOOR so the
-        // doorway overhead overlay reads against it.
+        // clear WALL so the wall pass stops drawing tile art, set the ground
+        // kind to RUBBLE so the floor pass picks the damaged-floor autotile.
         topology.setWall(x, y, false);
-        topology.setRubble(x, y, true);
-        topology.setFloor(x, y, true);
+        topology.setGroundKind(x, y, CellTopology.GroundKind.RUBBLE);
         zoneGraph.rebuild();
         return true;
     }
@@ -384,8 +382,7 @@ public class BattleSimulation {
             if (t.isAlive() || t.demolished) continue;
             grid.setWalkable(t.cellX, t.cellY, true);
             grid.openAllEdges(t.cellX, t.cellY);
-            topology.setRubble(t.cellX, t.cellY, true);
-            topology.setFloor(t.cellX, t.cellY, true);
+            topology.setGroundKind(t.cellX, t.cellY, CellTopology.GroundKind.RUBBLE);
             grid.recomputeCoverAt(t.cellX, t.cellY);
             grid.recomputeCoverAt(t.cellX + 1, t.cellY);
             grid.recomputeCoverAt(t.cellX - 1, t.cellY);

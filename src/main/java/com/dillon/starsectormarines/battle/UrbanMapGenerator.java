@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.battle;
 
 import com.dillon.starsectormarines.battle.map.CellTopology;
+import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.mapgen.MapGenerator;
+import com.dillon.starsectormarines.battle.mapgen.MapResult;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.ArrayDeque;
@@ -30,7 +33,7 @@ import java.util.Random;
  * individual units, which lets the same generator drop units into a wide
  * street, a narrow alley, or a plaza without per-shape logic.
  */
-public final class UrbanMapGenerator {
+public final class UrbanMapGenerator implements MapGenerator {
 
     private static final int STREET_WIDTH_MIN = 3;
     private static final int STREET_WIDTH_MAX = 4;
@@ -81,35 +84,11 @@ public final class UrbanMapGenerator {
     /** Probability each interior cell (after the first) gets a prop, until the cap is hit. */
     private static final float DOODAD_EXTRA_CELL_CHANCE = 0.4f;
 
-    public static final class Result {
-        public final NavigationGrid grid;
-        public final CellTopology topology;
-        public final int marineSpawnX;
-        public final int marineSpawnY;
-        public final int defenderSpawnX;
-        public final int defenderSpawnY;
-        public final List<PointOfInterest> pointsOfInterest;
-        public final List<Doodad> doodads;
+    /** Stateless — singleton-friendly. Kept public so callers can `new UrbanMapGenerator()` if they don't want to hold the instance. */
+    public UrbanMapGenerator() {}
 
-        public Result(NavigationGrid grid, CellTopology topology,
-                      int marineSpawnX, int marineSpawnY,
-                      int defenderSpawnX, int defenderSpawnY,
-                      List<PointOfInterest> pointsOfInterest,
-                      List<Doodad> doodads) {
-            this.grid = grid;
-            this.topology = topology;
-            this.marineSpawnX = marineSpawnX;
-            this.marineSpawnY = marineSpawnY;
-            this.defenderSpawnX = defenderSpawnX;
-            this.defenderSpawnY = defenderSpawnY;
-            this.pointsOfInterest = pointsOfInterest;
-            this.doodads = doodads;
-        }
-    }
-
-    private UrbanMapGenerator() {}
-
-    public static Result generate(int width, int height, long seed) {
+    @Override
+    public MapResult generate(int width, int height, long seed) {
         Random rng = new Random(seed);
         NavigationGrid grid = new NavigationGrid(width, height);
         CellTopology topology = new CellTopology(width, height);
@@ -120,8 +99,7 @@ public final class UrbanMapGenerator {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 grid.setWalkableFloor(x, y);
-                topology.setFloor(x, y, true);
-                topology.setStreet(x, y, true);
+                topology.setGroundKind(x, y, GroundKind.STREET);
             }
         }
 
@@ -185,7 +163,7 @@ public final class UrbanMapGenerator {
         // BattleSetup, so they keep WALL cleared.
         topology.tagDefaultWalls(grid);
 
-        return new Result(grid, topology, marine[0], marine[1], defender[0], defender[1], pois, doodads);
+        return new MapResult(grid, topology, marine[0], marine[1], defender[0], defender[1], pois, doodads);
     }
 
     /**
@@ -410,12 +388,10 @@ public final class UrbanMapGenerator {
                     // placeBuilding, which are the hollow building interiors
                     // and doorways. Those keep rendering as indoor floor.
                     if (!grid.isWalkable(x, y) || !topology.isStreet(x, y)) continue;
-                    topology.setStreet(x, y, false);
-                    // Tag as courtyard so the renderer paints it with the
-                    // dark steel autotile from the road sheet — reads as
-                    // private open-air pavement, distinct from both indoor
-                    // floor and public road.
-                    topology.setCourtyard(x, y, true);
+                    // Promote street → courtyard so the renderer paints this
+                    // cell with the dark navy autotile — reads as private
+                    // open-air pavement, distinct from public road.
+                    topology.setGroundKind(x, y, GroundKind.COURTYARD);
                 }
             }
         }
@@ -494,7 +470,7 @@ public final class UrbanMapGenerator {
             }
             for (int y = bt + 1; y <= bb - 1; y++) {
                 for (int x = bl + 1; x <= br - 1; x++) {
-                    topology.setStreet(x, y, false);
+                    topology.setGroundKind(x, y, GroundKind.INDOOR);
                 }
             }
             // Subdivide first so the perimeter-doorway picker can align with
@@ -602,10 +578,9 @@ public final class UrbanMapGenerator {
         grid.setWalkable(doorX, doorY, true);
         grid.setDoorway(doorX, doorY, true);
         grid.openAllEdges(doorX, doorY);
-        topology.setFloor(doorX, doorY, true);
-        // Doorway is part of the building (door overhead overlay reads against
-        // interior floor underneath), so clear the street flag.
-        topology.setStreet(doorX, doorY, false);
+        // Doorway is part of the building — the door overhead overlay reads
+        // against interior floor underneath.
+        topology.setGroundKind(doorX, doorY, GroundKind.INDOOR);
     }
 
     /**
@@ -731,8 +706,7 @@ public final class UrbanMapGenerator {
         grid.setWalkable(x, y, true);
         grid.setDoorway(x, y, true);
         grid.openAllEdges(x, y);
-        topology.setFloor(x, y, true);
-        topology.setStreet(x, y, false);
+        topology.setGroundKind(x, y, GroundKind.INDOOR);
     }
 
     /**

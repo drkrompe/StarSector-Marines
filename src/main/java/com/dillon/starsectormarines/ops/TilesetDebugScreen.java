@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.LabelWidget;
+import com.dillon.starsectormarines.ui.TextFieldWidget;
 import com.dillon.starsectormarines.ui.WidgetRoot;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.graphics.SpriteAPI;
@@ -14,10 +15,13 @@ import org.apache.log4j.Logger;
 import javax.imageio.ImageIO;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_LINES;
+import static org.lwjgl.opengl.GL11.GL_LINE_LOOP;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_QUADS;
 import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
@@ -32,35 +36,42 @@ import static org.lwjgl.opengl.GL11.glLineWidth;
 import static org.lwjgl.opengl.GL11.glVertex2f;
 
 /**
- * Developer-only screen for inspecting tilesets. Loads the configured sheet,
- * slices it on a fixed pixel grid, and renders every non-empty cell with its
- * {@code (col,row)} index overlay so the user can call out which indices are
- * floor / wall / door / doodad without having to count tiles in an image editor.
+ * Developer-facing tileset catalog. Loads one sheet at a time, slices it on a
+ * fixed pixel grid, and lets the user click a non-empty cell to attach a
+ * short {@code name} + {@code description} that persists to
+ * {@code data/tilesets/<basename>.catalog.json} via {@link TilesetCatalog}.
  *
- * <p>Layout splits the sheet into N horizontal slabs side-by-side so each cell
- * renders at native size — the (col,row) labels fit cleanly in a corner
- * instead of overlapping the tile art when a sheet is too tall to scale to the
- * dialog at 1:1.
+ * <p>Drives both: (a) browsing the grid with {@code (col, row)} overlays so
+ * we can call out which cells are which without counting tiles in an external
+ * editor, and (b) building a stable hand-curated note file we can reference
+ * when wiring tiles into {@link com.dillon.starsectormarines.battle.TileManifest}.
  *
- * <p>Empty-cell detection uses the same alpha threshold pattern as
- * {@link com.dillon.starsectormarines.battle.SpriteSheetSlicer} — anything below
- * alpha 16 reads as empty whitespace and the cell is shown as just a checker
- * backdrop, no label.
+ * <p>Sheet list is hard-coded — there are four right now and a runtime
+ * directory scan adds latency for no benefit. Add a new sheet by appending
+ * to {@link #SHEETS}.
  */
 public class TilesetDebugScreen implements Screen {
 
     private static final Logger LOG = Global.getLogger(TilesetDebugScreen.class);
 
-    private static final String SHEET_PATH = "graphics/tilesets/urban-tileset.png";
-    private static final int TILE_SIZE = 32;
-    private static final int SLAB_COUNT = 2;
     private static final int ALPHA_THRESHOLD = 16;
 
     private static final float PAD              = 12f;
-    private static final float HEADER_H         = 36f;
+    private static final float HEADER_H         = 28f;
+    private static final float TAB_H            = 28f;
+    private static final float TAB_GAP          = 6f;
     private static final float BACK_W           = 120f;
     private static final float BACK_H           = 32f;
-    private static final float SLAB_GAP         = 24f;
+    private static final float SIDEBAR_W        = 320f;
+    private static final float SIDEBAR_GAP      = 12f;
+
+    private static final float FORM_FIELD_H     = 30f;
+    private static final float FORM_LABEL_H     = 20f;
+    private static final float FORM_ROW_GAP     = 8f;
+    private static final float SAVE_BTN_H       = 32f;
+    private static final float PREVIEW_SIZE     = 96f;
+    private static final int   NAME_MAX_CHARS   = 48;
+    private static final int   DESC_MAX_CHARS   = 240;
 
     private static final Color HEADER_COLOR     = new Color(0xC8, 0xE0, 0xFF);
     private static final Color LABEL_COLOR      = new Color(0xFF, 0xE0, 0x70);
@@ -69,82 +80,129 @@ public class TilesetDebugScreen implements Screen {
     private static final Color CHECKER_B        = new Color(0x1C, 0x24, 0x32);
     private static final Color GRID_LINE        = new Color(0x32, 0x42, 0x58);
     private static final Color FRAME_COLOR      = new Color(0x4A, 0x6B, 0x8C);
+    private static final Color SELECT_COLOR     = new Color(0x7A, 0xB7, 0xFF);
+    private static final Color CATALOG_BADGE    = new Color(0x4A, 0xCC, 0x88);
+    private static final Color SAVE_OK_COLOR    = new Color(0x9A, 0xE6, 0xB4);
+    private static final Color SAVE_ERR_COLOR   = new Color(0xFF, 0x9A, 0x88);
+    private static final Color BODY_TEXT        = new Color(0xE0, 0xE8, 0xF4);
+    private static final Color SUBHEAD_COLOR    = new Color(0xA8, 0xC0, 0xE0);
+
+    private static final class SheetSpec {
+        final String name;
+        final String path;
+        final int    tileSize;
+        SheetSpec(String name, String path, int tileSize) {
+            this.name = name; this.path = path; this.tileSize = tileSize;
+        }
+    }
+
+    /** Tabs render in list order. Per-sheet tile size — Urban art is 32px, Floors/Water are 16px. */
+    private static final List<SheetSpec> SHEETS = new ArrayList<>();
+    static {
+        SHEETS.add(new SheetSpec("Urban-1", "graphics/tilesets/urban-tileset.png",   32));
+        SHEETS.add(new SheetSpec("Urban-2", "graphics/tilesets/urban-tileset-2.png", 32));
+        SHEETS.add(new SheetSpec("Floors",  "graphics/tilesets/Floors_Tiles.png",    16));
+        SHEETS.add(new SheetSpec("Water",   "graphics/tilesets/Water_tiles.png",     16));
+    }
 
     private final WidgetRoot widgets = new WidgetRoot();
 
     private PositionAPI position;
     private MarineOpsContext ctx;
 
+    // Active sheet state — reset on sheet switch.
+    private SheetSpec activeSheet;
     private SpriteAPI sheet;
-    private boolean sheetLoadAttempted;
-    /** [col][row] occupancy flag. Null until the sheet's been parsed. */
-    private boolean[][] cellHasContent;
+    private boolean[][] cellHasContent; // [col][row]
     private int cols;
     private int rows;
     private int sheetPxW;
     private int sheetPxH;
+    private TilesetCatalog catalog;
+
+    // Grid layout (recomputed each rebuild, queried by hit-test in processInput).
+    private float gridOriginX;
+    private float gridOriginY;
+    private float gridDisplayCell;
+
+    // Selection — null until the user clicks a tile.
+    private int selCol = -1;
+    private int selRow = -1;
+
+    // Sidebar form widgets — re-bound on selection change so onChange writes
+    // back to the right catalog entry.
+    private TextFieldWidget nameField;
+    private TextFieldWidget descField;
+    private String saveStatus = "";
+    private boolean saveStatusError;
+    private float saveStatusTimer;
 
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
         this.position = position;
         this.ctx = ctx;
-        ensureSheet();
+        if (activeSheet == null) {
+            switchSheet(SHEETS.get(0));
+        }
         rebuild();
     }
 
-    /**
-     * Lazy-loads the tileset on first attach. Same lazy-load gotcha as the
-     * marine sprite — {@code getSprite} returns a wrapper whose backing texture
-     * is null until {@code loadTexture} is called. We also re-read the raw PNG
-     * for per-cell alpha sampling because {@code SpriteAPI} doesn't expose
-     * pixel-level access.
-     */
-    private void ensureSheet() {
-        if (sheetLoadAttempted) return;
-        sheetLoadAttempted = true;
+    /** Lazy-loads {@code spec}'s sheet, parses non-empty cells at the spec's tile size, and pulls in the catalog sidecar. */
+    private void switchSheet(SheetSpec spec) {
+        this.activeSheet = spec;
+        this.sheet = null;
+        this.cellHasContent = null;
+        this.cols = 0;
+        this.rows = 0;
+        this.selCol = -1;
+        this.selRow = -1;
+        int tileSize = spec.tileSize;
         try {
-            Global.getSettings().loadTexture(SHEET_PATH);
-            sheet = Global.getSettings().getSprite(SHEET_PATH);
+            Global.getSettings().loadTexture(spec.path);
+            sheet = Global.getSettings().getSprite(spec.path);
             if (sheet == null) {
-                LOG.warn("TilesetDebugScreen: getSprite returned null for " + SHEET_PATH);
+                LOG.warn("TilesetDebugScreen: getSprite returned null for " + spec.path);
                 return;
             }
-            try (java.io.InputStream stream = Global.getSettings().openStream(SHEET_PATH)) {
+            try (InputStream stream = Global.getSettings().openStream(spec.path)) {
                 BufferedImage img = ImageIO.read(stream);
                 if (img == null) {
-                    LOG.warn("TilesetDebugScreen: ImageIO.read returned null for " + SHEET_PATH);
+                    LOG.warn("TilesetDebugScreen: ImageIO.read returned null for " + spec.path);
                     return;
                 }
                 sheetPxW = img.getWidth();
                 sheetPxH = img.getHeight();
-                cols = sheetPxW / TILE_SIZE;
-                rows = sheetPxH / TILE_SIZE;
+                cols = sheetPxW / tileSize;
+                rows = sheetPxH / tileSize;
                 cellHasContent = new boolean[cols][rows];
 
                 int[] pixels = new int[sheetPxW * sheetPxH];
                 img.getRGB(0, 0, sheetPxW, sheetPxH, pixels, 0, sheetPxW);
                 for (int row = 0; row < rows; row++) {
                     for (int col = 0; col < cols; col++) {
-                        cellHasContent[col][row] = cellHasAnyOpaquePixel(pixels, col, row);
+                        cellHasContent[col][row] = cellHasAnyOpaquePixel(pixels, col, row, tileSize);
                     }
                 }
-                LOG.info("TilesetDebugScreen: loaded " + SHEET_PATH
+                LOG.info("TilesetDebugScreen: loaded " + spec.path
                         + " (" + sheetPxW + "x" + sheetPxH + "px, "
-                        + cols + "x" + rows + " cells @ " + TILE_SIZE + "px)");
+                        + cols + "x" + rows + " cells @ " + tileSize + "px)");
             }
         } catch (Exception e) {
-            LOG.error("TilesetDebugScreen: failed to load " + SHEET_PATH, e);
+            LOG.error("TilesetDebugScreen: failed to load " + spec.path, e);
             sheet = null;
             cellHasContent = null;
         }
+
+        catalog = new TilesetCatalog(spec.path);
+        catalog.load();
     }
 
-    private boolean cellHasAnyOpaquePixel(int[] pixels, int col, int row) {
-        for (int py = 0; py < TILE_SIZE; py++) {
-            int yPix = row * TILE_SIZE + py;
+    private boolean cellHasAnyOpaquePixel(int[] pixels, int col, int row, int tileSize) {
+        for (int py = 0; py < tileSize; py++) {
+            int yPix = row * tileSize + py;
             int rowStart = yPix * sheetPxW;
-            for (int px = 0; px < TILE_SIZE; px++) {
-                int alpha = (pixels[rowStart + col * TILE_SIZE + px] >>> 24) & 0xFF;
+            for (int px = 0; px < tileSize; px++) {
+                int alpha = (pixels[rowStart + col * tileSize + px] >>> 24) & 0xFF;
                 if (alpha >= ALPHA_THRESHOLD) return true;
             }
         }
@@ -153,187 +211,429 @@ public class TilesetDebugScreen implements Screen {
 
     private void rebuild() {
         widgets.clear();
+        nameField = null;
+        descField = null;
         if (position == null || ctx == null) return;
 
-        // Back button bottom-left
-        float backX = position.getX() + PAD;
-        float backY = position.getY() + PAD;
+        float xL = position.getX();
+        float yB = position.getY();
+        float wT = position.getWidth();
+        float hT = position.getHeight();
+
+        // --- Header label ---
+        int tileSize = activeSheet == null ? 0 : activeSheet.tileSize;
+        String displayName = activeSheet == null ? "(none)" : activeSheet.name;
+        String header = "Tileset Catalog — " + displayName
+                + " (" + cols + "x" + rows + " @ " + tileSize + "px)";
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                header,
+                xL + PAD, yB + hT - PAD - 6f, HEADER_COLOR));
+
+        // --- Sheet tab buttons (row directly under the header) ---
+        float tabsY = yB + hT - PAD - HEADER_H - TAB_H;
+        float tabX = xL + PAD;
+        float tabW = 100f;
+        for (SheetSpec spec : SHEETS) {
+            final SheetSpec capture = spec;
+            boolean active = activeSheet == spec;
+            ButtonWidget tab = new ButtonWidget(tabX, tabsY, tabW, TAB_H, () -> {
+                if (activeSheet != capture) {
+                    switchSheet(capture);
+                    rebuild();
+                }
+            });
+            widgets.add(tab);
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    spec.name,
+                    tabX + 10f, tabsY + TAB_H - 6f,
+                    active ? SELECT_COLOR : HEADER_COLOR));
+            tabX += tabW + TAB_GAP;
+        }
+
+        // --- Back button (bottom-left) ---
+        float backX = xL + PAD;
+        float backY = yB + PAD;
         widgets.add(new ButtonWidget(backX, backY, BACK_W, BACK_H,
                 () -> ctx.goTo(ScreenId.MISSION_SELECT)));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                 Strings.get("actionBack"),
                 backX + 12f, backY + BACK_H - 6f, HEADER_COLOR));
 
-        // Header top-left
-        String header = "Tileset Debug — " + SHEET_PATH
-                + " (" + cols + "x" + rows + " @ " + TILE_SIZE + "px)";
+        // --- Sidebar form widgets ---
+        // Sidebar pinned to the right side of the panel between tabs and back button.
+        float sbX = xL + wT - PAD - SIDEBAR_W;
+        float sbY = yB + PAD + BACK_H + PAD;
+        float sbH = (yB + hT - PAD - HEADER_H - TAB_H - PAD) - sbY;
+        layoutSidebar(sbX, sbY, sbH);
+
+        // Stash grid origin/size for hit-testing and render. Same viewport as v1,
+        // shrunk on the right to make room for the sidebar.
+        float viewportX = xL + PAD;
+        float viewportY = yB + PAD + BACK_H + PAD;
+        float viewportW = wT - 2 * PAD - SIDEBAR_W - SIDEBAR_GAP;
+        float viewportH = hT - 2 * PAD - BACK_H - PAD - HEADER_H - TAB_H;
+        if (cols == 0 || rows == 0 || activeSheet == null) {
+            gridDisplayCell = 0f;
+            return;
+        }
+        float scale = Math.min(viewportW / (cols * tileSize), viewportH / (rows * tileSize));
+        // 16px sheets need more upscale to be legible; cap at 4x. 32px sheets
+        // were fine at native size already.
+        float maxScale = tileSize >= 32 ? 2f : 4f;
+        scale = Math.min(scale, maxScale);
+        gridDisplayCell = tileSize * scale;
+        float gridW = cols * gridDisplayCell;
+        float gridH = rows * gridDisplayCell;
+        gridOriginX = viewportX + (viewportW - gridW) / 2f;
+        gridOriginY = viewportY + (viewportH - gridH) / 2f;
+    }
+
+    private void layoutSidebar(float sbX, float sbY, float sbH) {
+        // Sidebar laid out top-down from sbTop:
+        //   "Selected" header
+        //   preview swatch (PREVIEW_SIZE square) + (col,row) line beside it
+        //   "Name" label
+        //   name field
+        //   "Description" label
+        //   description field
+        //   Save button (anchored to bottom of sidebar so the gap between
+        //                description and Save grows with available height)
+        float sbTop = sbY + sbH;
+
+        float y = sbTop - 6f;
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                header,
-                position.getX() + PAD,
-                position.getY() + position.getHeight() - PAD - 6f,
-                HEADER_COLOR));
+                "Selected", sbX, y, HEADER_COLOR));
+        y -= 24f;
+
+        float previewY = y - PREVIEW_SIZE;
+        // Preview swatch is rendered in render() (it needs the active sheet sprite),
+        // not as a widget. We just reserve the rect via state below.
+        previewRectX = sbX;
+        previewRectY = previewY;
+        previewRectW = PREVIEW_SIZE;
+        previewRectH = PREVIEW_SIZE;
+
+        float textX = sbX + PREVIEW_SIZE + 10f;
+        String coord = (selCol < 0) ? "(none)" : ("(" + selCol + ", " + selRow + ")");
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                coord, textX, previewY + PREVIEW_SIZE - 6f, BODY_TEXT));
+        y = previewY - 12f;
+
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                "Name", sbX, y, SUBHEAD_COLOR));
+        y -= FORM_LABEL_H;
+        nameField = new TextFieldWidget(sbX, y - FORM_FIELD_H, SIDEBAR_W, FORM_FIELD_H,
+                Fonts.ORBITRON_20, NAME_MAX_CHARS, "(unnamed)");
+        widgets.add(nameField);
+        y -= FORM_FIELD_H + FORM_ROW_GAP;
+
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                "Description", sbX, y, SUBHEAD_COLOR));
+        y -= FORM_LABEL_H;
+        descField = new TextFieldWidget(sbX, y - FORM_FIELD_H, SIDEBAR_W, FORM_FIELD_H,
+                Fonts.ORBITRON_20, DESC_MAX_CHARS, "(short description)");
+        widgets.add(descField);
+        y -= FORM_FIELD_H + FORM_ROW_GAP;
+
+        // Save button at the bottom of the sidebar.
+        float saveY = sbY;
+        ButtonWidget save = new ButtonWidget(sbX, saveY, SIDEBAR_W, SAVE_BTN_H, this::commitSave);
+        widgets.add(save);
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                "Save", sbX + 12f, saveY + SAVE_BTN_H - 6f, HEADER_COLOR));
+
+        // Repopulate fields from the catalog entry for the current selection.
+        if (selCol >= 0 && catalog != null) {
+            TilesetCatalog.Entry e = catalog.get(selCol, selRow);
+            if (e != null) {
+                nameField.setText(e.name);
+                descField.setText(e.description);
+            }
+        }
+
+        // Wire onChange to keep the in-memory catalog entry in sync with typing.
+        // Save still writes to disk; this just keeps the per-selection state coherent
+        // so cycling between selections within a session preserves edits.
+        nameField.setOnChange(s -> {
+            if (selCol < 0 || catalog == null) return;
+            TilesetCatalog.Entry e = catalog.getOrCreate(selCol, selRow);
+            e.name = s;
+        });
+        descField.setOnChange(s -> {
+            if (selCol < 0 || catalog == null) return;
+            TilesetCatalog.Entry e = catalog.getOrCreate(selCol, selRow);
+            e.description = s;
+        });
+    }
+
+    // Preview rect cached during rebuild so render() can draw it.
+    private float previewRectX, previewRectY, previewRectW, previewRectH;
+
+    private void commitSave() {
+        if (catalog == null) return;
+        try {
+            catalog.save();
+            saveStatus = "Saved.";
+            saveStatusError = false;
+        } catch (Exception ex) {
+            LOG.error("TilesetDebugScreen: save failed", ex);
+            saveStatus = "Save failed: " + ex.getMessage();
+            saveStatusError = true;
+        }
+        saveStatusTimer = 4f;
     }
 
     @Override
     public void advance(float dt) {
         widgets.advance(dt);
+        if (saveStatusTimer > 0f) {
+            saveStatusTimer -= dt;
+            if (saveStatusTimer <= 0f) {
+                saveStatus = "";
+            }
+        }
     }
 
     @Override
     public void processInput(List<InputEventAPI> events) {
+        if (events == null) return;
+        // Tile-grid clicks happen first — they need direct hit-testing against
+        // the on-screen grid rather than going through WidgetRoot (which doesn't
+        // know about per-cell tiles).
+        for (InputEventAPI e : events) {
+            if (e.isConsumed()) continue;
+            if (!e.isLMBDownEvent()) continue;
+            int hit = hitTestGrid(e.getX(), e.getY());
+            if (hit >= 0) {
+                int col = hit & 0xFFFF;
+                int row = hit >>> 16;
+                if (cellHasContent != null && cellHasContent[col][row]) {
+                    selCol = col;
+                    selRow = row;
+                    rebuild(); // re-bind sidebar fields to the new selection
+                    e.consume();
+                }
+            }
+        }
         widgets.processInput(events);
+
+        // Keyboard delivery to the focused text field (whichever one captured
+        // focus from the last mouse-down). Both fields' processKey is a no-op
+        // when unfocused.
+        if (nameField != null) nameField.routeKeys(events);
+        if (descField != null) descField.routeKeys(events);
+    }
+
+    /** Returns {@code (row << 16) | col} or -1 on miss. */
+    private int hitTestGrid(int px, int py) {
+        if (gridDisplayCell <= 0f) return -1;
+        float dx = px - gridOriginX;
+        float dy = py - gridOriginY;
+        if (dx < 0 || dy < 0) return -1;
+        int colIdx = (int) (dx / gridDisplayCell);
+        int slabRowIdx = (int) (dy / gridDisplayCell);
+        if (colIdx < 0 || colIdx >= cols) return -1;
+        if (slabRowIdx < 0 || slabRowIdx >= rows) return -1;
+        // Grid renders top-to-bottom with row 0 at the top of the gridOrigin+gridH
+        // strip, but our origin is the bottom-left of the rendered grid; flip.
+        int rowIdx = (rows - 1) - slabRowIdx;
+        return (rowIdx << 16) | colIdx;
     }
 
     @Override
     public void render(float alphaMult) {
         if (position == null) return;
-        if (sheet != null && cellHasContent != null) {
-            renderSheet(alphaMult);
+        if (sheet != null && cellHasContent != null && gridDisplayCell > 0f) {
+            renderGrid(alphaMult);
+            renderSelectionPreview(alphaMult);
         }
         widgets.render(alphaMult);
+        renderSaveStatus(alphaMult);
     }
 
-    private void renderSheet(float alphaMult) {
-        // Reserve top header strip + bottom back strip from the dialog content.
-        float viewportX = position.getX() + PAD;
-        float viewportY = position.getY() + PAD + BACK_H + PAD;
-        float viewportW = position.getWidth()  - 2 * PAD;
-        float viewportH = position.getHeight() - 2 * PAD - BACK_H - PAD - HEADER_H;
+    private void renderGrid(float alphaMult) {
+        float gridW = cols * gridDisplayCell;
+        float gridH = rows * gridDisplayCell;
 
-        int rowsPerSlab = (rows + SLAB_COUNT - 1) / SLAB_COUNT;
-        float slabPxW = cols * TILE_SIZE;
-        float slabPxH = rowsPerSlab * TILE_SIZE;
-
-        // Width budget includes slab gaps between adjacent slabs.
-        float totalPxW = slabPxW * SLAB_COUNT + SLAB_GAP * (SLAB_COUNT - 1);
-        float scale = Math.min(viewportW / totalPxW, viewportH / slabPxH);
-        scale = Math.min(scale, 1f); // never upscale — tile art looks worse stretched
-
-        float displayCell  = TILE_SIZE * scale;
-        float displaySlabW = slabPxW * scale;
-        float displaySlabH = slabPxH * scale;
-        float displayGap   = SLAB_GAP * scale;
-        float displayTotalW = displaySlabW * SLAB_COUNT + displayGap * (SLAB_COUNT - 1);
-        float originX = viewportX + (viewportW - displayTotalW) / 2f;
-        float originY = viewportY + (viewportH - displaySlabH) / 2f;
-
-        // Pass 1 — checker backdrops + grid lines per slab so empty cells are visible.
+        // Pass 1 — checker backdrop
         glDisable(GL_TEXTURE_2D);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glBegin(GL_QUADS);
-        for (int slab = 0; slab < SLAB_COUNT; slab++) {
-            int startRow = slab * rowsPerSlab;
-            int endRow = Math.min(startRow + rowsPerSlab, rows);
-            float slabX = originX + slab * (displaySlabW + displayGap);
-            for (int row = startRow; row < endRow; row++) {
-                int slabRow = row - startRow;
-                float y0 = originY + (rowsPerSlab - 1 - slabRow) * displayCell;
-                for (int col = 0; col < cols; col++) {
-                    Color c = ((col + row) % 2 == 0) ? CHECKER_A : CHECKER_B;
-                    glColor4f(c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, alphaMult);
-                    float x0 = slabX + col * displayCell;
-                    float x1 = x0 + displayCell;
-                    float y1 = y0 + displayCell;
-                    glVertex2f(x0, y0);
-                    glVertex2f(x1, y0);
-                    glVertex2f(x1, y1);
-                    glVertex2f(x0, y1);
-                }
+        for (int row = 0; row < rows; row++) {
+            float y0 = gridOriginY + (rows - 1 - row) * gridDisplayCell;
+            for (int col = 0; col < cols; col++) {
+                Color c = ((col + row) % 2 == 0) ? CHECKER_A : CHECKER_B;
+                glColor4f(c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, alphaMult);
+                float x0 = gridOriginX + col * gridDisplayCell;
+                float x1 = x0 + gridDisplayCell;
+                float y1 = y0 + gridDisplayCell;
+                glVertex2f(x0, y0);
+                glVertex2f(x1, y0);
+                glVertex2f(x1, y1);
+                glVertex2f(x0, y1);
             }
         }
         glEnd();
 
-        // Pass 2 — tile sprites for non-empty cells.
+        // Pass 2 — tile sprites for non-empty cells
+        int tileSize = activeSheet.tileSize;
         float texW = sheet.getTextureWidth();
         float texH = sheet.getTextureHeight();
         float texXScale = texW / sheetPxW;
         float texYScale = texH / sheetPxH;
-
-        for (int slab = 0; slab < SLAB_COUNT; slab++) {
-            int startRow = slab * rowsPerSlab;
-            int endRow = Math.min(startRow + rowsPerSlab, rows);
-            float slabX = originX + slab * (displaySlabW + displayGap);
-            for (int row = startRow; row < endRow; row++) {
-                int slabRow = row - startRow;
-                float y0 = originY + (rowsPerSlab - 1 - slabRow) * displayCell;
-                for (int col = 0; col < cols; col++) {
-                    if (!cellHasContent[col][row]) continue;
-
-                    // Source UVs (V is measured from texture bottom in Starsector's GL convention).
-                    sheet.setTexX(col * TILE_SIZE * texXScale);
-                    sheet.setTexY((sheetPxH - (row + 1) * TILE_SIZE) * texYScale);
-                    sheet.setTexWidth(TILE_SIZE * texXScale);
-                    sheet.setTexHeight(TILE_SIZE * texYScale);
-                    sheet.setSize(displayCell, displayCell);
-                    sheet.setAlphaMult(alphaMult);
-                    sheet.setColor(Color.WHITE);
-                    sheet.setNormalBlend();
-
-                    float cx = slabX + col * displayCell + displayCell / 2f;
-                    float cy = y0 + displayCell / 2f;
-                    sheet.renderAtCenter(cx, cy);
-                }
+        for (int row = 0; row < rows; row++) {
+            float y0 = gridOriginY + (rows - 1 - row) * gridDisplayCell;
+            for (int col = 0; col < cols; col++) {
+                if (!cellHasContent[col][row]) continue;
+                sheet.setTexX(col * tileSize * texXScale);
+                sheet.setTexY((sheetPxH - (row + 1) * tileSize) * texYScale);
+                sheet.setTexWidth(tileSize * texXScale);
+                sheet.setTexHeight(tileSize * texYScale);
+                sheet.setSize(gridDisplayCell, gridDisplayCell);
+                sheet.setAlphaMult(alphaMult);
+                sheet.setColor(Color.WHITE);
+                sheet.setNormalBlend();
+                float cx = gridOriginX + col * gridDisplayCell + gridDisplayCell / 2f;
+                float cy = y0 + gridDisplayCell / 2f;
+                sheet.renderAtCenter(cx, cy);
             }
         }
 
-        // Pass 3 — grid lines per slab.
+        // Pass 3 — grid lines
         glDisable(GL_TEXTURE_2D);
         glColor4f(GRID_LINE.getRed() / 255f, GRID_LINE.getGreen() / 255f,
                 GRID_LINE.getBlue() / 255f, 0.6f * alphaMult);
         glLineWidth(1f);
         glBegin(GL_LINES);
-        for (int slab = 0; slab < SLAB_COUNT; slab++) {
-            float slabX = originX + slab * (displaySlabW + displayGap);
-            for (int c = 0; c <= cols; c++) {
-                float lx = slabX + c * displayCell;
-                glVertex2f(lx, originY);
-                glVertex2f(lx, originY + displaySlabH);
-            }
-            for (int r = 0; r <= rowsPerSlab; r++) {
-                float ly = originY + r * displayCell;
-                glVertex2f(slabX,                ly);
-                glVertex2f(slabX + displaySlabW, ly);
-            }
+        for (int c = 0; c <= cols; c++) {
+            float lx = gridOriginX + c * gridDisplayCell;
+            glVertex2f(lx, gridOriginY);
+            glVertex2f(lx, gridOriginY + gridH);
+        }
+        for (int r = 0; r <= rows; r++) {
+            float ly = gridOriginY + r * gridDisplayCell;
+            glVertex2f(gridOriginX,         ly);
+            glVertex2f(gridOriginX + gridW, ly);
         }
         glEnd();
 
-        // Pass 4 — frame outlines around each slab in the column accent color.
+        // Pass 4 — frame
         glColor4f(FRAME_COLOR.getRed() / 255f, FRAME_COLOR.getGreen() / 255f,
                 FRAME_COLOR.getBlue() / 255f, 0.9f * alphaMult);
         glLineWidth(1.5f);
-        glBegin(org.lwjgl.opengl.GL11.GL_LINES);
-        for (int slab = 0; slab < SLAB_COUNT; slab++) {
-            float slabX = originX + slab * (displaySlabW + displayGap);
-            float l = slabX;
-            float r = slabX + displaySlabW;
-            float t = originY + displaySlabH;
-            float b = originY;
-            glVertex2f(l, b); glVertex2f(r, b);
-            glVertex2f(r, b); glVertex2f(r, t);
-            glVertex2f(r, t); glVertex2f(l, t);
-            glVertex2f(l, t); glVertex2f(l, b);
-        }
+        glBegin(GL_LINE_LOOP);
+        glVertex2f(gridOriginX,         gridOriginY);
+        glVertex2f(gridOriginX + gridW, gridOriginY);
+        glVertex2f(gridOriginX + gridW, gridOriginY + gridH);
+        glVertex2f(gridOriginX,         gridOriginY + gridH);
         glEnd();
 
-        // Pass 5 — (col,row) labels on each non-empty cell with a 1px shadow
-        // for readability against the tile art.
-        for (int slab = 0; slab < SLAB_COUNT; slab++) {
-            int startRow = slab * rowsPerSlab;
-            int endRow = Math.min(startRow + rowsPerSlab, rows);
-            float slabX = originX + slab * (displaySlabW + displayGap);
-            for (int row = startRow; row < endRow; row++) {
-                int slabRow = row - startRow;
-                float y0 = originY + (rowsPerSlab - 1 - slabRow) * displayCell;
-                for (int col = 0; col < cols; col++) {
-                    if (!cellHasContent[col][row]) continue;
-                    String label = col + "," + row;
-                    float lx = slabX + col * displayCell + 2f;
-                    float ly = y0 + displayCell - 4f;
-                    Fonts.ORBITRON_20.drawString(label, lx + 1f, ly - 1f, LABEL_SHADOW, alphaMult);
-                    Fonts.ORBITRON_20.drawString(label, lx,        ly,        LABEL_COLOR,  alphaMult);
+        // Pass 5 — (col,row) labels per non-empty cell
+        for (int row = 0; row < rows; row++) {
+            float y0 = gridOriginY + (rows - 1 - row) * gridDisplayCell;
+            for (int col = 0; col < cols; col++) {
+                if (!cellHasContent[col][row]) continue;
+                String label = col + "," + row;
+                float lx = gridOriginX + col * gridDisplayCell + 2f;
+                float ly = y0 + gridDisplayCell - 4f;
+                Fonts.ORBITRON_20.drawString(label, lx + 1f, ly - 1f, LABEL_SHADOW, alphaMult);
+                Fonts.ORBITRON_20.drawString(label, lx,        ly,        LABEL_COLOR,  alphaMult);
+
+                // Catalog-badge dot in the corner of cells that have an entry.
+                if (catalog != null) {
+                    TilesetCatalog.Entry e = catalog.get(col, row);
+                    if (e != null && !e.isBlank()) {
+                        float dotX = gridOriginX + col * gridDisplayCell + gridDisplayCell - 6f;
+                        float dotY = y0 + 2f;
+                        drawCornerDot(dotX, dotY, alphaMult);
+                    }
                 }
             }
         }
+
+        // Pass 6 — selection highlight
+        if (selCol >= 0 && selRow >= 0) {
+            float sx = gridOriginX + selCol * gridDisplayCell;
+            float sy = gridOriginY + (rows - 1 - selRow) * gridDisplayCell;
+            glDisable(GL_TEXTURE_2D);
+            glColor4f(SELECT_COLOR.getRed() / 255f, SELECT_COLOR.getGreen() / 255f,
+                    SELECT_COLOR.getBlue() / 255f, 0.95f * alphaMult);
+            glLineWidth(2.5f);
+            glBegin(GL_LINE_LOOP);
+            glVertex2f(sx,                     sy);
+            glVertex2f(sx + gridDisplayCell,   sy);
+            glVertex2f(sx + gridDisplayCell,   sy + gridDisplayCell);
+            glVertex2f(sx,                     sy + gridDisplayCell);
+            glEnd();
+        }
+    }
+
+    private void drawCornerDot(float x, float y, float alphaMult) {
+        glDisable(GL_TEXTURE_2D);
+        glColor4f(CATALOG_BADGE.getRed() / 255f, CATALOG_BADGE.getGreen() / 255f,
+                CATALOG_BADGE.getBlue() / 255f, 0.95f * alphaMult);
+        float d = 4f;
+        glBegin(GL_QUADS);
+        glVertex2f(x,     y);
+        glVertex2f(x + d, y);
+        glVertex2f(x + d, y + d);
+        glVertex2f(x,     y + d);
+        glEnd();
+    }
+
+    private void renderSelectionPreview(float alphaMult) {
+        // Background swatch
+        glDisable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glColor4f(CHECKER_A.getRed() / 255f, CHECKER_A.getGreen() / 255f,
+                CHECKER_A.getBlue() / 255f, alphaMult);
+        glBegin(GL_QUADS);
+        glVertex2f(previewRectX,                 previewRectY);
+        glVertex2f(previewRectX + previewRectW,  previewRectY);
+        glVertex2f(previewRectX + previewRectW,  previewRectY + previewRectH);
+        glVertex2f(previewRectX,                 previewRectY + previewRectH);
+        glEnd();
+
+        if (selCol >= 0 && sheet != null && activeSheet != null) {
+            int tileSize = activeSheet.tileSize;
+            float texW = sheet.getTextureWidth();
+            float texH = sheet.getTextureHeight();
+            float texXScale = texW / sheetPxW;
+            float texYScale = texH / sheetPxH;
+            sheet.setTexX(selCol * tileSize * texXScale);
+            sheet.setTexY((sheetPxH - (selRow + 1) * tileSize) * texYScale);
+            sheet.setTexWidth(tileSize * texXScale);
+            sheet.setTexHeight(tileSize * texYScale);
+            sheet.setSize(previewRectW, previewRectH);
+            sheet.setAlphaMult(alphaMult);
+            sheet.setColor(Color.WHITE);
+            sheet.setNormalBlend();
+            sheet.renderAtCenter(previewRectX + previewRectW / 2f,
+                    previewRectY + previewRectH / 2f);
+        }
+
+        // Border
+        glDisable(GL_TEXTURE_2D);
+        glColor4f(FRAME_COLOR.getRed() / 255f, FRAME_COLOR.getGreen() / 255f,
+                FRAME_COLOR.getBlue() / 255f, 0.9f * alphaMult);
+        glLineWidth(1.5f);
+        glBegin(GL_LINE_LOOP);
+        glVertex2f(previewRectX,                 previewRectY);
+        glVertex2f(previewRectX + previewRectW,  previewRectY);
+        glVertex2f(previewRectX + previewRectW,  previewRectY + previewRectH);
+        glVertex2f(previewRectX,                 previewRectY + previewRectH);
+        glEnd();
+    }
+
+    private void renderSaveStatus(float alphaMult) {
+        if (saveStatus.isEmpty()) return;
+        Color c = saveStatusError ? SAVE_ERR_COLOR : SAVE_OK_COLOR;
+        float fade = Math.min(1f, saveStatusTimer / 1f); // last second fades
+        Fonts.ORBITRON_20.drawString(saveStatus,
+                position.getX() + PAD + BACK_W + PAD,
+                position.getY() + PAD + BACK_H - 6f,
+                c, fade * alphaMult);
     }
 }

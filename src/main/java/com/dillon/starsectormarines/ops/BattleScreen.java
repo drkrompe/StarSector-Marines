@@ -281,6 +281,16 @@ public class BattleScreen implements Screen {
     private int roadSheetPxW;
     private int roadSheetPxH;
     private boolean roadSheetLoadAttempted;
+    /** Cached Floors_Tiles sheet (outdoor surfaces: grass/dirt/stone/sand/snow + fl-tile cluster). 16px source cells, drawn at 2x to fit the 32px nav grid. */
+    private SpriteAPI floorsSheet;
+    private int floorsSheetPxW;
+    private int floorsSheetPxH;
+    private boolean floorsSheetLoadAttempted;
+    /** Cached Water_tiles sheet. Same 16px-at-2x setup as {@link #floorsSheet}. */
+    private SpriteAPI waterSheet;
+    private int waterSheetPxW;
+    private int waterSheetPxH;
+    private boolean waterSheetLoadAttempted;
     private static final Color ROAD_FILL = new Color(TileManifest.ROAD_FILL_RGB);
     /** Solid fill for the open-courtyard case (no wall-neighbor autotile lookup hits a frame variant). */
     private static final Color COURTYARD_FILL = new Color(TileManifest.COURTYARD_FILL_RGB);
@@ -351,6 +361,8 @@ public class BattleScreen implements Screen {
         ensureDecalSheet();
         ensureTileSheet();
         ensureRoadSheet();
+        ensureFloorsSheet();
+        ensureWaterSheet();
         ensureShuttleSprites();
         ensureObjectiveIcons();
         impactFx.ensureSprites();
@@ -462,6 +474,68 @@ public class BattleScreen implements Screen {
         } catch (Exception e) {
             LOG.error("BattleScreen: failed to load road tileset " + TileManifest.ROAD_SHEET, e);
             roadSheet = null;
+        }
+    }
+
+    /**
+     * Lazy-loads the outdoor surfaces sheet (Floors_Tiles.png). 16px source
+     * cells — the renderer upscales 2x to fit the 32px nav grid. Same pattern
+     * as {@link #ensureRoadSheet}.
+     */
+    private void ensureFloorsSheet() {
+        if (floorsSheetLoadAttempted) return;
+        floorsSheetLoadAttempted = true;
+        try {
+            Global.getSettings().loadTexture(TileManifest.FLOORS_SHEET);
+            floorsSheet = Global.getSettings().getSprite(TileManifest.FLOORS_SHEET);
+            if (floorsSheet == null) {
+                LOG.warn("BattleScreen: getSprite returned null for " + TileManifest.FLOORS_SHEET);
+                return;
+            }
+            try (java.io.InputStream stream = Global.getSettings().openStream(TileManifest.FLOORS_SHEET)) {
+                BufferedImage img = ImageIO.read(stream);
+                if (img == null) {
+                    LOG.warn("BattleScreen: ImageIO.read returned null for " + TileManifest.FLOORS_SHEET);
+                    floorsSheet = null;
+                    return;
+                }
+                floorsSheetPxW = img.getWidth();
+                floorsSheetPxH = img.getHeight();
+                LOG.info("BattleScreen: loaded floors tileset " + TileManifest.FLOORS_SHEET
+                        + " (" + floorsSheetPxW + "x" + floorsSheetPxH + ")");
+            }
+        } catch (Exception e) {
+            LOG.error("BattleScreen: failed to load floors tileset " + TileManifest.FLOORS_SHEET, e);
+            floorsSheet = null;
+        }
+    }
+
+    /** Lazy-loads the Water_tiles sheet. Same setup as {@link #ensureFloorsSheet}. */
+    private void ensureWaterSheet() {
+        if (waterSheetLoadAttempted) return;
+        waterSheetLoadAttempted = true;
+        try {
+            Global.getSettings().loadTexture(TileManifest.WATER_SHEET);
+            waterSheet = Global.getSettings().getSprite(TileManifest.WATER_SHEET);
+            if (waterSheet == null) {
+                LOG.warn("BattleScreen: getSprite returned null for " + TileManifest.WATER_SHEET);
+                return;
+            }
+            try (java.io.InputStream stream = Global.getSettings().openStream(TileManifest.WATER_SHEET)) {
+                BufferedImage img = ImageIO.read(stream);
+                if (img == null) {
+                    LOG.warn("BattleScreen: ImageIO.read returned null for " + TileManifest.WATER_SHEET);
+                    waterSheet = null;
+                    return;
+                }
+                waterSheetPxW = img.getWidth();
+                waterSheetPxH = img.getHeight();
+                LOG.info("BattleScreen: loaded water tileset " + TileManifest.WATER_SHEET
+                        + " (" + waterSheetPxW + "x" + waterSheetPxH + ")");
+            }
+        } catch (Exception e) {
+            LOG.error("BattleScreen: failed to load water tileset " + TileManifest.WATER_SHEET, e);
+            waterSheet = null;
         }
     }
 
@@ -1387,39 +1461,86 @@ public class BattleScreen implements Screen {
                 boolean eWall = isInBoundsWall(topology, x + 1, y);
                 boolean wWall = isInBoundsWall(topology, x - 1, y);
 
-                if (topology.isRubble(x, y)) {
-                    TileManifest.TileFrame f = TileManifest.pickRubbleTile(nWall, sWall, eWall, wWall);
-                    drawTile(f, x, y, texXScale, texYScale, sheetPxH, alphaMult);
-                } else if (topology.isStreet(x, y) && roadSheet != null) {
-                    if (isSidewalkCell(grid, topology, x, y)) {
-                        drawRoadTile(TileManifest.SIDEWALK, x, y, alphaMult);
-                    } else {
-                        boolean nB = isRoadBoundary(grid, topology, x, y + 1);
-                        boolean sB = isRoadBoundary(grid, topology, x, y - 1);
-                        boolean eB = isRoadBoundary(grid, topology, x + 1, y);
-                        boolean wB = isRoadBoundary(grid, topology, x - 1, y);
-                        TileManifest.TileFrame f = TileManifest.pickRoadTile(nB, sB, eB, wB);
-                        if (f == null) {
-                            fillCell(x, y, ROAD_FILL, alphaMult);
-                        } else {
-                            drawRoadTile(f, x, y, alphaMult);
-                        }
-                        if (topology.isCrosswalk(x, y)) {
-                            drawCrosswalkStripes(x, y, topology.isCrosswalkStripesHorizontal(x, y), alphaMult);
-                        }
+                CellTopology.GroundKind kind = topology.getGroundKind(x, y);
+                switch (kind) {
+                    case RUBBLE: {
+                        TileManifest.TileFrame f = TileManifest.pickRubbleTile(nWall, sWall, eWall, wWall);
+                        drawTile(f, x, y, texXScale, texYScale, sheetPxH, alphaMult);
+                        break;
                     }
-                } else if (topology.isCourtyard(x, y) && roadSheet != null) {
-                    // Courtyard autotile frames itself against any non-walkable
-                    // neighbor (the surrounding super-block buildings).
-                    TileManifest.TileFrame f = TileManifest.pickCourtyardTile(nWall, sWall, eWall, wWall);
-                    if (f == null) {
-                        fillCell(x, y, COURTYARD_FILL, alphaMult);
-                    } else {
-                        drawRoadTile(f, x, y, alphaMult);
+                    case STREET:
+                        if (roadSheet != null) {
+                            if (isSidewalkCell(grid, topology, x, y)) {
+                                drawRoadTile(TileManifest.SIDEWALK, x, y, alphaMult);
+                            } else {
+                                boolean nB = isRoadBoundary(grid, topology, x, y + 1);
+                                boolean sB = isRoadBoundary(grid, topology, x, y - 1);
+                                boolean eB = isRoadBoundary(grid, topology, x + 1, y);
+                                boolean wB = isRoadBoundary(grid, topology, x - 1, y);
+                                TileManifest.TileFrame f = TileManifest.pickRoadTile(nB, sB, eB, wB);
+                                if (f == null) {
+                                    fillCell(x, y, ROAD_FILL, alphaMult);
+                                } else {
+                                    drawRoadTile(f, x, y, alphaMult);
+                                }
+                                if (topology.isCrosswalk(x, y)) {
+                                    drawCrosswalkStripes(x, y, topology.isCrosswalkStripesHorizontal(x, y), alphaMult);
+                                }
+                            }
+                        }
+                        break;
+                    case COURTYARD:
+                        if (roadSheet != null) {
+                            TileManifest.TileFrame f = TileManifest.pickCourtyardTile(nWall, sWall, eWall, wWall);
+                            if (f == null) {
+                                fillCell(x, y, COURTYARD_FILL, alphaMult);
+                            } else {
+                                drawRoadTile(f, x, y, alphaMult);
+                            }
+                        }
+                        break;
+                    case GRASS:
+                        drawSameKindAutotile(topology, kind, x, y, alphaMult);
+                        break;
+                    case DIRT:
+                        drawSameKindAutotile(topology, kind, x, y, alphaMult);
+                        break;
+                    case STONE:
+                        drawSameKindAutotile(topology, kind, x, y, alphaMult);
+                        break;
+                    case SAND:
+                        drawSameKindAutotile(topology, kind, x, y, alphaMult);
+                        break;
+                    case SNOW:
+                        drawSameKindAutotile(topology, kind, x, y, alphaMult);
+                        break;
+                    case WATER:
+                        drawSameKindAutotile(topology, kind, x, y, alphaMult);
+                        break;
+                    case TILE: {
+                        TileManifest.TileFrame f = TileManifest.pickTileGroundTile(x, y);
+                        if (roadSheet != null) drawRoadTile(f, x, y, alphaMult);
+                        break;
                     }
-                } else {
-                    TileManifest.TileFrame f = TileManifest.pickFloorTile(nWall, sWall, eWall, wWall);
-                    drawTile(f, x, y, texXScale, texYScale, sheetPxH, alphaMult);
+                    case STRIPED: {
+                        // STRIPED autotile frames itself against any non-walkable
+                        // neighbor (e.g. fortified post perimeter) — same neighbor
+                        // semantics as the courtyard autotile.
+                        TileManifest.TileFrame f = TileManifest.pickStripedTile(nWall, sWall, eWall, wWall);
+                        if (roadSheet != null) drawRoadTile(f, x, y, alphaMult);
+                        break;
+                    }
+                    case LZ_MARKER: {
+                        TileManifest.TileFrame f = TileManifest.pickLzMarkerTile();
+                        if (roadSheet != null) drawRoadTile(f, x, y, alphaMult);
+                        break;
+                    }
+                    case INDOOR:
+                    default: {
+                        TileManifest.TileFrame f = TileManifest.pickFloorTile(nWall, sWall, eWall, wWall);
+                        drawTile(f, x, y, texXScale, texYScale, sheetPxH, alphaMult);
+                        break;
+                    }
                 }
 
                 // Original doorway (punched through a wall at gen time) gets
@@ -1609,6 +1730,89 @@ public class BattleScreen implements Screen {
         float cx = camera.cellToScreenX(gridX + 0.5f);
         float cy = camera.cellToScreenY(gridY + 0.5f);
         roadSheet.renderAtCenter(cx, cy);
+    }
+
+    /**
+     * Dispatch for the "same-kind autotile" ground kinds (grass, dirt, stone,
+     * sand, snow, water) — picks the right picker and the right sheet, then
+     * draws. Neighbor predicate is "is this neighbor the SAME ground kind",
+     * inverted to "is not same kind" since the autotile pickers want the
+     * edge drawn where the kind ends.
+     *
+     * <p>OOB cells count as "not same kind" (i.e., the edge faces outward at
+     * the map boundary) so a grass strip flush against the edge still gets a
+     * proper edge tile rather than tiling open.
+     */
+    private void drawSameKindAutotile(CellTopology topology, CellTopology.GroundKind kind,
+                                      int x, int y, float alphaMult) {
+        boolean nNot = !isSameKind(topology, kind, x, y + 1);
+        boolean sNot = !isSameKind(topology, kind, x, y - 1);
+        boolean eNot = !isSameKind(topology, kind, x + 1, y);
+        boolean wNot = !isSameKind(topology, kind, x - 1, y);
+        TileManifest.TileFrame f;
+        switch (kind) {
+            case GRASS: f = TileManifest.pickGrassTile(nNot, sNot, eNot, wNot, x, y); break;
+            case DIRT:  f = TileManifest.pickDirtTile (nNot, sNot, eNot, wNot, x, y); break;
+            case STONE: f = TileManifest.pickStoneTile(nNot, sNot, eNot, wNot, x, y); break;
+            case SAND:  f = TileManifest.pickSandTile (nNot, sNot, eNot, wNot, x, y); break;
+            case SNOW:  f = TileManifest.pickSnowTile (nNot, sNot, eNot, wNot, x, y); break;
+            case WATER: f = TileManifest.pickWaterTile(nNot, sNot, eNot, wNot, x, y); break;
+            default: return;
+        }
+        if (kind == CellTopology.GroundKind.WATER) {
+            if (waterSheet != null) drawWaterTile(f, x, y, alphaMult);
+        } else {
+            if (floorsSheet != null) drawFloorsTile(f, x, y, alphaMult);
+        }
+    }
+
+    /** True if {@code (x,y)} is in-bounds and has the same ground kind. OOB returns false so map-edge autotiles get a proper edge piece. */
+    private static boolean isSameKind(CellTopology topology, CellTopology.GroundKind kind, int x, int y) {
+        if (!topology.inBounds(x, y)) return false;
+        return topology.getGroundKind(x, y) == kind;
+    }
+
+    /**
+     * Stamps a 1×1 tile from the floors sheet at the 16px source cell size,
+     * drawn at the full nav cell size (2x upscale). Same UV math as the
+     * other sheets but with {@link TileManifest#FLOORS_TILE_SIZE} instead of
+     * {@link TileManifest#TILE_SIZE}.
+     */
+    private void drawFloorsTile(TileManifest.TileFrame f, int gridX, int gridY, float alphaMult) {
+        drawSmallTile(floorsSheet, floorsSheetPxW, floorsSheetPxH, f, gridX, gridY, alphaMult);
+    }
+
+    /** Counterpart to {@link #drawFloorsTile} for the water sheet — same 16px source cell, 2x upscale. */
+    private void drawWaterTile(TileManifest.TileFrame f, int gridX, int gridY, float alphaMult) {
+        drawSmallTile(waterSheet, waterSheetPxW, waterSheetPxH, f, gridX, gridY, alphaMult);
+    }
+
+    /** Shared 16px-source tile draw — used by both the floors and water sheets. The 2x upscale comes from {@code renderAtCenter} sizing to {@code cellPx} regardless of source size. */
+    private void drawSmallTile(SpriteAPI sheet, int sheetPxW, int sheetPxH,
+                               TileManifest.TileFrame f, int gridX, int gridY, float alphaMult) {
+        if (sheet == null) return;
+        float texW = sheet.getTextureWidth();
+        float texH = sheet.getTextureHeight();
+        float texXScale = texW / sheetPxW;
+        float texYScale = texH / sheetPxH;
+        int srcPxX = f.col * TileManifest.FLOORS_TILE_SIZE;
+        int srcTopPxY = f.row * TileManifest.FLOORS_TILE_SIZE;
+        int srcPxW = TileManifest.FLOORS_TILE_SIZE;
+        int srcPxH = TileManifest.FLOORS_TILE_SIZE;
+
+        float cellPx = camera.cellPxSize();
+        sheet.setTexX(srcPxX * texXScale);
+        sheet.setTexY((sheetPxH - (srcTopPxY + srcPxH)) * texYScale);
+        sheet.setTexWidth(srcPxW * texXScale);
+        sheet.setTexHeight(srcPxH * texYScale);
+        sheet.setSize(cellPx, cellPx);
+        sheet.setAlphaMult(alphaMult);
+        sheet.setColor(Color.WHITE);
+        sheet.setNormalBlend();
+
+        float cx = camera.cellToScreenX(gridX + 0.5f);
+        float cy = camera.cellToScreenY(gridY + 0.5f);
+        sheet.renderAtCenter(cx, cy);
     }
 
     /** Draws a single 1×1 {@link TileManifest.TileFrame} into one grid cell. */
