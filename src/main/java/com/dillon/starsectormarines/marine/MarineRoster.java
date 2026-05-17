@@ -3,11 +3,18 @@ package com.dillon.starsectormarines.marine;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Thin collection wrapper around the player's captains. Held by {@link MarineRosterScript}
  * which xstream persists with the campaign.
+ *
+ * <p>Also tracks {@link #completedStoryIds} — the set of one-shot story mission ids the
+ * player has already cleared on this save. Lives here (rather than a new top-level
+ * script) because xstream already walks the roster graph for the captain list; adding
+ * one Set ride-shares for free.
  */
 public class MarineRoster implements Serializable {
 
@@ -15,6 +22,7 @@ public class MarineRoster implements Serializable {
     private static final int DEFAULT_CAPACITY = 10;
 
     private final List<MarineCaptain> captains = new ArrayList<>();
+    private final Set<String> completedStoryIds = new HashSet<>();
     private int capacity = DEFAULT_CAPACITY;
 
     public void add(MarineCaptain captain) {
@@ -58,5 +66,17 @@ public class MarineRoster implements Serializable {
 
     public boolean hasRoom() {
         return captains.size() < capacity;
+    }
+
+    public boolean hasCompletedStory(String storyId) {
+        return completedStoryIds.contains(storyId);
+    }
+
+    public void markStoryComplete(String storyId) {
+        if (storyId != null) completedStoryIds.add(storyId);
+    }
+
+    public Set<String> completedStoryIds() {
+        return Collections.unmodifiableSet(completedStoryIds);
     }
 }

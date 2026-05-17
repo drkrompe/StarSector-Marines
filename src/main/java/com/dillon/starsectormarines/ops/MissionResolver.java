@@ -10,6 +10,9 @@ import com.dillon.starsectormarines.marine.Status;
 import com.dillon.starsectormarines.marine.Trait;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CargoAPI;
+import com.fs.starfarer.api.campaign.econ.Industry;
+import com.fs.starfarer.api.campaign.econ.MarketAPI;
+import com.fs.starfarer.api.campaign.rules.MemoryAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import org.apache.log4j.Logger;
 
@@ -48,6 +51,27 @@ public final class MissionResolver {
     private static final float WIPE_KIA_CHANCE = 0.60f;
     private static final float FIELD_MEDIC_REDUCTION = 0.25f;
     private static final float NATURAL_LEADER_MULT = 1.5f;
+
+    /** Industry disruption durations applied on victory, by mission type. */
+    private static final float DISRUPT_DAYS_SABOTAGE   = 60f;
+    private static final float DISRUPT_DAYS_RAID       = 30f;
+    private static final float DISRUPT_DAYS_ASSAULT    = 90f;
+    private static final float DISRUPT_DAYS_EXTRACTION = 0f;  // extraction doesn't damage infra
+
+    /**
+     * Damage points each mission type contributes to the per-industry counter.
+     * The counter has to cross {@link #DAMAGE_THRESHOLD} before disruption actually
+     * fires — so one successful sabotage softens a refinery but doesn't take it
+     * offline. Sustained pressure (two sabotages, or one sabotage + two raids) does.
+     */
+    private static final int DAMAGE_SABOTAGE   = 2;
+    private static final int DAMAGE_RAID       = 1;
+    private static final int DAMAGE_ASSAULT    = 2;
+    private static final int DAMAGE_EXTRACTION = 0;
+    private static final int DAMAGE_THRESHOLD  = 4;
+
+    /** Memory key prefix on the target {@link MarketAPI} for the per-industry counter. */
+    private static final String DAMAGE_KEY_PREFIX = "$marines_industry_damage_";
 
     private MissionResolver() {}
 
@@ -107,11 +131,13 @@ public final class MissionResolver {
         }
 
         return new MissionOutcome(
-                victory, mission.name,
+                victory,
+                mission.id, mission.name, mission.type, mission.source,
                 payoutEarned, marinesEngaged, marinesLost,
                 captain != null ? captain.id()   : null,
                 captain != null ? captain.name() : null,
-                priorStatus, newStatus, xpGained, injuredUntilDay, promotedTo);
+                priorStatus, newStatus, xpGained, injuredUntilDay, promotedTo,
+                mission.targetPlanetName, mission.targetIndustryId);
     }
 
     public static void apply(MissionOutcome outcome) {
@@ -126,6 +152,16 @@ public final class MissionResolver {
             if (outcome.marinesLost > 0) {
                 cargo.removeCommodity(Commodities.MARINES, outcome.marinesLost);
             }
+        }
+
+        if (outcome.victory && outcome.targetIndustryId != null && outcome.targetPlanetName != null) {
+            applyIndustryDisruption(outcome);
+        }
+
+        if (outcome.victory && outcome.missionSource == MissionSource.STORY
+                && outcome.missionId != null) {
+            MarineRosterScript script = MarineRosterScript.getInstance();
+            if (script != null) script.roster().markStoryComplete(outcome.missionId);
         }
 
         if (outcome.captainId != null) {
@@ -201,5 +237,75 @@ public final class MissionResolver {
         return Global.getSector() != null
                 ? (int) Global.getSector().getClock().getDay()
                 : 0;
+    }
+
+    /**
+     * Charges the per-industry damage counter on the target market. If the new total
+     * crosses {@link #DAMAGE_THRESHOLD}, fires {@code Industry.setDisrupted} for the
+     * type-specific duration and resets the counter. Otherwise just saves the
+     * incremented counter — no visible economic effect yet, but pressure accumulates
+     * for the next op.
+     *
+     * <p>The counter lives in the market's {@code MemoryAPI} under a namespaced key,
+     * so vanilla persists it across saves and per-planet locality is automatic.
+     */
+    private static void applyIndustryDisruption(MissionOutcome outcome) {
+        if (Global.getSector() == null) return;
+        int damageAdded = damagePointsFor(outcome.missionType);
+        if (damageAdded <= 0) return;
+        float disruptDays = disruptionDaysFor(outcome.missionType);
+        if (disruptDays <= 0f) return;
+
+        for (MarketAPI market : Global.getSector().getEconomy().getMarketsCopy()) {
+            if (market == null || market.getPrimaryEntity() == null) continue;
+            if (!outcome.targetPlanetName.equals(market.getPrimaryEntity().getName())) continue;
+            Industry industry = market.getIndustry(outcome.targetIndustryId);
+            if (industry == null) return;
+
+            String key = DAMAGE_KEY_PREFIX + outcome.targetIndustryId;
+            MemoryAPI mem = market.getMemoryWithoutUpdate();
+            int prior = mem.contains(key) ? mem.getInt(key) : 0;
+            int total = prior + damageAdded;
+
+            if (total >= DAMAGE_THRESHOLD) {
+                // setDisrupted(days, useMax=true) stacks on existing disruption — never
+                // shortens what's already there. Reset the counter on fire so subsequent
+                // ops have to charge up again from zero.
+                industry.setDisrupted(disruptDays, true);
+                mem.set(key, 0);
+                LOG.info("MarineOps: disrupted " + outcome.targetIndustryId
+                        + " on " + outcome.targetPlanetName + " for " + disruptDays
+                        + " days (damage " + prior + "+" + damageAdded + " ≥ "
+                        + DAMAGE_THRESHOLD + ")");
+            } else {
+                mem.set(key, total);
+                LOG.info("MarineOps: damaged " + outcome.targetIndustryId
+                        + " on " + outcome.targetPlanetName
+                        + " (" + total + "/" + DAMAGE_THRESHOLD + ")");
+            }
+            return;
+        }
+    }
+
+    private static int damagePointsFor(MissionType type) {
+        if (type == null) return 0;
+        switch (type) {
+            case SABOTAGE:   return DAMAGE_SABOTAGE;
+            case RAID:       return DAMAGE_RAID;
+            case ASSAULT:    return DAMAGE_ASSAULT;
+            case EXTRACTION: return DAMAGE_EXTRACTION;
+            default:         return 0;
+        }
+    }
+
+    private static float disruptionDaysFor(MissionType type) {
+        if (type == null) return 0f;
+        switch (type) {
+            case SABOTAGE:   return DISRUPT_DAYS_SABOTAGE;
+            case RAID:       return DISRUPT_DAYS_RAID;
+            case ASSAULT:    return DISRUPT_DAYS_ASSAULT;
+            case EXTRACTION: return DISRUPT_DAYS_EXTRACTION;
+            default:         return 0f;
+        }
     }
 }

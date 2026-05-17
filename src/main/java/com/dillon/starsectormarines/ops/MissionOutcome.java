@@ -11,11 +11,18 @@ import com.dillon.starsectormarines.marine.Status;
  */
 public final class MissionOutcome {
 
-    public final boolean victory;
-    public final String  missionName;
-    public final int     payoutEarned;
-    public final int     marinesEngaged;
-    public final int     marinesLost;
+    public final boolean        victory;
+    public final String         missionId;
+    public final String         missionName;
+    public final MissionType    missionType;
+    public final MissionSource  missionSource;
+    public final int            payoutEarned;
+    public final int            marinesEngaged;
+    public final int            marinesLost;
+    /** Planet name the mission targeted; null if no specific target. */
+    public final String         targetPlanetName;
+    /** Industry id the mission targeted; null if no industry-specific target. */
+    public final String         targetIndustryId;
 
     /** Captain id may be null if the player had no roster at briefing time. */
     public final String  captainId;
@@ -28,13 +35,19 @@ public final class MissionOutcome {
     /** Non-null when the XP gained crossed one or more promotion thresholds; the new rank. */
     public final Rank    promotedTo;
 
-    public MissionOutcome(boolean victory, String missionName,
+    public MissionOutcome(boolean victory,
+                          String missionId, String missionName,
+                          MissionType missionType, MissionSource missionSource,
                           int payoutEarned, int marinesEngaged, int marinesLost,
                           String captainId, String captainName,
                           Status priorCaptainStatus, Status newCaptainStatus,
-                          int xpGained, float injuredUntilDay, Rank promotedTo) {
+                          int xpGained, float injuredUntilDay, Rank promotedTo,
+                          String targetPlanetName, String targetIndustryId) {
         this.victory            = victory;
+        this.missionId          = missionId;
         this.missionName        = missionName;
+        this.missionType        = missionType;
+        this.missionSource      = missionSource != null ? missionSource : MissionSource.GENERATED;
         this.payoutEarned       = payoutEarned;
         this.marinesEngaged     = marinesEngaged;
         this.marinesLost        = marinesLost;
@@ -45,5 +58,7 @@ public final class MissionOutcome {
         this.xpGained           = xpGained;
         this.injuredUntilDay    = injuredUntilDay;
         this.promotedTo         = promotedTo;
+        this.targetPlanetName   = targetPlanetName;
+        this.targetIndustryId   = targetIndustryId;
     }
 }
