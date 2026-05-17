@@ -80,6 +80,19 @@ public class BattleSimulation {
     private final List<EquipmentDrop> equipmentDrops = new ArrayList<>();
     private final List<Doodad> doodads = new ArrayList<>();
     private final List<MapVehicle> vehicles = new ArrayList<>();
+    /** Persistent visual decals (bullet holes, craters, rubble) accumulated over the battle. Bounded by {@link #DECAL_CAP} with FIFO eviction so a long firefight doesn't unbounded grow the render batch. */
+    private final List<Decal> decals = new ArrayList<>();
+    /** Soft cap on decal count — older decals get dropped from the head when this fills, so a long battle doesn't accumulate thousands of bullet holes. */
+    private static final int DECAL_CAP = 600;
+    /** Active smoking wrecks parked at destroyed turret cells. Each emits a periodic smoke-puff event the renderer drains into the impact FX engine. */
+    private final List<SmokingWreck> smokingWrecks = new ArrayList<>();
+    /** Smoke-puff events queued this advance — each entry is {x, y, radiusCells}. Drained by the renderer per frame and cleared at the start of each advance. */
+    private final List<float[]> smokePuffsThisFrame = new ArrayList<>();
+    /** Total seconds a wreck keeps smoking after destruction. Long enough that the player notices "this turret is dead and smoldering" between glances. */
+    private static final float WRECK_LIFETIME = 18f;
+    /** Min/max sim-seconds between puffs on a single wreck. Jittered per emission so wrecks don't sync up. */
+    private static final float WRECK_PUFF_MIN_GAP = 0.45f;
+    private static final float WRECK_PUFF_MAX_GAP = 0.85f;
     private final Map<Integer, Squad> squads = new HashMap<>();
     /** Next squad id to assign on shuttle deboard. Monotonically increasing across the battle's lifetime. */
     private int nextSquadId = 0;
@@ -181,6 +194,14 @@ public class BattleSimulation {
     /** Parked vehicles that occupy multi-cell footprints. Cells were flagged non-walkable at setup time, so the sim doesn't need to consult this list for pathing/LOS — only the renderer does. */
     public List<MapVehicle> getVehicles()  { return vehicles; }
     public void addVehicle(MapVehicle v)   { vehicles.add(v); }
+    /** Persistent visual decals — bullet holes, craters, rubble. Pure render data; combat ignores them. */
+    public List<Decal> getDecals()         { return decals; }
+    public void addDecal(Decal d) {
+        decals.add(d);
+        if (decals.size() > DECAL_CAP) decals.remove(0);
+    }
+    /** Smoke-puff events emitted by smoking wrecks during the last advance. Each entry is {x, y, radiusCells}. Drained by the renderer per frame. */
+    public List<float[]> getSmokePuffsThisFrame() { return smokePuffsThisFrame; }
     /** Fighter wings committed to this battle. {@code FlybyOverlay} reads this on first tick and drives spawns from the per-wing schedules. Defaults to {@link FlybyRoster#EMPTY}; missions assign via {@link #setFlybyRoster}. */
     public FlybyRoster getFlybyRoster()    { return flybyRoster; }
     public void setFlybyRoster(FlybyRoster roster) { this.flybyRoster = roster != null ? roster : FlybyRoster.EMPTY; }
@@ -219,6 +240,7 @@ public class BattleSimulation {
         shotsThisFrame.clear();
         shotsExpiredThisFrame.clear();
         deathsThisFrame.clear();
+        smokePuffsThisFrame.clear();
         if (complete) return;
         tickAccumulator += dt;
         while (tickAccumulator >= TICK_DT) {
@@ -241,10 +263,16 @@ public class BattleSimulation {
             if (!u.isAlive()) continue;
             updateUnit(u);
         }
+        // Burst-fire rounds queued after a primary shot — fire them now so
+        // they emit at the right per-weapon spacing without piling onto the
+        // AI's single-decision-per-tick model.
+        advanceBursts();
         // Convert any turrets that just died into walkable rubble so the next
         // tick's pathfinding + zone graph sees the hole, and the floor pass
         // picks the cell up as rubble.
         demolishDeadTurrets();
+        // Age smoking wrecks + emit any puff events that came due this tick.
+        tickSmokingWrecks();
         // Shuttles tick AFTER units so new deboarded marines aren't iterated
         // mid-loop. They'll be picked up by next tick's occupancy + target pass.
         advanceShuttles();
@@ -317,6 +345,30 @@ public class BattleSimulation {
     }
 
     /**
+     * Per-tick burst-fire pass: every unit with {@code burstRemaining &gt; 0}
+     * decrements its {@code burstTimer}; on expiry, fires another shot at the
+     * locked burst target (if still alive) and decrements the count. Lets the
+     * AI emit a fire-once decision and the sim spread the remaining rounds
+     * over a few ticks at weapon-defined spacing.
+     */
+    private void advanceBursts() {
+        for (Unit u : units) {
+            if (u.burstRemaining <= 0 || !u.isAlive()) continue;
+            u.burstTimer -= TICK_DT;
+            if (u.burstTimer > 0f) continue;
+            if (u.burstTarget == null || !u.burstTarget.isAlive() || u.primaryWeapon == null) {
+                u.burstRemaining = 0;
+                u.burstTarget = null;
+                continue;
+            }
+            fireShot(u, u.burstTarget);
+            u.burstRemaining--;
+            u.burstTimer = u.primaryWeapon.burstSpacing;
+            if (u.burstRemaining == 0) u.burstTarget = null;
+        }
+    }
+
+    /**
      * Flips destroyed-turret mount cells from non-walkable obstacle to walkable
      * rubble. Mirrors the wall-collapse half of {@link NavigationGrid#damageCell}:
      * opens the cell + edges, recomputes cover on the cell and its 4 cardinal
@@ -341,8 +393,36 @@ public class BattleSimulation {
             grid.recomputeCoverAt(t.cellX, t.cellY - 1);
             t.demolished = true;
             anyDemolished = true;
+            // Mount cell keeps smoking for a while so the player can see the
+            // wreck is dead-and-cooling rather than just "gone".
+            smokingWrecks.add(new SmokingWreck(t.cellX, t.cellY, WRECK_LIFETIME,
+                    0.05f + rng.nextFloat() * 0.10f));
         }
         if (anyDemolished) zoneGraph.rebuild();
+    }
+
+    /**
+     * Ages each smoking wreck and emits a smoke-puff event when its per-wreck
+     * timer expires. Puff radius tapers with remaining lifetime so a fresh
+     * wreck billows and an old one wisps. Wrecks are removed from the list
+     * when their lifetime hits zero.
+     */
+    private void tickSmokingWrecks() {
+        for (int i = smokingWrecks.size() - 1; i >= 0; i--) {
+            SmokingWreck w = smokingWrecks.get(i);
+            w.remainingLifetime -= TICK_DT;
+            if (w.remainingLifetime <= 0f) {
+                smokingWrecks.remove(i);
+                continue;
+            }
+            w.nextPuffTimer -= TICK_DT;
+            if (w.nextPuffTimer > 0f) continue;
+            float cooledFrac = Math.max(0.15f, w.remainingLifetime / w.totalLifetime);
+            float radius = 0.40f + cooledFrac * 0.45f;
+            smokePuffsThisFrame.add(new float[]{w.cellX + 0.5f, w.cellY + 0.5f, radius});
+            w.nextPuffTimer = WRECK_PUFF_MIN_GAP
+                    + rng.nextFloat() * (WRECK_PUFF_MAX_GAP - WRECK_PUFF_MIN_GAP);
+        }
     }
 
     /** Ages every active shot by one tick and drops expired ones. Reverse iteration for in-place removal. */
@@ -546,13 +626,26 @@ public class BattleSimulation {
      * here, which can mutate the target's path through {@link #setPath}.
      */
     public void fireShot(Unit shooter, Unit target) {
-        boolean hit = rng.nextFloat() < shooter.accuracy;
+        // Compute per-shot params: accuracy, damage, and vsTurret bonus pull
+        // from the marine's primary weapon when assigned, otherwise from the
+        // Unit's baked-in stats (turrets, militia, defaults).
+        float accuracy = shooter.accuracy;
+        float damage   = shooter.attackDamage;
+        float vsTurretMult = 1f;
+        if (shooter.primaryWeapon != null) {
+            accuracy = shooter.primaryWeapon.accuracy;
+            damage   = shooter.primaryWeapon.damage;
+            vsTurretMult = shooter.primaryWeapon.vsTurretMult;
+        }
+        boolean hit = rng.nextFloat() < accuracy;
         if (hit) {
             boolean wasAlive = target.isAlive();
             int targetCover = grid.getCoverAt(target.cellX, target.cellY);
             float dr = COVER_DAMAGE_REDUCTION[Math.min(targetCover, COVER_DAMAGE_REDUCTION.length - 1)];
-            target.hp -= shooter.attackDamage * (1f - dr);
+            float effectiveMult = (target instanceof MapTurret) ? vsTurretMult : 1f;
+            target.hp -= damage * effectiveMult * (1f - dr);
             if (wasAlive && !target.isAlive()) {
+                target.deathPoseIdx = rng.nextInt(4);
                 deathsThisFrame.add(target);
                 emitEquipmentDropIfApplicable(target);
             }
@@ -586,7 +679,61 @@ public class BattleSimulation {
             toY = target.cellY + 0.5f + (float) Math.sin(angle) * spread;
         }
         TurretKind tk = (shooter instanceof MapTurret) ? ((MapTurret) shooter).kind : null;
-        ShotEvent evt = new ShotEvent(fromX, fromY, toX, toY, hit, shooter.faction, SHOT_LIFETIME, tk);
+        // Primary weapons with their own projectile sprite (SMG bullets) use
+        // the weapon's flightSec so a slow round visibly travels — line tracers
+        // keep the default SHOT_LIFETIME since they're drawn full-length instantly.
+        float lifetime = SHOT_LIFETIME;
+        if (shooter.primaryWeapon != null && shooter.primaryWeapon.projectileSpritePath != null
+                && shooter.primaryWeapon.flightSec > 0f) {
+            lifetime = shooter.primaryWeapon.flightSec;
+        }
+        ShotEvent evt = new ShotEvent(fromX, fromY, toX, toY, hit, shooter.faction, lifetime,
+                tk, shooter.primaryWeapon, null);
+        activeShots.add(evt);
+        shotsThisFrame.add(evt);
+    }
+
+    /**
+     * Fires the shooter's secondary weapon (rocket, etc.) at the target.
+     * Mirrors {@link #fireShot} but draws stats from the {@link MarineSecondary}
+     * and decrements ammo. No fall-back roll — the AoE punch read carries it,
+     * and a panicked retreat after a rocket hit feels wrong for hardened targets.
+     * Caller is responsible for verifying ammo > 0 and within-range before
+     * calling.
+     */
+    public void fireSecondary(Unit shooter, Unit target) {
+        MarineSecondary sec = shooter.secondaryWeapon;
+        if (sec == null || shooter.secondaryAmmo <= 0) return;
+        shooter.secondaryAmmo--;
+        boolean hit = rng.nextFloat() < sec.accuracy;
+        if (hit) {
+            boolean wasAlive = target.isAlive();
+            int targetCover = grid.getCoverAt(target.cellX, target.cellY);
+            float dr = COVER_DAMAGE_REDUCTION[Math.min(targetCover, COVER_DAMAGE_REDUCTION.length - 1)];
+            float effectiveMult = (target instanceof MapTurret) ? sec.vsTurretMult : 1f;
+            target.hp -= sec.damage * effectiveMult * (1f - dr);
+            if (wasAlive && !target.isAlive()) {
+                target.deathPoseIdx = rng.nextInt(4);
+                deathsThisFrame.add(target);
+                emitEquipmentDropIfApplicable(target);
+            }
+        }
+        float fromX = shooter.cellX + 0.5f;
+        float fromY = shooter.cellY + 0.5f;
+        float toX, toY;
+        if (hit) {
+            toX = target.cellX + 0.5f;
+            toY = target.cellY + 0.5f;
+        } else {
+            float angle = rng.nextFloat() * (float) (Math.PI * 2);
+            float spread = MISS_OFFSET_MIN + rng.nextFloat() * (MISS_OFFSET_MAX - MISS_OFFSET_MIN);
+            toX = target.cellX + 0.5f + (float) Math.cos(angle) * spread;
+            toY = target.cellY + 0.5f + (float) Math.sin(angle) * spread;
+        }
+        // Secondary uses its per-weapon flightSec so rockets visibly travel
+        // (default SHOT_LIFETIME is ~150ms — would blink across the screen).
+        ShotEvent evt = new ShotEvent(fromX, fromY, toX, toY, hit, shooter.faction, sec.flightSec,
+                null, null, sec);
         activeShots.add(evt);
         shotsThisFrame.add(evt);
     }
@@ -606,6 +753,7 @@ public class BattleSimulation {
         float dr = COVER_DAMAGE_REDUCTION[Math.min(cover, COVER_DAMAGE_REDUCTION.length - 1)];
         target.hp -= damage * (1f - dr);
         if (!target.isAlive()) {
+            target.deathPoseIdx = rng.nextInt(4);
             deathsThisFrame.add(target);
             emitEquipmentDropIfApplicable(target);
         }
@@ -864,6 +1012,21 @@ public class BattleSimulation {
         if (loadout != null) {
             marine.role = loadout.role;
             marine.assignedObjective = loadout.objective;
+            // Apply primary weapon stats — overrides the UnitType.MARINE
+            // defaults baked into the Unit at construction. If the loadout
+            // didn't specify a weapon (legacy callers), the marine keeps
+            // the type defaults and behaves as before.
+            if (loadout.primary != null) {
+                marine.primaryWeapon = loadout.primary;
+                marine.attackRange = loadout.primary.range;
+                marine.attackDamage = loadout.primary.damage;
+                marine.accuracy = loadout.primary.accuracy;
+                marine.attackCooldown = loadout.primary.cooldown;
+            }
+            if (loadout.secondary != null && loadout.secondaryAmmo > 0) {
+                marine.secondaryWeapon = loadout.secondary;
+                marine.secondaryAmmo = loadout.secondaryAmmo;
+            }
         }
         // Squad assignment — first deboard from a shuttle mints a new squad
         // and takes the leader slot; subsequent deboards join the same squad.

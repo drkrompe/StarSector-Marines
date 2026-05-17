@@ -1,0 +1,90 @@
+package com.dillon.starsectormarines.battle;
+
+import com.dillon.starsectormarines.battle.fx.ImpactProfile;
+
+import java.awt.Color;
+
+/**
+ * Primary handheld weapon catalog for marines. Each entry maps to a vanilla
+ * Starsector weapon for free art / audio, but the stats are ground-combat
+ * tuned (cells, not space-combat pixels). Loadout is per-marine, assigned at
+ * deboard time in {@link BattleSimulation#tryDeboardMarine} via
+ * {@link MarineLoadout#primary}.
+ *
+ * <p>Primaries render as colored line tracers (pulse-laser-style), not full
+ * projectile sprites — vanilla pulse lasers have no bullet sprite anyway, and
+ * a 35-pixel kinetic shell rendered at our cell scale would be invisible. The
+ * tracer color and per-weapon fire sound do the visual differentiation work.
+ *
+ * <p>The {@link #vsTurretMult} multiplier is applied in
+ * {@link BattleSimulation#fireShot} when the target is a {@link MapTurret} —
+ * rifles plink emplacements at 0.3×, dedicated AT weapons land near 1.0×.
+ */
+public enum MarineWeapon {
+    /** Default marine sidearm — vanilla pulse laser flavor. Balanced range / damage / cooldown matching the pre-loadout stats. Single shot, line tracer. */
+    PULSE_RIFLE("Pulse Rifle",
+                "pulse_laser_fire",
+                new Color(0x80, 0xFF, 0x80),
+                24f, 2.0f, 0.35f, 1.0f, 0.30f,
+                ImpactProfile.RIFLE,
+                1, 0f, null, 0f, 0f),
+    /** Close-range area-suppression — fast 3-round bursts of small bullet sprites. Vanilla light MG. Per-shot damage is lighter (0.7) so a full burst lands ~2.1, only slightly above rifle DPS. */
+    SMG        ("Light Machine Gun",
+                "light_machinegun_fire",
+                new Color(0xFF, 0xE8, 0xC0),
+                16f, 0.7f, 0.30f, 0.50f, 0.30f,
+                ImpactProfile.RIFLE,
+                3, 0.07f, "graphics/missiles/shell_small_yellow.png", 0.15f, 0.10f),
+    /** Long-range marksman rifle — heavier hit, slower cycle, mild AT bonus. Vanilla railgun. Single shot, line tracer for now. */
+    DMR        ("Railgun",
+                "railgun_fire",
+                new Color(0xC8, 0xC8, 0xFF),
+                32f, 4.0f, 0.55f, 1.80f, 0.40f,
+                ImpactProfile.KINETIC,
+                1, 0f, null, 0f, 0f);
+
+    public final String displayName;
+    /** Vanilla fire sound id ({@code fireSoundTwo} from the source {@code .wpn}); mono, pre-registered by the core install. */
+    public final String fireSoundId;
+    /** Line-tracer color. Distinct per weapon so the player can pick out which marine is firing which gun at a glance. */
+    public final Color tracerColor;
+    public final float range;
+    public final float damage;
+    public final float accuracy;
+    public final float cooldown;
+    /** Multiplier on damage when the target is a {@link MapTurret}. Rifles 0.3×, DMRs 0.4× — fine against infantry, anemic against emplacements. */
+    public final float vsTurretMult;
+    /** Visual character of the impact at endpoint. RIFLE for the small-arms entries; the DMR sits in KINETIC since a railgun strike should kick more material than a pulse-laser bolt. */
+    public final ImpactProfile impactProfile;
+    /** Rounds per fire decision. 1 = single shot (default). &gt;1 = burst: the AI fires the first round and the sim {@code advanceBursts} pass emits the remainder at {@link #burstSpacing} intervals. SMG = 3. */
+    public final int burstCount;
+    /** Sim-seconds between burst rounds. Ignored when {@link #burstCount} == 1. */
+    public final float burstSpacing;
+    /** Optional projectile sprite. When non-null, shots render as a rotated traveling sprite (like turret kinetics + the rocket) instead of a line tracer. Used by SMG to launch visible bullets. */
+    public final String projectileSpritePath;
+    /** Projectile sprite visual size in cells (long axis). Ignored when {@link #projectileSpritePath} is null. */
+    public final float projectileVisualCells;
+    /** Sim-seconds the projectile is visible in flight. Ignored when {@link #projectileSpritePath} is null. */
+    public final float flightSec;
+
+    MarineWeapon(String displayName, String fireSoundId, Color tracerColor,
+                 float range, float damage, float accuracy, float cooldown, float vsTurretMult,
+                 ImpactProfile impactProfile,
+                 int burstCount, float burstSpacing, String projectileSpritePath,
+                 float projectileVisualCells, float flightSec) {
+        this.displayName = displayName;
+        this.fireSoundId = fireSoundId;
+        this.tracerColor = tracerColor;
+        this.range = range;
+        this.damage = damage;
+        this.accuracy = accuracy;
+        this.cooldown = cooldown;
+        this.vsTurretMult = vsTurretMult;
+        this.impactProfile = impactProfile;
+        this.burstCount = burstCount;
+        this.burstSpacing = burstSpacing;
+        this.projectileSpritePath = projectileSpritePath;
+        this.projectileVisualCells = projectileVisualCells;
+        this.flightSec = flightSec;
+    }
+}

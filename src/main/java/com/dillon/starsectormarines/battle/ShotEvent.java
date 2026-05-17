@@ -27,16 +27,28 @@ public class ShotEvent {
     public final Faction shooterFaction;
     /** Non-null when the shooter is a turret — drives projectile sprite + fire sound. Null = unit rifle fire (rendered as a line, played as a rifle clip). */
     public final TurretKind turretKind;
+    /** Non-null when a marine fired their primary — drives tracer color + per-weapon fire sound. Mutually exclusive with {@link #turretKind} and {@link #marineSecondary}. */
+    public final MarineWeapon marineWeapon;
+    /** Non-null when a marine fired their secondary (rocket, etc.) — drives projectile sprite + impact recipe. Mutually exclusive with {@link #turretKind} and {@link #marineWeapon}. */
+    public final MarineSecondary marineSecondary;
 
     public float lifetime;
+    /** Initial lifetime — fixed at construction. Renderer uses this (not the global shot-lifetime constant) to compute fade-out alpha and projectile travel progress, so per-weapon flight times scale correctly. */
+    public final float lifetimeMax;
 
     public ShotEvent(float fromX, float fromY, float toX, float toY,
                      boolean hit, Faction shooterFaction, float lifetime) {
-        this(fromX, fromY, toX, toY, hit, shooterFaction, lifetime, null);
+        this(fromX, fromY, toX, toY, hit, shooterFaction, lifetime, null, null, null);
     }
 
     public ShotEvent(float fromX, float fromY, float toX, float toY,
                      boolean hit, Faction shooterFaction, float lifetime, TurretKind turretKind) {
+        this(fromX, fromY, toX, toY, hit, shooterFaction, lifetime, turretKind, null, null);
+    }
+
+    public ShotEvent(float fromX, float fromY, float toX, float toY,
+                     boolean hit, Faction shooterFaction, float lifetime,
+                     TurretKind turretKind, MarineWeapon marineWeapon, MarineSecondary marineSecondary) {
         this.fromX = fromX;
         this.fromY = fromY;
         this.toX = toX;
@@ -44,6 +56,9 @@ public class ShotEvent {
         this.hit = hit;
         this.shooterFaction = shooterFaction;
         this.lifetime = lifetime;
+        this.lifetimeMax = lifetime;
         this.turretKind = turretKind;
+        this.marineWeapon = marineWeapon;
+        this.marineSecondary = marineSecondary;
     }
 }

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.ai;
 
 import com.dillon.starsectormarines.battle.BattleSimulation;
+import com.dillon.starsectormarines.battle.MapTurret;
 import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
@@ -31,20 +32,67 @@ public final class CombatantBehavior implements UnitBehavior {
 
     @Override
     public void update(Unit u, BattleSimulation sim) {
+        // Mid-aim: the marine is locked into the rocket animation. Tick the
+        // timer down, launch at the midpoint, and short-circuit the rest of
+        // the behavior — no movement, no primary fire, no re-targeting.
+        if (u.secondaryActionTimer > 0f && u.secondaryWeapon != null) {
+            u.secondaryActionTimer -= BattleSimulation.TICK_DT;
+            u.moveProgress = 0f;
+            u.renderX = u.cellX;
+            u.renderY = u.cellY;
+            float fireAt = u.secondaryWeapon.aimDuration * 0.5f;
+            if (!u.secondaryFiredThisAction && u.secondaryActionTimer <= fireAt) {
+                if (u.secondaryAimTarget != null && u.secondaryAimTarget.isAlive()) {
+                    sim.fireSecondary(u, u.secondaryAimTarget);
+                }
+                u.secondaryFiredThisAction = true;
+                u.secondaryCooldownTimer = u.secondaryWeapon.cooldown;
+            }
+            if (u.secondaryActionTimer <= 0f) {
+                u.secondaryActionTimer = 0f;
+                u.secondaryAimTarget = null;
+            }
+            return;
+        }
+
         if (u.target == null || !u.target.isAlive()) {
             u.target = TacticalScoring.findBestTarget(u, sim);
         }
         if (u.target == null) return; // nothing to do — usually a win-condition frame
 
         if (u.cooldownTimer > 0f) u.cooldownTimer -= BattleSimulation.TICK_DT;
+        if (u.secondaryCooldownTimer > 0f) u.secondaryCooldownTimer -= BattleSimulation.TICK_DT;
 
         float dist = TacticalScoring.cellDistance(u.cellX, u.cellY, u.target.cellX, u.target.cellY);
         boolean inRange = dist <= u.attackRange;
         boolean visible = sim.getGrid().hasLineOfSight(u.cellX, u.cellY, u.target.cellX, u.target.cellY);
         if (inRange && visible) {
-            if (u.cooldownTimer <= 0f) {
+            // Secondary takes priority against hardened targets — rockets are
+            // wasted on infantry but knock turrets out fast. Starts an aim
+            // cycle (handled at the top of update on subsequent ticks) instead
+            // of firing immediately, so the launch reads as a deliberate
+            // animation rather than a flash. Falls through to primary fire
+            // when no secondary is ready.
+            boolean startedSecondary = false;
+            if (u.secondaryWeapon != null && u.secondaryAmmo > 0 && u.secondaryCooldownTimer <= 0f
+                    && u.target instanceof MapTurret
+                    && dist <= u.secondaryWeapon.range) {
+                u.secondaryActionTimer = u.secondaryWeapon.aimDuration;
+                u.secondaryFiredThisAction = false;
+                u.secondaryAimTarget = u.target;
+                startedSecondary = true;
+            }
+            if (!startedSecondary && u.cooldownTimer <= 0f) {
                 sim.fireShot(u, u.target);
                 u.cooldownTimer = u.attackCooldown;
+                // Queue follow-up burst rounds — the sim's advanceBursts pass
+                // emits them at burstSpacing intervals. Cooldown was already
+                // set, so the next burst can't start until the timer drains.
+                if (u.primaryWeapon != null && u.primaryWeapon.burstCount > 1) {
+                    u.burstRemaining = u.primaryWeapon.burstCount - 1;
+                    u.burstTimer = u.primaryWeapon.burstSpacing;
+                    u.burstTarget = u.target;
+                }
                 if (sim.getRng().nextFloat() < REPOSITION_CHANCE) {
                     int[] firingPos = TacticalScoring.findFiringPosition(u, u.target, sim, u.cellX, u.cellY);
                     if (firingPos[0] != u.cellX || firingPos[1] != u.cellY) {

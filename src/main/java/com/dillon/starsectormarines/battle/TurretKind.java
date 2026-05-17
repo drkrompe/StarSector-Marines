@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle;
 
+import com.dillon.starsectormarines.battle.fx.ImpactProfile;
+
 /**
  * Catalog of static ground-defense turrets, each backed by a vanilla Starsector
  * weapon sprite. The mod surfaces a curated subset of {@code graphics/weapons/}
@@ -107,5 +109,17 @@ public enum TurretKind {
         this.turnRateDegPerSec = turnRateDegPerSec;
         this.visualCells = visualCells;
         this.projectileVisualCells = projectileVisualCells;
+    }
+
+    /** Visual impact profile for this kind — small spark for the fast/light weapons, kinetic flash + smoke for the mid-weight shells, full HE burst for the mortar. */
+    public ImpactProfile impactProfile() {
+        switch (this) {
+            case HEAVY_MORTAR:                       return ImpactProfile.HE;
+            case ARBALEST:
+            case DUAL_FLAK:
+            case HEPHAESTUS:                         return ImpactProfile.KINETIC;
+            case VULCAN:
+            default:                                 return ImpactProfile.RIFLE;
+        }
     }
 }

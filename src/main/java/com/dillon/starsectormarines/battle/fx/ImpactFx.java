@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.fx;
 
-import com.dillon.starsectormarines.battle.TurretKind;
 import com.dillon.starsectormarines.ops.battleview.BattleCamera;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.graphics.SpriteAPI;
@@ -99,22 +98,21 @@ public final class ImpactFx {
     }
 
     /**
-     * Routes the impact to the right particle recipe based on {@code kind}.
-     * {@code kind} is null for rifle / militia / alien shots; non-null for
-     * the five turret weapon families.
+     * Routes the impact to the right particle recipe based on its visual
+     * profile. Callers map their weapon catalog (turret kinds, marine
+     * primaries, marine secondaries) onto a profile so the FX engine doesn't
+     * need to know about every source enum.
      */
-    public void spawnImpact(TurretKind kind, float x, float y, boolean isWall) {
-        if (kind == null) {
+    public void spawnImpact(ImpactProfile profile, float x, float y, boolean isWall) {
+        if (profile == null) {
             spawnRifleImpact(x, y, isWall);
             return;
         }
-        switch (kind) {
-            case VULCAN:        spawnRifleImpact(x, y, isWall); break;
-            case ARBALEST:
-            case DUAL_FLAK:
-            case HEPHAESTUS:    spawnKineticImpact(x, y, isWall); break;
-            case HEAVY_MORTAR:  spawnHeImpact(x, y, isWall); break;
-            default:            spawnRifleImpact(x, y, isWall); break;
+        switch (profile) {
+            case KINETIC:  spawnKineticImpact(x, y, isWall); break;
+            case HE:       spawnHeImpact(x, y, isWall); break;
+            case RIFLE:
+            default:       spawnRifleImpact(x, y, isWall); break;
         }
     }
 
@@ -175,6 +173,16 @@ public final class ImpactFx {
         p.sprite = glowSprite;
         p.additive = false;
         particles.add(p);
+    }
+
+    /**
+     * Spawns a single smoke puff at (x, y). For driving continuous emitters
+     * (smoking wrecks, smoldering rubble) where the caller picks the cadence
+     * and the puff size. Lifetime is fixed at a value that pairs naturally
+     * with the puff radius — bigger smoke takes longer to dissipate.
+     */
+    public void spawnAmbientSmoke(float x, float y, float radiusCells) {
+        spawnSmokePuff(x, y, radiusCells, 0.9f + radiusCells * 0.8f);
     }
 
     /** Smoke puff from the flipbook sheet. Light upward drift, random rotation, normal-alpha. Tuned smaller than the FlybyOverlay variant since ground impacts are point events, not aerial bursts. */

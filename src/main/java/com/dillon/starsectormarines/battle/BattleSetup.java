@@ -155,7 +155,7 @@ public final class BattleSetup {
             shuttle.totalCycles = a.cycles;
             MarineLoadout[][] cycleLoadouts = new MarineLoadout[a.cycles][];
             for (int c = 0; c < a.cycles; c++) {
-                cycleLoadouts[c] = buildSabotageLoadout(shuttle.type.capacity, objectives, globalDropIdx);
+                cycleLoadouts[c] = buildSabotageLoadout(shuttle.type.capacity, objectives, globalDropIdx, rng);
                 globalDropIdx++;
             }
             shuttle.cycleLoadouts = cycleLoadouts;
@@ -226,14 +226,48 @@ public final class BattleSetup {
      * the shuttle index), so a single cycling shuttle hits each site in turn
      * on successive sorties.
      */
-    private static MarineLoadout[] buildSabotageLoadout(int capacity, List<ChargeSiteObjective> sites, int dropIndex) {
-        MarineLoadout[] roster = new MarineLoadout[capacity];
-        for (int i = 0; i < capacity; i++) roster[i] = MarineLoadout.COMBATANT;
+    private static MarineLoadout[] buildSabotageLoadout(int capacity, List<ChargeSiteObjective> sites, int dropIndex, Random rng) {
+        MarineLoadout[] roster = buildBaseLoadouts(capacity, rng);
         if (!sites.isEmpty()) {
+            // Slot 0 becomes the planter — keep their primary weapon assignment
+            // (so they fire opportunistically en route), drop any secondary so
+            // they're not lugging a rocket launcher to a charge plant.
             ChargeSiteObjective site = sites.get(dropIndex % sites.size());
-            roster[0] = new MarineLoadout(UnitRole.PLANTER, site);
+            MarineWeapon planterPrimary = roster[0].primary;
+            roster[0] = new MarineLoadout(UnitRole.PLANTER, site, planterPrimary, null, 0);
         }
         return roster;
+    }
+
+    /**
+     * Builds a per-slot loadout for one shuttle. Every slot gets a rolled
+     * primary (50% pulse rifle, 25% SMG, 25% DMR); the last slot also picks
+     * up a rocket launcher with full ammo as the squad's anti-armor specialist.
+     * Capacity-1 shuttles skip the secondary — a one-marine drop is a courier,
+     * not a fireteam.
+     */
+    private static MarineLoadout[] buildBaseLoadouts(int capacity, Random rng) {
+        MarineLoadout[] roster = new MarineLoadout[capacity];
+        int rocketSlot = (capacity > 1) ? capacity - 1 : -1;
+        for (int i = 0; i < capacity; i++) {
+            MarineWeapon primary = rollPrimary(rng);
+            if (i == rocketSlot) {
+                roster[i] = new MarineLoadout(UnitRole.COMBATANT, null, primary,
+                        MarineSecondary.ROCKET_LAUNCHER,
+                        MarineSecondary.ROCKET_LAUNCHER.startingAmmo);
+            } else {
+                roster[i] = new MarineLoadout(UnitRole.COMBATANT, null, primary, null, 0);
+            }
+        }
+        return roster;
+    }
+
+    /** Weighted primary roll — pulse rifle is the workhorse, SMG + DMR split the specialist slots evenly. */
+    private static MarineWeapon rollPrimary(Random rng) {
+        int r = rng.nextInt(4);
+        if (r == 0) return MarineWeapon.SMG;
+        if (r == 1) return MarineWeapon.DMR;
+        return MarineWeapon.PULSE_RIFLE;
     }
 
     public static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest) {
@@ -276,6 +310,14 @@ public final class BattleSetup {
                     exitX, exitY,
                     i * SHUTTLE_DROP_STAGGER_SEC);
             shuttle.totalCycles = a.cycles;
+            // Per-cycle weapon loadouts — re-rolled each sortie so a cycling
+            // shuttle doesn't deboard the same exact fireteam composition twice.
+            MarineLoadout[][] cycleLoadouts = new MarineLoadout[a.cycles][];
+            for (int c = 0; c < a.cycles; c++) {
+                cycleLoadouts[c] = buildBaseLoadouts(shuttle.type.capacity, rng);
+            }
+            shuttle.cycleLoadouts = cycleLoadouts;
+            shuttle.marineLoadout = cycleLoadouts[0];
             sim.addShuttle(shuttle);
         }
 

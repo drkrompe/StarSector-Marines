@@ -623,6 +623,12 @@ public final class FlybyOverlay {
         dust.radiusCells = isWall ? 0.45f : 0.30f;
         dust.color = isWall ? WALL_CHIP_DUST : FLOOR_KICK_DUST;
         particles.add(dust);
+        // Persistent decal so strafing runs leave a permanent peppered trail.
+        // KINETIC profile gives bullet-hole / small-crater treatment matching
+        // a fighter's chain gun, distinct from the lighter rifle marks.
+        com.dillon.starsectormarines.battle.fx.ImpactDecals.spawnImpact(sim, rng,
+                com.dillon.starsectormarines.battle.fx.ImpactProfile.KINETIC,
+                endX, endY, isWall);
     }
 
     /**
@@ -803,6 +809,15 @@ public final class FlybyOverlay {
             }
         }
         spawnExplosionFx(p.worldX, p.worldY, r, p.profile.tracerColor);
+        // HE decals — crater + rubble at the detonation cell so the strike
+        // leaves a mark long after the flash fades.
+        if (sim != null) {
+            boolean isWall = !sim.getGrid().inBounds((int) Math.floor(p.worldX), (int) Math.floor(p.worldY))
+                    || !sim.getGrid().isWalkable((int) Math.floor(p.worldX), (int) Math.floor(p.worldY));
+            com.dillon.starsectormarines.battle.fx.ImpactDecals.spawnImpact(sim, rng,
+                    com.dillon.starsectormarines.battle.fx.ImpactProfile.HE,
+                    p.worldX, p.worldY, isWall);
+        }
         // Positional detonation audio — mono pool, plays alongside Doppler launch.
         Vector2f loc = new Vector2f(p.worldX * AUDIO_WORLD_UNITS_PER_CELL,
                                     p.worldY * AUDIO_WORLD_UNITS_PER_CELL);

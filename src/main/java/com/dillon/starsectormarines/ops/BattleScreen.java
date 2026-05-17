@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.BattleSetup;
+import com.dillon.starsectormarines.battle.Decal;
 import com.dillon.starsectormarines.battle.Doodad;
 import com.dillon.starsectormarines.battle.EquipmentDrop;
 import com.dillon.starsectormarines.battle.Faction;
@@ -12,6 +13,8 @@ import com.dillon.starsectormarines.battle.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.SpriteSheetSlicer;
 import com.dillon.starsectormarines.battle.MapTurret;
 import com.dillon.starsectormarines.battle.MapVehicle;
+import com.dillon.starsectormarines.battle.MarineSecondary;
+import com.dillon.starsectormarines.battle.MarineWeapon;
 import com.dillon.starsectormarines.battle.TileManifest;
 import com.dillon.starsectormarines.battle.TurretKind;
 import com.dillon.starsectormarines.battle.Unit;
@@ -19,7 +22,9 @@ import com.dillon.starsectormarines.battle.UnitType;
 import com.dillon.starsectormarines.battle.VehicleKind;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.flyby.FlybyOverlay;
+import com.dillon.starsectormarines.battle.fx.ImpactDecals;
 import com.dillon.starsectormarines.battle.fx.ImpactFx;
+import com.dillon.starsectormarines.battle.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.objective.Objective;
@@ -202,6 +207,8 @@ public class BattleScreen implements Screen {
     private boolean lastSimComplete;
     /** Per-{@link UnitType} sprite sheet cache. Each entry's sheet + frames pair is null if that type's load failed; the renderer falls through to its color-quad fallback for that unit. */
     private final java.util.EnumMap<UnitType, UnitSpriteCache> unitSprites = new java.util.EnumMap<>(UnitType.class);
+    /** Per-{@link UnitType} corpse-pose sheet — 4 frames per type, picked randomly per unit at death. Missing entries (civilians, turrets) skip the dead-render pass entirely. */
+    private final java.util.EnumMap<UnitType, UnitSpriteCache> unitDeadSprites = new java.util.EnumMap<>(UnitType.class);
     private boolean unitSpritesLoadAttempted;
 
     private static final class UnitSpriteCache {
@@ -226,6 +233,21 @@ public class BattleScreen implements Screen {
     /** Per-{@link TurretKind} projectile sprite (vanilla {@code bulletSprite}). Rendered rotated along the travel vector for the shot's {@link #SHOT_LIFETIME_REF} lifetime. */
     private final java.util.EnumMap<TurretKind, ShuttleSpriteCache> turretProjectileSprites =
             new java.util.EnumMap<>(TurretKind.class);
+    /** Per-{@link MarineSecondary} projectile sprite (rocket etc). Same rendering path as turret projectiles. */
+    private final java.util.EnumMap<MarineSecondary, ShuttleSpriteCache> marineSecondarySprites =
+            new java.util.EnumMap<>(MarineSecondary.class);
+    /** Per-{@link MarineWeapon} projectile sprite — populated only for weapons whose {@code projectileSpritePath} is non-null (SMG today). Marines without a sprite path keep the line-tracer render. */
+    private final java.util.EnumMap<MarineWeapon, ShuttleSpriteCache> marineWeaponProjectileSprites =
+            new java.util.EnumMap<>(MarineWeapon.class);
+    /** Shared decal sheet — 13 frames horizontally, auto-sliced into a SpriteSheetFrames so individual {@link Decal#decalIndex} values map to a frame box. */
+    private SpriteAPI decalSheet;
+    private SpriteSheetFrames decalFrames;
+    private boolean decalSheetLoadAttempted;
+    private static final String SPRITE_DECAL_SHEET = "graphics/decals/decals.png";
+    /** Per-{@link MarineSecondary} marine aim sheet — drawn instead of the regular type sheet while the marine is mid-aim animation. Same 7-frame WNES + weapon-up convention as the regular marine sheets, auto-sliced via {@link SpriteSheetSlicer}. */
+    private final java.util.EnumMap<MarineSecondary, UnitSpriteCache> marineSecondaryAimSheets =
+            new java.util.EnumMap<>(MarineSecondary.class);
+    private boolean marineSecondarySpritesLoadAttempted;
     private boolean turretSpritesLoadAttempted;
     /** Sim-seconds the barrel sprite eases forward to its at-rest position after a shot. Quick snap-back-then-return reads as a real recoil pulse. */
     private static final float RECOIL_DURATION = 0.12f;
@@ -308,6 +330,8 @@ public class BattleScreen implements Screen {
         ensureUnitSheets();
         ensureVehicleSheets();
         ensureTurretSprites();
+        ensureMarineSecondarySprites();
+        ensureDecalSheet();
         ensureTileSheet();
         ensureRoadSheet();
         ensureShuttleSprites();
@@ -510,6 +534,10 @@ public class BattleScreen implements Screen {
             // its spritePath is intentionally empty so we skip the load here.
             if (type == UnitType.TURRET) continue;
             unitSprites.put(type, loadUnitSheet(type.spritePath));
+            if (type.deadSpritePath != null) {
+                UnitSpriteCache dead = loadUnitSheet(type.deadSpritePath);
+                if (dead != null) unitDeadSprites.put(type, dead);
+            }
         }
     }
 
@@ -529,6 +557,121 @@ public class BattleScreen implements Screen {
      * resource loader resolves them transparently — we don't ship copies in
      * the mod folder.
      */
+    /**
+     * Renders every persistent decal (bullet holes, craters, rubble) as a
+     * rotated quad slice of the shared sheet. Skipped entirely when the sheet
+     * failed to load. Normal-alpha blend — decals occlude rather than glow.
+     */
+    private void renderDecals(BattleSimulation sim, float alphaMult) {
+        if (decalSheet == null || decalFrames == null) return;
+        java.util.List<Decal> decals = sim.getDecals();
+        if (decals.isEmpty()) return;
+        float cellPx = camera.cellPxSize();
+        float texW = decalSheet.getTextureWidth();
+        float texH = decalSheet.getTextureHeight();
+        int sheetW = decalFrames.sheetWidth;
+        int sheetH = decalFrames.sheetHeight;
+        for (Decal d : decals) {
+            if (d.decalIndex < 0 || d.decalIndex >= decalFrames.frames.length) continue;
+            SpriteSheetFrames.Frame f = decalFrames.frames[d.decalIndex];
+            decalSheet.setTexX((float) f.x * texW / sheetW);
+            decalSheet.setTexY((float) (sheetH - f.y - f.h) * texH / sheetH);
+            decalSheet.setTexWidth((float) f.w * texW / sheetW);
+            decalSheet.setTexHeight((float) f.h * texH / sheetH);
+            float longPx = d.scaleCells * cellPx;
+            float shortPx = longPx * ((float) f.h / (float) f.w);
+            decalSheet.setSize(longPx, shortPx);
+            decalSheet.setAngle(d.rotationDeg);
+            decalSheet.setAlphaMult(alphaMult);
+            decalSheet.setNormalBlend();
+            decalSheet.setColor(Color.WHITE);
+            decalSheet.renderAtCenter(camera.cellToScreenX(d.x), camera.cellToScreenY(d.y));
+        }
+        // Reset UVs + angle so the singleton sprite doesn't carry state forward.
+        decalSheet.setTexX(0f);
+        decalSheet.setTexY(0f);
+        decalSheet.setTexWidth(texW);
+        decalSheet.setTexHeight(texH);
+        decalSheet.setAngle(0f);
+    }
+
+    /** Lazy-loads the decal sheet and auto-slices it into per-frame bounding boxes. Failure leaves both fields null and the decal pass becomes a no-op. */
+    private void ensureDecalSheet() {
+        if (decalSheetLoadAttempted) return;
+        decalSheetLoadAttempted = true;
+        try {
+            Global.getSettings().loadTexture(SPRITE_DECAL_SHEET);
+            decalSheet = Global.getSettings().getSprite(SPRITE_DECAL_SHEET);
+            if (decalSheet == null) {
+                LOG.warn("BattleScreen: getSprite returned null for " + SPRITE_DECAL_SHEET);
+                return;
+            }
+            try (java.io.InputStream stream = Global.getSettings().openStream(SPRITE_DECAL_SHEET)) {
+                BufferedImage img = ImageIO.read(stream);
+                if (img == null) {
+                    LOG.warn("BattleScreen: ImageIO.read returned null for " + SPRITE_DECAL_SHEET);
+                    decalSheet = null;
+                    return;
+                }
+                decalFrames = SpriteSheetSlicer.slice(img);
+                LOG.info("BattleScreen: auto-sliced " + SPRITE_DECAL_SHEET
+                        + " — " + decalFrames.frames.length + " frames");
+            }
+        } catch (Exception e) {
+            LOG.error("BattleScreen: failed to load decal sheet " + SPRITE_DECAL_SHEET, e);
+            decalSheet = null;
+        }
+    }
+
+    /** Lazy-loads each marine secondary's projectile sprite AND the marine-pose sheet shown during the weapon's aim cycle. The projectile is a single sprite rotated at draw time; the aim sheet is auto-sliced into 7 frames matching the regular marine convention. */
+    private void ensureMarineSecondarySprites() {
+        if (marineSecondarySpritesLoadAttempted) return;
+        marineSecondarySpritesLoadAttempted = true;
+        for (MarineSecondary sec : MarineSecondary.values()) {
+            try {
+                Global.getSettings().loadTexture(sec.projectileSpritePath);
+                SpriteAPI sprite = Global.getSettings().getSprite(sec.projectileSpritePath);
+                if (sprite == null) {
+                    LOG.warn("BattleScreen: getSprite returned null for " + sec.projectileSpritePath);
+                } else {
+                    float w = sprite.getWidth();
+                    float h = sprite.getHeight();
+                    float aspect = (h > 0f) ? w / h : 1f;
+                    marineSecondarySprites.put(sec, new ShuttleSpriteCache(sprite, aspect));
+                    LOG.info("BattleScreen: loaded " + sec.projectileSpritePath
+                            + " (" + w + "x" + h + ", aspect=" + aspect + ")");
+                }
+            } catch (Exception e) {
+                LOG.error("BattleScreen: failed to load secondary projectile " + sec.projectileSpritePath, e);
+            }
+            if (sec.aimSpritePath != null) {
+                UnitSpriteCache aim = loadUnitSheet(sec.aimSpritePath);
+                if (aim != null) marineSecondaryAimSheets.put(sec, aim);
+            }
+        }
+        // Primary projectile sprites (SMG bullet today). Skip weapons whose
+        // projectile path is null — those fire as line tracers.
+        for (MarineWeapon w : MarineWeapon.values()) {
+            if (w.projectileSpritePath == null) continue;
+            try {
+                Global.getSettings().loadTexture(w.projectileSpritePath);
+                SpriteAPI sprite = Global.getSettings().getSprite(w.projectileSpritePath);
+                if (sprite == null) {
+                    LOG.warn("BattleScreen: getSprite returned null for " + w.projectileSpritePath);
+                    continue;
+                }
+                float pw = sprite.getWidth();
+                float ph = sprite.getHeight();
+                float aspect = (ph > 0f) ? pw / ph : 1f;
+                marineWeaponProjectileSprites.put(w, new ShuttleSpriteCache(sprite, aspect));
+                LOG.info("BattleScreen: loaded " + w.projectileSpritePath
+                        + " (" + pw + "x" + ph + ", aspect=" + aspect + ")");
+            } catch (Exception e) {
+                LOG.error("BattleScreen: failed to load primary projectile " + w.projectileSpritePath, e);
+            }
+        }
+    }
+
     private void ensureTurretSprites() {
         if (turretSpritesLoadAttempted) return;
         turretSpritesLoadAttempted = true;
@@ -677,6 +820,12 @@ public class BattleScreen implements Screen {
         // (instant for marine line tracers, on lifetime expiry for projectile
         // sprites), then advance particles on the same scaled clock.
         spawnImpactFx(sim);
+        // Drain wreck smoke puffs the sim queued this tick — each entry is
+        // {x, y, radiusCells}. Same scaled clock means wrecks stop smoking
+        // when the sim pauses.
+        for (float[] puff : sim.getSmokePuffsThisFrame()) {
+            impactFx.spawnAmbientSmoke(puff[0], puff[1], puff[2]);
+        }
         impactFx.advance(dt * speedMultiplier);
         driveShuttleEngineLoop(sim);
         playCombatEventSounds(sim);
@@ -806,23 +955,59 @@ public class BattleScreen implements Screen {
         java.util.Random rng = java.util.concurrent.ThreadLocalRandom.current();
         Vector2f zeroVel = new Vector2f(0f, 0f);
         NavigationGrid grid = sim.getGrid();
+        // Line-tracer shots spawn their impact at fire — the line covers the
+        // whole travel instantly. Anything with a projectile sprite (turret,
+        // rocket, SMG bullet) waits for arrival in the second pass.
         for (ShotEvent s : sim.getShotsThisFrame()) {
-            if (s.turretKind != null) continue; // wait for the projectile to arrive
+            // Every shooting marine / militia / alien ejects a casing where
+            // they're standing (skip rockets — tube-launched, no brass).
+            if (s.marineSecondary == null && s.turretKind == null) {
+                ImpactDecals.spawnShellCasing(sim, rng, s.fromX, s.fromY);
+            }
+            if (hasProjectileSprite(s)) continue;
             boolean isWall = isWallAt(grid, s.toX, s.toY);
-            impactFx.spawnImpact(null, s.toX, s.toY, isWall);
+            ImpactProfile profile = (s.marineWeapon != null)
+                    ? s.marineWeapon.impactProfile : ImpactProfile.RIFLE;
+            impactFx.spawnImpact(profile, s.toX, s.toY, isWall);
+            ImpactDecals.spawnImpact(sim, rng, profile, s.toX, s.toY, isWall);
         }
         for (ShotEvent s : sim.getShotsExpiredThisFrame()) {
-            if (s.turretKind == null) continue; // already handled at fire time
+            if (!hasProjectileSprite(s)) continue;
             boolean isWall = isWallAt(grid, s.toX, s.toY);
-            impactFx.spawnImpact(s.turretKind, s.toX, s.toY, isWall);
-            if (s.turretKind == com.dillon.starsectormarines.battle.TurretKind.HEAVY_MORTAR) {
+            ImpactProfile profile;
+            if (s.turretKind != null) {
+                profile = s.turretKind.impactProfile();
+                impactFx.spawnImpact(profile, s.toX, s.toY, isWall);
+                if (s.turretKind == com.dillon.starsectormarines.battle.TurretKind.HEAVY_MORTAR) {
+                    float pitch = 0.9f + rng.nextFloat() * 0.2f;
+                    Vector2f loc = new Vector2f(
+                            s.toX * AUDIO_WORLD_UNITS_PER_CELL,
+                            s.toY * AUDIO_WORLD_UNITS_PER_CELL);
+                    Global.getSoundPlayer().playSound(SFX_NEAR_EXPLOSION, pitch, 0.55f, loc, zeroVel);
+                }
+            } else if (s.marineSecondary != null) {
+                profile = s.marineSecondary.impactProfile();
+                impactFx.spawnImpact(profile, s.toX, s.toY, isWall);
                 float pitch = 0.9f + rng.nextFloat() * 0.2f;
                 Vector2f loc = new Vector2f(
                         s.toX * AUDIO_WORLD_UNITS_PER_CELL,
                         s.toY * AUDIO_WORLD_UNITS_PER_CELL);
-                Global.getSoundPlayer().playSound(SFX_NEAR_EXPLOSION, pitch, 0.55f, loc, zeroVel);
+                Global.getSoundPlayer().playSound(s.marineSecondary.impactSoundId, pitch, 0.70f, loc, zeroVel);
+            } else if (s.marineWeapon != null) {
+                profile = s.marineWeapon.impactProfile;
+                impactFx.spawnImpact(profile, s.toX, s.toY, isWall);
+            } else {
+                profile = ImpactProfile.RIFLE;
             }
+            ImpactDecals.spawnImpact(sim, rng, profile, s.toX, s.toY, isWall);
         }
+    }
+
+    /** True when the shot is rendered as a traveling sprite (turret kinetic, marine rocket, SMG bullet) rather than an instant line tracer — drives whether impact FX fire at launch or arrival. */
+    private static boolean hasProjectileSprite(ShotEvent s) {
+        return s.turretKind != null
+                || s.marineSecondary != null
+                || (s.marineWeapon != null && s.marineWeapon.projectileSpritePath != null);
     }
 
     /** True when the endpoint cell is non-walkable (wall / vehicle / turret mount) and the impact should read as a chip on solid material rather than a kick of floor dust. */
@@ -841,11 +1026,16 @@ public class BattleScreen implements Screen {
             Vector2f loc = new Vector2f(
                     s.fromX * AUDIO_WORLD_UNITS_PER_CELL,
                     s.fromY * AUDIO_WORLD_UNITS_PER_CELL);
+            // Per-weapon fire sound dispatch. All four sources (turret, marine
+            // secondary, marine primary, raw rifle) play through positional
+            // playSound — vanilla weapon SFX are mono, which the spatial pipeline
+            // requires; distance attenuation does the volume-falloff work.
             if (s.turretKind != null) {
-                // Vanilla weapon sound ids are pre-registered by the core install (and are mono),
-                // so positional playback works directly. Volume left at the vanilla source level —
-                // distance attenuation already shapes how loud turret fire reads as the camera moves.
                 Global.getSoundPlayer().playSound(s.turretKind.fireSoundId, pitch, 1.0f, loc, zeroVel);
+            } else if (s.marineSecondary != null) {
+                Global.getSoundPlayer().playSound(s.marineSecondary.fireSoundId, pitch, 1.0f, loc, zeroVel);
+            } else if (s.marineWeapon != null) {
+                Global.getSoundPlayer().playSound(s.marineWeapon.fireSoundId, pitch, 0.85f, loc, zeroVel);
             } else {
                 Global.getSoundPlayer().playSound(SFX_RIFLE, pitch, RIFLE_VOLUME, loc, zeroVel);
             }
@@ -1040,6 +1230,9 @@ public class BattleScreen implements Screen {
             glScissor(gridFbX, gridFbY, gridFbW, gridFbH);
             renderGrid(sim.getGrid(), sim.getTopology(), alphaMult);
             if (debugZonesVisible) renderZoneOverlay(sim, alphaMult);
+            // Decals sit between the floor pass and vehicles so parked trucks
+            // (and later units) draw on top of bullet holes and craters.
+            renderDecals(sim, alphaMult);
             renderVehicles(sim, alphaMult);
             renderDoodads(sim, alphaMult);
             renderUnits(sim.getUnits(), alphaMult);
@@ -1436,6 +1629,10 @@ public class BattleScreen implements Screen {
         // pass runs before the marine pass.)
         renderTurrets(units, alphaMult);
 
+        // Dead-body pre-pass — corpses always sit beneath living units so a
+        // marine standing over a fallen squadmate fully occludes them.
+        renderDeadUnits(units, unitSize, alphaMult);
+
         // Per-unit sheet pick — every UnitType has its own sheet cache. The
         // singleton SpriteAPI is shared across all units of the same type;
         // we reset tint at the end so a tinted civilian doesn't bleed into
@@ -1445,6 +1642,16 @@ public class BattleScreen implements Screen {
             if (!u.isAlive()) continue;
             if (u instanceof MapTurret) continue; // handled by renderTurrets above
             UnitSpriteCache cache = unitSprites.get(u.type);
+            // Mid-aim rocket marine swaps to the per-secondary aim sheet so
+            // the launcher pose reads. Falls back to the regular sheet if the
+            // aim sheet failed to load.
+            if (u.secondaryActionTimer > 0f && u.secondaryWeapon != null) {
+                UnitSpriteCache aim = marineSecondaryAimSheets.get(u.secondaryWeapon);
+                if (aim != null && aim.sheet != null && aim.frames != null
+                        && aim.frames.frames.length > 0) {
+                    cache = aim;
+                }
+            }
             if (cache == null || cache.sheet == null || cache.frames == null
                     || cache.frames.frames.length == 0) {
                 renderUnitQuadFallback(u, unitSize, half, alphaMult);
@@ -1499,9 +1706,12 @@ public class BattleScreen implements Screen {
         int sheetH = frames.sheetHeight;
 
         Facing facing = computeFacing(u);
-        boolean weaponUp = u.type.combatant
+        // Aim cycle holds the weapon-up frame for its full duration so the
+        // launcher reads as raised/braced through the whole animation.
+        boolean inAim = u.secondaryActionTimer > 0f && u.secondaryWeapon != null;
+        boolean weaponUp = inAim || (u.type.combatant
                 && u.cooldownTimer > (u.attackCooldown - WEAPON_UP_TIME)
-                && u.cooldownTimer > 0f;
+                && u.cooldownTimer > 0f);
         int frameIdx = pickFrame(facing, weaponUp);
         if (frameIdx >= frames.frames.length) frameIdx = 0;
         boolean flipY = weaponUp && facing == Facing.SOUTH;
@@ -1730,6 +1940,64 @@ public class BattleScreen implements Screen {
         glEnd();
     }
 
+    /**
+     * Renders fallen combatants as static corpse sprites pulled from
+     * {@link UnitType#deadSpritePath}. The pose is rolled at death time and
+     * stored in {@link Unit#deathPoseIdx} so the corpse never flickers between
+     * frames. No rotation — the dead sheets are hand-drawn for a single
+     * top-down orientation; spinning them reads as wrong.
+     *
+     * <p>Units whose type has no dead sheet (civilians, scientists, turrets)
+     * just vanish on death. Same for units that died before the death-pose
+     * roll landed (sentinel {@code deathPoseIdx == -1}, which shouldn't
+     * normally happen but skip defensively).
+     */
+    private void renderDeadUnits(List<Unit> units, float unitSize, float alphaMult) {
+        java.util.Set<UnitSpriteCache> touched = new java.util.HashSet<>();
+        for (Unit u : units) {
+            if (u.isAlive()) continue;
+            if (u.deathPoseIdx < 0) continue;
+            UnitSpriteCache cache = unitDeadSprites.get(u.type);
+            if (cache == null || cache.sheet == null || cache.frames == null
+                    || cache.frames.frames.length == 0) continue;
+            SpriteSheetFrames frames = cache.frames;
+            int frameIdx = ((u.deathPoseIdx % frames.frames.length) + frames.frames.length) % frames.frames.length;
+            SpriteSheetFrames.Frame f = frames.frames[frameIdx];
+            SpriteAPI sheet = cache.sheet;
+            float texW = sheet.getTextureWidth();
+            float texH = sheet.getTextureHeight();
+            int sheetW = frames.sheetWidth;
+            int sheetH = frames.sheetHeight;
+            sheet.setTexX((float) f.x * texW / sheetW);
+            sheet.setTexY((float) (sheetH - f.y - f.h) * texH / sheetH);
+            sheet.setTexWidth((float) f.w * texW / sheetW);
+            sheet.setTexHeight((float) f.h * texH / sheetH);
+            // Fit the longer pose axis into one cell so wide prone poses
+            // don't spill out into neighboring cells. Aspect of the loaded
+            // frame drives the perpendicular dimension.
+            float targetW, targetH;
+            if (f.w >= f.h) {
+                targetW = unitSize;
+                targetH = unitSize * f.h / (float) f.w;
+            } else {
+                targetH = unitSize;
+                targetW = unitSize * f.w / (float) f.h;
+            }
+            sheet.setSize(targetW, targetH);
+            sheet.setAngle(0f);
+            sheet.setAlphaMult(alphaMult);
+            sheet.setNormalBlend();
+            sheet.setColor(Color.WHITE);
+            float cx = camera.cellToScreenX(u.renderX + 0.5f);
+            float cy = camera.cellToScreenY(u.renderY + 0.5f);
+            sheet.renderAtCenter(cx, cy);
+            touched.add(cache);
+        }
+        for (UnitSpriteCache c : touched) {
+            c.sheet.setColor(Color.WHITE);
+        }
+    }
+
     /** Fallback colored-quad path when a unit's sprite sheet failed to load. */
     private void renderUnitQuadFallback(Unit u, float unitSize, float half, float alphaMult) {
         Color c;
@@ -1896,17 +2164,26 @@ public class BattleScreen implements Screen {
     private void renderShots(List<ShotEvent> shots, float alphaMult) {
         if (shots.isEmpty()) return;
 
-        // Line tracers for marine / militia / alien rifle fire — turret shots
-        // are filtered out and drawn as sprite projectiles in the second pass.
+        // Line tracers for marine primary / militia / alien rifle fire. Turret
+        // shots and marine secondary (rocket) shots are filtered out — both
+        // get sprite-projectile treatment in the second pass.
         glDisable(GL_TEXTURE_2D);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         org.lwjgl.opengl.GL11.glLineWidth(2f);
         glBegin(org.lwjgl.opengl.GL11.GL_LINES);
         for (ShotEvent s : shots) {
+            // Skip everything that has its own projectile sprite.
             if (s.turretKind != null) continue;
-            float t = Math.max(0f, Math.min(1f, s.lifetime / SHOT_LIFETIME_REF));
-            Color c = s.shooterFaction == Faction.MARINE ? MARINE_TRACER : DEFENDER_TRACER;
+            if (s.marineSecondary != null) continue;
+            if (s.marineWeapon != null && s.marineWeapon.projectileSpritePath != null) continue;
+            float t = Math.max(0f, Math.min(1f, s.lifetime / Math.max(0.001f, s.lifetimeMax)));
+            Color c;
+            if (s.marineWeapon != null) {
+                c = s.marineWeapon.tracerColor;
+            } else {
+                c = s.shooterFaction == Faction.MARINE ? MARINE_TRACER : DEFENDER_TRACER;
+            }
             glColor4f(c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, t * alphaMult);
             float x0 = camera.cellToScreenX(s.fromX);
             float y0 = camera.cellToScreenY(s.fromY);
@@ -1918,23 +2195,36 @@ public class BattleScreen implements Screen {
         glEnd();
         org.lwjgl.opengl.GL11.glLineWidth(1f);
 
-        // Projectile sprites for turret shots — lerp along the from→to vector
-        // over SHOT_LIFETIME_REF, rotate to align with travel direction. Shell
-        // sprites are nose-up like everything else in this world (+Y in the
-        // source PNG), so setAngle(bearing) directly aligns the nose with the
-        // travel vector — no per-axis offset.
-        java.util.Set<TurretKind> touchedProj = new java.util.HashSet<>();
+        // Projectile sprites for turret shots AND marine secondary (rocket)
+        // shots — lerp along the from→to vector over SHOT_LIFETIME_REF, rotate
+        // to align with travel direction. Source sprites are nose-up (+Y), so
+        // setAngle(bearing) directly aligns the nose with the travel vector.
+        java.util.Set<TurretKind> touchedTurret = new java.util.HashSet<>();
+        java.util.Set<MarineSecondary> touchedSecondary = new java.util.HashSet<>();
+        java.util.Set<MarineWeapon> touchedPrimary = new java.util.HashSet<>();
         for (ShotEvent s : shots) {
-            if (s.turretKind == null) continue;
-            ShuttleSpriteCache cache = turretProjectileSprites.get(s.turretKind);
+            ShuttleSpriteCache cache;
+            float visualCells;
+            if (s.turretKind != null) {
+                cache = turretProjectileSprites.get(s.turretKind);
+                visualCells = s.turretKind.projectileVisualCells;
+            } else if (s.marineSecondary != null) {
+                cache = marineSecondarySprites.get(s.marineSecondary);
+                visualCells = s.marineSecondary.projectileVisualCells;
+            } else if (s.marineWeapon != null && s.marineWeapon.projectileSpritePath != null) {
+                cache = marineWeaponProjectileSprites.get(s.marineWeapon);
+                visualCells = s.marineWeapon.projectileVisualCells;
+            } else {
+                continue;
+            }
             if (cache == null) continue;
-            float progress = 1f - Math.max(0f, Math.min(1f, s.lifetime / SHOT_LIFETIME_REF));
+            float progress = 1f - Math.max(0f, Math.min(1f, s.lifetime / Math.max(0.001f, s.lifetimeMax)));
             float px = s.fromX + (s.toX - s.fromX) * progress;
             float py = s.fromY + (s.toY - s.fromY) * progress;
             float bearing = bearingDeg(s.fromX, s.fromY, s.toX, s.toY);
             SpriteAPI sprite = cache.sprite;
             float cellPxLocal = camera.cellPxSize();
-            float pxH = s.turretKind.projectileVisualCells * cellPxLocal;
+            float pxH = visualCells * cellPxLocal;
             float pxW = pxH * cache.aspect;
             sprite.setSize(pxW, pxH);
             sprite.setAngle(bearing);
@@ -1942,10 +2232,20 @@ public class BattleScreen implements Screen {
             sprite.setNormalBlend();
             sprite.setColor(Color.WHITE);
             sprite.renderAtCenter(camera.cellToScreenX(px), camera.cellToScreenY(py));
-            touchedProj.add(s.turretKind);
+            if (s.turretKind != null) touchedTurret.add(s.turretKind);
+            else if (s.marineSecondary != null) touchedSecondary.add(s.marineSecondary);
+            else                                touchedPrimary.add(s.marineWeapon);
         }
-        for (TurretKind k : touchedProj) {
+        for (TurretKind k : touchedTurret) {
             ShuttleSpriteCache c = turretProjectileSprites.get(k);
+            if (c != null) c.sprite.setAngle(0f);
+        }
+        for (MarineSecondary k : touchedSecondary) {
+            ShuttleSpriteCache c = marineSecondarySprites.get(k);
+            if (c != null) c.sprite.setAngle(0f);
+        }
+        for (MarineWeapon k : touchedPrimary) {
+            ShuttleSpriteCache c = marineWeaponProjectileSprites.get(k);
             if (c != null) c.sprite.setAngle(0f);
         }
     }

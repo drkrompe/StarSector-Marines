@@ -75,6 +75,31 @@ public class Unit {
     /** {@link UnitRole#FLEE} idle pause between wander legs. While >0 the civilian stands at their current cell instead of picking a new destination. Rolled fresh on arrival; ignored when a threat is in range. */
     public float wanderDwellTimer = 0f;
 
+    /** Primary handheld weapon. Null for legacy / non-marine units — fire stats fall back to the {@link UnitType} defaults baked into {@link #attackRange}/{@link #attackDamage}/etc. Assigned at deboard time for marines. */
+    public MarineWeapon primaryWeapon;
+    /** Optional secondary slot (rocket launcher, future grenades). Null = no secondary. */
+    public MarineSecondary secondaryWeapon;
+    /** Rounds remaining on the {@link #secondaryWeapon}. Decremented on each secondary shot; once zero the marine reverts to primary fire. */
+    public int secondaryAmmo;
+    /** Independent cooldown for the secondary weapon so it doesn't share state with the primary's {@link #cooldownTimer}. */
+    public float secondaryCooldownTimer = 0f;
+    /** Sim-seconds remaining in the secondary's aim-then-fire animation. While &gt;0 the marine is locked in place and the renderer draws the {@link MarineSecondary#aimSpritePath} pose; the actual shot launches when this drops below {@link MarineSecondary#aimDuration}/2. */
+    public float secondaryActionTimer = 0f;
+    /** Latched on launch within the current aim cycle so we only emit one shot per cycle, even though the trigger condition holds for several ticks past launch. */
+    public boolean secondaryFiredThisAction = false;
+    /** Target locked at the start of the aim cycle. The rocket fires here even if the original target dies mid-aim — the launcher's already committed. */
+    public Unit secondaryAimTarget;
+
+    /** Burst rounds queued after the AI's initial primary shot — the sim emits one per {@link MarineWeapon#burstSpacing} interval until exhausted. 0 = single-shot mode. */
+    public int burstRemaining = 0;
+    /** Sim-seconds until the next queued burst round fires. Decremented in {@link BattleSimulation#advanceBursts}. */
+    public float burstTimer = 0f;
+    /** Target captured when the burst was queued. Burst rounds keep firing here even if {@link #target} drifts to someone else, so a burst doesn't smear across multiple enemies. Cleared along with {@link #burstRemaining} when the burst ends or the target dies. */
+    public Unit burstTarget;
+
+    /** Random prone-pose index rolled on death. Drives which corpse frame the renderer picks from {@link UnitType#deadSpritePath} so a battlefield has pose variety rather than every body in the same slump. -1 sentinel = unit still alive. */
+    public int deathPoseIdx = -1;
+
     public Unit(String id, Faction faction, UnitType type, int cellX, int cellY) {
         this.id = id;
         this.faction = faction;
