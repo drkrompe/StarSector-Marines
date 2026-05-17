@@ -185,6 +185,31 @@ public final class ImpactFx {
         spawnSmokePuff(x, y, radiusCells, 0.9f + radiusCells * 0.8f);
     }
 
+    /**
+     * Emits a small additive glow particle as a rocket-engine puff at (x, y).
+     * Drives the lit-engine trail behind in-flight rockets — callers spawn
+     * one per render frame at the rocket's tail position so successive
+     * particles overlap into a fading streak. Short lifetime keeps the trail
+     * tight; hot-orange tint sells it as rocket exhaust.
+     */
+    public void spawnEngineTrail(float x, float y, float radiusCells) {
+        spawnSparkFlash(x, y, radiusCells, 0.25f, ENGINE_TRAIL_COLOR);
+    }
+
+    /**
+     * Bright muzzle-flash variant exposed publicly so the battle renderer
+     * can pin a flash at the firing unit's position when a chaingun round
+     * goes out. Same primitive as the internal spark-flash recipe — a hot
+     * additive glow with no growth — but the cell radius is bigger so the
+     * flash reads at a unit's muzzle rather than at an impact point.
+     */
+    public void spawnMuzzleFlash(float x, float y, float radiusCells, float lifetime) {
+        spawnSparkFlash(x, y, radiusCells, lifetime, SPARK_COLOR);
+    }
+
+    /** Engine-trail tint — hot orange so it reads as exhaust against the muted ground palette. */
+    private static final Color ENGINE_TRAIL_COLOR = new Color(0xFF, 0x90, 0x40);
+
     /** Smoke puff from the flipbook sheet. Light upward drift, random rotation, normal-alpha. Tuned smaller than the FlybyOverlay variant since ground impacts are point events, not aerial bursts. */
     private void spawnSmokePuff(float x, float y, float radiusCells, float lifetime) {
         if (particleSheetSprite == null) return;

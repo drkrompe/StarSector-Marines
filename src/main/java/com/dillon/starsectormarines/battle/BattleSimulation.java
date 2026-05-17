@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle;
 
+import com.dillon.starsectormarines.battle.air.SteeringMode;
 import com.dillon.starsectormarines.battle.ai.CombatantBehavior;
 import com.dillon.starsectormarines.battle.ai.FallbackBehavior;
 import com.dillon.starsectormarines.battle.ai.FleeBehavior;
@@ -84,6 +85,8 @@ public class BattleSimulation {
     private final List<Decal> decals = new ArrayList<>();
     /** Soft cap on decal count — older decals get dropped from the head when this fills, so a long battle doesn't accumulate thousands of bullet holes. */
     private static final int DECAL_CAP = 600;
+    /** Rockets / missiles in flight, scheduled to detonate at their endpoint when the timer drains. The physics-based damage path — paired with active {@link ShotEvent}s but separate (ShotEvent owns visuals; this owns damage). */
+    private final List<PendingDetonation> pendingDetonations = new ArrayList<>();
     /** Active smoking wrecks parked at destroyed turret cells. Each emits a periodic smoke-puff event the renderer drains into the impact FX engine. */
     private final List<SmokingWreck> smokingWrecks = new ArrayList<>();
     /** Smoke-puff events queued this advance — each entry is {x, y, radiusCells}. Drained by the renderer per frame and cleared at the start of each advance. */
@@ -110,34 +113,16 @@ public class BattleSimulation {
     /** Max BFS radius from the LZ when looking for a free deboard cell. Past this we drop the deboard for this tick. */
     private static final int DEBOARD_SCAN_RADIUS = 5;
 
-    /** Visual scale of a shuttle at cruising altitude (sells "I am up high"). Lerped down to 1.0 at touchdown. */
+    /** Visual scale of a shuttle at cruising altitude (sells "I am up high"). Driven by {@code Shuttle.altitudeT}; ground scale is 1.0. */
     private static final float SHUTTLE_CRUISE_SCALE = 1.5f;
-    /** Per-leg max bow as a fraction of the leg's chord length. Capped by {@link #SHUTTLE_CURVE_ABS_MAX} to keep long legs from arcing across the map. */
-    private static final float SHUTTLE_CURVE_REL_MAX = 0.15f;
-    /** Absolute cell-cap on the perpendicular bow. */
-    private static final float SHUTTLE_CURVE_ABS_MAX = 8f;
-    /** Floor so even short legs get a little wobble — straight-line shuttles read as cardboard. */
-    private static final float SHUTTLE_CURVE_MIN = 1.5f;
     /** Frequency (Hz) of the in-flight scale wobble. Slower than a heartbeat — reads as atmospheric drift, not a flicker. */
     private static final float SHUTTLE_WOBBLE_HZ = 0.7f;
     /** Peak amplitude of the wobble, in scale units. ±0.04 on top of a 1.5 cruise = ~2.7%; well inside the 5% target. */
     private static final float SHUTTLE_WOBBLE_AMPLITUDE = 0.04f;
-    /** Curve-strength multiplier for the DEPARTING leg — wider bow than INCOMING so takeoff reads as a banking loop, not a straight climb. */
-    private static final float SHUTTLE_DEPART_CURVE_MULT = 2.5f;
-    /** Fraction of the DEPARTING leg over which facing eases from landed direction into the leg tangent. */
-    private static final float SHUTTLE_DEPART_FACING_EASE = 0.4f;
-    /**
-     * Secondary weave layered onto the primary bow so the shuttle wiggles its way
-     * to the LZ rather than tracing one clean arc. Same {@code sin²(πt)} envelope
-     * gates both displacement and slope to zero at endpoints, so this is a
-     * no-op for touchdown facing — only mid-flight motion gains organic snake.
-     */
-    private static final float SHUTTLE_WEAVE_AMP_REL_MAX = 0.025f;
-    private static final float SHUTTLE_WEAVE_AMP_ABS_MAX = 2.0f;
-    private static final float SHUTTLE_WEAVE_AMP_MIN     = 0.4f;
-    /** Cycles per leg — 1.5-3.5 reads as drift, not jitter. */
-    private static final float SHUTTLE_WEAVE_FREQ_MIN    = 1.5f;
-    private static final float SHUTTLE_WEAVE_FREQ_MAX    = 3.5f;
+    /** Distance threshold (cells) at which an INCOMING shuttle snaps to the LZ and transitions to LANDED. Tight enough that the snap is invisible; loose enough that the asymptotic brake-to-station taper doesn't stall short. */
+    private static final float SHUTTLE_LZ_ARRIVAL_DIST = 0.2f;
+    /** Distance threshold (cells) at which a DEPARTING shuttle transitions to GONE / next cycle. Larger than the LZ threshold because exit points sit well off-map and we don't need pinpoint accuracy. */
+    private static final float SHUTTLE_EXIT_ARRIVAL_DIST = 1.0f;
 
     /** Per-cell unit count, rebuilt at the start of each tick. Passed to the pathfinder so units route around ally-held cells. */
     private final byte[] occupancyMap;
@@ -265,10 +250,23 @@ public class BattleSimulation {
         // they emit at the right per-weapon spacing without piling onto the
         // AI's single-decision-per-tick model.
         advanceBursts();
+        // Mech chassis weapons run on their own state bag (MechLoadoutState).
+        // Continuation handling for chaingun bursts + SRM salvos, plus cooldown
+        // tick-down for all three tracks. New triggers (start a burst / salvo /
+        // LRM) come from CombatantBehavior; this pass just emits the queued rounds.
+        advanceMechWeapons();
+        // Physics-based rocket/missile damage — each pending detonation ticks
+        // down its arrival timer and applies splash + wall damage when it
+        // expires. Pairs with the visual ShotEvent flight; the visual and the
+        // damage are queued together and arrive together.
+        advancePendingDetonations();
         // Convert any turrets that just died into walkable rubble so the next
         // tick's pathfinding + zone graph sees the hole, and the floor pass
         // picks the cell up as rubble.
         demolishDeadTurrets();
+        // Mech death → smoking wreck on the mech's cell. Idempotent via the
+        // wreckSpawned latch on MechLoadoutState.
+        spawnMechWrecks();
         // Age smoking wrecks + emit any puff events that came due this tick.
         tickSmokingWrecks();
         // Shuttles tick AFTER units so new deboarded marines aren't iterated
@@ -396,6 +394,97 @@ public class BattleSimulation {
                     0.05f + rng.nextFloat() * 0.10f));
         }
         if (anyDemolished) zoneGraph.rebuild();
+    }
+
+    /**
+     * Ticks every queued {@link PendingDetonation}; when one's timer drains,
+     * applies its splash damage at the endpoint and removes it from the list.
+     * Reverse iteration for in-place removal.
+     *
+     * <p>This is the physics-based damage path — rockets / missiles fire,
+     * fly visibly for {@code flightSec}, and damage whatever's at the endpoint
+     * when they arrive (not when they launched). Friendly fire is ON: every
+     * unit in radius takes damage regardless of faction.
+     */
+    private void advancePendingDetonations() {
+        for (int i = pendingDetonations.size() - 1; i >= 0; i--) {
+            PendingDetonation det = pendingDetonations.get(i);
+            det.remainingTime -= TICK_DT;
+            if (det.remainingTime <= 0f) {
+                detonate(det);
+                pendingDetonations.remove(i);
+            }
+        }
+    }
+
+    /**
+     * Applies a detonation: AoE damage to every unit within {@code aoeRadius}
+     * with line of sight to the endpoint, plus wall HP damage at the endpoint
+     * cell. Cover reduction applies per unit; vs-turret multiplier applies to
+     * {@link MapTurret} targets. LOS-blocked units are spared (the wall
+     * absorbed the splash for them), which keeps "duck behind cover" as a
+     * real defensive option.
+     */
+    private void detonate(PendingDetonation det) {
+        if (det.aoeRadius > 0f) {
+            float r2 = det.aoeRadius * det.aoeRadius;
+            int targetCx = (int) Math.floor(det.endpointX);
+            int targetCy = (int) Math.floor(det.endpointY);
+            for (Unit u : units) {
+                if (!u.isAlive()) continue;
+                float dx = (u.cellX + 0.5f) - det.endpointX;
+                float dy = (u.cellY + 0.5f) - det.endpointY;
+                if (dx * dx + dy * dy > r2) continue;
+                // LOS from the detonation cell to the victim cell. Walls
+                // between block the splash — gives marines hiding behind
+                // walls a real reason to stay there.
+                if (!grid.hasLineOfSight(targetCx, targetCy, u.cellX, u.cellY)) continue;
+                int cover = grid.getCoverAt(u.cellX, u.cellY);
+                float dr = COVER_DAMAGE_REDUCTION[Math.min(cover, COVER_DAMAGE_REDUCTION.length - 1)];
+                float effectiveMult = (u instanceof MapTurret) ? det.vsTurretMult : 1f;
+                boolean wasAlive = u.isAlive();
+                u.hp -= det.damage * effectiveMult * (1f - dr);
+                if (wasAlive && !u.isAlive()) {
+                    u.deathPoseIdx = rng.nextInt(4);
+                    deathsThisFrame.add(u);
+                    emitEquipmentDropIfApplicable(u);
+                }
+            }
+        }
+        // Wall damage at the endpoint cell. damageCell silently no-ops on
+        // walkable cells (the rocket hit ground, not a wall) — so this is
+        // safe to call unconditionally for any HE round with wallDamage > 0.
+        if (det.wallDamage > 0) {
+            int cx = (int) Math.floor(det.endpointX);
+            int cy = (int) Math.floor(det.endpointY);
+            if (grid.inBounds(cx, cy)) {
+                damageCell(cx, cy, det.wallDamage);
+            }
+        }
+    }
+
+    /**
+     * Walks the unit list and emits a {@link SmokingWreck} on the cell of any
+     * just-died mech ({@link MechLoadoutState#wreckSpawned} is the idempotency
+     * latch). Runs once per tick after kill resolution. Catches mech deaths
+     * from every code path — primary fire, mech crossfire, marine rockets,
+     * flyby strafing — without duplicating spawn logic at each kill site.
+     *
+     * <p>Mech wrecks live the full {@link #WRECK_LIFETIME} window like turret
+     * wrecks; the existing {@link #tickSmokingWrecks} pass drives the smoke
+     * puff cadence. Unlike turrets, the mech's cell isn't flipped to walkable
+     * rubble — the corpse sprite sits on the cell instead, which would be
+     * inconsistent with letting marines path through it. (If playtest reads
+     * "mech hulk should block path," easy follow-up.)
+     */
+    private void spawnMechWrecks() {
+        for (Unit u : units) {
+            if (u.isAlive()) continue;
+            if (u.mech == null || u.mech.wreckSpawned) continue;
+            smokingWrecks.add(new SmokingWreck(u.cellX, u.cellY, WRECK_LIFETIME,
+                    0.05f + rng.nextFloat() * 0.10f));
+            u.mech.wreckSpawned = true;
+        }
     }
 
     /**
@@ -702,19 +791,11 @@ public class BattleSimulation {
         MarineSecondary sec = shooter.secondaryWeapon;
         if (sec == null || shooter.secondaryAmmo <= 0) return;
         shooter.secondaryAmmo--;
+        // Accuracy roll determines WHERE the rocket lands (target cell on hit,
+        // scattered on miss). Damage is NOT applied here — it's queued onto
+        // pendingDetonations and resolves at impact arrival, so a marine who
+        // moves between launch and impact escapes the splash.
         boolean hit = rng.nextFloat() < sec.accuracy;
-        if (hit) {
-            boolean wasAlive = target.isAlive();
-            int targetCover = grid.getCoverAt(target.cellX, target.cellY);
-            float dr = COVER_DAMAGE_REDUCTION[Math.min(targetCover, COVER_DAMAGE_REDUCTION.length - 1)];
-            float effectiveMult = (target instanceof MapTurret) ? sec.vsTurretMult : 1f;
-            target.hp -= sec.damage * effectiveMult * (1f - dr);
-            if (wasAlive && !target.isAlive()) {
-                target.deathPoseIdx = rng.nextInt(4);
-                deathsThisFrame.add(target);
-                emitEquipmentDropIfApplicable(target);
-            }
-        }
         float fromX = shooter.cellX + 0.5f;
         float fromY = shooter.cellY + 0.5f;
         float toX, toY;
@@ -727,12 +808,195 @@ public class BattleSimulation {
             toX = target.cellX + 0.5f + (float) Math.cos(angle) * spread;
             toY = target.cellY + 0.5f + (float) Math.sin(angle) * spread;
         }
-        // Secondary uses its per-weapon flightSec so rockets visibly travel
-        // (default SHOT_LIFETIME is ~150ms — would blink across the screen).
+        pendingDetonations.add(new PendingDetonation(
+                toX, toY, sec.flightSec,
+                sec.aoeRadius, sec.damage, sec.vsTurretMult,
+                sec.wallDamage, shooter.faction));
+        // Secondary uses its per-weapon flightSec so rockets visibly travel.
         ShotEvent evt = new ShotEvent(fromX, fromY, toX, toY, hit, shooter.faction, sec.flightSec,
                 null, null, sec);
         activeShots.add(evt);
         shotsThisFrame.add(evt);
+    }
+
+    /**
+     * Convenience overload — full accuracy. Used by all the precision-fire
+     * code paths (chaingun, SRM, line-of-sight LRMs).
+     */
+    public void fireMechWeapon(Unit shooter, Unit target, MechWeapon weapon) {
+        fireMechWeapon(shooter, target, weapon, 1.0f);
+    }
+
+    /**
+     * Fires one round of a mech chassis weapon. Damage / accuracy / vsTurret
+     * pull from the {@link MechWeapon} parameter rather than the shooter's
+     * baked Unit stats — a single mech runs three concurrent weapon tracks
+     * with very different numbers, so the weapon's profile drives the math.
+     * Caller is responsible for cooldown / ammo / range gating before calling.
+     *
+     * <p>{@code accuracyMult} scales the weapon's base accuracy at the hit
+     * roll. Set to 1.0 for line-of-sight fire; the LRM indirect-fire path
+     * (no LOS to target) passes {@link MechWeapon#LRM_NO_LOS_ACC_MULT}.
+     */
+    public void fireMechWeapon(Unit shooter, Unit target, MechWeapon weapon, float accuracyMult) {
+        // Accuracy roll determines endpoint placement (target cell on hit,
+        // scattered on miss). For AoE weapons damage application is deferred
+        // to detonation arrival; kinetic weapons (chaingun) apply damage at
+        // fire time below since their flight is so short.
+        boolean hit = rng.nextFloat() < weapon.accuracy * accuracyMult;
+        boolean isAoe = weapon.aoeRadius > 0f;
+
+        // KINETIC PATH — chainguns and any future no-AoE mech weapon. Damage
+        // applies immediately to the locked target (same model fireShot uses
+        // for marine primaries).
+        if (!isAoe && hit) {
+            boolean wasAlive = target.isAlive();
+            int targetCover = grid.getCoverAt(target.cellX, target.cellY);
+            float dr = COVER_DAMAGE_REDUCTION[Math.min(targetCover, COVER_DAMAGE_REDUCTION.length - 1)];
+            float effectiveMult = (target instanceof MapTurret) ? weapon.vsTurretMult : 1f;
+            target.hp -= weapon.damage * effectiveMult * (1f - dr);
+            if (wasAlive && !target.isAlive()) {
+                target.deathPoseIdx = rng.nextInt(4);
+                deathsThisFrame.add(target);
+                emitEquipmentDropIfApplicable(target);
+            }
+            // Roll fall-back on hit — same recipe as fireShot. Skipped for
+            // turrets (they fight to the last HP) and already-broken units.
+            if (target.isAlive() && target.fallbackTimer <= 0f
+                    && !(target instanceof MapTurret)
+                    && rng.nextFloat() < FALLBACK_CHANCE) {
+                int[] fallback = TacticalScoring.findFallbackPosition(target, this);
+                if (fallback[0] != target.cellX || fallback[1] != target.cellY) {
+                    target.fallbackCellX = fallback[0];
+                    target.fallbackCellY = fallback[1];
+                    target.fallbackTimer = FALLBACK_DURATION;
+                    setPath(target, Collections.emptyList());
+                }
+            }
+        }
+
+        float fromX = shooter.cellX + 0.5f;
+        float fromY = shooter.cellY + 0.5f;
+        float toX, toY;
+        if (hit) {
+            toX = target.cellX + 0.5f;
+            toY = target.cellY + 0.5f;
+            // Endpoint scatter — pure visual offset around the target cell.
+            // For AoE weapons this also scatters the splash center, so a salvo
+            // sprays the impact zone instead of stacking on one cell.
+            if (weapon.hitSpread > 0f) {
+                float angle = rng.nextFloat() * (float) (Math.PI * 2);
+                float r = rng.nextFloat() * weapon.hitSpread;
+                toX += (float) Math.cos(angle) * r;
+                toY += (float) Math.sin(angle) * r;
+            }
+        } else {
+            float angle = rng.nextFloat() * (float) (Math.PI * 2);
+            float spread = MISS_OFFSET_MIN + rng.nextFloat() * (MISS_OFFSET_MAX - MISS_OFFSET_MIN);
+            // Misses get the wider baseline scatter PLUS the weapon's hitSpread
+            // — an indirect-fire weapon's misses scatter further than a rifle's.
+            spread += weapon.hitSpread;
+            toX = target.cellX + 0.5f + (float) Math.cos(angle) * spread;
+            toY = target.cellY + 0.5f + (float) Math.sin(angle) * spread;
+        }
+
+        // AOE PATH — queue a detonation at the endpoint. Damage resolves on
+        // arrival via advancePendingDetonations / detonate. Hit-vs-miss only
+        // affects WHERE the rocket lands; AoE math at impact decides who's
+        // close enough to feel it.
+        if (isAoe) {
+            pendingDetonations.add(new PendingDetonation(
+                    toX, toY, weapon.flightSec,
+                    weapon.aoeRadius, weapon.damage, weapon.vsTurretMult,
+                    weapon.wallDamage, shooter.faction));
+        }
+
+        float lifetime = weapon.flightSec > 0f ? weapon.flightSec : SHOT_LIFETIME;
+        ShotEvent evt = new ShotEvent(fromX, fromY, toX, toY, hit, shooter.faction, lifetime,
+                null, null, null, weapon);
+        activeShots.add(evt);
+        shotsThisFrame.add(evt);
+    }
+
+    /**
+     * Per-tick mech-weapon pass — runs the three chassis tracks (chaingun
+     * burst continuation, SRM salvo continuation, LRM cooldown drain) for every
+     * unit with a {@link MechLoadoutState}. Mirrors {@link #advanceBursts} for
+     * the marine primary side; lives separate because the mech burst state is
+     * on the loadout, not the unit.
+     *
+     * <p>The trigger decisions (start a burst / launch a salvo / lob an LRM)
+     * happen inside the per-unit behavior. This pass only handles continuation
+     * — emitting queued rounds at their proper spacing — and ticks down
+     * the per-weapon cooldowns so the next trigger decision sees the right
+     * gating.
+     */
+    private void advanceMechWeapons() {
+        for (Unit u : units) {
+            MechLoadoutState m = u.mech;
+            if (m == null || !u.isAlive()) continue;
+
+            if (m.chaingunCooldown > 0f) m.chaingunCooldown -= TICK_DT;
+            if (m.srmCooldown      > 0f) m.srmCooldown      -= TICK_DT;
+            if (m.lrmCooldown      > 0f) m.lrmCooldown      -= TICK_DT;
+
+            // Chaingun burst continuation.
+            if (m.chaingunBurstRemaining > 0) {
+                m.chaingunBurstTimer -= TICK_DT;
+                if (m.chaingunBurstTimer <= 0f) {
+                    if (m.chaingunBurstTarget == null || !m.chaingunBurstTarget.isAlive()) {
+                        m.chaingunBurstRemaining = 0;
+                        m.chaingunBurstTarget = null;
+                    } else {
+                        fireMechWeapon(u, m.chaingunBurstTarget, m.chaingun);
+                        m.chaingunBurstRemaining--;
+                        m.chaingunBurstTimer = m.chaingun.burstSpacing;
+                        if (m.chaingunBurstRemaining == 0) m.chaingunBurstTarget = null;
+                    }
+                }
+            }
+
+            // SRM salvo continuation.
+            if (m.srmSalvoRemaining > 0) {
+                m.srmSalvoTimer -= TICK_DT;
+                if (m.srmSalvoTimer <= 0f) {
+                    if (m.srmSalvoTarget == null || !m.srmSalvoTarget.isAlive()) {
+                        m.srmSalvoRemaining = 0;
+                        m.srmSalvoTarget = null;
+                    } else {
+                        fireMechWeapon(u, m.srmSalvoTarget, m.srmPod);
+                        m.srmSalvoRemaining--;
+                        m.srmSalvoTimer = m.srmPod.burstSpacing;
+                        if (m.srmSalvoRemaining == 0) m.srmSalvoTarget = null;
+                    }
+                }
+            }
+
+            // LRM salvo continuation — same pattern as SRM. Locked target is
+            // held across the whole 5-rocket wave so a single salvo reads as
+            // one coordinated barrage instead of scatter fire across enemies.
+            // LOS is recomputed per rocket: if marines pop into LOS mid-salvo,
+            // the later rockets get full accuracy; if LOS drops mid-salvo, the
+            // remaining rockets eat the indirect-fire penalty.
+            if (m.lrmSalvoRemaining > 0) {
+                m.lrmSalvoTimer -= TICK_DT;
+                if (m.lrmSalvoTimer <= 0f) {
+                    if (m.lrmSalvoTarget == null || !m.lrmSalvoTarget.isAlive()) {
+                        m.lrmSalvoRemaining = 0;
+                        m.lrmSalvoTarget = null;
+                    } else {
+                        boolean hasLos = grid.hasLineOfSight(
+                                u.cellX, u.cellY,
+                                m.lrmSalvoTarget.cellX, m.lrmSalvoTarget.cellY);
+                        float accMult = hasLos ? 1.0f : MechWeapon.LRM_NO_LOS_ACC_MULT;
+                        fireMechWeapon(u, m.lrmSalvoTarget, m.lrmArtillery, accMult);
+                        m.lrmSalvoRemaining--;
+                        m.lrmSalvoTimer = m.lrmArtillery.burstSpacing;
+                        if (m.lrmSalvoRemaining == 0) m.lrmSalvoTarget = null;
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -796,9 +1060,16 @@ public class BattleSimulation {
 
     /**
      * Advances each shuttle's state machine by one tick. PENDING burns down the
-     * stagger delay; INCOMING/DEPARTING fly along their entry→LZ / LZ→exit
-     * vectors at {@link ShuttleType#flightSpeed}; LANDED ticks a deboard timer
-     * and spawns a marine on each fire.
+     * stagger delay; INCOMING/DEPARTING steer the {@link com.dillon.starsectormarines.battle.air.AirBody}
+     * toward their LZ / exit waypoint under the shuttle's
+     * {@link ShuttleType} handling profile; LANDED ticks a deboard timer and
+     * spawns a marine on each fire.
+     *
+     * <p>The "boat" feel — slow buses pendulum, nimble craft snap into headings —
+     * falls out of the per-type turn rate and lateral damping in
+     * {@link com.dillon.starsectormarines.battle.air.AirHandling}. No
+     * parametric per-leg curve is needed; the arc is what kinematic-limited
+     * steering produces.
      */
     private void advanceShuttles() {
         for (Shuttle s : shuttles) {
@@ -806,19 +1077,21 @@ public class BattleSimulation {
                 case PENDING:
                     s.pendingDelay -= TICK_DT;
                     if (s.pendingDelay <= 0f) {
-                        setupShuttleLeg(s, s.entryX, s.entryY, s.lzX, s.lzY, 1f);
+                        beginShuttleLeg(s, s.lzX, s.lzY);
                         s.state = Shuttle.State.INCOMING;
                     }
                     break;
 
                 case INCOMING:
-                    if (stepShuttleAlongLeg(s, s.entryX, s.entryY, s.lzX, s.lzY)) {
-                        // Snap to LZ on touchdown — sin² envelope is zero at endpoint
-                        // so this matches the curve's natural value, but be explicit.
-                        s.worldX = s.lzX;
-                        s.worldY = s.lzY;
+                    s.body.tickToward(s.lzX, s.lzY, SteeringMode.BRAKE_TO_STATION, s.type, TICK_DT);
+                    updateShuttleAltitude(s, s.lzX, s.lzY, /*incoming=*/true);
+                    if (s.body.distanceTo(s.lzX, s.lzY) < SHUTTLE_LZ_ARRIVAL_DIST) {
+                        // Snap to the LZ — the BRAKE_TO_STATION taper is
+                        // asymptotic, so without this the shuttle would creep
+                        // the last fraction of a cell at near-zero speed.
+                        s.body.teleport(s.lzX, s.lzY, s.body.facingDegrees);
+                        s.altitudeT = 0f;
                         s.scaleMult = 1f;
-                        s.landedFacing = s.facingDegrees;
                         s.state = Shuttle.State.LANDED;
                         s.deboardCountdown = s.type.deboardInterval;
                     }
@@ -833,28 +1106,30 @@ public class BattleSimulation {
                         s.deboardCountdown = s.type.deboardInterval;
                     }
                     if (s.marinesRemaining == 0) {
-                        setupShuttleLeg(s, s.lzX, s.lzY, s.exitX, s.exitY, SHUTTLE_DEPART_CURVE_MULT);
+                        beginShuttleLeg(s, s.exitX, s.exitY);
                         s.state = Shuttle.State.DEPARTING;
                     }
                     break;
 
                 case DEPARTING:
-                    if (stepShuttleAlongLeg(s, s.lzX, s.lzY, s.exitX, s.exitY)) {
+                    s.body.tickToward(s.exitX, s.exitY, SteeringMode.CRUISE, s.type, TICK_DT);
+                    updateShuttleAltitude(s, s.exitX, s.exitY, /*incoming=*/false);
+                    if (s.body.distanceTo(s.exitX, s.exitY) < SHUTTLE_EXIT_ARRIVAL_DIST) {
                         if (s.currentCycle + 1 < s.totalCycles) {
                             // Recycle for another sortie. The shuttle drops out of
                             // view (PENDING is invisible + engine-silent) for
-                            // s.rearmDelay sim-seconds, then re-enters INCOMING
-                            // with a fresh randomized curve. Per-cycle loadout
-                            // refreshes here so SABOTAGE planters target the
-                            // next charge site on each return trip.
+                            // s.rearmDelay sim-seconds, then re-enters INCOMING.
+                            // Per-cycle loadout refreshes here so SABOTAGE planters
+                            // target the next charge site on each return trip.
                             s.currentCycle++;
                             if (s.cycleLoadouts != null && s.currentCycle < s.cycleLoadouts.length) {
                                 s.marineLoadout = s.cycleLoadouts[s.currentCycle];
                             }
                             s.marinesRemaining = s.type.capacity;
                             s.pendingDelay = s.rearmDelay;
-                            s.worldX = s.entryX;
-                            s.worldY = s.entryY;
+                            s.body.teleport(s.entryX, s.entryY,
+                                    Shuttle.facingTowards(s.entryX, s.entryY, s.lzX, s.lzY));
+                            s.altitudeT = 1f;
                             s.state = Shuttle.State.PENDING;
                         } else {
                             s.state = Shuttle.State.GONE;
@@ -870,124 +1145,32 @@ public class BattleSimulation {
     }
 
     /**
-     * Initializes a shuttle's progress, chord length, and randomized curve
-     * params for a new leg. {@code strengthMult} scales both the floor and
-     * cap of the random curve strength — INCOMING passes 1.0 for a gentle
-     * approach; DEPARTING passes a larger value so takeoff bows wide enough
-     * to read as a banking loop.
-     *
-     * <p>Does NOT overwrite {@code facingDegrees} — the first tick of
-     * {@link #stepShuttleAlongLeg} computes facing from the tangent (or, for
-     * DEPARTING, eases from the preserved {@code landedFacing}).
+     * Caches the leg's straight-line distance so {@link #updateShuttleAltitude}
+     * can lerp scale + engine intensity by remaining-distance ratio. Body
+     * position is left untouched — it's already at the previous waypoint (the
+     * entry point, or the LZ).
      */
-    private void setupShuttleLeg(Shuttle s, float fromX, float fromY, float toX, float toY, float strengthMult) {
-        s.legProgress = 0f;
-        float dx = toX - fromX;
-        float dy = toY - fromY;
-        s.legChordLength = Math.max(0.001f, (float) Math.sqrt(dx * dx + dy * dy));
-        float cap = Math.min(s.legChordLength * SHUTTLE_CURVE_REL_MAX, SHUTTLE_CURVE_ABS_MAX) * strengthMult;
-        float floor = Math.min(SHUTTLE_CURVE_MIN * strengthMult, cap);
-        s.curveStrength = floor + rng.nextFloat() * Math.max(0f, cap - floor);
-        s.curveSide = rng.nextBoolean() ? 1 : -1;
-        s.flightPhase = rng.nextFloat() * (float) (2 * Math.PI);
-
-        // Secondary weave parameters. Amplitude scales with leg length (so short
-        // hops don't snake disproportionately) and is capped absolutely. Frequency
-        // and phase are random per leg so each shuttle's wiggle pattern is unique.
-        float weaveCap = Math.min(s.legChordLength * SHUTTLE_WEAVE_AMP_REL_MAX, SHUTTLE_WEAVE_AMP_ABS_MAX);
-        float weaveFloor = Math.min(SHUTTLE_WEAVE_AMP_MIN, weaveCap);
-        s.weaveAmp = weaveFloor + rng.nextFloat() * Math.max(0f, weaveCap - weaveFloor);
-        s.weaveFreq = SHUTTLE_WEAVE_FREQ_MIN + rng.nextFloat() * (SHUTTLE_WEAVE_FREQ_MAX - SHUTTLE_WEAVE_FREQ_MIN);
-        s.weavePhase = rng.nextFloat() * (float) (2 * Math.PI);
-
-        s.worldX = fromX;
-        s.worldY = fromY;
+    private void beginShuttleLeg(Shuttle s, float toX, float toY) {
+        s.legStartDist = Math.max(0.001f, s.body.distanceTo(toX, toY));
     }
 
     /**
-     * Advances the shuttle one tick along the current leg's curved path and
-     * updates its world position, facing tangent, and scale multiplier. Returns
-     * {@code true} the tick the shuttle reaches the leg's endpoint (caller
-     * transitions to the next state).
-     *
-     * <p>Path is a straight-line interpolation plus a perpendicular bow with
-     * a sin² envelope:
-     * <pre>{@code
-     *   pos(t) = lerp(from, to, t) + perp * sin²(πt) * strength * side
-     * }</pre>
-     * The sin² envelope is zero AND has zero derivative at both endpoints, so
-     * facing exactly matches the straight-line direction at entry and
-     * touchdown — no banked-landing artifact — while the midflight tangent
-     * rotates smoothly through the curve.
+     * Per-tick altitude / scale update. {@code altitudeT} runs 1 → 0 on
+     * INCOMING (high at entry, ground at LZ) and 0 → 1 on DEPARTING. Drives
+     * {@link Shuttle#scaleMult} via {@link #SHUTTLE_CRUISE_SCALE} plus a small
+     * sine wobble that's gated by altitudeT so it dies cleanly on the ground.
      */
-    private boolean stepShuttleAlongLeg(Shuttle s, float fromX, float fromY, float toX, float toY) {
-        s.legProgress += (s.type.flightSpeed * TICK_DT) / s.legChordLength;
-        boolean done = s.legProgress >= 1f;
-        if (done) s.legProgress = 1f;
-        float t = s.legProgress;
+    private void updateShuttleAltitude(Shuttle s, float toX, float toY, boolean incoming) {
+        float remaining = s.body.distanceTo(toX, toY);
+        float ratio = remaining / s.legStartDist;
+        if (ratio < 0f) ratio = 0f;
+        if (ratio > 1f) ratio = 1f;
+        s.altitudeT = incoming ? ratio : (1f - ratio);
 
-        float legDx = toX - fromX;
-        float legDy = toY - fromY;
-        float perpX = -legDy / s.legChordLength;
-        float perpY =  legDx / s.legChordLength;
-
-        // sin²(πt) envelope. Peaks at t=0.5; zero (with zero slope) at t=0 and t=1.
-        float sinPiT = (float) Math.sin(t * Math.PI);
-        float envelope = sinPiT * sinPiT;
-        float bow = envelope * s.curveStrength * s.curveSide;
-
-        // Secondary weave — higher-frequency perpendicular wiggle, same envelope.
-        // Because the envelope contributes both factor and derivative at endpoints,
-        // adding weave to displacement AND tangent keeps the touchdown math intact:
-        // pos and dpos/dt are both still exactly zero perpendicular displacement
-        // at t=0 and t=1.
-        float weaveArg = 2f * (float) Math.PI * s.weaveFreq * t + s.weavePhase;
-        float weaveSin = (float) Math.sin(weaveArg);
-        float weaveCos = (float) Math.cos(weaveArg);
-        float weave = envelope * s.weaveAmp * weaveSin;
-        float perpDisp = bow + weave;
-
-        float linearX = fromX + legDx * t;
-        float linearY = fromY + legDy * t;
-        s.worldX = linearX + perpX * perpDisp;
-        s.worldY = linearY + perpY * perpDisp;
-
-        // Tangent for facing: d/dt of position. Each perpendicular term contributes
-        // its own derivative.
-        //   d(envelope)/dt = π·sin(2πt)
-        //   d(weave)/dt    = d(envelope)/dt · amp · sin(...)  +  envelope · amp · 2π·freq · cos(...)
-        float dEnvelopeDt = (float) (Math.PI * Math.sin(2.0 * Math.PI * t));
-        float dBowDt = dEnvelopeDt * s.curveStrength * s.curveSide;
-        float dWeaveDt = dEnvelopeDt * s.weaveAmp * weaveSin
-                + envelope * s.weaveAmp * 2f * (float) Math.PI * s.weaveFreq * weaveCos;
-        float dPerpDispDt = dBowDt + dWeaveDt;
-        float tangentX = legDx + perpX * dPerpDispDt;
-        float tangentY = legDy + perpY * dPerpDispDt;
-        float tangentFacing = Shuttle.facingTowards(0f, 0f, tangentX, tangentY);
-
-        // Departure pivot — for the first SHUTTLE_DEPART_FACING_EASE of progress,
-        // smoothly rotate from the held landed facing into the leg tangent.
-        // Smoothstep (3t²-2t³) gives an ease-in-out so the rotation accelerates
-        // away from the landed pose and decelerates into the cruise heading.
-        if (s.state == Shuttle.State.DEPARTING && t < SHUTTLE_DEPART_FACING_EASE) {
-            float u = t / SHUTTLE_DEPART_FACING_EASE;
-            float ease = u * u * (3f - 2f * u);
-            s.facingDegrees = lerpAngleDeg(s.landedFacing, tangentFacing, ease);
-        } else {
-            s.facingDegrees = tangentFacing;
-        }
-
-        // Altitude scale — cruise on entry, ground at touchdown. Mirrored on takeoff.
-        // INCOMING: t=0 → cruise, t=1 → 1.0. DEPARTING: t=0 → 1.0, t=1 → cruise.
-        float altitudeT = (s.state == Shuttle.State.DEPARTING) ? t : (1f - t);
-        float baseScale = 1f + (SHUTTLE_CRUISE_SCALE - 1f) * altitudeT;
-        // In-flight wobble. Tapered with the same sin² envelope as the bow so
-        // it's zero (and zero-slope) at the endpoints — touchdown snaps cleanly
-        // to the cruise→1.0 baseline with no wobble residue.
+        float baseScale = 1f + (SHUTTLE_CRUISE_SCALE - 1f) * s.altitudeT;
         s.flightPhase += TICK_DT * 2f * (float) Math.PI * SHUTTLE_WOBBLE_HZ;
-        float wobble = (float) Math.sin(s.flightPhase) * SHUTTLE_WOBBLE_AMPLITUDE * envelope;
+        float wobble = (float) Math.sin(s.flightPhase) * SHUTTLE_WOBBLE_AMPLITUDE * s.altitudeT;
         s.scaleMult = baseScale + wobble;
-        return done;
     }
 
     /**
@@ -1079,13 +1262,4 @@ public class BattleSimulation {
         return false;
     }
 
-    /**
-     * Linearly interpolates between two angles in degrees, taking the shortest
-     * arc through the ±180° wrap. Standard ({@code (b-a+540) mod 360 - 180})
-     * trick to fold the delta into the [-180, 180] range before scaling.
-     */
-    private static float lerpAngleDeg(float a, float b, float t) {
-        float delta = ((b - a + 540f) % 360f) - 180f;
-        return a + t * delta;
-    }
 }

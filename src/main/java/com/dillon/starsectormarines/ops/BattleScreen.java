@@ -256,6 +256,9 @@ public class BattleScreen implements Screen {
     /** Per-{@link MarineWeapon} projectile sprite — populated only for weapons whose {@code projectileSpritePath} is non-null (SMG today). Marines without a sprite path keep the line-tracer render. */
     private final java.util.EnumMap<MarineWeapon, ShuttleSpriteCache> marineWeaponProjectileSprites =
             new java.util.EnumMap<>(MarineWeapon.class);
+    /** Per-{@link com.dillon.starsectormarines.battle.MechWeapon} projectile sprite — every mech weapon ships with one (vanilla shell / SRM / LRM art), so every entry gets loaded eagerly. */
+    private final java.util.EnumMap<com.dillon.starsectormarines.battle.MechWeapon, ShuttleSpriteCache> mechWeaponProjectileSprites =
+            new java.util.EnumMap<>(com.dillon.starsectormarines.battle.MechWeapon.class);
     /** Shared decal sheet — 13 frames horizontally, auto-sliced into a SpriteSheetFrames so individual {@link Decal#decalIndex} values map to a frame box. */
     private SpriteAPI decalSheet;
     private SpriteSheetFrames decalFrames;
@@ -761,6 +764,29 @@ public class BattleScreen implements Screen {
                 LOG.error("BattleScreen: failed to load primary projectile " + w.projectileSpritePath, e);
             }
         }
+        // Mech chassis projectile sprites — every entry has one (chaingun
+        // shell / SRM / LRM). Same load + aspect-capture pattern as the marine
+        // primaries above.
+        for (com.dillon.starsectormarines.battle.MechWeapon w
+                : com.dillon.starsectormarines.battle.MechWeapon.values()) {
+            if (w.projectileSpritePath == null) continue;
+            try {
+                Global.getSettings().loadTexture(w.projectileSpritePath);
+                SpriteAPI sprite = Global.getSettings().getSprite(w.projectileSpritePath);
+                if (sprite == null) {
+                    LOG.warn("BattleScreen: getSprite returned null for " + w.projectileSpritePath);
+                    continue;
+                }
+                float pw = sprite.getWidth();
+                float ph = sprite.getHeight();
+                float aspect = (ph > 0f) ? pw / ph : 1f;
+                mechWeaponProjectileSprites.put(w, new ShuttleSpriteCache(sprite, aspect));
+                LOG.info("BattleScreen: loaded mech projectile " + w.projectileSpritePath
+                        + " (" + pw + "x" + ph + ", aspect=" + aspect + ")");
+            } catch (Exception e) {
+                LOG.error("BattleScreen: failed to load mech projectile " + w.projectileSpritePath, e);
+            }
+        }
     }
 
     private void ensureTurretSprites() {
@@ -1036,32 +1062,21 @@ public class BattleScreen implements Screen {
             String loopId = VEHICLE_ENGINE_LOOPS[resoIdx];
             // Deterministic ±jitter from the hash so the offset doesn't change frame-to-frame.
             float pitchOffset = (((idHash >> 8) & 0xff) / 255f * 2f - 1f) * SHUTTLE_RESONANCE_PITCH_JITTER;
-            Vector2f loc = new Vector2f(s.worldX * AUDIO_WORLD_UNITS_PER_CELL,
-                                        s.worldY * AUDIO_WORLD_UNITS_PER_CELL);
-            // Approximate per-frame velocity from leg geometry — we don't store an explicit
-            // velocity vector on Shuttle. Tangent of (entry→lz) during INCOMING and (lz→exit)
-            // during DEPARTING; zero while LANDED. Doppler is subtle but readable on a banking pass.
+            Vector2f loc = new Vector2f(s.body.x * AUDIO_WORLD_UNITS_PER_CELL,
+                                        s.body.y * AUDIO_WORLD_UNITS_PER_CELL);
             Vector2f vel = shuttleVelocity(s);
             Global.getSoundPlayer().playLoop(loopId, s, 1f + pitchOffset,
                     SHUTTLE_RESONANCE_VOLUME * intensity, loc, vel);
         }
     }
 
-    /** Crude per-frame velocity for {@link #driveShuttleResonanceLoops} Doppler — direction toward the active waypoint, magnitude scaled by leg chord, zero on the ground. */
+    /** Per-frame velocity for {@link #driveShuttleResonanceLoops} Doppler — reads the AirBody directly. Returns zero on the ground / off-screen so audio stays parked. */
     private static Vector2f shuttleVelocity(Shuttle s) {
-        float tx, ty;
-        switch (s.state) {
-            case INCOMING:  tx = s.lzX;   ty = s.lzY;   break;
-            case DEPARTING: tx = s.exitX; ty = s.exitY; break;
-            default:        return new Vector2f(0f, 0f);
+        if (s.state != Shuttle.State.INCOMING && s.state != Shuttle.State.DEPARTING) {
+            return new Vector2f(0f, 0f);
         }
-        float dx = tx - s.worldX, dy = ty - s.worldY;
-        float len = (float) Math.sqrt(dx * dx + dy * dy);
-        if (len < 0.001f) return new Vector2f(0f, 0f);
-        // Rough cruise speed (cells/sec) — exact value doesn't matter for Doppler readability.
-        float speed = 12f;
-        return new Vector2f(dx / len * speed * AUDIO_WORLD_UNITS_PER_CELL,
-                            dy / len * speed * AUDIO_WORLD_UNITS_PER_CELL);
+        return new Vector2f(s.body.vx * AUDIO_WORLD_UNITS_PER_CELL,
+                            s.body.vy * AUDIO_WORLD_UNITS_PER_CELL);
     }
 
     /**
@@ -1109,6 +1124,13 @@ public class BattleScreen implements Screen {
             if (s.marineSecondary == null && s.turretKind == null) {
                 ImpactDecals.spawnShellCasing(sim, rng, s.fromX, s.fromY);
             }
+            // Mech chaingun muzzle flash — bright additive pop at the
+            // shooter's cell, sized to read over the mech sprite. Only the
+            // chaingun gets one; rockets are tube-launched and the launch
+            // animation is already the projectile sprite leaving the mount.
+            if (s.mechWeapon == com.dillon.starsectormarines.battle.MechWeapon.CHAINGUN) {
+                impactFx.spawnMuzzleFlash(s.fromX, s.fromY, 0.55f, 0.08f);
+            }
             if (hasProjectileSprite(s)) continue;
             boolean isWall = isWallAt(grid, s.toX, s.toY);
             ImpactProfile profile = (s.marineWeapon != null)
@@ -1141,6 +1163,19 @@ public class BattleScreen implements Screen {
             } else if (s.marineWeapon != null) {
                 profile = s.marineWeapon.impactProfile;
                 impactFx.spawnImpact(profile, s.toX, s.toY, isWall);
+            } else if (s.mechWeapon != null) {
+                // Mech rounds — HE entries (SRM, LRM) also play the explosion
+                // clip on arrival; chainguns are kinetic, no extra audio (the
+                // burst itself is loud enough at fire time).
+                profile = s.mechWeapon.impactProfile;
+                impactFx.spawnImpact(profile, s.toX, s.toY, isWall);
+                if (profile == ImpactProfile.HE) {
+                    float pitch = 0.9f + rng.nextFloat() * 0.2f;
+                    Vector2f loc = new Vector2f(
+                            s.toX * AUDIO_WORLD_UNITS_PER_CELL,
+                            s.toY * AUDIO_WORLD_UNITS_PER_CELL);
+                    Global.getSoundPlayer().playSound(SFX_NEAR_EXPLOSION, pitch, 0.65f, loc, zeroVel);
+                }
             } else {
                 profile = ImpactProfile.RIFLE;
             }
@@ -1148,11 +1183,12 @@ public class BattleScreen implements Screen {
         }
     }
 
-    /** True when the shot is rendered as a traveling sprite (turret kinetic, marine rocket, SMG bullet) rather than an instant line tracer — drives whether impact FX fire at launch or arrival. */
+    /** True when the shot is rendered as a traveling sprite (turret kinetic, marine rocket, SMG bullet, any mech round) rather than an instant line tracer — drives whether impact FX fire at launch or arrival. */
     private static boolean hasProjectileSprite(ShotEvent s) {
         return s.turretKind != null
                 || s.marineSecondary != null
-                || (s.marineWeapon != null && s.marineWeapon.projectileSpritePath != null);
+                || (s.marineWeapon != null && s.marineWeapon.projectileSpritePath != null)
+                || (s.mechWeapon != null && s.mechWeapon.projectileSpritePath != null);
     }
 
     /** True when the endpoint cell is non-walkable (wall / vehicle / turret mount) and the impact should read as a chip on solid material rather than a kick of floor dust. */
@@ -1181,6 +1217,11 @@ public class BattleScreen implements Screen {
                 Global.getSoundPlayer().playSound(s.marineSecondary.fireSoundId, pitch, 1.0f, loc, zeroVel);
             } else if (s.marineWeapon != null) {
                 Global.getSoundPlayer().playSound(s.marineWeapon.fireSoundId, pitch, 0.85f, loc, zeroVel);
+            } else if (s.mechWeapon != null) {
+                // Mech chassis weapons — chaingun_fire / annihilator_fire /
+                // pilum_lrm_fire. All play at full volume; the chaingun burst
+                // cadence is the *point*, so the brrt should dominate.
+                Global.getSoundPlayer().playSound(s.mechWeapon.fireSoundId, pitch, 1.0f, loc, zeroVel);
             } else {
                 Global.getSoundPlayer().playSound(SFX_RIFLE, pitch, RIFLE_VOLUME, loc, zeroVel);
             }
@@ -1980,16 +2021,25 @@ public class BattleScreen implements Screen {
         int sheetW = frames.sheetWidth;
         int sheetH = frames.sheetHeight;
 
-        Facing facing = computeFacing(u);
         // Aim cycle holds the weapon-up frame for its full duration so the
         // launcher reads as raised/braced through the whole animation.
         boolean inAim = u.secondaryActionTimer > 0f && u.secondaryWeapon != null;
         boolean weaponUp = inAim || (u.type.combatant
                 && u.cooldownTimer > (u.attackCooldown - WEAPON_UP_TIME)
                 && u.cooldownTimer > 0f);
-        int frameIdx = pickFrame(facing, weaponUp);
+
+        int frameIdx;
+        boolean flipY;
+        if (u.type.frameLayout == UnitType.FrameLayout.EIGHT_WAY_NO_WEAPON_UP) {
+            EightWayFacing ef = computeEightWayFacing(u);
+            frameIdx = pickFrameEightWay(ef);
+            flipY = false;
+        } else {
+            Facing facing = computeFacing(u);
+            frameIdx = pickFrame(facing, weaponUp);
+            flipY = weaponUp && facing == Facing.SOUTH;
+        }
         if (frameIdx >= frames.frames.length) frameIdx = 0;
-        boolean flipY = weaponUp && facing == Facing.SOUTH;
         SpriteSheetFrames.Frame f = frames.frames[frameIdx];
 
         sheet.setTexX((float) f.x * texW / sheetW);
@@ -2001,7 +2051,7 @@ public class BattleScreen implements Screen {
             sheet.setTexY((float) (sheetH - f.y - f.h) * texH / sheetH);
             sheet.setTexHeight((float) f.h * texH / sheetH);
         }
-        float targetH = unitSize;
+        float targetH = unitSize * u.type.renderScale;
         float targetW = targetH * f.w / (float) f.h;
         sheet.setSize(targetW, targetH);
         sheet.setAlphaMult(alphaMult);
@@ -2249,14 +2299,17 @@ public class BattleScreen implements Screen {
             sheet.setTexHeight((float) f.h * texH / sheetH);
             // Fit the longer pose axis into one cell so wide prone poses
             // don't spill out into neighboring cells. Aspect of the loaded
-            // frame drives the perpendicular dimension.
+            // frame drives the perpendicular dimension. Mech wrecks inherit
+            // the live mech's renderScale so the corpse reads at the same
+            // visual footprint as the walker did before it fell.
+            float scaledSize = unitSize * u.type.renderScale;
             float targetW, targetH;
             if (f.w >= f.h) {
-                targetW = unitSize;
-                targetH = unitSize * f.h / (float) f.w;
+                targetW = scaledSize;
+                targetH = scaledSize * f.h / (float) f.w;
             } else {
-                targetH = unitSize;
-                targetW = unitSize * f.w / (float) f.h;
+                targetH = scaledSize;
+                targetW = scaledSize * f.w / (float) f.h;
             }
             sheet.setSize(targetW, targetH);
             sheet.setAngle(0f);
@@ -2314,12 +2367,12 @@ public class BattleScreen implements Screen {
             float pxH = pxLen;
             float pxW = pxLen * cache.aspect;
             sprite.setSize(pxW, pxH);
-            sprite.setAngle(s.facingDegrees);
+            sprite.setAngle(s.body.facingDegrees);
             sprite.setAlphaMult(alphaMult);
             sprite.setNormalBlend();
             sprite.setColor(Color.WHITE);
-            float cx = camera.cellToScreenX(s.worldX);
-            float cy = camera.cellToScreenY(s.worldY);
+            float cx = camera.cellToScreenX(s.body.x);
+            float cy = camera.cellToScreenY(s.body.y);
             sprite.renderAtCenter(cx, cy);
         }
         // Reset angle so the singleton sprite doesn't carry our rotation
@@ -2452,6 +2505,7 @@ public class BattleScreen implements Screen {
             if (s.turretKind != null) continue;
             if (s.marineSecondary != null) continue;
             if (s.marineWeapon != null && s.marineWeapon.projectileSpritePath != null) continue;
+            if (s.mechWeapon != null && s.mechWeapon.projectileSpritePath != null) continue;
             float t = Math.max(0f, Math.min(1f, s.lifetime / Math.max(0.001f, s.lifetimeMax)));
             Color c;
             if (s.marineWeapon != null) {
@@ -2477,6 +2531,7 @@ public class BattleScreen implements Screen {
         java.util.Set<TurretKind> touchedTurret = new java.util.HashSet<>();
         java.util.Set<MarineSecondary> touchedSecondary = new java.util.HashSet<>();
         java.util.Set<MarineWeapon> touchedPrimary = new java.util.HashSet<>();
+        java.util.Set<com.dillon.starsectormarines.battle.MechWeapon> touchedMech = new java.util.HashSet<>();
         for (ShotEvent s : shots) {
             ShuttleSpriteCache cache;
             float visualCells;
@@ -2489,6 +2544,9 @@ public class BattleScreen implements Screen {
             } else if (s.marineWeapon != null && s.marineWeapon.projectileSpritePath != null) {
                 cache = marineWeaponProjectileSprites.get(s.marineWeapon);
                 visualCells = s.marineWeapon.projectileVisualCells;
+            } else if (s.mechWeapon != null && s.mechWeapon.projectileSpritePath != null) {
+                cache = mechWeaponProjectileSprites.get(s.mechWeapon);
+                visualCells = s.mechWeapon.projectileVisualCells;
             } else {
                 continue;
             }
@@ -2496,7 +2554,19 @@ public class BattleScreen implements Screen {
             float progress = 1f - Math.max(0f, Math.min(1f, s.lifetime / Math.max(0.001f, s.lifetimeMax)));
             float px = s.fromX + (s.toX - s.fromX) * progress;
             float py = s.fromY + (s.toY - s.fromY) * progress;
-            float bearing = bearingDeg(s.fromX, s.fromY, s.toX, s.toY);
+            // Parabolic arc — peaks at progress=0.5 with height = mechWeapon.arcHeight.
+            // Visual only; the sim's endpoint is unchanged. Bearing is computed
+            // from the analytical tangent so the rocket noses up at launch and
+            // tips down on descent, instead of always pointing at the endpoint.
+            float bearing;
+            float arcH = (s.mechWeapon != null) ? s.mechWeapon.arcHeight : 0f;
+            if (arcH > 0f) {
+                py += arcH * 4f * progress * (1f - progress);
+                float tangentDy = (s.toY - s.fromY) + arcH * 4f * (1f - 2f * progress);
+                bearing = bearingDeg(0f, 0f, s.toX - s.fromX, tangentDy);
+            } else {
+                bearing = bearingDeg(s.fromX, s.fromY, s.toX, s.toY);
+            }
             SpriteAPI sprite = cache.sprite;
             float cellPxLocal = camera.cellPxSize();
             float pxH = visualCells * cellPxLocal;
@@ -2507,9 +2577,22 @@ public class BattleScreen implements Screen {
             sprite.setNormalBlend();
             sprite.setColor(Color.WHITE);
             sprite.renderAtCenter(camera.cellToScreenX(px), camera.cellToScreenY(py));
+            // Engine trail — emit one glow particle per render frame at the
+            // rocket's tail (slight offset opposite the travel direction). Short
+            // lifetimes mean successive frames overlap into a fading streak.
+            if (s.mechWeapon != null && s.mechWeapon.engineTrail && progress > 0.02f && progress < 0.98f) {
+                // Approximate the tail position as the rocket's current cell
+                // position minus a small step along its current heading. Cheap
+                // and the visual difference vs. exact-back-of-sprite is nil.
+                float headingRad = (float) Math.toRadians(bearing);
+                float tailDx = -(float) Math.sin(headingRad) * 0.15f;
+                float tailDy = -(float) Math.cos(headingRad) * 0.15f;
+                impactFx.spawnEngineTrail(px + tailDx, py + tailDy, 0.18f);
+            }
             if (s.turretKind != null) touchedTurret.add(s.turretKind);
             else if (s.marineSecondary != null) touchedSecondary.add(s.marineSecondary);
-            else                                touchedPrimary.add(s.marineWeapon);
+            else if (s.marineWeapon != null) touchedPrimary.add(s.marineWeapon);
+            else if (s.mechWeapon != null) touchedMech.add(s.mechWeapon);
         }
         for (TurretKind k : touchedTurret) {
             ShuttleSpriteCache c = turretProjectileSprites.get(k);
@@ -2521,6 +2604,10 @@ public class BattleScreen implements Screen {
         }
         for (MarineWeapon k : touchedPrimary) {
             ShuttleSpriteCache c = marineWeaponProjectileSprites.get(k);
+            if (c != null) c.sprite.setAngle(0f);
+        }
+        for (com.dillon.starsectormarines.battle.MechWeapon k : touchedMech) {
+            ShuttleSpriteCache c = mechWeaponProjectileSprites.get(k);
             if (c != null) c.sprite.setAngle(0f);
         }
     }
@@ -2572,6 +2659,78 @@ public class BattleScreen implements Screen {
                 case EAST:  return 2;
                 case SOUTH: return 3;
             }
+        }
+        return 3;
+    }
+
+    /**
+     * 8-way facing used by {@link UnitType.FrameLayout#EIGHT_WAY_NO_WEAPON_UP}.
+     * Computed the same way as {@link #computeFacing}: prefer target direction,
+     * fall back to current movement, default S. The 8-way variant exists so the
+     * mech sheet's diagonal poses (NW/NE/SW/SE) get used instead of being
+     * snapped to a cardinal.
+     */
+    private enum EightWayFacing { W, NW, N, NE, E, SE, S, SW }
+
+    private static EightWayFacing computeEightWayFacing(Unit u) {
+        if (u.target != null && u.target.isAlive()) {
+            int dx = u.target.cellX - u.cellX;
+            int dy = u.target.cellY - u.cellY;
+            if (dx != 0 || dy != 0) return eightWayFromDelta(dx, dy);
+        }
+        if (!u.path.isEmpty() && u.pathIdx < u.path.size()) {
+            int[] next = u.path.get(u.pathIdx);
+            int dx = next[0] - u.cellX;
+            int dy = next[1] - u.cellY;
+            if (dx != 0 || dy != 0) return eightWayFromDelta(dx, dy);
+        }
+        return EightWayFacing.S;
+    }
+
+    /**
+     * Bucket a (dx, dy) delta into the nearest octant. The split is by the
+     * abs-ratio: when the smaller axis is at least ~41% of the larger we read
+     * the delta as a diagonal, otherwise it snaps to the closer cardinal. The
+     * 0.414 constant is {@code tan(22.5°)} — the midpoint between a cardinal
+     * and the adjacent diagonal in polar angle, so each octant covers a 45°
+     * wedge.
+     */
+    private static EightWayFacing eightWayFromDelta(int dx, int dy) {
+        int adx = Math.abs(dx);
+        int ady = Math.abs(dy);
+        boolean diag = Math.min(adx, ady) * 1000 >= Math.max(adx, ady) * 414;
+        if (diag) {
+            if (dx > 0 && dy > 0) return EightWayFacing.NE;
+            if (dx > 0 && dy < 0) return EightWayFacing.SE;
+            if (dx < 0 && dy > 0) return EightWayFacing.NW;
+            return EightWayFacing.SW;
+        }
+        if (adx > ady) return dx > 0 ? EightWayFacing.E : EightWayFacing.W;
+        return dy > 0 ? EightWayFacing.N : EightWayFacing.S;
+    }
+
+    /**
+     * Maps 8-way facing to the heavy-mech sheet's frame index. The mech sheet
+     * has no dedicated N frame — when the mech happens to face N we fall back
+     * to NW (an arbitrary but visually plausible diagonal) rather than reuse
+     * a flipped frame, which would look wrong since the mech is asymmetric
+     * (chaingun arm vs. rocket-pod arm).
+     *
+     * <p>Layout (from the source PNG, left to right):
+     * <pre>
+     *   0 W   1 NW   2 SE   3 S   4 SW   5 NE   6 E
+     * </pre>
+     */
+    private static int pickFrameEightWay(EightWayFacing f) {
+        switch (f) {
+            case W:  return 0;
+            case NW: return 1;
+            case SE: return 2;
+            case S:  return 3;
+            case SW: return 4;
+            case NE: return 5;
+            case E:  return 6;
+            case N:  return 1; // no dedicated N — borrow NW
         }
         return 3;
     }

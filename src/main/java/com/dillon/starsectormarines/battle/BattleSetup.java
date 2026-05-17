@@ -80,19 +80,29 @@ public final class BattleSetup {
     private BattleSetup() {}
 
     public static BattleSimulation createPlaceholder() {
-        return createPlaceholder(System.currentTimeMillis(), defaultManifest());
+        return createPlaceholder(System.currentTimeMillis(), defaultManifest(), false);
     }
 
     public static BattleSimulation createPlaceholder(long seed) {
-        return createPlaceholder(seed, defaultManifest());
+        return createPlaceholder(seed, defaultManifest(), false);
     }
 
     public static BattleSimulation createSabotage() {
-        return createSabotage(System.currentTimeMillis(), defaultManifest());
+        return createSabotage(System.currentTimeMillis(), defaultManifest(), false);
     }
 
     public static BattleSimulation createSabotage(long seed) {
-        return createSabotage(seed, defaultManifest());
+        return createSabotage(seed, defaultManifest(), false);
+    }
+
+    /** Back-compat overload — assumes no heavy armor on the defender side. */
+    public static BattleSimulation createSabotage(long seed, List<ShuttleAssignment> manifest) {
+        return createSabotage(seed, manifest, false);
+    }
+
+    /** Back-compat overload — assumes no heavy armor on the defender side. */
+    public static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest) {
+        return createPlaceholder(seed, manifest, false);
     }
 
     /** Default manifest used by no-arg factories — three single-cycle Aeroshuttles, matching pre-cycling behavior. */
@@ -114,7 +124,8 @@ public final class BattleSetup {
      * one marine is alive when the last charge sets. Defender win: kill every
      * marine before the charges go off.
      */
-    public static BattleSimulation createSabotage(long seed, List<ShuttleAssignment> manifest) {
+    public static BattleSimulation createSabotage(long seed, List<ShuttleAssignment> manifest,
+                                                  boolean enemyHasHeavyArmor) {
         MapResult map = MAP_GEN.generate(GRID_W, GRID_H, seed);
         Random rng = new Random(seed);
         // Vehicles stamp before sim construction so the BattleSimulation's
@@ -177,7 +188,7 @@ public final class BattleSetup {
         }
 
         List<int[]> defenderCells = pickDefensiveCluster(map.grid, map.defenderSpawnX, map.defenderSpawnY, DEFENDER_COUNT);
-        spawnDefenderMix(sim, defenderCells);
+        spawnDefenderMix(sim, defenderCells, enemyHasHeavyArmor);
         spawnAmbientCivilians(sim, map, rng);
         return sim;
     }
@@ -283,7 +294,8 @@ public final class BattleSetup {
         return MarineWeapon.PULSE_RIFLE;
     }
 
-    public static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest) {
+    public static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest,
+                                                     boolean enemyHasHeavyArmor) {
         MapResult map = MAP_GEN.generate(GRID_W, GRID_H, seed);
         Random rng = new Random(seed);
         List<MapVehicle> vehiclePlacements = stampVehicles(map.grid, map.topology, rng);
@@ -338,7 +350,7 @@ public final class BattleSetup {
         // they prepared the position. Falls back to plain BFS order if the
         // local area is open (e.g., a plaza right at the anchor).
         List<int[]> defenderCells = pickDefensiveCluster(map.grid, map.defenderSpawnX, map.defenderSpawnY, DEFENDER_COUNT);
-        spawnDefenderMix(sim, defenderCells);
+        spawnDefenderMix(sim, defenderCells, enemyHasHeavyArmor);
         spawnAmbientCivilians(sim, map, rng);
         return sim;
     }
@@ -349,12 +361,30 @@ public final class BattleSetup {
      * take the first slots (which are the highest-cover positions per
      * {@link #pickDefensiveCluster}'s sort), so the stiffening regulars are
      * tucked into the best firing posts and the militia fills the perimeter.
+     *
+     * <p>When {@code enemyHasHeavyArmor} is set — meaning the target planet's
+     * market produces or demands heavy armaments — the highest-cover slot is
+     * swapped for a single {@link UnitType#HEAVY_MECH}. One mech per battle
+     * keeps the threat readable; scaling that up is a balance question for
+     * later. The remaining elite slots stay red-marines.
      */
-    private static void spawnDefenderMix(BattleSimulation sim, List<int[]> cells) {
+    private static void spawnDefenderMix(BattleSimulation sim, List<int[]> cells,
+                                         boolean enemyHasHeavyArmor) {
         for (int i = 0; i < cells.size(); i++) {
             int[] p = cells.get(i);
-            UnitType type = (i < DEFENDER_ELITE_COUNT) ? UnitType.MARINE_RED : UnitType.MILITIA;
-            sim.addUnit(new Unit("d" + i, Faction.DEFENDER, type, p[0], p[1]));
+            UnitType type;
+            if (enemyHasHeavyArmor && i == 0) {
+                type = UnitType.HEAVY_MECH;
+            } else if (i < DEFENDER_ELITE_COUNT) {
+                type = UnitType.MARINE_RED;
+            } else {
+                type = UnitType.MILITIA;
+            }
+            Unit unit = new Unit("d" + i, Faction.DEFENDER, type, p[0], p[1]);
+            if (type == UnitType.HEAVY_MECH) {
+                unit.mech = MechLoadoutState.defaultLoadout();
+            }
+            sim.addUnit(unit);
         }
     }
 

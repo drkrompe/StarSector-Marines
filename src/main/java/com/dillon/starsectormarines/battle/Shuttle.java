@@ -1,15 +1,19 @@
 package com.dillon.starsectormarines.battle;
 
+import com.dillon.starsectormarines.battle.air.AirBody;
+
 /**
  * One troop-drop shuttle. Separate from {@link Unit} because shuttles are
  * cinematic / spawn-source entities — they fly in fractional world space, rotate
  * freely, and don't pathfind through the grid or participate in combat. The
- * sim ticks their state machine and deboards marines while {@link com.dillon.starsectormarines.ops.BattleScreen}
- * reads {@code worldX}/{@code worldY}/{@code facingDegrees} for the sprite.
+ * sim ticks their {@link AirBody} state while {@link com.dillon.starsectormarines.ops.BattleScreen}
+ * reads {@code body.x}/{@code body.y}/{@code body.facingDegrees} for the sprite.
  *
- * <p>Lifecycle: PENDING (waiting on stagger) → INCOMING (flying from off-map
- * entry to LZ) → LANDED (deboarding marines on {@code deboardInterval} cadence)
- * → DEPARTING (flying back off-map) → GONE.
+ * <p>Lifecycle: PENDING (waiting on stagger) → INCOMING (steering from off-map
+ * entry to LZ under {@code BRAKE_TO_STATION}) → LANDED (deboarding marines on
+ * {@code deboardInterval} cadence) → DEPARTING (steering to exit under
+ * {@code CRUISE}) → GONE. With {@link #totalCycles} > 1 the shuttle re-enters
+ * PENDING after DEPARTING and runs another sortie.
  *
  * <p>Coord convention matches {@link Unit#cellX}/{@link Unit#cellY}: cell-units
  * with Y up. Entry/exit points sit outside the grid (negative or > gridH) so
@@ -30,75 +34,44 @@ public class Shuttle {
     public final float exitY;
 
     public State state = State.PENDING;
-    public float worldX;
-    public float worldY;
     public float pendingDelay;
     public float deboardCountdown;
     public int marinesRemaining;
 
-    /**
-     * Sprite rotation in Starsector convention — 0° = sprite's drawn orientation
-     * (nose points to screen-north / +Y), positive rotates counterclockwise
-     * (90° = nose points west). Computed from velocity during INCOMING/DEPARTING,
-     * held constant while LANDED.
-     */
-    public float facingDegrees;
+    /** Kinematic state for the current sortie — position, velocity, facing, angular velocity. Driven each tick by the sim under the {@link ShuttleType}'s handling profile. */
+    public final AirBody body = new AirBody();
 
     /**
      * Render scale multiplier. 1.0 on the ground; rises to {@code CRUISE_SCALE}
      * while at altitude so the shuttle reads as "bigger because higher" during
-     * cruise. Lerped along the leg so it shrinks during landing and grows
-     * during takeoff.
+     * cruise. Driven by the sim from {@link #altitudeT}.
      */
     public float scaleMult = 1f;
 
     /**
-     * Normalized progress (0..1) along the current INCOMING or DEPARTING leg.
-     * Set to 0 at state entry and advanced each tick by
-     * {@code flightSpeed * TICK_DT / legChordLength}. Used by the sim to drive
-     * both position (via the curved-path formula) and {@link #scaleMult}.
+     * Cruise altitude scalar in [0, 1]. 0 = on the LZ, 1 = at cruising height.
+     * Computed each tick from the body's remaining distance to the current
+     * waypoint, normalized by the leg's start distance. Drives both
+     * {@link #scaleMult} and {@link #engineIntensity()} — one source of truth
+     * for "how high am I right now."
      */
-    public float legProgress = 0f;
-
-    /** Cached straight-line distance between the current leg's endpoints. */
-    public float legChordLength = 1f;
+    public float altitudeT = 1f;
 
     /**
-     * Perpendicular bow amplitude (cells) for the current leg's flight path.
-     * 0 means a straight line; larger values arc out further from the straight
-     * line. Combined with {@link #curveSide} ({@code ±1}) to give a smooth sin²
-     * deflection that's zero at both endpoints.
+     * Straight-line distance (cells) at the moment the current INCOMING or
+     * DEPARTING leg started. Cached so the sim can compute
+     * {@code altitudeT = distRemaining / legStartDist} without per-tick
+     * re-derivation. Set to a positive number at state entry; 1 is a safe
+     * fallback that turns the lerp into a no-op.
      */
-    public float curveStrength = 0f;
-    public int curveSide = 1;
+    public float legStartDist = 1f;
 
     /**
      * Accumulated phase (radians) for the in-flight scale wobble. Advances each
-     * tick during INCOMING/DEPARTING at {@code 2π·SHUTTLE_OSCILLATION_HZ·dt}.
-     * Per-shuttle random offset at leg setup so the three drops don't pulse
-     * in sync.
+     * tick while airborne so the sprite breathes slightly during cruise. Per-shuttle
+     * random offset at construction so simultaneous shuttles don't pulse in sync.
      */
     public float flightPhase = 0f;
-
-    /**
-     * Secondary weave layered on top of the primary {@link #curveStrength} bow.
-     * A higher-frequency perpendicular wiggle modulated by the same {@code sin²(πt)}
-     * envelope, so both displacement and slope stay zero at endpoints — touchdown
-     * facing is unchanged. {@link #weaveAmp} is the peak perpendicular displacement
-     * (cells), {@link #weaveFreq} the number of cycles per leg, {@link #weavePhase}
-     * a random initial phase so simultaneous shuttles wiggle out of sync.
-     */
-    public float weaveAmp = 0f;
-    public float weaveFreq = 0f;
-    public float weavePhase = 0f;
-
-    /**
-     * Facing captured at the INCOMING → LANDED transition. Used as the start
-     * point of the DEPARTING facing ease — the shuttle smoothly rotates from
-     * this angle into the new leg's tangent rather than snapping. Without
-     * this, takeoff reads as an instant 180° flip.
-     */
-    public float landedFacing = 0f;
 
     /**
      * Per-deboard loadouts for the <em>current</em> sortie. {@code marineLoadout[i]}
@@ -149,10 +122,8 @@ public class Shuttle {
         this.exitX = exitX;
         this.exitY = exitY;
         this.pendingDelay = pendingDelay;
-        this.worldX = entryX;
-        this.worldY = entryY;
         this.marinesRemaining = type.capacity;
-        this.facingDegrees = facingTowards(entryX, entryY, lzX, lzY);
+        body.teleport(entryX, entryY, facingTowards(entryX, entryY, lzX, lzY));
     }
 
     public boolean isVisible() {
@@ -161,21 +132,16 @@ public class Shuttle {
 
     /**
      * Normalized engine loudness/pitch driver for the shuttle engine loop, in [0, 1].
-     * Full throttle as the shuttle appears, eases to {@code IDLE_INTENSITY} at touchdown,
-     * holds at idle while LANDED (engines spinning on the ground), then mirrors back up
-     * to full as it takes off. PENDING and GONE return 0 so off-screen shuttles don't
+     * Full throttle at cruise, idles on the ground, smoothly blends between via
+     * {@link #altitudeT}. PENDING and GONE return 0 so off-screen shuttles don't
      * contribute to the loop.
      *
      * <p>The driving loop in {@code BattleScreen} takes the max across visible shuttles —
      * three simultaneous landings don't triple the volume; the loudest one wins.
      */
     public float engineIntensity() {
-        switch (state) {
-            case INCOMING:  return 1f - (1f - IDLE_INTENSITY) * legProgress;
-            case LANDED:    return IDLE_INTENSITY;
-            case DEPARTING: return IDLE_INTENSITY + (1f - IDLE_INTENSITY) * legProgress;
-            default:        return 0f;
-        }
+        if (state == State.PENDING || state == State.GONE) return 0f;
+        return IDLE_INTENSITY + (1f - IDLE_INTENSITY) * altitudeT;
     }
 
     /** Engine intensity while parked on the ground — quiet hum, not silent. */
@@ -191,7 +157,6 @@ public class Shuttle {
         float dx = toX - fromX;
         float dy = toY - fromY;
         if (dx == 0f && dy == 0f) return 0f;
-        float mathDeg = (float) Math.toDegrees(Math.atan2(dy, dx));
-        return mathDeg - 90f;
+        return AirBody.facingToward(dx, dy);
     }
 }

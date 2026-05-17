@@ -31,6 +31,8 @@ public class ShotEvent {
     public final MarineWeapon marineWeapon;
     /** Non-null when a marine fired their secondary (rocket, etc.) — drives projectile sprite + impact recipe. Mutually exclusive with {@link #turretKind} and {@link #marineWeapon}. */
     public final MarineSecondary marineSecondary;
+    /** Non-null when a mech fired one of its chassis weapons (chaingun, SRM pod, LRM). Drives projectile sprite + fire/impact sound + impact profile. Mutually exclusive with all the other source tags. */
+    public final MechWeapon mechWeapon;
 
     public float lifetime;
     /** Initial lifetime — fixed at construction. Renderer uses this (not the global shot-lifetime constant) to compute fade-out alpha and projectile travel progress, so per-weapon flight times scale correctly. */
@@ -38,17 +40,25 @@ public class ShotEvent {
 
     public ShotEvent(float fromX, float fromY, float toX, float toY,
                      boolean hit, Faction shooterFaction, float lifetime) {
-        this(fromX, fromY, toX, toY, hit, shooterFaction, lifetime, null, null, null);
+        this(fromX, fromY, toX, toY, hit, shooterFaction, lifetime, null, null, null, null);
     }
 
     public ShotEvent(float fromX, float fromY, float toX, float toY,
                      boolean hit, Faction shooterFaction, float lifetime, TurretKind turretKind) {
-        this(fromX, fromY, toX, toY, hit, shooterFaction, lifetime, turretKind, null, null);
+        this(fromX, fromY, toX, toY, hit, shooterFaction, lifetime, turretKind, null, null, null);
     }
 
     public ShotEvent(float fromX, float fromY, float toX, float toY,
                      boolean hit, Faction shooterFaction, float lifetime,
                      TurretKind turretKind, MarineWeapon marineWeapon, MarineSecondary marineSecondary) {
+        this(fromX, fromY, toX, toY, hit, shooterFaction, lifetime,
+                turretKind, marineWeapon, marineSecondary, null);
+    }
+
+    public ShotEvent(float fromX, float fromY, float toX, float toY,
+                     boolean hit, Faction shooterFaction, float lifetime,
+                     TurretKind turretKind, MarineWeapon marineWeapon,
+                     MarineSecondary marineSecondary, MechWeapon mechWeapon) {
         this.fromX = fromX;
         this.fromY = fromY;
         this.toX = toX;
@@ -60,5 +70,6 @@ public class ShotEvent {
         this.turretKind = turretKind;
         this.marineWeapon = marineWeapon;
         this.marineSecondary = marineSecondary;
+        this.mechWeapon = mechWeapon;
     }
 }

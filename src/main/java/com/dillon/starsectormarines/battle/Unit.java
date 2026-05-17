@@ -100,6 +100,17 @@ public class Unit {
     /** Random prone-pose index rolled on death. Drives which corpse frame the renderer picks from {@link UnitType#deadSpritePath} so a battlefield has pose variety rather than every body in the same slump. -1 sentinel = unit still alive. */
     public int deathPoseIdx = -1;
 
+    /**
+     * Mech chassis loadout. Non-null only on mech-class units ({@link UnitType#HEAVY_MECH}
+     * today). When set, the unit fires three concurrent weapon tracks via the
+     * mech-fire pass in {@code BattleSimulation} instead of the marine
+     * primary/secondary path; the unit's base {@link #attackDamage} /
+     * {@link #attackCooldown} are unused and {@link #attackRange} only matters
+     * for target acquisition (set wide on {@link UnitType#HEAVY_MECH} to match
+     * the LRM's reach).
+     */
+    public MechLoadoutState mech;
+
     public Unit(String id, Faction faction, UnitType type, int cellX, int cellY) {
         this.id = id;
         this.faction = faction;

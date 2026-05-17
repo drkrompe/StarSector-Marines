@@ -547,19 +547,26 @@ public class BriefingScreen implements Screen {
         // deselect a transport in the briefing shouldn't see it fly anyway.
         List<ShuttleAssignment> manifest = buildShuttleManifest(m, effectivePlayerShuttles());
 
+        // Heavy-armaments availability on the target world drives whether
+        // the defender side fields a HEAVY_MECH. The commodity description ties
+        // mechs/tanks/hovercraft to that good — so a planet that produces it
+        // (Heavy Industry, Orbital Works) or stockpiles it for use (Ground
+        // Defenses, Heavy Batteries) is exactly where a mech walks the line.
+        boolean enemyHasHeavyArmor = planetHasHeavyArmaments(m.targetPlanetName);
+
         // Mission-type-specific setup. Each type wires its own objectives and
         // loadouts; falls back to ASSAULT for types not yet built out.
         BattleSimulation sim;
         long seed = System.currentTimeMillis();
         switch (m.type) {
             case SABOTAGE:
-                sim = BattleSetup.createSabotage(seed, manifest);
+                sim = BattleSetup.createSabotage(seed, manifest, enemyHasHeavyArmor);
                 break;
             case ASSAULT:
             case RAID:
             case EXTRACTION:
             default:
-                sim = BattleSetup.createPlaceholder(seed, manifest);
+                sim = BattleSetup.createPlaceholder(seed, manifest, enemyHasHeavyArmor);
         }
         // Fold employer support + the player's own fitted bays + enemy support
         // into a single roster the overlay drives spawns from. Re-queries the
@@ -572,6 +579,34 @@ public class BriefingScreen implements Screen {
 
     private void onBack() {
         ctx.goTo(ScreenId.MISSION_SELECT);
+    }
+
+    /**
+     * True when the target planet's market hosts at least one industry that
+     * produces or demands heavy armaments. Producers: Heavy Industry, Orbital
+     * Works. Consumers: Ground Defenses, Heavy Batteries. The flag drives the
+     * defender's mech slot in {@link BattleSetup} — lore-correct because a
+     * planet without any of those industries has no organic source of heavy
+     * armaments and shouldn't be fielding mechs.
+     *
+     * <p>Returns false when the mission has no target planet name (story /
+     * non-industry ops) or no market is found by that name. Iterates the
+     * economy via the same lookup {@code MissionResolver.applyIndustryDisruption}
+     * uses, since {@link Mission#targetPlanetName} is the canonical key both
+     * sides agree on.
+     */
+    private static boolean planetHasHeavyArmaments(String targetPlanetName) {
+        if (targetPlanetName == null) return false;
+        for (com.fs.starfarer.api.campaign.econ.MarketAPI market
+                : Global.getSector().getEconomy().getMarketsCopy()) {
+            if (market == null || market.getPrimaryEntity() == null) continue;
+            if (!targetPlanetName.equals(market.getPrimaryEntity().getName())) continue;
+            return market.hasIndustry(com.fs.starfarer.api.impl.campaign.ids.Industries.HEAVYINDUSTRY)
+                || market.hasIndustry(com.fs.starfarer.api.impl.campaign.ids.Industries.ORBITALWORKS)
+                || market.hasIndustry(com.fs.starfarer.api.impl.campaign.ids.Industries.GROUNDDEFENSES)
+                || market.hasIndustry(com.fs.starfarer.api.impl.campaign.ids.Industries.HEAVYBATTERIES);
+        }
+        return false;
     }
 
     @Override

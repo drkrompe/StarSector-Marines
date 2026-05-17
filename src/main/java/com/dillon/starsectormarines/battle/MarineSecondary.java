@@ -15,13 +15,14 @@ import com.dillon.starsectormarines.battle.fx.ImpactProfile;
  * than a colored line.
  */
 public enum MarineSecondary {
-    /** Annihilator-pattern unguided rockets. Three tubes per marine, long range, huge anti-emplacement payload. */
+    /** Annihilator-pattern unguided rockets. Three tubes per marine, long range, huge anti-emplacement payload. Splashes 1.5 cells on detonation (friendly fire ON) and chews ~50 HP of wall per impact — two hits flattens a standard wall. */
     ROCKET_LAUNCHER("Annihilator Rocket Launcher",
                     "annihilator_fire",
                     "graphics/missiles/missile_annihilator.png",
                     "marines_explosion",
                     "graphics/battle/marine-rocket.png",
-                    32f, 18f, 0.85f, 3.0f, 3.50f, 3, 0.50f, 0.70f, 0.65f);
+                    32f, 18f, 0.85f, 3.0f, 3.50f, 3, 0.50f, 0.70f, 0.65f,
+                    1.5f, 50);
 
     public final String displayName;
     /** Vanilla fire sound id from the source {@code .wpn}. */
@@ -46,11 +47,16 @@ public enum MarineSecondary {
     public final float flightSec;
     /** Sim-seconds the marine is frozen in the aim pose before the shot launches. The actual fire happens at the midpoint of this window — first half is the aim-up, second half is the launcher held out as the rocket departs. */
     public final float aimDuration;
+    /** Splash radius in cells on detonation. Every unit within this radius of the impact endpoint takes {@link #damage}, modified by cover. Friendly fire is ON — the squad pays the price for clustering near a rocket impact. */
+    public final float aoeRadius;
+    /** Wall HP knocked off the endpoint cell on detonation. Walls are 100 HP default (150 in fortified bases). */
+    public final int wallDamage;
 
     MarineSecondary(String displayName, String fireSoundId, String projectileSpritePath, String impactSoundId,
                     String aimSpritePath,
                     float range, float damage, float accuracy, float cooldown, float vsTurretMult,
-                    int startingAmmo, float projectileVisualCells, float flightSec, float aimDuration) {
+                    int startingAmmo, float projectileVisualCells, float flightSec, float aimDuration,
+                    float aoeRadius, int wallDamage) {
         this.displayName = displayName;
         this.fireSoundId = fireSoundId;
         this.projectileSpritePath = projectileSpritePath;
@@ -65,6 +71,8 @@ public enum MarineSecondary {
         this.projectileVisualCells = projectileVisualCells;
         this.flightSec = flightSec;
         this.aimDuration = aimDuration;
+        this.aoeRadius = aoeRadius;
+        this.wallDamage = wallDamage;
     }
 
     /** Secondary shots are full detonations — fire burst + smoke + explosion sound. Same recipe the heavy mortar uses. */
