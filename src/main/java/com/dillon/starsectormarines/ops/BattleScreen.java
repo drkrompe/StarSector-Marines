@@ -33,6 +33,7 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
 import org.apache.log4j.Logger;
+import org.lwjgl.util.vector.Vector2f;
 
 import javax.imageio.ImageIO;
 import java.awt.Color;
@@ -134,6 +135,10 @@ public class BattleScreen implements Screen {
     /** Half-width of the rifle pitch jitter — ±10% on top of 1.0, so the 2-clip pool feels richer than 2 clips. */
     private static final float RIFLE_PITCH_JITTER = 0.10f;
     private static final float RIFLE_VOLUME       = 0.5f;
+    /** Cells → OpenAL world units, for positional SFX. Must match {@code FlybyOverlay.AUDIO_WORLD_UNITS_PER_CELL}. */
+    private static final float AUDIO_WORLD_UNITS_PER_CELL = 30f;
+    /** OpenAL distance the distant-boom emitter sits from the camera focus. Far enough to attenuate noticeably (read as "off in the distance") but close enough to remain audible. */
+    private static final float DISTANT_BOOM_EMITTER_DISTANCE = 600f;
 
     /**
      * Pool of ambient loop sound-ids the battle picks 1-2 from at attach time for environmental
@@ -214,7 +219,17 @@ public class BattleScreen implements Screen {
     /** Per-{@link TurretKind} sprite + native aspect cache. Same shape as {@link ShuttleSpriteCache}: the sprite is single-frame and rotated at draw time, so no auto-slicing. */
     private final java.util.EnumMap<TurretKind, ShuttleSpriteCache> turretSprites =
             new java.util.EnumMap<>(TurretKind.class);
+    /** Per-{@link TurretKind} barrel sprite cache. Vanilla {@code _recoil} naming is misleading — it's the gun/barrel piece (the part that visibly recoils), not a muzzle-flash overlay. Drawn below the body and shifted backward briefly after firing. */
+    private final java.util.EnumMap<TurretKind, ShuttleSpriteCache> turretRecoilSprites =
+            new java.util.EnumMap<>(TurretKind.class);
+    /** Per-{@link TurretKind} projectile sprite (vanilla {@code bulletSprite}). Rendered rotated along the travel vector for the shot's {@link #SHOT_LIFETIME_REF} lifetime. */
+    private final java.util.EnumMap<TurretKind, ShuttleSpriteCache> turretProjectileSprites =
+            new java.util.EnumMap<>(TurretKind.class);
     private boolean turretSpritesLoadAttempted;
+    /** Sim-seconds the barrel sprite eases forward to its at-rest position after a shot. Quick snap-back-then-return reads as a real recoil pulse. */
+    private static final float RECOIL_DURATION = 0.12f;
+    /** Peak backward displacement of the barrel sprite, as a fraction of the turret's visual long-axis (cells). Vanilla uses absolute pixel offsets per-weapon; a relative figure scales cleanly across our 5 kinds. */
+    private static final float RECOIL_DISTANCE_FRAC = 0.10f;
     /** Cached tileset sheet — lazy-loaded once per Screen lifetime. Null if load failed. */
     private SpriteAPI tileSheet;
     /** Pixel dimensions of the tileset PNG content (pre-POT-padding). */
@@ -266,6 +281,8 @@ public class BattleScreen implements Screen {
     private boolean audioActive;
     /** Ambient loop ids picked at battle start. Re-rolled on each fresh attach so revisits get new flavor. */
     private String[] activeAmbientLoops = new String[0];
+    /** OpenAL world-space anchor for each entry in {@link #activeAmbientLoops}. Positional loops attenuate by distance to the listener, so panning the camera near an anchor swells that loop and across-map fades it — gives the bed real spatial depth instead of a flat mono mix. */
+    private Vector2f[] activeAmbientAnchors = new Vector2f[0];
     /** Real-time countdown (seconds) until the next sporadic distant explosion. */
     private float distantBoomTimer;
     /** RNG for audio variety — separate from sim.rng so audio randomness doesn't perturb sim determinism. */
@@ -308,16 +325,31 @@ public class BattleScreen implements Screen {
         audioActive = true;
         Global.getSoundPlayer().setSuspendDefaultMusicPlayback(true);
         Global.getSoundPlayer().playCustomMusic(MUSIC_FADE_SECS, MUSIC_FADE_SECS, MUSIC_BATTLE, true);
-        activeAmbientLoops = pickAmbientLoops();
+        BattleSimulation sim = ctx != null ? ctx.getBattleSimulation() : null;
+        int gridW = sim != null ? sim.getGrid().getWidth()  : BattleSetup.GRID_W;
+        int gridH = sim != null ? sim.getGrid().getHeight() : BattleSetup.GRID_H;
+        pickAmbient(gridW, gridH);
         distantBoomTimer = nextDistantBoomGap();
     }
 
-    /** Picks 1-2 random ambient loop ids from {@link #AMBIENT_LOOP_POOL} for this battle. */
-    private String[] pickAmbientLoops() {
+    /**
+     * Picks 1-2 random ambient loop ids from {@link #AMBIENT_LOOP_POOL} and gives each a random
+     * world-space anchor cell. The anchor doesn't need to be a walkable cell — it's just a point
+     * the positional loop emits from, so the player hears the bed pan and attenuate as they move
+     * the camera around the map.
+     */
+    private void pickAmbient(int gridW, int gridH) {
         int count = 1 + audioRng.nextInt(2); // 1 or 2
         java.util.List<String> shuffled = new java.util.ArrayList<>(java.util.Arrays.asList(AMBIENT_LOOP_POOL));
         java.util.Collections.shuffle(shuffled, audioRng);
-        return shuffled.subList(0, Math.min(count, shuffled.size())).toArray(new String[0]);
+        int n = Math.min(count, shuffled.size());
+        activeAmbientLoops = shuffled.subList(0, n).toArray(new String[0]);
+        activeAmbientAnchors = new Vector2f[n];
+        for (int i = 0; i < n; i++) {
+            activeAmbientAnchors[i] = new Vector2f(
+                    audioRng.nextInt(Math.max(1, gridW)) * AUDIO_WORLD_UNITS_PER_CELL,
+                    audioRng.nextInt(Math.max(1, gridH)) * AUDIO_WORLD_UNITS_PER_CELL);
+        }
     }
 
     private float nextDistantBoomGap() {
@@ -497,22 +529,29 @@ public class BattleScreen implements Screen {
         if (turretSpritesLoadAttempted) return;
         turretSpritesLoadAttempted = true;
         for (TurretKind kind : TurretKind.values()) {
-            try {
-                Global.getSettings().loadTexture(kind.spritePath);
-                SpriteAPI sprite = Global.getSettings().getSprite(kind.spritePath);
-                if (sprite == null) {
-                    LOG.warn("BattleScreen: getSprite returned null for " + kind.spritePath);
-                    continue;
-                }
-                float w = sprite.getWidth();
-                float h = sprite.getHeight();
-                float aspect = (h > 0f) ? w / h : 1f;
-                turretSprites.put(kind, new ShuttleSpriteCache(sprite, aspect));
-                LOG.info("BattleScreen: loaded turret " + kind.spritePath
-                        + " (" + w + "x" + h + ", aspect=" + aspect + ")");
-            } catch (Exception e) {
-                LOG.error("BattleScreen: failed to load turret sprite " + kind.spritePath, e);
+            loadTurretSpriteInto(turretSprites,           kind, kind.spritePath);
+            loadTurretSpriteInto(turretRecoilSprites,     kind, kind.recoilSpritePath);
+            loadTurretSpriteInto(turretProjectileSprites, kind, kind.projectileSpritePath);
+        }
+    }
+
+    /** Shared loader for the three turret-related sprite caches. Captures the native aspect before any {@code setSize} call clobbers {@code getWidth/getHeight}. */
+    private void loadTurretSpriteInto(java.util.EnumMap<TurretKind, ShuttleSpriteCache> cache,
+                                      TurretKind kind, String path) {
+        try {
+            Global.getSettings().loadTexture(path);
+            SpriteAPI sprite = Global.getSettings().getSprite(path);
+            if (sprite == null) {
+                LOG.warn("BattleScreen: getSprite returned null for " + path);
+                return;
             }
+            float w = sprite.getWidth();
+            float h = sprite.getHeight();
+            float aspect = (h > 0f) ? w / h : 1f;
+            cache.put(kind, new ShuttleSpriteCache(sprite, aspect));
+            LOG.info("BattleScreen: loaded " + path + " (" + w + "x" + h + ", aspect=" + aspect + ")");
+        } catch (Exception e) {
+            LOG.error("BattleScreen: failed to load " + path, e);
         }
     }
 
@@ -592,6 +631,16 @@ public class BattleScreen implements Screen {
     @Override
     public void advance(float dt) {
         widgets.advance(dt);
+        // Park the OpenAL listener at the camera focus every frame so positional SFX (gunfire,
+        // explosions, ambient loops, death VO) pan + attenuate around what the player is looking
+        // at. setListenerPosOverrideOneFrame is a one-frame override, so it has to be re-armed
+        // each tick — same pattern as playUILoop. We set it here (not just in FlybyOverlay.advance)
+        // so the listener is still correct during sim-pause when FlybyOverlay bails on dt=0.
+        if (camera != null) {
+            Global.getSoundPlayer().setListenerPosOverrideOneFrame(new Vector2f(
+                    camera.panCellX() * AUDIO_WORLD_UNITS_PER_CELL,
+                    camera.panCellY() * AUDIO_WORLD_UNITS_PER_CELL));
+        }
         // Keyboard pan integrates on real dt (not sim-time) so the camera still
         // moves while the sim is paused — the player should be able to look
         // around the map without unpausing. Diagonal holds aren't normalized;
@@ -650,8 +699,12 @@ public class BattleScreen implements Screen {
      * the map shouldn't make the world go silent. Same reason the music doesn't pause.
      */
     private void driveAmbientBackground(float dt) {
-        for (String id : activeAmbientLoops) {
-            Global.getSoundPlayer().playUILoop(id, 1f, AMBIENT_VOLUME);
+        Vector2f zeroVel = new Vector2f(0f, 0f);
+        for (int i = 0; i < activeAmbientLoops.length; i++) {
+            // Loop id doubles as the playingEntity key — distinct entities per loop so the sound
+            // system doesn't fold two simultaneous loops into a single voice.
+            String id = activeAmbientLoops[i];
+            Global.getSoundPlayer().playLoop(id, id, 1f, AMBIENT_VOLUME, activeAmbientAnchors[i], zeroVel);
         }
         distantBoomTimer -= dt;
         if (distantBoomTimer <= 0f) {
@@ -660,15 +713,28 @@ public class BattleScreen implements Screen {
         }
     }
 
+    /**
+     * Plays one off-screen explosion. The emitter is placed at a random direction from the
+     * camera focus at a fixed distance ({@link #DISTANT_BOOM_EMITTER_DISTANCE}), so each boom
+     * has a clear left/right/front/back cue and gets attenuated by the engine into reading as
+     * "somewhere out there" rather than "right here."
+     */
     private void playDistantBoom() {
+        float originX = camera != null ? camera.panCellX() * AUDIO_WORLD_UNITS_PER_CELL : 0f;
+        float originY = camera != null ? camera.panCellY() * AUDIO_WORLD_UNITS_PER_CELL : 0f;
+        float angle = audioRng.nextFloat() * (float) (Math.PI * 2.0);
+        Vector2f loc = new Vector2f(
+                originX + (float) Math.cos(angle) * DISTANT_BOOM_EMITTER_DISTANCE,
+                originY + (float) Math.sin(angle) * DISTANT_BOOM_EMITTER_DISTANCE);
+        Vector2f vel = new Vector2f(0f, 0f);
         float jitter = 1f + (audioRng.nextFloat() * 2f - 1f) * DISTANT_BOOM_PITCH_JITTER;
         if (audioRng.nextFloat() < DISTANT_BOOM_MUFFLED_CHANCE) {
-            Global.getSoundPlayer().playUISound(SFX_DISTANT_BOOM, jitter, DISTANT_BOOM_VOLUME);
+            Global.getSoundPlayer().playSound(SFX_DISTANT_BOOM, jitter, DISTANT_BOOM_VOLUME, loc, vel);
         } else {
             // Pool explosion + sub-1 pitch + low volume reads as a far-off blast (the muffled clip
             // is great but having only one source for distant booms gets repetitive).
-            Global.getSoundPlayer().playUISound(SFX_NEAR_EXPLOSION,
-                    NEAR_AS_DISTANT_PITCH * jitter, NEAR_AS_DISTANT_VOLUME);
+            Global.getSoundPlayer().playSound(SFX_NEAR_EXPLOSION,
+                    NEAR_AS_DISTANT_PITCH * jitter, NEAR_AS_DISTANT_VOLUME, loc, vel);
         }
     }
 
@@ -711,13 +777,28 @@ public class BattleScreen implements Screen {
      */
     private void playCombatEventSounds(BattleSimulation sim) {
         java.util.Random rng = java.util.concurrent.ThreadLocalRandom.current();
-        for (ShotEvent ignored : sim.getShotsThisFrame()) {
+        Vector2f zeroVel = new Vector2f(0f, 0f);
+        for (ShotEvent s : sim.getShotsThisFrame()) {
             float pitch = 1f + (rng.nextFloat() * 2f - 1f) * RIFLE_PITCH_JITTER;
-            Global.getSoundPlayer().playUISound(SFX_RIFLE, pitch, RIFLE_VOLUME);
+            Vector2f loc = new Vector2f(
+                    s.fromX * AUDIO_WORLD_UNITS_PER_CELL,
+                    s.fromY * AUDIO_WORLD_UNITS_PER_CELL);
+            if (s.turretKind != null) {
+                // Vanilla weapon sound ids are pre-registered by the core install (and are mono),
+                // so positional playback works directly. Slightly lower volume than the rifle pool —
+                // turret fire is meant to be readable but not drown out the rest of the mix when
+                // multiple turrets are up.
+                Global.getSoundPlayer().playSound(s.turretKind.fireSoundId, pitch, 0.7f, loc, zeroVel);
+            } else {
+                Global.getSoundPlayer().playSound(SFX_RIFLE, pitch, RIFLE_VOLUME, loc, zeroVel);
+            }
         }
         for (Unit u : sim.getDeathsThisFrame()) {
             if (u.faction == Faction.MARINE) {
-                Global.getSoundPlayer().playUISound(SFX_VOICE_DEAD, 1f, 1f);
+                Vector2f loc = new Vector2f(
+                        u.renderX * AUDIO_WORLD_UNITS_PER_CELL,
+                        u.renderY * AUDIO_WORLD_UNITS_PER_CELL);
+                Global.getSoundPlayer().playSound(SFX_VOICE_DEAD, 1f, 1f, loc, zeroVel);
                 break;  // one voice per frame
             }
         }
@@ -1497,36 +1578,76 @@ public class BattleScreen implements Screen {
         }
         glEnd();
 
-        // Pass 2 — rotated sprite per turret.
+        // Pass 2 — two layers per turret. The vanilla _recoil sprite is
+        // actually the GUN/BARREL piece (the part that visibly recoils),
+        // not a muzzle-flash overlay. _base is the body/mount. Default
+        // render order (matching vanilla's RENDER_BARREL_BELOW hint) is
+        // barrel first, body on top — the body covers the chamber end of
+        // the barrel, so only the protruding length is visible.
+        //
+        // Firing snaps the barrel backward along the facing axis and eases
+        // it forward over RECOIL_DURATION. The body stays put, so the
+        // protruding length visibly shortens then slides back out — that's
+        // the recoil read.
         java.util.Set<TurretKind> touched = new java.util.HashSet<>();
+        java.util.Set<TurretKind> touchedRecoil = new java.util.HashSet<>();
         for (Unit u : units) {
             if (!(u instanceof MapTurret) || !u.isAlive()) continue;
             MapTurret t = (MapTurret) u;
-            ShuttleSpriteCache cache = turretSprites.get(t.kind);
-            if (cache == null) {
+            ShuttleSpriteCache base = turretSprites.get(t.kind);
+            if (base == null) {
                 renderTurretQuadFallback(t, cellPx * UNIT_FRAC, alphaMult);
                 continue;
             }
-            SpriteAPI sprite = cache.sprite;
-            // Long axis (sprite height = barrel length) maps to visualCells.
-            float pxH = t.kind.visualCells * cellPx;
-            float pxW = pxH * cache.aspect;
-            sprite.setSize(pxW, pxH);
-            sprite.setAngle(t.facingDegrees);
-            sprite.setAlphaMult(alphaMult);
-            sprite.setNormalBlend();
-            sprite.setColor(Color.WHITE);
             float cx = camera.cellToScreenX(t.cellX + 0.5f);
             float cy = camera.cellToScreenY(t.cellY + 0.5f);
-            sprite.renderAtCenter(cx, cy);
+
+            // Barrel layer (below body). Shifted backward when in recoil window.
+            ShuttleSpriteCache barrel = turretRecoilSprites.get(t.kind);
+            if (barrel != null) {
+                float recoilT = 0f;
+                if (t.cooldownTimer > 0f) {
+                    float sinceFire = t.attackCooldown - t.cooldownTimer;
+                    if (sinceFire < RECOIL_DURATION) {
+                        recoilT = 1f - sinceFire / RECOIL_DURATION;
+                    }
+                }
+                float pushPx = recoilT * RECOIL_DISTANCE_FRAC * t.kind.visualCells * cellPx;
+                // Backward = opposite of forward facing. At facing 0 (north),
+                // forward = +Y, so backward = -Y. General: backward direction
+                // in our screen-Y-up convention is (sin F, -cos F).
+                double rad = Math.toRadians(t.facingDegrees);
+                float bx =  (float) Math.sin(rad)  * pushPx;
+                float by = -(float) Math.cos(rad)  * pushPx;
+                drawTurretLayer(barrel, t.facingDegrees, t.kind.visualCells, cellPx, cx + bx, cy + by, alphaMult);
+                touchedRecoil.add(t.kind);
+            }
+            // Body layer (on top of the barrel).
+            drawTurretLayer(base, t.facingDegrees, t.kind.visualCells, cellPx, cx, cy, alphaMult);
             touched.add(t.kind);
         }
-        // Reset angle on touched sprites so the singleton SpriteAPI doesn't
-        // carry rotation into other passes that reuse it.
         for (TurretKind k : touched) {
             ShuttleSpriteCache c = turretSprites.get(k);
             if (c != null) c.sprite.setAngle(0f);
         }
+        for (TurretKind k : touchedRecoil) {
+            ShuttleSpriteCache c = turretRecoilSprites.get(k);
+            if (c != null) c.sprite.setAngle(0f);
+        }
+    }
+
+    /** Renders one turret layer (body or barrel) at the given facing + center, sized to fit the visual envelope. Hoisted out so both layers share the setSize/setAngle/setColor boilerplate. */
+    private static void drawTurretLayer(ShuttleSpriteCache cache, float facingDegrees, float visualCells,
+                                        float cellPx, float cx, float cy, float alphaMult) {
+        SpriteAPI sprite = cache.sprite;
+        float pxH = visualCells * cellPx;
+        float pxW = pxH * cache.aspect;
+        sprite.setSize(pxW, pxH);
+        sprite.setAngle(facingDegrees);
+        sprite.setAlphaMult(alphaMult);
+        sprite.setNormalBlend();
+        sprite.setColor(Color.WHITE);
+        sprite.renderAtCenter(cx, cy);
     }
 
     /** Fallback for turrets whose sprite failed to load — small red square so the unit is at least visible at the mount cell. */
@@ -1712,12 +1833,16 @@ public class BattleScreen implements Screen {
      */
     private void renderShots(List<ShotEvent> shots, float alphaMult) {
         if (shots.isEmpty()) return;
+
+        // Line tracers for marine / militia / alien rifle fire — turret shots
+        // are filtered out and drawn as sprite projectiles in the second pass.
         glDisable(GL_TEXTURE_2D);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         org.lwjgl.opengl.GL11.glLineWidth(2f);
         glBegin(org.lwjgl.opengl.GL11.GL_LINES);
         for (ShotEvent s : shots) {
+            if (s.turretKind != null) continue;
             float t = Math.max(0f, Math.min(1f, s.lifetime / SHOT_LIFETIME_REF));
             Color c = s.shooterFaction == Faction.MARINE ? MARINE_TRACER : DEFENDER_TRACER;
             glColor4f(c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, t * alphaMult);
@@ -1730,6 +1855,45 @@ public class BattleScreen implements Screen {
         }
         glEnd();
         org.lwjgl.opengl.GL11.glLineWidth(1f);
+
+        // Projectile sprites for turret shots — lerp along the from→to vector
+        // over SHOT_LIFETIME_REF, rotate to align with travel direction. Shell
+        // sprites are nose-up like everything else in this world (+Y in the
+        // source PNG), so setAngle(bearing) directly aligns the nose with the
+        // travel vector — no per-axis offset.
+        java.util.Set<TurretKind> touchedProj = new java.util.HashSet<>();
+        for (ShotEvent s : shots) {
+            if (s.turretKind == null) continue;
+            ShuttleSpriteCache cache = turretProjectileSprites.get(s.turretKind);
+            if (cache == null) continue;
+            float progress = 1f - Math.max(0f, Math.min(1f, s.lifetime / SHOT_LIFETIME_REF));
+            float px = s.fromX + (s.toX - s.fromX) * progress;
+            float py = s.fromY + (s.toY - s.fromY) * progress;
+            float bearing = bearingDeg(s.fromX, s.fromY, s.toX, s.toY);
+            SpriteAPI sprite = cache.sprite;
+            float cellPxLocal = camera.cellPxSize();
+            float pxH = s.turretKind.projectileVisualCells * cellPxLocal;
+            float pxW = pxH * cache.aspect;
+            sprite.setSize(pxW, pxH);
+            sprite.setAngle(bearing);
+            sprite.setAlphaMult(alphaMult);
+            sprite.setNormalBlend();
+            sprite.setColor(Color.WHITE);
+            sprite.renderAtCenter(camera.cellToScreenX(px), camera.cellToScreenY(py));
+            touchedProj.add(s.turretKind);
+        }
+        for (TurretKind k : touchedProj) {
+            ShuttleSpriteCache c = turretProjectileSprites.get(k);
+            if (c != null) c.sprite.setAngle(0f);
+        }
+    }
+
+    /** Same convention as {@code Shuttle.facingTowards}: 0° = +Y (north), positive clockwise. */
+    private static float bearingDeg(float fromX, float fromY, float toX, float toY) {
+        float dx = toX - fromX;
+        float dy = toY - fromY;
+        if (dx == 0f && dy == 0f) return 0f;
+        return (float) Math.toDegrees(Math.atan2(dy, dx)) - 90f;
     }
 
     private enum Facing { WEST, NORTH, EAST, SOUTH }

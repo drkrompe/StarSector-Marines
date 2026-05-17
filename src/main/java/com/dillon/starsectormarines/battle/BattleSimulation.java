@@ -577,7 +577,8 @@ public class BattleSimulation {
             toX = target.cellX + 0.5f + (float) Math.cos(angle) * spread;
             toY = target.cellY + 0.5f + (float) Math.sin(angle) * spread;
         }
-        ShotEvent evt = new ShotEvent(fromX, fromY, toX, toY, hit, shooter.faction, SHOT_LIFETIME);
+        TurretKind tk = (shooter instanceof MapTurret) ? ((MapTurret) shooter).kind : null;
+        ShotEvent evt = new ShotEvent(fromX, fromY, toX, toY, hit, shooter.faction, SHOT_LIFETIME, tk);
         activeShots.add(evt);
         shotsThisFrame.add(evt);
     }
