@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.mapgen.MapDistrictTheme;
 import com.dillon.starsectormarines.battle.mapgen.MapResult;
+// Compound lives in the bsp sub-package (same as this test).
 // DistrictMap lives in the bsp sub-package (same as this test).
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import org.junit.jupiter.api.Test;
@@ -99,15 +100,23 @@ public class BspMapPreviewTest {
         BspCityGenerator gen = new BspCityGenerator();
 
         BufferedImage[] perSeed = new BufferedImage[SEEDS.length];
+        List<String> failures = new java.util.ArrayList<>();
         for (int i = 0; i < SEEDS.length; i++) {
             long seed = SEEDS[i];
             MapResult map = gen.generate(GRID_W, GRID_H, seed);
-            assertConnected(map, seed);
-            BufferedImage img = renderMap(map, seed, gen.getLastDistrictMap());
+            BufferedImage img = renderMap(map, seed, gen.getLastDistrictMap(), gen.getLastCompounds());
             perSeed[i] = img;
             Path out = OUT_DIR.resolve(String.format("seed-%04d.png", (int) seed));
             ImageIO.write(img, "PNG", out.toFile());
             System.out.println("  wrote " + out.toAbsolutePath());
+            try {
+                assertConnected(map, seed);
+            } catch (AssertionError ae) {
+                failures.add(ae.getMessage());
+            }
+        }
+        if (!failures.isEmpty()) {
+            throw new AssertionError(String.join("\n", failures));
         }
 
         BufferedImage contact = composeContactSheet(perSeed, 3);
@@ -157,12 +166,37 @@ public class BspMapPreviewTest {
         }
         int finalReached = reached;
         int finalTotal = totalWalkable;
+        if (reached != totalWalkable) {
+            System.out.println("    FAIL seed=" + seed);
+            int printed = 0;
+            for (int y = 0; y < h && printed < 10; y++) {
+                for (int x = 0; x < w && printed < 10; x++) {
+                    if (grid.isWalkable(x, y) && !visited[x][y]) {
+                        // Show what's around the unreached cell.
+                        System.out.println("    unreached: " + x + "," + y
+                                + " ground=" + map.topology.getGroundKind(x, y)
+                                + " N=" + neighborState(map, x, y, 0, -1)
+                                + " S=" + neighborState(map, x, y, 0, 1)
+                                + " E=" + neighborState(map, x, y, 1, 0)
+                                + " W=" + neighborState(map, x, y, -1, 0));
+                        printed++;
+                    }
+                }
+            }
+        }
         assertTrue(reached == totalWalkable,
                 () -> String.format("seed %d: walkable cells partitioned — reached %d of %d",
                         seed, finalReached, finalTotal));
     }
 
-    private static BufferedImage renderMap(MapResult map, long seed, DistrictMap districts) {
+    private static String neighborState(MapResult map, int x, int y, int dx, int dy) {
+        int nx = x + dx, ny = y + dy;
+        if (nx < 0 || nx >= map.grid.getWidth() || ny < 0 || ny >= map.grid.getHeight()) return "OOB";
+        return (map.grid.isWalkable(nx, ny) ? "w" : "W")
+                + ":" + map.topology.getGroundKind(nx, ny);
+    }
+
+    private static BufferedImage renderMap(MapResult map, long seed, DistrictMap districts, List<Compound> compounds) {
         NavigationGrid grid = map.grid;
         CellTopology topo = map.topology;
         int w = grid.getWidth(), h = grid.getHeight();
@@ -239,6 +273,13 @@ public class BspMapPreviewTest {
             drawDistrictOverlay(g, districts, h, imgW);
         }
 
+        // Pass 7b — compound bounding rects. A bright magenta outline traces
+        // each compound's bounding box so the multi-leaf claim is visible at
+        // a glance even when the wall ring blends with adjacent building art.
+        if (compounds != null && !compounds.isEmpty()) {
+            drawCompoundOverlay(g, compounds, h);
+        }
+
         // Pass 8 — spawn anchors.
         drawDiamond(g, new Color(80, 230, 110), map.marineSpawnX,   map.marineSpawnY,   h);
         drawDiamond(g, new Color(240, 80,  80), map.defenderSpawnX, map.defenderSpawnY, h);
@@ -288,6 +329,35 @@ public class BspMapPreviewTest {
                 g.drawString(theme.name().substring(0, Math.min(3, theme.name().length())),
                         x0 + 4, y0 + 22);
             }
+        }
+    }
+
+    /**
+     * Draw a colored outline around each compound's union bounding rect plus
+     * a kind glyph in the top-left corner of the rect. Reads as "this cluster
+     * of leaves was claimed as one compound" without interfering with the
+     * underlying ground / wall / doorway art.
+     */
+    private static void drawCompoundOverlay(Graphics2D g, List<Compound> compounds, int gridH) {
+        g.setStroke(new BasicStroke(2f));
+        for (Compound c : compounds) {
+            int x0 = c.left * CELL_PX - 1;
+            int y0 = (gridH - 1 - c.bottom) * CELL_PX - 1;
+            int wPx = c.width()  * CELL_PX + 2;
+            int hPx = c.height() * CELL_PX + 2;
+            Color outline = new Color(255, 80, 200, 230);
+            g.setColor(outline);
+            g.drawRect(x0, y0, wPx, hPx);
+            g.setFont(new Font("SansSerif", Font.BOLD, 10));
+            g.setColor(new Color(255, 255, 255, 240));
+            g.drawString(glyphFor(c.kind), x0 + 4, y0 + 12);
+        }
+    }
+
+    private static String glyphFor(com.dillon.starsectormarines.battle.mapgen.BlockKind kind) {
+        switch (kind) {
+            case MILITARY_BASE: return "MIL";
+            default:            return kind.name().substring(0, Math.min(3, kind.name().length()));
         }
     }
 

@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.battle.mapgen.bsp.fill.DenseBlockFiller;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.FortifiedPostFiller;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.IndustrialYardFiller;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.LandingZoneFiller;
+import com.dillon.starsectormarines.battle.mapgen.bsp.fill.MilitaryBaseFiller;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.ParkFiller;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.PlazaFiller;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.WastelandRubbleFiller;
@@ -27,6 +28,7 @@ import org.apache.log4j.Logger;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -64,6 +66,7 @@ public final class BspCityGenerator implements MapGenerator {
     private static final int WALL_HP_DEFAULT = 100;
 
     private final Map<BlockKind, BlockFiller> fillers = new EnumMap<>(BlockKind.class);
+    private final MilitaryBaseFiller militaryBaseFiller = new MilitaryBaseFiller();
 
     public BspCityGenerator() {
         // Default every kind to a stub. Real fillers replace these via
@@ -149,11 +152,30 @@ public final class BspCityGenerator implements MapGenerator {
         // Step 2 — label each leaf using its district's theme.
         labelLeaves(partition, districtMap, rng);
 
-        // Step 3 — dispatch fillers. Each filler owns its leaf's cells (NOT
-        // the road frame around it).
+        // Step 2b — claim multi-leaf compounds (e.g. military bases). Each
+        // compound's seed leaf keeps its BlockKind; absorbed neighbor leaves
+        // are rewritten to COMPOUND_MEMBER so per-leaf dispatch skips them.
+        Map<BlockLeaf, List<BlockLeaf>> adjacency = LeafAdjacency.compute(partition.leaves, width, height);
+        List<Compound> compounds = CompoundClaim.claim(partition.leaves, adjacency, rng);
+        this.lastCompounds = compounds;
+        Map<BlockLeaf, Compound> compoundBySeed = new IdentityHashMap<>();
+        for (Compound c : compounds) compoundBySeed.put(c.seed, c);
+        if (!compounds.isEmpty()) {
+            LOG.info("BspCityGenerator: " + compounds.size() + " compound(s) claimed");
+        }
+
+        // Step 3 — dispatch fillers. Each per-leaf filler owns its leaf's
+        // cells (NOT the road frame around it); compound fillers own the
+        // union of their member leaves plus the bridged road between them.
         List<PointOfInterest> pois = new ArrayList<>();
         List<Doodad> doodads = new ArrayList<>();
         for (BlockLeaf leaf : partition.leaves) {
+            if (leaf.kind == BlockKind.COMPOUND_MEMBER) continue;
+            Compound compound = compoundBySeed.get(leaf);
+            if (compound != null) {
+                militaryBaseFiller.fill(compound, grid, topology, plan.roadCells, pois, doodads, rng);
+                continue;
+            }
             BlockFiller filler = fillers.get(leaf.kind);
             filler.fill(leaf, grid, topology, pois, doodads, rng);
         }
@@ -193,6 +215,10 @@ public final class BspCityGenerator implements MapGenerator {
     /** Last district map produced by {@link #generate} — exposed for the preview test's overlay rendering. Not part of {@link com.dillon.starsectormarines.battle.mapgen.MapResult} because nothing at runtime needs it. */
     private DistrictMap lastDistrictMap;
     public DistrictMap getLastDistrictMap() { return lastDistrictMap; }
+
+    /** Last compound list produced by {@link #generate} — exposed for preview rendering. Empty if no compound was claimed. */
+    private List<Compound> lastCompounds = new ArrayList<>();
+    public List<Compound> getLastCompounds() { return lastCompounds; }
 
     /** Every non-walkable cell gets a starting HP. Mirrors legacy seed. */
     private void seedWallHp(NavigationGrid grid) {

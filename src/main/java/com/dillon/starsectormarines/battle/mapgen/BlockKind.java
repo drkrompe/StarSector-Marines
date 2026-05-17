@@ -51,4 +51,32 @@ public enum BlockKind {
      * density is internal. Multi-room close-quarters combat is the point.
      */
     DENSE_BLOCK,
+
+    /**
+     * Multi-leaf compound seed — fortified base claimed from 2-3 adjacent
+     * leaves with a shared outer wall ring, gates, corner gun emplacements,
+     * and member leaves carved as command / barracks / armory sub-buildings.
+     * Inter-leaf road frames inside the wall become {@link
+     * com.dillon.starsectormarines.battle.map.CellTopology.GroundKind#STONE}
+     * parade ground — that enclosed courtyard is the visual hinge that
+     * makes the cluster read as "one base" rather than "a few buildings".
+     *
+     * <p>Appears in district theme rolls; if the post-label claim pass fails
+     * to grow it (no eligible neighbor, hard cap already met), the leaf is
+     * demoted back to {@link #FORTIFIED_POST} before fill dispatch.
+     */
+    MILITARY_BASE,
+
+    /**
+     * Sentinel — this leaf belongs to a multi-leaf compound (e.g. a
+     * {@link #MILITARY_BASE}) that owns its fill end-to-end. Per-leaf
+     * {@link com.dillon.starsectormarines.battle.mapgen.BlockFiller}
+     * dispatch must skip these leaves; the compound's fill pass handles
+     * them as a group.
+     *
+     * <p>Never appears in a {@link com.dillon.starsectormarines.battle.mapgen.MapDistrictTheme}
+     * weight table — it's assigned during the post-label claim pass, not
+     * during the initial roll.
+     */
+    COMPOUND_MEMBER,
 }

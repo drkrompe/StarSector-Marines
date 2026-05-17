@@ -56,12 +56,13 @@ public enum MapDistrictTheme {
                 .build();
 
         INDUSTRIAL.table = WeightedTable.<BlockKind>builder()
-                .add(BlockKind.BUILDING_INDUSTRIAL,  40)
+                .add(BlockKind.BUILDING_INDUSTRIAL,  38)
                 .add(BlockKind.INDUSTRIAL_YARD,      28)
                 .add(BlockKind.WASTELAND_RUBBLE,     10)
                 .add(BlockKind.FORTIFIED_POST,        8)
                 .add(BlockKind.BUILDING_COMMERCIAL,   5)
                 .add(BlockKind.BUILDING_RESIDENTIAL,  5)
+                .add(BlockKind.MILITARY_BASE,         4)  // seed roll; claim pass grows it
                 .add(BlockKind.PLAZA,                 2)
                 .add(BlockKind.PARK,                  2)
                 .build();
@@ -87,7 +88,8 @@ public enum MapDistrictTheme {
                 .add(BlockKind.DENSE_BLOCK,           8)  // occasional dense pocket
                 .add(BlockKind.INDUSTRIAL_YARD,       8)
                 .add(BlockKind.WASTELAND_RUBBLE,      7)
-                .add(BlockKind.FORTIFIED_POST,        5)
+                .add(BlockKind.FORTIFIED_POST,        4)
+                .add(BlockKind.MILITARY_BASE,         2)  // rare base in mixed zones
                 .add(BlockKind.LANDING_ZONE,          2)
                 // No WATERFRONT in MIXED — water in the middle of the map looks wrong.
                 .build();
@@ -109,9 +111,10 @@ public enum MapDistrictTheme {
                 .add(BlockKind.BUILDING_RESIDENTIAL, 15)
                 .add(BlockKind.INDUSTRIAL_YARD,      12)
                 .add(BlockKind.BUILDING_INDUSTRIAL,   8)
-                .add(BlockKind.FORTIFIED_POST,        8)
+                .add(BlockKind.FORTIFIED_POST,        7)
                 .add(BlockKind.BUILDING_COMMERCIAL,   5)
                 .add(BlockKind.PLAZA,                 5)
+                .add(BlockKind.MILITARY_BASE,         3)  // outskirts garrison
                 .build();
     }
 
