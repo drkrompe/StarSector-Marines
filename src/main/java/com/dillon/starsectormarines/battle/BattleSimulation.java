@@ -579,6 +579,9 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      * GC cleans them up on save; the next tick's behaviors won't dispatch
      * because no member is alive.
      */
+    /** Cell radius around a squadmate inside which an enemy shot's origin counts as "audible gunfire" and promotes the squad to SUSPICIOUS. Bigger than weapon ranges so a distant firefight pulls patrols in to investigate — that's the whole point. */
+    public static final float GUNFIRE_ALERT_RADIUS = 18f;
+
     private void updateSquadAlertLevels() {
         for (Squad squad : squads.values()) {
             boolean engaged = false;
@@ -598,6 +601,28 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                     break;
                 }
                 if (engaged) break;
+            }
+            // Gunfire spreading: if not already engaged, any enemy shot whose
+            // origin sits within GUNFIRE_ALERT_RADIUS of a squadmate counts as
+            // "we heard something" — patrols converge, garrisons brace. Uses
+            // activeShots (still-in-flight) rather than shotsThisFrame so a
+            // gunfight a tick or two ago still reads as audible.
+            if (!engaged) {
+                for (Unit u : units) {
+                    if (!u.isAlive() || u.squadId != squad.id) continue;
+                    for (ShotEvent shot : activeShots) {
+                        if (shot.shooterFaction == squad.faction) continue;
+                        float dx = shot.fromX - (u.cellX + 0.5f);
+                        float dy = shot.fromY - (u.cellY + 0.5f);
+                        if (dx * dx + dy * dy <= GUNFIRE_ALERT_RADIUS * GUNFIRE_ALERT_RADIUS) {
+                            suspicious = true;
+                            seenX = Math.round(shot.fromX);
+                            seenY = Math.round(shot.fromY);
+                            break;
+                        }
+                    }
+                    if (suspicious) break;
+                }
             }
             squad.lastSeenEnemyX = seenX;
             squad.lastSeenEnemyY = seenY;

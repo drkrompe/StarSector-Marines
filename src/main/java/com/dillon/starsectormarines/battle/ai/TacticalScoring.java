@@ -158,6 +158,54 @@ public final class TacticalScoring {
         return findFiringPosition(self, target, sim, Integer.MIN_VALUE, Integer.MIN_VALUE);
     }
 
+    /**
+     * Constrained firing-position search — like {@link #findFiringPosition} but
+     * rejects any candidate whose cell-distance from ({@code anchorX},
+     * {@code anchorY}) exceeds {@code maxDistFromAnchor}. Used by
+     * {@link GarrisonBehavior} to keep engaged defenders within a tight
+     * radius of their tactical-node anchor: they'll peek around corners and
+     * grab better cover, but won't chase marines off the wall.
+     *
+     * <p>Returns {@code null} (not the target's cell) when no candidate
+     * satisfies range + LOS + anchor-radius. The caller treats null as
+     * "hold position" rather than "advance toward the target."
+     */
+    public static int[] findFiringPositionWithin(Unit self, Unit target, BattleSimulation sim,
+                                                  int anchorX, int anchorY, float maxDistFromAnchor) {
+        NavigationGrid grid = sim.getGrid();
+        int range = Math.max(1, (int) Math.floor(self.attackRange));
+        int tx = target.cellX;
+        int ty = target.cellY;
+
+        int[] best = null;
+        float bestScore = Float.MAX_VALUE;
+        for (int dy = -range; dy <= range; dy++) {
+            for (int dx = -range; dx <= range; dx++) {
+                int cx = tx + dx;
+                int cy = ty + dy;
+                if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) continue;
+
+                float distFromTarget = (float) Math.sqrt(dx * dx + dy * dy);
+                if (distFromTarget > self.attackRange) continue;
+                if (distFromTarget < FIRING_MIN_DISTANCE) continue;
+                if (!grid.hasLineOfSight(cx, cy, tx, ty)) continue;
+                if (cellDistance(anchorX, anchorY, cx, cy) > maxDistFromAnchor) continue;
+
+                int occupants = occupantsExcludingSelf(self, cx, cy, sim);
+                int cover = grid.getCoverAt(cx, cy);
+                float distFromSelf = cellDistance(self.cellX, self.cellY, cx, cy);
+                float score = distFromSelf
+                        + FIRING_OCCUPANCY_COST * occupants
+                        - FIRING_COVER_BONUS * cover;
+                if (score < bestScore) {
+                    bestScore = score;
+                    best = new int[]{cx, cy};
+                }
+            }
+        }
+        return best;
+    }
+
     public static int[] findFiringPosition(Unit self, Unit target, BattleSimulation sim, int rejectX, int rejectY) {
         NavigationGrid grid = sim.getGrid();
         int range = Math.max(1, (int) Math.floor(self.attackRange));
