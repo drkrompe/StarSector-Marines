@@ -4,7 +4,9 @@ import com.dillon.starsectormarines.battle.Doodad;
 import com.dillon.starsectormarines.battle.PointOfInterest;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.tactical.TacticalMap;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -39,12 +41,29 @@ public final class MapResult {
     public final int defenderSpawnY;
     public final List<PointOfInterest> pointsOfInterest;
     public final List<Doodad> doodads;
+    /**
+     * Authored tactical hint graph the battle AI uses for squad allocation and
+     * fallback routing. Never null — generators with no tactical layer return
+     * an empty {@link TacticalMap}. See {@link TacticalMap} for the queries
+     * available to {@link com.dillon.starsectormarines.battle.BattleSetup}.
+     */
+    public final TacticalMap tacticalMap;
 
     public MapResult(NavigationGrid grid, CellTopology topology,
                      int marineSpawnX, int marineSpawnY,
                      int defenderSpawnX, int defenderSpawnY,
                      List<PointOfInterest> pointsOfInterest,
                      List<Doodad> doodads) {
+        this(grid, topology, marineSpawnX, marineSpawnY, defenderSpawnX, defenderSpawnY,
+                pointsOfInterest, doodads, new TacticalMap(Collections.emptyList()));
+    }
+
+    public MapResult(NavigationGrid grid, CellTopology topology,
+                     int marineSpawnX, int marineSpawnY,
+                     int defenderSpawnX, int defenderSpawnY,
+                     List<PointOfInterest> pointsOfInterest,
+                     List<Doodad> doodads,
+                     TacticalMap tacticalMap) {
         this.grid = grid;
         this.topology = topology;
         this.marineSpawnX = marineSpawnX;
@@ -53,5 +72,6 @@ public final class MapResult {
         this.defenderSpawnY = defenderSpawnY;
         this.pointsOfInterest = pointsOfInterest;
         this.doodads = doodads;
+        this.tacticalMap = tacticalMap;
     }
 }

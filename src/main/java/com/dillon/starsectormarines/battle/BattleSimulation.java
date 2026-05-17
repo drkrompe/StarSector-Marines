@@ -6,8 +6,11 @@ import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.ai.CombatantBehavior;
 import com.dillon.starsectormarines.battle.ai.FallbackBehavior;
 import com.dillon.starsectormarines.battle.ai.FleeBehavior;
+import com.dillon.starsectormarines.battle.ai.GarrisonBehavior;
 import com.dillon.starsectormarines.battle.ai.KitRetrieverBehavior;
+import com.dillon.starsectormarines.battle.ai.PatrolBehavior;
 import com.dillon.starsectormarines.battle.ai.PlanterBehavior;
+import com.dillon.starsectormarines.battle.ai.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.ai.TacticalScoring;
 import com.dillon.starsectormarines.battle.ai.TurretBehavior;
 import com.dillon.starsectormarines.battle.ai.UnitBehavior;
@@ -17,6 +20,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.objective.EliminateFactionObjective;
 import com.dillon.starsectormarines.battle.objective.Objective;
+import com.dillon.starsectormarines.battle.tactical.TacticalMap;
 import com.dillon.starsectormarines.battle.weapons.Detonations;
 import com.dillon.starsectormarines.battle.weapons.HeavyWeapons;
 import com.dillon.starsectormarines.battle.weapons.InfantryWeapons;
@@ -24,6 +28,7 @@ import com.dillon.starsectormarines.battle.weapons.WeaponSimContext;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -129,6 +134,14 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Fighter wings committed to this battle. Lives on the sim so the overlay can read it without coupling to the briefing screen. */
     private FlybyRoster flybyRoster = FlybyRoster.EMPTY;
 
+    /**
+     * Authored tactical node graph from the map generator. Read by the
+     * patrol behavior for waypoint sampling. Default is an empty map so
+     * legacy callers that don't wire one through still work — patrols on
+     * empty maps degrade gracefully to random-cell wander.
+     */
+    private TacticalMap tacticalMap = new TacticalMap(java.util.Collections.emptyList());
+
     public BattleSimulation(NavigationGrid grid, CellTopology topology) {
         this.grid = grid;
         this.topology = topology;
@@ -194,6 +207,14 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     @Override public Random getRng()       { return rng; }
     /** Returns the squad with the given id, or {@code null} if {@code id == Unit.NO_SQUAD} or the squad was never registered. */
     public Squad getSquad(int id)          { return id == Unit.NO_SQUAD ? null : squads.get(id); }
+    /** All squads currently registered. Used by the per-tick alert update; behaviors should read individual squads via {@link #getSquad(int)} keyed off {@link Unit#squadId}. */
+    public Collection<Squad> getSquads()   { return squads.values(); }
+    /** Tactical hint graph produced by the map generator. Never null; an empty graph for legacy maps. */
+    public TacticalMap getTacticalMap()    { return tacticalMap; }
+    /** Set the tactical map for this battle. Called once by {@code BattleSetup} right after construction, before the first {@link #advance} call. */
+    public void setTacticalMap(TacticalMap map) {
+        this.tacticalMap = map != null ? map : new TacticalMap(java.util.Collections.emptyList());
+    }
 
     @Override
     public void addUnit(Unit u) {
@@ -310,6 +331,11 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             objectives.add(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
         }
         rebuildOccupancyMap();
+        // Refresh squad-level awareness BEFORE individual unit updates so the
+        // garrison/patrol behavior dispatch this tick sees fresh ENGAGED /
+        // SUSPICIOUS / UNAWARE state. Solo units (squadId == NO_SQUAD) skip
+        // the squad path entirely.
+        updateSquadAlertLevels();
         for (Unit u : units) {
             if (!u.isAlive()) continue;
             updateUnit(u);
@@ -520,10 +546,81 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             case KIT_RETRIEVER:  return KitRetrieverBehavior.INSTANCE;
             case FLEE:           return FleeBehavior.INSTANCE;
             case TURRET:         return TurretBehavior.INSTANCE;
+            case GARRISON:       return GarrisonBehavior.INSTANCE;
+            case PATROL:         return PatrolBehavior.INSTANCE;
             case OBJECTIVE_CAMPER:
             case VIP:
             case COMBATANT:
             default:             return CombatantBehavior.INSTANCE;
+        }
+    }
+
+    /**
+     * Refreshes {@link SquadAlertLevel} on every registered squad. Promotion
+     * rules:
+     * <ul>
+     *   <li><b>ENGAGED</b> — any living squadmate has LOS to an alive enemy
+     *       combatant. {@code timeSinceContact} resets to zero and
+     *       {@code lastSeenEnemy} captures that enemy's cell.</li>
+     *   <li><b>SUSPICIOUS</b> — no current LOS, but a squadmate is in a
+     *       fall-back (recently hit). The squad converges on the last known
+     *       enemy cell so a patrol that gets sniped doesn't keep walking
+     *       its route obliviously.</li>
+     *   <li><b>UNAWARE</b> — neither of the above. After
+     *       {@link Squad#ENGAGED_DECAY_SECONDS} of no contact an ENGAGED
+     *       squad drops to SUSPICIOUS, and after another
+     *       {@link Squad#SUSPICIOUS_DECAY_SECONDS} a SUSPICIOUS squad drops
+     *       to UNAWARE. The decay lets garrisons hold their state across
+     *       brief duck-behind-cover moments and patrols commit to
+     *       investigation before giving up.</li>
+     * </ul>
+     *
+     * <p>Empty squads (all members dead) are left in their last state — the
+     * GC cleans them up on save; the next tick's behaviors won't dispatch
+     * because no member is alive.
+     */
+    private void updateSquadAlertLevels() {
+        for (Squad squad : squads.values()) {
+            boolean engaged = false;
+            boolean suspicious = false;
+            int seenX = squad.lastSeenEnemyX;
+            int seenY = squad.lastSeenEnemyY;
+            for (Unit u : units) {
+                if (!u.isAlive() || u.squadId != squad.id) continue;
+                if (u.fallbackTimer > 0f) suspicious = true;
+                for (Unit other : units) {
+                    if (!other.isAlive() || other.faction == squad.faction) continue;
+                    if (!other.type.combatant) continue;
+                    if (!grid.hasLineOfSight(u.cellX, u.cellY, other.cellX, other.cellY)) continue;
+                    engaged = true;
+                    seenX = other.cellX;
+                    seenY = other.cellY;
+                    break;
+                }
+                if (engaged) break;
+            }
+            squad.lastSeenEnemyX = seenX;
+            squad.lastSeenEnemyY = seenY;
+            if (engaged) {
+                squad.alertLevel = SquadAlertLevel.ENGAGED;
+                squad.timeSinceContact = 0f;
+            } else if (suspicious) {
+                if (squad.alertLevel != SquadAlertLevel.ENGAGED) {
+                    squad.alertLevel = SquadAlertLevel.SUSPICIOUS;
+                }
+                squad.timeSinceContact = 0f;
+            } else {
+                squad.timeSinceContact += TICK_DT;
+                if (squad.alertLevel == SquadAlertLevel.ENGAGED
+                        && squad.timeSinceContact >= Squad.ENGAGED_DECAY_SECONDS) {
+                    squad.alertLevel = SquadAlertLevel.SUSPICIOUS;
+                } else if (squad.alertLevel == SquadAlertLevel.SUSPICIOUS
+                        && squad.timeSinceContact >= Squad.ENGAGED_DECAY_SECONDS + Squad.SUSPICIOUS_DECAY_SECONDS) {
+                    squad.alertLevel = SquadAlertLevel.UNAWARE;
+                    squad.lastSeenEnemyX = -1;
+                    squad.lastSeenEnemyY = -1;
+                }
+            }
         }
     }
 

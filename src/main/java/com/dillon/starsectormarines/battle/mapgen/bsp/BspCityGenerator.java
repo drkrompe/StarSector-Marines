@@ -271,7 +271,7 @@ public final class BspCityGenerator implements MapGenerator {
 
         return new MapResult(grid, topology,
                 marine[0], marine[1], defender[0], defender[1],
-                pois, doodads);
+                pois, doodads, this.lastTacticalMap);
     }
 
     /**

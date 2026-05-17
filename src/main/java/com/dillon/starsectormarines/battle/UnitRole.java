@@ -32,6 +32,21 @@ package com.dillon.starsectormarines.battle;
  *       barrel is aligned. Assigned to {@link MapTurret} units stamped by
  *       {@link BattleSetup}; routed to {@code TurretBehavior} for per-tick
  *       update.</li>
+ *   <li>{@link #GARRISON} — squad-cohesion role for defenders pegged to a
+ *       {@link com.dillon.starsectormarines.battle.tactical.TacticalNode}.
+ *       Holds a firing position near the node's anchor until any squadmate
+ *       sees an enemy, at which point the squad's
+ *       {@link com.dillon.starsectormarines.battle.ai.SquadAlertLevel}
+ *       transitions to ENGAGED and members fall through to combatant-style
+ *       engagement. Replaces "everyone clusters at the defender spawn anchor"
+ *       for conquest-mode maps with a tactical layer.</li>
+ *   <li>{@link #PATROL} — squad walks a route between random nearby
+ *       {@link com.dillon.starsectormarines.battle.tactical.TacticalNode}s in
+ *       their district while UNAWARE. On enemy contact the squad bumps to
+ *       ENGAGED and members shift to combatant engagement; on SUSPICIOUS
+ *       (a squadmate took fire but no LOS) the squad converges on the last
+ *       known enemy cell. Distinct from {@link #GARRISON} only in idle
+ *       movement — the combat path is identical.</li>
  * </ul>
  *
  * <p>Mission setup assigns roles when populating the simulation. Roles can
@@ -46,5 +61,7 @@ public enum UnitRole {
     VIP,
     KIT_RETRIEVER,
     FLEE,
-    TURRET
+    TURRET,
+    GARRISON,
+    PATROL
 }

@@ -75,6 +75,16 @@ public class Unit {
     /** {@link UnitRole#FLEE} idle pause between wander legs. While >0 the civilian stands at their current cell instead of picking a new destination. Rolled fresh on arrival; ignored when a threat is in range. */
     public float wanderDwellTimer = 0f;
 
+    /**
+     * Cell this unit returns to when nothing else is happening — the
+     * "post" they were assigned at spawn. Used by {@link UnitRole#GARRISON}
+     * for idle behavior: members path to their home and idle there while
+     * their squad is UNAWARE. -1 sentinel = no home assigned (units that
+     * roam, e.g. patrols and marines, don't set this).
+     */
+    public int homeCellX = -1;
+    public int homeCellY = -1;
+
     /** Primary handheld weapon. Null for legacy / non-marine units — fire stats fall back to the {@link UnitType} defaults baked into {@link #attackRange}/{@link #attackDamage}/etc. Assigned at deboard time for marines. */
     public MarineWeapon primaryWeapon;
     /** Optional secondary slot (rocket launcher, future grenades). Null = no secondary. */

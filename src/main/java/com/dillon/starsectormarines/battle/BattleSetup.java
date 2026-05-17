@@ -12,6 +12,8 @@ import com.dillon.starsectormarines.battle.mapgen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.objective.EliminateFactionObjective;
+import com.dillon.starsectormarines.battle.tactical.TacticalMap;
+import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -49,6 +51,10 @@ public final class BattleSetup {
 
     /** BFS radius around the defender anchor we scan for candidate spawn cells. Larger than {@link #DEFENDER_COUNT} so we have a pool to cherry-pick high-cover cells from. */
     private static final int DEFENDER_SPAWN_SCAN_RADIUS = 14;
+    /** BFS radius around a tactical-node anchor for picking garrison spawn cells. Tight — defenders should appear inside or right next to their post. */
+    private static final int GARRISON_SPAWN_RADIUS = 5;
+    /** Default size of a roving patrol squad when leftover defenders are bundled into patrols. */
+    private static final int PATROL_SQUAD_SIZE = 3;
 
     /** How many of the {@link #DEFENDER_COUNT} defenders are stiffening regulars (red marines) instead of militia. The rest are militia. */
     private static final int DEFENDER_ELITE_COUNT = 3;
@@ -138,6 +144,7 @@ public final class BattleSetup {
         List<MapVehicle> vehiclePlacements = stampVehicles(map.grid, map.topology, rng);
         List<TurretPlacement> turretPlacements = stampTurrets(map.grid, map.topology, rng);
         BattleSimulation sim = new BattleSimulation(map.grid, map.topology);
+        sim.setTacticalMap(map.tacticalMap);
         for (MapVehicle v : vehiclePlacements) sim.addVehicle(v);
         for (Doodad d : map.doodads) sim.addDoodad(d);
         spawnTurrets(sim, turretPlacements);
@@ -193,8 +200,7 @@ public final class BattleSetup {
             sim.addShuttle(shuttle);
         }
 
-        List<int[]> defenderCells = pickDefensiveCluster(map.grid, map.defenderSpawnX, map.defenderSpawnY, DEFENDER_COUNT);
-        spawnDefenderMix(sim, defenderCells, enemyHasHeavyArmor);
+        allocateDefenders(sim, map, enemyHasHeavyArmor, rng);
         spawnAmbientCivilians(sim, map, rng);
         return sim;
     }
@@ -330,6 +336,7 @@ public final class BattleSetup {
         List<MapVehicle> vehiclePlacements = stampVehicles(map.grid, map.topology, rng);
         List<TurretPlacement> turretPlacements = stampTurrets(map.grid, map.topology, rng);
         BattleSimulation sim = new BattleSimulation(map.grid, map.topology);
+        sim.setTacticalMap(map.tacticalMap);
         for (MapVehicle v : vehiclePlacements) sim.addVehicle(v);
         for (Doodad d : map.doodads) sim.addDoodad(d);
         spawnTurrets(sim, turretPlacements);
@@ -376,30 +383,126 @@ public final class BattleSetup {
             sim.addShuttle(shuttle);
         }
 
-        // Defenders pre-spawn around their anchor, biased to high-cover cells —
-        // they prepared the position. Falls back to plain BFS order if the
-        // local area is open (e.g., a plaza right at the anchor).
-        List<int[]> defenderCells = pickDefensiveCluster(map.grid, map.defenderSpawnX, map.defenderSpawnY, DEFENDER_COUNT);
-        spawnDefenderMix(sim, defenderCells, enemyHasHeavyArmor);
+        // Defenders pre-spawn around tactical-node anchors (garrison squads
+        // pegged to the highest-priority posts; leftovers form patrol squads).
+        // Legacy maps with no tactical layer fall back to the single-cluster
+        // spawn around the defender anchor.
+        allocateDefenders(sim, map, enemyHasHeavyArmor, rng);
         spawnAmbientCivilians(sim, map, rng);
         return sim;
     }
 
     /**
-     * Spawns defenders from a pre-chosen cell list, mixing in
-     * {@link #DEFENDER_ELITE_COUNT} red-marine elites among the militia. Elites
-     * take the first slots (which are the highest-cover positions per
-     * {@link #pickDefensiveCluster}'s sort), so the stiffening regulars are
-     * tucked into the best firing posts and the militia fills the perimeter.
+     * Distributes defender units across the map. When the {@link TacticalMap}
+     * carries DEFENDER-leaning nodes (towers, gates, command posts, etc.),
+     * top-priority nodes get GARRISON squads of their declared
+     * {@link TacticalNode#garrisonSize}, with stiffening regulars tucked into
+     * the highest-priority posts and a single mech (if {@code enemyHasHeavyArmor})
+     * taking the very top slot. Any defenders remaining after garrisons are
+     * filled bundle into PATROL squads anchored to spare nodes, so the city
+     * has foot traffic instead of all defenders sitting on the wall.
      *
-     * <p>When {@code enemyHasHeavyArmor} is set — meaning the target planet's
-     * market produces or demands heavy armaments — the highest-cover slot is
-     * swapped for a single {@link UnitType#HEAVY_MECH}. One mech per battle
-     * keeps the threat readable; scaling that up is a balance question for
-     * later. The remaining elite slots stay red-marines.
+     * <p>Legacy maps with no tactical nodes fall back to the original single-
+     * cluster spawn around {@code map.defenderSpawnX/Y}: a flat list of
+     * defenders, biased to high-cover cells, all as plain COMBATANTs. This
+     * preserves placeholder/legacy generator output until those gens grow a
+     * tactical layer of their own.
      */
-    private static void spawnDefenderMix(BattleSimulation sim, List<int[]> cells,
-                                         boolean enemyHasHeavyArmor) {
+    private static void allocateDefenders(BattleSimulation sim, MapResult map,
+                                          boolean enemyHasHeavyArmor, Random rng) {
+        TacticalMap tactical = map.tacticalMap;
+        List<TacticalNode> defenderNodes = (tactical != null)
+                ? new ArrayList<>(tactical.forFaction(Faction.DEFENDER))
+                : Collections.emptyList();
+        if (defenderNodes.isEmpty()) {
+            List<int[]> cells = pickDefensiveCluster(map.grid, map.defenderSpawnX, map.defenderSpawnY, DEFENDER_COUNT);
+            spawnLegacyDefenderCluster(sim, cells, enemyHasHeavyArmor);
+            return;
+        }
+        // Highest priority first — these get garrisons; the rest become patrol anchors.
+        defenderNodes.sort(Comparator.comparingInt((TacticalNode n) -> -n.priorityScore));
+
+        // Build the defender type queue. Order matters: mech first (top slot
+        // on the top-priority node), then red-marine elites, then militia.
+        // The garrison loop consumes from the head, so each garrison's
+        // first-poll member is the highest-rank defender available.
+        java.util.Deque<UnitType> queue = new java.util.ArrayDeque<>();
+        int remaining = DEFENDER_COUNT;
+        if (enemyHasHeavyArmor) { queue.add(UnitType.HEAVY_MECH); remaining--; }
+        int elites = Math.min(DEFENDER_ELITE_COUNT, remaining);
+        for (int i = 0; i < elites; i++) queue.add(UnitType.MARINE_RED);
+        for (int i = elites; i < remaining; i++) queue.add(UnitType.MILITIA);
+
+        int defenderIdx = 0;
+        List<TacticalNode> patrolAnchors = new ArrayList<>();
+
+        // Pass 1 — garrison the highest-priority nodes.
+        for (TacticalNode node : defenderNodes) {
+            if (queue.isEmpty()) { patrolAnchors.add(node); continue; }
+            int want = Math.min(node.garrisonSize, queue.size());
+            List<int[]> cells = pickCellsNear(map.grid, node.anchorX, node.anchorY, GARRISON_SPAWN_RADIUS, want);
+            if (cells.isEmpty()) { patrolAnchors.add(node); continue; }
+            Squad squad = null;
+            for (int[] cell : cells) {
+                if (queue.isEmpty()) break;
+                UnitType type = queue.poll();
+                Unit unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1]);
+                unit.role = UnitRole.GARRISON;
+                unit.homeCellX = cell[0];
+                unit.homeCellY = cell[1];
+                if (squad == null) {
+                    int sid = sim.mintSquad(Faction.DEFENDER, unit);
+                    squad = sim.getSquad(sid);
+                    squad.assignedNode = node;
+                }
+                unit.squadId = squad.id;
+                sim.addUnit(unit);
+            }
+        }
+
+        // Pass 2 — leftover defenders form patrol squads. Each patrol takes
+        // up to PATROL_SQUAD_SIZE members, anchored at a spare node (or a
+        // top-priority node if there are no spares — we'll just patrol from
+        // the wall outward). Cycles through the anchor list when defenders
+        // exceed anchors * PATROL_SQUAD_SIZE.
+        if (queue.isEmpty()) return;
+        List<TacticalNode> anchorPool = patrolAnchors.isEmpty() ? defenderNodes : patrolAnchors;
+        int anchorIdx = 0;
+        while (!queue.isEmpty()) {
+            if (anchorPool.isEmpty()) break;
+            TacticalNode anchor = anchorPool.get(anchorIdx % anchorPool.size());
+            anchorIdx++;
+            int want = Math.min(PATROL_SQUAD_SIZE, queue.size());
+            List<int[]> cells = pickCellsNear(map.grid, anchor.anchorX, anchor.anchorY, GARRISON_SPAWN_RADIUS + 2, want);
+            if (cells.isEmpty()) {
+                // Couldn't spawn here — drop this anchor from the pool so we
+                // don't get stuck cycling. If the pool empties, the remaining
+                // queue is silently dropped (lore: "they didn't make it to
+                // the city in time"). Better than infinite-looping the spawn.
+                anchorPool.remove(anchor);
+                if (anchorPool.isEmpty()) break;
+                anchorIdx = 0;
+                continue;
+            }
+            Squad squad = null;
+            for (int[] cell : cells) {
+                if (queue.isEmpty()) break;
+                UnitType type = queue.poll();
+                Unit unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1]);
+                unit.role = UnitRole.PATROL;
+                if (squad == null) {
+                    int sid = sim.mintSquad(Faction.DEFENDER, unit);
+                    squad = sim.getSquad(sid);
+                    squad.assignedNode = anchor;
+                }
+                unit.squadId = squad.id;
+                sim.addUnit(unit);
+            }
+        }
+    }
+
+    /** Original cluster-spawn behavior — kept around for maps with no tactical layer (legacy UrbanMapGenerator, placeholder gens). */
+    private static void spawnLegacyDefenderCluster(BattleSimulation sim, List<int[]> cells, boolean enemyHasHeavyArmor) {
         for (int i = 0; i < cells.size(); i++) {
             int[] p = cells.get(i);
             UnitType type;
@@ -410,12 +513,51 @@ public final class BattleSetup {
             } else {
                 type = UnitType.MILITIA;
             }
-            Unit unit = new Unit("d" + i, Faction.DEFENDER, type, p[0], p[1]);
-            if (type == UnitType.HEAVY_MECH) {
-                unit.mech = MechLoadoutState.defaultLoadout();
-            }
-            sim.addUnit(unit);
+            sim.addUnit(makeDefender("d" + i, type, p[0], p[1]));
         }
+    }
+
+    /** Builds a defender Unit with the loadout-state attached for mech types. */
+    private static Unit makeDefender(String id, UnitType type, int x, int y) {
+        Unit unit = new Unit(id, Faction.DEFENDER, type, x, y);
+        if (type == UnitType.HEAVY_MECH) unit.mech = MechLoadoutState.defaultLoadout();
+        return unit;
+    }
+
+    /**
+     * BFS from (ax, ay) — which may itself be non-walkable, e.g. a turret-mount
+     * anchor — collecting walkable cells within Manhattan {@code radius} and
+     * returning the top {@code count} sorted by cover desc then distance asc.
+     * Used to pick squad spawn cells around a {@link TacticalNode} anchor.
+     */
+    private static List<int[]> pickCellsNear(NavigationGrid grid, int ax, int ay, int radius, int count) {
+        List<int[]> pool = new ArrayList<>();
+        Set<Long> seen = new HashSet<>();
+        Queue<int[]> q = new ArrayDeque<>();
+        q.add(new int[]{ax, ay, 0});
+        seen.add(key(ax, ay));
+        while (!q.isEmpty()) {
+            int[] p = q.poll();
+            if (p[2] > radius) continue;
+            if (grid.inBounds(p[0], p[1]) && grid.isWalkable(p[0], p[1])) pool.add(p);
+            int[][] nbrs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+            for (int[] d : nbrs) {
+                int nx = p[0] + d[0];
+                int ny = p[1] + d[1];
+                if (!grid.inBounds(nx, ny)) continue;
+                if (!seen.add(key(nx, ny))) continue;
+                q.add(new int[]{nx, ny, p[2] + 1});
+            }
+        }
+        pool.sort(Comparator
+                .comparingInt((int[] p) -> -grid.getCoverAt(p[0], p[1]))
+                .thenComparingInt(p -> p[2]));
+        List<int[]> out = new ArrayList<>(Math.min(count, pool.size()));
+        for (int i = 0; i < Math.min(count, pool.size()); i++) {
+            int[] p = pool.get(i);
+            out.add(new int[]{p[0], p[1]});
+        }
+        return out;
     }
 
     /**
