@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.mapgen.bsp.fill;
 
 import com.dillon.starsectormarines.battle.Doodad;
+import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.PointOfInterest;
 import com.dillon.starsectormarines.battle.TileManifest;
 import com.dillon.starsectormarines.battle.map.CellTopology;
@@ -10,6 +11,7 @@ import com.dillon.starsectormarines.battle.mapgen.BlockLeaf;
 import com.dillon.starsectormarines.battle.mapgen.bsp.Compound;
 import com.dillon.starsectormarines.battle.mapgen.bsp.CompoundFiller;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -76,6 +78,7 @@ public final class MilitaryBaseFiller implements CompoundFiller {
                      boolean[][] roadCells,
                      List<PointOfInterest> pois,
                      List<Doodad> doodads,
+                     List<TacticalNode> tactical,
                      Random rng) {
         int w = grid.getWidth();
         int h = grid.getHeight();
@@ -95,6 +98,51 @@ public final class MilitaryBaseFiller implements CompoundFiller {
         paintWallRing(inCompound, grid, topology);
         punchGates(compound, inCompound, roadCells, grid, topology, rng);
         stampGunEmplacements(compound, inCompound, grid, topology, pois);
+        emitTacticalNodes(compound, tactical);
+    }
+
+    /**
+     * Emit a {@link TacticalNode} per role-tagged member leaf. The role map
+     * ({@link Compound#roles}) was populated when the compound was claimed;
+     * here we just translate roles to node kinds with kind-specific priority
+     * and garrison settings. Sub-buildings without an assigned role are
+     * skipped — they're generic outbuildings the AI doesn't need to target
+     * specifically.
+     */
+    private void emitTacticalNodes(Compound compound, List<TacticalNode> tactical) {
+        for (BlockLeaf m : compound.members) {
+            Compound.Role role = compound.roles.get(m);
+            if (role == null) continue;
+            int anchorX = (m.left + m.right) / 2;
+            int anchorY = (m.top + m.bottom) / 2;
+            switch (role) {
+                case COMMAND:
+                    tactical.add(new TacticalNode(TacticalNode.Kind.COMMAND_POST,
+                            anchorX, anchorY, m.left, m.top, m.right, m.bottom,
+                            Faction.DEFENDER, 95, 4));
+                    break;
+                case BARRACKS:
+                    tactical.add(new TacticalNode(TacticalNode.Kind.BARRACKS,
+                            anchorX, anchorY, m.left, m.top, m.right, m.bottom,
+                            Faction.DEFENDER, 60, 4));
+                    break;
+                case ARMORY:
+                    tactical.add(new TacticalNode(TacticalNode.Kind.ARMORY,
+                            anchorX, anchorY, m.left, m.top, m.right, m.bottom,
+                            Faction.DEFENDER, 70, 3));
+                    break;
+                case VEHICLE_BAY:
+                    // Treat as ARMORY for now — same supply-line role; could split when
+                    // vehicle-spawn AI lands. No dedicated kind yet to keep the enum lean.
+                    tactical.add(new TacticalNode(TacticalNode.Kind.ARMORY,
+                            anchorX, anchorY, m.left, m.top, m.right, m.bottom,
+                            Faction.DEFENDER, 55, 3));
+                    break;
+                default:
+                    // Roles added later should default to no emission until classified.
+                    break;
+            }
+        }
     }
 
     private void markMemberCells(Compound compound, boolean[][] memberCells) {

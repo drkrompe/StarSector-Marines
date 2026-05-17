@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.mapgen.BlockLeaf;
 import com.dillon.starsectormarines.battle.mapgen.bsp.Compound;
 import com.dillon.starsectormarines.battle.mapgen.bsp.CompoundFiller;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 
 import java.util.List;
 import java.util.Random;
@@ -52,6 +53,7 @@ public final class DenseQuarterFiller implements CompoundFiller {
                      boolean[][] roadCells,
                      List<PointOfInterest> pois,
                      List<Doodad> doodads,
+                     List<TacticalNode> tactical,
                      Random rng) {
         int w = grid.getWidth();
         int h = grid.getHeight();

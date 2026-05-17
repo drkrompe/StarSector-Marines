@@ -1,11 +1,13 @@
 package com.dillon.starsectormarines.battle.mapgen.bsp;
 
 import com.dillon.starsectormarines.battle.Doodad;
+import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.mapgen.BiomeKind;
 import com.dillon.starsectormarines.battle.mapgen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -101,16 +103,16 @@ public final class FortressWallStamper {
      */
     public static void stamp(NavigationGrid grid, CellTopology topology,
                              TraversalAxis axis, BiomeMap biomeMap,
-                             List<Doodad> doodads, Random rng) {
+                             List<Doodad> doodads, List<TacticalNode> tactical, Random rng) {
         int w = grid.getWidth();
         int h = grid.getHeight();
         int[] bbox = fortressBbox(biomeMap, w, h);
         if (bbox == null) return;
         boolean[][] wallMask = new boolean[w][h];
         if (axis == TraversalAxis.SOUTH_TO_NORTH) {
-            stampSouthToNorth(grid, topology, bbox, wallMask, w, h, rng);
+            stampSouthToNorth(grid, topology, bbox, wallMask, tactical, w, h, rng);
         } else {
-            stampWestToEast(grid, topology, bbox, wallMask, w, h, rng);
+            stampWestToEast(grid, topology, bbox, wallMask, tactical, w, h, rng);
         }
         demolishIntersectedBuildings(grid, topology, doodads, wallMask, w, h);
         sealOrphanedPockets(grid, w, h);
@@ -139,6 +141,7 @@ public final class FortressWallStamper {
      */
     private static void stampSouthToNorth(NavigationGrid grid, CellTopology topology,
                                           int[] bbox, boolean[][] wallMask,
+                                          List<TacticalNode> tactical,
                                           int w, int h, Random rng) {
         int fLeft   = bbox[0];
         int fBot    = bbox[1];   // attacker-facing edge of fortress biome
@@ -169,9 +172,11 @@ public final class FortressWallStamper {
         List<Integer> towerCentersX = new ArrayList<>();
         // SW corner: center at (wLeft, wBot-1) — tower spans x in [wLeft-1, wLeft+1], y in [wBot-2, wBot].
         stampTower3x3(grid, topology, wLeft, wBot - 1, wallMask);
+        emitHeavyTower(tactical, wLeft, wBot - 1);
         towerCentersX.add(wLeft);
         // SE corner
         stampTower3x3(grid, topology, wRight, wBot - 1, wallMask);
+        emitHeavyTower(tactical, wRight, wBot - 1);
         towerCentersX.add(wRight);
         // Mid-line heavies — evenly spaced between corners along the south wall.
         int span = wRight - wLeft;
@@ -179,6 +184,7 @@ public final class FortressWallStamper {
         for (int i = 1; i <= innerCount; i++) {
             int cx = wLeft + (span * i) / (innerCount + 1);
             stampTower3x3(grid, topology, cx, wBot - 1, wallMask);
+            emitHeavyTower(tactical, cx, wBot - 1);
             towerCentersX.add(cx);
         }
 
@@ -189,6 +195,7 @@ public final class FortressWallStamper {
         for (int x = wLeft + MG_NEST_SPACING; x <= wRight - MG_NEST_SPACING; x += MG_NEST_SPACING) {
             if (isNearTower(x, towerCentersX, TOWER_SIZE)) continue;
             stampMgNest(grid, topology, x, wBot, wallMask);
+            emitMgNest(tactical, x, wBot);
             mgX.add(x);
         }
 
@@ -210,6 +217,7 @@ public final class FortressWallStamper {
             }
             if (tooCloseToGate) continue;
             openGate(grid, topology, gx, wBot, GATE_WIDTH, mgX);
+            emitGate(tactical, gx, wBot, GATE_WIDTH, true);
             gates.add(gx);
         }
 
@@ -236,6 +244,7 @@ public final class FortressWallStamper {
             }
             if (tooClose) continue;
             stampTower3x3(grid, topology, bx, by, wallMask);
+            emitForwardBunker(tactical, bx, by);
             bunkerCenters.add(new int[]{bx, by});
         }
     }
@@ -247,6 +256,7 @@ public final class FortressWallStamper {
      */
     private static void stampWestToEast(NavigationGrid grid, CellTopology topology,
                                         int[] bbox, boolean[][] wallMask,
+                                        List<TacticalNode> tactical,
                                         int w, int h, Random rng) {
         int fLeft   = bbox[0];   // attacker-facing edge of fortress biome (low x)
         int fBot    = bbox[1];
@@ -269,14 +279,17 @@ public final class FortressWallStamper {
 
         List<Integer> towerCentersY = new ArrayList<>();
         stampTower3x3(grid, topology, wLeft + 1, wBot, wallMask);
+        emitHeavyTower(tactical, wLeft + 1, wBot);
         towerCentersY.add(wBot);
         stampTower3x3(grid, topology, wLeft + 1, wTop, wallMask);
+        emitHeavyTower(tactical, wLeft + 1, wTop);
         towerCentersY.add(wTop);
         int span = wTop - wBot;
         int innerCount = Math.max(0, (span / HEAVY_TOWER_SPACING) - 1);
         for (int i = 1; i <= innerCount; i++) {
             int cy = wBot + (span * i) / (innerCount + 1);
             stampTower3x3(grid, topology, wLeft + 1, cy, wallMask);
+            emitHeavyTower(tactical, wLeft + 1, cy);
             towerCentersY.add(cy);
         }
 
@@ -284,6 +297,7 @@ public final class FortressWallStamper {
         for (int y = wBot + MG_NEST_SPACING; y <= wTop - MG_NEST_SPACING; y += MG_NEST_SPACING) {
             if (isNearTower(y, towerCentersY, TOWER_SIZE)) continue;
             stampMgNest(grid, topology, wLeft, y, wallMask);
+            emitMgNest(tactical, wLeft, y);
             mgY.add(y);
         }
 
@@ -302,6 +316,7 @@ public final class FortressWallStamper {
             }
             if (tooClose) continue;
             openGateVertical(grid, topology, wLeft, gy, GATE_WIDTH, mgY);
+            emitGate(tactical, wLeft, gy, GATE_WIDTH, false);
             gates.add(gy);
         }
 
@@ -325,8 +340,55 @@ public final class FortressWallStamper {
             }
             if (tooClose) continue;
             stampTower3x3(grid, topology, bx, by, wallMask);
+            emitForwardBunker(tactical, bx, by);
             bunkerCenters.add(new int[]{bx, by});
         }
+    }
+
+    /** HEAVY_TOWER node — anchor at the turret-mount center; bbox covers the 3×3 footprint. */
+    private static void emitHeavyTower(List<TacticalNode> tactical, int cx, int cy) {
+        tactical.add(new TacticalNode(TacticalNode.Kind.HEAVY_TOWER,
+                cx, cy, cx - 1, cy - 1, cx + 1, cy + 1,
+                Faction.DEFENDER, 80, 2));
+    }
+
+    /** MG_NEST node — single cell on the wall. */
+    private static void emitMgNest(List<TacticalNode> tactical, int x, int y) {
+        tactical.add(new TacticalNode(TacticalNode.Kind.MG_NEST,
+                x, y, x, y, x, y,
+                Faction.DEFENDER, 50, 1));
+    }
+
+    /** FORWARD_BUNKER node — anchor at the turret-mount center; same footprint as a heavy tower but freestanding in the kill zone. */
+    private static void emitForwardBunker(List<TacticalNode> tactical, int cx, int cy) {
+        tactical.add(new TacticalNode(TacticalNode.Kind.FORWARD_BUNKER,
+                cx, cy, cx - 1, cy - 1, cx + 1, cy + 1,
+                Faction.DEFENDER, 65, 2));
+    }
+
+    /**
+     * GATE node — bbox spans the gap; anchor at the gate center cell.
+     * {@code horizontal=true} means the gate runs along x (south wall);
+     * false means along y (west wall on W→E maps).
+     */
+    private static void emitGate(List<TacticalNode> tactical, int x0, int y0, int width, boolean horizontal) {
+        int cx, cy, l, t, r, b;
+        if (horizontal) {
+            cx = x0 + width / 2;
+            cy = y0;
+            l = x0;
+            r = x0 + width - 1;
+            t = b = y0;
+        } else {
+            cx = x0;
+            cy = y0 + width / 2;
+            t = y0;
+            b = y0 + width - 1;
+            l = r = x0;
+        }
+        tactical.add(new TacticalNode(TacticalNode.Kind.GATE,
+                cx, cy, l, t, r, b,
+                Faction.DEFENDER, 90, 3));
     }
 
     /** Stamp one wall cell — non-walkable, HP'd, STRIPED ground so a breach reads as military floor. */

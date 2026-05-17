@@ -10,6 +10,8 @@ import com.dillon.starsectormarines.battle.mapgen.MapResult;
 import com.dillon.starsectormarines.battle.mapgen.TraversalAxis;
 // Compound, DistrictMap, BiomeMap live in the bsp sub-package (same as this test).
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.tactical.TacticalMap;
+import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 import org.junit.jupiter.api.Test;
 
 import javax.imageio.ImageIO;
@@ -113,6 +115,31 @@ public class BspMapPreviewTest {
         BIOME_COLORS.put(BiomeKind.OUTSKIRTS,         new Color(180, 160, 130, 220));
     }
 
+    /** Per-tactical-kind dot colors. Distinct from biome/district colors to read as a separate overlay layer. */
+    private static final Map<TacticalNode.Kind, Color> TACTICAL_COLORS = new EnumMap<>(TacticalNode.Kind.class);
+    static {
+        TACTICAL_COLORS.put(TacticalNode.Kind.HEAVY_TOWER,        new Color(255, 100, 100));
+        TACTICAL_COLORS.put(TacticalNode.Kind.MG_NEST,            new Color(255, 180,  80));
+        TACTICAL_COLORS.put(TacticalNode.Kind.FORWARD_BUNKER,     new Color(220, 140, 220));
+        TACTICAL_COLORS.put(TacticalNode.Kind.GATE,               new Color( 80, 220, 255));
+        TACTICAL_COLORS.put(TacticalNode.Kind.COMMAND_POST,       new Color(255, 255, 100));
+        TACTICAL_COLORS.put(TacticalNode.Kind.BARRACKS,           new Color(140, 255, 140));
+        TACTICAL_COLORS.put(TacticalNode.Kind.ARMORY,             new Color(255, 200, 100));
+        TACTICAL_COLORS.put(TacticalNode.Kind.AIRBASE,            new Color(180, 220, 255));
+        TACTICAL_COLORS.put(TacticalNode.Kind.BEACHHEAD,          new Color(100, 220, 100));
+        TACTICAL_COLORS.put(TacticalNode.Kind.INFILTRATION_POINT, new Color(180, 100, 255));
+        TACTICAL_COLORS.put(TacticalNode.Kind.OBJECTIVE,          new Color(255, 100, 255));
+    }
+
+    /** Per-link-kind line colors. Translucent so overlapping links still read separately. */
+    private static final Map<TacticalNode.LinkKind, Color> LINK_COLORS = new EnumMap<>(TacticalNode.LinkKind.class);
+    static {
+        LINK_COLORS.put(TacticalNode.LinkKind.OVERWATCHES, new Color(255, 100, 100, 160));
+        LINK_COLORS.put(TacticalNode.LinkKind.SUPPLIES,    new Color(140, 255, 140, 160));
+        LINK_COLORS.put(TacticalNode.LinkKind.FALLBACK_TO, new Color(255, 200, 100, 160));
+        LINK_COLORS.put(TacticalNode.LinkKind.GUARDS,      new Color( 80, 220, 255, 160));
+    }
+
     /**
      * Conquest-mode preview. Generates 240×160 maps with a
      * {@link TraversalAxis#SOUTH_TO_NORTH} biome layout — beach at the south
@@ -131,7 +158,7 @@ public class BspMapPreviewTest {
             long seed = CONQUEST_SEEDS[i];
             MapResult map = gen.generate(CONQUEST_W, CONQUEST_H, seed, TraversalAxis.SOUTH_TO_NORTH);
             BufferedImage img = renderMap(map, seed, null, gen.getLastBiomeMap(),
-                    gen.getLastCompounds(), CONQUEST_CELL_PX);
+                    gen.getLastCompounds(), gen.getLastTacticalMap(), CONQUEST_CELL_PX);
             perSeed[i] = img;
             Path out = OUT_DIR.resolve(String.format("conquest-seed-%04d.png", (int) seed));
             ImageIO.write(img, "PNG", out.toFile());
@@ -162,7 +189,7 @@ public class BspMapPreviewTest {
             long seed = SEEDS[i];
             MapResult map = gen.generate(GRID_W, GRID_H, seed);
             BufferedImage img = renderMap(map, seed, gen.getLastDistrictMap(), null,
-                    gen.getLastCompounds(), CELL_PX);
+                    gen.getLastCompounds(), gen.getLastTacticalMap(), CELL_PX);
             perSeed[i] = img;
             Path out = OUT_DIR.resolve(String.format("seed-%04d.png", (int) seed));
             ImageIO.write(img, "PNG", out.toFile());
@@ -255,7 +282,8 @@ public class BspMapPreviewTest {
     }
 
     private static BufferedImage renderMap(MapResult map, long seed, DistrictMap districts,
-                                            BiomeMap biomes, List<Compound> compounds, int cellPx) {
+                                            BiomeMap biomes, List<Compound> compounds,
+                                            TacticalMap tactical, int cellPx) {
         NavigationGrid grid = map.grid;
         CellTopology topo = map.topology;
         int w = grid.getWidth(), h = grid.getHeight();
@@ -340,6 +368,14 @@ public class BspMapPreviewTest {
         // a glance even when the wall ring blends with adjacent building art.
         if (compounds != null && !compounds.isEmpty()) {
             drawCompoundOverlay(g, compounds, h, cellPx);
+        }
+
+        // Pass 7c — tactical graph. Lines for OVERWATCHES/SUPPLIES/etc, then
+        // dots for the nodes themselves so dots sit on top of lines. Drawn
+        // before spawn markers so the spawn diamonds remain the most
+        // prominent overlay.
+        if (tactical != null && tactical.size() > 0) {
+            drawTacticalOverlay(g, tactical, h, cellPx);
         }
 
         // Pass 8 — spawn anchors.
@@ -487,6 +523,42 @@ public class BspMapPreviewTest {
             case GATED_HOUSING: return "GH";
             case DENSE_QUARTER: return "DQ";
             default:            return kind.name().substring(0, Math.min(3, kind.name().length()));
+        }
+    }
+
+    /**
+     * Renders the tactical graph as colored link lines + per-kind colored
+     * dots over the map. Link lines use {@link #LINK_COLORS} (semi-transparent
+     * so overlapping links still read separately); dots use
+     * {@link #TACTICAL_COLORS} with a black outline so the dot reads against
+     * any underlying ground.
+     */
+    private static void drawTacticalOverlay(Graphics2D g, TacticalMap tactical, int gridH, int cellPx) {
+        // Lines first, dots on top.
+        g.setStroke(new BasicStroke(1.5f));
+        for (TacticalNode n : tactical.all()) {
+            int x0 = n.anchorX * cellPx + cellPx / 2;
+            int y0 = (gridH - 1 - n.anchorY) * cellPx + cellPx / 2;
+            for (TacticalNode.Link l : n.links()) {
+                Color c = LINK_COLORS.getOrDefault(l.kind, new Color(200, 200, 200, 160));
+                g.setColor(c);
+                int x1 = l.target.anchorX * cellPx + cellPx / 2;
+                int y1 = (gridH - 1 - l.target.anchorY) * cellPx + cellPx / 2;
+                g.drawLine(x0, y0, x1, y1);
+            }
+        }
+
+        // Dots — size grows with priority so HOLD/COMMAND read larger than MG.
+        for (TacticalNode n : tactical.all()) {
+            int cx = n.anchorX * cellPx + cellPx / 2;
+            int cy = (gridH - 1 - n.anchorY) * cellPx + cellPx / 2;
+            int r = Math.max(3, cellPx / 2 + (n.priorityScore >= 80 ? 2 : 0));
+            Color base = TACTICAL_COLORS.getOrDefault(n.kind, Color.WHITE);
+            g.setColor(base);
+            g.fillOval(cx - r, cy - r, r * 2, r * 2);
+            g.setColor(Color.BLACK);
+            g.setStroke(new BasicStroke(1f));
+            g.drawOval(cx - r, cy - r, r * 2, r * 2);
         }
     }
 

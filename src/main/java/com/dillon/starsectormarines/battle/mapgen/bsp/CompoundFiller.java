@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.PointOfInterest;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.mapgen.BlockKind;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 
 import java.util.List;
 import java.util.Random;
@@ -30,6 +31,11 @@ public interface CompoundFiller {
      * Paint the entire compound. Compound fillers have access to the road
      * mask so they can compute which inter-leaf cells are bridged inside
      * the compound vs which surrounding cells stay road.
+     *
+     * <p>Fillers may emit {@link TacticalNode}s into {@code tactical} for any
+     * leaves that map to a tactical role (barracks, armory, command post).
+     * Compound fillers that don't produce tactical-relevant features can
+     * leave the list untouched.
      */
     void fill(Compound compound,
               NavigationGrid grid,
@@ -37,5 +43,6 @@ public interface CompoundFiller {
               boolean[][] roadCells,
               List<PointOfInterest> pois,
               List<Doodad> doodads,
+              List<TacticalNode> tactical,
               Random rng);
 }

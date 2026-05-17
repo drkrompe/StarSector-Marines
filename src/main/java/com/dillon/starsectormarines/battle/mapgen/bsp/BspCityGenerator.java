@@ -27,6 +27,9 @@ import com.dillon.starsectormarines.battle.mapgen.bsp.fill.PlazaFiller;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.WastelandRubbleFiller;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.WaterfrontFiller;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.tactical.TacticalLinker;
+import com.dillon.starsectormarines.battle.tactical.TacticalMap;
+import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
@@ -209,13 +212,14 @@ public final class BspCityGenerator implements MapGenerator {
         // union of their member leaves plus the bridged road between them.
         List<PointOfInterest> pois = new ArrayList<>();
         List<Doodad> doodads = new ArrayList<>();
+        List<TacticalNode> tactical = new ArrayList<>();
         for (BlockLeaf leaf : partition.leaves) {
             if (leaf.kind == BlockKind.COMPOUND_MEMBER) continue;
             Compound compound = compoundBySeed.get(leaf);
             if (compound != null) {
                 CompoundFiller cFiller = compoundFillers.get(compound.kind);
                 if (cFiller != null) {
-                    cFiller.fill(compound, grid, topology, plan.roadCells, pois, doodads, rng);
+                    cFiller.fill(compound, grid, topology, plan.roadCells, pois, doodads, tactical, rng);
                 }
                 continue;
             }
@@ -239,8 +243,16 @@ public final class BspCityGenerator implements MapGenerator {
         // attacker-facing edge, and 2-4 forward bunkers in the kill zone.
         // Runs after fill so the wall overrides whatever BSP put under it.
         if (biomeMap != null) {
-            FortressWallStamper.stamp(grid, topology, axis, biomeMap, doodads, rng);
+            FortressWallStamper.stamp(grid, topology, axis, biomeMap, doodads, tactical, rng);
         }
+
+        // Step 3d — link tactical nodes. Runs once after every node is
+        // emitted (from compound fillers + fortress wall stamping); geometric
+        // rules wire up OVERWATCHES, SUPPLIES, FALLBACK_TO, GUARDS. Always
+        // runs even in legacy non-conquest mode — the compound fillers may
+        // still have contributed BARRACKS/COMMAND/ARMORY nodes.
+        this.lastTacticalMap = new TacticalMap(tactical);
+        TacticalLinker.link(this.lastTacticalMap);
 
         // Step 4 — finalize: HP on walls, cover bake, wall flag, spawn anchors.
         seedWallHp(grid);
@@ -295,6 +307,10 @@ public final class BspCityGenerator implements MapGenerator {
     /** Last compound list produced by {@link #generate} — exposed for preview rendering. Empty if no compound was claimed. */
     private List<Compound> lastCompounds = new ArrayList<>();
     public List<Compound> getLastCompounds() { return lastCompounds; }
+
+    /** Last tactical map produced by {@link #generate}. Null only if generation never ran. Conquest mode emits ~15-30 nodes; legacy mode emits whatever the compound fillers contribute (typically 0-5). */
+    private TacticalMap lastTacticalMap;
+    public TacticalMap getLastTacticalMap() { return lastTacticalMap; }
 
     /** Every non-walkable cell gets a starting HP. Mirrors legacy seed. */
     private void seedWallHp(NavigationGrid grid) {
