@@ -59,9 +59,9 @@ public final class TurretBehavior implements UnitBehavior {
     }
 
     /**
-     * Bearing in the same convention as {@code Shuttle.facingTowards}:
-     * 0° = +Y (north), positive clockwise. Cell coordinates use cell centers
-     * (the half-cell offsets cancel since we only need the direction).
+     * Bearing in the Starsector sprite-angle convention: 0° = +Y (north),
+     * positive clockwise. Cell coordinates use cell centers (the half-cell
+     * offsets cancel since we only need the direction).
      */
     private static float bearingTo(int fromX, int fromY, int toX, int toY) {
         float dx = toX - fromX;

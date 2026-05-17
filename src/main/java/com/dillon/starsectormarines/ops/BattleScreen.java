@@ -7,8 +7,8 @@ import com.dillon.starsectormarines.battle.Doodad;
 import com.dillon.starsectormarines.battle.EquipmentDrop;
 import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.ShotEvent;
-import com.dillon.starsectormarines.battle.Shuttle;
-import com.dillon.starsectormarines.battle.ShuttleType;
+import com.dillon.starsectormarines.battle.air.Shuttle;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.SpriteSheetSlicer;
 import com.dillon.starsectormarines.battle.MapTurret;
@@ -2144,7 +2144,7 @@ public class BattleScreen implements Screen {
      *
      * <p>Sprite barrel points UP in the source PNG, so {@code setAngle(facing)}
      * works directly without an offset — facing is degrees clockwise from north
-     * matching {@code Shuttle.facingTowards}.
+     * (Starsector sprite-angle convention).
      */
     private void renderTurrets(List<Unit> units, float alphaMult) {
         boolean any = false;
@@ -2612,7 +2612,7 @@ public class BattleScreen implements Screen {
         }
     }
 
-    /** Same convention as {@code Shuttle.facingTowards}: 0° = +Y (north), positive clockwise. */
+    /** Starsector sprite-angle convention: 0° = +Y (north), positive clockwise. */
     private static float bearingDeg(float fromX, float fromY, float toX, float toY) {
         float dx = toX - fromX;
         float dy = toY - fromY;

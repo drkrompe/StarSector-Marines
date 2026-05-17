@@ -1,6 +1,4 @@
-package com.dillon.starsectormarines.battle;
-
-import com.dillon.starsectormarines.battle.air.AirHandling;
+package com.dillon.starsectormarines.battle.air;
 
 import java.util.Arrays;
 import java.util.Collections;

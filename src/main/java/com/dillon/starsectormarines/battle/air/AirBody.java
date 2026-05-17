@@ -10,8 +10,8 @@ package com.dillon.starsectormarines.battle.air;
  * directly so callers can read {@link #x}/{@link #y}/{@link #facingDegrees}
  * for rendering without going through accessors.
  *
- * <p>Facing convention matches {@code Shuttle.facingTowards}: 0° points
- * sprite-north (+Y), positive rotates counterclockwise. Velocity is in the
+ * <p>Facing convention: 0° points sprite-north (+Y), positive rotates
+ * counterclockwise (Starsector sprite-angle convention). Velocity is in the
  * same Y-up cell-coord space, cells/sec.
  *
  * <p>The "boat" feel comes from how forward thrust is constrained: it acts
@@ -141,9 +141,10 @@ public class AirBody {
     }
 
     /**
-     * Same math as {@code Shuttle.facingTowards(0,0, dx,dy)}: 0° = +Y, positive
-     * CCW. Returned for an arbitrary direction vector — caller checks for
-     * zero-length before calling.
+     * Sprite-angle for an arbitrary direction vector — 0° = +Y, positive CCW.
+     * Math: angle of the vector minus 90° because Starsector's sprite default
+     * is north-facing while atan2's 0° is east. Caller checks for zero-length
+     * before calling.
      */
     public static float facingToward(float dx, float dy) {
         float mathDeg = (float) Math.toDegrees(Math.atan2(dy, dx));

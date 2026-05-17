@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle;
+package com.dillon.starsectormarines.battle.air;
 
 /**
  * One transport's commitment to a mission: which {@link ShuttleType} it is and

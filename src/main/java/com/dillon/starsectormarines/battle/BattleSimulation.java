@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle;
 
+import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.air.SteeringMode;
 import com.dillon.starsectormarines.battle.ai.CombatantBehavior;
 import com.dillon.starsectormarines.battle.ai.FallbackBehavior;
@@ -1128,7 +1130,7 @@ public class BattleSimulation {
                             s.marinesRemaining = s.type.capacity;
                             s.pendingDelay = s.rearmDelay;
                             s.body.teleport(s.entryX, s.entryY,
-                                    Shuttle.facingTowards(s.entryX, s.entryY, s.lzX, s.lzY));
+                                    AirBody.facingToward(s.lzX - s.entryX, s.lzY - s.entryY));
                             s.altitudeT = 1f;
                             s.state = Shuttle.State.PENDING;
                         } else {

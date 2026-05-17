@@ -1,6 +1,8 @@
-package com.dillon.starsectormarines.battle;
+package com.dillon.starsectormarines.battle.air;
 
-import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.MarineLoadout;
+import com.dillon.starsectormarines.battle.Unit;
 
 /**
  * One troop-drop shuttle. Separate from {@link Unit} because shuttles are
@@ -123,7 +125,7 @@ public class Shuttle {
         this.exitY = exitY;
         this.pendingDelay = pendingDelay;
         this.marinesRemaining = type.capacity;
-        body.teleport(entryX, entryY, facingTowards(entryX, entryY, lzX, lzY));
+        body.teleport(entryX, entryY, AirBody.facingToward(lzX - entryX, lzY - entryY));
     }
 
     public boolean isVisible() {
@@ -146,17 +148,4 @@ public class Shuttle {
 
     /** Engine intensity while parked on the ground — quiet hum, not silent. */
     private static final float IDLE_INTENSITY = 0.3f;
-
-    /**
-     * Returns the Starsector setAngle value (degrees, CCW from north) for a
-     * sprite traveling from ({@code fromX,fromY}) to ({@code toX,toY}) in our
-     * Y-up cell-coord space. Math: angle of velocity vector minus 90° because
-     * Starsector's sprite default is north-facing while math's 0° is east.
-     */
-    public static float facingTowards(float fromX, float fromY, float toX, float toY) {
-        float dx = toX - fromX;
-        float dy = toY - fromY;
-        if (dx == 0f && dy == 0f) return 0f;
-        return AirBody.facingToward(dx, dy);
-    }
 }
