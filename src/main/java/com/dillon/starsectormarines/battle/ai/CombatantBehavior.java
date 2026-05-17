@@ -115,7 +115,7 @@ public final class CombatantBehavior implements UnitBehavior {
             if (!startedSecondary && u.cooldownTimer <= 0f) {
                 sim.fireShot(u, u.target);
                 u.cooldownTimer = u.attackCooldown;
-                // Queue follow-up burst rounds — the sim's advanceBursts pass
+                // Queue follow-up burst rounds — InfantryWeapons.tick
                 // emits them at burstSpacing intervals. Cooldown was already
                 // set, so the next burst can't start until the timer drains.
                 if (u.primaryWeapon != null && u.primaryWeapon.burstCount > 1) {

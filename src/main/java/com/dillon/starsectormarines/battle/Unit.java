@@ -92,7 +92,7 @@ public class Unit {
 
     /** Burst rounds queued after the AI's initial primary shot — the sim emits one per {@link MarineWeapon#burstSpacing} interval until exhausted. 0 = single-shot mode. */
     public int burstRemaining = 0;
-    /** Sim-seconds until the next queued burst round fires. Decremented in {@link BattleSimulation#advanceBursts}. */
+    /** Sim-seconds until the next queued burst round fires. Decremented in {@code InfantryWeapons.tick}. */
     public float burstTimer = 0f;
     /** Target captured when the burst was queued. Burst rounds keep firing here even if {@link #target} drifts to someone else, so a burst doesn't smear across multiple enemies. Cleared along with {@link #burstRemaining} when the burst ends or the target dies. */
     public Unit burstTarget;

@@ -17,6 +17,8 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.objective.EliminateFactionObjective;
 import com.dillon.starsectormarines.battle.objective.Objective;
+import com.dillon.starsectormarines.battle.weapons.InfantryWeapons;
+import com.dillon.starsectormarines.battle.weapons.WeaponSimContext;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,7 +54,7 @@ import java.util.Random;
  * 24×16 grid it's a few thousand cell expansions per second, well inside the
  * budget. Spatial indexing for target search can come later if we scale up.
  */
-public class BattleSimulation implements AirSimContext {
+public class BattleSimulation implements AirSimContext, WeaponSimContext {
 
     /** Fixed simulation timestep — 30Hz. */
     public static final float TICK_DT = 1f / 30f;
@@ -75,6 +77,8 @@ public class BattleSimulation implements AirSimContext {
     private final CellTopology topology;
     private final List<Unit> units = new ArrayList<>();
     private final AirSystem airSystem = new AirSystem();
+    /** Handheld squad weapons (rifle / SMG / DMR / rocket launcher). Owns fireShot, fireSecondary, and the per-tick burst continuation pass. Pumped each tick via {@code infantry.tick(this)}; behavior call sites still go through the delegating {@link #fireShot} / {@link #fireSecondary} wrappers on this class. */
+    private final InfantryWeapons infantry = new InfantryWeapons();
     private final List<Objective> objectives = new ArrayList<>();
     private final List<EquipmentDrop> equipmentDrops = new ArrayList<>();
     private final List<Doodad> doodads = new ArrayList<>();
@@ -195,6 +199,49 @@ public class BattleSimulation implements AirSimContext {
         airSystem.add(s);
     }
 
+    // ---- WeaponSimContext: services the weapon subsystems reach back for ----
+
+    @Override
+    public void applyDamage(Unit target, float damage, float vsTurretMult) {
+        boolean wasAlive = target.isAlive();
+        int targetCover = grid.getCoverAt(target.cellX, target.cellY);
+        float dr = COVER_DAMAGE_REDUCTION[Math.min(targetCover, COVER_DAMAGE_REDUCTION.length - 1)];
+        float effectiveMult = (target instanceof MapTurret) ? vsTurretMult : 1f;
+        target.hp -= damage * effectiveMult * (1f - dr);
+        if (wasAlive && !target.isAlive()) {
+            target.deathPoseIdx = rng.nextInt(4);
+            deathsThisFrame.add(target);
+            emitEquipmentDropIfApplicable(target);
+        }
+    }
+
+    @Override
+    public void postShot(ShotEvent shot) {
+        activeShots.add(shot);
+        shotsThisFrame.add(shot);
+    }
+
+    @Override
+    public void queueDetonation(PendingDetonation det) {
+        pendingDetonations.add(det);
+    }
+
+    @Override
+    public void rollFallbackOnHit(Unit target) {
+        if (!target.isAlive()) return;
+        if (target.fallbackTimer > 0f) return;
+        if (target instanceof MapTurret) return;
+        if (rng.nextFloat() >= FALLBACK_CHANCE) return;
+        int[] fallback = TacticalScoring.findFallbackPosition(target, this);
+        if (fallback[0] == target.cellX && fallback[1] == target.cellY) return;
+        target.fallbackCellX = fallback[0];
+        target.fallbackCellY = fallback[1];
+        target.fallbackTimer = FALLBACK_DURATION;
+        // Stale path no longer applies — target will re-path to the fall-back
+        // cell on its next updateUnit pass.
+        setPath(target, Collections.emptyList());
+    }
+
     // ---- AirSimContext: services the AirSystem reaches back for during a tick ----
 
     @Override
@@ -258,8 +305,9 @@ public class BattleSimulation implements AirSimContext {
         }
         // Burst-fire rounds queued after a primary shot — fire them now so
         // they emit at the right per-weapon spacing without piling onto the
-        // AI's single-decision-per-tick model.
-        advanceBursts();
+        // AI's single-decision-per-tick model. Lives on the InfantryWeapons
+        // subsystem; this call drains every unit's burst state.
+        infantry.tick(this);
         // Mech chassis weapons run on their own state bag (MechLoadoutState).
         // Continuation handling for chaingun bursts + SRM salvos, plus cooldown
         // tick-down for all three tracks. New triggers (start a burst / salvo /
@@ -350,29 +398,8 @@ public class BattleSimulation implements AirSimContext {
         }
     }
 
-    /**
-     * Per-tick burst-fire pass: every unit with {@code burstRemaining &gt; 0}
-     * decrements its {@code burstTimer}; on expiry, fires another shot at the
-     * locked burst target (if still alive) and decrements the count. Lets the
-     * AI emit a fire-once decision and the sim spread the remaining rounds
-     * over a few ticks at weapon-defined spacing.
-     */
-    private void advanceBursts() {
-        for (Unit u : units) {
-            if (u.burstRemaining <= 0 || !u.isAlive()) continue;
-            u.burstTimer -= TICK_DT;
-            if (u.burstTimer > 0f) continue;
-            if (u.burstTarget == null || !u.burstTarget.isAlive() || u.primaryWeapon == null) {
-                u.burstRemaining = 0;
-                u.burstTarget = null;
-                continue;
-            }
-            fireShot(u, u.burstTarget);
-            u.burstRemaining--;
-            u.burstTimer = u.primaryWeapon.burstSpacing;
-            if (u.burstRemaining == 0) u.burstTarget = null;
-        }
-    }
+    // advanceBursts moved to InfantryWeapons.tick — pumped from the tick loop
+    // via `infantry.tick(this)`.
 
     /**
      * Flips destroyed-turret mount cells from non-walkable obstacle to walkable
@@ -709,124 +736,22 @@ public class BattleSimulation implements AirSimContext {
     }
 
     /**
-     * Rolls accuracy, applies damage on a hit, and emits a {@link ShotEvent}
-     * either way so the renderer can draw a tracer. The miss endpoint is a
-     * random angle + 0.5..2.0 cell offset from target cell-center — it reads
-     * as a stray round whizzing past the target rather than a deleted dud.
-     *
-     * <p>Damage is scaled by the target cell's cover level — a target in heavy
-     * cover takes ~half what they would in the open, so urban positioning has
-     * a real mechanical payoff on top of the LOS routing it already affects.
-     *
-     * <p>Public so behaviors call this when firing; fall-back is also rolled
-     * here, which can mutate the target's path through {@link #setPath}.
+     * Delegates to {@link InfantryWeapons#fireShot}. Kept on the sim's
+     * surface because AI behaviors call {@code sim.fireShot(...)} directly —
+     * making them reach into a subsystem accessor would churn the call sites
+     * for no real gain. The implementation now lives in
+     * {@code battle/weapons/InfantryWeapons.java}.
      */
     public void fireShot(Unit shooter, Unit target) {
-        // Compute per-shot params: accuracy, damage, and vsTurret bonus pull
-        // from the marine's primary weapon when assigned, otherwise from the
-        // Unit's baked-in stats (turrets, militia, defaults).
-        float accuracy = shooter.accuracy;
-        float damage   = shooter.attackDamage;
-        float vsTurretMult = 1f;
-        if (shooter.primaryWeapon != null) {
-            accuracy = shooter.primaryWeapon.accuracy;
-            damage   = shooter.primaryWeapon.damage;
-            vsTurretMult = shooter.primaryWeapon.vsTurretMult;
-        }
-        boolean hit = rng.nextFloat() < accuracy;
-        if (hit) {
-            boolean wasAlive = target.isAlive();
-            int targetCover = grid.getCoverAt(target.cellX, target.cellY);
-            float dr = COVER_DAMAGE_REDUCTION[Math.min(targetCover, COVER_DAMAGE_REDUCTION.length - 1)];
-            float effectiveMult = (target instanceof MapTurret) ? vsTurretMult : 1f;
-            target.hp -= damage * effectiveMult * (1f - dr);
-            if (wasAlive && !target.isAlive()) {
-                target.deathPoseIdx = rng.nextInt(4);
-                deathsThisFrame.add(target);
-                emitEquipmentDropIfApplicable(target);
-            }
-            // Roll fall-back on hit. Skip if target is dead, already breaking
-            // contact, or a bolted-down turret (those fight to the last HP).
-            if (target.isAlive() && target.fallbackTimer <= 0f
-                    && !(target instanceof MapTurret)
-                    && rng.nextFloat() < FALLBACK_CHANCE) {
-                int[] fallback = TacticalScoring.findFallbackPosition(target, this);
-                if (fallback[0] != target.cellX || fallback[1] != target.cellY) {
-                    target.fallbackCellX = fallback[0];
-                    target.fallbackCellY = fallback[1];
-                    target.fallbackTimer = FALLBACK_DURATION;
-                    // Stale path no longer applies — target will re-path to the
-                    // fall-back cell on its next updateUnit pass.
-                    setPath(target, Collections.emptyList());
-                }
-            }
-        }
-
-        float fromX = shooter.cellX + 0.5f;
-        float fromY = shooter.cellY + 0.5f;
-        float toX, toY;
-        if (hit) {
-            toX = target.cellX + 0.5f;
-            toY = target.cellY + 0.5f;
-        } else {
-            float angle = rng.nextFloat() * (float) (Math.PI * 2);
-            float spread = MISS_OFFSET_MIN + rng.nextFloat() * (MISS_OFFSET_MAX - MISS_OFFSET_MIN);
-            toX = target.cellX + 0.5f + (float) Math.cos(angle) * spread;
-            toY = target.cellY + 0.5f + (float) Math.sin(angle) * spread;
-        }
-        TurretKind tk = (shooter instanceof MapTurret) ? ((MapTurret) shooter).kind : null;
-        // Primary weapons with their own projectile sprite (SMG bullets) use
-        // the weapon's flightSec so a slow round visibly travels — line tracers
-        // keep the default SHOT_LIFETIME since they're drawn full-length instantly.
-        float lifetime = SHOT_LIFETIME;
-        if (shooter.primaryWeapon != null && shooter.primaryWeapon.projectileSpritePath != null
-                && shooter.primaryWeapon.flightSec > 0f) {
-            lifetime = shooter.primaryWeapon.flightSec;
-        }
-        ShotEvent evt = new ShotEvent(fromX, fromY, toX, toY, hit, shooter.faction, lifetime,
-                tk, shooter.primaryWeapon, null);
-        activeShots.add(evt);
-        shotsThisFrame.add(evt);
+        infantry.fireShot(this, shooter, target);
     }
 
     /**
-     * Fires the shooter's secondary weapon (rocket, etc.) at the target.
-     * Mirrors {@link #fireShot} but draws stats from the {@link MarineSecondary}
-     * and decrements ammo. No fall-back roll — the AoE punch read carries it,
-     * and a panicked retreat after a rocket hit feels wrong for hardened targets.
-     * Caller is responsible for verifying ammo > 0 and within-range before
-     * calling.
+     * Delegates to {@link InfantryWeapons#fireSecondary}. Same delegation
+     * rationale as {@link #fireShot}.
      */
     public void fireSecondary(Unit shooter, Unit target) {
-        MarineSecondary sec = shooter.secondaryWeapon;
-        if (sec == null || shooter.secondaryAmmo <= 0) return;
-        shooter.secondaryAmmo--;
-        // Accuracy roll determines WHERE the rocket lands (target cell on hit,
-        // scattered on miss). Damage is NOT applied here — it's queued onto
-        // pendingDetonations and resolves at impact arrival, so a marine who
-        // moves between launch and impact escapes the splash.
-        boolean hit = rng.nextFloat() < sec.accuracy;
-        float fromX = shooter.cellX + 0.5f;
-        float fromY = shooter.cellY + 0.5f;
-        float toX, toY;
-        if (hit) {
-            toX = target.cellX + 0.5f;
-            toY = target.cellY + 0.5f;
-        } else {
-            float angle = rng.nextFloat() * (float) (Math.PI * 2);
-            float spread = MISS_OFFSET_MIN + rng.nextFloat() * (MISS_OFFSET_MAX - MISS_OFFSET_MIN);
-            toX = target.cellX + 0.5f + (float) Math.cos(angle) * spread;
-            toY = target.cellY + 0.5f + (float) Math.sin(angle) * spread;
-        }
-        pendingDetonations.add(new PendingDetonation(
-                toX, toY, sec.flightSec,
-                sec.aoeRadius, sec.damage, sec.vsTurretMult,
-                sec.wallDamage, shooter.faction));
-        // Secondary uses its per-weapon flightSec so rockets visibly travel.
-        ShotEvent evt = new ShotEvent(fromX, fromY, toX, toY, hit, shooter.faction, sec.flightSec,
-                null, null, sec);
-        activeShots.add(evt);
-        shotsThisFrame.add(evt);
+        infantry.fireSecondary(this, shooter, target);
     }
 
     /**
@@ -931,7 +856,7 @@ public class BattleSimulation implements AirSimContext {
     /**
      * Per-tick mech-weapon pass — runs the three chassis tracks (chaingun
      * burst continuation, SRM salvo continuation, LRM cooldown drain) for every
-     * unit with a {@link MechLoadoutState}. Mirrors {@link #advanceBursts} for
+     * unit with a {@link MechLoadoutState}. Mirrors the infantry burst pass for
      * the marine primary side; lives separate because the mech burst state is
      * on the loadout, not the unit.
      *

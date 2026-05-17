@@ -56,7 +56,7 @@ public enum MarineWeapon {
     public final float vsTurretMult;
     /** Visual character of the impact at endpoint. RIFLE for the small-arms entries; the DMR sits in KINETIC since a railgun strike should kick more material than a pulse-laser bolt. */
     public final ImpactProfile impactProfile;
-    /** Rounds per fire decision. 1 = single shot (default). &gt;1 = burst: the AI fires the first round and the sim {@code advanceBursts} pass emits the remainder at {@link #burstSpacing} intervals. SMG = 3. */
+    /** Rounds per fire decision. 1 = single shot (default). &gt;1 = burst: the AI fires the first round and {@code InfantryWeapons.tick} emits the remainder at {@link #burstSpacing} intervals. SMG = 3. */
     public final int burstCount;
     /** Sim-seconds between burst rounds. Ignored when {@link #burstCount} == 1. */
     public final float burstSpacing;
