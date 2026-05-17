@@ -1,8 +1,10 @@
 package com.dillon.starsectormarines.battle.air;
 
+import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.MarineLoadout;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.UnitType;
+import com.dillon.starsectormarines.battle.ai.TurretAim;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.ArrayDeque;
@@ -50,12 +52,20 @@ public class AirSystem {
 
     /**
      * Advances every airborne vehicle one tick by {@code dt} seconds. Today
-     * that's the shuttle state machine; fighter wings hook in here as they
-     * land. Caller is responsible for matching {@code dt} to its fixed-tick
-     * cadence (the auto-battler uses 30 Hz / TICK_DT).
+     * that's the shuttle state machine + per-shuttle mounted-turret pass;
+     * fighter wings hook in here as they land. Caller is responsible for
+     * matching {@code dt} to its fixed-tick cadence (the auto-battler uses
+     * 30 Hz / TICK_DT).
+     *
+     * <p>Takes {@link BattleSimulation} directly (which is itself an
+     * {@link AirSimContext}) because the turret-aim path reaches into shared
+     * targeting / line-of-sight code that's typed against the full sim. The
+     * narrow context handle is still passed to the deboard path where the
+     * surface is intentionally small.
      */
-    public void tick(AirSimContext ctx, float dt) {
-        advanceShuttles(ctx, dt);
+    public void tick(BattleSimulation sim, float dt) {
+        advanceShuttles(sim, dt);
+        tickShuttleTurrets(sim, dt);
     }
 
     /**
@@ -70,7 +80,7 @@ public class AirSystem {
      * {@link AirHandling}. No parametric per-leg curve is needed; the arc is
      * what kinematic-limited steering produces.
      */
-    private void advanceShuttles(AirSimContext ctx, float dt) {
+    private void advanceShuttles(BattleSimulation ctx, float dt) {
         for (Shuttle s : shuttles) {
             switch (s.state) {
                 case PENDING:
@@ -105,6 +115,43 @@ public class AirSystem {
                         s.deboardCountdown = s.type.deboardInterval;
                     }
                     if (s.marinesRemaining == 0) {
+                        if (s.shouldHoverLoiter()) {
+                            // Lift off the LZ and station-keep above it for the
+                            // type's fire-support window. Hover point sits at
+                            // the LZ coords — there's no z-axis in the sim, so
+                            // "altitude" is the scaleMult value; STATION-mode
+                            // steering with the body already at the goal just
+                            // kills any drift and holds.
+                            s.hoverPointX = s.lzX;
+                            s.hoverPointY = s.lzY;
+                            s.hoverTimerSec = s.type.fireSupportSec;
+                            s.altitudeT = 1f;
+                            s.scaleMult = SHUTTLE_CRUISE_SCALE;
+                            s.state = Shuttle.State.HOVER_STATION;
+                        } else {
+                            beginShuttleLeg(s, s.exitX, s.exitY);
+                            s.state = Shuttle.State.DEPARTING;
+                        }
+                    }
+                    break;
+
+                case HOVER_STATION:
+                    s.body.tickToward(s.hoverPointX, s.hoverPointY, SteeringMode.STATION, s.type, dt);
+                    s.hoverTimerSec -= dt;
+                    // Hover sells altitude purely through scaleMult — no
+                    // distance lerp like INCOMING/DEPARTING. Hold at cruise
+                    // scale plus the same atmospheric wobble.
+                    s.altitudeT = 1f;
+                    s.flightPhase += dt * 2f * (float) Math.PI * SHUTTLE_WOBBLE_HZ;
+                    float hoverWobble = (float) Math.sin(s.flightPhase) * SHUTTLE_WOBBLE_AMPLITUDE;
+                    s.scaleMult = SHUTTLE_CRUISE_SCALE + hoverWobble;
+                    // Exit triggers — first-of (timer expired, all ammo dry,
+                    // HP pressure). HP threshold is wired forward for AA work;
+                    // today there's no damage source so it never trips.
+                    boolean fuelOut = s.hoverTimerSec <= 0f;
+                    boolean ammoOut = s.allTurretsDry();
+                    boolean hpPressured = s.hp <= s.type.maxHp * Shuttle.HOVER_HP_THRESHOLD;
+                    if (fuelOut || ammoOut || hpPressured) {
                         beginShuttleLeg(s, s.exitX, s.exitY);
                         s.state = Shuttle.State.DEPARTING;
                     }
@@ -139,6 +186,67 @@ public class AirSystem {
                 case GONE:
                 default:
                     break;
+            }
+        }
+    }
+
+    /**
+     * Per-tick aim + fire pass for every {@link MountedTurret} on every
+     * HOVER_STATION shuttle. Each turret uses the shared {@link TurretAim}
+     * loop the static map turrets do — same acquisition / slew / fire-when-aligned
+     * rules — but with the mount's world-rotated position as the origin and
+     * {@link BattleSimulation#fireShotFrom} for the shot emission so a
+     * hovering Valkyrie's mid-air mount fires from its actual rendered point
+     * rather than the floored cell center.
+     *
+     * <p>Mounts in {@link Shuttle.State#LANDED} or any non-hover state skip
+     * the pass — fire support is reserved for the hover window. Empty
+     * turret arrays (pure transports) are a no-op.
+     */
+    private void tickShuttleTurrets(BattleSimulation sim, float dt) {
+        for (Shuttle s : shuttles) {
+            if (s.state != Shuttle.State.HOVER_STATION) continue;
+            if (s.turrets.length == 0) continue;
+            float rad = (float) Math.toRadians(s.body.facingDegrees);
+            float c = (float) Math.cos(rad);
+            float si = (float) Math.sin(rad);
+            for (MountedTurret mt : s.turrets) {
+                if (mt.ammoDry()) continue;
+                float lx = mt.mount.localOffsetX;
+                float ly = mt.mount.localOffsetY;
+                // CCW rotation by `rad`. Local frame: +X = right of nose,
+                // +Y = forward (nose). At facing 0 the shuttle faces +Y, so
+                // local (0,1) maps to world (0,1) — north.
+                float worldOffsetX = lx * c - ly * si;
+                float worldOffsetY = lx * si + ly * c;
+                float worldX = s.body.x + worldOffsetX;
+                float worldY = s.body.y + worldOffsetY;
+
+                TurretAim.State aim = new TurretAim.State();
+                aim.originCellX = (int) Math.floor(worldX);
+                aim.originCellY = (int) Math.floor(worldY);
+                aim.originX = worldX;
+                aim.originY = worldY;
+                aim.faction = s.faction;
+                aim.squadId = Unit.NO_SQUAD;
+                aim.excludeFromCrowding = null;
+                aim.facingDegrees = mt.facingDegrees;
+                aim.turnRateDegPerSec = mt.mount.kind.turnRateDegPerSec;
+                aim.attackRange = mt.mount.kind.range;
+                aim.cooldownTimer = mt.cooldownTimer;
+                aim.attackCooldown = mt.mount.kind.cooldown;
+                aim.target = mt.target;
+
+                TurretAim.tick(aim, sim, dt);
+
+                mt.facingDegrees = aim.facingDegrees;
+                mt.cooldownTimer = aim.cooldownTimer;
+                mt.target = aim.target;
+
+                if (aim.fireThisTick) {
+                    sim.fireShotFrom(worldX, worldY, s.faction, mt.mount.kind, aim.target);
+                    mt.ammo--;
+                }
             }
         }
     }

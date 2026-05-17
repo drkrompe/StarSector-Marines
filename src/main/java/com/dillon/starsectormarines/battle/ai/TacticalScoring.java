@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.ai;
 
 import com.dillon.starsectormarines.battle.BattleSimulation;
+import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
@@ -58,6 +59,19 @@ public final class TacticalScoring {
      * toward them and visibility eventually opens.
      */
     public static Unit findBestTarget(Unit self, BattleSimulation sim) {
+        return findBestTarget(self.cellX, self.cellY, self.faction, self.squadId, self, sim);
+    }
+
+    /**
+     * Primitive-args overload — used by callers that aren't a {@link Unit}
+     * themselves (today: shuttle-mounted turrets, which live as data on a
+     * {@link com.dillon.starsectormarines.battle.air.Shuttle} rather than as
+     * grid entities). The selection logic is identical; pass {@link Unit#NO_SQUAD}
+     * for {@code squadId} and {@code null} for {@code excludeFromCrowding}
+     * when the caller doesn't squad up and isn't itself in the unit list.
+     */
+    public static Unit findBestTarget(int selfCellX, int selfCellY, Faction selfFaction,
+                                      int selfSquadId, Unit excludeFromCrowding, BattleSimulation sim) {
         List<Unit> units = sim.getUnits();
         NavigationGrid grid = sim.getGrid();
         Unit bestVisible = null;
@@ -67,18 +81,18 @@ public final class TacticalScoring {
 
         for (Unit other : units) {
             if (!other.isAlive()) continue;
-            if (other.faction == self.faction) continue;
+            if (other.faction == selfFaction) continue;
             // Civilians and other non-combatants don't draw fire — they're
             // bystanders. A separate "rules of engagement" toggle could relax
             // this for pirate atrocity scenarios later.
             if (!other.type.combatant) continue;
-            float d = cellDistance(self.cellX, self.cellY, other.cellX, other.cellY);
+            float d = cellDistance(selfCellX, selfCellY, other.cellX, other.cellY);
             if (d < bestAnyDist) {
                 bestAnyDist = d;
                 bestAny = other;
             }
-            if (!grid.hasLineOfSight(self.cellX, self.cellY, other.cellX, other.cellY)) continue;
-            float crowding = scoreCrowding(self, other, units);
+            if (!grid.hasLineOfSight(selfCellX, selfCellY, other.cellX, other.cellY)) continue;
+            float crowding = scoreCrowding(selfFaction, selfSquadId, other, units, excludeFromCrowding);
             float score = d + crowding;
             if (score < bestVisibleScore) {
                 bestVisibleScore = score;
@@ -95,14 +109,15 @@ public final class TacticalScoring {
      * naturally across the visible front, while cross-squad pile-ups are only
      * mildly discouraged.
      */
-    private static float scoreCrowding(Unit self, Unit target, List<Unit> units) {
+    private static float scoreCrowding(Faction selfFaction, int selfSquadId, Unit target,
+                                       List<Unit> units, Unit exclude) {
         float cost = 0f;
         for (Unit u : units) {
-            if (u == self || !u.isAlive()) continue;
-            if (u.faction != self.faction) continue;
+            if (u == exclude || !u.isAlive()) continue;
+            if (u.faction != selfFaction) continue;
             if (u.target != target) continue;
             cost += TARGET_CROWDING_COST;
-            if (self.squadId != Unit.NO_SQUAD && u.squadId == self.squadId) {
+            if (selfSquadId != Unit.NO_SQUAD && u.squadId == selfSquadId) {
                 cost += TARGET_SQUADMATE_EXTRA_COST;
             }
         }

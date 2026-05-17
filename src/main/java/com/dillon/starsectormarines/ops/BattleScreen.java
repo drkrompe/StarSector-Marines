@@ -2374,11 +2374,46 @@ public class BattleScreen implements Screen {
             float cx = camera.cellToScreenX(s.body.x);
             float cy = camera.cellToScreenY(s.body.y);
             sprite.renderAtCenter(cx, cy);
+            renderShuttleTurrets(s, alphaMult);
         }
         // Reset angle so the singleton sprite doesn't carry our rotation
         // into whatever else might draw it.
         for (ShuttleSpriteCache cache : shuttleSprites.values()) {
             cache.sprite.setAngle(0f);
+        }
+    }
+
+    /**
+     * Draws every {@link com.dillon.starsectormarines.battle.air.MountedTurret}
+     * on a shuttle on top of the shuttle's hull sprite. Mount offsets are
+     * rotated into world frame using the parent's facing, and each turret's
+     * own facing (independent of the hull's) drives the sprite rotation —
+     * so an Arbalest tracking a target rotates against the hovering Valkyrie.
+     *
+     * <p>Mount sprite size scales with the shuttle's {@code scaleMult} so a
+     * hovering shuttle's turrets read at the same "this is up high" size as
+     * the hull they're attached to.
+     */
+    private void renderShuttleTurrets(com.dillon.starsectormarines.battle.air.Shuttle s, float alphaMult) {
+        if (s.turrets.length == 0) return;
+        float rad = (float) Math.toRadians(s.body.facingDegrees);
+        float c = (float) Math.cos(rad);
+        float si = (float) Math.sin(rad);
+        float cellPx = camera.cellPxSize();
+        for (com.dillon.starsectormarines.battle.air.MountedTurret mt : s.turrets) {
+            ShuttleSpriteCache turretSprite = turretSprites.get(mt.mount.kind);
+            if (turretSprite == null) continue;
+            float lx = mt.mount.localOffsetX;
+            float ly = mt.mount.localOffsetY;
+            float worldOffsetX = lx * c - ly * si;
+            float worldOffsetY = lx * si + ly * c;
+            float wx = s.body.x + worldOffsetX;
+            float wy = s.body.y + worldOffsetY;
+            float screenX = camera.cellToScreenX(wx);
+            float screenY = camera.cellToScreenY(wy);
+            drawTurretLayer(turretSprite, mt.facingDegrees,
+                    mt.mount.kind.visualCells * s.scaleMult, cellPx,
+                    screenX, screenY, alphaMult);
         }
     }
 

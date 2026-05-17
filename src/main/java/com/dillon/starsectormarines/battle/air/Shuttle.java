@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.air;
 
 import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.MarineLoadout;
+import com.dillon.starsectormarines.battle.TurretRole;
 import com.dillon.starsectormarines.battle.Unit;
 
 /**
@@ -13,7 +14,8 @@ import com.dillon.starsectormarines.battle.Unit;
  *
  * <p>Lifecycle: PENDING (waiting on stagger) → INCOMING (steering from off-map
  * entry to LZ under {@code BRAKE_TO_STATION}) → LANDED (deboarding marines on
- * {@code deboardInterval} cadence) → DEPARTING (steering to exit under
+ * {@code deboardInterval} cadence) → optional HOVER_STATION (loitering above the
+ * LZ providing fire support if armed) → DEPARTING (steering to exit under
  * {@code CRUISE}) → GONE. With {@link #totalCycles} > 1 the shuttle re-enters
  * PENDING after DEPARTING and runs another sortie.
  *
@@ -23,7 +25,7 @@ import com.dillon.starsectormarines.battle.Unit;
  */
 public class Shuttle {
 
-    public enum State { PENDING, INCOMING, LANDED, DEPARTING, GONE }
+    public enum State { PENDING, INCOMING, LANDED, HOVER_STATION, DEPARTING, GONE }
 
     public final ShuttleType type;
     public final Faction faction;
@@ -110,6 +112,49 @@ public class Shuttle {
      */
     public int squadId = Unit.NO_SQUAD;
 
+    /**
+     * Current HP. Initialized from {@link ShuttleType#maxHp} at construction.
+     * Drives the pressure-to-leave exit during HOVER_STATION via
+     * {@link #HOVER_HP_THRESHOLD}. No damage source exists yet — anti-air
+     * lands as a follow-up — so today this is effectively constant; the field
+     * is wired forward so that wiring is already in place when AA arrives.
+     */
+    public float hp;
+
+    /**
+     * Combat role assigned to this shuttle for the current mission. Null on
+     * pure transports (and any hardpoint shuttle the player elected not to
+     * arm in future briefing UI). Drives both the kit selection at construction
+     * and the HOVER_STATION transition after deboard — null role skips the
+     * hover entirely and departs immediately.
+     */
+    public TurretRole assignedRole;
+
+    /**
+     * Mounted turrets, sized to {@code type.hardpoints} and populated from
+     * {@link ShuttleType#kitFor} when {@link #assignedRole} is non-null.
+     * Empty (length-0) array on pure transports — the per-tick turret pass
+     * is a no-op in that case.
+     */
+    public MountedTurret[] turrets = new MountedTurret[0];
+
+    /**
+     * Sim-seconds of fire-support fuel remaining. Initialized from
+     * {@link ShuttleType#fireSupportSec} when transitioning to HOVER_STATION
+     * and counted down each tick. Hits zero → DEPARTING.
+     */
+    public float hoverTimerSec;
+
+    /**
+     * World coordinates of the hover station-keeping point. Set when entering
+     * HOVER_STATION (today: a few cells off the LZ at altitude). The body's
+     * STATION-mode steering targets this point each tick.
+     */
+    public float hoverPointX, hoverPointY;
+
+    /** HP fraction below which the shuttle aborts HOVER_STATION and departs. Default 0.4 = 40%. */
+    public static final float HOVER_HP_THRESHOLD = 0.4f;
+
     public Shuttle(ShuttleType type, Faction faction,
                    float lzX, float lzY,
                    float entryX, float entryY,
@@ -125,11 +170,31 @@ public class Shuttle {
         this.exitY = exitY;
         this.pendingDelay = pendingDelay;
         this.marinesRemaining = type.capacity;
+        this.hp = type.maxHp;
         body.teleport(entryX, entryY, AirBody.facingToward(lzX - entryX, lzY - entryY));
     }
 
     public boolean isVisible() {
-        return state == State.INCOMING || state == State.LANDED || state == State.DEPARTING;
+        return state == State.INCOMING || state == State.LANDED
+                || state == State.HOVER_STATION || state == State.DEPARTING;
+    }
+
+    /**
+     * True when this shuttle is armed and assigned a fire-support role —
+     * after LANDED → marinesRemaining==0, this gates the HOVER_STATION
+     * transition vs. the immediate DEPARTING path.
+     */
+    public boolean shouldHoverLoiter() {
+        return assignedRole != null && turrets.length > 0;
+    }
+
+    /** True when every mounted turret has fired its magazine dry. Drives one of the HOVER_STATION exit triggers. */
+    public boolean allTurretsDry() {
+        if (turrets.length == 0) return true;
+        for (MountedTurret t : turrets) {
+            if (!t.ammoDry()) return false;
+        }
+        return true;
     }
 
     /**

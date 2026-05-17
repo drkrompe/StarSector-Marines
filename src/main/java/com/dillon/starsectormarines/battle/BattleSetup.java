@@ -1,8 +1,10 @@
 package com.dillon.starsectormarines.battle;
 
+import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.air.TurretMount;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.mapgen.MapGenerator;
 import com.dillon.starsectormarines.battle.mapgen.MapResult;
@@ -187,6 +189,7 @@ public final class BattleSetup {
             }
             shuttle.cycleLoadouts = cycleLoadouts;
             shuttle.marineLoadout = cycleLoadouts[0];
+            equipDefaultTurrets(shuttle);
             sim.addShuttle(shuttle);
         }
 
@@ -273,6 +276,29 @@ public final class BattleSetup {
      * Capacity-1 shuttles skip the secondary — a one-marine drop is a courier,
      * not a fireteam.
      */
+    /**
+     * Populates a freshly-constructed shuttle's turret mounts with the
+     * default A2G kit for its type, when the type has hardpoints &gt; 0.
+     * Wired in here so every spawn path picks up fire support automatically
+     * — a follow-up briefing-UI slice will let the player override the role
+     * per shuttle, which slots in via {@code shuttle.assignedRole} before
+     * this helper runs.
+     *
+     * <p>Mounts start with their facing aligned to the shuttle's nose so
+     * the first hover-station tick doesn't snap turrets through a 90° swing.
+     */
+    private static void equipDefaultTurrets(Shuttle shuttle) {
+        if (shuttle.type.hardpoints <= 0) return;
+        if (shuttle.assignedRole == null) shuttle.assignedRole = TurretRole.A2G;
+        TurretMount[] mounts = ShuttleType.kitFor(shuttle.assignedRole, shuttle.type.hardpoints);
+        MountedTurret[] turrets = new MountedTurret[mounts.length];
+        for (int i = 0; i < mounts.length; i++) {
+            turrets[i] = new MountedTurret(mounts[i]);
+            turrets[i].facingDegrees = shuttle.body.facingDegrees;
+        }
+        shuttle.turrets = turrets;
+    }
+
     private static MarineLoadout[] buildBaseLoadouts(int capacity, Random rng) {
         MarineLoadout[] roster = new MarineLoadout[capacity];
         int rocketSlot = (capacity > 1) ? capacity - 1 : -1;
@@ -346,6 +372,7 @@ public final class BattleSetup {
             }
             shuttle.cycleLoadouts = cycleLoadouts;
             shuttle.marineLoadout = cycleLoadouts[0];
+            equipDefaultTurrets(shuttle);
             sim.addShuttle(shuttle);
         }
 

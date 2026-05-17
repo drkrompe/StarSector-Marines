@@ -37,35 +37,35 @@ public enum TurretKind {
                   "graphics/missiles/shell_small_yellow.png",
                   "vulcan_cannon_fire",
                   "Vulcan Cannon",
-                  24f, 2.5f, 0.45f,  0.50f, 50f, 120f, 1.6f, 0.22f),
+                  24f, 2.5f, 0.45f,  0.50f, 50f, 120f, 1.6f, 0.22f, TurretRole.A2G, 120),
     /** Mid-range autocannon — balanced workhorse. */
     ARBALEST     ("graphics/weapons/arbalest_turret_base.png",
                   "graphics/weapons/arbalest_turret_recoil.png",
                   "graphics/missiles/shell_large_green.png",
                   "autocannon_fire",
                   "Arbalest Autocannon",
-                  30f,  5.0f, 0.50f,  1.50f, 65f,  90f, 1.8f, 0.30f),
+                  30f,  5.0f, 0.50f,  1.50f, 65f,  90f, 1.8f, 0.30f, TurretRole.A2G,  60),
     /** Long-range high-damage — sniper turret. Slow turn rate so flanking matters. */
     HEAVY_MORTAR ("graphics/weapons/heavy_mortar_turret.png",
                   "graphics/weapons/heavy_mortar_turret_recoil.png",
                   "graphics/missiles/shell_round_lrg.png",
                   "heavy_mortar_fire",
                   "Heavy Mortar",
-                  36f,  9.0f, 0.55f,  2.50f, 75f,  60f, 1.8f, 0.28f),
+                  36f,  9.0f, 0.55f,  2.50f, 75f,  60f, 1.8f, 0.28f, TurretRole.A2G,  15),
     /** Rapid-fire flak — defensive area sweep. Wide turn rate, fast cooldown. */
     DUAL_FLAK    ("graphics/weapons/dual_flak_cannon_turret_base.png",
                   "graphics/weapons/dual_flak_cannon_turret_recoil.png",
                   "graphics/missiles/shell_large_blue.png",
                   "flak_fire",
                   "Dual Flak Cannon",
-                  26f,  4.0f, 0.40f,  0.80f, 70f, 100f, 2.0f, 0.28f),
+                  26f,  4.0f, 0.40f,  0.80f, 70f, 100f, 2.0f, 0.28f, TurretRole.A2G,  80),
     /** Heavy assault — high DPS at medium range. */
     HEPHAESTUS   ("graphics/weapons/hephaestus_turret_base.png",
                   "graphics/weapons/hephaestus_turret_recoil.png",
                   "graphics/missiles/shell_hephag.png",
                   "hephaestus_fire",
                   "Hephaestus Assault Gun",
-                  32f,  6.5f, 0.50f,  1.20f, 85f,  75f, 2.2f, 0.35f);
+                  32f,  6.5f, 0.50f,  1.20f, 85f,  75f, 2.2f, 0.35f, TurretRole.A2G,  50);
 
     public final String spritePath;
     /** Base sprite swap shown for {@code RECOIL_DURATION} after each shot — the muzzle-flash variant that ships next to the base sprite in {@code graphics/weapons/}. */
@@ -91,11 +91,21 @@ public enum TurretKind {
     public final float visualCells;
     /** Projectile visual size in cells (long axis). Aspect comes from the loaded PNG. Tuned per kind so a vulcan reads as a small zipping round and a mortar as a fat shell. */
     public final float projectileVisualCells;
+    /** Target class this kind is allowed to shoot at. Static {@link MapTurret}s default to {@link TurretRole#A2G}; mounted shuttle turrets honor the role for target filtering. */
+    public final TurretRole role;
+    /**
+     * Rounds in the magazine when this kind is mounted on a shuttle. Static
+     * {@link MapTurret}s ignore this — bolted-down defenses don't run dry —
+     * but a shuttle turret tracks ammo down and triggers the hover-loiter
+     * exit when its mounts go empty across the board.
+     */
+    public final int startingAmmo;
 
     TurretKind(String spritePath, String recoilSpritePath, String projectileSpritePath, String fireSoundId,
                String displayName,
                float range, float damage, float accuracy, float cooldown,
-               float maxHp, float turnRateDegPerSec, float visualCells, float projectileVisualCells) {
+               float maxHp, float turnRateDegPerSec, float visualCells, float projectileVisualCells,
+               TurretRole role, int startingAmmo) {
         this.spritePath = spritePath;
         this.recoilSpritePath = recoilSpritePath;
         this.projectileSpritePath = projectileSpritePath;
@@ -109,6 +119,8 @@ public enum TurretKind {
         this.turnRateDegPerSec = turnRateDegPerSec;
         this.visualCells = visualCells;
         this.projectileVisualCells = projectileVisualCells;
+        this.role = role;
+        this.startingAmmo = startingAmmo;
     }
 
     /** Visual impact profile for this kind — small spark for the fast/light weapons, kinetic flash + smoke for the mid-weight shells, full HE burst for the mortar. */
