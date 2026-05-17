@@ -146,14 +146,43 @@ public class Shuttle {
     public float hoverTimerSec;
 
     /**
-     * World coordinates of the hover station-keeping point. Set when entering
-     * HOVER_STATION (today: a few cells off the LZ at altitude). The body's
-     * STATION-mode steering targets this point each tick.
+     * World coordinates of the hover station-keeping point. Recomputed each
+     * tick during HOVER_STATION from the squad's alive centroid (clamped to
+     * {@link #HOVER_LEASH_RADIUS_CELLS} from the LZ), so the shuttle follows
+     * its delivered marines as they advance. If the squad is wiped, the
+     * field holds at its last value.
      */
     public float hoverPointX, hoverPointY;
 
+    /**
+     * Counts down from {@link #T_TAKEOFF_SEC} on entry to HOVER_STATION.
+     * While > 0, {@link #altitudeT} is driven by a smoothstep ramp from 0
+     * (just landed) to 1 (cruise altitude) — gives the shuttle an
+     * acceleration / deceleration takeoff instead of popping into the air.
+     * Reset on every cycle's LANDED → HOVER_STATION transition.
+     */
+    public float takeoffTimer;
+
+    /**
+     * Set true at the HOVER_STATION → DEPARTING transition so the departing
+     * leg's altitude lerp doesn't pretend the shuttle is taking off from the
+     * ground again — a shuttle that was hovering at cruise altitude flies
+     * away at cruise altitude rather than descending and re-climbing.
+     * Cleared on cycle reset.
+     */
+    public boolean departingFromHover;
+
     /** HP fraction below which the shuttle aborts HOVER_STATION and departs. Default 0.4 = 40%. */
     public static final float HOVER_HP_THRESHOLD = 0.4f;
+
+    /** Sim-seconds the LANDED → HOVER_STATION takeoff takes. Long enough for the lift to read as gradual climb, short enough that the shuttle gets to firing position promptly. */
+    public static final float T_TAKEOFF_SEC = 2.0f;
+
+    /** Cell radius the shuttle stays within around its LZ while following the squad centroid in HOVER_STATION. Lets squads advance ~12 cells with the shuttle in tow; past that the leash bites. */
+    public static final float HOVER_LEASH_RADIUS_CELLS = 12f;
+
+    /** Peak screen-Y offset (cells) applied at altitudeT = 1 to sell "the shuttle is up in the air" in the top-down view. Sim-space {@code body.x}/{@code body.y} are unchanged — this is render-only. */
+    public static final float VISUAL_ALT_PEAK_CELLS = 3.0f;
 
     public Shuttle(ShuttleType type, Faction faction,
                    float lzX, float lzY,
@@ -213,4 +242,14 @@ public class Shuttle {
 
     /** Engine intensity while parked on the ground — quiet hum, not silent. */
     private static final float IDLE_INTENSITY = 0.3f;
+
+    /**
+     * Render-only Y offset (cells) the renderer should add to {@code body.y}
+     * to sell altitude in the top-down view. Sim-space position is the
+     * ground projection; the sprite floats above it scaled by altitudeT.
+     * Mounted turrets read the same offset so they ride with the shuttle.
+     */
+    public float visualAltitudeOffsetCells() {
+        return altitudeT * VISUAL_ALT_PEAK_CELLS;
+    }
 }

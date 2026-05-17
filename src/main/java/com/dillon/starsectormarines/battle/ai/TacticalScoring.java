@@ -53,6 +53,17 @@ public final class TacticalScoring {
     private TacticalScoring() {}
 
     /**
+     * Four-arg line-of-sight predicate so callers can supply a non-standard
+     * LoS rule (today: shuttle-mounted "air" turrets that ignore walls
+     * within a few cells of their flying origin). The {@link Unit} overload
+     * and the primitive overload both default to {@code grid::hasLineOfSight}.
+     */
+    @FunctionalInterface
+    public interface LosTest {
+        boolean visible(int fromX, int fromY, int toX, int toY);
+    }
+
+    /**
      * Picks the lowest-scored enemy where score = cell-distance + a per-engager
      * crowding penalty (heavier for squadmates than for general allies). Prefers
      * visible targets; falls back to nearest of any LOS so the unit pathfinds
@@ -72,8 +83,20 @@ public final class TacticalScoring {
      */
     public static Unit findBestTarget(int selfCellX, int selfCellY, Faction selfFaction,
                                       int selfSquadId, Unit excludeFromCrowding, BattleSimulation sim) {
-        List<Unit> units = sim.getUnits();
         NavigationGrid grid = sim.getGrid();
+        return findBestTarget(selfCellX, selfCellY, selfFaction, selfSquadId, excludeFromCrowding,
+                grid::hasLineOfSight, sim);
+    }
+
+    /**
+     * LoS-injectable overload — air turrets pass an "ignore close walls"
+     * predicate so they can acquire targets through the building they're
+     * hovering over. Logic otherwise identical to the standard-LoS overload.
+     */
+    public static Unit findBestTarget(int selfCellX, int selfCellY, Faction selfFaction,
+                                      int selfSquadId, Unit excludeFromCrowding,
+                                      LosTest los, BattleSimulation sim) {
+        List<Unit> units = sim.getUnits();
         Unit bestVisible = null;
         float bestVisibleScore = Float.MAX_VALUE;
         Unit bestAny = null;
@@ -91,7 +114,7 @@ public final class TacticalScoring {
                 bestAnyDist = d;
                 bestAny = other;
             }
-            if (!grid.hasLineOfSight(selfCellX, selfCellY, other.cellX, other.cellY)) continue;
+            if (!los.visible(selfCellX, selfCellY, other.cellX, other.cellY)) continue;
             float crowding = scoreCrowding(selfFaction, selfSquadId, other, units, excludeFromCrowding);
             float score = d + crowding;
             if (score < bestVisibleScore) {

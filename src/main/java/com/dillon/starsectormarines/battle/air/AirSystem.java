@@ -44,6 +44,8 @@ public class AirSystem {
     private static final float SHUTTLE_EXIT_ARRIVAL_DIST = 1.0f;
     /** Max BFS radius from the LZ when looking for a free deboard cell. Past this we drop the deboard for this tick. */
     private static final int DEBOARD_SCAN_RADIUS = 5;
+    /** Cell radius around a flying turret's origin where walls are treated as transparent — models the shuttle being "above" its containing building. Tuned to typical building wall thickness; past this, real LOS rules apply. */
+    private static final float SHUTTLE_AIR_LOS_RADIUS = 3.5f;
 
     private final List<Shuttle> shuttles = new ArrayList<>();
 
@@ -116,17 +118,17 @@ public class AirSystem {
                     }
                     if (s.marinesRemaining == 0) {
                         if (s.shouldHoverLoiter()) {
-                            // Lift off the LZ and station-keep above it for the
-                            // type's fire-support window. Hover point sits at
-                            // the LZ coords — there's no z-axis in the sim, so
-                            // "altitude" is the scaleMult value; STATION-mode
-                            // steering with the body already at the goal just
-                            // kills any drift and holds.
+                            // Lift off the LZ and station-keep above the squad
+                            // for the type's fire-support window. Initial hover
+                            // point is the LZ; each subsequent tick follows the
+                            // squad centroid (leashed to LZ radius).
                             s.hoverPointX = s.lzX;
                             s.hoverPointY = s.lzY;
                             s.hoverTimerSec = s.type.fireSupportSec;
-                            s.altitudeT = 1f;
-                            s.scaleMult = SHUTTLE_CRUISE_SCALE;
+                            s.takeoffTimer = Shuttle.T_TAKEOFF_SEC;
+                            s.altitudeT = 0f;       // smoothstep ramps from here
+                            s.scaleMult = 1f;
+                            s.departingFromHover = false;
                             s.state = Shuttle.State.HOVER_STATION;
                         } else {
                             beginShuttleLeg(s, s.exitX, s.exitY);
@@ -136,15 +138,27 @@ public class AirSystem {
                     break;
 
                 case HOVER_STATION:
+                    // Follow the squad: hover point tracks the alive squad
+                    // centroid, clamped to a leash radius around the LZ so a
+                    // wiped squad or a runaway scout doesn't drag the shuttle
+                    // across the whole map.
+                    updateHoverFollow(s, ctx);
                     s.body.tickToward(s.hoverPointX, s.hoverPointY, SteeringMode.STATION, s.type, dt);
                     s.hoverTimerSec -= dt;
-                    // Hover sells altitude purely through scaleMult — no
-                    // distance lerp like INCOMING/DEPARTING. Hold at cruise
-                    // scale plus the same atmospheric wobble.
-                    s.altitudeT = 1f;
+                    // Takeoff phase — smoothstep altitudeT 0 → 1 over
+                    // T_TAKEOFF_SEC for a visible acceleration / deceleration
+                    // climb instead of a one-tick pop into the air.
+                    if (s.takeoffTimer > 0f) {
+                        s.takeoffTimer -= dt;
+                        float u = 1f - Math.max(0f, s.takeoffTimer / Shuttle.T_TAKEOFF_SEC);
+                        s.altitudeT = u * u * (3f - 2f * u);  // smoothstep
+                    } else {
+                        s.altitudeT = 1f;
+                    }
                     s.flightPhase += dt * 2f * (float) Math.PI * SHUTTLE_WOBBLE_HZ;
-                    float hoverWobble = (float) Math.sin(s.flightPhase) * SHUTTLE_WOBBLE_AMPLITUDE;
-                    s.scaleMult = SHUTTLE_CRUISE_SCALE + hoverWobble;
+                    float hoverWobble = (float) Math.sin(s.flightPhase)
+                            * SHUTTLE_WOBBLE_AMPLITUDE * s.altitudeT;
+                    s.scaleMult = (1f + (SHUTTLE_CRUISE_SCALE - 1f) * s.altitudeT) + hoverWobble;
                     // Exit triggers — first-of (timer expired, all ammo dry,
                     // HP pressure). HP threshold is wired forward for AA work;
                     // today there's no damage source so it never trips.
@@ -153,6 +167,7 @@ public class AirSystem {
                     boolean hpPressured = s.hp <= s.type.maxHp * Shuttle.HOVER_HP_THRESHOLD;
                     if (fuelOut || ammoOut || hpPressured) {
                         beginShuttleLeg(s, s.exitX, s.exitY);
+                        s.departingFromHover = true;
                         s.state = Shuttle.State.DEPARTING;
                     }
                     break;
@@ -176,6 +191,14 @@ public class AirSystem {
                             s.body.teleport(s.entryX, s.entryY,
                                     AirBody.facingToward(s.lzX - s.entryX, s.lzY - s.entryY));
                             s.altitudeT = 1f;
+                            s.departingFromHover = false;
+                            // Re-arm: refill every mount's magazine, drop any
+                            // stale target lock so the next hover starts clean.
+                            for (MountedTurret mt : s.turrets) {
+                                mt.ammo = mt.mount.kind.startingAmmo;
+                                mt.target = null;
+                                mt.cooldownTimer = 0f;
+                            }
                             s.state = Shuttle.State.PENDING;
                         } else {
                             s.state = Shuttle.State.GONE;
@@ -236,6 +259,8 @@ public class AirSystem {
                 aim.cooldownTimer = mt.cooldownTimer;
                 aim.attackCooldown = mt.mount.kind.cooldown;
                 aim.target = mt.target;
+                aim.ignoreCloseWalls = true;
+                aim.closeWallRadius = SHUTTLE_AIR_LOS_RADIUS;
 
                 TurretAim.tick(aim, sim, dt);
 
@@ -268,16 +293,55 @@ public class AirSystem {
      * sine wobble that's gated by altitudeT so it dies cleanly on the ground.
      */
     private void updateShuttleAltitude(Shuttle s, float toX, float toY, boolean incoming, float dt) {
-        float remaining = s.body.distanceTo(toX, toY);
-        float ratio = remaining / s.legStartDist;
-        if (ratio < 0f) ratio = 0f;
-        if (ratio > 1f) ratio = 1f;
-        s.altitudeT = incoming ? ratio : (1f - ratio);
-
+        if (!incoming && s.departingFromHover) {
+            // Departing straight out of HOVER_STATION — the shuttle is already
+            // at cruise altitude, so a distance-ratio lerp from "ground" would
+            // make it visibly descend and re-climb. Hold at the top.
+            s.altitudeT = 1f;
+        } else {
+            float remaining = s.body.distanceTo(toX, toY);
+            float ratio = remaining / s.legStartDist;
+            if (ratio < 0f) ratio = 0f;
+            if (ratio > 1f) ratio = 1f;
+            s.altitudeT = incoming ? ratio : (1f - ratio);
+        }
         float baseScale = 1f + (SHUTTLE_CRUISE_SCALE - 1f) * s.altitudeT;
         s.flightPhase += dt * 2f * (float) Math.PI * SHUTTLE_WOBBLE_HZ;
         float wobble = (float) Math.sin(s.flightPhase) * SHUTTLE_WOBBLE_AMPLITUDE * s.altitudeT;
         s.scaleMult = baseScale + wobble;
+    }
+
+    /**
+     * Recomputes {@link Shuttle#hoverPointX}/{@code hoverPointY} from the
+     * alive squad centroid, clamped to {@link Shuttle#HOVER_LEASH_RADIUS_CELLS}
+     * around the LZ. Holds the previous value if the squad is wiped (no
+     * alive squadmates) so the shuttle doesn't snap back to the LZ on
+     * the last marine's death — it stays where it was supporting.
+     */
+    private void updateHoverFollow(Shuttle s, BattleSimulation sim) {
+        if (s.squadId == Unit.NO_SQUAD) return;
+        float sumX = 0f, sumY = 0f;
+        int n = 0;
+        for (Unit u : sim.getUnits()) {
+            if (u.squadId != s.squadId) continue;
+            if (!u.isAlive()) continue;
+            sumX += u.cellX + 0.5f;
+            sumY += u.cellY + 0.5f;
+            n++;
+        }
+        if (n == 0) return;  // squad wiped — hold current hover point
+        float cx = sumX / n;
+        float cy = sumY / n;
+        float dx = cx - s.lzX;
+        float dy = cy - s.lzY;
+        float dist = (float) Math.sqrt(dx * dx + dy * dy);
+        if (dist > Shuttle.HOVER_LEASH_RADIUS_CELLS) {
+            float k = Shuttle.HOVER_LEASH_RADIUS_CELLS / dist;
+            cx = s.lzX + dx * k;
+            cy = s.lzY + dy * k;
+        }
+        s.hoverPointX = cx;
+        s.hoverPointY = cy;
     }
 
     /**

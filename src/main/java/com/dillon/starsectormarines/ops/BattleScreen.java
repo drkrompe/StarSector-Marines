@@ -2371,10 +2371,15 @@ public class BattleScreen implements Screen {
             sprite.setAlphaMult(alphaMult);
             sprite.setNormalBlend();
             sprite.setColor(Color.WHITE);
+            // Y-axis lift: sim position is the ground projection, the
+            // rendered sprite floats above it by altitudeT * peak cells.
+            // Combined with the scale lerp, this reads as actual upward
+            // climb during takeoff / descent during landing.
+            float altOffset = s.visualAltitudeOffsetCells();
             float cx = camera.cellToScreenX(s.body.x);
-            float cy = camera.cellToScreenY(s.body.y);
+            float cy = camera.cellToScreenY(s.body.y + altOffset);
             sprite.renderAtCenter(cx, cy);
-            renderShuttleTurrets(s, alphaMult);
+            renderShuttleTurrets(s, alphaMult, altOffset);
         }
         // Reset angle so the singleton sprite doesn't carry our rotation
         // into whatever else might draw it.
@@ -2394,7 +2399,8 @@ public class BattleScreen implements Screen {
      * hovering shuttle's turrets read at the same "this is up high" size as
      * the hull they're attached to.
      */
-    private void renderShuttleTurrets(com.dillon.starsectormarines.battle.air.Shuttle s, float alphaMult) {
+    private void renderShuttleTurrets(com.dillon.starsectormarines.battle.air.Shuttle s, float alphaMult,
+                                      float altOffsetCells) {
         if (s.turrets.length == 0) return;
         float rad = (float) Math.toRadians(s.body.facingDegrees);
         float c = (float) Math.cos(rad);
@@ -2408,7 +2414,7 @@ public class BattleScreen implements Screen {
             float worldOffsetX = lx * c - ly * si;
             float worldOffsetY = lx * si + ly * c;
             float wx = s.body.x + worldOffsetX;
-            float wy = s.body.y + worldOffsetY;
+            float wy = s.body.y + worldOffsetY + altOffsetCells;
             float screenX = camera.cellToScreenX(wx);
             float screenY = camera.cellToScreenY(wy);
             drawTurretLayer(turretSprite, mt.facingDegrees,

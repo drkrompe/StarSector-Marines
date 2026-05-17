@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.ai;
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 /**
  * Shared turret aim/fire loop — used by both static {@link com.dillon.starsectormarines.battle.MapTurret}s
@@ -52,6 +53,18 @@ public final class TurretAim {
 
         /** Output: true when the caller should fire this tick. Reset every {@link #tick} call. */
         public boolean fireThisTick;
+
+        /**
+         * If true, walls within {@link #closeWallRadius} cells of the origin
+         * are treated as transparent for both target acquisition and target
+         * validation. Used by shuttle-mounted turrets: a flying mount that's
+         * positioned over a building should be able to fire OUT of the
+         * building it's inside, but still needs real LOS to hit anything past
+         * the next building's walls.
+         */
+        public boolean ignoreCloseWalls;
+        /** Radius (cells) over which walls are treated as transparent when {@link #ignoreCloseWalls} is true. */
+        public float closeWallRadius;
     }
 
     private TurretAim() {}
@@ -66,10 +79,14 @@ public final class TurretAim {
      */
     public static void tick(State s, BattleSimulation sim, float dt) {
         s.fireThisTick = false;
+        NavigationGrid grid = sim.getGrid();
+        TacticalScoring.LosTest los = s.ignoreCloseWalls
+                ? (x0, y0, x1, y1) -> airLosVisible(grid, x0, y0, x1, y1, s.closeWallRadius)
+                : grid::hasLineOfSight;
 
         if (s.target == null || !s.target.isAlive()) {
             s.target = TacticalScoring.findBestTarget(
-                    s.originCellX, s.originCellY, s.faction, s.squadId, s.excludeFromCrowding, sim);
+                    s.originCellX, s.originCellY, s.faction, s.squadId, s.excludeFromCrowding, los, sim);
         }
         if (s.cooldownTimer > 0f) s.cooldownTimer -= dt;
         if (s.target == null) return;
@@ -77,8 +94,7 @@ public final class TurretAim {
         float dist = TacticalScoring.cellDistance(
                 s.originCellX, s.originCellY, s.target.cellX, s.target.cellY);
         boolean inRange = dist <= s.attackRange;
-        boolean visible = sim.getGrid().hasLineOfSight(
-                s.originCellX, s.originCellY, s.target.cellX, s.target.cellY);
+        boolean visible = los.visible(s.originCellX, s.originCellY, s.target.cellX, s.target.cellY);
         if (!inRange || !visible) {
             // Drop the target so a fresh acquisition happens next tick. By the
             // time LOS or range is broken, there's probably a better candidate.
@@ -118,5 +134,39 @@ public final class TurretAim {
     /** Signed shortest-arc delta from {@code a} to {@code b}, in [-180, 180]. */
     public static float shortestAngleDelta(float a, float b) {
         return ((b - a + 540f) % 360f) - 180f;
+    }
+
+    /**
+     * Air LoS — like {@link NavigationGrid#hasLineOfSight} but treats walls
+     * within {@code closeWallRadius} cells of the origin as transparent.
+     * Models "the shuttle is high enough to fire over the walls of the
+     * building it's directly above, but still has to see through real
+     * intervening cover past that."
+     *
+     * <p>Bresenham-stepped along the line; per-step Euclidean (squared)
+     * distance from origin gates the close-wall pass.
+     */
+    public static boolean airLosVisible(NavigationGrid grid, int x0, int y0, int x1, int y1,
+                                        float closeWallRadius) {
+        float r2 = closeWallRadius * closeWallRadius;
+        int dx = Math.abs(x1 - x0);
+        int dy = Math.abs(y1 - y0);
+        int sx = x0 < x1 ? 1 : -1;
+        int sy = y0 < y1 ? 1 : -1;
+        int err = dx - dy;
+        int x = x0;
+        int y = y0;
+        while (true) {
+            boolean endpoint = (x == x0 && y == y0) || (x == x1 && y == y1);
+            if (!endpoint && !grid.isWalkable(x, y)) {
+                float distSq = (float) ((x - x0) * (x - x0) + (y - y0) * (y - y0));
+                if (distSq > r2) return false;
+                // else: wall is part of the "shuttle's building"; ignore.
+            }
+            if (x == x1 && y == y1) return true;
+            int e2 = err << 1;
+            if (e2 > -dy) { err -= dy; x += sx; }
+            if (e2 <  dx) { err += dx; y += sy; }
+        }
     }
 }
