@@ -785,10 +785,9 @@ public class BattleScreen implements Screen {
                     s.fromY * AUDIO_WORLD_UNITS_PER_CELL);
             if (s.turretKind != null) {
                 // Vanilla weapon sound ids are pre-registered by the core install (and are mono),
-                // so positional playback works directly. Slightly lower volume than the rifle pool —
-                // turret fire is meant to be readable but not drown out the rest of the mix when
-                // multiple turrets are up.
-                Global.getSoundPlayer().playSound(s.turretKind.fireSoundId, pitch, 0.7f, loc, zeroVel);
+                // so positional playback works directly. Volume left at the vanilla source level —
+                // distance attenuation already shapes how loud turret fire reads as the camera moves.
+                Global.getSoundPlayer().playSound(s.turretKind.fireSoundId, pitch, 1.0f, loc, zeroVel);
             } else {
                 Global.getSoundPlayer().playSound(SFX_RIFLE, pitch, RIFLE_VOLUME, loc, zeroVel);
             }
