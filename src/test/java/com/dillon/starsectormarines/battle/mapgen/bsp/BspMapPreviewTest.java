@@ -357,6 +357,8 @@ public class BspMapPreviewTest {
     private static String glyphFor(com.dillon.starsectormarines.battle.mapgen.BlockKind kind) {
         switch (kind) {
             case MILITARY_BASE: return "MIL";
+            case GATED_HOUSING: return "GH";
+            case DENSE_QUARTER: return "DQ";
             default:            return kind.name().substring(0, Math.min(3, kind.name().length()));
         }
     }

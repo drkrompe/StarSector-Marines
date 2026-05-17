@@ -44,12 +44,13 @@ public enum MapDistrictTheme {
 
     static {
         RESIDENTIAL.table = WeightedTable.<BlockKind>builder()
-                .add(BlockKind.BUILDING_RESIDENTIAL, 45)
+                .add(BlockKind.BUILDING_RESIDENTIAL, 42)
                 .add(BlockKind.PARK,                 18)
                 .add(BlockKind.DENSE_BLOCK,          12)  // tenements / row houses
                 .add(BlockKind.PLAZA,                 8)
                 .add(BlockKind.BUILDING_COMMERCIAL,   7)
                 .add(BlockKind.WASTELAND_RUBBLE,      4)
+                .add(BlockKind.GATED_HOUSING,         3)  // claim-pass seed: walled subdivision
                 .add(BlockKind.BUILDING_INDUSTRIAL,   2)
                 .add(BlockKind.INDUSTRIAL_YARD,       2)
                 .add(BlockKind.FORTIFIED_POST,        2)
@@ -68,19 +69,20 @@ public enum MapDistrictTheme {
                 .build();
 
         CIVIC.table = WeightedTable.<BlockKind>builder()
-                .add(BlockKind.BUILDING_COMMERCIAL,  25)
+                .add(BlockKind.BUILDING_COMMERCIAL,  22)
                 .add(BlockKind.PLAZA,                20)
                 .add(BlockKind.PARK,                 14)
                 .add(BlockKind.BUILDING_RESIDENTIAL, 13)
                 .add(BlockKind.DENSE_BLOCK,          10)  // downtown bazaar / shop alleys
                 .add(BlockKind.LANDING_ZONE,          7)
-                .add(BlockKind.FORTIFIED_POST,        5)
-                .add(BlockKind.BUILDING_INDUSTRIAL,   3)
+                .add(BlockKind.DENSE_QUARTER,         5)  // downtown skyscraper district
+                .add(BlockKind.FORTIFIED_POST,        4)
+                .add(BlockKind.BUILDING_INDUSTRIAL,   2)
                 .add(BlockKind.WASTELAND_RUBBLE,      3)
                 .build();
 
         MIXED.table = WeightedTable.<BlockKind>builder()
-                .add(BlockKind.BUILDING_RESIDENTIAL, 22)
+                .add(BlockKind.BUILDING_RESIDENTIAL, 20)
                 .add(BlockKind.BUILDING_COMMERCIAL,  14)
                 .add(BlockKind.BUILDING_INDUSTRIAL,  10)
                 .add(BlockKind.PLAZA,                10)
@@ -89,6 +91,8 @@ public enum MapDistrictTheme {
                 .add(BlockKind.INDUSTRIAL_YARD,       8)
                 .add(BlockKind.WASTELAND_RUBBLE,      7)
                 .add(BlockKind.FORTIFIED_POST,        4)
+                .add(BlockKind.GATED_HOUSING,         2)  // walled subdivision in mixed zones
+                .add(BlockKind.DENSE_QUARTER,         2)  // small downtown pocket
                 .add(BlockKind.MILITARY_BASE,         2)  // rare base in mixed zones
                 .add(BlockKind.LANDING_ZONE,          2)
                 // No WATERFRONT in MIXED — water in the middle of the map looks wrong.

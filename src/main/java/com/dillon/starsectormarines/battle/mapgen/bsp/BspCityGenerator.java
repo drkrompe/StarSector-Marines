@@ -16,6 +16,8 @@ import com.dillon.starsectormarines.battle.mapgen.bsp.fill.BuildingResidentialFi
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.DenseBlockFiller;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.FortifiedPostFiller;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.IndustrialYardFiller;
+import com.dillon.starsectormarines.battle.mapgen.bsp.fill.DenseQuarterFiller;
+import com.dillon.starsectormarines.battle.mapgen.bsp.fill.GatedHousingFiller;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.LandingZoneFiller;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.MilitaryBaseFiller;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.ParkFiller;
@@ -66,7 +68,7 @@ public final class BspCityGenerator implements MapGenerator {
     private static final int WALL_HP_DEFAULT = 100;
 
     private final Map<BlockKind, BlockFiller> fillers = new EnumMap<>(BlockKind.class);
-    private final MilitaryBaseFiller militaryBaseFiller = new MilitaryBaseFiller();
+    private final Map<BlockKind, CompoundFiller> compoundFillers = new EnumMap<>(BlockKind.class);
 
     public BspCityGenerator() {
         // Default every kind to a stub. Real fillers replace these via
@@ -86,6 +88,15 @@ public final class BspCityGenerator implements MapGenerator {
         register(new WastelandRubbleFiller());
         register(new WaterfrontFiller());
         register(new DenseBlockFiller());
+
+        registerCompound(new MilitaryBaseFiller());
+        registerCompound(new GatedHousingFiller());
+        registerCompound(new DenseQuarterFiller());
+    }
+
+    /** Swap in a compound-aware filler. Idempotent — last write wins. */
+    public void registerCompound(CompoundFiller filler) {
+        compoundFillers.put(filler.kind(), filler);
     }
 
     /** Swap in a per-kind filler. Idempotent — last write wins. */
@@ -156,7 +167,7 @@ public final class BspCityGenerator implements MapGenerator {
         // compound's seed leaf keeps its BlockKind; absorbed neighbor leaves
         // are rewritten to COMPOUND_MEMBER so per-leaf dispatch skips them.
         Map<BlockLeaf, List<BlockLeaf>> adjacency = LeafAdjacency.compute(partition.leaves, width, height);
-        List<Compound> compounds = CompoundClaim.claim(partition.leaves, adjacency, rng);
+        List<Compound> compounds = CompoundClaim.claim(partition.leaves, adjacency, CompoundClaim.DEFAULT_SPECS, rng);
         this.lastCompounds = compounds;
         Map<BlockLeaf, Compound> compoundBySeed = new IdentityHashMap<>();
         for (Compound c : compounds) compoundBySeed.put(c.seed, c);
@@ -173,7 +184,10 @@ public final class BspCityGenerator implements MapGenerator {
             if (leaf.kind == BlockKind.COMPOUND_MEMBER) continue;
             Compound compound = compoundBySeed.get(leaf);
             if (compound != null) {
-                militaryBaseFiller.fill(compound, grid, topology, plan.roadCells, pois, doodads, rng);
+                CompoundFiller cFiller = compoundFillers.get(compound.kind);
+                if (cFiller != null) {
+                    cFiller.fill(compound, grid, topology, plan.roadCells, pois, doodads, rng);
+                }
                 continue;
             }
             BlockFiller filler = fillers.get(leaf.kind);

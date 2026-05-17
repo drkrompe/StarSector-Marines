@@ -5,8 +5,10 @@ import com.dillon.starsectormarines.battle.PointOfInterest;
 import com.dillon.starsectormarines.battle.TileManifest;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.mapgen.BlockKind;
 import com.dillon.starsectormarines.battle.mapgen.BlockLeaf;
 import com.dillon.starsectormarines.battle.mapgen.bsp.Compound;
+import com.dillon.starsectormarines.battle.mapgen.bsp.CompoundFiller;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.ArrayList;
@@ -42,7 +44,10 @@ import java.util.Random;
  * skipping the per-leaf dispatch for any leaf whose kind is
  * {@link com.dillon.starsectormarines.battle.mapgen.BlockKind#COMPOUND_MEMBER}.
  */
-public final class MilitaryBaseFiller {
+public final class MilitaryBaseFiller implements CompoundFiller {
+
+    @Override public BlockKind kind() { return BlockKind.MILITARY_BASE; }
+
 
     /** Underlying ground for the perimeter wall — STRIPED so breached walls expose military safety floor. */
     private static final GroundKind WALL_GROUND = GroundKind.STRIPED;
@@ -64,6 +69,7 @@ public final class MilitaryBaseFiller {
     private static final BuildingShellCore.BuildingConfig VEHICLE_BAY_CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.STRIPED, TileManifest.WAREHOUSE_DOODADS, PointOfInterest.Kind.DEPOT);
 
+    @Override
     public void fill(Compound compound,
                      NavigationGrid grid,
                      CellTopology topology,

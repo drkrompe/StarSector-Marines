@@ -68,6 +68,30 @@ public enum BlockKind {
     MILITARY_BASE,
 
     /**
+     * Multi-leaf compound — gated residential block claimed from 2-3
+     * adjacent leaves. Lighter feel than {@link #MILITARY_BASE}: lower-HP
+     * INDOOR wall ring, GRASS-yard interior, a single main gate. Sub-
+     * buildings carved as residential dwellings. Reads as "walled-off
+     * neighborhood" — suburban gated community in space.
+     *
+     * <p>Demoted to {@link #BUILDING_RESIDENTIAL} if the claim pass fails
+     * to grow it.
+     */
+    GATED_HOUSING,
+
+    /**
+     * Multi-leaf compound — downtown skyscraper district. No outer wall;
+     * the cluster reads as a dense cluster of large commercial buildings
+     * with TILE-paved alleys between them, like a 2D top-down view of a
+     * financial district. Each member leaf carves a big multi-room
+     * commercial building filling most of the leaf.
+     *
+     * <p>Demoted to {@link #BUILDING_COMMERCIAL} if the claim pass fails
+     * to grow it.
+     */
+    DENSE_QUARTER,
+
+    /**
      * Sentinel — this leaf belongs to a multi-leaf compound (e.g. a
      * {@link #MILITARY_BASE}) that owns its fill end-to-end. Per-leaf
      * {@link com.dillon.starsectormarines.battle.mapgen.BlockFiller}
