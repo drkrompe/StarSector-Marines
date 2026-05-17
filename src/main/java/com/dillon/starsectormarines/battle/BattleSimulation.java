@@ -86,6 +86,8 @@ public class BattleSimulation {
     private final List<ShotEvent> activeShots = new ArrayList<>();
     /** Shots fired during the last {@link #advance(float)} call. Cleared on each advance, populated per tick. Drives one-shot audio in the renderer. */
     private final List<ShotEvent> shotsThisFrame = new ArrayList<>();
+    /** Shots whose lifetime ran out during the last {@link #advance(float)} call — the "arrival" event for projectile-style shots. The renderer reads this to spawn impact FX at the endpoint when the projectile sprite actually reaches its target, rather than at launch time. */
+    private final List<ShotEvent> shotsExpiredThisFrame = new ArrayList<>();
     /** Units that transitioned from alive to dead during the last {@link #advance(float)} call. Same lifecycle as {@link #shotsThisFrame}. */
     private final List<Unit> deathsThisFrame = new ArrayList<>();
     private final Random rng = new Random();
@@ -184,6 +186,8 @@ public class BattleSimulation {
     public void setFlybyRoster(FlybyRoster roster) { this.flybyRoster = roster != null ? roster : FlybyRoster.EMPTY; }
     public List<ShotEvent> getActiveShots(){ return activeShots; }
     public List<ShotEvent> getShotsThisFrame() { return shotsThisFrame; }
+    /** Shots whose lifetime ended this advance — the "projectile arrived" event. Renderer reads this to spawn impact FX + arrival sounds at the moment a turret-shot sprite reaches its endpoint. */
+    public List<ShotEvent> getShotsExpiredThisFrame() { return shotsExpiredThisFrame; }
     public List<Unit> getDeathsThisFrame()     { return deathsThisFrame; }
     public boolean isComplete()            { return complete; }
     public Faction getWinner()             { return winner; }
@@ -213,6 +217,7 @@ public class BattleSimulation {
     public void advance(float dt) {
         // Clear unconditionally so a paused caller doesn't keep replaying the previous frame's events.
         shotsThisFrame.clear();
+        shotsExpiredThisFrame.clear();
         deathsThisFrame.clear();
         if (complete) return;
         tickAccumulator += dt;
@@ -345,7 +350,10 @@ public class BattleSimulation {
         for (int i = activeShots.size() - 1; i >= 0; i--) {
             ShotEvent s = activeShots.get(i);
             s.lifetime -= TICK_DT;
-            if (s.lifetime <= 0f) activeShots.remove(i);
+            if (s.lifetime <= 0f) {
+                shotsExpiredThisFrame.add(s);
+                activeShots.remove(i);
+            }
         }
     }
 

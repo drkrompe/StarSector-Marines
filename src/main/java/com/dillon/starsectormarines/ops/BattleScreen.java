@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.battle.UnitType;
 import com.dillon.starsectormarines.battle.VehicleKind;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.flyby.FlybyOverlay;
+import com.dillon.starsectormarines.battle.fx.ImpactFx;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.objective.Objective;
@@ -287,6 +288,8 @@ public class BattleScreen implements Screen {
     private float distantBoomTimer;
     /** RNG for audio variety — separate from sim.rng so audio randomness doesn't perturb sim determinism. */
     private final java.util.Random audioRng = new java.util.Random();
+    /** Ground-combat impact FX engine — sparks, dust, smoke, and HE fire bursts at shot endpoints. Separate from the flyby overlay's particle system so the two evolve independently. */
+    private final ImpactFx impactFx = new ImpactFx();
 
     private static final class ShuttleSpriteCache {
         final SpriteAPI sprite;
@@ -309,6 +312,7 @@ public class BattleScreen implements Screen {
         ensureRoadSheet();
         ensureShuttleSprites();
         ensureObjectiveIcons();
+        impactFx.ensureSprites();
         startBattleAudio();
         rebuild();
     }
@@ -669,6 +673,11 @@ public class BattleScreen implements Screen {
         // Flyby fighters run on the same scaled clock as the sim so pause / 1x / 2x / 4x
         // applies uniformly — spawning, strafing, and dogfighting all freeze on pause.
         flybyOverlay.advance(dt * speedMultiplier, sim, camera);
+        // Impact FX: spawn at the moment the shot's visual reaches its endpoint
+        // (instant for marine line tracers, on lifetime expiry for projectile
+        // sprites), then advance particles on the same scaled clock.
+        spawnImpactFx(sim);
+        impactFx.advance(dt * speedMultiplier);
         driveShuttleEngineLoop(sim);
         playCombatEventSounds(sim);
         // Rebuild widgets when the sim transitions to complete so the bottom
@@ -775,6 +784,55 @@ public class BattleScreen implements Screen {
      * playing a "noooo" for an enemy would feel wrong. We can wire a separate defender /
      * alien death pool here when those clips exist.
      */
+    /**
+     * Emits impact FX (and HE impact sounds) keyed off the sim's per-frame
+     * shot lists. Two emit windows:
+     * <ul>
+     *   <li>{@code shotsThisFrame} for null-kind shots (marine / militia / alien
+     *       rifle fire). The line tracer is drawn full-length the moment a
+     *       shot fires, so the impact should appear immediately at the endpoint
+     *       too — otherwise the puff lags ~150ms behind a visually-instant tracer.</li>
+     *   <li>{@code shotsExpiredThisFrame} for turret shots (non-null kind). The
+     *       projectile sprite travels visibly over its lifetime; the impact
+     *       should appear when the sprite reaches the endpoint, not when the
+     *       turret fires.</li>
+     * </ul>
+     *
+     * <p>HE shells (mortar) additionally play a positional explosion clip at
+     * impact. Kinetic shells stay silent — the fire SFX already covers them
+     * and a second clip per shot is sonic clutter.
+     */
+    private void spawnImpactFx(BattleSimulation sim) {
+        java.util.Random rng = java.util.concurrent.ThreadLocalRandom.current();
+        Vector2f zeroVel = new Vector2f(0f, 0f);
+        NavigationGrid grid = sim.getGrid();
+        for (ShotEvent s : sim.getShotsThisFrame()) {
+            if (s.turretKind != null) continue; // wait for the projectile to arrive
+            boolean isWall = isWallAt(grid, s.toX, s.toY);
+            impactFx.spawnImpact(null, s.toX, s.toY, isWall);
+        }
+        for (ShotEvent s : sim.getShotsExpiredThisFrame()) {
+            if (s.turretKind == null) continue; // already handled at fire time
+            boolean isWall = isWallAt(grid, s.toX, s.toY);
+            impactFx.spawnImpact(s.turretKind, s.toX, s.toY, isWall);
+            if (s.turretKind == com.dillon.starsectormarines.battle.TurretKind.HEAVY_MORTAR) {
+                float pitch = 0.9f + rng.nextFloat() * 0.2f;
+                Vector2f loc = new Vector2f(
+                        s.toX * AUDIO_WORLD_UNITS_PER_CELL,
+                        s.toY * AUDIO_WORLD_UNITS_PER_CELL);
+                Global.getSoundPlayer().playSound(SFX_NEAR_EXPLOSION, pitch, 0.55f, loc, zeroVel);
+            }
+        }
+    }
+
+    /** True when the endpoint cell is non-walkable (wall / vehicle / turret mount) and the impact should read as a chip on solid material rather than a kick of floor dust. */
+    private static boolean isWallAt(NavigationGrid grid, float x, float y) {
+        int cx = (int) Math.floor(x);
+        int cy = (int) Math.floor(y);
+        if (!grid.inBounds(cx, cy)) return false;
+        return !grid.isWalkable(cx, cy);
+    }
+
     private void playCombatEventSounds(BattleSimulation sim) {
         java.util.Random rng = java.util.concurrent.ThreadLocalRandom.current();
         Vector2f zeroVel = new Vector2f(0f, 0f);
@@ -992,6 +1050,11 @@ public class BattleScreen implements Screen {
             renderObjectiveMarkers(sim, alphaMult);
             renderShuttles(sim.getShuttles(), alphaMult);
             renderShots(sim.getActiveShots(), alphaMult);
+            // Impact FX: sparks, dust, smoke at shot endpoints. Sits above the
+            // shot tracer pass (so the impact reads as the punctuation at the
+            // end of the line) but below the flyby layer (aerial FX still owns
+            // the top of the stack).
+            impactFx.render(camera, alphaMult);
             // Flyby layer lives above everything ground-side so strafing tracers and
             // engine glows punch over units / shots / shuttles without being occluded.
             flybyOverlay.render(camera, alphaMult);
