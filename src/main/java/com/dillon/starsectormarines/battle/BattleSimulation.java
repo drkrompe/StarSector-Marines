@@ -17,6 +17,8 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.objective.EliminateFactionObjective;
 import com.dillon.starsectormarines.battle.objective.Objective;
+import com.dillon.starsectormarines.battle.weapons.Detonations;
+import com.dillon.starsectormarines.battle.weapons.HeavyWeapons;
 import com.dillon.starsectormarines.battle.weapons.InfantryWeapons;
 import com.dillon.starsectormarines.battle.weapons.WeaponSimContext;
 
@@ -79,6 +81,10 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final AirSystem airSystem = new AirSystem();
     /** Handheld squad weapons (rifle / SMG / DMR / rocket launcher). Owns fireShot, fireSecondary, and the per-tick burst continuation pass. Pumped each tick via {@code infantry.tick(this)}; behavior call sites still go through the delegating {@link #fireShot} / {@link #fireSecondary} wrappers on this class. */
     private final InfantryWeapons infantry = new InfantryWeapons();
+    /** Chassis-mounted weapons on motorized / heavy units (mech today, future tanks/hovercraft). Owns fireMechWeapon and the per-tick mech continuation + wreck-spawn passes. */
+    private final HeavyWeapons heavy = new HeavyWeapons();
+    /** Physics-based AoE pipeline — owns the in-flight rocket queue and drains expired entries into splash + wall damage. Both infantry rockets and mech HE rockets queue here through {@link #queueDetonation}. */
+    private final Detonations detonations = new Detonations();
     private final List<Objective> objectives = new ArrayList<>();
     private final List<EquipmentDrop> equipmentDrops = new ArrayList<>();
     private final List<Doodad> doodads = new ArrayList<>();
@@ -87,8 +93,6 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final List<Decal> decals = new ArrayList<>();
     /** Soft cap on decal count — older decals get dropped from the head when this fills, so a long battle doesn't accumulate thousands of bullet holes. */
     private static final int DECAL_CAP = 600;
-    /** Rockets / missiles in flight, scheduled to detonate at their endpoint when the timer drains. The physics-based damage path — paired with active {@link ShotEvent}s but separate (ShotEvent owns visuals; this owns damage). */
-    private final List<PendingDetonation> pendingDetonations = new ArrayList<>();
     /** Active smoking wrecks parked at destroyed turret cells. Each emits a periodic smoke-puff event the renderer drains into the impact FX engine. */
     private final List<SmokingWreck> smokingWrecks = new ArrayList<>();
     /** Smoke-puff events queued this advance — each entry is {x, y, radiusCells}. Drained by the renderer per frame and cleared at the start of each advance. */
@@ -146,6 +150,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      * collapses, so the AI's zone vocabulary stays in sync with reality.
      * Returns true the call that knocks the wall down.
      */
+    @Override
     public boolean damageCell(int x, int y, int amount) {
         if (!grid.damageCell(x, y, amount)) return false;
         // A wall that just collapsed is now walkable + a zone-graph portal
@@ -223,7 +228,13 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
 
     @Override
     public void queueDetonation(PendingDetonation det) {
-        pendingDetonations.add(det);
+        detonations.queue(det);
+    }
+
+    @Override
+    public void spawnSmokingWreck(int x, int y) {
+        smokingWrecks.add(new SmokingWreck(x, y, WRECK_LIFETIME,
+                0.05f + rng.nextFloat() * 0.10f));
     }
 
     @Override
@@ -311,20 +322,18 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // Mech chassis weapons run on their own state bag (MechLoadoutState).
         // Continuation handling for chaingun bursts + SRM salvos, plus cooldown
         // tick-down for all three tracks. New triggers (start a burst / salvo /
-        // LRM) come from CombatantBehavior; this pass just emits the queued rounds.
-        advanceMechWeapons();
+        // LRM) come from CombatantBehavior; the subsystem pass also runs the
+        // mech-wreck spawn for any chassis units that died this tick.
+        heavy.tick(this);
         // Physics-based rocket/missile damage — each pending detonation ticks
         // down its arrival timer and applies splash + wall damage when it
         // expires. Pairs with the visual ShotEvent flight; the visual and the
         // damage are queued together and arrive together.
-        advancePendingDetonations();
+        detonations.tick(this);
         // Convert any turrets that just died into walkable rubble so the next
         // tick's pathfinding + zone graph sees the hole, and the floor pass
         // picks the cell up as rubble.
         demolishDeadTurrets();
-        // Mech death → smoking wreck on the mech's cell. Idempotent via the
-        // wreckSpawned latch on MechLoadoutState.
-        spawnMechWrecks();
         // Age smoking wrecks + emit any puff events that came due this tick.
         tickSmokingWrecks();
         // Air vehicles tick AFTER units so new deboarded marines aren't iterated
@@ -443,86 +452,11 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      * when they arrive (not when they launched). Friendly fire is ON: every
      * unit in radius takes damage regardless of faction.
      */
-    private void advancePendingDetonations() {
-        for (int i = pendingDetonations.size() - 1; i >= 0; i--) {
-            PendingDetonation det = pendingDetonations.get(i);
-            det.remainingTime -= TICK_DT;
-            if (det.remainingTime <= 0f) {
-                detonate(det);
-                pendingDetonations.remove(i);
-            }
-        }
-    }
-
-    /**
-     * Applies a detonation: AoE damage to every unit within {@code aoeRadius}
-     * with line of sight to the endpoint, plus wall HP damage at the endpoint
-     * cell. Cover reduction applies per unit; vs-turret multiplier applies to
-     * {@link MapTurret} targets. LOS-blocked units are spared (the wall
-     * absorbed the splash for them), which keeps "duck behind cover" as a
-     * real defensive option.
-     */
-    private void detonate(PendingDetonation det) {
-        if (det.aoeRadius > 0f) {
-            float r2 = det.aoeRadius * det.aoeRadius;
-            int targetCx = (int) Math.floor(det.endpointX);
-            int targetCy = (int) Math.floor(det.endpointY);
-            for (Unit u : units) {
-                if (!u.isAlive()) continue;
-                float dx = (u.cellX + 0.5f) - det.endpointX;
-                float dy = (u.cellY + 0.5f) - det.endpointY;
-                if (dx * dx + dy * dy > r2) continue;
-                // LOS from the detonation cell to the victim cell. Walls
-                // between block the splash — gives marines hiding behind
-                // walls a real reason to stay there.
-                if (!grid.hasLineOfSight(targetCx, targetCy, u.cellX, u.cellY)) continue;
-                int cover = grid.getCoverAt(u.cellX, u.cellY);
-                float dr = COVER_DAMAGE_REDUCTION[Math.min(cover, COVER_DAMAGE_REDUCTION.length - 1)];
-                float effectiveMult = (u instanceof MapTurret) ? det.vsTurretMult : 1f;
-                boolean wasAlive = u.isAlive();
-                u.hp -= det.damage * effectiveMult * (1f - dr);
-                if (wasAlive && !u.isAlive()) {
-                    u.deathPoseIdx = rng.nextInt(4);
-                    deathsThisFrame.add(u);
-                    emitEquipmentDropIfApplicable(u);
-                }
-            }
-        }
-        // Wall damage at the endpoint cell. damageCell silently no-ops on
-        // walkable cells (the rocket hit ground, not a wall) — so this is
-        // safe to call unconditionally for any HE round with wallDamage > 0.
-        if (det.wallDamage > 0) {
-            int cx = (int) Math.floor(det.endpointX);
-            int cy = (int) Math.floor(det.endpointY);
-            if (grid.inBounds(cx, cy)) {
-                damageCell(cx, cy, det.wallDamage);
-            }
-        }
-    }
-
-    /**
-     * Walks the unit list and emits a {@link SmokingWreck} on the cell of any
-     * just-died mech ({@link MechLoadoutState#wreckSpawned} is the idempotency
-     * latch). Runs once per tick after kill resolution. Catches mech deaths
-     * from every code path — primary fire, mech crossfire, marine rockets,
-     * flyby strafing — without duplicating spawn logic at each kill site.
-     *
-     * <p>Mech wrecks live the full {@link #WRECK_LIFETIME} window like turret
-     * wrecks; the existing {@link #tickSmokingWrecks} pass drives the smoke
-     * puff cadence. Unlike turrets, the mech's cell isn't flipped to walkable
-     * rubble — the corpse sprite sits on the cell instead, which would be
-     * inconsistent with letting marines path through it. (If playtest reads
-     * "mech hulk should block path," easy follow-up.)
-     */
-    private void spawnMechWrecks() {
-        for (Unit u : units) {
-            if (u.isAlive()) continue;
-            if (u.mech == null || u.mech.wreckSpawned) continue;
-            smokingWrecks.add(new SmokingWreck(u.cellX, u.cellY, WRECK_LIFETIME,
-                    0.05f + rng.nextFloat() * 0.10f));
-            u.mech.wreckSpawned = true;
-        }
-    }
+    // advancePendingDetonations + detonate moved to weapons/Detonations.
+    // spawnMechWrecks moved to weapons/HeavyWeapons (pumped from heavy.tick).
+    // Both subsystems own their own state; the sim just calls their tick()
+    // from the tick loop and exposes spawnSmokingWreck + damageCell as
+    // context primitives.
 
     /**
      * Ages each smoking wreck and emits a smoke-puff event when its per-wreck
@@ -755,184 +689,60 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     }
 
     /**
-     * Convenience overload — full accuracy. Used by all the precision-fire
-     * code paths (chaingun, SRM, line-of-sight LRMs).
-     */
-    public void fireMechWeapon(Unit shooter, Unit target, MechWeapon weapon) {
-        fireMechWeapon(shooter, target, weapon, 1.0f);
-    }
-
-    /**
-     * Fires one round of a mech chassis weapon. Damage / accuracy / vsTurret
-     * pull from the {@link MechWeapon} parameter rather than the shooter's
-     * baked Unit stats — a single mech runs three concurrent weapon tracks
-     * with very different numbers, so the weapon's profile drives the math.
-     * Caller is responsible for cooldown / ammo / range gating before calling.
+     * Float-origin counterpart to {@link #fireShot(Unit, Unit)} for shooters
+     * that aren't on the unit list — today, shuttle-mounted turrets fired by
+     * {@link com.dillon.starsectormarines.battle.air.AirSystem}. Stats come
+     * from {@code kind}; origin is a world-space float pair so a hovering
+     * shuttle's mount fires from its actual rendered position rather than the
+     * floored cell center.
      *
-     * <p>{@code accuracyMult} scales the weapon's base accuracy at the hit
-     * roll. Set to 1.0 for line-of-sight fire; the LRM indirect-fire path
-     * (no LOS to target) passes {@link MechWeapon#LRM_NO_LOS_ACC_MULT}.
+     * <p>Damage / cover / fall-back / death pipeline is identical to
+     * {@link #fireShot} — implemented in terms of the same {@link WeaponSimContext}
+     * methods so a single change to applyDamage or rollFallbackOnHit picks up
+     * both fire paths. The vsTurret bonus is fixed at 1.0 because
+     * {@link TurretKind} doesn't carry a per-kind multiplier yet; if mounted
+     * heavy mortars ever want extra punch vs static defenses, this is the
+     * lever.
      */
-    public void fireMechWeapon(Unit shooter, Unit target, MechWeapon weapon, float accuracyMult) {
-        // Accuracy roll determines endpoint placement (target cell on hit,
-        // scattered on miss). For AoE weapons damage application is deferred
-        // to detonation arrival; kinetic weapons (chaingun) apply damage at
-        // fire time below since their flight is so short.
-        boolean hit = rng.nextFloat() < weapon.accuracy * accuracyMult;
-        boolean isAoe = weapon.aoeRadius > 0f;
-
-        // KINETIC PATH — chainguns and any future no-AoE mech weapon. Damage
-        // applies immediately to the locked target (same model fireShot uses
-        // for marine primaries).
-        if (!isAoe && hit) {
-            boolean wasAlive = target.isAlive();
-            int targetCover = grid.getCoverAt(target.cellX, target.cellY);
-            float dr = COVER_DAMAGE_REDUCTION[Math.min(targetCover, COVER_DAMAGE_REDUCTION.length - 1)];
-            float effectiveMult = (target instanceof MapTurret) ? weapon.vsTurretMult : 1f;
-            target.hp -= weapon.damage * effectiveMult * (1f - dr);
-            if (wasAlive && !target.isAlive()) {
-                target.deathPoseIdx = rng.nextInt(4);
-                deathsThisFrame.add(target);
-                emitEquipmentDropIfApplicable(target);
-            }
-            // Roll fall-back on hit — same recipe as fireShot. Skipped for
-            // turrets (they fight to the last HP) and already-broken units.
-            if (target.isAlive() && target.fallbackTimer <= 0f
-                    && !(target instanceof MapTurret)
-                    && rng.nextFloat() < FALLBACK_CHANCE) {
-                int[] fallback = TacticalScoring.findFallbackPosition(target, this);
-                if (fallback[0] != target.cellX || fallback[1] != target.cellY) {
-                    target.fallbackCellX = fallback[0];
-                    target.fallbackCellY = fallback[1];
-                    target.fallbackTimer = FALLBACK_DURATION;
-                    setPath(target, Collections.emptyList());
-                }
-            }
+    public void fireShotFrom(float fromX, float fromY, Faction shooterFaction,
+                             TurretKind kind, Unit target) {
+        boolean hit = rng.nextFloat() < kind.accuracy;
+        if (hit) {
+            applyDamage(target, kind.damage, 1f);
+            rollFallbackOnHit(target);
         }
-
-        float fromX = shooter.cellX + 0.5f;
-        float fromY = shooter.cellY + 0.5f;
         float toX, toY;
         if (hit) {
             toX = target.cellX + 0.5f;
             toY = target.cellY + 0.5f;
-            // Endpoint scatter — pure visual offset around the target cell.
-            // For AoE weapons this also scatters the splash center, so a salvo
-            // sprays the impact zone instead of stacking on one cell.
-            if (weapon.hitSpread > 0f) {
-                float angle = rng.nextFloat() * (float) (Math.PI * 2);
-                float r = rng.nextFloat() * weapon.hitSpread;
-                toX += (float) Math.cos(angle) * r;
-                toY += (float) Math.sin(angle) * r;
-            }
         } else {
             float angle = rng.nextFloat() * (float) (Math.PI * 2);
             float spread = MISS_OFFSET_MIN + rng.nextFloat() * (MISS_OFFSET_MAX - MISS_OFFSET_MIN);
-            // Misses get the wider baseline scatter PLUS the weapon's hitSpread
-            // — an indirect-fire weapon's misses scatter further than a rifle's.
-            spread += weapon.hitSpread;
             toX = target.cellX + 0.5f + (float) Math.cos(angle) * spread;
             toY = target.cellY + 0.5f + (float) Math.sin(angle) * spread;
         }
-
-        // AOE PATH — queue a detonation at the endpoint. Damage resolves on
-        // arrival via advancePendingDetonations / detonate. Hit-vs-miss only
-        // affects WHERE the rocket lands; AoE math at impact decides who's
-        // close enough to feel it.
-        if (isAoe) {
-            pendingDetonations.add(new PendingDetonation(
-                    toX, toY, weapon.flightSec,
-                    weapon.aoeRadius, weapon.damage, weapon.vsTurretMult,
-                    weapon.wallDamage, shooter.faction));
-        }
-
-        float lifetime = weapon.flightSec > 0f ? weapon.flightSec : SHOT_LIFETIME;
-        ShotEvent evt = new ShotEvent(fromX, fromY, toX, toY, hit, shooter.faction, lifetime,
-                null, null, null, weapon);
-        activeShots.add(evt);
-        shotsThisFrame.add(evt);
+        postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooterFaction,
+                SHOT_LIFETIME, kind, null, null));
     }
 
     /**
-     * Per-tick mech-weapon pass — runs the three chassis tracks (chaingun
-     * burst continuation, SRM salvo continuation, LRM cooldown drain) for every
-     * unit with a {@link MechLoadoutState}. Mirrors the infantry burst pass for
-     * the marine primary side; lives separate because the mech burst state is
-     * on the loadout, not the unit.
-     *
-     * <p>The trigger decisions (start a burst / launch a salvo / lob an LRM)
-     * happen inside the per-unit behavior. This pass only handles continuation
-     * — emitting queued rounds at their proper spacing — and ticks down
-     * the per-weapon cooldowns so the next trigger decision sees the right
-     * gating.
+     * Delegates to {@link HeavyWeapons#fireMechWeapon}. Kept on the sim's
+     * surface because AI behaviors call {@code sim.fireMechWeapon(...)}
+     * directly. Implementation lives in {@code battle/weapons/HeavyWeapons.java}.
      */
-    private void advanceMechWeapons() {
-        for (Unit u : units) {
-            MechLoadoutState m = u.mech;
-            if (m == null || !u.isAlive()) continue;
-
-            if (m.chaingunCooldown > 0f) m.chaingunCooldown -= TICK_DT;
-            if (m.srmCooldown      > 0f) m.srmCooldown      -= TICK_DT;
-            if (m.lrmCooldown      > 0f) m.lrmCooldown      -= TICK_DT;
-
-            // Chaingun burst continuation.
-            if (m.chaingunBurstRemaining > 0) {
-                m.chaingunBurstTimer -= TICK_DT;
-                if (m.chaingunBurstTimer <= 0f) {
-                    if (m.chaingunBurstTarget == null || !m.chaingunBurstTarget.isAlive()) {
-                        m.chaingunBurstRemaining = 0;
-                        m.chaingunBurstTarget = null;
-                    } else {
-                        fireMechWeapon(u, m.chaingunBurstTarget, m.chaingun);
-                        m.chaingunBurstRemaining--;
-                        m.chaingunBurstTimer = m.chaingun.burstSpacing;
-                        if (m.chaingunBurstRemaining == 0) m.chaingunBurstTarget = null;
-                    }
-                }
-            }
-
-            // SRM salvo continuation.
-            if (m.srmSalvoRemaining > 0) {
-                m.srmSalvoTimer -= TICK_DT;
-                if (m.srmSalvoTimer <= 0f) {
-                    if (m.srmSalvoTarget == null || !m.srmSalvoTarget.isAlive()) {
-                        m.srmSalvoRemaining = 0;
-                        m.srmSalvoTarget = null;
-                    } else {
-                        fireMechWeapon(u, m.srmSalvoTarget, m.srmPod);
-                        m.srmSalvoRemaining--;
-                        m.srmSalvoTimer = m.srmPod.burstSpacing;
-                        if (m.srmSalvoRemaining == 0) m.srmSalvoTarget = null;
-                    }
-                }
-            }
-
-            // LRM salvo continuation — same pattern as SRM. Locked target is
-            // held across the whole 5-rocket wave so a single salvo reads as
-            // one coordinated barrage instead of scatter fire across enemies.
-            // LOS is recomputed per rocket: if marines pop into LOS mid-salvo,
-            // the later rockets get full accuracy; if LOS drops mid-salvo, the
-            // remaining rockets eat the indirect-fire penalty.
-            if (m.lrmSalvoRemaining > 0) {
-                m.lrmSalvoTimer -= TICK_DT;
-                if (m.lrmSalvoTimer <= 0f) {
-                    if (m.lrmSalvoTarget == null || !m.lrmSalvoTarget.isAlive()) {
-                        m.lrmSalvoRemaining = 0;
-                        m.lrmSalvoTarget = null;
-                    } else {
-                        boolean hasLos = grid.hasLineOfSight(
-                                u.cellX, u.cellY,
-                                m.lrmSalvoTarget.cellX, m.lrmSalvoTarget.cellY);
-                        float accMult = hasLos ? 1.0f : MechWeapon.LRM_NO_LOS_ACC_MULT;
-                        fireMechWeapon(u, m.lrmSalvoTarget, m.lrmArtillery, accMult);
-                        m.lrmSalvoRemaining--;
-                        m.lrmSalvoTimer = m.lrmArtillery.burstSpacing;
-                        if (m.lrmSalvoRemaining == 0) m.lrmSalvoTarget = null;
-                    }
-                }
-            }
-        }
+    public void fireMechWeapon(Unit shooter, Unit target, MechWeapon weapon) {
+        heavy.fireMechWeapon(this, shooter, target, weapon);
     }
+
+    /**
+     * Delegates to {@link HeavyWeapons#fireMechWeapon} with explicit accuracy
+     * multiplier. Used by the LRM indirect-fire path (no LOS = reduced acc).
+     */
+    public void fireMechWeapon(Unit shooter, Unit target, MechWeapon weapon, float accuracyMult) {
+        heavy.fireMechWeapon(this, shooter, target, weapon, accuracyMult);
+    }
+
+    // advanceMechWeapons + spawnMechWrecks moved to HeavyWeapons.tick.
 
     /**
      * Applies damage from an external source (flyby strafing run) to a unit

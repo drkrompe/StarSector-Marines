@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle;
 /**
  * A rocket / missile in flight, scheduled to detonate at a specific cell after
  * its flight time elapses. Queued by the sim at fire time and drained by the
- * per-tick {@code BattleSimulation.advancePendingDetonations} pass. The
+ * per-tick {@code Detonations.tick} pass. The
  * physics-based replacement for "apply damage at fire time" — a rocket fired
  * now damages whatever is *actually at the impact endpoint when it arrives*,
  * not whatever was the locked target when the launch animation played.
@@ -21,7 +21,7 @@ public final class PendingDetonation {
 
     public final float endpointX;
     public final float endpointY;
-    /** Sim-seconds until detonation. Decremented per tick by {@link BattleSimulation#advancePendingDetonations}. */
+    /** Sim-seconds until detonation. Decremented per tick by {@code Detonations.tick}. */
     public float remainingTime;
     /** Splash radius in cells. Every unit within this distance of the endpoint with line of sight to it takes damage (cover-reduced). */
     public final float aoeRadius;

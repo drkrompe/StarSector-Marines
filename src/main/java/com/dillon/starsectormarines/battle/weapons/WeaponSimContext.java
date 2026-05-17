@@ -66,4 +66,20 @@ public interface WeaponSimContext {
      * fall-back cell.
      */
     void rollFallbackOnHit(Unit target);
+
+    /**
+     * Knocks HP off the wall at ({@code x}, {@code y}). No-op on walkable
+     * cells (rocket hit ground, not a wall). Returns {@code true} on the
+     * call that collapses the wall (HP reaches zero), {@code false}
+     * otherwise. Used by the AoE detonation pipeline for HE rockets.
+     */
+    boolean damageCell(int x, int y, int amount);
+
+    /**
+     * Spawns a smoking wreck at ({@code x}, {@code y}). Used by mech death
+     * (heavy-weapons subsystem) and turret destruction. Hands the visual
+     * smoke-puff cadence to the shared {@code tickSmokingWrecks} pass on
+     * the sim — callers just say "this thing died here."
+     */
+    void spawnSmokingWreck(int x, int y);
 }

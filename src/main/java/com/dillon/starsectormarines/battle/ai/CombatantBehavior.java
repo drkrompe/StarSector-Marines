@@ -158,7 +158,7 @@ public final class CombatantBehavior implements UnitBehavior {
      *   <li><b>Chaingun</b> — close band, LOS-required. Fires when target is
      *       within chaingun range, the weapon is off cooldown, and there's
      *       direct line of sight. Per-burst rounds queue onto
-     *       {@link MechLoadoutState} for {@code BattleSimulation#advanceMechWeapons}
+     *       {@link MechLoadoutState} for {@code HeavyWeapons.tick}
      *       to emit at the proper spacing.</li>
      *   <li><b>SRM pod</b> — mid-close band, LOS-required. Same gating as
      *       chaingun plus an ammo check.</li>
