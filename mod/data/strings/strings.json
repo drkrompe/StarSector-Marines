@@ -66,6 +66,8 @@
 		"resultsCaptainLabel":    "Captain:",
 		"resultsXpLabel":         "XP Gained:",
 		"resultsXpFmt":           "+{0} XP",
+		"resultsPromotionLabel":  "Promoted:",
+		"resultsPromotionFmt":    "{0}",
 		"resultsStatusActive":    "returned safely",
 		"resultsStatusInjuredFmt":"injured ({0}d)",
 		"resultsStatusKia":       "killed in action",

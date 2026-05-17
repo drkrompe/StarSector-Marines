@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.Status;
 
 /**
@@ -24,12 +25,14 @@ public final class MissionOutcome {
     public final int     xpGained;
     /** Sector clock day the captain returns to ACTIVE; 0 unless newStatus is INJURED. */
     public final float   injuredUntilDay;
+    /** Non-null when the XP gained crossed one or more promotion thresholds; the new rank. */
+    public final Rank    promotedTo;
 
     public MissionOutcome(boolean victory, String missionName,
                           int payoutEarned, int marinesEngaged, int marinesLost,
                           String captainId, String captainName,
                           Status priorCaptainStatus, Status newCaptainStatus,
-                          int xpGained, float injuredUntilDay) {
+                          int xpGained, float injuredUntilDay, Rank promotedTo) {
         this.victory            = victory;
         this.missionName        = missionName;
         this.payoutEarned       = payoutEarned;
@@ -41,5 +44,6 @@ public final class MissionOutcome {
         this.newCaptainStatus   = newCaptainStatus;
         this.xpGained           = xpGained;
         this.injuredUntilDay    = injuredUntilDay;
+        this.promotedTo         = promotedTo;
     }
 }

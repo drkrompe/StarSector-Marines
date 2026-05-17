@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.Status;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
@@ -52,6 +53,7 @@ public class ResultsScreen implements Screen {
     private static final Color STATUS_ACTIVE  = new Color(0x9C, 0xCC, 0x9C);
     private static final Color STATUS_INJURED = new Color(0xE0, 0xB0, 0x70);
     private static final Color STATUS_KIA     = new Color(0xE0, 0x60, 0x60);
+    private static final Color PROMOTION_COLOR = new Color(0xFF, 0xD0, 0x60);
 
     private static final float CARD_W      = 520f;
     private static final float CARD_H      = 380f;
@@ -152,6 +154,19 @@ public class ResultsScreen implements Screen {
                         Strings.get("resultsXpFmt"), outcome.xpGained);
                 widgets.add(new LabelWidget(Fonts.ORBITRON_20, xpStr,
                         cardX + INNER_PAD + LABEL_COL_W, rowY, VALUE_COLOR));
+                rowY -= ROW_GAP;
+            }
+
+            // Promotion (only if the mission's XP crossed a rank threshold)
+            Rank promotedTo = outcome.promotedTo;
+            if (promotedTo != null) {
+                widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                        Strings.get("resultsPromotionLabel"),
+                        cardX + INNER_PAD, rowY, LABEL_COLOR));
+                String promoStr = MessageFormat.format(
+                        Strings.get("resultsPromotionFmt"), promotedTo.displayName());
+                widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, promoStr,
+                        cardX + INNER_PAD + LABEL_COL_W, rowY, PROMOTION_COLOR));
                 rowY -= ROW_GAP;
             }
         }
