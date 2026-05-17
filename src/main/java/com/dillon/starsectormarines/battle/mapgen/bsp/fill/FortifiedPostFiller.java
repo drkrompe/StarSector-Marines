@@ -134,8 +134,16 @@ public final class FortifiedPostFiller implements BlockFiller {
             anchorY = doorY;
         }
 
+        // Interior anchor: the post's geometric center is always a walkable
+        // STRIPED cell (the carve guarantees a single open interior region),
+        // so the center cell is the right pick. If the rect was clamped to
+        // 3x3 the interior is a single 1x1 cell — also the center.
+        int interiorX = (left + right) / 2;
+        int interiorY = (top + bottom) / 2;
+
         pois.add(new PointOfInterest(PointOfInterest.Kind.COMMS,
-                left, top, right, bottom, anchorX, anchorY));
+                left, top, right, bottom,
+                anchorX, anchorY, interiorX, interiorY));
 
         // Sparse interior doodads — skyport pool (crates + marker panels) reads
         // as "this emplacement is operational" without crowding the floor.

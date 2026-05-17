@@ -15,7 +15,9 @@ import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -94,11 +96,12 @@ public final class MilitaryBaseFiller implements CompoundFiller {
         absorbConcaveNotches(compound, inCompound);
 
         repaintParadeGround(compound, inCompound, memberCells, grid, topology);
-        carveSubBuildings(compound, inCompound, grid, topology, doodads, pois, rng);
+        Map<BlockLeaf, PointOfInterest> leafPois = carveSubBuildings(
+                compound, inCompound, grid, topology, doodads, pois, rng);
         paintWallRing(inCompound, grid, topology);
         punchGates(compound, inCompound, roadCells, grid, topology, rng);
         stampGunEmplacements(compound, inCompound, grid, topology, pois);
-        emitTacticalNodes(compound, tactical);
+        emitTacticalNodes(compound, leafPois, tactical);
     }
 
     /**
@@ -108,13 +111,23 @@ public final class MilitaryBaseFiller implements CompoundFiller {
      * and garrison settings. Sub-buildings without an assigned role are
      * skipped — they're generic outbuildings the AI doesn't need to target
      * specifically.
+     *
+     * <p>The anchor is taken from the sub-building's POI interior anchor —
+     * a walkable INDOOR cell inside the carved shell — so garrison spawns
+     * land inside their building rather than on the parade ground outside.
+     * Leaves too small to carve (no POI) fall back to leaf-center; their
+     * tactical-node BFS in {@code BattleSetup.pickCellsNear} still resolves
+     * to a walkable cell on the parade ground in that case.
      */
-    private void emitTacticalNodes(Compound compound, List<TacticalNode> tactical) {
+    private void emitTacticalNodes(Compound compound,
+                                   Map<BlockLeaf, PointOfInterest> leafPois,
+                                   List<TacticalNode> tactical) {
         for (BlockLeaf m : compound.members) {
             Compound.Role role = compound.roles.get(m);
             if (role == null) continue;
-            int anchorX = (m.left + m.right) / 2;
-            int anchorY = (m.top + m.bottom) / 2;
+            PointOfInterest poi = leafPois.get(m);
+            int anchorX = (poi != null) ? poi.interiorAnchorX : (m.left + m.right) / 2;
+            int anchorY = (poi != null) ? poi.interiorAnchorY : (m.top + m.bottom) / 2;
             switch (role) {
                 case COMMAND:
                     tactical.add(new TacticalNode(TacticalNode.Kind.COMMAND_POST,
@@ -329,10 +342,15 @@ public final class MilitaryBaseFiller implements CompoundFiller {
      * edge so the building wall stands inside the parade-ground rim painted
      * above. Reuses {@link BuildingShellCore#carve} with role-specific
      * config — same code path as standalone buildings.
+     *
+     * <p>Returns a leaf→POI map so {@link #emitTacticalNodes} can anchor
+     * tactical nodes at the carved building's interior anchor (a walkable
+     * INDOOR cell), giving garrison defenders an inside-the-building spawn.
      */
-    private void carveSubBuildings(Compound compound, boolean[][] inCompound,
-                                   NavigationGrid grid, CellTopology topology,
-                                   List<Doodad> doodads, List<PointOfInterest> pois, Random rng) {
+    private Map<BlockLeaf, PointOfInterest> carveSubBuildings(Compound compound, boolean[][] inCompound,
+                                                              NavigationGrid grid, CellTopology topology,
+                                                              List<Doodad> doodads, List<PointOfInterest> pois, Random rng) {
+        Map<BlockLeaf, PointOfInterest> leafPois = new IdentityHashMap<>();
         for (BlockLeaf m : compound.members) {
             int subL = m.left   + 1;
             int subT = m.top    + 1;
@@ -344,8 +362,12 @@ public final class MilitaryBaseFiller implements CompoundFiller {
             inset.kind = m.kind;
             BuildingShellCore.BuildingConfig config = configFor(compound.roles.get(m));
             PointOfInterest poi = BuildingShellCore.carve(inset, grid, topology, doodads, rng, config);
-            if (poi != null) pois.add(poi);
+            if (poi != null) {
+                pois.add(poi);
+                leafPois.put(m, poi);
+            }
         }
+        return leafPois;
     }
 
     private BuildingShellCore.BuildingConfig configFor(Compound.Role role) {

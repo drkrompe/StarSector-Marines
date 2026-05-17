@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.mapgen.BlockKind;
 import com.dillon.starsectormarines.battle.mapgen.BlockLeaf;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -109,17 +110,25 @@ public final class DenseBlockFiller implements BlockFiller {
                 { midX + 1,   midY + 1,    leaf.right,  leaf.bottom }, // bot-right = quad 3
         };
 
+        // Carve sub-buildings. Track the first one's interior cell so we have
+        // a real INDOOR anchor — the alley center is STREET, fine for "stand
+        // here to interact" but not for "plant a charge inside the building".
+        int[] interiorAnchor = null;
         for (int[] q : quads) {
-            carveSubBuilding(q[0], q[1], q[2], q[3], grid, topology, doodads, rng);
+            int[] sub = carveSubBuilding(q[0], q[1], q[2], q[3], grid, topology, doodads, rng);
+            if (interiorAnchor == null && sub != null) interiorAnchor = sub;
         }
 
-        // One POI for the whole dense block. Anchor at the alley center
-        // (always walkable, always at the geometric middle). Civilians and
-        // charge sites can hook off this just like any other residential POI.
+        // One POI for the whole dense block. Exterior anchor at the alley
+        // center (always walkable, always at the geometric middle). Interior
+        // anchor inside one of the carved sub-buildings; falls back to the
+        // alley center if every sub-building was too small to enclose.
+        int interiorX = (interiorAnchor != null) ? interiorAnchor[0] : midX;
+        int interiorY = (interiorAnchor != null) ? interiorAnchor[1] : midY;
         pois.add(new PointOfInterest(
                 PointOfInterest.Kind.RESIDENTIAL,
                 leaf.left, leaf.top, leaf.right, leaf.bottom,
-                midX, midY));
+                midX, midY, interiorX, interiorY));
     }
 
     /**
@@ -132,10 +141,15 @@ public final class DenseBlockFiller implements BlockFiller {
      * have a 1×1 walkable interior). That can happen when the leaf is just
      * above {@link #MIN_DENSE_DIM} and a quadrant comes out narrow.
      */
-    private static void carveSubBuilding(int l, int t, int r, int b,
-                                         NavigationGrid grid, CellTopology topology,
-                                         List<Doodad> doodads, Random rng) {
-        if (r - l < 2 || b - t < 2) return;
+    /**
+     * @return a walkable interior cell inside the carved sub-building (the
+     *         center if walkable, else a scanned alternative), or {@code null}
+     *         if the rect was too small to carve.
+     */
+    private static int[] carveSubBuilding(int l, int t, int r, int b,
+                                          NavigationGrid grid, CellTopology topology,
+                                          List<Doodad> doodads, Random rng) {
+        if (r - l < 2 || b - t < 2) return null;
 
         // Perimeter walls — non-walkable. Interior cells stay walkable
         // (they were initialized by the orchestrator's pre-pass).
@@ -193,5 +207,30 @@ public final class DenseBlockFiller implements BlockFiller {
                 doodads.add(new Doodad(dx, dy, tile));
             }
         }
+
+        // Interior anchor: prefer the geometric center, but the partition
+        // wall / random doorway may collide with it. Scan walkable non-
+        // doorway interior cells and pick the one closest to center.
+        int ix = (l + r) / 2;
+        int iy = (t + b) / 2;
+        if (grid.isWalkable(ix, iy) && !grid.isDoorway(ix, iy)) {
+            return new int[]{ix, iy};
+        }
+        List<int[]> interior = new ArrayList<>();
+        for (int y = t + 1; y <= b - 1; y++) {
+            for (int x = l + 1; x <= r - 1; x++) {
+                if (!grid.isWalkable(x, y)) continue;
+                if (grid.isDoorway(x, y)) continue;
+                interior.add(new int[]{x, y});
+            }
+        }
+        if (interior.isEmpty()) return null;
+        int[] best = interior.get(0);
+        int bestDist = Math.abs(best[0] - ix) + Math.abs(best[1] - iy);
+        for (int[] cell : interior) {
+            int d = Math.abs(cell[0] - ix) + Math.abs(cell[1] - iy);
+            if (d < bestDist) { best = cell; bestDist = d; }
+        }
+        return best;
     }
 }

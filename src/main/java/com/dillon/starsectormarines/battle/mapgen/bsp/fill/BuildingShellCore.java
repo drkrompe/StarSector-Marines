@@ -153,7 +153,45 @@ final class BuildingShellCore {
         int cx = (bl + br) / 2;
         int cy = (bt + bb) / 2;
         int[] anchor = findNearestWalkableFromBuilding(grid, cx, cy, bl, bt, br, bb);
-        return new PointOfInterest(config.poiKind, bl, bt, br, bb, anchor[0], anchor[1]);
+        int[] interior = findInteriorAnchor(grid, cx, cy, bl, bt, br, bb);
+        return new PointOfInterest(config.poiKind, bl, bt, br, bb,
+                anchor[0], anchor[1], interior[0], interior[1]);
+    }
+
+    /**
+     * BFS from {@code (cx, cy)} restricted to the building interior
+     * ({@code (bl+1, bt+1)} .. {@code (br-1, bb-1)}), returning the first
+     * walkable non-doorway cell. The center is the natural first hit; a
+     * partition wall or doorway right at the middle nudges us one step.
+     * Falls back to the building center if no interior cell qualifies — a
+     * degenerate case (every interior cell is wall or doorway) that
+     * shouldn't occur on valid carves, but keeps the return contract safe.
+     */
+    private static int[] findInteriorAnchor(NavigationGrid grid, int cx, int cy,
+                                            int bl, int bt, int br, int bb) {
+        boolean[] visited = new boolean[grid.getWidth() * grid.getHeight()];
+        Queue<int[]> q = new ArrayDeque<>();
+        q.add(new int[]{cx, cy});
+        if (grid.inBounds(cx, cy)) visited[cy * grid.getWidth() + cx] = true;
+        while (!q.isEmpty()) {
+            int[] p = q.poll();
+            boolean inInterior = p[0] > bl && p[0] < br && p[1] > bt && p[1] < bb;
+            if (inInterior && grid.isWalkable(p[0], p[1]) && !grid.isDoorway(p[0], p[1])) {
+                return p;
+            }
+            int[][] nbrs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+            for (int[] d : nbrs) {
+                int nx = p[0] + d[0];
+                int ny = p[1] + d[1];
+                // Don't escape the building bbox — interior anchor must be inside.
+                if (nx < bl || nx > br || ny < bt || ny > bb) continue;
+                int idx = ny * grid.getWidth() + nx;
+                if (visited[idx]) continue;
+                visited[idx] = true;
+                q.add(new int[]{nx, ny});
+            }
+        }
+        return new int[]{cx, cy};
     }
 
     /** Picks 1 or 2 perimeter doorways for a hollow building. Lifted verbatim from legacy. */

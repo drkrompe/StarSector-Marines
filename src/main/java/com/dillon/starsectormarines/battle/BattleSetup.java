@@ -154,8 +154,12 @@ public final class BattleSetup {
         List<PointOfInterest> sites = pickChargeSites(map.pointsOfInterest, GRID_W / 2, SABOTAGE_CHARGE_SITES);
         List<ChargeSiteObjective> objectives = new ArrayList<>(sites.size());
         for (PointOfInterest poi : sites) {
+            // Plant target is inside the building — the planter pathfinds in
+            // through a doorway, plants, exits. POIs back the interior anchor
+            // with a walkable INDOOR cell; legacy POIs (no carved interior)
+            // mirror the exterior anchor so this still produces a valid cell.
             ChargeSiteObjective obj = new ChargeSiteObjective(
-                    poi.anchorCellX, poi.anchorCellY,
+                    poi.interiorAnchorX, poi.interiorAnchorY,
                     SABOTAGE_PLANT_DURATION,
                     "Plant charge: " + poi.kind.name().toLowerCase());
             objectives.add(obj);
