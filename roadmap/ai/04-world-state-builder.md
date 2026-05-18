@@ -49,8 +49,25 @@ public final class WorldStateBuilder {
   sight produces predicates matching hand-inspection.
 - Building twice in a row from an unchanged sim produces equal WorldStates.
 
-## Open questions
+## Resolved decisions
 
-- Does the squad need a sticky "primary target" field so LOS/range predicates
-  evaluate consistently across the planner search? Probably yes — add
-  `Squad.primaryTarget` and refresh it once per replan, before the build.
+- **No sticky primary target for Stage 1.** LOS/range predicates evaluate
+  over "any squadmate × any alive enemy combatant" pair. Matches per-unit
+  `InfantryCombatantBehavior` where each marine independently picks via
+  `findBestTarget`. Stage 2+ may introduce `Squad.primaryTarget` for
+  coordinated-maneuver scoring (anchor suppresses target T; flanker moves
+  around T; etc.), but Stage 1 doesn't need it.
+- **`WITHIN_COHESION_RADIUS` semantic is "all members within radius."** A
+  scattered squad (one member out) reads false, prompting the planner to
+  insert `MaintainCohesion` if downstream actions require it. Solo/wiped
+  squads read true (no scattering possible).
+- **`ENEMY_DAMAGED` evaluator always returns false** — it's a goal-side
+  marker, not a sim observation. Set by `EngageVisibleAction.effects()`;
+  planner regresses through it.
+
+## Stage 2 note
+
+A precondition link is required to make the planner *use* MaintainCohesion
+with goal `ENEMY_DAMAGED=true`: `MoveToFiringPosition` (or similar) must
+require `WITHIN_COHESION_RADIUS`, otherwise the planner has no reason to
+include cohesion in the plan. That wiring is part of [06-parity-actions](06-parity-actions.md).
