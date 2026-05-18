@@ -104,6 +104,47 @@ public final class WorldState {
         return new WorldState(newPresent, newTruth);
     }
 
+    /**
+     * Backward regression for the planner: given an action whose
+     * {@code effects} (partially) satisfies this state, returns the state
+     * that must hold <i>before</i> that action runs. Drops the predicates
+     * the action's effects already produce, then layers the action's
+     * preconditions on top.
+     *
+     * <p>Pure bitmask math; one allocation. Callers must verify
+     * {@link #helpsSatisfy(WorldState)} first — applying a non-helpful
+     * action's regression produces a junk state.
+     */
+    public WorldState regress(WorldState effects, WorldState preconditions) {
+        long clearedPresent = this.presentMask & ~effects.presentMask;
+        long clearedTruth   = this.truthMask   & ~effects.presentMask;
+        long newPresent = clearedPresent | preconditions.presentMask;
+        long newTruth   = clearedTruth   | (preconditions.truthMask & preconditions.presentMask);
+        return new WorldState(newPresent, newTruth);
+    }
+
+    /**
+     * Applicability test for backward search: does {@code effects} produce
+     * at least one predicate this state cares about, without conflicting on
+     * any other shared predicate? An action with a conflicting effect (sets
+     * {@code ENEMY_DAMAGED=false} when this wants {@code ENEMY_DAMAGED=true})
+     * is rejected even if it also produces something useful.
+     */
+    public boolean helpsSatisfy(WorldState effects) {
+        long overlap = this.presentMask & effects.presentMask;
+        if (overlap == 0L) return false;
+        return ((this.truthMask ^ effects.truthMask) & overlap) == 0L;
+    }
+
+    /**
+     * Count of predicates this state specifies whose value differs from
+     * {@code current}. Drives the planner's heuristic. Branchless across
+     * all predicates: one XOR + one AND + one {@code Long.bitCount}.
+     */
+    public int countUnsatisfiedAgainst(WorldState current) {
+        return Long.bitCount((this.truthMask ^ current.truthMask) & this.presentMask);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof WorldState other)) return false;
