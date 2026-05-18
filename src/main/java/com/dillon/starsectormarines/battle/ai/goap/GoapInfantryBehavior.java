@@ -126,6 +126,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             // Wiped squad — drop any lingering plan so the assignedMembers
             // list doesn't pin dead units.
             squad.currentPlan = null;
+            squad.currentGoal = null;
             squad.aliveMembersAtLastPlan = 0;
             return;
         }
@@ -146,6 +147,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         if (goal == null) {
             // No relevant goal — sit idle until something changes.
             squad.currentPlan = null;
+            squad.currentGoal = null;
             squad.timeSinceReplan = 0f;
             squad.aliveMembersAtLastPlan = squad.aliveMembers;
             return;
@@ -175,6 +177,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             }
         }
         squad.currentPlan = plan;
+        squad.currentGoal = goal;
         squad.timeSinceReplan = 0f;
         squad.aliveMembersAtLastPlan = squad.aliveMembers;
     }

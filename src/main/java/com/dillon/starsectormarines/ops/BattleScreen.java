@@ -26,6 +26,7 @@ import com.dillon.starsectormarines.battle.ui.BattleHud;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.panel.SquadDetailPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadOverviewPanel;
+import com.dillon.starsectormarines.battle.ui.panel.SquadPlanDebugPanel;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.fx.ImpactDecals;
 import com.dillon.starsectormarines.battle.fx.ImpactFx;
@@ -985,6 +986,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         hud = new BattleHud(this);
         hud.addPanel(new SquadOverviewPanel(this));
         hud.addPanel(new SquadDetailPanel(this));
+        // GOAP plan readout — only renders when USE_GOAP_INFANTRY is on.
+        hud.addPanel(new SquadPlanDebugPanel(this));
     }
 
     @Override

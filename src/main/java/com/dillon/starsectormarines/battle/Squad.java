@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle;
 
 import com.dillon.starsectormarines.battle.ai.SquadAlertLevel;
+import com.dillon.starsectormarines.battle.ai.goap.Goal;
 import com.dillon.starsectormarines.battle.ai.goap.SquadPlan;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 
@@ -127,6 +128,8 @@ public final class Squad {
 
     /** Squad's currently-executing plan, or null when the planner has nothing to do (no relevant goal / no reachable plan). */
     public SquadPlan currentPlan = null;
+    /** Goal the planner chose at the last replan. Null when the squad has no relevant goal. Diagnostic — consumed by the GOAP debug HUD; not load-bearing for execution. */
+    public Goal currentGoal = null;
     /** Sim-seconds since the last replan. Drives the periodic-replan trigger; resets to zero on every replan. */
     public float timeSinceReplan = 0f;
     /** {@link #aliveMembers} value at the moment the current plan was built. Diff vs. live {@link #aliveMembers} drives death-triggered replan: any change forces a refresh next tick. */
