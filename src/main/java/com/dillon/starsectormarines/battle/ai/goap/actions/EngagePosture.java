@@ -41,9 +41,6 @@ public final class EngagePosture implements Action {
     private static final WorldState EFF = WorldState.EMPTY
             .with(Predicate.ENEMY_DAMAGED, true);
 
-    /** Per-shot probability of sidestepping to a new firing position after a primary shot. Re-imagined cleanly by Story G (cover-aware reposition) in Stage 2. */
-    private static final float REPOSITION_CHANCE = 0.30f;
-
     private EngagePosture() {}
 
     @Override public String name() { return "Engage"; }
@@ -96,18 +93,13 @@ public final class EngagePosture implements Action {
                     member.burstTimer = member.primaryWeapon.burstSpacing;
                     member.burstTarget = member.target;
                 }
-                if (sim.getRng().nextFloat() < REPOSITION_CHANCE) {
-                    // Cover-preferred sidestep: don't move to a cell with worse
-                    // cover than we currently have. Story G — reposition is for
-                    // grabbing better cover or a better angle, not for shuffling.
-                    int[] firingPos = TacticalScoring.findFiringPositionCoverPreferred(
-                            member, member.target, sim, member.cellX, member.cellY);
-                    if (firingPos[0] != member.cellX || firingPos[1] != member.cellY) {
-                        sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                                member.cellX, member.cellY, firingPos[0], firingPos[1],
-                                sim.getOccupancyMap()));
-                    }
-                }
+                // Story G — cooldown-gated cover-aware reposition replaces
+                // the old 30% per-shot RNG. A unit in heavy cover whose
+                // current cell already wins cover-preferred no-ops out;
+                // exposed members move when their cooldown expires. The
+                // cooldown is per-unit (Unit.repositionCooldown), so squad
+                // members visibly shift at different times.
+                RepositionToCover.tryReposition(member, sim);
             }
             if (member.pathIdx < member.pathCellCount()) {
                 sim.advanceMovement(member);

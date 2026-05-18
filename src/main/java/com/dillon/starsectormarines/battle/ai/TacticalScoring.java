@@ -380,8 +380,12 @@ public final class TacticalScoring {
                 if (cellDistance(anchorX, anchorY, cx, cy) > maxDistFromAnchor) continue;
 
                 int occupants = occupantsExcludingSelf(self, cx, cy, sim);
-                int cover = grid.getCoverAt(cx, cy);
-                int doodadCover = sim.getDoodadCoverAt(cx, cy);
+                // Cover lookup is directional against the target (the
+                // upcoming threat from this firing position) — Story G.
+                int fdx = tx - cx;
+                int fdy = ty - cy;
+                int cover = grid.getCoverAt(cx, cy, fdx, fdy);
+                int doodadCover = sim.getDoodadCoverAt(cx, cy, fdx, fdy);
                 float distFromSelf = cellDistance(self.cellX, self.cellY, cx, cy);
                 float score = distFromSelf
                         + FIRING_OCCUPANCY_COST * occupants
@@ -417,8 +421,11 @@ public final class TacticalScoring {
                 if (!grid.hasLineOfSight(cx, cy, tx, ty)) continue;
 
                 int occupants = occupantsExcludingSelf(self, cx, cy, sim);
-                int cover = grid.getCoverAt(cx, cy);
-                int doodadCover = sim.getDoodadCoverAt(cx, cy);
+                // Per-facing cover against the target (Story G).
+                int fdx = tx - cx;
+                int fdy = ty - cy;
+                int cover = grid.getCoverAt(cx, cy, fdx, fdy);
+                int doodadCover = sim.getDoodadCoverAt(cx, cy, fdx, fdy);
                 float distFromSelf = cellDistance(self.cellX, self.cellY, cx, cy);
                 float score = distFromSelf
                         + FIRING_OCCUPANCY_COST * occupants
@@ -467,7 +474,14 @@ public final class TacticalScoring {
                 float d = (float) Math.sqrt(dx * dx + dy * dy);
                 if (d > radius) continue;
                 if (!grid.hasLineOfSight(cx, cy, threatX, threatY)) continue;
-                int combined = grid.getCoverAt(cx, cy) + sim.getDoodadCoverAt(cx, cy);
+                // Per-facing cover: cell-grid wall + doodad, each looked up
+                // against the threat-direction snap. A cell with a wall east
+                // of it reads as covered only when the threat is east — the
+                // MG-in-corner case the user pinned. Score combines wall +
+                // doodad in that single facing.
+                int fdx = threatX - cx;
+                int fdy = threatY - cy;
+                int combined = grid.getCoverAt(cx, cy, fdx, fdy) + sim.getDoodadCoverAt(cx, cy, fdx, fdy);
                 if (combined > bestCover || (combined == bestCover && d < bestDist)) {
                     bestCover = combined;
                     bestDist = d;
@@ -481,13 +495,15 @@ public final class TacticalScoring {
     /**
      * Cover-aware variant of {@link #findFiringPosition(Unit, Unit, BattleSimulation, int, int)} —
      * filters the candidate ring to cells whose combined (cell + doodad) cover
-     * meets or exceeds the unit's current combined cover. When no candidate
-     * meets that threshold, falls through to the standard scorer.
+     * meets or exceeds the unit's current combined cover against the same
+     * threat direction. When no candidate meets that threshold, returns
+     * {@code null}: callers (Story G's {@link com.dillon.starsectormarines.battle.ai.goap.actions.RepositionToCover})
+     * treat that as "hold position, current cover is best."
      *
-     * <p>Used by reposition rolls (Story G — "the sidestep between bursts
-     * shouldn't make things worse"). Plain {@link #findFiringPosition} can
-     * legally pick a slightly-worse-cover cell if its other terms (proximity,
-     * spread) dominate; this variant refuses to downgrade.
+     * <p>Compared with the unfiltered {@link #findFiringPosition}, this won't
+     * downgrade — a marine in heavy cover only moves to a cell with at least
+     * equal cover. That's the "MG-in-heavy-cover stays cozy" half of Story G,
+     * paired with the cooldown gate inside RepositionToCover.
      */
     public static int[] findFiringPositionCoverPreferred(Unit self, Unit target, BattleSimulation sim,
                                                           int rejectX, int rejectY) {
@@ -495,7 +511,13 @@ public final class TacticalScoring {
         int range = Math.max(1, (int) Math.floor(self.attackRange));
         int tx = target.cellX;
         int ty = target.cellY;
-        int selfCover = grid.getCoverAt(self.cellX, self.cellY) + sim.getDoodadCoverAt(self.cellX, self.cellY);
+        // Self's current cover against the target — per-facing, so a
+        // marine already in heavy cover from this threat direction won't
+        // downgrade to a cell that lacks that specific facing.
+        int selfFdx = tx - self.cellX;
+        int selfFdy = ty - self.cellY;
+        int selfCover = grid.getCoverAt(self.cellX, self.cellY, selfFdx, selfFdy)
+                      + sim.getDoodadCoverAt(self.cellX, self.cellY, selfFdx, selfFdy);
 
         int[] best = null;
         float bestScore = Float.MAX_VALUE;
@@ -513,10 +535,17 @@ public final class TacticalScoring {
                 if (distFromTarget < FIRING_MIN_DISTANCE) continue;
                 if (!grid.hasLineOfSight(cx, cy, tx, ty)) continue;
 
-                int cover = grid.getCoverAt(cx, cy);
-                int doodadCover = sim.getDoodadCoverAt(cx, cy);
+                int fdx = tx - cx;
+                int fdy = ty - cy;
+                int cover = grid.getCoverAt(cx, cy, fdx, fdy);
+                int doodadCover = sim.getDoodadCoverAt(cx, cy, fdx, fdy);
                 int combined = cover + doodadCover;
-                if (combined < selfCover) continue;
+                // Strictly-better filter — equal cover means "same as current,"
+                // and Story G's intent is "don't move if current is already
+                // best." The cooldown gate inside RepositionToCover catches
+                // the timing side; this filter catches the "no upgrade
+                // available" side. Together they keep MGs cozy.
+                if (combined <= selfCover) continue;
 
                 int occupants = occupantsExcludingSelf(self, cx, cy, sim);
                 float distFromSelf = cellDistance(self.cellX, self.cellY, cx, cy);
@@ -531,10 +560,7 @@ public final class TacticalScoring {
                 }
             }
         }
-        if (foundEqualOrBetter && best != null) return best;
-        // Fall through to the unfiltered scorer if no cover-preserving move
-        // exists — caller will get the regular best-effort firing position.
-        return findFiringPosition(self, target, sim, rejectX, rejectY);
+        return (foundEqualOrBetter && best != null) ? best : null;
     }
 
     /**

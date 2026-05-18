@@ -58,7 +58,7 @@ public final class WorldStateBuilder {
         EVALUATORS.put(Predicate.UNDER_FIRE_AT_LOS,                 STUB_FALSE);
         EVALUATORS.put(Predicate.ENEMY_SUPPRESSED,                  STUB_FALSE);
         EVALUATORS.put(Predicate.BEHIND_FRIENDLY_RELATIVE_TO_THREAT, STUB_FALSE);
-        EVALUATORS.put(Predicate.CAN_REPOSITION,                    STUB_FALSE);
+        EVALUATORS.put(Predicate.CAN_REPOSITION,                    WorldStateBuilder::evalCanReposition);
         EVALUATORS.put(Predicate.ZONE_CLEAR,                        STUB_FALSE);
         EVALUATORS.put(Predicate.ENEMY_IN_PORTAL_CELL,              STUB_FALSE);
         EVALUATORS.put(Predicate.NODE_IS_MUST_HOLD,                 STUB_FALSE);
@@ -136,6 +136,25 @@ public final class WorldStateBuilder {
      * (or just after) that pass — matches how
      * {@link InfantryCohesion#cohesionOverride} reads them today.
      */
+    /**
+     * Story G predicate — true when any alive squadmate's reposition cooldown
+     * has expired. Aggregated at squad scope to match the other "any
+     * squadmate" predicates (HAS_LOS, IN_RANGE); the per-member decision to
+     * actually reposition is made inline inside
+     * {@link com.dillon.starsectormarines.battle.ai.goap.actions.EngagePosture}'s
+     * call to {@link com.dillon.starsectormarines.battle.ai.goap.actions.RepositionToCover#tryReposition}.
+     * Predicate exists for goals that want to require reposition-readiness
+     * (Story C bounding overwatch is the next consumer); the basic engage
+     * loop doesn't gate on it — the cooldown gate happens inside the action.
+     */
+    private static boolean evalCanReposition(Squad squad, BattleSimulation sim) {
+        for (Unit u : sim.getUnits()) {
+            if (!u.isAlive() || u.squadId != squad.id) continue;
+            if (u.repositionCooldown <= 0f) return true;
+        }
+        return false;
+    }
+
     private static boolean evalWithinCohesionRadius(Squad squad, BattleSimulation sim) {
         if (squad.aliveMembers <= 1) return true;
         float r2 = InfantryCohesion.COHESION_RADIUS * InfantryCohesion.COHESION_RADIUS;

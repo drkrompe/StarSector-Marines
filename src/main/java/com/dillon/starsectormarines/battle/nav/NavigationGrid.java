@@ -64,15 +64,38 @@ public class NavigationGrid {
         public long mask() { return 1L << ordinal(); }
     }
 
-    /** Maximum cover level. 0 = open ground, MAX = heavy cover (all sides walled). */
+    /**
+     * Maximum cover level per facing. 0 = open in that direction, MAX = full
+     * cover from that direction (a wall directly there). Cover is stored
+     * per-facing (Story G) — a cell with a wall to its east has E-cover but
+     * no S-cover, so a marine standing there is exposed to threats from the
+     * south even though their east flank is "cozy."
+     */
     public static final int MAX_COVER = 3;
+
+    /** Facing N: threat is north (lower y) — cover comes from a wall at (x, y-1). */
+    public static final int FACING_N = 0;
+    /** Facing E: threat is east (higher x) — cover comes from a wall at (x+1, y). */
+    public static final int FACING_E = 1;
+    /** Facing S: threat is south (higher y) — cover comes from a wall at (x, y+1). */
+    public static final int FACING_S = 2;
+    /** Facing W: threat is west (lower x) — cover comes from a wall at (x-1, y). */
+    public static final int FACING_W = 3;
+    /** Number of distinct facings the cover model tracks. 4-way; diagonal threats snap to the dominant cardinal via {@link #facingFor(int, int)}. */
+    public static final int FACING_COUNT = 4;
 
     private final int width;
     private final int height;
     private final long[] cellFlags;
     private final byte[] edgePassability;
-    /** Per-cell cover level 0..{@link #MAX_COVER}. Initially baked by the map generator from the wall layout; locally recomputed when {@link #damageCell} flips a wall to rubble. */
-    private final byte[] coverValues;
+    /**
+     * Per-cell, per-facing cover level in {@code [0..{@link #MAX_COVER}]}.
+     * Indexed as {@code (y * width + x) * FACING_COUNT + facing}. Initially
+     * baked by the map generator from the wall layout via {@link
+     * #recomputeCoverAt}; locally recomputed when {@link #damageCell} flips
+     * a wall to rubble.
+     */
+    private final byte[] coverByFacing;
     /** Per-cell wall hit points. Non-zero only for non-walkable cells initialized as walls; ignored once a cell becomes walkable (rubble or floor). */
     private final int[] wallHp;
 
@@ -82,7 +105,7 @@ public class NavigationGrid {
         int size = width * height;
         this.cellFlags = new long[size];
         this.edgePassability = new byte[size];
-        this.coverValues = new byte[size];
+        this.coverByFacing = new byte[size * FACING_COUNT];
         this.wallHp = new int[size];
     }
 
@@ -172,32 +195,86 @@ public class NavigationGrid {
 
     // ----- Cover -----
 
-    /** Returns the cover level at (x, y), or 0 if out of bounds. */
-    public int getCoverAt(int x, int y) {
-        if (!inBounds(x, y)) return 0;
-        return coverValues[index(x, y)] & 0xFF;
-    }
-
-    /** Sets the cover level at (x, y). Clamped to [0, {@link #MAX_COVER}]. */
-    public void setCoverAt(int x, int y, int level) {
-        if (!inBounds(x, y)) return;
-        int clamped = Math.max(0, Math.min(MAX_COVER, level));
-        coverValues[index(x, y)] = (byte) clamped;
+    /**
+     * Snaps an arbitrary direction vector {@code (dx, dy)} (cell offsets from
+     * the covered cell toward the threat) to the dominant cardinal facing.
+     * Pure helper — used by callers that have raw threat coords and want to
+     * read directional cover. Ties on equal magnitude break toward N/E (the
+     * positive-y / positive-x bias matches the FACING_* ordinal layout).
+     */
+    public static int facingFor(int dx, int dy) {
+        int adx = Math.abs(dx);
+        int ady = Math.abs(dy);
+        if (adx >= ady) {
+            return dx >= 0 ? FACING_E : FACING_W;
+        }
+        return dy >= 0 ? FACING_S : FACING_N;
     }
 
     /**
-     * Recomputes cover for the cell at (x, y) from its 4 cardinal neighbors —
-     * same rule as the map generator's initial bake, just one cell at a time.
-     * No-op for non-walkable cells (cover only applies to standable cells).
+     * Per-facing cover level. {@code facing} is one of {@link #FACING_N},
+     * {@link #FACING_E}, {@link #FACING_S}, {@link #FACING_W}. Returns 0 on
+     * out-of-bounds or unknown facings.
+     */
+    public int getCoverAtFacing(int x, int y, int facing) {
+        if (!inBounds(x, y)) return 0;
+        if (facing < 0 || facing >= FACING_COUNT) return 0;
+        return coverByFacing[index(x, y) * FACING_COUNT + facing] & 0xFF;
+    }
+
+    /**
+     * Directional cover at (x, y) against a threat in the direction of the
+     * raw vector {@code (fromDx, fromDy)} (offset from the covered cell to
+     * the threat cell). Snaps to the dominant cardinal via {@link #facingFor}.
+     */
+    public int getCoverAt(int x, int y, int fromDx, int fromDy) {
+        return getCoverAtFacing(x, y, facingFor(fromDx, fromDy));
+    }
+
+    /**
+     * Scalar cover at (x, y) — the <em>sum</em> across all four facings.
+     * Back-compat accessor for callers that don't carry a threat direction
+     * ({@link com.dillon.starsectormarines.battle.ai.TacticalScoring#findFallbackPosition},
+     * "is this cell hidden in general?" heuristics, debug overlays).
+     * Equivalent numerically to the pre-Story-G "count of cardinal walls"
+     * value when the grid is freshly baked (each wall contributes 1 to one
+     * facing).
+     */
+    public int getCoverAt(int x, int y) {
+        if (!inBounds(x, y)) return 0;
+        int base = index(x, y) * FACING_COUNT;
+        return (coverByFacing[base    ] & 0xFF)
+             + (coverByFacing[base + 1] & 0xFF)
+             + (coverByFacing[base + 2] & 0xFF)
+             + (coverByFacing[base + 3] & 0xFF);
+    }
+
+    /** Sets the cover at (x, y) for one facing. Clamped to [0, {@link #MAX_COVER}]. */
+    public void setCoverAtFacing(int x, int y, int facing, int level) {
+        if (!inBounds(x, y)) return;
+        if (facing < 0 || facing >= FACING_COUNT) return;
+        int clamped = Math.max(0, Math.min(MAX_COVER, level));
+        coverByFacing[index(x, y) * FACING_COUNT + facing] = (byte) clamped;
+    }
+
+    /**
+     * Recomputes per-facing cover for the cell at (x, y) from its 4 cardinal
+     * neighbors. Each facing gets 1 if a wall sits in that direction, else 0
+     * — a marine on this cell is covered from threats in any direction that
+     * has an adjacent wall. No-op for non-walkable cells (cover only applies
+     * to standable cells).
+     *
+     * <p>This is the per-facing replacement for the old scalar bake: a cell
+     * with walls north + east now reads {@code N=1, E=1, S=0, W=0} instead
+     * of {@code total = 2}, exposing the directional pattern the planner
+     * needs to make smart reposition / overwatch decisions (Story G/A/L).
      */
     public void recomputeCoverAt(int x, int y) {
         if (!inBounds(x, y) || !isWalkable(x, y)) return;
-        int walls = 0;
-        if (!isWalkable(x + 1, y)) walls++;
-        if (!isWalkable(x - 1, y)) walls++;
-        if (!isWalkable(x, y + 1)) walls++;
-        if (!isWalkable(x, y - 1)) walls++;
-        setCoverAt(x, y, walls);
+        setCoverAtFacing(x, y, FACING_N, isWalkable(x, y - 1) ? 0 : 1);
+        setCoverAtFacing(x, y, FACING_E, isWalkable(x + 1, y) ? 0 : 1);
+        setCoverAtFacing(x, y, FACING_S, isWalkable(x, y + 1) ? 0 : 1);
+        setCoverAtFacing(x, y, FACING_W, isWalkable(x - 1, y) ? 0 : 1);
     }
 
     // ----- Doorways (zone-graph barriers) -----
@@ -264,7 +341,7 @@ public class NavigationGrid {
     public void clear() {
         Arrays.fill(cellFlags, 0L);
         Arrays.fill(edgePassability, (byte) 0);
-        Arrays.fill(coverValues, (byte) 0);
+        Arrays.fill(coverByFacing, (byte) 0);
         Arrays.fill(wallHp, 0);
     }
 

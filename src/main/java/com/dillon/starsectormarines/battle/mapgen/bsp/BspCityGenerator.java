@@ -322,17 +322,11 @@ public final class BspCityGenerator implements MapGenerator {
         }
     }
 
-    /** Cardinal-neighbor wall count → cover level. Mirrors legacy bake. */
+    /** Per-facing cardinal-wall bake. Each facing reads 1 if a wall sits there, else 0. */
     private void bakeCoverFromWalls(NavigationGrid grid) {
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
-                if (!grid.isWalkable(x, y)) continue;
-                int walls = 0;
-                if (!grid.isWalkable(x + 1, y)) walls++;
-                if (!grid.isWalkable(x - 1, y)) walls++;
-                if (!grid.isWalkable(x, y + 1)) walls++;
-                if (!grid.isWalkable(x, y - 1)) walls++;
-                grid.setCoverAt(x, y, walls);
+                grid.recomputeCoverAt(x, y);
             }
         }
     }

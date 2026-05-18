@@ -86,6 +86,16 @@ public class Unit {
     public int fallbackCellX = -1;
     public int fallbackCellY = -1;
 
+    /**
+     * Sim-seconds until this unit is next eligible to micro-reposition between
+     * shots. Story G — replaces the prior per-shot 30% RNG roll with a real
+     * cooldown so a setup machine gunner in heavy cover doesn't twitch every
+     * burst, and the squad's individual marines visibly shift at different
+     * times (cooldowns decorrelate as they reset on different shots).
+     * Ticked down each tick by {@link com.dillon.starsectormarines.battle.ai.InfantryUnitPrep#tickCooldowns}.
+     */
+    public float repositionCooldown = 0f;
+
     /** {@link UnitRole#FLEE} idle pause between wander legs. While >0 the civilian stands at their current cell instead of picking a new destination. Rolled fresh on arrival; ignored when a threat is in range. */
     public float wanderDwellTimer = 0f;
 

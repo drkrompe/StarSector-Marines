@@ -276,13 +276,7 @@ public final class UrbanMapGenerator implements MapGenerator {
         int h = grid.getHeight();
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
-                if (!grid.isWalkable(x, y)) continue;
-                int walls = 0;
-                if (!grid.isWalkable(x + 1, y)) walls++;
-                if (!grid.isWalkable(x - 1, y)) walls++;
-                if (!grid.isWalkable(x, y + 1)) walls++;
-                if (!grid.isWalkable(x, y - 1)) walls++;
-                grid.setCoverAt(x, y, walls);
+                grid.recomputeCoverAt(x, y);
             }
         }
     }

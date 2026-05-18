@@ -97,21 +97,42 @@ public class TacticalScoringTest {
     @Test
     public void bestCoverCellPicksHighestCoverWalkableWithLos() {
         BattleSimulation sim = openArena(20, 20);
-        // Threat at (15, 10). Anchor (marine) at (10, 10). Radius 4.
-        // Several candidate doodad-cover cells in range:
-        //   (12, 10) — heavy doodad cover (shelf)
-        //   (11, 10) — medium doodad cover (crate)
-        //   (10,  9) — light doodad cover (rubble)
-        // All cells have LOS to (15, 10) in an open arena. The picker should
-        // pick (12, 10).
-        sim.addDoodad(new Doodad(12, 10, new TileManifest.TileFrame(4, 7))); // shelf, HEAVY
-        sim.addDoodad(new Doodad(11, 10, new TileManifest.TileFrame(8, 1))); // crate, MED
-        sim.addDoodad(new Doodad(10,  9, new TileManifest.TileFrame(0, 7))); // rubble, LIGHT
+        // Threat at (15, 10), anchor at (10, 10), radius 4. One heavy-cover
+        // doodad at (13, 10) — its iso cell + the cell directly west of it
+        // (12, 10) both read cover 3 in the E facing (threat direction). The
+        // picker tie-breaks by proximity to anchor, so it should pick (12, 10)
+        // — same protection as the doodad cell itself, one step closer to
+        // where we are. This is the Story G directional-cover signal: a
+        // marine doesn't need to stand <em>on</em> the crate to be behind it.
+        sim.addDoodad(new Doodad(13, 10, new TileManifest.TileFrame(4, 7)));
 
         int[] pick = TacticalScoring.bestCoverCell(15, 10, 10, 10, 4, sim);
         assertNotNull(pick, "open arena with LOS should always pick something");
-        assertEquals(12, pick[0]);
+        assertEquals(12, pick[0],
+                "(12, 10) wins: same E-facing cover as the doodad cell, closer to anchor");
         assertEquals(10, pick[1]);
+    }
+
+    @Test
+    public void bestCoverCellRespectsDirectionalCover() {
+        // When the threat shifts north instead of east, the same doodad at
+        // (13, 10) covers a different set of cells: north-of-doodad (13, 9)
+        // gets S-facing cover 3 against threats from the north. The picker
+        // should reflect that. Same scene as the east-threat test, different
+        // threat direction.
+        BattleSimulation sim = openArena(20, 20);
+        sim.addDoodad(new Doodad(13, 10, new TileManifest.TileFrame(4, 7)));
+        // Threat at (13, 5) (north), anchor at (13, 12) (south of doodad),
+        // radius 3. (13, 10) is the doodad cell — iso cover 3. (13, 11) is
+        // south of doodad — N-facing cover 3 (doodad is north of it, but the
+        // threat is FURTHER north, so doodad is between). (13, 9) is north of
+        // doodad — but its S-facing applies to threats from south; threat is
+        // north, so S-facing doesn't help. (13, 9) is exposed.
+        int[] pick = TacticalScoring.bestCoverCell(13, 5, 13, 12, 3, sim);
+        assertNotNull(pick);
+        assertTrue(pick[1] == 10 || pick[1] == 11,
+                "best cover cell against north threat should be south of or on the doodad, not north of it; got " + pick[0] + "," + pick[1]);
+        assertEquals(13, pick[0]);
     }
 
     @Test
@@ -119,18 +140,21 @@ public class TacticalScoringTest {
         BattleSimulation sim = openArena(20, 20);
         NavigationGrid grid = sim.getGrid();
         // Knock out a column of cells to block LOS to a high-cover doodad.
-        // Threat at (15, 5). Anchor at (5, 5). Wall column at x=8 from y=4..6.
-        // Cell (6, 5) carries a heavy doodad but is now LOS-blocked.
-        // Cell (12, 5) carries a medium doodad with clear LOS.
+        // Threat at (15, 5). Anchor at (9, 5). Wall column at x=8 from y=4..6.
+        // The heavy doodad at (6, 5) is on the wrong side of the wall —
+        // no candidate near it has LOS to (15, 5). The medium doodad at
+        // (12, 5) is on the visible side; under directional cover the cell
+        // directly west of it, (11, 5), reads E-facing cover 2 (the doodad
+        // covers from the east threat) AND is closer to the anchor than the
+        // doodad cell itself, so it wins the tie-break.
         for (int y = 4; y <= 6; y++) grid.setWalkable(8, y, false);
         sim.addDoodad(new Doodad(6, 5, new TileManifest.TileFrame(4, 7)));   // heavy, blocked
         sim.addDoodad(new Doodad(12, 5, new TileManifest.TileFrame(8, 1)));  // medium, visible
 
         int[] pick = TacticalScoring.bestCoverCell(15, 5, 9, 5, 6, sim);
         assertNotNull(pick);
-        // The heavy-cover cell is on the wrong side of the wall — LOS-test
-        // rejects it, so the medium-cover visible cell wins.
-        assertEquals(12, pick[0]);
+        assertEquals(11, pick[0],
+                "directional cover: (11, 5) is behind the visible crate from east threats, closer to anchor than the crate cell itself");
         assertEquals(5, pick[1]);
     }
 
