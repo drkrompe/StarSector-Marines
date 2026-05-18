@@ -130,8 +130,14 @@ public final class InfantryCombatantBehavior implements UnitBehavior {
      * return null. Reads the cached {@link Squad#centroidX} / {@link Squad#centroidY}
      * filled once per tick by the sim's alert-update pass; excludes self by
      * subtracting our contribution before averaging the remaining members.
+     *
+     * <p>Public so the GOAP parity actions
+     * ({@code battle.ai.goap.actions.EngageVisibleAction},
+     * {@code MoveToFiringPositionAction}, {@code MaintainCohesionAction})
+     * can share the exact same cohesion math when this codepath is mirrored
+     * under the planner.
      */
-    private static int[] cohesionOverride(Unit self, BattleSimulation sim) {
+    public static int[] cohesionOverride(Unit self, BattleSimulation sim) {
         if (self.squadId == Unit.NO_SQUAD) return null;
         Squad squad = sim.getSquad(self.squadId);
         if (squad == null || squad.aliveMembers <= 1) return null;
