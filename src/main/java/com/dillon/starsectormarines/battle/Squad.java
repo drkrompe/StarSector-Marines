@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle;
 
 import com.dillon.starsectormarines.battle.ai.SquadAlertLevel;
+import com.dillon.starsectormarines.battle.ai.goap.SquadPlan;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 
 /**
@@ -117,6 +118,19 @@ public final class Squad {
      */
     public boolean _engagedThisTick = false;
     public boolean _suspiciousThisTick = false;
+
+    // ---- GOAP plan state ----
+    // Populated by GoapInfantryBehavior.replanIfNeeded; mutated by per-unit
+    // GoapInfantryBehavior.update as members execute the current step's action.
+    // Only meaningful when BattleSimulation.USE_GOAP_INFANTRY is true — left
+    // null otherwise.
+
+    /** Squad's currently-executing plan, or null when the planner has nothing to do (no relevant goal / no reachable plan). */
+    public SquadPlan currentPlan = null;
+    /** Sim-seconds since the last replan. Drives the periodic-replan trigger; resets to zero on every replan. */
+    public float timeSinceReplan = 0f;
+    /** {@link #aliveMembers} value at the moment the current plan was built. Diff vs. live {@link #aliveMembers} drives death-triggered replan: any change forces a refresh next tick. */
+    public int aliveMembersAtLastPlan = 0;
 
     public Squad(int id, Faction faction) {
         this.id = id;
