@@ -33,11 +33,35 @@ public final class KitRetrieverBehavior implements UnitBehavior {
             return;
         }
 
-        PlanterBehavior.fireOpportunistically(u, sim);
+        fireOpportunistically(u, sim);
 
         if (u.moveProgress == 0f) {
             sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), u.cellX, u.cellY, drop.cellX, drop.cellY, sim.getOccupancyMap()));
         }
         sim.advanceMovement(u);
+    }
+
+    /**
+     * Inline opportunistic fire — was a shared helper on {@code PlanterBehavior}
+     * when planters had a bespoke path. Now that planters route through GOAP,
+     * the kit-retriever is the last role still on a per-unit dispatch that
+     * fires while moving, so the helper lives here. Decrements the cooldown
+     * itself (unlike the GOAP path where {@code InfantryUnitPrep.tickCooldowns}
+     * does it before {@code Action.execute}).
+     */
+    private static void fireOpportunistically(Unit u, BattleSimulation sim) {
+        if (u.target == null || !u.target.isAlive()) {
+            u.target = TacticalScoring.findBestTarget(u, sim);
+        }
+        if (u.cooldownTimer > 0f) u.cooldownTimer -= BattleSimulation.TICK_DT;
+        if (u.target == null) return;
+        float dist = TacticalScoring.cellDistance(u.cellX, u.cellY, u.target.cellX, u.target.cellY);
+        boolean canFire = dist <= u.attackRange
+                && sim.getGrid().hasLineOfSight(u.cellX, u.cellY, u.target.cellX, u.target.cellY)
+                && u.cooldownTimer <= 0f;
+        if (canFire) {
+            sim.fireShot(u, u.target);
+            u.cooldownTimer = u.attackCooldown;
+        }
     }
 }

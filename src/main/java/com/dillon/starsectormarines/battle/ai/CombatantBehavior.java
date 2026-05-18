@@ -10,9 +10,11 @@ import com.dillon.starsectormarines.battle.ai.goap.GoapInfantryBehavior;
  * for everyone else.
  *
  * <p>Stays as the public entry so callers ({@link PatrolBehavior},
- * {@link GarrisonBehavior}, {@link PlanterBehavior}, {@link KitRetrieverBehavior},
- * and the role dispatch in {@code BattleSimulation.behaviorFor}) don't need
- * to know which flavor a given unit needs.
+ * {@link GarrisonBehavior}, {@link KitRetrieverBehavior}, and the role
+ * dispatch in {@code BattleSimulation.behaviorFor} — which also routes
+ * {@code PLANTER} here so the planter participates in the squad-plan
+ * cordon slot rather than running its own per-unit path) don't need to know
+ * which flavor a given unit needs.
  */
 public final class CombatantBehavior implements UnitBehavior {
 

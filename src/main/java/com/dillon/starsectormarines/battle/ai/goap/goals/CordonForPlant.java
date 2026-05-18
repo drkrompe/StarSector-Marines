@@ -21,9 +21,11 @@ import java.util.List;
 /**
  * Story J — Sabotage cordon. Fires once a marine squad has entered the same
  * zone as its planter's {@link ChargeSiteObjective}: the combatant members
- * deploy to the room's doorways while the planter (dispatched separately by
- * {@link com.dillon.starsectormarines.battle.ai.PlanterBehavior}) plants the
- * charge.
+ * deploy to the room's doorways while the planter is assigned the
+ * {@link HoldPortalCordon#PLANTER_SLOT} slot in the same squad-plan step
+ * and paths to the charge cell to channel. The legacy
+ * {@code PlanterBehavior} per-unit dispatch is gone — the planter now waits
+ * for its squad to reach the target zone instead of charging straight in.
  *
  * <p>{@link Priority#MISSION} bucket — sits alongside
  * {@link SecureObjectiveZone}, but the two are mutually exclusive by
@@ -67,8 +69,9 @@ public final class CordonForPlant implements Goal {
 
     @Override
     public SquadPlan customPlan(Squad squad, BattleSimulation sim) {
-        int planterZone = findPlanterZone(squad, sim);
-        if (planterZone < 0) return null;
+        ChargeSiteObjective charge = findActiveChargeObjective(squad, sim);
+        if (charge == null) return null;
+        int planterZone = sim.getZoneGraph().zoneIdAt(charge.cellX(), charge.cellY());
         NavigationZone zone = sim.getZoneGraph().zoneById(planterZone);
         if (zone == null) return null;
 
@@ -76,7 +79,8 @@ public final class CordonForPlant implements Goal {
         if (posts.isEmpty()) return null;
 
         List<SquadPlan.Step> steps = new ArrayList<>(1);
-        steps.add(new SquadPlan.Step(new HoldPortalCordon(posts)));
+        steps.add(new SquadPlan.Step(
+                new HoldPortalCordon(charge.cellX(), charge.cellY(), posts)));
         return new SquadPlan(steps);
     }
 
@@ -87,15 +91,21 @@ public final class CordonForPlant implements Goal {
      * separate to avoid one goal's edge-case logic leaking into the other.
      */
     private static int findPlanterZone(Squad squad, BattleSimulation sim) {
+        ChargeSiteObjective cs = findActiveChargeObjective(squad, sim);
+        return cs == null ? -1 : sim.getZoneGraph().zoneIdAt(cs.cellX(), cs.cellY());
+    }
+
+    /** Returns the in-progress charge an alive squadmate is assigned to, or null. Two callers want it (relevance via zone lookup; customPlan needs the cells). */
+    private static ChargeSiteObjective findActiveChargeObjective(Squad squad, BattleSimulation sim) {
         for (Unit u : sim.getUnits()) {
             if (!u.isAlive() || u.squadId != squad.id) continue;
             if (u.role != UnitRole.PLANTER) continue;
             if (u.assignedObjective instanceof ChargeSiteObjective cs) {
                 if (cs.isComplete()) continue;
-                return sim.getZoneGraph().zoneIdAt(cs.cellX(), cs.cellY());
+                return cs;
             }
         }
-        return -1;
+        return null;
     }
 
     /**

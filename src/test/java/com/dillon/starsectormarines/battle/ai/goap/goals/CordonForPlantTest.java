@@ -205,7 +205,7 @@ public class CordonForPlantTest {
     }
 
     @Test
-    public void slotsAreOnePerPortalScoredByDistance() {
+    public void slotsArePlanterPlusOnePerPortal() {
         BattleSimulation sim = roomWithTwoDoorways();
         ChargeSiteObjective charge = new ChargeSiteObjective(6, 6, 5f, "lab");
         sim.addObjective(charge);
@@ -220,11 +220,34 @@ public class CordonForPlantTest {
         SquadPlan plan = CordonForPlant.INSTANCE.customPlan(squad, sim);
         HoldPortalCordon cordon = (HoldPortalCordon) plan.steps().get(0).action;
         var slots = cordon.roles(squad, sim);
-        assertEquals(2, slots.size(), "two portals → two slots");
+        // One planter slot + one slot per portal (two doorways here) = 3.
+        assertEquals(3, slots.size(), "planter + two portals → three slots");
+        assertEquals(HoldPortalCordon.PLANTER_SLOT, slots.get(0).name(),
+                "planter slot must come first so RoleAssigner picks it before portal slots compete for the planter");
+        int portalCount = 0;
         for (var slot : slots) {
-            assertEquals(1, slot.count(), "each portal slot holds one holder");
-            assertTrue(slot.name().startsWith("portal:"),
-                    "slot names should encode the portal id (used to look up the post in execute)");
+            assertEquals(1, slot.count(), "each slot holds one member");
+            if (slot.name().startsWith("portal:")) portalCount++;
         }
+        assertEquals(2, portalCount, "two portals → two portal slots");
+    }
+
+    @Test
+    public void customPlanCarriesChargeCellForPlanterSlot() {
+        BattleSimulation sim = roomWithTwoDoorways();
+        ChargeSiteObjective charge = new ChargeSiteObjective(6, 6, 5f, "lab");
+        sim.addObjective(charge);
+
+        Squad squad = marineSquadAt(1, 6f, 6f, 2);
+        Unit planter = new Unit("p1", Faction.MARINE, UnitType.MARINE, 5, 6);
+        planter.squadId = 1;
+        planter.role = UnitRole.PLANTER;
+        planter.assignedObjective = charge;
+        sim.addUnit(planter);
+
+        SquadPlan plan = CordonForPlant.INSTANCE.customPlan(squad, sim);
+        HoldPortalCordon cordon = (HoldPortalCordon) plan.steps().get(0).action;
+        assertEquals(6, cordon.chargeCellX(), "planter-slot path target must be the charge cell X");
+        assertEquals(6, cordon.chargeCellY(), "planter-slot path target must be the charge cell Y");
     }
 }

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.ai.goap.actions;
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.UnitRole;
 import com.dillon.starsectormarines.battle.ai.TacticalScoring;
 import com.dillon.starsectormarines.battle.ai.goap.Action;
 import com.dillon.starsectormarines.battle.ai.goap.ActionStatus;
@@ -15,28 +16,41 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * <b>Squad posture: cordon a room's doorways.</b> Each member is assigned a
- * distinct portal of the squad's current zone (Story J's "1 planter + N
- * portal-holders" rule, sans planter — see
- * {@link com.dillon.starsectormarines.battle.ai.goap.goals.CordonForPlant}
- * for the broader composition). Holders path once to a guard cell adjacent
- * to their doorway, then hold position and fire on anything in
- * LOS + range.
+ * <b>Squad posture: cordon a room's doorways while the planter channels.</b>
+ * Story J's "1 planter + N portal-holders" composition lives entirely here:
+ * a {@code "planter"} slot paths to the charge cell and dwells (so
+ * {@link com.dillon.starsectormarines.battle.objective.ChargeSiteObjective}
+ * accumulates progress), while {@code "portal:N"} slots each path once to
+ * a guard cell adjacent to their doorway and hold position firing on
+ * anything in LOS + range.
  *
  * <p>Cordon discipline emerges from positioning, not from target filtering:
  * the guard cell is inside the squad's zone facing the doorway, so the
- * member's natural LOS arc is "their" doorway. A holder will still fire on
+ * holder's natural LOS arc is "their" doorway. A holder will still fire on
  * a visible enemy elsewhere when one drifts into LOS, but they don't
- * <em>move</em> off the post to chase — that's the rule that makes
- * cordon discipline read on screen.
+ * <em>move</em> off the post to chase — that's the rule that makes cordon
+ * discipline read on screen.
+ *
+ * <p>The planter's role flip + on-site dwell logic that used to live in
+ * {@code PlanterBehavior} now lives in this action's {@code "planter"}-slot
+ * branch. The unit keeps {@link UnitRole#PLANTER} (so
+ * {@code ChargeSiteObjective.tick} still ticks progress on it) but no
+ * longer has a separate per-unit dispatch — it's a squad-plan slot like any
+ * other holder.
  *
  * <p>Parameterized per-room — the goal's customPlan creates one instance
- * carrying the (portalId, guardCell) tuples for the current zone. Not a
- * singleton, not registered in
+ * carrying the charge cell + the (portalId, guardCell) tuples for the
+ * current zone. Not a singleton, not registered in
  * {@code GoapInfantryBehavior.INFANTRY_ACTIONS}: the backward-chaining
  * planner never sees it.
  */
 public final class HoldPortalCordon implements Action {
+
+    /** Slot name for the squad member who runs the plant. RoleAssigner prefers the {@link UnitRole#PLANTER} candidate via {@link #PLANTER_SCORE} so the planter consistently lands in this slot. */
+    public static final String PLANTER_SLOT = "planter";
+
+    /** Score the planter scorer returns for a PLANTER-role member. Large enough that the role-assigner's mean-score-orders-slots pass picks the planter slot first; everyone else scores 0 here and falls into portal slots. */
+    private static final float PLANTER_SCORE = 1000f;
 
     /** One doorway worth of cordon — the portal we watch, plus the cell inside the zone we stand on. */
     public static final class GuardPost {
@@ -54,30 +68,44 @@ public final class HoldPortalCordon implements Action {
         public String slotName() { return "portal:" + portalId; }
     }
 
+    private final int chargeCellX;
+    private final int chargeCellY;
     private final List<GuardPost> posts;
 
-    public HoldPortalCordon(List<GuardPost> posts) {
+    public HoldPortalCordon(int chargeCellX, int chargeCellY, List<GuardPost> posts) {
+        this.chargeCellX = chargeCellX;
+        this.chargeCellY = chargeCellY;
         this.posts = List.copyOf(posts);
     }
 
+    public int chargeCellX() { return chargeCellX; }
+    public int chargeCellY() { return chargeCellY; }
     public List<GuardPost> posts() { return posts; }
 
     @Override public String name() { return "HoldPortalCordon[" + posts.size() + "]"; }
     @Override public WorldState preconditions() { return WorldState.EMPTY; }
     @Override public WorldState effects() { return WorldState.EMPTY; }
     @Override public float cost(WorldState s, Squad squad, BattleSimulation sim) { return 1f; }
-    @Override public int requiredMembers() { return Math.max(1, posts.size()); }
+    @Override public int requiredMembers() { return Math.max(1, posts.size() + 1); }
 
     /**
-     * One slot per portal with count {@code 1} — distinct doorways draw
-     * distinct members. Scorer is negated distance from the candidate to the
-     * guard cell: closest holder wins their nearest doorway, which dovetails
-     * with RoleAssigner's swap-improvement pass to produce a sensible
-     * member→portal pairing without exhaustive search.
+     * Planter slot first, then one portal slot per doorway. The planter slot
+     * scores PLANTER-role members at {@link #PLANTER_SCORE} and everyone else
+     * at 0 — RoleAssigner's mean-score-first ordering then picks the planter
+     * for that slot before portals draw candidates, so the assignment is
+     * stable as long as the squad has an alive planter.
+     *
+     * <p>Portal-slot scorer is negated distance from the candidate to the
+     * guard cell, same as before — closest non-planter holder wins their
+     * nearest doorway.
      */
     @Override
     public List<RoleAssigner.Slot<Unit>> roles(Squad squad, BattleSimulation sim) {
-        List<RoleAssigner.Slot<Unit>> slots = new ArrayList<>(posts.size());
+        List<RoleAssigner.Slot<Unit>> slots = new ArrayList<>(posts.size() + 1);
+        slots.add(new RoleAssigner.Slot<>(
+                PLANTER_SLOT,
+                1,
+                c -> c.role == UnitRole.PLANTER ? PLANTER_SCORE : 0f));
         for (GuardPost post : posts) {
             slots.add(new RoleAssigner.Slot<>(
                     post.slotName(),
@@ -89,20 +117,54 @@ public final class HoldPortalCordon implements Action {
 
     @Override
     public ActionStatus execute(Unit member, Squad squad, BattleSimulation sim) {
-        // Walk back to the current plan step to figure out which portal this
-        // member was assigned. The Stage 2 dispatch (GoapInfantryBehavior.update)
-        // already proves slotOf(member) is non-null before calling execute,
-        // so this only no-ops on adversarial state.
         SquadPlan plan = squad.currentPlan;
         SquadPlan.Step step = plan != null && !plan.isComplete() ? plan.currentStep() : null;
         String slotName = step != null ? step.slotOf(member) : null;
+        if (slotName == null) return ActionStatus.RUNNING;
+
+        if (PLANTER_SLOT.equals(slotName)) {
+            return executePlanter(member, sim);
+        }
         GuardPost post = postForSlot(slotName);
         if (post == null) return ActionStatus.RUNNING;
+        return executeHolder(member, post, sim);
+    }
 
-        // Phase 1: path to the guard cell. Once we're standing on it, drop
-        // the path and switch to stationary fire mode. Movement and shooting
-        // overlap on the way — we don't want the member to ignore an enemy
-        // shooting them while they walk to their post.
+    /**
+     * Planter slot: path to the charge cell, sit on it. No firing — the
+     * planter is channelling. Matches the legacy {@code PlanterBehavior}
+     * shape (path → arrive → dwell) without the standalone dispatch.
+     * {@link com.dillon.starsectormarines.battle.objective.ChargeSiteObjective#tick}
+     * keys off PLANTER role + on-site cell + {@code moveProgress == 0}, all
+     * of which this branch maintains.
+     */
+    private ActionStatus executePlanter(Unit member, BattleSimulation sim) {
+        boolean onSite = (member.cellX == chargeCellX && member.cellY == chargeCellY);
+        if (onSite) {
+            if (!member.pathEmpty()) sim.clearPath(member);
+            member.moveProgress = 0f;
+            member.renderX = member.cellX;
+            member.renderY = member.cellY;
+            return ActionStatus.RUNNING;
+        }
+        if (member.moveProgress == 0f) {
+            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+                    member.cellX, member.cellY, chargeCellX, chargeCellY,
+                    sim.getOccupancyMap()));
+        }
+        sim.advanceMovement(member);
+        return ActionStatus.RUNNING;
+    }
+
+    /**
+     * Portal-holder slot: walk to the assigned guard cell while firing
+     * opportunistically, then hold position firing at anything in LOS +
+     * range. The {@code moveProgress / renderX / renderY} reset is what
+     * pins the holder in place between shots — no micro-movement, the
+     * Stage 2 cordon doesn't reposition (Slice 3's cover-aware reposition
+     * is the layer that would change that).
+     */
+    private ActionStatus executeHolder(Unit member, GuardPost post, BattleSimulation sim) {
         boolean atPost = (member.cellX == post.cellX && member.cellY == post.cellY);
         if (!atPost) {
             opportunisticFire(member, sim);
@@ -114,10 +176,6 @@ public final class HoldPortalCordon implements Action {
             sim.advanceMovement(member);
             return ActionStatus.RUNNING;
         }
-
-        // Phase 2: stay on post, fire at anything in LOS + range. We
-        // explicitly clear any leftover path so the member doesn't continue
-        // a stale walk; matches Stage 1's "arrived, stand still" pattern.
         if (!member.pathEmpty()) sim.clearPath(member);
         member.moveProgress = 0f;
         member.renderX = member.cellX;

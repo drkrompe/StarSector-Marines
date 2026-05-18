@@ -9,7 +9,6 @@ import com.dillon.starsectormarines.battle.ai.FleeBehavior;
 import com.dillon.starsectormarines.battle.ai.GarrisonBehavior;
 import com.dillon.starsectormarines.battle.ai.KitRetrieverBehavior;
 import com.dillon.starsectormarines.battle.ai.PatrolBehavior;
-import com.dillon.starsectormarines.battle.ai.PlanterBehavior;
 import com.dillon.starsectormarines.battle.ai.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.ai.TacticalScoring;
 import com.dillon.starsectormarines.battle.ai.TurretBehavior;
@@ -693,7 +692,10 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
 
     private UnitBehavior behaviorFor(UnitRole role) {
         switch (role) {
-            case PLANTER:        return PlanterBehavior.INSTANCE;
+            // PLANTER routes through CombatantBehavior → GoapInfantryBehavior.
+            // The plant action is a squad-plan slot inside HoldPortalCordon
+            // (Story J); the unit keeps role=PLANTER so ChargeSiteObjective.tick
+            // still finds it on-site, but no longer has its own per-unit dispatch.
             case KIT_RETRIEVER:  return KitRetrieverBehavior.INSTANCE;
             case FLEE:           return FleeBehavior.INSTANCE;
             case TURRET:         return TurretBehavior.INSTANCE;
