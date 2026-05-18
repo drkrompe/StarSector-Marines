@@ -237,11 +237,44 @@ public class TacticalScoringTest {
         Unit marine = unit(sim, Faction.MARINE, 5, 5);
         Unit enemy = unit(sim, Faction.DEFENDER, 10, 5);
         // Even surrounded, a *visible* target is still a fine target — the
-        // gate only kicks in when LOS is lost.
+        // gate only kicks in when LOS is lost. (And the nearby allies of the
+        // enemy are within the RETARGET_DISTANCE_MARGIN of the current
+        // target, so they don't beat the stickiness threshold.)
         unit(sim, Faction.DEFENDER, 9, 5);
         unit(sim, Faction.DEFENDER, 11, 5);
         unit(sim, Faction.DEFENDER, 10, 6);
 
         assertTrue(TacticalScoring.shouldKeepPursuing(marine, enemy, sim));
+    }
+
+    @Test
+    public void shouldKeepPursuingFalseWhenCloserVisibleAppears() {
+        // The user-reported case: a marine engaged on a turret at distance 15,
+        // when a mech walks up to distance 2. shouldKeepPursuing must drop the
+        // distant target so the marine re-picks the close threat.
+        BattleSimulation sim = openArena(30, 10);
+        Unit marine = unit(sim, Faction.MARINE, 5, 5);
+        Unit distantTurret = unit(sim, Faction.DEFENDER, 20, 5);
+        Unit closeMech = unit(sim, Faction.DEFENDER, 7, 5);
+
+        assertTrue(!TacticalScoring.shouldKeepPursuing(marine, distantTurret, sim),
+                "closer visible enemy must trigger re-target");
+        assertTrue(TacticalScoring.shouldKeepPursuing(marine, closeMech, sim),
+                "the close target itself is still a fine target to keep on");
+    }
+
+    @Test
+    public void shouldKeepPursuingTrueWhenAlternativeNotMeaningfullyCloser() {
+        // A second visible enemy that's only marginally closer than the
+        // current target shouldn't cause thrashing. Margin is
+        // RETARGET_DISTANCE_MARGIN (5 cells); a 2-cell-closer alternative
+        // stays under that.
+        BattleSimulation sim = openArena(20, 20);
+        Unit marine = unit(sim, Faction.MARINE, 5, 5);
+        Unit current = unit(sim, Faction.DEFENDER, 15, 5);  // distance 10
+        unit(sim, Faction.DEFENDER, 13, 5);                  // distance 8
+
+        assertTrue(TacticalScoring.shouldKeepPursuing(marine, current, sim),
+                "alternative within the retarget margin must not trigger a switch");
     }
 }

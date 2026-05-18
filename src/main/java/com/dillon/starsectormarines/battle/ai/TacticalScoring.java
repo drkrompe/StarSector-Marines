@@ -174,24 +174,51 @@ public final class TacticalScoring {
     }
 
     /**
+     * Score margin (in cell-distance) by which a different visible enemy must
+     * beat the current target before the pursuit gate switches. Prevents
+     * thrashing on marginal differences while still flipping promptly when a
+     * close mech walks up next to a marine engaged on a distant turret.
+     */
+    public static final float RETARGET_DISTANCE_MARGIN = 5f;
+
+    /**
      * Pursuit gate: returns true when {@code currentTarget} is still a sensible
-     * target to keep firing on, false when the caller should re-pick. Used by
-     * engage postures to drop a target that's broken LOS <em>and</em> fled
-     * into a cluster — Stage 1 kept firing on the locked target until they
-     * died or fully evaporated, dragging the marine into the cluster too.
+     * target to keep firing on, false when the caller should re-pick.
      *
      * <p>Returns false in any of:
      * <ul>
      *   <li>{@code currentTarget} is dead or null.</li>
-     *   <li>LOS is broken (per {@code los}) <em>and</em> the target now sits
-     *       inside a non-trivial threat-density cluster.</li>
+     *   <li>A meaningfully closer visible enemy exists than the current target
+     *       — the user-visible case is a mech walking up to a squad engaged on
+     *       a distant turret; ignoring the mech and continuing to fire past
+     *       it is the failure mode.</li>
+     *   <li>LOS is broken to the current target <em>and</em> it now sits
+     *       inside a non-trivial threat-density cluster — Story I bail-out
+     *       to prevent chasing a fleer into their squad.</li>
      * </ul>
      */
     public static boolean shouldKeepPursuing(Unit self, Unit currentTarget, BattleSimulation sim) {
         if (currentTarget == null || !currentTarget.isAlive()) return false;
         boolean visible = sim.getGrid().hasLineOfSight(self.cellX, self.cellY,
                 currentTarget.cellX, currentTarget.cellY);
+
+        // "Meaningfully closer visible enemy" check — runs whether or not the
+        // current target is visible. If current is invisible and a visible
+        // alternative exists, switch unconditionally. If current is visible,
+        // switch only when the alternative is closer by at least
+        // RETARGET_DISTANCE_MARGIN to dampen thrashing.
+        Unit closerVisible = closestVisibleOtherEnemy(self, currentTarget, sim);
+        if (closerVisible != null) {
+            if (!visible) return false;
+            float currentDist = cellDistance(self.cellX, self.cellY,
+                    currentTarget.cellX, currentTarget.cellY);
+            float candidateDist = cellDistance(self.cellX, self.cellY,
+                    closerVisible.cellX, closerVisible.cellY);
+            if (candidateDist + RETARGET_DISTANCE_MARGIN < currentDist) return false;
+        }
+
         if (visible) return true;
+
         // LOS lost — bail out if the target ducked into a cluster. Density
         // count > 1 means "at least 2 of their squadmates nearby" — chasing
         // into that costs more than the dropped target is worth.
@@ -210,6 +237,28 @@ public final class TacticalScoring {
             }
         }
         return true;
+    }
+
+    /**
+     * Nearest visible enemy combatant to {@code self} that isn't
+     * {@code exclude}, or null when none. Used by {@link #shouldKeepPursuing}'s
+     * "closer visible target appeared" check. Linear scan; the caller pays
+     * once per posture tick.
+     */
+    private static Unit closestVisibleOtherEnemy(Unit self, Unit exclude, BattleSimulation sim) {
+        Unit best = null;
+        float bestDist = Float.MAX_VALUE;
+        for (Unit u : sim.getUnits()) {
+            if (u == exclude || u == self) continue;
+            if (!u.isAlive() || u.faction == self.faction || !u.type.combatant) continue;
+            if (!sim.getGrid().hasLineOfSight(self.cellX, self.cellY, u.cellX, u.cellY)) continue;
+            float d = cellDistance(self.cellX, self.cellY, u.cellX, u.cellY);
+            if (d < bestDist) {
+                bestDist = d;
+                best = u;
+            }
+        }
+        return best;
     }
 
     /**

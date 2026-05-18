@@ -51,7 +51,14 @@ public final class ApproachPosture implements Action {
         // Cooldown ticks are handled by GoapInfantryBehavior.prepareForAction
         // before this method runs — see InfantryUnitPrep.
 
-        if (member.target == null || !member.target.isAlive()) {
+        // Mid-approach re-target: drop the current target when dead, gone, or
+        // a closer visible enemy now exists. The user-reported failure was a
+        // squad walking past a close mech to engage a distant turret because
+        // member.target was locked at approach start; shouldKeepPursuing's
+        // closer-visible-target check is what unsticks that case.
+        if (member.target == null
+                || !member.target.isAlive()
+                || !TacticalScoring.shouldKeepPursuing(member, member.target, sim)) {
             member.target = TacticalScoring.findBestTarget(member, sim);
         }
         if (member.target == null) return ActionStatus.FAILURE;
