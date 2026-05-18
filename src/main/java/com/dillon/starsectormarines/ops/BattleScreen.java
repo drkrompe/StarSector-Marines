@@ -319,6 +319,21 @@ public class BattleScreen implements Screen, BattleUiContext {
     private static final float CROSSWALK_INSET_FRAC  = 0.08f;
 
     /**
+     * Pixels to crop from each side of a ground-tile's source rect before
+     * sampling. Values live in {@link com.dillon.starsectormarines.battle.sprites.FixedGridTileDrawer}
+     * so the in-game renderer and the preview tests share one source of
+     * truth — bumping the inset in one place reflects in both. See that
+     * class's javadoc for the rationale (AA-halo + atlas-bleed seams).
+     *
+     * <p>Doodads and overhead-door overlays explicitly pass
+     * {@link com.dillon.starsectormarines.battle.sprites.FixedGridTileDrawer#OVERLAY_INSET_PX}
+     * to {@link #drawTile} — their edge pixels are visible content, not
+     * part of a tiling field, so cropping would chop the sprite visibly.
+     */
+    private static final int GROUND_TILE_EDGE_INSET_PX        = com.dillon.starsectormarines.battle.sprites.FixedGridTileDrawer.GROUND_INSET_PX_LARGE;
+    private static final int GROUND_SMALL_TILE_EDGE_INSET_PX  = com.dillon.starsectormarines.battle.sprites.FixedGridTileDrawer.GROUND_INSET_PX_SMALL;
+
+    /**
      * Cached shuttle sprite + natural aspect ratio (width/height) per ShuttleType.
      * Captured at load time before any setSize call mutates getWidth/getHeight.
      * EnumMap is overkill for one variant today; map keeps the door open for
@@ -1562,13 +1577,13 @@ public class BattleScreen implements Screen, BattleUiContext {
                 switch (kind) {
                     case RUBBLE: {
                         TileManifest.TileFrame f = TileManifest.pickRubbleTile(nWall, sWall, eWall, wWall);
-                        drawTile(f, x, y, texXScale, texYScale, sheetPxH, alphaMult);
+                        drawTile(f, x, y, texXScale, texYScale, sheetPxH, alphaMult, GROUND_TILE_EDGE_INSET_PX);
                         break;
                     }
                     case STREET:
                         if (roadSheet != null) {
                             if (isSidewalkCell(grid, topology, x, y)) {
-                                drawRoadTile(TileManifest.SIDEWALK, x, y, alphaMult);
+                                drawRoadTile(TileManifest.SIDEWALK, x, y, alphaMult, GROUND_TILE_EDGE_INSET_PX);
                             } else {
                                 boolean nB = isRoadBoundary(grid, topology, x, y + 1);
                                 boolean sB = isRoadBoundary(grid, topology, x, y - 1);
@@ -1578,7 +1593,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                                 if (f == null) {
                                     fillCell(x, y, ROAD_FILL, alphaMult);
                                 } else {
-                                    drawRoadTile(f, x, y, alphaMult);
+                                    drawRoadTile(f, x, y, alphaMult, GROUND_TILE_EDGE_INSET_PX);
                                 }
                                 if (topology.isCrosswalk(x, y)) {
                                     drawCrosswalkStripes(x, y, topology.isCrosswalkStripesHorizontal(x, y), alphaMult);
@@ -1592,7 +1607,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                             if (f == null) {
                                 fillCell(x, y, COURTYARD_FILL, alphaMult);
                             } else {
-                                drawRoadTile(f, x, y, alphaMult);
+                                drawRoadTile(f, x, y, alphaMult, GROUND_TILE_EDGE_INSET_PX);
                             }
                         }
                         break;
@@ -1616,7 +1631,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                         break;
                     case TILE: {
                         TileManifest.TileFrame f = TileManifest.pickTileGroundTile(x, y);
-                        if (roadSheet != null) drawRoadTile(f, x, y, alphaMult);
+                        if (roadSheet != null) drawRoadTile(f, x, y, alphaMult, GROUND_TILE_EDGE_INSET_PX);
                         break;
                     }
                     case STRIPED: {
@@ -1624,18 +1639,18 @@ public class BattleScreen implements Screen, BattleUiContext {
                         // neighbor (e.g. fortified post perimeter) — same neighbor
                         // semantics as the courtyard autotile.
                         TileManifest.TileFrame f = TileManifest.pickStripedTile(nWall, sWall, eWall, wWall);
-                        if (roadSheet != null) drawRoadTile(f, x, y, alphaMult);
+                        if (roadSheet != null) drawRoadTile(f, x, y, alphaMult, GROUND_TILE_EDGE_INSET_PX);
                         break;
                     }
                     case LZ_MARKER: {
                         TileManifest.TileFrame f = TileManifest.pickLzMarkerTile();
-                        if (roadSheet != null) drawRoadTile(f, x, y, alphaMult);
+                        if (roadSheet != null) drawRoadTile(f, x, y, alphaMult, GROUND_TILE_EDGE_INSET_PX);
                         break;
                     }
                     case INDOOR:
                     default: {
                         TileManifest.TileFrame f = TileManifest.pickFloorTile(nWall, sWall, eWall, wWall);
-                        drawTile(f, x, y, texXScale, texYScale, sheetPxH, alphaMult);
+                        drawTile(f, x, y, texXScale, texYScale, sheetPxH, alphaMult, GROUND_TILE_EDGE_INSET_PX);
                         break;
                     }
                 }
@@ -1644,8 +1659,10 @@ public class BattleScreen implements Screen, BattleUiContext {
                 // the overhead door overlay. Breached cells are flagged rubble
                 // AND doorway — the !isRubble guard keeps the overhead off
                 // those, since they're holes blasted through, not real doors.
+                // DOOR_OPEN is an overlay, not a ground tile — inset=0 so the
+                // overhead bar's edge pixels aren't cropped.
                 if (grid.isDoorway(x, y) && !topology.isRubble(x, y)) {
-                    drawTile(TileManifest.DOOR_OPEN, x, y, texXScale, texYScale, sheetPxH, alphaMult);
+                    drawTile(TileManifest.DOOR_OPEN, x, y, texXScale, texYScale, sheetPxH, alphaMult, 0);
                 }
             }
         }
@@ -1666,7 +1683,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 if (tile == null) {
                     fillCell(x, y, WALL_COLOR, alphaMult);
                 } else {
-                    drawTile(tile, x, y, texXScale, texYScale, sheetPxH, alphaMult);
+                    drawTile(tile, x, y, texXScale, texYScale, sheetPxH, alphaMult, GROUND_TILE_EDGE_INSET_PX);
                 }
             }
         }
@@ -1796,23 +1813,33 @@ public class BattleScreen implements Screen, BattleUiContext {
         int sheetPxH = tileSheetPxH;
         for (Doodad d : sim.getDoodads()) {
             if (d.fromRoadSheet) {
-                if (roadSheet != null) drawRoadTile(d.tile, d.cellX, d.cellY, alphaMult);
+                if (roadSheet != null) drawRoadTile(d.tile, d.cellX, d.cellY, alphaMult, 0);
             } else {
-                drawTile(d.tile, d.cellX, d.cellY, texXScale, texYScale, sheetPxH, alphaMult);
+                // Doodads are standalone props (chairs, crates, LZ pads) — their
+                // edge pixels are real visible content, so inset=0 to avoid
+                // chopping the sprite. Same reason DOOR_OPEN passes 0 above.
+                drawTile(d.tile, d.cellX, d.cellY, texXScale, texYScale, sheetPxH, alphaMult, 0);
             }
         }
     }
 
-    /** Stamps a 1×1 tile from the road sheet — counterpart to {@link #drawTile}, kept separate so the two sheets' UV scales stay independent. */
-    private void drawRoadTile(TileManifest.TileFrame f, int gridX, int gridY, float alphaMult) {
+    /**
+     * Stamps a 1×1 tile from the road sheet — counterpart to {@link #drawTile},
+     * kept separate so the two sheets' UV scales stay independent. Pass
+     * {@link #GROUND_TILE_EDGE_INSET_PX} for road/courtyard/striped/sidewalk
+     * autotiles (continuous field) and {@code 0} for road-sheet doodads
+     * (LZ pad as a prop) so their edges aren't cropped.
+     */
+    private void drawRoadTile(TileManifest.TileFrame f, int gridX, int gridY, float alphaMult,
+                              int srcEdgeInsetPx) {
         float texW = roadSheet.getTextureWidth();
         float texH = roadSheet.getTextureHeight();
         float texXScale = texW / roadSheetPxW;
         float texYScale = texH / roadSheetPxH;
-        int srcPxX = f.col * TileManifest.TILE_SIZE;
-        int srcTopPxY = f.row * TileManifest.TILE_SIZE;
-        int srcPxW = TileManifest.TILE_SIZE;
-        int srcPxH = TileManifest.TILE_SIZE;
+        int srcPxX = f.col * TileManifest.TILE_SIZE + srcEdgeInsetPx;
+        int srcTopPxY = f.row * TileManifest.TILE_SIZE + srcEdgeInsetPx;
+        int srcPxW = TileManifest.TILE_SIZE - 2 * srcEdgeInsetPx;
+        int srcPxH = TileManifest.TILE_SIZE - 2 * srcEdgeInsetPx;
 
         float cellPx = camera.cellPxSize();
         roadSheet.setTexX(srcPxX * texXScale);
@@ -1842,18 +1869,19 @@ public class BattleScreen implements Screen, BattleUiContext {
      */
     private void drawSameKindAutotile(CellTopology topology, CellTopology.GroundKind kind,
                                       int x, int y, float alphaMult) {
-        boolean nNot = !isSameKind(topology, kind, x, y + 1);
-        boolean sNot = !isSameKind(topology, kind, x, y - 1);
-        boolean eNot = !isSameKind(topology, kind, x + 1, y);
-        boolean wNot = !isSameKind(topology, kind, x - 1, y);
+        // Outdoor ground kinds always pick a center variant — see memory note
+        // "flat-edges-between-kinds". The per-kind edge tiles look bad in
+        // practice (doubled dark trim at kind transitions, water-sheet
+        // "shore" art assumes grass adjacency it can't guarantee). Hard
+        // cell-boundary transitions are the accepted look.
         TileManifest.TileFrame f;
         switch (kind) {
-            case GRASS: f = TileManifest.pickGrassTile(nNot, sNot, eNot, wNot, x, y); break;
-            case DIRT:  f = TileManifest.pickDirtTile (nNot, sNot, eNot, wNot, x, y); break;
-            case STONE: f = TileManifest.pickStoneTile(nNot, sNot, eNot, wNot, x, y); break;
-            case SAND:  f = TileManifest.pickSandTile (nNot, sNot, eNot, wNot, x, y); break;
-            case SNOW:  f = TileManifest.pickSnowTile (nNot, sNot, eNot, wNot, x, y); break;
-            case WATER: f = TileManifest.pickWaterTile(nNot, sNot, eNot, wNot, x, y); break;
+            case GRASS: f = TileManifest.pickGrassTile(false, false, false, false, x, y); break;
+            case DIRT:  f = TileManifest.pickDirtTile (false, false, false, false, x, y); break;
+            case STONE: f = TileManifest.pickStoneTile(false, false, false, false, x, y); break;
+            case SAND:  f = TileManifest.pickSandTile (false, false, false, false, x, y); break;
+            case SNOW:  f = TileManifest.pickSnowTile (false, false, false, false, x, y); break;
+            case WATER: f = TileManifest.pickWaterTile(false, false, false, false, x, y); break;
             default: return;
         }
         if (kind == CellTopology.GroundKind.WATER) {
@@ -1861,12 +1889,6 @@ public class BattleScreen implements Screen, BattleUiContext {
         } else {
             if (floorsSheet != null) drawFloorsTile(f, x, y, alphaMult);
         }
-    }
-
-    /** True if {@code (x,y)} is in-bounds and has the same ground kind. OOB returns false so map-edge autotiles get a proper edge piece. */
-    private static boolean isSameKind(CellTopology topology, CellTopology.GroundKind kind, int x, int y) {
-        if (!topology.inBounds(x, y)) return false;
-        return topology.getGroundKind(x, y) == kind;
     }
 
     /**
@@ -1884,7 +1906,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         drawSmallTile(waterSheet, waterSheetPxW, waterSheetPxH, f, gridX, gridY, alphaMult);
     }
 
-    /** Shared 16px-source tile draw — used by both the floors and water sheets. The 2x upscale comes from {@code renderAtCenter} sizing to {@code cellPx} regardless of source size. */
+    /** Shared 16px-source tile draw — used by both the floors and water sheets. The 2x upscale comes from {@code renderAtCenter} sizing to {@code cellPx} regardless of source size. Always applies {@link #GROUND_SMALL_TILE_EDGE_INSET_PX} since both callers are pure ground autotiles. */
     private void drawSmallTile(SpriteAPI sheet, int sheetPxW, int sheetPxH,
                                TileManifest.TileFrame f, int gridX, int gridY, float alphaMult) {
         if (sheet == null) return;
@@ -1892,10 +1914,11 @@ public class BattleScreen implements Screen, BattleUiContext {
         float texH = sheet.getTextureHeight();
         float texXScale = texW / sheetPxW;
         float texYScale = texH / sheetPxH;
-        int srcPxX = f.col * TileManifest.FLOORS_TILE_SIZE;
-        int srcTopPxY = f.row * TileManifest.FLOORS_TILE_SIZE;
-        int srcPxW = TileManifest.FLOORS_TILE_SIZE;
-        int srcPxH = TileManifest.FLOORS_TILE_SIZE;
+        int inset = GROUND_SMALL_TILE_EDGE_INSET_PX;
+        int srcPxX = f.col * TileManifest.FLOORS_TILE_SIZE + inset;
+        int srcTopPxY = f.row * TileManifest.FLOORS_TILE_SIZE + inset;
+        int srcPxW = TileManifest.FLOORS_TILE_SIZE - 2 * inset;
+        int srcPxH = TileManifest.FLOORS_TILE_SIZE - 2 * inset;
 
         float cellPx = camera.cellPxSize();
         sheet.setTexX(srcPxX * texXScale);
@@ -1912,13 +1935,19 @@ public class BattleScreen implements Screen, BattleUiContext {
         sheet.renderAtCenter(cx, cy);
     }
 
-    /** Draws a single 1×1 {@link TileManifest.TileFrame} into one grid cell. */
+    /**
+     * Draws a single 1×1 {@link TileManifest.TileFrame} into one grid cell.
+     * Pass {@link #GROUND_TILE_EDGE_INSET_PX} for ground autotiles (floor,
+     * wall, rubble) and {@code 0} for overlays / standalone props (doodads,
+     * DOOR_OPEN) — the inset would visibly chop a standalone sprite's edge.
+     */
     private void drawTile(TileManifest.TileFrame f, int gridX, int gridY,
-                          float texXScale, float texYScale, int sheetPxH, float alphaMult) {
-        int srcPxX = f.col * TileManifest.TILE_SIZE;
-        int srcTopPxY = f.row * TileManifest.TILE_SIZE;
-        int srcPxW = TileManifest.TILE_SIZE;
-        int srcPxH = TileManifest.TILE_SIZE;
+                          float texXScale, float texYScale, int sheetPxH, float alphaMult,
+                          int srcEdgeInsetPx) {
+        int srcPxX = f.col * TileManifest.TILE_SIZE + srcEdgeInsetPx;
+        int srcTopPxY = f.row * TileManifest.TILE_SIZE + srcEdgeInsetPx;
+        int srcPxW = TileManifest.TILE_SIZE - 2 * srcEdgeInsetPx;
+        int srcPxH = TileManifest.TILE_SIZE - 2 * srcEdgeInsetPx;
 
         float cellPx = camera.cellPxSize();
         tileSheet.setTexX(srcPxX * texXScale);

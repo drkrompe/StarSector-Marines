@@ -1,5 +1,9 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.sprites.NatureTile;
+import com.dillon.starsectormarines.battle.sprites.NatureTileset;
+import com.dillon.starsectormarines.battle.sprites.SpriteSheetFrames;
+import com.dillon.starsectormarines.battle.sprites.SpriteSheetSlicer;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
@@ -90,19 +94,22 @@ public class TilesetDebugScreen implements Screen {
     private static final class SheetSpec {
         final String name;
         final String path;
+        /** Cell size in source pixels for fixed-grid sheets. {@code 0} switches the screen into slicer mode (variable-width cells separated by alpha gutters). */
         final int    tileSize;
         SheetSpec(String name, String path, int tileSize) {
             this.name = name; this.path = path; this.tileSize = tileSize;
         }
+        boolean isSliced() { return tileSize == 0; }
     }
 
-    /** Tabs render in list order. Per-sheet tile size — Urban art is 32px, Floors/Water are 16px. */
+    /** Tabs render in list order. Per-sheet tile size — Urban art is 32px, Floors/Water are 16px. Nature uses 0 (slicer mode). */
     private static final List<SheetSpec> SHEETS = new ArrayList<>();
     static {
         SHEETS.add(new SheetSpec("Urban-1", "graphics/tilesets/urban-tileset.png",   32));
         SHEETS.add(new SheetSpec("Urban-2", "graphics/tilesets/urban-tileset-2.png", 32));
         SHEETS.add(new SheetSpec("Floors",  "graphics/tilesets/Floors_Tiles.png",    16));
         SHEETS.add(new SheetSpec("Water",   "graphics/tilesets/Water_tiles.png",     16));
+        SHEETS.add(new SheetSpec("Nature",  NatureTileset.SHEET_PATH,                 0));
     }
 
     private final WidgetRoot widgets = new WidgetRoot();
@@ -119,6 +126,8 @@ public class TilesetDebugScreen implements Screen {
     private int sheetPxW;
     private int sheetPxH;
     private TilesetCatalog catalog;
+    /** Non-null when the active sheet is in slicer mode. {@code sliceFrames[col]} is the bounding box of the {@code col}-th detected sprite. */
+    private SpriteSheetFrames.Frame[] sliceFrames;
 
     // Grid layout (recomputed each rebuild, queried by hit-test in processInput).
     private float gridOriginX;
@@ -152,11 +161,11 @@ public class TilesetDebugScreen implements Screen {
         this.activeSheet = spec;
         this.sheet = null;
         this.cellHasContent = null;
+        this.sliceFrames = null;
         this.cols = 0;
         this.rows = 0;
         this.selCol = -1;
         this.selRow = -1;
-        int tileSize = spec.tileSize;
         try {
             Global.getSettings().loadTexture(spec.path);
             sheet = Global.getSettings().getSprite(spec.path);
@@ -172,25 +181,39 @@ public class TilesetDebugScreen implements Screen {
                 }
                 sheetPxW = img.getWidth();
                 sheetPxH = img.getHeight();
-                cols = sheetPxW / tileSize;
-                rows = sheetPxH / tileSize;
-                cellHasContent = new boolean[cols][rows];
+                if (spec.isSliced()) {
+                    SpriteSheetFrames sliced = SpriteSheetSlicer.slice(img);
+                    sliceFrames = sliced.frames;
+                    cols = sliceFrames.length;
+                    rows = 1;
+                    cellHasContent = new boolean[cols][rows];
+                    for (int c = 0; c < cols; c++) cellHasContent[c][0] = true;
+                    LOG.info("TilesetDebugScreen: sliced " + spec.path
+                            + " (" + sheetPxW + "x" + sheetPxH + "px, "
+                            + cols + " frames)");
+                } else {
+                    int tileSize = spec.tileSize;
+                    cols = sheetPxW / tileSize;
+                    rows = sheetPxH / tileSize;
+                    cellHasContent = new boolean[cols][rows];
 
-                int[] pixels = new int[sheetPxW * sheetPxH];
-                img.getRGB(0, 0, sheetPxW, sheetPxH, pixels, 0, sheetPxW);
-                for (int row = 0; row < rows; row++) {
-                    for (int col = 0; col < cols; col++) {
-                        cellHasContent[col][row] = cellHasAnyOpaquePixel(pixels, col, row, tileSize);
+                    int[] pixels = new int[sheetPxW * sheetPxH];
+                    img.getRGB(0, 0, sheetPxW, sheetPxH, pixels, 0, sheetPxW);
+                    for (int row = 0; row < rows; row++) {
+                        for (int col = 0; col < cols; col++) {
+                            cellHasContent[col][row] = cellHasAnyOpaquePixel(pixels, col, row, tileSize);
+                        }
                     }
+                    LOG.info("TilesetDebugScreen: loaded " + spec.path
+                            + " (" + sheetPxW + "x" + sheetPxH + "px, "
+                            + cols + "x" + rows + " cells @ " + tileSize + "px)");
                 }
-                LOG.info("TilesetDebugScreen: loaded " + spec.path
-                        + " (" + sheetPxW + "x" + sheetPxH + "px, "
-                        + cols + "x" + rows + " cells @ " + tileSize + "px)");
             }
         } catch (Exception e) {
             LOG.error("TilesetDebugScreen: failed to load " + spec.path, e);
             sheet = null;
             cellHasContent = null;
+            sliceFrames = null;
         }
 
         catalog = new TilesetCatalog(spec.path);
@@ -222,9 +245,12 @@ public class TilesetDebugScreen implements Screen {
 
         // --- Header label ---
         int tileSize = activeSheet == null ? 0 : activeSheet.tileSize;
+        boolean sliced = activeSheet != null && activeSheet.isSliced();
         String displayName = activeSheet == null ? "(none)" : activeSheet.name;
         String header = "Tileset Catalog — " + displayName
-                + " (" + cols + "x" + rows + " @ " + tileSize + "px)";
+                + (sliced
+                        ? (" (" + cols + " frames, auto-sliced)")
+                        : (" (" + cols + "x" + rows + " @ " + tileSize + "px)"));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
                 header,
                 xL + PAD, yB + hT - PAD - 6f, HEADER_COLOR));
@@ -276,12 +302,22 @@ public class TilesetDebugScreen implements Screen {
             gridDisplayCell = 0f;
             return;
         }
-        float scale = Math.min(viewportW / (cols * tileSize), viewportH / (rows * tileSize));
-        // 16px sheets need more upscale to be legible; cap at 4x. 32px sheets
-        // were fine at native size already.
-        float maxScale = tileSize >= 32 ? 2f : 4f;
-        scale = Math.min(scale, maxScale);
-        gridDisplayCell = tileSize * scale;
+        if (sliced) {
+            // Slicer mode: lay frames out in a uniform 20-square strip rather
+            // than at their pixel-precise source widths. Each tile renders 1×1
+            // in-game, so previewing them as a uniform strip matches in-game
+            // intent better than recreating the source PNG's layout.
+            float cellByW = viewportW / cols;
+            float cellByH = viewportH / rows;
+            gridDisplayCell = Math.min(96f, Math.min(cellByW, cellByH));
+        } else {
+            float scale = Math.min(viewportW / (cols * tileSize), viewportH / (rows * tileSize));
+            // 16px sheets need more upscale to be legible; cap at 4x. 32px sheets
+            // were fine at native size already.
+            float maxScale = tileSize >= 32 ? 2f : 4f;
+            scale = Math.min(scale, maxScale);
+            gridDisplayCell = tileSize * scale;
+        }
         float gridW = cols * gridDisplayCell;
         float gridH = rows * gridDisplayCell;
         gridOriginX = viewportX + (viewportW - gridW) / 2f;
@@ -314,7 +350,15 @@ public class TilesetDebugScreen implements Screen {
         previewRectH = PREVIEW_SIZE;
 
         float textX = sbX + PREVIEW_SIZE + 10f;
-        String coord = (selCol < 0) ? "(none)" : ("(" + selCol + ", " + selRow + ")");
+        String coord;
+        if (selCol < 0) {
+            coord = "(none)";
+        } else if (activeSheet != null && activeSheet.isSliced()) {
+            NatureTile nt = NatureTile.byFrame(selCol);
+            coord = "frame " + selCol + (nt != null ? " — " + nt.label : "");
+        } else {
+            coord = "(" + selCol + ", " + selRow + ")";
+        }
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                 coord, textX, previewY + PREVIEW_SIZE - 6f, BODY_TEXT));
         y = previewY - 12f;
@@ -477,6 +521,7 @@ public class TilesetDebugScreen implements Screen {
         glEnd();
 
         // Pass 2 — tile sprites for non-empty cells
+        boolean sliced = activeSheet.isSliced();
         int tileSize = activeSheet.tileSize;
         float texW = sheet.getTextureWidth();
         float texH = sheet.getTextureHeight();
@@ -486,10 +531,20 @@ public class TilesetDebugScreen implements Screen {
             float y0 = gridOriginY + (rows - 1 - row) * gridDisplayCell;
             for (int col = 0; col < cols; col++) {
                 if (!cellHasContent[col][row]) continue;
-                sheet.setTexX(col * tileSize * texXScale);
-                sheet.setTexY((sheetPxH - (row + 1) * tileSize) * texYScale);
-                sheet.setTexWidth(tileSize * texXScale);
-                sheet.setTexHeight(tileSize * texYScale);
+                int srcX, srcY, srcW, srcH;
+                if (sliced) {
+                    SpriteSheetFrames.Frame f = sliceFrames[col];
+                    srcX = f.x; srcY = f.y; srcW = f.w; srcH = f.h;
+                } else {
+                    srcX = col * tileSize;
+                    srcY = row * tileSize;
+                    srcW = tileSize;
+                    srcH = tileSize;
+                }
+                sheet.setTexX(srcX * texXScale);
+                sheet.setTexY((sheetPxH - (srcY + srcH)) * texYScale);
+                sheet.setTexWidth(srcW * texXScale);
+                sheet.setTexHeight(srcH * texYScale);
                 sheet.setSize(gridDisplayCell, gridDisplayCell);
                 sheet.setAlphaMult(alphaMult);
                 sheet.setColor(Color.WHITE);
@@ -529,12 +584,13 @@ public class TilesetDebugScreen implements Screen {
         glVertex2f(gridOriginX,         gridOriginY + gridH);
         glEnd();
 
-        // Pass 5 — (col,row) labels per non-empty cell
+        // Pass 5 — (col,row) labels per non-empty cell. Sliced sheets show
+        // the frame index alone since row is always 0.
         for (int row = 0; row < rows; row++) {
             float y0 = gridOriginY + (rows - 1 - row) * gridDisplayCell;
             for (int col = 0; col < cols; col++) {
                 if (!cellHasContent[col][row]) continue;
-                String label = col + "," + row;
+                String label = sliced ? Integer.toString(col) : (col + "," + row);
                 float lx = gridOriginX + col * gridDisplayCell + 2f;
                 float ly = y0 + gridDisplayCell - 4f;
                 Fonts.ORBITRON_20.drawString(label, lx + 1f, ly - 1f, LABEL_SHADOW, alphaMult);
@@ -597,15 +653,26 @@ public class TilesetDebugScreen implements Screen {
         glEnd();
 
         if (selCol >= 0 && sheet != null && activeSheet != null) {
+            boolean sliced = activeSheet.isSliced();
             int tileSize = activeSheet.tileSize;
             float texW = sheet.getTextureWidth();
             float texH = sheet.getTextureHeight();
             float texXScale = texW / sheetPxW;
             float texYScale = texH / sheetPxH;
-            sheet.setTexX(selCol * tileSize * texXScale);
-            sheet.setTexY((sheetPxH - (selRow + 1) * tileSize) * texYScale);
-            sheet.setTexWidth(tileSize * texXScale);
-            sheet.setTexHeight(tileSize * texYScale);
+            int srcX, srcY, srcW, srcH;
+            if (sliced && sliceFrames != null && selCol < sliceFrames.length) {
+                SpriteSheetFrames.Frame f = sliceFrames[selCol];
+                srcX = f.x; srcY = f.y; srcW = f.w; srcH = f.h;
+            } else {
+                srcX = selCol * tileSize;
+                srcY = selRow * tileSize;
+                srcW = tileSize;
+                srcH = tileSize;
+            }
+            sheet.setTexX(srcX * texXScale);
+            sheet.setTexY((sheetPxH - (srcY + srcH)) * texYScale);
+            sheet.setTexWidth(srcW * texXScale);
+            sheet.setTexHeight(srcH * texYScale);
             sheet.setSize(previewRectW, previewRectH);
             sheet.setAlphaMult(alphaMult);
             sheet.setColor(Color.WHITE);
