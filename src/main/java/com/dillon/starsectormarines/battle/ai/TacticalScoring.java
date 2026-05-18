@@ -115,7 +115,7 @@ public final class TacticalScoring {
                 bestAny = other;
             }
             if (!los.visible(selfCellX, selfCellY, other.cellX, other.cellY)) continue;
-            float crowding = scoreCrowding(selfFaction, selfSquadId, other, units, excludeFromCrowding);
+            float crowding = scoreCrowding(selfFaction, selfSquadId, other, sim, excludeFromCrowding);
             float score = d + crowding;
             if (score < bestVisibleScore) {
                 bestVisibleScore = score;
@@ -128,17 +128,20 @@ public final class TacticalScoring {
     /**
      * Adds {@link #TARGET_CROWDING_COST} for every ally targeting the same
      * enemy, plus an additional {@link #TARGET_SQUADMATE_EXTRA_COST} when the
-     * ally is a squadmate. Squadmate weight is higher so fireteams spread
-     * naturally across the visible front, while cross-squad pile-ups are only
-     * mildly discouraged.
+     * ally is a squadmate. Reads the precomputed attackers-by-target index
+     * from the sim ({@link BattleSimulation#getAttackersOf}) so this is O(L)
+     * in the small attacker list rather than O(U) over every unit — total
+     * target-selection cost drops from O(U³) to O(U² + U·L).
      */
     private static float scoreCrowding(Faction selfFaction, int selfSquadId, Unit target,
-                                       List<Unit> units, Unit exclude) {
+                                       BattleSimulation sim, Unit exclude) {
+        java.util.ArrayList<Unit> attackers = sim.getAttackersOf(target);
+        if (attackers == null) return 0f;
         float cost = 0f;
-        for (Unit u : units) {
+        for (int i = 0, n = attackers.size(); i < n; i++) {
+            Unit u = attackers.get(i);
             if (u == exclude || !u.isAlive()) continue;
             if (u.faction != selfFaction) continue;
-            if (u.target != target) continue;
             cost += TARGET_CROWDING_COST;
             if (selfSquadId != Unit.NO_SQUAD && u.squadId == selfSquadId) {
                 cost += TARGET_SQUADMATE_EXTRA_COST;
@@ -407,16 +410,15 @@ public final class TacticalScoring {
         if (!grid.inBounds(cx, cy)) return 0;
         int n = sim.getOccupancyMap()[cy * grid.getWidth() + cx] & 0xFF;
         if (cx == self.cellX && cy == self.cellY) n--;
-        int[] selfDest = pathDestination(self);
-        if (selfDest != null && selfDest[0] == cx && selfDest[1] == cy
-                && (selfDest[0] != self.cellX || selfDest[1] != self.cellY)) {
-            n--;
+        int cells = self.pathCellCount();
+        if (cells > 0) {
+            int destX = self.pathCellX(cells - 1);
+            int destY = self.pathCellY(cells - 1);
+            if (destX == cx && destY == cy && (destX != self.cellX || destY != self.cellY)) {
+                n--;
+            }
         }
         return Math.max(0, n);
-    }
-
-    private static int[] pathDestination(Unit u) {
-        return u.path.isEmpty() ? null : u.path.get(u.path.size() - 1);
     }
 
     public static float cellDistance(int x0, int y0, int x1, int y1) {

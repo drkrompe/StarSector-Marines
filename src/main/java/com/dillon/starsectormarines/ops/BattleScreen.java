@@ -658,8 +658,7 @@ public class BattleScreen implements Screen {
      */
     private void renderDecals(BattleSimulation sim, float alphaMult) {
         if (decalSheet == null || decalFrames == null) return;
-        java.util.List<Decal> decals = sim.getDecals();
-        if (decals.isEmpty()) return;
+        Iterable<Decal> decals = sim.getDecals();
         float cellPx = camera.cellPxSize();
         float texW = decalSheet.getTextureWidth();
         float texH = decalSheet.getTextureHeight();
@@ -2670,10 +2669,9 @@ public class BattleScreen implements Screen {
             int dy = u.target.cellY - u.cellY;
             if (dx != 0 || dy != 0) return facingFromDelta(dx, dy);
         }
-        if (!u.path.isEmpty() && u.pathIdx < u.path.size()) {
-            int[] next = u.path.get(u.pathIdx);
-            int dx = next[0] - u.cellX;
-            int dy = next[1] - u.cellY;
+        if (u.pathIdx < u.pathCellCount()) {
+            int dx = u.pathCellX(u.pathIdx) - u.cellX;
+            int dy = u.pathCellY(u.pathIdx) - u.cellY;
             if (dx != 0 || dy != 0) return facingFromDelta(dx, dy);
         }
         return Facing.SOUTH;
@@ -2719,10 +2717,9 @@ public class BattleScreen implements Screen {
             int dy = u.target.cellY - u.cellY;
             if (dx != 0 || dy != 0) return eightWayFromDelta(dx, dy);
         }
-        if (!u.path.isEmpty() && u.pathIdx < u.path.size()) {
-            int[] next = u.path.get(u.pathIdx);
-            int dx = next[0] - u.cellX;
-            int dy = next[1] - u.cellY;
+        if (u.pathIdx < u.pathCellCount()) {
+            int dx = u.pathCellX(u.pathIdx) - u.cellX;
+            int dy = u.pathCellY(u.pathIdx) - u.cellY;
             if (dx != 0 || dy != 0) return eightWayFromDelta(dx, dy);
         }
         return EightWayFacing.S;

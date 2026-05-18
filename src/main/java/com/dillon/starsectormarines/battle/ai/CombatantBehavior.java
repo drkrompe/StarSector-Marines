@@ -86,7 +86,7 @@ public final class CombatantBehavior implements UnitBehavior {
                 sim.setPath(u, GridPathfinder.findPath(sim.getGrid(),
                         u.cellX, u.cellY, dest[0], dest[1], sim.getOccupancyMap()));
             }
-            if (!u.path.isEmpty() && u.pathIdx < u.path.size()) {
+            if (u.pathIdx < u.pathCellCount()) {
                 sim.advanceMovement(u);
             } else {
                 u.moveProgress = 0f;
@@ -130,7 +130,7 @@ public final class CombatantBehavior implements UnitBehavior {
                     }
                 }
             }
-            if (!u.path.isEmpty() && u.pathIdx < u.path.size()) {
+            if (u.pathIdx < u.pathCellCount()) {
                 sim.advanceMovement(u);
             } else {
                 u.moveProgress = 0f;
@@ -221,27 +221,22 @@ public final class CombatantBehavior implements UnitBehavior {
      * Returns the squad-centroid cell when the unit is more than
      * {@link #COHESION_RADIUS} cells from it; null otherwise (normal targeting
      * takes over). Solo units — no squad, or squad of one alive — always
-     * return null. The centroid excludes self so a lone surviving squadmate
-     * doesn't try to walk toward themselves.
+     * return null. Reads the cached {@link Squad#centroidX} / {@link Squad#centroidY}
+     * filled once per tick by the sim's alert-update pass; excludes self by
+     * subtracting our contribution before averaging the remaining members.
      */
     private static int[] cohesionOverride(Unit self, BattleSimulation sim) {
         if (self.squadId == Unit.NO_SQUAD) return null;
         Squad squad = sim.getSquad(self.squadId);
-        if (squad == null) return null;
+        if (squad == null || squad.aliveMembers <= 1) return null;
 
-        float sumX = 0f, sumY = 0f;
-        int count = 0;
-        for (Unit u : sim.getUnits()) {
-            if (u == self || !u.isAlive()) continue;
-            if (u.squadId != self.squadId) continue;
-            sumX += u.cellX;
-            sumY += u.cellY;
-            count++;
-        }
-        if (count == 0) return null;
-
-        float cx = sumX / count;
-        float cy = sumY / count;
+        // squad.centroid is sum/count over all alive members including self.
+        // Reconstruct the others-only centroid: (sum - self) / (count - 1).
+        int othersCount = squad.aliveMembers - 1;
+        float sumX = squad.centroidX * squad.aliveMembers - self.cellX;
+        float sumY = squad.centroidY * squad.aliveMembers - self.cellY;
+        float cx = sumX / othersCount;
+        float cy = sumY / othersCount;
         float dx = cx - self.cellX;
         float dy = cy - self.cellY;
         float dist = (float) Math.sqrt(dx * dx + dy * dy);

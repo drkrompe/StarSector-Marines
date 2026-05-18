@@ -1,5 +1,10 @@
 plugins {
     id 'java'
+    // Bundles runtime deps and rewrites their packages so they can't collide
+    // with other mods' copies. fastutil in particular: the game's classloader
+    // is shared, so an unrelocated copy would fight other mods that ship
+    // their own version.
+    id 'com.gradleup.shadow' version '9.2.2'
 }
 
 group = 'com.dillon.starsectormarines'
@@ -53,6 +58,12 @@ dependencies {
     // Bundled into the mod jar via the fat-jar config below.
     implementation project(':asset-pipeline')
 
+    // fastutil-core: primitive-keyed maps/sets for hot AI/sim paths (squad lookup,
+    // crowding tables, zone ids). Shaded into our own namespace via shadowJar's
+    // relocate rule below so it can't collide with another mod's copy on the
+    // shared classloader.
+    implementation "it.unimi.dsi:fastutil-core:${fastutilVersion}"
+
     // Lombok — same convention as the asset-pipeline module so shared style works.
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
@@ -84,24 +95,44 @@ test {
     }
 }
 
+// The default `jar` task only produces the thin jar (our classes), which we
+// don't ship. The shaded `shadowJar` below is the deliverable — it bundles
+// asset-pipeline + JOML + fastutil (relocated) into mod/jars/StarsectorMarines.jar.
 jar {
+    enabled = false
+}
+
+shadowJar {
     dependsOn ':asset-pipeline:jar'
     archiveBaseName = modName
+    archiveClassifier = ''
     archiveVersion = ''
     destinationDirectory = modJarsDir
-    // Fat jar — bundle the asset-pipeline runtime classes and our runtime deps (JOML)
-    // so the mod ships as a single jar listed in mod_info.json.
-    from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-    }
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    // Relocate fastutil so we ship our own copy without colliding with other
+    // mods. Source still uses `it.unimi.dsi.fastutil.*` imports; the rewrite
+    // happens at jar time on bytecode.
+    relocate 'it.unimi.dsi.fastutil', 'com.dillon.starsectormarines.shaded.fastutil'
+
+    // Drop fastutil classes we don't actually reference. fastutil's full type-
+    // specialization matrix is huge; minimize() keeps only what our bytecode
+    // touches plus its transitive closure, which is typically a small fraction.
+    minimize()
+
     exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
+    exclude 'META-INF/maven/**'
+    exclude 'META-INF/versions/**'
+    exclude 'module-info.class'
 }
+
+// Wire the shaded jar into the standard build lifecycle so `gradlew build`
+// produces the mod jar without needing to name `shadowJar` explicitly.
+tasks.named('assemble').configure { dependsOn tasks.named('shadowJar') }
 
 tasks.register('deployMod', Sync) {
     group = 'starsector'
     description = "Copy the mod folder into the Starsector mods directory ($starsectorModsDir)"
-    dependsOn jar
+    dependsOn tasks.named('shadowJar')
     from modOutputDir
     into new File(starsectorModsDir, modName)
     preserve {

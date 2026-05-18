@@ -5,8 +5,6 @@ import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 
-import java.util.Collections;
-
 /**
  * Squad-cohesion role for defenders pegged to a tactical node. A garrison
  * squad has three modes, driven by {@link Squad#alertLevel}:
@@ -136,11 +134,11 @@ public final class GarrisonBehavior implements UnitBehavior {
     }
 
     private static void moveToward(Unit u, BattleSimulation sim, int tx, int ty) {
-        if (u.moveProgress == 0f && (u.path.isEmpty() || u.pathIdx >= u.path.size())) {
+        if (u.moveProgress == 0f && u.pathIdx >= u.pathCellCount()) {
             sim.setPath(u, GridPathfinder.findPath(sim.getGrid(),
                     u.cellX, u.cellY, tx, ty, sim.getOccupancyMap()));
         }
-        if (!u.path.isEmpty() && u.pathIdx < u.path.size()) {
+        if (u.pathIdx < u.pathCellCount()) {
             sim.advanceMovement(u);
         } else {
             u.moveProgress = 0f;
@@ -150,7 +148,7 @@ public final class GarrisonBehavior implements UnitBehavior {
     }
 
     private static void holdPosition(Unit u, BattleSimulation sim) {
-        sim.setPath(u, Collections.emptyList());
+        sim.clearPath(u);
         u.moveProgress = 0f;
         u.renderX = u.cellX;
         u.renderY = u.cellY;

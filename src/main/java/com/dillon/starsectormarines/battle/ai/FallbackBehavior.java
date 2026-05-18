@@ -4,8 +4,6 @@ import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 
-import java.util.Collections;
-
 /**
  * Fall-back state — unit was recently hit and is breaking contact. Paths
  * toward an out-of-LOS cell, then holds until {@link Unit#fallbackTimer}
@@ -25,7 +23,7 @@ public final class FallbackBehavior implements UnitBehavior {
         int fx = u.fallbackCellX;
         int fy = u.fallbackCellY;
         if (u.cellX == fx && u.cellY == fy) {
-            sim.setPath(u, Collections.emptyList());
+            sim.clearPath(u);
             u.moveProgress = 0f;
             u.renderX = u.cellX;
             u.renderY = u.cellY;

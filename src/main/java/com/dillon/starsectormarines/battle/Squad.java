@@ -76,6 +76,27 @@ public final class Squad {
     /** Sim-seconds the squad rests at the current waypoint before picking a new one. */
     public float patrolDwellTimer = 0f;
 
+    // ---- Per-tick cached aggregates ----
+    // Refreshed once per sim tick by BattleSimulation.updateSquadAlertLevels, so
+    // behaviors can read them in O(1) instead of re-walking the unit list.
+    // Stale outside that pass; treat as read-only from inside behaviors.
+
+    /** Alive-member count from the most recent tick. 0 when the squad has been wiped. */
+    public int aliveMembers = 0;
+    /** Centroid X over alive members. Undefined when {@link #aliveMembers} is 0. */
+    public float centroidX = 0f;
+    /** Centroid Y over alive members. Undefined when {@link #aliveMembers} is 0. */
+    public float centroidY = 0f;
+    /**
+     * Internal flags filled mid-pass by {@code BattleSimulation.updateSquadAlertLevels}
+     * to track "did any squadmate's LoS hit this tick" / "did anyone trip a
+     * suspicious condition." Driven entirely by the sim — behaviors should
+     * read {@link #alertLevel}, not these. Public only because they're
+     * mutated across a same-package boundary.
+     */
+    public boolean _engagedThisTick = false;
+    public boolean _suspiciousThisTick = false;
+
     public Squad(int id, Faction faction) {
         this.id = id;
         this.faction = faction;

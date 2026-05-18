@@ -1,9 +1,6 @@
 package com.dillon.starsectormarines.battle.nav;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * A* pathfinding on a {@link NavigationGrid}, 8-directional (cardinal + diagonal).
@@ -122,6 +119,9 @@ public final class GridPathfinder {
         DIR_ADJ2_DX[nwIdx] = 0;  DIR_ADJ2_DY[nwIdx] = 1;
     }
 
+    /** Shared empty-path sentinel — returned when no path exists or endpoints are blocked. Avoids per-call {@code new int[0]} allocations. */
+    public static final int[] EMPTY_PATH = new int[0];
+
     private GridPathfinder() {}
 
     // ----- ThreadLocal workspace -----
@@ -175,7 +175,7 @@ public final class GridPathfinder {
 
     // ----- Public API -----
 
-    public static List<int[]> findPath(NavigationGrid grid, int startX, int startY, int goalX, int goalY) {
+    public static int[] findPath(NavigationGrid grid, int startX, int startY, int goalX, int goalY) {
         return findPath(grid, startX, startY, goalX, goalY, USE_CARDINAL_NAVIGATION, null);
     }
 
@@ -187,23 +187,30 @@ public final class GridPathfinder {
      * stepping into each cell, so A* routes around stacked allies when a
      * reasonable detour exists. Pass {@code null} for vanilla pathing.
      */
-    public static List<int[]> findPath(NavigationGrid grid, int startX, int startY, int goalX, int goalY,
-                                       byte[] occupancy) {
+    public static int[] findPath(NavigationGrid grid, int startX, int startY, int goalX, int goalY,
+                                  byte[] occupancy) {
         return findPath(grid, startX, startY, goalX, goalY, USE_CARDINAL_NAVIGATION, occupancy);
     }
 
     /**
-     * Returns a path from start to goal as a list of {@code [x, y]} grid cells.
-     * The list is empty if either endpoint is non-walkable or no path exists;
-     * the start and goal are both included when a path is returned.
+     * Returns a path from start to goal as a flat {@code int[]} of interleaved
+     * {@code x,y} pairs — cell {@code i} is {@code (result[i*2], result[i*2+1])},
+     * and cell count is {@code result.length / 2}. Returns {@link #EMPTY_PATH}
+     * if either endpoint is non-walkable or no path exists; the start and goal
+     * are both included when a path is returned.
+     *
+     * <p>One {@code int[]} allocation per call — replaces the prior
+     * {@code List<int[]>} which allocated an {@code ArrayList} plus an
+     * {@code int[2]} per cell, killing the per-pathfind GC spike that showed
+     * up during firefights.
      */
-    public static List<int[]> findPath(NavigationGrid grid, int startX, int startY, int goalX, int goalY,
-                                       boolean cardinalOnly, byte[] occupancy) {
+    public static int[] findPath(NavigationGrid grid, int startX, int startY, int goalX, int goalY,
+                                  boolean cardinalOnly, byte[] occupancy) {
         if (!grid.isWalkable(startX, startY) || !grid.isWalkable(goalX, goalY)) {
-            return Collections.emptyList();
+            return EMPTY_PATH;
         }
         if (startX == goalX && startY == goalY) {
-            return Collections.singletonList(new int[]{startX, startY});
+            return new int[]{startX, startY};
         }
 
         int w = grid.getWidth();
@@ -317,24 +324,39 @@ public final class GridPathfinder {
             }
         }
 
-        return Collections.emptyList();
+        return EMPTY_PATH;
     }
 
     // ----- Path reconstruction -----
 
-    private static List<int[]> reconstructPath(int[] parentIdx, int gridWidth, int startIdx, int goalIdx) {
-        List<int[]> path = new ArrayList<>();
-        int current = goalIdx;
+    /**
+     * Walks the parent chain back from goal to start, counting cells, then
+     * allocates one right-sized {@code int[]} and fills it forward (writes
+     * cell {@code i} into slots {@code [i*2, i*2+1]}). Single allocation per
+     * call.
+     */
+    private static int[] reconstructPath(int[] parentIdx, int gridWidth, int startIdx, int goalIdx) {
+        int cellCount = 0;
+        int cursor = goalIdx;
         while (true) {
-            int cx = current % gridWidth;
-            int cy = current / gridWidth;
-            path.add(new int[]{cx, cy});
-            if (current == startIdx) break;
-            int parent = parentIdx[current];
-            if (parent == current) break;
-            current = parent;
+            cellCount++;
+            if (cursor == startIdx) break;
+            int parent = parentIdx[cursor];
+            if (parent == cursor) break;
+            cursor = parent;
         }
-        Collections.reverse(path);
+        int[] path = new int[cellCount * 2];
+        cursor = goalIdx;
+        int writeCell = cellCount - 1;
+        while (writeCell >= 0) {
+            path[writeCell * 2]     = cursor % gridWidth;
+            path[writeCell * 2 + 1] = cursor / gridWidth;
+            if (cursor == startIdx) break;
+            int parent = parentIdx[cursor];
+            if (parent == cursor) break;
+            cursor = parent;
+            writeCell--;
+        }
         return path;
     }
 

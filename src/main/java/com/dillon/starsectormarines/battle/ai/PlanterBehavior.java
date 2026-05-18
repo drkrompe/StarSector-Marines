@@ -6,8 +6,6 @@ import com.dillon.starsectormarines.battle.UnitRole;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.objective.ChargeSiteObjective;
 
-import java.util.Collections;
-
 /**
  * Planter: head to the assigned charge site, dwell on the anchor cell so
  * {@link ChargeSiteObjective#tick} accumulates plant progress, fire
@@ -38,7 +36,7 @@ public final class PlanterBehavior implements UnitBehavior {
         fireOpportunistically(u, sim);
 
         if (u.cellX == sx && u.cellY == sy) {
-            if (!u.path.isEmpty()) sim.setPath(u, Collections.emptyList());
+            if (!u.pathEmpty()) sim.clearPath(u);
             u.moveProgress = 0f;
             u.renderX = u.cellX;
             u.renderY = u.cellY;

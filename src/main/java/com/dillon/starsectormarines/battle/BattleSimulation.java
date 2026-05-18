@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.battle.ai.TurretBehavior;
 import com.dillon.starsectormarines.battle.ai.UnitBehavior;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.map.CellTopology;
+import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.objective.EliminateFactionObjective;
@@ -25,14 +26,16 @@ import com.dillon.starsectormarines.battle.weapons.Detonations;
 import com.dillon.starsectormarines.battle.weapons.HeavyWeapons;
 import com.dillon.starsectormarines.battle.weapons.InfantryWeapons;
 import com.dillon.starsectormarines.battle.weapons.WeaponSimContext;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 /**
@@ -94,8 +97,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final List<EquipmentDrop> equipmentDrops = new ArrayList<>();
     private final List<Doodad> doodads = new ArrayList<>();
     private final List<MapVehicle> vehicles = new ArrayList<>();
-    /** Persistent visual decals (bullet holes, craters, rubble) accumulated over the battle. Bounded by {@link #DECAL_CAP} with FIFO eviction so a long firefight doesn't unbounded grow the render batch. */
-    private final List<Decal> decals = new ArrayList<>();
+    /** Persistent visual decals (bullet holes, craters, rubble) accumulated over the battle. Bounded by {@link #DECAL_CAP} with FIFO eviction via {@link java.util.ArrayDeque#pollFirst} — O(1) head removal, unlike {@code ArrayList.remove(0)} which would shift the whole tail per overflow. */
+    private final java.util.ArrayDeque<Decal> decals = new java.util.ArrayDeque<>();
     /** Soft cap on decal count — older decals get dropped from the head when this fills, so a long battle doesn't accumulate thousands of bullet holes. */
     private static final int DECAL_CAP = 600;
     /** Active smoking wrecks parked at destroyed turret cells. Each emits a periodic smoke-puff event the renderer drains into the impact FX engine. */
@@ -107,7 +110,25 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Min/max sim-seconds between puffs on a single wreck. Jittered per emission so wrecks don't sync up. */
     private static final float WRECK_PUFF_MIN_GAP = 0.45f;
     private static final float WRECK_PUFF_MAX_GAP = 0.85f;
-    private final Map<Integer, Squad> squads = new HashMap<>();
+    /** Dense, primitive-keyed squad lookup. fastutil's Int2ObjectOpenHashMap avoids the per-call Integer autobox that {@link #getSquad} would do on a {@code HashMap<Integer, Squad>} — and getSquad is hit per-unit per-tick from the behavior dispatch. */
+    private final Int2ObjectMap<Squad> squads = new Int2ObjectOpenHashMap<>();
+
+    /**
+     * Per-target attacker index: for each unit currently targeted by at least
+     * one alive attacker, the bucket holds that attacker list. Rebuilt at the
+     * top of each tick by {@link #rebuildAttackersByTarget()}. Unit doesn't
+     * override equals/hashCode, so {@code Object2ObjectOpenHashMap} gives
+     * identity-key semantics for free.
+     *
+     * <p>Drives O(1)-lookup crowding scoring in {@link com.dillon.starsectormarines.battle.ai.TacticalScoring}:
+     * instead of scanning every unit per candidate enemy, the scorer walks the
+     * (typically &lt; 6 entry) attacker list for that enemy. Buckets are
+     * recycled from {@link #attackerListPool} so steady-state allocation is
+     * zero.
+     */
+    private final Object2ObjectMap<Unit, ArrayList<Unit>> attackersByTarget = new Object2ObjectOpenHashMap<>();
+    /** Recycled {@code ArrayList<Unit>} buckets. {@link #rebuildAttackersByTarget()} clears + returns every bucket here before re-populating, so the steady-state allocation is zero. */
+    private final ArrayList<ArrayList<Unit>> attackerListPool = new ArrayList<>();
     /** Next squad id to assign on shuttle deboard. Monotonically increasing across the battle's lifetime. */
     private int nextSquadId = 0;
     private final List<ShotEvent> activeShots = new ArrayList<>();
@@ -130,6 +151,16 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private Faction winner;
 
     private final ZoneGraph zoneGraph;
+    /**
+     * Set whenever the walkability layout changes during a tick (wall breach,
+     * turret demolish). Drained to a single {@link ZoneGraph#rebuild()} at the
+     * end of the tick so multiple breaches in the same tick collapse into one
+     * full graph rebuild. AI queries that run mid-tick see the previous
+     * tick's graph — fine in practice, since rubble stays walkable forever
+     * (paths only ever gain shortcuts) and the new portal becomes visible
+     * within 1/30s.
+     */
+    private boolean zoneGraphDirty = false;
 
     /** Fighter wings committed to this battle. Lives on the sim so the overlay can read it without coupling to the briefing screen. */
     private FlybyRoster flybyRoster = FlybyRoster.EMPTY;
@@ -172,7 +203,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // kind to RUBBLE so the floor pass picks the damaged-floor autotile.
         topology.setWall(x, y, false);
         topology.setGroundKind(x, y, CellTopology.GroundKind.RUBBLE);
-        zoneGraph.rebuild();
+        zoneGraphDirty = true;
         return true;
     }
     public List<Unit> getUnits()           { return units; }
@@ -184,11 +215,11 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Parked vehicles that occupy multi-cell footprints. Cells were flagged non-walkable at setup time, so the sim doesn't need to consult this list for pathing/LOS — only the renderer does. */
     public List<MapVehicle> getVehicles()  { return vehicles; }
     public void addVehicle(MapVehicle v)   { vehicles.add(v); }
-    /** Persistent visual decals — bullet holes, craters, rubble. Pure render data; combat ignores them. */
-    public List<Decal> getDecals()         { return decals; }
+    /** Persistent visual decals — bullet holes, craters, rubble. Pure render data; combat ignores them. Returned as {@code Iterable} because the renderer only iterates; head-eviction needs the {@code ArrayDeque} surface internally. */
+    public Iterable<Decal> getDecals()     { return decals; }
     public void addDecal(Decal d) {
-        decals.add(d);
-        if (decals.size() > DECAL_CAP) decals.remove(0);
+        decals.addLast(d);
+        if (decals.size() > DECAL_CAP) decals.pollFirst();
     }
     /** Smoke-puff events emitted by smoking wrecks during the last advance. Each entry is {x, y, radiusCells}. Drained by the renderer per frame. */
     public List<float[]> getSmokePuffsThisFrame() { return smokePuffsThisFrame; }
@@ -271,18 +302,21 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         target.fallbackTimer = FALLBACK_DURATION;
         // Stale path no longer applies — target will re-path to the fall-back
         // cell on its next updateUnit pass.
-        setPath(target, Collections.emptyList());
+        clearPath(target);
     }
 
     // ---- AirSimContext: services the AirSystem reaches back for during a tick ----
 
     @Override
     public boolean isCellOccupied(int x, int y) {
-        for (Unit u : units) {
-            if (!u.isAlive()) continue;
-            if (u.cellX == x && u.cellY == y) return true;
-        }
-        return false;
+        if (!grid.inBounds(x, y)) return false;
+        // Read the precomputed occupancy map instead of scanning units. The map
+        // counts each unit's current cell + path destination, so a value > 0
+        // means at least one unit physically stands on (x, y) right now.
+        // Destination-only contributions count too, but a shuttle picking a
+        // deboard cell should still avoid those — a marine en route to (x, y)
+        // is about to be there.
+        return (occupancyMap[y * grid.getWidth() + x] & 0xFF) > 0;
     }
 
     @Override
@@ -331,6 +365,13 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             objectives.add(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
         }
         rebuildOccupancyMap();
+        // Rebuild the attacker index BEFORE per-unit updates so target-
+        // selection's crowding scoring (TacticalScoring.findBestTarget) sees a
+        // consistent snapshot of last-tick's targets. We deliberately don't
+        // re-rebuild mid-tick as units pick new targets — the snapshot model
+        // means a squad's crowding cost reflects the previous frame, which
+        // matches the prior O(U²) behavior's semantics anyway.
+        rebuildAttackersByTarget();
         // Refresh squad-level awareness BEFORE individual unit updates so the
         // garrison/patrol behavior dispatch this tick sees fresh ENGAGED /
         // SUSPICIOUS / UNAWARE state. Solo units (squadId == NO_SQUAD) skip
@@ -368,7 +409,52 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         advanceShots();
         processEquipmentDrops();
         for (Objective o : objectives) o.tick(this);
+        // Single zone-graph rebuild for the whole tick — drains any wall
+        // breaches or turret demolishes that happened this tick. Multiple
+        // breaches in one tick (e.g., a rocket shredding a wall section)
+        // collapse into one rebuild.
+        if (zoneGraphDirty) {
+            zoneGraph.rebuild();
+            zoneGraphDirty = false;
+        }
         checkWinCondition();
+    }
+
+    /**
+     * Returns the alive attackers currently aiming at {@code target}, or null
+     * if no one is targeting it. The list is mutated in-place each tick by
+     * {@link #rebuildAttackersByTarget()} — callers must not retain it across
+     * tick boundaries.
+     */
+    public ArrayList<Unit> getAttackersOf(Unit target) {
+        return attackersByTarget.get(target);
+    }
+
+    /**
+     * Rebuilds {@link #attackersByTarget} from the current {@code Unit.target}
+     * pointers. Recycles bucket lists via {@link #attackerListPool} so the
+     * steady-state allocation is zero — buckets grow once, then live forever.
+     *
+     * <p>Skips dead attackers and dead targets so a unit holding a stale
+     * pointer at its dying enemy doesn't pollute the next tick's lookup.
+     */
+    private void rebuildAttackersByTarget() {
+        for (ArrayList<Unit> bucket : attackersByTarget.values()) {
+            bucket.clear();
+            attackerListPool.add(bucket);
+        }
+        attackersByTarget.clear();
+        for (Unit u : units) {
+            if (!u.isAlive() || u.target == null || !u.target.isAlive()) continue;
+            ArrayList<Unit> bucket = attackersByTarget.get(u.target);
+            if (bucket == null) {
+                bucket = attackerListPool.isEmpty()
+                        ? new ArrayList<>(4)
+                        : attackerListPool.remove(attackerListPool.size() - 1);
+                attackersByTarget.put(u.target, bucket);
+            }
+            bucket.add(u);
+        }
     }
 
     /**
@@ -387,9 +473,12 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         for (Unit u : units) {
             if (!u.isAlive()) continue;
             incrementOccupancy(u.cellX, u.cellY);
-            int[] dest = pathDestination(u);
-            if (dest != null && (dest[0] != u.cellX || dest[1] != u.cellY)) {
-                incrementOccupancy(dest[0], dest[1]);
+            int destX = pathDestX(u);
+            if (destX != Integer.MIN_VALUE) {
+                int destY = pathDestY(u);
+                if (destX != u.cellX || destY != u.cellY) {
+                    incrementOccupancy(destX, destY);
+                }
             }
         }
     }
@@ -408,9 +497,13 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         if (cur > 0) occupancyMap[idx] = (byte) (cur - 1);
     }
 
-    /** Returns the unit's final path cell, or null if the path is empty. */
-    private static int[] pathDestination(Unit u) {
-        return u.path.isEmpty() ? null : u.path.get(u.path.size() - 1);
+    /** X coordinate of the unit's final path cell, or {@code Integer.MIN_VALUE} if the path is empty. Internal helper for occupancy bookkeeping. */
+    private static int pathDestX(Unit u) {
+        return u.path.length == 0 ? Integer.MIN_VALUE : u.path[u.path.length - 2];
+    }
+    /** Y coordinate of the unit's final path cell, or {@code Integer.MIN_VALUE} if the path is empty. */
+    private static int pathDestY(Unit u) {
+        return u.path.length == 0 ? Integer.MIN_VALUE : u.path[u.path.length - 1];
     }
 
     /**
@@ -418,19 +511,29 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      * destination loses its occupancy contribution and the new destination
      * gains one (subject to start-cell guards). Public so AI behaviors in
      * {@code battle.ai} can route their movement through this method instead
-     * of touching {@code u.path} directly.
+     * of touching {@code u.path} directly. Pass {@link GridPathfinder#EMPTY_PATH}
+     * (or call {@link #clearPath(Unit)}) to drop the current path.
      */
-    public void setPath(Unit u, List<int[]> newPath) {
-        int[] oldDest = pathDestination(u);
-        if (oldDest != null && (oldDest[0] != u.cellX || oldDest[1] != u.cellY)) {
-            decrementOccupancy(oldDest[0], oldDest[1]);
+    public void setPath(Unit u, int[] newPath) {
+        int oldDestX = pathDestX(u);
+        int oldDestY = pathDestY(u);
+        if (oldDestX != Integer.MIN_VALUE && (oldDestX != u.cellX || oldDestY != u.cellY)) {
+            decrementOccupancy(oldDestX, oldDestY);
         }
         u.path = newPath;
-        u.pathIdx = newPath.isEmpty() ? 0 : 1;
-        int[] newDest = pathDestination(u);
-        if (newDest != null && (newDest[0] != u.cellX || newDest[1] != u.cellY)) {
-            incrementOccupancy(newDest[0], newDest[1]);
+        u.pathIdx = newPath.length == 0 ? 0 : 1;
+        if (newPath.length > 0) {
+            int newDestX = newPath[newPath.length - 2];
+            int newDestY = newPath[newPath.length - 1];
+            if (newDestX != u.cellX || newDestY != u.cellY) {
+                incrementOccupancy(newDestX, newDestY);
+            }
         }
+    }
+
+    /** Convenience: drop the unit's path. Equivalent to {@code setPath(u, GridPathfinder.EMPTY_PATH)}. */
+    public void clearPath(Unit u) {
+        setPath(u, GridPathfinder.EMPTY_PATH);
     }
 
     // advanceBursts moved to InfantryWeapons.tick — pumped from the tick loop
@@ -445,7 +548,6 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      * {@link MapTurret#demolished} so successive ticks don't re-process a wreck.
      */
     private void demolishDeadTurrets() {
-        boolean anyDemolished = false;
         for (Unit u : units) {
             if (!(u instanceof MapTurret)) continue;
             MapTurret t = (MapTurret) u;
@@ -459,13 +561,12 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             grid.recomputeCoverAt(t.cellX, t.cellY + 1);
             grid.recomputeCoverAt(t.cellX, t.cellY - 1);
             t.demolished = true;
-            anyDemolished = true;
+            zoneGraphDirty = true;
             // Mount cell keeps smoking for a while so the player can see the
             // wreck is dead-and-cooling rather than just "gone".
             smokingWrecks.add(new SmokingWreck(t.cellX, t.cellY, WRECK_LIFETIME,
                     0.05f + rng.nextFloat() * 0.10f));
         }
-        if (anyDemolished) zoneGraph.rebuild();
     }
 
     /**
@@ -582,54 +683,92 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Cell radius around a squadmate inside which an enemy shot's origin counts as "audible gunfire" and promotes the squad to SUSPICIOUS. Bigger than weapon ranges so a distant firefight pulls patrols in to investigate — that's the whole point. */
     public static final float GUNFIRE_ALERT_RADIUS = 18f;
 
+    /**
+     * Single per-tick pass that fills in every squad's derived aggregates
+     * (alive member count, centroid, alert level) and drives the
+     * ENGAGED/SUSPICIOUS/UNAWARE state machine.
+     *
+     * <p>Restructured from the prior squads-outer/units-inner form into a
+     * units-outer pass that posts each alive unit's contribution to its
+     * squad in one walk: increments the alive count, accumulates centroid,
+     * notes if any member is in fall-back, and (only if the squad isn't
+     * already tagged ENGAGED this tick) runs a LoS scan for visible enemies.
+     * Engaged squads short-circuit subsequent LoS scans for the same squad
+     * within this tick.
+     *
+     * <p>The audible-gunfire promotion only runs for squads that finished the
+     * first pass still un-engaged. Final state transitions are applied once
+     * per squad at the end.
+     */
     private void updateSquadAlertLevels() {
+        // Per-tick transient flags. Boxed onto Squad to keep allocation out of
+        // the hot path; reset at the top so a dead squad's leftover flags
+        // don't leak into next tick.
         for (Squad squad : squads.values()) {
-            boolean engaged = false;
-            boolean suspicious = false;
-            int seenX = squad.lastSeenEnemyX;
-            int seenY = squad.lastSeenEnemyY;
+            squad.aliveMembers = 0;
+            squad.centroidX = 0f;
+            squad.centroidY = 0f;
+            squad._engagedThisTick = false;
+            squad._suspiciousThisTick = false;
+        }
+
+        // Pass 1: accumulate squad aggregates + per-squad engagement LoS.
+        for (Unit u : units) {
+            if (!u.isAlive() || u.squadId == Unit.NO_SQUAD) continue;
+            Squad squad = squads.get(u.squadId);
+            if (squad == null) continue;
+            squad.aliveMembers++;
+            squad.centroidX += u.cellX;
+            squad.centroidY += u.cellY;
+            if (u.fallbackTimer > 0f) squad._suspiciousThisTick = true;
+
+            // LoS scan only if no squadmate has tripped ENGAGED yet this tick —
+            // one engaged squadmate is enough to commit the whole squad.
+            if (squad._engagedThisTick) continue;
+            for (Unit other : units) {
+                if (!other.isAlive() || other.faction == squad.faction) continue;
+                if (!other.type.combatant) continue;
+                if (!grid.hasLineOfSight(u.cellX, u.cellY, other.cellX, other.cellY)) continue;
+                squad._engagedThisTick = true;
+                squad.lastSeenEnemyX = other.cellX;
+                squad.lastSeenEnemyY = other.cellY;
+                break;
+            }
+        }
+
+        // Audible-gunfire promotion runs only for not-yet-engaged squads.
+        // Iterate units once more, but only do the shot scan for squads that
+        // still need promoting — the early-skip means engaged squads pay
+        // nothing here.
+        if (!activeShots.isEmpty()) {
             for (Unit u : units) {
-                if (!u.isAlive() || u.squadId != squad.id) continue;
-                if (u.fallbackTimer > 0f) suspicious = true;
-                for (Unit other : units) {
-                    if (!other.isAlive() || other.faction == squad.faction) continue;
-                    if (!other.type.combatant) continue;
-                    if (!grid.hasLineOfSight(u.cellX, u.cellY, other.cellX, other.cellY)) continue;
-                    engaged = true;
-                    seenX = other.cellX;
-                    seenY = other.cellY;
-                    break;
-                }
-                if (engaged) break;
-            }
-            // Gunfire spreading: if not already engaged, any enemy shot whose
-            // origin sits within GUNFIRE_ALERT_RADIUS of a squadmate counts as
-            // "we heard something" — patrols converge, garrisons brace. Uses
-            // activeShots (still-in-flight) rather than shotsThisFrame so a
-            // gunfight a tick or two ago still reads as audible.
-            if (!engaged) {
-                for (Unit u : units) {
-                    if (!u.isAlive() || u.squadId != squad.id) continue;
-                    for (ShotEvent shot : activeShots) {
-                        if (shot.shooterFaction == squad.faction) continue;
-                        float dx = shot.fromX - (u.cellX + 0.5f);
-                        float dy = shot.fromY - (u.cellY + 0.5f);
-                        if (dx * dx + dy * dy <= GUNFIRE_ALERT_RADIUS * GUNFIRE_ALERT_RADIUS) {
-                            suspicious = true;
-                            seenX = Math.round(shot.fromX);
-                            seenY = Math.round(shot.fromY);
-                            break;
-                        }
+                if (!u.isAlive() || u.squadId == Unit.NO_SQUAD) continue;
+                Squad squad = squads.get(u.squadId);
+                if (squad == null || squad._engagedThisTick || squad._suspiciousThisTick) continue;
+                for (ShotEvent shot : activeShots) {
+                    if (shot.shooterFaction == squad.faction) continue;
+                    float dx = shot.fromX - (u.cellX + 0.5f);
+                    float dy = shot.fromY - (u.cellY + 0.5f);
+                    if (dx * dx + dy * dy <= GUNFIRE_ALERT_RADIUS * GUNFIRE_ALERT_RADIUS) {
+                        squad._suspiciousThisTick = true;
+                        squad.lastSeenEnemyX = Math.round(shot.fromX);
+                        squad.lastSeenEnemyY = Math.round(shot.fromY);
+                        break;
                     }
-                    if (suspicious) break;
                 }
             }
-            squad.lastSeenEnemyX = seenX;
-            squad.lastSeenEnemyY = seenY;
-            if (engaged) {
+        }
+
+        // Finalize: divide centroids, apply alert-state transitions.
+        for (Squad squad : squads.values()) {
+            if (squad.aliveMembers > 0) {
+                squad.centroidX /= squad.aliveMembers;
+                squad.centroidY /= squad.aliveMembers;
+            }
+            if (squad._engagedThisTick) {
                 squad.alertLevel = SquadAlertLevel.ENGAGED;
                 squad.timeSinceContact = 0f;
-            } else if (suspicious) {
+            } else if (squad._suspiciousThisTick) {
                 if (squad.alertLevel != SquadAlertLevel.ENGAGED) {
                     squad.alertLevel = SquadAlertLevel.SUSPICIOUS;
                 }
@@ -712,7 +851,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                 nearest.equipmentDropTarget = drop;
                 // Wipe any stale path so the retriever re-pathfinds to the drop
                 // next tick instead of continuing toward their old target.
-                setPath(nearest, Collections.emptyList());
+                clearPath(nearest);
             }
         }
 
@@ -764,11 +903,12 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      * update.
      */
     public void advanceMovement(Unit u) {
-        if (u.path.isEmpty() || u.pathIdx >= u.path.size()) return;
+        if (u.pathIdx >= u.pathCellCount()) return;
 
-        int[] nextCell = u.path.get(u.pathIdx);
-        float dx = nextCell[0] - u.cellX;
-        float dy = nextCell[1] - u.cellY;
+        int nextX = u.pathCellX(u.pathIdx);
+        int nextY = u.pathCellY(u.pathIdx);
+        float dx = nextX - u.cellX;
+        float dy = nextY - u.cellY;
         float cellDist = (float) Math.sqrt(dx * dx + dy * dy);
         if (cellDist < 0.0001f) {
             u.pathIdx++;
@@ -779,8 +919,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         u.moveProgress += stepLength / cellDist;
 
         if (u.moveProgress >= 1f) {
-            u.cellX = nextCell[0];
-            u.cellY = nextCell[1];
+            u.cellX = nextX;
+            u.cellY = nextY;
             u.renderX = u.cellX;
             u.renderY = u.cellY;
             u.moveProgress = 0f;

@@ -8,7 +8,6 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.tactical.TacticalMap;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -94,21 +93,11 @@ public final class PatrolBehavior implements UnitBehavior {
         return squad.patrolWaypointX >= 0 && squad.patrolWaypointY >= 0;
     }
 
-    /** True when the squad's centroid (avg of alive members) is within {@link #PATROL_ARRIVAL_RADIUS} of the current waypoint. */
+    /** True when the squad's centroid (avg of alive members) is within {@link #PATROL_ARRIVAL_RADIUS} of the current waypoint. Centroid is cached per-tick on the squad. */
     private static boolean squadHasArrived(Squad squad, BattleSimulation sim) {
-        float sumX = 0f, sumY = 0f;
-        int count = 0;
-        for (Unit u : sim.getUnits()) {
-            if (!u.isAlive() || u.squadId != squad.id) continue;
-            sumX += u.cellX;
-            sumY += u.cellY;
-            count++;
-        }
-        if (count == 0) return true;
-        float cx = sumX / count;
-        float cy = sumY / count;
-        float dx = cx - squad.patrolWaypointX;
-        float dy = cy - squad.patrolWaypointY;
+        if (squad.aliveMembers == 0) return true;
+        float dx = squad.centroidX - squad.patrolWaypointX;
+        float dy = squad.centroidY - squad.patrolWaypointY;
         return Math.sqrt(dx * dx + dy * dy) <= PATROL_ARRIVAL_RADIUS;
     }
 
@@ -141,8 +130,8 @@ public final class PatrolBehavior implements UnitBehavior {
         }
 
         NavigationGrid grid = sim.getGrid();
-        int seedX = anchor != null ? anchor.anchorX : averageSquadX(squad, sim);
-        int seedY = anchor != null ? anchor.anchorY : averageSquadY(squad, sim);
+        int seedX = anchor != null ? anchor.anchorX : Math.round(squad.centroidX);
+        int seedY = anchor != null ? anchor.anchorY : Math.round(squad.centroidY);
         int r = PATROL_DISTRICT_RADIUS;
         for (int i = 0; i < FALLBACK_SAMPLE_ATTEMPTS; i++) {
             int dx = sim.getRng().nextInt(r * 2 + 1) - r;
@@ -156,32 +145,12 @@ public final class PatrolBehavior implements UnitBehavior {
         return null;
     }
 
-    private static int averageSquadX(Squad squad, BattleSimulation sim) {
-        int sum = 0, n = 0;
-        for (Unit u : sim.getUnits()) {
-            if (!u.isAlive() || u.squadId != squad.id) continue;
-            sum += u.cellX;
-            n++;
-        }
-        return n == 0 ? 0 : sum / n;
-    }
-
-    private static int averageSquadY(Squad squad, BattleSimulation sim) {
-        int sum = 0, n = 0;
-        for (Unit u : sim.getUnits()) {
-            if (!u.isAlive() || u.squadId != squad.id) continue;
-            sum += u.cellY;
-            n++;
-        }
-        return n == 0 ? 0 : sum / n;
-    }
-
     private static void moveToward(Unit u, BattleSimulation sim, int tx, int ty) {
-        if (u.moveProgress == 0f && (u.path.isEmpty() || u.pathIdx >= u.path.size())) {
+        if (u.moveProgress == 0f && u.pathIdx >= u.pathCellCount()) {
             sim.setPath(u, GridPathfinder.findPath(sim.getGrid(),
                     u.cellX, u.cellY, tx, ty, sim.getOccupancyMap()));
         }
-        if (!u.path.isEmpty() && u.pathIdx < u.path.size()) {
+        if (u.pathIdx < u.pathCellCount()) {
             sim.advanceMovement(u);
         } else {
             u.moveProgress = 0f;
@@ -191,7 +160,7 @@ public final class PatrolBehavior implements UnitBehavior {
     }
 
     private static void holdPosition(Unit u, BattleSimulation sim) {
-        sim.setPath(u, Collections.emptyList());
+        sim.clearPath(u);
         u.moveProgress = 0f;
         u.renderX = u.cellX;
         u.renderY = u.cellY;

@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
-import java.util.Collections;
 import java.util.Random;
 
 /**
@@ -69,8 +68,7 @@ public final class FleeBehavior implements UnitBehavior {
      */
     private static void updateFleeing(Unit u, Unit threat, BattleSimulation sim) {
         u.wanderDwellTimer = 0f;
-        boolean needsRepath = u.path.isEmpty()
-                || u.pathIdx >= u.path.size()
+        boolean needsRepath = u.pathIdx >= u.pathCellCount()
                 || cellsTraveled(u) >= REPATH_CELL_THRESHOLD;
         if (needsRepath && u.moveProgress == 0f) {
             int[] dest = pickFleeDestination(u, threat, sim);
@@ -86,11 +84,11 @@ public final class FleeBehavior implements UnitBehavior {
      * starts a dwell, and when dwell expires picks a new destination.
      */
     private static void updateIdle(Unit u, BattleSimulation sim) {
-        if (!u.path.isEmpty() && u.pathIdx < u.path.size()) {
+        if (u.pathIdx < u.pathCellCount()) {
             sim.advanceMovement(u);
-            if (u.pathIdx >= u.path.size()) {
+            if (u.pathIdx >= u.pathCellCount()) {
                 // Arrived this tick — clear the path and start dwelling.
-                sim.setPath(u, Collections.emptyList());
+                sim.clearPath(u);
                 u.wanderDwellTimer = randomDwellSeconds(sim.getRng());
             }
             return;
@@ -111,7 +109,7 @@ public final class FleeBehavior implements UnitBehavior {
             return;
         }
         sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), u.cellX, u.cellY, dest[0], dest[1], sim.getOccupancyMap()));
-        if (u.path.isEmpty()) {
+        if (u.pathEmpty()) {
             // Pathfinder found no route (isolated room, blocked by walls). Dwell briefly and try elsewhere.
             u.wanderDwellTimer = FAILED_SAMPLE_DWELL;
             return;

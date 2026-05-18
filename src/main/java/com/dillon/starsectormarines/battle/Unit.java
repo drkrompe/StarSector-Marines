@@ -1,9 +1,7 @@
 package com.dillon.starsectormarines.battle;
 
+import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.objective.Objective;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * One combatant in the battle simulation. Plain data — all behavior lives on
@@ -42,10 +40,26 @@ public class Unit {
     public float renderX;
     public float renderY;
 
-    // Movement state — owned by BattleSimulation; exposed for the renderer.
-    public List<int[]> path = Collections.emptyList();
+    /**
+     * Current path as a flat {@code int[]} of interleaved {@code x,y} pairs —
+     * cell {@code i} sits at {@code (path[i*2], path[i*2+1])}. Empty
+     * ({@link GridPathfinder#EMPTY_PATH}) when the unit has nothing scheduled.
+     * Flattened from the old {@code List<int[]>} to drop the per-cell
+     * {@code int[2]} allocations on each pathfind.
+     */
+    public int[] path = GridPathfinder.EMPTY_PATH;
+    /** Index of the next cell along {@link #path} to step into — addresses cells, not raw int positions (i.e. path slots {@code [pathIdx*2, pathIdx*2+1]}). */
     public int pathIdx = 0;
     public float moveProgress = 0f; // 0..1 toward path[pathIdx]
+
+    /** Convenience accessor — number of cells in {@link #path}. */
+    public int pathCellCount() { return path.length >> 1; }
+    /** Convenience accessor — x coordinate of the i-th cell along {@link #path}. */
+    public int pathCellX(int i) { return path[i << 1]; }
+    /** Convenience accessor — y coordinate of the i-th cell along {@link #path}. */
+    public int pathCellY(int i) { return path[(i << 1) | 1]; }
+    /** True when the unit has no path scheduled. Match for the old {@code path.isEmpty()} check. */
+    public boolean pathEmpty() { return path.length == 0; }
 
     // Stats — initialized from UnitType, then mutable per-unit so captain traits
     // and mission modifiers can adjust an individual without changing the archetype.
