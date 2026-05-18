@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.ai;
 
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Faction;
-import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
@@ -43,16 +42,6 @@ public final class TacticalScoring {
     public static final float FIRING_COVER_BONUS = 3f;
     /** Per-cover-level bonus from doodad cover (crates, shelves) on the candidate cell. Lower weight than wall cover because doodads don't fully break LOS — they're concealment, not full intervening geometry. */
     public static final float FIRING_DOODAD_COVER_BONUS = 1.5f;
-    /**
-     * Squad-cohesion clamp multiplier on top of {@link InfantryCohesion#COHESION_RADIUS}.
-     * A marine can engage a target as long as the target's cell stays within
-     * {@code COHESION_RADIUS * COHESION_CLAMP_MULT} cells of the squad centroid;
-     * beyond that, the picker drops the target rather than letting one member
-     * peel off chasing it. Story I: cohesion is a hard constraint on individual
-     * pursuit, not a soft leash that can stretch arbitrarily.
-     */
-    public static final float COHESION_CLAMP_MULT = 1.5f;
-
     /** Radius (cells) over which {@link #findBestTarget} counts neighboring enemies to penalize cluster targets. */
     public static final int THREAT_DENSITY_RADIUS = 4;
     /** Per-neighbor-enemy penalty added to a target's score. Pursuing one fleer into 3 squadmates costs roughly the same as walking ~20 extra cells. */
@@ -122,17 +111,9 @@ public final class TacticalScoring {
      * target — the cluster makes pursuing them prohibitively expensive, and
      * the picker drops them in favor of an isolated enemy or no-target.
      *
-     * <p><b>Cohesion clamp</b> — when {@code selfSquadId} is set, candidates
-     * whose cell is more than {@code COHESION_RADIUS * COHESION_CLAMP_MULT}
-     * cells from the squad centroid are skipped entirely (visible <em>and</em>
-     * any-distance buckets). This is a hard constraint: a marine can't be
-     * pulled out of the squad to chase a target, period. Solo units (no
-     * squad) skip the clamp.
-     *
      * <p>The any-distance fallback bucket still exists so the unit pathfinds
-     * toward the nearest visible-eventually enemy when LOS is fully broken;
-     * it's also gated by the cohesion clamp so it can't pull the unit out of
-     * squad. When everything fails the clamp the method returns null —
+     * toward the nearest visible-eventually enemy when LOS is fully broken.
+     * When no enemy combatants remain anywhere the method returns null —
      * caller treats null as "hold position, no target."
      */
     public static Unit findBestTarget(int selfCellX, int selfCellY, Faction selfFaction,
@@ -143,8 +124,6 @@ public final class TacticalScoring {
         float bestVisibleScore = Float.MAX_VALUE;
         Unit bestAny = null;
         float bestAnyDist = Float.MAX_VALUE;
-        float clampDist = cohesionClampDist(selfSquadId, sim);
-        float[] centroid = clampDist > 0 ? squadCentroid(selfSquadId, sim) : null;
 
         for (Unit other : units) {
             if (!other.isAlive()) continue;
@@ -153,15 +132,6 @@ public final class TacticalScoring {
             // bystanders. A separate "rules of engagement" toggle could relax
             // this for pirate atrocity scenarios later.
             if (!other.type.combatant) continue;
-
-            // Story I cohesion clamp: skip any candidate too far from the
-            // squad centroid. Prevents the "one marine 20 cells out of squad"
-            // failure mode that Stage 1 surfaced.
-            if (centroid != null) {
-                float cdx = other.cellX - centroid[0];
-                float cdy = other.cellY - centroid[1];
-                if (cdx * cdx + cdy * cdy > clampDist * clampDist) continue;
-            }
 
             float d = cellDistance(selfCellX, selfCellY, other.cellX, other.cellY);
             if (d < bestAnyDist) {
@@ -178,32 +148,6 @@ public final class TacticalScoring {
             }
         }
         return bestVisible != null ? bestVisible : bestAny;
-    }
-
-    /**
-     * Maximum cell-distance from the squad centroid a candidate target may
-     * live at and still be eligible. Returns a non-positive value (and thus
-     * "no clamp") for solo units or empty squads — solo defenders + civilian
-     * turrets shouldn't be constrained by a squad they don't belong to.
-     */
-    private static float cohesionClampDist(int selfSquadId, BattleSimulation sim) {
-        if (selfSquadId == Unit.NO_SQUAD) return -1f;
-        Squad squad = sim.getSquad(selfSquadId);
-        if (squad == null || squad.aliveMembers <= 0) return -1f;
-        return InfantryCohesion.COHESION_RADIUS * COHESION_CLAMP_MULT;
-    }
-
-    /**
-     * Cached squad centroid as a {@code float[]{cx, cy}}, or {@code null}
-     * when no squad data is available. The sim updates {@link Squad#centroidX} /
-     * {@link Squad#centroidY} on its per-tick alert-update pass; we read the
-     * stale snapshot, which is fine for target-picking (off by &lt;1 cell).
-     */
-    private static float[] squadCentroid(int selfSquadId, BattleSimulation sim) {
-        if (selfSquadId == Unit.NO_SQUAD) return null;
-        Squad squad = sim.getSquad(selfSquadId);
-        if (squad == null || squad.aliveMembers <= 0) return null;
-        return new float[]{squad.centroidX, squad.centroidY};
     }
 
     /**
@@ -241,21 +185,10 @@ public final class TacticalScoring {
      *   <li>{@code currentTarget} is dead or null.</li>
      *   <li>LOS is broken (per {@code los}) <em>and</em> the target now sits
      *       inside a non-trivial threat-density cluster.</li>
-     *   <li>The target violates the squad-cohesion clamp (target moved too
-     *       far from the squad to be reachable without scattering).</li>
      * </ul>
      */
     public static boolean shouldKeepPursuing(Unit self, Unit currentTarget, BattleSimulation sim) {
         if (currentTarget == null || !currentTarget.isAlive()) return false;
-        float clampDist = cohesionClampDist(self.squadId, sim);
-        if (clampDist > 0f) {
-            float[] centroid = squadCentroid(self.squadId, sim);
-            if (centroid != null) {
-                float cdx = currentTarget.cellX - centroid[0];
-                float cdy = currentTarget.cellY - centroid[1];
-                if (cdx * cdx + cdy * cdy > clampDist * clampDist) return false;
-            }
-        }
         boolean visible = sim.getGrid().hasLineOfSight(self.cellX, self.cellY,
                 currentTarget.cellX, currentTarget.cellY);
         if (visible) return true;

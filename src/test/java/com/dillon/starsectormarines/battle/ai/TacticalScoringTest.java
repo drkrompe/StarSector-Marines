@@ -175,74 +175,33 @@ public class TacticalScoringTest {
                 "wounded fleer in a cluster must NOT be the lowest-cost target");
     }
 
-    // ---------------------------------------------------------------------
-    // Part 3b — cohesion clamp
-    // ---------------------------------------------------------------------
-
     @Test
-    public void cohesionClampSkipsFarTargets() {
+    public void targetPickerPicksFarTargetWhenItsTheOnlyOne() {
+        // Cohesion is a movement constraint (handled in the action layer),
+        // not a target-selection constraint. Marines deploying at the map
+        // edge with the only enemies 35+ cells across the map must still
+        // get a target — otherwise the planner has nothing to do and the
+        // squad sits idle (the Conquest "stuck in Idle" failure mode).
         BattleSimulation sim = openArena(50, 50);
-
-        // Squad centroid at (10, 10). Squad has 4 members.
         int squadId = sim.mintSquad(Faction.MARINE, null);
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 4;
-        squad.centroidX = 10f;
+        squad.centroidX = 5f;
         squad.centroidY = 10f;
 
-        // Marine drifted out — currently 30 cells east of the centroid.
-        Unit marine = unit(sim, Faction.MARINE, 40, 10);
+        Unit marine = unit(sim, Faction.MARINE, 5, 10);
         marine.squadId = squadId;
-        marine.attackRange = 40f;
+        marine.attackRange = 60f;
 
-        // Target 5 cells further east — 35 cells from the centroid, well
-        // beyond the 18-cell clamp (COHESION_RADIUS * COHESION_CLAMP_MULT
-        // = 12 * 1.5 = 18).
         Unit farEnemy = unit(sim, Faction.DEFENDER, 45, 10);
 
         Unit picked = TacticalScoring.findBestTarget(marine, sim);
-        assertNull(picked,
-                "cohesion clamp must skip targets > 18 cells from squad centroid");
-    }
-
-    @Test
-    public void cohesionClampAllowsInRangeTargets() {
-        BattleSimulation sim = openArena(50, 50);
-
-        int squadId = sim.mintSquad(Faction.MARINE, null);
-        Squad squad = sim.getSquad(squadId);
-        squad.aliveMembers = 4;
-        squad.centroidX = 10f;
-        squad.centroidY = 10f;
-
-        Unit marine = unit(sim, Faction.MARINE, 12, 10);
-        marine.squadId = squadId;
-        marine.attackRange = 30f;
-
-        // Target at (20, 10) — 10 cells from centroid, well inside the clamp.
-        Unit nearEnemy = unit(sim, Faction.DEFENDER, 20, 10);
-
-        Unit picked = TacticalScoring.findBestTarget(marine, sim);
-        assertEquals(nearEnemy, picked);
-    }
-
-    @Test
-    public void cohesionClampSkippedForSoloUnits() {
-        // No squad — the cohesion clamp must not apply, otherwise solo
-        // defenders / turrets would refuse to engage anything.
-        BattleSimulation sim = openArena(50, 50);
-        Unit solo = unit(sim, Faction.MARINE, 5, 5);
-        // solo.squadId defaults to NO_SQUAD
-        solo.attackRange = 60f;
-        Unit veryFarEnemy = unit(sim, Faction.DEFENDER, 45, 45);
-
-        Unit picked = TacticalScoring.findBestTarget(solo, sim);
-        assertEquals(veryFarEnemy, picked,
-                "solo units (NO_SQUAD) ignore the cohesion clamp");
+        assertEquals(farEnemy, picked,
+                "target selection must not be gated by squad centroid distance");
     }
 
     // ---------------------------------------------------------------------
-    // Part 3c — pursuit gate
+    // Part 3b — pursuit gate
     // ---------------------------------------------------------------------
 
     @Test
