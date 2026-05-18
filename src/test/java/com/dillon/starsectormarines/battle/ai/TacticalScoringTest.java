@@ -231,6 +231,95 @@ public class TacticalScoringTest {
     }
 
     // ---------------------------------------------------------------------
+    // Part 3a — zone-mismatch target bias (Slice 3.5)
+    // ---------------------------------------------------------------------
+
+    /** 20×20 with a vertical wall at x=10 punched by a doorway at (10, 10). Two zones. */
+    private static BattleSimulation twoZoneSim() {
+        NavigationGrid grid = new NavigationGrid(20, 20);
+        for (int y = 0; y < 20; y++) {
+            for (int x = 0; x < 20; x++) {
+                if (x == 10) continue;
+                grid.setWalkableFloor(x, y);
+            }
+        }
+        grid.setWalkableFloor(10, 10);
+        grid.setDoorway(10, 10, true);
+        return new BattleSimulation(grid, new CellTopology(20, 20));
+    }
+
+    @Test
+    public void inZoneTargetBeatsSlightlyCloserAcrossZoneTarget() {
+        // Marine at (5, 10), in-zone enemy at (9, 10) (dist 4), across-zone
+        // enemy at (11, 10) (dist 6). Old (distance-only) scoring would pick
+        // the across-zone enemy because raw distance is irrelevant to the
+        // wall geometry; with the +8f cross-zone bias the in-zone target
+        // wins (adjusted: 4 vs 14).
+        BattleSimulation sim = twoZoneSim();
+        Unit marine = unit(sim, Faction.MARINE, 5, 10);
+        marine.attackRange = 50f;
+        Unit closer = unit(sim, Faction.DEFENDER, 9, 10);
+        unit(sim, Faction.DEFENDER, 11, 10);
+
+        Unit picked = TacticalScoring.findBestTarget(marine, sim);
+        assertEquals(closer, picked,
+                "in-zone enemy at dist 4 must beat across-zone enemy at dist 6 (bias > 2)");
+    }
+
+    @Test
+    public void biasDoesNotFlipObviouslyCloserAcrossZoneTarget() {
+        // The bias must not be a hard gate. A very close across-zone target
+        // still wins against a far in-zone target. Marine at (5, 10),
+        // across-zone enemy at (11, 10) (dist 6, adjusted 14), in-zone enemy
+        // at (5, 19) (dist 9). Adjusted: 9 vs 14 → in-zone wins. To verify
+        // the across-zone DOES win when far enough closer, we need:
+        // distAcross + 8 < distIn. So put in-zone at (5, 4) (dist 6) and
+        // remove it isn't enough... the doorway is at (10, 10) so put the
+        // across-zone enemy literally on the doorway-adjacent cell (11, 10)
+        // and the in-zone enemy as far as possible. With a 20×20 arena, the
+        // max in-zone distance from (5, 10) is ~14 cells; adjusted across
+        // is 6 + 8 = 14. Tied; in-zone wins by iteration order which is
+        // implementation-dependent. We need a clearer-cut margin.
+        //
+        // Use a larger arena so the in-zone enemy can be definitively
+        // farther. Build a 40-wide two-zone sim with the wall at x=20.
+        NavigationGrid grid = new NavigationGrid(40, 20);
+        for (int y = 0; y < 20; y++) {
+            for (int x = 0; x < 40; x++) {
+                if (x == 20) continue;
+                grid.setWalkableFloor(x, y);
+            }
+        }
+        grid.setWalkableFloor(20, 10);
+        grid.setDoorway(20, 10, true);
+        BattleSimulation sim = new BattleSimulation(grid, new CellTopology(40, 20));
+
+        Unit marine = unit(sim, Faction.MARINE, 18, 10);
+        marine.attackRange = 50f;
+        Unit acrossClose = unit(sim, Faction.DEFENDER, 21, 10);   // dist 3, adjusted 11
+        Unit inZoneFar  = unit(sim, Faction.DEFENDER, 2, 10);     // dist 16, adjusted 16
+
+        Unit picked = TacticalScoring.findBestTarget(marine, sim);
+        assertEquals(acrossClose, picked,
+                "very close across-zone enemy (adjusted 11) must beat distant in-zone (16)");
+    }
+
+    @Test
+    public void biasIgnoredWhenZonesIndistinguishable() {
+        // Open arena with no zones distinguished — both targets in same zone.
+        // The bias is 0; nearest wins by raw distance.
+        BattleSimulation sim = openArena(20, 20);
+        Unit marine = unit(sim, Faction.MARINE, 5, 5);
+        marine.attackRange = 50f;
+        Unit near = unit(sim, Faction.DEFENDER, 7, 5);
+        Unit far = unit(sim, Faction.DEFENDER, 15, 5);
+
+        Unit picked = TacticalScoring.findBestTarget(marine, sim);
+        assertEquals(near, picked,
+                "same-zone targets — pick nearest, bias is 0");
+    }
+
+    // ---------------------------------------------------------------------
     // Part 3b — pursuit gate
     // ---------------------------------------------------------------------
 

@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.ai.goap.actions.BreakLOS;
 import com.dillon.starsectormarines.battle.ai.goap.actions.EngagePosture;
 import com.dillon.starsectormarines.battle.ai.goap.actions.OverwatchPosture;
 import com.dillon.starsectormarines.battle.ai.goap.actions.RegroupPosture;
+import com.dillon.starsectormarines.battle.ai.goap.goals.BreachToEngage;
 import com.dillon.starsectormarines.battle.ai.goap.goals.CordonForPlant;
 import com.dillon.starsectormarines.battle.ai.goap.goals.EliminateEnemiesGoal;
 import com.dillon.starsectormarines.battle.ai.goap.goals.GarrisonAmbush;
@@ -55,6 +56,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             SecureObjectiveZone.INSTANCE,
             GarrisonAmbush.INSTANCE,
             SurviveContact.INSTANCE,
+            BreachToEngage.INSTANCE,
             EliminateEnemiesGoal.INSTANCE
     );
 

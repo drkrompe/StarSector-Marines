@@ -188,6 +188,15 @@ public final class Squad {
     public int aliveMembersAtLastPlan = 0;
 
     /**
+     * Sim-seconds since the current {@link com.dillon.starsectormarines.battle.ai.goap.actions.BreachAndAdvance}
+     * step entered its stack-up phase. Used to enforce the per-step stack-up
+     * timeout — once it exceeds the threshold, the breach commits regardless
+     * of how many members made it to the doorway. Reset to 0 when the breach
+     * step completes successfully. No-op when no breach action is active.
+     */
+    public float breachStackupTimer = 0f;
+
+    /**
      * Portal id the squad's current
      * {@link com.dillon.starsectormarines.battle.ai.goap.actions.ChokePointHold}
      * action is watching, or {@code -1} when no choke-point hold is active.

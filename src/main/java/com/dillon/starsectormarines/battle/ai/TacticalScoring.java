@@ -50,6 +50,18 @@ public final class TacticalScoring {
     public static final float TARGET_THREAT_DENSITY_COST = 5f;
 
     /**
+     * Penalty added when a candidate target is in a different navigation zone
+     * from the shooter — Slice 3.5 soft gate on cross-zone target selection.
+     * Equivalent to ~8 cells of extra walking distance, so a close in-zone
+     * enemy beats a slightly-further across-zone enemy without preventing
+     * a meaningfully closer across-zone threat from winning. Pairs with
+     * {@link com.dillon.starsectormarines.battle.ai.goap.goals.BreachToEngage}:
+     * once there's no acceptable in-zone target, the cross-zone enemy wins
+     * by default and BreachToEngage's relevance flips on.
+     */
+    public static final float TARGET_ZONE_MISMATCH_COST = 8f;
+
+    /**
      * Multiplier on the weapon-target affinity term in {@link #findBestTarget}.
      * A marine's score for a hardened target gets {@code WEIGHT * (1 - vsHardenedMult)}
      * added — well-suited weapons (rockets, mult 3.5) earn a ~20-point bonus
@@ -164,7 +176,8 @@ public final class TacticalScoring {
             float crowding = scoreCrowding(selfFaction, selfSquadId, other, sim, excludeFromCrowding);
             float density = scoreThreatDensity(other, selfFaction, sim);
             float affinity = scoreWeaponAffinity(excludeFromCrowding, other);
-            float score = d + crowding + density + affinity;
+            float zoneMismatch = scoreZoneMismatch(selfCellX, selfCellY, other, sim);
+            float score = d + crowding + density + affinity + zoneMismatch;
             if (score < bestVisibleScore) {
                 bestVisibleScore = score;
                 bestVisible = other;
@@ -191,6 +204,20 @@ public final class TacticalScoring {
                 ? self.secondaryWeapon.vsTurretMult : 0f;
         float bestMult = Math.max(primary, secondary);
         return WEAPON_AFFINITY_WEIGHT * (1f - bestMult);
+    }
+
+    /**
+     * Returns {@link #TARGET_ZONE_MISMATCH_COST} when the candidate's cell is
+     * in a different navigation zone from the shooter's cell, 0 otherwise.
+     * Zones with id {@code < 0} (out-of-bounds / unwalkable, shouldn't happen
+     * for live combatants) read as "no zone" — treated as matching so weird
+     * edge cases don't accidentally amplify the bias.
+     */
+    private static float scoreZoneMismatch(int selfCellX, int selfCellY, Unit candidate, BattleSimulation sim) {
+        int selfZone = sim.getZoneGraph().zoneIdAt(selfCellX, selfCellY);
+        int targetZone = sim.getZoneGraph().zoneIdAt(candidate.cellX, candidate.cellY);
+        if (selfZone < 0 || targetZone < 0) return 0f;
+        return selfZone == targetZone ? 0f : TARGET_ZONE_MISMATCH_COST;
     }
 
     /** Hardened target classification — counts emplacements and heavy mechs. Anything else (infantry archetypes, aliens, militia) is soft. */
