@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.battle.SpriteSheetFrames;
-import com.dillon.starsectormarines.battle.SpriteSheetSlicer;
+import com.dillon.starsectormarines.battle.sprites.SpriteSheetFrames;
+import com.dillon.starsectormarines.battle.sprites.SpriteSheetSlicer;
 import com.dillon.starsectormarines.battle.UnitType;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ui.ButtonWidget;

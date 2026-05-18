@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle;
+package com.dillon.starsectormarines.battle.sprites;
 
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;

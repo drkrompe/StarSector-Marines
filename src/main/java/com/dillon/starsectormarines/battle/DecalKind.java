@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle;
 
+import com.dillon.starsectormarines.battle.sprites.SpriteSheetSlicer;
+
 /**
  * Semantic names for the 13 frames in {@code mod/graphics/decals/decals.png}.
  * Sheet is a 2048×160 horizontal strip; frame index in this enum matches the

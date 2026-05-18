@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle;
 
+import com.dillon.starsectormarines.battle.sprites.SpriteSheetSlicer;
+
 /**
  * Catalog of large vehicle props that can be parked on the battle map. Each
  * variant bundles its source sheet, the frame index inside that sheet (sliced
