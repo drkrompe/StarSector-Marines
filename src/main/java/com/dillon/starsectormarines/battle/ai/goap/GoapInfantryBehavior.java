@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.ai.UnitBehavior;
 import com.dillon.starsectormarines.battle.ai.goap.actions.ApproachPosture;
 import com.dillon.starsectormarines.battle.ai.goap.actions.EngagePosture;
 import com.dillon.starsectormarines.battle.ai.goap.actions.RegroupPosture;
+import com.dillon.starsectormarines.battle.ai.goap.goals.CordonForPlant;
 import com.dillon.starsectormarines.battle.ai.goap.goals.EliminateEnemiesGoal;
 import com.dillon.starsectormarines.battle.ai.goap.goals.SecureObjectiveZone;
 import com.dillon.starsectormarines.battle.ai.goap.scoring.RoleAssigner;
@@ -46,6 +47,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
 
     /** Goals the squad-level planner picks from each replan. Highest-priority bucket wins, relevance breaks ties within a bucket (see {@link Goal#pickMostRelevant}). */
     public static final List<Goal> INFANTRY_GOALS = List.of(
+            CordonForPlant.INSTANCE,
             SecureObjectiveZone.INSTANCE,
             EliminateEnemiesGoal.INSTANCE
     );
