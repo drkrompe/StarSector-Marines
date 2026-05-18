@@ -110,6 +110,9 @@ public final class IndustryMissionCatalog {
                         "Junior officer wants out. Smuggling route runs through the motor pool; subject is briefed.")
         ));
         m.put(Industries.MILITARYBASE, Arrays.asList(
+                new MissionArchetype(MissionType.CONQUEST, "Conquer the Military Base",
+                        "Full beachhead-to-citadel push. Drop on the perimeter, fight uphill through the " +
+                        "civilian buffer, breach the fortress wall. Bring the regiment — this is not a raid."),
                 new MissionArchetype(MissionType.ASSAULT, "Storm the Military Base",
                         "Fully fortified perimeter, dug-in defenders, layered killzones. This is the " +
                         "real thing — assume losses, plan for them."),
@@ -118,6 +121,9 @@ public final class IndustryMissionCatalog {
                         "patrol checks each barracks block hourly.")
         ));
         m.put(Industries.HIGHCOMMAND, Arrays.asList(
+                new MissionArchetype(MissionType.CONQUEST, "Take High Command",
+                        "Full-scale planetary assault. The fortress walls aren't decorative — the regiment " +
+                        "lives behind them. Coordinated breach, sustained push, hold the gates."),
                 new MissionArchetype(MissionType.ASSAULT, "Decap Strike on High Command",
                         "Hardest target on the map. The chain of command operates from a buried bunker complex; " +
                         "above-ground assault is a feint, the real op is the access tunnel.")

@@ -160,6 +160,7 @@ public final class MissionGenerator {
 
     private static float typeMultiplier(MissionType type) {
         switch (type) {
+            case CONQUEST:   return 1.8f; // largest payouts — biggest commitment, biggest target
             case EXTRACTION: return 1.4f;
             case SABOTAGE:   return 1.3f;
             case RAID:       return 1.2f;

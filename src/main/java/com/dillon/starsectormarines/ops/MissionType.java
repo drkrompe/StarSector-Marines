@@ -12,7 +12,8 @@ public enum MissionType {
     ASSAULT   ("missionTypeAssault",    'A', new Color(0xE0, 0x70, 0x70)),
     SABOTAGE  ("missionTypeSabotage",   'S', new Color(0xE0, 0xB0, 0x70)),
     RAID      ("missionTypeRaid",       'R', new Color(0xC0, 0x90, 0xE0)),
-    EXTRACTION("missionTypeExtraction", 'E', new Color(0x70, 0xC0, 0xE0));
+    EXTRACTION("missionTypeExtraction", 'E', new Color(0x70, 0xC0, 0xE0)),
+    CONQUEST  ("missionTypeConquest",   'C', new Color(0xB0, 0x50, 0x50));
 
     public final String displayKey;
     public final char   glyph;

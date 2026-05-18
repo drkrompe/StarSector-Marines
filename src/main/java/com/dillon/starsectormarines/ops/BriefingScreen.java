@@ -560,13 +560,16 @@ public class BriefingScreen implements Screen {
         long seed = System.currentTimeMillis();
         switch (m.type) {
             case SABOTAGE:
-                sim = BattleSetup.createSabotage(seed, manifest, enemyHasHeavyArmor);
+                sim = BattleSetup.createSabotage(seed, manifest, enemyHasHeavyArmor, m.risk);
+                break;
+            case CONQUEST:
+                sim = BattleSetup.createConquest(seed, manifest, enemyHasHeavyArmor, m.risk);
                 break;
             case ASSAULT:
             case RAID:
             case EXTRACTION:
             default:
-                sim = BattleSetup.createPlaceholder(seed, manifest, enemyHasHeavyArmor);
+                sim = BattleSetup.createPlaceholder(seed, manifest, enemyHasHeavyArmor, m.risk);
         }
         // Fold employer support + the player's own fitted bays + enemy support
         // into a single roster the overlay drives spawns from. Re-queries the

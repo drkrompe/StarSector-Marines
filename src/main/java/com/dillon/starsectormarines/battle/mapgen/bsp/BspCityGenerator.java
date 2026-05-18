@@ -127,6 +127,7 @@ public final class BspCityGenerator implements MapGenerator {
      * generation. Eventually the legacy path will be retired once biome mode
      * covers every variant we generate.
      */
+    @Override
     public MapResult generate(int width, int height, long seed, TraversalAxis axis) {
         Random rng = new Random(seed);
         NavigationGrid grid = new NavigationGrid(width, height);

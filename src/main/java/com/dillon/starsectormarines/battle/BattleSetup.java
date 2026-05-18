@@ -8,12 +8,14 @@ import com.dillon.starsectormarines.battle.air.TurretMount;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.mapgen.MapGenerator;
 import com.dillon.starsectormarines.battle.mapgen.MapResult;
+import com.dillon.starsectormarines.battle.mapgen.TraversalAxis;
 import com.dillon.starsectormarines.battle.mapgen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.objective.EliminateFactionObjective;
 import com.dillon.starsectormarines.battle.tactical.TacticalMap;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
+import com.dillon.starsectormarines.ops.RiskLevel;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -34,9 +36,9 @@ import java.util.Set;
  */
 public final class BattleSetup {
 
-    /** Default battle grid size (cells). Was 24x16 during the MVP loop; widened for urban combat. */
-    public static final int GRID_W = 96;
-    public static final int GRID_H = 48;
+    /** Default battle grid size (cells) — matches {@link MapScale#MEDIUM}. Used as the {@link com.dillon.starsectormarines.ops.BattleScreen} fallback when no simulation is active yet. The actual generated map dimensions come from {@link MapScale#forRisk}. */
+    public static final int GRID_W = MapScale.MEDIUM.width;
+    public static final int GRID_H = MapScale.MEDIUM.height;
 
     private static final int DEFENDER_COUNT = 12;
 
@@ -116,6 +118,17 @@ public final class BattleSetup {
         return createPlaceholder(seed, manifest, false);
     }
 
+    /** Risk-defaulted overloads — map size collapses to {@link MapScale#MEDIUM}. */
+    public static BattleSimulation createSabotage(long seed, List<ShuttleAssignment> manifest,
+                                                  boolean enemyHasHeavyArmor) {
+        return createSabotage(seed, manifest, enemyHasHeavyArmor, RiskLevel.MEDIUM);
+    }
+
+    public static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest,
+                                                     boolean enemyHasHeavyArmor) {
+        return createPlaceholder(seed, manifest, enemyHasHeavyArmor, RiskLevel.MEDIUM);
+    }
+
     /** Default manifest used by no-arg factories — three single-cycle Aeroshuttles, matching pre-cycling behavior. */
     private static List<ShuttleAssignment> defaultManifest() {
         List<ShuttleAssignment> out = new ArrayList<>(SHUTTLE_COUNT);
@@ -136,8 +149,9 @@ public final class BattleSetup {
      * marine before the charges go off.
      */
     public static BattleSimulation createSabotage(long seed, List<ShuttleAssignment> manifest,
-                                                  boolean enemyHasHeavyArmor) {
-        MapResult map = MAP_GEN.generate(GRID_W, GRID_H, seed);
+                                                  boolean enemyHasHeavyArmor, RiskLevel risk) {
+        MapScale scale = MapScale.forRisk(risk);
+        MapResult map = MAP_GEN.generate(scale.width, scale.height, seed);
         Random rng = new Random(seed);
         // Vehicles stamp before sim construction so the BattleSimulation's
         // zone-graph rebuild sees the final walkability — trucks partition zones.
@@ -151,7 +165,7 @@ public final class BattleSetup {
 
         // Pick charge sites: prefer high-value POIs (lab/comms/depot) in the
         // defender half of the map. Fall back to any POI if not enough qualify.
-        List<PointOfInterest> sites = pickChargeSites(map.pointsOfInterest, GRID_W / 2, SABOTAGE_CHARGE_SITES);
+        List<PointOfInterest> sites = pickChargeSites(map.pointsOfInterest, scale.width / 2, SABOTAGE_CHARGE_SITES);
         List<ChargeSiteObjective> objectives = new ArrayList<>(sites.size());
         for (PointOfInterest poi : sites) {
             // Plant target is inside the building — the planter pathfinds in
@@ -175,22 +189,18 @@ public final class BattleSetup {
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
         List<int[]> lzCells = pickLandingZones(map.grid, map.marineSpawnX, map.marineSpawnY, assignments.size());
         stampLzPads(sim, lzCells);
-        float topEdgeY = GRID_H;
         int globalDropIdx = 0;
         for (int i = 0; i < lzCells.size(); i++) {
             ShuttleAssignment a = assignments.get(i % assignments.size());
             int[] lz = lzCells.get(i);
             float lzCenterX = lz[0] + 0.5f;
             float lzCenterY = lz[1] + 0.5f;
-            float entryX = lzCenterX;
-            float entryY = topEdgeY + SHUTTLE_OFFMAP_Y;
-            float exitX  = lzCenterX;
-            float exitY  = topEdgeY + SHUTTLE_OFFMAP_Y + 4f;
+            float[] entry = shuttleEntryFor(lzCenterX, lzCenterY, scale.width, scale.height, null);
             Shuttle shuttle = new Shuttle(
                     a.type, Faction.MARINE,
                     lzCenterX, lzCenterY,
-                    entryX, entryY,
-                    exitX, exitY,
+                    entry[0], entry[1],
+                    entry[2], entry[3],
                     i * SHUTTLE_DROP_STAGGER_SEC);
             shuttle.totalCycles = a.cycles;
             MarineLoadout[][] cycleLoadouts = new MarineLoadout[a.cycles][];
@@ -334,8 +344,9 @@ public final class BattleSetup {
     }
 
     public static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest,
-                                                     boolean enemyHasHeavyArmor) {
-        MapResult map = MAP_GEN.generate(GRID_W, GRID_H, seed);
+                                                     boolean enemyHasHeavyArmor, RiskLevel risk) {
+        MapScale scale = MapScale.forRisk(risk);
+        MapResult map = MAP_GEN.generate(scale.width, scale.height, seed);
         Random rng = new Random(seed);
         List<MapVehicle> vehiclePlacements = stampVehicles(map.grid, map.topology, rng);
         List<TurretPlacement> turretPlacements = stampTurrets(map.grid, map.topology, rng);
@@ -356,23 +367,17 @@ public final class BattleSetup {
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
         List<int[]> lzCells = pickLandingZones(map.grid, map.marineSpawnX, map.marineSpawnY, assignments.size());
         stampLzPads(sim, lzCells);
-        float topEdgeY = GRID_H;
         for (int i = 0; i < lzCells.size(); i++) {
             ShuttleAssignment a = assignments.get(i % assignments.size());
             int[] lz = lzCells.get(i);
             float lzCenterX = lz[0] + 0.5f;
             float lzCenterY = lz[1] + 0.5f;
-            // Entry directly above the LZ, off the top of the grid. Exit a bit further off to give
-            // the departing shuttle a moment of visible climb before it disappears.
-            float entryX = lzCenterX;
-            float entryY = topEdgeY + SHUTTLE_OFFMAP_Y;
-            float exitX  = lzCenterX;
-            float exitY  = topEdgeY + SHUTTLE_OFFMAP_Y + 4f;
+            float[] entry = shuttleEntryFor(lzCenterX, lzCenterY, scale.width, scale.height, null);
             Shuttle shuttle = new Shuttle(
                     a.type, Faction.MARINE,
                     lzCenterX, lzCenterY,
-                    entryX, entryY,
-                    exitX, exitY,
+                    entry[0], entry[1],
+                    entry[2], entry[3],
                     i * SHUTTLE_DROP_STAGGER_SEC);
             shuttle.totalCycles = a.cycles;
             // Per-cycle weapon loadouts — re-rolled each sortie so a cycling
@@ -394,6 +399,100 @@ public final class BattleSetup {
         allocateDefenders(sim, map, enemyHasHeavyArmor, rng);
         spawnAmbientCivilians(sim, map, rng);
         return sim;
+    }
+
+    /**
+     * CONQUEST variant: full beach→port→city→fortress biome push with the
+     * super-wall stamper active. Map size scales with risk (same tiers as
+     * Assault/Sabotage) and the traversal axis is rolled per-seed —
+     * SOUTH_TO_NORTH or WEST_TO_EAST, so two conquest missions on the same
+     * world play with a different attacker approach. Objectives match Assault
+     * for v1 (eliminate the other side); a "capture the command post" variant
+     * is a natural follow-up once the AI consumer of the tactical map lands.
+     *
+     * <p>Marines and defenders pin to their respective biome anchors instead
+     * of the legacy left/right halves — marine LZ in BEACH, defender garrison
+     * in FORTRESS_DISTRICT (with garrison squads at the wall's tactical nodes).
+     */
+    public static BattleSimulation createConquest(long seed, List<ShuttleAssignment> manifest,
+                                                  boolean enemyHasHeavyArmor, RiskLevel risk) {
+        MapScale scale = MapScale.forRisk(risk);
+        Random rng = new Random(seed);
+        TraversalAxis axis = rng.nextBoolean() ? TraversalAxis.SOUTH_TO_NORTH : TraversalAxis.WEST_TO_EAST;
+        // Generator uses its own seeded RNG — pass the same seed so different
+        // mission types from the same seed still produce comparable layouts;
+        // axis flips deterministically off the first bit of our wrapper RNG.
+        MapResult map = MAP_GEN.generate(scale.width, scale.height, seed, axis);
+
+        List<MapVehicle> vehiclePlacements = stampVehicles(map.grid, map.topology, rng);
+        List<TurretPlacement> turretPlacements = stampTurrets(map.grid, map.topology, rng);
+        BattleSimulation sim = new BattleSimulation(map.grid, map.topology);
+        sim.setTacticalMap(map.tacticalMap);
+        for (MapVehicle v : vehiclePlacements) sim.addVehicle(v);
+        for (Doodad d : map.doodads) sim.addDoodad(d);
+        spawnTurrets(sim, turretPlacements);
+
+        sim.addObjective(new EliminateFactionObjective(Faction.MARINE,   Faction.DEFENDER));
+        sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
+
+        List<ShuttleAssignment> assignments = resolveManifest(manifest);
+        List<int[]> lzCells = pickLandingZones(map.grid, map.marineSpawnX, map.marineSpawnY, assignments.size());
+        stampLzPads(sim, lzCells);
+        for (int i = 0; i < lzCells.size(); i++) {
+            ShuttleAssignment a = assignments.get(i % assignments.size());
+            int[] lz = lzCells.get(i);
+            float lzCenterX = lz[0] + 0.5f;
+            float lzCenterY = lz[1] + 0.5f;
+            float[] entry = shuttleEntryFor(lzCenterX, lzCenterY, scale.width, scale.height, axis);
+            Shuttle shuttle = new Shuttle(
+                    a.type, Faction.MARINE,
+                    lzCenterX, lzCenterY,
+                    entry[0], entry[1],
+                    entry[2], entry[3],
+                    i * SHUTTLE_DROP_STAGGER_SEC);
+            shuttle.totalCycles = a.cycles;
+            MarineLoadout[][] cycleLoadouts = new MarineLoadout[a.cycles][];
+            for (int c = 0; c < a.cycles; c++) {
+                cycleLoadouts[c] = buildBaseLoadouts(shuttle.type.capacity, rng);
+            }
+            shuttle.cycleLoadouts = cycleLoadouts;
+            shuttle.marineLoadout = cycleLoadouts[0];
+            equipDefaultTurrets(shuttle);
+            sim.addShuttle(shuttle);
+        }
+
+        allocateDefenders(sim, map, enemyHasHeavyArmor, rng);
+        spawnAmbientCivilians(sim, map, rng);
+        return sim;
+    }
+
+    /**
+     * Pick the entry/exit off-map points for a shuttle drop. Returns
+     * {@code {entryX, entryY, exitX, exitY}}. In legacy mode ({@code axis}
+     * null) the shuttle drops in from above the top of the grid; in conquest
+     * mode the entry is off the attacker-facing edge derived from the axis
+     * (south edge for SOUTH_TO_NORTH, west edge for WEST_TO_EAST). Exit sits
+     * one extra step beyond entry so the departing shuttle has a moment of
+     * visible climb before it disappears.
+     */
+    private static float[] shuttleEntryFor(float lzCenterX, float lzCenterY,
+                                           int gridW, int gridH, TraversalAxis axis) {
+        if (axis == TraversalAxis.SOUTH_TO_NORTH) {
+            // Attacker side = south = low y. Entry below the grid, exit further below.
+            return new float[]{
+                    lzCenterX, -SHUTTLE_OFFMAP_Y,
+                    lzCenterX, -SHUTTLE_OFFMAP_Y - 4f };
+        }
+        if (axis == TraversalAxis.WEST_TO_EAST) {
+            // Attacker side = west = low x. Entry left of the grid.
+            return new float[]{
+                    -SHUTTLE_OFFMAP_Y,        lzCenterY,
+                    -SHUTTLE_OFFMAP_Y - 4f,   lzCenterY };
+        }
+        // Legacy: drop from above the top edge.
+        return new float[]{
+                lzCenterX, gridH + SHUTTLE_OFFMAP_Y,
+                lzCenterX, gridH + SHUTTLE_OFFMAP_Y + 4f };
     }
 
     /**

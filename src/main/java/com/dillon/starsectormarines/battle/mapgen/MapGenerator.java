@@ -19,4 +19,15 @@ public interface MapGenerator {
      * for tactical-scale dimensions (60–100 cells per axis).
      */
     MapResult generate(int width, int height, long seed);
+
+    /**
+     * Conquest-aware build: lay out biome bands along {@code axis} so the
+     * map spans the full beach→port→city→fortress progression instead of
+     * scattering themes uniformly. Default implementation ignores the axis
+     * and delegates to {@link #generate(int, int, long)} — only generators
+     * that opt into biome mode need to override this.
+     */
+    default MapResult generate(int width, int height, long seed, TraversalAxis axis) {
+        return generate(width, height, seed);
+    }
 }

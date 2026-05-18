@@ -33,6 +33,7 @@
 		"missionTypeSabotage":    "Sabotage",
 		"missionTypeRaid":        "Raid",
 		"missionTypeExtraction":  "Extraction",
+		"missionTypeConquest":    "Conquest",
 		"riskLow":                "Low",
 		"riskMedium":             "Medium",
 		"riskHigh":               "High",
