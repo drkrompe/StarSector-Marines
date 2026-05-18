@@ -106,6 +106,28 @@ public final class Squad {
 
     /** Alive-member count from the most recent tick. 0 when the squad has been wiped. */
     public int aliveMembers = 0;
+
+    /**
+     * Soft cohesion variable in [0, 1]. Drains on incoming hits and member
+     * deaths, recovers passively while out of contact, and is capped by
+     * {@code aliveMembers / originalSize} — so a mauled squad can shake off
+     * a bad engagement <em>once</em> but can never fully reset.
+     *
+     * <p>Drives {@link com.dillon.starsectormarines.battle.ai.goap.Predicate#MORALE_BROKEN}
+     * with hysteresis on {@link #moraleBroken}: trips below
+     * {@link com.dillon.starsectormarines.battle.BattleSimulation#MORALE_BROKEN_THRESHOLD},
+     * clears above {@link com.dillon.starsectormarines.battle.BattleSimulation#MORALE_CLEAR_THRESHOLD}.
+     * Updated each tick by {@code BattleSimulation.updateSquadMorale}.
+     */
+    public float morale = 1.0f;
+    /**
+     * Hysteresis flag set by {@code updateSquadMorale}. Once {@link #morale}
+     * crosses below the broken threshold, this stays true until morale climbs
+     * above the (higher) clear threshold — prevents flickering at the boundary
+     * if a squad keeps oscillating just under the line. SurviveContact reads
+     * this, not the raw morale value, so the planner sees a stable signal.
+     */
+    public boolean moraleBroken = false;
     /** Centroid X over alive members. Undefined when {@link #aliveMembers} is 0. */
     public float centroidX = 0f;
     /** Centroid Y over alive members. Undefined when {@link #aliveMembers} is 0. */

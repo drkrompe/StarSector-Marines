@@ -143,6 +143,21 @@ Design sketch lives in [`12-squad-of-squads.md`](12-squad-of-squads.md).
 Not scheduled — Tier 2 story implementations can land first with manual
 assignment stubs.
 
+### Mech GOAP tree (parked)
+
+Promote mechs from `MechCombatantBehavior` (single-unit ad-hoc loop)
+to a planner-driven role-aware tree: LR support / armored support /
+recon / assault. Gated on the commander tier — without a layer
+assigning roles, the mech planner reduces to "all mechs do the
+default action," which is what we already have.
+
+Followup hook from Story B's followup: `rollFallbackOnHit` still
+fires for mechs (legacy per-unit retreat) — the mech GOAP tree's
+analog of `BreakContact` is what retires that.
+
+Design sketch lives in [`13-mech-goap.md`](13-mech-goap.md). Not
+scheduled; queues behind the commander tier.
+
 ### Stage 3 — Mission-specific goals (future)
 
 `CompleteObjective` (with sub-actions `PlantCharge`, `Hack`, `Hold`),

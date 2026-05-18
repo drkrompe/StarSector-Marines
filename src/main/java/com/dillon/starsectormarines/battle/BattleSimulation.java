@@ -84,6 +84,17 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Sim seconds a unit stays in fall-back state once entered. After this, normal engagement resumes. */
     private static final float FALLBACK_DURATION = 3.5f;
 
+    /** Squad morale drained per non-fatal hit on a squadmate. Tuned to feel — a 4-man squad eats 12 hits before drain alone could break them at 1.0 baseline. */
+    public static final float MORALE_DROP_ON_HIT   = 0.05f;
+    /** Additional morale drop when a hit kills the squadmate. Combined with {@link #MORALE_DROP_ON_HIT}, two quick kills in a 4-man squad take morale from 1.0 to 0.3 — right at the broken threshold. */
+    public static final float MORALE_DROP_ON_DEATH = 0.30f;
+    /** Morale recovered per sim-second while the squad is out of contact ({@code !_engagedThisTick}). Recovers from broken (0.3) to cleared (0.5) in 1s at default. */
+    public static final float MORALE_RECOVERY_RATE = 0.20f;
+    /** Hysteresis: squad flips to broken when morale dips below this. */
+    public static final float MORALE_BROKEN_THRESHOLD = 0.30f;
+    /** Hysteresis: broken squad reverts to normal posture once morale climbs above this. The gap (>0.2 over the broken threshold) prevents flickering. */
+    public static final float MORALE_CLEAR_THRESHOLD  = 0.50f;
+
     private final NavigationGrid grid;
     private final CellTopology topology;
     private final List<Unit> units = new ArrayList<>();
@@ -298,10 +309,22 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         float dr = COVER_DAMAGE_REDUCTION[Math.min(targetCover, COVER_DAMAGE_REDUCTION.length - 1)];
         float effectiveMult = (target instanceof MapTurret) ? vsTurretMult : 1f;
         target.hp -= damage * effectiveMult * (1f - dr);
-        if (wasAlive && !target.isAlive()) {
+        boolean died = wasAlive && !target.isAlive();
+        if (died) {
             target.deathPoseIdx = rng.nextInt(4);
             deathsThisFrame.add(target);
             emitEquipmentDropIfApplicable(target);
+        }
+        // Morale drain — fires only for squad members. Solo units (turrets,
+        // civilians) have no squad morale to bleed; their behaviors don't
+        // consult MORALE_BROKEN. Hit drain always; death adds the extra drop.
+        // Clamped to [0, 1] each step so a death-on-a-frame doesn't underflow.
+        if (wasAlive && target.squadId != Unit.NO_SQUAD) {
+            Squad sq = squads.get(target.squadId);
+            if (sq != null) {
+                float drop = MORALE_DROP_ON_HIT + (died ? MORALE_DROP_ON_DEATH : 0f);
+                sq.morale = Math.max(0f, sq.morale - drop);
+            }
         }
     }
 
@@ -327,6 +350,17 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         if (!target.isAlive()) return;
         if (target.fallbackTimer > 0f) return;
         if (target instanceof MapTurret) return;
+        // GOAP-driven infantry (squad members without a mech loadout) own their
+        // retreat through SurviveContact / BreakContact — the squad-level
+        // morale system decides when to pull back and re-engage. The legacy
+        // per-unit fall-back roll conflicts with that (it can yank a planter
+        // off the charge site or a cordon holder off their doorway), so we
+        // skip it here. Civilians (NO_SQUAD) and mechs ({@code mech != null},
+        // no GOAP tree yet) keep the legacy roll until their own substitutes
+        // land. Note: shares {@link Unit#fallbackCellX}/{@code fallbackCellY}
+        // with BreakContact — fine since both paths can't fire on the same
+        // unit at the same time given this gate.
+        if (target.squadId != Unit.NO_SQUAD && target.mech == null) return;
         if (rng.nextFloat() >= FALLBACK_CHANCE) return;
         int[] fallback = TacticalScoring.findFallbackPosition(target, this);
         if (fallback[0] == target.cellX && fallback[1] == target.cellY) return;
@@ -410,6 +444,11 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // SUSPICIOUS / UNAWARE state. Solo units (squadId == NO_SQUAD) skip
         // the squad path entirely.
         updateSquadAlertLevels();
+        // Morale recovery + hysteresis. Reads the freshly-set _engagedThisTick
+        // flag from updateSquadAlertLevels: a squad out of contact this tick
+        // recovers; a squad in contact holds. Runs before the GOAP replan so
+        // SurviveContact relevance sees the up-to-date moraleBroken flag.
+        updateSquadMorale();
         // Evaluate fallback chains after alert state is current: an engaged
         // garrison that's lost half its members reassigns to its FALLBACK_TO
         // link, and a squad whose members have all arrived at their new post
@@ -873,6 +912,49 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      * overrun. Chained retreats would need explicit gating that we don't
      * have yet.
      */
+    /**
+     * Per-tick morale recovery + hysteresis flag update. Drain hooks live in
+     * {@link #applyDamage} (per-hit + per-death); this pass only handles the
+     * passive recovery side and the broken/cleared transitions.
+     *
+     * <p>Recovery gates on {@code !squad._engagedThisTick} — a squad with any
+     * member who has LoS to an enemy this tick reads as still in contact and
+     * doesn't recover. Capped by {@code aliveMembers / originalSize} so a
+     * squad that's lost half its members can't climb back above 0.5 no matter
+     * how long they hide; a third casualty drops the cap to 0.25 and they
+     * stay broken indefinitely. Squads with {@code originalSize == 0} (an
+     * unstamped sentinel — shouldn't happen post-Story-B but guarded for
+     * safety) treat the cap as 1.0.
+     *
+     * <p>Hysteresis: {@link Squad#moraleBroken} flips true when morale dips
+     * below {@link #MORALE_BROKEN_THRESHOLD}; flips false again once morale
+     * climbs above the (higher) {@link #MORALE_CLEAR_THRESHOLD}. The gap
+     * prevents a squad hovering near 0.3 from flickering between
+     * SurviveContact and EliminateEnemies on every replan.
+     */
+    private void updateSquadMorale() {
+        for (Squad squad : squads.values()) {
+            if (squad.aliveMembers <= 0) continue;
+
+            float cap = (squad.originalSize > 0)
+                    ? (float) squad.aliveMembers / squad.originalSize
+                    : 1f;
+            if (!squad._engagedThisTick) {
+                squad.morale = Math.min(cap, squad.morale + MORALE_RECOVERY_RATE * TICK_DT);
+            } else {
+                // In contact — no recovery; also re-clamp in case the cap
+                // dropped (member died this tick) below current morale.
+                squad.morale = Math.min(cap, squad.morale);
+            }
+
+            if (squad.moraleBroken) {
+                if (squad.morale > MORALE_CLEAR_THRESHOLD) squad.moraleBroken = false;
+            } else {
+                if (squad.morale < MORALE_BROKEN_THRESHOLD) squad.moraleBroken = true;
+            }
+        }
+    }
+
     private void updateSquadFallback() {
         for (Squad squad : squads.values()) {
             if (squad.assignedNode == null) continue;

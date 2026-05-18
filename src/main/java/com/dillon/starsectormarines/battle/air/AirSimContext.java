@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.air;
 
 import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
@@ -41,6 +42,14 @@ public interface AirSimContext {
      * the existing squad.
      */
     int mintSquad(Faction faction, Unit leader);
+
+    /**
+     * Looks up an existing squad by id. Returns null when the id doesn't map to
+     * a registered squad — air callers treat that as "nothing to update."
+     * Used to keep {@link Squad#originalSize} in sync as marines deboard one
+     * at a time into a growing squad.
+     */
+    Squad getSquad(int squadId);
 
     /** Inserts a freshly-deboarded marine into the simulation's unit roster. */
     void addUnit(Unit u);

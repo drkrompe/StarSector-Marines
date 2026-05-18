@@ -137,13 +137,25 @@ a building. Marine fireteam approaching from a shuttle drop.
 
 ---
 
-### B. Pinned and broken
+### B. Pinned and broken ✅ SHIPPED (2026-05-18)
 
 > A marine fireteam pushes into a defender position, takes two casualties
 > in quick succession, drops below half strength, and *breaks contact*
 > — falls back to the previous covered position instead of dying in
 > place. The surviving members re-form there, then the player can
 > reinforce or re-attempt.
+
+**Implementation note.** The original "hp/half-strength" trigger turned
+into a one-way door — alive count never recovers without respawns, so
+the goal would stick forever. Replaced with a recoverable **squad
+morale** float: drains on hits and deaths, recovers when out of contact,
+capped by alive/original ratio so heavy casualties cap the recovery
+ceiling. Hysteresis (broken < 0.3, clears > 0.5) prevents flickering.
+Story-bank primitives map updated below to reflect the
+`MORALE_BROKEN` predicate that replaced `SQUAD_BELOW_HALF_STRENGTH`.
+The legacy per-unit `rollFallbackOnHit` is now gated to skip GOAP-driven
+infantry — `SurviveContact` + `BreakContact` is the sole infantry
+retreat path. Mechs and civilians still roll the legacy timer.
 
 **Setting:** Any. Triggered by casualty rate, not by mission.
 
@@ -610,9 +622,11 @@ them on accident.
   reading the other squad's fire line, not negotiating with it).
 - **Verbal callouts / chatter.** Tempting. Skipped — audio bandwidth
   and string content. Stage 2 ships text-only via debug panel.
-- **Morale per-unit / panic.** Squad-level alert and HP thresholds are
-  enough. Per-unit morale is more complexity than the action set
-  needs.
+- **Morale per-unit / panic.** Squad-level morale (Story B) covers the
+  retreat-and-reconstitute loop with a single `Squad.morale` float —
+  drain on hits/deaths, recover when out of contact, cap by
+  alive/original ratio. Per-unit panic / friendly-flee chains add
+  complexity without serving a story.
 - **Heroic charges / overrides** beyond Stories F + H. The "one member
   ignores survival" pattern serves the mission. The "whole squad
   ignores survival" pattern is anti-fun in a roguelike-ish loop.
@@ -626,7 +640,7 @@ What each story needs, so we can spot the shared dependencies.
 | Story | New predicates | New actions | New goals | Infra |
 | --- | --- | --- | --- | --- |
 | A. Garrison ambush | `ENEMY_IN_KILL_ZONE`, `UNDER_FIRE_AT_LOS` | `OverwatchPosture`, `BreakLOS` | — | Cover-quality scoring (also G) |
-| B. Pinned and broken | `SQUAD_BELOW_HALF_STRENGTH` | `BreakContact` | `SurviveContact` | Cover-out-of-LOS scoring; goal priority |
+| B. Pinned and broken ✅ | `MORALE_BROKEN` | `BreakContact` | `SurviveContact` | Squad morale state (drain/recover/cap/hysteresis); cover-out-of-LOS reuses `TacticalScoring.findFallbackPosition` |
 | C. Bounding overwatch | `ENEMY_SUPPRESSED` | `SuppressFromCover`, `BoundForward` | — | **Per-member action assignment**; `RoleAssigner` actually used |
 | D. Patrol intercept | (uses alert spread) | (uses reposition) | `ReinforceContact` | Path cost shaping for cover; flank-angle preference |
 | E. Mech-screened advance | `BEHIND_FRIENDLY_RELATIVE_TO_THREAT` | `EscortFollow` (anchor=Unit variant) | — | Soft cover from non-static entities; threat-direction vector |
@@ -634,8 +648,8 @@ What each story needs, so we can spot the shared dependencies.
 | G. Cover-aware reposition | `CAN_REPOSITION` | `RepositionToCover` | — | **Real cover model on doodads** (cornerstone) |
 | I. Engagement discipline | `THREAT_DENSITY_AT_TARGET` | (target picker rewrite, no new action) | — | **Threat-density-aware target scoring**; pursuit gating; squad cohesion as hard constraint |
 | H. Last-stand camper | `NODE_IS_MUST_HOLD` | — | `HoldPosition` | `MUST_HOLD` flag on `TacticalNode`; goal priority |
-| J. Sabotage cordon | (mission predicates) | `HoldPortal`, `Planter` | — | `ZoneGraph` queries; per-member assignment; cordon discipline |
-| K. Room-clear sweep | `ZONE_CLEAR` | `EnterZone`, `ClearZone` | — | Zone-path planning (BFS at room level, A* at cell level inside) |
+| J. Sabotage cordon ✅ | (mission predicates) | `HoldPortalCordon` (planter + portal slots) | `CordonForPlant` | `ZoneGraph` queries; per-member assignment; cordon discipline via positioning |
+| K. Room-clear sweep ✅ | (custom-plan) | `EnterZone`, `ClearZone` | `SecureObjectiveZone` | Zone-path planning (BFS at room level, A* at cell level inside) |
 | L. Choke-point ambush | `ENEMY_IN_PORTAL_CELL` | `ChokePointHold` | — | Concentrated-fire trigger; portal-LOS scoring |
 
 ## Cornerstones — likely the first Stage 2 slice
@@ -672,24 +686,31 @@ How existing stories sharpen with cornerstone 4:
   zone-aware version of F.
 
 Recommended slicing:
-- **Slice 1 (immediate playtest win):** Story I. New target picker +
-  cohesion clamp. Ships with current cover model.
-- **Slice 2 (sabotage signature):** Stories J + K. Zone/portal-aware
-  actions + room sweep + cordon. Hits the *mission-defining* behavior
-  for sabotage missions ("squad clears the target room, plants while
-  others hold doorways") — the user-articulated motivator for adding
-  the zone layer to the story bank.
+- **Slice 1 ✅ (immediate playtest win):** Story I — engagement
+  discipline. Target picker + cohesion clamp. Shipped.
+- **Slice 2 ✅ (sabotage signature):** Stories J + K — zone/portal-aware
+  cordon + room sweep. Shipped 2026-05-18 along with the FireStance
+  accuracy modifier and the retirement of `PlanterBehavior` into a
+  GOAP role slot.
+- **Slice 2.5 ✅ (Story B, bumped up):** The planter-vs-fall-back
+  conflict made B's `SurviveContact` more urgent than Slice 5's original
+  ordering — implemented with squad morale (drain/recover/cap/
+  hysteresis), then gated `rollFallbackOnHit` to skip GOAP-driven
+  infantry. Shipped 2026-05-18.
 - **Slice 3 (visible cover combat):** Stories G + A + L. Cover model
   on doodads + reposition + overwatch + choke-point hold. A and L
   share infrastructure (cover at LOS positions toward a known
   ingress).
 - **Slice 4 (squad coordination):** Stories C + F. Per-member assignment
   + bounding overwatch + objective-rush-under-fire. F may collapse
-  into J by this point.
-- **Slice 5 (mission goal priority):** Stories B, H. `SurviveContact`,
-  `HoldPosition`, goal-priority logic.
+  into J by this point (J already covers planter-under-fire via the
+  cordon goal hierarchy).
+- **Slice 5 (remaining mission goal priority):** Story H — last-stand
+  `HoldPosition` on `MUST_HOLD` tactical nodes. Story B already shipped
+  in Slice 2.5.
 - **Slice 6 (cross-squad emergence):** Stories D, E. Patrol intercept,
-  mech screening.
+  mech screening. Story E depends on the parked mech GOAP work
+  ([13-mech-goap.md](13-mech-goap.md)).
 
 ## What this doc is for
 

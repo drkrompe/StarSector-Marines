@@ -42,8 +42,25 @@ public enum Predicate {
     // collide on the shared enum. Evaluators are stubbed to `false` in
     // WorldStateBuilder until the owning story lands.
 
-    /** Squad strength has dropped to ≤50% of {@link com.dillon.starsectormarines.battle.Squad#originalSize}. Story B trigger. */
+    /**
+     * Squad strength has dropped to ≤50% of {@link com.dillon.starsectormarines.battle.Squad#originalSize}.
+     * Original Story B trigger — superseded by {@link #MORALE_BROKEN}, which
+     * recovers over time and lets a squad re-enter the fight after pulling
+     * back. Kept here (stubbed false) to preserve the enum slot until any
+     * remaining references are cleared.
+     *
+     * @deprecated Use {@link #MORALE_BROKEN} for the SurviveContact trigger.
+     */
+    @Deprecated
     SQUAD_BELOW_HALF_STRENGTH,
+    /**
+     * Squad's {@link com.dillon.starsectormarines.battle.Squad#morale} has
+     * dropped below the broken threshold and not yet recovered above the
+     * clear threshold. Story B trigger — drives SurviveContact. Drains on
+     * hits/deaths, recovers when out of contact; capped by alive/original
+     * ratio so heavy casualties cap the recovery ceiling.
+     */
+    MORALE_BROKEN,
     /** Squad's primary target has crossed into the overwatch action's defined kill zone (range bucket + LOS stability). Story A trigger. */
     ENEMY_IN_KILL_ZONE,
     /** At least one squadmate is taking incoming fire at a cell with LOS to the firing enemy. Story A re-trigger condition. */

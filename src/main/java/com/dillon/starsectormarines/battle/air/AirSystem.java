@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.air;
 
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.MarineLoadout;
+import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.UnitType;
 import com.dillon.starsectormarines.battle.ai.TurretAim;
@@ -392,6 +393,13 @@ public class AirSystem {
             s.squadId = ctx.mintSquad(s.faction, marine);
         }
         marine.squadId = s.squadId;
+        // Track peak strength on the squad so Story B's SurviveContact predicate
+        // (SQUAD_BELOW_HALF_STRENGTH) has a denominator. Marines deboard one at
+        // a time, so this ratchets up as the shuttle empties; once members start
+        // dying it stays put. Defender squads stamp originalSize once in
+        // BattleSetup — marine squads can't, since they grow incrementally.
+        Squad squad = ctx.getSquad(s.squadId);
+        if (squad != null) squad.originalSize++;
         ctx.addUnit(marine);
         return true;
     }

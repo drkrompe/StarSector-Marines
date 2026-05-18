@@ -49,7 +49,11 @@ public final class WorldStateBuilder {
         // roadmap/ai/10-tactical-stories.md. Each story's subagent will
         // replace its STUB_FALSE entry with a real evaluator alongside the
         // story's action/goal implementation.
+        // SQUAD_BELOW_HALF_STRENGTH is deprecated — superseded by MORALE_BROKEN,
+        // which recovers over time. Stub kept here so any stragglers reading
+        // the predicate see a stable false until they're swept.
         EVALUATORS.put(Predicate.SQUAD_BELOW_HALF_STRENGTH,         STUB_FALSE);
+        EVALUATORS.put(Predicate.MORALE_BROKEN,                     (s, sim) -> s.moraleBroken);
         EVALUATORS.put(Predicate.ENEMY_IN_KILL_ZONE,                STUB_FALSE);
         EVALUATORS.put(Predicate.UNDER_FIRE_AT_LOS,                 STUB_FALSE);
         EVALUATORS.put(Predicate.ENEMY_SUPPRESSED,                  STUB_FALSE);
