@@ -22,6 +22,11 @@ import com.dillon.starsectormarines.battle.UnitType;
 import com.dillon.starsectormarines.battle.VehicleKind;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.flyby.FlybyOverlay;
+import com.dillon.starsectormarines.battle.ui.BattleHud;
+import com.dillon.starsectormarines.battle.ui.BattleUiContext;
+import com.dillon.starsectormarines.battle.ui.panel.SquadDetailPanel;
+import com.dillon.starsectormarines.battle.ui.panel.SquadOverviewPanel;
+import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.fx.ImpactDecals;
 import com.dillon.starsectormarines.battle.fx.ImpactFx;
 import com.dillon.starsectormarines.battle.fx.ImpactProfile;
@@ -77,7 +82,7 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
  * (casualties, XP, payout) comes after MVP — for now the player just sees the
  * banner and backs out.
  */
-public class BattleScreen implements Screen {
+public class BattleScreen implements Screen, BattleUiContext {
 
     private static final Logger LOG = Global.getLogger(BattleScreen.class);
 
@@ -203,6 +208,10 @@ public class BattleScreen implements Screen {
     };
 
     private final WidgetRoot widgets = new WidgetRoot();
+    /** Battle HUD — squad overview/detail panels today; mini-map + objectives later. Lazy-built once {@link #layout} and {@link #camera} are ready, then reused across rebuilds. */
+    private BattleHud hud;
+    /** Shared selection state read by HUD panels (and, later, a world-picker). Survives across attach()/rebuild() cycles; self-heals when the selected squad disappears. */
+    private final Selection selection = new Selection();
 
     private PositionAPI position;
     private MarineOpsContext ctx;
@@ -857,6 +866,7 @@ public class BattleScreen implements Screen {
             camera = new BattleCamera(gridW, gridH);
         }
         camera.setViewport(layout.gridX, layout.gridY, layout.gridW, layout.gridH, layout.cellSize);
+        ensureHud();
         lastSimComplete = sim != null && sim.isComplete();
 
         // Bottom-left action button — Back when in-progress, Continue when done.
@@ -894,6 +904,10 @@ public class BattleScreen implements Screen {
     @Override
     public void advance(float dt) {
         widgets.advance(dt);
+        // HUD ticks on real dt (not sim-scaled) so panel snapshots and hover
+        // state still update when the sim is paused. Panels' update() just
+        // refreshes their cached views over the sim — cheap even at every frame.
+        if (hud != null) hud.update(dt);
         // Park the OpenAL listener at the camera focus every frame so positional SFX (gunfire,
         // explosions, ambient loops, death VO) pan + attenuate around what the player is looking
         // at. setListenerPosOverrideOneFrame is a one-frame override, so it has to be re-armed
@@ -961,6 +975,36 @@ public class BattleScreen implements Screen {
         // Fade out our track without queuing a replacement, then let the campaign music resume.
         Global.getSoundPlayer().playCustomMusic(MUSIC_FADE_SECS, 0, null);
         Global.getSoundPlayer().setSuspendDefaultMusicPlayback(false);
+    }
+
+    // ---- BattleUiContext --------------------------------------------------
+
+    /** Lazy-init the HUD once layout + camera are in place. Reused across rebuilds so panel state (hover, snapshots) survives sim-completion swaps. */
+    private void ensureHud() {
+        if (hud != null) return;
+        hud = new BattleHud(this);
+        hud.addPanel(new SquadOverviewPanel(this));
+        hud.addPanel(new SquadDetailPanel(this));
+    }
+
+    @Override
+    public BattleSimulation getSim() {
+        return ctx != null ? ctx.getBattleSimulation() : null;
+    }
+
+    @Override
+    public BattleCamera getCamera() {
+        return camera;
+    }
+
+    @Override
+    public BattleLayout getLayout() {
+        return layout;
+    }
+
+    @Override
+    public Selection getSelection() {
+        return selection;
     }
 
     /**
@@ -1255,6 +1299,10 @@ public class BattleScreen implements Screen {
     @Override
     public void processInput(List<InputEventAPI> events) {
         widgets.processInput(events);
+        // HUD gets first crack after widgets so a click on a squad row doesn't
+        // also pan the camera or hit a future world-picker on the cells the
+        // panel overlays. Panels self-consume claimed events.
+        if (hud != null) hud.processInput(events);
         // Debug damage runs BEFORE pan-drag so shift+RMB consumes the event
         // and the plain-RMB pan handler never sees it. Plain RMB (no shift)
         // is unclaimed and falls through to pan.
@@ -1440,6 +1488,12 @@ public class BattleScreen implements Screen {
         }
 
         renderSpeedMarker(alphaMult);
+
+        // HUD sits above the world layer but below the victory/defeat banner — a
+        // mid-battle squad-select shouldn't be visually competing with the
+        // end-of-battle takeover. Drawn after the speed-marker so the marker's
+        // tiny indicator dot never gets clipped by a panel beneath it.
+        if (hud != null) hud.render(alphaMult);
 
         if (sim != null && sim.isComplete()) {
             renderBanner(sim.getWinner(), alphaMult);
