@@ -9,7 +9,8 @@ import java.util.List;
  * What a squad wants to be true. The planner's per-replan flow:
  * <ol>
  *   <li>Snapshot the current world state.</li>
- *   <li>Score every registered goal's {@link #relevance}; pick the highest.</li>
+ *   <li>Score every registered goal's {@link #relevance}; pick the highest
+ *       within the highest-occupied {@link Priority} bucket.</li>
  *   <li>Backward-chain from {@link #desiredState} until the current state
  *       satisfies the regressed preconditions.</li>
  *   <li>Fall back to the next-most-relevant goal if no plan is reachable
@@ -17,21 +18,52 @@ import java.util.List;
  * </ol>
  *
  * <p>Stateless singletons, same thread-safety contract as {@link Action}:
- * {@link #relevance} and {@link #desiredState} run during the parallel
- * replan window and must be read-only against {@link BattleSimulation}.
+ * {@link #relevance}, {@link #priority}, and {@link #desiredState} run
+ * during the parallel replan window and must be read-only against
+ * {@link BattleSimulation}.
  */
 public interface Goal {
+
+    /**
+     * Goal-priority buckets. Lower ordinal = higher priority. {@link
+     * #pickMostRelevant} picks within the highest-priority bucket that has
+     * any goal with positive relevance; relevance only breaks ties inside
+     * a bucket. This lets a MISSION goal (e.g. {@code HoldPosition} on a
+     * {@code MUST_HOLD} node) override an ENGAGEMENT goal (e.g.
+     * {@code EliminateEnemies}) even when the engagement scores a higher
+     * raw relevance — see stories B, F, H in the tactical story bank.
+     */
+    enum Priority {
+        /** Mission objectives — outrank everything (Stories F, H). */
+        MISSION,
+        /** HP-threshold gated goals like SurviveContact (Story B). */
+        SURVIVAL,
+        /** Default for combat goals like EliminateEnemies. */
+        ENGAGEMENT,
+        /** Reserved for future "no contact, no objective" routines. */
+        IDLE
+    }
 
     /** Human-readable identity for logs + debug overlays. */
     String name();
 
     /**
-     * Priority score in this squad's current context. Higher wins. A
-     * "no-context" baseline like {@code 0.1} keeps a goal in the running so
-     * the planner falls back to it when no higher-priority goal has a
-     * reachable plan. Negative values disable the goal for this squad-tick.
+     * Priority score in this squad's current context. Higher wins
+     * <em>within the goal's {@link #priority()} bucket</em>. A "no-context"
+     * baseline like {@code 0.1} keeps a goal in the running so the planner
+     * falls back to it when no higher-priority goal has a reachable plan.
+     * Zero or negative values disable the goal for this squad-tick.
      */
     float relevance(WorldState state, Squad squad, BattleSimulation sim);
+
+    /**
+     * Which {@link Priority} bucket this goal lives in. Defaults to
+     * {@link Priority#ENGAGEMENT} — appropriate for combat goals that
+     * shouldn't override mission or survival objectives.
+     */
+    default Priority priority() {
+        return Priority.ENGAGEMENT;
+    }
 
     /**
      * The {@link WorldState} the planner backward-chains from. Conventionally
@@ -41,26 +73,40 @@ public interface Goal {
     WorldState desiredState(Squad squad, BattleSimulation sim);
 
     /**
-     * Picks the highest-relevance goal from a registry. Goals returning
-     * negative relevance are disabled for this squad-tick and excluded.
-     * Returns {@code null} when every goal is disabled — caller treats that
+     * Picks the highest-relevance goal in the highest-occupied
+     * {@link Priority} bucket. Goals with {@code relevance <= 0} are
+     * excluded — they cannot anchor a bucket or be returned. Returns
+     * {@code null} when no goal has positive relevance: caller treats that
      * as "squad has nothing to do" (idle).
      *
-     * <p>Ties resolve to the first goal in the list (deterministic). If we
-     * grow many goals with overlapping relevance, switch to a randomized
-     * tiebreaker or a strict priority ordering.
+     * <p>Algorithm:
+     * <ol>
+     *   <li>For each goal with {@code relevance > 0}, track the best (max
+     *       relevance) entry per {@link Priority} bucket.</li>
+     *   <li>Return the bucket-winner from the highest-priority bucket
+     *       (lowest ordinal) that has any entry.</li>
+     * </ol>
+     *
+     * <p>Ties within a bucket resolve to the <em>last</em> goal seen
+     * (strictly-greater comparison means earlier equal-relevance entries
+     * are kept; in practice deterministic given the input list order).
      */
     static Goal pickMostRelevant(List<Goal> goals, WorldState state, Squad squad, BattleSimulation sim) {
-        Goal best = null;
-        float bestRelevance = Float.NEGATIVE_INFINITY;
+        Priority[] buckets = Priority.values();
+        Goal[] bucketBest = new Goal[buckets.length];
+        float[] bucketBestRelevance = new float[buckets.length];
         for (Goal g : goals) {
             float r = g.relevance(state, squad, sim);
-            if (r < 0f) continue;
-            if (r > bestRelevance) {
-                bestRelevance = r;
-                best = g;
+            if (r <= 0f) continue;
+            int idx = g.priority().ordinal();
+            if (bucketBest[idx] == null || r > bucketBestRelevance[idx]) {
+                bucketBest[idx] = g;
+                bucketBestRelevance[idx] = r;
             }
         }
-        return best;
+        for (int i = 0; i < bucketBest.length; i++) {
+            if (bucketBest[i] != null) return bucketBest[i];
+        }
+        return null;
     }
 }
