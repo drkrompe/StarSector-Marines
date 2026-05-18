@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.ai.goap.actions;
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
-import com.dillon.starsectormarines.battle.ai.InfantryCombatantBehavior;
+import com.dillon.starsectormarines.battle.ai.InfantryCohesion;
 import com.dillon.starsectormarines.battle.ai.goap.Action;
 import com.dillon.starsectormarines.battle.ai.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.ai.goap.Predicate;
@@ -13,7 +13,7 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 /**
  * <b>Squad posture: rejoin the squad centroid.</b> Each member paths toward
  * the others-only centroid using
- * {@link InfantryCombatantBehavior#cohesionOverride} — when the helper
+ * {@link InfantryCohesion#cohesionOverride} — when the helper
  * returns null (already within cohesion radius or solo squad), the member
  * reports {@link ActionStatus#SUCCESS} immediately.
  *
@@ -39,7 +39,7 @@ public final class RegroupPosture implements Action {
 
     @Override
     public ActionStatus execute(Unit member, Squad squad, BattleSimulation sim) {
-        int[] dest = InfantryCombatantBehavior.cohesionOverride(member, sim);
+        int[] dest = InfantryCohesion.cohesionOverride(member, sim);
         if (dest == null) {
             // Already within cohesion radius (or solo squad) — done for this member.
             return ActionStatus.SUCCESS;

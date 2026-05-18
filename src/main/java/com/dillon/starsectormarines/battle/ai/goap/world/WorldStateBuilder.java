@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.ai.goap.world;
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
-import com.dillon.starsectormarines.battle.ai.InfantryCombatantBehavior;
+import com.dillon.starsectormarines.battle.ai.InfantryCohesion;
 import com.dillon.starsectormarines.battle.ai.TacticalScoring;
 import com.dillon.starsectormarines.battle.ai.goap.Predicate;
 import com.dillon.starsectormarines.battle.ai.goap.WorldState;
@@ -25,9 +25,8 @@ import java.util.Map;
  *
  * <p><b>Stage 1 simplification:</b> the LOS / range predicates evaluate
  * over "any squadmate × any alive enemy combatant" pair, not against a
- * sticky squad-primary-target. Matches the per-unit
- * {@link com.dillon.starsectormarines.battle.ai.InfantryCombatantBehavior}
- * which has each marine independently pick a target. Stage 2+ may add a
+ * sticky squad-primary-target. Matches the per-unit independent target
+ * selection from before the planner landed. Stage 2+ may add a
  * {@code Squad.primaryTarget} field for coordinated maneuver scoring.
  */
 public final class WorldStateBuilder {
@@ -121,20 +120,21 @@ public final class WorldStateBuilder {
     }
 
     /**
-     * True iff every alive squadmate is within {@link InfantryCombatantBehavior#COHESION_RADIUS}
+     * True iff every alive squadmate is within {@link InfantryCohesion#COHESION_RADIUS}
      * of the squad centroid. A scattered squad — one member out beyond the
      * radius — reads false, prompting the planner to insert a
-     * {@code MaintainCohesion} step before advancing.
+     * {@link com.dillon.starsectormarines.battle.ai.goap.actions.RegroupPosture}
+     * step before advancing.
      *
      * <p>A solo or wiped squad reads true (no scattering possible). The
      * cached {@link Squad#centroidX}/{@link Squad#centroidY} are stale outside
      * the alert-update pass; the replan call site is supposed to run inside
      * (or just after) that pass — matches how
-     * {@link InfantryCombatantBehavior#cohesionOverride} reads them today.
+     * {@link InfantryCohesion#cohesionOverride} reads them today.
      */
     private static boolean evalWithinCohesionRadius(Squad squad, BattleSimulation sim) {
         if (squad.aliveMembers <= 1) return true;
-        float r2 = InfantryCombatantBehavior.COHESION_RADIUS * InfantryCombatantBehavior.COHESION_RADIUS;
+        float r2 = InfantryCohesion.COHESION_RADIUS * InfantryCohesion.COHESION_RADIUS;
         for (Unit u : sim.getUnits()) {
             if (!u.isAlive() || u.squadId != squad.id) continue;
             float dx = u.cellX - squad.centroidX;

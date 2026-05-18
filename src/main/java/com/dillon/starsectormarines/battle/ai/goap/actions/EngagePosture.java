@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.MapTurret;
 import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
-import com.dillon.starsectormarines.battle.ai.InfantryCombatantBehavior;
+import com.dillon.starsectormarines.battle.ai.InfantryCohesion;
 import com.dillon.starsectormarines.battle.ai.TacticalScoring;
 import com.dillon.starsectormarines.battle.ai.goap.Action;
 import com.dillon.starsectormarines.battle.ai.goap.ActionStatus;
@@ -41,7 +41,7 @@ public final class EngagePosture implements Action {
     private static final WorldState EFF = WorldState.EMPTY
             .with(Predicate.ENEMY_DAMAGED, true);
 
-    /** Same per-shot reposition probability as {@link InfantryCombatantBehavior}. */
+    /** Per-shot probability of sidestepping to a new firing position after a primary shot. Re-imagined cleanly by Story G (cover-aware reposition) in Stage 2. */
     private static final float REPOSITION_CHANCE = 0.30f;
 
     private EngagePosture() {}
@@ -115,7 +115,7 @@ public final class EngagePosture implements Action {
             // per-member action assignment lets us put approach-only members
             // on {@link ApproachPosture} concurrently with engage-only members.
             if (member.moveProgress == 0f) {
-                int[] dest = InfantryCombatantBehavior.cohesionOverride(member, sim);
+                int[] dest = InfantryCohesion.cohesionOverride(member, sim);
                 if (dest == null) dest = TacticalScoring.findFiringPosition(member, member.target, sim);
                 sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                         member.cellX, member.cellY, dest[0], dest[1], sim.getOccupancyMap()));

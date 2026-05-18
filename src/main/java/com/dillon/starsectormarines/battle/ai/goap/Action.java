@@ -3,6 +3,9 @@ package com.dillon.starsectormarines.battle.ai.goap;
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.ai.goap.scoring.RoleAssigner;
+
+import java.util.List;
 
 /**
  * One operator in the GOAP action library. Implementations are
@@ -62,8 +65,35 @@ public interface Action {
      * the role assigner fills the plan. {@code 1} for solo actions ("one
      * squadmate fires"); {@code >1} for coordinated actions ("anchor + flanker
      * pair") that arrive in Stage 2+.
+     *
+     * <p>Stage 2 onward prefers {@link #roles} which carries this information
+     * per slot. Retained for back-compat with the Stage 1 actions; new actions
+     * should leave this returning a sentinel (sum of slot counts) or 1.
      */
     int requiredMembers();
+
+    /**
+     * Declares the role slots this action exposes for the role assigner to
+     * fill. Each slot has a name (used for per-member action branching in
+     * {@link #execute}), a count, and a {@link com.dillon.starsectormarines.battle.ai.goap.scoring.Scorer}
+     * ranking candidate members.
+     *
+     * <p>Default implementation returns a single {@code "any"} slot taking
+     * all of {@code squad.aliveMembers} with a no-preference scorer — matches
+     * the Stage 1 "every member does the action" wiring without action
+     * subclasses having to opt in. Stage 2+ actions override to expose
+     * meaningful role partitions ({@code "planter" + "portal:0" + "portal:1"}
+     * for a sabotage cordon, {@code "suppressor" + "bounder"} for bounding
+     * overwatch, etc.).
+     *
+     * <p>Called during the parallel replan window — must be read-only against
+     * {@code sim}. Returning a slot list with total count exceeding
+     * {@code squad.aliveMembers} is fine; the assigner only fills what's
+     * available.
+     */
+    default List<RoleAssigner.Slot<Unit>> roles(Squad squad, BattleSimulation sim) {
+        return List.of(new RoleAssigner.Slot<>("any", squad.aliveMembers, c -> 0f));
+    }
 
     /**
      * Runs one tick of this action for one assigned {@code member}. Called

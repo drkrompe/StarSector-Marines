@@ -3,17 +3,18 @@ package com.dillon.starsectormarines.battle.ai.goap;
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
-import com.dillon.starsectormarines.battle.ai.InfantryCombatantBehavior;
 import com.dillon.starsectormarines.battle.ai.InfantryUnitPrep;
 import com.dillon.starsectormarines.battle.ai.UnitBehavior;
 import com.dillon.starsectormarines.battle.ai.goap.actions.ApproachPosture;
 import com.dillon.starsectormarines.battle.ai.goap.actions.EngagePosture;
 import com.dillon.starsectormarines.battle.ai.goap.actions.RegroupPosture;
 import com.dillon.starsectormarines.battle.ai.goap.goals.EliminateEnemiesGoal;
+import com.dillon.starsectormarines.battle.ai.goap.scoring.RoleAssigner;
 import com.dillon.starsectormarines.battle.ai.goap.world.WorldStateBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Per-unit GOAP dispatch for infantry. Pairs with the squad-level replan
@@ -32,9 +33,11 @@ import java.util.List;
  *       advance-under-cover.</li>
  * </ul>
  *
- * <p>Solo units (no squad) fall back to {@link InfantryCombatantBehavior} —
- * the planner is a squad-level construct, and one marine isn't enough to
- * justify a plan.
+ * <p>Solo units (no squad) idle here — the planner is a squad-level
+ * construct, and a unit without a squad has no plan to consult. In
+ * practice every alive combatant is squad-assigned (marines via shuttle
+ * deboard, defenders via {@code BattleSetup}); non-squad units are a
+ * transient edge case.
  */
 public final class GoapInfantryBehavior implements UnitBehavior {
 
@@ -76,11 +79,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
     @Override
     public void update(Unit unit, BattleSimulation sim) {
         Squad squad = unit.squadId == Unit.NO_SQUAD ? null : sim.getSquad(unit.squadId);
-        if (squad == null) {
-            // Solo unit — no squad-level plan, fall back to the legacy path.
-            InfantryCombatantBehavior.INSTANCE.update(unit, sim);
-            return;
-        }
+        if (squad == null) return;
 
         if (!prepareForAction(unit, sim)) return;
 
@@ -93,7 +92,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         }
 
         SquadPlan.Step step = plan.currentStep();
-        if (!step.assignedMembers.contains(unit)) return;
+        if (step.slotOf(unit) == null) return;
 
         ActionStatus status = step.action.execute(unit, squad, sim);
         switch (status) {
@@ -162,18 +161,22 @@ public final class GoapInfantryBehavior implements UnitBehavior {
                 PLAN_NODE_LIMIT);
 
         if (plan != null && !plan.isComplete()) {
-            // Stage 1 assignment: every alive squadmate is bound to every step.
-            // Postures already do the right thing per-member based on personal
-            // LOS / range / cohesion state. Stage 2 will use RoleAssigner to
-            // fill slot-specific assignments for multi-role actions
-            // (anchor + flanker, suppressor + mover, etc.).
+            // Gather alive squadmates once, hand them to RoleAssigner per step.
+            // Stage 1 actions declare a single "any" slot taking all members
+            // (Action.roles default) — same effect as the previous "add
+            // everyone to every step" wiring. Stage 2 actions override roles()
+            // to expose meaningful partitions (planter+portal-holders for
+            // sabotage cordon, suppressor+bounder for bounding overwatch, etc.)
+            // and the same call here distributes members per slot.
             List<Unit> aliveMembers = new ArrayList<>(squad.aliveMembers);
             for (Unit u : sim.getUnits()) {
                 if (!u.isAlive() || u.squadId != squad.id) continue;
                 aliveMembers.add(u);
             }
             for (SquadPlan.Step step : plan.steps()) {
-                step.assignedMembers.addAll(aliveMembers);
+                List<RoleAssigner.Slot<Unit>> slots = step.action.roles(squad, sim);
+                Map<String, List<Unit>> assignment = RoleAssigner.assign(aliveMembers, slots);
+                step.assignments.putAll(assignment);
             }
         }
         squad.currentPlan = plan;

@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.ai.goap.actions;
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
-import com.dillon.starsectormarines.battle.ai.InfantryCombatantBehavior;
+import com.dillon.starsectormarines.battle.ai.InfantryCohesion;
 import com.dillon.starsectormarines.battle.ai.TacticalScoring;
 import com.dillon.starsectormarines.battle.ai.goap.Action;
 import com.dillon.starsectormarines.battle.ai.goap.ActionStatus;
@@ -64,7 +64,7 @@ public final class ApproachPosture implements Action {
         if (inRange && visible) return ActionStatus.SUCCESS;
 
         if (member.moveProgress == 0f) {
-            int[] dest = InfantryCombatantBehavior.cohesionOverride(member, sim);
+            int[] dest = InfantryCohesion.cohesionOverride(member, sim);
             if (dest == null) dest = TacticalScoring.findFiringPosition(member, member.target, sim);
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     member.cellX, member.cellY, dest[0], dest[1], sim.getOccupancyMap()));

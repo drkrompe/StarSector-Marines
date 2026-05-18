@@ -9,8 +9,8 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
  * Mech slice of the combatant loop: three concurrent weapon tracks
  * (chaingun, SRM pod, LRM artillery) with independent gating, and a
  * "stand off at LRM range when not in close engagement" movement pattern.
- * Sibling of {@link InfantryCombatantBehavior}; {@link CombatantBehavior}
- * picks between the two based on {@link Unit#mech}.
+ * Sibling of {@link com.dillon.starsectormarines.battle.ai.goap.GoapInfantryBehavior};
+ * {@link CombatantBehavior} picks between the two based on {@link Unit#mech}.
  *
  * <p>No squad cohesion — mechs are typically solo or paired and don't
  * participate in fireteam centroid logic.

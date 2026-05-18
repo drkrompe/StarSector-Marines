@@ -123,8 +123,6 @@ public final class Squad {
     // ---- GOAP plan state ----
     // Populated by GoapInfantryBehavior.replanIfNeeded; mutated by per-unit
     // GoapInfantryBehavior.update as members execute the current step's action.
-    // Only meaningful when BattleSimulation.USE_GOAP_INFANTRY is true — left
-    // null otherwise.
 
     /** Squad's currently-executing plan, or null when the planner has nothing to do (no relevant goal / no reachable plan). */
     public SquadPlan currentPlan = null;

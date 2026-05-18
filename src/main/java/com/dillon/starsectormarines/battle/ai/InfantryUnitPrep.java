@@ -4,16 +4,15 @@ import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Unit;
 
 /**
- * Per-tick lifecycle housekeeping shared by every infantry behavior path —
- * both the legacy {@link InfantryCombatantBehavior} and the GOAP dispatcher
- * (Stage 1 + Stage 2). Lives outside the action layer so:
+ * Per-tick lifecycle housekeeping for the GOAP infantry dispatcher. Called
+ * once by {@code GoapInfantryBehavior.prepareForAction} before delegating to
+ * the plan's current action, so:
  * <ul>
- *   <li>{@code GoapInfantryBehavior} can call it once before delegating to
- *       whichever action the plan picked — cooldowns tick during move + cohere
- *       just as they do during fire, and a mid-aim marine doesn't get stuck
- *       in animation when the plan flips off {@code EngagePosture}.</li>
+ *   <li>Cooldowns tick during move + cohere just as they do during fire.</li>
+ *   <li>A mid-aim marine doesn't get stuck in animation when the plan flips
+ *       off {@code EngagePosture}.</li>
  *   <li>Per-action bodies stay focused on intent (fire / move / cohere) rather
- *       than re-implementing the same prep logic three times.</li>
+ *       than re-implementing the same prep logic in every action.</li>
  * </ul>
  *
  * <p>Stateless; safe to call from any thread. Mutates only the passed unit.

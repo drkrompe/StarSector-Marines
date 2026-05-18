@@ -17,15 +17,12 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * Bottom-right HUD pane: per-squad GOAP plan readout. Visible whenever
- * {@link BattleSimulation#USE_GOAP_INFANTRY} is true; off otherwise. One row
- * per squad with goal, current posture, and step index — sibling to
+ * Bottom-right HUD pane: per-squad GOAP plan readout. One row per squad
+ * with goal, current posture, and step index — sibling to
  * {@link SquadOverviewPanel} (bottom-left), so the layout reads "your squads
  * here, what they're planning there."
  *
  * <p>Read-only and lightweight — no input handling, no selection mutation.
- * Lives behind the {@code USE_GOAP_INFANTRY} flag because there's no useful
- * data to show when the planner isn't running.
  */
 public final class SquadPlanDebugPanel implements HudPanel {
 
@@ -61,13 +58,12 @@ public final class SquadPlanDebugPanel implements HudPanel {
 
     @Override
     public boolean isVisible() {
-        return BattleSimulation.USE_GOAP_INFANTRY && !squads.isEmpty();
+        return !squads.isEmpty();
     }
 
     @Override
     public void update(float dt) {
         squads.clear();
-        if (!BattleSimulation.USE_GOAP_INFANTRY) return;
         BattleSimulation sim = ctx.getSim();
         if (sim == null) return;
 

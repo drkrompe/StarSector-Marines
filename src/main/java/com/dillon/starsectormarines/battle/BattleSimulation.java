@@ -71,18 +71,6 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Fixed simulation timestep — 30Hz. */
     public static final float TICK_DT = 1f / 30f;
 
-    /**
-     * Master switch for the planner-driven infantry path. When {@code true},
-     * non-mech infantry units route through {@link GoapInfantryBehavior}
-     * (squad-level GOAP planning + per-unit posture execution); when
-     * {@code false}, the legacy {@link com.dillon.starsectormarines.battle.ai.InfantryCombatantBehavior}
-     * runs. Default {@code false} until the parity validation in
-     * {@code roadmap/ai/09-parity-validation.md} signs off — flip locally to
-     * A/B during dev. Solo (no-squad) units fall back to the legacy path
-     * regardless because the planner is a squad-level construct.
-     */
-    public static boolean USE_GOAP_INFANTRY = false;
-
     /** Damage reduction per cover level (0..MAX_COVER). Open ground = 0%; 1 wall = 15%; 2 = 30%; 3+ = 45%. Applied multiplicatively in {@link #fireShot}. */
     private static final float[] COVER_DAMAGE_REDUCTION = { 0f, 0.15f, 0.30f, 0.45f };
 
@@ -400,14 +388,12 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         updateSquadFallback();
         // Squad-level GOAP replan pass. Piggybacks the alert-update phase so
         // plans reflect THIS tick's fresh aliveMembers + centroid + alert
-        // level before any unit executes. Stage 1 runs this serially; the
-        // planner + WorldStateBuilder + actions are designed for parallel
-        // execution across squads (see roadmap/ai/README.md parallelism
-        // section) and we'll fork-join here once we feel the cost.
-        if (USE_GOAP_INFANTRY) {
-            for (Squad squad : squads.values()) {
-                GoapInfantryBehavior.replanIfNeeded(squad, this);
-            }
+        // level before any unit executes. Serial today; the planner +
+        // WorldStateBuilder + actions are designed for parallel execution
+        // across squads (see roadmap/ai/README.md parallelism section) and
+        // we'll fork-join here once we feel the cost.
+        for (Squad squad : squads.values()) {
+            GoapInfantryBehavior.replanIfNeeded(squad, this);
         }
         for (Unit u : units) {
             if (!u.isAlive()) continue;

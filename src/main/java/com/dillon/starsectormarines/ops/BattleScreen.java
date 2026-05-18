@@ -986,7 +986,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         hud = new BattleHud(this);
         hud.addPanel(new SquadOverviewPanel(this));
         hud.addPanel(new SquadDetailPanel(this));
-        // GOAP plan readout — only renders when USE_GOAP_INFANTRY is on.
+        // Per-squad GOAP plan readout (goal + current posture + step index).
         hud.addPanel(new SquadPlanDebugPanel(this));
     }
 
