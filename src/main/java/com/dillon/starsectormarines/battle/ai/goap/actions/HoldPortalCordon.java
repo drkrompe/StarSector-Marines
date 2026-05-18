@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.ai.goap.SquadPlan;
 import com.dillon.starsectormarines.battle.ai.goap.WorldState;
 import com.dillon.starsectormarines.battle.ai.goap.scoring.RoleAssigner;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.weapons.FireStance;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -167,7 +168,8 @@ public final class HoldPortalCordon implements Action {
     private ActionStatus executeHolder(Unit member, GuardPost post, BattleSimulation sim) {
         boolean atPost = (member.cellX == post.cellX && member.cellY == post.cellY);
         if (!atPost) {
-            opportunisticFire(member, sim);
+            // Transit fire — MOVING penalty applies; the holder is mid-step.
+            opportunisticFire(member, sim, FireStance.MOVING);
             if (member.moveProgress == 0f) {
                 sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                         member.cellX, member.cellY, post.cellX, post.cellY,
@@ -180,17 +182,23 @@ public final class HoldPortalCordon implements Action {
         member.moveProgress = 0f;
         member.renderX = member.cellX;
         member.renderY = member.cellY;
-        opportunisticFire(member, sim);
+        // On-post fire — STANCED, full accuracy. This is the whole reason
+        // we stop and hold: the cordon's lethality comes from stanced shots.
+        opportunisticFire(member, sim, FireStance.STANCED);
         return ActionStatus.RUNNING;
     }
 
     /**
      * Shared one-shot fire pass: pick a target, fire if in LOS + range with
-     * cooldown ready. No movement — that's the cordon's whole point. Burst
-     * follow-ups are queued the same way EngagePosture does it so machine-gun
-     * weapons still rip a burst from the post.
+     * cooldown ready. Stance is caller-supplied because the same helper
+     * serves the transit phase ({@link FireStance#MOVING}) and the on-post
+     * phase ({@link FireStance#STANCED}) — neither one wants the strict
+     * {@code stanceFor} heuristic, since the holder may have moveProgress=0
+     * mid-walk between consecutive cells. Burst follow-ups queue the same
+     * way EngagePosture does it so machine-gun weapons still rip a burst
+     * from the post.
      */
-    private static void opportunisticFire(Unit member, BattleSimulation sim) {
+    private static void opportunisticFire(Unit member, BattleSimulation sim, FireStance stance) {
         if (member.target == null
                 || !member.target.isAlive()
                 || !TacticalScoring.shouldKeepPursuing(member, member.target, sim)) {
@@ -202,7 +210,7 @@ public final class HoldPortalCordon implements Action {
         if (d > member.attackRange) return;
         if (!sim.getGrid().hasLineOfSight(member.cellX, member.cellY,
                 member.target.cellX, member.target.cellY)) return;
-        sim.fireShot(member, member.target);
+        sim.fireShot(member, member.target, stance);
         member.cooldownTimer = member.attackCooldown;
         if (member.primaryWeapon != null && member.primaryWeapon.burstCount > 1) {
             member.burstRemaining = member.primaryWeapon.burstCount - 1;

@@ -1081,14 +1081,30 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     }
 
     /**
-     * Delegates to {@link InfantryWeapons#fireShot}. Kept on the sim's
-     * surface because AI behaviors call {@code sim.fireShot(...)} directly —
-     * making them reach into a subsystem accessor would churn the call sites
-     * for no real gain. The implementation now lives in
-     * {@code battle/weapons/InfantryWeapons.java}.
+     * Stanced-fire convenience: most callers fire from a stationary position
+     * (engage loops, garrisons, turrets, mech chassis) and don't need to
+     * think about stance. Routes to {@link #fireShot(Unit, Unit,
+     * com.dillon.starsectormarines.battle.weapons.FireStance)} with
+     * {@link com.dillon.starsectormarines.battle.weapons.FireStance#STANCED}.
+     * Callers firing while walking should call the stance-aware overload
+     * with {@code MOVING} so the accuracy penalty applies.
      */
     public void fireShot(Unit shooter, Unit target) {
-        infantry.fireShot(this, shooter, target);
+        fireShot(shooter, target, com.dillon.starsectormarines.battle.weapons.FireStance.STANCED);
+    }
+
+    /**
+     * Stance-aware fire. {@link com.dillon.starsectormarines.battle.weapons.FireStance#STANCED}
+     * preserves the base accuracy roll;
+     * {@link com.dillon.starsectormarines.battle.weapons.FireStance#MOVING}
+     * halves it. Implementation lives in
+     * {@code battle/weapons/InfantryWeapons.java}; this method exists so AI
+     * behaviors can call {@code sim.fireShot(...)} without reaching into the
+     * subsystem accessor.
+     */
+    public void fireShot(Unit shooter, Unit target,
+                         com.dillon.starsectormarines.battle.weapons.FireStance stance) {
+        infantry.fireShot(this, shooter, target, stance);
     }
 
     /**

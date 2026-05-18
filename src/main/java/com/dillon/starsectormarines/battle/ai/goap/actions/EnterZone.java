@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.ai.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
+import com.dillon.starsectormarines.battle.weapons.FireStance;
 
 /**
  * <b>Squad posture: move into a target zone.</b> Each member paths to a
@@ -87,7 +88,9 @@ public final class EnterZone implements Action {
             boolean visible = sim.getGrid().hasLineOfSight(member.cellX, member.cellY,
                     member.target.cellX, member.target.cellY);
             if (d <= member.attackRange && visible) {
-                sim.fireShot(member, member.target);
+                // EnterZone is the move-toward-zone branch — every shot here
+                // happens mid-step, so MOVING applies as a baseline.
+                sim.fireShot(member, member.target, FireStance.MOVING);
                 member.cooldownTimer = member.attackCooldown;
             }
         }

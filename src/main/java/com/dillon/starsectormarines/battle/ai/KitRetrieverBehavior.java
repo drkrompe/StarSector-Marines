@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.EquipmentDrop;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.UnitRole;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.weapons.FireStance;
 
 /**
  * Kit-retriever: head for the assigned drop, fire opportunistically along
@@ -60,7 +61,8 @@ public final class KitRetrieverBehavior implements UnitBehavior {
                 && sim.getGrid().hasLineOfSight(u.cellX, u.cellY, u.target.cellX, u.target.cellY)
                 && u.cooldownTimer <= 0f;
         if (canFire) {
-            sim.fireShot(u, u.target);
+            // Retriever fires while pathing to a kit — MOVING accuracy penalty.
+            sim.fireShot(u, u.target, FireStance.MOVING);
             u.cooldownTimer = u.attackCooldown;
         }
     }

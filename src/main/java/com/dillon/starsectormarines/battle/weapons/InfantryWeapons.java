@@ -54,7 +54,11 @@ public class InfantryWeapons {
                 u.burstTarget = null;
                 continue;
             }
-            fireShot(ctx, u, u.burstTarget);
+            // Burst follow-up: use the unit's current motion state. If they
+            // walked off the firing position mid-burst, the remaining rounds
+            // get the MOVING accuracy penalty — same rule a hand-rolled
+            // moving-fire callsite gets.
+            fireShot(ctx, u, u.burstTarget, FireStance.stanceFor(u));
             u.burstRemaining--;
             u.burstTimer = u.primaryWeapon.burstSpacing;
             if (u.burstRemaining == 0) u.burstTarget = null;
@@ -65,12 +69,14 @@ public class InfantryWeapons {
      * Fires the shooter's primary at the target. Per-shot accuracy / damage /
      * vsTurret pull from the marine's {@link MarineWeapon} when assigned;
      * otherwise from the {@link Unit}'s baked-in stats (militia, aliens,
-     * turrets — all the "no MarineWeapon" callers).
+     * turrets — all the "no MarineWeapon" callers). Accuracy is multiplied
+     * by {@code stance.accuracyMult} — STANCED preserves the base roll,
+     * MOVING applies the on-the-move suppression penalty.
      *
      * <p>Public because behaviors call this when firing; fall-back is also
      * rolled here, which can mutate the target's path via the context.
      */
-    public void fireShot(WeaponSimContext ctx, Unit shooter, Unit target) {
+    public void fireShot(WeaponSimContext ctx, Unit shooter, Unit target, FireStance stance) {
         float accuracy = shooter.accuracy;
         float damage   = shooter.attackDamage;
         float vsTurretMult = 1f;
@@ -79,6 +85,7 @@ public class InfantryWeapons {
             damage   = shooter.primaryWeapon.damage;
             vsTurretMult = shooter.primaryWeapon.vsTurretMult;
         }
+        accuracy *= stance.accuracyMult;
         boolean hit = ctx.getRng().nextFloat() < accuracy;
         if (hit) {
             ctx.applyDamage(target, damage, vsTurretMult);
