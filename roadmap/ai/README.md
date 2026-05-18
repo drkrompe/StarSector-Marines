@@ -132,6 +132,17 @@ Three cornerstones unlock the bulk of the story bank:
 
 See `10-tactical-stories.md` for the full slicing.
 
+### Squad-of-squads commander tier (parked)
+
+Strategic objective assignment above per-squad GOAP — needed for
+multi-objective missions like Conquest (per-zone clears) and Assault
+(sector sweeps). Per-squad GOAP plans tactical actions inside the
+assigned objective; commander decides which squad goes where.
+
+Design sketch lives in [`12-squad-of-squads.md`](12-squad-of-squads.md).
+Not scheduled — Tier 2 story implementations can land first with manual
+assignment stubs.
+
 ### Stage 3 — Mission-specific goals (future)
 
 `CompleteObjective` (with sub-actions `PlantCharge`, `Hack`, `Hold`),
