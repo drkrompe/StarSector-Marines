@@ -52,6 +52,21 @@ public final class GarrisonBehavior implements UnitBehavior {
             CombatantBehavior.INSTANCE.update(u, sim);
             return;
         }
+        // Retreat overrides every alert state: when the squad has been routed
+        // to a fallback node, every member walks to their freshly-assigned
+        // home cell regardless of whether they currently see an enemy. The
+        // sim's updateSquadFallback drops the flag once everyone's arrived,
+        // at which point normal engagement resumes at the new post.
+        if (squad.fallbackInProgress) {
+            int hx = u.homeCellX >= 0 ? u.homeCellX : u.cellX;
+            int hy = u.homeCellY >= 0 ? u.homeCellY : u.cellY;
+            if (u.cellX == hx && u.cellY == hy) {
+                holdPosition(u, sim);
+                return;
+            }
+            moveToward(u, sim, hx, hy);
+            return;
+        }
         if (squad.alertLevel == SquadAlertLevel.ENGAGED) {
             engaged(u, sim);
             return;

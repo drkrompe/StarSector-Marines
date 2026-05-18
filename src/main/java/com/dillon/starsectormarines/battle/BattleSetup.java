@@ -546,6 +546,7 @@ public final class BattleSetup {
             List<int[]> cells = pickCellsNear(map.grid, node.anchorX, node.anchorY, GARRISON_SPAWN_RADIUS, want);
             if (cells.isEmpty()) { patrolAnchors.add(node); continue; }
             Squad squad = null;
+            int spawned = 0;
             for (int[] cell : cells) {
                 if (queue.isEmpty()) break;
                 UnitType type = queue.poll();
@@ -560,7 +561,9 @@ public final class BattleSetup {
                 }
                 unit.squadId = squad.id;
                 sim.addUnit(unit);
+                spawned++;
             }
+            if (squad != null) squad.originalSize = spawned;
         }
 
         // Pass 2 — leftover defenders form patrol squads. Each patrol takes
@@ -588,6 +591,7 @@ public final class BattleSetup {
                 continue;
             }
             Squad squad = null;
+            int spawned = 0;
             for (int[] cell : cells) {
                 if (queue.isEmpty()) break;
                 UnitType type = queue.poll();
@@ -600,7 +604,9 @@ public final class BattleSetup {
                 }
                 unit.squadId = squad.id;
                 sim.addUnit(unit);
+                spawned++;
             }
+            if (squad != null) squad.originalSize = spawned;
         }
     }
 
@@ -631,9 +637,11 @@ public final class BattleSetup {
      * BFS from (ax, ay) — which may itself be non-walkable, e.g. a turret-mount
      * anchor — collecting walkable cells within Manhattan {@code radius} and
      * returning the top {@code count} sorted by cover desc then distance asc.
-     * Used to pick squad spawn cells around a {@link TacticalNode} anchor.
+     * Used to pick squad spawn cells around a {@link TacticalNode} anchor at
+     * setup time and again by {@link BattleSimulation#updateSquadFallback} when
+     * a garrison reassigns to a fallback node mid-battle.
      */
-    private static List<int[]> pickCellsNear(NavigationGrid grid, int ax, int ay, int radius, int count) {
+    public static List<int[]> pickCellsNear(NavigationGrid grid, int ax, int ay, int radius, int count) {
         List<int[]> pool = new ArrayList<>();
         Set<Long> seen = new HashSet<>();
         Queue<int[]> q = new ArrayDeque<>();

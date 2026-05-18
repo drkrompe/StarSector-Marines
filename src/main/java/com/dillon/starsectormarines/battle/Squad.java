@@ -64,6 +64,27 @@ public final class Squad {
     public TacticalNode assignedNode;
 
     /**
+     * Member count at the moment {@link com.dillon.starsectormarines.battle.BattleSetup}
+     * finished spawning the squad. The fallback trigger compares
+     * {@link #aliveMembers} against this peak: when casualties bring the squad
+     * to half or fewer of its original strength, it reassigns to the first
+     * {@link TacticalNode.LinkKind#FALLBACK_TO} target. 0 for squads that
+     * weren't sized at creation (marine deboards grow incrementally).
+     */
+    public int originalSize = 0;
+    /** True once the squad has already executed its one-shot fallback this battle. Suppresses re-trigger so a squad doesn't cascade through every node in its FALLBACK_TO chain in one tick. */
+    public boolean fallbackTriggered = false;
+    /**
+     * True while the squad is still walking from the old post to the new one.
+     * {@link com.dillon.starsectormarines.battle.ai.GarrisonBehavior} routes
+     * members to their freshly-assigned home cells regardless of alert level
+     * while this flag is set, and the sim clears it once every surviving
+     * member is within {@link com.dillon.starsectormarines.battle.BattleSimulation#HOME_ARRIVAL_RADIUS}
+     * of their home cell.
+     */
+    public boolean fallbackInProgress = false;
+
+    /**
      * Current patrol waypoint cell. -1 sentinel = not assigned yet, the
      * behavior picks one on next tick. {@link com.dillon.starsectormarines.battle.ai.PatrolBehavior}
      * picks a new waypoint when the squad's centroid arrives at the current

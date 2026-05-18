@@ -22,6 +22,7 @@ import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.objective.EliminateFactionObjective;
 import com.dillon.starsectormarines.battle.objective.Objective;
 import com.dillon.starsectormarines.battle.tactical.TacticalMap;
+import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 import com.dillon.starsectormarines.battle.weapons.Detonations;
 import com.dillon.starsectormarines.battle.weapons.HeavyWeapons;
 import com.dillon.starsectormarines.battle.weapons.InfantryWeapons;
@@ -377,6 +378,13 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // SUSPICIOUS / UNAWARE state. Solo units (squadId == NO_SQUAD) skip
         // the squad path entirely.
         updateSquadAlertLevels();
+        // Evaluate fallback chains after alert state is current: an engaged
+        // garrison that's lost half its members reassigns to its FALLBACK_TO
+        // link, and a squad whose members have all arrived at their new post
+        // clears the in-progress flag. Runs after alerts (so we see fresh
+        // aliveMembers) and before updateUnit (so the new home cells are
+        // visible to garrison dispatch this same tick).
+        updateSquadFallback();
         for (Unit u : units) {
             if (!u.isAlive()) continue;
             updateUnit(u);
@@ -683,6 +691,11 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Cell radius around a squadmate inside which an enemy shot's origin counts as "audible gunfire" and promotes the squad to SUSPICIOUS. Bigger than weapon ranges so a distant firefight pulls patrols in to investigate — that's the whole point. */
     public static final float GUNFIRE_ALERT_RADIUS = 18f;
 
+    /** Ratio of {@link Squad#aliveMembers} to {@link Squad#originalSize} at or below which a garrison triggers its FALLBACK_TO retreat. 0.5 = "lose half, fall back." */
+    private static final float FALLBACK_TRIGGER_RATIO = 0.5f;
+    /** Cell-radius around a unit's home cell at which they count as "arrived" for clearing the squad's fallbackInProgress flag. Generous so members don't stutter at the last step waiting on stragglers. */
+    public static final float HOME_ARRIVAL_RADIUS = 2.0f;
+
     /**
      * Single per-tick pass that fills in every squad's derived aggregates
      * (alive member count, centroid, alert level) and drives the
@@ -785,6 +798,98 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                     squad.lastSeenEnemyY = -1;
                 }
             }
+        }
+    }
+
+    /**
+     * Drives the FALLBACK_TO retreat chain for garrison squads. Runs once per
+     * tick after {@link #updateSquadAlertLevels} so the fresh
+     * {@link Squad#aliveMembers} is visible.
+     *
+     * <h2>Trigger pass</h2>
+     * For each squad with an {@link Squad#assignedNode} that hasn't already
+     * fired its one-shot fallback: if alive-strength drops to or below
+     * {@link #FALLBACK_TRIGGER_RATIO} of {@link Squad#originalSize}, the squad
+     * reassigns to the first {@link TacticalNode.LinkKind#FALLBACK_TO} target.
+     * Each surviving member gets a new {@link Unit#homeCellX home cell} near
+     * the new anchor (picked via {@link BattleSetup#pickCellsNear} so cover is
+     * preserved at the new post). {@link Squad#fallbackInProgress} is set so
+     * {@link com.dillon.starsectormarines.battle.ai.GarrisonBehavior} routes
+     * members to their new homes regardless of alert level.
+     *
+     * <h2>Arrival pass</h2>
+     * For each squad already mid-retreat: when every surviving member is
+     * within {@link #HOME_ARRIVAL_RADIUS} of their new home, the in-progress
+     * flag clears and the squad resumes normal garrison engagement at the
+     * new post. The squad's alert level isn't reset — if there's still an
+     * enemy in LoS, the next tick's promotion will pick it up.
+     *
+     * <p>Fallback is one-shot per squad to prevent cascading: a battered
+     * garrison falls back once and then holds, even if the new post is also
+     * overrun. Chained retreats would need explicit gating that we don't
+     * have yet.
+     */
+    private void updateSquadFallback() {
+        for (Squad squad : squads.values()) {
+            if (squad.assignedNode == null) continue;
+            if (squad.aliveMembers == 0) continue;
+
+            // Arrival pass for in-progress retreats.
+            if (squad.fallbackInProgress) {
+                if (allMembersHome(squad)) squad.fallbackInProgress = false;
+                continue;
+            }
+
+            // Trigger pass — only fire once per squad.
+            if (squad.fallbackTriggered) continue;
+            if (squad.originalSize <= 0) continue;
+            if ((float) squad.aliveMembers / squad.originalSize > FALLBACK_TRIGGER_RATIO) continue;
+            List<TacticalNode> targets = squad.assignedNode.linkedTo(TacticalNode.LinkKind.FALLBACK_TO);
+            if (targets.isEmpty()) continue;
+
+            TacticalNode newNode = targets.get(0);
+            assignFallbackHomes(squad, newNode);
+            squad.assignedNode = newNode;
+            squad.fallbackTriggered = true;
+            squad.fallbackInProgress = true;
+        }
+    }
+
+    /** True when every alive squad member is within {@link #HOME_ARRIVAL_RADIUS} of their home cell — caller treats that as "the retreat is finished." */
+    private boolean allMembersHome(Squad squad) {
+        for (Unit u : units) {
+            if (!u.isAlive() || u.squadId != squad.id) continue;
+            if (u.homeCellX < 0) continue;
+            float dx = u.homeCellX - u.cellX;
+            float dy = u.homeCellY - u.cellY;
+            if (dx * dx + dy * dy > HOME_ARRIVAL_RADIUS * HOME_ARRIVAL_RADIUS) return false;
+        }
+        return true;
+    }
+
+    /**
+     * Distributes new home cells around {@code newNode}'s anchor to every
+     * surviving member of {@code squad}. Reuses
+     * {@link BattleSetup#pickCellsNear} so the cover-sorted ordering is the
+     * same one the original spawn used — the highest-rank survivors (iterated
+     * in unit list order, which preserves spawn priority) take the best new
+     * cover stacks.
+     */
+    private void assignFallbackHomes(Squad squad, TacticalNode newNode) {
+        List<int[]> cells = BattleSetup.pickCellsNear(grid, newNode.anchorX, newNode.anchorY, 5, squad.aliveMembers);
+        int idx = 0;
+        for (Unit u : units) {
+            if (!u.isAlive() || u.squadId != squad.id) continue;
+            if (idx >= cells.size()) {
+                // Out of cells — keep the survivor's current home so they
+                // don't end up homeless. They'll just hold where they are.
+                continue;
+            }
+            int[] cell = cells.get(idx++);
+            u.homeCellX = cell[0];
+            u.homeCellY = cell[1];
+            // Wipe stale path — next garrison tick re-paths to the new home.
+            clearPath(u);
         }
     }
 
