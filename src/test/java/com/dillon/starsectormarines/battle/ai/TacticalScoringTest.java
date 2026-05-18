@@ -231,6 +231,83 @@ public class TacticalScoringTest {
     }
 
     // ---------------------------------------------------------------------
+    // Part 2b — AoE-radius spread (cell-claim hotfix)
+    // ---------------------------------------------------------------------
+
+    @Test
+    public void aoeSpreadPushesSecondMarineOffDeskCell() {
+        // Open field with one cover doodad — the "marines bunch on the
+        // desk and one rocket wipes them" playtest failure. Two marines:
+        // marine0 already pathing to the desk (its dest counted in occupancy
+        // via setPath), marine1 picking a firing position now. Without
+        // AoE spread + bumped occupancy cost, marine1 would pick the same
+        // desk cell. With them in place, marine1 should pick an adjacent
+        // cell.
+        BattleSimulation sim = openArena(20, 20);
+        // Heavy doodad on (10, 10).
+        sim.addDoodad(new Doodad(10, 10, new TileManifest.TileFrame(4, 7)));
+
+        Unit threat = unit(sim, Faction.DEFENDER, 18, 10);
+        threat.attackRange = 30f;
+
+        // marine0 already standing on the desk cell — counted as both
+        // current-cell occupancy AND an AoE-spread ally near (10, 10).
+        Unit m0 = unit(sim, Faction.MARINE, 10, 10);
+        m0.attackRange = 30f;
+
+        // marine1 picks a firing position now. Choose a setup where the
+        // desk cell would otherwise win on cover alone.
+        Unit m1 = unit(sim, Faction.MARINE, 5, 10);
+        m1.attackRange = 30f;
+
+        int[] pick = TacticalScoring.findFiringPosition(m1, threat, sim);
+        assertNotNull(pick);
+        boolean withinAoeRadius = (Math.abs(pick[0] - 10) <= TacticalScoring.FIRING_AOE_SPREAD_RADIUS
+                && Math.abs(pick[1] - 10) <= TacticalScoring.FIRING_AOE_SPREAD_RADIUS);
+        // The picker should choose a cell OUTSIDE the AoE-spread radius of
+        // marine0, even though cover is concentrated at marine0's cell.
+        // The exact cell depends on cover bleed-in from neighbors; the
+        // contract is "not co-located AND not within AoE-radius."
+        assertNotEquals(10, pick[0],
+                "marine1 must not pick the same cell marine0 is on");
+        if (withinAoeRadius) {
+            // Acceptable fallback only if there literally is no cell outside
+            // the radius with non-zero cover — in this open-arena setup with
+            // a single doodad, there ARE such cells.
+            org.junit.jupiter.api.Assertions.fail(
+                    "marine1 picked " + pick[0] + "," + pick[1]
+                            + " — within AoE radius of marine0; expected spread to push them outside");
+        }
+    }
+
+    @Test
+    public void alliesNearForSpreadCountsCurrentAndPathDest() {
+        BattleSimulation sim = openArena(15, 15);
+        Unit self = unit(sim, Faction.MARINE, 0, 0);
+
+        // Ally currently at (5, 5) → within radius 2 of (4, 4)? distance sqrt(2) ≈ 1.4. Yes.
+        Unit a1 = unit(sim, Faction.MARINE, 5, 5);
+        // Ally currently far but path destination at (4, 5) → within radius of (4, 4).
+        Unit a2 = unit(sim, Faction.MARINE, 12, 12);
+        int[] path = new int[]{12, 12, 4, 5};
+        sim.setPath(a2, path);
+
+        int count = TacticalScoring.alliesNearForSpread(self, 4, 4, sim);
+        assertEquals(2, count,
+                "both the at-cell ally and the pathing-to-near-cell ally count toward AoE-spread");
+    }
+
+    @Test
+    public void alliesNearForSpreadIgnoresEnemies() {
+        BattleSimulation sim = openArena(15, 15);
+        Unit self = unit(sim, Faction.MARINE, 0, 0);
+        // Enemy literally on the candidate cell.
+        unit(sim, Faction.DEFENDER, 4, 4);
+        int count = TacticalScoring.alliesNearForSpread(self, 4, 4, sim);
+        assertEquals(0, count, "enemies don't contribute to ally-spread");
+    }
+
+    // ---------------------------------------------------------------------
     // Part 3a — zone-mismatch target bias (Slice 3.5)
     // ---------------------------------------------------------------------
 

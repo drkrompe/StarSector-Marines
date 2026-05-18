@@ -36,8 +36,33 @@ public final class TacticalScoring {
     /** Extra penalty when the engager is a squadmate. Real fireteams cover sectors, not the same enemy. */
     public static final float TARGET_SQUADMATE_EXTRA_COST = 6f;
 
-    /** Per-ally-on-cell penalty added when picking a firing position around a target — pushes units into a spread ring. */
-    public static final float FIRING_OCCUPANCY_COST = 4f;
+    /**
+     * Per-ally-on-cell penalty added when picking a firing position. Pushes
+     * units off cells already claimed by squadmates. Tuned against the
+     * post-Slice-3 directional cover scale: a single occupant should turn a
+     * max-cover cell ({@code -3*FIRING_COVER_BONUS = -9}) into net positive
+     * vs. an empty cover-1 cell ({@code -3}), so the second marine takes the
+     * next-best cover instead of doubling up.
+     */
+    public static final float FIRING_OCCUPANCY_COST = 8f;
+
+    /**
+     * AoE-survival spread cost — penalty for each same-faction ally whose
+     * current cell <em>or</em> path destination sits within
+     * {@link #FIRING_AOE_SPREAD_RADIUS} cells of the candidate. Prevents the
+     * "everyone bunches on the one cover doodad in the field, then dies to
+     * one rocket" failure mode. Pairs with {@link #FIRING_OCCUPANCY_COST}:
+     * occupancy handles literal cell-sharing, spread handles same-AoE-radius
+     * clustering.
+     */
+    public static final float FIRING_AOE_SPREAD_COST = 4f;
+    /**
+     * Cell-radius for the AoE-spread penalty. {@code 2} matches typical AoE
+     * weapon radii (marine rocket 1.5, mech SRM 1.3, mech LRM 2.0) — a
+     * marine outside this radius from squadmates survives the rocket that
+     * kills the cluster.
+     */
+    public static final int FIRING_AOE_SPREAD_RADIUS = 2;
     /** Minimum cell-distance from target when picking a firing position. Avoids picking the target's own cell. */
     public static final float FIRING_MIN_DISTANCE = 0.7f;
     /** Per-cover-level bonus subtracted from firing-position score. Pushes units to peek from corners and wall edges. */
@@ -407,6 +432,7 @@ public final class TacticalScoring {
                 if (cellDistance(anchorX, anchorY, cx, cy) > maxDistFromAnchor) continue;
 
                 int occupants = occupantsExcludingSelf(self, cx, cy, sim);
+                int alliesNear = alliesNearForSpread(self, cx, cy, sim);
                 // Cover lookup is directional against the target (the
                 // upcoming threat from this firing position) — Story G.
                 int fdx = tx - cx;
@@ -416,6 +442,7 @@ public final class TacticalScoring {
                 float distFromSelf = cellDistance(self.cellX, self.cellY, cx, cy);
                 float score = distFromSelf
                         + FIRING_OCCUPANCY_COST * occupants
+                        + FIRING_AOE_SPREAD_COST * alliesNear
                         - FIRING_COVER_BONUS * cover
                         - FIRING_DOODAD_COVER_BONUS * doodadCover;
                 if (score < bestScore) {
@@ -448,6 +475,7 @@ public final class TacticalScoring {
                 if (!grid.hasLineOfSight(cx, cy, tx, ty)) continue;
 
                 int occupants = occupantsExcludingSelf(self, cx, cy, sim);
+                int alliesNear = alliesNearForSpread(self, cx, cy, sim);
                 // Per-facing cover against the target (Story G).
                 int fdx = tx - cx;
                 int fdy = ty - cy;
@@ -456,6 +484,7 @@ public final class TacticalScoring {
                 float distFromSelf = cellDistance(self.cellX, self.cellY, cx, cy);
                 float score = distFromSelf
                         + FIRING_OCCUPANCY_COST * occupants
+                        + FIRING_AOE_SPREAD_COST * alliesNear
                         - FIRING_COVER_BONUS * cover
                         - FIRING_DOODAD_COVER_BONUS * doodadCover;
                 if (score < bestScore) {
@@ -575,9 +604,11 @@ public final class TacticalScoring {
                 if (combined <= selfCover) continue;
 
                 int occupants = occupantsExcludingSelf(self, cx, cy, sim);
+                int alliesNear = alliesNearForSpread(self, cx, cy, sim);
                 float distFromSelf = cellDistance(self.cellX, self.cellY, cx, cy);
                 float score = distFromSelf
                         + FIRING_OCCUPANCY_COST * occupants
+                        + FIRING_AOE_SPREAD_COST * alliesNear
                         - FIRING_COVER_BONUS * cover
                         - FIRING_DOODAD_COVER_BONUS * doodadCover;
                 if (score < bestScore) {
@@ -744,6 +775,42 @@ public final class TacticalScoring {
             if (grid.hasLineOfSight(cx, cy, other.cellX, other.cellY)) return false;
         }
         return true;
+    }
+
+    /**
+     * Counts same-faction allies (excluding {@code self}) whose <em>current
+     * cell or path destination</em> sits within {@link #FIRING_AOE_SPREAD_RADIUS}
+     * of {@code (cx, cy)}. Used by firing-position scorers to discourage
+     * AoE-survivable clustering — an ally with a path destination near the
+     * candidate counts as a future occupant (their claim is the path-dest
+     * occupancy from {@link BattleSimulation#setPath}, which eagerly updates
+     * the map). Counting both current AND dest captures both "they're already
+     * here" and "they're coming here" states without double-counting allies
+     * that are at-rest at their destination.
+     */
+    public static int alliesNearForSpread(Unit self, int cx, int cy, BattleSimulation sim) {
+        int r2 = FIRING_AOE_SPREAD_RADIUS * FIRING_AOE_SPREAD_RADIUS;
+        int count = 0;
+        for (Unit u : sim.getUnits()) {
+            if (u == self || !u.isAlive() || u.faction != self.faction) continue;
+            int dx = u.cellX - cx;
+            int dy = u.cellY - cy;
+            if (dx * dx + dy * dy <= r2) {
+                count++;
+                continue;
+            }
+            int cells = u.pathCellCount();
+            if (cells > 0) {
+                int destX = u.pathCellX(cells - 1);
+                int destY = u.pathCellY(cells - 1);
+                if (destX != u.cellX || destY != u.cellY) {
+                    int ddx = destX - cx;
+                    int ddy = destY - cy;
+                    if (ddx * ddx + ddy * ddy <= r2) count++;
+                }
+            }
+        }
+        return count;
     }
 
     /**
