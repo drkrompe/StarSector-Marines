@@ -125,7 +125,7 @@ public class HeavyWeapons {
      * the loadout, not the unit.
      *
      * <p>The trigger decisions (start a burst / launch a salvo / lob an LRM)
-     * happen inside {@code CombatantBehavior.tryFireMechWeapons}. This pass
+     * happen inside {@code MechCombatantBehavior.tryFireMechWeapons}. This pass
      * only handles continuation — emitting queued rounds at their proper
      * spacing — and ticks down the per-weapon cooldowns so the next trigger
      * decision sees the right gating.

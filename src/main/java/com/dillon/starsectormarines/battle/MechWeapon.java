@@ -75,7 +75,7 @@ public enum MechWeapon {
      *
      * <p>Unlike chainguns + SRMs, LRMs can fire WITHOUT direct line of sight
      * at a {@link #LRM_NO_LOS_ACC_MULT}× accuracy penalty (the AI gates this
-     * in {@code CombatantBehavior.tryFireMechWeapons}, not the weapon itself).
+     * in {@code MechCombatantBehavior.tryFireMechWeapons}, not the weapon itself).
      */
     LRM_ARTILLERY("LRM Artillery",
                   "pilum_lrm_fire",
