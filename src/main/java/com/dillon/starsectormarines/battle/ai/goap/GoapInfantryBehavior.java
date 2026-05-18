@@ -6,7 +6,9 @@ import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.ai.InfantryUnitPrep;
 import com.dillon.starsectormarines.battle.ai.UnitBehavior;
 import com.dillon.starsectormarines.battle.ai.goap.actions.ApproachPosture;
+import com.dillon.starsectormarines.battle.ai.goap.actions.BreakLOS;
 import com.dillon.starsectormarines.battle.ai.goap.actions.EngagePosture;
+import com.dillon.starsectormarines.battle.ai.goap.actions.OverwatchPosture;
 import com.dillon.starsectormarines.battle.ai.goap.actions.RegroupPosture;
 import com.dillon.starsectormarines.battle.ai.goap.goals.CordonForPlant;
 import com.dillon.starsectormarines.battle.ai.goap.goals.EliminateEnemiesGoal;
@@ -58,7 +60,9 @@ public final class GoapInfantryBehavior implements UnitBehavior {
     public static final List<Action> INFANTRY_ACTIONS = List.of(
             EngagePosture.INSTANCE,
             ApproachPosture.INSTANCE,
-            RegroupPosture.INSTANCE
+            RegroupPosture.INSTANCE,
+            OverwatchPosture.INSTANCE,
+            BreakLOS.INSTANCE
     );
 
     /** Sim-seconds between forced replans for squads whose plan didn't otherwise change. Balances responsiveness against planner cost; 2s is long enough to amortize, short enough that stale plans don't cling past a tactical shift. */

@@ -35,9 +35,14 @@ public final class EngagePosture implements Action {
 
     public static final EngagePosture INSTANCE = new EngagePosture();
 
+    // Story A: ENEMY_IN_KILL_ZONE is the ambush gate. For garrison squads it
+    // flips true only after sustained LOS to a close enemy; for everyone else
+    // the evaluator returns true unconditionally so the Engage precondition
+    // is unchanged in practice for marines/patrols.
     private static final WorldState PRE = WorldState.EMPTY
             .with(Predicate.HAS_LOS_TO_TARGET, true)
-            .with(Predicate.IN_RANGE_OF_TARGET, true);
+            .with(Predicate.IN_RANGE_OF_TARGET, true)
+            .with(Predicate.ENEMY_IN_KILL_ZONE, true);
     private static final WorldState EFF = WorldState.EMPTY
             .with(Predicate.ENEMY_DAMAGED, true);
 

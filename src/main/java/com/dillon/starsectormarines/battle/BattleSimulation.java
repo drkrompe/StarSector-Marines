@@ -841,6 +841,23 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     public static final float HOME_ARRIVAL_RADIUS = 2.0f;
 
     /**
+     * Story A: cell range within which an enemy is considered "in the kill
+     * zone" for a garrison squad's ambush trigger. The kill zone is intentionally
+     * close — garrisons want the first shot to land, not to give away their
+     * post at extreme range. {@code 8} cells matches typical rifle effective
+     * range while staying short of the renderer's visibility horizon.
+     */
+    public static final int KILL_ZONE_RANGE_CELLS = 8;
+    /**
+     * Story A: consecutive sim ticks of LOS to a close enemy required before
+     * the kill-zone gate trips. At {@code TICK_DT = 1/30 sec}, 6 ticks ≈ 0.2s
+     * of stable sight — short enough to feel reflexive, long enough that a
+     * single transient LoS frame (target dancing through a doorway) doesn't
+     * spring the ambush prematurely.
+     */
+    public static final int KILL_ZONE_LOS_TICKS_THRESHOLD = 6;
+
+    /**
      * Single per-tick pass that fills in every squad's derived aggregates
      * (alive member count, centroid, alert level) and drives the
      * ENGAGED/SUSPICIOUS/UNAWARE state machine.
@@ -867,9 +884,16 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             squad.centroidY = 0f;
             squad._engagedThisTick = false;
             squad._suspiciousThisTick = false;
+            squad._killZoneSightedThisTick = false;
         }
 
         // Pass 1: accumulate squad aggregates + per-squad engagement LoS.
+        // For garrison squads (holdsFireUntilKillZone), also drive the kill-zone
+        // LOS-stability counter — incremented when any squadmate has LOS to an
+        // enemy within KILL_ZONE_RANGE_CELLS this tick, reset to 0 otherwise.
+        // We track this independently of the early-exit ENGAGED flag because
+        // the ENGAGED scan stops at the first sighted enemy, and we need the
+        // tighter "close + visible" predicate for the kill-zone gate.
         for (Unit u : units) {
             if (!u.isAlive() || u.squadId == Unit.NO_SQUAD) continue;
             Squad squad = squads.get(u.squadId);
@@ -878,6 +902,24 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             squad.centroidX += u.cellX;
             squad.centroidY += u.cellY;
             if (u.fallbackTimer > 0f) squad._suspiciousThisTick = true;
+
+            // Kill-zone LOS scan for garrison squads only. Looks for ANY
+            // squadmate with LOS to a close enemy combatant — a single
+            // qualifying sighting per tick increments the counter for the
+            // squad. The scan is keyed on holdsFireUntilKillZone so non-
+            // garrison squads pay nothing.
+            if (squad.holdsFireUntilKillZone && !squad._killZoneSightedThisTick) {
+                for (Unit other : units) {
+                    if (!other.isAlive() || other.faction == squad.faction) continue;
+                    if (!other.type.combatant) continue;
+                    int dx = other.cellX - u.cellX;
+                    int dy = other.cellY - u.cellY;
+                    if (dx * dx + dy * dy > KILL_ZONE_RANGE_CELLS * KILL_ZONE_RANGE_CELLS) continue;
+                    if (!grid.hasLineOfSight(u.cellX, u.cellY, other.cellX, other.cellY)) continue;
+                    squad._killZoneSightedThisTick = true;
+                    break;
+                }
+            }
 
             // LoS scan only if no squadmate has tripped ENGAGED yet this tick —
             // one engaged squadmate is enough to commit the whole squad.
@@ -921,6 +963,20 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             if (squad.aliveMembers > 0) {
                 squad.centroidX /= squad.aliveMembers;
                 squad.centroidY /= squad.aliveMembers;
+            }
+            // Story A: garrison kill-zone LOS hysteresis. Increments when any
+            // squadmate sighted a close enemy this tick; resets to 0 when no
+            // close-LOS sighting was recorded. Only garrison squads keep this
+            // counter — non-garrison squads have holdsFireUntilKillZone=false
+            // and never get a sighting flagged (skipped in pass 1).
+            if (squad.holdsFireUntilKillZone) {
+                if (squad._killZoneSightedThisTick) {
+                    if (squad.killZoneLosTicks < KILL_ZONE_LOS_TICKS_THRESHOLD) {
+                        squad.killZoneLosTicks++;
+                    }
+                } else {
+                    squad.killZoneLosTicks = 0;
+                }
             }
             if (squad._engagedThisTick) {
                 squad.alertLevel = SquadAlertLevel.ENGAGED;

@@ -141,6 +141,38 @@ public final class Squad {
      */
     public boolean _engagedThisTick = false;
     public boolean _suspiciousThisTick = false;
+    /**
+     * Per-tick transient set by {@code BattleSimulation.updateSquadAlertLevels}:
+     * true if any squadmate sighted a close (within {@link com.dillon.starsectormarines.battle.BattleSimulation#KILL_ZONE_RANGE_CELLS}
+     * cells) hostile combatant this tick. Drives the {@link #killZoneLosTicks}
+     * hysteresis counter — read once at the end of the alert-update pass and
+     * cleared at the top of the next.
+     */
+    public boolean _killZoneSightedThisTick = false;
+
+    // ---- Story A: garrison ambush gating ----
+
+    /**
+     * When true, the squad refuses to open fire from {@link com.dillon.starsectormarines.battle.ai.goap.actions.EngagePosture}
+     * until {@link com.dillon.starsectormarines.battle.ai.goap.Predicate#ENEMY_IN_KILL_ZONE}
+     * flips true (an enemy entered the kill zone <em>and</em> LOS to that enemy
+     * has been stable for {@link com.dillon.starsectormarines.battle.BattleSimulation#KILL_ZONE_LOS_TICKS_THRESHOLD}
+     * ticks). Set at construction by {@code BattleSetup} for GARRISON-routed
+     * defender squads. Marines and patrol squads leave this false — the
+     * evaluator short-circuits the predicate to true for them so the existing
+     * Engage flow is unchanged.
+     */
+    public boolean holdsFireUntilKillZone = false;
+
+    /**
+     * Tick counter for kill-zone LOS hysteresis: incremented in
+     * {@link com.dillon.starsectormarines.battle.BattleSimulation#updateSquadAlertLevels}
+     * when this garrison squad has LOS to a close enemy this tick, reset to 0
+     * when LOS is lost. Only updated for squads with {@link #holdsFireUntilKillZone};
+     * other squads leave this at 0 (the predicate evaluator never reads it
+     * for them).
+     */
+    public int killZoneLosTicks = 0;
 
     // ---- GOAP plan state ----
     // Populated by GoapInfantryBehavior.replanIfNeeded; mutated by per-unit

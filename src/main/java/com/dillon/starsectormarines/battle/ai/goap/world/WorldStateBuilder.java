@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.ai.goap.world;
 
 import com.dillon.starsectormarines.battle.BattleSimulation;
+import com.dillon.starsectormarines.battle.ShotEvent;
 import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.ai.InfantryCohesion;
@@ -54,8 +55,8 @@ public final class WorldStateBuilder {
         // the predicate see a stable false until they're swept.
         EVALUATORS.put(Predicate.SQUAD_BELOW_HALF_STRENGTH,         STUB_FALSE);
         EVALUATORS.put(Predicate.MORALE_BROKEN,                     (s, sim) -> s.moraleBroken);
-        EVALUATORS.put(Predicate.ENEMY_IN_KILL_ZONE,                STUB_FALSE);
-        EVALUATORS.put(Predicate.UNDER_FIRE_AT_LOS,                 STUB_FALSE);
+        EVALUATORS.put(Predicate.ENEMY_IN_KILL_ZONE,                WorldStateBuilder::evalEnemyInKillZone);
+        EVALUATORS.put(Predicate.UNDER_FIRE_AT_LOS,                 WorldStateBuilder::evalUnderFireAtLos);
         EVALUATORS.put(Predicate.ENEMY_SUPPRESSED,                  STUB_FALSE);
         EVALUATORS.put(Predicate.BEHIND_FRIENDLY_RELATIVE_TO_THREAT, STUB_FALSE);
         EVALUATORS.put(Predicate.CAN_REPOSITION,                    WorldStateBuilder::evalCanReposition);
@@ -165,5 +166,85 @@ public final class WorldStateBuilder {
             if (dx * dx + dy * dy > r2) return false;
         }
         return true;
+    }
+
+    // --- Story A evaluators ---------------------------------------------
+
+    /**
+     * <b>Story A trigger.</b> True when the squad's ambush gate is ready to
+     * fire. Non-garrison squads always read true — they have no "wait" state,
+     * so the predicate stays a no-op in {@link com.dillon.starsectormarines.battle.ai.goap.actions.EngagePosture}'s
+     * preconditions for marines and patrol squads.
+     *
+     * <p>Garrison squads ({@link Squad#holdsFireUntilKillZone}) read true iff:
+     * <ul>
+     *   <li>{@link Squad#killZoneLosTicks} has reached
+     *       {@link BattleSimulation#KILL_ZONE_LOS_TICKS_THRESHOLD} — LOS to a
+     *       close enemy has been stable for ~0.2s, suppressing flicker on
+     *       transient sightings; AND</li>
+     *   <li>At least one squadmate currently has LOS to an enemy combatant
+     *       within {@link BattleSimulation#KILL_ZONE_RANGE_CELLS} cells —
+     *       the trigger doesn't latch; once the enemy retreats out of the
+     *       kill zone the gate closes again.</li>
+     * </ul>
+     */
+    private static boolean evalEnemyInKillZone(Squad squad, BattleSimulation sim) {
+        if (!squad.holdsFireUntilKillZone) return true;
+        if (squad.killZoneLosTicks < BattleSimulation.KILL_ZONE_LOS_TICKS_THRESHOLD) return false;
+        NavigationGrid grid = sim.getGrid();
+        int range2 = BattleSimulation.KILL_ZONE_RANGE_CELLS * BattleSimulation.KILL_ZONE_RANGE_CELLS;
+        List<Unit> units = sim.getUnits();
+        for (Unit member : units) {
+            if (!member.isAlive() || member.squadId != squad.id) continue;
+            for (Unit enemy : units) {
+                if (!enemy.isAlive() || !enemy.type.combatant) continue;
+                if (enemy.faction == squad.faction) continue;
+                int dx = enemy.cellX - member.cellX;
+                int dy = enemy.cellY - member.cellY;
+                if (dx * dx + dy * dy > range2) continue;
+                if (grid.hasLineOfSight(member.cellX, member.cellY, enemy.cellX, enemy.cellY)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * <b>Story A re-trigger.</b> True when at least one squadmate is taking
+     * incoming fire at a cell with LOS back to the firing enemy — i.e. the
+     * member is exposed in the shot's lane. Garrison ambush flips back into
+     * BreakLOS posture when this trips, so a squad caught in return fire
+     * ducks for cover instead of trading blows at parity.
+     *
+     * <p>Scans {@link BattleSimulation#getActiveShots} for hostile shots whose
+     * target endpoint is within 2 cells of any squadmate. A squadmate at the
+     * shot's target area with LOS back to {@code (fromX, fromY)} qualifies —
+     * the LOS test is what distinguishes "shot through a wall (impossible,
+     * but the shot grazed past a corner)" from "we're standing in the firing
+     * lane."
+     */
+    private static boolean evalUnderFireAtLos(Squad squad, BattleSimulation sim) {
+        List<ShotEvent> shots = sim.getActiveShots();
+        if (shots.isEmpty()) return false;
+        NavigationGrid grid = sim.getGrid();
+        List<Unit> units = sim.getUnits();
+        for (ShotEvent shot : shots) {
+            if (shot.shooterFaction == squad.faction) continue;
+            for (Unit member : units) {
+                if (!member.isAlive() || member.squadId != squad.id) continue;
+                float dx = shot.toX - (member.cellX + 0.5f);
+                float dy = shot.toY - (member.cellY + 0.5f);
+                if (dx * dx + dy * dy > 4f) continue; // 2 cells squared
+                // Shot fromX/fromY are cell-centers (shooter.cellX + 0.5);
+                // floor recovers the integer cell.
+                int fromCellX = (int) Math.floor(shot.fromX);
+                int fromCellY = (int) Math.floor(shot.fromY);
+                if (grid.hasLineOfSight(member.cellX, member.cellY, fromCellX, fromCellY)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

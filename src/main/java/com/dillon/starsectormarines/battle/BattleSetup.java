@@ -558,6 +558,9 @@ public final class BattleSetup {
                     int sid = sim.mintSquad(Faction.DEFENDER, unit);
                     squad = sim.getSquad(sid);
                     squad.assignedNode = node;
+                    // Story A: garrisons hold fire until the kill-zone gate
+                    // trips. Patrol/marine squads leave this false.
+                    squad.holdsFireUntilKillZone = true;
                 }
                 unit.squadId = squad.id;
                 sim.addUnit(unit);
