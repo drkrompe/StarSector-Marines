@@ -50,7 +50,7 @@ defender garrisons, defender patrols, mechs).
 
 The original doc called for a key-toggled overlay drawn at squad centroids.
 Realized instead as a bottom-right HUD panel
-([`SquadPlanDebugPanel`](../../src/main/java/com/dillon/starsectormarines/battle/ui/panel/SquadPlanDebugPanel.java))
+([`SquadPlanDebugPanel`](../../../src/main/java/com/dillon/starsectormarines/battle/ui/panel/SquadPlanDebugPanel.java))
 mirroring the existing `SquadOverviewPanel`. Visible whenever
 `USE_GOAP_INFANTRY` is on. One row per squad:
 

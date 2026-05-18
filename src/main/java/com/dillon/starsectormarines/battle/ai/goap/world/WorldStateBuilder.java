@@ -34,6 +34,9 @@ public final class WorldStateBuilder {
 
     private static final Map<Predicate, PredicateEvaluator> EVALUATORS = new EnumMap<>(Predicate.class);
 
+    /** Stub evaluator used for predicates pre-declared but not yet implemented (Stage 2 fanout placeholders). Always reads false so {@code build} produces a fully-specified state and Stage 1 actions / goals are unaffected. */
+    private static final PredicateEvaluator STUB_FALSE = (s, sim) -> false;
+
     static {
         EVALUATORS.put(Predicate.HAS_TARGET,              WorldStateBuilder::evalHasTarget);
         EVALUATORS.put(Predicate.HAS_LOS_TO_TARGET,       WorldStateBuilder::evalHasLosToTarget);
@@ -41,7 +44,22 @@ public final class WorldStateBuilder {
         EVALUATORS.put(Predicate.WITHIN_COHESION_RADIUS,  WorldStateBuilder::evalWithinCohesionRadius);
         // ENEMY_DAMAGED is a goal-side marker, never observed in a snapshot.
         // EngagePosture.effects() sets it; the planner regresses through it.
-        EVALUATORS.put(Predicate.ENEMY_DAMAGED,           (s, sim) -> false);
+        EVALUATORS.put(Predicate.ENEMY_DAMAGED,           STUB_FALSE);
+
+        // Stage 2 surface — predicates reserved for stories in
+        // roadmap/ai/10-tactical-stories.md. Each story's subagent will
+        // replace its STUB_FALSE entry with a real evaluator alongside the
+        // story's action/goal implementation.
+        EVALUATORS.put(Predicate.SQUAD_BELOW_HALF_STRENGTH,         STUB_FALSE);
+        EVALUATORS.put(Predicate.ENEMY_IN_KILL_ZONE,                STUB_FALSE);
+        EVALUATORS.put(Predicate.UNDER_FIRE_AT_LOS,                 STUB_FALSE);
+        EVALUATORS.put(Predicate.ENEMY_SUPPRESSED,                  STUB_FALSE);
+        EVALUATORS.put(Predicate.BEHIND_FRIENDLY_RELATIVE_TO_THREAT, STUB_FALSE);
+        EVALUATORS.put(Predicate.CAN_REPOSITION,                    STUB_FALSE);
+        EVALUATORS.put(Predicate.ZONE_CLEAR,                        STUB_FALSE);
+        EVALUATORS.put(Predicate.ENEMY_IN_PORTAL_CELL,              STUB_FALSE);
+        EVALUATORS.put(Predicate.NODE_IS_MUST_HOLD,                 STUB_FALSE);
+        EVALUATORS.put(Predicate.THREAT_DENSITY_HIGH_AT_TARGET,     STUB_FALSE);
     }
 
     private WorldStateBuilder() {}

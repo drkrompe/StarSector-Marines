@@ -62,7 +62,7 @@ bodies so:
 - Cooldowns drain consistently across Engage/Approach/Regroup phases.
 - Posture bodies stay focused on intent.
 
-See [`InfantryUnitPrep`](../../src/main/java/com/dillon/starsectormarines/battle/ai/InfantryUnitPrep.java)
+See [`InfantryUnitPrep`](../../../src/main/java/com/dillon/starsectormarines/battle/ai/InfantryUnitPrep.java)
 for the helper that both `InfantryCombatantBehavior` (legacy path) and
 `GoapInfantryBehavior` (new path) call into.
 

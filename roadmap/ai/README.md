@@ -77,7 +77,7 @@ parallelism split mirrors this:
 | Per-unit Action.execute | Serial (writes back to sim) |
 
 Constraints this places on the architecture:
-- **`WorldState` is a value type** — two-long bitmask (see [01](01-world-state.md)),
+- **`WorldState` is a value type** — two-long bitmask (see [01](complete/01-world-state.md)),
   no allocations on read, lockless thread-safe by value.
 - **`Action`/`Goal` implementations are stateless singletons.** Per-step state
   lives on the `SquadPlan` and the assigned `Unit`, never on the action itself.
@@ -89,40 +89,48 @@ Constraints this places on the architecture:
 
 Stage 1 lands the architecture (immutable WorldState, stateless actions). The
 actual parallel `replan-across-squads` execution gets wired in
-[08-behavior-wiring](08-behavior-wiring.md), gated on the same `USE_GOAP_INFANTRY`
+[08-behavior-wiring](complete/08-behavior-wiring.md), gated on the same `USE_GOAP_INFANTRY`
 flag — flip serial-vs-parallel at one site for A/B.
 
 ## Staging
 
-### Stage 1 — Infrastructure + parity (this roadmap)
+### Stage 1 — Infrastructure + parity ✅ COMPLETE
 
-Build the planner, world-state, action/goal interfaces, and a minimal set
+Built the planner, world-state, action/goal interfaces, and a minimal set
 of actions/goals that reproduce current infantry behavior. Run behind a
-`USE_GOAP` flag in `BattleSimulation`, A/B against `InfantryCombatantBehavior`,
-bake at parity. **The deliberate "no new behavior" stage that earns the rest.**
+`USE_GOAP_INFANTRY` flag in `BattleSimulation` (default `true` post-playtest).
+**The deliberate "no new behavior" stage that earned the rest.**
 
-Tasks (see numbered sub-docs):
-1. [WorldState + Predicate](01-world-state.md)
-2. [Action / Goal / SquadPlan interfaces](02-interfaces.md)
-3. [Backward-chaining A* planner](03-planner.md)
-4. [WorldStateBuilder](04-world-state-builder.md)
-5. [Generic SuitabilityScorer system](05-suitability-scorer.md) — subagent
-6. [Parity actions](06-parity-actions.md)
-7. [EliminateEnemies goal](07-parity-goal.md)
-8. [GoapInfantryBehavior + dispatch flag](08-behavior-wiring.md)
-9. [Parity validation](09-parity-validation.md)
+Completed tasks (sealed in `complete/`):
+1. [WorldState + Predicate](complete/01-world-state.md)
+2. [Action / Goal / SquadPlan interfaces](complete/02-interfaces.md)
+3. [Backward-chaining A* planner](complete/03-planner.md)
+4. [WorldStateBuilder](complete/04-world-state-builder.md)
+5. [Generic SuitabilityScorer system](complete/05-suitability-scorer.md) — subagent
+6. [Parity actions](complete/06-parity-actions.md)
+7. [EliminateEnemies goal](complete/07-parity-goal.md)
+8. [GoapInfantryBehavior + dispatch flag](complete/08-behavior-wiring.md)
+9. [Behavior validation](complete/09-parity-validation.md)
 
-### Stage 2 — Real tactical actions (future)
+### Stage 2 — Real tactical actions
 
-Add `Suppress`, `MoveToFlank`, `TakeCover`, `AdvanceUnderCover`, `Regroup`,
-`Withdraw`. Add goals `SurviveContact` (HP-threshold gated) and
-`SecurePosition`. This is where the visible "interesting combat" payoff lands.
+**Re-imagining license.** Stage 1 infantry behavior was deliberately
+parity-shaped and the playtest exposed the shape's flaws (tunnel-vision
+pursuit, statue-mode firefights, no retreat). Stage 2 has full license to
+replace it — no Stage 1 action / posture / target-picker is sacred.
 
-Subagent fanout candidates already on the radar:
-- Spatial grid for fast "enemies/allies within radius" queries
-- Cover data on doodads (current cover is per-cell from the grid; richer
-  cover model unlocks better firing-position scoring)
-- Suppression effect for units / areas (per-unit pinned state)
+Driven by [**10 — Stage 2 Tactical Stories**](10-tactical-stories.md): a
+story bank of combat moments we want the player to *see*, with primitives
+derived from the stories rather than from a generic GOAP rolodex.
+
+Three cornerstones unlock the bulk of the story bank:
+1. **Engagement discipline** — fixes Stage 1's tunnel-vision pursuit;
+   cheapest, ships first
+2. **Cover model on doodads** — half the stories cite it
+3. **Per-member action assignment** — the stories most visibly distinct
+   from Stage 1 need it
+
+See `10-tactical-stories.md` for the full slicing.
 
 ### Stage 3 — Mission-specific goals (future)
 
