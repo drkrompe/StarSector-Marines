@@ -147,10 +147,11 @@ public class Shuttle {
 
     /**
      * World coordinates of the hover station-keeping point. Recomputed each
-     * tick during HOVER_STATION from the squad's alive centroid (clamped to
-     * {@link #HOVER_LEASH_RADIUS_CELLS} from the LZ), so the shuttle follows
-     * its delivered marines as they advance. If the squad is wiped, the
-     * field holds at its last value.
+     * tick during HOVER_STATION from the squad's alive centroid (pulled back
+     * by {@link #HOVER_STANDOFF_CELLS} along the LZ→centroid bearing), so the
+     * shuttle follows its delivered marines as they advance with no maximum
+     * distance from the LZ. If the squad is wiped, the field holds at its
+     * last value.
      */
     public float hoverPointX, hoverPointY;
 
@@ -177,9 +178,6 @@ public class Shuttle {
 
     /** Sim-seconds the LANDED → HOVER_STATION takeoff takes. Long enough for the lift to read as gradual climb, short enough that the shuttle gets to firing position promptly. */
     public static final float T_TAKEOFF_SEC = 2.0f;
-
-    /** Cell radius the shuttle stays within around its LZ while following the squad centroid in HOVER_STATION. Lets squads advance ~12 cells with the shuttle in tow; past that the leash bites. */
-    public static final float HOVER_LEASH_RADIUS_CELLS = 12f;
 
     /** Standoff (cells) the hover point is pulled back from the squad centroid along the LZ→centroid bearing. Keeps the shuttle behind the squad as they advance — sprites stay unobstructed and the overwatch read is "covering the rear" rather than "parked on top." When the centroid is within this distance of the LZ, the shuttle just holds over the LZ. */
     public static final float HOVER_STANDOFF_CELLS = 5f;

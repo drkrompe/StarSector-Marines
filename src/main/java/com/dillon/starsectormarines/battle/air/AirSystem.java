@@ -314,11 +314,10 @@ public class AirSystem {
     /**
      * Recomputes {@link Shuttle#hoverPointX}/{@code hoverPointY} from the
      * alive squad centroid, pulled back by {@link Shuttle#HOVER_STANDOFF_CELLS}
-     * along the LZ→centroid bearing (rear-overwatch standoff) and then
-     * clamped to {@link Shuttle#HOVER_LEASH_RADIUS_CELLS} around the LZ.
-     * Holds the previous value if the squad is wiped (no alive squadmates)
-     * so the shuttle doesn't snap back to the LZ on the last marine's
-     * death — it stays where it was supporting.
+     * along the LZ→centroid bearing (rear-overwatch standoff). Holds the
+     * previous value if the squad is wiped (no alive squadmates) so the
+     * shuttle doesn't snap back to the LZ on the last marine's death — it
+     * stays where it was supporting.
      */
     private void updateHoverFollow(Shuttle s, BattleSimulation sim) {
         if (s.squadId == Unit.NO_SQUAD) return;
@@ -344,20 +343,9 @@ public class AirSystem {
             float k = (dist - Shuttle.HOVER_STANDOFF_CELLS) / dist;
             cx = s.lzX + dx * k;
             cy = s.lzY + dy * k;
-            dx = cx - s.lzX;
-            dy = cy - s.lzY;
-            dist = (float) Math.sqrt(dx * dx + dy * dy);
         } else {
             cx = s.lzX;
             cy = s.lzY;
-            dx = 0f;
-            dy = 0f;
-            dist = 0f;
-        }
-        if (dist > Shuttle.HOVER_LEASH_RADIUS_CELLS) {
-            float k = Shuttle.HOVER_LEASH_RADIUS_CELLS / dist;
-            cx = s.lzX + dx * k;
-            cy = s.lzY + dy * k;
         }
         s.hoverPointX = cx;
         s.hoverPointY = cy;
