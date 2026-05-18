@@ -11,29 +11,27 @@ import com.dillon.starsectormarines.battle.ai.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 
 /**
- * Stage 1 parity action: per-member, path toward the others-only centroid
- * to rejoin the squad. Wraps the same math as
+ * <b>Squad posture: rejoin the squad centroid.</b> Each member paths toward
+ * the others-only centroid using
  * {@link InfantryCombatantBehavior#cohesionOverride} — when the helper
- * returns null (already within {@link InfantryCombatantBehavior#COHESION_RADIUS}
- * or solo squad), this action reports {@link ActionStatus#SUCCESS} for that
- * member.
+ * returns null (already within cohesion radius or solo squad), the member
+ * reports {@link ActionStatus#SUCCESS} immediately.
  *
- * <p>Empty preconditions — the planner picks this whenever an upstream
- * action requires {@link Predicate#WITHIN_COHESION_RADIUS}
- * ({@link MoveToFiringPositionAction} today) and the snapshot says the squad
- * isn't cohered.
+ * <p>Empty preconditions: the planner picks this whenever a downstream
+ * posture requires {@link Predicate#WITHIN_COHESION_RADIUS} (today: only
+ * {@link ApproachPosture}) and the snapshot says the squad is scattered.
  */
-public final class MaintainCohesionAction implements Action {
+public final class RegroupPosture implements Action {
 
-    public static final MaintainCohesionAction INSTANCE = new MaintainCohesionAction();
+    public static final RegroupPosture INSTANCE = new RegroupPosture();
 
     private static final WorldState PRE = WorldState.EMPTY;
     private static final WorldState EFF = WorldState.EMPTY
             .with(Predicate.WITHIN_COHESION_RADIUS, true);
 
-    private MaintainCohesionAction() {}
+    private RegroupPosture() {}
 
-    @Override public String name() { return "MaintainCohesion"; }
+    @Override public String name() { return "Regroup"; }
     @Override public WorldState preconditions() { return PRE; }
     @Override public WorldState effects() { return EFF; }
     @Override public float cost(WorldState s, Squad squad, BattleSimulation sim) { return 3f; }

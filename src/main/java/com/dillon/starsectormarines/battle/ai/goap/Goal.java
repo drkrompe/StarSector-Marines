@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.ai.goap;
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Squad;
 
+import java.util.List;
+
 /**
  * What a squad wants to be true. The planner's per-replan flow:
  * <ol>
@@ -37,4 +39,28 @@ public interface Goal {
      * {@code ENEMY_DAMAGED = true}). Predicates not specified are unconstrained.
      */
     WorldState desiredState(Squad squad, BattleSimulation sim);
+
+    /**
+     * Picks the highest-relevance goal from a registry. Goals returning
+     * negative relevance are disabled for this squad-tick and excluded.
+     * Returns {@code null} when every goal is disabled — caller treats that
+     * as "squad has nothing to do" (idle).
+     *
+     * <p>Ties resolve to the first goal in the list (deterministic). If we
+     * grow many goals with overlapping relevance, switch to a randomized
+     * tiebreaker or a strict priority ordering.
+     */
+    static Goal pickMostRelevant(List<Goal> goals, WorldState state, Squad squad, BattleSimulation sim) {
+        Goal best = null;
+        float bestRelevance = Float.NEGATIVE_INFINITY;
+        for (Goal g : goals) {
+            float r = g.relevance(state, squad, sim);
+            if (r < 0f) continue;
+            if (r > bestRelevance) {
+                bestRelevance = r;
+                best = g;
+            }
+        }
+        return best;
+    }
 }

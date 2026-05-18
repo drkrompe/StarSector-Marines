@@ -26,6 +26,6 @@ public enum Predicate {
     IN_RANGE_OF_TARGET,
     /** The assigned member is within {@link com.dillon.starsectormarines.battle.ai.InfantryCombatantBehavior#COHESION_RADIUS} cells of the squad centroid. */
     WITHIN_COHESION_RADIUS,
-    /** Goal-side marker — set true by {@code EngageVisibleAction.effects}. The {@code EliminateEnemies} goal's desired state. */
+    /** Goal-side marker — set true by {@code EngagePosture.effects}. The {@code EliminateEnemies} goal's desired state. */
     ENEMY_DAMAGED
 }

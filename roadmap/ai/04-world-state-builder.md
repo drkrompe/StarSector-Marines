@@ -62,12 +62,12 @@ public final class WorldStateBuilder {
   insert `MaintainCohesion` if downstream actions require it. Solo/wiped
   squads read true (no scattering possible).
 - **`ENEMY_DAMAGED` evaluator always returns false** — it's a goal-side
-  marker, not a sim observation. Set by `EngageVisibleAction.effects()`;
+  marker, not a sim observation. Set by `EngagePosture.effects()`;
   planner regresses through it.
 
 ## Stage 2 note
 
-A precondition link is required to make the planner *use* MaintainCohesion
-with goal `ENEMY_DAMAGED=true`: `MoveToFiringPosition` (or similar) must
+A precondition link is required to make the planner *use* RegroupPosture
+with goal `ENEMY_DAMAGED=true`: `ApproachPosture` (or similar) must
 require `WITHIN_COHESION_RADIUS`, otherwise the planner has no reason to
-include cohesion in the plan. That wiring is part of [06-parity-actions](06-parity-actions.md).
+include regroup in the plan. That wiring is in [06-parity-actions](06-parity-actions.md).

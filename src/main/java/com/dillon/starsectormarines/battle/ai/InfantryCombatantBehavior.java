@@ -33,36 +33,16 @@ public final class InfantryCombatantBehavior implements UnitBehavior {
 
     @Override
     public void update(Unit u, BattleSimulation sim) {
-        // Mid-aim: the marine is locked into the rocket animation. Tick the
-        // timer down, launch at the midpoint, and short-circuit the rest of
-        // the behavior — no movement, no primary fire, no re-targeting.
-        if (u.secondaryActionTimer > 0f && u.secondaryWeapon != null) {
-            u.secondaryActionTimer -= BattleSimulation.TICK_DT;
-            u.moveProgress = 0f;
-            u.renderX = u.cellX;
-            u.renderY = u.cellY;
-            float fireAt = u.secondaryWeapon.aimDuration * 0.5f;
-            if (!u.secondaryFiredThisAction && u.secondaryActionTimer <= fireAt) {
-                if (u.secondaryAimTarget != null && u.secondaryAimTarget.isAlive()) {
-                    sim.fireSecondary(u, u.secondaryAimTarget);
-                }
-                u.secondaryFiredThisAction = true;
-                u.secondaryCooldownTimer = u.secondaryWeapon.cooldown;
-            }
-            if (u.secondaryActionTimer <= 0f) {
-                u.secondaryActionTimer = 0f;
-                u.secondaryAimTarget = null;
-            }
-            return;
-        }
+        // Mid-aim short-circuit + cooldown ticks live in InfantryUnitPrep so
+        // the GOAP dispatcher and this legacy path share one source of truth.
+        if (InfantryUnitPrep.tickAimAndShortCircuit(u, sim)) return;
 
         if (u.target == null || !u.target.isAlive()) {
             u.target = TacticalScoring.findBestTarget(u, sim);
         }
         if (u.target == null) return; // nothing to do — usually a win-condition frame
 
-        if (u.cooldownTimer > 0f) u.cooldownTimer -= BattleSimulation.TICK_DT;
-        if (u.secondaryCooldownTimer > 0f) u.secondaryCooldownTimer -= BattleSimulation.TICK_DT;
+        InfantryUnitPrep.tickCooldowns(u);
 
         float dist = TacticalScoring.cellDistance(u.cellX, u.cellY, u.target.cellX, u.target.cellY);
         boolean inRange = dist <= u.attackRange;
@@ -131,9 +111,9 @@ public final class InfantryCombatantBehavior implements UnitBehavior {
      * filled once per tick by the sim's alert-update pass; excludes self by
      * subtracting our contribution before averaging the remaining members.
      *
-     * <p>Public so the GOAP parity actions
-     * ({@code battle.ai.goap.actions.EngageVisibleAction},
-     * {@code MoveToFiringPositionAction}, {@code MaintainCohesionAction})
+     * <p>Public so the GOAP squad postures
+     * ({@code battle.ai.goap.actions.EngagePosture},
+     * {@code ApproachPosture}, {@code RegroupPosture})
      * can share the exact same cohesion math when this codepath is mirrored
      * under the planner.
      */

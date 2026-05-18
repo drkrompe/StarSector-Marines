@@ -1,66 +1,83 @@
-# 06 — Parity Actions
+# 06 — Squad Postures (Engage / Approach / Regroup)
 
-**Stage 1, task 6.** Three actions whose bodies reproduce
-`InfantryCombatantBehavior` step-for-step. Together with the
+**Stage 1, task 6.** Three squad postures — together with the
 [EliminateEnemies goal](07-parity-goal.md) they form the minimum viable
-action library to bake parity.
+action library for Stage 1.
+
+**Reframed from "parity actions" to "postures":** these classes describe
+what the *squad* is doing, with per-member execution that does the right
+thing for each marine. Stage 2 with per-member action assignment will split
+the per-member fallback logic out of the postures into proper concurrent
+actions; for now Engage carries an out-of-range fallback inline so members
+without personal LOS keep advancing while in-range squadmates fire.
 
 ## Files added
 
-- `src/main/java/com/dillon/starsectormarines/battle/ai/goap/actions/EngageVisibleAction.java`
-- `src/main/java/com/dillon/starsectormarines/battle/ai/goap/actions/MoveToFiringPositionAction.java`
-- `src/main/java/com/dillon/starsectormarines/battle/ai/goap/actions/MaintainCohesionAction.java`
+- `src/main/java/com/dillon/starsectormarines/battle/ai/goap/actions/EngagePosture.java`
+- `src/main/java/com/dillon/starsectormarines/battle/ai/goap/actions/ApproachPosture.java`
+- `src/main/java/com/dillon/starsectormarines/battle/ai/goap/actions/RegroupPosture.java`
 
-## EngageVisible
+## EngagePosture
 
 - **Pre:** `HAS_LOS_TO_TARGET` ∧ `IN_RANGE_OF_TARGET`
 - **Effect:** `ENEMY_DAMAGED`
 - **Cost:** 1
-- **execute(member, squad, sim):** primary/secondary fire logic from
-  `InfantryCombatantBehavior` — secondary-aim short-circuit, secondary
-  trigger (vs `MapTurret`), primary fire + burst queue, post-shot reposition
-  roll. Returns RUNNING while firing, SUCCESS once a shot has landed (or
-  once cooldown ticks through one full cycle — pick whichever produces the
-  least flicker in the replan loop).
+- **execute(member, squad, sim):** lifts the in-range fire branch from
+  `InfantryCombatantBehavior` — secondary trigger vs `MapTurret`, primary
+  fire + burst queue, post-shot reposition roll. Plus the out-of-range
+  fallback (cohesion override → path to firing position) for members
+  who personally lack LOS while the squad is engaging. Always returns
+  RUNNING during normal engagement; FAILURE when target evaporates.
+  Plan advancement is driven by squad-level replan triggers
+  (alert-level transition, member death, periodic 2-second timer).
 
-## MoveToFiringPosition
+## ApproachPosture
 
-- **Pre:** `HAS_TARGET`
+- **Pre:** `HAS_TARGET` ∧ `WITHIN_COHESION_RADIUS`
 - **Effect:** `HAS_LOS_TO_TARGET` ∧ `IN_RANGE_OF_TARGET`
 - **Cost:** 2
-- **execute(member, squad, sim):** pathfinder + `findFiringPosition` per
-  current behavior. Returns RUNNING while pathing, SUCCESS on arrival.
+- **execute(member, squad, sim):** pathfinder + `findFiringPosition`,
+  no firing. The `WITHIN_COHESION_RADIUS` precondition is what makes the
+  planner chain `RegroupPosture` ahead of this when the squad is scattered.
+  Returns SUCCESS the moment a member arrives in range + LOS, advancing
+  the squad plan to Engage.
 
-## MaintainCohesion
+## RegroupPosture
 
-- **Pre:** none (or `OUTSIDE_COHESION_RADIUS` if we add that predicate)
+- **Pre:** none
 - **Effect:** `WITHIN_COHESION_RADIUS`
-- **Cost:** 3 — higher than engaging-in-place; pulls toward squad ONLY when
-  there's no current firing opportunity. The cohesion-override branch in
-  `InfantryCombatantBehavior` triggers in the "out of range or no LOS"
-  arm, so this action should naturally win the planner search there.
-- **execute(member, squad, sim):** call `cohesionOverride` math, path to
-  centroid. SUCCESS once within `COHESION_RADIUS`.
+- **Cost:** 3
+- **execute(member, squad, sim):** call `cohesionOverride`, path to centroid.
+  SUCCESS once `cohesionOverride` returns null (within `COHESION_RADIUS`
+  or solo squad).
 
-## Behavior preserved
+## Per-tick lifecycle (lives on `GoapInfantryBehavior`, not in postures)
 
-- Burst queue + reposition roll on fire — lives on `EngageVisible`.
-- Secondary aim short-circuit (timer-locked rocket animation) — lives on
-  `EngageVisible`'s execute body, top-of-method like the original.
-- Fallback (taking fire) — `FallbackBehavior` still pre-empts at the sim
-  dispatch level, just like today. We do NOT subsume it into a GOAP action
-  in Stage 1.
+Cooldown ticks (`cooldownTimer`, `secondaryCooldownTimer`) and the
+secondary-aim short-circuit run in `GoapInfantryBehavior.prepareForAction`
+*before* the posture's `execute` is called. Pulled out of the posture
+bodies so:
+- A mid-aim marine isn't stuck in animation when the plan flips off
+  EngagePosture (real bug we'd have shipped otherwise).
+- Cooldowns drain consistently across Engage/Approach/Regroup phases.
+- Posture bodies stay focused on intent.
+
+See [`InfantryUnitPrep`](../../src/main/java/com/dillon/starsectormarines/battle/ai/InfantryUnitPrep.java)
+for the helper that both `InfantryCombatantBehavior` (legacy path) and
+`GoapInfantryBehavior` (new path) call into.
 
 ## Acceptance
 
-- Each action compiles and its `execute` body is a near-mechanical lift from
-  `InfantryCombatantBehavior` (same calls into `TacticalScoring`,
-  `GridPathfinder`, `sim.fireShot`, etc.).
-- Side-by-side run against the baseline produces visually-indistinguishable
-  squad behavior. (Final check happens in [09-parity-validation](09-parity-validation.md).)
+- Each posture compiles and its `execute` body is a clean lift of the
+  relevant `InfantryCombatantBehavior` branch (same `TacticalScoring`,
+  `GridPathfinder`, `sim.fireShot` calls).
+- Plans fall out as expected: in-range squad → `[Engage]`; out-of-range
+  cohered → `[Approach, Engage]`; out-of-range scattered →
+  `[Regroup, Approach, Engage]`.
 
 ## Open questions
 
-- Whether SUCCESS for `EngageVisible` is per-shot or per-burst-cycle. Per-shot
-  causes the planner to re-evaluate after every trigger pull, which might be
-  fine — replan is cheap when world hasn't changed.
+- Whether SUCCESS for `EngagePosture` should fire per-shot or per-burst-cycle
+  is moot in Stage 1 because the posture returns RUNNING continuously —
+  plan advancement is replan-trigger-driven. Revisit in Stage 2 when
+  effect-satisfaction-driven advancement comes in.

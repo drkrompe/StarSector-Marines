@@ -12,21 +12,24 @@ import com.dillon.starsectormarines.battle.ai.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 
 /**
- * Stage 1 parity action: per-member, path toward a firing position. No firing
- * happens here — {@link EngageVisibleAction} owns the in-range fire branch.
- * Precondition requires {@link Predicate#WITHIN_COHESION_RADIUS} so the
- * planner inserts {@link MaintainCohesionAction} ahead of this when the
- * squad is scattered.
+ * <b>Squad posture: close to firing range.</b> Pure movement — no firing
+ * happens here ({@link EngagePosture} owns that branch). Picked by the
+ * planner when the squad doesn't yet have LOS + range to a target but does
+ * have a target acquired.
  *
- * <p>Returns {@link ActionStatus#SUCCESS} the moment a member arrives in
- * range with LOS, advancing the plan to the engage step. Other still-moving
- * members re-enter {@link EngageVisibleAction}'s out-of-range branch on the
- * next tick — they keep walking. This mirrors the pre-GOAP behavior where
- * the first marine in range opens fire while squadmates close.
+ * <p>Precondition {@link Predicate#WITHIN_COHESION_RADIUS} is what makes the
+ * planner insert {@link RegroupPosture} ahead of this when the squad is
+ * scattered — without that link, cohesion would never be planned for.
+ *
+ * <p>Per-member execution: each member paths to a firing position with
+ * cohesion override inline. Returns {@link ActionStatus#SUCCESS} the moment
+ * a member arrives in range + LOS, advancing the squad plan to Engage. Other
+ * still-moving members re-enter {@link EngagePosture}'s out-of-range branch
+ * next tick — they keep walking, just under a different posture banner.
  */
-public final class MoveToFiringPositionAction implements Action {
+public final class ApproachPosture implements Action {
 
-    public static final MoveToFiringPositionAction INSTANCE = new MoveToFiringPositionAction();
+    public static final ApproachPosture INSTANCE = new ApproachPosture();
 
     private static final WorldState PRE = WorldState.EMPTY
             .with(Predicate.HAS_TARGET, true)
@@ -35,9 +38,9 @@ public final class MoveToFiringPositionAction implements Action {
             .with(Predicate.HAS_LOS_TO_TARGET, true)
             .with(Predicate.IN_RANGE_OF_TARGET, true);
 
-    private MoveToFiringPositionAction() {}
+    private ApproachPosture() {}
 
-    @Override public String name() { return "MoveToFiringPosition"; }
+    @Override public String name() { return "Approach"; }
     @Override public WorldState preconditions() { return PRE; }
     @Override public WorldState effects() { return EFF; }
     @Override public float cost(WorldState s, Squad squad, BattleSimulation sim) { return 2f; }
@@ -45,15 +48,13 @@ public final class MoveToFiringPositionAction implements Action {
 
     @Override
     public ActionStatus execute(Unit member, Squad squad, BattleSimulation sim) {
+        // Cooldown ticks are handled by GoapInfantryBehavior.prepareForAction
+        // before this method runs — see InfantryUnitPrep.
+
         if (member.target == null || !member.target.isAlive()) {
             member.target = TacticalScoring.findBestTarget(member, sim);
         }
         if (member.target == null) return ActionStatus.FAILURE;
-
-        // Cooldowns keep ticking during the move so the marine isn't sitting
-        // on a stale cooldown when EngageVisible takes over.
-        if (member.cooldownTimer > 0f) member.cooldownTimer -= BattleSimulation.TICK_DT;
-        if (member.secondaryCooldownTimer > 0f) member.secondaryCooldownTimer -= BattleSimulation.TICK_DT;
 
         float dist = TacticalScoring.cellDistance(member.cellX, member.cellY,
                 member.target.cellX, member.target.cellY);

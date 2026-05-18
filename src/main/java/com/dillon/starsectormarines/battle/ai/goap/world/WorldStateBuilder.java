@@ -40,7 +40,7 @@ public final class WorldStateBuilder {
         EVALUATORS.put(Predicate.IN_RANGE_OF_TARGET,      WorldStateBuilder::evalInRangeOfTarget);
         EVALUATORS.put(Predicate.WITHIN_COHESION_RADIUS,  WorldStateBuilder::evalWithinCohesionRadius);
         // ENEMY_DAMAGED is a goal-side marker, never observed in a snapshot.
-        // EngageVisibleAction.effects() sets it; the planner regresses through it.
+        // EngagePosture.effects() sets it; the planner regresses through it.
         EVALUATORS.put(Predicate.ENEMY_DAMAGED,           (s, sim) -> false);
     }
 

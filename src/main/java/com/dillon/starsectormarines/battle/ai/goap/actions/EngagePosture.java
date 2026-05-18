@@ -13,24 +13,27 @@ import com.dillon.starsectormarines.battle.ai.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 
 /**
- * Stage 1 parity action: per-member, run the full
- * {@link InfantryCombatantBehavior} body — fire when in range with LOS,
- * otherwise path toward a firing position (with cohesion override inline).
+ * <b>Squad posture: actively engage.</b> The planner picks this when the
+ * squad-wide WorldState says someone has LOS and someone is in range — i.e.
+ * "we can fight from here."
  *
- * <p>Precondition is the squad-wide "someone has LOS and someone is in
- * range"; planner picks this action whenever the squad can engage. Per-member
- * execution still handles the out-of-range case so squadmates who personally
- * lack LOS continue advancing — matches the pre-GOAP behavior where in-range
- * marines fired while out-of-range marines moved on the same tick.
+ * <p>Per-member execution: members who personally have LOS + range open fire
+ * (primary, with rocket-secondary priority against turrets; bursts + reposition
+ * rolls intact); members who don't continue advancing toward a firing position
+ * via the inline cohesion-override fallback. Mixed-state behavior in a single
+ * tick — kept here because Stage 1 plans are squad-wide single-action, so the
+ * "in-range marines fire while out-of-range squadmates close" rhythm has
+ * nowhere else to live. Stage 2 with per-member action assignment is where
+ * this fallback retires; see {@code roadmap/ai/README.md}.
  *
  * <p>Always returns {@link ActionStatus#RUNNING} during normal engagement;
- * the plan only invalidates when the target evaporates ({@link ActionStatus#FAILURE})
- * and otherwise advances on replan triggers (squad-state change, periodic
- * 2-second timer) rather than per-tick.
+ * invalidates with {@link ActionStatus#FAILURE} when the target evaporates,
+ * and otherwise advances on squad-level replan triggers (alert-level
+ * transition, member death, periodic 2-second timer).
  */
-public final class EngageVisibleAction implements Action {
+public final class EngagePosture implements Action {
 
-    public static final EngageVisibleAction INSTANCE = new EngageVisibleAction();
+    public static final EngagePosture INSTANCE = new EngagePosture();
 
     private static final WorldState PRE = WorldState.EMPTY
             .with(Predicate.HAS_LOS_TO_TARGET, true)
@@ -41,9 +44,9 @@ public final class EngageVisibleAction implements Action {
     /** Same per-shot reposition probability as {@link InfantryCombatantBehavior}. */
     private static final float REPOSITION_CHANCE = 0.30f;
 
-    private EngageVisibleAction() {}
+    private EngagePosture() {}
 
-    @Override public String name() { return "EngageVisible"; }
+    @Override public String name() { return "Engage"; }
     @Override public WorldState preconditions() { return PRE; }
     @Override public WorldState effects() { return EFF; }
     @Override public float cost(WorldState s, Squad squad, BattleSimulation sim) { return 1f; }
@@ -51,41 +54,17 @@ public final class EngageVisibleAction implements Action {
 
     @Override
     public ActionStatus execute(Unit member, Squad squad, BattleSimulation sim) {
+        // Cooldown ticks + mid-aim short-circuit are handled by
+        // GoapInfantryBehavior.prepareForAction before this method runs —
+        // see InfantryUnitPrep. By the time we get here, the unit is ready
+        // to act and not locked in any animation.
+
         // Refresh target if dead or missing. Lost-target → plan invalidates;
         // replan will pick a null plan if no enemies remain.
         if (member.target == null || !member.target.isAlive()) {
             member.target = TacticalScoring.findBestTarget(member, sim);
         }
         if (member.target == null) return ActionStatus.FAILURE;
-
-        // Cooldowns tick every frame regardless of branch, just like the
-        // pre-GOAP behavior — otherwise a marine sitting at range with their
-        // cooldown frozen would fire instantly when LOS opened up.
-        if (member.cooldownTimer > 0f) member.cooldownTimer -= BattleSimulation.TICK_DT;
-        if (member.secondaryCooldownTimer > 0f) member.secondaryCooldownTimer -= BattleSimulation.TICK_DT;
-
-        // Mid-aim: locked into the rocket animation. Tick the timer, launch
-        // at the midpoint, short-circuit the rest of the action body — no
-        // movement, no primary fire, no re-target.
-        if (member.secondaryActionTimer > 0f && member.secondaryWeapon != null) {
-            member.secondaryActionTimer -= BattleSimulation.TICK_DT;
-            member.moveProgress = 0f;
-            member.renderX = member.cellX;
-            member.renderY = member.cellY;
-            float fireAt = member.secondaryWeapon.aimDuration * 0.5f;
-            if (!member.secondaryFiredThisAction && member.secondaryActionTimer <= fireAt) {
-                if (member.secondaryAimTarget != null && member.secondaryAimTarget.isAlive()) {
-                    sim.fireSecondary(member, member.secondaryAimTarget);
-                }
-                member.secondaryFiredThisAction = true;
-                member.secondaryCooldownTimer = member.secondaryWeapon.cooldown;
-            }
-            if (member.secondaryActionTimer <= 0f) {
-                member.secondaryActionTimer = 0f;
-                member.secondaryAimTarget = null;
-            }
-            return ActionStatus.RUNNING;
-        }
 
         float dist = TacticalScoring.cellDistance(member.cellX, member.cellY,
                 member.target.cellX, member.target.cellY);
@@ -130,9 +109,11 @@ public final class EngageVisibleAction implements Action {
                 member.renderY = member.cellY;
             }
         } else {
-            // Out of range or no LOS — cohesion override first, otherwise
-            // path to a firing position. Per-member; the squad-wide WorldState
-            // can claim "HAS_LOS_TO_TARGET" because *some* squadmate has LOS.
+            // Stage 1 fallback for members who personally lack LOS or range
+            // while the squad is in Engage posture. Cohesion override first,
+            // otherwise path to a firing position. Stage 2 retires this when
+            // per-member action assignment lets us put approach-only members
+            // on {@link ApproachPosture} concurrently with engage-only members.
             if (member.moveProgress == 0f) {
                 int[] dest = InfantryCombatantBehavior.cohesionOverride(member, sim);
                 if (dest == null) dest = TacticalScoring.findFiringPosition(member, member.target, sim);
