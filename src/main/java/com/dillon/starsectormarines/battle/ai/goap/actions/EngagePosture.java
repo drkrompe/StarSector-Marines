@@ -59,9 +59,14 @@ public final class EngagePosture implements Action {
         // see InfantryUnitPrep. By the time we get here, the unit is ready
         // to act and not locked in any animation.
 
-        // Refresh target if dead or missing. Lost-target → plan invalidates;
-        // replan will pick a null plan if no enemies remain.
-        if (member.target == null || !member.target.isAlive()) {
+        // Refresh target if dead or missing, OR if the pursuit gate says the
+        // current target is no longer worth chasing (LOS lost into a cluster,
+        // or target drifted out of the squad-cohesion clamp). Story I: dropping
+        // a fleer that ran into 3 buddies and picking an isolated target or
+        // no-target rather than charging in.
+        if (member.target == null
+                || !member.target.isAlive()
+                || !TacticalScoring.shouldKeepPursuing(member, member.target, sim)) {
             member.target = TacticalScoring.findBestTarget(member, sim);
         }
         if (member.target == null) return ActionStatus.FAILURE;
@@ -92,8 +97,11 @@ public final class EngagePosture implements Action {
                     member.burstTarget = member.target;
                 }
                 if (sim.getRng().nextFloat() < REPOSITION_CHANCE) {
-                    int[] firingPos = TacticalScoring.findFiringPosition(member, member.target, sim,
-                            member.cellX, member.cellY);
+                    // Cover-preferred sidestep: don't move to a cell with worse
+                    // cover than we currently have. Story G — reposition is for
+                    // grabbing better cover or a better angle, not for shuffling.
+                    int[] firingPos = TacticalScoring.findFiringPositionCoverPreferred(
+                            member, member.target, sim, member.cellX, member.cellY);
                     if (firingPos[0] != member.cellX || firingPos[1] != member.cellY) {
                         sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                                 member.cellX, member.cellY, firingPos[0], firingPos[1],

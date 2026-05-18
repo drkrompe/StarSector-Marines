@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.ai;
 
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
@@ -40,6 +41,22 @@ public final class TacticalScoring {
     public static final float FIRING_MIN_DISTANCE = 0.7f;
     /** Per-cover-level bonus subtracted from firing-position score. Pushes units to peek from corners and wall edges. */
     public static final float FIRING_COVER_BONUS = 3f;
+    /** Per-cover-level bonus from doodad cover (crates, shelves) on the candidate cell. Lower weight than wall cover because doodads don't fully break LOS — they're concealment, not full intervening geometry. */
+    public static final float FIRING_DOODAD_COVER_BONUS = 1.5f;
+    /**
+     * Squad-cohesion clamp multiplier on top of {@link InfantryCohesion#COHESION_RADIUS}.
+     * A marine can engage a target as long as the target's cell stays within
+     * {@code COHESION_RADIUS * COHESION_CLAMP_MULT} cells of the squad centroid;
+     * beyond that, the picker drops the target rather than letting one member
+     * peel off chasing it. Story I: cohesion is a hard constraint on individual
+     * pursuit, not a soft leash that can stretch arbitrarily.
+     */
+    public static final float COHESION_CLAMP_MULT = 1.5f;
+
+    /** Radius (cells) over which {@link #findBestTarget} counts neighboring enemies to penalize cluster targets. */
+    public static final int THREAT_DENSITY_RADIUS = 4;
+    /** Per-neighbor-enemy penalty added to a target's score. Pursuing one fleer into 3 squadmates costs roughly the same as walking ~20 extra cells. */
+    public static final float TARGET_THREAT_DENSITY_COST = 5f;
 
     /** Cell radius searched for a fall-back position around the hit unit. */
     public static final int   FALLBACK_SCAN_RANGE = 8;
@@ -91,7 +108,32 @@ public final class TacticalScoring {
     /**
      * LoS-injectable overload — air turrets pass an "ignore close walls"
      * predicate so they can acquire targets through the building they're
-     * hovering over. Logic otherwise identical to the standard-LoS overload.
+     * hovering over.
+     *
+     * <p>Score per visible candidate:
+     * <pre>
+     *   distance + crowding + threat_density_at_target_cell
+     * </pre>
+     *
+     * <p><b>Threat density</b> — count of <em>other</em> enemies of the same
+     * faction within {@link #THREAT_DENSITY_RADIUS} cells of the candidate,
+     * weighted by {@link #TARGET_THREAT_DENSITY_COST}. Story I: a wounded
+     * fleer running into 3 of their squadmates is no longer the lowest-cost
+     * target — the cluster makes pursuing them prohibitively expensive, and
+     * the picker drops them in favor of an isolated enemy or no-target.
+     *
+     * <p><b>Cohesion clamp</b> — when {@code selfSquadId} is set, candidates
+     * whose cell is more than {@code COHESION_RADIUS * COHESION_CLAMP_MULT}
+     * cells from the squad centroid are skipped entirely (visible <em>and</em>
+     * any-distance buckets). This is a hard constraint: a marine can't be
+     * pulled out of the squad to chase a target, period. Solo units (no
+     * squad) skip the clamp.
+     *
+     * <p>The any-distance fallback bucket still exists so the unit pathfinds
+     * toward the nearest visible-eventually enemy when LOS is fully broken;
+     * it's also gated by the cohesion clamp so it can't pull the unit out of
+     * squad. When everything fails the clamp the method returns null —
+     * caller treats null as "hold position, no target."
      */
     public static Unit findBestTarget(int selfCellX, int selfCellY, Faction selfFaction,
                                       int selfSquadId, Unit excludeFromCrowding,
@@ -101,6 +143,8 @@ public final class TacticalScoring {
         float bestVisibleScore = Float.MAX_VALUE;
         Unit bestAny = null;
         float bestAnyDist = Float.MAX_VALUE;
+        float clampDist = cohesionClampDist(selfSquadId, sim);
+        float[] centroid = clampDist > 0 ? squadCentroid(selfSquadId, sim) : null;
 
         for (Unit other : units) {
             if (!other.isAlive()) continue;
@@ -109,6 +153,16 @@ public final class TacticalScoring {
             // bystanders. A separate "rules of engagement" toggle could relax
             // this for pirate atrocity scenarios later.
             if (!other.type.combatant) continue;
+
+            // Story I cohesion clamp: skip any candidate too far from the
+            // squad centroid. Prevents the "one marine 20 cells out of squad"
+            // failure mode that Stage 1 surfaced.
+            if (centroid != null) {
+                float cdx = other.cellX - centroid[0];
+                float cdy = other.cellY - centroid[1];
+                if (cdx * cdx + cdy * cdy > clampDist * clampDist) continue;
+            }
+
             float d = cellDistance(selfCellX, selfCellY, other.cellX, other.cellY);
             if (d < bestAnyDist) {
                 bestAnyDist = d;
@@ -116,13 +170,113 @@ public final class TacticalScoring {
             }
             if (!los.visible(selfCellX, selfCellY, other.cellX, other.cellY)) continue;
             float crowding = scoreCrowding(selfFaction, selfSquadId, other, sim, excludeFromCrowding);
-            float score = d + crowding;
+            float density = scoreThreatDensity(other, selfFaction, sim);
+            float score = d + crowding + density;
             if (score < bestVisibleScore) {
                 bestVisibleScore = score;
                 bestVisible = other;
             }
         }
         return bestVisible != null ? bestVisible : bestAny;
+    }
+
+    /**
+     * Maximum cell-distance from the squad centroid a candidate target may
+     * live at and still be eligible. Returns a non-positive value (and thus
+     * "no clamp") for solo units or empty squads — solo defenders + civilian
+     * turrets shouldn't be constrained by a squad they don't belong to.
+     */
+    private static float cohesionClampDist(int selfSquadId, BattleSimulation sim) {
+        if (selfSquadId == Unit.NO_SQUAD) return -1f;
+        Squad squad = sim.getSquad(selfSquadId);
+        if (squad == null || squad.aliveMembers <= 0) return -1f;
+        return InfantryCohesion.COHESION_RADIUS * COHESION_CLAMP_MULT;
+    }
+
+    /**
+     * Cached squad centroid as a {@code float[]{cx, cy}}, or {@code null}
+     * when no squad data is available. The sim updates {@link Squad#centroidX} /
+     * {@link Squad#centroidY} on its per-tick alert-update pass; we read the
+     * stale snapshot, which is fine for target-picking (off by &lt;1 cell).
+     */
+    private static float[] squadCentroid(int selfSquadId, BattleSimulation sim) {
+        if (selfSquadId == Unit.NO_SQUAD) return null;
+        Squad squad = sim.getSquad(selfSquadId);
+        if (squad == null || squad.aliveMembers <= 0) return null;
+        return new float[]{squad.centroidX, squad.centroidY};
+    }
+
+    /**
+     * Counts other enemies within {@link #THREAT_DENSITY_RADIUS} cells of the
+     * candidate's cell, then multiplies by {@link #TARGET_THREAT_DENSITY_COST}.
+     * "Other enemies" = alive combatants of the candidate's faction, excluding
+     * the candidate itself. The point is to model "stacking into a fire line" —
+     * a lone wounded soldier is much cheaper to engage than one surrounded by
+     * three buddies.
+     */
+    private static float scoreThreatDensity(Unit candidate, Faction selfFaction, BattleSimulation sim) {
+        int r2 = THREAT_DENSITY_RADIUS * THREAT_DENSITY_RADIUS;
+        int count = 0;
+        for (Unit other : sim.getUnits()) {
+            if (other == candidate) continue;
+            if (!other.isAlive()) continue;
+            if (other.faction == selfFaction) continue;
+            if (!other.type.combatant) continue;
+            int dx = other.cellX - candidate.cellX;
+            int dy = other.cellY - candidate.cellY;
+            if (dx * dx + dy * dy <= r2) count++;
+        }
+        return count * TARGET_THREAT_DENSITY_COST;
+    }
+
+    /**
+     * Pursuit gate: returns true when {@code currentTarget} is still a sensible
+     * target to keep firing on, false when the caller should re-pick. Used by
+     * engage postures to drop a target that's broken LOS <em>and</em> fled
+     * into a cluster — Stage 1 kept firing on the locked target until they
+     * died or fully evaporated, dragging the marine into the cluster too.
+     *
+     * <p>Returns false in any of:
+     * <ul>
+     *   <li>{@code currentTarget} is dead or null.</li>
+     *   <li>LOS is broken (per {@code los}) <em>and</em> the target now sits
+     *       inside a non-trivial threat-density cluster.</li>
+     *   <li>The target violates the squad-cohesion clamp (target moved too
+     *       far from the squad to be reachable without scattering).</li>
+     * </ul>
+     */
+    public static boolean shouldKeepPursuing(Unit self, Unit currentTarget, BattleSimulation sim) {
+        if (currentTarget == null || !currentTarget.isAlive()) return false;
+        float clampDist = cohesionClampDist(self.squadId, sim);
+        if (clampDist > 0f) {
+            float[] centroid = squadCentroid(self.squadId, sim);
+            if (centroid != null) {
+                float cdx = currentTarget.cellX - centroid[0];
+                float cdy = currentTarget.cellY - centroid[1];
+                if (cdx * cdx + cdy * cdy > clampDist * clampDist) return false;
+            }
+        }
+        boolean visible = sim.getGrid().hasLineOfSight(self.cellX, self.cellY,
+                currentTarget.cellX, currentTarget.cellY);
+        if (visible) return true;
+        // LOS lost — bail out if the target ducked into a cluster. Density
+        // count > 1 means "at least 2 of their squadmates nearby" — chasing
+        // into that costs more than the dropped target is worth.
+        int r2 = THREAT_DENSITY_RADIUS * THREAT_DENSITY_RADIUS;
+        int density = 0;
+        for (Unit other : sim.getUnits()) {
+            if (other == currentTarget) continue;
+            if (!other.isAlive()) continue;
+            if (other.faction == self.faction) continue;
+            if (!other.type.combatant) continue;
+            int dx = other.cellX - currentTarget.cellX;
+            int dy = other.cellY - currentTarget.cellY;
+            if (dx * dx + dy * dy <= r2) {
+                density++;
+                if (density > 1) return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -196,10 +350,12 @@ public final class TacticalScoring {
 
                 int occupants = occupantsExcludingSelf(self, cx, cy, sim);
                 int cover = grid.getCoverAt(cx, cy);
+                int doodadCover = sim.getDoodadCoverAt(cx, cy);
                 float distFromSelf = cellDistance(self.cellX, self.cellY, cx, cy);
                 float score = distFromSelf
                         + FIRING_OCCUPANCY_COST * occupants
-                        - FIRING_COVER_BONUS * cover;
+                        - FIRING_COVER_BONUS * cover
+                        - FIRING_DOODAD_COVER_BONUS * doodadCover;
                 if (score < bestScore) {
                     bestScore = score;
                     best = new int[]{cx, cy};
@@ -231,10 +387,12 @@ public final class TacticalScoring {
 
                 int occupants = occupantsExcludingSelf(self, cx, cy, sim);
                 int cover = grid.getCoverAt(cx, cy);
+                int doodadCover = sim.getDoodadCoverAt(cx, cy);
                 float distFromSelf = cellDistance(self.cellX, self.cellY, cx, cy);
                 float score = distFromSelf
                         + FIRING_OCCUPANCY_COST * occupants
-                        - FIRING_COVER_BONUS * cover;
+                        - FIRING_COVER_BONUS * cover
+                        - FIRING_DOODAD_COVER_BONUS * doodadCover;
                 if (score < bestScore) {
                     bestScore = score;
                     best = new int[]{cx, cy};
@@ -242,6 +400,110 @@ public final class TacticalScoring {
             }
         }
         return best != null ? best : new int[]{tx, ty};
+    }
+
+    /**
+     * Returns the highest-cover walkable cell within {@code radius} of
+     * ({@code nearX}, {@code nearY}) that has LOS to the threat at
+     * ({@code threatX}, {@code threatY}). "Cover" combines the cell-grid wall
+     * count and any doodad cover stamped on the cell. Ties broken by smaller
+     * distance to the anchor — closer cells win when cover quality is equal.
+     *
+     * <p>Pure scorer — used by the cover-aware reposition (Story G) and
+     * overwatch-position picker (Story A). Returns {@code null} when no
+     * candidate has LOS; callers treat that as "no better cover available,
+     * hold current cell."
+     *
+     * <p>This is the cell-search counterpart to {@link #findFiringPosition} —
+     * that method centers its search on the target cell and respects attack
+     * range; this one centers on an arbitrary anchor (current cell, squad
+     * centroid, doorway threshold) and respects an arbitrary radius. The two
+     * search shapes are deliberately different: a reposition is a short
+     * sidestep near the unit, not a fresh approach toward the target.
+     */
+    public static int[] bestCoverCell(int threatX, int threatY,
+                                      int nearX, int nearY, int radius,
+                                      BattleSimulation sim) {
+        NavigationGrid grid = sim.getGrid();
+        int[] best = null;
+        int bestCover = -1;
+        float bestDist = Float.MAX_VALUE;
+        for (int dy = -radius; dy <= radius; dy++) {
+            for (int dx = -radius; dx <= radius; dx++) {
+                int cx = nearX + dx;
+                int cy = nearY + dy;
+                if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) continue;
+                float d = (float) Math.sqrt(dx * dx + dy * dy);
+                if (d > radius) continue;
+                if (!grid.hasLineOfSight(cx, cy, threatX, threatY)) continue;
+                int combined = grid.getCoverAt(cx, cy) + sim.getDoodadCoverAt(cx, cy);
+                if (combined > bestCover || (combined == bestCover && d < bestDist)) {
+                    bestCover = combined;
+                    bestDist = d;
+                    best = new int[]{cx, cy};
+                }
+            }
+        }
+        return best;
+    }
+
+    /**
+     * Cover-aware variant of {@link #findFiringPosition(Unit, Unit, BattleSimulation, int, int)} —
+     * filters the candidate ring to cells whose combined (cell + doodad) cover
+     * meets or exceeds the unit's current combined cover. When no candidate
+     * meets that threshold, falls through to the standard scorer.
+     *
+     * <p>Used by reposition rolls (Story G — "the sidestep between bursts
+     * shouldn't make things worse"). Plain {@link #findFiringPosition} can
+     * legally pick a slightly-worse-cover cell if its other terms (proximity,
+     * spread) dominate; this variant refuses to downgrade.
+     */
+    public static int[] findFiringPositionCoverPreferred(Unit self, Unit target, BattleSimulation sim,
+                                                          int rejectX, int rejectY) {
+        NavigationGrid grid = sim.getGrid();
+        int range = Math.max(1, (int) Math.floor(self.attackRange));
+        int tx = target.cellX;
+        int ty = target.cellY;
+        int selfCover = grid.getCoverAt(self.cellX, self.cellY) + sim.getDoodadCoverAt(self.cellX, self.cellY);
+
+        int[] best = null;
+        float bestScore = Float.MAX_VALUE;
+        boolean foundEqualOrBetter = false;
+
+        for (int dy = -range; dy <= range; dy++) {
+            for (int dx = -range; dx <= range; dx++) {
+                int cx = tx + dx;
+                int cy = ty + dy;
+                if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) continue;
+                if (cx == rejectX && cy == rejectY) continue;
+
+                float distFromTarget = (float) Math.sqrt(dx * dx + dy * dy);
+                if (distFromTarget > self.attackRange) continue;
+                if (distFromTarget < FIRING_MIN_DISTANCE) continue;
+                if (!grid.hasLineOfSight(cx, cy, tx, ty)) continue;
+
+                int cover = grid.getCoverAt(cx, cy);
+                int doodadCover = sim.getDoodadCoverAt(cx, cy);
+                int combined = cover + doodadCover;
+                if (combined < selfCover) continue;
+
+                int occupants = occupantsExcludingSelf(self, cx, cy, sim);
+                float distFromSelf = cellDistance(self.cellX, self.cellY, cx, cy);
+                float score = distFromSelf
+                        + FIRING_OCCUPANCY_COST * occupants
+                        - FIRING_COVER_BONUS * cover
+                        - FIRING_DOODAD_COVER_BONUS * doodadCover;
+                if (score < bestScore) {
+                    bestScore = score;
+                    best = new int[]{cx, cy};
+                    foundEqualOrBetter = true;
+                }
+            }
+        }
+        if (foundEqualOrBetter && best != null) return best;
+        // Fall through to the unfiltered scorer if no cover-preserving move
+        // exists — caller will get the regular best-effort firing position.
+        return findFiringPosition(self, target, sim, rejectX, rejectY);
     }
 
     /**
@@ -284,7 +546,7 @@ public final class TacticalScoring {
                 if (!isHiddenFromAllEnemies(self, cx, cy, sim)) continue;
 
                 int occupants = occupantsExcludingSelf(self, cx, cy, sim);
-                int cover = grid.getCoverAt(cx, cy);
+                int cover = grid.getCoverAt(cx, cy) + sim.getDoodadCoverAt(cx, cy);
                 int zoneId = zones.zoneIdAt(cx, cy);
                 int control = (zoneId >= 0 && zoneId < zoneControl.length) ? zoneControl[zoneId] : 0;
                 float distFromSelf = cellDistance(sx, sy, cx, cy);
