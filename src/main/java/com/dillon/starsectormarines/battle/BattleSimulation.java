@@ -98,6 +98,15 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final List<Objective> objectives = new ArrayList<>();
     private final List<EquipmentDrop> equipmentDrops = new ArrayList<>();
     private final List<Doodad> doodads = new ArrayList<>();
+    /**
+     * Per-cell maximum doodad cover, indexed by {@link NavigationGrid#index(int, int)}.
+     * Updated on {@link #addDoodad}; never decreases during a battle (doodads aren't
+     * removed mid-fight). Read by {@link com.dillon.starsectormarines.battle.ai.TacticalScoring}
+     * when scoring firing-position candidates so a crate-shielded cell wins over
+     * an open one with equal cell-grid cover. Lazy-initialized — the array is
+     * allocated on first {@link #addDoodad} call.
+     */
+    private byte[] doodadCoverByCell;
     private final List<MapVehicle> vehicles = new ArrayList<>();
     /** Persistent visual decals (bullet holes, craters, rubble) accumulated over the battle. Bounded by {@link #DECAL_CAP} with FIFO eviction via {@link java.util.ArrayDeque#pollFirst} — O(1) head removal, unlike {@code ArrayList.remove(0)} which would shift the whole tail per overflow. */
     private final java.util.ArrayDeque<Decal> decals = new java.util.ArrayDeque<>();
@@ -213,7 +222,30 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     public List<Objective> getObjectives() { return objectives; }
     public List<EquipmentDrop> getEquipmentDrops() { return equipmentDrops; }
     public List<Doodad> getDoodads()       { return doodads; }
-    public void addDoodad(Doodad d)        { doodads.add(d); }
+    public void addDoodad(Doodad d) {
+        doodads.add(d);
+        if (d.cover <= 0) return;
+        if (!grid.inBounds(d.cellX, d.cellY)) return;
+        if (doodadCoverByCell == null) {
+            doodadCoverByCell = new byte[grid.getWidth() * grid.getHeight()];
+        }
+        int idx = grid.index(d.cellX, d.cellY);
+        int existing = doodadCoverByCell[idx] & 0xFF;
+        if (d.cover > existing) doodadCoverByCell[idx] = (byte) d.cover;
+    }
+
+    /**
+     * Returns the max-cover doodad value at (x, y), or 0 if none / out-of-bounds.
+     * Read by {@link com.dillon.starsectormarines.battle.ai.TacticalScoring}
+     * when ranking firing-position candidates — see {@link Doodad} for the cover
+     * model rationale. Not consumed by {@link #fireShot}'s damage math; the
+     * existing cell-grid lookup still governs damage reduction.
+     */
+    public int getDoodadCoverAt(int x, int y) {
+        if (doodadCoverByCell == null) return 0;
+        if (!grid.inBounds(x, y)) return 0;
+        return doodadCoverByCell[grid.index(x, y)] & 0xFF;
+    }
     /** Parked vehicles that occupy multi-cell footprints. Cells were flagged non-walkable at setup time, so the sim doesn't need to consult this list for pathing/LOS — only the renderer does. */
     public List<MapVehicle> getVehicles()  { return vehicles; }
     public void addVehicle(MapVehicle v)   { vehicles.add(v); }
