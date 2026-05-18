@@ -3,6 +3,9 @@
 Known future work, grouped by area. Loose priorities; the README's
 "Immediate next-up" is what's actually queued.
 
+## Music
+https://davidkbd.itch.io/eternity-metal-scfi-music-pack
+
 ## Gameplay
 
 - **Briefing screen** — mission detail view with accept/decline. Reads
