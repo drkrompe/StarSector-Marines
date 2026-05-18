@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.ai.TacticalScoring;
 import com.dillon.starsectormarines.battle.ai.goap.Predicate;
 import com.dillon.starsectormarines.battle.ai.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.zone.Portal;
 
 import java.util.EnumMap;
 import java.util.List;
@@ -61,7 +62,7 @@ public final class WorldStateBuilder {
         EVALUATORS.put(Predicate.BEHIND_FRIENDLY_RELATIVE_TO_THREAT, STUB_FALSE);
         EVALUATORS.put(Predicate.CAN_REPOSITION,                    WorldStateBuilder::evalCanReposition);
         EVALUATORS.put(Predicate.ZONE_CLEAR,                        STUB_FALSE);
-        EVALUATORS.put(Predicate.ENEMY_IN_PORTAL_CELL,              STUB_FALSE);
+        EVALUATORS.put(Predicate.ENEMY_IN_PORTAL_CELL,              WorldStateBuilder::evalEnemyInPortalCell);
         EVALUATORS.put(Predicate.NODE_IS_MUST_HOLD,                 STUB_FALSE);
         EVALUATORS.put(Predicate.THREAT_DENSITY_HIGH_AT_TARGET,     STUB_FALSE);
     }
@@ -166,6 +167,41 @@ public final class WorldStateBuilder {
             if (dx * dx + dy * dy > r2) return false;
         }
         return true;
+    }
+
+    // --- Story L evaluators ---------------------------------------------
+
+    /**
+     * Story L trigger: true iff an enemy combatant is standing on the cell of
+     * the portal the squad's choke-point action is watching
+     * ({@link Squad#chokePointPortalId}). The portal id is stamped onto the
+     * squad by
+     * {@link com.dillon.starsectormarines.battle.ai.goap.actions.ChokePointHold}
+     * on its first execute tick.
+     *
+     * <p>Reads false when no portal is being watched ({@code chokePointPortalId
+     * == -1}), the portal id no longer resolves (graph rebuild during the
+     * action's lifetime — unlikely but defensive), or no enemy combatant
+     * happens to occupy the doorway cell this tick. The "enemy of the squad"
+     * means alive, combatant, opposite faction — same rules every other
+     * predicate uses.
+     */
+    private static boolean evalEnemyInPortalCell(Squad squad, BattleSimulation sim) {
+        int portalId = squad.chokePointPortalId;
+        if (portalId < 0) return false;
+        Portal p = sim.getZoneGraph().portalById(portalId);
+        if (p == null) return false;
+        NavigationGrid grid = sim.getGrid();
+        int w = grid.getWidth();
+        int dwIdx = p.getDoorwayCellIdx();
+        int dwX = dwIdx % w;
+        int dwY = dwIdx / w;
+        for (Unit u : sim.getUnits()) {
+            if (!u.isAlive() || !u.type.combatant) continue;
+            if (u.faction == squad.faction) continue;
+            if (u.cellX == dwX && u.cellY == dwY) return true;
+        }
+        return false;
     }
 
     // --- Story A evaluators ---------------------------------------------

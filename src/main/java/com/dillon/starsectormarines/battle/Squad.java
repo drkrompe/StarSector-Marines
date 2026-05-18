@@ -187,6 +187,21 @@ public final class Squad {
     /** {@link #aliveMembers} value at the moment the current plan was built. Diff vs. live {@link #aliveMembers} drives death-triggered replan: any change forces a refresh next tick. */
     public int aliveMembersAtLastPlan = 0;
 
+    /**
+     * Portal id the squad's current
+     * {@link com.dillon.starsectormarines.battle.ai.goap.actions.ChokePointHold}
+     * action is watching, or {@code -1} when no choke-point hold is active.
+     * Set by {@code ChokePointHold} on its first execute tick (idempotent —
+     * stamps the same id on every tick for the lifetime of the action) and
+     * consumed by the {@link com.dillon.starsectormarines.battle.ai.goap.Predicate#ENEMY_IN_PORTAL_CELL}
+     * evaluator to scope "which portal is this squad guarding."
+     *
+     * <p>Story L's choke-point ambush trigger: an enemy combatant standing on
+     * the cell of {@code chokePointPortalId}'s doorway flips the predicate
+     * true, which the action consults to fire its concentrated burst.
+     */
+    public int chokePointPortalId = -1;
+
     public Squad(int id, Faction faction) {
         this.id = id;
         this.faction = faction;
