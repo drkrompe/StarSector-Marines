@@ -73,6 +73,28 @@ public interface Goal {
     WorldState desiredState(Squad squad, BattleSimulation sim);
 
     /**
+     * Escape hatch for goals that synthesize their plan directly rather than
+     * letting the backward-chaining planner compose one. The replan pass calls
+     * this <em>before</em> {@link Planner#plan}; a non-null return is used
+     * as-is and {@link #desiredState} is ignored. Returning null falls back to
+     * the standard A* search.
+     *
+     * <p>Used for goals whose plan structure is determined by an external
+     * computation (zone-graph BFS for the room-clear sweep, fixed step
+     * sequences for scripted set-pieces) — i.e., cases where the
+     * precondition/effect chain doesn't carry enough information to drive
+     * search productively. The returned plan's steps still get role-assigner
+     * filled by the replan caller, so per-member slot scoring works the same
+     * way it does for planner-produced plans.
+     *
+     * <p>Called during the parallel replan window — must be read-only against
+     * {@code sim} like the rest of the goal API.
+     */
+    default SquadPlan customPlan(Squad squad, BattleSimulation sim) {
+        return null;
+    }
+
+    /**
      * Picks the highest-relevance goal in the highest-occupied
      * {@link Priority} bucket. Goals with {@code relevance <= 0} are
      * excluded — they cannot anchor a bucket or be returned. Returns

@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.ai.goap.actions.ApproachPosture;
 import com.dillon.starsectormarines.battle.ai.goap.actions.EngagePosture;
 import com.dillon.starsectormarines.battle.ai.goap.actions.RegroupPosture;
 import com.dillon.starsectormarines.battle.ai.goap.goals.EliminateEnemiesGoal;
+import com.dillon.starsectormarines.battle.ai.goap.goals.SecureObjectiveZone;
 import com.dillon.starsectormarines.battle.ai.goap.scoring.RoleAssigner;
 import com.dillon.starsectormarines.battle.ai.goap.world.WorldStateBuilder;
 
@@ -43,8 +44,9 @@ public final class GoapInfantryBehavior implements UnitBehavior {
 
     public static final GoapInfantryBehavior INSTANCE = new GoapInfantryBehavior();
 
-    /** Goals the squad-level planner picks from each replan. Highest-relevance wins (see {@link Goal#pickMostRelevant}). */
+    /** Goals the squad-level planner picks from each replan. Highest-priority bucket wins, relevance breaks ties within a bucket (see {@link Goal#pickMostRelevant}). */
     public static final List<Goal> INFANTRY_GOALS = List.of(
+            SecureObjectiveZone.INSTANCE,
             EliminateEnemiesGoal.INSTANCE
     );
 
@@ -152,13 +154,21 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             return;
         }
 
-        SquadPlan plan = Planner.plan(
-                current,
-                goal.desiredState(squad, sim),
-                INFANTRY_ACTIONS,
-                squad,
-                sim,
-                PLAN_NODE_LIMIT);
+        // Custom-plan escape hatch: goals that synthesize their plan directly
+        // (e.g. SecureObjectiveZone walking a zone-graph BFS path) bypass the
+        // backward-chaining search and return their plan ready to be filled
+        // with role assignments below. Returns null when the goal wants to
+        // fall back to the planner — keeps the API a single switch.
+        SquadPlan plan = goal.customPlan(squad, sim);
+        if (plan == null) {
+            plan = Planner.plan(
+                    current,
+                    goal.desiredState(squad, sim),
+                    INFANTRY_ACTIONS,
+                    squad,
+                    sim,
+                    PLAN_NODE_LIMIT);
+        }
 
         if (plan != null && !plan.isComplete()) {
             // Gather alive squadmates once, hand them to RoleAssigner per step.
