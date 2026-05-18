@@ -181,6 +181,9 @@ public class Shuttle {
     /** Cell radius the shuttle stays within around its LZ while following the squad centroid in HOVER_STATION. Lets squads advance ~12 cells with the shuttle in tow; past that the leash bites. */
     public static final float HOVER_LEASH_RADIUS_CELLS = 12f;
 
+    /** Standoff (cells) the hover point is pulled back from the squad centroid along the LZ→centroid bearing. Keeps the shuttle behind the squad as they advance — sprites stay unobstructed and the overwatch read is "covering the rear" rather than "parked on top." When the centroid is within this distance of the LZ, the shuttle just holds over the LZ. */
+    public static final float HOVER_STANDOFF_CELLS = 5f;
+
     /** Peak screen-Y offset (cells) applied at altitudeT = 1 to sell "the shuttle is up in the air" in the top-down view. Sim-space {@code body.x}/{@code body.y} are unchanged — this is render-only. */
     public static final float VISUAL_ALT_PEAK_CELLS = 3.0f;
 
