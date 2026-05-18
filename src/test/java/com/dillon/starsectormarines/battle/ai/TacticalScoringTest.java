@@ -46,6 +46,12 @@ public class TacticalScoringTest {
         return u;
     }
 
+    private static Unit unit(BattleSimulation sim, Faction f, UnitType type, int x, int y) {
+        Unit u = new Unit("u" + sim.getUnits().size(), f, type, x, y);
+        sim.getUnits().add(u);
+        return u;
+    }
+
     // ---------------------------------------------------------------------
     // Part 1 — Cover model
     // ---------------------------------------------------------------------
@@ -262,6 +268,86 @@ public class TacticalScoringTest {
         assertTrue(TacticalScoring.shouldKeepPursuing(marine, closeMech, sim),
                 "the close target itself is still a fine target to keep on");
     }
+
+    // ---------------------------------------------------------------------
+    // Part 4 — weapon-target affinity
+    // ---------------------------------------------------------------------
+
+    @Test
+    public void rocketeerPrefersMechOverNearerInfantry() {
+        // Two visible targets: a mech at distance 15, infantry at distance 5.
+        // A marine carrying a rocket launcher (vsTurretMult 3.5) should pick
+        // the mech — the affinity bonus overcomes the distance gap.
+        BattleSimulation sim = openArena(30, 10);
+        Unit rocketeer = unit(sim, Faction.MARINE, 5, 5);
+        rocketeer.primaryWeapon = com.dillon.starsectormarines.battle.MarineWeapon.PULSE_RIFLE;
+        rocketeer.secondaryWeapon = com.dillon.starsectormarines.battle.MarineSecondary.ROCKET_LAUNCHER;
+        rocketeer.secondaryAmmo = 3;
+        rocketeer.attackRange = 40f;
+
+        Unit infantry = unit(sim, Faction.DEFENDER, 10, 5);
+        Unit mech = unit(sim, Faction.DEFENDER, UnitType.HEAVY_MECH, 20, 5);
+
+        Unit picked = TacticalScoring.findBestTarget(rocketeer, sim);
+        assertEquals(mech, picked, "rocketeer must prefer the hardened mech over the soft infantry");
+    }
+
+    @Test
+    public void smgMarinePrefersInfantryOverMech() {
+        // Mirror case — an SMG marine (vsTurretMult 0.5) should pick the
+        // infantry. No rocket, so suitability against the mech is poor.
+        BattleSimulation sim = openArena(30, 10);
+        Unit smg = unit(sim, Faction.MARINE, 5, 5);
+        smg.primaryWeapon = com.dillon.starsectormarines.battle.MarineWeapon.SMG;
+        smg.attackRange = 40f;
+
+        Unit infantry = unit(sim, Faction.DEFENDER, 10, 5);
+        Unit mech = unit(sim, Faction.DEFENDER, UnitType.HEAVY_MECH, 8, 5);
+        // Mech is actually CLOSER than the infantry here — without affinity
+        // the picker would lock the mech. Affinity must flip it.
+
+        Unit picked = TacticalScoring.findBestTarget(smg, sim);
+        assertEquals(infantry, picked, "SMG marine must prefer infantry even when mech is closer");
+    }
+
+    @Test
+    public void rocketeerOutOfAmmoFallsBackToPrimaryAffinity() {
+        // Rocket launcher with 0 ammo — affinity vs hardened drops to the
+        // primary's mult only (PULSE_RIFLE 0.3, weak). Now the close
+        // infantry wins on distance.
+        BattleSimulation sim = openArena(30, 10);
+        Unit dryRocketeer = unit(sim, Faction.MARINE, 5, 5);
+        dryRocketeer.primaryWeapon = com.dillon.starsectormarines.battle.MarineWeapon.PULSE_RIFLE;
+        dryRocketeer.secondaryWeapon = com.dillon.starsectormarines.battle.MarineSecondary.ROCKET_LAUNCHER;
+        dryRocketeer.secondaryAmmo = 0;
+        dryRocketeer.attackRange = 40f;
+
+        Unit infantry = unit(sim, Faction.DEFENDER, 10, 5);
+        Unit mech = unit(sim, Faction.DEFENDER, UnitType.HEAVY_MECH, 20, 5);
+
+        Unit picked = TacticalScoring.findBestTarget(dryRocketeer, sim);
+        assertEquals(infantry, picked, "no rockets left -> pick the closer infantry, not the distant mech");
+    }
+
+    @Test
+    public void singleVisibleTargetPickedRegardlessOfAffinity() {
+        // Only the mech is visible — even a rifle-armed marine picks it.
+        // Affinity is a tiebreaker when multiple visible candidates compete,
+        // not a hard filter.
+        BattleSimulation sim = openArena(30, 10);
+        Unit rifleMarine = unit(sim, Faction.MARINE, 5, 5);
+        rifleMarine.primaryWeapon = com.dillon.starsectormarines.battle.MarineWeapon.PULSE_RIFLE;
+        rifleMarine.attackRange = 40f;
+
+        Unit mech = unit(sim, Faction.DEFENDER, UnitType.HEAVY_MECH, 15, 5);
+
+        Unit picked = TacticalScoring.findBestTarget(rifleMarine, sim);
+        assertEquals(mech, picked, "single visible target is picked regardless of weapon affinity");
+    }
+
+    // ---------------------------------------------------------------------
+    // Part 3c — pursuit gate stickiness
+    // ---------------------------------------------------------------------
 
     @Test
     public void shouldKeepPursuingTrueWhenAlternativeNotMeaningfullyCloser() {

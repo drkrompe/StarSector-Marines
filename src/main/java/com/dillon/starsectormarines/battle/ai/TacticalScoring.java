@@ -2,7 +2,9 @@ package com.dillon.starsectormarines.battle.ai;
 
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.MapTurret;
 import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.UnitType;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 
@@ -46,6 +48,17 @@ public final class TacticalScoring {
     public static final int THREAT_DENSITY_RADIUS = 4;
     /** Per-neighbor-enemy penalty added to a target's score. Pursuing one fleer into 3 squadmates costs roughly the same as walking ~20 extra cells. */
     public static final float TARGET_THREAT_DENSITY_COST = 5f;
+
+    /**
+     * Multiplier on the weapon-target affinity term in {@link #findBestTarget}.
+     * A marine's score for a hardened target gets {@code WEIGHT * (1 - vsHardenedMult)}
+     * added — well-suited weapons (rockets, mult 3.5) earn a ~20-point bonus
+     * toward the hardened target, poorly-suited weapons (rifles, mult 0.3)
+     * eat a ~5-point penalty. With one visible target in LOS this is a no-op
+     * (one candidate wins regardless); with multiple, it tilts the AT marine
+     * toward the mech and the SMG marine toward the infantry.
+     */
+    public static final float WEAPON_AFFINITY_WEIGHT = 8f;
 
     /** Cell radius searched for a fall-back position around the hit unit. */
     public static final int   FALLBACK_SCAN_RANGE = 8;
@@ -101,7 +114,7 @@ public final class TacticalScoring {
      *
      * <p>Score per visible candidate:
      * <pre>
-     *   distance + crowding + threat_density_at_target_cell
+     *   distance + crowding + threat_density_at_target_cell + weapon_affinity
      * </pre>
      *
      * <p><b>Threat density</b> — count of <em>other</em> enemies of the same
@@ -110,6 +123,15 @@ public final class TacticalScoring {
      * fleer running into 3 of their squadmates is no longer the lowest-cost
      * target — the cluster makes pursuing them prohibitively expensive, and
      * the picker drops them in favor of an isolated enemy or no-target.
+     *
+     * <p><b>Weapon affinity</b> — when {@code excludeFromCrowding} is a
+     * {@link Unit} (the marine's own callers pass {@code self} here), hardened
+     * targets (turrets + heavy mechs) get a per-marine score adjustment based
+     * on {@code primary.vsTurretMult} / {@code secondary.vsTurretMult}.
+     * Rocketeers prefer mechs; rifle/SMG marines prefer infantry. With one
+     * visible target the term doesn't matter (single candidate wins); with
+     * multiple, it tilts the choice without overriding distance for nearby
+     * threats.
      *
      * <p>The any-distance fallback bucket still exists so the unit pathfinds
      * toward the nearest visible-eventually enemy when LOS is fully broken.
@@ -141,13 +163,40 @@ public final class TacticalScoring {
             if (!los.visible(selfCellX, selfCellY, other.cellX, other.cellY)) continue;
             float crowding = scoreCrowding(selfFaction, selfSquadId, other, sim, excludeFromCrowding);
             float density = scoreThreatDensity(other, selfFaction, sim);
-            float score = d + crowding + density;
+            float affinity = scoreWeaponAffinity(excludeFromCrowding, other);
+            float score = d + crowding + density + affinity;
             if (score < bestVisibleScore) {
                 bestVisibleScore = score;
                 bestVisible = other;
             }
         }
         return bestVisible != null ? bestVisible : bestAny;
+    }
+
+    /**
+     * Score adjustment for how well {@code self}'s loadout matches
+     * {@code target}. Hardened targets (turrets + heavy mechs) get the per-
+     * weapon {@code vsTurretMult} treated as an affinity: rockets (3.5×) earn
+     * a strong negative adjustment (bonus); rifles (0.3×) earn a positive one
+     * (penalty). Soft targets are baseline (no adjustment).
+     *
+     * <p>{@code self} is nullable for non-Unit callers (shuttle / static
+     * turrets) — they get no affinity term.
+     */
+    private static float scoreWeaponAffinity(Unit self, Unit target) {
+        if (self == null) return 0f;
+        if (!isHardened(target)) return 0f;
+        float primary = self.primaryWeapon != null ? self.primaryWeapon.vsTurretMult : 0.3f;
+        float secondary = (self.secondaryWeapon != null && self.secondaryAmmo > 0)
+                ? self.secondaryWeapon.vsTurretMult : 0f;
+        float bestMult = Math.max(primary, secondary);
+        return WEAPON_AFFINITY_WEIGHT * (1f - bestMult);
+    }
+
+    /** Hardened target classification — counts emplacements and heavy mechs. Anything else (infantry archetypes, aliens, militia) is soft. */
+    private static boolean isHardened(Unit target) {
+        if (target instanceof MapTurret) return true;
+        return target.type == UnitType.HEAVY_MECH;
     }
 
     /**
