@@ -9,10 +9,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Coverage for the {@link BattleSimulation#rollFallbackOnHit} gate that
- * skips GOAP-driven targets (squad-member infantry). The Story B follow-up
- * routes infantry retreat through {@code SurviveContact}/{@code BreakContact}
- * instead of the per-unit timer; civilians and mechs keep the legacy roll
- * until their own substitutes land.
+ * skips GOAP-driven targets — every squad member, infantry or mech.
+ * Infantry retreats via {@code SurviveContact}/{@code BreakContact} (Story
+ * B); mech squads run implacable in Stage 1 with no flinch (see
+ * {@code roadmap/ai/14-mech-stage1.md} "Mech survival"). Civilians
+ * (no-squad units) keep the legacy roll — {@code FleeBehavior} depends
+ * on it.
  *
  * <p>Drives the real {@link BattleSimulation} rather than mocking so any
  * future refactor of the gate (faction-based vs. role-based vs. behavior-
@@ -53,33 +55,22 @@ public class RollFallbackGateTest {
     }
 
     @Test
-    public void mechKeepsLegacyFallback() {
+    public void squadMemberMechSkipsLegacyFallback() {
         BattleSimulation sim = openSim();
         Unit mech = new Unit("mech0", Faction.DEFENDER, UnitType.HEAVY_MECH, 9, 5);
         mech.mech = MechLoadoutState.defaultLoadout(MechRole.ARMORED_SUPPORT);
-        // Mechs in the current setup carry squadId from BattleSetup's defender
-        // cluster — but the gate is mech-aware, so even with a squad they
-        // should still roll the legacy fall-back until their GOAP lands.
         int sid = sim.mintSquad(Faction.DEFENDER, mech);
         mech.squadId = sid;
         sim.addUnit(mech);
-        // findFallbackPosition needs an enemy in LoS of the mech's cell so its
-        // own cell isn't a valid hide spot — otherwise the scorer's
-        // distance-zero pick is the mech's own cell, the function bails, and
-        // we can't tell whether the gate skipped or the picker just gave up.
+        // Enemy in LoS so findFallbackPosition would otherwise have a valid
+        // hide cell — if the gate is off, the roll has every chance to fire
+        // and the fallbackTimer would flip non-zero across 100 attempts.
         sim.addUnit(new Unit("opp", Faction.MARINE, UnitType.MARINE, 11, 5));
 
-        boolean rolledAtLeastOnce = false;
-        for (int i = 0; i < 100; i++) {
-            mech.fallbackTimer = 0f; // reset each iteration so we can keep rolling
-            sim.rollFallbackOnHit(mech);
-            if (mech.fallbackTimer > 0f) {
-                rolledAtLeastOnce = true;
-                break;
-            }
-        }
-        assertTrue(rolledAtLeastOnce,
-                "mechs (no GOAP yet) must still roll the legacy fall-back");
+        for (int i = 0; i < 100; i++) sim.rollFallbackOnHit(mech);
+
+        assertEquals(0f, mech.fallbackTimer, 1e-6f,
+                "mech-squad members must never enter the legacy fall-back — Stage 1 mechs are implacable");
     }
 
     @Test

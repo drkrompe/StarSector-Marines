@@ -446,17 +446,18 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         if (!target.isAlive()) return;
         if (target.fallbackTimer > 0f) return;
         if (target instanceof MapTurret) return;
-        // GOAP-driven infantry (squad members without a mech loadout) own their
-        // retreat through SurviveContact / BreakContact — the squad-level
-        // morale system decides when to pull back and re-engage. The legacy
-        // per-unit fall-back roll conflicts with that (it can yank a planter
-        // off the charge site or a cordon holder off their doorway), so we
-        // skip it here. Civilians (NO_SQUAD) and mechs ({@code mech != null},
-        // no GOAP tree yet) keep the legacy roll until their own substitutes
-        // land. Note: shares {@link Unit#fallbackCellX}/{@code fallbackCellY}
-        // with BreakContact — fine since both paths can't fire on the same
-        // unit at the same time given this gate.
-        if (target.squadId != Unit.NO_SQUAD && target.mech == null) return;
+        // GOAP-driven squad members — both infantry and mechs — own their
+        // retreat through their per-squad planner now. Infantry routes
+        // through SurviveContact / BreakContact via squad morale; mech
+        // squads run on GoapMechBehavior with no flinch (Stage 1 design:
+        // mechs are implacable; morale-driven mech retreat queues for a
+        // later slice, see roadmap/ai/14-mech-stage1.md "Mech survival").
+        // The legacy per-unit fall-back roll conflicts with both planners
+        // (it can yank a planter off the charge site or break a mech's
+        // overwatch posture), so we skip every squad member here.
+        // Civilians (NO_SQUAD) keep the legacy roll — FleeBehavior depends
+        // on it.
+        if (target.squadId != Unit.NO_SQUAD) return;
         if (rng.nextFloat() >= FALLBACK_CHANCE) return;
         int[] fallback = TacticalScoring.findFallbackPosition(target, this);
         if (fallback[0] == target.cellX && fallback[1] == target.cellY) return;
