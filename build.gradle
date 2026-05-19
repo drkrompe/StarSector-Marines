@@ -93,6 +93,11 @@ test {
         def v = System.getProperty(key)
         if (v != null) systemProperty key, v
     }
+    // EngineSlotPreviewTest loads vanilla .ship files + sprites from the
+    // game install; forward the project-level `starsectorDir` gradle property
+    // so the test can find them. Same source of truth the build.gradle root
+    // uses for compileOnly + deployMod (resolved at line 13).
+    systemProperty 'starsectorDir', starsectorDir.absolutePath
 }
 
 // The default `jar` task only produces the thin jar (our classes), which we
