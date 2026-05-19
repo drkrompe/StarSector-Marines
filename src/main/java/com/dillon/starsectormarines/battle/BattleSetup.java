@@ -634,19 +634,48 @@ public final class BattleSetup {
     }
 
     /** Original cluster-spawn behavior — kept around for maps with no tactical layer (legacy UrbanMapGenerator, placeholder gens). Composition follows the roster: mechs first, then red marines, then militia. */
+    /**
+     * Fallback spawn used when the map has no defender tactical nodes (any
+     * mission whose generator skips BspCityGenerator's tactical pass). Mints
+     * {@link UnitRole#PATROL} squads of up to {@link DefenderRoster#patrolSquadSize}
+     * each, with {@code assignedNode = null} — {@link com.dillon.starsectormarines.battle.ai.PatrolBehavior}
+     * seeds off {@link Squad#centroidX}/{@code centroidY} when the anchor is
+     * null, so the squad wanders from its spawn cluster outward and engages
+     * on enemy LOS like the tactical-node patrol path.
+     *
+     * <p>Type queue order (mechs → elites → militia) matches
+     * {@link #allocateDefenders}'s Pass-1/2 ordering so the highest-rank
+     * defenders cluster into the first squad rather than scattering.
+     */
     private static void spawnLegacyDefenderCluster(BattleSimulation sim, List<int[]> cells, DefenderRoster roster) {
-        int idx = 0;
-        for (int[] p : cells) {
-            UnitType type;
-            if (idx < roster.mechCount) {
-                type = UnitType.HEAVY_MECH;
-            } else if (idx < roster.mechCount + roster.eliteCount) {
-                type = UnitType.MARINE_RED;
-            } else {
-                type = UnitType.MILITIA;
+        java.util.Deque<UnitType> queue = new java.util.ArrayDeque<>();
+        for (int i = 0; i < roster.mechCount; i++)    queue.add(UnitType.HEAVY_MECH);
+        for (int i = 0; i < roster.eliteCount; i++)   queue.add(UnitType.MARINE_RED);
+        for (int i = 0; i < roster.militiaCount; i++) queue.add(UnitType.MILITIA);
+
+        int defenderIdx = 0;
+        int cellIdx = 0;
+        while (!queue.isEmpty() && cellIdx < cells.size()) {
+            int squadSize = Math.min(roster.patrolSquadSize,
+                    Math.min(queue.size(), cells.size() - cellIdx));
+            Squad squad = null;
+            int spawned = 0;
+            for (int s = 0; s < squadSize; s++) {
+                int[] cell = cells.get(cellIdx++);
+                UnitType type = queue.poll();
+                Unit unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1]);
+                unit.role = UnitRole.PATROL;
+                if (squad == null) {
+                    int sid = sim.mintSquad(Faction.DEFENDER, unit);
+                    squad = sim.getSquad(sid);
+                    // No assignedNode — PatrolBehavior falls back to the
+                    // squad centroid as its wander seed when this is null.
+                }
+                unit.squadId = squad.id;
+                sim.addUnit(unit);
+                spawned++;
             }
-            sim.addUnit(makeDefender("d" + idx, type, p[0], p[1]));
-            idx++;
+            if (squad != null) squad.originalSize = spawned;
         }
     }
 
