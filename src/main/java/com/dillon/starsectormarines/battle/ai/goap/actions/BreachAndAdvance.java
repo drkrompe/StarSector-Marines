@@ -87,6 +87,18 @@ public final class BreachAndAdvance implements Action {
     @Override public float cost(WorldState s, Squad squad, BattleSimulation sim) { return 1f; }
     @Override public int requiredMembers() { return Math.max(1, stackUpX.length); }
 
+    @Override
+    public java.util.List<int[]> highlightCells(Squad squad, BattleSimulation sim) {
+        // Stack-up + forward cells together — the player sees the full breach
+        // path: where the squad pools and where they're pushing through to.
+        java.util.List<int[]> out = new java.util.ArrayList<>(stackUpX.length * 2);
+        for (int i = 0; i < stackUpX.length; i++) {
+            out.add(new int[]{stackUpX[i], stackUpY[i]});
+            out.add(new int[]{forwardX[i], forwardY[i]});
+        }
+        return out;
+    }
+
     /** One slot per breach position, named "breacher:N". Members are scored by negated distance to their slot's stack-up cell — closest member wins, so the squad's natural order at the door is preserved. */
     @Override
     public List<RoleAssigner.Slot<Unit>> roles(Squad squad, BattleSimulation sim) {

@@ -105,4 +105,21 @@ public interface Action {
      * </ul>
      */
     ActionStatus execute(Unit member, Squad squad, BattleSimulation sim);
+
+    /**
+     * Cells this action operates on, for the debug-overlay highlight tool. The
+     * GOAP debug panel calls this when the player toggles "show cells" on a
+     * plan step. Default is empty — actions whose semantics are bound to
+     * specific cells (cordon guard posts, choke-point LOS cells, breach
+     * stack-up cells) override; abstract actions (Engage, Approach) return
+     * empty and so don't surface a highlight button.
+     *
+     * <p>Returns {@code [x, y]} pairs. Read-only against {@code sim} —
+     * called from the HUD render path, not the planner, but the contract
+     * stays the same in case a future caller invokes it during the parallel
+     * replan window.
+     */
+    default List<int[]> highlightCells(Squad squad, BattleSimulation sim) {
+        return List.of();
+    }
 }

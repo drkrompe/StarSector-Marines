@@ -20,4 +20,13 @@ public final class Fonts {
     public static final BitmapFont ORBITRON_20_BOLD = new BitmapFont("graphics/fonts/orbitron20aabold.fnt");
     public static final BitmapFont ORBITRON_24_BOLD = new BitmapFont("graphics/fonts/orbitron24aabold.fnt");
     public static final BitmapFont INSIGNIA_LARGE = new BitmapFont("graphics/fonts/insignia21LTaa.fnt");
+
+    /**
+     * Debug-only smaller font. Reserved for the GOAP debug overlay
+     * ({@code SquadPlanDebugPanel}'s filtered detail mode) where information
+     * density beats readability — long predicate names + per-step assignments
+     * blow the panel bounds at Orbitron 20. Do not use in gameplay UI; the
+     * font-minimum rule above still stands for player-facing surfaces.
+     */
+    public static final BitmapFont INSIGNIA_15_AA = new BitmapFont("graphics/fonts/insignia15LTaa.fnt");
 }

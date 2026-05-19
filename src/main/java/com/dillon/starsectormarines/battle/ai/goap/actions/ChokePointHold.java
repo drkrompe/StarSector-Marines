@@ -80,6 +80,16 @@ public final class ChokePointHold implements Action {
     @Override public float cost(WorldState s, Squad squad, BattleSimulation sim) { return 1f; }
     @Override public int requiredMembers() { return Math.max(1, losCells.size()); }
 
+    @Override
+    public java.util.List<int[]> highlightCells(Squad squad, BattleSimulation sim) {
+        // LOS cells + the watched portal cell so the player can see both the
+        // firing posts AND the doorway that triggers concentrated fire.
+        java.util.List<int[]> out = new java.util.ArrayList<>(losCells.size() + 1);
+        for (int[] c : losCells) out.add(new int[]{c[0], c[1]});
+        out.add(new int[]{portalX, portalY});
+        return out;
+    }
+
     /**
      * Picks up to {@code maxCells} LOS-to-portal cells inside the squad's
      * search radius. Uses {@link TacticalScoring#bestCoverCell} iteratively —

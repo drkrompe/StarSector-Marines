@@ -85,10 +85,15 @@ public final class SquadDetailPanel implements HudPanel {
         // Auto-clear: if the squad was wiped (or never existed), drop selection
         // so the overview pops back. Same instinct as a real RTS — losing the
         // last member of the selected unit kicks you out of the detail panel.
-        if (s == null || s.faction != Faction.MARINE || s.aliveMembers <= 0) {
+        if (s == null || s.aliveMembers <= 0) {
             sel.clear();
             return;
         }
+        // Non-marine selections (defender squads picked from the world for
+        // debug) don't populate this panel — it's marine-only by design — but
+        // we leave the selection alone so SquadPlanDebugPanel's filtered detail
+        // mode picks it up.
+        if (s.faction != Faction.MARINE) return;
         currentSquad = s;
         for (Unit u : sim.getUnits()) {
             if (u.squadId != squadId || !u.isAlive()) continue;

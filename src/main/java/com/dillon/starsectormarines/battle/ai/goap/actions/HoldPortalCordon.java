@@ -89,6 +89,13 @@ public final class HoldPortalCordon implements Action {
     @Override public float cost(WorldState s, Squad squad, BattleSimulation sim) { return 1f; }
     @Override public int requiredMembers() { return Math.max(1, posts.size() + 1); }
 
+    @Override
+    public java.util.List<int[]> highlightCells(Squad squad, BattleSimulation sim) {
+        java.util.List<int[]> out = new java.util.ArrayList<>(posts.size());
+        for (GuardPost p : posts) out.add(new int[]{p.cellX, p.cellY});
+        return out;
+    }
+
     /**
      * Planter slot first, then one portal slot per doorway. The planter slot
      * scores PLANTER-role members at {@link #PLANTER_SCORE} and everyone else

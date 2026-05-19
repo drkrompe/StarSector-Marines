@@ -57,6 +57,13 @@ public final class GarrisonCordon implements Action {
     @Override public float cost(WorldState s, Squad squad, BattleSimulation sim) { return 1f; }
     @Override public int requiredMembers() { return Math.max(1, posts.size()); }
 
+    @Override
+    public java.util.List<int[]> highlightCells(Squad squad, BattleSimulation sim) {
+        java.util.List<int[]> out = new java.util.ArrayList<>(posts.size());
+        for (HoldPortalCordon.GuardPost p : posts) out.add(new int[]{p.cellX, p.cellY});
+        return out;
+    }
+
     /**
      * One slot per doorway. Slot scorer is negated distance from the
      * candidate to the guard cell — closest holder wins their nearest
