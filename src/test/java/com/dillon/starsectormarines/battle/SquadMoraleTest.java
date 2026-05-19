@@ -157,26 +157,27 @@ public class SquadMoraleTest {
         Squad sq = marineSquad(sim, 4);
         hideDefender(sim);
 
-        // Walk morale below the broken threshold via drain on hits.
-        Unit a = sim.getUnits().get(0);
+        // Drive morale below the broken threshold directly — the drain
+        // cooldown deliberately caps how fast bursts can drain morale, so
+        // accumulating "many hits worth" inside a single test tick goes
+        // through the cooldown gate. The hysteresis math we're verifying
+        // sits downstream of how morale got there.
         Unit b = sim.getUnits().get(1);
-        // 4 hits + 1 kill = 4*0.05 + 0.30 + 0.05 = 0.55 drain → morale 0.45.
-        // Below clear (0.5) but above broken (0.3). Need more.
-        for (int i = 0; i < 10; i++) sim.applyDamage(a, 1f, 1f);
-        sim.applyDamage(b, b.hp + 1000f, 1f);
-        // After: 10*0.05 + (0.05 + 0.30) = 0.85 drain → morale = 0.15.
-        // Now drive one tick so updateSquadMorale notices the threshold cross.
+        sim.applyDamage(b, b.hp + 1000f, 1f); // 1 kill → 3-of-4 alive, cap=0.75
+        sq.morale = 0.15f;
+        sq.moraleDrainCooldown = 0f;
+
         sim.advance(BattleSimulation.TICK_DT);
         assertTrue(sq.moraleBroken, "morale below broken threshold → moraleBroken flips true");
 
-        // Now drive recovery ticks until morale climbs over the clear threshold.
-        // Recovery rate is 0.20/sec capped by alive/original = 3/4 = 0.75.
-        // From ~0.15 to >0.5 needs > 0.35 / 0.20 = 1.75s of recovery.
-        // Drive 3 sim-seconds to give headroom.
+        // Drive recovery ticks until morale climbs over the clear threshold.
+        // Recovery rate scales with cap: 0.20 * 0.75 = 0.15/sec for a 3-of-4
+        // squad. clear_at = 0.5 * 0.75 = 0.375. From 0.15 needs > 0.225 /
+        // 0.15 = 1.5s. Drive 3 sim-seconds to give headroom.
         for (int i = 0; i < 90; i++) sim.advance(BattleSimulation.TICK_DT);
 
-        assertTrue(sq.morale > BattleSimulation.MORALE_CLEAR_THRESHOLD,
-                "morale should have recovered past the clear threshold within 3 sim-seconds");
+        assertTrue(sq.morale > BattleSimulation.MORALE_CLEAR_THRESHOLD * 0.75f,
+                "morale should have recovered past the (scaled) clear threshold within 3 sim-seconds");
         assertFalse(sq.moraleBroken,
                 "above clear threshold → moraleBroken flips false (hysteresis cleared)");
     }
@@ -218,8 +219,10 @@ public class SquadMoraleTest {
         sq.morale = 0f;
         sq.moraleBroken = true;
 
-        // Drive long enough for recovery to saturate at cap.
-        for (int i = 0; i < 120; i++) sim.advance(BattleSimulation.TICK_DT);
+        // Drive long enough for recovery to saturate at cap. Solo recovery
+        // rate scales: 0.20 * 0.25 = 0.05/sec → ~5 sim-seconds to reach
+        // cap from 0. 200 ticks (~6.7s) gives comfortable headroom.
+        for (int i = 0; i < 200; i++) sim.advance(BattleSimulation.TICK_DT);
 
         assertEquals(0.25f, sq.morale, 1e-3f,
                 "solo survivor's morale should pin at their cap (0.25), not climb past");
@@ -288,6 +291,98 @@ public class SquadMoraleTest {
                 "test prerequisite: morale stays above scaled broken threshold");
         assertTrue(sq.moraleBroken,
                 "scaled-threshold hysteresis must hold broken flag inside the band");
+    }
+
+    @Test
+    public void burstOfHitsInOneTickCountsAsOneDrainEvent() {
+        // The drain cooldown caps how fast bursts can drain a squad. A full
+        // squad eating 10 hits in one tick should only register one hit
+        // worth of drain — the rest fall inside the cooldown window. This
+        // is the guardrail against "hail of bullets insta-break."
+        BattleSimulation sim = openSim();
+        Squad sq = marineSquad(sim, 4);
+        Unit target = sim.getUnits().get(0);
+        float startMorale = sq.morale;
+
+        for (int i = 0; i < 10; i++) sim.applyDamage(target, 1f, 1f);
+
+        assertEquals(startMorale - BattleSimulation.MORALE_DROP_ON_HIT, sq.morale, 1e-5f,
+                "10 hits inside one cooldown window drain by exactly one hit");
+        assertEquals(BattleSimulation.MORALE_DRAIN_COOLDOWN, sq.moraleDrainCooldown, 1e-5f,
+                "cooldown set on the first hit and not refreshed by subsequent hits");
+    }
+
+    @Test
+    public void cooldownLapsesBetweenSeparateHits() {
+        // After the cooldown elapses, the next hit should register again.
+        // We tick the sim past the cooldown duration so the gate reopens.
+        BattleSimulation sim = openSim();
+        Squad sq = marineSquad(sim, 4);
+        hideDefender(sim);
+        Unit target = sim.getUnits().get(0);
+
+        sim.applyDamage(target, 1f, 1f);
+        float afterFirst = sq.morale;
+
+        // Tick past the cooldown so the next hit can drain again. Out-of-
+        // contact recovery climbs morale during this window — we subtract
+        // it back out when checking the second drain.
+        int cooldownTicks = (int) Math.ceil(
+                BattleSimulation.MORALE_DRAIN_COOLDOWN / BattleSimulation.TICK_DT) + 1;
+        for (int i = 0; i < cooldownTicks; i++) sim.advance(BattleSimulation.TICK_DT);
+        float moraleAfterCooldown = sq.morale;
+
+        sim.applyDamage(target, 1f, 1f);
+
+        assertEquals(moraleAfterCooldown - BattleSimulation.MORALE_DROP_ON_HIT,
+                sq.morale, 1e-5f,
+                "second hit after cooldown elapses must drain again");
+    }
+
+    @Test
+    public void deathDrainBypassesCooldown() {
+        // The hit component of a kill drain respects the cooldown, but the
+        // death component itself (-0.30) is a discrete event that the model
+        // should always reflect — even if a fellow squadmate just took a
+        // hit a tick ago.
+        BattleSimulation sim = openSim();
+        Squad sq = marineSquad(sim, 4);
+        Unit a = sim.getUnits().get(0);
+        Unit b = sim.getUnits().get(1);
+
+        // Burn the cooldown with a non-lethal hit.
+        sim.applyDamage(a, 1f, 1f);
+        float afterHit = sq.morale;
+        assertTrue(sq.moraleDrainCooldown > 0f,
+                "test prerequisite: first hit puts the cooldown on");
+
+        // Kill b immediately — death drain should still apply.
+        sim.applyDamage(b, b.hp + 1000f, 1f);
+
+        assertEquals(afterHit - BattleSimulation.MORALE_DROP_ON_DEATH,
+                sq.morale, 1e-5f,
+                "death drain stacks regardless of the cooldown state");
+    }
+
+    @Test
+    public void recoveryRateScalesWithCap() {
+        // Scaled recovery: rate = MORALE_RECOVERY_RATE * cap. Verified by
+        // running one tick on a 2-of-4 squad (cap = 0.5) and checking the
+        // morale climb is exactly half the full-squad rate.
+        BattleSimulation sim = openSim();
+        Squad sq = marineSquad(sim, 4);
+        hideDefender(sim);
+        sim.getUnits().get(0).hp = 0f;
+        sim.getUnits().get(1).hp = 0f;
+        sq.morale = 0.10f;
+        sq.moraleBroken = true;
+
+        sim.advance(BattleSimulation.TICK_DT);
+
+        float expected = 0.10f
+                + BattleSimulation.MORALE_RECOVERY_RATE * 0.5f * BattleSimulation.TICK_DT;
+        assertEquals(expected, sq.morale, 1e-5f,
+                "recovery should be cap-scaled (rate × 0.5 for a 2-of-4 squad)");
     }
 
     @Test

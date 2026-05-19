@@ -128,6 +128,14 @@ public final class Squad {
      * this, not the raw morale value, so the planner sees a stable signal.
      */
     public boolean moraleBroken = false;
+    /**
+     * Sim-seconds remaining on the morale-drain cooldown. Each drain event
+     * (hit or near-miss) sets this to {@link com.dillon.starsectormarines.battle.BattleSimulation#MORALE_DRAIN_COOLDOWN};
+     * subsequent drains within the window are silently dropped. Prevents a
+     * burst of bullets in one tick from insta-breaking a full squad — caps
+     * effective drain rate at ~5 events per second.
+     */
+    public float moraleDrainCooldown = 0f;
     /** Centroid X over alive members. Undefined when {@link #aliveMembers} is 0. */
     public float centroidX = 0f;
     /** Centroid Y over alive members. Undefined when {@link #aliveMembers} is 0. */

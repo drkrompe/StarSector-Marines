@@ -88,8 +88,14 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     public static final float MORALE_DROP_ON_HIT   = 0.05f;
     /** Additional morale drop when a hit kills the squadmate. Kept absolute (not cap-scaled) — it's a one-off event correlated with the cap reduction that the death itself triggers. */
     public static final float MORALE_DROP_ON_DEATH = 0.30f;
-    /** Morale recovered per sim-second while the squad is out of contact ({@code !_engagedThisTick}). */
+    /** Base morale recovered per sim-second while the squad is out of contact ({@code !_engagedThisTick}), at full strength. Effective rate is scaled by cap so a mauled squad takes proportionally longer to reach their (lower) ceiling — at base 0.20 this gives a constant ~2.5s recovery to the clear threshold and ~5s to full cap across all squad sizes. */
     public static final float MORALE_RECOVERY_RATE = 0.20f;
+    /** Cooldown between morale-drain events on a single squad (sim seconds). A burst of incoming bullets in one tick still counts as one drain — prevents a hail of fire from insta-breaking a full squad. At 0.2s a full squad endures sustained fire for ~2.8s before breaking (5 hits/sec × 0.05/hit = 0.25/sec, 0.7 margin). Doesn't shield mauled squads: their per-hit drain (0.05/cap) is large enough that a single hit folds them on the first cooldown window. */
+    public static final float MORALE_DRAIN_COOLDOWN = 0.2f;
+    /** Near-miss morale drain — applied when a hostile shot's endpoint lands near a squad member but no damage is taken. Cap-scaled like hit drain. Suppressing fire that doesn't connect still rattles them, just less than a landed hit. */
+    public static final float MORALE_DROP_ON_NEAR_MISS = 0.01f;
+    /** Squared cell-distance from a shot's endpoint to a squad member that counts as a "near miss." 2.25 = 1.5 cells radius. */
+    public static final float NEAR_MISS_RADIUS_SQ = 2.25f;
     /** Hysteresis broken threshold, as a <em>fraction of cap</em>. Squad flips to broken when {@code morale < MORALE_BROKEN_THRESHOLD * cap}. Scaling by cap keeps the model coherent for mauled squads: a lone survivor (cap = 0.25) breaks below 0.075 absolute morale, a fresh squad (cap = 1.0) breaks below 0.30. */
     public static final float MORALE_BROKEN_THRESHOLD = 0.30f;
     /** Hysteresis clear threshold, as a <em>fraction of cap</em>. Broken squad reverts once {@code morale > MORALE_CLEAR_THRESHOLD * cap}. Fixes the pre-scaling pathology where a solo survivor's cap (0.25) was below the absolute clear threshold (0.5) and they could never recover. */
@@ -383,18 +389,23 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         if (wasAlive && target.squadId != Unit.NO_SQUAD) {
             Squad sq = squads.get(target.squadId);
             if (sq != null) {
-                // Per-hit drain scales inversely with cap: a 4-man squad at
-                // full strength bleeds 0.05 per hit (slow), a lone survivor
-                // at cap = 0.25 bleeds 0.20 per hit (folds on the first
-                // incoming). Cap here uses aliveMembers *before* this death
-                // is reflected in the count — that's fine since death adds
-                // the absolute MORALE_DROP_ON_DEATH stack on top.
+                // Death drain stacks on top of hit drain and bypasses the
+                // cooldown — a kill is a discrete event the model should
+                // always reflect, even if the squad just took a hit a tick
+                // ago. The hit-component of the drain only fires when the
+                // cooldown is clear; otherwise a burst of multiple hits in
+                // one tick would each stack their per-hit drain and break
+                // a full squad in a single frame.
                 float cap = (sq.originalSize > 0 && sq.aliveMembers > 0)
                         ? (float) sq.aliveMembers / sq.originalSize
                         : 1f;
-                float hitDrop = (cap > 0f) ? MORALE_DROP_ON_HIT / cap : MORALE_DROP_ON_HIT;
-                float drop = hitDrop + (died ? MORALE_DROP_ON_DEATH : 0f);
-                sq.morale = Math.max(0f, sq.morale - drop);
+                float drop = 0f;
+                if (sq.moraleDrainCooldown <= 0f) {
+                    drop += (cap > 0f) ? MORALE_DROP_ON_HIT / cap : MORALE_DROP_ON_HIT;
+                    sq.moraleDrainCooldown = MORALE_DRAIN_COOLDOWN;
+                }
+                if (died) drop += MORALE_DROP_ON_DEATH;
+                if (drop > 0f) sq.morale = Math.max(0f, sq.morale - drop);
             }
         }
     }
@@ -1060,6 +1071,25 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      * SurviveContact and EliminateEnemies on every replan.
      */
     private void updateSquadMorale() {
+        // Near-miss drain pass: hostile shots that landed near a squadmate
+        // but didn't connect still rattle the squad. Same cooldown gate as
+        // hits — a hail of misses can't insta-break either. One drain event
+        // per squad per tick max (the cooldown bails on the second pass).
+        if (!shotsThisFrame.isEmpty()) {
+            for (ShotEvent shot : shotsThisFrame) {
+                if (shot.hit) continue;
+                Squad target = squadHitByMiss(shot);
+                if (target == null) continue;
+                if (target.moraleDrainCooldown > 0f) continue;
+                float cap = (target.originalSize > 0 && target.aliveMembers > 0)
+                        ? (float) target.aliveMembers / target.originalSize
+                        : 1f;
+                float drop = (cap > 0f) ? MORALE_DROP_ON_NEAR_MISS / cap : MORALE_DROP_ON_NEAR_MISS;
+                target.morale = Math.max(0f, target.morale - drop);
+                target.moraleDrainCooldown = MORALE_DRAIN_COOLDOWN;
+            }
+        }
+
         for (Squad squad : squads.values()) {
             if (squad.aliveMembers <= 0) continue;
 
@@ -1067,11 +1097,24 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                     ? (float) squad.aliveMembers / squad.originalSize
                     : 1f;
             if (!squad._engagedThisTick) {
-                squad.morale = Math.min(cap, squad.morale + MORALE_RECOVERY_RATE * TICK_DT);
+                // Recovery rate scales with cap: a mauled squad recovers
+                // proportionally slower toward their (lower) ceiling. With
+                // base 0.20 this gives constant ~2.5s time-to-clear and
+                // ~5s time-to-full-cap across all squad sizes. A solo
+                // survivor's previous 1.25s full recovery was too fast to
+                // read as "they're composing themselves."
+                float rate = MORALE_RECOVERY_RATE * cap;
+                squad.morale = Math.min(cap, squad.morale + rate * TICK_DT);
             } else {
                 // In contact — no recovery; also re-clamp in case the cap
                 // dropped (member died this tick) below current morale.
                 squad.morale = Math.min(cap, squad.morale);
+            }
+
+            // Tick down the drain cooldown so the next incoming hit /
+            // near-miss can register.
+            if (squad.moraleDrainCooldown > 0f) {
+                squad.moraleDrainCooldown = Math.max(0f, squad.moraleDrainCooldown - TICK_DT);
             }
 
             // Thresholds scale with cap so the model stays coherent for
@@ -1086,6 +1129,29 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                 if (squad.morale < brokenAt) squad.moraleBroken = true;
             }
         }
+    }
+
+    /**
+     * Returns the friendly squad most affected by {@code shot} as a near
+     * miss — first squad whose member is within {@link #NEAR_MISS_RADIUS_SQ}
+     * cells of the shot's endpoint. Returns null when the shot is a self-
+     * faction shot, no squad member is in range, or the shooter's faction
+     * matches the candidate. One assignment per shot — a stray that grazes
+     * two squad members only rattles one of them (the first found), which
+     * matches the "single drain event per shot" intent.
+     */
+    private Squad squadHitByMiss(ShotEvent shot) {
+        for (Squad sq : squads.values()) {
+            if (sq.aliveMembers <= 0) continue;
+            if (sq.faction == shot.shooterFaction) continue;
+            for (Unit member : units) {
+                if (!member.isAlive() || member.squadId != sq.id) continue;
+                float dx = shot.toX - (member.cellX + 0.5f);
+                float dy = shot.toY - (member.cellY + 0.5f);
+                if (dx * dx + dy * dy <= NEAR_MISS_RADIUS_SQ) return sq;
+            }
+        }
+        return null;
     }
 
     private void updateSquadFallback() {
