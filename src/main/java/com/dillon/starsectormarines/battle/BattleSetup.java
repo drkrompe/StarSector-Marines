@@ -546,15 +546,18 @@ public final class BattleSetup {
         // Highest priority first — these get garrisons; the rest become patrol anchors.
         defenderNodes.sort(Comparator.comparingInt((TacticalNode n) -> -n.priorityScore));
 
-        // Build the defender type queue. Order matters: mechs first (so the
-        // top-priority garrison absorbs a full lance together), then red-marine
-        // elites, then militia. The garrison loop consumes from the head, so
-        // each garrison's first-poll member is the highest-rank defender
-        // available.
-        java.util.Deque<UnitType> queue = new java.util.ArrayDeque<>();
-        for (int i = 0; i < roster.mechCount; i++) queue.add(UnitType.HEAVY_MECH);
-        for (int i = 0; i < roster.eliteCount; i++) queue.add(UnitType.MARINE_RED);
-        for (int i = 0; i < roster.militiaCount; i++) queue.add(UnitType.MILITIA);
+        // Two separate queues — mechs and infantry never share a squad.
+        // The planner ships distinct goal/action libraries for each, and a
+        // mixed-arms squad would force a unified planner with two different
+        // kinematic profiles. Adjacency between squads (Story E,
+        // mech-screened advance) is the integration point instead. Mechs
+        // drain first into the highest-priority slots; once exhausted,
+        // infantry fills the rest.
+        java.util.Deque<UnitType> mechQueue = new java.util.ArrayDeque<>();
+        java.util.Deque<UnitType> infQueue = new java.util.ArrayDeque<>();
+        for (int i = 0; i < roster.mechCount; i++) mechQueue.add(UnitType.HEAVY_MECH);
+        for (int i = 0; i < roster.eliteCount; i++) infQueue.add(UnitType.MARINE_RED);
+        for (int i = 0; i < roster.militiaCount; i++) infQueue.add(UnitType.MILITIA);
 
         int defenderIdx = 0;
         // Battle-wide counter, shared by Pass 1 + Pass 2. Round-robins
@@ -563,17 +566,20 @@ public final class BattleSetup {
         int mechSpawnIdx = 0;
         List<TacticalNode> patrolAnchors = new ArrayList<>();
 
-        // Pass 1 — garrison the highest-priority nodes.
+        // Pass 1 — garrison the highest-priority nodes. Each garrison draws
+        // from a single source queue (mechs first while available, then
+        // infantry) so the resulting squad is homogeneous.
         for (TacticalNode node : defenderNodes) {
-            if (queue.isEmpty()) { patrolAnchors.add(node); continue; }
-            int want = Math.min(node.garrisonSize, queue.size());
+            java.util.Deque<UnitType> source = !mechQueue.isEmpty() ? mechQueue : infQueue;
+            if (source.isEmpty()) { patrolAnchors.add(node); continue; }
+            int want = Math.min(node.garrisonSize, source.size());
             List<int[]> cells = pickCellsNear(map.grid, node.anchorX, node.anchorY, GARRISON_SPAWN_RADIUS, want);
             if (cells.isEmpty()) { patrolAnchors.add(node); continue; }
             Squad squad = null;
             int spawned = 0;
             for (int[] cell : cells) {
-                if (queue.isEmpty()) break;
-                UnitType type = queue.poll();
+                if (source.isEmpty()) break;
+                UnitType type = source.poll();
                 MechRole mechRole = (type == UnitType.HEAVY_MECH) ? nextMechRole(mechSpawnIdx++) : null;
                 Unit unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1], mechRole);
                 unit.role = UnitRole.GARRISON;
@@ -583,9 +589,12 @@ public final class BattleSetup {
                     int sid = sim.mintSquad(Faction.DEFENDER, unit);
                     squad = sim.getSquad(sid);
                     squad.assignedNode = node;
-                    // Story A: garrisons hold fire until the kill-zone gate
-                    // trips. Patrol/marine squads leave this false.
-                    squad.holdsFireUntilKillZone = true;
+                    // Story A: infantry garrisons hold fire until the
+                    // kill-zone gate trips. Mech garrisons skip the gate —
+                    // overwatch discipline lives in their planner-side
+                    // doctrine (LR Support withholds short-range weapons),
+                    // not in a fire-suppression flag on the squad.
+                    squad.holdsFireUntilKillZone = (unit.mech == null);
                 }
                 unit.squadId = squad.id;
                 sim.addUnit(unit);
@@ -595,23 +604,25 @@ public final class BattleSetup {
         }
 
         // Pass 2 — leftover defenders form patrol squads. Each patrol takes
-        // up to roster.patrolSquadSize members, anchored at a spare node (or
-        // a top-priority node if there are no spares — we'll just patrol from
-        // the wall outward). Cycles through the anchor list when defenders
-        // exceed anchors * patrolSquadSize.
-        if (queue.isEmpty()) return;
+        // up to roster.patrolSquadSize members from a single source queue
+        // (mechs first while available, then infantry), anchored at a spare
+        // node (or a top-priority node if there are no spares). Cycles
+        // through the anchor list when defenders exceed
+        // anchors * patrolSquadSize.
+        if (mechQueue.isEmpty() && infQueue.isEmpty()) return;
         List<TacticalNode> anchorPool = patrolAnchors.isEmpty() ? defenderNodes : patrolAnchors;
         int anchorIdx = 0;
-        while (!queue.isEmpty()) {
+        while (!mechQueue.isEmpty() || !infQueue.isEmpty()) {
             if (anchorPool.isEmpty()) break;
+            java.util.Deque<UnitType> source = !mechQueue.isEmpty() ? mechQueue : infQueue;
             TacticalNode anchor = anchorPool.get(anchorIdx % anchorPool.size());
             anchorIdx++;
-            int want = Math.min(roster.patrolSquadSize, queue.size());
+            int want = Math.min(roster.patrolSquadSize, source.size());
             List<int[]> cells = pickCellsNear(map.grid, anchor.anchorX, anchor.anchorY, GARRISON_SPAWN_RADIUS + 2, want);
             if (cells.isEmpty()) {
                 // Couldn't spawn here — drop this anchor from the pool so we
                 // don't get stuck cycling. If the pool empties, the remaining
-                // queue is silently dropped (lore: "they didn't make it to
+                // queues are silently dropped (lore: "they didn't make it to
                 // the city in time"). Better than infinite-looping the spawn.
                 anchorPool.remove(anchor);
                 if (anchorPool.isEmpty()) break;
@@ -621,8 +632,8 @@ public final class BattleSetup {
             Squad squad = null;
             int spawned = 0;
             for (int[] cell : cells) {
-                if (queue.isEmpty()) break;
-                UnitType type = queue.poll();
+                if (source.isEmpty()) break;
+                UnitType type = source.poll();
                 MechRole mechRole = (type == UnitType.HEAVY_MECH) ? nextMechRole(mechSpawnIdx++) : null;
                 Unit unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1], mechRole);
                 unit.role = UnitRole.PATROL;
@@ -654,22 +665,27 @@ public final class BattleSetup {
      * defenders cluster into the first squad rather than scattering.
      */
     private static void spawnLegacyDefenderCluster(BattleSimulation sim, List<int[]> cells, DefenderRoster roster) {
-        java.util.Deque<UnitType> queue = new java.util.ArrayDeque<>();
-        for (int i = 0; i < roster.mechCount; i++)    queue.add(UnitType.HEAVY_MECH);
-        for (int i = 0; i < roster.eliteCount; i++)   queue.add(UnitType.MARINE_RED);
-        for (int i = 0; i < roster.militiaCount; i++) queue.add(UnitType.MILITIA);
+        // Same mech-vs-infantry split as allocateDefenders — each squad
+        // drains from a single source queue so mechs and infantry never
+        // share membership.
+        java.util.Deque<UnitType> mechQueue = new java.util.ArrayDeque<>();
+        java.util.Deque<UnitType> infQueue = new java.util.ArrayDeque<>();
+        for (int i = 0; i < roster.mechCount; i++)    mechQueue.add(UnitType.HEAVY_MECH);
+        for (int i = 0; i < roster.eliteCount; i++)   infQueue.add(UnitType.MARINE_RED);
+        for (int i = 0; i < roster.militiaCount; i++) infQueue.add(UnitType.MILITIA);
 
         int defenderIdx = 0;
         int cellIdx = 0;
         int mechSpawnIdx = 0;
-        while (!queue.isEmpty() && cellIdx < cells.size()) {
+        while ((!mechQueue.isEmpty() || !infQueue.isEmpty()) && cellIdx < cells.size()) {
+            java.util.Deque<UnitType> source = !mechQueue.isEmpty() ? mechQueue : infQueue;
             int squadSize = Math.min(roster.patrolSquadSize,
-                    Math.min(queue.size(), cells.size() - cellIdx));
+                    Math.min(source.size(), cells.size() - cellIdx));
             Squad squad = null;
             int spawned = 0;
             for (int s = 0; s < squadSize; s++) {
                 int[] cell = cells.get(cellIdx++);
-                UnitType type = queue.poll();
+                UnitType type = source.poll();
                 MechRole mechRole = (type == UnitType.HEAVY_MECH) ? nextMechRole(mechSpawnIdx++) : null;
                 Unit unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1], mechRole);
                 unit.role = UnitRole.PATROL;

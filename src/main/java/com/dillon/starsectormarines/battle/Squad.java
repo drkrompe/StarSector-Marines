@@ -223,4 +223,21 @@ public final class Squad {
         this.id = id;
         this.faction = faction;
     }
+
+    /**
+     * True when this squad's combatants are mechs (carry a
+     * {@link MechLoadoutState}). Read by the per-tick replan dispatch in
+     * {@code BattleSimulation.tick} to route mech squads to
+     * {@code GoapMechBehavior} instead of {@code GoapInfantryBehavior}.
+     *
+     * <p>Relies on {@code BattleSetup} producing homogeneous squads — mech
+     * members and infantry members never share a squad. Probes the leader
+     * (set on the first member at mint time) rather than scanning the unit
+     * list, so a leaderless squad — leader dead, promotion logic not yet
+     * landed — returns {@code false} and the squad falls through to the
+     * infantry path harmlessly until the leader pointer is restored.
+     */
+    public boolean isMechSquad() {
+        return leader != null && leader.mech != null;
+    }
 }
