@@ -38,13 +38,6 @@ import java.util.Random;
  */
 public final class MissionGenerator {
 
-    /**
-     * Total marine drops every mission needs to land the strike team. With
-     * cycling, a single transport can cover all three by flying multiple
-     * sorties — so this counts drops, not physical ships.
-     */
-    private static final int REQUIRED_DROPS = 3;
-
     /** Cap on total emitted missions, keeps the tactical map readable on dense colonies. */
     private static final int MAX_MISSIONS = 6;
 
@@ -97,13 +90,14 @@ public final class MissionGenerator {
         FlybyRoster clientSupport = rollFighterSupport(r, client.factionId, risk, Faction.MARINE);
         FlybyRoster enemySupport  = rollFighterSupport(r, client.factionId, risk, Faction.DEFENDER);
 
-        int employerShuttles = rollEmployerShuttles(r, risk, REQUIRED_DROPS);
+        int requiredDrops = requiredDropsFor(archetype.type, risk);
+        int employerShuttles = rollEmployerShuttles(r, risk, requiredDrops);
         String requirements = requirementsFor(risk);
         String id = client.factionId + ":" + industry.id + ":" + index;
 
         return new Mission(id, archetype.name, archetype.type, MissionSource.GENERATED,
                 payout, risk, requirements, archetype.flavor, x, y,
-                clientSupport, enemySupport, REQUIRED_DROPS, employerShuttles,
+                clientSupport, enemySupport, requiredDrops, employerShuttles,
                 planet.getName(), industry.id);
     }
 
@@ -213,29 +207,81 @@ public final class MissionGenerator {
     }
 
     /**
+     * Per-(type, risk) drop count. Drops feed marines onto the field via
+     * shuttle cycling — with capacity-4 Aeroshuttles, drop count × 4 ≈ marines
+     * on the field. CONQUEST gets the biggest commitments; SABOTAGE stays
+     * smallest for covert flavor.
+     */
+    private static int requiredDropsFor(MissionType type, RiskLevel risk) {
+        if (type == null || risk == null) return 3;
+        switch (type) {
+            case ASSAULT:
+                switch (risk) { case LOW: return 5; case MEDIUM: return 13; case HIGH: return 25; }
+                break;
+            case SABOTAGE:
+                switch (risk) { case LOW: return 3; case MEDIUM: return 6;  case HIGH: return 12; }
+                break;
+            case RAID:
+                switch (risk) { case LOW: return 5; case MEDIUM: return 11; case HIGH: return 22; }
+                break;
+            case EXTRACTION:
+                switch (risk) { case LOW: return 5; case MEDIUM: return 11; case HIGH: return 22; }
+                break;
+            case CONQUEST:
+                switch (risk) { case LOW: return 6; case MEDIUM: return 18; case HIGH: return 40; }
+                break;
+        }
+        return 3;
+    }
+
+    /**
+     * Hard cap on how many drops the employer covers via single-cycle
+     * Aeroshuttles. The employer is a token force, not the bulk — bigger
+     * missions are <em>your</em> commitment. Without this, a 40-drop CONQUEST
+     * could roll all 40 onto employer Aeroshuttles and let the player skip
+     * the LZ entirely, contradicting the flavor.
+     */
+    private static int employerCoverageCap(RiskLevel risk) {
+        if (risk == null) return 3;
+        switch (risk) {
+            case LOW:    return 3;
+            case MEDIUM: return 4;
+            case HIGH:   return 5;
+        }
+        return 3;
+    }
+
+    /**
      * Rolls how many dropships the employer covers. Higher-risk missions tend
-     * to come with more transport support (the client has more skin in the game).
+     * to come with more transport support (the client has more skin in the
+     * game), but never more than {@link #employerCoverageCap}. When
+     * {@link com.dillon.starsectormarines.DevConfig#UNLIMITED_TRANSPORT} is
+     * on, the cap is dropped entirely and the employer covers every drop —
+     * useful for playtesting waves without fielding a player transport.
      */
     private static int rollEmployerShuttles(Random r, RiskLevel risk, int required) {
+        if (com.dillon.starsectormarines.DevConfig.UNLIMITED_TRANSPORT) return required;
+        int cap = Math.min(required, employerCoverageCap(risk));
+        if (cap <= 0) return 0;
         float roll = r.nextFloat();
         int coverage;
         switch (risk) {
             case HIGH:
-                if (roll < 0.30f)      coverage = required;
-                else if (roll < 0.60f) coverage = required - 1;
-                else                   coverage = r.nextInt(required);
+                if (roll < 0.30f)      coverage = cap;
+                else if (roll < 0.60f) coverage = cap - 1;
+                else                   coverage = r.nextInt(cap);
                 break;
             case MEDIUM:
-                if (roll < 0.20f)      coverage = required;
-                else if (roll < 0.55f) coverage = required - 1;
-                else                   coverage = r.nextInt(required);
+                if (roll < 0.20f)      coverage = cap;
+                else if (roll < 0.55f) coverage = cap - 1;
+                else                   coverage = r.nextInt(cap);
                 break;
             default: // LOW
-                if (roll < 0.10f)      coverage = required;
-                else if (roll < 0.35f) coverage = required - 1;
-                else                   coverage = r.nextInt(required);
+                if (roll < 0.10f)      coverage = cap;
+                else if (roll < 0.35f) coverage = cap - 1;
+                else                   coverage = r.nextInt(cap);
                 break;
         }
-        return Math.max(0, Math.min(coverage, required));
+        return Math.max(0, Math.min(coverage, cap));
     }
 }

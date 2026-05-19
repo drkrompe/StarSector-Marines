@@ -189,6 +189,11 @@ public class AirSystem {
                             }
                             s.marinesRemaining = s.type.capacity;
                             s.pendingDelay = s.rearmDelay;
+                            // Each sortie spawns an independent squad — without
+                            // this reset, marines from cycle N+1 reinforce the
+                            // surviving squad from cycle N instead of forming
+                            // a fresh fireteam at the LZ.
+                            s.squadId = Unit.NO_SQUAD;
                             s.body.teleport(s.entryX, s.entryY,
                                     AirBody.facingToward(s.lzX - s.entryX, s.lzY - s.entryY));
                             s.altitudeT = 1f;

@@ -80,6 +80,8 @@ public class BriefingScreen implements Screen {
     /** Wrap width for the flavor paragraph (info zone width minus pads). */
     private float flavorW;
 
+    /** Cap on the number of <em>physical</em> employer Aeroshuttles. The employer's contribution is still {@code m.employerShuttles} drops, but distributed across at most this many cycling ships — so the wave reads as recurring activity, not a one-shot deluge. */
+    private static final int   EMPLOYER_PHYSICAL_CAP = 3;
     private static final int   RETICLE_SEGS  = 24;
     private static final float RETICLE_INNER = 6f;
     private static final float RETICLE_OUTER = 18f;
@@ -415,13 +417,14 @@ public class BriefingScreen implements Screen {
         // that distinction.
         java.util.LinkedHashMap<java.util.Map.Entry<ShuttleType, Integer>, Integer> playerGroups =
                 new java.util.LinkedHashMap<>();
-        int employerCount = 0;
-        int leadingAero = 0;
-        for (ShuttleAssignment a : manifest) {
-            if (leadingAero < m.employerShuttles
-                    && a.type == ShuttleType.AEROSHUTTLE && a.cycles == 1) {
-                employerCount++;
-                leadingAero++;
+        java.util.LinkedHashMap<Integer, Integer> employerGroups = new java.util.LinkedHashMap<>();
+        int employerPhysical = employerPhysicalShipCount(m);
+        for (int idx = 0; idx < manifest.size(); idx++) {
+            ShuttleAssignment a = manifest.get(idx);
+            if (idx < employerPhysical) {
+                // Employer entries — group by cycle count so "2× employer (3 sorties)"
+                // collapses when two cycling Aeroshuttles share the same sortie count.
+                employerGroups.merge(a.cycles, 1, Integer::sum);
             } else {
                 java.util.Map.Entry<ShuttleType, Integer> key =
                         new java.util.AbstractMap.SimpleEntry<>(a.type, a.cycles);
@@ -437,9 +440,12 @@ public class BriefingScreen implements Screen {
                 sb.append(" (").append(g.getKey().getValue()).append(" sorties)");
             }
         }
-        if (employerCount > 0) {
+        for (java.util.Map.Entry<Integer, Integer> g : employerGroups.entrySet()) {
             if (sb.length() > 0) sb.append(" + ");
-            sb.append(employerCount).append("× employer");
+            sb.append(g.getValue()).append("× employer");
+            if (g.getKey() > 1) {
+                sb.append(" (").append(g.getKey()).append(" sorties)");
+            }
         }
         return sb.toString();
     }
@@ -476,26 +482,41 @@ public class BriefingScreen implements Screen {
         for (int i = 0; i < cachedAvailable.size(); i++) {
             if (!deselectedTransports.contains(i)) selectedIndices.add(i);
         }
-        // The manifest's leading entries are employer Aeroshuttles; the rest
-        // are player entries in selected order.
+        // The manifest's leading entries are physical employer Aeroshuttles
+        // (possibly cycling); the rest are player entries in selected order.
+        int employerPhysical = employerPhysicalShipCount(m);
         for (int k = 0; k < selectedIndices.size()
-                && (m.employerShuttles + k) < manifest.size(); k++) {
-            ShuttleAssignment a = manifest.get(m.employerShuttles + k);
+                && (employerPhysical + k) < manifest.size(); k++) {
+            ShuttleAssignment a = manifest.get(employerPhysical + k);
             out.put(selectedIndices.get(k), a.cycles);
         }
         return out;
     }
 
     /**
+     * Number of physical employer Aeroshuttles for a mission. The employer
+     * still delivers {@code m.employerShuttles} drops total — those drops
+     * are now distributed across at most {@link #EMPLOYER_PHYSICAL_CAP}
+     * cycling ships, so the wave reads as recurring activity rather than a
+     * one-shot deluge of single-use Aeroshuttles. Returns 0 when the
+     * employer contributes nothing.
+     */
+    private static int employerPhysicalShipCount(Mission m) {
+        if (m.employerShuttles <= 0) return 0;
+        return Math.min(m.employerShuttles, EMPLOYER_PHYSICAL_CAP);
+    }
+
+    /**
      * Builds the full {@link ShuttleAssignment} list — what ships fly and how
-     * many sorties each performs. Employer slots come first as single-cycle
-     * Aeroshuttles (parallel drops); the player's selected transports cover
-     * the remaining drops via cycling.
+     * many sorties each performs. Employer slots come first as cycling
+     * Aeroshuttles; the player's selected transports cover the remaining
+     * drops via cycling. Both sides have {@code totalCycles > 1} when there
+     * are more drops than physical ships — every visible shuttle returns to
+     * base and comes back.
      *
-     * <p>Distribution: with {@code N} player transports needing to cover
-     * {@code D} drops, the first {@code (D mod N)} transports get
-     * {@code ceil(D/N)} cycles and the rest get {@code floor(D/N)}. The
-     * player's best transports (priority-sorted) get the extra cycle, so a
+     * <p>Distribution: with {@code N} ships needing to cover {@code D} drops,
+     * the first {@code (D mod N)} ships get {@code ceil(D/N)} cycles and the
+     * rest get {@code floor(D/N)}. Player ships are priority-sorted, so a
      * Valkyrie works harder than a Mudskipper when the math is uneven.
      *
      * <p>When the player has selected zero transports and the employer doesn't
@@ -506,8 +527,15 @@ public class BriefingScreen implements Screen {
     private static java.util.List<ShuttleAssignment> buildShuttleManifest(
             Mission m, java.util.List<ShuttleType> playerShuttles) {
         java.util.List<ShuttleAssignment> out = new java.util.ArrayList<>();
-        for (int i = 0; i < m.employerShuttles; i++) {
-            out.add(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1));
+        int employerPhysical = employerPhysicalShipCount(m);
+        if (employerPhysical > 0) {
+            int employerDrops = m.employerShuttles;
+            int eBase = employerDrops / employerPhysical;
+            int eExtra = employerDrops % employerPhysical;
+            for (int i = 0; i < employerPhysical; i++) {
+                int cycles = eBase + (i < eExtra ? 1 : 0);
+                out.add(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, cycles));
+            }
         }
         int playerDrops = Math.max(0, m.requiredDrops - m.employerShuttles);
         if (playerDrops == 0) return out;
@@ -569,7 +597,7 @@ public class BriefingScreen implements Screen {
             case RAID:
             case EXTRACTION:
             default:
-                sim = BattleSetup.createPlaceholder(seed, manifest, enemyHasHeavyArmor, m.risk);
+                sim = BattleSetup.createPlaceholder(seed, manifest, enemyHasHeavyArmor, m.risk, m.type);
         }
         // Fold employer support + the player's own fitted bays + enemy support
         // into a single roster the overlay drives spawns from. Re-queries the

@@ -40,9 +40,12 @@ public final class Mission {
      */
     public final int requiredDrops;
     /**
-     * Drops the employer covers via single-sortie Aeroshuttles. Each contributes
-     * one drop; the employer doesn't cycle. The player's transports cycle to
-     * cover {@code max(0, requiredDrops - employerShuttles)} additional drops.
+     * Drops the employer covers. Distributed across a small number of
+     * physical Aeroshuttles cycling to deliver these drops (see
+     * {@code BriefingScreen.EMPLOYER_PHYSICAL_CAP}) — every visible
+     * employer ship returns to base between sorties just like the player's.
+     * The player's transports cycle to cover the remaining
+     * {@code max(0, requiredDrops - employerShuttles)} drops.
      */
     public final int employerShuttles;
     /** Planet name (campaign-unique) the mission targets; null for missions not tied to a place. */

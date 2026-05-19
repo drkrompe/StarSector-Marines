@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.objective.EliminateFactionObjective;
 import com.dillon.starsectormarines.battle.tactical.TacticalMap;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
+import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
 import java.util.ArrayDeque;
@@ -40,8 +41,6 @@ public final class BattleSetup {
     public static final int GRID_W = MapScale.MEDIUM.width;
     public static final int GRID_H = MapScale.MEDIUM.height;
 
-    private static final int DEFENDER_COUNT = 12;
-
     /** Three drops × 4 marines/shuttle keeps total marine count at 12 — matches pre-shuttle balance. */
     private static final int SHUTTLE_COUNT = 3;
     /** Sim-seconds between successive shuttle launches. Spaces out drops so the LZs aren't all active at once. */
@@ -51,15 +50,11 @@ public final class BattleSetup {
     /** Entry/exit Y offset above the grid (in cells). Long enough that shuttles are visible during their descent. */
     private static final float SHUTTLE_OFFMAP_Y = 8f;
 
-    /** BFS radius around the defender anchor we scan for candidate spawn cells. Larger than {@link #DEFENDER_COUNT} so we have a pool to cherry-pick high-cover cells from. */
+    /** BFS radius around the defender anchor we scan for candidate spawn cells. Larger than the largest expected defender count so we have a pool to cherry-pick high-cover cells from. */
     private static final int DEFENDER_SPAWN_SCAN_RADIUS = 14;
     /** BFS radius around a tactical-node anchor for picking garrison spawn cells. Tight — defenders should appear inside or right next to their post. */
     private static final int GARRISON_SPAWN_RADIUS = 5;
-    /** Default size of a roving patrol squad when leftover defenders are bundled into patrols. */
-    private static final int PATROL_SQUAD_SIZE = 3;
 
-    /** How many of the {@link #DEFENDER_COUNT} defenders are stiffening regulars (red marines) instead of militia. The rest are militia. */
-    private static final int DEFENDER_ELITE_COUNT = 3;
     /** Total ambient civilians (mix of CIVILIAN/ENGINEER/SCIENTIST) scattered around residential POIs as map flavor. */
     private static final int AMBIENT_CIVILIAN_COUNT = 8;
     /** BFS radius around each residential POI when looking for civilian spawn cells. */
@@ -214,7 +209,7 @@ public final class BattleSetup {
             sim.addShuttle(shuttle);
         }
 
-        allocateDefenders(sim, map, enemyHasHeavyArmor, rng);
+        allocateDefenders(sim, map, DefenderRoster.forMission(MissionType.SABOTAGE, risk, enemyHasHeavyArmor), rng);
         spawnAmbientCivilians(sim, map, rng);
         return sim;
     }
@@ -343,8 +338,22 @@ public final class BattleSetup {
         return MarineWeapon.PULSE_RIFLE;
     }
 
+    /** Back-compat overload — assumes generic ASSAULT mission type. */
     public static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest,
                                                      boolean enemyHasHeavyArmor, RiskLevel risk) {
+        return createPlaceholder(seed, manifest, enemyHasHeavyArmor, risk, MissionType.ASSAULT);
+    }
+
+    /**
+     * Catch-all factory for mission types without a dedicated builder (ASSAULT,
+     * RAID, EXTRACTION). The {@code type} parameter only affects defender roster
+     * sizing/composition — objectives are the same "eliminate the other side"
+     * pair for all three; per-type objective wiring lands when those mission
+     * types get their own factories.
+     */
+    public static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest,
+                                                     boolean enemyHasHeavyArmor, RiskLevel risk,
+                                                     MissionType type) {
         MapScale scale = MapScale.forRisk(risk);
         MapResult map = MAP_GEN.generate(scale.width, scale.height, seed);
         Random rng = new Random(seed);
@@ -396,7 +405,7 @@ public final class BattleSetup {
         // pegged to the highest-priority posts; leftovers form patrol squads).
         // Legacy maps with no tactical layer fall back to the single-cluster
         // spawn around the defender anchor.
-        allocateDefenders(sim, map, enemyHasHeavyArmor, rng);
+        allocateDefenders(sim, map, DefenderRoster.forMission(type, risk, enemyHasHeavyArmor), rng);
         spawnAmbientCivilians(sim, map, rng);
         return sim;
     }
@@ -436,7 +445,11 @@ public final class BattleSetup {
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
 
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
-        List<int[]> lzCells = pickLandingZones(map.grid, map.marineSpawnX, map.marineSpawnY, assignments.size());
+        // Conquest = beach landing — spread LZs along the attacker frontage
+        // rather than clustered around a single anchor. Other mission types
+        // use the BFS picker until they get their own tuned strategies.
+        List<int[]> lzCells = pickConquestLandingZones(map.grid,
+                map.marineSpawnX, map.marineSpawnY, assignments.size(), axis, rng);
         stampLzPads(sim, lzCells);
         for (int i = 0; i < lzCells.size(); i++) {
             ShuttleAssignment a = assignments.get(i % assignments.size());
@@ -461,7 +474,7 @@ public final class BattleSetup {
             sim.addShuttle(shuttle);
         }
 
-        allocateDefenders(sim, map, enemyHasHeavyArmor, rng);
+        allocateDefenders(sim, map, DefenderRoster.forMission(MissionType.CONQUEST, risk, enemyHasHeavyArmor), rng);
         spawnAmbientCivilians(sim, map, rng);
         return sim;
     }
@@ -500,10 +513,18 @@ public final class BattleSetup {
      * carries DEFENDER-leaning nodes (towers, gates, command posts, etc.),
      * top-priority nodes get GARRISON squads of their declared
      * {@link TacticalNode#garrisonSize}, with stiffening regulars tucked into
-     * the highest-priority posts and a single mech (if {@code enemyHasHeavyArmor})
-     * taking the very top slot. Any defenders remaining after garrisons are
-     * filled bundle into PATROL squads anchored to spare nodes, so the city
-     * has foot traffic instead of all defenders sitting on the wall.
+     * the highest-priority posts and any HEAVY_MECH lance bundled at the very
+     * top slot so a 3-mech lance lands as one coordinated garrison. Any
+     * defenders remaining after garrisons are filled bundle into PATROL squads
+     * anchored to spare nodes, so the city has foot traffic instead of all
+     * defenders sitting on the wall.
+     *
+     * <p>Force size + composition come from the {@link DefenderRoster} —
+     * derived from {@link com.dillon.starsectormarines.ops.MissionType} +
+     * {@link com.dillon.starsectormarines.ops.RiskLevel}. HIGH CONQUEST can
+     * land 200 defenders; LOW SABOTAGE bottoms out at 12. The roster also
+     * carries {@link DefenderRoster#patrolSquadSize} so larger forces don't
+     * fragment into dozens of three-member patrols.
      *
      * <p>Legacy maps with no tactical nodes fall back to the original single-
      * cluster spawn around {@code map.defenderSpawnX/Y}: a flat list of
@@ -512,29 +533,28 @@ public final class BattleSetup {
      * tactical layer of their own.
      */
     private static void allocateDefenders(BattleSimulation sim, MapResult map,
-                                          boolean enemyHasHeavyArmor, Random rng) {
+                                          DefenderRoster roster, Random rng) {
         TacticalMap tactical = map.tacticalMap;
         List<TacticalNode> defenderNodes = (tactical != null)
                 ? new ArrayList<>(tactical.forFaction(Faction.DEFENDER))
                 : Collections.emptyList();
         if (defenderNodes.isEmpty()) {
-            List<int[]> cells = pickDefensiveCluster(map.grid, map.defenderSpawnX, map.defenderSpawnY, DEFENDER_COUNT);
-            spawnLegacyDefenderCluster(sim, cells, enemyHasHeavyArmor);
+            List<int[]> cells = pickDefensiveCluster(map.grid, map.defenderSpawnX, map.defenderSpawnY, roster.totalCount);
+            spawnLegacyDefenderCluster(sim, cells, roster);
             return;
         }
         // Highest priority first — these get garrisons; the rest become patrol anchors.
         defenderNodes.sort(Comparator.comparingInt((TacticalNode n) -> -n.priorityScore));
 
-        // Build the defender type queue. Order matters: mech first (top slot
-        // on the top-priority node), then red-marine elites, then militia.
-        // The garrison loop consumes from the head, so each garrison's
-        // first-poll member is the highest-rank defender available.
+        // Build the defender type queue. Order matters: mechs first (so the
+        // top-priority garrison absorbs a full lance together), then red-marine
+        // elites, then militia. The garrison loop consumes from the head, so
+        // each garrison's first-poll member is the highest-rank defender
+        // available.
         java.util.Deque<UnitType> queue = new java.util.ArrayDeque<>();
-        int remaining = DEFENDER_COUNT;
-        if (enemyHasHeavyArmor) { queue.add(UnitType.HEAVY_MECH); remaining--; }
-        int elites = Math.min(DEFENDER_ELITE_COUNT, remaining);
-        for (int i = 0; i < elites; i++) queue.add(UnitType.MARINE_RED);
-        for (int i = elites; i < remaining; i++) queue.add(UnitType.MILITIA);
+        for (int i = 0; i < roster.mechCount; i++) queue.add(UnitType.HEAVY_MECH);
+        for (int i = 0; i < roster.eliteCount; i++) queue.add(UnitType.MARINE_RED);
+        for (int i = 0; i < roster.militiaCount; i++) queue.add(UnitType.MILITIA);
 
         int defenderIdx = 0;
         List<TacticalNode> patrolAnchors = new ArrayList<>();
@@ -570,10 +590,10 @@ public final class BattleSetup {
         }
 
         // Pass 2 — leftover defenders form patrol squads. Each patrol takes
-        // up to PATROL_SQUAD_SIZE members, anchored at a spare node (or a
-        // top-priority node if there are no spares — we'll just patrol from
+        // up to roster.patrolSquadSize members, anchored at a spare node (or
+        // a top-priority node if there are no spares — we'll just patrol from
         // the wall outward). Cycles through the anchor list when defenders
-        // exceed anchors * PATROL_SQUAD_SIZE.
+        // exceed anchors * patrolSquadSize.
         if (queue.isEmpty()) return;
         List<TacticalNode> anchorPool = patrolAnchors.isEmpty() ? defenderNodes : patrolAnchors;
         int anchorIdx = 0;
@@ -581,7 +601,7 @@ public final class BattleSetup {
             if (anchorPool.isEmpty()) break;
             TacticalNode anchor = anchorPool.get(anchorIdx % anchorPool.size());
             anchorIdx++;
-            int want = Math.min(PATROL_SQUAD_SIZE, queue.size());
+            int want = Math.min(roster.patrolSquadSize, queue.size());
             List<int[]> cells = pickCellsNear(map.grid, anchor.anchorX, anchor.anchorY, GARRISON_SPAWN_RADIUS + 2, want);
             if (cells.isEmpty()) {
                 // Couldn't spawn here — drop this anchor from the pool so we
@@ -613,19 +633,20 @@ public final class BattleSetup {
         }
     }
 
-    /** Original cluster-spawn behavior — kept around for maps with no tactical layer (legacy UrbanMapGenerator, placeholder gens). */
-    private static void spawnLegacyDefenderCluster(BattleSimulation sim, List<int[]> cells, boolean enemyHasHeavyArmor) {
-        for (int i = 0; i < cells.size(); i++) {
-            int[] p = cells.get(i);
+    /** Original cluster-spawn behavior — kept around for maps with no tactical layer (legacy UrbanMapGenerator, placeholder gens). Composition follows the roster: mechs first, then red marines, then militia. */
+    private static void spawnLegacyDefenderCluster(BattleSimulation sim, List<int[]> cells, DefenderRoster roster) {
+        int idx = 0;
+        for (int[] p : cells) {
             UnitType type;
-            if (enemyHasHeavyArmor && i == 0) {
+            if (idx < roster.mechCount) {
                 type = UnitType.HEAVY_MECH;
-            } else if (i < DEFENDER_ELITE_COUNT) {
+            } else if (idx < roster.mechCount + roster.eliteCount) {
                 type = UnitType.MARINE_RED;
             } else {
                 type = UnitType.MILITIA;
             }
-            sim.addUnit(makeDefender("d" + i, type, p[0], p[1]));
+            sim.addUnit(makeDefender("d" + idx, type, p[0], p[1]));
+            idx++;
         }
     }
 
@@ -776,6 +797,72 @@ public final class BattleSetup {
         }
         while (picked.size() < count) picked.add(new int[]{anchorX, anchorY});
         return picked;
+    }
+
+    /**
+     * CONQUEST-specific LZ picker — drops along the beachhead line instead of
+     * a tight cluster around the marine anchor. The line runs parallel to the
+     * attacker edge at the marine anchor's perpendicular coordinate
+     * ({@code anchorY} for SOUTH_TO_NORTH, {@code anchorX} for WEST_TO_EAST),
+     * so LZs land inside the beach biome strip. Drops are evenly spaced
+     * across the attacker frontage with small per-cell jitter for visual
+     * variety; if a target cell is unwalkable (wall, water, dock structure)
+     * we slide along the line to the nearest walkable cell. Even spacing
+     * implicitly enforces separation — no min-distance gate needed when the
+     * map is wide enough.
+     */
+    private static List<int[]> pickConquestLandingZones(NavigationGrid grid,
+                                                        int anchorX, int anchorY,
+                                                        int count, TraversalAxis axis,
+                                                        Random rng) {
+        boolean vertical = (axis == TraversalAxis.WEST_TO_EAST);
+        int lineLength = vertical ? grid.getHeight() : grid.getWidth();
+        // Leave the corners alone — the very edge of the beach reads as
+        // off-map rather than "landing zone". Margin scales with map width.
+        int margin = Math.max(6, lineLength / 12);
+        int span = Math.max(1, lineLength - 2 * margin);
+
+        List<int[]> picked = new ArrayList<>();
+        Set<Long> seen = new HashSet<>();
+        for (int i = 0; i < count; i++) {
+            float t = (count == 1) ? 0.5f : (float) i / (count - 1);
+            int along = margin + Math.round(t * span);
+            // ±3 cells of jitter so a 3-drop mission doesn't land on the
+            // identical t=0/0.5/1 slots every seed. Keeps drops feeling
+            // hand-placed rather than mathematically pinned.
+            along += rng.nextInt(7) - 3;
+            along = Math.max(margin, Math.min(margin + span, along));
+            int x = vertical ? anchorX : along;
+            int y = vertical ? along : anchorY;
+            int[] cell = slideLzAlongLine(grid, x, y, vertical);
+            if (cell == null) continue;
+            if (!seen.add(key(cell[0], cell[1]))) continue;
+            picked.add(cell);
+        }
+        // Tight maps / line of all-unwalkable can leave us short. Better
+        // a stacked LZ on the anchor than zero shuttles.
+        while (picked.size() < count) picked.add(new int[]{anchorX, anchorY});
+        return picked;
+    }
+
+    /**
+     * Find the nearest walkable cell on the LZ line, sliding outward from the
+     * target along the parallel axis. Returns null only if the entire line is
+     * unwalkable, which would be a degenerate map.
+     */
+    private static int[] slideLzAlongLine(NavigationGrid grid, int x, int y, boolean vertical) {
+        if (grid.inBounds(x, y) && grid.isWalkable(x, y)) return new int[]{x, y};
+        int max = vertical ? grid.getHeight() : grid.getWidth();
+        for (int d = 1; d < max; d++) {
+            if (vertical) {
+                if (grid.inBounds(x, y - d) && grid.isWalkable(x, y - d)) return new int[]{x, y - d};
+                if (grid.inBounds(x, y + d) && grid.isWalkable(x, y + d)) return new int[]{x, y + d};
+            } else {
+                if (grid.inBounds(x - d, y) && grid.isWalkable(x - d, y)) return new int[]{x - d, y};
+                if (grid.inBounds(x + d, y) && grid.isWalkable(x + d, y)) return new int[]{x + d, y};
+            }
+        }
+        return null;
     }
 
     /**
