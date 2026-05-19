@@ -36,7 +36,7 @@ import java.util.Random;
  */
 public final class DenseQuarterFiller implements CompoundFiller {
 
-    private static final GroundKind PLAZA_GROUND = GroundKind.SIDEWALK;
+    private static final GroundKind PLAZA_GROUND = GroundKind.BRICK;
     private static final int BRIDGE_SCAN_DEPTH = 5;
 
     private static final BuildingShellCore.BuildingConfig TOWER_PRIMARY_CONFIG = new BuildingShellCore.BuildingConfig(

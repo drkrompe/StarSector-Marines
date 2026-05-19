@@ -60,14 +60,16 @@ public class CellTopology {
         WATER,
         /** Indoor polished panel (urban-2 fl-2, single cell). Commercial-building floors — uniform across the interior, no autotile. */
         TILE,
-        /** Outdoor sidewalk / paved-pavement cluster (Floors_Tiles fl-tile-1..5). Plaza centers, primary-trunk boulevards, building-perimeter sidewalks. Five-variant pool for noise. */
-        SIDEWALK,
+        /** Brick-paver cluster (Floors_Tiles fl-tile-1..5). Plaza centers, building roofs (planned), large uniform paved areas. Five-variant pool for noise. Previously named {@code SIDEWALK} — renamed so the {@code SIDEWALK} slot could be repurposed for the urban-tileset-3 curb-side strip. */
+        BRICK,
         /** Yellow-striped factory/safety floor (urban-2 fl-striped 3×3). Fortified posts, landing-zone aprons. */
         STRIPED,
         /** Landing-zone center marker (urban-2 grate, placeholder until real LZ art). Touchdown cell decal. */
         LZ_MARKER,
         /** Damaged floor (urban-1 damaged-floor 3×3). Cells that were walls and got knocked down. */
         RUBBLE,
+        /** Curb-side sidewalk strip (urban-tileset-3 SIDEWALK / SIDEWALK_CORNER). Used for wide-road flanks where {@code STREET} cells aren't wall-adjacent and the render-time auto-detection can't pick them. Routes through the same urban-3 corner-aware picker the STREET-wall-adjacent path uses, so explicit {@code SIDEWALK} cells and implicit STREET-sidewalk cells join into one contiguous strip. */
+        SIDEWALK,
     }
 
     /**

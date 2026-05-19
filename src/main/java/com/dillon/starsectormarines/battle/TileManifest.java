@@ -354,6 +354,31 @@ public final class TileManifest {
     }
 
     /**
+     * Two-variant grass pool from {@code nature-tiles.png}, hash-picked by
+     * cell coordinate. Returns a {@link com.dillon.starsectormarines.battle.sprites.NatureTile}
+     * — the sliced-sheet picker, not the Floors_Tiles autotile path —
+     * because the nature-tile art reads better as ground for parks / open
+     * space than the legacy Floors_Tiles grass blob. Render via the
+     * sliced-sheet draw path ({@code drawNatureTile} in BattleScreen).
+     *
+     * <p>Center-variant only: the nature-tile sheet has no edge frames so
+     * per-kind edges between e.g. grass and dirt show a hard cell boundary
+     * (matches the flat-edges-between-kinds convention).
+     */
+    public static com.dillon.starsectormarines.battle.sprites.NatureTile pickNatureGrassTile(int x, int y) {
+        return (stableHash(x, y) & 1) == 0
+                ? com.dillon.starsectormarines.battle.sprites.NatureTile.GRASS_1
+                : com.dillon.starsectormarines.battle.sprites.NatureTile.GRASS_2;
+    }
+
+    /** Two-variant dirt pool from {@code nature-tiles.png}, hash-picked by cell coordinate. See {@link #pickNatureGrassTile} for rationale. */
+    public static com.dillon.starsectormarines.battle.sprites.NatureTile pickNatureDirtTile(int x, int y) {
+        return (stableHash(x, y) & 1) == 0
+                ? com.dillon.starsectormarines.battle.sprites.NatureTile.DIRT_1
+                : com.dillon.starsectormarines.battle.sprites.NatureTile.DIRT_2;
+    }
+
+    /**
      * Shared resolver for the grass / stone / dirt 5x5 blocks. The blocks
      * are laid out "facing-outward":
      * <pre>
@@ -470,13 +495,13 @@ public final class TileManifest {
     }
 
     /**
-     * Five outdoor-sidewalk variants (fl-tile-1..5) on {@link #FLOORS_SHEET}.
-     * Brown brick that reads as paved pedestrian surface — plaza centers,
-     * primary-trunk boulevards, building-perimeter sidewalks. Coords from
+     * Five brick-paver variants (fl-tile-1..5) on {@link #FLOORS_SHEET}.
+     * Brown brick that reads as a large uniform paved surface — plaza centers
+     * and building roofs (planned). Coords from
      * {@code mod/data/tilesets/Floors_Tiles.catalog.json}; no edge pieces,
      * every cell is a "center" tile and the per-cell hash gives noise variation.
      */
-    private static final TileFrame[] FL_SIDEWALK_VARIANTS = {
+    private static final TileFrame[] FL_BRICK_VARIANTS = {
             new TileFrame(17, 1), // fl-tile-1
             new TileFrame(16, 2), // fl-tile-2
             new TileFrame(17, 2), // fl-tile-3
@@ -485,12 +510,12 @@ public final class TileManifest {
     };
 
     /**
-     * Picks one of the {@link #FL_SIDEWALK_VARIANTS} by stable per-cell hash.
+     * Picks one of the {@link #FL_BRICK_VARIANTS} by stable per-cell hash.
      * Lives on {@link #FLOORS_SHEET} (16px source cells); callers must
      * dispatch through the floors-sheet draw path.
      */
-    public static TileFrame pickSidewalkTile(int x, int y) {
-        return FL_SIDEWALK_VARIANTS[stableHash(x, y) % FL_SIDEWALK_VARIANTS.length];
+    public static TileFrame pickBrickTile(int x, int y) {
+        return FL_BRICK_VARIANTS[stableHash(x, y) % FL_BRICK_VARIANTS.length];
     }
 
     /**

@@ -554,11 +554,19 @@ public class BuildingZonePreviewTest {
                         stampCell(drawer, roadSink, f, x, y, gridH, drawer.defaultGroundInsetPx());
                         break;
                     }
-                    case SIDEWALK: {
-                        // Outdoor sidewalk / paved pavement (fl-tile-1..5)
-                        // on FLOORS_SHEET — per-cell hash variant pool.
-                        TileManifest.TileFrame f = TileManifest.pickSidewalkTile(x, y);
+                    case BRICK: {
+                        // Brick paving (fl-tile-1..5) on FLOORS_SHEET — per-
+                        // cell hash variant pool. Plazas, building roofs (planned).
+                        TileManifest.TileFrame f = TileManifest.pickBrickTile(x, y);
                         stampCell(floorsDrawer, floorsSink, f, x, y, gridH, floorsDrawer.defaultGroundInsetPx());
+                        break;
+                    }
+                    case SIDEWALK: {
+                        // Curb-side sidewalk strip — urban-tileset-3 SIDEWALK
+                        // / SIDEWALK_CORNER, same picker the production wall-
+                        // adjacent path uses. Hand-built preview scenes don't
+                        // currently emit SIDEWALK cells but kept here so the
+                        // dispatch matches BattleScreen's switch coverage.
                         break;
                     }
                     case RUBBLE: {

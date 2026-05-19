@@ -146,13 +146,24 @@ public final class BspCityGenerator implements MapGenerator {
         // Step 1a — plan the trunk skeleton. Trunks (the city's arterials)
         // get painted into the shared road mask before BSP runs, plus the
         // matching GroundKind onto the topology so the renderer reads them
-        // as boulevards rather than ordinary back-streets.
+        // as boulevards rather than ordinary back-streets. Wide trunks
+        // (TrunkKind.sidewalkFlankWidth > 0) drop an explicit SIDEWALK band
+        // on each side so the surface reads as "road in the middle, brick
+        // sidewalk on the curbs" rather than relying on render-time wall
+        // adjacency that can't see across the trunk's full width.
         TrunkPlan.Plan plan = TrunkPlan.generate(width, height, rng);
         for (TrunkPlan.TrunkSegment trunk : plan.trunks) {
-            for (int y = trunk.top; y <= trunk.bottom; y++) {
-                for (int x = trunk.left; x <= trunk.right; x++) {
-                    topology.setGroundKind(x, y, trunk.kind.ground);
-                }
+            paintTrunkGround(topology, trunk);
+        }
+        // Punch the road core through the intersection. Without this, the
+        // PRIMARY trunk's outer SIDEWALK flank band would extend across the
+        // SECONDARY trunk's vehicular path, breaking the road at the
+        // crossing. Repainting the intersection rect as STREET keeps the
+        // sidewalks butted up to the intersection edges and lets the road
+        // continue uninterrupted across.
+        for (int y = plan.intersection.y0; y <= plan.intersection.y1; y++) {
+            for (int x = plan.intersection.x0; x <= plan.intersection.x1; x++) {
+                topology.setGroundKind(x, y, GroundKind.STREET);
             }
         }
 
@@ -227,6 +238,14 @@ public final class BspCityGenerator implements MapGenerator {
             BlockFiller filler = fillers.get(leaf.kind);
             filler.fill(leaf, grid, topology, pois, doodads, rng);
         }
+
+        // Step 3a' — pedestrian-frame classification. Per-leaf-pair RNG roll
+        // converts narrow road frames between pairs of non-vehicular leaves
+        // (residential / plaza / park) into GRASS + curb-side SIDEWALK,
+        // dropping the road in favor of a park-like inter-building pocket.
+        // Adds visual variety to larger maps without disrupting the trunk
+        // road network or any vehicular district's access.
+        classifyPedestrianFrames(grid, topology, partition.leaves, plan, rng);
 
         // Step 3b — biome ground overrides. In conquest mode the BEACH biome
         // repaints its walkable non-building, non-water ground as SAND so the
@@ -312,6 +331,182 @@ public final class BspCityGenerator implements MapGenerator {
     /** Last tactical map produced by {@link #generate}. Null only if generation never ran. Conquest mode emits ~15-30 nodes; legacy mode emits whatever the compound fillers contribute (typically 0-5). */
     private TacticalMap lastTacticalMap;
     public TacticalMap getLastTacticalMap() { return lastTacticalMap; }
+
+    /**
+     * Paints one trunk's ground band onto the topology. If
+     * {@link TrunkPlan.TrunkKind#sidewalkFlankWidth} is non-zero, the outer
+     * {@code sidewalkFlankWidth} cells on each side of the band are tagged
+     * {@link GroundKind#SIDEWALK} and the inner span is tagged
+     * {@link TrunkPlan.TrunkKind#roadGround} — producing a "boulevard"
+     * topology of road core + brick sidewalk curbs in one pass at gen time.
+     *
+     * <p>Bands too narrow to host the requested flanks (i.e.
+     * {@code width <= 2*flank}) fall back to painting the entire band as
+     * {@link GroundKind#SIDEWALK} so the configured kind still wins out
+     * over the default {@link GroundKind#STREET} from step 0.
+     */
+    private static void paintTrunkGround(CellTopology topology, TrunkPlan.TrunkSegment trunk) {
+        int flank = trunk.kind.sidewalkFlankWidth;
+        int bandWidth = trunk.horizontal
+                ? (trunk.bottom - trunk.top + 1)
+                : (trunk.right - trunk.left + 1);
+        boolean noRoadCore = bandWidth <= 2 * flank;
+        if (trunk.horizontal) {
+            for (int y = trunk.top; y <= trunk.bottom; y++) {
+                int distFromEdge = Math.min(y - trunk.top, trunk.bottom - y);
+                GroundKind kind = (flank > 0 && (noRoadCore || distFromEdge < flank))
+                        ? GroundKind.SIDEWALK
+                        : trunk.kind.roadGround;
+                for (int x = trunk.left; x <= trunk.right; x++) {
+                    topology.setGroundKind(x, y, kind);
+                }
+            }
+        } else {
+            for (int x = trunk.left; x <= trunk.right; x++) {
+                int distFromEdge = Math.min(x - trunk.left, trunk.right - x);
+                GroundKind kind = (flank > 0 && (noRoadCore || distFromEdge < flank))
+                        ? GroundKind.SIDEWALK
+                        : trunk.kind.roadGround;
+                for (int y = trunk.top; y <= trunk.bottom; y++) {
+                    topology.setGroundKind(x, y, kind);
+                }
+            }
+        }
+    }
+
+    /** Cells of perpendicular-scan depth to find the leaf bounding a road frame. Catches every BSP frame (3-4 cells wide) but stops before the SECONDARY trunk (5 cells). */
+    private static final int PEDESTRIAN_SCAN_DEPTH = 5;
+    /** Frame widths up to this count qualify as "narrow" and may be converted to pedestrian zones. Wider frames stay vehicular. */
+    private static final int PEDESTRIAN_MAX_FRAME_WIDTH = 4;
+    /** Per-leaf-pair probability of converting their shared frame to a pedestrian zone. ~50% gives noticeable variety on larger maps without taking over. */
+    private static final float PEDESTRIAN_FRAME_CHANCE = 0.8f;
+
+    /**
+     * Walks every {@link CellTopology.GroundKind#STREET} cell that isn't part
+     * of a {@link TrunkPlan.TrunkSegment} band, finds the two leaves bounding
+     * the frame perpendicular to the cell, and — if both leaves are
+     * non-vehicular kinds and a per-pair RNG roll passes — converts the cell
+     * to a pedestrian zone: {@link CellTopology.GroundKind#SIDEWALK} where
+     * the cell butts up against a leaf (the curb-side strip), or
+     * {@link CellTopology.GroundKind#GRASS} for cells in the frame interior.
+     *
+     * <p>Pair decisions are cached so all cells in the same frame agree on
+     * the outcome — partial frames (some cells converted, some not) would
+     * read as artifact.
+     *
+     * <p>Cells at four-way intersections (both perpendicular axes resolve to
+     * a leaf within scan range) are skipped — intersections stay vehicular
+     * regardless of district mix.
+     */
+    private void classifyPedestrianFrames(NavigationGrid grid, CellTopology topology,
+                                          List<BlockLeaf> leaves, TrunkPlan.Plan plan,
+                                          Random rng) {
+        int w = grid.getWidth();
+        int h = grid.getHeight();
+        BlockLeaf[][] cellLeaf = new BlockLeaf[w][h];
+        for (BlockLeaf leaf : leaves) {
+            for (int y = leaf.top; y <= leaf.bottom; y++) {
+                for (int x = leaf.left; x <= leaf.right; x++) {
+                    if (x >= 0 && x < w && y >= 0 && y < h) cellLeaf[x][y] = leaf;
+                }
+            }
+        }
+
+        // Per-(unordered-pair-of-leaves) cached decision. IdentityHashMap so
+        // BlockLeaf identity drives the key — there's no equals/hashCode on it.
+        Map<BlockLeaf, Map<BlockLeaf, Boolean>> pairFlag = new IdentityHashMap<>();
+        for (BlockLeaf leaf : leaves) pairFlag.put(leaf, new IdentityHashMap<>());
+
+        int converted = 0;
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                if (!topology.isStreet(x, y)) continue;
+                if (isInTrunk(x, y, plan)) continue;
+                BlockLeaf nLeaf = scanForLeaf(cellLeaf, x, y, 0,  1, w, h);
+                BlockLeaf sLeaf = scanForLeaf(cellLeaf, x, y, 0, -1, w, h);
+                BlockLeaf eLeaf = scanForLeaf(cellLeaf, x, y, 1,  0, w, h);
+                BlockLeaf wLeaf = scanForLeaf(cellLeaf, x, y, -1, 0, w, h);
+                boolean hasNS = nLeaf != null && sLeaf != null && nLeaf != sLeaf;
+                boolean hasEW = eLeaf != null && wLeaf != null && eLeaf != wLeaf;
+                if (hasNS == hasEW) continue;  // intersection (both) or unbounded (neither)
+                BlockLeaf l1 = hasNS ? nLeaf : eLeaf;
+                BlockLeaf l2 = hasNS ? sLeaf : wLeaf;
+                if (!isPedestrianKind(l1.kind) || !isPedestrianKind(l2.kind)) continue;
+                if (!leafPairConverts(pairFlag, l1, l2, rng)) continue;
+                // Wall-adjacent cells (any cardinal neighbor is part of a
+                // leaf) become SIDEWALK so the curb-side art kicks in; the
+                // frame interior becomes GRASS. Width-3 frames produce a
+                // SIDEWALK/GRASS/SIDEWALK strip; width-4 frames split into
+                // SIDEWALK/GRASS/GRASS/SIDEWALK.
+                if (isAdjacentToLeafCell(cellLeaf, x, y, w, h)) {
+                    topology.setGroundKind(x, y, CellTopology.GroundKind.SIDEWALK);
+                } else {
+                    topology.setGroundKind(x, y, CellTopology.GroundKind.GRASS);
+                }
+                converted++;
+            }
+        }
+        if (converted > 0) {
+            LOG.info("BspCityGenerator: pedestrian-frame pass converted "
+                    + converted + " STREET cell(s) to GRASS/SIDEWALK");
+        }
+    }
+
+    /** True for {@link BlockKind}s that read as pedestrian — residential, plaza, park. Commercial / industrial / fortified / LZ keep their road access. */
+    private static boolean isPedestrianKind(BlockKind kind) {
+        switch (kind) {
+            case BUILDING_RESIDENTIAL:
+            case PLAZA:
+            case PARK:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /** Cell-in-rect predicate against {@link TrunkPlan.TrunkSegment}s. Pedestrian conversion always skips trunk cells regardless of the kinds touching them. */
+    private static boolean isInTrunk(int x, int y, TrunkPlan.Plan plan) {
+        for (TrunkPlan.TrunkSegment t : plan.trunks) {
+            if (x >= t.left && x <= t.right && y >= t.top && y <= t.bottom) return true;
+        }
+        return false;
+    }
+
+    /** First non-null leaf hit when stepping {@code (dx, dy)} up to {@link #PEDESTRIAN_SCAN_DEPTH} cells. Null if none. */
+    private static BlockLeaf scanForLeaf(BlockLeaf[][] cellLeaf, int x, int y,
+                                         int dx, int dy, int w, int h) {
+        for (int step = 1; step <= PEDESTRIAN_SCAN_DEPTH; step++) {
+            int nx = x + dx * step;
+            int ny = y + dy * step;
+            if (nx < 0 || nx >= w || ny < 0 || ny >= h) return null;
+            BlockLeaf leaf = cellLeaf[nx][ny];
+            if (leaf != null) {
+                if (step > PEDESTRIAN_MAX_FRAME_WIDTH) return null;  // frame too wide
+                return leaf;
+            }
+        }
+        return null;
+    }
+
+    /** True if any cardinal neighbor of {@code (x, y)} belongs to a leaf (so this STREET cell is curb-side against a building). */
+    private static boolean isAdjacentToLeafCell(BlockLeaf[][] cellLeaf, int x, int y, int w, int h) {
+        if (x + 1 < w && cellLeaf[x + 1][y] != null) return true;
+        if (x - 1 >= 0 && cellLeaf[x - 1][y] != null) return true;
+        if (y + 1 < h && cellLeaf[x][y + 1] != null) return true;
+        if (y - 1 >= 0 && cellLeaf[x][y - 1] != null) return true;
+        return false;
+    }
+
+    /** Per-pair decision, memoized in both directions so all cells in the same frame see the same result. */
+    private static boolean leafPairConverts(Map<BlockLeaf, Map<BlockLeaf, Boolean>> pairFlag,
+                                            BlockLeaf l1, BlockLeaf l2, Random rng) {
+        Boolean cached = pairFlag.get(l1).get(l2);
+        if (cached != null) return cached;
+        boolean ped = rng.nextFloat() < PEDESTRIAN_FRAME_CHANCE;
+        pairFlag.get(l1).put(l2, ped);
+        pairFlag.get(l2).put(l1, ped);
+        return ped;
+    }
 
     /** Every non-walkable cell gets a starting HP. Mirrors legacy seed. */
     private void seedWallHp(NavigationGrid grid) {

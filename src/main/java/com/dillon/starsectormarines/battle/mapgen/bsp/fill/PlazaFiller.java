@@ -61,7 +61,7 @@ public final class PlazaFiller implements BlockFiller {
         for (int y = leaf.top; y <= leaf.bottom; y++) {
             for (int x = leaf.left; x <= leaf.right; x++) {
                 grid.setWalkableFloor(x, y);
-                topology.setGroundKind(x, y, GroundKind.SIDEWALK);
+                topology.setGroundKind(x, y, GroundKind.BRICK);
             }
         }
 

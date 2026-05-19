@@ -18,11 +18,14 @@ import java.util.Random;
  * {@link Bsp#partitionRect} runs, the trunk network becomes a deliberately
  * authored skeleton rather than emergent from parcel boundaries.
  *
- * <p>V1 layout: one horizontal {@link TrunkKind#PRIMARY} trunk (width 7,
- * {@link GroundKind#TILE}) and one perpendicular vertical
- * {@link TrunkKind#SECONDARY} trunk (width 5, {@link GroundKind#STREET}).
- * The crossing point — exposed as {@link Plan#intersection} — is where the
- * orchestrator forces a {@link com.dillon.starsectormarines.battle.mapgen.MapDistrictTheme#CIVIC}
+ * <p>V1 layout: one horizontal {@link TrunkKind#PRIMARY} trunk (width 7 —
+ * 2-cell {@link GroundKind#SIDEWALK} flank on each side around a 3-cell
+ * {@link GroundKind#STREET} core) and one perpendicular vertical
+ * {@link TrunkKind#SECONDARY} trunk (width 5, all {@link GroundKind#STREET}
+ * — the render path's wall-adjacency sidewalk picker is enough at this
+ * width). The crossing point — exposed as {@link Plan#intersection} — is
+ * where the orchestrator forces a
+ * {@link com.dillon.starsectormarines.battle.mapgen.MapDistrictTheme#CIVIC}
  * bias so the city center reads as a downtown hub.
  *
  * <p>Pipeline contract: {@link #generate} writes the 1-cell perimeter plus
@@ -54,19 +57,32 @@ public final class TrunkPlan {
     /** Per-sub-rect minimum dimension required to host at least one BSP split. */
     private static final int SUBRECT_MIN_DIM = 2 * Bsp.LEAF_MIN + Bsp.ROAD_WIDTH_MIN;
 
-    /** A trunk's role in the hierarchy. Drives both its rendered GroundKind and width tier. */
+    /**
+     * A trunk's role in the hierarchy. Drives both its rendered surface
+     * decomposition and its width tier. Wide trunks (PRIMARY) carry a
+     * {@link #sidewalkFlankWidth}-cell {@link GroundKind#SIDEWALK} flank on
+     * each side framing an interior {@link #roadGround} core. Narrow trunks
+     * (SECONDARY) set {@code sidewalkFlankWidth=0} and let the render path's
+     * wall-adjacency picker stamp a 1-cell sidewalk against any flanking
+     * building automatically.
+     */
     public enum TrunkKind {
-        /** Width-7 paved boulevard. Renders as {@link GroundKind#SIDEWALK} — outdoor brick-paved pedestrian boulevard. */
-        PRIMARY(PRIMARY_WIDTH, GroundKind.SIDEWALK),
-        /** Width-5 cross-street. Renders as {@link GroundKind#STREET}. */
-        SECONDARY(SECONDARY_WIDTH, GroundKind.STREET);
+        /** Width-7 wide boulevard — 2-cell {@link GroundKind#SIDEWALK} flank on each side around a 3-cell {@link GroundKind#STREET} core. */
+        PRIMARY(PRIMARY_WIDTH, GroundKind.STREET, 2),
+        /** Width-5 cross-street. All {@link GroundKind#STREET}; render-time wall adjacency handles the 1-thick sidewalk where it meets a building. */
+        SECONDARY(SECONDARY_WIDTH, GroundKind.STREET, 0);
 
+        /** Cells wide along the band's short axis. */
         public final int width;
-        public final GroundKind ground;
+        /** Ground kind painted on the interior road core (after subtracting the sidewalk flanks). */
+        public final GroundKind roadGround;
+        /** Cells of {@link GroundKind#SIDEWALK} painted on each flank of the band. Zero leaves the whole band as {@link #roadGround}. */
+        public final int sidewalkFlankWidth;
 
-        TrunkKind(int width, GroundKind ground) {
+        TrunkKind(int width, GroundKind roadGround, int sidewalkFlankWidth) {
             this.width = width;
-            this.ground = ground;
+            this.roadGround = roadGround;
+            this.sidewalkFlankWidth = sidewalkFlankWidth;
         }
     }
 
