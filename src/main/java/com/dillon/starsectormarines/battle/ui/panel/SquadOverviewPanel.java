@@ -33,9 +33,11 @@ public final class SquadOverviewPanel implements HudPanel {
 
     private static final float PANEL_W       = 320f;
     private static final float HEADER_H      = 28f;
-    private static final float ROW_H         = 30f;
+    private static final float ROW_H         = 34f;
     private static final float PAD_INNER     = 8f;
     private static final float DOT_RADIUS    = 5f;
+    private static final float MORALE_BAR_H  = 4f;
+    private static final float MORALE_BAR_PAD_Y = 2f;
 
     private static final Color BG            = new Color(0x10, 0x18, 0x22, 0xD8);
     private static final Color BG_HOVER      = new Color(0x20, 0x30, 0x44, 0xE0);
@@ -170,18 +172,34 @@ public final class SquadOverviewPanel implements HudPanel {
                 HudDraw.filledRect(x0 + 1, rowY, w - 2, ROW_H, BG_HOVER, alphaMult);
             }
 
+            // Text in the top portion of the row (same "6 below row top" as
+            // before); morale bar pinned to the bottom strip.
+            float textBaseline = rowY + ROW_H - 6f;
+
             String label = "SQ-" + s.id;
-            Fonts.ORBITRON_20.drawString(label, x0 + PAD_INNER, rowY + ROW_H - 6f, HEADER_FG, alphaMult);
+            Fonts.ORBITRON_20.drawString(label, x0 + PAD_INNER, textBaseline, HEADER_FG, alphaMult);
 
             String count = s.aliveMembers + "/" + Math.max(s.aliveMembers, s.originalSize);
-            Fonts.ORBITRON_20.drawString(count, x0 + 70f, rowY + ROW_H - 6f, COUNT_FG, alphaMult);
+            Fonts.ORBITRON_20.drawString(count, x0 + 70f, textBaseline, COUNT_FG, alphaMult);
 
             float dotX = x0 + 138f;
-            float dotY = rowY + ROW_H * 0.5f;
+            // Center the alert dot vertically with the text (text is at
+            // baseline rowY + ROW_H - 6, glyphs span ~10 below baseline).
+            float dotY = textBaseline - 5f;
             HudDraw.disc(dotX, dotY, DOT_RADIUS, alertColor(s.alertLevel), alphaMult, 14);
 
             String equip = equipSummaries.get(i);
-            Fonts.ORBITRON_20.drawString(equip, x0 + 160f, rowY + ROW_H - 6f, COUNT_FG, alphaMult);
+            Fonts.ORBITRON_20.drawString(equip, x0 + 160f, textBaseline, COUNT_FG, alphaMult);
+
+            // Morale bar — bottom strip of the row, full width minus padding.
+            // Break tick at BattleSimulation.MORALE_BROKEN_THRESHOLD; border
+            // turns red when the hysteresis flag is set.
+            float barX = x0 + PAD_INNER;
+            float barY = rowY + MORALE_BAR_PAD_Y;
+            float barW = PANEL_W - 2f * PAD_INNER;
+            HudDraw.moraleBar(barX, barY, barW, MORALE_BAR_H,
+                    s.morale, s.moraleBroken,
+                    BattleSimulation.MORALE_BROKEN_THRESHOLD, alphaMult);
         }
     }
 

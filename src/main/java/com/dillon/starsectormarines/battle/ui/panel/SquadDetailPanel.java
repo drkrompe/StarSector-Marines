@@ -34,6 +34,8 @@ public final class SquadDetailPanel implements HudPanel {
     private static final float PAD_INNER     = 8f;
     private static final float BACK_W        = 64f;
     private static final float BACK_H        = 22f;
+    private static final float MORALE_BAR_W  = 110f;
+    private static final float MORALE_BAR_H  = 8f;
 
     private static final float COL_NAME      = 0f;
     private static final float COL_HP_BAR    = 56f;
@@ -145,6 +147,16 @@ public final class SquadDetailPanel implements HudPanel {
                 + "   " + currentSquad.aliveMembers
                 + "/" + Math.max(currentSquad.aliveMembers, currentSquad.originalSize);
         Fonts.ORBITRON_20.drawString(title, bx + BACK_W + 12f, headerY + HEADER_H - 8f, HEADER_FG, alphaMult);
+
+        // Squad morale bar — right edge of the header. Break tick at the
+        // hysteresis trip threshold; border flips red when the squad's
+        // moraleBroken flag is set so the bar reads as an alert state at a
+        // glance.
+        float moraleBarX = x0 + w - PAD_INNER - MORALE_BAR_W;
+        float moraleBarY = headerY + (HEADER_H - MORALE_BAR_H) * 0.5f;
+        HudDraw.moraleBar(moraleBarX, moraleBarY, MORALE_BAR_W, MORALE_BAR_H,
+                currentSquad.morale, currentSquad.moraleBroken,
+                BattleSimulation.MORALE_BROKEN_THRESHOLD, alphaMult);
 
         // Marine rows.
         for (int i = 0; i < members.size(); i++) {

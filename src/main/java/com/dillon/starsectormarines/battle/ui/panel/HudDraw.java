@@ -70,6 +70,44 @@ final class HudDraw {
         }
     }
 
+    /**
+     * Renders a squad morale bar — background + value fill + break-threshold
+     * tick + bordered. Color grades by raw {@code morale}; the border flips
+     * red when {@code broken} is true (hysteresis-driven, signals the squad
+     * is actively in fall-back). The white tick at {@code breakThreshold}
+     * is the "they trip below here" line so the player can read the bar
+     * without knowing the exact constant.
+     *
+     * @param morale         current value in [0, 1]
+     * @param broken         hysteresis-driven broken flag (red border when true)
+     * @param breakThreshold position of the break tick, in [0, 1]
+     */
+    static void moraleBar(float x, float y, float w, float h,
+                          float morale, boolean broken, float breakThreshold,
+                          float alphaMult) {
+        morale = Math.max(0f, Math.min(1f, morale));
+        // Background — dark slate, distinct from the HP bar's reddish bg.
+        filledRect(x, y, w, h, new Color(0x14, 0x18, 0x20), alphaMult);
+        if (morale > 0f) {
+            Color fg;
+            if (morale > 0.5f)      fg = new Color(0x40, 0xC0, 0x40);
+            else if (morale > 0.3f) fg = new Color(0xE0, 0xC0, 0x40);
+            else                    fg = new Color(0xE0, 0x50, 0x40);
+            filledRect(x, y, w * morale, h, fg, alphaMult);
+        }
+        // Break-threshold tick: a vertical white sliver poking above and below
+        // the bar so it reads against any fill color.
+        float tickX = x + w * Math.max(0f, Math.min(1f, breakThreshold));
+        filledRect(tickX, y - 1f, 1.5f, h + 2f,
+                new Color(0xF0, 0xF0, 0xF0, 0xD0), alphaMult);
+        // Border — red when broken so the bar reads as an alert state at a
+        // glance, not just a low-fill bar.
+        Color border = broken
+                ? new Color(0xE0, 0x40, 0x40)
+                : new Color(0x60, 0x80, 0xA0);
+        borderRect(x, y, w, h, border, alphaMult);
+    }
+
     /** Small filled disc — used as the per-row alert indicator. */
     static void disc(float cx, float cy, float r, Color c, float alphaMult, int segments) {
         glColor4f(c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f,
