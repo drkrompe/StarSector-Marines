@@ -71,6 +71,18 @@ public class HeavyWeapons {
 
         float fromX = shooter.cellX + 0.5f;
         float fromY = shooter.cellY + 0.5f;
+        // Distance-scale the weapon's hitSpread to match the physics: a fixed
+        // barrel angular error projects linearly to lateral spread on the
+        // ground (area covered scales with distance squared, but the *radius*
+        // — what we store — scales linearly). At close range the burst
+        // clusters on the target; at max range it spreads across the full
+        // hitSpread cells. Capped at 1.0× so a beyond-range shot doesn't
+        // produce a spread wider than the design value.
+        float distToTarget = (float) Math.sqrt(
+                (target.cellX - shooter.cellX) * (float) (target.cellX - shooter.cellX) +
+                (target.cellY - shooter.cellY) * (float) (target.cellY - shooter.cellY));
+        float effectiveSpread = weapon.hitSpread * Math.min(1f, distToTarget / weapon.range);
+
         float toX, toY;
         if (hit) {
             toX = target.cellX + 0.5f;
@@ -78,18 +90,19 @@ public class HeavyWeapons {
             // Endpoint scatter — pure visual offset around the target cell.
             // For AoE weapons this also scatters the splash center, so a salvo
             // sprays the impact zone instead of stacking on one cell.
-            if (weapon.hitSpread > 0f) {
+            if (effectiveSpread > 0f) {
                 float angle = ctx.getRng().nextFloat() * (float) (Math.PI * 2);
-                float r = ctx.getRng().nextFloat() * weapon.hitSpread;
+                float r = ctx.getRng().nextFloat() * effectiveSpread;
                 toX += (float) Math.cos(angle) * r;
                 toY += (float) Math.sin(angle) * r;
             }
         } else {
             float angle = ctx.getRng().nextFloat() * (float) (Math.PI * 2);
             float spread = MISS_OFFSET_MIN + ctx.getRng().nextFloat() * (MISS_OFFSET_MAX - MISS_OFFSET_MIN);
-            // Misses get the wider baseline scatter PLUS the weapon's hitSpread
-            // — an indirect-fire weapon's misses scatter further than a rifle's.
-            spread += weapon.hitSpread;
+            // Misses get the wider baseline scatter PLUS the weapon's
+            // distance-scaled spread — a stray salvo at close range scatters
+            // less than a stray salvo at long range.
+            spread += effectiveSpread;
             toX = target.cellX + 0.5f + (float) Math.cos(angle) * spread;
             toY = target.cellY + 0.5f + (float) Math.sin(angle) * spread;
         }

@@ -1436,6 +1436,17 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                              TurretKind kind, Unit target) {
         boolean hit = rng.nextFloat() < kind.accuracy;
         boolean isAoe = kind.aoeRadius > 0f;
+        // Distance-scale hitSpread — fixed barrel angular error projects
+        // linearly to lateral spread on the ground (radius scales with
+        // distance; area covered with distance squared). Close shots
+        // cluster on the target; max-range shots open up to the full
+        // designed spread. Capped at 1.0× so a beyond-range shot doesn't
+        // exceed the design value.
+        float distToTarget = (float) Math.sqrt(
+                (target.cellX + 0.5f - fromX) * (target.cellX + 0.5f - fromX) +
+                (target.cellY + 0.5f - fromY) * (target.cellY + 0.5f - fromY));
+        float effectiveSpread = kind.hitSpread * Math.min(1f, distToTarget / kind.range);
+
         // Compute the visual endpoint with hit-spread / miss-scatter first —
         // damage application is deferred until after the wall raycast so a
         // raycast-blocked shot doesn't telepathically land damage past the
@@ -1447,9 +1458,9 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             // Endpoint scatter on a hit — purely visual for direct-fire kinds,
             // but for AoE it also scatters the splash center so a 4-round
             // grenade burst sprays the cell cluster instead of stacking on one.
-            if (kind.hitSpread > 0f) {
+            if (effectiveSpread > 0f) {
                 float angle = rng.nextFloat() * (float) (Math.PI * 2);
-                float r = rng.nextFloat() * kind.hitSpread;
+                float r = rng.nextFloat() * effectiveSpread;
                 toX += (float) Math.cos(angle) * r;
                 toY += (float) Math.sin(angle) * r;
             }
@@ -1457,8 +1468,9 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             float angle = rng.nextFloat() * (float) (Math.PI * 2);
             float spread = MISS_OFFSET_MIN + rng.nextFloat() * (MISS_OFFSET_MAX - MISS_OFFSET_MIN);
             // Misses get the baseline near-miss scatter plus the kind's
-            // hitSpread — a wider grenade pattern reads as a stray salvo.
-            spread += kind.hitSpread;
+            // distance-scaled spread — a stray salvo at close range scatters
+            // less than a stray salvo at long range.
+            spread += effectiveSpread;
             toX = target.cellX + 0.5f + (float) Math.cos(angle) * spread;
             toY = target.cellY + 0.5f + (float) Math.sin(angle) * spread;
         }
