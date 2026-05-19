@@ -88,16 +88,40 @@ public class CellTopology {
 
     private static final GroundKind[] GROUND_KINDS = GroundKind.values();
 
+    /**
+     * Bits for the per-cell wall-direction mask. A wall cell whose
+     * {@link #getWallDirMask} has e.g. {@link #WALL_DIR_N} set was placed
+     * with "the exterior is on my north side." Walls are placed by building
+     * stampers that know the building's geometry at gen time, so the mask
+     * is set once at placement and stays constant under runtime mutations
+     * (rubble appearing next door, etc.) — a wall doesn't reorient itself
+     * just because its neighbor changed. Render code reads the mask as a
+     * direct lookup, with no neighbor query.
+     */
+    public static final int WALL_DIR_N = 1;
+    public static final int WALL_DIR_S = 2;
+    public static final int WALL_DIR_E = 4;
+    public static final int WALL_DIR_W = 8;
+
     private final int width;
     private final int height;
     private final byte[] ground;
     private final long[] flags;
+    /**
+     * Per-cell wall-direction mask. Bits are {@link #WALL_DIR_N} ... W.
+     * Default 0 — meaningful only for cells tagged {@link Tag#WALL}; on
+     * non-wall cells the render path never reads it. Set at gen time by
+     * whatever code stamps walls (see {@link
+     * com.dillon.starsectormarines.battle.mapgen.bsp.fill.BuildingShellCore}).
+     */
+    private final byte[] wallDir;
 
     public CellTopology(int width, int height) {
         this.width = width;
         this.height = height;
         this.ground = new byte[width * height];
         this.flags  = new long[width * height];
+        this.wallDir = new byte[width * height];
         // ground[i] == 0 == GroundKind.INDOOR.ordinal() — implicit default.
     }
 
@@ -157,6 +181,27 @@ public class CellTopology {
     public void    setCrosswalk(int x, int y, boolean v)                   { setTag(x, y, Tag.CROSSWALK, v); }
     public boolean isCrosswalkStripesHorizontal(int x, int y)              { return hasTag(x, y, Tag.CROSSWALK_HORIZ); }
     public void    setCrosswalkStripesHorizontal(int x, int y, boolean v)  { setTag(x, y, Tag.CROSSWALK_HORIZ, v); }
+
+    // ----- Wall direction mask -----
+
+    /** Returns the wall-direction mask for this cell. 0 for non-wall cells. */
+    public int getWallDirMask(int x, int y) {
+        if (!inBounds(x, y)) return 0;
+        return wallDir[index(x, y)] & 0xFF;
+    }
+
+    /** Replaces the wall-direction mask for this cell. Callers should pass a combination of {@link #WALL_DIR_N}/S/E/W. */
+    public void setWallDirMask(int x, int y, int mask) {
+        if (!inBounds(x, y)) return;
+        wallDir[index(x, y)] = (byte) (mask & 0xFF);
+    }
+
+    /** Adds bits to this cell's wall-direction mask without disturbing existing bits. */
+    public void orWallDirMask(int x, int y, int bits) {
+        if (!inBounds(x, y)) return;
+        int idx = index(x, y);
+        wallDir[idx] = (byte) ((wallDir[idx] | bits) & 0xFF);
+    }
 
     /**
      * Flags every cell that's non-walkable on the supplied nav grid as

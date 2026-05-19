@@ -1679,17 +1679,16 @@ public class BattleScreen implements Screen, BattleUiContext {
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
                 if (!topology.isWall(x, y)) continue;
-                // pickWallTile wants "is the outside on this side?" — the
-                // old isWallOrOob proxy only got the right answer for
-                // buildings flush against the map edge (where exterior = OOB).
-                // Buildings with street/grass around them have an INDOOR
-                // interior + non-INDOOR exterior neighbors; we need the
-                // GroundKind distinction. isExteriorSide reads that directly.
-                boolean nExt = isExteriorSide(topology, x, y + 1);
-                boolean sExt = isExteriorSide(topology, x, y - 1);
-                boolean eExt = isExteriorSide(topology, x + 1, y);
-                boolean wExt = isExteriorSide(topology, x - 1, y);
-                TileManifest.TileFrame tile = TileManifest.pickWallTile(nExt, sExt, eExt, wExt);
+                // Wall direction is intrinsic — set once at gen time by the
+                // building stamper, immutable under runtime mutations (rubble
+                // appearing next to a wall doesn't reorient it). Mask bits
+                // say "the building's exterior is on my N/S/E/W side."
+                int mask = topology.getWallDirMask(x, y);
+                TileManifest.TileFrame tile = TileManifest.pickWallTile(
+                        (mask & CellTopology.WALL_DIR_N) != 0,
+                        (mask & CellTopology.WALL_DIR_S) != 0,
+                        (mask & CellTopology.WALL_DIR_E) != 0,
+                        (mask & CellTopology.WALL_DIR_W) != 0);
                 if (tile == null) {
                     fillCell(x, y, WALL_COLOR, alphaMult);
                 } else {
@@ -1753,46 +1752,6 @@ public class BattleScreen implements Screen, BattleUiContext {
             }
         }
         glEnd();
-    }
-
-    /**
-     * Wall autotile predicate: "is the outside of the building on this side?"
-     * Drives {@link TileManifest#pickWallTile} so the directional cap art
-     * lands on the perimeter facings.
-     *
-     * <ul>
-     *   <li><b>OOB</b> → true. Map-edge cells are exterior by definition.</li>
-     *   <li><b>Wall</b> → false. A wall continuation (this building's own
-     *       wall row, or an adjacent building's shared wall) is not the
-     *       outside; the cap should clip where two walls meet.</li>
-     *   <li><b>Walkable, interior ground kind</b> → false. The building's
-     *       inside is here, not the outside. The interior set is the union
-     *       of every ground kind a {@link com.dillon.starsectormarines.battle.mapgen.BlockFiller}
-     *       can paint inside its perimeter — INDOOR (residential default),
-     *       TILE (commercial polished floor), STRIPED (industrial factory
-     *       floor), and RUBBLE (breach debris from a destroyed wall, still
-     *       inside the footprint).</li>
-     *   <li><b>Walkable, any other ground kind</b> → true. STREET, COURTYARD,
-     *       GRASS/DIRT/STONE/SAND/SNOW/WATER, LZ_MARKER — all exterior
-     *       surfaces; the wall's cap faces them.</li>
-     * </ul>
-     *
-     * <p>The previous version only treated INDOOR as interior, so a
-     * commercial building's TILE-floored interior (or an industrial
-     * STRIPED interior) read as "exterior" to perimeter wall cells. With
-     * the picker's short-circuit (row = nExt ? 0 : (sExt ? 2 : 1); col =
-     * wExt ? 0 : (eExt ? 2 : 1)), a south-perimeter wall above TILE got
-     * row 0 (north cap) and an east-perimeter wall right of TILE got
-     * col 0 (west cap) — the wrong-facing art.
-     */
-    private static boolean isExteriorSide(CellTopology topology, int x, int y) {
-        if (!topology.inBounds(x, y)) return true;
-        if (topology.isWall(x, y))    return false;
-        CellTopology.GroundKind k = topology.getGroundKind(x, y);
-        return k != CellTopology.GroundKind.INDOOR
-            && k != CellTopology.GroundKind.TILE
-            && k != CellTopology.GroundKind.STRIPED
-            && k != CellTopology.GroundKind.RUBBLE;
     }
 
     /** True for in-bounds cells tagged WALL. Used by sidewalk-edge detection where the renderer cares about cell type only, not exterior-side semantics. */

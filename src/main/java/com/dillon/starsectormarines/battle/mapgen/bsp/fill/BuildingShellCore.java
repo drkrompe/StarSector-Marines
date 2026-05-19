@@ -111,6 +111,10 @@ final class BuildingShellCore {
                     topology.setGroundKind(x, y, config.interiorGround);
                 }
             }
+            // Solid block — every cell is wall, but only the leaf-perimeter
+            // cells face the outside. Interior cells of a solid block get a
+            // null mask → render-time solid fill, matching a fully-enclosed wall.
+            stampPerimeterMask(topology, bl, bt, br, bb);
             return null;
         }
 
@@ -123,6 +127,11 @@ final class BuildingShellCore {
             grid.setWalkable(bl, y, false);
             grid.setWalkable(br, y, false);
         }
+        // Wall-direction mask on every perimeter cell — building geometry
+        // determines facing directly, no neighbor query at render time. Set
+        // before doorway punching so the punch step can clear masks on the
+        // cells it demotes from wall.
+        stampPerimeterMask(topology, bl, bt, br, bb);
         // Interior floor — paint configured ground kind across every interior cell.
         for (int y = bt + 1; y <= bb - 1; y++) {
             for (int x = bl + 1; x <= br - 1; x++) {
@@ -254,6 +263,33 @@ final class BuildingShellCore {
         // overlay — even for commercial/industrial it should match the room it
         // leads into rather than poke through to STREET.
         topology.setGroundKind(doorX, doorY, interiorGround);
+    }
+
+    /**
+     * Stamps the wall-direction mask on every perimeter cell of the leaf
+     * rect, given the building's geometry. Corner cells get two bits; edge
+     * cells get one. Interior cells (if any — only relevant for the solid
+     * sub-{@link #HOLLOW_MIN_SIZE} block case) are left at 0, so the
+     * picker returns null → solid-fill fallback there.
+     */
+    private static void stampPerimeterMask(CellTopology topology,
+                                           int bl, int bt, int br, int bb) {
+        // The math y-up convention: bt is the building's BOTTOM (south)
+        // and bb is the TOP (north). BlockLeaf names use screen-space
+        // (top/bottom), but the topology is queried in math-space, so a
+        // cell at y == bb sees north-of-it as out-of-building.
+        for (int x = bl; x <= br; x++) {
+            // Bottom row (y == bt) → south face is exterior.
+            topology.orWallDirMask(x, bt, CellTopology.WALL_DIR_S);
+            // Top row (y == bb) → north face is exterior.
+            topology.orWallDirMask(x, bb, CellTopology.WALL_DIR_N);
+        }
+        for (int y = bt; y <= bb; y++) {
+            // Left col (x == bl) → west face is exterior.
+            topology.orWallDirMask(bl, y, CellTopology.WALL_DIR_W);
+            // Right col (x == br) → east face is exterior.
+            topology.orWallDirMask(br, y, CellTopology.WALL_DIR_E);
+        }
     }
 
     /** Uniformly-random int in {@code [min, max]} skipping {@code exclude}. Verbatim from legacy. */

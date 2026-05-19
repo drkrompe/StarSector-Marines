@@ -465,20 +465,20 @@ public class BuildingZonePreviewTest {
             }
         }
 
-        // Pass 3: walls. Fully-enclosed wall cells (all four neighbors are
-        // walls) fall back to a solid fill since the sheet's center cell is
-        // transparent — matches BattleScreen.fillCell(..., WALL_COLOR).
+        // Pass 3: walls. Wall direction is read straight from the per-cell
+        // mask that BuildingShellCore stamped at carve time — no neighbor
+        // query. Cells with mask=0 are interior partition walls (no
+        // exterior face); pickWallTile resolves them to the empty center
+        // cell, falling back to a solid quad below.
         for (int y = 0; y < gridH; y++) {
             for (int x = 0; x < gridW; x++) {
                 if (!topology.isWall(x, y)) continue;
-                // Math y-up topology — y+1 is north, y-1 is south. x+1 east,
-                // x-1 west. The render-time (gridH-1-y) y-flip is purely
-                // screen-space; the data lookups stay in topology coords.
-                boolean nExt = isExteriorSide(topology, x, y + 1);
-                boolean sExt = isExteriorSide(topology, x, y - 1);
-                boolean eExt = isExteriorSide(topology, x + 1, y);
-                boolean wExt = isExteriorSide(topology, x - 1, y);
-                TileManifest.TileFrame tile = TileManifest.pickWallTile(nExt, sExt, eExt, wExt);
+                int mask = topology.getWallDirMask(x, y);
+                TileManifest.TileFrame tile = TileManifest.pickWallTile(
+                        (mask & CellTopology.WALL_DIR_N) != 0,
+                        (mask & CellTopology.WALL_DIR_S) != 0,
+                        (mask & CellTopology.WALL_DIR_E) != 0,
+                        (mask & CellTopology.WALL_DIR_W) != 0);
                 if (tile == null) {
                     g.setColor(WALL_CENTER_FILL);
                     g.fillRect(x * DISPLAY_CELL_PX, (gridH - 1 - y) * DISPLAY_CELL_PX,
@@ -523,27 +523,6 @@ public class BuildingZonePreviewTest {
     private static boolean isInBoundsWall(CellTopology t, int x, int y) {
         if (!t.inBounds(x, y)) return false;
         return t.isWall(x, y);
-    }
-
-    /**
-     * Wall autotile predicate — mirrors {@code BattleScreen.isExteriorSide}.
-     * "Is the building's outside on this side?" — true for OOB and exterior
-     * ground (street/courtyard/grass/etc.), false for wall continuations
-     * and all interior ground kinds (INDOOR/TILE/STRIPED/RUBBLE — the set
-     * any {@link com.dillon.starsectormarines.battle.mapgen.BlockFiller}
-     * paints inside its perimeter). Treating only INDOOR as interior broke
-     * commercial (TILE) and industrial (STRIPED) buildings — the picker's
-     * nExt/wExt short-circuit then picked the wrong-facing art for south
-     * and east perimeter cells.
-     */
-    private static boolean isExteriorSide(CellTopology t, int x, int y) {
-        if (!t.inBounds(x, y)) return true;
-        if (t.isWall(x, y))    return false;
-        CellTopology.GroundKind k = t.getGroundKind(x, y);
-        return k != CellTopology.GroundKind.INDOOR
-            && k != CellTopology.GroundKind.TILE
-            && k != CellTopology.GroundKind.STRIPED
-            && k != CellTopology.GroundKind.RUBBLE;
     }
 
     private static Graphics2D configureGraphics(BufferedImage img) {
