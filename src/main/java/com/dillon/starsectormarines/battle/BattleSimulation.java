@@ -106,6 +106,11 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final CellTopology topology;
     private final List<Unit> units = new ArrayList<>();
     private final AirSystem airSystem = new AirSystem();
+    /** Fog-of-war contributor set + per-building roof alpha targets. Constructed empty; {@link com.dillon.starsectormarines.battle.BattleSetup} swaps in the real {@link com.dillon.starsectormarines.battle.map.Buildings} when it hands the sim a map. */
+    private com.dillon.starsectormarines.battle.map.Buildings buildings = com.dillon.starsectormarines.battle.map.Buildings.EMPTY;
+    private final com.dillon.starsectormarines.battle.vision.PlayerVisionState visionState = new com.dillon.starsectormarines.battle.vision.PlayerVisionState();
+    /** Monotonic tick counter — drives the every-3rd-tick fog-of-war visibility pass. */
+    private int tickIndex;
     /** Handheld squad weapons (rifle / SMG / DMR / rocket launcher). Owns fireShot, fireSecondary, and the per-tick burst continuation pass. Pumped each tick via {@code infantry.tick(this)}; behavior call sites still go through the delegating {@link #fireShot} / {@link #fireSecondary} wrappers on this class. */
     private final InfantryWeapons infantry = new InfantryWeapons();
     /** Chassis-mounted weapons on motorized / heavy units (mech today, future tanks/hovercraft). Owns fireMechWeapon and the per-tick mech continuation + wreck-spawn passes. */
@@ -201,6 +206,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final byte[] occupancyMap;
 
     private float tickAccumulator = 0f;
+    /** Monotonic sim-tick counter incremented at the top of every {@link #tick}. Read by per-hit gates that want to fire at most once per tick (e.g. {@link #rollReprioritizeOnHit}). */
+    public int simTickIndex = 0;
     private boolean complete = false;
     private Faction winner;
 
@@ -441,6 +448,59 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                 0.05f + rng.nextFloat() * 0.10f));
     }
 
+    /**
+     * Base chance a hit triggers a mech target re-evaluation when the mech
+     * still has line-of-sight to its current target. Moderate — keeps the
+     * mech from twitchy-switching every burst it takes but eventually
+     * forces a look when flankers stack up hits.
+     */
+    private static final float REPRIORITIZE_BASE_CHANCE = 0.35f;
+    /**
+     * Bump when the mech's current target has no LoS. Compounds with
+     * {@link #REPRIORITIZE_BASE_CHANCE} for a much higher reprio chance —
+     * the "I'm chasing what I can't see while someone else shoots me"
+     * failure mode that prompted this hook.
+     */
+    private static final float REPRIORITIZE_NO_LOS_CHANCE = 0.85f;
+
+    @Override
+    public void rollReprioritizeOnHit(Unit target, Unit shooter) {
+        if (!target.isAlive()) return;
+        // Only target-latching units reprio — mechs (lock until reset) and
+        // turrets (lock once and slew). Infantry GOAP refreshes targets on
+        // the squad replan, so the per-hit reprio would just step on the
+        // planner. Both qualifying types share the "locked on someone I
+        // can't see while flankers shoot me free" failure mode.
+        boolean qualifies = target.mech != null || target instanceof MapTurret;
+        if (!qualifies) return;
+        // One roll per sim-tick. A 4-marine squad firing in the same tick
+        // would otherwise compound a 0.35 base chance into ~0.82 cumulative
+        // — near-constant target twitching. Latch the tick index on first
+        // attempt regardless of success/failure so subsequent hits this
+        // tick wait for the next one.
+        if (target.lastReprioTickIndex == simTickIndex) return;
+        target.lastReprioTickIndex = simTickIndex;
+        // No current target → next behavior tick will pick fresh anyway.
+        if (target.target == null || !target.target.isAlive()) return;
+        // Already targeting the shooter → no point re-rolling.
+        if (shooter != null && target.target == shooter) return;
+        // Reprio chance bumps heavily when current target is out of LoS —
+        // chasing a target you can't see while taking incoming is the
+        // failure mode this hook exists to break.
+        boolean hasLosToCurrentTarget = grid.hasLineOfSight(
+                target.cellX, target.cellY,
+                target.target.cellX, target.target.cellY);
+        float chance = hasLosToCurrentTarget ? REPRIORITIZE_BASE_CHANCE : REPRIORITIZE_NO_LOS_CHANCE;
+        if (rng.nextFloat() >= chance) return;
+        // Clear the target — next behavior tick (EngageAtCurrentBand /
+        // OverwatchKillZone / BackstopAssignedSquad for mechs, TurretAim
+        // for turrets) calls its target-picker on the null check.
+        // findBestTarget already weights distance + LOS + threat density,
+        // so a closer-with-LOS flanker beats an out-of-LOS chase target
+        // naturally.
+        target.target = null;
+    }
+
     @Override
     public void rollFallbackOnHit(Unit target) {
         if (!target.isAlive()) return;
@@ -521,6 +581,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     }
 
     private void tick() {
+        simTickIndex++;
         // Backstop: if a caller (currently BattleSetup) hasn't registered
         // objectives, install the default eliminate-each-other pair so the
         // old behavior keeps working untouched. Run-once on first tick.

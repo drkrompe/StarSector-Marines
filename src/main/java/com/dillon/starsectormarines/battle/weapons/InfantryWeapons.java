@@ -93,6 +93,11 @@ public class InfantryWeapons {
             // Fall-back roll fires only on hit; the context decides eligibility
             // (turrets, already-falling-back units, dead units are all skipped).
             ctx.rollFallbackOnHit(target);
+            // Reprio roll only matters for target-latching units (mechs +
+            // turrets); the context short-circuits otherwise. Gated to once
+            // per sim-tick inside the impl so a 4-marine squad opening up
+            // doesn't compound into a near-100% reprio.
+            ctx.rollReprioritizeOnHit(target, shooter);
         }
 
         float fromX = shooter.cellX + 0.5f;

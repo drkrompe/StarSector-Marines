@@ -123,6 +123,11 @@ public class HeavyWeapons {
         if (!isAoe && hit) {
             ctx.applyDamage(target, weapon.damage, weapon.vsTurretMult, moraleImpact);
             ctx.rollFallbackOnHit(target);
+            // Mech-vs-mech reprio — rare today (both sides have mech-only
+            // squads on their own faction) but consistent with the
+            // infantry-side rifle path. Gated to once per sim-tick inside
+            // the impl.
+            ctx.rollReprioritizeOnHit(target, shooter);
         }
 
         // AOE PATH — queue a detonation at the (possibly wall-snapped)

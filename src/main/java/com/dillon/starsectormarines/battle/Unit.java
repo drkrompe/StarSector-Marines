@@ -100,6 +100,19 @@ public class Unit {
     public float wanderDwellTimer = 0f;
 
     /**
+     * Sim-tick index of the last {@code rollReprioritizeOnHit} attempt
+     * against this unit. Compared to {@link com.dillon.starsectormarines.battle.BattleSimulation#simTickIndex}
+     * to gate the reprio to one roll per tick — without the gate, a 4-marine
+     * squad opening up in the same tick gives the mech a ~82% per-tick
+     * reprio chance from the base 0.35 rate (1 − 0.65⁴), which produces
+     * near-constant target twitching. Only mechs + turrets pay attention
+     * to this field; infantry leaves it at the -1 sentinel. {@code -1}
+     * before the first reprio attempt and stays at -1 for units that
+     * never qualify (infantry, civilians, dead units).
+     */
+    public int lastReprioTickIndex = -1;
+
+    /**
      * Cell this unit returns to when nothing else is happening — the
      * "post" they were assigned at spawn. Used by {@link UnitRole#GARRISON}
      * for idle behavior: members path to their home and idle there while

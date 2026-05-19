@@ -79,6 +79,25 @@ public interface WeaponSimContext {
     void rollFallbackOnHit(Unit target);
 
     /**
+     * Rolls a target re-prioritization on a target-latching unit that just
+     * took a direct hit — mechs and turrets. No-op for infantry; infantry
+     * GOAP handles its own target picking through
+     * {@code TacticalScoring.findBestTarget} on each replan, so the per-hit
+     * reprio would just step on the planner. Mechs and turrets latch their
+     * {@code target} field once locked, which produces the "locked on
+     * someone I can't see while flankers shoot me free" failure mode the
+     * hook exists to break. The roll bumps heavily when the unit's
+     * current target is out of line-of-sight, lighter when it just isn't
+     * the shooter — both cases ask the unit's target-picker to re-evaluate
+     * on the next behavior tick.
+     *
+     * <p>{@code shooter} is the unit firing the hit; pass {@code null} when
+     * the source isn't a {@link Unit}. Used only to skip the roll when the
+     * target is already locked on its shooter.
+     */
+    void rollReprioritizeOnHit(Unit target, Unit shooter);
+
+    /**
      * Knocks HP off the wall at ({@code x}, {@code y}). No-op on walkable
      * cells (rocket hit ground, not a wall). Returns {@code true} on the
      * call that collapses the wall (HP reaches zero), {@code false}
