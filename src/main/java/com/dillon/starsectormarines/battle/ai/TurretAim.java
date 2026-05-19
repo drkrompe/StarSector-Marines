@@ -160,7 +160,7 @@ public final class TurretAim {
         int y = y0;
         while (true) {
             boolean endpoint = (x == x0 && y == y0) || (x == x1 && y == y1);
-            if (!endpoint && !grid.isWalkable(x, y)) {
+            if (!endpoint && grid.blocksLineOfSightAt(grid.index(x, y))) {
                 float distSq = (float) ((x - x0) * (x - x0) + (y - y0) * (y - y0));
                 if (distSq > r2) return false;
                 // else: wall is part of the "shuttle's building"; ignore.

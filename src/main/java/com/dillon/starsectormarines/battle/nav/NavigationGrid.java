@@ -59,7 +59,19 @@ public class NavigationGrid {
     public enum CellTag {
         WALKABLE,
         /** Zone-graph partition cell. Treated as a portal between adjacent zones rather than collapsing them into one. Punched at gen time on building doorways and on wall breaches. */
-        DOORWAY;
+        DOORWAY,
+        /**
+         * Non-walkable cell that bullets and sight still pass through. Meaningful
+         * only when {@link #WALKABLE} is clear — walkable cells are LoS-passable
+         * by default and never read this bit. Set on water (units can't wade in,
+         * but a marine on the shore can shoot across the pond). Future
+         * candidates: low fences, knee-high rubble, glass panes, smoke clouds.
+         *
+         * <p>The LoS / firing raycast asks {@link #blocksLineOfSightAt}: a cell
+         * blocks iff it is non-walkable AND not see-through. This bit is the
+         * positive opt-out for that rule.
+         */
+        SEE_THROUGH;
 
         public long mask() { return 1L << ordinal(); }
     }
@@ -150,10 +162,25 @@ public class NavigationGrid {
         return (edgePassability[idx] & mask) != 0;
     }
 
+    /**
+     * True if this cell stops a line of sight / projectile raycast. A cell
+     * blocks iff it is non-walkable AND not flagged {@link CellTag#SEE_THROUGH}.
+     * Walkable cells never block; non-walkable see-through cells (water today,
+     * glass/fences/smoke later) let shots and sight pass.
+     */
+    public boolean blocksLineOfSightAt(int idx) {
+        long flags = cellFlags[idx];
+        return (flags & CellTag.WALKABLE.mask())    == 0L
+            && (flags & CellTag.SEE_THROUGH.mask()) == 0L;
+    }
+
     // ----- Cell flags (bounds-checked typed wrappers around hasTag/setTag) -----
 
     public boolean isWalkable(int x, int y)            { return hasTag(x, y, CellTag.WALKABLE); }
     public void    setWalkable(int x, int y, boolean v){ setTag(x, y, CellTag.WALKABLE, v); }
+
+    public boolean isSeeThrough(int x, int y)             { return hasTag(x, y, CellTag.SEE_THROUGH); }
+    public void    setSeeThrough(int x, int y, boolean v) { setTag(x, y, CellTag.SEE_THROUGH, v); }
 
     /** Marks the cell walkable and opens all eight edges. */
     public void setWalkableFloor(int x, int y) {
@@ -349,9 +376,10 @@ public class NavigationGrid {
 
     /**
      * Bresenham trace from {@code (x0,y0)} to {@code (x1,y1)} — returns false
-     * if any non-endpoint cell on the line is non-walkable. Endpoints are
-     * exempt so a shooter can stand in a cell flagged non-walkable (they
-     * normally don't) and a target's cell never blocks the shot at itself.
+     * if any non-endpoint cell on the line blocks LoS per
+     * {@link #blocksLineOfSightAt}. Endpoints are exempt so a shooter can
+     * stand in a cell flagged non-walkable (they normally don't) and a
+     * target's cell never blocks the shot at itself.
      *
      * <p>Basic Bresenham — doesn't visit every cell the geometric line
      * crosses, so a diagonal "tunnel" through corner-touching walls reads as
@@ -368,7 +396,7 @@ public class NavigationGrid {
         int y = y0;
         while (true) {
             boolean endpoint = (x == x0 && y == y0) || (x == x1 && y == y1);
-            if (!endpoint && !isWalkable(x, y)) return false;
+            if (!endpoint && blocksLineOfSightAt(index(x, y))) return false;
             if (x == x1 && y == y1) return true;
             int e2 = err << 1;
             if (e2 > -dy) { err -= dy; x += sx; }
@@ -378,8 +406,10 @@ public class NavigationGrid {
 
     /**
      * Bresenham raycast from {@code (x0, y0)} to {@code (x1, y1)} that returns
-     * the first non-walkable cell encountered (excluding the origin), or
-     * {@code (-1, -1)} if the line is clear all the way to the endpoint.
+     * the first LoS-blocking cell encountered (excluding the origin) per
+     * {@link #blocksLineOfSightAt}, or {@code (-1, -1)} if the line is clear
+     * all the way to the endpoint. See-through non-walkable cells (water,
+     * future glass/smoke) are skipped — bullets pass through them.
      *
      * <p>Returned as a packed long: low 32 bits = x, next 32 bits = y. Caller
      * unpacks with {@code (int) (packed)} and {@code (int) (packed >>> 32)}.
@@ -401,7 +431,7 @@ public class NavigationGrid {
         int x = x0;
         int y = y0;
         while (true) {
-            if (!(x == x0 && y == y0) && !isWalkable(x, y)) {
+            if (!(x == x0 && y == y0) && blocksLineOfSightAt(index(x, y))) {
                 return (((long) y & 0xFFFFFFFFL) << 32) | ((long) x & 0xFFFFFFFFL);
             }
             if (x == x1 && y == y1) return (((long) -1) & 0xFFFFFFFFL) << 32 | (((long) -1) & 0xFFFFFFFFL);

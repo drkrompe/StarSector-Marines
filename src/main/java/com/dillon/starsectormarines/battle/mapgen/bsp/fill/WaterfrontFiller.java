@@ -165,10 +165,15 @@ public final class WaterfrontFiller implements BlockFiller {
         }
     }
 
-    /** Stamp one water cell: WATER ground + non-walkable nav. */
+    /**
+     * Stamp one water cell: WATER ground + non-walkable nav + SEE_THROUGH so
+     * the LoS raycast lets shots fly across the pond. Units can't wade in,
+     * but a marine on the shore can shoot a defender on the opposite bank.
+     */
     private void markWater(int x, int y, NavigationGrid grid, CellTopology topology) {
         topology.setGroundKind(x, y, GroundKind.WATER);
         grid.setWalkable(x, y, false);
+        grid.setSeeThrough(x, y, true);
     }
 
     /**
