@@ -100,8 +100,10 @@ final class BuildingLayouts {
     /**
      * Residential. Picks one long wall and runs a chair wall-line along it
      * (every other cell, alternating yellow/green for noise) so it reads
-     * as paired seating against the wall, then drops a 1-2 prop cluster
-     * (chest + chair) from the pool elsewhere.
+     * as paired seating against the wall, then drops a 1-2 chest cluster
+     * free-placed elsewhere — chests give the "storage / dresser" half of
+     * a real room so it reads as seating + furniture, not waiting-room
+     * overflow.
      */
     private static void applyHome(NavigationGrid grid,
                                   int bl, int bt, int br, int bb,
@@ -112,6 +114,10 @@ final class BuildingLayouts {
                 new TileManifest.TileFrame(6, 1),  // chair-south-yellow
                 new TileManifest.TileFrame(7, 1),  // chair-south-green
         };
+        TileManifest.TileFrame[] chests = {
+                new TileManifest.TileFrame(3, 3),  // chest-1
+                new TileManifest.TileFrame(4, 3),  // chest-2
+        };
         // Pick the longer pair of walls and run a chair line on one of them.
         boolean wallsAreHorizontal = (br - bl) >= (bb - bt);
         WallSide side = wallsAreHorizontal
@@ -119,16 +125,14 @@ final class BuildingLayouts {
                 : (rng.nextBoolean() ? WallSide.E : WallSide.W);
         wallLineMix(grid, bl, bt, br, bb, side, chairs, /*spacing*/ 2, doodads, rng);
 
-        // 1-2 extra cluster props from the per-type pool, free-placed in the
-        // opposite half of the building.
-        if (pool != null && pool.length > 0) {
-            int clusterPicks = 1 + rng.nextInt(2);
-            for (int i = 0; i < clusterPicks; i++) {
-                int[] cell = pickFreeInteriorCell(grid, bl, bt, br, bb, doodads, rng);
-                if (cell == null) break;
-                TileManifest.TileFrame f = pool[rng.nextInt(pool.length)];
-                doodads.add(new Doodad(cell[0], cell[1], f));
-            }
+        // Chest cluster — 1-2 free-placed, deliberately not chairs so the
+        // building has a non-seating prop type. Pool is unused for HOME;
+        // it's still passed for SHED/tiny fallback in the dispatcher.
+        int clusterPicks = 1 + rng.nextInt(2);
+        for (int i = 0; i < clusterPicks; i++) {
+            int[] cell = pickFreeInteriorCell(grid, bl, bt, br, bb, doodads, rng);
+            if (cell == null) break;
+            doodads.add(new Doodad(cell[0], cell[1], chests[rng.nextInt(chests.length)]));
         }
     }
 
