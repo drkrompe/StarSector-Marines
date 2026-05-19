@@ -336,6 +336,19 @@ public class BattleScreen implements Screen, BattleUiContext {
     private boolean urbanTile3SheetLoadAttempted;
     private SpriteSheetFrames urbanTile3Frames;
     /**
+     * Cached nature-tiles.png sheet — sliced strip carrying grass / dirt /
+     * sand / water ground variants plus plant + rock overlays. Loaded the
+     * same way as {@link #urbanTile3Sheet} (slicer-detected variable bbox
+     * per frame, cached in {@link #natureFrames}). GRASS and DIRT
+     * {@link CellTopology.GroundKind} cells dispatch through this sheet —
+     * the Floors_Tiles autotile path is retired for those two kinds.
+     */
+    private SpriteAPI natureSheet;
+    private int natureSheetPxW;
+    private int natureSheetPxH;
+    private boolean natureSheetLoadAttempted;
+    private SpriteSheetFrames natureFrames;
+    /**
      * Per-sheet quad batchers. Lazily constructed when each sheet finishes
      * loading. Reused across passes — the urban batch is appended to by
      * both the floor pass (rubble + INDOOR + DOOR_OPEN overlays) and the
@@ -347,6 +360,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     private QuadBatch floorsBatch;
     private QuadBatch waterBatch;
     private QuadBatch urbanTile3Batch;
+    private QuadBatch natureBatch;
     /**
      * Solid-color batch for in-loop fills that need to share painter
      * ordering with the textured batches — crosswalk stripes (drawn over
@@ -391,6 +405,19 @@ public class BattleScreen implements Screen, BattleUiContext {
      */
     private final java.util.EnumMap<ShuttleType, ShuttleSpriteCache> shuttleSprites = new java.util.EnumMap<>(ShuttleType.class);
     private boolean shuttleSpritesLoadAttempted;
+
+    /**
+     * Vanilla engine-FX sprites — drawn under each shuttle's hull to sell
+     * the "thrusters firing" read. The flame is a column-shaped plume that
+     * elongates with throttle; the glow is a soft halo behind it. Both are
+     * tinted at draw time by {@link EngineStylePalette} based on the
+     * per-slot style read out of the .ship spec.
+     */
+    private static final String ENGINE_FLAME_SPRITE = "graphics/fx/engineflame32.png";
+    private static final String ENGINE_GLOW_SPRITE  = "graphics/fx/engineglow32.png";
+    private SpriteAPI engineFlameSprite;
+    private SpriteAPI engineGlowSprite;
+    private boolean engineFxSpritesLoadAttempted;
 
     /** Lazy-loaded objective marker icons. Null entries fall back to colored rectangles. */
     private SpriteAPI iconAlarm;
@@ -440,9 +467,11 @@ public class BattleScreen implements Screen, BattleUiContext {
         ensureTileSheet();
         ensureRoadSheet();
         ensureFloorsSheet();
+        ensureNatureSheet();
         ensureWaterSheet();
         ensureUrbanTile3Sheet();
         ensureShuttleSprites();
+        ensureEngineFxSprites();
         ensureObjectiveIcons();
         impactFx.ensureSprites();
         startBattleAudio();
@@ -627,6 +656,59 @@ public class BattleScreen implements Screen, BattleUiContext {
     }
 
     /**
+     * Lazy-loads the nature-tiles sheet — sliced strip with grass / dirt /
+     * sand / water ground variants plus overlay frames. Same shape as
+     * {@link #ensureUrbanTile3Sheet}. On success the slicer frames live in
+     * {@link #natureFrames} and the per-sheet batch is built so GRASS and
+     * DIRT cells can dispatch through it.
+     */
+    private void ensureNatureSheet() {
+        if (natureSheetLoadAttempted) return;
+        natureSheetLoadAttempted = true;
+        try {
+            Global.getSettings().loadTexture(com.dillon.starsectormarines.battle.sprites.NatureTileset.SHEET_PATH);
+            natureSheet = Global.getSettings().getSprite(com.dillon.starsectormarines.battle.sprites.NatureTileset.SHEET_PATH);
+            if (natureSheet == null) {
+                LOG.warn("BattleScreen: getSprite returned null for "
+                        + com.dillon.starsectormarines.battle.sprites.NatureTileset.SHEET_PATH);
+                return;
+            }
+            try (java.io.InputStream stream = Global.getSettings().openStream(
+                    com.dillon.starsectormarines.battle.sprites.NatureTileset.SHEET_PATH)) {
+                BufferedImage img = ImageIO.read(stream);
+                if (img == null) {
+                    LOG.warn("BattleScreen: ImageIO.read returned null for "
+                            + com.dillon.starsectormarines.battle.sprites.NatureTileset.SHEET_PATH);
+                    natureSheet = null;
+                    return;
+                }
+                natureSheetPxW = img.getWidth();
+                natureSheetPxH = img.getHeight();
+                natureFrames = SpriteSheetSlicer.slice(img);
+                int expected = com.dillon.starsectormarines.battle.sprites.NatureTile.values().length;
+                if (natureFrames.frames.length != expected) {
+                    LOG.warn("BattleScreen: nature-tiles slicer returned "
+                            + natureFrames.frames.length + " frames but NatureTile expects "
+                            + expected + " — falling back to legacy Floors_Tiles grass/dirt");
+                    natureSheet = null;
+                    natureFrames = null;
+                    return;
+                }
+                natureBatch = new QuadBatch(natureSheet, natureSheetPxW, natureSheetPxH, 4096);
+                LOG.info("BattleScreen: loaded nature-tiles "
+                        + com.dillon.starsectormarines.battle.sprites.NatureTileset.SHEET_PATH
+                        + " (" + natureSheetPxW + "x" + natureSheetPxH + "), "
+                        + natureFrames.frames.length + " frames sliced");
+            }
+        } catch (Exception e) {
+            LOG.error("BattleScreen: failed to load nature-tiles "
+                    + com.dillon.starsectormarines.battle.sprites.NatureTileset.SHEET_PATH, e);
+            natureSheet = null;
+            natureFrames = null;
+        }
+    }
+
+    /**
      * Lazy-loads the urban-tileset-3 sheet — sliced strip with variable-width
      * cells separated by alpha gutters, so the frame bboxes are computed by
      * {@link SpriteSheetSlicer} rather than read off a fixed grid. Same
@@ -682,6 +764,33 @@ public class BattleScreen implements Screen, BattleUiContext {
      * changes. Same lazy-load pattern as the marine sheet — getSprite returns
      * a wrapper whose backing texture is null until loadTexture is called.
      */
+    /**
+     * Lazy-loads the vanilla engine flame + glow textures. Same one-shot
+     * pattern as {@link #ensureShuttleSprites()}: try to load each path
+     * once, log + degrade gracefully if either fails. A missing engine
+     * sprite just means the engine pass renders nothing — no crash.
+     */
+    private void ensureEngineFxSprites() {
+        if (engineFxSpritesLoadAttempted) return;
+        engineFxSpritesLoadAttempted = true;
+        engineFlameSprite = loadEngineFxSpriteOrNull(ENGINE_FLAME_SPRITE);
+        engineGlowSprite  = loadEngineFxSpriteOrNull(ENGINE_GLOW_SPRITE);
+    }
+
+    private SpriteAPI loadEngineFxSpriteOrNull(String path) {
+        try {
+            Global.getSettings().loadTexture(path);
+            SpriteAPI s = Global.getSettings().getSprite(path);
+            if (s == null) {
+                LOG.warn("BattleScreen: getSprite returned null for " + path);
+            }
+            return s;
+        } catch (Exception e) {
+            LOG.error("BattleScreen: failed to load engine FX sprite " + path, e);
+            return null;
+        }
+    }
+
     private void ensureShuttleSprites() {
         if (shuttleSpritesLoadAttempted) return;
         shuttleSpritesLoadAttempted = true;
@@ -1690,10 +1799,15 @@ public class BattleScreen implements Screen, BattleUiContext {
                             // straight runs get the plain slab. Road cells get
                             // a uniform paver — no autotile, no fallback fill.
                             if (isSidewalkCell(grid, topology, x, y)) {
-                                boolean nNotSw = !isSidewalkCell(grid, topology, x, y + 1);
-                                boolean sNotSw = !isSidewalkCell(grid, topology, x, y - 1);
-                                boolean eNotSw = !isSidewalkCell(grid, topology, x + 1, y);
-                                boolean wNotSw = !isSidewalkCell(grid, topology, x - 1, y);
+                                // Use isSidewalkLikeCell on neighbors so a wall-
+                                // adjacent STREET sidewalk that butts up against
+                                // an explicit GroundKind.SIDEWALK (the trunk's
+                                // 2-thick flank, e.g.) reads as one continuous
+                                // strip rather than picking a corner at the seam.
+                                boolean nNotSw = !isSidewalkLikeCell(grid, topology, x, y + 1);
+                                boolean sNotSw = !isSidewalkLikeCell(grid, topology, x, y - 1);
+                                boolean eNotSw = !isSidewalkLikeCell(grid, topology, x + 1, y);
+                                boolean wNotSw = !isSidewalkLikeCell(grid, topology, x - 1, y);
                                 UrbanTile3 frame = TileManifest.pickStreet3SidewalkFrame(
                                         nNotSw, sNotSw, eNotSw, wNotSw);
                                 drawUrbanTile3Frame(frame, x, y, alphaMult);
@@ -1764,12 +1878,30 @@ public class BattleScreen implements Screen, BattleUiContext {
                         if (roadSheet != null) drawRoadTile(f, x, y, alphaMult, GROUND_TILE_EDGE_INSET_PX);
                         break;
                     }
-                    case SIDEWALK: {
-                        // Outdoor paved-pavement (fl-tile-1..5 on the floors
-                        // sheet). Per-cell variant hash so plazas/boulevards
-                        // get noise rather than a uniform stamp.
-                        TileManifest.TileFrame f = TileManifest.pickSidewalkTile(x, y);
+                    case BRICK: {
+                        // Brick paving (fl-tile-1..5 on the floors sheet).
+                        // Plaza centers, building roofs (planned), large
+                        // uniform paved areas. Per-cell variant hash gives
+                        // noise rather than a uniform stamp.
+                        TileManifest.TileFrame f = TileManifest.pickBrickTile(x, y);
                         drawFloorsTile(f, x, y, alphaMult);
+                        break;
+                    }
+                    case SIDEWALK: {
+                        // Curb-side sidewalk strip — same urban-tileset-3
+                        // picker the STREET-wall-adjacent path uses, so an
+                        // explicit SIDEWALK cell flanking a wall-adjacent
+                        // STREET sidewalk reads as one continuous strip.
+                        // "Not sidewalk" = neither tagged SIDEWALK nor a
+                        // STREET-wall-adjacent cell that the renderer would
+                        // also stamp with urban-3 sidewalk art.
+                        boolean nNotSw = !isSidewalkLikeCell(grid, topology, x, y + 1);
+                        boolean sNotSw = !isSidewalkLikeCell(grid, topology, x, y - 1);
+                        boolean eNotSw = !isSidewalkLikeCell(grid, topology, x + 1, y);
+                        boolean wNotSw = !isSidewalkLikeCell(grid, topology, x - 1, y);
+                        UrbanTile3 frame = TileManifest.pickStreet3SidewalkFrame(
+                                nNotSw, sNotSw, eNotSw, wNotSw);
+                        drawUrbanTile3Frame(frame, x, y, alphaMult);
                         break;
                     }
                     case STRIPED: {
@@ -1815,6 +1947,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         try (GlStateBracket gl = GlStateBracket.textured2D()) {
             if (roadBatch       != null) roadBatch.flush();
             if (urbanTile3Batch != null) urbanTile3Batch.flush();
+            if (natureBatch     != null) natureBatch.flush();
             if (floorsBatch     != null) floorsBatch.flush();
             if (waterBatch      != null) waterBatch.flush();
             if (urbanBatch      != null) urbanBatch.flush();
@@ -1929,6 +2062,20 @@ public class BattleScreen implements Screen, BattleUiContext {
                 || isInBoundsWall(topology, x - 1, y)
                 || isInBoundsWall(topology, x, y + 1)
                 || isInBoundsWall(topology, x, y - 1);
+    }
+
+    /**
+     * Either an explicitly-tagged {@link CellTopology.GroundKind#SIDEWALK} cell
+     * (the gen-time route — wide trunk flanks, etc.) or an implicit
+     * STREET-wall-adjacent sidewalk cell. Used as the "is this neighbor part
+     * of the same sidewalk strip?" predicate by the urban-tileset-3 corner
+     * picker, so the two paths join at their shared edges without picking a
+     * corner artifact at the boundary.
+     */
+    private static boolean isSidewalkLikeCell(NavigationGrid grid, CellTopology topology, int x, int y) {
+        if (!topology.inBounds(x, y)) return false;
+        if (topology.getGroundKind(x, y) == CellTopology.GroundKind.SIDEWALK) return true;
+        return isSidewalkCell(grid, topology, x, y);
     }
 
     /**
@@ -2051,6 +2198,33 @@ public class BattleScreen implements Screen, BattleUiContext {
     }
 
     /**
+     * Counterpart to {@link #drawUrbanTile3Frame} for the nature-tiles sheet.
+     * Stamps one {@link com.dillon.starsectormarines.battle.sprites.NatureTile}
+     * frame at {@code (gridX, gridY)} via the slicer-detected per-frame bbox
+     * cached in {@link #natureFrames}. Ground tiles get the standard inset,
+     * overlay tiles get inset=0 — same convention as urban-tileset-3.
+     */
+    private void drawNatureTile(com.dillon.starsectormarines.battle.sprites.NatureTile tile,
+                                int gridX, int gridY, float alphaMult) {
+        if (natureBatch == null || natureFrames == null || tile == null) return;
+        int idx = tile.frameIndex();
+        if (idx < 0 || idx >= natureFrames.frames.length) return;
+        SpriteSheetFrames.Frame f = natureFrames.frames[idx];
+        int inset = tile.isGround() ? GROUND_TILE_EDGE_INSET_PX : 0;
+        int srcPxX = f.x + inset;
+        int srcPxY = f.y + inset;
+        int srcPxW = Math.max(1, f.w - 2 * inset);
+        int srcPxH = Math.max(1, f.h - 2 * inset);
+
+        float cellPx = camera.cellPxSize();
+        float cx = camera.cellToScreenX(gridX + 0.5f);
+        float cy = camera.cellToScreenY(gridY + 0.5f);
+        natureBatch.append(srcPxX, srcPxY, srcPxW, srcPxH,
+                cx, cy, cellPx, cellPx,
+                1f, 1f, 1f, alphaMult);
+    }
+
+    /**
      * Dispatch for the "same-kind autotile" ground kinds (grass, dirt, stone,
      * sand, snow, water) — picks the right picker and the right sheet, then
      * draws. Neighbor predicate is "is this neighbor the SAME ground kind",
@@ -2068,6 +2242,23 @@ public class BattleScreen implements Screen, BattleUiContext {
         // practice (doubled dark trim at kind transitions, water-sheet
         // "shore" art assumes grass adjacency it can't guarantee). Hard
         // cell-boundary transitions are the accepted look.
+        //
+        // GRASS and DIRT dispatch through the sliced nature-tiles sheet —
+        // hash-picked from a two-variant pool per kind so parks and yards
+        // don't read as a uniform single-frame stamp. Falls back to the
+        // legacy Floors_Tiles autotile only if the nature sheet failed to
+        // load, since the Floors_Tiles grass / dirt art is the second-best
+        // option for these surfaces.
+        if (natureBatch != null) {
+            if (kind == CellTopology.GroundKind.GRASS) {
+                drawNatureTile(TileManifest.pickNatureGrassTile(x, y), x, y, alphaMult);
+                return;
+            }
+            if (kind == CellTopology.GroundKind.DIRT) {
+                drawNatureTile(TileManifest.pickNatureDirtTile(x, y), x, y, alphaMult);
+                return;
+            }
+        }
         TileManifest.TileFrame f;
         switch (kind) {
             case GRASS: f = TileManifest.pickGrassTile(false, false, false, false, x, y); break;
@@ -2645,6 +2836,11 @@ public class BattleScreen implements Screen, BattleUiContext {
             float altOffset = s.visualAltitudeOffsetCells();
             float cx = camera.cellToScreenX(s.body.x);
             float cy = camera.cellToScreenY(s.body.y + altOffset);
+            // Engines first, so the hull's opaque alpha-over render naturally
+            // covers the chamber end of each plume — only the protruding
+            // length pokes out aft. Matches vanilla's "render engines under"
+            // convention; turrets layer on top of the hull afterwards.
+            renderShuttleEngines(s, alphaMult, altOffset);
             sprite.renderAtCenter(cx, cy);
             renderShuttleTurrets(s, alphaMult, altOffset);
         }
@@ -2652,6 +2848,109 @@ public class BattleScreen implements Screen, BattleUiContext {
         // into whatever else might draw it.
         for (ShuttleSpriteCache cache : shuttleSprites.values()) {
             cache.sprite.setAngle(0f);
+        }
+    }
+
+    /**
+     * Draws engine plumes under the shuttle hull. Slot definitions are
+     * scraped from the matching vanilla {@code .ship} spec (see
+     * {@link com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver}),
+     * so modded hulls drop in for free with no code change.
+     *
+     * <p>Per slot: rotate the local offset by the hull facing (with
+     * {@code scaleMult} applied to keep engines attached during landing),
+     * compute the plume world direction as {@code hull facing + slot angle},
+     * then draw glow (soft halo) + flame (elongated column) at additive
+     * blend, tinted by {@link com.dillon.starsectormarines.battle.air.engine.EngineStylePalette}.
+     * Length and alpha scale with {@link com.dillon.starsectormarines.battle.air.Shuttle#engineIntensity()}
+     * so engines idle short on the ground and stretch full at cruise.
+     *
+     * <p>Renders nothing — no crash — when slot resolution failed for the
+     * type or the vanilla FX sprites didn't load.
+     */
+    private void renderShuttleEngines(com.dillon.starsectormarines.battle.air.Shuttle s, float alphaMult,
+                                      float altOffsetCells) {
+        com.dillon.starsectormarines.battle.air.engine.EngineSlotData[] slots =
+                com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver.resolve(s.type);
+        if (slots.length == 0) return;
+        if (engineFlameSprite == null && engineGlowSprite == null) return;
+
+        float intensity = s.engineIntensity();
+        if (intensity <= 0f) return;
+
+        float rad = (float) Math.toRadians(s.body.facingDegrees);
+        float cos = (float) Math.cos(rad);
+        float sin = (float) Math.sin(rad);
+        float cellPx = camera.cellPxSize();
+
+        for (com.dillon.starsectormarines.battle.air.engine.EngineSlotData es : slots) {
+            // Slot world position — same scale-then-rotate pattern as the
+            // turret-mount pass so engines stay locked to their hardpoints
+            // through the landing/takeoff scale lerp.
+            float lx = es.localX * s.scaleMult;
+            float ly = es.localY * s.scaleMult;
+            float worldOffsetX = lx * cos - ly * sin;
+            float worldOffsetY = lx * sin + ly * cos;
+            float wx = s.body.x + worldOffsetX;
+            float wy = s.body.y + worldOffsetY + altOffsetCells;
+            float screenX = camera.cellToScreenX(wx);
+            float screenY = camera.cellToScreenY(wy);
+
+            // Plume world direction = hull facing + slot angle. Both follow
+            // the 0°=+Y CCW-positive convention so they sum directly.
+            float plumeDir = s.body.facingDegrees + es.angleDegrees;
+            double plumeRad = Math.toRadians(plumeDir);
+            float plumeDX = (float) -Math.sin(plumeRad);
+            float plumeDY = (float)  Math.cos(plumeRad);
+
+            // Length and alpha breathe with throttle — idle (0.3) is half-
+            // length and dim, cruise (1.0) is full.
+            float lenCells   = es.lengthCells * s.scaleMult * (0.4f + 0.6f * intensity);
+            float widthCells = es.widthCells  * s.scaleMult * (0.7f + 0.3f * intensity);
+            float lenPx = lenCells * cellPx;
+            float widthPx = widthCells * cellPx;
+            float flameAlpha = alphaMult * (0.5f + 0.5f * intensity);
+
+            java.awt.Color flame = com.dillon.starsectormarines.battle.air.engine.EngineStylePalette
+                    .flameColor(es.style);
+
+            // Glow halo — anchored at the slot. Sized to ~2× the flame
+            // width so it reads as a soft bloom around the nozzle.
+            if (engineGlowSprite != null) {
+                float glowSize = Math.max(widthPx * 2.0f, cellPx * 0.4f);
+                engineGlowSprite.setSize(glowSize, glowSize);
+                engineGlowSprite.setAngle(0f);
+                engineGlowSprite.setAlphaMult(flameAlpha);
+                engineGlowSprite.setAdditiveBlend();
+                engineGlowSprite.setColor(flame);
+                engineGlowSprite.renderAtCenter(screenX, screenY);
+            }
+
+            // Flame plume — column anchored with its bright base at the slot,
+            // faded tip extending one full length in the plume direction.
+            // The sprite is centered, so we offset the center half a length
+            // along the plume direction. Sprite angle uses our convention
+            // (0°=+Y, CCW), so plumeDir maps straight through.
+            if (engineFlameSprite != null) {
+                float flameCenterX = screenX + plumeDX * lenPx * 0.5f;
+                float flameCenterY = screenY + plumeDY * lenPx * 0.5f;
+                engineFlameSprite.setSize(widthPx, lenPx);
+                engineFlameSprite.setAngle(plumeDir);
+                engineFlameSprite.setAlphaMult(flameAlpha);
+                engineFlameSprite.setAdditiveBlend();
+                engineFlameSprite.setColor(flame);
+                engineFlameSprite.renderAtCenter(flameCenterX, flameCenterY);
+            }
+        }
+
+        // Restore the sprite singletons so a later pass that doesn't set
+        // angle/color first doesn't inherit our tint.
+        if (engineFlameSprite != null) {
+            engineFlameSprite.setAngle(0f);
+            engineFlameSprite.setColor(Color.WHITE);
+        }
+        if (engineGlowSprite != null) {
+            engineGlowSprite.setColor(Color.WHITE);
         }
     }
 

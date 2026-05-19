@@ -63,7 +63,16 @@ public final class ShipSpecEngineParser {
      *         spec has no {@code engineSlots}
      */
     public static EngineSlotData[] parse(String shipJson, float visualLengthCells) throws JSONException {
-        JSONObject root = new JSONObject(shipJson);
+        return parse(new JSONObject(shipJson), visualLengthCells);
+    }
+
+    /**
+     * Same as {@link #parse(String, float)} but operates on an already-parsed
+     * {@link JSONObject}. The in-game path uses this with
+     * {@code Global.getSettings().loadJSON("data/hulls/<id>.ship")} so we
+     * don't re-stringify a JSON document the game already parsed.
+     */
+    public static EngineSlotData[] parse(JSONObject root, float visualLengthCells) throws JSONException {
         JSONArray slots = root.optJSONArray("engineSlots");
         if (slots == null || slots.length() == 0) {
             return new EngineSlotData[0];
