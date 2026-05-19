@@ -174,6 +174,17 @@ public class NavigationGrid {
             && (flags & CellTag.SEE_THROUGH.mask()) == 0L;
     }
 
+    /**
+     * Bounds-checked variant of {@link #blocksLineOfSightAt(int)} for raycast
+     * callers whose Bresenham stepping can briefly exit the grid — e.g., a
+     * shuttle hovering at the map edge whose origin cell floors to (-1, y).
+     * Out-of-bounds reads as "open sky" (non-blocking).
+     */
+    public boolean blocksLineOfSight(int x, int y) {
+        if (!inBounds(x, y)) return false;
+        return blocksLineOfSightAt(index(x, y));
+    }
+
     // ----- Cell flags (bounds-checked typed wrappers around hasTag/setTag) -----
 
     public boolean isWalkable(int x, int y)            { return hasTag(x, y, CellTag.WALKABLE); }
@@ -396,7 +407,7 @@ public class NavigationGrid {
         int y = y0;
         while (true) {
             boolean endpoint = (x == x0 && y == y0) || (x == x1 && y == y1);
-            if (!endpoint && blocksLineOfSightAt(index(x, y))) return false;
+            if (!endpoint && blocksLineOfSight(x, y)) return false;
             if (x == x1 && y == y1) return true;
             int e2 = err << 1;
             if (e2 > -dy) { err -= dy; x += sx; }
@@ -431,7 +442,7 @@ public class NavigationGrid {
         int x = x0;
         int y = y0;
         while (true) {
-            if (!(x == x0 && y == y0) && blocksLineOfSightAt(index(x, y))) {
+            if (!(x == x0 && y == y0) && blocksLineOfSight(x, y)) {
                 return (((long) y & 0xFFFFFFFFL) << 32) | ((long) x & 0xFFFFFFFFL);
             }
             if (x == x1 && y == y1) return (((long) -1) & 0xFFFFFFFFL) << 32 | (((long) -1) & 0xFFFFFFFFL);
