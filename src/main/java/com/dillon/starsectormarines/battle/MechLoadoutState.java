@@ -79,6 +79,18 @@ public final class MechLoadoutState {
     /** Squad's lastSeenEnemyY at the moment the overwatch cell was picked. */
     public int overwatchAxisY = -1;
 
+    // ---- Armored Support backstop assignment ----
+    //
+    // Stage 1's BackstopAssignedSquad action paces a designated friendly
+    // infantry squad. Picked lazily at the first execute tick that finds a
+    // candidate (nearest same-side infantry squad); cached here so the pick
+    // is stable across replans. Cleared back to -1 when the backed squad is
+    // wiped, so the next replan re-picks. The commander tier (future) will
+    // overwrite this with explicit assignments.
+
+    /** Squad id this Armored Support mech is currently backing. -1 = no assignment yet (re-pick on next execute). */
+    public int assignedSquadId = -1;
+
     public MechLoadoutState(MechWeapon chaingun, MechWeapon srmPod, MechWeapon lrmArtillery,
                             int srmAmmoSalvos, int lrmAmmoSalvos, MechRole role) {
         this.chaingun = chaingun;

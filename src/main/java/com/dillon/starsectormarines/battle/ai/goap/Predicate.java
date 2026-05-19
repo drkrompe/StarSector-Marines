@@ -90,5 +90,15 @@ public enum Predicate {
      * regresses through this predicate; kept for goal-effect symmetry and so
      * future role-anchored mech goals can chain.
      */
-    KILL_ZONE_COVERED
+    KILL_ZONE_COVERED,
+    /**
+     * An Armored Support mech in this squad is within follow distance of its
+     * designated friendly infantry squad's centroid. Goal-side marker — set
+     * true by {@code BackstopAssignedSquad.effects}; the
+     * {@code BackstopAssignedSquadGoal}'s desired state. Same custom-plan
+     * pattern as {@link #KILL_ZONE_COVERED} — never observed at search time.
+     * Future Story E mech-screened advance reads this from the infantry side
+     * to know "my squad has a mech behind us."
+     */
+    SQUAD_BACKED
 }
