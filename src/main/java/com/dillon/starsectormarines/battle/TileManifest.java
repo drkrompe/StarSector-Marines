@@ -438,7 +438,7 @@ public final class TileManifest {
         return new TileFrame(col, row);
     }
 
-    /** Five interior-tile center variants (fl-tile-1..5) on {@link #ROAD_SHEET}. No edge pieces — these read as polished commercial flooring. */
+    /** Five interior-tile center variants (fl-tile-1..5) on {@link #FLOORS_SHEET}. No edge pieces — these read as polished commercial flooring. Coords come straight from {@code mod/data/tilesets/Floors_Tiles.catalog.json}. */
     private static final TileFrame[] FL_TILE_VARIANTS = {
             new TileFrame(17, 1), // fl-tile-1
             new TileFrame(16, 2), // fl-tile-2
@@ -451,7 +451,8 @@ public final class TileManifest {
      * Picks one of the polished {@code fl-tile} variants by stable per-cell
      * hash. There's no autotile here — every cell is a "center" tile;
      * variation comes from the 5-element pool. NOTE: lives on
-     * {@link #ROAD_SHEET}, not {@link #FLOORS_SHEET}.
+     * {@link #FLOORS_SHEET} (16px source cells), not the 32px {@link #ROAD_SHEET};
+     * callers must dispatch through the floors-sheet draw path.
      */
     public static TileFrame pickTileGroundTile(int x, int y) {
         return FL_TILE_VARIANTS[stableHash(x, y) % FL_TILE_VARIANTS.length];

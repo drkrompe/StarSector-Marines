@@ -1630,8 +1630,12 @@ public class BattleScreen implements Screen, BattleUiContext {
                         drawSameKindAutotile(topology, kind, x, y, alphaMult);
                         break;
                     case TILE: {
+                        // fl-tile-1..5 cluster lives on FLOORS_SHEET (16px cells),
+                        // not the 32px ROAD_SHEET — coords (17, 1..3), (16, 2),
+                        // (18, 2) are out-of-bounds on the road sheet. See
+                        // mod/data/tilesets/Floors_Tiles.catalog.json.
                         TileManifest.TileFrame f = TileManifest.pickTileGroundTile(x, y);
-                        if (roadSheet != null) drawRoadTile(f, x, y, alphaMult, GROUND_TILE_EDGE_INSET_PX);
+                        drawFloorsTile(f, x, y, alphaMult);
                         break;
                     }
                     case STRIPED: {
@@ -1761,23 +1765,34 @@ public class BattleScreen implements Screen, BattleUiContext {
      *   <li><b>Wall</b> → false. A wall continuation (this building's own
      *       wall row, or an adjacent building's shared wall) is not the
      *       outside; the cap should clip where two walls meet.</li>
-     *   <li><b>Walkable, GroundKind == INDOOR</b> → false. Building interior;
-     *       the inside is here, not the outside.</li>
-     *   <li><b>Walkable, GroundKind != INDOOR</b> → true. Street, courtyard,
-     *       grass, dirt, stone, sand, etc. are all exterior surfaces; the
-     *       wall's cap faces them.</li>
+     *   <li><b>Walkable, interior ground kind</b> → false. The building's
+     *       inside is here, not the outside. The interior set is the union
+     *       of every ground kind a {@link com.dillon.starsectormarines.battle.mapgen.BlockFiller}
+     *       can paint inside its perimeter — INDOOR (residential default),
+     *       TILE (commercial polished floor), STRIPED (industrial factory
+     *       floor), and RUBBLE (breach debris from a destroyed wall, still
+     *       inside the footprint).</li>
+     *   <li><b>Walkable, any other ground kind</b> → true. STREET, COURTYARD,
+     *       GRASS/DIRT/STONE/SAND/SNOW/WATER, LZ_MARKER — all exterior
+     *       surfaces; the wall's cap faces them.</li>
      * </ul>
      *
-     * <p>The previous {@code isWallOrOob} proxy only returned true for
-     * OOB+wall and missed the "exterior is just floor" case — which is why
-     * a building in the middle of the map (street around it) would pick
-     * middle-row tiles for its perimeter instead of edge-row tiles. This
-     * predicate is the direct question.
+     * <p>The previous version only treated INDOOR as interior, so a
+     * commercial building's TILE-floored interior (or an industrial
+     * STRIPED interior) read as "exterior" to perimeter wall cells. With
+     * the picker's short-circuit (row = nExt ? 0 : (sExt ? 2 : 1); col =
+     * wExt ? 0 : (eExt ? 2 : 1)), a south-perimeter wall above TILE got
+     * row 0 (north cap) and an east-perimeter wall right of TILE got
+     * col 0 (west cap) — the wrong-facing art.
      */
     private static boolean isExteriorSide(CellTopology topology, int x, int y) {
         if (!topology.inBounds(x, y)) return true;
         if (topology.isWall(x, y))    return false;
-        return topology.getGroundKind(x, y) != CellTopology.GroundKind.INDOOR;
+        CellTopology.GroundKind k = topology.getGroundKind(x, y);
+        return k != CellTopology.GroundKind.INDOOR
+            && k != CellTopology.GroundKind.TILE
+            && k != CellTopology.GroundKind.STRIPED
+            && k != CellTopology.GroundKind.RUBBLE;
     }
 
     /** True for in-bounds cells tagged WALL. Used by sidewalk-edge detection where the renderer cares about cell type only, not exterior-side semantics. */

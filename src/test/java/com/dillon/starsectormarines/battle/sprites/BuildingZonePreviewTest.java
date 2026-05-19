@@ -55,9 +55,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  */
 public class BuildingZonePreviewTest {
 
-    private static final Path URBAN_SHEET = Paths.get("mod/graphics/tilesets/urban-tileset.png");
-    private static final Path ROAD_SHEET  = Paths.get("mod/graphics/tilesets/urban-tileset-2.png");
-    private static final Path OUT_DIR     = Paths.get("build/zone-previews");
+    private static final Path URBAN_SHEET  = Paths.get("mod/graphics/tilesets/urban-tileset.png");
+    private static final Path ROAD_SHEET   = Paths.get("mod/graphics/tilesets/urban-tileset-2.png");
+    private static final Path FLOORS_SHEET = Paths.get("mod/graphics/tilesets/Floors_Tiles.png");
+    private static final Path OUT_DIR      = Paths.get("build/zone-previews");
 
     /** 1.5x upscale of the 32px source — large enough to read interior partitions and doodad scatter at a glance. */
     private static final int DISPLAY_CELL_PX = 48;
@@ -66,17 +67,6 @@ public class BuildingZonePreviewTest {
 
     private static final Color STREET_FILL      = new Color(0x40, 0x46, 0x52);
     private static final Color WALL_CENTER_FILL = new Color(0x18, 0x18, 0x1C);
-    /**
-     * Beige indoor-floor base color, sampled from the urban sheet's center
-     * floor cell. Painted under every non-wall, non-STREET cell BEFORE the
-     * tile stamp so that any tile whose source pixels are transparent
-     * (e.g. the {@code fl-tile-*} variants that point off the right edge of
-     * the cropped road sheet) reads as "interior surface" rather than a
-     * transparent quad against the canvas. The in-game renderer doesn't
-     * underpaint — the preview does it as a debugging convenience so the
-     * carve geometry stays readable even when an art reference is broken.
-     */
-    private static final Color INDOOR_BASE_FILL = new Color(0xC8, 0xB6, 0x9C);
     private static final Color LABEL_BG         = new Color(0, 0, 0, 200);
     private static final Color LABEL_FG         = new Color(0xE0, 0xE8, 0xF4);
 
@@ -191,6 +181,124 @@ public class BuildingZonePreviewTest {
         }
     }
 
+    /**
+     * Stamps the five {@code fl-tile-1..5} catalog coords on BOTH the road
+     * sheet (where {@link TileManifest#pickTileGroundTile} currently indexes
+     * via {@link TileManifest#ROAD_SHEET}) and the floors sheet (where
+     * {@code mod/data/tilesets/Floors_Tiles.catalog.json} says the art
+     * actually lives). The road sheet is only 17×3 cells at 32px source, so
+     * coords (17,1), (17,2), (18,2), (17,3) all read off-sheet there; the
+     * floors sheet is 25×26 cells at 16px source, where the same coords are
+     * well in-bounds. Side-by-side at 8× makes the sheet-mismatch bug
+     * (transparent stamps → beige underpaint workaround) obvious.
+     */
+    @Test
+    void renderFlTileGallery() throws Exception {
+        Files.createDirectories(OUT_DIR);
+        BufferedImage road   = ImageIO.read(Files.newInputStream(ROAD_SHEET));
+        BufferedImage floors = ImageIO.read(Files.newInputStream(FLOORS_SHEET));
+        assertNotNull(road,   "failed to load " + ROAD_SHEET);
+        assertNotNull(floors, "failed to load " + FLOORS_SHEET);
+
+        // Catalog coords for fl-tile-1..5, copied straight from
+        // mod/data/tilesets/Floors_Tiles.catalog.json. Matches
+        // TileManifest.FL_TILE_VARIANTS.
+        int[][] coords = {
+                {17, 1}, // fl-tile-1
+                {16, 2}, // fl-tile-2
+                {17, 2}, // fl-tile-3
+                {18, 2}, // fl-tile-4
+                {17, 3}, // fl-tile-5
+        };
+
+        int displayCell = 192;          // common display size so both sheets render at equal cells.
+        int gap = 24;
+        int labelH = 28;
+        int rowHeaderW = 220;
+        int cols = coords.length;
+        int sheetRowH = displayCell + gap + labelH;
+        int blockW = rowHeaderW + cols * (displayCell + gap) + gap;
+        int blockH = 60 + sheetRowH * 2 + gap;
+
+        BufferedImage img = new BufferedImage(blockW, blockH, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = img.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+        g.setColor(new Color(0x12, 0x15, 0x1B));
+        g.fillRect(0, 0, blockW, blockH);
+
+        g.setColor(LABEL_FG);
+        g.setFont(new Font("SansSerif", Font.BOLD, 18));
+        g.drawString("fl-tile-1..5 — road sheet (current pickTileGroundTile target) vs floors sheet (catalog origin)",
+                gap, 32);
+
+        int roadCellPx = TileManifest.TILE_SIZE;          // 32
+        int floorsCellPx = TileManifest.TILE_SIZE / 2;    // 16, per Floors_Tiles cell size
+        int roadCols = road.getWidth() / roadCellPx;
+        int roadRows = road.getHeight() / roadCellPx;
+        int floorsCols = floors.getWidth() / floorsCellPx;
+        int floorsRows = floors.getHeight() / floorsCellPx;
+
+        // Row 1: road sheet (urban-tileset-2.png) — what's actually being indexed today.
+        drawSheetRow(g, road, "ROAD_SHEET\n(17×3 cells @ 32px)", coords, roadCellPx,
+                roadCols, roadRows, 0, 60, rowHeaderW, gap, displayCell, labelH);
+        // Row 2: floors sheet (Floors_Tiles.png) — what the catalog says these coords map to.
+        drawSheetRow(g, floors, "FLOORS_SHEET\n(25×26 cells @ 16px)", coords, floorsCellPx,
+                floorsCols, floorsRows, 0, 60 + sheetRowH, rowHeaderW, gap, displayCell, labelH);
+
+        g.dispose();
+        Path out = OUT_DIR.resolve("fl-tile-gallery.png");
+        ImageIO.write(img, "PNG", out.toFile());
+        System.out.println("  wrote " + out.toAbsolutePath());
+    }
+
+    /** Stamps one sheet's view of the fl-tile coords as a single row. Cells that read off-sheet render as a red "OOB" placeholder. */
+    private static void drawSheetRow(Graphics2D g, BufferedImage sheet, String header,
+                                     int[][] coords, int srcCellPx, int sheetCols, int sheetRows,
+                                     int x0, int y0, int rowHeaderW, int gap, int displayCell, int labelH) {
+        g.setColor(LABEL_FG);
+        g.setFont(new Font("SansSerif", Font.BOLD, 14));
+        int line = 0;
+        for (String s : header.split("\n")) {
+            g.drawString(s, x0 + gap, y0 + 24 + line * 18);
+            line++;
+        }
+
+        int cx = x0 + rowHeaderW;
+        int cy = y0;
+        for (int i = 0; i < coords.length; i++) {
+            int col = coords[i][0];
+            int row = coords[i][1];
+            int dstX = cx + i * (displayCell + gap);
+            int dstY = cy + gap;
+            g.setColor(new Color(0x22, 0x28, 0x32));
+            g.fillRect(dstX, dstY, displayCell, displayCell);
+
+            boolean inBounds = col < sheetCols && row < sheetRows;
+            if (inBounds) {
+                int srcX = col * srcCellPx;
+                int srcY = row * srcCellPx;
+                g.drawImage(sheet,
+                        dstX, dstY, dstX + displayCell, dstY + displayCell,
+                        srcX, srcY, srcX + srcCellPx, srcY + srcCellPx,
+                        null);
+            } else {
+                g.setColor(new Color(0x88, 0x18, 0x18));
+                g.fillRect(dstX, dstY, displayCell, displayCell);
+                g.setColor(LABEL_FG);
+                g.setFont(new Font("SansSerif", Font.BOLD, 22));
+                String msg = "OOB";
+                int msgW = g.getFontMetrics().stringWidth(msg);
+                g.drawString(msg, dstX + (displayCell - msgW) / 2, dstY + displayCell / 2 + 8);
+            }
+
+            g.setColor(LABEL_FG);
+            g.setFont(new Font("SansSerif", Font.PLAIN, 13));
+            g.drawString(String.format("fl-tile-%d (%d, %d)", i + 1, col, row),
+                    dstX + 6, dstY + displayCell + 18);
+        }
+    }
+
     @Test
     void renderResidentialVariants() throws Exception {
         renderBuildingBatch(new BuildingResidentialFiller(), "residential");
@@ -208,14 +316,16 @@ public class BuildingZonePreviewTest {
 
     private void renderBuildingBatch(BlockFiller filler, String kindLabel) throws Exception {
         Files.createDirectories(OUT_DIR);
-        BufferedImage urban = ImageIO.read(Files.newInputStream(URBAN_SHEET));
-        BufferedImage road  = ImageIO.read(Files.newInputStream(ROAD_SHEET));
-        assertNotNull(urban, "failed to load " + URBAN_SHEET);
-        assertNotNull(road,  "failed to load " + ROAD_SHEET);
+        BufferedImage urban  = ImageIO.read(Files.newInputStream(URBAN_SHEET));
+        BufferedImage road   = ImageIO.read(Files.newInputStream(ROAD_SHEET));
+        BufferedImage floors = ImageIO.read(Files.newInputStream(FLOORS_SHEET));
+        assertNotNull(urban,  "failed to load " + URBAN_SHEET);
+        assertNotNull(road,   "failed to load " + ROAD_SHEET);
+        assertNotNull(floors, "failed to load " + FLOORS_SHEET);
 
         BufferedImage[] panels = new BufferedImage[VARIANTS.length];
         for (int i = 0; i < VARIANTS.length; i++) {
-            panels[i] = renderVariant(filler, VARIANTS[i], urban, road, kindLabel);
+            panels[i] = renderVariant(filler, VARIANTS[i], urban, road, floors, kindLabel);
         }
 
         BufferedImage sheet = composeContactSheet(panels, 2);
@@ -226,7 +336,7 @@ public class BuildingZonePreviewTest {
 
     private static BufferedImage renderVariant(BlockFiller filler, BuildingVariant variant,
                                                BufferedImage urban, BufferedImage road,
-                                               String kindLabel) {
+                                               BufferedImage floors, String kindLabel) {
         int gridW = variant.leafW + MARGIN_CELLS * 2;
         int gridH = variant.leafH + MARGIN_CELLS * 2;
         int leafLeft   = MARGIN_CELLS;
@@ -259,12 +369,13 @@ public class BuildingZonePreviewTest {
 
         String label = String.format("%s · %s · seed=%d · POIs=%d · doodads=%d",
                 kindLabel, variant.label, variant.seed, pois.size(), doodads.size());
-        return renderScene(grid, topology, doodads, urban, road, label);
+        return renderScene(grid, topology, doodads, urban, road, floors, label);
     }
 
     private static BufferedImage renderScene(NavigationGrid grid, CellTopology topology,
                                              List<Doodad> doodads,
                                              BufferedImage urban, BufferedImage road,
+                                             BufferedImage floors,
                                              String label) {
         int gridW = grid.getWidth();
         int gridH = grid.getHeight();
@@ -274,20 +385,22 @@ public class BuildingZonePreviewTest {
         BufferedImage img = new BufferedImage(imgW, imgH, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = configureGraphics(img);
 
-        FixedGridTileDrawer drawer = new FixedGridTileDrawer(TileManifest.TILE_SIZE);
-        TileSink urbanSink = new Graphics2DTileSink(g, urban);
-        TileSink roadSink  = new Graphics2DTileSink(g, road);
+        FixedGridTileDrawer drawer       = new FixedGridTileDrawer(TileManifest.TILE_SIZE);
+        FixedGridTileDrawer floorsDrawer = new FixedGridTileDrawer(TileManifest.FLOORS_TILE_SIZE);
+        TileSink urbanSink  = new Graphics2DTileSink(g, urban);
+        TileSink roadSink   = new Graphics2DTileSink(g, road);
+        TileSink floorsSink = new Graphics2DTileSink(g, floors);
 
-        // Pass 1: base color fill per cell, so the next pass's tile stamps
-        // composite on top of a known background. STREET cells get a flat
-        // gray (the preview doesn't render the road autotile); interior
-        // cells get the beige floor underpaint so a transparent-source tile
-        // (broken art reference) reads as floor rather than canvas hole.
+        // Pass 1: STREET cells get a flat gray underneath (the preview
+        // doesn't render the road autotile). Interior cells aren't
+        // underpainted — every routed picker stamps a fully opaque source
+        // cell, so a missing stamp here means a real bug, not a transparent
+        // source-pixel quirk to be papered over.
         for (int y = 0; y < gridH; y++) {
             for (int x = 0; x < gridW; x++) {
                 if (topology.isWall(x, y)) continue;
-                GroundKind kind = topology.getGroundKind(x, y);
-                g.setColor(kind == GroundKind.STREET ? STREET_FILL : INDOOR_BASE_FILL);
+                if (topology.getGroundKind(x, y) != GroundKind.STREET) continue;
+                g.setColor(STREET_FILL);
                 g.fillRect(x * DISPLAY_CELL_PX, (gridH - 1 - y) * DISPLAY_CELL_PX,
                         DISPLAY_CELL_PX, DISPLAY_CELL_PX);
             }
@@ -317,8 +430,11 @@ public class BuildingZonePreviewTest {
                         break;
                     }
                     case TILE: {
+                        // fl-tile-1..5 lives on FLOORS_SHEET (16px source cells),
+                        // not the 32px ROAD_SHEET. Mirrors the BattleScreen.TILE
+                        // dispatch through drawFloorsTile / drawSmallTile.
                         TileManifest.TileFrame f = TileManifest.pickTileGroundTile(x, y);
-                        stampCell(drawer, roadSink, f, x, y, gridH, drawer.defaultGroundInsetPx());
+                        stampCell(floorsDrawer, floorsSink, f, x, y, gridH, floorsDrawer.defaultGroundInsetPx());
                         break;
                     }
                     case RUBBLE: {
@@ -411,16 +527,23 @@ public class BuildingZonePreviewTest {
 
     /**
      * Wall autotile predicate — mirrors {@code BattleScreen.isExteriorSide}.
-     * "Is the building's outside on this side?" — true for OOB or non-INDOOR
-     * floor (street/courtyard/grass/etc.), false for wall continuations and
-     * INDOOR floor cells. The previous {@code isWallOrOob} proxy missed the
-     * "exterior is just floor" case, which is why preview walls landed on
-     * middle-row tiles instead of perimeter caps.
+     * "Is the building's outside on this side?" — true for OOB and exterior
+     * ground (street/courtyard/grass/etc.), false for wall continuations
+     * and all interior ground kinds (INDOOR/TILE/STRIPED/RUBBLE — the set
+     * any {@link com.dillon.starsectormarines.battle.mapgen.BlockFiller}
+     * paints inside its perimeter). Treating only INDOOR as interior broke
+     * commercial (TILE) and industrial (STRIPED) buildings — the picker's
+     * nExt/wExt short-circuit then picked the wrong-facing art for south
+     * and east perimeter cells.
      */
     private static boolean isExteriorSide(CellTopology t, int x, int y) {
         if (!t.inBounds(x, y)) return true;
         if (t.isWall(x, y))    return false;
-        return t.getGroundKind(x, y) != CellTopology.GroundKind.INDOOR;
+        CellTopology.GroundKind k = t.getGroundKind(x, y);
+        return k != CellTopology.GroundKind.INDOOR
+            && k != CellTopology.GroundKind.TILE
+            && k != CellTopology.GroundKind.STRIPED
+            && k != CellTopology.GroundKind.RUBBLE;
     }
 
     private static Graphics2D configureGraphics(BufferedImage img) {
