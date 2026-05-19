@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.PointOfInterest;
 import com.dillon.starsectormarines.battle.TileManifest;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.map.WallMasks;
 import com.dillon.starsectormarines.battle.mapgen.BlockLeaf;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
@@ -264,31 +265,10 @@ final class BuildingShellCore {
         topology.setGroundKind(doorX, doorY, interiorGround);
     }
 
-    /**
-     * Stamps the wall-direction mask on every perimeter cell of the leaf
-     * rect, given the building's geometry. Corner cells get two bits; edge
-     * cells get one. Interior cells (if any — only relevant for the solid
-     * sub-{@link #HOLLOW_MIN_SIZE} block case) are left at 0, so the
-     * picker returns null → solid-fill fallback there.
-     */
+    /** Delegates to {@link WallMasks#stampPerimeter} — shared with the preview-test render path. */
     private static void stampPerimeterMask(CellTopology topology,
                                            int bl, int bt, int br, int bb) {
-        // The math y-up convention: bt is the building's BOTTOM (south)
-        // and bb is the TOP (north). BlockLeaf names use screen-space
-        // (top/bottom), but the topology is queried in math-space, so a
-        // cell at y == bb sees north-of-it as out-of-building.
-        for (int x = bl; x <= br; x++) {
-            // Bottom row (y == bt) → south face is exterior.
-            topology.orWallDirMask(x, bt, CellTopology.WALL_DIR_S);
-            // Top row (y == bb) → north face is exterior.
-            topology.orWallDirMask(x, bb, CellTopology.WALL_DIR_N);
-        }
-        for (int y = bt; y <= bb; y++) {
-            // Left col (x == bl) → west face is exterior.
-            topology.orWallDirMask(bl, y, CellTopology.WALL_DIR_W);
-            // Right col (x == br) → east face is exterior.
-            topology.orWallDirMask(br, y, CellTopology.WALL_DIR_E);
-        }
+        WallMasks.stampPerimeter(topology, bl, bt, br, bb);
     }
 
     /** Uniformly-random int in {@code [min, max]} skipping {@code exclude}. Verbatim from legacy. */

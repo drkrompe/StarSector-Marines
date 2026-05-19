@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.PointOfInterest;
 import com.dillon.starsectormarines.battle.TileManifest;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.map.WallMasks;
 import com.dillon.starsectormarines.battle.mapgen.BlockFiller;
 import com.dillon.starsectormarines.battle.mapgen.BlockLeaf;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.BuildingCommercialFiller;
@@ -597,11 +598,7 @@ public class BuildingZonePreviewTest {
             for (int x = 0; x < gridW; x++) {
                 if (!topology.isWall(x, y)) continue;
                 int mask = topology.getWallDirMask(x, y);
-                TileManifest.TileFrame tile = TileManifest.pickWallTile(
-                        (mask & CellTopology.WALL_DIR_N) != 0,
-                        (mask & CellTopology.WALL_DIR_S) != 0,
-                        (mask & CellTopology.WALL_DIR_E) != 0,
-                        (mask & CellTopology.WALL_DIR_W) != 0);
+                TileManifest.TileFrame tile = WallMasks.pickTileFromMask(mask);
                 if (tile == null) {
                     g.setColor(WALL_CENTER_FILL);
                     g.fillRect(x * DISPLAY_CELL_PX, (gridH - 1 - y) * DISPLAY_CELL_PX,

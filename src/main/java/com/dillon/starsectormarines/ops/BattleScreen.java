@@ -22,6 +22,7 @@ import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.UnitType;
 import com.dillon.starsectormarines.battle.VehicleKind;
 import com.dillon.starsectormarines.battle.map.CellTopology;
+import com.dillon.starsectormarines.battle.map.WallMasks;
 import com.dillon.starsectormarines.battle.flyby.FlybyOverlay;
 import com.dillon.starsectormarines.battle.ui.BattleHud;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
@@ -1833,11 +1834,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 // appearing next to a wall doesn't reorient it). Mask bits
                 // say "the building's exterior is on my N/S/E/W side."
                 int mask = topology.getWallDirMask(x, y);
-                TileManifest.TileFrame tile = TileManifest.pickWallTile(
-                        (mask & CellTopology.WALL_DIR_N) != 0,
-                        (mask & CellTopology.WALL_DIR_S) != 0,
-                        (mask & CellTopology.WALL_DIR_E) != 0,
-                        (mask & CellTopology.WALL_DIR_W) != 0);
+                TileManifest.TileFrame tile = WallMasks.pickTileFromMask(mask);
                 if (tile == null) {
                     fillCell(x, y, WALL_COLOR, alphaMult);
                 } else {

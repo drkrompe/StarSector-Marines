@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.battle.sprites;
 
 import com.dillon.starsectormarines.battle.TileManifest;
+import com.dillon.starsectormarines.battle.map.CellTopology;
+import com.dillon.starsectormarines.battle.map.WallMasks;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import org.junit.jupiter.api.Test;
 
 import javax.imageio.ImageIO;
@@ -14,6 +17,8 @@ import java.awt.image.BufferedImage;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -355,52 +360,53 @@ public class StreetZonePreviewTest {
         int gridW = 28;
         int gridH = 14;
 
+        // Explicit building rects — fed to the production WallMasks.stampPerimeter
+        // so the wall picker sees the same intrinsic exterior-direction mask
+        // it would in-game from a real BSP carve.
+        List<BuildingRect> buildings = new ArrayList<>();
+        buildings.add(new BuildingRect(0,  9, 6,           13)); // NW building
+        buildings.add(new BuildingRect(14, 9, gridW - 1,   13)); // NE building
+        // South building is one solid wall row across the bottom — degenerate
+        // rect with bt == bb means every cell gets both N and S exterior bits,
+        // which matches how a 1-tall wall edge actually renders.
+        buildings.add(new BuildingRect(0,  0, gridW - 1,    0));
+        // Doors on the south-facing wall of each north building (re-walkable).
+        int[][] doors = { {3, 9}, {20, 9} };
+        CellTopology topology = buildSceneTopology(gridW, gridH, buildings, doors);
+
+        // Ground roles for non-wall cells (ROAD/SIDEWALK/GRASS — plus
+        // INDOOR_FLOOR inside the north buildings, which the renderer reads
+        // straight off topology.isWall vs. role). The Role enum stays test-
+        // local because the BSP doesn't yet emit a "wide sidewalk + grass
+        // filler" classification; once Phase 2B lands, this can collapse
+        // into reading GroundKind directly off topology.
         Role[][] role = new Role[gridW][gridH];
-        // North buildings (split at cols 7..13 by a grass gap).
+        // Interior floors for north buildings.
         for (int x = 0; x < gridW; x++) {
             for (int y = 9; y <= 13; y++) {
+                if (topology.isWall(x, y)) continue;
                 boolean inGap = x >= 7 && x <= 13;
-                if (inGap) {
-                    role[x][y] = Role.GRASS;
-                    continue;
-                }
-                boolean isWall = y == 13 || y == 9 || x == 0 || x == gridW - 1
-                        || x == 6  // east wall of left building
-                        || x == 14; // west wall of right building
-                role[x][y] = isWall ? Role.WALL : Role.INDOOR_FLOOR;
+                role[x][y] = inGap ? Role.GRASS : Role.INDOOR_FLOOR;
             }
         }
-        // Doors on the south-facing wall of each north building.
-        role[3 ][9] = Role.INDOOR_FLOOR;  // left building door
-        role[20][9] = Role.INDOOR_FLOOR;  // right building door (south wall)
-
-        // North sidewalk strip (2-thick, full width — within the trunk
-        // road's sidewalk zone everywhere). The cells under the grass-gap
-        // columns stay sidewalk because they're still ≤2 from the road.
+        // North sidewalk strip (2-thick, full width).
         for (int x = 0; x < gridW; x++) {
             role[x][8] = Role.SIDEWALK;
             role[x][7] = Role.SIDEWALK;
         }
-
         // Trunk road slab (4 cells wide).
         for (int x = 0; x < gridW; x++) {
             for (int y = 3; y <= 6; y++) {
                 role[x][y] = Role.ROAD;
             }
         }
-
         // South sidewalk strip (2-thick, full width).
         for (int x = 0; x < gridW; x++) {
             role[x][2] = Role.SIDEWALK;
             role[x][1] = Role.SIDEWALK;
         }
 
-        // South building (single solid structure across the full width).
-        for (int x = 0; x < gridW; x++) {
-            role[x][0] = Role.WALL;
-        }
-
-        BufferedImage img = renderTopologyScene(role, gridW, gridH,
+        BufferedImage img = renderTopologyScene(role, topology, gridW, gridH,
                 urban, floors, street3, sliced,
                 "Phase 2 — wide trunk road · 2-thick sidewalks · grass between non-road-facing buildings");
         Path out = OUT_DIR.resolve("street-topology-phase2.png");
@@ -412,6 +418,69 @@ public class StreetZonePreviewTest {
     private enum Role { WALL, INDOOR_FLOOR, ROAD, SIDEWALK, GRASS }
 
     /**
+     * Inclusive rect for one building stamped into a hand-constructed
+     * preview scene. Math y-up: {@code bt < bb} (bt is south). The
+     * shape mirrors the {@code (bl, bt, br, bb)} signature
+     * {@link WallMasks#stampPerimeter} consumes so preview scenes can
+     * forward straight to the production stamper.
+     */
+    private static final class BuildingRect {
+        final int bl, bt, br, bb;
+        BuildingRect(int bl, int bt, int br, int bb) {
+            this.bl = bl; this.bt = bt; this.br = br; this.bb = bb;
+        }
+    }
+
+    /**
+     * Builds a populated {@link CellTopology}/{@link NavigationGrid} pair
+     * for a hand-constructed preview scene. Equivalent to what the
+     * production BSP carve pass does for each building: drop perimeter
+     * walls (non-walkable), keep interior walkable, then call
+     * {@link WallMasks#stampPerimeter} to lay down the intrinsic
+     * exterior-direction mask the wall picker reads.
+     *
+     * <p>The {@code doors} list is the set of cells re-promoted to
+     * walkable after the perimeter stamp (matches the door-punching pass
+     * inside {@link com.dillon.starsectormarines.battle.mapgen.bsp.fill.BuildingShellCore}).
+     * Door cells stay tagged WALL by {@link CellTopology#tagDefaultWalls}
+     * only if they're still non-walkable, so callers passing real door
+     * coords get an interior-floor read under the doorway.
+     */
+    private static CellTopology buildSceneTopology(int gridW, int gridH,
+                                                    List<BuildingRect> buildings,
+                                                    int[][] doors) {
+        NavigationGrid grid = new NavigationGrid(gridW, gridH);
+        CellTopology topology = new CellTopology(gridW, gridH);
+        for (int y = 0; y < gridH; y++) {
+            for (int x = 0; x < gridW; x++) {
+                grid.setWalkableFloor(x, y);
+            }
+        }
+        for (BuildingRect b : buildings) {
+            // Perimeter walls — non-walkable, matches BuildingShellCore.
+            for (int x = b.bl; x <= b.br; x++) {
+                if (b.bt <= b.bb) {
+                    grid.setWalkable(x, b.bt, false);
+                    grid.setWalkable(x, b.bb, false);
+                }
+            }
+            for (int y = b.bt + 1; y <= b.bb - 1; y++) {
+                grid.setWalkable(b.bl, y, false);
+                grid.setWalkable(b.br, y, false);
+            }
+            // Production stamper: exterior-direction bits per perimeter cell.
+            WallMasks.stampPerimeter(topology, b.bl, b.bt, b.br, b.bb);
+        }
+        if (doors != null) {
+            for (int[] d : doors) {
+                grid.setWalkable(d[0], d[1], true);
+            }
+        }
+        topology.tagDefaultWalls(grid);
+        return topology;
+    }
+
+    /**
      * Renders a role-tagged grid through the same picker + sheet dispatch
      * the production renderer uses, so the preview matches what'll appear
      * in-game once the BSP emits this topology. Wall + floor pickers read
@@ -419,7 +488,8 @@ public class StreetZonePreviewTest {
      * the four perpendicular neighbors; grass uses the floors sheet's
      * center variant (per the flat-edges-between-kinds memory note).
      */
-    private static BufferedImage renderTopologyScene(Role[][] role, int gridW, int gridH,
+    private static BufferedImage renderTopologyScene(Role[][] role, CellTopology topology,
+                                                     int gridW, int gridH,
                                                      BufferedImage urban, BufferedImage floors,
                                                      BufferedImage street3, SpriteSheetFrames sliced,
                                                      String label) {
@@ -433,9 +503,14 @@ public class StreetZonePreviewTest {
         FixedGridTileDrawer urbanDrawer  = new FixedGridTileDrawer(TileManifest.TILE_SIZE);
         FixedGridTileDrawer floorsDrawer = new FixedGridTileDrawer(TileManifest.FLOORS_TILE_SIZE);
 
-        // Pass 1: ground (road, sidewalk, grass, indoor floor).
+        // Pass 1: ground (road, sidewalk, grass, indoor floor). Wall cells
+        // are skipped via topology.isWall — same predicate the production
+        // wall pass uses, so a cell that's both INDOOR_FLOOR in our role
+        // array AND tagged WALL by the stamper renders as a wall (matches
+        // the gen-time invariant: if it's a wall, it's a wall).
         for (int x = 0; x < gridW; x++) {
             for (int y = 0; y < gridH; y++) {
+                if (topology.isWall(x, y)) continue;
                 Role r = role[x][y];
                 if (r == null || r == Role.WALL) continue;
                 switch (r) {
@@ -469,10 +544,14 @@ public class StreetZonePreviewTest {
                         break;
                     }
                     case INDOOR_FLOOR: {
-                        boolean nWall = isWall(role, x, y + 1, gridW, gridH);
-                        boolean sWall = isWall(role, x, y - 1, gridW, gridH);
-                        boolean eWall = isWall(role, x + 1, y, gridW, gridH);
-                        boolean wWall = isWall(role, x - 1, y, gridW, gridH);
+                        // pickFloorTile semantic: nWall = "north neighbor IS a
+                        // wall." Production reads this off topology.isWall —
+                        // mirror that here so the floor's edge decoration
+                        // kisses the building's actual wall ring.
+                        boolean nWall = isTopologyWall(topology, x, y + 1);
+                        boolean sWall = isTopologyWall(topology, x, y - 1);
+                        boolean eWall = isTopologyWall(topology, x + 1, y);
+                        boolean wWall = isTopologyWall(topology, x - 1, y);
                         TileManifest.TileFrame f = TileManifest.pickFloorTile(nWall, sWall, eWall, wWall);
                         stampCell(urbanDrawer, urbanSink, f, x, y, gridH, urbanDrawer.defaultGroundInsetPx());
                         break;
@@ -483,20 +562,15 @@ public class StreetZonePreviewTest {
             }
         }
 
-        // Pass 2: walls. Picker semantic: nWall/sWall/eWall/wWall mean
-        // "exterior on this side" — matches the WALL_DIR_X mask
-        // BuildingShellCore.stampPerimeterMask sets at gen-time in
-        // production. For a wall cell, a cardinal direction is exterior
-        // when the neighbor isn't part of the building (i.e. neither a
-        // WALL nor an INDOOR_FLOOR — open ground / OOB counts).
+        // Pass 2: walls. Identical to BattleScreen.renderTiledFloorsAndWalls
+        // — read the intrinsic exterior-direction mask
+        // WallMasks.stampPerimeter laid down at scene-build time, then
+        // route through WallMasks.pickTileFromMask. Same line of code.
         for (int x = 0; x < gridW; x++) {
             for (int y = 0; y < gridH; y++) {
-                if (role[x][y] != Role.WALL) continue;
-                boolean nExt = !isBuildingCell(role, x, y + 1, gridW, gridH);
-                boolean sExt = !isBuildingCell(role, x, y - 1, gridW, gridH);
-                boolean eExt = !isBuildingCell(role, x + 1, y, gridW, gridH);
-                boolean wExt = !isBuildingCell(role, x - 1, y, gridW, gridH);
-                TileManifest.TileFrame tile = TileManifest.pickWallTile(nExt, sExt, eExt, wExt);
+                if (!topology.isWall(x, y)) continue;
+                int mask = topology.getWallDirMask(x, y);
+                TileManifest.TileFrame tile = WallMasks.pickTileFromMask(mask);
                 if (tile == null) {
                     g.setColor(WALL_CENTER);
                     g.fillRect(x * DISPLAY_CELL_PX, (gridH - 1 - y) * DISPLAY_CELL_PX,
@@ -513,24 +587,10 @@ public class StreetZonePreviewTest {
         return img;
     }
 
-    private static boolean isWall(Role[][] role, int x, int y, int gridW, int gridH) {
-        if (x < 0 || x >= gridW || y < 0 || y >= gridH) return false;
-        return role[x][y] == Role.WALL;
-    }
-
-    /**
-     * Returns true if {@code (x, y)} is part of a building (a wall cell
-     * OR an interior floor cell). OOB is treated as <em>not</em> a
-     * building cell so map-edge walls correctly read their map-edge side
-     * as exterior. Used by the wall picker's exterior-direction
-     * computation in place of the simpler {@link #isWall} predicate,
-     * which doesn't distinguish "neighbor is another wall (same building,
-     * so not exterior)" from "neighbor is outside the building."
-     */
-    private static boolean isBuildingCell(Role[][] role, int x, int y, int gridW, int gridH) {
-        if (x < 0 || x >= gridW || y < 0 || y >= gridH) return false;
-        Role r = role[x][y];
-        return r == Role.WALL || r == Role.INDOOR_FLOOR;
+    /** Bounds-safe {@link CellTopology#isWall} — OOB is not a wall. Same semantic as BattleScreen.isInBoundsWall. */
+    private static boolean isTopologyWall(CellTopology topology, int x, int y) {
+        if (!topology.inBounds(x, y)) return false;
+        return topology.isWall(x, y);
     }
 
     private static boolean isSidewalk(Role[][] role, int x, int y, int gridW, int gridH) {
@@ -587,35 +647,16 @@ public class StreetZonePreviewTest {
         FixedGridTileDrawer urbanDrawer  = new FixedGridTileDrawer(TileManifest.TILE_SIZE);
         FixedGridTileDrawer floorsDrawer = new FixedGridTileDrawer(TileManifest.FLOORS_TILE_SIZE);
 
-        // Wall + building masks. `wall[x][y]` flags perimeter wall cells;
-        // `inBuilding[x][y]` flags every cell that's part of either
-        // building (walls + interior floors). The wall picker needs the
-        // "exterior on this side" semantic — match what
-        // BuildingShellCore.stampPerimeterMask sets in production. A wall
-        // cell's exterior is any cardinal direction whose neighbor isn't
-        // also part of the same building; for a 1-thick perimeter ring,
-        // that's the side that doesn't touch the interior.
-        boolean[][] wall = new boolean[gridW][gridH];
-        boolean[][] inBuilding = new boolean[gridW][gridH];
-        for (int x = 0; x < gridW; x++) {
-            // North building outer wall ring (rows 11..13), with one door at x=8.
-            for (int y = northWallBottom; y <= northWallTop; y++) {
-                inBuilding[x][y] = true;
-                boolean perimeter = y == northWallTop || y == northWallBottom || x == 0 || x == gridW - 1;
-                wall[x][y] = perimeter;
-            }
-            // South building outer wall ring (rows 0..2), with one door at x=14.
-            for (int y = southWallBottom; y <= southWallTop; y++) {
-                inBuilding[x][y] = true;
-                boolean perimeter = y == southWallTop || y == southWallBottom || x == 0 || x == gridW - 1;
-                wall[x][y] = perimeter;
-            }
-        }
-        // Carve doors. The door cell stays part of inBuilding (it's an
-        // interior floor underneath the overhead door overlay) but isn't
-        // a wall — matches BuildingShellCore's punch.
-        wall[8 ][northWallBottom] = false;
-        wall[14][southWallTop]    = false;
+        // Build a real CellTopology + NavigationGrid populated by the
+        // production stamper (WallMasks.stampPerimeter, exactly what
+        // BuildingShellCore calls in-game). Wall direction then comes
+        // straight off topology.getWallDirMask in the wall pass — same
+        // line of code as BattleScreen.renderTiledFloorsAndWalls.
+        List<BuildingRect> buildings = new ArrayList<>();
+        buildings.add(new BuildingRect(0, northWallBottom, gridW - 1, northWallTop));
+        buildings.add(new BuildingRect(0, southWallBottom, gridW - 1, southWallTop));
+        int[][] doors = { {8, northWallBottom}, {14, southWallTop} };
+        CellTopology topology = buildSceneTopology(gridW, gridH, buildings, doors);
 
         // ---- Pass 1: streets ---------------------------------------------
         for (int x = 0; x < gridW; x++) {
@@ -631,40 +672,32 @@ public class StreetZonePreviewTest {
         }
 
         // ---- Pass 3: indoor floors ---------------------------------------
-        for (int x = 0; x < gridW; x++) {
-            for (int y = northWallBottom; y <= northWallTop; y++) {
-                if (wall[x][y]) continue;
-                boolean nWall = isWall(wall, x, y + 1, gridW, gridH);
-                boolean sWall = isWall(wall, x, y - 1, gridW, gridH);
-                boolean eWall = isWall(wall, x + 1, y, gridW, gridH);
-                boolean wWall = isWall(wall, x - 1, y, gridW, gridH);
-                TileManifest.TileFrame f = TileManifest.pickFloorTile(nWall, sWall, eWall, wWall);
-                stampCell(urbanDrawer, urbanSink, f, x, y, gridH, urbanDrawer.defaultGroundInsetPx());
-            }
-            for (int y = southWallBottom; y <= southWallTop; y++) {
-                if (wall[x][y]) continue;
-                boolean nWall = isWall(wall, x, y + 1, gridW, gridH);
-                boolean sWall = isWall(wall, x, y - 1, gridW, gridH);
-                boolean eWall = isWall(wall, x + 1, y, gridW, gridH);
-                boolean wWall = isWall(wall, x - 1, y, gridW, gridH);
+        // Floor picker semantic: nWall=true means "north neighbor IS a
+        // wall" — read straight off topology.isWall, same as production.
+        for (int y = 0; y < gridH; y++) {
+            for (int x = 0; x < gridW; x++) {
+                boolean insideNorth = y >= northWallBottom && y <= northWallTop;
+                boolean insideSouth = y >= southWallBottom && y <= southWallTop;
+                if (!(insideNorth || insideSouth)) continue;
+                if (topology.isWall(x, y)) continue;
+                boolean nWall = isTopologyWall(topology, x, y + 1);
+                boolean sWall = isTopologyWall(topology, x, y - 1);
+                boolean eWall = isTopologyWall(topology, x + 1, y);
+                boolean wWall = isTopologyWall(topology, x - 1, y);
                 TileManifest.TileFrame f = TileManifest.pickFloorTile(nWall, sWall, eWall, wWall);
                 stampCell(urbanDrawer, urbanSink, f, x, y, gridH, urbanDrawer.defaultGroundInsetPx());
             }
         }
 
         // ---- Pass 4: walls -----------------------------------------------
+        // Same line as BattleScreen.renderTiledFloorsAndWalls — read the
+        // intrinsic exterior-direction mask the production stamper
+        // already wrote, hand it to WallMasks.pickTileFromMask.
         for (int x = 0; x < gridW; x++) {
             for (int y = 0; y < gridH; y++) {
-                if (!wall[x][y]) continue;
-                // Picker semantic: nWall=true means "exterior is on N side"
-                // — i.e. neighbor isn't part of this building. Matches the
-                // intrinsic mask BuildingShellCore stamps at gen-time and
-                // the in-game render path in BattleScreen.
-                boolean nExt = !isInBuilding(inBuilding, x, y + 1, gridW, gridH);
-                boolean sExt = !isInBuilding(inBuilding, x, y - 1, gridW, gridH);
-                boolean eExt = !isInBuilding(inBuilding, x + 1, y, gridW, gridH);
-                boolean wExt = !isInBuilding(inBuilding, x - 1, y, gridW, gridH);
-                TileManifest.TileFrame tile = TileManifest.pickWallTile(nExt, sExt, eExt, wExt);
+                if (!topology.isWall(x, y)) continue;
+                int mask = topology.getWallDirMask(x, y);
+                TileManifest.TileFrame tile = WallMasks.pickTileFromMask(mask);
                 if (tile == null) {
                     g.setColor(WALL_CENTER);
                     g.fillRect(x * DISPLAY_CELL_PX, (gridH - 1 - y) * DISPLAY_CELL_PX,
@@ -690,34 +723,11 @@ public class StreetZonePreviewTest {
         stampFrame(street3Sink, sliced, Frame.BENCH_E, 18,  southSidewalkY, gridH);
 
         drawLabel(g, gridW, gridH, combo.label);
-        // Unused-floor reference: keeps the warning off without the import
-        // disappearing if someone adds a fl-tile sample to this scene later.
-        if (floors == null || floorsDrawer == null) drawLabel(g, gridW, gridH, "<no-op>");
-
         g.dispose();
         return img;
     }
 
     // ---- helpers ----------------------------------------------------------
-
-    private static boolean isWall(boolean[][] wall, int x, int y, int gridW, int gridH) {
-        // OOB treated as not-wall — matches the floor/road picker semantics
-        // in BattleScreen.isInBoundsWall, so building edges at the panel
-        // boundary don't pick up a phantom wall neighbor.
-        if (x < 0 || x >= gridW || y < 0 || y >= gridH) return false;
-        return wall[x][y];
-    }
-
-    /**
-     * "Cell at (x, y) is part of a building (wall or interior floor)."
-     * OOB returns false. Pairs with the wall picker's exterior-direction
-     * semantic: a wall cell's exterior is any cardinal direction whose
-     * neighbor isn't in the same building.
-     */
-    private static boolean isInBuilding(boolean[][] inBuilding, int x, int y, int gridW, int gridH) {
-        if (x < 0 || x >= gridW || y < 0 || y >= gridH) return false;
-        return inBuilding[x][y];
-    }
 
     private static void stampCell(FixedGridTileDrawer drawer, TileSink sink,
                                    TileManifest.TileFrame f, int gridX, int gridY, int gridH,
