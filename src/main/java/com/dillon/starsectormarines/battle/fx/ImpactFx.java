@@ -197,6 +197,35 @@ public final class ImpactFx {
     }
 
     /**
+     * Emits a small gray smoke puff at (x, y) for a ballistic round in flight.
+     * Like {@link #spawnEngineTrail} but normal-blend gray instead of additive
+     * orange — reads as gunpowder smoke trailing a lobbed grenade, not engine
+     * exhaust. Callers spawn one per render frame at the round's tail; short
+     * lifetime + slight drift gives the streak a "tighter than wreck smoke"
+     * read while still dispersing realistically.
+     */
+    public void spawnSmokeTrail(float x, float y, float radiusCells) {
+        if (glowSprite == null) return;
+        Particle p = new Particle();
+        p.x = x; p.y = y;
+        // A gentle drift downward off the moving round so the trail hangs
+        // behind it rather than tracking with the projectile.
+        p.vx = (rng.nextFloat() * 2f - 1f) * 0.15f;
+        p.vy = (rng.nextFloat() * 2f - 1f) * 0.15f;
+        p.radiusGrowthPerSec = 0.30f;
+        p.lifetimeRemaining = 0.45f;
+        p.lifetimeMax = 0.45f;
+        p.radiusCells = radiusCells;
+        p.color = SMOKE_TRAIL_COLOR;
+        p.sprite = glowSprite;
+        p.additive = false;
+        particles.add(p);
+    }
+
+    /** Smoke-trail tint — mid gray with a slight warm cast so it reads as gunpowder smoke against the ground palette. */
+    private static final Color SMOKE_TRAIL_COLOR = new Color(0xB0, 0xA8, 0xA0);
+
+    /**
      * Bright muzzle-flash variant exposed publicly so the battle renderer
      * can pin a flash at the firing unit's position when a chaingun round
      * goes out. Same primitive as the internal spark-flash recipe — a hot

@@ -31,13 +31,23 @@ import com.dillon.starsectormarines.battle.fx.ImpactProfile;
  * north-facing — matches our shuttle convention.
  */
 public enum TurretKind {
-    /** Light rapid-fire — anti-personnel suppression. Short range, low damage per shot, fast cooldown. */
+    /**
+     * Light rapid-fire — anti-personnel area suppression. Rips a 6-round
+     * burst at the locked target with wide scatter; each round detonates
+     * with a small AoE at its landing cell. Ground-deployed only — rounds
+     * raycast against walls so a stray spread can't reach marines behind
+     * cover. Same shape as the shuttle-mounted {@link #HEAVY_MG} but tighter
+     * spread, smaller burst, faster cycle.
+     */
     VULCAN       ("graphics/weapons/vulcan_cannon_turret_base.png",
                   "graphics/weapons/vulcan_cannon_turret_recoil.png",
                   "graphics/missiles/shell_small_yellow.png",
                   "vulcan_cannon_fire",
                   "Vulcan Cannon",
-                  24f, 2.5f, 0.45f,  0.50f, 50f, 120f, 1.6f, 0.22f, TurretRole.A2G, 120),
+                  22f, 1.2f, 0.45f,  1.40f, 50f, 120f, 1.6f, 0.22f, TurretRole.A2G, 120,
+                  /*burst*/ 6, 0.08f, /*aoe*/ 0.6f, /*wallDmg*/ 3,
+                  /*arc*/ 0f, /*flightSec*/ 0.14f, /*hitSpread*/ 1.3f,
+                  /*minRange*/ 0f, /*smokeTrail*/ false, /*raycastShots*/ true),
     /** Mid-range autocannon — balanced workhorse. */
     ARBALEST     ("graphics/weapons/arbalest_turret_base.png",
                   "graphics/weapons/arbalest_turret_recoil.png",
@@ -65,7 +75,40 @@ public enum TurretKind {
                   "graphics/missiles/shell_hephag.png",
                   "hephaestus_fire",
                   "Hephaestus Assault Gun",
-                  32f,  6.5f, 0.50f,  1.20f, 85f,  75f, 2.2f, 0.35f, TurretRole.A2G,  50);
+                  32f,  6.5f, 0.50f,  1.20f, 85f,  75f, 2.2f, 0.35f, TurretRole.A2G,  50),
+    /**
+     * Burst-fire grenade launcher — shuttle-mounted indirect-fire pod that lobs
+     * a 4-round salvo of arc'd grenades with a smoke trail, then waits out a
+     * cooldown before the next burst. Each round detonates with a small AoE
+     * and chips wall HP, so a sustained burst on a building flattens it across
+     * a few salvos. Minimum-range gate keeps the launcher from dropping grenades
+     * on top of the shuttle's own LZ when the squad pushes in close.
+     */
+    GRENADE_LAUNCHER ("graphics/weapons/light_mortar_turret_base.png",
+                  "graphics/weapons/light_mortar_turret_recoil.png",
+                  "graphics/missiles/mortar_round.png",
+                  "light_mortar_fire",
+                  "Grenade Launcher",
+                  28f,  4.0f, 0.55f,  4.00f, 70f,  80f, 1.7f, 0.55f, TurretRole.A2G,  60,
+                  /*burst*/ 4, 0.18f, /*aoe*/ 1.5f, /*wallDmg*/ 30,
+                  /*arc*/ 2.5f, /*flightSec*/ 0.65f, /*hitSpread*/ 0.6f,
+                  /*minRange*/ 5f, /*smokeTrail*/ true),
+    /**
+     * Heavy MG — wide-spread suppression. Each trigger pull rips a long
+     * tracer burst toward the lock; rounds scatter across a wide pattern
+     * and detonate with a small AoE at their landing cell, so a stray round
+     * landing between two marines clips both. No arc, no smoke trail — this
+     * is direct-fire area saturation, not artillery.
+     */
+    HEAVY_MG     ("graphics/weapons/vulcan_cannon_turret_base.png",
+                  "graphics/weapons/vulcan_cannon_turret_recoil.png",
+                  "graphics/missiles/shell_small_yellow.png",
+                  "autocannon_fire",
+                  "Heavy MG",
+                  24f,  2.5f, 0.50f,  2.20f, 65f, 110f, 1.6f, 0.22f, TurretRole.A2G, 200,
+                  /*burst*/ 10, 0.07f, /*aoe*/ 0.8f, /*wallDmg*/ 5,
+                  /*arc*/ 0f, /*flightSec*/ 0.18f, /*hitSpread*/ 2.0f,
+                  /*minRange*/ 3f, /*smokeTrail*/ false);
 
     public final String spritePath;
     /** Base sprite swap shown for {@code RECOIL_DURATION} after each shot — the muzzle-flash variant that ships next to the base sprite in {@code graphics/weapons/}. */
@@ -101,11 +144,94 @@ public enum TurretKind {
      */
     public final int startingAmmo;
 
+    /**
+     * Rounds per trigger pull. {@code 1} = single shot (every existing turret);
+     * {@code >1} = burst — the mount fires {@code burstCount} rounds at
+     * {@link #burstSpacing} sim-second intervals, then enters {@link #cooldown}.
+     */
+    public final int burstCount;
+    /** Sim-seconds between rounds within a burst. Ignored when {@link #burstCount} == 1. */
+    public final float burstSpacing;
+    /**
+     * Splash radius in cells. {@code > 0} swings the kind onto the AoE path —
+     * {@link com.dillon.starsectormarines.battle.BattleSimulation#fireShotFrom}
+     * queues a {@link com.dillon.starsectormarines.battle.PendingDetonation}
+     * at the projectile's endpoint instead of resolving damage at fire time.
+     */
+    public final float aoeRadius;
+    /** Wall HP knocked off the endpoint cell on detonation. {@code 0} = non-structural. */
+    public final int wallDamage;
+    /**
+     * Visual parabola peak in cells. {@code > 0} draws the projectile arcing
+     * above the straight-line lerp; the sim's hit roll is unchanged. Used by
+     * {@link #GRENADE_LAUNCHER} to read as a lobbed grenade.
+     */
+    public final float arcHeight;
+    /**
+     * Sim-seconds the projectile is visible in flight. Drives both the
+     * {@link com.dillon.starsectormarines.battle.ShotEvent} lifetime and the
+     * paired {@link com.dillon.starsectormarines.battle.PendingDetonation}
+     * timer so the explosion lines up with the projectile arriving. {@code 0}
+     * falls back to the legacy {@code SHOT_LIFETIME} tracer flash.
+     */
+    public final float flightSec;
+    /**
+     * Endpoint scatter on a hit, in cells. The hit/miss roll still resolves
+     * against the locked target; this just nudges WHERE the impact lands so a
+     * burst of grenades sprays the cell cluster instead of stacking on one.
+     */
+    public final float hitSpread;
+    /** Minimum engagement range in cells. Targets closer than this aren't acquired or kept locked — keeps lobbed-AoE weapons from dropping on top of friendlies. {@code 0} = no minimum. */
+    public final float minRange;
+    /** When true, projectiles in flight emit a small gray smoke puff per render frame at their tail. Used by the grenade launcher; reads as "smokes its way to the target." */
+    public final boolean smokeTrail;
+    /**
+     * When {@code true}, each scattered round raycasts from origin to endpoint
+     * through the nav grid; if a wall sits in the path, the endpoint snaps to
+     * that wall cell (the round "hits" the wall instead of passing through).
+     * Used by ground-deployed area-spread weapons so wide scatter can't pepper
+     * units behind cover. Air-mounted variants leave this off — they're
+     * elevated above the buildings they fire over.
+     */
+    public final boolean raycastShots;
+
     TurretKind(String spritePath, String recoilSpritePath, String projectileSpritePath, String fireSoundId,
                String displayName,
                float range, float damage, float accuracy, float cooldown,
                float maxHp, float turnRateDegPerSec, float visualCells, float projectileVisualCells,
                TurretRole role, int startingAmmo) {
+        this(spritePath, recoilSpritePath, projectileSpritePath, fireSoundId, displayName,
+                range, damage, accuracy, cooldown, maxHp, turnRateDegPerSec, visualCells, projectileVisualCells,
+                role, startingAmmo,
+                /*burstCount*/ 1, /*burstSpacing*/ 0f, /*aoeRadius*/ 0f, /*wallDamage*/ 0,
+                /*arcHeight*/ 0f, /*flightSec*/ 0f, /*hitSpread*/ 0f, /*minRange*/ 0f,
+                /*smokeTrail*/ false, /*raycastShots*/ false);
+    }
+
+    TurretKind(String spritePath, String recoilSpritePath, String projectileSpritePath, String fireSoundId,
+               String displayName,
+               float range, float damage, float accuracy, float cooldown,
+               float maxHp, float turnRateDegPerSec, float visualCells, float projectileVisualCells,
+               TurretRole role, int startingAmmo,
+               int burstCount, float burstSpacing, float aoeRadius, int wallDamage,
+               float arcHeight, float flightSec, float hitSpread, float minRange,
+               boolean smokeTrail) {
+        this(spritePath, recoilSpritePath, projectileSpritePath, fireSoundId, displayName,
+                range, damage, accuracy, cooldown, maxHp, turnRateDegPerSec, visualCells, projectileVisualCells,
+                role, startingAmmo,
+                burstCount, burstSpacing, aoeRadius, wallDamage,
+                arcHeight, flightSec, hitSpread, minRange, smokeTrail,
+                /*raycastShots*/ false);
+    }
+
+    TurretKind(String spritePath, String recoilSpritePath, String projectileSpritePath, String fireSoundId,
+               String displayName,
+               float range, float damage, float accuracy, float cooldown,
+               float maxHp, float turnRateDegPerSec, float visualCells, float projectileVisualCells,
+               TurretRole role, int startingAmmo,
+               int burstCount, float burstSpacing, float aoeRadius, int wallDamage,
+               float arcHeight, float flightSec, float hitSpread, float minRange,
+               boolean smokeTrail, boolean raycastShots) {
         this.spritePath = spritePath;
         this.recoilSpritePath = recoilSpritePath;
         this.projectileSpritePath = projectileSpritePath;
@@ -121,15 +247,27 @@ public enum TurretKind {
         this.projectileVisualCells = projectileVisualCells;
         this.role = role;
         this.startingAmmo = startingAmmo;
+        this.burstCount = burstCount;
+        this.burstSpacing = burstSpacing;
+        this.aoeRadius = aoeRadius;
+        this.wallDamage = wallDamage;
+        this.arcHeight = arcHeight;
+        this.flightSec = flightSec;
+        this.hitSpread = hitSpread;
+        this.minRange = minRange;
+        this.smokeTrail = smokeTrail;
+        this.raycastShots = raycastShots;
     }
 
     /** Visual impact profile for this kind — small spark for the fast/light weapons, kinetic flash + smoke for the mid-weight shells, full HE burst for the mortar. */
     public ImpactProfile impactProfile() {
         switch (this) {
-            case HEAVY_MORTAR:                       return ImpactProfile.HE;
+            case HEAVY_MORTAR:
+            case GRENADE_LAUNCHER:                   return ImpactProfile.HE;
             case ARBALEST:
             case DUAL_FLAK:
-            case HEPHAESTUS:                         return ImpactProfile.KINETIC;
+            case HEPHAESTUS:
+            case HEAVY_MG:                           return ImpactProfile.KINETIC;
             case VULCAN:
             default:                                 return ImpactProfile.RIFLE;
         }

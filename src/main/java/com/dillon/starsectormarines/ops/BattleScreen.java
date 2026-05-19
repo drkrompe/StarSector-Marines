@@ -2674,8 +2674,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         float si = (float) Math.sin(rad);
         float cellPx = camera.cellPxSize();
         for (com.dillon.starsectormarines.battle.air.MountedTurret mt : s.turrets) {
-            ShuttleSpriteCache turretSprite = turretSprites.get(mt.mount.kind);
-            if (turretSprite == null) continue;
+            ShuttleSpriteCache base = turretSprites.get(mt.mount.kind);
+            if (base == null) continue;
             float lx = mt.mount.localOffsetX;
             float ly = mt.mount.localOffsetY;
             float worldOffsetX = lx * c - ly * si;
@@ -2684,8 +2684,34 @@ public class BattleScreen implements Screen, BattleUiContext {
             float wy = s.body.y + worldOffsetY + altOffsetCells;
             float screenX = camera.cellToScreenX(wx);
             float screenY = camera.cellToScreenY(wy);
-            drawTurretLayer(turretSprite, mt.facingDegrees,
-                    mt.mount.kind.visualCells * s.scaleMult, cellPx,
+            // Shared scale: per-shuttle scaleMult (altitude lerp) × per-hull
+            // turretVisualScale. Both layers must share it so barrel and body
+            // stay aligned through landing/takeoff.
+            float layerVisualCells = mt.mount.kind.visualCells * s.scaleMult * s.type.turretVisualScale;
+
+            // Barrel layer (drawn under the body — mirrors the static-turret
+            // pass in renderTurrets). Slides backward along the barrel-facing
+            // axis during the recoil window after firing, then eases forward
+            // over RECOIL_DURATION. Body covers the chamber end so only the
+            // protruding length visibly shortens then slides back out.
+            ShuttleSpriteCache barrel = turretRecoilSprites.get(mt.mount.kind);
+            if (barrel != null) {
+                float recoilT = 0f;
+                if (mt.cooldownTimer > 0f) {
+                    float sinceFire = mt.mount.kind.cooldown - mt.cooldownTimer;
+                    if (sinceFire < RECOIL_DURATION) {
+                        recoilT = 1f - sinceFire / RECOIL_DURATION;
+                    }
+                }
+                float pushPx = recoilT * RECOIL_DISTANCE_FRAC * layerVisualCells * cellPx;
+                double brad = Math.toRadians(mt.facingDegrees);
+                float bx =  (float) Math.sin(brad)  * pushPx;
+                float by = -(float) Math.cos(brad)  * pushPx;
+                drawTurretLayer(barrel, mt.facingDegrees, layerVisualCells, cellPx,
+                        screenX + bx, screenY + by, alphaMult);
+            }
+            // Body layer on top of the barrel.
+            drawTurretLayer(base, mt.facingDegrees, layerVisualCells, cellPx,
                     screenX, screenY, alphaMult);
         }
     }
@@ -2862,12 +2888,14 @@ public class BattleScreen implements Screen, BattleUiContext {
             float progress = 1f - Math.max(0f, Math.min(1f, s.lifetime / Math.max(0.001f, s.lifetimeMax)));
             float px = s.fromX + (s.toX - s.fromX) * progress;
             float py = s.fromY + (s.toY - s.fromY) * progress;
-            // Parabolic arc — peaks at progress=0.5 with height = mechWeapon.arcHeight.
+            // Parabolic arc — peaks at progress=0.5 with the kind's arcHeight.
             // Visual only; the sim's endpoint is unchanged. Bearing is computed
-            // from the analytical tangent so the rocket noses up at launch and
+            // from the analytical tangent so the round noses up at launch and
             // tips down on descent, instead of always pointing at the endpoint.
             float bearing;
-            float arcH = (s.mechWeapon != null) ? s.mechWeapon.arcHeight : 0f;
+            float arcH = 0f;
+            if (s.mechWeapon != null) arcH = s.mechWeapon.arcHeight;
+            else if (s.turretKind != null) arcH = s.turretKind.arcHeight;
             if (arcH > 0f) {
                 py += arcH * 4f * progress * (1f - progress);
                 float tangentDy = (s.toY - s.fromY) + arcH * 4f * (1f - 2f * progress);
@@ -2885,17 +2913,22 @@ public class BattleScreen implements Screen, BattleUiContext {
             sprite.setNormalBlend();
             sprite.setColor(Color.WHITE);
             sprite.renderAtCenter(camera.cellToScreenX(px), camera.cellToScreenY(py));
-            // Engine trail — emit one glow particle per render frame at the
-            // rocket's tail (slight offset opposite the travel direction). Short
-            // lifetimes mean successive frames overlap into a fading streak.
-            if (s.mechWeapon != null && s.mechWeapon.engineTrail && progress > 0.02f && progress < 0.98f) {
-                // Approximate the tail position as the rocket's current cell
+            // Trail — emit one particle per render frame at the round's tail
+            // (slight offset opposite the travel direction). Short lifetimes
+            // mean successive frames overlap into a fading streak. Mech rockets
+            // get the hot engine glow; grenade-launcher shells get a gunpowder
+            // smoke trail (gray, non-additive).
+            boolean engineTrail = s.mechWeapon != null && s.mechWeapon.engineTrail;
+            boolean smokeTrail  = s.turretKind != null && s.turretKind.smokeTrail;
+            if ((engineTrail || smokeTrail) && progress > 0.02f && progress < 0.98f) {
+                // Approximate the tail position as the round's current cell
                 // position minus a small step along its current heading. Cheap
                 // and the visual difference vs. exact-back-of-sprite is nil.
                 float headingRad = (float) Math.toRadians(bearing);
                 float tailDx = -(float) Math.sin(headingRad) * 0.15f;
                 float tailDy = -(float) Math.cos(headingRad) * 0.15f;
-                impactFx.spawnEngineTrail(px + tailDx, py + tailDy, 0.18f);
+                if (engineTrail) impactFx.spawnEngineTrail(px + tailDx, py + tailDy, 0.18f);
+                else             impactFx.spawnSmokeTrail (px + tailDx, py + tailDy, 0.20f);
             }
             if (s.turretKind != null) touchedTurret.add(s.turretKind);
             else if (s.marineSecondary != null) touchedSecondary.add(s.marineSecondary);

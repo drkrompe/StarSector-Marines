@@ -23,6 +23,19 @@ public class MapTurret extends Unit {
     /** True once the sim has converted the cell to walkable rubble. Guards against the renderer keeping a destroyed turret on screen and against double-demolition. */
     public boolean demolished;
 
+    /**
+     * Rounds left to fire in the current burst (excluding the first round,
+     * fired as the trigger pull). {@code 0} = idle / single-shot kind. Burst
+     * kinds latch this from {@link TurretKind#burstCount} when the aim loop
+     * triggers; {@link com.dillon.starsectormarines.battle.ai.TurretBehavior}
+     * pumps the remaining rounds at {@link TurretKind#burstSpacing}.
+     */
+    public int burstRemaining;
+    /** Sim-seconds until the next burst round fires. Counts down while {@link #burstRemaining} &gt; 0. */
+    public float burstTimer;
+    /** Target locked when the burst started — held across the salvo so the rounds chase the same victim even if a closer one walks into LOS mid-burst. */
+    public Unit burstTarget;
+
     public MapTurret(String id, Faction faction, TurretKind kind, int cellX, int cellY) {
         super(id, faction, UnitType.TURRET, cellX, cellY);
         this.kind = kind;

@@ -1429,22 +1429,79 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     public void fireShotFrom(float fromX, float fromY, Faction shooterFaction,
                              TurretKind kind, Unit target) {
         boolean hit = rng.nextFloat() < kind.accuracy;
-        if (hit) {
-            applyDamage(target, kind.damage, 1f);
-            rollFallbackOnHit(target);
-        }
+        boolean isAoe = kind.aoeRadius > 0f;
+        // Compute the visual endpoint with hit-spread / miss-scatter first —
+        // damage application is deferred until after the wall raycast so a
+        // raycast-blocked shot doesn't telepathically land damage past the
+        // wall it actually splattered on.
         float toX, toY;
         if (hit) {
             toX = target.cellX + 0.5f;
             toY = target.cellY + 0.5f;
+            // Endpoint scatter on a hit — purely visual for direct-fire kinds,
+            // but for AoE it also scatters the splash center so a 4-round
+            // grenade burst sprays the cell cluster instead of stacking on one.
+            if (kind.hitSpread > 0f) {
+                float angle = rng.nextFloat() * (float) (Math.PI * 2);
+                float r = rng.nextFloat() * kind.hitSpread;
+                toX += (float) Math.cos(angle) * r;
+                toY += (float) Math.sin(angle) * r;
+            }
         } else {
             float angle = rng.nextFloat() * (float) (Math.PI * 2);
             float spread = MISS_OFFSET_MIN + rng.nextFloat() * (MISS_OFFSET_MAX - MISS_OFFSET_MIN);
+            // Misses get the baseline near-miss scatter plus the kind's
+            // hitSpread — a wider grenade pattern reads as a stray salvo.
+            spread += kind.hitSpread;
             toX = target.cellX + 0.5f + (float) Math.cos(angle) * spread;
             toY = target.cellY + 0.5f + (float) Math.sin(angle) * spread;
         }
+        // Wall raycast — for ground-deployed area-spread weapons, a scattered
+        // round that would fly past a wall instead splatters on that wall.
+        // Keeps the spread from peppering marines behind cover. Air-mounted
+        // variants leave kind.raycastShots = false because they fire over
+        // intervening walls from altitude.
+        if (kind.raycastShots) {
+            int originCx = (int) Math.floor(fromX);
+            int originCy = (int) Math.floor(fromY);
+            int endCx = (int) Math.floor(toX);
+            int endCy = (int) Math.floor(toY);
+            long packed = grid.firstWallOnLine(originCx, originCy, endCx, endCy);
+            int wx = (int) (packed & 0xFFFFFFFFL);
+            int wy = (int) ((packed >>> 32) & 0xFFFFFFFFL);
+            if (wx != -1 || wy != -1) {
+                // Snap endpoint to the wall cell center — the visual round
+                // lands there, and an AoE detonation registers at the wall
+                // cell so wall HP shaves off there (not behind the wall).
+                toX = wx + 0.5f;
+                toY = wy + 0.5f;
+                // Round didn't reach the locked target. Flip to miss so the
+                // deferred direct-damage block doesn't apply hit damage; the
+                // AoE LOS check will independently spare units the wall is
+                // protecting.
+                hit = false;
+            }
+        }
+        // Direct-fire damage — applied after raycast so a wall-blocked shot
+        // can correctly count as a miss. AoE kinds skip this path; their
+        // damage resolves at endpoint via the Detonations pipeline below.
+        if (!isAoe && hit) {
+            applyDamage(target, kind.damage, 1f);
+            rollFallbackOnHit(target);
+        }
+        // AoE path — register the detonation on the queue. Lifetime matches
+        // the projectile's visible flight time so the explosion lines up with
+        // the rendered round arriving at the endpoint.
+        if (isAoe) {
+            float flight = kind.flightSec > 0f ? kind.flightSec : SHOT_LIFETIME;
+            queueDetonation(new com.dillon.starsectormarines.battle.PendingDetonation(
+                    toX, toY, flight,
+                    kind.aoeRadius, kind.damage, /*vsTurretMult*/ 1f,
+                    kind.wallDamage, shooterFaction));
+        }
+        float lifetime = kind.flightSec > 0f ? kind.flightSec : SHOT_LIFETIME;
         postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooterFaction,
-                SHOT_LIFETIME, kind, null, null));
+                lifetime, kind, null, null));
     }
 
     /**

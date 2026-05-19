@@ -91,6 +91,12 @@ public final class MissionGenerator {
         FlybyRoster enemySupport  = rollFighterSupport(r, client.factionId, risk, Faction.DEFENDER);
 
         int requiredDrops = requiredDropsFor(archetype.type, risk);
+        // Dev toggle — clamp every mission's drop count to the override so we
+        // can iterate on drop / shuttle flow without sitting through a full
+        // wave-sized mission to test one thing. See DevConfig.
+        if (com.dillon.starsectormarines.DevConfig.DROP_COUNT_OVERRIDE > 0) {
+            requiredDrops = com.dillon.starsectormarines.DevConfig.DROP_COUNT_OVERRIDE;
+        }
         int employerShuttles = rollEmployerShuttles(r, risk, requiredDrops);
         String requirements = requirementsFor(risk);
         String id = client.factionId + ":" + industry.id + ":" + index;

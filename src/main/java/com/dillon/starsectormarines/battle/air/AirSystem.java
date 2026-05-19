@@ -221,26 +221,46 @@ public class AirSystem {
 
     /**
      * Per-tick aim + fire pass for every {@link MountedTurret} on every
-     * HOVER_STATION shuttle. Each turret uses the shared {@link TurretAim}
-     * loop the static map turrets do — same acquisition / slew / fire-when-aligned
+     * visible shuttle. Each turret uses the shared {@link TurretAim} loop the
+     * static map turrets do — same acquisition / slew / fire-when-aligned
      * rules — but with the mount's world-rotated position as the origin and
      * {@link BattleSimulation#fireShotFrom} for the shot emission so a
-     * hovering Valkyrie's mid-air mount fires from its actual rendered point
-     * rather than the floored cell center.
+     * shuttle's mid-air mount fires from its actual rendered point rather than
+     * the floored cell center.
      *
-     * <p>Mounts in {@link Shuttle.State#LANDED} or any non-hover state skip
-     * the pass — fire support is reserved for the hover window. Empty
-     * turret arrays (pure transports) are a no-op.
+     * <p>Active whenever the shuttle is on the map ({@link Shuttle#isVisible()} —
+     * INCOMING, LANDED, HOVER_STATION, DEPARTING). PENDING / GONE shuttles
+     * aren't physically present, so they skip the pass. Empty turret arrays
+     * (pure transports) are a no-op.
      */
     private void tickShuttleTurrets(BattleSimulation sim, float dt) {
         for (Shuttle s : shuttles) {
-            if (s.state != Shuttle.State.HOVER_STATION) continue;
+            if (!s.isVisible()) continue;
             if (s.turrets.length == 0) continue;
             float rad = (float) Math.toRadians(s.body.facingDegrees);
             float c = (float) Math.cos(rad);
             float si = (float) Math.sin(rad);
             for (MountedTurret mt : s.turrets) {
-                if (mt.ammoDry()) continue;
+                if (mt.ammoDry()) {
+                    // Mag dry mid-burst — drop any pending rounds so the mount
+                    // doesn't stay in a never-firing burst state.
+                    mt.burstRemaining = 0;
+                    mt.burstTarget = null;
+                    continue;
+                }
+                // A burst whose victim died is dead too — release the lock so
+                // the aim loop can re-acquire a fresh target next tick.
+                if (mt.burstRemaining > 0
+                        && (mt.burstTarget == null || !mt.burstTarget.isAlive())) {
+                    mt.burstRemaining = 0;
+                    mt.burstTarget = null;
+                }
+                // Pin the slew target during a burst so the barrel tracks the
+                // salvo victim even if a closer enemy walked into LOS mid-burst.
+                if (mt.burstRemaining > 0) {
+                    mt.target = mt.burstTarget;
+                }
+
                 float lx = mt.mount.localOffsetX;
                 float ly = mt.mount.localOffsetY;
                 // CCW rotation by `rad`. Local frame: +X = right of nose,
@@ -262,6 +282,7 @@ public class AirSystem {
                 aim.facingDegrees = mt.facingDegrees;
                 aim.turnRateDegPerSec = mt.mount.kind.turnRateDegPerSec;
                 aim.attackRange = mt.mount.kind.range;
+                aim.minRange = mt.mount.kind.minRange;
                 aim.cooldownTimer = mt.cooldownTimer;
                 aim.attackCooldown = mt.mount.kind.cooldown;
                 aim.target = mt.target;
@@ -274,9 +295,40 @@ public class AirSystem {
                 mt.cooldownTimer = aim.cooldownTimer;
                 mt.target = aim.target;
 
+                // Shot origin Y carries the shuttle's visual altitude so the
+                // rendered round leaves the turret at its drawn position
+                // (body.y + altOffset), not the ground projection it sits over.
+                // Sim LOS / aim still use the ground-projection worldY above —
+                // that's the right cell for "what wall is this shuttle hovering
+                // over" decisions. This offset is purely a render-origin nudge.
+                float shotOriginY = worldY + s.visualAltitudeOffsetCells();
+
+                // Burst continuation runs ahead of fresh trigger pulls. The
+                // mount commits to its salvo target — closer enemies walking
+                // into LOS don't interrupt rounds already on the clock.
+                if (mt.burstRemaining > 0) {
+                    mt.burstTimer -= dt;
+                    if (mt.burstTimer <= 0f) {
+                        sim.fireShotFrom(worldX, shotOriginY, s.faction, mt.mount.kind, mt.burstTarget);
+                        mt.ammo--;
+                        mt.burstRemaining--;
+                        mt.burstTimer = mt.mount.kind.burstSpacing;
+                        if (mt.burstRemaining == 0) mt.burstTarget = null;
+                    }
+                    continue;
+                }
+
                 if (aim.fireThisTick) {
-                    sim.fireShotFrom(worldX, worldY, s.faction, mt.mount.kind, aim.target);
+                    sim.fireShotFrom(worldX, shotOriginY, s.faction, mt.mount.kind, aim.target);
                     mt.ammo--;
+                    // Burst weapons latch the remaining rounds; single-shot
+                    // kinds (burstCount == 1) skip this and behave as before.
+                    if (mt.mount.kind.burstCount > 1
+                            && aim.target != null && aim.target.isAlive()) {
+                        mt.burstRemaining = mt.mount.kind.burstCount - 1;
+                        mt.burstTimer = mt.mount.kind.burstSpacing;
+                        mt.burstTarget = aim.target;
+                    }
                 }
             }
         }

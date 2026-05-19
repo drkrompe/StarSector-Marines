@@ -375,4 +375,39 @@ public class NavigationGrid {
             if (e2 <  dx) { err += dx; y += sy; }
         }
     }
+
+    /**
+     * Bresenham raycast from {@code (x0, y0)} to {@code (x1, y1)} that returns
+     * the first non-walkable cell encountered (excluding the origin), or
+     * {@code (-1, -1)} if the line is clear all the way to the endpoint.
+     *
+     * <p>Returned as a packed long: low 32 bits = x, next 32 bits = y. Caller
+     * unpacks with {@code (int) (packed)} and {@code (int) (packed >>> 32)}.
+     * Packed return avoids allocating a small array on every shot — turret
+     * burst pumps and area-spread weapons exercise this hot path heavily.
+     *
+     * <p>Bresenham is the same stepping pass {@link #hasLineOfSight} uses;
+     * the difference is this returns the BLOCKER's cell rather than a bool.
+     * Used by {@link com.dillon.starsectormarines.battle.BattleSimulation#fireShotFrom}
+     * to snap scattered rounds to the first wall in their flight path so a
+     * spread-fire turret can't pepper marines behind cover.
+     */
+    public long firstWallOnLine(int x0, int y0, int x1, int y1) {
+        int dx = Math.abs(x1 - x0);
+        int dy = Math.abs(y1 - y0);
+        int sx = x0 < x1 ? 1 : -1;
+        int sy = y0 < y1 ? 1 : -1;
+        int err = dx - dy;
+        int x = x0;
+        int y = y0;
+        while (true) {
+            if (!(x == x0 && y == y0) && !isWalkable(x, y)) {
+                return (((long) y & 0xFFFFFFFFL) << 32) | ((long) x & 0xFFFFFFFFL);
+            }
+            if (x == x1 && y == y1) return (((long) -1) & 0xFFFFFFFFL) << 32 | (((long) -1) & 0xFFFFFFFFL);
+            int e2 = err << 1;
+            if (e2 > -dy) { err -= dy; x += sx; }
+            if (e2 <  dx) { err += dx; y += sy; }
+        }
+    }
 }

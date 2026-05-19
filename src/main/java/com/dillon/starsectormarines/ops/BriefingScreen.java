@@ -532,9 +532,14 @@ public class BriefingScreen implements Screen {
             int employerDrops = m.employerShuttles;
             int eBase = employerDrops / employerPhysical;
             int eExtra = employerDrops % employerPhysical;
+            // Dev toggle — swap employer Aeroshuttles for Valkyries so the
+            // full A2G turret kit (including the grenade launcher) flies
+            // without needing a player Valkyrie. See DevConfig.
+            ShuttleType employerType = com.dillon.starsectormarines.DevConfig.FORCE_EMPLOYER_VALKYRIE
+                    ? ShuttleType.VALKYRIE : ShuttleType.AEROSHUTTLE;
             for (int i = 0; i < employerPhysical; i++) {
                 int cycles = eBase + (i < eExtra ? 1 : 0);
-                out.add(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, cycles));
+                out.add(new ShuttleAssignment(employerType, cycles));
             }
         }
         int playerDrops = Math.max(0, m.requiredDrops - m.employerShuttles);

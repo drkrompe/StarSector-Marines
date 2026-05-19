@@ -27,6 +27,19 @@ public final class MountedTurret {
     /** Currently locked enemy, or null when nothing's in range/LOS. Persisted across ticks so the aim loop doesn't re-acquire every frame. */
     public Unit target;
 
+    /**
+     * Rounds left to fire in the current burst (excluding the first round,
+     * which the aim loop fires as the trigger pull). {@code 0} = idle / single-
+     * shot kind. Non-zero entries get pumped each tick by {@link AirSystem}
+     * regardless of acquisition — a burst commits to its locked target until
+     * exhausted, like LRM/SRM salvos.
+     */
+    public int burstRemaining;
+    /** Sim-seconds until the next burst round fires. Counts down while {@link #burstRemaining} &gt; 0. */
+    public float burstTimer;
+    /** Target locked when the burst started — held across the salvo so the rounds chase the same victim even if a closer one walks into LOS mid-burst. */
+    public Unit burstTarget;
+
     public MountedTurret(TurretMount mount) {
         this.mount = mount;
         this.ammo = mount.kind.startingAmmo;

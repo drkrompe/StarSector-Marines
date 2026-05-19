@@ -106,6 +106,9 @@ public enum ShuttleType implements AirHandling {
             "graphics/ships/valkyrie/valkyrie_ap.png",
             8, 5.0f, 7f, 0.8f,
             Profiles.BUS, 4, 60f, 150f,
+            // Slim hull (~2.4 cells wide at cruise) needs the turrets dialed
+            // down so a 1.8-cell Arbalest doesn't render wider than the ship.
+            0.55f,
             "valkyrie");
 
     public final String spritePath;
@@ -121,6 +124,16 @@ public enum ShuttleType implements AirHandling {
     public final float fireSupportSec;
     /** Maximum HP for the shuttle as a whole. Drives the pressure-to-leave exit during hover; no damage source exists yet, so the field is wired forward for future anti-air work. */
     public final float maxHp;
+    /**
+     * Per-shuttle multiplier on the rendered turret size. Counters the fact
+     * that {@link #visualLengthCells} is squashed differently across hulls
+     * (so big ships don't dominate the screen) — a 1.8-cell {@link TurretKind#ARBALEST}
+     * that reads correctly on a chunky Aeroshuttle (5.6 cells wide) overhangs a
+     * slim Valkyrie (2.4 cells wide). Default {@code 1.0} preserves the
+     * original look on Aeroshuttle / Mudskipper / Kite / Hermes; tall slim
+     * hulls dial this down so their turrets fit the hull width.
+     */
+    public final float turretVisualScale;
     /** Vanilla hull IDs that map to this type when scanning the player's fleet. */
     public final List<String> matchingHullIds;
 
@@ -128,6 +141,17 @@ public enum ShuttleType implements AirHandling {
                 float maxSpeed, float deboardInterval,
                 HandlingProfile handling,
                 int hardpoints, float fireSupportSec, float maxHp,
+                String... matchingHullIds) {
+        this(spritePath, capacity, visualLengthCells, maxSpeed, deboardInterval,
+                handling, hardpoints, fireSupportSec, maxHp, /*turretVisualScale*/ 1.0f,
+                matchingHullIds);
+    }
+
+    ShuttleType(String spritePath, int capacity, float visualLengthCells,
+                float maxSpeed, float deboardInterval,
+                HandlingProfile handling,
+                int hardpoints, float fireSupportSec, float maxHp,
+                float turretVisualScale,
                 String... matchingHullIds) {
         this.spritePath = spritePath;
         this.capacity = capacity;
@@ -138,6 +162,7 @@ public enum ShuttleType implements AirHandling {
         this.hardpoints = hardpoints;
         this.fireSupportSec = fireSupportSec;
         this.maxHp = maxHp;
+        this.turretVisualScale = turretVisualScale;
         this.matchingHullIds = Collections.unmodifiableList(Arrays.asList(matchingHullIds));
     }
 
@@ -184,16 +209,16 @@ public enum ShuttleType implements AirHandling {
     }
 
     /**
-     * Default A2G fits — small craft get a single Heavy Mortar (heavy hitter
-     * with slow rotation suits a stationary hover); larger hulls fan out
-     * Arbalests plus a Hephaestus for sustained DPS. Mount offsets are in
+     * Default A2G fits — small craft get a single Heavy MG (wide-spread
+     * suppression suits a nimble craft circling overhead); larger hulls fan
+     * out Arbalests plus a Hephaestus for sustained DPS. Mount offsets are in
      * the shuttle's local frame: +Y is toward the nose, +X is the right side
      * of the hull, in cells.
      */
     private static TurretMount[] a2gKit(int hardpoints) {
         switch (hardpoints) {
             case 1: return new TurretMount[]{
-                    new TurretMount(TurretKind.HEAVY_MORTAR, 0f, 0f),
+                    new TurretMount(TurretKind.HEAVY_MG, 0f, 0f),
             };
             case 2: return new TurretMount[]{
                     new TurretMount(TurretKind.ARBALEST, -0.6f, +0.6f),
@@ -207,9 +232,14 @@ public enum ShuttleType implements AirHandling {
             case 4:
             default: return new TurretMount[]{
                     new TurretMount(TurretKind.ARBALEST, -0.7f, +0.8f),
-                    new TurretMount(TurretKind.ARBALEST, +0.7f, +0.8f),
+                    // Port wing carries the wide-spread Heavy MG for area
+                    // suppression — pairs with the precision Arbalest opposite
+                    // it so the player reads both close-band patterns at once.
+                    new TurretMount(TurretKind.HEAVY_MG, +0.7f, +0.8f),
                     new TurretMount(TurretKind.ARBALEST, 0f, +0.3f),
-                    new TurretMount(TurretKind.HEPHAESTUS, 0f, -0.9f),
+                    // Rear-mounted indirect-fire pod — lobs arc'd grenades at
+                    // structures + clusters past min-range.
+                    new TurretMount(TurretKind.GRENADE_LAUNCHER, 0f, -0.9f),
             };
         }
     }

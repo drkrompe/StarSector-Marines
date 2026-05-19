@@ -156,6 +156,14 @@ public final class FlybyOverlay {
     private static final float RUN_AOE_RADIUS_CELLS = 1.6f;
     /** Damage applied to each unit caught in a tracer's AoE. Small — runs spam many tracers, so total damage scales with hits, not per-round. */
     private static final float RUN_DAMAGE_PER_HIT = 0.9f;
+    /**
+     * Cell radius around each opportunistic CRUISE-burst tracer's endpoint that
+     * catches "hit" units. Tighter than {@link #RUN_AOE_RADIUS_CELLS} because
+     * burst spreads are aimed at a single forward-cone target — wide enough
+     * that a near-miss clips an adjacent squadmate, narrow enough that a
+     * wildly-scattered round doesn't reach across the street.
+     */
+    private static final float BURST_AOE_RADIUS_CELLS = 1.0f;
     /** Tint for the dust burst when a wall collapses. Cooler grey so it reads distinct from the warm muzzle/impact glows. */
     private static final Color WALL_RUBBLE_DUST = new Color(0xB0, 0xA8, 0x98);
     /** Small dust speck spawned when a tracer chips a wall but doesn't collapse it. Lighter than {@link #WALL_RUBBLE_DUST} so chip vs. collapse reads at a glance. */
@@ -512,9 +520,13 @@ public final class FlybyOverlay {
     }
 
     /**
-     * Fires one round at a specific target with the profile's burst spread.
-     * Used by CRUISE opportunistic bursts — applies damage on hit, with a
-     * muzzle flash + impact glow.
+     * Fires one round in the locked target's direction with the profile's
+     * burst spread. Damage is applied at the tracer endpoint via AoE rather
+     * than to the locked target directly — a scattered round that lands away
+     * from the lock simply misses (or clips whoever the scatter happens to
+     * land near), instead of teleporting damage onto the locked unit. Mirrors
+     * the deliberate-strafing-run pattern in {@link #fireRunTracer} so the
+     * visual landing point and the damage point always agree.
      */
     private void fireOneTracerAt(Fighter f, Unit target, BattleSimulation sim) {
         if (target == null) return;
@@ -532,10 +544,31 @@ public final class FlybyOverlay {
         spawnTracer(f, endX, endY);
         spawnMuzzleFlash(f);
         if (sim != null) {
-            sim.applyExternalDamage(target, f.profile.perTracerDamage);
-            spawnImpact(endX, endY, f.profile.tracerColor);
-            // Spread that carried the round onto a wall instead chips the wall —
-            // emergent collateral, no extra branching needed.
+            // AoE at the tracer endpoint — every alive enemy within
+            // BURST_AOE_RADIUS_CELLS takes the per-tracer damage. Friendly fire
+            // off; we still gate on enemy-side faction so a scattered round
+            // doesn't clip the fighter's own ground forces.
+            boolean anyHit = false;
+            Faction enemy = (f.side == Faction.MARINE) ? Faction.DEFENDER : Faction.MARINE;
+            float r2 = BURST_AOE_RADIUS_CELLS * BURST_AOE_RADIUS_CELLS;
+            for (Unit u : sim.getUnits()) {
+                if (!u.isAlive() || u.faction != enemy) continue;
+                float ux = (u.renderX + 0.5f) - endX;
+                float uy = (u.renderY + 0.5f) - endY;
+                if (ux * ux + uy * uy <= r2) {
+                    sim.applyExternalDamage(u, f.profile.perTracerDamage);
+                    anyHit = true;
+                }
+            }
+            if (anyHit) {
+                spawnImpact(endX, endY, f.profile.tracerColor);
+            } else {
+                // Most scattered rounds miss; show where they actually landed —
+                // dirt kick or wall chip — so the spread reads as real ground
+                // fire instead of disappearing into the void.
+                spawnTerrainImpact(sim, endX, endY, f.profile.tracerColor);
+            }
+            // Spread that carried the round onto a wall chips the wall.
             damageWallAtEndpoint(sim, endX, endY, f.profile.wallDamage);
         }
         playFireSound(f);

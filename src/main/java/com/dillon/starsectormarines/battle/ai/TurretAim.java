@@ -45,6 +45,8 @@ public final class TurretAim {
         public float facingDegrees;
         public float turnRateDegPerSec;
         public float attackRange;
+        /** Minimum engagement range in cells. Targets closer than this are dropped without firing — keeps lobbed-AoE weapons from dropping rounds on top of friendlies. {@code 0} = no minimum. */
+        public float minRange;
         /** Sim-seconds until the turret can fire again. Decremented each tick; reset to {@link #attackCooldown} on a fire. */
         public float cooldownTimer;
         public float attackCooldown;
@@ -93,7 +95,7 @@ public final class TurretAim {
 
         float dist = TacticalScoring.cellDistance(
                 s.originCellX, s.originCellY, s.target.cellX, s.target.cellY);
-        boolean inRange = dist <= s.attackRange;
+        boolean inRange = dist <= s.attackRange && dist >= s.minRange;
         boolean visible = los.visible(s.originCellX, s.originCellY, s.target.cellX, s.target.cellY);
         if (!inRange || !visible) {
             // Drop the target so a fresh acquisition happens next tick. By the
