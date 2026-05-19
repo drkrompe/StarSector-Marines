@@ -143,11 +143,12 @@ public final class TileManifest {
             new TileFrame(6, 2),                            // closed-door panel (decoration only)
     };
 
-    /** Homely furnishings — chairs, chest. Used inside RESIDENTIAL districts. */
+    /** Homely furnishings — clean chairs + chests from urban-tileset rows 1-3. Used inside RESIDENTIAL districts. */
     public static final TileFrame[] RESIDENTIAL_DOODADS = {
-            new TileFrame(6, 7),                            // bench / paired-seat
-            new TileFrame(7, 7),                            // chest
-            new TileFrame(8, 7), new TileFrame(9, 7),       // small stools
+            new TileFrame(6, 1),                            // chair-south-yellow
+            new TileFrame(7, 1),                            // chair-south-green
+            new TileFrame(3, 3),                            // chest-1
+            new TileFrame(4, 3),                            // chest-2
     };
 
     /** Stacked crates only — fills warehouse interiors with cargo. */

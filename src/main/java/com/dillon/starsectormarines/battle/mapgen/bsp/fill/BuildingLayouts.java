@@ -98,22 +98,26 @@ final class BuildingLayouts {
     // ---- Recipes ----
 
     /**
-     * Residential. Picks one long wall and runs a short bench wall-line
-     * along it (every other cell), then drops a 2-prop cluster from the
-     * pool near a corner.
+     * Residential. Picks one long wall and runs a chair wall-line along it
+     * (every other cell, alternating yellow/green for noise) so it reads
+     * as paired seating against the wall, then drops a 1-2 prop cluster
+     * (chest + chair) from the pool elsewhere.
      */
     private static void applyHome(NavigationGrid grid,
                                   int bl, int bt, int br, int bb,
                                   TileManifest.TileFrame[] pool,
                                   List<Doodad> doodads,
                                   Random rng) {
-        TileManifest.TileFrame bench = new TileManifest.TileFrame(6, 7); // RESIDENTIAL_DOODADS[0]
-        // Pick the longer pair of walls and run a bench line on one of them.
+        TileManifest.TileFrame[] chairs = {
+                new TileManifest.TileFrame(6, 1),  // chair-south-yellow
+                new TileManifest.TileFrame(7, 1),  // chair-south-green
+        };
+        // Pick the longer pair of walls and run a chair line on one of them.
         boolean wallsAreHorizontal = (br - bl) >= (bb - bt);
         WallSide side = wallsAreHorizontal
                 ? (rng.nextBoolean() ? WallSide.N : WallSide.S)
                 : (rng.nextBoolean() ? WallSide.E : WallSide.W);
-        wallLine(grid, bl, bt, br, bb, side, bench, /*spacing*/ 2, doodads);
+        wallLineMix(grid, bl, bt, br, bb, side, chairs, /*spacing*/ 2, doodads, rng);
 
         // 1-2 extra cluster props from the per-type pool, free-placed in the
         // opposite half of the building.
@@ -128,42 +132,46 @@ final class BuildingLayouts {
         }
     }
 
-    /** Commercial shop. Shelves line both long walls; a desk sits one cell inside the (first found) doorway, facing the room. */
+    /** Commercial shop. Shelves line both long walls (per-cell variant mix across all 4 shelf types — empty/1/2/3 — so stock reads as varied); a desk sits one cell inside the (first found) doorway, facing the room. */
     private static void applyShop(NavigationGrid grid,
                                   int bl, int bt, int br, int bb,
                                   List<Doodad> doodads,
                                   Random rng) {
-        // Shelves on both long walls — pick the prop deterministically so the
-        // line reads as one continuous fixture rather than randomly mixed shelves.
-        TileManifest.TileFrame shelf = new TileManifest.TileFrame(6 + rng.nextInt(3), 3); // shelf-1..3
+        TileManifest.TileFrame[] shelves = {
+                new TileManifest.TileFrame(5, 3),  // shelf-empty
+                new TileManifest.TileFrame(6, 3),  // shelf-1
+                new TileManifest.TileFrame(7, 3),  // shelf-2
+                new TileManifest.TileFrame(8, 3),  // shelf-3
+        };
         boolean wallsAreHorizontal = (br - bl) >= (bb - bt);
         if (wallsAreHorizontal) {
-            wallLine(grid, bl, bt, br, bb, WallSide.N, shelf, WALL_LINE_SPACING, doodads);
-            wallLine(grid, bl, bt, br, bb, WallSide.S, shelf, WALL_LINE_SPACING, doodads);
+            wallLineMix(grid, bl, bt, br, bb, WallSide.N, shelves, WALL_LINE_SPACING, doodads, rng);
+            wallLineMix(grid, bl, bt, br, bb, WallSide.S, shelves, WALL_LINE_SPACING, doodads, rng);
         } else {
-            wallLine(grid, bl, bt, br, bb, WallSide.W, shelf, WALL_LINE_SPACING, doodads);
-            wallLine(grid, bl, bt, br, bb, WallSide.E, shelf, WALL_LINE_SPACING, doodads);
+            wallLineMix(grid, bl, bt, br, bb, WallSide.W, shelves, WALL_LINE_SPACING, doodads, rng);
+            wallLineMix(grid, bl, bt, br, bb, WallSide.E, shelves, WALL_LINE_SPACING, doodads, rng);
         }
 
         TileManifest.TileFrame desk = new TileManifest.TileFrame(9, 2); // desk-1
         counterAtDoorway(grid, bl, bt, br, bb, desk, doodads);
     }
 
-    /** Industrial warehouse. Crates line both long walls; a desk at one doorway reads as supervisor / parts counter. */
+    /** Industrial warehouse. Crates line both long walls (per-cell variant mix between the two crate frames for hand-stacked feel); a desk at one doorway reads as supervisor / parts counter. */
     private static void applyWarehouse(NavigationGrid grid,
                                        int bl, int bt, int br, int bb,
                                        List<Doodad> doodads,
                                        Random rng) {
-        // Mix crate variants per cell for warehouse noise — repeating "all
-        // identical crates" reads too sterile; alternating between (8, 1) and
-        // (9, 1) gives a hand-stacked feel.
+        TileManifest.TileFrame[] crates = {
+                new TileManifest.TileFrame(8, 1),  // box
+                new TileManifest.TileFrame(9, 1),  // crate
+        };
         boolean wallsAreHorizontal = (br - bl) >= (bb - bt);
         if (wallsAreHorizontal) {
-            crateLine(grid, bl, bt, br, bb, WallSide.N, doodads, rng);
-            crateLine(grid, bl, bt, br, bb, WallSide.S, doodads, rng);
+            wallLineMix(grid, bl, bt, br, bb, WallSide.N, crates, WALL_LINE_SPACING, doodads, rng);
+            wallLineMix(grid, bl, bt, br, bb, WallSide.S, crates, WALL_LINE_SPACING, doodads, rng);
         } else {
-            crateLine(grid, bl, bt, br, bb, WallSide.W, doodads, rng);
-            crateLine(grid, bl, bt, br, bb, WallSide.E, doodads, rng);
+            wallLineMix(grid, bl, bt, br, bb, WallSide.W, crates, WALL_LINE_SPACING, doodads, rng);
+            wallLineMix(grid, bl, bt, br, bb, WallSide.E, crates, WALL_LINE_SPACING, doodads, rng);
         }
 
         TileManifest.TileFrame desk = new TileManifest.TileFrame(9, 3); // desk-2
@@ -209,40 +217,37 @@ final class BuildingLayouts {
         }
     }
 
-    /** Wall-line variant that picks between (8, 1) and (9, 1) crate art per cell for noise. Same skip rules as {@link #wallLine}. */
-    private static void crateLine(NavigationGrid grid,
-                                  int bl, int bt, int br, int bb,
-                                  WallSide side, List<Doodad> doodads, Random rng) {
-        TileManifest.TileFrame[] crates = {
-                new TileManifest.TileFrame(8, 1),
-                new TileManifest.TileFrame(9, 1),
-        };
+    /** Wall-line variant that picks a random prop from {@code variants} per cell. Same skip rules as {@link #wallLine}; gives a hand-stacked / varied-stock feel when the variants are visually distinct (crates, shelves). */
+    private static void wallLineMix(NavigationGrid grid,
+                                    int bl, int bt, int br, int bb,
+                                    WallSide side, TileManifest.TileFrame[] variants, int spacing,
+                                    List<Doodad> doodads, Random rng) {
         switch (side) {
             case N: {
                 int y = bb - 1;
-                for (int x = bl + 1; x <= br - 1; x += WALL_LINE_SPACING) {
-                    tryStamp(grid, x, y, crates[rng.nextInt(crates.length)], doodads);
+                for (int x = bl + 1; x <= br - 1; x += spacing) {
+                    tryStamp(grid, x, y, variants[rng.nextInt(variants.length)], doodads);
                 }
                 break;
             }
             case S: {
                 int y = bt + 1;
-                for (int x = bl + 1; x <= br - 1; x += WALL_LINE_SPACING) {
-                    tryStamp(grid, x, y, crates[rng.nextInt(crates.length)], doodads);
+                for (int x = bl + 1; x <= br - 1; x += spacing) {
+                    tryStamp(grid, x, y, variants[rng.nextInt(variants.length)], doodads);
                 }
                 break;
             }
             case E: {
                 int x = br - 1;
-                for (int y = bt + 1; y <= bb - 1; y += WALL_LINE_SPACING) {
-                    tryStamp(grid, x, y, crates[rng.nextInt(crates.length)], doodads);
+                for (int y = bt + 1; y <= bb - 1; y += spacing) {
+                    tryStamp(grid, x, y, variants[rng.nextInt(variants.length)], doodads);
                 }
                 break;
             }
             case W: {
                 int x = bl + 1;
-                for (int y = bt + 1; y <= bb - 1; y += WALL_LINE_SPACING) {
-                    tryStamp(grid, x, y, crates[rng.nextInt(crates.length)], doodads);
+                for (int y = bt + 1; y <= bb - 1; y += spacing) {
+                    tryStamp(grid, x, y, variants[rng.nextInt(variants.length)], doodads);
                 }
                 break;
             }
