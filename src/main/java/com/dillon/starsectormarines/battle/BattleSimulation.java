@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.ai.TacticalScoring;
 import com.dillon.starsectormarines.battle.ai.TurretBehavior;
 import com.dillon.starsectormarines.battle.ai.UnitBehavior;
 import com.dillon.starsectormarines.battle.ai.goap.GoapInfantryBehavior;
+import com.dillon.starsectormarines.battle.ai.goap.GoapMechBehavior;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
@@ -558,7 +559,11 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // across squads (see roadmap/ai/README.md parallelism section) and
         // we'll fork-join here once we feel the cost.
         for (Squad squad : squads.values()) {
-            GoapInfantryBehavior.replanIfNeeded(squad, this);
+            if (squad.isMechSquad()) {
+                GoapMechBehavior.replanIfNeeded(squad, this);
+            } else {
+                GoapInfantryBehavior.replanIfNeeded(squad, this);
+            }
         }
         for (Unit u : units) {
             if (!u.isAlive()) continue;

@@ -80,7 +80,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
      *       chunk of the salvo flies wide."</li>
      * </ul>
      */
-    static void tryFireMechWeapons(Unit u, float dist, BattleSimulation sim, boolean hasLos) {
+    public static void tryFireMechWeapons(Unit u, float dist, BattleSimulation sim, boolean hasLos) {
         MechLoadoutState m = u.mech;
         // Chaingun: close-band sustained fire — needs LOS.
         if (hasLos && m.chaingunCooldown <= 0f && m.chaingunBurstRemaining <= 0

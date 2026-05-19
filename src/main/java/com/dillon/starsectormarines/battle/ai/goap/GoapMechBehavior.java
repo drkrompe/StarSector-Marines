@@ -1,0 +1,145 @@
+package com.dillon.starsectormarines.battle.ai.goap;
+
+import com.dillon.starsectormarines.battle.BattleSimulation;
+import com.dillon.starsectormarines.battle.Squad;
+import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.ai.UnitBehavior;
+import com.dillon.starsectormarines.battle.ai.goap.actions.EngageAtCurrentBand;
+import com.dillon.starsectormarines.battle.ai.goap.goals.MechEliminateEnemiesGoal;
+import com.dillon.starsectormarines.battle.ai.goap.scoring.RoleAssigner;
+import com.dillon.starsectormarines.battle.ai.goap.world.WorldStateBuilder;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Per-unit GOAP dispatch for mech-class units. Sibling of
+ * {@link GoapInfantryBehavior} with its own goal + action lists. Replaces
+ * the legacy per-unit {@code MechCombatantBehavior} loop — the parity body
+ * lives in {@link EngageAtCurrentBand} now.
+ *
+ * <p>Same shape as the infantry path: {@link #replanIfNeeded} runs once
+ * per mech squad per tick during the alert-update phase; the per-unit
+ * {@link #update} call consumes the squad's plan during the serial
+ * unit-update pass.
+ *
+ * <p>Stage 1 ships one goal ({@link MechEliminateEnemiesGoal}) and one
+ * action ({@link EngageAtCurrentBand}). The role-anchored goals
+ * ({@code OverwatchKillZone} for LR Support, {@code BackstopAssignedSquad}
+ * for Armored Support) layer on top in subsequent slices.
+ */
+public final class GoapMechBehavior implements UnitBehavior {
+
+    public static final GoapMechBehavior INSTANCE = new GoapMechBehavior();
+
+    /** Goals the squad-level planner picks from each replan. Highest-priority bucket wins, relevance breaks ties. */
+    public static final List<Goal> MECH_GOALS = List.of(
+            MechEliminateEnemiesGoal.INSTANCE
+    );
+
+    /** Actions the planner may use. {@link MechEliminateEnemiesGoal} ships a custom-plan that bypasses the planner, but the list is the registry the future role-anchored goals will chain through. */
+    public static final List<Action> MECH_ACTIONS = List.of(
+            EngageAtCurrentBand.INSTANCE
+    );
+
+    /** Sim-seconds between forced replans for mech squads. Same cadence as infantry — playtest will tell us if mechs want a different rhythm. */
+    public static final float REPLAN_PERIOD = 2.0f;
+
+    /** Hard cap on planner-search node expansions. Stage 1 custom-plans so the planner doesn't run; the cap is set anyway for when role-anchored goals start using {@link Planner#plan}. */
+    public static final int PLAN_NODE_LIMIT = 256;
+
+    private GoapMechBehavior() {}
+
+    @Override
+    public void update(Unit unit, BattleSimulation sim) {
+        Squad squad = unit.squadId == Unit.NO_SQUAD ? null : sim.getSquad(unit.squadId);
+        if (squad == null) return;
+
+        SquadPlan plan = squad.currentPlan;
+        if (plan == null || plan.isComplete()) {
+            // Replan catches up next tick; idle this frame rather than fall
+            // through to some arbitrary default. Keeps the planner authoritative.
+            return;
+        }
+
+        SquadPlan.Step step = plan.currentStep();
+        if (step.slotOf(unit) == null) return;
+
+        ActionStatus status = step.action.execute(unit, squad, sim);
+        switch (status) {
+            case SUCCESS -> plan.advance();
+            case FAILURE -> squad.currentPlan = null;
+            case RUNNING -> { /* keep ticking the same step next frame */ }
+        }
+    }
+
+    /**
+     * Called by {@code BattleSimulation} once per mech squad per tick during
+     * the alert-update pass. Decides whether to (re)build the squad's plan
+     * and does so when any trigger fires (no current plan, plan complete,
+     * member count changed, {@link #REPLAN_PERIOD} elapsed).
+     *
+     * <p>Mirrors {@link GoapInfantryBehavior#replanIfNeeded} structurally
+     * but operates on {@link #MECH_GOALS} / {@link #MECH_ACTIONS}. Both
+     * paths share the same {@link WorldStateBuilder} — the predicates
+     * evaluate against squad members regardless of unit type.
+     */
+    public static void replanIfNeeded(Squad squad, BattleSimulation sim) {
+        if (squad.aliveMembers == 0) {
+            squad.currentPlan = null;
+            squad.currentGoal = null;
+            squad.aliveMembersAtLastPlan = 0;
+            return;
+        }
+
+        boolean memberCountChanged = squad.aliveMembers != squad.aliveMembersAtLastPlan;
+        boolean needsReplan = squad.currentPlan == null
+                           || squad.currentPlan.isComplete()
+                           || squad.timeSinceReplan >= REPLAN_PERIOD
+                           || memberCountChanged;
+
+        if (!needsReplan) {
+            squad.timeSinceReplan += BattleSimulation.TICK_DT;
+            return;
+        }
+
+        WorldState current = WorldStateBuilder.build(squad, sim);
+        Goal goal = Goal.pickMostRelevant(MECH_GOALS, current, squad, sim);
+        if (goal == null) {
+            squad.currentPlan = null;
+            squad.currentGoal = null;
+            squad.timeSinceReplan = 0f;
+            squad.aliveMembersAtLastPlan = squad.aliveMembers;
+            return;
+        }
+
+        SquadPlan plan = goal.customPlan(squad, sim);
+        if (plan == null) {
+            plan = Planner.plan(
+                    current,
+                    goal.desiredState(squad, sim),
+                    MECH_ACTIONS,
+                    squad,
+                    sim,
+                    PLAN_NODE_LIMIT);
+        }
+
+        if (plan != null && !plan.isComplete()) {
+            List<Unit> aliveMembers = new ArrayList<>(squad.aliveMembers);
+            for (Unit u : sim.getUnits()) {
+                if (!u.isAlive() || u.squadId != squad.id) continue;
+                aliveMembers.add(u);
+            }
+            for (SquadPlan.Step step : plan.steps()) {
+                List<RoleAssigner.Slot<Unit>> slots = step.action.roles(squad, sim);
+                Map<String, List<Unit>> assignment = RoleAssigner.assign(aliveMembers, slots);
+                step.assignments.putAll(assignment);
+            }
+        }
+        squad.currentPlan = plan;
+        squad.currentGoal = goal;
+        squad.timeSinceReplan = 0f;
+        squad.aliveMembersAtLastPlan = squad.aliveMembers;
+    }
+}
