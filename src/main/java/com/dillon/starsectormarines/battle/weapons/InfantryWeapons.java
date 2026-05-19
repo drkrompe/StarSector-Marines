@@ -87,8 +87,9 @@ public class InfantryWeapons {
         }
         accuracy *= stance.accuracyMult;
         boolean hit = ctx.getRng().nextFloat() < accuracy;
+        float moraleImpact = shooter.type != null ? shooter.type.moraleImpact : 1.0f;
         if (hit) {
-            ctx.applyDamage(target, damage, vsTurretMult);
+            ctx.applyDamage(target, damage, vsTurretMult, moraleImpact);
             // Fall-back roll fires only on hit; the context decides eligibility
             // (turrets, already-falling-back units, dead units are all skipped).
             ctx.rollFallbackOnHit(target);
@@ -116,7 +117,7 @@ public class InfantryWeapons {
             lifetime = shooter.primaryWeapon.flightSec;
         }
         ctx.postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooter.faction, lifetime,
-                tk, shooter.primaryWeapon, null));
+                tk, shooter.primaryWeapon, null, null, moraleImpact));
     }
 
     /**

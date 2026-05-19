@@ -39,9 +39,20 @@ public interface WeaponSimContext {
      * looks up cover at the target's cell, applies the cover damage reduction
      * curve, multiplies by {@code vsTurretMult} when the target is a turret,
      * subtracts from HP, and records a death (idempotently) if the hit was
-     * the killing blow.
+     * the killing blow. Convenience overload with {@code moraleImpact = 1.0f}
+     * for callers that don't have a shooter type (detonations, tests).
      */
-    void applyDamage(Unit target, float damage, float vsTurretMult);
+    default void applyDamage(Unit target, float damage, float vsTurretMult) {
+        applyDamage(target, damage, vsTurretMult, 1.0f);
+    }
+
+    /**
+     * Same as {@link #applyDamage(Unit, float, float)} but scales the morale
+     * drain inflicted on the target's squad by {@code moraleImpact}. Sourced
+     * from the shooter's {@link com.dillon.starsectormarines.battle.UnitType#moraleImpact}
+     * — militia rattle marines less than mechs do.
+     */
+    void applyDamage(Unit target, float damage, float vsTurretMult, float moraleImpact);
 
     /**
      * Adds a {@link ShotEvent} to the simulation's active + this-frame lists.

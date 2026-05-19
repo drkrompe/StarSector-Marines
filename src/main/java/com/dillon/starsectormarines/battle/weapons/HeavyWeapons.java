@@ -67,12 +67,13 @@ public class HeavyWeapons {
     public void fireMechWeapon(WeaponSimContext ctx, Unit shooter, Unit target, MechWeapon weapon, float accuracyMult) {
         boolean hit = ctx.getRng().nextFloat() < weapon.accuracy * accuracyMult;
         boolean isAoe = weapon.aoeRadius > 0f;
+        float moraleImpact = shooter.type != null ? shooter.type.moraleImpact : 1.0f;
 
         // KINETIC PATH — chaingun and any future no-AoE mech weapon. Damage
         // applies immediately to the locked target via the shared
         // applyDamage/rollFallbackOnHit primitives.
         if (!isAoe && hit) {
-            ctx.applyDamage(target, weapon.damage, weapon.vsTurretMult);
+            ctx.applyDamage(target, weapon.damage, weapon.vsTurretMult, moraleImpact);
             ctx.rollFallbackOnHit(target);
         }
 
@@ -114,7 +115,7 @@ public class HeavyWeapons {
 
         float lifetime = weapon.flightSec > 0f ? weapon.flightSec : SHOT_LIFETIME;
         ctx.postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooter.faction, lifetime,
-                null, null, null, weapon));
+                null, null, null, weapon, moraleImpact));
     }
 
     /**

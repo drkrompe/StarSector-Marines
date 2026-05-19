@@ -371,6 +371,11 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
 
     @Override
     public void applyDamage(Unit target, float damage, float vsTurretMult) {
+        applyDamage(target, damage, vsTurretMult, 1.0f);
+    }
+
+    @Override
+    public void applyDamage(Unit target, float damage, float vsTurretMult, float moraleImpact) {
         boolean wasAlive = target.isAlive();
         int targetCover = grid.getCoverAt(target.cellX, target.cellY);
         float dr = COVER_DAMAGE_REDUCTION[Math.min(targetCover, COVER_DAMAGE_REDUCTION.length - 1)];
@@ -401,7 +406,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                         : 1f;
                 float drop = 0f;
                 if (sq.moraleDrainCooldown <= 0f) {
-                    drop += (cap > 0f) ? MORALE_DROP_ON_HIT / cap : MORALE_DROP_ON_HIT;
+                    float hit = (cap > 0f) ? MORALE_DROP_ON_HIT / cap : MORALE_DROP_ON_HIT;
+                    drop += hit * moraleImpact;
                     sq.moraleDrainCooldown = MORALE_DRAIN_COOLDOWN;
                 }
                 if (died) drop += MORALE_DROP_ON_DEATH;
@@ -1084,7 +1090,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                 float cap = (target.originalSize > 0 && target.aliveMembers > 0)
                         ? (float) target.aliveMembers / target.originalSize
                         : 1f;
-                float drop = (cap > 0f) ? MORALE_DROP_ON_NEAR_MISS / cap : MORALE_DROP_ON_NEAR_MISS;
+                float base = (cap > 0f) ? MORALE_DROP_ON_NEAR_MISS / cap : MORALE_DROP_ON_NEAR_MISS;
+                float drop = base * shot.moraleImpact;
                 target.morale = Math.max(0f, target.morale - drop);
                 target.moraleDrainCooldown = MORALE_DRAIN_COOLDOWN;
             }

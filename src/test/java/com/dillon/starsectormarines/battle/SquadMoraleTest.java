@@ -386,6 +386,52 @@ public class SquadMoraleTest {
     }
 
     @Test
+    public void hitDrainScalesWithShooterMoraleImpact() {
+        // The applyDamage moraleImpact param scales the hit drain — drives
+        // the per-shooter intimidation factor (MILITIA = 0.4, HEAVY_MECH =
+        // 1.5, etc.). A militia hit should bleed only 40% of a marine hit.
+        BattleSimulation sim = openSim();
+        Squad sq = marineSquad(sim, 4);
+        Unit target = sim.getUnits().get(0);
+        float before = sq.morale;
+
+        sim.applyDamage(target, 1f, 1f, UnitType.MILITIA.moraleImpact);
+
+        float expected = before - BattleSimulation.MORALE_DROP_ON_HIT
+                * UnitType.MILITIA.moraleImpact;
+        assertEquals(expected, sq.morale, 1e-5f,
+                "militia hit drain should scale by MILITIA.moraleImpact (0.4)");
+    }
+
+    @Test
+    public void heavyMechHitDrainsMoreThanMarineHit() {
+        // The mech intimidation factor (1.5) should rattle a marine squad
+        // faster than the baseline (1.0). Same hit, same target, just two
+        // different shooter intimidation values. We test directly on the
+        // drain math rather than chaining two applyDamage calls (which
+        // involves cooldowns and recovery).
+        BattleSimulation sim = openSim();
+        Squad sq = marineSquad(sim, 4);
+        Unit a = sim.getUnits().get(0);
+
+        sim.applyDamage(a, 1f, 1f, UnitType.MARINE.moraleImpact);
+        float marineDrain = 1.0f - sq.morale;
+
+        // Reset state and apply the heavy-mech hit identically.
+        sq.morale = 1.0f;
+        sq.moraleDrainCooldown = 0f;
+        Unit b = sim.getUnits().get(1);
+        sim.applyDamage(b, 1f, 1f, UnitType.HEAVY_MECH.moraleImpact);
+        float mechDrain = 1.0f - sq.morale;
+
+        assertTrue(mechDrain > marineDrain,
+                "HEAVY_MECH (1.5) drain must exceed MARINE (1.0) drain on identical hits ("
+                        + "mech=" + mechDrain + ", marine=" + marineDrain + ")");
+        assertEquals(marineDrain * UnitType.HEAVY_MECH.moraleImpact, mechDrain, 1e-5f,
+                "mech drain should be exactly marine drain × HEAVY_MECH.moraleImpact");
+    }
+
+    @Test
     public void nonSquadHitDoesNotCrashOrDrainAnyone() {
         // applyDamage on a squad-less target (turret/civilian path) must not
         // touch any morale. Belt-and-braces — the guard in applyDamage is the
