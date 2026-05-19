@@ -53,6 +53,16 @@ public final class TileManifest {
     public static final String WATER_SHEET = "graphics/tilesets/Water_tiles.png";
 
     /**
+     * Fifth sheet — sliced strip carrying the modern road + sidewalk look
+     * plus a culvert/bench doodad set. Variable-width frames separated by
+     * alpha gutters, indexed by {@link com.dillon.starsectormarines.battle.sprites.UrbanTile3}.
+     * Loaded by {@link com.dillon.starsectormarines.battle.sprites.UrbanTile3Tileset};
+     * the renderer dispatches STREET cells through this sheet when it's
+     * loaded and falls back to the {@link #ROAD_SHEET} autotile otherwise.
+     */
+    public static final String STREET3_SHEET = "graphics/tilesets/urban-tileset-3.png";
+
+    /**
      * Top-left cell of the road 3×3 autotile block on {@link #ROAD_SHEET}.
      * Center cell (13, 1) is the open-road interior; pickRoadTile returns it
      * for the all-walls-around-me case and falls back to {@link #ROAD_FILL_RGB}
@@ -481,6 +491,38 @@ public final class TileManifest {
      */
     public static TileFrame pickSidewalkTile(int x, int y) {
         return FL_SIDEWALK_VARIANTS[stableHash(x, y) % FL_SIDEWALK_VARIANTS.length];
+    }
+
+    /**
+     * Picks between {@link com.dillon.starsectormarines.battle.sprites.UrbanTile3#SIDEWALK}
+     * and {@link com.dillon.starsectormarines.battle.sprites.UrbanTile3#SIDEWALK_CORNER}
+     * for a sidewalk cell on the {@link #STREET3_SHEET}. A cell counts as a
+     * corner when two perpendicular cardinal neighbors are <em>not</em>
+     * sidewalk (i.e. the sidewalk strip bends here — a building wall on one
+     * side and the road or another non-sidewalk surface on a perpendicular
+     * side). Straight runs (one non-sidewalk neighbor) get the plain
+     * variant.
+     *
+     * <p>OOB is treated as "not sidewalk" so a sidewalk strip flush against
+     * the map edge picks up a corner at the end rather than rolling off
+     * into nothing.
+     *
+     * @param nNotSidewalk  true if the north neighbor is not a sidewalk cell (wall, road, OOB, etc.)
+     * @param sNotSidewalk  true if the south neighbor is not a sidewalk cell
+     * @param eNotSidewalk  true if the east neighbor is not a sidewalk cell
+     * @param wNotSidewalk  true if the west neighbor is not a sidewalk cell
+     */
+    public static com.dillon.starsectormarines.battle.sprites.UrbanTile3 pickStreet3SidewalkFrame(
+            boolean nNotSidewalk, boolean sNotSidewalk,
+            boolean eNotSidewalk, boolean wNotSidewalk) {
+        boolean nwBend = nNotSidewalk && wNotSidewalk;
+        boolean neBend = nNotSidewalk && eNotSidewalk;
+        boolean swBend = sNotSidewalk && wNotSidewalk;
+        boolean seBend = sNotSidewalk && eNotSidewalk;
+        if (nwBend || neBend || swBend || seBend) {
+            return com.dillon.starsectormarines.battle.sprites.UrbanTile3.SIDEWALK_CORNER;
+        }
+        return com.dillon.starsectormarines.battle.sprites.UrbanTile3.SIDEWALK;
     }
 
     /**

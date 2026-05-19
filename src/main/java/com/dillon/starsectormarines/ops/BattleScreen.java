@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.sprites.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.sprites.SpriteSheetSlicer;
+import com.dillon.starsectormarines.battle.sprites.UrbanTile3;
 import com.dillon.starsectormarines.battle.MapTurret;
 import com.dillon.starsectormarines.battle.MapVehicle;
 import com.dillon.starsectormarines.battle.MarineSecondary;
@@ -321,6 +322,19 @@ public class BattleScreen implements Screen, BattleUiContext {
     private int waterSheetPxH;
     private boolean waterSheetLoadAttempted;
     /**
+     * Cached urban-tileset-3.png sheet — sliced strip carrying modern road,
+     * sidewalk, sidewalk-corner, and three doodad frames. Variable-width
+     * cells: the per-frame bbox lives in {@link #urbanTile3Frames}, populated
+     * by {@link SpriteSheetSlicer} on load. STREET cells dispatch through
+     * this sheet when loaded; the legacy {@link TileManifest#ROAD_SHEET}
+     * autotile path stays in place as a fallback for the load-failed case.
+     */
+    private SpriteAPI urbanTile3Sheet;
+    private int urbanTile3SheetPxW;
+    private int urbanTile3SheetPxH;
+    private boolean urbanTile3SheetLoadAttempted;
+    private SpriteSheetFrames urbanTile3Frames;
+    /**
      * Per-sheet quad batchers. Lazily constructed when each sheet finishes
      * loading. Reused across passes — the urban batch is appended to by
      * both the floor pass (rubble + INDOOR + DOOR_OPEN overlays) and the
@@ -331,6 +345,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     private QuadBatch roadBatch;
     private QuadBatch floorsBatch;
     private QuadBatch waterBatch;
+    private QuadBatch urbanTile3Batch;
     /**
      * Solid-color batch for in-loop fills that need to share painter
      * ordering with the textured batches — crosswalk stripes (drawn over
@@ -425,6 +440,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         ensureRoadSheet();
         ensureFloorsSheet();
         ensureWaterSheet();
+        ensureUrbanTile3Sheet();
         ensureShuttleSprites();
         ensureObjectiveIcons();
         impactFx.ensureSprites();
@@ -606,6 +622,55 @@ public class BattleScreen implements Screen, BattleUiContext {
         } catch (Exception e) {
             LOG.error("BattleScreen: failed to load water tileset " + TileManifest.WATER_SHEET, e);
             waterSheet = null;
+        }
+    }
+
+    /**
+     * Lazy-loads the urban-tileset-3 sheet — sliced strip with variable-width
+     * cells separated by alpha gutters, so the frame bboxes are computed by
+     * {@link SpriteSheetSlicer} rather than read off a fixed grid. Same
+     * lazy-load shape as {@link #ensureRoadSheet}; on success the slicer
+     * frames live in {@link #urbanTile3Frames} and the per-sheet batch is
+     * built so STREET cells can dispatch through it.
+     */
+    private void ensureUrbanTile3Sheet() {
+        if (urbanTile3SheetLoadAttempted) return;
+        urbanTile3SheetLoadAttempted = true;
+        try {
+            Global.getSettings().loadTexture(TileManifest.STREET3_SHEET);
+            urbanTile3Sheet = Global.getSettings().getSprite(TileManifest.STREET3_SHEET);
+            if (urbanTile3Sheet == null) {
+                LOG.warn("BattleScreen: getSprite returned null for " + TileManifest.STREET3_SHEET);
+                return;
+            }
+            try (java.io.InputStream stream = Global.getSettings().openStream(TileManifest.STREET3_SHEET)) {
+                BufferedImage img = ImageIO.read(stream);
+                if (img == null) {
+                    LOG.warn("BattleScreen: ImageIO.read returned null for " + TileManifest.STREET3_SHEET);
+                    urbanTile3Sheet = null;
+                    return;
+                }
+                urbanTile3SheetPxW = img.getWidth();
+                urbanTile3SheetPxH = img.getHeight();
+                urbanTile3Frames = SpriteSheetSlicer.slice(img);
+                int expected = UrbanTile3.values().length;
+                if (urbanTile3Frames.frames.length != expected) {
+                    LOG.warn("BattleScreen: urban-tileset-3 slicer returned "
+                            + urbanTile3Frames.frames.length + " frames but UrbanTile3 expects "
+                            + expected + " — falling back to legacy road autotile");
+                    urbanTile3Sheet = null;
+                    urbanTile3Frames = null;
+                    return;
+                }
+                urbanTile3Batch = new QuadBatch(urbanTile3Sheet, urbanTile3SheetPxW, urbanTile3SheetPxH, 4096);
+                LOG.info("BattleScreen: loaded urban-tileset-3 " + TileManifest.STREET3_SHEET
+                        + " (" + urbanTile3SheetPxW + "x" + urbanTile3SheetPxH + "), "
+                        + urbanTile3Frames.frames.length + " frames sliced");
+            }
+        } catch (Exception e) {
+            LOG.error("BattleScreen: failed to load urban-tileset-3 " + TileManifest.STREET3_SHEET, e);
+            urbanTile3Sheet = null;
+            urbanTile3Frames = null;
         }
     }
 
@@ -1616,7 +1681,32 @@ public class BattleScreen implements Screen, BattleUiContext {
                         break;
                     }
                     case STREET:
-                        if (roadSheet != null) {
+                        if (urbanTile3Batch != null) {
+                            // New path: urban-tileset-3 is loaded — every STREET
+                            // cell renders through it. Sidewalk cells (those
+                            // adjacent to a wall) pick the corner variant when
+                            // two perpendicular neighbors aren't also sidewalk;
+                            // straight runs get the plain slab. Road cells get
+                            // a uniform paver — no autotile, no fallback fill.
+                            if (isSidewalkCell(grid, topology, x, y)) {
+                                boolean nNotSw = !isSidewalkCell(grid, topology, x, y + 1);
+                                boolean sNotSw = !isSidewalkCell(grid, topology, x, y - 1);
+                                boolean eNotSw = !isSidewalkCell(grid, topology, x + 1, y);
+                                boolean wNotSw = !isSidewalkCell(grid, topology, x - 1, y);
+                                UrbanTile3 frame = TileManifest.pickStreet3SidewalkFrame(
+                                        nNotSw, sNotSw, eNotSw, wNotSw);
+                                drawUrbanTile3Frame(frame, x, y, alphaMult);
+                            } else {
+                                drawUrbanTile3Frame(UrbanTile3.STREET_SQUARE, x, y, alphaMult);
+                                if (topology.isCrosswalk(x, y)) {
+                                    drawCrosswalkStripes(x, y, topology.isCrosswalkStripesHorizontal(x, y), alphaMult);
+                                }
+                            }
+                        } else if (roadSheet != null) {
+                            // Fallback path: urban-tileset-3 didn't load —
+                            // use the legacy dashed-road autotile from the
+                            // urban-tileset-2 sheet so STREET cells still
+                            // render rather than going blank.
                             if (isSidewalkCell(grid, topology, x, y)) {
                                 drawRoadTile(TileManifest.SIDEWALK, x, y, alphaMult, GROUND_TILE_EDGE_INSET_PX);
                             } else {
@@ -1722,10 +1812,11 @@ public class BattleScreen implements Screen, BattleUiContext {
         // live in solidBatch and only occupy cells with no textured floor draw,
         // so the relative ordering against road/floors is moot for them.
         try (GlStateBracket gl = GlStateBracket.textured2D()) {
-            if (roadBatch   != null) roadBatch.flush();
-            if (floorsBatch != null) floorsBatch.flush();
-            if (waterBatch  != null) waterBatch.flush();
-            if (urbanBatch  != null) urbanBatch.flush();
+            if (roadBatch       != null) roadBatch.flush();
+            if (urbanTile3Batch != null) urbanTile3Batch.flush();
+            if (floorsBatch     != null) floorsBatch.flush();
+            if (waterBatch      != null) waterBatch.flush();
+            if (urbanBatch      != null) urbanBatch.flush();
             solidBatch.flush();
         }
 
@@ -1904,8 +1995,9 @@ public class BattleScreen implements Screen, BattleUiContext {
             }
         }
         try (GlStateBracket gl = GlStateBracket.textured2D()) {
-            if (roadBatch  != null) roadBatch.flush();
-            if (urbanBatch != null) urbanBatch.flush();
+            if (roadBatch       != null) roadBatch.flush();
+            if (urbanTile3Batch != null) urbanTile3Batch.flush();
+            if (urbanBatch      != null) urbanBatch.flush();
         }
     }
 
@@ -1928,6 +2020,35 @@ public class BattleScreen implements Screen, BattleUiContext {
         float cx = camera.cellToScreenX(gridX + 0.5f);
         float cy = camera.cellToScreenY(gridY + 0.5f);
         roadBatch.append(srcPxX, srcTopPxY, srcPxW, srcPxH,
+                cx, cy, cellPx, cellPx,
+                1f, 1f, 1f, alphaMult);
+    }
+
+    /**
+     * Stamps one {@link UrbanTile3} frame at {@code (gridX, gridY)} via the
+     * sliced-sheet bbox cached in {@link #urbanTile3Frames}. Source rect is
+     * the slicer-detected per-frame bounding box minus the standard ground
+     * inset for {@link UrbanTile3.Kind#GROUND} tiles (street, sidewalk),
+     * zero inset for overlays (doodads). Destination is always one nav cell
+     * — the variable-width source frame stretches with bilinear filtering
+     * to fill it, same convention as the {@link com.dillon.starsectormarines.battle.sprites.NatureTile}
+     * render path.
+     */
+    private void drawUrbanTile3Frame(UrbanTile3 frame, int gridX, int gridY, float alphaMult) {
+        if (urbanTile3Batch == null || urbanTile3Frames == null || frame == null) return;
+        int idx = frame.frameIndex();
+        if (idx < 0 || idx >= urbanTile3Frames.frames.length) return;
+        SpriteSheetFrames.Frame f = urbanTile3Frames.frames[idx];
+        int inset = frame.isGround() ? GROUND_TILE_EDGE_INSET_PX : 0;
+        int srcPxX = f.x + inset;
+        int srcPxY = f.y + inset;
+        int srcPxW = Math.max(1, f.w - 2 * inset);
+        int srcPxH = Math.max(1, f.h - 2 * inset);
+
+        float cellPx = camera.cellPxSize();
+        float cx = camera.cellToScreenX(gridX + 0.5f);
+        float cy = camera.cellToScreenY(gridY + 0.5f);
+        urbanTile3Batch.append(srcPxX, srcPxY, srcPxW, srcPxH,
                 cx, cy, cellPx, cellPx,
                 1f, 1f, 1f, alphaMult);
     }

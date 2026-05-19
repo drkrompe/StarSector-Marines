@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.sprites.NatureTile;
 import com.dillon.starsectormarines.battle.sprites.NatureTileset;
 import com.dillon.starsectormarines.battle.sprites.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.sprites.SpriteSheetSlicer;
+import com.dillon.starsectormarines.battle.sprites.UrbanTile3;
+import com.dillon.starsectormarines.battle.sprites.UrbanTile3Tileset;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
@@ -110,6 +112,7 @@ public class TilesetDebugScreen implements Screen {
         SHEETS.add(new SheetSpec("Floors",  "graphics/tilesets/Floors_Tiles.png",    16));
         SHEETS.add(new SheetSpec("Water",   "graphics/tilesets/Water_tiles.png",     16));
         SHEETS.add(new SheetSpec("Nature",  NatureTileset.SHEET_PATH,                 0));
+        SHEETS.add(new SheetSpec("Urban-3", UrbanTile3Tileset.SHEET_PATH,             0));
     }
 
     private final WidgetRoot widgets = new WidgetRoot();
@@ -354,8 +357,19 @@ public class TilesetDebugScreen implements Screen {
         if (selCol < 0) {
             coord = "(none)";
         } else if (activeSheet != null && activeSheet.isSliced()) {
-            NatureTile nt = NatureTile.byFrame(selCol);
-            coord = "frame " + selCol + (nt != null ? " — " + nt.label : "");
+            // Sliced sheets share the SpriteSheetSlicer pipeline but each has
+            // its own semantic enum — dispatch by sheet path so the label
+            // lookup uses the right one. Falls back to a bare frame index
+            // when no enum matches (new sliced sheet added without wiring).
+            String label = null;
+            if (activeSheet.path.equals(NatureTileset.SHEET_PATH)) {
+                NatureTile nt = NatureTile.byFrame(selCol);
+                if (nt != null) label = nt.label;
+            } else if (activeSheet.path.equals(UrbanTile3Tileset.SHEET_PATH)) {
+                UrbanTile3 ut = UrbanTile3.byFrame(selCol);
+                if (ut != null) label = ut.label;
+            }
+            coord = "frame " + selCol + (label != null ? " — " + label : "");
         } else {
             coord = "(" + selCol + ", " + selRow + ")";
         }
