@@ -40,9 +40,11 @@ public final class DenseQuarterFiller implements CompoundFiller {
     private static final int BRIDGE_SCAN_DEPTH = 5;
 
     private static final BuildingShellCore.BuildingConfig TOWER_PRIMARY_CONFIG = new BuildingShellCore.BuildingConfig(
-            GroundKind.TILE, TileManifest.SKYPORT_DOODADS, PointOfInterest.Kind.COMMS);
+            GroundKind.TILE, TileManifest.SKYPORT_DOODADS, PointOfInterest.Kind.COMMS,
+            BuildingLayouts.LayoutRecipe.SHOP);
     private static final BuildingShellCore.BuildingConfig TOWER_SECONDARY_CONFIG = new BuildingShellCore.BuildingConfig(
-            GroundKind.INDOOR, TileManifest.WAREHOUSE_DOODADS, PointOfInterest.Kind.DEPOT);
+            GroundKind.INDOOR, TileManifest.WAREHOUSE_DOODADS, PointOfInterest.Kind.DEPOT,
+            BuildingLayouts.LayoutRecipe.WAREHOUSE);
 
     @Override public BlockKind kind() { return BlockKind.DENSE_QUARTER; }
 

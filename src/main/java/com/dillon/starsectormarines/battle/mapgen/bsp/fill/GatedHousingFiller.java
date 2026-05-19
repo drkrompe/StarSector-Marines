@@ -37,11 +37,14 @@ public final class GatedHousingFiller implements CompoundFiller {
     private static final int BRIDGE_SCAN_DEPTH = 5;
 
     private static final BuildingShellCore.BuildingConfig MAIN_HOUSE_CONFIG = new BuildingShellCore.BuildingConfig(
-            GroundKind.INDOOR, TileManifest.RESIDENTIAL_DOODADS, PointOfInterest.Kind.RESIDENTIAL);
+            GroundKind.INDOOR, TileManifest.RESIDENTIAL_DOODADS, PointOfInterest.Kind.RESIDENTIAL,
+            BuildingLayouts.LayoutRecipe.HOME);
     private static final BuildingShellCore.BuildingConfig SECONDARY_HOUSE_CONFIG = new BuildingShellCore.BuildingConfig(
-            GroundKind.INDOOR, TileManifest.RESIDENTIAL_DOODADS, PointOfInterest.Kind.RESIDENTIAL);
+            GroundKind.INDOOR, TileManifest.RESIDENTIAL_DOODADS, PointOfInterest.Kind.RESIDENTIAL,
+            BuildingLayouts.LayoutRecipe.HOME);
     private static final BuildingShellCore.BuildingConfig OUTBUILDING_CONFIG = new BuildingShellCore.BuildingConfig(
-            GroundKind.INDOOR, TileManifest.WAREHOUSE_DOODADS, PointOfInterest.Kind.DEPOT);
+            GroundKind.INDOOR, TileManifest.WAREHOUSE_DOODADS, PointOfInterest.Kind.DEPOT,
+            BuildingLayouts.LayoutRecipe.WAREHOUSE);
 
     @Override public BlockKind kind() { return BlockKind.GATED_HOUSING; }
 

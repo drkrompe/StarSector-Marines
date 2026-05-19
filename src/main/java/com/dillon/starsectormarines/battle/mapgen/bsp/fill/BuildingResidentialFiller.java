@@ -27,7 +27,8 @@ public final class BuildingResidentialFiller implements BlockFiller {
     private static final BuildingShellCore.BuildingConfig CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.INDOOR,
             TileManifest.RESIDENTIAL_DOODADS,
-            PointOfInterest.Kind.RESIDENTIAL);
+            PointOfInterest.Kind.RESIDENTIAL,
+            BuildingLayouts.LayoutRecipe.HOME);
 
     @Override
     public BlockKind kind() { return BlockKind.BUILDING_RESIDENTIAL; }

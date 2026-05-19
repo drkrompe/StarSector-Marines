@@ -52,30 +52,27 @@ final class BuildingShellCore {
     /** Chance a qualifying hollow building gets a second perimeter doorway on the opposite side. */
     private static final float SECOND_DOORWAY_CHANCE = 0.7f;
 
-    /** Probability a hollow building gets at least one prop placed. */
-    private static final float DOODAD_PER_BUILDING_CHANCE = 0.8f;
-    /** Cap on doodads per building. */
-    private static final int DOODAD_MAX_PER_BUILDING = 3;
-    /** Probability each interior cell (after the first) gets a prop, until the cap is hit. */
-    private static final float DOODAD_EXTRA_CELL_CHANCE = 0.4f;
-
     private BuildingShellCore() {}
 
     /** Configuration knob — supplied by each filler to flavor the carved shell. */
     static final class BuildingConfig {
         /** Ground kind painted across the interior floor. */
         final GroundKind interiorGround;
-        /** Pool of doodad tiles to draw from when scattering props. */
+        /** Pool of doodad tiles used by the SHED/tiny fallback scatter and any recipe that draws from the per-type pool rather than literal frames. */
         final TileManifest.TileFrame[] doodadPool;
         /** POI kind reported for the carved building (or {@code null} if too small). */
         final PointOfInterest.Kind poiKind;
+        /** Layout strategy applied to LARGE buildings. TINY buildings always fall back to {@link BuildingLayouts.LayoutRecipe#SHED}. */
+        final BuildingLayouts.LayoutRecipe layoutRecipe;
 
         BuildingConfig(GroundKind interiorGround,
                        TileManifest.TileFrame[] doodadPool,
-                       PointOfInterest.Kind poiKind) {
+                       PointOfInterest.Kind poiKind,
+                       BuildingLayouts.LayoutRecipe layoutRecipe) {
             this.interiorGround = interiorGround;
             this.doodadPool = doodadPool;
             this.poiKind = poiKind;
+            this.layoutRecipe = layoutRecipe;
         }
     }
 
@@ -156,8 +153,10 @@ final class BuildingShellCore {
         InteriorWall wall = maybeAddInteriorWall(grid, topology, bl, bt, br, bb, rng, config.interiorGround);
         punchPerimeterDoorways(grid, topology, bl, bt, br, bb, wall, rng, config.interiorGround);
 
-        // Doodad scatter — interior-only, walkable, non-doorway cells.
-        scatterDoodads(grid, bl, bt, br, bb, config.doodadPool, doodads, rng);
+        // Doodad layout — TINY buildings get sparse scatter (shed), LARGE
+        // buildings apply the per-type recipe (warehouse / shop / home, etc.).
+        BuildingLayouts.applyLayout(grid, bl, bt, br, bb,
+                config.doodadPool, config.layoutRecipe, doodads, rng);
 
         int cx = (bl + br) / 2;
         int cy = (bt + bb) / 2;
@@ -364,39 +363,6 @@ final class BuildingShellCore {
         grid.setDoorway(x, y, true);
         grid.openAllEdges(x, y);
         topology.setGroundKind(x, y, interiorGround);
-    }
-
-    /**
-     * Scatters props through the building's interior cells. Mirrors the legacy
-     * scatter pass but operates on a single building at a time (so each
-     * BlockFiller can append directly to the shared accumulator list).
-     */
-    private static void scatterDoodads(NavigationGrid grid,
-                                       int bl, int bt, int br, int bb,
-                                       TileManifest.TileFrame[] pool,
-                                       List<Doodad> doodads,
-                                       Random rng) {
-        if (pool == null || pool.length == 0) return;
-        if (rng.nextFloat() >= DOODAD_PER_BUILDING_CHANCE) return;
-
-        List<int[]> interior = new ArrayList<>();
-        for (int y = bt + 1; y <= bb - 1; y++) {
-            for (int x = bl + 1; x <= br - 1; x++) {
-                if (!grid.isWalkable(x, y)) continue;
-                if (grid.isDoorway(x, y))   continue;
-                interior.add(new int[]{x, y});
-            }
-        }
-        if (interior.isEmpty()) return;
-
-        for (int i = 0; i < interior.size() && i < DOODAD_MAX_PER_BUILDING; i++) {
-            if (i > 0 && rng.nextFloat() >= DOODAD_EXTRA_CELL_CHANCE) break;
-            int pickIdx = rng.nextInt(interior.size());
-            int[] cell = interior.remove(pickIdx);
-            TileManifest.TileFrame tile = pool[rng.nextInt(pool.length)];
-            doodads.add(new Doodad(cell[0], cell[1], tile));
-            if (interior.isEmpty()) break;
-        }
     }
 
     /**

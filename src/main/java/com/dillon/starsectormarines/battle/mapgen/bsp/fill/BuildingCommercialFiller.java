@@ -48,7 +48,8 @@ public final class BuildingCommercialFiller implements BlockFiller {
     private static final BuildingShellCore.BuildingConfig CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.TILE,
             COMMERCIAL_DOODADS,
-            PointOfInterest.Kind.RESIDENTIAL);
+            PointOfInterest.Kind.RESIDENTIAL,
+            BuildingLayouts.LayoutRecipe.SHOP);
 
     @Override
     public BlockKind kind() { return BlockKind.BUILDING_COMMERCIAL; }

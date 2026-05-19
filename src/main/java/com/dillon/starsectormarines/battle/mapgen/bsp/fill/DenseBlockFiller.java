@@ -68,7 +68,8 @@ public final class DenseBlockFiller implements BlockFiller {
     private static final BuildingShellCore.BuildingConfig FALLBACK_CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.INDOOR,
             TileManifest.RESIDENTIAL_DOODADS,
-            PointOfInterest.Kind.RESIDENTIAL);
+            PointOfInterest.Kind.RESIDENTIAL,
+            BuildingLayouts.LayoutRecipe.HOME);
 
     @Override
     public BlockKind kind() { return BlockKind.DENSE_BLOCK; }

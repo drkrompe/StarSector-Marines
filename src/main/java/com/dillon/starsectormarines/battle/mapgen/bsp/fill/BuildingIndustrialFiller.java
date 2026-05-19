@@ -26,7 +26,8 @@ public final class BuildingIndustrialFiller implements BlockFiller {
     private static final BuildingShellCore.BuildingConfig CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.STRIPED,
             TileManifest.WAREHOUSE_DOODADS,
-            PointOfInterest.Kind.DEPOT);
+            PointOfInterest.Kind.DEPOT,
+            BuildingLayouts.LayoutRecipe.WAREHOUSE);
 
     @Override
     public BlockKind kind() { return BlockKind.BUILDING_INDUSTRIAL; }

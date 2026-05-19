@@ -65,13 +65,17 @@ public final class MilitaryBaseFiller implements CompoundFiller {
     private static final int WALL_HP_FORTIFIED = 150;
 
     private static final BuildingShellCore.BuildingConfig COMMAND_CONFIG = new BuildingShellCore.BuildingConfig(
-            GroundKind.INDOOR, TileManifest.SKYPORT_DOODADS, PointOfInterest.Kind.COMMS);
+            GroundKind.INDOOR, TileManifest.SKYPORT_DOODADS, PointOfInterest.Kind.COMMS,
+            BuildingLayouts.LayoutRecipe.SHOP);
     private static final BuildingShellCore.BuildingConfig BARRACKS_CONFIG = new BuildingShellCore.BuildingConfig(
-            GroundKind.INDOOR, TileManifest.RESIDENTIAL_DOODADS, PointOfInterest.Kind.RESIDENTIAL);
+            GroundKind.INDOOR, TileManifest.RESIDENTIAL_DOODADS, PointOfInterest.Kind.RESIDENTIAL,
+            BuildingLayouts.LayoutRecipe.HOME);
     private static final BuildingShellCore.BuildingConfig ARMORY_CONFIG = new BuildingShellCore.BuildingConfig(
-            GroundKind.STRIPED, TileManifest.WAREHOUSE_DOODADS, PointOfInterest.Kind.DEPOT);
+            GroundKind.STRIPED, TileManifest.WAREHOUSE_DOODADS, PointOfInterest.Kind.DEPOT,
+            BuildingLayouts.LayoutRecipe.WAREHOUSE);
     private static final BuildingShellCore.BuildingConfig VEHICLE_BAY_CONFIG = new BuildingShellCore.BuildingConfig(
-            GroundKind.STRIPED, TileManifest.WAREHOUSE_DOODADS, PointOfInterest.Kind.DEPOT);
+            GroundKind.STRIPED, TileManifest.WAREHOUSE_DOODADS, PointOfInterest.Kind.DEPOT,
+            BuildingLayouts.LayoutRecipe.WAREHOUSE);
 
     @Override
     public void fill(Compound compound,
