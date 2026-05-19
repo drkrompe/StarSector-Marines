@@ -24,5 +24,17 @@ public final class DevConfig {
      */
     public static final boolean UNLIMITED_TRANSPORT = true;
 
+    /**
+     * FBO pixel resolution per nav-grid cell for the decal accumulator.
+     * 32 = native (matches the 32px source sheets, no downsample at neutral
+     * zoom). Drop to 16 for ~¼ VRAM at the cost of visible softness; raise
+     * to 64 for sharp decals at max zoom at ×4 VRAM. On a 100×100 grid:
+     * 16 → ~10 MB, 32 → ~40 MB, 64 → ~160 MB.
+     *
+     * <p>Promote to a real player-facing setting (mod_info.json options /
+     * settings.json reader) once we have a settings UI to hang it off of.
+     */
+    public static final int DECAL_FBO_PX_PER_CELL = 32;
+
     private DevConfig() {}
 }

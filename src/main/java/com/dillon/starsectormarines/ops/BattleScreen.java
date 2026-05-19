@@ -27,7 +27,9 @@ import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.panel.SquadDetailPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadOverviewPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadPlanDebugPanel;
+import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
+import com.dillon.starsectormarines.battle.ui.picking.WorldPicker;
 import com.dillon.starsectormarines.battle.fx.ImpactDecals;
 import com.dillon.starsectormarines.battle.fx.ImpactFx;
 import com.dillon.starsectormarines.battle.fx.ImpactProfile;
@@ -36,6 +38,10 @@ import com.dillon.starsectormarines.battle.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.objective.Objective;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.battleview.BattleCamera;
+import com.dillon.starsectormarines.render2d.DecalAccumulator;
+import com.dillon.starsectormarines.render2d.GlStateBracket;
+import com.dillon.starsectormarines.render2d.QuadBatch;
+import com.dillon.starsectormarines.render2d.SolidQuadBatch;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.LabelWidget;
@@ -213,6 +219,8 @@ public class BattleScreen implements Screen, BattleUiContext {
     private BattleHud hud;
     /** Shared selection state read by HUD panels (and, later, a world-picker). Survives across attach()/rebuild() cycles; self-heals when the selected squad disappears. */
     private final Selection selection = new Selection();
+    /** Shared debug cell-highlight overlay — populated by HUD panels, rendered between the grid pass and the unit sprites. */
+    private final HighlightOverlay highlights = new HighlightOverlay();
 
     private PositionAPI position;
     private MarineOpsContext ctx;
@@ -273,6 +281,14 @@ public class BattleScreen implements Screen, BattleUiContext {
     private SpriteAPI decalSheet;
     private SpriteSheetFrames decalFrames;
     private boolean decalSheetLoadAttempted;
+    /**
+     * Persistent decal-accumulator FBO. Each spawned decal is stamped into
+     * the FBO once; the per-frame render cost is a single textured-quad
+     * blit regardless of decal count. See {@link DecalAccumulator} javadoc.
+     * Resolution comes from {@link com.dillon.starsectormarines.DevConfig#DECAL_FBO_PX_PER_CELL}.
+     */
+    private final DecalAccumulator decalAccumulator =
+            new DecalAccumulator(com.dillon.starsectormarines.DevConfig.DECAL_FBO_PX_PER_CELL);
     private static final String SPRITE_DECAL_SHEET = "graphics/decals/decals.png";
     /** Per-{@link MarineSecondary} marine aim sheet — drawn instead of the regular type sheet while the marine is mid-aim animation. Same 7-frame WNES + weapon-up convention as the regular marine sheets, auto-sliced via {@link SpriteSheetSlicer}. */
     private final java.util.EnumMap<MarineSecondary, UnitSpriteCache> marineSecondaryAimSheets =
@@ -304,6 +320,24 @@ public class BattleScreen implements Screen, BattleUiContext {
     private int waterSheetPxW;
     private int waterSheetPxH;
     private boolean waterSheetLoadAttempted;
+    /**
+     * Per-sheet quad batchers. Lazily constructed when each sheet finishes
+     * loading. Reused across passes — the urban batch is appended to by
+     * both the floor pass (rubble + INDOOR + DOOR_OPEN overlays) and the
+     * wall pass, with a flush in between so decals / vehicles slot in at
+     * the correct painter depth.
+     */
+    private QuadBatch urbanBatch;
+    private QuadBatch roadBatch;
+    private QuadBatch floorsBatch;
+    private QuadBatch waterBatch;
+    /**
+     * Solid-color batch for in-loop fills that need to share painter
+     * ordering with the textured batches — crosswalk stripes (drawn over
+     * road tiles inside the floor pass) and the interior-wall fallback
+     * (no autotile pick).
+     */
+    private final SolidQuadBatch solidBatch = new SolidQuadBatch(256);
     private static final Color ROAD_FILL = new Color(TileManifest.ROAD_FILL_RGB);
     /** Solid fill for the open-courtyard case (no wall-neighbor autotile lookup hits a frame variant). */
     private static final Color COURTYARD_FILL = new Color(TileManifest.COURTYARD_FILL_RGB);
@@ -467,6 +501,9 @@ public class BattleScreen implements Screen, BattleUiContext {
                 }
                 tileSheetPxW = img.getWidth();
                 tileSheetPxH = img.getHeight();
+                // Tile sheet covers floors + walls + DOOR_OPEN overlays + doodads —
+                // worst case is ~map cells, so size for a generous 128×128 grid.
+                urbanBatch = new QuadBatch(tileSheet, tileSheetPxW, tileSheetPxH, 16384);
                 LOG.info("BattleScreen: loaded tileset " + TileManifest.SHEET
                         + " (" + tileSheetPxW + "x" + tileSheetPxH + ")");
             }
@@ -496,6 +533,9 @@ public class BattleScreen implements Screen, BattleUiContext {
                 }
                 roadSheetPxW = img.getWidth();
                 roadSheetPxH = img.getHeight();
+                // Road sheet covers street/sidewalk/courtyard/striped + road-sheet doodads.
+                // Less coverage than the urban sheet but still cell-count-bounded; 4096 fits ~64×64.
+                roadBatch = new QuadBatch(roadSheet, roadSheetPxW, roadSheetPxH, 4096);
                 LOG.info("BattleScreen: loaded road tileset " + TileManifest.ROAD_SHEET
                         + " (" + roadSheetPxW + "x" + roadSheetPxH + ")");
             }
@@ -529,6 +569,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 }
                 floorsSheetPxW = img.getWidth();
                 floorsSheetPxH = img.getHeight();
+                floorsBatch = new QuadBatch(floorsSheet, floorsSheetPxW, floorsSheetPxH, 4096);
                 LOG.info("BattleScreen: loaded floors tileset " + TileManifest.FLOORS_SHEET
                         + " (" + floorsSheetPxW + "x" + floorsSheetPxH + ")");
             }
@@ -558,6 +599,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 }
                 waterSheetPxW = img.getWidth();
                 waterSheetPxH = img.getHeight();
+                waterBatch = new QuadBatch(waterSheet, waterSheetPxW, waterSheetPxH, 2048);
                 LOG.info("BattleScreen: loaded water tileset " + TileManifest.WATER_SHEET
                         + " (" + waterSheetPxW + "x" + waterSheetPxH + ")");
             }
@@ -683,34 +725,12 @@ public class BattleScreen implements Screen, BattleUiContext {
      */
     private void renderDecals(BattleSimulation sim, float alphaMult) {
         if (decalSheet == null || decalFrames == null) return;
-        Iterable<Decal> decals = sim.getDecals();
-        float cellPx = camera.cellPxSize();
-        float texW = decalSheet.getTextureWidth();
-        float texH = decalSheet.getTextureHeight();
-        int sheetW = decalFrames.sheetWidth;
-        int sheetH = decalFrames.sheetHeight;
-        for (Decal d : decals) {
-            if (d.decalIndex < 0 || d.decalIndex >= decalFrames.frames.length) continue;
-            SpriteSheetFrames.Frame f = decalFrames.frames[d.decalIndex];
-            decalSheet.setTexX((float) f.x * texW / sheetW);
-            decalSheet.setTexY((float) (sheetH - f.y - f.h) * texH / sheetH);
-            decalSheet.setTexWidth((float) f.w * texW / sheetW);
-            decalSheet.setTexHeight((float) f.h * texH / sheetH);
-            float longPx = d.scaleCells * cellPx;
-            float shortPx = longPx * ((float) f.h / (float) f.w);
-            decalSheet.setSize(longPx, shortPx);
-            decalSheet.setAngle(d.rotationDeg);
-            decalSheet.setAlphaMult(alphaMult);
-            decalSheet.setNormalBlend();
-            decalSheet.setColor(Color.WHITE);
-            decalSheet.renderAtCenter(camera.cellToScreenX(d.x), camera.cellToScreenY(d.y));
-        }
-        // Reset UVs + angle so the singleton sprite doesn't carry state forward.
-        decalSheet.setTexX(0f);
-        decalSheet.setTexY(0f);
-        decalSheet.setTexWidth(texW);
-        decalSheet.setTexHeight(texH);
-        decalSheet.setAngle(0f);
+        decalAccumulator.render(
+                camera,
+                sim.getGrid().getWidth(), sim.getGrid().getHeight(),
+                sim.getDecals(),
+                decalSheet, decalFrames,
+                alphaMult);
     }
 
     /** Lazy-loads the decal sheet and auto-slices it into per-frame bounding boxes. Failure leaves both fields null and the decal pass becomes a no-op. */
@@ -986,6 +1006,11 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     @Override
     public void detach() {
+        // Release the decal accumulator's FBO + color texture. Without this, an
+        // attach/detach cycle leaks one FBO per battle — fine for a single
+        // session, ugly across a multi-mission run.
+        decalAccumulator.dispose();
+
         if (!audioActive) return;
         audioActive = false;
         // Fade out our track without queuing a replacement, then let the campaign music resume.
@@ -999,9 +1024,16 @@ public class BattleScreen implements Screen, BattleUiContext {
     private void ensureHud() {
         if (hud != null) return;
         hud = new BattleHud(this);
+        // WorldPicker registered first — input order is reverse of add order, so
+        // the dock panels (Overview / Detail / PlanDebug) see clicks first and
+        // claim their own rows via consume(); WorldPicker only fires on the
+        // leftover unconsumed clicks that landed in the world rect.
+        hud.addPanel(new WorldPicker(this));
         hud.addPanel(new SquadOverviewPanel(this));
         hud.addPanel(new SquadDetailPanel(this));
-        // Per-squad GOAP plan readout (goal + current posture + step index).
+        // Per-squad GOAP plan readout. Compact when nothing is selected; full
+        // plan + predicate grid when WorldPicker (or the Overview rows) put a
+        // squad id into Selection.
         hud.addPanel(new SquadPlanDebugPanel(this));
     }
 
@@ -1023,6 +1055,11 @@ public class BattleScreen implements Screen, BattleUiContext {
     @Override
     public Selection getSelection() {
         return selection;
+    }
+
+    @Override
+    public HighlightOverlay getHighlights() {
+        return highlights;
     }
 
     /**
@@ -1486,6 +1523,10 @@ public class BattleScreen implements Screen, BattleUiContext {
             renderDecals(sim, alphaMult);
             renderVehicles(sim, alphaMult);
             renderDoodads(sim, alphaMult);
+            // Debug cell highlights — published by HUD panels (plan-step cells,
+            // selected squad members, captain). Paints above ground decals/
+            // doodads, below units so unit sprites stay legible over the tint.
+            highlights.render(camera, alphaMult);
             renderUnits(sim.getUnits(), alphaMult);
             // Charge sites + equipment drops sit above units so the player can
             // always see where the objectives are — even while a marine stands
@@ -1543,12 +1584,6 @@ public class BattleScreen implements Screen, BattleUiContext {
      * center wall cell is transparent on purpose and there's no roof art.
      */
     private void renderTiledFloorsAndWalls(NavigationGrid grid, CellTopology topology, float alphaMult) {
-        float texW = tileSheet.getTextureWidth();
-        float texH = tileSheet.getTextureHeight();
-        float texXScale = texW / tileSheetPxW;
-        float texYScale = texH / tileSheetPxH;
-        int sheetPxH = tileSheetPxH;
-
         // Floor pass — five subtypes of walkable cell:
         //   1. Rubble: damaged-floor autotile from the main sheet.
         //   2. Sidewalk: street cell adjacent to a wall — clean panel from the road sheet.
@@ -1577,7 +1612,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 switch (kind) {
                     case RUBBLE: {
                         TileManifest.TileFrame f = TileManifest.pickRubbleTile(nWall, sWall, eWall, wWall);
-                        drawTile(f, x, y, texXScale, texYScale, sheetPxH, alphaMult, GROUND_TILE_EDGE_INSET_PX);
+                        drawTile(f, x, y, alphaMult, GROUND_TILE_EDGE_INSET_PX);
                         break;
                     }
                     case STREET:
@@ -1662,7 +1697,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                     case INDOOR:
                     default: {
                         TileManifest.TileFrame f = TileManifest.pickFloorTile(nWall, sWall, eWall, wWall);
-                        drawTile(f, x, y, texXScale, texYScale, sheetPxH, alphaMult, GROUND_TILE_EDGE_INSET_PX);
+                        drawTile(f, x, y, alphaMult, GROUND_TILE_EDGE_INSET_PX);
                         break;
                     }
                 }
@@ -1674,9 +1709,24 @@ public class BattleScreen implements Screen, BattleUiContext {
                 // DOOR_OPEN is an overlay, not a ground tile — inset=0 so the
                 // overhead bar's edge pixels aren't cropped.
                 if (grid.isDoorway(x, y) && !topology.isRubble(x, y)) {
-                    drawTile(TileManifest.DOOR_OPEN, x, y, texXScale, texYScale, sheetPxH, alphaMult, 0);
+                    drawTile(TileManifest.DOOR_OPEN, x, y, alphaMult, 0);
                 }
             }
+        }
+
+        // Floor-pass flush — painter order: road/floors/water before urban so
+        // DOOR_OPEN overlays (queued onto urbanBatch on doorway cells in this
+        // loop) draw on top of any adjacent road tile. Solid last so crosswalk
+        // stripes — appended after their road tile in the same cell — go on
+        // top of the road. Fallback fills (road/courtyard/null pick) also
+        // live in solidBatch and only occupy cells with no textured floor draw,
+        // so the relative ordering against road/floors is moot for them.
+        try (GlStateBracket gl = GlStateBracket.textured2D()) {
+            if (roadBatch   != null) roadBatch.flush();
+            if (floorsBatch != null) floorsBatch.flush();
+            if (waterBatch  != null) waterBatch.flush();
+            if (urbanBatch  != null) urbanBatch.flush();
+            solidBatch.flush();
         }
 
         // Wall pass — autotile pick from neighbor exposure. Interior walls
@@ -1708,18 +1758,35 @@ public class BattleScreen implements Screen, BattleUiContext {
                     // a wall cell's neighbors are either more wall (same art)
                     // or a known interior/exterior fill that doesn't bleed in
                     // a visible way.
-                    drawTile(tile, x, y, texXScale, texYScale, sheetPxH, alphaMult, 0);
+                    drawTile(tile, x, y, alphaMult, 0);
                 }
             }
         }
+
+        // Wall-pass flush — walls draw on top of the floor pass that already
+        // flushed above. urbanBatch and solidBatch are disjoint cell sets
+        // within the wall pass (textured wall vs. interior-wall fallback fill)
+        // so their relative flush order is incidental.
+        try (GlStateBracket gl = GlStateBracket.textured2D()) {
+            if (urbanBatch != null) urbanBatch.flush();
+            solidBatch.flush();
+        }
     }
 
-    /** Solid quad covering one nav-grid cell — used as the interior-wall fallback. */
+    /**
+     * Queues a solid quad covering one nav-grid cell into {@link #solidBatch}
+     * — used as the interior-wall fallback and as the road/courtyard fallback
+     * when an autotile pick returns null. Deferred so painter ordering is
+     * preserved against the textured batch flushes around it.
+     */
     private void fillCell(int gridX, int gridY, Color color, float alphaMult) {
         float x0 = camera.cellToScreenX(gridX);
         float y0 = camera.cellToScreenY(gridY);
         float c = camera.cellPxSize();
-        fillRect(x0, y0, c, c, color, alphaMult);
+        solidBatch.appendRect(
+                x0, y0, x0 + c, y0 + c,
+                color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f,
+                alphaMult);
     }
 
     /**
@@ -1804,26 +1871,28 @@ public class BattleScreen implements Screen, BattleUiContext {
         float marginAlong = (cell - bandSpan) / 2f;
         float perpInset = cell * CROSSWALK_INSET_FRAC;
         float alpha = CROSSWALK_ALPHA * alphaMult;
+        float sr = CROSSWALK_STRIPE.getRed()   / 255f;
+        float sg = CROSSWALK_STRIPE.getGreen() / 255f;
+        float sb = CROSSWALK_STRIPE.getBlue()  / 255f;
         for (int i = 0; i < CROSSWALK_STRIPE_COUNT; i++) {
             float bandStart = marginAlong + i * (stripeW + gapW);
+            float rx, ry, rw, rh;
             if (stripesHorizontal) {
                 // Bands stack vertically; each stripe spans the cell horizontally.
-                fillRect(x0 + perpInset, y0 + bandStart, cell - 2 * perpInset, stripeW, CROSSWALK_STRIPE, alpha);
+                rx = x0 + perpInset; ry = y0 + bandStart;
+                rw = cell - 2 * perpInset; rh = stripeW;
             } else {
                 // Bands stack horizontally; each stripe spans the cell vertically.
-                fillRect(x0 + bandStart, y0 + perpInset, stripeW, cell - 2 * perpInset, CROSSWALK_STRIPE, alpha);
+                rx = x0 + bandStart; ry = y0 + perpInset;
+                rw = stripeW; rh = cell - 2 * perpInset;
             }
+            solidBatch.appendRect(rx, ry, rx + rw, ry + rh, sr, sg, sb, alpha);
         }
     }
 
     /** Renders the doodad layer (chairs, crates, chest, LZ pads, etc.) on top of floors and below units. Branches on which sheet each doodad indexes into. */
     private void renderDoodads(BattleSimulation sim, float alphaMult) {
         if (tileSheet == null) return;
-        float texW = tileSheet.getTextureWidth();
-        float texH = tileSheet.getTextureHeight();
-        float texXScale = texW / tileSheetPxW;
-        float texYScale = texH / tileSheetPxH;
-        int sheetPxH = tileSheetPxH;
         for (Doodad d : sim.getDoodads()) {
             if (d.fromRoadSheet) {
                 if (roadSheet != null) drawRoadTile(d.tile, d.cellX, d.cellY, alphaMult, 0);
@@ -1831,42 +1900,36 @@ public class BattleScreen implements Screen, BattleUiContext {
                 // Doodads are standalone props (chairs, crates, LZ pads) — their
                 // edge pixels are real visible content, so inset=0 to avoid
                 // chopping the sprite. Same reason DOOR_OPEN passes 0 above.
-                drawTile(d.tile, d.cellX, d.cellY, texXScale, texYScale, sheetPxH, alphaMult, 0);
+                drawTile(d.tile, d.cellX, d.cellY, alphaMult, 0);
             }
+        }
+        try (GlStateBracket gl = GlStateBracket.textured2D()) {
+            if (roadBatch  != null) roadBatch.flush();
+            if (urbanBatch != null) urbanBatch.flush();
         }
     }
 
     /**
-     * Stamps a 1×1 tile from the road sheet — counterpart to {@link #drawTile},
-     * kept separate so the two sheets' UV scales stay independent. Pass
-     * {@link #GROUND_TILE_EDGE_INSET_PX} for road/courtyard/striped/sidewalk
-     * autotiles (continuous field) and {@code 0} for road-sheet doodads
-     * (LZ pad as a prop) so their edges aren't cropped.
+     * Counterpart to {@link #drawTile} for the road sheet. Appends to
+     * {@link #roadBatch}. Pass {@link #GROUND_TILE_EDGE_INSET_PX} for
+     * road/courtyard/striped/sidewalk autotiles (continuous field) and
+     * {@code 0} for road-sheet doodads (LZ pad as a prop) so their edges
+     * aren't cropped.
      */
     private void drawRoadTile(TileManifest.TileFrame f, int gridX, int gridY, float alphaMult,
                               int srcEdgeInsetPx) {
-        float texW = roadSheet.getTextureWidth();
-        float texH = roadSheet.getTextureHeight();
-        float texXScale = texW / roadSheetPxW;
-        float texYScale = texH / roadSheetPxH;
+        if (roadBatch == null) return;
         int srcPxX = f.col * TileManifest.TILE_SIZE + srcEdgeInsetPx;
         int srcTopPxY = f.row * TileManifest.TILE_SIZE + srcEdgeInsetPx;
         int srcPxW = TileManifest.TILE_SIZE - 2 * srcEdgeInsetPx;
         int srcPxH = TileManifest.TILE_SIZE - 2 * srcEdgeInsetPx;
 
         float cellPx = camera.cellPxSize();
-        roadSheet.setTexX(srcPxX * texXScale);
-        roadSheet.setTexY((roadSheetPxH - (srcTopPxY + srcPxH)) * texYScale);
-        roadSheet.setTexWidth(srcPxW * texXScale);
-        roadSheet.setTexHeight(srcPxH * texYScale);
-        roadSheet.setSize(cellPx, cellPx);
-        roadSheet.setAlphaMult(alphaMult);
-        roadSheet.setColor(Color.WHITE);
-        roadSheet.setNormalBlend();
-
         float cx = camera.cellToScreenX(gridX + 0.5f);
         float cy = camera.cellToScreenY(gridY + 0.5f);
-        roadSheet.renderAtCenter(cx, cy);
+        roadBatch.append(srcPxX, srcTopPxY, srcPxW, srcPxH,
+                cx, cy, cellPx, cellPx,
+                1f, 1f, 1f, alphaMult);
     }
 
     /**
@@ -1911,22 +1974,23 @@ public class BattleScreen implements Screen, BattleUiContext {
      * {@link TileManifest#TILE_SIZE}.
      */
     private void drawFloorsTile(TileManifest.TileFrame f, int gridX, int gridY, float alphaMult) {
-        drawSmallTile(floorsSheet, floorsSheetPxW, floorsSheetPxH, f, gridX, gridY, alphaMult);
+        appendSmallTile(floorsBatch, f, gridX, gridY, alphaMult);
     }
 
     /** Counterpart to {@link #drawFloorsTile} for the water sheet — same 16px source cell, 2x upscale. */
     private void drawWaterTile(TileManifest.TileFrame f, int gridX, int gridY, float alphaMult) {
-        drawSmallTile(waterSheet, waterSheetPxW, waterSheetPxH, f, gridX, gridY, alphaMult);
+        appendSmallTile(waterBatch, f, gridX, gridY, alphaMult);
     }
 
-    /** Shared 16px-source tile draw — used by both the floors and water sheets. The 2x upscale comes from {@code renderAtCenter} sizing to {@code cellPx} regardless of source size. Always applies {@link #GROUND_SMALL_TILE_EDGE_INSET_PX} since both callers are pure ground autotiles. */
-    private void drawSmallTile(SpriteAPI sheet, int sheetPxW, int sheetPxH,
-                               TileManifest.TileFrame f, int gridX, int gridY, float alphaMult) {
-        if (sheet == null) return;
-        float texW = sheet.getTextureWidth();
-        float texH = sheet.getTextureHeight();
-        float texXScale = texW / sheetPxW;
-        float texYScale = texH / sheetPxH;
+    /**
+     * Shared 16px-source tile append — used by both the floors and water sheets.
+     * The 2x upscale comes from sizing the destination to {@code cellPx} regardless
+     * of source size. Always applies {@link #GROUND_SMALL_TILE_EDGE_INSET_PX} since
+     * both callers are pure ground autotiles.
+     */
+    private void appendSmallTile(QuadBatch batch, TileManifest.TileFrame f,
+                                 int gridX, int gridY, float alphaMult) {
+        if (batch == null) return;
         int inset = GROUND_SMALL_TILE_EDGE_INSET_PX;
         int srcPxX = f.col * TileManifest.FLOORS_TILE_SIZE + inset;
         int srcTopPxY = f.row * TileManifest.FLOORS_TILE_SIZE + inset;
@@ -1934,47 +1998,34 @@ public class BattleScreen implements Screen, BattleUiContext {
         int srcPxH = TileManifest.FLOORS_TILE_SIZE - 2 * inset;
 
         float cellPx = camera.cellPxSize();
-        sheet.setTexX(srcPxX * texXScale);
-        sheet.setTexY((sheetPxH - (srcTopPxY + srcPxH)) * texYScale);
-        sheet.setTexWidth(srcPxW * texXScale);
-        sheet.setTexHeight(srcPxH * texYScale);
-        sheet.setSize(cellPx, cellPx);
-        sheet.setAlphaMult(alphaMult);
-        sheet.setColor(Color.WHITE);
-        sheet.setNormalBlend();
-
         float cx = camera.cellToScreenX(gridX + 0.5f);
         float cy = camera.cellToScreenY(gridY + 0.5f);
-        sheet.renderAtCenter(cx, cy);
+        batch.append(srcPxX, srcTopPxY, srcPxW, srcPxH,
+                cx, cy, cellPx, cellPx,
+                1f, 1f, 1f, alphaMult);
     }
 
     /**
-     * Draws a single 1×1 {@link TileManifest.TileFrame} into one grid cell.
-     * Pass {@link #GROUND_TILE_EDGE_INSET_PX} for ground autotiles (floor,
-     * wall, rubble) and {@code 0} for overlays / standalone props (doodads,
-     * DOOR_OPEN) — the inset would visibly chop a standalone sprite's edge.
+     * Queues a single 1×1 {@link TileManifest.TileFrame} into {@link #urbanBatch}
+     * for one grid cell. Pass {@link #GROUND_TILE_EDGE_INSET_PX} for ground
+     * autotiles (floor, wall, rubble) and {@code 0} for overlays / standalone
+     * props (doodads, DOOR_OPEN) — the inset would visibly chop a standalone
+     * sprite's edge. Doesn't draw; the surrounding pass flushes {@link #urbanBatch}.
      */
     private void drawTile(TileManifest.TileFrame f, int gridX, int gridY,
-                          float texXScale, float texYScale, int sheetPxH, float alphaMult,
-                          int srcEdgeInsetPx) {
+                          float alphaMult, int srcEdgeInsetPx) {
+        if (urbanBatch == null) return;
         int srcPxX = f.col * TileManifest.TILE_SIZE + srcEdgeInsetPx;
         int srcTopPxY = f.row * TileManifest.TILE_SIZE + srcEdgeInsetPx;
         int srcPxW = TileManifest.TILE_SIZE - 2 * srcEdgeInsetPx;
         int srcPxH = TileManifest.TILE_SIZE - 2 * srcEdgeInsetPx;
 
         float cellPx = camera.cellPxSize();
-        tileSheet.setTexX(srcPxX * texXScale);
-        tileSheet.setTexY((sheetPxH - (srcTopPxY + srcPxH)) * texYScale);
-        tileSheet.setTexWidth(srcPxW * texXScale);
-        tileSheet.setTexHeight(srcPxH * texYScale);
-        tileSheet.setSize(cellPx, cellPx);
-        tileSheet.setAlphaMult(alphaMult);
-        tileSheet.setColor(Color.WHITE);
-        tileSheet.setNormalBlend();
-
         float cx = camera.cellToScreenX(gridX + 0.5f);
         float cy = camera.cellToScreenY(gridY + 0.5f);
-        tileSheet.renderAtCenter(cx, cy);
+        urbanBatch.append(srcPxX, srcTopPxY, srcPxW, srcPxH,
+                cx, cy, cellPx, cellPx,
+                1f, 1f, 1f, alphaMult);
     }
 
     /** Stable per-cell hash for picking from tile pools — same cell always picks the same tile. */

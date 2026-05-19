@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.ui;
 
 import com.dillon.starsectormarines.battle.BattleSimulation;
+import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.ops.BattleLayout;
 import com.dillon.starsectormarines.ops.battleview.BattleCamera;
@@ -25,4 +26,7 @@ public interface BattleUiContext {
     BattleLayout getLayout();
 
     Selection getSelection();
+
+    /** Shared overlay for debug cell highlights — plan-step cells, selected squad members, captain badge, etc. */
+    HighlightOverlay getHighlights();
 }

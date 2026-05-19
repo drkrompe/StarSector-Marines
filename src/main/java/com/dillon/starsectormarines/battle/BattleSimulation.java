@@ -145,8 +145,15 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final List<MapVehicle> vehicles = new ArrayList<>();
     /** Persistent visual decals (bullet holes, craters, rubble) accumulated over the battle. Bounded by {@link #DECAL_CAP} with FIFO eviction via {@link java.util.ArrayDeque#pollFirst} — O(1) head removal, unlike {@code ArrayList.remove(0)} which would shift the whole tail per overflow. */
     private final java.util.ArrayDeque<Decal> decals = new java.util.ArrayDeque<>();
-    /** Soft cap on decal count — older decals get dropped from the head when this fills, so a long battle doesn't accumulate thousands of bullet holes. */
-    private static final int DECAL_CAP = 600;
+    /**
+     * Soft cap on decal count — older decals get dropped from the head when
+     * this fills. The visible "battle scarring" layer lives in the renderer's
+     * decal-accumulator FBO (not bounded by this cap), so this just keeps the
+     * source list's memory footprint reasonable. Set generously since
+     * eviction here doesn't reclaim FBO pixels — once stamped, decals stay
+     * stamped regardless of whether they're still in the source list.
+     */
+    private static final int DECAL_CAP = 10_000;
     /** Active smoking wrecks parked at destroyed turret cells. Each emits a periodic smoke-puff event the renderer drains into the impact FX engine. */
     private final List<SmokingWreck> smokingWrecks = new ArrayList<>();
     /** Smoke-puff events queued this advance — each entry is {x, y, radiusCells}. Drained by the renderer per frame and cleared at the start of each advance. */
@@ -327,7 +334,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     public List<MapVehicle> getVehicles()  { return vehicles; }
     public void addVehicle(MapVehicle v)   { vehicles.add(v); }
     /** Persistent visual decals — bullet holes, craters, rubble. Pure render data; combat ignores them. Returned as {@code Iterable} because the renderer only iterates; head-eviction needs the {@code ArrayDeque} surface internally. */
-    public Iterable<Decal> getDecals()     { return decals; }
+    public java.util.Collection<Decal> getDecals() { return decals; }
     public void addDecal(Decal d) {
         decals.addLast(d);
         if (decals.size() > DECAL_CAP) decals.pollFirst();
