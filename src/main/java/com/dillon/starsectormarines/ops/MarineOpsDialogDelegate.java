@@ -58,6 +58,7 @@ public class MarineOpsDialogDelegate implements CustomVisualDialogDelegate {
 
     @Override
     public void reportDismissed(int option) {
+        panel.dismiss();
         parent.showTextPanel();
         parent.showVisualPanel();
         LOG.info("MarineOps: dialog dismissed");

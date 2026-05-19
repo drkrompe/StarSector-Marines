@@ -2,10 +2,15 @@
 #collapseopen MUSIC
 
 	"music":{
-		# Battle background track. Played via Global.getSoundPlayer().playCustomMusic(..., "marines_battle_music", true).
 		# Music entries need both "file" (filename) and "source" (directory or .bin) — vanilla schema requirement.
+		# Intel-screen track. Played via Global.getSoundPlayer().playCustomMusic(..., "marines_intel_music", true)
+		# while the player is on the mission picker.
+		"marines_intel_music":[
+			{"file":"marines_intel_music.ogg","source":"sounds/battle/music","volume":0.7},
+		],
+		# Battle background track. Played via Global.getSoundPlayer().playCustomMusic(..., "marines_battle_music", true).
 		"marines_battle_music":[
-			{"file":"combat_evil_chanting.ogg","source":"sounds/battle/music","volume":0.7},
+			{"file":"marines_battle_music.ogg","source":"sounds/battle/music","volume":0.7},
 		],
 	},
 
