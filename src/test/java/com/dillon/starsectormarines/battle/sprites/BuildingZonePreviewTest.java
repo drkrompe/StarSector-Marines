@@ -182,6 +182,122 @@ public class BuildingZonePreviewTest {
     }
 
     /**
+     * Renders every catalog-named floor-style cell across all three
+     * tilesheets at 6× zoom so we can pick a better commercial floor than
+     * the current {@code fl-tile-1..5} cluster (which reads more like
+     * sidewalk slab / roof tile than polished commercial flooring).
+     * Groups by sheet, labels each cell with its catalog name and coord.
+     */
+    @Test
+    void renderFloorCandidatesGallery() throws Exception {
+        Files.createDirectories(OUT_DIR);
+        BufferedImage urban  = ImageIO.read(Files.newInputStream(URBAN_SHEET));
+        BufferedImage road   = ImageIO.read(Files.newInputStream(ROAD_SHEET));
+        BufferedImage floors = ImageIO.read(Files.newInputStream(FLOORS_SHEET));
+        assertNotNull(urban,  "failed to load " + URBAN_SHEET);
+        assertNotNull(road,   "failed to load " + ROAD_SHEET);
+        assertNotNull(floors, "failed to load " + FLOORS_SHEET);
+
+        // Candidates grouped by source sheet. Center cells only — for
+        // autotile blocks we sample the (1, 1) center so the comparison
+        // isn't muddied by edge variants.
+        FloorCandidate[] candidates = new FloorCandidate[] {
+                // urban-tileset.png (32px cells) — clean indoor floor center + damaged.
+                new FloorCandidate(urban,  32, 1, 1, "fl (INDOOR center)",              "urban"),
+                new FloorCandidate(urban,  32, 1, 5, "fl-dam (damaged INDOOR center)",  "urban"),
+                new FloorCandidate(urban,  32, 0, 3, "fl-grate-1",                       "urban"),
+                new FloorCandidate(urban,  32, 1, 3, "fl-striped-yellow (decal)",        "urban"),
+                new FloorCandidate(urban,  32, 2, 3, "fl-grate-2",                       "urban"),
+                // urban-tileset-2.png (32px cells) — road-sheet floor variants.
+                new FloorCandidate(road,   32, 1, 1, "courtyard center (COURTYARD)",     "road"),
+                new FloorCandidate(road,   32, 7, 1, "fl-striped center (STRIPED)",      "road"),
+                new FloorCandidate(road,   32, 9, 0, "fl-1",                              "road"),
+                new FloorCandidate(road,   32,11, 0, "fl-2",                              "road"),
+                new FloorCandidate(road,   32,11, 1, "fl-3",                              "road"),
+                new FloorCandidate(road,   32,13, 1, "road center (STREET)",              "road"),
+                new FloorCandidate(road,   32,11, 2, "grate-1",                           "road"),
+                new FloorCandidate(road,   32,16, 2, "grate-2",                           "road"),
+                // Floors_Tiles.png (16px cells) — the current TILE pool + outdoor centers.
+                new FloorCandidate(floors, 16,17, 1, "fl-tile-1 (current TILE)",          "floors"),
+                new FloorCandidate(floors, 16,16, 2, "fl-tile-2 (current TILE)",          "floors"),
+                new FloorCandidate(floors, 16,17, 2, "fl-tile-3 (current TILE)",          "floors"),
+                new FloorCandidate(floors, 16,18, 2, "fl-tile-4 (current TILE)",          "floors"),
+                new FloorCandidate(floors, 16,17, 3, "fl-tile-5 (current TILE)",          "floors"),
+                new FloorCandidate(floors, 16, 2,10, "grass-2 center",                    "floors"),
+                new FloorCandidate(floors, 16, 7,10, "stone-2 center",                    "floors"),
+                new FloorCandidate(floors, 16,12,10, "dirt-2 center",                     "floors"),
+                new FloorCandidate(floors, 16, 2,14, "snow-3 center",                     "floors"),
+                new FloorCandidate(floors, 16, 7,14, "sand-3 center",                     "floors"),
+        };
+
+        int displayCell = 160;        // 5x of 32px source; 10x of 16px source.
+        int gap = 18;
+        int labelH = 36;
+        int cols = 5;
+        int rows = (candidates.length + cols - 1) / cols;
+        int imgW = cols * (displayCell + gap) + gap;
+        int imgH = rows * (displayCell + labelH + gap) + gap + 40;
+
+        BufferedImage img = new BufferedImage(imgW, imgH, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = img.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+        g.setColor(new Color(0x12, 0x15, 0x1B));
+        g.fillRect(0, 0, imgW, imgH);
+
+        g.setColor(LABEL_FG);
+        g.setFont(new Font("SansSerif", Font.BOLD, 18));
+        g.drawString("Floor candidates — pick a better commercial floor than fl-tile-* (current bricked TILE)",
+                gap, 28);
+
+        for (int i = 0; i < candidates.length; i++) {
+            int col = i % cols;
+            int row = i / cols;
+            int dstX = gap + col * (displayCell + gap);
+            int dstY = 40 + gap + row * (displayCell + labelH + gap);
+            FloorCandidate c = candidates[i];
+            g.setColor(new Color(0x22, 0x28, 0x32));
+            g.fillRect(dstX, dstY, displayCell, displayCell);
+            int srcX = c.col * c.srcCellPx;
+            int srcY = c.row * c.srcCellPx;
+            g.drawImage(c.sheet,
+                    dstX, dstY, dstX + displayCell, dstY + displayCell,
+                    srcX, srcY, srcX + c.srcCellPx, srcY + c.srcCellPx,
+                    null);
+            g.setColor(LABEL_FG);
+            g.setFont(new Font("SansSerif", Font.PLAIN, 13));
+            g.drawString(c.name, dstX, dstY + displayCell + 16);
+            g.setFont(new Font("SansSerif", Font.PLAIN, 11));
+            g.setColor(new Color(0x90, 0xa0, 0xb0));
+            g.drawString(String.format("%s · (%d, %d)", c.sheetTag, c.col, c.row),
+                    dstX, dstY + displayCell + 30);
+        }
+
+        g.dispose();
+        Path out = OUT_DIR.resolve("floor-candidates-gallery.png");
+        ImageIO.write(img, "PNG", out.toFile());
+        System.out.println("  wrote " + out.toAbsolutePath());
+    }
+
+    /** Single floor-candidate sample: which sheet, where on it, and what the catalog calls it. */
+    private static final class FloorCandidate {
+        final BufferedImage sheet;
+        final int srcCellPx;
+        final int col;
+        final int row;
+        final String name;
+        final String sheetTag;
+        FloorCandidate(BufferedImage sheet, int srcCellPx, int col, int row, String name, String sheetTag) {
+            this.sheet = sheet;
+            this.srcCellPx = srcCellPx;
+            this.col = col;
+            this.row = row;
+            this.name = name;
+            this.sheetTag = sheetTag;
+        }
+    }
+
+    /**
      * Stamps the five {@code fl-tile-1..5} catalog coords on BOTH the road
      * sheet (where {@link TileManifest#pickTileGroundTile} currently indexes
      * via {@link TileManifest#ROAD_SHEET}) and the floors sheet (where
@@ -430,10 +546,17 @@ public class BuildingZonePreviewTest {
                         break;
                     }
                     case TILE: {
-                        // fl-tile-1..5 lives on FLOORS_SHEET (16px source cells),
-                        // not the 32px ROAD_SHEET. Mirrors the BattleScreen.TILE
-                        // dispatch through drawFloorsTile / drawSmallTile.
+                        // Polished commercial floor (fl-2) on ROAD_SHEET —
+                        // mirrors the BattleScreen.TILE dispatch through
+                        // drawRoadTile.
                         TileManifest.TileFrame f = TileManifest.pickTileGroundTile(x, y);
+                        stampCell(drawer, roadSink, f, x, y, gridH, drawer.defaultGroundInsetPx());
+                        break;
+                    }
+                    case SIDEWALK: {
+                        // Outdoor sidewalk / paved pavement (fl-tile-1..5)
+                        // on FLOORS_SHEET — per-cell hash variant pool.
+                        TileManifest.TileFrame f = TileManifest.pickSidewalkTile(x, y);
                         stampCell(floorsDrawer, floorsSink, f, x, y, gridH, floorsDrawer.defaultGroundInsetPx());
                         break;
                     }

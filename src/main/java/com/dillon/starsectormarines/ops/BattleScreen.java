@@ -1630,11 +1630,19 @@ public class BattleScreen implements Screen, BattleUiContext {
                         drawSameKindAutotile(topology, kind, x, y, alphaMult);
                         break;
                     case TILE: {
-                        // fl-tile-1..5 cluster lives on FLOORS_SHEET (16px cells),
-                        // not the 32px ROAD_SHEET — coords (17, 1..3), (16, 2),
-                        // (18, 2) are out-of-bounds on the road sheet. See
-                        // mod/data/tilesets/Floors_Tiles.catalog.json.
+                        // Commercial polished-floor primary — fl-2 on the road
+                        // sheet, uniform across every TILE cell (no per-cell
+                        // variant pool). Whole-building floor, same model as
+                        // INDOOR's `fl` blanket fill.
                         TileManifest.TileFrame f = TileManifest.pickTileGroundTile(x, y);
+                        if (roadSheet != null) drawRoadTile(f, x, y, alphaMult, GROUND_TILE_EDGE_INSET_PX);
+                        break;
+                    }
+                    case SIDEWALK: {
+                        // Outdoor paved-pavement (fl-tile-1..5 on the floors
+                        // sheet). Per-cell variant hash so plazas/boulevards
+                        // get noise rather than a uniform stamp.
+                        TileManifest.TileFrame f = TileManifest.pickSidewalkTile(x, y);
                         drawFloorsTile(f, x, y, alphaMult);
                         break;
                     }

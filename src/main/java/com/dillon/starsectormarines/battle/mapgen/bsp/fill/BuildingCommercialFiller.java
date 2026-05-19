@@ -15,18 +15,14 @@ import java.util.Random;
 
 /**
  * {@link BlockFiller} for {@link BlockKind#BUILDING_COMMERCIAL} leaves. Carves
- * a hollow shell that reads as a shop — interior cells mostly INDOOR floor
- * with a few TILE accents for polish, and shop-style props (shelves, desks,
+ * a hollow shell with the polished {@link GroundKind#TILE} floor across the
+ * whole interior (fl-2 on the road sheet — same uniform-fill model as
+ * residential's INDOOR `fl` blanket) and shop-style props (shelves, desks,
  * chests, crates) drawn from {@link #COMMERCIAL_DOODADS}.
  *
  * <p>No dedicated {@code SHOP} POI kind exists yet, so the building is tagged
  * as {@link PointOfInterest.Kind#RESIDENTIAL} for mission-anchor purposes —
- * the visual identity (shop pool + tile accents) is enough to differentiate
- * from a true residential block in the renderer pass.
- *
- * <p>Tile accents are decorative only — they don't change walkability, cover,
- * or doodad placement. Doodads still scatter on walkable, non-doorway cells
- * regardless of the underlying ground kind.
+ * the visual identity (TILE floor + shop pool) differentiates from residential.
  */
 public final class BuildingCommercialFiller implements BlockFiller {
 
@@ -49,11 +45,8 @@ public final class BuildingCommercialFiller implements BlockFiller {
             new TileManifest.TileFrame(9, 1),               // crate
     };
 
-    /** Chance an interior cell gets re-painted to {@link GroundKind#TILE} as a polished-floor accent. */
-    private static final float TILE_ACCENT_CHANCE = 0.20f;
-
     private static final BuildingShellCore.BuildingConfig CONFIG = new BuildingShellCore.BuildingConfig(
-            GroundKind.INDOOR,
+            GroundKind.TILE,
             COMMERCIAL_DOODADS,
             PointOfInterest.Kind.RESIDENTIAL);
 
@@ -68,21 +61,6 @@ public final class BuildingCommercialFiller implements BlockFiller {
                      List<Doodad> doodads,
                      Random rng) {
         PointOfInterest poi = BuildingShellCore.carve(leaf, grid, topology, doodads, rng, CONFIG);
-        if (poi == null) return;
-        pois.add(poi);
-
-        // Tile-accent pass — scatter TILE cells across the interior so the
-        // shop reads as polished rather than the same beige as residential.
-        // Only walkable interior cells get accents; doorways stay INDOOR so
-        // the door overlay reads correctly against its neighboring rooms.
-        for (int y = poi.top + 1; y <= poi.bottom - 1; y++) {
-            for (int x = poi.left + 1; x <= poi.right - 1; x++) {
-                if (!grid.isWalkable(x, y)) continue;
-                if (grid.isDoorway(x, y))   continue;
-                if (rng.nextFloat() < TILE_ACCENT_CHANCE) {
-                    topology.setGroundKind(x, y, GroundKind.TILE);
-                }
-            }
-        }
+        if (poi != null) pois.add(poi);
     }
 }

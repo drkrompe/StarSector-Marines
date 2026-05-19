@@ -56,8 +56,8 @@ public final class TrunkPlan {
 
     /** A trunk's role in the hierarchy. Drives both its rendered GroundKind and width tier. */
     public enum TrunkKind {
-        /** Width-7 paved boulevard. Renders as {@link GroundKind#TILE}. */
-        PRIMARY(PRIMARY_WIDTH, GroundKind.TILE),
+        /** Width-7 paved boulevard. Renders as {@link GroundKind#SIDEWALK} — outdoor brick-paved pedestrian boulevard. */
+        PRIMARY(PRIMARY_WIDTH, GroundKind.SIDEWALK),
         /** Width-5 cross-street. Renders as {@link GroundKind#STREET}. */
         SECONDARY(SECONDARY_WIDTH, GroundKind.STREET);
 

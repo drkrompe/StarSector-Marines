@@ -438,8 +438,34 @@ public final class TileManifest {
         return new TileFrame(col, row);
     }
 
-    /** Five interior-tile center variants (fl-tile-1..5) on {@link #FLOORS_SHEET}. No edge pieces — these read as polished commercial flooring. Coords come straight from {@code mod/data/tilesets/Floors_Tiles.catalog.json}. */
-    private static final TileFrame[] FL_TILE_VARIANTS = {
+    /**
+     * Single-cell commercial floor on {@link #ROAD_SHEET} — fl-2 at (11, 0).
+     * Used uniformly across {@link com.dillon.starsectormarines.battle.map.CellTopology.GroundKind#TILE}
+     * cells, no variant pool (matches how {@code fl} blankets INDOOR interiors).
+     * Reads as "polished commercial panel" — squared corner markers, clean
+     * mid-cell field.
+     */
+    private static final TileFrame FL_TILE = new TileFrame(11, 0); // fl-2 on ROAD_SHEET
+
+    /**
+     * Returns the polished commercial floor tile. Stable across cells —
+     * no per-cell variation — so a commercial building reads as a single
+     * uniform floor surface, same model as INDOOR's {@code fl} fill. Lives
+     * on {@link #ROAD_SHEET} (32px source cells); callers dispatch through
+     * the road-sheet draw path.
+     */
+    public static TileFrame pickTileGroundTile(int x, int y) {
+        return FL_TILE;
+    }
+
+    /**
+     * Five outdoor-sidewalk variants (fl-tile-1..5) on {@link #FLOORS_SHEET}.
+     * Brown brick that reads as paved pedestrian surface — plaza centers,
+     * primary-trunk boulevards, building-perimeter sidewalks. Coords from
+     * {@code mod/data/tilesets/Floors_Tiles.catalog.json}; no edge pieces,
+     * every cell is a "center" tile and the per-cell hash gives noise variation.
+     */
+    private static final TileFrame[] FL_SIDEWALK_VARIANTS = {
             new TileFrame(17, 1), // fl-tile-1
             new TileFrame(16, 2), // fl-tile-2
             new TileFrame(17, 2), // fl-tile-3
@@ -448,14 +474,12 @@ public final class TileManifest {
     };
 
     /**
-     * Picks one of the polished {@code fl-tile} variants by stable per-cell
-     * hash. There's no autotile here — every cell is a "center" tile;
-     * variation comes from the 5-element pool. NOTE: lives on
-     * {@link #FLOORS_SHEET} (16px source cells), not the 32px {@link #ROAD_SHEET};
-     * callers must dispatch through the floors-sheet draw path.
+     * Picks one of the {@link #FL_SIDEWALK_VARIANTS} by stable per-cell hash.
+     * Lives on {@link #FLOORS_SHEET} (16px source cells); callers must
+     * dispatch through the floors-sheet draw path.
      */
-    public static TileFrame pickTileGroundTile(int x, int y) {
-        return FL_TILE_VARIANTS[stableHash(x, y) % FL_TILE_VARIANTS.length];
+    public static TileFrame pickSidewalkTile(int x, int y) {
+        return FL_SIDEWALK_VARIANTS[stableHash(x, y) % FL_SIDEWALK_VARIANTS.length];
     }
 
     /**

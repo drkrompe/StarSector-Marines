@@ -58,8 +58,10 @@ public class CellTopology {
         SNOW,
         /** Water (Water_tiles). Non-walkable on the nav grid; this kind tells the renderer to paint the surface. */
         WATER,
-        /** Tiled floor cluster (Floors_Tiles fl-tile-*). Plaza centers, polished commercial interiors. */
+        /** Indoor polished panel (urban-2 fl-2, single cell). Commercial-building floors — uniform across the interior, no autotile. */
         TILE,
+        /** Outdoor sidewalk / paved-pavement cluster (Floors_Tiles fl-tile-1..5). Plaza centers, primary-trunk boulevards, building-perimeter sidewalks. Five-variant pool for noise. */
+        SIDEWALK,
         /** Yellow-striped factory/safety floor (urban-2 fl-striped 3×3). Fortified posts, landing-zone aprons. */
         STRIPED,
         /** Landing-zone center marker (urban-2 grate, placeholder until real LZ art). Touchdown cell decal. */

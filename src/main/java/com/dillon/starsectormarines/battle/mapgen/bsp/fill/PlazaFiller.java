@@ -57,11 +57,11 @@ public final class PlazaFiller implements BlockFiller {
                      List<Doodad> doodads,
                      Random rng) {
 
-        // Carve the leaf as walkable polished tile.
+        // Carve the leaf as walkable brick-paved plaza pavement.
         for (int y = leaf.top; y <= leaf.bottom; y++) {
             for (int x = leaf.left; x <= leaf.right; x++) {
                 grid.setWalkableFloor(x, y);
-                topology.setGroundKind(x, y, GroundKind.TILE);
+                topology.setGroundKind(x, y, GroundKind.SIDEWALK);
             }
         }
 
