@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.mapgen.bsp.fill;
 import com.dillon.starsectormarines.battle.Doodad;
 import com.dillon.starsectormarines.battle.PointOfInterest;
 import com.dillon.starsectormarines.battle.TileManifest;
+import com.dillon.starsectormarines.battle.map.BuildingKind;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.mapgen.BlockKind;
@@ -41,10 +42,10 @@ public final class DenseQuarterFiller implements CompoundFiller {
 
     private static final BuildingShellCore.BuildingConfig TOWER_PRIMARY_CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.TILE, TileManifest.SKYPORT_DOODADS, PointOfInterest.Kind.COMMS,
-            BuildingLayouts.LayoutRecipe.SHOP);
+            BuildingLayouts.LayoutRecipe.SHOP, BuildingKind.COMMERCIAL);
     private static final BuildingShellCore.BuildingConfig TOWER_SECONDARY_CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.INDOOR, TileManifest.WAREHOUSE_DOODADS, PointOfInterest.Kind.DEPOT,
-            BuildingLayouts.LayoutRecipe.WAREHOUSE);
+            BuildingLayouts.LayoutRecipe.WAREHOUSE, BuildingKind.COMMERCIAL);
 
     @Override public BlockKind kind() { return BlockKind.DENSE_QUARTER; }
 

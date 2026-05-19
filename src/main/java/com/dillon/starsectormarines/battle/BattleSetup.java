@@ -154,6 +154,7 @@ public final class BattleSetup {
         List<TurretPlacement> turretPlacements = stampTurrets(map.grid, map.topology, rng);
         BattleSimulation sim = new BattleSimulation(map.grid, map.topology);
         sim.setTacticalMap(map.tacticalMap);
+        sim.setBuildings(map.buildings);
         for (MapVehicle v : vehiclePlacements) sim.addVehicle(v);
         for (Doodad d : map.doodads) sim.addDoodad(d);
         spawnTurrets(sim, turretPlacements);
@@ -361,6 +362,7 @@ public final class BattleSetup {
         List<TurretPlacement> turretPlacements = stampTurrets(map.grid, map.topology, rng);
         BattleSimulation sim = new BattleSimulation(map.grid, map.topology);
         sim.setTacticalMap(map.tacticalMap);
+        sim.setBuildings(map.buildings);
         for (MapVehicle v : vehiclePlacements) sim.addVehicle(v);
         for (Doodad d : map.doodads) sim.addDoodad(d);
         spawnTurrets(sim, turretPlacements);
@@ -437,6 +439,7 @@ public final class BattleSetup {
         List<TurretPlacement> turretPlacements = stampTurrets(map.grid, map.topology, rng);
         BattleSimulation sim = new BattleSimulation(map.grid, map.topology);
         sim.setTacticalMap(map.tacticalMap);
+        sim.setBuildings(map.buildings);
         for (MapVehicle v : vehiclePlacements) sim.addVehicle(v);
         for (Doodad d : map.doodads) sim.addDoodad(d);
         spawnTurrets(sim, turretPlacements);

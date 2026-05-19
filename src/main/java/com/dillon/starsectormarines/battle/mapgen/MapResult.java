@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.mapgen;
 
 import com.dillon.starsectormarines.battle.Doodad;
 import com.dillon.starsectormarines.battle.PointOfInterest;
+import com.dillon.starsectormarines.battle.map.Buildings;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.tactical.TacticalMap;
@@ -48,6 +49,13 @@ public final class MapResult {
      * available to {@link com.dillon.starsectormarines.battle.BattleSetup}.
      */
     public final TacticalMap tacticalMap;
+    /**
+     * Building registry — closed INDOOR/TILE regions found by the flood-fill
+     * pass after stamping. Drives the roof-render and fog-of-war visibility
+     * systems. Never null; generators that don't run the flood-fill (or that
+     * gen maps without buildings) return {@link Buildings#EMPTY}.
+     */
+    public final Buildings buildings;
 
     public MapResult(NavigationGrid grid, CellTopology topology,
                      int marineSpawnX, int marineSpawnY,
@@ -55,7 +63,7 @@ public final class MapResult {
                      List<PointOfInterest> pointsOfInterest,
                      List<Doodad> doodads) {
         this(grid, topology, marineSpawnX, marineSpawnY, defenderSpawnX, defenderSpawnY,
-                pointsOfInterest, doodads, new TacticalMap(Collections.emptyList()));
+                pointsOfInterest, doodads, new TacticalMap(Collections.emptyList()), Buildings.EMPTY);
     }
 
     public MapResult(NavigationGrid grid, CellTopology topology,
@@ -64,6 +72,17 @@ public final class MapResult {
                      List<PointOfInterest> pointsOfInterest,
                      List<Doodad> doodads,
                      TacticalMap tacticalMap) {
+        this(grid, topology, marineSpawnX, marineSpawnY, defenderSpawnX, defenderSpawnY,
+                pointsOfInterest, doodads, tacticalMap, Buildings.EMPTY);
+    }
+
+    public MapResult(NavigationGrid grid, CellTopology topology,
+                     int marineSpawnX, int marineSpawnY,
+                     int defenderSpawnX, int defenderSpawnY,
+                     List<PointOfInterest> pointsOfInterest,
+                     List<Doodad> doodads,
+                     TacticalMap tacticalMap,
+                     Buildings buildings) {
         this.grid = grid;
         this.topology = topology;
         this.marineSpawnX = marineSpawnX;
@@ -73,5 +92,6 @@ public final class MapResult {
         this.pointsOfInterest = pointsOfInterest;
         this.doodads = doodads;
         this.tacticalMap = tacticalMap;
+        this.buildings = buildings;
     }
 }

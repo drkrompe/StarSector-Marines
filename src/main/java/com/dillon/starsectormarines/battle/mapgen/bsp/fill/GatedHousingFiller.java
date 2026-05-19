@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.mapgen.bsp.fill;
 import com.dillon.starsectormarines.battle.Doodad;
 import com.dillon.starsectormarines.battle.PointOfInterest;
 import com.dillon.starsectormarines.battle.TileManifest;
+import com.dillon.starsectormarines.battle.map.BuildingKind;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.mapgen.BlockKind;
@@ -38,13 +39,13 @@ public final class GatedHousingFiller implements CompoundFiller {
 
     private static final BuildingShellCore.BuildingConfig MAIN_HOUSE_CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.INDOOR, TileManifest.RESIDENTIAL_DOODADS, PointOfInterest.Kind.RESIDENTIAL,
-            BuildingLayouts.LayoutRecipe.HOME);
+            BuildingLayouts.LayoutRecipe.HOME, BuildingKind.RESIDENTIAL);
     private static final BuildingShellCore.BuildingConfig SECONDARY_HOUSE_CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.INDOOR, TileManifest.RESIDENTIAL_DOODADS, PointOfInterest.Kind.RESIDENTIAL,
-            BuildingLayouts.LayoutRecipe.HOME);
+            BuildingLayouts.LayoutRecipe.HOME, BuildingKind.RESIDENTIAL);
     private static final BuildingShellCore.BuildingConfig OUTBUILDING_CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.INDOOR, TileManifest.WAREHOUSE_DOODADS, PointOfInterest.Kind.DEPOT,
-            BuildingLayouts.LayoutRecipe.WAREHOUSE);
+            BuildingLayouts.LayoutRecipe.WAREHOUSE, BuildingKind.RESIDENTIAL);
 
     @Override public BlockKind kind() { return BlockKind.GATED_HOUSING; }
 

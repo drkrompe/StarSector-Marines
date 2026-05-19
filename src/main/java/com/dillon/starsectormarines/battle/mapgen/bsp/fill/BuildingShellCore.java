@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.mapgen.bsp.fill;
 import com.dillon.starsectormarines.battle.Doodad;
 import com.dillon.starsectormarines.battle.PointOfInterest;
 import com.dillon.starsectormarines.battle.TileManifest;
+import com.dillon.starsectormarines.battle.map.BuildingKind;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.map.WallMasks;
@@ -65,15 +66,19 @@ final class BuildingShellCore {
         final PointOfInterest.Kind poiKind;
         /** Layout strategy applied to LARGE buildings. TINY buildings always fall back to {@link BuildingLayouts.LayoutRecipe#SHED}. */
         final BuildingLayouts.LayoutRecipe layoutRecipe;
+        /** Building-kind hint stamped across every cell of the carved footprint; the flood-fill pass votes the dominant value per connected room to flavor the resulting {@link com.dillon.starsectormarines.battle.map.Building}. */
+        final BuildingKind buildingKind;
 
         BuildingConfig(GroundKind interiorGround,
                        TileManifest.TileFrame[] doodadPool,
                        PointOfInterest.Kind poiKind,
-                       BuildingLayouts.LayoutRecipe layoutRecipe) {
+                       BuildingLayouts.LayoutRecipe layoutRecipe,
+                       BuildingKind buildingKind) {
             this.interiorGround = interiorGround;
             this.doodadPool = doodadPool;
             this.poiKind = poiKind;
             this.layoutRecipe = layoutRecipe;
+            this.buildingKind = buildingKind;
         }
     }
 
@@ -107,6 +112,7 @@ final class BuildingShellCore {
                     // Leave ground kind as configured interior so the renderer
                     // doesn't see STREET inside what is visually a building.
                     topology.setGroundKind(x, y, config.interiorGround);
+                    topology.setBuildingKindHint(x, y, config.buildingKind);
                 }
             }
             // Solid block — every cell is wall, but only the leaf-perimeter
@@ -131,9 +137,12 @@ final class BuildingShellCore {
         // cells it demotes from wall.
         stampPerimeterMask(topology, bl, bt, br, bb);
         // Interior floor — paint configured ground kind across every interior cell.
+        // The building-kind hint goes onto the same cells so the flood-fill's
+        // vote sees a consistent stamp across the room.
         for (int y = bt + 1; y <= bb - 1; y++) {
             for (int x = bl + 1; x <= br - 1; x++) {
                 topology.setGroundKind(x, y, config.interiorGround);
+                topology.setBuildingKindHint(x, y, config.buildingKind);
             }
         }
         // Perimeter cells get the interior ground too so when a wall is

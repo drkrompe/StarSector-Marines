@@ -119,6 +119,21 @@ public class CellTopology {
      * com.dillon.starsectormarines.battle.mapgen.bsp.fill.BuildingShellCore}).
      */
     private final byte[] wallDir;
+    /**
+     * Per-cell building id, 0 = "not part of a building". Populated once at
+     * gen time by {@link com.dillon.starsectormarines.battle.mapgen.bsp.BuildingFloodFill}
+     * after all stamping has settled. Used by the roof-render and fog-of-war
+     * visibility passes to find the cells of a given building cheaply.
+     */
+    private final short[] buildingId;
+    /**
+     * Per-cell building-kind hint, stored as {@code BuildingKind.ordinal() + 1}
+     * so the implicit zero reads as "unset." Stampers (residential / commercial /
+     * industrial / fortified shells) write their kind across their footprint;
+     * the flood-fill votes the dominant hint per component to flavor the
+     * resulting {@link com.dillon.starsectormarines.battle.map.Building}.
+     */
+    private final byte[] buildingKindHint;
 
     public CellTopology(int width, int height) {
         this.width = width;
@@ -126,6 +141,8 @@ public class CellTopology {
         this.ground = new byte[width * height];
         this.flags  = new long[width * height];
         this.wallDir = new byte[width * height];
+        this.buildingId = new short[width * height];
+        this.buildingKindHint = new byte[width * height];
         // ground[i] == 0 == GroundKind.INDOOR.ordinal() — implicit default.
     }
 
@@ -205,6 +222,48 @@ public class CellTopology {
         if (!inBounds(x, y)) return;
         int idx = index(x, y);
         wallDir[idx] = (byte) ((wallDir[idx] | bits) & 0xFF);
+    }
+
+    // ----- Building id -----
+
+    /** Returns the building id for this cell, or 0 if not part of any building. */
+    public int getBuildingId(int x, int y) {
+        if (!inBounds(x, y)) return 0;
+        return buildingId[index(x, y)] & 0xFFFF;
+    }
+
+    /** Sets the building id for this cell. Called by {@code BuildingFloodFill}. */
+    public void setBuildingId(int x, int y, int id) {
+        if (!inBounds(x, y)) return;
+        buildingId[index(x, y)] = (short) id;
+    }
+
+    // ----- Building kind hint -----
+
+    /**
+     * Returns the building-kind hint for this cell, or {@code null} if no
+     * stamper tagged it. Stored as {@code ordinal()+1} so the implicit zero
+     * means "unset."
+     */
+    public BuildingKind getBuildingKindHint(int x, int y) {
+        if (!inBounds(x, y)) return null;
+        int raw = buildingKindHint[index(x, y)] & 0xFF;
+        if (raw == 0) return null;
+        BuildingKind[] vals = BuildingKind.values();
+        int idx = raw - 1;
+        return (idx >= 0 && idx < vals.length) ? vals[idx] : null;
+    }
+
+    /**
+     * Stamps a building-kind hint across this cell. Idempotent — overwrites
+     * any previous hint, so the most recent stamper wins (e.g. an industrial
+     * yard re-stamping over a building footprint would supersede). Stampers
+     * call this across their carved-interior footprint; the flood-fill reads
+     * it back to assign {@link Building#kind}.
+     */
+    public void setBuildingKindHint(int x, int y, BuildingKind kind) {
+        if (!inBounds(x, y)) return;
+        buildingKindHint[index(x, y)] = (byte) (kind == null ? 0 : (kind.ordinal() + 1));
     }
 
     /**

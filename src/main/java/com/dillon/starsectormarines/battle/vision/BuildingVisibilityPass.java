@@ -1,0 +1,97 @@
+package com.dillon.starsectormarines.battle.vision;
+
+import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.map.Building;
+import com.dillon.starsectormarines.battle.map.Buildings;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+
+import java.util.List;
+
+/**
+ * Periodic pass that decides which buildings reveal their interiors to the
+ * player. Driven by {@link com.dillon.starsectormarines.battle.BattleSimulation}
+ * at roughly 10 Hz (every 3rd 30 Hz tick) — the render path lerps
+ * {@code currentAlpha → targetAlpha} per frame so the cadence stutter doesn't
+ * pop visibly.
+ *
+ * <p>Per building, the reveal rule is:
+ * <ol>
+ *   <li>Any contributor unit (faction in
+ *       {@link PlayerVisionState#contributors}) standing inside the building's
+ *       bbox → instant reveal. Cheap bbox test, no raycast.</li>
+ *   <li>Otherwise, find the closest contributor unit and raycast LOS to a
+ *       sparse perimeter sample: bbox corners + bbox center. If any hit, the
+ *       building reveals.</li>
+ *   <li>No contributor in raycast range or all rays blocked by walls → roof
+ *       stays opaque.</li>
+ * </ol>
+ *
+ * <p>The sparse-sample approach trades a fully accurate reveal (would need
+ * one ray per perimeter cell) for cheap O(buildings × 1 nearest unit × 5 rays)
+ * work that's invisible to the player — a 4×4 room is small enough that
+ * "any of 5 sample points visible" is indistinguishable from "any cell
+ * visible." For larger buildings the same approximation tends to over-reveal
+ * by a tile or two of latency near the perimeter, which reads fine.
+ */
+public final class BuildingVisibilityPass {
+
+    /** Maximum cell distance from a contributor unit at which a building can be revealed by LOS. */
+    private static final int MAX_VISION_RANGE = 18;
+
+    private BuildingVisibilityPass() {}
+
+    public static void update(Buildings buildings,
+                              List<Unit> units,
+                              NavigationGrid grid,
+                              PlayerVisionState vision) {
+        if (buildings == null || buildings.isEmpty()) return;
+
+        for (Building b : buildings.all()) {
+            b.targetAlpha = computeTargetAlpha(b, units, grid, vision);
+        }
+    }
+
+    private static float computeTargetAlpha(Building b,
+                                            List<Unit> units,
+                                            NavigationGrid grid,
+                                            PlayerVisionState vision) {
+        // Pass 1 — anyone inside the bbox? Cheap.
+        for (Unit u : units) {
+            if (!u.isAlive()) continue;
+            if (!vision.isContributor(u.faction)) continue;
+            if (b.containsCell(u.cellX, u.cellY)) {
+                return 0f;
+            }
+        }
+
+        // Pass 2 — closest outside contributor + perimeter raycast.
+        int cx = (b.minX + b.maxX) >> 1;
+        int cy = (b.minY + b.maxY) >> 1;
+        Unit closest = null;
+        int closestDistSq = MAX_VISION_RANGE * MAX_VISION_RANGE + 1;
+        for (Unit u : units) {
+            if (!u.isAlive()) continue;
+            if (!vision.isContributor(u.faction)) continue;
+            int dx = u.cellX - cx;
+            int dy = u.cellY - cy;
+            int distSq = dx * dx + dy * dy;
+            if (distSq < closestDistSq) {
+                closestDistSq = distSq;
+                closest = u;
+            }
+        }
+        if (closest == null) return 1f;
+
+        // Five perimeter samples — four bbox corners + center. Cheap to LOS
+        // and covers a wider arc than just the centroid (a unit peeking around
+        // one corner of a long building would otherwise have to walk further
+        // to reveal it).
+        if (grid.hasLineOfSight(closest.cellX, closest.cellY, cx, cy)) return 0f;
+        if (grid.hasLineOfSight(closest.cellX, closest.cellY, b.minX, b.minY)) return 0f;
+        if (grid.hasLineOfSight(closest.cellX, closest.cellY, b.maxX, b.minY)) return 0f;
+        if (grid.hasLineOfSight(closest.cellX, closest.cellY, b.minX, b.maxY)) return 0f;
+        if (grid.hasLineOfSight(closest.cellX, closest.cellY, b.maxX, b.maxY)) return 0f;
+
+        return 1f;
+    }
+}

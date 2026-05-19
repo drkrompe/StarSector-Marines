@@ -1168,6 +1168,10 @@ public class BattleScreen implements Screen, BattleUiContext {
             impactFx.spawnAmbientSmoke(puff[0], puff[1], puff[2]);
         }
         impactFx.advance(dt * speedMultiplier);
+        // Roof alpha lerp runs on real dt (not sim-scaled) so the fog-of-war
+        // fade keeps animating even when the sim is paused — matches how the
+        // HUD ticks on real dt for the same reason.
+        advanceRoofAlphaLerp(sim, dt);
         driveShuttleEngineLoop(sim);
         driveShuttleResonanceLoops(sim);
         playCombatEventSounds(sim);
@@ -1703,6 +1707,12 @@ public class BattleScreen implements Screen, BattleUiContext {
             // doodads, below units so unit sprites stay legible over the tint.
             highlights.render(camera, alphaMult);
             renderUnits(sim.getUnits(), alphaMult);
+            // Fog-of-war roof pass — paints opaque BRICK tiles over the
+            // interiors of buildings the player can't see, hiding any units
+            // (and decals / doodads) inside. Sits above units but below
+            // objective markers, shuttles (aircraft), projectiles, and flyby
+            // — all of which should pierce the roof.
+            renderRoofs(sim, alphaMult);
             // Charge sites + equipment drops sit above units so the player can
             // always see where the objectives are — even while a marine stands
             // on top of one. Shuttles still draw on top of the markers when
@@ -2391,6 +2401,76 @@ public class BattleScreen implements Screen, BattleUiContext {
             }
             glEnd();
         }
+    }
+
+    /**
+     * Fog-of-war roof pass. For each building, paints a BRICK tile across its
+     * interior cells, modulated by the building's tint and current alpha. The
+     * sim's visibility pass writes {@code targetAlpha} at ~10 Hz; this method
+     * lerps {@code currentAlpha → targetAlpha} so the fade is smooth across
+     * frames between visibility updates. Runs after units draw, so a roofed
+     * building visibly covers the units inside; runs before objective markers,
+     * shuttles, projectiles, and FX so all of those pierce the roof.
+     */
+    private void renderRoofs(BattleSimulation sim, float alphaMult) {
+        com.dillon.starsectormarines.battle.map.Buildings buildings = sim.getBuildings();
+        if (buildings == null || buildings.isEmpty()) return;
+        ensureFloorsSheet();
+        if (floorsSheet == null || floorsBatch == null) return;
+
+        for (com.dillon.starsectormarines.battle.map.Building b : buildings.all()) {
+            float roofAlpha = b.currentAlpha;
+            if (roofAlpha <= 0.01f) continue;
+            for (int i = 0, n = b.cellCount(); i < n; i++) {
+                TileManifest.TileFrame f = TileManifest.pickBrickTile(b.cellsX[i], b.cellsY[i]);
+                appendSmallTileTinted(floorsBatch, f, b.cellsX[i], b.cellsY[i],
+                        b.tintR, b.tintG, b.tintB, roofAlpha * alphaMult);
+            }
+        }
+
+        try (GlStateBracket gl = GlStateBracket.textured2D()) {
+            floorsBatch.flush();
+        }
+    }
+
+    /**
+     * Lerps each building's {@code currentAlpha → targetAlpha} on real dt so
+     * the fade is decoupled from sim tick rate (still smooth under pause,
+     * speed-up, or low FPS). Driven from {@link #advance} so the lerp keeps
+     * advancing even when the sim doesn't tick this frame.
+     */
+    private void advanceRoofAlphaLerp(BattleSimulation sim, float dt) {
+        if (sim == null) return;
+        com.dillon.starsectormarines.battle.map.Buildings buildings = sim.getBuildings();
+        if (buildings == null || buildings.isEmpty()) return;
+        // ~3 alpha-units / sec → reveal in ~0.33 s, reads as a quick wipe.
+        float lerpAmount = Math.min(1f, dt * 3f);
+        for (com.dillon.starsectormarines.battle.map.Building b : buildings.all()) {
+            b.currentAlpha += (b.targetAlpha - b.currentAlpha) * lerpAmount;
+        }
+    }
+
+    /**
+     * Tinted variant of {@link #appendSmallTile} — same source-cell + 2x dst
+     * shape, but the caller supplies an RGB multiply for per-building roof
+     * flavor. Alpha is the standard alpha-mult.
+     */
+    private void appendSmallTileTinted(QuadBatch batch, TileManifest.TileFrame f,
+                                       int gridX, int gridY,
+                                       float r, float g, float b, float alphaMult) {
+        if (batch == null) return;
+        int inset = GROUND_SMALL_TILE_EDGE_INSET_PX;
+        int srcPxX = f.col * TileManifest.FLOORS_TILE_SIZE + inset;
+        int srcTopPxY = f.row * TileManifest.FLOORS_TILE_SIZE + inset;
+        int srcPxW = TileManifest.FLOORS_TILE_SIZE - 2 * inset;
+        int srcPxH = TileManifest.FLOORS_TILE_SIZE - 2 * inset;
+
+        float cellPx = camera.cellPxSize();
+        float cx = camera.cellToScreenX(gridX + 0.5f);
+        float cy = camera.cellToScreenY(gridY + 0.5f);
+        batch.append(srcPxX, srcTopPxY, srcPxW, srcPxH,
+                cx, cy, cellPx, cellPx,
+                r, g, b, alphaMult);
     }
 
     private void renderUnits(List<Unit> units, float alphaMult) {

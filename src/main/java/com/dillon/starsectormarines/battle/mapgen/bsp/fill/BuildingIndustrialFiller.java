@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.mapgen.bsp.fill;
 import com.dillon.starsectormarines.battle.Doodad;
 import com.dillon.starsectormarines.battle.PointOfInterest;
 import com.dillon.starsectormarines.battle.TileManifest;
+import com.dillon.starsectormarines.battle.map.BuildingKind;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.mapgen.BlockFiller;
@@ -27,7 +28,8 @@ public final class BuildingIndustrialFiller implements BlockFiller {
             GroundKind.STRIPED,
             TileManifest.WAREHOUSE_DOODADS,
             PointOfInterest.Kind.DEPOT,
-            BuildingLayouts.LayoutRecipe.WAREHOUSE);
+            BuildingLayouts.LayoutRecipe.WAREHOUSE,
+            BuildingKind.INDUSTRIAL);
 
     @Override
     public BlockKind kind() { return BlockKind.BUILDING_INDUSTRIAL; }

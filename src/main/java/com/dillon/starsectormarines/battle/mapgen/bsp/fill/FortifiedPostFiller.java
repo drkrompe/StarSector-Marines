@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.mapgen.bsp.fill;
 import com.dillon.starsectormarines.battle.Doodad;
 import com.dillon.starsectormarines.battle.PointOfInterest;
 import com.dillon.starsectormarines.battle.TileManifest;
+import com.dillon.starsectormarines.battle.map.BuildingKind;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.mapgen.BlockFiller;
@@ -85,6 +86,7 @@ public final class FortifiedPostFiller implements BlockFiller {
         for (int y = top + 1; y <= bottom - 1; y++) {
             for (int x = left + 1; x <= right - 1; x++) {
                 topology.setGroundKind(x, y, GroundKind.STRIPED);
+                topology.setBuildingKindHint(x, y, BuildingKind.FORTIFIED);
             }
         }
 

@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.Doodad;
 import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.PointOfInterest;
 import com.dillon.starsectormarines.battle.TileManifest;
+import com.dillon.starsectormarines.battle.map.BuildingKind;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.mapgen.BlockKind;
@@ -66,16 +67,16 @@ public final class MilitaryBaseFiller implements CompoundFiller {
 
     private static final BuildingShellCore.BuildingConfig COMMAND_CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.INDOOR, TileManifest.SKYPORT_DOODADS, PointOfInterest.Kind.COMMS,
-            BuildingLayouts.LayoutRecipe.SHOP);
+            BuildingLayouts.LayoutRecipe.SHOP, BuildingKind.FORTIFIED);
     private static final BuildingShellCore.BuildingConfig BARRACKS_CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.INDOOR, TileManifest.RESIDENTIAL_DOODADS, PointOfInterest.Kind.RESIDENTIAL,
-            BuildingLayouts.LayoutRecipe.HOME);
+            BuildingLayouts.LayoutRecipe.HOME, BuildingKind.FORTIFIED);
     private static final BuildingShellCore.BuildingConfig ARMORY_CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.STRIPED, TileManifest.WAREHOUSE_DOODADS, PointOfInterest.Kind.DEPOT,
-            BuildingLayouts.LayoutRecipe.WAREHOUSE);
+            BuildingLayouts.LayoutRecipe.WAREHOUSE, BuildingKind.FORTIFIED);
     private static final BuildingShellCore.BuildingConfig VEHICLE_BAY_CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.STRIPED, TileManifest.WAREHOUSE_DOODADS, PointOfInterest.Kind.DEPOT,
-            BuildingLayouts.LayoutRecipe.WAREHOUSE);
+            BuildingLayouts.LayoutRecipe.WAREHOUSE, BuildingKind.FORTIFIED);
 
     @Override
     public void fill(Compound compound,

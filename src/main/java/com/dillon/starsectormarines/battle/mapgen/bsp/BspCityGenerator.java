@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.mapgen.bsp;
 
 import com.dillon.starsectormarines.battle.Doodad;
 import com.dillon.starsectormarines.battle.PointOfInterest;
+import com.dillon.starsectormarines.battle.map.Buildings;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.mapgen.BiomeKind;
@@ -279,6 +280,12 @@ public final class BspCityGenerator implements MapGenerator {
         bakeCoverFromWalls(grid);
         topology.tagDefaultWalls(grid);
 
+        // Step 4b — flood-fill building interiors from the stamped kind hints.
+        // Runs after tagDefaultWalls so the wall predicate the flood-fill reads
+        // is authoritative; the result is the Buildings registry that drives
+        // the roof-render and fog-of-war visibility passes.
+        Buildings buildings = BuildingFloodFill.populate(topology, seed);
+
         int[] marine;
         int[] defender;
         if (axis != null) {
@@ -291,7 +298,7 @@ public final class BspCityGenerator implements MapGenerator {
 
         return new MapResult(grid, topology,
                 marine[0], marine[1], defender[0], defender[1],
-                pois, doodads, this.lastTacticalMap);
+                pois, doodads, this.lastTacticalMap, buildings);
     }
 
     /**
