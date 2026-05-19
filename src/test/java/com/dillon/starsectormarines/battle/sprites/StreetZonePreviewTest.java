@@ -483,17 +483,20 @@ public class StreetZonePreviewTest {
             }
         }
 
-        // Pass 2: walls. Same picker the production renderer uses; mask
-        // synthesized from in-bounds wall neighbors (OOB treated as
-        // not-wall so map-edge walls still pick directional pieces).
+        // Pass 2: walls. Picker semantic: nWall/sWall/eWall/wWall mean
+        // "exterior on this side" — matches the WALL_DIR_X mask
+        // BuildingShellCore.stampPerimeterMask sets at gen-time in
+        // production. For a wall cell, a cardinal direction is exterior
+        // when the neighbor isn't part of the building (i.e. neither a
+        // WALL nor an INDOOR_FLOOR — open ground / OOB counts).
         for (int x = 0; x < gridW; x++) {
             for (int y = 0; y < gridH; y++) {
                 if (role[x][y] != Role.WALL) continue;
-                boolean nWall = isWall(role, x, y + 1, gridW, gridH);
-                boolean sWall = isWall(role, x, y - 1, gridW, gridH);
-                boolean eWall = isWall(role, x + 1, y, gridW, gridH);
-                boolean wWall = isWall(role, x - 1, y, gridW, gridH);
-                TileManifest.TileFrame tile = TileManifest.pickWallTile(nWall, sWall, eWall, wWall);
+                boolean nExt = !isBuildingCell(role, x, y + 1, gridW, gridH);
+                boolean sExt = !isBuildingCell(role, x, y - 1, gridW, gridH);
+                boolean eExt = !isBuildingCell(role, x + 1, y, gridW, gridH);
+                boolean wExt = !isBuildingCell(role, x - 1, y, gridW, gridH);
+                TileManifest.TileFrame tile = TileManifest.pickWallTile(nExt, sExt, eExt, wExt);
                 if (tile == null) {
                     g.setColor(WALL_CENTER);
                     g.fillRect(x * DISPLAY_CELL_PX, (gridH - 1 - y) * DISPLAY_CELL_PX,
@@ -513,6 +516,21 @@ public class StreetZonePreviewTest {
     private static boolean isWall(Role[][] role, int x, int y, int gridW, int gridH) {
         if (x < 0 || x >= gridW || y < 0 || y >= gridH) return false;
         return role[x][y] == Role.WALL;
+    }
+
+    /**
+     * Returns true if {@code (x, y)} is part of a building (a wall cell
+     * OR an interior floor cell). OOB is treated as <em>not</em> a
+     * building cell so map-edge walls correctly read their map-edge side
+     * as exterior. Used by the wall picker's exterior-direction
+     * computation in place of the simpler {@link #isWall} predicate,
+     * which doesn't distinguish "neighbor is another wall (same building,
+     * so not exterior)" from "neighbor is outside the building."
+     */
+    private static boolean isBuildingCell(Role[][] role, int x, int y, int gridW, int gridH) {
+        if (x < 0 || x >= gridW || y < 0 || y >= gridH) return false;
+        Role r = role[x][y];
+        return r == Role.WALL || r == Role.INDOOR_FLOOR;
     }
 
     private static boolean isSidewalk(Role[][] role, int x, int y, int gridW, int gridH) {
@@ -569,23 +587,33 @@ public class StreetZonePreviewTest {
         FixedGridTileDrawer urbanDrawer  = new FixedGridTileDrawer(TileManifest.TILE_SIZE);
         FixedGridTileDrawer floorsDrawer = new FixedGridTileDrawer(TileManifest.FLOORS_TILE_SIZE);
 
-        // Wall mask: true on every wall cell of either building. Used to
-        // pick floor / wall edge variants the same way the in-game pipeline
-        // does (pickWallTile / pickFloorTile read neighbor-is-wall flags).
+        // Wall + building masks. `wall[x][y]` flags perimeter wall cells;
+        // `inBuilding[x][y]` flags every cell that's part of either
+        // building (walls + interior floors). The wall picker needs the
+        // "exterior on this side" semantic — match what
+        // BuildingShellCore.stampPerimeterMask sets in production. A wall
+        // cell's exterior is any cardinal direction whose neighbor isn't
+        // also part of the same building; for a 1-thick perimeter ring,
+        // that's the side that doesn't touch the interior.
         boolean[][] wall = new boolean[gridW][gridH];
+        boolean[][] inBuilding = new boolean[gridW][gridH];
         for (int x = 0; x < gridW; x++) {
             // North building outer wall ring (rows 11..13), with one door at x=8.
             for (int y = northWallBottom; y <= northWallTop; y++) {
+                inBuilding[x][y] = true;
                 boolean perimeter = y == northWallTop || y == northWallBottom || x == 0 || x == gridW - 1;
                 wall[x][y] = perimeter;
             }
             // South building outer wall ring (rows 0..2), with one door at x=14.
             for (int y = southWallBottom; y <= southWallTop; y++) {
+                inBuilding[x][y] = true;
                 boolean perimeter = y == southWallTop || y == southWallBottom || x == 0 || x == gridW - 1;
                 wall[x][y] = perimeter;
             }
         }
-        // Carve doors.
+        // Carve doors. The door cell stays part of inBuilding (it's an
+        // interior floor underneath the overhead door overlay) but isn't
+        // a wall — matches BuildingShellCore's punch.
         wall[8 ][northWallBottom] = false;
         wall[14][southWallTop]    = false;
 
@@ -628,11 +656,15 @@ public class StreetZonePreviewTest {
         for (int x = 0; x < gridW; x++) {
             for (int y = 0; y < gridH; y++) {
                 if (!wall[x][y]) continue;
-                boolean nWall = isWall(wall, x, y + 1, gridW, gridH);
-                boolean sWall = isWall(wall, x, y - 1, gridW, gridH);
-                boolean eWall = isWall(wall, x + 1, y, gridW, gridH);
-                boolean wWall = isWall(wall, x - 1, y, gridW, gridH);
-                TileManifest.TileFrame tile = TileManifest.pickWallTile(nWall, sWall, eWall, wWall);
+                // Picker semantic: nWall=true means "exterior is on N side"
+                // — i.e. neighbor isn't part of this building. Matches the
+                // intrinsic mask BuildingShellCore stamps at gen-time and
+                // the in-game render path in BattleScreen.
+                boolean nExt = !isInBuilding(inBuilding, x, y + 1, gridW, gridH);
+                boolean sExt = !isInBuilding(inBuilding, x, y - 1, gridW, gridH);
+                boolean eExt = !isInBuilding(inBuilding, x + 1, y, gridW, gridH);
+                boolean wExt = !isInBuilding(inBuilding, x - 1, y, gridW, gridH);
+                TileManifest.TileFrame tile = TileManifest.pickWallTile(nExt, sExt, eExt, wExt);
                 if (tile == null) {
                     g.setColor(WALL_CENTER);
                     g.fillRect(x * DISPLAY_CELL_PX, (gridH - 1 - y) * DISPLAY_CELL_PX,
@@ -674,6 +706,17 @@ public class StreetZonePreviewTest {
         // boundary don't pick up a phantom wall neighbor.
         if (x < 0 || x >= gridW || y < 0 || y >= gridH) return false;
         return wall[x][y];
+    }
+
+    /**
+     * "Cell at (x, y) is part of a building (wall or interior floor)."
+     * OOB returns false. Pairs with the wall picker's exterior-direction
+     * semantic: a wall cell's exterior is any cardinal direction whose
+     * neighbor isn't in the same building.
+     */
+    private static boolean isInBuilding(boolean[][] inBuilding, int x, int y, int gridW, int gridH) {
+        if (x < 0 || x >= gridW || y < 0 || y >= gridH) return false;
+        return inBuilding[x][y];
     }
 
     private static void stampCell(FixedGridTileDrawer drawer, TileSink sink,
