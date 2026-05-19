@@ -22,7 +22,7 @@ import java.util.List;
 public enum FighterProfile {
 
     /** Talon — light autocannon, fast and twitchy. */
-    TALON("graphics/ships/talon/talon.png", 1.5f,
+    TALON("graphics/ships/talon/talon.png", "talon", 1.5f,
             WeaponClass.TRACER,
             new Color(0xFF, 0xE0, 0x70), 22f, 2.5f, 0.06f,
             7, 0.06f, 0.8f, 1.0f, 30, 0.09f,
@@ -30,7 +30,7 @@ public enum FighterProfile {
             FlybyOverlay.SFX_GUN_LIGHT, 0.9f, 1.0f, null),
 
     /** Wasp — small drone with a pulse laser. */
-    WASP("graphics/ships/wasp_ftr.png", 1.3f,
+    WASP("graphics/ships/wasp_ftr.png", "wasp", 1.3f,
             WeaponClass.TRACER,
             new Color(0x88, 0xFF, 0xFF), 18f, 3.0f, 0.10f,
             4, 0.10f, 1.2f, 1.5f, 35, 0.09f,
@@ -38,7 +38,7 @@ public enum FighterProfile {
             FlybyOverlay.SFX_GUN_ENERGY, 1.1f, 0.9f, null),
 
     /** Broadsword — heavy fighter, dual chaingun. The strafe of choice. */
-    BROADSWORD("graphics/ships/broadsword.png", 2.0f,
+    BROADSWORD("graphics/ships/broadsword.png", "broadsword", 2.0f,
             WeaponClass.TRACER,
             new Color(0xFF, 0xE0, 0x70), 30f, 3.5f, 0.08f,
             10, 0.05f, 0.6f, 1.5f, 45, 0.09f,
@@ -46,7 +46,7 @@ public enum FighterProfile {
             FlybyOverlay.SFX_GUN_HEAVY, 1.0f, 1.1f, null),
 
     /** Thunder — interceptor with twin ion bolts. */
-    THUNDER("graphics/ships/thunder.png", 1.7f,
+    THUNDER("graphics/ships/thunder.png", "thunder", 1.7f,
             WeaponClass.TRACER,
             new Color(0x70, 0xC8, 0xFF), 24f, 3.0f, 0.10f,
             6, 0.08f, 0.9f, 1.4f, 90, 0.09f,
@@ -54,7 +54,7 @@ public enum FighterProfile {
             FlybyOverlay.SFX_GUN_ENERGY, 1.0f, 1.0f, null),
 
     /** Dagger — Tri-Tachyon torpedo bomber; one Reaper per shot. AoE detonation flattens walls and chews into clusters. */
-    DAGGER("graphics/ships/dagger_trp.png", 1.9f,
+    DAGGER("graphics/ships/dagger_trp.png", "dagger", 1.9f,
             WeaponClass.PROJECTILE,
             new Color(0xFF, 0xB0, 0x60), 0f, 0f, 0f,
             1, 0f, 0f, 0f, 150, 0.7f,
@@ -63,6 +63,14 @@ public enum FighterProfile {
 
     /** Vanilla sprite path. Lazy-loaded once per overlay. */
     public final String spritePath;
+    /**
+     * Vanilla hull id — keys
+     * {@link com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver}
+     * so the engine-FX pass can scrape thruster positions from this
+     * fighter's {@code .ship} spec at runtime. Same convention as
+     * {@link com.dillon.starsectormarines.battle.air.ShuttleType#matchingHullIds}.
+     */
+    public final String hullId;
     /** Drawn length in cells (sprite's longer axis). Smaller = "higher altitude"; we lean on shadow offset + tint for the rest. */
     public final float visualLengthCells;
 
@@ -115,7 +123,7 @@ public enum FighterProfile {
     /** Sprite path for the in-flight missile body. null for TRACER profiles. */
     public final String projectileSpritePath;
 
-    FighterProfile(String spritePath, float visualLengthCells,
+    FighterProfile(String spritePath, String hullId, float visualLengthCells,
                    WeaponClass weaponClass,
                    Color tracerColor, float tracerPxLen, float tracerPxThick, float tracerLifetime,
                    int burstSize, float burstInterval, float burstSpreadDeg, float perTracerDamage, int wallDamage,
@@ -125,6 +133,7 @@ public enum FighterProfile {
                    String fireSoundId, float fireSoundPitch, float fireSoundVolume,
                    String projectileSpritePath) {
         this.spritePath = spritePath;
+        this.hullId = hullId;
         this.visualLengthCells = visualLengthCells;
         this.weaponClass = weaponClass;
         this.tracerColor = tracerColor;

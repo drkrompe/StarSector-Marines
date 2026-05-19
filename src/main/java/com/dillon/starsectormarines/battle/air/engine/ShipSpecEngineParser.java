@@ -37,13 +37,16 @@ import org.json.JSONObject;
  * {@link com.dillon.starsectormarines.battle.air.ShuttleType#visualLengthCells}
  * we want this hull to render at, that fixes the pixel-to-cell scale.
  *
- * <h2>Open caveats</h2>
- * <p>Slot positions are assumed to be relative to the sprite's pixel
- * center. Vanilla's optional {@code center} property can offset the
- * ship-local origin away from the pixel center on a per-hull basis; we
- * skip that compensation for now and rely on the preview test
- * ({@code EngineSlotPreviewTest}) to surface mis-alignment if a hull
- * actually needs it.
+ * <h2>Sprite anchor</h2>
+ * <p>Slot positions in {@code .ship} files are stored relative to the
+ * sprite's pixel center, NOT to vanilla's {@code center} property. We
+ * tried adding {@code (spec.center - pixelCenter)} compensation when
+ * dagger looked slightly off, but it scrambled every other hull —
+ * Valkyrie's {@code center=[42,113]} on an 84×264 sprite produced a
+ * 19-pixel shift, which is the opposite of what we want given how
+ * {@link com.fs.starfarer.api.graphics.SpriteAPI#renderAtCenter} anchors
+ * our hull sprites. The renderer anchors at pixel center; slot positions
+ * are expressed in that frame; no compensation needed.
  */
 public final class ShipSpecEngineParser {
 

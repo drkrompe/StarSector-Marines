@@ -79,6 +79,7 @@ public final class FlybyOverlay {
     private static final String SPRITE_SHADOW         = "graphics/fx/particlealpha64linear.png";
     private static final String SPRITE_GLOW           = "graphics/fx/glow64.png";
     private static final String SPRITE_ENGINE_GLOW    = "graphics/fx/engineglow32.png";
+    private static final String SPRITE_ENGINE_FLAME   = "graphics/fx/engineflame32.png";
     private static final String SPRITE_EXPLOSION_RING = "graphics/fx/explosion_ring0.png";
     private static final String[] SPRITE_EXPLOSIONS   = {
             "graphics/fx/explosion0.png", "graphics/fx/explosion1.png", "graphics/fx/explosion2.png",
@@ -188,6 +189,8 @@ public final class FlybyOverlay {
     private SpriteAPI shadowSprite;
     private SpriteAPI glowSprite;
     private SpriteAPI engineSprite;
+    /** Vanilla engine flame column, paired with {@link #engineSprite} (the glow halo) by {@link com.dillon.starsectormarines.battle.air.engine.EngineFxRenderer}. */
+    private SpriteAPI engineFlameSprite;
     private SpriteAPI explosionRingSprite;
     private final SpriteAPI[] explosionSprites = new SpriteAPI[SPRITE_EXPLOSIONS.length];
     private SpriteAPI particleSheetSprite;
@@ -1155,8 +1158,8 @@ public final class FlybyOverlay {
         if (shadowSprite != null) {
             for (Fighter f : fighters) drawShadow(f, camera, cellPx, alphaMult);
         }
-        if (engineSprite != null) {
-            for (Fighter f : fighters) drawEngineGlow(f, camera, cellPx, alphaMult);
+        if (engineSprite != null || engineFlameSprite != null) {
+            for (Fighter f : fighters) drawEngineGlow(f, camera, alphaMult);
         }
         for (Fighter f : fighters) {
             SpriteAPI sprite = sprites.get(f.profile);
@@ -1241,24 +1244,41 @@ public final class FlybyOverlay {
         shadowSprite.renderAtCenter(px, py);
     }
 
-    private void drawEngineGlow(Fighter f, BattleCamera camera, float cellPx, float alphaMult) {
-        float speed = (float) Math.sqrt(f.vx * f.vx + f.vy * f.vy);
-        if (speed < 0.001f) return;
-        float nx = f.vx / speed, ny = f.vy / speed;
-        float backOffset = f.profile.visualLengthCells * 0.45f;
-        float gx = f.worldX - nx * backOffset;
-        float gy = f.worldY - ny * backOffset;
-        float glowLenCells = f.profile.visualLengthCells * ENGINE_GLOW_LEN_MULT;
-        engineSprite.setSize(glowLenCells * 0.6f * cellPx, glowLenCells * cellPx);
-        engineSprite.setAngle(f.facingDeg - 90f);
-        engineSprite.setAlphaMult(alphaMult * 0.9f);
-        engineSprite.setColor(new Color(0xFF, 0xC8, 0x80));
-        engineSprite.setAdditiveBlend();
-        engineSprite.renderAtCenter(
-                camera.cellToScreenX(gx),
-                camera.cellToScreenY(gy));
-        engineSprite.setAngle(0f);
+    /**
+     * Renders per-slot engine FX for a fighter via the shared
+     * {@link com.dillon.starsectormarines.battle.air.engine.EngineFxRenderer}.
+     * Engine slots are scraped from the fighter's vanilla {@code .ship} spec
+     * (one cache lookup per profile, then per-instance per-frame), so
+     * Broadswords show their 4 main engines and Talons show their pair
+     * instead of a single generic glow.
+     *
+     * <p>Fighter facing follows vanilla's {@code 0° = +X} convention; the
+     * shared renderer expects our {@code 0° = +Y} sprite-angle convention
+     * (matching the parsed slot angles), so we subtract 90 at the call site
+     * — same offset the main fighter sprite render uses.
+     *
+     * <p>Intensity is held at {@link #FIGHTER_ENGINE_INTENSITY} for visible
+     * fighters — they're always at cruise during the flyby, no throttle
+     * graduation to model.
+     */
+    private void drawEngineGlow(Fighter f, BattleCamera camera, float alphaMult) {
+        com.dillon.starsectormarines.battle.air.engine.EngineSlotData[] slots =
+                com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver.resolve(
+                        f.profile.hullId, f.profile.visualLengthCells);
+        com.dillon.starsectormarines.battle.air.engine.EngineFxRenderer.draw(
+                slots,
+                f.worldX, f.worldY,
+                f.facingDeg - 90f,     // vanilla 0°=+X → our 0°=+Y
+                /*scaleMult*/    1f,
+                /*altOffset*/    0f,
+                FIGHTER_ENGINE_INTENSITY,
+                alphaMult,
+                camera,
+                engineSprite, engineFlameSprite);
     }
+
+    /** Fighters cruise at fixed throttle during the flyby — no graduated intensity needed. Lower than 1.0 keeps per-slot summing from going nuclear-bright on multi-engine hulls. */
+    private static final float FIGHTER_ENGINE_INTENSITY = 0.8f;
 
     private void drawTracerQuad(Tracer t, BattleCamera camera, float cellPx, float alphaMult) {
         float fromPx = camera.cellToScreenX(t.fromX);
@@ -1343,6 +1363,7 @@ public final class FlybyOverlay {
         shadowSprite        = loadSpriteOrNull(SPRITE_SHADOW);
         glowSprite          = loadSpriteOrNull(SPRITE_GLOW);
         engineSprite        = loadSpriteOrNull(SPRITE_ENGINE_GLOW);
+        engineFlameSprite   = loadSpriteOrNull(SPRITE_ENGINE_FLAME);
         explosionRingSprite = loadSpriteOrNull(SPRITE_EXPLOSION_RING);
         for (int i = 0; i < SPRITE_EXPLOSIONS.length; i++) {
             explosionSprites[i] = loadSpriteOrNull(SPRITE_EXPLOSIONS[i]);

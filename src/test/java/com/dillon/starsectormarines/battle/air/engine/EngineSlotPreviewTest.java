@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.air.engine;
 
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
@@ -79,30 +80,15 @@ public class EngineSlotPreviewTest {
             // First id per type is the canonical one. (Kite has kite +
             // kite_original; we only need one preview per visual hull.)
             String hullId = type.matchingHullIds.get(0);
-
-            Path shipPath = coreDir.resolve("data/hulls/" + hullId + ".ship");
-            Path spritePath = coreDir.resolve(type.spritePath);
-            if (!Files.exists(shipPath) || !Files.exists(spritePath)) {
-                skippedHulls.add(hullId + " (missing files)");
-                continue;
-            }
-
-            String shipJson = Files.readString(shipPath);
-            EngineSlotData[] slots = ShipSpecEngineParser.parse(shipJson, type.visualLengthCells);
-            BufferedImage sprite = ImageIO.read(Files.newInputStream(spritePath));
-            if (sprite == null) {
-                skippedHulls.add(hullId + " (sprite read failed)");
-                continue;
-            }
-
-            BufferedImage preview = renderPreview(type, hullId, sprite, slots);
-            Path outPath = OUT_DIR.resolve(hullId + ".png");
-            ImageIO.write(preview, "PNG", outPath.toFile());
-            System.out.println("  wrote " + outPath.toAbsolutePath()
-                    + "  (" + slots.length + " engine slots)");
-
-            renderedHulls.add(hullId);
-            totalSlots += slots.length;
+            totalSlots += renderOne(coreDir, type.name(), hullId, type.spritePath,
+                    type.visualLengthCells, renderedHulls, skippedHulls);
+        }
+        // Fighter profiles use the same scrape — verifies the FlybyOverlay
+        // path produces sensible engine layouts before they hit the screen.
+        for (FighterProfile profile : FighterProfile.values()) {
+            if (profile.hullId == null) continue;
+            totalSlots += renderOne(coreDir, profile.name(), profile.hullId, profile.spritePath,
+                    profile.visualLengthCells, renderedHulls, skippedHulls);
         }
 
         System.out.println("EngineSlotPreviewTest: " + renderedHulls.size()
@@ -113,7 +99,33 @@ public class EngineSlotPreviewTest {
         // engine slot, so zero across the whole sweep means the parser broke
         // (or every spec moved). The visual correctness check is the PNG.
         assertTrue(totalSlots > 0,
-                "no engine slots parsed across any shuttle hull — parser likely broken");
+                "no engine slots parsed across any hull — parser likely broken");
+    }
+
+    /** Loads + parses + writes one hull's preview PNG. Returns the number of slots parsed (0 on skip). */
+    private static int renderOne(Path coreDir, String label, String hullId, String relSpritePath,
+                                 float visualLengthCells,
+                                 List<String> renderedHulls, List<String> skippedHulls) throws Exception {
+        Path shipPath   = coreDir.resolve("data/hulls/" + hullId + ".ship");
+        Path spritePath = coreDir.resolve(relSpritePath);
+        if (!Files.exists(shipPath) || !Files.exists(spritePath)) {
+            skippedHulls.add(hullId + " (missing files)");
+            return 0;
+        }
+        String shipJson = Files.readString(shipPath);
+        EngineSlotData[] slots = ShipSpecEngineParser.parse(shipJson, visualLengthCells);
+        BufferedImage sprite = ImageIO.read(Files.newInputStream(spritePath));
+        if (sprite == null) {
+            skippedHulls.add(hullId + " (sprite read failed)");
+            return 0;
+        }
+        BufferedImage preview = renderPreview(label, hullId, visualLengthCells, sprite, slots);
+        Path outPath = OUT_DIR.resolve(hullId + ".png");
+        ImageIO.write(preview, "PNG", outPath.toFile());
+        System.out.println("  wrote " + outPath.toAbsolutePath()
+                + "  (" + slots.length + " engine slots)");
+        renderedHulls.add(hullId);
+        return slots.length;
     }
 
     /**
@@ -121,7 +133,7 @@ public class EngineSlotPreviewTest {
      * positions and plume arrows are first converted back from our local
      * cell-frame into vanilla pixel-frame, then scaled to display coords.
      */
-    private static BufferedImage renderPreview(ShuttleType type, String hullId,
+    private static BufferedImage renderPreview(String label, String hullId, float visualLengthCells,
                                                BufferedImage sprite, EngineSlotData[] slots) {
         int spriteW = sprite.getWidth();
         int spriteH = sprite.getHeight();
@@ -140,8 +152,8 @@ public class EngineSlotPreviewTest {
         // Header label.
         g.setColor(LABEL_FG);
         g.setFont(new Font("SansSerif", Font.BOLD, 14));
-        g.drawString(type.name() + "  /  hullId='" + hullId
-                + "'  /  visualLengthCells=" + type.visualLengthCells
+        g.drawString(label + "  /  hullId='" + hullId
+                + "'  /  visualLengthCells=" + visualLengthCells
                 + "  /  sprite=" + spriteW + "x" + spriteH
                 + "  /  " + slots.length + " slots", 8, 18);
 
@@ -169,7 +181,7 @@ public class EngineSlotPreviewTest {
         // pxPerCell in DISPLAY units — vanilla pxPerCell scaled by our 2x
         // upscale. The parser used the source-pixel ratio; we need the
         // display ratio to project back onto the displayed sprite.
-        float displayPxPerCell = (spriteH / type.visualLengthCells) * DISPLAY_SCALE;
+        float displayPxPerCell = (spriteH / visualLengthCells) * DISPLAY_SCALE;
 
         // Per-slot dot + plume arrow.
         g.setFont(new Font("SansSerif", Font.PLAIN, 11));

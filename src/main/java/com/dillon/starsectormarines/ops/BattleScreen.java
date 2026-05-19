@@ -2852,106 +2852,28 @@ public class BattleScreen implements Screen, BattleUiContext {
     }
 
     /**
-     * Draws engine plumes under the shuttle hull. Slot definitions are
-     * scraped from the matching vanilla {@code .ship} spec (see
-     * {@link com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver}),
-     * so modded hulls drop in for free with no code change.
-     *
-     * <p>Per slot: rotate the local offset by the hull facing (with
-     * {@code scaleMult} applied to keep engines attached during landing),
-     * compute the plume world direction as {@code hull facing + slot angle},
-     * then draw glow (soft halo) + flame (elongated column) at additive
-     * blend, tinted by {@link com.dillon.starsectormarines.battle.air.engine.EngineStylePalette}.
-     * Length and alpha scale with {@link com.dillon.starsectormarines.battle.air.Shuttle#engineIntensity()}
-     * so engines idle short on the ground and stretch full at cruise.
-     *
-     * <p>Renders nothing — no crash — when slot resolution failed for the
-     * type or the vanilla FX sprites didn't load.
+     * Thin call site over the shared {@link com.dillon.starsectormarines.battle.air.engine.EngineFxRenderer}.
+     * Slots are scraped from the matching vanilla {@code .ship} spec at
+     * runtime (mod load order aware, so modded hulls work without code
+     * changes); the renderer does the world transform + glow/flame draw.
+     * The hull's own facing already follows our {@code 0°=+Y} convention,
+     * so we pass it through unchanged.
      */
     private void renderShuttleEngines(com.dillon.starsectormarines.battle.air.Shuttle s, float alphaMult,
                                       float altOffsetCells) {
-        com.dillon.starsectormarines.battle.air.engine.EngineSlotData[] slots =
-                com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver.resolve(s.type);
-        if (slots.length == 0) return;
-        if (engineFlameSprite == null && engineGlowSprite == null) return;
-
-        float intensity = s.engineIntensity();
-        if (intensity <= 0f) return;
-
-        float rad = (float) Math.toRadians(s.body.facingDegrees);
-        float cos = (float) Math.cos(rad);
-        float sin = (float) Math.sin(rad);
-        float cellPx = camera.cellPxSize();
-
-        for (com.dillon.starsectormarines.battle.air.engine.EngineSlotData es : slots) {
-            // Slot world position — same scale-then-rotate pattern as the
-            // turret-mount pass so engines stay locked to their hardpoints
-            // through the landing/takeoff scale lerp.
-            float lx = es.localX * s.scaleMult;
-            float ly = es.localY * s.scaleMult;
-            float worldOffsetX = lx * cos - ly * sin;
-            float worldOffsetY = lx * sin + ly * cos;
-            float wx = s.body.x + worldOffsetX;
-            float wy = s.body.y + worldOffsetY + altOffsetCells;
-            float screenX = camera.cellToScreenX(wx);
-            float screenY = camera.cellToScreenY(wy);
-
-            // Plume world direction = hull facing + slot angle. Both follow
-            // the 0°=+Y CCW-positive convention so they sum directly.
-            float plumeDir = s.body.facingDegrees + es.angleDegrees;
-            double plumeRad = Math.toRadians(plumeDir);
-            float plumeDX = (float) -Math.sin(plumeRad);
-            float plumeDY = (float)  Math.cos(plumeRad);
-
-            // Length and alpha breathe with throttle — idle (0.3) is half-
-            // length and dim, cruise (1.0) is full.
-            float lenCells   = es.lengthCells * s.scaleMult * (0.4f + 0.6f * intensity);
-            float widthCells = es.widthCells  * s.scaleMult * (0.7f + 0.3f * intensity);
-            float lenPx = lenCells * cellPx;
-            float widthPx = widthCells * cellPx;
-            float flameAlpha = alphaMult * (0.5f + 0.5f * intensity);
-
-            java.awt.Color flame = com.dillon.starsectormarines.battle.air.engine.EngineStylePalette
-                    .flameColor(es.style);
-
-            // Glow halo — anchored at the slot. Sized to ~2× the flame
-            // width so it reads as a soft bloom around the nozzle.
-            if (engineGlowSprite != null) {
-                float glowSize = Math.max(widthPx * 2.0f, cellPx * 0.4f);
-                engineGlowSprite.setSize(glowSize, glowSize);
-                engineGlowSprite.setAngle(0f);
-                engineGlowSprite.setAlphaMult(flameAlpha);
-                engineGlowSprite.setAdditiveBlend();
-                engineGlowSprite.setColor(flame);
-                engineGlowSprite.renderAtCenter(screenX, screenY);
-            }
-
-            // Flame plume — column anchored with its bright base at the slot,
-            // faded tip extending one full length in the plume direction.
-            // The sprite is centered, so we offset the center half a length
-            // along the plume direction. Sprite angle uses our convention
-            // (0°=+Y, CCW), so plumeDir maps straight through.
-            if (engineFlameSprite != null) {
-                float flameCenterX = screenX + plumeDX * lenPx * 0.5f;
-                float flameCenterY = screenY + plumeDY * lenPx * 0.5f;
-                engineFlameSprite.setSize(widthPx, lenPx);
-                engineFlameSprite.setAngle(plumeDir);
-                engineFlameSprite.setAlphaMult(flameAlpha);
-                engineFlameSprite.setAdditiveBlend();
-                engineFlameSprite.setColor(flame);
-                engineFlameSprite.renderAtCenter(flameCenterX, flameCenterY);
-            }
-        }
-
-        // Restore the sprite singletons so a later pass that doesn't set
-        // angle/color first doesn't inherit our tint.
-        if (engineFlameSprite != null) {
-            engineFlameSprite.setAngle(0f);
-            engineFlameSprite.setColor(Color.WHITE);
-        }
-        if (engineGlowSprite != null) {
-            engineGlowSprite.setColor(Color.WHITE);
-        }
+        com.dillon.starsectormarines.battle.air.engine.EngineFxRenderer.draw(
+                com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver.resolve(s.type),
+                s.body.x, s.body.y,
+                s.body.facingDegrees,
+                s.scaleMult,
+                altOffsetCells,
+                // FX-specific intensity: full plume at cruise speed, dialed
+                // back at hover so a stationary Valkyrie doesn't look like
+                // it's at full burn. Audio still tracks engineIntensity().
+                s.engineFxIntensity(),
+                alphaMult,
+                camera,
+                engineGlowSprite, engineFlameSprite);
     }
 
     /**

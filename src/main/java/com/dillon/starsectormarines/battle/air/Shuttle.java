@@ -241,8 +241,31 @@ public class Shuttle {
         return IDLE_INTENSITY + (1f - IDLE_INTENSITY) * altitudeT;
     }
 
+    /**
+     * Engine intensity for the engine-FX render pass, in {@code [0, 1]}.
+     * Layered on top of {@link #engineIntensity()}: the audio loop wants
+     * full loudness during HOVER_STATION (hovering vehicles ARE noisy —
+     * they're holding lift), but the visible plume should drop because
+     * the engine is vectoring for stationary lift rather than forward
+     * thrust. We modulate by translational speed: stationary shuttles
+     * read at {@link #HOVER_FX_FLOOR}, full forward velocity reads at the
+     * full {@link #engineIntensity()}.
+     */
+    public float engineFxIntensity() {
+        float throttle = engineIntensity();
+        if (throttle <= 0f) return 0f;
+        float speed = (float) Math.sqrt(body.vx * body.vx + body.vy * body.vy);
+        float speedT = Math.min(1f, speed / Math.max(0.001f, type.maxSpeed));
+        // Floor at HOVER_FX_FLOOR when speedT = 0; linearly climb to 1.0
+        // as the shuttle approaches its type's max speed.
+        float fxFactor = HOVER_FX_FLOOR + (1f - HOVER_FX_FLOOR) * speedT;
+        return throttle * fxFactor;
+    }
+
     /** Engine intensity while parked on the ground — quiet hum, not silent. */
     private static final float IDLE_INTENSITY = 0.3f;
+    /** FX-only floor for stationary (HOVER_STATION) shuttles. Audio is unaffected — only the plume scales down. */
+    private static final float HOVER_FX_FLOOR = 0.45f;
 
     /**
      * Render-only Y offset (cells) the renderer should add to {@code body.y}

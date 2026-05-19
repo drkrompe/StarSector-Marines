@@ -5,60 +5,78 @@ import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
-import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Lazy per-{@link ShuttleType} cache of engine slot data. First lookup loads
- * {@code data/hulls/<hullId>.ship} via {@link com.fs.starfarer.api.SettingsAPI#loadJSON(String)}
- * — which follows the game's mod load order, so a modded hull whose id is
- * in {@link ShuttleType#matchingHullIds} picks up that mod's slot definitions
- * automatically. Subsequent lookups return the cached array.
+ * Lazy cache of engine slot data, keyed by vanilla hull id. First lookup
+ * loads {@code data/hulls/<hullId>.ship} via
+ * {@link com.fs.starfarer.api.SettingsAPI#loadJSON(String)} — which follows
+ * the game's mod load order, so modded hulls drop in automatically. Failed
+ * resolutions (no hullId, missing .ship, malformed JSON) log once and cache
+ * an empty array so the render pass degrades silently.
  *
- * <p>Failure modes (no matching hullId, missing .ship file, malformed JSON)
- * all fall back to an empty array, logged once. The renderer treats empty as
- * "no engine FX for this type" — degrades gracefully instead of crashing
- * the battle screen on a malformed mod.
- *
- * <p>Same parser as the preview test (see {@link ShipSpecEngineParser}), so
- * the in-game coordinates and the {@code build/engine-previews/*.png}
- * verification track the same source of truth.
+ * <p>One cache shared across air entities — a shuttle and a fighter that
+ * both reference (say) {@code "wayfarer"} resolve through the same entry.
+ * Same parser as the preview test ({@link ShipSpecEngineParser}), so the
+ * in-game coordinates and the {@code build/engine-previews/*.png} images
+ * track the same source of truth.
  */
 public final class EngineSlotResolver {
 
     private static final Logger LOG = Global.getLogger(EngineSlotResolver.class);
     private static final EngineSlotData[] EMPTY = new EngineSlotData[0];
 
-    private static final EnumMap<ShuttleType, EngineSlotData[]> cache =
-            new EnumMap<>(ShuttleType.class);
+    /**
+     * Key: vanilla hull id (lowercase). HashMap because we now key on
+     * arbitrary hull strings (shuttles + fighters + future air entities);
+     * EnumMap is no longer sufficient.
+     */
+    private static final Map<String, EngineSlotData[]> CACHE_BY_HULL = new HashMap<>();
 
     private EngineSlotResolver() {}
 
     /**
-     * Returns the engine slots for the given shuttle type. Lazy-loads on
+     * Returns the engine slots for {@code hullId}, scaled to render at
+     * {@code visualLengthCells} cells along the forward axis. Lazy-loads on
      * first call; cached thereafter. Never returns null.
+     *
+     * @param hullId            vanilla hull id (matches the file at
+     *                          {@code data/hulls/<hullId>.ship}); null or
+     *                          empty falls back to {@code EMPTY}
+     * @param visualLengthCells the air entity's rendered length in cells —
+     *                          pairs with the spec's {@code height} pixel
+     *                          value to fix the pixel-to-cell ratio
      */
-    public static EngineSlotData[] resolve(ShuttleType type) {
-        EngineSlotData[] cached = cache.get(type);
+    public static EngineSlotData[] resolve(String hullId, float visualLengthCells) {
+        if (hullId == null || hullId.isEmpty()) return EMPTY;
+        EngineSlotData[] cached = CACHE_BY_HULL.get(hullId);
         if (cached != null) return cached;
 
-        EngineSlotData[] resolved = doResolve(type);
-        cache.put(type, resolved);
+        EngineSlotData[] resolved = doResolve(hullId, visualLengthCells);
+        CACHE_BY_HULL.put(hullId, resolved);
         return resolved;
     }
 
-    private static EngineSlotData[] doResolve(ShuttleType type) {
-        if (type.matchingHullIds.isEmpty()) {
-            // AEROSHUTTLE has no matching id — it's the employer-default sprite
-            // that doesn't surface as a player hull. No slots to resolve.
-            return EMPTY;
-        }
-        String hullId = type.matchingHullIds.get(0);
+    /**
+     * Shuttle-specific convenience that picks the first matching vanilla
+     * hull id off the type and threads through to
+     * {@link #resolve(String, float)} with the type's
+     * {@link ShuttleType#visualLengthCells}. Types with no matching hull id
+     * (e.g. {@code AEROSHUTTLE}) return an empty array.
+     */
+    public static EngineSlotData[] resolve(ShuttleType type) {
+        if (type.matchingHullIds.isEmpty()) return EMPTY;
+        return resolve(type.matchingHullIds.get(0), type.visualLengthCells);
+    }
+
+    private static EngineSlotData[] doResolve(String hullId, float visualLengthCells) {
         String path = "data/hulls/" + hullId + ".ship";
         try {
             JSONObject spec = Global.getSettings().loadJSON(path);
-            return ShipSpecEngineParser.parse(spec, type.visualLengthCells);
+            return ShipSpecEngineParser.parse(spec, visualLengthCells);
         } catch (Exception e) {
-            LOG.warn("EngineSlotResolver: " + type + " (" + path + ") — "
+            LOG.warn("EngineSlotResolver: " + hullId + " (" + path + ") — "
                     + e.getClass().getSimpleName() + ": " + e.getMessage());
             return EMPTY;
         }
