@@ -65,6 +65,10 @@ public final class WorldStateBuilder {
         EVALUATORS.put(Predicate.ENEMY_IN_PORTAL_CELL,              WorldStateBuilder::evalEnemyInPortalCell);
         EVALUATORS.put(Predicate.NODE_IS_MUST_HOLD,                 STUB_FALSE);
         EVALUATORS.put(Predicate.THREAT_DENSITY_HIGH_AT_TARGET,     STUB_FALSE);
+
+        // Mech GOAP Stage 1 — goal-side marker; OverwatchKillZone uses
+        // customPlan so the predicate is never observed at search time.
+        EVALUATORS.put(Predicate.KILL_ZONE_COVERED,                 STUB_FALSE);
     }
 
     private WorldStateBuilder() {}

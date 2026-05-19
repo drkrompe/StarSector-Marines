@@ -81,8 +81,14 @@ public final class MechCombatantBehavior implements UnitBehavior {
      * </ul>
      */
     public static void tryFireMechWeapons(Unit u, float dist, BattleSimulation sim, boolean hasLos) {
+        tryFireChaingun(u, dist, sim, hasLos);
+        tryFireSrm(u, dist, sim, hasLos);
+        tryFireLrm(u, dist, sim, hasLos);
+    }
+
+    /** Chaingun track: close-band sustained fire — needs LOS, fires when target is within chaingun range and the weapon is off cooldown. */
+    public static void tryFireChaingun(Unit u, float dist, BattleSimulation sim, boolean hasLos) {
         MechLoadoutState m = u.mech;
-        // Chaingun: close-band sustained fire — needs LOS.
         if (hasLos && m.chaingunCooldown <= 0f && m.chaingunBurstRemaining <= 0
                 && dist <= m.chaingun.range) {
             sim.fireMechWeapon(u, u.target, m.chaingun);
@@ -93,7 +99,11 @@ public final class MechCombatantBehavior implements UnitBehavior {
                 m.chaingunBurstTarget = u.target;
             }
         }
-        // SRM pod: mid-close salvo — needs LOS.
+    }
+
+    /** SRM pod track: mid-close salvo — needs LOS, ammo-limited. Skip this call from any action whose doctrine withholds SRMs (e.g. LR Support overwatch). */
+    public static void tryFireSrm(Unit u, float dist, BattleSimulation sim, boolean hasLos) {
+        MechLoadoutState m = u.mech;
         if (hasLos && m.srmCooldown <= 0f && m.srmAmmoSalvos > 0 && m.srmSalvoRemaining <= 0
                 && dist <= m.srmPod.range) {
             sim.fireMechWeapon(u, u.target, m.srmPod);
@@ -105,10 +115,16 @@ public final class MechCombatantBehavior implements UnitBehavior {
                 m.srmSalvoTarget = u.target;
             }
         }
-        // LRM artillery: long-band indirect-fire salvo. Gated to outside
-        // chaingun range (no point lobbing artillery at point-blank targets)
-        // and only fires when not actively in close engagement. No-LOS shots
-        // get the indirect-fire accuracy penalty.
+    }
+
+    /**
+     * LRM artillery track: long-band indirect-fire salvo. Gated to outside
+     * chaingun range (no point lobbing artillery at point-blank targets) and
+     * only fires when not actively in close engagement. No-LOS shots get the
+     * indirect-fire accuracy penalty {@link MechWeapon#LRM_NO_LOS_ACC_MULT}.
+     */
+    public static void tryFireLrm(Unit u, float dist, BattleSimulation sim, boolean hasLos) {
+        MechLoadoutState m = u.mech;
         if (m.lrmCooldown <= 0f && m.lrmAmmoSalvos > 0 && m.lrmSalvoRemaining <= 0
                 && dist <= m.lrmArtillery.range
                 && dist >  m.chaingun.range) {

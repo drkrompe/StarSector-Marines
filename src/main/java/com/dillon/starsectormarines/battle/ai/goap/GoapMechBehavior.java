@@ -5,7 +5,9 @@ import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.ai.UnitBehavior;
 import com.dillon.starsectormarines.battle.ai.goap.actions.EngageAtCurrentBand;
+import com.dillon.starsectormarines.battle.ai.goap.actions.OverwatchKillZone;
 import com.dillon.starsectormarines.battle.ai.goap.goals.MechEliminateEnemiesGoal;
+import com.dillon.starsectormarines.battle.ai.goap.goals.OverwatchKillZoneGoal;
 import com.dillon.starsectormarines.battle.ai.goap.scoring.RoleAssigner;
 import com.dillon.starsectormarines.battle.ai.goap.world.WorldStateBuilder;
 
@@ -33,14 +35,16 @@ public final class GoapMechBehavior implements UnitBehavior {
 
     public static final GoapMechBehavior INSTANCE = new GoapMechBehavior();
 
-    /** Goals the squad-level planner picks from each replan. Highest-priority bucket wins, relevance breaks ties. */
+    /** Goals the squad-level planner picks from each replan. Highest-priority bucket wins, relevance breaks ties. MISSION-priority role goals come first so they win their bucket; the ENGAGEMENT-priority ambient {@link MechEliminateEnemiesGoal} is the floor. */
     public static final List<Goal> MECH_GOALS = List.of(
+            OverwatchKillZoneGoal.INSTANCE,
             MechEliminateEnemiesGoal.INSTANCE
     );
 
-    /** Actions the planner may use. {@link MechEliminateEnemiesGoal} ships a custom-plan that bypasses the planner, but the list is the registry the future role-anchored goals will chain through. */
+    /** Actions the planner may use. The role-anchored goals ship custom-plans that bypass the planner; the list is the registry for any future goal that wants backward-chaining search. */
     public static final List<Action> MECH_ACTIONS = List.of(
-            EngageAtCurrentBand.INSTANCE
+            EngageAtCurrentBand.INSTANCE,
+            OverwatchKillZone.INSTANCE
     );
 
     /** Sim-seconds between forced replans for mech squads. Same cadence as infantry — playtest will tell us if mechs want a different rhythm. */

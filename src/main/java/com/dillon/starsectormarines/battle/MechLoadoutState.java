@@ -63,6 +63,22 @@ public final class MechLoadoutState {
     /** Latched true once the sim has emitted a smoking-wreck for this mech's death. Prevents re-spawn across ticks if the death-scan pass runs again with the mech still in the units list. */
     public boolean wreckSpawned = false;
 
+    // ---- LR Support overwatch cell cache ----
+    //
+    // Stage 1's OverwatchKillZone action picks an LR-band cover cell once per
+    // threat-axis shift (not per tick). These fields hold the picked cell
+    // and the squad's lastSeenEnemy at pick time; when the lastSeenEnemy
+    // shifts, the action re-picks. -1 sentinel = no pick yet / no contact yet.
+
+    /** Picked overwatch cell X. -1 = no pick yet. */
+    public int overwatchCellX = -1;
+    /** Picked overwatch cell Y. -1 = no pick yet. */
+    public int overwatchCellY = -1;
+    /** Squad's lastSeenEnemyX at the moment the overwatch cell was picked. Drives re-pick when the threat axis shifts. */
+    public int overwatchAxisX = -1;
+    /** Squad's lastSeenEnemyY at the moment the overwatch cell was picked. */
+    public int overwatchAxisY = -1;
+
     public MechLoadoutState(MechWeapon chaingun, MechWeapon srmPod, MechWeapon lrmArtillery,
                             int srmAmmoSalvos, int lrmAmmoSalvos, MechRole role) {
         this.chaingun = chaingun;

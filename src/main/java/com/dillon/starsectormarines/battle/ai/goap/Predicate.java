@@ -78,5 +78,17 @@ public enum Predicate {
     /** The squad's {@link com.dillon.starsectormarines.battle.Squad#assignedNode} carries a "must hold" priority flag. Story H gating predicate. */
     NODE_IS_MUST_HOLD,
     /** The squad's primary target sits in a high-density cluster of enemy combatants. Story I gating predicate — high density makes pursuit costly. */
-    THREAT_DENSITY_HIGH_AT_TARGET
+    THREAT_DENSITY_HIGH_AT_TARGET,
+
+    // --- Mech GOAP Stage 1 surface (see roadmap/ai/14-mech-stage1.md) ---
+
+    /**
+     * An LR Support mech in this squad has reached its overwatch cell and is
+     * firing on the kill corridor. Goal-side marker — set true by
+     * {@code OverwatchKillZone.effects}; the {@code OverwatchKillZone} goal's
+     * desired state. The action ships a custom-plan so the planner never
+     * regresses through this predicate; kept for goal-effect symmetry and so
+     * future role-anchored mech goals can chain.
+     */
+    KILL_ZONE_COVERED
 }
