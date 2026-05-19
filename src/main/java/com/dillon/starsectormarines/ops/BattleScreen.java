@@ -1675,15 +1675,29 @@ public class BattleScreen implements Screen, BattleUiContext {
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
                 if (!topology.isWall(x, y)) continue;
-                boolean nWall = isWallOrOob(topology, x, y + 1);
-                boolean sWall = isWallOrOob(topology, x, y - 1);
-                boolean eWall = isWallOrOob(topology, x + 1, y);
-                boolean wWall = isWallOrOob(topology, x - 1, y);
-                TileManifest.TileFrame tile = TileManifest.pickWallTile(nWall, sWall, eWall, wWall);
+                // pickWallTile wants "is the outside on this side?" — the
+                // old isWallOrOob proxy only got the right answer for
+                // buildings flush against the map edge (where exterior = OOB).
+                // Buildings with street/grass around them have an INDOOR
+                // interior + non-INDOOR exterior neighbors; we need the
+                // GroundKind distinction. isExteriorSide reads that directly.
+                boolean nExt = isExteriorSide(topology, x, y + 1);
+                boolean sExt = isExteriorSide(topology, x, y - 1);
+                boolean eExt = isExteriorSide(topology, x + 1, y);
+                boolean wExt = isExteriorSide(topology, x - 1, y);
+                TileManifest.TileFrame tile = TileManifest.pickWallTile(nExt, sExt, eExt, wExt);
                 if (tile == null) {
                     fillCell(x, y, WALL_COLOR, alphaMult);
                 } else {
-                    drawTile(tile, x, y, texXScale, texYScale, sheetPxH, alphaMult, GROUND_TILE_EDGE_INSET_PX);
+                    // Walls render with NO source inset — the directional cap
+                    // strokes on the 3×3 wall block live at the cell edge
+                    // (top row of (4,0) draws the wall's north cap, etc.), so
+                    // any inset crops them and makes opposite-edge walls read
+                    // identically. Bilinear bleed isn't a concern here because
+                    // a wall cell's neighbors are either more wall (same art)
+                    // or a known interior/exterior fill that doesn't bleed in
+                    // a visible way.
+                    drawTile(tile, x, y, texXScale, texYScale, sheetPxH, alphaMult, 0);
                 }
             }
         }
@@ -1738,18 +1752,35 @@ public class BattleScreen implements Screen, BattleUiContext {
     }
 
     /**
-     * Out-of-bounds cells act as walls for autotile purposes — a building flush
-     * against the map edge gets a real edge tile, not an open-air tile. Reads
-     * the WALL tag from topology rather than inferring from {@code !isWalkable},
-     * so other non-walkable cell types (vehicles, future hazards/water) don't
-     * bleed into wall autotile picks.
+     * Wall autotile predicate: "is the outside of the building on this side?"
+     * Drives {@link TileManifest#pickWallTile} so the directional cap art
+     * lands on the perimeter facings.
+     *
+     * <ul>
+     *   <li><b>OOB</b> → true. Map-edge cells are exterior by definition.</li>
+     *   <li><b>Wall</b> → false. A wall continuation (this building's own
+     *       wall row, or an adjacent building's shared wall) is not the
+     *       outside; the cap should clip where two walls meet.</li>
+     *   <li><b>Walkable, GroundKind == INDOOR</b> → false. Building interior;
+     *       the inside is here, not the outside.</li>
+     *   <li><b>Walkable, GroundKind != INDOOR</b> → true. Street, courtyard,
+     *       grass, dirt, stone, sand, etc. are all exterior surfaces; the
+     *       wall's cap faces them.</li>
+     * </ul>
+     *
+     * <p>The previous {@code isWallOrOob} proxy only returned true for
+     * OOB+wall and missed the "exterior is just floor" case — which is why
+     * a building in the middle of the map (street around it) would pick
+     * middle-row tiles for its perimeter instead of edge-row tiles. This
+     * predicate is the direct question.
      */
-    private static boolean isWallOrOob(CellTopology topology, int x, int y) {
+    private static boolean isExteriorSide(CellTopology topology, int x, int y) {
         if (!topology.inBounds(x, y)) return true;
-        return topology.isWall(x, y);
+        if (topology.isWall(x, y))    return false;
+        return topology.getGroundKind(x, y) != CellTopology.GroundKind.INDOOR;
     }
 
-    /** True for in-bounds cells tagged WALL. See {@link #isWallOrOob} for the not-just-non-walkable rationale. */
+    /** True for in-bounds cells tagged WALL. Used by sidewalk-edge detection where the renderer cares about cell type only, not exterior-side semantics. */
     private static boolean isInBoundsWall(CellTopology topology, int x, int y) {
         return topology.inBounds(x, y) && topology.isWall(x, y);
     }

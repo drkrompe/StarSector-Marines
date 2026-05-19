@@ -177,24 +177,50 @@ public final class TileManifest {
     /**
      * Returns the wall tile for a cell given which cardinal neighbors are also
      * walls (or out-of-bounds — treated identically). Returns {@code null} when
-     * the cell is fully interior (all four neighbors are walls) — the caller
+     * the cell is fully enclosed (all four neighbors are walls) — the caller
      * paints a solid fill there because the source sheet's center cell is
      * transparent.
      *
-     * <p>Mapping picks the column from east/west exposure and the row from
-     * north/south independently, which yields the correct corner/edge tile for
-     * every perimeter case our buildings produce. Stranded-wall edge cases
-     * (e.g., a 1-wide wall strip exposed on opposite sides) fall through to a
-     * matching edge tile rather than the empty center.
+     * <p>The 3×3 wall block on the source sheet is laid out spatially: source
+     * row 0 holds the north-facing wall art, row 2 the south-facing, col 0 the
+     * west-facing, col 2 the east-facing. So a wall at the north perimeter of
+     * a building (nWall=true because OOB or another wall is to the north,
+     * sWall=false because the interior is to the south) picks source row 0;
+     * a wall at the building's south perimeter picks source row 2; and the
+     * four perimeter cells adjacent to a building's convex corners pick the
+     * matching L-bracket cell at e.g. (3, 0) for the NW interior corner.
+     *
+     * <p>Same shape as {@link #pickFloorTile} — the floor's "decoration on the
+     * side that touches a wall" rule corresponds to the wall's "decoration on
+     * the side that touches an opening." Stranded-wall edge cases (a 1-cell
+     * wall strip exposed on opposite sides — e.g. an interior partition wall
+     * with rooms on both sides) fall through to {@code (col=1, row=1)} which
+     * is the empty center cell, but that case can only arise when both N and S
+     * have walls *and* both E and W have walls, which the early null-return
+     * already catches. Single-axis stranding (e.g. a vertical partition wall
+     * with N and S walls but neither E nor W) resolves to one of the four
+     * mid-edge tiles, which works visually as a vertical-wall stub.
      */
     public static TileFrame pickWallTile(boolean nWall, boolean sWall, boolean eWall, boolean wWall) {
         if (nWall && sWall && eWall && wWall) return null;
 
-        int col = !wWall ? 0 : (!eWall ? 2 : 1);
-        int row = !nWall ? 0 : (!sWall ? 2 : 1);
+        int col, row;
+        if (nWall) {
+            row = 0;
+        } else if (sWall) {
+            row = 2;
+        } else {
+            row = 1;
+        }
 
-        // (1,1) is the empty middle of the source 3×3. Only reachable if both N+S
-        // are walls AND both E+W are walls — which already returned null above.
+        if (wWall) {
+            col = 0;
+        } else if (eWall) {
+            col = 2;
+        } else {
+            col = 1;
+        }
+
         return new TileFrame(WALL_COL_ORIGIN + col, WALL_ROW_ORIGIN + row);
     }
 
