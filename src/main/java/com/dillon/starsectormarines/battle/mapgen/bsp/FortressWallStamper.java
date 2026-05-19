@@ -247,6 +247,15 @@ public final class FortressWallStamper {
             emitForwardBunker(tactical, bx, by);
             bunkerCenters.add(new int[]{bx, by});
         }
+
+        // Final pass — set wall direction masks for every painted wall cell.
+        // Courtyard rect (kremlin interior) is the inside of the perimeter
+        // walls; tower bulges and forward bunkers sit OUTSIDE the courtyard
+        // so their walls get outward-facing bits set automatically by the
+        // "neighbor not wall and not in courtyard → exterior" rule.
+        applyFortressMasks(topology, wallMask,
+                wLeft + 1, wRight - 1, wBot + 1, wTop,
+                grid.getWidth(), grid.getHeight());
     }
 
     /**
@@ -343,6 +352,14 @@ public final class FortressWallStamper {
             emitForwardBunker(tactical, bx, by);
             bunkerCenters.add(new int[]{bx, by});
         }
+
+        // Final pass — courtyard rect spans (wLeft+1..wRight) × (wBot+1..wTop-1).
+        // wRight = w-1 is the map-edge side (no east wall), so cells at
+        // x == wRight that aren't on the north/south returns count as
+        // courtyard (the structure is open to the map edge there).
+        applyFortressMasks(topology, wallMask,
+                wLeft + 1, wRight, wBot + 1, wTop - 1,
+                grid.getWidth(), grid.getHeight());
     }
 
     /** HEAVY_TOWER node — anchor at the turret-mount center; bbox covers the 3×3 footprint. */
@@ -389,6 +406,53 @@ public final class FortressWallStamper {
         tactical.add(new TacticalNode(TacticalNode.Kind.GATE,
                 cx, cy, l, t, r, b,
                 Faction.DEFENDER, 90, 3));
+    }
+
+    /**
+     * Walks {@code wallMask} and sets each wall cell's direction mask based
+     * on the geometry of the placed walls + the kremlin courtyard rect. A
+     * neighbor counts as "exterior" (its side gets a cap bit set) when it's
+     * out of bounds, or it's a non-wall cell that lies outside the
+     * courtyard rect — i.e., kill zone, gate hole, or anywhere the map
+     * extends past the wall structure. Neighbors that are themselves walls
+     * (wall continuations, tower interiors, forward-bunker neighbors) and
+     * neighbors inside the courtyard (the fortress's own interior) both
+     * count as "not exterior" — no cap bit on that side.
+     *
+     * <p>This is the once-at-gen-time mask compute that mirrors what
+     * {@link com.dillon.starsectormarines.battle.mapgen.bsp.fill.BuildingShellCore#stampPerimeterMask}
+     * does directly from leaf geometry. Fortress walls have more variety
+     * (3-sided rect + bulging towers + freestanding bunkers in the kill
+     * zone), so the mask is derived from {@code wallMask} + courtyard rect
+     * rather than spelled out per-cell.
+     */
+    private static void applyFortressMasks(CellTopology topology, boolean[][] wallMask,
+                                           int courtyardL, int courtyardR,
+                                           int courtyardB, int courtyardT,
+                                           int w, int h) {
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                if (!wallMask[x][y]) continue;
+                int mask = 0;
+                if (isExteriorNeighbor(x,     y + 1, wallMask, courtyardL, courtyardR, courtyardB, courtyardT, w, h)) mask |= CellTopology.WALL_DIR_N;
+                if (isExteriorNeighbor(x,     y - 1, wallMask, courtyardL, courtyardR, courtyardB, courtyardT, w, h)) mask |= CellTopology.WALL_DIR_S;
+                if (isExteriorNeighbor(x + 1, y,     wallMask, courtyardL, courtyardR, courtyardB, courtyardT, w, h)) mask |= CellTopology.WALL_DIR_E;
+                if (isExteriorNeighbor(x - 1, y,     wallMask, courtyardL, courtyardR, courtyardB, courtyardT, w, h)) mask |= CellTopology.WALL_DIR_W;
+                topology.setWallDirMask(x, y, mask);
+            }
+        }
+    }
+
+    /** True if {@code (x, y)} counts as the fortress exterior — OOB or non-wall and outside the courtyard rect. */
+    private static boolean isExteriorNeighbor(int x, int y, boolean[][] wallMask,
+                                              int courtyardL, int courtyardR,
+                                              int courtyardB, int courtyardT,
+                                              int w, int h) {
+        if (x < 0 || x >= w || y < 0 || y >= h) return true;
+        if (wallMask[x][y]) return false;
+        boolean inCourtyard = x >= courtyardL && x <= courtyardR
+                           && y >= courtyardB && y <= courtyardT;
+        return !inCourtyard;
     }
 
     /** Stamp one wall cell — non-walkable, HP'd, STRIPED ground so a breach reads as military floor. */
