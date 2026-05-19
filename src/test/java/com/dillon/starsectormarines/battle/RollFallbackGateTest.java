@@ -56,7 +56,7 @@ public class RollFallbackGateTest {
     public void mechKeepsLegacyFallback() {
         BattleSimulation sim = openSim();
         Unit mech = new Unit("mech0", Faction.DEFENDER, UnitType.HEAVY_MECH, 9, 5);
-        mech.mech = MechLoadoutState.defaultLoadout();
+        mech.mech = MechLoadoutState.defaultLoadout(MechRole.ARMORED_SUPPORT);
         // Mechs in the current setup carry squadId from BattleSetup's defender
         // cluster — but the gate is mech-aware, so even with a squad they
         // should still roll the legacy fall-back until their GOAP lands.

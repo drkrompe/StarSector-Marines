@@ -19,6 +19,16 @@ public final class MechLoadoutState {
     public final MechWeapon srmPod;
     public final MechWeapon lrmArtillery;
 
+    /**
+     * Doctrine slot for this chassis. Set at spawn time by
+     * {@link BattleSetup}'s defender cluster mint; read by
+     * {@code GoapMechBehavior} goal-relevance scoring to pick which mech
+     * goal (overwatch / backstop / etc.) the planner pursues. Mutable so
+     * the commander tier (future) can re-assign without re-allocating the
+     * loadout state.
+     */
+    public MechRole role;
+
     /** Sim-seconds until CHAINGUN can fire another burst. */
     public float chaingunCooldown = 0f;
     /** Rounds left in the current chaingun burst. 0 = no active burst. */
@@ -54,20 +64,21 @@ public final class MechLoadoutState {
     public boolean wreckSpawned = false;
 
     public MechLoadoutState(MechWeapon chaingun, MechWeapon srmPod, MechWeapon lrmArtillery,
-                            int srmAmmoSalvos, int lrmAmmoSalvos) {
+                            int srmAmmoSalvos, int lrmAmmoSalvos, MechRole role) {
         this.chaingun = chaingun;
         this.srmPod = srmPod;
         this.lrmArtillery = lrmArtillery;
         this.srmAmmoSalvos = srmAmmoSalvos;
         this.lrmAmmoSalvos = lrmAmmoSalvos;
+        this.role = role;
     }
 
-    /** Default chassis loadout for a stock HEAVY_MECH — chainguns + SRM pod (6 salvos) + LRM artillery (3 salvos × 5 rockets = 15 rockets). */
-    public static MechLoadoutState defaultLoadout() {
+    /** Default chassis loadout for a stock HEAVY_MECH — chainguns + SRM pod (6 salvos) + LRM artillery (3 salvos × 5 rockets = 15 rockets). Role is the doctrine slot the planner reads to pick mech goals. */
+    public static MechLoadoutState defaultLoadout(MechRole role) {
         return new MechLoadoutState(
                 MechWeapon.CHAINGUN,
                 MechWeapon.SRM_POD,
                 MechWeapon.LRM_ARTILLERY,
-                6, 3);
+                6, 3, role);
     }
 }

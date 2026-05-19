@@ -557,6 +557,10 @@ public final class BattleSetup {
         for (int i = 0; i < roster.militiaCount; i++) queue.add(UnitType.MILITIA);
 
         int defenderIdx = 0;
+        // Battle-wide counter, shared by Pass 1 + Pass 2. Round-robins
+        // LR/Armored across the whole defender mech roster so the doctrine
+        // mix is balanced regardless of which pass each mech lands in.
+        int mechSpawnIdx = 0;
         List<TacticalNode> patrolAnchors = new ArrayList<>();
 
         // Pass 1 — garrison the highest-priority nodes.
@@ -570,7 +574,8 @@ public final class BattleSetup {
             for (int[] cell : cells) {
                 if (queue.isEmpty()) break;
                 UnitType type = queue.poll();
-                Unit unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1]);
+                MechRole mechRole = (type == UnitType.HEAVY_MECH) ? nextMechRole(mechSpawnIdx++) : null;
+                Unit unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1], mechRole);
                 unit.role = UnitRole.GARRISON;
                 unit.homeCellX = cell[0];
                 unit.homeCellY = cell[1];
@@ -618,7 +623,8 @@ public final class BattleSetup {
             for (int[] cell : cells) {
                 if (queue.isEmpty()) break;
                 UnitType type = queue.poll();
-                Unit unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1]);
+                MechRole mechRole = (type == UnitType.HEAVY_MECH) ? nextMechRole(mechSpawnIdx++) : null;
+                Unit unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1], mechRole);
                 unit.role = UnitRole.PATROL;
                 if (squad == null) {
                     int sid = sim.mintSquad(Faction.DEFENDER, unit);
@@ -655,6 +661,7 @@ public final class BattleSetup {
 
         int defenderIdx = 0;
         int cellIdx = 0;
+        int mechSpawnIdx = 0;
         while (!queue.isEmpty() && cellIdx < cells.size()) {
             int squadSize = Math.min(roster.patrolSquadSize,
                     Math.min(queue.size(), cells.size() - cellIdx));
@@ -663,7 +670,8 @@ public final class BattleSetup {
             for (int s = 0; s < squadSize; s++) {
                 int[] cell = cells.get(cellIdx++);
                 UnitType type = queue.poll();
-                Unit unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1]);
+                MechRole mechRole = (type == UnitType.HEAVY_MECH) ? nextMechRole(mechSpawnIdx++) : null;
+                Unit unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1], mechRole);
                 unit.role = UnitRole.PATROL;
                 if (squad == null) {
                     int sid = sim.mintSquad(Faction.DEFENDER, unit);
@@ -679,11 +687,26 @@ public final class BattleSetup {
         }
     }
 
-    /** Builds a defender Unit with the loadout-state attached for mech types. */
-    private static Unit makeDefender(String id, UnitType type, int x, int y) {
+    /**
+     * Builds a defender Unit with the loadout-state attached for mech types.
+     * {@code mechRole} is consumed only when {@code type == HEAVY_MECH} —
+     * non-mech callers pass {@code null}.
+     */
+    private static Unit makeDefender(String id, UnitType type, int x, int y, MechRole mechRole) {
         Unit unit = new Unit(id, Faction.DEFENDER, type, x, y);
-        if (type == UnitType.HEAVY_MECH) unit.mech = MechLoadoutState.defaultLoadout();
+        if (type == UnitType.HEAVY_MECH) unit.mech = MechLoadoutState.defaultLoadout(mechRole);
         return unit;
+    }
+
+    /**
+     * Picks the next mech doctrine slot in spawn order. Round-robin so a
+     * battle with N≥2 mechs always has at least one of each role; with a
+     * single mech, that mech is LR Support (the more visually distinct
+     * doctrine — sits back and lobs LRMs). The commander tier (future)
+     * overwrites this stub via {@code ObjectiveAssignment}.
+     */
+    private static MechRole nextMechRole(int spawnIdx) {
+        return (spawnIdx % 2 == 0) ? MechRole.LR_SUPPORT : MechRole.ARMORED_SUPPORT;
     }
 
     /**
