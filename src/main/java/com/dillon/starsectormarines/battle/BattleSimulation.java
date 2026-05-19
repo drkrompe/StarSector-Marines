@@ -1464,30 +1464,13 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         }
         // Wall raycast — for ground-deployed area-spread weapons, a scattered
         // round that would fly past a wall instead splatters on that wall.
-        // Keeps the spread from peppering marines behind cover. Air-mounted
-        // variants leave kind.raycastShots = false because they fire over
-        // intervening walls from altitude.
-        if (kind.raycastShots) {
-            int originCx = (int) Math.floor(fromX);
-            int originCy = (int) Math.floor(fromY);
-            int endCx = (int) Math.floor(toX);
-            int endCy = (int) Math.floor(toY);
-            long packed = grid.firstWallOnLine(originCx, originCy, endCx, endCy);
-            int wx = (int) (packed & 0xFFFFFFFFL);
-            int wy = (int) ((packed >>> 32) & 0xFFFFFFFFL);
-            if (wx != -1 || wy != -1) {
-                // Snap endpoint to the wall cell center — the visual round
-                // lands there, and an AoE detonation registers at the wall
-                // cell so wall HP shaves off there (not behind the wall).
-                toX = wx + 0.5f;
-                toY = wy + 0.5f;
-                // Round didn't reach the locked target. Flip to miss so the
-                // deferred direct-damage block doesn't apply hit damage; the
-                // AoE LOS check will independently spare units the wall is
-                // protecting.
-                hit = false;
-            }
-        }
+        // Air-mounted variants leave kind.raycastShots = false.
+        com.dillon.starsectormarines.battle.weapons.ShotRaycast.Result snapped =
+                com.dillon.starsectormarines.battle.weapons.ShotRaycast.resolve(
+                        grid, kind.raycastShots, fromX, fromY, toX, toY, hit);
+        toX = snapped.toX();
+        toY = snapped.toY();
+        hit = snapped.hit();
         // Direct-fire damage — applied after raycast so a wall-blocked shot
         // can correctly count as a miss. AoE kinds skip this path; their
         // damage resolves at endpoint via the Detonations pipeline below.

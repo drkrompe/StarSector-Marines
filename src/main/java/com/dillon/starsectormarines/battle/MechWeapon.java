@@ -33,21 +33,32 @@ import java.awt.Color;
 public enum MechWeapon {
 
     /**
-     * Dual chaingun arms. Close-band main hitter — 5 rounds per trigger pull
-     * at 80ms spacing for a ~0.4s brrt, then a 2-second cooldown before the
-     * next burst. The cooldown gap is the design pivot: pre-tuning the mech
-     * "spun up forever" and erased squads; with a real pause between bursts
-     * the marines get a chance to advance and react.
+     * Dual chaingun arms — close-band saturation. Each trigger pull rips a
+     * 10-round burst at 60ms spacing for a ~0.6s sustained brrt across both
+     * arms, then a 2-second cooldown. Rounds scatter across a 1.2-cell
+     * pattern and each detonates with a small AoE on landing, so a clustered
+     * squad eats multiple rounds via splash — anti-cluster suppression, not
+     * single-target precision. Ground-mounted, so scattered rounds raycast
+     * against walls and splatter rather than peppering marines behind cover.
+     * The chip wallDamage means a sustained chaingun lock-on grinds through
+     * building walls over a few bursts. KINETIC impact for the punchier
+     * visual flash that fits a heavy auto-cannon.
+     *
+     * <p>Tuning intent — the chaingun is the "ammo never runs out" hitter
+     * the mech leans on once SRM/LRM salvos are spent. Lower per-round
+     * damage (1.0 vs the rocket pods) keeps it from overshadowing the
+     * signature heavy-AoE weapons, but the burst count + AoE pattern adds
+     * up to a real threat when a fireteam clusters in cover.
      */
     CHAINGUN("Chaingun",
              "chaingun_fire",
              new Color(0xFF, 0xE8, 0xC0),
-             22f, 1.4f, 0.55f, 2.00f, 0.4f,
-             ImpactProfile.RIFLE,
-             5, 0.08f,
+             22f, 1.0f, 0.55f, 2.00f, 0.4f,
+             ImpactProfile.KINETIC,
+             10, 0.06f,
              "graphics/missiles/shell_small_yellow.png", 0.18f, 0.10f,
-             0f, 0f, false,
-             0f, 0),
+             0f, 1.2f, false,
+             0.6f, 3, /*raycastShots*/ true),
 
     /**
      * Shoulder SRM pod — wave of 4 dumb rockets per launch. Annihilator-pattern
@@ -148,7 +159,19 @@ public enum MechWeapon {
     public final float aoeRadius;
     /** Wall HP knocked off the endpoint cell on detonation. 0 for kinetic / non-AoE weapons. */
     public final int wallDamage;
+    /**
+     * When {@code true}, each scattered round raycasts from origin to endpoint
+     * through the nav grid; if a wall sits in the path, the endpoint snaps to
+     * that wall cell (the round "hits" the wall instead of passing through).
+     * Used by ground-deployed area-spread weapons so wide scatter can't pepper
+     * units behind cover — mirrors the turret-side
+     * {@link com.dillon.starsectormarines.battle.TurretKind#raycastShots}
+     * convention. Rocket-class mech weapons (SRM_POD, LRM_ARTILLERY) leave
+     * this off — rockets travel in their own arc and don't ground-snap.
+     */
+    public final boolean raycastShots;
 
+    /** Legacy constructor — defaults {@link #raycastShots} to false. Used by every entry except CHAINGUN. */
     MechWeapon(String displayName, String fireSoundId, Color tracerColor,
                float range, float damage, float accuracy, float cooldown, float vsTurretMult,
                ImpactProfile impactProfile,
@@ -156,6 +179,22 @@ public enum MechWeapon {
                String projectileSpritePath, float projectileVisualCells, float flightSec,
                float arcHeight, float hitSpread, boolean engineTrail,
                float aoeRadius, int wallDamage) {
+        this(displayName, fireSoundId, tracerColor,
+                range, damage, accuracy, cooldown, vsTurretMult,
+                impactProfile,
+                burstCount, burstSpacing,
+                projectileSpritePath, projectileVisualCells, flightSec,
+                arcHeight, hitSpread, engineTrail,
+                aoeRadius, wallDamage, /*raycastShots*/ false);
+    }
+
+    MechWeapon(String displayName, String fireSoundId, Color tracerColor,
+               float range, float damage, float accuracy, float cooldown, float vsTurretMult,
+               ImpactProfile impactProfile,
+               int burstCount, float burstSpacing,
+               String projectileSpritePath, float projectileVisualCells, float flightSec,
+               float arcHeight, float hitSpread, boolean engineTrail,
+               float aoeRadius, int wallDamage, boolean raycastShots) {
         this.displayName = displayName;
         this.fireSoundId = fireSoundId;
         this.tracerColor = tracerColor;
@@ -175,5 +214,6 @@ public enum MechWeapon {
         this.engineTrail = engineTrail;
         this.aoeRadius = aoeRadius;
         this.wallDamage = wallDamage;
+        this.raycastShots = raycastShots;
     }
 }

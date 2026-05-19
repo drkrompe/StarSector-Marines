@@ -69,14 +69,6 @@ public class HeavyWeapons {
         boolean isAoe = weapon.aoeRadius > 0f;
         float moraleImpact = shooter.type != null ? shooter.type.moraleImpact : 1.0f;
 
-        // KINETIC PATH — chaingun and any future no-AoE mech weapon. Damage
-        // applies immediately to the locked target via the shared
-        // applyDamage/rollFallbackOnHit primitives.
-        if (!isAoe && hit) {
-            ctx.applyDamage(target, weapon.damage, weapon.vsTurretMult, moraleImpact);
-            ctx.rollFallbackOnHit(target);
-        }
-
         float fromX = shooter.cellX + 0.5f;
         float fromY = shooter.cellY + 0.5f;
         float toX, toY;
@@ -102,10 +94,28 @@ public class HeavyWeapons {
             toY = target.cellY + 0.5f + (float) Math.sin(angle) * spread;
         }
 
-        // AOE PATH — queue a detonation at the endpoint. Damage resolves on
-        // arrival via the Detonations pipeline. Hit-vs-miss only affects
-        // WHERE the rocket lands; AoE math at impact decides who's close
-        // enough to feel it.
+        // Wall raycast — for ground-deployed area-spread weapons (chaingun's
+        // dual-MG saturation), a scattered round that would fly past a wall
+        // splatters on it instead. Shared with the turret-side raycast via
+        // ShotRaycast so both sides see the same wall-snap convention.
+        ShotRaycast.Result snapped = ShotRaycast.resolve(
+                ctx.getGrid(), weapon.raycastShots, fromX, fromY, toX, toY, hit);
+        toX = snapped.toX();
+        toY = snapped.toY();
+        hit = snapped.hit();
+
+        // KINETIC PATH — chaingun direct-fire. Applied AFTER raycast so a
+        // wall-blocked round correctly counts as a miss. AoE-kind shots skip
+        // this and resolve at endpoint via the Detonations pipeline below.
+        if (!isAoe && hit) {
+            ctx.applyDamage(target, weapon.damage, weapon.vsTurretMult, moraleImpact);
+            ctx.rollFallbackOnHit(target);
+        }
+
+        // AOE PATH — queue a detonation at the (possibly wall-snapped)
+        // endpoint. Damage resolves on arrival via the Detonations pipeline.
+        // Hit-vs-miss only affects WHERE the rocket lands; AoE math at impact
+        // decides who's close enough to feel it.
         if (isAoe) {
             ctx.queueDetonation(new PendingDetonation(
                     toX, toY, weapon.flightSec,
