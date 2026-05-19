@@ -84,15 +84,15 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Sim seconds a unit stays in fall-back state once entered. After this, normal engagement resumes. */
     private static final float FALLBACK_DURATION = 3.5f;
 
-    /** Squad morale drained per non-fatal hit on a squadmate. Tuned to feel — a 4-man squad eats 12 hits before drain alone could break them at 1.0 baseline. */
+    /** Base squad morale drained per non-fatal hit on a squadmate, at full strength (cap = 1.0). At lower caps the per-hit drain is scaled by {@code 1 / cap} — a heavily mauled squad is more brittle per shot, so a lone survivor (cap = 0.25) takes a 0.20 drain per hit and folds on the first incoming. */
     public static final float MORALE_DROP_ON_HIT   = 0.05f;
-    /** Additional morale drop when a hit kills the squadmate. Combined with {@link #MORALE_DROP_ON_HIT}, two quick kills in a 4-man squad take morale from 1.0 to 0.3 — right at the broken threshold. */
+    /** Additional morale drop when a hit kills the squadmate. Kept absolute (not cap-scaled) — it's a one-off event correlated with the cap reduction that the death itself triggers. */
     public static final float MORALE_DROP_ON_DEATH = 0.30f;
-    /** Morale recovered per sim-second while the squad is out of contact ({@code !_engagedThisTick}). Recovers from broken (0.3) to cleared (0.5) in 1s at default. */
+    /** Morale recovered per sim-second while the squad is out of contact ({@code !_engagedThisTick}). */
     public static final float MORALE_RECOVERY_RATE = 0.20f;
-    /** Hysteresis: squad flips to broken when morale dips below this. */
+    /** Hysteresis broken threshold, as a <em>fraction of cap</em>. Squad flips to broken when {@code morale < MORALE_BROKEN_THRESHOLD * cap}. Scaling by cap keeps the model coherent for mauled squads: a lone survivor (cap = 0.25) breaks below 0.075 absolute morale, a fresh squad (cap = 1.0) breaks below 0.30. */
     public static final float MORALE_BROKEN_THRESHOLD = 0.30f;
-    /** Hysteresis: broken squad reverts to normal posture once morale climbs above this. The gap (>0.2 over the broken threshold) prevents flickering. */
+    /** Hysteresis clear threshold, as a <em>fraction of cap</em>. Broken squad reverts once {@code morale > MORALE_CLEAR_THRESHOLD * cap}. Fixes the pre-scaling pathology where a solo survivor's cap (0.25) was below the absolute clear threshold (0.5) and they could never recover. */
     public static final float MORALE_CLEAR_THRESHOLD  = 0.50f;
 
     private final NavigationGrid grid;
@@ -383,7 +383,17 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         if (wasAlive && target.squadId != Unit.NO_SQUAD) {
             Squad sq = squads.get(target.squadId);
             if (sq != null) {
-                float drop = MORALE_DROP_ON_HIT + (died ? MORALE_DROP_ON_DEATH : 0f);
+                // Per-hit drain scales inversely with cap: a 4-man squad at
+                // full strength bleeds 0.05 per hit (slow), a lone survivor
+                // at cap = 0.25 bleeds 0.20 per hit (folds on the first
+                // incoming). Cap here uses aliveMembers *before* this death
+                // is reflected in the count — that's fine since death adds
+                // the absolute MORALE_DROP_ON_DEATH stack on top.
+                float cap = (sq.originalSize > 0 && sq.aliveMembers > 0)
+                        ? (float) sq.aliveMembers / sq.originalSize
+                        : 1f;
+                float hitDrop = (cap > 0f) ? MORALE_DROP_ON_HIT / cap : MORALE_DROP_ON_HIT;
+                float drop = hitDrop + (died ? MORALE_DROP_ON_DEATH : 0f);
                 sq.morale = Math.max(0f, sq.morale - drop);
             }
         }
@@ -1064,10 +1074,16 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                 squad.morale = Math.min(cap, squad.morale);
             }
 
+            // Thresholds scale with cap so the model stays coherent for
+            // mauled squads. Solo cap = 0.25 → broken below 0.075, clears
+            // above 0.125. Without scaling, the absolute clear threshold
+            // (0.5) was above solo cap (0.25) and they could never recover.
+            float brokenAt = MORALE_BROKEN_THRESHOLD * cap;
+            float clearAt  = MORALE_CLEAR_THRESHOLD  * cap;
             if (squad.moraleBroken) {
-                if (squad.morale > MORALE_CLEAR_THRESHOLD) squad.moraleBroken = false;
+                if (squad.morale > clearAt) squad.moraleBroken = false;
             } else {
-                if (squad.morale < MORALE_BROKEN_THRESHOLD) squad.moraleBroken = true;
+                if (squad.morale < brokenAt) squad.moraleBroken = true;
             }
         }
     }

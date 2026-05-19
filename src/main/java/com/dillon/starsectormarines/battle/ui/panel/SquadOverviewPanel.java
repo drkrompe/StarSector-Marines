@@ -192,13 +192,18 @@ public final class SquadOverviewPanel implements HudPanel {
             Fonts.ORBITRON_20.drawString(equip, x0 + 160f, textBaseline, COUNT_FG, alphaMult);
 
             // Morale bar — bottom strip of the row, full width minus padding.
-            // Break tick at BattleSimulation.MORALE_BROKEN_THRESHOLD; border
-            // turns red when the hysteresis flag is set.
+            // Fill is morale/cap, so a lone survivor at full recovery reads
+            // the same as a fresh squad at full recovery. Break tick stays
+            // at MORALE_BROKEN_THRESHOLD (fraction of cap); border turns red
+            // when the hysteresis flag is set.
+            float cap = (s.originalSize > 0)
+                    ? (float) s.aliveMembers / s.originalSize
+                    : 1f;
             float barX = x0 + PAD_INNER;
             float barY = rowY + MORALE_BAR_PAD_Y;
             float barW = PANEL_W - 2f * PAD_INNER;
             HudDraw.moraleBar(barX, barY, barW, MORALE_BAR_H,
-                    s.morale, s.moraleBroken,
+                    s.morale, cap, s.moraleBroken,
                     BattleSimulation.MORALE_BROKEN_THRESHOLD, alphaMult);
         }
     }

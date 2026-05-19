@@ -203,6 +203,94 @@ public class SquadMoraleTest {
     }
 
     @Test
+    public void soloSurvivorCanRecoverPastClearThreshold() {
+        // Pre-fix pathology: a 1-of-4 survivor had cap = 0.25 < absolute
+        // clear threshold (0.5), so morale could never climb back above
+        // clear and the squad stayed perma-broken. Under the cap-scaled
+        // model the clear threshold for cap=0.25 is 0.125 — well below cap.
+        BattleSimulation sim = openSim();
+        Squad sq = marineSquad(sim, 4);
+        hideDefender(sim);
+        // Three deaths → 1-of-4 alive, cap = 0.25.
+        sim.getUnits().get(0).hp = 0f;
+        sim.getUnits().get(1).hp = 0f;
+        sim.getUnits().get(2).hp = 0f;
+        sq.morale = 0f;
+        sq.moraleBroken = true;
+
+        // Drive long enough for recovery to saturate at cap.
+        for (int i = 0; i < 120; i++) sim.advance(BattleSimulation.TICK_DT);
+
+        assertEquals(0.25f, sq.morale, 1e-3f,
+                "solo survivor's morale should pin at their cap (0.25), not climb past");
+        assertFalse(sq.moraleBroken,
+                "morale at cap (0.25) is well above scaled clear (0.125) — must clear");
+    }
+
+    @Test
+    public void soloSurvivorFoldsOnSingleHit() {
+        // With drain scaled by 1/cap, a solo survivor (cap = 0.25) takes a
+        // 0.20 drain per hit. Sitting at cap, one hit drops morale to 0.05,
+        // below the scaled broken threshold (0.075). Folds in one shot —
+        // matches the "any incoming suppressing fire and they fold" intent.
+        BattleSimulation sim = openSim();
+        Squad sq = marineSquad(sim, 4);
+        hideDefender(sim);
+        // Three kills → 1-of-4 alive.
+        sim.getUnits().get(0).hp = 0f;
+        sim.getUnits().get(1).hp = 0f;
+        sim.getUnits().get(2).hp = 0f;
+        // Recover the survivor to their cap.
+        sq.morale = 0.25f;
+        sq.moraleBroken = false;
+        // One tick to settle moraleBroken at the cap value.
+        sim.advance(BattleSimulation.TICK_DT);
+        // The recovery tick may have just-barely tweaked morale; reset to
+        // exactly cap so the assertion below pins on the drain math.
+        sq.morale = 0.25f;
+        sq.moraleBroken = false;
+
+        Unit survivor = sim.getUnits().get(3);
+        sim.applyDamage(survivor, 1f, 1f);
+        assertTrue(survivor.isAlive(), "test prerequisite: 1 damage shouldn't kill");
+
+        // Hit drain for cap=0.25 is 0.05/0.25 = 0.20 → morale = 0.05.
+        assertEquals(0.05f, sq.morale, 1e-5f,
+                "solo hit drain should scale to 0.05/cap = 0.20");
+        // Now run one tick so updateSquadMorale notices the threshold cross.
+        sim.advance(BattleSimulation.TICK_DT);
+        assertTrue(sq.moraleBroken,
+                "morale 0.05 < scaled broken (0.075) — single incoming hit folds the solo");
+    }
+
+    @Test
+    public void thresholdsScaleByCap() {
+        // 2-of-4 squad (cap = 0.5). Scaled thresholds: broken < 0.15,
+        // clear > 0.25. Sitting at 0.20 must hold its broken state through
+        // the hysteresis band — same logic as the full-squad case but
+        // scaled.
+        BattleSimulation sim = openSim();
+        Squad sq = marineSquad(sim, 4);
+        hideDefender(sim);
+        // Two deaths.
+        sim.getUnits().get(0).hp = 0f;
+        sim.getUnits().get(1).hp = 0f;
+        sq.morale = 0.20f;
+        sq.moraleBroken = true;
+
+        sim.advance(BattleSimulation.TICK_DT);
+
+        // Morale ticked up slightly (~0.0067), still in the (0.15, 0.25)
+        // hysteresis band for cap=0.5 — should NOT have cleared.
+        assertTrue(sq.morale < 0.25f,
+                "test prerequisite: morale stays in the scaled hysteresis band after one tick");
+        assertTrue(sq.morale > 0.15f,
+                "test prerequisite: morale stays above scaled broken threshold");
+        assertTrue(sq.moraleBroken,
+                "scaled-threshold hysteresis must hold broken flag inside the band");
+    }
+
+    @Test
     public void nonSquadHitDoesNotCrashOrDrainAnyone() {
         // applyDamage on a squad-less target (turret/civilian path) must not
         // touch any morale. Belt-and-braces — the guard in applyDamage is the

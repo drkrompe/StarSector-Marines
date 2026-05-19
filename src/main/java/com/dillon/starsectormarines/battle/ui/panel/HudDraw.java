@@ -72,28 +72,34 @@ final class HudDraw {
 
     /**
      * Renders a squad morale bar — background + value fill + break-threshold
-     * tick + bordered. Color grades by raw {@code morale}; the border flips
-     * red when {@code broken} is true (hysteresis-driven, signals the squad
-     * is actively in fall-back). The white tick at {@code breakThreshold}
-     * is the "they trip below here" line so the player can read the bar
-     * without knowing the exact constant.
+     * tick + bordered. Fill is {@code morale / cap}, so the bar reads as
+     * "how much fight is left given current strength" — a fresh squad and a
+     * lone survivor both look fully resilient when at their respective caps.
+     * The break tick at {@code breakThreshold} (interpreted as a fraction of
+     * cap, matching the model in {@link com.dillon.starsectormarines.battle.BattleSimulation})
+     * stays at a fixed position on the bar regardless of cap.
      *
-     * @param morale         current value in [0, 1]
+     * <p>Color grades by the fill fraction; border flips red when
+     * {@code broken} is true so the bar reads as an alert state at a glance.
+     *
+     * @param morale         current absolute morale
+     * @param cap            current resilience ceiling (alive/originalSize)
      * @param broken         hysteresis-driven broken flag (red border when true)
-     * @param breakThreshold position of the break tick, in [0, 1]
+     * @param breakThreshold fraction of cap at which the break tick is drawn
      */
     static void moraleBar(float x, float y, float w, float h,
-                          float morale, boolean broken, float breakThreshold,
+                          float morale, float cap, boolean broken, float breakThreshold,
                           float alphaMult) {
-        morale = Math.max(0f, Math.min(1f, morale));
+        float fill = (cap > 0f) ? morale / cap : 0f;
+        fill = Math.max(0f, Math.min(1f, fill));
         // Background — dark slate, distinct from the HP bar's reddish bg.
         filledRect(x, y, w, h, new Color(0x14, 0x18, 0x20), alphaMult);
-        if (morale > 0f) {
+        if (fill > 0f) {
             Color fg;
-            if (morale > 0.5f)      fg = new Color(0x40, 0xC0, 0x40);
-            else if (morale > 0.3f) fg = new Color(0xE0, 0xC0, 0x40);
-            else                    fg = new Color(0xE0, 0x50, 0x40);
-            filledRect(x, y, w * morale, h, fg, alphaMult);
+            if (fill > 0.5f)      fg = new Color(0x40, 0xC0, 0x40);
+            else if (fill > 0.3f) fg = new Color(0xE0, 0xC0, 0x40);
+            else                  fg = new Color(0xE0, 0x50, 0x40);
+            filledRect(x, y, w * fill, h, fg, alphaMult);
         }
         // Break-threshold tick: a vertical white sliver poking above and below
         // the bar so it reads against any fill color.
