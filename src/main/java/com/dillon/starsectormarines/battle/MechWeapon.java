@@ -45,15 +45,20 @@ public enum MechWeapon {
      * visual flash that fits a heavy auto-cannon.
      *
      * <p>Tuning intent — the chaingun is the "ammo never runs out" hitter
-     * the mech leans on once SRM/LRM salvos are spent. Lower per-round
-     * damage (1.0 vs the rocket pods) keeps it from overshadowing the
-     * signature heavy-AoE weapons, but the burst count + AoE pattern adds
-     * up to a real threat when a fireteam clusters in cover.
+     * the mech leans on once SRM/LRM salvos are spent. Per-round damage
+     * (1.5) sits below the rocket pods so they're still the headline punch,
+     * but a 15-damage burst × 0.55 accuracy × the AoE saturation pattern
+     * adds up to ~4 DPS sustained to a locked target. Combined with the
+     * 0.6-cell AoE catching clustered squadmates, that swings the
+     * post-rocket-empty fight from "marines outlast the mech" to "even
+     * trade if the marines don't break LOS" — the design target is
+     * MechWarrior-style mech-vs-infantry threat, not infantry-trivially-
+     * wins-once-ammo-is-out.
      */
     CHAINGUN("Chaingun",
              "chaingun_fire",
              new Color(0xFF, 0xE8, 0xC0),
-             22f, 1.0f, 0.55f, 2.00f, 0.4f,
+             22f, 1.5f, 0.55f, 2.00f, 0.4f,
              ImpactProfile.KINETIC,
              10, 0.06f,
              "graphics/missiles/shell_small_yellow.png", 0.18f, 0.10f,
