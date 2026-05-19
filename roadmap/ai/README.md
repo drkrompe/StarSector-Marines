@@ -143,20 +143,22 @@ Design sketch lives in [`12-squad-of-squads.md`](12-squad-of-squads.md).
 Not scheduled — Tier 2 story implementations can land first with manual
 assignment stubs.
 
-### Mech GOAP tree (parked)
+### Mech GOAP tree
 
 Promote mechs from `MechCombatantBehavior` (single-unit ad-hoc loop)
 to a planner-driven role-aware tree: LR support / armored support /
-recon / assault. Gated on the commander tier — without a layer
-assigning roles, the mech planner reduces to "all mechs do the
-default action," which is what we already have.
+recon / assault. **Commander-tier gate lifted 2026-05-19** —
+Stage 1 ships with spawn-time role assignment as a stub the commander
+will later override, so MechCommander-style doctrine differentiation
+visible without blocking on the commander layer.
 
 Followup hook from Story B's followup: `rollFallbackOnHit` still
 fires for mechs (legacy per-unit retreat) — the mech GOAP tree's
 analog of `BreakContact` is what retires that.
 
-Design sketch lives in [`13-mech-goap.md`](13-mech-goap.md). Not
-scheduled; queues behind the commander tier.
+High-level design in [`13-mech-goap.md`](13-mech-goap.md). Active
+Stage 1 slice (LR Support + Armored Support, two roles) in
+[`14-mech-stage1.md`](14-mech-stage1.md).
 
 ### Stage 3 — Mission-specific goals (future)
 

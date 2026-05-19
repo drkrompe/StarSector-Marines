@@ -1,14 +1,18 @@
 # 13 — Mech GOAP Tree
 
-**Parked design doc.** Captures the shape of the GOAP migration for the
-mech side of the battle sim. Mechs currently run on
+**High-level design doc.** Captures the shape of the GOAP migration for
+the mech side of the battle sim. Mechs currently run on
 `MechCombatantBehavior` — a per-unit, hand-authored ad-hoc combat loop —
 while infantry runs through the squad-level planner (`GoapInfantryBehavior`).
-This doc is the bridge plan for closing that gap when the time comes.
+This doc is the long-arc plan; the active implementation slice lives in
+[`14-mech-stage1.md`](14-mech-stage1.md).
 
-Not scheduled. Tier 2 infantry stories (story bank
-[`10-tactical-stories.md`](10-tactical-stories.md)) and the commander
-tier ([`12-squad-of-squads.md`](12-squad-of-squads.md)) sit ahead of it.
+**Commander-gate lifted.** The original "wait for commander tier first"
+recommendation has been overridden — Stage 1 ships with *spawn-time role
+assignment* as a stub the commander will later replace, so we get
+visible MechCommander-style doctrine differentiation without blocking on
+the commander layer. See `14-mech-stage1.md`'s "Commander-tier tie-in"
+section for the upgrade path.
 
 ## Why this exists
 
@@ -78,6 +82,16 @@ what the current mech weapon mix can express:
 
 Same as marine roles in `MarineLoadout` / `UnitRole`, these become a
 role enum the planner reads when scoring goals + actions per mech.
+
+**Doctrine, not loadout.** Every mech chassis carries all three weapons
+(LRM + SRM + chaingun) by design — they're all-arounder heavy-hitters
+that punish the player at any range. Roles do NOT change the weapon
+set. Roles change *which weapons the mech is willing to fire in a given
+posture*, *which engagement band the mech prefers*, and *what the mech
+anchors its movement to* (cover cell / friendly squad centroid / probe
+target / objective). LR Support actively withholds SRMs and chaingun
+even when in-band targets exist; Armored Support fires whatever's hot
+at the closest threat. Same chassis, different planner.
 
 ## Predicates the planner needs (mech-specific)
 
@@ -188,14 +202,11 @@ Implementation ordering:
 
 ## Status
 
-**Parked.** No subagent tasks queued. Ordering:
-
-1. Finish infantry Tier 2 cornerstone stories (`Slice 2` is done as of
-   2026-05-18; `Slice 3` cover model + reposition is next on the
-   per-squad side, OR the commander tier — depending on which
-   shows more leverage in playtest).
-2. Commander tier lands (`12-squad-of-squads.md`).
-3. **Then** this doc gets a numbered task subagent break-down.
+**Active — Stage 1 unparked 2026-05-19.** Implementation slice in
+[`14-mech-stage1.md`](14-mech-stage1.md). Stage 1 covers two roles
+(LR Support + Armored Support) via spawn-time assignment; Stage 2
+adds Recon + Assault and any dynamic re-assignment the commander
+tier hands down.
 
 ## Cross-references
 
