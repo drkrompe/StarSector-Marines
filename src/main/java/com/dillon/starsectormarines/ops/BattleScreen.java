@@ -2467,14 +2467,14 @@ public class BattleScreen implements Screen, BattleUiContext {
             float cy = camera.cellToScreenY(t.cellY + 0.5f);
 
             // Barrel layer (below body). Shifted backward when in recoil window.
+            // Driven by recoilTimer (sim-seconds since last fired round) rather
+            // than cooldownTimer, so burst weapons cycle the slide per round
+            // instead of only on the trigger pull.
             ShuttleSpriteCache barrel = turretRecoilSprites.get(t.kind);
             if (barrel != null) {
                 float recoilT = 0f;
-                if (t.cooldownTimer > 0f) {
-                    float sinceFire = t.attackCooldown - t.cooldownTimer;
-                    if (sinceFire < RECOIL_DURATION) {
-                        recoilT = 1f - sinceFire / RECOIL_DURATION;
-                    }
+                if (t.recoilTimer < RECOIL_DURATION) {
+                    recoilT = 1f - t.recoilTimer / RECOIL_DURATION;
                 }
                 float pushPx = recoilT * RECOIL_DISTANCE_FRAC * t.kind.visualCells * cellPx;
                 // Backward = opposite of forward facing. At facing 0 (north),
@@ -2676,8 +2676,12 @@ public class BattleScreen implements Screen, BattleUiContext {
         for (com.dillon.starsectormarines.battle.air.MountedTurret mt : s.turrets) {
             ShuttleSpriteCache base = turretSprites.get(mt.mount.kind);
             if (base == null) continue;
-            float lx = mt.mount.localOffsetX;
-            float ly = mt.mount.localOffsetY;
+            // Mount offsets are defined in the shuttle's full-size frame. The
+            // hull sprite renders at scaleMult × visualLengthCells (line ~2633),
+            // so the mount positions have to shrink by the same factor or the
+            // turrets visibly detach from the hull during the landing lerp.
+            float lx = mt.mount.localOffsetX * s.scaleMult;
+            float ly = mt.mount.localOffsetY * s.scaleMult;
             float worldOffsetX = lx * c - ly * si;
             float worldOffsetY = lx * si + ly * c;
             float wx = s.body.x + worldOffsetX;
@@ -2697,11 +2701,8 @@ public class BattleScreen implements Screen, BattleUiContext {
             ShuttleSpriteCache barrel = turretRecoilSprites.get(mt.mount.kind);
             if (barrel != null) {
                 float recoilT = 0f;
-                if (mt.cooldownTimer > 0f) {
-                    float sinceFire = mt.mount.kind.cooldown - mt.cooldownTimer;
-                    if (sinceFire < RECOIL_DURATION) {
-                        recoilT = 1f - sinceFire / RECOIL_DURATION;
-                    }
+                if (mt.recoilTimer < RECOIL_DURATION) {
+                    recoilT = 1f - mt.recoilTimer / RECOIL_DURATION;
                 }
                 float pushPx = recoilT * RECOIL_DISTANCE_FRAC * layerVisualCells * cellPx;
                 double brad = Math.toRadians(mt.facingDegrees);

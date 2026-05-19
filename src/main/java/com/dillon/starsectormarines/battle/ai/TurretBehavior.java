@@ -25,6 +25,11 @@ public final class TurretBehavior implements UnitBehavior {
     public void update(Unit u, BattleSimulation sim) {
         MapTurret t = (MapTurret) u;
 
+        // Age the per-shot recoil timer every tick; reset to 0 on each fired
+        // round below. The renderer reads this to drive barrel slide so a
+        // burst recoils per round, not just on the trigger pull.
+        t.recoilTimer += BattleSimulation.TICK_DT;
+
         // Drop a stale burst if its victim died — frees the mount to
         // re-acquire, same shape as the shuttle-mounted equivalent in
         // AirSystem.tickShuttleTurrets.
@@ -66,6 +71,7 @@ public final class TurretBehavior implements UnitBehavior {
             t.burstTimer -= BattleSimulation.TICK_DT;
             if (t.burstTimer <= 0f) {
                 sim.fireShotFrom(t.cellX + 0.5f, t.cellY + 0.5f, t.faction, t.kind, t.burstTarget);
+                t.recoilTimer = 0f;
                 t.burstRemaining--;
                 t.burstTimer = t.kind.burstSpacing;
                 if (t.burstRemaining == 0) t.burstTarget = null;
@@ -79,6 +85,7 @@ public final class TurretBehavior implements UnitBehavior {
                 // raycast pipeline applies. Latch the remaining rounds for the
                 // pump to drain.
                 sim.fireShotFrom(t.cellX + 0.5f, t.cellY + 0.5f, t.faction, t.kind, s.target);
+                t.recoilTimer = 0f;
                 if (s.target != null && s.target.isAlive()) {
                     t.burstRemaining = t.kind.burstCount - 1;
                     t.burstTimer = t.kind.burstSpacing;
@@ -89,6 +96,7 @@ public final class TurretBehavior implements UnitBehavior {
                 // so morale impact + ShotEvent tagging stay correct for the
                 // unchanged ground turrets (Arbalest, Hephaestus, etc.).
                 sim.fireShot(t, s.target);
+                t.recoilTimer = 0f;
             }
         }
     }

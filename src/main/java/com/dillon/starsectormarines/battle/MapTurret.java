@@ -35,6 +35,16 @@ public class MapTurret extends Unit {
     public float burstTimer;
     /** Target locked when the burst started — held across the salvo so the rounds chase the same victim even if a closer one walks into LOS mid-burst. */
     public Unit burstTarget;
+    /**
+     * Sim-seconds since the last fired round. Reset to {@code 0} on every shot
+     * (trigger pull AND each burst continuation), ticked every sim frame by
+     * {@link com.dillon.starsectormarines.battle.ai.TurretBehavior}. Lets the
+     * renderer drive the barrel-recoil slide per round during a burst, instead
+     * of only the first round of the salvo. Initialized to {@code 1f} — well
+     * past the renderer's recoil window — so unfired turrets don't read as
+     * mid-recoil at sim start.
+     */
+    public float recoilTimer = 1f;
 
     public MapTurret(String id, Faction faction, TurretKind kind, int cellX, int cellY) {
         super(id, faction, UnitType.TURRET, cellX, cellY);

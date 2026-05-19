@@ -241,6 +241,11 @@ public class AirSystem {
             float c = (float) Math.cos(rad);
             float si = (float) Math.sin(rad);
             for (MountedTurret mt : s.turrets) {
+                // Age the per-shot recoil timer every tick; reset to 0 on each
+                // fired round below. Lets the renderer cycle the barrel slide
+                // per round during a burst, not just on the trigger pull.
+                mt.recoilTimer += dt;
+
                 if (mt.ammoDry()) {
                     // Mag dry mid-burst — drop any pending rounds so the mount
                     // doesn't stay in a never-firing burst state.
@@ -310,6 +315,7 @@ public class AirSystem {
                     mt.burstTimer -= dt;
                     if (mt.burstTimer <= 0f) {
                         sim.fireShotFrom(worldX, shotOriginY, s.faction, mt.mount.kind, mt.burstTarget);
+                        mt.recoilTimer = 0f;
                         mt.ammo--;
                         mt.burstRemaining--;
                         mt.burstTimer = mt.mount.kind.burstSpacing;
@@ -320,6 +326,7 @@ public class AirSystem {
 
                 if (aim.fireThisTick) {
                     sim.fireShotFrom(worldX, shotOriginY, s.faction, mt.mount.kind, aim.target);
+                    mt.recoilTimer = 0f;
                     mt.ammo--;
                     // Burst weapons latch the remaining rounds; single-shot
                     // kinds (burstCount == 1) skip this and behave as before.
