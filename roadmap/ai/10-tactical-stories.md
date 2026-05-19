@@ -98,7 +98,7 @@ half-built infrastructure.
 
 ## Stories
 
-### A. Garrison ambush
+### A. Garrison ambush ✅ SHIPPED (2026-05-18)
 
 > A defender garrison holds position in a building, sees a marine fireteam
 > push down a corridor toward them, and *waits* — holds fire until LOS
@@ -347,7 +347,7 @@ the charge site while plant is in progress.
 
 ---
 
-### G. Cover-aware reposition
+### G. Cover-aware reposition ✅ SHIPPED (2026-05-18)
 
 > A squad in a firefight doesn't stand still and doesn't run randomly.
 > Between bursts, individuals shift one or two cells — from "edge of
@@ -565,7 +565,7 @@ target POI is several rooms deep.
 
 ---
 
-### L. Choke-point ambush
+### L. Choke-point ambush ✅ SHIPPED (2026-05-18)
 
 > A defender squad knows marines are pushing toward them down a
 > corridor — single approach, single doorway entry into the defender's
@@ -639,18 +639,19 @@ What each story needs, so we can spot the shared dependencies.
 
 | Story | New predicates | New actions | New goals | Infra |
 | --- | --- | --- | --- | --- |
-| A. Garrison ambush | `ENEMY_IN_KILL_ZONE`, `UNDER_FIRE_AT_LOS` | `OverwatchPosture`, `BreakLOS` | — | Cover-quality scoring (also G) |
+| A. Garrison ambush ✅ | `ENEMY_IN_KILL_ZONE`, `UNDER_FIRE_AT_LOS` | `OverwatchPosture`, `BreakLOS` | `GarrisonAmbush`, `RecoverFromAmbush` | Cover-quality scoring (also G); kill-zone gate via `Squad.holdsFireUntilKillZone` + LOS-stability ticks |
 | B. Pinned and broken ✅ | `MORALE_BROKEN` | `BreakContact` | `SurviveContact` | Squad morale state (drain/recover/cap/hysteresis); cover-out-of-LOS reuses `TacticalScoring.findFallbackPosition` |
 | C. Bounding overwatch | `ENEMY_SUPPRESSED` | `SuppressFromCover`, `BoundForward` | — | **Per-member action assignment**; `RoleAssigner` actually used |
 | D. Patrol intercept | (uses alert spread) | (uses reposition) | `ReinforceContact` | Path cost shaping for cover; flank-angle preference |
 | E. Mech-screened advance | `BEHIND_FRIENDLY_RELATIVE_TO_THREAT` | `EscortFollow` (anchor=Unit variant) | — | Soft cover from non-static entities; threat-direction vector |
 | F. Objective rush under fire | (mission predicates) | `PlantCharge` | `CompleteObjective` | **Per-member goal override**; retires `PlanterBehavior` |
-| G. Cover-aware reposition | `CAN_REPOSITION` | `RepositionToCover` | — | **Real cover model on doodads** (cornerstone) |
+| G. Cover-aware reposition ✅ | `CAN_REPOSITION` | `RepositionToCover` | — | Per-facing cover (4-way N/E/S/W) on doodads; per-unit `repositionCooldown` (1.5s) |
 | I. Engagement discipline | `THREAT_DENSITY_AT_TARGET` | (target picker rewrite, no new action) | — | **Threat-density-aware target scoring**; pursuit gating; squad cohesion as hard constraint |
 | H. Last-stand camper | `NODE_IS_MUST_HOLD` | — | `HoldPosition` | `MUST_HOLD` flag on `TacticalNode`; goal priority |
 | J. Sabotage cordon ✅ | (mission predicates) | `HoldPortalCordon` (planter + portal slots) | `CordonForPlant` | `ZoneGraph` queries; per-member assignment; cordon discipline via positioning |
 | K. Room-clear sweep ✅ | (custom-plan) | `EnterZone`, `ClearZone` | `SecureObjectiveZone` | Zone-path planning (BFS at room level, A* at cell level inside) |
-| L. Choke-point ambush | `ENEMY_IN_PORTAL_CELL` | `ChokePointHold` | — | Concentrated-fire trigger; portal-LOS scoring |
+| L. Choke-point ambush ✅ | `ENEMY_IN_PORTAL_CELL` | `ChokePointHold`, `GarrisonCordon` (multi-portal degenerate) | (folded into `GarrisonAmbush`) | Concentrated-fire trigger; portal-LOS scoring |
+| M. Room breach ✅ | — | `BreachAndAdvance` | `BreachToEngage` | Two-phase stack-up+push; `Squad.breachStackupTimer`; soft zone-mismatch target bias |
 
 ## Cornerstones — likely the first Stage 2 slice
 
@@ -697,10 +698,17 @@ Recommended slicing:
   ordering — implemented with squad morale (drain/recover/cap/
   hysteresis), then gated `rollFallbackOnHit` to skip GOAP-driven
   infantry. Shipped 2026-05-18.
-- **Slice 3 (visible cover combat):** Stories G + A + L. Cover model
-  on doodads + reposition + overwatch + choke-point hold. A and L
-  share infrastructure (cover at LOS positions toward a known
-  ingress).
+- **Slice 3 ✅ (visible cover combat):** Stories G + A + L. Cover model
+  on doodads + reposition + overwatch + choke-point hold. Shipped
+  2026-05-18 (session 2). Per-facing cover (4-way N/E/S/W) on doodads,
+  cooldown-gated `RepositionToCover`, `OverwatchPosture` with a
+  kill-zone gate, `ChokePointHold` for single-portal rooms +
+  `GarrisonCordon` for multi-portal degenerate, `RecoverFromAmbush`
+  goal wiring `BreakLOS` into goal selection.
+- **Slice 3.5 ✅ (room breach insert):** Story M — room breach. Inserted
+  from playtest. `BreachAndAdvance` two-phase stack-up-then-push action
+  + `BreachToEngage` goal + soft zone-mismatch target bias. Shipped
+  2026-05-18 (session 2).
 - **Slice 4 (squad coordination):** Stories C + F. Per-member assignment
   + bounding overwatch + objective-rush-under-fire. F may collapse
   into J by this point (J already covers planter-under-fire via the
