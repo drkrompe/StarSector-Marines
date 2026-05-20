@@ -149,17 +149,28 @@ public final class TacticalScoring {
     public static final float FALLBACK_EXPOSURE_PENALTY = 100f;
 
     /**
-     * Symmetric "sonar" weight on {@code candDistFromThreat - selfDistFromThreat}:
-     * cells <em>farther</em> from the threat centroid than the unit's current
-     * cell earn a bonus; cells <em>closer</em> pay a penalty. Without this term
-     * the picker has no direction sense — a cell shadowed by a wall in the
-     * enemy's rear reads as "exposure 0, high cover" and outscores an
-     * equivalently-hidden cell behind friendly lines, which manifests as broken
-     * marines charging into a crowd. Sized at ~3 per cell so a 5-cell-away cell
-     * (-15) competes meaningfully with a single grid-cover level (-2.5) without
-     * overriding the exposure floor (any exposure point still costs +100).
+     * Mild bonus per cell of additional distance from the threat centroid
+     * versus the unit's current cell. Pulls the picker toward away-side hides
+     * when multiple are reachable; only meaningful as a tiebreaker because
+     * the dominant signal is {@link #FALLBACK_TOWARD_THREAT_PENALTY}.
      */
-    public static final float FALLBACK_THREAT_AWAY_BONUS = 3f;
+    public static final float FALLBACK_AWAY_FROM_THREAT_BONUS = 2f;
+
+    /**
+     * Heavy per-cell penalty when a candidate is <em>closer</em> to the
+     * threat centroid than the unit's current cell. Asymmetric on purpose:
+     * we want a strong refusal to charge through enemies (the user-visible
+     * "broken marines run through 100 enemies into a wall pocket" failure
+     * mode) without forcing units into the map edge when a small forward
+     * adjustment would be tactically fine.
+     *
+     * <p>Sized so even a deeply-hidden cell (exposure 0) ten cells into the
+     * threat's half-space (penalty +300) loses to a moderately-exposed cell
+     * (3 enemies × 100 = +300) on the away side. The previous symmetric ~3
+     * weight was nowhere near the exposure floor and got overwhelmed by any
+     * wall-shadowed cell behind the enemy line.
+     */
+    public static final float FALLBACK_TOWARD_THREAT_PENALTY = 30f;
 
     /**
      * Safety budget for the spatial pre-gather in {@link #findFallbackPosition}.
@@ -723,12 +734,14 @@ public final class TacticalScoring {
      * the cover term, so the picker prefers cells that actually block the
      * incoming fire.
      *
-     * <p>Direction bias is folded in via
-     * {@link #FALLBACK_THREAT_AWAY_BONUS}: cells farther from the threat
-     * centroid than {@code self}'s current cell earn a bonus, cells closer pay
-     * a penalty. Stops a wall-shadowed cell in the enemy's rear from
-     * outscoring an equivalently-hidden cell behind friendly lines and the
-     * unit visibly charging into a crowd.
+     * <p>Direction bias is folded in asymmetrically via
+     * {@link #FALLBACK_AWAY_FROM_THREAT_BONUS} (mild tiebreaker for retreat
+     * cells) and {@link #FALLBACK_TOWARD_THREAT_PENALTY} (heavy refusal of
+     * cells closer to the threat centroid than self). The asymmetry is the
+     * fix for "broken marines charge into a wall pocket past 100 enemies":
+     * a symmetric small bias loses to the +100/enemy exposure floor when
+     * the pocket is exposure-0, but a 30/cell toward-penalty puts a 10-cell
+     * forward move at +300 — above any 3-enemy exposure cell behind self.
      *
      * <p>Exposure (count of alive enemies with LoS to the cell) is folded into
      * the score with a large weight rather than used as a hard filter. Hidden
@@ -803,12 +816,19 @@ public final class TacticalScoring {
                 float distFromSelf = cellDistance(sx, sy, cx, cy);
                 float candDistFromThreat = cellDistance(cx, cy, threatRef[0], threatRef[1]);
                 float threatGap = candDistFromThreat - selfDistFromThreat;
+                // Asymmetric directional bias: cells closer to the threat
+                // pay a heavy penalty (refusing the "charge into a wall
+                // pocket past 100 enemies" pathology); cells farther earn a
+                // mild bonus as a tiebreaker among away-side hides.
+                float directionalScore = threatGap >= 0f
+                        ? -FALLBACK_AWAY_FROM_THREAT_BONUS * threatGap
+                        : -FALLBACK_TOWARD_THREAT_PENALTY * threatGap; // -negative = +positive
                 float score = distFromSelf
                         + FALLBACK_OCCUPANCY_COST * occupants
                         - FALLBACK_GRID_COVER_BONUS   * gridCover
                         - FALLBACK_DOODAD_COVER_BONUS * doodadCover
                         - FALLBACK_FRIENDLY_ZONE_BONUS * control
-                        - FALLBACK_THREAT_AWAY_BONUS * threatGap
+                        + directionalScore
                         + FALLBACK_EXPOSURE_PENALTY * exposure;
                 candidates.add(new float[]{score, cx, cy});
             }
