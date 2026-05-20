@@ -62,6 +62,14 @@ public final class ClearAssignedZoneGoal implements Goal {
         if (assignment.kind() != AssignmentKind.CLEAR_ZONE) return 0f;
         int targetZone = assignment.targetZoneId();
         if (targetZone < 0) return 0f;
+        // Yield to SurviveContact when the squad is morale-broken. The
+        // commander layer is a strategic hint; a broken squad pulls back
+        // regardless of orders, and the commander re-evaluates on its next
+        // slow tick. Distinct from {@link SecureObjectiveZone}'s override
+        // of SurviveContact — that goal is a unit-level mission objective
+        // (planter must plant); this one is a commander suggestion that
+        // can defer to survival without breaking gameplay.
+        if (state.get(Predicate.MORALE_BROKEN)) return 0f;
         // Objective satisfied — assigned zone has no live enemies left.
         // Yield so the next replan picks up a fresh assignment (commander
         // will re-pick its nearest defender on next slow tick).

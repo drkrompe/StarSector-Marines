@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.UnitType;
 import com.dillon.starsectormarines.battle.ai.goap.Goal;
+import com.dillon.starsectormarines.battle.ai.goap.Predicate;
 import com.dillon.starsectormarines.battle.ai.goap.SquadPlan;
 import com.dillon.starsectormarines.battle.ai.goap.WorldState;
 import com.dillon.starsectormarines.battle.ai.goap.actions.ClearZone;
@@ -169,6 +170,28 @@ public class ClearAssignedZoneGoalTest {
         // No assignedObjective — customPlan should refuse to synthesize.
         assertNull(ClearAssignedZoneGoal.INSTANCE.customPlan(squad, sim),
                 "missing assignment → customPlan returns null");
+    }
+
+    @Test
+    public void relevanceZeroWhenMoraleBroken() {
+        // A broken squad pulls back; the commander hint defers to
+        // SurviveContact. Without this yield, MISSION-priority
+        // ClearAssignedZoneGoal would force the squad to keep pushing into
+        // contact while morale is 0, with no recovery possible while in
+        // engagement (see playtest dump squad_71 — flipping between
+        // SurviveContact and ClearAssignedZone, never recovering).
+        BattleSimulation sim = singleDoorwaySim();
+        Squad squad = squadAt(1, 2f, 2f, 1);
+        int rightZone = sim.getZoneGraph().zoneIdAt(8, 3);
+        squad.assignedObjective = ObjectiveAssignment.clearZone(squad.id, rightZone);
+        // Defender in target zone — without the morale gate this would be
+        // a positive-relevance pull.
+        Unit defender = new Unit("d1", Faction.DEFENDER, UnitType.MARINE, 8, 3);
+        sim.addUnit(defender);
+        WorldState broken = WorldState.EMPTY.with(Predicate.MORALE_BROKEN, true);
+
+        assertEquals(0f, ClearAssignedZoneGoal.INSTANCE.relevance(broken, squad, sim),
+                "morale-broken squad → commander hint yields, SurviveContact takes over");
     }
 
     @Test
