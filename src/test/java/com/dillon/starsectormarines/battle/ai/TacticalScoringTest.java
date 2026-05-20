@@ -553,4 +553,63 @@ public class TacticalScoringTest {
         assertTrue(TacticalScoring.shouldKeepPursuing(marine, current, sim),
                 "alternative within the retarget margin must not trigger a switch");
     }
+
+    // ---------------------------------------------------------------------
+    // Part 6 — findFallbackPosition reachability
+    // ---------------------------------------------------------------------
+
+    @Test
+    public void findFallbackPositionExcludesCellsBlockedByImpassableEdges() {
+        // Open arena with a sealed corridor: all cells flagged walkable, but
+        // every edge between column 5 and column 6 is blocked. ZoneDetector
+        // floods on cell-walkability alone, so cells on both sides of the
+        // edge wall live in the same zone — yet GridPathfinder can't cross.
+        // Picker must honor the edges and refuse to send self into the
+        // unreachable side. (SQ-17 stuck-defender regression: ZoneGraph
+        // reported "connected" but the unit had no path.)
+        BattleSimulation sim = openArena(20, 20);
+        NavigationGrid grid = sim.getGrid();
+        for (int y = 0; y < 20; y++) {
+            grid.setEdgePassable(5, y, com.dillon.starsectormarines.battle.nav.Direction.E, false);
+            grid.setEdgePassable(6, y, com.dillon.starsectormarines.battle.nav.Direction.W, false);
+        }
+
+        Unit self = unit(sim, Faction.MARINE, 3, 10);
+        // Enemy on self's side — gives findFallbackPosition a threat to hide
+        // from. The picker would prefer cells far from the threat; cells past
+        // column 6 are the obvious "far" choice, but they're not reachable.
+        unit(sim, Faction.DEFENDER, 1, 10);
+
+        int[] dest = TacticalScoring.findFallbackPosition(self, sim);
+        assertTrue(dest[0] <= 5,
+                "edge-sealed cells past column 5 must not be picked even though " +
+                        "ZoneDetector groups them with self — got (" + dest[0] + "," + dest[1] + ")");
+    }
+
+    @Test
+    public void findFallbackPositionStillPicksReachableHide() {
+        // Sanity check: in a normal sim with no edge sealing, the picker
+        // happily returns a cell behind partial cover. Guard against the
+        // edge-honoring flood being so aggressive it strands every unit at
+        // their start cell.
+        BattleSimulation sim = openArena(20, 20);
+        NavigationGrid grid = sim.getGrid();
+        // Partial wall column at x=10, rows 4..15. Self at (5,10) on the
+        // open side, enemy at (15,10) on the other.
+        for (int y = 4; y <= 15; y++) {
+            grid.setWalkable(10, y, false);
+        }
+
+        Unit self = unit(sim, Faction.MARINE, 5, 10);
+        unit(sim, Faction.DEFENDER, 15, 10);
+
+        int[] dest = TacticalScoring.findFallbackPosition(self, sim);
+        // The picker should pick *something* reachable on self's side — not
+        // the start cell, ideally a cell with cover. The minimum bar is
+        // "the result is walkable from self's perspective."
+        assertTrue(grid.isWalkable(dest[0], dest[1]),
+                "picker returned a non-walkable cell (" + dest[0] + "," + dest[1] + ")");
+        assertTrue(dest[0] < 10,
+                "picker shouldn't have crossed the wall to land on the enemy's side — got (" + dest[0] + "," + dest[1] + ")");
+    }
 }

@@ -45,7 +45,7 @@ public final class BreakContact implements Action {
 
     @Override
     public ActionStatus execute(Unit member, Squad squad, BattleSimulation sim) {
-        if (needsNewDestination(member, sim)) {
+        if (TacticalScoring.fallbackDestinationNeedsRefresh(member, sim)) {
             int[] dest = TacticalScoring.findFallbackPosition(member, sim);
             member.fallbackCellX = dest[0];
             member.fallbackCellY = dest[1];
@@ -72,24 +72,6 @@ public final class BreakContact implements Action {
             opportunisticFire(member, sim, FireStance.STANCED);
         }
         return ActionStatus.RUNNING;
-    }
-
-    /**
-     * True when the cached destination is unset or has become visible to an
-     * enemy. Holds the cell when it's still hidden — including after arrival —
-     * but a hide that gets exposed (threat repositioned, or the original pick
-     * was never really a hide in a tight indoor corridor) re-rolls. The
-     * picker's own {@code distFromSelf} bias absorbs the "don't scamper for
-     * no reason" concern: if no neighbor scores meaningfully better, the
-     * re-pick lands on the same cell. The bug this guards against is a unit
-     * gluing itself to its first arrival cell in a kill-zone while
-     * {@link com.dillon.starsectormarines.battle.ai.goap.goals.SurviveContact}
-     * keeps reissuing BreakContact every replan.
-     */
-    private static boolean needsNewDestination(Unit member, BattleSimulation sim) {
-        if (member.fallbackCellX < 0) return true;
-        return !TacticalScoring.isHiddenFromAllEnemies(
-                member, member.fallbackCellX, member.fallbackCellY, sim);
     }
 
     /**

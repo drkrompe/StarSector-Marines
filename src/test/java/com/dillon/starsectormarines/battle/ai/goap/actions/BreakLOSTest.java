@@ -145,6 +145,32 @@ public class BreakLOSTest {
     }
 
     @Test
+    public void recomputesWhenCachedCellIsExposedToAnEnemy() {
+        // SQ-17 regression: pre-fix, BreakLOS only re-picked when the cached
+        // cell was unset (< 0). If the picker landed on a borderline cell
+        // that an enemy could still see (or the threat repositioned mid-
+        // transit), the unit stayed glued to it. Now we share BreakContact's
+        // refresh rule via TacticalScoring.fallbackDestinationNeedsRefresh.
+        BattleSimulation sim = walledSim();
+        int squadId = sim.mintSquad(Faction.MARINE, null);
+        Squad squad = sim.getSquad(squadId);
+        squad.aliveMembers = 1;
+
+        Unit marine = marineAt(2, 2, squadId);
+        // Cached destination on the open side of the map — fully visible to
+        // the defender at (5, 2). Pre-fix: held this cell forever.
+        marine.fallbackCellX = 3;
+        marine.fallbackCellY = 2;
+        sim.addUnit(marine);
+        sim.addUnit(defenderAt(5, 2));
+
+        BreakLOS.INSTANCE.execute(marine, squad, sim);
+        boolean changed = (marine.fallbackCellX != 3 || marine.fallbackCellY != 2);
+        assertTrue(changed,
+                "cached (3,2) was visible to defender at (5,2); refresh should have picked a new cell");
+    }
+
+    @Test
     public void requiredMembersIsOne() {
         assertEquals(1, BreakLOS.INSTANCE.requiredMembers());
     }

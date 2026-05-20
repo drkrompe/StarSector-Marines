@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.UnitType;
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 
@@ -756,28 +757,27 @@ public final class TacticalScoring {
      *
      * <p>The top-scored cell only helps if the unit can actually walk to it —
      * and the wall that hides a cell from enemies is exactly the kind of wall
-     * that can also seal it off from us. Without a reachability check the
-     * picker happily returns sealed pockets and the unit freezes for the
-     * entire fall-back duration waiting on an empty path. We filter using
-     * {@link ZoneGraph#areConnected} (BFS over the portal graph, cheaper than
-     * per-cell A*) and walk the sorted list until a reachable candidate
-     * shows up.
+     * that can also seal it off from us. Reachability is checked via a single
+     * edge-honoring BFS from self, bounded to the scan window — so a cell
+     * that's walkable per ZoneGraph (cell-flood only) but blocked off from
+     * us by sealed edges is correctly excluded. Without this, the picker
+     * returned sealed pockets and the unit froze waiting on an empty path
+     * (the SQ-17 stuck-defender dump bug — ZoneGraph reported zones as
+     * connected via portals, but {@link com.dillon.starsectormarines.battle.nav.GridPathfinder}
+     * couldn't navigate the actual cell edges).
      *
-     * <p>If the top-scored cell is unreachable we first try its four cardinal
-     * neighbors before falling through to the next-best candidate. The dud is
-     * almost always shadowed by a wall, and the cardinal on our side of that
-     * wall inherits the same cover while staying in our zone. Cardinals are
-     * tried in order of distance from the average enemy cell (farthest first)
-     * so the consolation pick doesn't accidentally march us into the firing
-     * lane. Falls through to {@code self}'s current cell only if nothing
-     * qualifies — caller treats that as "don't enter fall-back."
+     * <p>The flood replaces the prior {@code ZoneGraph.areConnected} +
+     * cardinal-consolation fallback chain — only reachable cells are
+     * scored, so the top-of-list pick is the answer with no post-hoc
+     * salvage. Falls through to {@code self}'s current cell only when no
+     * other reachable candidate exists — caller treats that as "don't
+     * enter fall-back."
      */
     public static int[] findFallbackPosition(Unit self, BattleSimulation sim) {
         NavigationGrid grid = sim.getGrid();
         ZoneGraph zones = sim.getZoneGraph();
         int sx = self.cellX;
         int sy = self.cellY;
-        int selfZone = zones.zoneIdAt(sx, sy);
         int[] zoneControl = computeZoneControl(self, sim);
 
         int[] threatRef = averageEnemyCell(self, sim);
@@ -798,12 +798,18 @@ public final class TacticalScoring {
         sim.getUnitIndex().gather(sx, sy, scanRange + MAX_PLAUSIBLE_ATTACK_RANGE, threats);
         filterEnemyCombatants(threats, self.faction);
 
+        // Edge-honoring reachability flood from self. Bounded by Chebyshev
+        // distance to the scan window so worst-case work is O(scanRange²),
+        // matching the candidate scan. Eliminates the ZoneGraph mismatch.
+        boolean[] reachable = floodReachableFromSelf(grid, sx, sy, scanRange);
+
         List<float[]> candidates = new ArrayList<>();
         for (int dy = -scanRange; dy <= scanRange; dy++) {
             for (int dx = -scanRange; dx <= scanRange; dx++) {
                 int cx = sx + dx;
                 int cy = sy + dy;
                 if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) continue;
+                if (!reachable[grid.index(cx, cy)]) continue;
 
                 int occupants = occupantsExcludingSelf(self, cx, cy, sim);
                 int fdx = threatRef[0] - cx;
@@ -833,18 +839,57 @@ public final class TacticalScoring {
                 candidates.add(new float[]{score, cx, cy});
             }
         }
+        if (candidates.isEmpty()) return new int[]{sx, sy};
         candidates.sort((a, b) -> Float.compare(a[0], b[0]));
+        float[] best = candidates.get(0);
+        return new int[]{(int) best[1], (int) best[2]};
+    }
 
-        for (float[] cand : candidates) {
-            int cx = (int) cand[1];
-            int cy = (int) cand[2];
-            if (zones.areConnected(selfZone, zones.zoneIdAt(cx, cy))) {
-                return new int[]{cx, cy};
+    /**
+     * Cardinal BFS from {@code (sx, sy)} over walkable cells with passable
+     * edges, bounded by Chebyshev distance {@code scanRange}. Returns a
+     * cell→reachable mask sized to the grid. Cardinal-only is sufficient:
+     * any diagonal-only connectivity decomposes into two cardinal moves
+     * that this flood picks up either way.
+     *
+     * <p>Pairs with {@link #findFallbackPosition}'s candidate scan — both
+     * are bounded to the same scan window so the flood can't grow beyond
+     * what the candidate loop will consider. Edges are checked on both
+     * sides (current cell's outgoing + neighbor's incoming), matching
+     * {@link com.dillon.starsectormarines.battle.nav.GridPathfinder}'s
+     * dual-side edge model.
+     */
+    private static boolean[] floodReachableFromSelf(NavigationGrid grid, int sx, int sy, int scanRange) {
+        int w = grid.getWidth();
+        int h = grid.getHeight();
+        boolean[] reachable = new boolean[w * h];
+        if (!grid.inBounds(sx, sy) || !grid.isWalkable(sx, sy)) return reachable;
+        int startIdx = grid.index(sx, sy);
+        reachable[startIdx] = true;
+        // Worst-case queue size = number of cells in the (2*scanRange+1)² window.
+        int side = 2 * scanRange + 1;
+        int[] queue = new int[side * side];
+        int head = 0, tail = 0;
+        queue[tail++] = startIdx;
+        while (head < tail) {
+            int idx = queue[head++];
+            int cx = idx % w;
+            int cy = idx / w;
+            for (Direction dir : Direction.CARDINALS) {
+                int nx = cx + dir.dx;
+                int ny = cy + dir.dy;
+                if (!grid.inBounds(nx, ny)) continue;
+                if (Math.abs(nx - sx) > scanRange || Math.abs(ny - sy) > scanRange) continue;
+                int nIdx = grid.index(nx, ny);
+                if (reachable[nIdx]) continue;
+                if (!grid.isWalkableAt(nIdx)) continue;
+                if (!grid.isEdgePassable(cx, cy, dir)) continue;
+                if (!grid.isEdgePassable(nx, ny, dir.opposite())) continue;
+                reachable[nIdx] = true;
+                queue[tail++] = nIdx;
             }
-            int[] consolation = cardinalConsolation(grid, zones, selfZone, sx, sy, cx, cy, threatRef);
-            if (consolation != null) return consolation;
         }
-        return new int[]{sx, sy};
+        return reachable;
     }
 
     /**
@@ -864,48 +909,6 @@ public final class TacticalScoring {
         }
         if (count == 0) return null;
         return new int[]{Math.round(sumX / count), Math.round(sumY / count)};
-    }
-
-    /**
-     * Picks a walkable cardinal neighbor of {@code (dudX, dudY)} in a zone
-     * reachable from {@code selfZone}. Cardinals are tried farthest-from-
-     * {@code threatRef} first so the consolation cell — taken when the
-     * best-scored hide turns out to be sealed off — doesn't slide the unit
-     * toward the threat. Returns {@code null} if no cardinal qualifies.
-     */
-    private static int[] cardinalConsolation(NavigationGrid grid, ZoneGraph zones,
-                                             int selfZone, int sx, int sy,
-                                             int dudX, int dudY, int[] threatRef) {
-        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-        int[] order = {0, 1, 2, 3};
-        float[] threatDist = new float[4];
-        for (int i = 0; i < 4; i++) {
-            int nx = dudX + dirs[i][0];
-            int ny = dudY + dirs[i][1];
-            threatDist[i] = (threatRef == null)
-                    ? 0f
-                    : cellDistance(nx, ny, threatRef[0], threatRef[1]);
-        }
-        // Insertion sort by threatDist DESCENDING (farthest from threat first).
-        for (int i = 1; i < 4; i++) {
-            int slot = order[i];
-            float d = threatDist[slot];
-            int j = i;
-            while (j > 0 && threatDist[order[j - 1]] < d) {
-                order[j] = order[j - 1];
-                j--;
-            }
-            order[j] = slot;
-        }
-        for (int oi : order) {
-            int nx = dudX + dirs[oi][0];
-            int ny = dudY + dirs[oi][1];
-            if (!grid.inBounds(nx, ny) || !grid.isWalkable(nx, ny)) continue;
-            if (nx == sx && ny == sy) continue;
-            if (!zones.areConnected(selfZone, zones.zoneIdAt(nx, ny))) continue;
-            return new int[]{nx, ny};
-        }
-        return null;
     }
 
     /**
@@ -950,6 +953,29 @@ public final class TacticalScoring {
             if (grid.hasLineOfSightWithin(cx, cy, other.cellX, other.cellY, other.attackRange)) return false;
         }
         return true;
+    }
+
+    /**
+     * True when {@code member}'s cached fall-back destination is unset or has
+     * become visible to an enemy. Holds the cell while it's still hidden —
+     * including after arrival — but a hide that gets exposed (threat
+     * repositioned, picker landed on a borderline cell) re-rolls. The
+     * picker's own {@code distFromSelf} bias absorbs the "don't scamper for
+     * no reason" concern: if no neighbor scores meaningfully better, the
+     * re-pick lands on the same cell.
+     *
+     * <p>Shared between
+     * {@link com.dillon.starsectormarines.battle.ai.goap.actions.BreakContact}
+     * and {@link com.dillon.starsectormarines.battle.ai.goap.actions.BreakLOS}
+     * — both stash the picker's result on {@link Unit#fallbackCellX}/
+     * {@link Unit#fallbackCellY} and need the same "re-roll when stale"
+     * invariant. The SQ-17 stuck-defender dump exposed BreakLOS lacking
+     * this check: once the cached cell drifted into enemy LoS the unit
+     * was glued to it.
+     */
+    public static boolean fallbackDestinationNeedsRefresh(Unit member, BattleSimulation sim) {
+        if (member.fallbackCellX < 0 || member.fallbackCellY < 0) return true;
+        return !isHiddenFromAllEnemies(member, member.fallbackCellX, member.fallbackCellY, sim);
     }
 
     /**

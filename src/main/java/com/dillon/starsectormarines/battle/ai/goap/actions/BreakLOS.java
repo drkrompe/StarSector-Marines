@@ -23,10 +23,12 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
  * stops the planner from prepending BreakLOS in unrelated plans.
  *
  * <p>Destination caching reuses {@link Unit#fallbackCellX}/{@link Unit#fallbackCellY}
- * — same fields {@link BreakContact} uses. Each call only repicks when the
- * cell is unset; once arrived the member holds (returns {@link ActionStatus#SUCCESS}
+ * — same fields {@link BreakContact} uses. Re-rolls via the shared
+ * {@link TacticalScoring#fallbackDestinationNeedsRefresh} when the cached
+ * cell is unset or has become visible to an enemy; otherwise holds the cell
+ * and walks toward it. On arrival the member returns {@link ActionStatus#SUCCESS}
  * so the plan advances and the next replan can choose Overwatch / Engage from
- * the now-safe position).
+ * the now-safe position.
  *
  * <p>Emitted from the planner only — uses backward-chaining preconditions/effects
  * (not a customPlan action like BreakContact).
@@ -52,7 +54,7 @@ public final class BreakLOS implements Action {
 
     @Override
     public ActionStatus execute(Unit member, Squad squad, BattleSimulation sim) {
-        if (member.fallbackCellX < 0 || member.fallbackCellY < 0) {
+        if (TacticalScoring.fallbackDestinationNeedsRefresh(member, sim)) {
             int[] dest = TacticalScoring.findFallbackPosition(member, sim);
             member.fallbackCellX = dest[0];
             member.fallbackCellY = dest[1];
