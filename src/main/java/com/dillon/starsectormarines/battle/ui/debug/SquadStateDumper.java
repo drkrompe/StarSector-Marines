@@ -2,18 +2,22 @@ package com.dillon.starsectormarines.battle.ui.debug;
 
 import com.dillon.starsectormarines.StarsectorMarinesModPlugin;
 import com.dillon.starsectormarines.battle.BattleSimulation;
+import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.ai.goap.Predicate;
 import com.dillon.starsectormarines.battle.ai.goap.SquadPlan;
 import com.dillon.starsectormarines.battle.ai.goap.WorldState;
+import com.dillon.starsectormarines.battle.ai.goap.actions.ClearZone;
 import com.dillon.starsectormarines.battle.ai.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +41,7 @@ public final class SquadStateDumper {
 
     private static final Logger LOG = Logger.getLogger(SquadStateDumper.class);
     /** Bumped when the dump shape changes — lets offline tools recognize older dumps. */
-    private static final int SCHEMA_VERSION = 1;
+    private static final int SCHEMA_VERSION = 2;
 
     private SquadStateDumper() {}
 
@@ -57,6 +61,8 @@ public final class SquadStateDumper {
             root.put("currentGoal", buildGoalJson(squad));
             root.put("currentPlan", buildPlanJson(squad));
             root.put("worldState", buildPredicateJson(worldState));
+            JSONObject clearZone = buildClearZoneReachabilityJson(squad, sim);
+            if (clearZone != null) root.put("clearZoneReachability", clearZone);
 
             String path = pathFor(squad);
             Global.getSettings().writeJSONToCommon(path, root, true);
@@ -118,16 +124,93 @@ public final class SquadStateDumper {
             o.put("role", u.role != null ? u.role.name() : null);
             o.put("cellX", u.cellX);
             o.put("cellY", u.cellY);
+            // homeCell{X,Y} = -1 sentinel for units without a post (marines,
+            // patrols). Emit anyway so the dump distinguishes "no home" from
+            // "home but drifted off" — key signal for diagnosing why a
+            // garrison unit's findFiringPositionWithin returned null.
+            o.put("homeCellX", u.homeCellX);
+            o.put("homeCellY", u.homeCellY);
             o.put("currentZone", sim.getZoneGraph().zoneIdAt(u.cellX, u.cellY));
             o.put("hp", u.hp);
             o.put("maxHp", u.maxHp);
             o.put("moveProgress", u.moveProgress);
             o.put("targetId", u.target != null ? u.target.id : null);
+            // Pathfinder reachability of the unit's current target. False
+            // here means the squad is fixated on someone the pathfinder
+            // can't route to from this member — e.g. an enemy behind walls
+            // in the same flood-filled zone (see [[zone_graph_ignores_edges]]).
+            // Future make-passage actions (breach door, blow wall) should
+            // key off this flag. JSONObject.NULL when the unit has no target.
+            o.put("targetReachable", computeTargetReachable(u, sim));
             o.put("cooldownTimer", u.cooldownTimer);
             o.put("pathLen", u.path != null ? u.path.length / 2 : 0);
             arr.put(o);
         }
         return arr;
+    }
+
+    private static Object computeTargetReachable(Unit self, BattleSimulation sim) {
+        if (self.target == null) return JSONObject.NULL;
+        int[] path = GridPathfinder.findPath(sim.getGrid(),
+                self.cellX, self.cellY, self.target.cellX, self.target.cellY);
+        return path.length > 0;
+    }
+
+    /**
+     * When the squad's current plan step is a {@link ClearZone}, scans alive
+     * enemies inside the target zone and reports whether each can be reached
+     * by any alive squadmate via {@link GridPathfinder#findPath}. Returns
+     * {@code null} when the squad has no plan, the plan is complete, or the
+     * current step isn't ClearZone — the field is then omitted from the dump.
+     *
+     * <p>Signal hook for future "make-passage" actions: if an enemy is in
+     * the target zone but no squadmate can pathfind to it, the squad is
+     * geometrically stuck and needs a door-breach / wall-demo action to
+     * progress rather than another retry of the same plan (the SQ-82
+     * motivator — see {@code roadmap/sessions/}).
+     */
+    private static JSONObject buildClearZoneReachabilityJson(Squad squad, BattleSimulation sim) throws Exception {
+        SquadPlan plan = squad.currentPlan;
+        if (plan == null || plan.isComplete()) return null;
+        SquadPlan.Step step = plan.currentStep();
+        if (!(step.action instanceof ClearZone)) return null;
+        int targetZoneId = ((ClearZone) step.action).targetZoneId();
+
+        Faction enemyFaction = squad.faction == Faction.MARINE ? Faction.DEFENDER : Faction.MARINE;
+
+        List<Unit> squadmates = new ArrayList<>();
+        for (Unit u : sim.getUnits()) {
+            if (u.squadId == squad.id && u.isAlive()) squadmates.add(u);
+        }
+
+        JSONArray enemies = new JSONArray();
+        boolean anyUnreachable = false;
+        for (Unit e : sim.getUnits()) {
+            if (!e.isAlive()) continue;
+            if (e.faction != enemyFaction) continue;
+            if (sim.getZoneGraph().zoneIdAt(e.cellX, e.cellY) != targetZoneId) continue;
+            boolean reachable = false;
+            for (Unit m : squadmates) {
+                int[] path = GridPathfinder.findPath(sim.getGrid(),
+                        m.cellX, m.cellY, e.cellX, e.cellY);
+                if (path.length > 0) { reachable = true; break; }
+            }
+            if (!reachable) anyUnreachable = true;
+            JSONObject eo = new JSONObject();
+            eo.put("id", e.id);
+            eo.put("cellX", e.cellX);
+            eo.put("cellY", e.cellY);
+            eo.put("reachableFromAnyMember", reachable);
+            enemies.put(eo);
+        }
+
+        JSONObject o = new JSONObject();
+        o.put("targetZoneId", targetZoneId);
+        o.put("enemies", enemies);
+        // Convenience top-level bit so future make-passage triggers check
+        // one field instead of walking the enemies array.
+        o.put("anyEnemyUnreachable", anyUnreachable);
+        return o;
     }
 
     private static JSONObject buildGoalJson(Squad squad) throws Exception {

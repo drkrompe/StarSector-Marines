@@ -1604,13 +1604,46 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                 if (squad.alertLevel == SquadAlertLevel.ENGAGED
                         && squad.timeSinceContact >= Squad.ENGAGED_DECAY_SECONDS) {
                     squad.alertLevel = SquadAlertLevel.SUSPICIOUS;
+                    // SQ-82 fix: at ENGAGED→SUSPICIOUS, the squad has gone
+                    // ENGAGED_DECAY_SECONDS with no squadmate-LOS to anything.
+                    // shouldKeepPursuing returns true for an invisible target
+                    // when no closer visible enemy exists, so the stale target
+                    // can outlive contact indefinitely (SQ-82: 8 marines kept
+                    // walking toward a defender they hadn't seen in 13s,
+                    // pinned against unreachable cells inside the target
+                    // zone). Drop targets here; next behavior tick re-picks
+                    // via findBestTarget — no LOS to anything = null target,
+                    // which is the correct posture for a squad in SUSPICIOUS.
+                    clearSquadMemberTargets(squad.id);
                 } else if (squad.alertLevel == SquadAlertLevel.SUSPICIOUS
                         && squad.timeSinceContact >= Squad.ENGAGED_DECAY_SECONDS + Squad.SUSPICIOUS_DECAY_SECONDS) {
                     squad.alertLevel = SquadAlertLevel.UNAWARE;
                     squad.lastSeenEnemyX = -1;
                     squad.lastSeenEnemyY = -1;
+                    // Belt-and-braces: any target re-acquired during
+                    // SUSPICIOUS (via a transient LOS flicker that didn't
+                    // bump back to ENGAGED) shouldn't survive into UNAWARE.
+                    clearSquadMemberTargets(squad.id);
                 }
             }
+        }
+    }
+
+    /**
+     * Clears {@code u.target} for every alive squadmate of {@code squadId}.
+     * Called from {@link #updateSquadAlertLevels} at the ENGAGED→SUSPICIOUS
+     * (and SUSPICIOUS→UNAWARE) transitions so a stale target reference —
+     * one {@link com.dillon.starsectormarines.battle.ai.TacticalScoring#shouldKeepPursuing
+     * shouldKeepPursuing} happily keeps alive past LOS — doesn't drag the
+     * squad toward an enemy they last saw seconds ago. Action {@code execute}
+     * paths null-check {@code member.target} (they already cope with the
+     * reprio-on-hit clear at line ~706), so the next behavior tick repicks
+     * via {@link com.dillon.starsectormarines.battle.ai.TacticalScoring#findBestTarget
+     * findBestTarget} or holds null if nobody's visible.
+     */
+    private void clearSquadMemberTargets(int squadId) {
+        for (Unit u : units) {
+            if (u.squadId == squadId) u.target = null;
         }
     }
 
