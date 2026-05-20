@@ -5,6 +5,9 @@ import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.UnitType;
+import com.dillon.starsectormarines.battle.ai.goap.SquadPlan;
+import com.dillon.starsectormarines.battle.ai.goap.actions.ClearZone;
+import com.dillon.starsectormarines.battle.ai.goap.actions.EnterZone;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import org.junit.jupiter.api.Test;
@@ -98,6 +101,57 @@ public class ZoneQueriesTest {
     }
 
     @Test
+    public void squadCurrentZonePrefersLeaderOverCentroid() {
+        // Leader on the right half, centroid still on the left (squad is
+        // mid-traverse, members straggling behind). The query must follow the
+        // leader so the BFS start zone doesn't flip every replan while the
+        // squad is bifurcated across a portal.
+        BattleSimulation sim = singleDoorwaySim();
+        Squad squad = new Squad(1, Faction.MARINE);
+        squad.aliveMembers = 2;
+        squad.centroidX = 2f;
+        squad.centroidY = 2f;
+        Unit leader = new Unit("m1", Faction.MARINE, UnitType.MARINE, 8, 3);
+        squad.leader = leader;
+        int rightZone = sim.getZoneGraph().zoneIdAt(8, 3);
+        int leftZone  = sim.getZoneGraph().zoneIdAt(2, 2);
+        assertNotEquals(leftZone, rightZone, "test prerequisite: halves are distinct zones");
+        assertEquals(rightZone, ZoneQueries.squadCurrentZone(squad, sim),
+                "leader-anchored: leader's zone wins even when centroid is elsewhere");
+    }
+
+    @Test
+    public void squadCurrentZoneFallsBackToCentroidWhenLeaderless() {
+        // Marine deboard squad in its first tick (no leader minted yet) or
+        // wiped-leader-before-promotion edge: fall through to the centroid.
+        BattleSimulation sim = singleDoorwaySim();
+        Squad squad = new Squad(1, Faction.MARINE);
+        squad.aliveMembers = 1;
+        squad.centroidX = 8f;
+        squad.centroidY = 3f;
+        int rightZone = sim.getZoneGraph().zoneIdAt(8, 3);
+        assertEquals(rightZone, ZoneQueries.squadCurrentZone(squad, sim));
+    }
+
+    @Test
+    public void squadCurrentZoneFallsBackWhenLeaderDead() {
+        // Leader was killed this tick and the per-tick promotion in
+        // BattleSimulation.applyDamage hasn't run yet. Don't let a stale
+        // dead-leader cell pin the query — fall back to the centroid.
+        BattleSimulation sim = singleDoorwaySim();
+        Squad squad = new Squad(1, Faction.MARINE);
+        squad.aliveMembers = 1;
+        squad.centroidX = 2f;
+        squad.centroidY = 2f;
+        Unit deadLeader = new Unit("m1", Faction.MARINE, UnitType.MARINE, 8, 3);
+        deadLeader.hp = 0f;
+        squad.leader = deadLeader;
+        int leftZone = sim.getZoneGraph().zoneIdAt(2, 2);
+        assertEquals(leftZone, ZoneQueries.squadCurrentZone(squad, sim),
+                "dead leader should not anchor the query");
+    }
+
+    @Test
     public void portalsOfZoneWithTwoDoorwaysReturnsBoth() {
         BattleSimulation sim = twoDoorwaySim();
         int leftZone = sim.getZoneGraph().zoneIdAt(2, 2);
@@ -177,6 +231,34 @@ public class ZoneQueriesTest {
         assertNotEquals(leftZone, rightZone, "no doorway means two distinct zones");
         assertTrue(ZoneQueries.zonePathBfs(leftZone, rightZone, sim).isEmpty(),
                 "fully walled-off zones must report no path");
+    }
+
+    @Test
+    public void planEndsAtZoneMatchesTerminalClearZone() {
+        SquadPlan p = new SquadPlan(List.of(
+                new SquadPlan.Step(new EnterZone(7, 1, 2)),
+                new SquadPlan.Step(new ClearZone(7)),
+                new SquadPlan.Step(new EnterZone(9, 3, 4)),
+                new SquadPlan.Step(new ClearZone(9))));
+        assertTrue(ZoneQueries.planEndsAtZone(p, 9), "terminal ClearZone(9) → matches target 9");
+        assertFalse(ZoneQueries.planEndsAtZone(p, 7), "intermediate zone is not the terminal");
+    }
+
+    @Test
+    public void planEndsAtZoneRejectsCompletedPlan() {
+        SquadPlan p = new SquadPlan(List.of(
+                new SquadPlan.Step(new EnterZone(7, 1, 2)),
+                new SquadPlan.Step(new ClearZone(7))));
+        p.advance();
+        p.advance();
+        assertTrue(p.isComplete(), "test prerequisite: plan should be complete");
+        assertFalse(ZoneQueries.planEndsAtZone(p, 7),
+                "completed plan must not be considered sticky — caller has to resynthesize");
+    }
+
+    @Test
+    public void planEndsAtZoneRejectsNullPlan() {
+        assertFalse(ZoneQueries.planEndsAtZone(null, 0));
     }
 
     @Test

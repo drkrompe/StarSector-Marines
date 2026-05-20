@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.ai.goap.Action;
 import com.dillon.starsectormarines.battle.ai.goap.SquadPlan;
 import com.dillon.starsectormarines.battle.ai.goap.actions.ClearZone;
 import com.dillon.starsectormarines.battle.ai.goap.actions.EnterZone;
@@ -33,13 +34,34 @@ public final class ZoneQueries {
     private ZoneQueries() {}
 
     /**
-     * Zone id containing the squad centroid, or {@code -1} when the centroid
-     * doesn't resolve to any zone — e.g., the squad has no live members
-     * (centroid undefined) or sits on a wall cell.
+     * Zone id the squad treats as its current room — the cell the
+     * <em>leader</em> stands in, falling back to the centroid only when the
+     * squad has no live leader (leader dead and the per-tick promotion in
+     * {@code BattleSimulation.applyDamage} hasn't filled the slot yet, or a
+     * marine deboard squad that hasn't minted one). Returns {@code -1} when
+     * the squad has no live members, the centroid is also unresolvable, or
+     * the chosen cell sits on a wall and so isn't in any zone.
+     *
+     * <p>Leader-anchored on purpose: cohesion already pulls drifting members
+     * toward the leader (see {@link com.dillon.starsectormarines.battle.ai.InfantryCohesion#cohesionOverride}
+     * and {@code memory/squad_leader_cohesion.md}), so the leader's cell is
+     * the most stable point of reference for "where the squad is." Centroid
+     * drifts every time a member crosses a portal — fine for the cohesion
+     * spring, but it makes the BFS start zone flip on every replan when a
+     * squad is bifurcated around an obstacle, which oscillates a zone-push
+     * plan in and out of the same building.
      */
     public static int squadCurrentZone(Squad squad, BattleSimulation sim) {
         if (squad == null || sim == null) return -1;
         if (squad.aliveMembers <= 0) return -1;
+        Unit leader = squad.leader;
+        if (leader != null && leader.isAlive()) {
+            int zone = sim.getZoneGraph().zoneIdAt(leader.cellX, leader.cellY);
+            if (zone >= 0) return zone;
+            // Leader on a wall cell (transient — pathfinder placed them there
+            // for a single tick): fall through to the centroid so the goal
+            // layer still has a usable answer this tick.
+        }
         int x = Math.round(squad.centroidX);
         int y = Math.round(squad.centroidY);
         return sim.getZoneGraph().zoneIdAt(x, y);
@@ -174,5 +196,37 @@ public final class ZoneQueries {
             steps.add(new SquadPlan.Step(new ClearZone(zoneId)));
         }
         return new SquadPlan(steps);
+    }
+
+    /**
+     * True iff {@code plan} is a still-in-progress zone-push sweep whose
+     * terminal zone is {@code targetZoneId} — i.e. the squad is already
+     * working toward this exact target and shouldn't have its plan thrown
+     * out at the next replan tick.
+     *
+     * <p>Used by {@link com.dillon.starsectormarines.battle.ai.goap.goals.ClearAssignedZoneGoal#customPlan}
+     * and {@link com.dillon.starsectormarines.battle.ai.goap.goals.SecureObjectiveZone#customPlan}
+     * to keep an active multi-zone plan stable across the periodic 2-second
+     * replan. Without this gate, when a squad is bifurcated across a portal
+     * the BFS start zone flips with the leader/centroid each tick — even
+     * with leader-anchored {@link #squadCurrentZone}, the leader can still
+     * cross portals mid-sweep — and the customPlan re-emits a qualitatively
+     * different EnterZone/ClearZone sequence, oscillating the squad in and
+     * out of a building.
+     *
+     * <p>Checks the last step's action type and zone id: any non-empty plan
+     * whose terminal step is {@code EnterZone(target)} or
+     * {@code ClearZone(target)} is considered "on target." A plan that's
+     * already advanced past its last step ({@link SquadPlan#isComplete})
+     * doesn't qualify — caller will re-synthesize on the next tick anyway.
+     */
+    public static boolean planEndsAtZone(SquadPlan plan, int targetZoneId) {
+        if (plan == null || plan.isComplete()) return false;
+        List<SquadPlan.Step> steps = plan.steps();
+        if (steps.isEmpty()) return false;
+        Action terminal = steps.get(steps.size() - 1).action;
+        if (terminal instanceof ClearZone cz) return cz.targetZoneId() == targetZoneId;
+        if (terminal instanceof EnterZone ez) return ez.targetZoneId() == targetZoneId;
+        return false;
     }
 }

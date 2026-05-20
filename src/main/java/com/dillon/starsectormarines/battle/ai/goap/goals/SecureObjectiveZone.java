@@ -68,8 +68,17 @@ public final class SecureObjectiveZone implements Goal {
 
     @Override
     public SquadPlan customPlan(Squad squad, BattleSimulation sim) {
-        int from = ZoneQueries.squadCurrentZone(squad, sim);
         int to = findObjectiveZone(squad, sim);
+        // Plan stickiness: same rationale as ClearAssignedZoneGoal — when
+        // the squad is bifurcated across a portal mid-sweep, the BFS path
+        // would otherwise flip on each replan and oscillate members in and
+        // out. Plan is dropped naturally when the planter dies (relevance
+        // drops to 0 and a different goal wins) or the planter switches
+        // objective (terminal zone no longer matches).
+        if (ZoneQueries.planEndsAtZone(squad.currentPlan, to)) {
+            return squad.currentPlan;
+        }
+        int from = ZoneQueries.squadCurrentZone(squad, sim);
         return ZoneQueries.synthesizeZonePushPlan(from, to, sim);
     }
 

@@ -164,6 +164,76 @@ public class ClearAssignedZoneGoalTest {
     }
 
     @Test
+    public void customPlanReusesExistingPlanWhenTerminalZoneMatches() {
+        // Stickiness: the squad already has an in-flight plan terminating
+        // at the assigned zone. customPlan must hand back the same instance
+        // (preserving currentIndex), not re-synthesize from scratch.
+        // Without this gate the periodic 2-second replan would oscillate
+        // the squad in and out of a building when the BFS start zone
+        // flip-flops with leader/centroid movement across portals.
+        BattleSimulation sim = singleDoorwaySim();
+        Squad squad = squadAt(1, 2f, 2f, 1);
+        int rightZone = sim.getZoneGraph().zoneIdAt(8, 3);
+        squad.assignedObjective = ObjectiveAssignment.clearZone(squad.id, rightZone);
+
+        SquadPlan first = ClearAssignedZoneGoal.INSTANCE.customPlan(squad, sim);
+        assertNotNull(first);
+        squad.currentPlan = first;
+        // Pretend a member already advanced past step 0.
+        first.advance();
+        int beforeIndex = first.currentIndex();
+
+        SquadPlan again = ClearAssignedZoneGoal.INSTANCE.customPlan(squad, sim);
+        assertTrue(again == first, "same plan instance should be returned so currentIndex is preserved");
+        assertEquals(beforeIndex, again.currentIndex(), "currentIndex must survive the re-replan");
+    }
+
+    @Test
+    public void customPlanRebuildsWhenTargetZoneChanges() {
+        // The opposite case: assignment was switched mid-battle. The old
+        // plan's terminal zone no longer matches — we MUST re-synthesize
+        // toward the new target rather than honoring stale stickiness.
+        BattleSimulation sim = singleDoorwaySim();
+        Squad squad = squadAt(1, 2f, 2f, 1);
+        int rightZone = sim.getZoneGraph().zoneIdAt(8, 3);
+        int leftZone  = sim.getZoneGraph().zoneIdAt(2, 2);
+        squad.assignedObjective = ObjectiveAssignment.clearZone(squad.id, rightZone);
+
+        SquadPlan first = ClearAssignedZoneGoal.INSTANCE.customPlan(squad, sim);
+        assertNotNull(first);
+        squad.currentPlan = first;
+
+        // Commander re-assigns to a different zone.
+        squad.assignedObjective = ObjectiveAssignment.clearZone(squad.id, leftZone);
+        SquadPlan rebuilt = ClearAssignedZoneGoal.INSTANCE.customPlan(squad, sim);
+        // Squad is at (2,2) which IS leftZone → ClearZone-only plan.
+        assertNotNull(rebuilt);
+        assertEquals(1, rebuilt.stepCount());
+        assertTrue(rebuilt.steps().get(0).action instanceof ClearZone);
+        assertEquals(leftZone, ((ClearZone) rebuilt.steps().get(0).action).targetZoneId());
+    }
+
+    @Test
+    public void customPlanRebuildsWhenPriorPlanComplete() {
+        // Plan ran to completion (every step advanced) — stickiness must NOT
+        // re-hand the dead plan; rebuild as if there was nothing.
+        BattleSimulation sim = singleDoorwaySim();
+        Squad squad = squadAt(1, 2f, 2f, 1);
+        int rightZone = sim.getZoneGraph().zoneIdAt(8, 3);
+        squad.assignedObjective = ObjectiveAssignment.clearZone(squad.id, rightZone);
+
+        SquadPlan first = ClearAssignedZoneGoal.INSTANCE.customPlan(squad, sim);
+        assertNotNull(first);
+        squad.currentPlan = first;
+        for (int i = 0; i < first.stepCount(); i++) first.advance();
+        assertTrue(first.isComplete(), "test prerequisite: plan should be complete after advancing past last step");
+
+        SquadPlan rebuilt = ClearAssignedZoneGoal.INSTANCE.customPlan(squad, sim);
+        assertNotNull(rebuilt);
+        assertTrue(rebuilt != first, "completed plan must be replaced, not reused");
+    }
+
+    @Test
     public void customPlanReturnsNullWithoutAssignment() {
         BattleSimulation sim = singleDoorwaySim();
         Squad squad = squadAt(1, 2f, 2f, 1);

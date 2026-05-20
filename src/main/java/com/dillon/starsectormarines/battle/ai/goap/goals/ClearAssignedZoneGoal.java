@@ -101,8 +101,21 @@ public final class ClearAssignedZoneGoal implements Goal {
     public SquadPlan customPlan(Squad squad, BattleSimulation sim) {
         ObjectiveAssignment assignment = squad.assignedObjective;
         if (assignment == null || assignment.kind() != AssignmentKind.CLEAR_ZONE) return null;
-        int from = ZoneQueries.squadCurrentZone(squad, sim);
         int to = assignment.targetZoneId();
+        // Plan stickiness: if the squad is already running a zone-push plan
+        // whose terminal step targets this exact zone, keep it. Without this,
+        // the 2-second periodic replan re-runs the BFS from the squad's
+        // current zone every tick — and when the squad straddles a portal
+        // mid-sweep the BFS path can flip-flop (e.g., [2, 217, 0] vs.
+        // [217, 0] depending on which side of the doorway the leader is on),
+        // oscillating members in and out of the same building. See
+        // memory/breakcontact_no_sticky_dest.md for the sibling fix on the
+        // BreakContact fallback cell — same family of "replan churn under
+        // partial-completion state" bug.
+        if (ZoneQueries.planEndsAtZone(squad.currentPlan, to)) {
+            return squad.currentPlan;
+        }
+        int from = ZoneQueries.squadCurrentZone(squad, sim);
         if (from == to) {
             // Squad already in the target zone — emit a ClearZone-only
             // plan instead of falling through {@code synthesizeZonePushPlan}'s

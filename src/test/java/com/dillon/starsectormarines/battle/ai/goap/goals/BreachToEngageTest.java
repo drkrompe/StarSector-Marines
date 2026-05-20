@@ -47,12 +47,17 @@ public class BreachToEngageTest {
     }
 
     private static Squad marineSquadAt(BattleSimulation sim, int memberCount, float cx, float cy) {
-        Unit first = new Unit("m0", Faction.MARINE, UnitType.MARINE, 3, 6);
+        // Leader (first member) is placed at the centroid so the post-leader-
+        // anchor squadCurrentZone resolves to the same zone the centroid would
+        // have. Other members nearby in row-major.
+        int lx = Math.round(cx);
+        int ly = Math.round(cy);
+        Unit first = new Unit("m0", Faction.MARINE, UnitType.MARINE, lx, ly);
         int sid = sim.mintSquad(Faction.MARINE, first);
         first.squadId = sid;
         sim.addUnit(first);
         for (int i = 1; i < memberCount; i++) {
-            Unit u = new Unit("m" + i, Faction.MARINE, UnitType.MARINE, 3 + i, 6);
+            Unit u = new Unit("m" + i, Faction.MARINE, UnitType.MARINE, lx + i, ly);
             u.squadId = sid;
             sim.addUnit(u);
         }

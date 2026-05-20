@@ -151,6 +151,33 @@ public class SecureObjectiveZoneTest {
     }
 
     @Test
+    public void customPlanReusesExistingPlanWhenTerminalZoneMatches() {
+        // Same stickiness check as ClearAssignedZoneGoalTest — the planter
+        // path also goes through the shared zone-push synthesizer, so the
+        // same oscillation bug would apply if the goal re-synthesized on
+        // every 2-second replan tick.
+        BattleSimulation sim = singleDoorwaySim();
+        ChargeSiteObjective charge = new ChargeSiteObjective(8, 3, 5f, "test");
+        sim.addObjective(charge);
+        Squad squad = squadAt(1, 2f, 2f, 1);
+        Unit planter = new Unit("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
+        planter.squadId = 1;
+        planter.role = UnitRole.PLANTER;
+        planter.assignedObjective = charge;
+        sim.addUnit(planter);
+
+        SquadPlan first = SecureObjectiveZone.INSTANCE.customPlan(squad, sim);
+        assertNotNull(first);
+        squad.currentPlan = first;
+        first.advance();
+        int beforeIndex = first.currentIndex();
+
+        SquadPlan again = SecureObjectiveZone.INSTANCE.customPlan(squad, sim);
+        assertTrue(again == first, "same plan instance should be returned so currentIndex is preserved");
+        assertEquals(beforeIndex, again.currentIndex(), "currentIndex must survive the re-replan");
+    }
+
+    @Test
     public void customPlanReturnsNullWhenAlreadyInObjectiveZone() {
         BattleSimulation sim = singleDoorwaySim();
         ChargeSiteObjective charge = new ChargeSiteObjective(3, 3, 5f, "test");
