@@ -97,7 +97,7 @@ public enum MarineWeapon {
     DRONE_PULSE("Drone Pulse Laser",
                 "pulse_laser_fire",
                 new Color(0x60, 0xCF, 0xFF),
-                12f, 0.8f, 0.40f, 1.0f, 0.30f,
+                20f, 0.8f, 0.40f, 1.0f, 0.30f,
                 ImpactProfile.RIFLE,
                 2, 0.10f, null, 0f, 0f,
                 0.35f, 0.5f);

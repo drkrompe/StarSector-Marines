@@ -60,10 +60,44 @@ public class Drone extends Unit {
     /**
      * Radius (cells) around the hub's anchor within which the drone picks
      * patrol waypoints. Sized so the drone covers roughly the city block the
-     * hub sits in — wide enough to spread fire coverage, tight enough that
-     * the drone doesn't wander into the next defense post's territory.
+     * hub sits in — wide enough to put the orbit into rifle-fire-receiving
+     * distance of the surrounding street grid (so the drone actually meets
+     * marines pushing the hub), tight enough that it doesn't wander into the
+     * next defense post's territory.
      */
-    public static final float PATROL_RADIUS_CELLS = 8f;
+    public static final float PATROL_RADIUS_CELLS = 14f;
+
+    /**
+     * Detection radius (cells) for the wider-than-weapon-range agro scan. The
+     * drone's primary acquisition runs through {@code TurretAim} at its
+     * weapon range (20 cells); this second scan runs separately at a larger
+     * radius so the drone notices marines who are <em>shooting it</em> from
+     * just outside its weapon range — rifle range is 24, DMR is 32 — and
+     * cruises into firing range instead of patrolling obliviously while
+     * absorbing fire. Sized at 26 so rifle attackers always trigger agro and
+     * close DMR engagements usually do.
+     */
+    public static final float AGGRO_RANGE_CELLS = 26f;
+
+    /**
+     * Maximum distance (cells) from {@link #homeHub} the drone is willing to
+     * stray when pursuing a target. The "follow allowance" cap — drones aren't
+     * fighter aircraft, they're a screen anchored to their launching hub. A
+     * marine fleeing beyond this radius outruns the drone's leash and the
+     * drone hovers at the boundary until the engagement ends (then returns
+     * to patrol via the standard waypoint roll).
+     */
+    public static final float ENGAGE_LEASH_RADIUS_CELLS = 22f;
+
+    /**
+     * Sim-seconds the drone keeps committing toward a last-known enemy
+     * position after the active target evaporates (target died, ducked into
+     * cover that breaks LoS, or moved out of detection range). Short window
+     * so the drone returns to patrol promptly if the engagement is genuinely
+     * over, but long enough to cover a marine ducking behind a wall corner
+     * for two seconds and popping back out.
+     */
+    public static final float PURSUIT_LATCH_SECONDS = 3f;
 
     /**
      * Current patrol waypoint, world cell coords. Picked when spawned; re-
@@ -73,6 +107,28 @@ public class Drone extends Unit {
      */
     public float patrolGoalX = Float.NaN;
     public float patrolGoalY = Float.NaN;
+
+    /**
+     * Last-known enemy cell the drone is committed to closing on, world cell
+     * coords. Latched whenever the drone has an active engagement target or
+     * a fresh agro-scan hit; consumed by the pursuit branch while
+     * {@link #pursuitTimer} is positive. {@link Float#NaN} = no pursuit
+     * target on record. Drives the "follow" allowance: drone keeps moving
+     * toward this position (clamped to {@link #ENGAGE_LEASH_RADIUS_CELLS}
+     * from the hub) for {@link #PURSUIT_LATCH_SECONDS} after the active
+     * target evaporates, so a marine ducking briefly behind cover doesn't
+     * reset the drone all the way back to patrol orbit.
+     */
+    public float pursuitGoalX = Float.NaN;
+    public float pursuitGoalY = Float.NaN;
+
+    /**
+     * Sim-seconds remaining on the pursuit latch. Refreshed to
+     * {@link #PURSUIT_LATCH_SECONDS} every tick the drone has a live engagement
+     * or agro-scan hit; ticks down toward zero only when both come up empty.
+     * On reaching zero the drone returns to patrol mode.
+     */
+    public float pursuitTimer = 0f;
 
     /**
      * Drone flight handling — nimbler than any shuttle profile because the
