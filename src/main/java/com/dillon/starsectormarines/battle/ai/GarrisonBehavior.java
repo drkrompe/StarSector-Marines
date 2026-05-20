@@ -82,7 +82,23 @@ public final class GarrisonBehavior implements UnitBehavior {
         }
         if (squad.alertLevel == SquadAlertLevel.SUSPICIOUS
                 && squad.lastSeenEnemyX >= 0 && squad.lastSeenEnemyY >= 0) {
-            moveToward(u, sim, squad.lastSeenEnemyX, squad.lastSeenEnemyY);
+            // Lean toward the noise, but never out of the hold ring. Without
+            // this clamp, an investigating squad walks all the way to
+            // last-seen-enemy; if alert flips to ENGAGED en route, engaged()'s
+            // home-anchored firing-position search returns null at every
+            // member and the whole squad wedges in holdPosition (squad-16
+            // dump: alive members 50+ cells from home, pathLen=0 each).
+            int sHomeX = u.homeCellX >= 0 ? u.homeCellX : u.cellX;
+            int sHomeY = u.homeCellY >= 0 ? u.homeCellY : u.cellY;
+            int tx = squad.lastSeenEnemyX;
+            int ty = squad.lastSeenEnemyY;
+            float distHomeToLast = TacticalScoring.cellDistance(sHomeX, sHomeY, tx, ty);
+            if (distHomeToLast > GARRISON_HOLD_RADIUS) {
+                float scale = GARRISON_HOLD_RADIUS / distHomeToLast;
+                tx = sHomeX + Math.round((tx - sHomeX) * scale);
+                ty = sHomeY + Math.round((ty - sHomeY) * scale);
+            }
+            moveToward(u, sim, tx, ty);
             return;
         }
 
