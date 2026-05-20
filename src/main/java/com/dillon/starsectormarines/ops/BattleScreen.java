@@ -1902,6 +1902,13 @@ public class BattleScreen implements Screen, BattleUiContext {
             // objective markers, shuttles (aircraft), projectiles, and flyby
             // — all of which should pierce the roof.
             renderRoofs(sim, alphaMult);
+            // Drones live above the roof layer — they hover at roof altitude,
+            // so a drone over a building should visually overlay the BRICK roof
+            // tile rather than be occluded by it. The reciprocal air-LoS rule
+            // (TurretAim.airLosVisible) lets ground combatants still engage them
+            // through the close walls beneath; rendering them on top makes that
+            // engageability visible to the player.
+            renderDrones(sim.getUnits(), alphaMult);
             // Charge sites + equipment drops sit above units so the player can
             // always see where the objectives are — even while a marine stands
             // on top of one. Shuttles still draw on top of the markers when
@@ -2707,10 +2714,11 @@ public class BattleScreen implements Screen, BattleUiContext {
         // per-TurretKind variation the turret pass loops over.
         renderDroneHubs(units, alphaMult);
 
-        // Drones render after hubs and before infantry — small enough that
-        // marines walking adjacent should draw on top, big enough that the
-        // sprite reads clearly above the embankment art.
-        renderDrones(units, alphaMult);
+        // Drones render in their own pass AFTER renderRoofs so they visually
+        // overlay buildings — they're hovering above roof level, not on the
+        // ground beside marines. See the renderRoofs callsite for the pass
+        // order. Skipping here in the unit loop too via the instanceof check
+        // below.
 
         // Dead-body pre-pass — corpses always sit beneath living units so a
         // marine standing over a fallen squadmate fully occludes them.
@@ -2759,6 +2767,9 @@ public class BattleScreen implements Screen, BattleUiContext {
         for (Unit u : units) {
             if (!u.isAlive()) continue;
             if (!u.type.combatant) continue;
+            // Drone HP bars draw in renderDrones — they need to layer above
+            // the roof pass alongside the drone sprite itself.
+            if (u instanceof com.dillon.starsectormarines.battle.Drone) continue;
             float cx = camera.cellToScreenX(u.renderX + 0.5f);
             float cy = camera.cellToScreenY(u.renderY + 0.5f);
             float barW = unitSize;
@@ -2769,9 +2780,6 @@ public class BattleScreen implements Screen, BattleUiContext {
                 barY = cy + visual * camera.cellPxSize() / 2f + HP_BAR_GAP;
             } else if (u instanceof com.dillon.starsectormarines.battle.DroneHubUnit) {
                 float visual = com.dillon.starsectormarines.battle.DroneHubUnit.VISUAL_CELLS;
-                barY = cy + visual * camera.cellPxSize() / 2f + HP_BAR_GAP;
-            } else if (u instanceof com.dillon.starsectormarines.battle.Drone) {
-                float visual = com.dillon.starsectormarines.battle.Drone.VISUAL_CELLS;
                 barY = cy + visual * camera.cellPxSize() / 2f + HP_BAR_GAP;
             } else {
                 barY = cy + half + HP_BAR_GAP;
@@ -3073,12 +3081,21 @@ public class BattleScreen implements Screen, BattleUiContext {
 
         float cellPx = camera.cellPxSize();
         float visual = com.dillon.starsectormarines.battle.Drone.VISUAL_CELLS;
+        float barW = camera.cellPxSize() * 0.9f;
         for (Unit u : units) {
             if (!(u instanceof com.dillon.starsectormarines.battle.Drone) || !u.isAlive()) continue;
             com.dillon.starsectormarines.battle.Drone d = (com.dillon.starsectormarines.battle.Drone) u;
             float cx = camera.cellToScreenX(d.body.x);
             float cy = camera.cellToScreenY(d.body.y);
             drawTurretLayer(droneSprite, d.body.facingDegrees, visual, cellPx, cx, cy, alphaMult);
+            // HP bar follows the body's interpolated position so it tracks
+            // patrol motion. Drawn here (post-roof) so it's visible alongside
+            // the drone sprite even when the drone is over a building.
+            float barY = cy + visual * cellPx / 2f + HP_BAR_GAP;
+            float barX = cx - barW / 2f;
+            fillRect(barX, barY, barW, HP_BAR_H, HP_BG, alphaMult);
+            float frac = Math.max(0f, Math.min(1f, d.hp / d.maxHp));
+            fillRect(barX, barY, barW * frac, HP_BAR_H, HP_FG, alphaMult);
         }
         droneSprite.sprite.setAngle(0f);
     }
