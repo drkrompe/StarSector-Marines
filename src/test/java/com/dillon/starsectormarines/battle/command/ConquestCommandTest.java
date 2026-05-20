@@ -181,13 +181,13 @@ public class ConquestCommandTest {
     }
 
     @Test
-    public void defenderInSquadCurrentZoneClearsAssignment() {
-        // Squad at (2, 5) and defender at (3, 9) are both in zone 0 (the
-        // strip-0 zone). With the nearest-defender algorithm, the target
-        // becomes the squad's own zone — and the commander writes a null
-        // assignment so EliminateEnemiesGoal handles the in-zone fight
-        // instead of ClearAssignedZoneGoal yielding on a self-referential
-        // target.
+    public void defenderInSquadCurrentZoneAssignsClearZone() {
+        // Squad at (2, 5) and defender at (3, 9) — both in the same strip-0
+        // zone. Commander writes CLEAR_ZONE pointing at that zone so
+        // ClearAssignedZoneGoal can stay relevant while the squad clears
+        // it. The goal's customPlan handles the "already in target zone"
+        // case by emitting a ClearZone-only step — no EnterZone re-entry
+        // oscillation.
         BattleSimulation sim = openSim();
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
         Squad squad = addMarineSquad(sim, 2f, 5f);
@@ -195,8 +195,13 @@ public class ConquestCommandTest {
 
         cmd.tick(sim);
 
-        assertNull(squad.assignedObjective,
-                "defender in squad's own zone → null assignment, EliminateEnemies engages");
+        ObjectiveAssignment a = squad.assignedObjective;
+        assertNotNull(a,
+                "defender in squad's own zone → CLEAR_ZONE assignment (goal handles in-zone clear)");
+        assertEquals(AssignmentKind.CLEAR_ZONE, a.kind());
+        int squadZone = sim.getZoneGraph().zoneIdAt(2, 5);
+        assertEquals(squadZone, a.targetZoneId(),
+                "target should be the squad's own zone so the goal stays relevant during clear");
     }
 
     @Test

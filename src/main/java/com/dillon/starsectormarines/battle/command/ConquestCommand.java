@@ -113,15 +113,19 @@ public final class ConquestCommand implements MissionCommand {
             if (squad.aliveMembers <= 0) continue;
             int stripIdx = stripFor(squad);
             int targetZone = nearestDefenderZoneInStrip(squad, stripIdx, sim);
-            int currentZone = ZoneQueries.squadCurrentZone(squad, sim);
-            if (targetZone < 0 || targetZone == currentZone) {
-                // Strip is clear, OR the nearest defender is in the squad's
-                // own zone — let EliminateEnemiesGoal handle the in-zone
-                // fight rather than writing a self-referential assignment
-                // that ClearAssignedZoneGoal would just yield on.
+            if (targetZone < 0) {
+                // No defender-occupied zone in this strip — squad has
+                // cleared their lane. Let EliminateEnemiesGoal handle
+                // ambient cleanup.
                 squad.assignedObjective = null;
                 continue;
             }
+            // Note: we DO NOT null out when targetZone == currentZone.
+            // ClearAssignedZoneGoal keeps firing while in the target zone
+            // (it emits a ClearZone-only customPlan in that case); nulling
+            // the assignment would cause oscillation as the goal yields,
+            // a different goal takes over, the squad drifts out of zone,
+            // commander reticks and re-assigns the same zone, etc.
             ObjectiveAssignment cur = squad.assignedObjective;
             if (cur == null
                     || cur.kind() != AssignmentKind.CLEAR_ZONE

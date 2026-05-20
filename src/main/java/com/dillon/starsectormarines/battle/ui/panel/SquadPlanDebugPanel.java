@@ -403,7 +403,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
         lineY = drawLineIfVisible(font, l2, lineX, lineY, DETAIL_VALUE_FG, alphaMult, vpBottomY, vpTopY);
         lineY = dividerIfVisible(x0, bodyW, lineY, alphaMult, vpBottomY, vpTopY);
 
-        // Section 2: goal + priority bucket.
+        // Section 2: goal + priority bucket + commander assignment.
         String goalLabel = s.currentGoal != null ? s.currentGoal.name() : "(no goal)";
         if (detailScroll.lineVisible(lineY, DETAIL_LINE_H, vpBottomY, vpTopY)) {
             font.drawString("Goal:", lineX, lineY, DETAIL_LABEL_FG, alphaMult);
@@ -412,6 +412,26 @@ public final class SquadPlanDebugPanel implements HudPanel {
                 Goal.Priority pri = s.currentGoal.priority();
                 font.drawString("[" + pri.name() + "]", lineX + 220f, lineY, priorityColor(pri), alphaMult);
             }
+        }
+        lineY -= DETAIL_LINE_H;
+        // Commander assignment readout — what Tier C told this squad to do
+        // (or "—" if no commander wrote one). Distinct from Goal: the goal
+        // is what the squad picked to pursue *this tick*; the assignment is
+        // what the commander wants the squad to be doing strategically.
+        // They diverge when the assignment's zone is unreachable or its
+        // kind doesn't match any registered MISSION-priority goal.
+        if (detailScroll.lineVisible(lineY, DETAIL_LINE_H, vpBottomY, vpTopY)) {
+            font.drawString("Assignment:", lineX, lineY, DETAIL_LABEL_FG, alphaMult);
+            String assignLabel = "—";
+            if (s.assignedObjective != null) {
+                com.dillon.starsectormarines.battle.command.ObjectiveAssignment a = s.assignedObjective;
+                StringBuilder sb = new StringBuilder(a.kind().name());
+                if (a.targetZoneId() >= 0) sb.append(" zone:").append(a.targetZoneId());
+                if (a.targetNode() != null) sb.append(" node");
+                if (a.objectiveId() >= 0) sb.append(" obj:").append(a.objectiveId());
+                assignLabel = sb.toString();
+            }
+            font.drawString(assignLabel, lineX + 96f, lineY, DETAIL_VALUE_FG, alphaMult);
         }
         lineY -= DETAIL_LINE_H;
         lineY = dividerIfVisible(x0, bodyW, lineY, alphaMult, vpBottomY, vpTopY);

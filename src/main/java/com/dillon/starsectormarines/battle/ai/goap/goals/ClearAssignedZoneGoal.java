@@ -1,14 +1,18 @@
 package com.dillon.starsectormarines.battle.ai.goap.goals;
 
 import com.dillon.starsectormarines.battle.BattleSimulation;
+import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.ai.goap.Goal;
 import com.dillon.starsectormarines.battle.ai.goap.Predicate;
 import com.dillon.starsectormarines.battle.ai.goap.SquadPlan;
 import com.dillon.starsectormarines.battle.ai.goap.WorldState;
+import com.dillon.starsectormarines.battle.ai.goap.actions.ClearZone;
 import com.dillon.starsectormarines.battle.ai.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+
+import java.util.List;
 
 /**
  * Commander-driven push-into-zone goal. Fires for squads whose
@@ -58,12 +62,21 @@ public final class ClearAssignedZoneGoal implements Goal {
         if (assignment.kind() != AssignmentKind.CLEAR_ZONE) return 0f;
         int targetZone = assignment.targetZoneId();
         if (targetZone < 0) return 0f;
+        // Objective satisfied — assigned zone has no live enemies left.
+        // Yield so the next replan picks up a fresh assignment (commander
+        // will re-pick its nearest defender on next slow tick).
+        Faction enemy = squad.faction == Faction.MARINE ? Faction.DEFENDER : Faction.MARINE;
+        if (ZoneQueries.zoneClear(targetZone, enemy, sim)) return 0f;
         int currentZone = ZoneQueries.squadCurrentZone(squad, sim);
-        if (currentZone < 0 || currentZone == targetZone) return 0f;
+        if (currentZone < 0) return 0f;
         // Reachability gate — disconnected target zone means the commander's
         // assignment is unrealizable; fall through to ENGAGEMENT defaults so
         // the squad still does something useful while waiting for re-assignment.
-        if (ZoneQueries.zonePathBfs(currentZone, targetZone, sim).size() < 2) return 0f;
+        // Note: when currentZone == targetZone the BFS short-returns
+        // {[currentZone]}; we DON'T treat that as unreachable — we just
+        // emit a ClearZone-only plan in {@link #customPlan} below.
+        if (currentZone != targetZone
+                && ZoneQueries.zonePathBfs(currentZone, targetZone, sim).size() < 2) return 0f;
         // Below SecureObjectiveZone's 1.0 — a squad with both a planter
         // (unit-level objective) and a commander assignment keeps following
         // the planter's target. The commander's task is the fallback for
@@ -82,6 +95,18 @@ public final class ClearAssignedZoneGoal implements Goal {
         if (assignment == null || assignment.kind() != AssignmentKind.CLEAR_ZONE) return null;
         int from = ZoneQueries.squadCurrentZone(squad, sim);
         int to = assignment.targetZoneId();
+        if (from == to) {
+            // Squad already in the target zone — emit a ClearZone-only
+            // plan instead of falling through {@code synthesizeZonePushPlan}'s
+            // "from == to → null" branch. Without this, every replan while
+            // the squad is inside the target zone (but the zone isn't yet
+            // clear) would yield to the next-priority goal — that goal
+            // would move members differently, the centroid would drift to
+            // an adjacent zone, the relevance check would flip back on,
+            // and the customPlan would re-emit EnterZone(target). The
+            // squad oscillates entering and re-entering the building.
+            return new SquadPlan(List.of(new SquadPlan.Step(new ClearZone(to))));
+        }
         return ZoneQueries.synthesizeZonePushPlan(from, to, sim);
     }
 }

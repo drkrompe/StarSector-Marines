@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.ai.goap.goals;
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.Squad;
+import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.UnitType;
 import com.dillon.starsectormarines.battle.ai.goap.Goal;
 import com.dillon.starsectormarines.battle.ai.goap.SquadPlan;
 import com.dillon.starsectormarines.battle.ai.goap.WorldState;
@@ -72,25 +74,68 @@ public class ClearAssignedZoneGoalTest {
     }
 
     @Test
-    public void relevanceZeroWhenAlreadyInTargetZone() {
+    public void relevanceZeroWhenAssignedZoneIsClear() {
+        // Squad in target zone, no defenders in it → goal yields. Lower
+        // buckets (EliminateEnemies) pick up; commander will re-assign
+        // on next slow tick.
         BattleSimulation sim = singleDoorwaySim();
         Squad squad = squadAt(1, 2f, 2f, 1);
         int leftZone = sim.getZoneGraph().zoneIdAt(2, 2);
         squad.assignedObjective = ObjectiveAssignment.clearZone(squad.id, leftZone);
 
         assertEquals(0f, ClearAssignedZoneGoal.INSTANCE.relevance(WorldState.EMPTY, squad, sim),
-                "already in assigned zone → goal inactive, lower buckets pick up");
+                "target zone has no live defenders → goal inactive");
     }
 
     @Test
-    public void relevancePositiveWhenAssignedZoneIsReachable() {
+    public void relevancePositiveWhenInTargetZoneWithDefendersAlive() {
+        // The oscillation-fix invariant: while we're INSIDE the target zone
+        // but it still has defenders, the goal stays relevant. Without
+        // this, the goal would yield on entry, a lower-priority goal
+        // would move the squad differently, the centroid would drift to
+        // an adjacent zone, the goal would flip back on, and the squad
+        // would visibly re-enter the building each replan.
+        BattleSimulation sim = singleDoorwaySim();
+        Squad squad = squadAt(1, 2f, 2f, 1);
+        int leftZone = sim.getZoneGraph().zoneIdAt(2, 2);
+        squad.assignedObjective = ObjectiveAssignment.clearZone(squad.id, leftZone);
+        // Live defender in the same zone.
+        Unit defender = new Unit("d1", Faction.DEFENDER, UnitType.MARINE, 3, 3);
+        sim.addUnit(defender);
+
+        assertTrue(ClearAssignedZoneGoal.INSTANCE.relevance(WorldState.EMPTY, squad, sim) > 0f,
+                "in target zone + defenders alive → goal stays relevant for the clear");
+    }
+
+    @Test
+    public void customPlanEmitsClearZoneOnlyWhenAlreadyInTargetZone() {
+        BattleSimulation sim = singleDoorwaySim();
+        Squad squad = squadAt(1, 2f, 2f, 1);
+        int leftZone = sim.getZoneGraph().zoneIdAt(2, 2);
+        squad.assignedObjective = ObjectiveAssignment.clearZone(squad.id, leftZone);
+
+        SquadPlan plan = ClearAssignedZoneGoal.INSTANCE.customPlan(squad, sim);
+        assertNotNull(plan, "in-target-zone customPlan should still emit a plan");
+        assertEquals(1, plan.stepCount(),
+                "in-target-zone plan is a single ClearZone step — no EnterZone re-entry");
+        assertTrue(plan.steps().get(0).action instanceof ClearZone);
+        assertEquals(leftZone, ((ClearZone) plan.steps().get(0).action).targetZoneId());
+    }
+
+    @Test
+    public void relevancePositiveWhenAssignedZoneIsReachableAndOccupied() {
         BattleSimulation sim = singleDoorwaySim();
         Squad squad = squadAt(1, 2f, 2f, 1);
         int rightZone = sim.getZoneGraph().zoneIdAt(8, 3);
         squad.assignedObjective = ObjectiveAssignment.clearZone(squad.id, rightZone);
+        // Live defender in the target zone — otherwise zoneClear short-
+        // returns and relevance yields. The point of the test is the
+        // reachability check is positive, not the empty-zone case.
+        Unit defender = new Unit("d1", Faction.DEFENDER, UnitType.MARINE, 8, 3);
+        sim.addUnit(defender);
 
         assertTrue(ClearAssignedZoneGoal.INSTANCE.relevance(WorldState.EMPTY, squad, sim) > 0f,
-                "reachable CLEAR_ZONE assignment should make the goal relevant");
+                "reachable + occupied CLEAR_ZONE assignment should make the goal relevant");
     }
 
     @Test
@@ -142,6 +187,8 @@ public class ClearAssignedZoneGoalTest {
         Squad squad = squadAt(1, 2f, 2f, 1);
         int rightZone = sim.getZoneGraph().zoneIdAt(8, 3);
         squad.assignedObjective = ObjectiveAssignment.clearZone(squad.id, rightZone);
+        Unit defender = new Unit("d1", Faction.DEFENDER, UnitType.MARINE, 8, 3);
+        sim.addUnit(defender);
 
         float r = ClearAssignedZoneGoal.INSTANCE.relevance(WorldState.EMPTY, squad, sim);
         assertTrue(r > 0f && r < 1.0f,
