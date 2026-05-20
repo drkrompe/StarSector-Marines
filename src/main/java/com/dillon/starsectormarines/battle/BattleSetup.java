@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.air.TurretMount;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.mapgen.MapGenerator;
 import com.dillon.starsectormarines.battle.mapgen.MapResult;
+import com.dillon.starsectormarines.battle.mapgen.PlacementGuards;
 import com.dillon.starsectormarines.battle.mapgen.TraversalAxis;
 import com.dillon.starsectormarines.battle.mapgen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -1040,8 +1041,12 @@ public final class BattleSetup {
      *
      * <p>Vehicle anchors are required to sit on a street or courtyard cell,
      * never on an indoor floor — a truck parked in a living room would read
-     * wrong. Doorway cells are also excluded so we don't accidentally seal
-     * a building's only entrance.
+     * wrong. {@link PlacementGuards#touchesDoorway Doorway-adjacent} cells are
+     * excluded so the vehicle doesn't seal a building's only egress (the
+     * doorway's perpendicular through-cell is walkable and unflagged, but
+     * blocking it traps the interior), and
+     * {@link PlacementGuards#wouldPartitionWalkable connectivity} is checked
+     * so the truck can't sever a thin walkable strip from the main graph.
      */
     private static List<MapVehicle> stampVehicles(NavigationGrid grid, CellTopology topology, Random rng) {
         int target = VEHICLE_COUNT_MIN + rng.nextInt(VEHICLE_COUNT_MAX - VEHICLE_COUNT_MIN + 1);
@@ -1055,6 +1060,8 @@ public final class BattleSetup {
             int x = rng.nextInt(Math.max(1, grid.getWidth()  - kind.footprintCellsX));
             int y = rng.nextInt(Math.max(1, grid.getHeight() - kind.footprintCellsY));
             if (!canPlaceVehicle(grid, topology, x, y, kind)) continue;
+            if (PlacementGuards.wouldPartitionWalkable(
+                    grid, x, y, kind.footprintCellsX, kind.footprintCellsY)) continue;
             stampOneVehicle(grid, topology, x, y, kind);
             placed.add(new MapVehicle(kind, x, y));
         }
@@ -1068,7 +1075,7 @@ public final class BattleSetup {
                 int cy = y + dy;
                 if (!grid.inBounds(cx, cy)) return false;
                 if (!grid.isWalkable(cx, cy)) return false;
-                if (grid.isDoorway(cx, cy)) return false;
+                if (PlacementGuards.touchesDoorway(grid, cx, cy)) return false;
                 if (!topology.isStreet(cx, cy) && !topology.isCourtyard(cx, cy)) return false;
             }
         }
