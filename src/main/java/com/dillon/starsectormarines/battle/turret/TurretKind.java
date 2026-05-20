@@ -352,6 +352,17 @@ public enum TurretKind {
         }
     }
 
+    /**
+     * True for rocket-class kinds whose projectile accelerates from rest —
+     * applies the {@link com.dillon.starsectormarines.battle.Projectile#applyBoostCurve}
+     * boost-then-cruise visual curve in flight. False for chemical-charge
+     * shells (grenades, mortars) which exit the tube already at terminal
+     * velocity and travel at constant speed.
+     */
+    public boolean hasBoostRamp() {
+        return this == LOCUST;
+    }
+
     /** Visual impact profile for this kind — small spark for the fast/light weapons, kinetic flash + smoke for the mid-weight shells, full HE burst for the mortar. */
     public ImpactProfile impactProfile() {
         switch (this) {

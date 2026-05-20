@@ -54,6 +54,44 @@ public final class Projectile {
     /** When set, the projectile is removed on the next tick without detonating. Reserved for the point-defense intercept path — not yet wired. */
     public boolean intercepted;
 
+    /**
+     * Fraction of total flight time spent in the booster-ramp phase. Position
+     * grows quadratically over this window (constant acceleration from 0
+     * velocity), then transitions to linear travel at terminal velocity. The
+     * end-of-boost and start-of-cruise velocities are matched for C1
+     * continuity — no visible kink at the transition.
+     */
+    public static final float BOOST_FRACTION = 0.25f;
+    /**
+     * Distance fraction covered by the end of the boost phase, derived so the
+     * velocity is C1 continuous at the boost/cruise junction:
+     * {@code BOOST_FRACTION / (2 - BOOST_FRACTION) ≈ 0.143}. The rocket spends
+     * 25% of its flight covering 14% of the distance (slow boost), then 75%
+     * of its flight covering the remaining 86% at terminal velocity.
+     */
+    public static final float BOOST_DIST = BOOST_FRACTION / (2f - BOOST_FRACTION);
+    /** Quadratic coefficient applied during boost: {@code BOOST_DIST / BOOST_FRACTION²}. */
+    private static final float BOOST_QUAD_COEFF = BOOST_DIST / (BOOST_FRACTION * BOOST_FRACTION);
+    /** Terminal velocity relative to the constant-velocity baseline. With BOOST_FRACTION=0.25, this is ~1.143 — the cruise leg covers ground 14% faster than a same-flight-time constant-velocity rocket would. */
+    private static final float TERMINAL_VEL = (1f - BOOST_DIST) / (1f - BOOST_FRACTION);
+
+    /**
+     * Boost-then-cruise curve: maps a linear time fraction {@code t ∈ [0,1]}
+     * to a position fraction. Quadratic ease-in over {@link #BOOST_FRACTION},
+     * then linear at terminal velocity. Reads as "booster ignites, rocket
+     * accelerates from the launch tube, then sustains terminal velocity."
+     * Static so the renderer can apply the same curve when computing the
+     * projectile sprite's screen-space lerp position.
+     */
+    public static float applyBoostCurve(float linearT) {
+        if (linearT <= 0f) return 0f;
+        if (linearT >= 1f) return 1f;
+        if (linearT < BOOST_FRACTION) {
+            return BOOST_QUAD_COEFF * linearT * linearT;
+        }
+        return BOOST_DIST + (linearT - BOOST_FRACTION) * TERMINAL_VEL;
+    }
+
     public Projectile(float fromX, float fromY, float toX, float toY,
                       TurretKind kind, Faction shooterFaction, boolean aerialDelivery,
                       float totalFlightTime, PendingDetonation onArrival) {
@@ -79,14 +117,17 @@ public final class Projectile {
         return p;
     }
 
-    /** Current world-space X (cells). Straight-line lerp from→to. */
+    /** Current world-space X (cells). Rocket-class kinds use the boost curve so they start slow and accelerate to terminal velocity; chemical-charge shells (no boost ramp) travel at constant speed. */
     public float currentX() {
-        return fromX + (toX - fromX) * progress();
+        float raw = progress();
+        float p = (kind != null && kind.hasBoostRamp()) ? applyBoostCurve(raw) : raw;
+        return fromX + (toX - fromX) * p;
     }
 
-    /** Current world-space Y (cells). Adds the kind's parabolic arc on top of the straight-line lerp — same visual as the legacy renderer's arc math. */
+    /** Current world-space Y (cells). Parabolic arc layered on top of the (possibly curved) lerp. Arc peak follows the curved progress so a rocket's arc apex shifts toward late-flight (where it actually is) rather than time-midpoint. */
     public float currentY() {
-        float p = progress();
+        float raw = progress();
+        float p = (kind != null && kind.hasBoostRamp()) ? applyBoostCurve(raw) : raw;
         float y = fromY + (toY - fromY) * p;
         if (kind != null && kind.arcHeight > 0f) {
             y += kind.arcHeight * 4f * p * (1f - p);

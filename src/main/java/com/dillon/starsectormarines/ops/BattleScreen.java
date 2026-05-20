@@ -3332,7 +3332,15 @@ public class BattleScreen implements Screen, BattleUiContext {
                 continue;
             }
             if (cache == null) continue;
-            float progress = 1f - Math.max(0f, Math.min(1f, s.lifetime / Math.max(0.001f, s.lifetimeMax)));
+            float linearProgress = 1f - Math.max(0f, Math.min(1f, s.lifetime / Math.max(0.001f, s.lifetimeMax)));
+            // Rocket-class kinds with a boost ramp accelerate from rest to
+            // terminal velocity via {@link com.dillon.starsectormarines.battle.Projectile#applyBoostCurve}.
+            // Chemical-charge shells (GRENADE_LAUNCHER, mortars) exit the
+            // tube at terminal velocity and travel at constant speed — they
+            // keep linear lerp, same as direct-fire tracer kinds.
+            float progress = (s.turretKind != null && s.turretKind.hasBoostRamp())
+                    ? com.dillon.starsectormarines.battle.Projectile.applyBoostCurve(linearProgress)
+                    : linearProgress;
             float px = s.fromX + (s.toX - s.fromX) * progress;
             float py = s.fromY + (s.toY - s.fromY) * progress;
             // Parabolic arc — peaks at progress=0.5 with the kind's arcHeight.
@@ -3441,7 +3449,13 @@ public class BattleScreen implements Screen, BattleUiContext {
         // 2. Push samples for live ribbon-eligible shots.
         for (ShotEvent s : shots) {
             if (s.turretKind == null || !kindUsesContrailRibbon(s.turretKind)) continue;
-            float progress = 1f - Math.max(0f, Math.min(1f, s.lifetime / Math.max(0.001f, s.lifetimeMax)));
+            float linearProgress = 1f - Math.max(0f, Math.min(1f, s.lifetime / Math.max(0.001f, s.lifetimeMax)));
+            // Match the projectile sprite's boost curve so the ribbon tail
+            // tracks the rocket's actual visual position. Rocket-class kinds
+            // get the boost; chemical-charge shells stay on linear lerp.
+            float progress = s.turretKind.hasBoostRamp()
+                    ? com.dillon.starsectormarines.battle.Projectile.applyBoostCurve(linearProgress)
+                    : linearProgress;
             float px = s.fromX + (s.toX - s.fromX) * progress;
             float py = s.fromY + (s.toY - s.fromY) * progress;
             float arcH = s.turretKind.arcHeight;
