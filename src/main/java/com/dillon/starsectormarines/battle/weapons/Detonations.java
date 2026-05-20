@@ -74,6 +74,13 @@ public class Detonations {
         int targetCx = (int) Math.floor(det.endpointX);
         int targetCy = (int) Math.floor(det.endpointY);
         if (det.aoeRadius > 0f) {
+            // Lingering smoke column at every HE impact. Pure visual — the
+            // plume's emitter sits on the sim's smoke-plume list for a few
+            // sim-seconds, emitting puffs into the same drain the smoking-
+            // wreck pass uses. Initial flame-burst FX still come from the
+            // renderer's per-shot impact dispatch; the plume is the rising
+            // column that lingers after the burst dissipates.
+            ctx.spawnSmokePlume(det.endpointX, det.endpointY);
             float r2 = det.aoeRadius * det.aoeRadius;
             for (Unit u : ctx.getUnits()) {
                 if (!u.isAlive()) continue;

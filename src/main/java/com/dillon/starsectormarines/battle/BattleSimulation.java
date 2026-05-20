@@ -192,6 +192,13 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Min/max sim-seconds between fire bursts on a single wreck. Tighter than smoke — fire is the more active, frequent emission during the burn phase. */
     private static final float WRECK_FIRE_MIN_GAP = 0.25f;
     private static final float WRECK_FIRE_MAX_GAP = 0.50f;
+    /** Active impact smoke plumes parked at HE detonation sites. Lighter cousin of {@link SmokingWreck} — shorter lifetime, no fire phase, fractional cell positions. Pipes through the shared {@link #smokePuffsThisFrame} drain. */
+    private final List<SmokePlume> smokePlumes = new ArrayList<>();
+    /** Total sim-seconds an HE impact plume keeps emitting. Long enough to read as a lingering column rising off the impact site, short enough that overlapping rocket salvos don't pile into permanent smoke. */
+    private static final float PLUME_LIFETIME = 5.0f;
+    /** Min/max sim-seconds between puff emissions on a single plume. Tighter than wreck cadence — impact smoke is denser per-second during its brief life. */
+    private static final float PLUME_PUFF_MIN_GAP = 0.18f;
+    private static final float PLUME_PUFF_MAX_GAP = 0.32f;
     /** Dense, primitive-keyed squad lookup. fastutil's Int2ObjectOpenHashMap avoids the per-call Integer autobox that {@link #getSquad} would do on a {@code HashMap<Integer, Squad>} — and getSquad is hit per-unit per-tick from the behavior dispatch. */
     private final Int2ObjectMap<Squad> squads = new Int2ObjectOpenHashMap<>();
 
@@ -611,6 +618,11 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                 0.05f + rng.nextFloat() * 0.10f));
     }
 
+    @Override
+    public void spawnSmokePlume(float x, float y) {
+        smokePlumes.add(new SmokePlume(x, y, PLUME_LIFETIME));
+    }
+
     /**
      * Base chance a hit triggers a mech target re-evaluation when the mech
      * still has line-of-sight to its current target. Moderate — keeps the
@@ -876,6 +888,9 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         demolishDeadTurrets();
         // Age smoking wrecks + emit any puff events that came due this tick.
         tickSmokingWrecks();
+        // Lingering smoke plumes parked at HE impact sites — same per-frame
+        // puff drain as the wrecks, just on a shorter, fire-less timer.
+        tickSmokePlumes();
         // Air vehicles tick AFTER units so new deboarded marines aren't iterated
         // mid-loop. They'll be picked up by next tick's occupancy + target pass.
         airSystem.tick(this, TICK_DT);
@@ -1149,6 +1164,35 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                     w.nextFireTimer = WRECK_FIRE_MIN_GAP
                             + rng.nextFloat() * (WRECK_FIRE_MAX_GAP - WRECK_FIRE_MIN_GAP);
                 }
+            }
+        }
+    }
+
+    /**
+     * Ages each smoke plume and emits puff events on a jittered timer. Per-puff
+     * radius scales with the remaining-lifetime fraction so the plume billows
+     * hard at impact and thins as it rises. Reuses the shared
+     * {@link #smokePuffsThisFrame} drain that wrecks emit into — the renderer
+     * already pulls from that list each frame.
+     */
+    private void tickSmokePlumes() {
+        for (int i = smokePlumes.size() - 1; i >= 0; i--) {
+            SmokePlume p = smokePlumes.get(i);
+            p.remainingLifetime -= TICK_DT;
+            if (p.remainingLifetime <= 0f) {
+                smokePlumes.remove(i);
+                continue;
+            }
+            p.nextPuffTimer -= TICK_DT;
+            if (p.nextPuffTimer <= 0f) {
+                float lifeFrac = p.remainingLifetime / p.totalLifetime;
+                // Bigger puffs early (impact bloom), tightening as the column
+                // rises. Floor keeps the tail-end column readable rather than
+                // shrinking to invisible.
+                float radius = 0.45f + Math.max(0.20f, lifeFrac) * 0.55f;
+                smokePuffsThisFrame.add(new float[]{p.x, p.y, radius});
+                p.nextPuffTimer = PLUME_PUFF_MIN_GAP
+                        + rng.nextFloat() * (PLUME_PUFF_MAX_GAP - PLUME_PUFF_MIN_GAP);
             }
         }
     }

@@ -135,4 +135,12 @@ public interface WeaponSimContext {
      * the sim — callers just say "this thing died here."
      */
     void spawnSmokingWreck(int x, int y);
+
+    /**
+     * Spawns a lingering smoke plume at the (fractional) cell position
+     * ({@code x}, {@code y}). Used by the AoE detonation pipeline to emit a
+     * column of smoke that rises off an HE impact site for several seconds
+     * after the initial flame burst. Visual only — no gameplay state.
+     */
+    void spawnSmokePlume(float x, float y);
 }
