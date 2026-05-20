@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.air.AirHandling;
 
 /**
  * Autonomous defensive drone launched from a {@link DroneHubUnit}. Combatant
@@ -53,8 +54,46 @@ public class Drone extends Unit {
      */
     public final AirBody body = new AirBody();
 
-    /** Hub that launched this drone. Held so the hub's active-drone bookkeeping can drop dead drones; patrol behavior will read it for the patrol-around-this-anchor goal. */
+    /** Hub that launched this drone. Held so the hub's active-drone bookkeeping can drop dead drones; patrol behavior reads it for the patrol-around-this-anchor goal. */
     public final DroneHubUnit homeHub;
+
+    /**
+     * Radius (cells) around the hub's anchor within which the drone picks
+     * patrol waypoints. Sized so the drone covers roughly the city block the
+     * hub sits in — wide enough to spread fire coverage, tight enough that
+     * the drone doesn't wander into the next defense post's territory.
+     */
+    public static final float PATROL_RADIUS_CELLS = 8f;
+
+    /**
+     * Current patrol waypoint, world cell coords. Picked when spawned; re-
+     * rolled when the drone gets close to it. Sentinel value
+     * {@link Float#NaN} means "no waypoint yet" — DroneBehavior picks one on
+     * first tick using {@code BattleSimulation.getRng()}.
+     */
+    public float patrolGoalX = Float.NaN;
+    public float patrolGoalY = Float.NaN;
+
+    /**
+     * Drone flight handling — nimbler than any shuttle profile because the
+     * drone is small and patrolling, not hauling marines. The high turn rate
+     * lets it pivot onto a new patrol waypoint in roughly a second; modest
+     * accel keeps the motion read as a smooth drift rather than a teleport.
+     * Lateral damping is high so the drone tracks its waypoint cleanly when
+     * cruising and settles tight against drift while station-keeping during
+     * an engagement.
+     */
+    public static final AirHandling HANDLING = new AirHandling() {
+        @Override public float maxSpeed()                 { return 2.5f; }
+        @Override public float accel()                    { return 4f; }
+        @Override public float brakingAccel()             { return 6f; }
+        @Override public float maxTurnRateDegPerSec()     { return TURN_RATE_DEG_PER_SEC; }
+        @Override public float lateralDriftDamping()      { return 4f; }
+        @Override public float stationDamping()           { return 8f; }
+    };
+
+    /** Re-roll the patrol waypoint when the drone gets within this many cells. */
+    public static final float PATROL_WAYPOINT_ARRIVE_DIST = 1.2f;
 
     public Drone(String id, Faction faction, int cellX, int cellY, DroneHubUnit homeHub) {
         super(id, faction, UnitType.DRONE, cellX, cellY);
