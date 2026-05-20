@@ -65,5 +65,14 @@ public enum UnitRole {
     FLEE,
     TURRET,
     GARRISON,
-    PATROL
+    PATROL,
+    /**
+     * Static structure with HP but no AI — targetable, takes damage, dies
+     * when hp depletes, but the per-tick behavior dispatch is a no-op.
+     * Currently assigned to drone hubs (see
+     * {@link com.dillon.starsectormarines.battle.DroneHubUnit}); the drones
+     * launched from the hub do the actual fighting, the hub itself just sits
+     * there with a health bar.
+     */
+    STRUCTURE
 }

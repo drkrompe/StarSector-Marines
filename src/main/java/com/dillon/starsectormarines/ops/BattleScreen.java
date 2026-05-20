@@ -321,6 +321,9 @@ public class BattleScreen implements Screen, BattleUiContext {
             new java.util.EnumMap<>(MarineSecondary.class);
     private boolean marineSecondarySpritesLoadAttempted;
     private boolean turretSpritesLoadAttempted;
+    /** Single-entry cache for the drone-hub structure sprite (same vanilla weapon-sprite shape as the turret cache). Loaded once, reused for every {@link com.dillon.starsectormarines.battle.DroneHubUnit} on the map. */
+    private ShuttleSpriteCache droneHubSprite;
+    private boolean droneHubSpriteLoadAttempted;
     /** Sim-seconds the barrel sprite eases forward to its at-rest position after a shot. Quick snap-back-then-return reads as a real recoil pulse. */
     private static final float RECOIL_DURATION = 0.12f;
     /** Peak backward displacement of the barrel sprite, as a fraction of the turret's visual long-axis (cells). Vanilla uses absolute pixel offsets per-weapon; a relative figure scales cleanly across our 5 kinds. */
@@ -1076,6 +1079,27 @@ public class BattleScreen implements Screen, BattleUiContext {
             loadTurretSpriteInto(turretSprites,           kind, kind.spritePath);
             loadTurretSpriteInto(turretRecoilSprites,     kind, kind.recoilSpritePath);
             loadTurretSpriteInto(turretProjectileSprites, kind, kind.projectileSpritePath);
+        }
+    }
+
+    private void ensureDroneHubSprite() {
+        if (droneHubSpriteLoadAttempted) return;
+        droneHubSpriteLoadAttempted = true;
+        String path = com.dillon.starsectormarines.battle.DroneHubUnit.SPRITE_PATH;
+        try {
+            Global.getSettings().loadTexture(path);
+            SpriteAPI sprite = Global.getSettings().getSprite(path);
+            if (sprite == null) {
+                LOG.warn("BattleScreen: getSprite returned null for " + path);
+                return;
+            }
+            float w = sprite.getWidth();
+            float h = sprite.getHeight();
+            float aspect = (h > 0f) ? w / h : 1f;
+            droneHubSprite = new ShuttleSpriteCache(sprite, aspect);
+            LOG.info("BattleScreen: loaded " + path + " (" + w + "x" + h + ", aspect=" + aspect + ")");
+        } catch (Exception e) {
+            LOG.error("BattleScreen: failed to load " + path, e);
         }
     }
 
@@ -2653,6 +2677,12 @@ public class BattleScreen implements Screen, BattleUiContext {
         // pass runs before the marine pass.)
         renderTurrets(units, alphaMult);
 
+        // Drone hubs sit on the same Z-layer as turrets — static defenses
+        // beneath ambulatory marines. Separate pass because hubs use a single
+        // fixed sprite (no per-instance facing or recoil) rather than the
+        // per-TurretKind variation the turret pass loops over.
+        renderDroneHubs(units, alphaMult);
+
         // Dead-body pre-pass — corpses always sit beneath living units so a
         // marine standing over a fallen squadmate fully occludes them.
         renderDeadUnits(units, unitSize, alphaMult);
@@ -2665,6 +2695,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         for (Unit u : units) {
             if (!u.isAlive()) continue;
             if (u instanceof MapTurret) continue; // handled by renderTurrets above
+            if (u instanceof com.dillon.starsectormarines.battle.DroneHubUnit) continue; // handled by renderDroneHubs above
             UnitSpriteCache cache = unitSprites.get(u.type);
             // Mid-aim rocket marine swaps to the per-secondary aim sheet so
             // the launcher pose reads. Falls back to the regular sheet if the
@@ -2705,6 +2736,9 @@ public class BattleScreen implements Screen, BattleUiContext {
             float barY;
             if (u instanceof MapTurret) {
                 float visual = ((MapTurret) u).kind.visualCells;
+                barY = cy + visual * camera.cellPxSize() / 2f + HP_BAR_GAP;
+            } else if (u instanceof com.dillon.starsectormarines.battle.DroneHubUnit) {
+                float visual = com.dillon.starsectormarines.battle.DroneHubUnit.VISUAL_CELLS;
                 barY = cy + visual * camera.cellPxSize() / 2f + HP_BAR_GAP;
             } else {
                 barY = cy + half + HP_BAR_GAP;
@@ -2939,6 +2973,53 @@ public class BattleScreen implements Screen, BattleUiContext {
             ShuttleSpriteCache c = turretRecoilSprites.get(k);
             if (c != null) c.sprite.setAngle(0f);
         }
+    }
+
+    /**
+     * Renders {@link com.dillon.starsectormarines.battle.DroneHubUnit} entries —
+     * pavement plate under the sealed launch pad + a fixed-orientation vanilla
+     * weapon sprite (the Pilum launcher reused as a drone bay). No facing or
+     * recoil; the hub doesn't fire itself.
+     */
+    private void renderDroneHubs(List<Unit> units, float alphaMult) {
+        boolean any = false;
+        for (Unit u : units) {
+            if (u instanceof com.dillon.starsectormarines.battle.DroneHubUnit && u.isAlive()) { any = true; break; }
+        }
+        if (!any) return;
+        ensureDroneHubSprite();
+
+        float cellPx = camera.cellPxSize();
+
+        // Pavement plate under each hub cell — mirrors the turret underlay so
+        // the transparent margins of the sprite blend with surrounding street.
+        glDisable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBegin(GL_QUADS);
+        glColor4f(ROAD_FILL.getRed() / 255f, ROAD_FILL.getGreen() / 255f,
+                ROAD_FILL.getBlue() / 255f, alphaMult);
+        for (Unit u : units) {
+            if (!(u instanceof com.dillon.starsectormarines.battle.DroneHubUnit) || !u.isAlive()) continue;
+            float x0 = camera.cellToScreenX(u.cellX);
+            float y0 = camera.cellToScreenY(u.cellY);
+            glVertex2f(x0,          y0);
+            glVertex2f(x0 + cellPx, y0);
+            glVertex2f(x0 + cellPx, y0 + cellPx);
+            glVertex2f(x0,          y0 + cellPx);
+        }
+        glEnd();
+
+        // Sprite pass — single shared sprite, fixed at facing 0 (north).
+        if (droneHubSprite == null) return;
+        float visual = com.dillon.starsectormarines.battle.DroneHubUnit.VISUAL_CELLS;
+        for (Unit u : units) {
+            if (!(u instanceof com.dillon.starsectormarines.battle.DroneHubUnit) || !u.isAlive()) continue;
+            float cx = camera.cellToScreenX(u.cellX + 0.5f);
+            float cy = camera.cellToScreenY(u.cellY + 0.5f);
+            drawTurretLayer(droneHubSprite, /*facingDegrees=*/ 0f, visual, cellPx, cx, cy, alphaMult);
+        }
+        droneHubSprite.sprite.setAngle(0f);
     }
 
     /** Renders one turret layer (body or barrel) at the given facing + center, sized to fit the visual envelope. Hoisted out so both layers share the setSize/setAngle/setColor boilerplate. */

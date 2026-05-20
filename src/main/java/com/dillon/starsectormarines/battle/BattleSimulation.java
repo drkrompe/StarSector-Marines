@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.ai.GarrisonBehavior;
 import com.dillon.starsectormarines.battle.ai.KitRetrieverBehavior;
 import com.dillon.starsectormarines.battle.ai.PatrolBehavior;
 import com.dillon.starsectormarines.battle.ai.SquadAlertLevel;
+import com.dillon.starsectormarines.battle.ai.StructureBehavior;
 import com.dillon.starsectormarines.battle.ai.TacticalScoring;
 import com.dillon.starsectormarines.battle.ai.TurretBehavior;
 import com.dillon.starsectormarines.battle.ai.UnitBehavior;
@@ -623,6 +624,11 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     @Override
     public void queueDetonation(PendingDetonation det) {
         detonations.queue(det);
+    }
+
+    /** Read-only view of in-flight rocket / missile detonations. Used by squad-coordination scorers (avoid rocket volleys against an already-doomed turret). */
+    public List<PendingDetonation> getInflightDetonations() {
+        return detonations.getPending();
     }
 
     /**
@@ -1294,6 +1300,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             case TURRET:         return TurretBehavior.INSTANCE;
             case GARRISON:       return GarrisonBehavior.INSTANCE;
             case PATROL:         return PatrolBehavior.INSTANCE;
+            case STRUCTURE:      return StructureBehavior.INSTANCE;
             case OBJECTIVE_CAMPER:
             case VIP:
             case COMBATANT:

@@ -1142,6 +1142,7 @@ public final class BattleSetup {
      */
     private static void spawnDefensePostTurrets(BattleSimulation sim, List<DefensePost> posts) {
         int i = 0;
+        int h = 0;
         for (DefensePost post : posts) {
             for (DefensePost.TurretSpec spec : post.turrets) {
                 sim.addUnit(new MapTurret("t" + i++, Faction.DEFENDER, spec.kind, spec.cellX, spec.cellY));
@@ -1150,6 +1151,13 @@ public final class BattleSetup {
                 sim.getGrid().recomputeCoverAt(spec.cellX - 1, spec.cellY);
                 sim.getGrid().recomputeCoverAt(spec.cellX, spec.cellY + 1);
                 sim.getGrid().recomputeCoverAt(spec.cellX, spec.cellY - 1);
+            }
+            // DRONE_HUB has no turrets — the hub structure occupies the sealed
+            // center cell (already flipped non-walkable by the stamper's
+            // sealInnerCell call). Spawning the DroneHubUnit here gives it HP
+            // and a render target; the drones it'll launch come in a follow-up.
+            if (post.tier == DefensePostKind.DRONE_HUB) {
+                sim.addUnit(new DroneHubUnit("dh" + h++, Faction.DEFENDER, post.anchorX, post.anchorY));
             }
         }
     }

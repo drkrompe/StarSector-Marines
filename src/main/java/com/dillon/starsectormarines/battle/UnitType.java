@@ -40,7 +40,9 @@ public enum UnitType {
     /** Lab tech. Same role as civilian — wanders, flees. Lower HP than engineer; same speed. */
     SCIENTIST  ("graphics/battle/scientist.png",   null,                                   false,  8f, 0f,   2.2f, 0f,    1f,   0f,    FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f),
     /** Static ground turret. Combatant so it targets and gets targeted, but its sprite + stats come from {@link MapTurret#kind} at construction — the values here are zero placeholders that {@link MapTurret} overwrites. */
-    TURRET     ("",                                null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f);
+    TURRET     ("",                                null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f),
+    /** Drone launch hub — a static structure that periodically deploys aerial drones (see {@link com.dillon.starsectormarines.battle.DroneHubUnit}). Combatant so marines target and damage it, but its role is {@link UnitRole#STRUCTURE} (no aim loop, no firing). Sprite path is empty because the hub uses a per-instance vanilla weapon sprite picked at construction, same convention as {@link #TURRET}. HP set on the instance, not here. */
+    DRONE_HUB_STRUCTURE ("",                       null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f);
 
     public final String spritePath;
     /** Optional corpse sheet — 4 prone poses, auto-sliced like the alive sheets. Drawn for {@code !isAlive()} units in their own pre-pass so live units draw on top. Null = no corpse rendering (units just vanish on death). */
