@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle;
 
+import com.dillon.starsectormarines.battle.turret.MapTurret;
+
 /**
  * Tier / archetype of a {@link Unit}. Bundles its sprite sheet, whether it's a
  * combatant, and the base stat block applied at construction. {@link Faction}

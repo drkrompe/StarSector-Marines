@@ -4,9 +4,10 @@ import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.turret.MapTurret;
 
 /**
- * Shared turret aim/fire loop — used by both static {@link com.dillon.starsectormarines.battle.MapTurret}s
+ * Shared turret aim/fire loop — used by both static {@link MapTurret}s
  * (via {@link TurretBehavior}) and shuttle-mounted turrets (via
  * {@link com.dillon.starsectormarines.battle.air.AirSystem}). Caller fills in
  * a {@link State}, calls {@link #tick}, and on return reads back the updated

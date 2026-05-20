@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle;
 
 import com.dillon.starsectormarines.battle.fx.ImpactProfile;
+import com.dillon.starsectormarines.battle.turret.MapTurret;
 
 import java.awt.Color;
 

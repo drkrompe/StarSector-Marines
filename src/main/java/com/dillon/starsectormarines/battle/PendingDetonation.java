@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle;
 
+import com.dillon.starsectormarines.battle.turret.MapTurret;
+
 /**
  * A rocket / missile in flight, scheduled to detonate at a specific cell after
  * its flight time elapses. Queued by the sim at fire time and drained by the

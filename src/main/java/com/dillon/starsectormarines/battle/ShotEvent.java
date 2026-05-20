@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.battle;
 
+import com.dillon.starsectormarines.battle.turret.MapTurret;
+import com.dillon.starsectormarines.battle.turret.TurretKind;
+
 /**
  * Visual record of a single shot fired by a unit in {@link BattleSimulation}.
  * Emitted on every fire — hit or miss — so the renderer can draw a tracer

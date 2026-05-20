@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.air;
 
 import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.MarineLoadout;
-import com.dillon.starsectormarines.battle.TurretRole;
+import com.dillon.starsectormarines.battle.turret.TurretRole;
 import com.dillon.starsectormarines.battle.Unit;
 
 /**

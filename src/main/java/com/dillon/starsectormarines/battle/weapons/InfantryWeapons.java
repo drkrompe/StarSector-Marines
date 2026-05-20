@@ -1,12 +1,12 @@
 package com.dillon.starsectormarines.battle.weapons;
 
 import com.dillon.starsectormarines.battle.BattleSimulation;
-import com.dillon.starsectormarines.battle.MapTurret;
+import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.MarineSecondary;
 import com.dillon.starsectormarines.battle.MarineWeapon;
 import com.dillon.starsectormarines.battle.PendingDetonation;
 import com.dillon.starsectormarines.battle.ShotEvent;
-import com.dillon.starsectormarines.battle.TurretKind;
+import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.Unit;
 
 /**

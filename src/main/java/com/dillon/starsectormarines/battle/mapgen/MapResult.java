@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.map.Buildings;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.tactical.TacticalMap;
+import com.dillon.starsectormarines.battle.turret.MapTurret;
 
 import java.util.Collections;
 import java.util.List;
@@ -61,7 +62,7 @@ public final class MapResult {
      * Manned turret emplacements placed by
      * {@link com.dillon.starsectormarines.battle.mapgen.bsp.DefensePostStamper}.
      * {@link com.dillon.starsectormarines.battle.BattleSetup} reads this list to
-     * spawn {@link com.dillon.starsectormarines.battle.MapTurret} units at each
+     * spawn {@link MapTurret} units at each
      * post's turret cells and to wire the {@code GUARDPOST_PATROL} squads'
      * turret-dead release condition. Empty for non-conquest generators and for
      * legacy callers that don't go through the conquest pipeline.

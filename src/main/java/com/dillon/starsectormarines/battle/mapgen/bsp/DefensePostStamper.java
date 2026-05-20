@@ -5,7 +5,8 @@ import com.dillon.starsectormarines.battle.DefensePostKind;
 import com.dillon.starsectormarines.battle.Doodad;
 import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.TileManifest;
-import com.dillon.starsectormarines.battle.TurretKind;
+import com.dillon.starsectormarines.battle.turret.MapTurret;
+import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.mapgen.BiomeKind;
@@ -45,7 +46,7 @@ import java.util.Random;
  *       raycasts pass through unchanged.</li>
  *   <li>Turret cells: walkable + {@link GroundKind#STONE} ground pad. Cover
  *       is recomputed post-stamp so the cardinal embankment neighbors register.
- *       The {@link com.dillon.starsectormarines.battle.MapTurret} unit spawned
+ *       The {@link MapTurret} unit spawned
  *       by {@link com.dillon.starsectormarines.battle.BattleSetup} occupies the
  *       cell; unit-stacking prevents other units from sharing it.</li>
  *   <li>{@link TacticalNode.Kind#GUARDPOST} tactical node at the post center,
@@ -548,7 +549,7 @@ public final class DefensePostStamper {
 
     /**
      * Stamp the turret center cell. Non-walkable + STONE pad — matches the
-     * existing {@link com.dillon.starsectormarines.battle.MapTurret} stamp
+     * existing {@link MapTurret} stamp
      * pattern from {@code BattleSetup.stampOneTurret}, preserves the map's
      * single-component walkability invariant (a walkable cell surrounded by
      * non-walkable ring cells would form an unreachable island), and the

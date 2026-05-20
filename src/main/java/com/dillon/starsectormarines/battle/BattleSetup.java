@@ -16,6 +16,9 @@ import com.dillon.starsectormarines.battle.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.objective.EliminateFactionObjective;
 import com.dillon.starsectormarines.battle.tactical.TacticalMap;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
+import com.dillon.starsectormarines.battle.turret.MapTurret;
+import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.turret.TurretRole;
 import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
@@ -65,7 +68,7 @@ public final class BattleSetup {
     private static final int VEHICLE_COUNT_MIN = 3;
     private static final int VEHICLE_COUNT_MAX = 6;
 
-    /** Min/max defender-side static turrets stamped on streets/courtyards. Vanilla weapon sprites pulled in via {@link com.dillon.starsectormarines.battle.TurretKind}. */
+    /** Min/max defender-side static turrets stamped on streets/courtyards. Vanilla weapon sprites pulled in via {@link TurretKind}. */
     private static final int TURRET_COUNT_MIN = 2;
     private static final int TURRET_COUNT_MAX = 4;
     /** Min cell-distance between any two turret placements. Stops them from clustering on one block — defenders typically spread emplacements across the line of approach. */

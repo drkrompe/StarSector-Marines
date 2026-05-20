@@ -1,5 +1,6 @@
-package com.dillon.starsectormarines.battle;
+package com.dillon.starsectormarines.battle.turret;
 
+import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.fx.ImpactProfile;
 
 /**

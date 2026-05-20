@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle;
 
 import com.dillon.starsectormarines.battle.fx.ImpactProfile;
+import com.dillon.starsectormarines.battle.turret.MapTurret;
+import com.dillon.starsectormarines.battle.turret.TurretKind;
 
 import java.awt.Color;
 
@@ -170,7 +172,7 @@ public enum MechWeapon {
      * that wall cell (the round "hits" the wall instead of passing through).
      * Used by ground-deployed area-spread weapons so wide scatter can't pepper
      * units behind cover — mirrors the turret-side
-     * {@link com.dillon.starsectormarines.battle.TurretKind#raycastShots}
+     * {@link TurretKind#raycastShots}
      * convention. Rocket-class mech weapons (SRM_POD, LRM_ARTILLERY) leave
      * this off — rockets travel in their own arc and don't ground-snap.
      */

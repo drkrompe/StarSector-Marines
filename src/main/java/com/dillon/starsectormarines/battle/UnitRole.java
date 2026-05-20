@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle;
 
+import com.dillon.starsectormarines.battle.turret.MapTurret;
+
 /**
  * What a {@link Unit} is doing this battle. Drives the dispatch in
  * {@code BattleSimulation.updateUnit}.

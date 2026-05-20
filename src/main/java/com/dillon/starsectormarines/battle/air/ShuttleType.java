@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.air;
 
-import com.dillon.starsectormarines.battle.TurretKind;
-import com.dillon.starsectormarines.battle.TurretRole;
+import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.turret.TurretRole;
 
 import java.util.Arrays;
 import java.util.Collections;

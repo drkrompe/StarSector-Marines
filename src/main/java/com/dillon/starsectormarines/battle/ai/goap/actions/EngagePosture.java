@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.ai.goap.actions;
 
 import com.dillon.starsectormarines.battle.BattleSimulation;
-import com.dillon.starsectormarines.battle.MapTurret;
+import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.ai.InfantryCohesion;

@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.battle;
 
+import com.dillon.starsectormarines.battle.turret.MapTurret;
+import com.dillon.starsectormarines.battle.turret.TurretKind;
+
 import java.util.List;
 
 /**

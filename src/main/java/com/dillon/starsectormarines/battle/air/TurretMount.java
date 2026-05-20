@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.air;
 
-import com.dillon.starsectormarines.battle.TurretKind;
+import com.dillon.starsectormarines.battle.turret.TurretKind;
 
 /**
  * Static config for one hardpoint on a {@link ShuttleType} — what kind of

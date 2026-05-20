@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.air;
 
 import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.turret.TurretKind;
 
 /**
  * Runtime state for one hardpoint on a {@link Shuttle}. Pairs with the
@@ -22,7 +23,7 @@ public final class MountedTurret {
     public float facingDegrees;
     /** Sim-seconds until this mount can fire again. Decrements every tick. */
     public float cooldownTimer;
-    /** Rounds remaining in this mount's magazine. Initialized from {@link com.dillon.starsectormarines.battle.TurretKind#startingAmmo} at construction; the hover-loiter exits when every mount on the shuttle hits zero. */
+    /** Rounds remaining in this mount's magazine. Initialized from {@link TurretKind#startingAmmo} at construction; the hover-loiter exits when every mount on the shuttle hits zero. */
     public int ammo;
     /** Currently locked enemy, or null when nothing's in range/LOS. Persisted across ticks so the aim loop doesn't re-acquire every frame. */
     public Unit target;

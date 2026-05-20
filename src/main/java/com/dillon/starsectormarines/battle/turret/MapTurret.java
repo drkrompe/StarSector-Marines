@@ -1,4 +1,6 @@
-package com.dillon.starsectormarines.battle;
+package com.dillon.starsectormarines.battle.turret;
+
+import com.dillon.starsectormarines.battle.*;
 
 /**
  * A bolted-down static defense — a {@link TurretKind} mounted on a single

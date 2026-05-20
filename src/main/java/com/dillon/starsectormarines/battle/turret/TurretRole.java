@@ -1,4 +1,6 @@
-package com.dillon.starsectormarines.battle;
+package com.dillon.starsectormarines.battle.turret;
+
+import com.dillon.starsectormarines.battle.Unit;
 
 /**
  * What a turret is allowed to shoot at. Used to filter target acquisition so

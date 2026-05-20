@@ -14,12 +14,12 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.sprites.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.sprites.SpriteSheetSlicer;
 import com.dillon.starsectormarines.battle.sprites.UrbanTile3;
-import com.dillon.starsectormarines.battle.MapTurret;
+import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.MapVehicle;
 import com.dillon.starsectormarines.battle.MarineSecondary;
 import com.dillon.starsectormarines.battle.MarineWeapon;
 import com.dillon.starsectormarines.battle.TileManifest;
-import com.dillon.starsectormarines.battle.TurretKind;
+import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.UnitType;
 import com.dillon.starsectormarines.battle.VehicleKind;
@@ -1509,7 +1509,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 profile = s.turretKind.impactProfile();
                 impactFx.spawnImpact(profile, s.toX, s.toY, isWall);
                 WeaponLights.impactBurst(lightAccumulator, profile, s.toX, s.toY);
-                if (s.turretKind == com.dillon.starsectormarines.battle.TurretKind.HEAVY_MORTAR) {
+                if (s.turretKind == TurretKind.HEAVY_MORTAR) {
                     float pitch = 0.9f + rng.nextFloat() * 0.2f;
                     Vector2f loc = new Vector2f(
                             s.toX * AUDIO_WORLD_UNITS_PER_CELL,
