@@ -235,6 +235,54 @@ public final class ImpactFx {
     private static final Color SMOKE_TRAIL_COLOR = new Color(0xB0, 0xA8, 0xA0);
 
     /**
+     * SAM-site-style launch backblast — a cone of smoke puffs emitted out
+     * the back of a launcher when a missile leaves the tube. Caller passes
+     * the launcher cell and the firing bearing (Starsector convention:
+     * 0° = +Y, CW positive); the puffs are pushed in the OPPOSITE bearing,
+     * spread across a small cone, billow as they fade.
+     *
+     * <p>Modeled on the vanilla locust {@code .wpn}'s {@code smokeSpec.blowback*}
+     * fields — 3-ish particles, ~1.1s lifetime, ~10° cone. Sized for ground
+     * combat scale: puffs start at ~0.3 cells and grow to ~0.7 cells over
+     * their lifetime, pushed ~1.5 cells/sec outward so they're visible behind
+     * the launcher sprite for the duration of the salvo.
+     */
+    public void spawnLaunchBackblast(float launcherX, float launcherY, float fireBearingDeg) {
+        if (glowSprite == null) return;
+        final int particleCount = 4;
+        final float coneHalfDeg = 12f;
+        final float lifetime = 0.85f;
+        final float pushCellsPerSec = 1.6f;
+        // Backward direction = fire bearing + 180°. Convert Starsector
+        // sprite-angle (0° = +Y, CW positive) to a (dx, dy) unit vector.
+        for (int i = 0; i < particleCount; i++) {
+            float jitter = (rng.nextFloat() * 2f - 1f) * coneHalfDeg;
+            float backDeg = fireBearingDeg + 180f + jitter;
+            float rad = (float) Math.toRadians(backDeg);
+            // Sprite-angle convention: 0° points along +Y, so dx = sin, dy = cos.
+            float dx = (float) Math.sin(rad);
+            float dy = (float) Math.cos(rad);
+            // Stagger initial position a little along the backward axis so the
+            // puffs don't all start stacked on the launcher cell — gives the
+            // burst depth on its first frame.
+            float depth = 0.10f + rng.nextFloat() * 0.20f;
+            Particle p = new Particle();
+            p.x = launcherX + dx * depth;
+            p.y = launcherY + dy * depth;
+            p.vx = dx * pushCellsPerSec * (0.8f + rng.nextFloat() * 0.4f);
+            p.vy = dy * pushCellsPerSec * (0.8f + rng.nextFloat() * 0.4f);
+            p.radiusGrowthPerSec = 0.55f + rng.nextFloat() * 0.25f;
+            p.lifetimeRemaining = lifetime + (rng.nextFloat() * 0.25f - 0.12f);
+            p.lifetimeMax = p.lifetimeRemaining;
+            p.radiusCells = 0.28f + rng.nextFloat() * 0.10f;
+            p.color = SMOKE_TRAIL_COLOR;
+            p.sprite = glowSprite;
+            p.additive = false;
+            particles.add(p);
+        }
+    }
+
+    /**
      * Bright muzzle-flash variant exposed publicly so the battle renderer
      * can pin a flash at the firing unit's position when a chaingun round
      * goes out. Same primitive as the internal spark-flash recipe — a hot

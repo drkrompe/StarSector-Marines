@@ -1516,6 +1516,16 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (s.mechWeapon == com.dillon.starsectormarines.battle.MechWeapon.CHAINGUN) {
                 impactFx.spawnMuzzleFlash(s.fromX, s.fromY, 0.55f, 0.08f);
             }
+            // SAM-site launch backblast — kinds flagged hasLaunchBackblast
+            // emit a directional cone of smoke puffs out the back of the
+            // launcher as the missile leaves the tube. Computed off the
+            // (from → to) firing vector so the cone always points away from
+            // the target. Fires at the moment of launch, before the projectile
+            // sprite even leaves the mount.
+            if (s.turretKind != null && s.turretKind.hasLaunchBackblast()) {
+                float fireBearing = bearingDeg(s.fromX, s.fromY, s.toX, s.toY);
+                impactFx.spawnLaunchBackblast(s.fromX, s.fromY, fireBearing);
+            }
             // Light emission — turret / mech chaingun / marine small arms /
             // generic infantry line tracer, all dispatched in one place.
             boolean projectile = hasProjectileSprite(s);

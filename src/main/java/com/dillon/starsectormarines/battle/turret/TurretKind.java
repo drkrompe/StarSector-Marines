@@ -363,6 +363,18 @@ public enum TurretKind {
         return this == LOCUST;
     }
 
+    /**
+     * True for kinds whose firing emits a SAM-site-style backblast plume —
+     * smoke billows out the back of the launcher (opposite firing direction)
+     * as the missile leaves the tube. Mirrors the vanilla locust
+     * {@code .wpn}'s {@code smokeSpec.blowback*} fields. Renderer hooks this
+     * during the fire-time FX pass in
+     * {@code BattleScreen.spawnImpactFx}.
+     */
+    public boolean hasLaunchBackblast() {
+        return this == LOCUST;
+    }
+
     /** Visual impact profile for this kind — small spark for the fast/light weapons, kinetic flash + smoke for the mid-weight shells, full HE burst for the mortar. */
     public ImpactProfile impactProfile() {
         switch (this) {
