@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.ai.TacticalScoring;
 import com.dillon.starsectormarines.battle.ai.goap.Action;
 import com.dillon.starsectormarines.battle.ai.goap.ActionStatus;
+import com.dillon.starsectormarines.battle.ai.goap.GoapInfantryBehavior;
 import com.dillon.starsectormarines.battle.ai.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -69,6 +70,16 @@ public final class EnterZone implements Action {
     @Override public float cost(WorldState s, Squad squad, BattleSimulation sim) { return 1f; }
     @Override public int requiredMembers() { return 1; }
 
+    /**
+     * Minimum sim-seconds since the last squad replan before
+     * contact-halt is allowed to force another. Without this throttle a
+     * pinned squad would replan every tick — the planner would re-pick
+     * EnterZone (no morale break, no other relevant goal), the marine would
+     * halt again, replan would fire again, ad infinitum. 1.0s gives a clean
+     * one-replan-per-contact-event under the 2.0s base period.
+     */
+    private static final float CONTACT_HALT_REPLAN_THROTTLE = 1.0f;
+
     @Override
     public ActionStatus execute(Unit member, Squad squad, BattleSimulation sim) {
         if (sim.getZoneGraph().zoneIdAt(member.cellX, member.cellY) == targetZoneId) {
@@ -78,14 +89,13 @@ public final class EnterZone implements Action {
             member.target = TacticalScoring.findBestTarget(member, sim);
         }
 
-        // Contact-halt: if a visible enemy sits inside this marine's
-        // attackRange we stop moving and fight in place instead of charging
-        // past. The squad-level replan (≤2s) re-evaluates and either picks an
-        // engagement-tier goal (now that they're in contact) or, if morale
-        // breaks under sustained fire, swaps to SurviveContact. Without this
-        // gate marines following an EnterZone step walked straight through
-        // enemy formations because the action only emitted opportunistic
-        // single-cooldown shots while continuing toward the destination cell.
+        // Contact-halt: a visible enemy inside attackRange stops the path so
+        // the marine fights in place instead of charging past. Scoped to
+        // EnterZone (an "advance into a zone" action) — never applied to
+        // BreakContact / BreakLOS, whose whole purpose is to keep moving
+        // away from contact. Without this gate marines following an EnterZone
+        // step walked straight through enemy formations on opportunistic
+        // single-cooldown shots.
         boolean inContact = false;
         if (member.target != null) {
             float d = TacticalScoring.cellDistance(member.cellX, member.cellY,
@@ -94,16 +104,7 @@ public final class EnterZone implements Action {
                     member.target.cellX, member.target.cellY);
             inContact = d <= member.attackRange && visible;
             if (inContact && member.cooldownTimer <= 0f) {
-                // Held in place — use STANCED rather than MOVING since we're
-                // no longer advancing this tick.
                 sim.fireShot(member, member.target, FireStance.STANCED);
-                member.cooldownTimer = member.attackCooldown;
-                member.beginBurst(member.target);
-            } else if (!inContact && member.cooldownTimer <= 0f && visible && d <= member.attackRange) {
-                // Defensive fallback — visible + in-range but the inContact
-                // branch above already handled it. Kept symmetric for future
-                // refactors where the contact predicate could diverge.
-                sim.fireShot(member, member.target, FireStance.MOVING);
                 member.cooldownTimer = member.attackCooldown;
                 member.beginBurst(member.target);
             }
@@ -114,6 +115,16 @@ public final class EnterZone implements Action {
             member.moveProgress = 0f;
             member.renderX = member.cellX;
             member.renderY = member.cellY;
+            // Accelerate the squad replan so SurviveContact (or any other
+            // engagement-tier goal) can take over within a tick or two
+            // instead of waiting the full 2s replan period. Throttled so we
+            // don't replan every frame: only fire when the last replan was
+            // long enough ago that the situation might have meaningfully
+            // changed. Without this the unit looked frozen for up to 2s
+            // before the morale-broken signal could route to BreakContact.
+            if (squad.timeSinceReplan >= CONTACT_HALT_REPLAN_THROTTLE) {
+                squad.timeSinceReplan = GoapInfantryBehavior.REPLAN_PERIOD;
+            }
             return ActionStatus.RUNNING;
         }
 
