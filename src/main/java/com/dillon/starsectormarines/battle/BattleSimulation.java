@@ -162,14 +162,16 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final List<SmokingWreck> smokingWrecks = new ArrayList<>();
     /** Smoke-puff events queued this advance — each entry is {x, y, radiusCells}. Drained by the renderer per frame and cleared at the start of each advance. */
     private final List<float[]> smokePuffsThisFrame = new ArrayList<>();
+    /** Wall-collapse dust-burst events queued this advance — each entry is {x, y}. Spawned by Detonations on wall collapses + by flyby tracer collapses. Drained by FlybyOverlay each frame and cleared at the start of each advance. */
+    private final List<float[]> wallDustsThisFrame = new ArrayList<>();
     /** Fire-burst events queued this advance — each entry is {x, y, radiusCells}. Burn phase only; drained by the renderer per frame and cleared at the start of each advance. */
     private final List<float[]> fireBurstsThisFrame = new ArrayList<>();
     /** Total seconds a wreck stays alive after destruction. Burn phase up front, then a longer smoke-only tail so the player can still read "dead turret" minutes later. */
     private static final float WRECK_LIFETIME = 30f;
-    /** Seconds at the start of the wreck's life during which it emits fire bursts in addition to smoke. After this, fire stops and only smoke continues for the remainder. */
-    private static final float WRECK_BURN_DURATION = 12f;
-    /** Tail of the burn phase over which fire-burst emit probability tapers from 1 to 0. RNG-gated so the taper actually drops emissions. */
-    private static final float WRECK_FIRE_FADE_DURATION = 2f;
+    /** Seconds at the start of the wreck's life during which it emits fire bursts in addition to smoke. After this, fire stops and only smoke continues for the remainder. Public so the screen-side lightmap pump can mirror this window for persistent wreck-fire lights. */
+    public static final float WRECK_BURN_DURATION = 12f;
+    /** Tail of the burn phase over which fire-burst emit probability tapers from 1 to 0. RNG-gated so the taper actually drops emissions. Public for the lightmap pump's intensity ramp. */
+    public static final float WRECK_FIRE_FADE_DURATION = 2f;
     /** Min/max sim-seconds between smoke puffs on a single wreck. Jittered per emission so wrecks don't sync up. */
     private static final float WRECK_PUFF_MIN_GAP = 0.45f;
     private static final float WRECK_PUFF_MAX_GAP = 0.85f;
@@ -297,6 +299,20 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         destroyRoofCell(wallX, wallY + 1);
     }
 
+    /**
+     * True iff {@code target} is standing on a cell that's part of a building
+     * and still has its roof intact — the discriminator for the aerial /
+     * indirect-fire shield rule. Used by both the AoE pipeline (see
+     * {@link com.dillon.starsectormarines.battle.weapons.Detonations}) and
+     * the direct-fire aerial path (turret + flyby) so all elevated weapons
+     * are intercepted by intact ceilings consistently.
+     */
+    public boolean isRoofShielded(Unit target) {
+        if (target == null) return false;
+        return topology.getBuildingId(target.cellX, target.cellY) != 0
+                && !topology.isRoofDestroyed(target.cellX, target.cellY);
+    }
+
     @Override
     public void destroyRoofCell(int x, int y) {
         if (!grid.inBounds(x, y)) return;
@@ -406,6 +422,20 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     public List<float[]> getSmokePuffsThisFrame() { return smokePuffsThisFrame; }
     /** Fire-burst events emitted by smoking wrecks during the last advance (burn phase only). Each entry is {x, y, radiusCells}. Drained by the renderer per frame. */
     public List<float[]> getFireBurstsThisFrame() { return fireBurstsThisFrame; }
+    /** Wall-collapse dust-burst events queued this advance. Each entry is {x, y} at the collapsed cell's center. Drained by {@code FlybyOverlay} which owns the dust-particle pool. */
+    public List<float[]> getWallDustsThisFrame() { return wallDustsThisFrame; }
+
+    /**
+     * {@link com.dillon.starsectormarines.battle.weapons.WeaponSimContext}
+     * implementation — records a dust-burst event for the renderer to drain.
+     * Cleared at the start of each advance with the other per-frame event lists.
+     */
+    @Override
+    public void spawnDustBurst(float cellX, float cellY) {
+        wallDustsThisFrame.add(new float[]{cellX, cellY});
+    }
+    /** Live smoking wrecks. Read-only view — the lightmap pump iterates this each frame to assert persistent wreck-fire lights during the burn phase. */
+    public List<SmokingWreck> getSmokingWrecks() { return java.util.Collections.unmodifiableList(smokingWrecks); }
     /** Fighter wings committed to this battle. {@code FlybyOverlay} reads this on first tick and drives spawns from the per-wing schedules. Defaults to {@link FlybyRoster#EMPTY}; missions assign via {@link #setFlybyRoster}. */
     public FlybyRoster getFlybyRoster()    { return flybyRoster; }
     public void setFlybyRoster(FlybyRoster roster) { this.flybyRoster = roster != null ? roster : FlybyRoster.EMPTY; }
@@ -501,6 +531,17 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     @Override
     public void queueDetonation(PendingDetonation det) {
         detonations.queue(det);
+    }
+
+    /**
+     * Detonates a {@link PendingDetonation} this tick instead of going through
+     * the in-flight queue. Used by callers whose visible flight is already
+     * resolved (today: {@code FlybyOverlay} fighter missile, detonating on
+     * contact with its target's AoE radius). Same damage / wall / roof / dust
+     * pipeline as a queued detonation — just without the timer delay.
+     */
+    public void detonateNow(PendingDetonation det) {
+        detonations.detonateNow(det, this);
     }
 
     @Override
@@ -633,6 +674,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         deathsThisFrame.clear();
         smokePuffsThisFrame.clear();
         fireBurstsThisFrame.clear();
+        wallDustsThisFrame.clear();
         if (complete) return;
         tickAccumulator += dt;
         while (tickAccumulator >= TICK_DT) {
@@ -1634,9 +1676,13 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      * lever.
      */
     public void fireShotFrom(float fromX, float fromY, Faction shooterFaction,
-                             TurretKind kind, Unit target) {
+                             TurretKind kind, Unit target, boolean aerialShooter) {
         boolean hit = rng.nextFloat() < kind.accuracy;
         boolean isAoe = kind.aoeRadius > 0f;
+        // Aerial delivery if the shooter is elevated (shuttle mount) or the
+        // weapon kind inherently lobs (grenade launcher). Used to decide
+        // whether intact roofs intercept this shot.
+        boolean aerialDelivery = aerialShooter || kind.arcHeight > 0f;
         // Distance-scale hitSpread — fixed barrel angular error projects
         // linearly to lateral spread on the ground (radius scales with
         // distance; area covered with distance squared). Close shots
@@ -1688,8 +1734,15 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // can correctly count as a miss. AoE kinds skip this path; their
         // damage resolves at endpoint via the Detonations pipeline below.
         if (!isAoe && hit) {
-            applyDamage(target, kind.damage, 1f);
-            rollFallbackOnHit(target);
+            // Aerial direct-fire (shuttle ARBALEST / HEPHAESTUS strafing) is
+            // intercepted by an intact roof — the round physically can't
+            // reach the unit underneath. Ground direct-fire (turret shooting
+            // through a doorway) is governed by the 2D LOS check inside the
+            // raycast and doesn't need this shield.
+            if (!aerialDelivery || !isRoofShielded(target)) {
+                applyDamage(target, kind.damage, 1f);
+                rollFallbackOnHit(target);
+            }
         }
         // AoE path — register the detonation on the queue. Lifetime matches
         // the projectile's visible flight time so the explosion lines up with
@@ -1699,7 +1752,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             queueDetonation(new com.dillon.starsectormarines.battle.PendingDetonation(
                     toX, toY, flight,
                     kind.aoeRadius, kind.damage, /*vsTurretMult*/ 1f,
-                    kind.wallDamage, shooterFaction));
+                    kind.wallDamage, shooterFaction, aerialDelivery));
         }
         float lifetime = kind.flightSec > 0f ? kind.flightSec : SHOT_LIFETIME;
         postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooterFaction,

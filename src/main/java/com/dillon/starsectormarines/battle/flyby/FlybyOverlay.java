@@ -3,7 +3,9 @@ package com.dillon.starsectormarines.battle.flyby;
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.fx.WeaponLights;
 import com.dillon.starsectormarines.ops.battleview.BattleCamera;
+import com.dillon.starsectormarines.render2d.LightAccumulator;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.apache.log4j.Logger;
@@ -180,6 +182,13 @@ public final class FlybyOverlay {
     private static final float IMPACT_FLASH_LIFETIME = 0.22f;
 
     // ---- Live state -----------------------------------------------------------
+    /**
+     * Lightmap sink for muzzle flashes and engine glows. Set once at
+     * battle-screen attach time; null-checks at the call sites keep us
+     * safe if the screen ever wires up out of order. Persistent engine
+     * lights are pumped via {@link #pumpEngineLights(java.util.Set)}.
+     */
+    private LightAccumulator lightAccumulator;
     private final List<Fighter> fighters = new ArrayList<>();
     private final List<Tracer> tracers = new ArrayList<>();
     private final List<Particle> particles = new ArrayList<>();
@@ -208,6 +217,41 @@ public final class FlybyOverlay {
     private int[] sortiesSpawned = new int[0];
 
     /**
+     * Wire the lightmap accumulator the overlay should emit into. Called
+     * once at battle-screen attach time. Safe to pass null (disables light
+     * emission); call sites null-check defensively.
+     */
+    public void setLightAccumulator(LightAccumulator la) {
+        this.lightAccumulator = la;
+    }
+
+    /**
+     * Emit one persistent engine-glow light per slot on every live fighter.
+     * Mirrors the shuttle pump in {@code BattleScreen.update}: ids are
+     * pushed into {@code seenIds} so the screen's single
+     * {@code retainPersistent} call evicts fighters that despawned this
+     * tick (off-map, despawn-on-explode, etc.).
+     */
+    public void pumpEngineLights(java.util.Set<Long> seenIds) {
+        if (lightAccumulator == null) return;
+        for (Fighter f : fighters) {
+            com.dillon.starsectormarines.battle.air.engine.EngineSlotData[] slots =
+                    com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver.resolve(
+                            f.profile.hullId, f.profile.visualLengthCells);
+            com.dillon.starsectormarines.battle.air.engine.EngineFxRenderer.emitLights(
+                    slots,
+                    f.worldX, f.worldY,
+                    f.facingDeg - 90f,   // vanilla 0°=+X → our 0°=+Y, same as drawEngineGlow
+                    1f,                  // fighters don't scale-lerp
+                    0f,                  // fighters don't have altitude lift
+                    FIGHTER_ENGINE_INTENSITY,
+                    lightAccumulator,
+                    ((long) System.identityHashCode(f)) << 16,
+                    seenIds);
+        }
+    }
+
+    /**
      * Drives the overlay one sim-time step. Pass the same {@code dt} you feed
      * the simulation (already scaled for pause / 1x / 2x / 4x). Null sim
      * disables targeting + damage but the visual layer keeps running.
@@ -234,6 +278,17 @@ public final class FlybyOverlay {
         if (sim != null && sim.isComplete()) return;
 
         simTime += dt;
+
+        // Drain wall-collapse dust events queued by Detonations (and any
+        // other caller via WeaponSimContext.spawnDustBurst). Centralizes the
+        // particle spawn in one place so the visual stays consistent whether
+        // the collapse came from a fighter missile, an LRM, or a tracer chip.
+        if (sim != null) {
+            for (float[] dust : sim.getWallDustsThisFrame()) {
+                spawnDustBurst(dust[0], dust[1]);
+            }
+        }
+
         maybeSpawnFromRoster(sim, camera);
 
         applyDogfightAggro();
@@ -546,6 +601,8 @@ public final class FlybyOverlay {
         float endY = f.worldY + ndy * len;
         spawnTracer(f, endX, endY);
         spawnMuzzleFlash(f);
+        WeaponLights.fighterMuzzleFlash(lightAccumulator, f.worldX, f.worldY);
+        WeaponLights.laserPath(lightAccumulator, f.worldX, f.worldY, endX, endY, f.profile.tracerColor);
         if (sim != null) {
             // AoE at the tracer endpoint — every alive enemy within
             // BURST_AOE_RADIUS_CELLS takes the per-tracer damage. Friendly fire
@@ -559,6 +616,8 @@ public final class FlybyOverlay {
                 float ux = (u.renderX + 0.5f) - endX;
                 float uy = (u.renderY + 0.5f) - endY;
                 if (ux * ux + uy * uy <= r2) {
+                    // Aerial strafing: intact roofs intercept tracer rounds.
+                    if (sim.isRoofShielded(u)) continue;
                     sim.applyExternalDamage(u, f.profile.perTracerDamage);
                     anyHit = true;
                 }
@@ -608,6 +667,8 @@ public final class FlybyOverlay {
         float endY = f.worldY + ndy * RUN_TRACER_RANGE_CELLS;
         spawnTracer(f, endX, endY);
         spawnMuzzleFlash(f);
+        WeaponLights.fighterMuzzleFlash(lightAccumulator, f.worldX, f.worldY);
+        WeaponLights.laserPath(lightAccumulator, f.worldX, f.worldY, endX, endY, f.profile.tracerColor);
 
         // AoE damage check — anyone close to the tracer endpoint catches a round.
         boolean anyHit = false;
@@ -619,6 +680,8 @@ public final class FlybyOverlay {
                 float ux = (u.renderX + 0.5f) - endX;
                 float uy = (u.renderY + 0.5f) - endY;
                 if (ux * ux + uy * uy <= r2) {
+                    // Strafing run damage — intact roofs intercept.
+                    if (sim.isRoofShielded(u)) continue;
                     sim.applyExternalDamage(u, RUN_DAMAGE_PER_HIT);
                     anyHit = true;
                 }
@@ -832,33 +895,26 @@ public final class FlybyOverlay {
     private void detonateProjectile(Projectile p, BattleSimulation sim) {
         float r = p.profile.projectileAoeRadiusCells;
         if (sim != null) {
-            Faction enemy = (p.side == Faction.MARINE) ? Faction.DEFENDER : Faction.MARINE;
-            float r2 = r * r;
-            for (Unit u : sim.getUnits()) {
-                if (!u.isAlive() || u.faction != enemy) continue;
-                float ux = (u.renderX + 0.5f) - p.worldX;
-                float uy = (u.renderY + 0.5f) - p.worldY;
-                if (ux * ux + uy * uy <= r2) {
-                    sim.applyExternalDamage(u, p.profile.projectileAoeDamage);
-                }
-            }
-            // Chip every wall cell inside the blast — at projectile-class wall
-            // damage (typically 150+) this flattens an entire wall section in
-            // one detonation.
-            int minX = (int) Math.floor(p.worldX - r);
-            int maxX = (int) Math.floor(p.worldX + r);
-            int minY = (int) Math.floor(p.worldY - r);
-            int maxY = (int) Math.floor(p.worldY + r);
-            for (int cy = minY; cy <= maxY; cy++) {
-                for (int cx = minX; cx <= maxX; cx++) {
-                    float dx = (cx + 0.5f) - p.worldX;
-                    float dy = (cy + 0.5f) - p.worldY;
-                    if (dx * dx + dy * dy > r2) continue;
-                    if (sim.damageCell(cx, cy, p.profile.wallDamage)) {
-                        spawnDustBurst(cx + 0.5f, cy + 0.5f);
-                    }
-                }
-            }
+            // Damage + roof cave-in + radius wall damage + dust on collapse
+            // all route through the shared Detonations pipeline now. The
+            // missile's specifics (aerial delivery, friendly-fire OFF so
+            // called-in air support doesn't kill the marines who called it,
+            // wall damage across the whole blast radius, dust burst per
+            // collapsing wall) are expressed as PendingDetonation flags.
+            // detonateNow bypasses the in-flight queue so the damage lands
+            // in the same frame as the explosion FX below — flyby's missile
+            // flight is already a visible projectile, so we don't need the
+            // queue's countdown.
+            sim.detonateNow(new com.dillon.starsectormarines.battle.PendingDetonation(
+                    p.worldX, p.worldY, /*remainingTime*/ 0f,
+                    /*aoeRadius*/ r,
+                    /*damage*/ p.profile.projectileAoeDamage,
+                    /*vsTurretMult*/ 1f,
+                    p.profile.wallDamage, p.side,
+                    /*aerialDelivery*/ true,
+                    /*wallDamageRadius*/ r,
+                    /*spawnDustOnWallBreak*/ true,
+                    /*friendlyFireImmune*/ true));
         }
         spawnExplosionFx(p.worldX, p.worldY, r, p.profile.tracerColor);
         // HE decals — crater + rubble at the detonation cell so the strike

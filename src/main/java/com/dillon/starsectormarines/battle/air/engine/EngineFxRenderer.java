@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.battle.air.engine;
 
+import com.dillon.starsectormarines.battle.fx.WeaponLights;
 import com.dillon.starsectormarines.ops.battleview.BattleCamera;
+import com.dillon.starsectormarines.render2d.LightAccumulator;
+import com.dillon.starsectormarines.render2d.LightKernel;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
 import java.awt.Color;
@@ -130,6 +133,69 @@ public final class EngineFxRenderer {
         }
         if (glowSprite != null) {
             glowSprite.setColor(Color.WHITE);
+        }
+    }
+
+    /**
+     * Mirror of {@link #draw} that emits a persistent {@link LightKernel#ENGINE_GLOW}
+     * light per engine slot. Same world-frame transform as the FX draw so
+     * the light tracks the visual engine — including the cruise altitude
+     * lift, passed in as {@code altOffsetCells} so a hovering Valkyrie's
+     * halo follows the lifted sprite rather than sitting on the ground
+     * projection.
+     *
+     * <p>Tuning constants ({@link WeaponLights#ENGINE_RGB_SCALE},
+     * {@link WeaponLights#ENGINE_INTENSITY_FLOOR}, etc.) live in
+     * {@code WeaponLights} so all gun + engine lighting is tuned at one
+     * file.
+     *
+     * <p>Caller is responsible for adding the produced ids to its
+     * {@code retainPersistent} keep-set so engines that disappear (shuttle
+     * leaves, fighter despawns) drop their halos.
+     */
+    public static void emitLights(
+            EngineSlotData[] slots,
+            float worldX, float worldY,
+            float facingDegrees,
+            float scaleMult,
+            float altOffsetCells,
+            float intensity,
+            LightAccumulator lights,
+            long baseId,
+            java.util.Set<Long> seenIds) {
+
+        if (slots == null || slots.length == 0 || lights == null) return;
+        if (intensity <= 0f) return;
+
+        float rad = (float) Math.toRadians(facingDegrees);
+        float cos = (float) Math.cos(rad);
+        float sin = (float) Math.sin(rad);
+
+        float intensityCurve = WeaponLights.ENGINE_INTENSITY_FLOOR
+                + (WeaponLights.ENGINE_INTENSITY_CEIL - WeaponLights.ENGINE_INTENSITY_FLOOR)
+                  * Math.max(0f, Math.min(1f, intensity));
+
+        for (int i = 0; i < slots.length; i++) {
+            EngineSlotData es = slots[i];
+            float lx = es.localX * scaleMult;
+            float ly = es.localY * scaleMult;
+            float wx = worldX + lx * cos - ly * sin;
+            float wy = worldY + lx * sin + ly * cos + altOffsetCells;
+
+            Color flame = EngineStylePalette.flameColor(es.style);
+            float r = flame.getRed()   / 255f * WeaponLights.ENGINE_RGB_SCALE;
+            float g = flame.getGreen() / 255f * WeaponLights.ENGINE_RGB_SCALE;
+            float b = flame.getBlue()  / 255f * WeaponLights.ENGINE_RGB_SCALE;
+
+            // Halo radius scales with slot width and throttle; min floor so
+            // idle engines still show a small glow.
+            float radius = Math.max(0.6f,
+                    es.widthCells * scaleMult * 1.8f * (0.6f + 0.4f * intensity));
+
+            long id = baseId ^ ((long) (i + 1) * 0x9E3779B97F4A7C15L);
+            lights.putPersistent(id, wx, wy, radius, LightKernel.ENGINE_GLOW,
+                    r, g, b, intensityCurve);
+            if (seenIds != null) seenIds.add(id);
         }
     }
 }

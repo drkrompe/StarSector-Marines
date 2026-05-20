@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.battle.Doodad;
 import com.dillon.starsectormarines.battle.EquipmentDrop;
 import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.ShotEvent;
+import com.dillon.starsectormarines.battle.SmokingWreck;
+import com.dillon.starsectormarines.battle.TimeOfDay;
 import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.sprites.SpriteSheetFrames;
@@ -35,6 +37,7 @@ import com.dillon.starsectormarines.battle.ui.picking.WorldPicker;
 import com.dillon.starsectormarines.battle.fx.ImpactDecals;
 import com.dillon.starsectormarines.battle.fx.ImpactFx;
 import com.dillon.starsectormarines.battle.fx.ImpactProfile;
+import com.dillon.starsectormarines.battle.fx.WeaponLights;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.objective.Objective;
@@ -42,6 +45,8 @@ import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.battleview.BattleCamera;
 import com.dillon.starsectormarines.render2d.DecalAccumulator;
 import com.dillon.starsectormarines.render2d.GlStateBracket;
+import com.dillon.starsectormarines.render2d.LightAccumulator;
+import com.dillon.starsectormarines.render2d.LightKernel;
 import com.dillon.starsectormarines.render2d.QuadBatch;
 import com.dillon.starsectormarines.render2d.SolidQuadBatch;
 import com.dillon.starsectormarines.ui.ButtonWidget;
@@ -291,6 +296,21 @@ public class BattleScreen implements Screen, BattleUiContext {
      */
     private final DecalAccumulator decalAccumulator =
             new DecalAccumulator(com.dillon.starsectormarines.DevConfig.DECAL_FBO_PX_PER_CELL);
+    /**
+     * Lightmap accumulator driving the pseudo time-of-day pass. Bakes a
+     * lightmap each frame (ambient clear + additive radial kernels for
+     * muzzle flashes, HE bursts, wreck fires) and multiply-blends it over
+     * the world layer. Bypassed when {@link #timeOfDay} is {@link
+     * TimeOfDay#DAY}.
+     */
+    private final LightAccumulator lightAccumulator =
+            new LightAccumulator(com.dillon.starsectormarines.DevConfig.DECAL_FBO_PX_PER_CELL);
+    /**
+     * Current ambient lighting preset. Hard-coded to NIGHT for v1; will be
+     * driven by mission data and (eventually) an animated cycle that ties
+     * battle elapsed time to a dawn arrival of enemy reinforcements.
+     */
+    private TimeOfDay timeOfDay = TimeOfDay.NIGHT;
     private static final String SPRITE_DECAL_SHEET = "graphics/decals/decals.png";
     /** Per-{@link MarineSecondary} marine aim sheet — drawn instead of the regular type sheet while the marine is mid-aim animation. Same 7-frame WNES + weapon-up convention as the regular marine sheets, auto-sliced via {@link SpriteSheetSlicer}. */
     private final java.util.EnumMap<MarineSecondary, UnitSpriteCache> marineSecondaryAimSheets =
@@ -474,6 +494,11 @@ public class BattleScreen implements Screen, BattleUiContext {
         ensureEngineFxSprites();
         ensureObjectiveIcons();
         impactFx.ensureSprites();
+        // Wire the lightmap sink into the flyby overlay so fighter muzzle
+        // flashes + engine glows route to the same accumulator the
+        // BattleScreen drives. Idempotent — safe across attach/detach
+        // cycles.
+        flybyOverlay.setLightAccumulator(lightAccumulator);
         startBattleAudio();
         rebuild();
     }
@@ -1171,6 +1196,47 @@ public class BattleScreen implements Screen, BattleUiContext {
             impactFx.spawnAmbientFire(burst[0], burst[1], burst[2]);
         }
         impactFx.advance(dt * speedMultiplier);
+        // Light pass — tick transient lights and re-assert persistent lights
+        // for every emitter that lives across frames (burning wrecks, air
+        // vehicle engines). All persistent ids accumulate into seenLightIds;
+        // retainPersistent at the end evicts anything that disappeared this
+        // tick.
+        lightAccumulator.advance(dt * speedMultiplier);
+        java.util.HashSet<Long> seenLightIds = new java.util.HashSet<>();
+        for (SmokingWreck w : sim.getSmokingWrecks()) {
+            float age = w.totalLifetime - w.remainingLifetime;
+            if (age >= BattleSimulation.WRECK_BURN_DURATION) continue;
+            float burnRemaining = BattleSimulation.WRECK_BURN_DURATION - age;
+            float intensity = (burnRemaining < BattleSimulation.WRECK_FIRE_FADE_DURATION)
+                    ? burnRemaining / BattleSimulation.WRECK_FIRE_FADE_DURATION
+                    : 1f;
+            long id = ((long) w.cellX << 32) | (w.cellY & 0xffffffffL);
+            seenLightIds.add(id);
+            lightAccumulator.putPersistent(id, w.cellX + 0.5f, w.cellY + 0.5f,
+                    2.8f, LightKernel.WRECK_FIRE,
+                    1.0f, 0.55f, 0.20f, intensity);
+        }
+        // Engine glow halos per live shuttle/valk. Lights track the world
+        // position (no altitude offset), so cruise altitude doesn't lift the
+        // halo off the ground — the shuttle stays a flying spotlight.
+        for (com.dillon.starsectormarines.battle.air.Shuttle s : sim.getShuttles()) {
+            if (s.state == com.dillon.starsectormarines.battle.air.Shuttle.State.PENDING
+                    || s.state == com.dillon.starsectormarines.battle.air.Shuttle.State.GONE) continue;
+            com.dillon.starsectormarines.battle.air.engine.EngineFxRenderer.emitLights(
+                    com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver.resolve(s.type),
+                    s.body.x, s.body.y,
+                    s.body.facingDegrees,
+                    s.scaleMult,
+                    s.visualAltitudeOffsetCells(),
+                    s.engineFxIntensity(),
+                    lightAccumulator,
+                    ((long) System.identityHashCode(s)) << 16,
+                    seenLightIds);
+        }
+        // Fighter engine halos — FlybyOverlay owns the fighter list, so it
+        // pumps directly into our seen-id set.
+        flybyOverlay.pumpEngineLights(seenLightIds);
+        lightAccumulator.retainPersistent(seenLightIds);
         // Roof alpha lerp runs on real dt (not sim-scaled) so the fog-of-war
         // fade keeps animating even when the sim is paused — matches how the
         // HUD ticks on real dt for the same reason.
@@ -1192,6 +1258,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         // attach/detach cycle leaks one FBO per battle — fine for a single
         // session, ugly across a multi-mission run.
         decalAccumulator.dispose();
+        lightAccumulator.dispose();
 
         if (!audioActive) return;
         audioActive = false;
@@ -1404,19 +1471,34 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (s.marineSecondary == null && s.turretKind == null) {
                 ImpactDecals.spawnShellCasing(sim, rng, s.fromX, s.fromY);
             }
-            // Mech chaingun muzzle flash — bright additive pop at the
-            // shooter's cell, sized to read over the mech sprite. Only the
-            // chaingun gets one; rockets are tube-launched and the launch
-            // animation is already the projectile sprite leaving the mount.
+            // Mech chaingun particle muzzle flash — bright additive pop at
+            // the shooter's cell, sized to read over the mech sprite. Only
+            // the chaingun gets one; rockets are tube-launched and the
+            // launch animation is already the projectile sprite leaving
+            // the mount.
             if (s.mechWeapon == com.dillon.starsectormarines.battle.MechWeapon.CHAINGUN) {
                 impactFx.spawnMuzzleFlash(s.fromX, s.fromY, 0.55f, 0.08f);
             }
-            if (hasProjectileSprite(s)) continue;
+            // Light emission — turret / mech chaingun / marine small arms /
+            // generic infantry line tracer, all dispatched in one place.
+            boolean projectile = hasProjectileSprite(s);
+            WeaponLights.shotMuzzleFlash(lightAccumulator, s, projectile);
+            if (projectile) continue;
             boolean isWall = isWallAt(grid, s.toX, s.toY);
             ImpactProfile profile = (s.marineWeapon != null)
                     ? s.marineWeapon.impactProfile : ImpactProfile.RIFLE;
             impactFx.spawnImpact(profile, s.toX, s.toY, isWall);
+            WeaponLights.impactBurst(lightAccumulator, profile, s.toX, s.toY);
             ImpactDecals.spawnImpact(sim, rng, profile, s.toX, s.toY, isWall);
+            // Line-tracer beam path — stamp the tracer color along the
+            // shot line so the multiply pass doesn't darken pulse-rifle /
+            // railgun / militia tracer beams. Marines use their per-weapon
+            // tracerColor; other factions fall back to the same palette
+            // renderShots reads.
+            Color tracerColor = (s.marineWeapon != null)
+                    ? s.marineWeapon.tracerColor
+                    : (s.shooterFaction == Faction.MARINE ? MARINE_TRACER : DEFENDER_TRACER);
+            WeaponLights.laserPath(lightAccumulator, s.fromX, s.fromY, s.toX, s.toY, tracerColor);
         }
         for (ShotEvent s : sim.getShotsExpiredThisFrame()) {
             if (!hasProjectileSprite(s)) continue;
@@ -1425,6 +1507,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (s.turretKind != null) {
                 profile = s.turretKind.impactProfile();
                 impactFx.spawnImpact(profile, s.toX, s.toY, isWall);
+                WeaponLights.impactBurst(lightAccumulator, profile, s.toX, s.toY);
                 if (s.turretKind == com.dillon.starsectormarines.battle.TurretKind.HEAVY_MORTAR) {
                     float pitch = 0.9f + rng.nextFloat() * 0.2f;
                     Vector2f loc = new Vector2f(
@@ -1435,6 +1518,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             } else if (s.marineSecondary != null) {
                 profile = s.marineSecondary.impactProfile();
                 impactFx.spawnImpact(profile, s.toX, s.toY, isWall);
+                WeaponLights.impactBurst(lightAccumulator, profile, s.toX, s.toY);
                 float pitch = 0.9f + rng.nextFloat() * 0.2f;
                 Vector2f loc = new Vector2f(
                         s.toX * AUDIO_WORLD_UNITS_PER_CELL,
@@ -1443,12 +1527,14 @@ public class BattleScreen implements Screen, BattleUiContext {
             } else if (s.marineWeapon != null) {
                 profile = s.marineWeapon.impactProfile;
                 impactFx.spawnImpact(profile, s.toX, s.toY, isWall);
+                WeaponLights.impactBurst(lightAccumulator, profile, s.toX, s.toY);
             } else if (s.mechWeapon != null) {
                 // Mech rounds — HE entries (SRM, LRM) also play the explosion
                 // clip on arrival; chainguns are kinetic, no extra audio (the
                 // burst itself is loud enough at fire time).
                 profile = s.mechWeapon.impactProfile;
                 impactFx.spawnImpact(profile, s.toX, s.toY, isWall);
+                WeaponLights.impactBurst(lightAccumulator, profile, s.toX, s.toY);
                 if (profile == ImpactProfile.HE) {
                     float pitch = 0.9f + rng.nextFloat() * 0.2f;
                     Vector2f loc = new Vector2f(
@@ -1731,6 +1817,16 @@ public class BattleScreen implements Screen, BattleUiContext {
             // Flyby layer lives above everything ground-side so strafing tracers and
             // engine glows punch over units / shots / shuttles without being occluded.
             flybyOverlay.render(camera, alphaMult);
+            // Lightmap multiply — last world-layer pass so darkness covers
+            // everything ground-side. Sits inside the scissor so the HUD and
+            // speed marker stay full-bright. Bypassed entirely on the DAY
+            // preset (the multiply would be a no-op against ambient white).
+            TimeOfDay tod = timeOfDay.evaluateAt(0f);
+            if (!tod.bypass) {
+                lightAccumulator.render(camera, tod,
+                        sim.getGrid().getWidth(), sim.getGrid().getHeight(),
+                        alphaMult);
+            }
             glPopAttrib();
         }
 

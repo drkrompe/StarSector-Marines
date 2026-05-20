@@ -4,11 +4,14 @@ import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_CURRENT_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
+import static org.lwjgl.opengl.GL11.GL_DST_COLOR;
 import static org.lwjgl.opengl.GL11.GL_ENABLE_BIT;
+import static org.lwjgl.opengl.GL11.GL_ONE;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_BIT;
+import static org.lwjgl.opengl.GL11.GL_ZERO;
 import static org.lwjgl.opengl.GL11.glBlendFunc;
 import static org.lwjgl.opengl.GL11.glColorMask;
 import static org.lwjgl.opengl.GL11.glDisable;
@@ -58,6 +61,38 @@ public final class GlStateBracket implements AutoCloseable {
         glEnable(GL_TEXTURE_2D);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDisable(GL_DEPTH_TEST);
+        return new GlStateBracket();
+    }
+
+    /**
+     * Push + set additive blending suitable for emitting radial light
+     * kernels into a lightmap. Source alpha (the kernel's falloff) gates
+     * the contribution so overlapping lights stack toward white rather
+     * than averaging.
+     */
+    public static GlStateBracket additiveBlend() {
+        glPushAttrib(GL_COLOR_BUFFER_BIT | GL_TEXTURE_BIT | GL_ENABLE_BIT | GL_CURRENT_BIT);
+        glColorMask(true, true, true, true);
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+        glDisable(GL_DEPTH_TEST);
+        return new GlStateBracket();
+    }
+
+    /**
+     * Push + set multiply blending — used to composite a lightmap texture
+     * over a previously-rendered scene. Result: {@code scene * lightmap}.
+     * Ambient values ≤1 darken the scene; light kernels that pushed the
+     * lightmap above 1 brighten regions back toward (or past) white.
+     */
+    public static GlStateBracket multiplicativeLighting() {
+        glPushAttrib(GL_COLOR_BUFFER_BIT | GL_TEXTURE_BIT | GL_ENABLE_BIT | GL_CURRENT_BIT);
+        glColorMask(true, true, true, true);
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_DST_COLOR, GL_ZERO);
         glDisable(GL_DEPTH_TEST);
         return new GlStateBracket();
     }
