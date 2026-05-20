@@ -13,9 +13,13 @@ import com.dillon.starsectormarines.battle.mapgen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * Stamps manned turret emplacements (defense posts) into conquest maps. Runs
@@ -145,6 +149,12 @@ public final class DefensePostStamper {
                 cy = slid[1];
             }
             if (tooCloseToExistingPost(defensePosts, cx, cy)) continue;
+            // Final gate — would stamping this footprint partition the walkable
+            // graph? Catches the case where the post sits between an existing
+            // non-walkable mass (BSP outdoor wall, building, fortress wall) and
+            // open ground, sealing off a thin strip the footprint check on its
+            // own can't see.
+            if (wouldPartitionWalkable(grid, cx, cy, tier)) continue;
             DefensePost post = stampPost(grid, topology, doodads, tier, cx, cy, rng);
             defensePosts.add(post);
             tactical.add(emitGuardpostNode(tier, post));
@@ -173,7 +183,12 @@ public final class DefensePostStamper {
      * True if the post's full footprint (3×3 for LIGHT/MEDIUM, 5×3 for LARGE)
      * lies on outdoor walkable ground with no buildings, walls, water, or
      * doorways intersecting. Doorway exclusion is critical — sealing a building
-     * entrance under a defense post would orphan the interior.
+     * entrance under a defense post would orphan the interior, and blocking the
+     * cell <em>directly outside</em> the doorway has the same effect (the
+     * through-cell is the only walkable egress from the threshold). Hence the
+     * cardinal-neighbor doorway check: rejects footprints that would stamp on a
+     * doorway's perpendicular cell even though that cell itself isn't flagged
+     * DOORWAY.
      */
     private static boolean hasValidFootprint(NavigationGrid grid, CellTopology topology,
                                              int cx, int cy, DefensePostKind tier) {
@@ -185,13 +200,29 @@ public final class DefensePostStamper {
                 int y = cy + dy;
                 if (!grid.inBounds(x, y)) return false;
                 if (!grid.isWalkable(x, y)) return false;
-                if (grid.isDoorway(x, y)) return false;
+                if (touchesDoorway(grid, x, y)) return false;
                 if (topology.isWall(x, y)) return false;
                 if (topology.isVehicle(x, y)) return false;
                 if (!isStampableGround(topology.getGroundKind(x, y))) return false;
             }
         }
         return true;
+    }
+
+    /**
+     * True if {@code (x, y)} is a doorway cell, or if any of its 4 cardinal
+     * neighbors is. Cardinal-only (not diagonal) because only the perpendicular
+     * neighbors of a doorway carry traffic in/out of the building — the parallel
+     * neighbors are the wall continuing past the doorway gap, already
+     * non-walkable, and the diagonal neighbors don't block the threshold.
+     */
+    private static boolean touchesDoorway(NavigationGrid grid, int x, int y) {
+        if (grid.isDoorway(x, y)) return true;
+        if (grid.inBounds(x + 1, y) && grid.isDoorway(x + 1, y)) return true;
+        if (grid.inBounds(x - 1, y) && grid.isDoorway(x - 1, y)) return true;
+        if (grid.inBounds(x, y + 1) && grid.isDoorway(x, y + 1)) return true;
+        if (grid.inBounds(x, y - 1) && grid.isDoorway(x, y - 1)) return true;
+        return false;
     }
 
     /** True for outdoor ground kinds the stamper accepts. INDOOR/WATER/TILE are off-limits. */
@@ -232,6 +263,70 @@ public final class DefensePostStamper {
             }
         }
         return null;
+    }
+
+    /**
+     * Simulated-stamp connectivity check. Builds the set of cells the post
+     * would make non-walkable, picks the first walkable cell outside that set
+     * as a BFS seed, walks the walkable graph treating the simulated stamp as
+     * non-walkable, and returns true if any walkable cell would remain
+     * unreached. Catches the failure mode where the post stamps adjacent to a
+     * BSP wall mass, sealing a thin strip between itself and the wall (e.g. a
+     * LARGE post placed against the fortress-district kill-zone boundary
+     * cutting off a 1-cell-tall street strip).
+     *
+     * <p>Runs in {@code O(w*h)} per call but only fires once per anchor that
+     * passes the cheaper {@link #hasValidFootprint} + slide + separation gates,
+     * so the typical gen sees ~10-50 calls, not 80 × tier count.
+     */
+    private static boolean wouldPartitionWalkable(NavigationGrid grid, int cx, int cy, DefensePostKind tier) {
+        int w = grid.getWidth();
+        int h = grid.getHeight();
+        int halfX = (tier == DefensePostKind.LARGE) ? 2 : 1;
+        int halfY = 1;
+        Set<Integer> stamped = new HashSet<>();
+        for (int dy = -halfY; dy <= halfY; dy++) {
+            for (int dx = -halfX; dx <= halfX; dx++) {
+                stamped.add((cy + dy) * w + (cx + dx));
+            }
+        }
+
+        int seedIdx = -1;
+        int target = 0;
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                if (!grid.isWalkable(x, y)) continue;
+                int idx = y * w + x;
+                if (stamped.contains(idx)) continue;
+                if (seedIdx < 0) seedIdx = idx;
+                target++;
+            }
+        }
+        if (seedIdx < 0) return false;
+
+        boolean[] visited = new boolean[w * h];
+        Deque<Integer> stack = new ArrayDeque<>();
+        stack.push(seedIdx);
+        visited[seedIdx] = true;
+        int reached = 1;
+        while (!stack.isEmpty()) {
+            int idx = stack.pop();
+            int x = idx % w;
+            int y = idx / w;
+            for (int dir = 0; dir < 4; dir++) {
+                int nx = x + (dir == 0 ? 1 : dir == 1 ? -1 : 0);
+                int ny = y + (dir == 2 ? 1 : dir == 3 ? -1 : 0);
+                if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+                if (!grid.isWalkable(nx, ny)) continue;
+                int nidx = ny * w + nx;
+                if (stamped.contains(nidx)) continue;
+                if (visited[nidx]) continue;
+                visited[nidx] = true;
+                reached++;
+                stack.push(nidx);
+            }
+        }
+        return reached != target;
     }
 
     /** True if any placed post anchor is within {@link #POST_MIN_SEPARATION} of {@code (cx, cy)}. Manhattan-squared compare. */
