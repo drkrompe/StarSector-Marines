@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.DefensePost;
 import com.dillon.starsectormarines.battle.DefensePostKind;
 import com.dillon.starsectormarines.battle.Doodad;
 import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.PointOfInterest;
 import com.dillon.starsectormarines.battle.TileManifest;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
@@ -16,6 +17,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -85,6 +87,18 @@ public final class DefensePostStamper {
     /** Attempts per post before giving up — large enough that tight maps still place SOMETHING per budget. */
     private static final int PLACEMENT_ATTEMPTS_PER_POST = 80;
 
+    /** Non-conquest tier-count rolls. Smaller and more varied than the per-biome rolls — the map has no kill zone, no port, no beach, so the layered "tier per biome" structure doesn't apply. Layered counts instead: a few LIGHT vent rings, a handful of MEDIUM sandbag embankments, occasionally one LARGE multi-turret set-piece. */
+    private static final int NONCONQUEST_LIGHT_MIN  = 1, NONCONQUEST_LIGHT_MAX  = 2;
+    private static final int NONCONQUEST_MEDIUM_MIN = 1, NONCONQUEST_MEDIUM_MAX = 2;
+    private static final int NONCONQUEST_LARGE_MIN  = 0, NONCONQUEST_LARGE_MAX  = 1;
+    /** Optional drone-hub stamp on non-conquest maps — at most one. Drones won't appear yet (spawn logic is a follow-up commit), so the count is intentionally low until the rest of the feature lands. */
+    private static final int NONCONQUEST_DRONE_HUB_MIN = 0, NONCONQUEST_DRONE_HUB_MAX = 1;
+    /** Margin from the grid edges for non-conquest placement — posts whose ring would hug the wall read poorly + risk being cut off by the implicit map-edge wall. */
+    private static final int NONCONQUEST_EDGE_MARGIN = 3;
+
+    /** Conquest CITY-biome drone-hub count — 1-2 hubs scattered through the civilian core, reading as the city's air-defense network. Kept low while the drone-spawn logic is still pending; can scale up once the feature is fully wired. */
+    private static final int CITY_DRONE_HUB_MIN = 1, CITY_DRONE_HUB_MAX = 2;
+
     private DefensePostStamper() {}
 
     /**
@@ -106,6 +120,7 @@ public final class DefensePostStamper {
         int portCount      = PORT_MEDIUM_MIN        + rng.nextInt(PORT_MEDIUM_MAX        - PORT_MEDIUM_MIN        + 1);
         int fortressCount  = FORTRESS_LARGE_MIN     + rng.nextInt(FORTRESS_LARGE_MAX     - FORTRESS_LARGE_MIN     + 1);
         int artilleryCount = FORTRESS_ARTILLERY_MIN + rng.nextInt(FORTRESS_ARTILLERY_MAX - FORTRESS_ARTILLERY_MIN + 1);
+        int cityDroneHubCount = CITY_DRONE_HUB_MIN  + rng.nextInt(CITY_DRONE_HUB_MAX  - CITY_DRONE_HUB_MIN  + 1);
 
         placePosts(grid, topology, biomeMap, axis, doodads, tactical, defensePosts, rng,
                 BiomeKind.BEACH,             DefensePostKind.LIGHT,     beachCount,     w, h);
@@ -117,13 +132,115 @@ public final class DefensePostStamper {
         // band — placePosts() reads the tier to pick the rear clamp.
         placePosts(grid, topology, biomeMap, axis, doodads, tactical, defensePosts, rng,
                 BiomeKind.FORTRESS_DISTRICT, DefensePostKind.ARTILLERY, artilleryCount, w, h);
+        // Drone hubs in the civilian core — reads as the city's air-defense
+        // network. CITY has no special depth clamp (unlike FORTRESS) so the
+        // bbox of every CITY cell is the placement rect.
+        placePosts(grid, topology, biomeMap, axis, doodads, tactical, defensePosts, rng,
+                BiomeKind.CITY,              DefensePostKind.DRONE_HUB, cityDroneHubCount, w, h);
     }
 
     /**
-     * Place {@code count} posts of {@code tier} inside {@code biome}. Picks
-     * random anchors in the biome's bounding box, validates each footprint,
-     * stamps the ones that fit. Posts that fail validation after every attempt
-     * silently drop — better a few missing posts than a hung generator.
+     * Non-conquest entry — replaces the legacy random-cell turret scatter that
+     * BattleSetup used to apply to Sabotage / Assault / Raid / Extraction maps.
+     * Stamps a layered defense in the defender half of the map using the same
+     * embankment vocabulary as the conquest path (LIGHT vent rings, MEDIUM
+     * sandbag embankments, occasional LARGE multi-turret set-pieces), with
+     * POI-aware anchor seeding so posts cluster around the buildings they're
+     * defending instead of landing on random street tiles.
+     *
+     * <p><b>Unmanned</b>: no {@link TacticalNode.Kind#GUARDPOST} nodes are
+     * emitted, so the existing defender allocator's balance (DefenderRoster
+     * pool size tuned for missions without dedicated guard squads) stays
+     * intact. The turret unit spawned by
+     * {@code BattleSetup.spawnDefensePostTurrets} still fires autonomously,
+     * and any defender patrol that happens to walk through the embankment
+     * picks up the standard wall-adjacency cover bonus from the ring cells.
+     *
+     * <p>No ARTILLERY tier — there's no fortress wall to lob over, and a
+     * long-range rocket battery deep in a non-conquest map plays badly
+     * against a 12-unit Sabotage roster.
+     */
+    public static void stampNonConquest(NavigationGrid grid, CellTopology topology,
+                                        List<PointOfInterest> pointsOfInterest,
+                                        List<Doodad> doodads, List<DefensePost> defensePosts,
+                                        Random rng) {
+        int w = grid.getWidth();
+        int h = grid.getHeight();
+        // Defender half mirrors the legacy stampTurrets choice (defender =
+        // right half, marines spawn on the left). Pull the rect in by the
+        // edge-margin so embankments don't kiss the implicit map-edge wall.
+        int rectLeft  = Math.max(NONCONQUEST_EDGE_MARGIN, w / 2);
+        int rectTop   = NONCONQUEST_EDGE_MARGIN;
+        int rectRight = w - 1 - NONCONQUEST_EDGE_MARGIN;
+        int rectBot   = h - 1 - NONCONQUEST_EDGE_MARGIN;
+
+        int lightCount    = NONCONQUEST_LIGHT_MIN     + rng.nextInt(NONCONQUEST_LIGHT_MAX     - NONCONQUEST_LIGHT_MIN     + 1);
+        int mediumCount   = NONCONQUEST_MEDIUM_MIN    + rng.nextInt(NONCONQUEST_MEDIUM_MAX    - NONCONQUEST_MEDIUM_MIN    + 1);
+        int largeCount    = NONCONQUEST_LARGE_MIN     + rng.nextInt(NONCONQUEST_LARGE_MAX     - NONCONQUEST_LARGE_MIN     + 1);
+        int droneHubCount = NONCONQUEST_DRONE_HUB_MIN + rng.nextInt(NONCONQUEST_DRONE_HUB_MAX - NONCONQUEST_DRONE_HUB_MIN + 1);
+
+        // Per-tier POI seeds — high-value POIs (lab/comms/depot) anchor the
+        // bigger emplacements, residential POIs anchor the smaller ones. The
+        // slide-to-valid pass inside placePostsInRect handles the case where
+        // the POI center itself is inside a building (slides outward to the
+        // nearest valid outdoor anchor).
+        List<int[]> largeSeeds  = poiSeeds(pointsOfInterest, rectLeft, /*highValueOnly=*/true,  rng);
+        List<int[]> mediumSeeds = poiSeeds(pointsOfInterest, rectLeft, /*highValueOnly=*/true,  rng);
+        List<int[]> lightSeeds  = poiSeeds(pointsOfInterest, rectLeft, /*highValueOnly=*/false, rng);
+
+        placePostsInRect(grid, topology, /*biomeMap*/ null, /*biome*/ null,
+                doodads, /*tactical*/ null, defensePosts, rng,
+                DefensePostKind.LARGE, largeCount, largeSeeds,
+                rectLeft, rectTop, rectRight, rectBot);
+        placePostsInRect(grid, topology, null, null,
+                doodads, null, defensePosts, rng,
+                DefensePostKind.MEDIUM, mediumCount, mediumSeeds,
+                rectLeft, rectTop, rectRight, rectBot);
+        placePostsInRect(grid, topology, null, null,
+                doodads, null, defensePosts, rng,
+                DefensePostKind.LIGHT, lightCount, lightSeeds,
+                rectLeft, rectTop, rectRight, rectBot);
+        // Drone hub — reuses the high-value-POI seed pool so the hub clusters
+        // around the things worth defending from the air rather than landing
+        // in an empty street tile.
+        placePostsInRect(grid, topology, null, null,
+                doodads, null, defensePosts, rng,
+                DefensePostKind.DRONE_HUB, droneHubCount, mediumSeeds,
+                rectLeft, rectTop, rectRight, rectBot);
+    }
+
+    /**
+     * Build a shuffled list of POI-derived candidate anchor cells for the
+     * non-conquest placer. Filters to POIs in the defender half (centerX >=
+     * {@code rectLeft}); when {@code highValueOnly} is true, residential POIs
+     * are dropped (saving them for LIGHT-tier seeding). Picks the POI's
+     * exterior anchor cell — the canonical "stand here to interact with this
+     * building" cell that sits just outside a doorway — as the seed, with a
+     * small random nudge so two consecutive posts seeded off neighboring POIs
+     * don't snap to identical positions.
+     */
+    private static List<int[]> poiSeeds(List<PointOfInterest> all, int rectLeft,
+                                        boolean highValueOnly, Random rng) {
+        if (all == null || all.isEmpty()) return Collections.emptyList();
+        List<int[]> out = new ArrayList<>();
+        for (PointOfInterest poi : all) {
+            if (poi.centerX() < rectLeft) continue;
+            if (highValueOnly && poi.kind == PointOfInterest.Kind.RESIDENTIAL) continue;
+            // Small ±2 nudge so the seed doesn't always land on the same
+            // exterior-anchor cell when the POI is reused across tiers.
+            int sx = poi.anchorCellX + rng.nextInt(5) - 2;
+            int sy = poi.anchorCellY + rng.nextInt(5) - 2;
+            out.add(new int[]{sx, sy});
+        }
+        Collections.shuffle(out, rng);
+        return out;
+    }
+
+    /**
+     * Place {@code count} posts of {@code tier} inside {@code biome}. Derives
+     * the spawn rect from the biome's bounding box (and the fortress kill-zone
+     * / rear-band clamps for FORTRESS_DISTRICT) and delegates the actual
+     * placement loop to {@link #placePostsInRect}.
      */
     private static void placePosts(NavigationGrid grid, CellTopology topology, BiomeMap biomeMap,
                                    TraversalAxis axis, List<Doodad> doodads, List<TacticalNode> tactical,
@@ -151,27 +268,69 @@ public final class DefensePostStamper {
                 bRight = bandRight;
             }
         }
-        // Minimum bbox span the biome must offer — every LARGE shape fits in
-        // either 5×3 (LINE_H/WEDGE/TRAPEZOID) or 3×5 (LINE_V), and ARTILLERY
-        // uses the same 5×3 footprint as LINE_H. Both need at least 5 cells
-        // in one direction to host the post.
+        placePostsInRect(grid, topology, biomeMap, biome,
+                doodads, tactical, defensePosts, rng,
+                tier, count, /*seeds*/ null,
+                bLeft, bTop, bRight, bBot);
+    }
+
+    /**
+     * Biome-agnostic core placement loop. Picks anchors from {@code seeds}
+     * first (in order, sliding to valid where the seed isn't quite right),
+     * then falls back to uniform-random picks inside the {@code (bLeft,bTop)
+     * .. (bRight,bBot)} rect. Each accepted anchor stamps its tier-specific
+     * embankment, appends a {@link DefensePost}, and — when
+     * {@code tactical != null} — emits a {@link TacticalNode.Kind#GUARDPOST}
+     * for the defender allocator to garrison.
+     *
+     * <p>Pass {@code biomeMap = null} and {@code biome = null} to skip the
+     * biome match check entirely (non-conquest path: there's no biome layer
+     * to constrain against). Pass {@code tactical = null} to skip GUARDPOST
+     * emission entirely (non-conquest path keeps posts unmanned to preserve
+     * the legacy defender-balance — turrets still fire autonomously, the
+     * embankment still grants cover to any defender that happens to pass).
+     *
+     * <p>Posts that fail validation after every attempt silently drop — better
+     * a few missing posts than a hung generator.
+     */
+    private static void placePostsInRect(NavigationGrid grid, CellTopology topology,
+                                         BiomeMap biomeMap, BiomeKind biome,
+                                         List<Doodad> doodads, List<TacticalNode> tactical,
+                                         List<DefensePost> defensePosts, Random rng,
+                                         DefensePostKind tier, int count, List<int[]> seeds,
+                                         int bLeft, int bTop, int bRight, int bBot) {
+        if (count <= 0) return;
+        // Minimum rect span every LARGE/ARTILLERY shape needs — 5×3 or 3×5
+        // bbox. LIGHT/MEDIUM fit in 3×3.
         int minSpanLong = (tier == DefensePostKind.LARGE || tier == DefensePostKind.ARTILLERY) ? 5 : 3;
         if (bRight - bLeft < minSpanLong) return;
         if (bBot - bTop < minSpanLong) return;
 
         int placed = 0;
-        for (int attempt = 0; attempt < count * PLACEMENT_ATTEMPTS_PER_POST && placed < count; attempt++) {
-            // Per-attempt shape pick — varies the kill-zone silhouette across
-            // placements so the line reads as distinct emplacements. LIGHT and
+        int seedIdx = 0;
+        int seedCount = (seeds != null) ? seeds.size() : 0;
+        // Total attempt budget — seeds get a free turn each, then we fall
+        // back to random picks for the rest of the budget.
+        int budget = seedCount + count * PLACEMENT_ATTEMPTS_PER_POST;
+        for (int attempt = 0; attempt < budget && placed < count; attempt++) {
+            // Per-attempt shape pick — varies the silhouette across placements
+            // so a row of LARGE posts reads as distinct emplacements. LIGHT and
             // MEDIUM ignore this; their stampers use a fixed ring.
             DefensePostShape shape = (tier == DefensePostKind.LARGE)
                     ? DefensePostShape.pickForLarge(rng) : null;
             int halfX = shapeHalfX(tier, shape);
             int halfY = shapeHalfY(tier, shape);
 
-            int cx = bLeft + rng.nextInt(bRight - bLeft + 1);
-            int cy = bTop  + rng.nextInt(bBot  - bTop  + 1);
-            if (biomeMap.biomeAt(cx, cy) != biome) continue;
+            int cx, cy;
+            if (seedIdx < seedCount) {
+                int[] seed = seeds.get(seedIdx++);
+                cx = seed[0];
+                cy = seed[1];
+            } else {
+                cx = bLeft + rng.nextInt(bRight - bLeft + 1);
+                cy = bTop  + rng.nextInt(bBot  - bTop  + 1);
+            }
+            if (biomeMap != null && biomeMap.biomeAt(cx, cy) != biome) continue;
             if (!hasValidFootprint(grid, topology, cx, cy, halfX, halfY)) {
                 int[] slid = slideToValid(grid, topology, biomeMap, biome, cx, cy, halfX, halfY);
                 if (slid == null) continue;
@@ -188,7 +347,12 @@ public final class DefensePostStamper {
                     grid, cx - halfX, cy - halfY, halfX * 2 + 1, halfY * 2 + 1)) continue;
             DefensePost post = stampPost(grid, topology, doodads, tier, shape, cx, cy, rng);
             defensePosts.add(post);
-            tactical.add(emitGuardpostNode(tier, shape, post));
+            // Tiers with a zero garrison (DRONE_HUB) defend themselves via
+            // their own spawned units, so we skip the GUARDPOST emission that
+            // would otherwise pull an infantry squad off the defender roster.
+            if (tactical != null && tier.garrisonSize > 0) {
+                tactical.add(emitGuardpostNode(tier, shape, post));
+            }
             placed++;
         }
     }
@@ -271,7 +435,8 @@ public final class DefensePostStamper {
     /**
      * Spiral search outward from {@code (cx, cy)} up to {@link #ANCHOR_SLIDE_RADIUS}
      * for a cell whose footprint validates. Returns the first valid center, or
-     * null if none found in the search radius.
+     * null if none found in the search radius. Pass {@code biomeMap == null} to
+     * skip the biome match (non-conquest path).
      */
     private static int[] slideToValid(NavigationGrid grid, CellTopology topology,
                                       BiomeMap biomeMap, BiomeKind biome,
@@ -283,7 +448,7 @@ public final class DefensePostStamper {
                     int nx = cx + dx;
                     int ny = cy + dy;
                     if (!grid.inBounds(nx, ny)) continue;
-                    if (biomeMap.biomeAt(nx, ny) != biome) continue;
+                    if (biomeMap != null && biomeMap.biomeAt(nx, ny) != biome) continue;
                     if (hasValidFootprint(grid, topology, nx, ny, halfX, halfY)) return new int[]{nx, ny};
                 }
             }
@@ -317,6 +482,7 @@ public final class DefensePostStamper {
             case MEDIUM:    return stampMedium(grid, topology, doodads, cx, cy);
             case LARGE:     return stampLarge(grid, topology, doodads, shape, cx, cy);
             case ARTILLERY: return stampArtillery(grid, topology, doodads, cx, cy);
+            case DRONE_HUB: return stampDroneHub(grid, topology, doodads, cx, cy);
         }
         throw new IllegalStateException("Unhandled tier " + tier);
     }
@@ -582,6 +748,34 @@ public final class DefensePostStamper {
         turrets.add(new DefensePost.TurretSpec(TurretKind.LOCUST, cx - 1, cy));
         turrets.add(new DefensePost.TurretSpec(TurretKind.LOCUST, cx + 1, cy));
         return new DefensePost(DefensePostKind.ARTILLERY, cx, cy, turrets);
+    }
+
+    /**
+     * DRONE_HUB post: 3×3 sandbag embankment ring around a sealed STONE launch
+     * pad at {@code (cx, cy)}. Geometry mirrors {@link #stampMedium} — same
+     * 8-cell ring, same outward-facing embankment art — but the center cell is
+     * sealed (non-walkable STONE, no doodad) instead of hosting a turret. A
+     * follow-up commit will spawn a {@code DroneHubUnit} at the sealed center
+     * cell to drive periodic drone launches; the empty
+     * {@link DefensePost#turrets} list keeps the existing
+     * {@code BattleSetup.spawnDefensePostTurrets} loop a no-op for this tier.
+     * <pre>
+     *   NW  N  NE
+     *   W   .  E
+     *   SW  S  SE
+     * </pre>
+     */
+    private static DefensePost stampDroneHub(NavigationGrid grid, CellTopology topology,
+                                             List<Doodad> doodads, int cx, int cy) {
+        for (int dy = -1; dy <= 1; dy++) {
+            for (int dx = -1; dx <= 1; dx++) {
+                if (dx == 0 && dy == 0) continue;
+                stampRingCell(grid, topology, doodads, cx + dx, cy + dy,
+                        TileManifest.turretEmbankment(dx, dy));
+            }
+        }
+        sealInnerCell(grid, topology, cx, cy);
+        return new DefensePost(DefensePostKind.DRONE_HUB, cx, cy, new ArrayList<>(0));
     }
 
     /**

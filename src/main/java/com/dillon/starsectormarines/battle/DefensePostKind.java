@@ -25,7 +25,24 @@ public enum DefensePostKind {
     /** 2-3 turrets in an extended embankment line. Kill-zone tier — mixed regulars + heavy turrets, longest patrol leash. */
     LARGE    (3, 8, 80, 8),
     /** Two-LOCUST rocket battery in a 5×3 bow-out embankment, placed deep in the fortress interior (behind the kremlin wall). Long-range salvo emplacement — battery crew is small (4) and stays on the launchers, hence the tight patrol radius. Higher priority than LARGE so the defender allocator fills artillery first when the roster runs short — losing the battery means losing the long-range threat that punishes the attacker's approach. */
-    ARTILLERY(2, 4, 85, 3);
+    ARTILLERY(2, 4, 85, 3),
+    /**
+     * Drone launch hub — 3×3 embankment ring around a central launch platform.
+     * Spawns aerial drones periodically that patrol around the hub and engage
+     * intruders; the drones (not infantry) are the defense, so the hub carries
+     * a {@code garrisonSize} of 0 and the stamper skips
+     * {@link com.dillon.starsectormarines.battle.tactical.TacticalNode.Kind#GUARDPOST}
+     * node emission for this tier. Priority sits between MEDIUM and LARGE —
+     * losing the hub silences the drone screen, but it's not the long-range
+     * threat that ARTILLERY represents.
+     *
+     * <p>Hosts no {@link com.dillon.starsectormarines.battle.turret.MapTurret}
+     * — the hub's {@link com.dillon.starsectormarines.battle.DefensePost#turrets}
+     * list is empty, and a future {@code DroneHubUnit} spawned by
+     * {@link com.dillon.starsectormarines.battle.BattleSetup} will occupy the
+     * center cell and drive the drone spawn cadence.
+     */
+    DRONE_HUB(0, 0, 75, 0);
 
     /** How many MapTurret cells this tier stamps at the post's center. LARGE spreads them across the extended footprint. */
     public final int turretCount;
