@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.ai.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.Portal;
 
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -100,17 +101,51 @@ public final class WorldStateBuilder {
         return false;
     }
 
+    /**
+     * Cell radius around {@link Squad#lastSeenEnemyX}/{@code Y} within which
+     * enemies count as threat-set members for HAS_LOS_TO_TARGET. Sized to
+     * comfortably absorb post-observation drift during the ENGAGED alert
+     * window (~6s × ~2 cells/sec = ~12 cells) plus some slack for path
+     * detours. Squads with no known threat ({@code lastSeenEnemy = -1}) read
+     * HAS_LOS_TO_TARGET as false outright — they don't get pulled to enemies
+     * they've never observed.
+     *
+     * <p>Interim stand-in for the per-squad {@code BelievedContact} map
+     * documented in roadmap/ai/15-perception-and-influence.md. The single
+     * stamped cell is the minimum-viable representation of "what this squad
+     * knows about enemies"; the full belief map replaces it when the
+     * perception layer ships.
+     *
+     * <p>Indirect fire (mech LRM at 40-cell launch range) does not poison the
+     * stamp today because the audible-gunfire path
+     * ({@link BattleSimulation#GUNFIRE_ALERT_RADIUS} = 18) excludes far
+     * launchers before {@code lastSeenEnemy} would be updated.
+     */
+    private static final float HAS_LOS_THREAT_SET_RADIUS = 20f;
+
     private static boolean evalHasLosToTarget(Squad squad, BattleSimulation sim) {
+        if (squad.lastSeenEnemyX < 0 || squad.lastSeenEnemyY < 0) return false;
+
         NavigationGrid grid = sim.getGrid();
         List<Unit> units = sim.getUnits();
-        for (Unit member : units) {
-            if (!member.isAlive() || member.squadId != squad.id) continue;
-            for (Unit enemy : units) {
-                if (!enemy.isAlive() || !enemy.type.combatant) continue;
-                if (enemy.faction == squad.faction) continue;
-                if (grid.hasLineOfSight(member.cellX, member.cellY, enemy.cellX, enemy.cellY)) {
-                    return true;
-                }
+
+        // Pre-collect squad members once so the inner loop is O(threat-set × squad-size)
+        // instead of O(threat-set × total-units).
+        List<Unit> members = new ArrayList<>(4);
+        for (Unit u : units) {
+            if (u.isAlive() && u.squadId == squad.id) members.add(u);
+        }
+        if (members.isEmpty()) return false;
+
+        float radiusSq = HAS_LOS_THREAT_SET_RADIUS * HAS_LOS_THREAT_SET_RADIUS;
+        for (Unit enemy : units) {
+            if (!enemy.isAlive() || !enemy.type.combatant) continue;
+            if (enemy.faction == squad.faction) continue;
+            int ex = enemy.cellX - squad.lastSeenEnemyX;
+            int ey = enemy.cellY - squad.lastSeenEnemyY;
+            if (ex * ex + ey * ey > radiusSq) continue;   // threat-set gate
+            for (Unit member : members) {
+                if (grid.hasLineOfSight(member.cellX, member.cellY, enemy.cellX, enemy.cellY)) return true;
             }
         }
         return false;

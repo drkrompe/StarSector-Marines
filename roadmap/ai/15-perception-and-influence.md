@@ -94,6 +94,22 @@ Map<Integer, BelievedContact> believedEnemies;
    with attenuated confidence (e.g. `0.4–0.7`) and the noise
    event's position (not the source unit's true position — sound
    localization is imperfect).
+
+   **Indirect fire is a special case here.** When a unit is hit by
+   indirect fire (mech LRM today, future artillery), the target's
+   blackboard should NOT stamp the launcher's cell as a believed
+   contact — the squad has no way of knowing where the round was
+   launched from. Two correct ways to handle it: (a) emit the
+   NoiseEvent at the *impact* cell with no source link, so the
+   squad believes "something exploded over there" rather than
+   "the shooter is at the launch cell"; or (b) require the firing
+   unit to explicitly `push(targetSquadId, BelievedContact)` only
+   when intel is genuinely available (e.g. a spotter unit relayed
+   the launch). Today's interim threat-set gate sidesteps this by
+   accident — the audible-gunfire radius (18 cells) is shorter
+   than any indirect-fire range, so distant launchers don't reach
+   the stamp path. Future indirect weapons with shorter launchers
+   would need explicit handling.
 3. **Commander briefing** — Tier C can `push(squadId,
    BelievedContact)` to inject contacts the squad couldn't observe
    itself. This is how the heatmap-driven "redirect reserves"
