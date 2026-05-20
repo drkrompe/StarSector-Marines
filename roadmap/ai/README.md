@@ -6,7 +6,7 @@
 
 Migrating infantry squad combat in the battle sim from hand-authored
 behavior classes (`InfantryCombatantBehavior`, `PlanterBehavior`,
-`KitRetrieverBehavior`, `OBJECTIVE_CAMPER`, `GarrisonBehavior`, eventually
+`KitRetrieverBehavior`, `OBJECTIVE_CAMPER`, `GarrisonBehavior`,
 `PatrolBehavior`) to a **squad-level GOAP planner** (Goal-Oriented Action
 Planning, F.E.A.R.-style).
 

@@ -9,7 +9,6 @@ import com.dillon.starsectormarines.battle.ai.DroneHubBehavior;
 import com.dillon.starsectormarines.battle.ai.FallbackBehavior;
 import com.dillon.starsectormarines.battle.ai.FleeBehavior;
 import com.dillon.starsectormarines.battle.ai.KitRetrieverBehavior;
-import com.dillon.starsectormarines.battle.ai.PatrolBehavior;
 import com.dillon.starsectormarines.battle.ai.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.ai.StructureBehavior;
 import com.dillon.starsectormarines.battle.ai.TacticalScoring;
@@ -1223,7 +1222,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         for (Squad squad : squads.values()) {
             if (squad.defensePost != owner) continue;
             squad.defensePost = null;
-            squad.patrolRadius = PatrolBehavior.PATROL_DISTRICT_RADIUS;
+            squad.patrolRadius = com.dillon.starsectormarines.battle.ai.goap.actions.PatrolRoute.DEFAULT_DISTRICT_RADIUS;
         }
     }
 
@@ -1394,7 +1393,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             case FLEE:           return FleeBehavior.INSTANCE;
             case TURRET:         return TurretBehavior.INSTANCE;
             case GARRISON:       return CombatantBehavior.INSTANCE;
-            case PATROL:         return PatrolBehavior.INSTANCE;
+            case PATROL:         return CombatantBehavior.INSTANCE;
             case STRUCTURE:      return StructureBehavior.INSTANCE;
             case DRONE_HUB:      return DroneHubBehavior.INSTANCE;
             case DRONE_PATROL:   return DroneBehavior.INSTANCE;

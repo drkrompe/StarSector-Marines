@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle;
 
-import com.dillon.starsectormarines.battle.ai.PatrolBehavior;
 import com.dillon.starsectormarines.battle.ai.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.ai.goap.Goal;
 import com.dillon.starsectormarines.battle.ai.goap.SquadPlan;
@@ -14,7 +13,7 @@ import com.dillon.starsectormarines.battle.tactical.TacticalNode;
  * of squadmates, target selection penalizes squadmates already engaging the
  * same enemy, and a squad's {@link SquadAlertLevel} drives the idle vs.
  * engaged branch in {@link com.dillon.starsectormarines.battle.ai.goap.actions.HoldPost}
- * and {@link com.dillon.starsectormarines.battle.ai.PatrolBehavior}.
+ * and {@link com.dillon.starsectormarines.battle.ai.goap.actions.PatrolRoute}.
  *
  * <p>Squad identity is just an integer key on {@link Unit#squadId}. The
  * {@link Squad} object holds metadata the AI consults — leader pointer,
@@ -117,7 +116,7 @@ public final class Squad {
 
     /**
      * Current patrol waypoint cell. -1 sentinel = not assigned yet, the
-     * behavior picks one on next tick. {@link com.dillon.starsectormarines.battle.ai.PatrolBehavior}
+     * behavior picks one on next tick. {@link com.dillon.starsectormarines.battle.ai.goap.actions.PatrolRoute}
      * picks a new waypoint when the squad's centroid arrives at the current
      * one, then dwells {@link #patrolDwellTimer} sim-seconds before moving on.
      * Squad-scoped so all members converge on the same target rather than
@@ -129,12 +128,12 @@ public final class Squad {
     public float patrolDwellTimer = 0f;
     /**
      * Cell-radius around {@link #assignedNode} the squad samples patrol waypoints
-     * from. Default matches {@link PatrolBehavior#PATROL_DISTRICT_RADIUS} (wide
-     * district sweep); guardpost squads tighten this to their tier's
+     * from. Default matches {@link com.dillon.starsectormarines.battle.ai.goap.actions.PatrolRoute#DEFAULT_DISTRICT_RADIUS}
+     * (wide district sweep); guardpost squads tighten this to their tier's
      * {@link DefensePostKind#patrolRadius} so they orbit the post until release.
      * Reverts to the default when {@link #defensePost} releases.
      */
-    public int patrolRadius = PatrolBehavior.PATROL_DISTRICT_RADIUS;
+    public int patrolRadius = com.dillon.starsectormarines.battle.ai.goap.actions.PatrolRoute.DEFAULT_DISTRICT_RADIUS;
     /**
      * Defense post this squad is garrisoning. Null for regular patrols and for
      * marine squads. Set by {@link BattleSetup} post-{@code allocateDefenders}

@@ -712,7 +712,7 @@ public final class BattleSetup {
      * Fallback spawn used when the map has no defender tactical nodes (any
      * mission whose generator skips BspCityGenerator's tactical pass). Mints
      * {@link UnitRole#PATROL} squads of up to {@link DefenderRoster#patrolSquadSize}
-     * each, with {@code assignedNode = null} — {@link com.dillon.starsectormarines.battle.ai.PatrolBehavior}
+     * each, with {@code assignedNode = null} — {@link com.dillon.starsectormarines.battle.ai.goap.actions.PatrolRoute}
      * seeds off {@link Squad#centroidX}/{@code centroidY} when the anchor is
      * null, so the squad wanders from its spawn cluster outward and engages
      * on enemy LOS like the tactical-node patrol path.
@@ -749,7 +749,7 @@ public final class BattleSetup {
                 if (squad == null) {
                     int sid = sim.mintSquad(Faction.DEFENDER, unit);
                     squad = sim.getSquad(sid);
-                    // No assignedNode — PatrolBehavior falls back to the
+                    // No assignedNode — PatrolRoute falls back to the
                     // squad centroid as its wander seed when this is null.
                 }
                 unit.squadId = squad.id;

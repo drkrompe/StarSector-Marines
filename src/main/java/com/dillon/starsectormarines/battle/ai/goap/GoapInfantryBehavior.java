@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.battle.ai.goap.goals.EliminateEnemiesGoal;
 import com.dillon.starsectormarines.battle.ai.goap.goals.GarrisonAmbush;
 import com.dillon.starsectormarines.battle.ai.goap.goals.GuardPost;
 import com.dillon.starsectormarines.battle.ai.goap.goals.RecoverFromAmbush;
+import com.dillon.starsectormarines.battle.ai.goap.goals.RoutinePatrol;
 import com.dillon.starsectormarines.battle.ai.goap.goals.SecureObjectiveZone;
 import com.dillon.starsectormarines.battle.ai.goap.goals.SurviveContact;
 import com.dillon.starsectormarines.battle.ai.goap.scoring.RoleAssigner;
@@ -60,6 +61,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             ClearAssignedZoneGoal.INSTANCE,
             GarrisonAmbush.INSTANCE,
             GuardPost.INSTANCE,
+            RoutinePatrol.INSTANCE,
             SurviveContact.INSTANCE,
             RecoverFromAmbush.INSTANCE,
             BreachToEngage.INSTANCE,
