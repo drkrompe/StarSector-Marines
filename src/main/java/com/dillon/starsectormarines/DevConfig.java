@@ -49,7 +49,7 @@ public final class DevConfig {
      * (unarmed nimble drop craft), matching the "token force" flavor — the
      * player supplies the heavy lift.
      */
-    public static final boolean FORCE_EMPLOYER_VALKYRIE = false;
+    public static final boolean FORCE_EMPLOYER_VALKYRIE = true;
 
     /**
      * FBO pixel resolution per nav-grid cell for the decal accumulator.
@@ -62,6 +62,19 @@ public final class DevConfig {
      * settings.json reader) once we have a settings UI to hang it off of.
      */
     public static final int DECAL_FBO_PX_PER_CELL = 32;
+
+    /**
+     * Soft cap on the persistent decal source list (bullet holes, craters,
+     * rubble) tracked by {@code BattleSimulation}. FIFO eviction at the head
+     * once full. The accumulator FBO is decoupled — once stamped, decals stay
+     * on screen regardless of whether they're still in the source list — so
+     * this cap only bounds the in-memory POJO list, not the visible scarring.
+     *
+     * <p>Raise on a beefy machine to keep more decals in the source list
+     * (mostly matters for the shell-casing per-cell counter and any future
+     * removal/fade logic). 10k was the old default; 25k is the new default.
+     */
+    public static final int DECAL_SOURCE_CAP = 25_000;
 
     private DevConfig() {}
 }

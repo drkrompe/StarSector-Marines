@@ -93,7 +93,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     public static final float MORALE_DROP_ON_HIT   = 0.05f;
     /** Additional morale drop when a hit kills the squadmate. Kept absolute (not cap-scaled) — it's a one-off event correlated with the cap reduction that the death itself triggers. */
     public static final float MORALE_DROP_ON_DEATH = 0.30f;
-    /** Base morale recovered per sim-second while the squad is out of contact ({@code !_engagedThisTick}), at full strength. Effective rate is scaled by cap so a mauled squad takes proportionally longer to reach their (lower) ceiling — at base 0.20 this gives a constant ~2.5s recovery to the clear threshold and ~5s to full cap across all squad sizes. */
+    /** Base morale recovered per sim-second while the squad isn't being shot at ({@link Squad#timeSinceUnderFire} {@code >=} {@link #MORALE_RECOVER_AFTER_FIRE_SECONDS}), at full strength. Effective rate is scaled by cap so a mauled squad takes proportionally longer to reach their (lower) ceiling — at base 0.20 this gives a constant ~2.5s recovery to the clear threshold and ~5s to full cap across all squad sizes. */
     public static final float MORALE_RECOVERY_RATE = 0.20f;
     /** Cooldown between morale-drain events on a single squad (sim seconds). A burst of incoming bullets in one tick still counts as one drain — prevents a hail of fire from insta-breaking a full squad. At 0.2s a full squad endures sustained fire for ~2.8s before breaking (5 hits/sec × 0.05/hit = 0.25/sec, 0.7 margin). Doesn't shield mauled squads: their per-hit drain (0.05/cap) is large enough that a single hit folds them on the first cooldown window. */
     public static final float MORALE_DRAIN_COOLDOWN = 0.2f;
@@ -105,6 +105,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     public static final float MORALE_BROKEN_THRESHOLD = 0.30f;
     /** Hysteresis clear threshold, as a <em>fraction of cap</em>. Broken squad reverts once {@code morale > MORALE_CLEAR_THRESHOLD * cap}. Fixes the pre-scaling pathology where a solo survivor's cap (0.25) was below the absolute clear threshold (0.5) and they could never recover. */
     public static final float MORALE_CLEAR_THRESHOLD  = 0.50f;
+    /** Sim seconds since the last hit/near-miss on a squadmate before morale recovery resumes. Decouples recovery from raw LoS — a broken squad in cover that can see distant enemies (and is firing back) but isn't actually being shot at composes itself; a pinned-down squad still taking incoming stays locked. Without this gate, a fallback that lands on a still-exposed cell (BreakContact's picker minimizes exposure but doesn't guarantee a true hide) keeps {@code _engagedThisTick=true} every tick via STANCED return fire and the squad never recovers. */
+    public static final float MORALE_RECOVER_AFTER_FIRE_SECONDS = 2.0f;
 
     /**
      * Sim-seconds between commander-tier slow ticks. The squad-GOAP replan
@@ -161,17 +163,17 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      */
     private byte[] doodadCoverByFacing;
     private final List<MapVehicle> vehicles = new ArrayList<>();
-    /** Persistent visual decals (bullet holes, craters, rubble) accumulated over the battle. Bounded by {@link #DECAL_CAP} with FIFO eviction via {@link java.util.ArrayDeque#pollFirst} — O(1) head removal, unlike {@code ArrayList.remove(0)} which would shift the whole tail per overflow. */
+    /** Persistent visual decals (bullet holes, craters, rubble) accumulated over the battle. Bounded by {@link com.dillon.starsectormarines.DevConfig#DECAL_SOURCE_CAP} with FIFO eviction via {@link java.util.ArrayDeque#pollFirst} — O(1) head removal, unlike {@code ArrayList.remove(0)} which would shift the whole tail per overflow. */
     private final java.util.ArrayDeque<Decal> decals = new java.util.ArrayDeque<>();
     /**
-     * Soft cap on decal count — older decals get dropped from the head when
-     * this fills. The visible "battle scarring" layer lives in the renderer's
-     * decal-accumulator FBO (not bounded by this cap), so this just keeps the
-     * source list's memory footprint reasonable. Set generously since
-     * eviction here doesn't reclaim FBO pixels — once stamped, decals stay
-     * stamped regardless of whether they're still in the source list.
+     * Monotonic count of decals ever added to {@link #decals}. Lets the render
+     * layer's accumulator know how many new decals were spawned since it last
+     * stamped, even when {@link #decals} has saturated at the cap and FIFO
+     * eviction keeps {@code decals.size()} pinned — without this counter the
+     * accumulator can't distinguish "no new decals" from "new decals arrived
+     * but the head was evicted to make room." See {@code DecalAccumulator}.
      */
-    private static final int DECAL_CAP = 10_000;
+    private long decalsEverAdded = 0L;
     /** Active smoking wrecks parked at destroyed turret cells. Each emits a periodic smoke-puff event the renderer drains into the impact FX engine. */
     private final List<SmokingWreck> smokingWrecks = new ArrayList<>();
     /** Smoke-puff events queued this advance — each entry is {x, y, radiusCells}. Drained by the renderer per frame and cleared at the start of each advance. */
@@ -471,9 +473,12 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     public void addVehicle(MapVehicle v)   { vehicles.add(v); }
     /** Persistent visual decals — bullet holes, craters, rubble. Pure render data; combat ignores them. Returned as {@code Iterable} because the renderer only iterates; head-eviction needs the {@code ArrayDeque} surface internally. */
     public java.util.Collection<Decal> getDecals() { return decals; }
+    /** Monotonic count of decals ever added — see field doc on {@link #decalsEverAdded}. Read by the render layer's accumulator to drive incremental stamping that survives FIFO eviction at the cap. */
+    public long getDecalsEverAdded() { return decalsEverAdded; }
     public void addDecal(Decal d) {
         decals.addLast(d);
-        if (decals.size() > DECAL_CAP) decals.pollFirst();
+        if (decals.size() > com.dillon.starsectormarines.DevConfig.DECAL_SOURCE_CAP) decals.pollFirst();
+        decalsEverAdded++;
     }
     /** Smoke-puff events emitted by smoking wrecks during the last advance. Each entry is {x, y, radiusCells}. Drained by the renderer per frame. */
     public List<float[]> getSmokePuffsThisFrame() { return smokePuffsThisFrame; }
@@ -600,6 +605,11 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                 }
                 if (died) drop += MORALE_DROP_ON_DEATH;
                 if (drop > 0f) sq.morale = Math.max(0f, sq.morale - drop);
+                // Recovery gate: a hit always counts as "under fire," even
+                // when the drain cooldown blocked the drop. Otherwise a
+                // sustained burst would only reset the timer on the first
+                // bullet, letting recovery resume mid-volley.
+                sq.timeSinceUnderFire = 0f;
             }
         }
     }
@@ -1544,9 +1554,14 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      * {@link #applyDamage} (per-hit + per-death); this pass only handles the
      * passive recovery side and the broken/cleared transitions.
      *
-     * <p>Recovery gates on {@code !squad._engagedThisTick} — a squad with any
-     * member who has LoS to an enemy this tick reads as still in contact and
-     * doesn't recover. Capped by {@code aliveMembers / originalSize} so a
+     * <p>Recovery gates on "haven't been shot at recently"
+     * ({@link Squad#timeSinceUnderFire} {@code >=} {@link #MORALE_RECOVER_AFTER_FIRE_SECONDS}),
+     * not on raw LoS. A broken squad behind imperfect cover can see — and
+     * fire opportunistically at — distant enemies and still compose itself
+     * once incoming hits/near-misses lull. Pre-fix, any LoS kept
+     * {@code _engagedThisTick=true} and locked the squad broken indefinitely
+     * once BreakContact's picker landed them on a least-exposed-but-not-
+     * truly-hidden cell. Capped by {@code aliveMembers / originalSize} so a
      * squad that's lost half its members can't climb back above 0.5 no matter
      * how long they hide; a third casualty drops the cap to 0.25 and they
      * stay broken indefinitely. Squads with {@code originalSize == 0} (an
@@ -1569,6 +1584,9 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                 if (shot.hit) continue;
                 Squad target = squadHitByMiss(shot);
                 if (target == null) continue;
+                // Recovery gate: a near-miss always resets the "under fire"
+                // timer, even when the drain cooldown blocks the morale drop.
+                target.timeSinceUnderFire = 0f;
                 if (target.moraleDrainCooldown > 0f) continue;
                 float cap = (target.originalSize > 0 && target.aliveMembers > 0)
                         ? (float) target.aliveMembers / target.originalSize
@@ -1583,10 +1601,23 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         for (Squad squad : squads.values()) {
             if (squad.aliveMembers <= 0) continue;
 
+            // Tick "time since under fire" before reading it. Saturate to
+            // avoid overflow on long quiet stretches — the threshold check
+            // only cares about >= MORALE_RECOVER_AFTER_FIRE_SECONDS.
+            if (squad.timeSinceUnderFire < 1e9f) squad.timeSinceUnderFire += TICK_DT;
+
             float cap = (squad.originalSize > 0)
                     ? (float) squad.aliveMembers / squad.originalSize
                     : 1f;
-            if (!squad._engagedThisTick) {
+            // Recovery gates on "haven't been shot at recently," not on raw
+            // LoS. A broken squad that pulled back to cover with imperfect
+            // hide (BreakContact's picker minimizes exposure but the
+            // geometry doesn't always allow a true hide) can still see — and
+            // fire back at — distant enemies. As long as no incoming
+            // hits/near-misses arrive within MORALE_RECOVER_AFTER_FIRE_SECONDS,
+            // they compose themselves. Pre-fix: any LoS kept _engagedThisTick
+            // true forever, locking the squad in SurviveContact.
+            if (squad.timeSinceUnderFire >= MORALE_RECOVER_AFTER_FIRE_SECONDS) {
                 // Recovery rate scales with cap: a mauled squad recovers
                 // proportionally slower toward their (lower) ceiling. With
                 // base 0.20 this gives constant ~2.5s time-to-clear and
@@ -1596,7 +1627,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                 float rate = MORALE_RECOVERY_RATE * cap;
                 squad.morale = Math.min(cap, squad.morale + rate * TICK_DT);
             } else {
-                // In contact — no recovery; also re-clamp in case the cap
+                // Under fire — no recovery; also re-clamp in case the cap
                 // dropped (member died this tick) below current morale.
                 squad.morale = Math.min(cap, squad.morale);
             }

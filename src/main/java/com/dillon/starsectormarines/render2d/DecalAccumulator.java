@@ -133,14 +133,18 @@ public final class DecalAccumulator {
     private SpriteAPI batchSheet;
 
     /**
-     * Stamp tracking — count of decals stamped so far AND identity of the
-     * decal collection. A different collection reference indicates a new
-     * battle, triggering a clear + full re-stamp. A shorter collection
-     * triggers the same (handles the unlikely case of mid-battle eviction
-     * if {@code DECAL_CAP} is ever lowered).
+     * Stamp tracking — high-water mark of {@code BattleSimulation.getDecalsEverAdded()}
+     * at last stamp, plus the identity of the decal collection. A different
+     * collection reference indicates a new battle, triggering a clear + full
+     * re-stamp.
+     *
+     * <p>The counter is monotonic regardless of FIFO eviction at the source
+     * list cap, so the accumulator stays accurate even when the deque
+     * saturates and {@code decals.size()} stops changing — the old size-based
+     * bookkeeping went permanently asleep at saturation and froze the FBO.
      */
     private Object lastStampedCollection;
-    private int lastStampedCount;
+    private long lastStampedTotal;
 
     public DecalAccumulator() {
         this(DEFAULT_FBO_PX_PER_CELL);
@@ -154,9 +158,16 @@ public final class DecalAccumulator {
      * Stamp any new decals and blit the FBO to the world rect. No-op if
      * the decal sheet hasn't loaded yet — caller stays responsible for
      * the lazy-load and just hands us whatever's currently available.
+     *
+     * <p>{@code totalEverAdded} is the sim's monotonic decal-add counter
+     * (from {@code BattleSimulation.getDecalsEverAdded()}). Drives incremental
+     * stamping that survives source-list eviction at the cap: the difference
+     * between this and {@link #lastStampedTotal} is the count of decals
+     * spawned since the last stamp, regardless of how many were evicted
+     * from the head of the source deque in the meantime.
      */
     public void render(BattleCamera camera, int gridW, int gridH,
-                       java.util.Collection<Decal> decals,
+                       java.util.Collection<Decal> decals, long totalEverAdded,
                        SpriteAPI sheet, SpriteSheetFrames frames,
                        float alphaMult) {
         if (broken) return;
@@ -168,20 +179,30 @@ public final class DecalAccumulator {
 
         ensureBatch(sheet, frames);
 
-        // Reset on sim change or shrink — either way, the FBO contents no
-        // longer match the source list and need a fresh stamp from scratch.
+        // Sim change = different collection reference = new battle. FBO
+        // contents are stale; clear and start fresh.
         boolean simChanged = (lastStampedCollection != decals);
-        boolean shrank = decals.size() < lastStampedCount;
-        if (simChanged || shrank) {
+        if (simChanged) {
             lastStampedCollection = decals;
-            lastStampedCount = 0;
+            lastStampedTotal = 0L;
             clearFbo();
             if (broken) return;
         }
 
-        if (decals.size() > lastStampedCount) {
-            stampNew(decals, frames);
-            if (broken) return;
+        long newCount = totalEverAdded - lastStampedTotal;
+        if (newCount > 0) {
+            // Stamp the LAST min(newCount, decals.size()) entries. If newCount
+            // exceeds the deque's current size, some of those decals were
+            // spawned-then-evicted before this render call (we missed them
+            // forever — intentional per the source-list-cap design). Stamping
+            // the tail of the current deque covers the ones still visible in
+            // the source list.
+            int toStamp = (int) Math.min(newCount, (long) decals.size());
+            if (toStamp > 0) {
+                stampLastN(decals, toStamp, frames);
+                if (broken) return;
+            }
+            lastStampedTotal = totalEverAdded;
         }
 
         blit(camera, alphaMult);
@@ -194,7 +215,7 @@ public final class DecalAccumulator {
      */
     public void invalidate() {
         lastStampedCollection = null;
-        lastStampedCount = 0;
+        lastStampedTotal = 0L;
     }
 
     /**
@@ -217,12 +238,11 @@ public final class DecalAccumulator {
         }
     }
 
-    private void stampNew(java.util.Collection<Decal> decals, SpriteSheetFrames frames) {
-        // Queue the new range. Iterate-and-skip since ArrayDeque has no
-        // indexed access — the skipped-prefix cost is O(lastStampedCount)
-        // but it's a simple counter increment per decal, microseconds even
-        // at thousands.
-        int skip = lastStampedCount;
+    private void stampLastN(java.util.Collection<Decal> decals, int n, SpriteSheetFrames frames) {
+        // Walk to the position (decals.size() - n) and stamp from there. The
+        // skip cost is O(decals.size() - n) — a simple counter increment per
+        // entry, microseconds even at the new larger source-list caps.
+        int skip = decals.size() - n;
         int idx = 0;
         for (Decal d : decals) {
             if (idx++ < skip) continue;
@@ -241,17 +261,12 @@ public final class DecalAccumulator {
                     d.rotationDeg,
                     1f, 1f, 1f, 1f);
         }
-        if (decalBatch.isEmpty()) {
-            lastStampedCount = decals.size();
-            return;
-        }
+        if (decalBatch.isEmpty()) return;
 
         // Render the queued quads INTO the FBO. State-save pattern mirrors
         // BridgeRenderer: heavy push to isolate Starsector's UI render state,
         // explicit binding saves for anything outside the attrib stack.
         withFboBound(() -> decalBatch.flush());
-        if (broken) return;
-        lastStampedCount = decals.size();
     }
 
     private void clearFbo() {

@@ -964,7 +964,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         decalAccumulator.render(
                 camera,
                 sim.getGrid().getWidth(), sim.getGrid().getHeight(),
-                sim.getDecals(),
+                sim.getDecals(), sim.getDecalsEverAdded(),
                 decalSheet, decalFrames,
                 alphaMult);
     }
@@ -2084,6 +2084,19 @@ public class BattleScreen implements Screen, BattleUiContext {
                         drawTile(f, x, y, alphaMult, GROUND_TILE_EDGE_INSET_PX);
                         break;
                     }
+                }
+
+                // Nature overlay — doodad-style plant / rock sprite stamped on
+                // top of the ground tile by the nature-zone fillers. Drawn
+                // through natureBatch so it shares the per-sheet flush with the
+                // GRASS / DIRT ground draws above; appended after the ground in
+                // this cell so painter order stays "ground, then overlay" inside
+                // the same batch. Overlays inset=0 via drawNatureTile's
+                // tile.isGround() check, so plant/rock edges aren't cropped.
+                com.dillon.starsectormarines.battle.sprites.NatureTile overlay =
+                        topology.getNatureOverlay(x, y);
+                if (overlay != null) {
+                    drawNatureTile(overlay, x, y, alphaMult);
                 }
 
                 // Original doorway (punched through a wall at gen time) gets
