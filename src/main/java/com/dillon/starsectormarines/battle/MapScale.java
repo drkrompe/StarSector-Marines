@@ -14,11 +14,11 @@ import com.dillon.starsectormarines.ops.RiskLevel;
 public enum MapScale {
 
     /** LOW-risk fallback. Tight map, quick op — recommended 20+ marines. */
-    SMALL (96,  48),
+    SMALL (112,  64),
     /** MEDIUM-risk default. Mid-sized urban fight — recommended 50+ marines. */
-    MEDIUM(112, 64),
+    MEDIUM(144, 80),
     /** HIGH-risk siege scale. Full city push — recommended 100+ marines. */
-    LARGE (144, 80);
+    LARGE (240, 160);
 
     public final int width;
     public final int height;
