@@ -75,17 +75,19 @@ public final class BreakContact implements Action {
     }
 
     /**
-     * True when the cached destination is unset or — while still in transit —
-     * has become visible to an enemy (a threat repositioned). Once the member
-     * has actually arrived, the cell sticks even if LoS opens up: this is the
-     * "we paid the cost to get here, now hold" rule. Firing from cover with
-     * partial LoS is preferable to scampering between cells under fire.
+     * True when the cached destination is unset or has become visible to an
+     * enemy. Holds the cell when it's still hidden — including after arrival —
+     * but a hide that gets exposed (threat repositioned, or the original pick
+     * was never really a hide in a tight indoor corridor) re-rolls. The
+     * picker's own {@code distFromSelf} bias absorbs the "don't scamper for
+     * no reason" concern: if no neighbor scores meaningfully better, the
+     * re-pick lands on the same cell. The bug this guards against is a unit
+     * gluing itself to its first arrival cell in a kill-zone while
+     * {@link com.dillon.starsectormarines.battle.ai.goap.goals.SurviveContact}
+     * keeps reissuing BreakContact every replan.
      */
     private static boolean needsNewDestination(Unit member, BattleSimulation sim) {
         if (member.fallbackCellX < 0) return true;
-        boolean atDest = member.cellX == member.fallbackCellX
-                      && member.cellY == member.fallbackCellY;
-        if (atDest) return false;
         return !TacticalScoring.isHiddenFromAllEnemies(
                 member, member.fallbackCellX, member.fallbackCellY, sim);
     }

@@ -16,8 +16,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Coverage for {@link BreakContact}'s execute semantics: destination-cell
- * caching, transit vs. hold branches, and the sticky-at-destination rule
- * (we don't churn the cell once a member arrives, even if LoS opens up).
+ * caching, transit vs. hold branches, and the re-pick rule (hold when the
+ * cached cell is hidden, re-roll when it's exposed — including after
+ * arrival, since the original "stick once arrived" rule glued morale-broken
+ * units to bad picks in tight indoor corridors).
  */
 public class BreakContactTest {
 
@@ -94,23 +96,46 @@ public class BreakContactTest {
     }
 
     @Test
-    public void destinationIsStickyOnceArrived() {
+    public void destinationHoldsWhenArrivedAtHiddenCell() {
         BattleSimulation sim = walledSim();
         Squad squad = new Squad(1, Faction.MARINE);
         squad.aliveMembers = 1;
 
+        // Marine on the hidden side of the column-7 wall; defender on the
+        // other side. Cell (10, 7) is in shadow of the wall from (3, 7), so
+        // the cached destination is genuinely hidden and must stick.
+        Unit marine = marineAt(10, 7, 1);
+        marine.fallbackCellX = 10;
+        marine.fallbackCellY = 7;
+        sim.addUnit(marine);
+        sim.addUnit(defenderAt(3, 7));
+
+        BreakContact.INSTANCE.execute(marine, squad, sim);
+        assertEquals(10, marine.fallbackCellX,
+                "hidden destination must hold — the picker's distFromSelf bias is what prevents churn between equally-good cells");
+        assertEquals(7, marine.fallbackCellY);
+    }
+
+    @Test
+    public void recomputesWhenArrivedAtCellThatIsStillExposed() {
+        BattleSimulation sim = walledSim();
+        Squad squad = new Squad(1, Faction.MARINE);
+        squad.aliveMembers = 1;
+
+        // Marine has "arrived" at (2, 2) but a defender at (5, 2) has clear
+        // LoS along row 2 — the cell isn't a real hide. Used to be sticky;
+        // now the action must re-evaluate so the morale-broken squad doesn't
+        // glue itself into the kill zone.
         Unit marine = marineAt(2, 2, 1);
         marine.fallbackCellX = 2;
         marine.fallbackCellY = 2;
         sim.addUnit(marine);
-        // Defender with direct LoS to the marine's current cell — destination
-        // is NOT hidden. But the rule is: once arrived, hold. Don't recompute.
         sim.addUnit(defenderAt(5, 2));
 
         BreakContact.INSTANCE.execute(marine, squad, sim);
-        assertEquals(2, marine.fallbackCellX,
-                "arrived destination must not be re-picked when LoS opens up — the unit fought to get here");
-        assertEquals(2, marine.fallbackCellY);
+        boolean cellChanged = marine.fallbackCellX != 2 || marine.fallbackCellY != 2;
+        assertTrue(cellChanged,
+                "arrived destination was exposed to (5,2); re-pick should have moved fallbackCellX/Y off (2,2)");
     }
 
     @Test
