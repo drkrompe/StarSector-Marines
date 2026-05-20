@@ -1167,6 +1167,9 @@ public class BattleScreen implements Screen, BattleUiContext {
         for (float[] puff : sim.getSmokePuffsThisFrame()) {
             impactFx.spawnAmbientSmoke(puff[0], puff[1], puff[2]);
         }
+        for (float[] burst : sim.getFireBurstsThisFrame()) {
+            impactFx.spawnAmbientFire(burst[0], burst[1], burst[2]);
+        }
         impactFx.advance(dt * speedMultiplier);
         // Roof alpha lerp runs on real dt (not sim-scaled) so the fog-of-war
         // fade keeps animating even when the sim is paused — matches how the
@@ -2418,12 +2421,18 @@ public class BattleScreen implements Screen, BattleUiContext {
         ensureFloorsSheet();
         if (floorsSheet == null || floorsBatch == null) return;
 
+        CellTopology topology = sim.getTopology();
         for (com.dillon.starsectormarines.battle.map.Building b : buildings.all()) {
             float roofAlpha = b.currentAlpha;
             if (roofAlpha <= 0.01f) continue;
             for (int i = 0, n = b.cellCount(); i < n; i++) {
-                TileManifest.TileFrame f = TileManifest.pickBrickTile(b.cellsX[i], b.cellsY[i]);
-                appendSmallTileTinted(floorsBatch, f, b.cellsX[i], b.cellsY[i],
+                int cx = b.cellsX[i];
+                int cy = b.cellsY[i];
+                // Skip caved-in cells — the rubble decal painted earlier in
+                // the frame shows through where the roof used to be.
+                if (topology.isRoofDestroyed(cx, cy)) continue;
+                TileManifest.TileFrame f = TileManifest.pickBrickTile(cx, cy);
+                appendSmallTileTinted(floorsBatch, f, cx, cy,
                         b.tintR, b.tintG, b.tintB, roofAlpha * alphaMult);
             }
         }

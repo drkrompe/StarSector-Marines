@@ -162,11 +162,20 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final List<SmokingWreck> smokingWrecks = new ArrayList<>();
     /** Smoke-puff events queued this advance — each entry is {x, y, radiusCells}. Drained by the renderer per frame and cleared at the start of each advance. */
     private final List<float[]> smokePuffsThisFrame = new ArrayList<>();
-    /** Total seconds a wreck keeps smoking after destruction. Long enough that the player notices "this turret is dead and smoldering" between glances. */
-    private static final float WRECK_LIFETIME = 18f;
-    /** Min/max sim-seconds between puffs on a single wreck. Jittered per emission so wrecks don't sync up. */
+    /** Fire-burst events queued this advance — each entry is {x, y, radiusCells}. Burn phase only; drained by the renderer per frame and cleared at the start of each advance. */
+    private final List<float[]> fireBurstsThisFrame = new ArrayList<>();
+    /** Total seconds a wreck stays alive after destruction. Burn phase up front, then a longer smoke-only tail so the player can still read "dead turret" minutes later. */
+    private static final float WRECK_LIFETIME = 30f;
+    /** Seconds at the start of the wreck's life during which it emits fire bursts in addition to smoke. After this, fire stops and only smoke continues for the remainder. */
+    private static final float WRECK_BURN_DURATION = 12f;
+    /** Tail of the burn phase over which fire-burst emit probability tapers from 1 to 0. RNG-gated so the taper actually drops emissions. */
+    private static final float WRECK_FIRE_FADE_DURATION = 2f;
+    /** Min/max sim-seconds between smoke puffs on a single wreck. Jittered per emission so wrecks don't sync up. */
     private static final float WRECK_PUFF_MIN_GAP = 0.45f;
     private static final float WRECK_PUFF_MAX_GAP = 0.85f;
+    /** Min/max sim-seconds between fire bursts on a single wreck. Tighter than smoke — fire is the more active, frequent emission during the burn phase. */
+    private static final float WRECK_FIRE_MIN_GAP = 0.25f;
+    private static final float WRECK_FIRE_MAX_GAP = 0.50f;
     /** Dense, primitive-keyed squad lookup. fastutil's Int2ObjectOpenHashMap avoids the per-call Integer autobox that {@link #getSquad} would do on a {@code HashMap<Integer, Squad>} — and getSquad is hit per-unit per-tick from the behavior dispatch. */
     private final Int2ObjectMap<Squad> squads = new Int2ObjectOpenHashMap<>();
 
@@ -262,8 +271,39 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // kind to RUBBLE so the floor pass picks the damaged-floor autotile.
         topology.setWall(x, y, false);
         topology.setGroundKind(x, y, CellTopology.GroundKind.RUBBLE);
+        // Roof cave-in: a wall just collapsed, so any building cell adjacent
+        // to this wall loses its roof (and drops a rubble decal). Without
+        // this the roof stays intact while the wall under it is gone, which
+        // reads jarringly. The four-neighbor reach is intentional — a single
+        // wall hit peels at most two cells (one on each side for interior
+        // partitions, just one for a perimeter wall).
+        peelRoofAround(x, y);
         zoneGraphDirty = true;
         return true;
+    }
+
+    private void peelRoofAround(int wallX, int wallY) {
+        peelRoofCell(wallX - 1, wallY);
+        peelRoofCell(wallX + 1, wallY);
+        peelRoofCell(wallX, wallY - 1);
+        peelRoofCell(wallX, wallY + 1);
+    }
+
+    private void peelRoofCell(int x, int y) {
+        if (!grid.inBounds(x, y)) return;
+        if (topology.getBuildingId(x, y) == 0) return;
+        if (topology.isRoofDestroyed(x, y)) return;
+        topology.setRoofDestroyed(x, y, true);
+        // Rubble decal at the cell center with a small jitter + random pose,
+        // matching the ImpactDecals.PRESET HE-rubble look — sells the cave-in
+        // as "ceiling collapsed onto this tile" rather than a clean wipe.
+        float jx = x + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
+        float jy = y + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
+        int rubbleIdx = rng.nextFloat() < 0.5f
+                ? com.dillon.starsectormarines.battle.DecalKind.RUBBLE.index
+                : com.dillon.starsectormarines.battle.DecalKind.RUBBLE_ALT.index;
+        addDecal(new com.dillon.starsectormarines.battle.Decal(
+                jx, jy, rubbleIdx, rng.nextFloat() * 360f, 1.10f));
     }
     public List<Unit> getUnits()           { return units; }
     public List<Shuttle> getShuttles()     { return airSystem.getShuttles(); }
@@ -355,6 +395,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     }
     /** Smoke-puff events emitted by smoking wrecks during the last advance. Each entry is {x, y, radiusCells}. Drained by the renderer per frame. */
     public List<float[]> getSmokePuffsThisFrame() { return smokePuffsThisFrame; }
+    /** Fire-burst events emitted by smoking wrecks during the last advance (burn phase only). Each entry is {x, y, radiusCells}. Drained by the renderer per frame. */
+    public List<float[]> getFireBurstsThisFrame() { return fireBurstsThisFrame; }
     /** Fighter wings committed to this battle. {@code FlybyOverlay} reads this on first tick and drives spawns from the per-wing schedules. Defaults to {@link FlybyRoster#EMPTY}; missions assign via {@link #setFlybyRoster}. */
     public FlybyRoster getFlybyRoster()    { return flybyRoster; }
     public void setFlybyRoster(FlybyRoster roster) { this.flybyRoster = roster != null ? roster : FlybyRoster.EMPTY; }
@@ -577,6 +619,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         shotsExpiredThisFrame.clear();
         deathsThisFrame.clear();
         smokePuffsThisFrame.clear();
+        fireBurstsThisFrame.clear();
         if (complete) return;
         tickAccumulator += dt;
         while (tickAccumulator >= TICK_DT) {
@@ -849,10 +892,17 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     // context primitives.
 
     /**
-     * Ages each smoking wreck and emits a smoke-puff event when its per-wreck
-     * timer expires. Puff radius tapers with remaining lifetime so a fresh
-     * wreck billows and an old one wisps. Wrecks are removed from the list
-     * when their lifetime hits zero.
+     * Ages each smoking wreck and emits smoke/fire events on independent
+     * jittered timers. Two-phase lifecycle:
+     * <ul>
+     *   <li>Burn phase (first {@link #WRECK_BURN_DURATION}s): fire bursts on
+     *       tight cadence in addition to smoke. Emit probability tapers to 0
+     *       over the trailing {@link #WRECK_FIRE_FADE_DURATION}s so the fire
+     *       crossfades out cleanly rather than cutting.</li>
+     *   <li>Smoke phase (remainder): smoke continues at its full cadence.</li>
+     * </ul>
+     * Separate timers per emitter so plumes interleave naturally instead of
+     * spawning as paired emissions on the same frame.
      */
     private void tickSmokingWrecks() {
         for (int i = smokingWrecks.size() - 1; i >= 0; i--) {
@@ -862,13 +912,32 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                 smokingWrecks.remove(i);
                 continue;
             }
+            float age = w.totalLifetime - w.remainingLifetime;
+
             w.nextPuffTimer -= TICK_DT;
-            if (w.nextPuffTimer > 0f) continue;
-            float cooledFrac = Math.max(0.15f, w.remainingLifetime / w.totalLifetime);
-            float radius = 0.40f + cooledFrac * 0.45f;
-            smokePuffsThisFrame.add(new float[]{w.cellX + 0.5f, w.cellY + 0.5f, radius});
-            w.nextPuffTimer = WRECK_PUFF_MIN_GAP
-                    + rng.nextFloat() * (WRECK_PUFF_MAX_GAP - WRECK_PUFF_MIN_GAP);
+            if (w.nextPuffTimer <= 0f) {
+                float cooledFrac = Math.max(0.15f, w.remainingLifetime / w.totalLifetime);
+                float radius = 0.40f + cooledFrac * 0.45f;
+                smokePuffsThisFrame.add(new float[]{w.cellX + 0.5f, w.cellY + 0.5f, radius});
+                w.nextPuffTimer = WRECK_PUFF_MIN_GAP
+                        + rng.nextFloat() * (WRECK_PUFF_MAX_GAP - WRECK_PUFF_MIN_GAP);
+            }
+
+            if (age < WRECK_BURN_DURATION) {
+                w.nextFireTimer -= TICK_DT;
+                if (w.nextFireTimer <= 0f) {
+                    float burnRemaining = WRECK_BURN_DURATION - age;
+                    float intensity = (burnRemaining < WRECK_FIRE_FADE_DURATION)
+                            ? burnRemaining / WRECK_FIRE_FADE_DURATION
+                            : 1f;
+                    if (rng.nextFloat() < intensity) {
+                        float fireRadius = 0.40f + rng.nextFloat() * 0.30f;
+                        fireBurstsThisFrame.add(new float[]{w.cellX + 0.5f, w.cellY + 0.5f, fireRadius});
+                    }
+                    w.nextFireTimer = WRECK_FIRE_MIN_GAP
+                            + rng.nextFloat() * (WRECK_FIRE_MAX_GAP - WRECK_FIRE_MIN_GAP);
+                }
+            }
         }
     }
 

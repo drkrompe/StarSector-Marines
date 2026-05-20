@@ -85,7 +85,9 @@ public class CellTopology {
         /** Street cell painted with pedestrian stripes. Only meaningful when the ground kind is {@link GroundKind#STREET}. */
         CROSSWALK,
         /** Only meaningful when {@link #CROSSWALK} is set. True = stripes run E-W (pedestrian crossing N-S). */
-        CROSSWALK_HORIZ;
+        CROSSWALK_HORIZ,
+        /** Roof above this building cell has caved in. Roof pass skips the cell; persistent (not driven by LOS), set when an adjacent wall collapses or a direct interior hit cracks the roof. Rubble decal is spawned at the moment of cave-in by the damage path. */
+        ROOF_DESTROYED;
 
         public long mask() { return 1L << ordinal(); }
     }
@@ -202,6 +204,8 @@ public class CellTopology {
     public void    setCrosswalk(int x, int y, boolean v)                   { setTag(x, y, Tag.CROSSWALK, v); }
     public boolean isCrosswalkStripesHorizontal(int x, int y)              { return hasTag(x, y, Tag.CROSSWALK_HORIZ); }
     public void    setCrosswalkStripesHorizontal(int x, int y, boolean v)  { setTag(x, y, Tag.CROSSWALK_HORIZ, v); }
+    public boolean isRoofDestroyed(int x, int y)                           { return hasTag(x, y, Tag.ROOF_DESTROYED); }
+    public void    setRoofDestroyed(int x, int y, boolean v)               { setTag(x, y, Tag.ROOF_DESTROYED, v); }
 
     // ----- Wall direction mask -----
 
