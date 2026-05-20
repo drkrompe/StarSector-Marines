@@ -33,6 +33,9 @@ public class Drone extends Unit {
     /** Drone HP. Low enough that two-three rifle bursts drop one — drones are a screen, not a tank. */
     public static final float DRONE_MAX_HP = 18f;
 
+    /** Turret-style facing slew rate for the drone's body, deg/sec. Fast enough that the drone snaps onto a new target inside a single cooldown window without reading as instantaneous; matches the upper end of {@link com.dillon.starsectormarines.battle.turret.TurretKind#turnRateDegPerSec}. */
+    public static final float TURN_RATE_DEG_PER_SEC = 140f;
+
     /**
      * Kinematic state. Position is initialized to the spawn cell center;
      * patrol behavior (next commit) drives steering and slews the body around
@@ -48,12 +51,13 @@ public class Drone extends Unit {
         this.homeHub = homeHub;
         this.maxHp = DRONE_MAX_HP;
         this.hp = DRONE_MAX_HP;
-        this.attackDamage = 0f;
-        this.attackRange = 0f;
-        this.attackCooldown = 1f;
-        this.accuracy = 0f;
+        this.primaryWeapon = MarineWeapon.DRONE_PULSE;
+        this.attackRange = MarineWeapon.DRONE_PULSE.range;
+        this.attackDamage = MarineWeapon.DRONE_PULSE.damage;
+        this.attackCooldown = MarineWeapon.DRONE_PULSE.cooldown;
+        this.accuracy = MarineWeapon.DRONE_PULSE.accuracy;
         this.moveSpeed = 0f;
-        this.role = UnitRole.STRUCTURE;
+        this.role = UnitRole.DRONE_PATROL;
         this.body.teleport(cellX + 0.5f, cellY + 0.5f, 0f);
     }
 }

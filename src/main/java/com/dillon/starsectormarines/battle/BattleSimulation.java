@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.air.AirSimContext;
 import com.dillon.starsectormarines.battle.air.AirSystem;
 import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.ai.CombatantBehavior;
+import com.dillon.starsectormarines.battle.ai.DroneBehavior;
 import com.dillon.starsectormarines.battle.ai.DroneHubBehavior;
 import com.dillon.starsectormarines.battle.ai.FallbackBehavior;
 import com.dillon.starsectormarines.battle.ai.FleeBehavior;
@@ -1335,6 +1336,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             case PATROL:         return PatrolBehavior.INSTANCE;
             case STRUCTURE:      return StructureBehavior.INSTANCE;
             case DRONE_HUB:      return DroneHubBehavior.INSTANCE;
+            case DRONE_PATROL:   return DroneBehavior.INSTANCE;
             case OBJECTIVE_CAMPER:
             case VIP:
             case COMBATANT:

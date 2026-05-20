@@ -79,5 +79,13 @@ public enum UnitRole {
      * itself doesn't fire or move; this role only exists so the per-tick
      * dispatch has a clean place to drive the spawn cadence.
      */
-    DRONE_HUB
+    DRONE_HUB,
+    /**
+     * Drone aim + fire — a {@link com.dillon.starsectormarines.battle.Drone}
+     * scans for the nearest visible enemy combatant within its weapon range,
+     * slews its body facing toward that target, and emits pulse-laser bursts
+     * when aligned. Patrol motion (drifting around its home hub) lands in a
+     * follow-up commit; today the drone fires from its spawn cell.
+     */
+    DRONE_PATROL
 }

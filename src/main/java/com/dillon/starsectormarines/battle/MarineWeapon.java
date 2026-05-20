@@ -79,7 +79,28 @@ public enum MarineWeapon {
                 32f, 4.0f, 0.55f, 1.80f, 0.40f,
                 ImpactProfile.KINETIC,
                 1, 0f, null, 0f, 0f,
-                0.10f, 0.15f);
+                0.10f, 0.15f),
+    /**
+     * Drone-mounted pulse laser — built-in armament for the autonomous
+     * defender drones launched from a {@link com.dillon.starsectormarines.battle.DroneHubUnit}.
+     * Light 2-round burst with a cyan tracer (visually reads as overhead
+     * laser fire). Lower damage and shorter range than the marine PULSE_RIFLE
+     * — drones are a screen, not a heavy hitter; sustained drone fire whittles
+     * marines down rather than dropping them in one engagement.
+     *
+     * <p>The {@code Marine} prefix on this enum is a naming wart for now —
+     * drones aren't marines, but the firing pipeline is shared, and adding a
+     * parallel {@code DroneWeapon} enum just to host one entry isn't worth
+     * the duplication. Will be revisited when there's a second non-marine
+     * weapon to host.
+     */
+    DRONE_PULSE("Drone Pulse Laser",
+                "pulse_laser_fire",
+                new Color(0x60, 0xCF, 0xFF),
+                12f, 0.8f, 0.40f, 1.0f, 0.30f,
+                ImpactProfile.RIFLE,
+                2, 0.10f, null, 0f, 0f,
+                0.35f, 0.5f);
 
     public final String displayName;
     /** Vanilla fire sound id ({@code fireSoundTwo} from the source {@code .wpn}); mono, pre-registered by the core install. */
