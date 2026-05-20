@@ -143,6 +143,21 @@ Design sketch lives in [`12-squad-of-squads.md`](12-squad-of-squads.md).
 Not scheduled — Tier 2 story implementations can land first with manual
 assignment stubs.
 
+### Perception & influence (parked)
+
+Per-squad belief about enemy positions (populated by LoS + audio
+detection + commander briefings, with decay) and the commander-tier
+influence map that smooths it into a tactical field. Fixes the
+"squads pulled across the map by enemies they haven't observed"
+class of bugs and unlocks frontline / bulge / breakthrough reasoning
+for the commander tier.
+
+Design lives in [`15-perception-and-influence.md`](15-perception-and-influence.md).
+**Near-term cheap wins (threat-direction cover scoring, ranged LoS
+variant, threat-set gate on `HAS_LOS_TO_TARGET`) ship first as a
+tactical task** — they lay the data-flow seam for the full system
+without committing to it.
+
 ### Mech GOAP tree
 
 Promote mechs from `MechCombatantBehavior` (single-unit ad-hoc loop)

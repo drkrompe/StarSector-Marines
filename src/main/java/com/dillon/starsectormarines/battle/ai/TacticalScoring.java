@@ -101,8 +101,18 @@ public final class TacticalScoring {
     public static final int   FALLBACK_SCAN_RANGE = 8;
     /** Per-ally-on-cell penalty in fall-back scoring. */
     public static final float FALLBACK_OCCUPANCY_COST = 4f;
-    /** Per-cover-level bonus in fall-back scoring. */
-    public static final float FALLBACK_COVER_BONUS    = 2f;
+    /**
+     * Per-cover-level bonus on grid cover (walls/rubble) when scoring a fall-back
+     * cell. Read against the dominant threat facing — only cover that actually
+     * blocks the incoming firing lane counts. Mirrors the firing-picker split at
+     * {@link #FIRING_COVER_BONUS}.
+     */
+    public static final float FALLBACK_GRID_COVER_BONUS   = 2.5f;
+    /**
+     * Per-cover-level bonus on doodad cover (crates/debris) when scoring a fall-back
+     * cell. Lower than grid because doodads conceal but don't block LoS.
+     */
+    public static final float FALLBACK_DOODAD_COVER_BONUS = 1.5f;
     /** Bonus subtracted from fall-back score per net ally in the candidate cell's zone. Pulls retreating units toward where their squad lives rather than the nearest blind corner. */
     public static final float FALLBACK_FRIENDLY_ZONE_BONUS = 1.5f;
 
@@ -624,7 +634,13 @@ public final class TacticalScoring {
     /**
      * Scans cells within {@link #FALLBACK_SCAN_RANGE} of {@code self} for a
      * walkable, out-of-LOS spot, scored by
-     * {@code distFromSelf + occupancyPenalty - coverBonus - zoneControlBonus}.
+     * {@code distFromSelf + occupancyPenalty - gridCoverBonus - doodadCoverBonus
+     * - zoneControlBonus}. Cover terms are read per-facing against the dominant
+     * threat direction (average enemy cell): cells whose cover faces the wrong
+     * way score zero on the cover term, so the picker prefers cells that
+     * actually block the incoming fire. Bails to {@code self}'s own cell when no
+     * enemies are alive — the caller's predicate gate makes that branch
+     * effectively unreachable, but it keeps the threat-facing math well-defined.
      *
      * <p>The top-scored cell only helps if the unit can actually walk to it —
      * and the wall that hides a cell from enemies is exactly the kind of wall
@@ -652,6 +668,9 @@ public final class TacticalScoring {
         int selfZone = zones.zoneIdAt(sx, sy);
         int[] zoneControl = computeZoneControl(self, sim);
 
+        int[] threatRef = averageEnemyCell(self, sim);
+        if (threatRef == null) return new int[]{sx, sy};
+
         List<float[]> candidates = new ArrayList<>();
         for (int dy = -FALLBACK_SCAN_RANGE; dy <= FALLBACK_SCAN_RANGE; dy++) {
             for (int dx = -FALLBACK_SCAN_RANGE; dx <= FALLBACK_SCAN_RANGE; dx++) {
@@ -661,20 +680,23 @@ public final class TacticalScoring {
                 if (!isHiddenFromAllEnemies(self, cx, cy, sim)) continue;
 
                 int occupants = occupantsExcludingSelf(self, cx, cy, sim);
-                int cover = grid.getCoverAt(cx, cy) + sim.getDoodadCoverAt(cx, cy);
+                int fdx = threatRef[0] - cx;
+                int fdy = threatRef[1] - cy;
+                int gridCover   = grid.getCoverAt(cx, cy, fdx, fdy);
+                int doodadCover = sim.getDoodadCoverAt(cx, cy, fdx, fdy);
                 int zoneId = zones.zoneIdAt(cx, cy);
                 int control = (zoneId >= 0 && zoneId < zoneControl.length) ? zoneControl[zoneId] : 0;
                 float distFromSelf = cellDistance(sx, sy, cx, cy);
                 float score = distFromSelf
                         + FALLBACK_OCCUPANCY_COST * occupants
-                        - FALLBACK_COVER_BONUS * cover
+                        - FALLBACK_GRID_COVER_BONUS   * gridCover
+                        - FALLBACK_DOODAD_COVER_BONUS * doodadCover
                         - FALLBACK_FRIENDLY_ZONE_BONUS * control;
                 candidates.add(new float[]{score, cx, cy});
             }
         }
         candidates.sort((a, b) -> Float.compare(a[0], b[0]));
 
-        int[] threatRef = averageEnemyCell(self, sim);
         for (float[] cand : candidates) {
             int cx = (int) cand[1];
             int cy = (int) cand[2];
