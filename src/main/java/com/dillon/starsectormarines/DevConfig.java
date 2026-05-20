@@ -25,16 +25,17 @@ public final class DevConfig {
     public static final boolean UNLIMITED_TRANSPORT = true;
 
     /**
-     * FBO pixel resolution per nav-grid cell for the decal accumulator.
-     * 32 = native (matches the 32px source sheets, no downsample at neutral
-     * zoom). Drop to 16 for ~¼ VRAM at the cost of visible softness; raise
-     * to 64 for sharp decals at max zoom at ×4 VRAM. On a 100×100 grid:
-     * 16 → ~10 MB, 32 → ~40 MB, 64 → ~160 MB.
+     * When {@code > 0}: overrides {@link com.dillon.starsectormarines.ops.Mission#requiredDrops}
+     * for every generated mission to this value. Clamps both the mission's
+     * authored drop count and the employer's coverage roll, so the briefing
+     * and battlefield both see the override. {@code 0} disables the override
+     * and the per-(type, risk) table in {@code MissionGenerator.requiredDropsFor}
+     * drives drops as usual.
      *
-     * <p>Promote to a real player-facing setting (mod_info.json options /
-     * settings.json reader) once we have a settings UI to hang it off of.
+     * <p>Useful for iterating on shuttle / drop-flow behavior without sitting
+     * through a CONQUEST-HIGH 40-drop wave to test one thing.
      */
-    public static final int DECAL_FBO_PX_PER_CELL = 32;
+    public static final int DROP_COUNT_OVERRIDE = 40;
 
     /**
      * When {@code true}: every employer-supplied transport flies as a Valkyrie
@@ -48,20 +49,19 @@ public final class DevConfig {
      * (unarmed nimble drop craft), matching the "token force" flavor — the
      * player supplies the heavy lift.
      */
-    public static final boolean FORCE_EMPLOYER_VALKYRIE = true;
+    public static final boolean FORCE_EMPLOYER_VALKYRIE = false;
 
     /**
-     * When {@code > 0}: overrides {@link com.dillon.starsectormarines.ops.Mission#requiredDrops}
-     * for every generated mission to this value. Clamps both the mission's
-     * authored drop count and the employer's coverage roll, so the briefing
-     * and battlefield both see the override. {@code 0} disables the override
-     * and the per-(type, risk) table in {@code MissionGenerator.requiredDropsFor}
-     * drives drops as usual.
+     * FBO pixel resolution per nav-grid cell for the decal accumulator.
+     * 32 = native (matches the 32px source sheets, no downsample at neutral
+     * zoom). Drop to 16 for ~¼ VRAM at the cost of visible softness; raise
+     * to 64 for sharp decals at max zoom at ×4 VRAM. On a 100×100 grid:
+     * 16 → ~10 MB, 32 → ~40 MB, 64 → ~160 MB.
      *
-     * <p>Useful for iterating on shuttle / drop-flow behavior without sitting
-     * through a CONQUEST-HIGH 40-drop wave to test one thing.
+     * <p>Promote to a real player-facing setting (mod_info.json options /
+     * settings.json reader) once we have a settings UI to hang it off of.
      */
-    public static final int DROP_COUNT_OVERRIDE = 40;
+    public static final int DECAL_FBO_PX_PER_CELL = 32;
 
     private DevConfig() {}
 }
