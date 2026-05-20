@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.ai.goap.Goal;
+import com.dillon.starsectormarines.battle.ai.goap.Predicate;
 import com.dillon.starsectormarines.battle.ai.goap.SquadPlan;
 import com.dillon.starsectormarines.battle.ai.goap.WorldState;
 import com.dillon.starsectormarines.battle.ai.goap.actions.ChokePointHold;
@@ -48,6 +49,17 @@ public final class GarrisonAmbush implements Goal {
 
     public static final GarrisonAmbush INSTANCE = new GarrisonAmbush();
 
+    /**
+     * Zones with more than this many portals don't read as chokepoints — the
+     * giant "outside" zone touches every building's doorway, so its portal
+     * count is in the dozens on a typical conquest map. An outdoor GUARDPOST
+     * squad in that zone would otherwise route to a random doorway and ignore
+     * enemies standing right in front of it. Tuned slightly above what a
+     * dense compound (military base, multi-doorway warehouse) produces so
+     * legitimate indoor ambushes still fire.
+     */
+    private static final int MAX_AMBUSHABLE_PORTALS = 6;
+
     private GarrisonAmbush() {}
 
     @Override public String name() { return "GarrisonAmbush"; }
@@ -66,6 +78,18 @@ public final class GarrisonAmbush implements Goal {
         if (zoneId < 0) return 0f;
         NavigationZone zone = sim.getZoneGraph().zoneById(zoneId);
         if (zone == null || zone.getPortalIds().isEmpty()) return 0f;
+        // Outdoor squads (GUARDPOST emplacements, beach garrisons) sit in the
+        // giant outside zone whose portal list is every building doorway on
+        // the map. An ambush plan there would pin the squad to a random
+        // doorway while marines walk past in plain LoS — bail out so
+        // EliminateEnemiesGoal wins for non-chokepoint zones.
+        if (zone.getPortalIds().size() > MAX_AMBUSHABLE_PORTALS) return 0f;
+        // If a squadmate already has LoS to an enemy, the ambush concept is
+        // moot — the kill zone tripped, the squad can fire freely. Yielding
+        // to EliminateEnemiesGoal here prevents a visible-but-not-yet-shot
+        // squad from camping a doorway instead of engaging the threat in
+        // front of it.
+        if (state.get(Predicate.ENEMY_IN_KILL_ZONE)) return 0f;
         if (!enemyKnown(squad, sim)) return 0f;
         return 1.0f;
     }

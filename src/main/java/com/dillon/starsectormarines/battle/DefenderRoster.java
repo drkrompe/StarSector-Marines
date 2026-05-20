@@ -81,7 +81,7 @@ public final class DefenderRoster {
                 switch (risk) { case LOW: return 14; case MEDIUM: return 42;  case HIGH: return 100; }
                 break;
             case CONQUEST:
-                switch (risk) { case LOW: return 20; case MEDIUM: return 70;  case HIGH: return 200; }
+                switch (risk) { case LOW: return 36; case MEDIUM: return 120; case HIGH: return 320; }
                 break;
         }
         return 12;

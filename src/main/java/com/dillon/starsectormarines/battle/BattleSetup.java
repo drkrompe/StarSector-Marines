@@ -436,13 +436,17 @@ public final class BattleSetup {
         MapResult map = MAP_GEN.generate(scale.width, scale.height, seed, axis);
 
         List<MapVehicle> vehiclePlacements = stampVehicles(map.grid, map.topology, rng);
-        List<TurretPlacement> turretPlacements = stampTurrets(map.grid, map.topology, rng);
         BattleSimulation sim = new BattleSimulation(map.grid, map.topology);
         sim.setTacticalMap(map.tacticalMap);
         sim.setBuildings(map.buildings);
+        sim.setDefensePosts(map.defensePosts);
         for (MapVehicle v : vehiclePlacements) sim.addVehicle(v);
         for (Doodad d : map.doodads) sim.addDoodad(d);
-        spawnTurrets(sim, turretPlacements);
+        // Conquest skips the random street-turret scatter — defense posts
+        // (LIGHT/MEDIUM/LARGE) emitted by DefensePostStamper supply every
+        // mounted turret on the map, each one paired with a manned guardpost
+        // squad rather than a lone unmanned mount.
+        spawnDefensePostTurrets(sim, map.defensePosts);
 
         sim.addObjective(new EliminateFactionObjective(Faction.MARINE,   Faction.DEFENDER));
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
@@ -478,8 +482,35 @@ public final class BattleSetup {
         }
 
         allocateDefenders(sim, map, DefenderRoster.forMission(MissionType.CONQUEST, risk, enemyHasHeavyArmor), rng);
+        linkGuardpostSquads(sim, map.defensePosts);
         spawnAmbientCivilians(sim, map, rng);
         return sim;
+    }
+
+    /**
+     * Post-hoc wiring of GUARDPOST defender squads to their {@link DefensePost}.
+     * Done after {@link #allocateDefenders} rather than threading the post list
+     * into the allocator: the allocator stays oblivious to the post tier (it
+     * just sees a tactical node), and the GUARDPOST-specific tuning (patrol
+     * radius pulled from {@link DefensePostKind#patrolRadius}, post linkage for
+     * release-on-turrets-dead) lives in one localized pass here.
+     *
+     * <p>Match by anchor position: the stamper emits one GUARDPOST node per
+     * post at the post's anchor cell, so anchor equality is a 1:1 lookup.
+     */
+    private static void linkGuardpostSquads(BattleSimulation sim, List<DefensePost> posts) {
+        if (posts == null || posts.isEmpty()) return;
+        for (Squad squad : sim.getSquads()) {
+            TacticalNode node = squad.assignedNode;
+            if (node == null || node.kind != TacticalNode.Kind.GUARDPOST) continue;
+            for (DefensePost post : posts) {
+                if (post.anchorX == node.anchorX && post.anchorY == node.anchorY) {
+                    squad.defensePost = post;
+                    squad.patrolRadius = post.tier.patrolRadius;
+                    break;
+                }
+            }
+        }
     }
 
     /**
@@ -1126,6 +1157,39 @@ public final class BattleSetup {
         int i = 0;
         for (TurretPlacement p : placements) {
             sim.addUnit(new MapTurret("t" + i++, Faction.DEFENDER, p.kind, p.cellX, p.cellY));
+        }
+    }
+
+    /**
+     * Conquest-mode turret spawner. Each {@link DefensePost} carries 1-3 turret
+     * specs (LIGHT/MEDIUM = 1, LARGE = 2) at cells already stamped by
+     * {@link com.dillon.starsectormarines.battle.mapgen.bsp.DefensePostStamper}
+     * as walkable STONE pads — that walkability is a map-gen artifact required
+     * by {@link com.dillon.starsectormarines.battle.nav.NavigationGrid#recomputeCoverAt}
+     * (which skips non-walkable cells, so a fully-walled turret pad would bake
+     * to cover 0). Once the bake is done and the turret unit is in place we
+     * flip the cell non-walkable so marines can't path through (or onto) a
+     * live emplacement. {@link BattleSimulation#demolishDeadTurrets} flips it
+     * back to walkable + rubble on death, so destroyed turrets open up
+     * traversal again.
+     *
+     * <p>Cover is recomputed on the cardinal neighbors so adjacent walkable
+     * cells (corner cells around the ring, the middle pad on a LARGE post)
+     * pick up the +1 facing cover from the turret now reading as a wall in
+     * that direction. The cell itself isn't recomputed — non-walkable cells
+     * don't carry valid cover values; the demolition path re-bakes on death.
+     */
+    private static void spawnDefensePostTurrets(BattleSimulation sim, List<DefensePost> posts) {
+        int i = 0;
+        for (DefensePost post : posts) {
+            for (DefensePost.TurretSpec spec : post.turrets) {
+                sim.addUnit(new MapTurret("t" + i++, Faction.DEFENDER, spec.kind, spec.cellX, spec.cellY));
+                sim.getGrid().setWalkable(spec.cellX, spec.cellY, false);
+                sim.getGrid().recomputeCoverAt(spec.cellX + 1, spec.cellY);
+                sim.getGrid().recomputeCoverAt(spec.cellX - 1, spec.cellY);
+                sim.getGrid().recomputeCoverAt(spec.cellX, spec.cellY + 1);
+                sim.getGrid().recomputeCoverAt(spec.cellX, spec.cellY - 1);
+            }
         }
     }
 

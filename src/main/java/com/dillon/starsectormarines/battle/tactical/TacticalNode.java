@@ -60,6 +60,8 @@ public final class TacticalNode {
         ARMORY,
         /** Defender airbase — LANDING_ZONE in fortress district. Reserved for v2. */
         AIRBASE,
+        /** Manned turret emplacement scattered through BEACH/PORT/kill-zone biomes. Anchored by {@link com.dillon.starsectormarines.battle.mapgen.bsp.DefensePostStamper}; squad stays near the post until its turrets are destroyed, then releases to search-and-destroy. */
+        GUARDPOST,
 
         // Attacker-leaning / neutral — emission deferred to v2.
         /** Marine landing zone — attacker spawn area. */

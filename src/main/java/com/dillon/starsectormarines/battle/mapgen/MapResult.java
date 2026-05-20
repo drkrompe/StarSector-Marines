@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.mapgen;
 
+import com.dillon.starsectormarines.battle.DefensePost;
 import com.dillon.starsectormarines.battle.Doodad;
 import com.dillon.starsectormarines.battle.PointOfInterest;
 import com.dillon.starsectormarines.battle.map.Buildings;
@@ -56,6 +57,16 @@ public final class MapResult {
      * gen maps without buildings) return {@link Buildings#EMPTY}.
      */
     public final Buildings buildings;
+    /**
+     * Manned turret emplacements placed by
+     * {@link com.dillon.starsectormarines.battle.mapgen.bsp.DefensePostStamper}.
+     * {@link com.dillon.starsectormarines.battle.BattleSetup} reads this list to
+     * spawn {@link com.dillon.starsectormarines.battle.MapTurret} units at each
+     * post's turret cells and to wire the {@code GUARDPOST_PATROL} squads'
+     * turret-dead release condition. Empty for non-conquest generators and for
+     * legacy callers that don't go through the conquest pipeline.
+     */
+    public final List<DefensePost> defensePosts;
 
     public MapResult(NavigationGrid grid, CellTopology topology,
                      int marineSpawnX, int marineSpawnY,
@@ -63,7 +74,8 @@ public final class MapResult {
                      List<PointOfInterest> pointsOfInterest,
                      List<Doodad> doodads) {
         this(grid, topology, marineSpawnX, marineSpawnY, defenderSpawnX, defenderSpawnY,
-                pointsOfInterest, doodads, new TacticalMap(Collections.emptyList()), Buildings.EMPTY);
+                pointsOfInterest, doodads, new TacticalMap(Collections.emptyList()),
+                Buildings.EMPTY, Collections.emptyList());
     }
 
     public MapResult(NavigationGrid grid, CellTopology topology,
@@ -73,7 +85,7 @@ public final class MapResult {
                      List<Doodad> doodads,
                      TacticalMap tacticalMap) {
         this(grid, topology, marineSpawnX, marineSpawnY, defenderSpawnX, defenderSpawnY,
-                pointsOfInterest, doodads, tacticalMap, Buildings.EMPTY);
+                pointsOfInterest, doodads, tacticalMap, Buildings.EMPTY, Collections.emptyList());
     }
 
     public MapResult(NavigationGrid grid, CellTopology topology,
@@ -83,6 +95,18 @@ public final class MapResult {
                      List<Doodad> doodads,
                      TacticalMap tacticalMap,
                      Buildings buildings) {
+        this(grid, topology, marineSpawnX, marineSpawnY, defenderSpawnX, defenderSpawnY,
+                pointsOfInterest, doodads, tacticalMap, buildings, Collections.emptyList());
+    }
+
+    public MapResult(NavigationGrid grid, CellTopology topology,
+                     int marineSpawnX, int marineSpawnY,
+                     int defenderSpawnX, int defenderSpawnY,
+                     List<PointOfInterest> pointsOfInterest,
+                     List<Doodad> doodads,
+                     TacticalMap tacticalMap,
+                     Buildings buildings,
+                     List<DefensePost> defensePosts) {
         this.grid = grid;
         this.topology = topology;
         this.marineSpawnX = marineSpawnX;
@@ -93,5 +117,6 @@ public final class MapResult {
         this.doodads = doodads;
         this.tacticalMap = tacticalMap;
         this.buildings = buildings;
+        this.defensePosts = defensePosts;
     }
 }

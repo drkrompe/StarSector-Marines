@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle;
 
+import com.dillon.starsectormarines.battle.ai.PatrolBehavior;
 import com.dillon.starsectormarines.battle.ai.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.ai.goap.Goal;
 import com.dillon.starsectormarines.battle.ai.goap.SquadPlan;
@@ -98,6 +99,22 @@ public final class Squad {
     public int patrolWaypointY = -1;
     /** Sim-seconds the squad rests at the current waypoint before picking a new one. */
     public float patrolDwellTimer = 0f;
+    /**
+     * Cell-radius around {@link #assignedNode} the squad samples patrol waypoints
+     * from. Default matches {@link PatrolBehavior#PATROL_DISTRICT_RADIUS} (wide
+     * district sweep); guardpost squads tighten this to their tier's
+     * {@link DefensePostKind#patrolRadius} so they orbit the post until release.
+     * Reverts to the default when {@link #defensePost} releases.
+     */
+    public int patrolRadius = PatrolBehavior.PATROL_DISTRICT_RADIUS;
+    /**
+     * Defense post this squad is garrisoning. Null for regular patrols and for
+     * marine squads. Set by {@link BattleSetup} post-{@code allocateDefenders}
+     * for squads whose {@link #assignedNode} is a {@link TacticalNode.Kind#GUARDPOST};
+     * cleared by {@link BattleSimulation#demolishDeadTurrets} once every turret on
+     * the post is destroyed, releasing the squad into normal wide-radius patrol.
+     */
+    public DefensePost defensePost;
 
     // ---- Per-tick cached aggregates ----
     // Refreshed once per sim tick by BattleSimulation.updateSquadAlertLevels, so

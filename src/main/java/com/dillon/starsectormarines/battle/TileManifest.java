@@ -119,6 +119,43 @@ public final class TileManifest {
      */
     public static final TileFrame LZ_PAD = new TileFrame(16, 2);
 
+    /**
+     * Top-left cell of the turret-wall 3×3 autotile block on {@link #ROAD_SHEET}.
+     * Same shape as the urban-1 wall block at cols 3..5 rows 0..2 — directional
+     * caps on the outside of each cell, transparent center — but the art reads
+     * as a sandbag embankment rather than masonry. Used by
+     * {@link com.dillon.starsectormarines.battle.mapgen.bsp.DefensePostStamper}
+     * to ring MEDIUM/LARGE turret emplacements: 8 cells around the turret stamp
+     * non-walkable + SEE_THROUGH + a doodad from this block, granting cover via
+     * the standard wall-adjacency bake without blocking LoS or shots.
+     */
+    private static final int TURRET_EMBANKMENT_COL_ORIGIN = 3;
+    private static final int TURRET_EMBANKMENT_ROW_ORIGIN = 0;
+
+    /**
+     * Vent grate used as the LIGHT-tier defense-post ring tile. Single tile,
+     * non-directional — LIGHT posts ring the turret with 4 cardinal vent cells
+     * rather than the full 8-cell embankment. {@code grate-1} on the road sheet
+     * (col 11, row 2) reads as an industrial fixture and visually distinguishes
+     * a beach LIGHT post from a port MEDIUM embankment.
+     */
+    public static final TileFrame LIGHT_POST_VENT = new TileFrame(11, 2);
+
+    /**
+     * Tile frame for one cell of a MEDIUM/LARGE defense-post embankment ring,
+     * keyed by the cell's position relative to the post's center turret.
+     * {@code relX, relY} are in {@code [-1, +1]} (the 3×3 around the turret).
+     * {@code (relX=0, relY=0)} is the turret cell itself — callers don't paint
+     * a doodad there. {@code relY > 0} means the cell is north of the center
+     * (higher world Y), which picks source row 0 (the north-facing edge art),
+     * matching {@link #pickWallTile}'s row convention.
+     */
+    public static TileFrame turretEmbankment(int relX, int relY) {
+        return new TileFrame(
+                TURRET_EMBANKMENT_COL_ORIGIN + (relX + 1),
+                TURRET_EMBANKMENT_ROW_ORIGIN + (1 - relY));
+    }
+
     /** Top-left cell of the clean-wall 3×3 autotile block. */
     private static final int WALL_COL_ORIGIN = 3;
     private static final int WALL_ROW_ORIGIN = 0;

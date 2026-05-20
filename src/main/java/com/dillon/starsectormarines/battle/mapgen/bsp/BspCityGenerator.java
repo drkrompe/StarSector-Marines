@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.mapgen.bsp;
 
+import com.dillon.starsectormarines.battle.DefensePost;
 import com.dillon.starsectormarines.battle.Doodad;
 import com.dillon.starsectormarines.battle.PointOfInterest;
 import com.dillon.starsectormarines.battle.map.Buildings;
@@ -226,6 +227,7 @@ public final class BspCityGenerator implements MapGenerator {
         List<PointOfInterest> pois = new ArrayList<>();
         List<Doodad> doodads = new ArrayList<>();
         List<TacticalNode> tactical = new ArrayList<>();
+        List<DefensePost> defensePosts = new ArrayList<>();
         for (BlockLeaf leaf : partition.leaves) {
             if (leaf.kind == BlockKind.COMPOUND_MEMBER) continue;
             Compound compound = compoundBySeed.get(leaf);
@@ -267,6 +269,17 @@ public final class BspCityGenerator implements MapGenerator {
             FortressWallStamper.stamp(grid, topology, axis, biomeMap, doodads, tactical, rng);
         }
 
+        // Step 3c' — defense posts. Manned turret emplacements scattered through
+        // BEACH (LIGHT vent rings), PORT (MEDIUM sandbag embankments), and the
+        // FORTRESS_DISTRICT kill zone (LARGE multi-turret embankments). Runs
+        // AFTER the fortress wall so kill-zone posts can't overlap wall cells
+        // — the stamper's footprint validation auto-rejects non-walkable cells
+        // produced by the wall and forward bunkers.
+        if (biomeMap != null) {
+            DefensePostStamper.stamp(grid, topology, axis, biomeMap,
+                    doodads, tactical, defensePosts, rng);
+        }
+
         // Step 3d — link tactical nodes. Runs once after every node is
         // emitted (from compound fillers + fortress wall stamping); geometric
         // rules wire up OVERWATCHES, SUPPLIES, FALLBACK_TO, GUARDS. Always
@@ -298,7 +311,7 @@ public final class BspCityGenerator implements MapGenerator {
 
         return new MapResult(grid, topology,
                 marine[0], marine[1], defender[0], defender[1],
-                pois, doodads, this.lastTacticalMap, buildings);
+                pois, doodads, this.lastTacticalMap, buildings, defensePosts);
     }
 
     /**

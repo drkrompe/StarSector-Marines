@@ -110,8 +110,9 @@ public final class PatrolBehavior implements UnitBehavior {
     private static int[] pickWaypoint(Squad squad, BattleSimulation sim) {
         TacticalNode anchor = squad.assignedNode;
         TacticalMap map = sim.getTacticalMap();
+        int radius = squad.patrolRadius;
         if (anchor != null && map != null) {
-            List<TacticalNode> nearby = map.within(anchor.anchorX, anchor.anchorY, PATROL_DISTRICT_RADIUS);
+            List<TacticalNode> nearby = map.within(anchor.anchorX, anchor.anchorY, radius);
             // Filter to same-faction, exclude current waypoint exactly.
             int[] best = null;
             int bestRoll = -1;
@@ -132,7 +133,7 @@ public final class PatrolBehavior implements UnitBehavior {
         NavigationGrid grid = sim.getGrid();
         int seedX = anchor != null ? anchor.anchorX : Math.round(squad.centroidX);
         int seedY = anchor != null ? anchor.anchorY : Math.round(squad.centroidY);
-        int r = PATROL_DISTRICT_RADIUS;
+        int r = radius;
         for (int i = 0; i < FALLBACK_SAMPLE_ATTEMPTS; i++) {
             int dx = sim.getRng().nextInt(r * 2 + 1) - r;
             int dy = sim.getRng().nextInt(r * 2 + 1) - r;

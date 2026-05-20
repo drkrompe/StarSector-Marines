@@ -241,6 +241,14 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      */
     private TacticalMap tacticalMap = new TacticalMap(java.util.Collections.emptyList());
 
+    /**
+     * Defense posts placed by {@link com.dillon.starsectormarines.battle.mapgen.bsp.DefensePostStamper}
+     * (conquest only). Walked by {@link #demolishDeadTurrets} when a turret
+     * dies to detect post-wide annihilation and release the garrison squad's
+     * tight patrol radius. Empty for missions that don't stamp posts.
+     */
+    private List<DefensePost> defensePosts = java.util.Collections.emptyList();
+
     public BattleSimulation(NavigationGrid grid, CellTopology topology) {
         this.grid = grid;
         this.topology = topology;
@@ -283,13 +291,14 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     }
 
     private void peelRoofAround(int wallX, int wallY) {
-        peelRoofCell(wallX - 1, wallY);
-        peelRoofCell(wallX + 1, wallY);
-        peelRoofCell(wallX, wallY - 1);
-        peelRoofCell(wallX, wallY + 1);
+        destroyRoofCell(wallX - 1, wallY);
+        destroyRoofCell(wallX + 1, wallY);
+        destroyRoofCell(wallX, wallY - 1);
+        destroyRoofCell(wallX, wallY + 1);
     }
 
-    private void peelRoofCell(int x, int y) {
+    @Override
+    public void destroyRoofCell(int x, int y) {
         if (!grid.inBounds(x, y)) return;
         if (topology.getBuildingId(x, y) == 0) return;
         if (topology.isRoofDestroyed(x, y)) return;
@@ -419,6 +428,10 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Set the tactical map for this battle. Called once by {@code BattleSetup} right after construction, before the first {@link #advance} call. */
     public void setTacticalMap(TacticalMap map) {
         this.tacticalMap = map != null ? map : new TacticalMap(java.util.Collections.emptyList());
+    }
+    /** Stamped defense posts (conquest only). Called once by {@code BattleSetup} right after construction; safe to pass null/empty for missions without posts. */
+    public void setDefensePosts(List<DefensePost> posts) {
+        this.defensePosts = (posts != null && !posts.isEmpty()) ? posts : java.util.Collections.emptyList();
     }
 
     @Override
@@ -872,6 +885,51 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             // wreck is dead-and-cooling rather than just "gone".
             smokingWrecks.add(new SmokingWreck(t.cellX, t.cellY, WRECK_LIFETIME,
                     0.05f + rng.nextFloat() * 0.10f));
+            releaseGuardpostIfAllTurretsDead(t);
+        }
+    }
+
+    /**
+     * If {@code deadTurret} was part of a {@link DefensePost} and every turret
+     * on that post is now dead, find the squad linked to the post and revert
+     * its patrol radius to the wide default — so the garrison stops orbiting
+     * the wreckage and resumes normal search-and-destroy via the existing
+     * SUSPICIOUS/ENGAGED transitions. No-op for stand-alone turrets (legacy
+     * scatter, port defenses outside conquest).
+     *
+     * <p>Linear scan through posts + units is fine here: turret deaths cap at
+     * ~10-15 per battle, posts at ~5-8, units at the few hundred peak — total
+     * work bounded and infrequent.
+     */
+    private void releaseGuardpostIfAllTurretsDead(MapTurret deadTurret) {
+        if (defensePosts.isEmpty()) return;
+        DefensePost owner = null;
+        for (DefensePost post : defensePosts) {
+            for (DefensePost.TurretSpec spec : post.turrets) {
+                if (spec.cellX == deadTurret.cellX && spec.cellY == deadTurret.cellY) {
+                    owner = post;
+                    break;
+                }
+            }
+            if (owner != null) break;
+        }
+        if (owner == null) return;
+        // Check whether every turret on the owning post is now dead. A spec
+        // with no live MapTurret at its cell counts as dead — covers both the
+        // already-demolished and the never-spawned edge cases.
+        for (DefensePost.TurretSpec spec : owner.turrets) {
+            boolean aliveAtSpec = false;
+            for (Unit u : units) {
+                if (!(u instanceof MapTurret)) continue;
+                if (u.cellX != spec.cellX || u.cellY != spec.cellY) continue;
+                if (u.isAlive()) { aliveAtSpec = true; break; }
+            }
+            if (aliveAtSpec) return;
+        }
+        for (Squad squad : squads.values()) {
+            if (squad.defensePost != owner) continue;
+            squad.defensePost = null;
+            squad.patrolRadius = PatrolBehavior.PATROL_DISTRICT_RADIUS;
         }
     }
 
