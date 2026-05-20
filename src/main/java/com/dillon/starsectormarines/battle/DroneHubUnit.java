@@ -14,10 +14,9 @@ package com.dillon.starsectormarines.battle;
  * the hub silences the drone screen, so the player's expected to push it
  * down if the drones become a problem.
  *
- * <p>The {@link UnitRole#STRUCTURE} role keeps the sim's per-tick behavior
- * dispatch a no-op for hubs. A separate {@code DroneSpawner} tick (added in
- * a follow-up commit) will read the hub's position to spawn patrolling
- * drones around it.
+ * <p>{@link UnitRole#DRONE_HUB} dispatches to {@link com.dillon.starsectormarines.battle.ai.DroneHubBehavior},
+ * which counts down {@link #spawnCooldown} and asks {@link DroneSpawner} to
+ * launch a new drone whenever the hub is below {@link #MAX_ACTIVE_DRONES}.
  */
 public class DroneHubUnit extends Unit {
 
@@ -38,6 +37,18 @@ public class DroneHubUnit extends Unit {
     /** True once the sim has converted the hub cell to walkable rubble. Guards against the renderer keeping a destroyed hub on screen and against double-demolition. */
     public boolean demolished;
 
+    /** Cap on simultaneously-airborne drones from a single hub. Small enough that two hubs on the same map don't carpet the area with screen; large enough that a single drone loss doesn't blank the defense. */
+    public static final int MAX_ACTIVE_DRONES = 2;
+    /** Sim-seconds the hub waits before its first drone launch. Short delay so a marine pushing the hub still meets a drone screen during the opening engagement. */
+    public static final float INITIAL_SPAWN_DELAY_SEC = 4f;
+    /** Sim-seconds between successive launches when the hub is below the active-drone cap. Long enough that a steady DPS push thins the screen faster than the hub can replace it; short enough that ignoring the hub means dealing with drones forever. */
+    public static final float SPAWN_INTERVAL_SEC = 18f;
+
+    /** Sim-seconds until the next spawn attempt. Ticked down by {@link com.dillon.starsectormarines.battle.ai.DroneHubBehavior}. */
+    public float spawnCooldown = INITIAL_SPAWN_DELAY_SEC;
+    /** Lifetime count of drones the hub has launched. Used as part of each drone's id so they're greppable in logs across the battle. */
+    public int dronesLaunched;
+
     public DroneHubUnit(String id, Faction faction, int cellX, int cellY) {
         super(id, faction, UnitType.DRONE_HUB_STRUCTURE, cellX, cellY);
         this.maxHp = HUB_MAX_HP;
@@ -47,6 +58,6 @@ public class DroneHubUnit extends Unit {
         this.attackCooldown = 1f;
         this.accuracy = 0f;
         this.moveSpeed = 0f;
-        this.role = UnitRole.STRUCTURE;
+        this.role = UnitRole.DRONE_HUB;
     }
 }

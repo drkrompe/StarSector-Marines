@@ -69,10 +69,15 @@ public enum UnitRole {
     /**
      * Static structure with HP but no AI — targetable, takes damage, dies
      * when hp depletes, but the per-tick behavior dispatch is a no-op.
-     * Currently assigned to drone hubs (see
-     * {@link com.dillon.starsectormarines.battle.DroneHubUnit}); the drones
-     * launched from the hub do the actual fighting, the hub itself just sits
-     * there with a health bar.
+     * Used by the drones spawned from a {@link com.dillon.starsectormarines.battle.DroneHubUnit}
+     * until their patrol behavior arrives in a follow-up commit.
      */
-    STRUCTURE
+    STRUCTURE,
+    /**
+     * Drone-hub tick: ticks down a spawn timer and launches new drones at
+     * the hub's interval when below the per-hub active-drone cap. The hub
+     * itself doesn't fire or move; this role only exists so the per-tick
+     * dispatch has a clean place to drive the spawn cadence.
+     */
+    DRONE_HUB
 }
