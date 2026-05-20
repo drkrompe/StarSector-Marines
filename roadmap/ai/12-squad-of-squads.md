@@ -53,7 +53,86 @@ faction, the two run independently.
 
 ## Conquest commander shape
 
-State the Conquest Commander tracks per faction:
+> **First pass shipped (`ConquestCommand`).** Marine-side, wired into
+> `BattleSetup.createConquest`. The full per-zone status tracking + scored
+> objective registry below queues behind doc 15's influence map landing;
+> the v1 shape is a lateral-strip partition with sticky squad assignment
+> and forward-most-defender targeting. See *First-pass shape: lateral
+> strips* below for what's actually in code, and *Improvement path* for
+> what it grows into.
+
+### First-pass shape: lateral strips
+
+`ConquestCommand` partitions the map into `STRIP_COUNT = 3` equal-width
+strips perpendicular to the `TraversalAxis`. At first tick:
+
+1. Bucket every walkable zone into a strip by its centroid's lateral
+   coordinate (x for SOUTH_TO_NORTH, y for WEST_TO_EAST).
+2. Sort each strip's zone list forward-to-back so the *first defender-
+   occupied zone* in the list is the forward-most one (cheap O(N) walk
+   per slow tick instead of an O(N log N) re-sort).
+
+Per slow tick — per marine squad:
+
+1. Look up the squad's strip. If unset, classify by the squad's current
+   centroid's lateral coord and memoize.
+2. Walk the strip's zone list, return the first zone where
+   `ZoneQueries.zoneClear(zoneId, DEFENDER, sim) == false`.
+3. Write `squad.assignedObjective = clearZone(squad.id, targetZone)` —
+   idempotent re-assignment (same record kept across ticks when the
+   target hasn't changed, so an in-flight squad plan stays stable).
+4. When the strip is fully clear of defenders: clear the assignment;
+   squad falls through to `EliminateEnemiesGoal` for cleanup.
+
+Squad → strip is **sticky for v1.** A squad's strip is fixed at first
+observation and doesn't change even if the squad drifts laterally. That
+keeps the partition behavioral signal clean — if we let squads migrate
+between strips on every centroid drift, the partition stops meaning
+anything.
+
+This is a *coarse approximation* of the proper frontline-with-bulges
+treatment. It's enough to visibly spread marines across the frontage
+(no more dogpile-on-nearest-defender) but it doesn't react to bulges,
+doesn't pull squads from clear strips into engaged ones, and treats
+every defender position as equal-priority within a strip.
+
+### Improvement path
+
+The strip partition is the durable shape; what grows is the read off
+the field and the reallocation logic. Each step is independently
+shippable.
+
+**Stage A (next): contour-aware target picking.** Once doc 15's
+influence map lands, replace "forward-most defender-occupied zone in
+strip" with "the strip's segment of the `friendly - hostile`
+zero-crossing contour, projected back to the nearest zone." Same
+shape, much sharper read — squads stop chasing a lone holdout deep in
+their strip when the bulk of defender pressure is somewhere else.
+
+**Stage B: cross-strip reallocation on bulge detection.** When the
+contour shows a concavity in our line (defenders pushing back into our
+territory), pull squads from neighboring strips whose own segments are
+stable into the bulging strip. Mobility eligibility = "your assigned
+target zone is `zoneClear`" — a squad with no live work in its lane is
+the cheapest to redirect. This is where the "fixed strips in v1"
+constraint gets retired.
+
+**Stage C: dynamic strip count / non-uniform widths.** Today
+`STRIP_COUNT = 3` regardless of map size or squad count. Stage C
+derives it from squad count + map lateral extent, possibly with
+biome-aware boundaries (a strip that runs through the fortress
+courtyard is narrower than a strip through open beach).
+
+**Stage D: defender-side `ConquestDefenseCommand`.** Mirror shape for
+the defender — anchor garrisons by strip, pull from neighbors when a
+strip is breached. Needs the perception layer (doc 15) genuinely
+landed because a defender commander reading marine ground truth is
+exactly the omniscience cheat doc 15 calls out.
+
+### Legacy shape — for reference only
+
+State the *eventual* Conquest Commander tracks per faction (parked
+until Stage A onwards starts asking for it):
 
 - **Zone status** — for each known zone: `UNCONTESTED` / `CONTESTED` /
   `OURS` / `THEIRS`. Read via `ZoneQueries.zoneClear` (already shipped)
@@ -188,24 +267,48 @@ behavior (with the Tier 1 target-picker / pursuit-gate upgrades).
 
 ## Status
 
-**Parked.** No subagent tasks queued yet. Tier 2 stories (Slice 2: J +
-K) are the next things on the road; the commander layer queues after
-Slice 2 lands and we can see what assignment-shape needs look like in
-practice.
+**Active — Stage 1 spine + first two commanders shipped.** The commander
+layer landed on top of Tier 1 (no Slice 2 dependency in the end — the
+spine is mission-agnostic).
 
-When ready to implement:
+What's in code:
 
-1. Add `ObjectiveAssignment` record + `assignedObjective` field on
-   `Squad`.
-2. Add `AssignmentKind` enum.
-3. Add commander goals (`ClearAssignedZoneGoal`, etc.) — these become
-   no-ops while `assignedObjective` is null.
-4. Build `MissionCommand` — one per faction, registered like
-   `MarineRosterScript` but for battle-sim scope. Slow tick.
-5. Wire it into `BattleSimulation.tick` before the per-squad replan
-   pass, so squads see fresh assignments when they replan.
-6. Per-mission commander subclasses (`ConquestCommand`,
-   `AssaultCommand`) author the strategy.
+1. ✅ `command.ObjectiveAssignment` record + `Squad.assignedObjective`
+   field. Convenience factories: `clearZone`, `holdNode`,
+   `rushObjective`, `support`.
+2. ✅ `command.AssignmentKind` enum (`CLEAR_ZONE`, `HOLD_NODE`,
+   `RUSH_OBJECTIVE`, `SUPPORT`).
+3. ✅ `command.MissionCommand` interface + `NOOP` default; commander
+   slow-tick at `BattleSimulation.COMMANDER_TICK_PERIOD` (2.5s).
+4. ✅ `ai.goap.goals.ClearAssignedZoneGoal` — MISSION-priority, reads
+   `squad.assignedObjective.kind == CLEAR_ZONE`. Composes with Story K's
+   `EnterZone` + `ClearZone` via the shared
+   `ZoneQueries.synthesizeZonePushPlan` helper (also used by
+   `SecureObjectiveZone`).
+5. ✅ `command.SabotageCommand` — marine-side commander for SABOTAGE.
+   Objective-cluster partition: routes non-planter squads to the closest
+   unfinished `ChargeSiteObjective` zone.
+6. ✅ `command.ConquestCommand` — marine-side commander for CONQUEST.
+   Lateral-strip partition: each squad sticky-assigned to one of
+   `STRIP_COUNT=3` strips perpendicular to `TraversalAxis`; per slow
+   tick gets `CLEAR_ZONE` pointed at the forward-most defender-
+   occupied zone in its strip.
+
+What's not yet in code (queued behind playtest + doc 15):
+
+- `HoldAssignedNodeGoal` (Story H — last-stand `HoldPosition` on
+  `MUST_HOLD` nodes is still the gating tactical story).
+- `RushAssignedObjectiveGoal` for non-zone objectives.
+- `AssaultCommand` for code-`MissionType.ASSAULT` (search-and-destroy
+  sectoring). Pattern is a third partition shape — uniform sweep
+  tiles, distinct from SabotageCommand's objective clusters and
+  ConquestCommand's lateral strips.
+- Defender-side commanders. Gated on doc 15's perception layer so
+  the defender can't read marine ground truth.
+- The "richer commander shape" originally sketched in this doc
+  (per-zone status tracking, scored objective registry, dynamic
+  re-assignment) — see *Improvement path* under each commander
+  section above for what individual stages of that look like.
 
 ## Cross-references
 

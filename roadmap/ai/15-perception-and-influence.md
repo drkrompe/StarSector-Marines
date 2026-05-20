@@ -167,6 +167,15 @@ or when staleness exceeds a threshold.
 
 ## What the higher-tier behaviors compute on the field
 
+> **Existing consumer.** `ConquestCommand` (in `command/`, see
+> `12-squad-of-squads.md`) currently approximates frontline awareness
+> with a fixed lateral-strip partition + "forward-most defender-
+> occupied zone in your strip" target picking. Each piece of the
+> heatmap landing here sharpens one read on that commander — the
+> partition shape stays, the field replaces the coarse "is any
+> defender alive in this zone" lookup. See doc 12's Conquest
+> commander *Improvement path* for the stage-by-stage swap.
+
 Once the two-channel field exists, the named tactical concepts fall
 out of analyses on it rather than from bespoke logic:
 

@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.TurretMount;
+import com.dillon.starsectormarines.battle.command.ConquestCommand;
 import com.dillon.starsectormarines.battle.command.SabotageCommand;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.mapgen.MapGenerator;
@@ -494,6 +495,13 @@ public final class BattleSetup {
         allocateDefenders(sim, map, DefenderRoster.forMission(MissionType.CONQUEST, risk, enemyHasHeavyArmor), rng);
         linkGuardpostSquads(sim, map.defensePosts);
         spawnAmbientCivilians(sim, map, rng);
+        // Marine commander: lateral-strip partition perpendicular to the
+        // traversal axis. Each shuttle squad gets sticky-assigned to one
+        // strip on first observation; per slow-tick the commander writes
+        // CLEAR_ZONE on each squad pointed at the forward-most defender-
+        // occupied zone in its strip. Spreads marines across the frontage
+        // instead of dogpiling the nearest defender contact.
+        sim.setCommander(Faction.MARINE, new ConquestCommand(axis));
         return sim;
     }
 
