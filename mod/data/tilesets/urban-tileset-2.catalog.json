@@ -1,6 +1,54 @@
 {
   "entries": [
     {
+      "col": 0,
+      "description": "",
+      "name": "turret-bow-nw",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "",
+      "name": "turret-bow-n",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "",
+      "name": "turret-bow-ne",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "description": "",
+      "name": "turret-bow-w",
+      "row": 1
+    },
+    {
+      "col": 2,
+      "description": "",
+      "name": "turret-bow-e",
+      "row": 1
+    },
+    {
+      "col": 0,
+      "description": "",
+      "name": "turret-bow-sw",
+      "row": 2
+    },
+    {
+      "col": 1,
+      "description": "",
+      "name": "turret-bow-s",
+      "row": 2
+    },
+    {
+      "col": 2,
+      "description": "",
+      "name": "turret-bow-se",
+      "row": 2
+    },
+    {
       "col": 3,
       "description": "",
       "name": "turret-wall-nw",

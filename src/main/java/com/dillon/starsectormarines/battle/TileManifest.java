@@ -156,6 +156,23 @@ public final class TileManifest {
                 TURRET_EMBANKMENT_ROW_ORIGIN + (1 - relY));
     }
 
+    /**
+     * Matching 3×3 to {@link #turretEmbankment} from the first block of
+     * urban-tileset-2 (cols 0-2). Chunkier wall art that "bows outward" —
+     * used for defense-post shapes that protrude into the kill zone (WEDGE,
+     * TRAPEZOID) so the embankment reads as a heavier earthwork than the
+     * thinner block-2 ring used for straight LINE emplacements. Same
+     * {@code relX, relY} convention as {@link #turretEmbankment}.
+     */
+    private static final int TURRET_BOW_COL_ORIGIN = 0;
+    private static final int TURRET_BOW_ROW_ORIGIN = 0;
+
+    public static TileFrame turretBowOut(int relX, int relY) {
+        return new TileFrame(
+                TURRET_BOW_COL_ORIGIN + (relX + 1),
+                TURRET_BOW_ROW_ORIGIN + (1 - relY));
+    }
+
     /** Top-left cell of the clean-wall 3×3 autotile block. */
     private static final int WALL_COL_ORIGIN = 3;
     private static final int WALL_ROW_ORIGIN = 0;
