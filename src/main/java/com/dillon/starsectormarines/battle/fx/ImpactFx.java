@@ -186,6 +186,15 @@ public final class ImpactFx {
     }
 
     /**
+     * Single fire burst at (x, y) for continuous wreck-burn emitters. Shorter
+     * lifetime than {@link #spawnAmbientSmoke} because fire reads as a more
+     * dynamic, flickering presence than smoke.
+     */
+    public void spawnAmbientFire(float x, float y, float radiusCells) {
+        spawnFireBurst(x, y, radiusCells, 0.5f + radiusCells * 0.4f);
+    }
+
+    /**
      * Emits a small additive glow particle as a rocket-engine puff at (x, y).
      * Drives the lit-engine trail behind in-flight rockets — callers spawn
      * one per render frame at the rocket's tail position so successive

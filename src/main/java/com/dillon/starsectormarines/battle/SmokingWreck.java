@@ -18,6 +18,8 @@ public final class SmokingWreck {
     public float remainingLifetime;
     /** Sim-seconds until the next smoke puff. Reset on each emission with mild jitter. */
     public float nextPuffTimer;
+    /** Sim-seconds until the next fire burst. Independent of {@link #nextPuffTimer} so fire and smoke interleave naturally rather than emitting in paired ticks. */
+    public float nextFireTimer;
 
     public SmokingWreck(int cellX, int cellY, float totalLifetime, float firstPuffDelay) {
         this.cellX = cellX;
@@ -25,5 +27,6 @@ public final class SmokingWreck {
         this.totalLifetime = totalLifetime;
         this.remainingLifetime = totalLifetime;
         this.nextPuffTimer = firstPuffDelay;
+        this.nextFireTimer = 0.05f;
     }
 }
