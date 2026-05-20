@@ -22,6 +22,10 @@ import java.util.Random;
  *   <li>{@link #TRAPEZOID} — narrower south, wider north, 2 turrets E/W of
  *       center. Same {@code turretBowOut} art as WEDGE — both "protruding"
  *       silhouettes share the heavier read.</li>
+ *   <li>{@link #TRIANGLE_FORMATION} — three turrets arranged in a spearhead
+ *       (2 back, 1 forward apex) with minimal flanking walls. Concentrates
+ *       firepower at a single placement rather than spreading it along an
+ *       embankment line.</li>
  * </ul>
  *
  * <p>LIGHT and MEDIUM tiers don't use this enum — they keep their simple
@@ -30,10 +34,11 @@ import java.util.Random;
  */
 public enum DefensePostShape {
 
-    LINE_H   (2, 1),
-    LINE_V   (1, 2),
-    WEDGE    (2, 1),
-    TRAPEZOID(2, 1);
+    LINE_H            (2, 1),
+    LINE_V            (1, 2),
+    WEDGE             (2, 1),
+    TRAPEZOID         (2, 1),
+    TRIANGLE_FORMATION(2, 1);
 
     /** Footprint half-extent on the X axis. Full footprint width is {@code 2 * halfX + 1}. */
     public final int halfX;

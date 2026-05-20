@@ -346,10 +346,11 @@ public final class DefensePostStamper {
                                           List<Doodad> doodads, DefensePostShape shape,
                                           int cx, int cy) {
         switch (shape) {
-            case LINE_H:    return stampLargeLineH(grid, topology, doodads, cx, cy);
-            case LINE_V:    return stampLargeLineV(grid, topology, doodads, cx, cy);
-            case WEDGE:     return stampLargeWedge(grid, topology, doodads, cx, cy);
-            case TRAPEZOID: return stampLargeTrapezoid(grid, topology, doodads, cx, cy);
+            case LINE_H:             return stampLargeLineH(grid, topology, doodads, cx, cy);
+            case LINE_V:             return stampLargeLineV(grid, topology, doodads, cx, cy);
+            case WEDGE:              return stampLargeWedge(grid, topology, doodads, cx, cy);
+            case TRAPEZOID:          return stampLargeTrapezoid(grid, topology, doodads, cx, cy);
+            case TRIANGLE_FORMATION: return stampLargeTriangleFormation(grid, topology, doodads, cx, cy);
         }
         throw new IllegalStateException("Unhandled shape " + shape);
     }
@@ -479,6 +480,45 @@ public final class DefensePostStamper {
         List<DefensePost.TurretSpec> turrets = new ArrayList<>(2);
         turrets.add(new DefensePost.TurretSpec(TurretKind.HEPHAESTUS, cx - 1, cy));
         turrets.add(new DefensePost.TurretSpec(TurretKind.HEPHAESTUS, cx + 1, cy));
+        return new DefensePost(DefensePostKind.LARGE, cx, cy, turrets);
+    }
+
+    /**
+     * TRIANGLE_FORMATION: 3 turrets in a spearhead with apex south. Reads as
+     * a coordinated battery — more firepower per post than the line shapes,
+     * fully enclosed by wall + sealed stone platform. Uses bow-out art to
+     * match the other "protruding" silhouettes.
+     * <pre>
+     *   NW  T1  N   T3  NE
+     *   W   S   S   S   E
+     *   SS  SW  T2  SE  SS
+     * </pre>
+     * The middle row and bbox corner cells are sealed (non-walkable STONE
+     * pad, no doodad) rather than left open — keeps the 3 turrets inside one
+     * non-walkable mass so no isolated walkable pocket forms between them.
+     */
+    private static DefensePost stampLargeTriangleFormation(NavigationGrid grid, CellTopology topology,
+                                                           List<Doodad> doodads, int cx, int cy) {
+        stampRingCell(grid, topology, doodads, cx - 2, cy + 1, TileManifest.turretBowOut(-1,  1));
+        stampRingCell(grid, topology, doodads, cx,     cy + 1, TileManifest.turretBowOut( 0,  1));
+        stampRingCell(grid, topology, doodads, cx + 2, cy + 1, TileManifest.turretBowOut( 1,  1));
+        stampRingCell(grid, topology, doodads, cx - 2, cy,     TileManifest.turretBowOut(-1,  0));
+        stampRingCell(grid, topology, doodads, cx + 2, cy,     TileManifest.turretBowOut( 1,  0));
+        stampRingCell(grid, topology, doodads, cx - 1, cy - 1, TileManifest.turretBowOut(-1, -1));
+        stampRingCell(grid, topology, doodads, cx + 1, cy - 1, TileManifest.turretBowOut( 1, -1));
+        stampTurretCenter(grid, topology, cx - 1, cy + 1);
+        stampTurretCenter(grid, topology, cx + 1, cy + 1);
+        stampTurretCenter(grid, topology, cx,     cy - 1);
+        sealInnerCell(grid, topology, cx - 1, cy);
+        sealInnerCell(grid, topology, cx,     cy);
+        sealInnerCell(grid, topology, cx + 1, cy);
+        sealInnerCell(grid, topology, cx - 2, cy - 1);
+        sealInnerCell(grid, topology, cx + 2, cy - 1);
+
+        List<DefensePost.TurretSpec> turrets = new ArrayList<>(3);
+        turrets.add(new DefensePost.TurretSpec(TurretKind.HEPHAESTUS, cx - 1, cy + 1));
+        turrets.add(new DefensePost.TurretSpec(TurretKind.HEPHAESTUS, cx + 1, cy + 1));
+        turrets.add(new DefensePost.TurretSpec(TurretKind.HEPHAESTUS, cx,     cy - 1));
         return new DefensePost(DefensePostKind.LARGE, cx, cy, turrets);
     }
 
