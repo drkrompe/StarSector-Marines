@@ -74,13 +74,18 @@ public class Detonations {
         int targetCx = (int) Math.floor(det.endpointX);
         int targetCy = (int) Math.floor(det.endpointY);
         if (det.aoeRadius > 0f) {
-            // Lingering smoke column at every HE impact. Pure visual — the
-            // plume's emitter sits on the sim's smoke-plume list for a few
-            // sim-seconds, emitting puffs into the same drain the smoking-
-            // wreck pass uses. Initial flame-burst FX still come from the
-            // renderer's per-shot impact dispatch; the plume is the rising
-            // column that lingers after the burst dissipates.
-            ctx.spawnSmokePlume(det.endpointX, det.endpointY);
+            // Lingering smoke column on REAL HE detonations only. Threshold
+            // discriminates against the kinetic-saturation AoE weapons
+            // (chaingun aoe=0.6, vulcan aoe=0.6, heavy MG aoe=0.6) whose
+            // small splash radius lets multiple rounds catch clustered
+            // targets but isn't a true explosion. Without this gate, a
+            // 10-round chaingun burst spawned 10 HE-grade plumes — visually
+            // equivalent to ten rocket impacts on the same cell. Real HE
+            // detonations all sit at ≥ 1.0 cells (marine rocket 1.5,
+            // SRM 1.3, LRM 2.0, mortar / grenade-launcher / LOCUST 1.5+).
+            if (det.aoeRadius >= 1.0f) {
+                ctx.spawnSmokePlume(det.endpointX, det.endpointY);
+            }
             float r2 = det.aoeRadius * det.aoeRadius;
             for (Unit u : ctx.getUnits()) {
                 if (!u.isAlive()) continue;
