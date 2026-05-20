@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.ai.goap.world.WorldStateBuilder;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
 import com.dillon.starsectormarines.battle.ui.ScrollState;
+import com.dillon.starsectormarines.battle.ui.debug.SquadStateDumper;
 import com.dillon.starsectormarines.battle.ui.highlight.CellHighlight;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
@@ -111,6 +112,16 @@ public final class SquadPlanDebugPanel implements HudPanel {
     private static final Color HL_BTN_FG_ON          = new Color(0xE8, 0xF8, 0xFF);
     private static final Color HL_BTN_BORDER         = new Color(0x60, 0x80, 0xA0);
 
+    // --- Header DUMP button ---
+    private static final float DUMP_BTN_W            = 48f;
+    private static final float DUMP_BTN_H            = 18f;
+    private static final float DUMP_BTN_RIGHT_INSET  = 210f;  // sits to the left of the existing hint text
+    private static final Color DUMP_BTN_BG           = new Color(0x32, 0x22, 0x46, 0xC8);
+    private static final Color DUMP_BTN_FG           = new Color(0xC0, 0xA0, 0xE0);
+    private static final Color DUMP_BTN_BORDER       = new Color(0x80, 0x60, 0xA0);
+    /** Sim-seconds the post-dump status banner persists before reverting to the regular hint string. */
+    private static final float DUMP_STATUS_DURATION  = 3.0f;
+
     private final BattleUiContext ctx;
     /** Per-frame cache filled by update(); consumed by render(). Empty in detail mode. */
     private final List<Squad> compactSquads = new ArrayList<>();
@@ -130,6 +141,12 @@ public final class SquadPlanDebugPanel implements HudPanel {
     private SquadPlan lastPlanForHighlights;
     /** Per-frame button hotspots, populated by {@link #renderDetail} and consumed by {@link #handleInput}. */
     private final List<StepHotspot> stepHotspots = new ArrayList<>();
+    /** Header DUMP button hotspot, refreshed per frame. {@code null} when no detail squad is selected (button isn't drawn either). */
+    private StepHotspot dumpHotspot;
+    /** Post-dump status text shown in place of the scroll hint. {@code null} when no status to show. Cleared once the banner expires. */
+    private String dumpStatusMessage;
+    /** Sim-seconds remaining on the post-dump status banner. Counted down each {@link #update} call; when it hits zero {@link #dumpStatusMessage} clears. */
+    private float dumpStatusRemaining;
 
     /** Click target for one plan step's highlight toggle. Built per-frame in render. */
     private static final class StepHotspot {
@@ -162,6 +179,13 @@ public final class SquadPlanDebugPanel implements HudPanel {
         detailSquad = null;
         detailState = null;
         detailContentH = 0f;
+        dumpHotspot = null;
+        if (dumpStatusMessage != null) {
+            dumpStatusRemaining -= dt;
+            if (dumpStatusRemaining <= 0f) {
+                dumpStatusMessage = null;
+            }
+        }
 
         BattleSimulation sim = ctx.getSim();
         if (sim == null) return;
@@ -366,13 +390,17 @@ public final class SquadPlanDebugPanel implements HudPanel {
         HudDraw.filledRect(x0, y0, w, h, BG, alphaMult);
         HudDraw.borderRect(x0, y0, w, h, BORDER, alphaMult);
 
-        // Fixed header — squad id + faction color + "scroll to see more" hint
-        // when the body overflows. Header sits above the scrollable region.
+        // Fixed header — squad id + faction color + DUMP button + the
+        // "scroll to see more" hint (replaced by the post-dump status
+        // banner for DUMP_STATUS_DURATION sim-seconds after a dump click).
         float headerY = y0 + h - HEADER_H;
         Color idColor = (s.faction == Faction.MARINE) ? MARINE_FG : DEFENDER_FG;
         Fonts.ORBITRON_20.drawString("SQ-" + s.id, x0 + PAD_INNER, headerY + HEADER_H - 6f, idColor, alphaMult);
         Fonts.ORBITRON_20.drawString(s.faction.name(), x0 + 70f, headerY + HEADER_H - 6f, HEADER_FG, alphaMult);
-        String hint = detailScroll.overflows() ? "(scroll · click empty to clear)" : "(click empty to clear)";
+        renderDumpButton(font, x0 + w - DUMP_BTN_RIGHT_INSET, headerY + HEADER_H - 8f - DUMP_BTN_H / 2f, alphaMult);
+        String hint = dumpStatusMessage != null
+                ? dumpStatusMessage
+                : (detailScroll.overflows() ? "(scroll · click empty to clear)" : "(click empty to clear)");
         font.drawString(hint, x0 + w - 200f, headerY + HEADER_H - 8f, IDLE_FG, alphaMult);
 
         // Scrollable region — body lines render in this band, anything outside
@@ -505,6 +533,19 @@ public final class SquadPlanDebugPanel implements HudPanel {
      * step is in {@link #highlightedStepIndices}, so the user can see at a
      * glance which steps are currently lighting up cells in the world.
      */
+    /**
+     * Draws the header DUMP button and records its hotspot. Sentinel
+     * {@code stepIdx = -1} marks it apart from the per-step [H] hotspots
+     * in the shared {@code stepHotspots}-style list; we keep it in its own
+     * field instead so the per-step list stays semantically clean.
+     */
+    private void renderDumpButton(BitmapFont font, float x, float y, float alphaMult) {
+        HudDraw.filledRect(x, y, DUMP_BTN_W, DUMP_BTN_H, DUMP_BTN_BG, alphaMult);
+        HudDraw.borderRect(x, y, DUMP_BTN_W, DUMP_BTN_H, DUMP_BTN_BORDER, alphaMult);
+        font.drawString("DUMP", x + 6f, y + DUMP_BTN_H - 3f, DUMP_BTN_FG, alphaMult);
+        dumpHotspot = new StepHotspot(-1, x, y, DUMP_BTN_W, DUMP_BTN_H);
+    }
+
     private void renderHighlightButton(BitmapFont font, int stepIdx,
                                         float rightEdgeX, float lineY, float alphaMult) {
         boolean on = highlightedStepIndices.contains(stepIdx);
@@ -563,6 +604,14 @@ public final class SquadPlanDebugPanel implements HudPanel {
             if (!e.isLMBDownEvent()) continue;
             float px = e.getX();
             float py = e.getY();
+            // DUMP button checked first so it doesn't shadow a [H] toggle
+            // that happens to land on the same pixel after a future layout
+            // change. Cheap O(1) check.
+            if (dumpHotspot != null && dumpHotspot.contains(px, py)) {
+                triggerDump();
+                e.consume();
+                continue;
+            }
             for (StepHotspot hs : stepHotspots) {
                 if (hs.contains(px, py)) {
                     toggleStepHighlight(hs.stepIdx);
@@ -587,6 +636,24 @@ public final class SquadPlanDebugPanel implements HudPanel {
         if (!highlightedStepIndices.add(stepIdx)) {
             highlightedStepIndices.remove(stepIdx);
         }
+    }
+
+    /**
+     * Writes the current detail squad's state to {@code saves/common/} and
+     * shows a short-lived status banner in place of the scroll hint. Errors
+     * are swallowed (logged in {@link SquadStateDumper}) — a failed write
+     * surfaces in the game log, not as a crash mid-battle.
+     */
+    private void triggerDump() {
+        Squad s = detailSquad;
+        if (s == null) return;
+        BattleSimulation sim = ctx.getSim();
+        if (sim == null) return;
+        String path = SquadStateDumper.dump(s, sim, detailState);
+        dumpStatusMessage = path != null
+                ? "(dumped to common/" + path + ")"
+                : "(dump failed — see log)";
+        dumpStatusRemaining = DUMP_STATUS_DURATION;
     }
 
     /**
