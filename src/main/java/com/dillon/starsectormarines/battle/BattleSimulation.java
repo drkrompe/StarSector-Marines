@@ -1351,6 +1351,19 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     public static final int KILL_ZONE_LOS_TICKS_THRESHOLD = 6;
 
     /**
+     * Story A backstop: cumulative sim-seconds a garrison squad must take
+     * LoS-confirmed incoming fire before the kill-zone gate is forced open,
+     * regardless of whether the shooter ever entered the 8-cell kill zone.
+     * Prevents a long-LOS attacker (mech with 30-40-cell range, distant
+     * sniper) from chipping a holdsFireUntilKillZone garrison that's
+     * forbidden to fire back. {@code 3s} is the user-feel sweet spot:
+     * long enough that a one-off pot shot doesn't blow a planned ambush,
+     * short enough that the squad isn't a free target for the rest of the
+     * engagement.
+     */
+    public static final float KILL_ZONE_AMBUSH_BLOWN_SECONDS = 3.0f;
+
+    /**
      * Single per-tick pass that fills in every squad's derived aggregates
      * (alive member count, centroid, alert level) and drives the
      * ENGAGED/SUSPICIOUS/UNAWARE state machine.
@@ -1405,6 +1418,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             squad._engagedThisTick = false;
             squad._suspiciousThisTick = false;
             squad._killZoneSightedThisTick = false;
+            squad._underFireAtLosThisTick = false;
         }
 
         // Pass 1: accumulate squad aggregates + per-squad engagement LoS.
@@ -1478,6 +1492,35 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             }
         }
 
+        // Story A backstop: per-tick under-fire-at-LoS scan for garrison
+        // squads with the kill-zone gate set. Mirrors WorldStateBuilder's
+        // evalUnderFireAtLos predicate but runs every tick (not per replan)
+        // so timeUnderSustainedFire accumulates accurately across the
+        // 2-second replan window. Scoped to holdsFireUntilKillZone garrisons
+        // because the field is only consumed by their gate override.
+        if (!activeShots.isEmpty()) {
+            for (Unit u : units) {
+                if (!u.isAlive() || u.squadId == Unit.NO_SQUAD) continue;
+                Squad squad = squads.get(u.squadId);
+                if (squad == null || !squad.holdsFireUntilKillZone) continue;
+                if (squad._underFireAtLosThisTick) continue;
+                for (ShotEvent shot : activeShots) {
+                    if (shot.shooterFaction == squad.faction) continue;
+                    float dx = shot.toX - (u.cellX + 0.5f);
+                    float dy = shot.toY - (u.cellY + 0.5f);
+                    // Same 2-cell-squared "shot landed near me" gate the
+                    // predicate evaluator uses — keeps the two paths in sync.
+                    if (dx * dx + dy * dy > 4f) continue;
+                    int fromCellX = (int) Math.floor(shot.fromX);
+                    int fromCellY = (int) Math.floor(shot.fromY);
+                    if (grid.hasLineOfSight(u.cellX, u.cellY, fromCellX, fromCellY)) {
+                        squad._underFireAtLosThisTick = true;
+                        break;
+                    }
+                }
+            }
+        }
+
         // Finalize: divide centroids, apply alert-state transitions.
         for (Squad squad : squads.values()) {
             if (squad.aliveMembers > 0) {
@@ -1496,6 +1539,15 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                     }
                 } else {
                     squad.killZoneLosTicks = 0;
+                }
+                // Story A backstop: accumulate sim-time under LoS-confirmed
+                // incoming fire. Monotonic — never resets within a battle so
+                // the ambush-blown threshold is a one-way door. Once it
+                // crosses KILL_ZONE_AMBUSH_BLOWN_SECONDS, WorldStateBuilder
+                // forces the kill-zone predicate true regardless of enemy
+                // proximity.
+                if (squad._underFireAtLosThisTick) {
+                    squad.timeUnderSustainedFire += TICK_DT;
                 }
             }
             if (squad._engagedThisTick) {

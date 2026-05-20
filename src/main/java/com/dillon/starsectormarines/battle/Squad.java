@@ -227,6 +227,35 @@ public final class Squad {
      */
     public int killZoneLosTicks = 0;
 
+    /**
+     * Cumulative sim-seconds this garrison squad has been taking incoming
+     * fire with LoS back to the shooter — accumulates monotonically once
+     * the first qualifying shot lands, never decays. Drives the
+     * "ambush-is-blown" override in
+     * {@link com.dillon.starsectormarines.battle.ai.goap.world.WorldStateBuilder}'s
+     * {@code evalEnemyInKillZone}: once this passes
+     * {@link com.dillon.starsectormarines.battle.BattleSimulation#KILL_ZONE_AMBUSH_BLOWN_SECONDS}
+     * the gate opens regardless of whether an enemy is in the 8-cell kill
+     * zone, so the squad can return fire at long-range attackers that probed
+     * them from beyond the ambush radius.
+     *
+     * <p>SQ-17 motivator: a garrison being chipped by a long-LOS mech had no
+     * tactical answer — kill-zone gate closed, BreakLOS couldn't relocate
+     * out of the firing lane fast enough, squad just absorbed fire.
+     * Permanent so the surprise element is treated as a one-way door:
+     * once you've been discovered, you don't get to re-hide.
+     */
+    public float timeUnderSustainedFire = 0f;
+
+    /**
+     * Per-tick transient set by {@code BattleSimulation.updateSquadAlertLevels}:
+     * true if any squadmate took a shot from an enemy with LoS to that shot's
+     * origin this tick. Drives the {@link #timeUnderSustainedFire} accumulator
+     * — read once at the end of the alert-update pass and cleared at the top
+     * of the next.
+     */
+    public boolean _underFireAtLosThisTick = false;
+
     // ---- GOAP plan state ----
     // Populated by GoapInfantryBehavior.replanIfNeeded; mutated by per-unit
     // GoapInfantryBehavior.update as members execute the current step's action.

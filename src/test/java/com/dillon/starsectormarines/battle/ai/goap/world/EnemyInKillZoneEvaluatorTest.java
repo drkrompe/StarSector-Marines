@@ -132,4 +132,54 @@ public class EnemyInKillZoneEvaluatorTest {
         assertFalse(s.get(Predicate.ENEMY_IN_KILL_ZONE),
                 "a single tick of LOS doesn't trip the gate — hysteresis suppresses flicker on transient sightings");
     }
+
+    @Test
+    public void sustainedFireBackstopForcesGateOpenAtLongRange() {
+        // SQ-17 backstop: garrison being chipped by a long-LOS attacker
+        // beyond the 8-cell kill zone. Pre-fix the gate stayed shut
+        // indefinitely — squad couldn't return fire, BreakLOS couldn't
+        // relocate, marines just absorbed hits. Now once
+        // timeUnderSustainedFire passes KILL_ZONE_AMBUSH_BLOWN_SECONDS the
+        // predicate trips regardless of enemy proximity.
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.DEFENDER, null);
+        Squad squad = sim.getSquad(squadId);
+        squad.aliveMembers = 1;
+        squad.holdsFireUntilKillZone = true;
+        squad.killZoneLosTicks = 0;
+        // Just past the threshold — the backstop should fire.
+        squad.timeUnderSustainedFire = BattleSimulation.KILL_ZONE_AMBUSH_BLOWN_SECONDS;
+
+        Unit defender = defenderAt(2, 2, squadId);
+        sim.addUnit(defender);
+        // Marine WAY beyond kill-zone range; the kill-zone proximity check
+        // alone would keep the gate shut.
+        sim.addUnit(marineAt(14, 14));
+
+        WorldState s = WorldStateBuilder.build(squad, sim);
+        assertTrue(s.get(Predicate.ENEMY_IN_KILL_ZONE),
+                "sustained-fire backstop must force the gate open even when no enemy is currently in the 8-cell kill zone");
+    }
+
+    @Test
+    public void sustainedFireBelowThresholdKeepsGateShut() {
+        // Mirror of the above — confirm we didn't accidentally make a hair
+        // trigger. Just shy of the threshold, the existing kill-zone
+        // proximity rules still apply.
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.DEFENDER, null);
+        Squad squad = sim.getSquad(squadId);
+        squad.aliveMembers = 1;
+        squad.holdsFireUntilKillZone = true;
+        squad.killZoneLosTicks = 0;
+        squad.timeUnderSustainedFire = BattleSimulation.KILL_ZONE_AMBUSH_BLOWN_SECONDS - 0.1f;
+
+        Unit defender = defenderAt(2, 2, squadId);
+        sim.addUnit(defender);
+        sim.addUnit(marineAt(14, 14));
+
+        WorldState s = WorldStateBuilder.build(squad, sim);
+        assertFalse(s.get(Predicate.ENEMY_IN_KILL_ZONE),
+                "below the threshold the gate falls through to the existing proximity check — no enemy in kill zone here, so it stays shut");
+    }
 }

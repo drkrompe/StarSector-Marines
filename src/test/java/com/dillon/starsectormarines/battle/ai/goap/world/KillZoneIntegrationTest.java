@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.ai.goap.world;
 
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.ShotEvent;
 import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.UnitType;
@@ -129,5 +130,57 @@ public class KillZoneIntegrationTest {
         WorldState s = WorldStateBuilder.build(defSquad, sim);
         assertTrue(s.get(Predicate.ENEMY_IN_KILL_ZONE),
                 "non-garrison squads always read TRUE — the gate is a no-op for them");
+    }
+
+    @Test
+    public void sustainedHostileFireAccumulatesAndBlowsAmbush() {
+        // SQ-17 backstop: drive hostile shots at a garrison from beyond the
+        // 8-cell kill zone for KILL_ZONE_AMBUSH_BLOWN_SECONDS of sim-time.
+        // After threshold the gate forces open even though no enemy ever
+        // entered the kill-zone radius.
+        BattleSimulation sim = openSim();
+        int defSquadId = sim.mintSquad(Faction.DEFENDER, null);
+        Squad defSquad = sim.getSquad(defSquadId);
+        defSquad.holdsFireUntilKillZone = true;
+
+        Unit defender = new Unit("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5);
+        defender.squadId = defSquadId;
+        // Tank up so the marine's return fire doesn't kill us before the
+        // ambush-blown threshold lands — the accumulator only ticks while at
+        // least one squadmate is alive, and a dead squad short-circuits the
+        // sustained-fire scan to nothing.
+        defender.hp = 1_000_000f;
+        defender.maxHp = 1_000_000f;
+        sim.addUnit(defender);
+        // Marine 12 cells away — well outside KILL_ZONE_RANGE_CELLS (8) so
+        // the existing proximity gate would never trip. The marine's actual
+        // shots don't matter for this test — we control the under-fire signal
+        // via postShot below — but the marine has to exist so the
+        // EliminateFactionObjective doesn't auto-complete the battle.
+        Unit marine = new Unit("m1", Faction.MARINE, UnitType.MARINE, 17, 5);
+        sim.addUnit(marine);
+
+        float dt = 1.0f / 30f;
+        int totalTicks = (int) Math.ceil((BattleSimulation.KILL_ZONE_AMBUSH_BLOWN_SECONDS + 0.1f) / dt);
+        for (int i = 0; i < totalTicks; i++) {
+            // Track the defender's live position — its retreat behavior pulls
+            // it out of (5,5) over time, and a stale shot target makes the
+            // "shot landed near me" distance check miss. Aim at wherever the
+            // defender is right now and the LoS test from the marine's cell
+            // (17,5) to that point stays clear on this open arena.
+            float toCenterX = defender.cellX + 0.5f;
+            float toCenterY = defender.cellY + 0.5f;
+            sim.postShot(new ShotEvent(17.5f, 5.5f, toCenterX, toCenterY, true, Faction.MARINE, 0.1f));
+            sim.advance(dt);
+        }
+
+        assertTrue(defSquad.timeUnderSustainedFire >= BattleSimulation.KILL_ZONE_AMBUSH_BLOWN_SECONDS,
+                "sustained fire should accumulate past the ambush-blown threshold; got " + defSquad.timeUnderSustainedFire);
+
+        // Gate is open even though the marine never entered the kill zone
+        // and killZoneLosTicks is irrelevant.
+        WorldState s = WorldStateBuilder.build(defSquad, sim);
+        assertTrue(s.get(Predicate.ENEMY_IN_KILL_ZONE),
+                "after sustained-fire threshold, the gate trips regardless of enemy proximity");
     }
 }

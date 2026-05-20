@@ -257,18 +257,25 @@ public final class WorldStateBuilder {
      *
      * <p>Garrison squads ({@link Squad#holdsFireUntilKillZone}) read true iff:
      * <ul>
+     *   <li>{@link Squad#timeUnderSustainedFire} has crossed
+     *       {@link BattleSimulation#KILL_ZONE_AMBUSH_BLOWN_SECONDS} — the
+     *       squad has been taking LoS-confirmed incoming long enough that the
+     *       ambush is blown, so the gate is forced open and the garrison can
+     *       return fire at attackers outside the kill-zone radius; OR</li>
      *   <li>{@link Squad#killZoneLosTicks} has reached
      *       {@link BattleSimulation#KILL_ZONE_LOS_TICKS_THRESHOLD} — LOS to a
      *       close enemy has been stable for ~0.2s, suppressing flicker on
-     *       transient sightings; AND</li>
-     *   <li>At least one squadmate currently has LOS to an enemy combatant
+     *       transient sightings; AND
+     *       at least one squadmate currently has LOS to an enemy combatant
      *       within {@link BattleSimulation#KILL_ZONE_RANGE_CELLS} cells —
      *       the trigger doesn't latch; once the enemy retreats out of the
-     *       kill zone the gate closes again.</li>
+     *       kill zone the gate closes again (unless the ambush-blown
+     *       backstop above has already fired).</li>
      * </ul>
      */
     private static boolean evalEnemyInKillZone(Squad squad, BattleSimulation sim) {
         if (!squad.holdsFireUntilKillZone) return true;
+        if (squad.timeUnderSustainedFire >= BattleSimulation.KILL_ZONE_AMBUSH_BLOWN_SECONDS) return true;
         if (squad.killZoneLosTicks < BattleSimulation.KILL_ZONE_LOS_TICKS_THRESHOLD) return false;
         NavigationGrid grid = sim.getGrid();
         int range2 = BattleSimulation.KILL_ZONE_RANGE_CELLS * BattleSimulation.KILL_ZONE_RANGE_CELLS;
