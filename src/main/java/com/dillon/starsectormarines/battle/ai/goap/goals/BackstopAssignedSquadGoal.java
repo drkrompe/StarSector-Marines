@@ -48,6 +48,12 @@ public final class BackstopAssignedSquadGoal implements Goal {
 
     @Override
     public float relevance(WorldState state, Squad squad, BattleSimulation sim) {
+        // Yield to SurviveContact when morale-broken — see the matching gate
+        // in {@link OverwatchKillZoneGoal#relevance}. Backstop is a pacing
+        // hint, not a unit-level objective; a mauled armored-support squad
+        // pulls back regardless of orders and re-attaches to its infantry
+        // squad on the next replan after morale recovers.
+        if (state.get(Predicate.MORALE_BROKEN)) return 0f;
         boolean hasArmored = false;
         for (Unit u : sim.getUnits()) {
             if (!u.isAlive() || u.squadId != squad.id) continue;

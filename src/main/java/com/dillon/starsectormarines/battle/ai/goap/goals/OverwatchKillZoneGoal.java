@@ -50,6 +50,13 @@ public final class OverwatchKillZoneGoal implements Goal {
 
     @Override
     public float relevance(WorldState state, Squad squad, BattleSimulation sim) {
+        // Yield to SurviveContact when the squad is morale-broken. Same
+        // carve-out shape as {@link ClearAssignedZoneGoal} — a role-driven
+        // hold is a tactical hint, not a unit-level objective, and a broken
+        // squad needs the SURVIVAL bucket to win so BreakContact runs. Playtest
+        // dump squad_0 caught LR_SUPPORT mechs sitting on overwatch at 8/90 HP
+        // because MISSION outranks SURVIVAL unconditionally.
+        if (state.get(Predicate.MORALE_BROKEN)) return 0f;
         if (squad.lastSeenEnemyX < 0 || squad.lastSeenEnemyY < 0) return 0f;
         for (Unit u : sim.getUnits()) {
             if (!u.isAlive() || u.squadId != squad.id) continue;
