@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.TurretMount;
+import com.dillon.starsectormarines.battle.command.SabotageCommand;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.mapgen.MapGenerator;
 import com.dillon.starsectormarines.battle.mapgen.MapResult;
@@ -216,6 +217,11 @@ public final class BattleSetup {
 
         allocateDefenders(sim, map, DefenderRoster.forMission(MissionType.SABOTAGE, risk, enemyHasHeavyArmor), rng);
         spawnAmbientCivilians(sim, map, rng);
+        // Marine commander: routes non-planter squads toward the closest
+        // unfinished charge site so cover-fire teams (or squads whose
+        // planter has died) spread across the multi-site map instead of
+        // dogpiling the nearest fight.
+        sim.setCommander(Faction.MARINE, new SabotageCommand());
         return sim;
     }
 

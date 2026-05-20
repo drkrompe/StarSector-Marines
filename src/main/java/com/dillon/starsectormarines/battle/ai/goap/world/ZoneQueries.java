@@ -4,6 +4,9 @@ import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.ai.goap.SquadPlan;
+import com.dillon.starsectormarines.battle.ai.goap.actions.ClearZone;
+import com.dillon.starsectormarines.battle.ai.goap.actions.EnterZone;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
 import com.dillon.starsectormarines.battle.nav.zone.Portal;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
@@ -139,5 +142,37 @@ public final class ZoneQueries {
         }
         Collections.reverse(reverse);
         return reverse;
+    }
+
+    /**
+     * Synthesize a squad-push plan from {@code fromZone} to {@code toZone}:
+     * BFS the zone graph, then emit an alternating {@link EnterZone} +
+     * {@link ClearZone} pair per intermediate zone after the starting one.
+     * Returns {@code null} when the endpoints are invalid, identical, or
+     * disconnected — caller treats that as "no plan, fall through to the
+     * next-most-relevant goal."
+     *
+     * <p>Shared between MISSION-priority zone-push goals:
+     * {@link com.dillon.starsectormarines.battle.ai.goap.goals.SecureObjectiveZone}
+     * (unit-level planter target) and
+     * {@link com.dillon.starsectormarines.battle.ai.goap.goals.ClearAssignedZoneGoal}
+     * (commander-issued squad assignment). Both compose the same step
+     * sequence — just differ in how they pick the target zone.
+     */
+    public static SquadPlan synthesizeZonePushPlan(int fromZone, int toZone, BattleSimulation sim) {
+        if (sim == null || fromZone < 0 || toZone < 0 || fromZone == toZone) return null;
+        List<Integer> path = zonePathBfs(fromZone, toZone, sim);
+        if (path.size() < 2) return null;
+
+        ZoneGraph graph = sim.getZoneGraph();
+        List<SquadPlan.Step> steps = new ArrayList<>(2 * (path.size() - 1));
+        for (int i = 1; i < path.size(); i++) {
+            int zoneId = path.get(i);
+            NavigationZone zone = graph.zoneById(zoneId);
+            if (zone == null) return null;
+            steps.add(new SquadPlan.Step(EnterZone.forZone(zone, sim.getGrid())));
+            steps.add(new SquadPlan.Step(new ClearZone(zoneId)));
+        }
+        return new SquadPlan(steps);
     }
 }

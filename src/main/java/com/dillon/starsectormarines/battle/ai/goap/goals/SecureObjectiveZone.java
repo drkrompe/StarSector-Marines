@@ -7,14 +7,8 @@ import com.dillon.starsectormarines.battle.ai.goap.Goal;
 import com.dillon.starsectormarines.battle.ai.goap.Predicate;
 import com.dillon.starsectormarines.battle.ai.goap.SquadPlan;
 import com.dillon.starsectormarines.battle.ai.goap.WorldState;
-import com.dillon.starsectormarines.battle.ai.goap.actions.ClearZone;
-import com.dillon.starsectormarines.battle.ai.goap.actions.EnterZone;
 import com.dillon.starsectormarines.battle.ai.goap.world.ZoneQueries;
-import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
 import com.dillon.starsectormarines.battle.objective.ChargeSiteObjective;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Story K — Room-clear sweep. Fires for marine squads that have an
@@ -76,19 +70,7 @@ public final class SecureObjectiveZone implements Goal {
     public SquadPlan customPlan(Squad squad, BattleSimulation sim) {
         int from = ZoneQueries.squadCurrentZone(squad, sim);
         int to = findObjectiveZone(squad, sim);
-        if (from < 0 || to < 0 || from == to) return null;
-        List<Integer> path = ZoneQueries.zonePathBfs(from, to, sim);
-        if (path.size() < 2) return null;
-
-        List<SquadPlan.Step> steps = new ArrayList<>(2 * (path.size() - 1));
-        for (int i = 1; i < path.size(); i++) {
-            int zoneId = path.get(i);
-            NavigationZone zone = sim.getZoneGraph().zoneById(zoneId);
-            if (zone == null) return null;
-            steps.add(new SquadPlan.Step(EnterZone.forZone(zone, sim.getGrid())));
-            steps.add(new SquadPlan.Step(new ClearZone(zoneId)));
-        }
-        return new SquadPlan(steps);
+        return ZoneQueries.synthesizeZonePushPlan(from, to, sim);
     }
 
     /**
