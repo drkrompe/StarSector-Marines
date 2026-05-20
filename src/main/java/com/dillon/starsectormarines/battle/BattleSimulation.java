@@ -8,7 +8,6 @@ import com.dillon.starsectormarines.battle.ai.DroneBehavior;
 import com.dillon.starsectormarines.battle.ai.DroneHubBehavior;
 import com.dillon.starsectormarines.battle.ai.FallbackBehavior;
 import com.dillon.starsectormarines.battle.ai.FleeBehavior;
-import com.dillon.starsectormarines.battle.ai.GarrisonBehavior;
 import com.dillon.starsectormarines.battle.ai.KitRetrieverBehavior;
 import com.dillon.starsectormarines.battle.ai.PatrolBehavior;
 import com.dillon.starsectormarines.battle.ai.SquadAlertLevel;
@@ -1394,7 +1393,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             case KIT_RETRIEVER:  return KitRetrieverBehavior.INSTANCE;
             case FLEE:           return FleeBehavior.INSTANCE;
             case TURRET:         return TurretBehavior.INSTANCE;
-            case GARRISON:       return GarrisonBehavior.INSTANCE;
+            case GARRISON:       return CombatantBehavior.INSTANCE;
             case PATROL:         return PatrolBehavior.INSTANCE;
             case STRUCTURE:      return StructureBehavior.INSTANCE;
             case DRONE_HUB:      return DroneHubBehavior.INSTANCE;
@@ -1726,7 +1725,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      * Each surviving member gets a new {@link Unit#homeCellX home cell} near
      * the new anchor (picked via {@link BattleSetup#pickCellsNear} so cover is
      * preserved at the new post). {@link Squad#fallbackInProgress} is set so
-     * {@link com.dillon.starsectormarines.battle.ai.GarrisonBehavior} routes
+     * {@link com.dillon.starsectormarines.battle.ai.goap.actions.HoldPost} routes
      * members to their new homes regardless of alert level.
      *
      * <h2>Arrival pass</h2>

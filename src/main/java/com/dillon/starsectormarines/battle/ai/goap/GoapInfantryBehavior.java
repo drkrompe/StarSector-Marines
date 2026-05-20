@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.ai.goap.goals.ClearAssignedZoneGoal;
 import com.dillon.starsectormarines.battle.ai.goap.goals.CordonForPlant;
 import com.dillon.starsectormarines.battle.ai.goap.goals.EliminateEnemiesGoal;
 import com.dillon.starsectormarines.battle.ai.goap.goals.GarrisonAmbush;
+import com.dillon.starsectormarines.battle.ai.goap.goals.GuardPost;
 import com.dillon.starsectormarines.battle.ai.goap.goals.RecoverFromAmbush;
 import com.dillon.starsectormarines.battle.ai.goap.goals.SecureObjectiveZone;
 import com.dillon.starsectormarines.battle.ai.goap.goals.SurviveContact;
@@ -58,6 +59,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             SecureObjectiveZone.INSTANCE,
             ClearAssignedZoneGoal.INSTANCE,
             GarrisonAmbush.INSTANCE,
+            GuardPost.INSTANCE,
             SurviveContact.INSTANCE,
             RecoverFromAmbush.INSTANCE,
             BreachToEngage.INSTANCE,
@@ -84,13 +86,15 @@ public final class GoapInfantryBehavior implements UnitBehavior {
     /**
      * Lifecycle prep called once before {@link Action#execute} each tick:
      * advance the rocket-aim animation if mid-aim (short-circuits the action
-     * for this tick), then tick cooldowns. Returns {@code false} when the
-     * unit is locked in aim — caller should skip {@code action.execute} this
-     * frame.
+     * for this tick), tick cooldowns, then opportunistically commit a rocket
+     * if a turret-of-opportunity sits in range with LOS. Returns {@code false}
+     * when the unit is locked in aim (existing or freshly initiated) — caller
+     * should skip {@code action.execute} this frame.
      */
     public static boolean prepareForAction(Unit unit, BattleSimulation sim) {
         if (InfantryUnitPrep.tickAimAndShortCircuit(unit, sim)) return false;
         InfantryUnitPrep.tickCooldowns(unit);
+        if (InfantryUnitPrep.tryOpportunityRocket(unit, sim)) return false;
         return true;
     }
 

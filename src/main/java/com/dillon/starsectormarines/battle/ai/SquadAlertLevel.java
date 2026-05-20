@@ -5,10 +5,10 @@ import com.dillon.starsectormarines.battle.Unit;
 
 /**
  * Squad-scoped awareness state. Drives the idle vs. engaged branch in
- * {@link GarrisonBehavior} and {@link PatrolBehavior}: a UNAWARE squad sticks
- * to its assigned routine (hold the node / walk the patrol route), an ENGAGED
- * squad falls through to {@link CombatantBehavior} so members pick targets
- * and fight normally.
+ * {@link com.dillon.starsectormarines.battle.ai.goap.actions.HoldPost} and
+ * {@link PatrolBehavior}: a UNAWARE squad sticks to its assigned routine
+ * (hold the node / walk the patrol route), an ENGAGED squad falls through
+ * to {@link CombatantBehavior} so members pick targets and fight normally.
  *
  * <p>Promotion happens in {@code BattleSimulation.updateSquadAlertLevels},
  * which runs once per tick and walks each squad. If any living squadmate has

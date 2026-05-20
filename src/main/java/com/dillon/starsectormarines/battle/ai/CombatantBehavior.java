@@ -13,11 +13,11 @@ import com.dillon.starsectormarines.battle.ai.goap.GoapMechBehavior;
  * {@code roadmap/ai/14-mech-stage1.md}).
  *
  * <p>Stays as the public entry so callers ({@link PatrolBehavior},
- * {@link GarrisonBehavior}, {@link KitRetrieverBehavior}, and the role
- * dispatch in {@code BattleSimulation.behaviorFor} — which also routes
- * {@code PLANTER} here so the planter participates in the squad-plan
- * cordon slot rather than running its own per-unit path) don't need to know
- * which flavor a given unit needs.
+ * {@link KitRetrieverBehavior}, and the role dispatch in
+ * {@code BattleSimulation.behaviorFor} — which routes
+ * {@code GARRISON}/{@code COMBATANT}/{@code PLANTER}/{@code OBJECTIVE_CAMPER}/
+ * {@code VIP} here so they all share the GOAP-driven combat path) don't need
+ * to know which flavor a given unit needs.
  */
 public final class CombatantBehavior implements UnitBehavior {
 

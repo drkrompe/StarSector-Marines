@@ -594,7 +594,7 @@ public final class TacticalScoring {
      * Constrained firing-position search — like {@link #findFiringPosition} but
      * rejects any candidate whose cell-distance from ({@code anchorX},
      * {@code anchorY}) exceeds {@code maxDistFromAnchor}. Used by
-     * {@link GarrisonBehavior} to keep engaged defenders within a tight
+     * {@link com.dillon.starsectormarines.battle.ai.goap.actions.HoldPost} to keep engaged defenders within a tight
      * radius of their tactical-node anchor: they'll peek around corners and
      * grab better cover, but won't chase marines off the wall.
      *
@@ -606,7 +606,7 @@ public final class TacticalScoring {
      * Picks an enemy combatant {@code self} can engage from within
      * {@code maxDistFromAnchor} cells of the anchor — i.e. an enemy with at
      * least one reachable firing position inside the hold radius. Used by
-     * {@link GarrisonBehavior} to retarget when the unit's current target is
+     * {@link com.dillon.starsectormarines.battle.ai.goap.actions.HoldPost} to retarget when the unit's current target is
      * blocked by walls from every cell within the hold radius: rather than
      * idling on a fixated unreachable target, switch to one we can actually
      * engage from the post.

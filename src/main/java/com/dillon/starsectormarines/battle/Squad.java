@@ -13,7 +13,7 @@ import com.dillon.starsectormarines.battle.tactical.TacticalNode;
  * field-of-fire spreading, and shared awareness — members stay within radius
  * of squadmates, target selection penalizes squadmates already engaging the
  * same enemy, and a squad's {@link SquadAlertLevel} drives the idle vs.
- * engaged branch in {@link com.dillon.starsectormarines.battle.ai.GarrisonBehavior}
+ * engaged branch in {@link com.dillon.starsectormarines.battle.ai.goap.actions.HoldPost}
  * and {@link com.dillon.starsectormarines.battle.ai.PatrolBehavior}.
  *
  * <p>Squad identity is just an integer key on {@link Unit#squadId}. The
@@ -107,7 +107,7 @@ public final class Squad {
     public boolean fallbackTriggered = false;
     /**
      * True while the squad is still walking from the old post to the new one.
-     * {@link com.dillon.starsectormarines.battle.ai.GarrisonBehavior} routes
+     * {@link com.dillon.starsectormarines.battle.ai.goap.actions.HoldPost} routes
      * members to their freshly-assigned home cells regardless of alert level
      * while this flag is set, and the sim clears it once every surviving
      * member is within {@link com.dillon.starsectormarines.battle.BattleSimulation#HOME_ARRIVAL_RADIUS}
@@ -181,6 +181,13 @@ public final class Squad {
      * effective drain rate at ~5 events per second.
      */
     public float moraleDrainCooldown = 0f;
+    /**
+     * Sim seconds since the last hit or near-miss on a squadmate. Gates morale
+     * recovery — see {@link com.dillon.starsectormarines.battle.BattleSimulation#MORALE_RECOVER_AFTER_FIRE_SECONDS}.
+     * Initialized to a large value so fresh squads can recover immediately if
+     * broken without first being shot at (degenerate case but possible).
+     */
+    public float timeSinceUnderFire = Float.MAX_VALUE / 2f;
     /** Centroid X over alive members. Undefined when {@link #aliveMembers} is 0. */
     public float centroidX = 0f;
     /** Centroid Y over alive members. Undefined when {@link #aliveMembers} is 0. */
