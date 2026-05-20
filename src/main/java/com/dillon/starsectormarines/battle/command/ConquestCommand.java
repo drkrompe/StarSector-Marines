@@ -22,7 +22,12 @@ import java.util.List;
  * strips perpendicular to the traversal axis at first tick, sticky-assigns
  * each marine squad to one strip, then per slow tick assigns each squad
  * a {@link AssignmentKind#CLEAR_ZONE} pointed at the
- * <em>forward-most defender-occupied zone in its strip</em>.
+ * <em>nearest defender-occupied zone in its strip</em> (with a positive-
+ * forward bias on ties). The slow-tick cycle then iterates the squad
+ * one defender position at a time as each is cleared — fixes the
+ * "drop-off then drive inland" bug where targeting the strip's deepest
+ * defender pulled squads past LZ-side defenders along zone-graph BFS
+ * paths that took the shortest open route.
  *
  * <p>Distinct partition strategy from {@link SabotageCommand}'s
  * objective-cluster shape. SabotageCommand has N sectors centered on named
@@ -107,11 +112,13 @@ public final class ConquestCommand implements MissionCommand {
             if (squad.faction != Faction.MARINE) continue;
             if (squad.aliveMembers <= 0) continue;
             int stripIdx = stripFor(squad);
-            int targetZone = forwardMostDefenderZone(stripIdx, sim);
-            if (targetZone < 0) {
-                // Strip is clear (or squad fell outside every strip — bad
-                // centroid, no live members yet). Clear the assignment;
-                // EliminateEnemies picks up the slack.
+            int targetZone = nearestDefenderZoneInStrip(squad, stripIdx, sim);
+            int currentZone = ZoneQueries.squadCurrentZone(squad, sim);
+            if (targetZone < 0 || targetZone == currentZone) {
+                // Strip is clear, OR the nearest defender is in the squad's
+                // own zone — let EliminateEnemiesGoal handle the in-zone
+                // fight rather than writing a self-referential assignment
+                // that ClearAssignedZoneGoal would just yield on.
                 squad.assignedObjective = null;
                 continue;
             }
@@ -204,19 +211,53 @@ public final class ConquestCommand implements MissionCommand {
     }
 
     /**
-     * Walk this strip's zones (pre-sorted forward-to-back) and return the
-     * first one that still has a live defender. {@code -1} when the strip
-     * is fully clear (or contains no zones, which shouldn't happen for
-     * non-empty partitions).
+     * Walk this strip's zones and return the nearest defender-occupied one
+     * to the squad's current centroid on the forward axis, with a
+     * positive-forward bias: if both forward and backward defender
+     * positions exist, the forward one wins on ties (and is preferred
+     * outright when forward positions exist).
+     *
+     * <p>Forward bias matters because CONQUEST is a directional push. A
+     * squad that's already moved past a flanking defender shouldn't be
+     * pulled back to clear them — the next strip-neighbor squad picks
+     * them up if they're in their strip, or {@code EliminateEnemiesGoal}
+     * handles them ambiently when in LoS.
+     *
+     * <p>{@code -1} when the strip has no defender-occupied zones, or
+     * when the only defender zone is the squad's <em>current</em> zone
+     * (in which case {@link
+     * com.dillon.starsectormarines.battle.ai.goap.goals.ClearAssignedZoneGoal}
+     * returns relevance 0 anyway via its {@code currentZone == targetZone}
+     * gate, so callers see consistent "no plan to execute" behavior and
+     * the squad falls through to {@code EliminateEnemiesGoal} for in-zone
+     * engagement).
      */
-    private int forwardMostDefenderZone(int stripIdx, BattleSimulation sim) {
+    private int nearestDefenderZoneInStrip(Squad squad, int stripIdx, BattleSimulation sim) {
         if (stripIdx < 0 || stripIdx >= stripZones.size()) return -1;
+        float squadForward = (axis == TraversalAxis.SOUTH_TO_NORTH) ? squad.centroidY : squad.centroidX;
+
+        int bestForwardZone = -1;
+        float bestForwardDist = Float.MAX_VALUE;
+        int bestBackwardZone = -1;
+        float bestBackwardDist = Float.MAX_VALUE;
         for (int zoneId : stripZones.get(stripIdx)) {
-            if (!ZoneQueries.zoneClear(zoneId, Faction.DEFENDER, sim)) {
-                return zoneId;
+            if (ZoneQueries.zoneClear(zoneId, Faction.DEFENDER, sim)) continue;
+            float zoneForward = zoneForwardCoord[zoneId];
+            float delta = zoneForward - squadForward;
+            if (delta >= 0f) {
+                if (delta < bestForwardDist) {
+                    bestForwardDist = delta;
+                    bestForwardZone = zoneId;
+                }
+            } else {
+                float absDelta = -delta;
+                if (absDelta < bestBackwardDist) {
+                    bestBackwardDist = absDelta;
+                    bestBackwardZone = zoneId;
+                }
             }
         }
-        return -1;
+        return bestForwardZone >= 0 ? bestForwardZone : bestBackwardZone;
     }
 
     // ---- Test/debug accessors ----

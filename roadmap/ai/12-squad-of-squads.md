@@ -68,21 +68,35 @@ strips perpendicular to the `TraversalAxis`. At first tick:
 
 1. Bucket every walkable zone into a strip by its centroid's lateral
    coordinate (x for SOUTH_TO_NORTH, y for WEST_TO_EAST).
-2. Sort each strip's zone list forward-to-back so the *first defender-
-   occupied zone* in the list is the forward-most one (cheap O(N) walk
-   per slow tick instead of an O(N log N) re-sort).
+2. Cache each zone's forward-axis centroid in a primitive `float[]`
+   indexed by zone id for cheap nearest-zone lookups per slow tick.
 
 Per slow tick — per marine squad:
 
 1. Look up the squad's strip. If unset, classify by the squad's current
    centroid's lateral coord and memoize.
-2. Walk the strip's zone list, return the first zone where
-   `ZoneQueries.zoneClear(zoneId, DEFENDER, sim) == false`.
-3. Write `squad.assignedObjective = clearZone(squad.id, targetZone)` —
-   idempotent re-assignment (same record kept across ticks when the
-   target hasn't changed, so an in-flight squad plan stays stable).
-4. When the strip is fully clear of defenders: clear the assignment;
-   squad falls through to `EliminateEnemiesGoal` for cleanup.
+2. Walk the strip's zones, find the *nearest* defender-occupied zone
+   by forward-axis distance to the squad centroid, with a positive-
+   forward bias (forward defenders preferred over equally-close backward
+   ones — backward is the fallback when no forward defender exists).
+3. If the nearest defender zone IS the squad's current zone, write
+   `null` and let `EliminateEnemiesGoal` handle the in-zone fight. Same
+   if no defender zone exists.
+4. Otherwise write `squad.assignedObjective = clearZone(squad.id,
+   targetZone)` — idempotent (same record kept across ticks when the
+   chosen zone is unchanged, so an in-flight squad plan stays stable).
+
+The slow-tick cycle then iterates the squad through defender positions
+one zone at a time: clear the nearest forward defender zone → next
+slow tick → next nearest forward defender zone → and so on.
+
+**Why nearest, not deepest.** The first pass picked the strip's
+*forward-most* (deepest) defender zone, which produced a "drop off and
+drive inland" bug — squads pointed at fortress-deep zones got `customPlan`
+BFS paths that took the shortest *open* route, walking past LZ defenders
+without entering their zones. Nearest-zone targeting keeps each slow tick
+to a single-zone-hop plan, so the squad actually fights through the
+strip front-to-back instead of teleporting past it.
 
 Squad → strip is **sticky for v1.** A squad's strip is fixed at first
 observation and doesn't change even if the squad drifts laterally. That
