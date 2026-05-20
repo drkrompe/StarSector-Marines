@@ -1555,7 +1555,12 @@ public class BattleScreen implements Screen, BattleUiContext {
                 profile = s.turretKind.impactProfile();
                 impactFx.spawnImpact(profile, s.toX, s.toY, isWall);
                 WeaponLights.impactBurst(lightAccumulator, profile, s.toX, s.toY);
-                if (s.turretKind == TurretKind.HEAVY_MORTAR) {
+                // Any HE-profile turret round (mortar, grenade launcher,
+                // LOCUST artillery) pairs the flame plume with the explosion
+                // clip — matches the mech HE branch below. Previously gated
+                // on HEAVY_MORTAR only, so LOCUST salvos landed silently
+                // despite spawning a full HE detonation visual.
+                if (profile == ImpactProfile.HE) {
                     float pitch = 0.9f + rng.nextFloat() * 0.2f;
                     Vector2f loc = new Vector2f(
                             s.toX * AUDIO_WORLD_UNITS_PER_CELL,
