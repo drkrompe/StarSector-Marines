@@ -37,6 +37,16 @@ public class Drone extends Unit {
     public static final float TURN_RATE_DEG_PER_SEC = 140f;
 
     /**
+     * Drone {@link Unit#airLosRadius}, in cells. Walls within this many cells
+     * of the drone are transparent for LoS — both for the drone firing down
+     * and for ground combatants firing up. Smaller than the shuttle's 3.5
+     * because drones are physically smaller and patrol closer to roof level;
+     * 3.0 covers the wall thickness of every building stamper without giving
+     * the drone "see through the next building's wall too" reach.
+     */
+    public static final float DRONE_AIR_LOS_RADIUS = 3.0f;
+
+    /**
      * Kinematic state. Position is initialized to the spawn cell center;
      * patrol behavior (next commit) drives steering and slews the body around
      * the hub's anchor.
@@ -57,6 +67,7 @@ public class Drone extends Unit {
         this.attackCooldown = MarineWeapon.DRONE_PULSE.cooldown;
         this.accuracy = MarineWeapon.DRONE_PULSE.accuracy;
         this.moveSpeed = 0f;
+        this.airLosRadius = DRONE_AIR_LOS_RADIUS;
         this.role = UnitRole.DRONE_PATROL;
         this.body.teleport(cellX + 0.5f, cellY + 0.5f, 0f);
     }

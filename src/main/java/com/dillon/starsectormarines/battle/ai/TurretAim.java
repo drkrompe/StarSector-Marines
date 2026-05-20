@@ -100,14 +100,12 @@ public final class TurretAim {
     public static void tick(State s, BattleSimulation sim, float dt) {
         s.fireThisTick = false;
         NavigationGrid grid = sim.getGrid();
-        TacticalScoring.LosTest los = s.ignoreCloseWalls
-                ? (x0, y0, x1, y1) -> airLosVisible(grid, x0, y0, x1, y1, s.closeWallRadius)
-                : grid::hasLineOfSight;
+        float shooterAirR = s.ignoreCloseWalls ? s.closeWallRadius : 0f;
 
         if (s.target == null || !s.target.isAlive()) {
             s.target = TacticalScoring.findBestTarget(
                     s.originCellX, s.originCellY, s.faction, s.squadId, s.excludeFromCrowding,
-                    los, sim, /*allowNoLos*/ s.indirectFire);
+                    shooterAirR, sim, /*allowNoLos*/ s.indirectFire);
         }
         if (s.cooldownTimer > 0f) s.cooldownTimer -= dt;
         if (s.target == null) return;
@@ -115,7 +113,9 @@ public final class TurretAim {
         float dist = TacticalScoring.cellDistance(
                 s.originCellX, s.originCellY, s.target.cellX, s.target.cellY);
         boolean inRange = dist <= s.attackRange && dist >= s.minRange;
-        boolean visible = los.visible(s.originCellX, s.originCellY, s.target.cellX, s.target.cellY);
+        boolean visible = TacticalScoring.canSeePair(grid,
+                s.originCellX, s.originCellY, s.target.cellX, s.target.cellY,
+                shooterAirR, s.target.airLosRadius);
         // Direct-fire kinds drop on either out-of-range OR LoS loss; indirect-
         // fire kinds keep the lock when LoS breaks (the kremlin wall doesn't
         // hide attackers from artillery that's been ranged in) and only drop
@@ -165,17 +165,22 @@ public final class TurretAim {
 
     /**
      * Air LoS — like {@link NavigationGrid#hasLineOfSight} but treats walls
-     * within {@code closeWallRadius} cells of the origin as transparent.
-     * Models "the shuttle is high enough to fire over the walls of the
-     * building it's directly above, but still has to see through real
-     * intervening cover past that."
+     * within a small radius of either endpoint as transparent. Models "the
+     * flying mount is high enough to fire over the walls of the building
+     * it's directly above, but still has to see through real intervening
+     * cover past that." Dual-radius so the rule is symmetric: a shuttle
+     * firing OUT of a building uses {@code originRadius}; a marine firing
+     * UP at a drone uses {@code endpointRadius}; two air units engaging
+     * each other use both.
      *
-     * <p>Bresenham-stepped along the line; per-step Euclidean (squared)
-     * distance from origin gates the close-wall pass.
+     * <p>Bresenham-stepped along the line; per-step squared distance to
+     * either endpoint gates the close-wall pass. Either radius {@code <= 0}
+     * disables that side.
      */
     public static boolean airLosVisible(NavigationGrid grid, int x0, int y0, int x1, int y1,
-                                        float closeWallRadius) {
-        float r2 = closeWallRadius * closeWallRadius;
+                                        float originRadius, float endpointRadius) {
+        float ro2 = originRadius > 0f ? originRadius * originRadius : -1f;
+        float re2 = endpointRadius > 0f ? endpointRadius * endpointRadius : -1f;
         int dx = Math.abs(x1 - x0);
         int dy = Math.abs(y1 - y0);
         int sx = x0 < x1 ? 1 : -1;
@@ -186,9 +191,12 @@ public final class TurretAim {
         while (true) {
             boolean endpoint = (x == x0 && y == y0) || (x == x1 && y == y1);
             if (!endpoint && grid.blocksLineOfSight(x, y)) {
-                float distSq = (float) ((x - x0) * (x - x0) + (y - y0) * (y - y0));
-                if (distSq > r2) return false;
-                // else: wall is part of the "shuttle's building"; ignore.
+                float distSqOrigin = (float) ((x - x0) * (x - x0) + (y - y0) * (y - y0));
+                float distSqEnd    = (float) ((x - x1) * (x - x1) + (y - y1) * (y - y1));
+                boolean nearOrigin = ro2 >= 0f && distSqOrigin <= ro2;
+                boolean nearEnd    = re2 >= 0f && distSqEnd <= re2;
+                if (!nearOrigin && !nearEnd) return false;
+                // else: wall sits within an air-mount's building radius; ignore.
             }
             if (x == x1 && y == y1) return true;
             int e2 = err << 1;

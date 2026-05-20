@@ -694,9 +694,10 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // Reprio chance bumps heavily when current target is out of LoS —
         // chasing a target you can't see while taking incoming is the
         // failure mode this hook exists to break.
-        boolean hasLosToCurrentTarget = grid.hasLineOfSight(
+        boolean hasLosToCurrentTarget = TacticalScoring.canSeePair(grid,
                 target.cellX, target.cellY,
-                target.target.cellX, target.target.cellY);
+                target.target.cellX, target.target.cellY,
+                target.airLosRadius, target.target.airLosRadius);
         float chance = hasLosToCurrentTarget ? REPRIORITIZE_BASE_CHANCE : REPRIORITIZE_NO_LOS_CHANCE;
         if (rng.nextFloat() >= chance) return;
         // Clear the target — next behavior tick (EngageAtCurrentBand /
@@ -888,7 +889,13 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                 GoapInfantryBehavior.replanIfNeeded(squad, this);
             }
         }
-        for (Unit u : units) {
+        // Snapshot size: DroneHubBehavior.update -> DroneSpawner.tryLaunch
+        // appends a freshly minted drone via sim.addUnit, which would
+        // ConcurrentModificationException a for-each iterator. The new
+        // drone is picked up on the next tick.
+        int unitCount = units.size();
+        for (int i = 0; i < unitCount; i++) {
+            Unit u = units.get(i);
             if (!u.isAlive()) continue;
             updateUnit(u);
         }
@@ -1492,7 +1499,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                     int dx = other.cellX - u.cellX;
                     int dy = other.cellY - u.cellY;
                     if (dx * dx + dy * dy > KILL_ZONE_RANGE_CELLS * KILL_ZONE_RANGE_CELLS) continue;
-                    if (!grid.hasLineOfSight(u.cellX, u.cellY, other.cellX, other.cellY)) continue;
+                    if (!TacticalScoring.canSeePair(grid, u.cellX, u.cellY, other.cellX, other.cellY,
+                            u.airLosRadius, other.airLosRadius)) continue;
                     squad._killZoneSightedThisTick = true;
                     break;
                 }
@@ -1504,7 +1512,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             for (Unit other : units) {
                 if (!other.isAlive() || other.faction == squad.faction) continue;
                 if (!other.type.combatant) continue;
-                if (!grid.hasLineOfSight(u.cellX, u.cellY, other.cellX, other.cellY)) continue;
+                if (!TacticalScoring.canSeePair(grid, u.cellX, u.cellY, other.cellX, other.cellY,
+                        u.airLosRadius, other.airLosRadius)) continue;
                 squad._engagedThisTick = true;
                 squad.lastSeenEnemyX = other.cellX;
                 squad.lastSeenEnemyY = other.cellY;

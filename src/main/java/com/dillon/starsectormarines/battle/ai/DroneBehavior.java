@@ -42,6 +42,12 @@ public final class DroneBehavior implements UnitBehavior {
         s.cooldownTimer = d.cooldownTimer;
         s.attackCooldown = d.attackCooldown;
         s.target = d.target;
+        // Walls within the drone's air-LoS radius are transparent — the drone
+        // is hovering above building roofs, not inside them. The same radius
+        // applies reciprocally to marines firing UP at the drone via
+        // Unit.airLosRadius; see Drone.DRONE_AIR_LOS_RADIUS.
+        s.ignoreCloseWalls = true;
+        s.closeWallRadius = d.airLosRadius;
 
         TurretAim.tick(s, sim, BattleSimulation.TICK_DT);
 

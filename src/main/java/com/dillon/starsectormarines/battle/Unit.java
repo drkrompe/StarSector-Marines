@@ -74,6 +74,20 @@ public class Unit {
 
     public Unit target;
 
+    /**
+     * Close-wall radius for "air" line-of-sight, in cells. When &gt; 0, walls
+     * within this many cells of this unit's position are treated as transparent
+     * for LoS checks involving this unit — both as shooter and as target.
+     * Models flying mounts that hover above building footprints: a drone can
+     * fire OUT of the building it's directly above, and ground combatants can
+     * fire UP at the drone through the same close walls. Both directions use
+     * the same radius so the rule is symmetric. 0 (default) means standard
+     * grid LoS; only {@link Drone} sets this today, but {@link
+     * com.dillon.starsectormarines.battle.air.Shuttle}-mounted turrets pass
+     * their own equivalent radius through {@code TurretAim.State}.
+     */
+    public float airLosRadius = 0f;
+
     /** Role drives behavior dispatch in the sim. Default {@link UnitRole#COMBATANT} matches pre-role behavior. */
     public UnitRole role = UnitRole.COMBATANT;
     /** Objective this unit is acting on, when the role requires one (charge site for a planter, exfil zone for a VIP, position to camp for an objective camper). Null for plain combatants. */

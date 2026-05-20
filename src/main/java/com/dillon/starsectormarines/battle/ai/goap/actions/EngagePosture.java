@@ -75,22 +75,32 @@ public final class EngagePosture implements Action {
 
         float dist = TacticalScoring.cellDistance(member.cellX, member.cellY,
                 member.target.cellX, member.target.cellY);
-        boolean inRange = dist <= member.attackRange;
-        boolean visible = sim.getGrid().hasLineOfSight(member.cellX, member.cellY,
-                member.target.cellX, member.target.cellY);
+        // Rocketeers vs turrets use the rocket's longer range as the act-here
+        // gate, so a marine inside rocket range but outside rifle range
+        // engages from where they stand instead of running into rifle range.
+        // The inner rocket check (line below) still enforces dist <= rocket
+        // range, and the primary-fire branch guards on primary range so we
+        // don't fire the rifle from beyond its reach.
+        float effectiveRange = TacticalScoring.effectiveAttackRange(member, member.target);
+        boolean inRange = dist <= effectiveRange;
+        boolean visible = TacticalScoring.canSeePair(sim.getGrid(),
+                member.cellX, member.cellY, member.target.cellX, member.target.cellY,
+                member.airLosRadius, member.target.airLosRadius);
 
         if (inRange && visible) {
             boolean startedSecondary = false;
             if (member.secondaryWeapon != null && member.secondaryAmmo > 0
                     && member.secondaryCooldownTimer <= 0f
                     && member.target instanceof MapTurret
-                    && dist <= member.secondaryWeapon.range) {
+                    && dist <= member.secondaryWeapon.range
+                    && TacticalScoring.shouldCommitRocket(member, (MapTurret) member.target, sim)) {
                 member.secondaryActionTimer = member.secondaryWeapon.aimDuration;
                 member.secondaryFiredThisAction = false;
                 member.secondaryAimTarget = member.target;
                 startedSecondary = true;
             }
-            if (!startedSecondary && member.cooldownTimer <= 0f) {
+            if (!startedSecondary && member.cooldownTimer <= 0f
+                    && dist <= member.attackRange) {
                 sim.fireShot(member, member.target);
                 member.cooldownTimer = member.attackCooldown;
                 member.beginBurst(member.target);

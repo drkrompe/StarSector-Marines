@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.ai;
 
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.PendingDetonation;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.UnitSpatialIndex;
@@ -188,24 +189,14 @@ public final class TacticalScoring {
     private TacticalScoring() {}
 
     /**
-     * Four-arg line-of-sight predicate so callers can supply a non-standard
-     * LoS rule (today: shuttle-mounted "air" turrets that ignore walls
-     * within a few cells of their flying origin). The {@link Unit} overload
-     * and the primitive overload both default to {@code grid::hasLineOfSight}.
-     */
-    @FunctionalInterface
-    public interface LosTest {
-        boolean visible(int fromX, int fromY, int toX, int toY);
-    }
-
-    /**
      * Picks the lowest-scored enemy where score = cell-distance + a per-engager
      * crowding penalty (heavier for squadmates than for general allies). Prefers
      * visible targets; falls back to nearest of any LOS so the unit pathfinds
      * toward them and visibility eventually opens.
      */
     public static Unit findBestTarget(Unit self, BattleSimulation sim) {
-        return findBestTarget(self.cellX, self.cellY, self.faction, self.squadId, self, sim);
+        return findBestTarget(self.cellX, self.cellY, self.faction, self.squadId, self,
+                self.airLosRadius, sim);
     }
 
     /**
@@ -218,15 +209,18 @@ public final class TacticalScoring {
      */
     public static Unit findBestTarget(int selfCellX, int selfCellY, Faction selfFaction,
                                       int selfSquadId, Unit excludeFromCrowding, BattleSimulation sim) {
-        NavigationGrid grid = sim.getGrid();
         return findBestTarget(selfCellX, selfCellY, selfFaction, selfSquadId, excludeFromCrowding,
-                grid::hasLineOfSight, sim);
+                0f, sim);
     }
 
     /**
-     * LoS-injectable overload — air turrets pass an "ignore close walls"
-     * predicate so they can acquire targets through the building they're
-     * hovering over.
+     * Air-LoS aware overload — when {@code shooterAirRadius > 0}, walls within
+     * that many cells of the shooter's position are treated as transparent
+     * (shuttle-mounted turrets hovering above a building's footprint). When
+     * the candidate target has its own {@link Unit#airLosRadius} > 0 (drones),
+     * walls within that radius of the target are also transparent — making
+     * the LoS rule symmetric so a marine standing under a drone can fire up
+     * at it through the same close-wall band that the drone fires down through.
      *
      * <p>Score per visible candidate:
      * <pre>
@@ -256,9 +250,9 @@ public final class TacticalScoring {
      */
     public static Unit findBestTarget(int selfCellX, int selfCellY, Faction selfFaction,
                                       int selfSquadId, Unit excludeFromCrowding,
-                                      LosTest los, BattleSimulation sim) {
+                                      float shooterAirRadius, BattleSimulation sim) {
         return findBestTarget(selfCellX, selfCellY, selfFaction, selfSquadId,
-                excludeFromCrowding, los, sim, /*allowNoLos*/ false);
+                excludeFromCrowding, shooterAirRadius, sim, /*allowNoLos*/ false);
     }
 
     /**
@@ -272,8 +266,9 @@ public final class TacticalScoring {
      */
     public static Unit findBestTarget(int selfCellX, int selfCellY, Faction selfFaction,
                                       int selfSquadId, Unit excludeFromCrowding,
-                                      LosTest los, BattleSimulation sim, boolean allowNoLos) {
+                                      float shooterAirRadius, BattleSimulation sim, boolean allowNoLos) {
         List<Unit> units = sim.getUnits();
+        NavigationGrid grid = sim.getGrid();
         Unit best = null;
         float bestScore = Float.MAX_VALUE;
         Unit bestAny = null;
@@ -292,7 +287,8 @@ public final class TacticalScoring {
                 bestAnyDist = d;
                 bestAny = other;
             }
-            boolean visible = los.visible(selfCellX, selfCellY, other.cellX, other.cellY);
+            boolean visible = canSeePair(grid, selfCellX, selfCellY, other.cellX, other.cellY,
+                    shooterAirRadius, other.airLosRadius);
             if (!visible && !allowNoLos) continue;
             float crowding = scoreCrowding(selfFaction, selfSquadId, other, sim, excludeFromCrowding);
             float density = scoreThreatDensity(other, selfFaction, sim);
@@ -306,6 +302,22 @@ public final class TacticalScoring {
             }
         }
         return best != null ? best : bestAny;
+    }
+
+    /**
+     * Symmetric air-LoS check: returns true when ({@code sx, sy}) can see
+     * ({@code tx, ty}) on the grid, with walls within {@code shooterAirR}
+     * cells of the shooter and walls within {@code targetAirR} cells of the
+     * target treated as transparent. Fast-paths to plain
+     * {@link NavigationGrid#hasLineOfSight} when both radii are zero, so the
+     * 99% of ground-vs-ground LoS checks stay on the cheaper path.
+     */
+    public static boolean canSeePair(NavigationGrid grid, int sx, int sy, int tx, int ty,
+                                     float shooterAirR, float targetAirR) {
+        if (shooterAirR <= 0f && targetAirR <= 0f) {
+            return grid.hasLineOfSight(sx, sy, tx, ty);
+        }
+        return TurretAim.airLosVisible(grid, sx, sy, tx, ty, shooterAirR, targetAirR);
     }
 
     /**
@@ -346,6 +358,82 @@ public final class TacticalScoring {
     private static boolean isHardened(Unit target) {
         if (target instanceof MapTurret) return true;
         return target.type == UnitType.HEAVY_MECH;
+    }
+
+    /**
+     * True when {@code shooter} carries a loaded rocket and {@code target} is a
+     * {@link MapTurret} — the one pairing where the secondary weapon is the
+     * preferred answer. Centralizes the check used by EngagePosture's act-here
+     * gate, the opportunity-rocket scan in {@code InfantryUnitPrep}, and
+     * {@link #effectiveAttackRange}.
+     */
+    public static boolean canRocketTurret(Unit shooter, Unit target) {
+        return target instanceof MapTurret
+                && shooter.secondaryWeapon != null
+                && shooter.secondaryAmmo > 0;
+    }
+
+    /**
+     * Effective engagement range for {@code shooter} against {@code target} —
+     * primary range, unless the shooter can rocket the target (turret + loaded
+     * tube), in which case the rocket's longer range wins. Used by
+     * {@link com.dillon.starsectormarines.battle.ai.goap.actions.EngagePosture}'s
+     * act-here gate and the firing-position picker so a rocketeer doesn't have
+     * to close to rifle range before firing.
+     */
+    public static float effectiveAttackRange(Unit shooter, Unit target) {
+        if (canRocketTurret(shooter, target)) {
+            return Math.max(shooter.attackRange, shooter.secondaryWeapon.range);
+        }
+        return shooter.attackRange;
+    }
+
+    /**
+     * Squad-coordination gate for committing a new rocket on {@code turret}.
+     * Returns {@code false} when squadmates already have enough rocket damage
+     * locked in (mid-aim + inflight from the same faction) to flatten the
+     * turret — prevents the volley failure mode where a 4-man squad all fires
+     * on one Vulcan in a single tick.
+     *
+     * <p>{@code shooter} is excluded from the projection so the same marine
+     * re-checking on a later tick (after his own cooldown) isn't blocked by
+     * his own prior contribution.
+     */
+    public static boolean shouldCommitRocket(Unit shooter, MapTurret turret, BattleSimulation sim) {
+        if (shooter.secondaryWeapon == null || shooter.secondaryAmmo <= 0) return false;
+        if (!turret.isAlive()) return false;
+        return projectedRocketDamageOnTurret(shooter, turret, sim) < turret.hp;
+    }
+
+    /**
+     * Sums committed rocket damage already inbound to {@code turret} from
+     * sources other than {@code shooter}: squadmates currently in the rocket
+     * aim window, plus inflight rocket-class detonations from the same faction
+     * whose endpoint sits within AoE of the turret cell. Used by
+     * {@link #shouldCommitRocket}.
+     */
+    private static float projectedRocketDamageOnTurret(Unit shooter, MapTurret turret, BattleSimulation sim) {
+        float total = 0f;
+        if (shooter.squadId != Unit.NO_SQUAD) {
+            for (Unit u : sim.getUnits()) {
+                if (u == shooter) continue;
+                if (u.squadId != shooter.squadId) continue;
+                if (!u.isAlive()) continue;
+                if (u.secondaryWeapon == null) continue;
+                if (u.secondaryActionTimer <= 0f) continue;
+                if (u.secondaryAimTarget != turret) continue;
+                total += u.secondaryWeapon.damage * u.secondaryWeapon.vsTurretMult;
+            }
+        }
+        for (PendingDetonation det : sim.getInflightDetonations()) {
+            if (det.shooterFaction != shooter.faction) continue;
+            float dx = (turret.cellX + 0.5f) - det.endpointX;
+            float dy = (turret.cellY + 0.5f) - det.endpointY;
+            if (dx * dx + dy * dy <= det.aoeRadius * det.aoeRadius) {
+                total += det.damage * det.vsTurretMult;
+            }
+        }
+        return total;
     }
 
     /**
@@ -401,8 +489,9 @@ public final class TacticalScoring {
      */
     public static boolean shouldKeepPursuing(Unit self, Unit currentTarget, BattleSimulation sim) {
         if (currentTarget == null || !currentTarget.isAlive()) return false;
-        boolean visible = sim.getGrid().hasLineOfSight(self.cellX, self.cellY,
-                currentTarget.cellX, currentTarget.cellY);
+        boolean visible = canSeePair(sim.getGrid(), self.cellX, self.cellY,
+                currentTarget.cellX, currentTarget.cellY,
+                self.airLosRadius, currentTarget.airLosRadius);
 
         // "Meaningfully closer visible enemy" check — runs whether or not the
         // current target is visible. If current is invisible and a visible
@@ -450,10 +539,12 @@ public final class TacticalScoring {
     private static Unit closestVisibleOtherEnemy(Unit self, Unit exclude, BattleSimulation sim) {
         Unit best = null;
         float bestDist = Float.MAX_VALUE;
+        NavigationGrid grid = sim.getGrid();
         for (Unit u : sim.getUnits()) {
             if (u == exclude || u == self) continue;
             if (!u.isAlive() || u.faction == self.faction || !u.type.combatant) continue;
-            if (!sim.getGrid().hasLineOfSight(self.cellX, self.cellY, u.cellX, u.cellY)) continue;
+            if (!canSeePair(grid, self.cellX, self.cellY, u.cellX, u.cellY,
+                    self.airLosRadius, u.airLosRadius)) continue;
             float d = cellDistance(self.cellX, self.cellY, u.cellX, u.cellY);
             if (d < bestDist) {
                 bestDist = d;
@@ -559,7 +650,12 @@ public final class TacticalScoring {
     public static int[] findFiringPositionWithin(Unit self, Unit target, BattleSimulation sim,
                                                   int anchorX, int anchorY, float maxDistFromAnchor) {
         NavigationGrid grid = sim.getGrid();
-        int range = Math.max(1, (int) Math.floor(self.attackRange));
+        // Rocketeer-vs-turret pairs search a ring sized to the rocket's range —
+        // otherwise an out-of-rifle-range marine paths into rifle range before
+        // ever firing the rocket. Inner range check uses the same effective
+        // range so candidate cells are valid for whatever weapon will fire.
+        float effectiveRange = effectiveAttackRange(self, target);
+        int range = Math.max(1, (int) Math.floor(effectiveRange));
         int tx = target.cellX;
         int ty = target.cellY;
 
@@ -572,9 +668,9 @@ public final class TacticalScoring {
                 if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) continue;
 
                 float distFromTarget = (float) Math.sqrt(dx * dx + dy * dy);
-                if (distFromTarget > self.attackRange) continue;
+                if (distFromTarget > effectiveRange) continue;
                 if (distFromTarget < FIRING_MIN_DISTANCE) continue;
-                if (!grid.hasLineOfSight(cx, cy, tx, ty)) continue;
+                if (!canSeePair(grid, cx, cy, tx, ty, self.airLosRadius, target.airLosRadius)) continue;
                 if (cellDistance(anchorX, anchorY, cx, cy) > maxDistFromAnchor) continue;
 
                 int occupants = occupantsExcludingSelf(self, cx, cy, sim);
@@ -602,7 +698,9 @@ public final class TacticalScoring {
 
     public static int[] findFiringPosition(Unit self, Unit target, BattleSimulation sim, int rejectX, int rejectY) {
         NavigationGrid grid = sim.getGrid();
-        int range = Math.max(1, (int) Math.floor(self.attackRange));
+        // See findFiringPositionWithin — rocketeer-vs-turret widens the ring.
+        float effectiveRange = effectiveAttackRange(self, target);
+        int range = Math.max(1, (int) Math.floor(effectiveRange));
         int tx = target.cellX;
         int ty = target.cellY;
 
@@ -616,9 +714,9 @@ public final class TacticalScoring {
                 if (cx == rejectX && cy == rejectY) continue;
 
                 float distFromTarget = (float) Math.sqrt(dx * dx + dy * dy);
-                if (distFromTarget > self.attackRange) continue;
+                if (distFromTarget > effectiveRange) continue;
                 if (distFromTarget < FIRING_MIN_DISTANCE) continue;
-                if (!grid.hasLineOfSight(cx, cy, tx, ty)) continue;
+                if (!canSeePair(grid, cx, cy, tx, ty, self.airLosRadius, target.airLosRadius)) continue;
 
                 int occupants = occupantsExcludingSelf(self, cx, cy, sim);
                 int alliesNear = alliesNearForSpread(self, cx, cy, sim);
@@ -735,7 +833,7 @@ public final class TacticalScoring {
                 float distFromTarget = (float) Math.sqrt(dx * dx + dy * dy);
                 if (distFromTarget > self.attackRange) continue;
                 if (distFromTarget < FIRING_MIN_DISTANCE) continue;
-                if (!grid.hasLineOfSight(cx, cy, tx, ty)) continue;
+                if (!canSeePair(grid, cx, cy, tx, ty, self.airLosRadius, target.airLosRadius)) continue;
 
                 int fdx = tx - cx;
                 int fdy = ty - cy;
