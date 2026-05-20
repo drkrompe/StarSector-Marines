@@ -240,6 +240,10 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final List<ShotEvent> shotsThisFrame = new ArrayList<>();
     /** Shots whose lifetime ran out during the last {@link #advance(float)} call — the "arrival" event for projectile-style shots. The renderer reads this to spawn impact FX at the endpoint when the projectile sprite actually reaches its target, rather than at launch time. */
     private final List<ShotEvent> shotsExpiredThisFrame = new ArrayList<>();
+    /** In-flight {@link Projectile}s — slow-velocity AoE kinds ({@link com.dillon.starsectormarines.battle.turret.TurretKind#cellsPerSec} &gt; 0). Advanced + detonated by {@link #advanceProjectiles(float)} each tick. */
+    private final List<Projectile> activeProjectiles = new ArrayList<>();
+    /** Projectiles that arrived this tick — parallel to {@link #shotsExpiredThisFrame} for the impact-FX dispatch in the renderer. Cleared each tick. */
+    private final List<Projectile> projectilesArrivedThisFrame = new ArrayList<>();
     /** Units that transitioned from alive to dead during the last {@link #advance(float)} call. Same lifecycle as {@link #shotsThisFrame}. */
     private final List<Unit> deathsThisFrame = new ArrayList<>();
     private final Random rng = new Random();
@@ -479,6 +483,10 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     public List<ShotEvent> getShotsThisFrame() { return shotsThisFrame; }
     /** Shots whose lifetime ended this advance — the "projectile arrived" event. Renderer reads this to spawn impact FX + arrival sounds at the moment a turret-shot sprite reaches its endpoint. */
     public List<ShotEvent> getShotsExpiredThisFrame() { return shotsExpiredThisFrame; }
+    /** In-flight {@link Projectile}s — slow-velocity AoE kinds. Renderer reads positions for sprite + contrail drawing. */
+    public List<Projectile> getActiveProjectiles() { return activeProjectiles; }
+    /** Projectiles that arrived this tick — parallel to {@link #getShotsExpiredThisFrame} for the renderer's impact-FX dispatch. */
+    public List<Projectile> getProjectilesArrivedThisFrame() { return projectilesArrivedThisFrame; }
     public List<Unit> getDeathsThisFrame()     { return deathsThisFrame; }
     public boolean isComplete()            { return complete; }
     public Faction getWinner()             { return winner; }
@@ -730,6 +738,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // Clear unconditionally so a paused caller doesn't keep replaying the previous frame's events.
         shotsThisFrame.clear();
         shotsExpiredThisFrame.clear();
+        projectilesArrivedThisFrame.clear();
         deathsThisFrame.clear();
         smokePuffsThisFrame.clear();
         fireBurstsThisFrame.clear();
@@ -827,6 +836,12 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // LRM) come from CombatantBehavior; the subsystem pass also runs the
         // mech-wreck spawn for any chassis units that died this tick.
         heavy.tick(this);
+        // Simulated-projectile path — advance each in-flight Projectile by dt,
+        // detonate its onArrival payload when remainingTime hits zero, and
+        // emit an arrival record for the renderer's impact-FX dispatch.
+        // Runs BEFORE detonations.tick so a projectile arriving this tick
+        // contributes its detonation to the same wave as legacy queue entries.
+        advanceProjectiles(TICK_DT);
         // Physics-based rocket/missile damage — each pending detonation ticks
         // down its arrival timer and applies splash + wall damage when it
         // expires. Pairs with the visual ShotEvent flight; the visual and the
@@ -1125,6 +1140,36 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                 activeShots.remove(i);
             }
         }
+    }
+
+    /**
+     * Advances every in-flight {@link Projectile} by {@code dt}. Intercepted
+     * projectiles (point-defense future hook) are removed without detonating;
+     * expired ones fire their {@link Projectile#onArrival} payload immediately
+     * via {@link com.dillon.starsectormarines.battle.weapons.Detonations#detonateNow}
+     * and land in {@link #projectilesArrivedThisFrame} for the renderer's
+     * impact-FX dispatch. Reverse iteration for in-place removal.
+     */
+    private void advanceProjectiles(float dt) {
+        for (int i = activeProjectiles.size() - 1; i >= 0; i--) {
+            Projectile p = activeProjectiles.get(i);
+            if (p.intercepted) {
+                // Future: spawn intercept FX here. For now, just remove.
+                activeProjectiles.remove(i);
+                continue;
+            }
+            p.remainingTime -= dt;
+            if (p.remainingTime <= 0f) {
+                detonations.detonateNow(p.onArrival, this);
+                projectilesArrivedThisFrame.add(p);
+                activeProjectiles.remove(i);
+            }
+        }
+    }
+
+    /** Queues a {@link Projectile} for the per-tick advance. Called from the AoE projectile fire path in {@link #fireShotFrom}. */
+    public void queueProjectile(Projectile p) {
+        activeProjectiles.add(p);
     }
 
     /**
@@ -1776,14 +1821,6 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      */
     public void fireShotFrom(float fromX, float fromY, Faction shooterFaction,
                              TurretKind kind, Unit target, boolean aerialShooter, boolean hasLos) {
-        // Distance-scale hitSpread — fixed barrel angular error projects
-        // linearly to lateral spread on the ground (radius scales with
-        // distance; area covered with distance squared). Close shots
-        // cluster on the target; max-range shots open up to the full
-        // designed spread. Capped at 1.0× so a beyond-range shot doesn't
-        // exceed the design value. Lifted ahead of the hit roll so the
-        // indirect-fire path can reuse the distance for its accuracy
-        // falloff without recomputing.
         float distToTarget = (float) Math.sqrt(
                 (target.cellX + 0.5f - fromX) * (target.cellX + 0.5f - fromX) +
                 (target.cellY + 0.5f - fromY) * (target.cellY + 0.5f - fromY));
@@ -1794,6 +1831,22 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             float losMult = hasLos ? 1f : kind.noLosAccuracyMult;
             effectiveAccuracy *= distFalloff * losMult;
         }
+
+        // Simulated-projectile path: kinds with a real velocity (cellsPerSec
+        // > 0) spawn a Projectile entity that travels at dist/cellsPerSec,
+        // detonates AoE on arrival, and is queryable mid-flight (point
+        // defense future). Per the simplified model, no hit/miss roll —
+        // accuracy widens the scatter cone, the AoE radius decides what gets
+        // hurt at detonation.
+        if (kind.cellsPerSec() > 0f) {
+            spawnProjectile(fromX, fromY, shooterFaction, kind, target, aerialShooter,
+                    distToTarget, effectiveAccuracy);
+            return;
+        }
+
+        // Legacy path — direct-fire tracers (VULCAN, ARBALEST, HEPHAESTUS,
+        // HEAVY_MG, ...) still roll hit/miss and emit a ShotEvent + (for AoE
+        // sub-kinds) a PendingDetonation. Velocity is implicit in flightSec.
         boolean hit = rng.nextFloat() < effectiveAccuracy;
         boolean isAoe = kind.aoeRadius > 0f;
         // Aerial delivery if the shooter is elevated (shuttle mount) or the
@@ -1865,6 +1918,63 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         float lifetime = kind.flightSec > 0f ? kind.flightSec : SHOT_LIFETIME;
         postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooterFaction,
                 lifetime, kind, null, null));
+    }
+
+    /**
+     * Simulated-projectile fire path. Used by {@link #fireShotFrom} when the
+     * kind has {@code cellsPerSec > 0}.
+     *
+     * <p>No hit/miss roll — accuracy widens the scatter cone, the AoE radius
+     * at detonation decides who gets hurt. Endpoint is sampled from a uniform
+     * circle around the target cell with radius
+     * {@code hitSpread × min(1, dist/range) × (2 - effectiveAccuracy)}: a
+     * perfect-accuracy shot has scatter equal to the base spread (still
+     * non-zero — even precision artillery has dispersion), a half-accuracy
+     * shot doubles it, a no-LoS shot with quadratic falloff at max range
+     * goes to maximum scatter. Combined with the kind's
+     * {@link Projectile#onArrival} AoE radius, the spray pattern of a salvo
+     * blankets a believably wide area instead of stacking all rockets on the
+     * target cell.
+     *
+     * <p>Builds a {@link PendingDetonation} as the projectile's arrival
+     * payload — same damage / AoE / wall / roof / friendly-fire logic as the
+     * legacy queueDetonation path, just owned by the Projectile so a future
+     * point-defense intercept can cancel it atomically.
+     */
+    private void spawnProjectile(float fromX, float fromY, Faction shooterFaction,
+                                 TurretKind kind, Unit target, boolean aerialShooter,
+                                 float distToTarget, float effectiveAccuracy) {
+        boolean aerialDelivery = aerialShooter || kind.arcHeight > 0f;
+
+        // Scatter scales with (1 - accuracy) — at acc=1.0 the multiplier is
+        // 1.0 (still some dispersion via hitSpread), at acc=0.0 it doubles.
+        // Tied to the distance-scaled effectiveSpread so close shots still
+        // cluster tightly even at low accuracy.
+        float distScale = Math.min(1f, distToTarget / Math.max(0.0001f, kind.range));
+        float accScatterMult = 2f - Math.max(0f, Math.min(1f, effectiveAccuracy));
+        float scatterRadius = kind.hitSpread * distScale * accScatterMult;
+        float angle = rng.nextFloat() * (float) (Math.PI * 2);
+        float r = rng.nextFloat() * scatterRadius;
+        float toX = target.cellX + 0.5f + (float) Math.cos(angle) * r;
+        float toY = target.cellY + 0.5f + (float) Math.sin(angle) * r;
+
+        float flightTime = distToTarget / kind.cellsPerSec();
+
+        PendingDetonation onArrival = new PendingDetonation(
+                toX, toY, flightTime,
+                kind.aoeRadius, kind.damage, /*vsTurretMult*/ 1f,
+                kind.wallDamage, shooterFaction, aerialDelivery);
+        queueProjectile(new Projectile(fromX, fromY, toX, toY,
+                kind, shooterFaction, aerialDelivery, flightTime, onArrival));
+        // Pair with a ShotEvent so the existing audio (shotsThisFrame) +
+        // impact-FX (shotsExpiredThisFrame) dispatchers run unchanged. Same
+        // flight time keeps the two in sync — they expire on the same tick,
+        // so arrival FX line up with the projectile reaching its endpoint.
+        // The renderer skips projectile-sprite drawing for ShotEvents whose
+        // kind is on the simulated path (cellsPerSec > 0) and reads position
+        // from the paired Projectile instead.
+        postShot(new ShotEvent(fromX, fromY, toX, toY, /*hit*/ true, shooterFaction,
+                flightTime, kind, null, null));
     }
 
     /**

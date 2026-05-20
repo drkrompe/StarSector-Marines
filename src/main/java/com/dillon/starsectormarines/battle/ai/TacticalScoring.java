@@ -147,6 +147,19 @@ public final class TacticalScoring {
      */
     public static final float FALLBACK_EXPOSURE_PENALTY = 100f;
 
+    /**
+     * Symmetric "sonar" weight on {@code candDistFromThreat - selfDistFromThreat}:
+     * cells <em>farther</em> from the threat centroid than the unit's current
+     * cell earn a bonus; cells <em>closer</em> pay a penalty. Without this term
+     * the picker has no direction sense — a cell shadowed by a wall in the
+     * enemy's rear reads as "exposure 0, high cover" and outscores an
+     * equivalently-hidden cell behind friendly lines, which manifests as broken
+     * marines charging into a crowd. Sized at ~3 per cell so a 5-cell-away cell
+     * (-15) competes meaningfully with a single grid-cover level (-2.5) without
+     * overriding the exposure floor (any exposure point still costs +100).
+     */
+    public static final float FALLBACK_THREAT_AWAY_BONUS = 3f;
+
     private TacticalScoring() {}
 
     /**
@@ -683,7 +696,7 @@ public final class TacticalScoring {
     /**
      * Scans cells around {@code self} for a walkable hide cell, scored by
      * {@code distFromSelf + occupancyPenalty - gridCoverBonus - doodadCoverBonus
-     * - zoneControlBonus + exposurePenalty}. Scan radius is
+     * - zoneControlBonus - threatAwayBonus + exposurePenalty}. Scan radius is
      * {@code self.moveSpeed * FALLBACK_SCAN_SECONDS} clamped to
      * [{@link #FALLBACK_SCAN_RANGE_MIN}, {@link #FALLBACK_SCAN_RANGE_MAX}], so
      * fast units sprint farther.
@@ -692,6 +705,13 @@ public final class TacticalScoring {
      * (average enemy cell): cells whose cover faces the wrong way score zero on
      * the cover term, so the picker prefers cells that actually block the
      * incoming fire.
+     *
+     * <p>Direction bias is folded in via
+     * {@link #FALLBACK_THREAT_AWAY_BONUS}: cells farther from the threat
+     * centroid than {@code self}'s current cell earn a bonus, cells closer pay
+     * a penalty. Stops a wall-shadowed cell in the enemy's rear from
+     * outscoring an equivalently-hidden cell behind friendly lines and the
+     * unit visibly charging into a crowd.
      *
      * <p>Exposure (count of alive enemies with LoS to the cell) is folded into
      * the score with a large weight rather than used as a hard filter. Hidden
@@ -732,6 +752,7 @@ public final class TacticalScoring {
 
         int[] threatRef = averageEnemyCell(self, sim);
         if (threatRef == null) return new int[]{sx, sy};
+        float selfDistFromThreat = cellDistance(sx, sy, threatRef[0], threatRef[1]);
 
         int scanRange = Math.max(FALLBACK_SCAN_RANGE_MIN,
                        Math.min(FALLBACK_SCAN_RANGE_MAX,
@@ -753,11 +774,14 @@ public final class TacticalScoring {
                 int zoneId = zones.zoneIdAt(cx, cy);
                 int control = (zoneId >= 0 && zoneId < zoneControl.length) ? zoneControl[zoneId] : 0;
                 float distFromSelf = cellDistance(sx, sy, cx, cy);
+                float candDistFromThreat = cellDistance(cx, cy, threatRef[0], threatRef[1]);
+                float threatGap = candDistFromThreat - selfDistFromThreat;
                 float score = distFromSelf
                         + FALLBACK_OCCUPANCY_COST * occupants
                         - FALLBACK_GRID_COVER_BONUS   * gridCover
                         - FALLBACK_DOODAD_COVER_BONUS * doodadCover
                         - FALLBACK_FRIENDLY_ZONE_BONUS * control
+                        - FALLBACK_THREAT_AWAY_BONUS * threatGap
                         + FALLBACK_EXPOSURE_PENALTY * exposure;
                 candidates.add(new float[]{score, cx, cy});
             }

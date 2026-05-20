@@ -331,6 +331,27 @@ public enum TurretKind {
         this.noLosAccuracyMult = noLosAccuracyMult;
     }
 
+    /**
+     * Projectile velocity in cells per sim-second. {@code > 0} flips the kind
+     * onto the simulated-{@link com.dillon.starsectormarines.battle.Projectile}
+     * path — flight time becomes {@code dist / cellsPerSec} (close shots arrive
+     * sooner than far ones, matching real rockets), and the shot is a real
+     * entity in {@code BattleSimulation.activeProjectiles} that point defense
+     * can later target. {@code 0} keeps the legacy ShotEvent + PendingDetonation
+     * pair with a per-kind {@link #flightSec} constant — every direct-fire
+     * tracer kind (VULCAN, ARBALEST, HEPHAESTUS, etc.) stays on this path.
+     *
+     * <p>Tuning: LOCUST 70 (1.4s at max range 100; close shots arrive fast).
+     * GRENADE_LAUNCHER 45 (lobbed shells, similar to legacy 0.65s @ 28-cell range).
+     */
+    public float cellsPerSec() {
+        switch (this) {
+            case LOCUST:           return 70f;
+            case GRENADE_LAUNCHER: return 45f;
+            default:               return 0f;
+        }
+    }
+
     /** Visual impact profile for this kind — small spark for the fast/light weapons, kinetic flash + smoke for the mid-weight shells, full HE burst for the mortar. */
     public ImpactProfile impactProfile() {
         switch (this) {
