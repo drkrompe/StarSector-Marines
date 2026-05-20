@@ -511,6 +511,51 @@ public final class TacticalScoring {
      * satisfies range + LOS + anchor-radius. The caller treats null as
      * "hold position" rather than "advance toward the target."
      */
+    /**
+     * Picks an enemy combatant {@code self} can engage from within
+     * {@code maxDistFromAnchor} cells of the anchor — i.e. an enemy with at
+     * least one reachable firing position inside the hold radius. Used by
+     * {@link GarrisonBehavior} to retarget when the unit's current target is
+     * blocked by walls from every cell within the hold radius: rather than
+     * idling on a fixated unreachable target, switch to one we can actually
+     * engage from the post.
+     *
+     * <p>Selection: closest enemy to {@code self} that has a firing position
+     * inside the ring. Closest is a cheap proxy for "easiest threat to
+     * service from this post" and matches {@link #findBestTarget}'s default
+     * distance bias.
+     *
+     * <p>Cost is O(enemies-near-anchor × firing-position-search). Only
+     * invoke this in the fallback path — when {@link #findFiringPositionWithin}
+     * for the current target has already returned null.
+     */
+    public static Unit findEngageableEnemyWithin(Unit self, BattleSimulation sim,
+                                                  int anchorX, int anchorY,
+                                                  float maxDistFromAnchor) {
+        float maxWeaponReach = self.attackRange;
+        if (self.secondaryWeapon != null && self.secondaryAmmo > 0) {
+            maxWeaponReach = Math.max(maxWeaponReach, self.secondaryWeapon.range);
+        }
+        float gatherRadius = maxDistFromAnchor + maxWeaponReach;
+        ArrayList<Unit> scratch = new ArrayList<>();
+        sim.getUnitIndex().gather(anchorX, anchorY, gatherRadius, scratch);
+        Unit best = null;
+        float bestDist = Float.MAX_VALUE;
+        for (int i = 0, n = scratch.size(); i < n; i++) {
+            Unit enemy = scratch.get(i);
+            if (!enemy.isAlive() || !enemy.type.combatant) continue;
+            if (enemy.faction == self.faction) continue;
+            int[] pos = findFiringPositionWithin(self, enemy, sim, anchorX, anchorY, maxDistFromAnchor);
+            if (pos == null) continue;
+            float d = cellDistance(self.cellX, self.cellY, enemy.cellX, enemy.cellY);
+            if (d < bestDist) {
+                bestDist = d;
+                best = enemy;
+            }
+        }
+        return best;
+    }
+
     public static int[] findFiringPositionWithin(Unit self, Unit target, BattleSimulation sim,
                                                   int anchorX, int anchorY, float maxDistFromAnchor) {
         NavigationGrid grid = sim.getGrid();

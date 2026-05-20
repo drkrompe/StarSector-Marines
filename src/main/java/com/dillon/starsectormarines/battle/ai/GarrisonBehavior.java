@@ -111,7 +111,14 @@ public final class GarrisonBehavior implements UnitBehavior {
             return;
         }
 
-        if (u.target == null || !u.target.isAlive()) {
+        // Mirror EngagePosture's retarget gate — drop the current target when
+        // a closer visible enemy appears or LOS is lost into a cluster.
+        // Without this, findBestTarget's bestAny fallback locks a defender
+        // onto a non-visible enemy and the unit idles forever on it (the
+        // squad-8 debug dump symptom: 7/8 garrison members pegged on
+        // unreachable targets, never firing).
+        if (u.target == null || !u.target.isAlive()
+                || !TacticalScoring.shouldKeepPursuing(u, u.target, sim)) {
             u.target = TacticalScoring.findBestTarget(u, sim);
         }
         if (u.target == null) {
@@ -146,6 +153,20 @@ public final class GarrisonBehavior implements UnitBehavior {
         int homeY = u.homeCellY >= 0 ? u.homeCellY : u.cellY;
         int[] firingPos = TacticalScoring.findFiringPositionWithin(
                 u, u.target, sim, homeX, homeY, GARRISON_HOLD_RADIUS);
+        if (firingPos == null) {
+            // Current target unreachable from every cell within the hold
+            // ring. Rather than idle, look for any other enemy we can engage
+            // from inside the post — switch target and re-pick a firing cell
+            // for it. Mitigates the "fixated on stale bestAny" failure mode
+            // where the unit otherwise sits the whole engagement out.
+            Unit alt = TacticalScoring.findEngageableEnemyWithin(
+                    u, sim, homeX, homeY, GARRISON_HOLD_RADIUS);
+            if (alt != null) {
+                u.target = alt;
+                firingPos = TacticalScoring.findFiringPositionWithin(
+                        u, u.target, sim, homeX, homeY, GARRISON_HOLD_RADIUS);
+            }
+        }
         if (firingPos == null || (firingPos[0] == u.cellX && firingPos[1] == u.cellY)) {
             holdPosition(u, sim);
             return;
