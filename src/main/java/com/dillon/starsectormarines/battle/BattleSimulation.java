@@ -560,6 +560,20 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             target.deathPoseIdx = rng.nextInt(4);
             deathsThisFrame.add(target);
             emitEquipmentDropIfApplicable(target);
+            // Squad leader promotion — if the dead unit was leading a
+            // squad, hand the badge to the closest still-alive member.
+            // Preserves direction of travel: the new leader stands roughly
+            // where the old one fell, so followers don't get yanked
+            // sideways when the leader dies mid-maneuver. See
+            // InfantryCohesion.cohesionOverride for how the leader cell
+            // pulls cohesion. NO_SQUAD units (turrets, civilians, etc.)
+            // skip — no leader to promote.
+            if (target.squadId != Unit.NO_SQUAD) {
+                Squad ls = squads.get(target.squadId);
+                if (ls != null && ls.leader == target) {
+                    ls.leader = pickPromotionCandidate(ls, target);
+                }
+            }
         }
         // Morale drain — fires only for squad members. Solo units (turrets,
         // civilians) have no squad morale to bleed; their behaviors don't
@@ -1343,6 +1357,33 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      * first pass still un-engaged. Final state transitions are applied once
      * per squad at the end.
      */
+    /**
+     * Picks the closest still-alive squad member to {@code deadLeader}'s
+     * last cell — the unit that takes over as squad leader. Returns null
+     * if no member is alive (squad fully wiped this same tick). "Closest
+     * to former leader" is the user-chosen promotion rule: it preserves
+     * the squad's direction of travel through the promotion event, so
+     * followers don't pivot when the badge changes hands mid-maneuver.
+     */
+    private Unit pickPromotionCandidate(Squad squad, Unit deadLeader) {
+        Unit best = null;
+        float bestDistSq = Float.MAX_VALUE;
+        int lx = deadLeader.cellX;
+        int ly = deadLeader.cellY;
+        for (Unit u : units) {
+            if (u == deadLeader || !u.isAlive()) continue;
+            if (u.squadId != squad.id) continue;
+            int dx = u.cellX - lx;
+            int dy = u.cellY - ly;
+            float d2 = dx * dx + dy * dy;
+            if (d2 < bestDistSq) {
+                bestDistSq = d2;
+                best = u;
+            }
+        }
+        return best;
+    }
+
     private void updateSquadAlertLevels() {
         // Per-tick transient flags. Boxed onto Squad to keep allocation out of
         // the hot path; reset at the top so a dead squad's leftover flags

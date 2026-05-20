@@ -49,7 +49,16 @@ public final class Squad {
 
     public final int id;
     public final Faction faction;
-    /** First marine to deboard. May die — leader-promotion logic isn't in yet, so a leaderless squad just has a null leader and falls back to "follow the centroid." */
+    /**
+     * Squad leader. Initially the first marine to deboard (or the first
+     * defender minted into the squad at setup). On leader death,
+     * {@code BattleSimulation.applyDamage} promotes the closest still-alive
+     * squad member to take over — preserves direction of travel through
+     * the badge change. The leader's cell is the cohesion anchor that
+     * {@link com.dillon.starsectormarines.battle.ai.InfantryCohesion#cohesionOverride}
+     * pulls drifting members toward; a fully-wiped squad has a null leader
+     * and the cohesion helper falls back to the others-centroid.
+     */
     public Unit leader;
 
     /** Current awareness state. Bumped by {@code BattleSimulation.updateSquadAlertLevels}; behaviors only read. */
