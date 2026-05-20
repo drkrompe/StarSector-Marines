@@ -74,30 +74,49 @@ public final class EnterZone implements Action {
         if (sim.getZoneGraph().zoneIdAt(member.cellX, member.cellY) == targetZoneId) {
             return ActionStatus.SUCCESS;
         }
-        // Opportunistic fire while walking: any visible enemy in range gets a
-        // shot if the cooldown's ready. Doesn't break path or stop movement —
-        // a member shoots on the move. Without this, marines marching through
-        // a contested zone toward the target zone wouldn't return fire, which
-        // reads as cowardice on screen.
         if (member.target == null || !member.target.isAlive()) {
             member.target = TacticalScoring.findBestTarget(member, sim);
         }
-        if (member.target != null && member.cooldownTimer <= 0f) {
+
+        // Contact-halt: if a visible enemy sits inside this marine's
+        // attackRange we stop moving and fight in place instead of charging
+        // past. The squad-level replan (≤2s) re-evaluates and either picks an
+        // engagement-tier goal (now that they're in contact) or, if morale
+        // breaks under sustained fire, swaps to SurviveContact. Without this
+        // gate marines following an EnterZone step walked straight through
+        // enemy formations because the action only emitted opportunistic
+        // single-cooldown shots while continuing toward the destination cell.
+        boolean inContact = false;
+        if (member.target != null) {
             float d = TacticalScoring.cellDistance(member.cellX, member.cellY,
                     member.target.cellX, member.target.cellY);
             boolean visible = sim.getGrid().hasLineOfSight(member.cellX, member.cellY,
                     member.target.cellX, member.target.cellY);
-            if (d <= member.attackRange && visible) {
-                // EnterZone is the move-toward-zone branch — every shot here
-                // happens mid-step, so MOVING applies as a baseline. Burst
-                // weapons still rip the full burst — InfantryWeapons.tick
-                // re-reads FireStance per round so the marine keeps the
-                // MOVING penalty across the whole burst if still walking.
+            inContact = d <= member.attackRange && visible;
+            if (inContact && member.cooldownTimer <= 0f) {
+                // Held in place — use STANCED rather than MOVING since we're
+                // no longer advancing this tick.
+                sim.fireShot(member, member.target, FireStance.STANCED);
+                member.cooldownTimer = member.attackCooldown;
+                member.beginBurst(member.target);
+            } else if (!inContact && member.cooldownTimer <= 0f && visible && d <= member.attackRange) {
+                // Defensive fallback — visible + in-range but the inContact
+                // branch above already handled it. Kept symmetric for future
+                // refactors where the contact predicate could diverge.
                 sim.fireShot(member, member.target, FireStance.MOVING);
                 member.cooldownTimer = member.attackCooldown;
                 member.beginBurst(member.target);
             }
         }
+
+        if (inContact) {
+            if (!member.pathEmpty()) sim.clearPath(member);
+            member.moveProgress = 0f;
+            member.renderX = member.cellX;
+            member.renderY = member.cellY;
+            return ActionStatus.RUNNING;
+        }
+
         if (member.moveProgress == 0f) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     member.cellX, member.cellY, destX, destY, sim.getOccupancyMap()));
