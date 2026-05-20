@@ -120,11 +120,7 @@ public final class GarrisonBehavior implements UnitBehavior {
             if (u.cooldownTimer <= 0f) {
                 sim.fireShot(u, u.target);
                 u.cooldownTimer = u.attackCooldown;
-                if (u.primaryWeapon != null && u.primaryWeapon.burstCount > 1) {
-                    u.burstRemaining = u.primaryWeapon.burstCount - 1;
-                    u.burstTimer = u.primaryWeapon.burstSpacing;
-                    u.burstTarget = u.target;
-                }
+                u.beginBurst(u.target);
             }
             // Hold position while firing — garrisons don't sidestep between
             // shots. The cover stack at the post is exactly what they're paid

@@ -144,6 +144,23 @@ public class Unit {
     /** Target captured when the burst was queued. Burst rounds keep firing here even if {@link #target} drifts to someone else, so a burst doesn't smear across multiple enemies. Cleared along with {@link #burstRemaining} when the burst ends or the target dies. */
     public Unit burstTarget;
 
+    /**
+     * Queue the burst follow-up rounds after the AI has already fired round 1.
+     * No-op for single-shot weapons or units without a {@link #primaryWeapon}
+     * profile (militia / aliens / turrets — those use their own burst paths or
+     * are intrinsically single-shot). Centralizes the trigger pattern so every
+     * fireShot callsite — stanced, moving, opportunity, garrison — gets bursts
+     * consistently. Without this, the moving-stance callsites tap once while
+     * stanced callsites rip a full burst, which reads as a bug after
+     * PULSE_RIFLE became a 3-round BR.
+     */
+    public void beginBurst(Unit target) {
+        if (primaryWeapon == null || primaryWeapon.burstCount <= 1) return;
+        burstRemaining = primaryWeapon.burstCount - 1;
+        burstTimer = primaryWeapon.burstSpacing;
+        burstTarget = target;
+    }
+
     /** Random prone-pose index rolled on death. Drives which corpse frame the renderer picks from {@link UnitType#deadSpritePath} so a battlefield has pose variety rather than every body in the same slump. -1 sentinel = unit still alive. */
     public int deathPoseIdx = -1;
 

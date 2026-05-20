@@ -42,13 +42,13 @@ public class TacticalScoringTest {
 
     private static Unit unit(BattleSimulation sim, Faction f, int x, int y) {
         Unit u = new Unit("u" + sim.getUnits().size(), f, UnitType.MARINE, x, y);
-        sim.getUnits().add(u);
+        sim.addUnit(u);
         return u;
     }
 
     private static Unit unit(BattleSimulation sim, Faction f, UnitType type, int x, int y) {
         Unit u = new Unit("u" + sim.getUnits().size(), f, type, x, y);
-        sim.getUnits().add(u);
+        sim.addUnit(u);
         return u;
     }
 

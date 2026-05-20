@@ -89,9 +89,13 @@ public final class EnterZone implements Action {
                     member.target.cellX, member.target.cellY);
             if (d <= member.attackRange && visible) {
                 // EnterZone is the move-toward-zone branch — every shot here
-                // happens mid-step, so MOVING applies as a baseline.
+                // happens mid-step, so MOVING applies as a baseline. Burst
+                // weapons still rip the full burst — InfantryWeapons.tick
+                // re-reads FireStance per round so the marine keeps the
+                // MOVING penalty across the whole burst if still walking.
                 sim.fireShot(member, member.target, FireStance.MOVING);
                 member.cooldownTimer = member.attackCooldown;
+                member.beginBurst(member.target);
             }
         }
         if (member.moveProgress == 0f) {

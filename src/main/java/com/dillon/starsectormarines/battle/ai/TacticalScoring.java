@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.UnitType;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
@@ -159,6 +160,18 @@ public final class TacticalScoring {
      * overriding the exposure floor (any exposure point still costs +100).
      */
     public static final float FALLBACK_THREAT_AWAY_BONUS = 3f;
+
+    /**
+     * Safety budget for the spatial pre-gather in {@link #findFallbackPosition}.
+     * Any enemy more than {@code scanRange + this} cells from the unit can't
+     * possibly hold LoS to a candidate cell — their LoS would have to be
+     * longer than their attack range. Sized as a conservative max over all
+     * unit-type ranges (mech LRMs cap at ~40, mech main guns ~30, infantry
+     * ~24, turrets vary up to 36); 60 absorbs all of them with margin. A
+     * future unit with longer effective range would need this bumped — or
+     * better, swap to a per-unit max queried off {@link UnitType}.
+     */
+    public static final float MAX_PLAUSIBLE_ATTACK_RANGE = 60f;
 
     private TacticalScoring() {}
 
@@ -330,18 +343,22 @@ public final class TacticalScoring {
      * the candidate itself. The point is to model "stacking into a fire line" —
      * a lone wounded soldier is much cheaper to engage than one surrounded by
      * three buddies.
+     *
+     * <p>Spatial-indexed: gathers the small bucket window around the
+     * candidate instead of walking the full unit list per call. Called once
+     * per visible target inside {@link #findBestTarget}, so the savings
+     * compound when squads pick targets each tick.
      */
     private static float scoreThreatDensity(Unit candidate, Faction selfFaction, BattleSimulation sim) {
-        int r2 = THREAT_DENSITY_RADIUS * THREAT_DENSITY_RADIUS;
+        ArrayList<Unit> scratch = new ArrayList<>();
+        sim.getUnitIndex().gather(candidate.cellX, candidate.cellY, THREAT_DENSITY_RADIUS, scratch);
         int count = 0;
-        for (Unit other : sim.getUnits()) {
+        for (int i = 0, n = scratch.size(); i < n; i++) {
+            Unit other = scratch.get(i);
             if (other == candidate) continue;
-            if (!other.isAlive()) continue;
             if (other.faction == selfFaction) continue;
             if (!other.type.combatant) continue;
-            int dx = other.cellX - candidate.cellX;
-            int dy = other.cellY - candidate.cellY;
-            if (dx * dx + dy * dy <= r2) count++;
+            count++;
         }
         return count * TARGET_THREAT_DENSITY_COST;
     }
@@ -758,6 +775,16 @@ public final class TacticalScoring {
                        Math.min(FALLBACK_SCAN_RANGE_MAX,
                                 Math.round(self.moveSpeed * FALLBACK_SCAN_SECONDS)));
 
+        // Pre-gather every enemy that could threaten any candidate cell, once.
+        // The radius bound is "candidate-furthest-from-self" + "enemy with the
+        // longest plausible attackRange" — anyone farther can't reach a cell
+        // in the scan, so excluding them is exact, not approximate. Replaces
+        // the O(scanRange² × totalUnits) inner loop with O(K) per candidate
+        // where K is the nearby-enemy count.
+        ArrayList<Unit> threats = new ArrayList<>();
+        sim.getUnitIndex().gather(sx, sy, scanRange + MAX_PLAUSIBLE_ATTACK_RANGE, threats);
+        filterEnemyCombatants(threats, self.faction);
+
         List<float[]> candidates = new ArrayList<>();
         for (int dy = -scanRange; dy <= scanRange; dy++) {
             for (int dx = -scanRange; dx <= scanRange; dx++) {
@@ -770,7 +797,7 @@ public final class TacticalScoring {
                 int fdy = threatRef[1] - cy;
                 int gridCover   = grid.getCoverAt(cx, cy, fdx, fdy);
                 int doodadCover = sim.getDoodadCoverAt(cx, cy, fdx, fdy);
-                int exposure = countEnemiesWithLos(self, cx, cy, sim);
+                int exposure = countEnemiesWithLos(cx, cy, threats, grid);
                 int zoneId = zones.zoneIdAt(cx, cy);
                 int control = (zoneId >= 0 && zoneId < zoneControl.length) ? zoneControl[zoneId] : 0;
                 float distFromSelf = cellDistance(sx, sy, cx, cy);
@@ -888,13 +915,16 @@ public final class TacticalScoring {
      * want fall-back picking to respect (squads flee mech LoS even if militia
      * LoS reads the same cell as "open").
      *
-     * <p>Non-combatants are skipped — they have {@code attackRange = 0} and
-     * couldn't threaten the cell anyway; the explicit gate is for clarity.
+     * <p>Routes through the spatial index — gathers only enemies within
+     * {@link #MAX_PLAUSIBLE_ATTACK_RANGE} of ({@code cx}, {@code cy}). Anyone
+     * farther can't threaten the cell by construction.
      */
     public static boolean isHiddenFromAllEnemies(Unit self, int cx, int cy, BattleSimulation sim) {
         NavigationGrid grid = sim.getGrid();
-        for (Unit other : sim.getUnits()) {
-            if (!other.isAlive()) continue;
+        ArrayList<Unit> scratch = new ArrayList<>();
+        sim.getUnitIndex().gather(cx, cy, MAX_PLAUSIBLE_ATTACK_RANGE, scratch);
+        for (int i = 0, n = scratch.size(); i < n; i++) {
+            Unit other = scratch.get(i);
             if (other.faction == self.faction) continue;
             if (!other.type.combatant) continue;
             if (grid.hasLineOfSightWithin(cx, cy, other.cellX, other.cellY, other.attackRange)) return false;
@@ -912,17 +942,52 @@ public final class TacticalScoring {
      * "how many <em>actually-threatening</em> guns see me" into the score is
      * what lets the picker pick the least-exposed cell when no hide exists,
      * instead of giving up.
+     *
+     * <p>The {@code BattleSimulation} overload allocates a scratch list per
+     * call — fine for one-shot callers but the per-candidate hot path in
+     * {@link #findFallbackPosition} uses the {@code threats}-list overload
+     * to avoid re-gathering inside the cell loop.
      */
     public static int countEnemiesWithLos(Unit self, int cx, int cy, BattleSimulation sim) {
-        NavigationGrid grid = sim.getGrid();
+        ArrayList<Unit> scratch = new ArrayList<>();
+        sim.getUnitIndex().gather(cx, cy, MAX_PLAUSIBLE_ATTACK_RANGE, scratch);
+        filterEnemyCombatants(scratch, self.faction);
+        return countEnemiesWithLos(cx, cy, scratch, sim.getGrid());
+    }
+
+    /**
+     * Pre-filtered overload — caller has already gathered enemy combatants
+     * and is asking "how many of these can see {@code (cx, cy)}." Used in
+     * {@link #findFallbackPosition}'s per-cell loop so we don't re-query the
+     * spatial index 1089 times per fallback decision.
+     */
+    public static int countEnemiesWithLos(int cx, int cy, List<Unit> threats, NavigationGrid grid) {
         int count = 0;
-        for (Unit other : sim.getUnits()) {
-            if (!other.isAlive()) continue;
-            if (other.faction == self.faction) continue;
-            if (!other.type.combatant) continue;
+        for (int i = 0, n = threats.size(); i < n; i++) {
+            Unit other = threats.get(i);
             if (grid.hasLineOfSightWithin(cx, cy, other.cellX, other.cellY, other.attackRange)) count++;
         }
         return count;
+    }
+
+    /**
+     * Drops every unit from {@code units} that isn't an alive combatant of a
+     * different faction from {@code selfFaction}. Used after a spatial gather
+     * to reduce the working set before tight LoS loops — the index returns
+     * all units; this trims to "things that could threaten me." Compaction is
+     * in-place to avoid a second allocation.
+     */
+    public static void filterEnemyCombatants(ArrayList<Unit> units, Faction selfFaction) {
+        int write = 0;
+        for (int i = 0, n = units.size(); i < n; i++) {
+            Unit u = units.get(i);
+            if (u.faction == selfFaction) continue;
+            if (!u.type.combatant) continue;
+            units.set(write++, u);
+        }
+        // Trim the tail. ArrayList.subList(write, size).clear() is the
+        // idiomatic in-place truncate.
+        if (write < units.size()) units.subList(write, units.size()).clear();
     }
 
     /**
@@ -935,18 +1000,33 @@ public final class TacticalScoring {
      * the map). Counting both current AND dest captures both "they're already
      * here" and "they're coming here" states without double-counting allies
      * that are at-rest at their destination.
+     *
+     * <p>The current-cell half routes through the spatial index — a radius-2
+     * window touches only one or two buckets, so the per-call cost is
+     * constant in total unit count. The path-destination half still walks
+     * the full unit list because a unit's destination cell isn't tracked in
+     * the index (destinations are stored on {@link Unit#pathCellX(int)});
+     * that's a smaller residual O(N) but only matters when the firing-pos
+     * picker is hot.
      */
     public static int alliesNearForSpread(Unit self, int cx, int cy, BattleSimulation sim) {
         int r2 = FIRING_AOE_SPREAD_RADIUS * FIRING_AOE_SPREAD_RADIUS;
         int count = 0;
+        ArrayList<Unit> scratch = new ArrayList<>();
+        sim.getUnitIndex().gather(cx, cy, FIRING_AOE_SPREAD_RADIUS, scratch);
+        for (int i = 0, n = scratch.size(); i < n; i++) {
+            Unit u = scratch.get(i);
+            if (u == self || u.faction != self.faction) continue;
+            count++;
+        }
+        // Path-destination pass — still O(N) but only over alive units in the
+        // active list. Most units have an empty path most of the time, so this
+        // is closer to O(moving-units).
         for (Unit u : sim.getUnits()) {
             if (u == self || !u.isAlive() || u.faction != self.faction) continue;
             int dx = u.cellX - cx;
             int dy = u.cellY - cy;
-            if (dx * dx + dy * dy <= r2) {
-                count++;
-                continue;
-            }
+            if (dx * dx + dy * dy <= r2) continue; // already counted via gather
             int cells = u.pathCellCount();
             if (cells > 0) {
                 int destX = u.pathCellX(cells - 1);

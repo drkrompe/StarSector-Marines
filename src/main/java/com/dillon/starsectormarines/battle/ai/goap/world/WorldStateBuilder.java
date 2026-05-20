@@ -137,13 +137,16 @@ public final class WorldStateBuilder {
         }
         if (members.isEmpty()) return false;
 
-        float radiusSq = HAS_LOS_THREAT_SET_RADIUS * HAS_LOS_THREAT_SET_RADIUS;
-        for (Unit enemy : units) {
-            if (!enemy.isAlive() || !enemy.type.combatant) continue;
+        // Gather only enemies inside the threat-set window via the per-tick
+        // spatial index — eliminates the previous O(total-units) outer scan
+        // when the squad's lastSeenEnemy point sits far from most of the map.
+        ArrayList<Unit> threats = new ArrayList<>();
+        sim.getUnitIndex().gather(squad.lastSeenEnemyX, squad.lastSeenEnemyY,
+                HAS_LOS_THREAT_SET_RADIUS, threats);
+        for (int i = 0, n = threats.size(); i < n; i++) {
+            Unit enemy = threats.get(i);
+            if (!enemy.type.combatant) continue;
             if (enemy.faction == squad.faction) continue;
-            int ex = enemy.cellX - squad.lastSeenEnemyX;
-            int ey = enemy.cellY - squad.lastSeenEnemyY;
-            if (ex * ex + ey * ey > radiusSq) continue;   // threat-set gate
             for (Unit member : members) {
                 if (grid.hasLineOfSight(member.cellX, member.cellY, enemy.cellX, enemy.cellY)) return true;
             }

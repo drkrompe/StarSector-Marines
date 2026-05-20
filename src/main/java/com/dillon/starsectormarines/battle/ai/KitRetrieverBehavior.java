@@ -64,6 +64,7 @@ public final class KitRetrieverBehavior implements UnitBehavior {
             // Retriever fires while pathing to a kit — MOVING accuracy penalty.
             sim.fireShot(u, u.target, FireStance.MOVING);
             u.cooldownTimer = u.attackCooldown;
+            u.beginBurst(u.target);
         }
     }
 }

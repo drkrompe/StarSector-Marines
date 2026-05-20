@@ -32,9 +32,6 @@ public class HeavyWeapons {
 
     /** Sim seconds a kinetic tracer stays visible after being fired. Matches the legacy {@code SHOT_LIFETIME} on BattleSimulation. */
     private static final float SHOT_LIFETIME = 0.15f;
-    /** Min/max near-miss offset (cells) from target cell-center on a missed shot. */
-    private static final float MISS_OFFSET_MIN = 0.5f;
-    private static final float MISS_OFFSET_MAX = 2.0f;
 
     /**
      * Per-tick pass: drains queued chaingun / SRM / LRM rounds for every mech,
@@ -69,43 +66,27 @@ public class HeavyWeapons {
         boolean isAoe = weapon.aoeRadius > 0f;
         float moraleImpact = shooter.type != null ? shooter.type.moraleImpact : 1.0f;
 
-        float fromX = shooter.cellX + 0.5f;
-        float fromY = shooter.cellY + 0.5f;
-        // Distance-scale the weapon's hitSpread to match the physics: a fixed
-        // barrel angular error projects linearly to lateral spread on the
-        // ground (area covered scales with distance squared, but the *radius*
-        // — what we store — scales linearly). At close range the burst
-        // clusters on the target; at max range it spreads across the full
-        // hitSpread cells. Capped at 1.0× so a beyond-range shot doesn't
-        // produce a spread wider than the design value.
-        float distToTarget = (float) Math.sqrt(
-                (target.cellX - shooter.cellX) * (float) (target.cellX - shooter.cellX) +
-                (target.cellY - shooter.cellY) * (float) (target.cellY - shooter.cellY));
-        float effectiveSpread = weapon.hitSpread * Math.min(1f, distToTarget / weapon.range);
+        // Muzzle origin tracks the SHOOTER'S CURRENT RENDER POSITION so a
+        // chaingun burst follows the walking mech instead of pinning the
+        // muzzle flash to the cell where the burst started. Mirrors the
+        // infantry-side fix in InfantryWeapons.fireShot.
+        float fromX = shooter.renderX + 0.5f;
+        float fromY = shooter.renderY + 0.5f;
+        // Distance-scaled spread — see RangeFalloff for the physical model.
+        // Shared with the infantry-side primaries so chaingun saturation and
+        // SMG burst-spread use the same math, just with different per-weapon
+        // hitSpread numbers.
+        float distToTarget = RangeFalloff.dist(shooter.cellX, shooter.cellY, target.cellX, target.cellY);
+        float effectiveSpread = RangeFalloff.spread(weapon.hitSpread, distToTarget, weapon.range);
 
-        float toX, toY;
-        if (hit) {
-            toX = target.cellX + 0.5f;
-            toY = target.cellY + 0.5f;
-            // Endpoint scatter — pure visual offset around the target cell.
-            // For AoE weapons this also scatters the splash center, so a salvo
-            // sprays the impact zone instead of stacking on one cell.
-            if (effectiveSpread > 0f) {
-                float angle = ctx.getRng().nextFloat() * (float) (Math.PI * 2);
-                float r = ctx.getRng().nextFloat() * effectiveSpread;
-                toX += (float) Math.cos(angle) * r;
-                toY += (float) Math.sin(angle) * r;
-            }
-        } else {
-            float angle = ctx.getRng().nextFloat() * (float) (Math.PI * 2);
-            float spread = MISS_OFFSET_MIN + ctx.getRng().nextFloat() * (MISS_OFFSET_MAX - MISS_OFFSET_MIN);
-            // Misses get the wider baseline scatter PLUS the weapon's
-            // distance-scaled spread — a stray salvo at close range scatters
-            // less than a stray salvo at long range.
-            spread += effectiveSpread;
-            toX = target.cellX + 0.5f + (float) Math.cos(angle) * spread;
-            toY = target.cellY + 0.5f + (float) Math.sin(angle) * spread;
-        }
+        // Endpoint resolves through ShotEndpoint — same hit-jitter +
+        // miss-ring rules as the infantry primaries. effectiveSpread carries
+        // the chaingun/LRM saturation widening; AoE weapons get their splash
+        // center scattered through the same machinery so a salvo sprays the
+        // impact zone instead of stacking on one cell.
+        ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(target, hit, effectiveSpread, ctx.getRng());
+        float toX = ep.x();
+        float toY = ep.y();
 
         // Wall raycast — for ground-deployed area-spread weapons (chaingun's
         // dual-MG saturation), a scattered round that would fly past a wall

@@ -22,27 +22,64 @@ import java.awt.Color;
  * rifles plink emplacements at 0.3×, dedicated AT weapons land near 1.0×.
  */
 public enum MarineWeapon {
-    /** Default marine sidearm — vanilla pulse laser flavor. Balanced range / damage / cooldown matching the pre-loadout stats. Single shot, line tracer. */
+    /**
+     * Default marine primary — vanilla pulse laser flavor, 3-round burst
+     * (Halo BR-style tap-tap-tap). Sits between the single-shot DMR and the
+     * full-auto SMG to form a clean DMR / BR / AR triad.
+     *
+     * <p>Per-round damage 1.0 (max burst total 3.0); cooldown 1.0s between
+     * trigger pulls; burst spacing 0.09s for a crisp three-flash cadence
+     * just slower than the SMG's brrt. Tracer-style — at 0.15s tracer
+     * lifetime + 0.09s spacing the three flashes briefly overlap, which
+     * reads as a burst without needing a projectile sprite.
+     *
+     * <p>Mild range falloff (0.30 → 0.245 effective accuracy at d=24) and a
+     * small 0.4-cell spread keep the BR the "always useful" baseline — not
+     * as punishing at range as the SMG, not as crisp as the DMR. Each burst
+     * rolls accuracy independently per round, so {@code P(any hit)} at long
+     * range is well above the single-shot baseline.
+     */
     PULSE_RIFLE("Pulse Rifle",
                 "pulse_laser_fire",
                 new Color(0x80, 0xFF, 0x80),
-                24f, 2.0f, 0.35f, 1.0f, 0.30f,
+                24f, 1.0f, 0.35f, 1.0f, 0.30f,
                 ImpactProfile.RIFLE,
-                1, 0f, null, 0f, 0f),
-    /** Close-range area-suppression — fast 3-round bursts of small bullet sprites. Vanilla light MG. Per-shot damage is lighter (0.7) so a full burst lands ~2.1, only slightly above rifle DPS. */
+                3, 0.09f, null, 0f, 0f,
+                0.30f, 0.4f),
+    /**
+     * Close-range area-suppression — fast 3-round bursts of small bullet
+     * sprites. Vanilla light MG. Per-shot damage is lighter (0.7) so a full
+     * burst lands ~2.1, trading raw per-burst damage for the saturation
+     * pattern and the snappier 0.07s cadence.
+     *
+     * <p>Heavy range falloff (0.60: 0.30 → 0.12 effective accuracy at d=16)
+     * plus a wide 1.4-cell spread saturate the area near max range — the
+     * design read is "devastating at door-breach distance, just noise at the
+     * far end of the cone."
+     */
     SMG        ("Light Machine Gun",
                 "light_machinegun_fire",
                 new Color(0xFF, 0xE8, 0xC0),
                 16f, 0.7f, 0.30f, 0.50f, 0.30f,
                 ImpactProfile.RIFLE,
-                3, 0.07f, "graphics/missiles/shell_small_yellow.png", 0.15f, 0.10f),
-    /** Long-range marksman rifle — heavier hit, slower cycle, mild AT bonus. Vanilla railgun. Single shot, line tracer for now. */
+                3, 0.07f, "graphics/missiles/shell_small_yellow.png", 0.15f, 0.10f,
+                0.60f, 1.4f),
+    /**
+     * Long-range marksman rifle — heavier hit, slower cycle, mild AT bonus.
+     * Vanilla railgun. Single shot, line tracer for now.
+     *
+     * <p>Minimal range falloff (0.10: 0.55 → 0.495 at d=32) and a tiny
+     * 0.15-cell spread mean range is the DMR's whole point — the curve stays
+     * almost flat across the band where rifles and SMGs are dropping off
+     * hard.
+     */
     DMR        ("Railgun",
                 "railgun_fire",
                 new Color(0xC8, 0xC8, 0xFF),
                 32f, 4.0f, 0.55f, 1.80f, 0.40f,
                 ImpactProfile.KINETIC,
-                1, 0f, null, 0f, 0f);
+                1, 0f, null, 0f, 0f,
+                0.10f, 0.15f);
 
     public final String displayName;
     /** Vanilla fire sound id ({@code fireSoundTwo} from the source {@code .wpn}); mono, pre-registered by the core install. */
@@ -67,12 +104,31 @@ public enum MarineWeapon {
     public final float projectileVisualCells;
     /** Sim-seconds the projectile is visible in flight. Ignored when {@link #projectileSpritePath} is null. */
     public final float flightSec;
+    /**
+     * Fraction of base {@link #accuracy} lost at {@link #range} cells.
+     * 0 = no falloff (legacy flat behavior), 0.5 = halve accuracy at max
+     * range. Applied via {@link com.dillon.starsectormarines.battle.weapons.RangeFalloff#accuracy}
+     * in {@code InfantryWeapons.fireShot} — compounds multiplicatively with
+     * the {@code FireStance} multiplier so a moving marine at long range is
+     * doubly inaccurate.
+     */
+    public final float accuracyFalloff;
+    /**
+     * Lateral scatter radius in cells at {@link #range}, scaling linearly
+     * with distance via {@link com.dillon.starsectormarines.battle.weapons.RangeFalloff#spread}.
+     * Applied to both hit-endpoint jitter (the round still hits the locked
+     * target for damage purposes, but the tracer endpoint scatters
+     * visually) and to miss-scatter as an additive on top of the baseline
+     * near-miss ring. Mirrors {@link MechWeapon#hitSpread}.
+     */
+    public final float hitSpread;
 
     MarineWeapon(String displayName, String fireSoundId, Color tracerColor,
                  float range, float damage, float accuracy, float cooldown, float vsTurretMult,
                  ImpactProfile impactProfile,
                  int burstCount, float burstSpacing, String projectileSpritePath,
-                 float projectileVisualCells, float flightSec) {
+                 float projectileVisualCells, float flightSec,
+                 float accuracyFalloff, float hitSpread) {
         this.displayName = displayName;
         this.fireSoundId = fireSoundId;
         this.tracerColor = tracerColor;
@@ -87,5 +143,7 @@ public enum MarineWeapon {
         this.projectileSpritePath = projectileSpritePath;
         this.projectileVisualCells = projectileVisualCells;
         this.flightSec = flightSec;
+        this.accuracyFalloff = accuracyFalloff;
+        this.hitSpread = hitSpread;
     }
 }

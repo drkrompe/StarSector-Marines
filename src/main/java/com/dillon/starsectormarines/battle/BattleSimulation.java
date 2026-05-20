@@ -254,6 +254,15 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Per-cell unit count, rebuilt at the start of each tick. Passed to the pathfinder so units route around ally-held cells. */
     private final byte[] occupancyMap;
 
+    /**
+     * Bucketed spatial index over alive units, rebuilt once per tick. AI
+     * scoring (exposure, threat density, allies-near-for-spread) queries
+     * this instead of scanning the full unit list — keeps proximity work
+     * O(units within radius) instead of O(total units). See
+     * {@link UnitSpatialIndex} for sizing.
+     */
+    private final UnitSpatialIndex unitIndex;
+
     private float tickAccumulator = 0f;
     /** Monotonic sim-tick counter incremented at the top of every {@link #tick}. Read by per-hit gates that want to fire at most once per tick (e.g. {@link #rollReprioritizeOnHit}). */
     public int simTickIndex = 0;
@@ -295,6 +304,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         this.grid = grid;
         this.topology = topology;
         this.occupancyMap = new byte[grid.getWidth() * grid.getHeight()];
+        this.unitIndex = new UnitSpatialIndex(grid.getWidth(), grid.getHeight());
         this.zoneGraph = new ZoneGraph(grid);
         this.zoneGraph.rebuild();
     }
@@ -492,6 +502,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     public Faction getWinner()             { return winner; }
     /** Per-cell unit count, indexed by {@link NavigationGrid#index(int, int)}. Exposed for AI scoring; do not mutate directly — go through {@link #setPath}. */
     public byte[] getOccupancyMap()        { return occupancyMap; }
+    /** Bucketed spatial index over alive units. Rebuilt at the top of each tick by {@link #tick()}. */
+    public UnitSpatialIndex getUnitIndex() { return unitIndex; }
     @Override public Random getRng()       { return rng; }
     /** Returns the squad with the given id, or {@code null} if {@code id == Unit.NO_SQUAD} or the squad was never registered. */
     public Squad getSquad(int id)          { return id == Unit.NO_SQUAD ? null : squads.get(id); }
@@ -511,6 +523,11 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     @Override
     public void addUnit(Unit u) {
         units.add(u);
+        // Mirror into the spatial index so callers running outside the
+        // tick loop (test fixtures, AirSystem mid-tick deboard) see the
+        // unit on the next AI query. tick() still does the full rebuild
+        // each frame, so this is purely additive.
+        unitIndex.add(u);
     }
 
     public void addShuttle(Shuttle s) {
@@ -769,6 +786,12 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                     buildings, units, grid, visionState);
         }
         rebuildOccupancyMap();
+        // Rebuild the spatial index BEFORE the AI passes so per-tick scoring
+        // (exposure, threat density, allies-near) reads a consistent
+        // snapshot. Same single-pass-per-tick semantics as the attacker
+        // index below — mid-tick repath shifts aren't reflected until next
+        // tick, matching the pre-spatial behavior.
+        unitIndex.rebuild(units);
         // Rebuild the attacker index BEFORE per-unit updates so target-
         // selection's crowding scoring (TacticalScoring.findBestTarget) sees a
         // consistent snapshot of last-tick's targets. We deliberately don't

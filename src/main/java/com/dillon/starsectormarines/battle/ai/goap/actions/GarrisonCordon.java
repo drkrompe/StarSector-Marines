@@ -142,11 +142,7 @@ public final class GarrisonCordon implements Action {
                 member.target.cellX, member.target.cellY)) return;
         sim.fireShot(member, member.target, stance);
         member.cooldownTimer = member.attackCooldown;
-        if (member.primaryWeapon != null && member.primaryWeapon.burstCount > 1) {
-            member.burstRemaining = member.primaryWeapon.burstCount - 1;
-            member.burstTimer = member.primaryWeapon.burstSpacing;
-            member.burstTarget = member.target;
-        }
+        member.beginBurst(member.target);
     }
 
     private HoldPortalCordon.GuardPost postForSlot(String slotName) {

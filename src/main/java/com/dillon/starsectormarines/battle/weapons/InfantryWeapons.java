@@ -33,9 +33,6 @@ public class InfantryWeapons {
 
     /** Sim seconds a tracer stays visible after being fired. Matches the legacy {@code SHOT_LIFETIME} on BattleSimulation. */
     private static final float SHOT_LIFETIME = 0.15f;
-    /** Min/max near-miss offset (cells) from target cell-center on a missed shot. */
-    private static final float MISS_OFFSET_MIN = 0.5f;
-    private static final float MISS_OFFSET_MAX = 2.0f;
 
     /**
      * Per-tick burst-fire pass: every unit with {@code burstRemaining > 0}
@@ -80,10 +77,19 @@ public class InfantryWeapons {
         float accuracy = shooter.accuracy;
         float damage   = shooter.attackDamage;
         float vsTurretMult = 1f;
+        // Distance-scaled accuracy + spread only apply when the shooter has
+        // a per-weapon profile (marines). Militia / aliens / turrets fall
+        // through to their baked Unit stats with flat accuracy and the
+        // baseline miss-scatter ring — preserves the legacy behavior for
+        // every "no MarineWeapon" caller.
+        float dist = RangeFalloff.dist(shooter.cellX, shooter.cellY, target.cellX, target.cellY);
+        float effectiveSpread = 0f;
         if (shooter.primaryWeapon != null) {
-            accuracy = shooter.primaryWeapon.accuracy;
-            damage   = shooter.primaryWeapon.damage;
-            vsTurretMult = shooter.primaryWeapon.vsTurretMult;
+            MarineWeapon w = shooter.primaryWeapon;
+            accuracy = RangeFalloff.accuracy(w.accuracy, w.accuracyFalloff, dist, w.range);
+            damage   = w.damage;
+            vsTurretMult = w.vsTurretMult;
+            effectiveSpread = RangeFalloff.spread(w.hitSpread, dist, w.range);
         }
         accuracy *= stance.accuracyMult;
         boolean hit = ctx.getRng().nextFloat() < accuracy;
@@ -100,18 +106,16 @@ public class InfantryWeapons {
             ctx.rollReprioritizeOnHit(target, shooter);
         }
 
-        float fromX = shooter.cellX + 0.5f;
-        float fromY = shooter.cellY + 0.5f;
-        float toX, toY;
-        if (hit) {
-            toX = target.cellX + 0.5f;
-            toY = target.cellY + 0.5f;
-        } else {
-            float angle = ctx.getRng().nextFloat() * (float) (Math.PI * 2);
-            float spread = MISS_OFFSET_MIN + ctx.getRng().nextFloat() * (MISS_OFFSET_MAX - MISS_OFFSET_MIN);
-            toX = target.cellX + 0.5f + (float) Math.cos(angle) * spread;
-            toY = target.cellY + 0.5f + (float) Math.sin(angle) * spread;
-        }
+        // Muzzle origin tracks the SHOOTER'S RENDER POSITION so the flash
+        // glues to the sprite across a moving burst. Tracer endpoint and
+        // miss-scatter both resolve through ShotEndpoint so all three
+        // weapon paths (infantry primary / secondary / mech) live by the
+        // same hit-jitter + miss-ring rules.
+        float fromX = shooter.renderX + 0.5f;
+        float fromY = shooter.renderY + 0.5f;
+        ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(target, hit, effectiveSpread, ctx.getRng());
+        float toX = ep.x();
+        float toY = ep.y();
         TurretKind tk = (shooter instanceof MapTurret) ? ((MapTurret) shooter).kind : null;
         // Primary weapons with their own projectile sprite (SMG bullets) use
         // the weapon's flightSec so a slow round visibly travels — line tracers
@@ -140,18 +144,16 @@ public class InfantryWeapons {
         if (sec == null || shooter.secondaryAmmo <= 0) return;
         shooter.secondaryAmmo--;
         boolean hit = ctx.getRng().nextFloat() < sec.accuracy;
-        float fromX = shooter.cellX + 0.5f;
-        float fromY = shooter.cellY + 0.5f;
-        float toX, toY;
-        if (hit) {
-            toX = target.cellX + 0.5f;
-            toY = target.cellY + 0.5f;
-        } else {
-            float angle = ctx.getRng().nextFloat() * (float) (Math.PI * 2);
-            float spread = MISS_OFFSET_MIN + ctx.getRng().nextFloat() * (MISS_OFFSET_MAX - MISS_OFFSET_MIN);
-            toX = target.cellX + 0.5f + (float) Math.cos(angle) * spread;
-            toY = target.cellY + 0.5f + (float) Math.sin(angle) * spread;
-        }
+        // Rocket launches from the marine's current sprite position so the
+        // launch FX glue to the sprite if the marine is mid-step. Endpoint
+        // resolves through ShotEndpoint with effectiveSpread=0 — secondaries
+        // don't carry their own hitSpread today, so the universal hit-jitter
+        // + miss-ring still apply but no weapon-specific scatter.
+        float fromX = shooter.renderX + 0.5f;
+        float fromY = shooter.renderY + 0.5f;
+        ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(target, hit, 0f, ctx.getRng());
+        float toX = ep.x();
+        float toY = ep.y();
         // Marine handheld rocket is direct-fire (no arc) — explodes wherever
         // the round lands. Reaches a roofed interior only via a doorway, in
         // which case the splash should damage the inside normally, not be

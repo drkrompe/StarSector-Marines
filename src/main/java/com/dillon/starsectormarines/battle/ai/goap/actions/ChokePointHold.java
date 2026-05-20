@@ -256,11 +256,7 @@ public final class ChokePointHold implements Action {
         sim.fireShot(member, portalIntruder, FireStance.STANCED);
         member.target = portalIntruder;
         member.cooldownTimer = member.attackCooldown;
-        if (member.primaryWeapon != null && member.primaryWeapon.burstCount > 1) {
-            member.burstRemaining = member.primaryWeapon.burstCount - 1;
-            member.burstTimer = member.primaryWeapon.burstSpacing;
-            member.burstTarget = portalIntruder;
-        }
+        member.beginBurst(portalIntruder);
         return ActionStatus.RUNNING;
     }
 
