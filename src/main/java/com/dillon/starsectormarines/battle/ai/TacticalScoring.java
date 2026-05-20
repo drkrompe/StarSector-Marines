@@ -97,8 +97,19 @@ public final class TacticalScoring {
      */
     public static final float WEAPON_AFFINITY_WEIGHT = 8f;
 
-    /** Cell radius searched for a fall-back position around the hit unit. */
-    public static final int   FALLBACK_SCAN_RANGE = 8;
+    /**
+     * Seconds of unit travel that govern the fall-back candidate scan radius.
+     * Multiplied by {@link Unit#moveSpeed} (cells/sec) and clamped to
+     * [{@link #FALLBACK_SCAN_RANGE_MIN}, {@link #FALLBACK_SCAN_RANGE_MAX}].
+     * Fast units sprint farther for cover; slow units (mechs) stay short.
+     * A baseline 2.0-speed marine lands at 10, slightly farther than the
+     * legacy uniform 8.
+     */
+    public static final float FALLBACK_SCAN_SECONDS = 5.0f;
+    /** Floor so slow units still get a usable search radius. */
+    public static final int   FALLBACK_SCAN_RANGE_MIN = 6;
+    /** Cap so future fast units don't blow up the O(R²) candidate scan. */
+    public static final int   FALLBACK_SCAN_RANGE_MAX = 16;
     /** Per-ally-on-cell penalty in fall-back scoring. */
     public static final float FALLBACK_OCCUPANCY_COST = 4f;
     /**
@@ -115,6 +126,16 @@ public final class TacticalScoring {
     public static final float FALLBACK_DOODAD_COVER_BONUS = 1.5f;
     /** Bonus subtracted from fall-back score per net ally in the candidate cell's zone. Pulls retreating units toward where their squad lives rather than the nearest blind corner. */
     public static final float FALLBACK_FRIENDLY_ZONE_BONUS = 1.5f;
+    /**
+     * Per-enemy-with-LoS penalty added to fall-back score. Sized large enough
+     * that any hidden cell (exposure 0) outranks any exposed cell (exposure
+     * ≥ 1) across the full possible swing of the other score terms — so the
+     * picker still prefers a hide when one exists, but degrades gracefully to
+     * "least-exposed reachable cell" when no hide is available (open-field
+     * fire). Without this, the picker fell through to the unit's own cell and
+     * the unit visibly did nothing under sustained fire.
+     */
+    public static final float FALLBACK_EXPOSURE_PENALTY = 100f;
 
     private TacticalScoring() {}
 
@@ -632,15 +653,28 @@ public final class TacticalScoring {
     }
 
     /**
-     * Scans cells within {@link #FALLBACK_SCAN_RANGE} of {@code self} for a
-     * walkable, out-of-LOS spot, scored by
+     * Scans cells around {@code self} for a walkable hide cell, scored by
      * {@code distFromSelf + occupancyPenalty - gridCoverBonus - doodadCoverBonus
-     * - zoneControlBonus}. Cover terms are read per-facing against the dominant
-     * threat direction (average enemy cell): cells whose cover faces the wrong
-     * way score zero on the cover term, so the picker prefers cells that
-     * actually block the incoming fire. Bails to {@code self}'s own cell when no
-     * enemies are alive — the caller's predicate gate makes that branch
-     * effectively unreachable, but it keeps the threat-facing math well-defined.
+     * - zoneControlBonus + exposurePenalty}. Scan radius is
+     * {@code self.moveSpeed * FALLBACK_SCAN_SECONDS} clamped to
+     * [{@link #FALLBACK_SCAN_RANGE_MIN}, {@link #FALLBACK_SCAN_RANGE_MAX}], so
+     * fast units sprint farther.
+     *
+     * <p>Cover terms are read per-facing against the dominant threat direction
+     * (average enemy cell): cells whose cover faces the wrong way score zero on
+     * the cover term, so the picker prefers cells that actually block the
+     * incoming fire.
+     *
+     * <p>Exposure (count of alive enemies with LoS to the cell) is folded into
+     * the score with a large weight rather than used as a hard filter. Hidden
+     * cells (exposure 0) outrank every exposed cell by construction, so the
+     * picker still prefers a hide when one exists — but in open-field fights
+     * where no hide is reachable, it degrades gracefully to "least-exposed
+     * reachable cell" instead of failing through to the unit's own cell (which
+     * read visually as "AI gave up").
+     * Bails to {@code self}'s own cell when no enemies are alive — the caller's
+     * predicate gate makes that branch effectively unreachable, but it keeps
+     * the threat-facing math well-defined.
      *
      * <p>The top-scored cell only helps if the unit can actually walk to it —
      * and the wall that hides a cell from enemies is exactly the kind of wall
@@ -671,19 +705,23 @@ public final class TacticalScoring {
         int[] threatRef = averageEnemyCell(self, sim);
         if (threatRef == null) return new int[]{sx, sy};
 
+        int scanRange = Math.max(FALLBACK_SCAN_RANGE_MIN,
+                       Math.min(FALLBACK_SCAN_RANGE_MAX,
+                                Math.round(self.moveSpeed * FALLBACK_SCAN_SECONDS)));
+
         List<float[]> candidates = new ArrayList<>();
-        for (int dy = -FALLBACK_SCAN_RANGE; dy <= FALLBACK_SCAN_RANGE; dy++) {
-            for (int dx = -FALLBACK_SCAN_RANGE; dx <= FALLBACK_SCAN_RANGE; dx++) {
+        for (int dy = -scanRange; dy <= scanRange; dy++) {
+            for (int dx = -scanRange; dx <= scanRange; dx++) {
                 int cx = sx + dx;
                 int cy = sy + dy;
                 if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) continue;
-                if (!isHiddenFromAllEnemies(self, cx, cy, sim)) continue;
 
                 int occupants = occupantsExcludingSelf(self, cx, cy, sim);
                 int fdx = threatRef[0] - cx;
                 int fdy = threatRef[1] - cy;
                 int gridCover   = grid.getCoverAt(cx, cy, fdx, fdy);
                 int doodadCover = sim.getDoodadCoverAt(cx, cy, fdx, fdy);
+                int exposure = countEnemiesWithLos(self, cx, cy, sim);
                 int zoneId = zones.zoneIdAt(cx, cy);
                 int control = (zoneId >= 0 && zoneId < zoneControl.length) ? zoneControl[zoneId] : 0;
                 float distFromSelf = cellDistance(sx, sy, cx, cy);
@@ -691,7 +729,8 @@ public final class TacticalScoring {
                         + FALLBACK_OCCUPANCY_COST * occupants
                         - FALLBACK_GRID_COVER_BONUS   * gridCover
                         - FALLBACK_DOODAD_COVER_BONUS * doodadCover
-                        - FALLBACK_FRIENDLY_ZONE_BONUS * control;
+                        - FALLBACK_FRIENDLY_ZONE_BONUS * control
+                        + FALLBACK_EXPOSURE_PENALTY * exposure;
                 candidates.add(new float[]{score, cx, cy});
             }
         }
@@ -797,6 +836,25 @@ public final class TacticalScoring {
             if (grid.hasLineOfSight(cx, cy, other.cellX, other.cellY)) return false;
         }
         return true;
+    }
+
+    /**
+     * Count of alive enemy combatants with LoS to {@code (cx, cy)}. Zero means
+     * the cell is hidden from every enemy ({@link #isHiddenFromAllEnemies}
+     * returns true). Used by {@link #findFallbackPosition} as the exposure
+     * term — folding "how many guns see me" into the score is what lets the
+     * picker pick the least-exposed cell when no hide exists, instead of
+     * giving up.
+     */
+    public static int countEnemiesWithLos(Unit self, int cx, int cy, BattleSimulation sim) {
+        NavigationGrid grid = sim.getGrid();
+        int count = 0;
+        for (Unit other : sim.getUnits()) {
+            if (!other.isAlive()) continue;
+            if (other.faction == self.faction) continue;
+            if (grid.hasLineOfSight(cx, cy, other.cellX, other.cellY)) count++;
+        }
+        return count;
     }
 
     /**
