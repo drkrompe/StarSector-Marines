@@ -416,6 +416,32 @@ public class NavigationGrid {
     }
 
     /**
+     * Bounded {@link #hasLineOfSight}: returns false when the Euclidean cell
+     * distance between {@code (x0,y0)} and {@code (x1,y1)} exceeds
+     * {@code maxCells}, regardless of whether the line is geometrically clear.
+     * Lets callers express "effective threat range" rather than pure geometry —
+     * a militia at attackRange 18 cannot threaten a candidate cell 30 cells
+     * away even on a perfectly open field.
+     *
+     * <p>Distance is checked once up front in squared form (no sqrt) and short-
+     * circuits the Bresenham trace, so out-of-range pairs are O(1).
+     *
+     * <p>Used for perception-side callers ({@link com.dillon.starsectormarines.battle.ai.TacticalScoring#isHiddenFromAllEnemies}
+     * and {@link com.dillon.starsectormarines.battle.ai.TacticalScoring#countEnemiesWithLos}).
+     * Weapons, AoE splash filtering, building-visibility, and GOAP target
+     * predicates keep using {@link #hasLineOfSight} until the full perception
+     * layer ships — see roadmap/ai/15-perception-and-influence.md.
+     */
+    public boolean hasLineOfSightWithin(int x0, int y0, int x1, int y1, float maxCells) {
+        if (maxCells <= 0f) return false;
+        int dx = x1 - x0;
+        int dy = y1 - y0;
+        float distSq = (float) dx * dx + (float) dy * dy;
+        if (distSq > maxCells * maxCells) return false;
+        return hasLineOfSight(x0, y0, x1, y1);
+    }
+
+    /**
      * Bresenham raycast from {@code (x0, y0)} to {@code (x1, y1)} that returns
      * the first LoS-blocking cell encountered (excluding the origin) per
      * {@link #blocksLineOfSightAt}, or {@code (-1, -1)} if the line is clear

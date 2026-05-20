@@ -828,23 +828,38 @@ public final class TacticalScoring {
         return control;
     }
 
+    /**
+     * Hidden iff no alive enemy combatant has effective LoS to {@code (cx, cy)}
+     * — meaning a clear Bresenham line <em>and</em> the candidate cell within
+     * that enemy's {@link Unit#attackRange}. A 40-cell-range mech threatens
+     * cells the 18-cell-range militia can't, which is the gameplay axis we
+     * want fall-back picking to respect (squads flee mech LoS even if militia
+     * LoS reads the same cell as "open").
+     *
+     * <p>Non-combatants are skipped — they have {@code attackRange = 0} and
+     * couldn't threaten the cell anyway; the explicit gate is for clarity.
+     */
     public static boolean isHiddenFromAllEnemies(Unit self, int cx, int cy, BattleSimulation sim) {
         NavigationGrid grid = sim.getGrid();
         for (Unit other : sim.getUnits()) {
             if (!other.isAlive()) continue;
             if (other.faction == self.faction) continue;
-            if (grid.hasLineOfSight(cx, cy, other.cellX, other.cellY)) return false;
+            if (!other.type.combatant) continue;
+            if (grid.hasLineOfSightWithin(cx, cy, other.cellX, other.cellY, other.attackRange)) return false;
         }
         return true;
     }
 
     /**
-     * Count of alive enemy combatants with LoS to {@code (cx, cy)}. Zero means
-     * the cell is hidden from every enemy ({@link #isHiddenFromAllEnemies}
-     * returns true). Used by {@link #findFallbackPosition} as the exposure
-     * term — folding "how many guns see me" into the score is what lets the
-     * picker pick the least-exposed cell when no hide exists, instead of
-     * giving up.
+     * Count of alive enemy combatants with effective LoS to {@code (cx, cy)} —
+     * clear Bresenham line and within that enemy's {@link Unit#attackRange}.
+     * Zero means the cell is hidden from every effective threat
+     * ({@link #isHiddenFromAllEnemies} returns true).
+     *
+     * <p>Used by {@link #findFallbackPosition} as the exposure term — folding
+     * "how many <em>actually-threatening</em> guns see me" into the score is
+     * what lets the picker pick the least-exposed cell when no hide exists,
+     * instead of giving up.
      */
     public static int countEnemiesWithLos(Unit self, int cx, int cy, BattleSimulation sim) {
         NavigationGrid grid = sim.getGrid();
@@ -852,7 +867,8 @@ public final class TacticalScoring {
         for (Unit other : sim.getUnits()) {
             if (!other.isAlive()) continue;
             if (other.faction == self.faction) continue;
-            if (grid.hasLineOfSight(cx, cy, other.cellX, other.cellY)) count++;
+            if (!other.type.combatant) continue;
+            if (grid.hasLineOfSightWithin(cx, cy, other.cellX, other.cellY, other.attackRange)) count++;
         }
         return count;
     }
