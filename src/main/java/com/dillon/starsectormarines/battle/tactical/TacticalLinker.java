@@ -21,7 +21,14 @@ import java.util.List;
  *       {@link #SUPPLY_RADIUS_CELLS}. Models the reinforcement supply line.</li>
  *   <li><b>FALLBACK_TO</b>: each {@link TacticalNode.Kind#GATE} links to its
  *       nearest forward bunker first, then nearest heavy tower. Models the
- *       defender retreat ordering: breach → forward defense → wall hold.</li>
+ *       defender retreat ordering: breach → forward defense → wall hold.
+ *       Compound interior leaves ({@link TacticalNode.Kind#COMMAND_POST},
+ *       {@link TacticalNode.Kind#BARRACKS}, {@link TacticalNode.Kind#ARMORY})
+ *       fall back to the nearest other compound leaf — "garrison overrun,
+ *       consolidate to the next room over." Without this, a decimated
+ *       command-post garrison sits in its kill zone because the squad-level
+ *       FALLBACK_TO retreat in {@code BattleSimulation.updateSquadFallback}
+ *       can't fire on a node with no outgoing link.</li>
  *   <li><b>GUARDS</b>: each {@link TacticalNode.Kind#FORWARD_BUNKER} links to the
  *       single nearest gate. Models the bunker's "forward defense for this
  *       gate" role; the gate appears in only one bunker's GUARDS list since
@@ -99,6 +106,23 @@ public final class TacticalLinker {
             TacticalNode nearestGate = nearestSingle(bunker, gates, FALLBACK_RADIUS_CELLS);
             if (nearestGate != null) bunker.addLink(TacticalNode.LinkKind.FALLBACK_TO, nearestGate);
         }
+        // Compound interior leaves consolidate to the nearest sibling room.
+        // Compounds aren't first-class at this layer — we just pick the
+        // nearest other interior leaf within FALLBACK_RADIUS, and the
+        // compound's own geometry guarantees siblings cluster well inside
+        // that radius. Without these links a decimated garrison stays in
+        // place (squad-level FALLBACK_TO in updateSquadFallback can't fire),
+        // and per-unit BreakContact alone can't relocate the squad across
+        // an interior wall to the next room.
+        EnumSet<TacticalNode.Kind> interiorLeaves = EnumSet.of(
+                TacticalNode.Kind.COMMAND_POST,
+                TacticalNode.Kind.BARRACKS,
+                TacticalNode.Kind.ARMORY);
+        List<TacticalNode> leaves = filterAny(all, interiorLeaves);
+        for (TacticalNode leaf : leaves) {
+            TacticalNode sibling = nearestSingleExcluding(leaf, leaves, FALLBACK_RADIUS_CELLS);
+            if (sibling != null) leaf.addLink(TacticalNode.LinkKind.FALLBACK_TO, sibling);
+        }
     }
 
     private static void linkGuards(List<TacticalNode> all) {
@@ -138,6 +162,18 @@ public final class TacticalLinker {
         TacticalNode best = null;
         int bestDist = Integer.MAX_VALUE;
         for (TacticalNode candidate : pool) {
+            int d = Math.abs(candidate.anchorX - origin.anchorX) + Math.abs(candidate.anchorY - origin.anchorY);
+            if (d > radius) continue;
+            if (d < bestDist) { bestDist = d; best = candidate; }
+        }
+        return best;
+    }
+
+    private static TacticalNode nearestSingleExcluding(TacticalNode origin, List<TacticalNode> pool, int radius) {
+        TacticalNode best = null;
+        int bestDist = Integer.MAX_VALUE;
+        for (TacticalNode candidate : pool) {
+            if (candidate == origin) continue;
             int d = Math.abs(candidate.anchorX - origin.anchorX) + Math.abs(candidate.anchorY - origin.anchorY);
             if (d > radius) continue;
             if (d < bestDist) { bestDist = d; best = candidate; }
