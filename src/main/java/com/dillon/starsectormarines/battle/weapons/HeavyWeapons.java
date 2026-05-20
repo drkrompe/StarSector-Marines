@@ -135,10 +135,14 @@ public class HeavyWeapons {
         // Hit-vs-miss only affects WHERE the rocket lands; AoE math at impact
         // decides who's close enough to feel it.
         if (isAoe) {
+            // Aerial delivery if the weapon visually arcs (LRM). SRM line-fires
+            // even from a mech and explodes at endpoint cell; roofs don't shield
+            // it if the rocket reached the interior through a doorway.
+            boolean aerial = weapon.arcHeight > 0f;
             ctx.queueDetonation(new PendingDetonation(
                     toX, toY, weapon.flightSec,
                     weapon.aoeRadius, weapon.damage, weapon.vsTurretMult,
-                    weapon.wallDamage, shooter.faction));
+                    weapon.wallDamage, shooter.faction, aerial));
         }
 
         float lifetime = weapon.flightSec > 0f ? weapon.flightSec : SHOT_LIFETIME;

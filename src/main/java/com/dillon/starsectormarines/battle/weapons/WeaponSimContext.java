@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.weapons;
 import com.dillon.starsectormarines.battle.PendingDetonation;
 import com.dillon.starsectormarines.battle.ShotEvent;
 import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.List;
@@ -27,6 +28,9 @@ public interface WeaponSimContext {
 
     /** The navigation grid — used for cover lookups, LOS checks, in-bounds tests. */
     NavigationGrid getGrid();
+
+    /** Per-cell render/categorization state. Detonations read this to check `buildingId` + `isRoofDestroyed` for the AoE roof-cave-in + roof-shield rules. */
+    CellTopology getTopology();
 
     /** Shared RNG — threaded through every probabilistic decision so deterministic-seed runs reproduce. */
     Random getRng();
@@ -104,6 +108,25 @@ public interface WeaponSimContext {
      * otherwise. Used by the AoE detonation pipeline for HE rockets.
      */
     boolean damageCell(int x, int y, int amount);
+
+    /**
+     * Caves in the roof at ({@code x}, {@code y}) — flips {@code Tag.ROOF_DESTROYED}
+     * on the cell and drops a rubble decal. No-op if the cell isn't part of a
+     * building or the roof is already gone. Called by the AoE detonation
+     * pipeline so indirect-fire weapons (LRM, mortar) can peel ceilings even
+     * when no wall collapses.
+     */
+    void destroyRoofCell(int x, int y);
+
+    /**
+     * Queues a "wall collapse" dust-burst FX event at world cell-center
+     * ({@code cellX}, {@code cellY}). The renderer (today: {@code FlybyOverlay})
+     * drains the queue each frame and spawns particles. Detonations with
+     * {@code spawnDustOnWallBreak} set call this on each wall they topple in
+     * radius; the flyby tracer-collapse path calls it directly for chip-fire
+     * wall hits.
+     */
+    void spawnDustBurst(float cellX, float cellY);
 
     /**
      * Spawns a smoking wreck at ({@code x}, {@code y}). Used by mech death

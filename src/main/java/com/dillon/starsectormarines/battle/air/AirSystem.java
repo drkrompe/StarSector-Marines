@@ -314,7 +314,7 @@ public class AirSystem {
                 if (mt.burstRemaining > 0) {
                     mt.burstTimer -= dt;
                     if (mt.burstTimer <= 0f) {
-                        sim.fireShotFrom(worldX, shotOriginY, s.faction, mt.mount.kind, mt.burstTarget);
+                        sim.fireShotFrom(worldX, shotOriginY, s.faction, mt.mount.kind, mt.burstTarget, /*aerialShooter*/ true);
                         mt.recoilTimer = 0f;
                         mt.ammo--;
                         mt.burstRemaining--;
@@ -325,7 +325,7 @@ public class AirSystem {
                 }
 
                 if (aim.fireThisTick) {
-                    sim.fireShotFrom(worldX, shotOriginY, s.faction, mt.mount.kind, aim.target);
+                    sim.fireShotFrom(worldX, shotOriginY, s.faction, mt.mount.kind, aim.target, /*aerialShooter*/ true);
                     mt.recoilTimer = 0f;
                     mt.ammo--;
                     // Burst weapons latch the remaining rounds; single-shot

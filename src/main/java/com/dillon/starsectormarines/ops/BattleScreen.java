@@ -310,7 +310,8 @@ public class BattleScreen implements Screen, BattleUiContext {
      * driven by mission data and (eventually) an animated cycle that ties
      * battle elapsed time to a dawn arrival of enemy reinforcements.
      */
-    private TimeOfDay timeOfDay = TimeOfDay.NIGHT;
+//    private TimeOfDay timeOfDay = TimeOfDay.NIGHT;
+    private TimeOfDay timeOfDay = TimeOfDay.DAY;
     private static final String SPRITE_DECAL_SHEET = "graphics/decals/decals.png";
     /** Per-{@link MarineSecondary} marine aim sheet — drawn instead of the regular type sheet while the marine is mid-aim animation. Same 7-frame WNES + weapon-up convention as the regular marine sheets, auto-sliced via {@link SpriteSheetSlicer}. */
     private final java.util.EnumMap<MarineSecondary, UnitSpriteCache> marineSecondaryAimSheets =

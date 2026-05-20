@@ -101,7 +101,7 @@ public enum MechWeapon {
                   5, 0.11f,
                   "graphics/missiles/missile_LRM.png", 0.65f, 1.40f,
                   5.0f, 1.5f, true,
-                  2.0f, 60);
+                  2.0f, 40);
 
     /**
      * Accuracy multiplier applied to LRM shots fired without direct line of

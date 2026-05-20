@@ -152,10 +152,14 @@ public class InfantryWeapons {
             toX = target.cellX + 0.5f + (float) Math.cos(angle) * spread;
             toY = target.cellY + 0.5f + (float) Math.sin(angle) * spread;
         }
+        // Marine handheld rocket is direct-fire (no arc) — explodes wherever
+        // the round lands. Reaches a roofed interior only via a doorway, in
+        // which case the splash should damage the inside normally, not be
+        // intercepted by the roof above.
         ctx.queueDetonation(new PendingDetonation(
                 toX, toY, sec.flightSec,
                 sec.aoeRadius, sec.damage, sec.vsTurretMult,
-                sec.wallDamage, shooter.faction));
+                sec.wallDamage, shooter.faction, /*aerialDelivery*/ false));
         // Secondary uses its per-weapon flightSec so rockets visibly travel.
         ctx.postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooter.faction, sec.flightSec,
                 null, null, sec));

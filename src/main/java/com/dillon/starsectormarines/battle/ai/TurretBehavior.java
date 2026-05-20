@@ -70,7 +70,7 @@ public final class TurretBehavior implements UnitBehavior {
         if (t.burstRemaining > 0) {
             t.burstTimer -= BattleSimulation.TICK_DT;
             if (t.burstTimer <= 0f) {
-                sim.fireShotFrom(t.cellX + 0.5f, t.cellY + 0.5f, t.faction, t.kind, t.burstTarget);
+                sim.fireShotFrom(t.cellX + 0.5f, t.cellY + 0.5f, t.faction, t.kind, t.burstTarget, /*aerialShooter*/ false);
                 t.recoilTimer = 0f;
                 t.burstRemaining--;
                 t.burstTimer = t.kind.burstSpacing;
@@ -84,7 +84,7 @@ public final class TurretBehavior implements UnitBehavior {
                 // Burst kinds route through fireShotFrom so the scatter / AoE /
                 // raycast pipeline applies. Latch the remaining rounds for the
                 // pump to drain.
-                sim.fireShotFrom(t.cellX + 0.5f, t.cellY + 0.5f, t.faction, t.kind, s.target);
+                sim.fireShotFrom(t.cellX + 0.5f, t.cellY + 0.5f, t.faction, t.kind, s.target, /*aerialShooter*/ false);
                 t.recoilTimer = 0f;
                 if (s.target != null && s.target.isAlive()) {
                     t.burstRemaining = t.kind.burstCount - 1;

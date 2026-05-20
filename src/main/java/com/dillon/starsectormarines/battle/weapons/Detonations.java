@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.weapons;
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.PendingDetonation;
 import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.map.CellTopology;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +36,18 @@ public class Detonations {
     }
 
     /**
+     * Fires a detonation immediately, bypassing the in-flight queue. Used by
+     * callers whose projectile flight time is already accounted for by their
+     * own visuals (today: {@code FlybyOverlay}'s fighter missile, which
+     * detonates on contact with the target's AoE radius rather than on a
+     * countdown timer). Avoids the 1-tick delay that would otherwise appear
+     * between the explosion FX and the damage application.
+     */
+    public void detonateNow(PendingDetonation det, WeaponSimContext ctx) {
+        detonate(det, ctx);
+    }
+
+    /**
      * Ticks every queued detonation; when one's timer drains, applies splash
      * + wall damage and removes it. Reverse iteration for in-place removal.
      */
@@ -57,12 +70,17 @@ public class Detonations {
      * are spared (the wall absorbed the splash for them).
      */
     private void detonate(PendingDetonation det, WeaponSimContext ctx) {
+        CellTopology topology = ctx.getTopology();
+        int targetCx = (int) Math.floor(det.endpointX);
+        int targetCy = (int) Math.floor(det.endpointY);
         if (det.aoeRadius > 0f) {
             float r2 = det.aoeRadius * det.aoeRadius;
-            int targetCx = (int) Math.floor(det.endpointX);
-            int targetCy = (int) Math.floor(det.endpointY);
             for (Unit u : ctx.getUnits()) {
                 if (!u.isAlive()) continue;
+                // Friendly-fire opt-out for called-in air support. Ground
+                // rockets / mech weapons leave the flag false so FF stays on
+                // by default — players deciding to fire those have aim control.
+                if (det.friendlyFireImmune && u.faction == det.shooterFaction) continue;
                 float dx = (u.cellX + 0.5f) - det.endpointX;
                 float dy = (u.cellY + 0.5f) - det.endpointY;
                 if (dx * dx + dy * dy > r2) continue;
@@ -70,14 +88,68 @@ public class Detonations {
                 // between block the splash — gives marines hiding behind
                 // walls a real reason to stay there.
                 if (!ctx.getGrid().hasLineOfSight(targetCx, targetCy, u.cellX, u.cellY)) continue;
+                // Intact roof shields the unit from aerial splash. Binary —
+                // caving the roof first (same detonation or a prior one) is
+                // the tactical prerequisite to actually hurting the units
+                // inside. Only fires for aerial deliveries (LRM / mortar /
+                // shuttle / fighter) — a ground rocket through a doorway
+                // explodes INSIDE the room and damages the interior normally.
+                if (det.aerialDelivery
+                        && topology.getBuildingId(u.cellX, u.cellY) != 0
+                        && !topology.isRoofDestroyed(u.cellX, u.cellY)) continue;
                 ctx.applyDamage(u, det.damage, det.vsTurretMult);
             }
+            // Roof cave-in: every building cell within the same AoE that
+            // still has an intact roof + clear LOS from the endpoint loses
+            // its ceiling. Drives the LRM / mortar "peel the roof off, then
+            // bombard" gameplay loop — wallDamage stays low on those weapons
+            // (they're indirect-fire arty, not breaching tools), but ceilings
+            // are soft and go fast.
+            int rCells = (int) Math.ceil(det.aoeRadius);
+            for (int dy = -rCells; dy <= rCells; dy++) {
+                for (int dx = -rCells; dx <= rCells; dx++) {
+                    int cx = targetCx + dx;
+                    int cy = targetCy + dy;
+                    if (!ctx.getGrid().inBounds(cx, cy)) continue;
+                    float cdx = (cx + 0.5f) - det.endpointX;
+                    float cdy = (cy + 0.5f) - det.endpointY;
+                    if (cdx * cdx + cdy * cdy > r2) continue;
+                    if (topology.getBuildingId(cx, cy) == 0) continue;
+                    if (topology.isRoofDestroyed(cx, cy)) continue;
+                    if (!ctx.getGrid().hasLineOfSight(targetCx, targetCy, cx, cy)) continue;
+                    ctx.destroyRoofCell(cx, cy);
+                }
+            }
         }
+        // Wall damage. Two modes — endpoint-only (rockets / LRMs / mech SRM:
+        // chip the wall they hit) or radius (heavy-blast variants like fighter
+        // missiles: flatten every wall in radius in one detonation). Dust
+        // burst on collapse is opt-in via spawnDustOnWallBreak.
         if (det.wallDamage > 0) {
-            int cx = (int) Math.floor(det.endpointX);
-            int cy = (int) Math.floor(det.endpointY);
-            if (ctx.getGrid().inBounds(cx, cy)) {
-                ctx.damageCell(cx, cy, det.wallDamage);
+            if (det.wallDamageRadius > 0f) {
+                float wr = det.wallDamageRadius;
+                float wr2 = wr * wr;
+                int minX = (int) Math.floor(det.endpointX - wr);
+                int maxX = (int) Math.floor(det.endpointX + wr);
+                int minY = (int) Math.floor(det.endpointY - wr);
+                int maxY = (int) Math.floor(det.endpointY + wr);
+                for (int cy = minY; cy <= maxY; cy++) {
+                    for (int cx = minX; cx <= maxX; cx++) {
+                        float cdx = (cx + 0.5f) - det.endpointX;
+                        float cdy = (cy + 0.5f) - det.endpointY;
+                        if (cdx * cdx + cdy * cdy > wr2) continue;
+                        if (ctx.damageCell(cx, cy, det.wallDamage)) {
+                            if (det.spawnDustOnWallBreak) {
+                                ctx.spawnDustBurst(cx + 0.5f, cy + 0.5f);
+                            }
+                        }
+                    }
+                }
+            } else if (ctx.getGrid().inBounds(targetCx, targetCy)) {
+                if (ctx.damageCell(targetCx, targetCy, det.wallDamage)
+                        && det.spawnDustOnWallBreak) {
+                    ctx.spawnDustBurst(targetCx + 0.5f, targetCy + 0.5f);
+                }
             }
         }
     }
