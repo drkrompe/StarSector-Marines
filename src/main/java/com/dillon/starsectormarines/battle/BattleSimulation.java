@@ -929,6 +929,11 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // static STRUCTUREs sitting on sealed non-walkable cells, so leaving
         // the cell sealed after death would orphan an invisible obstacle.
         demolishDeadDroneHubs();
+        // Drone crash sequence: detect newly-dead drones, tick their fall
+        // timer, drop a SmokingWreck on impact. Runs after the hub demolition
+        // pass so a hub destruction (which kills its drones via setting hp=0)
+        // gets the crashes started on the same tick.
+        tickDroneCrashes();
         // Age smoking wrecks + emit any puff events that came due this tick.
         tickSmokingWrecks();
         // Lingering smoke plumes parked at HE impact sites — same per-frame
@@ -1126,6 +1131,56 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             zoneGraphDirty = true;
             smokingWrecks.add(new SmokingWreck(h.cellX, h.cellY, WRECK_LIFETIME,
                     0.05f + rng.nextFloat() * 0.10f));
+            // Cascading kill: drones launched from this hub lose control and
+            // crash with it. Set hp=0 here; tickDroneCrashes (next call in
+            // the tick chain) starts the per-drone fall sequence + impact FX.
+            for (Unit other : units) {
+                if (!(other instanceof Drone)) continue;
+                Drone d = (Drone) other;
+                if (!d.isAlive() || d.homeHub != h) continue;
+                d.hp = 0f;
+            }
+        }
+    }
+
+    /**
+     * Per-tick crash sequence for {@link Drone}s that just lost HP. Three
+     * phases per drone:
+     * <ol>
+     *   <li><b>Just-died</b> (alive=false, !crashStarted): mark
+     *       {@code crashStarted}, latch {@code crashTimer = CRASH_DURATION_SEC},
+     *       puff smoke from the body position.</li>
+     *   <li><b>Falling</b> (crashStarted, crashTimer &gt; 0): tick the timer
+     *       down, spin the body facing for visual chaos. The renderer reads
+     *       this state and draws the drone with a fade-out overlay.</li>
+     *   <li><b>Impact</b> (crashTimer &lt;= 0, !crashed): spawn a
+     *       {@link SmokingWreck} at the body's floor cell; mark
+     *       {@code crashed} so the unit drops off the renderer.</li>
+     * </ol>
+     *
+     * <p>Runs in the main tick chain after {@link #demolishDeadDroneHubs} so a
+     * hub-cascade kill enters the crash sequence the same tick it dies.
+     */
+    private void tickDroneCrashes() {
+        for (Unit u : units) {
+            if (!(u instanceof Drone)) continue;
+            Drone d = (Drone) u;
+            if (d.crashed) continue;
+            if (d.isAlive()) continue;
+            if (!d.crashStarted) {
+                d.crashStarted = true;
+                d.crashTimer = Drone.CRASH_DURATION_SEC;
+                spawnSmokePlume(d.body.x, d.body.y);
+            }
+            d.crashTimer -= TICK_DT;
+            d.body.facingDegrees += Drone.CRASH_SPIN_DEG_PER_SEC * TICK_DT;
+            if (d.crashTimer <= 0f) {
+                int wx = Math.max(0, Math.min(grid.getWidth() - 1, (int) Math.floor(d.body.x)));
+                int wy = Math.max(0, Math.min(grid.getHeight() - 1, (int) Math.floor(d.body.y)));
+                smokingWrecks.add(new SmokingWreck(wx, wy, WRECK_LIFETIME,
+                        0.05f + rng.nextFloat() * 0.10f));
+                d.crashed = true;
+            }
         }
     }
 

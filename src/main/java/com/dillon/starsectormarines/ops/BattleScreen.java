@@ -3073,7 +3073,10 @@ public class BattleScreen implements Screen, BattleUiContext {
     private void renderDrones(List<Unit> units, float alphaMult) {
         boolean any = false;
         for (Unit u : units) {
-            if (u instanceof com.dillon.starsectormarines.battle.Drone && u.isAlive()) { any = true; break; }
+            if (!(u instanceof com.dillon.starsectormarines.battle.Drone)) continue;
+            com.dillon.starsectormarines.battle.Drone d = (com.dillon.starsectormarines.battle.Drone) u;
+            if (d.crashed) continue;
+            if (d.isAlive() || d.crashStarted) { any = true; break; }
         }
         if (!any) return;
         ensureDroneSprite();
@@ -3083,19 +3086,31 @@ public class BattleScreen implements Screen, BattleUiContext {
         float visual = com.dillon.starsectormarines.battle.Drone.VISUAL_CELLS;
         float barW = camera.cellPxSize() * 0.9f;
         for (Unit u : units) {
-            if (!(u instanceof com.dillon.starsectormarines.battle.Drone) || !u.isAlive()) continue;
+            if (!(u instanceof com.dillon.starsectormarines.battle.Drone)) continue;
             com.dillon.starsectormarines.battle.Drone d = (com.dillon.starsectormarines.battle.Drone) u;
+            if (d.crashed) continue; // settled — wreck on the ground handles it
+            boolean alive = d.isAlive();
+            if (!alive && !d.crashStarted) continue; // dead but not crashing yet
             float cx = camera.cellToScreenX(d.body.x);
             float cy = camera.cellToScreenY(d.body.y);
-            drawTurretLayer(droneSprite, d.body.facingDegrees, visual, cellPx, cx, cy, alphaMult);
-            // HP bar follows the body's interpolated position so it tracks
-            // patrol motion. Drawn here (post-roof) so it's visible alongside
-            // the drone sprite even when the drone is over a building.
-            float barY = cy + visual * cellPx / 2f + HP_BAR_GAP;
-            float barX = cx - barW / 2f;
-            fillRect(barX, barY, barW, HP_BAR_H, HP_BG, alphaMult);
-            float frac = Math.max(0f, Math.min(1f, d.hp / d.maxHp));
-            fillRect(barX, barY, barW * frac, HP_BAR_H, HP_FG, alphaMult);
+            // Crashing drones fade as they fall — alpha tracks remaining
+            // crash time so the sprite is fully opaque on death and fully
+            // gone at impact (when the SmokingWreck takes over visually).
+            float drawAlpha = alphaMult;
+            if (!alive) {
+                float t = Math.max(0f, Math.min(1f, d.crashTimer / com.dillon.starsectormarines.battle.Drone.CRASH_DURATION_SEC));
+                drawAlpha *= t;
+            }
+            drawTurretLayer(droneSprite, d.body.facingDegrees, visual, cellPx, cx, cy, drawAlpha);
+            // HP bar only for live drones — a crashing drone is past the
+            // point where the bar communicates anything useful.
+            if (alive) {
+                float barY = cy + visual * cellPx / 2f + HP_BAR_GAP;
+                float barX = cx - barW / 2f;
+                fillRect(barX, barY, barW, HP_BAR_H, HP_BG, alphaMult);
+                float frac = Math.max(0f, Math.min(1f, d.hp / d.maxHp));
+                fillRect(barX, barY, barW * frac, HP_BAR_H, HP_FG, alphaMult);
+            }
         }
         droneSprite.sprite.setAngle(0f);
     }

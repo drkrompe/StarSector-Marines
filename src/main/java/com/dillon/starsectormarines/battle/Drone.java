@@ -95,6 +95,33 @@ public class Drone extends Unit {
     /** Re-roll the patrol waypoint when the drone gets within this many cells. */
     public static final float PATROL_WAYPOINT_ARRIVE_DIST = 1.2f;
 
+    /**
+     * Sim-seconds the crash animation runs from kill to ground impact. Short
+     * enough that the player feels the kill snap to a wreck; long enough that
+     * the spin + fade reads as a deliberate "out-of-control fall" rather than
+     * a glitch.
+     */
+    public static final float CRASH_DURATION_SEC = 0.7f;
+
+    /**
+     * Spin rate applied to the drone's body facing during the crash, deg/sec.
+     * Fast enough to read as a tumble — about two full revolutions over the
+     * crash window. Combined with the alpha fade, the drone "spirals down"
+     * before exploding into the SmokingWreck FX at impact.
+     */
+    public static final float CRASH_SPIN_DEG_PER_SEC = 720f;
+
+    /**
+     * Crash state — three-phase lifecycle: alive (default flags) → falling
+     * (crashStarted, crashTimer counts down) → settled (crashed). The
+     * sim's {@code tickDroneCrashes} pass walks these transitions; the
+     * renderer reads {@link #crashStarted} + {@link #crashed} to decide
+     * whether to draw the falling sprite with the spin/fade overlay.
+     */
+    public boolean crashStarted = false;
+    public float crashTimer = 0f;
+    public boolean crashed = false;
+
     public Drone(String id, Faction faction, int cellX, int cellY, DroneHubUnit homeHub) {
         super(id, faction, UnitType.DRONE, cellX, cellY);
         this.homeHub = homeHub;
