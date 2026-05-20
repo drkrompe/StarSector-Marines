@@ -1751,21 +1751,55 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      */
     public void fireShotFrom(float fromX, float fromY, Faction shooterFaction,
                              TurretKind kind, Unit target, boolean aerialShooter) {
-        boolean hit = rng.nextFloat() < kind.accuracy;
-        boolean isAoe = kind.aoeRadius > 0f;
-        // Aerial delivery if the shooter is elevated (shuttle mount) or the
-        // weapon kind inherently lobs (grenade launcher). Used to decide
-        // whether intact roofs intercept this shot.
-        boolean aerialDelivery = aerialShooter || kind.arcHeight > 0f;
+        // Default to hasLos=true — direct-fire callers (every existing path)
+        // already gate LoS in the aim loop, so by the time the shot is taken,
+        // the shooter sees the target. Indirect-fire callers use the explicit
+        // overload to pass the actual LoS state.
+        fireShotFrom(fromX, fromY, shooterFaction, kind, target, aerialShooter, /*hasLos*/ true);
+    }
+
+    /**
+     * LoS-aware fire. For indirect-fire kinds ({@link TurretKind#indirectFire})
+     * applies two accuracy modifiers on top of the kind's base accuracy:
+     * <ul>
+     *   <li><b>Quadratic distance falloff</b> — effective accuracy scales by
+     *       {@code 1 - (d/range)²}. Preserves base accuracy near the battery,
+     *       drops off fast at the edge of envelope. Direct-fire kinds skip
+     *       this; their effective accuracy is the flat per-kind value.</li>
+     *   <li><b>No-LoS multiplier</b> — when {@code hasLos} is false, accuracy
+     *       is also multiplied by {@link TurretKind#noLosAccuracyMult}.
+     *       Reads as "battery firing on a spotted target without optics on it
+     *       — the salvo lands in the area but individual rockets fly wider."
+     *       Mirrors the mech LRM path's
+     *       {@link com.dillon.starsectormarines.battle.MechWeapon#LRM_NO_LOS_ACC_MULT}.</li>
+     * </ul>
+     */
+    public void fireShotFrom(float fromX, float fromY, Faction shooterFaction,
+                             TurretKind kind, Unit target, boolean aerialShooter, boolean hasLos) {
         // Distance-scale hitSpread — fixed barrel angular error projects
         // linearly to lateral spread on the ground (radius scales with
         // distance; area covered with distance squared). Close shots
         // cluster on the target; max-range shots open up to the full
         // designed spread. Capped at 1.0× so a beyond-range shot doesn't
-        // exceed the design value.
+        // exceed the design value. Lifted ahead of the hit roll so the
+        // indirect-fire path can reuse the distance for its accuracy
+        // falloff without recomputing.
         float distToTarget = (float) Math.sqrt(
                 (target.cellX + 0.5f - fromX) * (target.cellX + 0.5f - fromX) +
                 (target.cellY + 0.5f - fromY) * (target.cellY + 0.5f - fromY));
+        float effectiveAccuracy = kind.accuracy;
+        if (kind.indirectFire) {
+            float distNorm = Math.min(1f, distToTarget / Math.max(0.0001f, kind.range));
+            float distFalloff = Math.max(0f, 1f - distNorm * distNorm);
+            float losMult = hasLos ? 1f : kind.noLosAccuracyMult;
+            effectiveAccuracy *= distFalloff * losMult;
+        }
+        boolean hit = rng.nextFloat() < effectiveAccuracy;
+        boolean isAoe = kind.aoeRadius > 0f;
+        // Aerial delivery if the shooter is elevated (shuttle mount) or the
+        // weapon kind inherently lobs (grenade launcher). Used to decide
+        // whether intact roofs intercept this shot.
+        boolean aerialDelivery = aerialShooter || kind.arcHeight > 0f;
         float effectiveSpread = kind.hitSpread * Math.min(1f, distToTarget / kind.range);
 
         // Compute the visual endpoint with hit-spread / miss-scatter first —

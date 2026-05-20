@@ -19,11 +19,13 @@ package com.dillon.starsectormarines.battle;
 public enum DefensePostKind {
 
     /** Single light turret in a 4-cell vent ring. Beach-tier flavor — small footprint, militia-only squad. */
-    LIGHT (1, 4, 60, 4),
+    LIGHT    (1, 4, 60, 4),
     /** Single mid-weight turret in an 8-cell sandbag embankment. Port-tier — readable as deliberate fortification, mostly militia with 1-2 regulars. */
-    MEDIUM(1, 6, 70, 6),
+    MEDIUM   (1, 6, 70, 6),
     /** 2-3 turrets in an extended embankment line. Kill-zone tier — mixed regulars + heavy turrets, longest patrol leash. */
-    LARGE (3, 8, 80, 8);
+    LARGE    (3, 8, 80, 8),
+    /** Two-LOCUST rocket battery in a 5×3 bow-out embankment, placed deep in the fortress interior (behind the kremlin wall). Long-range salvo emplacement — battery crew is small (4) and stays on the launchers, hence the tight patrol radius. Higher priority than LARGE so the defender allocator fills artillery first when the roster runs short — losing the battery means losing the long-range threat that punishes the attacker's approach. */
+    ARTILLERY(2, 4, 85, 3);
 
     /** How many MapTurret cells this tier stamps at the post's center. LARGE spreads them across the extended footprint. */
     public final int turretCount;

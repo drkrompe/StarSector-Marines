@@ -35,6 +35,11 @@ import java.util.Random;
  *       {@link DefensePostKind#LARGE} posts (2 turrets in an extended embankment
  *       line, mixed regulars). Placed in the kill-zone buffer between the
  *       biome's attacker-facing edge and the fortress wall.</li>
+ *   <li>{@link BiomeKind#FORTRESS_DISTRICT} rear — 1-2
+ *       {@link DefensePostKind#ARTILLERY} posts (2 LOCUST rocket-battery turrets
+ *       in a 5×3 bow-out embankment). Placed BEHIND the fortress wall (2-10
+ *       cells past the wall, inside the kremlin proper) so the long-range
+ *       salvos arc over the wall into the kill zone and beyond.</li>
  * </ul>
  *
  * <p>Each post stamps:
@@ -59,9 +64,11 @@ import java.util.Random;
 public final class DefensePostStamper {
 
     /** Per-biome stamp budgets — rolled inside {@link #stamp} as MIN + rng.nextInt(MAX - MIN + 1). */
-    private static final int BEACH_LIGHT_MIN     = 1, BEACH_LIGHT_MAX     = 2;
-    private static final int PORT_MEDIUM_MIN     = 2, PORT_MEDIUM_MAX     = 3;
-    private static final int FORTRESS_LARGE_MIN  = 3, FORTRESS_LARGE_MAX  = 5;
+    private static final int BEACH_LIGHT_MIN         = 1, BEACH_LIGHT_MAX         = 2;
+    private static final int PORT_MEDIUM_MIN         = 2, PORT_MEDIUM_MAX         = 3;
+    private static final int FORTRESS_LARGE_MIN      = 3, FORTRESS_LARGE_MAX      = 5;
+    /** Artillery batteries are rare (1-2 per battle) — a single battery already controls a wide arc with LOCUST's 42-cell range, and two on the same map is enough to make the whole approach feel suppressed. */
+    private static final int FORTRESS_ARTILLERY_MIN  = 1, FORTRESS_ARTILLERY_MAX  = 2;
 
     /** Minimum center-to-center distance between any two placed posts. Stops clumping. */
     private static final int POST_MIN_SEPARATION = 14;
@@ -69,6 +76,10 @@ public final class DefensePostStamper {
     private static final int FORTRESS_EDGE_BUFFER_NEAR = 2;
     /** Anchor max-offset from the attacker-facing biome edge — keeps posts in the kill-zone strip ahead of the wall (the wall sits ~12 cells in via {@code FortressWallStamper.SETBACK_CELLS}; post footprint reaches 1 cell past anchor). Cells inside the wall fail walkability validation anyway, but bounding the search keeps placement attempts efficient. */
     private static final int FORTRESS_EDGE_BUFFER_FAR = 10;
+    /** Artillery rear-band: minimum depth from the attacker-facing edge of FORTRESS_DISTRICT. The wall sits at depth ~12; this offset puts the battery 2 cells PAST the wall, inside the kremlin proper. */
+    private static final int FORTRESS_ARTILLERY_DEPTH_NEAR = 14;
+    /** Artillery rear-band: maximum depth from the attacker-facing edge. Caps placement at ~10 cells past the wall — deep enough to feel like rear-area artillery, but bounded so the search doesn't drift into the far edge of the fortress (which on small maps can be only a few cells deeper). */
+    private static final int FORTRESS_ARTILLERY_DEPTH_FAR  = 22;
     /** Cells to look outward when sliding off an unsuitable anchor. */
     private static final int ANCHOR_SLIDE_RADIUS = 6;
     /** Attempts per post before giving up — large enough that tight maps still place SOMETHING per budget. */
@@ -91,16 +102,21 @@ public final class DefensePostStamper {
         int w = grid.getWidth();
         int h = grid.getHeight();
 
-        int beachCount    = BEACH_LIGHT_MIN    + rng.nextInt(BEACH_LIGHT_MAX    - BEACH_LIGHT_MIN    + 1);
-        int portCount     = PORT_MEDIUM_MIN    + rng.nextInt(PORT_MEDIUM_MAX    - PORT_MEDIUM_MIN    + 1);
-        int fortressCount = FORTRESS_LARGE_MIN + rng.nextInt(FORTRESS_LARGE_MAX - FORTRESS_LARGE_MIN + 1);
+        int beachCount     = BEACH_LIGHT_MIN        + rng.nextInt(BEACH_LIGHT_MAX        - BEACH_LIGHT_MIN        + 1);
+        int portCount      = PORT_MEDIUM_MIN        + rng.nextInt(PORT_MEDIUM_MAX        - PORT_MEDIUM_MIN        + 1);
+        int fortressCount  = FORTRESS_LARGE_MIN     + rng.nextInt(FORTRESS_LARGE_MAX     - FORTRESS_LARGE_MIN     + 1);
+        int artilleryCount = FORTRESS_ARTILLERY_MIN + rng.nextInt(FORTRESS_ARTILLERY_MAX - FORTRESS_ARTILLERY_MIN + 1);
 
         placePosts(grid, topology, biomeMap, axis, doodads, tactical, defensePosts, rng,
-                BiomeKind.BEACH,             DefensePostKind.LIGHT,  beachCount,    w, h);
+                BiomeKind.BEACH,             DefensePostKind.LIGHT,     beachCount,     w, h);
         placePosts(grid, topology, biomeMap, axis, doodads, tactical, defensePosts, rng,
-                BiomeKind.PORT,              DefensePostKind.MEDIUM, portCount,     w, h);
+                BiomeKind.PORT,              DefensePostKind.MEDIUM,    portCount,      w, h);
         placePosts(grid, topology, biomeMap, axis, doodads, tactical, defensePosts, rng,
-                BiomeKind.FORTRESS_DISTRICT, DefensePostKind.LARGE,  fortressCount, w, h);
+                BiomeKind.FORTRESS_DISTRICT, DefensePostKind.LARGE,     fortressCount,  w, h);
+        // Artillery shares the FORTRESS_DISTRICT biome but lives in a deeper
+        // band — placePosts() reads the tier to pick the rear clamp.
+        placePosts(grid, topology, biomeMap, axis, doodads, tactical, defensePosts, rng,
+                BiomeKind.FORTRESS_DISTRICT, DefensePostKind.ARTILLERY, artilleryCount, w, h);
     }
 
     /**
@@ -119,22 +135,27 @@ public final class DefensePostStamper {
         int bLeft = bbox[0], bTop = bbox[1], bRight = bbox[2], bBot = bbox[3];
 
         // Fortress kill zone — clamp anchors to the attacker-side strip of the
-        // biome, between the biome edge and the fortress wall.
+        // biome, between the biome edge and the fortress wall (LARGE) OR to
+        // the rear strip behind the wall, inside the kremlin proper (ARTILLERY).
         if (biome == BiomeKind.FORTRESS_DISTRICT) {
+            boolean rear = tier == DefensePostKind.ARTILLERY;
+            int nearBuf = rear ? FORTRESS_ARTILLERY_DEPTH_NEAR : FORTRESS_EDGE_BUFFER_NEAR;
+            int farBuf  = rear ? FORTRESS_ARTILLERY_DEPTH_FAR  : FORTRESS_EDGE_BUFFER_FAR;
             if (axis == TraversalAxis.SOUTH_TO_NORTH) {
-                int killZoneTop = Math.min(bBot, bTop + FORTRESS_EDGE_BUFFER_FAR);
-                bTop = bTop + FORTRESS_EDGE_BUFFER_NEAR;
-                bBot = killZoneTop;
+                int bandBot = Math.min(bBot, bTop + farBuf);
+                bTop = bTop + nearBuf;
+                bBot = bandBot;
             } else {
-                int killZoneRight = Math.min(bRight, bLeft + FORTRESS_EDGE_BUFFER_FAR);
-                bLeft = bLeft + FORTRESS_EDGE_BUFFER_NEAR;
-                bRight = killZoneRight;
+                int bandRight = Math.min(bRight, bLeft + farBuf);
+                bLeft = bLeft + nearBuf;
+                bRight = bandRight;
             }
         }
         // Minimum bbox span the biome must offer — every LARGE shape fits in
-        // either 5×3 (LINE_H/WEDGE/TRAPEZOID) or 3×5 (LINE_V), so the biome
-        // needs at least 5 cells in one direction to host any LARGE post.
-        int minSpanLong = (tier == DefensePostKind.LARGE) ? 5 : 3;
+        // either 5×3 (LINE_H/WEDGE/TRAPEZOID) or 3×5 (LINE_V), and ARTILLERY
+        // uses the same 5×3 footprint as LINE_H. Both need at least 5 cells
+        // in one direction to host the post.
+        int minSpanLong = (tier == DefensePostKind.LARGE || tier == DefensePostKind.ARTILLERY) ? 5 : 3;
         if (bRight - bLeft < minSpanLong) return;
         if (bBot - bTop < minSpanLong) return;
 
@@ -172,10 +193,11 @@ public final class DefensePostStamper {
         }
     }
 
-    /** Footprint half-extent on X for the given tier+shape combo. */
+    /** Footprint half-extent on X for the given tier+shape combo. ARTILLERY shares LARGE's 5×3 LINE_H footprint (halfX=2). */
     private static int shapeHalfX(DefensePostKind tier, DefensePostShape shape) {
         if (shape != null) return shape.halfX;
-        return (tier == DefensePostKind.LARGE) ? 2 : 1;
+        if (tier == DefensePostKind.LARGE || tier == DefensePostKind.ARTILLERY) return 2;
+        return 1;
     }
 
     /** Footprint half-extent on Y for the given tier+shape combo. */
@@ -291,9 +313,10 @@ public final class DefensePostStamper {
                                          DefensePostShape shape,
                                          int cx, int cy, Random rng) {
         switch (tier) {
-            case LIGHT:  return stampLight(grid, topology, doodads, cx, cy);
-            case MEDIUM: return stampMedium(grid, topology, doodads, cx, cy);
-            case LARGE:  return stampLarge(grid, topology, doodads, shape, cx, cy);
+            case LIGHT:     return stampLight(grid, topology, doodads, cx, cy);
+            case MEDIUM:    return stampMedium(grid, topology, doodads, cx, cy);
+            case LARGE:     return stampLarge(grid, topology, doodads, shape, cx, cy);
+            case ARTILLERY: return stampArtillery(grid, topology, doodads, cx, cy);
         }
         throw new IllegalStateException("Unhandled tier " + tier);
     }
@@ -521,6 +544,44 @@ public final class DefensePostStamper {
         turrets.add(new DefensePost.TurretSpec(TurretKind.HEPHAESTUS, cx + 1, cy + 1));
         turrets.add(new DefensePost.TurretSpec(TurretKind.HEPHAESTUS, cx,     cy - 1));
         return new DefensePost(DefensePostKind.LARGE, cx, cy, turrets);
+    }
+
+    /**
+     * ARTILLERY post: 5×3 bow-out embankment with two LOCUST rocket batteries
+     * at {@code (cx±1, cy)}. Footprint geometry mirrors {@link #stampLargeLineH}
+     * — same 10-cell ring, same two turret pads, same sealed inner cell — but
+     * uses the chunkier {@link TileManifest#turretBowOut} art instead of the
+     * thinner sandbag embankment, and stamps {@link TurretKind#LOCUST} instead
+     * of {@code HEPHAESTUS}. Reads as a fortified rocket battery deep in the
+     * kremlin interior, lobbing salvos over the wall.
+     * <pre>
+     *   NW  N  N  N  NE
+     *   W   T1 .  T2 E
+     *   SW  S  S  S  SE
+     * </pre>
+     */
+    private static DefensePost stampArtillery(NavigationGrid grid, CellTopology topology,
+                                              List<Doodad> doodads, int cx, int cy) {
+        stampRingCell(grid, topology, doodads, cx - 2, cy + 1, TileManifest.turretBowOut(-1,  1));
+        stampRingCell(grid, topology, doodads, cx - 1, cy + 1, TileManifest.turretBowOut( 0,  1));
+        stampRingCell(grid, topology, doodads, cx,     cy + 1, TileManifest.turretBowOut( 0,  1));
+        stampRingCell(grid, topology, doodads, cx + 1, cy + 1, TileManifest.turretBowOut( 0,  1));
+        stampRingCell(grid, topology, doodads, cx + 2, cy + 1, TileManifest.turretBowOut( 1,  1));
+        stampRingCell(grid, topology, doodads, cx - 2, cy - 1, TileManifest.turretBowOut(-1, -1));
+        stampRingCell(grid, topology, doodads, cx - 1, cy - 1, TileManifest.turretBowOut( 0, -1));
+        stampRingCell(grid, topology, doodads, cx,     cy - 1, TileManifest.turretBowOut( 0, -1));
+        stampRingCell(grid, topology, doodads, cx + 1, cy - 1, TileManifest.turretBowOut( 0, -1));
+        stampRingCell(grid, topology, doodads, cx + 2, cy - 1, TileManifest.turretBowOut( 1, -1));
+        stampRingCell(grid, topology, doodads, cx - 2, cy,     TileManifest.turretBowOut(-1,  0));
+        stampRingCell(grid, topology, doodads, cx + 2, cy,     TileManifest.turretBowOut( 1,  0));
+        stampTurretCenter(grid, topology, cx - 1, cy);
+        stampTurretCenter(grid, topology, cx + 1, cy);
+        sealInnerCell(grid, topology, cx, cy);
+
+        List<DefensePost.TurretSpec> turrets = new ArrayList<>(2);
+        turrets.add(new DefensePost.TurretSpec(TurretKind.LOCUST, cx - 1, cy));
+        turrets.add(new DefensePost.TurretSpec(TurretKind.LOCUST, cx + 1, cy));
+        return new DefensePost(DefensePostKind.ARTILLERY, cx, cy, turrets);
     }
 
     /**

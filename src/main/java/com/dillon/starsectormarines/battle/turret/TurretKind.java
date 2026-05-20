@@ -64,8 +64,8 @@ public enum TurretKind {
                   "Heavy Mortar",
                   36f,  9.0f, 0.55f,  2.50f, 75f,  60f, 1.8f, 0.28f, TurretRole.A2G,  15),
     /** Rapid-fire flak — defensive area sweep. Wide turn rate, fast cooldown. */
-    DUAL_FLAK    ("graphics/weapons/dual_flak_cannon_turret_base.png",
-                  "graphics/weapons/dual_flak_cannon_turret_recoil.png",
+    DUAL_FLAK    ("graphics/weapons/double_flak_cannon_turret_base.png",
+                  "graphics/weapons/double_flak_cannon_turret_recoil.png",
                   "graphics/missiles/shell_large_blue.png",
                   "flak_fire",
                   "Dual Flak Cannon",
@@ -94,6 +94,37 @@ public enum TurretKind {
                   /*burst*/ 4, 0.18f, /*aoe*/ 1.5f, /*wallDmg*/ 30,
                   /*arc*/ 2.5f, /*flightSec*/ 0.65f, /*hitSpread*/ 0.6f,
                   /*minRange*/ 5f, /*smokeTrail*/ true),
+    /**
+     * Long-range rocket battery — defender-side indirect-fire area denial.
+     * Each trigger pull rips an 8-rocket salvo at the locked target; rounds
+     * fly dumb (the vanilla Locust's smart-tracking is dropped here) with
+     * moderate scatter, smoke-trail the whole way, then detonate with a
+     * small AoE at the landing cell. Long cooldown between salvos so one
+     * launcher can't sustain fire — they're meant to break a push, not
+     * grind one. Range 100 covers half of a 200-cell Conquest map —
+     * fortress + kill zone + port + city, but not the beach LZ.
+     *
+     * <p><b>Indirect fire</b>: {@link #indirectFire} = {@code true}, so the
+     * turret keeps the target locked when LoS breaks (the kremlin wall
+     * blocks LoS to anything in the kill zone). Accuracy uses quadratic
+     * distance falloff <em>and</em> a {@link #noLosAccuracyMult} when the
+     * shot is fired blind — see {@link com.dillon.starsectormarines.battle.BattleSimulation#fireShotFrom}.
+     *
+     * <p>Sprite ported from the base-game Locust SRM Launcher (ship weapon),
+     * reused as a planetary defense emplacement; no {@code _recoil} variant
+     * ships with the source asset, so the base sprite stands in for both.
+     */
+    LOCUST       ("graphics/weapons/locust_turret.png",
+                  "graphics/weapons/locust_turret.png",
+                  "graphics/missiles/missile_locust.png",
+                  "swarmer_fire",
+                  "Locust Rocket Battery",
+                  100f, 5.0f, 0.50f,  5.00f, 80f,  50f, 2.0f, 0.45f, TurretRole.A2G,  30,
+                  /*burst*/ 8, 0.08f, /*aoe*/ 1.4f, /*wallDmg*/ 20,
+                  /*arc*/ 3.5f, /*flightSec*/ 1.50f, /*hitSpread*/ 1.2f,
+                  /*minRange*/ 15f, /*smokeTrail*/ true,
+                  /*raycastShots*/ false,
+                  /*indirectFire*/ true, /*noLosAccuracyMult*/ 0.55f),
     /**
      * Heavy MG — wide-spread suppression. Each trigger pull rips a long
      * tracer burst toward the lock; rounds scatter across a wide pattern
@@ -195,6 +226,25 @@ public enum TurretKind {
      * elevated above the buildings they fire over.
      */
     public final boolean raycastShots;
+    /**
+     * When {@code true}, this kind can engage targets it has no direct line of
+     * sight to — artillery / indirect-fire weapons. The aim loop keeps the
+     * target locked when LoS breaks; the fire path applies a quadratic
+     * range-falloff on accuracy ({@code 1 - (d/range)²}) and multiplies by
+     * {@link #noLosAccuracyMult} on shots fired blind.
+     *
+     * <p>Direct-fire kinds leave this {@code false} — they retain the existing
+     * "drop target on LoS loss" behavior and use flat per-kind accuracy.
+     */
+    public final boolean indirectFire;
+    /**
+     * Accuracy multiplier applied to shots fired without direct line of sight,
+     * when {@link #indirectFire} is {@code true}. Ignored for direct-fire
+     * kinds. Mirrors {@link com.dillon.starsectormarines.battle.MechWeapon#LRM_NO_LOS_ACC_MULT}
+     * — "battery knows roughly where the target is via squad spotting / data
+     * link, but each rocket flies wider without a direct sightline."
+     */
+    public final float noLosAccuracyMult;
 
     TurretKind(String spritePath, String recoilSpritePath, String projectileSpritePath, String fireSoundId,
                String displayName,
@@ -206,7 +256,8 @@ public enum TurretKind {
                 role, startingAmmo,
                 /*burstCount*/ 1, /*burstSpacing*/ 0f, /*aoeRadius*/ 0f, /*wallDamage*/ 0,
                 /*arcHeight*/ 0f, /*flightSec*/ 0f, /*hitSpread*/ 0f, /*minRange*/ 0f,
-                /*smokeTrail*/ false, /*raycastShots*/ false);
+                /*smokeTrail*/ false, /*raycastShots*/ false,
+                /*indirectFire*/ false, /*noLosAccuracyMult*/ 1.0f);
     }
 
     TurretKind(String spritePath, String recoilSpritePath, String projectileSpritePath, String fireSoundId,
@@ -222,7 +273,8 @@ public enum TurretKind {
                 role, startingAmmo,
                 burstCount, burstSpacing, aoeRadius, wallDamage,
                 arcHeight, flightSec, hitSpread, minRange, smokeTrail,
-                /*raycastShots*/ false);
+                /*raycastShots*/ false,
+                /*indirectFire*/ false, /*noLosAccuracyMult*/ 1.0f);
     }
 
     TurretKind(String spritePath, String recoilSpritePath, String projectileSpritePath, String fireSoundId,
@@ -233,6 +285,23 @@ public enum TurretKind {
                int burstCount, float burstSpacing, float aoeRadius, int wallDamage,
                float arcHeight, float flightSec, float hitSpread, float minRange,
                boolean smokeTrail, boolean raycastShots) {
+        this(spritePath, recoilSpritePath, projectileSpritePath, fireSoundId, displayName,
+                range, damage, accuracy, cooldown, maxHp, turnRateDegPerSec, visualCells, projectileVisualCells,
+                role, startingAmmo,
+                burstCount, burstSpacing, aoeRadius, wallDamage,
+                arcHeight, flightSec, hitSpread, minRange, smokeTrail, raycastShots,
+                /*indirectFire*/ false, /*noLosAccuracyMult*/ 1.0f);
+    }
+
+    TurretKind(String spritePath, String recoilSpritePath, String projectileSpritePath, String fireSoundId,
+               String displayName,
+               float range, float damage, float accuracy, float cooldown,
+               float maxHp, float turnRateDegPerSec, float visualCells, float projectileVisualCells,
+               TurretRole role, int startingAmmo,
+               int burstCount, float burstSpacing, float aoeRadius, int wallDamage,
+               float arcHeight, float flightSec, float hitSpread, float minRange,
+               boolean smokeTrail, boolean raycastShots,
+               boolean indirectFire, float noLosAccuracyMult) {
         this.spritePath = spritePath;
         this.recoilSpritePath = recoilSpritePath;
         this.projectileSpritePath = projectileSpritePath;
@@ -258,13 +327,16 @@ public enum TurretKind {
         this.minRange = minRange;
         this.smokeTrail = smokeTrail;
         this.raycastShots = raycastShots;
+        this.indirectFire = indirectFire;
+        this.noLosAccuracyMult = noLosAccuracyMult;
     }
 
     /** Visual impact profile for this kind — small spark for the fast/light weapons, kinetic flash + smoke for the mid-weight shells, full HE burst for the mortar. */
     public ImpactProfile impactProfile() {
         switch (this) {
             case HEAVY_MORTAR:
-            case GRENADE_LAUNCHER:                   return ImpactProfile.HE;
+            case GRENADE_LAUNCHER:
+            case LOCUST:                             return ImpactProfile.HE;
             case ARBALEST:
             case DUAL_FLAK:
             case HEPHAESTUS:

@@ -56,6 +56,15 @@ public final class TurretAim {
 
         /** Output: true when the caller should fire this tick. Reset every {@link #tick} call. */
         public boolean fireThisTick;
+        /**
+         * Output: line-of-sight state at the moment {@link #fireThisTick}
+         * latched. The caller (turret behavior / air system) passes this into
+         * the fire path so indirect-fire kinds can apply
+         * {@link com.dillon.starsectormarines.battle.turret.TurretKind#noLosAccuracyMult}
+         * to shots taken blind. Meaningful only when {@code fireThisTick} is
+         * {@code true}.
+         */
+        public boolean lastFireHadLos;
 
         /**
          * If true, walls within {@link #closeWallRadius} cells of the origin
@@ -68,6 +77,14 @@ public final class TurretAim {
         public boolean ignoreCloseWalls;
         /** Radius (cells) over which walls are treated as transparent when {@link #ignoreCloseWalls} is true. */
         public float closeWallRadius;
+        /**
+         * If true, the aim loop keeps the target locked when LoS breaks —
+         * artillery-style indirect fire. Acquisition also considers non-visible
+         * candidates (scored via the {@code allowNoLos} pass in
+         * {@link TacticalScoring}). The actual LoS-at-fire state is published
+         * back to the caller via {@link #lastFireHadLos}.
+         */
+        public boolean indirectFire;
     }
 
     private TurretAim() {}
@@ -89,7 +106,8 @@ public final class TurretAim {
 
         if (s.target == null || !s.target.isAlive()) {
             s.target = TacticalScoring.findBestTarget(
-                    s.originCellX, s.originCellY, s.faction, s.squadId, s.excludeFromCrowding, los, sim);
+                    s.originCellX, s.originCellY, s.faction, s.squadId, s.excludeFromCrowding,
+                    los, sim, /*allowNoLos*/ s.indirectFire);
         }
         if (s.cooldownTimer > 0f) s.cooldownTimer -= dt;
         if (s.target == null) return;
@@ -98,9 +116,14 @@ public final class TurretAim {
                 s.originCellX, s.originCellY, s.target.cellX, s.target.cellY);
         boolean inRange = dist <= s.attackRange && dist >= s.minRange;
         boolean visible = los.visible(s.originCellX, s.originCellY, s.target.cellX, s.target.cellY);
-        if (!inRange || !visible) {
-            // Drop the target so a fresh acquisition happens next tick. By the
-            // time LOS or range is broken, there's probably a better candidate.
+        // Direct-fire kinds drop on either out-of-range OR LoS loss; indirect-
+        // fire kinds keep the lock when LoS breaks (the kremlin wall doesn't
+        // hide attackers from artillery that's been ranged in) and only drop
+        // on out-of-range. The actual LoS state at fire time still rides out
+        // via {@link State#lastFireHadLos} so the fire path can apply the
+        // no-LoS accuracy multiplier.
+        boolean dropOnNoLos = !s.indirectFire;
+        if (!inRange || (dropOnNoLos && !visible)) {
             s.target = null;
             return;
         }
@@ -112,6 +135,7 @@ public final class TurretAim {
         if (Math.abs(shortestAngleDelta(s.facingDegrees, bearing)) <= FIRE_ARC_DEG
                 && s.cooldownTimer <= 0f) {
             s.fireThisTick = true;
+            s.lastFireHadLos = visible;
             s.cooldownTimer = s.attackCooldown;
         }
     }

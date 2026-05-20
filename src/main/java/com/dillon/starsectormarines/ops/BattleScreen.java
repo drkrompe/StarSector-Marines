@@ -43,11 +43,14 @@ import com.dillon.starsectormarines.battle.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.objective.Objective;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.battleview.BattleCamera;
+import com.dillon.starsectormarines.render2d.ContrailStyle;
+import com.dillon.starsectormarines.render2d.ContrailTrail;
 import com.dillon.starsectormarines.render2d.DecalAccumulator;
 import com.dillon.starsectormarines.render2d.GlStateBracket;
 import com.dillon.starsectormarines.render2d.LightAccumulator;
 import com.dillon.starsectormarines.render2d.LightKernel;
 import com.dillon.starsectormarines.render2d.QuadBatch;
+import com.dillon.starsectormarines.render2d.RibbonBatch;
 import com.dillon.starsectormarines.render2d.SolidQuadBatch;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
@@ -389,6 +392,38 @@ public class BattleScreen implements Screen, BattleUiContext {
      * (no autotile pick).
      */
     private final SolidQuadBatch solidBatch = new SolidQuadBatch(256);
+
+    /**
+     * Solid-color ribbon batch for in-flight projectile contrails. Walks the
+     * per-{@link ShotEvent} {@link ContrailTrail}s in {@link #contrailsLive}
+     * + {@link #contrailsDecaying} and emits one big {@code GL_QUADS} block
+     * per render frame. Sits in the projectile pass, below the projectile
+     * sprite itself so the sprite reads as the leading edge of its own
+     * smoke trail.
+     */
+    private final RibbonBatch contrailBatch = new RibbonBatch(256);
+    /**
+     * Active contrails keyed by their owning shot. Identity map — shots have
+     * no equals/hashCode override, and we want one trail per shot instance.
+     * Entries are added lazily during {@link #renderShots} the first frame
+     * the projectile renders, removed when the owner leaves
+     * {@code sim.getActiveShots()}.
+     */
+    private final java.util.IdentityHashMap<ShotEvent, ContrailTrail> contrailsLive =
+            new java.util.IdentityHashMap<>();
+    /**
+     * Trails whose owning shot has expired but whose samples haven't all
+     * aged out yet. They keep advancing + rendering until {@link ContrailTrail#isEmpty}
+     * — without this, smoke would snap-disappear the instant the missile lands.
+     */
+    private final java.util.ArrayList<ContrailTrail> contrailsDecaying = new java.util.ArrayList<>();
+    /**
+     * Real-time {@code dt} from the most recent {@link #advance} call. Read
+     * inside {@link #renderShots} to age the contrails. Cached because render
+     * and advance are separate entry points but the contrail aging should
+     * track real time (not sim-scaled) — smoke keeps dissipating during pause.
+     */
+    private float lastAdvanceDt = 0f;
     private static final Color ROAD_FILL = new Color(TileManifest.ROAD_FILL_RGB);
     /** Solid fill for the open-courtyard case (no wall-neighbor autotile lookup hits a frame variant). */
     private static final Color COURTYARD_FILL = new Color(TileManifest.COURTYARD_FILL_RGB);
@@ -1140,6 +1175,7 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     @Override
     public void advance(float dt) {
+        lastAdvanceDt = dt;
         widgets.advance(dt);
         // HUD ticks on real dt (not sim-scaled) so panel snapshots and hover
         // state still update when the sim is paused. Panels' update() just
@@ -3232,6 +3268,9 @@ public class BattleScreen implements Screen, BattleUiContext {
      * on emit, so misses read as stray rounds whizzing past the target.
      */
     private void renderShots(List<ShotEvent> shots, float alphaMult) {
+        // Contrails always tick — even when shots is empty, decaying trails
+        // from the previous frame still need to age out and draw.
+        renderContrails(shots, alphaMult);
         if (shots.isEmpty()) return;
 
         // Line tracers for marine primary / militia / alien rifle fire. Turret
@@ -3327,7 +3366,10 @@ public class BattleScreen implements Screen, BattleUiContext {
             // get the hot engine glow; grenade-launcher shells get a gunpowder
             // smoke trail (gray, non-additive).
             boolean engineTrail = s.mechWeapon != null && s.mechWeapon.engineTrail;
-            boolean smokeTrail  = s.turretKind != null && s.turretKind.smokeTrail;
+            // Kinds with a ribbon-based contrail (handled in renderContrails)
+            // suppress the legacy per-frame puff path — the ribbon IS the smoke.
+            boolean smokeTrail  = s.turretKind != null && s.turretKind.smokeTrail
+                    && !kindUsesContrailRibbon(s.turretKind);
             if ((engineTrail || smokeTrail) && progress > 0.02f && progress < 0.98f) {
                 // Approximate the tail position as the round's current cell
                 // position minus a small step along its current heading. Cheap
@@ -3359,6 +3401,90 @@ public class BattleScreen implements Screen, BattleUiContext {
             ShuttleSpriteCache c = mechWeaponProjectileSprites.get(k);
             if (c != null) c.sprite.setAngle(0f);
         }
+    }
+
+    /**
+     * Per-frame contrail update: drop orphans, push new samples for live
+     * ribbon-eligible shots, age + render all trails. Drawn before the
+     * projectile sprite loop so missile sprites sit on top of their own
+     * smoke.
+     *
+     * <p>Lifecycle: a trail is born the first frame its owning shot
+     * renders, lives in {@link #contrailsLive} (keyed by identity), then
+     * migrates to {@link #contrailsDecaying} the frame its owner leaves
+     * {@code sim.getActiveShots()}. Decaying trails keep advancing until
+     * their last sample ages past {@link ContrailStyle#durationSec} —
+     * without that, smoke would snap-disappear at impact.
+     *
+     * <p>Aging uses {@link #lastAdvanceDt} (real-time), not sim time, so
+     * smoke keeps dissipating during sim pause — matches how the rest of
+     * the visual layer (decals, impact FX) behaves.
+     */
+    private void renderContrails(List<ShotEvent> shots, float alphaMult) {
+        // 1. Sweep orphans — anything in `live` whose owner left `shots`
+        //    this frame moves to `decaying`.
+        if (!contrailsLive.isEmpty()) {
+            java.util.Set<ShotEvent> current = java.util.Collections.newSetFromMap(
+                    new java.util.IdentityHashMap<>());
+            current.addAll(shots);
+            java.util.Iterator<java.util.Map.Entry<ShotEvent, ContrailTrail>> it =
+                    contrailsLive.entrySet().iterator();
+            while (it.hasNext()) {
+                java.util.Map.Entry<ShotEvent, ContrailTrail> e = it.next();
+                if (!current.contains(e.getKey())) {
+                    contrailsDecaying.add(e.getValue());
+                    it.remove();
+                }
+            }
+        }
+
+        // 2. Push samples for live ribbon-eligible shots.
+        for (ShotEvent s : shots) {
+            if (s.turretKind == null || !kindUsesContrailRibbon(s.turretKind)) continue;
+            float progress = 1f - Math.max(0f, Math.min(1f, s.lifetime / Math.max(0.001f, s.lifetimeMax)));
+            float px = s.fromX + (s.toX - s.fromX) * progress;
+            float py = s.fromY + (s.toY - s.fromY) * progress;
+            float arcH = s.turretKind.arcHeight;
+            if (arcH > 0f) py += arcH * 4f * progress * (1f - progress);
+            ContrailTrail trail = contrailsLive.get(s);
+            if (trail == null) {
+                trail = new ContrailTrail(styleFor(s.turretKind), 32);
+                contrailsLive.put(s, trail);
+            }
+            trail.pushSample(px, py);
+        }
+
+        // 3. Age every live + decaying trail by the last real-time dt; drop
+        //    decaying trails whose samples have all expired.
+        float dt = lastAdvanceDt;
+        if (dt > 0f) {
+            for (ContrailTrail t : contrailsLive.values()) t.advance(dt);
+            for (ContrailTrail t : contrailsDecaying)      t.advance(dt);
+        }
+        contrailsDecaying.removeIf(ContrailTrail::isEmpty);
+
+        // 4. Render. Spike scope is non-additive smoke only — when we add
+        //    additive engine plumes later, split into two batches keyed on
+        //    style.additive and bracket each with the matching blend mode.
+        if (contrailsLive.isEmpty() && contrailsDecaying.isEmpty()) return;
+        for (ContrailTrail t : contrailsLive.values()) contrailBatch.append(t, camera, alphaMult);
+        for (ContrailTrail t : contrailsDecaying)      contrailBatch.append(t, camera, alphaMult);
+        if (contrailBatch.isEmpty()) return;
+        try (GlStateBracket gl = GlStateBracket.textured2D()) {
+            contrailBatch.flush();
+        }
+    }
+
+    /** Per-kind style picker. Returns the shared style instance for the kind, or null if this kind isn't ribbon-eligible (caller gates on {@link #kindUsesContrailRibbon} first). */
+    private static ContrailStyle styleFor(TurretKind kind) {
+        // Single style today; one switch point for when LRM_ARTILLERY / SRM_POD
+        // pick up their own engine-plume styles.
+        return ContrailStyle.MISSILE_SMOKE;
+    }
+
+    /** Returns true if this kind's smoke trail is drawn as a ribbon (via {@link #renderContrails}) rather than the legacy per-frame puff path. */
+    private static boolean kindUsesContrailRibbon(TurretKind kind) {
+        return kind == TurretKind.LOCUST;
     }
 
     /** Starsector sprite-angle convention: 0° = +Y (north), positive clockwise. */

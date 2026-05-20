@@ -75,6 +75,16 @@ public final class TacticalScoring {
     public static final float TARGET_THREAT_DENSITY_COST = 5f;
 
     /**
+     * Penalty added to a no-LoS target's score when {@code allowNoLos} is set
+     * on the {@link #findBestTarget} call (indirect-fire callers — artillery
+     * turrets). Sized at ~10 cells so a visible target wins over a blind target
+     * at the same distance, but a meaningfully closer blind target still wins
+     * over a far visible one. Without this, an artillery battery would acquire
+     * targets blindly regardless of whether a visible candidate was available.
+     */
+    public static final float TARGET_NO_LOS_COST = 10f;
+
+    /**
      * Penalty added when a candidate target is in a different navigation zone
      * from the shooter — Slice 3.5 soft gate on cross-zone target selection.
      * Equivalent to ~8 cells of extra walking distance, so a close in-zone
@@ -209,9 +219,25 @@ public final class TacticalScoring {
     public static Unit findBestTarget(int selfCellX, int selfCellY, Faction selfFaction,
                                       int selfSquadId, Unit excludeFromCrowding,
                                       LosTest los, BattleSimulation sim) {
+        return findBestTarget(selfCellX, selfCellY, selfFaction, selfSquadId,
+                excludeFromCrowding, los, sim, /*allowNoLos*/ false);
+    }
+
+    /**
+     * Indirect-fire-aware overload — when {@code allowNoLos} is {@code true},
+     * non-visible candidates are scored too (with {@link #TARGET_NO_LOS_COST}
+     * added), so an artillery battery can pick a blind target when no visible
+     * one exists or when the blind one is significantly closer. When
+     * {@code false}, the existing behavior runs: only visible candidates are
+     * scored; the any-distance bucket still tracks the nearest non-visible
+     * enemy for the path-toward-them fallback.
+     */
+    public static Unit findBestTarget(int selfCellX, int selfCellY, Faction selfFaction,
+                                      int selfSquadId, Unit excludeFromCrowding,
+                                      LosTest los, BattleSimulation sim, boolean allowNoLos) {
         List<Unit> units = sim.getUnits();
-        Unit bestVisible = null;
-        float bestVisibleScore = Float.MAX_VALUE;
+        Unit best = null;
+        float bestScore = Float.MAX_VALUE;
         Unit bestAny = null;
         float bestAnyDist = Float.MAX_VALUE;
 
@@ -228,18 +254,20 @@ public final class TacticalScoring {
                 bestAnyDist = d;
                 bestAny = other;
             }
-            if (!los.visible(selfCellX, selfCellY, other.cellX, other.cellY)) continue;
+            boolean visible = los.visible(selfCellX, selfCellY, other.cellX, other.cellY);
+            if (!visible && !allowNoLos) continue;
             float crowding = scoreCrowding(selfFaction, selfSquadId, other, sim, excludeFromCrowding);
             float density = scoreThreatDensity(other, selfFaction, sim);
             float affinity = scoreWeaponAffinity(excludeFromCrowding, other);
             float zoneMismatch = scoreZoneMismatch(selfCellX, selfCellY, other, sim);
             float score = d + crowding + density + affinity + zoneMismatch;
-            if (score < bestVisibleScore) {
-                bestVisibleScore = score;
-                bestVisible = other;
+            if (!visible) score += TARGET_NO_LOS_COST;
+            if (score < bestScore) {
+                bestScore = score;
+                best = other;
             }
         }
-        return bestVisible != null ? bestVisible : bestAny;
+        return best != null ? best : bestAny;
     }
 
     /**

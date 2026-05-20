@@ -58,6 +58,7 @@ public final class TurretBehavior implements UnitBehavior {
         s.cooldownTimer = t.cooldownTimer;
         s.attackCooldown = t.attackCooldown;
         s.target = t.target;
+        s.indirectFire = t.kind.indirectFire;
 
         TurretAim.tick(s, sim, BattleSimulation.TICK_DT);
 
@@ -70,7 +71,16 @@ public final class TurretBehavior implements UnitBehavior {
         if (t.burstRemaining > 0) {
             t.burstTimer -= BattleSimulation.TICK_DT;
             if (t.burstTimer <= 0f) {
-                sim.fireShotFrom(t.cellX + 0.5f, t.cellY + 0.5f, t.faction, t.kind, t.burstTarget, /*aerialShooter*/ false);
+                // Recompute LoS for each burst round — target moves, LoS state
+                // can flip mid-salvo. Indirect-fire kinds use this to switch
+                // the per-rocket accuracy between full and no-LoS-multiplier.
+                // Direct-fire kinds gate LoS in the aim loop so by the time
+                // the burst started, LoS was good; the renderer keeps firing
+                // even if LoS breaks mid-burst, matching the existing behavior.
+                boolean hasLos = sim.getGrid().hasLineOfSight(
+                        t.cellX, t.cellY, t.burstTarget.cellX, t.burstTarget.cellY);
+                sim.fireShotFrom(t.cellX + 0.5f, t.cellY + 0.5f, t.faction, t.kind, t.burstTarget,
+                        /*aerialShooter*/ false, hasLos);
                 t.recoilTimer = 0f;
                 t.burstRemaining--;
                 t.burstTimer = t.kind.burstSpacing;
@@ -84,7 +94,8 @@ public final class TurretBehavior implements UnitBehavior {
                 // Burst kinds route through fireShotFrom so the scatter / AoE /
                 // raycast pipeline applies. Latch the remaining rounds for the
                 // pump to drain.
-                sim.fireShotFrom(t.cellX + 0.5f, t.cellY + 0.5f, t.faction, t.kind, s.target, /*aerialShooter*/ false);
+                sim.fireShotFrom(t.cellX + 0.5f, t.cellY + 0.5f, t.faction, t.kind, s.target,
+                        /*aerialShooter*/ false, s.lastFireHadLos);
                 t.recoilTimer = 0f;
                 if (s.target != null && s.target.isAlive()) {
                     t.burstRemaining = t.kind.burstCount - 1;
