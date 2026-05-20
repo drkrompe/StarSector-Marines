@@ -52,14 +52,11 @@ public final class PatrolBehavior implements UnitBehavior {
             CombatantBehavior.INSTANCE.update(u, sim);
             return;
         }
-        // Same morale-broken short-circuit as GarrisonBehavior: when
-        // SurviveContact is the squad's goal we need to run the GOAP plan
-        // (BreakContact) instead of the patrol's SUSPICIOUS / UNAWARE
-        // routines. In the common case the alert level is ENGAGED while
-        // morale is breaking, so the next branch catches it — but a squad
-        // that broke off contact and is still morale-broken would otherwise
-        // fall through to UNAWARE wander while the planner expects retreat.
-        if (squad.moraleBroken) {
+        // Tier-override preempt — same gate the garrison runs. Without it
+        // a morale-broken patrol that decayed off ENGAGED would fall
+        // through to UNAWARE wander while the squad-level planner expects
+        // BreakContact to be running.
+        if (TierOverride.check(u, squad, sim) == TierOverride.Result.DELEGATE_TO_GOAP) {
             CombatantBehavior.INSTANCE.update(u, sim);
             return;
         }

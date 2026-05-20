@@ -52,18 +52,12 @@ public final class GarrisonBehavior implements UnitBehavior {
             CombatantBehavior.INSTANCE.update(u, sim);
             return;
         }
-        // Morale-broken outranks the post: the squad-level GOAP planner has
-        // picked SurviveContact (SURVIVAL priority) and currentPlan is the
-        // BreakContact step. GarrisonBehavior never consults the plan
-        // directly, so without this short-circuit a broken defender squad
-        // just kept fighting in place — BreakContact.execute was never
-        // called. Delegating to CombatantBehavior routes through
-        // GoapInfantryBehavior.update, which runs the plan step. Once
-        // morale recovers (hysteresis cleared by updateSquadMorale), the
-        // flag flips off and the squad resumes garrison engagement at
-        // whatever cells the broken retreat left them in — they'll path
-        // back to home cells on the next UNAWARE tick.
-        if (squad.moraleBroken) {
+        // Tier-override preempt — lower tier (individual/squad) overrides
+        // the post when local reality demands it. Today the only firing
+        // predicate is moraleBroken → run BreakContact via the GOAP path
+        // so a routed defender squad actually retreats instead of fighting
+        // in place. See TierOverride for the growing predicate set.
+        if (TierOverride.check(u, squad, sim) == TierOverride.Result.DELEGATE_TO_GOAP) {
             CombatantBehavior.INSTANCE.update(u, sim);
             return;
         }
