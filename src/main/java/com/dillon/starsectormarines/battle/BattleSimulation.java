@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.ai.TurretBehavior;
 import com.dillon.starsectormarines.battle.ai.UnitBehavior;
 import com.dillon.starsectormarines.battle.ai.goap.GoapInfantryBehavior;
 import com.dillon.starsectormarines.battle.ai.goap.GoapMechBehavior;
+import com.dillon.starsectormarines.battle.command.MissionCommand;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
@@ -37,7 +38,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -101,6 +104,16 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     public static final float MORALE_BROKEN_THRESHOLD = 0.30f;
     /** Hysteresis clear threshold, as a <em>fraction of cap</em>. Broken squad reverts once {@code morale > MORALE_CLEAR_THRESHOLD * cap}. Fixes the pre-scaling pathology where a solo survivor's cap (0.25) was below the absolute clear threshold (0.5) and they could never recover. */
     public static final float MORALE_CLEAR_THRESHOLD  = 0.50f;
+
+    /**
+     * Sim-seconds between commander-tier slow ticks. The squad-GOAP replan
+     * loop runs every {@link GoapInfantryBehavior#REPLAN_PERIOD} (2s today);
+     * the commander runs at a slower cadence so strategic assignments don't
+     * thrash. Set so each commander tick is roughly bracketed by one full
+     * GOAP replan cycle — gives squads a chance to act on a fresh assignment
+     * before the commander considers reassigning. Tune in playtest.
+     */
+    public static final float COMMANDER_TICK_PERIOD = 2.5f;
 
     private final NavigationGrid grid;
     private final CellTopology topology;
@@ -180,6 +193,28 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private static final float WRECK_FIRE_MAX_GAP = 0.50f;
     /** Dense, primitive-keyed squad lookup. fastutil's Int2ObjectOpenHashMap avoids the per-call Integer autobox that {@link #getSquad} would do on a {@code HashMap<Integer, Squad>} — and getSquad is hit per-unit per-tick from the behavior dispatch. */
     private final Int2ObjectMap<Squad> squads = new Int2ObjectOpenHashMap<>();
+
+    /**
+     * Per-faction strategic commanders. A faction with no entry here has no
+     * commander tier active — its squads run on ambient ENGAGEMENT goals
+     * with {@link Squad#assignedObjective} left null. Missions that want
+     * commander-driven coordination (Conquest spreads marine squads across
+     * charge sites via {@code ConquestCommand}) install one via
+     * {@link #setCommander(Faction, MissionCommand)} during {@code BattleSetup}.
+     *
+     * <p>Ticked at {@link #COMMANDER_TICK_PERIOD} cadence — slower than the
+     * per-squad GOAP replan — so strategic assignments don't thrash.
+     */
+    private final Map<Faction, MissionCommand> commanders = new EnumMap<>(Faction.class);
+
+    /**
+     * Sim-seconds accumulated since the last commander slow-tick. When this
+     * crosses {@link #COMMANDER_TICK_PERIOD}, every registered commander
+     * gets a {@link MissionCommand#tick(BattleSimulation)} call before the
+     * per-squad GOAP replan pass, so squads that replan this tick see the
+     * freshest assignment.
+     */
+    private float commanderTickAccumulator = 0f;
 
     /**
      * Per-target attacker index: for each unit currently targeted by at least
@@ -663,6 +698,29 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     }
 
     /**
+     * Install (or replace) the strategic commander for one faction. Pass
+     * {@code null} to clear an existing commander — the faction's squads
+     * fall back to ambient ENGAGEMENT goals. Typically called once during
+     * {@code BattleSetup} per faction that wants the layer.
+     */
+    public void setCommander(Faction faction, MissionCommand commander) {
+        if (commander == null) {
+            commanders.remove(faction);
+        } else {
+            commanders.put(faction, commander);
+        }
+    }
+
+    /**
+     * The commander for {@code faction}, or {@code null} if none is wired.
+     * Read by debug UI and by integration tests that want to poke at
+     * commander state directly.
+     */
+    public MissionCommand getCommander(Faction faction) {
+        return commanders.get(faction);
+    }
+
+    /**
      * Drives the simulation forward. Accepts any real-time delta; internally
      * runs zero or more fixed 30Hz ticks until the accumulator is drained.
      * Returns immediately once the battle is complete.
@@ -725,6 +783,21 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // aliveMembers) and before updateUnit (so the new home cells are
         // visible to garrison dispatch this same tick).
         updateSquadFallback();
+        // Commander-tier slow tick. Runs at COMMANDER_TICK_PERIOD cadence,
+        // before per-squad replan so any assignment written this tick is
+        // visible to the GOAP relevance pass below. Skips entirely when no
+        // commanders are registered (the common case for non-Conquest /
+        // non-Assault missions). Per-faction order is enum-declaration
+        // order via the EnumMap — deterministic across runs.
+        if (!commanders.isEmpty()) {
+            commanderTickAccumulator += TICK_DT;
+            if (commanderTickAccumulator >= COMMANDER_TICK_PERIOD) {
+                commanderTickAccumulator -= COMMANDER_TICK_PERIOD;
+                for (MissionCommand cmd : commanders.values()) {
+                    cmd.tick(this);
+                }
+            }
+        }
         // Squad-level GOAP replan pass. Piggybacks the alert-update phase so
         // plans reflect THIS tick's fresh aliveMembers + centroid + alert
         // level before any unit executes. Serial today; the planner +

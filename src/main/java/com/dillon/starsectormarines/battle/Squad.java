@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.ai.PatrolBehavior;
 import com.dillon.starsectormarines.battle.ai.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.ai.goap.Goal;
 import com.dillon.starsectormarines.battle.ai.goap.SquadPlan;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 
 /**
@@ -65,6 +66,24 @@ public final class Squad {
      * pick random nearby nodes as waypoints). Null for marine squads.
      */
     public TacticalNode assignedNode;
+
+    /**
+     * Strategic task handed down by this faction's
+     * {@link com.dillon.starsectormarines.battle.command.MissionCommand}, or
+     * {@code null} when no commander has written one yet. MISSION-priority
+     * GOAP goals ({@code ClearAssignedZoneGoal}, {@code HoldAssignedNodeGoal},
+     * {@code RushAssignedObjectiveGoal}) report {@code relevance() = 0} when
+     * this is null, so squads fall through to their ambient ENGAGEMENT
+     * goals — keeping the commander layer opt-in. Replaced wholesale on
+     * each re-assignment (the record is immutable) so any goal that
+     * snapshots it at relevance-eval time sees a consistent state.
+     *
+     * <p>Distinct from {@link #assignedNode}: {@code assignedNode} is the
+     * <em>spawn-time</em> tactical anchor (GARRISON home / PATROL seed),
+     * stable for the squad's life. {@link #assignedObjective} is the
+     * <em>strategic</em> task, updated by the commander each slow-tick.
+     */
+    public ObjectiveAssignment assignedObjective;
 
     /**
      * Member count at the moment {@link com.dillon.starsectormarines.battle.BattleSetup}
