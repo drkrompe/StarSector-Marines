@@ -38,15 +38,18 @@ public final class ImpactFx {
 
     private static final Logger LOG = Global.getLogger(ImpactFx.class);
 
-    /** Mod-shipped 4×4 sheet of 16px frames: top 2 rows = smoke (8 frames), bottom 2 rows = fire (8 frames). Same asset FlybyOverlay uses. */
+    /** Mod-shipped 4×4 sheet of 16px frames: top 2 rows = fire (8 frames), bottom 2 rows = smoke (8 frames). Same asset FlybyOverlay uses. */
     private static final String SPRITE_PARTICLE_SHEET = "graphics/particle/smokeAndFire.png";
     /** Soft radial alpha — sparks + glow flashes. Same alpha-only texture FlybyOverlay uses for muzzle/impact flashes. */
     private static final String SPRITE_GLOW           = "graphics/fx/particlealpha64linear.png";
 
     private static final int PARTICLE_SHEET_COLS = 4;
-    private static final int SMOKE_FIRST_FRAME   = 0;
+    private static final int PARTICLE_SHEET_ROWS = 4;
+    /** Smoke frames live in the BOTTOM half of the sheet (rows 2-3). Previously this was set to 0, which actually points at the fire frames — wrecks emitted both anyway so it masked the swap, but pure-smoke emitters (the new impact plumes) rendered as fire. */
+    private static final int SMOKE_FIRST_FRAME   = 8;
     private static final int SMOKE_FRAME_COUNT   = 8;
-    private static final int FIRE_FIRST_FRAME    = 8;
+    /** Fire frames live in the TOP half of the sheet (rows 0-1). */
+    private static final int FIRE_FIRST_FRAME    = 0;
     private static final int FIRE_FRAME_COUNT    = 8;
 
     /** Light kick-up of dust on floor impacts; muted yellow-brown. */
@@ -352,10 +355,8 @@ public final class ImpactFx {
             int playFrame = (int) ((1f - lifeFrac) * p.frameCount);
             if (playFrame >= p.frameCount) playFrame = p.frameCount - 1;
             int frameIdx = p.firstFrame + playFrame;
-            // 4 rows in the smokeAndFire sheet (smoke top 2, fire bottom 2).
-            int rows = (FIRE_FIRST_FRAME + FIRE_FRAME_COUNT) / PARTICLE_SHEET_COLS;
             float cellW = s.getTextureWidth() / PARTICLE_SHEET_COLS;
-            float cellH = s.getTextureHeight() / rows;
+            float cellH = s.getTextureHeight() / PARTICLE_SHEET_ROWS;
             int col = frameIdx % PARTICLE_SHEET_COLS;
             int row = frameIdx / PARTICLE_SHEET_COLS;
             s.setTexX(col * cellW);

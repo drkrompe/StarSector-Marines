@@ -88,13 +88,14 @@ public final class FlybyOverlay {
             "graphics/fx/explosion3.png", "graphics/fx/explosion4.png", "graphics/fx/explosion5.png",
             "graphics/fx/explosion6.png",
     };
-    /** Mod-shipped 4×4 sheet of 16px frames: top 2 rows = smoke (8 frames), bottom 2 rows = fire (8 frames). Played as a flipbook via Particle's frame-index UV math. */
+    /** Mod-shipped 4×4 sheet of 16px frames: top 2 rows = fire (8 frames), bottom 2 rows = smoke (8 frames). Played as a flipbook via Particle's frame-index UV math. */
     private static final String SPRITE_PARTICLE_SHEET = "graphics/particle/smokeAndFire.png";
     private static final int PARTICLE_SHEET_COLS      = 4;
-    private static final int SMOKE_FIRST_FRAME        = 0;   // top-left of sheet
-    private static final int SMOKE_FRAME_COUNT        = 8;   // top 2 rows
-    private static final int FIRE_FIRST_FRAME         = 8;   // start of row 2
-    private static final int FIRE_FRAME_COUNT         = 8;   // bottom 2 rows
+    private static final int PARTICLE_SHEET_ROWS      = 4;
+    private static final int FIRE_FIRST_FRAME         = 0;   // top-left of sheet (rows 0-1)
+    private static final int FIRE_FRAME_COUNT         = 8;   // top 2 rows
+    private static final int SMOKE_FIRST_FRAME        = 8;   // start of row 2 (rows 2-3)
+    private static final int SMOKE_FRAME_COUNT        = 8;   // bottom 2 rows
 
     /** Atmospheric wind for smoke/embers in cells/sec. Subtle — adds drift without making the battlefield feel airy. Eastward bias matches the visual sun-from-screen-left convention. */
     private static final float WIND_X = 0.5f;
@@ -1380,9 +1381,8 @@ public final class FlybyOverlay {
             int playFrame = (int) ((1f - lifeFrac) * p.frameCount);
             if (playFrame >= p.frameCount) playFrame = p.frameCount - 1;
             int frameIdx = p.firstFrame + playFrame;
-            int rows = (FIRE_FIRST_FRAME + FIRE_FRAME_COUNT) / PARTICLE_SHEET_COLS;  // 4 rows
             float cellW = s.getTextureWidth() / PARTICLE_SHEET_COLS;
-            float cellH = s.getTextureHeight() / rows;
+            float cellH = s.getTextureHeight() / PARTICLE_SHEET_ROWS;
             int col = frameIdx % PARTICLE_SHEET_COLS;
             int row = frameIdx / PARTICLE_SHEET_COLS;
             s.setTexX(col * cellW);
