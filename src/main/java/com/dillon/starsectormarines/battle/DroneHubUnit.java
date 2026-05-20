@@ -35,6 +35,9 @@ public class DroneHubUnit extends Unit {
     /** Hub HP — between MEDIUM (65) and LARGE (85) turret HP. Substantial enough to outlive a few mag dumps but pushable down with focus fire. */
     public static final float HUB_MAX_HP = 80f;
 
+    /** True once the sim has converted the hub cell to walkable rubble. Guards against the renderer keeping a destroyed hub on screen and against double-demolition. */
+    public boolean demolished;
+
     public DroneHubUnit(String id, Faction faction, int cellX, int cellY) {
         super(id, faction, UnitType.DRONE_HUB_STRUCTURE, cellX, cellY);
         this.maxHp = HUB_MAX_HP;

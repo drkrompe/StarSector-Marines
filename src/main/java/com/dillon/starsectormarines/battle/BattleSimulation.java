@@ -916,6 +916,10 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // tick's pathfinding + zone graph sees the hole, and the floor pass
         // picks the cell up as rubble.
         demolishDeadTurrets();
+        // Same rubble-conversion pass for destroyed drone hubs — they're
+        // static STRUCTUREs sitting on sealed non-walkable cells, so leaving
+        // the cell sealed after death would orphan an invisible obstacle.
+        demolishDeadDroneHubs();
         // Age smoking wrecks + emit any puff events that came due this tick.
         tickSmokingWrecks();
         // Lingering smoke plumes parked at HE impact sites — same per-frame
@@ -1085,6 +1089,34 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             smokingWrecks.add(new SmokingWreck(t.cellX, t.cellY, WRECK_LIFETIME,
                     0.05f + rng.nextFloat() * 0.10f));
             releaseGuardpostIfAllTurretsDead(t);
+        }
+    }
+
+    /**
+     * Same flip-to-rubble pass as {@link #demolishDeadTurrets} but for
+     * destroyed {@link DroneHubUnit}s. Hubs sit on the sealed center cell of
+     * a {@code DRONE_HUB} defense post (non-walkable STONE), so without this
+     * the cell would stay sealed after the hub dies — an invisible obstacle
+     * with no sprite. No guardpost release: hubs have {@code garrisonSize=0}
+     * and emit no GUARDPOST tactical node.
+     */
+    private void demolishDeadDroneHubs() {
+        for (Unit u : units) {
+            if (!(u instanceof DroneHubUnit)) continue;
+            DroneHubUnit h = (DroneHubUnit) u;
+            if (h.isAlive() || h.demolished) continue;
+            grid.setWalkable(h.cellX, h.cellY, true);
+            grid.openAllEdges(h.cellX, h.cellY);
+            topology.setGroundKind(h.cellX, h.cellY, CellTopology.GroundKind.RUBBLE);
+            grid.recomputeCoverAt(h.cellX, h.cellY);
+            grid.recomputeCoverAt(h.cellX + 1, h.cellY);
+            grid.recomputeCoverAt(h.cellX - 1, h.cellY);
+            grid.recomputeCoverAt(h.cellX, h.cellY + 1);
+            grid.recomputeCoverAt(h.cellX, h.cellY - 1);
+            h.demolished = true;
+            zoneGraphDirty = true;
+            smokingWrecks.add(new SmokingWreck(h.cellX, h.cellY, WRECK_LIFETIME,
+                    0.05f + rng.nextFloat() * 0.10f));
         }
     }
 
