@@ -19,7 +19,7 @@ package com.dillon.starsectormarines.campaign;
  * {@link CampaignState}{@code .contractState[]} — never reorder.
  */
 public enum ContractState {
-    /** Offered or signed but no phase has fired yet. Stationing contracts stay here for their term. */
+    /** Player has accepted; no phase has fired yet. Stationing contracts stay here for their term. */
     ACTIVE,
     /** At least one phase / mission has fired but the contract isn't resolved yet. */
     IN_PROGRESS,
@@ -30,7 +30,13 @@ public enum ContractState {
     /** Patron stopped paying (DEPOSED / promoted / political flip). Spawns extraction. */
     DEFAULTED,
     /** Player walked away mid-contract. Tanks rep + MRB. */
-    ABANDONED;
+    ABANDONED,
+    /**
+     * Patron has put this on the table but the player hasn't accepted yet.
+     * Acceptance flips OFFERED → ACTIVE; lapse / expiry → discarded row.
+     * Always last so existing ordinals stay stable for save compatibility.
+     */
+    OFFERED;
 
     private static final ContractState[] VALUES = values();
 
