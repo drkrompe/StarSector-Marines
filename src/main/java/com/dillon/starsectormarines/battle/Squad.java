@@ -299,6 +299,20 @@ public final class Squad {
      */
     public int chokePointPortalId = -1;
 
+    /**
+     * Hub this squad's drones launched from, or {@code null} for marine /
+     * defender squads. Set when {@link com.dillon.starsectormarines.battle.DroneSpawner}
+     * mints the squad on the hub's first launch; cleared (along with member
+     * cascade-kill) when the hub is destroyed via {@code BattleSimulation.demolishDeadDroneHubs}.
+     *
+     * <p>Drives squad-level dispatch in {@code BattleSimulation.tick}'s
+     * replan loop: {@link #isDroneSquad()} routes to {@code GoapDroneBehavior}
+     * instead of the mech / infantry paths. Also referenced by
+     * {@code DroneSwarmAction} for hub-anchored positioning (patrol orbit
+     * center + engagement leash clamp).
+     */
+    public DroneHubUnit droneHub;
+
     public Squad(int id, Faction faction) {
         this.id = id;
         this.faction = faction;
@@ -319,5 +333,15 @@ public final class Squad {
      */
     public boolean isMechSquad() {
         return leader != null && leader.mech != null;
+    }
+
+    /**
+     * True when this squad belongs to a {@link DroneHubUnit}. Routed to
+     * {@code GoapDroneBehavior} by the replan dispatch — drone squads have
+     * their own action library (encircle-on-engage, sector-on-patrol) and
+     * skip the infantry/mech action sets entirely.
+     */
+    public boolean isDroneSquad() {
+        return droneHub != null;
     }
 }

@@ -49,6 +49,16 @@ public class DroneHubUnit extends Unit {
     /** Lifetime count of drones the hub has launched. Used as part of each drone's id so they're greppable in logs across the battle. */
     public int dronesLaunched;
 
+    /**
+     * Squad the hub's drones join when they launch. Minted lazily on the first
+     * successful launch by {@link com.dillon.starsectormarines.battle.DroneSpawner}
+     * — every subsequent drone from this hub joins the same squad so the
+     * GOAP planner can coordinate their bearings (encircle-on-engage,
+     * sector-on-patrol). Null until the first launch succeeds; never
+     * re-minted (leader promotion handles death of the first leader).
+     */
+    public Squad droneSquad;
+
     public DroneHubUnit(String id, Faction faction, int cellX, int cellY) {
         super(id, faction, UnitType.DRONE_HUB_STRUCTURE, cellX, cellY);
         this.maxHp = HUB_MAX_HP;

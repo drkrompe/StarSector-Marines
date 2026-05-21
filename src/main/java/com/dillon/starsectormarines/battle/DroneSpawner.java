@@ -21,7 +21,11 @@ public final class DroneSpawner {
     /**
      * Tries to spawn one drone for {@code hub}. Returns the spawned drone on
      * success, or {@code null} if no eligible cell was found within the
-     * search radius.
+     * search radius. Mints {@link DroneHubUnit#droneSquad} lazily on the first
+     * successful launch so every drone from this hub coordinates through the
+     * same {@link Squad} (encircle bearings, sector patrols). Subsequent
+     * launches join the existing squad; if its leader is dead, the new drone
+     * takes over.
      */
     public static Drone tryLaunch(DroneHubUnit hub, BattleSimulation sim) {
         if (!hub.isAlive()) return null;
@@ -33,6 +37,19 @@ public final class DroneSpawner {
         String id = "drone-" + hub.id + "-" + (++hub.dronesLaunched);
         Drone drone = new Drone(id, hub.faction, cell[0], cell[1], hub);
         sim.addUnit(drone);
+
+        if (hub.droneSquad == null) {
+            int squadId = sim.mintSquad(hub.faction, drone);
+            Squad squad = sim.getSquad(squadId);
+            squad.droneHub = hub;
+            hub.droneSquad = squad;
+            drone.squadId = squadId;
+        } else {
+            drone.squadId = hub.droneSquad.id;
+            if (hub.droneSquad.leader == null || !hub.droneSquad.leader.isAlive()) {
+                hub.droneSquad.leader = drone;
+            }
+        }
         return drone;
     }
 

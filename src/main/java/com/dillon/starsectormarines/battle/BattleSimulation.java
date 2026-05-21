@@ -2,9 +2,11 @@ package com.dillon.starsectormarines.battle;
 
 import com.dillon.starsectormarines.battle.air.AirSimContext;
 import com.dillon.starsectormarines.battle.air.AirSystem;
+import com.dillon.starsectormarines.battle.ground.GroundSystem;
+import com.dillon.starsectormarines.battle.ground.Vehicle;
 import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.ai.CombatantBehavior;
-import com.dillon.starsectormarines.battle.ai.DroneBehavior;
+import com.dillon.starsectormarines.battle.ai.goap.GoapDroneBehavior;
 import com.dillon.starsectormarines.battle.ai.DroneHubBehavior;
 import com.dillon.starsectormarines.battle.ai.FallbackBehavior;
 import com.dillon.starsectormarines.battle.ai.FleeBehavior;
@@ -123,6 +125,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final CellTopology topology;
     private final List<Unit> units = new ArrayList<>();
     private final AirSystem airSystem = new AirSystem();
+    private final GroundSystem groundSystem = new GroundSystem();
     /** Fog-of-war contributor set + per-building roof alpha targets. Constructed empty; {@link com.dillon.starsectormarines.battle.BattleSetup} swaps in the real {@link com.dillon.starsectormarines.battle.map.Buildings} when it hands the sim a map. */
     private com.dillon.starsectormarines.battle.map.Buildings buildings = com.dillon.starsectormarines.battle.map.Buildings.EMPTY;
     private final com.dillon.starsectormarines.battle.vision.PlayerVisionState visionState = new com.dillon.starsectormarines.battle.vision.PlayerVisionState();
@@ -392,6 +395,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     }
     public List<Unit> getUnits()           { return units; }
     public List<Shuttle> getShuttles()     { return airSystem.getShuttles(); }
+    /** Active convoy / ground transport craft (moving trucks, APCs). Distinct from {@link #getVehicles()}, which lists the static map-vehicle obstacles. */
+    public List<Vehicle> getConvoyVehicles() { return groundSystem.getVehicles(); }
     public List<Objective> getObjectives() { return objectives; }
     public List<EquipmentDrop> getEquipmentDrops() { return equipmentDrops; }
     public List<Doodad> getDoodads()       { return doodads; }
@@ -545,6 +550,10 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
 
     public void addShuttle(Shuttle s) {
         airSystem.add(s);
+    }
+
+    public void addConvoyVehicle(Vehicle v) {
+        groundSystem.add(v);
     }
 
     // ---- WeaponSimContext: services the weapon subsystems reach back for ----
@@ -881,7 +890,9 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // across squads (see roadmap/ai/README.md parallelism section) and
         // we'll fork-join here once we feel the cost.
         for (Squad squad : squads.values()) {
-            if (squad.isMechSquad()) {
+            if (squad.isDroneSquad()) {
+                GoapDroneBehavior.replanIfNeeded(squad, this);
+            } else if (squad.isMechSquad()) {
                 GoapMechBehavior.replanIfNeeded(squad, this);
             } else {
                 GoapInfantryBehavior.replanIfNeeded(squad, this);
@@ -940,6 +951,9 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // Air vehicles tick AFTER units so new deboarded marines aren't iterated
         // mid-loop. They'll be picked up by next tick's occupancy + target pass.
         airSystem.tick(this, TICK_DT);
+        // Ground convoys ride the same ordering rule for the same reason —
+        // deboarded militia join the roster between ticks, not mid-loop.
+        groundSystem.tick(this, TICK_DT);
         advanceShots();
         processEquipmentDrops();
         for (Objective o : objectives) o.tick(this);
@@ -1396,7 +1410,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             case PATROL:         return CombatantBehavior.INSTANCE;
             case STRUCTURE:      return StructureBehavior.INSTANCE;
             case DRONE_HUB:      return DroneHubBehavior.INSTANCE;
-            case DRONE_PATROL:   return DroneBehavior.INSTANCE;
+            case DRONE_PATROL:   return GoapDroneBehavior.INSTANCE;
             case OBJECTIVE_CAMPER:
             case VIP:
             case COMBATANT:
