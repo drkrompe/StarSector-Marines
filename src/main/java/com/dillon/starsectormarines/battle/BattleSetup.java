@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.ground.ConvoyPlanner;
 import com.dillon.starsectormarines.battle.ground.Vehicle;
 import com.dillon.starsectormarines.battle.ground.VehicleType;
 import com.dillon.starsectormarines.battle.mapgen.road.RoadGraph;
+import com.dillon.starsectormarines.battle.ui.debug.ConvoySpawnDumper;
 import org.apache.log4j.Logger;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.mapgen.MapGenerator;
@@ -547,25 +548,31 @@ public final class BattleSetup {
      */
     private static void maybeSpawnDebugConvoy(BattleSimulation sim, MapResult map) {
         if (!DEBUG_SPAWN_TEST_CONVOY) return;
+        int gw = sim.getGrid().getWidth();
+        int gh = sim.getGrid().getHeight();
         RoadGraph graph = map.roadGraph;
         if (graph == null || graph.nodes().isEmpty()) {
             LOG.warn("convoy: skip — roadGraph "
                     + (graph == null ? "null" : "empty"));
+            ConvoySpawnDumper.dump("roadGraph " + (graph == null ? "null" : "empty"),
+                    graph, null, null, gw, gh, map.defenderSpawnX, map.defenderSpawnY);
             return;
         }
         List<RoadGraph.Node> perim = graph.perimeterNodes();
         if (perim.isEmpty()) {
             LOG.warn("convoy: skip — no perimeter nodes in graph "
                     + "(" + graph.nodes().size() + " nodes, " + graph.edges().size() + " edges)");
+            ConvoySpawnDumper.dump("no perimeter nodes",
+                    graph, null, null, gw, gh, map.defenderSpawnX, map.defenderSpawnY);
             return;
         }
         RoadGraph.Node entry = closestNode(perim, map.defenderSpawnX, map.defenderSpawnY);
-        int gw = sim.getGrid().getWidth();
-        int gh = sim.getGrid().getHeight();
         RoadGraph.Node dest = bestInteriorJunction(graph, gw / 2, gh / 2);
         if (dest == null || dest == entry) {
             LOG.warn("convoy: skip — no usable destination "
                     + "(entry=" + entry.cellX + "," + entry.cellY + ")");
+            ConvoySpawnDumper.dump("no usable destination",
+                    graph, entry, dest, gw, gh, map.defenderSpawnX, map.defenderSpawnY);
             return;
         }
         List<RoadGraph.Edge> path = ConvoyPlanner.planPath(graph, entry, dest);
@@ -573,6 +580,8 @@ public final class BattleSetup {
             LOG.warn("convoy: skip — planPath failed entry→dest "
                     + "(" + entry.cellX + "," + entry.cellY + ")→("
                     + dest.cellX + "," + dest.cellY + ")");
+            ConvoySpawnDumper.dump("planPath failed (likely disconnected components)",
+                    graph, entry, dest, gw, gh, map.defenderSpawnX, map.defenderSpawnY);
             return;
         }
         float[][] inboundCells = ConvoyPlanner.expandToWaypoints(path, entry);
