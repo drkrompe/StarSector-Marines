@@ -34,8 +34,8 @@ public class Drone extends Unit {
     /** Drone HP. Low enough that two-three rifle bursts drop one — drones are a screen, not a tank. */
     public static final float DRONE_MAX_HP = 18f;
 
-    /** Turret-style facing slew rate for the drone's body, deg/sec. Fast enough that the drone snaps onto a new target inside a single cooldown window without reading as instantaneous; matches the upper end of {@link com.dillon.starsectormarines.battle.turret.TurretKind#turnRateDegPerSec}. */
-    public static final float TURN_RATE_DEG_PER_SEC = 140f;
+    /** Turret-style facing slew rate for the drone's body, deg/sec. Sized for orbital engagement: the drone faces its motion direction (boat physics — can't fly sideways), and the fire-arc gate in {@code TurretAim} passes whenever the nose sweeps within {@code FIRE_ARC_DEG} of target bearing. At 220°/sec the orbit motion produces a clean rhythm of nose-on firing windows rather than the drone lagging the bearing change. */
+    public static final float TURN_RATE_DEG_PER_SEC = 220f;
 
     /**
      * Drone {@link Unit#airLosRadius}, in cells. Walls within this many cells
@@ -84,10 +84,13 @@ public class Drone extends Unit {
      * fighter aircraft, they're a screen anchored to their launching hub. A
      * marine fleeing beyond this radius outruns the drone's leash and the
      * drone hovers at the boundary until the engagement ends (then returns
-     * to patrol via the standard waypoint roll). Sized so a 3-drone swarm
-     * has room to fan out around a target at the boundary without stacking.
+     * to patrol via the standard waypoint roll). Sized to fit a full orbit
+     * radius (base + pulse amplitude ~ 19 cells at the current attackRange)
+     * around a target at the boundary — drones encircling a marine at the
+     * leash edge still trace a full orbit instead of bunching on the hub
+     * side.
      */
-    public static final float ENGAGE_LEASH_RADIUS_CELLS = 28f;
+    public static final float ENGAGE_LEASH_RADIUS_CELLS = 32f;
 
     /**
      * Sim-seconds the drone keeps committing toward a last-known enemy
@@ -131,25 +134,65 @@ public class Drone extends Unit {
     public float pursuitTimer = 0f;
 
     /**
-     * Drone flight handling — nimbler than any shuttle profile because the
-     * drone is small and patrolling, not hauling marines. The high turn rate
-     * lets it pivot onto a new patrol waypoint in roughly a second; modest
-     * accel keeps the motion read as a smooth drift rather than a teleport.
-     * Lateral damping is high so the drone tracks its waypoint cleanly when
-     * cruising and settles tight against drift while station-keeping during
-     * an engagement.
+     * Drone flight handling — tuned for a combat-helicopter feel: noticeably
+     * faster than walking infantry (2 cells/sec) so the drone reads as a
+     * zipping autonomous vehicle, with brisk accel/brake so orbit motion
+     * stays crisp. The high turn rate is what lets the orbital fire-arc gate
+     * pass cleanly during the nose-sweep — see {@link #TURN_RATE_DEG_PER_SEC}.
+     * High lateral damping keeps the cruise tight against the orbit goal
+     * (which is itself moving) instead of letting the drone drift outward
+     * from sideways momentum.
      */
     public static final AirHandling HANDLING = new AirHandling() {
-        @Override public float maxSpeed()                 { return 2.5f; }
-        @Override public float accel()                    { return 4f; }
-        @Override public float brakingAccel()             { return 6f; }
+        @Override public float maxSpeed()                 { return 3.5f; }
+        @Override public float accel()                    { return 6f; }
+        @Override public float brakingAccel()             { return 9f; }
         @Override public float maxTurnRateDegPerSec()     { return TURN_RATE_DEG_PER_SEC; }
-        @Override public float lateralDriftDamping()      { return 4f; }
+        @Override public float lateralDriftDamping()      { return 5f; }
         @Override public float stationDamping()           { return 8f; }
     };
 
     /** Re-roll the patrol waypoint when the drone gets within this many cells. */
     public static final float PATROL_WAYPOINT_ARRIVE_DIST = 1.2f;
+
+    /**
+     * Orbit base radius as a fraction of {@link #attackRange}. The drone's
+     * engagement target sits at the orbit center; the drone circles at this
+     * radius, modulated by the pulse term below. 0.55 places the orbit
+     * comfortably inside firing range (radius ~14 cells at attackRange 26)
+     * so the drone can fire throughout the orbit.
+     */
+    public static final float ENGAGE_ORBIT_BASE_FRACTION = 0.55f;
+
+    /**
+     * Orbit radius pulse amplitude as a fraction of {@link #attackRange}.
+     * Each drone's orbit radius oscillates sinusoidally between
+     * {@code base ± amplitude}, giving the "varying radius" lap-the-target
+     * read familiar from vanilla Starsector Terminator drones. 0.18 keeps
+     * the entire orbit (base ± amplitude ~ 9-19 cells at attackRange 26)
+     * inside firing range.
+     */
+    public static final float ENGAGE_ORBIT_PULSE_FRACTION = 0.18f;
+
+    /**
+     * Orbit angular velocity, deg/sec CCW. Sized so the tangential speed
+     * required to keep up with the orbit point at base radius matches the
+     * drone's {@link AirHandling#maxSpeed()}: at base radius ~14 cells,
+     * tangential speed = radius × ω ≈ 4.4 cells/sec, a slight overshoot of
+     * the drone's 3.5 cells/sec — drones trail the ideal orbit point by a
+     * fraction of a second, producing a swooping motion rather than rigid
+     * tracking. A full orbit takes ~20 sim-seconds.
+     */
+    public static final float ENGAGE_ORBIT_ANGULAR_DEG_PER_SEC = 18f;
+
+    /**
+     * Orbit radius pulse frequency, Hz. Each pulse cycle takes 1/freq seconds
+     * (~2.9s at 0.35 Hz). Per-slot phase offsets make the drones pulse out
+     * of sync — one drone diving in while another swings out — so the swarm
+     * reads as three independent strafing helicopters rather than a single
+     * pulsating ring.
+     */
+    public static final float ENGAGE_ORBIT_PULSE_HZ = 0.35f;
 
     /**
      * Sim-seconds the crash animation runs from kill to ground impact. Short

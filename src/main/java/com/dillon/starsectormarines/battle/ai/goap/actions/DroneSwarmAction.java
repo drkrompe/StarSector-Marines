@@ -119,7 +119,7 @@ public final class DroneSwarmAction implements Action {
         }
 
         if (s.target != null) {
-            tickEngage(d, s, slotIdx, slotCount, dt);
+            tickEngage(d, s, slotIdx, slotCount, sim, dt);
         } else if (d.pursuitTimer > 0f) {
             tickPursue(d, lockedOn != null, slotIdx, slotCount, dt);
         } else {
@@ -137,26 +137,53 @@ public final class DroneSwarmAction implements Action {
     }
 
     /**
-     * Engage posture. Cruise to a slot-derived hover position around the
-     * target (encircling at 360°/N bearings); inside the hover band, station-
-     * keep so TurretAim's slew owns facing and the firing solution doesn't
-     * drift.
+     * Engage posture. Drone laps the target on an orbit with varying radius —
+     * vanilla Starsector Terminator-drone style. The orbit point is recomputed
+     * every tick from sim time + slot index:
+     *
+     * <ul>
+     *   <li>Tangential drift: angular velocity {@link Drone#ENGAGE_ORBIT_ANGULAR_DEG_PER_SEC}
+     *       CCW, offset by 360°/N per slot so the swarm starts evenly fanned.</li>
+     *   <li>Radial pulse: sinusoidal at {@link Drone#ENGAGE_ORBIT_PULSE_HZ}, amplitude
+     *       {@link Drone#ENGAGE_ORBIT_PULSE_FRACTION} × attackRange, with a 2π/N
+     *       phase offset per slot so drones dive in / swing out of sync.</li>
+     * </ul>
+     *
+     * <p>Cruise mode (full thrust toward the moving goal), <b>not</b> station-
+     * keep — the orbit point is always moving, so the drone is always pursuing.
+     * Facing is owned by {@code AirBody.tickToward} (boat physics: thrust along
+     * facing), which keeps the drone nose-pointed in its motion direction.
+     * {@code TurretAim}'s {@code FIRE_ARC_DEG} check then naturally gates fire
+     * to the windows when the orbit motion swings the nose through target
+     * bearing — like a fighter strafing pass. Three drones at 120° phases mean
+     * at least one is roughly nose-on at most moments, distributing squad
+     * fire across the orbit cycle.
      */
     private static void tickEngage(Drone d, TurretAim.State s,
-                                   int slotIdx, int slotCount, float dt) {
+                                   int slotIdx, int slotCount,
+                                   BattleSimulation sim, float dt) {
         float tx = s.target.cellX + 0.5f;
         float ty = s.target.cellY + 0.5f;
-        float comfortableDist = d.attackRange * ENGAGE_HOVER_FRACTION;
-        float[] hover = encircleOffset(tx, ty, comfortableDist, slotIdx, slotCount);
-        float[] goal = clampGoalToLeash(d, hover[0], hover[1]);
+        float simTime = sim.simTickIndex * BattleSimulation.TICK_DT;
 
-        float distToHover = d.body.distanceTo(goal[0], goal[1]);
-        if (distToHover <= Drone.PATROL_WAYPOINT_ARRIVE_DIST) {
-            d.body.facingDegrees = s.facingDegrees;
-            d.body.tickToward(d.body.x, d.body.y, SteeringMode.STATION, Drone.HANDLING, dt);
-        } else {
-            d.body.tickToward(goal[0], goal[1], SteeringMode.BRAKE_TO_STATION, Drone.HANDLING, dt);
-        }
+        float baseBearingDeg = (360f * slotIdx) / slotCount;
+        float driftDeg = simTime * Drone.ENGAGE_ORBIT_ANGULAR_DEG_PER_SEC;
+        float orbitBearingDeg = baseBearingDeg + driftDeg;
+
+        float baseRadius = d.attackRange * Drone.ENGAGE_ORBIT_BASE_FRACTION;
+        float pulseAmplitude = d.attackRange * Drone.ENGAGE_ORBIT_PULSE_FRACTION;
+        float pulsePhase = 2f * (float) Math.PI
+                * (Drone.ENGAGE_ORBIT_PULSE_HZ * simTime + (float) slotIdx / slotCount);
+        float orbitRadius = baseRadius + pulseAmplitude * (float) Math.sin(pulsePhase);
+
+        float rad = (float) Math.toRadians(orbitBearingDeg);
+        float ox = -(float) Math.sin(rad);
+        float oy =  (float) Math.cos(rad);
+        float orbitX = tx + orbitRadius * ox;
+        float orbitY = ty + orbitRadius * oy;
+
+        float[] goal = clampGoalToLeash(d, orbitX, orbitY);
+        d.body.tickToward(goal[0], goal[1], SteeringMode.CRUISE, Drone.HANDLING, dt);
     }
 
     /**
