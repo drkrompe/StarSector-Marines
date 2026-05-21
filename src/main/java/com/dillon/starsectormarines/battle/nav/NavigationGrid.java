@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.nav;
 
+import com.dillon.starsectormarines.battle.profile.LosCache;
+
 import java.util.Arrays;
 
 /**
@@ -398,6 +400,20 @@ public class NavigationGrid {
      * Bresenham if it becomes visually weird.
      */
     public boolean hasLineOfSight(int x0, int y0, int x1, int y1) {
+        // Tick-scoped result cache. Off-tick (tests, mid-frame UI hooks) the
+        // slot is null and we fall through to the Bresenham trace directly.
+        LosCache cache = LosCache.current();
+        if (cache != null) {
+            int cached = cache.tryGet(x0, y0, x1, y1);
+            if (cached >= 0) return cached == 1;
+            boolean result = hasLineOfSightImpl(x0, y0, x1, y1);
+            cache.put(x0, y0, x1, y1, result);
+            return result;
+        }
+        return hasLineOfSightImpl(x0, y0, x1, y1);
+    }
+
+    private boolean hasLineOfSightImpl(int x0, int y0, int x1, int y1) {
         int dx = Math.abs(x1 - x0);
         int dy = Math.abs(y1 - y0);
         int sx = x0 < x1 ? 1 : -1;

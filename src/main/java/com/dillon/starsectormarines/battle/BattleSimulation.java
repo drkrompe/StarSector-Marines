@@ -26,6 +26,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.objective.EliminateFactionObjective;
 import com.dillon.starsectormarines.battle.objective.Objective;
+import com.dillon.starsectormarines.battle.profile.LosCache;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
 import com.dillon.starsectormarines.battle.tactical.TacticalMap;
@@ -319,6 +320,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final TickProfile tickProfile = new TickProfile();
     /** Per-tick sub-step profile (behavior buckets + heavy primitives like pathfind / target-pick). Reset at the top of every {@link #tick()}; snapshotted into {@link TickProfile.Spike#innerSnapshot} when a spike fires so spike JSONs carry the diagnostic breakdown. Exposed via the static {@link TickInnerProfile#current()} slot so non-sim call sites (GridPathfinder, TacticalScoring) can record without threading the sim reference through. */
     private final TickInnerProfile tickInnerProfile = new TickInnerProfile();
+    /** Per-tick LoS result cache. Cleared at tick start; queried inside {@link com.dillon.starsectormarines.battle.nav.NavigationGrid#hasLineOfSight} via the static {@link LosCache#current()} slot. Same access pattern as {@link #tickInnerProfile} — keeps the 36 direct {@code hasLineOfSight} callers (and the canSeePair wrappers) unmodified while still catching cross-caller pair reuse within a tick. */
+    private final LosCache losCache = new LosCache();
     private boolean complete = false;
     private Faction winner;
 
@@ -929,6 +932,11 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // can record without threading the sim through their signatures.
         tickInnerProfile.reset();
         TickInnerProfile.setCurrent(tickInnerProfile);
+        // Per-tick LoS cache. Same static-slot pattern as the inner profile —
+        // NavigationGrid.hasLineOfSight queries through the slot, so all 36
+        // direct callers and the canSeePair wrappers benefit automatically.
+        losCache.clear();
+        LosCache.setCurrent(losCache);
         // Fog-of-war visibility pass — recomputed every 3rd tick (~10 Hz at
         // 30 Hz sim). The render path lerps current→target alpha per frame so
         // this cadence stays invisible.
@@ -1093,10 +1101,11 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         checkWinCondition();
         tickProfile.lap(TickProfile.Phase.WIN_CHECK);
         tickProfile.endTick(simTickIndex, tickInnerProfile);
-        // Clear the static slot so any stray call outside the tick window
+        // Clear the static slots so any stray call outside the tick window
         // (e.g., test harness, mid-frame UI hook) is a clean no-op rather
-        // than silently writing into the previous tick's counters.
+        // than silently writing into the previous tick's counters / cache.
         TickInnerProfile.setCurrent(null);
+        LosCache.setCurrent(null);
     }
 
     /**
