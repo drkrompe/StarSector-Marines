@@ -14,5 +14,6 @@ public enum CampaignTable {
     STAKES,
     RELATIONSHIPS,
     CHAINS,
-    PLAYER_REP
+    PLAYER_REP,
+    CONTRACTS
 }

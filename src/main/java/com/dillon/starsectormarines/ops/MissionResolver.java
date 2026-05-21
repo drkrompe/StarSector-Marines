@@ -3,6 +3,9 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.campaign.CampaignState;
+import com.dillon.starsectormarines.campaign.CampaignStateScript;
+import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.Rank;
@@ -91,7 +94,16 @@ public final class MissionResolver {
                 ? (int) Math.floor(rawMarinesLost * (1f - FIELD_MEDIC_REDUCTION))
                 : rawMarinesLost;
 
-        int payoutEarned = victory ? mission.payout : 0;
+        // Cash multiplier applies the salvage-traded-for-cash bump from briefing
+        // acceptance (see contracts.md §"Salvage Layer 2"). 100 = baseline.
+        int cashMult = mission.cashMultiplier & 0xFF;
+        if (cashMult <= 0) cashMult = 100;
+        int payoutEarned = victory ? (int) ((long) mission.payout * cashMult / 100L) : 0;
+
+        // Salvage entitlement carries into the (deferred) loot UI. For now it's
+        // just the negotiated % — captain SALVAGE_EXPERT trait + fleet Salvage
+        // Rig modifiers are layered on at the loot-roll step when that lands.
+        int salvageEntitlement = victory ? (mission.salvageNegotiated & 0xFF) : 0;
 
         Status priorStatus = captain != null ? captain.status() : null;
         Status newStatus   = priorStatus;
@@ -137,7 +149,8 @@ public final class MissionResolver {
                 captain != null ? captain.id()   : null,
                 captain != null ? captain.name() : null,
                 priorStatus, newStatus, xpGained, injuredUntilDay, promotedTo,
-                mission.targetPlanetName, mission.targetIndustryId);
+                mission.targetPlanetName, mission.targetIndustryId,
+                mission.contractId, salvageEntitlement);
     }
 
     public static void apply(MissionOutcome outcome) {
@@ -156,6 +169,10 @@ public final class MissionResolver {
 
         if (outcome.victory && outcome.targetIndustryId != null && outcome.targetPlanetName != null) {
             applyIndustryDisruption(outcome);
+        }
+
+        if (outcome.contractId != -1L) {
+            applyContractBridge(outcome);
         }
 
         if (outcome.victory && outcome.missionSource == MissionSource.STORY
@@ -284,6 +301,85 @@ public final class MissionResolver {
                         + " (" + total + "/" + DAMAGE_THRESHOLD + ")");
             }
             return;
+        }
+    }
+
+    /**
+     * Writes the mission's outcome back to the campaign-tier {@link CampaignState}:
+     * advance {@code contractPhasesDone}, flip {@code contractState} on terminal
+     * conditions, and tick the player↔patron rep row. No-ops if no campaign
+     * script is registered yet (skeleton path — predates the campaign script's
+     * install).
+     *
+     * <p>Resolution rules (per contracts.md §Lifecycle):
+     * <ul>
+     *   <li>Victory advances {@code phasesDone}; on {@code phasesDone >= phasesTotal}
+     *       the state flips ACTIVE/IN_PROGRESS → COMPLETED.</li>
+     *   <li>Defeat flips the state to FAILED immediately (mission-mode contracts
+     *       are short and terminal on failure; stationing failure paths are the
+     *       lifecycle system's concern).</li>
+     *   <li>First phase resolution transitions ACTIVE → IN_PROGRESS.</li>
+     * </ul>
+     */
+    private static void applyContractBridge(MissionOutcome outcome) {
+        CampaignStateScript script = CampaignStateScript.getInstance();
+        if (script == null) {
+            LOG.info("MarineOps: contractId=" + outcome.contractId
+                    + " but no CampaignStateScript registered — skipping campaign writeback");
+            return;
+        }
+        CampaignState state = script.state();
+        int row = state.contractIndex(outcome.contractId);
+        if (row < 0) {
+            LOG.info("MarineOps: contract " + outcome.contractId + " not found in campaign state — orphan mission?");
+            return;
+        }
+
+        ContractState prior = ContractState.fromByte(state.contractState[row]);
+        if (prior.isTerminal()) {
+            LOG.info("MarineOps: contract " + outcome.contractId + " already " + prior + " — no writeback");
+            return;
+        }
+
+        int day = currentDayInt();
+        long patronId = state.contractPatronHouseId[row];
+
+        if (outcome.victory) {
+            int phasesDone  = (state.contractPhasesDone[row] & 0xFF) + 1;
+            int phasesTotal = state.contractPhasesTotal[row] & 0xFF;
+            if (phasesDone > 255) phasesDone = 255;
+            state.contractPhasesDone[row] = (byte) phasesDone;
+            if (phasesDone >= phasesTotal) {
+                state.contractState[row] = ContractState.COMPLETED.toByte();
+                tickPatronRep(state, patronId, +1, day, true);
+                LOG.info("MarineOps: contract " + outcome.contractId + " COMPLETED ("
+                        + phasesDone + "/" + phasesTotal + ")");
+            } else {
+                state.contractState[row] = ContractState.IN_PROGRESS.toByte();
+                LOG.info("MarineOps: contract " + outcome.contractId + " phase "
+                        + phasesDone + "/" + phasesTotal + " done");
+            }
+        } else {
+            state.contractState[row] = ContractState.FAILED.toByte();
+            tickPatronRep(state, patronId, -2, day, false);
+            LOG.info("MarineOps: contract " + outcome.contractId + " FAILED");
+        }
+    }
+
+    /** Find-or-create the patron's rep row and apply a small delta. */
+    private static void tickPatronRep(CampaignState state, long patronHouseId,
+                                      int repDelta, int day, boolean completed) {
+        int repRow = state.ensureRepRow(patronHouseId);
+        state.repValue[repRow] = Math.max(-100, Math.min(100, state.repValue[repRow] + repDelta));
+        state.repLastContractTick[repRow] = day;
+        if (completed) {
+            int n = (state.repContractsCompleted[repRow] & 0xFFFF) + 1;
+            if (n > 65535) n = 65535;
+            state.repContractsCompleted[repRow] = (short) n;
+        } else {
+            int n = (state.repContractsFailed[repRow] & 0xFFFF) + 1;
+            if (n > 65535) n = 65535;
+            state.repContractsFailed[repRow] = (short) n;
         }
     }
 

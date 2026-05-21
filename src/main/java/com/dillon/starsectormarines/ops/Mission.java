@@ -53,6 +53,22 @@ public final class Mission {
     /** Industry id (e.g. {@code "refining"}) the mission targets; null for non-industry ops. */
     public final String targetIndustryId;
 
+    /**
+     * Campaign-tier contract id this mission resolves a phase of; {@code -1} for
+     * ad-hoc missions not bound to a contract. The resolver bridges back to
+     * {@link com.dillon.starsectormarines.campaign.CampaignState#contractIndex}
+     * on this id to advance the contract row.
+     */
+    public final long contractId;
+
+    /** Salvage % cap baked into the contract (0..255). 0 for non-contract missions. */
+    public final byte salvageBaseline;
+    /** Salvage % the player locked in at acceptance (0..salvageBaseline). */
+    public final byte salvageNegotiated;
+    /** Cash multiplier from salvage negotiation (0..255; 100 = baseline). */
+    public final byte cashMultiplier;
+
+    /** Backwards-compatible constructor — ad-hoc mission, no contract, no salvage entitlement. */
     public Mission(String id,
                    String name,
                    MissionType type,
@@ -69,6 +85,32 @@ public final class Mission {
                    int employerShuttles,
                    String targetPlanetName,
                    String targetIndustryId) {
+        this(id, name, type, source, payout, risk, requirements, flavor,
+                normalizedX, normalizedY, clientFighterSupport, enemyFighterSupport,
+                requiredDrops, employerShuttles, targetPlanetName, targetIndustryId,
+                -1L, (byte) 0, (byte) 0, (byte) 100);
+    }
+
+    public Mission(String id,
+                   String name,
+                   MissionType type,
+                   MissionSource source,
+                   int payout,
+                   RiskLevel risk,
+                   String requirements,
+                   String flavor,
+                   float normalizedX,
+                   float normalizedY,
+                   FlybyRoster clientFighterSupport,
+                   FlybyRoster enemyFighterSupport,
+                   int requiredDrops,
+                   int employerShuttles,
+                   String targetPlanetName,
+                   String targetIndustryId,
+                   long contractId,
+                   byte salvageBaseline,
+                   byte salvageNegotiated,
+                   byte cashMultiplier) {
         this.id           = id;
         this.name         = name;
         this.type         = type;
@@ -85,5 +127,9 @@ public final class Mission {
         this.employerShuttles = Math.max(0, Math.min(employerShuttles, this.requiredDrops));
         this.targetPlanetName = targetPlanetName;
         this.targetIndustryId = targetIndustryId;
+        this.contractId        = contractId;
+        this.salvageBaseline   = salvageBaseline;
+        this.salvageNegotiated = salvageNegotiated;
+        this.cashMultiplier    = cashMultiplier;
     }
 }

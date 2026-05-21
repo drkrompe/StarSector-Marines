@@ -35,6 +35,11 @@ public final class MissionOutcome {
     /** Non-null when the XP gained crossed one or more promotion thresholds; the new rank. */
     public final Rank    promotedTo;
 
+    /** Campaign-tier contract id this resolved a phase of; {@code -1} for ad-hoc missions. */
+    public final long    contractId;
+    /** Final salvage % entitlement after captain trait + fleet rig modifiers (0..255). 0 = no salvage. */
+    public final int     salvageEntitlement;
+
     public MissionOutcome(boolean victory,
                           String missionId, String missionName,
                           MissionType missionType, MissionSource missionSource,
@@ -42,7 +47,8 @@ public final class MissionOutcome {
                           String captainId, String captainName,
                           Status priorCaptainStatus, Status newCaptainStatus,
                           int xpGained, float injuredUntilDay, Rank promotedTo,
-                          String targetPlanetName, String targetIndustryId) {
+                          String targetPlanetName, String targetIndustryId,
+                          long contractId, int salvageEntitlement) {
         this.victory            = victory;
         this.missionId          = missionId;
         this.missionName        = missionName;
@@ -60,5 +66,7 @@ public final class MissionOutcome {
         this.promotedTo         = promotedTo;
         this.targetPlanetName   = targetPlanetName;
         this.targetIndustryId   = targetIndustryId;
+        this.contractId         = contractId;
+        this.salvageEntitlement = salvageEntitlement;
     }
 }

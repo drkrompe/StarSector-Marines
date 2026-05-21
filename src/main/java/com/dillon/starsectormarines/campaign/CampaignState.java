@@ -32,6 +32,8 @@ public final class CampaignState implements Serializable {
     public final IdRegistry factionRegistry = new IdRegistry();
     public final IdRegistry industryRegistry = new IdRegistry();
     public final IdRegistry marketRegistry = new IdRegistry();
+    /** Captain ids interned for the {@code contractCaptainId[]} column — UUID strings → ints. */
+    public final IdRegistry captainRegistry = new IdRegistry();
 
     // ---------- houses[] ----------
 
@@ -88,22 +90,58 @@ public final class CampaignState implements Serializable {
     public int[]   repLastContractTick = new int[INITIAL_CAPACITY];
     public int     repCount           = 0;
 
+    // ---------- contracts[] (sixth table — see contracts.md §"contracts[]") ----------
+
+    public long[]  contractId            = new long[INITIAL_CAPACITY];
+    public long[]  contractPatronHouseId = new long[INITIAL_CAPACITY];
+    /** Target house id for strikes/decapitations; -1 for stationing/escort/extraction. */
+    public long[]  contractTargetHouseId = new long[INITIAL_CAPACITY];
+    /** Parent chain id, or -1 for one-off contracts. */
+    public long[]  contractChainId       = new long[INITIAL_CAPACITY];
+    public byte[]  contractType          = new byte[INITIAL_CAPACITY];
+    public byte[]  contractState         = new byte[INITIAL_CAPACITY];
+    public int[]   contractAcceptedTick  = new int[INITIAL_CAPACITY];
+    /** Sector day when retainer/term ends; -1 for mission-mode (no expiry). */
+    public int[]   contractExpiresTick   = new int[INITIAL_CAPACITY];
+    public byte[]  contractPhasesTotal   = new byte[INITIAL_CAPACITY];
+    public byte[]  contractPhasesDone    = new byte[INITIAL_CAPACITY];
+    /** Captain index in {@link #captainRegistry}; -1 if no captain bound yet. */
+    public int[]   contractCaptainId     = new int[INITIAL_CAPACITY];
+    public int[]   contractMarketId      = new int[INITIAL_CAPACITY];
+    /** Industry index in {@link #industryRegistry}; -1 if not industry-targeted. */
+    public int[]   contractIndustryId    = new int[INITIAL_CAPACITY];
+    public int[]   contractBasePayout    = new int[INITIAL_CAPACITY];
+    /** Retainer paid per in-game month for stationing contracts; 0 for mission-mode. */
+    public int[]   contractRetainerPerMonth = new int[INITIAL_CAPACITY];
+    /** Salvage % cap for this contract (0..255). Per-type default at offer. */
+    public byte[]  contractSalvageBaseline   = new byte[INITIAL_CAPACITY];
+    /** Salvage % actually locked in at acceptance (0..salvageBaseline). */
+    public byte[]  contractSalvageNegotiated = new byte[INITIAL_CAPACITY];
+    /** Cash multiplier (0..255; 100 = baseline). Higher = traded salvage for cash. */
+    public byte[]  contractCashMultiplier    = new byte[INITIAL_CAPACITY];
+    public int     contractCount         = 0;
+
     // ---------- O(1) id → row-index maps (architecture.md §4) ----------
 
-    public final LongIntMap houseIndexById  = new LongIntMap();
-    public final LongIntMap stakeIndexById  = new LongIntMap();
-    public final LongIntMap chainIndexById  = new LongIntMap();
+    public final LongIntMap houseIndexById     = new LongIntMap();
+    public final LongIntMap stakeIndexById     = new LongIntMap();
+    public final LongIntMap chainIndexById     = new LongIntMap();
+    public final LongIntMap contractIndexById  = new LongIntMap();
     /** house id → row index in {@code playerReputation[]}. Sparse — only touched houses get rep rows. */
-    public final LongIntMap repIndexByHouseId = new LongIntMap();
+    public final LongIntMap repIndexByHouseId  = new LongIntMap();
 
     // ---------- Sequence counters ----------
 
-    private long nextHouseId  = 1;
-    private long nextStakeId  = 1;
-    private long nextChainId  = 1;
+    private long nextHouseId    = 1;
+    private long nextStakeId    = 1;
+    private long nextChainId    = 1;
+    private long nextContractId = 1;
 
     /** Last advanced sector-day; the script uses this to drive a daily-tick cadence. */
     public int lastTickDay = -1;
+
+    /** MRB / industry-credibility rep — see contracts.md §"MRB reputation track". */
+    public int playerMrbRep = 0;
 
     // ---------- Debug overrides (not persisted intentionally? keep persisted — small) ----------
 
@@ -212,6 +250,46 @@ public final class CampaignState implements Serializable {
         return repIndexByHouseId.get(houseIdValue);
     }
 
+    /**
+     * Appends a contract. Returns the new contract id. Salvage / cash columns
+     * default to the per-type baseline at the negotiated value; callers should
+     * overwrite at acceptance time per <code>contracts.md</code> §"Salvage layers".
+     */
+    public long addContract(long patronHouseIdValue, long targetHouseIdValue, long chainIdValue,
+                            ContractType type, ContractState state, int acceptedTick, int expiresTick,
+                            byte phasesTotal, int captainIdx, int marketIdx, int industryIdx,
+                            int basePayout, int retainerPerMonth,
+                            byte salvageBaseline, byte salvageNegotiated, byte cashMultiplier) {
+        ensureContractCapacity(contractCount + 1);
+        int i = contractCount++;
+        long id = nextContractId++;
+        contractId[i]               = id;
+        contractPatronHouseId[i]    = patronHouseIdValue;
+        contractTargetHouseId[i]    = targetHouseIdValue;
+        contractChainId[i]          = chainIdValue;
+        contractType[i]             = type.toByte();
+        contractState[i]            = state.toByte();
+        contractAcceptedTick[i]     = acceptedTick;
+        contractExpiresTick[i]      = expiresTick;
+        contractPhasesTotal[i]      = phasesTotal;
+        contractPhasesDone[i]       = 0;
+        contractCaptainId[i]        = captainIdx;
+        contractMarketId[i]         = marketIdx;
+        contractIndustryId[i]       = industryIdx;
+        contractBasePayout[i]       = basePayout;
+        contractRetainerPerMonth[i] = retainerPerMonth;
+        contractSalvageBaseline[i]  = salvageBaseline;
+        contractSalvageNegotiated[i] = salvageNegotiated;
+        contractCashMultiplier[i]   = cashMultiplier;
+        contractIndexById.put(id, i);
+        return id;
+    }
+
+    /** O(1) lookup: contract id → row index in contracts table, or {@code -1}. */
+    public int contractIndex(long id) {
+        return contractIndexById.get(id);
+    }
+
     // ---------- Capacity growth ----------
 
     private void ensureHouseCapacity(int needed) {
@@ -272,5 +350,28 @@ public final class CampaignState implements Serializable {
         repContractsCompleted = Arrays.copyOf(repContractsCompleted, n);
         repContractsFailed    = Arrays.copyOf(repContractsFailed, n);
         repLastContractTick   = Arrays.copyOf(repLastContractTick, n);
+    }
+
+    private void ensureContractCapacity(int needed) {
+        if (needed <= contractId.length) return;
+        int n = Math.max(needed, contractId.length * 2);
+        contractId                = Arrays.copyOf(contractId, n);
+        contractPatronHouseId     = Arrays.copyOf(contractPatronHouseId, n);
+        contractTargetHouseId     = Arrays.copyOf(contractTargetHouseId, n);
+        contractChainId           = Arrays.copyOf(contractChainId, n);
+        contractType              = Arrays.copyOf(contractType, n);
+        contractState             = Arrays.copyOf(contractState, n);
+        contractAcceptedTick      = Arrays.copyOf(contractAcceptedTick, n);
+        contractExpiresTick       = Arrays.copyOf(contractExpiresTick, n);
+        contractPhasesTotal       = Arrays.copyOf(contractPhasesTotal, n);
+        contractPhasesDone        = Arrays.copyOf(contractPhasesDone, n);
+        contractCaptainId         = Arrays.copyOf(contractCaptainId, n);
+        contractMarketId          = Arrays.copyOf(contractMarketId, n);
+        contractIndustryId        = Arrays.copyOf(contractIndustryId, n);
+        contractBasePayout        = Arrays.copyOf(contractBasePayout, n);
+        contractRetainerPerMonth  = Arrays.copyOf(contractRetainerPerMonth, n);
+        contractSalvageBaseline   = Arrays.copyOf(contractSalvageBaseline, n);
+        contractSalvageNegotiated = Arrays.copyOf(contractSalvageNegotiated, n);
+        contractCashMultiplier    = Arrays.copyOf(contractCashMultiplier, n);
     }
 }
