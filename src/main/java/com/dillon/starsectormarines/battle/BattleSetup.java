@@ -34,6 +34,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
@@ -566,21 +567,43 @@ public final class BattleSetup {
                     graph, null, null, gw, gh, map.defenderSpawnX, map.defenderSpawnY);
             return;
         }
-        RoadGraph.Node entry = closestNode(perim, map.defenderSpawnX, map.defenderSpawnY);
-        RoadGraph.Node dest = bestInteriorJunction(graph, gw / 2, gh / 2);
-        if (dest == null || dest == entry) {
-            LOG.warn("convoy: skip — no usable destination "
-                    + "(entry=" + entry.cellX + "," + entry.cellY + ")");
-            ConvoySpawnDumper.dump("no usable destination",
-                    graph, entry, dest, gw, gh, map.defenderSpawnX, map.defenderSpawnY);
+        // Iterate perimeter nodes in order of distance to the defender spawn.
+        // For each candidate entry, restrict the destination search to the
+        // graph component reachable from that entry — fixes the
+        // disconnected-graph case where the closest-to-spawn perimeter node
+        // sits in a tiny stub component and the actual interior junctions
+        // live in a separate component. First entry that yields a usable
+        // junction wins.
+        List<RoadGraph.Node> perimByDist = sortedByDistance(perim, map.defenderSpawnX, map.defenderSpawnY);
+        RoadGraph.Node entry = null;
+        RoadGraph.Node dest = null;
+        for (RoadGraph.Node candidate : perimByDist) {
+            Set<RoadGraph.Node> reachable = reachableFrom(candidate);
+            RoadGraph.Node candDest = bestInteriorJunctionWithin(reachable, gw / 2, gh / 2);
+            if (candDest != null && candDest != candidate) {
+                entry = candidate;
+                dest = candDest;
+                break;
+            }
+        }
+        if (entry == null) {
+            // Last perimeter we tried is the most useful one to dump for diagnostics.
+            RoadGraph.Node lastEntry = perimByDist.isEmpty() ? null : perimByDist.get(perimByDist.size() - 1);
+            LOG.warn("convoy: skip — no entry/dest pair in the same component "
+                    + "(" + perimByDist.size() + " perimeter candidates tried)");
+            ConvoySpawnDumper.dump("no entry/dest pair in any component",
+                    graph, lastEntry, null, gw, gh, map.defenderSpawnX, map.defenderSpawnY);
             return;
         }
         List<RoadGraph.Edge> path = ConvoyPlanner.planPath(graph, entry, dest);
         if (path == null || path.isEmpty()) {
+            // Shouldn't happen now that entry/dest are in the same component,
+            // but keep the dump in case the reachable-set scan and BFS ever
+            // disagree (e.g. graph mutation between the two queries).
             LOG.warn("convoy: skip — planPath failed entry→dest "
                     + "(" + entry.cellX + "," + entry.cellY + ")→("
                     + dest.cellX + "," + dest.cellY + ")");
-            ConvoySpawnDumper.dump("planPath failed (likely disconnected components)",
+            ConvoySpawnDumper.dump("planPath failed despite component check",
                     graph, entry, dest, gw, gh, map.defenderSpawnX, map.defenderSpawnY);
             return;
         }
@@ -615,30 +638,55 @@ public final class BattleSetup {
                 + ") path=" + path.size() + "edges/" + inX.length + "wps");
     }
 
-    private static RoadGraph.Node closestNode(List<RoadGraph.Node> nodes, int x, int y) {
-        RoadGraph.Node best = null;
-        int bestD2 = Integer.MAX_VALUE;
-        for (RoadGraph.Node n : nodes) {
-            int dx = n.cellX - x;
-            int dy = n.cellY - y;
-            int d2 = dx * dx + dy * dy;
-            if (d2 < bestD2) { bestD2 = d2; best = n; }
-        }
-        return best;
+    /** Sort {@code nodes} by squared distance to ({@code x, y}), ascending. Defensive copy — input list is not mutated. */
+    private static List<RoadGraph.Node> sortedByDistance(List<RoadGraph.Node> nodes, int x, int y) {
+        List<RoadGraph.Node> out = new ArrayList<>(nodes);
+        out.sort((a, b) -> {
+            int adx = a.cellX - x, ady = a.cellY - y;
+            int bdx = b.cellX - x, bdy = b.cellY - y;
+            return Integer.compare(adx*adx + ady*ady, bdx*bdx + bdy*bdy);
+        });
+        return out;
     }
 
-    private static RoadGraph.Node bestInteriorJunction(RoadGraph graph, int cx, int cy) {
-        RoadGraph.Node best = null;
-        int bestD2 = Integer.MAX_VALUE;
-        for (RoadGraph.Node n : graph.nodes()) {
-            if (n.perimeter) continue;
-            if (n.degree() < 3) continue;
-            int dx = n.cellX - cx;
-            int dy = n.cellY - cy;
-            int d2 = dx * dx + dy * dy;
-            if (d2 < bestD2) { bestD2 = d2; best = n; }
+    /** BFS flood from {@code seed} over edges — returns the seed's connected component as a Set. */
+    private static Set<RoadGraph.Node> reachableFrom(RoadGraph.Node seed) {
+        Set<RoadGraph.Node> seen = new HashSet<>();
+        Deque<RoadGraph.Node> q = new ArrayDeque<>();
+        q.add(seed);
+        seen.add(seed);
+        while (!q.isEmpty()) {
+            RoadGraph.Node n = q.poll();
+            for (RoadGraph.Edge e : n.edges()) {
+                RoadGraph.Node nxt = e.otherEnd(n);
+                if (seen.add(nxt)) q.add(nxt);
+            }
         }
-        return best;
+        return seen;
+    }
+
+    /**
+     * Best interior junction within a reachable set, near ({@code cx, cy}).
+     * Walks degree thresholds from {@code 3} down to {@code 2} — a degree-2
+     * interior node is a worse drop-off (no choice but to turn around at
+     * arrival) but still better than a failed spawn, especially when a
+     * stub component has only chain nodes.
+     */
+    private static RoadGraph.Node bestInteriorJunctionWithin(Set<RoadGraph.Node> reachable, int cx, int cy) {
+        for (int minDegree = 3; minDegree >= 2; minDegree--) {
+            RoadGraph.Node best = null;
+            int bestD2 = Integer.MAX_VALUE;
+            for (RoadGraph.Node n : reachable) {
+                if (n.perimeter) continue;
+                if (n.degree() < minDegree) continue;
+                int dx = n.cellX - cx;
+                int dy = n.cellY - cy;
+                int d2 = dx * dx + dy * dy;
+                if (d2 < bestD2) { bestD2 = d2; best = n; }
+            }
+            if (best != null) return best;
+        }
+        return null;
     }
 
     /**
