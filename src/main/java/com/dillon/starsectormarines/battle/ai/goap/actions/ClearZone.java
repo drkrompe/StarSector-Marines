@@ -60,14 +60,26 @@ public final class ClearZone implements Action {
             return ActionStatus.SUCCESS;
         }
 
-        // Refresh target: prefer an in-zone enemy. Falls back to the
-        // squad-aware best-target if no in-zone target is reachable, so the
-        // squad still fires on threats from adjacent zones rather than
-        // standing in a doorway taking hits.
+        // Refresh target: prefer an in-zone enemy. An out-of-zone fixation
+        // counts as "drop and re-pick" — without this, members that lose LOS
+        // to the in-zone enemy and grab a visible adjacent-zone target via
+        // findBestTarget get stuck (line 90 short-circuits movement, and
+        // shouldKeepPursuing keeps voting yes because no closer visible
+        // alternative appears). pickInZoneTarget tries LOS first; when no
+        // in-zone enemy is visible (squad in zone but blocked from the
+        // surviving enemy by a wall), pickNearestInZoneEnemy returns the
+        // closest in-zone enemy unconditionally so we close through the
+        // wall via the pathfinder rather than freezing. Falls back to the
+        // squad-aware best-target only when zone has no live enemies (rare —
+        // zoneClear normally short-circuits first).
+        boolean targetOutOfZone = member.target != null && member.target.isAlive()
+                && sim.getZoneGraph().zoneIdAt(member.target.cellX, member.target.cellY) != targetZoneId;
         if (member.target == null
                 || !member.target.isAlive()
+                || targetOutOfZone
                 || !TacticalScoring.shouldKeepPursuing(member, member.target, sim)) {
             Unit inZone = pickInZoneTarget(member, sim);
+            if (inZone == null) inZone = pickNearestInZoneEnemy(member, sim);
             member.target = inZone != null ? inZone : TacticalScoring.findBestTarget(member, sim);
         }
         if (member.target == null) return ActionStatus.RUNNING;
@@ -103,7 +115,8 @@ public final class ClearZone implements Action {
      * Scans enemies of the squad's faction whose cell sits in the target zone
      * and returns the closest visible one. Linear over the unit list — fine
      * given typical squad-tick budgets. Returns null when no in-zone enemy
-     * exists (caller falls back to the normal picker).
+     * exists (caller falls back to {@link #pickNearestInZoneEnemy}, then
+     * to the normal squad-aware picker).
      */
     private Unit pickInZoneTarget(Unit self, BattleSimulation sim) {
         Faction enemy = enemyOf(self.faction);
@@ -115,6 +128,40 @@ public final class ClearZone implements Action {
             if (!other.type.combatant) continue;
             if (sim.getZoneGraph().zoneIdAt(other.cellX, other.cellY) != targetZoneId) continue;
             if (!sim.getGrid().hasLineOfSight(self.cellX, self.cellY, other.cellX, other.cellY)) continue;
+            float d = TacticalScoring.cellDistance(self.cellX, self.cellY, other.cellX, other.cellY);
+            if (d < bestDist) {
+                bestDist = d;
+                best = other;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * Closest alive enemy combatant in the target zone, ignoring LOS. The
+     * fallback for {@link #pickInZoneTarget} when a wall blocks LOS to every
+     * survivor in the zone — without this, the squad picks an out-of-zone
+     * target via findBestTarget and freezes (the action refuses to chase
+     * out-of-zone targets, see Story K). Linear scan; one zone-clearing
+     * squad pays it once per posture tick.
+     *
+     * <p>The squad ↔ zone-clear flood share the same walkability rules but
+     * the zone graph ignores edges ([[zone_graph_ignores_edges]]) — so a
+     * non-LOS in-zone enemy may still be unreachable. The pathfinder either
+     * routes around (members close, eventually gain LOS) or returns an
+     * empty path (next tick re-evaluates; if persistently empty the squad
+     * is geometrically stuck — surfaced via clearZoneReachability in
+     * {@link com.dillon.starsectormarines.battle.ui.debug.SquadStateDumper}).
+     */
+    private Unit pickNearestInZoneEnemy(Unit self, BattleSimulation sim) {
+        Faction enemy = enemyOf(self.faction);
+        Unit best = null;
+        float bestDist = Float.MAX_VALUE;
+        for (Unit other : sim.getUnits()) {
+            if (!other.isAlive()) continue;
+            if (other.faction != enemy) continue;
+            if (!other.type.combatant) continue;
+            if (sim.getZoneGraph().zoneIdAt(other.cellX, other.cellY) != targetZoneId) continue;
             float d = TacticalScoring.cellDistance(self.cellX, self.cellY, other.cellX, other.cellY);
             if (d < bestDist) {
                 bestDist = d;
