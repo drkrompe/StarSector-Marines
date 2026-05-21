@@ -289,7 +289,7 @@ public final class BspCityGenerator implements MapGenerator {
         TacticalLinker.link(this.lastTacticalMap);
 
         // Step 4 — finalize: HP on walls, cover bake, wall flag, spawn anchors.
-        seedWallHp(grid);
+        seedWallHp(grid, topology);
         bakeCoverFromWalls(grid);
         topology.tagDefaultWalls(grid);
 
@@ -528,11 +528,13 @@ public final class BspCityGenerator implements MapGenerator {
         return ped;
     }
 
-    /** Every non-walkable cell gets a starting HP. Mirrors legacy seed. */
-    private void seedWallHp(NavigationGrid grid) {
+    /** Every non-walkable, non-water cell gets a starting HP. Water is non-walkable but isn't a destructible wall. */
+    private void seedWallHp(NavigationGrid grid, CellTopology topology) {
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
-                if (!grid.isWalkable(x, y)) grid.setWallHp(x, y, WALL_HP_DEFAULT);
+                if (!grid.isWalkable(x, y) && !topology.isWater(x, y)) {
+                    grid.setWallHp(x, y, WALL_HP_DEFAULT);
+                }
             }
         }
     }
