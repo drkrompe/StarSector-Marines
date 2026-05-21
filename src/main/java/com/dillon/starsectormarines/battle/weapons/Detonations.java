@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -29,10 +30,16 @@ import java.util.List;
 public class Detonations {
 
     private final List<PendingDetonation> pending = new ArrayList<>();
+    private final List<PendingDetonation> pendingView = Collections.unmodifiableList(pending);
 
     /** Queues a detonation onto the in-flight list. Drained by {@link #tick}. */
     public void queue(PendingDetonation det) {
         pending.add(det);
+    }
+
+    /** Read-only view of the in-flight queue. Behaviors that need to coordinate (e.g. avoid rocket volleys against the same turret) read inflight ordnance from here. */
+    public List<PendingDetonation> getPending() {
+        return pendingView;
     }
 
     /**
