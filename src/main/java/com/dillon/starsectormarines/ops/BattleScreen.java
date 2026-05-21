@@ -54,6 +54,7 @@ import com.dillon.starsectormarines.render2d.QuadBatch;
 import com.dillon.starsectormarines.render2d.RibbonBatch;
 import com.dillon.starsectormarines.render2d.SolidQuadBatch;
 import com.dillon.starsectormarines.ui.ButtonWidget;
+import com.dillon.starsectormarines.ui.DebugTogglesWidget;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.LabelWidget;
 import com.dillon.starsectormarines.ui.WidgetRoot;
@@ -1255,6 +1256,20 @@ public class BattleScreen implements Screen, BattleUiContext {
                     labelX, btnY + SPEED_BTN_H - 6f, HEADER_COLOR));
             speedBtnCenterX[i] = bx + SPEED_BTN_W / 2f;
         }
+
+        // Debug toggles widget — top-center of the grid view, collapsed by
+        // default. Register new toggles via add(label, getter, toggle); the
+        // widget reads getter every frame so we don't need to refresh on
+        // state changes from outside the widget.
+        float debugWidgetW = 220f;
+        float debugWidgetX = layout.gridX + (layout.gridW - debugWidgetW) / 2f;
+        float debugWidgetY = layout.gridY + 6f;
+        DebugTogglesWidget debugToggles = new DebugTogglesWidget(
+                debugWidgetX, debugWidgetY, debugWidgetW, Fonts.ORBITRON_20);
+        debugToggles.add("Docking paths",
+                () -> DEBUG_RENDER_DOCKING_PATHS,
+                () -> DEBUG_RENDER_DOCKING_PATHS = !DEBUG_RENDER_DOCKING_PATHS);
+        widgets.add(debugToggles);
     }
 
     @Override
