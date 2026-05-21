@@ -1277,42 +1277,39 @@ public final class TacticalScoring {
      * here" and "they're coming here" states without double-counting allies
      * that are at-rest at their destination.
      *
-     * <p>The current-cell half routes through the spatial index — a radius-2
-     * window touches only one or two buckets, so the per-call cost is
-     * constant in total unit count. The path-destination half still walks
-     * the full unit list because a unit's destination cell isn't tracked in
-     * the index (destinations are stored on {@link Unit#pathCellX(int)});
-     * that's a smaller residual O(N) but only matters when the firing-pos
-     * picker is hot.
+     * <p>Both halves route through bucketed spatial indices — the current-cell
+     * half through {@link BattleSimulation#getUnitIndex()}, the path-destination
+     * half through {@link BattleSimulation#getDestIndex()}. A radius-2 window
+     * touches one or two buckets per index, so per-call cost is constant in
+     * total unit count. The 2026-05-21 JFR profile flagged the previous O(N)
+     * destination walk as the single hottest sim-side leaf (~15% of sim CPU);
+     * the dest index drops it to the same O(units-with-path-near-radius)
+     * complexity as Pass 1.
      */
     public static int alliesNearForSpread(Unit self, int cx, int cy, BattleSimulation sim) {
         int r2 = FIRING_AOE_SPREAD_RADIUS * FIRING_AOE_SPREAD_RADIUS;
         int count = 0;
         ArrayList<Unit> scratch = new ArrayList<>();
+        // Pass 1 — units whose CURRENT cell is in the spread radius.
         sim.getUnitIndex().gather(cx, cy, FIRING_AOE_SPREAD_RADIUS, scratch);
         for (int i = 0, n = scratch.size(); i < n; i++) {
             Unit u = scratch.get(i);
             if (u == self || u.faction != self.faction) continue;
             count++;
         }
-        // Path-destination pass — still O(N) but only over alive units in the
-        // active list. Most units have an empty path most of the time, so this
-        // is closer to O(moving-units).
-        for (Unit u : sim.getUnits()) {
-            if (u == self || !u.isAlive() || u.faction != self.faction) continue;
+        // Pass 2 — units whose path DESTINATION is in the spread radius.
+        // Dest index excludes still units (dest == current) and pathless
+        // units; the per-unit current-cell radius check below dedupes
+        // against Pass 1 for moving units whose current happens to also
+        // be near (cx, cy).
+        sim.getDestIndex().gather(cx, cy, FIRING_AOE_SPREAD_RADIUS, scratch);
+        for (int i = 0, n = scratch.size(); i < n; i++) {
+            Unit u = scratch.get(i);
+            if (u == self || u.faction != self.faction) continue;
             int dx = u.cellX - cx;
             int dy = u.cellY - cy;
-            if (dx * dx + dy * dy <= r2) continue; // already counted via gather
-            int cells = u.pathCellCount();
-            if (cells > 0) {
-                int destX = u.pathCellX(cells - 1);
-                int destY = u.pathCellY(cells - 1);
-                if (destX != u.cellX || destY != u.cellY) {
-                    int ddx = destX - cx;
-                    int ddy = destY - cy;
-                    if (ddx * ddx + ddy * ddy <= r2) count++;
-                }
-            }
+            if (dx * dx + dy * dy <= r2) continue; // already counted via Pass 1
+            count++;
         }
         return count;
     }

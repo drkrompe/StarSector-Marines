@@ -301,6 +301,17 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      */
     private final UnitSpatialIndex unitIndex;
 
+    /**
+     * Sister index to {@link #unitIndex}, keyed on each unit's path
+     * <em>destination</em> cell instead of its current cell. Drives the
+     * Pass-2 lookup inside {@link com.dillon.starsectormarines.battle.ai.TacticalScoring#alliesNearForSpread}
+     * — previously the residual O(N) walk over every alive unit that the
+     * 2026-05-21 JFR pinpointed as the single hottest sim-side leaf (~15%
+     * of sim CPU). Rebuilt right after {@link #unitIndex} so both indices
+     * reflect the same tick-start snapshot.
+     */
+    private final UnitDestinationSpatialIndex destIndex;
+
     private float tickAccumulator = 0f;
     /** Monotonic sim-tick counter incremented at the top of every {@link #tick}. Read by per-hit gates that want to fire at most once per tick (e.g. {@link #rollReprioritizeOnHit}). */
     public int simTickIndex = 0;
@@ -347,6 +358,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         this.topology = topology;
         this.occupancyMap = new byte[grid.getWidth() * grid.getHeight()];
         this.unitIndex = new UnitSpatialIndex(grid.getWidth(), grid.getHeight());
+        this.destIndex = new UnitDestinationSpatialIndex(grid.getWidth(), grid.getHeight());
         this.zoneGraph = new ZoneGraph(grid);
         this.zoneGraph.rebuild();
     }
@@ -551,6 +563,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     public byte[] getOccupancyMap()        { return occupancyMap; }
     /** Bucketed spatial index over alive units. Rebuilt at the top of each tick by {@link #tick()}. */
     public UnitSpatialIndex getUnitIndex() { return unitIndex; }
+    /** Bucketed spatial index over alive units keyed on path destination (not current cell). Rebuilt alongside {@link #unitIndex} each tick. */
+    public UnitDestinationSpatialIndex getDestIndex() { return destIndex; }
     /** Per-phase wall-clock profile of the most recent completed window of ticks. Read by the {@code TickProfileDebugPanel} HUD overlay + dump-to-disk button. */
     public TickProfile getTickProfile() { return tickProfile; }
     /** Per-tick sub-step profile (per-behavior + per-primitive nanos). Reset every tick; snapshotted onto the spike record when one fires. Read by the JSON dumper. */
@@ -931,6 +945,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // index below — mid-tick repath shifts aren't reflected until next
         // tick, matching the pre-spatial behavior.
         unitIndex.rebuild(units);
+        destIndex.rebuild(units);
         tickProfile.lap(TickProfile.Phase.REBUILD_UNIT_INDEX);
         // Rebuild the attacker index BEFORE per-unit updates so target-
         // selection's crowding scoring (TacticalScoring.findBestTarget) sees a
@@ -1183,6 +1198,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         int oldDestY = pathDestY(u);
         if (oldDestX != Integer.MIN_VALUE && (oldDestX != u.cellX || oldDestY != u.cellY)) {
             decrementOccupancy(oldDestX, oldDestY);
+            destIndex.removeDestination(u, oldDestX, oldDestY);
         }
         u.path = newPath;
         u.pathIdx = newPath.length == 0 ? 0 : 1;
@@ -1191,6 +1207,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             int newDestY = newPath[newPath.length - 1];
             if (newDestX != u.cellX || newDestY != u.cellY) {
                 incrementOccupancy(newDestX, newDestY);
+                destIndex.addDestination(u, newDestX, newDestY);
             }
         }
     }
