@@ -162,8 +162,13 @@ public final class TickProfile {
      * @param simTickIndex the sim's monotonic tick counter; recorded on a
      *                     pending spike so consumers can tag the dump with the
      *                     tick that fired it.
+     * @param innerProfile the per-tick inner profile; snapshotted (deep-copied)
+     *                     when a spike fires so the dump retains the sub-step
+     *                     numbers past the next tick's reset. May be
+     *                     {@code null} — in which case the spike record lands
+     *                     with no inner snapshot.
      */
-    public void endTick(int simTickIndex) {
+    public void endTick(int simTickIndex, TickInnerProfile innerProfile) {
         // Warmup gate — JIT/lazy-load period contributes nothing to baseline
         // and can't latch a spike. Past this point everything runs normally.
         if (inWarmup) return;
@@ -181,6 +186,7 @@ public final class TickProfile {
                 spikeTickIndex = simTickIndex;
                 spikeTotalNanos = thisTickTotal;
                 spikeBaselineNanos = baselineTotal;
+                spikeInnerSnapshot = (innerProfile != null) ? innerProfile.snapshot() : null;
             }
         }
 
@@ -228,8 +234,9 @@ public final class TickProfile {
 
     /**
      * Returns the latched spike (if any) and clears the pending flag, so the
-     * next call returns null until {@link #endTick(int)} latches a fresh one.
-     * Returns {@code null} when no spike is pending — the common case.
+     * next call returns null until {@link #endTick(int, TickInnerProfile)}
+     * latches a fresh one. Returns {@code null} when no spike is pending —
+     * the common case.
      *
      * <p>Consumer (the debug panel) is expected to drive auto-dump from this:
      * poll each frame, dump when non-null, throttle / cap on its own side.
@@ -237,21 +244,29 @@ public final class TickProfile {
     public Spike consumeSpike() {
         if (!spikePending) return null;
         spikePending = false;
-        return new Spike(spikeTickIndex, spikeTotalNanos, spikeBaselineNanos);
+        Spike s = new Spike(spikeTickIndex, spikeTotalNanos, spikeBaselineNanos, spikeInnerSnapshot);
+        spikeInnerSnapshot = null;
+        return s;
     }
 
-    /** Snapshot of one latched spike. {@code totalNanos / baselineNanos} gives the ratio above normal. */
+    /** Snapshot of one latched spike. {@code totalNanos / baselineNanos} gives the ratio above normal. {@code innerSnapshot} carries the per-behavior and per-primitive sub-step nanos for diagnostic dumps; may be {@code null} if no inner profile was attached when the spike fired. */
     public static final class Spike {
         public final int tickIndex;
         public final long totalNanos;
         public final long baselineNanos;
-        public Spike(int tickIndex, long totalNanos, long baselineNanos) {
+        public final TickInnerProfile.Snapshot innerSnapshot;
+        public Spike(int tickIndex, long totalNanos, long baselineNanos,
+                     TickInnerProfile.Snapshot innerSnapshot) {
             this.tickIndex = tickIndex;
             this.totalNanos = totalNanos;
             this.baselineNanos = baselineNanos;
+            this.innerSnapshot = innerSnapshot;
         }
         public double ratio() {
             return baselineNanos > 0L ? (double) totalNanos / baselineNanos : 0.0;
         }
     }
+
+    /** Latched copy of the inner profile at spike time. Cleared once consumed via {@link #consumeSpike()}. */
+    private TickInnerProfile.Snapshot spikeInnerSnapshot;
 }

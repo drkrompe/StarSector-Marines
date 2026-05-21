@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.ui.debug;
 
 import com.dillon.starsectormarines.StarsectorMarinesModPlugin;
 import com.dillon.starsectormarines.battle.BattleSimulation;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
@@ -71,6 +72,35 @@ public final class TickProfileDumper {
                 so.put("ratioOverBaseline", spike.ratio());
                 root.put("spike", so);
             }
+
+            // Inner profile — per-behavior + per-primitive sub-step breakdown
+            // for THIS tick (the spike tick for auto-dumps, the in-progress
+            // tick for manual). For spike dumps we use the snapshot captured
+            // when the spike fired so the numbers don't get overwritten by
+            // the time we serialize them; for manual dumps we read the live
+            // counters directly. Either way the JSON shape is identical.
+            JSONArray innerArr = new JSONArray();
+            TickInnerProfile.Snapshot innerSnap = (spike != null) ? spike.innerSnapshot : null;
+            TickInnerProfile liveInner = sim.getTickInnerProfile();
+            for (TickInnerProfile.Bucket b : TickInnerProfile.Bucket.VALUES) {
+                long ns;
+                int cnt;
+                if (innerSnap != null) {
+                    ns = innerSnap.nanosOf(b);
+                    cnt = innerSnap.countOf(b);
+                } else {
+                    ns = liveInner.nanosOf(b);
+                    cnt = liveInner.countOf(b);
+                }
+                JSONObject bo = new JSONObject();
+                bo.put("name", b.name());
+                bo.put("nanos", ns);
+                bo.put("us", ns / 1_000.0);
+                bo.put("count", cnt);
+                bo.put("avgUsPerCall", cnt > 0 ? (ns / 1_000.0) / cnt : 0.0);
+                innerArr.put(bo);
+            }
+            root.put("inner", innerArr);
 
             JSONArray phases = new JSONArray();
             for (TickProfile.Phase p : TickProfile.Phase.VALUES) {

@@ -26,6 +26,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.objective.EliminateFactionObjective;
 import com.dillon.starsectormarines.battle.objective.Objective;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
 import com.dillon.starsectormarines.battle.tactical.TacticalMap;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
@@ -305,6 +306,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     public int simTickIndex = 0;
     /** Per-phase wall-clock profile of {@link #tick()}. Always-on (cost is a handful of {@code nanoTime} calls per tick); read by the {@code TickProfileDebugPanel} HUD overlay and the {@code TickProfileDumper} JSON dumper. */
     private final TickProfile tickProfile = new TickProfile();
+    /** Per-tick sub-step profile (behavior buckets + heavy primitives like pathfind / target-pick). Reset at the top of every {@link #tick()}; snapshotted into {@link TickProfile.Spike#innerSnapshot} when a spike fires so spike JSONs carry the diagnostic breakdown. Exposed via the static {@link TickInnerProfile#current()} slot so non-sim call sites (GridPathfinder, TacticalScoring) can record without threading the sim reference through. */
+    private final TickInnerProfile tickInnerProfile = new TickInnerProfile();
     private boolean complete = false;
     private Faction winner;
 
@@ -550,6 +553,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     public UnitSpatialIndex getUnitIndex() { return unitIndex; }
     /** Per-phase wall-clock profile of the most recent completed window of ticks. Read by the {@code TickProfileDebugPanel} HUD overlay + dump-to-disk button. */
     public TickProfile getTickProfile() { return tickProfile; }
+    /** Per-tick sub-step profile (per-behavior + per-primitive nanos). Reset every tick; snapshotted onto the spike record when one fires. Read by the JSON dumper. */
+    public TickInnerProfile getTickInnerProfile() { return tickInnerProfile; }
     @Override public Random getRng()       { return rng; }
     /** Returns the squad with the given id, or {@code null} if {@code id == Unit.NO_SQUAD} or the squad was never registered. */
     public Squad getSquad(int id)          { return id == Unit.NO_SQUAD ? null : squads.get(id); }
@@ -904,6 +909,12 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // snapshots into the rolling display buffer the debug panel reads.
         // Pass simTickIndex so the profile can gate JIT/load-time warmup.
         tickProfile.begin(simTickIndex);
+        // Per-tick sub-step counters (behavior buckets + primitives like
+        // pathfind / target-pick). Reset then advertised via the static
+        // TickInnerProfile.current() slot so GridPathfinder / TacticalScoring
+        // can record without threading the sim through their signatures.
+        tickInnerProfile.reset();
+        TickInnerProfile.setCurrent(tickInnerProfile);
         // Fog-of-war visibility pass — recomputed every 3rd tick (~10 Hz at
         // 30 Hz sim). The render path lerps current→target alpha per frame so
         // this cadence stays invisible.
@@ -1066,7 +1077,11 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         tickProfile.lap(TickProfile.Phase.ZONE_GRAPH);
         checkWinCondition();
         tickProfile.lap(TickProfile.Phase.WIN_CHECK);
-        tickProfile.endTick(simTickIndex);
+        tickProfile.endTick(simTickIndex, tickInnerProfile);
+        // Clear the static slot so any stray call outside the tick window
+        // (e.g., test harness, mid-frame UI hook) is a clean no-op rather
+        // than silently writing into the previous tick's counters.
+        TickInnerProfile.setCurrent(null);
     }
 
     /**
@@ -1491,11 +1506,36 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      * {@code battle.ai}; this method holds no per-role logic.
      */
     private void updateUnit(Unit u) {
+        long t0 = System.nanoTime();
+        TickInnerProfile.Bucket bucket;
         if (u.fallbackTimer > 0f) {
             FallbackBehavior.INSTANCE.update(u, this);
-            return;
+            bucket = TickInnerProfile.Bucket.BEHAVIOR_FALLBACK;
+        } else {
+            behaviorFor(u.role).update(u, this);
+            bucket = innerBucketForRole(u.role);
         }
-        behaviorFor(u.role).update(u, this);
+        tickInnerProfile.record(bucket, System.nanoTime() - t0);
+    }
+
+    /**
+     * Maps a {@link UnitRole} to its inner-profile behavior bucket. Mirrors
+     * {@link #behaviorFor(UnitRole)} — every role that returns the same
+     * behavior instance there should map to the same bucket here, so the
+     * inner profile partitions {@code updateUnit} time correctly across
+     * behavior classes. Default falls into {@code BEHAVIOR_COMBATANT}
+     * because {@code behaviorFor} also defaults to {@code CombatantBehavior}.
+     */
+    private static TickInnerProfile.Bucket innerBucketForRole(UnitRole role) {
+        switch (role) {
+            case KIT_RETRIEVER: return TickInnerProfile.Bucket.BEHAVIOR_KIT_RETRIEVER;
+            case FLEE:          return TickInnerProfile.Bucket.BEHAVIOR_FLEE;
+            case TURRET:        return TickInnerProfile.Bucket.BEHAVIOR_TURRET;
+            case STRUCTURE:     return TickInnerProfile.Bucket.BEHAVIOR_STRUCTURE;
+            case DRONE_HUB:     return TickInnerProfile.Bucket.BEHAVIOR_DRONE_HUB;
+            case DRONE_PATROL:  return TickInnerProfile.Bucket.BEHAVIOR_GOAP_DRONE;
+            default:            return TickInnerProfile.Bucket.BEHAVIOR_COMBATANT;
+        }
     }
 
     private UnitBehavior behaviorFor(UnitRole role) {

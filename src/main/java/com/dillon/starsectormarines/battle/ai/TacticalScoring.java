@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.UnitType;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -200,6 +201,37 @@ public final class TacticalScoring {
     }
 
     /**
+     * Stickiness gate for {@code self.target}: keeps the current target only
+     * while it's still shootable from {@code self}'s current cell (alive,
+     * within {@link Unit#attackRange}, and with line of sight). Anything
+     * outside that — dead, out of range, behind cover — drops the cached pick
+     * and re-runs {@link #findBestTarget}, so a closer visible enemy that
+     * stepped into LoS while we were locked onto someone now-unshootable wins
+     * the next tick. Without this, every mech combat action (overwatch,
+     * parity engage, the legacy behavior loop) hyper-fixates: their gate was
+     * only "is the cached target alive?", which let a target hide behind a
+     * wall forever while the mech ignored opportunities in its own kill lane.
+     *
+     * <p>Range check uses {@code self.attackRange} because for mechs it's set
+     * to the LRM range (40 cells, matching {@link UnitType#HEAVY_MECH}) — the
+     * longest weapon's reach, which is the right "could this mech ever shoot
+     * this target from here" bound. Indirect-fire (no LoS) still works on the
+     * returned target because the per-weapon fire gate handles that downstream;
+     * we only ask "is the current pick clearly the wrong choice right now?".
+     */
+    public static Unit refreshTargetIfNotShootable(Unit self, BattleSimulation sim) {
+        Unit cur = self.target;
+        if (cur != null && cur.isAlive()) {
+            float dist = cellDistance(self.cellX, self.cellY, cur.cellX, cur.cellY);
+            if (dist <= self.attackRange
+                    && sim.getGrid().hasLineOfSight(self.cellX, self.cellY, cur.cellX, cur.cellY)) {
+                return cur;
+            }
+        }
+        return findBestTarget(self, sim);
+    }
+
+    /**
      * Primitive-args overload — used by callers that aren't a {@link Unit}
      * themselves (today: shuttle-mounted turrets, which live as data on a
      * {@link com.dillon.starsectormarines.battle.air.Shuttle} rather than as
@@ -267,6 +299,19 @@ public final class TacticalScoring {
     public static Unit findBestTarget(int selfCellX, int selfCellY, Faction selfFaction,
                                       int selfSquadId, Unit excludeFromCrowding,
                                       float shooterAirRadius, BattleSimulation sim, boolean allowNoLos) {
+        long _profT0 = System.nanoTime();
+        try {
+            return findBestTargetImpl(selfCellX, selfCellY, selfFaction, selfSquadId,
+                    excludeFromCrowding, shooterAirRadius, sim, allowNoLos);
+        } finally {
+            TickInnerProfile p = TickInnerProfile.current();
+            if (p != null) p.record(TickInnerProfile.Bucket.TARGET_PICK, System.nanoTime() - _profT0);
+        }
+    }
+
+    private static Unit findBestTargetImpl(int selfCellX, int selfCellY, Faction selfFaction,
+                                            int selfSquadId, Unit excludeFromCrowding,
+                                            float shooterAirRadius, BattleSimulation sim, boolean allowNoLos) {
         List<Unit> units = sim.getUnits();
         NavigationGrid grid = sim.getGrid();
         Unit best = null;
@@ -649,6 +694,17 @@ public final class TacticalScoring {
 
     public static int[] findFiringPositionWithin(Unit self, Unit target, BattleSimulation sim,
                                                   int anchorX, int anchorY, float maxDistFromAnchor) {
+        long _profT0 = System.nanoTime();
+        try {
+            return findFiringPositionWithinImpl(self, target, sim, anchorX, anchorY, maxDistFromAnchor);
+        } finally {
+            TickInnerProfile p = TickInnerProfile.current();
+            if (p != null) p.record(TickInnerProfile.Bucket.FIRING_POSITION, System.nanoTime() - _profT0);
+        }
+    }
+
+    private static int[] findFiringPositionWithinImpl(Unit self, Unit target, BattleSimulation sim,
+                                                       int anchorX, int anchorY, float maxDistFromAnchor) {
         NavigationGrid grid = sim.getGrid();
         // Rocketeer-vs-turret pairs search a ring sized to the rocket's range —
         // otherwise an out-of-rifle-range marine paths into rifle range before
@@ -697,6 +753,16 @@ public final class TacticalScoring {
     }
 
     public static int[] findFiringPosition(Unit self, Unit target, BattleSimulation sim, int rejectX, int rejectY) {
+        long _profT0 = System.nanoTime();
+        try {
+            return findFiringPositionImpl(self, target, sim, rejectX, rejectY);
+        } finally {
+            TickInnerProfile p = TickInnerProfile.current();
+            if (p != null) p.record(TickInnerProfile.Bucket.FIRING_POSITION, System.nanoTime() - _profT0);
+        }
+    }
+
+    private static int[] findFiringPositionImpl(Unit self, Unit target, BattleSimulation sim, int rejectX, int rejectY) {
         NavigationGrid grid = sim.getGrid();
         // See findFiringPositionWithin — rocketeer-vs-turret widens the ring.
         float effectiveRange = effectiveAttackRange(self, target);
@@ -807,6 +873,17 @@ public final class TacticalScoring {
      */
     public static int[] findFiringPositionCoverPreferred(Unit self, Unit target, BattleSimulation sim,
                                                           int rejectX, int rejectY) {
+        long _profT0 = System.nanoTime();
+        try {
+            return findFiringPositionCoverPreferredImpl(self, target, sim, rejectX, rejectY);
+        } finally {
+            TickInnerProfile p = TickInnerProfile.current();
+            if (p != null) p.record(TickInnerProfile.Bucket.FIRING_POSITION, System.nanoTime() - _profT0);
+        }
+    }
+
+    private static int[] findFiringPositionCoverPreferredImpl(Unit self, Unit target, BattleSimulation sim,
+                                                               int rejectX, int rejectY) {
         NavigationGrid grid = sim.getGrid();
         int range = Math.max(1, (int) Math.floor(self.attackRange));
         int tx = target.cellX;
@@ -917,6 +994,16 @@ public final class TacticalScoring {
      * enter fall-back."
      */
     public static int[] findFallbackPosition(Unit self, BattleSimulation sim) {
+        long _profT0 = System.nanoTime();
+        try {
+            return findFallbackPositionImpl(self, sim);
+        } finally {
+            TickInnerProfile p = TickInnerProfile.current();
+            if (p != null) p.record(TickInnerProfile.Bucket.FALLBACK_POSITION, System.nanoTime() - _profT0);
+        }
+    }
+
+    private static int[] findFallbackPositionImpl(Unit self, BattleSimulation sim) {
         NavigationGrid grid = sim.getGrid();
         ZoneGraph zones = sim.getZoneGraph();
         int sx = self.cellX;

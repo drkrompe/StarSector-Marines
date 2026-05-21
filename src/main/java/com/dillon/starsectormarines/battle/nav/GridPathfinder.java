@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.nav;
 
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
+
 import java.util.Arrays;
 
 /**
@@ -206,6 +208,17 @@ public final class GridPathfinder {
      */
     public static int[] findPath(NavigationGrid grid, int startX, int startY, int goalX, int goalY,
                                   boolean cardinalOnly, byte[] occupancy) {
+        long _profT0 = System.nanoTime();
+        try {
+            return findPathInner(grid, startX, startY, goalX, goalY, cardinalOnly, occupancy);
+        } finally {
+            TickInnerProfile p = TickInnerProfile.current();
+            if (p != null) p.record(TickInnerProfile.Bucket.PATHFIND, System.nanoTime() - _profT0);
+        }
+    }
+
+    private static int[] findPathInner(NavigationGrid grid, int startX, int startY, int goalX, int goalY,
+                                        boolean cardinalOnly, byte[] occupancy) {
         if (!grid.isWalkable(startX, startY) || !grid.isWalkable(goalX, goalY)) {
             return EMPTY_PATH;
         }
