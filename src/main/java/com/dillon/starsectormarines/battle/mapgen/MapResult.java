@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.Doodad;
 import com.dillon.starsectormarines.battle.PointOfInterest;
 import com.dillon.starsectormarines.battle.map.Buildings;
 import com.dillon.starsectormarines.battle.map.CellTopology;
+import com.dillon.starsectormarines.battle.mapgen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.tactical.TacticalMap;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
@@ -68,6 +69,13 @@ public final class MapResult {
      * legacy callers that don't go through the conquest pipeline.
      */
     public final List<DefensePost> defensePosts;
+    /**
+     * Vehicle-navigation skeleton extracted from the BSP / trunk road mask.
+     * Convoys path edge-to-edge along this graph; tests and dev-overlays
+     * read it to visualize street centerlines. Generators with no road
+     * network (wilderness / spacehulk gens) return {@link RoadGraph#EMPTY}.
+     */
+    public final RoadGraph roadGraph;
 
     public MapResult(NavigationGrid grid, CellTopology topology,
                      int marineSpawnX, int marineSpawnY,
@@ -76,7 +84,7 @@ public final class MapResult {
                      List<Doodad> doodads) {
         this(grid, topology, marineSpawnX, marineSpawnY, defenderSpawnX, defenderSpawnY,
                 pointsOfInterest, doodads, new TacticalMap(Collections.emptyList()),
-                Buildings.EMPTY, Collections.emptyList());
+                Buildings.EMPTY, Collections.emptyList(), RoadGraph.EMPTY);
     }
 
     public MapResult(NavigationGrid grid, CellTopology topology,
@@ -86,7 +94,7 @@ public final class MapResult {
                      List<Doodad> doodads,
                      TacticalMap tacticalMap) {
         this(grid, topology, marineSpawnX, marineSpawnY, defenderSpawnX, defenderSpawnY,
-                pointsOfInterest, doodads, tacticalMap, Buildings.EMPTY, Collections.emptyList());
+                pointsOfInterest, doodads, tacticalMap, Buildings.EMPTY, Collections.emptyList(), RoadGraph.EMPTY);
     }
 
     public MapResult(NavigationGrid grid, CellTopology topology,
@@ -97,7 +105,7 @@ public final class MapResult {
                      TacticalMap tacticalMap,
                      Buildings buildings) {
         this(grid, topology, marineSpawnX, marineSpawnY, defenderSpawnX, defenderSpawnY,
-                pointsOfInterest, doodads, tacticalMap, buildings, Collections.emptyList());
+                pointsOfInterest, doodads, tacticalMap, buildings, Collections.emptyList(), RoadGraph.EMPTY);
     }
 
     public MapResult(NavigationGrid grid, CellTopology topology,
@@ -108,6 +116,19 @@ public final class MapResult {
                      TacticalMap tacticalMap,
                      Buildings buildings,
                      List<DefensePost> defensePosts) {
+        this(grid, topology, marineSpawnX, marineSpawnY, defenderSpawnX, defenderSpawnY,
+                pointsOfInterest, doodads, tacticalMap, buildings, defensePosts, RoadGraph.EMPTY);
+    }
+
+    public MapResult(NavigationGrid grid, CellTopology topology,
+                     int marineSpawnX, int marineSpawnY,
+                     int defenderSpawnX, int defenderSpawnY,
+                     List<PointOfInterest> pointsOfInterest,
+                     List<Doodad> doodads,
+                     TacticalMap tacticalMap,
+                     Buildings buildings,
+                     List<DefensePost> defensePosts,
+                     RoadGraph roadGraph) {
         this.grid = grid;
         this.topology = topology;
         this.marineSpawnX = marineSpawnX;
@@ -119,5 +140,6 @@ public final class MapResult {
         this.tacticalMap = tacticalMap;
         this.buildings = buildings;
         this.defensePosts = defensePosts;
+        this.roadGraph = roadGraph;
     }
 }

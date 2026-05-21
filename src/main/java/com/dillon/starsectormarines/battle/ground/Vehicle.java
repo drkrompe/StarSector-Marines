@@ -1,0 +1,107 @@
+package com.dillon.starsectormarines.battle.ground;
+
+import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.MarineLoadout;
+import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.air.AirBody;
+
+/**
+ * One ground transport — analog of {@link com.dillon.starsectormarines.battle.air.Shuttle}
+ * for trucks/APCs that path through the road network instead of flying. The
+ * sim ticks its {@link AirBody} state under the {@link VehicleType}'s
+ * handling profile; the renderer reads {@code body.x}/{@code body.y}/{@code body.facingDegrees}
+ * for the sprite.
+ *
+ * <p>Lifecycle: PENDING (off-map, waiting on stagger) → INCOMING (consuming
+ * the inbound waypoint queue, head waypoint = current goal) → LANDED
+ * (deboarding militia on {@code type.deboardInterval} cadence at the LZ) →
+ * DEPARTING (consuming a reversed-or-explicit outbound queue) → GONE. No
+ * loiter / hover analog — ground vehicles drop off and leave.
+ *
+ * <p>Waypoints are cell-center coordinates (cellX + 0.5, cellY + 0.5) along
+ * a {@link com.dillon.starsectormarines.battle.mapgen.road.RoadGraph} edge
+ * sequence; they live in fractional world space the same way shuttle
+ * lzX/lzY does. The terminal waypoint is the LZ — body teleports to it on
+ * arrival, then transitions to LANDED.
+ */
+public class Vehicle {
+
+    public enum State { PENDING, INCOMING, LANDED, DEPARTING, GONE }
+
+    public final VehicleType type;
+    public final Faction faction;
+
+    /** Inbound path's cell-center coords. {@link #lzX}/{@link #lzY} repeat the last entry as a convenience. */
+    public final float[] inboundX;
+    public final float[] inboundY;
+    /** Outbound path's cell-center coords. Same shape as inbound; usually inbound reversed for V1. */
+    public final float[] outboundX;
+    public final float[] outboundY;
+
+    /** LZ position — terminal waypoint of {@link #inboundX}. */
+    public final float lzX;
+    public final float lzY;
+
+    public State state = State.PENDING;
+    public float pendingDelay;
+    public float deboardCountdown;
+    public int marinesRemaining;
+
+    /** Kinematic state — position, velocity, facing. Driven each tick by {@link GroundSystem} under the type's handling profile. */
+    public final AirBody body = new AirBody();
+
+    /** Current waypoint index inside the active queue (inbound during INCOMING, outbound during DEPARTING). */
+    public int waypointIndex;
+
+    /**
+     * Per-deboard loadouts for this delivery. {@code marineLoadout[i]} is
+     * the spec for the (i+1)-th marine to disembark; null entries (and a
+     * null array) fall back to a plain {@link MarineLoadout#COMBATANT}.
+     * Defender-side militia squads typically use one loadout for the whole
+     * truck — same array slot repeated — but per-slot variation is supported
+     * for future "officer in the lead seat" tweaks.
+     */
+    public MarineLoadout[] marineLoadout;
+
+    /**
+     * Squad identity assigned to all marines deboarded from this vehicle.
+     * Lazily set to a fresh id on the first successful deboard; {@link Unit#NO_SQUAD}
+     * means "no squad has been created for this vehicle yet."
+     */
+    public int squadId = Unit.NO_SQUAD;
+
+    public Vehicle(VehicleType type, Faction faction,
+                   float[] inboundX, float[] inboundY,
+                   float[] outboundX, float[] outboundY,
+                   float pendingDelay) {
+        if (inboundX.length != inboundY.length || inboundX.length < 2) {
+            throw new IllegalArgumentException("inbound path must have at least 2 matched waypoints");
+        }
+        if (outboundX.length != outboundY.length || outboundX.length < 2) {
+            throw new IllegalArgumentException("outbound path must have at least 2 matched waypoints");
+        }
+        this.type = type;
+        this.faction = faction;
+        this.inboundX = inboundX;
+        this.inboundY = inboundY;
+        this.outboundX = outboundX;
+        this.outboundY = outboundY;
+        this.lzX = inboundX[inboundX.length - 1];
+        this.lzY = inboundY[inboundY.length - 1];
+        this.pendingDelay = pendingDelay;
+        this.marinesRemaining = type.capacity;
+        // Spawn at the inbound queue's first waypoint, facing the second so
+        // the truck reads as already rolling when it appears on-screen.
+        float spawnX = inboundX[0];
+        float spawnY = inboundY[0];
+        float nextX = inboundX[1];
+        float nextY = inboundY[1];
+        body.teleport(spawnX, spawnY, AirBody.facingToward(nextX - spawnX, nextY - spawnY));
+        this.waypointIndex = 1;  // already at index 0, steering toward index 1
+    }
+
+    /** True between INCOMING and DEPARTING (inclusive) — on-map and rendered. */
+    public boolean isVisible() {
+        return state == State.INCOMING || state == State.LANDED || state == State.DEPARTING;
+    }
+}

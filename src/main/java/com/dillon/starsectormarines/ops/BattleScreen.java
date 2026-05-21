@@ -469,6 +469,18 @@ public class BattleScreen implements Screen, BattleUiContext {
     private boolean shuttleSpritesLoadAttempted;
 
     /**
+     * Per-{@link com.dillon.starsectormarines.battle.ground.VehicleType} sprite
+     * cache for the convoy render pass. Uses {@link UnitSpriteCache} so we get
+     * the auto-sliced frame list — {@code trucks_2.png} contains two
+     * side-by-side trucks and the {@code VehicleType.spriteFrame} field
+     * indexes into the slicer output. Lazy-loaded on first attach via
+     * {@link #ensureConvoySprites()}.
+     */
+    private final java.util.EnumMap<com.dillon.starsectormarines.battle.ground.VehicleType, UnitSpriteCache> convoySprites =
+            new java.util.EnumMap<>(com.dillon.starsectormarines.battle.ground.VehicleType.class);
+    private boolean convoySpritesLoadAttempted;
+
+    /**
      * Vanilla engine-FX sprites — drawn under each shuttle's hull to sell
      * the "thrusters firing" read. The flame is a column-shaped plume that
      * elongates with throttle; the glow is a soft halo behind it. Both are
@@ -533,6 +545,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         ensureWaterSheet();
         ensureUrbanTile3Sheet();
         ensureShuttleSprites();
+        ensureConvoySprites();
         ensureEngineFxSprites();
         ensureObjectiveIcons();
         impactFx.ensureSprites();
@@ -877,6 +890,28 @@ public class BattleScreen implements Screen, BattleUiContext {
                         + " (" + w + "x" + h + ", aspect=" + aspect + ")");
             } catch (Exception e) {
                 LOG.error("BattleScreen: failed to load shuttle sprite " + type.spritePath, e);
+            }
+        }
+    }
+
+    /**
+     * Lazy-loads each {@link com.dillon.starsectormarines.battle.ground.VehicleType}'s
+     * sheet via the shared {@link #loadUnitSheet} helper. Auto-slicing produces
+     * the per-frame bounds so {@code VehicleType.spriteFrame} can index into
+     * the sliced list. Failure on a single type leaves it absent from the cache;
+     * the convoy render pass silently skips vehicles whose cache entry is null.
+     */
+    private void ensureConvoySprites() {
+        if (convoySpritesLoadAttempted) return;
+        convoySpritesLoadAttempted = true;
+        for (com.dillon.starsectormarines.battle.ground.VehicleType type :
+                com.dillon.starsectormarines.battle.ground.VehicleType.values()) {
+            UnitSpriteCache cache = loadUnitSheet(type.spritePath);
+            if (cache != null) {
+                convoySprites.put(type, cache);
+            } else {
+                LOG.warn("convoy: failed to load sprite for " + type
+                        + " (" + type.spritePath + ")");
             }
         }
     }
@@ -1914,6 +1949,9 @@ public class BattleScreen implements Screen, BattleUiContext {
             // on top of one. Shuttles still draw on top of the markers when
             // landing on a LZ.
             renderObjectiveMarkers(sim, alphaMult);
+            // Ground convoys layer just under shuttles — a truck is still
+            // beneath any air vehicle flying overhead.
+            renderConvoyVehicles(sim.getConvoyVehicles(), alphaMult);
             renderShuttles(sim.getShuttles(), alphaMult);
             renderShots(sim.getActiveShots(), alphaMult);
             // Impact FX: sparks, dust, smoke at shot endpoints. Sits above the
@@ -3235,6 +3273,62 @@ public class BattleScreen implements Screen, BattleUiContext {
      * aspect ratio so taller-than-wide ship sprites render with their drawn
      * proportions intact.
      */
+    /**
+     * Renders every visible convoy vehicle as a rotated truck sprite at its
+     * {@link com.dillon.starsectormarines.battle.air.AirBody#x}/{@code body.y}
+     * world position. Frame extracted via the auto-sliced bounds; rotation
+     * is the body's facing plus the type's {@code spriteFacingOffsetDeg}
+     * (trucks_2.png frames point east, so the truck reads correctly when
+     * the body faces north only after a 90° pre-rotation).
+     *
+     * <p>Render size: longer screen axis = {@code type.visualLengthCells * cellPx};
+     * shorter axis is letterboxed from the frame's native aspect so the
+     * truck doesn't squish at non-default visualWidth tunings.
+     */
+    private void renderConvoyVehicles(java.util.List<com.dillon.starsectormarines.battle.ground.Vehicle> convoy,
+                                      float alphaMult) {
+        if (convoy.isEmpty()) return;
+        float cellPx = camera.cellPxSize();
+        java.util.Set<UnitSpriteCache> touched = new java.util.HashSet<>();
+        for (com.dillon.starsectormarines.battle.ground.Vehicle v : convoy) {
+            if (!v.isVisible()) continue;
+            UnitSpriteCache cache = convoySprites.get(v.type);
+            if (cache == null || cache.sheet == null || cache.frames == null) continue;
+            if (v.type.spriteFrame < 0 || v.type.spriteFrame >= cache.frames.frames.length) continue;
+            SpriteAPI sheet = cache.sheet;
+            SpriteSheetFrames frames = cache.frames;
+            SpriteSheetFrames.Frame f = frames.frames[v.type.spriteFrame];
+
+            float texW = sheet.getTextureWidth();
+            float texH = sheet.getTextureHeight();
+            int sheetW = frames.sheetWidth;
+            int sheetH = frames.sheetHeight;
+            sheet.setTexX((float) f.x * texW / sheetW);
+            sheet.setTexY((float) (sheetH - f.y - f.h) * texH / sheetH);
+            sheet.setTexWidth((float) f.w * texW / sheetW);
+            sheet.setTexHeight((float) f.h * texH / sheetH);
+
+            float frameAspect = (float) f.w / (float) f.h;
+            float drawLong  = v.type.visualLengthCells * cellPx;
+            float drawShort = drawLong / frameAspect;
+            sheet.setSize(drawLong, drawShort);
+            sheet.setAngle(v.body.facingDegrees + v.type.spriteFacingOffsetDeg);
+            sheet.setAlphaMult(alphaMult);
+            sheet.setNormalBlend();
+            sheet.setColor(java.awt.Color.WHITE);
+
+            float cx = camera.cellToScreenX(v.body.x);
+            float cy = camera.cellToScreenY(v.body.y);
+            sheet.renderAtCenter(cx, cy);
+            touched.add(cache);
+        }
+        // Reset rotation so the singleton SpriteAPI doesn't carry our angle
+        // into any later pass that reuses it.
+        for (UnitSpriteCache cache : touched) {
+            if (cache != null && cache.sheet != null) cache.sheet.setAngle(0f);
+        }
+    }
+
     private void renderShuttles(List<Shuttle> shuttles, float alphaMult) {
         if (shuttles.isEmpty()) return;
         for (Shuttle s : shuttles) {

@@ -7,6 +7,11 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.TurretMount;
 import com.dillon.starsectormarines.battle.command.ConquestCommand;
 import com.dillon.starsectormarines.battle.command.SabotageCommand;
+import com.dillon.starsectormarines.battle.ground.ConvoyPlanner;
+import com.dillon.starsectormarines.battle.ground.Vehicle;
+import com.dillon.starsectormarines.battle.ground.VehicleType;
+import com.dillon.starsectormarines.battle.mapgen.road.RoadGraph;
+import org.apache.log4j.Logger;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.mapgen.MapGenerator;
 import com.dillon.starsectormarines.battle.mapgen.MapResult;
@@ -42,6 +47,8 @@ import java.util.Set;
  * Defenders still pre-spawn (lore-correct: they're already on the ground).
  */
 public final class BattleSetup {
+
+    private static final Logger LOG = Logger.getLogger(BattleSetup.class);
 
     /** Default battle grid size (cells) — matches {@link MapScale#MEDIUM}. Used as the {@link com.dillon.starsectormarines.ops.BattleScreen} fallback when no simulation is active yet. The actual generated map dimensions come from {@link MapScale#forRisk}. */
     public static final int GRID_W = MapScale.MEDIUM.width;
@@ -223,6 +230,7 @@ public final class BattleSetup {
         // planter has died) spread across the multi-site map instead of
         // dogpiling the nearest fight.
         sim.setCommander(Faction.MARINE, new SabotageCommand());
+        maybeSpawnDebugConvoy(sim, map);
         return sim;
     }
 
@@ -423,6 +431,7 @@ public final class BattleSetup {
         // spawn around the defender anchor.
         allocateDefenders(sim, map, DefenderRoster.forMission(type, risk, enemyHasHeavyArmor), rng);
         spawnAmbientCivilians(sim, map, rng);
+        maybeSpawnDebugConvoy(sim, map);
         return sim;
     }
 
@@ -507,7 +516,120 @@ public final class BattleSetup {
         // occupied zone in its strip. Spreads marines across the frontage
         // instead of dogpiling the nearest defender contact.
         sim.setCommander(Faction.MARINE, new ConquestCommand(axis));
+        maybeSpawnDebugConvoy(sim, map);
         return sim;
+    }
+
+    /**
+     * Dev-only flag — when true, every {@link #createConquest} run also
+     * spawns a single defender-side militia truck that enters from the
+     * nearest perimeter trunk-exit on the defender edge, drives to the
+     * trunk crossing, deboards, and leaves the way it came. Flip to false
+     * once the convoy work is wired into a real reinforcement pipeline.
+     */
+    public static boolean DEBUG_SPAWN_TEST_CONVOY = true;
+    /** Sim-seconds before the test convoy emerges from off-map. Long enough that the player sees the battle start before reinforcements arrive. */
+    private static final float DEBUG_CONVOY_PENDING_SEC = 6f;
+    /** Cells the off-map staging waypoint sits beyond the perimeter — the truck's first INCOMING waypoint, so it drives onto the map rather than popping in at the edge. */
+    private static final float DEBUG_CONVOY_OFFMAP_PAD = 6f;
+
+    /**
+     * V1 debug spawn — drops one {@link VehicleType#MILITIA_TRUCK} into the
+     * sim if {@link #DEBUG_SPAWN_TEST_CONVOY} is on and the map has a
+     * non-empty {@link RoadGraph}. Picks the perimeter node closest to the
+     * defender spawn as the entry, the highest-degree non-perimeter node
+     * closest to map center as the dropoff, and routes between them with
+     * {@link ConvoyPlanner#planPath}. Outbound is the inbound path
+     * reversed — the truck retreats the way it arrived.
+     *
+     * <p>Verbose-logs every step so a "I don't see the truck" report can be
+     * traced through the starsector.log without code changes.
+     */
+    private static void maybeSpawnDebugConvoy(BattleSimulation sim, MapResult map) {
+        if (!DEBUG_SPAWN_TEST_CONVOY) return;
+        RoadGraph graph = map.roadGraph;
+        if (graph == null || graph.nodes().isEmpty()) {
+            LOG.warn("convoy: skip — roadGraph "
+                    + (graph == null ? "null" : "empty"));
+            return;
+        }
+        List<RoadGraph.Node> perim = graph.perimeterNodes();
+        if (perim.isEmpty()) {
+            LOG.warn("convoy: skip — no perimeter nodes in graph "
+                    + "(" + graph.nodes().size() + " nodes, " + graph.edges().size() + " edges)");
+            return;
+        }
+        RoadGraph.Node entry = closestNode(perim, map.defenderSpawnX, map.defenderSpawnY);
+        int gw = sim.getGrid().getWidth();
+        int gh = sim.getGrid().getHeight();
+        RoadGraph.Node dest = bestInteriorJunction(graph, gw / 2, gh / 2);
+        if (dest == null || dest == entry) {
+            LOG.warn("convoy: skip — no usable destination "
+                    + "(entry=" + entry.cellX + "," + entry.cellY + ")");
+            return;
+        }
+        List<RoadGraph.Edge> path = ConvoyPlanner.planPath(graph, entry, dest);
+        if (path == null || path.isEmpty()) {
+            LOG.warn("convoy: skip — planPath failed entry→dest "
+                    + "(" + entry.cellX + "," + entry.cellY + ")→("
+                    + dest.cellX + "," + dest.cellY + ")");
+            return;
+        }
+        float[][] inboundCells = ConvoyPlanner.expandToWaypoints(path, entry);
+
+        // Prepend an off-map staging waypoint perpendicular to the entry's
+        // edge so the truck visibly drives onto the map rather than popping
+        // in at the perimeter cell.
+        float offX = entry.cellX + 0.5f;
+        float offY = entry.cellY + 0.5f;
+        if (entry.cellY == 0)            offY = -DEBUG_CONVOY_OFFMAP_PAD;
+        else if (entry.cellY == gh - 1)  offY = gh + DEBUG_CONVOY_OFFMAP_PAD;
+        else if (entry.cellX == 0)       offX = -DEBUG_CONVOY_OFFMAP_PAD;
+        else if (entry.cellX == gw - 1)  offX = gw + DEBUG_CONVOY_OFFMAP_PAD;
+
+        int len = inboundCells[0].length;
+        float[] inX = new float[len + 1];
+        float[] inY = new float[len + 1];
+        inX[0] = offX;
+        inY[0] = offY;
+        System.arraycopy(inboundCells[0], 0, inX, 1, len);
+        System.arraycopy(inboundCells[1], 0, inY, 1, len);
+        float[][] outboundCells = ConvoyPlanner.reverse(inX, inY);
+
+        Vehicle truck = new Vehicle(
+                VehicleType.MILITIA_TRUCK, Faction.DEFENDER,
+                inX, inY, outboundCells[0], outboundCells[1],
+                DEBUG_CONVOY_PENDING_SEC);
+        sim.addConvoyVehicle(truck);
+        LOG.info("convoy: spawned MILITIA_TRUCK entry=(" + entry.cellX + "," + entry.cellY
+                + ") dest=(" + dest.cellX + "," + dest.cellY
+                + ") path=" + path.size() + "edges/" + inX.length + "wps");
+    }
+
+    private static RoadGraph.Node closestNode(List<RoadGraph.Node> nodes, int x, int y) {
+        RoadGraph.Node best = null;
+        int bestD2 = Integer.MAX_VALUE;
+        for (RoadGraph.Node n : nodes) {
+            int dx = n.cellX - x;
+            int dy = n.cellY - y;
+            int d2 = dx * dx + dy * dy;
+            if (d2 < bestD2) { bestD2 = d2; best = n; }
+        }
+        return best;
+    }
+
+    private static RoadGraph.Node bestInteriorJunction(RoadGraph graph, int cx, int cy) {
+        RoadGraph.Node best = null;
+        int bestD2 = Integer.MAX_VALUE;
+        for (RoadGraph.Node n : graph.nodes()) {
+            if (n.perimeter) continue;
+            if (n.degree() < 3) continue;
+            int dx = n.cellX - cx;
+            int dy = n.cellY - cy;
+            int d2 = dx * dx + dy * dy;
+            if (d2 < bestD2) { bestD2 = d2; best = n; }
+        }
+        return best;
     }
 
     /**

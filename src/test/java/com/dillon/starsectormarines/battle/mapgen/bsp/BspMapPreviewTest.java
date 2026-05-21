@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.mapgen.BiomeKind;
 import com.dillon.starsectormarines.battle.mapgen.MapDistrictTheme;
 import com.dillon.starsectormarines.battle.mapgen.MapResult;
 import com.dillon.starsectormarines.battle.mapgen.TraversalAxis;
+import com.dillon.starsectormarines.battle.mapgen.road.RoadGraph;
 // Compound, DistrictMap, BiomeMap live in the bsp sub-package (same as this test).
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.tactical.TacticalMap;
@@ -380,6 +381,15 @@ public class BspMapPreviewTest {
             drawTacticalOverlay(g, tactical, h, cellPx);
         }
 
+        // Pass 7d — road graph. Edge cell-list polylines in cyan, junction
+        // nodes as small dots, perimeter nodes (off-map convoy entry
+        // candidates) in red. Drawn after tactical so road centerlines win
+        // when both overlays cross — convoys are the next layer of work
+        // and seeing the graph clearly is the point of the overlay.
+        if (map.roadGraph != null && !map.roadGraph.nodes().isEmpty()) {
+            drawRoadGraphOverlay(g, map.roadGraph, h, cellPx);
+        }
+
         // Pass 8 — spawn anchors.
         drawDiamond(g, new Color(80, 230, 110), map.marineSpawnX,   map.marineSpawnY,   h, cellPx);
         drawDiamond(g, new Color(240, 80,  80), map.defenderSpawnX, map.defenderSpawnY, h, cellPx);
@@ -557,6 +567,55 @@ public class BspMapPreviewTest {
             int r = Math.max(3, cellPx / 2 + (n.priorityScore >= 80 ? 2 : 0));
             Color base = TACTICAL_COLORS.getOrDefault(n.kind, Color.WHITE);
             g.setColor(base);
+            g.fillOval(cx - r, cy - r, r * 2, r * 2);
+            g.setColor(Color.BLACK);
+            g.setStroke(new BasicStroke(1f));
+            g.drawOval(cx - r, cy - r, r * 2, r * 2);
+        }
+    }
+
+    /**
+     * Renders the road graph as cyan edge polylines + per-degree colored
+     * dots over the map. Edge cell-lists are drawn through cell centers as
+     * 1-pixel polylines; nodes overlay them as small filled circles with a
+     * black outline.
+     *
+     * <p>Color rules:
+     * <ul>
+     *   <li>Edge polyline: cyan, 60% alpha.</li>
+     *   <li>Interior node (degree ≥ 3): orange dot.</li>
+     *   <li>Dead-end node (degree 1): yellow dot.</li>
+     *   <li>Perimeter node (any degree, on map edge): red dot — convoy
+     *       entry/exit candidate.</li>
+     * </ul>
+     */
+    private static void drawRoadGraphOverlay(Graphics2D g, RoadGraph graph, int gridH, int cellPx) {
+        g.setStroke(new BasicStroke(1.5f));
+        g.setColor(new Color(120, 220, 240, 160));
+        for (RoadGraph.Edge e : graph.edges()) {
+            int n = e.length();
+            int[] xs = new int[n];
+            int[] ys = new int[n];
+            for (int i = 0; i < n; i++) {
+                xs[i] = e.cellsX[i] * cellPx + cellPx / 2;
+                ys[i] = (gridH - 1 - e.cellsY[i]) * cellPx + cellPx / 2;
+            }
+            g.drawPolyline(xs, ys, n);
+        }
+
+        int r = Math.max(2, cellPx / 2);
+        for (RoadGraph.Node node : graph.nodes()) {
+            int cx = node.cellX * cellPx + cellPx / 2;
+            int cy = (gridH - 1 - node.cellY) * cellPx + cellPx / 2;
+            Color fill;
+            if (node.perimeter) {
+                fill = new Color(255, 100, 100);
+            } else if (node.degree() <= 1) {
+                fill = new Color(255, 235, 120);
+            } else {
+                fill = new Color(255, 170, 80);
+            }
+            g.setColor(fill);
             g.fillOval(cx - r, cy - r, r * 2, r * 2);
             g.setColor(Color.BLACK);
             g.setStroke(new BasicStroke(1f));
