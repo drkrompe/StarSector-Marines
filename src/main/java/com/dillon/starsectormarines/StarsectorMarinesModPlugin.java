@@ -1,6 +1,10 @@
 package com.dillon.starsectormarines;
 
+import com.dillon.starsectormarines.campaign.CampaignState;
+import com.dillon.starsectormarines.campaign.CampaignStateScript;
+import com.dillon.starsectormarines.campaign.HouseSeeder;
 import com.dillon.starsectormarines.intel.BridgeIntel;
+import com.dillon.starsectormarines.intel.CampaignDebugIntel;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -27,6 +31,10 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         LOG.info("Starsector Marines: game loaded (newGame=" + newGame + ")");
         ensureBridgeIntel();
         ensureMarineRoster();
+        ensureCampaignState();
+        if (DevConfig.CAMPAIGN_DEBUG_INTEL) {
+            ensureCampaignDebugIntel();
+        }
         logRosterContents();
     }
 
@@ -56,6 +64,27 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
             roster.add(starter);
             LOG.info("Starsector Marines: injected starter captain " + starter.name() + " [" + starter.id() + "]");
         }
+    }
+
+    private static void ensureCampaignState() {
+        SectorAPI sector = Global.getSector();
+        CampaignStateScript script = CampaignStateScript.getInstance();
+        if (script == null) {
+            script = new CampaignStateScript();
+            sector.addScript(script);
+            LOG.info("Starsector Marines: CampaignStateScript registered");
+        }
+        CampaignState state = script.state();
+        if (state.houseCount == 0) {
+            HouseSeeder.seed(state);
+        }
+    }
+
+    private static void ensureCampaignDebugIntel() {
+        IntelManagerAPI mgr = Global.getSector().getIntelManager();
+        if (mgr.getFirstIntel(CampaignDebugIntel.class) != null) return;
+        mgr.addIntel(new CampaignDebugIntel(), true);
+        LOG.info("Starsector Marines: CampaignDebugIntel registered (dev)");
     }
 
     private static void logRosterContents() {

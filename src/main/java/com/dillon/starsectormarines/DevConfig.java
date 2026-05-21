@@ -90,5 +90,27 @@ public final class DevConfig {
      */
     public static final boolean PROFILE_TICK_PHASES = true;
 
+    /**
+     * When {@code true}: register the campaign-tier debug intel
+     * ({@code CampaignDebugIntel}) at game load. Surfaces the houses graph
+     * with promote/demote/reseed and a bypass-gating toggle. Flip off (or
+     * delete the intel class) for prod builds — the underlying
+     * {@link com.dillon.starsectormarines.campaign.CampaignStateScript} runs
+     * either way.
+     */
+    public static final boolean CAMPAIGN_DEBUG_INTEL = true;
+
+    /**
+     * When {@code true}: mission generators ignore campaign-tier gating
+     * (house rep, rank, flavor). Equivalent to the runtime toggle on the
+     * debug intel ({@code debugBypassHouseGating}) but compile-time so it
+     * survives across saves before campaign-tier wiring exists.
+     *
+     * <p>No-op until campaign-tier mission gating is actually wired into
+     * {@code MissionGenerator}. Until then this flag exists as a forward
+     * declaration so consumers can branch on it from day one.
+     */
+    public static final boolean BYPASS_HOUSE_GATING = false;
+
     private DevConfig() {}
 }
