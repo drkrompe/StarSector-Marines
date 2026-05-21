@@ -23,12 +23,14 @@ public class SquadMoraleTest {
 
     /**
      * 20x12 floor with a wall at column 15 — splits the map into a marine
-     * zone (left) and a defender hideout (right). Tests that need an
-     * "out of contact" tick stash a defender beyond the wall via {@link
-     * #hideDefender}: the LoS scan stays clean (so {@code _engagedThisTick}
-     * is false and recovery fires) while {@link BattleSimulation#checkWinCondition}
-     * still sees both factions alive so the sim doesn't auto-complete after
-     * one tick.
+     * zone (left) and a defender hideout (right). Tests that need a
+     * "passive" sim tick stash a defender beyond the wall via {@link
+     * #hideDefender} so {@link BattleSimulation#checkWinCondition} sees
+     * both factions alive and the sim doesn't auto-complete after one tick.
+     * Recovery itself gates on {@link Squad#timeSinceUnderFire}, not on LoS,
+     * so the wall is no longer the load-bearing piece for recovery — it's
+     * the squad's fresh-init {@code timeSinceUnderFire = MAX_VALUE/2} that
+     * keeps the under-fire gate open.
      */
     private static BattleSimulation openSim() {
         NavigationGrid grid = new NavigationGrid(W, H);
@@ -118,20 +120,41 @@ public class SquadMoraleTest {
     }
 
     @Test
-    public void recoveryStopsWhenEngaged() {
+    public void recoveryProceedsWithLoSButNoIncomingFire() {
+        // Post-fix semantics: recovery gates on "haven't been shot at
+        // recently," not on raw LoS. A broken squad pulled back to imperfect
+        // cover that can see (and fire back at) distant enemies must still
+        // recover as long as no hits/near-misses arrive. Pre-fix this case
+        // locked the squad broken indefinitely (the SQ-64 dump bug).
         BattleSimulation sim = openSim();
         Squad sq = marineSquad(sim, 4);
         sq.morale = 0.2f;
-
-        // Put a defender in LoS of a squadmate — that flips _engagedThisTick
-        // true during updateSquadAlertLevels and skips the recovery branch.
+        sq.timeSinceUnderFire = 10f; // out of the under-fire window
         Unit defender = new Unit("d", Faction.DEFENDER, UnitType.MARINE, 10, 1);
         sim.addUnit(defender);
 
         sim.advance(BattleSimulation.TICK_DT);
 
+        float expected = 0.2f + BattleSimulation.MORALE_RECOVERY_RATE * BattleSimulation.TICK_DT;
+        assertEquals(expected, sq.morale, 1e-5f,
+                "LoS without incoming fire must grant exactly one TICK_DT of recovery");
+    }
+
+    @Test
+    public void recoveryStopsWhileUnderFire() {
+        // Dual of the above: a squad that's just been shot at (even from
+        // out of LoS — near-miss bullet flying past cover) doesn't recover
+        // until the under-fire window lapses.
+        BattleSimulation sim = openSim();
+        Squad sq = marineSquad(sim, 4);
+        hideDefender(sim);
+        sq.morale = 0.2f;
+        sq.timeSinceUnderFire = 0f;
+
+        sim.advance(BattleSimulation.TICK_DT);
+
         assertEquals(0.2f, sq.morale, 1e-5f,
-                "in-contact tick must not grant recovery — morale holds at the drained value");
+                "inside the under-fire window must not grant recovery");
     }
 
     @Test
@@ -166,6 +189,10 @@ public class SquadMoraleTest {
         sim.applyDamage(b, b.hp + 1000f, 1f); // 1 kill → 3-of-4 alive, cap=0.75
         sq.morale = 0.15f;
         sq.moraleDrainCooldown = 0f;
+        // The kill reset timeSinceUnderFire; this test validates hysteresis
+        // math, not the under-fire gate (covered separately). Bypass the
+        // gate so recovery fires immediately.
+        sq.timeSinceUnderFire = 10f;
 
         sim.advance(BattleSimulation.TICK_DT);
         assertTrue(sq.moraleBroken, "morale below broken threshold → moraleBroken flips true");
@@ -324,9 +351,12 @@ public class SquadMoraleTest {
         sim.applyDamage(target, 1f, 1f);
         float afterFirst = sq.morale;
 
-        // Tick past the cooldown so the next hit can drain again. Out-of-
-        // contact recovery climbs morale during this window — we subtract
-        // it back out when checking the second drain.
+        // Tick past the cooldown so the next hit can drain again. The
+        // ~0.2s cooldown window is well inside MORALE_RECOVER_AFTER_FIRE_SECONDS
+        // (~2s), so no recovery fires here — moraleAfterCooldown captures
+        // post-cooldown state regardless. The assertion subtracts the
+        // drain from whatever value sat here, so the math is robust either
+        // way.
         int cooldownTicks = (int) Math.ceil(
                 BattleSimulation.MORALE_DRAIN_COOLDOWN / BattleSimulation.TICK_DT) + 1;
         for (int i = 0; i < cooldownTicks; i++) sim.advance(BattleSimulation.TICK_DT);

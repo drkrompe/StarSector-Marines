@@ -3,15 +3,21 @@ package com.dillon.starsectormarines.battle.ai;
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Doodad;
 import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.MarineSecondary;
+import com.dillon.starsectormarines.battle.MarineWeapon;
+import com.dillon.starsectormarines.battle.PendingDetonation;
 import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.TileManifest;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.UnitType;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.turret.MapTurret;
+import com.dillon.starsectormarines.battle.turret.TurretKind;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -611,5 +617,206 @@ public class TacticalScoringTest {
                 "picker returned a non-walkable cell (" + dest[0] + "," + dest[1] + ")");
         assertTrue(dest[0] < 10,
                 "picker shouldn't have crossed the wall to land on the enemy's side — got (" + dest[0] + "," + dest[1] + ")");
+    }
+
+    // ---------------------------------------------------------------------
+    // Part 7 — rocket-vs-turret range gates and squad coordination
+    // ---------------------------------------------------------------------
+
+    private static MapTurret turret(BattleSimulation sim, Faction f, TurretKind kind, int x, int y) {
+        MapTurret t = new MapTurret("t" + sim.getUnits().size(), f, kind, x, y);
+        sim.addUnit(t);
+        return t;
+    }
+
+    private static Unit rocketeer(BattleSimulation sim, Faction f, int x, int y) {
+        Unit u = unit(sim, f, x, y);
+        u.primaryWeapon = MarineWeapon.PULSE_RIFLE;
+        u.attackRange = u.primaryWeapon.range;
+        u.secondaryWeapon = MarineSecondary.ROCKET_LAUNCHER;
+        u.secondaryAmmo = MarineSecondary.ROCKET_LAUNCHER.startingAmmo;
+        return u;
+    }
+
+    @Test
+    public void effectiveAttackRangeWidensForRocketeerVsTurret() {
+        BattleSimulation sim = openArena(40, 10);
+        Unit rocketeer = rocketeer(sim, Faction.MARINE, 5, 5);
+        MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 25, 5);
+        Unit infantry = unit(sim, Faction.DEFENDER, 25, 5);
+
+        assertEquals(MarineSecondary.ROCKET_LAUNCHER.range,
+                TacticalScoring.effectiveAttackRange(rocketeer, turret),
+                0.001f, "rocketeer-vs-turret must widen to rocket range");
+        assertEquals(rocketeer.attackRange,
+                TacticalScoring.effectiveAttackRange(rocketeer, infantry),
+                0.001f, "vs soft target stays at primary range");
+
+        rocketeer.secondaryAmmo = 0;
+        assertEquals(rocketeer.attackRange,
+                TacticalScoring.effectiveAttackRange(rocketeer, turret),
+                0.001f, "empty tube falls back to primary range");
+    }
+
+    @Test
+    public void findFiringPositionReachesRocketRangeOnly() {
+        // The user-reported failure mode: marine outside rifle range of a
+        // turret was pathing INTO rifle range instead of stopping at rocket
+        // range. With the rocket-aware ring widening, the picker should
+        // return a cell within rocket range that's NOT inside rifle range.
+        BattleSimulation sim = openArena(60, 10);
+        Unit rocketeer = rocketeer(sim, Faction.MARINE, 5, 5);
+        // Pulse rifle range is much shorter than rocket range (32). The
+        // turret sits past pulse range but inside rocket range.
+        float primary = rocketeer.attackRange;
+        int turretX = (int) Math.ceil(primary) + 8;
+        MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, turretX, 5);
+
+        int[] pick = TacticalScoring.findFiringPosition(rocketeer, turret, sim);
+        assertNotNull(pick);
+        float distFromTurret = (float) Math.sqrt(
+                (pick[0] - turret.cellX) * (pick[0] - turret.cellX)
+              + (pick[1] - turret.cellY) * (pick[1] - turret.cellY));
+        assertTrue(distFromTurret <= MarineSecondary.ROCKET_LAUNCHER.range,
+                "picked cell must be inside rocket range, got dist " + distFromTurret);
+        // Self at (5,5); turret at primary+8. The closest in-range cell to
+        // self lies on the line between, which is well outside primary range
+        // — the bug was forcing it inside.
+        float distFromSelf = (float) Math.sqrt(
+                (pick[0] - rocketeer.cellX) * (pick[0] - rocketeer.cellX)
+              + (pick[1] - rocketeer.cellY) * (pick[1] - rocketeer.cellY));
+        assertTrue(distFromSelf < (turretX - rocketeer.cellX),
+                "picked cell should be on self's side of the turret");
+    }
+
+    @Test
+    public void shouldCommitRocketAllowsFirstShot() {
+        BattleSimulation sim = openArena(20, 20);
+        Unit rocketeer = rocketeer(sim, Faction.MARINE, 5, 5);
+        MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
+
+        assertTrue(TacticalScoring.shouldCommitRocket(rocketeer, turret, sim),
+                "first marine on a healthy turret with no inflight must commit");
+    }
+
+    @Test
+    public void shouldCommitRocketBlocksWhenSquadmateAimingWouldKill() {
+        // A Hephaestus has 85 HP — one rocket (18 * 3.5 = 63) isn't enough,
+        // two (126) is overkill. So squad coordination should allow the second
+        // marine to commit but block the third.
+        BattleSimulation sim = openArena(20, 20);
+        int squadId = sim.mintSquad(Faction.MARINE, null);
+
+        Unit m0 = rocketeer(sim, Faction.MARINE, 5, 5);
+        m0.squadId = squadId;
+        Unit m1 = rocketeer(sim, Faction.MARINE, 5, 6);
+        m1.squadId = squadId;
+        Unit m2 = rocketeer(sim, Faction.MARINE, 5, 7);
+        m2.squadId = squadId;
+
+        MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.HEPHAESTUS, 10, 5);
+        float oneRocket = MarineSecondary.ROCKET_LAUNCHER.damage
+                * MarineSecondary.ROCKET_LAUNCHER.vsTurretMult;
+        assertTrue(oneRocket < turret.maxHp,
+                "test invariant: Hephaestus needs >1 rocket — adjust if balance changed");
+
+        m0.secondaryActionTimer = MarineSecondary.ROCKET_LAUNCHER.aimDuration;
+        m0.secondaryAimTarget = turret;
+
+        assertTrue(TacticalScoring.shouldCommitRocket(m1, turret, sim),
+                "second marine joins when one inbound rocket isn't enough");
+
+        m1.secondaryActionTimer = MarineSecondary.ROCKET_LAUNCHER.aimDuration;
+        m1.secondaryAimTarget = turret;
+
+        assertFalse(TacticalScoring.shouldCommitRocket(m2, turret, sim),
+                "third marine sees two inbound rockets (overkill) and must hold fire");
+    }
+
+    @Test
+    public void shouldCommitRocketBlocksSecondShotOnVulcan() {
+        // One-shot turret: a Vulcan has only 50 HP, so one rocket (63 damage)
+        // is already overkill. As soon as one marine commits, every other
+        // marine in the squad should hold fire — the most common volley case.
+        BattleSimulation sim = openArena(20, 20);
+        int squadId = sim.mintSquad(Faction.MARINE, null);
+        Unit m0 = rocketeer(sim, Faction.MARINE, 5, 5);
+        m0.squadId = squadId;
+        Unit m1 = rocketeer(sim, Faction.MARINE, 5, 6);
+        m1.squadId = squadId;
+        MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
+
+        m0.secondaryActionTimer = MarineSecondary.ROCKET_LAUNCHER.aimDuration;
+        m0.secondaryAimTarget = turret;
+
+        assertFalse(TacticalScoring.shouldCommitRocket(m1, turret, sim),
+                "Vulcan only needs one rocket — second marine must hold fire");
+    }
+
+    @Test
+    public void shouldCommitRocketBlocksOnInflightDetonation() {
+        BattleSimulation sim = openArena(20, 20);
+        Unit rocketeer = rocketeer(sim, Faction.MARINE, 5, 5);
+        MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
+
+        // Stuff enough damage into the inflight queue to kill the turret.
+        // One rocket isn't enough for a Vulcan (test above), so queue two.
+        float perRocket = MarineSecondary.ROCKET_LAUNCHER.damage;
+        sim.queueDetonation(new PendingDetonation(
+                turret.cellX + 0.5f, turret.cellY + 0.5f, 0.5f,
+                MarineSecondary.ROCKET_LAUNCHER.aoeRadius,
+                perRocket, MarineSecondary.ROCKET_LAUNCHER.vsTurretMult,
+                0, Faction.MARINE, false));
+        sim.queueDetonation(new PendingDetonation(
+                turret.cellX + 0.5f, turret.cellY + 0.5f, 0.5f,
+                MarineSecondary.ROCKET_LAUNCHER.aoeRadius,
+                perRocket, MarineSecondary.ROCKET_LAUNCHER.vsTurretMult,
+                0, Faction.MARINE, false));
+
+        assertFalse(TacticalScoring.shouldCommitRocket(rocketeer, turret, sim),
+                "two inflight rockets > turret HP — don't waste a third");
+    }
+
+    @Test
+    public void shouldCommitRocketIgnoresEnemyFactionInflight() {
+        // Defender-side rocket detonations shouldn't count against a marine's
+        // commit projection (defenders rocketing their own turret would be a
+        // bug, but the gate is per-shooter-faction either way).
+        BattleSimulation sim = openArena(20, 20);
+        Unit rocketeer = rocketeer(sim, Faction.MARINE, 5, 5);
+        MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
+
+        float bigDamage = turret.maxHp * 2f;
+        sim.queueDetonation(new PendingDetonation(
+                turret.cellX + 0.5f, turret.cellY + 0.5f, 0.5f,
+                MarineSecondary.ROCKET_LAUNCHER.aoeRadius,
+                bigDamage, 1.0f, 0, Faction.DEFENDER, false));
+
+        assertTrue(TacticalScoring.shouldCommitRocket(rocketeer, turret, sim),
+                "inflight detonation from a different faction must not count against the marine's projection");
+    }
+
+    @Test
+    public void shouldCommitRocketAllowsOtherSquadAiming() {
+        // Two separate marine squads both see a turret. Squad coordination
+        // is per-squad; the second squad's marine isn't blocked by the
+        // first squad's marine. (The inflight check still applies once the
+        // first squad's rocket is airborne.)
+        BattleSimulation sim = openArena(20, 20);
+        int squadA = sim.mintSquad(Faction.MARINE, null);
+        int squadB = sim.mintSquad(Faction.MARINE, null);
+
+        Unit mA = rocketeer(sim, Faction.MARINE, 5, 5);
+        mA.squadId = squadA;
+        Unit mB = rocketeer(sim, Faction.MARINE, 5, 6);
+        mB.squadId = squadB;
+
+        MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
+
+        mA.secondaryActionTimer = MarineSecondary.ROCKET_LAUNCHER.aimDuration;
+        mA.secondaryAimTarget = turret;
+
+        assertTrue(TacticalScoring.shouldCommitRocket(mB, turret, sim),
+                "squad coordination is per-squad — different squads don't block each other");
     }
 }

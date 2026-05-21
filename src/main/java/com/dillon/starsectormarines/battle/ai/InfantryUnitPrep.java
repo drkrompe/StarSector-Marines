@@ -2,6 +2,9 @@ package com.dillon.starsectormarines.battle.ai;
 
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.turret.MapTurret;
+
+import java.util.ArrayList;
 
 /**
  * Per-tick lifecycle housekeeping for the GOAP infantry dispatcher. Called
@@ -60,5 +63,64 @@ public final class InfantryUnitPrep {
         if (unit.cooldownTimer > 0f) unit.cooldownTimer -= BattleSimulation.TICK_DT;
         if (unit.secondaryCooldownTimer > 0f) unit.secondaryCooldownTimer -= BattleSimulation.TICK_DT;
         if (unit.repositionCooldown > 0f) unit.repositionCooldown -= BattleSimulation.TICK_DT;
+    }
+
+    /**
+     * Reactive rocket-fire on a turret-of-opportunity. When the unit is mid-
+     * pathing (any posture — approach, regroup, even the engage out-of-range
+     * fallback), has a loaded rocket and an idle aim, and an enemy
+     * {@link MapTurret} sits inside rocket range with LOS, this initiates the
+     * aim window. The aim animation freezes movement (handled by
+     * {@link #tickAimAndShortCircuit} on subsequent ticks); fire resolves at
+     * the aim midpoint.
+     *
+     * <p>The squad-coordination gate ({@link TacticalScoring#shouldCommitRocket})
+     * is what prevents the 4-marine volley failure: once one squadmate locks
+     * onto a turret, the projected damage projection blocks the rest from
+     * committing until the projection no longer kills.
+     *
+     * <p>Returns {@code true} when an aim was started (caller short-circuits the
+     * rest of its tick — same convention as {@link #tickAimAndShortCircuit}).
+     * Returns {@code false} when nothing changed.
+     */
+    public static boolean tryOpportunityRocket(Unit unit, BattleSimulation sim) {
+        if (unit.secondaryWeapon == null) return false;
+        if (unit.secondaryAmmo <= 0) return false;
+        if (unit.secondaryCooldownTimer > 0f) return false;
+        if (unit.secondaryActionTimer > 0f) return false;
+
+        float range = unit.secondaryWeapon.range;
+        MapTurret bestTurret = null;
+        float bestDistSq = Float.MAX_VALUE;
+        ArrayList<Unit> scratch = new ArrayList<>();
+        sim.getUnitIndex().gather(unit.cellX, unit.cellY, range, scratch);
+        for (int i = 0, n = scratch.size(); i < n; i++) {
+            Unit other = scratch.get(i);
+            if (!(other instanceof MapTurret turret)) continue;
+            if (!turret.isAlive()) continue;
+            if (turret.faction == unit.faction) continue;
+            float dx = turret.cellX - unit.cellX;
+            float dy = turret.cellY - unit.cellY;
+            float d2 = dx * dx + dy * dy;
+            if (d2 > range * range) continue;
+            if (d2 >= bestDistSq) continue;
+            if (!sim.getGrid().hasLineOfSight(unit.cellX, unit.cellY, turret.cellX, turret.cellY)) continue;
+            if (!TacticalScoring.shouldCommitRocket(unit, turret, sim)) continue;
+            bestTurret = turret;
+            bestDistSq = d2;
+        }
+        if (bestTurret == null) return false;
+
+        unit.secondaryActionTimer = unit.secondaryWeapon.aimDuration;
+        unit.secondaryFiredThisAction = false;
+        unit.secondaryAimTarget = bestTurret;
+        // Freeze movement state for this tick — the next tick's
+        // tickAimAndShortCircuit will keep doing it. Mirrors what that method
+        // does on its own entry path so the visible behavior is consistent
+        // from the first frame of the aim window.
+        unit.moveProgress = 0f;
+        unit.renderX = unit.cellX;
+        unit.renderY = unit.cellY;
+        return true;
     }
 }
