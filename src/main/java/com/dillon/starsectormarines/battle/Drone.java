@@ -70,14 +70,13 @@ public class Drone extends Unit {
     /**
      * Detection radius (cells) for the wider-than-weapon-range agro scan. The
      * drone's primary acquisition runs through {@code TurretAim} at its
-     * weapon range (20 cells); this second scan runs separately at a larger
+     * weapon range (26 cells); this second scan runs separately at a larger
      * radius so the drone notices marines who are <em>shooting it</em> from
      * just outside its weapon range — rifle range is 24, DMR is 32 — and
      * cruises into firing range instead of patrolling obliviously while
-     * absorbing fire. Sized at 26 so rifle attackers always trigger agro and
-     * close DMR engagements usually do.
+     * absorbing fire. Sized at 32 so even DMR attackers trip the agro band.
      */
-    public static final float AGGRO_RANGE_CELLS = 26f;
+    public static final float AGGRO_RANGE_CELLS = 32f;
 
     /**
      * Maximum distance (cells) from {@link #homeHub} the drone is willing to
@@ -85,9 +84,10 @@ public class Drone extends Unit {
      * fighter aircraft, they're a screen anchored to their launching hub. A
      * marine fleeing beyond this radius outruns the drone's leash and the
      * drone hovers at the boundary until the engagement ends (then returns
-     * to patrol via the standard waypoint roll).
+     * to patrol via the standard waypoint roll). Sized so a 3-drone swarm
+     * has room to fan out around a target at the boundary without stacking.
      */
-    public static final float ENGAGE_LEASH_RADIUS_CELLS = 22f;
+    public static final float ENGAGE_LEASH_RADIUS_CELLS = 28f;
 
     /**
      * Sim-seconds the drone keeps committing toward a last-known enemy

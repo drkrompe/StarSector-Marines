@@ -37,8 +37,8 @@ public class DroneHubUnit extends Unit {
     /** True once the sim has converted the hub cell to walkable rubble. Guards against the renderer keeping a destroyed hub on screen and against double-demolition. */
     public boolean demolished;
 
-    /** Cap on simultaneously-airborne drones from a single hub. Small enough that two hubs on the same map don't carpet the area with screen; large enough that a single drone loss doesn't blank the defense. */
-    public static final int MAX_ACTIVE_DRONES = 2;
+    /** Cap on simultaneously-airborne drones from a single hub. Three is the sweet spot for a screen that justifies the stamper: enough that the swarm can fan out around a target on different bearings (vs. a duo always stacking), small enough that two hubs on the same map don't carpet the area with drones. */
+    public static final int MAX_ACTIVE_DRONES = 3;
     /** Sim-seconds the hub waits before its first drone launch. Short delay so a marine pushing the hub still meets a drone screen during the opening engagement. */
     public static final float INITIAL_SPAWN_DELAY_SEC = 4f;
     /** Sim-seconds between successive launches when the hub is below the active-drone cap. Long enough that a steady DPS push thins the screen faster than the hub can replace it; short enough that ignoring the hub means dealing with drones forever. */
