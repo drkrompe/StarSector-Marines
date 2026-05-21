@@ -72,6 +72,11 @@ public final class TickProfileDebugPanel implements HudPanel {
     /** Sim-seconds the post-dump status banner persists below the panel header. */
     private static final float DUMP_STATUS_DURATION  = 3.0f;
 
+    /** Max auto-dumps per battle. Manual DUMP keeps working past this cap — only the spike-driven dispatch is throttled. Sized so a thrashy mission still doesn't flood the common-folder with 200 files. */
+    private static final int AUTO_DUMP_LIMIT = 15;
+    /** Seconds between auto-dumps. A sustained burst of spike ticks otherwise emits one file per tick — wasted I/O when the dumps would be near-identical anyway. */
+    private static final float AUTO_DUMP_COOLDOWN_SEC = 0.5f;
+
     /** Square expand/collapse toggle, sits to the left of DUMP. Same H as DUMP so they top/bottom-align in the header. */
     private static final float TOGGLE_BTN_W          = 18f;
     private static final float TOGGLE_BTN_GAP        = 6f;
@@ -92,6 +97,11 @@ public final class TickProfileDebugPanel implements HudPanel {
     private String dumpStatusMessage;
     private float dumpStatusRemaining;
 
+    /** Count of auto-spike dumps written this battle. Hits {@link #AUTO_DUMP_LIMIT} → spike consumption keeps draining but stops writing. Tracked for the status banner ("auto X/15"). */
+    private int autoDumpCount;
+    /** Seconds remaining on the post-dump cooldown — spike consumption is dropped (without writing) while this is positive, so back-to-back spike ticks don't emit duplicate files. */
+    private float autoDumpCooldownRemaining;
+
     public TickProfileDebugPanel(BattleUiContext ctx) {
         this.ctx = ctx;
     }
@@ -109,6 +119,28 @@ public final class TickProfileDebugPanel implements HudPanel {
             if (dumpStatusRemaining <= 0f) {
                 dumpStatusMessage = null;
             }
+        }
+        if (autoDumpCooldownRemaining > 0f) {
+            autoDumpCooldownRemaining -= dt;
+        }
+        BattleSimulation sim = ctx.getSim();
+        if (sim == null) return;
+        // Drain any latched spike each frame. We drain unconditionally so the
+        // profile's latch doesn't get stuck on an old tick when the dump path
+        // is cooled-down or capped — better to lose that one spike and stay
+        // ready for the next than to hold a stale entry forever. At higher sim
+        // speeds (×4, ×8) multiple ticks may land per frame; the latch keeps
+        // the first/freshest spike per frame, which is fine for diagnostics.
+        TickProfile.Spike spike = sim.getTickProfile().consumeSpike();
+        if (spike == null) return;
+        if (autoDumpCount >= AUTO_DUMP_LIMIT || autoDumpCooldownRemaining > 0f) return;
+        String path = TickProfileDumper.dump(sim, spike);
+        if (path != null) {
+            autoDumpCount++;
+            autoDumpCooldownRemaining = AUTO_DUMP_COOLDOWN_SEC;
+            dumpStatusMessage = String.format("auto-dump %d/%d: tick %d (%.1fx)",
+                    autoDumpCount, AUTO_DUMP_LIMIT, spike.tickIndex, spike.ratio());
+            dumpStatusRemaining = DUMP_STATUS_DURATION;
         }
     }
 

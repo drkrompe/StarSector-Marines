@@ -66,20 +66,40 @@ public final class TickProfile {
     /** Ticks per averaging window. 30 = 1 sim-second at 30Hz, slow enough for the eye to read stable numbers. */
     public static final int WINDOW_TICKS = 30;
 
+    /** Multiplier above the windowed average tick time that latches a spike for auto-dump. 3× catches genuine outliers (rebuild flushes, JIT compiles, GC pauses) without firing on routine jitter. */
+    public static final double SPIKE_MULTIPLIER = 3.0;
+    /** Hard floor on absolute tick time for spike detection — below this the sim is so quiet that "3× the average" is meaningless noise. 1ms = 30Hz tick using 3% of its 33.3ms budget. */
+    public static final long SPIKE_FLOOR_NS = 1_000_000L;
+
     // Running accumulators for the in-progress window.
     private final long[] accumNanos = new long[Phase.VALUES.length];
     private final long[] currentMaxNanos = new long[Phase.VALUES.length];
     private int currentSampleCount;
+
+    /** Per-phase nanos spent in the most recent tick — reset by {@link #begin()}, populated by {@link #lap(Phase)}, consumed by {@link #endTick()} for spike detection and exposed via {@link #lastTickNanos(Phase)} so the panel could show per-tick (not per-window) numbers if it wanted to. */
+    private final long[] currentTickNanos = new long[Phase.VALUES.length];
 
     // Display buffer — frozen averages + per-phase max from the last completed window.
     private final long[] displayAvgNanos = new long[Phase.VALUES.length];
     private final long[] displayMaxNanos = new long[Phase.VALUES.length];
     private int displaySampleCount;
 
+    // Spike latch. endTick() writes when a spike fires; consumers (the debug
+    // panel's auto-dump path) read via consumeSpike() which atomically clears.
+    private boolean spikePending;
+    private int spikeTickIndex;
+    private long spikeTotalNanos;
+    private long spikeBaselineNanos;
+
     private long lapStart;
 
-    /** Latches the lap timer at the top of {@code tick()}. Pair with {@link #lap(Phase)} for every phase, then {@link #endTick()} once at the end. */
+    /** Latches the lap timer at the top of {@code tick()}. Pair with {@link #lap(Phase)} for every phase, then {@link #endTick(int)} once at the end. */
     public void begin() {
+        // Wipe the per-tick scratch so spike detection at endTick() sees only
+        // this tick's deltas. Window accumulators persist across ticks.
+        for (int i = 0; i < currentTickNanos.length; i++) {
+            currentTickNanos[i] = 0L;
+        }
         lapStart = System.nanoTime();
     }
 
@@ -89,17 +109,49 @@ public final class TickProfile {
         long delta = now - lapStart;
         int idx = p.ordinal();
         accumNanos[idx] += delta;
+        currentTickNanos[idx] += delta;
         if (delta > currentMaxNanos[idx]) currentMaxNanos[idx] = delta;
         lapStart = now;
     }
 
     /**
-     * Counts one tick. When the window fills, freeze the averages + per-phase
-     * max into the display buffer and reset the accumulators. The display
-     * buffer holds steady between snapshots so the panel reads stable values
-     * even if the sim pauses mid-window.
+     * Counts one tick. Two responsibilities:
+     * <ol>
+     *   <li>Spike detection — sum the per-phase nanos for this tick, compare
+     *       against the windowed total average; latch a pending spike if the
+     *       tick blew past {@link #SPIKE_MULTIPLIER}× baseline and the absolute
+     *       time was above {@link #SPIKE_FLOOR_NS}. Only fires once a complete
+     *       window has populated the baseline; the first window is warmup.</li>
+     *   <li>Window snapshot — when {@link #WINDOW_TICKS} have accumulated,
+     *       freeze the averages + per-phase max into the display buffer and
+     *       reset the accumulators. The display buffer holds steady between
+     *       snapshots so the panel reads stable values even if the sim pauses
+     *       mid-window.</li>
+     * </ol>
+     *
+     * @param simTickIndex the sim's monotonic tick counter; recorded on a
+     *                     pending spike so consumers can tag the dump with the
+     *                     tick that fired it.
      */
-    public void endTick() {
+    public void endTick(int simTickIndex) {
+        // --- Spike detection ---
+        // Skip while baseline is uninitialized (first window) — without a
+        // reference there's no "spike", just first-tick wall-clock noise.
+        if (displaySampleCount > 0 && !spikePending) {
+            long baselineTotal = totalAvgNanos();
+            long thisTickTotal = 0L;
+            for (long v : currentTickNanos) thisTickTotal += v;
+            if (thisTickTotal >= SPIKE_FLOOR_NS
+                    && baselineTotal > 0L
+                    && thisTickTotal >= (long) (baselineTotal * SPIKE_MULTIPLIER)) {
+                spikePending = true;
+                spikeTickIndex = simTickIndex;
+                spikeTotalNanos = thisTickTotal;
+                spikeBaselineNanos = baselineTotal;
+            }
+        }
+
+        // --- Window snapshot ---
         currentSampleCount++;
         if (currentSampleCount < WINDOW_TICKS) return;
         int n = Phase.VALUES.length;
@@ -127,5 +179,37 @@ public final class TickProfile {
         long sum = 0L;
         for (long v : displayAvgNanos) sum += v;
         return sum;
+    }
+
+    /** Nanos spent in {@code p} during the most recent {@link #endTick(int)}. Useful when consumers want per-tick (not per-window-average) numbers. */
+    public long lastTickNanos(Phase p) { return currentTickNanos[p.ordinal()]; }
+
+    /**
+     * Returns the latched spike (if any) and clears the pending flag, so the
+     * next call returns null until {@link #endTick(int)} latches a fresh one.
+     * Returns {@code null} when no spike is pending — the common case.
+     *
+     * <p>Consumer (the debug panel) is expected to drive auto-dump from this:
+     * poll each frame, dump when non-null, throttle / cap on its own side.
+     */
+    public Spike consumeSpike() {
+        if (!spikePending) return null;
+        spikePending = false;
+        return new Spike(spikeTickIndex, spikeTotalNanos, spikeBaselineNanos);
+    }
+
+    /** Snapshot of one latched spike. {@code totalNanos / baselineNanos} gives the ratio above normal. */
+    public static final class Spike {
+        public final int tickIndex;
+        public final long totalNanos;
+        public final long baselineNanos;
+        public Spike(int tickIndex, long totalNanos, long baselineNanos) {
+            this.tickIndex = tickIndex;
+            this.totalNanos = totalNanos;
+            this.baselineNanos = baselineNanos;
+        }
+        public double ratio() {
+            return baselineNanos > 0L ? (double) totalNanos / baselineNanos : 0.0;
+        }
     }
 }

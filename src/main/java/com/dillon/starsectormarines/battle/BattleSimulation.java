@@ -1065,7 +1065,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         tickProfile.lap(TickProfile.Phase.ZONE_GRAPH);
         checkWinCondition();
         tickProfile.lap(TickProfile.Phase.WIN_CHECK);
-        tickProfile.endTick();
+        tickProfile.endTick(simTickIndex);
     }
 
     /**
