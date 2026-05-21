@@ -185,32 +185,44 @@ hold their planned cell and keep firing through incoming damage until
 the chassis dies. The "all-arounder challenge punisher" read benefits —
 mechs feel *implacable*, not twitchy.
 
-### Mech morale as a future replacement (Stage 2-ish)
+### Mech morale (Stage 2 — landed)
 
-We could later model mech morale the same shape infantry uses (a
-`mech.morale` float on `MechLoadoutState`, drain on hits, recover when
-out of LoS, hysteresis between broken/clear, a `MORALE_BROKEN` predicate
-gating a mech `BreakContact`). **But tougher.** Suggested differences
-from the infantry tuning:
+Pulled forward from "future" once playtest dump squad_0 confirmed the
+no-flinch baseline read as too unkillable. Per-chassis morale on
+`MechLoadoutState`, drained at HP-threshold crossings, recovered out of
+LoS, aggregated to `Squad.moraleBroken` by majority. Same `MORALE_BROKEN`
+predicate the infantry path uses; `MechSurviveContact` (SURVIVAL)
+custom-plans `MechBreakContact` (mech-aware opportunistic fire so all
+three weapon tracks stay live during the retreat).
 
-| Parameter | Infantry (current) | Mech (proposed) |
+As-landed numbers (in `BattleSimulation`):
+
+| Parameter | Infantry (current) | Mech (landed) |
 | --- | --- | --- |
-| Drain trigger | per casualty + per hit | per chassis-HP threshold crossed |
-| Broken threshold | below 0.3 | below 0.15 |
-| Clear threshold (hysteresis) | above 0.5 | above 0.4 |
-| Recovery rate (out of contact) | normal | ~1.5× faster |
-| Cap when armor is gone | n/a | hard cap at 0.5 (a damaged mech *can* be rattled) |
+| Drain trigger | per casualty + per hit | per chassis-HP threshold crossed (0.75 / 0.50 / 0.25 / 0.10, monotonic) |
+| Drop per drain | `MORALE_DROP_ON_HIT` = 0.05 / cap | `MECH_MORALE_DROP_PER_THRESHOLD` = 0.25 |
+| Broken threshold | 0.30 × cap | `MECH_MORALE_BROKEN_THRESHOLD` = 0.15 × cap |
+| Clear threshold (hysteresis) | 0.50 × cap | `MECH_MORALE_CLEAR_THRESHOLD` = 0.40 × cap |
+| Recovery rate | `MORALE_RECOVERY_RATE` = 0.20 | × `MECH_MORALE_RECOVERY_RATE_MULT` = 1.5 |
+| Cap when armor is gone | n/a | `MECH_MORALE_ARMOR_GONE_CAP` = 0.50 below `MECH_MORALE_ARMOR_GONE_HP_FRAC` = 0.50 maxHp |
 
-Rationale: a mech is supposed to be the thing that doesn't break easily,
-not another infantry-shaped morale subject. The morale state exists to
-support a *late-battle "wounded mech withdraws"* moment — not a "mech
-flinches under fire" moment.
+The MISSION-tier role goals (`OverwatchKillZoneGoal`,
+`BackstopAssignedSquadGoal`) already had the carve-out — they return zero
+relevance when MORALE_BROKEN trips — so SURVIVAL wins outright when a
+mech squad breaks, even though MISSION normally outranks it.
 
-**Stage 1 ships without morale.** A mech in Stage 1 fights until it
-dies. The morale system queues for a later slice once we see how the
-no-flinch baseline plays — playtest may show mechs feel too unkillable
-without *any* "back off when hurt" pressure, in which case the morale
-work gets pulled forward.
+Coverage: `MechMoraleTest` — HP-threshold drain (single / multi / monotonic),
+armor-gone cap, hysteresis hold/flip, majority squad aggregation, goal
+selection under MORALE_BROKEN.
+
+Rationale stays the same: a mech is supposed to be the thing that
+doesn't break easily, not another infantry-shaped morale subject. The
+HP-threshold drain + the armor-gone cap together support the *late-battle
+"wounded mech withdraws"* moment — fresh mechs stay implacable; a heavily
+damaged mech is locked in BreakContact for the rest of the fight (the
+monotonic threshold counter + the cap dropping clear-threshold to
+0.40 × 0.50 = 0.20 absolute mean recovery past the broken line is
+near-impossible once the bottom thresholds have crossed).
 
 ## Player-unlockable mechs (out of scope)
 

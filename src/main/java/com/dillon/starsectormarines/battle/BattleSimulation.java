@@ -111,6 +111,29 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Sim seconds since the last hit/near-miss on a squadmate before morale recovery resumes. Decouples recovery from raw LoS — a broken squad in cover that can see distant enemies (and is firing back) but isn't actually being shot at composes itself; a pinned-down squad still taking incoming stays locked. Without this gate, a fallback that lands on a still-exposed cell (BreakContact's picker minimizes exposure but doesn't guarantee a true hide) keeps {@code _engagedThisTick=true} every tick via STANCED return fire and the squad never recovers. */
     public static final float MORALE_RECOVER_AFTER_FIRE_SECONDS = 2.0f;
 
+    // ---- Mech morale (Stage 2) ----
+    //
+    // Per-roadmap/ai/14-mech-stage1.md "Mech survival" — mechs use a tougher
+    // morale model than infantry: HP-threshold drain (not per-hit), stricter
+    // broken/clear thresholds, faster recovery, hard cap once damaged. Read
+    // by {@link #updateMechSquadMorale} + the HP-drain pass folded into
+    // {@link #applyDamage}.
+
+    /** Fraction-of-maxHp marks where a mech bleeds morale. Crossing each drops {@link #MECH_MORALE_DROP_PER_THRESHOLD} once (monotonic via {@link MechLoadoutState#hpThresholdsCrossed}). Descending order — first entry trips at 75% HP. */
+    public static final float[] MECH_HP_DRAIN_THRESHOLDS = {0.75f, 0.50f, 0.25f, 0.10f};
+    /** Per-threshold morale drop. Sized so all four thresholds drained drops a fresh mech (morale 1.0) to 0.0 — total wipe at 10% HP matches the "wounded mech withdraws" target. */
+    public static final float MECH_MORALE_DROP_PER_THRESHOLD = 0.25f;
+    /** Hysteresis broken threshold for mechs, as a fraction of cap. Stricter than infantry's 0.30 — mechs are harder to break. */
+    public static final float MECH_MORALE_BROKEN_THRESHOLD = 0.15f;
+    /** Hysteresis clear threshold for mechs, as a fraction of cap. */
+    public static final float MECH_MORALE_CLEAR_THRESHOLD = 0.40f;
+    /** Multiplier on {@link #MORALE_RECOVERY_RATE} for mech-side recovery. 1.5× — a mech that broke recomposes faster than infantry once safe. */
+    public static final float MECH_MORALE_RECOVERY_RATE_MULT = 1.5f;
+    /** HP fraction below which a mech's morale cap drops to {@link #MECH_MORALE_ARMOR_GONE_CAP} — the "armor is gone, this thing can be rattled" gate. */
+    public static final float MECH_MORALE_ARMOR_GONE_HP_FRAC = 0.50f;
+    /** Hard cap on mech morale once HP drops below {@link #MECH_MORALE_ARMOR_GONE_HP_FRAC}. With the clear threshold at 0.40 × 0.50 = 0.20 absolute, a damaged mech can still recover but only barely above the broken line. */
+    public static final float MECH_MORALE_ARMOR_GONE_CAP = 0.50f;
+
     /**
      * Sim-seconds between commander-tier slow ticks. The squad-GOAP replan
      * loop runs every {@link GoapInfantryBehavior#REPLAN_PERIOD} (2s today);
@@ -590,11 +613,21 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                 }
             }
         }
-        // Morale drain — fires only for squad members. Solo units (turrets,
-        // civilians) have no squad morale to bleed; their behaviors don't
-        // consult MORALE_BROKEN. Hit drain always; death adds the extra drop.
-        // Clamped to [0, 1] each step so a death-on-a-frame doesn't underflow.
-        if (wasAlive && target.squadId != Unit.NO_SQUAD) {
+        // Morale drain — branches on unit type.
+        //
+        // Mech-class targets use per-chassis morale: HP threshold crossings
+        // drain {@link MechLoadoutState#morale} (squad-level aggregation
+        // happens in {@link #updateMechSquadMorale}). The squad's
+        // {@link Squad#morale} field is unused for mech squads — leaving it
+        // at its initial value is harmless because the GOAP predicate reads
+        // {@link Squad#moraleBroken}, not the raw float.
+        //
+        // Infantry squad members feed the legacy squad-level drain (hit
+        // event + cap scaling + death bonus). Solo units (turrets, civilians)
+        // skip both — their behaviors don't consult MORALE_BROKEN.
+        if (wasAlive && target.mech != null) {
+            applyMechHpThresholdDrain(target);
+        } else if (wasAlive && target.squadId != Unit.NO_SQUAD) {
             Squad sq = squads.get(target.squadId);
             if (sq != null) {
                 // Death drain stacks on top of hit drain and bypasses the
@@ -622,6 +655,37 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                 sq.timeSinceUnderFire = 0f;
             }
         }
+    }
+
+    /**
+     * Mech-side morale drain on damage. Counts how many entries in
+     * {@link #MECH_HP_DRAIN_THRESHOLDS} the chassis HP just crossed and drops
+     * {@link MechLoadoutState#morale} by {@link #MECH_MORALE_DROP_PER_THRESHOLD}
+     * per crossing. Always resets {@link MechLoadoutState#timeSinceUnderFire}
+     * so recovery pauses through sustained fire — even a hit that didn't
+     * cross a fresh threshold counts as "still under fire."
+     *
+     * <p>Monotonic via {@link MechLoadoutState#hpThresholdsCrossed} — a
+     * healed mech (none today, but defensive) wouldn't refund drains. The
+     * drain is keyed to "how far through this fight have you been damaged,"
+     * not to instantaneous HP.
+     */
+    private void applyMechHpThresholdDrain(Unit target) {
+        MechLoadoutState m = target.mech;
+        m.timeSinceUnderFire = 0f;
+        if (target.maxHp <= 0f) return;
+        // Re-count by the post-damage HP fraction — once a threshold is
+        // crossed it stays counted. Compare against the running monotonic
+        // tracker so a heal followed by re-damage doesn't double-drain.
+        float frac = Math.max(0f, target.hp) / target.maxHp;
+        int newCount = 0;
+        for (float t : MECH_HP_DRAIN_THRESHOLDS) {
+            if (frac <= t) newCount++;
+        }
+        int crossings = newCount - m.hpThresholdsCrossed;
+        if (crossings <= 0) return;
+        m.hpThresholdsCrossed = newCount;
+        m.morale = Math.max(0f, m.morale - crossings * MECH_MORALE_DROP_PER_THRESHOLD);
     }
 
     @Override
@@ -1788,6 +1852,10 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                 if (shot.hit) continue;
                 Squad target = squadHitByMiss(shot);
                 if (target == null) continue;
+                // Mech squads don't take near-miss morale — their drain model
+                // is HP-threshold only (per roadmap/ai/14-mech-stage1.md). A
+                // mech that didn't catch a round isn't rattled by air.
+                if (target.isMechSquad()) continue;
                 // Recovery gate: a near-miss always resets the "under fire"
                 // timer, even when the drain cooldown blocks the morale drop.
                 target.timeSinceUnderFire = 0f;
@@ -1804,6 +1872,15 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
 
         for (Squad squad : squads.values()) {
             if (squad.aliveMembers <= 0) continue;
+            // Mech squads run a separate per-chassis morale pass — recovery,
+            // hysteresis, hard cap, squad-level aggregation. The infantry
+            // body below would otherwise drain {@link Squad#morale} on a flag
+            // that isn't read for mech squads (predicate consults
+            // {@link Squad#moraleBroken}, not raw morale).
+            if (squad.isMechSquad()) {
+                updateMechSquadMorale(squad);
+                continue;
+            }
 
             // Tick "time since under fire" before reading it. Saturate to
             // avoid overflow on long quiet stretches — the threshold check
@@ -1854,6 +1931,52 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                 if (squad.morale < brokenAt) squad.moraleBroken = true;
             }
         }
+    }
+
+    /**
+     * Per-mech morale tick + squad-level aggregation. Called from
+     * {@link #updateSquadMorale} for each alive mech squad. For each member:
+     * tick the under-fire timer, derive the cap (1.0 above the armor-gone HP
+     * fraction, {@link #MECH_MORALE_ARMOR_GONE_CAP} below), recover passively
+     * when out of fire, apply {@link MechLoadoutState#moraleBroken} hysteresis
+     * with the mech thresholds. Then set {@link Squad#moraleBroken} from the
+     * count of broken members — majority-broken trips the squad (one mech
+     * cracking out of four isn't enough; two or more is).
+     *
+     * <p>Squad-level GOAP doesn't yet route only broken members to
+     * BreakContact (the action just takes all members in one "any" slot);
+     * once that lands, this aggregator could be relaxed to "any broken."
+     * Today majority is what gives a stable squad-level signal.
+     */
+    private void updateMechSquadMorale(Squad squad) {
+        int aliveMechs = 0;
+        int brokenMechs = 0;
+        for (Unit u : units) {
+            if (!u.isAlive() || u.squadId != squad.id || u.mech == null) continue;
+            aliveMechs++;
+            MechLoadoutState m = u.mech;
+            if (m.timeSinceUnderFire < 1e9f) m.timeSinceUnderFire += TICK_DT;
+
+            float cap = (u.maxHp > 0f && u.hp < MECH_MORALE_ARMOR_GONE_HP_FRAC * u.maxHp)
+                    ? MECH_MORALE_ARMOR_GONE_CAP
+                    : 1.0f;
+            if (m.timeSinceUnderFire >= MORALE_RECOVER_AFTER_FIRE_SECONDS) {
+                float rate = MORALE_RECOVERY_RATE * MECH_MORALE_RECOVERY_RATE_MULT;
+                m.morale = Math.min(cap, m.morale + rate * TICK_DT);
+            } else {
+                m.morale = Math.min(cap, m.morale);
+            }
+
+            float brokenAt = MECH_MORALE_BROKEN_THRESHOLD * cap;
+            float clearAt  = MECH_MORALE_CLEAR_THRESHOLD  * cap;
+            if (m.moraleBroken) {
+                if (m.morale > clearAt) m.moraleBroken = false;
+            } else {
+                if (m.morale < brokenAt) m.moraleBroken = true;
+            }
+            if (m.moraleBroken) brokenMechs++;
+        }
+        squad.moraleBroken = aliveMechs > 0 && (brokenMechs * 2 >= aliveMechs);
     }
 
     /**

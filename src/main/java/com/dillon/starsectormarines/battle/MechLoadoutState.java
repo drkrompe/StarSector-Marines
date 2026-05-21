@@ -91,6 +91,31 @@ public final class MechLoadoutState {
     /** Squad id this Armored Support mech is currently backing. -1 = no assignment yet (re-pick on next execute). */
     public int assignedSquadId = -1;
 
+    // ---- Per-mech morale (Stage 2) ----
+    //
+    // A mech's morale is a chassis property, not a squad aggregate — playtest
+    // dump squad_0 showed that the infantry-shape squad-level morale drains
+    // off-puzzle for mechs (a fresh full-strength squad of 4 mechs can break
+    // collectively before any individual is hurt enough to flinch). Per-mech
+    // morale instead drains at chassis-HP threshold crossings and recovers
+    // out of LoS, with a hard cap once the chassis crosses
+    // {@link BattleSimulation#MECH_MORALE_ARMOR_GONE_HP_FRAC} HP.
+    //
+    // The squad-level {@link Squad#moraleBroken} flag is still what the
+    // GOAP predicate reads — {@link BattleSimulation#updateMechSquadMorale}
+    // aggregates these per-mech flags up (majority-broken trips the squad).
+    // Infantry squads continue to use the original squad-level drain in
+    // {@link BattleSimulation#updateSquadMorale}.
+
+    /** Mech-side morale, [0, 1]. Drains on HP-threshold crossings, recovers passively out of fire. Capped by {@link #moraleCap()}. */
+    public float morale = 1.0f;
+    /** Hysteresis flag for {@link #morale}. Trips below {@link BattleSimulation#MECH_MORALE_BROKEN_THRESHOLD} × cap, clears above {@link BattleSimulation#MECH_MORALE_CLEAR_THRESHOLD} × cap. */
+    public boolean moraleBroken = false;
+    /** Sim-seconds since the last hit on this mech. Gates morale recovery — see {@link BattleSimulation#MORALE_RECOVER_AFTER_FIRE_SECONDS}. */
+    public float timeSinceUnderFire = Float.MAX_VALUE / 2f;
+    /** Number of HP thresholds in {@link BattleSimulation#MECH_HP_DRAIN_THRESHOLDS} this mech has already drained at. Monotonic — a healed mech doesn't refund drains. */
+    public int hpThresholdsCrossed = 0;
+
     public MechLoadoutState(MechWeapon chaingun, MechWeapon srmPod, MechWeapon lrmArtillery,
                             int srmAmmoSalvos, int lrmAmmoSalvos, MechRole role) {
         this.chaingun = chaingun;

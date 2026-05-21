@@ -6,9 +6,11 @@ import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.ai.UnitBehavior;
 import com.dillon.starsectormarines.battle.ai.goap.actions.BackstopAssignedSquad;
 import com.dillon.starsectormarines.battle.ai.goap.actions.EngageAtCurrentBand;
+import com.dillon.starsectormarines.battle.ai.goap.actions.MechBreakContact;
 import com.dillon.starsectormarines.battle.ai.goap.actions.OverwatchKillZone;
 import com.dillon.starsectormarines.battle.ai.goap.goals.BackstopAssignedSquadGoal;
 import com.dillon.starsectormarines.battle.ai.goap.goals.MechEliminateEnemiesGoal;
+import com.dillon.starsectormarines.battle.ai.goap.goals.MechSurviveContact;
 import com.dillon.starsectormarines.battle.ai.goap.goals.OverwatchKillZoneGoal;
 import com.dillon.starsectormarines.battle.ai.goap.scoring.RoleAssigner;
 import com.dillon.starsectormarines.battle.ai.goap.world.WorldStateBuilder;
@@ -37,10 +39,11 @@ public final class GoapMechBehavior implements UnitBehavior {
 
     public static final GoapMechBehavior INSTANCE = new GoapMechBehavior();
 
-    /** Goals the squad-level planner picks from each replan. Highest-priority bucket wins, relevance breaks ties. MISSION-priority role goals come first so they win their bucket; the ENGAGEMENT-priority ambient {@link MechEliminateEnemiesGoal} is the floor. Within MISSION, overwatch is listed first so a mixed-role squad with both roles relevant tips to overwatch (Stage 1 tie-break — per-member goal assignment in Stage 2 resolves this cleanly). */
+    /** Goals the squad-level planner picks from each replan. Highest-priority bucket wins, relevance breaks ties. MISSION-priority role goals come first; SURVIVAL-tier {@link MechSurviveContact} wins whenever {@link com.dillon.starsectormarines.battle.ai.goap.Predicate#MORALE_BROKEN} trips (the MISSION goals carve themselves out on that predicate too, so SURVIVAL wins outright); the ENGAGEMENT-priority ambient {@link MechEliminateEnemiesGoal} is the floor. Within MISSION, overwatch is listed first so a mixed-role squad with both roles relevant tips to overwatch (Stage 1 tie-break — per-member goal assignment in Stage 2 resolves this cleanly). */
     public static final List<Goal> MECH_GOALS = List.of(
             OverwatchKillZoneGoal.INSTANCE,
             BackstopAssignedSquadGoal.INSTANCE,
+            MechSurviveContact.INSTANCE,
             MechEliminateEnemiesGoal.INSTANCE
     );
 
@@ -48,7 +51,8 @@ public final class GoapMechBehavior implements UnitBehavior {
     public static final List<Action> MECH_ACTIONS = List.of(
             EngageAtCurrentBand.INSTANCE,
             OverwatchKillZone.INSTANCE,
-            BackstopAssignedSquad.INSTANCE
+            BackstopAssignedSquad.INSTANCE,
+            MechBreakContact.INSTANCE
     );
 
     /** Sim-seconds between forced replans for mech squads. Same cadence as infantry — playtest will tell us if mechs want a different rhythm. */
