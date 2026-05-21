@@ -123,15 +123,15 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     public static final float[] MECH_HP_DRAIN_THRESHOLDS = {0.75f, 0.50f, 0.25f, 0.10f};
     /** Per-threshold morale drop. Sized so all four thresholds drained drops a fresh mech (morale 1.0) to 0.0 — total wipe at 10% HP matches the "wounded mech withdraws" target. */
     public static final float MECH_MORALE_DROP_PER_THRESHOLD = 0.25f;
-    /** Hysteresis broken threshold for mechs, as a fraction of cap. Stricter than infantry's 0.30 — mechs are harder to break. */
-    public static final float MECH_MORALE_BROKEN_THRESHOLD = 0.15f;
-    /** Hysteresis clear threshold for mechs, as a fraction of cap. */
-    public static final float MECH_MORALE_CLEAR_THRESHOLD = 0.40f;
+    /** Hysteresis broken threshold for mechs, as a fraction of cap. Tuned with the cap drop at {@link #MECH_MORALE_ARMOR_GONE_HP_FRAC}: with default drops the mech breaks just after the 25% HP threshold crosses (morale 0.25 < 0.60×0.5 = 0.30), leaving headroom to disengage before destruction. Earlier values (0.15) only tripped break at 10% HP — too late to survive the retreat. */
+    public static final float MECH_MORALE_BROKEN_THRESHOLD = 0.60f;
+    /** Hysteresis clear threshold for mechs, as a fraction of cap. At cap=0.5 (damaged), clear sits at 0.425 absolute — reachable from a broken mech (morale=0.25) in ~0.6s of recovery, so a successful disengage clears the flag and re-engages the planner. */
+    public static final float MECH_MORALE_CLEAR_THRESHOLD = 0.85f;
     /** Multiplier on {@link #MORALE_RECOVERY_RATE} for mech-side recovery. 1.5× — a mech that broke recomposes faster than infantry once safe. */
     public static final float MECH_MORALE_RECOVERY_RATE_MULT = 1.5f;
     /** HP fraction below which a mech's morale cap drops to {@link #MECH_MORALE_ARMOR_GONE_CAP} — the "armor is gone, this thing can be rattled" gate. */
     public static final float MECH_MORALE_ARMOR_GONE_HP_FRAC = 0.50f;
-    /** Hard cap on mech morale once HP drops below {@link #MECH_MORALE_ARMOR_GONE_HP_FRAC}. With the clear threshold at 0.40 × 0.50 = 0.20 absolute, a damaged mech can still recover but only barely above the broken line. */
+    /** Hard cap on mech morale once HP drops below {@link #MECH_MORALE_ARMOR_GONE_HP_FRAC}. With the clear threshold at 0.85 × 0.50 = 0.425 absolute and broken at 0.60 × 0.50 = 0.30, a damaged mech that breaks (morale 0.25 after the 25% HP threshold) only needs to climb 0.175 to clear — fast enough that a successful disengage actually un-breaks. */
     public static final float MECH_MORALE_ARMOR_GONE_CAP = 0.50f;
 
     /**

@@ -149,33 +149,33 @@ public class MechMoraleTest {
         Squad sq = mechSquad(sim, 1, MechRole.ARMORED_SUPPORT);
         hideEnemy(sim);
         Unit mech = sim.getUnits().get(0);
-        mech.mech.morale = 0.10f; // below 0.15 broken threshold (cap=1.0)
+        mech.mech.morale = 0.10f; // below 0.60 broken threshold (cap=1.0)
         mech.mech.timeSinceUnderFire = 0f; // in under-fire — no recovery
 
         sim.advance(BattleSimulation.TICK_DT);
 
         assertTrue(mech.mech.moraleBroken,
-                "morale 0.10 < MECH_MORALE_BROKEN_THRESHOLD → moraleBroken trips");
+                "morale 0.10 < MECH_MORALE_BROKEN_THRESHOLD (0.60) → moraleBroken trips");
         assertTrue(sq.moraleBroken,
                 "all-broken single-member mech squad → squad.moraleBroken trips");
     }
 
     @Test
     public void hysteresisHoldsBrokenBetweenThresholds() {
-        // morale in (0.15, 0.40) band must hold its current broken state —
+        // morale in (0.60, 0.85) band must hold its current broken state —
         // hysteresis prevents flicker.
         BattleSimulation sim = openSim();
         Squad sq = mechSquad(sim, 1, MechRole.ARMORED_SUPPORT);
         hideEnemy(sim);
         Unit mech = sim.getUnits().get(0);
-        mech.mech.morale = 0.30f;
+        mech.mech.morale = 0.70f;
         mech.mech.moraleBroken = true;
         mech.mech.timeSinceUnderFire = 10f;
 
         sim.advance(BattleSimulation.TICK_DT);
 
         assertTrue(mech.mech.moraleBroken,
-                "morale between 0.15 and 0.40 must hold the broken flag");
+                "morale between 0.60 and 0.85 must hold the broken flag");
     }
 
     @Test
