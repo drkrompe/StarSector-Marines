@@ -31,6 +31,7 @@ import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.panel.SquadDetailPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadOverviewPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadPlanDebugPanel;
+import com.dillon.starsectormarines.battle.ui.panel.TickProfileDebugPanel;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.ui.picking.WorldPicker;
@@ -1404,6 +1405,10 @@ public class BattleScreen implements Screen, BattleUiContext {
         // plan + predicate grid when WorldPicker (or the Overview rows) put a
         // squad id into Selection.
         hud.addPanel(new SquadPlanDebugPanel(this));
+        // Per-phase tick wall-time profile (top-left). DevConfig-gated; informs
+        // the upcoming DoD / ECS refactor by showing which tick phases are
+        // actually expensive at peak unit counts.
+        hud.addPanel(new TickProfileDebugPanel(this));
     }
 
     @Override

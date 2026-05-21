@@ -26,6 +26,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.objective.EliminateFactionObjective;
 import com.dillon.starsectormarines.battle.objective.Objective;
+import com.dillon.starsectormarines.battle.profile.TickProfile;
 import com.dillon.starsectormarines.battle.tactical.TacticalMap;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
@@ -302,6 +303,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private float tickAccumulator = 0f;
     /** Monotonic sim-tick counter incremented at the top of every {@link #tick}. Read by per-hit gates that want to fire at most once per tick (e.g. {@link #rollReprioritizeOnHit}). */
     public int simTickIndex = 0;
+    /** Per-phase wall-clock profile of {@link #tick()}. Always-on (cost is a handful of {@code nanoTime} calls per tick); read by the {@code TickProfileDebugPanel} HUD overlay and the {@code TickProfileDumper} JSON dumper. */
+    private final TickProfile tickProfile = new TickProfile();
     private boolean complete = false;
     private Faction winner;
 
@@ -545,6 +548,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     public byte[] getOccupancyMap()        { return occupancyMap; }
     /** Bucketed spatial index over alive units. Rebuilt at the top of each tick by {@link #tick()}. */
     public UnitSpatialIndex getUnitIndex() { return unitIndex; }
+    /** Per-phase wall-clock profile of the most recent completed window of ticks. Read by the {@code TickProfileDebugPanel} HUD overlay + dump-to-disk button. */
+    public TickProfile getTickProfile() { return tickProfile; }
     @Override public Random getRng()       { return rng; }
     /** Returns the squad with the given id, or {@code null} if {@code id == Unit.NO_SQUAD} or the squad was never registered. */
     public Squad getSquad(int id)          { return id == Unit.NO_SQUAD ? null : squads.get(id); }
@@ -894,6 +899,10 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             objectives.add(new EliminateFactionObjective(Faction.MARINE, Faction.DEFENDER));
             objectives.add(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
         }
+        // Start the per-tick phase profiler. Each lap() call below records
+        // wall-time spent in the preceding block; endTick() at the bottom
+        // snapshots into the rolling display buffer the debug panel reads.
+        tickProfile.begin();
         // Fog-of-war visibility pass — recomputed every 3rd tick (~10 Hz at
         // 30 Hz sim). The render path lerps current→target alpha per frame so
         // this cadence stays invisible.
@@ -901,13 +910,16 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             com.dillon.starsectormarines.battle.vision.BuildingVisibilityPass.update(
                     buildings, units, grid, visionState);
         }
+        tickProfile.lap(TickProfile.Phase.VISION);
         rebuildOccupancyMap();
+        tickProfile.lap(TickProfile.Phase.REBUILD_OCCUPANCY);
         // Rebuild the spatial index BEFORE the AI passes so per-tick scoring
         // (exposure, threat density, allies-near) reads a consistent
         // snapshot. Same single-pass-per-tick semantics as the attacker
         // index below — mid-tick repath shifts aren't reflected until next
         // tick, matching the pre-spatial behavior.
         unitIndex.rebuild(units);
+        tickProfile.lap(TickProfile.Phase.REBUILD_UNIT_INDEX);
         // Rebuild the attacker index BEFORE per-unit updates so target-
         // selection's crowding scoring (TacticalScoring.findBestTarget) sees a
         // consistent snapshot of last-tick's targets. We deliberately don't
@@ -915,16 +927,19 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // means a squad's crowding cost reflects the previous frame, which
         // matches the prior O(U²) behavior's semantics anyway.
         rebuildAttackersByTarget();
+        tickProfile.lap(TickProfile.Phase.REBUILD_ATTACKERS);
         // Refresh squad-level awareness BEFORE individual unit updates so the
         // garrison/patrol behavior dispatch this tick sees fresh ENGAGED /
         // SUSPICIOUS / UNAWARE state. Solo units (squadId == NO_SQUAD) skip
         // the squad path entirely.
         updateSquadAlertLevels();
+        tickProfile.lap(TickProfile.Phase.SQUAD_ALERT);
         // Morale recovery + hysteresis. Reads the freshly-set _engagedThisTick
         // flag from updateSquadAlertLevels: a squad out of contact this tick
         // recovers; a squad in contact holds. Runs before the GOAP replan so
         // SurviveContact relevance sees the up-to-date moraleBroken flag.
         updateSquadMorale();
+        tickProfile.lap(TickProfile.Phase.SQUAD_MORALE);
         // Evaluate fallback chains after alert state is current: an engaged
         // garrison that's lost half its members reassigns to its FALLBACK_TO
         // link, and a squad whose members have all arrived at their new post
@@ -932,6 +947,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // aliveMembers) and before updateUnit (so the new home cells are
         // visible to garrison dispatch this same tick).
         updateSquadFallback();
+        tickProfile.lap(TickProfile.Phase.SQUAD_FALLBACK);
         // Commander-tier slow tick. Runs at COMMANDER_TICK_PERIOD cadence,
         // before per-squad replan so any assignment written this tick is
         // visible to the GOAP relevance pass below. Skips entirely when no
@@ -947,6 +963,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                 }
             }
         }
+        tickProfile.lap(TickProfile.Phase.COMMANDER);
         // Squad-level GOAP replan pass. Piggybacks the alert-update phase so
         // plans reflect THIS tick's fresh aliveMembers + centroid + alert
         // level before any unit executes. Serial today; the planner +
@@ -962,6 +979,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                 GoapInfantryBehavior.replanIfNeeded(squad, this);
             }
         }
+        tickProfile.lap(TickProfile.Phase.GOAP_REPLAN);
         // Snapshot size: DroneHubBehavior.update -> DroneSpawner.tryLaunch
         // appends a freshly minted drone via sim.addUnit, which would
         // ConcurrentModificationException a for-each iterator. The new
@@ -972,55 +990,70 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             if (!u.isAlive()) continue;
             updateUnit(u);
         }
+        tickProfile.lap(TickProfile.Phase.UPDATE_UNITS);
         // Burst-fire rounds queued after a primary shot — fire them now so
         // they emit at the right per-weapon spacing without piling onto the
         // AI's single-decision-per-tick model. Lives on the InfantryWeapons
         // subsystem; this call drains every unit's burst state.
         infantry.tick(this);
+        tickProfile.lap(TickProfile.Phase.INFANTRY_TICK);
         // Mech chassis weapons run on their own state bag (MechLoadoutState).
         // Continuation handling for chaingun bursts + SRM salvos, plus cooldown
         // tick-down for all three tracks. New triggers (start a burst / salvo /
         // LRM) come from CombatantBehavior; the subsystem pass also runs the
         // mech-wreck spawn for any chassis units that died this tick.
         heavy.tick(this);
+        tickProfile.lap(TickProfile.Phase.HEAVY_TICK);
         // Simulated-projectile path — advance each in-flight Projectile by dt,
         // detonate its onArrival payload when remainingTime hits zero, and
         // emit an arrival record for the renderer's impact-FX dispatch.
         // Runs BEFORE detonations.tick so a projectile arriving this tick
         // contributes its detonation to the same wave as legacy queue entries.
         advanceProjectiles(TICK_DT);
+        tickProfile.lap(TickProfile.Phase.PROJECTILES);
         // Physics-based rocket/missile damage — each pending detonation ticks
         // down its arrival timer and applies splash + wall damage when it
         // expires. Pairs with the visual ShotEvent flight; the visual and the
         // damage are queued together and arrive together.
         detonations.tick(this);
+        tickProfile.lap(TickProfile.Phase.DETONATIONS);
         // Convert any turrets that just died into walkable rubble so the next
         // tick's pathfinding + zone graph sees the hole, and the floor pass
         // picks the cell up as rubble.
         demolishDeadTurrets();
+        tickProfile.lap(TickProfile.Phase.DEMOLISH_TURRETS);
         // Same rubble-conversion pass for destroyed drone hubs — they're
         // static STRUCTUREs sitting on sealed non-walkable cells, so leaving
         // the cell sealed after death would orphan an invisible obstacle.
         demolishDeadDroneHubs();
+        tickProfile.lap(TickProfile.Phase.DEMOLISH_HUBS);
         // Drone crash sequence: detect newly-dead drones, tick their fall
         // timer, drop a SmokingWreck on impact. Runs after the hub demolition
         // pass so a hub destruction (which kills its drones via setting hp=0)
         // gets the crashes started on the same tick.
         tickDroneCrashes();
+        tickProfile.lap(TickProfile.Phase.DRONE_CRASHES);
         // Age smoking wrecks + emit any puff events that came due this tick.
         tickSmokingWrecks();
+        tickProfile.lap(TickProfile.Phase.WRECKS);
         // Lingering smoke plumes parked at HE impact sites — same per-frame
         // puff drain as the wrecks, just on a shorter, fire-less timer.
         tickSmokePlumes();
+        tickProfile.lap(TickProfile.Phase.PLUMES);
         // Air vehicles tick AFTER units so new deboarded marines aren't iterated
         // mid-loop. They'll be picked up by next tick's occupancy + target pass.
         airSystem.tick(this, TICK_DT);
+        tickProfile.lap(TickProfile.Phase.AIR_SYSTEM);
         // Ground convoys ride the same ordering rule for the same reason —
         // deboarded militia join the roster between ticks, not mid-loop.
         groundSystem.tick(this, TICK_DT);
+        tickProfile.lap(TickProfile.Phase.GROUND_SYSTEM);
         advanceShots();
+        tickProfile.lap(TickProfile.Phase.SHOTS);
         processEquipmentDrops();
+        tickProfile.lap(TickProfile.Phase.EQUIPMENT_DROPS);
         for (Objective o : objectives) o.tick(this);
+        tickProfile.lap(TickProfile.Phase.OBJECTIVES);
         // Single zone-graph rebuild for the whole tick — drains any wall
         // breaches or turret demolishes that happened this tick. Multiple
         // breaches in one tick (e.g., a rocket shredding a wall section)
@@ -1029,7 +1062,10 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             zoneGraph.rebuild();
             zoneGraphDirty = false;
         }
+        tickProfile.lap(TickProfile.Phase.ZONE_GRAPH);
         checkWinCondition();
+        tickProfile.lap(TickProfile.Phase.WIN_CHECK);
+        tickProfile.endTick();
     }
 
     /**

@@ -76,5 +76,19 @@ public final class DevConfig {
      */
     public static final int DECAL_SOURCE_CAP = 25_000;
 
+    /**
+     * When {@code true}: the top-left tick-profile HUD overlay renders, with
+     * a DUMP button that writes the current per-phase averages to
+     * {@code saves/common/starsector_marines/debug/}. The sim-side phase
+     * instrumentation in {@link com.dillon.starsectormarines.battle.BattleSimulation#tick()}
+     * is always-on (cost is a handful of {@code nanoTime} calls per tick) —
+     * this flag only gates the overlay + dump button.
+     *
+     * <p>On while we're informing the data-oriented refactor (DoD,
+     * cross-frame read/write buffers, ECS pivot). Flip off once we've cashed
+     * in the data and the panel would just be eye candy.
+     */
+    public static final boolean PROFILE_TICK_PHASES = true;
+
     private DevConfig() {}
 }
