@@ -3332,6 +3332,73 @@ public class BattleScreen implements Screen, BattleUiContext {
         for (UnitSpriteCache cache : touched) {
             if (cache != null && cache.sheet != null) cache.sheet.setAngle(0f);
         }
+        if (DEBUG_RENDER_DOCKING_PATHS) renderConvoyDockingPaths(convoy, alphaMult);
+    }
+
+    /** Debug flag — draws Reeds-Shepp docking paths under each docking truck for math iteration. */
+    public static boolean DEBUG_RENDER_DOCKING_PATHS = true;
+
+    /**
+     * Debug overlay: for each convoy vehicle currently executing a
+     * Reeds-Shepp docking path, draw the path as a polyline through sampled
+     * poses, colored per-segment by direction (green = forward, red =
+     * reverse). Sampled at 0.2 cells so the curvature reads smoothly.
+     * Gated behind {@link #DEBUG_RENDER_DOCKING_PATHS}.
+     */
+    private void renderConvoyDockingPaths(java.util.List<com.dillon.starsectormarines.battle.ground.Vehicle> convoy,
+                                          float alphaMult) {
+        boolean any = false;
+        for (com.dillon.starsectormarines.battle.ground.Vehicle v : convoy) {
+            if (v.dockingPath != null) { any = true; break; }
+        }
+        if (!any) return;
+
+        org.lwjgl.opengl.GL11.glPushAttrib(
+                org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT
+                | org.lwjgl.opengl.GL11.GL_ENABLE_BIT
+                | org.lwjgl.opengl.GL11.GL_CURRENT_BIT
+                | org.lwjgl.opengl.GL11.GL_LINE_BIT);
+        org.lwjgl.opengl.GL11.glColorMask(true, true, true, true);
+        org.lwjgl.opengl.GL11.glDisable(org.lwjgl.opengl.GL11.GL_TEXTURE_2D);
+        org.lwjgl.opengl.GL11.glEnable(org.lwjgl.opengl.GL11.GL_BLEND);
+        org.lwjgl.opengl.GL11.glBlendFunc(
+                org.lwjgl.opengl.GL11.GL_SRC_ALPHA,
+                org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA);
+        org.lwjgl.opengl.GL11.glLineWidth(2.5f);
+
+        final float STEP_CELLS = 0.2f;
+        for (com.dillon.starsectormarines.battle.ground.Vehicle v : convoy) {
+            com.dillon.starsectormarines.battle.ground.ReedsShepp.Path path = v.dockingPath;
+            if (path == null) continue;
+            com.dillon.starsectormarines.battle.ground.Pose start = v.dockingStartPose;
+            float R = v.dockingTurnRadius;
+
+            float cursor = 0f;
+            for (com.dillon.starsectormarines.battle.ground.ReedsShepp.Element e : path.elements) {
+                float segCells = e.length * R;
+                if (segCells <= 0f) continue;
+                float segEnd = cursor + segCells;
+
+                if (e.forward) org.lwjgl.opengl.GL11.glColor4f(0.2f, 1f, 0.3f, 0.85f * alphaMult);
+                else           org.lwjgl.opengl.GL11.glColor4f(1f, 0.25f, 0.2f, 0.85f * alphaMult);
+
+                org.lwjgl.opengl.GL11.glBegin(org.lwjgl.opengl.GL11.GL_LINE_STRIP);
+                for (float d = cursor; d <= segEnd; d += STEP_CELLS) {
+                    com.dillon.starsectormarines.battle.ground.Pose p =
+                            com.dillon.starsectormarines.battle.ground.ReedsShepp.sample(start, R, path, d);
+                    org.lwjgl.opengl.GL11.glVertex2f(camera.cellToScreenX(p.x), camera.cellToScreenY(p.y));
+                }
+                // Cap with the exact segment-end so cusps don't show a tiny gap.
+                com.dillon.starsectormarines.battle.ground.Pose endP =
+                        com.dillon.starsectormarines.battle.ground.ReedsShepp.sample(start, R, path, segEnd);
+                org.lwjgl.opengl.GL11.glVertex2f(camera.cellToScreenX(endP.x), camera.cellToScreenY(endP.y));
+                org.lwjgl.opengl.GL11.glEnd();
+
+                cursor = segEnd;
+            }
+        }
+
+        org.lwjgl.opengl.GL11.glPopAttrib();
     }
 
     private void renderShuttles(List<Shuttle> shuttles, float alphaMult) {

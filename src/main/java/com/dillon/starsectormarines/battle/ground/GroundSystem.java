@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.MarineLoadout;
 import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.UnitType;
+import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.AirSimContext;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
@@ -38,6 +39,18 @@ public class GroundSystem {
     private static final float EXIT_ARRIVAL_DIST = 1.0f;
     /** Max BFS radius from the LZ when looking for a free deboard cell. Past this we drop the deboard for this tick and retry. */
     private static final int DEBOARD_SCAN_RADIUS = 5;
+    /**
+     * Range from LZ (cells) at which an inbound truck attempts to switch from
+     * pure-pursuit-along-polyline to Reeds-Shepp docking. Sized to ~2× the
+     * truck's min turn radius so the RS path fits in a comfortable window
+     * — long enough to be useful, short enough that the path doesn't snake
+     * through walls beyond the local LZ neighborhood.
+     */
+    private static final float DOCKING_TRIGGER_CELLS = 6f;
+    /** Constant forward speed (cells/sec) along the Reeds-Shepp docking path. Slower than cruise to read as a careful approach. */
+    private static final float DOCKING_SPEED = 2.0f;
+    /** Sample step (cells) along the RS path when validating feasibility against {@link VehicleFootprint}. */
+    private static final float DOCKING_FOOTPRINT_SAMPLE_CELLS = 0.5f;
 
     private final List<Vehicle> vehicles = new ArrayList<>();
 
@@ -58,7 +71,7 @@ public class GroundSystem {
                     break;
 
                 case INCOMING:
-                    advancePath(v, v.inboundX, v.inboundY, dt, true);
+                    advancePath(v, v.inboundX, v.inboundY, dt, true, ctx);
                     break;
 
                 case LANDED:
@@ -80,7 +93,7 @@ public class GroundSystem {
                     break;
 
                 case DEPARTING:
-                    advancePath(v, v.outboundX, v.outboundY, dt, false);
+                    advancePath(v, v.outboundX, v.outboundY, dt, false, ctx);
                     break;
 
                 case GONE:
@@ -91,26 +104,38 @@ public class GroundSystem {
     }
 
     /**
-     * Pure-pursuit path follower. Each tick:
+     * Path follower. Two modes:
      * <ol>
-     *   <li>Pick a carrot {@code lookAheadCells} along the polyline ahead of
-     *       the body — {@link PurePursuit#pick} also advances
-     *       {@code v.waypointIndex} past any waypoint the body has crossed.</li>
-     *   <li>Compute target speed from remaining path length so the body
-     *       brakes to rest at the final waypoint:
-     *       {@code min(maxSpeed, sqrt(2·brake·remaining))}. Intermediate
-     *       corners don't taper speed explicitly — the bicycle's steering
-     *       constraint takes care of cornering geometry.</li>
-     *   <li>Tick the body toward the carrot at the target speed; the body's
-     *       kinematic model (bicycle / future tank) decides how that
-     *       translates into pose updates.</li>
-     *   <li>If within the terminal arrival threshold of the last waypoint,
-     *       transition state. INCOMING snaps to the LZ for a clean stop
-     *       (the brake taper is asymptotic and would creep the last
-     *       fraction of a cell otherwise); DEPARTING flips to GONE.</li>
+     *   <li><b>Pure pursuit</b> (default) — pick a carrot along the polyline
+     *       at {@code lookAheadCells}, derive target speed from remaining
+     *       path length ({@code min(maxSpeed, sqrt(2·brake·remaining))}),
+     *       tick the body. The bicycle's steering constraint handles
+     *       cornering geometry.</li>
+     *   <li><b>Reeds-Shepp docking</b> — when an inbound truck is within
+     *       {@link #DOCKING_TRIGGER_CELLS} of the LZ on its last polyline
+     *       leg, switch to playing the body's pose along a closed-form
+     *       forward+reverse path from current pose to the LZ pose. The LZ
+     *       facing is taken from the final polyline segment's direction so
+     *       the truck arrives heading along the road. If the Reeds-Shepp
+     *       path fails the {@link VehicleFootprint} feasibility check
+     *       (sampled along its length), we fall back to pure pursuit for
+     *       that tick and retry next tick.</li>
      * </ol>
      */
-    private void advancePath(Vehicle v, float[] xs, float[] ys, float dt, boolean isInbound) {
+    private void advancePath(Vehicle v, float[] xs, float[] ys, float dt, boolean isInbound, AirSimContext ctx) {
+        if (v.dockingPath != null) {
+            advanceDocking(v, dt);
+            return;
+        }
+
+        if (isInbound) {
+            tryEngageDocking(v, xs, ys, ctx);
+            if (v.dockingPath != null) {
+                advanceDocking(v, dt);
+                return;
+            }
+        }
+
         PurePursuit.Carrot carrot = PurePursuit.pick(
                 v.body.x, v.body.y, xs, ys, v.waypointIndex, v.type.lookAheadCells);
         v.waypointIndex = carrot.nextIdx;
@@ -134,6 +159,85 @@ public class GroundSystem {
                 v.state = Vehicle.State.GONE;
             }
         }
+    }
+
+    /**
+     * Try to switch the inbound truck from pure pursuit to a Reeds-Shepp
+     * docking maneuver. Triggers when the truck is within
+     * {@link #DOCKING_TRIGGER_CELLS} of the LZ. The LZ pose's facing is the
+     * direction of the final polyline segment (so the truck arrives heading
+     * along the road into the LZ). The candidate RS path is sampled along
+     * its length and each pose footprint-checked against the navigation
+     * grid; if any pose is non-walkable, we leave docking off this tick and
+     * try again next tick (or never, if the geometry persists — pure
+     * pursuit will then deliver the truck to the LZ via the polyline).
+     */
+    private void tryEngageDocking(Vehicle v, float[] xs, float[] ys, AirSimContext ctx) {
+        if (!(v.body instanceof BicycleBody)) return;
+        int lastIdx = xs.length - 1;
+        float lzX = xs[lastIdx];
+        float lzY = ys[lastIdx];
+        float distToLz = v.body.distanceTo(lzX, lzY);
+        if (distToLz > DOCKING_TRIGGER_CELLS) return;
+
+        float prevX = xs[lastIdx - 1];
+        float prevY = ys[lastIdx - 1];
+        float lzFacingDeg = AirBody.facingToward(lzX - prevX, lzY - prevY);
+
+        Pose start = new Pose(v.body.x, v.body.y, v.body.facingDegrees);
+        Pose goal  = new Pose(lzX, lzY, lzFacingDeg);
+        float turnRadius = ((BicycleBody) v.body).minTurnRadiusCells();
+        ReedsShepp.Path path = ReedsShepp.shortest(start, goal, turnRadius);
+        if (path == null) return;
+        if (!isPathFeasible(start, path, turnRadius, v.type, ctx.getGrid())) return;
+
+        v.dockingPath = path;
+        v.dockingStartPose = start;
+        v.dockingTurnRadius = turnRadius;
+        v.dockingProgressCells = 0f;
+        v.dockingGoalFacingDeg = lzFacingDeg;
+    }
+
+    /**
+     * Advance the docking truck by {@link #DOCKING_SPEED} for one tick along
+     * its Reeds-Shepp path, set the body's pose from the sampled point, and
+     * transition to LANDED when the path's total length is consumed.
+     */
+    private void advanceDocking(Vehicle v, float dt) {
+        v.dockingProgressCells += DOCKING_SPEED * dt;
+        float totalCells = v.dockingPath.lengthCells(v.dockingTurnRadius);
+        if (v.dockingProgressCells >= totalCells) {
+            v.body.teleport(v.lzX, v.lzY, v.dockingGoalFacingDeg);
+            v.state = Vehicle.State.LANDED;
+            v.deboardCountdown = v.type.deboardInterval;
+            v.dockingPath = null;
+            return;
+        }
+        Pose p = ReedsShepp.sample(v.dockingStartPose, v.dockingTurnRadius,
+                                    v.dockingPath, v.dockingProgressCells);
+        v.body.x = p.x;
+        v.body.y = p.y;
+        v.body.facingDegrees = p.facingDeg;
+    }
+
+    /**
+     * Sample-based feasibility: walk the RS path at
+     * {@link #DOCKING_FOOTPRINT_SAMPLE_CELLS} resolution and footprint-check
+     * each pose. Conservative — false-positive rejection on a clear path is
+     * fine because we just fall back to pure pursuit.
+     */
+    private static boolean isPathFeasible(Pose start, ReedsShepp.Path path,
+                                          float turnRadius, VehicleType type,
+                                          NavigationGrid grid) {
+        float total = path.lengthCells(turnRadius);
+        for (float d = 0; d <= total; d += DOCKING_FOOTPRINT_SAMPLE_CELLS) {
+            Pose p = ReedsShepp.sample(start, turnRadius, path, d);
+            if (!VehicleFootprint.isPoseFeasible(p.x, p.y, p.facingDeg,
+                    type.visualLengthCells, type.visualWidthCells, grid)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

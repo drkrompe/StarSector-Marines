@@ -71,6 +71,21 @@ public class Vehicle {
      */
     public int squadId = Unit.NO_SQUAD;
 
+    /**
+     * Active Reeds-Shepp docking path, or {@code null} if not in docking mode.
+     * When non-null, {@link GroundSystem} bypasses pure-pursuit and plays the
+     * body's pose along the sampled path at constant docking speed. Set once
+     * by {@link GroundSystem} when the inbound truck enters the LZ approach
+     * window; cleared on arrival.
+     */
+    public ReedsShepp.Path dockingPath;
+    public Pose dockingStartPose;
+    public float dockingTurnRadius;
+    /** Cells traveled along {@link #dockingPath} so far. */
+    public float dockingProgressCells;
+    /** Goal facing applied to the body on terminal snap-to-LZ. */
+    public float dockingGoalFacingDeg;
+
     public Vehicle(VehicleType type, Faction faction,
                    float[] inboundX, float[] inboundY,
                    float[] outboundX, float[] outboundY,

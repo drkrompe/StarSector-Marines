@@ -121,4 +121,13 @@ public class BicycleBody extends GroundBody {
 
     public float getWheelbaseCells() { return wheelbaseCells; }
     public float getMaxSteeringRad() { return maxSteeringRad; }
+
+    /**
+     * Minimum turn radius for this bicycle, cells. Derived from the bicycle
+     * model: {@code R_min = L / tan(δ_max)}. Used by the Reeds-Shepp solver
+     * as its unit-radius scale factor when computing docking paths.
+     */
+    public float minTurnRadiusCells() {
+        return wheelbaseCells / (float) Math.tan(maxSteeringRad);
+    }
 }
