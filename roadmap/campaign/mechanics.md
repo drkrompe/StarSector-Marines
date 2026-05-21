@@ -70,6 +70,10 @@ factionId           int       // interned vanilla faction id
 flavor              byte      // CORPORATE / FEUDAL / UNDERWORLD / SECTARIAN
 rank                byte      // TIER_1..TIER_4
 status              byte      // ACTIVE / DORMANT / HIDDEN_PRETENDER / DEPOSED
+archetype           byte      // TIME_RUSHED / FALLEN_NOBLE / TRUE_BELIEVER /
+                              // ESTABLISHED / SUSPICIOUS / NEWCOMER — patron
+                              // content-axis; drives briefing register
+                              // (see contracts.md). May shift on state events.
 ambitionType        byte      // CONSOLIDATE_STAKE / DISPLACE_RIVAL /
                               // PROMOTE / CLAIM_THRONE / etc.
 ambitionTargetId    long      // stake / industry / rival house id
