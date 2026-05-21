@@ -4,9 +4,7 @@ import com.dillon.starsectormarines.battle.MarineLoadout;
 import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.UnitType;
-import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.AirSimContext;
-import com.dillon.starsectormarines.battle.air.SteeringMode;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.ArrayDeque;
@@ -24,31 +22,22 @@ import java.util.Set;
  * <p>Mirrors {@link com.dillon.starsectormarines.battle.air.AirSystem}'s
  * shape — narrow context handle, per-tick state-machine pass, BFS deboard
  * scan — minus the air-only flourish (altitude lerp, hover-station, mounted
- * turrets). The kinematics are identical: each vehicle's {@link AirBody}
- * steers under its {@link VehicleType}'s {@link com.dillon.starsectormarines.battle.air.AirHandling}
- * profile. "Ground" is gameplay-facing: trucks consume a waypoint queue
- * along road centerlines instead of a single LZ point, and their handling
- * profile (high lateral damping, low turn rate) keeps them on rails.
+ * turrets). Kinematics differ: ground vehicles use the {@link GroundBody}
+ * abstraction (currently {@link BicycleBody}, future tank/etc) driven by
+ * a pure-pursuit carrot along the polyline, instead of the shuttle's
+ * "rotate-then-thrust" hover model. The carrot keeps moving forward along
+ * the path so trucks never orbit a stationary waypoint, and the bicycle
+ * model gives the front-steer-rear-follows feel without needing per-corner
+ * tuning.
  */
 public class GroundSystem {
 
     /** Distance threshold (cells) for landing on the LZ — final waypoint. Tight so the snap-to-LZ at LANDED is invisible. */
     private static final float LZ_ARRIVAL_DIST = 0.25f;
-    /** Distance threshold (cells) for advancing past an intermediate waypoint. Looser than the LZ so the truck doesn't hairpin around each cell-center on a straight run. */
-    private static final float WAYPOINT_ARRIVAL_DIST = 0.7f;
     /** Distance threshold (cells) at which a DEPARTING vehicle hits its final exit waypoint and transitions to GONE. */
     private static final float EXIT_ARRIVAL_DIST = 1.0f;
     /** Max BFS radius from the LZ when looking for a free deboard cell. Past this we drop the deboard for this tick and retry. */
     private static final int DEBOARD_SCAN_RADIUS = 5;
-    /**
-     * Minimum dot-product between consecutive waypoint segments for the
-     * look-ahead to treat the path as "still straight" and keep walking.
-     * 0.5 = cos(60°); cell-list waypoints are axis-aligned so adjacent
-     * segments are either dot=1 (aligned) or dot=0 (perpendicular). The
-     * 0.5 threshold cleanly separates the two — straights walk through,
-     * corners terminate the look-ahead at the corner cell.
-     */
-    private static final float LOOKAHEAD_ALIGN_COS = 0.5f;
 
     private final List<Vehicle> vehicles = new ArrayList<>();
 
@@ -102,78 +91,49 @@ public class GroundSystem {
     }
 
     /**
-     * Steer the body toward the look-ahead target found by walking the
-     * waypoint queue forward through consecutive axis-aligned segments
-     * (the same direction, within {@link #LOOKAHEAD_ALIGN_COS}). The
-     * look-ahead is the last waypoint at the end of the current straight
-     * run; brake-to-station targets it directly so the truck cruises at
-     * full speed across long straights and decelerates only as the
-     * corner approaches. At the corner, the look-ahead collapses to the
-     * corner cell, the brake-formula tapers the speed, the heading slews
-     * around, then the new look-ahead jumps to the end of the next
-     * straight and the truck accelerates out of the turn.
-     *
-     * <p>Cursor advancement still happens on the immediate next waypoint
-     * — the look-ahead only changes where we point, not where we are.
-     * Same per-state-transition behavior as before:
-     * {@code isInbound==true} flips to {@link Vehicle.State#LANDED} on
-     * terminal arrival; {@code false} flips to {@link Vehicle.State#GONE}.
+     * Pure-pursuit path follower. Each tick:
+     * <ol>
+     *   <li>Pick a carrot {@code lookAheadCells} along the polyline ahead of
+     *       the body — {@link PurePursuit#pick} also advances
+     *       {@code v.waypointIndex} past any waypoint the body has crossed.</li>
+     *   <li>Compute target speed from remaining path length so the body
+     *       brakes to rest at the final waypoint:
+     *       {@code min(maxSpeed, sqrt(2·brake·remaining))}. Intermediate
+     *       corners don't taper speed explicitly — the bicycle's steering
+     *       constraint takes care of cornering geometry.</li>
+     *   <li>Tick the body toward the carrot at the target speed; the body's
+     *       kinematic model (bicycle / future tank) decides how that
+     *       translates into pose updates.</li>
+     *   <li>If within the terminal arrival threshold of the last waypoint,
+     *       transition state. INCOMING snaps to the LZ for a clean stop
+     *       (the brake taper is asymptotic and would creep the last
+     *       fraction of a cell otherwise); DEPARTING flips to GONE.</li>
+     * </ol>
      */
     private void advancePath(Vehicle v, float[] xs, float[] ys, float dt, boolean isInbound) {
-        int idx = v.waypointIndex;
-        int lookIdx = findLookahead(xs, ys, idx);
-        boolean last = idx >= xs.length - 1;
-        float gx = xs[lookIdx];
-        float gy = ys[lookIdx];
-        v.body.tickToward(gx, gy, SteeringMode.BRAKE_TO_STATION, v.type, dt);
-        float dist = v.body.distanceTo(xs[idx], ys[idx]);
-        float threshold = last ? (isInbound ? LZ_ARRIVAL_DIST : EXIT_ARRIVAL_DIST)
-                                : WAYPOINT_ARRIVAL_DIST;
-        if (dist < threshold) {
-            if (last) {
-                if (isInbound) {
-                    // Snap to LZ for a clean stop — the BRAKE_TO_STATION taper
-                    // is asymptotic and would creep the last fraction of a cell.
-                    v.body.teleport(xs[idx], ys[idx], v.body.facingDegrees);
-                    v.state = Vehicle.State.LANDED;
-                    v.deboardCountdown = v.type.deboardInterval;
-                } else {
-                    v.state = Vehicle.State.GONE;
-                }
+        PurePursuit.Carrot carrot = PurePursuit.pick(
+                v.body.x, v.body.y, xs, ys, v.waypointIndex, v.type.lookAheadCells);
+        v.waypointIndex = carrot.nextIdx;
+
+        float remaining = PurePursuit.remainingPathLength(
+                v.body.x, v.body.y, xs, ys, v.waypointIndex);
+        float taper = (float) Math.sqrt(2f * v.type.brakingAccel * Math.max(0f, remaining));
+        float targetSpeed = Math.min(v.type.maxSpeed, taper);
+
+        v.body.tick(carrot.x, carrot.y, targetSpeed, dt);
+
+        int lastIdx = xs.length - 1;
+        float distToLast = v.body.distanceTo(xs[lastIdx], ys[lastIdx]);
+        float threshold = isInbound ? LZ_ARRIVAL_DIST : EXIT_ARRIVAL_DIST;
+        if (distToLast < threshold) {
+            if (isInbound) {
+                v.body.teleport(xs[lastIdx], ys[lastIdx], v.body.facingDegrees);
+                v.state = Vehicle.State.LANDED;
+                v.deboardCountdown = v.type.deboardInterval;
             } else {
-                v.waypointIndex = idx + 1;
+                v.state = Vehicle.State.GONE;
             }
         }
-    }
-
-    /**
-     * Walk the waypoint queue forward from {@code startIdx} while each
-     * successive segment stays aligned with the segment at startIdx (dot
-     * product ≥ {@link #LOOKAHEAD_ALIGN_COS}). Returns the index of the
-     * last aligned waypoint — that's the end of the current straight run,
-     * or the corner cell at which the path turns. Empty / degenerate
-     * inputs return {@code startIdx} unchanged.
-     */
-    private static int findLookahead(float[] xs, float[] ys, int startIdx) {
-        int n = xs.length;
-        if (startIdx >= n - 1) return startIdx;
-        float baseDx = xs[startIdx + 1] - xs[startIdx];
-        float baseDy = ys[startIdx + 1] - ys[startIdx];
-        float baseLen = (float) Math.sqrt(baseDx * baseDx + baseDy * baseDy);
-        if (baseLen < 1e-4f) return startIdx;
-        float bDxN = baseDx / baseLen;
-        float bDyN = baseDy / baseLen;
-        int look = startIdx + 1;
-        while (look < n - 1) {
-            float fdx = xs[look + 1] - xs[look];
-            float fdy = ys[look + 1] - ys[look];
-            float fl = (float) Math.sqrt(fdx * fdx + fdy * fdy);
-            if (fl < 1e-4f) break;
-            float dot = (bDxN * fdx + bDyN * fdy) / fl;
-            if (dot < LOOKAHEAD_ALIGN_COS) break;
-            look++;
-        }
-        return look;
     }
 
     /**

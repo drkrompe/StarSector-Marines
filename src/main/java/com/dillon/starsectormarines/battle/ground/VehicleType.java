@@ -1,36 +1,42 @@
 package com.dillon.starsectormarines.battle.ground;
 
-import com.dillon.starsectormarines.battle.air.AirHandling;
-
 /**
  * Static config for each ground-vehicle variant — sprite, capacity, handling
- * profile, visual footprint. Parallels {@link com.dillon.starsectormarines.battle.air.ShuttleType}
- * for ground craft: the sim ticks a {@link Vehicle}'s {@link com.dillon.starsectormarines.battle.air.AirBody}
- * under this type's {@link AirHandling} numbers, exactly the same code path
- * that drives shuttles. The "ground" in the name is gameplay-facing — these
- * are trucks/APCs that path through the road network rather than fly over
- * it; mechanically the kinematics are still the air-body steering loop,
- * just tuned with high lateral damping and low turn rate so the truck reads
- * as on rails instead of drifting.
+ * tunables, visual footprint. Parallels {@link com.dillon.starsectormarines.battle.air.ShuttleType}
+ * for ground craft. The sim ticks each {@link Vehicle}'s {@link GroundBody}
+ * directly — different variants can supply different kinematic models via
+ * {@link #createBody()}, so a future {@code TANK} entry can return a
+ * differential-drive {@code TrackedBody} instead of a {@link BicycleBody}
+ * without changing {@link GroundSystem} at all.
  *
  * <p>V1 ships a single variant ({@link #MILITIA_TRUCK}); future entries
- * (heavy APC, armored car) slot in alongside it as new enum constants. The
- * sprite path resolves against the mod's own atlas (not the vanilla game),
- * so trucks ship inside the mod.
+ * (heavy APC, armored car, tank) slot in alongside as new enum constants.
+ * Each constant overrides {@link #createBody()} with its own kinematic model
+ * and constructor args. The sprite path resolves against the mod's atlas.
  */
-public enum VehicleType implements AirHandling {
+public enum VehicleType {
 
     /**
      * Default defender-reinforcement transport — six militia, ~2 cell visual
-     * footprint, slow turn / heavy lateral damping for an on-rails truck
-     * feel. Uses the army-truck frame (index 1) of the shared trucks sheet.
+     * footprint. Steers via {@link BicycleBody}: ~3-cell minimum turn radius
+     * (wheelbase 1.4 / tan 25°) for "trucks have to commit to corners" feel,
+     * driver wheel-slew at 180°/s keeps cornering smooth, and pure-pursuit
+     * carrot at 2 cells out keeps it from orbiting close waypoints.
      */
     MILITIA_TRUCK(
             "graphics/battle/trucks_2.png", /*spriteFrame*/ 1, /*frameCount*/ 2,
             /*spriteFacingOffsetDeg*/ 90f,
             /*capacity*/ 6, /*visualLengthCells*/ 2.0f, /*visualWidthCells*/ 1.1f,
-            /*maxSpeed*/ 3.5f, /*deboardInterval*/ 0.6f,
-            Profiles.TRUCK);
+            /*maxSpeed*/ 3.5f, /*accel*/ 2.5f, /*brakingAccel*/ 4f,
+            /*deboardInterval*/ 0.6f, /*lookAheadCells*/ 2.0f) {
+        @Override
+        public GroundBody createBody() {
+            return new BicycleBody(
+                    /*wheelbaseCells*/ 1.4f,
+                    /*maxSteeringDeg*/ 25f, /*steeringSlewDegPerSec*/ 180f,
+                    accel, brakingAccel, maxSpeed);
+        }
+    };
 
     public final String spritePath;
     /** Which frame in the horizontal sprite-sheet to draw. 0 = leftmost, increments rightward. */
@@ -51,17 +57,27 @@ public enum VehicleType implements AirHandling {
     public final float visualLengthCells;
     /** Sprite short-axis (side-to-side) in cells at facing 0. */
     public final float visualWidthCells;
-    /** Cruise / max forward velocity, cells/sec. Used as the AirHandling#maxSpeed cap. */
+    /** Cruise / max forward velocity, cells/sec. The path follower clamps target speed to this. */
     public final float maxSpeed;
+    /** Forward thrust cap, cells/sec². Applied when speed is below the path-follower's target. */
+    public final float accel;
+    /** Forward braking cap, cells/sec². Sizes the brake taper into the final waypoint. */
+    public final float brakingAccel;
     /** Sim-seconds between marine drop-offs after the truck reaches its LZ. */
     public final float deboardInterval;
-    public final HandlingProfile handling;
+    /**
+     * Pure-pursuit look-ahead distance, cells — how far ahead along the
+     * polyline the carrot sits. Larger = smoother corners but wider corner
+     * cuts; smaller = tighter tracking but jitter on tight turns. ~1 vehicle
+     * length is a reasonable starting point.
+     */
+    public final float lookAheadCells;
 
     VehicleType(String spritePath, int spriteFrame, int frameCount,
                 float spriteFacingOffsetDeg,
                 int capacity, float visualLengthCells, float visualWidthCells,
-                float maxSpeed, float deboardInterval,
-                HandlingProfile handling) {
+                float maxSpeed, float accel, float brakingAccel,
+                float deboardInterval, float lookAheadCells) {
         this.spritePath = spritePath;
         this.spriteFrame = spriteFrame;
         this.frameCount = frameCount;
@@ -70,55 +86,19 @@ public enum VehicleType implements AirHandling {
         this.visualLengthCells = visualLengthCells;
         this.visualWidthCells = visualWidthCells;
         this.maxSpeed = maxSpeed;
+        this.accel = accel;
+        this.brakingAccel = brakingAccel;
         this.deboardInterval = deboardInterval;
-        this.handling = handling;
-    }
-
-    @Override public float maxSpeed()                 { return maxSpeed; }
-    @Override public float accel()                    { return handling.accel; }
-    @Override public float brakingAccel()             { return handling.brakingAccel; }
-    @Override public float maxTurnRateDegPerSec()     { return handling.maxTurnRateDegPerSec; }
-    @Override public float lateralDriftDamping()      { return handling.lateralDriftDamping; }
-    @Override public float stationDamping()           { return handling.stationDamping; }
-
-    /** Bundle of per-profile handling tunables. Same shape as {@code ShuttleType.HandlingProfile} for symmetry; kept separate so ground / air tunables don't share constants by accident. */
-    public static final class HandlingProfile {
-        public final float accel;
-        public final float brakingAccel;
-        public final float maxTurnRateDegPerSec;
-        public final float lateralDriftDamping;
-        public final float stationDamping;
-
-        public HandlingProfile(float accel, float brakingAccel, float maxTurnRateDegPerSec,
-                               float lateralDriftDamping, float stationDamping) {
-            this.accel = accel;
-            this.brakingAccel = brakingAccel;
-            this.maxTurnRateDegPerSec = maxTurnRateDegPerSec;
-            this.lateralDriftDamping = lateralDriftDamping;
-            this.stationDamping = stationDamping;
-        }
+        this.lookAheadCells = lookAheadCells;
     }
 
     /**
-     * Tier presets for ground vehicles. Differs from the air tiers chiefly
-     * in lateral damping — wheels don't slide, so damping is much higher
-     * than even the BUS air profile. Turn rate is also low to read as a
-     * heavy ground vehicle that has to commit to corners.
+     * Factory for this variant's kinematic body. Each enum constant returns
+     * the model appropriate for its handling — trucks/cars get
+     * {@link BicycleBody}, tanks would get a future {@code TrackedBody},
+     * mechs a holonomic body, etc. This is the only place per-variant
+     * kinematic params live; {@link GroundSystem} sees only the abstract
+     * {@link GroundBody}.
      */
-    public static final class Profiles {
-        /**
-         * Generic heavy cargo truck — slow accel (1.4s to cruise speed) and
-         * a modest brakingAccel so stops take a couple cells. Pairs with
-         * {@link com.dillon.starsectormarines.battle.ground.GroundSystem}'s
-         * waypoint look-ahead: on long straights the look-ahead target is
-         * far away so brake-to-station hits max speed, and into corners the
-         * target collapses to the corner cell so the truck naturally decels
-         * before turning.
-         */
-        public static final HandlingProfile TRUCK = new HandlingProfile(
-                /*accel*/ 2.5f, /*brakingAccel*/ 4f, /*maxTurnRateDegPerSec*/ 55f,
-                /*lateralDriftDamping*/ 20f, /*stationDamping*/ 25f);
-
-        private Profiles() {}
-    }
+    public abstract GroundBody createBody();
 }

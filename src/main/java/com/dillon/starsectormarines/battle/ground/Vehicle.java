@@ -8,9 +8,10 @@ import com.dillon.starsectormarines.battle.air.AirBody;
 /**
  * One ground transport — analog of {@link com.dillon.starsectormarines.battle.air.Shuttle}
  * for trucks/APCs that path through the road network instead of flying. The
- * sim ticks its {@link AirBody} state under the {@link VehicleType}'s
- * handling profile; the renderer reads {@code body.x}/{@code body.y}/{@code body.facingDegrees}
- * for the sprite.
+ * sim ticks its {@link GroundBody} (kinematic model selected per-variant by
+ * {@link VehicleType#createBody()}); the renderer reads {@code body.x},
+ * {@code body.y}, {@code body.facingDegrees} for the sprite — same field
+ * names as the air-side {@code AirBody} so renderer code stays interchangeable.
  *
  * <p>Lifecycle: PENDING (off-map, waiting on stagger) → INCOMING (consuming
  * the inbound waypoint queue, head waypoint = current goal) → LANDED
@@ -47,8 +48,8 @@ public class Vehicle {
     public float deboardCountdown;
     public int marinesRemaining;
 
-    /** Kinematic state — position, velocity, facing. Driven each tick by {@link GroundSystem} under the type's handling profile. */
-    public final AirBody body = new AirBody();
+    /** Kinematic state — position, facing, model-specific. Driven each tick by {@link GroundSystem} via pure-pursuit + per-variant {@link GroundBody} model. */
+    public final GroundBody body;
 
     /** Current waypoint index inside the active queue (inbound during INCOMING, outbound during DEPARTING). */
     public int waypointIndex;
@@ -90,6 +91,7 @@ public class Vehicle {
         this.lzY = inboundY[inboundY.length - 1];
         this.pendingDelay = pendingDelay;
         this.marinesRemaining = type.capacity;
+        this.body = type.createBody();
         // Spawn at the inbound queue's first waypoint, facing the second so
         // the truck reads as already rolling when it appears on-screen.
         float spawnX = inboundX[0];
