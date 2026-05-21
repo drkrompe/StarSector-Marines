@@ -902,7 +902,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // Start the per-tick phase profiler. Each lap() call below records
         // wall-time spent in the preceding block; endTick() at the bottom
         // snapshots into the rolling display buffer the debug panel reads.
-        tickProfile.begin();
+        // Pass simTickIndex so the profile can gate JIT/load-time warmup.
+        tickProfile.begin(simTickIndex);
         // Fog-of-war visibility pass — recomputed every 3rd tick (~10 Hz at
         // 30 Hz sim). The render path lerps current→target alpha per frame so
         // this cadence stays invisible.

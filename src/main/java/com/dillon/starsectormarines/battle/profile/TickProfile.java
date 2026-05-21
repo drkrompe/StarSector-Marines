@@ -66,6 +66,17 @@ public final class TickProfile {
     /** Ticks per averaging window. 30 = 1 sim-second at 30Hz, slow enough for the eye to read stable numbers. */
     public static final int WINDOW_TICKS = 30;
 
+    /**
+     * Sim ticks at the start of a battle during which spike detection and
+     * baseline accumulation are both suppressed. The first few seconds of a
+     * battle are JIT-warmup, lazy texture loads, vanilla {@code .ship} JSON
+     * parsing — all one-off costs that would otherwise blow through the
+     * auto-dump budget capturing noise instead of genuine sim spikes. At
+     * 30Hz, 300 ticks = 10 sim-seconds, comfortably past the loading flurry
+     * we observed in the early ticks (63, 105, 121, 186, 201, 220, 249).
+     */
+    public static final int WARMUP_TICKS = 300;
+
     /** Multiplier above the windowed average tick time that latches a spike for auto-dump. 3× catches genuine outliers (rebuild flushes, JIT compiles, GC pauses) without firing on routine jitter. */
     public static final double SPIKE_MULTIPLIER = 3.0;
     /** Hard floor on absolute tick time for spike detection — below this the sim is so quiet that "3× the average" is meaningless noise. 1ms = 30Hz tick using 3% of its 33.3ms budget. */
@@ -91,27 +102,46 @@ public final class TickProfile {
     private long spikeTotalNanos;
     private long spikeBaselineNanos;
 
+    /** Sim-tick index at the start of the current tick — latched in {@link #begin(int)} so {@link #lap(Phase)} and {@link #endTick(int)} can gate on warmup without re-passing it. */
+    private int currentTickIndex;
+    /** True while {@link #currentTickIndex} {@code <} {@link #WARMUP_TICKS}. Set in {@link #begin(int)} so the gate is consistent across the lap+endTick passes within one tick. */
+    private boolean inWarmup = true;
+
     private long lapStart;
 
-    /** Latches the lap timer at the top of {@code tick()}. Pair with {@link #lap(Phase)} for every phase, then {@link #endTick(int)} once at the end. */
-    public void begin() {
-        // Wipe the per-tick scratch so spike detection at endTick() sees only
-        // this tick's deltas. Window accumulators persist across ticks.
+    /**
+     * Latches the lap timer at the top of {@code tick()} and updates the
+     * warmup gate. Pair with {@link #lap(Phase)} for every phase, then
+     * {@link #endTick(int)} once at the end.
+     *
+     * <p>The first {@link #WARMUP_TICKS} ticks are JIT/load-time noise — during
+     * that span {@link #lap(Phase)} skips accumulator updates and
+     * {@link #endTick(int)} skips both window-sample counting and spike
+     * detection. Past the gate the profile behaves normally; the first
+     * post-warmup tick is sample #1 of a fresh baseline.
+     */
+    public void begin(int simTickIndex) {
+        currentTickIndex = simTickIndex;
+        inWarmup = simTickIndex < WARMUP_TICKS;
+        // Per-tick scratch is only relevant for spike detection (post-warmup).
+        // Still clear it during warmup so a warmup → post-warmup transition
+        // doesn't leave stale per-phase nanos sitting in the array.
         for (int i = 0; i < currentTickNanos.length; i++) {
             currentTickNanos[i] = 0L;
         }
         lapStart = System.nanoTime();
     }
 
-    /** Records {@code nanoTime() - lastLap} into the phase's accumulator and resets the lap timer. Safe to call for conditional phases — if the body was a single boolean check, the recorded value is just that, which is the truthful answer. */
+    /** Records {@code nanoTime() - lastLap} into the phase's accumulator and resets the lap timer. Safe to call for conditional phases — if the body was a single boolean check, the recorded value is just that, which is the truthful answer. Warmup ticks advance the lap timer but skip accumulator updates so JIT/load-time noise doesn't pollute the steady-state baseline. */
     public void lap(Phase p) {
         long now = System.nanoTime();
         long delta = now - lapStart;
+        lapStart = now;
+        if (inWarmup) return;
         int idx = p.ordinal();
         accumNanos[idx] += delta;
         currentTickNanos[idx] += delta;
         if (delta > currentMaxNanos[idx]) currentMaxNanos[idx] = delta;
-        lapStart = now;
     }
 
     /**
@@ -134,6 +164,9 @@ public final class TickProfile {
      *                     tick that fired it.
      */
     public void endTick(int simTickIndex) {
+        // Warmup gate — JIT/lazy-load period contributes nothing to baseline
+        // and can't latch a spike. Past this point everything runs normally.
+        if (inWarmup) return;
         // --- Spike detection ---
         // Skip while baseline is uninitialized (first window) — without a
         // reference there's no "spike", just first-tick wall-clock noise.
@@ -183,6 +216,15 @@ public final class TickProfile {
 
     /** Nanos spent in {@code p} during the most recent {@link #endTick(int)}. Useful when consumers want per-tick (not per-window-average) numbers. */
     public long lastTickNanos(Phase p) { return currentTickNanos[p.ordinal()]; }
+
+    /** True until the sim has crossed {@link #WARMUP_TICKS} ticks. While true, spike detection is suppressed and baselines aren't accumulating. */
+    public boolean isWarmingUp() { return inWarmup; }
+
+    /** Sim ticks remaining until warmup ends — clamped at 0 once past. Used by the panel to render a countdown so the user knows when steady-state begins. */
+    public int warmupTicksRemaining() {
+        int remaining = WARMUP_TICKS - currentTickIndex;
+        return Math.max(0, remaining);
+    }
 
     /**
      * Returns the latched spike (if any) and clears the pending flag, so the

@@ -170,21 +170,25 @@ public final class TickProfileDebugPanel implements HudPanel {
         renderDumpButton(rowFont, dumpX, btnY, alphaMult);
 
         // Summary line — total ms + tick-rate equivalent + sample/unit counts.
-        // Doubles as the post-dump status banner for DUMP_STATUS_DURATION.
+        // Doubles as the post-dump status banner for DUMP_STATUS_DURATION,
+        // and as the warmup countdown while the profile suppresses sampling.
         long totalNs = profile.totalAvgNanos();
         int samples = profile.sampleCount();
+        boolean idle = profile.isWarmingUp() || samples == 0;
         String summary;
         if (dumpStatusMessage != null) {
             summary = dumpStatusMessage;
+        } else if (profile.isWarmingUp()) {
+            summary = "warming up (" + profile.warmupTicksRemaining() + " ticks)";
         } else if (samples == 0) {
-            summary = "warming up (window " + TickProfile.WINDOW_TICKS + ")";
+            summary = "armed — sampling first window (" + TickProfile.WINDOW_TICKS + ")";
         } else {
             double ms = totalNs / 1_000_000.0;
             double hz = ms > 0.0 ? (1000.0 / ms) : 0.0;
             summary = String.format("%.2f ms / %.0f Hz  (%du)",
                     ms, hz, sim.getUnits().size());
         }
-        Color summaryColor = (samples == 0) ? IDLE_FG : LABEL_FG;
+        Color summaryColor = idle ? IDLE_FG : LABEL_FG;
         rowFont.drawString(summary, x0 + PAD_INNER, headerY - 4f, summaryColor, alphaMult);
 
         if (!expanded) return;
