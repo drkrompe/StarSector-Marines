@@ -2,10 +2,14 @@ package com.dillon.starsectormarines.intel;
 
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
+import com.dillon.starsectormarines.campaign.CampaignSystem;
+import com.dillon.starsectormarines.campaign.ContractState;
+import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.HouseFlavor;
 import com.dillon.starsectormarines.campaign.HouseRank;
 import com.dillon.starsectormarines.campaign.HouseSeeder;
 import com.dillon.starsectormarines.campaign.HouseStatus;
+import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
 import com.fs.starfarer.api.impl.campaign.intel.BaseIntelPlugin;
 import com.fs.starfarer.api.ui.CustomPanelAPI;
@@ -14,6 +18,7 @@ import com.fs.starfarer.api.ui.TooltipMakerAPI;
 
 import java.awt.Color;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -36,10 +41,15 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
     public static final String TAG = "marines_campaign_debug";
     private static final String TITLE = "Marines Debug";
 
-    private static final String BTN_TOGGLE_BYPASS = "toggle-bypass";
-    private static final String BTN_RESEED        = "reseed";
-    private static final String BTN_PROMOTE       = "promote:";
-    private static final String BTN_DEMOTE        = "demote:";
+    private static final String BTN_TOGGLE_BYPASS  = "toggle-bypass";
+    private static final String BTN_RESEED         = "reseed";
+    private static final String BTN_PROMOTE        = "promote:";
+    private static final String BTN_DEMOTE         = "demote:";
+    private static final String BTN_FORCE_TICK     = "force-tick";
+    private static final String BTN_CLEAR_TERMINAL = "clear-terminal";
+    private static final String BTN_ACCEPT         = "accept:";
+    private static final String BTN_FORCE_COMPLETE = "complete:";
+    private static final String BTN_FORCE_FAIL     = "fail:";
 
     @Override
     protected String getName() {
@@ -102,24 +112,54 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
 
         // ---- Counters ----
         ui.addSectionHeading("Campaign state", Color.WHITE, new Color(40, 40, 40), com.fs.starfarer.api.ui.Alignment.LMID, 0f);
-        ui.addPara("Houses: %s    Stakes: %s    Chains: %s    Player rep rows: %s    LastTickDay: %s",
+        ui.addPara("Houses: %s    Stakes: %s    Chains: %s    Contracts: %s    Player rep rows: %s    LastTickDay: %s",
                 10f, Color.LIGHT_GRAY, Color.WHITE,
                 String.valueOf(s.houseCount),
                 String.valueOf(s.stakeCount),
                 String.valueOf(s.chainCount),
+                String.valueOf(s.contractCount),
                 String.valueOf(s.repCount),
                 String.valueOf(s.lastTickDay));
-        ui.addPara("Faction registry: %s    Industry registry: %s    Market registry: %s",
+        ui.addPara("Faction registry: %s    Industry registry: %s    Market registry: %s    Captain registry: %s",
                 4f, Color.LIGHT_GRAY, Color.WHITE,
                 String.valueOf(s.factionRegistry.size()),
                 String.valueOf(s.industryRegistry.size()),
-                String.valueOf(s.marketRegistry.size()));
+                String.valueOf(s.marketRegistry.size()),
+                String.valueOf(s.captainRegistry.size()));
+
+        int[] byState = countContractsByState(s);
+        ui.addPara("Contracts — OFFERED:%s  ACTIVE:%s  IN_PROGRESS:%s  COMPLETED:%s  FAILED:%s  DEFAULTED:%s  ABANDONED:%s",
+                4f, Color.LIGHT_GRAY, Color.WHITE,
+                String.valueOf(byState[ContractState.OFFERED.ordinal()]),
+                String.valueOf(byState[ContractState.ACTIVE.ordinal()]),
+                String.valueOf(byState[ContractState.IN_PROGRESS.ordinal()]),
+                String.valueOf(byState[ContractState.COMPLETED.ordinal()]),
+                String.valueOf(byState[ContractState.FAILED.ordinal()]),
+                String.valueOf(byState[ContractState.DEFAULTED.ordinal()]),
+                String.valueOf(byState[ContractState.ABANDONED.ordinal()]));
 
         // ---- Toggles ----
         ui.addSectionHeading("Toggles", Color.WHITE, new Color(40, 40, 40), com.fs.starfarer.api.ui.Alignment.LMID, 14f);
         String bypassLabel = "Bypass house gating: " + (s.debugBypassHouseGating ? "ON" : "OFF");
         ui.addButton(bypassLabel, BTN_TOGGLE_BYPASS, 280f, 24f, 8f);
+        ui.addButton("Force daily tick (run all systems)", BTN_FORCE_TICK, 280f, 24f, 8f);
+        ui.addButton("Clear terminal contracts (cleanup)", BTN_CLEAR_TERMINAL, 280f, 24f, 8f);
         ui.addButton("Reseed houses (wipes existing)", BTN_RESEED, 280f, 24f, 8f);
+
+        // ---- Contracts list ----
+        ui.addSectionHeading("Contracts", Color.WHITE, new Color(40, 40, 40), com.fs.starfarer.api.ui.Alignment.LMID, 14f);
+        if (s.contractCount == 0) {
+            ui.addPara("(none)", 8f);
+        } else {
+            int max = Math.min(s.contractCount, 100);
+            for (int i = 0; i < max; i++) {
+                renderContractRow(ui, s, i);
+            }
+            if (s.contractCount > max) {
+                ui.addPara("... %s more contracts (truncated for UI)", 6f, Color.LIGHT_GRAY, Color.WHITE,
+                        String.valueOf(s.contractCount - max));
+            }
+        }
 
         // ---- House list ----
         ui.addSectionHeading("Houses", Color.WHITE, new Color(40, 40, 40), com.fs.starfarer.api.ui.Alignment.LMID, 14f);
@@ -137,6 +177,56 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         }
 
         panel.addUIElement(ui).inTL(0f, 0f);
+    }
+
+    private void renderContractRow(TooltipMakerAPI ui, CampaignState s, int i) {
+        long id = s.contractId[i];
+        ContractType type   = ContractType.fromByte(s.contractType[i]);
+        ContractState state = ContractState.fromByte(s.contractState[i]);
+        long patronId = s.contractPatronHouseId[i];
+        long targetId = s.contractTargetHouseId[i];
+        String patronName = displayNameFor(s, patronId);
+        String targetName = targetId == -1L ? "—" : displayNameFor(s, targetId);
+        int phasesDone  = s.contractPhasesDone[i] & 0xFF;
+        int phasesTotal = s.contractPhasesTotal[i] & 0xFF;
+        int salvageBase = s.contractSalvageBaseline[i] & 0xFF;
+        int salvageNeg  = s.contractSalvageNegotiated[i] & 0xFF;
+        int cashMult    = s.contractCashMultiplier[i] & 0xFF;
+
+        ui.addPara("[%s] %s — %s — patron=%s — target=%s — payout=%s — salvage=%s/%s%% — cash=%s%% — phases=%s/%s",
+                8f, Color.LIGHT_GRAY, Color.WHITE,
+                String.valueOf(id),
+                type.name(),
+                state.name(),
+                patronName,
+                targetName,
+                String.valueOf(s.contractBasePayout[i]),
+                String.valueOf(salvageNeg),
+                String.valueOf(salvageBase),
+                String.valueOf(cashMult),
+                String.valueOf(phasesDone),
+                String.valueOf(phasesTotal));
+
+        if (state == ContractState.OFFERED) {
+            ui.addButton("Accept", BTN_ACCEPT + id, 90f, 20f, 2f);
+        } else if (state == ContractState.ACTIVE || state == ContractState.IN_PROGRESS) {
+            ui.addButton("Force complete", BTN_FORCE_COMPLETE + id, 130f, 20f, 2f);
+            ui.addButton("Force fail",     BTN_FORCE_FAIL     + id, 100f, 20f, 2f);
+        }
+    }
+
+    private static String displayNameFor(CampaignState s, long houseId) {
+        int idx = s.houseIndex(houseId);
+        if (idx < 0) return "house#" + houseId;
+        return s.houseDisplayName[idx] != null ? s.houseDisplayName[idx] : ("house#" + houseId);
+    }
+
+    private static int[] countContractsByState(CampaignState s) {
+        int[] counts = new int[ContractState.values().length];
+        for (int i = 0; i < s.contractCount; i++) {
+            counts[s.contractState[i] & 0xFF]++;
+        }
+        return counts;
     }
 
     private void renderHouseRow(TooltipMakerAPI ui, CampaignState s, int i) {
@@ -173,6 +263,10 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         } else if (BTN_RESEED.equals(buttonId)) {
             wipeHouses(s);
             HouseSeeder.seed(s);
+        } else if (BTN_FORCE_TICK.equals(buttonId)) {
+            forceTick(script, s);
+        } else if (BTN_CLEAR_TERMINAL.equals(buttonId)) {
+            clearTerminalContracts(s);
         } else if (buttonId instanceof String) {
             String b = (String) buttonId;
             if (b.startsWith(BTN_PROMOTE)) {
@@ -193,10 +287,115 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
                             : current;
                     s.houseRank[idx] = prev.toByte();
                 }
+            } else if (b.startsWith(BTN_ACCEPT)) {
+                long id = parseLong(b.substring(BTN_ACCEPT.length()), -1);
+                acceptOffer(s, id);
+            } else if (b.startsWith(BTN_FORCE_COMPLETE)) {
+                long id = parseLong(b.substring(BTN_FORCE_COMPLETE.length()), -1);
+                forceComplete(s, id);
+            } else if (b.startsWith(BTN_FORCE_FAIL)) {
+                long id = parseLong(b.substring(BTN_FORCE_FAIL.length()), -1);
+                forceFail(s, id);
             }
         }
 
         ui.updateUIForItem(this);
+    }
+
+    /** Walks each registered system once at the current sector day. Bypasses the
+     *  script's lastTickDay guard so multiple presses in one day still advance. */
+    private static void forceTick(CampaignStateScript script, CampaignState s) {
+        int day = Global.getSector() != null
+                ? (int) Global.getSector().getClock().getDay()
+                : s.lastTickDay + 1;
+        List<CampaignSystem> list = script.systems();
+        for (int i = 0; i < list.size(); i++) {
+            list.get(i).tick(s, day);
+        }
+        s.lastTickDay = day;
+    }
+
+    /** Compact terminal contracts out of the table to keep the list browsable. */
+    private static void clearTerminalContracts(CampaignState s) {
+        int write = 0;
+        s.contractIndexById.clear();
+        for (int read = 0; read < s.contractCount; read++) {
+            ContractState st = ContractState.fromByte(s.contractState[read]);
+            if (st.isTerminal()) continue;
+            if (write != read) copyContractRow(s, read, write);
+            s.contractIndexById.put(s.contractId[write], write);
+            write++;
+        }
+        s.contractCount = write;
+    }
+
+    /** Moves contract row {@code from} to {@code to} across every parallel array. */
+    private static void copyContractRow(CampaignState s, int from, int to) {
+        s.contractId[to]                = s.contractId[from];
+        s.contractPatronHouseId[to]     = s.contractPatronHouseId[from];
+        s.contractTargetHouseId[to]     = s.contractTargetHouseId[from];
+        s.contractChainId[to]           = s.contractChainId[from];
+        s.contractType[to]              = s.contractType[from];
+        s.contractState[to]             = s.contractState[from];
+        s.contractAcceptedTick[to]      = s.contractAcceptedTick[from];
+        s.contractExpiresTick[to]       = s.contractExpiresTick[from];
+        s.contractPhasesTotal[to]       = s.contractPhasesTotal[from];
+        s.contractPhasesDone[to]        = s.contractPhasesDone[from];
+        s.contractCaptainId[to]         = s.contractCaptainId[from];
+        s.contractMarketId[to]          = s.contractMarketId[from];
+        s.contractIndustryId[to]        = s.contractIndustryId[from];
+        s.contractBasePayout[to]        = s.contractBasePayout[from];
+        s.contractRetainerPerMonth[to]  = s.contractRetainerPerMonth[from];
+        s.contractSalvageBaseline[to]   = s.contractSalvageBaseline[from];
+        s.contractSalvageNegotiated[to] = s.contractSalvageNegotiated[from];
+        s.contractCashMultiplier[to]    = s.contractCashMultiplier[from];
+    }
+
+    private static void acceptOffer(CampaignState s, long id) {
+        int row = s.contractIndex(id);
+        if (row < 0) return;
+        if (ContractState.fromByte(s.contractState[row]) != ContractState.OFFERED) return;
+        s.contractState[row] = ContractState.ACTIVE.toByte();
+        s.contractAcceptedTick[row] = Global.getSector() != null
+                ? (int) Global.getSector().getClock().getDay()
+                : s.contractAcceptedTick[row];
+    }
+
+    /** Debug-only contract closure — mirrors {@code MissionResolver.applyContractBridge}
+     *  victory path so this exercises the same state-write surface end-to-end. */
+    private static void forceComplete(CampaignState s, long id) {
+        int row = s.contractIndex(id);
+        if (row < 0) return;
+        ContractState prior = ContractState.fromByte(s.contractState[row]);
+        if (prior.isTerminal()) return;
+        s.contractPhasesDone[row] = s.contractPhasesTotal[row];
+        s.contractState[row] = ContractState.COMPLETED.toByte();
+        bumpPatronRep(s, s.contractPatronHouseId[row], +1, true);
+    }
+
+    private static void forceFail(CampaignState s, long id) {
+        int row = s.contractIndex(id);
+        if (row < 0) return;
+        ContractState prior = ContractState.fromByte(s.contractState[row]);
+        if (prior.isTerminal()) return;
+        s.contractState[row] = ContractState.FAILED.toByte();
+        bumpPatronRep(s, s.contractPatronHouseId[row], -2, false);
+    }
+
+    private static void bumpPatronRep(CampaignState s, long patronId, int repDelta, boolean completed) {
+        int repRow = s.ensureRepRow(patronId);
+        s.repValue[repRow] = Math.max(-100, Math.min(100, s.repValue[repRow] + repDelta));
+        int day = Global.getSector() != null ? (int) Global.getSector().getClock().getDay() : 0;
+        s.repLastContractTick[repRow] = day;
+        if (completed) {
+            int n = (s.repContractsCompleted[repRow] & 0xFFFF) + 1;
+            if (n > 65535) n = 65535;
+            s.repContractsCompleted[repRow] = (short) n;
+        } else {
+            int n = (s.repContractsFailed[repRow] & 0xFFFF) + 1;
+            if (n > 65535) n = 65535;
+            s.repContractsFailed[repRow] = (short) n;
+        }
     }
 
     @Override
