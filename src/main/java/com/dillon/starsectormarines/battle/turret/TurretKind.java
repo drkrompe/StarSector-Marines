@@ -119,10 +119,10 @@ public enum TurretKind {
                   "graphics/missiles/missile_locust.png",
                   "swarmer_fire",
                   "Locust Rocket Battery",
-                  100f, 5.0f, 0.50f,  5.00f, 80f,  50f, 2.0f, 0.45f, TurretRole.A2G,  30,
+                  100f, 5.0f, 0.25f,  10.00f, 80f,  50f, 2.0f, 0.45f, TurretRole.A2G,  30,
                   /*burst*/ 8, 0.08f, /*aoe*/ 1.4f, /*wallDmg*/ 20,
-                  /*arc*/ 3.5f, /*flightSec*/ 1.50f, /*hitSpread*/ 4.0f,
-                  /*minRange*/ 15f, /*smokeTrail*/ true,
+                  /*arc*/ 3.5f, /*flightSec*/ 1.50f, /*hitSpread*/ 8.0f,
+                  /*minRange*/ 30f, /*smokeTrail*/ true,
                   /*raycastShots*/ false,
                   /*indirectFire*/ true, /*noLosAccuracyMult*/ 0.55f),
     /**

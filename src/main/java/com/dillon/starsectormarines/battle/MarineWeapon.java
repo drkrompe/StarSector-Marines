@@ -60,7 +60,7 @@ public enum MarineWeapon {
     SMG        ("Light Machine Gun",
                 "light_machinegun_fire",
                 new Color(0xFF, 0xE8, 0xC0),
-                16f, 0.7f, 0.30f, 0.50f, 0.30f,
+                16f, 0.7f, 0.50f, 0.50f, 0.30f,
                 ImpactProfile.RIFLE,
                 3, 0.07f, "graphics/missiles/shell_small_yellow.png", 0.15f, 0.10f,
                 0.60f, 1.4f),
