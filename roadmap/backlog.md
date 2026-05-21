@@ -86,6 +86,83 @@ https://davidkbd.itch.io/eternity-metal-scfi-music-pack
   templates in `MissionGenerator`. Move to strings.json with template
   formatting.
 
+## Performance
+
+Raw findings from the **2026-05-21** JFR capture
+(`IdeaSnapshots/StarfarerLauncher_2026_05_21_111442.jfr`, 31s @ ~400 units,
+1799 CPU samples). 30% of samples hit our package; of those, **67% render
+path, 33% sim path.** Records the *raw insights* — refactor work tracked
+as separate entries below.
+
+### Render path (the bigger share — 367 samples)
+
+- **`QuadBatch.flush` dominates** — 285 samples (78% of render). Reason
+  unconfirmed: could be too many small batches not amortizing GL state
+  changes, driver-side stalls being attributed to flush, or CPU-bound
+  float-buffer packing in the flush body itself.
+- **Roots:** 233 samples cascade from `BattleScreen.renderGrid`, 51 from
+  `MarineOpsPanelPlugin.render`. Floor + wall tiled passes are the
+  biggest single sub-pass (25 samples to
+  `renderTiledFloorsAndWalls` direct, more through `renderGrid`).
+
+**Lever candidates (render-only, separate from sim refactor):**
+
+- **Audit `QuadBatch.flush` callers** — find batches that flush more
+  often than they batch. Likely culprits: per-sprite flushes in any FX
+  layer that doesn't pre-sort by texture.
+- **Batch-by-texture audit on the tile passes** — verify ordering in
+  `renderTiledFloorsAndWalls` actually keeps one bind per sheet. The
+  [[render2d_batching]] memory documents the intent; check it still
+  holds.
+- **Profile `QuadBatch.flush` body itself** — confirm whether the time
+  is in buffer packing (CPU) vs the GL submit (driver). Different fix.
+
+### Sim path (the refactor target — 176 samples)
+
+- **`HoldPost` + `findFiringPosition*` chain** is the fattest sim path:
+  58 samples (33% of sim CPU) cascade through here. Garrison squads
+  scoring candidate cells every tick when ENGAGED.
+- **`TacticalScoring.alliesNearForSpread`** is the single hottest
+  *leaf* — 26 samples at lines 1301-1302 (the Pass-2 full-unit walk).
+  Already partly indexed; the dest-cell pass is the residual O(N).
+- **`NavigationGrid.hasLineOfSight`** — 26 samples across 4 source
+  lines. Bresenham loop body. Hard to optimize directly; lever is
+  calling it less often by batching / caching candidate-cell scoring.
+- **GOAP action execution combined** — ~14% of sim CPU across
+  HoldPost / ClearZone / ApproachPosture / EnterZone / EngagePosture.
+  Healthy distribution; no single action dominates outside HoldPost.
+
+**Lever candidates (sim, ranked by payoff vs effort):**
+
+- **Destination spatial index** — `TacticalScoring.alliesNearForSpread`
+  Pass 2 walks `sim.getUnits()` checking each unit's *path destination*.
+  Build a second `UnitSpatialIndex` keyed on dest cells at tick start;
+  Pass 2 becomes another `gather()`. Estimated **10-15% sim CPU drop**,
+  one day of work, no semantic change.
+- **Memoize `alliesNearForSpread` within one `findFiringPosition*`
+  call** — adjacent candidate cells share neighborhoods. Smaller win,
+  smaller change. Combine with above for stack savings.
+- **`updateUnit` read/write split** (already on the docket from the
+  parallelization audit) — confirmed by both per-phase profile (85% of
+  tick) and JFR (33% of sim CPU lands inside it). The data-oriented
+  refactor lands here.
+
+### Methodology notes for future captures
+
+- The `jfr` tool ships with the JDK (`$JAVA_HOME/bin/jfr.exe`).
+  `jfr print --json --events jdk.ExecutionSample <file>` dumps stack
+  traces in machine-readable form. Aggregate by deepest our-package
+  frame (LEAF) for "where is the CPU" and by highest our-package frame
+  (TOPMOST) for "what call kicked the work off."
+- Class names in JFR JSON use `/` separators
+  (`com/dillon/starsectormarines`). Filter accordingly.
+- Render vs sim split: anything reachable from `BattleScreen.render*`,
+  `QuadBatch.flush`, `MarineOpsPanelPlugin.render` is render path; the
+  rest is sim. ~67/33 split was consistent across the capture.
+- IntelliJ's source-jump may not bind to the deployed jar's frames.
+  Right-click in the profiler result → "Attach Sources" pointing at
+  `src/main/java` to wire it up.
+
 ## Translation / community
 
 - **i18n coverage audit** — all user-facing strings should already route
