@@ -24,10 +24,13 @@ import com.dillon.starsectormarines.battle.mapgen.bsp.fill.DenseQuarterFiller;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.GatedHousingFiller;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.LandingZoneFiller;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.MilitaryBaseFiller;
+import com.dillon.starsectormarines.battle.mapgen.bsp.fill.NatureZoneFiller;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.ParkFiller;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.PlazaFiller;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.WastelandRubbleFiller;
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.WaterfrontFiller;
+import com.dillon.starsectormarines.battle.mapgen.road.RoadGraph;
+import com.dillon.starsectormarines.battle.mapgen.road.RoadGraphBuilder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.tactical.TacticalLinker;
 import com.dillon.starsectormarines.battle.tactical.TacticalMap;
@@ -36,7 +39,6 @@ import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -95,6 +97,9 @@ public final class BspCityGenerator implements MapGenerator {
         register(new WastelandRubbleFiller());
         register(new WaterfrontFiller());
         register(new DenseBlockFiller());
+        register(new NatureZoneFiller(BlockKind.NATURE_GRASSLAND));
+        register(new NatureZoneFiller(BlockKind.NATURE_WETLAND));
+        register(new NatureZoneFiller(BlockKind.NATURE_BEACH));
 
         registerCompound(new MilitaryBaseFiller());
         registerCompound(new GatedHousingFiller());
@@ -221,6 +226,15 @@ public final class BspCityGenerator implements MapGenerator {
             LOG.info("BspCityGenerator: " + compounds.size() + " compound(s) claimed");
         }
 
+        // Step 2c — extract the vehicle-navigation skeleton from the road
+        // mask before fillers run. The graph is built once over the trunk +
+        // BSP-frame road cells produced so far; fillers paint inside their
+        // own leaves and never touch road cells, so the skeleton is stable
+        // through the rest of the pipeline. Stored as a field so the preview
+        // overlay can render it; passed through to MapResult for runtime
+        // ground-vehicle pathing.
+        this.lastRoadGraph = RoadGraphBuilder.build(plan.roadCells, plan);
+
         // Step 3 — dispatch fillers. Each per-leaf filler owns its leaf's
         // cells (NOT the road frame around it); compound fillers own the
         // union of their member leaves plus the bridged road between them.
@@ -257,6 +271,16 @@ public final class BspCityGenerator implements MapGenerator {
         // cells are INDOOR (skip) vs outdoors (paint).
         if (biomeMap != null) {
             applyBiomeGroundOverrides(grid, topology, biomeMap);
+        }
+
+        // Step 3b' — beach shoreline. Carves a wavy water band along the
+        // attacker-facing map edge inside the BEACH biome. Runs after the
+        // SAND override so the water cells survive (the override skips
+        // GroundKind.WATER). Strips any leaf-fill state at the shoreline
+        // cells — doodads, walls, building hints, nature overlays — so
+        // nothing else "lives" in the reserved water strip.
+        if (biomeMap != null) {
+            applyBeachShoreline(grid, topology, axis, biomeMap, doodads, rng);
         }
 
         // Step 3c — fortress super-wall. Stamps the Kremlin-style perimeter
@@ -311,8 +335,11 @@ public final class BspCityGenerator implements MapGenerator {
 
         return new MapResult(grid, topology,
                 marine[0], marine[1], defender[0], defender[1],
-                pois, doodads, this.lastTacticalMap, buildings, defensePosts);
+                pois, doodads, this.lastTacticalMap, buildings, defensePosts, this.lastRoadGraph);
     }
+
+    /** Minimum dimension a LANDING_ZONE leaf must have on both axes to keep that kind — smaller leaves get demoted to PLAZA, since tiny LZ pads tucked between big buildings read as "courtyard interior" rather than open touchdown apron. */
+    private static final int LANDING_ZONE_MIN_SIDE = 5;
 
     /**
      * Labels each leaf using whichever zoning overlay is active. In conquest
@@ -325,6 +352,15 @@ public final class BspCityGenerator implements MapGenerator {
      * map-edge districts. Conquest mode lets WATERFRONT appear in BEACH
      * theme as well — accepting the occasional interior misfire because
      * BEACH biome cells get a SAND ground override that still sells the look.
+     *
+     * <p>Per-kind size constraints applied after the roll:
+     * <ul>
+     *   <li>{@link BlockKind#LANDING_ZONE} requires both sides &gt;=
+     *       {@link #LANDING_ZONE_MIN_SIDE}. Smaller leaves get demoted to
+     *       {@link BlockKind#PLAZA} — a tiny striped pad wedged between
+     *       building leaves reads visually as "courtyard inside the
+     *       buildings" rather than as an open landing apron.</li>
+     * </ul>
      */
     private void labelLeaves(Bsp.Partition partition, BiomeMap biomeMap,
                               DistrictMap districtMap, Random rng) {
@@ -333,6 +369,11 @@ public final class BspCityGenerator implements MapGenerator {
                     ? biomeMap.themeAt(leaf.centerX(), leaf.centerY())
                     : districtMap.themeAt(leaf.centerX(), leaf.centerY());
             leaf.kind = theme.pickBlockKind(rng);
+            if (leaf.kind == BlockKind.LANDING_ZONE
+                    && (leaf.width() < LANDING_ZONE_MIN_SIDE
+                        || leaf.height() < LANDING_ZONE_MIN_SIDE)) {
+                leaf.kind = BlockKind.PLAZA;
+            }
         }
     }
 
@@ -351,6 +392,10 @@ public final class BspCityGenerator implements MapGenerator {
     /** Last tactical map produced by {@link #generate}. Null only if generation never ran. Conquest mode emits ~15-30 nodes; legacy mode emits whatever the compound fillers contribute (typically 0-5). */
     private TacticalMap lastTacticalMap;
     public TacticalMap getLastTacticalMap() { return lastTacticalMap; }
+
+    /** Last road graph produced by {@link #generate}. Exposed for the preview test's overlay rendering. {@link RoadGraph#EMPTY} only if generation never ran. */
+    private RoadGraph lastRoadGraph = RoadGraph.EMPTY;
+    public RoadGraph getLastRoadGraph() { return lastRoadGraph; }
 
     /**
      * Paints one trunk's ground band onto the topology. If
@@ -569,6 +614,119 @@ public final class BspCityGenerator implements MapGenerator {
                 topology.setGroundKind(x, y, GroundKind.SAND);
             }
         }
+    }
+
+    /** Nominal water depth at the attacker-facing edge of the BEACH biome, in cells. The wavy shore jitters around this baseline. */
+    private static final int SHORELINE_NOMINAL_DEPTH = 3;
+    /** Per-column jitter amplitude on the shore depth. Smoothed across neighbors so the boundary reads as gentle waves rather than sawtooth. */
+    private static final int SHORELINE_JITTER = 2;
+    /** Rolling window radius for the shore-boundary smoothing. Larger = longer wavelength. */
+    private static final int SHORELINE_SMOOTH_RADIUS = 4;
+    /** Minimum guaranteed water depth at every column. Keeps at least one continuous water row so the shoreline never has a "dry gap". */
+    private static final int SHORELINE_MIN_DEPTH = 1;
+    /** Maximum allowed water depth at any column. Prevents the jitter from eating the entire beach. */
+    private static final int SHORELINE_MAX_DEPTH = 5;
+
+    /**
+     * Stamps a wavy water band along the attacker-facing map edge inside the
+     * BEACH biome. For {@link TraversalAxis#SOUTH_TO_NORTH} the band sits at
+     * the bottom of the map (low {@code y}); for {@link TraversalAxis#WEST_TO_EAST}
+     * at the left (low {@code x}). Depth varies per-column (or per-row) via
+     * smoothed random jitter so the sand/water boundary reads as a gentle
+     * coastline.
+     *
+     * <p>For each cell flipped to water this method also strips:
+     * <ul>
+     *   <li>the {@code WALL} tag, so leaf-stamped walls don't draw on top of
+     *       water;</li>
+     *   <li>the nature overlay, so plant/rock sprites don't float on water;</li>
+     *   <li>the building-kind hint + building id, so the flood-fill pass
+     *       doesn't mistake a half-drowned building cell for a real interior;</li>
+     *   <li>any {@link Doodad} whose cell falls inside the band.</li>
+     * </ul>
+     * Together these guarantee the shoreline strip contains nothing but
+     * walkable-blocking water — buildings or LZs that the BSP placed there
+     * are cleanly evicted.
+     *
+     * <p>Wall-direction masks at the water cells are also cleared so the
+     * subsequent {@code tagDefaultWalls} pass can't pick up stale bits.
+     */
+    private void applyBeachShoreline(NavigationGrid grid, CellTopology topology,
+                                     TraversalAxis axis, BiomeMap biomeMap,
+                                     List<Doodad> doodads, Random rng) {
+        int w = grid.getWidth();
+        int h = grid.getHeight();
+        boolean horizontalAxis = (axis == TraversalAxis.SOUTH_TO_NORTH);
+
+        // Per-perpendicular-coordinate shore depth. For S->N, depth indexed
+        // by x; for W->E, depth indexed by y. Smoothed noise so the boundary
+        // reads as gentle waves.
+        int spanLen = horizontalAxis ? w : h;
+        int[] depths = noisyShoreDepth(spanLen, SHORELINE_NOMINAL_DEPTH,
+                SHORELINE_JITTER, SHORELINE_SMOOTH_RADIUS, rng);
+
+        for (int i = 0; i < spanLen; i++) {
+            int depth = clamp(depths[i], SHORELINE_MIN_DEPTH, SHORELINE_MAX_DEPTH);
+            for (int j = 0; j < depth; j++) {
+                int x = horizontalAxis ? i : j;
+                int y = horizontalAxis ? j : i;
+                if (x < 0 || x >= w || y < 0 || y >= h) continue;
+                if (biomeMap.biomeAt(x, y) != BiomeKind.BEACH) continue;
+                stampShorelineCell(grid, topology, x, y);
+            }
+        }
+
+        // Drop any doodad whose cell got drowned. Pre-shoreline filler doodads
+        // (LZ arrows, beach crates, etc.) would otherwise float on water.
+        if (!doodads.isEmpty()) {
+            doodads.removeIf(d -> {
+                if (!grid.inBounds(d.cellX, d.cellY)) return false;
+                return topology.isWater(d.cellX, d.cellY);
+            });
+        }
+    }
+
+    /** Stamp a single shoreline cell as water + strip everything else that might still be tagged at this cell. */
+    private static void stampShorelineCell(NavigationGrid grid, CellTopology topology, int x, int y) {
+        topology.setGroundKind(x, y, GroundKind.WATER);
+        topology.setTag(x, y, CellTopology.Tag.WALL,    false);
+        topology.setTag(x, y, CellTopology.Tag.VEHICLE, false);
+        topology.setWallDirMask(x, y, 0);
+        topology.setBuildingId(x, y, 0);
+        topology.setBuildingKindHint(x, y, null);
+        topology.setNatureOverlay(x, y, null);
+        // Water is non-walkable but see-through — matches WaterfrontFiller /
+        // NatureZoneFiller convention. setWalkable preserves any existing
+        // floor flags we don't care about here.
+        grid.setWalkable(x, y, false);
+        grid.setSeeThrough(x, y, true);
+    }
+
+    /**
+     * Per-coordinate shore-depth array of length {@code len}, centered on
+     * {@code nominal} with smoothed jitter. Same noise+rolling-average shape
+     * as {@code BiomeMap.noisyBoundary}; duplicated locally rather than
+     * pulled into a shared helper because the smoothed-shore use cases are
+     * still small and the parameters differ.
+     */
+    private static int[] noisyShoreDepth(int len, int nominal, int jitter, int smoothRadius, Random rng) {
+        float[] raw = new float[len];
+        for (int i = 0; i < len; i++) {
+            raw[i] = (rng.nextFloat() - 0.5f) * 2f * jitter;
+        }
+        int[] out = new int[len];
+        for (int i = 0; i < len; i++) {
+            int lo = Math.max(0, i - smoothRadius);
+            int hi = Math.min(len - 1, i + smoothRadius);
+            float sum = 0f;
+            for (int j = lo; j <= hi; j++) sum += raw[j];
+            out[i] = nominal + Math.round(sum / (hi - lo + 1));
+        }
+        return out;
+    }
+
+    private static int clamp(int v, int lo, int hi) {
+        return v < lo ? lo : (v > hi ? hi : v);
     }
 
     /**

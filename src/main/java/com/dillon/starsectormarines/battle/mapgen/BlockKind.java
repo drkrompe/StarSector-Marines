@@ -103,4 +103,33 @@ public enum BlockKind {
      * during the initial roll.
      */
     COMPOUND_MEMBER,
+
+    /**
+     * Untamed green space — grass-dominant ground with sparse dirt patches,
+     * shrubs and grass tufts scattered on the grass cells, occasional small
+     * rocks. All walkable. Reads as a wild meadow or unmaintained park,
+     * distinct from the manicured {@link #PARK} (which has a stone path
+     * and benches). Pairs with the nature-zone overlay layer on
+     * {@link com.dillon.starsectormarines.battle.map.CellTopology}.
+     */
+    NATURE_GRASSLAND,
+
+    /**
+     * Swampy mixed terrain — clustered water pools (non-walkable), dirt
+     * banks around them, scattered grass islands. Plant overlays land on
+     * the grass; rocks are rare. The water clusters give the leaf real
+     * tactical shape (flank denial) rather than a uniform field.
+     */
+    NATURE_WETLAND,
+
+    /**
+     * Open beach — sand-dominant ground with the occasional dirt patch,
+     * scattered rocks of mixed sizes (small/medium decorative, large
+     * impassable). No plants — sand can't host the plant overlays per
+     * {@link com.dillon.starsectormarines.battle.sprites.NatureTile#canOverlay}.
+     * Replaces the v1 beachhead approach (BEACH biome blanket-paints SAND
+     * over PARK/WASTELAND_RUBBLE leaves) with a deliberate beach filler
+     * that scatters cover-relevant rocks across the landing zone.
+     */
+    NATURE_BEACH,
 }

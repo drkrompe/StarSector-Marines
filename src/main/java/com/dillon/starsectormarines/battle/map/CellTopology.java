@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.map;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.sprites.NatureTile;
 
 /**
  * Per-cell rendering / categorization state — what kind of cell is this
@@ -136,6 +137,17 @@ public class CellTopology {
      * resulting {@link com.dillon.starsectormarines.battle.map.Building}.
      */
     private final byte[] buildingKindHint;
+    /**
+     * Per-cell nature-tile overlay (plants, rocks). Stored as
+     * {@code NatureTile.ordinal() + 1} so the implicit zero reads as "no
+     * overlay." Set by nature-zone fillers (grassland / wetland / beach)
+     * during gen; read by the renderer's nature-overlay pass after the
+     * ground-tile flush so plant + rock sprites stack on top of the painted
+     * surface. Only meaningful on walkable cells whose {@link GroundKind} is
+     * a nature kind ({@link GroundKind#GRASS} / {@link GroundKind#DIRT} /
+     * {@link GroundKind#SAND}) — wall + water cells ignore the slot.
+     */
+    private final byte[] natureOverlay;
 
     public CellTopology(int width, int height) {
         this.width = width;
@@ -145,6 +157,7 @@ public class CellTopology {
         this.wallDir = new byte[width * height];
         this.buildingId = new short[width * height];
         this.buildingKindHint = new byte[width * height];
+        this.natureOverlay = new byte[width * height];
         // ground[i] == 0 == GroundKind.INDOOR.ordinal() — implicit default.
     }
 
@@ -268,6 +281,34 @@ public class CellTopology {
     public void setBuildingKindHint(int x, int y, BuildingKind kind) {
         if (!inBounds(x, y)) return;
         buildingKindHint[index(x, y)] = (byte) (kind == null ? 0 : (kind.ordinal() + 1));
+    }
+
+    // ----- Nature overlay -----
+
+    /**
+     * Returns the nature overlay tile at this cell, or {@code null} if no
+     * overlay is set. Stored as {@code ordinal()+1} so the implicit zero
+     * means "unset."
+     */
+    public NatureTile getNatureOverlay(int x, int y) {
+        if (!inBounds(x, y)) return null;
+        int raw = natureOverlay[index(x, y)] & 0xFF;
+        if (raw == 0) return null;
+        NatureTile[] vals = NatureTile.values();
+        int idx = raw - 1;
+        return (idx >= 0 && idx < vals.length) ? vals[idx] : null;
+    }
+
+    /**
+     * Stamps a nature overlay tile at this cell. Pass {@code null} to clear.
+     * Caller is expected to have validated placement via
+     * {@link NatureTile#canOverlay(NatureTile)} against the current ground
+     * kind — the topology doesn't re-check here so a leaf-edge filler can
+     * stamp atomically without per-cell predicate overhead.
+     */
+    public void setNatureOverlay(int x, int y, NatureTile tile) {
+        if (!inBounds(x, y)) return;
+        natureOverlay[index(x, y)] = (byte) (tile == null ? 0 : (tile.ordinal() + 1));
     }
 
     /**

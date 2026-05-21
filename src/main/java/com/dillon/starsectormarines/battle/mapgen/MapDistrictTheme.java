@@ -91,20 +91,21 @@ public enum MapDistrictTheme {
                 .build();
 
         MIXED.table = WeightedTable.<BlockKind>builder()
-                .add(BlockKind.BUILDING_RESIDENTIAL, 20)
-                .add(BlockKind.BUILDING_COMMERCIAL,  14)
+                .add(BlockKind.BUILDING_RESIDENTIAL, 18)
+                .add(BlockKind.BUILDING_COMMERCIAL,  13)
                 .add(BlockKind.BUILDING_INDUSTRIAL,  10)
                 .add(BlockKind.PLAZA,                10)
-                .add(BlockKind.PARK,                  9)
+                .add(BlockKind.PARK,                  8)
                 .add(BlockKind.DENSE_BLOCK,           8)  // occasional dense pocket
-                .add(BlockKind.INDUSTRIAL_YARD,       8)
-                .add(BlockKind.WASTELAND_RUBBLE,      7)
+                .add(BlockKind.INDUSTRIAL_YARD,       7)
+                .add(BlockKind.WASTELAND_RUBBLE,      6)
+                .add(BlockKind.NATURE_GRASSLAND,      4)  // green pocket between blocks
                 .add(BlockKind.FORTIFIED_POST,        4)
                 .add(BlockKind.GATED_HOUSING,         2)  // walled subdivision in mixed zones
                 .add(BlockKind.DENSE_QUARTER,         2)  // small downtown pocket
                 .add(BlockKind.MILITARY_BASE,         2)  // rare base in mixed zones
                 .add(BlockKind.LANDING_ZONE,          2)
-                // No WATERFRONT in MIXED — water in the middle of the map looks wrong.
+                // No WATERFRONT / NATURE_WETLAND in MIXED — interior water looks wrong.
                 .build();
 
         WATERFRONT.table = WeightedTable.<BlockKind>builder()
@@ -119,30 +120,37 @@ public enum MapDistrictTheme {
                 .build();
 
         OUTSKIRTS.table = WeightedTable.<BlockKind>builder()
-                .add(BlockKind.WASTELAND_RUBBLE,     25)
-                .add(BlockKind.PARK,                 22)
-                .add(BlockKind.BUILDING_RESIDENTIAL, 15)
-                .add(BlockKind.INDUSTRIAL_YARD,      12)
-                .add(BlockKind.BUILDING_INDUSTRIAL,   8)
-                .add(BlockKind.FORTIFIED_POST,        7)
-                .add(BlockKind.BUILDING_COMMERCIAL,   5)
-                .add(BlockKind.PLAZA,                 5)
-                .add(BlockKind.MILITARY_BASE,         3)  // outskirts garrison
+                .add(BlockKind.WASTELAND_RUBBLE,     20)
+                .add(BlockKind.NATURE_GRASSLAND,     16)  // untamed meadow at the city edge
+                .add(BlockKind.PARK,                 16)
+                .add(BlockKind.BUILDING_RESIDENTIAL, 12)
+                .add(BlockKind.INDUSTRIAL_YARD,      10)
+                .add(BlockKind.NATURE_WETLAND,        7)  // marshy edge plots
+                .add(BlockKind.BUILDING_INDUSTRIAL,   6)
+                .add(BlockKind.FORTIFIED_POST,        5)
+                .add(BlockKind.BUILDING_COMMERCIAL,   3)
+                .add(BlockKind.PLAZA,                 3)
+                .add(BlockKind.MILITARY_BASE,         2)  // outskirts garrison
                 .build();
 
-        // Beach biome — wide-open landing terrain. Most leaves end up as PARK
-        // or WASTELAND_RUBBLE for traversability; FORTIFIED_POST scattered for
-        // beach bunkers; WATERFRONT only fires when a leaf actually touches
-        // the map edge (the labeler can't tell, so we accept occasional
-        // misfires and the SAND ground overlay will still sell the look).
+        // Beach biome — wide-open landing terrain. NATURE_BEACH dominates so
+        // the beach reads as varied sand + scattered cover rocks rather than
+        // the flat sand strip the v1 BLANKET_SAND override produced over
+        // PARK/WASTELAND_RUBBLE leaves. FORTIFIED_POST scattered for beach
+        // bunkers; WATERFRONT only fires when a leaf actually touches the
+        // map edge (the labeler can't tell, so we accept occasional misfires).
+        // PARK / WASTELAND_RUBBLE retained at low weight as variety; the
+        // biome-wide SAND override still re-paints their ground if they
+        // sneak in.
         COASTAL_BEACH.table = WeightedTable.<BlockKind>builder()
-                .add(BlockKind.PARK,                 30)
-                .add(BlockKind.WASTELAND_RUBBLE,     25)
+                .add(BlockKind.NATURE_BEACH,         50)
                 .add(BlockKind.FORTIFIED_POST,       18)
                 .add(BlockKind.WATERFRONT,           12)  // map-edge cells only — fallback if interior
-                .add(BlockKind.INDUSTRIAL_YARD,       7)
-                .add(BlockKind.BUILDING_COMMERCIAL,   4)  // beach kiosk / lifeguard
-                .add(BlockKind.BUILDING_RESIDENTIAL,  4)  // beach hut
+                .add(BlockKind.WASTELAND_RUBBLE,      8)
+                .add(BlockKind.PARK,                  4)
+                .add(BlockKind.INDUSTRIAL_YARD,       3)
+                .add(BlockKind.BUILDING_COMMERCIAL,   3)  // beach kiosk / lifeguard
+                .add(BlockKind.BUILDING_RESIDENTIAL,  2)  // beach hut
                 .build();
 
         // Port / harbor — warehouses, yards, commercial offices, the
@@ -150,14 +158,16 @@ public enum MapDistrictTheme {
         // sit on the map edge); commit-2 work will revisit interior water if
         // we want piers cutting into the port.
         HARBOR_PORT.table = WeightedTable.<BlockKind>builder()
-                .add(BlockKind.BUILDING_INDUSTRIAL,  28)
-                .add(BlockKind.INDUSTRIAL_YARD,      22)
-                .add(BlockKind.BUILDING_COMMERCIAL,  14)
-                .add(BlockKind.WASTELAND_RUBBLE,     10)
-                .add(BlockKind.FORTIFIED_POST,        9)
+                .add(BlockKind.BUILDING_INDUSTRIAL,  26)
+                .add(BlockKind.INDUSTRIAL_YARD,      20)
+                .add(BlockKind.BUILDING_COMMERCIAL,  13)
+                .add(BlockKind.WASTELAND_RUBBLE,      9)
+                .add(BlockKind.FORTIFIED_POST,        8)
+                .add(BlockKind.NATURE_WETLAND,        6)  // brackish marsh between piers
                 .add(BlockKind.BUILDING_RESIDENTIAL,  6)
-                .add(BlockKind.PLAZA,                 6)
+                .add(BlockKind.PLAZA,                 5)
                 .add(BlockKind.DENSE_BLOCK,           5)  // dockside tenements
+                .add(BlockKind.NATURE_BEACH,          2)  // sandy spit beside the docks
                 .build();
 
         // Military fortress district — heavy fortified posts, depots, motor
