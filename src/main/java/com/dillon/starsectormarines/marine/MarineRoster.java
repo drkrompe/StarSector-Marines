@@ -55,6 +55,20 @@ public class MarineRoster implements Serializable {
         return result;
     }
 
+    /**
+     * Same predicate as {@link #active()} but counts in place without
+     * allocating an intermediate list. Used by per-frame readers
+     * (e.g. {@code OfficerMoodReader.currentMood}) where the list itself
+     * isn't needed.
+     */
+    public int activeCount() {
+        int n = 0;
+        for (MarineCaptain c : captains) {
+            if (c.status() == Status.ACTIVE) n++;
+        }
+        return n;
+    }
+
     public int size() {
         return captains.size();
     }

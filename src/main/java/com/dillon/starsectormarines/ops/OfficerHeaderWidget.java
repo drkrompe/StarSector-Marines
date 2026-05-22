@@ -21,9 +21,10 @@ import java.awt.Color;
  * {@code CommsOfficerSummary} so the line is stable through the player's
  * interaction with the screen on a given day.
  *
- * <p>Mood comes from {@link OfficerMoodReader}, which derives the bucket
- * from cash trend, captain count, fleet size, and MRB rep each call —
- * no caching, since the read is a handful of field accesses.
+ * <p>Mood comes from {@link OfficerMoodReader}; the result is cached
+ * per sector-day to avoid hysteresis around the credits/upkeep
+ * boundary (a single cargo sale could otherwise flip DESPERATE → STEADY
+ * mid-frame as the player's wallet ticks across the threshold).
  *
  * <p>If the campaign state isn't available (early-game, no script registered)
  * the widget renders the placeholder "—" rather than throwing. Same for the
@@ -37,6 +38,9 @@ public class OfficerHeaderWidget extends BaseWidget {
     private static final Color TEXT_COLOR = new Color(0xE0, 0xE8, 0xF4);
 
     private final MarineOpsContext ctx;
+    /** Last sector-day the mood was sampled on; {@link Integer#MIN_VALUE} = never. */
+    private int cachedMoodDay = Integer.MIN_VALUE;
+    private OfficerMood cachedMood = OfficerMood.STEADY;
 
     public OfficerHeaderWidget(MarineOpsContext ctx, float x, float y, float w, float h) {
         this.ctx = ctx;
@@ -70,7 +74,7 @@ public class OfficerHeaderWidget extends BaseWidget {
         if (script == null) return "—";
         CampaignState state = script.state();
         int currentDay = currentSectorDay(state);
-        OfficerMood mood = OfficerMoodReader.currentMood();
+        OfficerMood mood = moodForDay(currentDay);
 
         Client selected = ctx.getSelectedClient();
         // patronHouseId == -1L is the "faction-direct client" sentinel — fall
@@ -87,6 +91,19 @@ public class OfficerHeaderWidget extends BaseWidget {
         return CommsOfficerSummary.renderForClient(
                 mood, currentDay, patronId, selected.displayName,
                 c.offerCount, c.lapsingCount);
+    }
+
+    /**
+     * Returns today's mood, recomputing only when the sector-day rolls over.
+     * Matches the per-day determinism that {@link CommsOfficerSummary} already
+     * uses for its line text, so the whole header is stable within a day.
+     */
+    private OfficerMood moodForDay(int currentDay) {
+        if (currentDay != cachedMoodDay) {
+            cachedMood = OfficerMoodReader.currentMood();
+            cachedMoodDay = currentDay;
+        }
+        return cachedMood;
     }
 
     private static int currentSectorDay(CampaignState state) {
