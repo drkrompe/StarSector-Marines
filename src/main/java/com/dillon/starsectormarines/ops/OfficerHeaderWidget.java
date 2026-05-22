@@ -21,9 +21,9 @@ import java.awt.Color;
  * {@code CommsOfficerSummary} so the line is stable through the player's
  * interaction with the screen on a given day.
  *
- * <p>Mood comes from {@link OfficerMoodReader} — currently stubbed to
- * {@link OfficerMood#STEADY}; deriving real mood from {@link CampaignState}
- * + vanilla state is the next planned step.
+ * <p>Mood comes from {@link OfficerMoodReader}, which derives the bucket
+ * from cash trend, captain count, fleet size, and MRB rep each call —
+ * no caching, since the read is a handful of field accesses.
  *
  * <p>If the campaign state isn't available (early-game, no script registered)
  * the widget renders the placeholder "—" rather than throwing. Same for the
