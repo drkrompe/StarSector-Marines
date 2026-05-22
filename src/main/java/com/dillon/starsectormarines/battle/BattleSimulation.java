@@ -27,11 +27,11 @@ import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.objective.EliminateFactionObjective;
 import com.dillon.starsectormarines.battle.objective.Objective;
 import com.dillon.starsectormarines.battle.objective.ObjectivesService;
-import com.dillon.starsectormarines.battle.profile.LosCache;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
 import com.dillon.starsectormarines.battle.reinforcement.ReinforcementService;
@@ -48,12 +48,10 @@ import com.dillon.starsectormarines.battle.weapons.HeavyWeapons;
 import com.dillon.starsectormarines.battle.weapons.InfantryWeapons;
 import com.dillon.starsectormarines.battle.weapons.WeaponSimContext;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
@@ -159,7 +157,11 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Hard cap on mech morale once HP drops below {@link #MECH_MORALE_ARMOR_GONE_HP_FRAC}. With the clear threshold at 0.85 × 0.50 = 0.425 absolute and broken at 0.60 × 0.50 = 0.30, a damaged mech that breaks (morale 0.25 after the 25% HP threshold) only needs to climb 0.175 to clear — fast enough that a successful disengage actually un-breaks. */
     public static final float MECH_MORALE_ARMOR_GONE_CAP = 0.50f;
 
+    /** Navigation slice: grid + topology + zone graph + occupancy map + spatial indices + vantage cache + LosCache lifecycle. {@link #grid} / {@link #topology} / {@link #zoneGraph} / {@link #occupancyMap} / {@link #unitIndex} / {@link #destIndex} below are alias fields that share the same instances. */
+    private final NavigationService navigation;
+    /** Alias of {@link NavigationService#getGrid()}. Same instance — kept as a field so the sim's 80+ {@code grid.*} reads don't pay a per-call accessor hop. */
     private final NavigationGrid grid;
+    /** Alias of {@link NavigationService#getTopology()}. */
     private final CellTopology topology;
     /** Roster service: units list + squad registry + spawn queue + ID counters. {@link #units} and {@link #squads} are alias fields that share the same instances. */
     private final UnitRosterService rosterService;
@@ -217,26 +219,6 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Recycled {@code ArrayList<Unit>} buckets. {@link #rebuildAttackersByTarget()} clears + returns every bucket here before re-populating, so the steady-state allocation is zero. */
     private final ArrayList<ArrayList<Unit>> attackerListPool = new ArrayList<>();
 
-    /**
-     * Per-target-cell cache of walkable cells with line of sight to that cell —
-     * the "vantage points" stage 2 of
-     * {@link com.dillon.starsectormarines.battle.ai.TacticalScoring#findFiringPosition}
-     * picks from when no in-range LOS-bearing firing position exists (the
-     * around-the-corner-turret case). Key is {@code (long) cellY * grid.width
-     * + cellX}; value is a flat {@code int[][]} of {@code {x, y}} pairs.
-     *
-     * <p>Cache lifetime is per-battle. Vantage geometry is determined by the
-     * walkability layout, so any event that flips the
-     * {@link #zoneGraphDirty} flag (wall breach, turret demolish, drone hub
-     * demolish) also invalidates this cache — the drain at the bottom of
-     * {@link #tick()} clears it together with the zone-graph rebuild.
-     *
-     * <p>Sharing rationale: an entire squad targeting one turret asks the
-     * same question; multiple squads can too. Cache key is the target cell,
-     * not the asker, so the cost is amortized across all simultaneous
-     * lookups for that target.
-     */
-    private final Long2ObjectOpenHashMap<int[][]> vantagePointsByTargetCell = new Long2ObjectOpenHashMap<>();
     /** In-flight tracers + projectiles + per-frame event drains. Sibling slice to {@link #effects} / {@link #vision}; the {@link #postShot}, {@link #queueProjectile}, {@link #getActiveShots} et al. delegates below forward here. */
     private final ShotService shots = new ShotService();
     /** Units that transitioned from alive to dead during the last {@link #advance(float)} call. Same lifecycle as {@link #shotsThisFrame}. */
@@ -252,27 +234,13 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final DamageService damageService;
     private final Random rng = new Random();
 
-    /** Per-cell unit count, rebuilt at the start of each tick. Passed to the pathfinder so units route around ally-held cells. */
+    /** Alias of {@link NavigationService#getOccupancyMap()}. */
     private final byte[] occupancyMap;
 
-    /**
-     * Bucketed spatial index over alive units, rebuilt once per tick. AI
-     * scoring (exposure, threat density, allies-near-for-spread) queries
-     * this instead of scanning the full unit list — keeps proximity work
-     * O(units within radius) instead of O(total units). See
-     * {@link UnitSpatialIndex} for sizing.
-     */
+    /** Alias of {@link NavigationService#getUnitIndex()}. */
     private final UnitSpatialIndex unitIndex;
 
-    /**
-     * Sister index to {@link #unitIndex}, keyed on each unit's path
-     * <em>destination</em> cell instead of its current cell. Drives the
-     * Pass-2 lookup inside {@link com.dillon.starsectormarines.battle.ai.TacticalScoring#alliesNearForSpread}
-     * — previously the residual O(N) walk over every alive unit that the
-     * 2026-05-21 JFR pinpointed as the single hottest sim-side leaf (~15%
-     * of sim CPU). Rebuilt right after {@link #unitIndex} so both indices
-     * reflect the same tick-start snapshot.
-     */
+    /** Alias of {@link NavigationService#getDestIndex()}. */
     private final UnitDestinationSpatialIndex destIndex;
 
     private float tickAccumulator = 0f;
@@ -303,17 +271,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private boolean complete = false;
     private Faction winner;
 
+    /** Alias of {@link NavigationService#getZoneGraph()}. */
     private final ZoneGraph zoneGraph;
-    /**
-     * Set whenever the walkability layout changes during a tick (wall breach,
-     * turret demolish). Drained to a single {@link ZoneGraph#rebuild()} at the
-     * end of the tick so multiple breaches in the same tick collapse into one
-     * full graph rebuild. AI queries that run mid-tick see the previous
-     * tick's graph — fine in practice, since rubble stays walkable forever
-     * (paths only ever gain shortcuts) and the new portal becomes visible
-     * within 1/30s.
-     */
-    private boolean zoneGraphDirty = false;
 
     /** Fighter wings committed to this battle. Lives on the sim so the overlay can read it without coupling to the briefing screen. */
     private FlybyRoster flybyRoster = FlybyRoster.EMPTY;
@@ -323,20 +282,23 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             new TacticalContextService();
 
     public BattleSimulation(NavigationGrid grid, CellTopology topology) {
-        this.grid = grid;
-        this.topology = topology;
-        this.occupancyMap = new byte[grid.getWidth() * grid.getHeight()];
-        this.unitIndex = new UnitSpatialIndex(grid.getWidth(), grid.getHeight());
-        this.destIndex = new UnitDestinationSpatialIndex(grid.getWidth(), grid.getHeight());
-        this.zoneGraph = new ZoneGraph(grid);
-        this.zoneGraph.rebuild();
+        this.navigation = new NavigationService(grid, topology);
+        // Alias-fields share the same instances as the service so the sim's
+        // 80+ internal `grid.*`/`topology.*`/`zoneGraph.*`/`occupancyMap[...]`
+        // reads stay direct (no per-call accessor hop).
+        this.grid = navigation.getGrid();
+        this.topology = navigation.getTopology();
+        this.zoneGraph = navigation.getZoneGraph();
+        this.occupancyMap = navigation.getOccupancyMap();
+        this.unitIndex = navigation.getUnitIndex();
+        this.destIndex = navigation.getDestIndex();
         this.effects = new com.dillon.starsectormarines.battle.fx.EffectsService(rng);
         this.doodadService = new DoodadService(grid);
         this.damageService = new DamageService(
                 this::applyDamageNow,
                 this::writeReprioInline,
                 this::writeFallbackInline,
-                this::applyOccupancyDeltaInline);
+                navigation::applyOccupancyDeltaInline);
         this.rosterService = new UnitRosterService(unitIndex, damageService);
         // Alias-fields share the same collection instances as the service so
         // the 100+ internal `units` / `squads` reads stay direct (no per-call
@@ -375,7 +337,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // wall hit peels at most two cells (one on each side for interior
         // partitions, just one for a perimeter wall).
         peelRoofAround(x, y);
-        zoneGraphDirty = true;
+        navigation.markZoneGraphDirty();
         return true;
     }
 
@@ -901,30 +863,24 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // can record without threading the sim through their signatures.
         tickInnerProfile.reset();
         TickInnerProfile.setCurrent(tickInnerProfile);
-        // Per-tick LoS cache. Same static-slot pattern as the inner profile —
-        // NavigationGrid.hasLineOfSight queries through the slot, so all 36
-        // direct callers and the canSeePair wrappers benefit automatically.
-        // Per-thread cache. enable() switches on auto-init for the duration
-        // of the tick; clearAll sweeps every worker's slot so cached pairs
-        // can't outlive a wall breach from the prior tick's cleanup pass.
-        // disable() at tick end (below) keeps off-tick callers (tests,
-        // mid-frame UI hooks) from auto-populating stale caches.
-        LosCache.clearAll();
-        LosCache.enable();
+        // Per-tick LoS cache + spatial-state setup — sweeps every worker's
+        // LosCache slot so cached pairs can't outlive a prior-tick wall
+        // breach, then enables auto-init for the duration of the tick. Paired
+        // with navigation.endTick() at the bottom.
+        navigation.beginTick();
         // Fog-of-war visibility pass — recomputed every 3rd tick (~10 Hz at
         // 30 Hz sim). The render path lerps current→target alpha per frame so
         // this cadence stays invisible.
         vision.tick(simTickIndex, units, grid);
         tickProfile.lap(TickProfile.Phase.VISION);
-        rebuildOccupancyMap();
+        navigation.rebuildOccupancyMap(units);
         tickProfile.lap(TickProfile.Phase.REBUILD_OCCUPANCY);
         // Rebuild the spatial index BEFORE the AI passes so per-tick scoring
         // (exposure, threat density, allies-near) reads a consistent
         // snapshot. Same single-pass-per-tick semantics as the attacker
         // index below — mid-tick repath shifts aren't reflected until next
         // tick, matching the pre-spatial behavior.
-        unitIndex.rebuild(units);
-        destIndex.rebuild(units);
+        navigation.rebuildSpatialIndices(units);
         tickProfile.lap(TickProfile.Phase.REBUILD_UNIT_INDEX);
         // Rebuild the attacker index BEFORE per-unit updates so target-
         // selection's crowding scoring (TacticalScoring.findBestTarget) sees a
@@ -1111,19 +1067,10 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         objectivesService.tick(o -> o.tick(this));
         tickProfile.lap(TickProfile.Phase.OBJECTIVES);
         // Single zone-graph rebuild for the whole tick — drains any wall
-        // breaches or turret demolishes that happened this tick. Multiple
-        // breaches in one tick (e.g., a rocket shredding a wall section)
-        // collapse into one rebuild.
-        if (zoneGraphDirty) {
-            zoneGraph.rebuild();
-            // Vantage-point sets are derived from cell walkability + LOS; any
-            // event that flips zoneGraphDirty (wall breach, turret/hub
-            // demolish) also invalidates them. Clear in lockstep so the next
-            // findFiringPosition stage-2 lookup recomputes against the new
-            // geometry.
-            vantagePointsByTargetCell.clear();
-            zoneGraphDirty = false;
-        }
+        // breaches or turret demolishes that happened this tick + clears the
+        // vantage-point cache in lockstep. Multiple breaches in one tick
+        // (e.g., a rocket shredding a wall section) collapse into one rebuild.
+        navigation.flushZoneGraphIfDirty();
         tickProfile.lap(TickProfile.Phase.ZONE_GRAPH);
         checkWinCondition();
         tickProfile.lap(TickProfile.Phase.WIN_CHECK);
@@ -1135,7 +1082,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // Switch the per-thread LosCache off so off-tick callers see null
         // and fall through to live Bresenham (preserving the old off-tick
         // behavior that tests + UI hooks depend on).
-        LosCache.disable();
+        navigation.endTick();
     }
 
     /**
@@ -1148,29 +1095,9 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         return attackersByTarget.get(target);
     }
 
-    /**
-     * Returns the cached vantage-point set for target cell ({@code tx},
-     * {@code ty}) — walkable cells with line of sight to the cell, scanned
-     * within {@link com.dillon.starsectormarines.battle.ai.TacticalScoring#MAX_VANTAGE_SEARCH_RADIUS}.
-     * Computes on cache miss and stores; returns the same {@code int[][]}
-     * reference on subsequent hits. See
-     * {@link #vantagePointsByTargetCell} for lifetime and invalidation.
-     */
+    /** Delegates to {@link NavigationService#getVantagePointsFor(int, int)}. Cached per-battle; invalidated in lockstep with the zone-graph rebuild driven by {@link NavigationService#flushZoneGraphIfDirty}. */
     public int[][] getVantagePointsFor(int tx, int ty) {
-        long key = (long) ty * grid.getWidth() + tx;
-        // Synchronized for the parallel UPDATE_UNITS path — fastutil's
-        // Long2ObjectOpenHashMap isn't thread-safe; concurrent put can rehash
-        // mid-get and crash with NPE / AIOOBE, or worse return a wrong slot.
-        // Holds the lock across computeVantagePoints (the expensive part)
-        // because cache misses are rare and we want at-most-once compute per
-        // target cell.
-        synchronized (vantagePointsByTargetCell) {
-            int[][] cached = vantagePointsByTargetCell.get(key);
-            if (cached != null) return cached;
-            int[][] computed = com.dillon.starsectormarines.battle.ai.TacticalScoring.computeVantagePoints(grid, tx, ty);
-            vantagePointsByTargetCell.put(key, computed);
-            return computed;
-        }
+        return navigation.getVantagePointsFor(tx, ty);
     }
 
     /**
@@ -1201,60 +1128,12 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     }
 
     /**
-     * Counts alive units per cell into {@link #occupancyMap}, including each
-     * unit's path destination cell (if different from its current cell). This
-     * makes destination cells visible to firing-position and fall-back scoring,
-     * so units don't all converge on the same goal. Saturates at 255.
-     *
-     * <p>The map is also incrementally updated within a tick — when a unit
-     * re-paths in {@link #updateUnit}, the old destination is decremented and
-     * the new one incremented — so units picking positions later in the same
-     * tick see the freshest information.
-     */
-    private void rebuildOccupancyMap() {
-        Arrays.fill(occupancyMap, (byte) 0);
-        for (Unit u : units) {
-            if (!u.isAlive()) continue;
-            incrementOccupancy(u.cellX, u.cellY);
-            int destX = pathDestX(u);
-            if (destX != Integer.MIN_VALUE) {
-                int destY = pathDestY(u);
-                if (destX != u.cellX || destY != u.cellY) {
-                    incrementOccupancy(destX, destY);
-                }
-            }
-        }
-    }
-
-    private void incrementOccupancy(int x, int y) {
-        if (!grid.inBounds(x, y)) return;
-        int idx = y * grid.getWidth() + x;
-        int cur = occupancyMap[idx] & 0xFF;
-        if (cur < 255) occupancyMap[idx] = (byte) (cur + 1);
-    }
-
-    private void decrementOccupancy(int x, int y) {
-        if (!grid.inBounds(x, y)) return;
-        int idx = y * grid.getWidth() + x;
-        int cur = occupancyMap[idx] & 0xFF;
-        if (cur > 0) occupancyMap[idx] = (byte) (cur - 1);
-    }
-
-    /** X coordinate of the unit's final path cell, or {@code Integer.MIN_VALUE} if the path is empty. Internal helper for occupancy bookkeeping. */
-    private static int pathDestX(Unit u) {
-        return u.path.length == 0 ? Integer.MIN_VALUE : u.path[u.path.length - 2];
-    }
-    /** Y coordinate of the unit's final path cell, or {@code Integer.MIN_VALUE} if the path is empty. */
-    private static int pathDestY(Unit u) {
-        return u.path.length == 0 ? Integer.MIN_VALUE : u.path[u.path.length - 1];
-    }
-
-    /**
-     * Replaces a unit's path and queues a deferred {@link #occupancyMap} +
-     * {@link #destIndex} update. Public so AI behaviors in {@code battle.ai}
-     * can route their movement through this method instead of touching
-     * {@code u.path} directly. Pass {@link GridPathfinder#EMPTY_PATH} (or
-     * call {@link #clearPath(Unit)}) to drop the current path.
+     * Replaces a unit's path and queues a deferred {@link NavigationService#getOccupancyMap()
+     * occupancyMap} + {@link NavigationService#getDestIndex() destIndex}
+     * update. Public so AI behaviors in {@code battle.ai} can route their
+     * movement through this method instead of touching {@code u.path}
+     * directly. Pass {@link GridPathfinder#EMPTY_PATH} (or call
+     * {@link #clearPath(Unit)}) to drop the current path.
      *
      * <p>{@code u.path} / {@code u.pathIdx} are unit-local and mutated inline.
      * Shared spatial state goes through {@link DamageService}'s occupancy
@@ -1263,8 +1142,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      * UPDATE_UNITS, before any subsequent phase reads the map.
      */
     public void setPath(Unit u, int[] newPath) {
-        int oldDestX = pathDestX(u);
-        int oldDestY = pathDestY(u);
+        int oldDestX = NavigationService.pathDestX(u);
+        int oldDestY = NavigationService.pathDestY(u);
         u.path = newPath;
         u.pathIdx = newPath.length == 0 ? 0 : 1;
         int newDestX;
@@ -1292,18 +1171,6 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Delegates to {@link DamageService#flushPendingOccupancyDeltas()}. Public so tests can force the drain after a direct {@code setPath} call. */
     public void flushPendingOccupancyDeltas() {
         damageService.flushPendingOccupancyDeltas();
-    }
-
-    /** Inline occupancy + destIndex delta applier — invoked by the damage service on the serial path AND on the queued drain. {@code Integer.MIN_VALUE} for an old / new coord is the "no-op" sentinel. */
-    private void applyOccupancyDeltaInline(Unit u, int oldDestX, int oldDestY, int newDestX, int newDestY) {
-        if (oldDestX != Integer.MIN_VALUE) {
-            decrementOccupancy(oldDestX, oldDestY);
-            destIndex.removeDestination(u, oldDestX, oldDestY);
-        }
-        if (newDestX != Integer.MIN_VALUE) {
-            incrementOccupancy(newDestX, newDestY);
-            destIndex.addDestination(u, newDestX, newDestY);
-        }
     }
 
     /** Convenience: drop the unit's path. Equivalent to {@code setPath(u, GridPathfinder.EMPTY_PATH)}. */
@@ -1336,7 +1203,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             grid.recomputeCoverAt(t.cellX, t.cellY + 1);
             grid.recomputeCoverAt(t.cellX, t.cellY - 1);
             t.demolished = true;
-            zoneGraphDirty = true;
+            navigation.markZoneGraphDirty();
             // Mount cell keeps smoking for a while so the player can see the
             // wreck is dead-and-cooling rather than just "gone".
             effects.spawnSmokingWreck(t.cellX, t.cellY);
@@ -1366,7 +1233,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             grid.recomputeCoverAt(h.cellX, h.cellY + 1);
             grid.recomputeCoverAt(h.cellX, h.cellY - 1);
             h.demolished = true;
-            zoneGraphDirty = true;
+            navigation.markZoneGraphDirty();
             effects.spawnSmokingWreck(h.cellX, h.cellY);
             // Cascading kill: drones launched from this hub lose control and
             // crash with it. Set hp=0 here; tickDroneCrashes (next call in
