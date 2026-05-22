@@ -1,8 +1,14 @@
 {
-	# Patron archetype briefing templates — the voice each patron type uses
-	# when sending the player a contract brief. The archetype is procedural
-	# (assigned at HouseSeeder time); the WORDS the patron sends are content,
-	# authored here.
+	# Patron archetype briefing templates — what the company's contract
+	# COMMS OFFICER reports back about their meeting with the patron's
+	# representative. The player never reads a patron directly; the officer
+	# is the narrator, and the archetype manifests through what they
+	# observed about the patron, not the patron's own words.
+	#
+	# Reference character: Castle from MechWarrior Mercenaries. Pragmatic,
+	# observant, dry. Reports what they saw with light editorial. Notices
+	# the rep's clothing, posture, what they wouldn't explain. See
+	# [[project-comms-officer-narrator]] in memory for the full design.
 	#
 	# Schema:
 	#   {
@@ -14,9 +20,9 @@
 	# - Every PatronArchetype enum value MUST appear as a key.
 	# - Each archetype MUST have at least one variant string.
 	# - Variants are picked deterministically per (contractId, archetype)
-	#   — adding/removing/reordering variants is fine, just be aware that
-	#   the variant a player sees for a given contract may shift if the
-	#   pool size changes.
+	#   — adding/removing/reordering variants is fine, just be aware the
+	#   variant a player sees for a given contract may shift if pool size
+	#   changes.
 	#
 	# Substitution tokens (see PatronBriefingFlavor):
 	#   {patron}   — patron house display name
@@ -24,49 +30,55 @@
 	#   {payout}   — formatted payout including cash multiplier
 	#   {salvage}  — negotiated salvage % (0..baseline)
 	#
-	# Authoring notes per archetype — keep the voice distinct:
-	#   TIME_RUSHED   — terse, no preamble, missing context, "no time to do it right"
-	#   FALLEN_NOBLE  — formal-but-faded; references to a past status
-	#   TRUE_BELIEVER — ideological, righteous, emotional appeals
-	#   ESTABLISHED   — polished, oblique, formal contract terms
-	#   SUSPICIOUS    — curt, no questions, ethically gray targets
-	#   NEWCOMER      — clumsy, over-specified, signals inexperience
+	# Authoring voice notes per archetype — keep the officer's tone
+	# consistent; vary what they observed about the patron:
+	#   TIME_RUSHED   — rep was rushed, sweaty, wouldn't explain timeline
+	#   FALLEN_NOBLE  — formal-but-faded envoy, references to past status
+	#                   that trail off, gentlemanly in a way that hurts
+	#   TRUE_BELIEVER — long preamble about righteousness before numbers
+	#                   came up; thanked us before we'd agreed
+	#   ESTABLISHED   — quiet meeting, senior counsel, no specifics
+	#                   spoken aloud, "we did not press"
+	#   SUSPICIOUS    — walk-in, no real name, met off-site, no paperwork
+	#                   beyond the contract itself
+	#   NEWCOMER      — lawyer with a binder, "service deliverables,"
+	#                   references requested, kickoff calls
 
 	"templates": {
 		"TIME_RUSHED": [
-			"Hit {target}. Tonight. No time to brief — full file's on the dropship terminal.",
-			"{target}. Three days, then our window closes. {salvage}% salvage if you make it.",
-			"Don't ask why this one's urgent. {target}. {payout} on completion. Move."
+			"{patron}'s rep was sweating when he came in. They want {target} hit, fast — wouldn't tell me why the window's so tight. Pay's {payout}, salvage at {salvage}%. Pushed back on the timeline; didn't get an inch.",
+			"{patron}'s brief came over priority comms — that costs them, and they know it. Target's {target}, {payout} on confirm. Their rep didn't sit down. Mark it urgent.",
+			"Thirty-second pitch from {patron}'s people. {target}, {payout}, salvage at {salvage}%. The rep's exact words: 'We need this done before we can tell you why.' Make of that what you will."
 		],
 
 		"FALLEN_NOBLE": [
-			"What was once {patron}'s charge has slipped to other hands. {target}, brought low — and the matter settled. {payout} for your part.",
-			"{patron} would once have arranged this over dinner. Now there is only the dispatch. The target is {target}. The terms are what they are.",
-			"Forgive the brevity. {patron}'s circumstances have, in recent years, narrowed. {target}. {salvage}% salvage. Your discretion is, of course, assumed."
+			"{patron}'s envoy came in person — that doesn't happen much anymore. Brief is {target}, terms {payout} and {salvage}% salvage. He talked about how {patron} used to handle these matters in-house, before — well. He didn't finish the sentence.",
+			"Met {patron}'s rep at their consulate annex. The annex is one room now. Contract's straightforward: {target}, {payout}, salvage standard. He was a gentleman about it. I think he meant to be.",
+			"Long meeting with {patron}'s people. A lot of context about why this matters to the family. The mission itself is small: {target}, salvage at {salvage}%. They want it done right. They don't have many other levers left."
 		],
 
 		"TRUE_BELIEVER": [
-			"The work at {target} is an affront. {patron} asks only soldiers willing to see it ended — not the ones who came for the {payout}.",
-			"They call what they do at {target} commerce. {patron} calls it what it is. End it. The salvage is whatever remains.",
-			"If you take {patron}'s coin, you take {patron}'s convictions. {target}. The pay is what it is. The work is what matters."
+			"{patron}'s rep didn't want to talk numbers. Spent twenty minutes on what {target} is doing wrong. Eventually we got to {payout}, and he asked if we'd take less. I said no. Salvage at {salvage}%.",
+			"Got a sermon, then a contract. {patron} wants {target} ended, full stop — the word 'ended' more than once. Pay's {payout}. The rep called the salvage 'whatever the righteous take from the unrighteous.' That parses to {salvage}%, I checked.",
+			"{patron}'s envoy was the patron themselves — surprised me. They wanted to look us in the eye. {target}, {payout}, {salvage}% salvage. They thanked us before we'd agreed."
 		],
 
 		"ESTABLISHED": [
-			"{patron} would consider it a personal favor were the situation at {target} resolved by quarter's end. {payout}; salvage per the enclosed schedule.",
-			"Per the attached memorandum: {patron} seeks the cessation of operations at {target}. {salvage}% recovery cap, {payout} on confirmation. Discretion expected.",
-			"{patron} prefers not to elaborate on the {target} matter beyond what the file contains. We trust that suffices. {payout}."
+			"{patron}'s counsel came over for a working lunch. The brief is enclosed; short version is {target}, {payout} on confirmation, salvage capped at {salvage}%. They prefer not to discuss specifics aloud. The memorandum covers what we need.",
+			"Quiet meeting with {patron}'s representatives. Target is {target}, payment {payout}, recovery cap {salvage}%. They were polite. They were clear. They did not elaborate, and I did not press.",
+			"{patron} sent a senior partner — they don't usually. {target}, {payout}, salvage standard. He referred to the matter as 'a question of timing more than substance.' I'm choosing to take that at face value."
 		],
 
 		"SUSPICIOUS": [
-			"{target}. No questions. {payout} cash, {salvage}% salvage on anything you find worth taking.",
-			"{patron} doesn't need to know why. Neither do you. {target}. Done by month's end, or don't come back.",
-			"There won't be a record of this brief. {target}. Pay's good. Don't make {patron} regret picking you."
+			"Walk-in. {patron}, {target}, {payout} cash, {salvage}% on whatever you find. No paperwork beyond the contract itself. I asked once and dropped it. Their call.",
+			"{patron}'s rep wouldn't give a real name. The brief is one page: {target}, {payout}, salvage at {salvage}%. He said they'd know if we talked about it. I believe him.",
+			"Met off-site. {patron} wants {target} handled and nobody filing a report after. Pay's {payout} — the high end of what we usually see for this kind of work. Read into that what you want."
 		],
 
 		"NEWCOMER": [
-			"Thank you for considering this opportunity. {patron} would like to formally engage your services for operations at {target}. Per the contract draft, payment terms are {payout} with {salvage}% recovered material reserved for your fleet.",
-			"{patron} represents a serious commercial proposition. Our objective at {target} aligns with established practice in the marine ops industry. Payment: {payout}. We have prepared the necessary documentation.",
-			"Should you find {payout} acceptable for the conclusion of operations at {target}, kindly indicate so via the standard channels. {patron} is prepared to proceed at your earliest convenience."
+			"{patron} sent a lawyer who'd clearly never bought a marine op before. He had a binder. He used the words 'service deliverables' twice. The actual contract is {target}, {payout}, {salvage}% salvage — pretty standard once we got there.",
+			"First-time client. {patron}'s rep walked me through the brief like I hadn't read it. {target}, {payout} on completion, salvage at {salvage}%. They want to do this by the book. They have their own idea of what the book is.",
+			"{patron}'s people are new to this and it shows. They asked for references. I gave them references. The job's {target}, terms {payout} and {salvage}% salvage, and they want a kickoff call before we mobilize — which, sure, fine."
 		]
 	}
 }

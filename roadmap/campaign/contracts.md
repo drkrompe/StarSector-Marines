@@ -479,29 +479,49 @@ See [[feedback-world-reactive-over-expressive]] and
 [[feedback-patron-narrative-discoverable]] memories for the durable
 principle. Implications for what we *write*:
 
+### The comms officer is the narrator
+
+The player never reads a patron directly. The mission-select / briefing
+surface is framed as the player consulting with their company's
+**contract comms officer** — Castle from MechWarrior Mercenaries as the
+spiritual reference. The officer met with the patron's representative
+and is now reporting back at the strategic console. Everything the
+player learns about a patron flows through this filter.
+
+This is load-bearing: it makes patron-narrative-discoverable
+architectural, not just stylistic. There's no omniscient POV anywhere
+in the mission-select surface. See
+[[project-comms-officer-narrator]] memory for the full design and its
+implications for layout, mood lines, "ask the officer" levers, and
+diegetic offer filtering.
+
 ### Briefing register reveals patron situation
 
-A desperate Tier-1 non-MRB Capo's brief reads different from a
-polished Tier-3 Corporate VP's:
+A desperate Tier-1 non-MRB Capo's brief reads different from a polished
+Tier-3 Corporate VP's — but in both cases what the player sees is the
+*officer's report* on the meeting, not the patron's words. The archetype
+manifests through what the officer observed:
 
-- **Tier-1 desperate** — terse, no preamble, missing context, "we
-  need this done by next week, no time to do it right." Reveals: no
-  time, no resources, no formal process.
-- **Tier-2 transactional** — businesslike, scope spelled out,
-  contract terms attached. Reveals: this patron has a process.
-- **Tier-3 oblique** — formal, vague on specifics, the brief
-  *implies* what's wanted rather than stating it. Reveals: this
-  patron is careful and has reputation to protect.
+- **Tier-1 desperate** — officer notes the patron's rep was rushed, didn't
+  sit down, wouldn't explain the timeline. Reveals: no time, no resources,
+  no formal process.
+- **Tier-2 transactional** — officer notes a businesslike meeting, scope
+  spelled out, contract terms attached. Reveals: this patron has a process.
+- **Tier-3 oblique** — officer notes formality, vagueness on specifics, the
+  patron implying rather than stating. Reveals: this patron is careful and
+  has reputation to protect.
 
-The *form* carries the patron's situation. No narrator required.
+The officer's tone is consistent (pragmatic, observant, dry); what *shifts*
+is what they noticed about the patron.
 
 ### Per-patron consistency across contracts
 
-Same patron across multiple contracts → same voice, same target
-preferences, same blind spots, same idioms. The player notices the
-pattern without being told. Implementation: per-patron-archetype
-flavor pool indexed by `houseId`, drawing from category-tagged
-strings so the same Capo's contracts share idioms.
+Same patron across multiple contracts → the officer's reports converge.
+"Cavor's people again. Apologetic about the timeline this time — that's
+new." The player notices the pattern through the officer's continuity.
+Implementation: per-patron-archetype flavor pool indexed by `houseId`,
+drawing from category-tagged strings so the officer's recollections of
+the same Capo share idioms and call back to prior meetings.
 
 ### After-action reports as observation
 
@@ -553,14 +573,17 @@ lifetime *unless* a state-change event shifts it (see
 
 ### Starter set (6 archetypes)
 
-| Archetype | Briefing register | Payment | Narrative hook |
+All briefing-register columns describe **what the officer observed about
+the patron during the meeting** — never the patron's direct voice.
+
+| Archetype | What the officer observed | Payment | Narrative hook |
 | --- | --- | --- | --- |
-| **TIME_RUSHED** | Terse, no preamble, missing context, "no time to do it right" | Normal, but volatile — they cut corners | "What pressure are they under?" — desperation is the texture |
-| **FALLEN_NOBLE** | Formal-but-faded; references to a past status | Bad / delayed | "Are they a legitimate deposed heir or a con artist?" — moral hook, refuse-for-ethics surface |
-| **TRUE_BELIEVER** | Ideological, righteous, emotional appeals | Mediocre | "Are their targets righteous, or just convenient?" — alignment vs profit |
-| **ESTABLISHED** | Polished, oblique, formal contract terms | Premium, reliable | "Why are they using mercs instead of formal channels?" — what's embarrassing |
-| **SUSPICIOUS** | Curt, no questions, ethically gray targets | Premium, no questions asked | "What rep cost am I paying for this cash?" — MRB-rep penalty risk |
-| **NEWCOMER** | Clumsy, over-specified, signals inexperience | Overpays | "What happens when their superiors find out?" — high-variance outcomes |
+| **TIME_RUSHED** | Rep didn't sit down, sweated through it, wouldn't say why the window was so tight | Normal, but volatile — they cut corners | "What pressure are they under?" — desperation is the texture |
+| **FALLEN_NOBLE** | Envoy in person; talked about how the patron's family used to handle these in-house; trailed off | Bad / delayed | "Are they a legitimate deposed heir or a con artist?" — moral hook, refuse-for-ethics surface |
+| **TRUE_BELIEVER** | Twenty minutes on what the target's doing wrong before the numbers came up; thanked us before we'd agreed | Mediocre | "Are their targets righteous, or just convenient?" — alignment vs profit |
+| **ESTABLISHED** | Senior counsel, working lunch, polite, did not elaborate; "we did not press" | Premium, reliable | "Why are they using mercs instead of formal channels?" — what's embarrassing |
+| **SUSPICIOUS** | Walk-in, no real name, no paperwork beyond the contract itself, met off-site | Premium, no questions asked | "What rep cost am I paying for this cash?" — MRB-rep penalty risk |
+| **NEWCOMER** | Brought a lawyer who'd never bought a marine op before; binder, references requested, "service deliverables" | Overpays | "What happens when their superiors find out?" — high-variance outcomes |
 
 These six are the starter set; the enum is open-ended so future
 archetypes can be added without migration (existing rows stay valid;

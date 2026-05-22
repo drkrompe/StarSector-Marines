@@ -3,10 +3,20 @@ package com.dillon.starsectormarines.campaign;
 import java.util.Random;
 
 /**
- * Renders the briefing prose for a patron-house contract. The
- * archetype drives register (terse / formal / ideological / oblique /
- * curt / clumsy); the same patron rotates through a small bank of
- * templates per archetype so repeat work doesn't repeat verbatim.
+ * Renders the briefing prose for a patron-house contract.
+ *
+ * <p><b>Voice convention:</b> briefings are third-person dispatches from
+ * the company's contract comms officer (Castle from MechWarrior Mercenaries
+ * as the spiritual reference) recounting their meeting with the patron's
+ * representative. The player never reads a patron directly — the archetype
+ * manifests through what the officer <em>observed</em> about the patron
+ * (rushed, faded, ideological, polished, evasive, clumsy), not through the
+ * patron's own words. See {@code [[project_comms_officer_narrator]]} memory
+ * and {@code roadmap/campaign/contracts.md} for the full design.
+ *
+ * <p>The archetype drives the observation register; the same patron rotates
+ * through a small bank of templates per archetype so repeat work doesn't
+ * repeat verbatim.
  *
  * <p>Templates live in {@code mod/data/marines/patron_briefings.json}
  * and are loaded by {@link PatronBriefingTemplates}. Content authors
