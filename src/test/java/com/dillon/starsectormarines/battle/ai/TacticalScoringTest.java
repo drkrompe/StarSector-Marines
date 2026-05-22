@@ -721,13 +721,13 @@ public class TacticalScoringTest {
                 "test invariant: Hephaestus needs >1 rocket — adjust if balance changed");
 
         m0.secondaryActionTimer = MarineSecondary.ROCKET_LAUNCHER.aimDuration;
-        m0.secondaryAimTarget = turret;
+        m0.setSecondaryAimTarget(turret);
 
         assertTrue(TacticalScoring.shouldCommitRocket(m1, turret, sim),
                 "second marine joins when one inbound rocket isn't enough");
 
         m1.secondaryActionTimer = MarineSecondary.ROCKET_LAUNCHER.aimDuration;
-        m1.secondaryAimTarget = turret;
+        m1.setSecondaryAimTarget(turret);
 
         assertFalse(TacticalScoring.shouldCommitRocket(m2, turret, sim),
                 "third marine sees two inbound rockets (overkill) and must hold fire");
@@ -747,7 +747,7 @@ public class TacticalScoringTest {
         MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
 
         m0.secondaryActionTimer = MarineSecondary.ROCKET_LAUNCHER.aimDuration;
-        m0.secondaryAimTarget = turret;
+        m0.setSecondaryAimTarget(turret);
 
         assertFalse(TacticalScoring.shouldCommitRocket(m1, turret, sim),
                 "Vulcan only needs one rocket — second marine must hold fire");
@@ -814,7 +814,7 @@ public class TacticalScoringTest {
         MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
 
         mA.secondaryActionTimer = MarineSecondary.ROCKET_LAUNCHER.aimDuration;
-        mA.secondaryAimTarget = turret;
+        mA.setSecondaryAimTarget(turret);
 
         assertTrue(TacticalScoring.shouldCommitRocket(mB, turret, sim),
                 "squad coordination is per-squad — different squads don't block each other");

@@ -8,7 +8,7 @@ package com.dillon.starsectormarines.battle;
  * is the whole point of the mech, so each weapon's state is independent.
  *
  * <p>Chaingun fire reuses {@link Unit#cooldownTimer} / {@link Unit#burstRemaining}
- * / {@link Unit#burstTimer} / {@link Unit#burstTarget} — those fields are
+ * / {@link Unit#burstTimer} / {@link Unit#burstTargetId} — those fields are
  * unused on mechs (mechs don't carry a {@link MarineWeapon}), so we piggyback
  * cleanly. SRM salvo state is local here because it can run concurrently with
  * a chaingun burst, and reusing the same burst fields would collide.

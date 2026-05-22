@@ -39,15 +39,16 @@ public final class InfantryUnitPrep {
         unit.renderY = unit.cellY;
         float fireAt = unit.secondaryWeapon.aimDuration * 0.5f;
         if (!unit.secondaryFiredThisAction && unit.secondaryActionTimer <= fireAt) {
-            if (unit.secondaryAimTarget != null && unit.secondaryAimTarget.isAlive()) {
-                sim.fireSecondary(unit, unit.secondaryAimTarget);
+            Unit aimTarget = sim.resolveUnit(unit.secondaryAimTargetId);
+            if (aimTarget != null && aimTarget.isAlive()) {
+                sim.fireSecondary(unit, aimTarget);
             }
             unit.secondaryFiredThisAction = true;
             unit.secondaryCooldownTimer = unit.secondaryWeapon.cooldown;
         }
         if (unit.secondaryActionTimer <= 0f) {
             unit.secondaryActionTimer = 0f;
-            unit.secondaryAimTarget = null;
+            unit.secondaryAimTargetId = 0L;
         }
         return true;
     }
@@ -113,7 +114,7 @@ public final class InfantryUnitPrep {
 
         unit.secondaryActionTimer = unit.secondaryWeapon.aimDuration;
         unit.secondaryFiredThisAction = false;
-        unit.secondaryAimTarget = bestTurret;
+        unit.setSecondaryAimTarget(bestTurret);
         // Freeze movement state for this tick — the next tick's
         // tickAimAndShortCircuit will keep doing it. Mirrors what that method
         // does on its own entry path so the visible behavior is consistent

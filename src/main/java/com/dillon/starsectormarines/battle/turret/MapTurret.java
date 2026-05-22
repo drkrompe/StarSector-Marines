@@ -35,8 +35,16 @@ public class MapTurret extends Unit {
     public int burstRemaining;
     /** Sim-seconds until the next burst round fires. Counts down while {@link #burstRemaining} &gt; 0. */
     public float burstTimer;
-    /** Target locked when the burst started — held across the salvo so the rounds chase the same victim even if a closer one walks into LOS mid-burst. */
-    public Unit burstTarget;
+    /**
+     * Entity id of the target locked when the burst started — held across the
+     * salvo so the rounds chase the same victim even if a closer one walks
+     * into LOS mid-burst. {@code 0L} when idle. Shadows the inherited
+     * {@link Unit#burstTargetId} on purpose: turret burst-tick lives in
+     * {@link com.dillon.starsectormarines.battle.ai.TurretBehavior}, while the
+     * inherited field serves marine-style {@link Unit#beginBurst(Unit)}
+     * callsites the turret never invokes.
+     */
+    public long burstTargetId = 0L;
     /**
      * Sim-seconds since the last fired round. Reset to {@code 0} on every shot
      * (trigger pull AND each burst continuation), ticked every sim frame by

@@ -33,14 +33,16 @@ public final class TurretBehavior implements UnitBehavior {
         // Drop a stale burst if its victim died — frees the mount to
         // re-acquire, same shape as the shuttle-mounted equivalent in
         // AirSystem.tickShuttleTurrets.
-        if (t.burstRemaining > 0 && (t.burstTarget == null || !t.burstTarget.isAlive())) {
+        Unit currentBurstTarget = sim.resolveUnit(t.burstTargetId);
+        if (t.burstRemaining > 0 && (currentBurstTarget == null || !currentBurstTarget.isAlive())) {
             t.burstRemaining = 0;
-            t.burstTarget = null;
+            t.burstTargetId = 0L;
+            currentBurstTarget = null;
         }
         // Pin slew target during a burst so the barrel tracks the salvo
         // victim instead of drifting toward a fresh acquisition mid-burst.
         if (t.burstRemaining > 0) {
-            t.setTarget(t.burstTarget);
+            t.targetId = t.burstTargetId;
         }
 
         TurretAim.State s = new TurretAim.State();
@@ -78,13 +80,13 @@ public final class TurretBehavior implements UnitBehavior {
                 // the burst started, LoS was good; the renderer keeps firing
                 // even if LoS breaks mid-burst, matching the existing behavior.
                 boolean hasLos = sim.getGrid().hasLineOfSight(
-                        t.cellX, t.cellY, t.burstTarget.cellX, t.burstTarget.cellY);
-                sim.fireShotFrom(t.cellX + 0.5f, t.cellY + 0.5f, t.faction, t.kind, t.burstTarget,
+                        t.cellX, t.cellY, currentBurstTarget.cellX, currentBurstTarget.cellY);
+                sim.fireShotFrom(t.cellX + 0.5f, t.cellY + 0.5f, t.faction, t.kind, currentBurstTarget,
                         /*aerialShooter*/ false, hasLos);
                 t.recoilTimer = 0f;
                 t.burstRemaining--;
                 t.burstTimer = t.kind.burstSpacing;
-                if (t.burstRemaining == 0) t.burstTarget = null;
+                if (t.burstRemaining == 0) t.burstTargetId = 0L;
             }
             return;
         }
@@ -100,7 +102,7 @@ public final class TurretBehavior implements UnitBehavior {
                 if (s.target != null && s.target.isAlive()) {
                     t.burstRemaining = t.kind.burstCount - 1;
                     t.burstTimer = t.kind.burstSpacing;
-                    t.burstTarget = s.target;
+                    t.burstTargetId = s.target.entityId;
                 }
             } else {
                 // Single-shot kinds keep the existing Unit-vs-Unit fire path

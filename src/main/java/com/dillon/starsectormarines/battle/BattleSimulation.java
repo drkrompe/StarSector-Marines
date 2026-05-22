@@ -429,6 +429,19 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     public Unit targetOf(Unit u) {
         return rosterService.getRegistry().getOrNull(u.targetId);
     }
+
+    /**
+     * Resolves an arbitrary entity id to its {@link Unit}, or {@code null} when
+     * the id is unknown / released. The generic counterpart to
+     * {@link #targetOf(Unit)} — used by readers of the secondary
+     * id-typed fields ({@link Unit#burstTargetId},
+     * {@link Unit#secondaryAimTargetId}, {@link com.dillon.starsectormarines.battle.turret.MapTurret#burstTargetId})
+     * where there's no companion holder unit to thread.
+     */
+    @Override
+    public Unit resolveUnit(long id) {
+        return rosterService.getRegistry().getOrNull(id);
+    }
     /** Bucketed spatial index over alive units keyed on path destination (not current cell). Rebuilt alongside {@link #unitIndex} each tick. */
     public UnitDestinationSpatialIndex getDestIndex() { return destIndex; }
     /** Per-phase wall-clock profile of the most recent completed window of ticks. Read by the {@code TickProfileDebugPanel} HUD overlay + dump-to-disk button. */

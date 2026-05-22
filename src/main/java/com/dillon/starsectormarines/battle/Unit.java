@@ -193,15 +193,40 @@ public class Unit {
     public float secondaryActionTimer = 0f;
     /** Latched on launch within the current aim cycle so we only emit one shot per cycle, even though the trigger condition holds for several ticks past launch. */
     public boolean secondaryFiredThisAction = false;
-    /** Target locked at the start of the aim cycle. The rocket fires here even if the original target dies mid-aim — the launcher's already committed. */
-    public Unit secondaryAimTarget;
+    /**
+     * Entity id of the target locked at the start of the aim cycle. The rocket
+     * fires at this entity even if the original target dies mid-aim — the
+     * launcher's already committed. Resolve through
+     * {@link BattleSimulation#resolveUnit(long)}; {@code 0L} = no aim target.
+     * Writes go through {@link #setSecondaryAimTarget(Unit)}.
+     */
+    public long secondaryAimTargetId = 0L;
+
+    /** Sets {@link #secondaryAimTargetId} from a {@link Unit} ref (null → 0L). */
+    public void setSecondaryAimTarget(Unit t) {
+        this.secondaryAimTargetId = (t == null) ? 0L : t.entityId;
+    }
 
     /** Burst rounds queued after the AI's initial primary shot — the sim emits one per {@link MarineWeapon#burstSpacing} interval until exhausted. 0 = single-shot mode. */
     public int burstRemaining = 0;
     /** Sim-seconds until the next queued burst round fires. Decremented in {@code InfantryWeapons.tick}. */
     public float burstTimer = 0f;
-    /** Target captured when the burst was queued. Burst rounds keep firing here even if {@link #target} drifts to someone else, so a burst doesn't smear across multiple enemies. Cleared along with {@link #burstRemaining} when the burst ends or the target dies. */
-    public Unit burstTarget;
+    /**
+     * Entity id of the target captured when the burst was queued. Burst rounds
+     * keep firing at this entity even if {@link #targetId} drifts to someone
+     * else, so a burst doesn't smear across multiple enemies. {@code 0L} when
+     * idle (no burst active). Cleared along with {@link #burstRemaining} when
+     * the burst ends or the target is released from the registry. Resolve
+     * through {@link BattleSimulation#resolveUnit(long)}; writes go through
+     * {@link #setBurstTarget(Unit)} (or {@link #beginBurst(Unit)}, which
+     * sets it as part of the trigger).
+     */
+    public long burstTargetId = 0L;
+
+    /** Sets {@link #burstTargetId} from a {@link Unit} ref (null → 0L). */
+    public void setBurstTarget(Unit t) {
+        this.burstTargetId = (t == null) ? 0L : t.entityId;
+    }
 
     /**
      * Queue the burst follow-up rounds after the AI has already fired round 1.
@@ -217,7 +242,7 @@ public class Unit {
         if (primaryWeapon == null || primaryWeapon.burstCount <= 1) return;
         burstRemaining = primaryWeapon.burstCount - 1;
         burstTimer = primaryWeapon.burstSpacing;
-        burstTarget = target;
+        setBurstTarget(target);
     }
 
     /** Random prone-pose index rolled on death. Drives which corpse frame the renderer picks from {@link UnitType#deadSpritePath} so a battlefield has pose variety rather than every body in the same slump. -1 sentinel = unit still alive. */

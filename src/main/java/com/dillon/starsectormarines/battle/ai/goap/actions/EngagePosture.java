@@ -98,7 +98,7 @@ public final class EngagePosture implements Action {
                     && TacticalScoring.shouldCommitRocket(member, (MapTurret) target, sim)) {
                 member.secondaryActionTimer = member.secondaryWeapon.aimDuration;
                 member.secondaryFiredThisAction = false;
-                member.secondaryAimTarget = target;
+                member.setSecondaryAimTarget(target);
                 startedSecondary = true;
             }
             if (!startedSecondary && member.cooldownTimer <= 0f

@@ -46,19 +46,20 @@ public class InfantryWeapons {
             if (u.burstRemaining <= 0 || !u.isAlive()) continue;
             u.burstTimer -= BattleSimulation.TICK_DT;
             if (u.burstTimer > 0f) continue;
-            if (u.burstTarget == null || !u.burstTarget.isAlive() || u.primaryWeapon == null) {
+            Unit burstTarget = ctx.resolveUnit(u.burstTargetId);
+            if (burstTarget == null || !burstTarget.isAlive() || u.primaryWeapon == null) {
                 u.burstRemaining = 0;
-                u.burstTarget = null;
+                u.burstTargetId = 0L;
                 continue;
             }
             // Burst follow-up: use the unit's current motion state. If they
             // walked off the firing position mid-burst, the remaining rounds
             // get the MOVING accuracy penalty — same rule a hand-rolled
             // moving-fire callsite gets.
-            fireShot(ctx, u, u.burstTarget, FireStance.stanceFor(u));
+            fireShot(ctx, u, burstTarget, FireStance.stanceFor(u));
             u.burstRemaining--;
             u.burstTimer = u.primaryWeapon.burstSpacing;
-            if (u.burstRemaining == 0) u.burstTarget = null;
+            if (u.burstRemaining == 0) u.burstTargetId = 0L;
         }
     }
 

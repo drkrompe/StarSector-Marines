@@ -39,6 +39,15 @@ public interface WeaponSimContext {
     List<Unit> getUnits();
 
     /**
+     * Resolves an entity id to its {@link Unit}, or {@code null} when the id
+     * is unknown / released. Used by weapon-system reads of the id-typed
+     * Unit fields ({@code burstTargetId}, etc.) where the burst tick needs
+     * to chase the locked victim through the registry rather than a stale
+     * object reference.
+     */
+    Unit resolveUnit(long id);
+
+    /**
      * Applies {@code damage} (pre-cover) to {@code target}. The implementation
      * looks up cover at the target's cell, applies the cover damage reduction
      * curve, multiplies by {@code vsTurretMult} when the target is a turret,

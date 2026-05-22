@@ -61,7 +61,7 @@ public class InfantryUnitPrepTest {
         assertTrue(started, "marine in rocket range with LOS should start aim");
         assertEquals(MarineSecondary.ROCKET_LAUNCHER.aimDuration,
                 marine.secondaryActionTimer, 0.001f);
-        assertSame(turret, marine.secondaryAimTarget);
+        assertEquals(turret.entityId, marine.secondaryAimTargetId);
     }
 
     @Test
