@@ -102,7 +102,7 @@ public final class TurretBehavior implements UnitBehavior {
                 sim.fireShotFrom(t.cellX + 0.5f, t.cellY + 0.5f, t.faction, t.kind, s.target,
                         /*aerialShooter*/ false, s.lastFireHadLos);
                 t.recoilTimer = 0f;
-                if (s.target != null && s.target.isAlive()) {
+                if (s.target != null) {
                     t.burstRemaining = t.kind.burstCount - 1;
                     t.burstTimer = t.kind.burstSpacing;
                     t.burstTargetId = s.target.entityId;

@@ -136,7 +136,7 @@ public final class DroneSwarmAction implements Action {
         d.renderX = d.body.x - 0.5f;
         d.renderY = d.body.y - 0.5f;
 
-        if (s.fireThisTick && s.target != null && s.target.isAlive()) {
+        if (s.fireThisTick && s.target != null) {
             sim.fireShot(d, s.target, FireStance.STANCED);
             d.beginBurst(s.target);
         }

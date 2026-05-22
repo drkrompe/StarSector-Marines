@@ -102,7 +102,7 @@ public final class TurretAim {
         NavigationGrid grid = sim.getGrid();
         float shooterAirR = s.ignoreCloseWalls ? s.closeWallRadius : 0f;
 
-        if (s.target == null || !s.target.isAlive()) {
+        if (s.target == null) {
             s.target = TacticalScoring.findBestTarget(
                     s.originCellX, s.originCellY, s.faction, s.squadId, s.excludeFromCrowding,
                     shooterAirR, sim, /*allowNoLos*/ s.indirectFire);
