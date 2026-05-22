@@ -157,20 +157,26 @@ provider produces a 2-truck staggered convoy.
 
 ## v1 cut
 
+**Status: landed.** Package
+`com.dillon.starsectormarines.battle.reinforcement` holds the
+service + interfaces + the first trigger and means. `BattleSimulation`
+owns a `ReinforcementService` field and ticks it before the air/ground
+systems; `BattleSetup.installReinforcementLayer` registers the v1
+pair on every mission. The legacy `DEBUG_SPAWN_TEST_CONVOY` method
+is no longer called (kept in place as an emergency rollback knob
+until playtest confirms the service path).
+
 Smallest end-to-end slice that proves the abstraction:
 
-- One trigger: `GarrisonDepletedTrigger`
+- One trigger: `GarrisonDepletedTrigger` — fires once per defender
+  COMMAND_POST / BARRACKS / ARMORY compound when aggregated squad
+  strength drops below 0.5; rally = compound center.
 - One means: `ConvoyMeans` (the V1+polish path, gated on road graph)
-- Strength: ignored at first — convoy always spawns 1 truck
-- Rally: nearest tactical node to the depleted compound
-- Tickets: stubbed to "unlimited" defender-side; budget plumbing comes
-  in the second slice once existing shuttle-drop accounting is folded
-  in (see Decisions §1)
-
-Replaces `DEBUG_SPAWN_TEST_CONVOY` entirely. The interfaces (request,
-trigger, means) all exist with only one implementation each — adding
-the next trigger, means, or the real ticket budget lands as a
-follow-up that doesn't touch the abstraction.
+- Strength: read but ignored — convoy always spawns 1 truck regardless
+- Rally: trigger always supplies it; means honors it
+- Tickets: not modeled — every request gets dispatch attempts. Budget
+  plumbing comes in the second slice once existing shuttle-drop
+  accounting is folded in (see Decisions §1)
 
 ## Decisions
 

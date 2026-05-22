@@ -12,6 +12,9 @@ import com.dillon.starsectormarines.battle.ground.Vehicle;
 import com.dillon.starsectormarines.battle.ground.VehicleType;
 import com.dillon.starsectormarines.battle.mapgen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.mapgen.road.RoadReservation;
+import com.dillon.starsectormarines.battle.reinforcement.ConvoyMeans;
+import com.dillon.starsectormarines.battle.reinforcement.GarrisonDepletedTrigger;
+import com.dillon.starsectormarines.battle.reinforcement.ReinforcementService;
 import com.dillon.starsectormarines.battle.ui.debug.ConvoySpawnDumper;
 import org.apache.log4j.Logger;
 import com.dillon.starsectormarines.battle.map.CellTopology;
@@ -234,7 +237,7 @@ public final class BattleSetup {
         // planter has died) spread across the multi-site map instead of
         // dogpiling the nearest fight.
         sim.setCommander(Faction.MARINE, new SabotageCommand());
-        maybeSpawnDebugConvoy(sim, map);
+        installReinforcementLayer(sim, map);
         return sim;
     }
 
@@ -436,7 +439,7 @@ public final class BattleSetup {
         // spawn around the defender anchor.
         allocateDefenders(sim, map, DefenderRoster.forMission(type, risk, enemyHasHeavyArmor), rng);
         spawnAmbientCivilians(sim, map, rng);
-        maybeSpawnDebugConvoy(sim, map);
+        installReinforcementLayer(sim, map);
         return sim;
     }
 
@@ -521,16 +524,30 @@ public final class BattleSetup {
         // occupied zone in its strip. Spreads marines across the frontage
         // instead of dogpiling the nearest defender contact.
         sim.setCommander(Faction.MARINE, new ConquestCommand(axis));
-        maybeSpawnDebugConvoy(sim, map);
+        installReinforcementLayer(sim, map);
         return sim;
     }
 
     /**
-     * Dev-only flag — when true, every {@link #createConquest} run also
-     * spawns a single defender-side militia truck that enters from the
-     * nearest perimeter trunk-exit on the defender edge, drives to the
-     * trunk crossing, deboards, and leaves the way it came. Flip to false
-     * once the convoy work is wired into a real reinforcement pipeline.
+     * Install the v1 reinforcement layer on the sim: one
+     * {@link GarrisonDepletedTrigger} + one {@link ConvoyMeans}.
+     * Non-Conquest maps register the same pair and self-gate harmlessly
+     * (the trigger walks defender squads and finds no compound
+     * assignments; the means returns {@code canFulfill = false} when
+     * the road graph is empty). Replaces the prior
+     * {@link #maybeSpawnDebugConvoy} debug-spawn path.
+     */
+    private static void installReinforcementLayer(BattleSimulation sim, MapResult map) {
+        ReinforcementService rs = sim.getReinforcementService();
+        rs.addTrigger(new GarrisonDepletedTrigger());
+        rs.addMeans(new ConvoyMeans(map.roadGraph));
+    }
+
+    /**
+     * Dev-only flag — when true, the (legacy) {@link #maybeSpawnDebugConvoy}
+     * path drops a single defender-side militia truck per battle. Retained
+     * for emergency rollback while the {@link ReinforcementService} v1 cut
+     * beds in; not called from any active code path.
      */
     public static boolean DEBUG_SPAWN_TEST_CONVOY = true;
     /** Sim-seconds before the test convoy emerges from off-map. Long enough that the player sees the battle start before reinforcements arrive. */
