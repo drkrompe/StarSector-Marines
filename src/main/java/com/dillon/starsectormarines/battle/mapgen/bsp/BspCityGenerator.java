@@ -326,10 +326,13 @@ public final class BspCityGenerator implements MapGenerator {
 
         // Step 3c''' — keep multi-chamber detection. When the COMMAND_POST
         // sub-building got a BuildingShellCore multi-room partition (≥7
-        // cells in some dimension, 65% chance), emit a BARRACKS tactical
-        // node anchored in the chamber that doesn't contain the COMMAND_POST
-        // anchor — the entry chamber. Multi-room storming sequence reads as
-        // two capture beats. Slice 6 of central-keep.md.
+        // cells in some dimension, 65% chance), emit an INNER_POSITION
+        // tactical node anchored in the chamber that doesn't contain the
+        // COMMAND_POST anchor — the antechamber. INNER_POSITION is an
+        // interior garrison anchor only: not a compound, no capture marker,
+        // not in the compound-leaf fallback graph. Defender allocator picks
+        // it up Pass 1 so the antechamber gets manned. Slice 6 of
+        // central-keep.md (patch 1 of the slice-6 fix sequence).
         KeepEntryChamberStamper.stamp(grid, tactical);
 
         // Step 3d — link tactical nodes. Runs once after every node is

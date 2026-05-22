@@ -30,12 +30,16 @@ import java.util.List;
  * (player should read "one keep, one compound" visually). {@link
  * CompoundService#isCompound} already returns false for INNER_POSITION
  * so the supply layer, the capture renderer, and the conquest-objective
- * check all naturally ignore it. {@link TacticalLinker}'s
- * compound-leaf fallback pass also skips it, so the throne-room garrison
- * never gets a backward FALLBACK_TO pointing at the entry chamber (which
- * sits on the attacker-side of the partition). The defender allocator
- * still picks it up the same as any other tactical kind, so the garrison
- * lands and fights.
+ * check all naturally ignore it. {@link TacticalLinker}'s compound-leaf
+ * fallback pass also skips it, so the throne-room COMMAND_POST never
+ * gets a same-leaf FALLBACK_TO link to the antechamber — partition
+ * orientation is random (BuildingShellCore picks whichever axis ≥
+ * MULTI_ROOM_MIN_DIM and a randomized split point) so we can't rely on
+ * the antechamber being on the attacker's side, but a fallback link
+ * between two rooms of the same building is wrong regardless of which
+ * side either room faces. The defender allocator still picks
+ * INNER_POSITION up the same as any other tactical kind, so the
+ * garrison lands and fights.
  *
  * <p>Detection method: flood-fill from the COMMAND_POST anchor over
  * walkable cells inside the building's leaf bbox. Cells in the bbox

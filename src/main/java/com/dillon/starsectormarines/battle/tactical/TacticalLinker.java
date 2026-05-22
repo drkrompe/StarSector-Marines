@@ -117,11 +117,12 @@ public final class TacticalLinker {
         //
         // INNER_POSITION is intentionally excluded from this set: an
         // inner-position node lives inside the same leaf bbox as its parent
-        // COMMAND_POST, so including it would emit a same-leaf fallback link
-        // (e.g. throne room → entry chamber, which sits on the attacker's
-        // side of the partition — defenders running toward marines). Interior
-        // fallback within a single compound is goal-AI territory, not the
-        // link graph.
+        // compound (e.g. a keep's antechamber sharing a building with the
+        // COMMAND_POST). Including it would emit a same-leaf FALLBACK_TO —
+        // the throne-room garrison routed to consolidate inside its own
+        // building's other room rather than to a sibling compound or wall
+        // position. Interior fallback within a single compound is goal-AI
+        // territory, not the link graph.
         EnumSet<TacticalNode.Kind> interiorLeaves = EnumSet.of(
                 TacticalNode.Kind.COMMAND_POST,
                 TacticalNode.Kind.BARRACKS,

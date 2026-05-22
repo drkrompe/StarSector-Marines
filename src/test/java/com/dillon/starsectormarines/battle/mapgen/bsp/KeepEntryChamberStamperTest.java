@@ -14,8 +14,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * Synthetic-grid coverage for {@link KeepEntryChamberStamper}. Each test
  * builds a small grid with a known building geometry, registers a single
- * COMMAND_POST tactical node, runs the stamper, and asserts whether the
- * entry-chamber BARRACKS was emitted (and at the expected anchor).
+ * COMMAND_POST tactical node, runs the stamper, and asserts whether an
+ * INNER_POSITION (the entry-chamber anchor) was emitted at the expected
+ * cell.
  */
 public class KeepEntryChamberStamperTest {
 
@@ -42,7 +43,7 @@ public class KeepEntryChamberStamperTest {
     public void singleRoomBuildingSkipsEmission() {
         // No interior wall → flood from the COMMAND_POST anchor reaches
         // every walkable cell in the leaf bbox → no other-room cells
-        // exist → no BARRACKS emitted.
+        // exist → no INNER_POSITION emitted.
         NavigationGrid grid = openGrid();
         TacticalNode cp = commandPost(8, 8, 12, 12, 10, 10);
         List<TacticalNode> tactical = new ArrayList<>();
@@ -110,7 +111,7 @@ public class KeepEntryChamberStamperTest {
     public void ignoresNonCommandPostKinds() {
         // The stamper only walks COMMAND_POST nodes. A BARRACKS or
         // ARMORY in a multi-room building shouldn't get an extra
-        // chamber emission — only the keep does.
+        // INNER_POSITION emission — only the keep does.
         NavigationGrid grid = openGrid();
         for (int x = 6; x <= 13; x++) {
             if (x == 10) continue;

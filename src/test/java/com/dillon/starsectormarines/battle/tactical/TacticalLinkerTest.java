@@ -70,4 +70,30 @@ public class TacticalLinkerTest {
         assertTrue(cmd.linkedTo(TacticalNode.LinkKind.FALLBACK_TO).isEmpty(),
                 "lone interior leaf has no fallback target — list must stay empty");
     }
+
+    @Test
+    public void innerPositionDoesNotParticipateInCompoundFallback() {
+        // Patch 1 of the slice-6 fix regression-pin: a keep's INNER_POSITION
+        // (the antechamber emitted by KeepEntryChamberStamper) lives inside
+        // the same leaf bbox as its parent COMMAND_POST. Including it in the
+        // interior-leaves fallback set would emit a same-leaf FALLBACK_TO —
+        // the throne-room garrison consolidating into the antechamber rather
+        // than to a sibling compound. Pin both directions: COMMAND_POST must
+        // NOT pick INNER_POSITION as its fallback target even when it's the
+        // closest candidate, AND INNER_POSITION must not emit a fallback link
+        // of its own.
+        TacticalNode cmd = node(TacticalNode.Kind.COMMAND_POST, 50, 50);
+        TacticalNode inner = node(TacticalNode.Kind.INNER_POSITION, 50, 53);
+        TacticalNode sibling = node(TacticalNode.Kind.BARRACKS, 50, 80);
+        TacticalMap map = new TacticalMap(List.of(cmd, inner, sibling));
+        TacticalLinker.link(map);
+
+        List<TacticalNode> cmdFallback = cmd.linkedTo(TacticalNode.LinkKind.FALLBACK_TO);
+        assertEquals(1, cmdFallback.size(),
+                "COMMAND_POST should emit exactly one fallback link (to the sibling BARRACKS, NOT the INNER_POSITION)");
+        assertEquals(sibling, cmdFallback.get(0),
+                "INNER_POSITION must not appear as a fallback target even when nearer than the sibling compound");
+        assertTrue(inner.linkedTo(TacticalNode.LinkKind.FALLBACK_TO).isEmpty(),
+                "INNER_POSITION must not emit a compound-leaf fallback link — interior fallback is goal-AI territory");
+    }
 }
