@@ -32,8 +32,8 @@ that layer (see `roadmap/campaign/` for the design docs;
 `sessions/2026-05-21-3.md` for the implementation summary).
 
 The battle/ground side continues to evolve in parallel (convoy
-kinematics, mapgen, AI) — see the recent session logs for sibling-track
-activity.
+kinematics, mapgen, AI) — see `roadmap/convoy/` for the ground-vehicle
+track and the recent session logs for other sibling-track activity.
 
 ## Immediate next-up
 
