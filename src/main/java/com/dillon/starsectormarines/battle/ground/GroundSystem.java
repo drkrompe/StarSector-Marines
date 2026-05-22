@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.ground;
 
+import com.dillon.starsectormarines.battle.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.MarineLoadout;
 import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
@@ -251,7 +252,10 @@ public class GroundSystem {
         int lzCellY = (int) Math.floor(v.lzY);
         int[] cell = findDeboardCell(lzCellX, lzCellY, ctx);
         if (cell == null) return false;
-        Unit marine = new Unit(ctx.nextMarineId(), v.faction, UnitType.MARINE, cell[0], cell[1]);
+        UnitType deboardType = (v.deboardUnitType != null)
+                ? v.deboardUnitType
+                : FactionUnitRoster.forFaction(v.faction).infantry();
+        Unit marine = new Unit(ctx.nextMarineId(), v.faction, deboardType, cell[0], cell[1]);
         int slot = v.type.capacity - v.marinesRemaining;
         MarineLoadout loadout = (v.marineLoadout != null && slot < v.marineLoadout.length)
                 ? v.marineLoadout[slot] : null;

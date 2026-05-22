@@ -2,8 +2,9 @@ package com.dillon.starsectormarines.battle.air;
 
 import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.MarineLoadout;
-import com.dillon.starsectormarines.battle.turret.TurretRole;
 import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.UnitType;
+import com.dillon.starsectormarines.battle.turret.TurretRole;
 
 /**
  * One troop-drop shuttle. Separate from {@link Unit} because shuttles are
@@ -129,6 +130,17 @@ public class Shuttle {
      * hover entirely and departs immediately.
      */
     public TurretRole assignedRole;
+
+    /**
+     * Optional override for the {@link UnitType} stamped on each deboarded
+     * marine. {@code null} (default) means {@code AirSystem.tryDeboardMarine}
+     * picks {@code FactionUnitRoster.forFaction(faction).infantry()} — the
+     * bulk type for this side. Reinforcement {@code ShuttleMeans} sets this
+     * to the elite slot so air-drop reinforcement reads as "stiffening
+     * delivery"; the player's normal shuttle drops leave it null and get
+     * the faction's standard infantry.
+     */
+    public UnitType deboardUnitType;
 
     /**
      * Mounted turrets, sized to {@code type.hardpoints} and populated from

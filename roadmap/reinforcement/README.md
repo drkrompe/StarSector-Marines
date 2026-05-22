@@ -11,6 +11,10 @@ convoy, shuttle) to fulfill it.
 - [`architecture.md`](architecture.md) — system design: request shape,
   means-provider interface, trigger registry, rally-point selection,
   strength scaling, v1 cut, open questions.
+- [`faction-roster.md`](faction-roster.md) — refactor doc: per-faction
+  `UnitType` catalog so reinforcement-spawned units thematically match
+  the requesting side instead of literal-typing MARINE / MILITIA in
+  three different call sites.
 
 ## Related
 

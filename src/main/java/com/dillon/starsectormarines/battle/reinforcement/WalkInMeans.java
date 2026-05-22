@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.reinforcement;
 
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.UnitRole;
@@ -85,11 +86,12 @@ public final class WalkInMeans implements ReinforcementMeans {
         }
 
         TacticalNode anchor = nearestCompoundNode(sim, req.rallyX, req.rallyY);
+        UnitType infantryType = FactionUnitRoster.forFaction(req.side).infantry();
 
         Squad squad = null;
         int spawned = 0;
         for (int[] cell : spawnCells) {
-            Unit unit = new Unit("r" + (nextUnitId++), req.side, UnitType.MILITIA, cell[0], cell[1]);
+            Unit unit = new Unit("r" + (nextUnitId++), req.side, infantryType, cell[0], cell[1]);
             unit.role = UnitRole.PATROL;
             if (squad == null) {
                 int sid = sim.mintSquad(req.side, unit);

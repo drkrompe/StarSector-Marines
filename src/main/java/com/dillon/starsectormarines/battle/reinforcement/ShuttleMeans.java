@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.reinforcement;
 
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.mapgen.TraversalAxis;
@@ -81,8 +82,13 @@ public final class ShuttleMeans implements ReinforcementMeans {
                 entry[2], entry[3],
                 /*pendingDelay*/ 0f);
         shuttle.totalCycles = 1;
+        // Reinforcement shuttles deboard the faction's elite tier (the
+        // narrative of "expensive air-drop = stiffening delivery"). Default
+        // player shuttles leave deboardUnitType null and get the bulk
+        // infantry slot — see roadmap/reinforcement/faction-roster.md.
+        shuttle.deboardUnitType = FactionUnitRoster.forFaction(req.side).elite();
         // No marineLoadout / no turret kit — AirSystem deboards plain COMBATANT
-        // marines and the null assignedRole skips HOVER_STATION (shuttle drops,
+        // units and the null assignedRole skips HOVER_STATION (shuttle drops,
         // unloads, and leaves immediately).
         sim.addShuttle(shuttle);
         LOG.info("ShuttleMeans: dispatched " + DEFAULT_TYPE + " side=" + req.side

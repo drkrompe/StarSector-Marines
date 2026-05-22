@@ -836,11 +836,15 @@ public final class BattleSetup {
         // mech-screened advance) is the integration point instead. Mechs
         // drain first into the highest-priority slots; once exhausted,
         // infantry fills the rest.
+        FactionUnitRoster defRoster = FactionUnitRoster.forFaction(Faction.DEFENDER);
+        UnitType mechType = defRoster.mech();
+        UnitType eliteType = defRoster.elite();
+        UnitType infantryType = defRoster.infantry();
         java.util.Deque<UnitType> mechQueue = new java.util.ArrayDeque<>();
         java.util.Deque<UnitType> infQueue = new java.util.ArrayDeque<>();
-        for (int i = 0; i < roster.mechCount; i++) mechQueue.add(UnitType.HEAVY_MECH);
-        for (int i = 0; i < roster.eliteCount; i++) infQueue.add(UnitType.MARINE_RED);
-        for (int i = 0; i < roster.militiaCount; i++) infQueue.add(UnitType.MILITIA);
+        for (int i = 0; i < roster.mechCount; i++) mechQueue.add(mechType);
+        for (int i = 0; i < roster.eliteCount; i++) infQueue.add(eliteType);
+        for (int i = 0; i < roster.militiaCount; i++) infQueue.add(infantryType);
 
         int defenderIdx = 0;
         // Battle-wide counter, shared by Pass 1 + Pass 2. Round-robins
@@ -863,7 +867,7 @@ public final class BattleSetup {
             for (int[] cell : cells) {
                 if (source.isEmpty()) break;
                 UnitType type = source.poll();
-                MechRole mechRole = (type == UnitType.HEAVY_MECH) ? nextMechRole(mechSpawnIdx++) : null;
+                MechRole mechRole = (type == mechType) ? nextMechRole(mechSpawnIdx++) : null;
                 Unit unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1], mechRole);
                 unit.role = UnitRole.GARRISON;
                 unit.homeCellX = cell[0];
@@ -917,7 +921,7 @@ public final class BattleSetup {
             for (int[] cell : cells) {
                 if (source.isEmpty()) break;
                 UnitType type = source.poll();
-                MechRole mechRole = (type == UnitType.HEAVY_MECH) ? nextMechRole(mechSpawnIdx++) : null;
+                MechRole mechRole = (type == mechType) ? nextMechRole(mechSpawnIdx++) : null;
                 Unit unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1], mechRole);
                 unit.role = UnitRole.PATROL;
                 if (squad == null) {
@@ -951,11 +955,13 @@ public final class BattleSetup {
         // Same mech-vs-infantry split as allocateDefenders — each squad
         // drains from a single source queue so mechs and infantry never
         // share membership.
+        FactionUnitRoster defRoster = FactionUnitRoster.forFaction(Faction.DEFENDER);
+        UnitType mechType = defRoster.mech();
         java.util.Deque<UnitType> mechQueue = new java.util.ArrayDeque<>();
         java.util.Deque<UnitType> infQueue = new java.util.ArrayDeque<>();
-        for (int i = 0; i < roster.mechCount; i++)    mechQueue.add(UnitType.HEAVY_MECH);
-        for (int i = 0; i < roster.eliteCount; i++)   infQueue.add(UnitType.MARINE_RED);
-        for (int i = 0; i < roster.militiaCount; i++) infQueue.add(UnitType.MILITIA);
+        for (int i = 0; i < roster.mechCount; i++)    mechQueue.add(mechType);
+        for (int i = 0; i < roster.eliteCount; i++)   infQueue.add(defRoster.elite());
+        for (int i = 0; i < roster.militiaCount; i++) infQueue.add(defRoster.infantry());
 
         int defenderIdx = 0;
         int cellIdx = 0;
@@ -969,7 +975,7 @@ public final class BattleSetup {
             for (int s = 0; s < squadSize; s++) {
                 int[] cell = cells.get(cellIdx++);
                 UnitType type = source.poll();
-                MechRole mechRole = (type == UnitType.HEAVY_MECH) ? nextMechRole(mechSpawnIdx++) : null;
+                MechRole mechRole = (type == mechType) ? nextMechRole(mechSpawnIdx++) : null;
                 Unit unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1], mechRole);
                 unit.role = UnitRole.PATROL;
                 if (squad == null) {
@@ -993,7 +999,9 @@ public final class BattleSetup {
      */
     private static Unit makeDefender(String id, UnitType type, int x, int y, MechRole mechRole) {
         Unit unit = new Unit(id, Faction.DEFENDER, type, x, y);
-        if (type == UnitType.HEAVY_MECH) unit.mech = MechLoadoutState.defaultLoadout(mechRole);
+        if (type == FactionUnitRoster.forFaction(Faction.DEFENDER).mech()) {
+            unit.mech = MechLoadoutState.defaultLoadout(mechRole);
+        }
         return unit;
     }
 

@@ -65,6 +65,17 @@ public class Vehicle {
     public MarineLoadout[] marineLoadout;
 
     /**
+     * Optional override for the {@link com.dillon.starsectormarines.battle.UnitType}
+     * stamped on each deboarded passenger. {@code null} (default) means
+     * {@code GroundSystem.tryDeboardMarine} picks
+     * {@code FactionUnitRoster.forFaction(faction).infantry()}. Symmetric to
+     * {@code Shuttle.deboardUnitType}; lets a convoy disgorge the right tier
+     * for the requesting side rather than baking marine stats into every
+     * truck.
+     */
+    public com.dillon.starsectormarines.battle.UnitType deboardUnitType;
+
+    /**
      * Squad identity assigned to all marines deboarded from this vehicle.
      * Lazily set to a fresh id on the first successful deboard; {@link Unit#NO_SQUAD}
      * means "no squad has been created for this vehicle yet."

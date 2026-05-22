@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.air;
 
 import com.dillon.starsectormarines.battle.BattleSimulation;
+import com.dillon.starsectormarines.battle.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.MarineLoadout;
 import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
@@ -428,7 +429,10 @@ public class AirSystem {
         int lzCellY = (int) Math.floor(s.lzY);
         int[] cell = findDeboardCell(lzCellX, lzCellY, ctx);
         if (cell == null) return false;
-        Unit marine = new Unit(ctx.nextMarineId(), s.faction, UnitType.MARINE, cell[0], cell[1]);
+        UnitType deboardType = (s.deboardUnitType != null)
+                ? s.deboardUnitType
+                : FactionUnitRoster.forFaction(s.faction).infantry();
+        Unit marine = new Unit(ctx.nextMarineId(), s.faction, deboardType, cell[0], cell[1]);
         int slot = s.type.capacity - s.marinesRemaining;
         MarineLoadout loadout = (s.marineLoadout != null && slot < s.marineLoadout.length)
                 ? s.marineLoadout[slot] : null;
