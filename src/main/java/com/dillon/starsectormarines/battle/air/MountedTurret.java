@@ -25,8 +25,15 @@ public final class MountedTurret {
     public float cooldownTimer;
     /** Rounds remaining in this mount's magazine. Initialized from {@link TurretKind#startingAmmo} at construction; the hover-loiter exits when every mount on the shuttle hits zero. */
     public int ammo;
-    /** Currently locked enemy, or null when nothing's in range/LOS. Persisted across ticks so the aim loop doesn't re-acquire every frame. */
-    public Unit target;
+    /**
+     * Currently locked enemy as a {@link Unit#entityId} into the registry, or
+     * {@code 0L} when nothing's in range/LOS. Persisted across ticks so the aim
+     * loop doesn't re-acquire every frame; resolve via
+     * {@link com.dillon.starsectormarines.battle.BattleSimulation#resolveUnit}
+     * — released entities surface as {@code null} without an explicit liveness
+     * check by the holder.
+     */
+    public long targetId = 0L;
 
     /**
      * Rounds left to fire in the current burst (excluding the first round,
@@ -38,8 +45,12 @@ public final class MountedTurret {
     public int burstRemaining;
     /** Sim-seconds until the next burst round fires. Counts down while {@link #burstRemaining} &gt; 0. */
     public float burstTimer;
-    /** Target locked when the burst started — held across the salvo so the rounds chase the same victim even if a closer one walks into LOS mid-burst. */
-    public Unit burstTarget;
+    /**
+     * Target locked when the burst started, as a {@link Unit#entityId} —
+     * held across the salvo so the rounds chase the same victim even if a
+     * closer one walks into LOS mid-burst. {@code 0L} when no burst is active.
+     */
+    public long burstTargetId = 0L;
     /**
      * Sim-seconds since the last fired round. Reset to {@code 0} on every shot
      * (trigger pull AND each burst continuation), ticked every sim frame by
@@ -53,6 +64,16 @@ public final class MountedTurret {
     public MountedTurret(TurretMount mount) {
         this.mount = mount;
         this.ammo = mount.kind.startingAmmo;
+    }
+
+    /** Null-safe write into {@link #targetId} — same shape as {@link Unit#setTarget}. */
+    public void setTarget(Unit t) {
+        this.targetId = (t == null) ? 0L : t.entityId;
+    }
+
+    /** Null-safe write into {@link #burstTargetId} — same shape as {@link Unit#setBurstTarget}. */
+    public void setBurstTarget(Unit t) {
+        this.burstTargetId = (t == null) ? 0L : t.entityId;
     }
 
     /** True once every mount on the shuttle has fired its magazine dry. */

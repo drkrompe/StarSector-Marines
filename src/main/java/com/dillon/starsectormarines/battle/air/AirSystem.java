@@ -203,7 +203,7 @@ public class AirSystem {
                             // stale target lock so the next hover starts clean.
                             for (MountedTurret mt : s.turrets) {
                                 mt.ammo = mt.mount.kind.startingAmmo;
-                                mt.target = null;
+                                mt.targetId = 0L;
                                 mt.cooldownTimer = 0f;
                             }
                             s.state = Shuttle.State.PENDING;
@@ -251,20 +251,27 @@ public class AirSystem {
                     // Mag dry mid-burst — drop any pending rounds so the mount
                     // doesn't stay in a never-firing burst state.
                     mt.burstRemaining = 0;
-                    mt.burstTarget = null;
+                    mt.burstTargetId = 0L;
                     continue;
                 }
-                // A burst whose victim died is dead too — release the lock so
-                // the aim loop can re-acquire a fresh target next tick.
+                // Resolve the burst victim once per tick — null surfaces both
+                // "released from registry" and "id was 0L all along," same path
+                // as TurretBehavior's MapTurret-shadow read.
+                Unit currentBurstTarget = sim.resolveUnit(mt.burstTargetId);
                 if (mt.burstRemaining > 0
-                        && (mt.burstTarget == null || !mt.burstTarget.isAlive())) {
+                        && (currentBurstTarget == null || !currentBurstTarget.isAlive())) {
+                    // A burst whose victim died is dead too — release the lock so
+                    // the aim loop can re-acquire a fresh target next tick.
                     mt.burstRemaining = 0;
-                    mt.burstTarget = null;
+                    mt.burstTargetId = 0L;
+                    currentBurstTarget = null;
                 }
                 // Pin the slew target during a burst so the barrel tracks the
                 // salvo victim even if a closer enemy walked into LOS mid-burst.
+                // Direct id-to-id copy (not setTarget) — both fields are entity
+                // ids in the same id space, no null encoding to apply.
                 if (mt.burstRemaining > 0) {
-                    mt.target = mt.burstTarget;
+                    mt.targetId = mt.burstTargetId;
                 }
 
                 float lx = mt.mount.localOffsetX;
@@ -291,7 +298,7 @@ public class AirSystem {
                 aim.minRange = mt.mount.kind.minRange;
                 aim.cooldownTimer = mt.cooldownTimer;
                 aim.attackCooldown = mt.mount.kind.cooldown;
-                aim.target = mt.target;
+                aim.target = sim.resolveUnit(mt.targetId);
                 aim.ignoreCloseWalls = true;
                 aim.closeWallRadius = SHUTTLE_AIR_LOS_RADIUS;
 
@@ -299,7 +306,7 @@ public class AirSystem {
 
                 mt.facingDegrees = aim.facingDegrees;
                 mt.cooldownTimer = aim.cooldownTimer;
-                mt.target = aim.target;
+                mt.setTarget(aim.target);
 
                 // Shot origin Y carries the shuttle's visual altitude so the
                 // rendered round leaves the turret at its drawn position
@@ -315,12 +322,12 @@ public class AirSystem {
                 if (mt.burstRemaining > 0) {
                     mt.burstTimer -= dt;
                     if (mt.burstTimer <= 0f) {
-                        sim.fireShotFrom(worldX, shotOriginY, s.faction, mt.mount.kind, mt.burstTarget, /*aerialShooter*/ true);
+                        sim.fireShotFrom(worldX, shotOriginY, s.faction, mt.mount.kind, currentBurstTarget, /*aerialShooter*/ true);
                         mt.recoilTimer = 0f;
                         mt.ammo--;
                         mt.burstRemaining--;
                         mt.burstTimer = mt.mount.kind.burstSpacing;
-                        if (mt.burstRemaining == 0) mt.burstTarget = null;
+                        if (mt.burstRemaining == 0) mt.burstTargetId = 0L;
                     }
                     continue;
                 }
@@ -335,7 +342,7 @@ public class AirSystem {
                             && aim.target != null && aim.target.isAlive()) {
                         mt.burstRemaining = mt.mount.kind.burstCount - 1;
                         mt.burstTimer = mt.mount.kind.burstSpacing;
-                        mt.burstTarget = aim.target;
+                        mt.setBurstTarget(aim.target);
                     }
                 }
             }
