@@ -60,7 +60,7 @@ public final class Squad {
      */
     public Unit leader;
 
-    /** Current awareness state. Bumped by {@code BattleSimulation.updateSquadAlertLevels}; behaviors only read. */
+    /** Current awareness state. Bumped by {@code SquadAlertSystem}; behaviors only read. */
     public SquadAlertLevel alertLevel = SquadAlertLevel.UNAWARE;
     /** Sim-seconds since the most recent contact event (LOS or fall-back trigger). Drives the ENGAGED → SUSPICIOUS → UNAWARE decay. */
     public float timeSinceContact = 0f;
@@ -145,7 +145,7 @@ public final class Squad {
     public DefensePost defensePost;
 
     // ---- Per-tick cached aggregates ----
-    // Refreshed once per sim tick by BattleSimulation.updateSquadAlertLevels, so
+    // Refreshed once per sim tick by SquadAlertSystem, so
     // behaviors can read them in O(1) instead of re-walking the unit list.
     // Stale outside that pass; treat as read-only from inside behaviors.
 
@@ -193,7 +193,7 @@ public final class Squad {
     /** Centroid Y over alive members. Undefined when {@link #aliveMembers} is 0. */
     public float centroidY = 0f;
     /**
-     * Internal flags filled mid-pass by {@code BattleSimulation.updateSquadAlertLevels}
+     * Internal flags filled mid-pass by {@code SquadAlertSystem}
      * to track "did any squadmate's LoS hit this tick" / "did anyone trip a
      * suspicious condition." Driven entirely by the sim — behaviors should
      * read {@link #alertLevel}, not these. Public only because they're
@@ -202,8 +202,8 @@ public final class Squad {
     public boolean _engagedThisTick = false;
     public boolean _suspiciousThisTick = false;
     /**
-     * Per-tick transient set by {@code BattleSimulation.updateSquadAlertLevels}:
-     * true if any squadmate sighted a close (within {@link com.dillon.starsectormarines.battle.BattleSimulation#KILL_ZONE_RANGE_CELLS}
+     * Per-tick transient set by {@code SquadAlertSystem}:
+     * true if any squadmate sighted a close (within {@link com.dillon.starsectormarines.battle.squad.SquadAlertSystem#KILL_ZONE_RANGE_CELLS}
      * cells) hostile combatant this tick. Drives the {@link #killZoneLosTicks}
      * hysteresis counter — read once at the end of the alert-update pass and
      * cleared at the top of the next.
@@ -216,7 +216,7 @@ public final class Squad {
      * When true, the squad refuses to open fire from {@link com.dillon.starsectormarines.battle.ai.goap.actions.EngagePosture}
      * until {@link com.dillon.starsectormarines.battle.ai.goap.Predicate#ENEMY_IN_KILL_ZONE}
      * flips true (an enemy entered the kill zone <em>and</em> LOS to that enemy
-     * has been stable for {@link com.dillon.starsectormarines.battle.BattleSimulation#KILL_ZONE_LOS_TICKS_THRESHOLD}
+     * has been stable for {@link com.dillon.starsectormarines.battle.squad.SquadAlertSystem#KILL_ZONE_LOS_TICKS_THRESHOLD}
      * ticks). Set at construction by {@code BattleSetup} for GARRISON-routed
      * defender squads. Marines and patrol squads leave this false — the
      * evaluator short-circuits the predicate to true for them so the existing
@@ -226,7 +226,7 @@ public final class Squad {
 
     /**
      * Tick counter for kill-zone LOS hysteresis: incremented in
-     * {@link com.dillon.starsectormarines.battle.BattleSimulation#updateSquadAlertLevels}
+     * {@link com.dillon.starsectormarines.battle.squad.SquadAlertSystem}
      * when this garrison squad has LOS to a close enemy this tick, reset to 0
      * when LOS is lost. Only updated for squads with {@link #holdsFireUntilKillZone};
      * other squads leave this at 0 (the predicate evaluator never reads it
@@ -241,7 +241,7 @@ public final class Squad {
      * "ambush-is-blown" override in
      * {@link com.dillon.starsectormarines.battle.ai.goap.world.WorldStateBuilder}'s
      * {@code evalEnemyInKillZone}: once this passes
-     * {@link com.dillon.starsectormarines.battle.BattleSimulation#KILL_ZONE_AMBUSH_BLOWN_SECONDS}
+     * {@link com.dillon.starsectormarines.battle.squad.SquadAlertSystem#KILL_ZONE_AMBUSH_BLOWN_SECONDS}
      * the gate opens regardless of whether an enemy is in the 8-cell kill
      * zone, so the squad can return fire at long-range attackers that probed
      * them from beyond the ambush radius.
@@ -255,7 +255,7 @@ public final class Squad {
     public float timeUnderSustainedFire = 0f;
 
     /**
-     * Per-tick transient set by {@code BattleSimulation.updateSquadAlertLevels}:
+     * Per-tick transient set by {@code SquadAlertSystem}:
      * true if any squadmate took a shot from an enemy with LoS to that shot's
      * origin this tick. Drives the {@link #timeUnderSustainedFire} accumulator
      * — read once at the end of the alert-update pass and cleared at the top

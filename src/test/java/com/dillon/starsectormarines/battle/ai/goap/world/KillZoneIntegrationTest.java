@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.ai.goap.actions.EngagePosture;
 import com.dillon.starsectormarines.battle.ai.goap.actions.OverwatchPosture;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.squad.SquadAlertSystem;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -58,11 +59,11 @@ public class KillZoneIntegrationTest {
         // killZoneLosTicks (capped at the threshold).
         // TICK_DT is 1/30 sec; advance N ticks worth.
         float dt = 1.0f / 30f;
-        for (int i = 0; i < BattleSimulation.KILL_ZONE_LOS_TICKS_THRESHOLD + 2; i++) {
+        for (int i = 0; i < SquadAlertSystem.KILL_ZONE_LOS_TICKS_THRESHOLD + 2; i++) {
             sim.advance(dt);
         }
 
-        assertTrue(defSquad.killZoneLosTicks >= BattleSimulation.KILL_ZONE_LOS_TICKS_THRESHOLD,
+        assertTrue(defSquad.killZoneLosTicks >= SquadAlertSystem.KILL_ZONE_LOS_TICKS_THRESHOLD,
                 "garrison with sustained close-LOS to a marine must accumulate ticks to threshold; got " + defSquad.killZoneLosTicks);
 
         // World-state snapshot now reads true.
@@ -92,7 +93,7 @@ public class KillZoneIntegrationTest {
         Squad defSquad = sim.getSquad(defSquadId);
         defSquad.holdsFireUntilKillZone = true;
         // Pre-set the counter to half the threshold to simulate prior ticks.
-        defSquad.killZoneLosTicks = BattleSimulation.KILL_ZONE_LOS_TICKS_THRESHOLD / 2;
+        defSquad.killZoneLosTicks = SquadAlertSystem.KILL_ZONE_LOS_TICKS_THRESHOLD / 2;
 
         Unit defender = new Unit("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5);
         defender.squadId = defSquadId;
@@ -161,7 +162,7 @@ public class KillZoneIntegrationTest {
         sim.addUnit(marine);
 
         float dt = 1.0f / 30f;
-        int totalTicks = (int) Math.ceil((BattleSimulation.KILL_ZONE_AMBUSH_BLOWN_SECONDS + 0.1f) / dt);
+        int totalTicks = (int) Math.ceil((SquadAlertSystem.KILL_ZONE_AMBUSH_BLOWN_SECONDS + 0.1f) / dt);
         for (int i = 0; i < totalTicks; i++) {
             // Track the defender's live position — its retreat behavior pulls
             // it out of (5,5) over time, and a stale shot target makes the
@@ -174,7 +175,7 @@ public class KillZoneIntegrationTest {
             sim.advance(dt);
         }
 
-        assertTrue(defSquad.timeUnderSustainedFire >= BattleSimulation.KILL_ZONE_AMBUSH_BLOWN_SECONDS,
+        assertTrue(defSquad.timeUnderSustainedFire >= SquadAlertSystem.KILL_ZONE_AMBUSH_BLOWN_SECONDS,
                 "sustained fire should accumulate past the ambush-blown threshold; got " + defSquad.timeUnderSustainedFire);
 
         // Gate is open even though the marine never entered the kill zone

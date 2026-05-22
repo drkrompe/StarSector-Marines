@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.ai.goap.Predicate;
 import com.dillon.starsectormarines.battle.ai.goap.WorldState;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.squad.SquadAlertSystem;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -84,7 +85,7 @@ public class EnemyInKillZoneEvaluatorTest {
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
         squad.holdsFireUntilKillZone = true;
-        squad.killZoneLosTicks = BattleSimulation.KILL_ZONE_LOS_TICKS_THRESHOLD;
+        squad.killZoneLosTicks = SquadAlertSystem.KILL_ZONE_LOS_TICKS_THRESHOLD;
 
         Unit defender = defenderAt(5, 5, squadId);
         sim.addUnit(defender);
@@ -103,7 +104,7 @@ public class EnemyInKillZoneEvaluatorTest {
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
         squad.holdsFireUntilKillZone = true;
-        squad.killZoneLosTicks = BattleSimulation.KILL_ZONE_LOS_TICKS_THRESHOLD;
+        squad.killZoneLosTicks = SquadAlertSystem.KILL_ZONE_LOS_TICKS_THRESHOLD;
 
         Unit defender = defenderAt(2, 2, squadId);
         sim.addUnit(defender);
@@ -148,7 +149,7 @@ public class EnemyInKillZoneEvaluatorTest {
         squad.holdsFireUntilKillZone = true;
         squad.killZoneLosTicks = 0;
         // Just past the threshold — the backstop should fire.
-        squad.timeUnderSustainedFire = BattleSimulation.KILL_ZONE_AMBUSH_BLOWN_SECONDS;
+        squad.timeUnderSustainedFire = SquadAlertSystem.KILL_ZONE_AMBUSH_BLOWN_SECONDS;
 
         Unit defender = defenderAt(2, 2, squadId);
         sim.addUnit(defender);
@@ -172,7 +173,7 @@ public class EnemyInKillZoneEvaluatorTest {
         squad.aliveMembers = 1;
         squad.holdsFireUntilKillZone = true;
         squad.killZoneLosTicks = 0;
-        squad.timeUnderSustainedFire = BattleSimulation.KILL_ZONE_AMBUSH_BLOWN_SECONDS - 0.1f;
+        squad.timeUnderSustainedFire = SquadAlertSystem.KILL_ZONE_AMBUSH_BLOWN_SECONDS - 0.1f;
 
         Unit defender = defenderAt(2, 2, squadId);
         sim.addUnit(defender);

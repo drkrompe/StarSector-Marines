@@ -11,8 +11,8 @@ import com.dillon.starsectormarines.battle.Unit;
  * patrol route), an ENGAGED squad falls through to {@link CombatantBehavior}
  * so members pick targets and fight normally.
  *
- * <p>Promotion happens in {@code BattleSimulation.updateSquadAlertLevels},
- * which runs once per tick and walks each squad. If any living squadmate has
+ * <p>Promotion happens in {@code SquadAlertSystem.tick}, which runs once per
+ * tick and walks each squad. If any living squadmate has
  * line-of-sight to an alive enemy combatant the squad goes ENGAGED; if a
  * squadmate has been hit recently (fall-back timer running) but no LOS, the
  * squad goes SUSPICIOUS so it can converge on the last-known enemy cell.

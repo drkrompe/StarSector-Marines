@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.ai.goap.Predicate;
 import com.dillon.starsectormarines.battle.ai.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.Portal;
+import com.dillon.starsectormarines.battle.squad.SquadAlertSystem;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -118,7 +119,7 @@ public final class WorldStateBuilder {
      *
      * <p>Indirect fire (mech LRM at 40-cell launch range) does not poison the
      * stamp today because the audible-gunfire path
-     * ({@link BattleSimulation#GUNFIRE_ALERT_RADIUS} = 18) excludes far
+     * ({@link SquadAlertSystem#GUNFIRE_ALERT_RADIUS} = 18) excludes far
      * launchers before {@code lastSeenEnemy} would be updated.
      */
     private static final float HAS_LOS_THREAT_SET_RADIUS = 20f;
@@ -258,16 +259,16 @@ public final class WorldStateBuilder {
      * <p>Garrison squads ({@link Squad#holdsFireUntilKillZone}) read true iff:
      * <ul>
      *   <li>{@link Squad#timeUnderSustainedFire} has crossed
-     *       {@link BattleSimulation#KILL_ZONE_AMBUSH_BLOWN_SECONDS} — the
+     *       {@link SquadAlertSystem#KILL_ZONE_AMBUSH_BLOWN_SECONDS} — the
      *       squad has been taking LoS-confirmed incoming long enough that the
      *       ambush is blown, so the gate is forced open and the garrison can
      *       return fire at attackers outside the kill-zone radius; OR</li>
      *   <li>{@link Squad#killZoneLosTicks} has reached
-     *       {@link BattleSimulation#KILL_ZONE_LOS_TICKS_THRESHOLD} — LOS to a
+     *       {@link SquadAlertSystem#KILL_ZONE_LOS_TICKS_THRESHOLD} — LOS to a
      *       close enemy has been stable for ~0.2s, suppressing flicker on
      *       transient sightings; AND
      *       at least one squadmate currently has LOS to an enemy combatant
-     *       within {@link BattleSimulation#KILL_ZONE_RANGE_CELLS} cells —
+     *       within {@link SquadAlertSystem#KILL_ZONE_RANGE_CELLS} cells —
      *       the trigger doesn't latch; once the enemy retreats out of the
      *       kill zone the gate closes again (unless the ambush-blown
      *       backstop above has already fired).</li>
@@ -275,10 +276,10 @@ public final class WorldStateBuilder {
      */
     private static boolean evalEnemyInKillZone(Squad squad, BattleSimulation sim) {
         if (!squad.holdsFireUntilKillZone) return true;
-        if (squad.timeUnderSustainedFire >= BattleSimulation.KILL_ZONE_AMBUSH_BLOWN_SECONDS) return true;
-        if (squad.killZoneLosTicks < BattleSimulation.KILL_ZONE_LOS_TICKS_THRESHOLD) return false;
+        if (squad.timeUnderSustainedFire >= SquadAlertSystem.KILL_ZONE_AMBUSH_BLOWN_SECONDS) return true;
+        if (squad.killZoneLosTicks < SquadAlertSystem.KILL_ZONE_LOS_TICKS_THRESHOLD) return false;
         NavigationGrid grid = sim.getGrid();
-        int range2 = BattleSimulation.KILL_ZONE_RANGE_CELLS * BattleSimulation.KILL_ZONE_RANGE_CELLS;
+        int range2 = SquadAlertSystem.KILL_ZONE_RANGE_CELLS * SquadAlertSystem.KILL_ZONE_RANGE_CELLS;
         List<Unit> units = sim.getUnits();
         for (Unit member : units) {
             if (!member.isAlive() || member.squadId != squad.id) continue;

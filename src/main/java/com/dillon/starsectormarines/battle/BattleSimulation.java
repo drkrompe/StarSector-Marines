@@ -13,7 +13,6 @@ import com.dillon.starsectormarines.battle.ai.DroneHubBehavior;
 import com.dillon.starsectormarines.battle.ai.FallbackBehavior;
 import com.dillon.starsectormarines.battle.ai.FleeBehavior;
 import com.dillon.starsectormarines.battle.ai.KitRetrieverBehavior;
-import com.dillon.starsectormarines.battle.ai.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.ai.StructureBehavior;
 import com.dillon.starsectormarines.battle.ai.TacticalScoring;
 import com.dillon.starsectormarines.battle.ai.TurretBehavior;
@@ -188,6 +187,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final com.dillon.starsectormarines.battle.drone.DroneCrashSystem droneCrashes;
     /** Per-tick squad fall-back driver — arrival detection + trigger evaluation. Initialized in the constructor. */
     private final com.dillon.starsectormarines.battle.squad.SquadFallbackSystem squadFallback;
+    /** Per-tick squad alert / awareness driver — drives the ENGAGED/SUSPICIOUS/UNAWARE state machine + kill-zone gating + audible-gunfire promotion. Initialized in the constructor. */
+    private final com.dillon.starsectormarines.battle.squad.SquadAlertSystem squadAlert;
     /** Per-tick win-condition evaluator — pure function over the objective list; sim writes the {@link #complete}/{@link #winner} fields on terminal result. Initialized in the constructor. */
     private final com.dillon.starsectormarines.battle.objective.WinCheckSystem winCheck =
             new com.dillon.starsectormarines.battle.objective.WinCheckSystem();
@@ -324,6 +325,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                 navigation, effects);
         this.squadFallback = new com.dillon.starsectormarines.battle.squad.SquadFallbackSystem(
                 navigation, rosterService, this::clearPath);
+        this.squadAlert = new com.dillon.starsectormarines.battle.squad.SquadAlertSystem(
+                navigation, rosterService, shots);
     }
 
     @Override public NavigationGrid getGrid() { return grid; }
@@ -912,10 +915,10 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // garrison/patrol behavior dispatch this tick sees fresh ENGAGED /
         // SUSPICIOUS / UNAWARE state. Solo units (squadId == NO_SQUAD) skip
         // the squad path entirely.
-        updateSquadAlertLevels();
+        squadAlert.tick(units, TICK_DT);
         tickProfile.lap(TickProfile.Phase.SQUAD_ALERT);
         // Morale recovery + hysteresis. Reads the freshly-set _engagedThisTick
-        // flag from updateSquadAlertLevels: a squad out of contact this tick
+        // flag from SquadAlertSystem: a squad out of contact this tick
         // recovers; a squad in contact holds. Runs before the GOAP replan so
         // SurviveContact relevance sees the up-to-date moraleBroken flag.
         updateSquadMorale();
@@ -1296,80 +1299,6 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     }
 
     /**
-     * Refreshes {@link SquadAlertLevel} on every registered squad. Promotion
-     * rules:
-     * <ul>
-     *   <li><b>ENGAGED</b> — any living squadmate has LOS to an alive enemy
-     *       combatant. {@code timeSinceContact} resets to zero and
-     *       {@code lastSeenEnemy} captures that enemy's cell.</li>
-     *   <li><b>SUSPICIOUS</b> — no current LOS, but a squadmate is in a
-     *       fall-back (recently hit). The squad converges on the last known
-     *       enemy cell so a patrol that gets sniped doesn't keep walking
-     *       its route obliviously.</li>
-     *   <li><b>UNAWARE</b> — neither of the above. After
-     *       {@link Squad#ENGAGED_DECAY_SECONDS} of no contact an ENGAGED
-     *       squad drops to SUSPICIOUS, and after another
-     *       {@link Squad#SUSPICIOUS_DECAY_SECONDS} a SUSPICIOUS squad drops
-     *       to UNAWARE. The decay lets garrisons hold their state across
-     *       brief duck-behind-cover moments and patrols commit to
-     *       investigation before giving up.</li>
-     * </ul>
-     *
-     * <p>Empty squads (all members dead) are left in their last state — the
-     * GC cleans them up on save; the next tick's behaviors won't dispatch
-     * because no member is alive.
-     */
-    /** Cell radius around a squadmate inside which an enemy shot's origin counts as "audible gunfire" and promotes the squad to SUSPICIOUS. Bigger than weapon ranges so a distant firefight pulls patrols in to investigate — that's the whole point. */
-    public static final float GUNFIRE_ALERT_RADIUS = 18f;
-
-    /**
-     * Story A: cell range within which an enemy is considered "in the kill
-     * zone" for a garrison squad's ambush trigger. The kill zone is intentionally
-     * close — garrisons want the first shot to land, not to give away their
-     * post at extreme range. {@code 8} cells matches typical rifle effective
-     * range while staying short of the renderer's visibility horizon.
-     */
-    public static final int KILL_ZONE_RANGE_CELLS = 8;
-    /**
-     * Story A: consecutive sim ticks of LOS to a close enemy required before
-     * the kill-zone gate trips. At {@code TICK_DT = 1/30 sec}, 6 ticks ≈ 0.2s
-     * of stable sight — short enough to feel reflexive, long enough that a
-     * single transient LoS frame (target dancing through a doorway) doesn't
-     * spring the ambush prematurely.
-     */
-    public static final int KILL_ZONE_LOS_TICKS_THRESHOLD = 6;
-
-    /**
-     * Story A backstop: cumulative sim-seconds a garrison squad must take
-     * LoS-confirmed incoming fire before the kill-zone gate is forced open,
-     * regardless of whether the shooter ever entered the 8-cell kill zone.
-     * Prevents a long-LOS attacker (mech with 30-40-cell range, distant
-     * sniper) from chipping a holdsFireUntilKillZone garrison that's
-     * forbidden to fire back. {@code 3s} is the user-feel sweet spot:
-     * long enough that a one-off pot shot doesn't blow a planned ambush,
-     * short enough that the squad isn't a free target for the rest of the
-     * engagement.
-     */
-    public static final float KILL_ZONE_AMBUSH_BLOWN_SECONDS = 3.0f;
-
-    /**
-     * Single per-tick pass that fills in every squad's derived aggregates
-     * (alive member count, centroid, alert level) and drives the
-     * ENGAGED/SUSPICIOUS/UNAWARE state machine.
-     *
-     * <p>Restructured from the prior squads-outer/units-inner form into a
-     * units-outer pass that posts each alive unit's contribution to its
-     * squad in one walk: increments the alive count, accumulates centroid,
-     * notes if any member is in fall-back, and (only if the squad isn't
-     * already tagged ENGAGED this tick) runs a LoS scan for visible enemies.
-     * Engaged squads short-circuit subsequent LoS scans for the same squad
-     * within this tick.
-     *
-     * <p>The audible-gunfire promotion only runs for squads that finished the
-     * first pass still un-engaged. Final state transitions are applied once
-     * per squad at the end.
-     */
-    /**
      * Picks the closest still-alive squad member to {@code deadLeader}'s
      * last cell — the unit that takes over as squad leader. Returns null
      * if no member is alive (squad fully wiped this same tick). "Closest
@@ -1394,208 +1323,6 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             }
         }
         return best;
-    }
-
-    private void updateSquadAlertLevels() {
-        // Per-tick transient flags. Boxed onto Squad to keep allocation out of
-        // the hot path; reset at the top so a dead squad's leftover flags
-        // don't leak into next tick.
-        for (Squad squad : squads.values()) {
-            squad.aliveMembers = 0;
-            squad.centroidX = 0f;
-            squad.centroidY = 0f;
-            squad._engagedThisTick = false;
-            squad._suspiciousThisTick = false;
-            squad._killZoneSightedThisTick = false;
-            squad._underFireAtLosThisTick = false;
-        }
-
-        // Pass 1: accumulate squad aggregates + per-squad engagement LoS.
-        // For garrison squads (holdsFireUntilKillZone), also drive the kill-zone
-        // LOS-stability counter — incremented when any squadmate has LOS to an
-        // enemy within KILL_ZONE_RANGE_CELLS this tick, reset to 0 otherwise.
-        // We track this independently of the early-exit ENGAGED flag because
-        // the ENGAGED scan stops at the first sighted enemy, and we need the
-        // tighter "close + visible" predicate for the kill-zone gate.
-        for (Unit u : units) {
-            if (!u.isAlive() || u.squadId == Unit.NO_SQUAD) continue;
-            Squad squad = squads.get(u.squadId);
-            if (squad == null) continue;
-            squad.aliveMembers++;
-            squad.centroidX += u.cellX;
-            squad.centroidY += u.cellY;
-            if (u.fallbackTimer > 0f) squad._suspiciousThisTick = true;
-
-            // Kill-zone LOS scan for garrison squads only. Looks for ANY
-            // squadmate with LOS to a close enemy combatant — a single
-            // qualifying sighting per tick increments the counter for the
-            // squad. The scan is keyed on holdsFireUntilKillZone so non-
-            // garrison squads pay nothing.
-            if (squad.holdsFireUntilKillZone && !squad._killZoneSightedThisTick) {
-                for (Unit other : units) {
-                    if (!other.isAlive() || other.faction == squad.faction) continue;
-                    if (!other.type.combatant) continue;
-                    int dx = other.cellX - u.cellX;
-                    int dy = other.cellY - u.cellY;
-                    if (dx * dx + dy * dy > KILL_ZONE_RANGE_CELLS * KILL_ZONE_RANGE_CELLS) continue;
-                    if (!TacticalScoring.canSeePair(grid, u.cellX, u.cellY, other.cellX, other.cellY,
-                            u.airLosRadius, other.airLosRadius)) continue;
-                    squad._killZoneSightedThisTick = true;
-                    break;
-                }
-            }
-
-            // LoS scan only if no squadmate has tripped ENGAGED yet this tick —
-            // one engaged squadmate is enough to commit the whole squad.
-            if (squad._engagedThisTick) continue;
-            for (Unit other : units) {
-                if (!other.isAlive() || other.faction == squad.faction) continue;
-                if (!other.type.combatant) continue;
-                if (!TacticalScoring.canSeePair(grid, u.cellX, u.cellY, other.cellX, other.cellY,
-                        u.airLosRadius, other.airLosRadius)) continue;
-                squad._engagedThisTick = true;
-                squad.lastSeenEnemyX = other.cellX;
-                squad.lastSeenEnemyY = other.cellY;
-                break;
-            }
-        }
-
-        // Audible-gunfire promotion runs only for not-yet-engaged squads.
-        // Iterate units once more, but only do the shot scan for squads that
-        // still need promoting — the early-skip means engaged squads pay
-        // nothing here.
-        List<ShotEvent> activeShots = shots.getActiveShots();
-        if (!activeShots.isEmpty()) {
-            for (Unit u : units) {
-                if (!u.isAlive() || u.squadId == Unit.NO_SQUAD) continue;
-                Squad squad = squads.get(u.squadId);
-                if (squad == null || squad._engagedThisTick || squad._suspiciousThisTick) continue;
-                for (ShotEvent shot : activeShots) {
-                    if (shot.shooterFaction == squad.faction) continue;
-                    float dx = shot.fromX - (u.cellX + 0.5f);
-                    float dy = shot.fromY - (u.cellY + 0.5f);
-                    if (dx * dx + dy * dy <= GUNFIRE_ALERT_RADIUS * GUNFIRE_ALERT_RADIUS) {
-                        squad._suspiciousThisTick = true;
-                        squad.lastSeenEnemyX = Math.round(shot.fromX);
-                        squad.lastSeenEnemyY = Math.round(shot.fromY);
-                        break;
-                    }
-                }
-            }
-        }
-
-        // Story A backstop: per-tick under-fire-at-LoS scan for garrison
-        // squads with the kill-zone gate set. Mirrors WorldStateBuilder's
-        // evalUnderFireAtLos predicate but runs every tick (not per replan)
-        // so timeUnderSustainedFire accumulates accurately across the
-        // 2-second replan window. Scoped to holdsFireUntilKillZone garrisons
-        // because the field is only consumed by their gate override.
-        if (!activeShots.isEmpty()) {
-            for (Unit u : units) {
-                if (!u.isAlive() || u.squadId == Unit.NO_SQUAD) continue;
-                Squad squad = squads.get(u.squadId);
-                if (squad == null || !squad.holdsFireUntilKillZone) continue;
-                if (squad._underFireAtLosThisTick) continue;
-                for (ShotEvent shot : activeShots) {
-                    if (shot.shooterFaction == squad.faction) continue;
-                    float dx = shot.toX - (u.cellX + 0.5f);
-                    float dy = shot.toY - (u.cellY + 0.5f);
-                    // Same 2-cell-squared "shot landed near me" gate the
-                    // predicate evaluator uses — keeps the two paths in sync.
-                    if (dx * dx + dy * dy > 4f) continue;
-                    int fromCellX = (int) Math.floor(shot.fromX);
-                    int fromCellY = (int) Math.floor(shot.fromY);
-                    if (grid.hasLineOfSight(u.cellX, u.cellY, fromCellX, fromCellY)) {
-                        squad._underFireAtLosThisTick = true;
-                        break;
-                    }
-                }
-            }
-        }
-
-        // Finalize: divide centroids, apply alert-state transitions.
-        for (Squad squad : squads.values()) {
-            if (squad.aliveMembers > 0) {
-                squad.centroidX /= squad.aliveMembers;
-                squad.centroidY /= squad.aliveMembers;
-            }
-            // Story A: garrison kill-zone LOS hysteresis. Increments when any
-            // squadmate sighted a close enemy this tick; resets to 0 when no
-            // close-LOS sighting was recorded. Only garrison squads keep this
-            // counter — non-garrison squads have holdsFireUntilKillZone=false
-            // and never get a sighting flagged (skipped in pass 1).
-            if (squad.holdsFireUntilKillZone) {
-                if (squad._killZoneSightedThisTick) {
-                    if (squad.killZoneLosTicks < KILL_ZONE_LOS_TICKS_THRESHOLD) {
-                        squad.killZoneLosTicks++;
-                    }
-                } else {
-                    squad.killZoneLosTicks = 0;
-                }
-                // Story A backstop: accumulate sim-time under LoS-confirmed
-                // incoming fire. Monotonic — never resets within a battle so
-                // the ambush-blown threshold is a one-way door. Once it
-                // crosses KILL_ZONE_AMBUSH_BLOWN_SECONDS, WorldStateBuilder
-                // forces the kill-zone predicate true regardless of enemy
-                // proximity.
-                if (squad._underFireAtLosThisTick) {
-                    squad.timeUnderSustainedFire += TICK_DT;
-                }
-            }
-            if (squad._engagedThisTick) {
-                squad.alertLevel = SquadAlertLevel.ENGAGED;
-                squad.timeSinceContact = 0f;
-            } else if (squad._suspiciousThisTick) {
-                if (squad.alertLevel != SquadAlertLevel.ENGAGED) {
-                    squad.alertLevel = SquadAlertLevel.SUSPICIOUS;
-                }
-                squad.timeSinceContact = 0f;
-            } else {
-                squad.timeSinceContact += TICK_DT;
-                if (squad.alertLevel == SquadAlertLevel.ENGAGED
-                        && squad.timeSinceContact >= Squad.ENGAGED_DECAY_SECONDS) {
-                    squad.alertLevel = SquadAlertLevel.SUSPICIOUS;
-                    // SQ-82 fix: at ENGAGED→SUSPICIOUS, the squad has gone
-                    // ENGAGED_DECAY_SECONDS with no squadmate-LOS to anything.
-                    // shouldKeepPursuing returns true for an invisible target
-                    // when no closer visible enemy exists, so the stale target
-                    // can outlive contact indefinitely (SQ-82: 8 marines kept
-                    // walking toward a defender they hadn't seen in 13s,
-                    // pinned against unreachable cells inside the target
-                    // zone). Drop targets here; next behavior tick re-picks
-                    // via findBestTarget — no LOS to anything = null target,
-                    // which is the correct posture for a squad in SUSPICIOUS.
-                    clearSquadMemberTargets(squad.id);
-                } else if (squad.alertLevel == SquadAlertLevel.SUSPICIOUS
-                        && squad.timeSinceContact >= Squad.ENGAGED_DECAY_SECONDS + Squad.SUSPICIOUS_DECAY_SECONDS) {
-                    squad.alertLevel = SquadAlertLevel.UNAWARE;
-                    squad.lastSeenEnemyX = -1;
-                    squad.lastSeenEnemyY = -1;
-                    // Belt-and-braces: any target re-acquired during
-                    // SUSPICIOUS (via a transient LOS flicker that didn't
-                    // bump back to ENGAGED) shouldn't survive into UNAWARE.
-                    clearSquadMemberTargets(squad.id);
-                }
-            }
-        }
-    }
-
-    /**
-     * Clears {@code u.target} for every alive squadmate of {@code squadId}.
-     * Called from {@link #updateSquadAlertLevels} at the ENGAGED→SUSPICIOUS
-     * (and SUSPICIOUS→UNAWARE) transitions so a stale target reference —
-     * one {@link com.dillon.starsectormarines.battle.ai.TacticalScoring#shouldKeepPursuing
-     * shouldKeepPursuing} happily keeps alive past LOS — doesn't drag the
-     * squad toward an enemy they last saw seconds ago. Action {@code execute}
-     * paths null-check {@code member.target} (they already cope with the
-     * reprio-on-hit clear at line ~706), so the next behavior tick repicks
-     * via {@link com.dillon.starsectormarines.battle.ai.TacticalScoring#findBestTarget
-     * findBestTarget} or holds null if nobody's visible.
-     */
-    private void clearSquadMemberTargets(int squadId) {
-        for (Unit u : units) {
-            if (u.squadId == squadId) u.target = null;
-        }
     }
 
     /**
