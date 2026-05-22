@@ -35,17 +35,32 @@ public final class CommsOfficerVoice {
 
     public static final String CONTENT_PATH = "data/marines/comms_officer_voice.json";
 
-    static final String MOODS_KEY  = "moods";
-    static final String PREFIX_KEY = "prefix";
-    static final String SUFFIX_KEY = "suffix";
+    static final String MOODS_KEY    = "moods";
+    static final String PREFIX_KEY   = "prefix";
+    static final String SUFFIX_KEY   = "suffix";
+    static final String SUMMARY_KEY  = "summary";
+    static final String OVERVIEW_KEY = "overview";
+    static final String CLIENT_KEY   = "client";
 
-    /** A mood's two pools, both guaranteed non-empty. */
+    /** Header lines for the mission-select surface — see file header for which is which. */
+    public static final class Summary {
+        public final String[] overview;
+        public final String[] client;
+        public Summary(String[] overview, String[] client) {
+            this.overview = overview;
+            this.client = client;
+        }
+    }
+
+    /** A mood's content bundle — briefing prefix/suffix + summary header pools. */
     public static final class Frame {
         public final String[] prefix;
         public final String[] suffix;
-        public Frame(String[] prefix, String[] suffix) {
+        public final Summary summary;
+        public Frame(String[] prefix, String[] suffix, Summary summary) {
             this.prefix = prefix;
             this.suffix = suffix;
+            this.summary = summary;
         }
     }
 
@@ -87,11 +102,23 @@ public final class CommsOfficerVoice {
                 throw new IllegalStateException(
                         "comms officer voice: mood '" + m.name() + "' is missing or not an object");
             }
-            out.put(m, new Frame(
-                    parsePool(m, PREFIX_KEY, entry.optJSONArray(PREFIX_KEY)),
-                    parsePool(m, SUFFIX_KEY, entry.optJSONArray(SUFFIX_KEY))));
+            String[] prefix  = parsePool(m, PREFIX_KEY, entry.optJSONArray(PREFIX_KEY));
+            String[] suffix  = parsePool(m, SUFFIX_KEY, entry.optJSONArray(SUFFIX_KEY));
+            Summary summary  = parseSummary(m, entry.optJSONObject(SUMMARY_KEY));
+            out.put(m, new Frame(prefix, suffix, summary));
         }
         return out;
+    }
+
+    private static Summary parseSummary(OfficerMood mood, JSONObject summary) {
+        if (summary == null) {
+            throw new IllegalStateException(
+                    "comms officer voice: mood '" + mood.name() + "' is missing '"
+                            + SUMMARY_KEY + "' object");
+        }
+        return new Summary(
+                parsePool(mood, SUMMARY_KEY + "." + OVERVIEW_KEY, summary.optJSONArray(OVERVIEW_KEY)),
+                parsePool(mood, SUMMARY_KEY + "." + CLIENT_KEY,   summary.optJSONArray(CLIENT_KEY)));
     }
 
     private static String[] parsePool(OfficerMood mood, String key, JSONArray arr) {
@@ -142,6 +169,9 @@ public final class CommsOfficerVoice {
     private static Frame placeholderFor(OfficerMood m) {
         return new Frame(
                 new String[] { "[" + m.name() + " prefix missing]" },
-                new String[] { "[" + m.name() + " suffix missing]" });
+                new String[] { "[" + m.name() + " suffix missing]" },
+                new Summary(
+                        new String[] { "[" + m.name() + " overview summary missing]" },
+                        new String[] { "[" + m.name() + " client summary missing]" }));
     }
 }

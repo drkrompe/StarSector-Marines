@@ -49,7 +49,13 @@ public class BriefingComposerTest {
                             "[SUFFIX:" + m.name() + ":s0]",
                             "[SUFFIX:" + m.name() + ":s1]",
                             "[SUFFIX:" + m.name() + ":s2]"
-                    }));
+                    },
+                    // Summary pools — not exercised here (BriefingComposer doesn't read
+                    // them) but the Frame ctor requires a non-null Summary so the
+                    // surface-level renderer doesn't NPE.
+                    new CommsOfficerVoice.Summary(
+                            new String[] { "[OVR:" + m.name() + ":o0]" },
+                            new String[] { "[CLI:" + m.name() + ":c0]" })));
         }
         CommsOfficerVoice.loadForTest(moodTemplates);
     }

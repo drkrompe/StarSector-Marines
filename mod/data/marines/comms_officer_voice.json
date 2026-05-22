@@ -4,28 +4,46 @@
 	# differently depending on the officer's current mood (which is
 	# itself a function of the company's state — see OfficerMoodReader).
 	#
-	# Composition shape:
+	# Composition shape (per-briefing):
 	#   "<prefix>" + " " + "<archetype briefing variant>" + " " + "<suffix>"
 	#
 	# Suffix is rolled in deterministically per contract; not every
 	# briefing carries one (see BriefingComposer for the probability and
 	# seeding). Prefix is always present.
 	#
+	# Summary lines are a SEPARATE surface — the officer's header line
+	# displayed above the dossier stack on the mission-select screen.
+	# Two sub-pools per mood:
+	#   "overview" — no client selected; references total / lapsing counts
+	#   "client"   — a client is selected; references that patron + counts
+	#
 	# Schema:
 	#   {
 	#     "moods": {
 	#       "<MOOD_NAME>": {
-	#         "prefix": ["...", "...", ...],
-	#         "suffix": ["...", "...", ...]
+	#         "prefix":  ["...", ...],
+	#         "suffix":  ["...", ...],
+	#         "summary": {
+	#           "overview": ["...", ...],
+	#           "client":   ["...", ...]
+	#         }
 	#       }
 	#     }
 	#   }
 	#
 	# - Every OfficerMood enum value MUST appear as a key.
-	# - Each mood MUST have at least one prefix and one suffix variant.
-	# - Lines should be MOOD-PURE and NOT reference any specific patron,
-	#   archetype, or contract — that's what the wrapped briefing body
-	#   carries. Prefix/suffix is pure framing.
+	# - Each mood MUST have at least one prefix, one suffix, one overview
+	#   summary, and one client summary variant.
+	# - prefix/suffix lines should be MOOD-PURE and NOT reference any
+	#   specific patron, archetype, or contract — that's what the wrapped
+	#   briefing body carries.
+	# - Summary lines reference COUNTS + the selected patron only; never
+	#   specific mission names or per-contract details (those are dossier
+	#   content, not summary content).
+	#
+	# Summary substitution tokens:
+	#   overview: {offerCount}, {clientCount}, {lapsingCount}
+	#   client:   {patron}, {offerCount}, {lapsingCount}
 	#
 	# Voice notes per mood:
 	#   DESPERATE — books are bleeding, no runway; officer urges acceptance,
@@ -51,7 +69,21 @@
 				"We're not in a position to push back on terms.",
 				"Not the time to be picky.",
 				"Tell me to chase it. Please."
-			]
+			],
+			"summary": {
+				"overview": [
+					"Books are bleeding, captain. {offerCount} pending — we need to take some of them.",
+					"{offerCount} on the board across {clientCount} clients. Can't sit on these.",
+					"Money's tight. {offerCount} clients waiting. Pick something.",
+					"{offerCount} pending. {lapsingCount} of them about to lapse — let's not waste options."
+				],
+				"client": [
+					"{patron} has {offerCount} pending. We need this work.",
+					"{patron} again — {offerCount} on the table. Not a time to be picky.",
+					"{patron}'s offers are on the console. {offerCount} of them. I'd say yes.",
+					"{patron} brought {offerCount} our way. {lapsingCount} won't keep — focus there."
+				]
+			}
 		},
 
 		"GREEN": {
@@ -68,7 +100,21 @@
 				"I think that's everything. I hope.",
 				"Sorry if I missed something obvious — still learning the shorthand.",
 				"Want me to set up a follow-up call to confirm anything?"
-			]
+			],
+			"summary": {
+				"overview": [
+					"{offerCount} contracts in. Want me to walk through them?",
+					"Got {offerCount} pending across {clientCount} clients. Hope that's manageable.",
+					"{offerCount} on the board. Let me know which to detail.",
+					"{offerCount} pending — {lapsingCount} running short, I think? Double-check me."
+				],
+				"client": [
+					"{patron} has {offerCount} on the table. I'll walk through each.",
+					"{offerCount} pending from {patron}. Trying to keep them straight — bear with me.",
+					"Got {offerCount} from {patron}. I think I caught everything important.",
+					"{patron} sent {offerCount}. {lapsingCount} of them are getting tight — I think."
+				]
+			}
 		},
 
 		"STEADY": {
@@ -85,7 +131,21 @@
 				"Let me know what you decide.",
 				"Flag me if you want a follow-up.",
 				"Filed under the usual."
-			]
+			],
+			"summary": {
+				"overview": [
+					"{offerCount} pending. Ready when you are.",
+					"{offerCount} on the board across {clientCount} clients. Standard load.",
+					"Got {offerCount} for you to look over.",
+					"{offerCount} pending. {lapsingCount} on a clock."
+				],
+				"client": [
+					"{patron} — {offerCount} pending.",
+					"{offerCount} from {patron}. Take a look.",
+					"{patron}'s board: {offerCount} contracts open.",
+					"{patron} — {offerCount} on the table, {lapsingCount} running short."
+				]
+			}
 		},
 
 		"SEASONED": {
@@ -102,7 +162,21 @@
 				"We've worked with worse. We've worked with better.",
 				"My read: take it, but eyes open.",
 				"If we take it, I'd want our best captain on it."
-			]
+			],
+			"summary": {
+				"overview": [
+					"{offerCount} pending. A couple worth your time.",
+					"Got {offerCount} for you. {lapsingCount} running short — those first.",
+					"{offerCount} on the console. {clientCount} clients, mixed quality.",
+					"{offerCount} pending. Half are noise. I've sorted the good ones to the top."
+				],
+				"client": [
+					"{patron} — {offerCount} on the table. Worth a read.",
+					"{patron}'s got {offerCount} for us. {lapsingCount} of them won't keep.",
+					"{offerCount} pending from {patron}. I've got opinions on most of them.",
+					"{patron} again — {offerCount} this time. Two patterns I'd flag."
+				]
+			}
 		}
 	}
 }

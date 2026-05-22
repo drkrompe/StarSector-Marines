@@ -510,9 +510,16 @@ touches one bank only.
    — `DESPERATE / GREEN / STEADY / SEASONED`. Lives in
    `mod/data/marines/comms_officer_voice.json`. Mood-pure: no patron
    or archetype references in the text.
+2b. **Officer summary** (mission-select header line) is a sibling
+   surface in the same JSON file — nested `summary.{overview, client}`
+   pools per mood. `overview` is the no-client-selected header, `client`
+   is the client-selected header. Rendered by `CommsOfficerSummary`;
+   stable per-day so the line doesn't jitter as the player interacts
+   with the screen. Tokens: `{patron}` (client form only),
+   `{offerCount}`, `{clientCount}`, `{lapsingCount}`.
 3. **Officer characterization** (future) — different officers will
-   ship different prefix/suffix pools and aside vocabularies. Same
-   axis as swapping a captain. Not modeled until there's a second
+   ship different prefix/suffix/summary pools and aside vocabularies.
+   Same axis as swapping a captain. Not modeled until there's a second
    officer to compare against; the mood axis stands in with a single
    fixed characterization.
 
