@@ -11,10 +11,16 @@ import java.util.List;
 /**
  * Slice-5 defence pass for the compound-as-supply model. Walks the
  * already-emitted COMMAND_POST / BARRACKS / ARMORY tactical nodes and
- * stamps one {@link TacticalNode.Kind#GUARDPOST} node on each compound's
- * attacker-facing perimeter. The defender allocator's Pass 1 picks the
- * new node up the same as any other tactical node — a small "lookout"
- * squad lands on the approach without any allocator changes.
+ * stamps one {@link TacticalNode.Kind#GUARDPOST} node on each
+ * <em>compound leaf</em> 's attacker-facing perimeter. Each leaf is its
+ * own capture target (the sub-buildings inside a MILITARY_BASE compound
+ * each carry their own tactical node), so the per-leaf shape gives every
+ * supply structure its own lookout post. A typical 3-leaf base (COMMAND
+ * + BARRACKS + ARMORY) gets three perimeter GUARDPOSTs.
+ *
+ * <p>The defender allocator's Pass 1 picks the new nodes up the same as
+ * any other tactical node — a small lookout squad lands on the approach
+ * without any allocator changes.
  *
  * <p>Visual lineage: {@link DefensePostStamper} emits GUARDPOST nodes
  * for the biome-scattered defense posts (BEACH / PORT / kill-zone). This
@@ -42,20 +48,23 @@ public final class CompoundPerimeterDefenderStamper {
     private CompoundPerimeterDefenderStamper() {}
 
     /**
-     * Emit one perimeter GUARDPOST per compound in {@code tactical}. New nodes
-     * are appended to the list in-place so {@link TacticalLinker} can wire
-     * them with the same pass that handles the original compound nodes.
+     * Emit one perimeter GUARDPOST per compound leaf in {@code tactical}. New
+     * nodes are appended to the list in-place so {@link TacticalLinker} can
+     * wire them with the same pass that handles the original compound nodes.
      *
      * <p>{@code axis} drives the choice of attacker-facing edge: defender
      * is at the "end" of the axis (NORTH for {@link TraversalAxis#SOUTH_TO_NORTH},
      * EAST for {@link TraversalAxis#WEST_TO_EAST}), so the attacker-facing
-     * compound edge is the opposite side. A null axis defaults to the
-     * compound's south edge — non-Conquest paths typically don't reach this
-     * stamper, but the null-safety keeps the call site simple.
+     * compound edge is the opposite side. {@code axis == null} (legacy
+     * non-Conquest paths) returns early — without a known attacker side the
+     * stamper would arbitrarily place the lookout on a non-attacker edge.
+     * Legacy MILITARY_BASE compounds keep the existing un-anchored guardpost
+     * footprint from the visual corner emplacements.
      */
     public static void stamp(NavigationGrid grid, TraversalAxis axis,
                              List<TacticalNode> tactical) {
         if (grid == null || tactical == null) return;
+        if (axis == null) return;
         // Snapshot the initial node list — appending while iterating would
         // re-process the GUARDPOSTs we just emitted.
         List<TacticalNode> initial = new ArrayList<>(tactical);
@@ -94,7 +103,8 @@ public final class CompoundPerimeterDefenderStamper {
             startY = midY;
             dx = -1; dy = 0;
         } else {
-            // Default + SOUTH_TO_NORTH.
+            // SOUTH_TO_NORTH — the only other case; null axis was filtered at
+            // {@link #stamp}'s entry.
             startX = midX;
             startY = node.top - 1;
             dx = 0; dy = -1;

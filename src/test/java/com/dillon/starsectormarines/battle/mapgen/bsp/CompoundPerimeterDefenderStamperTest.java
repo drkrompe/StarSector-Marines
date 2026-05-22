@@ -10,8 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Synthetic-grid coverage for {@link CompoundPerimeterDefenderStamper}. Each
@@ -149,11 +147,14 @@ public class CompoundPerimeterDefenderStamperTest {
     }
 
     @Test
-    public void handlesNullAxisDefensively() {
-        // Null axis isn't expected at the Conquest call site, but the
-        // legacy fallback path through generate() can plausibly pass it.
-        // Stamper falls back to SOUTH_TO_NORTH semantics rather than
-        // crashing.
+    public void skipsWhenAxisIsNull() {
+        // Legacy non-Conquest maps still get MILITARY_BASE compounds (via
+        // MapDistrictTheme) and pass through the same generator pipeline,
+        // but with axis = null. The marine spawn on legacy is biased to
+        // low-X, not aligned with either traversal-axis end, so picking an
+        // attacker-facing edge from the axis would silently misplace the
+        // lookout. Skip rather than guess — the visual corner emplacements
+        // from MilitaryBaseFiller still defend the compound.
         NavigationGrid grid = openGrid();
         TacticalNode compound = compoundNode(TacticalNode.Kind.BARRACKS,
                 8, 8, 12, 12);
@@ -162,10 +163,7 @@ public class CompoundPerimeterDefenderStamperTest {
 
         CompoundPerimeterDefenderStamper.stamp(grid, null, tactical);
 
-        assertEquals(2, tactical.size());
-        TacticalNode guardpost = tactical.get(1);
-        assertNotNull(guardpost);
-        assertTrue(guardpost.anchorY < compound.top,
-                "default fallback should mirror SOUTH_TO_NORTH (attacker-facing = low Y)");
+        assertEquals(1, tactical.size(),
+                "null axis (legacy maps) must skip stamping — no attacker side known");
     }
 }
