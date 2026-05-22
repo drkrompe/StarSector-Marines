@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.campaign.HouseFlavor;
 import com.dillon.starsectormarines.campaign.HouseRank;
 import com.dillon.starsectormarines.campaign.HouseSeeder;
 import com.dillon.starsectormarines.campaign.HouseStatus;
+import java.util.Random;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.LocationAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
@@ -51,6 +52,7 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
     private static final String BTN_PROMOTE        = "promote:";
     private static final String BTN_DEMOTE         = "demote:";
     private static final String BTN_FORCE_TICK     = "force-tick";
+    private static final String BTN_SPAWN_LOCAL    = "spawn-local-offers";
     private static final String BTN_CLEAR_TERMINAL = "clear-terminal";
     private static final String BTN_ACCEPT         = "accept:";
     private static final String BTN_FORCE_COMPLETE = "complete:";
@@ -161,6 +163,7 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         String bypassLabel = "Bypass house gating: " + (s.debugBypassHouseGating ? "ON" : "OFF");
         ui.addButton(bypassLabel, BTN_TOGGLE_BYPASS, 320f, 24f, 8f);
         ui.addButton("Force daily tick (run all systems)", BTN_FORCE_TICK, 320f, 24f, 8f);
+        ui.addButton("Spawn offers for local patrons", BTN_SPAWN_LOCAL, 320f, 24f, 8f);
         ui.addButton("Clear terminal contracts (cleanup)", BTN_CLEAR_TERMINAL, 320f, 24f, 8f);
         ui.addButton("Reseed houses (wipes existing)", BTN_RESEED, 320f, 24f, 8f);
 
@@ -333,6 +336,8 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
             HouseSeeder.seed(s);
         } else if (BTN_FORCE_TICK.equals(buttonId)) {
             forceTick(script, s);
+        } else if (BTN_SPAWN_LOCAL.equals(buttonId)) {
+            spawnOffersForLocalPatrons(s);
         } else if (BTN_CLEAR_TERMINAL.equals(buttonId)) {
             clearTerminalContracts(s);
         } else if (buttonId instanceof String) {
@@ -381,6 +386,72 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
             list.get(i).tick(s, day);
         }
         s.lastTickDay = day;
+    }
+
+    /**
+     * Direct-creates Strike offers for every T1 active patron whose market lives
+     * in the player's current system, skipping patrons that already have an
+     * outstanding offer (matches {@link com.dillon.starsectormarines.campaign.systems.ContractGenerator}'s
+     * per-patron cap). Defaults mirror the generator so debug-spawned offers
+     * are indistinguishable from rolled ones.
+     */
+    private static void spawnOffersForLocalPatrons(CampaignState s) {
+        StarSystemAPI system = currentPlayerSystem();
+        if (system == null) return;
+        Set<Integer> localMarketSlots = collectLocalMarketSlots(s, system);
+        if (localMarketSlots.isEmpty()) return;
+        int day = Global.getSector() != null ? (int) Global.getSector().getClock().getDay() : 0;
+
+        for (int i = 0; i < s.houseCount; i++) {
+            if (HouseRank.fromByte(s.houseRank[i]) != HouseRank.TIER_1) continue;
+            if (HouseStatus.fromByte(s.houseStatus[i]) != HouseStatus.ACTIVE) continue;
+            if (!localMarketSlots.contains(s.houseMarketId[i])) continue;
+
+            long patronId = s.houseId[i];
+            if (patronHasOpenOffer(s, patronId)) continue;
+            long targetId = pickAnyOtherT1Active(s, i);
+            if (targetId == -1L) continue;
+
+            s.addContract(
+                    patronId, targetId, -1L,
+                    ContractType.STRIKE, ContractState.OFFERED,
+                    day, -1, (byte) 1, -1,
+                    s.houseMarketId[i], -1,
+                    25_000, 0,
+                    (byte) 60, (byte) 60, (byte) 100);
+        }
+    }
+
+    private static boolean patronHasOpenOffer(CampaignState s, long patronId) {
+        for (int i = 0; i < s.contractCount; i++) {
+            if (s.contractPatronHouseId[i] != patronId) continue;
+            if (ContractState.fromByte(s.contractState[i]) == ContractState.OFFERED) return true;
+        }
+        return false;
+    }
+
+    /** Deterministic-ish pick across runs: walks rows in order and returns the first
+     *  T1 active house that isn't the patron itself. Sufficient for debug spawning. */
+    private static long pickAnyOtherT1Active(CampaignState s, int patronRow) {
+        long patronId = s.houseId[patronRow];
+        Random r = new Random(patronId);
+        int candidates = 0;
+        for (int j = 0; j < s.houseCount; j++) {
+            if (j == patronRow) continue;
+            if (HouseRank.fromByte(s.houseRank[j]) != HouseRank.TIER_1) continue;
+            if (HouseStatus.fromByte(s.houseStatus[j]) != HouseStatus.ACTIVE) continue;
+            candidates++;
+        }
+        if (candidates == 0) return -1L;
+        int pick = r.nextInt(candidates);
+        int seen = 0;
+        for (int j = 0; j < s.houseCount; j++) {
+            if (j == patronRow) continue;
+            if (HouseRank.fromByte(s.houseRank[j]) != HouseRank.TIER_1) continue;
+            if (HouseStatus.fromByte(s.houseStatus[j]) != HouseStatus.ACTIVE) continue;
+            if (seen++ == pick) return s.houseId[j];
+        }
+        return -1L;
     }
 
     /** Compact terminal contracts out of the table to keep the list browsable. */
