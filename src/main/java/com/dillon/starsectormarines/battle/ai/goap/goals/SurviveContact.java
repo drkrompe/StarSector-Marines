@@ -23,7 +23,7 @@ import java.util.List;
  * The action runs perpetually (never returns SUCCESS); the squad-level
  * 2-second periodic replan is what re-evaluates whether MORALE_BROKEN still
  * holds — once morale recovers past
- * {@link com.dillon.starsectormarines.battle.BattleSimulation#MORALE_CLEAR_THRESHOLD}
+ * {@link com.dillon.starsectormarines.battle.squad.SquadMoraleSystem#MORALE_CLEAR_THRESHOLD}
  * the hysteresis flag clears, this goal goes inactive, and the squad falls
  * back to whichever ENGAGEMENT-tier goal is most relevant. A heavily-mauled
  * squad's morale cap (alive/original ratio) keeps them locked in

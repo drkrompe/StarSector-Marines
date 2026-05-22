@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.ai.goap.goals.MechSurviveContact;
 import com.dillon.starsectormarines.battle.ai.goap.world.WorldStateBuilder;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.squad.SquadMoraleSystem;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -70,7 +71,7 @@ public class MechMoraleTest {
 
         assertEquals(1, mech.mech.hpThresholdsCrossed,
                 "70% HP should have crossed the 0.75 threshold exactly once");
-        assertEquals(starting - BattleSimulation.MECH_MORALE_DROP_PER_THRESHOLD,
+        assertEquals(starting - SquadMoraleSystem.MECH_MORALE_DROP_PER_THRESHOLD,
                 mech.mech.morale, 1e-5f,
                 "single threshold crossing drains exactly MECH_MORALE_DROP_PER_THRESHOLD");
     }
@@ -86,7 +87,7 @@ public class MechMoraleTest {
 
         assertEquals(4, mech.mech.hpThresholdsCrossed,
                 "5% HP should have crossed all four thresholds");
-        assertEquals(Math.max(0f, 1.0f - 4 * BattleSimulation.MECH_MORALE_DROP_PER_THRESHOLD),
+        assertEquals(Math.max(0f, 1.0f - 4 * SquadMoraleSystem.MECH_MORALE_DROP_PER_THRESHOLD),
                 mech.mech.morale, 1e-5f,
                 "4 crossings drains 4× MECH_MORALE_DROP_PER_THRESHOLD (clamped at 0)");
     }
@@ -139,7 +140,7 @@ public class MechMoraleTest {
 
         sim.advance(BattleSimulation.TICK_DT);
 
-        assertEquals(BattleSimulation.MECH_MORALE_ARMOR_GONE_CAP, mech.mech.morale, 1e-5f,
+        assertEquals(SquadMoraleSystem.MECH_MORALE_ARMOR_GONE_CAP, mech.mech.morale, 1e-5f,
                 "morale must clamp to armor-gone cap once HP drops below MECH_MORALE_ARMOR_GONE_HP_FRAC");
     }
 

@@ -22,7 +22,7 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
  * <p>Runs perpetually ({@link ActionStatus#RUNNING}); the squad-level
  * 2-second replan re-evaluates whether MORALE_BROKEN still holds. Once
  * mech-side morale recovers past
- * {@link BattleSimulation#MECH_MORALE_CLEAR_THRESHOLD} the per-mech flags
+ * {@link com.dillon.starsectormarines.battle.squad.SquadMoraleSystem#MECH_MORALE_CLEAR_THRESHOLD} the per-mech flags
  * clear, the squad aggregator drops {@link Squad#moraleBroken}, and
  * {@code MechSurviveContact} goes inactive — the squad falls back to its
  * role goal (or {@code MechEliminateEnemies} as the engagement floor).

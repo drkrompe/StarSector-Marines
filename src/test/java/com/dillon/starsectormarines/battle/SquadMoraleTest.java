@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle;
 
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.squad.SquadMoraleSystem;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -84,7 +85,7 @@ public class SquadMoraleTest {
         sim.applyDamage(target, 1f, 1f);
         assertTrue(target.hp < startingHp, "test prerequisite: damage actually landed");
         assertTrue(target.isAlive(), "test prerequisite: target survived the hit");
-        assertEquals(1.0f - BattleSimulation.MORALE_DROP_ON_HIT, sq.morale, 1e-5f,
+        assertEquals(1.0f - SquadMoraleSystem.MORALE_DROP_ON_HIT, sq.morale, 1e-5f,
                 "single hit on a squadmate drops morale by exactly MORALE_DROP_ON_HIT");
     }
 
@@ -96,8 +97,8 @@ public class SquadMoraleTest {
         // Overkill damage — guaranteed kill.
         sim.applyDamage(target, target.hp + 1000f, 1f);
         assertFalse(target.isAlive(), "test prerequisite: target died");
-        float expected = 1.0f - BattleSimulation.MORALE_DROP_ON_HIT
-                              - BattleSimulation.MORALE_DROP_ON_DEATH;
+        float expected = 1.0f - SquadMoraleSystem.MORALE_DROP_ON_HIT
+                              - SquadMoraleSystem.MORALE_DROP_ON_DEATH;
         assertEquals(expected, sq.morale, 1e-5f,
                 "kill = hit drain + death drain stacked");
     }
@@ -114,7 +115,7 @@ public class SquadMoraleTest {
         // keeps LoS clean → _engagedThisTick stays false → recovery fires.
         sim.advance(BattleSimulation.TICK_DT);
 
-        float expected = 0.2f + BattleSimulation.MORALE_RECOVERY_RATE * BattleSimulation.TICK_DT;
+        float expected = 0.2f + SquadMoraleSystem.MORALE_RECOVERY_RATE * BattleSimulation.TICK_DT;
         assertEquals(expected, sq.morale, 1e-5f,
                 "out-of-contact tick should grant exactly one TICK_DT of recovery");
     }
@@ -135,7 +136,7 @@ public class SquadMoraleTest {
 
         sim.advance(BattleSimulation.TICK_DT);
 
-        float expected = 0.2f + BattleSimulation.MORALE_RECOVERY_RATE * BattleSimulation.TICK_DT;
+        float expected = 0.2f + SquadMoraleSystem.MORALE_RECOVERY_RATE * BattleSimulation.TICK_DT;
         assertEquals(expected, sq.morale, 1e-5f,
                 "LoS without incoming fire must grant exactly one TICK_DT of recovery");
     }
@@ -203,7 +204,7 @@ public class SquadMoraleTest {
         // 0.15 = 1.5s. Drive 3 sim-seconds to give headroom.
         for (int i = 0; i < 90; i++) sim.advance(BattleSimulation.TICK_DT);
 
-        assertTrue(sq.morale > BattleSimulation.MORALE_CLEAR_THRESHOLD * 0.75f,
+        assertTrue(sq.morale > SquadMoraleSystem.MORALE_CLEAR_THRESHOLD * 0.75f,
                 "morale should have recovered past the (scaled) clear threshold within 3 sim-seconds");
         assertFalse(sq.moraleBroken,
                 "above clear threshold → moraleBroken flips false (hysteresis cleared)");
@@ -224,7 +225,7 @@ public class SquadMoraleTest {
         // One tick → morale climbs by RATE * DT = ~0.0067, still well under 0.5.
         sim.advance(BattleSimulation.TICK_DT);
 
-        assertTrue(sq.morale < BattleSimulation.MORALE_CLEAR_THRESHOLD,
+        assertTrue(sq.morale < SquadMoraleSystem.MORALE_CLEAR_THRESHOLD,
                 "test prerequisite: morale stays in the hysteresis band after one tick");
         assertTrue(sq.moraleBroken,
                 "hysteresis must hold broken flag while morale is in (broken, clear) gap");
@@ -333,9 +334,9 @@ public class SquadMoraleTest {
 
         for (int i = 0; i < 10; i++) sim.applyDamage(target, 1f, 1f);
 
-        assertEquals(startMorale - BattleSimulation.MORALE_DROP_ON_HIT, sq.morale, 1e-5f,
+        assertEquals(startMorale - SquadMoraleSystem.MORALE_DROP_ON_HIT, sq.morale, 1e-5f,
                 "10 hits inside one cooldown window drain by exactly one hit");
-        assertEquals(BattleSimulation.MORALE_DRAIN_COOLDOWN, sq.moraleDrainCooldown, 1e-5f,
+        assertEquals(SquadMoraleSystem.MORALE_DRAIN_COOLDOWN, sq.moraleDrainCooldown, 1e-5f,
                 "cooldown set on the first hit and not refreshed by subsequent hits");
     }
 
@@ -358,13 +359,13 @@ public class SquadMoraleTest {
         // drain from whatever value sat here, so the math is robust either
         // way.
         int cooldownTicks = (int) Math.ceil(
-                BattleSimulation.MORALE_DRAIN_COOLDOWN / BattleSimulation.TICK_DT) + 1;
+                SquadMoraleSystem.MORALE_DRAIN_COOLDOWN / BattleSimulation.TICK_DT) + 1;
         for (int i = 0; i < cooldownTicks; i++) sim.advance(BattleSimulation.TICK_DT);
         float moraleAfterCooldown = sq.morale;
 
         sim.applyDamage(target, 1f, 1f);
 
-        assertEquals(moraleAfterCooldown - BattleSimulation.MORALE_DROP_ON_HIT,
+        assertEquals(moraleAfterCooldown - SquadMoraleSystem.MORALE_DROP_ON_HIT,
                 sq.morale, 1e-5f,
                 "second hit after cooldown elapses must drain again");
     }
@@ -389,7 +390,7 @@ public class SquadMoraleTest {
         // Kill b immediately — death drain should still apply.
         sim.applyDamage(b, b.hp + 1000f, 1f);
 
-        assertEquals(afterHit - BattleSimulation.MORALE_DROP_ON_DEATH,
+        assertEquals(afterHit - SquadMoraleSystem.MORALE_DROP_ON_DEATH,
                 sq.morale, 1e-5f,
                 "death drain stacks regardless of the cooldown state");
     }
@@ -410,7 +411,7 @@ public class SquadMoraleTest {
         sim.advance(BattleSimulation.TICK_DT);
 
         float expected = 0.10f
-                + BattleSimulation.MORALE_RECOVERY_RATE * 0.5f * BattleSimulation.TICK_DT;
+                + SquadMoraleSystem.MORALE_RECOVERY_RATE * 0.5f * BattleSimulation.TICK_DT;
         assertEquals(expected, sq.morale, 1e-5f,
                 "recovery should be cap-scaled (rate × 0.5 for a 2-of-4 squad)");
     }
@@ -427,7 +428,7 @@ public class SquadMoraleTest {
 
         sim.applyDamage(target, 1f, 1f, UnitType.MILITIA.moraleImpact);
 
-        float expected = before - BattleSimulation.MORALE_DROP_ON_HIT
+        float expected = before - SquadMoraleSystem.MORALE_DROP_ON_HIT
                 * UnitType.MILITIA.moraleImpact;
         assertEquals(expected, sq.morale, 1e-5f,
                 "militia hit drain should scale by MILITIA.moraleImpact (0.4)");

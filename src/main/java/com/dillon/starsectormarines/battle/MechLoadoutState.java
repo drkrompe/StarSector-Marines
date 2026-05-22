@@ -99,21 +99,21 @@ public final class MechLoadoutState {
     // collectively before any individual is hurt enough to flinch). Per-mech
     // morale instead drains at chassis-HP threshold crossings and recovers
     // out of LoS, with a hard cap once the chassis crosses
-    // {@link BattleSimulation#MECH_MORALE_ARMOR_GONE_HP_FRAC} HP.
+    // {@link com.dillon.starsectormarines.battle.squad.SquadMoraleSystem#MECH_MORALE_ARMOR_GONE_HP_FRAC} HP.
     //
     // The squad-level {@link Squad#moraleBroken} flag is still what the
-    // GOAP predicate reads — {@link BattleSimulation#updateMechSquadMorale}
+    // GOAP predicate reads — {@code SquadMoraleSystem.updateMechSquadMorale}
     // aggregates these per-mech flags up (majority-broken trips the squad).
-    // Infantry squads continue to use the original squad-level drain in
-    // {@link BattleSimulation#updateSquadMorale}.
+    // Infantry squads continue to use the squad-level drain in
+    // {@code SquadMoraleSystem.tick}.
 
     /** Mech-side morale, [0, 1]. Drains on HP-threshold crossings, recovers passively out of fire. Capped by {@link #moraleCap()}. */
     public float morale = 1.0f;
-    /** Hysteresis flag for {@link #morale}. Trips below {@link BattleSimulation#MECH_MORALE_BROKEN_THRESHOLD} × cap, clears above {@link BattleSimulation#MECH_MORALE_CLEAR_THRESHOLD} × cap. */
+    /** Hysteresis flag for {@link #morale}. Trips below {@link com.dillon.starsectormarines.battle.squad.SquadMoraleSystem#MECH_MORALE_BROKEN_THRESHOLD} × cap, clears above {@link com.dillon.starsectormarines.battle.squad.SquadMoraleSystem#MECH_MORALE_CLEAR_THRESHOLD} × cap. */
     public boolean moraleBroken = false;
-    /** Sim-seconds since the last hit on this mech. Gates morale recovery — see {@link BattleSimulation#MORALE_RECOVER_AFTER_FIRE_SECONDS}. */
+    /** Sim-seconds since the last hit on this mech. Gates morale recovery — see {@link com.dillon.starsectormarines.battle.squad.SquadMoraleSystem#MORALE_RECOVER_AFTER_FIRE_SECONDS}. */
     public float timeSinceUnderFire = Float.MAX_VALUE / 2f;
-    /** Number of HP thresholds in {@link BattleSimulation#MECH_HP_DRAIN_THRESHOLDS} this mech has already drained at. Monotonic — a healed mech doesn't refund drains. */
+    /** Number of HP thresholds in {@link com.dillon.starsectormarines.battle.squad.SquadMoraleSystem#MECH_HP_DRAIN_THRESHOLDS} this mech has already drained at. Monotonic — a healed mech doesn't refund drains. */
     public int hpThresholdsCrossed = 0;
 
     public MechLoadoutState(MechWeapon chaingun, MechWeapon srmPod, MechWeapon lrmArtillery,

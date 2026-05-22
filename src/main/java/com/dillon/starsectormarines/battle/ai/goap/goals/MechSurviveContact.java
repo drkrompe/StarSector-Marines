@@ -28,7 +28,7 @@ import java.util.List;
  * {@link BattleSimulation#applyDamage(com.dillon.starsectormarines.battle.Unit, float, float, float)})
  * is monotonic, so a heavily damaged mech stays broken; combined with the
  * armor-gone cap dropping the morale ceiling to
- * {@link BattleSimulation#MECH_MORALE_ARMOR_GONE_CAP}, the squad is locked
+ * {@link com.dillon.starsectormarines.battle.squad.SquadMoraleSystem#MECH_MORALE_ARMOR_GONE_CAP}, the squad is locked
  * in MechSurviveContact for the rest of the fight once a majority of its
  * members cross the bottom HP threshold — the intended "wounded mech
  * withdraws" moment from roadmap/ai/14-mech-stage1.md.

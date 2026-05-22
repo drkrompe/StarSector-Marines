@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.ui.panel;
 
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.squad.SquadMoraleSystem;
 import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
@@ -164,7 +165,7 @@ public final class SquadDetailPanel implements HudPanel {
         float moraleBarY = headerY + (HEADER_H - MORALE_BAR_H) * 0.5f;
         HudDraw.moraleBar(moraleBarX, moraleBarY, MORALE_BAR_W, MORALE_BAR_H,
                 currentSquad.morale, cap, currentSquad.moraleBroken,
-                BattleSimulation.MORALE_BROKEN_THRESHOLD, alphaMult);
+                SquadMoraleSystem.MORALE_BROKEN_THRESHOLD, alphaMult);
 
         // Marine rows.
         for (int i = 0; i < members.size(); i++) {

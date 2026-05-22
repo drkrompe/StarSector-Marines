@@ -160,8 +160,8 @@ public final class Squad {
      *
      * <p>Drives {@link com.dillon.starsectormarines.battle.ai.goap.Predicate#MORALE_BROKEN}
      * with hysteresis on {@link #moraleBroken}: trips below
-     * {@link com.dillon.starsectormarines.battle.BattleSimulation#MORALE_BROKEN_THRESHOLD},
-     * clears above {@link com.dillon.starsectormarines.battle.BattleSimulation#MORALE_CLEAR_THRESHOLD}.
+     * {@link com.dillon.starsectormarines.battle.squad.SquadMoraleSystem#MORALE_BROKEN_THRESHOLD},
+     * clears above {@link com.dillon.starsectormarines.battle.squad.SquadMoraleSystem#MORALE_CLEAR_THRESHOLD}.
      * Updated each tick by {@code BattleSimulation.updateSquadMorale}.
      */
     public float morale = 1.0f;
@@ -175,7 +175,7 @@ public final class Squad {
     public boolean moraleBroken = false;
     /**
      * Sim-seconds remaining on the morale-drain cooldown. Each drain event
-     * (hit or near-miss) sets this to {@link com.dillon.starsectormarines.battle.BattleSimulation#MORALE_DRAIN_COOLDOWN};
+     * (hit or near-miss) sets this to {@link com.dillon.starsectormarines.battle.squad.SquadMoraleSystem#MORALE_DRAIN_COOLDOWN};
      * subsequent drains within the window are silently dropped. Prevents a
      * burst of bullets in one tick from insta-breaking a full squad — caps
      * effective drain rate at ~5 events per second.
@@ -183,7 +183,7 @@ public final class Squad {
     public float moraleDrainCooldown = 0f;
     /**
      * Sim seconds since the last hit or near-miss on a squadmate. Gates morale
-     * recovery — see {@link com.dillon.starsectormarines.battle.BattleSimulation#MORALE_RECOVER_AFTER_FIRE_SECONDS}.
+     * recovery — see {@link com.dillon.starsectormarines.battle.squad.SquadMoraleSystem#MORALE_RECOVER_AFTER_FIRE_SECONDS}.
      * Initialized to a large value so fresh squads can recover immediately if
      * broken without first being shot at (degenerate case but possible).
      */
