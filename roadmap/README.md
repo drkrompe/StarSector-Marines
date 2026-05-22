@@ -34,7 +34,9 @@ design docs and the `complete/` tracking history.
 The battle/ground side continues to evolve in parallel (convoy
 kinematics, mapgen, AI) — see `roadmap/convoy/` for the ground-vehicle
 track, `roadmap/reinforcement/` for the orchestration layer above it,
-and the recent session logs for other sibling-track activity.
+`roadmap/conquest/` for the Conquest mode design (central keep +
+compound-as-supply), and the recent session logs for other sibling-
+track activity.
 
 ## Immediate next-up
 
