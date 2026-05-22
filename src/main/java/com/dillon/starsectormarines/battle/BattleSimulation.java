@@ -48,8 +48,6 @@ import com.dillon.starsectormarines.battle.weapons.HeavyWeapons;
 import com.dillon.starsectormarines.battle.weapons.InfantryWeapons;
 import com.dillon.starsectormarines.battle.weapons.WeaponSimContext;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -173,21 +171,16 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             new ReinforcementService();
 
     /**
-     * Per-target attacker index: for each unit currently targeted by at least
-     * one alive attacker, the bucket holds that attacker list. Rebuilt at the
-     * top of each tick by {@link #rebuildAttackersByTarget()}. Unit doesn't
-     * override equals/hashCode, so {@code Object2ObjectOpenHashMap} gives
-     * identity-key semantics for free.
-     *
-     * <p>Drives O(1)-lookup crowding scoring in {@link com.dillon.starsectormarines.battle.ai.TacticalScoring}:
-     * instead of scanning every unit per candidate enemy, the scorer walks the
-     * (typically &lt; 6 entry) attacker list for that enemy. Buckets are
-     * recycled from {@link #attackerListPool} so steady-state allocation is
-     * zero.
+     * Per-target attacker index — wraps the {@code Unit → attacker list} map
+     * that drives O(1)-lookup crowding scoring in
+     * {@link com.dillon.starsectormarines.battle.ai.TacticalScoring}. Rebuilt
+     * once at tick top in the serial phase; read in parallel during
+     * UPDATE_UNITS against the frozen snapshot. Sibling slice to
+     * {@link #rosterService} / {@link #navigation}; constructed after the
+     * roster since {@link com.dillon.starsectormarines.battle.ai.AttackerIndexService#rebuild()}
+     * iterates {@link UnitRosterService#getUnits()}.
      */
-    private final Object2ObjectMap<Unit, ArrayList<Unit>> attackersByTarget = new Object2ObjectOpenHashMap<>();
-    /** Recycled {@code ArrayList<Unit>} buckets. {@link #rebuildAttackersByTarget()} clears + returns every bucket here before re-populating, so the steady-state allocation is zero. */
-    private final ArrayList<ArrayList<Unit>> attackerListPool = new ArrayList<>();
+    private final com.dillon.starsectormarines.battle.ai.AttackerIndexService attackerIndex;
 
     /** In-flight tracers + projectiles + per-frame event drains. Sibling slice to {@link #effects} / {@link #vision}; the {@link #postShot}, {@link #queueProjectile}, {@link #getActiveShots} et al. delegates below forward here. */
     private final ShotService shots = new ShotService();
@@ -298,6 +291,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                 navigation, rosterService, shots);
         this.squadMorale = new com.dillon.starsectormarines.battle.squad.SquadMoraleSystem(
                 rosterService, shots);
+        this.attackerIndex = new com.dillon.starsectormarines.battle.ai.AttackerIndexService(rosterService);
     }
 
     @Override public NavigationGrid getGrid() { return grid; }
@@ -773,7 +767,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // re-rebuild mid-tick as units pick new targets — the snapshot model
         // means a squad's crowding cost reflects the previous frame, which
         // matches the prior O(U²) behavior's semantics anyway.
-        rebuildAttackersByTarget();
+        attackerIndex.rebuild();
         tickProfile.lap(TickProfile.Phase.REBUILD_ATTACKERS);
         // Refresh squad-level awareness BEFORE individual unit updates so the
         // garrison/patrol behavior dispatch this tick sees fresh ENGAGED /
@@ -975,46 +969,14 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         navigation.endTick();
     }
 
-    /**
-     * Returns the alive attackers currently aiming at {@code target}, or null
-     * if no one is targeting it. The list is mutated in-place each tick by
-     * {@link #rebuildAttackersByTarget()} — callers must not retain it across
-     * tick boundaries.
-     */
+    /** Delegates to {@link com.dillon.starsectormarines.battle.ai.AttackerIndexService#getAttackersOf(Unit)}. The list is mutated in-place each tick — callers must not retain it across tick boundaries. */
     public ArrayList<Unit> getAttackersOf(Unit target) {
-        return attackersByTarget.get(target);
+        return attackerIndex.getAttackersOf(target);
     }
 
     /** Delegates to {@link NavigationService#getVantagePointsFor(int, int)}. Cached per-battle; invalidated in lockstep with the zone-graph rebuild driven by {@link NavigationService#flushZoneGraphIfDirty}. */
     public int[][] getVantagePointsFor(int tx, int ty) {
         return navigation.getVantagePointsFor(tx, ty);
-    }
-
-    /**
-     * Rebuilds {@link #attackersByTarget} from the current {@code Unit.target}
-     * pointers. Recycles bucket lists via {@link #attackerListPool} so the
-     * steady-state allocation is zero — buckets grow once, then live forever.
-     *
-     * <p>Skips dead attackers and dead targets so a unit holding a stale
-     * pointer at its dying enemy doesn't pollute the next tick's lookup.
-     */
-    private void rebuildAttackersByTarget() {
-        for (ArrayList<Unit> bucket : attackersByTarget.values()) {
-            bucket.clear();
-            attackerListPool.add(bucket);
-        }
-        attackersByTarget.clear();
-        for (Unit u : units) {
-            if (!u.isAlive() || u.target == null || !u.target.isAlive()) continue;
-            ArrayList<Unit> bucket = attackersByTarget.get(u.target);
-            if (bucket == null) {
-                bucket = attackerListPool.isEmpty()
-                        ? new ArrayList<>(4)
-                        : attackerListPool.remove(attackerListPool.size() - 1);
-                attackersByTarget.put(u.target, bucket);
-            }
-            bucket.add(u);
-        }
     }
 
     /**
