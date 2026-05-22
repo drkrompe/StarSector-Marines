@@ -7,16 +7,8 @@ import com.dillon.starsectormarines.battle.fx.EffectsService;
 import com.dillon.starsectormarines.battle.ground.GroundSystem;
 import com.dillon.starsectormarines.battle.ground.Vehicle;
 import com.dillon.starsectormarines.battle.air.Shuttle;
-import com.dillon.starsectormarines.battle.ai.CombatantBehavior;
 import com.dillon.starsectormarines.battle.ai.goap.GoapDroneBehavior;
-import com.dillon.starsectormarines.battle.ai.DroneHubBehavior;
-import com.dillon.starsectormarines.battle.ai.FallbackBehavior;
-import com.dillon.starsectormarines.battle.ai.FleeBehavior;
-import com.dillon.starsectormarines.battle.ai.KitRetrieverBehavior;
-import com.dillon.starsectormarines.battle.ai.StructureBehavior;
 import com.dillon.starsectormarines.battle.ai.TacticalScoring;
-import com.dillon.starsectormarines.battle.ai.TurretBehavior;
-import com.dillon.starsectormarines.battle.ai.UnitBehavior;
 import com.dillon.starsectormarines.battle.ai.goap.GoapInfantryBehavior;
 import com.dillon.starsectormarines.battle.ai.goap.GoapMechBehavior;
 import com.dillon.starsectormarines.battle.command.MissionCommand;
@@ -53,9 +45,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ForkJoinWorkerThread;
 
 /**
  * Headless auto-battler simulation. Owns the {@link NavigationGrid}, the unit
@@ -218,21 +207,9 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     // LosCache is per-thread (ThreadLocal lazy-init in LosCache itself);
     // the sim no longer owns a single instance — clearAll() at tick top
     // sweeps every worker's slot.
-    /**
-     * Worker pool for the parallel UPDATE_UNITS dispatch. Sized one less than
-     * available cores so the main thread, OS, and render have headroom.
-     * Daemon worker threads so the pool doesn't keep the JVM alive past the
-     * sim's lifetime (Starsector spawns and discards battles repeatedly).
-     */
-    private final ForkJoinPool updatePool = new ForkJoinPool(
-            Math.max(1, Runtime.getRuntime().availableProcessors() - 1),
-            pool -> {
-                ForkJoinWorkerThread t = ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(pool);
-                t.setDaemon(true);
-                t.setName("BattleSim-Update-" + t.getPoolIndex());
-                return t;
-            },
-            null, false);
+
+    /** Owns the parallel UPDATE_UNITS dispatch + the worker {@code ForkJoinPool} + per-role behavior dispatch. This is the entity-for-loop seam — see the class doc for the ECS/SoA promotion plan. */
+    private final com.dillon.starsectormarines.battle.ai.UnitUpdateSystem unitUpdate;
     private boolean complete = false;
     private Faction winner;
 
@@ -292,6 +269,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         this.squadMorale = new com.dillon.starsectormarines.battle.squad.SquadMoraleSystem(
                 rosterService, shots);
         this.attackerIndex = new com.dillon.starsectormarines.battle.ai.AttackerIndexService(rosterService);
+        this.unitUpdate = new com.dillon.starsectormarines.battle.ai.UnitUpdateSystem(damageService, tickInnerProfile);
     }
 
     @Override public NavigationGrid getGrid() { return grid; }
@@ -810,38 +788,9 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             }
         }
         tickProfile.lap(TickProfile.Phase.GOAP_REPLAN);
-        // Parallel per-unit dispatch on the sim's ForkJoinPool. Pre-Phase-A
-        // this loop was serial and mutated shared sim state inline; Phase A
-        // refactored every shared mutation (damage, occupancy, spawns, shots,
-        // projectiles, detonations) into thread-safe queue / synchronized
-        // enqueue paths, so workers can dispatch in parallel without
-        // corrupting sim state. After the parallel section, per-worker
-        // TickInnerProfile recordings (PATHFIND / TARGET_PICK / FIRING_POSITION
-        // / behavior buckets) are merged into the canonical sim profile so
-        // the dumper + debug panel read aggregate numbers.
-        //
-        // Snapshot size: queueSpawn defers drone-hub additions to the
-        // APPLY_SPAWNS phase, so the units list is stable during this
-        // dispatch — no CME risk on the parallel iterator.
-        int unitCount = units.size();
-        List<Unit> view = units.subList(0, unitCount);
-        damageService.enterParallel();
-        try {
-            updatePool.submit(() -> view.parallelStream()
-                    .filter(Unit::isAlive)
-                    .forEach(this::updateUnit))
-                    .get();
-        } catch (InterruptedException ie) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("UPDATE_UNITS dispatch interrupted", ie);
-        } catch (ExecutionException ee) {
-            Throwable cause = ee.getCause();
-            if (cause instanceof RuntimeException re) throw re;
-            throw new RuntimeException("UPDATE_UNITS dispatch failed", cause);
-        } finally {
-            damageService.exitParallel();
-        }
-        TickInnerProfile.mergeAllInto(tickInnerProfile);
+        // Parallel per-unit dispatch — entity for-loop. See UnitUpdateSystem
+        // class doc for the parallelism + ECS-promotion notes.
+        unitUpdate.tick(units, this);
         tickProfile.lap(TickProfile.Phase.UPDATE_UNITS);
         // Apply occupancy + destIndex deltas queued by setPath during the
         // per-unit dispatch. Runs at the end of UPDATE_UNITS, before any
@@ -1052,76 +1001,6 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Queues a {@link Projectile} for the per-tick advance. Called from the AoE projectile fire path in {@link #fireShotFrom}. */
     public void queueProjectile(Projectile p) {
         shots.queueProjectile(p);
-    }
-
-    /**
-     * Dispatch entry point — pulls fall-back out so it applies to every role,
-     * then routes to the role-specific behavior. PLANTER / OBJECTIVE_CAMPER /
-     * VIP currently fall through to combatant behavior; mission-specific
-     * subsystems (SABOTAGE first) override these branches as they land.
-     */
-    /**
-     * Routes the per-tick update for one unit. Fall-back is a pre-dispatch
-     * override so it applies regardless of role; otherwise the per-role
-     * behavior instance handles the unit. Behavior classes live in
-     * {@code battle.ai}; this method holds no per-role logic.
-     */
-    private void updateUnit(Unit u) {
-        long t0 = System.nanoTime();
-        TickInnerProfile.Bucket bucket;
-        if (u.fallbackTimer > 0f) {
-            FallbackBehavior.INSTANCE.update(u, this);
-            bucket = TickInnerProfile.Bucket.BEHAVIOR_FALLBACK;
-        } else {
-            behaviorFor(u.role).update(u, this);
-            bucket = innerBucketForRole(u.role);
-        }
-        // Route through TickInnerProfile.current() so workers in the parallel
-        // dispatch write to their per-thread profile (ThreadLocal auto-init),
-        // not directly to the canonical sim instance. mergeAllInto folds the
-        // per-worker recordings into the canonical at the end of UPDATE_UNITS.
-        TickInnerProfile.current().record(bucket, System.nanoTime() - t0);
-    }
-
-    /**
-     * Maps a {@link UnitRole} to its inner-profile behavior bucket. Mirrors
-     * {@link #behaviorFor(UnitRole)} — every role that returns the same
-     * behavior instance there should map to the same bucket here, so the
-     * inner profile partitions {@code updateUnit} time correctly across
-     * behavior classes. Default falls into {@code BEHAVIOR_COMBATANT}
-     * because {@code behaviorFor} also defaults to {@code CombatantBehavior}.
-     */
-    private static TickInnerProfile.Bucket innerBucketForRole(UnitRole role) {
-        switch (role) {
-            case KIT_RETRIEVER: return TickInnerProfile.Bucket.BEHAVIOR_KIT_RETRIEVER;
-            case FLEE:          return TickInnerProfile.Bucket.BEHAVIOR_FLEE;
-            case TURRET:        return TickInnerProfile.Bucket.BEHAVIOR_TURRET;
-            case STRUCTURE:     return TickInnerProfile.Bucket.BEHAVIOR_STRUCTURE;
-            case DRONE_HUB:     return TickInnerProfile.Bucket.BEHAVIOR_DRONE_HUB;
-            case DRONE_PATROL:  return TickInnerProfile.Bucket.BEHAVIOR_GOAP_DRONE;
-            default:            return TickInnerProfile.Bucket.BEHAVIOR_COMBATANT;
-        }
-    }
-
-    private UnitBehavior behaviorFor(UnitRole role) {
-        switch (role) {
-            // PLANTER routes through CombatantBehavior → GoapInfantryBehavior.
-            // The plant action is a squad-plan slot inside HoldPortalCordon
-            // (Story J); the unit keeps role=PLANTER so ChargeSiteObjective.tick
-            // still finds it on-site, but no longer has its own per-unit dispatch.
-            case KIT_RETRIEVER:  return KitRetrieverBehavior.INSTANCE;
-            case FLEE:           return FleeBehavior.INSTANCE;
-            case TURRET:         return TurretBehavior.INSTANCE;
-            case GARRISON:       return CombatantBehavior.INSTANCE;
-            case PATROL:         return CombatantBehavior.INSTANCE;
-            case STRUCTURE:      return StructureBehavior.INSTANCE;
-            case DRONE_HUB:      return DroneHubBehavior.INSTANCE;
-            case DRONE_PATROL:   return GoapDroneBehavior.INSTANCE;
-            case OBJECTIVE_CAMPER:
-            case VIP:
-            case COMBATANT:
-            default:             return CombatantBehavior.INSTANCE;
-        }
     }
 
     /**

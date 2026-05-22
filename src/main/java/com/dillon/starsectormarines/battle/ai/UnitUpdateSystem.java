@@ -1,0 +1,167 @@
+package com.dillon.starsectormarines.battle.ai;
+
+import com.dillon.starsectormarines.battle.BattleSimulation;
+import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.UnitRole;
+import com.dillon.starsectormarines.battle.ai.goap.GoapDroneBehavior;
+import com.dillon.starsectormarines.battle.damage.DamageService;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
+
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinWorkerThread;
+
+/**
+ * Parallel per-unit dispatch — owns the {@code UPDATE_UNITS} phase that
+ * routes each alive {@link Unit} to its role-specific {@link UnitBehavior}.
+ * This is the entity for-loop: the hot path that ticks every combatant on
+ * the battlefield.
+ *
+ * <h2>ECS / SoA seam</h2>
+ * <p>This class is the load-bearing seam for the eventual move to SoA over
+ * {@code Unit}. The current loop body — {@code behaviorFor(u.role).update(u, sim)}
+ * — is the unit of work that, once promoted, becomes a per-System parallel
+ * sweep across flat primitive arrays. When that lift happens, each per-role
+ * behavior class becomes a System with explicit read/write field decls and
+ * this dispatcher disappears in favor of System-shaped passes registered on
+ * the sim. Until then, this is the single named for-loop a future ECS
+ * refactor needs to find.
+ *
+ * <h2>Parallelism</h2>
+ * <p>Pre-Phase-A this loop was serial and mutated shared sim state inline.
+ * Phase A refactored every shared mutation (damage, occupancy, spawns, shots,
+ * projectiles, detonations) into thread-safe queue / synchronized enqueue
+ * paths, so workers can dispatch in parallel without corrupting sim state.
+ * The {@link DamageService#enterParallel()} / {@link DamageService#exitParallel()}
+ * bracket flips the queue-vs-inline gate on the damage / target-mutation /
+ * occupancy services. Per-worker {@link TickInnerProfile} recordings
+ * (PATHFIND / TARGET_PICK / FIRING_POSITION / behavior buckets) are merged
+ * into the canonical sim profile at the end of the dispatch.
+ *
+ * <h2>Snapshot semantics</h2>
+ * <p>{@code UnitRosterService.queueSpawn} defers drone-hub additions to the
+ * APPLY_SPAWNS phase, so the units list is stable during this dispatch — no
+ * CME risk on the parallel iterator. {@code units.subList(0, unitCount)}
+ * locks in the dispatch view explicitly.
+ *
+ * <h2>sim-as-context</h2>
+ * <p>Behaviors still take {@link BattleSimulation} as a context handle —
+ * this system threads {@code sim} through to them unchanged. That coupling
+ * goes away on the {@code *SimContext} deprecation path; the dispatcher
+ * itself doesn't reach into the sim.
+ */
+public final class UnitUpdateSystem {
+
+    private final ForkJoinPool pool;
+    private final DamageService damageService;
+    private final TickInnerProfile tickInnerProfile;
+
+    public UnitUpdateSystem(DamageService damageService, TickInnerProfile tickInnerProfile) {
+        this.pool = new ForkJoinPool(
+                Math.max(1, Runtime.getRuntime().availableProcessors() - 1),
+                p -> {
+                    ForkJoinWorkerThread t = ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(p);
+                    t.setDaemon(true);
+                    t.setName("BattleSim-Update-" + t.getPoolIndex());
+                    return t;
+                },
+                null, false);
+        this.damageService = damageService;
+        this.tickInnerProfile = tickInnerProfile;
+    }
+
+    /**
+     * Dispatch one tick of per-unit updates across the alive roster. Caller
+     * passes the canonical units list (the same instance the rest of the
+     * sim aliases) — {@code subList} locks in the dispatch view so any
+     * concurrent {@code queueSpawn} adds land outside the iterator.
+     */
+    public void tick(List<Unit> units, BattleSimulation sim) {
+        int unitCount = units.size();
+        List<Unit> view = units.subList(0, unitCount);
+        damageService.enterParallel();
+        try {
+            pool.submit(() -> view.parallelStream()
+                    .filter(Unit::isAlive)
+                    .forEach(u -> updateUnit(u, sim)))
+                    .get();
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("UPDATE_UNITS dispatch interrupted", ie);
+        } catch (ExecutionException ee) {
+            Throwable cause = ee.getCause();
+            if (cause instanceof RuntimeException re) throw re;
+            throw new RuntimeException("UPDATE_UNITS dispatch failed", cause);
+        } finally {
+            damageService.exitParallel();
+        }
+        TickInnerProfile.mergeAllInto(tickInnerProfile);
+    }
+
+    /**
+     * Routes the per-tick update for one unit. Fall-back is a pre-dispatch
+     * override so it applies regardless of role; otherwise the per-role
+     * behavior instance handles the unit. Behavior classes hold no
+     * per-system instance state — they're invoked through their static
+     * {@code INSTANCE} singletons.
+     */
+    private void updateUnit(Unit u, BattleSimulation sim) {
+        long t0 = System.nanoTime();
+        TickInnerProfile.Bucket bucket;
+        if (u.fallbackTimer > 0f) {
+            FallbackBehavior.INSTANCE.update(u, sim);
+            bucket = TickInnerProfile.Bucket.BEHAVIOR_FALLBACK;
+        } else {
+            behaviorFor(u.role).update(u, sim);
+            bucket = innerBucketForRole(u.role);
+        }
+        // Route through TickInnerProfile.current() so workers in the parallel
+        // dispatch write to their per-thread profile (ThreadLocal auto-init),
+        // not directly to the canonical sim instance. mergeAllInto folds the
+        // per-worker recordings into the canonical at the end of the tick.
+        TickInnerProfile.current().record(bucket, System.nanoTime() - t0);
+    }
+
+    /**
+     * Maps a {@link UnitRole} to its per-role {@link UnitBehavior} singleton.
+     * {@code PLANTER} intentionally routes through {@link CombatantBehavior}
+     * → {@link GoapInfantryBehavior} — the plant action lives in the squad
+     * plan, not a per-unit dispatch.
+     */
+    private static UnitBehavior behaviorFor(UnitRole role) {
+        switch (role) {
+            case KIT_RETRIEVER:  return KitRetrieverBehavior.INSTANCE;
+            case FLEE:           return FleeBehavior.INSTANCE;
+            case TURRET:         return TurretBehavior.INSTANCE;
+            case GARRISON:       return CombatantBehavior.INSTANCE;
+            case PATROL:         return CombatantBehavior.INSTANCE;
+            case STRUCTURE:      return StructureBehavior.INSTANCE;
+            case DRONE_HUB:      return DroneHubBehavior.INSTANCE;
+            case DRONE_PATROL:   return GoapDroneBehavior.INSTANCE;
+            case OBJECTIVE_CAMPER:
+            case VIP:
+            case COMBATANT:
+            default:             return CombatantBehavior.INSTANCE;
+        }
+    }
+
+    /**
+     * Mirrors {@link #behaviorFor(UnitRole)} — every role that returns the
+     * same behavior instance there should map to the same bucket here so the
+     * inner profile partitions {@code updateUnit} time correctly across
+     * behavior classes. Default falls into {@code BEHAVIOR_COMBATANT}
+     * because {@code behaviorFor} also defaults to {@link CombatantBehavior}.
+     */
+    private static TickInnerProfile.Bucket innerBucketForRole(UnitRole role) {
+        switch (role) {
+            case KIT_RETRIEVER: return TickInnerProfile.Bucket.BEHAVIOR_KIT_RETRIEVER;
+            case FLEE:          return TickInnerProfile.Bucket.BEHAVIOR_FLEE;
+            case TURRET:        return TickInnerProfile.Bucket.BEHAVIOR_TURRET;
+            case STRUCTURE:     return TickInnerProfile.Bucket.BEHAVIOR_STRUCTURE;
+            case DRONE_HUB:     return TickInnerProfile.Bucket.BEHAVIOR_DRONE_HUB;
+            case DRONE_PATROL:  return TickInnerProfile.Bucket.BEHAVIOR_GOAP_DRONE;
+            default:            return TickInnerProfile.Bucket.BEHAVIOR_COMBATANT;
+        }
+    }
+}
