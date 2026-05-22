@@ -1,0 +1,194 @@
+{
+	# Industry-driven mission archetypes — the bank of (type, name, flavor)
+	# templates the mission generator picks from when a planet's industries
+	# are surveyed for contract opportunities.
+	#
+	# Schema:
+	#   {
+	#     "missions": {
+	#       "<industry_id>": [
+	#         { "type": "<MissionType>", "name": "<title>", "flavor": "<paragraph>" },
+	#         ...
+	#       ]
+	#     }
+	#   }
+	#
+	# - Industry id keys are the Starsector industry ids from
+	#   com.fs.starfarer.api.impl.campaign.ids.Industries (lowercase, e.g.
+	#   "heavyindustry", "orbitalworks"). Unknown ids are ignored, not
+	#   rejected — translation mods or expansions can add entries for
+	#   industries this mod doesn't currently target.
+	# - Every entry MUST have a non-empty type, name, and flavor.
+	# - The type field MUST match a com.dillon.starsectormarines.ops.MissionType
+	#   enum value: ASSAULT, SABOTAGE, RAID, EXTRACTION, CONQUEST.
+	# - Industries deliberately omitted (low value / too narrative-specific
+	#   for the generic pipeline): population, waystation, aquaculture,
+	#   farming, cryosanctum, cryorevival, planetary shield, orbital
+	#   fortifications (those raise DefenseLevel rather than emit their
+	#   own strands).
+
+	"missions": {
+		# -- Industrial production targets ---------------------------------
+
+		"heavyindustry": [
+			{
+				"type":   "SABOTAGE",
+				"name":   "Cripple the Foundry",
+				"flavor": "Target floor is networked across three production halls; charges placed at the convergence node take all of it offline. Security relies on overhead gantry walks — clear those first."
+			},
+			{
+				"type":   "RAID",
+				"name":   "Loot the Production Floor",
+				"flavor": "High-tech components are stockpiled near the shipping dock. Smash-and-grab opportunity, but the on-site militia rolls fast — extraction window is tight."
+			}
+		],
+
+		"orbitalworks": [
+			{
+				"type":   "SABOTAGE",
+				"name":   "Cripple the Shipworks",
+				"flavor": "Atmospheric assembly bays. Vent the slipway pressure systems and the whole line goes dark until they can re-seal — weeks of downtime from one well-placed charge."
+			},
+			{
+				"type":   "RAID",
+				"name":   "Plunder the Assembly Line",
+				"flavor": "Half-finished modules and rare alloy stocks. Most of it's bulky — bring breaching tools or accept that a third of the take stays behind."
+			}
+		],
+
+		"refining": [
+			{
+				"type":   "SABOTAGE",
+				"name":   "Cripple the Refinery",
+				"flavor": "Smelter feeds and cracking towers. Heat-exchange manifolds are the weak point — drop them and the whole refinery has to cool for repair before it can restart."
+			}
+		],
+
+		"fuelprod": [
+			{
+				"type":   "SABOTAGE",
+				"name":   "Cripple Fuel Synthesis",
+				"flavor": "Volatiles are stored on-site. Charges on the catalysis loop trigger a chain rupture; operators evacuate, the plant goes inert for months while it's reconditioned."
+			}
+		],
+
+		# -- Extractive industries -----------------------------------------
+
+		"mining": [
+			{
+				"type":   "RAID",
+				"name":   "Strip the Mining Camp",
+				"flavor": "Outpost workforce is unarmed — the militia rides out from the perimeter station. Move fast, take the stockpile, be gone before the response sweep arrives."
+			}
+		],
+
+		"techmining": [
+			{
+				"type":   "RAID",
+				"name":   "Raid the Tech-Mining Site",
+				"flavor": "Recovered Domain-era artifacts are catalogued in a dig-site warehouse. Most of the find is junk; intel says the cataloging shed is where the actual finds are kept."
+			}
+		],
+
+		"lightindustry": [
+			{
+				"type":   "RAID",
+				"name":   "Loot the Consumer Goods Stores",
+				"flavor": "Volume target, not a high-tech one. Easy money, light resistance, fast loadout — a good shakedown for a green captain."
+			}
+		],
+
+		# -- Commerce / logistics ------------------------------------------
+
+		"commerce": [
+			{
+				"type":   "RAID",
+				"name":   "Skim the Trade Floor",
+				"flavor": "The exchange clearing house is a single hardened building. Hit it during a quarterly settlement and the take is real money instead of warehouse junk."
+			}
+		],
+
+		"spaceport": [
+			{
+				"type":   "SABOTAGE",
+				"name":   "Cripple the Spaceport",
+				"flavor": "Drop the traffic-control tower and the orbital lanes go dark — incoming traffic re-routes to other systems for the duration. Symbolic damage outweighs the physical."
+			}
+		],
+
+		"megaport": [
+			{
+				"type":   "SABOTAGE",
+				"name":   "Cripple the Megaport",
+				"flavor": "Three stacked traffic control rings. Coordinated charges across all three are required for the closure to stick — partial damage just slows things down."
+			},
+			{
+				"type":   "EXTRACTION",
+				"name":   "Smuggle Out the Dock Master",
+				"flavor": "Asset is the senior traffic controller — knows the orbital approach codes for the whole system. High-value, light personal security, but the dock crew might intervene."
+			}
+		],
+
+		# -- Military targets ----------------------------------------------
+
+		"patrolhq": [
+			{
+				"type":   "ASSAULT",
+				"name":   "Overrun the Patrol Post",
+				"flavor": "Lightly fortified barracks. Quick action while the patrol rotation is out; hit it before the standby element wakes up."
+			},
+			{
+				"type":   "EXTRACTION",
+				"name":   "Extract the Patrol Defector",
+				"flavor": "Junior officer wants out. Smuggling route runs through the motor pool; subject is briefed."
+			}
+		],
+
+		"militarybase": [
+			{
+				"type":   "CONQUEST",
+				"name":   "Conquer the Military Base",
+				"flavor": "Full beachhead-to-citadel push. Drop on the perimeter, fight uphill through the civilian buffer, breach the fortress wall. Bring the regiment — this is not a raid."
+			},
+			{
+				"type":   "ASSAULT",
+				"name":   "Storm the Military Base",
+				"flavor": "Fully fortified perimeter, dug-in defenders, layered killzones. This is the real thing — assume losses, plan for them."
+			},
+			{
+				"type":   "EXTRACTION",
+				"name":   "Recover the Defecting Officer",
+				"flavor": "Senior officer with operational knowledge. Located in officers' quarters; the routine patrol checks each barracks block hourly."
+			}
+		],
+
+		"highcommand": [
+			{
+				"type":   "CONQUEST",
+				"name":   "Take High Command",
+				"flavor": "Full-scale planetary assault. The fortress walls aren't decorative — the regiment lives behind them. Coordinated breach, sustained push, hold the gates."
+			},
+			{
+				"type":   "ASSAULT",
+				"name":   "Decap Strike on High Command",
+				"flavor": "Hardest target on the map. The chain of command operates from a buried bunker complex; above-ground assault is a feint, the real op is the access tunnel."
+			}
+		],
+
+		"grounddefenses": [
+			{
+				"type":   "ASSAULT",
+				"name":   "Silence the Ground Defenses",
+				"flavor": "Distributed battery emplacements. They cover each other — the assault is sequenced, not simultaneous; first battery dies fast, the rest of them know you're coming."
+			}
+		],
+
+		"heavybatteries": [
+			{
+				"type":   "ASSAULT",
+				"name":   "Silence the Heavy Batteries",
+				"flavor": "Hardened emplacements, automated turret cover, dedicated security platoon. Going at this without orbital fire support is borderline reckless."
+			}
+		]
+	}
+}
