@@ -74,7 +74,9 @@ public final class SquadStateDumper {
 
             String path = pathFor(squad);
             Global.getSettings().writeJSONToCommon(path, root, true);
-            LOG.info("SquadStateDumper: wrote SQ-" + squad.id + " state to saves/common/" + path);
+            // SettingsAPI.writeJSONToCommon appends ".data" to the path on disk
+            // (sandbox quirk) — log the actual filename so the reader can find it.
+            LOG.info("SquadStateDumper: wrote SQ-" + squad.id + " state to saves/common/" + path + ".data");
             return path;
         } catch (Exception ex) {
             LOG.warn("SquadStateDumper: dump failed for SQ-" + squad.id, ex);
