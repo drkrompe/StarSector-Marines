@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle;
 
 import com.dillon.starsectormarines.battle.air.AirSimContext;
 import com.dillon.starsectormarines.battle.air.AirSystem;
+import com.dillon.starsectormarines.battle.command.CommanderService;
 import com.dillon.starsectormarines.battle.ground.GroundSystem;
 import com.dillon.starsectormarines.battle.ground.Vehicle;
 import com.dillon.starsectormarines.battle.air.Shuttle;
@@ -19,6 +20,7 @@ import com.dillon.starsectormarines.battle.ai.UnitBehavior;
 import com.dillon.starsectormarines.battle.ai.goap.GoapInfantryBehavior;
 import com.dillon.starsectormarines.battle.ai.goap.GoapMechBehavior;
 import com.dillon.starsectormarines.battle.command.MissionCommand;
+import com.dillon.starsectormarines.battle.damage.DamageService;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
@@ -29,6 +31,7 @@ import com.dillon.starsectormarines.battle.objective.Objective;
 import com.dillon.starsectormarines.battle.profile.LosCache;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
+import com.dillon.starsectormarines.battle.tactical.TacticalContextService;
 import com.dillon.starsectormarines.battle.tactical.TacticalMap;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
@@ -187,8 +190,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      */
     private final Int2ObjectMap<Squad> squads = new Int2ObjectOpenHashMap<>(256);
 
-    /** Per-faction strategic commander tier. Owns the slow-tick cadence; the {@link #setCommander}/{@link #getCommander} delegates below forward here, and the COMMANDER phase calls {@link com.dillon.starsectormarines.battle.command.CommanderRegistry#tick}. */
-    private final com.dillon.starsectormarines.battle.command.CommanderRegistry commanders = new com.dillon.starsectormarines.battle.command.CommanderRegistry();
+    /** Per-faction strategic commander tier. Owns the slow-tick cadence; the {@link #setCommander}/{@link #getCommander} delegates below forward here, and the COMMANDER phase calls {@link CommanderService#tick}. */
+    private final CommanderService commanders = new CommanderService();
 
     /**
      * Per-target attacker index: for each unit currently targeted by at least
@@ -234,37 +237,14 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Units that transitioned from alive to dead during the last {@link #advance(float)} call. Same lifecycle as {@link #shotsThisFrame}. */
     private final List<Unit> deathsThisFrame = new ArrayList<>();
     /**
-     * Damage queued during UPDATE_UNITS, drained in APPLY_DAMAGE. Routes every
-     * {@link #applyDamage} caller through a per-tick queue so the per-unit
-     * dispatch never mutates HP / squad morale / death state inline — the
-     * prerequisite for parallelizing the dispatch loop. Drained serially by
-     * {@link #flushPendingDamage()} before any subsystem tick reads HP.
+     * Parallel-dispatch safety queues + the {@code insideParallel} flag.
+     * Owns {@link PendingDamage}, {@link PendingTargetMutation}, and
+     * {@link PendingOccupancyDelta} queues with their pools. Constructed in
+     * the sim ctor with bound method-ref appliers for each kind, so the
+     * {@code applyDamage} / {@code applyReprio} / {@code applyFallback} /
+     * {@code applyOccupancyDelta} delegates below forward straight in.
      */
-    private final ArrayList<PendingDamage> pendingDamage = new ArrayList<>();
-    /** Recycled {@link PendingDamage} records. {@link #flushPendingDamage()} returns every drained entry here, so the steady-state allocation is zero. */
-    private final ArrayList<PendingDamage> pendingDamagePool = new ArrayList<>();
-    /**
-     * Target-side mutations queued by {@link #rollReprioritizeOnHit} and
-     * {@link #rollFallbackOnHit} during UPDATE_UNITS, drained serially by
-     * {@link #flushPendingTargetMutations()} in the APPLY_DAMAGE phase.
-     * Routes the shooter-driven writes to {@code target.target},
-     * {@code target.fallbackCellX/Y}, {@code target.fallbackTimer}, and the
-     * target's path through a queue so the shooter's worker never races the
-     * target's own worker (which is reading those fields concurrently in
-     * {@code advanceMovement} et al). Sibling pattern to {@link #pendingDamage}.
-     */
-    private final ArrayList<PendingTargetMutation> pendingTargetMutations = new ArrayList<>();
-    /** Recycled {@link PendingTargetMutation} records — same pool convention as {@link #pendingDamagePool}. */
-    private final ArrayList<PendingTargetMutation> pendingTargetMutationsPool = new ArrayList<>();
-    /**
-     * Occupancy + {@code destIndex} mutations queued by {@link #setPath} during
-     * UPDATE_UNITS, drained in APPLY_OCCUPANCY. Sibling queue to
-     * {@link #pendingDamage} with the same justification: keeps the per-unit
-     * dispatch free of shared-state mutation so the loop can fork-join.
-     */
-    private final ArrayList<PendingOccupancyDelta> pendingOccupancy = new ArrayList<>();
-    /** Recycled {@link PendingOccupancyDelta} records — same pool convention as {@link #pendingDamagePool}. */
-    private final ArrayList<PendingOccupancyDelta> pendingOccupancyPool = new ArrayList<>();
+    private final DamageService damageService;
     /**
      * Units queued for addition during UPDATE_UNITS (drone hub spawns today),
      * drained in APPLY_SPAWNS via {@link #flushPendingSpawns()}. Routes the one
@@ -318,16 +298,6 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      * Daemon worker threads so the pool doesn't keep the JVM alive past the
      * sim's lifetime (Starsector spawns and discards battles repeatedly).
      */
-    /**
-     * True only while the parallel UPDATE_UNITS dispatch is in flight — read
-     * by {@link #applyDamage}, {@link #setPath}, and {@link #queueSpawn} to
-     * decide between queue (parallel callers) and inline apply (everyone
-     * else — serial tick phases, off-tick test paths, mid-frame UI hooks).
-     * Inline outside the parallel section is faster (no queue allocation) and
-     * sidesteps the bug where serial phases past the queue's drain point
-     * would enqueue mutations that leak into the next tick.
-     */
-    private volatile boolean insideParallel = false;
     private final ForkJoinPool updatePool = new ForkJoinPool(
             Math.max(1, Runtime.getRuntime().availableProcessors() - 1),
             pool -> {
@@ -356,8 +326,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private FlybyRoster flybyRoster = FlybyRoster.EMPTY;
 
     /** Battle-scoped tactical data from the map generator — TacticalMap hint graph + DefensePost list. The {@link #getTacticalMap}/{@link #setTacticalMap}/{@link #setDefensePosts} delegates below forward here. */
-    private final com.dillon.starsectormarines.battle.tactical.TacticalContext tactical =
-            new com.dillon.starsectormarines.battle.tactical.TacticalContext();
+    private final TacticalContextService tactical =
+            new TacticalContextService();
 
     public BattleSimulation(NavigationGrid grid, CellTopology topology) {
         this.grid = grid;
@@ -369,6 +339,11 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         this.zoneGraph.rebuild();
         this.effects = new com.dillon.starsectormarines.battle.fx.EffectsService(rng);
         this.doodadService = new DoodadService(grid);
+        this.damageService = new DamageService(
+                this::applyDamageNow,
+                this::writeReprioInline,
+                this::writeFallbackInline,
+                this::applyOccupancyDeltaInline);
     }
 
     @Override public NavigationGrid getGrid() { return grid; }
@@ -569,7 +544,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      * spawn rare; the next tick's REBUILD_OCCUPANCY restores the picture.
      */
     public void queueSpawn(Unit u) {
-        if (!insideParallel) {
+        if (!damageService.isParallel()) {
             // Serial caller — inline. Tests + (theoretical) serial-phase
             // spawn paths see the new unit in {@link #getUnits()} immediately.
             addUnit(u);
@@ -613,59 +588,12 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
 
     @Override
     public void applyDamage(Unit target, float damage, float vsTurretMult, float moraleImpact) {
-        if (!insideParallel) {
-            // Serial / off-tick caller — apply inline. Covers test assertions,
-            // the FlybyOverlay strike path, and the serial tick phases that
-            // emit damage post-UPDATE_UNITS (INFANTRY_TICK / HEAVY_TICK burst
-            // continuations, PROJECTILES arrivals, DETONATIONS).
-            applyDamageNow(target, damage, vsTurretMult, moraleImpact);
-            return;
-        }
-        // Parallel UPDATE_UNITS dispatch — queue. Many workers may enqueue
-        // concurrently; lock on the queue itself for pool + append.
-        synchronized (pendingDamage) {
-            PendingDamage e = pendingDamagePool.isEmpty()
-                    ? new PendingDamage()
-                    : pendingDamagePool.remove(pendingDamagePool.size() - 1);
-            e.target = target;
-            e.damage = damage;
-            e.vsTurretMult = vsTurretMult;
-            e.moraleImpact = moraleImpact;
-            pendingDamage.add(e);
-        }
+        damageService.applyDamage(target, damage, vsTurretMult, moraleImpact);
     }
 
-    /**
-     * Drains {@link #pendingDamage} in FIFO order. Runs serially in the
-     * {@link TickProfile.Phase#APPLY_DAMAGE} phase, between UPDATE_UNITS and
-     * the subsystem ticks that read HP (INFANTRY_TICK, HEAVY_TICK,
-     * PROJECTILES, DETONATIONS). FIFO keeps the order deterministic while
-     * the dispatch is still serial; once the dispatch parallelizes we'll
-     * revisit (per-worker queues merged in unit-iteration order, or a sort
-     * key on the entries).
-     *
-     * <p>Behavioral note: today a unit's incoming damage applied inline during
-     * the shooter's update, so a doomed target later in the iteration order
-     * was already dead when its own update ran and got skipped. After the
-     * deferral, a doomed target gets one tick of action before the drain
-     * kills it. The drift is one tick of "free action from condemned
-     * units" — small, and arguably more consistent than the previous
-     * order-dependent behavior.
-     *
-     * <p>Public for tests — production callers go through {@link #applyDamage}
-     * and the sim drains automatically in the APPLY_DAMAGE phase. Direct
-     * unit-level tests that assert immediate side effects of a single
-     * {@code applyDamage} call this to make the queued mutation visible.
-     */
+    /** Delegates to {@link DamageService#flushPendingDamage()}. Public so tests can force the drain after a direct {@code applyDamage} call to assert immediate side effects. */
     public void flushPendingDamage() {
-        if (pendingDamage.isEmpty()) return;
-        for (int i = 0, n = pendingDamage.size(); i < n; i++) {
-            PendingDamage e = pendingDamage.get(i);
-            applyDamageNow(e.target, e.damage, e.vsTurretMult, e.moraleImpact);
-            e.target = null;
-            pendingDamagePool.add(e);
-        }
-        pendingDamage.clear();
+        damageService.flushPendingDamage();
     }
 
     /**
@@ -887,27 +815,11 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // for turrets) calls its target-picker on the null check.
         // findBestTarget already weights distance + LOS + threat density,
         // so a closer-with-LOS flanker beats an out-of-LOS chase target
-        // naturally.
-        if (!insideParallel) {
-            // Serial caller — apply inline. Mirrors the {@link #applyDamage}
-            // pattern: avoid the queue allocation off-tick / in serial phases.
-            // No expected-target guard needed: there's no concurrent worker
-            // to have re-targeted between the snapshot and this write.
-            target.target = null;
-            return;
-        }
-        // Parallel UPDATE_UNITS dispatch — queue. The shooter's worker is
-        // running concurrently with the target's worker, which reads
-        // {@code target.target}; writing it from here would race.
-        synchronized (pendingTargetMutations) {
-            PendingTargetMutation m = pendingTargetMutationsPool.isEmpty()
-                    ? new PendingTargetMutation()
-                    : pendingTargetMutationsPool.remove(pendingTargetMutationsPool.size() - 1);
-            m.target = target;
-            m.kind = PendingTargetMutation.Kind.REPRIORITIZE;
-            m.expectedTarget = expectedTarget;
-            pendingTargetMutations.add(m);
-        }
+        // naturally. The damage service routes serial callers through
+        // the inline applier and parallel callers through the pool-backed
+        // queue (which retains expectedTarget for the flush-side race
+        // resolution against a concurrent self-retarget).
+        damageService.applyReprio(target, expectedTarget);
     }
 
     @Override
@@ -932,76 +844,29 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // just int coords carried to the serial drain.
         int[] fallback = TacticalScoring.findFallbackPosition(target, this);
         if (fallback[0] == target.cellX && fallback[1] == target.cellY) return;
-        if (!insideParallel) {
-            // Serial caller — apply inline. Mirrors {@link #applyDamage}.
-            target.fallbackCellX = fallback[0];
-            target.fallbackCellY = fallback[1];
-            target.fallbackTimer = FALLBACK_DURATION;
-            // Stale path no longer applies — target will re-path to the
-            // fall-back cell on its next updateUnit pass.
-            clearPath(target);
-            return;
-        }
-        // Parallel UPDATE_UNITS dispatch — queue. Writing fallbackCellX/Y,
-        // fallbackTimer, or {@code target.path} (via clearPath) here would
-        // race the target's own worker reading those fields.
-        synchronized (pendingTargetMutations) {
-            PendingTargetMutation m = pendingTargetMutationsPool.isEmpty()
-                    ? new PendingTargetMutation()
-                    : pendingTargetMutationsPool.remove(pendingTargetMutationsPool.size() - 1);
-            m.target = target;
-            m.kind = PendingTargetMutation.Kind.FALLBACK;
-            m.fallbackCellX = fallback[0];
-            m.fallbackCellY = fallback[1];
-            pendingTargetMutations.add(m);
-        }
+        // Serial callers apply the 3 fb-field writes + clearPath inline via
+        // the damage service's inline applier; parallel callers queue (writes
+        // to fb fields + {@code target.path} via clearPath would race the
+        // target's own worker reading those fields).
+        damageService.applyFallback(target, fallback[0], fallback[1]);
     }
 
-    /**
-     * Drains {@link #pendingTargetMutations} in FIFO order. Runs serially in
-     * the {@link TickProfile.Phase#APPLY_DAMAGE} phase, immediately after
-     * {@link #flushPendingDamage()} so REPRIORITIZE/FALLBACK skip targets that
-     * the queued damage just killed. The drain runs before any subsystem tick
-     * that might call the roll methods inline (INFANTRY_TICK / HEAVY_TICK
-     * burst continuations route through the same {@link #insideParallel}
-     * inline branch and don't enqueue).
-     *
-     * <p>Public for tests — production callers go through
-     * {@link #rollReprioritizeOnHit} / {@link #rollFallbackOnHit}, and the sim
-     * drains automatically in APPLY_DAMAGE.
-     */
+    /** Delegates to {@link DamageService#flushPendingTargetMutations()}. Public so tests can force the drain after a direct {@code rollReprio} / {@code rollFallback} call. */
     public void flushPendingTargetMutations() {
-        if (pendingTargetMutations.isEmpty()) return;
-        for (int i = 0, n = pendingTargetMutations.size(); i < n; i++) {
-            PendingTargetMutation m = pendingTargetMutations.get(i);
-            Unit target = m.target;
-            // Skip targets killed by queued damage drained earlier this phase
-            // — a dead unit's path / target / fallback fields are moot.
-            if (target.isAlive()) {
-                switch (m.kind) {
-                    case REPRIORITIZE:
-                        // Only null the target if it still matches the
-                        // shooter's snapshot. If the target's own worker
-                        // re-targeted during the parallel phase (e.g. picked
-                        // a closer flanker), preserve that newer choice
-                        // rather than clobbering it with null.
-                        if (target.target == m.expectedTarget) target.target = null;
-                        break;
-                    case FALLBACK:
-                        target.fallbackCellX = m.fallbackCellX;
-                        target.fallbackCellY = m.fallbackCellY;
-                        target.fallbackTimer = FALLBACK_DURATION;
-                        // Serial drain — {@link #clearPath} (via setPath) takes
-                        // the !insideParallel branch and mutates occupancy inline.
-                        clearPath(target);
-                        break;
-                }
-            }
-            m.target = null;
-            m.expectedTarget = null;
-            pendingTargetMutationsPool.add(m);
-        }
-        pendingTargetMutations.clear();
+        damageService.flushPendingTargetMutations();
+    }
+
+    /** Inline reprio write — invoked by the damage service on the serial path AND on the queued path (after the expectedTarget race-check). The shape stays just "null the target field"; the next behavior tick re-picks via {@code findBestTarget}. */
+    private void writeReprioInline(Unit target) {
+        target.target = null;
+    }
+
+    /** Inline fallback write — invoked by the damage service on the serial path AND from the queued-flush. Writes the 3 fb fields and clears the stale path so the target re-paths to the fall-back cell on its next updateUnit pass. */
+    private void writeFallbackInline(Unit target, int fbX, int fbY) {
+        target.fallbackCellX = fbX;
+        target.fallbackCellY = fbY;
+        target.fallbackTimer = FALLBACK_DURATION;
+        clearPath(target);
     }
 
     // ---- AirSimContext: services the AirSystem reaches back for during a tick ----
@@ -1176,7 +1041,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // dispatch — no CME risk on the parallel iterator.
         int unitCount = units.size();
         List<Unit> view = units.subList(0, unitCount);
-        insideParallel = true;
+        damageService.enterParallel();
         try {
             updatePool.submit(() -> view.parallelStream()
                     .filter(Unit::isAlive)
@@ -1190,7 +1055,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             if (cause instanceof RuntimeException re) throw re;
             throw new RuntimeException("UPDATE_UNITS dispatch failed", cause);
         } finally {
-            insideParallel = false;
+            damageService.exitParallel();
         }
         TickInnerProfile.mergeAllInto(tickInnerProfile);
         tickProfile.lap(TickProfile.Phase.UPDATE_UNITS);
@@ -1438,10 +1303,10 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      * call {@link #clearPath(Unit)}) to drop the current path.
      *
      * <p>{@code u.path} / {@code u.pathIdx} are unit-local and mutated inline.
-     * Shared spatial state goes through {@link #pendingOccupancy} so the
-     * per-unit dispatch never races on the occupancy map or destIndex; the
-     * delta drains in APPLY_OCCUPANCY at the end of UPDATE_UNITS, before any
-     * subsequent phase reads the map.
+     * Shared spatial state goes through {@link DamageService}'s occupancy
+     * queue so the per-unit dispatch never races on the occupancy map or
+     * destIndex; the delta drains in APPLY_OCCUPANCY at the end of
+     * UPDATE_UNITS, before any subsequent phase reads the map.
      */
     public void setPath(Unit u, int[] newPath) {
         int oldDestX = pathDestX(u);
@@ -1463,66 +1328,28 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         boolean hasOld = oldDestX != Integer.MIN_VALUE && (oldDestX != u.cellX || oldDestY != u.cellY);
         boolean hasNew = newDestX != Integer.MIN_VALUE && (newDestX != u.cellX || newDestY != u.cellY);
         if (!hasOld && !hasNew) return;
-        if (!insideParallel) {
-            // Inline for serial callers — covers off-tick (tests, setup) AND
-            // the post-APPLY_OCCUPANCY serial callers (rollFallbackOnHit from
-            // INFANTRY_TICK / HEAVY_TICK burst continuations,
-            // processEquipmentDrops, fireShotFrom from PROJECTILES). Queueing
-            // those would leak entries into the next tick's drain after
-            // REBUILD_OCCUPANCY already rebuilt the map from u.path.
-            if (hasOld) {
-                decrementOccupancy(oldDestX, oldDestY);
-                destIndex.removeDestination(u, oldDestX, oldDestY);
-            }
-            if (hasNew) {
-                incrementOccupancy(newDestX, newDestY);
-                destIndex.addDestination(u, newDestX, newDestY);
-            }
-            return;
-        }
-        // Parallel UPDATE_UNITS dispatch — queue for the APPLY_OCCUPANCY drain.
-        synchronized (pendingOccupancy) {
-            PendingOccupancyDelta d = pendingOccupancyPool.isEmpty()
-                    ? new PendingOccupancyDelta()
-                    : pendingOccupancyPool.remove(pendingOccupancyPool.size() - 1);
-            d.u = u;
-            d.oldDestX = hasOld ? oldDestX : Integer.MIN_VALUE;
-            d.oldDestY = hasOld ? oldDestY : Integer.MIN_VALUE;
-            d.newDestX = hasNew ? newDestX : Integer.MIN_VALUE;
-            d.newDestY = hasNew ? newDestY : Integer.MIN_VALUE;
-            pendingOccupancy.add(d);
-        }
+        damageService.applyOccupancyDelta(u,
+                hasOld ? oldDestX : Integer.MIN_VALUE,
+                hasOld ? oldDestY : Integer.MIN_VALUE,
+                hasNew ? newDestX : Integer.MIN_VALUE,
+                hasNew ? newDestY : Integer.MIN_VALUE);
     }
 
-    /**
-     * Drains {@link #pendingOccupancy} FIFO — applies decrements + destIndex
-     * removals for old destinations, then increments + additions for new
-     * destinations. Order preservation matters when a single unit gets
-     * multiple {@link #setPath} calls in one tick (the second call's "old"
-     * is the first call's "new"); FIFO drain produces the same net state
-     * as the pre-deferral inline mutation.
-     *
-     * <p>Public for tests — production callers go through {@link #setPath}
-     * and the sim drains automatically in the APPLY_OCCUPANCY phase. The
-     * off-tick auto-flush inside {@link #setPath} also calls this so direct
-     * unit-test patterns ({@code setPath} → assert on occupancy) keep working.
-     */
+    /** Delegates to {@link DamageService#flushPendingOccupancyDeltas()}. Public so tests can force the drain after a direct {@code setPath} call. */
     public void flushPendingOccupancyDeltas() {
-        if (pendingOccupancy.isEmpty()) return;
-        for (int i = 0, n = pendingOccupancy.size(); i < n; i++) {
-            PendingOccupancyDelta d = pendingOccupancy.get(i);
-            if (d.oldDestX != Integer.MIN_VALUE) {
-                decrementOccupancy(d.oldDestX, d.oldDestY);
-                destIndex.removeDestination(d.u, d.oldDestX, d.oldDestY);
-            }
-            if (d.newDestX != Integer.MIN_VALUE) {
-                incrementOccupancy(d.newDestX, d.newDestY);
-                destIndex.addDestination(d.u, d.newDestX, d.newDestY);
-            }
-            d.u = null;
-            pendingOccupancyPool.add(d);
+        damageService.flushPendingOccupancyDeltas();
+    }
+
+    /** Inline occupancy + destIndex delta applier — invoked by the damage service on the serial path AND on the queued drain. {@code Integer.MIN_VALUE} for an old / new coord is the "no-op" sentinel. */
+    private void applyOccupancyDeltaInline(Unit u, int oldDestX, int oldDestY, int newDestX, int newDestY) {
+        if (oldDestX != Integer.MIN_VALUE) {
+            decrementOccupancy(oldDestX, oldDestY);
+            destIndex.removeDestination(u, oldDestX, oldDestY);
         }
-        pendingOccupancy.clear();
+        if (newDestX != Integer.MIN_VALUE) {
+            incrementOccupancy(newDestX, newDestY);
+            destIndex.addDestination(u, newDestX, newDestY);
+        }
     }
 
     /** Convenience: drop the unit's path. Equivalent to {@code setPath(u, GridPathfinder.EMPTY_PATH)}. */

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.objective;
 
 import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.command.CommanderService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +15,7 @@ import java.util.function.Consumer;
  * its tick so legacy missions without registered objectives still terminate,
  * and dispatches the OBJECTIVES phase through {@link #tick(Consumer)}.
  *
- * <p>Sibling slice to {@link com.dillon.starsectormarines.battle.command.CommanderRegistry}
+ * <p>Sibling slice to {@link CommanderService}
  * — same shape: per-tick dispatch goes through a {@link Consumer} so this
  * class doesn't import {@code BattleSimulation}.
  *

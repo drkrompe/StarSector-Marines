@@ -24,7 +24,7 @@ import java.util.function.Consumer;
  * this class doesn't import {@code BattleSimulation} (the same callback
  * shape {@code ShotService} uses for projectile arrivals).
  */
-public final class CommanderRegistry {
+public final class CommanderService {
 
     /**
      * Sim-seconds between commander-tier slow ticks. The squad-GOAP replan

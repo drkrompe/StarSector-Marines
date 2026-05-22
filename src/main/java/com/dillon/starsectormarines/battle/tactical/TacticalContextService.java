@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.tactical;
 
 import com.dillon.starsectormarines.battle.DefensePost;
+import com.dillon.starsectormarines.battle.command.CommanderService;
 
 import java.util.Collections;
 import java.util.List;
@@ -15,13 +16,13 @@ import java.util.List;
  * sibling slice to {@link com.dillon.starsectormarines.battle.fx.EffectsService},
  * {@link com.dillon.starsectormarines.battle.vision.VisionService},
  * {@link com.dillon.starsectormarines.battle.shots.ShotService},
- * {@link com.dillon.starsectormarines.battle.command.CommanderRegistry},
+ * {@link CommanderService},
  * {@link com.dillon.starsectormarines.battle.objective.ObjectivesService}.
  *
  * <p>Pure data holder — no tick logic. Set once by {@code BattleSetup}
  * during construction, read for the lifetime of the battle.
  */
-public final class TacticalContext {
+public final class TacticalContextService {
 
     private TacticalMap tacticalMap = new TacticalMap(Collections.emptyList());
     private List<DefensePost> defensePosts = Collections.emptyList();
