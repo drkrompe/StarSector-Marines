@@ -2,12 +2,11 @@ package com.dillon.starsectormarines.battle.mapgen.bsp;
 
 import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.nav.RoomFinder;
+import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Slice-6 keep multi-chamber pass. Detects when a {@link
@@ -54,11 +53,7 @@ import java.util.Set;
  * keep) even when {@link com.dillon.starsectormarines.battle.mapgen.bsp.fill.BuildingShellCore}'s
  * MULTI_ROOM partition lands. The doc's full 3-chamber (entry / inner /
  * throne) design needs the BSP carve to support 3-way partitioning,
- * which is a follow-up. Garrison cell pools still come from the
- * doorway-unaware {@code BattleSetup.pickCellsNear}, so the chamber's
- * spawn pool can overlap the throne room's — patch 3 of the central-keep
- * fix sequence (room-bounded spawn pools via {@code RoomFinder})
- * addresses that.
+ * which is a follow-up.
  */
 public final class KeepEntryChamberStamper {
 
@@ -78,13 +73,26 @@ public final class KeepEntryChamberStamper {
      * in-place; {@link TacticalLinker} (which runs after this stamper) does NOT
      * wire INNER_POSITION into its compound-leaf FALLBACK_TO pass — interior
      * fallback is goal-AI territory, not the link graph.
+     *
+     * <p>Builds a transient {@link ZoneGraph} from the current grid state and
+     * reads zone membership directly. The ZoneGraph that
+     * {@link com.dillon.starsectormarines.battle.nav.NavigationService}
+     * eventually owns at sim setup is a separate instance — running the
+     * detector again here is cheap (~100×50 grid) and avoids a lifecycle
+     * coupling between map-gen and battle setup.
      */
     public static void stamp(NavigationGrid grid, List<TacticalNode> tactical) {
         if (grid == null || tactical == null) return;
+        // Single detector pass for the whole map; reused across every
+        // COMMAND_POST. The doorway flags + walkability that ZoneDetector
+        // reads are finalized by the building fillers that run before this
+        // stamper — TacticalLinker hasn't run yet but doesn't touch grid.
+        ZoneGraph zones = new ZoneGraph(grid);
+        zones.rebuild();
         List<TacticalNode> initial = new ArrayList<>(tactical);
         for (TacticalNode node : initial) {
             if (node.kind != TacticalNode.Kind.COMMAND_POST) continue;
-            int[] entryAnchor = findEntryChamberAnchor(node, grid);
+            int[] entryAnchor = findEntryChamberAnchor(node, grid, zones);
             if (entryAnchor == null) continue;
             tactical.add(new TacticalNode(TacticalNode.Kind.INNER_POSITION,
                     entryAnchor[0], entryAnchor[1],
@@ -96,17 +104,17 @@ public final class KeepEntryChamberStamper {
     }
 
     /**
-     * Flood from the COMMAND_POST anchor over walkable cells bounded to the
-     * leaf bbox using {@link RoomFinder} (which handles the doorway-as-room-
-     * boundary semantics); collect walkable, non-doorway cells in the bbox
-     * <em>not</em> reached by the throne-room flood. If the unreached set is
-     * ≥ {@link #MIN_CHAMBER_CELLS}, pick a representative anchor (the
-     * geometric centroid of the unreached cells, snapped to the nearest
-     * unreached cell so the anchor is itself walkable). Returns {@code null}
-     * when the building has a single connected interior — no entry chamber
-     * to emit.
+     * Look up the COMMAND_POST anchor's zone; that's the throne room. Walk the
+     * leaf bbox collecting walkable, non-doorway cells that belong to a
+     * <em>different</em> zone — those are the antechamber cells (separated
+     * from the throne room by a partition doorway, which is its own 1-cell
+     * zone). If the antechamber set is ≥ {@link #MIN_CHAMBER_CELLS}, pick a
+     * representative anchor — the geometric centroid of the antechamber,
+     * snapped to the nearest member cell so the anchor is itself walkable.
+     * Returns {@code null} when the building has a single connected interior.
      */
-    private static int[] findEntryChamberAnchor(TacticalNode commandPost, NavigationGrid grid) {
+    private static int[] findEntryChamberAnchor(TacticalNode commandPost, NavigationGrid grid,
+                                                ZoneGraph zones) {
         int left = commandPost.left;
         int top = commandPost.top;
         int right = commandPost.right;
@@ -114,35 +122,28 @@ public final class KeepEntryChamberStamper {
 
         // Anchor may not be inside the bbox (defensive), or may be on a wall
         // or doorway cell. Skip gracefully if so — the building has no
-        // resolvable throne-room flood seed.
+        // resolvable throne-room zone seed.
         int seedX = commandPost.anchorX;
         int seedY = commandPost.anchorY;
         if (seedX < left || seedX > right || seedY < top || seedY > bottom) return null;
         if (!grid.inBounds(seedX, seedY) || !grid.isWalkable(seedX, seedY)) return null;
         if (grid.isDoorway(seedX, seedY)) return null;
 
-        // Flood the throne room. RoomFinder's bbox bound keeps the flood
-        // from leaking out the building's perimeter doorway; its doorway-
-        // boundary contract keeps the partition doorway from connecting
-        // the two rooms. Perimeter doorways sit at the bbox edge and are
-        // bbox-filtered either way, so they're inert here.
-        List<int[]> throneRoom = RoomFinder.flood(grid, seedX, seedY,
-                Integer.MAX_VALUE,
-                new int[]{left, top, right, bottom});
-        Set<Long> throneSet = RoomFinder.toMembership(throneRoom);
+        int throneZoneId = zones.zoneIdAt(seedX, seedY);
+        if (throneZoneId < 0) return null;
 
-        // Collect walkable cells in the bbox NOT reached by the throne-room
-        // flood. Those are the "other room" cells, separated from the seed
-        // by an interior wall + doorway. Exclude doorway cells themselves so
-        // the centroid isn't pulled toward the partition boundary — we want
-        // the anchor inside the room proper, not on the threshold.
+        // Antechamber cells = bbox-interior walkable non-doorway cells that
+        // belong to a zone other than the throne-room's. Exclude doorway
+        // cells (their own zones) so the centroid isn't pulled toward the
+        // partition boundary — anchor should sit in the room proper.
         List<int[]> otherRoom = new ArrayList<>();
         long sumX = 0, sumY = 0;
         for (int y = top; y <= bottom; y++) {
             for (int x = left; x <= right; x++) {
-                if (throneSet.contains(RoomFinder.key(x, y))) continue;
                 if (!grid.isWalkable(x, y)) continue;
                 if (grid.isDoorway(x, y)) continue;
+                int zid = zones.zoneIdAt(x, y);
+                if (zid < 0 || zid == throneZoneId) continue;
                 otherRoom.add(new int[]{x, y});
                 sumX += x;
                 sumY += y;

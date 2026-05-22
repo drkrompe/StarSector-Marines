@@ -57,23 +57,29 @@ public class KeepEntryChamberStamperTest {
 
     @Test
     public void multiRoomBuildingEmitsEntryChamberOnFarSide() {
-        // Stamp a wall stripe across the middle of an 8x8 leaf with a
-        // single-cell DOORWAY-flagged opening, simulating BuildingShellCore's
-        // multi-room partition (cell stays walkable but is flagged as a
-        // doorway — the stamper treats doorway cells as room boundaries so
-        // the flood doesn't leak through them). COMMAND_POST anchor sits in
-        // the upper (high-Y) half = throne room. The stamper should emit an
-        // INNER_POSITION anchored in the lower (low-Y) half = entry chamber.
+        // 8×8 building shell at (6,6)-(13,13) with full perimeter walls + a
+        // partition wall stripe at y=10 with a doorway at x=10. Mirrors what
+        // BuildingShellCore produces: an enclosed building (no open edges
+        // around the leaf) with one interior partition. ZoneDetector then
+        // returns three zones inside the bbox — throne room (y=11..13),
+        // antechamber (y=6..9), and the partition doorway as its own
+        // 1-cell zone. COMMAND_POST anchor at (10, 12) → throne room →
+        // stamper should emit an INNER_POSITION on the antechamber side.
         NavigationGrid grid = openGrid();
-        // 8x8 leaf bbox at (6,6)-(13,13). Wall row at y=10 with doorway
-        // at x=10. Cells y=11..13 are throne room (anchor at (10,12));
-        // cells y=6..9 are entry chamber.
+        // Perimeter walls — top, bottom, left, right of the bbox.
         for (int x = 6; x <= 13; x++) {
+            grid.setWalkable(x, 6, false);
+            grid.setWalkable(x, 13, false);
+        }
+        for (int y = 6; y <= 13; y++) {
+            grid.setWalkable(6, y, false);
+            grid.setWalkable(13, y, false);
+        }
+        // Partition wall stripe at y=10, with a doorway at x=10.
+        for (int x = 7; x <= 12; x++) {
             if (x == 10) continue;
             grid.setWalkable(x, 10, false);
         }
-        // Partition doorway: walkable + flagged. Mirrors what
-        // BuildingShellCore.subdivide produces.
         grid.setDoorway(10, 10, true);
         TacticalNode cp = commandPost(6, 6, 13, 13, 10, 12);
         List<TacticalNode> tactical = new ArrayList<>();

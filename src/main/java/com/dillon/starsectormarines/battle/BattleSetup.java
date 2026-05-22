@@ -12,6 +12,8 @@ import com.dillon.starsectormarines.battle.ground.Vehicle;
 import com.dillon.starsectormarines.battle.ground.VehicleType;
 import com.dillon.starsectormarines.battle.mapgen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.mapgen.road.RoadReservation;
+import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
+import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.reinforcement.ConvoyMeans;
 import com.dillon.starsectormarines.battle.reinforcement.GarrisonDepletedTrigger;
 import com.dillon.starsectormarines.battle.reinforcement.ObjectiveLostTrigger;
@@ -28,7 +30,6 @@ import com.dillon.starsectormarines.battle.mapgen.TraversalAxis;
 import com.dillon.starsectormarines.battle.mapgen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.mapgen.bsp.DefensePostStamper;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.nav.RoomFinder;
 import com.dillon.starsectormarines.battle.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.objective.ConquestObjective;
 import com.dillon.starsectormarines.battle.objective.EliminateFactionObjective;
@@ -871,7 +872,7 @@ public final class BattleSetup {
             java.util.Deque<UnitType> source = !mechQueue.isEmpty() ? mechQueue : infQueue;
             if (source.isEmpty()) { patrolAnchors.add(node); continue; }
             int want = Math.min(node.garrisonSize, source.size());
-            List<int[]> cells = pickCellsNear(map.grid, node.anchorX, node.anchorY, GARRISON_SPAWN_RADIUS, want);
+            List<int[]> cells = pickCellsNear(map.grid, sim.getZoneGraph(), node.anchorX, node.anchorY, GARRISON_SPAWN_RADIUS, want);
             if (cells.isEmpty()) { patrolAnchors.add(node); continue; }
             Squad squad = null;
             int spawned = 0;
@@ -916,7 +917,7 @@ public final class BattleSetup {
             TacticalNode anchor = anchorPool.get(anchorIdx % anchorPool.size());
             anchorIdx++;
             int want = Math.min(roster.patrolSquadSize, source.size());
-            List<int[]> cells = pickCellsNear(map.grid, anchor.anchorX, anchor.anchorY, GARRISON_SPAWN_RADIUS + 2, want);
+            List<int[]> cells = pickCellsNear(map.grid, sim.getZoneGraph(), anchor.anchorX, anchor.anchorY, GARRISON_SPAWN_RADIUS + 2, want);
             if (cells.isEmpty()) {
                 // Couldn't spawn here — drop this anchor from the pool so we
                 // don't get stuck cycling. If the pool empties, the remaining
@@ -1028,25 +1029,55 @@ public final class BattleSetup {
     }
 
     /**
-     * Flood from {@code (ax, ay)} — which may itself be non-walkable, e.g. a
-     * turret-mount anchor — collecting walkable cells within Manhattan
-     * {@code radius} and returning the top {@code count} sorted by cover desc
-     * then distance asc. Used to pick squad spawn cells around a
-     * {@link TacticalNode} anchor at setup time and again by
-     * {@link BattleSimulation#updateSquadFallback} when a garrison reassigns
-     * to a fallback node mid-battle.
+     * Pick walkable cells around {@code (ax, ay)} for spawning a squad — the
+     * top {@code count} cells within Manhattan {@code radius} sorted by cover
+     * desc, distance asc. Used by the defender allocator at setup time and by
+     * {@link com.dillon.starsectormarines.battle.squad.SquadFallbackSystem}
+     * when a squad falls back to a sibling tactical node mid-battle.
      *
-     * <p>The flood is doorway-aware ({@link RoomFinder} contract): for an
-     * indoor seed, the spawn pool is restricted to the seed's room, so a
-     * multi-room building's COMMAND_POST squad can't bleed into the
-     * antechamber's spawn pool (and vice versa). For an outdoor seed with no
-     * doorways within radius, behavior matches the historical room-unaware
-     * BFS. For a seed sitting <em>on</em> a doorway (a GATE's anchor), the
-     * seed exemption lets the flood escape into both adjacent rooms so gate
-     * defenders still spawn on both sides.
+     * <p>Routes through the live {@link ZoneGraph} so the spawn pool respects
+     * the same room-partition the AI tier already uses everywhere else. Three
+     * seed cases to handle, all reading off the zone structure:
+     *
+     * <ol>
+     *   <li><b>Indoor walkable seed</b> (compound interior anchor) — seed's
+     *       zone is the room. Pool draws from that one zone, bounded to
+     *       Manhattan radius. A multi-room building's partition doorway is
+     *       its own zone (per {@link com.dillon.starsectormarines.battle.nav.zone.ZoneDetector}),
+     *       so cells in the antechamber are in a separate zone and never
+     *       leak into the throne-room garrison's pool.</li>
+     *   <li><b>Walkable doorway seed</b> (a GATE anchor) — seed's zone is a
+     *       1-cell doorway zone. We extend the pool to the doorway's adjacent
+     *       zones via the portal graph, so gate defenders still spawn on
+     *       both sides of the gap.</li>
+     *   <li><b>Unwalkable seed</b> (3×3 wall-mount tower, turret pylon) —
+     *       seed has no zone. Walk outward cell-by-cell with walls
+     *       transparent until we accumulate every zone reachable within
+     *       radius, then draw from all of them. Matches the historical
+     *       wall-mounted-tower spawn behavior (cells on both sides of the
+     *       wall ring); the cover-based sort handles the defender-side bias.
+     *   </li>
+     * </ol>
      */
-    public static List<int[]> pickCellsNear(NavigationGrid grid, int ax, int ay, int radius, int count) {
-        List<int[]> pool = RoomFinder.flood(grid, ax, ay, radius, null);
+    public static List<int[]> pickCellsNear(NavigationGrid grid, ZoneGraph zones,
+                                            int ax, int ay, int radius, int count) {
+        java.util.Set<Integer> spawnZones = resolveSpawnZones(grid, zones, ax, ay, radius);
+        if (spawnZones.isEmpty()) return Collections.emptyList();
+
+        List<int[]> pool = new ArrayList<>();
+        int width = grid.getWidth();
+        for (int zid : spawnZones) {
+            NavigationZone z = zones.zoneById(zid);
+            if (z == null) continue;
+            for (int idx : z.getCellIndices()) {
+                int x = idx % width;
+                int y = idx / width;
+                int dist = Math.abs(x - ax) + Math.abs(y - ay);
+                if (dist > radius) continue;
+                pool.add(new int[]{x, y, dist});
+            }
+        }
+
         pool.sort(Comparator
                 .comparingInt((int[] p) -> -grid.getCoverAt(p[0], p[1]))
                 .thenComparingInt(p -> p[2]));
@@ -1057,6 +1088,51 @@ public final class BattleSetup {
             out.add(new int[]{p[0], p[1]});
         }
         return out;
+    }
+
+    /**
+     * Resolve the set of zones {@link #pickCellsNear} draws cells from for a
+     * given seed. See that method's javadoc for the three-case rationale.
+     */
+    private static java.util.Set<Integer> resolveSpawnZones(NavigationGrid grid, ZoneGraph zones,
+                                                            int ax, int ay, int radius) {
+        java.util.Set<Integer> result = new java.util.LinkedHashSet<>();
+        if (!grid.inBounds(ax, ay)) return result;
+
+        int seedZoneId = zones.zoneIdAt(ax, ay);
+        if (seedZoneId >= 0) {
+            result.add(seedZoneId);
+            // Doorway seeds: 1-cell doorway zone; gate-defender pattern needs
+            // both adjacent rooms in the pool.
+            if (grid.isDoorway(ax, ay)) {
+                result.addAll(zones.adjacentZones(seedZoneId));
+            }
+            return result;
+        }
+
+        // Unwalkable seed (wall-mount). Walk outward through walls until
+        // every zone reachable within radius is collected. The radius bound
+        // keeps this O(radius²) — same envelope as the original
+        // pickCellsNear BFS, just collecting zone ids instead of cells.
+        java.util.Set<Long> seen = new java.util.HashSet<>();
+        java.util.ArrayDeque<int[]> q = new java.util.ArrayDeque<>();
+        q.add(new int[]{ax, ay, 0});
+        seen.add(key(ax, ay));
+        int[][] nbrs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        while (!q.isEmpty()) {
+            int[] p = q.poll();
+            if (p[2] > radius) continue;
+            int zid = zones.zoneIdAt(p[0], p[1]);
+            if (zid >= 0) result.add(zid);
+            for (int[] d : nbrs) {
+                int nx = p[0] + d[0];
+                int ny = p[1] + d[1];
+                if (!grid.inBounds(nx, ny)) continue;
+                if (!seen.add(key(nx, ny))) continue;
+                q.add(new int[]{nx, ny, p[2] + 1});
+            }
+        }
+        return result;
     }
 
     /**

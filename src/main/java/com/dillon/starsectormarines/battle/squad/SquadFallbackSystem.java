@@ -98,7 +98,7 @@ public final class SquadFallbackSystem {
      * cover stacks.
      */
     private void assignFallbackHomes(Squad squad, TacticalNode newNode, List<Unit> units) {
-        List<int[]> cells = BattleSetup.pickCellsNear(navigation.getGrid(),
+        List<int[]> cells = BattleSetup.pickCellsNear(navigation.getGrid(), navigation.getZoneGraph(),
                 newNode.anchorX, newNode.anchorY, 5, squad.aliveMembers);
         int idx = 0;
         for (int i = 0, n = units.size(); i < n; i++) {

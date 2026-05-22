@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
@@ -14,9 +15,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Behavioral coverage for {@link BattleSetup#pickCellsNear} — the spawn-
  * pool picker used by the defender allocator and the mid-battle squad
  * fallback. Patch 3 of the slice-6 central-keep fix sequence routes this
- * through {@link com.dillon.starsectormarines.battle.nav.RoomFinder}; the
- * tests below pin the room-bound contract that was the whole point of the
- * refactor.
+ * through {@link ZoneGraph}; the tests below pin the three seed-resolution
+ * cases (indoor walkable, walkable doorway, unwalkable wall-mount) and the
+ * room-bound contract that was the whole point of the refactor.
  */
 public class BattleSetupPickCellsNearTest {
 
@@ -29,6 +30,13 @@ public class BattleSetupPickCellsNearTest {
             for (int x = 0; x < W; x++) grid.setWalkableFloor(x, y);
         }
         return grid;
+    }
+
+    /** Build the same shape the live sim does — ZoneDetector flood over the current grid state. */
+    private static ZoneGraph zonesFor(NavigationGrid grid) {
+        ZoneGraph zones = new ZoneGraph(grid);
+        zones.rebuild();
+        return zones;
     }
 
     private static Set<Long> keysOf(List<int[]> cells) {
@@ -46,38 +54,36 @@ public class BattleSetupPickCellsNearTest {
         // Two-room building partitioned at y=10 with a doorway at x=10.
         // Anchor at (10, 12) — the "throne room" side. Spawn pool radius 5
         // is large enough that, without the room bound, the BFS would reach
-        // y=7 cells in the antechamber. Room-bound contract: only y ≥ 11
-        // cells appear; antechamber cells are excluded.
+        // y=7 cells in the antechamber. ZoneDetector puts y≥11 cells in
+        // one zone and y≤9 cells in another (the doorway is its own zone);
+        // pickCellsNear should draw only from the throne-room zone.
         NavigationGrid grid = openGrid();
-        // Wall row at y=10 with doorway at x=10. Mirrors BuildingShellCore.
         for (int x = 0; x < W; x++) {
             if (x == 10) continue;
             grid.setWalkable(x, 10, false);
         }
         grid.setDoorway(10, 10, true);
 
-        List<int[]> cells = BattleSetup.pickCellsNear(grid, 10, 12, 5, 50);
+        List<int[]> cells = BattleSetup.pickCellsNear(grid, zonesFor(grid),
+                10, 12, 5, 50);
 
         Set<Long> picked = keysOf(cells);
         assertTrue(picked.contains(key(10, 12)), "anchor cell included");
         assertTrue(picked.contains(key(10, 13)), "throne-room neighbor included");
-        // Antechamber cells (y ≤ 9) are within Manhattan-distance-5 from
-        // (10, 12) only via the doorway, which the room bound forbids.
         assertFalse(picked.contains(key(10, 9)),
                 "antechamber cell not picked despite Manhattan distance 3 from anchor");
         assertFalse(picked.contains(key(10, 7)),
                 "deep antechamber cell not picked");
-        // Partition doorway itself is a boundary, not floor — should not
-        // appear as a spawn position.
         assertFalse(picked.contains(key(10, 10)),
-                "partition doorway not a spawn position");
+                "partition doorway not a spawn position (it's in its own 1-cell zone, not the throne room)");
     }
 
     @Test
     public void doorwayAnchorEscapesIntoBothRooms() {
-        // Anchor at (10, 10) — the gate cell itself (doorway). Seed
-        // exemption lets the flood escape both sides; gate defenders spawn
-        // on either side of the partition.
+        // Anchor at (10, 10) — the gate cell itself (doorway). ZoneDetector
+        // makes it a 1-cell doorway zone; the gate-anchor branch in
+        // resolveSpawnZones walks portals to the adjacent zones so gate
+        // defenders spawn on either side of the partition.
         NavigationGrid grid = openGrid();
         for (int x = 0; x < W; x++) {
             if (x == 10) continue;
@@ -85,7 +91,8 @@ public class BattleSetupPickCellsNearTest {
         }
         grid.setDoorway(10, 10, true);
 
-        List<int[]> cells = BattleSetup.pickCellsNear(grid, 10, 10, 5, 50);
+        List<int[]> cells = BattleSetup.pickCellsNear(grid, zonesFor(grid),
+                10, 10, 5, 50);
 
         Set<Long> picked = keysOf(cells);
         assertTrue(picked.contains(key(10, 12)),
@@ -95,14 +102,15 @@ public class BattleSetupPickCellsNearTest {
     }
 
     @Test
-    public void outdoorAnchorBehavesAsBeforeWhenNoDoorwaysInRadius() {
-        // No interior walls + no doorways. The room-aware flood degenerates
-        // to a plain Manhattan-distance BFS — same behavior the pre-patch
-        // BFS gave, so any non-compound caller (HEAVY_TOWER in a kill-zone,
+    public void outdoorAnchorReachesFullRadius() {
+        // No interior walls + no doorways. ZoneDetector puts every cell in
+        // one big zone; pickCellsNear with radius 2 returns the Manhattan
+        // diamond. Any non-compound caller (HEAVY_TOWER in a kill-zone,
         // FORWARD_BUNKER, GUARDPOST in open terrain) sees no regression.
         NavigationGrid grid = openGrid();
 
-        List<int[]> cells = BattleSetup.pickCellsNear(grid, 10, 10, 2, 50);
+        List<int[]> cells = BattleSetup.pickCellsNear(grid, zonesFor(grid),
+                10, 10, 2, 50);
 
         // Manhattan diamond of radius 2 = 13 cells (1 center + 4 d=1 + 8 d=2).
         assertTrue(cells.size() == 13,
@@ -115,22 +123,63 @@ public class BattleSetupPickCellsNearTest {
     }
 
     @Test
-    public void unwalkableAnchorReachesNearbyFloor() {
-        // Turret-mount pattern: anchor cell is a wall (unwalkable). The
-        // flood escapes into adjacent walkable cells but excludes the wall
-        // itself. Matches the historical behavior — wall-mounted HEAVY_TOWER
-        // garrisons need to spawn around their tower, not on it.
+    public void wallMountedTowerReachesNearbyFloor() {
+        // The case the patch-3 critique surfaced: a HEAVY_TOWER / MG_NEST
+        // anchored at the center of a 3×3 wall ring. Old BFS expanded
+        // every cell unconditionally and reached floor cells beyond the
+        // ring. ZoneDetector returns -1 for wall cells, so resolveSpawnZones
+        // walks outward through walls until it hits a zone — picks up the
+        // surrounding courtyard zone and draws spawn cells from it.
         NavigationGrid grid = openGrid();
-        grid.setWalkable(10, 10, false);
+        // 3×3 wall ring at (9..11, 9..11) with the seed at center (10, 10).
+        for (int yy = 9; yy <= 11; yy++) {
+            for (int xx = 9; xx <= 11; xx++) {
+                grid.setWalkable(xx, yy, false);
+            }
+        }
 
-        List<int[]> cells = BattleSetup.pickCellsNear(grid, 10, 10, 2, 50);
+        List<int[]> cells = BattleSetup.pickCellsNear(grid, zonesFor(grid),
+                10, 10, 4, 50);
 
         Set<Long> picked = keysOf(cells);
         assertFalse(picked.contains(key(10, 10)),
-                "unwalkable anchor cell not a spawn position");
-        assertTrue(picked.contains(key(11, 10)),
-                "walkable neighbor of unwalkable anchor included");
-        assertTrue(picked.contains(key(10, 11)),
-                "walkable neighbor in another direction included");
+                "wall-mount anchor cell itself not a spawn position");
+        assertFalse(picked.contains(key(9, 10)),
+                "wall-ring cell not a spawn position");
+        assertTrue(picked.contains(key(12, 10)),
+                "floor cell just beyond the wall ring reachable as spawn");
+        assertTrue(picked.contains(key(10, 12)),
+                "floor cell on another side of the wall ring reachable");
+        assertTrue(cells.size() > 0,
+                "wall-mount garrison must not collapse to empty (the patch-3-critique regression)");
+    }
+
+    @Test
+    public void wallMountOnPerimeterReachesBothSides() {
+        // Wall-mounted tower whose 3×3 ring sits on a perimeter wall with
+        // courtyard on one side and kill-zone on the other. Old behavior
+        // included cells from both sides (the cover sort then biased to
+        // the defender side). With ZoneGraph: walls walked transparently
+        // pick up both adjacent zones — same shape.
+        NavigationGrid grid = openGrid();
+        // Wall stripe at y=10 (with no doorway — fully sealed). 3×3 wall-
+        // mount sits at (10, 10) embedded in the wall stripe.
+        for (int x = 0; x < W; x++) {
+            grid.setWalkable(x, 10, false);
+        }
+        for (int yy = 9; yy <= 11; yy++) {
+            for (int xx = 9; xx <= 11; xx++) {
+                grid.setWalkable(xx, yy, false);
+            }
+        }
+
+        List<int[]> cells = BattleSetup.pickCellsNear(grid, zonesFor(grid),
+                10, 10, 5, 50);
+
+        Set<Long> picked = keysOf(cells);
+        assertTrue(picked.contains(key(10, 13)),
+                "north-side floor (one of the two zones) reachable");
+        assertTrue(picked.contains(key(10,  7)),
+                "south-side floor (the other zone) reachable");
     }
 }
