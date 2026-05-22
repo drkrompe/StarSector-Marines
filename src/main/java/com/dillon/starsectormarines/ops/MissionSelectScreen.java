@@ -26,14 +26,18 @@ import static org.lwjgl.opengl.GL11.glLineWidth;
 import static org.lwjgl.opengl.GL11.glVertex2f;
 
 /**
- * The three-column mission picker: clients on the left, tactical map in the
- * middle, planet intel on the right. Owns its {@link WidgetRoot} + the three
- * {@link OpsPanel}s and the column-frame chrome around them.
+ * The two-column mission picker: clients on the left, comms console on the
+ * right. Owns its {@link WidgetRoot} + the two {@link OpsPanel}s and the
+ * column-frame chrome around them.
+ *
+ * <p>The console region holds the briefing-room layout — officer summary
+ * header, thumbnail planet map, and the dossier stack of offered missions
+ * — per {@code [[project_comms_officer_narrator]]} memory.
  *
  * <p>Back from the clients column dismisses the dialog (the screen received
  * {@code dismissDialog} at attach time). Clicking a client row mutates
  * {@code ctx.selectedClient}; this screen observes that and rebuilds so the
- * tactical map's mission markers refresh.
+ * console's dossier stack + map markers refresh.
  */
 public class MissionSelectScreen implements Screen {
 
@@ -42,10 +46,9 @@ public class MissionSelectScreen implements Screen {
 
     private final WidgetRoot widgets = new WidgetRoot();
 
-    private final ClientListPanel clientList = new ClientListPanel();
-    private final TacticalMapPanel tacticalMap = new TacticalMapPanel();
-    private final PlanetIntelPanel planetIntel = new PlanetIntelPanel();
-    private final List<OpsPanel> panels = Arrays.asList(clientList, tacticalMap, planetIntel);
+    private final ClientListPanel    clientList    = new ClientListPanel();
+    private final CommsConsolePanel  commsConsole  = new CommsConsolePanel();
+    private final List<OpsPanel> panels = Arrays.asList(clientList, commsConsole);
 
     private PositionAPI position;
     private MarineOpsContext ctx;
@@ -68,9 +71,8 @@ public class MissionSelectScreen implements Screen {
         clientList.setOnBack(dismissDialog);
         clientList.setOnTilesetDebug(() -> ctx.goTo(ScreenId.TILESET_DEBUG));
         clientList.setOnUnitDebug(() -> ctx.goTo(ScreenId.UNIT_DEBUG));
-        clientList.attach(layout.left,   ctx, widgets);
-        tacticalMap.attach(layout.middle, ctx, widgets);
-        planetIntel.attach(layout.right, ctx, widgets);
+        clientList.attach(layout.left,    ctx, widgets);
+        commsConsole.attach(layout.console, ctx, widgets);
 
         // Column headers — built off each panel's i18n key so every column gets
         // the same look without each panel reimplementing.
@@ -78,11 +80,8 @@ public class MissionSelectScreen implements Screen {
                 Strings.get(clientList.getHeaderKey()),
                 layout.left.x, layout.left.headerTextY, HEADER_COLOR));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                Strings.get(tacticalMap.getHeaderKey()),
-                layout.middle.x, layout.middle.headerTextY, HEADER_COLOR));
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                Strings.get(planetIntel.getHeaderKey()),
-                layout.right.x, layout.right.headerTextY, HEADER_COLOR));
+                Strings.get(commsConsole.getHeaderKey()),
+                layout.console.x, layout.console.headerTextY, HEADER_COLOR));
 
         lastSelectedClient = ctx.getSelectedClient();
     }
@@ -92,9 +91,9 @@ public class MissionSelectScreen implements Screen {
         widgets.advance(dt);
         for (OpsPanel p : panels) p.onAdvance(dt);
 
-        // Re-layout when the player picks a different client so the tactical
-        // map's mission markers refresh. ClientRowWidgets lose their hover
-        // state for one frame on rebuild — acceptable for now.
+        // Re-layout when the player picks a different client so the console's
+        // dossier stack + map markers refresh. ClientRowWidgets lose their
+        // hover state for one frame on rebuild — acceptable for now.
         Client current = ctx.getSelectedClient();
         if (current != lastSelectedClient) {
             lastSelectedClient = current;
@@ -111,9 +110,8 @@ public class MissionSelectScreen implements Screen {
     public void render(float alphaMult) {
         if (layout == null) return;
 
-        drawFrame(layout.left,   alphaMult);
-        drawFrame(layout.middle, alphaMult);
-        drawFrame(layout.right,  alphaMult);
+        drawFrame(layout.left,    alphaMult);
+        drawFrame(layout.console, alphaMult);
 
         for (OpsPanel p : panels) p.onRender(alphaMult);
 

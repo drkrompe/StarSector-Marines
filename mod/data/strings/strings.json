@@ -10,6 +10,7 @@
 		"colClients":        "Clients",
 		"colTacticalMap":    "Tactical Map",
 		"colIntel":          "Planet Intel",
+		"colConsole":        "Comms Console",
 		"actionBack":        "Back",
 		"noPlanetFallback":  "Unknown Location",
 
