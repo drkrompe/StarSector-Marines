@@ -117,10 +117,16 @@ Each compound kind gates one reinforcement means:
 | `ARMORY`       | convoy (`ConvoyMeans`)    | At least one ARMORY held by defender   |
 | `COMMAND_POST` | shuttle (`ShuttleMeans`)  | At least one COMMAND_POST held by defender |
 
-When all compounds of a kind flip out of `DEFENDER_HELD`, that means
-returns `canFulfill = false`, and the dispatcher falls through to the
-next priority. Flip every compound and the chain exhausts → request
-drops via the existing bugged-map diagnostic. Symmetric in v2:
+"Held by defender" here includes `CONTESTED` — the supply structure is
+still standing, it's just being fought over. Supply only dies when every
+compound of a kind has fully flipped to `MARINE_HELD`. A mid-firefight
+contest mustn't strand the defender's resupply mid-wave; the player
+has to actually finish the capture before the chain retires.
+
+When every compound of a kind reaches `MARINE_HELD`, that means returns
+`canFulfill = false`, and the dispatcher falls through to the next
+priority. Flip every compound of every kind and the chain exhausts →
+request drops via the existing bugged-map diagnostic. Symmetric in v2:
 marine-side reinforcement gates on **marine-held** compounds (an
 ARMORY captured by marines could later supply marine convoys).
 
@@ -277,6 +283,16 @@ Reads:
   marine-held.
 
 Writes: only `CompoundCaptureSystem`.
+
+**Gating convention** — the canonical gate lives in
+`*Means.canFulfill`, not the trigger. Triggers post intent ("a rally
+near zone X needs help"); means decide whether they can deliver. So
+`ObjectiveLostTrigger` and any future trigger don't query
+`hasAliveCompound` themselves — they post unconditionally, and the
+means rejects when supply is dead. `GarrisonDepletedTrigger`'s
+MARINE_HELD skip is a *log-clean* optimisation (a captured compound
+can't be the source of a depletion call because no defender squad
+remains assigned to it), not a load-bearing gate.
 
 ### `CompoundCaptureSystem` (new, stateless)
 

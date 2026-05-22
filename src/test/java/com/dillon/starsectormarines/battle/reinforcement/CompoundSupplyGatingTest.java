@@ -130,6 +130,36 @@ public class CompoundSupplyGatingTest {
     }
 
     @Test
+    public void walkInStaysFulfillableWhileAnyBarracksAlive() {
+        // hasAliveCompound is an OR across records of the kind. Two
+        // BARRACKS, capture one, walk-in should still fulfil — the
+        // remaining BARRACKS sustains supply. The slice-3 gate is only
+        // load-bearing once the LAST compound of a kind flips.
+        BattleSimulation sim = openSim();
+        WalkInMeans means = new WalkInMeans(TraversalAxis.SOUTH_TO_NORTH);
+        CompoundService service = sim.getCompoundService();
+        CompoundCaptureSystem system = new CompoundCaptureSystem();
+        TacticalNode b1 = compoundAt(TacticalNode.Kind.BARRACKS, 3, 5);
+        TacticalNode b2 = compoundAt(TacticalNode.Kind.BARRACKS, 7, 5);
+        service.register(b1);
+        service.register(b2);
+
+        ReinforcementRequest req = defenderRequest(3, 5);
+        assertTrue(means.canFulfill(sim, req),
+                "two defender-held BARRACKS → walk-in fulfils");
+
+        // Capture only b1.
+        captureCompound(sim, service, system, 3, 5);
+        assertEquals(CompoundService.CompoundState.MARINE_HELD,
+                service.getRecord(b1).state);
+        assertEquals(CompoundService.CompoundState.DEFENDER_HELD,
+                service.getRecord(b2).state);
+
+        assertTrue(means.canFulfill(sim, req),
+                "one BARRACKS captured, one still defender-held → walk-in still fulfils");
+    }
+
+    @Test
     public void triggerSkipsMarineHeldCompound() {
         // GarrisonDepletedTrigger normally posts when alive/originalSize <
         // 50%. Stand up a defender squad assigned to a compound with all

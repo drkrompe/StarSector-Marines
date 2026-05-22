@@ -48,12 +48,13 @@ public final class GarrisonDepletedTrigger implements ReinforcementTrigger {
         for (Map.Entry<TacticalNode, int[]> e : agg.entrySet()) {
             TacticalNode node = e.getKey();
             if (posted.contains(node)) continue;
-            // Slice-3 gate: a marine-held compound has lost its supply line —
-            // posting a reinforcement request for a captured structure is the
-            // exact bug the compound-as-supply model exists to fix. The
-            // canFulfill side will reject it too, but rejecting at the
-            // trigger side keeps the dispatcher log clean.
-            CompoundService.Record rec = (compounds != null) ? compounds.getRecord(node) : null;
+            // Slice-3 log-clean optimisation: skip posting for compounds the
+            // marines already hold. The canFulfill side is the load-bearing
+            // gate (per the trigger-vs-means convention in
+            // {@code roadmap/conquest/central-keep.md}); this branch just
+            // keeps the dispatcher log from logging "no means could fulfil"
+            // for requests that were never serviceable.
+            CompoundService.Record rec = compounds.getRecord(node);
             if (rec != null && rec.state == CompoundService.CompoundState.MARINE_HELD) {
                 continue;
             }

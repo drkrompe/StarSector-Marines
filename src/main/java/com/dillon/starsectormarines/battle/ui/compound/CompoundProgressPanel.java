@@ -147,7 +147,7 @@ public final class CompoundProgressPanel implements HudPanel {
         }
     }
 
-    /** Solid-coloured square with a thin inner bar showing capture-progress (only meaningful while CONTESTED — full when MARINE_HELD, empty when DEFENDER_HELD). */
+    /** Solid-coloured square with a thin inner bar showing in-flight capture progress. Progress is only non-zero during CONTESTED; both terminal states (DEFENDER_HELD, MARINE_HELD) read as 0 so the chip body's faction colour is the read, not the overlay. */
     private static void drawChip(float x, float y, Color color, float progress, float alphaMult) {
         glColor4f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f,
                 0.85f * alphaMult);
