@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.battle.reinforcement.ConvoyMeans;
 import com.dillon.starsectormarines.battle.reinforcement.GarrisonDepletedTrigger;
 import com.dillon.starsectormarines.battle.reinforcement.ObjectiveLostTrigger;
 import com.dillon.starsectormarines.battle.reinforcement.ReinforcementService;
+import com.dillon.starsectormarines.battle.reinforcement.ShuttleMeans;
 import com.dillon.starsectormarines.battle.reinforcement.WalkInMeans;
 import com.dillon.starsectormarines.battle.ui.debug.ConvoySpawnDumper;
 import org.apache.log4j.Logger;
@@ -544,14 +545,17 @@ public final class BattleSetup {
      * <ul>
      *   <li>{@link ConvoyMeans} — readable truck delivery; needs a road
      *       graph and a reachable rally.</li>
+     *   <li>{@link ShuttleMeans} — air-drop; needs a walkable LZ within
+     *       8 cells of the rally. Reuses the existing {@code AirSystem}
+     *       state machine.</li>
      *   <li>{@link WalkInMeans} — always-feasible floor; spawns infantry
      *       on the side-appropriate perimeter and pulls them toward the
      *       rally via {@code assignedNode}.</li>
      * </ul>
      * Non-Conquest maps register the same set and self-gate harmlessly
      * (no compounds → no garrison fires; no road graph → convoy yields to
-     * walk-in). Replaces the prior {@link #maybeSpawnDebugConvoy} debug-
-     * spawn path.
+     * shuttle; no LZ → shuttle yields to walk-in). Replaces the prior
+     * {@link #maybeSpawnDebugConvoy} debug-spawn path.
      *
      * @param axis traversal axis for the map; nullable on non-Conquest paths
      *             where there's no defender/attacker rear edge — walk-in
@@ -562,6 +566,7 @@ public final class BattleSetup {
         rs.addTrigger(new GarrisonDepletedTrigger());
         rs.addTrigger(new ObjectiveLostTrigger());
         rs.addMeans(new ConvoyMeans(map.roadGraph));
+        rs.addMeans(new ShuttleMeans(axis));
         rs.addMeans(new WalkInMeans(axis));
     }
 

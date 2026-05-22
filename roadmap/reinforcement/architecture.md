@@ -201,6 +201,32 @@ always-feasible floor under convoy.
 - Still unmodeled: ticket budget, strength scaling (walk-in always
   spawns SQUAD_SIZE=3 regardless), attacker-side triggers/means.
 
+## v3 cut
+
+**Status: landed.** Third slice — `ShuttleMeans` ports the existing
+shuttle-drop infrastructure into the reinforcement layer, slotting
+between convoy (most readable) and walk-in (floor).
+
+- New means: `ShuttleMeans` — mints a single-cycle `Shuttle` flying in
+  from the side-appropriate off-map edge (defender = end side of the
+  axis, marine = start side; null-axis defaults to north for stable
+  fallback). Picks the LZ via BFS for the first walkable cell within 8
+  cells of rally. Reuses the existing `AirSystem` state machine end to
+  end — `Shuttle.totalCycles = 1`, no marine loadout (deboards plain
+  `COMBATANT` `UnitType.MARINE` units, inheriting their default stats),
+  no turret kit (skips HOVER_STATION and departs immediately after the
+  capacity drops).
+- Priority order is now: convoy → shuttle → walk-in. A road-less map
+  with a walkable rally interior gets a shuttle drop. A clogged interior
+  with no LZ within range yields to walk-in.
+- Narrative: shuttle reinforcement reads as elite quick-response strike
+  team. Convoy = ground militia trucked in (cheapest readable). Walk-in
+  = patrols rerouting from the rear (the floor).
+- Side neutrality remains untested — `canFulfill` still hard-rejects
+  non-defender requests since no attacker-side trigger exists yet.
+  Attacker-side gating moves to a follow-up alongside the first
+  attacker trigger.
+
 ## Decisions
 
 ### 1. Side neutrality + shuttle-drop refactor
