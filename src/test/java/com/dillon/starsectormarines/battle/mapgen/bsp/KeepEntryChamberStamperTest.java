@@ -61,8 +61,8 @@ public class KeepEntryChamberStamperTest {
         // multi-room partition (cell stays walkable but is flagged as a
         // doorway — the stamper treats doorway cells as room boundaries so
         // the flood doesn't leak through them). COMMAND_POST anchor sits in
-        // the upper (high-Y) half = throne room. The stamper should emit a
-        // BARRACKS anchored in the lower (low-Y) half = entry chamber.
+        // the upper (high-Y) half = throne room. The stamper should emit an
+        // INNER_POSITION anchored in the lower (low-Y) half = entry chamber.
         NavigationGrid grid = openGrid();
         // 8x8 leaf bbox at (6,6)-(13,13). Wall row at y=10 with doorway
         // at x=10. Cells y=11..13 are throne room (anchor at (10,12));
@@ -81,9 +81,9 @@ public class KeepEntryChamberStamperTest {
         KeepEntryChamberStamper.stamp(grid, tactical);
 
         assertEquals(2, tactical.size(),
-                "multi-room keep should emit an entry-chamber BARRACKS");
+                "multi-room keep should emit an entry-chamber INNER_POSITION");
         TacticalNode entry = tactical.get(1);
-        assertEquals(TacticalNode.Kind.BARRACKS, entry.kind);
+        assertEquals(TacticalNode.Kind.INNER_POSITION, entry.kind);
         assertTrue(entry.anchorY < 10,
                 "entry-chamber anchor should sit in the low-Y half (opposite the COMMAND_POST anchor)");
         assertTrue(entry.anchorX >= 6 && entry.anchorX <= 13,

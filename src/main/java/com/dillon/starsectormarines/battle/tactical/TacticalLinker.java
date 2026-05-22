@@ -114,6 +114,14 @@ public final class TacticalLinker {
         // place (squad-level FALLBACK_TO in updateSquadFallback can't fire),
         // and per-unit BreakContact alone can't relocate the squad across
         // an interior wall to the next room.
+        //
+        // INNER_POSITION is intentionally excluded from this set: an
+        // inner-position node lives inside the same leaf bbox as its parent
+        // COMMAND_POST, so including it would emit a same-leaf fallback link
+        // (e.g. throne room → entry chamber, which sits on the attacker's
+        // side of the partition — defenders running toward marines). Interior
+        // fallback within a single compound is goal-AI territory, not the
+        // link graph.
         EnumSet<TacticalNode.Kind> interiorLeaves = EnumSet.of(
                 TacticalNode.Kind.COMMAND_POST,
                 TacticalNode.Kind.BARRACKS,

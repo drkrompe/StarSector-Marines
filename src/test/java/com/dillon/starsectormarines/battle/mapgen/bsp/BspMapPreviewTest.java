@@ -128,6 +128,8 @@ public class BspMapPreviewTest {
         TACTICAL_COLORS.put(TacticalNode.Kind.COMMAND_POST,       new Color(255, 255, 100));
         TACTICAL_COLORS.put(TacticalNode.Kind.BARRACKS,           new Color(140, 255, 140));
         TACTICAL_COLORS.put(TacticalNode.Kind.ARMORY,             new Color(255, 200, 100));
+        TACTICAL_COLORS.put(TacticalNode.Kind.GUARDPOST,          new Color(255, 140,  80));
+        TACTICAL_COLORS.put(TacticalNode.Kind.INNER_POSITION,     new Color(200, 140, 255));
         TACTICAL_COLORS.put(TacticalNode.Kind.AIRBASE,            new Color(180, 220, 255));
         TACTICAL_COLORS.put(TacticalNode.Kind.BEACHHEAD,          new Color(100, 220, 100));
         TACTICAL_COLORS.put(TacticalNode.Kind.INFILTRATION_POINT, new Color(180, 100, 255));
