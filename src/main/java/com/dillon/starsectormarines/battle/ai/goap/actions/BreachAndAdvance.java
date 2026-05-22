@@ -138,7 +138,14 @@ public final class BreachAndAdvance implements Action {
         } else {
             destX = stackUpX[slot];
             destY = stackUpY[slot];
-            squad.breachStackupTimer += BattleSimulation.TICK_DT;
+            // Leader-gate the timer accumulation: each member sees TICK_DT
+            // once per tick and an N-member RMW race would inflate the
+            // timer by ~N× (or drop increments under torn writes), either
+            // way mis-tripping the timeout. One canonical writer per tick
+            // gives a deterministic timer regardless of worker count.
+            if (member == squad.leader) {
+                squad.breachStackupTimer += BattleSimulation.TICK_DT;
+            }
         }
 
         if (member.cellX == destX && member.cellY == destY) {
@@ -149,8 +156,14 @@ public final class BreachAndAdvance implements Action {
             // Squad-wide success: all members are at their forward cells.
             // Per-member success would advance the plan after the first
             // arrives, which would let the rest scramble independently.
+            // Lock the success check + reset so the timer clear pairs
+            // atomically with the SUCCESS return — otherwise a sibling
+            // worker might re-enter the stack-up branch and re-arm the
+            // timer between our reset and the plan advance.
             if (advancing && allMembersAtForward(squad, sim)) {
-                squad.breachStackupTimer = 0f;
+                synchronized (squad.lock) {
+                    squad.breachStackupTimer = 0f;
+                }
                 return ActionStatus.SUCCESS;
             }
             return ActionStatus.RUNNING;
@@ -193,6 +206,9 @@ public final class BreachAndAdvance implements Action {
         SquadPlan plan = squad.currentPlan;
         if (plan == null || plan.isComplete()) return false;
         SquadPlan.Step step = plan.currentStep();
+        // Sibling worker may have advanced past the end between isComplete()
+        // and currentStep() under parallel dispatch.
+        if (step == null) return false;
         for (Unit u : sim.getUnits()) {
             if (!u.isAlive() || u.squadId != squad.id) continue;
             String name = step.slotOf(u);

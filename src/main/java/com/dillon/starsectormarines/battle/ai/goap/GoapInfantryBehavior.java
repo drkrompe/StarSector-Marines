@@ -116,12 +116,32 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         }
 
         SquadPlan.Step step = plan.currentStep();
-        if (step.slotOf(unit) == null) return;
+        // Null possible under parallel dispatch: a sibling worker advanced past
+        // the end between the isComplete() check and here. Skip this tick.
+        if (step == null || step.slotOf(unit) == null) return;
 
         ActionStatus status = step.action.execute(unit, squad, sim);
         switch (status) {
-            case SUCCESS -> plan.advance();
-            case FAILURE -> squad.currentPlan = null;
+            // SUCCESS / FAILURE mutate squad-shared plan state. Two members
+            // both observing the same step's SUCCESS would double-advance
+            // (skipping the next step) without the lock; the inside-lock
+            // recheck of (plan == squad.currentPlan && plan.currentStep() ==
+            // step) ensures only the first observer commits the advance.
+            case SUCCESS -> {
+                synchronized (squad.lock) {
+                    if (plan == squad.currentPlan && !plan.isComplete()
+                            && plan.currentStep() == step) {
+                        plan.advance();
+                    }
+                }
+            }
+            case FAILURE -> {
+                synchronized (squad.lock) {
+                    if (plan == squad.currentPlan) {
+                        squad.currentPlan = null;
+                    }
+                }
+            }
             case RUNNING -> { /* keep ticking the same step next frame */ }
         }
     }

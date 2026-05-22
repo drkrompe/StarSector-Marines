@@ -195,8 +195,16 @@ public final class ChokePointHold implements Action {
     public ActionStatus execute(Unit member, Squad squad, BattleSimulation sim) {
         // Stamp portal id idempotently — the predicate evaluator needs to know
         // which portal cell to sample. Writing the same value on every tick is
-        // harmless and saves a "has the squad been stamped" flag.
-        squad.chokePointPortalId = portalId;
+        // harmless and saves a "has the squad been stamped" flag. Under the
+        // per-unit parallel dispatch every member writes the same value here,
+        // but we still wrap the write in the squad lock so the JMM guarantees
+        // visibility of the stamp to the sibling worker that immediately
+        // reads it via WorldStateBuilder, and so a future ChokePointHold
+        // taking over for this squad on the same tick can't tear int writes
+        // of two different portal ids.
+        synchronized (squad.lock) {
+            squad.chokePointPortalId = portalId;
+        }
 
         SquadPlan plan = squad.currentPlan;
         SquadPlan.Step step = plan != null && !plan.isComplete() ? plan.currentStep() : null;

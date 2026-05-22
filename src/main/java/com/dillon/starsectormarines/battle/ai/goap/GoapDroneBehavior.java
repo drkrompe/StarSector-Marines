@@ -56,12 +56,30 @@ public final class GoapDroneBehavior implements UnitBehavior {
         if (plan == null || plan.isComplete()) return;
 
         SquadPlan.Step step = plan.currentStep();
-        if (step.slotOf(unit) == null) return;
+        // Null possible under parallel dispatch: a sibling worker advanced past
+        // the end between the isComplete() check and here. Skip this tick.
+        if (step == null || step.slotOf(unit) == null) return;
 
         ActionStatus status = step.action.execute(unit, squad, sim);
         switch (status) {
-            case SUCCESS -> plan.advance();
-            case FAILURE -> squad.currentPlan = null;
+            // SUCCESS / FAILURE mutate squad-shared plan state — see
+            // GoapInfantryBehavior.update for the locking rationale (avoid
+            // double-advance and ensure visibility of plan=null clear).
+            case SUCCESS -> {
+                synchronized (squad.lock) {
+                    if (plan == squad.currentPlan && !plan.isComplete()
+                            && plan.currentStep() == step) {
+                        plan.advance();
+                    }
+                }
+            }
+            case FAILURE -> {
+                synchronized (squad.lock) {
+                    if (plan == squad.currentPlan) {
+                        squad.currentPlan = null;
+                    }
+                }
+            }
             case RUNNING -> { /* keep ticking the same step */ }
         }
     }

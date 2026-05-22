@@ -313,6 +313,25 @@ public final class Squad {
      */
     public DroneHubUnit droneHub;
 
+    /**
+     * Per-squad monitor for guarding squad-shared mutable state from concurrent
+     * mutation when {@code BattleSimulation.tick} dispatches UPDATE_UNITS in
+     * parallel. GOAP actions and behaviors that mutate squad fields
+     * (waypoint pick, breach stack-up timer, plan advance/clear, current-plan
+     * null-out on FAILURE, choke-point portal stamp) wrap their critical
+     * section in {@code synchronized (squad.lock) { ... }}. Per-squad locks
+     * (not per-sim) so different squads don't contend on the same monitor.
+     *
+     * <p>Idempotent or commutative per-tick writes that are gated to the squad
+     * leader ({@code if (member == squad.leader)}) bypass the lock as a cheaper
+     * alternative — see {@link com.dillon.starsectormarines.battle.ai.goap.actions.PatrolRoute}'s
+     * dwell-timer decrement for the canonical example.
+     *
+     * <p>Never hold this lock while acquiring another squad's lock — actions
+     * that touch multiple squads must sort by {@link #id} before locking.
+     */
+    public final Object lock = new Object();
+
     public Squad(int id, Faction faction) {
         this.id = id;
         this.faction = faction;

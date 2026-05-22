@@ -66,24 +66,37 @@ public final class PatrolRoute implements Action {
 
         // UNAWARE — squad walks its route. Waypoint state is squad-scoped so
         // members converge on the same target rather than each picking their
-        // own. The first squadmate to update this tick picks the waypoint (or
-        // starts a fresh dwell on arrival); subsequent members read what was
-        // written and path to it.
+        // own. Members may execute concurrently (per-unit parallel dispatch):
+        // the dwell-timer decrement is leader-gated so it counts once per tick
+        // (every-member RMW races would drop decrements); waypoint selection
+        // is squad-lock protected so X/Y writes are atomic (no torn
+        // member-A's X paired with member-B's Y).
         if (squad.patrolDwellTimer > 0f) {
-            squad.patrolDwellTimer -= BattleSimulation.TICK_DT;
+            if (member == squad.leader) {
+                squad.patrolDwellTimer -= BattleSimulation.TICK_DT;
+            }
             hold(member, sim);
             return ActionStatus.RUNNING;
         }
         if (!hasValidWaypoint(squad) || squadHasArrived(squad)) {
-            int[] waypoint = pickWaypoint(member, squad, sim);
-            if (waypoint == null) {
+            synchronized (squad.lock) {
+                // Re-check inside the lock — a sibling worker may have already
+                // picked a fresh waypoint and started a new dwell while we were
+                // waiting. Don't clobber their pick with another roll.
+                if (squad.patrolDwellTimer > 0f || (hasValidWaypoint(squad) && !squadHasArrived(squad))) {
+                    hold(member, sim);
+                    return ActionStatus.RUNNING;
+                }
+                int[] waypoint = pickWaypoint(member, squad, sim);
+                if (waypoint == null) {
+                    squad.patrolDwellTimer = PATROL_DWELL_SECONDS;
+                    hold(member, sim);
+                    return ActionStatus.RUNNING;
+                }
+                squad.patrolWaypointX = waypoint[0];
+                squad.patrolWaypointY = waypoint[1];
                 squad.patrolDwellTimer = PATROL_DWELL_SECONDS;
-                hold(member, sim);
-                return ActionStatus.RUNNING;
             }
-            squad.patrolWaypointX = waypoint[0];
-            squad.patrolWaypointY = waypoint[1];
-            squad.patrolDwellTimer = PATROL_DWELL_SECONDS;
             hold(member, sim);
             return ActionStatus.RUNNING;
         }
