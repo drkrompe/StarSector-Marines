@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.reinforcement;
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.Squad;
+import com.dillon.starsectormarines.battle.compound.CompoundService;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 
 import java.util.HashMap;
@@ -33,6 +34,7 @@ public final class GarrisonDepletedTrigger implements ReinforcementTrigger {
 
     @Override
     public void check(BattleSimulation sim, Consumer<ReinforcementRequest> out) {
+        CompoundService compounds = sim.getCompoundService();
         Map<TacticalNode, int[]> agg = new HashMap<>();
         for (Squad squad : sim.getSquads()) {
             if (squad.faction != Faction.DEFENDER) continue;
@@ -46,6 +48,15 @@ public final class GarrisonDepletedTrigger implements ReinforcementTrigger {
         for (Map.Entry<TacticalNode, int[]> e : agg.entrySet()) {
             TacticalNode node = e.getKey();
             if (posted.contains(node)) continue;
+            // Slice-3 gate: a marine-held compound has lost its supply line —
+            // posting a reinforcement request for a captured structure is the
+            // exact bug the compound-as-supply model exists to fix. The
+            // canFulfill side will reject it too, but rejecting at the
+            // trigger side keeps the dispatcher log clean.
+            CompoundService.Record rec = (compounds != null) ? compounds.getRecord(node) : null;
+            if (rec != null && rec.state == CompoundService.CompoundState.MARINE_HELD) {
+                continue;
+            }
             int alive = e.getValue()[0];
             int original = e.getValue()[1];
             if (original <= 0) continue;

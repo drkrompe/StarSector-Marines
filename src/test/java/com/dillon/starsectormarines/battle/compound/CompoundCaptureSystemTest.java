@@ -73,7 +73,10 @@ public class CompoundCaptureSystemTest {
         tickN(system, sim, service, holdTicks);
         assertEquals(CompoundService.CompoundState.MARINE_HELD,
                 service.getRecord(node).state);
-        assertEquals(1f, service.getRecord(node).captureProgress, 0.001f);
+        // Terminal state — capture-progress represents in-flight transition,
+        // not "captured." 0 here so the renderer doesn't paint the arc
+        // forever over the captured ring.
+        assertEquals(0f, service.getRecord(node).captureProgress, 0.001f);
     }
 
     @Test

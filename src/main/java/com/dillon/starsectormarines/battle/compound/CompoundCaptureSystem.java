@@ -73,7 +73,12 @@ public final class CompoundCaptureSystem {
                         if (r.holdTimer >= CompoundService.MARINE_HOLD_TIME) {
                             r.state = CompoundService.CompoundState.MARINE_HELD;
                             r.holdTimer = 0f;
-                            r.captureProgress = 1f;
+                            // Terminal-state progress is 0, not 1 — captureProgress
+                            // models *in-flight* transition fill, not a "captured"
+                            // marker. Renderer gates the capture arc on
+                            // {@code captureProgress > 0}; leaving 1 here paints
+                            // the arc forever inside the marine-blue ring.
+                            r.captureProgress = 0f;
                         }
                     } else if (defendersPresent && !marinesPresent) {
                         // Symmetric recovery: defenders alone in a contested

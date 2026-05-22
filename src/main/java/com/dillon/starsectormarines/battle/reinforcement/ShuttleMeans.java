@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.mapgen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 
@@ -58,6 +59,14 @@ public final class ShuttleMeans implements ReinforcementMeans {
     public boolean canFulfill(BattleSimulation sim, ReinforcementRequest req) {
         if (!req.hasRally()) return false;
         if (req.side != Faction.DEFENDER) return false;
+        // Compound-as-supply gate: shuttle drops are sourced from the
+        // defender COMMAND_POST — the strategic-control surface that
+        // authorises an air-drop in the first place. Lose every command
+        // post and the air arm has nothing to dispatch from.
+        if (!sim.getCompoundService().hasAliveCompound(
+                TacticalNode.Kind.COMMAND_POST, Faction.DEFENDER)) {
+            return false;
+        }
         return findLz(sim.getGrid(), req.rallyX, req.rallyY) != null;
     }
 

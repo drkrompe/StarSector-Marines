@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.ground.ConvoyPlanner;
 import com.dillon.starsectormarines.battle.ground.Vehicle;
 import com.dillon.starsectormarines.battle.ground.VehicleType;
 import com.dillon.starsectormarines.battle.mapgen.road.RoadGraph;
+import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 
@@ -54,6 +55,17 @@ public final class ConvoyMeans implements ReinforcementMeans {
         if (graph == null || graph.nodes().isEmpty()) return false;
         if (req.side != Faction.DEFENDER) return false;
         if (!req.hasRally()) return false;
+        // Compound-as-supply gate: convoys are loaded out of the ARMORY.
+        // Once every armory has flipped marine-held the trucks have nothing
+        // to ferry — the dispatcher falls through to walk-in / shuttle, or
+        // drops the request if every supply structure is captured. This is
+        // the v3-quirk fix the design doc calls out: ARMORY captures
+        // naturally retire convoy in priority order without explicit
+        // re-ordering.
+        if (!sim.getCompoundService().hasAliveCompound(
+                TacticalNode.Kind.ARMORY, Faction.DEFENDER)) {
+            return false;
+        }
         return !graph.perimeterNodes().isEmpty();
     }
 

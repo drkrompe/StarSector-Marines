@@ -41,9 +41,12 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
  */
 public final class CompoundProgressPanel implements HudPanel {
 
-    private static final float PANEL_W = 240f;
+    /** Wider than the debug strip — leaves room for 8+ compound chips alongside the count label without crowding (the keep design can register that many). */
+    private static final float PANEL_W = 280f;
     private static final float PANEL_H = 36f;
     private static final float PADDING = 8f;
+    /** Pixels between the right edge of the panel and the right edge of the grid area — keeps the panel off the screen edge by the same gap the other top-of-screen HUD chrome uses. */
+    private static final float RIGHT_INSET = 12f;
     /** Each per-compound state chip in the strip. */
     private static final float CHIP_SIZE = 12f;
     private static final float CHIP_GAP = 4f;
@@ -85,7 +88,10 @@ public final class CompoundProgressPanel implements HudPanel {
         font.ensureLoaded();
 
         BattleLayout l = ctx.getLayout();
-        float x = l.gridX + (l.gridW - PANEL_W) / 2f;
+        // Anchor top-right under the controls strip. DebugTogglesPanel
+        // owns top-center; this strip is the player-facing read so the
+        // edge slot keeps it visible without crowding the dev panel.
+        float x = l.gridX + l.gridW - PANEL_W - RIGHT_INSET;
         float y = l.controlsY - BattleLayout.CONTROLS_GAP - PANEL_H;
 
         // Background plate.

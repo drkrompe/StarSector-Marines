@@ -67,6 +67,15 @@ public final class WalkInMeans implements ReinforcementMeans {
     public boolean canFulfill(BattleSimulation sim, ReinforcementRequest req) {
         if (!req.hasRally()) return false;
         if (req.side != Faction.DEFENDER) return false;
+        // Compound-as-supply gate: walk-in is the BARRACKS-supplied means.
+        // When every BARRACKS has flipped marine-held the defender can't
+        // mobilise patrol-grade infantry from the city any more — the
+        // dispatcher falls through to whatever still has a live supply
+        // structure, or drops the request if all chains are dead.
+        if (!sim.getCompoundService().hasAliveCompound(
+                TacticalNode.Kind.BARRACKS, Faction.DEFENDER)) {
+            return false;
+        }
         return pickPrimaryCell(sim, req) != null;
     }
 
