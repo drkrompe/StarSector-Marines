@@ -29,7 +29,6 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
-import com.dillon.starsectormarines.battle.objective.EliminateFactionObjective;
 import com.dillon.starsectormarines.battle.objective.Objective;
 import com.dillon.starsectormarines.battle.objective.ObjectivesService;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
@@ -187,6 +186,11 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final com.dillon.starsectormarines.battle.drone.HubDemolitionSystem hubDemolition;
     /** Per-tick crash sequence for dead {@link Drone}s — three-phase falling / impact lifecycle. Initialized in the constructor. */
     private final com.dillon.starsectormarines.battle.drone.DroneCrashSystem droneCrashes;
+    /** Per-tick squad fall-back driver — arrival detection + trigger evaluation. Initialized in the constructor. */
+    private final com.dillon.starsectormarines.battle.squad.SquadFallbackSystem squadFallback;
+    /** Per-tick win-condition evaluator — pure function over the objective list; sim writes the {@link #complete}/{@link #winner} fields on terminal result. Initialized in the constructor. */
+    private final com.dillon.starsectormarines.battle.objective.WinCheckSystem winCheck =
+            new com.dillon.starsectormarines.battle.objective.WinCheckSystem();
     /** Persistent {@link Doodad} list + per-cell/per-facing cover lookup the AI consults when scoring firing positions. Initialized in the constructor once {@link #grid} is available. */
     private final DoodadService doodadService;
     private final List<MapVehicle> vehicles = new ArrayList<>();
@@ -318,6 +322,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                 navigation, effects);
         this.droneCrashes = new com.dillon.starsectormarines.battle.drone.DroneCrashSystem(
                 navigation, effects);
+        this.squadFallback = new com.dillon.starsectormarines.battle.squad.SquadFallbackSystem(
+                navigation, rosterService, this::clearPath);
     }
 
     @Override public NavigationGrid getGrid() { return grid; }
@@ -920,7 +926,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // clears the in-progress flag. Runs after alerts (so we see fresh
         // aliveMembers) and before updateUnit (so the new home cells are
         // visible to garrison dispatch this same tick).
-        updateSquadFallback();
+        squadFallback.tick(units);
         tickProfile.lap(TickProfile.Phase.SQUAD_FALLBACK);
         // Commander-tier slow tick — runs before per-squad replan so any
         // assignment written this tick is visible to the GOAP relevance pass
@@ -1084,7 +1090,12 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // (e.g., a rocket shredding a wall section) collapse into one rebuild.
         navigation.flushZoneGraphIfDirty();
         tickProfile.lap(TickProfile.Phase.ZONE_GRAPH);
-        checkWinCondition();
+        com.dillon.starsectormarines.battle.objective.WinCheckSystem.WinResult result =
+                winCheck.tick(objectivesService.getObjectives());
+        if (result.complete()) {
+            complete = true;
+            winner = result.winner();
+        }
         tickProfile.lap(TickProfile.Phase.WIN_CHECK);
         tickProfile.endTick(simTickIndex, tickInnerProfile);
         // Clear the inner-profile slot so any stray call outside the tick
@@ -1310,11 +1321,6 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      */
     /** Cell radius around a squadmate inside which an enemy shot's origin counts as "audible gunfire" and promotes the squad to SUSPICIOUS. Bigger than weapon ranges so a distant firefight pulls patrols in to investigate — that's the whole point. */
     public static final float GUNFIRE_ALERT_RADIUS = 18f;
-
-    /** Ratio of {@link Squad#aliveMembers} to {@link Squad#originalSize} at or below which a garrison triggers its FALLBACK_TO retreat. 0.5 = "lose half, fall back." */
-    private static final float FALLBACK_TRIGGER_RATIO = 0.5f;
-    /** Cell-radius around a unit's home cell at which they count as "arrived" for clearing the squad's fallbackInProgress flag. Generous so members don't stutter at the last step waiting on stragglers. */
-    public static final float HOME_ARRIVAL_RADIUS = 2.0f;
 
     /**
      * Story A: cell range within which an enemy is considered "in the kill
@@ -1806,71 +1812,6 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         return null;
     }
 
-    private void updateSquadFallback() {
-        for (Squad squad : squads.values()) {
-            if (squad.assignedNode == null) continue;
-            if (squad.aliveMembers == 0) continue;
-
-            // Arrival pass for in-progress retreats.
-            if (squad.fallbackInProgress) {
-                if (allMembersHome(squad)) squad.fallbackInProgress = false;
-                continue;
-            }
-
-            // Trigger pass — only fire once per squad.
-            if (squad.fallbackTriggered) continue;
-            if (squad.originalSize <= 0) continue;
-            if ((float) squad.aliveMembers / squad.originalSize > FALLBACK_TRIGGER_RATIO) continue;
-            List<TacticalNode> targets = squad.assignedNode.linkedTo(TacticalNode.LinkKind.FALLBACK_TO);
-            if (targets.isEmpty()) continue;
-
-            TacticalNode newNode = targets.get(0);
-            assignFallbackHomes(squad, newNode);
-            squad.assignedNode = newNode;
-            squad.fallbackTriggered = true;
-            squad.fallbackInProgress = true;
-        }
-    }
-
-    /** True when every alive squad member is within {@link #HOME_ARRIVAL_RADIUS} of their home cell — caller treats that as "the retreat is finished." */
-    private boolean allMembersHome(Squad squad) {
-        for (Unit u : units) {
-            if (!u.isAlive() || u.squadId != squad.id) continue;
-            if (u.homeCellX < 0) continue;
-            float dx = u.homeCellX - u.cellX;
-            float dy = u.homeCellY - u.cellY;
-            if (dx * dx + dy * dy > HOME_ARRIVAL_RADIUS * HOME_ARRIVAL_RADIUS) return false;
-        }
-        return true;
-    }
-
-    /**
-     * Distributes new home cells around {@code newNode}'s anchor to every
-     * surviving member of {@code squad}. Reuses
-     * {@link BattleSetup#pickCellsNear} so the cover-sorted ordering is the
-     * same one the original spawn used — the highest-rank survivors (iterated
-     * in unit list order, which preserves spawn priority) take the best new
-     * cover stacks.
-     */
-    private void assignFallbackHomes(Squad squad, TacticalNode newNode) {
-        List<int[]> cells = BattleSetup.pickCellsNear(grid, newNode.anchorX, newNode.anchorY, 5, squad.aliveMembers);
-        int idx = 0;
-        for (Unit u : units) {
-            if (!u.isAlive() || u.squadId != squad.id) continue;
-            if (idx >= cells.size()) {
-                // Out of cells — keep the survivor's current home so they
-                // don't end up homeless. They'll just hold where they are.
-                continue;
-            }
-            int[] cell = cells.get(idx++);
-            u.homeCellX = cell[0];
-            u.homeCellY = cell[1];
-            // Wipe stale path — next garrison tick re-paths to the new home.
-            clearPath(u);
-        }
-    }
-
-
     /**
      * Advances a unit one tick along its current path. Public so behaviors
      * call this after re-pathing or as the last step of their per-tick
@@ -2179,42 +2120,5 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         }
     }
 
-    /**
-     * Battle ends when one faction's objectives are all complete, or when any
-     * of their objectives is failed (which immediately hands the win to the
-     * opposing faction). Mutual-failure ties resolve to no winner.
-     *
-     * <p>The "complete" check is conjunctive per side ({@link Objective#isComplete()}
-     * across all marine objectives, then all defender ones); "failed" is
-     * disjunctive (any single failure flips the side to lost). With only the
-     * default {@link EliminateFactionObjective} pair, this reduces to the old
-     * "last faction standing" behavior — but mission-specific objectives
-     * (charge sites, extraction, raid crates) layer in without changing this
-     * code.
-     */
-    private void checkWinCondition() {
-        boolean marineFailed = false, marineAllComplete = true, marineHasObjective = false;
-        boolean defenderFailed = false, defenderAllComplete = true, defenderHasObjective = false;
-        for (Objective o : objectivesService.getObjectives()) {
-            if (o.owningFaction() == Faction.MARINE) {
-                marineHasObjective = true;
-                if (o.isFailed()) marineFailed = true;
-                if (!o.isComplete()) marineAllComplete = false;
-            } else if (o.owningFaction() == Faction.DEFENDER) {
-                defenderHasObjective = true;
-                if (o.isFailed()) defenderFailed = true;
-                if (!o.isComplete()) defenderAllComplete = false;
-            }
-        }
-        boolean marineWin = marineHasObjective && marineAllComplete && !marineFailed;
-        boolean defenderWin = defenderHasObjective && defenderAllComplete && !defenderFailed;
-        if (!marineWin && !defenderWin && !marineFailed && !defenderFailed) return;
-        complete = true;
-        if (marineWin && !defenderWin)       winner = Faction.MARINE;
-        else if (defenderWin && !marineWin)  winner = Faction.DEFENDER;
-        else if (marineFailed && !defenderFailed) winner = Faction.DEFENDER;
-        else if (defenderFailed && !marineFailed) winner = Faction.MARINE;
-        else                                 winner = null;
-    }
 
 }

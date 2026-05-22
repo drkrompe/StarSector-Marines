@@ -109,7 +109,8 @@ public final class Squad {
      * {@link com.dillon.starsectormarines.battle.ai.goap.actions.HoldPost} routes
      * members to their freshly-assigned home cells regardless of alert level
      * while this flag is set, and the sim clears it once every surviving
-     * member is within {@link com.dillon.starsectormarines.battle.BattleSimulation#HOME_ARRIVAL_RADIUS}
+     * member is within the home-arrival radius (see
+     * {@link com.dillon.starsectormarines.battle.squad.SquadFallbackSystem})
      * of their home cell.
      */
     public boolean fallbackInProgress = false;
