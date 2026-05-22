@@ -28,6 +28,7 @@ import com.dillon.starsectormarines.battle.mapgen.TraversalAxis;
 import com.dillon.starsectormarines.battle.mapgen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.mapgen.bsp.DefensePostStamper;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.RoomFinder;
 import com.dillon.starsectormarines.battle.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.objective.ConquestObjective;
 import com.dillon.starsectormarines.battle.objective.EliminateFactionObjective;
@@ -1027,37 +1028,31 @@ public final class BattleSetup {
     }
 
     /**
-     * BFS from (ax, ay) — which may itself be non-walkable, e.g. a turret-mount
-     * anchor — collecting walkable cells within Manhattan {@code radius} and
-     * returning the top {@code count} sorted by cover desc then distance asc.
-     * Used to pick squad spawn cells around a {@link TacticalNode} anchor at
-     * setup time and again by {@link BattleSimulation#updateSquadFallback} when
-     * a garrison reassigns to a fallback node mid-battle.
+     * Flood from {@code (ax, ay)} — which may itself be non-walkable, e.g. a
+     * turret-mount anchor — collecting walkable cells within Manhattan
+     * {@code radius} and returning the top {@code count} sorted by cover desc
+     * then distance asc. Used to pick squad spawn cells around a
+     * {@link TacticalNode} anchor at setup time and again by
+     * {@link BattleSimulation#updateSquadFallback} when a garrison reassigns
+     * to a fallback node mid-battle.
+     *
+     * <p>The flood is doorway-aware ({@link RoomFinder} contract): for an
+     * indoor seed, the spawn pool is restricted to the seed's room, so a
+     * multi-room building's COMMAND_POST squad can't bleed into the
+     * antechamber's spawn pool (and vice versa). For an outdoor seed with no
+     * doorways within radius, behavior matches the historical room-unaware
+     * BFS. For a seed sitting <em>on</em> a doorway (a GATE's anchor), the
+     * seed exemption lets the flood escape into both adjacent rooms so gate
+     * defenders still spawn on both sides.
      */
     public static List<int[]> pickCellsNear(NavigationGrid grid, int ax, int ay, int radius, int count) {
-        List<int[]> pool = new ArrayList<>();
-        Set<Long> seen = new HashSet<>();
-        Queue<int[]> q = new ArrayDeque<>();
-        q.add(new int[]{ax, ay, 0});
-        seen.add(key(ax, ay));
-        while (!q.isEmpty()) {
-            int[] p = q.poll();
-            if (p[2] > radius) continue;
-            if (grid.inBounds(p[0], p[1]) && grid.isWalkable(p[0], p[1])) pool.add(p);
-            int[][] nbrs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-            for (int[] d : nbrs) {
-                int nx = p[0] + d[0];
-                int ny = p[1] + d[1];
-                if (!grid.inBounds(nx, ny)) continue;
-                if (!seen.add(key(nx, ny))) continue;
-                q.add(new int[]{nx, ny, p[2] + 1});
-            }
-        }
+        List<int[]> pool = RoomFinder.flood(grid, ax, ay, radius, null);
         pool.sort(Comparator
                 .comparingInt((int[] p) -> -grid.getCoverAt(p[0], p[1]))
                 .thenComparingInt(p -> p[2]));
-        List<int[]> out = new ArrayList<>(Math.min(count, pool.size()));
-        for (int i = 0; i < Math.min(count, pool.size()); i++) {
+        int take = Math.min(count, pool.size());
+        List<int[]> out = new ArrayList<>(take);
+        for (int i = 0; i < take; i++) {
             int[] p = pool.get(i);
             out.add(new int[]{p[0], p[1]});
         }

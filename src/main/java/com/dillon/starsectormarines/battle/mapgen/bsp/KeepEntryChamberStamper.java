@@ -2,12 +2,12 @@ package com.dillon.starsectormarines.battle.mapgen.bsp;
 
 import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.RoomFinder;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Slice-6 keep multi-chamber pass. Detects when a {@link
@@ -96,13 +96,15 @@ public final class KeepEntryChamberStamper {
     }
 
     /**
-     * Flood-fill from the COMMAND_POST anchor over walkable cells bounded
-     * to the leaf bbox; collect walkable cells in the bbox not reached. If
-     * the unreached set is ≥ {@link #MIN_CHAMBER_CELLS}, pick a representative
-     * anchor (the geometric centroid of the unreached cells, snapped to the
-     * nearest unreached cell so the anchor is itself walkable). Returns
-     * {@code null} when the building has a single connected interior — no
-     * entry chamber to emit.
+     * Flood from the COMMAND_POST anchor over walkable cells bounded to the
+     * leaf bbox using {@link RoomFinder} (which handles the doorway-as-room-
+     * boundary semantics); collect walkable, non-doorway cells in the bbox
+     * <em>not</em> reached by the throne-room flood. If the unreached set is
+     * ≥ {@link #MIN_CHAMBER_CELLS}, pick a representative anchor (the
+     * geometric centroid of the unreached cells, snapped to the nearest
+     * unreached cell so the anchor is itself walkable). Returns {@code null}
+     * when the building has a single connected interior — no entry chamber
+     * to emit.
      */
     private static int[] findEntryChamberAnchor(TacticalNode commandPost, NavigationGrid grid) {
         int left = commandPost.left;
@@ -119,36 +121,15 @@ public final class KeepEntryChamberStamper {
         if (!grid.inBounds(seedX, seedY) || !grid.isWalkable(seedX, seedY)) return null;
         if (grid.isDoorway(seedX, seedY)) return null;
 
-        int w = right - left + 1;
-        int h = bottom - top + 1;
-        boolean[][] reached = new boolean[w][h];
-        Deque<int[]> q = new ArrayDeque<>();
-        q.add(new int[]{seedX, seedY});
-        reached[seedX - left][seedY - top] = true;
-        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-        while (!q.isEmpty()) {
-            int[] p = q.poll();
-            for (int[] d : dirs) {
-                int nx = p[0] + d[0];
-                int ny = p[1] + d[1];
-                if (nx < left || nx > right || ny < top || ny > bottom) continue;
-                int lx = nx - left;
-                int ly = ny - top;
-                if (reached[lx][ly]) continue;
-                if (!grid.isWalkable(nx, ny)) continue;
-                // Doorways are the room boundary. A flood from the throne-room
-                // anchor that crosses through the partition doorway would
-                // reach the entry chamber too, defeating the room split. Stop
-                // at doorways so each room is detected as its own flood
-                // component. Perimeter doorways (building exits) are also
-                // doorway-flagged, but those sit at the bbox edge and the
-                // bbox bound already filters outside cells, so the flood
-                // can't leak past them either way.
-                if (grid.isDoorway(nx, ny)) continue;
-                reached[lx][ly] = true;
-                q.add(new int[]{nx, ny});
-            }
-        }
+        // Flood the throne room. RoomFinder's bbox bound keeps the flood
+        // from leaking out the building's perimeter doorway; its doorway-
+        // boundary contract keeps the partition doorway from connecting
+        // the two rooms. Perimeter doorways sit at the bbox edge and are
+        // bbox-filtered either way, so they're inert here.
+        List<int[]> throneRoom = RoomFinder.flood(grid, seedX, seedY,
+                Integer.MAX_VALUE,
+                new int[]{left, top, right, bottom});
+        Set<Long> throneSet = RoomFinder.toMembership(throneRoom);
 
         // Collect walkable cells in the bbox NOT reached by the throne-room
         // flood. Those are the "other room" cells, separated from the seed
@@ -159,7 +140,7 @@ public final class KeepEntryChamberStamper {
         long sumX = 0, sumY = 0;
         for (int y = top; y <= bottom; y++) {
             for (int x = left; x <= right; x++) {
-                if (reached[x - left][y - top]) continue;
+                if (throneSet.contains(RoomFinder.key(x, y))) continue;
                 if (!grid.isWalkable(x, y)) continue;
                 if (grid.isDoorway(x, y)) continue;
                 otherRoom.add(new int[]{x, y});
