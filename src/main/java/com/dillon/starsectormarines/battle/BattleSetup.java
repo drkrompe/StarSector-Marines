@@ -14,7 +14,9 @@ import com.dillon.starsectormarines.battle.mapgen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.mapgen.road.RoadReservation;
 import com.dillon.starsectormarines.battle.reinforcement.ConvoyMeans;
 import com.dillon.starsectormarines.battle.reinforcement.GarrisonDepletedTrigger;
+import com.dillon.starsectormarines.battle.reinforcement.ObjectiveLostTrigger;
 import com.dillon.starsectormarines.battle.reinforcement.ReinforcementService;
+import com.dillon.starsectormarines.battle.reinforcement.WalkInMeans;
 import com.dillon.starsectormarines.battle.ui.debug.ConvoySpawnDumper;
 import org.apache.log4j.Logger;
 import com.dillon.starsectormarines.battle.map.CellTopology;
@@ -237,7 +239,7 @@ public final class BattleSetup {
         // planter has died) spread across the multi-site map instead of
         // dogpiling the nearest fight.
         sim.setCommander(Faction.MARINE, new SabotageCommand());
-        installReinforcementLayer(sim, map);
+        installReinforcementLayer(sim, map, null);
         return sim;
     }
 
@@ -439,7 +441,7 @@ public final class BattleSetup {
         // spawn around the defender anchor.
         allocateDefenders(sim, map, DefenderRoster.forMission(type, risk, enemyHasHeavyArmor), rng);
         spawnAmbientCivilians(sim, map, rng);
-        installReinforcementLayer(sim, map);
+        installReinforcementLayer(sim, map, null);
         return sim;
     }
 
@@ -524,23 +526,43 @@ public final class BattleSetup {
         // occupied zone in its strip. Spreads marines across the frontage
         // instead of dogpiling the nearest defender contact.
         sim.setCommander(Faction.MARINE, new ConquestCommand(axis));
-        installReinforcementLayer(sim, map);
+        installReinforcementLayer(sim, map, axis);
         return sim;
     }
 
     /**
-     * Install the v1 reinforcement layer on the sim: one
-     * {@link GarrisonDepletedTrigger} + one {@link ConvoyMeans}.
-     * Non-Conquest maps register the same pair and self-gate harmlessly
-     * (the trigger walks defender squads and finds no compound
-     * assignments; the means returns {@code canFulfill = false} when
-     * the road graph is empty). Replaces the prior
-     * {@link #maybeSpawnDebugConvoy} debug-spawn path.
+     * Install the reinforcement layer on the sim. Triggers (run order =
+     * insertion):
+     * <ul>
+     *   <li>{@link GarrisonDepletedTrigger} — defender compound strength
+     *       drops below threshold.</li>
+     *   <li>{@link ObjectiveLostTrigger} — a previously defender-held
+     *       zone has been taken by marines.</li>
+     * </ul>
+     * Means (priority = insertion order; first {@code canFulfill = true}
+     * wins):
+     * <ul>
+     *   <li>{@link ConvoyMeans} — readable truck delivery; needs a road
+     *       graph and a reachable rally.</li>
+     *   <li>{@link WalkInMeans} — always-feasible floor; spawns infantry
+     *       on the side-appropriate perimeter and pulls them toward the
+     *       rally via {@code assignedNode}.</li>
+     * </ul>
+     * Non-Conquest maps register the same set and self-gate harmlessly
+     * (no compounds → no garrison fires; no road graph → convoy yields to
+     * walk-in). Replaces the prior {@link #maybeSpawnDebugConvoy} debug-
+     * spawn path.
+     *
+     * @param axis traversal axis for the map; nullable on non-Conquest paths
+     *             where there's no defender/attacker rear edge — walk-in
+     *             falls back to a stable default edge.
      */
-    private static void installReinforcementLayer(BattleSimulation sim, MapResult map) {
+    private static void installReinforcementLayer(BattleSimulation sim, MapResult map, TraversalAxis axis) {
         ReinforcementService rs = sim.getReinforcementService();
         rs.addTrigger(new GarrisonDepletedTrigger());
+        rs.addTrigger(new ObjectiveLostTrigger());
         rs.addMeans(new ConvoyMeans(map.roadGraph));
+        rs.addMeans(new WalkInMeans(axis));
     }
 
     /**
