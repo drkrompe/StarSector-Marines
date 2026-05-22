@@ -15,9 +15,9 @@ import java.util.function.Consumer;
 /**
  * Owns the active equipment-drop list and the per-tick retrieve / pickup
  * sweep. {@link #emitIfApplicable(Unit)} is called by the sim's death
- * cascades ({@code applyDamageNow} for combat kills, {@code applyExternalDamage}
- * for flyby strikes); {@link #tick()} runs once per tick to drive pickups,
- * retriever assignments, and cleanup.
+ * cascade ({@code DamageResolver.resolve} for all damage paths — combat fire,
+ * AoE splash, and external strafing all route through it); {@link #tick()}
+ * runs once per tick to drive pickups, retriever assignments, and cleanup.
  *
  * <p>Constructor-injected dependencies: {@link UnitRosterService} for the
  * units-list iteration the pickup + assignment passes do, and a

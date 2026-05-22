@@ -47,7 +47,13 @@ import java.util.List;
 public final class UnitRosterService {
 
     private final UnitSpatialIndex unitIndex;
-    private final DamageService damageService;
+    /** Set post-construction by {@link #setDamageService} — the sim's wiring loop is
+     *  {@code rosterService → damageResolver → damageService} so this field gets
+     *  bound on the last step. Only read inside {@link #queueSpawn} for the
+     *  parallel-flag check (drone-hub same-tick spawn), so a null read here
+     *  would only fire if a spawn happens before sim construction completes,
+     *  which the harness prevents. */
+    private DamageService damageService;
 
     private final List<Unit> units = new ArrayList<>();
     /**
@@ -80,6 +86,13 @@ public final class UnitRosterService {
 
     public UnitRosterService(UnitSpatialIndex unitIndex, DamageService damageService) {
         this.unitIndex = unitIndex;
+        this.damageService = damageService;
+    }
+
+    /** Bind the damage service after construction — used by the sim ctor to break
+     *  the {@code rosterService ↔ damageService} circular dependency. Only legal
+     *  once during sim setup. */
+    public void setDamageService(DamageService damageService) {
         this.damageService = damageService;
     }
 

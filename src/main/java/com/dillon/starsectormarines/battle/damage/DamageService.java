@@ -1,23 +1,37 @@
 package com.dillon.starsectormarines.battle.damage;
 
-import com.dillon.starsectormarines.battle.PendingDamage;
 import com.dillon.starsectormarines.battle.PendingOccupancyDelta;
 import com.dillon.starsectormarines.battle.PendingTargetMutation;
 import com.dillon.starsectormarines.battle.Unit;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
- * Owns the three parallel-dispatch safety queues used during the
- * UPDATE_UNITS phase ({@link PendingDamage} writes, {@link PendingTargetMutation}
- * shooter-driven writes to the target's path/target/fallback fields, and
- * {@link PendingOccupancyDelta} occupancy + destIndex mutations), the matching
- * recycle pools, and the {@code insideParallel} flag itself. The "queue owns
- * the inline-vs-defer decision" pattern: callers invoke one of the
- * {@code applyXxx} methods, and the service either calls the supplied
- * inline applier directly (serial / off-tick path) or pools-and-queues the
- * record (parallel UPDATE_UNITS path). Flush is then a straight drain that
- * goes through the same applier.
+ * Mailbox for damage + parallel-dispatch safety queues. Owns three queues
+ * used during the UPDATE_UNITS phase:
+ * <ul>
+ *   <li>SoA damage queue (parallel arrays — see below)</li>
+ *   <li>{@link PendingTargetMutation} shooter-driven writes to the target's
+ *       path/target/fallback fields</li>
+ *   <li>{@link PendingOccupancyDelta} occupancy + destIndex mutations</li>
+ * </ul>
+ *
+ * <p>Pattern: callers invoke one of the {@code applyXxx} methods, and the
+ * service either resolves inline (serial / off-tick path) or pools-and-queues
+ * for the matching flush (parallel UPDATE_UNITS path). Damage flushes feed
+ * back into the injected {@link DamageApplier} so inline and queued paths use
+ * identical semantics — the applier is always the same method ref
+ * ({@code DamageResolver::resolve}).
+ *
+ * <p><b>Damage uses SoA, not AoS.</b> Four parallel arrays
+ * ({@code Unit[] pendingTargets}, three {@code float[]}s) + an {@code int}
+ * count is enough state — no {@code DamageEvent} record. The inline path
+ * never allocates; the queued path grows the arrays by doubling when full,
+ * which steady-state means zero allocation after the first overflow tick.
+ * The other two queues (target-mutation, occupancy) keep their AoS pooled
+ * records — they have non-primitive payloads (an enum, a "kind" tag) where
+ * SoA wouldn't pay off.
  *
  * <p>Sibling slice to {@link com.dillon.starsectormarines.battle.fx.EffectsService},
  * {@link com.dillon.starsectormarines.battle.vision.VisionService},
@@ -25,10 +39,9 @@ import java.util.ArrayList;
  * {@link com.dillon.starsectormarines.battle.command.CommanderService},
  * {@link com.dillon.starsectormarines.battle.objective.ObjectivesService}.
  *
- * <p>The four appliers are bound method refs supplied once at construction
- * by {@code BattleSimulation} — one allocation for the lifetime of the sim,
- * shared between the inline branch and the flush branch so semantics stay
- * identical across both paths.
+ * <p>Appliers are bound method refs supplied once at construction so they're
+ * shared between the inline branch and the flush branch — one allocation for
+ * the lifetime of the sim, identical semantics across both paths.
  */
 public final class DamageService {
 
@@ -51,8 +64,20 @@ public final class DamageService {
     private final FallbackApplier fallbackApplier;
     private final OccupancyApplier occupancyApplier;
 
-    private final ArrayList<PendingDamage> pendingDamage = new ArrayList<>();
-    private final ArrayList<PendingDamage> pendingDamagePool = new ArrayList<>();
+    // ---- SoA damage queue ----
+    //
+    // Four parallel arrays, grown by doubling when full. Lock granularity is
+    // the service instance itself — the parallel UPDATE_UNITS workers all
+    // contend on one monitor, but the contention window is just a couple of
+    // array writes so it's not measurable in practice.
+    private static final int INITIAL_DAMAGE_CAPACITY = 64;
+    private Unit[] dmgTarget = new Unit[INITIAL_DAMAGE_CAPACITY];
+    private float[] dmgDamage = new float[INITIAL_DAMAGE_CAPACITY];
+    private float[] dmgVsTurretMult = new float[INITIAL_DAMAGE_CAPACITY];
+    private float[] dmgMoraleImpact = new float[INITIAL_DAMAGE_CAPACITY];
+    private int dmgCount = 0;
+    private final Object dmgLock = new Object();
+
     private final ArrayList<PendingTargetMutation> pendingTargetMutations = new ArrayList<>();
     private final ArrayList<PendingTargetMutation> pendingTargetMutationsPool = new ArrayList<>();
     private final ArrayList<PendingOccupancyDelta> pendingOccupancy = new ArrayList<>();
@@ -63,9 +88,9 @@ public final class DamageService {
      * by every {@code applyXxx} method to choose between queue (parallel
      * callers) and inline apply (serial tick phases, off-tick test paths,
      * mid-frame UI hooks). Inline outside the parallel section is faster
-     * (no queue allocation) and sidesteps the bug where serial phases past
-     * the queue's drain point would enqueue mutations that leak into the
-     * next tick.
+     * (no queue write) and sidesteps the bug where serial phases past the
+     * queue's drain point would enqueue mutations that leak into the next
+     * tick.
      */
     private volatile boolean insideParallel = false;
 
@@ -85,25 +110,34 @@ public final class DamageService {
     public boolean isParallel() { return insideParallel; }
 
     /**
-     * Damage entry point. Serial callers (off-tick, post-UPDATE_UNITS tick
-     * phases) apply inline via {@link DamageApplier}; parallel callers
-     * (UPDATE_UNITS workers) pool-allocate and queue for {@link #flushPendingDamage()}.
+     * Damage entry point — the mailbox front door. Serial callers (off-tick,
+     * post-UPDATE_UNITS tick phases, AoE detonation drain, external strafing
+     * reroute) resolve inline through the injected applier; parallel callers
+     * (UPDATE_UNITS workers) write into the SoA queue for
+     * {@link #flushPendingDamage()}. No per-call object allocation in either
+     * path.
      */
     public void applyDamage(Unit target, float damage, float vsTurretMult, float moraleImpact) {
         if (!insideParallel) {
             damageApplier.apply(target, damage, vsTurretMult, moraleImpact);
             return;
         }
-        synchronized (pendingDamage) {
-            PendingDamage e = pendingDamagePool.isEmpty()
-                    ? new PendingDamage()
-                    : pendingDamagePool.remove(pendingDamagePool.size() - 1);
-            e.target = target;
-            e.damage = damage;
-            e.vsTurretMult = vsTurretMult;
-            e.moraleImpact = moraleImpact;
-            pendingDamage.add(e);
+        synchronized (dmgLock) {
+            int i = dmgCount;
+            if (i == dmgTarget.length) growDamageArrays(i * 2);
+            dmgTarget[i] = target;
+            dmgDamage[i] = damage;
+            dmgVsTurretMult[i] = vsTurretMult;
+            dmgMoraleImpact[i] = moraleImpact;
+            dmgCount = i + 1;
         }
+    }
+
+    private void growDamageArrays(int newCapacity) {
+        dmgTarget = Arrays.copyOf(dmgTarget, newCapacity);
+        dmgDamage = Arrays.copyOf(dmgDamage, newCapacity);
+        dmgVsTurretMult = Arrays.copyOf(dmgVsTurretMult, newCapacity);
+        dmgMoraleImpact = Arrays.copyOf(dmgMoraleImpact, newCapacity);
     }
 
     /** Target-reprioritize write. Inline writes unconditionally; queued path snapshots {@code expectedTarget} so the flush can detect a concurrent self-retarget and preserve the newer choice. */
@@ -161,22 +195,22 @@ public final class DamageService {
     }
 
     /**
-     * Drains queued damage FIFO. Runs serially in
-     * {@code TickProfile.Phase.APPLY_DAMAGE}, between UPDATE_UNITS and the
-     * subsystem ticks that read HP. Behavioral note preserved from the
-     * pre-extraction body: a doomed target gets one tick of action before
-     * the drain kills it (vs the pre-deferral inline-apply where a doomed
-     * later-in-iteration target was already dead when its own update ran).
+     * Drains the SoA damage queue FIFO through the registered applier. Runs
+     * serially in {@code TickProfile.Phase.APPLY_DAMAGE}, between UPDATE_UNITS
+     * and the subsystem ticks that read HP. Behavioral note preserved from
+     * the pre-deferral inline-apply era: a doomed target gets one tick of
+     * action before the drain kills it (vs the pre-deferral inline path where
+     * a doomed later-in-iteration target was already dead when its own update
+     * ran).
      */
     public void flushPendingDamage() {
-        if (pendingDamage.isEmpty()) return;
-        for (int i = 0, n = pendingDamage.size(); i < n; i++) {
-            PendingDamage e = pendingDamage.get(i);
-            damageApplier.apply(e.target, e.damage, e.vsTurretMult, e.moraleImpact);
-            e.target = null;
-            pendingDamagePool.add(e);
+        int n = dmgCount;
+        if (n == 0) return;
+        for (int i = 0; i < n; i++) {
+            damageApplier.apply(dmgTarget[i], dmgDamage[i], dmgVsTurretMult[i], dmgMoraleImpact[i]);
+            dmgTarget[i] = null; // release ref so GC can collect dead Units
         }
-        pendingDamage.clear();
+        dmgCount = 0;
     }
 
     /**

@@ -4,9 +4,10 @@ package com.dillon.starsectormarines.battle;
  * Deferred {@code occupancyMap} + {@code destIndex} mutation produced by
  * {@code BattleSimulation.setPath} during UPDATE_UNITS and drained serially
  * by {@code flushPendingOccupancyDeltas} in the APPLY_OCCUPANCY phase that
- * runs immediately after. Sibling of {@link PendingDamage} — same rule
- * (no shared sim mutation in the per-unit dispatch hot path), different
- * mutation surface (spatial bookkeeping vs combat outcomes).
+ * runs immediately after. Sibling of the SoA damage queue on
+ * {@code DamageService} — same rule (no shared sim mutation in the per-unit
+ * dispatch hot path), different mutation surface (spatial bookkeeping vs
+ * combat outcomes).
  *
  * <p>{@code oldDestX/Y == Integer.MIN_VALUE} means "no decrement / removal"
  * (the unit had no prior destination, or its destination was its current

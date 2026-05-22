@@ -11,10 +11,10 @@ import java.util.List;
 
 /**
  * Stateless tick consumer that owns squad + mech morale recovery, hysteresis,
- * and the near-miss drain pass. Hit / death drain still live on
- * {@code BattleSimulation.applyDamageNow} (they fire from the damage callback
- * site, not the tick chain); the constants live here and the sim reads them
- * through this class.
+ * and the near-miss drain pass. Hit / death drain live on
+ * {@code damage.DamageResolver.resolve} (they fire from the damage callback
+ * site, not the tick chain); the constants live here and the resolver reads
+ * them through this class.
  *
  * <p>Recovery gates on "haven't been shot at recently"
  * ({@link Squad#timeSinceUnderFire} {@code >=} {@link #MORALE_RECOVER_AFTER_FIRE_SECONDS}),
@@ -69,8 +69,8 @@ public final class SquadMoraleSystem {
     // Per-roadmap/ai/14-mech-stage1.md "Mech survival" — mechs use a tougher
     // morale model than infantry: HP-threshold drain (not per-hit), stricter
     // broken/clear thresholds, faster recovery, hard cap once damaged. Read
-    // by {@link #updateMechSquadMorale} + the HP-drain pass folded into
-    // {@code BattleSimulation.applyMechHpThresholdDrain}.
+    // by {@link #updateMechSquadMorale} + the HP-drain pass inside
+    // {@code damage.DamageResolver.applyMechHpThresholdDrain}.
 
     /** Fraction-of-maxHp marks where a mech bleeds morale. Crossing each drops {@link #MECH_MORALE_DROP_PER_THRESHOLD} once (monotonic via {@link MechLoadoutState#hpThresholdsCrossed}). Descending order — first entry trips at 75% HP. */
     public static final float[] MECH_HP_DRAIN_THRESHOLDS = {0.75f, 0.50f, 0.25f, 0.10f};

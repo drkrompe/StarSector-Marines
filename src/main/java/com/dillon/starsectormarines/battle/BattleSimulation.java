@@ -20,6 +20,7 @@ import com.dillon.starsectormarines.battle.ai.UnitBehavior;
 import com.dillon.starsectormarines.battle.ai.goap.GoapInfantryBehavior;
 import com.dillon.starsectormarines.battle.ai.goap.GoapMechBehavior;
 import com.dillon.starsectormarines.battle.command.MissionCommand;
+import com.dillon.starsectormarines.battle.damage.DamageResolver;
 import com.dillon.starsectormarines.battle.damage.DamageService;
 import com.dillon.starsectormarines.battle.equipment.EquipmentDropService;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
@@ -100,9 +101,6 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Fixed simulation timestep — 30Hz. */
     public static final float TICK_DT = 1f / 30f;
 
-    /** Damage reduction per cover level (0..MAX_COVER). Open ground = 0%; 1 wall = 15%; 2 = 30%; 3+ = 45%. Applied multiplicatively in {@link #fireShot}. */
-    private static final float[] COVER_DAMAGE_REDUCTION = { 0f, 0.15f, 0.30f, 0.45f };
-
     /** Sim seconds a tracer stays visible after being fired. */
     private static final float SHOT_LIFETIME = 0.15f;
     /** Min/max near-miss offset (cells) from target cell-center on a missed shot. */
@@ -148,7 +146,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final com.dillon.starsectormarines.battle.squad.SquadFallbackSystem squadFallback;
     /** Per-tick squad alert / awareness driver — drives the ENGAGED/SUSPICIOUS/UNAWARE state machine + kill-zone gating + audible-gunfire promotion. Initialized in the constructor. */
     private final com.dillon.starsectormarines.battle.squad.SquadAlertSystem squadAlert;
-    /** Per-tick squad morale recovery + hysteresis + near-miss drain. Drain on hit/death still fires from {@link #applyDamageNow}; this system owns the passive recovery + flag transitions. Initialized in the constructor. */
+    /** Per-tick squad morale recovery + hysteresis + near-miss drain. Drain on hit/death fires from {@link DamageResolver#resolve}; this system owns the passive recovery + flag transitions. Initialized in the constructor. */
     private final com.dillon.starsectormarines.battle.squad.SquadMoraleSystem squadMorale;
     /** Per-tick win-condition evaluator — pure function over the objective list; sim writes the {@link #complete}/{@link #winner} fields on terminal result. Initialized in the constructor. */
     private final com.dillon.starsectormarines.battle.objective.WinCheckSystem winCheck =
@@ -197,13 +195,15 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final List<Unit> deathsThisFrame = new ArrayList<>();
     /**
      * Parallel-dispatch safety queues + the {@code insideParallel} flag.
-     * Owns {@link PendingDamage}, {@link PendingTargetMutation}, and
+     * Owns the SoA damage queue + {@link PendingTargetMutation} and
      * {@link PendingOccupancyDelta} queues with their pools. Constructed in
      * the sim ctor with bound method-ref appliers for each kind, so the
      * {@code applyDamage} / {@code applyReprio} / {@code applyFallback} /
      * {@code applyOccupancyDelta} delegates below forward straight in.
      */
     private final DamageService damageService;
+    /** Stateless body of {@code applyDamage} — cover-curve / HP write / death cascade / leader promotion / morale drain. Wired into {@link #damageService} as the damage applier so inline and queued paths share semantics. */
+    private final DamageResolver damageResolver;
     private final Random rng = new Random();
 
     /** Alias of {@link NavigationService#getOccupancyMap()}. */
@@ -266,18 +266,26 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         this.destIndex = navigation.getDestIndex();
         this.effects = new com.dillon.starsectormarines.battle.fx.EffectsService(rng);
         this.doodadService = new DoodadService(grid);
-        this.damageService = new DamageService(
-                this::applyDamageNow,
-                this::writeReprioInline,
-                this::writeFallbackInline,
-                navigation::applyOccupancyDeltaInline);
-        this.rosterService = new UnitRosterService(unitIndex, damageService);
+        // DamageService construction is staged: the resolver needs the roster
+        // (squad map + units list) and the equipment-drop service, both of
+        // which we build right after. We construct the service second and
+        // wire it with damageResolver::resolve as the applier method ref.
+        this.rosterService = new UnitRosterService(unitIndex, null);
         // Alias-fields share the same collection instances as the service so
         // the 100+ internal `units` / `squads` reads stay direct (no per-call
         // accessor hop, no synchronization on the serial-phase squads.get).
         this.units = rosterService.getUnits();
         this.squads = rosterService.getSquadsMap();
         this.equipmentDropService = new EquipmentDropService(rosterService, this::clearPath);
+        this.damageResolver = new DamageResolver(
+                navigation, rosterService, equipmentDropService,
+                deathsThisFrame::add, rng);
+        this.damageService = new DamageService(
+                damageResolver::resolve,
+                this::writeReprioInline,
+                this::writeFallbackInline,
+                navigation::applyOccupancyDeltaInline);
+        rosterService.setDamageService(damageService);
         this.turretDemolition = new com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem(
                 navigation, effects, tactical, rosterService);
         this.hubDemolition = new com.dillon.starsectormarines.battle.drone.HubDemolitionSystem(
@@ -493,115 +501,6 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Delegates to {@link DamageService#flushPendingDamage()}. Public so tests can force the drain after a direct {@code applyDamage} call to assert immediate side effects. */
     public void flushPendingDamage() {
         damageService.flushPendingDamage();
-    }
-
-    /**
-     * The pre-deferral body of {@link #applyDamage} — performs the actual HP /
-     * morale / death-cascade mutations. Called by {@link #flushPendingDamage()}
-     * once per queued entry. Kept private; external callers always go through
-     * the queue.
-     */
-    private void applyDamageNow(Unit target, float damage, float vsTurretMult, float moraleImpact) {
-        boolean wasAlive = target.isAlive();
-        int targetCover = grid.getCoverAt(target.cellX, target.cellY);
-        float dr = COVER_DAMAGE_REDUCTION[Math.min(targetCover, COVER_DAMAGE_REDUCTION.length - 1)];
-        float effectiveMult = (target instanceof MapTurret) ? vsTurretMult : 1f;
-        target.hp -= damage * effectiveMult * (1f - dr);
-        boolean died = wasAlive && !target.isAlive();
-        if (died) {
-            target.deathPoseIdx = rng.nextInt(4);
-            deathsThisFrame.add(target);
-            equipmentDropService.emitIfApplicable(target);
-            // Squad leader promotion — if the dead unit was leading a
-            // squad, hand the badge to the closest still-alive member.
-            // Preserves direction of travel: the new leader stands roughly
-            // where the old one fell, so followers don't get yanked
-            // sideways when the leader dies mid-maneuver. See
-            // InfantryCohesion.cohesionOverride for how the leader cell
-            // pulls cohesion. NO_SQUAD units (turrets, civilians, etc.)
-            // skip — no leader to promote.
-            if (target.squadId != Unit.NO_SQUAD) {
-                Squad ls = squads.get(target.squadId);
-                if (ls != null && ls.leader == target) {
-                    ls.leader = pickPromotionCandidate(ls, target);
-                }
-            }
-        }
-        // Morale drain — branches on unit type.
-        //
-        // Mech-class targets use per-chassis morale: HP threshold crossings
-        // drain {@link MechLoadoutState#morale} (squad-level aggregation
-        // happens in {@link #updateMechSquadMorale}). The squad's
-        // {@link Squad#morale} field is unused for mech squads — leaving it
-        // at its initial value is harmless because the GOAP predicate reads
-        // {@link Squad#moraleBroken}, not the raw float.
-        //
-        // Infantry squad members feed the legacy squad-level drain (hit
-        // event + cap scaling + death bonus). Solo units (turrets, civilians)
-        // skip both — their behaviors don't consult MORALE_BROKEN.
-        if (wasAlive && target.mech != null) {
-            applyMechHpThresholdDrain(target);
-        } else if (wasAlive && target.squadId != Unit.NO_SQUAD) {
-            Squad sq = squads.get(target.squadId);
-            if (sq != null) {
-                // Death drain stacks on top of hit drain and bypasses the
-                // cooldown — a kill is a discrete event the model should
-                // always reflect, even if the squad just took a hit a tick
-                // ago. The hit-component of the drain only fires when the
-                // cooldown is clear; otherwise a burst of multiple hits in
-                // one tick would each stack their per-hit drain and break
-                // a full squad in a single frame.
-                float cap = (sq.originalSize > 0 && sq.aliveMembers > 0)
-                        ? (float) sq.aliveMembers / sq.originalSize
-                        : 1f;
-                float drop = 0f;
-                if (sq.moraleDrainCooldown <= 0f) {
-                    float hit = (cap > 0f)
-                            ? SquadMoraleSystem.MORALE_DROP_ON_HIT / cap
-                            : SquadMoraleSystem.MORALE_DROP_ON_HIT;
-                    drop += hit * moraleImpact;
-                    sq.moraleDrainCooldown = SquadMoraleSystem.MORALE_DRAIN_COOLDOWN;
-                }
-                if (died) drop += SquadMoraleSystem.MORALE_DROP_ON_DEATH;
-                if (drop > 0f) sq.morale = Math.max(0f, sq.morale - drop);
-                // Recovery gate: a hit always counts as "under fire," even
-                // when the drain cooldown blocked the drop. Otherwise a
-                // sustained burst would only reset the timer on the first
-                // bullet, letting recovery resume mid-volley.
-                sq.timeSinceUnderFire = 0f;
-            }
-        }
-    }
-
-    /**
-     * Mech-side morale drain on damage. Counts how many entries in
-     * {@link #MECH_HP_DRAIN_THRESHOLDS} the chassis HP just crossed and drops
-     * {@link MechLoadoutState#morale} by {@link #MECH_MORALE_DROP_PER_THRESHOLD}
-     * per crossing. Always resets {@link MechLoadoutState#timeSinceUnderFire}
-     * so recovery pauses through sustained fire — even a hit that didn't
-     * cross a fresh threshold counts as "still under fire."
-     *
-     * <p>Monotonic via {@link MechLoadoutState#hpThresholdsCrossed} — a
-     * healed mech (none today, but defensive) wouldn't refund drains. The
-     * drain is keyed to "how far through this fight have you been damaged,"
-     * not to instantaneous HP.
-     */
-    private void applyMechHpThresholdDrain(Unit target) {
-        MechLoadoutState m = target.mech;
-        m.timeSinceUnderFire = 0f;
-        if (target.maxHp <= 0f) return;
-        // Re-count by the post-damage HP fraction — once a threshold is
-        // crossed it stays counted. Compare against the running monotonic
-        // tracker so a heal followed by re-damage doesn't double-drain.
-        float frac = Math.max(0f, target.hp) / target.maxHp;
-        int newCount = 0;
-        for (float t : SquadMoraleSystem.MECH_HP_DRAIN_THRESHOLDS) {
-            if (frac <= t) newCount++;
-        }
-        int crossings = newCount - m.hpThresholdsCrossed;
-        if (crossings <= 0) return;
-        m.hpThresholdsCrossed = newCount;
-        m.morale = Math.max(0f, m.morale - crossings * SquadMoraleSystem.MECH_MORALE_DROP_PER_THRESHOLD);
     }
 
     @Override
@@ -1264,33 +1163,6 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     }
 
     /**
-     * Picks the closest still-alive squad member to {@code deadLeader}'s
-     * last cell — the unit that takes over as squad leader. Returns null
-     * if no member is alive (squad fully wiped this same tick). "Closest
-     * to former leader" is the user-chosen promotion rule: it preserves
-     * the squad's direction of travel through the promotion event, so
-     * followers don't pivot when the badge changes hands mid-maneuver.
-     */
-    private Unit pickPromotionCandidate(Squad squad, Unit deadLeader) {
-        Unit best = null;
-        float bestDistSq = Float.MAX_VALUE;
-        int lx = deadLeader.cellX;
-        int ly = deadLeader.cellY;
-        for (Unit u : units) {
-            if (u == deadLeader || !u.isAlive()) continue;
-            if (u.squadId != squad.id) continue;
-            int dx = u.cellX - lx;
-            int dy = u.cellY - ly;
-            float d2 = dx * dx + dy * dy;
-            if (d2 < bestDistSq) {
-                bestDistSq = d2;
-                best = u;
-            }
-        }
-        return best;
-    }
-
-    /**
      * Drives the FALLBACK_TO retreat chain for garrison squads. Runs once per
      * tick after {@link #updateSquadAlertLevels} so the fresh
      * {@link Squad#aliveMembers} is visible.
@@ -1607,23 +1479,19 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
 
     /**
      * Applies damage from an external source (flyby strafing run) to a unit
-     * already tracked by the sim. Mirrors the post-hit half of {@link #fireShot}:
-     * cover-reduces, applies HP, emits death + equipment drop if applicable.
-     * Skips accuracy roll (the overlay already decided the round connected) and
-     * fall-back (strafes pin you down rather than break contact). No
-     * {@link ShotEvent} is emitted — flyby tracers are drawn by the overlay
-     * itself, not the ground combat tracer pass.
+     * already tracked by the sim. Routes through the same {@link DamageResolver}
+     * the normal weapon path uses but with {@code moraleImpact = 0f}, which
+     * short-circuits the morale branch — strafes are too short-lived for the
+     * morale model to model meaningfully. Cover reduction, HP write, death
+     * cascade (death FX + equipment drop + squad-leader promotion) all run
+     * normally. {@code vsTurretMult = 1f} since strafing isn't turret-specific.
+     * No {@link ShotEvent} is emitted — flyby tracers draw via the overlay,
+     * not the ground combat tracer pass. Fall-back is also intentionally
+     * skipped (strafes pin you down rather than break contact).
      */
     public void applyExternalDamage(Unit target, float damage) {
         if (target == null || !target.isAlive() || damage <= 0f) return;
-        int cover = grid.getCoverAt(target.cellX, target.cellY);
-        float dr = COVER_DAMAGE_REDUCTION[Math.min(cover, COVER_DAMAGE_REDUCTION.length - 1)];
-        target.hp -= damage * (1f - dr);
-        if (!target.isAlive()) {
-            target.deathPoseIdx = rng.nextInt(4);
-            deathsThisFrame.add(target);
-            equipmentDropService.emitIfApplicable(target);
-        }
+        damageResolver.resolve(target, damage, 1f, 0f);
     }
 
 

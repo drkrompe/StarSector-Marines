@@ -39,7 +39,7 @@ public class Unit {
      * call sites (weapon hit rolls, shot endpoint scatter, flee wander,
      * patrol jitter, drone swarm) so the fork-join dispatch has no Random
      * contention. Sim-global RNG keeps serving serial-phase callers
-     * (death-pose pick in {@code applyDamageNow}, map gen, setup). Seeded
+     * (death-pose pick in {@code DamageResolver.resolve}, map gen, setup). Seeded
      * with system time by default — we don't require bit-reproducible
      * battles.
      */
