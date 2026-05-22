@@ -1,8 +1,12 @@
 package com.dillon.starsectormarines.campaign;
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.util.EnumMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,25 +20,44 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * variety (different contracts from the same archetype span the template pool).
  * Substitution is exercised against the token list documented on
  * {@link PatronBriefingFlavor}.
+ *
+ * <p>Tests run against synthetic templates injected via
+ * {@link PatronBriefingTemplates#loadForTest} so the real file loader
+ * (and SettingsAPI) doesn't have to bootstrap inside the unit suite.
  */
 public class PatronBriefingFlavorTest {
+
+    @BeforeAll
+    public static void injectTestTemplates() {
+        Map<PatronArchetype, String[]> templates = new EnumMap<>(PatronArchetype.class);
+        for (PatronArchetype a : PatronArchetype.values()) {
+            // Three variants each — enough to exercise the cycling test and
+            // distinct enough across archetypes to exercise the "voices
+            // differ" test. Tokens cover all four substitution surfaces.
+            templates.put(a, new String[] {
+                    a.name() + " v0 — patron={patron} target={target} payout={payout} salvage={salvage}",
+                    a.name() + " v1 — {patron} hit {target} for {payout}",
+                    a.name() + " v2 — {target} ({salvage}% salvage)"
+            });
+        }
+        PatronBriefingTemplates.loadForTest(templates);
+    }
+
+    @AfterAll
+    public static void resetTemplates() {
+        PatronBriefingTemplates.loadForTest(null);
+    }
 
     @Test
     public void rendersAllTokens() {
         String out = PatronBriefingFlavor.render(
                 PatronArchetype.ESTABLISHED, 1L,
                 "House Cavor", "Eventide", "$50,000", 40);
-        // Every template references at least the patron OR target name, the
-        // payout, or the salvage %, but each archetype's three templates vary
-        // in *which* tokens they use. Just assert the substitution machinery
-        // works — the rendered string contains at least one of the four
-        // surface forms.
         boolean substituted = out.contains("House Cavor")
                 || out.contains("Eventide")
                 || out.contains("$50,000")
                 || out.contains("40");
         assertTrue(substituted, "Render did not substitute any token: " + out);
-        // And no template token leaked through unsubstituted.
         assertFalse(out.contains("{"), "Unsubstituted token in: " + out);
     }
 
@@ -49,8 +72,6 @@ public class PatronBriefingFlavorTest {
 
     @Test
     public void differentContractsHitDifferentVariants() {
-        // 30 contract ids against a 3-template pool should reach all 3
-        // variants with very high probability under a fair hash.
         Set<String> seen = new HashSet<>();
         for (long id = 1; id <= 30; id++) {
             seen.add(PatronBriefingFlavor.render(
@@ -62,8 +83,6 @@ public class PatronBriefingFlavorTest {
 
     @Test
     public void archetypeVoicesDiffer() {
-        // Same contract id, different archetypes must produce different prose —
-        // the writing surface IS the player's signal that archetypes exist.
         String rushed = PatronBriefingFlavor.render(
                 PatronArchetype.TIME_RUSHED, 7L, "P", "T", "$1", 0);
         String noble  = PatronBriefingFlavor.render(

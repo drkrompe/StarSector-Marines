@@ -1,0 +1,72 @@
+{
+	# Patron archetype briefing templates — the voice each patron type uses
+	# when sending the player a contract brief. The archetype is procedural
+	# (assigned at HouseSeeder time); the WORDS the patron sends are content,
+	# authored here.
+	#
+	# Schema:
+	#   {
+	#     "templates": {
+	#       "<ARCHETYPE_NAME>": [ "variant 1", "variant 2", ... ]
+	#     }
+	#   }
+	#
+	# - Every PatronArchetype enum value MUST appear as a key.
+	# - Each archetype MUST have at least one variant string.
+	# - Variants are picked deterministically per (contractId, archetype)
+	#   — adding/removing/reordering variants is fine, just be aware that
+	#   the variant a player sees for a given contract may shift if the
+	#   pool size changes.
+	#
+	# Substitution tokens (see PatronBriefingFlavor):
+	#   {patron}   — patron house display name
+	#   {target}   — target planet name
+	#   {payout}   — formatted payout including cash multiplier
+	#   {salvage}  — negotiated salvage % (0..baseline)
+	#
+	# Authoring notes per archetype — keep the voice distinct:
+	#   TIME_RUSHED   — terse, no preamble, missing context, "no time to do it right"
+	#   FALLEN_NOBLE  — formal-but-faded; references to a past status
+	#   TRUE_BELIEVER — ideological, righteous, emotional appeals
+	#   ESTABLISHED   — polished, oblique, formal contract terms
+	#   SUSPICIOUS    — curt, no questions, ethically gray targets
+	#   NEWCOMER      — clumsy, over-specified, signals inexperience
+
+	"templates": {
+		"TIME_RUSHED": [
+			"Hit {target}. Tonight. No time to brief — full file's on the dropship terminal.",
+			"{target}. Three days, then our window closes. {salvage}% salvage if you make it.",
+			"Don't ask why this one's urgent. {target}. {payout} on completion. Move."
+		],
+
+		"FALLEN_NOBLE": [
+			"What was once {patron}'s charge has slipped to other hands. {target}, brought low — and the matter settled. {payout} for your part.",
+			"{patron} would once have arranged this over dinner. Now there is only the dispatch. The target is {target}. The terms are what they are.",
+			"Forgive the brevity. {patron}'s circumstances have, in recent years, narrowed. {target}. {salvage}% salvage. Your discretion is, of course, assumed."
+		],
+
+		"TRUE_BELIEVER": [
+			"The work at {target} is an affront. {patron} asks only soldiers willing to see it ended — not the ones who came for the {payout}.",
+			"They call what they do at {target} commerce. {patron} calls it what it is. End it. The salvage is whatever remains.",
+			"If you take {patron}'s coin, you take {patron}'s convictions. {target}. The pay is what it is. The work is what matters."
+		],
+
+		"ESTABLISHED": [
+			"{patron} would consider it a personal favor were the situation at {target} resolved by quarter's end. {payout}; salvage per the enclosed schedule.",
+			"Per the attached memorandum: {patron} seeks the cessation of operations at {target}. {salvage}% recovery cap, {payout} on confirmation. Discretion expected.",
+			"{patron} prefers not to elaborate on the {target} matter beyond what the file contains. We trust that suffices. {payout}."
+		],
+
+		"SUSPICIOUS": [
+			"{target}. No questions. {payout} cash, {salvage}% salvage on anything you find worth taking.",
+			"{patron} doesn't need to know why. Neither do you. {target}. Done by month's end, or don't come back.",
+			"There won't be a record of this brief. {target}. Pay's good. Don't make {patron} regret picking you."
+		],
+
+		"NEWCOMER": [
+			"Thank you for considering this opportunity. {patron} would like to formally engage your services for operations at {target}. Per the contract draft, payment terms are {payout} with {salvage}% recovered material reserved for your fleet.",
+			"{patron} represents a serious commercial proposition. Our objective at {target} aligns with established practice in the marine ops industry. Payment: {payout}. We have prepared the necessary documentation.",
+			"Should you find {payout} acceptable for the conclusion of operations at {target}, kindly indicate so via the standard channels. {patron} is prepared to proceed at your earliest convenience."
+		]
+	}
+}
