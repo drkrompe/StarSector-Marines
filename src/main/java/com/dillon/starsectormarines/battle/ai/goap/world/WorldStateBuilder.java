@@ -311,7 +311,10 @@ public final class WorldStateBuilder {
      * lane."
      */
     private static boolean evalUnderFireAtLos(Squad squad, BattleSimulation sim) {
-        List<ShotEvent> shots = sim.getActiveShots();
+        // Snapshot — runs during parallel UPDATE_UNITS dispatch, can't iterate
+        // the live activeShots list because concurrent postShot() appends will
+        // CME the iterator.
+        List<ShotEvent> shots = sim.snapshotActiveShots();
         if (shots.isEmpty()) return false;
         NavigationGrid grid = sim.getGrid();
         List<Unit> units = sim.getUnits();

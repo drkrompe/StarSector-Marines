@@ -492,7 +492,9 @@ public final class TacticalScoring {
                 total += u.secondaryWeapon.damage * u.secondaryWeapon.vsTurretMult;
             }
         }
-        for (PendingDetonation det : sim.getInflightDetonations()) {
+        // Snapshot — runs during parallel UPDATE_UNITS, can't iterate the
+        // live detonations list while another worker may queueDetonation.
+        for (PendingDetonation det : sim.snapshotInflightDetonations()) {
             if (det.shooterFaction != shooter.faction) continue;
             float dx = (turret.cellX + 0.5f) - det.endpointX;
             float dy = (turret.cellY + 0.5f) - det.endpointY;

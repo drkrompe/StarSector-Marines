@@ -389,13 +389,15 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      * sim's lifetime (Starsector spawns and discards battles repeatedly).
      */
     /**
-     * True between the top of {@link #tick()} and the bottom — read by
-     * {@link #applyDamage} to decide whether to auto-flush. Off-tick callers
-     * (tests asserting on {@code applyDamage}'s side effects, the mid-frame
-     * UI flyby strike path that doesn't drive a sim tick) get immediate
-     * apply; in-tick callers go through the queue and drain in APPLY_DAMAGE.
+     * True only while the parallel UPDATE_UNITS dispatch is in flight — read
+     * by {@link #applyDamage}, {@link #setPath}, and {@link #queueSpawn} to
+     * decide between queue (parallel callers) and inline apply (everyone
+     * else — serial tick phases, off-tick test paths, mid-frame UI hooks).
+     * Inline outside the parallel section is faster (no queue allocation) and
+     * sidesteps the bug where serial phases past the queue's drain point
+     * would enqueue mutations that leak into the next tick.
      */
-    private volatile boolean insideTick = false;
+    private volatile boolean insideParallel = false;
     private final ForkJoinPool updatePool = new ForkJoinPool(
             Math.max(1, Runtime.getRuntime().availableProcessors() - 1),
             pool -> {
@@ -635,6 +637,19 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     public FlybyRoster getFlybyRoster()    { return flybyRoster; }
     public void setFlybyRoster(FlybyRoster roster) { this.flybyRoster = roster != null ? roster : FlybyRoster.EMPTY; }
     public List<ShotEvent> getActiveShots(){ return activeShots; }
+
+    /**
+     * Thread-safe snapshot of {@link #activeShots} for callers iterating during
+     * the parallel UPDATE_UNITS dispatch. Concurrent {@link #postShot} appends
+     * to {@code activeShots} would otherwise CME a plain iterator. Allocates
+     * one ArrayList per call (small — typically &lt; 50 shots in-flight); pool
+     * later if profile shows it matters.
+     */
+    public List<ShotEvent> snapshotActiveShots() {
+        synchronized (activeShots) {
+            return new ArrayList<>(activeShots);
+        }
+    }
     public List<ShotEvent> getShotsThisFrame() { return shotsThisFrame; }
     /** Shots whose lifetime ended this advance — the "projectile arrived" event. Renderer reads this to spawn impact FX + arrival sounds at the moment a turret-shot sprite reaches its endpoint. */
     public List<ShotEvent> getShotsExpiredThisFrame() { return shotsExpiredThisFrame; }
@@ -695,12 +710,16 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      * spawn rare; the next tick's REBUILD_OCCUPANCY restores the picture.
      */
     public void queueSpawn(Unit u) {
+        if (!insideParallel) {
+            // Serial caller — inline. Tests + (theoretical) serial-phase
+            // spawn paths see the new unit in {@link #getUnits()} immediately.
+            addUnit(u);
+            return;
+        }
+        // Parallel UPDATE_UNITS dispatch — queue for the APPLY_SPAWNS drain.
         synchronized (pendingSpawns) {
             pendingSpawns.add(u);
         }
-        // Off-tick auto-flush — tests that call queueSpawn directly expect
-        // immediate visibility in the units list.
-        if (!insideTick) flushPendingSpawns();
     }
 
     /**
@@ -735,9 +754,16 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
 
     @Override
     public void applyDamage(Unit target, float damage, float vsTurretMult, float moraleImpact) {
-        // Synchronized for the parallel UPDATE_UNITS dispatch — many workers
-        // enqueue concurrently. Lock on the queue itself so the pool +
-        // append happen under one monitor.
+        if (!insideParallel) {
+            // Serial / off-tick caller — apply inline. Covers test assertions,
+            // the FlybyOverlay strike path, and the serial tick phases that
+            // emit damage post-UPDATE_UNITS (INFANTRY_TICK / HEAVY_TICK burst
+            // continuations, PROJECTILES arrivals, DETONATIONS).
+            applyDamageNow(target, damage, vsTurretMult, moraleImpact);
+            return;
+        }
+        // Parallel UPDATE_UNITS dispatch — queue. Many workers may enqueue
+        // concurrently; lock on the queue itself for pool + append.
         synchronized (pendingDamage) {
             PendingDamage e = pendingDamagePool.isEmpty()
                     ? new PendingDamage()
@@ -748,10 +774,6 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             e.moraleImpact = moraleImpact;
             pendingDamage.add(e);
         }
-        // Off-tick auto-flush: tests + mid-frame UI hooks call applyDamage
-        // and expect immediate effect. In-tick callers see insideTick=true
-        // and let the APPLY_DAMAGE phase drain the queue.
-        if (!insideTick) flushPendingDamage();
     }
 
     /**
@@ -915,6 +937,18 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Read-only view of in-flight rocket / missile detonations. Used by squad-coordination scorers (avoid rocket volleys against an already-doomed turret). */
     public List<PendingDetonation> getInflightDetonations() {
         return detonations.getPending();
+    }
+
+    /**
+     * Thread-safe snapshot of in-flight detonations — same justification as
+     * {@link #snapshotActiveShots()}. {@link #queueDetonation} synchronizes
+     * on the {@link #detonations} monitor, so locking it here gives readers a
+     * consistent view.
+     */
+    public List<PendingDetonation> snapshotInflightDetonations() {
+        synchronized (detonations) {
+            return new ArrayList<>(detonations.getPending());
+        }
     }
 
     /**
@@ -1106,10 +1140,6 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
 
     private void tick() {
         simTickIndex++;
-        // Gate the off-tick auto-flush in applyDamage: in-tick callers go
-        // through the queue and the APPLY_DAMAGE phase drains it; off-tick
-        // callers (tests, mid-frame UI hooks) get immediate apply.
-        insideTick = true;
         // Backstop: if a caller (currently BattleSetup) hasn't registered
         // objectives, install the default eliminate-each-other pair so the
         // old behavior keeps working untouched. Run-once on first tick.
@@ -1231,6 +1261,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // dispatch — no CME risk on the parallel iterator.
         int unitCount = units.size();
         List<Unit> view = units.subList(0, unitCount);
+        insideParallel = true;
         try {
             updatePool.submit(() -> view.parallelStream()
                     .filter(Unit::isAlive)
@@ -1243,6 +1274,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             Throwable cause = ee.getCause();
             if (cause instanceof RuntimeException re) throw re;
             throw new RuntimeException("UPDATE_UNITS dispatch failed", cause);
+        } finally {
+            insideParallel = false;
         }
         TickInnerProfile.mergeAllInto(tickInnerProfile);
         tickProfile.lap(TickProfile.Phase.UPDATE_UNITS);
@@ -1363,7 +1396,6 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // and fall through to live Bresenham (preserving the old off-tick
         // behavior that tests + UI hooks depend on).
         LosCache.disable();
-        insideTick = false;
     }
 
     /**
@@ -1386,11 +1418,19 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      */
     public int[][] getVantagePointsFor(int tx, int ty) {
         long key = (long) ty * grid.getWidth() + tx;
-        int[][] cached = vantagePointsByTargetCell.get(key);
-        if (cached != null) return cached;
-        int[][] computed = com.dillon.starsectormarines.battle.ai.TacticalScoring.computeVantagePoints(grid, tx, ty);
-        vantagePointsByTargetCell.put(key, computed);
-        return computed;
+        // Synchronized for the parallel UPDATE_UNITS path — fastutil's
+        // Long2ObjectOpenHashMap isn't thread-safe; concurrent put can rehash
+        // mid-get and crash with NPE / AIOOBE, or worse return a wrong slot.
+        // Holds the lock across computeVantagePoints (the expensive part)
+        // because cache misses are rare and we want at-most-once compute per
+        // target cell.
+        synchronized (vantagePointsByTargetCell) {
+            int[][] cached = vantagePointsByTargetCell.get(key);
+            if (cached != null) return cached;
+            int[][] computed = com.dillon.starsectormarines.battle.ai.TacticalScoring.computeVantagePoints(grid, tx, ty);
+            vantagePointsByTargetCell.put(key, computed);
+            return computed;
+        }
     }
 
     /**
@@ -1502,6 +1542,24 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         boolean hasOld = oldDestX != Integer.MIN_VALUE && (oldDestX != u.cellX || oldDestY != u.cellY);
         boolean hasNew = newDestX != Integer.MIN_VALUE && (newDestX != u.cellX || newDestY != u.cellY);
         if (!hasOld && !hasNew) return;
+        if (!insideParallel) {
+            // Inline for serial callers — covers off-tick (tests, setup) AND
+            // the post-APPLY_OCCUPANCY serial callers (rollFallbackOnHit from
+            // INFANTRY_TICK / HEAVY_TICK burst continuations,
+            // processEquipmentDrops, fireShotFrom from PROJECTILES). Queueing
+            // those would leak entries into the next tick's drain after
+            // REBUILD_OCCUPANCY already rebuilt the map from u.path.
+            if (hasOld) {
+                decrementOccupancy(oldDestX, oldDestY);
+                destIndex.removeDestination(u, oldDestX, oldDestY);
+            }
+            if (hasNew) {
+                incrementOccupancy(newDestX, newDestY);
+                destIndex.addDestination(u, newDestX, newDestY);
+            }
+            return;
+        }
+        // Parallel UPDATE_UNITS dispatch — queue for the APPLY_OCCUPANCY drain.
         synchronized (pendingOccupancy) {
             PendingOccupancyDelta d = pendingOccupancyPool.isEmpty()
                     ? new PendingOccupancyDelta()
@@ -1513,9 +1571,6 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             d.newDestY = hasNew ? newDestY : Integer.MIN_VALUE;
             pendingOccupancy.add(d);
         }
-        // Off-tick auto-flush — tests + setup code expect setPath to update
-        // occupancy immediately so subsequent reads see the new destination.
-        if (!insideTick) flushPendingOccupancyDeltas();
     }
 
     /**
@@ -1871,7 +1926,11 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             behaviorFor(u.role).update(u, this);
             bucket = innerBucketForRole(u.role);
         }
-        tickInnerProfile.record(bucket, System.nanoTime() - t0);
+        // Route through TickInnerProfile.current() so workers in the parallel
+        // dispatch write to their per-thread profile (ThreadLocal auto-init),
+        // not directly to the canonical sim instance. mergeAllInto folds the
+        // per-worker recordings into the canonical at the end of UPDATE_UNITS.
+        TickInnerProfile.current().record(bucket, System.nanoTime() - t0);
     }
 
     /**
