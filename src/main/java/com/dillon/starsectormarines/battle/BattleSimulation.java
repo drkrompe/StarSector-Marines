@@ -36,12 +36,12 @@ import com.dillon.starsectormarines.battle.tactical.TacticalMap;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.weapons.Detonations;
 import com.dillon.starsectormarines.battle.weapons.HeavyWeapons;
 import com.dillon.starsectormarines.battle.weapons.InfantryWeapons;
 import com.dillon.starsectormarines.battle.weapons.WeaponSimContext;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -155,7 +155,10 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
 
     private final NavigationGrid grid;
     private final CellTopology topology;
-    private final List<Unit> units = new ArrayList<>();
+    /** Roster service: units list + squad registry + spawn queue + ID counters. {@link #units} and {@link #squads} are alias fields that share the same instances. */
+    private final UnitRosterService rosterService;
+    /** Alias of {@link UnitRosterService#getUnits()}. Same {@link List} instance — kept as a field so the sim's iteration / size / subList reads don't pay a per-call accessor hop. */
+    private final List<Unit> units;
     private final AirSystem airSystem = new AirSystem();
     private final GroundSystem groundSystem = new GroundSystem();
     /** Fog-of-war state — building registry + faction contributor set + the every-3rd-tick {@link com.dillon.starsectormarines.battle.vision.BuildingVisibilityPass} driver. The {@link #getBuildings}/{@link #setBuildings}/{@link #getVisionState} delegates below forward here. */
@@ -181,14 +184,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      * {@link #rng} is available.
      */
     private final com.dillon.starsectormarines.battle.fx.EffectsService effects;
-    /** Dense, primitive-keyed squad lookup. fastutil's Int2ObjectOpenHashMap avoids the per-call Integer autobox that {@link #getSquad} would do on a {@code HashMap<Integer, Squad>} — and getSquad is hit per-unit per-tick from the behavior dispatch. */
-    /**
-     * Pre-sized to 256 so the rare {@link #mintSquad} call (drone hubs spawning
-     * during the parallel UPDATE_UNITS dispatch) can't trigger a rehash while
-     * other workers read {@code squads.get}. Real-world battles run well
-     * under 256 squads (defender garrisons + marine fireteams + drone squads).
-     */
-    private final Int2ObjectMap<Squad> squads = new Int2ObjectOpenHashMap<>(256);
+    /** Alias of {@link UnitRosterService#getSquadsMap()}. Same {@link Int2ObjectMap} instance — kept as a field so the sim's per-tick {@code squads.get} / {@code squads.values()} iteration doesn't pay a per-call accessor hop and the existing un-synchronized direct reads in serial tick phases preserve their no-lock cost. */
+    private final Int2ObjectMap<Squad> squads;
 
     /** Per-faction strategic commander tier. Owns the slow-tick cadence; the {@link #setCommander}/{@link #getCommander} delegates below forward here, and the COMMANDER phase calls {@link CommanderService#tick}. */
     private final CommanderService commanders = new CommanderService();
@@ -230,8 +227,6 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      * lookups for that target.
      */
     private final Long2ObjectOpenHashMap<int[][]> vantagePointsByTargetCell = new Long2ObjectOpenHashMap<>();
-    /** Next squad id to assign on shuttle deboard. Monotonically increasing across the battle's lifetime. */
-    private int nextSquadId = 0;
     /** In-flight tracers + projectiles + per-frame event drains. Sibling slice to {@link #effects} / {@link #vision}; the {@link #postShot}, {@link #queueProjectile}, {@link #getActiveShots} et al. delegates below forward here. */
     private final com.dillon.starsectormarines.battle.shots.ShotService shots = new com.dillon.starsectormarines.battle.shots.ShotService();
     /** Units that transitioned from alive to dead during the last {@link #advance(float)} call. Same lifecycle as {@link #shotsThisFrame}. */
@@ -245,19 +240,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      * {@code applyOccupancyDelta} delegates below forward straight in.
      */
     private final DamageService damageService;
-    /**
-     * Units queued for addition during UPDATE_UNITS (drone hub spawns today),
-     * drained in APPLY_SPAWNS via {@link #flushPendingSpawns()}. Routes the one
-     * mid-dispatch caller of {@link #addUnit} through a queue so the units
-     * list isn't mutated from inside a per-unit task; AIR_SYSTEM /
-     * GROUND_SYSTEM deboard paths stay on inline {@link #addUnit} because
-     * they run in serial phases.
-     */
-    private final ArrayList<Unit> pendingSpawns = new ArrayList<>();
     private final Random rng = new Random();
-
-    /** Counter for IDs of marines deboarded from shuttles. Bumped via {@link #nextMarineId()} when {@link AirSystem} deboards. Format: "m0", "m1", ... matches the pre-shuttle setup convention. */
-    private int deboardedMarineCount = 0;
 
     /** Per-cell unit count, rebuilt at the start of each tick. Passed to the pathfinder so units route around ally-held cells. */
     private final byte[] occupancyMap;
@@ -344,6 +327,12 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                 this::writeReprioInline,
                 this::writeFallbackInline,
                 this::applyOccupancyDeltaInline);
+        this.rosterService = new UnitRosterService(unitIndex, damageService);
+        // Alias-fields share the same collection instances as the service so
+        // the 100+ internal `units` / `squads` reads stay direct (no per-call
+        // accessor hop, no synchronization on the serial-phase squads.get).
+        this.units = rosterService.getUnits();
+        this.squads = rosterService.getSquadsMap();
     }
 
     @Override public NavigationGrid getGrid() { return grid; }
@@ -496,23 +485,12 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Per-tick sub-step profile (per-behavior + per-primitive nanos). Reset every tick; snapshotted onto the spike record when one fires. Read by the JSON dumper. */
     public TickInnerProfile getTickInnerProfile() { return tickInnerProfile; }
     @Override public Random getRng()       { return rng; }
-    /**
-     * Returns the squad with the given id, or {@code null} if
-     * {@code id == Unit.NO_SQUAD} or the squad was never registered.
-     * Synchronized on the same monitor as {@link #mintSquad}'s put — with
-     * pre-sized {@link #squads} (no rehash) the put is a single-slot store,
-     * but without happens-before a concurrent get can still see partial /
-     * missing entries. Drone-hub same-tick spawn is the only mid-dispatch
-     * caller of mintSquad; everyone else mints at setup.
-     */
+    /** Delegates to {@link UnitRosterService#getSquad(int)}. Synchronized lookup; safe to call from the parallel UPDATE_UNITS dispatch (concurrent {@link #mintSquad} from drone-hub spawns publishes through the same monitor). */
     public Squad getSquad(int id) {
-        if (id == Unit.NO_SQUAD) return null;
-        synchronized (squads) {
-            return squads.get(id);
-        }
+        return rosterService.getSquad(id);
     }
     /** All squads currently registered. Used by the per-tick alert update; behaviors should read individual squads via {@link #getSquad(int)} keyed off {@link Unit#squadId}. */
-    public Collection<Squad> getSquads()   { return squads.values(); }
+    public Collection<Squad> getSquads()   { return rosterService.getSquads(); }
     /** Tactical hint graph produced by the map generator. Never null; an empty graph for legacy maps. */
     public TacticalMap getTacticalMap()    { return tactical.getTacticalMap(); }
     /** Set the tactical map for this battle. Called once by {@code BattleSetup} right after construction, before the first {@link #advance} call. */
@@ -522,53 +500,17 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
 
     @Override
     public void addUnit(Unit u) {
-        units.add(u);
-        // Mirror into the spatial index so callers running outside the
-        // tick loop (test fixtures, AirSystem mid-tick deboard) see the
-        // unit on the next AI query. tick() still does the full rebuild
-        // each frame, so this is purely additive.
-        unitIndex.add(u);
+        rosterService.addUnit(u);
     }
 
-    /**
-     * Parallel-safe addition variant for callers running inside UPDATE_UNITS.
-     * The unit is added to {@link #pendingSpawns}; {@link #flushPendingSpawns()}
-     * drains FIFO in the APPLY_SPAWNS phase, mirroring through {@link #addUnit}.
-     * Drone hub launches go through this; AIR_SYSTEM / GROUND_SYSTEM deboards
-     * stay on inline {@link #addUnit} (their phases are already serial).
-     *
-     * <p>Within-tick drift: a queued unit isn't visible to {@link #getUnits()}
-     * until the drain. {@code DroneSpawner.isCellOccupied} iterates units, so
-     * if two hubs spawn in the same tick the second won't see the first and
-     * could pick the same cell. Hub spawn intervals make same-tick double-
-     * spawn rare; the next tick's REBUILD_OCCUPANCY restores the picture.
-     */
+    /** Delegates to {@link UnitRosterService#queueSpawn(Unit)}. Routes serial callers through inline {@link #addUnit} and parallel callers through the spawn queue (drained in APPLY_SPAWNS). */
     public void queueSpawn(Unit u) {
-        if (!damageService.isParallel()) {
-            // Serial caller — inline. Tests + (theoretical) serial-phase
-            // spawn paths see the new unit in {@link #getUnits()} immediately.
-            addUnit(u);
-            return;
-        }
-        // Parallel UPDATE_UNITS dispatch — queue for the APPLY_SPAWNS drain.
-        synchronized (pendingSpawns) {
-            pendingSpawns.add(u);
-        }
+        rosterService.queueSpawn(u);
     }
 
-    /**
-     * Drains {@link #pendingSpawns} in FIFO order, mirroring each queued unit
-     * through {@link #addUnit}. Runs in APPLY_SPAWNS, between APPLY_OCCUPANCY
-     * and INFANTRY_TICK.
-     *
-     * <p>Public for tests — same justification as {@link #flushPendingDamage}.
-     */
+    /** Delegates to {@link UnitRosterService#flushPendingSpawns()}. Public so tests can force the drain after a {@code queueSpawn} call. */
     public void flushPendingSpawns() {
-        if (pendingSpawns.isEmpty()) return;
-        for (int i = 0, n = pendingSpawns.size(); i < n; i++) {
-            addUnit(pendingSpawns.get(i));
-        }
-        pendingSpawns.clear();
+        rosterService.flushPendingSpawns();
     }
 
     public void addShuttle(Shuttle s) {
@@ -885,21 +827,12 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
 
     @Override
     public String nextMarineId() {
-        return "m" + deboardedMarineCount++;
+        return rosterService.nextMarineId();
     }
 
     @Override
     public int mintSquad(Faction faction, Unit leader) {
-        // Sync because DroneSpawner.tryLaunch can call this from the parallel
-        // UPDATE_UNITS dispatch when multiple hubs spawn the same tick. The
-        // squads map is pre-sized to avoid rehash, so concurrent get() callers
-        // see consistent state.
-        synchronized (squads) {
-            Squad squad = new Squad(nextSquadId++, faction);
-            squad.leader = leader;
-            squads.put(squad.id, squad);
-            return squad.id;
-        }
+        return rosterService.mintSquad(faction, leader);
     }
 
     public void addObjective(Objective o) {
