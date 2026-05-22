@@ -22,7 +22,10 @@ public class MarineRoster implements Serializable {
     private static final int DEFAULT_CAPACITY = 10;
 
     private final List<MarineCaptain> captains = new ArrayList<>();
-    private final Set<String> completedStoryIds = new HashSet<>();
+    // Non-final so xstream's readResolve can backfill on legacy saves that
+    // predate this field (xstream bypasses the constructor on deserialization,
+    // so the inline initializer doesn't run for old save streams).
+    private Set<String> completedStoryIds = new HashSet<>();
     private int capacity = DEFAULT_CAPACITY;
 
     public void add(MarineCaptain captain) {
@@ -78,5 +81,15 @@ public class MarineRoster implements Serializable {
 
     public Set<String> completedStoryIds() {
         return Collections.unmodifiableSet(completedStoryIds);
+    }
+
+    /**
+     * Backfill for saves created before {@link #completedStoryIds} existed —
+     * xstream calls readResolve after building the object graph; an unset
+     * Set field arrives as null and would NPE on first use.
+     */
+    private Object readResolve() {
+        if (completedStoryIds == null) completedStoryIds = new HashSet<>();
+        return this;
     }
 }
