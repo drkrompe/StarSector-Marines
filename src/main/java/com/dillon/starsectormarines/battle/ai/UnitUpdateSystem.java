@@ -6,11 +6,12 @@ import com.dillon.starsectormarines.battle.UnitRole;
 import com.dillon.starsectormarines.battle.ai.goap.GoapDroneBehavior;
 import com.dillon.starsectormarines.battle.damage.DamageService;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
+import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
+import java.util.stream.IntStream;
 
 /**
  * Parallel per-unit dispatch — owns the {@code UPDATE_UNITS} phase that
@@ -41,9 +42,22 @@ import java.util.concurrent.ForkJoinWorkerThread;
  *
  * <h2>Snapshot semantics</h2>
  * <p>{@code UnitRosterService.queueSpawn} defers drone-hub additions to the
- * APPLY_SPAWNS phase, so the units list is stable during this dispatch — no
- * CME risk on the parallel iterator. {@code units.subList(0, unitCount)}
- * locks in the dispatch view explicitly.
+ * APPLY_SPAWNS phase, so the registry's dense array is stable during this
+ * dispatch — no CME risk on the parallel iterator. The
+ * {@code (snapshot, liveCount)} pair captured at the top of {@link #tick}
+ * locks in the dispatch view; {@code allocate()} grows the backing array
+ * but APPLY_SPAWNS doesn't overlap with UPDATE_UNITS, so a same-tick growth
+ * can't strand the snapshot mid-dispatch.
+ *
+ * <h2>Phase-2a registry flip</h2>
+ * <p>Dispatch source is the {@link UnitRegistry} dense array — Phase 2a of
+ * the SoA migration. The legacy {@code List<Unit>} is no longer the
+ * dispatch source. {@code .filter(Unit::isAlive)} stays as a defensive
+ * guard until every death path routes through the registry release: today
+ * {@code HubDemolitionSystem} sets {@code drone.hp = 0f} directly without
+ * touching the registry, so a dead-but-still-registered drone can survive
+ * one tick in the dense view. Once that path migrates, the filter becomes
+ * removable.
  *
  * <h2>sim-as-context</h2>
  * <p>Behaviors still take {@link BattleSimulation} as a context handle —
@@ -56,8 +70,11 @@ public final class UnitUpdateSystem {
     private final ForkJoinPool pool;
     private final DamageService damageService;
     private final TickInnerProfile tickInnerProfile;
+    private final UnitRegistry registry;
 
-    public UnitUpdateSystem(DamageService damageService, TickInnerProfile tickInnerProfile) {
+    public UnitUpdateSystem(UnitRegistry registry,
+                            DamageService damageService,
+                            TickInnerProfile tickInnerProfile) {
         this.pool = new ForkJoinPool(
                 Math.max(1, Runtime.getRuntime().availableProcessors() - 1),
                 p -> {
@@ -67,23 +84,28 @@ public final class UnitUpdateSystem {
                     return t;
                 },
                 null, false);
+        this.registry = registry;
         this.damageService = damageService;
         this.tickInnerProfile = tickInnerProfile;
     }
 
     /**
-     * Dispatch one tick of per-unit updates across the alive roster. Caller
-     * passes the canonical units list (the same instance the rest of the
-     * sim aliases) — {@code subList} locks in the dispatch view so any
-     * concurrent {@code queueSpawn} adds land outside the iterator.
+     * Dispatch one tick of per-unit updates across the alive roster. Reads
+     * the registry's dense array fresh each tick (the array reference can
+     * be replaced by {@code allocate()} growth between ticks — see
+     * {@link UnitRegistry#denseArray()}). Workers iterate
+     * {@code [0, liveCount)} indices in parallel via {@link IntStream}; the
+     * submission to {@link #pool} pins the stream to our worker pool rather
+     * than the common one.
      */
-    public void tick(List<Unit> units, BattleSimulation sim) {
-        int unitCount = units.size();
-        List<Unit> view = units.subList(0, unitCount);
+    public void tick(BattleSimulation sim) {
+        Unit[] snapshot = registry.denseArray();
+        int liveCount = registry.liveCount();
         damageService.enterParallel();
         try {
-            pool.submit(() -> view.parallelStream()
-                    .filter(Unit::isAlive)
+            pool.submit(() -> IntStream.range(0, liveCount).parallel()
+                    .mapToObj(i -> snapshot[i])
+                    .filter(Unit::isAlive) // defensive — see class doc, HubDemolitionSystem direct-hp-write
                     .forEach(u -> updateUnit(u, sim)))
                     .get();
         } catch (InterruptedException ie) {

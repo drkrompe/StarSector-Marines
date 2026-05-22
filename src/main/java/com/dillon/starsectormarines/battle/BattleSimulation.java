@@ -273,7 +273,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                 rosterService, shots);
         this.squadReplan = new com.dillon.starsectormarines.battle.squad.SquadReplanSystem(rosterService);
         this.attackerIndex = new com.dillon.starsectormarines.battle.ai.AttackerIndexService(rosterService);
-        this.unitUpdate = new com.dillon.starsectormarines.battle.ai.UnitUpdateSystem(damageService, tickInnerProfile);
+        this.unitUpdate = new com.dillon.starsectormarines.battle.ai.UnitUpdateSystem(
+                rosterService.getRegistry(), damageService, tickInnerProfile);
     }
 
     @Override public NavigationGrid getGrid() { return grid; }
@@ -794,7 +795,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         tickProfile.lap(TickProfile.Phase.GOAP_REPLAN);
         // Parallel per-unit dispatch — entity for-loop. See UnitUpdateSystem
         // class doc for the parallelism + ECS-promotion notes.
-        unitUpdate.tick(units, this);
+        unitUpdate.tick(this);
         tickProfile.lap(TickProfile.Phase.UPDATE_UNITS);
         // Apply occupancy + destIndex deltas queued by setPath during the
         // per-unit dispatch. Runs at the end of UPDATE_UNITS, before any
