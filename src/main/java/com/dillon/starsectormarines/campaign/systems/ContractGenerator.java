@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.HouseRank;
 import com.dillon.starsectormarines.campaign.HouseStatus;
+import com.dillon.starsectormarines.campaign.PatronArchetype;
 
 import java.util.EnumSet;
 import java.util.Random;
@@ -86,6 +87,12 @@ public final class ContractGenerator implements CampaignSystem {
             long targetHouseId = pickStrikeTarget(state, i, r);
             if (targetHouseId == -1L) continue;
 
+            // Offer-lapse window driven by patron archetype — TIME_RUSHED gives
+            // the player days, ESTABLISHED takes its time. Shares the (day, patronId)
+            // seed so re-rolls produce the same window for the same offer.
+            PatronArchetype archetype = PatronArchetype.fromByte(state.houseArchetype[i]);
+            int offerExpiresTick = day + archetype.rollOfferWindowDays(r);
+
             state.addContract(
                     patronId,
                     targetHouseId,
@@ -93,7 +100,8 @@ public final class ContractGenerator implements CampaignSystem {
                     ContractType.STRIKE,
                     ContractState.OFFERED,
                     day,
-                    -1,                                   // no expiry — mission-mode + no lapse yet
+                    -1,                                   // no acceptance-side expiry for mission-mode
+                    offerExpiresTick,                     // offer lapses on this day if unaccepted
                     (byte) 1,                             // phasesTotal = 1 for STRIKE
                     -1,                                   // captain assigned at acceptance
                     state.houseMarketId[i],               // patron's market is the meeting/origin

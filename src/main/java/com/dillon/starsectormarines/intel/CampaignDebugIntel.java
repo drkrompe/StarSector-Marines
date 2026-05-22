@@ -139,9 +139,10 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
                 String.valueOf(s.captainRegistry.size()));
 
         int[] byState = countContractsByState(s);
-        ui.addPara("Contracts — OFFERED:%s  ACTIVE:%s  IN_PROGRESS:%s  COMPLETED:%s  FAILED:%s  DEFAULTED:%s  ABANDONED:%s",
+        ui.addPara("Contracts — OFFERED:%s  EXPIRED:%s  ACTIVE:%s  IN_PROGRESS:%s  COMPLETED:%s  FAILED:%s  DEFAULTED:%s  ABANDONED:%s",
                 4f, Color.LIGHT_GRAY, Color.WHITE,
                 String.valueOf(byState[ContractState.OFFERED.ordinal()]),
+                String.valueOf(byState[ContractState.EXPIRED.ordinal()]),
                 String.valueOf(byState[ContractState.ACTIVE.ordinal()]),
                 String.valueOf(byState[ContractState.IN_PROGRESS.ordinal()]),
                 String.valueOf(byState[ContractState.COMPLETED.ordinal()]),
@@ -223,7 +224,14 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         int salvageNeg  = s.contractSalvageNegotiated[i] & 0xFF;
         int cashMult    = s.contractCashMultiplier[i] & 0xFF;
 
-        ui.addPara("[%s] %s — %s — patron=%s — target=%s — payout=%s — salvage=%s/%s%% — cash=%s%% — phases=%s/%s",
+        String daysLeftDisp;
+        if (state == ContractState.OFFERED) {
+            int dl = s.contractDaysLeft(i, s.lastTickDay);
+            daysLeftDisp = dl >= 0 ? (dl + "d") : "—";
+        } else {
+            daysLeftDisp = "—";
+        }
+        ui.addPara("[%s] %s — %s — patron=%s — target=%s — payout=%s — salvage=%s/%s%% — cash=%s%% — phases=%s/%s — offer-left=%s",
                 8f, Color.LIGHT_GRAY, Color.WHITE,
                 String.valueOf(id),
                 type.name(),
@@ -235,7 +243,8 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
                 String.valueOf(salvageBase),
                 String.valueOf(cashMult),
                 String.valueOf(phasesDone),
-                String.valueOf(phasesTotal));
+                String.valueOf(phasesTotal),
+                daysLeftDisp);
 
         if (state == ContractState.OFFERED) {
             ui.addButton("Accept", BTN_ACCEPT + id, 90f, 20f, 2f);
@@ -418,7 +427,7 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
             s.addContract(
                     patronId, targetId, -1L,
                     ContractType.STRIKE, ContractState.OFFERED,
-                    day, -1, (byte) 1, -1,
+                    day, -1, -1, (byte) 1, -1,
                     s.houseMarketId[i], -1,
                     25_000, 0,
                     (byte) 60, (byte) 60, (byte) 100);
@@ -481,6 +490,7 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         s.contractState[to]             = s.contractState[from];
         s.contractAcceptedTick[to]      = s.contractAcceptedTick[from];
         s.contractExpiresTick[to]       = s.contractExpiresTick[from];
+        s.contractOfferExpiresTick[to]  = s.contractOfferExpiresTick[from];
         s.contractPhasesTotal[to]       = s.contractPhasesTotal[from];
         s.contractPhasesDone[to]        = s.contractPhasesDone[from];
         s.contractCaptainId[to]         = s.contractCaptainId[from];
@@ -498,6 +508,7 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         if (row < 0) return;
         if (ContractState.fromByte(s.contractState[row]) != ContractState.OFFERED) return;
         s.contractState[row] = ContractState.ACTIVE.toByte();
+        s.contractOfferExpiresTick[row] = -1;
         s.contractAcceptedTick[row] = Global.getSector() != null
                 ? (int) Global.getSector().getClock().getDay()
                 : s.contractAcceptedTick[row];

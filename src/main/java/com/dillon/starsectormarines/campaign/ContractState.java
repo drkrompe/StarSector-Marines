@@ -33,10 +33,19 @@ public enum ContractState {
     ABANDONED,
     /**
      * Patron has put this on the table but the player hasn't accepted yet.
-     * Acceptance flips OFFERED → ACTIVE; lapse / expiry → discarded row.
-     * Always last so existing ordinals stay stable for save compatibility.
+     * Acceptance flips OFFERED → ACTIVE; the offer-aging branch of
+     * {@code ContractLifecycleSystem} flips OFFERED → {@link #EXPIRED} when
+     * the offer window lapses. Ordinal kept stable for save compatibility
+     * with releases that predated EXPIRED.
      */
-    OFFERED;
+    OFFERED,
+    /**
+     * Offer lapsed before the player accepted. Terminal — the row is kept
+     * as a tombstone (architecture.md §1 soft-delete invariant: id→index
+     * mappings never invalidate) but filters out of the offer list.
+     * Appended after {@link #OFFERED} so existing ordinals stay stable.
+     */
+    EXPIRED;
 
     private static final ContractState[] VALUES = values();
 
@@ -50,6 +59,7 @@ public enum ContractState {
 
     /** Terminal states — no further mutation expected. */
     public boolean isTerminal() {
-        return this == COMPLETED || this == FAILED || this == DEFAULTED || this == ABANDONED;
+        return this == COMPLETED || this == FAILED || this == DEFAULTED
+                || this == ABANDONED || this == EXPIRED;
     }
 }

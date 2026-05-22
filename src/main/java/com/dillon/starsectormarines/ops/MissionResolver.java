@@ -344,6 +344,12 @@ public final class MissionResolver {
         int day = currentDayInt();
         long patronId = state.contractPatronHouseId[row];
 
+        // Leaving OFFERED → the offer window no longer applies. Clear to -1 so
+        // any debug readout / future filter doesn't misinterpret the stale value.
+        if (prior == ContractState.OFFERED) {
+            state.contractOfferExpiresTick[row] = -1;
+        }
+
         if (outcome.victory) {
             int phasesDone  = (state.contractPhasesDone[row] & 0xFF) + 1;
             int phasesTotal = state.contractPhasesTotal[row] & 0xFF;

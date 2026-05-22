@@ -104,6 +104,13 @@ public final class CampaignState implements Serializable {
     public int[]   contractAcceptedTick  = new int[INITIAL_CAPACITY];
     /** Sector day when retainer/term ends; -1 for mission-mode (no expiry). */
     public int[]   contractExpiresTick   = new int[INITIAL_CAPACITY];
+    /**
+     * Sector day this OFFERED contract lapses if not accepted; -1 for non-OFFERED
+     * contracts (and for contracts that should never lapse, e.g. debug-spawned).
+     * Cleared (set to -1) when an offer is accepted and the row flips to ACTIVE.
+     * See {@link PatronArchetype#rollOfferWindowDays} for the per-archetype window.
+     */
+    public int[]   contractOfferExpiresTick = new int[INITIAL_CAPACITY];
     public byte[]  contractPhasesTotal   = new byte[INITIAL_CAPACITY];
     public byte[]  contractPhasesDone    = new byte[INITIAL_CAPACITY];
     /** Captain index in {@link #captainRegistry}; -1 if no captain bound yet. */
@@ -259,6 +266,7 @@ public final class CampaignState implements Serializable {
      */
     public long addContract(long patronHouseIdValue, long targetHouseIdValue, long chainIdValue,
                             ContractType type, ContractState state, int acceptedTick, int expiresTick,
+                            int offerExpiresTick,
                             byte phasesTotal, int captainIdx, int marketIdx, int industryIdx,
                             int basePayout, int retainerPerMonth,
                             byte salvageBaseline, byte salvageNegotiated, byte cashMultiplier) {
@@ -273,6 +281,7 @@ public final class CampaignState implements Serializable {
         contractState[i]            = state.toByte();
         contractAcceptedTick[i]     = acceptedTick;
         contractExpiresTick[i]      = expiresTick;
+        contractOfferExpiresTick[i] = offerExpiresTick;
         contractPhasesTotal[i]      = phasesTotal;
         contractPhasesDone[i]       = 0;
         contractCaptainId[i]        = captainIdx;
@@ -290,6 +299,23 @@ public final class CampaignState implements Serializable {
     /** O(1) lookup: contract id → row index in contracts table, or {@code -1}. */
     public int contractIndex(long id) {
         return contractIndexById.get(id);
+    }
+
+    /**
+     * Days remaining on an OFFERED contract before it lapses, given the
+     * current sector day. Returns {@code -1} for non-OFFERED rows, contracts
+     * with no offer expiry (e.g. debug-spawned), and contracts that should
+     * have already lapsed (caller should not be displaying these — they
+     * tombstone to {@link ContractState#EXPIRED} on the next tick). Bound
+     * for the dossier-card days-left bar on the mission-select surface.
+     */
+    public int contractDaysLeft(int row, int currentDay) {
+        if (row < 0 || row >= contractCount) return -1;
+        if (ContractState.fromByte(contractState[row]) != ContractState.OFFERED) return -1;
+        int expires = contractOfferExpiresTick[row];
+        if (expires < 0) return -1;
+        int left = expires - currentDay;
+        return left < 0 ? 0 : left;
     }
 
     // ---------- Capacity growth ----------
@@ -371,6 +397,14 @@ public final class CampaignState implements Serializable {
         if (houseArchetype == null) {
             houseArchetype = new byte[houseId != null ? houseId.length : INITIAL_CAPACITY];
         }
+        if (contractOfferExpiresTick == null) {
+            int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
+            contractOfferExpiresTick = new int[n];
+            // Legacy saves predating this column: treat every existing contract as
+            // "no offer expiry" so nothing lapses unexpectedly on first load. New
+            // offers spawned post-load get the real archetype-driven window.
+            Arrays.fill(contractOfferExpiresTick, -1);
+        }
         return this;
     }
 
@@ -385,6 +419,7 @@ public final class CampaignState implements Serializable {
         contractState             = Arrays.copyOf(contractState, n);
         contractAcceptedTick      = Arrays.copyOf(contractAcceptedTick, n);
         contractExpiresTick       = Arrays.copyOf(contractExpiresTick, n);
+        contractOfferExpiresTick  = Arrays.copyOf(contractOfferExpiresTick, n);
         contractPhasesTotal       = Arrays.copyOf(contractPhasesTotal, n);
         contractPhasesDone        = Arrays.copyOf(contractPhasesDone, n);
         contractCaptainId         = Arrays.copyOf(contractCaptainId, n);
