@@ -316,6 +316,14 @@ public final class BspCityGenerator implements MapGenerator {
                     doodads, tactical, defensePosts, rng);
         }
 
+        // Step 3c'' — compound perimeter defenders. Walks the already-emitted
+        // COMMAND_POST / BARRACKS / ARMORY tactical nodes and stamps a small
+        // GUARDPOST on each compound's attacker-facing edge. Slice 5 of the
+        // compound-as-supply design — gives the defender allocator explicit
+        // lookout positions on the approach to each supply structure without
+        // any allocator changes. See roadmap/conquest/central-keep.md.
+        CompoundPerimeterDefenderStamper.stamp(grid, axis, tactical);
+
         // Step 3d — link tactical nodes. Runs once after every node is
         // emitted (from compound fillers + fortress wall stamping); geometric
         // rules wire up OVERWATCHES, SUPPLIES, FALLBACK_TO, GUARDS. Always
