@@ -82,6 +82,17 @@ import java.util.concurrent.ForkJoinWorkerThread;
  */
 public class BattleSimulation implements AirSimContext, WeaponSimContext {
 
+    /**
+     * CAS handle for {@link Unit#lastReprioTickIndex}. The
+     * {@link #rollReprioritizeOnHit} gate runs from the parallel UPDATE_UNITS
+     * dispatch — two shooters from different workers can hit the same target
+     * in the same tick, and a plain read-then-write of {@code lastReprioTickIndex}
+     * lets both fall through the "one roll per sim-tick" guard. CAS keeps the
+     * gate atomic so exactly one shooter wins per (target, tick).
+     */
+    private static final java.util.concurrent.atomic.AtomicIntegerFieldUpdater<Unit> LAST_REPRIO_TICK =
+            java.util.concurrent.atomic.AtomicIntegerFieldUpdater.newUpdater(Unit.class, "lastReprioTickIndex");
+
     /** Fixed simulation timestep — 30Hz. */
     public static final float TICK_DT = 1f / 30f;
 
@@ -684,8 +695,21 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Per-tick sub-step profile (per-behavior + per-primitive nanos). Reset every tick; snapshotted onto the spike record when one fires. Read by the JSON dumper. */
     public TickInnerProfile getTickInnerProfile() { return tickInnerProfile; }
     @Override public Random getRng()       { return rng; }
-    /** Returns the squad with the given id, or {@code null} if {@code id == Unit.NO_SQUAD} or the squad was never registered. */
-    public Squad getSquad(int id)          { return id == Unit.NO_SQUAD ? null : squads.get(id); }
+    /**
+     * Returns the squad with the given id, or {@code null} if
+     * {@code id == Unit.NO_SQUAD} or the squad was never registered.
+     * Synchronized on the same monitor as {@link #mintSquad}'s put — with
+     * pre-sized {@link #squads} (no rehash) the put is a single-slot store,
+     * but without happens-before a concurrent get can still see partial /
+     * missing entries. Drone-hub same-tick spawn is the only mid-dispatch
+     * caller of mintSquad; everyone else mints at setup.
+     */
+    public Squad getSquad(int id) {
+        if (id == Unit.NO_SQUAD) return null;
+        synchronized (squads) {
+            return squads.get(id);
+        }
+    }
     /** All squads currently registered. Used by the per-tick alert update; behaviors should read individual squads via {@link #getSquad(int)} keyed off {@link Unit#squadId}. */
     public Collection<Squad> getSquads()   { return squads.values(); }
     /** Tactical hint graph produced by the map generator. Never null; an empty graph for legacy maps. */
@@ -1016,19 +1040,31 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // — near-constant target twitching. Latch the tick index on first
         // attempt regardless of success/failure so subsequent hits this
         // tick wait for the next one.
-        if (target.lastReprioTickIndex == simTickIndex) return;
-        target.lastReprioTickIndex = simTickIndex;
+        //
+        // CAS via {@link #LAST_REPRIO_TICK} because the parallel UPDATE_UNITS
+        // dispatch can fire two shooters at the same target in the same tick
+        // from different workers — a plain read-then-write lets both fall
+        // through and burn redundant RNG.
+        int prev = LAST_REPRIO_TICK.get(target);
+        if (prev == simTickIndex) return;
+        if (!LAST_REPRIO_TICK.compareAndSet(target, prev, simTickIndex)) return;
+        // Snapshot the target's current enemy BEFORE the rng roll — the rest
+        // of this method makes decisions on this view, and the drain uses it
+        // to detect a concurrent self-retarget (target's own worker picked a
+        // new enemy during the same UPDATE_UNITS phase) so we don't clobber
+        // that newer choice with null.
+        Unit expectedTarget = target.target;
         // No current target → next behavior tick will pick fresh anyway.
-        if (target.target == null || !target.target.isAlive()) return;
+        if (expectedTarget == null || !expectedTarget.isAlive()) return;
         // Already targeting the shooter → no point re-rolling.
-        if (shooter != null && target.target == shooter) return;
+        if (shooter != null && expectedTarget == shooter) return;
         // Reprio chance bumps heavily when current target is out of LoS —
         // chasing a target you can't see while taking incoming is the
         // failure mode this hook exists to break.
         boolean hasLosToCurrentTarget = TacticalScoring.canSeePair(grid,
                 target.cellX, target.cellY,
-                target.target.cellX, target.target.cellY,
-                target.airLosRadius, target.target.airLosRadius);
+                expectedTarget.cellX, expectedTarget.cellY,
+                target.airLosRadius, expectedTarget.airLosRadius);
         float chance = hasLosToCurrentTarget ? REPRIORITIZE_BASE_CHANCE : REPRIORITIZE_NO_LOS_CHANCE;
         if (target.rng.nextFloat() >= chance) return;
         // Clear the target — next behavior tick (EngageAtCurrentBand /
@@ -1040,6 +1076,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         if (!insideParallel) {
             // Serial caller — apply inline. Mirrors the {@link #applyDamage}
             // pattern: avoid the queue allocation off-tick / in serial phases.
+            // No expected-target guard needed: there's no concurrent worker
+            // to have re-targeted between the snapshot and this write.
             target.target = null;
             return;
         }
@@ -1052,6 +1090,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                     : pendingTargetMutationsPool.remove(pendingTargetMutationsPool.size() - 1);
             m.target = target;
             m.kind = PendingTargetMutation.Kind.REPRIORITIZE;
+            m.expectedTarget = expectedTarget;
             pendingTargetMutations.add(m);
         }
     }
@@ -1126,7 +1165,12 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             if (target.isAlive()) {
                 switch (m.kind) {
                     case REPRIORITIZE:
-                        target.target = null;
+                        // Only null the target if it still matches the
+                        // shooter's snapshot. If the target's own worker
+                        // re-targeted during the parallel phase (e.g. picked
+                        // a closer flanker), preserve that newer choice
+                        // rather than clobbering it with null.
+                        if (target.target == m.expectedTarget) target.target = null;
                         break;
                     case FALLBACK:
                         target.fallbackCellX = m.fallbackCellX;
@@ -1139,6 +1183,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                 }
             }
             m.target = null;
+            m.expectedTarget = null;
             pendingTargetMutationsPool.add(m);
         }
         pendingTargetMutations.clear();

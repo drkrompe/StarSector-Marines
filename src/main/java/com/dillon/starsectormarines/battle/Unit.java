@@ -137,7 +137,7 @@ public class Unit {
      * before the first reprio attempt and stays at -1 for units that
      * never qualify (infantry, civilians, dead units).
      */
-    public int lastReprioTickIndex = -1;
+    public volatile int lastReprioTickIndex = -1;
 
     /**
      * Cell this unit returns to when nothing else is happening — the

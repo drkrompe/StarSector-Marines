@@ -153,13 +153,17 @@ public final class UnitDestinationSpatialIndex {
                 if (bucket == null) continue;
                 for (int i = 0, n = bucket.size(); i < n; i++) {
                     Unit u = bucket.get(i);
-                    int cells = u.pathCellCount();
-                    // pathCellCount() should still be > 0 (we just indexed
-                    // them this tick) but guard anyway in case a mid-tick
-                    // setPath() cleared the path between rebuild and gather.
+                    // Snapshot the path reference to a local — under the
+                    // parallel UPDATE_UNITS dispatch, another worker may
+                    // call setPath on this unit and swap u.path mid-loop.
+                    // Reading u.path twice (length + indexed access) could
+                    // see the new shorter array indexed at the old longer
+                    // count → AIOOBE. One load → consistent view.
+                    int[] p = u.path;
+                    int cells = p.length >> 1;
                     if (cells <= 0) continue;
-                    int dx = u.pathCellX(cells - 1) - cx;
-                    int dy = u.pathCellY(cells - 1) - cy;
+                    int dx = p[(cells - 1) << 1] - cx;
+                    int dy = p[((cells - 1) << 1) | 1] - cy;
                     if (dx * dx + dy * dy <= r2) out.add(u);
                 }
             }

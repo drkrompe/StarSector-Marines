@@ -282,7 +282,7 @@ public final class Squad {
      * of how many members made it to the doorway. Reset to 0 when the breach
      * step completes successfully. No-op when no breach action is active.
      */
-    public float breachStackupTimer = 0f;
+    public volatile float breachStackupTimer = 0f;
 
     /**
      * Portal id the squad's current
@@ -297,7 +297,7 @@ public final class Squad {
      * the cell of {@code chokePointPortalId}'s doorway flips the predicate
      * true, which the action consults to fire its concentrated burst.
      */
-    public int chokePointPortalId = -1;
+    public volatile int chokePointPortalId = -1;
 
     /**
      * Hub this squad's drones launched from, or {@code null} for marine /
