@@ -73,10 +73,13 @@ public class ConquestObjectiveTest {
     }
 
     @Test
-    public void incompleteWithNoCompounds() {
-        // Degenerate map config (no compound layer at all). Objective
-        // must NOT insta-complete; otherwise a non-Conquest map that
-        // accidentally got this objective would auto-win.
+    public void failsWhenNoCompoundsRegistered() {
+        // Map-gen bug scenario: Conquest battle starts with no compounds.
+        // Marines can never satisfy the win condition; the battle would
+        // otherwise stall forever until every marine dies. Fail-closed:
+        // the marine objective flips to isFailed, the defender wins via
+        // the standard objective-failure path, the player sees the loss
+        // screen + the warning lands in the log for diagnosis.
         BattleSimulation sim = openSim();
         ConquestObjective obj = new ConquestObjective(sim.getCompoundService());
         sim.addUnit(new Unit("m1", Faction.MARINE, UnitType.MARINE, 5, 5));
@@ -84,6 +87,8 @@ public class ConquestObjectiveTest {
         obj.tick(sim);
         assertFalse(obj.isComplete(),
                 "empty compound layer must not satisfy the conquest objective");
+        assertTrue(obj.isFailed(),
+                "empty compound layer must fail the conquest objective so the battle terminates");
     }
 
     @Test
@@ -146,6 +151,51 @@ public class ConquestObjectiveTest {
         obj.tick(sim);
         assertFalse(obj.isComplete(),
                 "no live marine → objective must not complete; defender wins via elimination");
+    }
+
+    @Test
+    public void winCheckResolvesToDefenderWhenLastMarineDiesOnCaptureTick() {
+        // The central same-tick race the alive-marine precondition exists
+        // to win. Conquest registers a marine-side ConquestObjective and a
+        // defender-side EliminateFactionObjective(DEFENDER, MARINE). If
+        // both completed the same tick, WinCheckSystem would return
+        // winner=null (mutual-victory draw). Deferring marine completion
+        // by one tick lets the defender's elimination latch first and
+        // win. This pins that behaviour through the actual WinCheckSystem
+        // — the hand-proof in slice-4's commit message is load-bearing,
+        // worth an explicit assertion.
+        BattleSimulation sim = openSim();
+        CompoundService service = sim.getCompoundService();
+        CompoundCaptureSystem system = new CompoundCaptureSystem();
+        ConquestObjective marineObj = new ConquestObjective(service);
+        com.dillon.starsectormarines.battle.objective.EliminateFactionObjective defenderObj =
+                new com.dillon.starsectormarines.battle.objective.EliminateFactionObjective(
+                        Faction.DEFENDER, Faction.MARINE);
+        service.register(compoundAt(TacticalNode.Kind.BARRACKS, 5, 5));
+
+        // Drive to MARINE_HELD + everyone dies in the same finishing
+        // assault. captureAll adds a marine and ticks the capture system;
+        // we then kill every marine to simulate the "stormed the keep but
+        // got wiped" tick.
+        captureAll(sim, service, system, 5, 5);
+        for (Unit u : sim.getUnits()) {
+            if (u.faction == Faction.MARINE) u.hp = 0f;
+        }
+
+        marineObj.tick(sim);
+        defenderObj.tick(sim);
+
+        java.util.List<com.dillon.starsectormarines.battle.objective.Objective> objectives =
+                java.util.List.of(marineObj, defenderObj);
+        com.dillon.starsectormarines.battle.objective.WinCheckSystem winCheck =
+                new com.dillon.starsectormarines.battle.objective.WinCheckSystem();
+        com.dillon.starsectormarines.battle.objective.WinCheckSystem.WinResult result =
+                winCheck.tick(objectives);
+
+        org.junit.jupiter.api.Assertions.assertTrue(result.complete(),
+                "battle must terminate this tick — defender's elimination objective has completed");
+        org.junit.jupiter.api.Assertions.assertEquals(Faction.DEFENDER, result.winner(),
+                "marine cannot win without a live marine; defender wins via elimination, not a draw");
     }
 
     @Test

@@ -51,8 +51,12 @@ import java.util.List;
  * <p>When the assigned strip is clear of defenders, the squad's
  * assignment is cleared (set to {@code null}); the squad falls through
  * to {@code EliminateEnemiesGoal} and engages whatever's nearest. The
- * mission's existing {@code EliminateFactionObjective} closes the
- * battle when the last defender drops.
+ * mission's {@code ConquestObjective} closes the battle when every
+ * defender supply compound (COMMAND_POST / BARRACKS / ARMORY) is
+ * MARINE_HELD — not "last defender drops"; reinforcement keeps
+ * spawning fresh militia from intact compounds, so the win condition
+ * is now about dismantling supply infrastructure
+ * (see {@code roadmap/conquest/central-keep.md}).
  */
 public final class ConquestCommand implements MissionCommand {
 

@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.compound.CompoundService;
+import com.fs.starfarer.api.Global;
+import org.apache.log4j.Logger;
 
 /**
  * Marine-side Conquest win condition: complete when every defender
@@ -33,8 +35,11 @@ import com.dillon.starsectormarines.battle.compound.CompoundService;
  */
 public final class ConquestObjective implements Objective {
 
+    private static final Logger LOG = Global.getLogger(ConquestObjective.class);
+
     private final CompoundService compounds;
     private boolean complete = false;
+    private boolean failed = false;
 
     public ConquestObjective(CompoundService compounds) {
         this.compounds = compounds;
@@ -45,13 +50,23 @@ public final class ConquestObjective implements Objective {
 
     @Override
     public void tick(BattleSimulation sim) {
-        if (complete) return;
+        if (complete || failed) return;
 
-        // No compound layer → never completes. Conquest missions install
-        // compounds; non-Conquest paths shouldn't be using this objective.
-        // A Conquest map with zero compounds is degenerate (map-gen bug);
-        // failing closed is safer than insta-completing.
-        if (compounds.getRecords().isEmpty()) return;
+        // No compound layer → marine cannot win, ever. Conquest missions
+        // are expected to install compounds; the only path to an empty
+        // service is a map-gen bug (e.g. the BSP failed to allocate a
+        // MILITARY_BASE block, so MilitaryBaseFiller emits no nodes).
+        // Stalling forever is worse than failing — the player just sits
+        // through a battle with no win condition. Fail-closed: defender
+        // wins via their own elimination objective, the player sees the
+        // loss screen, and the bug gets reported instead of silently
+        // soft-locking the run.
+        if (compounds.getRecords().isEmpty()) {
+            LOG.warn("ConquestObjective: no compounds registered — Conquest map-gen produced none. "
+                    + "Marking objective failed so the battle terminates.");
+            failed = true;
+            return;
+        }
 
         for (CompoundService.Record r : compounds.getRecords()) {
             if (r.state != CompoundService.CompoundState.MARINE_HELD) return;
@@ -84,7 +99,7 @@ public final class ConquestObjective implements Objective {
     public boolean isComplete() { return complete; }
 
     @Override
-    public boolean isFailed() { return false; }
+    public boolean isFailed() { return failed; }
 
     @Override
     public String displayName() {
