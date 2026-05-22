@@ -137,49 +137,37 @@ public class KeepEntryChamberStamperTest {
 
     @Test
     public void skipsSubMinimumChamber() {
-        // Two-cell pocket of unreached walkable cells is below the
-        // MIN_CHAMBER_CELLS threshold — irregular geometry, not a
-        // real chamber. Skip emission.
+        // Sealed 5×5 building at (8,8)-(12,12) with a partition wall at y=10
+        // and a doorway at (10,10). Throne-room interior (y=11) is the
+        // standard 3-cell strip; antechamber side has a wall at (9,9) so it
+        // only contains 2 walkable cells — below MIN_CHAMBER_CELLS. The
+        // stamper detects the partition (separate zones via ZoneDetector)
+        // but skips emission because the antechamber is too small to read
+        // as a real chamber.
         NavigationGrid grid = openGrid();
-        // 4x4 leaf, wall stripe across the middle leaves only 2 cells
-        // on the entry side after the doorway accounts for one.
-        // Actually simpler: small leaf where the unreached set is 2.
-        // 4x3 leaf at (10,10)-(13,12): walls at (10,11) and (12,11),
-        // doorway at (11,11) and (13,11). Anchor at (11,12). Unreached
-        // = cells in the y=10 row that aren't connected back through
-        // the doorways. Hmm, hard to set up without bigger geometry.
-        //
-        // Simpler synthetic: 6x3 leaf at (10,10)-(15,12). Wall row at
-        // y=11 with doorway at x=12. Anchor at (12, 12). The y=10 row
-        // has cells (10..15, 10) — six walkable cells, but two of them
-        // are connected back through wall holes... actually let me
-        // just isolate a 2-cell pocket directly.
-        //
-        // Use leaf bbox (10,10)-(13,11). The y=10 row has 4 cells; wall
-        // out three of them so only one is walkable. The y=11 row stays
-        // walkable. Anchor at (11, 11). Flood reaches the y=11 row but
-        // not the single walkable y=10 cell (surrounded by walls).
-        grid.setWalkable(10, 10, false);
+        // Sealed perimeter.
+        for (int x = 8; x <= 12; x++) {
+            grid.setWalkable(x, 8, false);
+            grid.setWalkable(x, 12, false);
+        }
+        for (int y = 8; y <= 12; y++) {
+            grid.setWalkable(8, y, false);
+            grid.setWalkable(12, y, false);
+        }
+        // Partition wall at y=10 with a doorway at (10,10).
+        grid.setWalkable(9, 10, false);
         grid.setWalkable(11, 10, false);
-        grid.setWalkable(13, 10, false);
-        // (12, 10) stays walkable. y=11 stays fully walkable.
-        // From anchor (11, 11), flood reaches (10..13, 11). (12, 10) is
-        // isolated from the flood because (12, 11) only connects N to
-        // (12, 10) — which IS walkable, so actually it gets reached.
-        // Need to also wall off (12, 11) → (12, 10) the vertical edge.
-        // The grid's setWalkable controls cell occupancy, not edge
-        // openness — flood uses cell walkability, so adjacent walkable
-        // cells are connected regardless of edge state.
-        // To isolate (12, 10), also make (12, 11) unwalkable. But then
-        // the flood crosses through nothing in that column.
-        grid.setWalkable(12, 11, false);
-        TacticalNode cp = commandPost(10, 10, 13, 11, 11, 11);
+        grid.setDoorway(10, 10, true);
+        // Antechamber cell carved away so it only has 2 walkable cells
+        // (10,9 and 11,9) — below MIN_CHAMBER_CELLS=3.
+        grid.setWalkable(9, 9, false);
+        TacticalNode cp = commandPost(8, 8, 12, 12, 10, 11);
         List<TacticalNode> tactical = new ArrayList<>();
         tactical.add(cp);
 
         KeepEntryChamberStamper.stamp(grid, tactical);
 
         assertEquals(1, tactical.size(),
-                "1-cell unreached pocket is below MIN_CHAMBER_CELLS — must not emit");
+                "2-cell antechamber is below MIN_CHAMBER_CELLS — must not emit");
     }
 }

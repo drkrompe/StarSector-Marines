@@ -155,6 +155,31 @@ public class BattleSetupPickCellsNearTest {
     }
 
     @Test
+    public void wallMountIsolatedFromFloorReturnsEmptyPool() {
+        // A wall-mount whose 3×3 ring is embedded in a much larger wall
+        // patch — no walkable floor exists within the BFS radius the seed
+        // resolver walks. resolveSpawnZones exhausts without finding any
+        // zone; pickCellsNear returns an empty list. The allocator (Pass 1
+        // / Pass 2 in BattleSetup.allocateDefenders) then demotes the node
+        // to a patrol anchor or drops it — both are real branches that
+        // need the empty contract held.
+        NavigationGrid grid = openGrid();
+        // 9×9 wall patch centered on (10, 10). Radius 3 from (10, 10) only
+        // reaches (10, 7), (10, 13), (7, 10), (13, 10) — all walls.
+        for (int yy = 6; yy <= 14; yy++) {
+            for (int xx = 6; xx <= 14; xx++) {
+                grid.setWalkable(xx, yy, false);
+            }
+        }
+
+        List<int[]> cells = BattleSetup.pickCellsNear(grid, zonesFor(grid),
+                10, 10, 3, 50);
+
+        assertTrue(cells.isEmpty(),
+                "no walkable cells within search radius → empty pool (caller demotes the node)");
+    }
+
+    @Test
     public void wallMountOnPerimeterReachesBothSides() {
         // Wall-mounted tower whose 3×3 ring sits on a perimeter wall with
         // courtyard on one side and kill-zone on the other. Old behavior

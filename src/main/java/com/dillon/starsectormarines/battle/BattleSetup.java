@@ -12,7 +12,6 @@ import com.dillon.starsectormarines.battle.ground.Vehicle;
 import com.dillon.starsectormarines.battle.ground.VehicleType;
 import com.dillon.starsectormarines.battle.mapgen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.mapgen.road.RoadReservation;
-import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.reinforcement.ConvoyMeans;
 import com.dillon.starsectormarines.battle.reinforcement.GarrisonDepletedTrigger;
@@ -1064,16 +1063,19 @@ public final class BattleSetup {
         java.util.Set<Integer> spawnZones = resolveSpawnZones(grid, zones, ax, ay, radius);
         if (spawnZones.isEmpty()) return Collections.emptyList();
 
+        // Sweep the (2r+1)² rectangle around the seed and pick cells whose
+        // zone is in the spawn set. Bounded by the rectangle (not by zone
+        // membership iteration) so outdoor anchors with huge zones don't
+        // pay O(|zone|) per call — perimeter towers in a 5000-cell
+        // courtyard zone now stay O(radius²) like the historical BFS.
         List<int[]> pool = new ArrayList<>();
-        int width = grid.getWidth();
-        for (int zid : spawnZones) {
-            NavigationZone z = zones.zoneById(zid);
-            if (z == null) continue;
-            for (int idx : z.getCellIndices()) {
-                int x = idx % width;
-                int y = idx / width;
+        for (int y = ay - radius; y <= ay + radius; y++) {
+            for (int x = ax - radius; x <= ax + radius; x++) {
                 int dist = Math.abs(x - ax) + Math.abs(y - ay);
                 if (dist > radius) continue;
+                if (!grid.inBounds(x, y)) continue;
+                int zid = zones.zoneIdAt(x, y);
+                if (zid < 0 || !spawnZones.contains(zid)) continue;
                 pool.add(new int[]{x, y, dist});
             }
         }
