@@ -66,6 +66,17 @@ public class WidgetRoot {
                         break;
                     }
                 }
+                continue;
+            }
+            if (e.isMouseScrollEvent()) {
+                int delta = e.getEventValue();
+                for (int i = children.size() - 1; i >= 0; i--) {
+                    Widget w = children.get(i);
+                    if (w.contains(x, y) && w.onMouseScroll(x, y, delta)) {
+                        e.consume();
+                        break;
+                    }
+                }
             }
         }
     }

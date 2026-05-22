@@ -74,7 +74,6 @@ public class CommsConsolePanel extends OpsPanel {
     private static final float NODE_SIZE      = 22f;
     private static final float CARD_H         = 72f;
     private static final float CARD_GAP       = 8f;
-    private static final float SLIDER_BTN_W   = 24f;
     private static final float ROW_H          = 26f;
     private static final float ROW_GAP        = 4f;
     private static final float SECTION_GAP    = 14f;
@@ -96,6 +95,22 @@ public class CommsConsolePanel extends OpsPanel {
     private final Set<Integer> deselectedTransports = new HashSet<>();
     private String lastExpandedMissionId;
     private List<ShuttleType> cachedAvailable = Collections.emptyList();
+
+    /** Dossier-stack scroll offset (in cards). Reset on client switch. */
+    private int scrollOffset;
+    private String lastClientForScroll;
+
+    /**
+     * Screen-supplied callback to trigger a full {@code MissionSelectScreen.rebuild()}.
+     * Used when the panel needs to re-layout itself in response to a scroll
+     * (the screen owns the widget tree, so the panel can't rebuild on its own).
+     */
+    private Runnable requestRebuild;
+
+    /** Set by {@link MissionSelectScreen} during attach. */
+    public void setRequestRebuild(Runnable requestRebuild) {
+        this.requestRebuild = requestRebuild;
+    }
 
     @Override
     public String getHeaderKey() {
@@ -194,28 +209,78 @@ public class CommsConsolePanel extends OpsPanel {
         }
         cachedAvailable = PlayerFleetShuttles.queryAvailable();
 
+        // Reset scroll on client switch — re-entering a familiar client keeps
+        // their stack position survives until the user picks another client.
+        String clientKey = selected.identity();
+        if (!clientKey.equals(lastClientForScroll)) {
+            lastClientForScroll = clientKey;
+            scrollOffset = 0;
+        }
+        // Clamp to a valid range — the offset can outrun the mission list
+        // when contracts lapse between rebuilds.
+        scrollOffset = Math.max(0, Math.min(scrollOffset, Math.max(0, missions.size() - 1)));
+
+        // Scroll-capture region — covers the entire stack area, added FIRST so
+        // cards drawn on top get click priority while scroll-wheel still falls
+        // through (ScrollRegionWidget never absorbs LMB).
+        widgets.add(new ScrollRegionWidget(stackX, stackTop - stackH, stackW, stackH,
+                this::onScroll));
+
         float y = stackTop - CARD_H;
         float bottom = stackTop - stackH;
-        for (Mission m : missions) {
+        int lastRendered = scrollOffset - 1;
+        for (int i = scrollOffset; i < missions.size(); i++) {
             if (y < bottom) break;
+            Mission m = missions.get(i);
             boolean isExpanded = expanded != null && expanded.id.equals(m.id);
+            // Render the expanded card from ctx.selectedMission so the
+            // negotiated salvage / cash multiplier reflects in-progress edits
+            // — the cached mission list is never replaced on adjust, so
+            // sourcing the render from there leaves the values stale.
+            Mission render = isExpanded ? expanded : m;
             if (isExpanded) {
-                // Reserve the full remaining vertical space for the expanded card.
                 float remaining = y + CARD_H - bottom;
-                float cardH = computeExpandedHeight(m, stackW);
+                float cardH = computeExpandedHeight(render, stackW);
                 cardH = Math.min(cardH, remaining);
                 float cardY = y + CARD_H - cardH;
-                ExpandedCardWidget card = new ExpandedCardWidget(m, stackX, cardY, stackW, cardH);
+                ExpandedCardWidget card = new ExpandedCardWidget(render, stackX, cardY, stackW, cardH);
                 widgets.add(card);
                 layoutExpandedSubWidgets(widgets, card);
                 y = cardY - CARD_GAP - CARD_H;
             } else {
-                DossierCardWidget card = new DossierCardWidget(m, stackX, y, stackW, CARD_H,
+                DossierCardWidget card = new DossierCardWidget(render, stackX, y, stackW, CARD_H,
                         this::onCardClicked);
                 widgets.add(card);
                 y -= CARD_H + CARD_GAP;
             }
+            lastRendered = i;
         }
+
+        // Scroll indicators — small arrows top/bottom right when more exist.
+        if (scrollOffset > 0) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, "▲ scroll up",
+                    stackX + stackW - 110f, stackTop - 4f, EMPTY_HINT));
+        }
+        if (lastRendered < missions.size() - 1) {
+            int hidden = missions.size() - 1 - lastRendered;
+            String s = "▼ " + hidden + " more";
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, s,
+                    stackX + stackW - 110f, stackTop - stackH + 18f, EMPTY_HINT));
+        }
+    }
+
+    private void onScroll(int delta) {
+        // LWJGL: positive delta = wheel up (scroll content up, show earlier
+        // entries). Our offset is the index of the first visible mission, so
+        // wheel up DECREASES the offset (show entries above).
+        int step = delta > 0 ? -1 : 1;
+        Client selected = ctx.getSelectedClient();
+        if (selected == null) return;
+        List<Mission> missions = ctx.getMissionsFor(selected);
+        int next = Math.max(0, Math.min(scrollOffset + step, Math.max(0, missions.size() - 1)));
+        if (next == scrollOffset) return;
+        scrollOffset = next;
+        if (requestRebuild != null) requestRebuild.run();
     }
 
     /**
@@ -234,22 +299,14 @@ public class CommsConsolePanel extends OpsPanel {
         int salvageBaseline = m.salvageBaseline & 0xFF;
         if (salvageBaseline > 0) {
             int negotiated = m.salvageNegotiated & 0xFF;
-            int cashMult = m.cashMultiplier & 0xFF;
-            if (cashMult <= 0) cashMult = 100;
-            int cashBonus = cashMult - 100;
-            String label = "Salvage: " + negotiated + "%  (cash bonus +" + cashBonus + "%)";
-            widgets.add(new LabelWidget(Fonts.ORBITRON_20, label, subX, y, LABEL_COLOR));
-
-            float btnY = y - SLIDER_BTN_W + 4f;
-            float plusX  = card.x + card.w - ExpandedCardWidget.PAD_X - SLIDER_BTN_W;
-            float minusX = plusX - SLIDER_BTN_W - 4f;
-            widgets.add(new ButtonWidget(minusX, btnY, SLIDER_BTN_W, SLIDER_BTN_W,
-                    () -> adjustSalvage(-10)));
-            widgets.add(new LabelWidget(Fonts.ORBITRON_20, "–", minusX + 8f, y, HEADER_COLOR));
-            widgets.add(new ButtonWidget(plusX, btnY, SLIDER_BTN_W, SLIDER_BTN_W,
-                    () -> adjustSalvage(+10)));
-            widgets.add(new LabelWidget(Fonts.ORBITRON_20, "+", plusX + 8f, y, HEADER_COLOR));
-            y -= ROW_H + ROW_GAP;
+            // Widget height is track + caption; positioned so the caption sits
+            // where the original label was. y points at the top of the row;
+            // the slider's own y is its track bottom.
+            float sliderH = 34f;
+            float sliderY = y - sliderH + 4f;
+            widgets.add(new SalvageSliderWidget(subX, sliderY, subW, sliderH,
+                    salvageBaseline, negotiated, this::setSalvage));
+            y -= sliderH + ROW_GAP;
         }
 
         // Transport selection — one toggle row per available shuttle.
@@ -336,7 +393,9 @@ public class CommsConsolePanel extends OpsPanel {
         if (scr != null) captainRows = Math.min(3, scr.roster().active().size());
         if (captainRows == 0) captainRows = 1; // "no active captains" line
 
-        float sliderH = (m.salvageBaseline & 0xFF) > 0 ? (ROW_H + ROW_GAP) : 0f;
+        // Match the slider's own height (track + caption + small margin) so the
+        // expanded card grows to fit it. Mirrors layoutExpandedSubWidgets.
+        float sliderH = (m.salvageBaseline & 0xFF) > 0 ? (34f + ROW_GAP) : 0f;
         float transportH = ROW_H + transportRows * (ROW_H + ROW_GAP); // label + rows
         float captainH = SECTION_GAP + SQUAD_ROW_H + captainRows * (SQUAD_ROW_H + ROW_GAP);
         float buttonsH = SECTION_GAP + BTN_H + PAD;
@@ -362,20 +421,21 @@ public class CommsConsolePanel extends OpsPanel {
     }
 
     /**
-     * Apply the player's salvage/cash negotiation to the expanded mission. The
-     * Mission object is immutable so we replace {@link MarineOpsContext#setSelectedMission}
-     * with a new instance — same id, adjusted negotiated + cashMultiplier.
+     * Apply an absolute negotiated-salvage value to the expanded mission.
+     * The Mission object is immutable so we replace
+     * {@link MarineOpsContext#setSelectedMission} with a new instance — same
+     * id, adjusted negotiated + cashMultiplier.
      *
      * <p>Curve per {@code roadmap/campaign/contracts.md} §"Salvage Layer 2":
      * cashMultiplier = 100 + (baseline - negotiated) * 0.5.
      */
-    private void adjustSalvage(int delta) {
+    private void setSalvage(int newValue) {
         Mission m = ctx.getSelectedMission();
         if (m == null) return;
         int baseline = m.salvageBaseline & 0xFF;
         if (baseline <= 0) return;
+        int next = Math.max(0, Math.min(baseline, newValue));
         int current = m.salvageNegotiated & 0xFF;
-        int next = Math.max(0, Math.min(baseline, current + delta));
         if (next == current) return;
         int cashMult = 100 + (baseline - next) / 2;
         Mission replaced = new Mission(

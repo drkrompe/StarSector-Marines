@@ -73,6 +73,9 @@ public class MissionSelectScreen implements Screen {
         clientList.setOnBack(dismissDialog);
         clientList.setOnTilesetDebug(() -> ctx.goTo(ScreenId.TILESET_DEBUG));
         clientList.setOnUnitDebug(() -> ctx.goTo(ScreenId.UNIT_DEBUG));
+        // The panel asks for a re-layout when its scroll offset changes —
+        // it doesn't own the widget tree, so it can't rebuild on its own.
+        commsConsole.setRequestRebuild(this::rebuild);
         clientList.attach(layout.left,    ctx, widgets);
         commsConsole.attach(layout.console, ctx, widgets);
 

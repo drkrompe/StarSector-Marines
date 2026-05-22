@@ -25,4 +25,15 @@ public interface Widget {
 
     /** Left-mouse released. Return {@code true} to consume. */
     boolean onMouseUp(int px, int py);
+
+    /**
+     * Mouse-wheel scroll over the widget. {@code delta} mirrors LWJGL's wheel
+     * sign convention — positive = scroll up, negative = scroll down. Return
+     * {@code true} to consume so widgets behind the scroll-capturing region
+     * (the rest of the screen) don't also react.
+     *
+     * <p>Default no-op — most widgets ignore scroll. Scrollable regions
+     * (lists, dossier stacks) override this.
+     */
+    default boolean onMouseScroll(int px, int py, int delta) { return false; }
 }
