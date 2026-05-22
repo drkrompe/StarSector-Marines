@@ -46,6 +46,7 @@ public final class TickProfile {
         HEAVY_TICK,
         PROJECTILES,
         DETONATIONS,
+        APPLY_DAMAGE,
         DEMOLISH_TURRETS,
         DEMOLISH_HUBS,
         DRONE_CRASHES,

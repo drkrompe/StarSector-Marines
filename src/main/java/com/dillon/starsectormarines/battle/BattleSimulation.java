@@ -307,6 +307,16 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final List<Projectile> projectilesArrivedThisFrame = new ArrayList<>();
     /** Units that transitioned from alive to dead during the last {@link #advance(float)} call. Same lifecycle as {@link #shotsThisFrame}. */
     private final List<Unit> deathsThisFrame = new ArrayList<>();
+    /**
+     * Damage queued during UPDATE_UNITS, drained in APPLY_DAMAGE. Routes every
+     * {@link #applyDamage} caller through a per-tick queue so the per-unit
+     * dispatch never mutates HP / squad morale / death state inline — the
+     * prerequisite for parallelizing the dispatch loop. Drained serially by
+     * {@link #flushPendingDamage()} before any subsystem tick reads HP.
+     */
+    private final ArrayList<PendingDamage> pendingDamage = new ArrayList<>();
+    /** Recycled {@link PendingDamage} records. {@link #flushPendingDamage()} returns every drained entry here, so the steady-state allocation is zero. */
+    private final ArrayList<PendingDamage> pendingDamagePool = new ArrayList<>();
     private final Random rng = new Random();
 
     /** Counter for IDs of marines deboarded from shuttles. Bumped via {@link #nextMarineId()} when {@link AirSystem} deboards. Format: "m0", "m1", ... matches the pre-shuttle setup convention. */
@@ -637,6 +647,51 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
 
     @Override
     public void applyDamage(Unit target, float damage, float vsTurretMult, float moraleImpact) {
+        PendingDamage e = pendingDamagePool.isEmpty()
+                ? new PendingDamage()
+                : pendingDamagePool.remove(pendingDamagePool.size() - 1);
+        e.target = target;
+        e.damage = damage;
+        e.vsTurretMult = vsTurretMult;
+        e.moraleImpact = moraleImpact;
+        pendingDamage.add(e);
+    }
+
+    /**
+     * Drains {@link #pendingDamage} in FIFO order. Runs serially in the
+     * {@link TickProfile.Phase#APPLY_DAMAGE} phase, between UPDATE_UNITS and
+     * the subsystem ticks that read HP (INFANTRY_TICK, HEAVY_TICK,
+     * PROJECTILES, DETONATIONS). FIFO keeps the order deterministic while
+     * the dispatch is still serial; once the dispatch parallelizes we'll
+     * revisit (per-worker queues merged in unit-iteration order, or a sort
+     * key on the entries).
+     *
+     * <p>Behavioral note: today a unit's incoming damage applied inline during
+     * the shooter's update, so a doomed target later in the iteration order
+     * was already dead when its own update ran and got skipped. After the
+     * deferral, a doomed target gets one tick of action before the drain
+     * kills it. The drift is one tick of "free action from condemned
+     * units" — small, and arguably more consistent than the previous
+     * order-dependent behavior.
+     */
+    private void flushPendingDamage() {
+        if (pendingDamage.isEmpty()) return;
+        for (int i = 0, n = pendingDamage.size(); i < n; i++) {
+            PendingDamage e = pendingDamage.get(i);
+            applyDamageNow(e.target, e.damage, e.vsTurretMult, e.moraleImpact);
+            e.target = null;
+            pendingDamagePool.add(e);
+        }
+        pendingDamage.clear();
+    }
+
+    /**
+     * The pre-deferral body of {@link #applyDamage} — performs the actual HP /
+     * morale / death-cascade mutations. Called by {@link #flushPendingDamage()}
+     * once per queued entry. Kept private; external callers always go through
+     * the queue.
+     */
+    private void applyDamageNow(Unit target, float damage, float vsTurretMult, float moraleImpact) {
         boolean wasAlive = target.isAlive();
         int targetCover = grid.getCoverAt(target.cellX, target.cellY);
         float dr = COVER_DAMAGE_REDUCTION[Math.min(targetCover, COVER_DAMAGE_REDUCTION.length - 1)];
@@ -1074,6 +1129,19 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // damage are queued together and arrive together.
         detonations.tick(this);
         tickProfile.lap(TickProfile.Phase.DETONATIONS);
+        // Drain all damage queued this tick — from UPDATE_UNITS direct fire,
+        // INFANTRY_TICK / HEAVY_TICK burst continuations, PROJECTILES
+        // arrivals, and DETONATIONS AoE. Single late drain (rather than one
+        // after every damage-emitter) keeps the rule simple: damage applies
+        // before any phase that reads alive-state — DEMOLISH_TURRETS /
+        // DEMOLISH_HUBS / DRONE_CRASHES / WIN_CHECK all run after this.
+        // Trade-off: a target queued for death in UPDATE_UNITS is still alive
+        // during the subsystem ticks this tick, so its burst continuations
+        // fire one more round. Considered "doomed unit gets a final action"
+        // — arguably more consistent than the pre-deferral order-dependent
+        // skip and the prerequisite for parallelizing the dispatch loop.
+        flushPendingDamage();
+        tickProfile.lap(TickProfile.Phase.APPLY_DAMAGE);
         // Convert any turrets that just died into walkable rubble so the next
         // tick's pathfinding + zone graph sees the hole, and the floor pass
         // picks the cell up as rubble.
