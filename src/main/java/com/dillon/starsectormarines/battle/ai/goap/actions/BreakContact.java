@@ -83,7 +83,6 @@ public final class BreakContact implements Action {
     private static void opportunisticFire(Unit member, BattleSimulation sim, FireStance stance) {
         Unit target = sim.targetOf(member);
         if (target == null
-                || !target.isAlive()
                 || !TacticalScoring.shouldKeepPursuing(member, target, sim)) {
             target = TacticalScoring.findBestTarget(member, sim);
             member.setTarget(target);

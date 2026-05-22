@@ -47,7 +47,7 @@ public class InfantryWeapons {
             u.burstTimer -= BattleSimulation.TICK_DT;
             if (u.burstTimer > 0f) continue;
             Unit burstTarget = ctx.resolveUnit(u.burstTargetId);
-            if (burstTarget == null || !burstTarget.isAlive() || u.primaryWeapon == null) {
+            if (burstTarget == null || u.primaryWeapon == null) {
                 u.burstRemaining = 0;
                 u.burstTargetId = 0L;
                 continue;

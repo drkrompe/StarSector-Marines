@@ -73,10 +73,9 @@ public final class ClearZone implements Action {
         // squad-aware best-target only when zone has no live enemies (rare —
         // zoneClear normally short-circuits first).
         Unit target = sim.targetOf(member);
-        boolean targetOutOfZone = target != null && target.isAlive()
+        boolean targetOutOfZone = target != null
                 && sim.getZoneGraph().zoneIdAt(target.cellX, target.cellY) != targetZoneId;
         if (target == null
-                || !target.isAlive()
                 || targetOutOfZone
                 || !TacticalScoring.shouldKeepPursuing(member, target, sim)) {
             Unit inZone = pickInZoneTarget(member, sim);

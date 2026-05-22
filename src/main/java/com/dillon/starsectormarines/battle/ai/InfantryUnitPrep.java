@@ -40,7 +40,7 @@ public final class InfantryUnitPrep {
         float fireAt = unit.secondaryWeapon.aimDuration * 0.5f;
         if (!unit.secondaryFiredThisAction && unit.secondaryActionTimer <= fireAt) {
             Unit aimTarget = sim.resolveUnit(unit.secondaryAimTargetId);
-            if (aimTarget != null && aimTarget.isAlive()) {
+            if (aimTarget != null) {
                 sim.fireSecondary(unit, aimTarget);
             }
             unit.secondaryFiredThisAction = true;

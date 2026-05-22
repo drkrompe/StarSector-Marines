@@ -65,7 +65,7 @@ public final class RepositionToCover implements Action {
     public static boolean tryReposition(Unit member, BattleSimulation sim) {
         if (member.repositionCooldown > 0f) return false;
         Unit target = sim.targetOf(member);
-        if (target == null || !target.isAlive()) return false;
+        if (target == null) return false;
         int[] dest = TacticalScoring.findFiringPositionCoverPreferred(
                 member, target, sim, member.cellX, member.cellY);
         if (dest == null) return false;

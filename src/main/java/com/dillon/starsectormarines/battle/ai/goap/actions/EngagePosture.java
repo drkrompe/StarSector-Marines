@@ -68,7 +68,6 @@ public final class EngagePosture implements Action {
         // no-target rather than charging in.
         Unit target = sim.targetOf(member);
         if (target == null
-                || !target.isAlive()
                 || !TacticalScoring.shouldKeepPursuing(member, target, sim)) {
             target = TacticalScoring.findBestTarget(member, sim);
             member.setTarget(target);

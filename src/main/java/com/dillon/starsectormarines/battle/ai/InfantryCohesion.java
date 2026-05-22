@@ -60,7 +60,7 @@ public final class InfantryCohesion {
         // one marine peeking from far cover doesn't pull the rest into
         // their lane.
         Unit target = sim.targetOf(self);
-        if (target != null && target.isAlive()) {
+        if (target != null) {
             float td = (float) Math.sqrt(
                     (float) (target.cellX - self.cellX) * (target.cellX - self.cellX)
                   + (float) (target.cellY - self.cellY) * (target.cellY - self.cellY));

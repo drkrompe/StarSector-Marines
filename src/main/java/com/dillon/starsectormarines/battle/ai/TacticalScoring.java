@@ -243,7 +243,7 @@ public final class TacticalScoring {
      */
     public static Unit refreshTargetIfNotShootable(Unit self, BattleSimulation sim) {
         Unit cur = sim.targetOf(self);
-        if (cur != null && cur.isAlive()) {
+        if (cur != null) {
             float dist = cellDistance(self.cellX, self.cellY, cur.cellX, cur.cellY);
             if (dist <= self.attackRange
                     && sim.getGrid().hasLineOfSight(self.cellX, self.cellY, cur.cellX, cur.cellY)) {

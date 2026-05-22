@@ -621,7 +621,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         long expectedTargetId = target.targetId;
         Unit expectedTarget = targetOf(target);
         // No current target → next behavior tick will pick fresh anyway.
-        if (expectedTarget == null || !expectedTarget.isAlive()) return;
+        if (expectedTarget == null) return;
         // Already targeting the shooter → no point re-rolling.
         if (shooter != null && expectedTarget == shooter) return;
         // Reprio chance bumps heavily when current target is out of LoS —

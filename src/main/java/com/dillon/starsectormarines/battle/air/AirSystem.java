@@ -258,8 +258,7 @@ public class AirSystem {
                 // "released from registry" and "id was 0L all along," same path
                 // as TurretBehavior's MapTurret-shadow read.
                 Unit currentBurstTarget = sim.resolveUnit(mt.burstTargetId);
-                if (mt.burstRemaining > 0
-                        && (currentBurstTarget == null || !currentBurstTarget.isAlive())) {
+                if (mt.burstRemaining > 0 && currentBurstTarget == null) {
                     // A burst whose victim died is dead too — release the lock so
                     // the aim loop can re-acquire a fresh target next tick.
                     mt.burstRemaining = 0;

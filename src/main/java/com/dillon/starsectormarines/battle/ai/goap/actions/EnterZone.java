@@ -95,7 +95,6 @@ public final class EnterZone implements Action {
         // Sister gate to EngagePosture / ClearZone — see refreshTargetIfNotShootable.
         Unit target = sim.targetOf(member);
         if (target == null
-                || !target.isAlive()
                 || !TacticalScoring.shouldKeepPursuing(member, target, sim)) {
             target = TacticalScoring.findBestTarget(member, sim);
             member.setTarget(target);

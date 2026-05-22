@@ -3953,7 +3953,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     /** Prefer target direction (units face their target while attacking); fall back to movement; default south. */
     private static Facing computeFacing(Unit u, BattleSimulation sim) {
         Unit target = sim != null ? sim.targetOf(u) : null;
-        if (target != null && target.isAlive()) {
+        if (target != null) {
             int dx = target.cellX - u.cellX;
             int dy = target.cellY - u.cellY;
             if (dx != 0 || dy != 0) return facingFromDelta(dx, dy);
@@ -4002,7 +4002,7 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     private static EightWayFacing computeEightWayFacing(Unit u, BattleSimulation sim) {
         Unit target = sim != null ? sim.targetOf(u) : null;
-        if (target != null && target.isAlive()) {
+        if (target != null) {
             int dx = target.cellX - u.cellX;
             int dy = target.cellY - u.cellY;
             if (dx != 0 || dy != 0) return eightWayFromDelta(dx, dy);

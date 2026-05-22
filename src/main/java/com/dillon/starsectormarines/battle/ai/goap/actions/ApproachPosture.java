@@ -58,7 +58,6 @@ public final class ApproachPosture implements Action {
         // closer-visible-target check is what unsticks that case.
         Unit target = sim.targetOf(member);
         if (target == null
-                || !target.isAlive()
                 || !TacticalScoring.shouldKeepPursuing(member, target, sim)) {
             target = TacticalScoring.findBestTarget(member, sim);
             member.setTarget(target);

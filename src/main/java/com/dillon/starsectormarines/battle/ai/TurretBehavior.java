@@ -35,7 +35,7 @@ public final class TurretBehavior implements UnitBehavior {
         // AirSystem.tickShuttleTurrets. Reads the MapTurret-shadow
         // burstTargetId (not the inherited Unit one — see MapTurret class doc).
         Unit currentBurstTarget = sim.resolveUnit(t.burstTargetId);
-        if (t.burstRemaining > 0 && (currentBurstTarget == null || !currentBurstTarget.isAlive())) {
+        if (t.burstRemaining > 0 && currentBurstTarget == null) {
             t.burstRemaining = 0;
             t.burstTargetId = 0L;
             currentBurstTarget = null;

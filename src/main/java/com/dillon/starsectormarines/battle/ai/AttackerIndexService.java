@@ -70,7 +70,7 @@ public final class AttackerIndexService {
         for (Unit u : units) {
             if (!u.isAlive()) continue;
             Unit target = registry.getOrNull(u.targetId);
-            if (target == null || !target.isAlive()) continue;
+            if (target == null) continue;
             ArrayList<Unit> bucket = attackersByTarget.get(target);
             if (bucket == null) {
                 bucket = pool.isEmpty()

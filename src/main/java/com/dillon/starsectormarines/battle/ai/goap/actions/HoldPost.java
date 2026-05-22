@@ -68,7 +68,6 @@ public final class HoldPost implements Action {
 
         Unit target = sim.targetOf(member);
         if (target == null
-                || !target.isAlive()
                 || !TacticalScoring.shouldKeepPursuing(member, target, sim)) {
             target = TacticalScoring.findBestTarget(member, sim);
             member.setTarget(target);

@@ -129,7 +129,7 @@ public final class BackstopAssignedSquad implements Action {
         // Fire pass — all three weapons free. Backstop doctrine is "throw
         // everything you have at whatever the marines are shooting at."
         Unit target = sim.targetOf(member);
-        if (target == null || !target.isAlive()) {
+        if (target == null) {
             target = TacticalScoring.findBestTarget(member, sim);
             member.setTarget(target);
         }

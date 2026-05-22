@@ -81,7 +81,6 @@ public final class MechBreakContact implements Action {
     private static void opportunisticMechFire(Unit u, BattleSimulation sim) {
         Unit target = sim.targetOf(u);
         if (target == null
-                || !target.isAlive()
                 || !TacticalScoring.shouldKeepPursuing(u, target, sim)) {
             target = TacticalScoring.findBestTarget(u, sim);
             u.setTarget(target);
