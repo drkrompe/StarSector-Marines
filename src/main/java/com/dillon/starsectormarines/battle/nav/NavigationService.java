@@ -188,6 +188,28 @@ public final class NavigationService {
     }
 
     /**
+     * Flips a dead structure cell (destroyed turret mount, demolished drone
+     * hub) to walkable rubble: opens the cell + all four edges, sets the
+     * topology to {@link CellTopology.GroundKind#RUBBLE}, recomputes cover
+     * on the cell and its four cardinal neighbors, and marks the zone graph
+     * dirty so {@link #flushZoneGraphIfDirty} picks up the new portal at
+     * tick end. Sibling to the wall-collapse path inside
+     * {@link NavigationGrid#damageCell} — same intent ("obstacle removed,
+     * stamp rubble, refresh navigation") for the non-wall obstacle kinds.
+     */
+    public void flipCellToRubble(int cellX, int cellY) {
+        grid.setWalkable(cellX, cellY, true);
+        grid.openAllEdges(cellX, cellY);
+        topology.setGroundKind(cellX, cellY, CellTopology.GroundKind.RUBBLE);
+        grid.recomputeCoverAt(cellX, cellY);
+        grid.recomputeCoverAt(cellX + 1, cellY);
+        grid.recomputeCoverAt(cellX - 1, cellY);
+        grid.recomputeCoverAt(cellX, cellY + 1);
+        grid.recomputeCoverAt(cellX, cellY - 1);
+        markZoneGraphDirty();
+    }
+
+    /**
      * Begin-of-tick {@link LosCache} setup — sweeps every worker's slot so
      * cached pairs can't outlive a wall breach from the prior tick's cleanup
      * pass, then switches on auto-init for the duration of the tick. Pairs

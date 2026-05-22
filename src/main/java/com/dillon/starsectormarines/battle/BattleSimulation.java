@@ -181,6 +181,12 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final ObjectivesService objectivesService = new ObjectivesService();
     /** Active equipment drops + per-tick pickup/retriever sweep + emit-on-death plumbing. Initialized in the constructor once {@link #rosterService} is available. */
     private final EquipmentDropService equipmentDropService;
+    /** Per-tick demolition pass for destroyed {@link MapTurret}s — flips mount cell to walkable rubble + releases the guardpost if every turret on the post is down. Initialized in the constructor. */
+    private final com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem turretDemolition;
+    /** Per-tick demolition pass for destroyed {@link DroneHubUnit}s — flips hub cell to walkable rubble + cascade-kills the launched drones. Initialized in the constructor. */
+    private final com.dillon.starsectormarines.battle.drone.HubDemolitionSystem hubDemolition;
+    /** Per-tick crash sequence for dead {@link Drone}s — three-phase falling / impact lifecycle. Initialized in the constructor. */
+    private final com.dillon.starsectormarines.battle.drone.DroneCrashSystem droneCrashes;
     /** Persistent {@link Doodad} list + per-cell/per-facing cover lookup the AI consults when scoring firing positions. Initialized in the constructor once {@link #grid} is available. */
     private final DoodadService doodadService;
     private final List<MapVehicle> vehicles = new ArrayList<>();
@@ -306,6 +312,12 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         this.units = rosterService.getUnits();
         this.squads = rosterService.getSquadsMap();
         this.equipmentDropService = new EquipmentDropService(rosterService, this::clearPath);
+        this.turretDemolition = new com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem(
+                navigation, effects, tactical, rosterService);
+        this.hubDemolition = new com.dillon.starsectormarines.battle.drone.HubDemolitionSystem(
+                navigation, effects);
+        this.droneCrashes = new com.dillon.starsectormarines.battle.drone.DroneCrashSystem(
+                navigation, effects);
     }
 
     @Override public NavigationGrid getGrid() { return grid; }
@@ -1027,18 +1039,18 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // Convert any turrets that just died into walkable rubble so the next
         // tick's pathfinding + zone graph sees the hole, and the floor pass
         // picks the cell up as rubble.
-        demolishDeadTurrets();
+        turretDemolition.tick(units);
         tickProfile.lap(TickProfile.Phase.DEMOLISH_TURRETS);
         // Same rubble-conversion pass for destroyed drone hubs — they're
         // static STRUCTUREs sitting on sealed non-walkable cells, so leaving
         // the cell sealed after death would orphan an invisible obstacle.
-        demolishDeadDroneHubs();
+        hubDemolition.tick(units);
         tickProfile.lap(TickProfile.Phase.DEMOLISH_HUBS);
         // Drone crash sequence: detect newly-dead drones, tick their fall
         // timer, drop a SmokingWreck on impact. Runs after the hub demolition
         // pass so a hub destruction (which kills its drones via setting hp=0)
         // gets the crashes started on the same tick.
-        tickDroneCrashes();
+        droneCrashes.tick(units, TICK_DT);
         tickProfile.lap(TickProfile.Phase.DRONE_CRASHES);
         // Age smoking wrecks + emit any puff events that came due this tick.
         effects.tickWrecks(TICK_DT);
@@ -1180,157 +1192,6 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
 
     // advanceBursts moved to InfantryWeapons.tick — pumped from the tick loop
     // via `infantry.tick(this)`.
-
-    /**
-     * Flips destroyed-turret mount cells from non-walkable obstacle to walkable
-     * rubble. Mirrors the wall-collapse half of {@link NavigationGrid#damageCell}:
-     * opens the cell + edges, recomputes cover on the cell and its 4 cardinal
-     * neighbors, tags topology rubble for the renderer, and rebuilds the zone
-     * graph once if at least one turret went down this tick. Guarded by
-     * {@link MapTurret#demolished} so successive ticks don't re-process a wreck.
-     */
-    private void demolishDeadTurrets() {
-        for (Unit u : units) {
-            if (!(u instanceof MapTurret)) continue;
-            MapTurret t = (MapTurret) u;
-            if (t.isAlive() || t.demolished) continue;
-            grid.setWalkable(t.cellX, t.cellY, true);
-            grid.openAllEdges(t.cellX, t.cellY);
-            topology.setGroundKind(t.cellX, t.cellY, CellTopology.GroundKind.RUBBLE);
-            grid.recomputeCoverAt(t.cellX, t.cellY);
-            grid.recomputeCoverAt(t.cellX + 1, t.cellY);
-            grid.recomputeCoverAt(t.cellX - 1, t.cellY);
-            grid.recomputeCoverAt(t.cellX, t.cellY + 1);
-            grid.recomputeCoverAt(t.cellX, t.cellY - 1);
-            t.demolished = true;
-            navigation.markZoneGraphDirty();
-            // Mount cell keeps smoking for a while so the player can see the
-            // wreck is dead-and-cooling rather than just "gone".
-            effects.spawnSmokingWreck(t.cellX, t.cellY);
-            releaseGuardpostIfAllTurretsDead(t);
-        }
-    }
-
-    /**
-     * Same flip-to-rubble pass as {@link #demolishDeadTurrets} but for
-     * destroyed {@link DroneHubUnit}s. Hubs sit on the sealed center cell of
-     * a {@code DRONE_HUB} defense post (non-walkable STONE), so without this
-     * the cell would stay sealed after the hub dies — an invisible obstacle
-     * with no sprite. No guardpost release: hubs have {@code garrisonSize=0}
-     * and emit no GUARDPOST tactical node.
-     */
-    private void demolishDeadDroneHubs() {
-        for (Unit u : units) {
-            if (!(u instanceof DroneHubUnit)) continue;
-            DroneHubUnit h = (DroneHubUnit) u;
-            if (h.isAlive() || h.demolished) continue;
-            grid.setWalkable(h.cellX, h.cellY, true);
-            grid.openAllEdges(h.cellX, h.cellY);
-            topology.setGroundKind(h.cellX, h.cellY, CellTopology.GroundKind.RUBBLE);
-            grid.recomputeCoverAt(h.cellX, h.cellY);
-            grid.recomputeCoverAt(h.cellX + 1, h.cellY);
-            grid.recomputeCoverAt(h.cellX - 1, h.cellY);
-            grid.recomputeCoverAt(h.cellX, h.cellY + 1);
-            grid.recomputeCoverAt(h.cellX, h.cellY - 1);
-            h.demolished = true;
-            navigation.markZoneGraphDirty();
-            effects.spawnSmokingWreck(h.cellX, h.cellY);
-            // Cascading kill: drones launched from this hub lose control and
-            // crash with it. Set hp=0 here; tickDroneCrashes (next call in
-            // the tick chain) starts the per-drone fall sequence + impact FX.
-            for (Unit other : units) {
-                if (!(other instanceof Drone)) continue;
-                Drone d = (Drone) other;
-                if (!d.isAlive() || d.homeHub != h) continue;
-                d.hp = 0f;
-            }
-        }
-    }
-
-    /**
-     * Per-tick crash sequence for {@link Drone}s that just lost HP. Three
-     * phases per drone:
-     * <ol>
-     *   <li><b>Just-died</b> (alive=false, !crashStarted): mark
-     *       {@code crashStarted}, latch {@code crashTimer = CRASH_DURATION_SEC},
-     *       puff smoke from the body position.</li>
-     *   <li><b>Falling</b> (crashStarted, crashTimer &gt; 0): tick the timer
-     *       down, spin the body facing for visual chaos. The renderer reads
-     *       this state and draws the drone with a fade-out overlay.</li>
-     *   <li><b>Impact</b> (crashTimer &lt;= 0, !crashed): spawn a
-     *       {@link SmokingWreck} at the body's floor cell; mark
-     *       {@code crashed} so the unit drops off the renderer.</li>
-     * </ol>
-     *
-     * <p>Runs in the main tick chain after {@link #demolishDeadDroneHubs} so a
-     * hub-cascade kill enters the crash sequence the same tick it dies.
-     */
-    private void tickDroneCrashes() {
-        for (Unit u : units) {
-            if (!(u instanceof Drone)) continue;
-            Drone d = (Drone) u;
-            if (d.crashed) continue;
-            if (d.isAlive()) continue;
-            if (!d.crashStarted) {
-                d.crashStarted = true;
-                d.crashTimer = Drone.CRASH_DURATION_SEC;
-                effects.spawnSmokePlume(d.body.x, d.body.y);
-            }
-            d.crashTimer -= TICK_DT;
-            d.body.facingDegrees += Drone.CRASH_SPIN_DEG_PER_SEC * TICK_DT;
-            if (d.crashTimer <= 0f) {
-                int wx = Math.max(0, Math.min(grid.getWidth() - 1, (int) Math.floor(d.body.x)));
-                int wy = Math.max(0, Math.min(grid.getHeight() - 1, (int) Math.floor(d.body.y)));
-                effects.spawnSmokingWreck(wx, wy);
-                d.crashed = true;
-            }
-        }
-    }
-
-    /**
-     * If {@code deadTurret} was part of a {@link DefensePost} and every turret
-     * on that post is now dead, find the squad linked to the post and revert
-     * its patrol radius to the wide default — so the garrison stops orbiting
-     * the wreckage and resumes normal search-and-destroy via the existing
-     * SUSPICIOUS/ENGAGED transitions. No-op for stand-alone turrets (legacy
-     * scatter, port defenses outside conquest).
-     *
-     * <p>Linear scan through posts + units is fine here: turret deaths cap at
-     * ~10-15 per battle, posts at ~5-8, units at the few hundred peak — total
-     * work bounded and infrequent.
-     */
-    private void releaseGuardpostIfAllTurretsDead(MapTurret deadTurret) {
-        List<DefensePost> defensePosts = tactical.getDefensePosts();
-        if (defensePosts.isEmpty()) return;
-        DefensePost owner = null;
-        for (DefensePost post : defensePosts) {
-            for (DefensePost.TurretSpec spec : post.turrets) {
-                if (spec.cellX == deadTurret.cellX && spec.cellY == deadTurret.cellY) {
-                    owner = post;
-                    break;
-                }
-            }
-            if (owner != null) break;
-        }
-        if (owner == null) return;
-        // Check whether every turret on the owning post is now dead. A spec
-        // with no live MapTurret at its cell counts as dead — covers both the
-        // already-demolished and the never-spawned edge cases.
-        for (DefensePost.TurretSpec spec : owner.turrets) {
-            boolean aliveAtSpec = false;
-            for (Unit u : units) {
-                if (!(u instanceof MapTurret)) continue;
-                if (u.cellX != spec.cellX || u.cellY != spec.cellY) continue;
-                if (u.isAlive()) { aliveAtSpec = true; break; }
-            }
-            if (aliveAtSpec) return;
-        }
-        for (Squad squad : squads.values()) {
-            if (squad.defensePost != owner) continue;
-            squad.defensePost = null;
-            squad.patrolRadius = com.dillon.starsectormarines.battle.ai.goap.actions.PatrolRoute.DEFAULT_DISTRICT_RADIUS;
-        }
-    }
 
     /**
      * Ticks every queued {@link PendingDetonation}; when one's timer drains,
