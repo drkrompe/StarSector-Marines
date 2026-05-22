@@ -178,12 +178,45 @@ public class BriefingScreen implements Screen {
 
         widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("missionPopupPayout"),
                 labelX, y, LABEL_COLOR));
+        int cashMult = m.cashMultiplier & 0xFF;
+        if (cashMult <= 0) cashMult = 100;
+        long effectivePayout = (long) m.payout * cashMult / 100L;
         String payoutStr = MessageFormat.format(
                 Strings.get("payoutFmt"),
-                NumberFormat.getIntegerInstance().format(m.payout));
+                NumberFormat.getIntegerInstance().format(effectivePayout));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20, payoutStr,
                 valueX, y, VALUE_COLOR));
         y -= ROW_GAP;
+
+        // Salvage negotiation — only for contract-bound missions (faction-direct
+        // missions don't carry a salvage cap). The −/+ buttons trade salvage
+        // for cash per contracts.md §"Salvage Layer 2": cashMultiplier =
+        // 100 + (baseline − negotiated) * 0.5.
+        int salvageBaseline = m.salvageBaseline & 0xFF;
+        if (salvageBaseline > 0) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("briefingSalvage"),
+                    labelX, y, LABEL_COLOR));
+            int negotiated = m.salvageNegotiated & 0xFF;
+            int cashBonus = cashMult - 100;
+            String salvageStr = MessageFormat.format(
+                    Strings.get("briefingSalvageFmt"), negotiated, cashBonus);
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, salvageStr,
+                    valueX, y, VALUE_COLOR));
+
+            float btnSize = 22f;
+            float btnY = y - btnSize + 6f;
+            float plusX = layout.infoZone.x + layout.infoZone.w - INNER_PAD - btnSize;
+            float minusX = plusX - btnSize - 4f;
+            widgets.add(new ButtonWidget(minusX, btnY, btnSize, btnSize,
+                    () -> adjustSalvage(-10)));
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("briefingSalvageMinus"),
+                    minusX + 6f, y, HEADER_COLOR));
+            widgets.add(new ButtonWidget(plusX, btnY, btnSize, btnSize,
+                    () -> adjustSalvage(+10)));
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("briefingSalvagePlus"),
+                    plusX + 6f, y, HEADER_COLOR));
+            y -= ROW_GAP;
+        }
 
         widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("missionPopupRequires"),
                 labelX, y, LABEL_COLOR));
@@ -615,6 +648,38 @@ public class BriefingScreen implements Screen {
 
     private void onBack() {
         ctx.goTo(ScreenId.MISSION_SELECT);
+    }
+
+    /**
+     * Trades salvage for cash (or vice versa) by {@code delta} percentage
+     * points, clamping to {@code [0, salvageBaseline]}. Mission is immutable
+     * so we build a new instance carrying the updated negotiated + cash
+     * multiplier and swap it into the context — Accept reads from the same
+     * {@code ctx.getSelectedMission()} that everything else does, so the
+     * negotiated values flow through to the resolver bridge without special
+     * casing.
+     *
+     * <p>Curve per {@code roadmap/campaign/contracts.md} §"Salvage Layer 2":
+     * {@code cashMultiplier = 100 + (baseline − negotiated) * 0.5}. Integer
+     * math is fine in 10-point steps (* 0.5 → / 2 with even deltas).
+     */
+    private void adjustSalvage(int delta) {
+        Mission m = ctx.getSelectedMission();
+        if (m == null) return;
+        int baseline = m.salvageBaseline & 0xFF;
+        if (baseline <= 0) return;
+        int current = m.salvageNegotiated & 0xFF;
+        int next = Math.max(0, Math.min(baseline, current + delta));
+        if (next == current) return;
+        int cashMult = 100 + (baseline - next) / 2;
+
+        Mission replaced = new Mission(
+                m.id, m.name, m.type, m.source, m.payout, m.risk, m.requirements, m.flavor,
+                m.normalizedX, m.normalizedY, m.clientFighterSupport, m.enemyFighterSupport,
+                m.requiredDrops, m.employerShuttles, m.targetPlanetName, m.targetIndustryId,
+                m.contractId, m.salvageBaseline, (byte) next, (byte) cashMult);
+        ctx.setSelectedMission(replaced);
+        rebuild();
     }
 
     /**

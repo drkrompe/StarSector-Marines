@@ -122,6 +122,20 @@ public class ResultsScreen implements Screen {
                     cardX + INNER_PAD + LABEL_COL_W, rowY, VALUE_COLOR));
             rowY -= ROW_GAP;
 
+            // Salvage entitlement — only when the mission carried salvage rights
+            // (contract-bound). Faction-direct missions don't roll salvage and
+            // skip this row entirely. Picker UI is deferred to loot.md.
+            if (outcome.salvageEntitlement > 0) {
+                widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                        Strings.get("resultsSalvageLabel"),
+                        cardX + INNER_PAD, rowY, LABEL_COLOR));
+                String salvageStr = MessageFormat.format(
+                        Strings.get("resultsSalvageFmt"), outcome.salvageEntitlement);
+                widgets.add(new LabelWidget(Fonts.ORBITRON_20, salvageStr,
+                        cardX + INNER_PAD + LABEL_COL_W, rowY, VALUE_COLOR));
+                rowY -= ROW_GAP;
+            }
+
             // Casualties
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                     Strings.get("resultsCasualtiesLabel"),

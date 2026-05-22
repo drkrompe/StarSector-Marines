@@ -49,6 +49,10 @@
 		"briefingAirNone":        "None",
 		"briefingTransport":      "Transport",
 		"briefingAcceptBlocked":  "Insufficient Transport",
+		"briefingSalvage":        "Salvage:",
+		"briefingSalvageFmt":     "{0}% — +{1}% cash",
+		"briefingSalvageMinus":   "−",
+		"briefingSalvagePlus":    "+",
 
 		# Battle screen
 		"battleSpeedPause":       "Pause",
@@ -62,6 +66,8 @@
 		# Results screen
 		"resultsHeader":          "Debrief",
 		"resultsPayoutLabel":     "Payout:",
+		"resultsSalvageLabel":    "Salvage:",
+		"resultsSalvageFmt":      "{0}% entitlement",
 		"resultsCasualtiesLabel": "Marines Lost:",
 		"resultsCasualtiesFmt":   "{0} of {1}",
 		"resultsCaptainLabel":    "Captain:",
