@@ -56,6 +56,18 @@ public final class UnitRosterService {
     private DamageService damageService;
 
     private final List<Unit> units = new ArrayList<>();
+
+    /**
+     * Dense entity registry — Phase 1 of the SoA migration. Held alongside
+     * {@link #units} and kept in sync on {@link #addUnit}; releases happen
+     * out of the death cascade in
+     * {@code com.dillon.starsectormarines.battle.damage.DamageResolver#resolve}
+     * via {@link #releaseFromRegistry(long)}. The list continues to carry
+     * dead entries so existing post-death consumers (turret demolition,
+     * drone crash) keep working until they migrate to event-driven death
+     * emit in a later phase.
+     */
+    private final UnitRegistry registry = new UnitRegistry();
     /**
      * Dense, primitive-keyed squad lookup. fastutil's {@link Int2ObjectOpenHashMap}
      * avoids the per-call {@code Integer} autobox that {@link #getSquad}
@@ -115,8 +127,23 @@ public final class UnitRosterService {
      * this mirror is purely additive.
      */
     public void addUnit(Unit u) {
+        registry.allocate(u);
         units.add(u);
         unitIndex.add(u);
+    }
+
+    /** Returns the dense entity registry. See {@link UnitRegistry} for the contract + migration phasing. */
+    public UnitRegistry getRegistry() { return registry; }
+
+    /**
+     * Drops the registry entry for {@code entityId} via swap-and-pop.
+     * Called by the death cascade in
+     * {@code com.dillon.starsectormarines.battle.damage.DamageResolver#resolve}.
+     * Doesn't touch the legacy {@link #units} list — dead units stay there
+     * for the post-death consumers that still iterate it.
+     */
+    public void releaseFromRegistry(long entityId) {
+        registry.release(entityId);
     }
 
     /**

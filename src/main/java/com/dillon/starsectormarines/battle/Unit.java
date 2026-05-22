@@ -27,6 +27,16 @@ public class Unit {
     /** Sentinel value for {@link #squadId} when the unit isn't part of a squad — defenders, solo combatants, anyone not deboarded from a marine shuttle. */
     public static final int NO_SQUAD = -1;
 
+    /**
+     * Monotonic entity id assigned by {@link com.dillon.starsectormarines.battle.unit.UnitRegistry}
+     * on registration. {@code 0} means "not yet allocated" (matches the
+     * registry's reserved sentinel); a non-zero value is stable for the
+     * life of the unit and never recycled. Future SoA promotion will key
+     * off this id rather than {@link #id} (the string label, retained for
+     * logs / debug).
+     */
+    public long entityId = 0L;
+
     public final String id;
     public final Faction faction;
     /** Archetype — drives sprite + base stat block. Set once at construction. */

@@ -54,6 +54,7 @@ public final class DamageResolver {
     private final NavigationGrid grid;
     private final List<Unit> units;
     private final Int2ObjectMap<Squad> squads;
+    private final UnitRosterService roster;
     private final EquipmentDropService equipmentDrops;
     private final Consumer<Unit> deathSink;
     private final Random rng;
@@ -66,6 +67,7 @@ public final class DamageResolver {
         this.grid = navigation.getGrid();
         this.units = roster.getUnits();
         this.squads = roster.getSquadsMap();
+        this.roster = roster;
         this.equipmentDrops = equipmentDrops;
         this.deathSink = deathSink;
         this.rng = rng;
@@ -102,6 +104,12 @@ public final class DamageResolver {
                     ls.leader = pickPromotionCandidate(ls, target);
                 }
             }
+            // Drop the dense-registry entry. The legacy units list keeps
+            // the dead unit so post-death consumers (turret demolition,
+            // drone crash, etc.) still see it; those migrate in a later
+            // phase, at which point this release becomes the sole death
+            // bookkeeping. See UnitRegistry class doc.
+            roster.releaseFromRegistry(target.entityId);
         }
         // Morale drain — branches on unit type. Gated on moraleImpact > 0
         // so external-source damage (air strafing, scripted scenario damage)
