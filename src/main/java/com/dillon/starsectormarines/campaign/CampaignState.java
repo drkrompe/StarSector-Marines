@@ -48,6 +48,7 @@ public final class CampaignState implements Serializable {
     public short[] housePromotionProgress = new short[INITIAL_CAPACITY];
     public int[]  housePower        = new int[INITIAL_CAPACITY];
     public long[] houseClaimAgainst = new long[INITIAL_CAPACITY];
+    public byte[] houseArchetype    = new byte[INITIAL_CAPACITY];
     public String[] houseDisplayName = new String[INITIAL_CAPACITY];
     public int    houseCount        = 0;
 
@@ -152,7 +153,7 @@ public final class CampaignState implements Serializable {
 
     /** Appends a house. Returns the new house id. */
     public long addHouse(int marketId, int factionId, HouseFlavor flavor, HouseRank rank,
-                        HouseStatus status, String displayName) {
+                        HouseStatus status, PatronArchetype archetype, String displayName) {
         ensureHouseCapacity(houseCount + 1);
         int i = houseCount++;
         long id = nextHouseId++;
@@ -167,6 +168,7 @@ public final class CampaignState implements Serializable {
         housePromotionProgress[i] = 0;
         housePower[i] = 0;
         houseClaimAgainst[i] = -1L;
+        houseArchetype[i] = archetype.toByte();
         houseDisplayName[i] = displayName;
         houseIndexById.put(id, i);
         return id;
@@ -306,6 +308,7 @@ public final class CampaignState implements Serializable {
         housePromotionProgress = Arrays.copyOf(housePromotionProgress, n);
         housePower            = Arrays.copyOf(housePower, n);
         houseClaimAgainst     = Arrays.copyOf(houseClaimAgainst, n);
+        houseArchetype        = Arrays.copyOf(houseArchetype, n);
         houseDisplayName      = Arrays.copyOf(houseDisplayName, n);
     }
 
@@ -350,6 +353,25 @@ public final class CampaignState implements Serializable {
         repContractsCompleted = Arrays.copyOf(repContractsCompleted, n);
         repContractsFailed    = Arrays.copyOf(repContractsFailed, n);
         repLastContractTick   = Arrays.copyOf(repLastContractTick, n);
+    }
+
+    /**
+     * Backfills {@code houseArchetype} for saves written before that column
+     * existed. xstream bypasses the constructor, so any column added after
+     * an initial release deserializes as {@code null} on legacy saves and
+     * NPEs at first read. Same pattern used by
+     * {@code MarineRoster.completedStoryIds}.
+     *
+     * <p>Backfill is a zero-byte array of the right length — every legacy
+     * house reads as {@link PatronArchetype#TIME_RUSHED} (ordinal 0) until
+     * the user reseeds via the debug intel. Acceptable for dev playtesting;
+     * production seeds populate the column at house-creation time.
+     */
+    private Object readResolve() {
+        if (houseArchetype == null) {
+            houseArchetype = new byte[houseId != null ? houseId.length : INITIAL_CAPACITY];
+        }
+        return this;
     }
 
     private void ensureContractCapacity(int needed) {

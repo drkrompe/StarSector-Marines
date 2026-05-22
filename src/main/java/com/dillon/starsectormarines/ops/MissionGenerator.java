@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractState;
+import com.dillon.starsectormarines.campaign.PatronArchetype;
+import com.dillon.starsectormarines.campaign.PatronBriefingFlavor;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ops.intel.DefenseLevel;
@@ -213,8 +215,19 @@ public final class MissionGenerator {
         float y = 0.08f + r.nextFloat() * 0.84f;
 
         String name = "Strike — " + targetPlanetName;
-        String flavor = client.displayName + " wants " + targetPlanetName
-                + " hit. Salvage cap " + (state.contractSalvageBaseline[row] & 0xFF) + "%.";
+        // Briefing flavor reads in the patron's voice. The archetype byte is
+        // looked up via the patron's row index, the variant is picked
+        // deterministically from the contract id so re-renders + save/load
+        // produce the same text, and the payout/salvage values match what
+        // the briefing UI shows.
+        int patronRow = state.houseIndex(state.contractPatronHouseId[row]);
+        PatronArchetype archetype = patronRow >= 0
+                ? PatronArchetype.fromByte(state.houseArchetype[patronRow])
+                : PatronArchetype.TIME_RUSHED;
+        String payoutFormatted = "$" + java.text.NumberFormat.getIntegerInstance().format(payout);
+        int negotiatedPct = state.contractSalvageNegotiated[row] & 0xFF;
+        String flavor = PatronBriefingFlavor.render(archetype, contractId,
+                client.displayName, targetPlanetName, payoutFormatted, negotiatedPct);
         String id = "contract:" + contractId;
 
         return new Mission(id, name, MissionType.RAID, MissionSource.GENERATED,

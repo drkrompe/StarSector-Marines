@@ -47,9 +47,11 @@ public final class HouseSeeder {
             int factionIdx = state.factionRegistry.intern(market.getFactionId());
 
             HouseFlavor flavor = deterministicFlavor(market.getId());
+            PatronArchetype archetype = deterministicArchetype(market.getId(), HouseRank.TIER_1);
             String displayName = market.getName() + " " + flavor.name().toLowerCase() + " house";
 
-            state.addHouse(marketIdx, factionIdx, flavor, HouseRank.TIER_1, HouseStatus.ACTIVE, displayName);
+            state.addHouse(marketIdx, factionIdx, flavor, HouseRank.TIER_1, HouseStatus.ACTIVE,
+                    archetype, displayName);
             t1++;
 
             StarSystemAPI system = market.getStarSystem();
@@ -57,9 +59,10 @@ public final class HouseSeeder {
                 String sysId = system.getId();
                 if (seededSystems.add(sysId)) {
                     HouseFlavor sysFlavor = deterministicFlavor(sysId);
+                    PatronArchetype sysArchetype = deterministicArchetype(sysId, HouseRank.TIER_2);
                     String sysDisplay = system.getName() + " " + sysFlavor.name().toLowerCase() + " house";
                     state.addHouse(marketIdx, factionIdx, sysFlavor, HouseRank.TIER_2,
-                            HouseStatus.ACTIVE, sysDisplay);
+                            HouseStatus.ACTIVE, sysArchetype, sysDisplay);
                     t2++;
                 }
             }
@@ -82,4 +85,53 @@ public final class HouseSeeder {
         int pick = Math.floorMod(h, HouseFlavor.values().length);
         return HouseFlavor.values()[pick];
     }
+
+    /**
+     * Deterministic archetype pick weighted by rank. Tier-1 patrons skew
+     * toward the four "rough edges" archetypes (TIME_RUSHED, FALLEN_NOBLE,
+     * NEWCOMER, SUSPICIOUS) — these are the desperate / unproven / shady
+     * clients an unknown merc would actually be working with. Tier-2 skews
+     * toward the polished pair (ESTABLISHED, TRUE_BELIEVER) plus the
+     * sustained-presence three from T1.
+     *
+     * <p>Different mixer constant from {@link #deterministicFlavor} so
+     * flavor and archetype don't correlate (same market shouldn't always
+     * pair the same flavor with the same archetype).
+     */
+    private static PatronArchetype deterministicArchetype(String id, HouseRank rank) {
+        int h = id.hashCode() + (rank == HouseRank.TIER_2 ? 0x9E37 : 0);
+        h ^= (h >>> 16);
+        h *= 0xC2B2AE35;
+        h ^= (h >>> 13);
+        PatronArchetype[] pool = rank == HouseRank.TIER_1 ? T1_POOL : T2_POOL;
+        return pool[Math.floorMod(h, pool.length)];
+    }
+
+    /**
+     * T1 pool — desperate / unproven / morally murky. Each appears with
+     * weight matching its slot count, so {@link PatronArchetype#TIME_RUSHED}
+     * shows up about twice as often as {@link PatronArchetype#TRUE_BELIEVER}.
+     * Tuned to make early-game work read mostly as scrappy-with-occasional-
+     * ideologue rather than uniform.
+     */
+    private static final PatronArchetype[] T1_POOL = {
+            PatronArchetype.TIME_RUSHED,  PatronArchetype.TIME_RUSHED,
+            PatronArchetype.FALLEN_NOBLE, PatronArchetype.FALLEN_NOBLE,
+            PatronArchetype.SUSPICIOUS,
+            PatronArchetype.NEWCOMER,
+            PatronArchetype.TRUE_BELIEVER,
+    };
+
+    /**
+     * T2 pool — patrons who survived to a wider stake have more polish.
+     * ESTABLISHED dominates; the rougher archetypes still appear (a
+     * Director can be desperate too) at reduced weight.
+     */
+    private static final PatronArchetype[] T2_POOL = {
+            PatronArchetype.ESTABLISHED,  PatronArchetype.ESTABLISHED,
+            PatronArchetype.TRUE_BELIEVER,
+            PatronArchetype.SUSPICIOUS,
+            PatronArchetype.TIME_RUSHED,
+            PatronArchetype.FALLEN_NOBLE,
+    };
 }

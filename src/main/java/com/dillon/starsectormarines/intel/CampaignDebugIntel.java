@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.campaign.CampaignSystem;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.HouseFlavor;
+import com.dillon.starsectormarines.campaign.PatronArchetype;
 import com.dillon.starsectormarines.campaign.HouseRank;
 import com.dillon.starsectormarines.campaign.HouseSeeder;
 import com.dillon.starsectormarines.campaign.HouseStatus;
@@ -303,16 +304,18 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         HouseRank rank = HouseRank.fromByte(s.houseRank[i]);
         HouseFlavor flavor = HouseFlavor.fromByte(s.houseFlavor[i]);
         HouseStatus status = HouseStatus.fromByte(s.houseStatus[i]);
+        PatronArchetype archetype = PatronArchetype.fromByte(s.houseArchetype[i]);
         String factionId = s.factionRegistry.get(s.houseFactionId[i]);
         String marketId  = s.marketRegistry.get(s.houseMarketId[i]);
 
         String name = s.houseDisplayName[i] != null ? s.houseDisplayName[i] : ("house#" + id);
-        ui.addPara("[%s] %s — %s %s — faction=%s — market=%s — status=%s",
+        ui.addPara("[%s] %s — %s %s [%s] — faction=%s — market=%s — status=%s",
                 8f, Color.LIGHT_GRAY, Color.WHITE,
                 String.valueOf(id),
                 name,
                 rank.displayName(flavor),
                 "(" + flavor.name().toLowerCase() + ")",
+                archetype.name().toLowerCase(),
                 factionId != null ? factionId : "?",
                 marketId != null ? marketId : "?",
                 status.name().toLowerCase());
