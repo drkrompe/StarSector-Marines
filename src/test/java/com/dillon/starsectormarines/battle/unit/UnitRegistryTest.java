@@ -8,7 +8,9 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -135,7 +137,7 @@ public class UnitRegistryTest {
     }
 
     @Test
-    public void denseArrayExposesLiveContentsAndNullsBeyondLiveCount() {
+    public void denseArrayNullsTheFreedTailSlot() {
         UnitRegistry r = new UnitRegistry();
         Unit a = unit("a");
         Unit b = unit("b");
@@ -146,17 +148,10 @@ public class UnitRegistryTest {
 
         Unit[] arr = r.denseArray();
         assertSame(a, arr[0]);
-        // Released tail slot must be nulled so the GC can reclaim the unit
-        // even though the array reference outlives the entity.
+        // The just-released tail slot must be nulled so the GC can reclaim
+        // the unit even though the array reference outlives the entity.
         assertEquals(1, r.liveCount());
-        for (int i = r.liveCount(); i < arr.length; i++) {
-            // Only check the immediately-freed slot — slots beyond it were
-            // never written so they remain null trivially.
-            if (i == 1) {
-                assertEquals(null, arr[i], "tail slot nulled after pop");
-                break;
-            }
-        }
+        assertNull(arr[1], "tail slot nulled after pop");
     }
 
     @Test
@@ -166,5 +161,33 @@ public class UnitRegistryTest {
         assertFalse(r.isLive(1L));
         assertEquals(UnitRegistry.INVALID_INDEX, r.indexOf(1L));
         assertNotNull(r.denseArray());
+    }
+
+    @Test
+    public void allocateRejectsAlreadyAllocatedUnit() {
+        UnitRegistry r = new UnitRegistry();
+        Unit a = unit("a");
+        r.allocate(a);
+        // Same instance, second allocate — would otherwise mint a new id and
+        // leave the old id->slot mapping stale, so a later release on the
+        // old id would null a slot the new id still resolves to.
+        assertThrows(IllegalStateException.class, () -> r.allocate(a));
+        // Registry state unchanged by the rejected call.
+        assertEquals(1, r.liveCount());
+    }
+
+    @Test
+    public void releaseOfReservedZeroSentinelIsNoOp() {
+        UnitRegistry r = new UnitRegistry();
+        Unit a = unit("a");
+        long idA = r.allocate(a);
+        // Setup-discarded units (constructed but never registered) carry
+        // entityId == 0. Routing that into release() must not corrupt the
+        // live entry — and crucially must not bump any "missing key" path
+        // that could be confused with a real id later.
+        r.release(0L);
+        assertEquals(1, r.liveCount());
+        assertTrue(r.isLive(idA));
+        assertEquals(0, r.indexOf(idA));
     }
 }

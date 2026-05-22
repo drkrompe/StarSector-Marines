@@ -74,8 +74,19 @@ public final class UnitRegistry {
      * Adds {@code u} to the next dense slot, assigns its
      * {@link Unit#entityId}, and returns the id. Grows the backing array
      * by doubling on overflow.
+     *
+     * <p>Rejects re-allocation: a {@link Unit} whose {@code entityId} is
+     * non-zero already lives in the registry, and re-allocating would mint
+     * a new id pointing at the same instance while the old id stays mapped
+     * to a now-stale dense slot — a later release on the old id would null
+     * a slot the new id still resolves to. The throw makes the double-add
+     * a loud setup bug rather than a silent corruption.
      */
     public long allocate(Unit u) {
+        if (u.entityId != 0L) {
+            throw new IllegalStateException(
+                    "Unit '" + u.id + "' already has entityId " + u.entityId + " — double allocate");
+        }
         if (liveCount == dense.length) dense = Arrays.copyOf(dense, dense.length * 2);
         long id = nextId++;
         u.entityId = id;
@@ -91,8 +102,15 @@ public final class UnitRegistry {
      * No-op if {@code id} is unknown — supports duplicate-release safety
      * even though current callers (the death cascade in
      * {@code DamageResolver.resolve}) emit at most one release per entity.
+     *
+     * <p>{@code id == 0L} is short-circuited explicitly: it's the
+     * "never allocated" sentinel a setup-discarded {@link Unit} carries,
+     * so routing it through the map (where it would also miss, since
+     * {@code nextId} starts at 1) would still be a no-op — the explicit
+     * guard makes the contract intentional rather than incidental.
      */
     public void release(long id) {
+        if (id == 0L) return;
         int idx = indexById.remove(id);
         if (idx == INVALID_INDEX) return;
         int last = liveCount - 1;
@@ -130,6 +148,14 @@ public final class UnitRegistry {
      * the per-iteration accessor hop — same alias-field rationale as
      * {@link UnitRosterService}'s units-list field on
      * {@code BattleSimulation}.
+     *
+     * <p><b>Do not cache across allocations.</b> The backing array is
+     * replaced by {@link #allocate(Unit)} when {@link #liveCount()} hits
+     * {@code dense.length}; a cached reference becomes a stale view of an
+     * abandoned array. Safe to alias for the duration of a single tick
+     * phase that doesn't allocate (the parallel UPDATE_UNITS dispatch is
+     * the intended Phase 2 consumer — spawns are queued and flushed in a
+     * separate serial phase, so the array is stable across the dispatch).
      */
     public Unit[] denseArray() {
         return dense;
