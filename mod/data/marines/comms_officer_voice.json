@@ -1,0 +1,108 @@
+{
+	# Comms officer mood framing — prefix and suffix lines that wrap the
+	# archetype-driven briefing prose. The same patron meeting reads
+	# differently depending on the officer's current mood (which is
+	# itself a function of the company's state — see OfficerMoodReader).
+	#
+	# Composition shape:
+	#   "<prefix>" + " " + "<archetype briefing variant>" + " " + "<suffix>"
+	#
+	# Suffix is rolled in deterministically per contract; not every
+	# briefing carries one (see BriefingComposer for the probability and
+	# seeding). Prefix is always present.
+	#
+	# Schema:
+	#   {
+	#     "moods": {
+	#       "<MOOD_NAME>": {
+	#         "prefix": ["...", "...", ...],
+	#         "suffix": ["...", "...", ...]
+	#       }
+	#     }
+	#   }
+	#
+	# - Every OfficerMood enum value MUST appear as a key.
+	# - Each mood MUST have at least one prefix and one suffix variant.
+	# - Lines should be MOOD-PURE and NOT reference any specific patron,
+	#   archetype, or contract — that's what the wrapped briefing body
+	#   carries. Prefix/suffix is pure framing.
+	#
+	# Voice notes per mood:
+	#   DESPERATE — books are bleeding, no runway; officer urges acceptance,
+	#               negotiating leverage we don't have
+	#   GREEN     — new officer or new company; earnest, over-explains,
+	#               aware they're missing context they should have
+	#   STEADY    — default working state; terse, businesslike, no editorial
+	#   SEASONED  — experienced, reads the room, editorializes with weight,
+	#               calls out what an inexperienced officer would miss
+
+	"moods": {
+		"DESPERATE": {
+			"prefix": [
+				"Captain. We need to take something. Anything.",
+				"Hate to say it, but we can't afford to be choosy this month.",
+				"Books are bleeding. Walk-ins are walk-ins. Here:",
+				"Look — we don't have the runway to turn this down without a real reason.",
+				"Captain. Brought this one in personally — we need the work."
+			],
+			"suffix": [
+				"We need this one.",
+				"I'd take it if I were you.",
+				"We're not in a position to push back on terms.",
+				"Not the time to be picky.",
+				"Tell me to chase it. Please."
+			]
+		},
+
+		"GREEN": {
+			"prefix": [
+				"Captain. Got a new file for you.",
+				"Another one came in — want me to run through it?",
+				"Trying to keep these straight. Bear with me on the details.",
+				"Captain — hope I caught everything important in the meeting.",
+				"New contract, fresh off the meeting. I think I got the gist."
+			],
+			"suffix": [
+				"Hope that's enough. Wasn't sure what else to ask.",
+				"Let me know if I should follow up on anything.",
+				"I think that's everything. I hope.",
+				"Sorry if I missed something obvious — still learning the shorthand.",
+				"Want me to set up a follow-up call to confirm anything?"
+			]
+		},
+
+		"STEADY": {
+			"prefix": [
+				"Captain. Got a new file in.",
+				"Brought you this one — read it and let me know.",
+				"Captain. New contract on the console.",
+				"Got a fresh one for the board.",
+				"Captain — file's ready when you are."
+			],
+			"suffix": [
+				"Up to you.",
+				"Standard stuff.",
+				"Let me know what you decide.",
+				"Flag me if you want a follow-up.",
+				"Filed under the usual."
+			]
+		},
+
+		"SEASONED": {
+			"prefix": [
+				"Captain. You're going to want to sit down for this one.",
+				"Got something. Worth a look, even if you pass.",
+				"I've seen this shape before. Worth your time.",
+				"Captain — brought this one in. Read it carefully.",
+				"This one's got a tell. Hear me out."
+			],
+			"suffix": [
+				"I'd push back on the timeline if we accept.",
+				"Smells right. Smells wrong. Hard to say.",
+				"We've worked with worse. We've worked with better.",
+				"My read: take it, but eyes open.",
+				"If we take it, I'd want our best captain on it."
+			]
+		}
+	}
+}

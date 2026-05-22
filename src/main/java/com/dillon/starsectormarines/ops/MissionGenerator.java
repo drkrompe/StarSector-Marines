@@ -4,11 +4,12 @@ import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.flyby.FighterWing;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
+import com.dillon.starsectormarines.campaign.BriefingComposer;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractState;
+import com.dillon.starsectormarines.campaign.OfficerMoodReader;
 import com.dillon.starsectormarines.campaign.PatronArchetype;
-import com.dillon.starsectormarines.campaign.PatronBriefingFlavor;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ops.intel.DefenseLevel;
@@ -215,19 +216,20 @@ public final class MissionGenerator {
         float y = 0.08f + r.nextFloat() * 0.84f;
 
         String name = "Strike — " + targetPlanetName;
-        // Briefing flavor reads in the patron's voice. The archetype byte is
-        // looked up via the patron's row index, the variant is picked
-        // deterministically from the contract id so re-renders + save/load
-        // produce the same text, and the payout/salvage values match what
-        // the briefing UI shows.
+        // Briefing reads as a comms-officer dispatch: an officer-mood prefix
+        // wraps the archetype-driven body, with an optional closing aside.
+        // The patron-archetype byte is looked up via the patron's row index,
+        // mood comes from the company's current state, all variant picks are
+        // seeded from the contract id so re-renders + save/load produce the
+        // same text. Payout/salvage values match the briefing UI.
         int patronRow = state.houseIndex(state.contractPatronHouseId[row]);
         PatronArchetype archetype = patronRow >= 0
                 ? PatronArchetype.fromByte(state.houseArchetype[patronRow])
                 : PatronArchetype.TIME_RUSHED;
         String payoutFormatted = "$" + java.text.NumberFormat.getIntegerInstance().format(payout);
         int negotiatedPct = state.contractSalvageNegotiated[row] & 0xFF;
-        String flavor = PatronBriefingFlavor.render(archetype, contractId,
-                client.displayName, targetPlanetName, payoutFormatted, negotiatedPct);
+        String flavor = BriefingComposer.compose(archetype, OfficerMoodReader.currentMood(),
+                contractId, client.displayName, targetPlanetName, payoutFormatted, negotiatedPct);
         String id = "contract:" + contractId;
 
         return new Mission(id, name, MissionType.RAID, MissionSource.GENERATED,

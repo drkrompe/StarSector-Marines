@@ -495,6 +495,34 @@ in the mission-select surface. See
 implications for layout, mood lines, "ask the officer" levers, and
 diegetic offer filtering.
 
+### Composable voice layering
+
+The briefing the player reads is composed from independent axes — no
+cartesian-product content cost. Adding a new mood or a new archetype
+touches one bank only.
+
+1. **Patron archetype** (body) drives the *register* of what the
+   officer reports about the patron. Lives in
+   `mod/data/marines/patron_briefings.json`. Archetype-pure: no
+   officer or mood references in the text.
+2. **Officer mood** (prefix + optional suffix) frames the body with
+   the officer's read on the company's current situation. Four buckets
+   — `DESPERATE / GREEN / STEADY / SEASONED`. Lives in
+   `mod/data/marines/comms_officer_voice.json`. Mood-pure: no patron
+   or archetype references in the text.
+3. **Officer characterization** (future) — different officers will
+   ship different prefix/suffix pools and aside vocabularies. Same
+   axis as swapping a captain. Not modeled until there's a second
+   officer to compare against; the mood axis stands in with a single
+   fixed characterization.
+
+Composed by `BriefingComposer.compose(archetype, mood, contractId, ...)`
+into `prefix + body + (optional suffix)`. All picks deterministic from
+the contract id so save/load and re-renders produce the same text. Mood
+is read from `OfficerMoodReader` — currently stubbed `STEADY`; deriving
+real mood from `CampaignState` (cash trend, captain count, fleet size,
+MRB rep) is the next step.
+
 ### Briefing register reveals patron situation
 
 A desperate Tier-1 non-MRB Capo's brief reads different from a polished
