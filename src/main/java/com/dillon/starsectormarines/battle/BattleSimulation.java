@@ -382,21 +382,9 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Fighter wings committed to this battle. Lives on the sim so the overlay can read it without coupling to the briefing screen. */
     private FlybyRoster flybyRoster = FlybyRoster.EMPTY;
 
-    /**
-     * Authored tactical node graph from the map generator. Read by the
-     * patrol behavior for waypoint sampling. Default is an empty map so
-     * legacy callers that don't wire one through still work — patrols on
-     * empty maps degrade gracefully to random-cell wander.
-     */
-    private TacticalMap tacticalMap = new TacticalMap(java.util.Collections.emptyList());
-
-    /**
-     * Defense posts placed by {@link com.dillon.starsectormarines.battle.mapgen.bsp.DefensePostStamper}
-     * (conquest only). Walked by {@link #demolishDeadTurrets} when a turret
-     * dies to detect post-wide annihilation and release the garrison squad's
-     * tight patrol radius. Empty for missions that don't stamp posts.
-     */
-    private List<DefensePost> defensePosts = java.util.Collections.emptyList();
+    /** Battle-scoped tactical data from the map generator — TacticalMap hint graph + DefensePost list. The {@link #getTacticalMap}/{@link #setTacticalMap}/{@link #setDefensePosts} delegates below forward here. */
+    private final com.dillon.starsectormarines.battle.tactical.TacticalContext tactical =
+            new com.dillon.starsectormarines.battle.tactical.TacticalContext();
 
     public BattleSimulation(NavigationGrid grid, CellTopology topology) {
         this.grid = grid;
@@ -628,15 +616,11 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** All squads currently registered. Used by the per-tick alert update; behaviors should read individual squads via {@link #getSquad(int)} keyed off {@link Unit#squadId}. */
     public Collection<Squad> getSquads()   { return squads.values(); }
     /** Tactical hint graph produced by the map generator. Never null; an empty graph for legacy maps. */
-    public TacticalMap getTacticalMap()    { return tacticalMap; }
+    public TacticalMap getTacticalMap()    { return tactical.getTacticalMap(); }
     /** Set the tactical map for this battle. Called once by {@code BattleSetup} right after construction, before the first {@link #advance} call. */
-    public void setTacticalMap(TacticalMap map) {
-        this.tacticalMap = map != null ? map : new TacticalMap(java.util.Collections.emptyList());
-    }
+    public void setTacticalMap(TacticalMap map) { tactical.setTacticalMap(map); }
     /** Stamped defense posts (conquest only). Called once by {@code BattleSetup} right after construction; safe to pass null/empty for missions without posts. */
-    public void setDefensePosts(List<DefensePost> posts) {
-        this.defensePosts = (posts != null && !posts.isEmpty()) ? posts : java.util.Collections.emptyList();
-    }
+    public void setDefensePosts(List<DefensePost> posts) { tactical.setDefensePosts(posts); }
 
     @Override
     public void addUnit(Unit u) {
@@ -1745,6 +1729,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      * work bounded and infrequent.
      */
     private void releaseGuardpostIfAllTurretsDead(MapTurret deadTurret) {
+        List<DefensePost> defensePosts = tactical.getDefensePosts();
         if (defensePosts.isEmpty()) return;
         DefensePost owner = null;
         for (DefensePost post : defensePosts) {
