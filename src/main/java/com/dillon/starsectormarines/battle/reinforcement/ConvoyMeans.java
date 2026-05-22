@@ -40,6 +40,8 @@ public final class ConvoyMeans implements ReinforcementMeans {
     private static final float PENDING_SEC = 6f;
     /** Cells the off-map staging waypoint sits beyond the perimeter — the truck visibly drives onto the map rather than popping in at the edge. */
     private static final float OFFMAP_PAD = 6f;
+    /** Minimum cell separation between a fresh dispatch's destination junction and any already-active convoy truck's LZ. Soft preference — exhausted before degrading to no-separation (see {@link #bestInteriorJunctionWithin}) so a clogged rally still resolves rather than failing. */
+    private static final int MIN_DEST_SEPARATION = 4;
 
     private final RoadGraph graph;
 
@@ -64,12 +66,13 @@ public final class ConvoyMeans implements ReinforcementMeans {
 
         List<RoadGraph.Node> perim = graph.perimeterNodes();
         List<RoadGraph.Node> perimByDist = sortedByDistance(perim, rx, ry);
+        List<int[]> reservedLz = activeConvoyDestinations(sim);
 
         RoadGraph.Node entry = null;
         RoadGraph.Node dest = null;
         for (RoadGraph.Node candidate : perimByDist) {
             Set<RoadGraph.Node> reachable = reachableFrom(candidate);
-            RoadGraph.Node candDest = bestInteriorJunctionWithin(reachable, rx, ry);
+            RoadGraph.Node candDest = bestInteriorJunctionWithin(reachable, rx, ry, reservedLz);
             if (candDest != null && candDest != candidate) {
                 entry = candidate;
                 dest = candDest;
@@ -145,25 +148,61 @@ public final class ConvoyMeans implements ReinforcementMeans {
 
     /**
      * Best interior junction within a reachable set, near ({@code cx, cy}).
-     * Walks degree thresholds from 3 down to 2 — a degree-2 interior node
-     * is a worse drop-off (forced turn-around at arrival) but still better
-     * than a failed dispatch, especially when a stub component has only
-     * chain nodes.
+     * Two priority axes: junction quality (degree ≥ 3 preferred, ≥ 2
+     * tolerated) and separation from already-active convoy destinations
+     * in {@code reserved}. Degree quality wins outright — a separated
+     * degree-2 junction loses to an overlapping degree-3 — because a
+     * degree-2 node forces the truck to back out the way it came at
+     * arrival. Within each degree tier, separation is preferred but
+     * not required: an overlapping high-quality junction beats no
+     * junction at all.
+     *
+     * <p>{@code reserved} is the list of {@code (lzCellX, lzCellY)} for
+     * every currently in-flight or landed convoy truck. Empty list →
+     * separation never kicks in, behaviour matches the pre-separation
+     * implementation.
      */
-    private static RoadGraph.Node bestInteriorJunctionWithin(Set<RoadGraph.Node> reachable, int cx, int cy) {
+    private static RoadGraph.Node bestInteriorJunctionWithin(Set<RoadGraph.Node> reachable,
+                                                             int cx, int cy,
+                                                             List<int[]> reserved) {
         for (int minDegree = 3; minDegree >= 2; minDegree--) {
-            RoadGraph.Node best = null;
-            int bestD2 = Integer.MAX_VALUE;
-            for (RoadGraph.Node n : reachable) {
-                if (n.perimeter) continue;
-                if (n.degree() < minDegree) continue;
-                int dx = n.cellX - cx;
-                int dy = n.cellY - cy;
-                int d2 = dx * dx + dy * dy;
-                if (d2 < bestD2) { bestD2 = d2; best = n; }
+            for (boolean useSeparation : new boolean[]{true, false}) {
+                RoadGraph.Node best = null;
+                int bestD2 = Integer.MAX_VALUE;
+                for (RoadGraph.Node n : reachable) {
+                    if (n.perimeter) continue;
+                    if (n.degree() < minDegree) continue;
+                    if (useSeparation && nearAnyReserved(n.cellX, n.cellY, reserved)) continue;
+                    int dx = n.cellX - cx;
+                    int dy = n.cellY - cy;
+                    int d2 = dx * dx + dy * dy;
+                    if (d2 < bestD2) { bestD2 = d2; best = n; }
+                }
+                if (best != null) return best;
             }
-            if (best != null) return best;
         }
         return null;
+    }
+
+    /** {@code (lzCellX, lzCellY)} of every convoy vehicle that's still inbound or landed. DEPARTING / GONE trucks aren't holding the cell any more, so they're excluded. */
+    private static List<int[]> activeConvoyDestinations(BattleSimulation sim) {
+        List<int[]> out = new ArrayList<>();
+        for (Vehicle v : sim.getConvoyVehicles()) {
+            if (v.state == Vehicle.State.DEPARTING || v.state == Vehicle.State.GONE) continue;
+            out.add(new int[]{(int) v.lzX, (int) v.lzY});
+        }
+        return out;
+    }
+
+    /** True iff {@code (x, y)} is within {@link #MIN_DEST_SEPARATION} cells of any reserved point. Squared-distance comparison so no sqrt. */
+    private static boolean nearAnyReserved(int x, int y, List<int[]> reserved) {
+        if (reserved.isEmpty()) return false;
+        int sepSq = MIN_DEST_SEPARATION * MIN_DEST_SEPARATION;
+        for (int[] r : reserved) {
+            int dx = x - r[0];
+            int dy = y - r[1];
+            if (dx * dx + dy * dy < sepSq) return true;
+        }
+        return false;
     }
 }
