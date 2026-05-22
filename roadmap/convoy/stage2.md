@@ -29,9 +29,15 @@ real gameplay.
 
 ### 1. Conquest reinforcement integration (the actual payoff)
 
-`DEBUG_SPAWN_TEST_CONVOY` goes away. Convoys become part of the
-defender reinforcement pipeline on Conquest maps. Open design
-calls:
+> The orchestration side of this item is owned by
+> [`../reinforcement/architecture.md`](../reinforcement/architecture.md) —
+> the convoy is one means provider among several (walk-in, shuttle).
+> The bullets below stay convoy-specific: what the convoy means
+> provider does once the reinforcement system hands it a request.
+
+`DEBUG_SPAWN_TEST_CONVOY` goes away. Convoys become the
+`ConvoyMeans` provider in the reinforcement system, fulfilling
+requests on Conquest maps with a road graph. Open design calls:
 
 - **Trigger.** Time-based (every N sim-seconds) vs. event-based
   (when defender squad strength drops below threshold) vs. authored

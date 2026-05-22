@@ -28,12 +28,13 @@ The **campaign tier** is the active surface — the SoA `CampaignState`,
 contracts loop, patron houses surfacing as clients, and the
 mission-resolver bridge writing back to the campaign graph on battle
 outcomes. The Marine Ops mission-select screen is now the consumer of
-that layer (see `roadmap/campaign/` for the design docs;
-`sessions/2026-05-21-3.md` for the implementation summary).
+that layer. See [`campaign/`](campaign/) — `README.md` indexes the
+design docs and the `complete/` tracking history.
 
 The battle/ground side continues to evolve in parallel (convoy
 kinematics, mapgen, AI) — see `roadmap/convoy/` for the ground-vehicle
-track and the recent session logs for other sibling-track activity.
+track, `roadmap/reinforcement/` for the orchestration layer above it,
+and the recent session logs for other sibling-track activity.
 
 ## Immediate next-up
 

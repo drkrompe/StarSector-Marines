@@ -16,6 +16,10 @@ fire on the way back out. The companion to the shuttle / air system.
 
 ## Related
 
+- [`../reinforcement/`](../reinforcement/) — the orchestration layer
+  above convoy. Convoy is one of three planned delivery means
+  (walk-in, convoy, shuttle); `stage2.md` item 1 is the convoy-side
+  implementation of the reinforcement system's first end-to-end slice.
 - `roadmap/ai/` — battle AI roadmap (GOAP for infantry/mechs). Convoys
   spawn squads that hook into that planner once Stage 2 wires them
   into the commander loop.
