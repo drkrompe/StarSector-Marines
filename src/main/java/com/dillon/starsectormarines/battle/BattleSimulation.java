@@ -317,6 +317,15 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final ArrayList<PendingDamage> pendingDamage = new ArrayList<>();
     /** Recycled {@link PendingDamage} records. {@link #flushPendingDamage()} returns every drained entry here, so the steady-state allocation is zero. */
     private final ArrayList<PendingDamage> pendingDamagePool = new ArrayList<>();
+    /**
+     * Occupancy + {@code destIndex} mutations queued by {@link #setPath} during
+     * UPDATE_UNITS, drained in APPLY_OCCUPANCY. Sibling queue to
+     * {@link #pendingDamage} with the same justification: keeps the per-unit
+     * dispatch free of shared-state mutation so the loop can fork-join.
+     */
+    private final ArrayList<PendingOccupancyDelta> pendingOccupancy = new ArrayList<>();
+    /** Recycled {@link PendingOccupancyDelta} records — same pool convention as {@link #pendingDamagePool}. */
+    private final ArrayList<PendingOccupancyDelta> pendingOccupancyPool = new ArrayList<>();
     private final Random rng = new Random();
 
     /** Counter for IDs of marines deboarded from shuttles. Bumped via {@link #nextMarineId()} when {@link AirSystem} deboards. Format: "m0", "m1", ... matches the pre-shuttle setup convention. */
@@ -1103,6 +1112,15 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             updateUnit(u);
         }
         tickProfile.lap(TickProfile.Phase.UPDATE_UNITS);
+        // Apply occupancy + destIndex deltas queued by setPath during the
+        // per-unit dispatch. Runs at the end of UPDATE_UNITS, before any
+        // subsequent serial phase reads the spatial state. None of the
+        // post-UPDATE_UNITS phases call setPath today, so a single drain
+        // here keeps the bookkeeping consistent for the rest of the tick
+        // (and the next tick's REBUILD_OCCUPANCY rebuilds from u.path
+        // regardless).
+        flushPendingOccupancyDeltas();
+        tickProfile.lap(TickProfile.Phase.APPLY_OCCUPANCY);
         // Burst-fire rounds queued after a primary shot — fire them now so
         // they emit at the right per-weapon spacing without piling onto the
         // AI's single-decision-per-tick model. Lives on the InfantryWeapons
@@ -1308,30 +1326,73 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     }
 
     /**
-     * Replaces a unit's path and keeps {@link #occupancyMap} in sync — the old
-     * destination loses its occupancy contribution and the new destination
-     * gains one (subject to start-cell guards). Public so AI behaviors in
-     * {@code battle.ai} can route their movement through this method instead
-     * of touching {@code u.path} directly. Pass {@link GridPathfinder#EMPTY_PATH}
-     * (or call {@link #clearPath(Unit)}) to drop the current path.
+     * Replaces a unit's path and queues a deferred {@link #occupancyMap} +
+     * {@link #destIndex} update. Public so AI behaviors in {@code battle.ai}
+     * can route their movement through this method instead of touching
+     * {@code u.path} directly. Pass {@link GridPathfinder#EMPTY_PATH} (or
+     * call {@link #clearPath(Unit)}) to drop the current path.
+     *
+     * <p>{@code u.path} / {@code u.pathIdx} are unit-local and mutated inline.
+     * Shared spatial state goes through {@link #pendingOccupancy} so the
+     * per-unit dispatch never races on the occupancy map or destIndex; the
+     * delta drains in APPLY_OCCUPANCY at the end of UPDATE_UNITS, before any
+     * subsequent phase reads the map.
      */
     public void setPath(Unit u, int[] newPath) {
         int oldDestX = pathDestX(u);
         int oldDestY = pathDestY(u);
-        if (oldDestX != Integer.MIN_VALUE && (oldDestX != u.cellX || oldDestY != u.cellY)) {
-            decrementOccupancy(oldDestX, oldDestY);
-            destIndex.removeDestination(u, oldDestX, oldDestY);
-        }
         u.path = newPath;
         u.pathIdx = newPath.length == 0 ? 0 : 1;
+        int newDestX;
+        int newDestY;
         if (newPath.length > 0) {
-            int newDestX = newPath[newPath.length - 2];
-            int newDestY = newPath[newPath.length - 1];
-            if (newDestX != u.cellX || newDestY != u.cellY) {
-                incrementOccupancy(newDestX, newDestY);
-                destIndex.addDestination(u, newDestX, newDestY);
-            }
+            newDestX = newPath[newPath.length - 2];
+            newDestY = newPath[newPath.length - 1];
+        } else {
+            newDestX = Integer.MIN_VALUE;
+            newDestY = Integer.MIN_VALUE;
         }
+        // Self-cell destinations don't claim occupancy in the original
+        // setPath, so skip them on both sides to keep the queued deltas
+        // pure no-ops-free.
+        boolean hasOld = oldDestX != Integer.MIN_VALUE && (oldDestX != u.cellX || oldDestY != u.cellY);
+        boolean hasNew = newDestX != Integer.MIN_VALUE && (newDestX != u.cellX || newDestY != u.cellY);
+        if (!hasOld && !hasNew) return;
+        PendingOccupancyDelta d = pendingOccupancyPool.isEmpty()
+                ? new PendingOccupancyDelta()
+                : pendingOccupancyPool.remove(pendingOccupancyPool.size() - 1);
+        d.u = u;
+        d.oldDestX = hasOld ? oldDestX : Integer.MIN_VALUE;
+        d.oldDestY = hasOld ? oldDestY : Integer.MIN_VALUE;
+        d.newDestX = hasNew ? newDestX : Integer.MIN_VALUE;
+        d.newDestY = hasNew ? newDestY : Integer.MIN_VALUE;
+        pendingOccupancy.add(d);
+    }
+
+    /**
+     * Drains {@link #pendingOccupancy} FIFO — applies decrements + destIndex
+     * removals for old destinations, then increments + additions for new
+     * destinations. Order preservation matters when a single unit gets
+     * multiple {@link #setPath} calls in one tick (the second call's "old"
+     * is the first call's "new"); FIFO drain produces the same net state
+     * as the pre-deferral inline mutation.
+     */
+    private void flushPendingOccupancyDeltas() {
+        if (pendingOccupancy.isEmpty()) return;
+        for (int i = 0, n = pendingOccupancy.size(); i < n; i++) {
+            PendingOccupancyDelta d = pendingOccupancy.get(i);
+            if (d.oldDestX != Integer.MIN_VALUE) {
+                decrementOccupancy(d.oldDestX, d.oldDestY);
+                destIndex.removeDestination(d.u, d.oldDestX, d.oldDestY);
+            }
+            if (d.newDestX != Integer.MIN_VALUE) {
+                incrementOccupancy(d.newDestX, d.newDestY);
+                destIndex.addDestination(d.u, d.newDestX, d.newDestY);
+            }
+            d.u = null;
+            pendingOccupancyPool.add(d);
+        }
+        pendingOccupancy.clear();
     }
 
     /** Convenience: drop the unit's path. Equivalent to {@code setPath(u, GridPathfinder.EMPTY_PATH)}. */

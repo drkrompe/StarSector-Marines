@@ -26,8 +26,8 @@ import org.json.JSONObject;
 public final class TickProfileDumper {
 
     private static final Logger LOG = Logger.getLogger(TickProfileDumper.class);
-    /** Bumped when the dump shape changes — lets offline tools recognize older dumps. v2 added APPLY_DAMAGE phase. */
-    private static final int SCHEMA_VERSION = 2;
+    /** Bumped when the dump shape changes — lets offline tools recognize older dumps. v2 added APPLY_DAMAGE phase; v3 added APPLY_OCCUPANCY phase. */
+    private static final int SCHEMA_VERSION = 3;
 
     private TickProfileDumper() {}
 
