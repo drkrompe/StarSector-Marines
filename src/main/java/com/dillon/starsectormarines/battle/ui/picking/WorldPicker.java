@@ -56,7 +56,12 @@ public final class WorldPicker implements HudPanel {
             float worldY = camera.screenToCellY(e.getY());
             Unit picked = nearestUnit(sim, worldX, worldY);
             if (picked != null && picked.squadId != Unit.NO_SQUAD) {
-                ctx.getSelection().selectSquad(picked.squadId);
+                // Capture the specific unit alongside the squad id — the
+                // SquadStateDumper surfaces this so a dump records "which
+                // member the user was inspecting when they hit DUMP",
+                // which is the signal for diagnosing individually bad-
+                // responding mechs within an otherwise-engaged squad.
+                ctx.getSelection().selectUnit(picked.squadId, picked.id);
             } else {
                 ctx.getSelection().clear();
             }

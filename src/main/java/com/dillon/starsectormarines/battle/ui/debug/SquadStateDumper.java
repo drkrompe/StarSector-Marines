@@ -41,7 +41,7 @@ public final class SquadStateDumper {
 
     private static final Logger LOG = Logger.getLogger(SquadStateDumper.class);
     /** Bumped when the dump shape changes — lets offline tools recognize older dumps. */
-    private static final int SCHEMA_VERSION = 2;
+    private static final int SCHEMA_VERSION = 3;
 
     private SquadStateDumper() {}
 
@@ -49,15 +49,23 @@ public final class SquadStateDumper {
      * Writes the dump and returns the common-folder-relative path the file
      * lands at on success, or {@code null} on any error (the call site
      * shows a brief status line either way; details land in the game log).
+     *
+     * <p>{@code selectedUnitId} is optional: when non-null, the dump tags
+     * the matching member with {@code "selected": true} and surfaces a
+     * top-level {@code selectedMemberId} so offline inspection of "this
+     * specific mech is misbehaving while its squadmates look fine" can
+     * jump straight to the right row.
      */
-    public static String dump(Squad squad, BattleSimulation sim, WorldState worldState) {
+    public static String dump(Squad squad, BattleSimulation sim, WorldState worldState,
+                              String selectedUnitId) {
         if (squad == null || sim == null) return null;
         try {
             JSONObject root = new JSONObject();
             root.put("schemaVersion", SCHEMA_VERSION);
             root.put("simTickIndex", sim.simTickIndex);
+            root.put("selectedMemberId", selectedUnitId != null ? selectedUnitId : JSONObject.NULL);
             root.put("squad", buildSquadJson(squad, sim));
-            root.put("members", buildMembersJson(squad, sim));
+            root.put("members", buildMembersJson(squad, sim, selectedUnitId));
             root.put("currentGoal", buildGoalJson(squad));
             root.put("currentPlan", buildPlanJson(squad));
             root.put("worldState", buildPredicateJson(worldState));
@@ -114,12 +122,16 @@ public final class SquadStateDumper {
         return o;
     }
 
-    private static JSONArray buildMembersJson(Squad squad, BattleSimulation sim) throws Exception {
+    private static JSONArray buildMembersJson(Squad squad, BattleSimulation sim,
+                                              String selectedUnitId) throws Exception {
         JSONArray arr = new JSONArray();
         for (Unit u : sim.getUnits()) {
             if (u.squadId != squad.id) continue;
             JSONObject o = new JSONObject();
             o.put("id", u.id);
+            if (selectedUnitId != null && selectedUnitId.equals(u.id)) {
+                o.put("selected", true);
+            }
             o.put("alive", u.isAlive());
             o.put("role", u.role != null ? u.role.name() : null);
             o.put("cellX", u.cellX);

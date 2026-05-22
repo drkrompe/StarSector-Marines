@@ -649,7 +649,8 @@ public final class SquadPlanDebugPanel implements HudPanel {
         if (s == null) return;
         BattleSimulation sim = ctx.getSim();
         if (sim == null) return;
-        String path = SquadStateDumper.dump(s, sim, detailState);
+        String selectedUnitId = ctx.getSelection().getSelectedUnitId();
+        String path = SquadStateDumper.dump(s, sim, detailState, selectedUnitId);
         dumpStatusMessage = path != null
                 ? "(dumped to common/" + path + ")"
                 : "(dump failed — see log)";

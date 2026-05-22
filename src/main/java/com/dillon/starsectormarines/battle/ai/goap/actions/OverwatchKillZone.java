@@ -117,9 +117,11 @@ public final class OverwatchKillZone implements Action {
 
         // Fire pass — withhold SRM (overwatch doctrine), allow LRM (preferred)
         // and chaingun (last-ditch if a target closes to chaingun band).
-        if (member.target == null || !member.target.isAlive()) {
-            member.target = TacticalScoring.findBestTarget(member, sim);
-        }
+        // Re-pick whenever the cached target isn't currently shootable: an
+        // LR mech parked at its overwatch cell can otherwise stay locked onto
+        // an enemy that's slid behind cover while ignoring a fresh enemy now
+        // standing in its kill lane.
+        member.target = TacticalScoring.refreshTargetIfNotShootable(member, sim);
         if (member.target != null) {
             float dist = TacticalScoring.cellDistance(member.cellX, member.cellY,
                     member.target.cellX, member.target.cellY);
