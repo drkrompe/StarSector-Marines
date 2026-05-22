@@ -85,7 +85,17 @@ public final class EnterZone implements Action {
         if (sim.getZoneGraph().zoneIdAt(member.cellX, member.cellY) == targetZoneId) {
             return ActionStatus.SUCCESS;
         }
-        if (member.target == null || !member.target.isAlive()) {
+        // Drop a stale-but-alive target when it's no longer worth pursuing
+        // (out of LoS / out of range, or a closer visible enemy has appeared).
+        // Without the pursuit gate, a member who acquired a target on the
+        // approach keeps walking past a garrison ambush that just opened up:
+        // the cached pick is still alive, so the null/dead-only check never
+        // re-runs the picker, and the per-member contact-halt below reads
+        // false against the stale target while the new shooters fire freely.
+        // Sister gate to EngagePosture / ClearZone — see refreshTargetIfNotShootable.
+        if (member.target == null
+                || !member.target.isAlive()
+                || !TacticalScoring.shouldKeepPursuing(member, member.target, sim)) {
             member.target = TacticalScoring.findBestTarget(member, sim);
         }
 
