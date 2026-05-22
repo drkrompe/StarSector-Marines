@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.mapgen.bsp;
 
 import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.map.CellTopology;
+import com.dillon.starsectormarines.battle.map.RoomPurpose;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 import org.junit.jupiter.api.Test;
@@ -13,17 +15,23 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Synthetic-grid coverage for {@link KeepEntryChamberStamper}. Each test
- * builds a small grid with a known building geometry, registers a single
- * COMMAND_POST tactical node, runs the stamper, and asserts whether an
- * INNER_POSITION (the entry-chamber anchor) was emitted at the expected
- * cell.
+ * builds a small grid + topology, stamps {@link RoomPurpose} labels on
+ * cells the way {@link com.dillon.starsectormarines.battle.mapgen.bsp.fill.BuildingShellCore}
+ * does at carve time, registers a single COMMAND_POST tactical node, runs
+ * the stamper, and asserts whether an INNER_POSITION (the entry-chamber
+ * anchor) was emitted at the expected cell.
+ *
+ * <p>Slice A of the three-chamber refactor: the stamper reads
+ * {@link RoomPurpose} labels directly instead of inferring chambers via
+ * the zone graph, so tests stamp labels onto cells rather than carving
+ * walls + doorways and relying on zone-detector flood behavior.
  */
 public class KeepEntryChamberStamperTest {
 
     private static final int W = 20;
     private static final int H = 20;
 
-    /** All-walkable grid. Tests that need a wall partition stamp it explicitly. */
+    /** All-walkable grid. */
     private static NavigationGrid openGrid() {
         NavigationGrid grid = new NavigationGrid(W, H);
         for (int y = 0; y < H; y++) {
@@ -39,17 +47,28 @@ public class KeepEntryChamberStamperTest {
                 Faction.DEFENDER, 95, 4);
     }
 
+    /** Stamp {@code purpose} across a rectangular region — what BuildingShellCore.labelRooms emits per chamber. */
+    private static void labelRegion(CellTopology topology, RoomPurpose purpose,
+                                    int l, int t, int r, int b) {
+        for (int y = t; y <= b; y++) {
+            for (int x = l; x <= r; x++) {
+                topology.setRoomPurpose(x, y, purpose);
+            }
+        }
+    }
+
     @Test
     public void singleRoomBuildingSkipsEmission() {
-        // No interior wall → flood from the COMMAND_POST anchor reaches
-        // every walkable cell in the leaf bbox → no other-room cells
-        // exist → no INNER_POSITION emitted.
+        // Single-room COMMAND building — labelRooms stamps THRONE across the
+        // whole interior, no ENTRY cells exist, stamper emits nothing.
         NavigationGrid grid = openGrid();
+        CellTopology topology = new CellTopology(W, H);
+        labelRegion(topology, RoomPurpose.KEEP_THRONE, 9, 9, 11, 11);
         TacticalNode cp = commandPost(8, 8, 12, 12, 10, 10);
         List<TacticalNode> tactical = new ArrayList<>();
         tactical.add(cp);
 
-        KeepEntryChamberStamper.stamp(grid, tactical);
+        KeepEntryChamberStamper.stamp(grid, topology, tactical);
 
         assertEquals(1, tactical.size(),
                 "single-room keep has no entry chamber to emit");
@@ -57,35 +76,20 @@ public class KeepEntryChamberStamperTest {
 
     @Test
     public void multiRoomBuildingEmitsEntryChamberOnFarSide() {
-        // 8×8 building shell at (6,6)-(13,13) with full perimeter walls + a
-        // partition wall stripe at y=10 with a doorway at x=10. Mirrors what
-        // BuildingShellCore produces: an enclosed building (no open edges
-        // around the leaf) with one interior partition. ZoneDetector then
-        // returns three zones inside the bbox — throne room (y=11..13),
-        // antechamber (y=6..9), and the partition doorway as its own
-        // 1-cell zone. COMMAND_POST anchor at (10, 12) → throne room →
-        // stamper should emit an INNER_POSITION on the antechamber side.
+        // 8×8 building bbox at (6,6)-(13,13) with a partition at y=10.
+        // Throne side (y=11..12) labeled KEEP_THRONE; entry side (y=7..9)
+        // labeled KEEP_ENTRY. COMMAND_POST anchor at (10, 12) sits in the
+        // throne chamber. Stamper finds the labeled entry cells and emits
+        // INNER_POSITION at their centroid (snapped to a real cell).
         NavigationGrid grid = openGrid();
-        // Perimeter walls — top, bottom, left, right of the bbox.
-        for (int x = 6; x <= 13; x++) {
-            grid.setWalkable(x, 6, false);
-            grid.setWalkable(x, 13, false);
-        }
-        for (int y = 6; y <= 13; y++) {
-            grid.setWalkable(6, y, false);
-            grid.setWalkable(13, y, false);
-        }
-        // Partition wall stripe at y=10, with a doorway at x=10.
-        for (int x = 7; x <= 12; x++) {
-            if (x == 10) continue;
-            grid.setWalkable(x, 10, false);
-        }
-        grid.setDoorway(10, 10, true);
+        CellTopology topology = new CellTopology(W, H);
+        labelRegion(topology, RoomPurpose.KEEP_THRONE, 7, 11, 12, 12);
+        labelRegion(topology, RoomPurpose.KEEP_ENTRY,  7,  7, 12,  9);
         TacticalNode cp = commandPost(6, 6, 13, 13, 10, 12);
         List<TacticalNode> tactical = new ArrayList<>();
         tactical.add(cp);
 
-        KeepEntryChamberStamper.stamp(grid, tactical);
+        KeepEntryChamberStamper.stamp(grid, topology, tactical);
 
         assertEquals(2, tactical.size(),
                 "multi-room keep should emit an entry-chamber INNER_POSITION");
@@ -98,38 +102,38 @@ public class KeepEntryChamberStamperTest {
     }
 
     @Test
-    public void skipsCommandPostWithUnwalkableAnchor() {
-        // Defensive case: COMMAND_POST anchor placed on a wall cell
-        // (degenerate map-gen state). Stamper can't seed a flood, skips.
+    public void emitsNothingWhenBuildingHasNoLabels() {
+        // Defensive case — COMMAND_POST exists but no carver labeled the
+        // building (legacy callers, non-keep buildings repurposed as
+        // COMMAND_POST, degenerate map-gen state). Stamper must not crash,
+        // must not emit.
         NavigationGrid grid = openGrid();
-        grid.setWalkable(10, 10, false);
+        CellTopology topology = new CellTopology(W, H);
         TacticalNode cp = commandPost(8, 8, 12, 12, 10, 10);
         List<TacticalNode> tactical = new ArrayList<>();
         tactical.add(cp);
 
-        KeepEntryChamberStamper.stamp(grid, tactical);
+        KeepEntryChamberStamper.stamp(grid, topology, tactical);
 
         assertEquals(1, tactical.size(),
-                "COMMAND_POST anchor on a wall must not crash; skip emission");
+                "unlabeled building must not crash; skip emission");
     }
 
     @Test
     public void ignoresNonCommandPostKinds() {
-        // The stamper only walks COMMAND_POST nodes. A BARRACKS or
-        // ARMORY in a multi-room building shouldn't get an extra
-        // INNER_POSITION emission — only the keep does.
+        // The stamper only walks COMMAND_POST nodes. A BARRACKS or ARMORY
+        // with KEEP_ENTRY labels in its bbox (hypothetical) shouldn't get
+        // an extra INNER_POSITION emission — only the keep does.
         NavigationGrid grid = openGrid();
-        for (int x = 6; x <= 13; x++) {
-            if (x == 10) continue;
-            grid.setWalkable(x, 10, false);
-        }
-        grid.setDoorway(10, 10, true);
+        CellTopology topology = new CellTopology(W, H);
+        labelRegion(topology, RoomPurpose.KEEP_ENTRY, 7, 7, 12, 9);
+        labelRegion(topology, RoomPurpose.KEEP_THRONE, 7, 11, 12, 12);
         TacticalNode bx = new TacticalNode(TacticalNode.Kind.BARRACKS,
                 10, 12, 6, 6, 13, 13, Faction.DEFENDER, 60, 4);
         List<TacticalNode> tactical = new ArrayList<>();
         tactical.add(bx);
 
-        KeepEntryChamberStamper.stamp(grid, tactical);
+        KeepEntryChamberStamper.stamp(grid, topology, tactical);
 
         assertEquals(1, tactical.size(),
                 "non-COMMAND_POST kinds must not get the chamber emission");
@@ -137,37 +141,22 @@ public class KeepEntryChamberStamperTest {
 
     @Test
     public void skipsSubMinimumChamber() {
-        // Sealed 5×5 building at (8,8)-(12,12) with a partition wall at y=10
-        // and a doorway at (10,10). Throne-room interior (y=11) is the
-        // standard 3-cell strip; antechamber side has a wall at (9,9) so it
-        // only contains 2 walkable cells — below MIN_CHAMBER_CELLS. The
-        // stamper detects the partition (separate zones via ZoneDetector)
-        // but skips emission because the antechamber is too small to read
-        // as a real chamber.
+        // Entry chamber has only 2 labeled cells (below MIN_CHAMBER_CELLS=3).
+        // Even though the labels exist, the chamber's too small to read as a
+        // real room and the stamper skips emission.
         NavigationGrid grid = openGrid();
-        // Sealed perimeter.
-        for (int x = 8; x <= 12; x++) {
-            grid.setWalkable(x, 8, false);
-            grid.setWalkable(x, 12, false);
-        }
-        for (int y = 8; y <= 12; y++) {
-            grid.setWalkable(8, y, false);
-            grid.setWalkable(12, y, false);
-        }
-        // Partition wall at y=10 with a doorway at (10,10).
-        grid.setWalkable(9, 10, false);
-        grid.setWalkable(11, 10, false);
-        grid.setDoorway(10, 10, true);
-        // Antechamber cell carved away so it only has 2 walkable cells
-        // (10,9 and 11,9) — below MIN_CHAMBER_CELLS=3.
-        grid.setWalkable(9, 9, false);
+        CellTopology topology = new CellTopology(W, H);
+        labelRegion(topology, RoomPurpose.KEEP_THRONE, 9, 11, 11, 11);
+        // Only 2 entry-chamber cells.
+        topology.setRoomPurpose(10, 9, RoomPurpose.KEEP_ENTRY);
+        topology.setRoomPurpose(11, 9, RoomPurpose.KEEP_ENTRY);
         TacticalNode cp = commandPost(8, 8, 12, 12, 10, 11);
         List<TacticalNode> tactical = new ArrayList<>();
         tactical.add(cp);
 
-        KeepEntryChamberStamper.stamp(grid, tactical);
+        KeepEntryChamberStamper.stamp(grid, topology, tactical);
 
         assertEquals(1, tactical.size(),
-                "2-cell antechamber is below MIN_CHAMBER_CELLS — must not emit");
+                "2-cell entry chamber is below MIN_CHAMBER_CELLS — must not emit");
     }
 }

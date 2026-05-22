@@ -148,6 +148,16 @@ public class CellTopology {
      * {@link GroundKind#SAND}) — wall + water cells ignore the slot.
      */
     private final byte[] natureOverlay;
+    /**
+     * Per-cell {@link RoomPurpose} label. Stored as {@code ordinal() + 1} so
+     * the implicit zero reads as "no carver labeled this cell." Written by
+     * carve-time partitioners that know which logical room a cell belongs to
+     * (currently {@link com.dillon.starsectormarines.battle.mapgen.bsp.fill.BuildingShellCore}'s
+     * partition step on opted-in {@link BuildingKind#FORTIFIED} sub-buildings).
+     * Read by post-fill stampers and AI consumers that need to identify "which
+     * chamber is this cell in?" without reverse-engineering via the zone graph.
+     */
+    private final byte[] roomPurpose;
 
     public CellTopology(int width, int height) {
         this.width = width;
@@ -158,6 +168,7 @@ public class CellTopology {
         this.buildingId = new short[width * height];
         this.buildingKindHint = new byte[width * height];
         this.natureOverlay = new byte[width * height];
+        this.roomPurpose = new byte[width * height];
         // ground[i] == 0 == GroundKind.INDOOR.ordinal() — implicit default.
     }
 
@@ -309,6 +320,34 @@ public class CellTopology {
     public void setNatureOverlay(int x, int y, NatureTile tile) {
         if (!inBounds(x, y)) return;
         natureOverlay[index(x, y)] = (byte) (tile == null ? 0 : (tile.ordinal() + 1));
+    }
+
+    // ----- Room purpose -----
+
+    /**
+     * Returns the {@link RoomPurpose} label at this cell, or {@code null} if
+     * no carver labeled it. Stored as {@code ordinal()+1} so the implicit zero
+     * means "unset."
+     */
+    public RoomPurpose getRoomPurpose(int x, int y) {
+        if (!inBounds(x, y)) return null;
+        int raw = roomPurpose[index(x, y)] & 0xFF;
+        if (raw == 0) return null;
+        RoomPurpose[] vals = RoomPurpose.values();
+        int idx = raw - 1;
+        return (idx >= 0 && idx < vals.length) ? vals[idx] : null;
+    }
+
+    /**
+     * Stamps a {@link RoomPurpose} label at this cell. Pass {@code null} to
+     * clear. Stampers call this across a logical room's footprint (typically
+     * every walkable non-doorway interior cell on one side of a partition);
+     * post-fill consumers read it back to identify chambers without re-running
+     * connectivity analysis.
+     */
+    public void setRoomPurpose(int x, int y, RoomPurpose purpose) {
+        if (!inBounds(x, y)) return;
+        roomPurpose[index(x, y)] = (byte) (purpose == null ? 0 : (purpose.ordinal() + 1));
     }
 
     /**

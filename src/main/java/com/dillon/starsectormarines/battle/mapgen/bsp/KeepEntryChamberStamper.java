@@ -1,8 +1,9 @@
 package com.dillon.starsectormarines.battle.mapgen.bsp;
 
 import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.map.CellTopology;
+import com.dillon.starsectormarines.battle.map.RoomPurpose;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 
 import java.util.ArrayList;
@@ -40,14 +41,18 @@ import java.util.List;
  * INNER_POSITION up the same as any other tactical kind, so the
  * garrison lands and fights.
  *
- * <p>Detection method: flood-fill from the COMMAND_POST anchor over
- * walkable cells inside the building's leaf bbox. Cells in the bbox
- * <em>not</em> reached by the flood live in a different room (separated
- * by the partition wall) — that's the entry chamber. Single-room
- * buildings have zero unreached cells and skip emission gracefully.
- * Same lineage as the {@link CompoundPerimeterDefenderStamper}: a
- * post-fill pass that reads what the fillers built and emits tactical
- * anchors without re-carving topology.
+ * <p>Detection method: {@link BuildingShellCore} now labels each chamber
+ * at carve time via {@link RoomPurpose} — the COMMAND_POST anchor side
+ * gets {@link RoomPurpose#KEEP_THRONE}, the antechamber side gets
+ * {@link RoomPurpose#KEEP_ENTRY}. The stamper walks each COMMAND_POST's
+ * leaf bbox and collects cells labeled {@code KEEP_ENTRY}; if the
+ * collected set is ≥ {@link #MIN_CHAMBER_CELLS} it picks a representative
+ * anchor (centroid snapped to the nearest member cell). Previous versions
+ * inferred chambers via a transient {@link
+ * com.dillon.starsectormarines.battle.nav.zone.ZoneGraph} flood and
+ * deduced "the other zone is the antechamber"; the label-driven path
+ * is cheaper and survives carvers that produce more than two chambers
+ * (each chamber's purpose is known explicitly).
  *
  * <p>V1 ships single-extra-chamber detection (one INNER_POSITION per
  * keep) even when {@link com.dillon.starsectormarines.battle.mapgen.bsp.fill.BuildingShellCore}'s
@@ -57,7 +62,7 @@ import java.util.List;
  */
 public final class KeepEntryChamberStamper {
 
-    /** Minimum number of walkable cells in the "other" room for it to qualify as an entry chamber. Single-cell pockets aren't large enough to read as a chamber; they're just irregular building geometry. */
+    /** Minimum number of labeled cells in the entry chamber for it to qualify. Single-cell pockets aren't large enough to read as a chamber; they're just irregular building geometry. */
     private static final int MIN_CHAMBER_CELLS = 3;
 
     /** Priority for the entry-chamber INNER_POSITION — below the COMMAND_POST (95) so the allocator fills the throne-room garrison first and the chamber takes whatever remains after the doctrine-elite slot lands. Slightly above the perimeter-GUARDPOST (50) so the chamber gets manned before perimeter lookouts. */
@@ -73,26 +78,13 @@ public final class KeepEntryChamberStamper {
      * in-place; {@link TacticalLinker} (which runs after this stamper) does NOT
      * wire INNER_POSITION into its compound-leaf FALLBACK_TO pass — interior
      * fallback is goal-AI territory, not the link graph.
-     *
-     * <p>Builds a transient {@link ZoneGraph} from the current grid state and
-     * reads zone membership directly. The ZoneGraph that
-     * {@link com.dillon.starsectormarines.battle.nav.NavigationService}
-     * eventually owns at sim setup is a separate instance — running the
-     * detector again here is cheap (~100×50 grid) and avoids a lifecycle
-     * coupling between map-gen and battle setup.
      */
-    public static void stamp(NavigationGrid grid, List<TacticalNode> tactical) {
-        if (grid == null || tactical == null) return;
-        // Single detector pass for the whole map; reused across every
-        // COMMAND_POST. The doorway flags + walkability that ZoneDetector
-        // reads are finalized by the building fillers that run before this
-        // stamper — TacticalLinker hasn't run yet but doesn't touch grid.
-        ZoneGraph zones = new ZoneGraph(grid);
-        zones.rebuild();
+    public static void stamp(NavigationGrid grid, CellTopology topology, List<TacticalNode> tactical) {
+        if (grid == null || topology == null || tactical == null) return;
         List<TacticalNode> initial = new ArrayList<>(tactical);
         for (TacticalNode node : initial) {
             if (node.kind != TacticalNode.Kind.COMMAND_POST) continue;
-            int[] entryAnchor = findEntryChamberAnchor(node, grid, zones);
+            int[] entryAnchor = findEntryChamberAnchor(node, grid, topology);
             if (entryAnchor == null) continue;
             tactical.add(new TacticalNode(TacticalNode.Kind.INNER_POSITION,
                     entryAnchor[0], entryAnchor[1],
@@ -104,61 +96,42 @@ public final class KeepEntryChamberStamper {
     }
 
     /**
-     * Look up the COMMAND_POST anchor's zone; that's the throne room. Walk the
-     * leaf bbox collecting walkable, non-doorway cells that belong to a
-     * <em>different</em> zone — those are the antechamber cells (separated
-     * from the throne room by a partition doorway, which is its own 1-cell
-     * zone). If the antechamber set is ≥ {@link #MIN_CHAMBER_CELLS}, pick a
-     * representative anchor — the geometric centroid of the antechamber,
-     * snapped to the nearest member cell so the anchor is itself walkable.
-     * Returns {@code null} when the building has a single connected interior.
+     * Walk the COMMAND_POST's leaf bbox collecting cells labeled
+     * {@link RoomPurpose#KEEP_ENTRY}. If the collected set is ≥
+     * {@link #MIN_CHAMBER_CELLS}, return the geometric centroid of the
+     * entry chamber snapped to the nearest member cell (so the anchor is
+     * itself walkable). Returns {@code null} when the building wasn't
+     * labeled (no partition, or non-keep building) or the entry chamber
+     * is too small to read as a real chamber.
      */
     private static int[] findEntryChamberAnchor(TacticalNode commandPost, NavigationGrid grid,
-                                                ZoneGraph zones) {
+                                                CellTopology topology) {
         int left = commandPost.left;
         int top = commandPost.top;
         int right = commandPost.right;
         int bottom = commandPost.bottom;
 
-        // Anchor may not be inside the bbox (defensive), or may be on a wall
-        // or doorway cell. Skip gracefully if so — the building has no
-        // resolvable throne-room zone seed.
-        int seedX = commandPost.anchorX;
-        int seedY = commandPost.anchorY;
-        if (seedX < left || seedX > right || seedY < top || seedY > bottom) return null;
-        if (!grid.inBounds(seedX, seedY) || !grid.isWalkable(seedX, seedY)) return null;
-        if (grid.isDoorway(seedX, seedY)) return null;
-
-        int throneZoneId = zones.zoneIdAt(seedX, seedY);
-        if (throneZoneId < 0) return null;
-
-        // Antechamber cells = bbox-interior walkable non-doorway cells that
-        // belong to a zone other than the throne-room's. Exclude doorway
-        // cells (their own zones) so the centroid isn't pulled toward the
-        // partition boundary — anchor should sit in the room proper.
-        List<int[]> otherRoom = new ArrayList<>();
+        List<int[]> entry = new ArrayList<>();
         long sumX = 0, sumY = 0;
         for (int y = top; y <= bottom; y++) {
             for (int x = left; x <= right; x++) {
-                if (!grid.isWalkable(x, y)) continue;
-                if (grid.isDoorway(x, y)) continue;
-                int zid = zones.zoneIdAt(x, y);
-                if (zid < 0 || zid == throneZoneId) continue;
-                otherRoom.add(new int[]{x, y});
+                if (!grid.inBounds(x, y)) continue;
+                if (topology.getRoomPurpose(x, y) != RoomPurpose.KEEP_ENTRY) continue;
+                entry.add(new int[]{x, y});
                 sumX += x;
                 sumY += y;
             }
         }
-        if (otherRoom.size() < MIN_CHAMBER_CELLS) return null;
+        if (entry.size() < MIN_CHAMBER_CELLS) return null;
 
-        // Centroid, snapped to the nearest other-room cell. The raw centroid
+        // Centroid, snapped to the nearest entry-chamber cell. The raw centroid
         // can land on a wall or on the seed-room side of the partition; the
         // snap guarantees an actual entry-chamber cell.
-        float cx = sumX / (float) otherRoom.size();
-        float cy = sumY / (float) otherRoom.size();
-        int[] best = otherRoom.get(0);
+        float cx = sumX / (float) entry.size();
+        float cy = sumY / (float) entry.size();
+        int[] best = entry.get(0);
         float bestD2 = Float.MAX_VALUE;
-        for (int[] cell : otherRoom) {
+        for (int[] cell : entry) {
             float dx = cell[0] - cx;
             float dy = cell[1] - cy;
             float d2 = dx * dx + dy * dy;

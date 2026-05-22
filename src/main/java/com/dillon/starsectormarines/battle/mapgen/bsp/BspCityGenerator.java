@@ -333,7 +333,7 @@ public final class BspCityGenerator implements MapGenerator {
         // not in the compound-leaf fallback graph. Defender allocator picks
         // it up Pass 1 so the antechamber gets manned. Slice 6 of
         // central-keep.md (patch 1 of the slice-6 fix sequence).
-        KeepEntryChamberStamper.stamp(grid, tactical);
+        KeepEntryChamberStamper.stamp(grid, topology, tactical);
 
         // Step 3d — link tactical nodes. Runs once after every node is
         // emitted (from compound fillers + fortress wall stamping); geometric

@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.TileManifest;
 import com.dillon.starsectormarines.battle.map.BuildingKind;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.map.RoomPurpose;
 import com.dillon.starsectormarines.battle.mapgen.BlockKind;
 import com.dillon.starsectormarines.battle.mapgen.BlockLeaf;
 import com.dillon.starsectormarines.battle.mapgen.bsp.Compound;
@@ -65,9 +66,21 @@ public final class MilitaryBaseFiller implements CompoundFiller {
     /** Default wall HP — matches the legacy seed used elsewhere. Higher than building walls because the compound wall is meant to read as armor. */
     private static final int WALL_HP_FORTIFIED = 150;
 
+    /**
+     * Keep COMMAND sub-building. Opts into {@link RoomPurpose} labeling so
+     * {@link com.dillon.starsectormarines.battle.mapgen.bsp.KeepEntryChamberStamper}
+     * can read chambers by label instead of inferring them from the zone
+     * graph. The anchor-side chamber (where the interior anchor BFS lands
+     * — that's where the COMMAND_POST tactical node is emitted) gets
+     * {@link RoomPurpose#KEEP_THRONE}; the antechamber side gets
+     * {@link RoomPurpose#KEEP_ENTRY}. Single-room (non-partitioned)
+     * COMMAND buildings just get THRONE across the whole interior — no
+     * antechamber, no INNER_POSITION emission.
+     */
     private static final BuildingShellCore.BuildingConfig COMMAND_CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.INDOOR, TileManifest.SKYPORT_DOODADS, PointOfInterest.Kind.COMMS,
-            BuildingLayouts.LayoutRecipe.SHOP, BuildingKind.FORTIFIED);
+            BuildingLayouts.LayoutRecipe.SHOP, BuildingKind.FORTIFIED,
+            RoomPurpose.KEEP_THRONE, RoomPurpose.KEEP_ENTRY);
     private static final BuildingShellCore.BuildingConfig BARRACKS_CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.INDOOR, TileManifest.RESIDENTIAL_DOODADS, PointOfInterest.Kind.RESIDENTIAL,
             BuildingLayouts.LayoutRecipe.HOME, BuildingKind.FORTIFIED);

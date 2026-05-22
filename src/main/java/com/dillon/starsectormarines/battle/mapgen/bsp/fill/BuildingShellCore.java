@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.TileManifest;
 import com.dillon.starsectormarines.battle.map.BuildingKind;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.map.RoomPurpose;
 import com.dillon.starsectormarines.battle.map.WallMasks;
 import com.dillon.starsectormarines.battle.mapgen.BlockLeaf;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -68,17 +69,48 @@ final class BuildingShellCore {
         final BuildingLayouts.LayoutRecipe layoutRecipe;
         /** Building-kind hint stamped across every cell of the carved footprint; the flood-fill pass votes the dominant value per connected room to flavor the resulting {@link com.dillon.starsectormarines.battle.map.Building}. */
         final BuildingKind buildingKind;
+        /**
+         * Room-purpose label stamped onto walkable interior cells in the
+         * chamber that contains the interior anchor (the side a COMMAND_POST
+         * tactical node would land on). {@code null} means "don't label this
+         * room" — non-keep buildings leave their interior unlabeled so
+         * post-fill stampers can ignore them. The single-room case stamps
+         * every walkable interior cell with this purpose; the partitioned
+         * case stamps only the anchor-side chamber.
+         */
+        final RoomPurpose anchorRoomPurpose;
+        /**
+         * Room-purpose label stamped onto the chamber that does NOT contain
+         * the interior anchor — the antechamber side of a binary partition.
+         * Only meaningful when a partition wall lands; ignored in the single-
+         * room case. {@code null} means "don't label even when partitioned" —
+         * the partition still carves, but the other chamber has no purpose
+         * tag for stampers to find.
+         */
+        final RoomPurpose otherRoomPurpose;
 
         BuildingConfig(GroundKind interiorGround,
                        TileManifest.TileFrame[] doodadPool,
                        PointOfInterest.Kind poiKind,
                        BuildingLayouts.LayoutRecipe layoutRecipe,
                        BuildingKind buildingKind) {
+            this(interiorGround, doodadPool, poiKind, layoutRecipe, buildingKind, null, null);
+        }
+
+        BuildingConfig(GroundKind interiorGround,
+                       TileManifest.TileFrame[] doodadPool,
+                       PointOfInterest.Kind poiKind,
+                       BuildingLayouts.LayoutRecipe layoutRecipe,
+                       BuildingKind buildingKind,
+                       RoomPurpose anchorRoomPurpose,
+                       RoomPurpose otherRoomPurpose) {
             this.interiorGround = interiorGround;
             this.doodadPool = doodadPool;
             this.poiKind = poiKind;
             this.layoutRecipe = layoutRecipe;
             this.buildingKind = buildingKind;
+            this.anchorRoomPurpose = anchorRoomPurpose;
+            this.otherRoomPurpose = otherRoomPurpose;
         }
     }
 
@@ -172,8 +204,55 @@ final class BuildingShellCore {
         int cy = (bt + bb) / 2;
         int[] anchor = findNearestWalkableFromBuilding(grid, cx, cy, bl, bt, br, bb);
         int[] interior = findInteriorAnchor(grid, cx, cy, bl, bt, br, bb);
+
+        // Label rooms based on the partition wall + interior anchor. Non-keep
+        // configs leave both purposes null and skip labeling entirely; the keep
+        // COMMAND config stamps THRONE on the anchor side and ENTRY on the
+        // other side so post-fill stampers can identify chambers by direct
+        // lookup instead of zone-graph inference.
+        labelRooms(grid, topology, bl, bt, br, bb, wall, interior, config);
+
         return new PointOfInterest(config.poiKind, bl, bt, br, bb,
                 anchor[0], anchor[1], interior[0], interior[1]);
+    }
+
+    /**
+     * Stamps {@link RoomPurpose} labels onto walkable, non-doorway interior
+     * cells. Skips entirely when both purposes are null (the default for
+     * non-keep callers). In the single-room case, every interior cell gets
+     * {@code anchorRoomPurpose}. In the partitioned case, cells on the same
+     * side of the partition as {@code interior} get {@code anchorRoomPurpose}
+     * (that's the chamber the COMMAND_POST anchor will land in) and cells on
+     * the opposite side get {@code otherRoomPurpose}. The partition wall
+     * itself (non-walkable) and the partition doorway (walkable but
+     * "between" rooms) are left unlabeled.
+     */
+    private static void labelRooms(NavigationGrid grid, CellTopology topology,
+                                   int bl, int bt, int br, int bb,
+                                   InteriorWall wall, int[] interior, BuildingConfig config) {
+        if (config.anchorRoomPurpose == null && config.otherRoomPurpose == null) return;
+
+        boolean partitioned = wall.orient != InteriorWallOrient.NONE;
+        boolean vertical = wall.orient == InteriorWallOrient.VERTICAL;
+        int axis = wall.axis;
+        int ax = interior[0];
+        int ay = interior[1];
+
+        for (int y = bt + 1; y <= bb - 1; y++) {
+            for (int x = bl + 1; x <= br - 1; x++) {
+                if (!grid.isWalkable(x, y)) continue;
+                if (grid.isDoorway(x, y)) continue;
+                if (!partitioned) {
+                    topology.setRoomPurpose(x, y, config.anchorRoomPurpose);
+                    continue;
+                }
+                boolean sameSideAsAnchor = vertical
+                        ? (x < axis) == (ax < axis)
+                        : (y < axis) == (ay < axis);
+                RoomPurpose p = sameSideAsAnchor ? config.anchorRoomPurpose : config.otherRoomPurpose;
+                if (p != null) topology.setRoomPurpose(x, y, p);
+            }
+        }
     }
 
     /**
