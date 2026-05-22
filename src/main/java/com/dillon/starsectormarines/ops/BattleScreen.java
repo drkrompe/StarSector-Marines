@@ -26,8 +26,13 @@ import com.dillon.starsectormarines.battle.VehicleKind;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.map.WallMasks;
 import com.dillon.starsectormarines.battle.flyby.FlybyOverlay;
+import com.dillon.starsectormarines.battle.reinforcement.ReinforcementRequest;
+import com.dillon.starsectormarines.battle.reinforcement.ReinforcementService;
+import com.dillon.starsectormarines.battle.tactical.TacticalMap;
+import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 import com.dillon.starsectormarines.battle.ui.BattleHud;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
+import com.dillon.starsectormarines.battle.ui.panel.DebugTogglesPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadDetailPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadOverviewPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadPlanDebugPanel;
@@ -55,7 +60,6 @@ import com.dillon.starsectormarines.render2d.QuadBatch;
 import com.dillon.starsectormarines.render2d.RibbonBatch;
 import com.dillon.starsectormarines.render2d.SolidQuadBatch;
 import com.dillon.starsectormarines.ui.ButtonWidget;
-import com.dillon.starsectormarines.ui.DebugTogglesWidget;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.LabelWidget;
 import com.dillon.starsectormarines.ui.WidgetRoot;
@@ -1258,19 +1262,6 @@ public class BattleScreen implements Screen, BattleUiContext {
             speedBtnCenterX[i] = bx + SPEED_BTN_W / 2f;
         }
 
-        // Debug toggles widget — top-center of the grid view, collapsed by
-        // default. Register new toggles via add(label, getter, toggle); the
-        // widget reads getter every frame so we don't need to refresh on
-        // state changes from outside the widget.
-        float debugWidgetW = 220f;
-        float debugWidgetX = layout.gridX + (layout.gridW - debugWidgetW) / 2f;
-        float debugWidgetY = layout.gridY + 6f;
-        DebugTogglesWidget debugToggles = new DebugTogglesWidget(
-                debugWidgetX, debugWidgetY, debugWidgetW, Fonts.ORBITRON_20);
-        debugToggles.add("Docking paths",
-                () -> DEBUG_RENDER_DOCKING_PATHS,
-                () -> DEBUG_RENDER_DOCKING_PATHS = !DEBUG_RENDER_DOCKING_PATHS);
-        widgets.add(debugToggles);
     }
 
     @Override
@@ -1425,6 +1416,51 @@ public class BattleScreen implements Screen, BattleUiContext {
         // the upcoming DoD / ECS refactor by showing which tick phases are
         // actually expensive at peak unit counts.
         hud.addPanel(new TickProfileDebugPanel(this));
+        // Debug toggles + actions (top-center, collapsed by default). Replaces
+        // the prior DebugTogglesWidget which was attached to the screen's
+        // widget root rather than the hud — moved into the hud so input +
+        // render ordering match the rest of the debug panels.
+        DebugTogglesPanel debugPanel = new DebugTogglesPanel(this);
+        debugPanel.addToggle("Docking paths",
+                () -> DEBUG_RENDER_DOCKING_PATHS,
+                () -> DEBUG_RENDER_DOCKING_PATHS = !DEBUG_RENDER_DOCKING_PATHS);
+        debugPanel.addAction("Force reinforcement", this::forceDefenderReinforcement);
+        hud.addPanel(debugPanel);
+    }
+
+    /**
+     * Debug action: post a defender {@link ReinforcementRequest} to the
+     * service so the active means picks it up on its next slow-tick.
+     * Rally = nearest defender compound to map center (matches the
+     * GarrisonDepletedTrigger rally shape); falls back to map center
+     * when no compound exists. No-op when no sim is bound.
+     */
+    private void forceDefenderReinforcement() {
+        BattleSimulation sim = getSim();
+        if (sim == null) return;
+        ReinforcementService rs = sim.getReinforcementService();
+        if (rs == null) return;
+        int gw = sim.getGrid().getWidth();
+        int gh = sim.getGrid().getHeight();
+        int rallyX = gw / 2;
+        int rallyY = gh / 2;
+        TacticalMap tactical = sim.getTacticalMap();
+        if (tactical != null) {
+            List<TacticalNode> near = tactical.nearest(rallyX, rallyY, 1,
+                    java.util.EnumSet.of(TacticalNode.Kind.COMMAND_POST,
+                            TacticalNode.Kind.BARRACKS,
+                            TacticalNode.Kind.ARMORY));
+            if (!near.isEmpty()) {
+                TacticalNode node = near.get(0);
+                rallyX = node.centerX();
+                rallyY = node.centerY();
+            }
+        }
+        rs.post(new ReinforcementRequest(
+                Faction.DEFENDER,
+                ReinforcementRequest.Reason.SCRIPTED_TIMER,
+                ReinforcementRequest.Strength.SMALL,
+                rallyX, rallyY));
     }
 
     @Override

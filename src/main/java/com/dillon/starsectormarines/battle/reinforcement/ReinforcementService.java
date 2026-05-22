@@ -54,6 +54,17 @@ public final class ReinforcementService {
      */
     public void addMeans(ReinforcementMeans m) { means.add(m); }
 
+    /**
+     * Inject a request from outside the trigger registry — debug UI,
+     * scripted-mission flags, future commander overrides. Drains on the
+     * next {@link #tick} pass alongside trigger-posted requests, so the
+     * means priority list applies the same way for ad-hoc and trigger-
+     * driven requests.
+     */
+    public void post(ReinforcementRequest req) {
+        if (req != null) pending.add(req);
+    }
+
     public boolean isEmpty() { return triggers.isEmpty() && means.isEmpty(); }
 
     /**
