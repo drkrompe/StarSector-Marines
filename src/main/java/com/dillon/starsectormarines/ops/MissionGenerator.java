@@ -4,6 +4,9 @@ import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.flyby.FighterWing;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
+import com.dillon.starsectormarines.campaign.CampaignState;
+import com.dillon.starsectormarines.campaign.CampaignStateScript;
+import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ops.intel.DefenseLevel;
@@ -14,7 +17,9 @@ import com.dillon.starsectormarines.ops.intel.MissionArchetype;
 import com.dillon.starsectormarines.ops.intel.PlanetIntel;
 import com.dillon.starsectormarines.ops.mission.story.StoryEligibilityContext;
 import com.dillon.starsectormarines.ops.mission.story.StoryMissionRegistry;
+import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.PlanetAPI;
+import com.fs.starfarer.api.campaign.econ.MarketAPI;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,6 +50,13 @@ public final class MissionGenerator {
 
     public static List<Mission> generate(PlanetAPI planet, Client client) {
         if (planet == null || client == null) return Collections.emptyList();
+
+        // Patron client — emit Missions from OFFERED contracts. Industry catalog
+        // and story missions don't apply: patron contracts are first-class.
+        if (client.patronHouseId != -1L) {
+            return generateFromContracts(planet, client);
+        }
+
         PlanetIntel intel = IntelReader.read(planet);
 
         long seed = (planet.getName() + ":" + client.factionId).hashCode();
@@ -75,6 +87,112 @@ public final class MissionGenerator {
         }
 
         return out;
+    }
+
+    /**
+     * Builds the mission list for a patron client — one Mission per OFFERED
+     * contract whose patron matches the client and whose pickup market matches
+     * the planet. Each Mission carries the contract id so the resolver bridge
+     * can write the outcome back to {@link CampaignState}.
+     */
+    private static List<Mission> generateFromContracts(PlanetAPI planet, Client client) {
+        CampaignStateScript script = CampaignStateScript.getInstance();
+        if (script == null) return Collections.emptyList();
+        CampaignState state = script.state();
+
+        MarketAPI pickupMarket = planet.getMarket();
+        if (pickupMarket == null) return Collections.emptyList();
+        int pickupSlot = state.marketRegistry.intern(pickupMarket.getId());
+
+        List<Mission> out = new ArrayList<>();
+        long seed = (planet.getName() + ":patron:" + client.patronHouseId).hashCode();
+        Random r = new Random(seed);
+
+        int emitted = 0;
+        for (int i = 0; i < state.contractCount && emitted < MAX_MISSIONS; i++) {
+            if (ContractState.fromByte(state.contractState[i]) != ContractState.OFFERED) continue;
+            if (state.contractPatronHouseId[i] != client.patronHouseId) continue;
+            if (state.contractMarketId[i] != pickupSlot) continue;
+
+            Mission m = buildContractMission(state, i, planet, client, r, emitted);
+            if (m == null) continue;
+            out.add(m);
+            emitted++;
+        }
+        return out;
+    }
+
+    private static Mission buildContractMission(CampaignState state, int row,
+                                                PlanetAPI pickupPlanet, Client client,
+                                                Random r, int index) {
+        long contractId = state.contractId[row];
+        long targetHouseId = state.contractTargetHouseId[row];
+        if (targetHouseId == -1L) return null;
+        int targetHouseRow = state.houseIndex(targetHouseId);
+        if (targetHouseRow < 0) return null;
+
+        String targetMarketStr = state.marketRegistry.get(state.houseMarketId[targetHouseRow]);
+        if (targetMarketStr == null) return null;
+        MarketAPI targetMarket = Global.getSector() != null
+                ? Global.getSector().getEconomy().getMarket(targetMarketStr)
+                : null;
+        if (targetMarket == null || targetMarket.getPrimaryEntity() == null) return null;
+
+        String targetPlanetName = targetMarket.getPrimaryEntity().getName();
+        String targetIndustryId = pickFirstNonDisruptedIndustry(targetMarket);
+        DefenseLevel defense = readDefense(targetMarket);
+        RiskLevel risk = deriveRisk(defense, MissionType.RAID);
+
+        int cashMult = state.contractCashMultiplier[row] & 0xFF;
+        if (cashMult <= 0) cashMult = 100;
+        int payout = (int) ((long) state.contractBasePayout[row] * cashMult / 100L);
+
+        FlybyRoster clientSupport = rollFighterSupport(r, client.factionId, risk, Faction.MARINE);
+        FlybyRoster enemySupport  = rollFighterSupport(r, client.factionId, risk, Faction.DEFENDER);
+
+        int requiredDrops = requiredDropsFor(MissionType.RAID, risk);
+        if (com.dillon.starsectormarines.DevConfig.DROP_COUNT_OVERRIDE > 0) {
+            requiredDrops = com.dillon.starsectormarines.DevConfig.DROP_COUNT_OVERRIDE;
+        }
+        int employerShuttles = rollEmployerShuttles(r, risk, requiredDrops);
+
+        float x = 0.08f + r.nextFloat() * 0.84f;
+        float y = 0.08f + r.nextFloat() * 0.84f;
+
+        String name = "Strike — " + targetPlanetName;
+        String flavor = client.displayName + " wants " + targetPlanetName
+                + " hit. Salvage cap " + (state.contractSalvageBaseline[row] & 0xFF) + "%.";
+        String id = "contract:" + contractId;
+
+        return new Mission(id, name, MissionType.RAID, MissionSource.GENERATED,
+                payout, risk, requirementsFor(risk), flavor, x, y,
+                clientSupport, enemySupport, requiredDrops, employerShuttles,
+                targetPlanetName, targetIndustryId,
+                contractId,
+                state.contractSalvageBaseline[row],
+                state.contractSalvageNegotiated[row],
+                state.contractCashMultiplier[row]);
+    }
+
+    private static String pickFirstNonDisruptedIndustry(MarketAPI market) {
+        if (market.getIndustries() == null) return null;
+        for (com.fs.starfarer.api.campaign.econ.Industry ind : market.getIndustries()) {
+            if (ind == null || ind.isDisrupted()) continue;
+            return ind.getId();
+        }
+        return null;
+    }
+
+    /** Mirrors IntelReader's defense classification just enough for contract risk. */
+    private static DefenseLevel readDefense(MarketAPI market) {
+        int size = market.getSize();
+        boolean hasMilitary = market.hasIndustry("militarybase") || market.hasIndustry("highcommand");
+        boolean hasPatrol   = market.hasIndustry("patrolhq");
+        if (hasMilitary && size >= 6) return DefenseLevel.FORTRESS;
+        if (hasMilitary)              return DefenseLevel.HEAVY;
+        if (hasPatrol && size >= 5)   return DefenseLevel.MODERATE;
+        if (hasPatrol)                return DefenseLevel.LIGHT;
+        return DefenseLevel.UNDEFENDED;
     }
 
     private static Mission buildMission(Random r,

@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.BattleSimulation;
+import com.dillon.starsectormarines.campaign.CampaignState;
+import com.dillon.starsectormarines.campaign.CampaignStateScript;
+import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.fs.starfarer.api.Global;
@@ -140,11 +143,12 @@ public class MarineOpsContext {
      */
     public List<Mission> getMissionsFor(Client client) {
         if (client == null) return Collections.emptyList();
-        List<Mission> cached = missionsByClient.get(client.factionId);
+        String key = client.identity();
+        List<Mission> cached = missionsByClient.get(key);
         if (cached != null) return cached;
         List<Mission> generated = Collections.unmodifiableList(
                 MissionGenerator.generate(planet, client));
-        missionsByClient.put(client.factionId, generated);
+        missionsByClient.put(key, generated);
         return generated;
     }
 
@@ -196,7 +200,55 @@ public class MarineOpsContext {
             }
         }
 
+        // 5. Campaign-tier patron houses with OFFERED contracts at this market.
+        //    One Client per patron — missions come from contracts[], not the
+        //    industry catalog (MissionGenerator branches on patronHouseId).
+        if (market != null) {
+            appendPatronClients(out, market, player);
+        }
+
         return out;
+    }
+
+    /**
+     * Walks {@link CampaignState}'s contracts list, finds patrons with at least
+     * one {@code OFFERED} row at {@code market}, and appends them as patron
+     * clients. Each patron appears once even if they have multiple offers.
+     */
+    private static void appendPatronClients(List<Client> out, MarketAPI market, FactionAPI player) {
+        CampaignStateScript script = CampaignStateScript.getInstance();
+        if (script == null) return;
+        CampaignState state = script.state();
+        int marketSlot = state.marketRegistry.intern(market.getId());
+
+        Set<Long> seenPatrons = new LinkedHashSet<>();
+        for (int i = 0; i < state.contractCount; i++) {
+            if (ContractState.fromByte(state.contractState[i]) != ContractState.OFFERED) continue;
+            if (state.contractMarketId[i] != marketSlot) continue;
+            long patronId = state.contractPatronHouseId[i];
+            if (!seenPatrons.add(patronId)) continue;
+
+            int patronRow = state.houseIndex(patronId);
+            if (patronRow < 0) continue;
+
+            String factionId = state.factionRegistry.get(state.houseFactionId[patronRow]);
+            String name = state.houseDisplayName[patronRow] != null
+                    ? state.houseDisplayName[patronRow]
+                    : ("house#" + patronId);
+
+            FactionAPI faction = (factionId != null && Global.getSector() != null)
+                    ? Global.getSector().getFaction(factionId)
+                    : null;
+            String crest = faction != null ? faction.getCrest() : null;
+            RepLevel rep = (faction != null && player != null)
+                    ? player.getRelationshipLevel(faction.getId())
+                    : RepLevel.NEUTRAL;
+            boolean locked = rep.ordinal() <= RepLevel.HOSTILE.ordinal();
+            String lockReason = locked ? "clientLockedHostile" : null;
+
+            out.add(new Client(factionId != null ? factionId : "patron",
+                    name, crest, rep, locked, lockReason, patronId));
+        }
     }
 
     /**
