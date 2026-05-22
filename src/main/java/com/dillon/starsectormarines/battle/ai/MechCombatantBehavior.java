@@ -23,12 +23,13 @@ public final class MechCombatantBehavior implements UnitBehavior {
 
     @Override
     public void update(Unit u, BattleSimulation sim) {
-        u.target = TacticalScoring.refreshTargetIfNotShootable(u, sim);
-        if (u.target == null) return;
+        Unit target = TacticalScoring.refreshTargetIfNotShootable(u, sim);
+        u.setTarget(target);
+        if (target == null) return;
 
-        float dist = TacticalScoring.cellDistance(u.cellX, u.cellY, u.target.cellX, u.target.cellY);
+        float dist = TacticalScoring.cellDistance(u.cellX, u.cellY, target.cellX, target.cellY);
         boolean inRange = dist <= u.attackRange;
-        boolean visible = sim.getGrid().hasLineOfSight(u.cellX, u.cellY, u.target.cellX, u.target.cellY);
+        boolean visible = sim.getGrid().hasLineOfSight(u.cellX, u.cellY, target.cellX, target.cellY);
 
         // The fire pass runs OUTSIDE the marine's `inRange && visible` gate
         // because LRMs are indirect-fire-capable: a mech with line of sight
@@ -36,7 +37,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
         // penalty). Chaingun + SRM still need LOS — that gating lives inside
         // tryFireMechWeapons.
         if (inRange) {
-            tryFireMechWeapons(u, dist, sim, visible);
+            tryFireMechWeapons(u, target, dist, sim, visible);
         }
 
         // Close engagement = in chaingun range with LOS. Outside that, the
@@ -45,12 +46,12 @@ public final class MechCombatantBehavior implements UnitBehavior {
         // path above).
         boolean closeEngagement = inRange && visible && dist <= u.mech.srmPod.range;
         if (!closeEngagement && u.moveProgress == 0f) {
-            int[] dest = TacticalScoring.findFiringPosition(u, u.target, sim);
+            int[] dest = TacticalScoring.findFiringPosition(u, target, sim);
             if (dest == null) {
                 // No reachable firing or vantage cell. Drop the target; the
                 // mech's next acquisition cycle picks something it can engage.
                 // LRMs already fired indirectly this tick if range allowed.
-                u.target = null;
+                u.targetId = 0L;
             } else {
                 sim.setPath(u, GridPathfinder.findPath(sim.getGrid(),
                         u.cellX, u.cellY, dest[0], dest[1], sim.getOccupancyMap()));
@@ -85,39 +86,39 @@ public final class MechCombatantBehavior implements UnitBehavior {
      *       chunk of the salvo flies wide."</li>
      * </ul>
      */
-    public static void tryFireMechWeapons(Unit u, float dist, BattleSimulation sim, boolean hasLos) {
-        tryFireChaingun(u, dist, sim, hasLos);
-        tryFireSrm(u, dist, sim, hasLos);
-        tryFireLrm(u, dist, sim, hasLos);
+    public static void tryFireMechWeapons(Unit u, Unit target, float dist, BattleSimulation sim, boolean hasLos) {
+        tryFireChaingun(u, target, dist, sim, hasLos);
+        tryFireSrm(u, target, dist, sim, hasLos);
+        tryFireLrm(u, target, dist, sim, hasLos);
     }
 
     /** Chaingun track: close-band sustained fire — needs LOS, fires when target is within chaingun range and the weapon is off cooldown. */
-    public static void tryFireChaingun(Unit u, float dist, BattleSimulation sim, boolean hasLos) {
+    public static void tryFireChaingun(Unit u, Unit target, float dist, BattleSimulation sim, boolean hasLos) {
         MechLoadoutState m = u.mech;
         if (hasLos && m.chaingunCooldown <= 0f && m.chaingunBurstRemaining <= 0
                 && dist <= m.chaingun.range) {
-            sim.fireMechWeapon(u, u.target, m.chaingun);
+            sim.fireMechWeapon(u, target, m.chaingun);
             m.chaingunCooldown = m.chaingun.cooldown;
             if (m.chaingun.burstCount > 1) {
                 m.chaingunBurstRemaining = m.chaingun.burstCount - 1;
                 m.chaingunBurstTimer = m.chaingun.burstSpacing;
-                m.chaingunBurstTarget = u.target;
+                m.chaingunBurstTarget = target;
             }
         }
     }
 
     /** SRM pod track: mid-close salvo — needs LOS, ammo-limited. Skip this call from any action whose doctrine withholds SRMs (e.g. LR Support overwatch). */
-    public static void tryFireSrm(Unit u, float dist, BattleSimulation sim, boolean hasLos) {
+    public static void tryFireSrm(Unit u, Unit target, float dist, BattleSimulation sim, boolean hasLos) {
         MechLoadoutState m = u.mech;
         if (hasLos && m.srmCooldown <= 0f && m.srmAmmoSalvos > 0 && m.srmSalvoRemaining <= 0
                 && dist <= m.srmPod.range) {
-            sim.fireMechWeapon(u, u.target, m.srmPod);
+            sim.fireMechWeapon(u, target, m.srmPod);
             m.srmAmmoSalvos--;
             m.srmCooldown = m.srmPod.cooldown;
             if (m.srmPod.burstCount > 1) {
                 m.srmSalvoRemaining = m.srmPod.burstCount - 1;
                 m.srmSalvoTimer = m.srmPod.burstSpacing;
-                m.srmSalvoTarget = u.target;
+                m.srmSalvoTarget = target;
             }
         }
     }
@@ -128,7 +129,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
      * only fires when not actively in close engagement. No-LOS shots get the
      * indirect-fire accuracy penalty {@link MechWeapon#LRM_NO_LOS_ACC_MULT}.
      */
-    public static void tryFireLrm(Unit u, float dist, BattleSimulation sim, boolean hasLos) {
+    public static void tryFireLrm(Unit u, Unit target, float dist, BattleSimulation sim, boolean hasLos) {
         MechLoadoutState m = u.mech;
         if (m.lrmCooldown <= 0f && m.lrmAmmoSalvos > 0 && m.lrmSalvoRemaining <= 0
                 && dist <= m.lrmArtillery.range
@@ -136,13 +137,13 @@ public final class MechCombatantBehavior implements UnitBehavior {
             float accMult = hasLos
                     ? 1.0f
                     : com.dillon.starsectormarines.battle.MechWeapon.LRM_NO_LOS_ACC_MULT;
-            sim.fireMechWeapon(u, u.target, m.lrmArtillery, accMult);
+            sim.fireMechWeapon(u, target, m.lrmArtillery, accMult);
             m.lrmAmmoSalvos--;
             m.lrmCooldown = m.lrmArtillery.cooldown;
             if (m.lrmArtillery.burstCount > 1) {
                 m.lrmSalvoRemaining = m.lrmArtillery.burstCount - 1;
                 m.lrmSalvoTimer = m.lrmArtillery.burstSpacing;
-                m.lrmSalvoTarget = u.target;
+                m.lrmSalvoTarget = target;
             }
         }
     }

@@ -307,7 +307,8 @@ public final class BreachToEngage implements Goal {
     private static Unit effectiveTarget(Squad squad, BattleSimulation sim) {
         for (Unit u : sim.getUnits()) {
             if (!u.isAlive() || u.squadId != squad.id) continue;
-            if (u.target != null && u.target.isAlive()) return u.target;
+            Unit t = sim.targetOf(u);
+            if (t != null && t.isAlive()) return t;
         }
         int cx = Math.round(squad.centroidX);
         int cy = Math.round(squad.centroidY);

@@ -79,17 +79,19 @@ public final class MechBreakContact implements Action {
      * pulling back" read.
      */
     private static void opportunisticMechFire(Unit u, BattleSimulation sim) {
-        if (u.target == null
-                || !u.target.isAlive()
-                || !TacticalScoring.shouldKeepPursuing(u, u.target, sim)) {
-            u.target = TacticalScoring.findBestTarget(u, sim);
+        Unit target = sim.targetOf(u);
+        if (target == null
+                || !target.isAlive()
+                || !TacticalScoring.shouldKeepPursuing(u, target, sim)) {
+            target = TacticalScoring.findBestTarget(u, sim);
+            u.setTarget(target);
         }
-        if (u.target == null) return;
+        if (target == null) return;
         float dist = TacticalScoring.cellDistance(u.cellX, u.cellY,
-                u.target.cellX, u.target.cellY);
+                target.cellX, target.cellY);
         if (dist > u.attackRange) return;
         boolean visible = sim.getGrid().hasLineOfSight(u.cellX, u.cellY,
-                u.target.cellX, u.target.cellY);
-        MechCombatantBehavior.tryFireMechWeapons(u, dist, sim, visible);
+                target.cellX, target.cellY);
+        MechCombatantBehavior.tryFireMechWeapons(u, target, dist, sim, visible);
     }
 }

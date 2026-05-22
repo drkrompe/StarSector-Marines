@@ -133,6 +133,24 @@ public final class UnitRegistry {
         return indexById.containsKey(id);
     }
 
+    /**
+     * Returns the {@link Unit} for {@code id}, or {@code null} if the id is
+     * unknown (never allocated) or released. The lazy-validity replacement
+     * for the old {@code target != null && target.isAlive()} idiom — a
+     * dangling {@code long} resolves cleanly to null without the holder
+     * needing to know whether the target was killed or just never existed.
+     *
+     * <p>{@code id == 0L} (the "no entity" sentinel) returns null without
+     * a map probe — that path runs every tick from every behavior that
+     * checks "do I have a target," so the fast-path matters.
+     */
+    public Unit getOrNull(long id) {
+        if (id == 0L) return null;
+        int idx = indexById.get(id);
+        if (idx == INVALID_INDEX) return null;
+        return dense[idx];
+    }
+
     /** Returns the unit at dense slot {@code idx}. Callers iterate over {@code [0, liveCount())}; no bounds check. */
     public Unit get(int idx) {
         return dense[idx];

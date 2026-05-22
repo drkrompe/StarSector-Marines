@@ -72,44 +72,46 @@ public final class ClearZone implements Action {
         // wall via the pathfinder rather than freezing. Falls back to the
         // squad-aware best-target only when zone has no live enemies (rare —
         // zoneClear normally short-circuits first).
-        boolean targetOutOfZone = member.target != null && member.target.isAlive()
-                && sim.getZoneGraph().zoneIdAt(member.target.cellX, member.target.cellY) != targetZoneId;
-        if (member.target == null
-                || !member.target.isAlive()
+        Unit target = sim.targetOf(member);
+        boolean targetOutOfZone = target != null && target.isAlive()
+                && sim.getZoneGraph().zoneIdAt(target.cellX, target.cellY) != targetZoneId;
+        if (target == null
+                || !target.isAlive()
                 || targetOutOfZone
-                || !TacticalScoring.shouldKeepPursuing(member, member.target, sim)) {
+                || !TacticalScoring.shouldKeepPursuing(member, target, sim)) {
             Unit inZone = pickInZoneTarget(member, sim);
             if (inZone == null) inZone = pickNearestInZoneEnemy(member, sim);
-            member.target = inZone != null ? inZone : TacticalScoring.findBestTarget(member, sim);
+            target = inZone != null ? inZone : TacticalScoring.findBestTarget(member, sim);
+            member.setTarget(target);
         }
-        if (member.target == null) return ActionStatus.RUNNING;
+        if (target == null) return ActionStatus.RUNNING;
 
         float dist = TacticalScoring.cellDistance(member.cellX, member.cellY,
-                member.target.cellX, member.target.cellY);
+                target.cellX, target.cellY);
         boolean inRange = dist <= member.attackRange;
         boolean visible = sim.getGrid().hasLineOfSight(member.cellX, member.cellY,
-                member.target.cellX, member.target.cellY);
+                target.cellX, target.cellY);
         if (inRange && visible && member.cooldownTimer <= 0f) {
-            sim.fireShot(member, member.target);
+            sim.fireShot(member, target);
             member.cooldownTimer = member.attackCooldown;
-            member.beginBurst(member.target);
+            member.beginBurst(target);
             return ActionStatus.RUNNING;
         }
 
         // Out of range / no LOS — close on the target IFF the target is in
         // the zone we're clearing. Out-of-zone targets we don't pursue —
         // that's Story K's "doesn't push into rooms it's not clearing" rule.
-        if (sim.getZoneGraph().zoneIdAt(member.target.cellX, member.target.cellY) != targetZoneId) {
+        if (sim.getZoneGraph().zoneIdAt(target.cellX, target.cellY) != targetZoneId) {
             return ActionStatus.RUNNING;
         }
         if (member.moveProgress == 0f) {
-            int[] dest = TacticalScoring.findFiringPosition(member, member.target, sim);
+            int[] dest = TacticalScoring.findFiringPosition(member, target, sim);
             if (dest == null) {
                 // No reachable firing or vantage cell for this in-zone target.
                 // Drop the target — pickInZoneTarget will get a fresh shot next
                 // tick (Story K stays satisfied: we only ever clear within zone,
                 // and an unreachable in-zone target shouldn't pin the unit).
-                member.target = null;
+                member.targetId = 0L;
                 return ActionStatus.RUNNING;
             }
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),

@@ -140,8 +140,8 @@ public final class DamageService {
         dmgMoraleImpact = Arrays.copyOf(dmgMoraleImpact, newCapacity);
     }
 
-    /** Target-reprioritize write. Inline writes unconditionally; queued path snapshots {@code expectedTarget} so the flush can detect a concurrent self-retarget and preserve the newer choice. */
-    public void applyReprio(Unit target, Unit expectedTarget) {
+    /** Target-reprioritize write. Inline writes unconditionally; queued path snapshots {@code expectedTargetId} so the flush can detect a concurrent self-retarget and preserve the newer choice. */
+    public void applyReprio(Unit target, long expectedTargetId) {
         if (!insideParallel) {
             reprioApplier.apply(target);
             return;
@@ -152,7 +152,7 @@ public final class DamageService {
                     : pendingTargetMutationsPool.remove(pendingTargetMutationsPool.size() - 1);
             m.target = target;
             m.kind = PendingTargetMutation.Kind.REPRIORITIZE;
-            m.expectedTarget = expectedTarget;
+            m.expectedTargetId = expectedTargetId;
             pendingTargetMutations.add(m);
         }
     }
@@ -229,7 +229,7 @@ public final class DamageService {
             if (target.isAlive()) {
                 switch (m.kind) {
                     case REPRIORITIZE:
-                        if (target.target == m.expectedTarget) reprioApplier.apply(target);
+                        if (target.targetId == m.expectedTargetId) reprioApplier.apply(target);
                         break;
                     case FALLBACK:
                         fallbackApplier.apply(target, m.fallbackCellX, m.fallbackCellY);
@@ -237,7 +237,7 @@ public final class DamageService {
                 }
             }
             m.target = null;
-            m.expectedTarget = null;
+            m.expectedTargetId = 0L;
             pendingTargetMutationsPool.add(m);
         }
         pendingTargetMutations.clear();

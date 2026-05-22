@@ -52,11 +52,12 @@ public final class AttackerIndexService {
     }
 
     /**
-     * Rebuilds the index from the current {@code Unit.target} pointers.
-     * Recycles bucket lists via {@link #pool} so the steady-state allocation
-     * is zero. Skips dead attackers and dead targets so a unit holding a
-     * stale pointer at its dying enemy doesn't pollute the next tick's
-     * lookup.
+     * Rebuilds the index from the current {@link Unit#targetId} ids. Recycles
+     * bucket lists via {@link #pool} so the steady-state allocation is zero.
+     * Skips dead attackers and dead / released targets so a unit holding a
+     * stale id at its dying enemy doesn't pollute the next tick's lookup.
+     * The registry's {@code getOrNull} folds the "target was released" case
+     * into a single null check — no separate {@code targetId == 0L} branch.
      */
     public void rebuild() {
         for (ArrayList<Unit> bucket : attackersByTarget.values()) {
@@ -65,14 +66,17 @@ public final class AttackerIndexService {
         }
         attackersByTarget.clear();
         List<Unit> units = rosterService.getUnits();
+        com.dillon.starsectormarines.battle.unit.UnitRegistry registry = rosterService.getRegistry();
         for (Unit u : units) {
-            if (!u.isAlive() || u.target == null || !u.target.isAlive()) continue;
-            ArrayList<Unit> bucket = attackersByTarget.get(u.target);
+            if (!u.isAlive()) continue;
+            Unit target = registry.getOrNull(u.targetId);
+            if (target == null || !target.isAlive()) continue;
+            ArrayList<Unit> bucket = attackersByTarget.get(target);
             if (bucket == null) {
                 bucket = pool.isEmpty()
                         ? new ArrayList<>(4)
                         : pool.remove(pool.size() - 1);
-                attackersByTarget.put(u.target, bucket);
+                attackersByTarget.put(target, bucket);
             }
             bucket.add(u);
         }

@@ -59,13 +59,14 @@ public final class InfantryCohesion {
         // engagement-overrides-regroup rule is per-member, not per-squad:
         // one marine peeking from far cover doesn't pull the rest into
         // their lane.
-        if (self.target != null && self.target.isAlive()) {
+        Unit target = sim.targetOf(self);
+        if (target != null && target.isAlive()) {
             float td = (float) Math.sqrt(
-                    (float) (self.target.cellX - self.cellX) * (self.target.cellX - self.cellX)
-                  + (float) (self.target.cellY - self.cellY) * (self.target.cellY - self.cellY));
+                    (float) (target.cellX - self.cellX) * (target.cellX - self.cellX)
+                  + (float) (target.cellY - self.cellY) * (target.cellY - self.cellY));
             if (td <= self.attackRange
                     && sim.getGrid().hasLineOfSight(self.cellX, self.cellY,
-                            self.target.cellX, self.target.cellY)) {
+                            target.cellX, target.cellY)) {
                 return null;
             }
         }

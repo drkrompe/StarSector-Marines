@@ -287,19 +287,19 @@ public final class SquadAlertSystem {
     }
 
     /**
-     * Clears {@code u.target} for every alive squadmate of {@code squadId}.
+     * Clears {@code u.targetId} for every alive squadmate of {@code squadId}.
      * Called at the ENGAGED→SUSPICIOUS (and SUSPICIOUS→UNAWARE) transitions
-     * so a stale target reference — one {@link TacticalScoring#shouldKeepPursuing
+     * so a stale target id — one {@link TacticalScoring#shouldKeepPursuing
      * shouldKeepPursuing} happily keeps alive past LOS — doesn't drag the
      * squad toward an enemy they last saw seconds ago. Action {@code execute}
-     * paths null-check {@code member.target} (they already cope with the
+     * paths null-check the resolved target (they already cope with the
      * reprio-on-hit clear), so the next behavior tick repicks via
      * {@link TacticalScoring#findBestTarget findBestTarget} or holds null if
      * nobody's visible.
      */
     private void clearSquadMemberTargets(int squadId, List<Unit> units) {
         for (Unit u : units) {
-            if (u.squadId == squadId) u.target = null;
+            if (u.squadId == squadId) u.targetId = 0L;
         }
     }
 }

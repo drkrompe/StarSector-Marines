@@ -262,7 +262,7 @@ public final class ChokePointHold implements Action {
         // HoldPortalCordon's on-post branch so burst follow-ups behave
         // identically (machine guns rip a burst when the trigger fires).
         sim.fireShot(member, portalIntruder, FireStance.STANCED);
-        member.target = portalIntruder;
+        member.setTarget(portalIntruder);
         member.cooldownTimer = member.attackCooldown;
         member.beginBurst(portalIntruder);
         return ActionStatus.RUNNING;

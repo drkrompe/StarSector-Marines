@@ -121,16 +121,17 @@ public final class OverwatchKillZone implements Action {
         // LR mech parked at its overwatch cell can otherwise stay locked onto
         // an enemy that's slid behind cover while ignoring a fresh enemy now
         // standing in its kill lane.
-        member.target = TacticalScoring.refreshTargetIfNotShootable(member, sim);
-        if (member.target != null) {
+        Unit target = TacticalScoring.refreshTargetIfNotShootable(member, sim);
+        member.setTarget(target);
+        if (target != null) {
             float dist = TacticalScoring.cellDistance(member.cellX, member.cellY,
-                    member.target.cellX, member.target.cellY);
+                    target.cellX, target.cellY);
             boolean inRange = dist <= member.attackRange;
             boolean visible = sim.getGrid().hasLineOfSight(member.cellX, member.cellY,
-                    member.target.cellX, member.target.cellY);
+                    target.cellX, target.cellY);
             if (inRange) {
-                MechCombatantBehavior.tryFireLrm(member, dist, sim, visible);
-                MechCombatantBehavior.tryFireChaingun(member, dist, sim, visible);
+                MechCombatantBehavior.tryFireLrm(member, target, dist, sim, visible);
+                MechCombatantBehavior.tryFireChaingun(member, target, dist, sim, visible);
                 // SRM intentionally withheld — see class doc.
             }
         }

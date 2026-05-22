@@ -66,14 +66,16 @@ public final class HoldPost implements Action {
             return returnToHome(member, sim, homeX, homeY);
         }
 
-        if (member.target == null
-                || !member.target.isAlive()
-                || !TacticalScoring.shouldKeepPursuing(member, member.target, sim)) {
-            member.target = TacticalScoring.findBestTarget(member, sim);
+        Unit target = sim.targetOf(member);
+        if (target == null
+                || !target.isAlive()
+                || !TacticalScoring.shouldKeepPursuing(member, target, sim)) {
+            target = TacticalScoring.findBestTarget(member, sim);
+            member.setTarget(target);
         }
 
-        if (member.target != null) {
-            return executeWithTarget(member, sim, homeX, homeY);
+        if (target != null) {
+            return executeWithTarget(member, target, sim, homeX, homeY);
         }
 
         if (squad.alertLevel == SquadAlertLevel.SUSPICIOUS
@@ -84,36 +86,37 @@ public final class HoldPost implements Action {
         return returnToHome(member, sim, homeX, homeY);
     }
 
-    private static ActionStatus executeWithTarget(Unit member, BattleSimulation sim, int homeX, int homeY) {
+    private static ActionStatus executeWithTarget(Unit member, Unit target, BattleSimulation sim, int homeX, int homeY) {
         if (member.cooldownTimer > 0f) member.cooldownTimer -= BattleSimulation.TICK_DT;
 
         float dist = TacticalScoring.cellDistance(member.cellX, member.cellY,
-                member.target.cellX, member.target.cellY);
+                target.cellX, target.cellY);
         boolean inRange = dist <= member.attackRange;
         boolean visible = sim.getGrid().hasLineOfSight(member.cellX, member.cellY,
-                member.target.cellX, member.target.cellY);
+                target.cellX, target.cellY);
 
         if (inRange && visible) {
             if (member.cooldownTimer <= 0f) {
-                sim.fireShot(member, member.target);
+                sim.fireShot(member, target);
                 member.cooldownTimer = member.attackCooldown;
-                member.beginBurst(member.target);
+                member.beginBurst(target);
             }
             hold(member, sim);
             return ActionStatus.RUNNING;
         }
 
         int[] firingPos = TacticalScoring.findFiringPositionWithin(
-                member, member.target, sim, homeX, homeY, HOLD_RADIUS);
+                member, target, sim, homeX, homeY, HOLD_RADIUS);
         if (firingPos == null) {
             // Current target unreachable from any cell within the hold ring.
             // Switch to any engageable enemy that fits and re-pick.
             Unit alt = TacticalScoring.findEngageableEnemyWithin(
                     member, sim, homeX, homeY, HOLD_RADIUS);
             if (alt != null) {
-                member.target = alt;
+                member.setTarget(alt);
+                target = alt;
                 firingPos = TacticalScoring.findFiringPositionWithin(
-                        member, member.target, sim, homeX, homeY, HOLD_RADIUS);
+                        member, target, sim, homeX, homeY, HOLD_RADIUS);
             }
         }
         if (firingPos == null || (firingPos[0] == member.cellX && firingPos[1] == member.cellY)) {

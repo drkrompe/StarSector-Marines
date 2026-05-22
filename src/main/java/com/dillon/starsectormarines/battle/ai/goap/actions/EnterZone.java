@@ -93,10 +93,12 @@ public final class EnterZone implements Action {
         // re-runs the picker, and the per-member contact-halt below reads
         // false against the stale target while the new shooters fire freely.
         // Sister gate to EngagePosture / ClearZone — see refreshTargetIfNotShootable.
-        if (member.target == null
-                || !member.target.isAlive()
-                || !TacticalScoring.shouldKeepPursuing(member, member.target, sim)) {
-            member.target = TacticalScoring.findBestTarget(member, sim);
+        Unit target = sim.targetOf(member);
+        if (target == null
+                || !target.isAlive()
+                || !TacticalScoring.shouldKeepPursuing(member, target, sim)) {
+            target = TacticalScoring.findBestTarget(member, sim);
+            member.setTarget(target);
         }
 
         // Contact-halt: a visible enemy inside attackRange stops the path so
@@ -107,16 +109,16 @@ public final class EnterZone implements Action {
         // step walked straight through enemy formations on opportunistic
         // single-cooldown shots.
         boolean inContact = false;
-        if (member.target != null) {
+        if (target != null) {
             float d = TacticalScoring.cellDistance(member.cellX, member.cellY,
-                    member.target.cellX, member.target.cellY);
+                    target.cellX, target.cellY);
             boolean visible = sim.getGrid().hasLineOfSight(member.cellX, member.cellY,
-                    member.target.cellX, member.target.cellY);
+                    target.cellX, target.cellY);
             inContact = d <= member.attackRange && visible;
             if (inContact && member.cooldownTimer <= 0f) {
-                sim.fireShot(member, member.target, FireStance.STANCED);
+                sim.fireShot(member, target, FireStance.STANCED);
                 member.cooldownTimer = member.attackCooldown;
-                member.beginBurst(member.target);
+                member.beginBurst(target);
             }
         }
 

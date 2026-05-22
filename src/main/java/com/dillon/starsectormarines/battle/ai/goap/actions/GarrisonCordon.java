@@ -129,20 +129,22 @@ public final class GarrisonCordon implements Action {
      * to a shared static.
      */
     private static void opportunisticFire(Unit member, BattleSimulation sim, FireStance stance) {
-        if (member.target == null
-                || !member.target.isAlive()
-                || !TacticalScoring.shouldKeepPursuing(member, member.target, sim)) {
-            member.target = TacticalScoring.findBestTarget(member, sim);
+        Unit target = sim.targetOf(member);
+        if (target == null
+                || !target.isAlive()
+                || !TacticalScoring.shouldKeepPursuing(member, target, sim)) {
+            target = TacticalScoring.findBestTarget(member, sim);
+            member.setTarget(target);
         }
-        if (member.target == null || member.cooldownTimer > 0f) return;
+        if (target == null || member.cooldownTimer > 0f) return;
         float d = TacticalScoring.cellDistance(member.cellX, member.cellY,
-                member.target.cellX, member.target.cellY);
+                target.cellX, target.cellY);
         if (d > member.attackRange) return;
         if (!sim.getGrid().hasLineOfSight(member.cellX, member.cellY,
-                member.target.cellX, member.target.cellY)) return;
-        sim.fireShot(member, member.target, stance);
+                target.cellX, target.cellY)) return;
+        sim.fireShot(member, target, stance);
         member.cooldownTimer = member.attackCooldown;
-        member.beginBurst(member.target);
+        member.beginBurst(target);
     }
 
     private HoldPortalCordon.GuardPost postForSlot(String slotName) {

@@ -95,7 +95,29 @@ public class Unit {
     public float cooldownTimer = 0f;
     public float accuracy;
 
-    public Unit target;
+    /**
+     * Entity id of the current target — resolves through
+     * {@link com.dillon.starsectormarines.battle.unit.UnitRegistry#getOrNull(long)}
+     * (or {@link BattleSimulation#targetOf(Unit)}). {@code 0L} = no target.
+     *
+     * <p>Replaced the prior {@code Unit target} reference field. The long
+     * is generation-free dangling-ref hygiene: a released target id resolves
+     * cleanly to {@code null} via the registry without the holder needing
+     * its own {@code isAlive()} branch. Writes go through
+     * {@link #setTarget(Unit)} so null-vs-instance is handled in one place.
+     */
+    public long targetId = 0L;
+
+    /**
+     * Convenience setter for {@link #targetId}: stores {@code t.entityId}, or
+     * {@code 0L} when {@code t == null}. Single chokepoint so every writer
+     * gets identical null-handling, and so a future {@code setTarget} that
+     * also touches sibling state (attacker index hint, hit-streak counters)
+     * only has to grow once.
+     */
+    public void setTarget(Unit t) {
+        this.targetId = (t == null) ? 0L : t.entityId;
+    }
 
     /**
      * Close-wall radius for "air" line-of-sight, in cells. When &gt; 0, walls

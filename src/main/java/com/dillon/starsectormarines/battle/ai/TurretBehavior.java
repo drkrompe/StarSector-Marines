@@ -40,7 +40,7 @@ public final class TurretBehavior implements UnitBehavior {
         // Pin slew target during a burst so the barrel tracks the salvo
         // victim instead of drifting toward a fresh acquisition mid-burst.
         if (t.burstRemaining > 0) {
-            t.target = t.burstTarget;
+            t.setTarget(t.burstTarget);
         }
 
         TurretAim.State s = new TurretAim.State();
@@ -57,14 +57,14 @@ public final class TurretBehavior implements UnitBehavior {
         s.minRange = t.kind.minRange;
         s.cooldownTimer = t.cooldownTimer;
         s.attackCooldown = t.attackCooldown;
-        s.target = t.target;
+        s.target = sim.targetOf(t);
         s.indirectFire = t.kind.indirectFire;
 
         TurretAim.tick(s, sim, BattleSimulation.TICK_DT);
 
         t.facingDegrees = s.facingDegrees;
         t.cooldownTimer = s.cooldownTimer;
-        t.target = s.target;
+        t.setTarget(s.target);
 
         // Burst continuation runs ahead of fresh trigger pulls. A committed
         // salvo finishes its rounds before the aim loop kicks another.

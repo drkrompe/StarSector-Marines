@@ -56,23 +56,25 @@ public final class ApproachPosture implements Action {
         // squad walking past a close mech to engage a distant turret because
         // member.target was locked at approach start; shouldKeepPursuing's
         // closer-visible-target check is what unsticks that case.
-        if (member.target == null
-                || !member.target.isAlive()
-                || !TacticalScoring.shouldKeepPursuing(member, member.target, sim)) {
-            member.target = TacticalScoring.findBestTarget(member, sim);
+        Unit target = sim.targetOf(member);
+        if (target == null
+                || !target.isAlive()
+                || !TacticalScoring.shouldKeepPursuing(member, target, sim)) {
+            target = TacticalScoring.findBestTarget(member, sim);
+            member.setTarget(target);
         }
-        if (member.target == null) return ActionStatus.FAILURE;
+        if (target == null) return ActionStatus.FAILURE;
 
         float dist = TacticalScoring.cellDistance(member.cellX, member.cellY,
-                member.target.cellX, member.target.cellY);
+                target.cellX, target.cellY);
         boolean inRange = dist <= member.attackRange;
         boolean visible = sim.getGrid().hasLineOfSight(member.cellX, member.cellY,
-                member.target.cellX, member.target.cellY);
+                target.cellX, target.cellY);
         if (inRange && visible) return ActionStatus.SUCCESS;
 
         if (member.moveProgress == 0f) {
             int[] dest = InfantryCohesion.cohesionOverride(member, sim);
-            if (dest == null) dest = TacticalScoring.findFiringPosition(member, member.target, sim);
+            if (dest == null) dest = TacticalScoring.findFiringPosition(member, target, sim);
             if (dest == null) {
                 // No reachable firing position OR vantage point exists for the
                 // current target — geometrically unreachable from here. Drop
@@ -80,7 +82,7 @@ public final class ApproachPosture implements Action {
                 // unit can actually engage. Returning RUNNING (not FAILURE)
                 // keeps the squad-level Approach plan alive; the re-acquire
                 // happens on the next per-member tick.
-                member.target = null;
+                member.targetId = 0L;
                 return ActionStatus.RUNNING;
             }
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),

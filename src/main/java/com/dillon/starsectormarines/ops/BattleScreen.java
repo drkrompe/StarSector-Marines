@@ -2928,11 +2928,11 @@ public class BattleScreen implements Screen, BattleUiContext {
         int frameIdx;
         boolean flipY;
         if (u.type.frameLayout == UnitType.FrameLayout.EIGHT_WAY_NO_WEAPON_UP) {
-            EightWayFacing ef = computeEightWayFacing(u);
+            EightWayFacing ef = computeEightWayFacing(u, getSim());
             frameIdx = pickFrameEightWay(ef);
             flipY = false;
         } else {
-            Facing facing = computeFacing(u);
+            Facing facing = computeFacing(u, getSim());
             frameIdx = pickFrame(facing, weaponUp);
             flipY = weaponUp && facing == Facing.SOUTH;
         }
@@ -3951,10 +3951,11 @@ public class BattleScreen implements Screen, BattleUiContext {
     private enum Facing { WEST, NORTH, EAST, SOUTH }
 
     /** Prefer target direction (units face their target while attacking); fall back to movement; default south. */
-    private static Facing computeFacing(Unit u) {
-        if (u.target != null && u.target.isAlive()) {
-            int dx = u.target.cellX - u.cellX;
-            int dy = u.target.cellY - u.cellY;
+    private static Facing computeFacing(Unit u, BattleSimulation sim) {
+        Unit target = sim != null ? sim.targetOf(u) : null;
+        if (target != null && target.isAlive()) {
+            int dx = target.cellX - u.cellX;
+            int dy = target.cellY - u.cellY;
             if (dx != 0 || dy != 0) return facingFromDelta(dx, dy);
         }
         if (u.pathIdx < u.pathCellCount()) {
@@ -3999,10 +4000,11 @@ public class BattleScreen implements Screen, BattleUiContext {
      */
     private enum EightWayFacing { W, NW, N, NE, E, SE, S, SW }
 
-    private static EightWayFacing computeEightWayFacing(Unit u) {
-        if (u.target != null && u.target.isAlive()) {
-            int dx = u.target.cellX - u.cellX;
-            int dy = u.target.cellY - u.cellY;
+    private static EightWayFacing computeEightWayFacing(Unit u, BattleSimulation sim) {
+        Unit target = sim != null ? sim.targetOf(u) : null;
+        if (target != null && target.isAlive()) {
+            int dx = target.cellX - u.cellX;
+            int dy = target.cellY - u.cellY;
             if (dx != 0 || dy != 0) return eightWayFromDelta(dx, dy);
         }
         if (u.pathIdx < u.pathCellCount()) {

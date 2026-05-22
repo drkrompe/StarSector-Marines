@@ -242,7 +242,7 @@ public final class TacticalScoring {
      * we only ask "is the current pick clearly the wrong choice right now?".
      */
     public static Unit refreshTargetIfNotShootable(Unit self, BattleSimulation sim) {
-        Unit cur = self.target;
+        Unit cur = sim.targetOf(self);
         if (cur != null && cur.isAlive()) {
             float dist = cellDistance(self.cellX, self.cellY, cur.cellX, cur.cellY);
             if (dist <= self.attackRange

@@ -177,6 +177,31 @@ public class UnitRegistryTest {
     }
 
     @Test
+    public void getOrNullResolvesAliveReturnsNullForReleasedAndZeroSentinel() {
+        UnitRegistry r = new UnitRegistry();
+        Unit a = unit("a");
+        Unit b = unit("b");
+        long idA = r.allocate(a);
+        long idB = r.allocate(b);
+
+        // Alive id → its unit.
+        assertSame(a, r.getOrNull(idA));
+        assertSame(b, r.getOrNull(idB));
+
+        // Released id → null (the dangling-ref case the helper exists for).
+        r.release(idA);
+        assertNull(r.getOrNull(idA));
+        // Sibling still resolves.
+        assertSame(b, r.getOrNull(idB));
+
+        // Reserved 0L sentinel → null without probing the map.
+        assertNull(r.getOrNull(0L));
+
+        // Never-allocated id → null.
+        assertNull(r.getOrNull(9999L));
+    }
+
+    @Test
     public void releaseOfReservedZeroSentinelIsNoOp() {
         UnitRegistry r = new UnitRegistry();
         Unit a = unit("a");

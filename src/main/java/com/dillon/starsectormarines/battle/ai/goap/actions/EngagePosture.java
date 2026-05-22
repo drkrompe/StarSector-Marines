@@ -66,44 +66,46 @@ public final class EngagePosture implements Action {
         // or target drifted out of the squad-cohesion clamp). Story I: dropping
         // a fleer that ran into 3 buddies and picking an isolated target or
         // no-target rather than charging in.
-        if (member.target == null
-                || !member.target.isAlive()
-                || !TacticalScoring.shouldKeepPursuing(member, member.target, sim)) {
-            member.target = TacticalScoring.findBestTarget(member, sim);
+        Unit target = sim.targetOf(member);
+        if (target == null
+                || !target.isAlive()
+                || !TacticalScoring.shouldKeepPursuing(member, target, sim)) {
+            target = TacticalScoring.findBestTarget(member, sim);
+            member.setTarget(target);
         }
-        if (member.target == null) return ActionStatus.FAILURE;
+        if (target == null) return ActionStatus.FAILURE;
 
         float dist = TacticalScoring.cellDistance(member.cellX, member.cellY,
-                member.target.cellX, member.target.cellY);
+                target.cellX, target.cellY);
         // Rocketeers vs turrets use the rocket's longer range as the act-here
         // gate, so a marine inside rocket range but outside rifle range
         // engages from where they stand instead of running into rifle range.
         // The inner rocket check (line below) still enforces dist <= rocket
         // range, and the primary-fire branch guards on primary range so we
         // don't fire the rifle from beyond its reach.
-        float effectiveRange = TacticalScoring.effectiveAttackRange(member, member.target);
+        float effectiveRange = TacticalScoring.effectiveAttackRange(member, target);
         boolean inRange = dist <= effectiveRange;
         boolean visible = TacticalScoring.canSeePair(sim.getGrid(),
-                member.cellX, member.cellY, member.target.cellX, member.target.cellY,
-                member.airLosRadius, member.target.airLosRadius);
+                member.cellX, member.cellY, target.cellX, target.cellY,
+                member.airLosRadius, target.airLosRadius);
 
         if (inRange && visible) {
             boolean startedSecondary = false;
             if (member.secondaryWeapon != null && member.secondaryAmmo > 0
                     && member.secondaryCooldownTimer <= 0f
-                    && member.target instanceof MapTurret
+                    && target instanceof MapTurret
                     && dist <= member.secondaryWeapon.range
-                    && TacticalScoring.shouldCommitRocket(member, (MapTurret) member.target, sim)) {
+                    && TacticalScoring.shouldCommitRocket(member, (MapTurret) target, sim)) {
                 member.secondaryActionTimer = member.secondaryWeapon.aimDuration;
                 member.secondaryFiredThisAction = false;
-                member.secondaryAimTarget = member.target;
+                member.secondaryAimTarget = target;
                 startedSecondary = true;
             }
             if (!startedSecondary && member.cooldownTimer <= 0f
                     && dist <= member.attackRange) {
-                sim.fireShot(member, member.target);
+                sim.fireShot(member, target);
                 member.cooldownTimer = member.attackCooldown;
-                member.beginBurst(member.target);
+                member.beginBurst(target);
                 // Story G — cooldown-gated cover-aware reposition replaces
                 // the old 30% per-shot RNG. A unit in heavy cover whose
                 // current cell already wins cover-preferred no-ops out;
@@ -127,12 +129,12 @@ public final class EngagePosture implements Action {
             // on {@link ApproachPosture} concurrently with engage-only members.
             if (member.moveProgress == 0f) {
                 int[] dest = InfantryCohesion.cohesionOverride(member, sim);
-                if (dest == null) dest = TacticalScoring.findFiringPosition(member, member.target, sim);
+                if (dest == null) dest = TacticalScoring.findFiringPosition(member, target, sim);
                 if (dest == null) {
                     // Same dead-end as ApproachPosture's else branch — target
                     // has no reachable firing position or vantage from here.
                     // Drop and let findBestTarget re-pick next tick.
-                    member.target = null;
+                    member.targetId = 0L;
                     return ActionStatus.RUNNING;
                 }
                 sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),

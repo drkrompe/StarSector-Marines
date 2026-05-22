@@ -420,6 +420,15 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     public byte[] getOccupancyMap()        { return occupancyMap; }
     /** Bucketed spatial index over alive units. Rebuilt at the top of each tick by {@link #tick()}. */
     public UnitSpatialIndex getUnitIndex() { return unitIndex; }
+    /**
+     * Resolves a unit's {@link Unit#targetId} to the current target reference,
+     * or {@code null} when the target was released / never set. Short delegate
+     * over {@link com.dillon.starsectormarines.battle.unit.UnitRegistry#getOrNull(long)};
+     * the canonical read path replacing the old {@code u.target} field.
+     */
+    public Unit targetOf(Unit u) {
+        return rosterService.getRegistry().getOrNull(u.targetId);
+    }
     /** Bucketed spatial index over alive units keyed on path destination (not current cell). Rebuilt alongside {@link #unitIndex} each tick. */
     public UnitDestinationSpatialIndex getDestIndex() { return destIndex; }
     /** Per-phase wall-clock profile of the most recent completed window of ticks. Read by the {@code TickProfileDebugPanel} HUD overlay + dump-to-disk button. */
@@ -580,7 +589,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // to detect a concurrent self-retarget (target's own worker picked a
         // new enemy during the same UPDATE_UNITS phase) so we don't clobber
         // that newer choice with null.
-        Unit expectedTarget = target.target;
+        long expectedTargetId = target.targetId;
+        Unit expectedTarget = targetOf(target);
         // No current target → next behavior tick will pick fresh anyway.
         if (expectedTarget == null || !expectedTarget.isAlive()) return;
         // Already targeting the shooter → no point re-rolling.
@@ -601,9 +611,9 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // so a closer-with-LOS flanker beats an out-of-LOS chase target
         // naturally. The damage service routes serial callers through
         // the inline applier and parallel callers through the pool-backed
-        // queue (which retains expectedTarget for the flush-side race
+        // queue (which retains expectedTargetId for the flush-side race
         // resolution against a concurrent self-retarget).
-        damageService.applyReprio(target, expectedTarget);
+        damageService.applyReprio(target, expectedTargetId);
     }
 
     @Override
@@ -640,9 +650,9 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         damageService.flushPendingTargetMutations();
     }
 
-    /** Inline reprio write — invoked by the damage service on the serial path AND on the queued path (after the expectedTarget race-check). The shape stays just "null the target field"; the next behavior tick re-picks via {@code findBestTarget}. */
+    /** Inline reprio write — invoked by the damage service on the serial path AND on the queued path (after the expectedTargetId race-check). The shape stays just "clear the targetId field"; the next behavior tick re-picks via {@code findBestTarget}. */
     private void writeReprioInline(Unit target) {
-        target.target = null;
+        target.targetId = 0L;
     }
 
     /** Inline fallback write — invoked by the damage service on the serial path AND from the queued-flush. Writes the 3 fb fields and clears the stale path so the target re-paths to the fall-back cell on its next updateUnit pass. */

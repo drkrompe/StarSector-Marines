@@ -37,13 +37,13 @@ public class RepositionToCoverTest {
 
     private static Unit marineAt(BattleSimulation sim, int x, int y) {
         Unit u = new Unit("m" + sim.getUnits().size(), Faction.MARINE, UnitType.MARINE, x, y);
-        sim.getUnits().add(u);
+        sim.addUnit(u);
         return u;
     }
 
     private static Unit enemyAt(BattleSimulation sim, int x, int y) {
         Unit u = new Unit("e" + sim.getUnits().size(), Faction.DEFENDER, UnitType.MARINE, x, y);
-        sim.getUnits().add(u);
+        sim.addUnit(u);
         return u;
     }
 
@@ -52,7 +52,7 @@ public class RepositionToCoverTest {
         BattleSimulation sim = openArena(20, 20);
         Unit marine = marineAt(sim, 5, 5);
         Unit threat = enemyAt(sim, 15, 5);
-        marine.target = threat;
+        marine.setTarget(threat);
         // Heavy cover right next to the marine.
         sim.addDoodad(new Doodad(6, 5, new TileManifest.TileFrame(4, 7)));
         // Cooldown set — the action must refuse to move.
@@ -67,7 +67,7 @@ public class RepositionToCoverTest {
     public void noTargetReturnsFalse() {
         BattleSimulation sim = openArena(20, 20);
         Unit marine = marineAt(sim, 5, 5);
-        marine.target = null;
+        marine.targetId = 0L;
         marine.repositionCooldown = 0f;
 
         boolean moved = RepositionToCover.tryReposition(marine, sim);
@@ -85,7 +85,7 @@ public class RepositionToCoverTest {
         Unit marine = marineAt(sim, 5, 5);
         marine.attackRange = 10f;
         Unit threat = enemyAt(sim, 12, 5);
-        marine.target = threat;
+        marine.setTarget(threat);
         marine.repositionCooldown = 0f;
 
         boolean moved = RepositionToCover.tryReposition(marine, sim);
@@ -108,7 +108,7 @@ public class RepositionToCoverTest {
         Unit marine = marineAt(sim, 5, 5);
         marine.attackRange = 10f;
         Unit threat = enemyAt(sim, 12, 5);
-        marine.target = threat;
+        marine.setTarget(threat);
         marine.repositionCooldown = 0f;
 
         boolean moved = RepositionToCover.tryReposition(marine, sim);
