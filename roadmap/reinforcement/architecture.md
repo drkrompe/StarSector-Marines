@@ -178,6 +178,29 @@ Smallest end-to-end slice that proves the abstraction:
   plumbing comes in the second slice once existing shuttle-drop
   accounting is folded in (see Decisions §1)
 
+## v2 cut
+
+**Status: landed.** Second slice — expands both axes by one. Triggers
+go from one to two; means go from one to two with walk-in as the
+always-feasible floor under convoy.
+
+- New trigger: `ObjectiveLostTrigger` — defender-side zone-flip
+  detector. Maintains a `wasDefenderHeld` set built incrementally as
+  defenders are observed; fires once per zone that flips to
+  marines-present + zero-defenders. Rally = lost zone's centroid
+  (retake attempt). One-shot per zone, no recovery story yet.
+- New means: `WalkInMeans` — spawns 3 MILITIA defenders on the
+  side-appropriate perimeter edge (axis-aware: NORTH for SOUTH_TO_NORTH
+  defender, EAST for WEST_TO_EAST, stable default for null-axis).
+  Anchors `Squad.assignedNode` to the nearest COMMAND_POST / BARRACKS
+  / ARMORY within 6 cells of rally so `PatrolRoute` pulls them off the
+  perimeter; falls through to free-agent ambient engagement if no
+  compound is close.
+- `installReinforcementLayer` now takes a nullable `TraversalAxis`
+  threaded through from `createConquest`; Sabotage/Assault pass null.
+- Still unmodeled: ticket budget, strength scaling (walk-in always
+  spawns SQUAD_SIZE=3 regardless), attacker-side triggers/means.
+
 ## Decisions
 
 ### 1. Side neutrality + shuttle-drop refactor
