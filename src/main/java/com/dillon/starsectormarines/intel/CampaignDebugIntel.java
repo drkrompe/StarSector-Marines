@@ -10,13 +10,17 @@ import com.dillon.starsectormarines.campaign.HouseRank;
 import com.dillon.starsectormarines.campaign.HouseSeeder;
 import com.dillon.starsectormarines.campaign.HouseStatus;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.LocationAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
+import com.fs.starfarer.api.campaign.StarSystemAPI;
+import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.impl.campaign.intel.BaseIntelPlugin;
 import com.fs.starfarer.api.ui.CustomPanelAPI;
 import com.fs.starfarer.api.ui.SectorMapAPI;
 import com.fs.starfarer.api.ui.TooltipMakerAPI;
 
 import java.awt.Color;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -42,6 +46,7 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
     private static final String TITLE = "Marines Debug";
 
     private static final String BTN_TOGGLE_BYPASS  = "toggle-bypass";
+    private static final String BTN_TOGGLE_FILTER  = "toggle-filter";
     private static final String BTN_RESEED         = "reseed";
     private static final String BTN_PROMOTE        = "promote:";
     private static final String BTN_DEMOTE         = "demote:";
@@ -50,6 +55,9 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
     private static final String BTN_ACCEPT         = "accept:";
     private static final String BTN_FORCE_COMPLETE = "complete:";
     private static final String BTN_FORCE_FAIL     = "fail:";
+
+    /** UI-state only; not persisted. Default ON when the player is in a system. */
+    private boolean filterToLocalSystem = true;
 
     @Override
     protected String getName() {
@@ -140,40 +148,58 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
 
         // ---- Toggles ----
         ui.addSectionHeading("Toggles", Color.WHITE, new Color(40, 40, 40), com.fs.starfarer.api.ui.Alignment.LMID, 14f);
+
+        StarSystemAPI playerSystem = currentPlayerSystem();
+        Set<Integer> localMarketSlots = (playerSystem != null && filterToLocalSystem)
+                ? collectLocalMarketSlots(s, playerSystem)
+                : null;
+        String filterLabel = playerSystem == null
+                ? "Filter to local system: N/A (not in a system)"
+                : "Filter to local system: " + (filterToLocalSystem ? "ON (" + playerSystem.getName() + ")" : "OFF");
+
+        ui.addButton(filterLabel, BTN_TOGGLE_FILTER, 320f, 24f, 8f);
         String bypassLabel = "Bypass house gating: " + (s.debugBypassHouseGating ? "ON" : "OFF");
-        ui.addButton(bypassLabel, BTN_TOGGLE_BYPASS, 280f, 24f, 8f);
-        ui.addButton("Force daily tick (run all systems)", BTN_FORCE_TICK, 280f, 24f, 8f);
-        ui.addButton("Clear terminal contracts (cleanup)", BTN_CLEAR_TERMINAL, 280f, 24f, 8f);
-        ui.addButton("Reseed houses (wipes existing)", BTN_RESEED, 280f, 24f, 8f);
+        ui.addButton(bypassLabel, BTN_TOGGLE_BYPASS, 320f, 24f, 8f);
+        ui.addButton("Force daily tick (run all systems)", BTN_FORCE_TICK, 320f, 24f, 8f);
+        ui.addButton("Clear terminal contracts (cleanup)", BTN_CLEAR_TERMINAL, 320f, 24f, 8f);
+        ui.addButton("Reseed houses (wipes existing)", BTN_RESEED, 320f, 24f, 8f);
 
         // ---- Contracts list ----
         ui.addSectionHeading("Contracts", Color.WHITE, new Color(40, 40, 40), com.fs.starfarer.api.ui.Alignment.LMID, 14f);
-        if (s.contractCount == 0) {
-            ui.addPara("(none)", 8f);
-        } else {
-            int max = Math.min(s.contractCount, 100);
-            for (int i = 0; i < max; i++) {
-                renderContractRow(ui, s, i);
+        int shownContracts = 0;
+        int skippedContracts = 0;
+        for (int i = 0; i < s.contractCount; i++) {
+            if (localMarketSlots != null && !contractMatchesFilter(s, i, localMarketSlots)) {
+                skippedContracts++;
+                continue;
             }
-            if (s.contractCount > max) {
-                ui.addPara("... %s more contracts (truncated for UI)", 6f, Color.LIGHT_GRAY, Color.WHITE,
-                        String.valueOf(s.contractCount - max));
-            }
+            if (shownContracts >= 100) { skippedContracts++; continue; }
+            renderContractRow(ui, s, i);
+            shownContracts++;
+        }
+        if (shownContracts == 0 && skippedContracts == 0) ui.addPara("(none)", 8f);
+        if (skippedContracts > 0) {
+            ui.addPara("... %s more contracts (filtered / truncated)", 6f, Color.LIGHT_GRAY, Color.WHITE,
+                    String.valueOf(skippedContracts));
         }
 
         // ---- House list ----
         ui.addSectionHeading("Houses", Color.WHITE, new Color(40, 40, 40), com.fs.starfarer.api.ui.Alignment.LMID, 14f);
-        if (s.houseCount == 0) {
-            ui.addPara("(none)", 8f);
-        } else {
-            int max = Math.min(s.houseCount, 200); // cap visible rows; full list is too tall
-            for (int i = 0; i < max; i++) {
-                renderHouseRow(ui, s, i);
+        int shownHouses = 0;
+        int skippedHouses = 0;
+        for (int i = 0; i < s.houseCount; i++) {
+            if (localMarketSlots != null && !localMarketSlots.contains(s.houseMarketId[i])) {
+                skippedHouses++;
+                continue;
             }
-            if (s.houseCount > max) {
-                ui.addPara("... %s more houses (truncated for UI)", 6f, Color.LIGHT_GRAY, Color.WHITE,
-                        String.valueOf(s.houseCount - max));
-            }
+            if (shownHouses >= 200) { skippedHouses++; continue; }
+            renderHouseRow(ui, s, i);
+            shownHouses++;
+        }
+        if (shownHouses == 0 && skippedHouses == 0) ui.addPara("(none)", 8f);
+        if (skippedHouses > 0) {
+            ui.addPara("... %s more houses (filtered / truncated)", 6f, Color.LIGHT_GRAY, Color.WHITE,
+                    String.valueOf(skippedHouses));
         }
 
         panel.addUIElement(ui).inTL(0f, 0f);
@@ -229,6 +255,46 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         return counts;
     }
 
+    /** Player's current star system, or null if in hyperspace / between systems. */
+    private static StarSystemAPI currentPlayerSystem() {
+        if (Global.getSector() == null || Global.getSector().getPlayerFleet() == null) return null;
+        LocationAPI loc = Global.getSector().getPlayerFleet().getContainingLocation();
+        return (loc instanceof StarSystemAPI) ? (StarSystemAPI) loc : null;
+    }
+
+    /**
+     * Pre-computes the set of {@code marketRegistry} slots whose vanilla
+     * {@link MarketAPI#getStarSystem()} matches {@code playerSystem}. Returned
+     * set is queried against {@code houseMarketId[i]} so the filter is O(1)
+     * per row.
+     */
+    private static Set<Integer> collectLocalMarketSlots(CampaignState s, StarSystemAPI playerSystem) {
+        Set<Integer> slots = new HashSet<>();
+        for (int slot = 0; slot < s.marketRegistry.size(); slot++) {
+            String marketId = s.marketRegistry.get(slot);
+            if (marketId == null) continue;
+            MarketAPI m = Global.getSector().getEconomy().getMarket(marketId);
+            if (m == null) continue;
+            if (m.getStarSystem() == playerSystem) slots.add(slot);
+        }
+        return slots;
+    }
+
+    /**
+     * A contract matches the filter when either party's market lives in the
+     * player's current system — keeps strikes against off-system targets
+     * visible when the patron is local.
+     */
+    private static boolean contractMatchesFilter(CampaignState s, int row, Set<Integer> localMarketSlots) {
+        if (localMarketSlots.contains(s.contractMarketId[row])) return true;
+        long targetId = s.contractTargetHouseId[row];
+        if (targetId != -1L) {
+            int targetIdx = s.houseIndex(targetId);
+            if (targetIdx >= 0 && localMarketSlots.contains(s.houseMarketId[targetIdx])) return true;
+        }
+        return false;
+    }
+
     private void renderHouseRow(TooltipMakerAPI ui, CampaignState s, int i) {
         long id = s.houseId[i];
         HouseRank rank = HouseRank.fromByte(s.houseRank[i]);
@@ -260,6 +326,8 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
 
         if (BTN_TOGGLE_BYPASS.equals(buttonId)) {
             s.debugBypassHouseGating = !s.debugBypassHouseGating;
+        } else if (BTN_TOGGLE_FILTER.equals(buttonId)) {
+            filterToLocalSystem = !filterToLocalSystem;
         } else if (BTN_RESEED.equals(buttonId)) {
             wipeHouses(s);
             HouseSeeder.seed(s);
