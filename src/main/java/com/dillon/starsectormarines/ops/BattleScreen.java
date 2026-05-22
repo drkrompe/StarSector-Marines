@@ -2899,7 +2899,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 barY = cy + half + HP_BAR_GAP;
             }
             fillRect(barX, barY, barW, HP_BAR_H, HP_BG, alphaMult);
-            float frac = Math.max(0f, Math.min(1f, u.hp / u.maxHp));
+            float frac = Math.max(0f, Math.min(1f, u.getHp() / u.getMaxHp()));
             fillRect(barX, barY, barW * frac, HP_BAR_H, HP_FG, alphaMult);
         }
     }
@@ -3222,7 +3222,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 float barY = cy + visual * cellPx / 2f + HP_BAR_GAP;
                 float barX = cx - barW / 2f;
                 fillRect(barX, barY, barW, HP_BAR_H, HP_BG, alphaMult);
-                float frac = Math.max(0f, Math.min(1f, d.hp / d.maxHp));
+                float frac = Math.max(0f, Math.min(1f, d.getHp() / d.getMaxHp()));
                 fillRect(barX, barY, barW * frac, HP_BAR_H, HP_FG, alphaMult);
             }
         }

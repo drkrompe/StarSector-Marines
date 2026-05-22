@@ -145,8 +145,8 @@ public final class SquadStateDumper {
             o.put("homeCellX", u.homeCellX);
             o.put("homeCellY", u.homeCellY);
             o.put("currentZone", sim.getZoneGraph().zoneIdAt(u.cellX, u.cellY));
-            o.put("hp", u.hp);
-            o.put("maxHp", u.maxHp);
+            o.put("hp", u.getHp());
+            o.put("maxHp", u.getMaxHp());
             o.put("moveProgress", u.moveProgress);
             Unit dumpTarget = sim.targetOf(u);
             o.put("targetId", dumpTarget != null ? dumpTarget.id : null);

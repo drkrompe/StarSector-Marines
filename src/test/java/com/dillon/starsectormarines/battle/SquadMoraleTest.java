@@ -81,10 +81,10 @@ public class SquadMoraleTest {
         BattleSimulation sim = openSim();
         Squad sq = marineSquad(sim, 4);
         Unit target = sim.getUnits().get(0);
-        float startingHp = target.hp;
+        float startingHp = target.getHp();
         // Damage low enough that the unit survives so we isolate the hit drain.
         sim.applyDamage(target, 1f, 1f);
-        assertTrue(target.hp < startingHp, "test prerequisite: damage actually landed");
+        assertTrue(target.getHp() < startingHp, "test prerequisite: damage actually landed");
         assertTrue(target.isAlive(), "test prerequisite: target survived the hit");
         assertEquals(1.0f - SquadMoraleSystem.MORALE_DROP_ON_HIT, sq.morale, 1e-5f,
                 "single hit on a squadmate drops morale by exactly MORALE_DROP_ON_HIT");
@@ -96,7 +96,7 @@ public class SquadMoraleTest {
         Squad sq = marineSquad(sim, 4);
         Unit target = sim.getUnits().get(0);
         // Overkill damage — guaranteed kill.
-        sim.applyDamage(target, target.hp + 1000f, 1f);
+        sim.applyDamage(target, target.getHp() + 1000f, 1f);
         assertFalse(target.isAlive(), "test prerequisite: target died");
         float expected = 1.0f - SquadMoraleSystem.MORALE_DROP_ON_HIT
                               - SquadMoraleSystem.MORALE_DROP_ON_DEATH;
@@ -188,7 +188,7 @@ public class SquadMoraleTest {
         // through the cooldown gate. The hysteresis math we're verifying
         // sits downstream of how morale got there.
         Unit b = sim.getUnits().get(1);
-        sim.applyDamage(b, b.hp + 1000f, 1f); // 1 kill → 3-of-4 alive, cap=0.75
+        sim.applyDamage(b, b.getHp() + 1000f, 1f); // 1 kill → 3-of-4 alive, cap=0.75
         sq.morale = 0.15f;
         sq.moraleDrainCooldown = 0f;
         // The kill reset timeSinceUnderFire; this test validates hysteresis
@@ -389,7 +389,7 @@ public class SquadMoraleTest {
                 "test prerequisite: first hit puts the cooldown on");
 
         // Kill b immediately — death drain should still apply.
-        sim.applyDamage(b, b.hp + 1000f, 1f);
+        sim.applyDamage(b, b.getHp() + 1000f, 1f);
 
         assertEquals(afterHit - SquadMoraleSystem.MORALE_DROP_ON_DEATH,
                 sq.morale, 1e-5f,
@@ -475,7 +475,7 @@ public class SquadMoraleTest {
         Unit civilian = new Unit("c", Faction.DEFENDER, UnitType.MARINE, 8, 8);
         civilian.squadId = Unit.NO_SQUAD;
         sim.addUnit(civilian);
-        sim.applyDamage(civilian, civilian.hp + 1000f, 1f);
+        sim.applyDamage(civilian, civilian.getHp() + 1000f, 1f);
 
         assertEquals(before, sq.morale, 1e-6f,
                 "killing a non-squad unit must not drain any squad's morale");

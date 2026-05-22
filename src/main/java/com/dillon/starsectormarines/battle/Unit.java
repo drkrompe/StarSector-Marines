@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle;
 
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.objective.Objective;
+import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 
 import java.util.Random;
 
@@ -36,6 +37,23 @@ public class Unit {
      * logs / debug).
      */
     public long entityId = 0L;
+
+    /**
+     * Dense-array index in {@link UnitRegistry}, or {@code -1} when the unit
+     * isn't currently allocated (pre-allocate, or after release). Used by
+     * {@link #getHp} / {@link #setHp} to address the SoA hp slot. The
+     * registry updates this on allocate and on swap-and-pop release moves;
+     * cleared to -1 by release on the unit being removed.
+     */
+    public int denseIdx = -1;
+
+    /**
+     * Back-reference to the registry currently holding this unit, or
+     * {@code null} when not allocated. Lets the per-unit hp accessors
+     * find the SoA slot without threading the registry through every
+     * call site. Set by {@link UnitRegistry#allocate}; cleared by release.
+     */
+    public UnitRegistry registry;
 
     public final String id;
     public final Faction faction;
@@ -87,8 +105,21 @@ public class Unit {
     // Stats — initialized from UnitType, then mutable per-unit so captain traits
     // and mission modifiers can adjust an individual without changing the archetype.
     public float moveSpeed;
-    public float maxHp;
-    public float hp;
+    /**
+     * <b>Don't read these directly.</b> {@code localHp} / {@code localMaxHp}
+     * are transient backing storage used in two windows: pre-allocation
+     * (before {@link UnitRegistry#allocate} copies the seed into the SoA
+     * array) and post-release (registry release snapshots the moment-of-death
+     * value back so corpses on the legacy units list still report a sane
+     * value). The canonical storage between those two boundaries is
+     * {@code registry.hpArray()[denseIdx]} — go through {@link #getHp} /
+     * {@link #setHp}.
+     *
+     * <p>Public so {@link UnitRegistry} (a sibling package) can seed/snapshot
+     * the slot at allocate/release time.
+     */
+    public float localHp;
+    public float localMaxHp;
     public float attackDamage;
     public float attackRange;
     public float attackCooldown;
@@ -268,8 +299,11 @@ public class Unit {
         this.renderX = cellX;
         this.renderY = cellY;
         this.moveSpeed = type.moveSpeed;
-        this.maxHp = type.maxHp;
-        this.hp = type.maxHp;
+        // Pre-allocate seed; UnitRegistry.allocate will read these into the
+        // SoA arrays. Use the field directly here because the registry-side
+        // setters can't route yet (registry is null).
+        this.localMaxHp = type.maxHp;
+        this.localHp = type.maxHp;
         this.attackDamage = type.attackDamage;
         this.attackRange = type.attackRange;
         this.attackCooldown = type.attackCooldown;
@@ -277,6 +311,30 @@ public class Unit {
     }
 
     public boolean isAlive() {
-        return hp > 0f;
+        return getHp() > 0f;
+    }
+
+    /**
+     * Current HP — routes through the registry's SoA hp slot when allocated,
+     * else falls back to {@link #localHp} (pre-allocate, or post-release
+     * snapshot). The branch is one predictable pointer compare; HotSpot
+     * inlines into hot callers.
+     */
+    public float getHp() {
+        return (registry != null) ? registry.getHp(denseIdx) : localHp;
+    }
+
+    public void setHp(float v) {
+        if (registry != null) registry.setHp(denseIdx, v);
+        else localHp = v;
+    }
+
+    public float getMaxHp() {
+        return (registry != null) ? registry.getMaxHp(denseIdx) : localMaxHp;
+    }
+
+    public void setMaxHp(float v) {
+        if (registry != null) registry.setMaxHp(denseIdx, v);
+        else localMaxHp = v;
     }
 }

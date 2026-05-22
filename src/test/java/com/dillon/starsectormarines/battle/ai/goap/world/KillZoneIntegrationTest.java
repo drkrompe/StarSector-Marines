@@ -150,8 +150,8 @@ public class KillZoneIntegrationTest {
         // ambush-blown threshold lands — the accumulator only ticks while at
         // least one squadmate is alive, and a dead squad short-circuits the
         // sustained-fire scan to nothing.
-        defender.hp = 1_000_000f;
-        defender.maxHp = 1_000_000f;
+        defender.setHp(1_000_000f);
+        defender.setMaxHp(1_000_000f);
         sim.addUnit(defender);
         // Marine 12 cells away — well outside KILL_ZONE_RANGE_CELLS (8) so
         // the existing proximity gate would never trip. The marine's actual

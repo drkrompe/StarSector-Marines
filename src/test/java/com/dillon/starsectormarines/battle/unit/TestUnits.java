@@ -33,7 +33,7 @@ public final class TestUnits {
      * see {@code null}.
      */
     public static void kill(BattleSimulation sim, Unit u) {
-        u.hp = 0f;
+        u.setHp(0f);
         sim.releaseFromRegistry(u.entityId);
     }
 }

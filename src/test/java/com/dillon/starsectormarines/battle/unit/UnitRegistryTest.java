@@ -202,6 +202,72 @@ public class UnitRegistryTest {
     }
 
     @Test
+    public void allocateSeedsHpFromUnitsLocalFieldsAndAccessorsRouteThroughRegistry() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        // Pre-allocate: ctor seeded localHp from type.maxHp (MARINE_BLUE),
+        // accessors fall through to the local field.
+        float typeMaxHp = u.getMaxHp();
+        assertTrue(typeMaxHp > 0f, "test prerequisite: type seeds a non-zero maxHp");
+
+        r.allocate(u);
+
+        // Post-allocate: getter reads the registry slot, which should mirror
+        // the localHp/localMaxHp values from the pre-allocate ctor.
+        assertEquals(typeMaxHp, r.getHp(u.denseIdx), 1e-6f);
+        assertEquals(typeMaxHp, r.getMaxHp(u.denseIdx), 1e-6f);
+        assertEquals(typeMaxHp, u.getHp(), 1e-6f);
+        assertSame(r, u.registry);
+
+        // A setHp call routes through the registry, not the now-stale local
+        // field. The two end up disagreeing — that's the whole point of the
+        // accessor; the local field is a pre-/post-life snapshot, not canon.
+        u.setHp(42f);
+        assertEquals(42f, r.getHp(u.denseIdx), 1e-6f);
+        assertEquals(42f, u.getHp(), 1e-6f);
+    }
+
+    @Test
+    public void releaseSnapshotsHpBackToLocalFieldForPostReleaseReaders() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        r.allocate(u);
+
+        u.setHp(17f);
+        u.setMaxHp(99f);
+        r.release(u.entityId);
+
+        // After release: registry no longer holds the slot, but legacy
+        // consumers iterating sim.getUnits() can still read sane HP from the
+        // unit reference because release snapshotted the moment-of-death
+        // value back onto localHp/localMaxHp.
+        assertNull(u.registry);
+        assertEquals(-1, u.denseIdx);
+        assertEquals(17f, u.getHp(), 1e-6f);
+        assertEquals(99f, u.getMaxHp(), 1e-6f);
+    }
+
+    @Test
+    public void releaseUpdatesDenseIdxOfTheSwappedTailUnit() {
+        UnitRegistry r = new UnitRegistry();
+        Unit a = unit("a");
+        Unit b = unit("b");
+        Unit c = unit("c");
+        long idA = r.allocate(a);
+        r.allocate(b);
+        r.allocate(c);
+
+        // Release the head — tail (c) swaps into slot 0; its denseIdx must
+        // update or future getHp/setHp through c would index the wrong slot.
+        r.release(idA);
+
+        assertEquals(0, c.denseIdx);
+        // And c's hp accessor still resolves through the registry correctly.
+        c.setHp(123f);
+        assertEquals(123f, r.getHp(0), 1e-6f);
+    }
+
+    @Test
     public void releaseOfReservedZeroSentinelIsNoOp() {
         UnitRegistry r = new UnitRegistry();
         Unit a = unit("a");

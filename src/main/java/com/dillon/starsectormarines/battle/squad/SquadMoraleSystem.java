@@ -211,7 +211,8 @@ public final class SquadMoraleSystem {
             MechLoadoutState m = u.mech;
             if (m.timeSinceUnderFire < 1e9f) m.timeSinceUnderFire += dt;
 
-            float cap = (u.maxHp > 0f && u.hp < MECH_MORALE_ARMOR_GONE_HP_FRAC * u.maxHp)
+            float uMaxHp = u.getMaxHp();
+            float cap = (uMaxHp > 0f && u.getHp() < MECH_MORALE_ARMOR_GONE_HP_FRAC * uMaxHp)
                     ? MECH_MORALE_ARMOR_GONE_CAP
                     : 1.0f;
             if (m.timeSinceUnderFire >= MORALE_RECOVER_AFTER_FIRE_SECONDS) {

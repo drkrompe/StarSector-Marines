@@ -69,7 +69,7 @@ public final class HubDemolitionSystem {
                 Unit other = units.get(j);
                 if (!(other instanceof Drone d)) continue;
                 if (!d.isAlive() || d.homeHub != h) continue;
-                d.hp = 0f;
+                d.setHp(0f);
                 roster.releaseFromRegistry(d.entityId);
             }
         }

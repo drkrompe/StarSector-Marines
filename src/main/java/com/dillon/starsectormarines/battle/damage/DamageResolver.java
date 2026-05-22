@@ -86,7 +86,7 @@ public final class DamageResolver {
         int targetCover = grid.getCoverAt(target.cellX, target.cellY);
         float dr = COVER_DAMAGE_REDUCTION[Math.min(targetCover, COVER_DAMAGE_REDUCTION.length - 1)];
         float effectiveMult = (target instanceof MapTurret) ? vsTurretMult : 1f;
-        target.hp -= damage * effectiveMult * (1f - dr);
+        target.setHp(target.getHp() - damage * effectiveMult * (1f - dr));
         boolean died = wasAlive && !target.isAlive();
         if (died) {
             target.deathPoseIdx = rng.nextInt(4);
@@ -205,8 +205,9 @@ public final class DamageResolver {
     private void applyMechHpThresholdDrain(Unit target) {
         MechLoadoutState m = target.mech;
         m.timeSinceUnderFire = 0f;
-        if (target.maxHp <= 0f) return;
-        float frac = Math.max(0f, target.hp) / target.maxHp;
+        float maxHp = target.getMaxHp();
+        if (maxHp <= 0f) return;
+        float frac = Math.max(0f, target.getHp()) / maxHp;
         int newCount = 0;
         for (float t : SquadMoraleSystem.MECH_HP_DRAIN_THRESHOLDS) {
             if (frac <= t) newCount++;

@@ -67,7 +67,7 @@ public class MechMoraleTest {
         float starting = mech.mech.morale;
 
         // Damage to 70% HP — crosses the 0.75 threshold once.
-        sim.applyDamage(mech, mech.maxHp * 0.30f, 1f);
+        sim.applyDamage(mech, mech.getMaxHp() * 0.30f, 1f);
 
         assertEquals(1, mech.mech.hpThresholdsCrossed,
                 "70% HP should have crossed the 0.75 threshold exactly once");
@@ -83,7 +83,7 @@ public class MechMoraleTest {
         Unit mech = sim.getUnits().get(0);
 
         // Damage straight to ~5% HP — crosses 0.75, 0.50, 0.25, 0.10 (4 thresholds).
-        sim.applyDamage(mech, mech.maxHp * 0.95f, 1f);
+        sim.applyDamage(mech, mech.getMaxHp() * 0.95f, 1f);
 
         assertEquals(4, mech.mech.hpThresholdsCrossed,
                 "5% HP should have crossed all four thresholds");
@@ -99,11 +99,11 @@ public class MechMoraleTest {
         Unit mech = sim.getUnits().get(0);
 
         // First hit: cross 0.75 (1 drain).
-        sim.applyDamage(mech, mech.maxHp * 0.30f, 1f);
+        sim.applyDamage(mech, mech.getMaxHp() * 0.30f, 1f);
         float afterFirst = mech.mech.morale;
 
         // Second hit: still above 0.50 — no new threshold crossed.
-        sim.applyDamage(mech, mech.maxHp * 0.05f, 1f);
+        sim.applyDamage(mech, mech.getMaxHp() * 0.05f, 1f);
 
         assertEquals(1, mech.mech.hpThresholdsCrossed,
                 "no new threshold crossed → counter stays at 1");
@@ -120,7 +120,7 @@ public class MechMoraleTest {
         Squad sq = mechSquad(sim, 4, MechRole.ARMORED_SUPPORT);
         Unit mech = sim.getUnits().get(0);
 
-        sim.applyDamage(mech, mech.maxHp * 0.30f, 1f);
+        sim.applyDamage(mech, mech.getMaxHp() * 0.30f, 1f);
 
         assertEquals(1.0f, sq.morale, 1e-5f,
                 "mech squad's squad.morale must NOT drain on a mech hit");
@@ -134,7 +134,7 @@ public class MechMoraleTest {
         Squad sq = mechSquad(sim, 1, MechRole.ARMORED_SUPPORT);
         hideEnemy(sim);
         Unit mech = sim.getUnits().get(0);
-        mech.hp = mech.maxHp * 0.40f; // below the 0.50 gate
+        mech.setHp(mech.getMaxHp() * 0.40f); // below the 0.50 gate
         mech.mech.morale = 1.0f; // overshoot — caller forced past cap, recovery clamps
         mech.mech.timeSinceUnderFire = 10f; // out of under-fire window
 

@@ -224,8 +224,8 @@ public class Drone extends Unit {
     public Drone(String id, Faction faction, int cellX, int cellY, DroneHubUnit homeHub) {
         super(id, faction, UnitType.DRONE, cellX, cellY);
         this.homeHub = homeHub;
-        this.maxHp = DRONE_MAX_HP;
-        this.hp = DRONE_MAX_HP;
+        setMaxHp(DRONE_MAX_HP);
+        setHp(DRONE_MAX_HP);
         this.primaryWeapon = MarineWeapon.DRONE_PULSE;
         this.attackRange = MarineWeapon.DRONE_PULSE.range;
         this.attackDamage = MarineWeapon.DRONE_PULSE.damage;

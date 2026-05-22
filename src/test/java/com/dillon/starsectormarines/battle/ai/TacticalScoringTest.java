@@ -718,7 +718,7 @@ public class TacticalScoringTest {
         MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.HEPHAESTUS, 10, 5);
         float oneRocket = MarineSecondary.ROCKET_LAUNCHER.damage
                 * MarineSecondary.ROCKET_LAUNCHER.vsTurretMult;
-        assertTrue(oneRocket < turret.maxHp,
+        assertTrue(oneRocket < turret.getMaxHp(),
                 "test invariant: Hephaestus needs >1 rocket — adjust if balance changed");
 
         m0.secondaryActionTimer = MarineSecondary.ROCKET_LAUNCHER.aimDuration;
@@ -787,7 +787,7 @@ public class TacticalScoringTest {
         Unit rocketeer = rocketeer(sim, Faction.MARINE, 5, 5);
         MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
 
-        float bigDamage = turret.maxHp * 2f;
+        float bigDamage = turret.getMaxHp() * 2f;
         sim.queueDetonation(new PendingDetonation(
                 turret.cellX + 0.5f, turret.cellY + 0.5f, 0.5f,
                 MarineSecondary.ROCKET_LAUNCHER.aoeRadius,

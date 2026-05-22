@@ -57,6 +57,19 @@ public final class UnitRegistry {
     private static final int INITIAL_CAPACITY = 64;
 
     private Unit[] dense = new Unit[INITIAL_CAPACITY];
+    /**
+     * Per-unit current HP, keyed by dense index. Grown in lockstep with
+     * {@link #dense}; swap-and-pop release moves the tail entry here too.
+     * <b>Canonical storage</b> — the {@link Unit#getHp}/{@link Unit#setHp}
+     * accessors route through this array after allocation. Pre-allocation
+     * values live in the unit's transient {@code localHp} field; allocate
+     * seeds the slot, release snapshots back to the field for any reader
+     * that holds the released {@link Unit} reference after the registry
+     * has dropped it (legacy {@code units} list path).
+     */
+    private float[] hp = new float[INITIAL_CAPACITY];
+    /** Per-unit max HP, same lifecycle as {@link #hp}. */
+    private float[] maxHp = new float[INITIAL_CAPACITY];
     private int liveCount = 0;
     private long nextId = 1L;
 
@@ -87,10 +100,24 @@ public final class UnitRegistry {
             throw new IllegalStateException(
                     "Unit '" + u.id + "' already has entityId " + u.entityId + " — double allocate");
         }
-        if (liveCount == dense.length) dense = Arrays.copyOf(dense, dense.length * 2);
+        if (liveCount == dense.length) {
+            int newCap = dense.length * 2;
+            dense = Arrays.copyOf(dense, newCap);
+            hp = Arrays.copyOf(hp, newCap);
+            maxHp = Arrays.copyOf(maxHp, newCap);
+        }
         long id = nextId++;
         u.entityId = id;
         dense[liveCount] = u;
+        // Seed SoA from the unit's pre-allocation transient fields. After this
+        // point hp[idx]/maxHp[idx] is canonical — the unit's localHp/localMaxHp
+        // fields are stale until release writes them back for post-release
+        // readers (corpse on the legacy units list, isAlive() on a dead drone
+        // before its crash sequence finishes).
+        hp[liveCount] = u.localHp;
+        maxHp[liveCount] = u.localMaxHp;
+        u.denseIdx = liveCount;
+        u.registry = this;
         indexById.put(id, liveCount);
         liveCount++;
         return id;
@@ -114,9 +141,21 @@ public final class UnitRegistry {
         int idx = indexById.remove(id);
         if (idx == INVALID_INDEX) return;
         int last = liveCount - 1;
+        // Snapshot HP back onto the released unit so post-release readers
+        // (corpses still in the legacy units list; isAlive() chained via
+        // getHp() in flyout / drone-crash code) see the moment-of-death
+        // values rather than a stale 0L pendingHp.
+        Unit released = dense[idx];
+        released.localHp = hp[idx];
+        released.localMaxHp = maxHp[idx];
+        released.denseIdx = -1;
+        released.registry = null;
         if (idx != last) {
             Unit tail = dense[last];
             dense[idx] = tail;
+            hp[idx] = hp[last];
+            maxHp[idx] = maxHp[last];
+            tail.denseIdx = idx;
             indexById.put(tail.entityId, idx);
         }
         dense[last] = null;
@@ -155,6 +194,26 @@ public final class UnitRegistry {
     public Unit get(int idx) {
         return dense[idx];
     }
+
+    /**
+     * Direct array access for the SoA hp slot. Used by {@link Unit#getHp}
+     * (the OO-shape accessor every existing call site goes through) and by
+     * any future hot bulk loop that iterates over {@code [0, liveCount())}
+     * without a {@link Unit} dereference.
+     */
+    public float getHp(int idx) { return hp[idx]; }
+    public void setHp(int idx, float v) { hp[idx] = v; }
+    public float getMaxHp(int idx) { return maxHp[idx]; }
+    public void setMaxHp(int idx, float v) { maxHp[idx] = v; }
+
+    /**
+     * Raw {@code float[]} hp view for bulk iteration over
+     * {@code [0, liveCount())}. Same caveat as {@link #denseArray()} —
+     * the array reference may be replaced by {@link #allocate(Unit)} on
+     * growth, so don't cache across allocations.
+     */
+    public float[] hpArray() { return hp; }
+    public float[] maxHpArray() { return maxHp; }
 
     public int liveCount() {
         return liveCount;

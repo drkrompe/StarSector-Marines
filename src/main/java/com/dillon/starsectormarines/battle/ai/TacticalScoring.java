@@ -469,7 +469,7 @@ public final class TacticalScoring {
     public static boolean shouldCommitRocket(Unit shooter, MapTurret turret, BattleSimulation sim) {
         if (shooter.secondaryWeapon == null || shooter.secondaryAmmo <= 0) return false;
         if (!turret.isAlive()) return false;
-        return projectedRocketDamageOnTurret(shooter, turret, sim) < turret.hp;
+        return projectedRocketDamageOnTurret(shooter, turret, sim) < turret.getHp();
     }
 
     /**

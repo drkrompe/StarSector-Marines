@@ -177,13 +177,15 @@ public final class SquadDetailPanel implements HudPanel {
             String tag = "M-" + (i + 1);
             Fonts.ORBITRON_20.drawString(tag, rowLeft + COL_NAME, textBaseline, NAME_FG, alphaMult);
 
-            float frac = m.maxHp > 0f ? m.hp / m.maxHp : 0f;
+            float memberHp = m.getHp();
+            float memberMaxHp = m.getMaxHp();
+            float frac = memberMaxHp > 0f ? memberHp / memberMaxHp : 0f;
             float barY = rowY + (ROW_H - HP_BAR_H) * 0.5f;
             HudDraw.prepBlend();
             HudDraw.hpBar(rowLeft + COL_HP_BAR, barY, HP_BAR_W, HP_BAR_H, frac, alphaMult);
 
-            int curHp = (int) Math.ceil(Math.max(0f, m.hp));
-            int maxHp = (int) Math.ceil(Math.max(1f, m.maxHp));
+            int curHp = (int) Math.ceil(Math.max(0f, memberHp));
+            int maxHp = (int) Math.ceil(Math.max(1f, memberMaxHp));
             Fonts.ORBITRON_20.drawString(curHp + "/" + maxHp,
                     rowLeft + COL_HP_TEXT, textBaseline, NAME_FG, alphaMult);
 
