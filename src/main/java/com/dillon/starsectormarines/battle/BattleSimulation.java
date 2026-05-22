@@ -167,9 +167,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final List<Unit> units = new ArrayList<>();
     private final AirSystem airSystem = new AirSystem();
     private final GroundSystem groundSystem = new GroundSystem();
-    /** Fog-of-war contributor set + per-building roof alpha targets. Constructed empty; {@link com.dillon.starsectormarines.battle.BattleSetup} swaps in the real {@link com.dillon.starsectormarines.battle.map.Buildings} when it hands the sim a map. */
-    private com.dillon.starsectormarines.battle.map.Buildings buildings = com.dillon.starsectormarines.battle.map.Buildings.EMPTY;
-    private final com.dillon.starsectormarines.battle.vision.PlayerVisionState visionState = new com.dillon.starsectormarines.battle.vision.PlayerVisionState();
+    /** Fog-of-war state — building registry + faction contributor set + the every-3rd-tick {@link com.dillon.starsectormarines.battle.vision.BuildingVisibilityPass} driver. The {@link #getBuildings}/{@link #setBuildings}/{@link #getVisionState} delegates below forward here. */
+    private final com.dillon.starsectormarines.battle.vision.VisionService vision = new com.dillon.starsectormarines.battle.vision.VisionService();
     /** Handheld squad weapons (rifle / SMG / DMR / rocket launcher). Owns fireShot, fireSecondary, and the per-tick burst continuation pass. Pumped each tick via {@code infantry.tick(this)}; behavior call sites still go through the delegating {@link #fireShot} / {@link #fireSecondary} wrappers on this class. */
     private final InfantryWeapons infantry = new InfantryWeapons();
     /** Chassis-mounted weapons on motorized / heavy units (mech today, future tanks/hovercraft). Owns fireMechWeapon and the per-tick mech continuation + wreck-spawn passes. */
@@ -525,12 +524,12 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     public List<EquipmentDrop> getEquipmentDrops() { return equipmentDrops; }
     public List<Doodad> getDoodads()       { return doodads; }
     /** Building registry for the roof-render + fog-of-war passes. Never null. */
-    public com.dillon.starsectormarines.battle.map.Buildings getBuildings() { return buildings; }
+    public com.dillon.starsectormarines.battle.map.Buildings getBuildings() { return vision.getBuildings(); }
     /** Faction-contributor set for the fog-of-war reveal. */
-    public com.dillon.starsectormarines.battle.vision.PlayerVisionState getVisionState() { return visionState; }
+    public com.dillon.starsectormarines.battle.vision.PlayerVisionState getVisionState() { return vision.getVisionState(); }
     /** Hands the sim the map's building registry. Called by BattleSetup after generation. Subsequent visibility passes will reveal/hide these buildings as contributor units move. */
     public void setBuildings(com.dillon.starsectormarines.battle.map.Buildings buildings) {
-        this.buildings = buildings != null ? buildings : com.dillon.starsectormarines.battle.map.Buildings.EMPTY;
+        vision.setBuildings(buildings);
     }
     public void addDoodad(Doodad d) {
         doodads.add(d);
@@ -1264,10 +1263,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // Fog-of-war visibility pass — recomputed every 3rd tick (~10 Hz at
         // 30 Hz sim). The render path lerps current→target alpha per frame so
         // this cadence stays invisible.
-        if (simTickIndex % 3 == 0 && !buildings.isEmpty()) {
-            com.dillon.starsectormarines.battle.vision.BuildingVisibilityPass.update(
-                    buildings, units, grid, visionState);
-        }
+        vision.tick(simTickIndex, units, grid);
         tickProfile.lap(TickProfile.Phase.VISION);
         rebuildOccupancyMap();
         tickProfile.lap(TickProfile.Phase.REBUILD_OCCUPANCY);
