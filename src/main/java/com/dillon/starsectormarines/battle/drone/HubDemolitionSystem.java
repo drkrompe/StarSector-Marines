@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.DroneHubUnit;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.fx.EffectsService;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
 import java.util.List;
 
@@ -31,10 +32,14 @@ public final class HubDemolitionSystem {
 
     private final NavigationService navigation;
     private final EffectsService effects;
+    private final UnitRosterService roster;
 
-    public HubDemolitionSystem(NavigationService navigation, EffectsService effects) {
+    public HubDemolitionSystem(NavigationService navigation,
+                               EffectsService effects,
+                               UnitRosterService roster) {
         this.navigation = navigation;
         this.effects = effects;
+        this.roster = roster;
     }
 
     /**
@@ -54,12 +59,18 @@ public final class HubDemolitionSystem {
             effects.spawnSmokingWreck(h.cellX, h.cellY);
             // Cascading kill: drones launched from this hub lose control and
             // crash with it. Set hp=0 here; the crash system (next call in
-            // the tick chain) starts the per-drone fall sequence + impact FX.
+            // the tick chain) starts the per-drone fall sequence + impact FX
+            // by iterating the legacy units list. Release from the dense
+            // registry in the same beat so the next tick's UPDATE_UNITS
+            // dispatch doesn't see a hp=0 drone in the dense view —
+            // DamageResolver is the registry's only other release path, and
+            // this cascade bypasses it.
             for (int j = 0, m = units.size(); j < m; j++) {
                 Unit other = units.get(j);
                 if (!(other instanceof Drone d)) continue;
                 if (!d.isAlive() || d.homeHub != h) continue;
                 d.hp = 0f;
+                roster.releaseFromRegistry(d.entityId);
             }
         }
     }

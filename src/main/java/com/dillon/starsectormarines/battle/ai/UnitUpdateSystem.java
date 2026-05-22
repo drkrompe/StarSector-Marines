@@ -49,15 +49,15 @@ import java.util.stream.IntStream;
  * but APPLY_SPAWNS doesn't overlap with UPDATE_UNITS, so a same-tick growth
  * can't strand the snapshot mid-dispatch.
  *
- * <h2>Phase-2a registry flip</h2>
- * <p>Dispatch source is the {@link UnitRegistry} dense array — Phase 2a of
- * the SoA migration. The legacy {@code List<Unit>} is no longer the
- * dispatch source. {@code .filter(Unit::isAlive)} stays as a defensive
- * guard until every death path routes through the registry release: today
- * {@code HubDemolitionSystem} sets {@code drone.hp = 0f} directly without
- * touching the registry, so a dead-but-still-registered drone can survive
- * one tick in the dense view. Once that path migrates, the filter becomes
- * removable.
+ * <h2>Registry-driven dispatch</h2>
+ * <p>Dispatch source is the {@link UnitRegistry} dense array. The legacy
+ * {@code List<Unit>} is no longer iterated here. Every production death
+ * path now releases from the registry: {@code DamageResolver} on damage
+ * kills, and {@code HubDemolitionSystem} on the drone cascade. The
+ * dispatch trusts the registry's notion of liveness — there's no
+ * {@code .filter(Unit::isAlive)} fallback. If a new direct-hp-write death
+ * path lands without registry release, dead units will pass through this
+ * loop until the next tick's roster pass catches them.
  *
  * <h2>sim-as-context</h2>
  * <p>Behaviors still take {@link BattleSimulation} as a context handle —
@@ -104,9 +104,7 @@ public final class UnitUpdateSystem {
         damageService.enterParallel();
         try {
             pool.submit(() -> IntStream.range(0, liveCount).parallel()
-                    .mapToObj(i -> snapshot[i])
-                    .filter(Unit::isAlive) // defensive — see class doc, HubDemolitionSystem direct-hp-write
-                    .forEach(u -> updateUnit(u, sim)))
+                    .forEach(i -> updateUnit(snapshot[i], sim)))
                     .get();
         } catch (InterruptedException ie) {
             Thread.currentThread().interrupt();

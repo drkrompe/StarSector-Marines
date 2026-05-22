@@ -262,7 +262,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         this.turretDemolition = new com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem(
                 navigation, effects, tactical, rosterService);
         this.hubDemolition = new com.dillon.starsectormarines.battle.drone.HubDemolitionSystem(
-                navigation, effects);
+                navigation, effects, rosterService);
         this.droneCrashes = new com.dillon.starsectormarines.battle.drone.DroneCrashSystem(
                 navigation, effects);
         this.squadFallback = new com.dillon.starsectormarines.battle.squad.SquadFallbackSystem(
