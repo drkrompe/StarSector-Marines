@@ -324,6 +324,14 @@ public final class BspCityGenerator implements MapGenerator {
         // any allocator changes. See roadmap/conquest/central-keep.md.
         CompoundPerimeterDefenderStamper.stamp(grid, axis, tactical);
 
+        // Step 3c''' — keep multi-chamber detection. When the COMMAND_POST
+        // sub-building got a BuildingShellCore multi-room partition (≥7
+        // cells in some dimension, 65% chance), emit a BARRACKS tactical
+        // node anchored in the chamber that doesn't contain the COMMAND_POST
+        // anchor — the entry chamber. Multi-room storming sequence reads as
+        // two capture beats. Slice 6 of central-keep.md.
+        KeepEntryChamberStamper.stamp(grid, tactical);
+
         // Step 3d — link tactical nodes. Runs once after every node is
         // emitted (from compound fillers + fortress wall stamping); geometric
         // rules wire up OVERWATCHES, SUPPLIES, FALLBACK_TO, GUARDS. Always
