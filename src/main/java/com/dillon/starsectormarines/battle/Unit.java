@@ -116,7 +116,10 @@ public class Unit {
      * {@link #setHp}.
      *
      * <p>Public so {@link UnitRegistry} (a sibling package) can seed/snapshot
-     * the slot at allocate/release time.
+     * the slot at allocate/release time. If {@link Unit} is ever promoted to
+     * {@code Serializable} for the campaign tier, these need {@code transient}
+     * or a package-private accessor on the registry — xstream would otherwise
+     * walk and save a stale post-release snapshot.
      */
     public float localHp;
     public float localMaxHp;
@@ -320,20 +323,23 @@ public class Unit {
      * snapshot). The branch is one predictable pointer compare; HotSpot
      * inlines into hot callers.
      */
-    public float getHp() {
+    // Final so CHA keeps the call monomorphic across all current Unit
+    // subclasses (Drone, DroneHubUnit, MapTurret) — JIT inlines through the
+    // null-check into registry.getHp/setHp in one virtual call.
+    public final float getHp() {
         return (registry != null) ? registry.getHp(denseIdx) : localHp;
     }
 
-    public void setHp(float v) {
+    public final void setHp(float v) {
         if (registry != null) registry.setHp(denseIdx, v);
         else localHp = v;
     }
 
-    public float getMaxHp() {
+    public final float getMaxHp() {
         return (registry != null) ? registry.getMaxHp(denseIdx) : localMaxHp;
     }
 
-    public void setMaxHp(float v) {
+    public final void setMaxHp(float v) {
         if (registry != null) registry.setMaxHp(denseIdx, v);
         else localMaxHp = v;
     }
