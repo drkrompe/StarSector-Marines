@@ -92,7 +92,7 @@ public class InfantryWeapons {
             effectiveSpread = RangeFalloff.spread(w.hitSpread, dist, w.range);
         }
         accuracy *= stance.accuracyMult;
-        boolean hit = ctx.getRng().nextFloat() < accuracy;
+        boolean hit = shooter.rng.nextFloat() < accuracy;
         float moraleImpact = shooter.type != null ? shooter.type.moraleImpact : 1.0f;
         if (hit) {
             ctx.applyDamage(target, damage, vsTurretMult, moraleImpact);
@@ -113,7 +113,7 @@ public class InfantryWeapons {
         // same hit-jitter + miss-ring rules.
         float fromX = shooter.renderX + 0.5f;
         float fromY = shooter.renderY + 0.5f;
-        ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(target, hit, effectiveSpread, ctx.getRng());
+        ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(target, hit, effectiveSpread, shooter.rng);
         float toX = ep.x();
         float toY = ep.y();
         TurretKind tk = (shooter instanceof MapTurret) ? ((MapTurret) shooter).kind : null;
@@ -143,7 +143,7 @@ public class InfantryWeapons {
         MarineSecondary sec = shooter.secondaryWeapon;
         if (sec == null || shooter.secondaryAmmo <= 0) return;
         shooter.secondaryAmmo--;
-        boolean hit = ctx.getRng().nextFloat() < sec.accuracy;
+        boolean hit = shooter.rng.nextFloat() < sec.accuracy;
         // Rocket launches from the marine's current sprite position so the
         // launch FX glue to the sprite if the marine is mid-step. Endpoint
         // resolves through ShotEndpoint with effectiveSpread=0 — secondaries
@@ -151,7 +151,7 @@ public class InfantryWeapons {
         // + miss-ring still apply but no weapon-specific scatter.
         float fromX = shooter.renderX + 0.5f;
         float fromY = shooter.renderY + 0.5f;
-        ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(target, hit, 0f, ctx.getRng());
+        ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(target, hit, 0f, shooter.rng);
         float toX = ep.x();
         float toY = ep.y();
         // Marine handheld rocket is direct-fire (no arc) — explodes wherever

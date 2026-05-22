@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.profile;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Per-tick scratch profiler measuring sub-step cost inside one
@@ -59,11 +61,53 @@ public final class TickInnerProfile {
         public static final Bucket[] VALUES = values();
     }
 
-    /** Sim sets this at the top of {@code tick()} so the recording sites reach the live counters without a sim reference. Single-threaded — no synchronization needed. */
-    private static TickInnerProfile current;
+    /**
+     * Per-thread current slot. The sim sets the main thread's slot at the top
+     * of each tick to point at its canonical {@link TickInnerProfile}; worker
+     * threads in the parallel UPDATE_UNITS dispatch auto-create their own
+     * per-thread instances on first {@link #current()} access. After the
+     * parallel section, {@link #mergeAllInto(TickInnerProfile)} sums every
+     * auto-created worker profile into the canonical one and resets them, so
+     * the dumper / panel reads the aggregate from the sim's instance.
+     *
+     * <p>{@link #ALL_INSTANCES} tracks only the auto-created worker profiles
+     * (not the sim's canonical instance — that one is set via
+     * {@link #setCurrent} which deliberately doesn't register). This keeps
+     * the merge sweep from double-counting the destination.
+     */
+    private static final List<TickInnerProfile> ALL_INSTANCES = new CopyOnWriteArrayList<>();
+    private static final ThreadLocal<TickInnerProfile> CURRENT = new ThreadLocal<>();
 
-    public static TickInnerProfile current() { return current; }
-    public static void setCurrent(TickInnerProfile p) { current = p; }
+    public static TickInnerProfile current() {
+        TickInnerProfile p = CURRENT.get();
+        if (p == null) {
+            p = new TickInnerProfile();
+            CURRENT.set(p);
+            ALL_INSTANCES.add(p);
+        }
+        return p;
+    }
+
+    public static void setCurrent(TickInnerProfile p) {
+        if (p == null) CURRENT.remove();
+        else CURRENT.set(p);
+    }
+
+    /**
+     * Sums every auto-created worker profile's per-bucket nanos and counts
+     * into {@code dest}, then resets each worker profile so the next tick's
+     * recordings accumulate fresh. Call at the end of the parallel UPDATE_UNITS
+     * dispatch. The sim's canonical instance is the {@code dest} argument —
+     * skipped in the loop because it was registered via {@link #setCurrent},
+     * not via auto-init.
+     */
+    public static void mergeAllInto(TickInnerProfile dest) {
+        for (TickInnerProfile src : ALL_INSTANCES) {
+            if (src == dest) continue;
+            dest.addFrom(src);
+            src.reset();
+        }
+    }
 
     private final long[] nanos = new long[Bucket.VALUES.length];
     private final int[] counts = new int[Bucket.VALUES.length];
@@ -79,6 +123,14 @@ public final class TickInnerProfile {
         int idx = bucket.ordinal();
         nanos[idx] += deltaNanos;
         counts[idx]++;
+    }
+
+    /** Per-bucket sum of another profile's nanos + counts. Used by {@link #mergeAllInto(TickInnerProfile)} to fold per-worker recordings into the sim's canonical instance after a parallel dispatch phase. */
+    public void addFrom(TickInnerProfile other) {
+        for (int i = 0; i < nanos.length; i++) {
+            nanos[i] += other.nanos[i];
+            counts[i] += other.counts[i];
+        }
     }
 
     public long nanosOf(Bucket b)  { return nanos[b.ordinal()]; }

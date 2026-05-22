@@ -50,6 +50,9 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinWorkerThread;
 
 /**
  * Headless auto-battler simulation. Owns the {@link NavigationGrid}, the unit
@@ -233,7 +236,13 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private static final float PLUME_PUFF_MIN_GAP = 0.18f;
     private static final float PLUME_PUFF_MAX_GAP = 0.32f;
     /** Dense, primitive-keyed squad lookup. fastutil's Int2ObjectOpenHashMap avoids the per-call Integer autobox that {@link #getSquad} would do on a {@code HashMap<Integer, Squad>} — and getSquad is hit per-unit per-tick from the behavior dispatch. */
-    private final Int2ObjectMap<Squad> squads = new Int2ObjectOpenHashMap<>();
+    /**
+     * Pre-sized to 256 so the rare {@link #mintSquad} call (drone hubs spawning
+     * during the parallel UPDATE_UNITS dispatch) can't trigger a rehash while
+     * other workers read {@code squads.get}. Real-world battles run well
+     * under 256 squads (defender garrisons + marine fireteams + drone squads).
+     */
+    private final Int2ObjectMap<Squad> squads = new Int2ObjectOpenHashMap<>(256);
 
     /**
      * Per-faction strategic commanders. A faction with no entry here has no
@@ -370,8 +379,32 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final TickProfile tickProfile = new TickProfile();
     /** Per-tick sub-step profile (behavior buckets + heavy primitives like pathfind / target-pick). Reset at the top of every {@link #tick()}; snapshotted into {@link TickProfile.Spike#innerSnapshot} when a spike fires so spike JSONs carry the diagnostic breakdown. Exposed via the static {@link TickInnerProfile#current()} slot so non-sim call sites (GridPathfinder, TacticalScoring) can record without threading the sim reference through. */
     private final TickInnerProfile tickInnerProfile = new TickInnerProfile();
-    /** Per-tick LoS result cache. Cleared at tick start; queried inside {@link com.dillon.starsectormarines.battle.nav.NavigationGrid#hasLineOfSight} via the static {@link LosCache#current()} slot. Same access pattern as {@link #tickInnerProfile} — keeps the 36 direct {@code hasLineOfSight} callers (and the canSeePair wrappers) unmodified while still catching cross-caller pair reuse within a tick. */
-    private final LosCache losCache = new LosCache();
+    // LosCache is per-thread (ThreadLocal lazy-init in LosCache itself);
+    // the sim no longer owns a single instance — clearAll() at tick top
+    // sweeps every worker's slot.
+    /**
+     * Worker pool for the parallel UPDATE_UNITS dispatch. Sized one less than
+     * available cores so the main thread, OS, and render have headroom.
+     * Daemon worker threads so the pool doesn't keep the JVM alive past the
+     * sim's lifetime (Starsector spawns and discards battles repeatedly).
+     */
+    /**
+     * True between the top of {@link #tick()} and the bottom — read by
+     * {@link #applyDamage} to decide whether to auto-flush. Off-tick callers
+     * (tests asserting on {@code applyDamage}'s side effects, the mid-frame
+     * UI flyby strike path that doesn't drive a sim tick) get immediate
+     * apply; in-tick callers go through the queue and drain in APPLY_DAMAGE.
+     */
+    private volatile boolean insideTick = false;
+    private final ForkJoinPool updatePool = new ForkJoinPool(
+            Math.max(1, Runtime.getRuntime().availableProcessors() - 1),
+            pool -> {
+                ForkJoinWorkerThread t = ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(pool);
+                t.setDaemon(true);
+                t.setName("BattleSim-Update-" + t.getPoolIndex());
+                return t;
+            },
+            null, false);
     private boolean complete = false;
     private Faction winner;
 
@@ -662,15 +695,22 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      * spawn rare; the next tick's REBUILD_OCCUPANCY restores the picture.
      */
     public void queueSpawn(Unit u) {
-        pendingSpawns.add(u);
+        synchronized (pendingSpawns) {
+            pendingSpawns.add(u);
+        }
+        // Off-tick auto-flush — tests that call queueSpawn directly expect
+        // immediate visibility in the units list.
+        if (!insideTick) flushPendingSpawns();
     }
 
     /**
      * Drains {@link #pendingSpawns} in FIFO order, mirroring each queued unit
      * through {@link #addUnit}. Runs in APPLY_SPAWNS, between APPLY_OCCUPANCY
      * and INFANTRY_TICK.
+     *
+     * <p>Public for tests — same justification as {@link #flushPendingDamage}.
      */
-    private void flushPendingSpawns() {
+    public void flushPendingSpawns() {
         if (pendingSpawns.isEmpty()) return;
         for (int i = 0, n = pendingSpawns.size(); i < n; i++) {
             addUnit(pendingSpawns.get(i));
@@ -695,14 +735,23 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
 
     @Override
     public void applyDamage(Unit target, float damage, float vsTurretMult, float moraleImpact) {
-        PendingDamage e = pendingDamagePool.isEmpty()
-                ? new PendingDamage()
-                : pendingDamagePool.remove(pendingDamagePool.size() - 1);
-        e.target = target;
-        e.damage = damage;
-        e.vsTurretMult = vsTurretMult;
-        e.moraleImpact = moraleImpact;
-        pendingDamage.add(e);
+        // Synchronized for the parallel UPDATE_UNITS dispatch — many workers
+        // enqueue concurrently. Lock on the queue itself so the pool +
+        // append happen under one monitor.
+        synchronized (pendingDamage) {
+            PendingDamage e = pendingDamagePool.isEmpty()
+                    ? new PendingDamage()
+                    : pendingDamagePool.remove(pendingDamagePool.size() - 1);
+            e.target = target;
+            e.damage = damage;
+            e.vsTurretMult = vsTurretMult;
+            e.moraleImpact = moraleImpact;
+            pendingDamage.add(e);
+        }
+        // Off-tick auto-flush: tests + mid-frame UI hooks call applyDamage
+        // and expect immediate effect. In-tick callers see insideTick=true
+        // and let the APPLY_DAMAGE phase drain the queue.
+        if (!insideTick) flushPendingDamage();
     }
 
     /**
@@ -721,8 +770,13 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      * kills it. The drift is one tick of "free action from condemned
      * units" — small, and arguably more consistent than the previous
      * order-dependent behavior.
+     *
+     * <p>Public for tests — production callers go through {@link #applyDamage}
+     * and the sim drains automatically in the APPLY_DAMAGE phase. Direct
+     * unit-level tests that assert immediate side effects of a single
+     * {@code applyDamage} call this to make the queued mutation visible.
      */
-    private void flushPendingDamage() {
+    public void flushPendingDamage() {
         if (pendingDamage.isEmpty()) return;
         for (int i = 0, n = pendingDamage.size(); i < n; i++) {
             PendingDamage e = pendingDamage.get(i);
@@ -842,13 +896,20 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
 
     @Override
     public void postShot(ShotEvent shot) {
-        activeShots.add(shot);
-        shotsThisFrame.add(shot);
+        // activeShots + shotsThisFrame are always written together; one
+        // monitor (activeShots) covers both for the parallel UPDATE_UNITS
+        // dispatch path.
+        synchronized (activeShots) {
+            activeShots.add(shot);
+            shotsThisFrame.add(shot);
+        }
     }
 
     @Override
     public void queueDetonation(PendingDetonation det) {
-        detonations.queue(det);
+        synchronized (detonations) {
+            detonations.queue(det);
+        }
     }
 
     /** Read-only view of in-flight rocket / missile detonations. Used by squad-coordination scorers (avoid rocket volleys against an already-doomed turret). */
@@ -922,7 +983,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                 target.target.cellX, target.target.cellY,
                 target.airLosRadius, target.target.airLosRadius);
         float chance = hasLosToCurrentTarget ? REPRIORITIZE_BASE_CHANCE : REPRIORITIZE_NO_LOS_CHANCE;
-        if (rng.nextFloat() >= chance) return;
+        if (target.rng.nextFloat() >= chance) return;
         // Clear the target — next behavior tick (EngageAtCurrentBand /
         // OverwatchKillZone / BackstopAssignedSquad for mechs, TurretAim
         // for turrets) calls its target-picker on the null check.
@@ -949,7 +1010,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // Civilians (NO_SQUAD) keep the legacy roll — FleeBehavior depends
         // on it.
         if (target.squadId != Unit.NO_SQUAD) return;
-        if (rng.nextFloat() >= FALLBACK_CHANCE) return;
+        if (target.rng.nextFloat() >= FALLBACK_CHANCE) return;
         int[] fallback = TacticalScoring.findFallbackPosition(target, this);
         if (fallback[0] == target.cellX && fallback[1] == target.cellY) return;
         target.fallbackCellX = fallback[0];
@@ -981,10 +1042,16 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
 
     @Override
     public int mintSquad(Faction faction, Unit leader) {
-        Squad squad = new Squad(nextSquadId++, faction);
-        squad.leader = leader;
-        squads.put(squad.id, squad);
-        return squad.id;
+        // Sync because DroneSpawner.tryLaunch can call this from the parallel
+        // UPDATE_UNITS dispatch when multiple hubs spawn the same tick. The
+        // squads map is pre-sized to avoid rehash, so concurrent get() callers
+        // see consistent state.
+        synchronized (squads) {
+            Squad squad = new Squad(nextSquadId++, faction);
+            squad.leader = leader;
+            squads.put(squad.id, squad);
+            return squad.id;
+        }
     }
 
     public void addObjective(Objective o) {
@@ -1039,6 +1106,10 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
 
     private void tick() {
         simTickIndex++;
+        // Gate the off-tick auto-flush in applyDamage: in-tick callers go
+        // through the queue and the APPLY_DAMAGE phase drains it; off-tick
+        // callers (tests, mid-frame UI hooks) get immediate apply.
+        insideTick = true;
         // Backstop: if a caller (currently BattleSetup) hasn't registered
         // objectives, install the default eliminate-each-other pair so the
         // old behavior keeps working untouched. Run-once on first tick.
@@ -1060,8 +1131,13 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // Per-tick LoS cache. Same static-slot pattern as the inner profile —
         // NavigationGrid.hasLineOfSight queries through the slot, so all 36
         // direct callers and the canSeePair wrappers benefit automatically.
-        losCache.clear();
-        LosCache.setCurrent(losCache);
+        // Per-thread cache. enable() switches on auto-init for the duration
+        // of the tick; clearAll sweeps every worker's slot so cached pairs
+        // can't outlive a wall breach from the prior tick's cleanup pass.
+        // disable() at tick end (below) keeps off-tick callers (tests,
+        // mid-frame UI hooks) from auto-populating stale caches.
+        LosCache.clearAll();
+        LosCache.enable();
         // Fog-of-war visibility pass — recomputed every 3rd tick (~10 Hz at
         // 30 Hz sim). The render path lerps current→target alpha per frame so
         // this cadence stays invisible.
@@ -1140,16 +1216,35 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             }
         }
         tickProfile.lap(TickProfile.Phase.GOAP_REPLAN);
-        // Snapshot size: DroneHubBehavior.update -> DroneSpawner.tryLaunch
-        // appends a freshly minted drone via sim.addUnit, which would
-        // ConcurrentModificationException a for-each iterator. The new
-        // drone is picked up on the next tick.
+        // Parallel per-unit dispatch on the sim's ForkJoinPool. Pre-Phase-A
+        // this loop was serial and mutated shared sim state inline; Phase A
+        // refactored every shared mutation (damage, occupancy, spawns, shots,
+        // projectiles, detonations) into thread-safe queue / synchronized
+        // enqueue paths, so workers can dispatch in parallel without
+        // corrupting sim state. After the parallel section, per-worker
+        // TickInnerProfile recordings (PATHFIND / TARGET_PICK / FIRING_POSITION
+        // / behavior buckets) are merged into the canonical sim profile so
+        // the dumper + debug panel read aggregate numbers.
+        //
+        // Snapshot size: queueSpawn defers drone-hub additions to the
+        // APPLY_SPAWNS phase, so the units list is stable during this
+        // dispatch — no CME risk on the parallel iterator.
         int unitCount = units.size();
-        for (int i = 0; i < unitCount; i++) {
-            Unit u = units.get(i);
-            if (!u.isAlive()) continue;
-            updateUnit(u);
+        List<Unit> view = units.subList(0, unitCount);
+        try {
+            updatePool.submit(() -> view.parallelStream()
+                    .filter(Unit::isAlive)
+                    .forEach(this::updateUnit))
+                    .get();
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("UPDATE_UNITS dispatch interrupted", ie);
+        } catch (ExecutionException ee) {
+            Throwable cause = ee.getCause();
+            if (cause instanceof RuntimeException re) throw re;
+            throw new RuntimeException("UPDATE_UNITS dispatch failed", cause);
         }
+        TickInnerProfile.mergeAllInto(tickInnerProfile);
         tickProfile.lap(TickProfile.Phase.UPDATE_UNITS);
         // Apply occupancy + destIndex deltas queued by setPath during the
         // per-unit dispatch. Runs at the end of UPDATE_UNITS, before any
@@ -1260,11 +1355,15 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         checkWinCondition();
         tickProfile.lap(TickProfile.Phase.WIN_CHECK);
         tickProfile.endTick(simTickIndex, tickInnerProfile);
-        // Clear the static slots so any stray call outside the tick window
-        // (e.g., test harness, mid-frame UI hook) is a clean no-op rather
-        // than silently writing into the previous tick's counters / cache.
+        // Clear the inner-profile slot so any stray call outside the tick
+        // window (e.g., test harness, mid-frame UI hook) is a clean no-op
+        // rather than silently writing into the previous tick's counters.
         TickInnerProfile.setCurrent(null);
-        LosCache.setCurrent(null);
+        // Switch the per-thread LosCache off so off-tick callers see null
+        // and fall through to live Bresenham (preserving the old off-tick
+        // behavior that tests + UI hooks depend on).
+        LosCache.disable();
+        insideTick = false;
     }
 
     /**
@@ -1403,15 +1502,20 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         boolean hasOld = oldDestX != Integer.MIN_VALUE && (oldDestX != u.cellX || oldDestY != u.cellY);
         boolean hasNew = newDestX != Integer.MIN_VALUE && (newDestX != u.cellX || newDestY != u.cellY);
         if (!hasOld && !hasNew) return;
-        PendingOccupancyDelta d = pendingOccupancyPool.isEmpty()
-                ? new PendingOccupancyDelta()
-                : pendingOccupancyPool.remove(pendingOccupancyPool.size() - 1);
-        d.u = u;
-        d.oldDestX = hasOld ? oldDestX : Integer.MIN_VALUE;
-        d.oldDestY = hasOld ? oldDestY : Integer.MIN_VALUE;
-        d.newDestX = hasNew ? newDestX : Integer.MIN_VALUE;
-        d.newDestY = hasNew ? newDestY : Integer.MIN_VALUE;
-        pendingOccupancy.add(d);
+        synchronized (pendingOccupancy) {
+            PendingOccupancyDelta d = pendingOccupancyPool.isEmpty()
+                    ? new PendingOccupancyDelta()
+                    : pendingOccupancyPool.remove(pendingOccupancyPool.size() - 1);
+            d.u = u;
+            d.oldDestX = hasOld ? oldDestX : Integer.MIN_VALUE;
+            d.oldDestY = hasOld ? oldDestY : Integer.MIN_VALUE;
+            d.newDestX = hasNew ? newDestX : Integer.MIN_VALUE;
+            d.newDestY = hasNew ? newDestY : Integer.MIN_VALUE;
+            pendingOccupancy.add(d);
+        }
+        // Off-tick auto-flush — tests + setup code expect setPath to update
+        // occupancy immediately so subsequent reads see the new destination.
+        if (!insideTick) flushPendingOccupancyDeltas();
     }
 
     /**
@@ -1421,8 +1525,13 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      * multiple {@link #setPath} calls in one tick (the second call's "old"
      * is the first call's "new"); FIFO drain produces the same net state
      * as the pre-deferral inline mutation.
+     *
+     * <p>Public for tests — production callers go through {@link #setPath}
+     * and the sim drains automatically in the APPLY_OCCUPANCY phase. The
+     * off-tick auto-flush inside {@link #setPath} also calls this so direct
+     * unit-test patterns ({@code setPath} → assert on occupancy) keep working.
      */
-    private void flushPendingOccupancyDeltas() {
+    public void flushPendingOccupancyDeltas() {
         if (pendingOccupancy.isEmpty()) return;
         for (int i = 0, n = pendingOccupancy.size(); i < n; i++) {
             PendingOccupancyDelta d = pendingOccupancy.get(i);
@@ -1735,7 +1844,9 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
 
     /** Queues a {@link Projectile} for the per-tick advance. Called from the AoE projectile fire path in {@link #fireShotFrom}. */
     public void queueProjectile(Projectile p) {
-        activeProjectiles.add(p);
+        synchronized (activeProjectiles) {
+            activeProjectiles.add(p);
+        }
     }
 
     /**

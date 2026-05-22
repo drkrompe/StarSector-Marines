@@ -300,7 +300,7 @@ public final class DroneSwarmAction implements Action {
             d.patrolGoalY = d.body.y;
             return;
         }
-        Random rng = sim.getRng();
+        Random rng = d.rng;
         NavigationGrid grid = sim.getGrid();
         float anchorX = d.homeHub.cellX + 0.5f;
         float anchorY = d.homeHub.cellY + 0.5f;

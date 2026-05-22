@@ -62,7 +62,7 @@ public class HeavyWeapons {
      * passes {@link MechWeapon#LRM_NO_LOS_ACC_MULT}.
      */
     public void fireMechWeapon(WeaponSimContext ctx, Unit shooter, Unit target, MechWeapon weapon, float accuracyMult) {
-        boolean hit = ctx.getRng().nextFloat() < weapon.accuracy * accuracyMult;
+        boolean hit = shooter.rng.nextFloat() < weapon.accuracy * accuracyMult;
         boolean isAoe = weapon.aoeRadius > 0f;
         float moraleImpact = shooter.type != null ? shooter.type.moraleImpact : 1.0f;
 
@@ -84,7 +84,7 @@ public class HeavyWeapons {
         // the chaingun/LRM saturation widening; AoE weapons get their splash
         // center scattered through the same machinery so a salvo sprays the
         // impact zone instead of stacking on one cell.
-        ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(target, hit, effectiveSpread, ctx.getRng());
+        ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(target, hit, effectiveSpread, shooter.rng);
         float toX = ep.x();
         float toY = ep.y();
 

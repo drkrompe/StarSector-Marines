@@ -75,7 +75,7 @@ public final class PatrolRoute implements Action {
             return ActionStatus.RUNNING;
         }
         if (!hasValidWaypoint(squad) || squadHasArrived(squad)) {
-            int[] waypoint = pickWaypoint(squad, sim);
+            int[] waypoint = pickWaypoint(member, squad, sim);
             if (waypoint == null) {
                 squad.patrolDwellTimer = PATROL_DWELL_SECONDS;
                 hold(member, sim);
@@ -108,7 +108,7 @@ public final class PatrolRoute implements Action {
      * current waypoint; falls back to a random walkable cell in that radius.
      * Returns null if neither produces a valid cell.
      */
-    private static int[] pickWaypoint(Squad squad, BattleSimulation sim) {
+    private static int[] pickWaypoint(Unit member, Squad squad, BattleSimulation sim) {
         TacticalNode anchor = squad.assignedNode;
         TacticalMap map = sim.getTacticalMap();
         int radius = squad.patrolRadius;
@@ -121,7 +121,7 @@ public final class PatrolRoute implements Action {
                 if (n.anchorX == squad.patrolWaypointX && n.anchorY == squad.patrolWaypointY) continue;
                 if (!sim.getGrid().inBounds(n.anchorX, n.anchorY)) continue;
                 if (!sim.getGrid().isWalkable(n.anchorX, n.anchorY)) continue;
-                int roll = sim.getRng().nextInt(1000);
+                int roll = member.rng.nextInt(1000);
                 if (roll > bestRoll) {
                     bestRoll = roll;
                     best = new int[]{n.anchorX, n.anchorY};
@@ -135,8 +135,8 @@ public final class PatrolRoute implements Action {
         int seedY = anchor != null ? anchor.anchorY : Math.round(squad.centroidY);
         int r = radius;
         for (int i = 0; i < FALLBACK_SAMPLE_ATTEMPTS; i++) {
-            int dx = sim.getRng().nextInt(r * 2 + 1) - r;
-            int dy = sim.getRng().nextInt(r * 2 + 1) - r;
+            int dx = member.rng.nextInt(r * 2 + 1) - r;
+            int dy = member.rng.nextInt(r * 2 + 1) - r;
             int cx = seedX + dx;
             int cy = seedY + dy;
             if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) continue;

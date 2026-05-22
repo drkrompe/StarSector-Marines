@@ -2,6 +2,9 @@ package com.dillon.starsectormarines.battle.profile;
 
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 /**
  * Per-tick line-of-sight result cache. Memoizes
  * {@link com.dillon.starsectormarines.battle.nav.NavigationGrid#hasLineOfSight}
@@ -38,10 +41,49 @@ import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
  */
 public final class LosCache {
 
-    /** Sim sets this at the top of {@code tick()}. Single-threaded — no synchronization. */
-    private static LosCache current;
-    public static LosCache current() { return current; }
-    public static void setCurrent(LosCache c) { current = c; }
+    /**
+     * Per-thread cache slot. Lazy-init only while the sim has signaled it's
+     * inside a tick via {@link #enable()} — outside of that window
+     * {@link #current()} returns {@code null} and
+     * {@link com.dillon.starsectormarines.battle.nav.NavigationGrid#hasLineOfSight}
+     * falls through to live Bresenham. Keeps off-tick callers (tests,
+     * mid-frame UI hooks) from auto-populating a cache that holds stale
+     * entries across topology changes.
+     *
+     * <p>{@link #ALL_INSTANCES} tracks every per-thread cache so
+     * {@link #clearAll()} can sweep them all at tick top — the parallel
+     * UPDATE_UNITS dispatch creates per-worker caches lazily, and we
+     * need to clear every one before the next tick reads them.
+     */
+    private static final List<LosCache> ALL_INSTANCES = new CopyOnWriteArrayList<>();
+    private static final ThreadLocal<LosCache> CURRENT = new ThreadLocal<>();
+    private static volatile boolean enabled = false;
+
+    /** Signals "sim is inside a tick" — caching active, {@link #current()} auto-inits per thread. Called by the sim at tick top. */
+    public static void enable() { enabled = true; }
+
+    /** Signals "sim is between ticks" — {@link #current()} returns {@code null}, hasLineOfSight falls through to live Bresenham. Called at tick end. */
+    public static void disable() { enabled = false; }
+
+    public static LosCache current() {
+        if (!enabled) return null;
+        LosCache c = CURRENT.get();
+        if (c == null) {
+            c = new LosCache();
+            CURRENT.set(c);
+            ALL_INSTANCES.add(c);
+        }
+        return c;
+    }
+
+    /**
+     * Drops every per-thread cache in one sweep. Called by the sim at the
+     * top of each tick so cached entries can't outlive a wall breach that
+     * happened in a previous tick's cleanup pass.
+     */
+    public static void clearAll() {
+        for (LosCache c : ALL_INSTANCES) c.clear();
+    }
 
     private static final int UNSET = -1;
     private static final int FALSE = 0;

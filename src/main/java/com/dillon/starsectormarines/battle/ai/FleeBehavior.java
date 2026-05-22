@@ -89,7 +89,7 @@ public final class FleeBehavior implements UnitBehavior {
             if (u.pathIdx >= u.pathCellCount()) {
                 // Arrived this tick — clear the path and start dwelling.
                 sim.clearPath(u);
-                u.wanderDwellTimer = randomDwellSeconds(sim.getRng());
+                u.wanderDwellTimer = randomDwellSeconds(u.rng);
             }
             return;
         }
@@ -151,8 +151,8 @@ public final class FleeBehavior implements UnitBehavior {
         float len = (float) Math.sqrt(dx * dx + dy * dy);
         if (len < 0.001f) {
             // Threat is on the same cell (rare). Pick a random cardinal away.
-            dx = sim.getRng().nextFloat() * 2f - 1f;
-            dy = sim.getRng().nextFloat() * 2f - 1f;
+            dx = self.rng.nextFloat() * 2f - 1f;
+            dy = self.rng.nextFloat() * 2f - 1f;
             len = (float) Math.sqrt(dx * dx + dy * dy);
             if (len < 0.001f) { dx = 1f; dy = 0f; len = 1f; }
         }
@@ -181,7 +181,7 @@ public final class FleeBehavior implements UnitBehavior {
      */
     private static int[] pickWanderDestination(Unit u, BattleSimulation sim) {
         NavigationGrid grid = sim.getGrid();
-        Random rng = sim.getRng();
+        Random rng = u.rng;
         int span = WANDER_MAX_RADIUS * 2 + 1;
         for (int i = 0; i < WANDER_SAMPLE_ATTEMPTS; i++) {
             int dx = rng.nextInt(span) - WANDER_MAX_RADIUS;
