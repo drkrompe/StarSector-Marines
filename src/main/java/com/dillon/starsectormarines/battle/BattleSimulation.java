@@ -285,15 +285,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final Long2ObjectOpenHashMap<int[][]> vantagePointsByTargetCell = new Long2ObjectOpenHashMap<>();
     /** Next squad id to assign on shuttle deboard. Monotonically increasing across the battle's lifetime. */
     private int nextSquadId = 0;
-    private final List<ShotEvent> activeShots = new ArrayList<>();
-    /** Shots fired during the last {@link #advance(float)} call. Cleared on each advance, populated per tick. Drives one-shot audio in the renderer. */
-    private final List<ShotEvent> shotsThisFrame = new ArrayList<>();
-    /** Shots whose lifetime ran out during the last {@link #advance(float)} call — the "arrival" event for projectile-style shots. The renderer reads this to spawn impact FX at the endpoint when the projectile sprite actually reaches its target, rather than at launch time. */
-    private final List<ShotEvent> shotsExpiredThisFrame = new ArrayList<>();
-    /** In-flight {@link Projectile}s — slow-velocity AoE kinds ({@link com.dillon.starsectormarines.battle.turret.TurretKind#cellsPerSec} &gt; 0). Advanced + detonated by {@link #advanceProjectiles(float)} each tick. */
-    private final List<Projectile> activeProjectiles = new ArrayList<>();
-    /** Projectiles that arrived this tick — parallel to {@link #shotsExpiredThisFrame} for the impact-FX dispatch in the renderer. Cleared each tick. */
-    private final List<Projectile> projectilesArrivedThisFrame = new ArrayList<>();
+    /** In-flight tracers + projectiles + per-frame event drains. Sibling slice to {@link #effects} / {@link #vision}; the {@link #postShot}, {@link #queueProjectile}, {@link #getActiveShots} et al. delegates below forward here. */
+    private final com.dillon.starsectormarines.battle.shots.ShotService shots = new com.dillon.starsectormarines.battle.shots.ShotService();
     /** Units that transitioned from alive to dead during the last {@link #advance(float)} call. Same lifecycle as {@link #shotsThisFrame}. */
     private final List<Unit> deathsThisFrame = new ArrayList<>();
     /**
@@ -621,27 +614,17 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Fighter wings committed to this battle. {@code FlybyOverlay} reads this on first tick and drives spawns from the per-wing schedules. Defaults to {@link FlybyRoster#EMPTY}; missions assign via {@link #setFlybyRoster}. */
     public FlybyRoster getFlybyRoster()    { return flybyRoster; }
     public void setFlybyRoster(FlybyRoster roster) { this.flybyRoster = roster != null ? roster : FlybyRoster.EMPTY; }
-    public List<ShotEvent> getActiveShots(){ return activeShots; }
+    public List<ShotEvent> getActiveShots(){ return shots.getActiveShots(); }
 
-    /**
-     * Thread-safe snapshot of {@link #activeShots} for callers iterating during
-     * the parallel UPDATE_UNITS dispatch. Concurrent {@link #postShot} appends
-     * to {@code activeShots} would otherwise CME a plain iterator. Allocates
-     * one ArrayList per call (small — typically &lt; 50 shots in-flight); pool
-     * later if profile shows it matters.
-     */
-    public List<ShotEvent> snapshotActiveShots() {
-        synchronized (activeShots) {
-            return new ArrayList<>(activeShots);
-        }
-    }
-    public List<ShotEvent> getShotsThisFrame() { return shotsThisFrame; }
+    /** Thread-safe snapshot of active shots for callers iterating during the parallel UPDATE_UNITS dispatch. See {@link com.dillon.starsectormarines.battle.shots.ShotService#snapshotActiveShots()}. */
+    public List<ShotEvent> snapshotActiveShots() { return shots.snapshotActiveShots(); }
+    public List<ShotEvent> getShotsThisFrame() { return shots.getShotsThisFrame(); }
     /** Shots whose lifetime ended this advance — the "projectile arrived" event. Renderer reads this to spawn impact FX + arrival sounds at the moment a turret-shot sprite reaches its endpoint. */
-    public List<ShotEvent> getShotsExpiredThisFrame() { return shotsExpiredThisFrame; }
+    public List<ShotEvent> getShotsExpiredThisFrame() { return shots.getShotsExpiredThisFrame(); }
     /** In-flight {@link Projectile}s — slow-velocity AoE kinds. Renderer reads positions for sprite + contrail drawing. */
-    public List<Projectile> getActiveProjectiles() { return activeProjectiles; }
+    public List<Projectile> getActiveProjectiles() { return shots.getActiveProjectiles(); }
     /** Projectiles that arrived this tick — parallel to {@link #getShotsExpiredThisFrame} for the renderer's impact-FX dispatch. */
-    public List<Projectile> getProjectilesArrivedThisFrame() { return projectilesArrivedThisFrame; }
+    public List<Projectile> getProjectilesArrivedThisFrame() { return shots.getProjectilesArrivedThisFrame(); }
     public List<Unit> getDeathsThisFrame()     { return deathsThisFrame; }
     public boolean isComplete()            { return complete; }
     public Faction getWinner()             { return winner; }
@@ -916,13 +899,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
 
     @Override
     public void postShot(ShotEvent shot) {
-        // activeShots + shotsThisFrame are always written together; one
-        // monitor (activeShots) covers both for the parallel UPDATE_UNITS
-        // dispatch path.
-        synchronized (activeShots) {
-            activeShots.add(shot);
-            shotsThisFrame.add(shot);
-        }
+        shots.postShot(shot);
     }
 
     @Override
@@ -1216,9 +1193,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      */
     public void advance(float dt) {
         // Clear unconditionally so a paused caller doesn't keep replaying the previous frame's events.
-        shotsThisFrame.clear();
-        shotsExpiredThisFrame.clear();
-        projectilesArrivedThisFrame.clear();
+        shots.beginFrame();
         deathsThisFrame.clear();
         effects.beginFrame();
         if (complete) return;
@@ -1401,7 +1376,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // emit an arrival record for the renderer's impact-FX dispatch.
         // Runs BEFORE detonations.tick so a projectile arriving this tick
         // contributes its detonation to the same wave as legacy queue entries.
-        advanceProjectiles(TICK_DT);
+        shots.tickProjectiles(TICK_DT, det -> detonations.detonateNow(det, this));
         tickProfile.lap(TickProfile.Phase.PROJECTILES);
         // Physics-based rocket/missile damage — each pending detonation ticks
         // down its arrival timer and applies splash + wall damage when it
@@ -1459,7 +1434,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // deboarded militia join the roster between ticks, not mid-loop.
         groundSystem.tick(this, TICK_DT);
         tickProfile.lap(TickProfile.Phase.GROUND_SYSTEM);
-        advanceShots();
+        shots.tickShots(TICK_DT);
         tickProfile.lap(TickProfile.Phase.SHOTS);
         processEquipmentDrops();
         tickProfile.lap(TickProfile.Phase.EQUIPMENT_DROPS);
@@ -1873,48 +1848,9 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     // from the tick loop and exposes spawnSmokingWreck + damageCell as
     // context primitives.
 
-    /** Ages every active shot by one tick and drops expired ones. Reverse iteration for in-place removal. */
-    private void advanceShots() {
-        for (int i = activeShots.size() - 1; i >= 0; i--) {
-            ShotEvent s = activeShots.get(i);
-            s.lifetime -= TICK_DT;
-            if (s.lifetime <= 0f) {
-                shotsExpiredThisFrame.add(s);
-                activeShots.remove(i);
-            }
-        }
-    }
-
-    /**
-     * Advances every in-flight {@link Projectile} by {@code dt}. Intercepted
-     * projectiles (point-defense future hook) are removed without detonating;
-     * expired ones fire their {@link Projectile#onArrival} payload immediately
-     * via {@link com.dillon.starsectormarines.battle.weapons.Detonations#detonateNow}
-     * and land in {@link #projectilesArrivedThisFrame} for the renderer's
-     * impact-FX dispatch. Reverse iteration for in-place removal.
-     */
-    private void advanceProjectiles(float dt) {
-        for (int i = activeProjectiles.size() - 1; i >= 0; i--) {
-            Projectile p = activeProjectiles.get(i);
-            if (p.intercepted) {
-                // Future: spawn intercept FX here. For now, just remove.
-                activeProjectiles.remove(i);
-                continue;
-            }
-            p.remainingTime -= dt;
-            if (p.remainingTime <= 0f) {
-                detonations.detonateNow(p.onArrival, this);
-                projectilesArrivedThisFrame.add(p);
-                activeProjectiles.remove(i);
-            }
-        }
-    }
-
     /** Queues a {@link Projectile} for the per-tick advance. Called from the AoE projectile fire path in {@link #fireShotFrom}. */
     public void queueProjectile(Projectile p) {
-        synchronized (activeProjectiles) {
-            activeProjectiles.add(p);
-        }
+        shots.queueProjectile(p);
     }
 
     /**
@@ -2161,6 +2097,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // Iterate units once more, but only do the shot scan for squads that
         // still need promoting — the early-skip means engaged squads pay
         // nothing here.
+        List<ShotEvent> activeShots = shots.getActiveShots();
         if (!activeShots.isEmpty()) {
             for (Unit u : units) {
                 if (!u.isAlive() || u.squadId == Unit.NO_SQUAD) continue;
@@ -2352,6 +2289,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // but didn't connect still rattle the squad. Same cooldown gate as
         // hits — a hail of misses can't insta-break either. One drain event
         // per squad per tick max (the cooldown bails on the second pass).
+        List<ShotEvent> shotsThisFrame = shots.getShotsThisFrame();
         if (!shotsThisFrame.isEmpty()) {
             for (ShotEvent shot : shotsThisFrame) {
                 if (shot.hit) continue;
