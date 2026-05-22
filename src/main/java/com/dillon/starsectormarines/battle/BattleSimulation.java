@@ -3,14 +3,13 @@ package com.dillon.starsectormarines.battle;
 import com.dillon.starsectormarines.battle.air.AirSimContext;
 import com.dillon.starsectormarines.battle.air.AirSystem;
 import com.dillon.starsectormarines.battle.command.CommanderService;
+import com.dillon.starsectormarines.battle.compound.CompoundCaptureSystem;
+import com.dillon.starsectormarines.battle.compound.CompoundService;
 import com.dillon.starsectormarines.battle.fx.EffectsService;
 import com.dillon.starsectormarines.battle.ground.GroundSystem;
 import com.dillon.starsectormarines.battle.ground.Vehicle;
 import com.dillon.starsectormarines.battle.air.Shuttle;
-import com.dillon.starsectormarines.battle.ai.goap.GoapDroneBehavior;
 import com.dillon.starsectormarines.battle.ai.TacticalScoring;
-import com.dillon.starsectormarines.battle.ai.goap.GoapInfantryBehavior;
-import com.dillon.starsectormarines.battle.ai.goap.GoapMechBehavior;
 import com.dillon.starsectormarines.battle.command.MissionCommand;
 import com.dillon.starsectormarines.battle.damage.DamageResolver;
 import com.dillon.starsectormarines.battle.damage.DamageService;
@@ -27,7 +26,6 @@ import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
 import com.dillon.starsectormarines.battle.reinforcement.ReinforcementService;
 import com.dillon.starsectormarines.battle.shots.ShotService;
-import com.dillon.starsectormarines.battle.squad.SquadMoraleSystem;
 import com.dillon.starsectormarines.battle.tactical.TacticalContextService;
 import com.dillon.starsectormarines.battle.tactical.TacticalMap;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
@@ -105,7 +103,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final NavigationGrid grid;
     /** Alias of {@link NavigationService#getTopology()}. */
     private final CellTopology topology;
-    /** Roster service: units list + squad registry + spawn queue + ID counters. {@link #units} and {@link #squads} are alias fields that share the same instances. */
+    /** Roster service: units list + squad registry + spawn queue + ID counters. {@link #units} is an alias field that shares the same {@link List} instance. */
     private final UnitRosterService rosterService;
     /** Alias of {@link UnitRosterService#getUnits()}. Same {@link List} instance — kept as a field so the sim's iteration / size / subList reads don't pay a per-call accessor hop. */
     private final List<Unit> units;
@@ -135,6 +133,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final com.dillon.starsectormarines.battle.squad.SquadAlertSystem squadAlert;
     /** Per-tick squad morale recovery + hysteresis + near-miss drain. Drain on hit/death fires from {@link DamageResolver#resolve}; this system owns the passive recovery + flag transitions. Initialized in the constructor. */
     private final com.dillon.starsectormarines.battle.squad.SquadMoraleSystem squadMorale;
+    /** Per-tick squad-level GOAP replan pass — dispatches each squad to drone / mech / infantry behavior. Initialized in the constructor. */
+    private final com.dillon.starsectormarines.battle.squad.SquadReplanSystem squadReplan;
     /** Per-tick win-condition evaluator — pure function over the objective list; sim writes the {@link #complete}/{@link #winner} fields on terminal result. Initialized in the constructor. */
     private final com.dillon.starsectormarines.battle.objective.WinCheckSystem winCheck =
             new com.dillon.starsectormarines.battle.objective.WinCheckSystem();
@@ -149,15 +149,17 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      * {@link #rng} is available.
      */
     private final EffectsService effects;
-    /** Alias of {@link UnitRosterService#getSquadsMap()}. Same {@link Int2ObjectMap} instance — kept as a field so the sim's per-tick {@code squads.get} / {@code squads.values()} iteration doesn't pay a per-call accessor hop and the existing un-synchronized direct reads in serial tick phases preserve their no-lock cost. */
-    private final Int2ObjectMap<Squad> squads;
-
     /** Per-faction strategic commander tier. Owns the slow-tick cadence; the {@link #setCommander}/{@link #getCommander} delegates below forward here, and the COMMANDER phase calls {@link CommanderService#tick}. */
     private final CommanderService commanders = new CommanderService();
 
     /** Reinforcement orchestration — trigger registry + means provider list + request queue. Mission setup registers triggers/means; the slow-tick polls them. Full design: {@code roadmap/reinforcement/architecture.md}. */
     private final ReinforcementService reinforcement =
             new ReinforcementService();
+
+    /** Per-compound capture state — defender supply structures (COMMAND_POST / BARRACKS / ARMORY) and their DEFENDER_HELD / CONTESTED / MARINE_HELD state. Populated from the {@link TacticalMap} in {@link #setTacticalMap}; ticked by {@link #compoundCapture}. Slice 1 of the central-keep design ({@code roadmap/conquest/central-keep.md}). */
+    private final CompoundService compoundService = new CompoundService();
+    /** Stateless tick consumer that drives the compound capture state machine. Reads zone occupancy, writes {@link #compoundService} records on its slow-tick cadence. */
+    private final CompoundCaptureSystem compoundCapture = new CompoundCaptureSystem();
 
     /**
      * Per-target attacker index — wraps the {@code Unit → attacker list} map
@@ -242,10 +244,11 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // wire it with damageResolver::resolve as the applier method ref.
         this.rosterService = new UnitRosterService(unitIndex, null);
         // Alias-fields share the same collection instances as the service so
-        // the 100+ internal `units` / `squads` reads stay direct (no per-call
-        // accessor hop, no synchronization on the serial-phase squads.get).
+        // the internal `units` iteration stays direct (no per-call accessor
+        // hop). Squad reads now route through rosterService directly — the
+        // squads alias was dropped when SquadReplanSystem absorbed the last
+        // inline iterator.
         this.units = rosterService.getUnits();
-        this.squads = rosterService.getSquadsMap();
         this.equipmentDropService = new EquipmentDropService(rosterService, this::clearPath);
         this.damageResolver = new DamageResolver(
                 navigation, rosterService, equipmentDropService,
@@ -268,6 +271,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                 navigation, rosterService, shots);
         this.squadMorale = new com.dillon.starsectormarines.battle.squad.SquadMoraleSystem(
                 rosterService, shots);
+        this.squadReplan = new com.dillon.starsectormarines.battle.squad.SquadReplanSystem(rosterService);
         this.attackerIndex = new com.dillon.starsectormarines.battle.ai.AttackerIndexService(rosterService);
         this.unitUpdate = new com.dillon.starsectormarines.battle.ai.UnitUpdateSystem(damageService, tickInnerProfile);
     }
@@ -431,7 +435,14 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Tactical hint graph produced by the map generator. Never null; an empty graph for legacy maps. */
     public TacticalMap getTacticalMap()    { return tactical.getTacticalMap(); }
     /** Set the tactical map for this battle. Called once by {@code BattleSetup} right after construction, before the first {@link #advance} call. */
-    public void setTacticalMap(TacticalMap map) { tactical.setTacticalMap(map); }
+    public void setTacticalMap(TacticalMap map) {
+        tactical.setTacticalMap(map);
+        // Compound capture layer needs the COMMAND_POST/BARRACKS/ARMORY nodes
+        // registered before the first tick — slice 1 ticks the state machine
+        // on whatever the service has, so a missed init leaves the layer
+        // silently inert.
+        compoundService.initFrom(map);
+    }
     /** Stamped defense posts (conquest only). Called once by {@code BattleSetup} right after construction; safe to pass null/empty for missions without posts. */
     public void setDefensePosts(List<DefensePost> posts) { tactical.setDefensePosts(posts); }
 
@@ -684,6 +695,11 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         return reinforcement;
     }
 
+    /** Compound capture-state registry. Read by slice-2 marker renderer, slice-3 trigger/means gates, and slice-4 win-condition objective. Initialized from {@link TacticalMap} during {@link #setTacticalMap}. */
+    public CompoundService getCompoundService() {
+        return compoundService;
+    }
+
     /**
      * Drives the simulation forward. Accepts any real-time delta; internally
      * runs zero or more fixed 30Hz ticks until the accumulator is drained.
@@ -772,21 +788,9 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // below. Cadence + early-skip-when-empty live inside the registry.
         commanders.tick(TICK_DT, cmd -> cmd.tick(this));
         tickProfile.lap(TickProfile.Phase.COMMANDER);
-        // Squad-level GOAP replan pass. Piggybacks the alert-update phase so
-        // plans reflect THIS tick's fresh aliveMembers + centroid + alert
-        // level before any unit executes. Serial today; the planner +
-        // WorldStateBuilder + actions are designed for parallel execution
-        // across squads (see roadmap/ai/README.md parallelism section) and
-        // we'll fork-join here once we feel the cost.
-        for (Squad squad : squads.values()) {
-            if (squad.isDroneSquad()) {
-                GoapDroneBehavior.replanIfNeeded(squad, this);
-            } else if (squad.isMechSquad()) {
-                GoapMechBehavior.replanIfNeeded(squad, this);
-            } else {
-                GoapInfantryBehavior.replanIfNeeded(squad, this);
-            }
-        }
+        // Squad-level GOAP replan pass. See SquadReplanSystem class doc for
+        // ordering + parallelism notes.
+        squadReplan.tick(this);
         tickProfile.lap(TickProfile.Phase.GOAP_REPLAN);
         // Parallel per-unit dispatch — entity for-loop. See UnitUpdateSystem
         // class doc for the parallelism + ECS-promotion notes.
@@ -880,6 +884,11 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // systems so a dispatched Shuttle or Vehicle gets ticked the same frame
         // it spawns, matching the rest of the spawn ordering for those systems.
         reinforcement.tick(TICK_DT, this);
+        // Compound capture state machine — same 1Hz cadence as reinforcement,
+        // intentionally co-located so the two layers reach the same compound
+        // state within at most a tick of each other. Slice 1 has no consumers;
+        // the system writes state but nothing reads yet.
+        compoundCapture.tick(TICK_DT, this, compoundService);
         // Air vehicles tick AFTER units so new deboarded marines aren't iterated
         // mid-loop. They'll be picked up by next tick's occupancy + target pass.
         airSystem.tick(this, TICK_DT);
