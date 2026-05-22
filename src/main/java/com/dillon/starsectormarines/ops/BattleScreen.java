@@ -35,6 +35,7 @@ import com.dillon.starsectormarines.battle.ui.panel.TickProfileDebugPanel;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.ui.picking.WorldPicker;
+import com.dillon.starsectormarines.battle.fx.EffectsService;
 import com.dillon.starsectormarines.battle.fx.ImpactDecals;
 import com.dillon.starsectormarines.battle.fx.ImpactFx;
 import com.dillon.starsectormarines.battle.fx.ImpactProfile;
@@ -1341,10 +1342,10 @@ public class BattleScreen implements Screen, BattleUiContext {
         java.util.HashSet<Long> seenLightIds = new java.util.HashSet<>();
         for (SmokingWreck w : sim.getSmokingWrecks()) {
             float age = w.totalLifetime - w.remainingLifetime;
-            if (age >= BattleSimulation.WRECK_BURN_DURATION) continue;
-            float burnRemaining = BattleSimulation.WRECK_BURN_DURATION - age;
-            float intensity = (burnRemaining < BattleSimulation.WRECK_FIRE_FADE_DURATION)
-                    ? burnRemaining / BattleSimulation.WRECK_FIRE_FADE_DURATION
+            if (age >= EffectsService.WRECK_BURN_DURATION) continue;
+            float burnRemaining = EffectsService.WRECK_BURN_DURATION - age;
+            float intensity = (burnRemaining < EffectsService.WRECK_FIRE_FADE_DURATION)
+                    ? burnRemaining / EffectsService.WRECK_FIRE_FADE_DURATION
                     : 1f;
             long id = ((long) w.cellX << 32) | (w.cellY & 0xffffffffL);
             seenLightIds.add(id);

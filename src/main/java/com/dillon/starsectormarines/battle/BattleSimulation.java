@@ -208,44 +208,14 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      */
     private byte[] doodadCoverByFacing;
     private final List<MapVehicle> vehicles = new ArrayList<>();
-    /** Persistent visual decals (bullet holes, craters, rubble) accumulated over the battle. Bounded by {@link com.dillon.starsectormarines.DevConfig#DECAL_SOURCE_CAP} with FIFO eviction via {@link java.util.ArrayDeque#pollFirst} — O(1) head removal, unlike {@code ArrayList.remove(0)} which would shift the whole tail per overflow. */
-    private final java.util.ArrayDeque<Decal> decals = new java.util.ArrayDeque<>();
     /**
-     * Monotonic count of decals ever added to {@link #decals}. Lets the render
-     * layer's accumulator know how many new decals were spawned since it last
-     * stamped, even when {@link #decals} has saturated at the cap and FIFO
-     * eviction keeps {@code decals.size()} pinned — without this counter the
-     * accumulator can't distinguish "no new decals" from "new decals arrived
-     * but the head was evicted to make room." See {@code DecalAccumulator}.
+     * Transient visual side-effects — persistent ground decals, smoking wrecks,
+     * HE smoke plumes, per-frame puff / fire-burst / wall-dust event queues.
+     * First slice of the services refactor; the {@link #getDecals} et al.
+     * accessors below delegate here. Initialized in the constructor once
+     * {@link #rng} is available.
      */
-    private long decalsEverAdded = 0L;
-    /** Active smoking wrecks parked at destroyed turret cells. Each emits a periodic smoke-puff event the renderer drains into the impact FX engine. */
-    private final List<SmokingWreck> smokingWrecks = new ArrayList<>();
-    /** Smoke-puff events queued this advance — each entry is {x, y, radiusCells}. Drained by the renderer per frame and cleared at the start of each advance. */
-    private final List<float[]> smokePuffsThisFrame = new ArrayList<>();
-    /** Wall-collapse dust-burst events queued this advance — each entry is {x, y}. Spawned by Detonations on wall collapses + by flyby tracer collapses. Drained by FlybyOverlay each frame and cleared at the start of each advance. */
-    private final List<float[]> wallDustsThisFrame = new ArrayList<>();
-    /** Fire-burst events queued this advance — each entry is {x, y, radiusCells}. Burn phase only; drained by the renderer per frame and cleared at the start of each advance. */
-    private final List<float[]> fireBurstsThisFrame = new ArrayList<>();
-    /** Total seconds a wreck stays alive after destruction. Burn phase up front, then a longer smoke-only tail so the player can still read "dead turret" minutes later. */
-    private static final float WRECK_LIFETIME = 30f;
-    /** Seconds at the start of the wreck's life during which it emits fire bursts in addition to smoke. After this, fire stops and only smoke continues for the remainder. Public so the screen-side lightmap pump can mirror this window for persistent wreck-fire lights. */
-    public static final float WRECK_BURN_DURATION = 12f;
-    /** Tail of the burn phase over which fire-burst emit probability tapers from 1 to 0. RNG-gated so the taper actually drops emissions. Public for the lightmap pump's intensity ramp. */
-    public static final float WRECK_FIRE_FADE_DURATION = 2f;
-    /** Min/max sim-seconds between smoke puffs on a single wreck. Jittered per emission so wrecks don't sync up. */
-    private static final float WRECK_PUFF_MIN_GAP = 0.45f;
-    private static final float WRECK_PUFF_MAX_GAP = 0.85f;
-    /** Min/max sim-seconds between fire bursts on a single wreck. Tighter than smoke — fire is the more active, frequent emission during the burn phase. */
-    private static final float WRECK_FIRE_MIN_GAP = 0.25f;
-    private static final float WRECK_FIRE_MAX_GAP = 0.50f;
-    /** Active impact smoke plumes parked at HE detonation sites. Lighter cousin of {@link SmokingWreck} — shorter lifetime, no fire phase, fractional cell positions. Pipes through the shared {@link #smokePuffsThisFrame} drain. */
-    private final List<SmokePlume> smokePlumes = new ArrayList<>();
-    /** Total sim-seconds an HE impact plume keeps emitting. Long enough to read as a lingering column rising off the impact site, short enough that overlapping rocket salvos don't pile into permanent smoke. */
-    private static final float PLUME_LIFETIME = 5.0f;
-    /** Min/max sim-seconds between puff emissions on a single plume. Tighter than wreck cadence — impact smoke is denser per-second during its brief life. */
-    private static final float PLUME_PUFF_MIN_GAP = 0.18f;
-    private static final float PLUME_PUFF_MAX_GAP = 0.32f;
+    private final com.dillon.starsectormarines.battle.fx.EffectsService effects;
     /** Dense, primitive-keyed squad lookup. fastutil's Int2ObjectOpenHashMap avoids the per-call Integer autobox that {@link #getSquad} would do on a {@code HashMap<Integer, Squad>} — and getSquad is hit per-unit per-tick from the behavior dispatch. */
     /**
      * Pre-sized to 256 so the rare {@link #mintSquad} call (drone hubs spawning
@@ -473,6 +443,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         this.destIndex = new UnitDestinationSpatialIndex(grid.getWidth(), grid.getHeight());
         this.zoneGraph = new ZoneGraph(grid);
         this.zoneGraph.rebuild();
+        this.effects = new com.dillon.starsectormarines.battle.fx.EffectsService(rng);
     }
 
     @Override public NavigationGrid getGrid() { return grid; }
@@ -630,33 +601,24 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Parked vehicles that occupy multi-cell footprints. Cells were flagged non-walkable at setup time, so the sim doesn't need to consult this list for pathing/LOS — only the renderer does. */
     public List<MapVehicle> getVehicles()  { return vehicles; }
     public void addVehicle(MapVehicle v)   { vehicles.add(v); }
-    /** Persistent visual decals — bullet holes, craters, rubble. Pure render data; combat ignores them. Returned as {@code Iterable} because the renderer only iterates; head-eviction needs the {@code ArrayDeque} surface internally. */
-    public java.util.Collection<Decal> getDecals() { return decals; }
-    /** Monotonic count of decals ever added — see field doc on {@link #decalsEverAdded}. Read by the render layer's accumulator to drive incremental stamping that survives FIFO eviction at the cap. */
-    public long getDecalsEverAdded() { return decalsEverAdded; }
-    public void addDecal(Decal d) {
-        decals.addLast(d);
-        if (decals.size() > com.dillon.starsectormarines.DevConfig.DECAL_SOURCE_CAP) decals.pollFirst();
-        decalsEverAdded++;
-    }
+    /** Persistent visual decals — bullet holes, craters, rubble. Pure render data; combat ignores them. */
+    public java.util.Collection<Decal> getDecals() { return effects.getDecals(); }
+    /** Monotonic count of decals ever added. Read by the render layer's accumulator to drive incremental stamping that survives FIFO eviction at the cap. */
+    public long getDecalsEverAdded() { return effects.getDecalsEverAdded(); }
+    public void addDecal(Decal d) { effects.addDecal(d); }
     /** Smoke-puff events emitted by smoking wrecks during the last advance. Each entry is {x, y, radiusCells}. Drained by the renderer per frame. */
-    public List<float[]> getSmokePuffsThisFrame() { return smokePuffsThisFrame; }
+    public List<float[]> getSmokePuffsThisFrame() { return effects.getSmokePuffsThisFrame(); }
     /** Fire-burst events emitted by smoking wrecks during the last advance (burn phase only). Each entry is {x, y, radiusCells}. Drained by the renderer per frame. */
-    public List<float[]> getFireBurstsThisFrame() { return fireBurstsThisFrame; }
+    public List<float[]> getFireBurstsThisFrame() { return effects.getFireBurstsThisFrame(); }
     /** Wall-collapse dust-burst events queued this advance. Each entry is {x, y} at the collapsed cell's center. Drained by {@code FlybyOverlay} which owns the dust-particle pool. */
-    public List<float[]> getWallDustsThisFrame() { return wallDustsThisFrame; }
+    public List<float[]> getWallDustsThisFrame() { return effects.getWallDustsThisFrame(); }
 
-    /**
-     * {@link com.dillon.starsectormarines.battle.weapons.WeaponSimContext}
-     * implementation — records a dust-burst event for the renderer to drain.
-     * Cleared at the start of each advance with the other per-frame event lists.
-     */
     @Override
     public void spawnDustBurst(float cellX, float cellY) {
-        wallDustsThisFrame.add(new float[]{cellX, cellY});
+        effects.spawnDustBurst(cellX, cellY);
     }
     /** Live smoking wrecks. Read-only view — the lightmap pump iterates this each frame to assert persistent wreck-fire lights during the burn phase. */
-    public List<SmokingWreck> getSmokingWrecks() { return java.util.Collections.unmodifiableList(smokingWrecks); }
+    public List<SmokingWreck> getSmokingWrecks() { return effects.getSmokingWrecks(); }
     /** Fighter wings committed to this battle. {@code FlybyOverlay} reads this on first tick and drives spawns from the per-wing schedules. Defaults to {@link FlybyRoster#EMPTY}; missions assign via {@link #setFlybyRoster}. */
     public FlybyRoster getFlybyRoster()    { return flybyRoster; }
     public void setFlybyRoster(FlybyRoster roster) { this.flybyRoster = roster != null ? roster : FlybyRoster.EMPTY; }
@@ -1001,13 +963,12 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
 
     @Override
     public void spawnSmokingWreck(int x, int y) {
-        smokingWrecks.add(new SmokingWreck(x, y, WRECK_LIFETIME,
-                0.05f + rng.nextFloat() * 0.10f));
+        effects.spawnSmokingWreck(x, y);
     }
 
     @Override
     public void spawnSmokePlume(float x, float y) {
-        smokePlumes.add(new SmokePlume(x, y, PLUME_LIFETIME));
+        effects.spawnSmokePlume(x, y);
     }
 
     /**
@@ -1260,9 +1221,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         shotsExpiredThisFrame.clear();
         projectilesArrivedThisFrame.clear();
         deathsThisFrame.clear();
-        smokePuffsThisFrame.clear();
-        fireBurstsThisFrame.clear();
-        wallDustsThisFrame.clear();
+        effects.beginFrame();
         if (complete) return;
         tickAccumulator += dt;
         while (tickAccumulator >= TICK_DT) {
@@ -1490,11 +1449,11 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         tickDroneCrashes();
         tickProfile.lap(TickProfile.Phase.DRONE_CRASHES);
         // Age smoking wrecks + emit any puff events that came due this tick.
-        tickSmokingWrecks();
+        effects.tickWrecks(TICK_DT);
         tickProfile.lap(TickProfile.Phase.WRECKS);
         // Lingering smoke plumes parked at HE impact sites — same per-frame
         // puff drain as the wrecks, just on a shorter, fire-less timer.
-        tickSmokePlumes();
+        effects.tickPlumes(TICK_DT);
         tickProfile.lap(TickProfile.Phase.PLUMES);
         // Air vehicles tick AFTER units so new deboarded marines aren't iterated
         // mid-loop. They'll be picked up by next tick's occupancy + target pass.
@@ -1777,8 +1736,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             zoneGraphDirty = true;
             // Mount cell keeps smoking for a while so the player can see the
             // wreck is dead-and-cooling rather than just "gone".
-            smokingWrecks.add(new SmokingWreck(t.cellX, t.cellY, WRECK_LIFETIME,
-                    0.05f + rng.nextFloat() * 0.10f));
+            effects.spawnSmokingWreck(t.cellX, t.cellY);
             releaseGuardpostIfAllTurretsDead(t);
         }
     }
@@ -1806,8 +1764,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             grid.recomputeCoverAt(h.cellX, h.cellY - 1);
             h.demolished = true;
             zoneGraphDirty = true;
-            smokingWrecks.add(new SmokingWreck(h.cellX, h.cellY, WRECK_LIFETIME,
-                    0.05f + rng.nextFloat() * 0.10f));
+            effects.spawnSmokingWreck(h.cellX, h.cellY);
             // Cascading kill: drones launched from this hub lose control and
             // crash with it. Set hp=0 here; tickDroneCrashes (next call in
             // the tick chain) starts the per-drone fall sequence + impact FX.
@@ -1847,15 +1804,14 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             if (!d.crashStarted) {
                 d.crashStarted = true;
                 d.crashTimer = Drone.CRASH_DURATION_SEC;
-                spawnSmokePlume(d.body.x, d.body.y);
+                effects.spawnSmokePlume(d.body.x, d.body.y);
             }
             d.crashTimer -= TICK_DT;
             d.body.facingDegrees += Drone.CRASH_SPIN_DEG_PER_SEC * TICK_DT;
             if (d.crashTimer <= 0f) {
                 int wx = Math.max(0, Math.min(grid.getWidth() - 1, (int) Math.floor(d.body.x)));
                 int wy = Math.max(0, Math.min(grid.getHeight() - 1, (int) Math.floor(d.body.y)));
-                smokingWrecks.add(new SmokingWreck(wx, wy, WRECK_LIFETIME,
-                        0.05f + rng.nextFloat() * 0.10f));
+                effects.spawnSmokingWreck(wx, wy);
                 d.crashed = true;
             }
         }
@@ -1920,85 +1876,6 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     // Both subsystems own their own state; the sim just calls their tick()
     // from the tick loop and exposes spawnSmokingWreck + damageCell as
     // context primitives.
-
-    /**
-     * Ages each smoking wreck and emits smoke/fire events on independent
-     * jittered timers. Two-phase lifecycle:
-     * <ul>
-     *   <li>Burn phase (first {@link #WRECK_BURN_DURATION}s): fire bursts on
-     *       tight cadence in addition to smoke. Emit probability tapers to 0
-     *       over the trailing {@link #WRECK_FIRE_FADE_DURATION}s so the fire
-     *       crossfades out cleanly rather than cutting.</li>
-     *   <li>Smoke phase (remainder): smoke continues at its full cadence.</li>
-     * </ul>
-     * Separate timers per emitter so plumes interleave naturally instead of
-     * spawning as paired emissions on the same frame.
-     */
-    private void tickSmokingWrecks() {
-        for (int i = smokingWrecks.size() - 1; i >= 0; i--) {
-            SmokingWreck w = smokingWrecks.get(i);
-            w.remainingLifetime -= TICK_DT;
-            if (w.remainingLifetime <= 0f) {
-                smokingWrecks.remove(i);
-                continue;
-            }
-            float age = w.totalLifetime - w.remainingLifetime;
-
-            w.nextPuffTimer -= TICK_DT;
-            if (w.nextPuffTimer <= 0f) {
-                float cooledFrac = Math.max(0.15f, w.remainingLifetime / w.totalLifetime);
-                float radius = 0.40f + cooledFrac * 0.45f;
-                smokePuffsThisFrame.add(new float[]{w.cellX + 0.5f, w.cellY + 0.5f, radius});
-                w.nextPuffTimer = WRECK_PUFF_MIN_GAP
-                        + rng.nextFloat() * (WRECK_PUFF_MAX_GAP - WRECK_PUFF_MIN_GAP);
-            }
-
-            if (age < WRECK_BURN_DURATION) {
-                w.nextFireTimer -= TICK_DT;
-                if (w.nextFireTimer <= 0f) {
-                    float burnRemaining = WRECK_BURN_DURATION - age;
-                    float intensity = (burnRemaining < WRECK_FIRE_FADE_DURATION)
-                            ? burnRemaining / WRECK_FIRE_FADE_DURATION
-                            : 1f;
-                    if (rng.nextFloat() < intensity) {
-                        float fireRadius = 0.40f + rng.nextFloat() * 0.30f;
-                        fireBurstsThisFrame.add(new float[]{w.cellX + 0.5f, w.cellY + 0.5f, fireRadius});
-                    }
-                    w.nextFireTimer = WRECK_FIRE_MIN_GAP
-                            + rng.nextFloat() * (WRECK_FIRE_MAX_GAP - WRECK_FIRE_MIN_GAP);
-                }
-            }
-        }
-    }
-
-    /**
-     * Ages each smoke plume and emits puff events on a jittered timer. Per-puff
-     * radius scales with the remaining-lifetime fraction so the plume billows
-     * hard at impact and thins as it rises. Reuses the shared
-     * {@link #smokePuffsThisFrame} drain that wrecks emit into — the renderer
-     * already pulls from that list each frame.
-     */
-    private void tickSmokePlumes() {
-        for (int i = smokePlumes.size() - 1; i >= 0; i--) {
-            SmokePlume p = smokePlumes.get(i);
-            p.remainingLifetime -= TICK_DT;
-            if (p.remainingLifetime <= 0f) {
-                smokePlumes.remove(i);
-                continue;
-            }
-            p.nextPuffTimer -= TICK_DT;
-            if (p.nextPuffTimer <= 0f) {
-                float lifeFrac = p.remainingLifetime / p.totalLifetime;
-                // Bigger puffs early (impact bloom), tightening as the column
-                // rises. Floor keeps the tail-end column readable rather than
-                // shrinking to invisible.
-                float radius = 0.45f + Math.max(0.20f, lifeFrac) * 0.55f;
-                smokePuffsThisFrame.add(new float[]{p.x, p.y, radius});
-                p.nextPuffTimer = PLUME_PUFF_MIN_GAP
-                        + rng.nextFloat() * (PLUME_PUFF_MAX_GAP - PLUME_PUFF_MIN_GAP);
-            }
-        }
-    }
 
     /** Ages every active shot by one tick and drops expired ones. Reverse iteration for in-place removal. */
     private void advanceShots() {
