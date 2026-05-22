@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.ShotEvent;
 import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.shots.ShotService;
+import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
 import java.util.List;
@@ -95,7 +96,20 @@ public final class SquadMoraleSystem {
         this.shots = shots;
     }
 
-    public void tick(List<Unit> units, float dt) {
+    public void tick(float dt) {
+        // First Phase-3 SoA consumer: hot reads on hp/maxHp go through the
+        // registry's float[] arrays directly, and dense iteration over
+        // [0, liveCount()) implicitly filters out released units — no
+        // .isAlive() guard needed inside the inner loops. The registry
+        // reference is stable within this serial-phase tick (no allocation
+        // happens between here and the next phase boundary), so a once-per-
+        // tick capture of denseArray / hpArray / maxHpArray is safe.
+        UnitRegistry registry = roster.getRegistry();
+        Unit[] dense = registry.denseArray();
+        float[] hp = registry.hpArray();
+        float[] maxHp = registry.maxHpArray();
+        int liveCount = registry.liveCount();
+
         // Near-miss drain pass: hostile shots that landed near a squadmate
         // but didn't connect still rattle the squad. Same cooldown gate as
         // hits — a hail of misses can't insta-break either. One drain event
@@ -104,7 +118,7 @@ public final class SquadMoraleSystem {
         if (!shotsThisFrame.isEmpty()) {
             for (ShotEvent shot : shotsThisFrame) {
                 if (shot.hit) continue;
-                Squad target = squadHitByMiss(shot, units);
+                Squad target = squadHitByMiss(shot, dense, liveCount);
                 if (target == null) continue;
                 // Mech squads don't take near-miss morale — their drain model
                 // is HP-threshold only (per roadmap/ai/14-mech-stage1.md). A
@@ -132,7 +146,7 @@ public final class SquadMoraleSystem {
             // that isn't read for mech squads (predicate consults
             // {@link Squad#moraleBroken}, not raw morale).
             if (squad.isMechSquad()) {
-                updateMechSquadMorale(squad, units, dt);
+                updateMechSquadMorale(squad, dense, hp, maxHp, liveCount, dt);
                 continue;
             }
 
@@ -202,17 +216,22 @@ public final class SquadMoraleSystem {
      * once that lands, this aggregator could be relaxed to "any broken."
      * Today majority is what gives a stable squad-level signal.
      */
-    private void updateMechSquadMorale(Squad squad, List<Unit> units, float dt) {
+    private void updateMechSquadMorale(Squad squad, Unit[] dense,
+                                       float[] hp, float[] maxHp, int liveCount, float dt) {
         int aliveMechs = 0;
         int brokenMechs = 0;
-        for (Unit u : units) {
-            if (!u.isAlive() || u.squadId != squad.id || u.mech == null) continue;
+        for (int i = 0; i < liveCount; i++) {
+            Unit u = dense[i];
+            // Dense iteration excludes released units — no isAlive() needed.
+            if (u.squadId != squad.id || u.mech == null) continue;
             aliveMechs++;
             MechLoadoutState m = u.mech;
             if (m.timeSinceUnderFire < 1e9f) m.timeSinceUnderFire += dt;
 
-            float uMaxHp = u.getMaxHp();
-            float cap = (uMaxHp > 0f && u.getHp() < MECH_MORALE_ARMOR_GONE_HP_FRAC * uMaxHp)
+            // Direct SoA reads — hp[i] / maxHp[i] vs the OO accessor's
+            // null-check-then-array-read. Same value, one fewer indirection.
+            float uMaxHp = maxHp[i];
+            float cap = (uMaxHp > 0f && hp[i] < MECH_MORALE_ARMOR_GONE_HP_FRAC * uMaxHp)
                     ? MECH_MORALE_ARMOR_GONE_CAP
                     : 1.0f;
             if (m.timeSinceUnderFire >= MORALE_RECOVER_AFTER_FIRE_SECONDS) {
@@ -243,12 +262,14 @@ public final class SquadMoraleSystem {
      * two squad members only rattles one of them (the first found), which
      * matches the "single drain event per shot" intent.
      */
-    private Squad squadHitByMiss(ShotEvent shot, List<Unit> units) {
+    private Squad squadHitByMiss(ShotEvent shot, Unit[] dense, int liveCount) {
         for (Squad sq : roster.getSquads()) {
             if (sq.aliveMembers <= 0) continue;
             if (sq.faction == shot.shooterFaction) continue;
-            for (Unit member : units) {
-                if (!member.isAlive() || member.squadId != sq.id) continue;
+            for (int i = 0; i < liveCount; i++) {
+                Unit member = dense[i];
+                // Dense iteration excludes released units — no isAlive() needed.
+                if (member.squadId != sq.id) continue;
                 float dx = shot.toX - (member.cellX + 0.5f);
                 float dy = shot.toY - (member.cellY + 0.5f);
                 if (dx * dx + dy * dy <= NEAR_MISS_RADIUS_SQ) return sq;

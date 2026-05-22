@@ -813,7 +813,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // flag from SquadAlertSystem: a squad out of contact this tick
         // recovers; a squad in contact holds. Runs before the GOAP replan so
         // SurviveContact relevance sees the up-to-date moraleBroken flag.
-        squadMorale.tick(units, TICK_DT);
+        squadMorale.tick(TICK_DT);
         tickProfile.lap(TickProfile.Phase.SQUAD_MORALE);
         // Evaluate fallback chains after alert state is current: an engaged
         // garrison that's lost half its members reassigns to its FALLBACK_TO
