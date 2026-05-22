@@ -24,21 +24,37 @@ universe over time, not retrofitted into intel slots.
 
 ## Current focus
 
-The **Marine Ops mission-select screen** is the active surface. Three-column
-layout, planet rendering, client list with reputation gating, mission nodes
-on the tactical map with hover popups. See [`backlog.md`](backlog.md) for
-what's still unbuilt within this screen.
+The **campaign tier** is the active surface — the SoA `CampaignState`,
+contracts loop, patron houses surfacing as clients, and the
+mission-resolver bridge writing back to the campaign graph on battle
+outcomes. The Marine Ops mission-select screen is now the consumer of
+that layer (see `roadmap/campaign/` for the design docs;
+`sessions/2026-05-21-3.md` for the implementation summary).
+
+The battle/ground side continues to evolve in parallel (convoy
+kinematics, mapgen, AI) — see the recent session logs for sibling-track
+activity.
 
 ## Immediate next-up
 
-1. **Mission click → briefing screen** — pick a mission, see full briefing,
-   accept/decline. First "second screen" in the system; will inform whether
-   we need a real Screen abstraction or if delegate-per-screen is enough.
-2. **Text wrapping in `BitmapFont`** — deferred from this session. The
-   briefing screen will force the issue (long flavor paragraphs).
-3. **Faction-enemy covert ops as a mission category** — high-rep with
-   Hegemony unlocks "deniable Hegemony contracts" in the mission list
-   without adding another client row.
+1. **Loot picker UI** (`loot.md` design + implementation) — the
+   three-layer salvage model is already plumbed end-to-end
+   (`salvageEntitlement` on `MissionOutcome`; briefing has the
+   negotiation knob). What's missing is the item pool generator (vanilla
+   weapons / supplies / fuel / marines / AI cores), the roll weighted by
+   entitlement × enemy faction × planet industries, and the post-battle
+   picker grid with cargo-capacity check + 75% fence-on-spot for
+   overflow. MechWarrior Mercenaries vibe. Probably its own design doc
+   before implementation.
+2. **Offer expiry + patron archetypes** — small polish round. Offers
+   currently never lapse; add expiry in `ContractLifecycleSystem`.
+   Archetype byte (CORPORATE_RUSHED / FALLEN_NOBLE / etc) is designed
+   in `mechanics.md` but `HouseSeeder` doesn't populate it; briefing
+   flavor doesn't read it.
+3. **Contract generation for non-STRIKE types** — `ContractType` has
+   six values; only STRIKE is generated. GARRISON + CADRE introduce
+   retainer payment over time (closer to the contract design's
+   "two-mode dichotomy" from `contracts.md`).
 
 ## How to use this directory
 
