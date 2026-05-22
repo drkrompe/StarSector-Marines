@@ -39,6 +39,7 @@ import com.dillon.starsectormarines.battle.weapons.InfantryWeapons;
 import com.dillon.starsectormarines.battle.weapons.WeaponSimContext;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
@@ -272,6 +273,27 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final Object2ObjectMap<Unit, ArrayList<Unit>> attackersByTarget = new Object2ObjectOpenHashMap<>();
     /** Recycled {@code ArrayList<Unit>} buckets. {@link #rebuildAttackersByTarget()} clears + returns every bucket here before re-populating, so the steady-state allocation is zero. */
     private final ArrayList<ArrayList<Unit>> attackerListPool = new ArrayList<>();
+
+    /**
+     * Per-target-cell cache of walkable cells with line of sight to that cell —
+     * the "vantage points" stage 2 of
+     * {@link com.dillon.starsectormarines.battle.ai.TacticalScoring#findFiringPosition}
+     * picks from when no in-range LOS-bearing firing position exists (the
+     * around-the-corner-turret case). Key is {@code (long) cellY * grid.width
+     * + cellX}; value is a flat {@code int[][]} of {@code {x, y}} pairs.
+     *
+     * <p>Cache lifetime is per-battle. Vantage geometry is determined by the
+     * walkability layout, so any event that flips the
+     * {@link #zoneGraphDirty} flag (wall breach, turret demolish, drone hub
+     * demolish) also invalidates this cache — the drain at the bottom of
+     * {@link #tick()} clears it together with the zone-graph rebuild.
+     *
+     * <p>Sharing rationale: an entire squad targeting one turret asks the
+     * same question; multiple squads can too. Cache key is the target cell,
+     * not the asker, so the cost is amortized across all simultaneous
+     * lookups for that target.
+     */
+    private final Long2ObjectOpenHashMap<int[][]> vantagePointsByTargetCell = new Long2ObjectOpenHashMap<>();
     /** Next squad id to assign on shuttle deboard. Monotonically increasing across the battle's lifetime. */
     private int nextSquadId = 0;
     private final List<ShotEvent> activeShots = new ArrayList<>();
@@ -1095,6 +1117,12 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // collapse into one rebuild.
         if (zoneGraphDirty) {
             zoneGraph.rebuild();
+            // Vantage-point sets are derived from cell walkability + LOS; any
+            // event that flips zoneGraphDirty (wall breach, turret/hub
+            // demolish) also invalidates them. Clear in lockstep so the next
+            // findFiringPosition stage-2 lookup recomputes against the new
+            // geometry.
+            vantagePointsByTargetCell.clear();
             zoneGraphDirty = false;
         }
         tickProfile.lap(TickProfile.Phase.ZONE_GRAPH);
@@ -1116,6 +1144,23 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      */
     public ArrayList<Unit> getAttackersOf(Unit target) {
         return attackersByTarget.get(target);
+    }
+
+    /**
+     * Returns the cached vantage-point set for target cell ({@code tx},
+     * {@code ty}) — walkable cells with line of sight to the cell, scanned
+     * within {@link com.dillon.starsectormarines.battle.ai.TacticalScoring#MAX_VANTAGE_SEARCH_RADIUS}.
+     * Computes on cache miss and stores; returns the same {@code int[][]}
+     * reference on subsequent hits. See
+     * {@link #vantagePointsByTargetCell} for lifetime and invalidation.
+     */
+    public int[][] getVantagePointsFor(int tx, int ty) {
+        long key = (long) ty * grid.getWidth() + tx;
+        int[][] cached = vantagePointsByTargetCell.get(key);
+        if (cached != null) return cached;
+        int[][] computed = com.dillon.starsectormarines.battle.ai.TacticalScoring.computeVantagePoints(grid, tx, ty);
+        vantagePointsByTargetCell.put(key, computed);
+        return computed;
     }
 
     /**

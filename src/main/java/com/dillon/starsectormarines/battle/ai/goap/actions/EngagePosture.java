@@ -128,6 +128,13 @@ public final class EngagePosture implements Action {
             if (member.moveProgress == 0f) {
                 int[] dest = InfantryCohesion.cohesionOverride(member, sim);
                 if (dest == null) dest = TacticalScoring.findFiringPosition(member, member.target, sim);
+                if (dest == null) {
+                    // Same dead-end as ApproachPosture's else branch — target
+                    // has no reachable firing position or vantage from here.
+                    // Drop and let findBestTarget re-pick next tick.
+                    member.target = null;
+                    return ActionStatus.RUNNING;
+                }
                 sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                         member.cellX, member.cellY, dest[0], dest[1], sim.getOccupancyMap()));
             }

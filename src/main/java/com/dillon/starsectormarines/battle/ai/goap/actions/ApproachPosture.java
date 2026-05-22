@@ -73,6 +73,16 @@ public final class ApproachPosture implements Action {
         if (member.moveProgress == 0f) {
             int[] dest = InfantryCohesion.cohesionOverride(member, sim);
             if (dest == null) dest = TacticalScoring.findFiringPosition(member, member.target, sim);
+            if (dest == null) {
+                // No reachable firing position OR vantage point exists for the
+                // current target — geometrically unreachable from here. Drop
+                // the target so next tick's findBestTarget picks something the
+                // unit can actually engage. Returning RUNNING (not FAILURE)
+                // keeps the squad-level Approach plan alive; the re-acquire
+                // happens on the next per-member tick.
+                member.target = null;
+                return ActionStatus.RUNNING;
+            }
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     member.cellX, member.cellY, dest[0], dest[1], sim.getOccupancyMap()));
         }

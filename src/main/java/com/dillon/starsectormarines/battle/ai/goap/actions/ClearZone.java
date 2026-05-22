@@ -104,6 +104,14 @@ public final class ClearZone implements Action {
         }
         if (member.moveProgress == 0f) {
             int[] dest = TacticalScoring.findFiringPosition(member, member.target, sim);
+            if (dest == null) {
+                // No reachable firing or vantage cell for this in-zone target.
+                // Drop the target — pickInZoneTarget will get a fresh shot next
+                // tick (Story K stays satisfied: we only ever clear within zone,
+                // and an unreachable in-zone target shouldn't pin the unit).
+                member.target = null;
+                return ActionStatus.RUNNING;
+            }
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     member.cellX, member.cellY, dest[0], dest[1], sim.getOccupancyMap()));
         }

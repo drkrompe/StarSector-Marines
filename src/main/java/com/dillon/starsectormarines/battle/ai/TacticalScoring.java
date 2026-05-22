@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.UnitType;
 import com.dillon.starsectormarines.battle.nav.Direction;
+import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
@@ -73,6 +74,27 @@ public final class TacticalScoring {
     public static final float FIRING_COVER_BONUS = 3f;
     /** Per-cover-level bonus from doodad cover (crates, shelves) on the candidate cell. Lower weight than wall cover because doodads don't fully break LOS — they're concealment, not full intervening geometry. */
     public static final float FIRING_DOODAD_COVER_BONUS = 1.5f;
+
+    /**
+     * Cell-radius around a target searched by
+     * {@link #computeVantagePoints} when populating the vantage-point cache —
+     * the stage-2 fallback used by {@link #findFiringPosition} when no
+     * in-range LOS-bearing firing cell exists. Sized at 20 so a marine
+     * (attackRange ~5) can walk up to 4× its weapon range to find a vantage,
+     * which covers the typical "turret around the corner" geometry without
+     * letting the picker propose a marathon trek across the map. Rocketeer
+     * approaches (attackRange ~12) get less headroom but still ~1.6×.
+     */
+    public static final int MAX_VANTAGE_SEARCH_RADIUS = 20;
+    /**
+     * Cap on pathfind attempts when picking among vantage candidates ordered
+     * by Euclidean distance from self. With cached vantages, the first attempt
+     * usually succeeds (the closest cell is also the closest path); the cap
+     * exists to bound the worst case where multiple closer Euclidean
+     * candidates lie on the unreachable side of a wall, so the picker has to
+     * skip past them to find one on the unit's side.
+     */
+    public static final int MAX_VANTAGE_PATHFIND_ATTEMPTS = 6;
     /** Radius (cells) over which {@link #findBestTarget} counts neighboring enemies to penalize cluster targets. */
     public static final int THREAT_DENSITY_RADIUS = 4;
     /** Per-neighbor-enemy penalty added to a target's score. Pursuing one fleer into 3 squadmates costs roughly the same as walking ~20 extra cells. */
@@ -628,8 +650,23 @@ public final class TacticalScoring {
      * Picks a walkable cell at attack range from the target, minimizing
      * {@code distFromSelf + occupancy_penalty - cover_bonus}. Candidates must
      * have LOS to the target — a cell on the far side of a wall is useless
-     * even at range. Returns the target's own cell as a fallback if no
-     * candidate qualifies.
+     * even at range.
+     *
+     * <p>Stage-2 fallback: when no candidate in the attack-range ring has LOS
+     * (typical "turret around the corner" case — the unit's whole approach
+     * ring is wall-blocked), falls back to picking a reachable vantage point
+     * from {@link BattleSimulation#getVantagePointsFor}. Vantages are walkable
+     * cells with LOS to the target anywhere within
+     * {@link #MAX_VANTAGE_SEARCH_RADIUS}; the picker sorts them by Euclidean
+     * distance from {@code self} and pathfinds in order, taking the first
+     * reachable hit. Walking to a vantage gains LOS; once LOS exists,
+     * subsequent ticks return real stage-1 candidates and the unit closes to
+     * a proper firing position. Engagement (LOS + range) still gates SUCCESS.
+     *
+     * <p>Returns {@code null} when both stage 1 and stage 2 find nothing —
+     * the target is geometrically unreachable from anywhere the unit can
+     * walk to. Callers treat null as "drop the target and re-acquire," not
+     * "stand still."
      */
     public static int[] findFiringPosition(Unit self, Unit target, BattleSimulation sim) {
         return findFiringPosition(self, target, sim, Integer.MIN_VALUE, Integer.MIN_VALUE);
@@ -803,7 +840,102 @@ public final class TacticalScoring {
                 }
             }
         }
-        return best != null ? best : new int[]{tx, ty};
+        if (best != null) return best;
+        // Stage 2: no in-range LOS-bearing cell exists (turret behind a wall,
+        // target tucked in a corner). Walk to a reachable vantage point —
+        // any walkable cell with LOS to the target inside
+        // MAX_VANTAGE_SEARCH_RADIUS. Once the unit arrives (or rounds a corner
+        // mid-path), LOS opens and the next tick's stage-1 search returns a
+        // real firing position. See class doc + BattleSimulation.getVantagePointsFor.
+        return pickReachableVantage(self, target, sim);
+    }
+
+    /**
+     * Picks a vantage point from the cached set for {@code target}'s cell —
+     * the closest one to {@code self} (by Euclidean cell distance) that the
+     * pathfinder can actually reach. Skips up to
+     * {@link #MAX_VANTAGE_PATHFIND_ATTEMPTS} candidates before giving up.
+     *
+     * <p>Returns {@code null} when no vantage is reachable from {@code self}
+     * within the attempt cap, or when the target's vantage set is empty.
+     * Caller treats null as "no engageable cell from here," typically by
+     * dropping the target.
+     */
+    private static int[] pickReachableVantage(Unit self, Unit target, BattleSimulation sim) {
+        int[][] vantages = sim.getVantagePointsFor(target.cellX, target.cellY);
+        if (vantages.length == 0) return null;
+
+        int n = vantages.length;
+        // Sort by Euclidean distance from self. n is bounded by
+        // (2 * MAX_VANTAGE_SEARCH_RADIUS + 1)^2 ≈ 1681 worst case but usually
+        // <100 after the walkability + LOS filters in computeVantagePoints.
+        // Indirect-sort to avoid mutating the cached array.
+        int[] order = new int[n];
+        float[] dist = new float[n];
+        for (int i = 0; i < n; i++) {
+            order[i] = i;
+            int dx = vantages[i][0] - self.cellX;
+            int dy = vantages[i][1] - self.cellY;
+            dist[i] = dx * dx + dy * dy;
+        }
+        // Simple insertion sort — n is small and almost-sorted in practice
+        // (cached order is row-major), so an O(n²) insertion sort is fine
+        // and avoids the boxing of a Comparator-based Arrays.sort over an
+        // int[] index array.
+        for (int i = 1; i < n; i++) {
+            int oi = order[i];
+            float di = dist[i];
+            int j = i - 1;
+            while (j >= 0 && dist[j] > di) {
+                order[j + 1] = order[j];
+                dist[j + 1] = dist[j];
+                j--;
+            }
+            order[j + 1] = oi;
+            dist[j + 1] = di;
+        }
+
+        int attempts = Math.min(n, MAX_VANTAGE_PATHFIND_ATTEMPTS);
+        for (int k = 0; k < attempts; k++) {
+            int[] cell = vantages[order[k]];
+            int[] path = GridPathfinder.findPath(sim.getGrid(),
+                    self.cellX, self.cellY, cell[0], cell[1], sim.getOccupancyMap());
+            if (path.length > 0) return cell;
+        }
+        return null;
+    }
+
+    /**
+     * Computes the vantage-point set for cell ({@code tx}, {@code ty}) —
+     * walkable cells within {@link #MAX_VANTAGE_SEARCH_RADIUS} that have
+     * line of sight to ({@code tx}, {@code ty}). Pure function of the grid;
+     * called by {@link BattleSimulation#getVantagePointsFor} on cache miss.
+     *
+     * <p>Excludes the target's own cell — walking onto your target is
+     * never the right destination (and for turrets the cell isn't even
+     * walkable). Uses {@link NavigationGrid#hasLineOfSight} directly (not
+     * the air-LOS variant) since vantages are a property of the grid
+     * geometry, not of any specific shooter/target air radius — a unit
+     * with airLosRadius &gt; 0 gets a strict superset of these cells via
+     * the air-LOS path at the per-tick check site.
+     */
+    public static int[][] computeVantagePoints(NavigationGrid grid, int tx, int ty) {
+        ArrayList<int[]> hits = new ArrayList<>();
+        int r = MAX_VANTAGE_SEARCH_RADIUS;
+        int r2 = r * r;
+        for (int dy = -r; dy <= r; dy++) {
+            for (int dx = -r; dx <= r; dx++) {
+                if (dx == 0 && dy == 0) continue;
+                if (dx * dx + dy * dy > r2) continue;
+                int cx = tx + dx;
+                int cy = ty + dy;
+                if (!grid.inBounds(cx, cy)) continue;
+                if (!grid.isWalkable(cx, cy)) continue;
+                if (!grid.hasLineOfSight(cx, cy, tx, ty)) continue;
+                hits.add(new int[]{cx, cy});
+            }
+        }
+        return hits.toArray(new int[hits.size()][]);
     }
 
     /**

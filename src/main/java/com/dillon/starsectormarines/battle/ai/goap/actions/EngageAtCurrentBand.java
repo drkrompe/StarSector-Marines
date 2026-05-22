@@ -48,9 +48,7 @@ public final class EngageAtCurrentBand implements Action {
 
     @Override
     public ActionStatus execute(Unit u, Squad squad, BattleSimulation sim) {
-        if (u.target == null || !u.target.isAlive()) {
-            u.target = TacticalScoring.findBestTarget(u, sim);
-        }
+        u.target = TacticalScoring.refreshTargetIfNotShootable(u, sim);
         if (u.target == null) return ActionStatus.RUNNING;
 
         float dist = TacticalScoring.cellDistance(u.cellX, u.cellY, u.target.cellX, u.target.cellY);
@@ -72,8 +70,16 @@ public final class EngageAtCurrentBand implements Action {
         boolean closeEngagement = inRange && visible && dist <= u.mech.srmPod.range;
         if (!closeEngagement && u.moveProgress == 0f) {
             int[] dest = TacticalScoring.findFiringPosition(u, u.target, sim);
-            sim.setPath(u, GridPathfinder.findPath(sim.getGrid(),
-                    u.cellX, u.cellY, dest[0], dest[1], sim.getOccupancyMap()));
+            if (dest == null) {
+                // No reachable firing or vantage cell for the current target.
+                // Drop and let the mech's per-tick target acquisition re-pick.
+                // LRM indirect fire above already ran for this tick — chaingun /
+                // SRM stay quiet until a reachable target is acquired.
+                u.target = null;
+            } else {
+                sim.setPath(u, GridPathfinder.findPath(sim.getGrid(),
+                        u.cellX, u.cellY, dest[0], dest[1], sim.getOccupancyMap()));
+            }
         }
         if (u.pathIdx < u.pathCellCount()) {
             sim.advanceMovement(u);

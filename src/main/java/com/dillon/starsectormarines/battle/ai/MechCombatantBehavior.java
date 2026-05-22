@@ -23,9 +23,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
 
     @Override
     public void update(Unit u, BattleSimulation sim) {
-        if (u.target == null || !u.target.isAlive()) {
-            u.target = TacticalScoring.findBestTarget(u, sim);
-        }
+        u.target = TacticalScoring.refreshTargetIfNotShootable(u, sim);
         if (u.target == null) return;
 
         float dist = TacticalScoring.cellDistance(u.cellX, u.cellY, u.target.cellX, u.target.cellY);
@@ -48,8 +46,15 @@ public final class MechCombatantBehavior implements UnitBehavior {
         boolean closeEngagement = inRange && visible && dist <= u.mech.srmPod.range;
         if (!closeEngagement && u.moveProgress == 0f) {
             int[] dest = TacticalScoring.findFiringPosition(u, u.target, sim);
-            sim.setPath(u, GridPathfinder.findPath(sim.getGrid(),
-                    u.cellX, u.cellY, dest[0], dest[1], sim.getOccupancyMap()));
+            if (dest == null) {
+                // No reachable firing or vantage cell. Drop the target; the
+                // mech's next acquisition cycle picks something it can engage.
+                // LRMs already fired indirectly this tick if range allowed.
+                u.target = null;
+            } else {
+                sim.setPath(u, GridPathfinder.findPath(sim.getGrid(),
+                        u.cellX, u.cellY, dest[0], dest[1], sim.getOccupancyMap()));
+            }
         }
         if (u.pathIdx < u.pathCellCount()) {
             sim.advanceMovement(u);
