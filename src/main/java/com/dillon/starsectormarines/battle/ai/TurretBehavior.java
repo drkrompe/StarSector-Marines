@@ -32,7 +32,8 @@ public final class TurretBehavior implements UnitBehavior {
 
         // Drop a stale burst if its victim died — frees the mount to
         // re-acquire, same shape as the shuttle-mounted equivalent in
-        // AirSystem.tickShuttleTurrets.
+        // AirSystem.tickShuttleTurrets. Reads the MapTurret-shadow
+        // burstTargetId (not the inherited Unit one — see MapTurret class doc).
         Unit currentBurstTarget = sim.resolveUnit(t.burstTargetId);
         if (t.burstRemaining > 0 && (currentBurstTarget == null || !currentBurstTarget.isAlive())) {
             t.burstRemaining = 0;
@@ -41,6 +42,8 @@ public final class TurretBehavior implements UnitBehavior {
         }
         // Pin slew target during a burst so the barrel tracks the salvo
         // victim instead of drifting toward a fresh acquisition mid-burst.
+        // Direct id-to-id copy (not setTarget) — both fields are already
+        // entity ids in the same id space, no null encoding to apply.
         if (t.burstRemaining > 0) {
             t.targetId = t.burstTargetId;
         }

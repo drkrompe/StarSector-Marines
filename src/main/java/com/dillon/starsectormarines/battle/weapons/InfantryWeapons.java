@@ -17,7 +17,7 @@ import com.dillon.starsectormarines.battle.Unit;
  * {@link MarineWeapon}.
  *
  * <p>Stateless today — burst continuation state lives on each {@link Unit}
- * ({@code burstRemaining} / {@code burstTimer} / {@code burstTarget}) so a
+ * ({@code burstRemaining} / {@code burstTimer} / {@code burstTargetId}) so a
  * shared subsystem instance can serve every unit without per-shooter scratch
  * space. The {@link WeaponSimContext} parameter on each public call is the
  * deliberate seam: the subsystem reads grid/rng/unit-list through it and
