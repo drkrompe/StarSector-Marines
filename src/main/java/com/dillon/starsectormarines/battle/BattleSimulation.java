@@ -163,7 +163,9 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final HeavyWeapons heavy = new HeavyWeapons();
     /** Physics-based AoE pipeline — owns the in-flight rocket queue and drains expired entries into splash + wall damage. Both infantry rockets and mech HE rockets queue here through {@link #queueDetonation}. */
     private final Detonations detonations = new Detonations();
-    private final List<Objective> objectives = new ArrayList<>();
+    /** Mission objective list + per-tick dispatch + the default eliminate-each-other backstop. The {@link #addObjective}/{@link #getObjectives} delegates below forward here; the OBJECTIVES phase + first-tick backstop install go through it. */
+    private final com.dillon.starsectormarines.battle.objective.ObjectivesService objectivesService =
+            new com.dillon.starsectormarines.battle.objective.ObjectivesService();
     private final List<EquipmentDrop> equipmentDrops = new ArrayList<>();
     private final List<Doodad> doodads = new ArrayList<>();
     /**
@@ -482,7 +484,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     public List<Shuttle> getShuttles()     { return airSystem.getShuttles(); }
     /** Active convoy / ground transport craft (moving trucks, APCs). Distinct from {@link #getVehicles()}, which lists the static map-vehicle obstacles. */
     public List<Vehicle> getConvoyVehicles() { return groundSystem.getVehicles(); }
-    public List<Objective> getObjectives() { return objectives; }
+    public List<Objective> getObjectives() { return objectivesService.getObjectives(); }
     public List<EquipmentDrop> getEquipmentDrops() { return equipmentDrops; }
     public List<Doodad> getDoodads()       { return doodads; }
     /** Building registry for the roof-render + fog-of-war passes. Never null. */
@@ -1129,7 +1131,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     }
 
     public void addObjective(Objective o) {
-        objectives.add(o);
+        objectivesService.addObjective(o);
     }
 
     /** Install (or replace) the strategic commander for one faction. Pass {@code null} to clear. Typically called once during {@code BattleSetup} per faction that wants the layer. */
@@ -1166,10 +1168,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // Backstop: if a caller (currently BattleSetup) hasn't registered
         // objectives, install the default eliminate-each-other pair so the
         // old behavior keeps working untouched. Run-once on first tick.
-        if (objectives.isEmpty()) {
-            objectives.add(new EliminateFactionObjective(Faction.MARINE, Faction.DEFENDER));
-            objectives.add(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
-        }
+        objectivesService.installEliminationBackstopIfEmpty(Faction.MARINE, Faction.DEFENDER);
         // Start the per-tick phase profiler. Each lap() call below records
         // wall-time spent in the preceding block; endTick() at the bottom
         // snapshots into the rolling display buffer the debug panel reads.
@@ -1383,7 +1382,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         tickProfile.lap(TickProfile.Phase.SHOTS);
         processEquipmentDrops();
         tickProfile.lap(TickProfile.Phase.EQUIPMENT_DROPS);
-        for (Objective o : objectives) o.tick(this);
+        objectivesService.tick(o -> o.tick(this));
         tickProfile.lap(TickProfile.Phase.OBJECTIVES);
         // Single zone-graph rebuild for the whole tick — drains any wall
         // breaches or turret demolishes that happened this tick. Multiple
@@ -2887,7 +2886,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private void checkWinCondition() {
         boolean marineFailed = false, marineAllComplete = true, marineHasObjective = false;
         boolean defenderFailed = false, defenderAllComplete = true, defenderHasObjective = false;
-        for (Objective o : objectives) {
+        for (Objective o : objectivesService.getObjectives()) {
             if (o.owningFaction() == Faction.MARINE) {
                 marineHasObjective = true;
                 if (o.isFailed()) marineFailed = true;
