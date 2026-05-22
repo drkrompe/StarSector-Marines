@@ -21,6 +21,7 @@ import com.dillon.starsectormarines.battle.ai.goap.GoapInfantryBehavior;
 import com.dillon.starsectormarines.battle.ai.goap.GoapMechBehavior;
 import com.dillon.starsectormarines.battle.command.MissionCommand;
 import com.dillon.starsectormarines.battle.damage.DamageService;
+import com.dillon.starsectormarines.battle.equipment.EquipmentDropService;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
@@ -172,7 +173,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Mission objective list + per-tick dispatch + the default eliminate-each-other backstop. The {@link #addObjective}/{@link #getObjectives} delegates below forward here; the OBJECTIVES phase + first-tick backstop install go through it. */
     private final com.dillon.starsectormarines.battle.objective.ObjectivesService objectivesService =
             new com.dillon.starsectormarines.battle.objective.ObjectivesService();
-    private final List<EquipmentDrop> equipmentDrops = new ArrayList<>();
+    /** Active equipment drops + per-tick pickup/retriever sweep + emit-on-death plumbing. Initialized in the constructor once {@link #rosterService} is available. */
+    private final EquipmentDropService equipmentDropService;
     /** Persistent {@link Doodad} list + per-cell/per-facing cover lookup the AI consults when scoring firing positions. Initialized in the constructor once {@link #grid} is available. */
     private final DoodadService doodadService;
     private final List<MapVehicle> vehicles = new ArrayList<>();
@@ -189,6 +191,10 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
 
     /** Per-faction strategic commander tier. Owns the slow-tick cadence; the {@link #setCommander}/{@link #getCommander} delegates below forward here, and the COMMANDER phase calls {@link CommanderService#tick}. */
     private final CommanderService commanders = new CommanderService();
+
+    /** Reinforcement orchestration — trigger registry + means provider list + request queue. Mission setup registers triggers/means; the slow-tick polls them. Full design: {@code roadmap/reinforcement/architecture.md}. */
+    private final com.dillon.starsectormarines.battle.reinforcement.ReinforcementService reinforcement =
+            new com.dillon.starsectormarines.battle.reinforcement.ReinforcementService();
 
     /**
      * Per-target attacker index: for each unit currently targeted by at least
@@ -333,6 +339,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // accessor hop, no synchronization on the serial-phase squads.get).
         this.units = rosterService.getUnits();
         this.squads = rosterService.getSquadsMap();
+        this.equipmentDropService = new EquipmentDropService(rosterService, this::clearPath);
     }
 
     @Override public NavigationGrid getGrid() { return grid; }
@@ -411,7 +418,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Active convoy / ground transport craft (moving trucks, APCs). Distinct from {@link #getVehicles()}, which lists the static map-vehicle obstacles. */
     public List<Vehicle> getConvoyVehicles() { return groundSystem.getVehicles(); }
     public List<Objective> getObjectives() { return objectivesService.getObjectives(); }
-    public List<EquipmentDrop> getEquipmentDrops() { return equipmentDrops; }
+    public List<EquipmentDrop> getEquipmentDrops() { return equipmentDropService.getEquipmentDrops(); }
     public List<Doodad> getDoodads()       { return doodadService.getDoodads(); }
     /** Building registry for the roof-render + fog-of-war passes. Never null. */
     public com.dillon.starsectormarines.battle.map.Buildings getBuildings() { return vision.getBuildings(); }
@@ -554,7 +561,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         if (died) {
             target.deathPoseIdx = rng.nextInt(4);
             deathsThisFrame.add(target);
-            emitEquipmentDropIfApplicable(target);
+            equipmentDropService.emitIfApplicable(target);
             // Squad leader promotion — if the dead unit was leading a
             // squad, hand the badge to the closest still-alive member.
             // Preserves direction of travel: the new leader stands roughly
@@ -849,6 +856,11 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         return commanders.getCommander(faction);
     }
 
+    /** Reinforcement service for trigger / means registration. {@code BattleSetup} populates this per mission. */
+    public com.dillon.starsectormarines.battle.reinforcement.ReinforcementService getReinforcementService() {
+        return reinforcement;
+    }
+
     /**
      * Drives the simulation forward. Accepts any real-time delta; internally
      * runs zero or more fixed 30Hz ticks until the accumulator is drained.
@@ -1075,6 +1087,11 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // puff drain as the wrecks, just on a shorter, fire-less timer.
         effects.tickPlumes(TICK_DT);
         tickProfile.lap(TickProfile.Phase.PLUMES);
+        // Reinforcement slow-tick: poll triggers, drain the request queue, and
+        // dispatch via the first feasible means provider. Runs before air/ground
+        // systems so a dispatched Shuttle or Vehicle gets ticked the same frame
+        // it spawns, matching the rest of the spawn ordering for those systems.
+        reinforcement.tick(TICK_DT, this);
         // Air vehicles tick AFTER units so new deboarded marines aren't iterated
         // mid-loop. They'll be picked up by next tick's occupancy + target pass.
         airSystem.tick(this, TICK_DT);
@@ -1085,7 +1102,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         tickProfile.lap(TickProfile.Phase.GROUND_SYSTEM);
         shots.tickShots(TICK_DT);
         tickProfile.lap(TickProfile.Phase.SHOTS);
-        processEquipmentDrops();
+        equipmentDropService.tick();
         tickProfile.lap(TickProfile.Phase.EQUIPMENT_DROPS);
         objectivesService.tick(o -> o.tick(this));
         tickProfile.lap(TickProfile.Phase.OBJECTIVES);
@@ -2121,114 +2138,6 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         }
     }
 
-    /**
-     * Emits an {@link EquipmentDrop} at the dying unit's cell if they were
-     * carrying a kit — i.e., a PLANTER (or a KIT_RETRIEVER whose pointer maps
-     * to an objective). Skips drops that would point at a completed objective.
-     * The drop is placed at the unit's current cell; mission code should
-     * ensure the cell is walkable for normal combat, so retrieval is reachable.
-     */
-    private void emitEquipmentDropIfApplicable(Unit dead) {
-        Objective carried = null;
-        if (dead.role == UnitRole.PLANTER) {
-            carried = dead.assignedObjective;
-        } else if (dead.role == UnitRole.KIT_RETRIEVER && dead.equipmentDropTarget != null
-                && !dead.equipmentDropTarget.consumed) {
-            // Retriever was carrying nothing in-hand, but their target kit
-            // is still on the ground. We don't emit a new drop — the existing
-            // one remains in the world for someone else to grab.
-            return;
-        }
-        if (carried == null || carried.isComplete()) return;
-        equipmentDrops.add(new EquipmentDrop(dead.cellX, dead.cellY, carried));
-    }
-
-    /**
-     * Per-tick sweep over active equipment drops:
-     * <ol>
-     *   <li>Any alive marine on a drop cell consumes it and is promoted to
-     *       {@link UnitRole#PLANTER} with the drop's objective. Their old role
-     *       is wiped — including any other kit they were currently chasing.</li>
-     *   <li>Unconsumed drops without an assigned retriever recruit the nearest
-     *       alive {@link UnitRole#COMBATANT} marine, promoting them to
-     *       {@link UnitRole#KIT_RETRIEVER}. Existing planters and other
-     *       retrievers are skipped so they keep their current task.</li>
-     *   <li>Consumed drops fall off the list.</li>
-     * </ol>
-     */
-    private void processEquipmentDrops() {
-        if (equipmentDrops.isEmpty()) return;
-
-        // Pickup pass — any marine standing on a drop cell takes the kit.
-        for (EquipmentDrop drop : equipmentDrops) {
-            if (drop.consumed) continue;
-            if (drop.objective.isComplete()) { drop.consumed = true; continue; }
-            for (Unit u : units) {
-                if (!u.isAlive() || u.faction != Faction.MARINE) continue;
-                if (u.cellX != drop.cellX || u.cellY != drop.cellY) continue;
-                u.role = UnitRole.PLANTER;
-                u.assignedObjective = drop.objective;
-                u.equipmentDropTarget = null;
-                drop.consumed = true;
-                break;
-            }
-        }
-
-        // Assignment pass — make sure each unconsumed drop has a retriever.
-        for (EquipmentDrop drop : equipmentDrops) {
-            if (drop.consumed) continue;
-            if (hasLivingRetriever(drop)) continue;
-            Unit nearest = nearestAvailableMarine(drop.cellX, drop.cellY);
-            if (nearest != null) {
-                nearest.role = UnitRole.KIT_RETRIEVER;
-                nearest.equipmentDropTarget = drop;
-                // Wipe any stale path so the retriever re-pathfinds to the drop
-                // next tick instead of continuing toward their old target.
-                clearPath(nearest);
-            }
-        }
-
-        // Cleanup.
-        for (int i = equipmentDrops.size() - 1; i >= 0; i--) {
-            if (equipmentDrops.get(i).consumed) equipmentDrops.remove(i);
-        }
-    }
-
-    private boolean hasLivingRetriever(EquipmentDrop drop) {
-        for (Unit u : units) {
-            if (!u.isAlive()) continue;
-            if (u.role == UnitRole.KIT_RETRIEVER && u.equipmentDropTarget == drop) return true;
-        }
-        return false;
-    }
-
-    /**
-     * Nearest alive marine that isn't actively occupied with an incomplete
-     * objective. Skip-by-state instead of skip-by-role so stale role labels
-     * (e.g., a PLANTER whose site already blew but didn't tick through their
-     * own update yet) don't strand drops with no retriever. Anyone idle —
-     * combatant, finished planter, retriever whose kit got picked up — is
-     * eligible. Returns null only when every alive marine is genuinely busy.
-     */
-    private Unit nearestAvailableMarine(int cx, int cy) {
-        Unit best = null;
-        float bestDist = Float.MAX_VALUE;
-        for (Unit u : units) {
-            if (!u.isAlive() || u.faction != Faction.MARINE) continue;
-            if (u.role == UnitRole.PLANTER
-                    && u.assignedObjective != null
-                    && !u.assignedObjective.isComplete()) continue;
-            if (u.role == UnitRole.KIT_RETRIEVER
-                    && u.equipmentDropTarget != null
-                    && !u.equipmentDropTarget.consumed) continue;
-            float d = TacticalScoring.cellDistance(u.cellX, u.cellY, cx, cy);
-            if (d < bestDist) {
-                bestDist = d;
-                best = u;
-            }
-        }
-        return best;
-    }
 
     /**
      * Advances a unit one tick along its current path. Public so behaviors
@@ -2534,7 +2443,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         if (!target.isAlive()) {
             target.deathPoseIdx = rng.nextInt(4);
             deathsThisFrame.add(target);
-            emitEquipmentDropIfApplicable(target);
+            equipmentDropService.emitIfApplicable(target);
         }
     }
 
