@@ -299,14 +299,15 @@ public class CommsConsolePanel extends OpsPanel {
         int salvageBaseline = m.salvageBaseline & 0xFF;
         if (salvageBaseline > 0) {
             int negotiated = m.salvageNegotiated & 0xFF;
-            // Widget height is track + caption; positioned so the caption sits
-            // where the original label was. y points at the top of the row;
-            // the slider's own y is its track bottom.
-            float sliderH = 34f;
-            float sliderY = y - sliderH + 4f;
+            // Widget renders entirely within its declared rect (caption on
+            // top, slider row at the bottom — see SalvageSliderWidget). y
+            // tracks the top edge of the row so the widget sits with its top
+            // at y and stack continues below.
+            float sliderH = SalvageSliderWidget.DEFAULT_HEIGHT;
+            float sliderY = y - sliderH;
             widgets.add(new SalvageSliderWidget(subX, sliderY, subW, sliderH,
                     salvageBaseline, negotiated, this::setSalvage));
-            y -= sliderH + ROW_GAP;
+            y -= sliderH + SECTION_GAP;
         }
 
         // Transport selection — one toggle row per available shuttle.
@@ -393,9 +394,10 @@ public class CommsConsolePanel extends OpsPanel {
         if (scr != null) captainRows = Math.min(3, scr.roster().active().size());
         if (captainRows == 0) captainRows = 1; // "no active captains" line
 
-        // Match the slider's own height (track + caption + small margin) so the
+        // Match SalvageSliderWidget's DEFAULT_HEIGHT + section gap so the
         // expanded card grows to fit it. Mirrors layoutExpandedSubWidgets.
-        float sliderH = (m.salvageBaseline & 0xFF) > 0 ? (34f + ROW_GAP) : 0f;
+        float sliderH = (m.salvageBaseline & 0xFF) > 0
+                ? (SalvageSliderWidget.DEFAULT_HEIGHT + SECTION_GAP) : 0f;
         float transportH = ROW_H + transportRows * (ROW_H + ROW_GAP); // label + rows
         float captainH = SECTION_GAP + SQUAD_ROW_H + captainRows * (SQUAD_ROW_H + ROW_GAP);
         float buttonsH = SECTION_GAP + BTN_H + PAD;

@@ -34,6 +34,13 @@ https://davidkbd.itch.io/eternity-metal-scfi-music-pack
 - **Briefing screen** (also gameplay item above).
 - **Mission resolution screen** — outcome readout, casualty list, XP +
   loot.
+- **Scroll bar widget** — visual companion to `ScrollRegionWidget`
+  scroll-wheel handling. Track + thumb visualizing how much content is
+  above/below + position in the scroll range; click-track-to-jump,
+  draggable thumb. Replaces / augments the `▲ scroll up` / `▼ N more`
+  text hints in `CommsConsolePanel`'s dossier stack. Most useful for
+  long lists (debug client's 15 missions); vanilla clients rarely hit
+  scroll. Generic enough to reuse for any scrollable list later.
 - **Captain roster screen** — the eventual 3D bridge view, accessed from
   the intel screen. Replaces the cube placeholder.
 - **Text wrapping in `BitmapFont`** — single-line method exists; add
