@@ -57,24 +57,62 @@ cell on the right side of the map. `dispatch` actually posts the
 spawn(s) — same hooks the existing `ShuttleAssignment` /
 `ConvoyAssignment` paths use today.
 
-### System
+### Service
 
-`ReinforcementSystem` owns:
+Naming: this is a **`ReinforcementService`**, not a `*System`. Per
+[[battle_services_systems]] the project convention is *Service =
+stateful, constructor-injected into `BattleSimulation`*, *System =
+stateless tick consumer*. We own the queue, the trigger list, the
+means list, and per-side ticket counts — that's state — so Service is
+the right name. `GroundSystem` / `AirSystem` stay `*System` because
+they're stateless consumers of `Vehicle` / `Shuttle` data.
+
+`ReinforcementService` owns:
 - Pluggable list of `Trigger` (each: `boolean check(sim, side)` +
   request builder).
 - Ordered list of `ReinforcementMeans` — priority for fallback.
 - Per-side request queue.
+- Per-side ticket budget (see "Ticket budget" below).
 
 Each tick:
 1. For each trigger, if `check` fires, build a request and enqueue.
-2. Drain the queue. For each request, iterate the means list in
-   priority order; first provider that returns `canFulfill = true`
-   wins and `dispatch`es. If none, drop and log (see open questions).
+2. Drain the queue. For each request: if the side has tickets, iterate
+   the means list in priority order; first provider that returns
+   `canFulfill = true` wins, `dispatch`es, and decrements that side's
+   ticket count. If no provider fulfills, log the request as a
+   bugged-map diagnostic and drop it.
 
-The system is stateless across requests — once dispatched, the means
-provider owns the in-flight spawn. The system doesn't track "this
-convoy is in transit"; that lives on the spawned `Vehicle` /
-`Shuttle` / squad like any other unit.
+The service tracks requests, not in-flight spawns — once dispatched,
+the means provider's output (a `Vehicle` / `Shuttle` / squad) lives in
+the normal sim lists and ticks like any other unit.
+
+### Ticket budget (per side, mission-driven)
+
+Per-side ticket count is the simple cooldown / budget model. Each
+successful `dispatch` decrements the requesting side's count; at zero,
+triggers still fire but the service skips dispatch (and logs nothing —
+this is expected, not a failure).
+
+**Mission config carries the shape.** Refill rules belong to the
+mission, not the service. Conquest-sized matches want large mid-/late-
+battle waves; Assault-sized matches want a small attacker drip; raid
+maps want defender-only one-shot reinforcement. The service reads:
+
+```
+ReinforcementBudget(
+    int defenderStartingTickets, int defenderRefillPerSec, int defenderMax,
+    int attackerStartingTickets, int attackerRefillPerSec, int attackerMax
+)
+```
+
+…off the mission config at battle start. Refill cadence is a simple
+per-second accumulator; "waves" emerge from per-tick refill clamped to
+`max`. More elaborate scripted wave shapes can ship later as a
+`ScriptedBudget` variant; the simple-counter form covers most missions.
+
+The attacker side already has shuttle drops modeled with something
+like this today — folding it into `ReinforcementService` is the
+natural unification (see Decisions §1).
 
 ### Triggers (v1 set)
 
@@ -125,35 +163,60 @@ Smallest end-to-end slice that proves the abstraction:
 - One means: `ConvoyMeans` (the V1+polish path, gated on road graph)
 - Strength: ignored at first — convoy always spawns 1 truck
 - Rally: nearest tactical node to the depleted compound
+- Tickets: stubbed to "unlimited" defender-side; budget plumbing comes
+  in the second slice once existing shuttle-drop accounting is folded
+  in (see Decisions §1)
 
 Replaces `DEBUG_SPAWN_TEST_CONVOY` entirely. The interfaces (request,
 trigger, means) all exist with only one implementation each — adding
-the next trigger or means lands as a follow-up that doesn't touch the
-abstraction.
+the next trigger, means, or the real ticket budget lands as a
+follow-up that doesn't touch the abstraction.
 
-## Open questions
+## Decisions
 
-- **Side neutrality.** Both attackers and defenders post requests, or
-  defender-only at first? Conquest is a defender-reinforcement story;
-  attacker reinforcement waits for a mission type that justifies it
-  (Assault?). Keep the side field on `ReinforcementRequest` from day
-  one so the constraint is data, not type.
-- **Cooldown / budget per side.** The defender garrison-depleted
-  trigger could fire repeatedly. Per-side cooldown (one request every
-  N sim-seconds) or a global "reinforcement budget" set at mission
-  start (defender has 3 reinforcement events, then nothing)?
-- **Failure handling.** If no means returns `canFulfill = true`, what
-  happens? Silent drop, log, or queued for retry next tick when
-  conditions change? Probably log and drop — re-firing the trigger is
-  the trigger's responsibility.
-- **Diegetic surfacing.** The player should know reinforcements
-  arrived (or are about to). Briefing tags? In-battle commander
-  chatter? Defer until the message bus / commander UI lands.
-- **Commander-tier integration.** Once the squad-of-squads commander
-  ([[mission_type_flavors]]) exists, deboarded reinforcement squads
-  should hook into objective assignment. Wiring TBD; the spawned
-  squad is just a normal squad, so the commander needs to be told
-  "new squad available."
+### 1. Side neutrality + shuttle-drop refactor
+
+Both attackers and defenders post requests. The `side` field on
+`ReinforcementRequest` is data, not type — so the same service handles
+defender garrison-depleted convoys and attacker shuttle drops with no
+code branch. The existing attacker shuttle-drop infrastructure (with
+its informal ticket modeling) is a natural refactor candidate: port it
+to `ShuttleMeans` + the `ReinforcementService` ticket budget. Not v1
+scope — but the v1 design already accommodates it.
+
+### 2. Ticket budget lives on the service; refill rules on the mission
+
+Per-side ticket count is service state; the refill cadence /
+starting amount / max comes from `ReinforcementBudget` on the
+mission config (see "Ticket budget" above). Conquest can configure
+large mid-/late-battle waves; raids configure defender-only
+one-shot; the service code stays uniform.
+
+### 3. Failure = bugged-map diagnostic
+
+If no means returns `canFulfill = true`, the request is dropped and
+logged as a map-gen issue. Convoy needing a road graph or shuttle
+needing an LZ shouldn't fail — walk-in is the always-feasible floor,
+so an unfulfillable request means walk-in's perimeter check itself
+failed, which is a map problem worth surfacing.
+
+### 4. Diegetic surfacing — player-side status UI; enemy reads naturally
+
+Pre-fog-of-war the player sees enemy reinforcements arrive directly —
+the trucks / shuttles / walk-ins are visible on the map. For the
+player's own side, ship a small status UI showing **remaining tickets
++ inbound** (whatever's been dispatched and is still in transit). This
+turns the budget into a visible resource the player can plan around,
+not a hidden timer. Fog of war later changes the enemy-side read but
+not the player-side UI.
+
+### 5. Commander-tier integration deferred
+
+Once the squad-of-squads commander ([[mission_type_flavors]]) lands,
+deboarded reinforcement squads need to register with it so they get
+objective assignment. For v1 the spawned squad enters the same
+"free agent" pool the commander will pick up; no special wiring
+needed in the reinforcement service itself.
 
 ## Cross-refs
 
@@ -170,3 +233,6 @@ abstraction.
   uses.
 - [[feedback_world_reactive_over_expressive]] — the design philosophy
   motivating the multi-trigger / multi-means split.
+- [[battle_services_systems]] — the *Service (stateful, constructor-
+  injected) vs *System (stateless tick consumer) convention this
+  service follows.
