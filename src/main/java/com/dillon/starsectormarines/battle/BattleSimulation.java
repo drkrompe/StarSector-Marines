@@ -327,6 +327,19 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Recycled {@link PendingDamage} records. {@link #flushPendingDamage()} returns every drained entry here, so the steady-state allocation is zero. */
     private final ArrayList<PendingDamage> pendingDamagePool = new ArrayList<>();
     /**
+     * Target-side mutations queued by {@link #rollReprioritizeOnHit} and
+     * {@link #rollFallbackOnHit} during UPDATE_UNITS, drained serially by
+     * {@link #flushPendingTargetMutations()} in the APPLY_DAMAGE phase.
+     * Routes the shooter-driven writes to {@code target.target},
+     * {@code target.fallbackCellX/Y}, {@code target.fallbackTimer}, and the
+     * target's path through a queue so the shooter's worker never races the
+     * target's own worker (which is reading those fields concurrently in
+     * {@code advanceMovement} et al). Sibling pattern to {@link #pendingDamage}.
+     */
+    private final ArrayList<PendingTargetMutation> pendingTargetMutations = new ArrayList<>();
+    /** Recycled {@link PendingTargetMutation} records — same pool convention as {@link #pendingDamagePool}. */
+    private final ArrayList<PendingTargetMutation> pendingTargetMutationsPool = new ArrayList<>();
+    /**
      * Occupancy + {@code destIndex} mutations queued by {@link #setPath} during
      * UPDATE_UNITS, drained in APPLY_OCCUPANCY. Sibling queue to
      * {@link #pendingDamage} with the same justification: keeps the per-unit
@@ -1024,7 +1037,23 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // findBestTarget already weights distance + LOS + threat density,
         // so a closer-with-LOS flanker beats an out-of-LOS chase target
         // naturally.
-        target.target = null;
+        if (!insideParallel) {
+            // Serial caller — apply inline. Mirrors the {@link #applyDamage}
+            // pattern: avoid the queue allocation off-tick / in serial phases.
+            target.target = null;
+            return;
+        }
+        // Parallel UPDATE_UNITS dispatch — queue. The shooter's worker is
+        // running concurrently with the target's worker, which reads
+        // {@code target.target}; writing it from here would race.
+        synchronized (pendingTargetMutations) {
+            PendingTargetMutation m = pendingTargetMutationsPool.isEmpty()
+                    ? new PendingTargetMutation()
+                    : pendingTargetMutationsPool.remove(pendingTargetMutationsPool.size() - 1);
+            m.target = target;
+            m.kind = PendingTargetMutation.Kind.REPRIORITIZE;
+            pendingTargetMutations.add(m);
+        }
     }
 
     @Override
@@ -1045,14 +1074,74 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // on it.
         if (target.squadId != Unit.NO_SQUAD) return;
         if (target.rng.nextFloat() >= FALLBACK_CHANCE) return;
+        // Heavy compute — done on the shooter's worker by design; the result is
+        // just int coords carried to the serial drain.
         int[] fallback = TacticalScoring.findFallbackPosition(target, this);
         if (fallback[0] == target.cellX && fallback[1] == target.cellY) return;
-        target.fallbackCellX = fallback[0];
-        target.fallbackCellY = fallback[1];
-        target.fallbackTimer = FALLBACK_DURATION;
-        // Stale path no longer applies — target will re-path to the fall-back
-        // cell on its next updateUnit pass.
-        clearPath(target);
+        if (!insideParallel) {
+            // Serial caller — apply inline. Mirrors {@link #applyDamage}.
+            target.fallbackCellX = fallback[0];
+            target.fallbackCellY = fallback[1];
+            target.fallbackTimer = FALLBACK_DURATION;
+            // Stale path no longer applies — target will re-path to the
+            // fall-back cell on its next updateUnit pass.
+            clearPath(target);
+            return;
+        }
+        // Parallel UPDATE_UNITS dispatch — queue. Writing fallbackCellX/Y,
+        // fallbackTimer, or {@code target.path} (via clearPath) here would
+        // race the target's own worker reading those fields.
+        synchronized (pendingTargetMutations) {
+            PendingTargetMutation m = pendingTargetMutationsPool.isEmpty()
+                    ? new PendingTargetMutation()
+                    : pendingTargetMutationsPool.remove(pendingTargetMutationsPool.size() - 1);
+            m.target = target;
+            m.kind = PendingTargetMutation.Kind.FALLBACK;
+            m.fallbackCellX = fallback[0];
+            m.fallbackCellY = fallback[1];
+            pendingTargetMutations.add(m);
+        }
+    }
+
+    /**
+     * Drains {@link #pendingTargetMutations} in FIFO order. Runs serially in
+     * the {@link TickProfile.Phase#APPLY_DAMAGE} phase, immediately after
+     * {@link #flushPendingDamage()} so REPRIORITIZE/FALLBACK skip targets that
+     * the queued damage just killed. The drain runs before any subsystem tick
+     * that might call the roll methods inline (INFANTRY_TICK / HEAVY_TICK
+     * burst continuations route through the same {@link #insideParallel}
+     * inline branch and don't enqueue).
+     *
+     * <p>Public for tests — production callers go through
+     * {@link #rollReprioritizeOnHit} / {@link #rollFallbackOnHit}, and the sim
+     * drains automatically in APPLY_DAMAGE.
+     */
+    public void flushPendingTargetMutations() {
+        if (pendingTargetMutations.isEmpty()) return;
+        for (int i = 0, n = pendingTargetMutations.size(); i < n; i++) {
+            PendingTargetMutation m = pendingTargetMutations.get(i);
+            Unit target = m.target;
+            // Skip targets killed by queued damage drained earlier this phase
+            // — a dead unit's path / target / fallback fields are moot.
+            if (target.isAlive()) {
+                switch (m.kind) {
+                    case REPRIORITIZE:
+                        target.target = null;
+                        break;
+                    case FALLBACK:
+                        target.fallbackCellX = m.fallbackCellX;
+                        target.fallbackCellY = m.fallbackCellY;
+                        target.fallbackTimer = FALLBACK_DURATION;
+                        // Serial drain — {@link #clearPath} (via setPath) takes
+                        // the !insideParallel branch and mutates occupancy inline.
+                        clearPath(target);
+                        break;
+                }
+            }
+            m.target = null;
+            pendingTargetMutationsPool.add(m);
+        }
+        pendingTargetMutations.clear();
     }
 
     // ---- AirSimContext: services the AirSystem reaches back for during a tick ----
@@ -1332,6 +1421,12 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // — arguably more consistent than the pre-deferral order-dependent
         // skip and the prerequisite for parallelizing the dispatch loop.
         flushPendingDamage();
+        // Drain target-side reprio / fall-back enqueues from this tick's
+        // weapon hits. Ordered AFTER flushPendingDamage so we skip mutations
+        // on targets the queued damage just killed (the drain checks
+        // isAlive). Shares the APPLY_DAMAGE phase — both are serial fixups
+        // for state the parallel UPDATE_UNITS dispatch couldn't touch.
+        flushPendingTargetMutations();
         tickProfile.lap(TickProfile.Phase.APPLY_DAMAGE);
         // Convert any turrets that just died into walkable rubble so the next
         // tick's pathfinding + zone graph sees the hole, and the floor pass
