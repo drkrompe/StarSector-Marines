@@ -43,6 +43,7 @@ public final class TickProfile {
         GOAP_REPLAN,
         UPDATE_UNITS,
         APPLY_OCCUPANCY,
+        APPLY_SPAWNS,
         INFANTRY_TICK,
         HEAVY_TICK,
         PROJECTILES,

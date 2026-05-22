@@ -326,6 +326,15 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final ArrayList<PendingOccupancyDelta> pendingOccupancy = new ArrayList<>();
     /** Recycled {@link PendingOccupancyDelta} records — same pool convention as {@link #pendingDamagePool}. */
     private final ArrayList<PendingOccupancyDelta> pendingOccupancyPool = new ArrayList<>();
+    /**
+     * Units queued for addition during UPDATE_UNITS (drone hub spawns today),
+     * drained in APPLY_SPAWNS via {@link #flushPendingSpawns()}. Routes the one
+     * mid-dispatch caller of {@link #addUnit} through a queue so the units
+     * list isn't mutated from inside a per-unit task; AIR_SYSTEM /
+     * GROUND_SYSTEM deboard paths stay on inline {@link #addUnit} because
+     * they run in serial phases.
+     */
+    private final ArrayList<Unit> pendingSpawns = new ArrayList<>();
     private final Random rng = new Random();
 
     /** Counter for IDs of marines deboarded from shuttles. Bumped via {@link #nextMarineId()} when {@link AirSystem} deboards. Format: "m0", "m1", ... matches the pre-shuttle setup convention. */
@@ -637,6 +646,36 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // unit on the next AI query. tick() still does the full rebuild
         // each frame, so this is purely additive.
         unitIndex.add(u);
+    }
+
+    /**
+     * Parallel-safe addition variant for callers running inside UPDATE_UNITS.
+     * The unit is added to {@link #pendingSpawns}; {@link #flushPendingSpawns()}
+     * drains FIFO in the APPLY_SPAWNS phase, mirroring through {@link #addUnit}.
+     * Drone hub launches go through this; AIR_SYSTEM / GROUND_SYSTEM deboards
+     * stay on inline {@link #addUnit} (their phases are already serial).
+     *
+     * <p>Within-tick drift: a queued unit isn't visible to {@link #getUnits()}
+     * until the drain. {@code DroneSpawner.isCellOccupied} iterates units, so
+     * if two hubs spawn in the same tick the second won't see the first and
+     * could pick the same cell. Hub spawn intervals make same-tick double-
+     * spawn rare; the next tick's REBUILD_OCCUPANCY restores the picture.
+     */
+    public void queueSpawn(Unit u) {
+        pendingSpawns.add(u);
+    }
+
+    /**
+     * Drains {@link #pendingSpawns} in FIFO order, mirroring each queued unit
+     * through {@link #addUnit}. Runs in APPLY_SPAWNS, between APPLY_OCCUPANCY
+     * and INFANTRY_TICK.
+     */
+    private void flushPendingSpawns() {
+        if (pendingSpawns.isEmpty()) return;
+        for (int i = 0, n = pendingSpawns.size(); i < n; i++) {
+            addUnit(pendingSpawns.get(i));
+        }
+        pendingSpawns.clear();
     }
 
     public void addShuttle(Shuttle s) {
@@ -1121,6 +1160,12 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // regardless).
         flushPendingOccupancyDeltas();
         tickProfile.lap(TickProfile.Phase.APPLY_OCCUPANCY);
+        // Mirror queued drone-hub spawns into the units list. Only callers
+        // running inside UPDATE_UNITS route through queueSpawn; AIR_SYSTEM /
+        // GROUND_SYSTEM deboards keep using inline addUnit because they
+        // already run in serial phases.
+        flushPendingSpawns();
+        tickProfile.lap(TickProfile.Phase.APPLY_SPAWNS);
         // Burst-fire rounds queued after a primary shot — fire them now so
         // they emit at the right per-weapon spacing without piling onto the
         // AI's single-decision-per-tick model. Lives on the InfantryWeapons
