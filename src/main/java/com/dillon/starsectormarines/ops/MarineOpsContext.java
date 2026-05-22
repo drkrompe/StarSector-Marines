@@ -152,6 +152,9 @@ public class MarineOpsContext {
         return generated;
     }
 
+    /** Magic factionId for the synthetic debug client. {@link MissionGenerator} branches on this. */
+    public static final String DEBUG_CLIENT_FACTION_ID = "marines_debug_client";
+
     private static List<Client> resolveClients(PlanetAPI planet, MarketAPI market) {
         List<Client> out = new ArrayList<>();
         Set<String> seen = new LinkedHashSet<>();
@@ -160,6 +163,17 @@ public class MarineOpsContext {
         FactionAPI player = Global.getSector() != null
                 ? Global.getSector().getPlayerFaction()
                 : null;
+
+        // 0. Debug client — synthetic entry exposing every MissionType × RiskLevel
+        //    combo for playtesting. Gated by DevConfig.DEBUG_CLIENT.
+        if (com.dillon.starsectormarines.DevConfig.DEBUG_CLIENT && market != null) {
+            out.add(new Client(DEBUG_CLIENT_FACTION_ID,
+                    "DEBUG — All Missions",
+                    null,                       // no crest sprite; ClientRowWidget falls back
+                    RepLevel.NEUTRAL,
+                    false, null));
+            seen.add(DEBUG_CLIENT_FACTION_ID);
+        }
 
         // 1. Planet's owning faction (if it has one)
         if (market != null && market.getFaction() != null) {

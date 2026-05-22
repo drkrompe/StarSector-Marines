@@ -112,5 +112,18 @@ public final class DevConfig {
      */
     public static final boolean BYPASS_HOUSE_GATING = false;
 
+    /**
+     * When {@code true}: prepend a synthetic "DEBUG — All Missions" client to
+     * every planet's client list, exposing the full {@link com.dillon.starsectormarines.ops.MissionType}
+     * × {@link com.dillon.starsectormarines.ops.RiskLevel} grid (5×3 = 15
+     * missions) for playtesting any mission type at any difficulty without
+     * waiting on the RNG to roll the combo you want.
+     *
+     * <p>The debug client bypasses {@code MissionGenerator.MAX_MISSIONS}; the
+     * tactical map list gets long. That's the point — flip off for any build
+     * showing the intended experience.
+     */
+    public static final boolean DEBUG_CLIENT = true;
+
     private DevConfig() {}
 }

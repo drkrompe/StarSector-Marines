@@ -51,6 +51,12 @@ public final class MissionGenerator {
     public static List<Mission> generate(PlanetAPI planet, Client client) {
         if (planet == null || client == null) return Collections.emptyList();
 
+        // Debug client — the full MissionType × RiskLevel grid, no caps,
+        // for playtesting. Gated upstream by DevConfig.DEBUG_CLIENT.
+        if (MarineOpsContext.DEBUG_CLIENT_FACTION_ID.equals(client.factionId)) {
+            return generateDebugGrid(planet, client);
+        }
+
         // Patron client — emit Missions from OFFERED contracts. Industry catalog
         // and story missions don't apply: patron contracts are first-class.
         if (client.patronHouseId != -1L) {
@@ -86,6 +92,53 @@ public final class MissionGenerator {
             if (out.size() >= MAX_MISSIONS) break;
         }
 
+        return out;
+    }
+
+    /**
+     * Emits the full {@link MissionType} × {@link RiskLevel} grid for the debug
+     * client — 15 entries, one per (type, risk) combo. Bypasses
+     * {@link #MAX_MISSIONS} so every combo is reachable from a single planet.
+     *
+     * <p>Industry id is the first non-disrupted industry on the planet (or null
+     * — disruption writeback no-ops in that case). Payouts + drop counts use
+     * the production curves so the debug missions feel like real missions.
+     */
+    private static List<Mission> generateDebugGrid(PlanetAPI planet, Client client) {
+        if (planet.getMarket() == null) return Collections.emptyList();
+        MarketAPI market = planet.getMarket();
+        String industryId = pickFirstNonDisruptedIndustry(market);
+
+        long seed = ("debug:" + planet.getName()).hashCode();
+        Random r = new Random(seed);
+
+        List<Mission> out = new ArrayList<>();
+        int index = 0;
+        for (MissionType type : MissionType.values()) {
+            for (RiskLevel risk : RiskLevel.values()) {
+                int payout = computePayout(market.getSize(), risk, type, r);
+
+                float x = 0.08f + r.nextFloat() * 0.84f;
+                float y = 0.08f + r.nextFloat() * 0.84f;
+
+                FlybyRoster clientSupport = rollFighterSupport(r, client.factionId, risk, Faction.MARINE);
+                FlybyRoster enemySupport  = rollFighterSupport(r, client.factionId, risk, Faction.DEFENDER);
+
+                int requiredDrops = requiredDropsFor(type, risk);
+                if (com.dillon.starsectormarines.DevConfig.DROP_COUNT_OVERRIDE > 0) {
+                    requiredDrops = com.dillon.starsectormarines.DevConfig.DROP_COUNT_OVERRIDE;
+                }
+                int employerShuttles = rollEmployerShuttles(r, risk, requiredDrops);
+                String id = "debug:" + type.name() + ":" + risk.name() + ":" + index++;
+                String name = type.name() + " — " + risk.name();
+                String flavor = "DEBUG: " + type.name() + " at " + risk.name() + " risk.";
+
+                out.add(new Mission(id, name, type, MissionSource.GENERATED,
+                        payout, risk, requirementsFor(risk), flavor, x, y,
+                        clientSupport, enemySupport, requiredDrops, employerShuttles,
+                        planet.getName(), industryId));
+            }
+        }
         return out;
     }
 
