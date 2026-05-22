@@ -32,6 +32,8 @@ import com.dillon.starsectormarines.battle.tactical.TacticalMap;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 import com.dillon.starsectormarines.battle.ui.BattleHud;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
+import com.dillon.starsectormarines.battle.ui.compound.CompoundMarkerRenderer;
+import com.dillon.starsectormarines.battle.ui.compound.CompoundProgressPanel;
 import com.dillon.starsectormarines.battle.ui.panel.DebugTogglesPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadDetailPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadOverviewPanel;
@@ -525,6 +527,8 @@ public class BattleScreen implements Screen, BattleUiContext {
     private final java.util.Random audioRng = new java.util.Random();
     /** Ground-combat impact FX engine — sparks, dust, smoke, and HE fire bursts at shot endpoints. Separate from the flyby overlay's particle system so the two evolve independently. */
     private final ImpactFx impactFx = new ImpactFx();
+    /** World-layer renderer for the compound capture-state markers — faction-coloured ring + capture arc + kind glyph at each compound centroid. Stateless w.r.t. game state; wall-clock pulse only. */
+    private final CompoundMarkerRenderer compoundMarkers = new CompoundMarkerRenderer();
 
     private static final class ShuttleSpriteCache {
         final SpriteAPI sprite;
@@ -1324,6 +1328,10 @@ public class BattleScreen implements Screen, BattleUiContext {
             impactFx.spawnAmbientFire(burst[0], burst[1], burst[2]);
         }
         impactFx.advance(dt * speedMultiplier);
+        // Compound markers pulse on wall-clock so a paused sim still
+        // visibly throbs at contested compounds — the player keeps reading
+        // state during pauses (mirrors the charge-site marker behaviour).
+        compoundMarkers.update(dt);
         // Light pass — tick transient lights and re-assert persistent lights
         // for every emitter that lives across frames (burning wrecks, air
         // vehicle engines). All persistent ids accumulate into seenLightIds;
@@ -1426,6 +1434,11 @@ public class BattleScreen implements Screen, BattleUiContext {
                 () -> DEBUG_RENDER_DOCKING_PATHS = !DEBUG_RENDER_DOCKING_PATHS);
         debugPanel.addAction("Force reinforcement", this::forceDefenderReinforcement);
         hud.addPanel(debugPanel);
+        // Compound-progress strip (Conquest-only — auto-hides when no
+        // compounds are registered). Sibling to the world-anchored
+        // CompoundMarkerRenderer instance constructed in this screen; the
+        // panel handles the at-a-glance "captured / total" read.
+        hud.addPanel(new CompoundProgressPanel(this));
     }
 
     /**
@@ -2006,6 +2019,12 @@ public class BattleScreen implements Screen, BattleUiContext {
             // on top of one. Shuttles still draw on top of the markers when
             // landing on a LZ.
             renderObjectiveMarkers(sim, alphaMult);
+            // Compound capture-state markers — faction-coloured ring +
+            // capture-progress arc + kind glyph at each defender compound.
+            // Same layer as charge-site markers so they read as the same
+            // class of "structural objective" indicator. Auto-empty (no-op)
+            // on non-Conquest missions.
+            compoundMarkers.render(sim, sim.getCompoundService(), camera, alphaMult);
             // Ground convoys layer just under shuttles — a truck is still
             // beneath any air vehicle flying overhead.
             renderConvoyVehicles(sim.getConvoyVehicles(), alphaMult);
