@@ -55,6 +55,8 @@ public class MissionSelectScreen implements Screen {
     private Runnable dismissDialog;
     private ColumnLayout layout;
     private Client lastSelectedClient;
+    /** Identity-equality on the expanded mission ref — null = no expansion. */
+    private Mission lastSelectedMission;
 
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
@@ -84,6 +86,7 @@ public class MissionSelectScreen implements Screen {
                 layout.console.x, layout.console.headerTextY, HEADER_COLOR));
 
         lastSelectedClient = ctx.getSelectedClient();
+        lastSelectedMission = ctx.getSelectedMission();
     }
 
     @Override
@@ -91,12 +94,20 @@ public class MissionSelectScreen implements Screen {
         widgets.advance(dt);
         for (OpsPanel p : panels) p.onAdvance(dt);
 
-        // Re-layout when the player picks a different client so the console's
-        // dossier stack + map markers refresh. ClientRowWidgets lose their
-        // hover state for one frame on rebuild — acceptable for now.
+        // Re-layout when the player picks a different client OR expands /
+        // collapses a dossier so the console's stack reshapes accordingly.
+        // Mission ref-equality (not id) is used so salvage-adjust (which
+        // produces a new Mission instance with the same id) also triggers
+        // a rebuild — the expanded card's render reads from the Mission
+        // captured at layout time, so a re-layout is the only way the new
+        // negotiated values flow through. Per-mission UI state in the
+        // panel is keyed on id so toggling transports etc. survives that
+        // rebuild.
         Client current = ctx.getSelectedClient();
-        if (current != lastSelectedClient) {
+        Mission currentMission = ctx.getSelectedMission();
+        if (current != lastSelectedClient || currentMission != lastSelectedMission) {
             lastSelectedClient = current;
+            lastSelectedMission = currentMission;
             rebuild();
         }
     }
