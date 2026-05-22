@@ -47,6 +47,25 @@ public class CompoundSupplyGatingTest {
         return new BattleSimulation(grid, new CellTopology(W, H));
     }
 
+    /**
+     * 10x10 grid split by a wall at column 5 with a doorway at (5, 5). The
+     * two halves are distinct zones; used by the multi-compound test so a
+     * single marine in one half doesn't propagate "captured" presence to a
+     * compound in the other half (which it does on the open-zone helper).
+     */
+    private static BattleSimulation splitSim() {
+        NavigationGrid grid = new NavigationGrid(W, H);
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) {
+                if (x == 5) continue;
+                grid.setWalkableFloor(x, y);
+            }
+        }
+        grid.setWalkableFloor(5, 5);
+        grid.setDoorway(5, 5, true);
+        return new BattleSimulation(grid, new CellTopology(W, H));
+    }
+
     private static TacticalNode compoundAt(TacticalNode.Kind kind, int x, int y) {
         return new TacticalNode(kind, x, y,
                 x - 1, y - 1, x + 1, y + 1,
@@ -133,10 +152,13 @@ public class CompoundSupplyGatingTest {
     @Test
     public void walkInStaysFulfillableWhileAnyBarracksAlive() {
         // hasAliveCompound is an OR across records of the kind. Two
-        // BARRACKS, capture one, walk-in should still fulfil — the
-        // remaining BARRACKS sustains supply. The slice-3 gate is only
-        // load-bearing once the LAST compound of a kind flips.
-        BattleSimulation sim = openSim();
+        // BARRACKS in distinct zones, capture only the left one, walk-in
+        // should still fulfil — the right BARRACKS sustains supply.
+        // Split-zone sim (wall at col 5) so the captured marine in the
+        // left half doesn't propagate "marines-present" to the right
+        // compound's zone; the open-zone helper has one zone covering
+        // every cell and would flip both.
+        BattleSimulation sim = splitSim();
         WalkInMeans means = new WalkInMeans(TraversalAxis.SOUTH_TO_NORTH);
         CompoundService service = sim.getCompoundService();
         CompoundCaptureSystem system = new CompoundCaptureSystem();
@@ -149,7 +171,7 @@ public class CompoundSupplyGatingTest {
         assertTrue(means.canFulfill(sim, req),
                 "two defender-held BARRACKS → walk-in fulfils");
 
-        // Capture only b1.
+        // Capture only b1 (left half).
         captureCompound(sim, service, system, 3, 5);
         assertEquals(CompoundService.CompoundState.MARINE_HELD,
                 service.getRecord(b1).state);

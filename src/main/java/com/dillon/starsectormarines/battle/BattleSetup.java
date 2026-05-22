@@ -29,6 +29,7 @@ import com.dillon.starsectormarines.battle.mapgen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.mapgen.bsp.DefensePostStamper;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.objective.ChargeSiteObjective;
+import com.dillon.starsectormarines.battle.objective.ConquestObjective;
 import com.dillon.starsectormarines.battle.objective.EliminateFactionObjective;
 import com.dillon.starsectormarines.battle.tactical.TacticalMap;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
@@ -484,7 +485,16 @@ public final class BattleSetup {
         // unmanned via {@code DefensePostStamper.stampNonConquest}.
         spawnDefensePostTurrets(sim, map.defensePosts);
 
-        sim.addObjective(new EliminateFactionObjective(Faction.MARINE,   Faction.DEFENDER));
+        // Conquest win condition: marines dismantle defender supply
+        // structures, not "kill every defender." Pre-slice-4 this was
+        // EliminateFactionObjective on both sides, which never resolved
+        // because reinforcement kept spawning fresh militia after every
+        // hardpoint fell. ConquestObjective reads CompoundService and
+        // latches when every defender compound is MARINE_HELD. Defender
+        // side keeps the elimination shape so "every marine died" still
+        // terminates the battle. See roadmap/conquest/central-keep.md
+        // slice 4.
+        sim.addObjective(new ConquestObjective(sim.getCompoundService()));
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
 
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
