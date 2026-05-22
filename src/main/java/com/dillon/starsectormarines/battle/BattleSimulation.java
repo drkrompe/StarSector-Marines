@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle;
 import com.dillon.starsectormarines.battle.air.AirSimContext;
 import com.dillon.starsectormarines.battle.air.AirSystem;
 import com.dillon.starsectormarines.battle.command.CommanderService;
+import com.dillon.starsectormarines.battle.fx.EffectsService;
 import com.dillon.starsectormarines.battle.ground.GroundSystem;
 import com.dillon.starsectormarines.battle.ground.Vehicle;
 import com.dillon.starsectormarines.battle.air.Shuttle;
@@ -29,15 +30,19 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.objective.EliminateFactionObjective;
 import com.dillon.starsectormarines.battle.objective.Objective;
+import com.dillon.starsectormarines.battle.objective.ObjectivesService;
 import com.dillon.starsectormarines.battle.profile.LosCache;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
+import com.dillon.starsectormarines.battle.reinforcement.ReinforcementService;
+import com.dillon.starsectormarines.battle.shots.ShotService;
 import com.dillon.starsectormarines.battle.tactical.TacticalContextService;
 import com.dillon.starsectormarines.battle.tactical.TacticalMap;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.vision.VisionService;
 import com.dillon.starsectormarines.battle.weapons.Detonations;
 import com.dillon.starsectormarines.battle.weapons.HeavyWeapons;
 import com.dillon.starsectormarines.battle.weapons.InfantryWeapons;
@@ -163,7 +168,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final AirSystem airSystem = new AirSystem();
     private final GroundSystem groundSystem = new GroundSystem();
     /** Fog-of-war state — building registry + faction contributor set + the every-3rd-tick {@link com.dillon.starsectormarines.battle.vision.BuildingVisibilityPass} driver. The {@link #getBuildings}/{@link #setBuildings}/{@link #getVisionState} delegates below forward here. */
-    private final com.dillon.starsectormarines.battle.vision.VisionService vision = new com.dillon.starsectormarines.battle.vision.VisionService();
+    private final VisionService vision = new VisionService();
     /** Handheld squad weapons (rifle / SMG / DMR / rocket launcher). Owns fireShot, fireSecondary, and the per-tick burst continuation pass. Pumped each tick via {@code infantry.tick(this)}; behavior call sites still go through the delegating {@link #fireShot} / {@link #fireSecondary} wrappers on this class. */
     private final InfantryWeapons infantry = new InfantryWeapons();
     /** Chassis-mounted weapons on motorized / heavy units (mech today, future tanks/hovercraft). Owns fireMechWeapon and the per-tick mech continuation + wreck-spawn passes. */
@@ -171,8 +176,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Physics-based AoE pipeline — owns the in-flight rocket queue and drains expired entries into splash + wall damage. Both infantry rockets and mech HE rockets queue here through {@link #queueDetonation}. */
     private final Detonations detonations = new Detonations();
     /** Mission objective list + per-tick dispatch + the default eliminate-each-other backstop. The {@link #addObjective}/{@link #getObjectives} delegates below forward here; the OBJECTIVES phase + first-tick backstop install go through it. */
-    private final com.dillon.starsectormarines.battle.objective.ObjectivesService objectivesService =
-            new com.dillon.starsectormarines.battle.objective.ObjectivesService();
+    private final ObjectivesService objectivesService = new ObjectivesService();
     /** Active equipment drops + per-tick pickup/retriever sweep + emit-on-death plumbing. Initialized in the constructor once {@link #rosterService} is available. */
     private final EquipmentDropService equipmentDropService;
     /** Persistent {@link Doodad} list + per-cell/per-facing cover lookup the AI consults when scoring firing positions. Initialized in the constructor once {@link #grid} is available. */
@@ -185,7 +189,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      * accessors below delegate here. Initialized in the constructor once
      * {@link #rng} is available.
      */
-    private final com.dillon.starsectormarines.battle.fx.EffectsService effects;
+    private final EffectsService effects;
     /** Alias of {@link UnitRosterService#getSquadsMap()}. Same {@link Int2ObjectMap} instance — kept as a field so the sim's per-tick {@code squads.get} / {@code squads.values()} iteration doesn't pay a per-call accessor hop and the existing un-synchronized direct reads in serial tick phases preserve their no-lock cost. */
     private final Int2ObjectMap<Squad> squads;
 
@@ -193,8 +197,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final CommanderService commanders = new CommanderService();
 
     /** Reinforcement orchestration — trigger registry + means provider list + request queue. Mission setup registers triggers/means; the slow-tick polls them. Full design: {@code roadmap/reinforcement/architecture.md}. */
-    private final com.dillon.starsectormarines.battle.reinforcement.ReinforcementService reinforcement =
-            new com.dillon.starsectormarines.battle.reinforcement.ReinforcementService();
+    private final ReinforcementService reinforcement =
+            new ReinforcementService();
 
     /**
      * Per-target attacker index: for each unit currently targeted by at least
@@ -234,7 +238,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      */
     private final Long2ObjectOpenHashMap<int[][]> vantagePointsByTargetCell = new Long2ObjectOpenHashMap<>();
     /** In-flight tracers + projectiles + per-frame event drains. Sibling slice to {@link #effects} / {@link #vision}; the {@link #postShot}, {@link #queueProjectile}, {@link #getActiveShots} et al. delegates below forward here. */
-    private final com.dillon.starsectormarines.battle.shots.ShotService shots = new com.dillon.starsectormarines.battle.shots.ShotService();
+    private final ShotService shots = new ShotService();
     /** Units that transitioned from alive to dead during the last {@link #advance(float)} call. Same lifecycle as {@link #shotsThisFrame}. */
     private final List<Unit> deathsThisFrame = new ArrayList<>();
     /**
