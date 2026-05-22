@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.UnitType;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
+import com.dillon.starsectormarines.battle.unit.TestUnits;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -120,7 +121,7 @@ public class CompoundCaptureSystemTest {
                 service.getRecord(node).state);
 
         // Marine dies, defender moves in.
-        marine.hp = 0f;
+        TestUnits.kill(sim, marine);
         sim.addUnit(new Unit("d1", Faction.DEFENDER, UnitType.MILITIA, 5, 5));
 
         int holdTicks = (int) Math.ceil(

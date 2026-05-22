@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.ai.goap.Predicate;
 import com.dillon.starsectormarines.battle.ai.goap.WorldState;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.unit.TestUnits;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -124,8 +125,8 @@ public class EnemyInPortalCellEvaluatorTest {
         squad.chokePointPortalId = portalId;
 
         Unit attacker = new Unit("m1", Faction.MARINE, UnitType.MARINE, WALL_COL, 5);
-        attacker.hp = 0f;
         sim.addUnit(attacker);
+        TestUnits.kill(sim, attacker);
 
         WorldState ws = WorldStateBuilder.build(squad, sim);
         assertFalse(ws.get(Predicate.ENEMY_IN_PORTAL_CELL),

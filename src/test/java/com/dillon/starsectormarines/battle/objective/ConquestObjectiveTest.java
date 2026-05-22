@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.compound.CompoundService;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
+import com.dillon.starsectormarines.battle.unit.TestUnits;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -145,7 +146,7 @@ public class ConquestObjectiveTest {
         // capture-loop adds its own (and that one too).
         captureAll(sim, service, system, 5, 5);
         for (Unit u : sim.getUnits()) {
-            if (u.faction == Faction.MARINE) u.hp = 0f;
+            if (u.faction == Faction.MARINE) TestUnits.kill(sim, u);
         }
 
         obj.tick(sim);
@@ -179,7 +180,7 @@ public class ConquestObjectiveTest {
         // got wiped" tick.
         captureAll(sim, service, system, 5, 5);
         for (Unit u : sim.getUnits()) {
-            if (u.faction == Faction.MARINE) u.hp = 0f;
+            if (u.faction == Faction.MARINE) TestUnits.kill(sim, u);
         }
 
         marineObj.tick(sim);

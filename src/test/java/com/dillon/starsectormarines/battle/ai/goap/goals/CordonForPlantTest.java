@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.ai.goap.actions.HoldPortalCordon;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.objective.ChargeSiteObjective;
+import com.dillon.starsectormarines.battle.unit.TestUnits;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -176,8 +177,8 @@ public class CordonForPlantTest {
         planter.squadId = 1;
         planter.role = UnitRole.PLANTER;
         planter.assignedObjective = charge;
-        planter.hp = 0f;
         sim.addUnit(planter);
+        TestUnits.kill(sim, planter);
 
         assertEquals(0f, CordonForPlant.INSTANCE.relevance(WorldState.EMPTY, squad, sim),
                 "dead planter → cordon goal inactive even when squad is in the right zone");

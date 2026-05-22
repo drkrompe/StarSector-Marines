@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.squad.SquadMoraleSystem;
+import com.dillon.starsectormarines.battle.unit.TestUnits;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -164,8 +165,8 @@ public class SquadMoraleTest {
         Squad sq = marineSquad(sim, 4);
         hideDefender(sim);
         // Half the squad dead → cap = 2/4 = 0.5.
-        sim.getUnits().get(0).hp = 0f;
-        sim.getUnits().get(1).hp = 0f;
+        TestUnits.kill(sim, sim.getUnits().get(0));
+        TestUnits.kill(sim, sim.getUnits().get(1));
         sq.morale = 0.49f;
 
         // Drive enough ticks that uncapped recovery would push morale well above 0.5.
@@ -241,9 +242,9 @@ public class SquadMoraleTest {
         Squad sq = marineSquad(sim, 4);
         hideDefender(sim);
         // Three deaths → 1-of-4 alive, cap = 0.25.
-        sim.getUnits().get(0).hp = 0f;
-        sim.getUnits().get(1).hp = 0f;
-        sim.getUnits().get(2).hp = 0f;
+        TestUnits.kill(sim, sim.getUnits().get(0));
+        TestUnits.kill(sim, sim.getUnits().get(1));
+        TestUnits.kill(sim, sim.getUnits().get(2));
         sq.morale = 0f;
         sq.moraleBroken = true;
 
@@ -268,9 +269,9 @@ public class SquadMoraleTest {
         Squad sq = marineSquad(sim, 4);
         hideDefender(sim);
         // Three kills → 1-of-4 alive.
-        sim.getUnits().get(0).hp = 0f;
-        sim.getUnits().get(1).hp = 0f;
-        sim.getUnits().get(2).hp = 0f;
+        TestUnits.kill(sim, sim.getUnits().get(0));
+        TestUnits.kill(sim, sim.getUnits().get(1));
+        TestUnits.kill(sim, sim.getUnits().get(2));
         // Recover the survivor to their cap.
         sq.morale = 0.25f;
         sq.moraleBroken = false;
@@ -304,8 +305,8 @@ public class SquadMoraleTest {
         Squad sq = marineSquad(sim, 4);
         hideDefender(sim);
         // Two deaths.
-        sim.getUnits().get(0).hp = 0f;
-        sim.getUnits().get(1).hp = 0f;
+        TestUnits.kill(sim, sim.getUnits().get(0));
+        TestUnits.kill(sim, sim.getUnits().get(1));
         sq.morale = 0.20f;
         sq.moraleBroken = true;
 
@@ -403,8 +404,8 @@ public class SquadMoraleTest {
         BattleSimulation sim = openSim();
         Squad sq = marineSquad(sim, 4);
         hideDefender(sim);
-        sim.getUnits().get(0).hp = 0f;
-        sim.getUnits().get(1).hp = 0f;
+        TestUnits.kill(sim, sim.getUnits().get(0));
+        TestUnits.kill(sim, sim.getUnits().get(1));
         sq.morale = 0.10f;
         sq.moraleBroken = true;
 

@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.ai.goap.actions.ClearZone;
 import com.dillon.starsectormarines.battle.ai.goap.actions.EnterZone;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.unit.TestUnits;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -144,7 +145,10 @@ public class ZoneQueriesTest {
         squad.centroidX = 2f;
         squad.centroidY = 2f;
         Unit deadLeader = new Unit("m1", Faction.MARINE, UnitType.MARINE, 8, 3);
-        deadLeader.hp = 0f;
+        // Unit was never registered (squad.leader-only use), so the registry
+        // release is a no-op fast-path on the 0L entityId — the hp write is
+        // what the assertion depends on.
+        TestUnits.kill(sim, deadLeader);
         squad.leader = deadLeader;
         int leftZone = sim.getZoneGraph().zoneIdAt(2, 2);
         assertEquals(leftZone, ZoneQueries.squadCurrentZone(squad, sim),
@@ -197,7 +201,7 @@ public class ZoneQueriesTest {
                 "marine doesn't influence DEFENDER clarity check");
 
         // Kill the defender → zone reads clear again.
-        defender.hp = 0f;
+        TestUnits.kill(sim, defender);
         assertTrue(ZoneQueries.zoneClear(rightZone, Faction.DEFENDER, sim),
                 "dead defender should not count");
     }

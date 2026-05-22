@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.mapgen.TraversalAxis;
 import com.dillon.starsectormarines.battle.mapgen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
+import com.dillon.starsectormarines.battle.unit.TestUnits;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -201,8 +202,8 @@ public class CompoundSupplyGatingTest {
         squad.assignedNode = compound;
         squad.originalSize = 4;
         squad.aliveMembers = 1; // 25% — below the 50% threshold
-        defender.hp = 0f;       // kill the leader so MARINE_HELD reads cleanly
         sim.addUnit(defender);
+        TestUnits.kill(sim, defender); // kill the leader so MARINE_HELD reads cleanly
 
         captureCompound(sim, service, system, 5, 5);
 

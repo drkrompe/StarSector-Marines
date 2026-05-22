@@ -484,6 +484,22 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         rosterService.flushPendingSpawns();
     }
 
+    /**
+     * Delegates to {@link UnitRosterService#releaseFromRegistry(long)}. Two
+     * known production callers (the death cascade in
+     * {@link com.dillon.starsectormarines.battle.damage.DamageResolver} and
+     * the drone cascade in
+     * {@link com.dillon.starsectormarines.battle.drone.HubDemolitionSystem})
+     * release via {@code rosterService} directly; this delegate exists for
+     * test helpers that simulate kills without routing through
+     * {@code applyDamage}, so the registry contract ("released entities
+     * resolve to null") holds in test fixtures the same way it does in
+     * production.
+     */
+    public void releaseFromRegistry(long entityId) {
+        rosterService.releaseFromRegistry(entityId);
+    }
+
     public void addShuttle(Shuttle s) {
         airSystem.add(s);
     }

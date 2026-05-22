@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.unit.TestUnits;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -411,7 +412,7 @@ public class TacticalScoringTest {
         BattleSimulation sim = openArena(20, 20);
         Unit marine = unit(sim, Faction.MARINE, 5, 5);
         Unit enemy = unit(sim, Faction.DEFENDER, 10, 5);
-        enemy.hp = 0f;
+        TestUnits.kill(sim, enemy);
         assertTrue(!TacticalScoring.shouldKeepPursuing(marine, enemy, sim));
     }
 
