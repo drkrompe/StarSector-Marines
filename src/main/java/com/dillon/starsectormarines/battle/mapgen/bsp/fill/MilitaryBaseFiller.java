@@ -83,6 +83,7 @@ public final class MilitaryBaseFiller implements CompoundFiller {
                      NavigationGrid grid,
                      CellTopology topology,
                      boolean[][] roadCells,
+                     boolean[][] roadReservation,
                      List<PointOfInterest> pois,
                      List<Doodad> doodads,
                      List<TacticalNode> tactical,
@@ -97,13 +98,13 @@ public final class MilitaryBaseFiller implements CompoundFiller {
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) inCompound[x][y] = memberCells[x][y];
         }
-        markBridgedRoads(compound, roadCells, memberCells, inCompound);
+        markBridgedRoads(compound, roadCells, roadReservation, memberCells, inCompound);
         absorbConcaveNotches(compound, inCompound);
 
         repaintParadeGround(compound, inCompound, memberCells, grid, topology);
         Map<BlockLeaf, PointOfInterest> leafPois = carveSubBuildings(
                 compound, inCompound, grid, topology, doodads, pois, rng);
-        paintWallRing(inCompound, grid, topology);
+        paintWallRing(inCompound, roadReservation, grid, topology);
         punchGates(compound, inCompound, roadCells, grid, topology, rng);
         stampGunEmplacements(compound, inCompound, grid, topology, pois);
         emitTacticalNodes(compound, leafPois, tactical);
@@ -181,7 +182,7 @@ public final class MilitaryBaseFiller implements CompoundFiller {
      * makes a 3-cell road frame between two stacked member leaves register
      * as a single connected interior parade ground.
      */
-    private void markBridgedRoads(Compound compound, boolean[][] roadCells,
+    private void markBridgedRoads(Compound compound, boolean[][] roadCells, boolean[][] roadReservation,
                                   boolean[][] memberCells, boolean[][] inCompound) {
         int w = inCompound.length;
         int h = inCompound[0].length;
@@ -193,6 +194,9 @@ public final class MilitaryBaseFiller implements CompoundFiller {
             for (int x = lo; x <= hi; x++) {
                 if (inCompound[x][y]) continue;
                 if (!roadCells[x][y]) continue;
+                // Road-graph centerline stays drivable — leave it outside the
+                // compound so the convoy keeps its path between members.
+                if (roadReservation[x][y]) continue;
                 boolean north = scanForMember(memberCells, x, y, 0, -1, w, h);
                 boolean south = scanForMember(memberCells, x, y, 0,  1, w, h);
                 boolean east  = scanForMember(memberCells, x, y, 1,  0, w, h);
@@ -279,7 +283,8 @@ public final class MilitaryBaseFiller implements CompoundFiller {
      * frame on each side, leaving the rest of the BSP road frame walkable
      * for the surrounding street network.
      */
-    private void paintWallRing(boolean[][] inCompound, NavigationGrid grid, CellTopology topology) {
+    private void paintWallRing(boolean[][] inCompound, boolean[][] roadReservation,
+                               NavigationGrid grid, CellTopology topology) {
         int w = inCompound.length;
         int h = inCompound[0].length;
         for (int y = 0; y < h; y++) {
@@ -291,6 +296,10 @@ public final class MilitaryBaseFiller implements CompoundFiller {
                 // road network when the compound abuts the map edge.
                 if (x == 0 || x == w - 1 || y == 0 || y == h - 1) continue;
                 if (!touchesCompound(inCompound, x, y, w, h)) continue;
+                // Road centerline cuts an implicit gate through the perimeter
+                // wall — same idea as map perimeter above, applied to interior
+                // road cells the convoy depends on.
+                if (roadReservation[x][y]) continue;
                 grid.setWalkable(x, y, false);
                 grid.setWallHp(x, y, WALL_HP_FORTIFIED);
                 topology.setGroundKind(x, y, WALL_GROUND);

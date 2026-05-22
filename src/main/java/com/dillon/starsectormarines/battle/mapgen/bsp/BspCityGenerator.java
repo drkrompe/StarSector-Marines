@@ -31,6 +31,7 @@ import com.dillon.starsectormarines.battle.mapgen.bsp.fill.WastelandRubbleFiller
 import com.dillon.starsectormarines.battle.mapgen.bsp.fill.WaterfrontFiller;
 import com.dillon.starsectormarines.battle.mapgen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.mapgen.road.RoadGraphBuilder;
+import com.dillon.starsectormarines.battle.mapgen.road.RoadReservation;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.tactical.TacticalLinker;
 import com.dillon.starsectormarines.battle.tactical.TacticalMap;
@@ -233,7 +234,16 @@ public final class BspCityGenerator implements MapGenerator {
         // through the rest of the pipeline. Stored as a field so the preview
         // overlay can render it; passed through to MapResult for runtime
         // ground-vehicle pathing.
+        //
+        // {@code roadReservation} is the cell mask of every graph node + edge
+        // cell. Passed to every stamper that runs AFTER the graph so they
+        // don't clobber a centerline — defense posts, fortress wall, beach
+        // shoreline, compound walls/bridges. Without this, a turret pad or
+        // perimeter wall lands on a road cell, the convoy graph is intact in
+        // memory but the cell underneath is non-walkable, and the truck
+        // visually drives "through" the stamped structure.
         this.lastRoadGraph = RoadGraphBuilder.build(plan.roadCells, plan);
+        boolean[][] roadReservation = RoadReservation.mask(this.lastRoadGraph, width, height);
 
         // Step 3 — dispatch fillers. Each per-leaf filler owns its leaf's
         // cells (NOT the road frame around it); compound fillers own the
@@ -248,7 +258,8 @@ public final class BspCityGenerator implements MapGenerator {
             if (compound != null) {
                 CompoundFiller cFiller = compoundFillers.get(compound.kind);
                 if (cFiller != null) {
-                    cFiller.fill(compound, grid, topology, plan.roadCells, pois, doodads, tactical, rng);
+                    cFiller.fill(compound, grid, topology, plan.roadCells, roadReservation,
+                            pois, doodads, tactical, rng);
                 }
                 continue;
             }
@@ -280,7 +291,7 @@ public final class BspCityGenerator implements MapGenerator {
         // cells — doodads, walls, building hints, nature overlays — so
         // nothing else "lives" in the reserved water strip.
         if (biomeMap != null) {
-            applyBeachShoreline(grid, topology, axis, biomeMap, doodads, rng);
+            applyBeachShoreline(grid, topology, axis, biomeMap, roadReservation, doodads, rng);
         }
 
         // Step 3c — fortress super-wall. Stamps the Kremlin-style perimeter
@@ -290,7 +301,8 @@ public final class BspCityGenerator implements MapGenerator {
         // attacker-facing edge, and 2-4 forward bunkers in the kill zone.
         // Runs after fill so the wall overrides whatever BSP put under it.
         if (biomeMap != null) {
-            FortressWallStamper.stamp(grid, topology, axis, biomeMap, doodads, tactical, rng);
+            FortressWallStamper.stamp(grid, topology, axis, biomeMap, roadReservation,
+                    doodads, tactical, rng);
         }
 
         // Step 3c' — defense posts. Manned turret emplacements scattered through
@@ -300,7 +312,7 @@ public final class BspCityGenerator implements MapGenerator {
         // — the stamper's footprint validation auto-rejects non-walkable cells
         // produced by the wall and forward bunkers.
         if (biomeMap != null) {
-            DefensePostStamper.stamp(grid, topology, axis, biomeMap,
+            DefensePostStamper.stamp(grid, topology, axis, biomeMap, roadReservation,
                     doodads, tactical, defensePosts, rng);
         }
 
@@ -333,9 +345,35 @@ public final class BspCityGenerator implements MapGenerator {
             defender = pickSpawnAnchor(grid, width / 2, 1, width - 1, height - 1, rng);
         }
 
+        // Diagnostic — any centerline cell that ended up non-walkable means a
+        // stamper trampled the road graph despite the reservation. Log once
+        // per generation so a regression surfaces in starsector.log without
+        // needing the dedicated dumper machinery.
+        verifyRoadGraphWalkable(grid, this.lastRoadGraph);
+
         return new MapResult(grid, topology,
                 marine[0], marine[1], defender[0], defender[1],
                 pois, doodads, this.lastTacticalMap, buildings, defensePosts, this.lastRoadGraph);
+    }
+
+    private static void verifyRoadGraphWalkable(NavigationGrid grid, RoadGraph graph) {
+        if (graph == null || graph.edges().isEmpty()) return;
+        int blocked = 0;
+        int firstX = -1, firstY = -1;
+        for (RoadGraph.Edge e : graph.edges()) {
+            for (int i = 0; i < e.cellsX.length; i++) {
+                int x = e.cellsX[i];
+                int y = e.cellsY[i];
+                if (!grid.inBounds(x, y)) continue;
+                if (grid.isWalkable(x, y)) continue;
+                if (blocked == 0) { firstX = x; firstY = y; }
+                blocked++;
+            }
+        }
+        if (blocked > 0) {
+            LOG.warn("BspCityGenerator: " + blocked + " road-graph cell(s) ended up non-walkable"
+                    + " (first at " + firstX + "," + firstY + ") — a stamper bypassed the reservation");
+        }
     }
 
     /** Minimum dimension a LANDING_ZONE leaf must have on both axes to keep that kind — smaller leaves get demoted to PLAZA, since tiny LZ pads tucked between big buildings read as "courtyard interior" rather than open touchdown apron. */
@@ -653,6 +691,7 @@ public final class BspCityGenerator implements MapGenerator {
      */
     private void applyBeachShoreline(NavigationGrid grid, CellTopology topology,
                                      TraversalAxis axis, BiomeMap biomeMap,
+                                     boolean[][] roadReservation,
                                      List<Doodad> doodads, Random rng) {
         int w = grid.getWidth();
         int h = grid.getHeight();
@@ -672,6 +711,10 @@ public final class BspCityGenerator implements MapGenerator {
                 int y = horizontalAxis ? j : i;
                 if (x < 0 || x >= w || y < 0 || y >= h) continue;
                 if (biomeMap.biomeAt(x, y) != BiomeKind.BEACH) continue;
+                // Trunk centerline meets the shore — the road runs onto a
+                // jetty or pier here; drowning the cell would orphan the
+                // convoy's perimeter exit. Leave it dry.
+                if (roadReservation[x][y]) continue;
                 stampShorelineCell(grid, topology, x, y);
             }
         }

@@ -54,6 +54,7 @@ public final class DenseQuarterFiller implements CompoundFiller {
                      NavigationGrid grid,
                      CellTopology topology,
                      boolean[][] roadCells,
+                     boolean[][] roadReservation,
                      List<PointOfInterest> pois,
                      List<Doodad> doodads,
                      List<TacticalNode> tactical,

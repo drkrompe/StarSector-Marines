@@ -110,6 +110,7 @@ public final class DefensePostStamper {
      */
     public static void stamp(NavigationGrid grid, CellTopology topology,
                              TraversalAxis axis, BiomeMap biomeMap,
+                             boolean[][] roadReservation,
                              List<Doodad> doodads, List<TacticalNode> tactical,
                              List<DefensePost> defensePosts, Random rng) {
         if (biomeMap == null) return;
@@ -122,20 +123,20 @@ public final class DefensePostStamper {
         int artilleryCount = FORTRESS_ARTILLERY_MIN + rng.nextInt(FORTRESS_ARTILLERY_MAX - FORTRESS_ARTILLERY_MIN + 1);
         int cityDroneHubCount = CITY_DRONE_HUB_MIN  + rng.nextInt(CITY_DRONE_HUB_MAX  - CITY_DRONE_HUB_MIN  + 1);
 
-        placePosts(grid, topology, biomeMap, axis, doodads, tactical, defensePosts, rng,
+        placePosts(grid, topology, biomeMap, axis, roadReservation, doodads, tactical, defensePosts, rng,
                 BiomeKind.BEACH,             DefensePostKind.LIGHT,     beachCount,     w, h);
-        placePosts(grid, topology, biomeMap, axis, doodads, tactical, defensePosts, rng,
+        placePosts(grid, topology, biomeMap, axis, roadReservation, doodads, tactical, defensePosts, rng,
                 BiomeKind.PORT,              DefensePostKind.MEDIUM,    portCount,      w, h);
-        placePosts(grid, topology, biomeMap, axis, doodads, tactical, defensePosts, rng,
+        placePosts(grid, topology, biomeMap, axis, roadReservation, doodads, tactical, defensePosts, rng,
                 BiomeKind.FORTRESS_DISTRICT, DefensePostKind.LARGE,     fortressCount,  w, h);
         // Artillery shares the FORTRESS_DISTRICT biome but lives in a deeper
         // band — placePosts() reads the tier to pick the rear clamp.
-        placePosts(grid, topology, biomeMap, axis, doodads, tactical, defensePosts, rng,
+        placePosts(grid, topology, biomeMap, axis, roadReservation, doodads, tactical, defensePosts, rng,
                 BiomeKind.FORTRESS_DISTRICT, DefensePostKind.ARTILLERY, artilleryCount, w, h);
         // Drone hubs in the civilian core — reads as the city's air-defense
         // network. CITY has no special depth clamp (unlike FORTRESS) so the
         // bbox of every CITY cell is the placement rect.
-        placePosts(grid, topology, biomeMap, axis, doodads, tactical, defensePosts, rng,
+        placePosts(grid, topology, biomeMap, axis, roadReservation, doodads, tactical, defensePosts, rng,
                 BiomeKind.CITY,              DefensePostKind.DRONE_HUB, cityDroneHubCount, w, h);
     }
 
@@ -161,6 +162,7 @@ public final class DefensePostStamper {
      * against a 12-unit Sabotage roster.
      */
     public static void stampNonConquest(NavigationGrid grid, CellTopology topology,
+                                        boolean[][] roadReservation,
                                         List<PointOfInterest> pointsOfInterest,
                                         List<Doodad> doodads, List<DefensePost> defensePosts,
                                         Random rng) {
@@ -188,22 +190,22 @@ public final class DefensePostStamper {
         List<int[]> mediumSeeds = poiSeeds(pointsOfInterest, rectLeft, /*highValueOnly=*/true,  rng);
         List<int[]> lightSeeds  = poiSeeds(pointsOfInterest, rectLeft, /*highValueOnly=*/false, rng);
 
-        placePostsInRect(grid, topology, /*biomeMap*/ null, /*biome*/ null,
+        placePostsInRect(grid, topology, /*biomeMap*/ null, /*biome*/ null, roadReservation,
                 doodads, /*tactical*/ null, defensePosts, rng,
                 DefensePostKind.LARGE, largeCount, largeSeeds,
                 rectLeft, rectTop, rectRight, rectBot);
-        placePostsInRect(grid, topology, null, null,
+        placePostsInRect(grid, topology, null, null, roadReservation,
                 doodads, null, defensePosts, rng,
                 DefensePostKind.MEDIUM, mediumCount, mediumSeeds,
                 rectLeft, rectTop, rectRight, rectBot);
-        placePostsInRect(grid, topology, null, null,
+        placePostsInRect(grid, topology, null, null, roadReservation,
                 doodads, null, defensePosts, rng,
                 DefensePostKind.LIGHT, lightCount, lightSeeds,
                 rectLeft, rectTop, rectRight, rectBot);
         // Drone hub — reuses the high-value-POI seed pool so the hub clusters
         // around the things worth defending from the air rather than landing
         // in an empty street tile.
-        placePostsInRect(grid, topology, null, null,
+        placePostsInRect(grid, topology, null, null, roadReservation,
                 doodads, null, defensePosts, rng,
                 DefensePostKind.DRONE_HUB, droneHubCount, mediumSeeds,
                 rectLeft, rectTop, rectRight, rectBot);
@@ -243,7 +245,8 @@ public final class DefensePostStamper {
      * placement loop to {@link #placePostsInRect}.
      */
     private static void placePosts(NavigationGrid grid, CellTopology topology, BiomeMap biomeMap,
-                                   TraversalAxis axis, List<Doodad> doodads, List<TacticalNode> tactical,
+                                   TraversalAxis axis, boolean[][] roadReservation,
+                                   List<Doodad> doodads, List<TacticalNode> tactical,
                                    List<DefensePost> defensePosts, Random rng,
                                    BiomeKind biome, DefensePostKind tier, int count,
                                    int w, int h) {
@@ -268,7 +271,7 @@ public final class DefensePostStamper {
                 bRight = bandRight;
             }
         }
-        placePostsInRect(grid, topology, biomeMap, biome,
+        placePostsInRect(grid, topology, biomeMap, biome, roadReservation,
                 doodads, tactical, defensePosts, rng,
                 tier, count, /*seeds*/ null,
                 bLeft, bTop, bRight, bBot);
@@ -295,6 +298,7 @@ public final class DefensePostStamper {
      */
     private static void placePostsInRect(NavigationGrid grid, CellTopology topology,
                                          BiomeMap biomeMap, BiomeKind biome,
+                                         boolean[][] roadReservation,
                                          List<Doodad> doodads, List<TacticalNode> tactical,
                                          List<DefensePost> defensePosts, Random rng,
                                          DefensePostKind tier, int count, List<int[]> seeds,
@@ -331,8 +335,8 @@ public final class DefensePostStamper {
                 cy = bTop  + rng.nextInt(bBot  - bTop  + 1);
             }
             if (biomeMap != null && biomeMap.biomeAt(cx, cy) != biome) continue;
-            if (!hasValidFootprint(grid, topology, cx, cy, halfX, halfY)) {
-                int[] slid = slideToValid(grid, topology, biomeMap, biome, cx, cy, halfX, halfY);
+            if (!hasValidFootprint(grid, topology, roadReservation, cx, cy, halfX, halfY)) {
+                int[] slid = slideToValid(grid, topology, biomeMap, biome, roadReservation, cx, cy, halfX, halfY);
                 if (slid == null) continue;
                 cx = slid[0];
                 cy = slid[1];
@@ -399,6 +403,7 @@ public final class DefensePostStamper {
      * DOORWAY.
      */
     private static boolean hasValidFootprint(NavigationGrid grid, CellTopology topology,
+                                             boolean[][] roadReservation,
                                              int cx, int cy, int halfX, int halfY) {
         for (int dy = -halfY; dy <= halfY; dy++) {
             for (int dx = -halfX; dx <= halfX; dx++) {
@@ -410,6 +415,9 @@ public final class DefensePostStamper {
                 if (topology.isWall(x, y)) return false;
                 if (topology.isVehicle(x, y)) return false;
                 if (!isStampableGround(topology.getGroundKind(x, y))) return false;
+                // Reserved road-graph cells stay drivable — a post landing on
+                // a centerline cuts the convoy route the graph was built for.
+                if (roadReservation != null && roadReservation[x][y]) return false;
             }
         }
         return true;
@@ -440,6 +448,7 @@ public final class DefensePostStamper {
      */
     private static int[] slideToValid(NavigationGrid grid, CellTopology topology,
                                       BiomeMap biomeMap, BiomeKind biome,
+                                      boolean[][] roadReservation,
                                       int cx, int cy, int halfX, int halfY) {
         for (int r = 1; r <= ANCHOR_SLIDE_RADIUS; r++) {
             for (int dy = -r; dy <= r; dy++) {
@@ -449,7 +458,7 @@ public final class DefensePostStamper {
                     int ny = cy + dy;
                     if (!grid.inBounds(nx, ny)) continue;
                     if (biomeMap != null && biomeMap.biomeAt(nx, ny) != biome) continue;
-                    if (hasValidFootprint(grid, topology, nx, ny, halfX, halfY)) return new int[]{nx, ny};
+                    if (hasValidFootprint(grid, topology, roadReservation, nx, ny, halfX, halfY)) return new int[]{nx, ny};
                 }
             }
         }

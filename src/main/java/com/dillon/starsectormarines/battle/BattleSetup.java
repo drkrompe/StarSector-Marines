@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.ground.ConvoyPlanner;
 import com.dillon.starsectormarines.battle.ground.Vehicle;
 import com.dillon.starsectormarines.battle.ground.VehicleType;
 import com.dillon.starsectormarines.battle.mapgen.road.RoadGraph;
+import com.dillon.starsectormarines.battle.mapgen.road.RoadReservation;
 import com.dillon.starsectormarines.battle.ui.debug.ConvoySpawnDumper;
 import org.apache.log4j.Logger;
 import com.dillon.starsectormarines.battle.map.CellTopology;
@@ -165,6 +166,7 @@ public final class BattleSetup {
         // sim builds on construction needs to reflect that.
         List<DefensePost> defensePosts = new ArrayList<>();
         DefensePostStamper.stampNonConquest(map.grid, map.topology,
+                RoadReservation.mask(map.roadGraph, map.grid.getWidth(), map.grid.getHeight()),
                 map.pointsOfInterest, map.doodads, defensePosts, rng);
         BattleSimulation sim = new BattleSimulation(map.grid, map.topology);
         sim.setTacticalMap(map.tacticalMap);
@@ -382,6 +384,7 @@ public final class BattleSetup {
         List<MapVehicle> vehiclePlacements = stampVehicles(map.grid, map.topology, rng);
         List<DefensePost> defensePosts = new ArrayList<>();
         DefensePostStamper.stampNonConquest(map.grid, map.topology,
+                RoadReservation.mask(map.roadGraph, map.grid.getWidth(), map.grid.getHeight()),
                 map.pointsOfInterest, map.doodads, defensePosts, rng);
         BattleSimulation sim = new BattleSimulation(map.grid, map.topology);
         sim.setTacticalMap(map.tacticalMap);

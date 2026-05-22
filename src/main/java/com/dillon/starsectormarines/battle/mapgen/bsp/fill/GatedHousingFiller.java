@@ -54,6 +54,7 @@ public final class GatedHousingFiller implements CompoundFiller {
                      NavigationGrid grid,
                      CellTopology topology,
                      boolean[][] roadCells,
+                     boolean[][] roadReservation,
                      List<PointOfInterest> pois,
                      List<Doodad> doodads,
                      List<TacticalNode> tactical,
@@ -71,16 +72,16 @@ public final class GatedHousingFiller implements CompoundFiller {
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) inCompound[x][y] = memberCells[x][y];
         }
-        markBridgedRoads(compound, roadCells, memberCells, inCompound);
+        markBridgedRoads(compound, roadCells, roadReservation, memberCells, inCompound);
         absorbConcaveNotches(compound, inCompound);
 
         repaintYard(compound, inCompound, memberCells, grid, topology);
         carveSubBuildings(compound, grid, topology, doodads, pois, rng);
-        paintWallRing(inCompound, grid, topology);
+        paintWallRing(inCompound, roadReservation, grid, topology);
         punchSingleGate(compound, inCompound, roadCells, grid, topology, rng);
     }
 
-    private void markBridgedRoads(Compound compound, boolean[][] roadCells,
+    private void markBridgedRoads(Compound compound, boolean[][] roadCells, boolean[][] roadReservation,
                                   boolean[][] memberCells, boolean[][] inCompound) {
         int w = inCompound.length;
         int h = inCompound[0].length;
@@ -92,6 +93,7 @@ public final class GatedHousingFiller implements CompoundFiller {
             for (int x = lo; x <= hi; x++) {
                 if (inCompound[x][y]) continue;
                 if (!roadCells[x][y]) continue;
+                if (roadReservation[x][y]) continue;
                 boolean north = scanForMember(memberCells, x, y, 0, -1, w, h);
                 boolean south = scanForMember(memberCells, x, y, 0,  1, w, h);
                 boolean east  = scanForMember(memberCells, x, y, 1,  0, w, h);
@@ -214,7 +216,8 @@ public final class GatedHousingFiller implements CompoundFiller {
         }
     }
 
-    private void paintWallRing(boolean[][] inCompound, NavigationGrid grid, CellTopology topology) {
+    private void paintWallRing(boolean[][] inCompound, boolean[][] roadReservation,
+                               NavigationGrid grid, CellTopology topology) {
         int w = inCompound.length;
         int h = inCompound[0].length;
         for (int y = 0; y < h; y++) {
@@ -222,6 +225,8 @@ public final class GatedHousingFiller implements CompoundFiller {
                 if (inCompound[x][y]) continue;
                 if (x == 0 || x == w - 1 || y == 0 || y == h - 1) continue;
                 if (!touchesCompound(inCompound, x, y, w, h)) continue;
+                // Implicit gate where the road graph crosses the perimeter.
+                if (roadReservation[x][y]) continue;
                 grid.setWalkable(x, y, false);
                 grid.setWallHp(x, y, WALL_HP);
                 topology.setGroundKind(x, y, WALL_GROUND);

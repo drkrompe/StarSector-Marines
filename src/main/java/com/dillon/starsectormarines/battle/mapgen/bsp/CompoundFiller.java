@@ -32,6 +32,15 @@ public interface CompoundFiller {
      * mask so they can compute which inter-leaf cells are bridged inside
      * the compound vs which surrounding cells stay road.
      *
+     * <p>{@code roadReservation} is the cell mask produced by
+     * {@link com.dillon.starsectormarines.battle.mapgen.road.RoadReservation}
+     * — every {@link com.dillon.starsectormarines.battle.mapgen.road.RoadGraph}
+     * node / edge cell. Compound fillers MUST skip absorbing reserved cells
+     * (so a centerline running between members stays drivable) and MUST
+     * skip painting walls on reserved cells (so the public road keeps its
+     * implicit gate through the compound's perimeter). Always non-null;
+     * generators without a road graph pass an all-false mask.
+     *
      * <p>Fillers may emit {@link TacticalNode}s into {@code tactical} for any
      * leaves that map to a tactical role (barracks, armory, command post).
      * Compound fillers that don't produce tactical-relevant features can
@@ -41,6 +50,7 @@ public interface CompoundFiller {
               NavigationGrid grid,
               CellTopology topology,
               boolean[][] roadCells,
+              boolean[][] roadReservation,
               List<PointOfInterest> pois,
               List<Doodad> doodads,
               List<TacticalNode> tactical,

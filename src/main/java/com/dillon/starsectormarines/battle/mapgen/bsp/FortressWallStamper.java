@@ -103,6 +103,7 @@ public final class FortressWallStamper {
      */
     public static void stamp(NavigationGrid grid, CellTopology topology,
                              TraversalAxis axis, BiomeMap biomeMap,
+                             boolean[][] roadReservation,
                              List<Doodad> doodads, List<TacticalNode> tactical, Random rng) {
         int w = grid.getWidth();
         int h = grid.getHeight();
@@ -110,9 +111,9 @@ public final class FortressWallStamper {
         if (bbox == null) return;
         boolean[][] wallMask = new boolean[w][h];
         if (axis == TraversalAxis.SOUTH_TO_NORTH) {
-            stampSouthToNorth(grid, topology, bbox, wallMask, tactical, w, h, rng);
+            stampSouthToNorth(grid, topology, bbox, wallMask, roadReservation, tactical, w, h, rng);
         } else {
-            stampWestToEast(grid, topology, bbox, wallMask, tactical, w, h, rng);
+            stampWestToEast(grid, topology, bbox, wallMask, roadReservation, tactical, w, h, rng);
         }
         demolishIntersectedBuildings(grid, topology, doodads, wallMask, w, h);
         sealOrphanedPockets(grid, w, h);
@@ -141,6 +142,7 @@ public final class FortressWallStamper {
      */
     private static void stampSouthToNorth(NavigationGrid grid, CellTopology topology,
                                           int[] bbox, boolean[][] wallMask,
+                                          boolean[][] roadReservation,
                                           List<TacticalNode> tactical,
                                           int w, int h, Random rng) {
         int fLeft   = bbox[0];
@@ -159,11 +161,11 @@ public final class FortressWallStamper {
         // 1. Stamp wall cells. South (attacker-facing) horizontal, plus the
         //    east + west vertical returns up to the map edge.
         for (int x = wLeft; x <= wRight; x++) {
-            paintWall(grid, topology, x, wBot, wallMask);
+            paintWall(grid, topology, x, wBot, wallMask, roadReservation);
         }
         for (int y = wBot; y <= wTop; y++) {
-            paintWall(grid, topology, wLeft, y, wallMask);
-            paintWall(grid, topology, wRight, y, wallMask);
+            paintWall(grid, topology, wLeft, y, wallMask, roadReservation);
+            paintWall(grid, topology, wRight, y, wallMask, roadReservation);
         }
 
         // 2. Towers — corners + mid-line heavies. Each tower is a 3×3 block
@@ -171,11 +173,11 @@ public final class FortressWallStamper {
         //    mount (VEHICLE flag); remaining cells are wall.
         List<Integer> towerCentersX = new ArrayList<>();
         // SW corner: center at (wLeft, wBot-1) — tower spans x in [wLeft-1, wLeft+1], y in [wBot-2, wBot].
-        stampTower3x3(grid, topology, wLeft, wBot - 1, wallMask);
+        stampTower3x3(grid, topology, wLeft, wBot - 1, wallMask, roadReservation);
         emitHeavyTower(tactical, wLeft, wBot - 1);
         towerCentersX.add(wLeft);
         // SE corner
-        stampTower3x3(grid, topology, wRight, wBot - 1, wallMask);
+        stampTower3x3(grid, topology, wRight, wBot - 1, wallMask, roadReservation);
         emitHeavyTower(tactical, wRight, wBot - 1);
         towerCentersX.add(wRight);
         // Mid-line heavies — evenly spaced between corners along the south wall.
@@ -183,7 +185,7 @@ public final class FortressWallStamper {
         int innerCount = Math.max(0, (span / HEAVY_TOWER_SPACING) - 1);
         for (int i = 1; i <= innerCount; i++) {
             int cx = wLeft + (span * i) / (innerCount + 1);
-            stampTower3x3(grid, topology, cx, wBot - 1, wallMask);
+            stampTower3x3(grid, topology, cx, wBot - 1, wallMask, roadReservation);
             emitHeavyTower(tactical, cx, wBot - 1);
             towerCentersX.add(cx);
         }
@@ -194,7 +196,7 @@ public final class FortressWallStamper {
         List<Integer> mgX = new ArrayList<>();
         for (int x = wLeft + MG_NEST_SPACING; x <= wRight - MG_NEST_SPACING; x += MG_NEST_SPACING) {
             if (isNearTower(x, towerCentersX, TOWER_SIZE)) continue;
-            stampMgNest(grid, topology, x, wBot, wallMask);
+            stampMgNest(grid, topology, x, wBot, wallMask, roadReservation);
             emitMgNest(tactical, x, wBot);
             mgX.add(x);
         }
@@ -243,7 +245,7 @@ public final class FortressWallStamper {
                 }
             }
             if (tooClose) continue;
-            stampTower3x3(grid, topology, bx, by, wallMask);
+            stampTower3x3(grid, topology, bx, by, wallMask, roadReservation);
             emitForwardBunker(tactical, bx, by);
             bunkerCenters.add(new int[]{bx, by});
         }
@@ -265,6 +267,7 @@ public final class FortressWallStamper {
      */
     private static void stampWestToEast(NavigationGrid grid, CellTopology topology,
                                         int[] bbox, boolean[][] wallMask,
+                                        boolean[][] roadReservation,
                                         List<TacticalNode> tactical,
                                         int w, int h, Random rng) {
         int fLeft   = bbox[0];   // attacker-facing edge of fortress biome (low x)
@@ -280,24 +283,24 @@ public final class FortressWallStamper {
         if (wTop - wBot < 2 * HEAVY_TOWER_SPACING) return;
         if (wRight - wLeft < 6) return;
 
-        for (int y = wBot; y <= wTop; y++) paintWall(grid, topology, wLeft, y, wallMask);
+        for (int y = wBot; y <= wTop; y++) paintWall(grid, topology, wLeft, y, wallMask, roadReservation);
         for (int x = wLeft; x <= wRight; x++) {
-            paintWall(grid, topology, x, wBot, wallMask);
-            paintWall(grid, topology, x, wTop, wallMask);
+            paintWall(grid, topology, x, wBot, wallMask, roadReservation);
+            paintWall(grid, topology, x, wTop, wallMask, roadReservation);
         }
 
         List<Integer> towerCentersY = new ArrayList<>();
-        stampTower3x3(grid, topology, wLeft + 1, wBot, wallMask);
+        stampTower3x3(grid, topology, wLeft + 1, wBot, wallMask, roadReservation);
         emitHeavyTower(tactical, wLeft + 1, wBot);
         towerCentersY.add(wBot);
-        stampTower3x3(grid, topology, wLeft + 1, wTop, wallMask);
+        stampTower3x3(grid, topology, wLeft + 1, wTop, wallMask, roadReservation);
         emitHeavyTower(tactical, wLeft + 1, wTop);
         towerCentersY.add(wTop);
         int span = wTop - wBot;
         int innerCount = Math.max(0, (span / HEAVY_TOWER_SPACING) - 1);
         for (int i = 1; i <= innerCount; i++) {
             int cy = wBot + (span * i) / (innerCount + 1);
-            stampTower3x3(grid, topology, wLeft + 1, cy, wallMask);
+            stampTower3x3(grid, topology, wLeft + 1, cy, wallMask, roadReservation);
             emitHeavyTower(tactical, wLeft + 1, cy);
             towerCentersY.add(cy);
         }
@@ -305,7 +308,7 @@ public final class FortressWallStamper {
         List<Integer> mgY = new ArrayList<>();
         for (int y = wBot + MG_NEST_SPACING; y <= wTop - MG_NEST_SPACING; y += MG_NEST_SPACING) {
             if (isNearTower(y, towerCentersY, TOWER_SIZE)) continue;
-            stampMgNest(grid, topology, wLeft, y, wallMask);
+            stampMgNest(grid, topology, wLeft, y, wallMask, roadReservation);
             emitMgNest(tactical, wLeft, y);
             mgY.add(y);
         }
@@ -348,7 +351,7 @@ public final class FortressWallStamper {
                 }
             }
             if (tooClose) continue;
-            stampTower3x3(grid, topology, bx, by, wallMask);
+            stampTower3x3(grid, topology, bx, by, wallMask, roadReservation);
             emitForwardBunker(tactical, bx, by);
             bunkerCenters.add(new int[]{bx, by});
         }
@@ -455,9 +458,15 @@ public final class FortressWallStamper {
         return !inCourtyard;
     }
 
-    /** Stamp one wall cell — non-walkable, HP'd, STRIPED ground so a breach reads as military floor. */
-    private static void paintWall(NavigationGrid grid, CellTopology topology, int x, int y, boolean[][] wallMask) {
+    /**
+     * Stamp one wall cell — non-walkable, HP'd, STRIPED ground so a breach reads as military floor.
+     * No-op for road-graph reserved cells: the trunk that runs through the fortress
+     * becomes an implicit gate where the wall would otherwise have blocked it.
+     */
+    private static void paintWall(NavigationGrid grid, CellTopology topology, int x, int y,
+                                  boolean[][] wallMask, boolean[][] roadReservation) {
         if (!grid.inBounds(x, y)) return;
+        if (roadReservation != null && roadReservation[x][y]) return;
         grid.setWalkable(x, y, false);
         grid.setWallHp(x, y, WALL_HP_FORTIFIED);
         topology.setGroundKind(x, y, WALL_GROUND);
@@ -470,12 +479,14 @@ public final class FortressWallStamper {
      * outside the map bounds are silently skipped — corner towers on the very
      * edge of the map naturally have a clipped footprint.
      */
-    private static void stampTower3x3(NavigationGrid grid, CellTopology topology, int cx, int cy, boolean[][] wallMask) {
+    private static void stampTower3x3(NavigationGrid grid, CellTopology topology, int cx, int cy,
+                                      boolean[][] wallMask, boolean[][] roadReservation) {
         for (int dy = -1; dy <= 1; dy++) {
             for (int dx = -1; dx <= 1; dx++) {
                 int x = cx + dx;
                 int y = cy + dy;
                 if (!grid.inBounds(x, y)) continue;
+                if (roadReservation != null && roadReservation[x][y]) continue;
                 if (dx == 0 && dy == 0) {
                     grid.setWalkable(x, y, false);
                     grid.setWallHp(x, y, WALL_HP_FORTIFIED);
@@ -483,7 +494,7 @@ public final class FortressWallStamper {
                     topology.setVehicle(x, y, true);
                     wallMask[x][y] = true;
                 } else {
-                    paintWall(grid, topology, x, y, wallMask);
+                    paintWall(grid, topology, x, y, wallMask, roadReservation);
                 }
             }
         }
@@ -494,8 +505,10 @@ public final class FortressWallStamper {
      * in the renderer. The cell is still non-walkable wall — the turret mount
      * sits ON the wall, not beside it.
      */
-    private static void stampMgNest(NavigationGrid grid, CellTopology topology, int x, int y, boolean[][] wallMask) {
+    private static void stampMgNest(NavigationGrid grid, CellTopology topology, int x, int y,
+                                    boolean[][] wallMask, boolean[][] roadReservation) {
         if (!grid.inBounds(x, y)) return;
+        if (roadReservation != null && roadReservation[x][y]) return;
         grid.setWalkable(x, y, false);
         grid.setWallHp(x, y, WALL_HP_FORTIFIED);
         topology.setGroundKind(x, y, TURRET_PAD);
