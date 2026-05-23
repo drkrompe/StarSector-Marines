@@ -140,6 +140,56 @@ public class KeepEntryChamberStamperTest {
     }
 
     @Test
+    public void verticalPartitionEntryChamberAlsoEmits() {
+        // Vertical-partition mirror of the horizontal-partition coverage —
+        // pins that the stamper isn't axis-biased. Throne side at x=10..12
+        // (where COMMAND_POST anchor lives), entry side at x=7..9.
+        NavigationGrid grid = openGrid();
+        CellTopology topology = new CellTopology(W, H);
+        labelRegion(topology, RoomPurpose.KEEP_THRONE, 10,  7, 12, 12);
+        labelRegion(topology, RoomPurpose.KEEP_ENTRY,   7,  7,  9, 12);
+        TacticalNode cp = commandPost(6, 6, 13, 13, 11, 10);
+        List<TacticalNode> tactical = new ArrayList<>();
+        tactical.add(cp);
+
+        KeepEntryChamberStamper.stamp(grid, topology, tactical);
+
+        assertEquals(2, tactical.size(),
+                "vertical-partition keep should emit an entry-chamber INNER_POSITION");
+        TacticalNode entry = tactical.get(1);
+        assertEquals(TacticalNode.Kind.INNER_POSITION, entry.kind);
+        assertTrue(entry.anchorX < 10,
+                "entry-chamber anchor should sit in the low-X half (opposite the COMMAND_POST anchor)");
+        assertTrue(entry.anchorY >= 6 && entry.anchorY <= 13,
+                "entry-chamber anchor must remain inside the leaf bbox");
+    }
+
+    @Test
+    public void labeledCellTurnedNonWalkableIsExcluded() {
+        // Defensive: a labeled KEEP_ENTRY cell that a later pass made non-
+        // walkable (hypothetical FortressWallStamper / DefensePostStamper
+        // mutation) must be skipped by the centroid calculation. Without
+        // the re-check the centroid would drift onto a wall cell.
+        NavigationGrid grid = openGrid();
+        CellTopology topology = new CellTopology(W, H);
+        labelRegion(topology, RoomPurpose.KEEP_THRONE, 7, 11, 12, 12);
+        labelRegion(topology, RoomPurpose.KEEP_ENTRY,  7,  7, 12,  9);
+        // Make one labeled entry cell non-walkable post-hoc.
+        grid.setWalkable(8, 8, false);
+        TacticalNode cp = commandPost(6, 6, 13, 13, 10, 12);
+        List<TacticalNode> tactical = new ArrayList<>();
+        tactical.add(cp);
+
+        KeepEntryChamberStamper.stamp(grid, topology, tactical);
+
+        assertEquals(2, tactical.size(),
+                "remaining walkable entry cells still form a valid chamber");
+        TacticalNode entry = tactical.get(1);
+        assertTrue(grid.isWalkable(entry.anchorX, entry.anchorY),
+                "entry anchor must land on a walkable cell (the non-walkable labeled cell was filtered)");
+    }
+
+    @Test
     public void skipsSubMinimumChamber() {
         // Entry chamber has only 2 labeled cells (below MIN_CHAMBER_CELLS=3).
         // Even though the labels exist, the chamber's too small to read as a

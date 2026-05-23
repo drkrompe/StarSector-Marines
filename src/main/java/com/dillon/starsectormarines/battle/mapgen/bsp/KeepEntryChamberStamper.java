@@ -117,6 +117,12 @@ public final class KeepEntryChamberStamper {
             for (int x = left; x <= right; x++) {
                 if (!grid.inBounds(x, y)) continue;
                 if (topology.getRoomPurpose(x, y) != RoomPurpose.KEEP_ENTRY) continue;
+                // Re-check walkability — the labeler skipped non-walkable cells
+                // at write time, but a downstream stamper (FortressWallStamper,
+                // DefensePostStamper, future passes) could in principle mutate
+                // a labeled cell to non-walkable. The mismatch would silently
+                // bias the centroid; cheap to defend against here.
+                if (!grid.isWalkable(x, y)) continue;
                 entry.add(new int[]{x, y});
                 sumX += x;
                 sumY += y;

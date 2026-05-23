@@ -70,31 +70,36 @@ final class BuildingShellCore {
         /** Building-kind hint stamped across every cell of the carved footprint; the flood-fill pass votes the dominant value per connected room to flavor the resulting {@link com.dillon.starsectormarines.battle.map.Building}. */
         final BuildingKind buildingKind;
         /**
-         * Room-purpose label stamped onto walkable interior cells in the
-         * chamber that contains the interior anchor (the side a COMMAND_POST
-         * tactical node would land on). {@code null} means "don't label this
-         * room" — non-keep buildings leave their interior unlabeled so
-         * post-fill stampers can ignore them. The single-room case stamps
-         * every walkable interior cell with this purpose; the partitioned
-         * case stamps only the anchor-side chamber.
+         * {@link RoomPurpose} labels indexed by Manhattan-distance from the
+         * chamber containing the interior anchor (the side a COMMAND_POST
+         * tactical node would land on). Index 0 = anchor's chamber itself
+         * (THRONE for keep); index 1 = chambers one partition away (INNER for
+         * a three-chamber keep); index 2 = chambers two partitions away
+         * (ENTRY for a three-chamber keep). Cells in chambers beyond the
+         * array's length get no label — caller can intentionally label only
+         * the inner ring by passing a short array.
+         *
+         * <p>{@code null} (or empty) means "don't label any room" — non-keep
+         * buildings leave their interior unlabeled so post-fill stampers can
+         * ignore them. Individual entries may be {@code null} to skip
+         * labeling at that distance (e.g., binary partition that wants to
+         * tag only the anchor side — {@code [KEEP_THRONE, null]}).
+         *
+         * <p>Distance-indexed (not chamber-index-indexed) so the same purpose
+         * array works regardless of which physical chamber the anchor lands
+         * in — partition orientation + split position vary per carve. For
+         * the binary keep case ({@code [KEEP_THRONE, KEEP_ENTRY]}) the
+         * anchor-side chamber gets THRONE and the antechamber gets ENTRY
+         * whether the partition lands above, below, left, or right.
          */
-        final RoomPurpose anchorRoomPurpose;
-        /**
-         * Room-purpose label stamped onto the chamber that does NOT contain
-         * the interior anchor — the antechamber side of a binary partition.
-         * Only meaningful when a partition wall lands; ignored in the single-
-         * room case. {@code null} means "don't label even when partitioned" —
-         * the partition still carves, but the other chamber has no purpose
-         * tag for stampers to find.
-         */
-        final RoomPurpose otherRoomPurpose;
+        final RoomPurpose[] chamberPurposesByAnchorDistance;
 
         BuildingConfig(GroundKind interiorGround,
                        TileManifest.TileFrame[] doodadPool,
                        PointOfInterest.Kind poiKind,
                        BuildingLayouts.LayoutRecipe layoutRecipe,
                        BuildingKind buildingKind) {
-            this(interiorGround, doodadPool, poiKind, layoutRecipe, buildingKind, null, null);
+            this(interiorGround, doodadPool, poiKind, layoutRecipe, buildingKind, null);
         }
 
         BuildingConfig(GroundKind interiorGround,
@@ -102,15 +107,13 @@ final class BuildingShellCore {
                        PointOfInterest.Kind poiKind,
                        BuildingLayouts.LayoutRecipe layoutRecipe,
                        BuildingKind buildingKind,
-                       RoomPurpose anchorRoomPurpose,
-                       RoomPurpose otherRoomPurpose) {
+                       RoomPurpose[] chamberPurposesByAnchorDistance) {
             this.interiorGround = interiorGround;
             this.doodadPool = doodadPool;
             this.poiKind = poiKind;
             this.layoutRecipe = layoutRecipe;
             this.buildingKind = buildingKind;
-            this.anchorRoomPurpose = anchorRoomPurpose;
-            this.otherRoomPurpose = otherRoomPurpose;
+            this.chamberPurposesByAnchorDistance = chamberPurposesByAnchorDistance;
         }
     }
 
@@ -218,41 +221,62 @@ final class BuildingShellCore {
 
     /**
      * Stamps {@link RoomPurpose} labels onto walkable, non-doorway interior
-     * cells. Skips entirely when both purposes are null (the default for
-     * non-keep callers). In the single-room case, every interior cell gets
-     * {@code anchorRoomPurpose}. In the partitioned case, cells on the same
-     * side of the partition as {@code interior} get {@code anchorRoomPurpose}
-     * (that's the chamber the COMMAND_POST anchor will land in) and cells on
-     * the opposite side get {@code otherRoomPurpose}. The partition wall
+     * cells. Skips entirely when the config supplies no purpose array (the
+     * default for non-keep callers). For each interior cell, computes the
+     * chamber it lives in (single chamber when un-partitioned; one of two
+     * sides of the axis when partitioned), then takes the
+     * Manhattan-distance from the interior-anchor's chamber and reads
+     * {@code chamberPurposesByAnchorDistance[distance]}. The partition wall
      * itself (non-walkable) and the partition doorway (walkable but
-     * "between" rooms) are left unlabeled.
+     * "between" rooms) are left unlabeled — they don't belong to either
+     * chamber.
+     *
+     * <p>Distance-indexed addressing generalizes cleanly to ternary
+     * partitions (Slice B): three chambers, anchor in one of them,
+     * distances {0, 1, 2} map to {THRONE, INNER, ENTRY}. The labeling
+     * function doesn't need to know how many partition walls exist — only
+     * "which chamber is this cell in" via {@link #chamberIndex} and "where
+     * is the anchor's chamber" via the same call on the anchor coords.
      */
     private static void labelRooms(NavigationGrid grid, CellTopology topology,
                                    int bl, int bt, int br, int bb,
                                    InteriorWall wall, int[] interior, BuildingConfig config) {
-        if (config.anchorRoomPurpose == null && config.otherRoomPurpose == null) return;
+        RoomPurpose[] purposes = config.chamberPurposesByAnchorDistance;
+        if (purposes == null || purposes.length == 0) return;
 
-        boolean partitioned = wall.orient != InteriorWallOrient.NONE;
-        boolean vertical = wall.orient == InteriorWallOrient.VERTICAL;
-        int axis = wall.axis;
-        int ax = interior[0];
-        int ay = interior[1];
+        int anchorChamber = chamberIndex(wall, interior[0], interior[1]);
+        // Anchor on a partition axis is degenerate (BFS-from-center reached a
+        // doorway or wall cell only); fall back to chamber 0 so labeling
+        // still happens. Cells on the other side then take distance 1.
+        if (anchorChamber < 0) anchorChamber = 0;
 
         for (int y = bt + 1; y <= bb - 1; y++) {
             for (int x = bl + 1; x <= br - 1; x++) {
                 if (!grid.isWalkable(x, y)) continue;
                 if (grid.isDoorway(x, y)) continue;
-                if (!partitioned) {
-                    topology.setRoomPurpose(x, y, config.anchorRoomPurpose);
-                    continue;
-                }
-                boolean sameSideAsAnchor = vertical
-                        ? (x < axis) == (ax < axis)
-                        : (y < axis) == (ay < axis);
-                RoomPurpose p = sameSideAsAnchor ? config.anchorRoomPurpose : config.otherRoomPurpose;
+                int chamber = chamberIndex(wall, x, y);
+                if (chamber < 0) continue;
+                int distance = Math.abs(chamber - anchorChamber);
+                if (distance >= purposes.length) continue;
+                RoomPurpose p = purposes[distance];
                 if (p != null) topology.setRoomPurpose(x, y, p);
             }
         }
+    }
+
+    /**
+     * Returns the chamber index (0..N-1) for a cell given the partition, or
+     * {@code -1} when the cell sits exactly on a partition axis (wall or
+     * doorway cell). Single-chamber buildings (no partition) always return 0.
+     *
+     * <p>Generalizes to N-axis partitions in Slice B by replacing the
+     * single-axis test with a sorted-array bisect — same return contract.
+     */
+    private static int chamberIndex(InteriorWall wall, int x, int y) {
+        if (wall.orient == InteriorWallOrient.NONE) return 0;
+        int coord = (wall.orient == InteriorWallOrient.VERTICAL) ? x : y;
+        if (coord == wall.axis) return -1;
+        return coord < wall.axis ? 0 : 1;
     }
 
     /**

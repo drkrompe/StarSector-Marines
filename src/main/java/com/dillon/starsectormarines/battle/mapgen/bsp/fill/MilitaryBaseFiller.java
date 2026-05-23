@@ -70,17 +70,18 @@ public final class MilitaryBaseFiller implements CompoundFiller {
      * Keep COMMAND sub-building. Opts into {@link RoomPurpose} labeling so
      * {@link com.dillon.starsectormarines.battle.mapgen.bsp.KeepEntryChamberStamper}
      * can read chambers by label instead of inferring them from the zone
-     * graph. The anchor-side chamber (where the interior anchor BFS lands
-     * — that's where the COMMAND_POST tactical node is emitted) gets
-     * {@link RoomPurpose#KEEP_THRONE}; the antechamber side gets
-     * {@link RoomPurpose#KEEP_ENTRY}. Single-room (non-partitioned)
+     * graph. Distance-indexed: index 0 is the anchor's chamber
+     * ({@link RoomPurpose#KEEP_THRONE} — where the COMMAND_POST tactical
+     * node lands), index 1 is the partition-adjacent antechamber
+     * ({@link RoomPurpose#KEEP_ENTRY}). Single-room (non-partitioned)
      * COMMAND buildings just get THRONE across the whole interior — no
-     * antechamber, no INNER_POSITION emission.
+     * antechamber, no INNER_POSITION emission. Slice B's three-chamber
+     * keep extends this to {@code [THRONE, INNER, ENTRY]}.
      */
     private static final BuildingShellCore.BuildingConfig COMMAND_CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.INDOOR, TileManifest.SKYPORT_DOODADS, PointOfInterest.Kind.COMMS,
             BuildingLayouts.LayoutRecipe.SHOP, BuildingKind.FORTIFIED,
-            RoomPurpose.KEEP_THRONE, RoomPurpose.KEEP_ENTRY);
+            new RoomPurpose[]{RoomPurpose.KEEP_THRONE, RoomPurpose.KEEP_ENTRY});
     private static final BuildingShellCore.BuildingConfig BARRACKS_CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.INDOOR, TileManifest.RESIDENTIAL_DOODADS, PointOfInterest.Kind.RESIDENTIAL,
             BuildingLayouts.LayoutRecipe.HOME, BuildingKind.FORTIFIED);
