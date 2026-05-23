@@ -48,8 +48,7 @@ final class BuildingShellCore {
      * interior partition wall. Mirrors legacy.
      */
     private static final int MULTI_ROOM_MIN_DIM = 7;
-    /** Chance a sufficiently-large hollow building gets subdivided into multiple rooms. */
-    private static final float MULTI_ROOM_CHANCE = 0.65f;
+    private static final float DEFAULT_MULTI_ROOM_CHANCE = 0.65f;
     /** Minimum dim (both axes) for a hollow building to qualify for a second perimeter doorway. */
     private static final int SECOND_DOORWAY_MIN_DIM = 5;
     /** Chance a qualifying hollow building gets a second perimeter doorway on the opposite side. */
@@ -93,6 +92,7 @@ final class BuildingShellCore {
          * whether the partition lands above, below, left, or right.
          */
         final RoomPurpose[] chamberPurposesByAnchorDistance;
+        final float multiRoomChance;
 
         BuildingConfig(GroundKind interiorGround,
                        TileManifest.TileFrame[] doodadPool,
@@ -108,12 +108,24 @@ final class BuildingShellCore {
                        BuildingLayouts.LayoutRecipe layoutRecipe,
                        BuildingKind buildingKind,
                        RoomPurpose[] chamberPurposesByAnchorDistance) {
+            this(interiorGround, doodadPool, poiKind, layoutRecipe, buildingKind,
+                    chamberPurposesByAnchorDistance, DEFAULT_MULTI_ROOM_CHANCE);
+        }
+
+        BuildingConfig(GroundKind interiorGround,
+                       TileManifest.TileFrame[] doodadPool,
+                       PointOfInterest.Kind poiKind,
+                       BuildingLayouts.LayoutRecipe layoutRecipe,
+                       BuildingKind buildingKind,
+                       RoomPurpose[] chamberPurposesByAnchorDistance,
+                       float multiRoomChance) {
             this.interiorGround = interiorGround;
             this.doodadPool = doodadPool;
             this.poiKind = poiKind;
             this.layoutRecipe = layoutRecipe;
             this.buildingKind = buildingKind;
             this.chamberPurposesByAnchorDistance = chamberPurposesByAnchorDistance;
+            this.multiRoomChance = multiRoomChance;
         }
     }
 
@@ -195,7 +207,7 @@ final class BuildingShellCore {
         // partition (vertical wall → left/right doors; horizontal wall →
         // top/bottom doors), giving each room its own exterior access when
         // the building scores a 2nd doorway.
-        InteriorWall wall = maybeAddInteriorWall(grid, topology, bl, bt, br, bb, rng, config.interiorGround);
+        InteriorWall wall = maybeAddInteriorWall(grid, topology, bl, bt, br, bb, rng, config);
         punchPerimeterDoorways(grid, topology, bl, bt, br, bb, wall, rng, config.interiorGround);
 
         // Doodad layout — TINY buildings get sparse scatter (shed), LARGE
@@ -412,13 +424,13 @@ final class BuildingShellCore {
     /** Optional single-wall subdivision. Verbatim from legacy with configurable interior ground. */
     private static InteriorWall maybeAddInteriorWall(NavigationGrid grid, CellTopology topology,
                                                      int bl, int bt, int br, int bb, Random rng,
-                                                     GroundKind interiorGround) {
+                                                     BuildingConfig config) {
         int w = br - bl + 1;
         int h = bb - bt + 1;
         boolean canVert  = w >= MULTI_ROOM_MIN_DIM;
         boolean canHoriz = h >= MULTI_ROOM_MIN_DIM;
         if (!canVert && !canHoriz) return InteriorWall.NONE;
-        if (rng.nextFloat() >= MULTI_ROOM_CHANCE) return InteriorWall.NONE;
+        if (rng.nextFloat() >= config.multiRoomChance) return InteriorWall.NONE;
 
         boolean vertical;
         if (canVert && canHoriz) {
@@ -435,7 +447,7 @@ final class BuildingShellCore {
                 grid.setWalkable(wx, y, false);
             }
             int dy = bt + 1 + rng.nextInt(h - 2);
-            openInteriorDoorway(grid, topology, wx, dy, interiorGround);
+            openInteriorDoorway(grid, topology, wx, dy, config.interiorGround);
             return new InteriorWall(InteriorWallOrient.VERTICAL, wx);
         } else {
             int wy = bt + 3 + rng.nextInt(h - 6);
@@ -443,7 +455,7 @@ final class BuildingShellCore {
                 grid.setWalkable(x, wy, false);
             }
             int dx = bl + 1 + rng.nextInt(w - 2);
-            openInteriorDoorway(grid, topology, dx, wy, interiorGround);
+            openInteriorDoorway(grid, topology, dx, wy, config.interiorGround);
             return new InteriorWall(InteriorWallOrient.HORIZONTAL, wy);
         }
     }
