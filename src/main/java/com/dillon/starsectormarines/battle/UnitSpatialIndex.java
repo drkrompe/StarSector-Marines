@@ -1,7 +1,8 @@
 package com.dillon.starsectormarines.battle;
 
+import com.dillon.starsectormarines.battle.unit.UnitRegistry;
+
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Bucketed spatial index over alive units. Rebuilt once per sim tick so AI
@@ -49,11 +50,18 @@ public final class UnitSpatialIndex {
     /**
      * Discards the previous bucket contents and re-bins every alive unit by
      * its current cell. Called once per sim tick before per-unit updates.
-     * Dead units are intentionally omitted — AI queries should never reach
-     * them, and pruning at index time avoids per-call {@code isAlive()}
-     * branches in tight loops.
+     *
+     * <p>Iterates the {@link UnitRegistry}'s dense {@code [0, liveCount())}
+     * range directly — released slots are excluded by the registry, so no
+     * per-call {@code isAlive()} branch in the inner loop. Cell positions
+     * are read from the SoA arrays ({@code cellXArray()} / {@code cellYArray()})
+     * with no Unit-object indirection; the prefetcher streams both axes in
+     * tandem under the sequential index walk. The {@code dense[]} ref is
+     * still loaded per unit to populate the bucket, but the bucket payload
+     * is itself the {@code Unit} reference — the SoA win lives on the
+     * cell-read side.
      */
-    public void rebuild(List<Unit> units) {
+    public void rebuild(UnitRegistry registry) {
         for (int i = 0; i < buckets.length; i++) {
             ArrayList<Unit> b = buckets[i];
             if (b != null) {
@@ -62,11 +70,13 @@ public final class UnitSpatialIndex {
                 buckets[i] = null;
             }
         }
-        for (int i = 0, n = units.size(); i < n; i++) {
-            Unit u = units.get(i);
-            if (!u.isAlive()) continue;
-            int bx = u.getCellX() / BUCKET;
-            int by = u.getCellY() / BUCKET;
+        Unit[] dense = registry.denseArray();
+        int[] cellX = registry.cellXArray();
+        int[] cellY = registry.cellYArray();
+        int liveCount = registry.liveCount();
+        for (int i = 0; i < liveCount; i++) {
+            int bx = cellX[i] / BUCKET;
+            int by = cellY[i] / BUCKET;
             if (bx < 0 || bx >= bucketsX || by < 0 || by >= bucketsY) continue;
             int idx = by * bucketsX + bx;
             ArrayList<Unit> bucket = buckets[idx];
@@ -76,7 +86,7 @@ public final class UnitSpatialIndex {
                         : pool.remove(pool.size() - 1);
                 buckets[idx] = bucket;
             }
-            bucket.add(u);
+            bucket.add(dense[i]);
         }
     }
 

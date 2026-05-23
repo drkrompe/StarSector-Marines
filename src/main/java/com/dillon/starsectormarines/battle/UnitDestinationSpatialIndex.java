@@ -1,7 +1,8 @@
 package com.dillon.starsectormarines.battle;
 
+import com.dillon.starsectormarines.battle.unit.UnitRegistry;
+
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Sister index to {@link UnitSpatialIndex}, but keyed on each unit's
@@ -50,8 +51,15 @@ public final class UnitDestinationSpatialIndex {
      * its <em>destination</em> cell. Units with no path, or whose path
      * destination equals their current cell, are skipped — they're already
      * accounted for by the current-cell index.
+     *
+     * <p>Same SoA shape as {@link UnitSpatialIndex#rebuild}: dense iteration
+     * over {@code [0, liveCount())} excludes released slots, and the
+     * stand-still check reads cellX/cellY straight from the SoA arrays.
+     * The path data is still per-Unit (no SoA storage for path arrays),
+     * so the destination read goes through the Unit ref pulled from
+     * {@code dense[i]} — unavoidable until paths themselves move into SoA.
      */
-    public void rebuild(List<Unit> units) {
+    public void rebuild(UnitRegistry registry) {
         for (int i = 0; i < buckets.length; i++) {
             ArrayList<Unit> b = buckets[i];
             if (b != null) {
@@ -60,14 +68,17 @@ public final class UnitDestinationSpatialIndex {
                 buckets[i] = null;
             }
         }
-        for (int i = 0, n = units.size(); i < n; i++) {
-            Unit u = units.get(i);
-            if (!u.isAlive()) continue;
+        Unit[] dense = registry.denseArray();
+        int[] cellX = registry.cellXArray();
+        int[] cellY = registry.cellYArray();
+        int liveCount = registry.liveCount();
+        for (int i = 0; i < liveCount; i++) {
+            Unit u = dense[i];
             int cells = u.pathCellCount();
             if (cells <= 0) continue;
             int destX = u.pathCellX(cells - 1);
             int destY = u.pathCellY(cells - 1);
-            if (destX == u.getCellX() && destY == u.getCellY()) continue;
+            if (destX == cellX[i] && destY == cellY[i]) continue;
             int bx = destX / UnitSpatialIndex.BUCKET;
             int by = destY / UnitSpatialIndex.BUCKET;
             if (bx < 0 || bx >= bucketsX || by < 0 || by >= bucketsY) continue;

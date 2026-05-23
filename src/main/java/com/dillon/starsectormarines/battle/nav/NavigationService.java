@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.damage.DamageService;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.profile.LosCache;
+import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import java.util.Arrays;
@@ -162,10 +163,17 @@ public final class NavigationService {
         }
     }
 
-    /** Rebuilds both spatial indices off the same tick-start snapshot of {@code units}. Called right after {@link #rebuildOccupancyMap} so all spatial state reflects the same frozen view. */
-    public void rebuildSpatialIndices(List<Unit> units) {
-        unitIndex.rebuild(units);
-        destIndex.rebuild(units);
+    /**
+     * Rebuilds both spatial indices off the same tick-start snapshot of the
+     * registry. Called right after {@link #rebuildOccupancyMap} so all
+     * spatial state reflects the same frozen view. Both indices iterate
+     * the registry's dense array directly (Phase 3 SoA consumer) — released
+     * units are excluded by construction, and cellX/cellY reads stream
+     * from the SoA arrays without per-unit indirection.
+     */
+    public void rebuildSpatialIndices(UnitRegistry registry) {
+        unitIndex.rebuild(registry);
+        destIndex.rebuild(registry);
     }
 
     /**

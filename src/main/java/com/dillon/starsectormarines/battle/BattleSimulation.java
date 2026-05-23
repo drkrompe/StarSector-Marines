@@ -793,7 +793,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // snapshot. Same single-pass-per-tick semantics as the attacker
         // index below — mid-tick repath shifts aren't reflected until next
         // tick, matching the pre-spatial behavior.
-        navigation.rebuildSpatialIndices(units);
+        navigation.rebuildSpatialIndices(rosterService.getRegistry());
         tickProfile.lap(TickProfile.Phase.REBUILD_UNIT_INDEX);
         // Rebuild the attacker index BEFORE per-unit updates so target-
         // selection's crowding scoring (TacticalScoring.findBestTarget) sees a
