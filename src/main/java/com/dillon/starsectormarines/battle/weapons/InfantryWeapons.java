@@ -178,7 +178,7 @@ public class InfantryWeapons {
                 toX, toY, sec.flightSec,
                 sec.aoeRadius, sec.damage, sec.vsTurretMult,
                 sec.wallDamage, shooter.faction, /*aerialDelivery*/ false,
-                sec.wallDamageRadius, /*spawnDustOnWallBreak*/ false, /*friendlyFireImmune*/ false);
+                sec.wallDamageRadius, /*spawnDustOnWallBreak*/ true, /*friendlyFireImmune*/ false);
         // hasBoostRamp=true: marine rocket is a launched missile with a
         // booster, matches locust's accelerate-from-rest visual curve.
         // arcHeight=0: direct-fire, no parabolic lob.

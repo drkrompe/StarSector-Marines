@@ -126,7 +126,7 @@ public class HeavyWeapons {
                     toX, toY, weapon.flightSec,
                     weapon.aoeRadius, weapon.damage, weapon.vsTurretMult,
                     weapon.wallDamage, shooter.faction, aerial,
-                    weapon.wallDamageRadius, /*spawnDustOnWallBreak*/ false, /*friendlyFireImmune*/ false);
+                    weapon.wallDamageRadius, /*spawnDustOnWallBreak*/ true, /*friendlyFireImmune*/ false);
             if (weapon.impactProfile == ImpactProfile.HE) {
                 // HE rockets (SRM_POD, LRM_ARTILLERY) ride the modeled Projectile
                 // entity, same as marine handheld rockets (ad53835) and locust

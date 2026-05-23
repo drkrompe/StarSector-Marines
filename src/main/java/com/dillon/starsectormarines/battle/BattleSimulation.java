@@ -361,6 +361,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     public com.dillon.starsectormarines.battle.map.Buildings getBuildings() { return vision.getBuildings(); }
     /** Faction-contributor set for the fog-of-war reveal. */
     public com.dillon.starsectormarines.battle.vision.PlayerVisionState getVisionState() { return vision.getVisionState(); }
+    /** Fog-of-war service — per-cell reveal state + per-unit visibility. The renderer reads this for the fog overlay and unit visibility gate. */
+    public VisionService getVision() { return vision; }
     /** Hands the sim the map's building registry. Called by BattleSetup after generation. Subsequent visibility passes will reveal/hide these buildings as contributor units move. */
     public void setBuildings(com.dillon.starsectormarines.battle.map.Buildings buildings) {
         vision.setBuildings(buildings);
@@ -486,16 +488,39 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     @Override
     public void addUnit(Unit u) {
         rosterService.addUnit(u);
+        if (vision.getVisionState().isContributor(u.faction)) {
+            vision.addContributor(u);
+        }
     }
 
-    /** Delegates to {@link UnitRosterService#queueSpawn(Unit)}. Routes serial callers through inline {@link #addUnit} and parallel callers through the spawn queue (drained in APPLY_SPAWNS). */
+    /**
+     * Delegates to {@link UnitRosterService#queueSpawn(Unit)}. Routes serial
+     * callers through inline addUnit (which allocates the entity immediately)
+     * and parallel callers through the spawn queue (drained in APPLY_SPAWNS).
+     * Serial-path fog contributor registration is done here after the inline
+     * allocation; parallel-path registration is done in {@link #flushPendingSpawns}.
+     */
     public void queueSpawn(Unit u) {
+        long idBefore = u.entityId;
         rosterService.queueSpawn(u);
+        if (idBefore == 0L && u.entityId != 0L
+                && vision.getVisionState().isContributor(u.faction)) {
+            vision.addContributor(u);
+        }
     }
 
-    /** Delegates to {@link UnitRosterService#flushPendingSpawns()}. Public so tests can force the drain after a {@code queueSpawn} call. */
+    /** Delegates to {@link UnitRosterService#flushPendingSpawns()}. Public so tests can force the drain after a {@code queueSpawn} call. Registers fog-of-war contributors for any player-faction spawns. */
     public void flushPendingSpawns() {
+        List<Unit> pending = rosterService.getPendingSpawns();
+        int spawnCount = pending.size();
+        if (spawnCount == 0) return;
+        Unit[] snapshot = pending.toArray(new Unit[0]);
         rosterService.flushPendingSpawns();
+        for (Unit u : snapshot) {
+            if (vision.getVisionState().isContributor(u.faction)) {
+                vision.addContributor(u);
+            }
+        }
     }
 
     /**
@@ -797,8 +822,9 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         navigation.beginTick();
         // Fog-of-war visibility pass — recomputed every 3rd tick (~10 Hz at
         // 30 Hz sim). The render path lerps current→target alpha per frame so
-        // this cadence stays invisible.
-        vision.tick(simTickIndex, units, grid);
+        // this cadence stays invisible. Ephemeral sources (shuttles, fighters)
+        // are pushed by BattleScreen.advance() each frame before this call.
+        vision.tick(simTickIndex, units, grid, rosterService.getRegistry());
         tickProfile.lap(TickProfile.Phase.VISION);
         navigation.rebuildOccupancyMap(units);
         tickProfile.lap(TickProfile.Phase.REBUILD_OCCUPANCY);
@@ -1298,7 +1324,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                     toX, toY, flight,
                     kind.aoeRadius, kind.damage, /*vsTurretMult*/ 1f,
                     kind.wallDamage, shooterFaction, aerialDelivery,
-                    kind.wallDamageRadius, /*spawnDustOnWallBreak*/ false, /*friendlyFireImmune*/ false));
+                    kind.wallDamageRadius, /*spawnDustOnWallBreak*/ true, /*friendlyFireImmune*/ false));
         }
         float lifetime = kind.flightSec > 0f ? kind.flightSec : SHOT_LIFETIME;
         postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooterFaction,
@@ -1349,7 +1375,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                 toX, toY, flightTime,
                 kind.aoeRadius, kind.damage, /*vsTurretMult*/ 1f,
                 kind.wallDamage, shooterFaction, aerialDelivery,
-                kind.wallDamageRadius, /*spawnDustOnWallBreak*/ false, /*friendlyFireImmune*/ false);
+                kind.wallDamageRadius, /*spawnDustOnWallBreak*/ true, /*friendlyFireImmune*/ false);
         queueProjectile(new Projectile(fromX, fromY, toX, toY,
                 kind.hasBoostRamp(), kind.arcHeight,
                 shooterFaction, aerialDelivery, flightTime, onArrival));
