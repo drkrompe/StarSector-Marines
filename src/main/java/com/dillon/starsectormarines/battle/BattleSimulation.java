@@ -412,6 +412,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     public List<ShotEvent> getShotsExpiredThisFrame() { return shots.getShotsExpiredThisFrame(); }
     /** In-flight {@link Projectile}s — slow-velocity AoE kinds. Renderer reads positions for sprite + contrail drawing. */
     public List<Projectile> getActiveProjectiles() { return shots.getActiveProjectiles(); }
+    /** Thread-safe snapshot of active projectiles for callers iterating during the parallel UPDATE_UNITS dispatch (today: squad-coordination scorers checking projected rocket damage). See {@link com.dillon.starsectormarines.battle.shots.ShotService#snapshotActiveProjectiles()}. */
+    public List<Projectile> snapshotActiveProjectiles() { return shots.snapshotActiveProjectiles(); }
     /** Projectiles that arrived this tick — parallel to {@link #getShotsExpiredThisFrame} for the renderer's impact-FX dispatch. */
     public List<Projectile> getProjectilesArrivedThisFrame() { return shots.getProjectilesArrivedThisFrame(); }
     public List<Unit> getDeathsThisFrame()     { return deathsThisFrame; }
@@ -1346,7 +1348,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
                 kind.aoeRadius, kind.damage, /*vsTurretMult*/ 1f,
                 kind.wallDamage, shooterFaction, aerialDelivery);
         queueProjectile(new Projectile(fromX, fromY, toX, toY,
-                kind, shooterFaction, aerialDelivery, flightTime, onArrival));
+                kind.hasBoostRamp(), kind.arcHeight,
+                shooterFaction, aerialDelivery, flightTime, onArrival));
         // Pair with a ShotEvent so the existing audio (shotsThisFrame) +
         // impact-FX (shotsExpiredThisFrame) dispatchers run unchanged. Same
         // flight time keeps the two in sync — they expire on the same tick,

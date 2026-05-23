@@ -1,12 +1,15 @@
 package com.dillon.starsectormarines.battle;
 
-import com.dillon.starsectormarines.battle.turret.TurretKind;
-
 /**
  * Simulated in-flight projectile — owns position over time and the AoE
  * detonation that fires on arrival. Replaces the parallel
  * {@link ShotEvent} + {@link PendingDetonation} pair for slow-flight AoE
- * kinds (turret-class rockets / mortars with {@code cellsPerSec > 0}).
+ * kinds: turret-class rockets / mortars (locust, grenade launcher with
+ * {@code cellsPerSec > 0}) AND marine handheld rockets (whose flight
+ * time is a per-weapon constant — same Projectile shape, different
+ * spawner). Carries only the primitive visual params it needs
+ * ({@link #hasBoostRamp}, {@link #arcHeight}) so the spawner can be
+ * either weapon family without coupling Projectile to TurretKind.
  *
  * <h2>Why a separate entity</h2>
  * The legacy renderer-side lerp computed projectile position as
@@ -41,7 +44,10 @@ public final class Projectile {
     /** Scatter endpoint — where the projectile detonates on arrival. Computed at fire time from target cell + accuracy-scaled scatter. */
     public final float toX;
     public final float toY;
-    public final TurretKind kind;
+    /** True for rocket-class projectiles whose visual position grows quadratically over the boost-ramp window (accelerate from rest, then cruise). False for chemical-charge shells (mortars / grenades) that exit at terminal velocity. */
+    public final boolean hasBoostRamp;
+    /** Parabolic arc apex layered on the lerp, in cells. {@code 0} = flat (direct-fire rocket / level missile); {@code > 0} = lobbed (mortar / arc shot). */
+    public final float arcHeight;
     public final Faction shooterFaction;
     /** True when delivered from above (arc shots, shuttle mounts). Threaded into {@link #onArrival} for the roof-shield rule + the renderer's flight FX. */
     public final boolean aerialDelivery;
@@ -93,13 +99,15 @@ public final class Projectile {
     }
 
     public Projectile(float fromX, float fromY, float toX, float toY,
-                      TurretKind kind, Faction shooterFaction, boolean aerialDelivery,
+                      boolean hasBoostRamp, float arcHeight,
+                      Faction shooterFaction, boolean aerialDelivery,
                       float totalFlightTime, PendingDetonation onArrival) {
         this.fromX = fromX;
         this.fromY = fromY;
         this.toX = toX;
         this.toY = toY;
-        this.kind = kind;
+        this.hasBoostRamp = hasBoostRamp;
+        this.arcHeight = arcHeight;
         this.shooterFaction = shooterFaction;
         this.aerialDelivery = aerialDelivery;
         this.totalFlightTime = totalFlightTime;
@@ -117,20 +125,20 @@ public final class Projectile {
         return p;
     }
 
-    /** Current world-space X (cells). Rocket-class kinds use the boost curve so they start slow and accelerate to terminal velocity; chemical-charge shells (no boost ramp) travel at constant speed. */
+    /** Current world-space X (cells). Rocket-class projectiles use the boost curve so they start slow and accelerate to terminal velocity; chemical-charge shells (no boost ramp) travel at constant speed. */
     public float currentX() {
         float raw = progress();
-        float p = (kind != null && kind.hasBoostRamp()) ? applyBoostCurve(raw) : raw;
+        float p = hasBoostRamp ? applyBoostCurve(raw) : raw;
         return fromX + (toX - fromX) * p;
     }
 
     /** Current world-space Y (cells). Parabolic arc layered on top of the (possibly curved) lerp. Arc peak follows the curved progress so a rocket's arc apex shifts toward late-flight (where it actually is) rather than time-midpoint. */
     public float currentY() {
         float raw = progress();
-        float p = (kind != null && kind.hasBoostRamp()) ? applyBoostCurve(raw) : raw;
+        float p = hasBoostRamp ? applyBoostCurve(raw) : raw;
         float y = fromY + (toY - fromY) * p;
-        if (kind != null && kind.arcHeight > 0f) {
-            y += kind.arcHeight * 4f * p * (1f - p);
+        if (arcHeight > 0f) {
+            y += arcHeight * 4f * p * (1f - p);
         }
         return y;
     }

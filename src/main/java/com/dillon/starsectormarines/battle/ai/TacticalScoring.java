@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.ai;
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.PendingDetonation;
+import com.dillon.starsectormarines.battle.Projectile;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.UnitSpatialIndex;
@@ -485,9 +486,19 @@ public final class TacticalScoring {
     /**
      * Sums committed rocket damage already inbound to {@code turret} from
      * sources other than {@code shooter}: squadmates currently in the rocket
-     * aim window, plus inflight rocket-class detonations from the same faction
+     * aim window, plus inflight {@link Projectile}s from the same faction
      * whose endpoint sits within AoE of the turret cell. Used by
      * {@link #shouldCommitRocket}.
+     *
+     * <p>Iterates {@code sim.getActiveProjectiles()} for the inflight half.
+     * Marine handheld rockets land on the Projectile path the same way
+     * locust turrets do — each in-flight rocket is a real entity owning its
+     * own {@link PendingDetonation} arrival payload. Sibling marine squads
+     * firing on the same turret are counted here too (faction match), not
+     * just the shooter's squadmates whose rockets haven't launched yet.
+     * Mech HE rockets (still on the legacy queueDetonation path) are
+     * intentionally excluded — they don't fire {@code shouldCommitRocket}
+     * and shouldn't show up here.
      */
     private static float projectedRocketDamageOnTurret(Unit shooter, MapTurret turret, BattleSimulation sim) {
         float total = 0f;
@@ -502,12 +513,22 @@ public final class TacticalScoring {
                 total += u.secondaryWeapon.damage * u.secondaryWeapon.vsTurretMult;
             }
         }
+        // Inflight rocket entities owned by the sim. The Projectile carries
+        // its arrival payload directly — read damage / endpoint / AoE off
+        // {@link Projectile#onArrival}. Same in-AoE-of-turret-cell filter
+        // as the legacy snapshot path.
+        //
         // Snapshot — runs during parallel UPDATE_UNITS, can't iterate the
-        // live detonations list while another worker may queueDetonation.
-        for (PendingDetonation det : sim.snapshotInflightDetonations()) {
-            if (det.shooterFaction != shooter.faction) continue;
-            float dx = (turret.getCellX() + 0.5f) - det.endpointX;
-            float dy = (turret.getCellY() + 0.5f) - det.endpointY;
+        // live projectile list while another worker may queueProjectile.
+        // Mirrors the legacy snapshotInflightDetonations path.
+        float turretCx = turret.getCellX() + 0.5f;
+        float turretCy = turret.getCellY() + 0.5f;
+        for (Projectile p : sim.snapshotActiveProjectiles()) {
+            if (p.shooterFaction != shooter.faction) continue;
+            PendingDetonation det = p.onArrival;
+            if (det == null) continue;
+            float dx = turretCx - det.endpointX;
+            float dy = turretCy - det.endpointY;
             if (dx * dx + dy * dy <= det.aoeRadius * det.aoeRadius) {
                 total += det.damage * det.vsTurretMult;
             }

@@ -99,6 +99,20 @@ public final class ShotService {
         }
     }
 
+    /**
+     * Thread-safe snapshot of {@link #activeProjectiles} — same justification
+     * as {@link #snapshotActiveShots}. Used by squad-coordination scorers that
+     * run during the parallel UPDATE_UNITS dispatch (today:
+     * {@code TacticalScoring.projectedRocketDamageOnTurret} while another
+     * worker may concurrently {@link #queueProjectile} a freshly-fired marine
+     * rocket).
+     */
+    public List<Projectile> snapshotActiveProjectiles() {
+        synchronized (activeProjectiles) {
+            return new ArrayList<>(activeProjectiles);
+        }
+    }
+
     // ---- Per-frame drains ----
 
     /**

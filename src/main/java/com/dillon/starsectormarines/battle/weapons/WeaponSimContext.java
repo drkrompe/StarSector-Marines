@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.weapons;
 
 import com.dillon.starsectormarines.battle.PendingDetonation;
+import com.dillon.starsectormarines.battle.Projectile;
 import com.dillon.starsectormarines.battle.ShotEvent;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.map.CellTopology;
@@ -79,8 +80,30 @@ public interface WeaponSimContext {
      * Queues a {@link PendingDetonation} on the AoE pipeline. The sim ticks it
      * down each frame and applies splash + wall damage on arrival. Paired with
      * a {@link #postShot}-emitted projectile so visuals + damage land together.
+     *
+     * <p>Used by direct-fire AoE tracers (grenade launcher, heavy mortar) and
+     * mech HE rockets — weapons whose visuals interpolate purely off
+     * {@link ShotEvent} with no in-flight queryable entity. Slow-flight rockets
+     * (locust, marine handheld) go through {@link #queueProjectile} instead so
+     * their inbound damage is reachable mid-flight for squad coordination /
+     * point defense.
      */
     void queueDetonation(PendingDetonation det);
+
+    /**
+     * Queues a simulated-flight {@link Projectile} entity. The sim advances it
+     * each tick and detonates its owned {@link Projectile#onArrival} payload
+     * on arrival — single source of truth for "rocket X is inbound, with this
+     * damage at this endpoint." Paired with a {@link #postShot}-emitted
+     * {@link ShotEvent} so visuals + audio + impact-FX dispatch keep their
+     * existing wiring.
+     *
+     * <p>Used by weapons that want their inbound damage queryable mid-flight —
+     * locust turrets (point-defense future) and marine handheld rockets
+     * (squad-coordination via {@code TacticalScoring.projectedRocketDamageOnTurret}).
+     * Direct-fire AoE tracers stay on {@link #queueDetonation}.
+     */
+    void queueProjectile(Projectile p);
 
     /**
      * Rolls fall-back on a unit that just took a hit. No-op if the target is

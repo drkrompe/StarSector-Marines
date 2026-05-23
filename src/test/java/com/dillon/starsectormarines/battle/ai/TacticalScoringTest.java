@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.MarineSecondary;
 import com.dillon.starsectormarines.battle.MarineWeapon;
 import com.dillon.starsectormarines.battle.PendingDetonation;
+import com.dillon.starsectormarines.battle.Projectile;
 import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.TileManifest;
 import com.dillon.starsectormarines.battle.Unit;
@@ -755,24 +756,29 @@ public class TacticalScoringTest {
     }
 
     @Test
-    public void shouldCommitRocketBlocksOnInflightDetonation() {
+    public void shouldCommitRocketBlocksOnInflightProjectile() {
         BattleSimulation sim = openArena(20, 20);
         Unit rocketeer = rocketeer(sim, Faction.MARINE, 5, 5);
         MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
 
-        // Stuff enough damage into the inflight queue to kill the turret.
-        // One rocket isn't enough for a Vulcan (test above), so queue two.
+        // Stuff enough damage into the inflight projectile list to kill the
+        // turret. One rocket isn't enough for a Vulcan (test above), so two.
+        // Marine rockets now live in activeProjectiles (matching locust); each
+        // Projectile owns its arrival PendingDetonation directly.
         float perRocket = MarineSecondary.ROCKET_LAUNCHER.damage;
-        sim.queueDetonation(new PendingDetonation(
-                turret.getCellX() + 0.5f, turret.getCellY() + 0.5f, 0.5f,
-                MarineSecondary.ROCKET_LAUNCHER.aoeRadius,
-                perRocket, MarineSecondary.ROCKET_LAUNCHER.vsTurretMult,
-                0, Faction.MARINE, false));
-        sim.queueDetonation(new PendingDetonation(
-                turret.getCellX() + 0.5f, turret.getCellY() + 0.5f, 0.5f,
-                MarineSecondary.ROCKET_LAUNCHER.aoeRadius,
-                perRocket, MarineSecondary.ROCKET_LAUNCHER.vsTurretMult,
-                0, Faction.MARINE, false));
+        for (int i = 0; i < 2; i++) {
+            float endX = turret.getCellX() + 0.5f;
+            float endY = turret.getCellY() + 0.5f;
+            PendingDetonation onArrival = new PendingDetonation(
+                    endX, endY, 0.5f,
+                    MarineSecondary.ROCKET_LAUNCHER.aoeRadius,
+                    perRocket, MarineSecondary.ROCKET_LAUNCHER.vsTurretMult,
+                    0, Faction.MARINE, false);
+            sim.queueProjectile(new Projectile(
+                    rocketeer.getCellX() + 0.5f, rocketeer.getCellY() + 0.5f, endX, endY,
+                    /*hasBoostRamp*/ true, /*arcHeight*/ 0f,
+                    Faction.MARINE, /*aerialDelivery*/ false, 0.5f, onArrival));
+        }
 
         assertFalse(TacticalScoring.shouldCommitRocket(rocketeer, turret, sim),
                 "two inflight rockets > turret HP — don't waste a third");
@@ -780,7 +786,7 @@ public class TacticalScoringTest {
 
     @Test
     public void shouldCommitRocketIgnoresEnemyFactionInflight() {
-        // Defender-side rocket detonations shouldn't count against a marine's
+        // Defender-side rocket projectiles shouldn't count against a marine's
         // commit projection (defenders rocketing their own turret would be a
         // bug, but the gate is per-shooter-faction either way).
         BattleSimulation sim = openArena(20, 20);
@@ -788,13 +794,19 @@ public class TacticalScoringTest {
         MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
 
         float bigDamage = turret.getMaxHp() * 2f;
-        sim.queueDetonation(new PendingDetonation(
-                turret.getCellX() + 0.5f, turret.getCellY() + 0.5f, 0.5f,
+        float endX = turret.getCellX() + 0.5f;
+        float endY = turret.getCellY() + 0.5f;
+        PendingDetonation onArrival = new PendingDetonation(
+                endX, endY, 0.5f,
                 MarineSecondary.ROCKET_LAUNCHER.aoeRadius,
-                bigDamage, 1.0f, 0, Faction.DEFENDER, false));
+                bigDamage, 1.0f, 0, Faction.DEFENDER, false);
+        sim.queueProjectile(new Projectile(
+                10f, 10f, endX, endY,
+                /*hasBoostRamp*/ true, /*arcHeight*/ 0f,
+                Faction.DEFENDER, /*aerialDelivery*/ false, 0.5f, onArrival));
 
         assertTrue(TacticalScoring.shouldCommitRocket(rocketeer, turret, sim),
-                "inflight detonation from a different faction must not count against the marine's projection");
+                "inflight projectile from a different faction must not count against the marine's projection");
     }
 
     @Test

@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.MarineSecondary;
 import com.dillon.starsectormarines.battle.MarineWeapon;
 import com.dillon.starsectormarines.battle.PendingDetonation;
+import com.dillon.starsectormarines.battle.Projectile;
 import com.dillon.starsectormarines.battle.ShotEvent;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.Unit;
@@ -132,10 +133,24 @@ public class InfantryWeapons {
 
     /**
      * Fires the shooter's secondary (rocket launcher today). Rolls accuracy
-     * to determine the impact endpoint, decrements ammo, and queues a
-     * {@link PendingDetonation} — damage resolves on arrival via the AoE
-     * pipeline, not at fire time. A marine who moves between launch and
-     * impact escapes the splash.
+     * to determine the impact endpoint, decrements ammo, and spawns a
+     * simulated-flight {@link Projectile} owning the AoE
+     * {@link PendingDetonation} that fires on arrival. A marine who moves
+     * between launch and impact escapes the splash.
+     *
+     * <p>Same Projectile shape that locust turrets use — the rocket is a
+     * real in-flight entity, queryable by squad-coordination scorers
+     * ({@link com.dillon.starsectormarines.battle.ai.TacticalScoring#shouldCommitRocket})
+     * via {@code sim.getActiveProjectiles()} and (eventually) interceptable
+     * by point defense. Flight time is the per-weapon
+     * {@link MarineSecondary#flightSec} constant — marines fire over a
+     * tighter range envelope than turrets, so the locust's
+     * distance-scaled-velocity model doesn't earn its complexity here.
+     *
+     * <p>The paired {@link ShotEvent} stays — it's what the renderer reads
+     * for sprite + contrail + audio + impact-FX dispatch (unchanged from
+     * the legacy queueDetonation path). The Projectile is the sim-side
+     * source of truth; the ShotEvent is the visual-side mirror.
      *
      * <p>Caller is responsible for verifying ammo &gt; 0 and within-range
      * before calling.
@@ -159,10 +174,17 @@ public class InfantryWeapons {
         // the round lands. Reaches a roofed interior only via a doorway, in
         // which case the splash should damage the inside normally, not be
         // intercepted by the roof above.
-        ctx.queueDetonation(new PendingDetonation(
+        PendingDetonation onArrival = new PendingDetonation(
                 toX, toY, sec.flightSec,
                 sec.aoeRadius, sec.damage, sec.vsTurretMult,
-                sec.wallDamage, shooter.faction, /*aerialDelivery*/ false));
+                sec.wallDamage, shooter.faction, /*aerialDelivery*/ false);
+        // hasBoostRamp=true: marine rocket is a launched missile with a
+        // booster, matches locust's accelerate-from-rest visual curve.
+        // arcHeight=0: direct-fire, no parabolic lob.
+        ctx.queueProjectile(new Projectile(fromX, fromY, toX, toY,
+                /*hasBoostRamp*/ true, /*arcHeight*/ 0f,
+                shooter.faction, /*aerialDelivery*/ false,
+                sec.flightSec, onArrival));
         // Secondary uses its per-weapon flightSec so rockets visibly travel.
         ctx.postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooter.faction, sec.flightSec,
                 null, null, sec));
