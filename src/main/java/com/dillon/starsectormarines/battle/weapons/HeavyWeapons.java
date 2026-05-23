@@ -4,8 +4,10 @@ import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.MechLoadoutState;
 import com.dillon.starsectormarines.battle.MechWeapon;
 import com.dillon.starsectormarines.battle.PendingDetonation;
+import com.dillon.starsectormarines.battle.Projectile;
 import com.dillon.starsectormarines.battle.ShotEvent;
 import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.fx.ImpactProfile;
 
 /**
  * Chassis-mounted weapons on motorized / heavy units. Today that's just the
@@ -120,11 +122,29 @@ public class HeavyWeapons {
             // even from a mech and explodes at endpoint cell; roofs don't shield
             // it if the rocket reached the interior through a doorway.
             boolean aerial = weapon.arcHeight > 0f;
-            ctx.queueDetonation(new PendingDetonation(
+            PendingDetonation onArrival = new PendingDetonation(
                     toX, toY, weapon.flightSec,
                     weapon.aoeRadius, weapon.damage, weapon.vsTurretMult,
                     weapon.wallDamage, shooter.faction, aerial,
-                    weapon.wallDamageRadius, /*spawnDustOnWallBreak*/ false, /*friendlyFireImmune*/ false));
+                    weapon.wallDamageRadius, /*spawnDustOnWallBreak*/ false, /*friendlyFireImmune*/ false);
+            if (weapon.impactProfile == ImpactProfile.HE) {
+                // HE rockets (SRM_POD, LRM_ARTILLERY) ride the modeled Projectile
+                // entity, same as marine handheld rockets (ad53835) and locust
+                // turrets. The Projectile owns the arrival payload directly —
+                // queryable mid-flight (point-defense future) and visible to
+                // TacticalScoring.shouldCommitRocket's volley coordination so a
+                // marine rocketeer no longer ignores an inbound mech SRM volley
+                // against the same turret.
+                ctx.queueProjectile(new Projectile(
+                        fromX, fromY, toX, toY,
+                        /*hasBoostRamp*/ true, weapon.arcHeight,
+                        shooter.faction, aerial, weapon.flightSec, onArrival));
+            } else {
+                // Kinetic-splash kinds (chaingun) keep the legacy AoE-tracer
+                // path — no in-flight queryable entity is useful for a bullet,
+                // and the boost-curve visual would read wrong.
+                ctx.queueDetonation(onArrival);
+            }
         }
 
         float lifetime = weapon.flightSec > 0f ? weapon.flightSec : SHOT_LIFETIME;
