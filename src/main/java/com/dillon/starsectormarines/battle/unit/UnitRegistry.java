@@ -246,7 +246,7 @@ public final class UnitRegistry {
      */
     public int getCellX(int idx) { return cellX[idx]; }
     public int getCellY(int idx) { return cellY[idx]; }
-    public void setCell(int idx, int x, int y) {
+    public void setCellPos(int idx, int x, int y) {
         cellX[idx] = x;
         cellY[idx] = y;
     }

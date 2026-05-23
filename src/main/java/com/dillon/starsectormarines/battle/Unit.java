@@ -370,7 +370,7 @@ public class Unit {
      */
     public final void setCellPos(int x, int y) {
         if (registry != null) {
-            registry.setCell(denseIdx, x, y);
+            registry.setCellPos(denseIdx, x, y);
         } else {
             localCellX = x;
             localCellY = y;

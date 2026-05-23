@@ -268,6 +268,68 @@ public class UnitRegistryTest {
     }
 
     @Test
+    public void allocateSeedsCellPosFromUnitsLocalFieldsAndAccessorsRouteThroughRegistry() {
+        UnitRegistry r = new UnitRegistry();
+        // Unit ctor takes initial cellX/cellY, stamped into localCellX/Y pre-alloc.
+        Unit u = new Unit("u", Faction.MARINE, UnitType.MARINE_BLUE, 7, 3);
+
+        r.allocate(u);
+
+        assertEquals(7, r.getCellX(u.denseIdx));
+        assertEquals(3, r.getCellY(u.denseIdx));
+        assertEquals(7, u.getCellX());
+        assertEquals(3, u.getCellY());
+
+        // setCellPos routes through the registry now that the unit is allocated.
+        u.setCellPos(12, 9);
+        assertEquals(12, r.getCellX(u.denseIdx));
+        assertEquals(9, r.getCellY(u.denseIdx));
+    }
+
+    @Test
+    public void releaseSnapshotsCellPosBackToLocalFieldForPostReleaseReaders() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = new Unit("u", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
+        r.allocate(u);
+
+        u.setCellPos(42, 17);
+        r.release(u.entityId);
+
+        // Post-release: the legacy units list keeps the corpse, and the
+        // drone-crash sprite / equipment-drop emit reads cellX/Y off the
+        // released unit. Without the snapshot they'd read 0 instead of the
+        // moment-of-death cell.
+        assertNull(u.registry);
+        assertEquals(-1, u.denseIdx);
+        assertEquals(42, u.getCellX());
+        assertEquals(17, u.getCellY());
+    }
+
+    @Test
+    public void releaseTailSwapMovesCellPosCorrectly() {
+        UnitRegistry r = new UnitRegistry();
+        Unit a = new Unit("a", Faction.MARINE, UnitType.MARINE_BLUE, 1, 1);
+        Unit b = new Unit("b", Faction.MARINE, UnitType.MARINE_BLUE, 2, 2);
+        Unit c = new Unit("c", Faction.MARINE, UnitType.MARINE_BLUE, 3, 3);
+        long idA = r.allocate(a);
+        r.allocate(b);
+        r.allocate(c);
+        // Move c so the swap-in carries fresh values, not the ctor seed.
+        c.setCellPos(99, 88);
+
+        // Release the head — tail (c) swaps into slot 0; its cellX/Y must
+        // follow the swap or future accessor reads through c would index
+        // the wrong slot.
+        r.release(idA);
+
+        assertEquals(0, c.denseIdx);
+        assertEquals(99, r.getCellX(0));
+        assertEquals(88, r.getCellY(0));
+        assertEquals(99, c.getCellX());
+        assertEquals(88, c.getCellY());
+    }
+
+    @Test
     public void releaseOfReservedZeroSentinelIsNoOp() {
         UnitRegistry r = new UnitRegistry();
         Unit a = unit("a");
