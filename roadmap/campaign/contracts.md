@@ -526,9 +526,15 @@ touches one bank only.
 Composed by `BriefingComposer.compose(archetype, mood, contractId, ...)`
 into `prefix + body + (optional suffix)`. All picks deterministic from
 the contract id so save/load and re-renders produce the same text. Mood
-is read from `OfficerMoodReader` — currently stubbed `STEADY`; deriving
-real mood from `CampaignState` (cash trend, captain count, fleet size,
-MRB rep) is the next step.
+is read from `OfficerMoodReader.currentMood()`, which derives the bucket
+from vanilla `SharedData.getData().getPreviousReport()` (totalIncome /
+totalUpkeep / debt / previousDebt), `Global.getSector().getPlayerFleet()`
+(credits + ship count), `MarineRosterScript.roster().activeCount()`, and
+`CampaignState.playerMrbRep`. The runway bands (DESPERATE below 6 months
+upkeep, SEASONED requires 12+ months) anchor to the economy-doc Survival
+→ Accumulation → Scale arc; see [[feedback-paycheck-runway-window]] for
+the tuning intent. `OfficerHeaderWidget` caches the result per sector-day
+so per-frame credit movement doesn't make the mood flicker.
 
 ### Briefing register reveals patron situation
 
