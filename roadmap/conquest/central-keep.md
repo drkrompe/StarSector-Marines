@@ -227,6 +227,15 @@ with the rest of the defender count.
 
 ### Keep generation
 
+> **Status (2026-05-22):** the multi-chamber work for the keep moved
+> into its own refactor track at
+> [`../mapgen/`](../mapgen/) — the abstraction needs to
+> generalize past the keep so station / ship-interior fills can reuse
+> it. Slice 6 below ships the binary-partition antechamber pattern;
+> the three-chamber design (entry / inner / throne) lands when
+> [`../mapgen/room-purpose-refactor.md`](../mapgen/room-purpose-refactor.md)
+> reaches Slice C/D.
+
 The keep is one big compound but with **multi-room internal structure**
 so the storming sequence reads as a sequence of rooms, not a single
 push. Generator layout:
