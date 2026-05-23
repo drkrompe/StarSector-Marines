@@ -65,7 +65,7 @@ public enum MechWeapon {
              10, 0.06f,
              "graphics/missiles/shell_small_yellow.png", 0.18f, 0.10f,
              0f, 1.2f, false,
-             0.6f, 3, /*raycastShots*/ true),
+             0.6f, 3, /*wallDmgRadius*/ 0f, /*raycastShots*/ true),
 
     /**
      * Shoulder SRM pod — wave of 4 dumb rockets per launch. Annihilator-pattern
@@ -81,7 +81,7 @@ public enum MechWeapon {
             4, 0.10f,
             "graphics/missiles/missile_SRM.png", 0.40f, 0.55f,
             0f, 0f, true,
-            1.3f, 25),
+            1.3f, 25, /*wallDmgRadius*/ 1.3f),
 
     /**
      * Long-range indirect-fire artillery. Per trigger pull, lobs a wave of 5
@@ -103,7 +103,7 @@ public enum MechWeapon {
                   5, 0.11f,
                   "graphics/missiles/missile_LRM.png", 0.65f, 1.40f,
                   5.0f, 1.5f, true,
-                  2.0f, 40);
+                  2.0f, 40, /*wallDmgRadius*/ 2.0f);
 
     /**
      * Accuracy multiplier applied to LRM shots fired without direct line of
@@ -164,8 +164,22 @@ public enum MechWeapon {
      * Friendly fire ON.
      */
     public final float aoeRadius;
-    /** Wall HP knocked off the endpoint cell on detonation. 0 for kinetic / non-AoE weapons. */
+    /**
+     * Wall HP knocked off per wall cell touched by the detonation — the
+     * weapon's "penetration" knob against walls (which are hardened
+     * structural targets with their own HP). 0 for kinetic / non-AoE
+     * weapons. Whether a wall is touched is governed by {@link #wallDamageRadius}.
+     */
     public final int wallDamage;
+    /**
+     * Radius (in cells) over which {@link #wallDamage} is applied around the
+     * detonation endpoint. Set non-zero on HE rocket-class weapons (SRM_POD,
+     * LRM_ARTILLERY) so the blast wave reaches walls the rocket landed near —
+     * a rocket exploding in the street between two buildings damages both
+     * walls, not just the dirt at the impact point. CHAINGUN stays at 0
+     * (kinetic burst, not a crater).
+     */
+    public final float wallDamageRadius;
     /**
      * When {@code true}, each scattered round raycasts from origin to endpoint
      * through the nav grid; if a wall sits in the path, the endpoint snaps to
@@ -185,14 +199,14 @@ public enum MechWeapon {
                int burstCount, float burstSpacing,
                String projectileSpritePath, float projectileVisualCells, float flightSec,
                float arcHeight, float hitSpread, boolean engineTrail,
-               float aoeRadius, int wallDamage) {
+               float aoeRadius, int wallDamage, float wallDamageRadius) {
         this(displayName, fireSoundId, tracerColor,
                 range, damage, accuracy, cooldown, vsTurretMult,
                 impactProfile,
                 burstCount, burstSpacing,
                 projectileSpritePath, projectileVisualCells, flightSec,
                 arcHeight, hitSpread, engineTrail,
-                aoeRadius, wallDamage, /*raycastShots*/ false);
+                aoeRadius, wallDamage, wallDamageRadius, /*raycastShots*/ false);
     }
 
     MechWeapon(String displayName, String fireSoundId, Color tracerColor,
@@ -201,7 +215,7 @@ public enum MechWeapon {
                int burstCount, float burstSpacing,
                String projectileSpritePath, float projectileVisualCells, float flightSec,
                float arcHeight, float hitSpread, boolean engineTrail,
-               float aoeRadius, int wallDamage, boolean raycastShots) {
+               float aoeRadius, int wallDamage, float wallDamageRadius, boolean raycastShots) {
         this.displayName = displayName;
         this.fireSoundId = fireSoundId;
         this.tracerColor = tracerColor;
@@ -221,6 +235,7 @@ public enum MechWeapon {
         this.engineTrail = engineTrail;
         this.aoeRadius = aoeRadius;
         this.wallDamage = wallDamage;
+        this.wallDamageRadius = wallDamageRadius;
         this.raycastShots = raycastShots;
     }
 }

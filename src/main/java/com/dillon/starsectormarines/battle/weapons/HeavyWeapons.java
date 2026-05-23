@@ -123,7 +123,8 @@ public class HeavyWeapons {
             ctx.queueDetonation(new PendingDetonation(
                     toX, toY, weapon.flightSec,
                     weapon.aoeRadius, weapon.damage, weapon.vsTurretMult,
-                    weapon.wallDamage, shooter.faction, aerial));
+                    weapon.wallDamage, shooter.faction, aerial,
+                    weapon.wallDamageRadius, /*spawnDustOnWallBreak*/ false, /*friendlyFireImmune*/ false));
         }
 
         float lifetime = weapon.flightSec > 0f ? weapon.flightSec : SHOT_LIFETIME;
