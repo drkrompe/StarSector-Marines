@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.ai;
 
 import com.dillon.starsectormarines.battle.BattleSimulation;
+import com.dillon.starsectormarines.battle.DroneHubUnit;
 import com.dillon.starsectormarines.battle.Faction;
 import com.dillon.starsectormarines.battle.PendingDetonation;
 import com.dillon.starsectormarines.battle.Projectile;
@@ -432,75 +433,90 @@ public final class TacticalScoring {
         return selfZone == targetZone ? 0f : TARGET_ZONE_MISMATCH_COST;
     }
 
-    /** Hardened target classification — counts emplacements and heavy mechs. Anything else (infantry archetypes, aliens, militia) is soft. */
-    private static boolean isHardened(Unit target) {
+    /**
+     * Hardened target classification — counts static emplacements
+     * ({@link MapTurret}, {@link DroneHubUnit}) and heavy mechs. Anything else
+     * (infantry archetypes, aliens, militia) is soft. Drives the weapon-affinity
+     * bias in {@link #findBestTarget} (rocketeers prefer hardened) and the
+     * rocket-eligibility gates in {@link com.dillon.starsectormarines.battle.ai.InfantryUnitPrep#tryOpportunityRocket}
+     * and {@link com.dillon.starsectormarines.battle.ai.goap.actions.EngagePosture} —
+     * marines burn a rocket on anything that earns the {@code vsTurretMult}
+     * (3.5×) bonus payoff.
+     */
+    public static boolean isHardened(Unit target) {
         if (target instanceof MapTurret) return true;
+        if (target instanceof DroneHubUnit) return true;
         return target.type == UnitType.HEAVY_MECH;
     }
 
     /**
-     * True when {@code shooter} carries a loaded rocket and {@code target} is a
-     * {@link MapTurret} — the one pairing where the secondary weapon is the
-     * preferred answer. Centralizes the check used by EngagePosture's act-here
-     * gate, the opportunity-rocket scan in {@code InfantryUnitPrep}, and
-     * {@link #effectiveAttackRange}.
+     * True when {@code shooter} carries a loaded rocket and {@code target} is
+     * a hardened class ({@link MapTurret}, {@link DroneHubUnit}, heavy mech) —
+     * the pairings where the rocket's {@code vsTurretMult} bonus damage pays
+     * off. Centralizes the check used by {@link #effectiveAttackRange}.
      */
-    public static boolean canRocketTurret(Unit shooter, Unit target) {
-        return target instanceof MapTurret
+    public static boolean canRocketTarget(Unit shooter, Unit target) {
+        return isHardened(target)
                 && shooter.secondaryWeapon != null
                 && shooter.secondaryAmmo > 0;
     }
 
     /**
      * Effective engagement range for {@code shooter} against {@code target} —
-     * primary range, unless the shooter can rocket the target (turret + loaded
-     * tube), in which case the rocket's longer range wins. Used by
+     * primary range, unless the shooter can rocket the target (hardened class
+     * + loaded tube), in which case the rocket's longer range wins. Used by
      * {@link com.dillon.starsectormarines.battle.ai.goap.actions.EngagePosture}'s
      * act-here gate and the firing-position picker so a rocketeer doesn't have
      * to close to rifle range before firing.
      */
     public static float effectiveAttackRange(Unit shooter, Unit target) {
-        if (canRocketTurret(shooter, target)) {
+        if (canRocketTarget(shooter, target)) {
             return Math.max(shooter.attackRange, shooter.secondaryWeapon.range);
         }
         return shooter.attackRange;
     }
 
     /**
-     * Squad-coordination gate for committing a new rocket on {@code turret}.
+     * Squad-coordination gate for committing a new rocket on {@code target}.
      * Returns {@code false} when squadmates already have enough rocket damage
      * locked in (mid-aim + inflight from the same faction) to flatten the
-     * turret — prevents the volley failure mode where a 4-man squad all fires
-     * on one Vulcan in a single tick.
+     * target — prevents the volley failure mode where a 4-man squad all fires
+     * on one Vulcan (or one mech, or one drone hub) in a single tick.
+     *
+     * <p>Caller is responsible for {@code target} being a sensible rocket
+     * target ({@link #isHardened}) — the gate doesn't re-check eligibility,
+     * just the damage projection. Pass any {@link Unit}; the per-target HP
+     * read works on the full unit hierarchy ({@code Unit.getHp()} is the
+     * canonical SoA-routed accessor for both regular units and turrets).
      *
      * <p>{@code shooter} is excluded from the projection so the same marine
      * re-checking on a later tick (after his own cooldown) isn't blocked by
      * his own prior contribution.
      */
-    public static boolean shouldCommitRocket(Unit shooter, MapTurret turret, BattleSimulation sim) {
+    public static boolean shouldCommitRocket(Unit shooter, Unit target, BattleSimulation sim) {
         if (shooter.secondaryWeapon == null || shooter.secondaryAmmo <= 0) return false;
-        if (!turret.isAlive()) return false;
-        return projectedRocketDamageOnTurret(shooter, turret, sim) < turret.getHp();
+        if (target == null || !target.isAlive()) return false;
+        return projectedRocketDamageOnTarget(shooter, target, sim) < target.getHp();
     }
 
     /**
-     * Sums committed rocket damage already inbound to {@code turret} from
+     * Sums committed rocket damage already inbound to {@code target} from
      * sources other than {@code shooter}: squadmates currently in the rocket
      * aim window, plus inflight {@link Projectile}s from the same faction
-     * whose endpoint sits within AoE of the turret cell. Used by
+     * whose endpoint sits within AoE of the target cell. Used by
      * {@link #shouldCommitRocket}.
      *
      * <p>Iterates {@code sim.getActiveProjectiles()} for the inflight half.
      * Marine handheld rockets land on the Projectile path the same way
      * locust turrets do — each in-flight rocket is a real entity owning its
      * own {@link PendingDetonation} arrival payload. Sibling marine squads
-     * firing on the same turret are counted here too (faction match), not
+     * firing on the same target are counted here too (faction match), not
      * just the shooter's squadmates whose rockets haven't launched yet.
      * Mech HE rockets (still on the legacy queueDetonation path) are
      * intentionally excluded — they don't fire {@code shouldCommitRocket}
      * and shouldn't show up here.
      */
-    private static float projectedRocketDamageOnTurret(Unit shooter, MapTurret turret, BattleSimulation sim) {
+    private static float projectedRocketDamageOnTarget(Unit shooter, Unit target, BattleSimulation sim) {
         float total = 0f;
         if (shooter.squadId != Unit.NO_SQUAD) {
             for (Unit u : sim.getUnits()) {
@@ -509,26 +525,26 @@ public final class TacticalScoring {
                 if (!u.isAlive()) continue;
                 if (u.secondaryWeapon == null) continue;
                 if (u.secondaryActionTimer <= 0f) continue;
-                if (u.secondaryAimTargetId != turret.entityId) continue;
+                if (u.secondaryAimTargetId != target.entityId) continue;
                 total += u.secondaryWeapon.damage * u.secondaryWeapon.vsTurretMult;
             }
         }
         // Inflight rocket entities owned by the sim. The Projectile carries
         // its arrival payload directly — read damage / endpoint / AoE off
-        // {@link Projectile#onArrival}. Same in-AoE-of-turret-cell filter
+        // {@link Projectile#onArrival}. Same in-AoE-of-target-cell filter
         // as the legacy snapshot path.
         //
         // Snapshot — runs during parallel UPDATE_UNITS, can't iterate the
         // live projectile list while another worker may queueProjectile.
         // Mirrors the legacy snapshotInflightDetonations path.
-        float turretCx = turret.getCellX() + 0.5f;
-        float turretCy = turret.getCellY() + 0.5f;
+        float targetCx = target.getCellX() + 0.5f;
+        float targetCy = target.getCellY() + 0.5f;
         for (Projectile p : sim.snapshotActiveProjectiles()) {
             if (p.shooterFaction != shooter.faction) continue;
             PendingDetonation det = p.onArrival;
             if (det == null) continue;
-            float dx = turretCx - det.endpointX;
-            float dy = turretCy - det.endpointY;
+            float dx = targetCx - det.endpointX;
+            float dy = targetCy - det.endpointY;
             if (dx * dx + dy * dy <= det.aoeRadius * det.aoeRadius) {
                 total += det.damage * det.vsTurretMult;
             }

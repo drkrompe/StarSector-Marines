@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.ai;
 
 import com.dillon.starsectormarines.battle.BattleSimulation;
 import com.dillon.starsectormarines.battle.Unit;
-import com.dillon.starsectormarines.battle.turret.MapTurret;
 
 import java.util.ArrayList;
 
@@ -67,18 +66,19 @@ public final class InfantryUnitPrep {
     }
 
     /**
-     * Reactive rocket-fire on a turret-of-opportunity. When the unit is mid-
-     * pathing (any posture — approach, regroup, even the engage out-of-range
-     * fallback), has a loaded rocket and an idle aim, and an enemy
-     * {@link MapTurret} sits inside rocket range with LOS, this initiates the
-     * aim window. The aim animation freezes movement (handled by
-     * {@link #tickAimAndShortCircuit} on subsequent ticks); fire resolves at
-     * the aim midpoint.
+     * Reactive rocket-fire on a hardened-target-of-opportunity. When the unit
+     * is mid-pathing (any posture — approach, regroup, even the engage
+     * out-of-range fallback), has a loaded rocket and an idle aim, and an
+     * enemy hardened target ({@link TacticalScoring#isHardened} — turrets,
+     * drone hubs, heavy mechs) sits inside rocket range with LOS, this
+     * initiates the aim window. The aim animation freezes movement (handled
+     * by {@link #tickAimAndShortCircuit} on subsequent ticks); fire resolves
+     * at the aim midpoint.
      *
      * <p>The squad-coordination gate ({@link TacticalScoring#shouldCommitRocket})
      * is what prevents the 4-marine volley failure: once one squadmate locks
-     * onto a turret, the projected damage projection blocks the rest from
-     * committing until the projection no longer kills.
+     * onto a hardened target, the projected damage projection blocks the rest
+     * from committing until the projection no longer kills.
      *
      * <p>Returns {@code true} when an aim was started (caller short-circuits the
      * rest of its tick — same convention as {@link #tickAimAndShortCircuit}).
@@ -91,30 +91,35 @@ public final class InfantryUnitPrep {
         if (unit.secondaryActionTimer > 0f) return false;
 
         float range = unit.secondaryWeapon.range;
-        MapTurret bestTurret = null;
+        // Hardened-target scan: any MapTurret, DroneHubUnit, or HEAVY_MECH in
+        // rocket range with LoS that the squad-coordination gate doesn't
+        // block. Closest one wins — tilts toward turrets / hubs (typically
+        // closer in a defensive posture) while still letting a near mech
+        // earn the shot if it's the nearest hardened threat.
+        Unit bestHardened = null;
         float bestDistSq = Float.MAX_VALUE;
         ArrayList<Unit> scratch = new ArrayList<>();
         sim.getUnitIndex().gather(unit.getCellX(), unit.getCellY(), range, scratch);
         for (int i = 0, n = scratch.size(); i < n; i++) {
             Unit other = scratch.get(i);
-            if (!(other instanceof MapTurret turret)) continue;
-            if (!turret.isAlive()) continue;
-            if (turret.faction == unit.faction) continue;
-            float dx = turret.getCellX() - unit.getCellX();
-            float dy = turret.getCellY() - unit.getCellY();
+            if (!TacticalScoring.isHardened(other)) continue;
+            if (!other.isAlive()) continue;
+            if (other.faction == unit.faction) continue;
+            float dx = other.getCellX() - unit.getCellX();
+            float dy = other.getCellY() - unit.getCellY();
             float d2 = dx * dx + dy * dy;
             if (d2 > range * range) continue;
             if (d2 >= bestDistSq) continue;
-            if (!sim.getGrid().hasLineOfSight(unit.getCellX(), unit.getCellY(), turret.getCellX(), turret.getCellY())) continue;
-            if (!TacticalScoring.shouldCommitRocket(unit, turret, sim)) continue;
-            bestTurret = turret;
+            if (!sim.getGrid().hasLineOfSight(unit.getCellX(), unit.getCellY(), other.getCellX(), other.getCellY())) continue;
+            if (!TacticalScoring.shouldCommitRocket(unit, other, sim)) continue;
+            bestHardened = other;
             bestDistSq = d2;
         }
-        if (bestTurret == null) return false;
+        if (bestHardened == null) return false;
 
         unit.secondaryActionTimer = unit.secondaryWeapon.aimDuration;
         unit.secondaryFiredThisAction = false;
-        unit.setSecondaryAimTarget(bestTurret);
+        unit.setSecondaryAimTarget(bestHardened);
         // Freeze movement state for this tick — the next tick's
         // tickAimAndShortCircuit will keep doing it. Mirrors what that method
         // does on its own entry path so the visible behavior is consistent

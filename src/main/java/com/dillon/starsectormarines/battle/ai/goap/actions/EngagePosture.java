@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.ai.goap.actions;
 
 import com.dillon.starsectormarines.battle.BattleSimulation;
-import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
 import com.dillon.starsectormarines.battle.ai.InfantryCohesion;
@@ -90,11 +89,14 @@ public final class EngagePosture implements Action {
 
         if (inRange && visible) {
             boolean startedSecondary = false;
+            // Rocket eligibility broadened from MapTurret-only to any hardened
+            // target (turrets, drone hubs, heavy mechs) — anything the rocket's
+            // vsTurretMult bonus is worth burning a tube on.
             if (member.secondaryWeapon != null && member.secondaryAmmo > 0
                     && member.secondaryCooldownTimer <= 0f
-                    && target instanceof MapTurret
+                    && TacticalScoring.isHardened(target)
                     && dist <= member.secondaryWeapon.range
-                    && TacticalScoring.shouldCommitRocket(member, (MapTurret) target, sim)) {
+                    && TacticalScoring.shouldCommitRocket(member, target, sim)) {
                 member.secondaryActionTimer = member.secondaryWeapon.aimDuration;
                 member.secondaryFiredThisAction = false;
                 member.setSecondaryAimTarget(target);
