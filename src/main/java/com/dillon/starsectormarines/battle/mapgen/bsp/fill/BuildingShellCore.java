@@ -12,7 +12,6 @@ import com.dillon.starsectormarines.battle.mapgen.BlockLeaf;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Random;
@@ -43,12 +42,6 @@ final class BuildingShellCore {
     /** Building footprints with both dimensions {@code >=} this are carved hollow. Smaller fall back to solid. Mirrors legacy. */
     static final int HOLLOW_MIN_SIZE = 4;
 
-    /**
-     * Minimum building dimension along the split axis to qualify for an
-     * interior partition wall. Mirrors legacy.
-     */
-    private static final int MULTI_ROOM_MIN_DIM = 7;
-    private static final float DEFAULT_MULTI_ROOM_CHANCE = 0.65f;
     /** Minimum dim (both axes) for a hollow building to qualify for a second perimeter doorway. */
     private static final int SECOND_DOORWAY_MIN_DIM = 5;
     /** Chance a qualifying hollow building gets a second perimeter doorway on the opposite side. */
@@ -92,7 +85,7 @@ final class BuildingShellCore {
          * whether the partition lands above, below, left, or right.
          */
         final RoomPurpose[] chamberPurposesByAnchorDistance;
-        final float multiRoomChance;
+        final PartitionStrategy partitionStrategy;
 
         BuildingConfig(GroundKind interiorGround,
                        TileManifest.TileFrame[] doodadPool,
@@ -109,7 +102,7 @@ final class BuildingShellCore {
                        BuildingKind buildingKind,
                        RoomPurpose[] chamberPurposesByAnchorDistance) {
             this(interiorGround, doodadPool, poiKind, layoutRecipe, buildingKind,
-                    chamberPurposesByAnchorDistance, DEFAULT_MULTI_ROOM_CHANCE);
+                    chamberPurposesByAnchorDistance, BinaryPartitionStrategy.DEFAULT);
         }
 
         BuildingConfig(GroundKind interiorGround,
@@ -118,14 +111,14 @@ final class BuildingShellCore {
                        BuildingLayouts.LayoutRecipe layoutRecipe,
                        BuildingKind buildingKind,
                        RoomPurpose[] chamberPurposesByAnchorDistance,
-                       float multiRoomChance) {
+                       PartitionStrategy partitionStrategy) {
             this.interiorGround = interiorGround;
             this.doodadPool = doodadPool;
             this.poiKind = poiKind;
             this.layoutRecipe = layoutRecipe;
             this.buildingKind = buildingKind;
             this.chamberPurposesByAnchorDistance = chamberPurposesByAnchorDistance;
-            this.multiRoomChance = multiRoomChance;
+            this.partitionStrategy = partitionStrategy;
         }
     }
 
@@ -207,8 +200,9 @@ final class BuildingShellCore {
         // partition (vertical wall → left/right doors; horizontal wall →
         // top/bottom doors), giving each room its own exterior access when
         // the building scores a 2nd doorway.
-        InteriorWall wall = maybeAddInteriorWall(grid, topology, bl, bt, br, bb, rng, config);
-        punchPerimeterDoorways(grid, topology, bl, bt, br, bb, wall, rng, config.interiorGround);
+        PartitionLayout layout = config.partitionStrategy.partition(
+                grid, topology, bl, bt, br, bb, rng, config.interiorGround);
+        punchPerimeterDoorways(grid, topology, bl, bt, br, bb, layout, rng, config.interiorGround);
 
         // Doodad layout — TINY buildings get sparse scatter (shed), LARGE
         // buildings apply the per-type recipe (warehouse / shop / home, etc.).
@@ -225,7 +219,7 @@ final class BuildingShellCore {
         // COMMAND config stamps THRONE on the anchor side and ENTRY on the
         // other side so post-fill stampers can identify chambers by direct
         // lookup instead of zone-graph inference.
-        labelRooms(grid, topology, bl, bt, br, bb, wall, interior, config);
+        labelRooms(grid, topology, bl, bt, br, bb, layout, interior, config);
 
         return new PointOfInterest(config.poiKind, bl, bt, br, bb,
                 anchor[0], anchor[1], interior[0], interior[1]);
@@ -247,16 +241,16 @@ final class BuildingShellCore {
      * partitions (Slice B): three chambers, anchor in one of them,
      * distances {0, 1, 2} map to {THRONE, INNER, ENTRY}. The labeling
      * function doesn't need to know how many partition walls exist — only
-     * "which chamber is this cell in" via {@link #chamberIndex} and "where
-     * is the anchor's chamber" via the same call on the anchor coords.
+     * "which chamber is this cell in" via {@link PartitionLayout#chamberIndex}
+     * and "where is the anchor's chamber" via the same call on the anchor coords.
      */
     private static void labelRooms(NavigationGrid grid, CellTopology topology,
                                    int bl, int bt, int br, int bb,
-                                   InteriorWall wall, int[] interior, BuildingConfig config) {
+                                   PartitionLayout layout, int[] interior, BuildingConfig config) {
         RoomPurpose[] purposes = config.chamberPurposesByAnchorDistance;
         if (purposes == null || purposes.length == 0) return;
 
-        int anchorChamber = chamberIndex(wall, interior[0], interior[1]);
+        int anchorChamber = layout.chamberIndex(interior[0], interior[1]);
         // Anchor on a partition axis is degenerate (BFS-from-center reached a
         // doorway or wall cell only); fall back to chamber 0 so labeling
         // still happens. Cells on the other side then take distance 1.
@@ -266,7 +260,7 @@ final class BuildingShellCore {
             for (int x = bl + 1; x <= br - 1; x++) {
                 if (!grid.isWalkable(x, y)) continue;
                 if (grid.isDoorway(x, y)) continue;
-                int chamber = chamberIndex(wall, x, y);
+                int chamber = layout.chamberIndex(x, y);
                 if (chamber < 0) continue;
                 int distance = Math.abs(chamber - anchorChamber);
                 if (distance >= purposes.length) continue;
@@ -274,21 +268,6 @@ final class BuildingShellCore {
                 if (p != null) topology.setRoomPurpose(x, y, p);
             }
         }
-    }
-
-    /**
-     * Returns the chamber index (0..N-1) for a cell given the partition, or
-     * {@code -1} when the cell sits exactly on a partition axis (wall or
-     * doorway cell). Single-chamber buildings (no partition) always return 0.
-     *
-     * <p>Generalizes to N-axis partitions in Slice B by replacing the
-     * single-axis test with a sorted-array bisect — same return contract.
-     */
-    private static int chamberIndex(InteriorWall wall, int x, int y) {
-        if (wall.orient == InteriorWallOrient.NONE) return 0;
-        int coord = (wall.orient == InteriorWallOrient.VERTICAL) ? x : y;
-        if (coord == wall.axis) return -1;
-        return coord < wall.axis ? 0 : 1;
     }
 
     /**
@@ -330,7 +309,7 @@ final class BuildingShellCore {
     /** Picks 1 or 2 perimeter doorways for a hollow building. Lifted verbatim from legacy. */
     private static void punchPerimeterDoorways(NavigationGrid grid, CellTopology topology,
                                                int bl, int bt, int br, int bb,
-                                               InteriorWall wall, Random rng, GroundKind interiorGround) {
+                                               PartitionLayout layout, Random rng, GroundKind interiorGround) {
         int w = br - bl + 1;
         int h = bb - bt + 1;
         boolean twoDoors = w >= SECOND_DOORWAY_MIN_DIM
@@ -338,54 +317,51 @@ final class BuildingShellCore {
                 && rng.nextFloat() < SECOND_DOORWAY_CHANCE;
 
         if (!twoDoors) {
-            punchDoorwayOnSide(grid, topology, bl, bt, br, bb, rng.nextInt(4), wall, rng, interiorGround);
+            punchDoorwayOnSide(grid, topology, bl, bt, br, bb, rng.nextInt(4), layout, rng, interiorGround);
             return;
         }
 
         int firstSide;
-        switch (wall.orient) {
+        switch (layout.orient) {
             case VERTICAL:   firstSide = rng.nextBoolean() ? 2 : 3; break;
             case HORIZONTAL: firstSide = rng.nextBoolean() ? 0 : 1; break;
             default:         firstSide = rng.nextInt(4);            break;
         }
-        punchDoorwayOnSide(grid, topology, bl, bt, br, bb, firstSide,     wall, rng, interiorGround);
-        punchDoorwayOnSide(grid, topology, bl, bt, br, bb, firstSide ^ 1, wall, rng, interiorGround);
+        punchDoorwayOnSide(grid, topology, bl, bt, br, bb, firstSide,     layout, rng, interiorGround);
+        punchDoorwayOnSide(grid, topology, bl, bt, br, bb, firstSide ^ 1, layout, rng, interiorGround);
     }
 
     /** Stamps a single perimeter doorway on the specified side. Lifted verbatim from legacy. */
     private static void punchDoorwayOnSide(NavigationGrid grid, CellTopology topology,
                                            int bl, int bt, int br, int bb,
-                                           int side, InteriorWall wall, Random rng,
+                                           int side, PartitionLayout layout, Random rng,
                                            GroundKind interiorGround) {
         int doorX, doorY;
         switch (side) {
             case 0:  // top
                 doorX = pickAlongRangeExcluding(bl + 1, br - 1,
-                        wall.orient == InteriorWallOrient.VERTICAL ? wall.axis : Integer.MIN_VALUE, rng);
+                        layout.orient == PartitionLayout.Orient.VERTICAL ? layout.axis : Integer.MIN_VALUE, rng);
                 doorY = bt;
                 break;
             case 1:  // bottom
                 doorX = pickAlongRangeExcluding(bl + 1, br - 1,
-                        wall.orient == InteriorWallOrient.VERTICAL ? wall.axis : Integer.MIN_VALUE, rng);
+                        layout.orient == PartitionLayout.Orient.VERTICAL ? layout.axis : Integer.MIN_VALUE, rng);
                 doorY = bb;
                 break;
             case 2:  // left
                 doorX = bl;
                 doorY = pickAlongRangeExcluding(bt + 1, bb - 1,
-                        wall.orient == InteriorWallOrient.HORIZONTAL ? wall.axis : Integer.MIN_VALUE, rng);
+                        layout.orient == PartitionLayout.Orient.HORIZONTAL ? layout.axis : Integer.MIN_VALUE, rng);
                 break;
             default: // right
                 doorX = br;
                 doorY = pickAlongRangeExcluding(bt + 1, bb - 1,
-                        wall.orient == InteriorWallOrient.HORIZONTAL ? wall.axis : Integer.MIN_VALUE, rng);
+                        layout.orient == PartitionLayout.Orient.HORIZONTAL ? layout.axis : Integer.MIN_VALUE, rng);
                 break;
         }
         grid.setWalkable(doorX, doorY, true);
         grid.setDoorway(doorX, doorY, true);
         grid.openAllEdges(doorX, doorY);
-        // Doorway always reads as interior floor underneath the overhead door
-        // overlay — even for commercial/industrial it should match the room it
-        // leads into rather than poke through to STREET.
         topology.setGroundKind(doorX, doorY, interiorGround);
     }
 
@@ -405,68 +381,6 @@ final class BuildingShellCore {
         int v = min + pick;
         if (hasExclude && v >= exclude) v += 1;
         return v;
-    }
-
-    /** Three cases the doorway pickers distinguish. */
-    private enum InteriorWallOrient { NONE, VERTICAL, HORIZONTAL }
-
-    /** Partition tag returned by {@link #maybeAddInteriorWall}. */
-    private static final class InteriorWall {
-        static final InteriorWall NONE = new InteriorWall(InteriorWallOrient.NONE, -1);
-        final InteriorWallOrient orient;
-        final int axis;
-        InteriorWall(InteriorWallOrient orient, int axis) {
-            this.orient = orient;
-            this.axis = axis;
-        }
-    }
-
-    /** Optional single-wall subdivision. Verbatim from legacy with configurable interior ground. */
-    private static InteriorWall maybeAddInteriorWall(NavigationGrid grid, CellTopology topology,
-                                                     int bl, int bt, int br, int bb, Random rng,
-                                                     BuildingConfig config) {
-        int w = br - bl + 1;
-        int h = bb - bt + 1;
-        boolean canVert  = w >= MULTI_ROOM_MIN_DIM;
-        boolean canHoriz = h >= MULTI_ROOM_MIN_DIM;
-        if (!canVert && !canHoriz) return InteriorWall.NONE;
-        if (rng.nextFloat() >= config.multiRoomChance) return InteriorWall.NONE;
-
-        boolean vertical;
-        if (canVert && canHoriz) {
-            if (w > h)      vertical = true;
-            else if (h > w) vertical = false;
-            else            vertical = rng.nextBoolean();
-        } else {
-            vertical = canVert;
-        }
-
-        if (vertical) {
-            int wx = bl + 3 + rng.nextInt(w - 6);
-            for (int y = bt + 1; y <= bb - 1; y++) {
-                grid.setWalkable(wx, y, false);
-            }
-            int dy = bt + 1 + rng.nextInt(h - 2);
-            openInteriorDoorway(grid, topology, wx, dy, config.interiorGround);
-            return new InteriorWall(InteriorWallOrient.VERTICAL, wx);
-        } else {
-            int wy = bt + 3 + rng.nextInt(h - 6);
-            for (int x = bl + 1; x <= br - 1; x++) {
-                grid.setWalkable(x, wy, false);
-            }
-            int dx = bl + 1 + rng.nextInt(w - 2);
-            openInteriorDoorway(grid, topology, dx, wy, config.interiorGround);
-            return new InteriorWall(InteriorWallOrient.HORIZONTAL, wy);
-        }
-    }
-
-    /** Restores a single partition cell to a walkable doorway with interior floor underneath. */
-    private static void openInteriorDoorway(NavigationGrid grid, CellTopology topology,
-                                            int x, int y, GroundKind interiorGround) {
-        grid.setWalkable(x, y, true);
-        grid.setDoorway(x, y, true);
-        grid.openAllEdges(x, y);
-        topology.setGroundKind(x, y, interiorGround);
     }
 
     /**

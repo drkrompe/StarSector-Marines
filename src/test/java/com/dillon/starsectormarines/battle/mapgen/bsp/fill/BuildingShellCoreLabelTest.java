@@ -25,13 +25,15 @@ public class BuildingShellCoreLabelTest {
             new BuildingShellCore.BuildingConfig(
                     GroundKind.INDOOR, TileManifest.SKYPORT_DOODADS, PointOfInterest.Kind.COMMS,
                     BuildingLayouts.LayoutRecipe.SHOP, BuildingKind.FORTIFIED,
-                    new RoomPurpose[]{RoomPurpose.KEEP_THRONE, RoomPurpose.KEEP_ENTRY}, 1.0f);
+                    new RoomPurpose[]{RoomPurpose.KEEP_THRONE, RoomPurpose.KEEP_ENTRY},
+                    new BinaryPartitionStrategy(1.0f));
 
     private static final BuildingShellCore.BuildingConfig NEVER_PARTITION_CONFIG =
             new BuildingShellCore.BuildingConfig(
                     GroundKind.INDOOR, TileManifest.SKYPORT_DOODADS, PointOfInterest.Kind.COMMS,
                     BuildingLayouts.LayoutRecipe.SHOP, BuildingKind.FORTIFIED,
-                    new RoomPurpose[]{RoomPurpose.KEEP_THRONE, RoomPurpose.KEEP_ENTRY}, 0.0f);
+                    new RoomPurpose[]{RoomPurpose.KEEP_THRONE, RoomPurpose.KEEP_ENTRY},
+                    new BinaryPartitionStrategy(0.0f));
 
     private static final BuildingShellCore.BuildingConfig PLAIN_CONFIG =
             new BuildingShellCore.BuildingConfig(
