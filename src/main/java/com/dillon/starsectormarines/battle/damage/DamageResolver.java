@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.squad.SquadMoraleSystem;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
+import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 
@@ -138,17 +139,30 @@ public final class DamageResolver {
      * Promotes the closest still-alive squadmate to leader. Returns null if
      * the squad has no other survivors — caller will see a leaderless squad
      * on the next tick and the cohesion / GOAP layers handle that gracefully.
+     *
+     * <p>Bulk SoA consumer: iterates the registry's dense array directly and
+     * reads positions from {@code cellXArray()/cellYArray()}. The dead leader
+     * is still present in the dense view at this point (we run BEFORE
+     * {@code releaseFromRegistry} in the same resolve() call) — filtered by
+     * the {@code u == deadLeader} identity check. Other dead units cannot
+     * appear: prior deaths this frame would have released themselves in
+     * their own resolve() calls.
      */
     private Unit pickPromotionCandidate(Squad squad, Unit deadLeader) {
         Unit best = null;
         float bestDistSq = Float.MAX_VALUE;
         int lx = deadLeader.getCellX();
         int ly = deadLeader.getCellY();
-        for (Unit u : units) {
-            if (u == deadLeader || !u.isAlive()) continue;
-            if (u.squadId != squad.id) continue;
-            int dx = u.getCellX() - lx;
-            int dy = u.getCellY() - ly;
+        UnitRegistry registry = roster.getRegistry();
+        Unit[] dense = registry.denseArray();
+        int[] cellX = registry.cellXArray();
+        int[] cellY = registry.cellYArray();
+        int liveCount = registry.liveCount();
+        for (int i = 0; i < liveCount; i++) {
+            Unit u = dense[i];
+            if (u == deadLeader || u.squadId != squad.id) continue;
+            int dx = cellX[i] - lx;
+            int dy = cellY[i] - ly;
             float d2 = dx * dx + dy * dy;
             if (d2 < bestDistSq) {
                 bestDistSq = d2;
