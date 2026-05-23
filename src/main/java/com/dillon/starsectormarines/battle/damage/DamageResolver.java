@@ -3,11 +3,11 @@ package com.dillon.starsectormarines.battle.damage;
 import com.dillon.starsectormarines.battle.MechLoadoutState;
 import com.dillon.starsectormarines.battle.Squad;
 import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.ai.TacticalScoring;
 import com.dillon.starsectormarines.battle.equipment.EquipmentDropService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.squad.SquadMoraleSystem;
-import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -86,7 +86,13 @@ public final class DamageResolver {
         boolean wasAlive = target.isAlive();
         int targetCover = grid.getCoverAt(target.getCellX(), target.getCellY());
         float dr = COVER_DAMAGE_REDUCTION[Math.min(targetCover, COVER_DAMAGE_REDUCTION.length - 1)];
-        float effectiveMult = (target instanceof MapTurret) ? vsTurretMult : 1f;
+        // vsTurretMult is misnamed history — it's the "vs hardened" multiplier.
+        // Honor it for every class TacticalScoring.isHardened recognizes so the
+        // AI's projectedRocketDamageOnTarget projection matches the actual HP
+        // hit (drone hubs, heavy mechs both took 1× before despite the AI
+        // assuming 3.5×, which suppressed the second/third volley rocket the
+        // squad gate actually needed). One contract, one classifier.
+        float effectiveMult = TacticalScoring.isHardened(target) ? vsTurretMult : 1f;
         target.setHp(target.getHp() - damage * effectiveMult * (1f - dr));
         boolean died = wasAlive && !target.isAlive();
         if (died) {
