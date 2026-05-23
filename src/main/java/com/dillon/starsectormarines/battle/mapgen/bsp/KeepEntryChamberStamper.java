@@ -65,10 +65,10 @@ public final class KeepEntryChamberStamper {
     /** Minimum number of labeled cells in the entry chamber for it to qualify. Single-cell pockets aren't large enough to read as a chamber; they're just irregular building geometry. */
     private static final int MIN_CHAMBER_CELLS = 3;
 
-    /** Priority for the entry-chamber INNER_POSITION — below the COMMAND_POST (95) so the allocator fills the throne-room garrison first and the chamber takes whatever remains after the doctrine-elite slot lands. Slightly above the perimeter-GUARDPOST (50) so the chamber gets manned before perimeter lookouts. */
     private static final int ENTRY_CHAMBER_PRIORITY = 60;
-    /** Garrison size for the entry chamber — antechamber-scale squad, smaller than the throne-room garrison. */
     private static final int ENTRY_CHAMBER_GARRISON = 3;
+    private static final int INNER_CHAMBER_PRIORITY = 65;
+    private static final int INNER_CHAMBER_GARRISON = 4;
 
     private KeepEntryChamberStamper() {}
 
@@ -84,60 +84,56 @@ public final class KeepEntryChamberStamper {
         List<TacticalNode> initial = new ArrayList<>(tactical);
         for (TacticalNode node : initial) {
             if (node.kind != TacticalNode.Kind.COMMAND_POST) continue;
-            int[] entryAnchor = findEntryChamberAnchor(node, grid, topology);
-            if (entryAnchor == null) continue;
-            tactical.add(new TacticalNode(TacticalNode.Kind.INNER_POSITION,
-                    entryAnchor[0], entryAnchor[1],
-                    node.left, node.top, node.right, node.bottom,
-                    Faction.DEFENDER,
-                    ENTRY_CHAMBER_PRIORITY,
-                    ENTRY_CHAMBER_GARRISON));
+            emitChamber(node, grid, topology, tactical, RoomPurpose.KEEP_INNER,
+                    INNER_CHAMBER_PRIORITY, INNER_CHAMBER_GARRISON);
+            emitChamber(node, grid, topology, tactical, RoomPurpose.KEEP_ENTRY,
+                    ENTRY_CHAMBER_PRIORITY, ENTRY_CHAMBER_GARRISON);
         }
     }
 
-    /**
-     * Walk the COMMAND_POST's leaf bbox collecting cells labeled
-     * {@link RoomPurpose#KEEP_ENTRY}. If the collected set is ≥
-     * {@link #MIN_CHAMBER_CELLS}, return the geometric centroid of the
-     * entry chamber snapped to the nearest member cell (so the anchor is
-     * itself walkable). Returns {@code null} when the building wasn't
-     * labeled (no partition, or non-keep building) or the entry chamber
-     * is too small to read as a real chamber.
-     */
-    private static int[] findEntryChamberAnchor(TacticalNode commandPost, NavigationGrid grid,
-                                                CellTopology topology) {
+    private static void emitChamber(TacticalNode commandPost,
+                                    NavigationGrid grid, CellTopology topology,
+                                    List<TacticalNode> tactical,
+                                    RoomPurpose purpose, int priority, int garrison) {
+        int[] anchor = findChamberAnchor(commandPost, grid, topology, purpose);
+        if (anchor == null) return;
+        tactical.add(new TacticalNode(TacticalNode.Kind.INNER_POSITION,
+                anchor[0], anchor[1],
+                commandPost.left, commandPost.top, commandPost.right, commandPost.bottom,
+                Faction.DEFENDER, priority, garrison));
+    }
+
+    private static int[] findChamberAnchor(TacticalNode commandPost, NavigationGrid grid,
+                                            CellTopology topology, RoomPurpose purpose) {
         int left = commandPost.left;
         int top = commandPost.top;
         int right = commandPost.right;
         int bottom = commandPost.bottom;
 
-        List<int[]> entry = new ArrayList<>();
+        List<int[]> cells = new ArrayList<>();
         long sumX = 0, sumY = 0;
         for (int y = top; y <= bottom; y++) {
             for (int x = left; x <= right; x++) {
                 if (!grid.inBounds(x, y)) continue;
-                if (topology.getRoomPurpose(x, y) != RoomPurpose.KEEP_ENTRY) continue;
+                if (topology.getRoomPurpose(x, y) != purpose) continue;
                 // Re-check walkability — the labeler skipped non-walkable cells
                 // at write time, but a downstream stamper (FortressWallStamper,
                 // DefensePostStamper, future passes) could in principle mutate
                 // a labeled cell to non-walkable. The mismatch would silently
                 // bias the centroid; cheap to defend against here.
                 if (!grid.isWalkable(x, y)) continue;
-                entry.add(new int[]{x, y});
+                cells.add(new int[]{x, y});
                 sumX += x;
                 sumY += y;
             }
         }
-        if (entry.size() < MIN_CHAMBER_CELLS) return null;
+        if (cells.size() < MIN_CHAMBER_CELLS) return null;
 
-        // Centroid, snapped to the nearest entry-chamber cell. The raw centroid
-        // can land on a wall or on the seed-room side of the partition; the
-        // snap guarantees an actual entry-chamber cell.
-        float cx = sumX / (float) entry.size();
-        float cy = sumY / (float) entry.size();
-        int[] best = entry.get(0);
+        float cx = sumX / (float) cells.size();
+        float cy = sumY / (float) cells.size();
+        int[] best = cells.get(0);
         float bestD2 = Float.MAX_VALUE;
-        for (int[] cell : entry) {
+        for (int[] cell : cells) {
             float dx = cell[0] - cx;
             float dy = cell[1] - cy;
             float d2 = dx * dx + dy * dy;

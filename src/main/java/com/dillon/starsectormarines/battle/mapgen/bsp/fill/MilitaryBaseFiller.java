@@ -70,18 +70,18 @@ public final class MilitaryBaseFiller implements CompoundFiller {
      * Keep COMMAND sub-building. Opts into {@link RoomPurpose} labeling so
      * {@link com.dillon.starsectormarines.battle.mapgen.bsp.KeepEntryChamberStamper}
      * can read chambers by label instead of inferring them from the zone
-     * graph. Distance-indexed: index 0 is the anchor's chamber
-     * ({@link RoomPurpose#KEEP_THRONE} — where the COMMAND_POST tactical
-     * node lands), index 1 is the partition-adjacent antechamber
-     * ({@link RoomPurpose#KEEP_ENTRY}). Single-room (non-partitioned)
-     * COMMAND buildings just get THRONE across the whole interior — no
-     * antechamber, no INNER_POSITION emission. Slice B's three-chamber
-     * keep extends this to {@code [THRONE, INNER, ENTRY]}.
+     * graph. Distance-indexed: index 0 = anchor's chamber (THRONE),
+     * index 1 = adjacent chamber (INNER), index 2 = far chamber (ENTRY).
+     * Uses {@link com.dillon.starsectormarines.battle.mapgen.bsp.fill.TernaryPartitionStrategy}
+     * which falls back to binary when the building is too small for three
+     * chambers — in that case only THRONE (distance 0) and INNER
+     * (distance 1) are used; ENTRY at distance 2 is unreachable.
      */
     private static final BuildingShellCore.BuildingConfig COMMAND_CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.INDOOR, TileManifest.SKYPORT_DOODADS, PointOfInterest.Kind.COMMS,
             BuildingLayouts.LayoutRecipe.SHOP, BuildingKind.FORTIFIED,
-            new RoomPurpose[]{RoomPurpose.KEEP_THRONE, RoomPurpose.KEEP_ENTRY});
+            new RoomPurpose[]{RoomPurpose.KEEP_THRONE, RoomPurpose.KEEP_INNER, RoomPurpose.KEEP_ENTRY},
+            TernaryPartitionStrategy.DEFAULT);
     private static final BuildingShellCore.BuildingConfig BARRACKS_CONFIG = new BuildingShellCore.BuildingConfig(
             GroundKind.INDOOR, TileManifest.RESIDENTIAL_DOODADS, PointOfInterest.Kind.RESIDENTIAL,
             BuildingLayouts.LayoutRecipe.HOME, BuildingKind.FORTIFIED);

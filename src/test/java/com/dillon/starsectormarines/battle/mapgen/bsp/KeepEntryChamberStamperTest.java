@@ -190,6 +190,38 @@ public class KeepEntryChamberStamperTest {
     }
 
     @Test
+    public void threeChamberKeepEmitsTwoPositions() {
+        // Three chambers: THRONE (x=10..14), INNER (x=7..9), ENTRY (x=3..6).
+        // Anchor at (12, 10) sits in THRONE. Stamper should emit one
+        // INNER_POSITION per non-throne chamber (INNER + ENTRY = 2 nodes).
+        NavigationGrid grid = openGrid();
+        CellTopology topology = new CellTopology(W, H);
+        labelRegion(topology, RoomPurpose.KEEP_THRONE, 10,  7, 14, 12);
+        labelRegion(topology, RoomPurpose.KEEP_INNER,   7,  7,  9, 12);
+        labelRegion(topology, RoomPurpose.KEEP_ENTRY,   3,  7,  6, 12);
+        TacticalNode cp = commandPost(2, 6, 15, 13, 12, 10);
+        List<TacticalNode> tactical = new ArrayList<>();
+        tactical.add(cp);
+
+        KeepEntryChamberStamper.stamp(grid, topology, tactical);
+
+        assertEquals(3, tactical.size(),
+                "3-chamber keep should emit COMMAND_POST + 2 INNER_POSITIONs");
+        TacticalNode inner = tactical.get(1);
+        TacticalNode entry = tactical.get(2);
+        assertEquals(TacticalNode.Kind.INNER_POSITION, inner.kind);
+        assertEquals(TacticalNode.Kind.INNER_POSITION, entry.kind);
+        // INNER emitted first (priority 65) — its anchor should be in x=7..9
+        assertTrue(inner.anchorX >= 7 && inner.anchorX <= 9,
+                "inner anchor x=" + inner.anchorX + " should be in INNER chamber [7..9]");
+        // ENTRY emitted second (priority 60) — its anchor should be in x=3..6
+        assertTrue(entry.anchorX >= 3 && entry.anchorX <= 6,
+                "entry anchor x=" + entry.anchorX + " should be in ENTRY chamber [3..6]");
+        assertTrue(inner.priorityScore > entry.priorityScore,
+                "INNER priority (" + inner.priorityScore + ") should exceed ENTRY (" + entry.priorityScore + ")");
+    }
+
+    @Test
     public void skipsSubMinimumChamber() {
         // Entry chamber has only 2 labeled cells (below MIN_CHAMBER_CELLS=3).
         // Even though the labels exist, the chamber's too small to read as a

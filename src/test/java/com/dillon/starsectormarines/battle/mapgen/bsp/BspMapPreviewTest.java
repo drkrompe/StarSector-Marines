@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.Doodad;
 import com.dillon.starsectormarines.battle.PointOfInterest;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.map.RoomPurpose;
 import com.dillon.starsectormarines.battle.mapgen.BiomeKind;
 import com.dillon.starsectormarines.battle.mapgen.MapDistrictTheme;
 import com.dillon.starsectormarines.battle.mapgen.MapResult;
@@ -327,6 +328,25 @@ public class BspMapPreviewTest {
                 }
             }
         }
+
+        // Pass 3b — room-purpose labels (semi-transparent overlay on keep interiors).
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.45f));
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                RoomPurpose rp = topo.getRoomPurpose(x, y);
+                if (rp == null) continue;
+                Color rc;
+                switch (rp) {
+                    case KEEP_THRONE: rc = new Color(60, 90, 180); break;
+                    case KEEP_INNER:  rc = new Color(200, 180, 60); break;
+                    case KEEP_ENTRY:  rc = new Color(180, 60, 60); break;
+                    default: continue;
+                }
+                g.setColor(rc);
+                g.fillRect(x * cellPx, (h - 1 - y) * cellPx, cellPx, cellPx);
+            }
+        }
+        g.setComposite(AlphaComposite.SrcOver);
 
         // Pass 4 — doorways (light gold dot).
         g.setColor(new Color(255, 220, 100));
