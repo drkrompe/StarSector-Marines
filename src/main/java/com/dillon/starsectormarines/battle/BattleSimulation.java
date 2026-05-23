@@ -276,6 +276,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         this.attackerIndex = new com.dillon.starsectormarines.battle.ai.AttackerIndexService(rosterService);
         this.unitUpdate = new com.dillon.starsectormarines.battle.ai.UnitUpdateSystem(
                 rosterService.getRegistry(), damageService, tickInnerProfile);
+        vision.init(grid, 256);
     }
 
     @Override public NavigationGrid getGrid() { return grid; }
@@ -1296,7 +1297,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             queueDetonation(new com.dillon.starsectormarines.battle.PendingDetonation(
                     toX, toY, flight,
                     kind.aoeRadius, kind.damage, /*vsTurretMult*/ 1f,
-                    kind.wallDamage, shooterFaction, aerialDelivery));
+                    kind.wallDamage, shooterFaction, aerialDelivery,
+                    kind.wallDamageRadius, /*spawnDustOnWallBreak*/ false, /*friendlyFireImmune*/ false));
         }
         float lifetime = kind.flightSec > 0f ? kind.flightSec : SHOT_LIFETIME;
         postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooterFaction,
@@ -1346,7 +1348,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         PendingDetonation onArrival = new PendingDetonation(
                 toX, toY, flightTime,
                 kind.aoeRadius, kind.damage, /*vsTurretMult*/ 1f,
-                kind.wallDamage, shooterFaction, aerialDelivery);
+                kind.wallDamage, shooterFaction, aerialDelivery,
+                kind.wallDamageRadius, /*spawnDustOnWallBreak*/ false, /*friendlyFireImmune*/ false);
         queueProjectile(new Projectile(fromX, fromY, toX, toY,
                 kind.hasBoostRamp(), kind.arcHeight,
                 shooterFaction, aerialDelivery, flightTime, onArrival));

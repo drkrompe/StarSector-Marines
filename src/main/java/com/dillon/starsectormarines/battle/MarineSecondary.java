@@ -16,14 +16,14 @@ import com.dillon.starsectormarines.battle.turret.MapTurret;
  * than a colored line.
  */
 public enum MarineSecondary {
-    /** Annihilator-pattern unguided rockets. Three tubes per marine, long range, huge anti-emplacement payload. Splashes 1.5 cells on detonation (friendly fire ON) and chews ~50 HP of wall per impact — two hits flattens a standard wall. */
+    /** Annihilator-pattern unguided rockets. Three tubes per marine, long range, huge anti-emplacement payload. Splashes 1.5 cells on detonation (friendly fire ON) and chews ~50 HP of wall per impact within the same 1.5-cell radius — a rocket lands in the open and still cracks walls in the splash, two hits drop a standard wall. */
     ROCKET_LAUNCHER("Annihilator Rocket Launcher",
                     "annihilator_fire",
                     "graphics/missiles/missile_annihilator.png",
                     "marines_explosion",
                     "graphics/battle/marine-rocket.png",
                     32f, 18f, 0.85f, 3.0f, 3.50f, 3, 0.50f, 0.70f, 0.65f,
-                    1.5f, 50);
+                    1.5f, 50, 1.5f);
 
     public final String displayName;
     /** Vanilla fire sound id from the source {@code .wpn}. */
@@ -50,14 +50,28 @@ public enum MarineSecondary {
     public final float aimDuration;
     /** Splash radius in cells on detonation. Every unit within this radius of the impact endpoint takes {@link #damage}, modified by cover. Friendly fire is ON — the squad pays the price for clustering near a rocket impact. */
     public final float aoeRadius;
-    /** Wall HP knocked off the endpoint cell on detonation. Walls are 100 HP default (150 in fortified bases). */
+    /**
+     * Wall HP knocked off per wall cell touched by the rocket's detonation —
+     * the rocket's penetration value against walls (which are hardened
+     * structural targets with their own HP). Walls are 100 HP default
+     * (150 in fortified bases); 50/hit means two rockets drop a standard
+     * wall, three drop a fortified one.
+     */
     public final int wallDamage;
+    /**
+     * Radius (in cells) over which {@link #wallDamage} is applied around the
+     * detonation endpoint. Set to {@link #aoeRadius} so the rocket cracks
+     * every wall cell the blast reaches — matches the player intuition that
+     * an HE rocket landing in the open between two buildings damages both
+     * walls, not just the dirt at the impact point.
+     */
+    public final float wallDamageRadius;
 
     MarineSecondary(String displayName, String fireSoundId, String projectileSpritePath, String impactSoundId,
                     String aimSpritePath,
                     float range, float damage, float accuracy, float cooldown, float vsTurretMult,
                     int startingAmmo, float projectileVisualCells, float flightSec, float aimDuration,
-                    float aoeRadius, int wallDamage) {
+                    float aoeRadius, int wallDamage, float wallDamageRadius) {
         this.displayName = displayName;
         this.fireSoundId = fireSoundId;
         this.projectileSpritePath = projectileSpritePath;
@@ -74,6 +88,7 @@ public enum MarineSecondary {
         this.aimDuration = aimDuration;
         this.aoeRadius = aoeRadius;
         this.wallDamage = wallDamage;
+        this.wallDamageRadius = wallDamageRadius;
     }
 
     /** Secondary shots are full detonations — fire burst + smoke + explosion sound. Same recipe the heavy mortar uses. */

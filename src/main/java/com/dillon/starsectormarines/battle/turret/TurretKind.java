@@ -46,7 +46,7 @@ public enum TurretKind {
                   "vulcan_cannon_fire",
                   "Vulcan Cannon",
                   22f, 1.2f, 0.45f,  1.40f, 50f, 120f, 1.6f, 0.22f, TurretRole.A2G, 120,
-                  /*burst*/ 6, 0.08f, /*aoe*/ 0.6f, /*wallDmg*/ 3,
+                  /*burst*/ 6, 0.08f, /*aoe*/ 0.6f, /*wallDmg*/ 3, /*wallDmgRadius*/ 0f,
                   /*arc*/ 0f, /*flightSec*/ 0.14f, /*hitSpread*/ 1.3f,
                   /*minRange*/ 0f, /*smokeTrail*/ false, /*raycastShots*/ true),
     /** Mid-range autocannon — balanced workhorse. */
@@ -91,7 +91,7 @@ public enum TurretKind {
                   "light_mortar_fire",
                   "Grenade Launcher",
                   28f,  4.0f, 0.55f,  4.00f, 70f,  80f, 1.7f, 0.55f, TurretRole.A2G,  60,
-                  /*burst*/ 4, 0.18f, /*aoe*/ 1.5f, /*wallDmg*/ 30,
+                  /*burst*/ 4, 0.18f, /*aoe*/ 1.5f, /*wallDmg*/ 30, /*wallDmgRadius*/ 1.5f,
                   /*arc*/ 2.5f, /*flightSec*/ 0.65f, /*hitSpread*/ 0.6f,
                   /*minRange*/ 5f, /*smokeTrail*/ true),
     /**
@@ -120,7 +120,7 @@ public enum TurretKind {
                   "swarmer_fire",
                   "Locust Rocket Battery",
                   100f, 5.0f, 0.25f,  10.00f, 80f,  50f, 2.0f, 0.45f, TurretRole.A2G,  30,
-                  /*burst*/ 8, 0.08f, /*aoe*/ 1.4f, /*wallDmg*/ 20,
+                  /*burst*/ 8, 0.08f, /*aoe*/ 1.4f, /*wallDmg*/ 20, /*wallDmgRadius*/ 1.4f,
                   /*arc*/ 3.5f, /*flightSec*/ 1.50f, /*hitSpread*/ 8.0f,
                   /*minRange*/ 30f, /*smokeTrail*/ true,
                   /*raycastShots*/ false,
@@ -138,7 +138,7 @@ public enum TurretKind {
                   "autocannon_fire",
                   "Heavy MG",
                   24f,  2.5f, 0.50f,  2.20f, 65f, 110f, 1.6f, 0.22f, TurretRole.A2G, 200,
-                  /*burst*/ 10, 0.07f, /*aoe*/ 0.8f, /*wallDmg*/ 5,
+                  /*burst*/ 10, 0.07f, /*aoe*/ 0.8f, /*wallDmg*/ 5, /*wallDmgRadius*/ 0f,
                   /*arc*/ 0f, /*flightSec*/ 0.18f, /*hitSpread*/ 2.0f,
                   /*minRange*/ 3f, /*smokeTrail*/ false);
 
@@ -191,8 +191,27 @@ public enum TurretKind {
      * at the projectile's endpoint instead of resolving damage at fire time.
      */
     public final float aoeRadius;
-    /** Wall HP knocked off the endpoint cell on detonation. {@code 0} = non-structural. */
+    /**
+     * Wall HP knocked off per wall cell touched by this kind's detonation —
+     * the per-weapon "penetration" knob. Walls are hardened structural targets
+     * with their own HP; this is what a single hit chips off. Whether a hit
+     * reaches a given wall is governed by {@link #wallDamageRadius}.
+     * {@code 0} = non-structural (round doesn't touch walls at all).
+     */
     public final int wallDamage;
+    /**
+     * Radius (in cells) over which {@link #wallDamage} is applied around the
+     * detonation endpoint. {@code 0} = endpoint-only (round chips the literal
+     * wall it lands on, if any — almost never hits anything since the endpoint
+     * is a unit's cell, which is walkable). {@code > 0} = HE-crater behavior:
+     * every wall cell within radius of the detonation takes {@link #wallDamage}.
+     *
+     * <p>Set on kinds that conceptually crater the area on detonation (HE
+     * artillery: locust, grenade launcher). Kinetic-splash kinds (vulcan,
+     * heavy MG) leave it {@code 0} — a stray autocannon round catching two
+     * marines is the AoE intent, not a wall-flattener.
+     */
+    public final float wallDamageRadius;
     /**
      * Visual parabola peak in cells. {@code > 0} draws the projectile arcing
      * above the straight-line lerp; the sim's hit roll is unchanged. Used by
@@ -254,7 +273,7 @@ public enum TurretKind {
         this(spritePath, recoilSpritePath, projectileSpritePath, fireSoundId, displayName,
                 range, damage, accuracy, cooldown, maxHp, turnRateDegPerSec, visualCells, projectileVisualCells,
                 role, startingAmmo,
-                /*burstCount*/ 1, /*burstSpacing*/ 0f, /*aoeRadius*/ 0f, /*wallDamage*/ 0,
+                /*burstCount*/ 1, /*burstSpacing*/ 0f, /*aoeRadius*/ 0f, /*wallDamage*/ 0, /*wallDamageRadius*/ 0f,
                 /*arcHeight*/ 0f, /*flightSec*/ 0f, /*hitSpread*/ 0f, /*minRange*/ 0f,
                 /*smokeTrail*/ false, /*raycastShots*/ false,
                 /*indirectFire*/ false, /*noLosAccuracyMult*/ 1.0f);
@@ -265,13 +284,13 @@ public enum TurretKind {
                float range, float damage, float accuracy, float cooldown,
                float maxHp, float turnRateDegPerSec, float visualCells, float projectileVisualCells,
                TurretRole role, int startingAmmo,
-               int burstCount, float burstSpacing, float aoeRadius, int wallDamage,
+               int burstCount, float burstSpacing, float aoeRadius, int wallDamage, float wallDamageRadius,
                float arcHeight, float flightSec, float hitSpread, float minRange,
                boolean smokeTrail) {
         this(spritePath, recoilSpritePath, projectileSpritePath, fireSoundId, displayName,
                 range, damage, accuracy, cooldown, maxHp, turnRateDegPerSec, visualCells, projectileVisualCells,
                 role, startingAmmo,
-                burstCount, burstSpacing, aoeRadius, wallDamage,
+                burstCount, burstSpacing, aoeRadius, wallDamage, wallDamageRadius,
                 arcHeight, flightSec, hitSpread, minRange, smokeTrail,
                 /*raycastShots*/ false,
                 /*indirectFire*/ false, /*noLosAccuracyMult*/ 1.0f);
@@ -282,13 +301,13 @@ public enum TurretKind {
                float range, float damage, float accuracy, float cooldown,
                float maxHp, float turnRateDegPerSec, float visualCells, float projectileVisualCells,
                TurretRole role, int startingAmmo,
-               int burstCount, float burstSpacing, float aoeRadius, int wallDamage,
+               int burstCount, float burstSpacing, float aoeRadius, int wallDamage, float wallDamageRadius,
                float arcHeight, float flightSec, float hitSpread, float minRange,
                boolean smokeTrail, boolean raycastShots) {
         this(spritePath, recoilSpritePath, projectileSpritePath, fireSoundId, displayName,
                 range, damage, accuracy, cooldown, maxHp, turnRateDegPerSec, visualCells, projectileVisualCells,
                 role, startingAmmo,
-                burstCount, burstSpacing, aoeRadius, wallDamage,
+                burstCount, burstSpacing, aoeRadius, wallDamage, wallDamageRadius,
                 arcHeight, flightSec, hitSpread, minRange, smokeTrail, raycastShots,
                 /*indirectFire*/ false, /*noLosAccuracyMult*/ 1.0f);
     }
@@ -298,7 +317,7 @@ public enum TurretKind {
                float range, float damage, float accuracy, float cooldown,
                float maxHp, float turnRateDegPerSec, float visualCells, float projectileVisualCells,
                TurretRole role, int startingAmmo,
-               int burstCount, float burstSpacing, float aoeRadius, int wallDamage,
+               int burstCount, float burstSpacing, float aoeRadius, int wallDamage, float wallDamageRadius,
                float arcHeight, float flightSec, float hitSpread, float minRange,
                boolean smokeTrail, boolean raycastShots,
                boolean indirectFire, float noLosAccuracyMult) {
@@ -321,6 +340,7 @@ public enum TurretKind {
         this.burstSpacing = burstSpacing;
         this.aoeRadius = aoeRadius;
         this.wallDamage = wallDamage;
+        this.wallDamageRadius = wallDamageRadius;
         this.arcHeight = arcHeight;
         this.flightSec = flightSec;
         this.hitSpread = hitSpread;
