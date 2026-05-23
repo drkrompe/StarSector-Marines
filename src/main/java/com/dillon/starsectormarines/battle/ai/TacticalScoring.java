@@ -506,15 +506,15 @@ public final class TacticalScoring {
      * whose endpoint sits within AoE of the target cell. Used by
      * {@link #shouldCommitRocket}.
      *
-     * <p>Iterates {@code sim.getActiveProjectiles()} for the inflight half.
-     * Marine handheld rockets land on the Projectile path the same way
-     * locust turrets do — each in-flight rocket is a real entity owning its
-     * own {@link PendingDetonation} arrival payload. Sibling marine squads
-     * firing on the same target are counted here too (faction match), not
-     * just the shooter's squadmates whose rockets haven't launched yet.
-     * Mech HE rockets (still on the legacy queueDetonation path) are
-     * intentionally excluded — they don't fire {@code shouldCommitRocket}
-     * and shouldn't show up here.
+     * <p>Iterates {@code sim.snapshotActiveProjectiles()} for the inflight
+     * half. Every HE rocket-class weapon in the codebase rides the Projectile
+     * entity model (locust + grenade-launcher turrets, marine handheld rocket,
+     * mech SRM_POD + LRM_ARTILLERY) — each in-flight round is a real entity
+     * owning its own {@link PendingDetonation} arrival payload. Sibling squads
+     * + cross-class fires from the same faction (a same-faction mech and a
+     * marine rocketeer both targeting one turret) are all counted here via
+     * the faction match. The squad-aim-window pre-fire half above remains
+     * squadId-gated so a sibling squad's pre-launch aim isn't double-counted.
      */
     private static float projectedRocketDamageOnTarget(Unit shooter, Unit target, BattleSimulation sim) {
         float total = 0f;
