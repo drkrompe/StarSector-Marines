@@ -18,8 +18,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class BuildingShellCoreLabelTest {
 
-    private static final int W = 24;
-    private static final int H = 24;
+    private static final int W = 30;
+    private static final int H = 30;
 
     private static final BuildingShellCore.BuildingConfig ALWAYS_PARTITION_CONFIG =
             new BuildingShellCore.BuildingConfig(
@@ -34,6 +34,20 @@ public class BuildingShellCoreLabelTest {
                     BuildingLayouts.LayoutRecipe.SHOP, BuildingKind.FORTIFIED,
                     new RoomPurpose[]{RoomPurpose.KEEP_THRONE, RoomPurpose.KEEP_ENTRY},
                     new BinaryPartitionStrategy(0.0f));
+
+    private static final BuildingShellCore.BuildingConfig TERNARY_CONFIG =
+            new BuildingShellCore.BuildingConfig(
+                    GroundKind.INDOOR, TileManifest.SKYPORT_DOODADS, PointOfInterest.Kind.COMMS,
+                    BuildingLayouts.LayoutRecipe.SHOP, BuildingKind.FORTIFIED,
+                    new RoomPurpose[]{RoomPurpose.KEEP_THRONE, RoomPurpose.KEEP_INNER, RoomPurpose.KEEP_ENTRY},
+                    new TernaryPartitionStrategy(1.0f));
+
+    private static final BuildingShellCore.BuildingConfig TERNARY_FALLBACK_CONFIG =
+            new BuildingShellCore.BuildingConfig(
+                    GroundKind.INDOOR, TileManifest.SKYPORT_DOODADS, PointOfInterest.Kind.COMMS,
+                    BuildingLayouts.LayoutRecipe.SHOP, BuildingKind.FORTIFIED,
+                    new RoomPurpose[]{RoomPurpose.KEEP_THRONE, RoomPurpose.KEEP_INNER, RoomPurpose.KEEP_ENTRY},
+                    new TernaryPartitionStrategy(1.0f));
 
     private static final BuildingShellCore.BuildingConfig PLAIN_CONFIG =
             new BuildingShellCore.BuildingConfig(
@@ -91,6 +105,79 @@ public class BuildingShellCoreLabelTest {
         assertEquals(0, entry, "single-room carve must not stamp any ENTRY labels");
         assertTrue(throne >= 20,
                 "single-room carve should label most interior cells THRONE, got " + throne);
+    }
+
+    @Test
+    public void ternaryCarveStampsThreeChambers() {
+        NavigationGrid grid = openGrid();
+        CellTopology topology = new CellTopology(W, H);
+        // 18×10 building — long axis (18) qualifies for ternary (MIN_DIM_LONG=14)
+        BlockLeaf b = leaf(2, 5, 19, 14);
+        BuildingShellCore.carve(b, grid, topology, new ArrayList<>(),
+                new Random(42), TERNARY_CONFIG);
+
+        int throne = 0, inner = 0, entry = 0;
+        for (int y = 5; y <= 14; y++) {
+            for (int x = 2; x <= 19; x++) {
+                RoomPurpose p = topology.getRoomPurpose(x, y);
+                if (p == RoomPurpose.KEEP_THRONE) throne++;
+                if (p == RoomPurpose.KEEP_INNER) inner++;
+                if (p == RoomPurpose.KEEP_ENTRY) entry++;
+            }
+        }
+        assertTrue(throne >= 3, "ternary: throne has " + throne + " cells (expected ≥3)");
+        assertTrue(inner >= 3, "ternary: inner has " + inner + " cells (expected ≥3)");
+        assertTrue(entry >= 3, "ternary: entry has " + entry + " cells (expected ≥3)");
+    }
+
+    @Test
+    public void ternaryRobustAcrossSeeds() {
+        for (long seed = 0; seed < 50; seed++) {
+            NavigationGrid grid = openGrid();
+            CellTopology topology = new CellTopology(W, H);
+            BlockLeaf b = leaf(2, 5, 19, 14);
+            BuildingShellCore.carve(b, grid, topology, new ArrayList<>(),
+                    new Random(seed), TERNARY_CONFIG);
+
+            int throne = 0, inner = 0, entry = 0;
+            for (int y = 5; y <= 14; y++) {
+                for (int x = 2; x <= 19; x++) {
+                    RoomPurpose p = topology.getRoomPurpose(x, y);
+                    if (p == RoomPurpose.KEEP_THRONE) throne++;
+                    if (p == RoomPurpose.KEEP_INNER) inner++;
+                    if (p == RoomPurpose.KEEP_ENTRY) entry++;
+                }
+            }
+            assertTrue(throne >= 3, "seed " + seed + ": throne=" + throne);
+            assertTrue(inner >= 3, "seed " + seed + ": inner=" + inner);
+            assertTrue(entry >= 3, "seed " + seed + ": entry=" + entry);
+        }
+    }
+
+    @Test
+    public void ternaryFallsBackToBinaryWhenTooSmall() {
+        NavigationGrid grid = openGrid();
+        CellTopology topology = new CellTopology(W, H);
+        // 11×11 building — long axis (11) is below MIN_DIM_LONG (14),
+        // so ternary falls back to binary. With [THRONE, INNER, ENTRY]
+        // purposes, binary produces chambers at distance 0 (THRONE)
+        // and distance 1 (INNER); ENTRY is never used.
+        BlockLeaf b = leaf(4, 4, 14, 14);
+        BuildingShellCore.carve(b, grid, topology, new ArrayList<>(),
+                new Random(0), TERNARY_FALLBACK_CONFIG);
+
+        int throne = 0, inner = 0, entry = 0;
+        for (int y = 4; y <= 14; y++) {
+            for (int x = 4; x <= 14; x++) {
+                RoomPurpose p = topology.getRoomPurpose(x, y);
+                if (p == RoomPurpose.KEEP_THRONE) throne++;
+                if (p == RoomPurpose.KEEP_INNER) inner++;
+                if (p == RoomPurpose.KEEP_ENTRY) entry++;
+            }
+        }
+        assertTrue(throne >= 3, "fallback: throne has " + throne + " cells (expected ≥3)");
+        assertTrue(inner >= 3, "fallback: inner has " + inner + " cells (expected ≥3)");
+        assertEquals(0, entry, "fallback to binary should not reach distance 2 (ENTRY)");
     }
 
     @Test

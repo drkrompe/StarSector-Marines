@@ -50,7 +50,7 @@ final class BinaryPartitionStrategy implements PartitionStrategy {
             }
             int dy = bt + 1 + rng.nextInt(h - 2);
             openInteriorDoorway(grid, topology, wx, dy, interiorGround);
-            return new PartitionLayout(PartitionLayout.Orient.VERTICAL, wx);
+            return new PartitionLayout(PartitionLayout.Orient.VERTICAL, new int[]{wx});
         } else {
             int wy = bt + 3 + rng.nextInt(h - 6);
             for (int x = bl + 1; x <= br - 1; x++) {
@@ -58,7 +58,7 @@ final class BinaryPartitionStrategy implements PartitionStrategy {
             }
             int dx = bl + 1 + rng.nextInt(w - 2);
             openInteriorDoorway(grid, topology, dx, wy, interiorGround);
-            return new PartitionLayout(PartitionLayout.Orient.HORIZONTAL, wy);
+            return new PartitionLayout(PartitionLayout.Orient.HORIZONTAL, new int[]{wy});
         }
     }
 

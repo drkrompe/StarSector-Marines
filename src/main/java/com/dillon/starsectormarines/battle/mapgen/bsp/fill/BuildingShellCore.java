@@ -331,32 +331,32 @@ final class BuildingShellCore {
         punchDoorwayOnSide(grid, topology, bl, bt, br, bb, firstSide ^ 1, layout, rng, interiorGround);
     }
 
-    /** Stamps a single perimeter doorway on the specified side. Lifted verbatim from legacy. */
+    /** Stamps a single perimeter doorway on the specified side. */
     private static void punchDoorwayOnSide(NavigationGrid grid, CellTopology topology,
                                            int bl, int bt, int br, int bb,
                                            int side, PartitionLayout layout, Random rng,
                                            GroundKind interiorGround) {
+        int[] excluded = (side <= 1)
+                ? (layout.orient == PartitionLayout.Orient.VERTICAL   ? layout.axes : NO_EXCLUDES)
+                : (layout.orient == PartitionLayout.Orient.HORIZONTAL ? layout.axes : NO_EXCLUDES);
+
         int doorX, doorY;
         switch (side) {
             case 0:  // top
-                doorX = pickAlongRangeExcluding(bl + 1, br - 1,
-                        layout.orient == PartitionLayout.Orient.VERTICAL ? layout.axis : Integer.MIN_VALUE, rng);
+                doorX = pickAlongRange(bl + 1, br - 1, excluded, rng);
                 doorY = bt;
                 break;
             case 1:  // bottom
-                doorX = pickAlongRangeExcluding(bl + 1, br - 1,
-                        layout.orient == PartitionLayout.Orient.VERTICAL ? layout.axis : Integer.MIN_VALUE, rng);
+                doorX = pickAlongRange(bl + 1, br - 1, excluded, rng);
                 doorY = bb;
                 break;
             case 2:  // left
                 doorX = bl;
-                doorY = pickAlongRangeExcluding(bt + 1, bb - 1,
-                        layout.orient == PartitionLayout.Orient.HORIZONTAL ? layout.axis : Integer.MIN_VALUE, rng);
+                doorY = pickAlongRange(bt + 1, bb - 1, excluded, rng);
                 break;
             default: // right
                 doorX = br;
-                doorY = pickAlongRangeExcluding(bt + 1, bb - 1,
-                        layout.orient == PartitionLayout.Orient.HORIZONTAL ? layout.axis : Integer.MIN_VALUE, rng);
+                doorY = pickAlongRange(bt + 1, bb - 1, excluded, rng);
                 break;
         }
         grid.setWalkable(doorX, doorY, true);
@@ -365,22 +365,27 @@ final class BuildingShellCore {
         topology.setGroundKind(doorX, doorY, interiorGround);
     }
 
+    private static final int[] NO_EXCLUDES = new int[0];
+
     /** Delegates to {@link WallMasks#stampPerimeter} — shared with the preview-test render path. */
     private static void stampPerimeterMask(CellTopology topology,
                                            int bl, int bt, int br, int bb) {
         WallMasks.stampPerimeter(topology, bl, bt, br, bb);
     }
 
-    /** Uniformly-random int in {@code [min, max]} skipping {@code exclude}. Verbatim from legacy. */
-    private static int pickAlongRangeExcluding(int min, int max, int exclude, Random rng) {
-        int size = max - min + 1;
-        boolean hasExclude = exclude >= min && exclude <= max;
-        if (hasExclude) size -= 1;
+    /** Uniformly-random int in {@code [min, max]} skipping any values in {@code excludes}. */
+    private static int pickAlongRange(int min, int max, int[] excludes, Random rng) {
+        int excludeCount = 0;
+        for (int e : excludes) {
+            if (e >= min && e <= max) excludeCount++;
+        }
+        int size = max - min + 1 - excludeCount;
         if (size <= 0) return min;
-        int pick = rng.nextInt(size);
-        int v = min + pick;
-        if (hasExclude && v >= exclude) v += 1;
-        return v;
+        int pick = min + rng.nextInt(size);
+        for (int e : excludes) {
+            if (e >= min && e <= max && pick >= e) pick++;
+        }
+        return pick;
     }
 
     /**
