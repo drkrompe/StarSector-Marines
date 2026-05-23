@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
+import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -334,27 +335,36 @@ public final class TacticalScoring {
     private static Unit findBestTargetImpl(int selfCellX, int selfCellY, Faction selfFaction,
                                             int selfSquadId, Unit excludeFromCrowding,
                                             float shooterAirRadius, BattleSimulation sim, boolean allowNoLos) {
-        List<Unit> units = sim.getUnits();
+        // SoA consumer: dense iteration over [0, liveCount()) implicitly
+        // excludes released slots (no isAlive() filter inside the loop), and
+        // cellX/cellY reads stream from the int[] arrays in tandem.
+        UnitRegistry registry = sim.getUnitRegistry();
+        Unit[] dense = registry.denseArray();
+        int[] cellX = registry.cellXArray();
+        int[] cellY = registry.cellYArray();
+        int liveCount = registry.liveCount();
         NavigationGrid grid = sim.getGrid();
         Unit best = null;
         float bestScore = Float.MAX_VALUE;
         Unit bestAny = null;
         float bestAnyDist = Float.MAX_VALUE;
 
-        for (Unit other : units) {
-            if (!other.isAlive()) continue;
+        for (int i = 0; i < liveCount; i++) {
+            Unit other = dense[i];
             if (other.faction == selfFaction) continue;
             // Civilians and other non-combatants don't draw fire — they're
             // bystanders. A separate "rules of engagement" toggle could relax
             // this for pirate atrocity scenarios later.
             if (!other.type.combatant) continue;
 
-            float d = cellDistance(selfCellX, selfCellY, other.getCellX(), other.getCellY());
+            int ox = cellX[i];
+            int oy = cellY[i];
+            float d = cellDistance(selfCellX, selfCellY, ox, oy);
             if (d < bestAnyDist) {
                 bestAnyDist = d;
                 bestAny = other;
             }
-            boolean visible = canSeePair(grid, selfCellX, selfCellY, other.getCellX(), other.getCellY(),
+            boolean visible = canSeePair(grid, selfCellX, selfCellY, ox, oy,
                     shooterAirRadius, other.airLosRadius);
             if (!visible && !allowNoLos) continue;
             float crowding = scoreCrowding(selfFaction, selfSquadId, other, sim, excludeFromCrowding);
@@ -584,13 +594,20 @@ public final class TacticalScoring {
         // into that costs more than the dropped target is worth.
         int r2 = THREAT_DENSITY_RADIUS * THREAT_DENSITY_RADIUS;
         int density = 0;
-        for (Unit other : sim.getUnits()) {
+        UnitRegistry registry = sim.getUnitRegistry();
+        Unit[] dense = registry.denseArray();
+        int[] cellX = registry.cellXArray();
+        int[] cellY = registry.cellYArray();
+        int liveCount = registry.liveCount();
+        int tx = currentTarget.getCellX();
+        int ty = currentTarget.getCellY();
+        for (int i = 0; i < liveCount; i++) {
+            Unit other = dense[i];
             if (other == currentTarget) continue;
-            if (!other.isAlive()) continue;
             if (other.faction == self.faction) continue;
             if (!other.type.combatant) continue;
-            int dx = other.getCellX() - currentTarget.getCellX();
-            int dy = other.getCellY() - currentTarget.getCellY();
+            int dx = cellX[i] - tx;
+            int dy = cellY[i] - ty;
             if (dx * dx + dy * dy <= r2) {
                 density++;
                 if (density > 1) return false;
@@ -609,12 +626,22 @@ public final class TacticalScoring {
         Unit best = null;
         float bestDist = Float.MAX_VALUE;
         NavigationGrid grid = sim.getGrid();
-        for (Unit u : sim.getUnits()) {
+        UnitRegistry registry = sim.getUnitRegistry();
+        Unit[] dense = registry.denseArray();
+        int[] cellX = registry.cellXArray();
+        int[] cellY = registry.cellYArray();
+        int liveCount = registry.liveCount();
+        int sx = self.getCellX();
+        int sy = self.getCellY();
+        for (int i = 0; i < liveCount; i++) {
+            Unit u = dense[i];
             if (u == exclude || u == self) continue;
-            if (!u.isAlive() || u.faction == self.faction || !u.type.combatant) continue;
-            if (!canSeePair(grid, self.getCellX(), self.getCellY(), u.getCellX(), u.getCellY(),
+            if (u.faction == self.faction || !u.type.combatant) continue;
+            int ux = cellX[i];
+            int uy = cellY[i];
+            if (!canSeePair(grid, sx, sy, ux, uy,
                     self.airLosRadius, u.airLosRadius)) continue;
-            float d = cellDistance(self.getCellX(), self.getCellY(), u.getCellX(), u.getCellY());
+            float d = cellDistance(sx, sy, ux, uy);
             if (d < bestDist) {
                 bestDist = d;
                 best = u;
@@ -1264,11 +1291,17 @@ public final class TacticalScoring {
     private static int[] averageEnemyCell(Unit self, BattleSimulation sim) {
         float sumX = 0f, sumY = 0f;
         int count = 0;
-        for (Unit u : sim.getUnits()) {
-            if (!u.isAlive() || u.faction == self.faction) continue;
+        UnitRegistry registry = sim.getUnitRegistry();
+        Unit[] dense = registry.denseArray();
+        int[] cellX = registry.cellXArray();
+        int[] cellY = registry.cellYArray();
+        int liveCount = registry.liveCount();
+        for (int i = 0; i < liveCount; i++) {
+            Unit u = dense[i];
+            if (u.faction == self.faction) continue;
             if (!u.type.combatant) continue;
-            sumX += u.getCellX();
-            sumY += u.getCellY();
+            sumX += cellX[i];
+            sumY += cellY[i];
             count++;
         }
         if (count == 0) return null;
@@ -1285,9 +1318,14 @@ public final class TacticalScoring {
     private static int[] computeZoneControl(Unit self, BattleSimulation sim) {
         ZoneGraph zones = sim.getZoneGraph();
         int[] control = new int[zones.getZones().size()];
-        for (Unit u : sim.getUnits()) {
-            if (!u.isAlive()) continue;
-            int zid = zones.zoneIdAt(u.getCellX(), u.getCellY());
+        UnitRegistry registry = sim.getUnitRegistry();
+        Unit[] dense = registry.denseArray();
+        int[] cellX = registry.cellXArray();
+        int[] cellY = registry.cellYArray();
+        int liveCount = registry.liveCount();
+        for (int i = 0; i < liveCount; i++) {
+            Unit u = dense[i];
+            int zid = zones.zoneIdAt(cellX[i], cellY[i]);
             if (zid < 0 || zid >= control.length) continue;
             control[zid] += (u.faction == self.faction) ? 1 : -1;
         }

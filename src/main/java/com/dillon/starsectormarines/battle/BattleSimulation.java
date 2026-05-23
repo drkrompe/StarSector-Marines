@@ -31,6 +31,7 @@ import com.dillon.starsectormarines.battle.tactical.TacticalMap;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.vision.VisionService;
 import com.dillon.starsectormarines.battle.weapons.Detonations;
@@ -420,6 +421,16 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     public byte[] getOccupancyMap()        { return occupancyMap; }
     /** Bucketed spatial index over alive units. Rebuilt at the top of each tick by {@link #tick()}. */
     public UnitSpatialIndex getUnitIndex() { return unitIndex; }
+    /**
+     * Dense entity registry for SoA consumers — bulk readers that want to
+     * iterate {@code [0, liveCount())} over {@link UnitRegistry#denseArray()}
+     * and pull cellX/cellY/hp/maxHp from the parallel primitive arrays.
+     * Same registry instance {@link #targetOf(Unit)} and the spatial-index
+     * rebuilds already use; exposed here so static scorers (TacticalScoring,
+     * etc.) can match the established consumer pattern without threading
+     * the roster service through every helper signature.
+     */
+    public UnitRegistry getUnitRegistry() { return rosterService.getRegistry(); }
     /**
      * Resolves a unit's {@link Unit#targetId} to the current target reference,
      * or {@code null} when the target was released / never set. Short delegate
