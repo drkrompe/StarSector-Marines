@@ -73,9 +73,17 @@ public class Unit {
      */
     public final Random rng = new Random();
 
-    // Logical cell (pathfinder sees these).
-    public int cellX;
-    public int cellY;
+    /**
+     * <b>Don't read directly.</b> Logical-cell pre-allocate seed +
+     * post-release snapshot, same lifecycle as {@link #localHp}. Canonical
+     * storage between allocate and release lives in
+     * {@code registry.cellXArray()[denseIdx]} / {@code cellYArray()[denseIdx]};
+     * go through {@link #getCellX} / {@link #getCellY} / {@link #setCellPos}.
+     * Public for the same sibling-package seeding/snapshot reason as
+     * {@code localHp}.
+     */
+    public int localCellX;
+    public int localCellY;
 
     // Smooth render position in cell units. Equals (cellX, cellY) at rest.
     public float renderX;
@@ -297,8 +305,8 @@ public class Unit {
         this.id = id;
         this.faction = faction;
         this.type = type;
-        this.cellX = cellX;
-        this.cellY = cellY;
+        this.localCellX = cellX;
+        this.localCellY = cellY;
         this.renderX = cellX;
         this.renderY = cellY;
         this.moveSpeed = type.moveSpeed;
@@ -342,5 +350,30 @@ public class Unit {
     public final void setMaxHp(float v) {
         if (registry != null) registry.setMaxHp(denseIdx, v);
         else localMaxHp = v;
+    }
+
+    // Logical-cell accessors. Same shape as hp/maxHp: registry routes when
+    // allocated, local field pre-/post-allocate. Final for CHA monomorphism.
+    public final int getCellX() {
+        return (registry != null) ? registry.getCellX(denseIdx) : localCellX;
+    }
+
+    public final int getCellY() {
+        return (registry != null) ? registry.getCellY(denseIdx) : localCellY;
+    }
+
+    /**
+     * Set both cell coordinates in one call. Every callsite in the codebase
+     * writes the pair together (movement step, drone-body sync), so the
+     * paired setter matches the access pattern and lets the registry hit
+     * both SoA slots without a second method dispatch.
+     */
+    public final void setCellPos(int x, int y) {
+        if (registry != null) {
+            registry.setCell(denseIdx, x, y);
+        } else {
+            localCellX = x;
+            localCellY = y;
+        }
     }
 }

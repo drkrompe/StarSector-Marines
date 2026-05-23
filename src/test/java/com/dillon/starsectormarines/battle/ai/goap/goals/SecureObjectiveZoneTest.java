@@ -214,8 +214,7 @@ public class SecureObjectiveZoneTest {
         // Advance objective progress past its duration so isComplete() flips true.
         for (Unit u : sim.getUnits()) {
             if (u.role == UnitRole.PLANTER) {
-                u.cellX = 8;
-                u.cellY = 3;
+                u.setCellPos(8, 3);
                 u.moveProgress = 0f;
             }
         }

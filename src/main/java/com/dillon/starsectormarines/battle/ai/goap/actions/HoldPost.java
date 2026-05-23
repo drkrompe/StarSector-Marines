@@ -56,8 +56,8 @@ public final class HoldPost implements Action {
 
     @Override
     public ActionStatus execute(Unit member, Squad squad, BattleSimulation sim) {
-        int homeX = member.homeCellX >= 0 ? member.homeCellX : member.cellX;
-        int homeY = member.homeCellY >= 0 ? member.homeCellY : member.cellY;
+        int homeX = member.homeCellX >= 0 ? member.homeCellX : member.getCellX();
+        int homeY = member.homeCellY >= 0 ? member.homeCellY : member.getCellY();
 
         // Squad retreating to a new post — every member walks home regardless
         // of alert level. updateSquadFallback drops the flag once everyone
@@ -88,11 +88,11 @@ public final class HoldPost implements Action {
     private static ActionStatus executeWithTarget(Unit member, Unit target, BattleSimulation sim, int homeX, int homeY) {
         if (member.cooldownTimer > 0f) member.cooldownTimer -= BattleSimulation.TICK_DT;
 
-        float dist = TacticalScoring.cellDistance(member.cellX, member.cellY,
-                target.cellX, target.cellY);
+        float dist = TacticalScoring.cellDistance(member.getCellX(), member.getCellY(),
+                target.getCellX(), target.getCellY());
         boolean inRange = dist <= member.attackRange;
-        boolean visible = sim.getGrid().hasLineOfSight(member.cellX, member.cellY,
-                target.cellX, target.cellY);
+        boolean visible = sim.getGrid().hasLineOfSight(member.getCellX(), member.getCellY(),
+                target.getCellX(), target.getCellY());
 
         if (inRange && visible) {
             if (member.cooldownTimer <= 0f) {
@@ -118,7 +118,7 @@ public final class HoldPost implements Action {
                         member, target, sim, homeX, homeY, HOLD_RADIUS);
             }
         }
-        if (firingPos == null || (firingPos[0] == member.cellX && firingPos[1] == member.cellY)) {
+        if (firingPos == null || (firingPos[0] == member.getCellX() && firingPos[1] == member.getCellY())) {
             hold(member, sim);
             return ActionStatus.RUNNING;
         }
@@ -141,7 +141,7 @@ public final class HoldPost implements Action {
     }
 
     private static ActionStatus returnToHome(Unit member, BattleSimulation sim, int homeX, int homeY) {
-        if (member.cellX == homeX && member.cellY == homeY) {
+        if (member.getCellX() == homeX && member.getCellY() == homeY) {
             hold(member, sim);
             return ActionStatus.RUNNING;
         }
@@ -152,21 +152,21 @@ public final class HoldPost implements Action {
     private static void moveToward(Unit member, BattleSimulation sim, int tx, int ty) {
         if (member.moveProgress == 0f && member.pathIdx >= member.pathCellCount()) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                    member.cellX, member.cellY, tx, ty, sim.getOccupancyMap()));
+                    member.getCellX(), member.getCellY(), tx, ty, sim.getOccupancyMap()));
         }
         if (member.pathIdx < member.pathCellCount()) {
             sim.advanceMovement(member);
         } else {
             member.moveProgress = 0f;
-            member.renderX = member.cellX;
-            member.renderY = member.cellY;
+            member.renderX = member.getCellX();
+            member.renderY = member.getCellY();
         }
     }
 
     private static void hold(Unit member, BattleSimulation sim) {
         sim.clearPath(member);
         member.moveProgress = 0f;
-        member.renderX = member.cellX;
-        member.renderY = member.cellY;
+        member.renderX = member.getCellX();
+        member.renderY = member.getCellY();
     }
 }

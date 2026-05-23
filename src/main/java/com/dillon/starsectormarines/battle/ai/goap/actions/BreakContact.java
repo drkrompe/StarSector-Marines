@@ -51,14 +51,14 @@ public final class BreakContact implements Action {
             member.fallbackCellY = dest[1];
         }
 
-        boolean atDest = member.cellX == member.fallbackCellX
-                      && member.cellY == member.fallbackCellY;
+        boolean atDest = member.getCellX() == member.fallbackCellX
+                      && member.getCellY() == member.fallbackCellY;
         if (!atDest) {
             // Transit — opportunistic suppression while pulling back.
             opportunisticFire(member, sim, FireStance.MOVING);
             if (member.moveProgress == 0f) {
                 sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                        member.cellX, member.cellY,
+                        member.getCellX(), member.getCellY(),
                         member.fallbackCellX, member.fallbackCellY,
                         sim.getOccupancyMap()));
             }
@@ -67,8 +67,8 @@ public final class BreakContact implements Action {
             // In position — hold and fire stanced at anything that drifts in.
             if (!member.pathEmpty()) sim.clearPath(member);
             member.moveProgress = 0f;
-            member.renderX = member.cellX;
-            member.renderY = member.cellY;
+            member.renderX = member.getCellX();
+            member.renderY = member.getCellY();
             opportunisticFire(member, sim, FireStance.STANCED);
         }
         return ActionStatus.RUNNING;
@@ -88,11 +88,11 @@ public final class BreakContact implements Action {
             member.setTarget(target);
         }
         if (target == null || member.cooldownTimer > 0f) return;
-        float d = TacticalScoring.cellDistance(member.cellX, member.cellY,
-                target.cellX, target.cellY);
+        float d = TacticalScoring.cellDistance(member.getCellX(), member.getCellY(),
+                target.getCellX(), target.getCellY());
         if (d > member.attackRange) return;
-        if (!sim.getGrid().hasLineOfSight(member.cellX, member.cellY,
-                target.cellX, target.cellY)) return;
+        if (!sim.getGrid().hasLineOfSight(member.getCellX(), member.getCellY(),
+                target.getCellX(), target.getCellY())) return;
         sim.fireShot(member, target, stance);
         member.cooldownTimer = member.attackCooldown;
         member.beginBurst(target);

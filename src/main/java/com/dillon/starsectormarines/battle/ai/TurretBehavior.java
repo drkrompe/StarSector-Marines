@@ -49,10 +49,10 @@ public final class TurretBehavior implements UnitBehavior {
         }
 
         TurretAim.State s = new TurretAim.State();
-        s.originCellX = t.cellX;
-        s.originCellY = t.cellY;
-        s.originX = t.cellX + 0.5f;
-        s.originY = t.cellY + 0.5f;
+        s.originCellX = t.getCellX();
+        s.originCellY = t.getCellY();
+        s.originX = t.getCellX() + 0.5f;
+        s.originY = t.getCellY() + 0.5f;
         s.faction = t.faction;
         s.squadId = t.squadId;
         s.excludeFromCrowding = t;
@@ -83,8 +83,8 @@ public final class TurretBehavior implements UnitBehavior {
                 // the burst started, LoS was good; the renderer keeps firing
                 // even if LoS breaks mid-burst, matching the existing behavior.
                 boolean hasLos = sim.getGrid().hasLineOfSight(
-                        t.cellX, t.cellY, currentBurstTarget.cellX, currentBurstTarget.cellY);
-                sim.fireShotFrom(t.cellX + 0.5f, t.cellY + 0.5f, t.faction, t.kind, currentBurstTarget,
+                        t.getCellX(), t.getCellY(), currentBurstTarget.getCellX(), currentBurstTarget.getCellY());
+                sim.fireShotFrom(t.getCellX() + 0.5f, t.getCellY() + 0.5f, t.faction, t.kind, currentBurstTarget,
                         /*aerialShooter*/ false, hasLos);
                 t.recoilTimer = 0f;
                 t.burstRemaining--;
@@ -99,7 +99,7 @@ public final class TurretBehavior implements UnitBehavior {
                 // Burst kinds route through fireShotFrom so the scatter / AoE /
                 // raycast pipeline applies. Latch the remaining rounds for the
                 // pump to drain.
-                sim.fireShotFrom(t.cellX + 0.5f, t.cellY + 0.5f, t.faction, t.kind, s.target,
+                sim.fireShotFrom(t.getCellX() + 0.5f, t.getCellY() + 0.5f, t.faction, t.kind, s.target,
                         /*aerialShooter*/ false, s.lastFireHadLos);
                 t.recoilTimer = 0f;
                 if (s.target != null) {

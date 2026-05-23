@@ -270,8 +270,8 @@ public final class SquadMoraleSystem {
                 Unit member = dense[i];
                 // Dense iteration excludes released units — no isAlive() needed.
                 if (member.squadId != sq.id) continue;
-                float dx = shot.toX - (member.cellX + 0.5f);
-                float dy = shot.toY - (member.cellY + 0.5f);
+                float dx = shot.toX - (member.getCellX() + 0.5f);
+                float dy = shot.toY - (member.getCellY() + 0.5f);
                 if (dx * dx + dy * dy <= NEAR_MISS_RADIUS_SQ) return sq;
             }
         }

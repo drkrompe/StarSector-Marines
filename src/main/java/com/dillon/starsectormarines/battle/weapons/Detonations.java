@@ -100,13 +100,13 @@ public class Detonations {
                 // rockets / mech weapons leave the flag false so FF stays on
                 // by default — players deciding to fire those have aim control.
                 if (det.friendlyFireImmune && u.faction == det.shooterFaction) continue;
-                float dx = (u.cellX + 0.5f) - det.endpointX;
-                float dy = (u.cellY + 0.5f) - det.endpointY;
+                float dx = (u.getCellX() + 0.5f) - det.endpointX;
+                float dy = (u.getCellY() + 0.5f) - det.endpointY;
                 if (dx * dx + dy * dy > r2) continue;
                 // LOS from the detonation cell to the victim cell. Walls
                 // between block the splash — gives marines hiding behind
                 // walls a real reason to stay there.
-                if (!ctx.getGrid().hasLineOfSight(targetCx, targetCy, u.cellX, u.cellY)) continue;
+                if (!ctx.getGrid().hasLineOfSight(targetCx, targetCy, u.getCellX(), u.getCellY())) continue;
                 // Intact roof shields the unit from aerial splash. Binary —
                 // caving the roof first (same detonation or a prior one) is
                 // the tactical prerequisite to actually hurting the units
@@ -114,8 +114,8 @@ public class Detonations {
                 // shuttle / fighter) — a ground rocket through a doorway
                 // explodes INSIDE the room and damages the interior normally.
                 if (det.aerialDelivery
-                        && topology.getBuildingId(u.cellX, u.cellY) != 0
-                        && !topology.isRoofDestroyed(u.cellX, u.cellY)) continue;
+                        && topology.getBuildingId(u.getCellX(), u.getCellY()) != 0
+                        && !topology.isRoofDestroyed(u.getCellX(), u.getCellY())) continue;
                 ctx.applyDamage(u, det.damage, det.vsTurretMult);
             }
             // Roof cave-in: every building cell within the same AoE that

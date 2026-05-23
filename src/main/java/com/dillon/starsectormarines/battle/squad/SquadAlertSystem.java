@@ -128,8 +128,8 @@ public final class SquadAlertSystem {
             Squad squad = roster.getSquad(u.squadId);
             if (squad == null) continue;
             squad.aliveMembers++;
-            squad.centroidX += u.cellX;
-            squad.centroidY += u.cellY;
+            squad.centroidX += u.getCellX();
+            squad.centroidY += u.getCellY();
             if (u.fallbackTimer > 0f) squad._suspiciousThisTick = true;
 
             // Kill-zone LOS scan for garrison squads only. Looks for ANY
@@ -141,10 +141,10 @@ public final class SquadAlertSystem {
                 for (Unit other : units) {
                     if (!other.isAlive() || other.faction == squad.faction) continue;
                     if (!other.type.combatant) continue;
-                    int dx = other.cellX - u.cellX;
-                    int dy = other.cellY - u.cellY;
+                    int dx = other.getCellX() - u.getCellX();
+                    int dy = other.getCellY() - u.getCellY();
                     if (dx * dx + dy * dy > KILL_ZONE_RANGE_CELLS * KILL_ZONE_RANGE_CELLS) continue;
-                    if (!TacticalScoring.canSeePair(grid, u.cellX, u.cellY, other.cellX, other.cellY,
+                    if (!TacticalScoring.canSeePair(grid, u.getCellX(), u.getCellY(), other.getCellX(), other.getCellY(),
                             u.airLosRadius, other.airLosRadius)) continue;
                     squad._killZoneSightedThisTick = true;
                     break;
@@ -157,11 +157,11 @@ public final class SquadAlertSystem {
             for (Unit other : units) {
                 if (!other.isAlive() || other.faction == squad.faction) continue;
                 if (!other.type.combatant) continue;
-                if (!TacticalScoring.canSeePair(grid, u.cellX, u.cellY, other.cellX, other.cellY,
+                if (!TacticalScoring.canSeePair(grid, u.getCellX(), u.getCellY(), other.getCellX(), other.getCellY(),
                         u.airLosRadius, other.airLosRadius)) continue;
                 squad._engagedThisTick = true;
-                squad.lastSeenEnemyX = other.cellX;
-                squad.lastSeenEnemyY = other.cellY;
+                squad.lastSeenEnemyX = other.getCellX();
+                squad.lastSeenEnemyY = other.getCellY();
                 break;
             }
         }
@@ -178,8 +178,8 @@ public final class SquadAlertSystem {
                 if (squad == null || squad._engagedThisTick || squad._suspiciousThisTick) continue;
                 for (ShotEvent shot : activeShots) {
                     if (shot.shooterFaction == squad.faction) continue;
-                    float dx = shot.fromX - (u.cellX + 0.5f);
-                    float dy = shot.fromY - (u.cellY + 0.5f);
+                    float dx = shot.fromX - (u.getCellX() + 0.5f);
+                    float dy = shot.fromY - (u.getCellY() + 0.5f);
                     if (dx * dx + dy * dy <= GUNFIRE_ALERT_RADIUS * GUNFIRE_ALERT_RADIUS) {
                         squad._suspiciousThisTick = true;
                         squad.lastSeenEnemyX = Math.round(shot.fromX);
@@ -204,14 +204,14 @@ public final class SquadAlertSystem {
                 if (squad._underFireAtLosThisTick) continue;
                 for (ShotEvent shot : activeShots) {
                     if (shot.shooterFaction == squad.faction) continue;
-                    float dx = shot.toX - (u.cellX + 0.5f);
-                    float dy = shot.toY - (u.cellY + 0.5f);
+                    float dx = shot.toX - (u.getCellX() + 0.5f);
+                    float dy = shot.toY - (u.getCellY() + 0.5f);
                     // Same 2-cell-squared "shot landed near me" gate the
                     // predicate evaluator uses — keeps the two paths in sync.
                     if (dx * dx + dy * dy > 4f) continue;
                     int fromCellX = (int) Math.floor(shot.fromX);
                     int fromCellY = (int) Math.floor(shot.fromY);
-                    if (grid.hasLineOfSight(u.cellX, u.cellY, fromCellX, fromCellY)) {
+                    if (grid.hasLineOfSight(u.getCellX(), u.getCellY(), fromCellX, fromCellY)) {
                         squad._underFireAtLosThisTick = true;
                         break;
                     }

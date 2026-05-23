@@ -151,11 +151,11 @@ public final class NavigationService {
         for (int i = 0, n = units.size(); i < n; i++) {
             Unit u = units.get(i);
             if (!u.isAlive()) continue;
-            incrementOccupancy(u.cellX, u.cellY);
+            incrementOccupancy(u.getCellX(), u.getCellY());
             int destX = pathDestX(u);
             if (destX != Integer.MIN_VALUE) {
                 int destY = pathDestY(u);
-                if (destX != u.cellX || destY != u.cellY) {
+                if (destX != u.getCellX() || destY != u.getCellY()) {
                     incrementOccupancy(destX, destY);
                 }
             }

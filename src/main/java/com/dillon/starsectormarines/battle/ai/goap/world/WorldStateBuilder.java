@@ -149,7 +149,7 @@ public final class WorldStateBuilder {
             if (!enemy.type.combatant) continue;
             if (enemy.faction == squad.faction) continue;
             for (Unit member : members) {
-                if (grid.hasLineOfSight(member.cellX, member.cellY, enemy.cellX, enemy.cellY)) return true;
+                if (grid.hasLineOfSight(member.getCellX(), member.getCellY(), enemy.getCellX(), enemy.getCellY())) return true;
             }
         }
         return false;
@@ -162,7 +162,7 @@ public final class WorldStateBuilder {
             for (Unit enemy : units) {
                 if (!enemy.isAlive() || !enemy.type.combatant) continue;
                 if (enemy.faction == squad.faction) continue;
-                float d = TacticalScoring.cellDistance(member.cellX, member.cellY, enemy.cellX, enemy.cellY);
+                float d = TacticalScoring.cellDistance(member.getCellX(), member.getCellY(), enemy.getCellX(), enemy.getCellY());
                 if (d <= member.attackRange) return true;
             }
         }
@@ -206,8 +206,8 @@ public final class WorldStateBuilder {
         float r2 = InfantryCohesion.COHESION_RADIUS * InfantryCohesion.COHESION_RADIUS;
         for (Unit u : sim.getUnits()) {
             if (!u.isAlive() || u.squadId != squad.id) continue;
-            float dx = u.cellX - squad.centroidX;
-            float dy = u.cellY - squad.centroidY;
+            float dx = u.getCellX() - squad.centroidX;
+            float dy = u.getCellY() - squad.centroidY;
             if (dx * dx + dy * dy > r2) return false;
         }
         return true;
@@ -243,7 +243,7 @@ public final class WorldStateBuilder {
         for (Unit u : sim.getUnits()) {
             if (!u.isAlive() || !u.type.combatant) continue;
             if (u.faction == squad.faction) continue;
-            if (u.cellX == dwX && u.cellY == dwY) return true;
+            if (u.getCellX() == dwX && u.getCellY() == dwY) return true;
         }
         return false;
     }
@@ -286,10 +286,10 @@ public final class WorldStateBuilder {
             for (Unit enemy : units) {
                 if (!enemy.isAlive() || !enemy.type.combatant) continue;
                 if (enemy.faction == squad.faction) continue;
-                int dx = enemy.cellX - member.cellX;
-                int dy = enemy.cellY - member.cellY;
+                int dx = enemy.getCellX() - member.getCellX();
+                int dy = enemy.getCellY() - member.getCellY();
                 if (dx * dx + dy * dy > range2) continue;
-                if (grid.hasLineOfSight(member.cellX, member.cellY, enemy.cellX, enemy.cellY)) {
+                if (grid.hasLineOfSight(member.getCellX(), member.getCellY(), enemy.getCellX(), enemy.getCellY())) {
                     return true;
                 }
             }
@@ -323,14 +323,14 @@ public final class WorldStateBuilder {
             if (shot.shooterFaction == squad.faction) continue;
             for (Unit member : units) {
                 if (!member.isAlive() || member.squadId != squad.id) continue;
-                float dx = shot.toX - (member.cellX + 0.5f);
-                float dy = shot.toY - (member.cellY + 0.5f);
+                float dx = shot.toX - (member.getCellX() + 0.5f);
+                float dy = shot.toY - (member.getCellY() + 0.5f);
                 if (dx * dx + dy * dy > 4f) continue; // 2 cells squared
-                // Shot fromX/fromY are cell-centers (shooter.cellX + 0.5);
+                // Shot fromX/fromY are cell-centers (shooter.getCellX() + 0.5);
                 // floor recovers the integer cell.
                 int fromCellX = (int) Math.floor(shot.fromX);
                 int fromCellY = (int) Math.floor(shot.fromY);
-                if (grid.hasLineOfSight(member.cellX, member.cellY, fromCellX, fromCellY)) {
+                if (grid.hasLineOfSight(member.getCellX(), member.getCellY(), fromCellX, fromCellY)) {
                     return true;
                 }
             }

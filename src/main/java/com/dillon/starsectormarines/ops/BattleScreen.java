@@ -3063,8 +3063,8 @@ public class BattleScreen implements Screen, BattleUiContext {
                 ROAD_FILL.getBlue() / 255f, alphaMult);
         for (Unit u : units) {
             if (!(u instanceof MapTurret) || !u.isAlive()) continue;
-            float x0 = camera.cellToScreenX(u.cellX);
-            float y0 = camera.cellToScreenY(u.cellY);
+            float x0 = camera.cellToScreenX(u.getCellX());
+            float y0 = camera.cellToScreenY(u.getCellY());
             glVertex2f(x0,          y0);
             glVertex2f(x0 + cellPx, y0);
             glVertex2f(x0 + cellPx, y0 + cellPx);
@@ -3093,8 +3093,8 @@ public class BattleScreen implements Screen, BattleUiContext {
                 renderTurretQuadFallback(t, cellPx * UNIT_FRAC, alphaMult);
                 continue;
             }
-            float cx = camera.cellToScreenX(t.cellX + 0.5f);
-            float cy = camera.cellToScreenY(t.cellY + 0.5f);
+            float cx = camera.cellToScreenX(t.getCellX() + 0.5f);
+            float cy = camera.cellToScreenY(t.getCellY() + 0.5f);
 
             // Barrel layer (below body). Shifted backward when in recoil window.
             // Driven by recoilTimer (sim-seconds since last fired round) rather
@@ -3156,8 +3156,8 @@ public class BattleScreen implements Screen, BattleUiContext {
                 ROAD_FILL.getBlue() / 255f, alphaMult);
         for (Unit u : units) {
             if (!(u instanceof com.dillon.starsectormarines.battle.DroneHubUnit) || !u.isAlive()) continue;
-            float x0 = camera.cellToScreenX(u.cellX);
-            float y0 = camera.cellToScreenY(u.cellY);
+            float x0 = camera.cellToScreenX(u.getCellX());
+            float y0 = camera.cellToScreenY(u.getCellY());
             glVertex2f(x0,          y0);
             glVertex2f(x0 + cellPx, y0);
             glVertex2f(x0 + cellPx, y0 + cellPx);
@@ -3170,8 +3170,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         float visual = com.dillon.starsectormarines.battle.DroneHubUnit.VISUAL_CELLS;
         for (Unit u : units) {
             if (!(u instanceof com.dillon.starsectormarines.battle.DroneHubUnit) || !u.isAlive()) continue;
-            float cx = camera.cellToScreenX(u.cellX + 0.5f);
-            float cy = camera.cellToScreenY(u.cellY + 0.5f);
+            float cx = camera.cellToScreenX(u.getCellX() + 0.5f);
+            float cy = camera.cellToScreenY(u.getCellY() + 0.5f);
             drawTurretLayer(droneHubSprite, /*facingDegrees=*/ 0f, visual, cellPx, cx, cy, alphaMult);
         }
         droneHubSprite.sprite.setAngle(0f);
@@ -3252,8 +3252,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         glBegin(GL_QUADS);
         glColor4f(DEFENDER_COLOR.getRed() / 255f, DEFENDER_COLOR.getGreen() / 255f,
                 DEFENDER_COLOR.getBlue() / 255f, alphaMult);
-        float cx = camera.cellToScreenX(t.cellX + 0.5f);
-        float cy = camera.cellToScreenY(t.cellY + 0.5f);
+        float cx = camera.cellToScreenX(t.getCellX() + 0.5f);
+        float cy = camera.cellToScreenY(t.getCellY() + 0.5f);
         glVertex2f(cx - half, cy - half);
         glVertex2f(cx + half, cy - half);
         glVertex2f(cx + half, cy + half);
@@ -3954,13 +3954,13 @@ public class BattleScreen implements Screen, BattleUiContext {
     private static Facing computeFacing(Unit u, BattleSimulation sim) {
         Unit target = sim != null ? sim.targetOf(u) : null;
         if (target != null) {
-            int dx = target.cellX - u.cellX;
-            int dy = target.cellY - u.cellY;
+            int dx = target.getCellX() - u.getCellX();
+            int dy = target.getCellY() - u.getCellY();
             if (dx != 0 || dy != 0) return facingFromDelta(dx, dy);
         }
         if (u.pathIdx < u.pathCellCount()) {
-            int dx = u.pathCellX(u.pathIdx) - u.cellX;
-            int dy = u.pathCellY(u.pathIdx) - u.cellY;
+            int dx = u.pathCellX(u.pathIdx) - u.getCellX();
+            int dy = u.pathCellY(u.pathIdx) - u.getCellY();
             if (dx != 0 || dy != 0) return facingFromDelta(dx, dy);
         }
         return Facing.SOUTH;
@@ -4003,13 +4003,13 @@ public class BattleScreen implements Screen, BattleUiContext {
     private static EightWayFacing computeEightWayFacing(Unit u, BattleSimulation sim) {
         Unit target = sim != null ? sim.targetOf(u) : null;
         if (target != null) {
-            int dx = target.cellX - u.cellX;
-            int dy = target.cellY - u.cellY;
+            int dx = target.getCellX() - u.getCellX();
+            int dy = target.getCellY() - u.getCellY();
             if (dx != 0 || dy != 0) return eightWayFromDelta(dx, dy);
         }
         if (u.pathIdx < u.pathCellCount()) {
-            int dx = u.pathCellX(u.pathIdx) - u.cellX;
-            int dy = u.pathCellY(u.pathIdx) - u.cellY;
+            int dx = u.pathCellX(u.pathIdx) - u.getCellX();
+            int dy = u.pathCellY(u.pathIdx) - u.getCellY();
             if (dx != 0 || dy != 0) return eightWayFromDelta(dx, dy);
         }
         return EightWayFacing.S;

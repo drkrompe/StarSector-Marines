@@ -77,7 +77,7 @@ public final class GarrisonCordon implements Action {
             slots.add(new RoleAssigner.Slot<>(
                     post.slotName(),
                     1,
-                    c -> -TacticalScoring.cellDistance(c.cellX, c.cellY, post.cellX, post.cellY)));
+                    c -> -TacticalScoring.cellDistance(c.getCellX(), c.getCellY(), post.cellX, post.cellY)));
         }
         return slots;
     }
@@ -103,12 +103,12 @@ public final class GarrisonCordon implements Action {
      * between bursts so they don't drift off-post.
      */
     private ActionStatus executeHolder(Unit member, HoldPortalCordon.GuardPost post, BattleSimulation sim) {
-        boolean atPost = (member.cellX == post.cellX && member.cellY == post.cellY);
+        boolean atPost = (member.getCellX() == post.cellX && member.getCellY() == post.cellY);
         if (!atPost) {
             opportunisticFire(member, sim, FireStance.MOVING);
             if (member.moveProgress == 0f) {
                 sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                        member.cellX, member.cellY, post.cellX, post.cellY,
+                        member.getCellX(), member.getCellY(), post.cellX, post.cellY,
                         sim.getOccupancyMap()));
             }
             sim.advanceMovement(member);
@@ -116,8 +116,8 @@ public final class GarrisonCordon implements Action {
         }
         if (!member.pathEmpty()) sim.clearPath(member);
         member.moveProgress = 0f;
-        member.renderX = member.cellX;
-        member.renderY = member.cellY;
+        member.renderX = member.getCellX();
+        member.renderY = member.getCellY();
         opportunisticFire(member, sim, FireStance.STANCED);
         return ActionStatus.RUNNING;
     }
@@ -136,11 +136,11 @@ public final class GarrisonCordon implements Action {
             member.setTarget(target);
         }
         if (target == null || member.cooldownTimer > 0f) return;
-        float d = TacticalScoring.cellDistance(member.cellX, member.cellY,
-                target.cellX, target.cellY);
+        float d = TacticalScoring.cellDistance(member.getCellX(), member.getCellY(),
+                target.getCellX(), target.getCellY());
         if (d > member.attackRange) return;
-        if (!sim.getGrid().hasLineOfSight(member.cellX, member.cellY,
-                target.cellX, target.cellY)) return;
+        if (!sim.getGrid().hasLineOfSight(member.getCellX(), member.getCellY(),
+                target.getCellX(), target.getCellY())) return;
         sim.fireShot(member, target, stance);
         member.cooldownTimer = member.attackCooldown;
         member.beginBurst(target);

@@ -73,7 +73,7 @@ public final class FleeBehavior implements UnitBehavior {
         if (needsRepath && u.moveProgress == 0f) {
             int[] dest = pickFleeDestination(u, threat, sim);
             if (dest != null) {
-                sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), u.cellX, u.cellY, dest[0], dest[1], sim.getOccupancyMap()));
+                sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), u.getCellX(), u.getCellY(), dest[0], dest[1], sim.getOccupancyMap()));
             }
         }
         sim.advanceMovement(u);
@@ -96,8 +96,8 @@ public final class FleeBehavior implements UnitBehavior {
 
         if (u.wanderDwellTimer > 0f) {
             u.wanderDwellTimer -= BattleSimulation.TICK_DT;
-            u.renderX = u.cellX;
-            u.renderY = u.cellY;
+            u.renderX = u.getCellX();
+            u.renderY = u.getCellY();
             u.moveProgress = 0f;
             return;
         }
@@ -108,7 +108,7 @@ public final class FleeBehavior implements UnitBehavior {
             u.wanderDwellTimer = FAILED_SAMPLE_DWELL;
             return;
         }
-        sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), u.cellX, u.cellY, dest[0], dest[1], sim.getOccupancyMap()));
+        sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), u.getCellX(), u.getCellY(), dest[0], dest[1], sim.getOccupancyMap()));
         if (u.pathEmpty()) {
             // Pathfinder found no route (isolated room, blocked by walls). Dwell briefly and try elsewhere.
             u.wanderDwellTimer = FAILED_SAMPLE_DWELL;
@@ -128,7 +128,7 @@ public final class FleeBehavior implements UnitBehavior {
         for (Unit u : sim.getUnits()) {
             if (!u.isAlive() || u == self) continue;
             if (!u.type.combatant) continue;
-            float d = TacticalScoring.cellDistance(self.cellX, self.cellY, u.cellX, u.cellY);
+            float d = TacticalScoring.cellDistance(self.getCellX(), self.getCellY(), u.getCellX(), u.getCellY());
             if (d <= bestDist) {
                 bestDist = d;
                 best = u;
@@ -146,8 +146,8 @@ public final class FleeBehavior implements UnitBehavior {
      */
     private static int[] pickFleeDestination(Unit self, Unit threat, BattleSimulation sim) {
         NavigationGrid grid = sim.getGrid();
-        float dx = self.cellX - threat.cellX;
-        float dy = self.cellY - threat.cellY;
+        float dx = self.getCellX() - threat.getCellX();
+        float dy = self.getCellY() - threat.getCellY();
         float len = (float) Math.sqrt(dx * dx + dy * dy);
         if (len < 0.001f) {
             // Threat is on the same cell (rare). Pick a random cardinal away.
@@ -161,11 +161,11 @@ public final class FleeBehavior implements UnitBehavior {
         int[] best = null;
         int maxSteps = Math.max(grid.getWidth(), grid.getHeight());
         for (int step = 1; step <= maxSteps; step++) {
-            int cx = self.cellX + Math.round(nx * step);
-            int cy = self.cellY + Math.round(ny * step);
+            int cx = self.getCellX() + Math.round(nx * step);
+            int cy = self.getCellY() + Math.round(ny * step);
             if (!grid.inBounds(cx, cy)) break;
             if (!grid.isWalkable(cx, cy)) break;
-            float distFromThreat = TacticalScoring.cellDistance(cx, cy, threat.cellX, threat.cellY);
+            float distFromThreat = TacticalScoring.cellDistance(cx, cy, threat.getCellX(), threat.getCellY());
             if (distFromThreat >= MIN_DISTANCE_FROM_THREAT) {
                 best = new int[]{cx, cy};
             }
@@ -187,11 +187,11 @@ public final class FleeBehavior implements UnitBehavior {
             int dx = rng.nextInt(span) - WANDER_MAX_RADIUS;
             int dy = rng.nextInt(span) - WANDER_MAX_RADIUS;
             if (Math.abs(dx) + Math.abs(dy) < WANDER_MIN_RADIUS) continue;
-            int cx = u.cellX + dx;
-            int cy = u.cellY + dy;
+            int cx = u.getCellX() + dx;
+            int cy = u.getCellY() + dy;
             if (!grid.inBounds(cx, cy)) continue;
             if (!grid.isWalkable(cx, cy)) continue;
-            if (cx == u.cellX && cy == u.cellY) continue;
+            if (cx == u.getCellX() && cy == u.getCellY()) continue;
             return new int[]{cx, cy};
         }
         return null;

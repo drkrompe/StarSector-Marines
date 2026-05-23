@@ -116,8 +116,8 @@ public class BreakLOSTest {
                 "arrived → BreakLOS returns SUCCESS so the plan advances and the next replan can pick Overwatch/Engage");
         assertTrue(marine.pathEmpty(), "arrived → no path");
         assertEquals(0f, marine.moveProgress, 1e-6f);
-        assertEquals(marine.cellX, marine.renderX, 1e-6f);
-        assertEquals(marine.cellY, marine.renderY, 1e-6f);
+        assertEquals(marine.getCellX(), marine.renderX, 1e-6f);
+        assertEquals(marine.getCellY(), marine.renderY, 1e-6f);
     }
 
     @Test

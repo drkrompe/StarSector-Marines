@@ -64,11 +64,11 @@ public final class ApproachPosture implements Action {
         }
         if (target == null) return ActionStatus.FAILURE;
 
-        float dist = TacticalScoring.cellDistance(member.cellX, member.cellY,
-                target.cellX, target.cellY);
+        float dist = TacticalScoring.cellDistance(member.getCellX(), member.getCellY(),
+                target.getCellX(), target.getCellY());
         boolean inRange = dist <= member.attackRange;
-        boolean visible = sim.getGrid().hasLineOfSight(member.cellX, member.cellY,
-                target.cellX, target.cellY);
+        boolean visible = sim.getGrid().hasLineOfSight(member.getCellX(), member.getCellY(),
+                target.getCellX(), target.getCellY());
         if (inRange && visible) return ActionStatus.SUCCESS;
 
         if (member.moveProgress == 0f) {
@@ -85,7 +85,7 @@ public final class ApproachPosture implements Action {
                 return ActionStatus.RUNNING;
             }
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                    member.cellX, member.cellY, dest[0], dest[1], sim.getOccupancyMap()));
+                    member.getCellX(), member.getCellY(), dest[0], dest[1], sim.getOccupancyMap()));
         }
         sim.advanceMovement(member);
 

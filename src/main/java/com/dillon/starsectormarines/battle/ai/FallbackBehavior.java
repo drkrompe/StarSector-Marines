@@ -22,15 +22,15 @@ public final class FallbackBehavior implements UnitBehavior {
         u.fallbackTimer -= BattleSimulation.TICK_DT;
         int fx = u.fallbackCellX;
         int fy = u.fallbackCellY;
-        if (u.cellX == fx && u.cellY == fy) {
+        if (u.getCellX() == fx && u.getCellY() == fy) {
             sim.clearPath(u);
             u.moveProgress = 0f;
-            u.renderX = u.cellX;
-            u.renderY = u.cellY;
+            u.renderX = u.getCellX();
+            u.renderY = u.getCellY();
             return;
         }
         if (u.moveProgress == 0f) {
-            sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), u.cellX, u.cellY, fx, fy, sim.getOccupancyMap()));
+            sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), u.getCellX(), u.getCellY(), fx, fy, sim.getOccupancyMap()));
         }
         sim.advanceMovement(u);
     }

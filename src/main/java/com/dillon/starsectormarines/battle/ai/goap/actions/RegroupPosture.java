@@ -47,7 +47,7 @@ public final class RegroupPosture implements Action {
 
         if (member.moveProgress == 0f) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                    member.cellX, member.cellY, dest[0], dest[1], sim.getOccupancyMap()));
+                    member.getCellX(), member.getCellY(), dest[0], dest[1], sim.getOccupancyMap()));
         }
         sim.advanceMovement(member);
 

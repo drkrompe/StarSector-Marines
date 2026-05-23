@@ -67,11 +67,11 @@ public final class RepositionToCover implements Action {
         Unit target = sim.targetOf(member);
         if (target == null) return false;
         int[] dest = TacticalScoring.findFiringPositionCoverPreferred(
-                member, target, sim, member.cellX, member.cellY);
+                member, target, sim, member.getCellX(), member.getCellY());
         if (dest == null) return false;
-        if (dest[0] == member.cellX && dest[1] == member.cellY) return false;
+        if (dest[0] == member.getCellX() && dest[1] == member.getCellY()) return false;
         sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                member.cellX, member.cellY, dest[0], dest[1], sim.getOccupancyMap()));
+                member.getCellX(), member.getCellY(), dest[0], dest[1], sim.getOccupancyMap()));
         member.repositionCooldown = COOLDOWN_SECONDS;
         return true;
     }

@@ -74,7 +74,7 @@ public final class ClearZone implements Action {
         // zoneClear normally short-circuits first).
         Unit target = sim.targetOf(member);
         boolean targetOutOfZone = target != null
-                && sim.getZoneGraph().zoneIdAt(target.cellX, target.cellY) != targetZoneId;
+                && sim.getZoneGraph().zoneIdAt(target.getCellX(), target.getCellY()) != targetZoneId;
         if (target == null
                 || targetOutOfZone
                 || !TacticalScoring.shouldKeepPursuing(member, target, sim)) {
@@ -85,11 +85,11 @@ public final class ClearZone implements Action {
         }
         if (target == null) return ActionStatus.RUNNING;
 
-        float dist = TacticalScoring.cellDistance(member.cellX, member.cellY,
-                target.cellX, target.cellY);
+        float dist = TacticalScoring.cellDistance(member.getCellX(), member.getCellY(),
+                target.getCellX(), target.getCellY());
         boolean inRange = dist <= member.attackRange;
-        boolean visible = sim.getGrid().hasLineOfSight(member.cellX, member.cellY,
-                target.cellX, target.cellY);
+        boolean visible = sim.getGrid().hasLineOfSight(member.getCellX(), member.getCellY(),
+                target.getCellX(), target.getCellY());
         if (inRange && visible && member.cooldownTimer <= 0f) {
             sim.fireShot(member, target);
             member.cooldownTimer = member.attackCooldown;
@@ -100,7 +100,7 @@ public final class ClearZone implements Action {
         // Out of range / no LOS — close on the target IFF the target is in
         // the zone we're clearing. Out-of-zone targets we don't pursue —
         // that's Story K's "doesn't push into rooms it's not clearing" rule.
-        if (sim.getZoneGraph().zoneIdAt(target.cellX, target.cellY) != targetZoneId) {
+        if (sim.getZoneGraph().zoneIdAt(target.getCellX(), target.getCellY()) != targetZoneId) {
             return ActionStatus.RUNNING;
         }
         if (member.moveProgress == 0f) {
@@ -114,7 +114,7 @@ public final class ClearZone implements Action {
                 return ActionStatus.RUNNING;
             }
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                    member.cellX, member.cellY, dest[0], dest[1], sim.getOccupancyMap()));
+                    member.getCellX(), member.getCellY(), dest[0], dest[1], sim.getOccupancyMap()));
         }
         sim.advanceMovement(member);
         return ActionStatus.RUNNING;
@@ -135,9 +135,9 @@ public final class ClearZone implements Action {
             if (!other.isAlive()) continue;
             if (other.faction != enemy) continue;
             if (!other.type.combatant) continue;
-            if (sim.getZoneGraph().zoneIdAt(other.cellX, other.cellY) != targetZoneId) continue;
-            if (!sim.getGrid().hasLineOfSight(self.cellX, self.cellY, other.cellX, other.cellY)) continue;
-            float d = TacticalScoring.cellDistance(self.cellX, self.cellY, other.cellX, other.cellY);
+            if (sim.getZoneGraph().zoneIdAt(other.getCellX(), other.getCellY()) != targetZoneId) continue;
+            if (!sim.getGrid().hasLineOfSight(self.getCellX(), self.getCellY(), other.getCellX(), other.getCellY())) continue;
+            float d = TacticalScoring.cellDistance(self.getCellX(), self.getCellY(), other.getCellX(), other.getCellY());
             if (d < bestDist) {
                 bestDist = d;
                 best = other;
@@ -170,8 +170,8 @@ public final class ClearZone implements Action {
             if (!other.isAlive()) continue;
             if (other.faction != enemy) continue;
             if (!other.type.combatant) continue;
-            if (sim.getZoneGraph().zoneIdAt(other.cellX, other.cellY) != targetZoneId) continue;
-            float d = TacticalScoring.cellDistance(self.cellX, self.cellY, other.cellX, other.cellY);
+            if (sim.getZoneGraph().zoneIdAt(other.getCellX(), other.getCellY()) != targetZoneId) continue;
+            float d = TacticalScoring.cellDistance(self.getCellX(), self.getCellY(), other.getCellX(), other.getCellY());
             if (d < bestDist) {
                 bestDist = d;
                 best = other;

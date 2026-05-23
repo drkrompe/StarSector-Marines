@@ -70,6 +70,18 @@ public final class UnitRegistry {
     private float[] hp = new float[INITIAL_CAPACITY];
     /** Per-unit max HP, same lifecycle as {@link #hp}. */
     private float[] maxHp = new float[INITIAL_CAPACITY];
+    /**
+     * Per-unit logical cell X — the pathfinder's domain (integer cells). Same
+     * grow/swap/snapshot lifecycle as {@link #hp}. Parallel-array layout (not
+     * interleaved int[] cellXY stride-2) so any future single-axis sweep
+     * (e.g. axis-aligned partition, sort by x) reads at full cache-line
+     * efficiency without striding past the off-axis values. Paired access
+     * patterns still prefetch both lines in tandem under sequential dense
+     * iteration, so we're not paying for that flexibility on the hot rebuild.
+     */
+    private int[] cellX = new int[INITIAL_CAPACITY];
+    /** Per-unit logical cell Y, paired with {@link #cellX}. */
+    private int[] cellY = new int[INITIAL_CAPACITY];
     private int liveCount = 0;
     private long nextId = 1L;
 
@@ -105,17 +117,22 @@ public final class UnitRegistry {
             dense = Arrays.copyOf(dense, newCap);
             hp = Arrays.copyOf(hp, newCap);
             maxHp = Arrays.copyOf(maxHp, newCap);
+            cellX = Arrays.copyOf(cellX, newCap);
+            cellY = Arrays.copyOf(cellY, newCap);
         }
         long id = nextId++;
         u.entityId = id;
         dense[liveCount] = u;
         // Seed SoA from the unit's pre-allocation transient fields. After this
-        // point hp[idx]/maxHp[idx] is canonical — the unit's localHp/localMaxHp
-        // fields are stale until release writes them back for post-release
-        // readers (corpse on the legacy units list, isAlive() on a dead drone
-        // before its crash sequence finishes).
+        // point hp[idx]/maxHp[idx]/cellX[idx]/cellY[idx] is canonical — the
+        // unit's localHp/localMaxHp/localCellX/localCellY fields are stale
+        // until release writes them back for post-release readers (corpse on
+        // the legacy units list, isAlive() on a dead drone before its crash
+        // sequence finishes).
         hp[liveCount] = u.localHp;
         maxHp[liveCount] = u.localMaxHp;
+        cellX[liveCount] = u.localCellX;
+        cellY[liveCount] = u.localCellY;
         u.denseIdx = liveCount;
         u.registry = this;
         indexById.put(id, liveCount);
@@ -141,13 +158,16 @@ public final class UnitRegistry {
         int idx = indexById.remove(id);
         if (idx == INVALID_INDEX) return;
         int last = liveCount - 1;
-        // Snapshot HP back onto the released unit so post-release readers
-        // (corpses still in the legacy units list; isAlive() chained via
-        // getHp() in flyout / drone-crash code) see the moment-of-death
-        // values rather than a stale 0L pendingHp.
+        // Snapshot HP + cell back onto the released unit so post-release
+        // readers (corpses still in the legacy units list; isAlive() chained
+        // via getHp() in flyout / drone-crash code; the drone-crash sprite
+        // that still needs to know where to draw the corpse) see the
+        // moment-of-death values rather than stale defaults.
         Unit released = dense[idx];
         released.localHp = hp[idx];
         released.localMaxHp = maxHp[idx];
+        released.localCellX = cellX[idx];
+        released.localCellY = cellY[idx];
         released.denseIdx = -1;
         released.registry = null;
         if (idx != last) {
@@ -155,6 +175,8 @@ public final class UnitRegistry {
             dense[idx] = tail;
             hp[idx] = hp[last];
             maxHp[idx] = maxHp[last];
+            cellX[idx] = cellX[last];
+            cellY[idx] = cellY[last];
             tail.denseIdx = idx;
             indexById.put(tail.entityId, idx);
         }
@@ -214,6 +236,22 @@ public final class UnitRegistry {
      */
     public float[] hpArray() { return hp; }
     public float[] maxHpArray() { return maxHp; }
+
+    /**
+     * Direct array access for the SoA cell-position slots. Sequential dense
+     * iteration over {@code [0, liveCount())} streams cellX and cellY in
+     * tandem under prefetch; paired index reads via the OO accessor
+     * ({@link Unit#getCellX} / {@link Unit#getCellY}) route here through
+     * {@code denseIdx}.
+     */
+    public int getCellX(int idx) { return cellX[idx]; }
+    public int getCellY(int idx) { return cellY[idx]; }
+    public void setCell(int idx, int x, int y) {
+        cellX[idx] = x;
+        cellY[idx] = y;
+    }
+    public int[] cellXArray() { return cellX; }
+    public int[] cellYArray() { return cellY; }
 
     public int liveCount() {
         return liveCount;

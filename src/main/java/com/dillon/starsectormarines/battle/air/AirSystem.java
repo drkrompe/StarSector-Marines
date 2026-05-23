@@ -398,8 +398,8 @@ public class AirSystem {
         for (Unit u : sim.getUnits()) {
             if (u.squadId != s.squadId) continue;
             if (!u.isAlive()) continue;
-            sumX += u.cellX + 0.5f;
-            sumY += u.cellY + 0.5f;
+            sumX += u.getCellX() + 0.5f;
+            sumY += u.getCellY() + 0.5f;
             n++;
         }
         if (n == 0) return;  // squad wiped — hold current hover point

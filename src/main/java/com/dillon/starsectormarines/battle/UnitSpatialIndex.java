@@ -65,8 +65,8 @@ public final class UnitSpatialIndex {
         for (int i = 0, n = units.size(); i < n; i++) {
             Unit u = units.get(i);
             if (!u.isAlive()) continue;
-            int bx = u.cellX / BUCKET;
-            int by = u.cellY / BUCKET;
+            int bx = u.getCellX() / BUCKET;
+            int by = u.getCellY() / BUCKET;
             if (bx < 0 || bx >= bucketsX || by < 0 || by >= bucketsY) continue;
             int idx = by * bucketsX + bx;
             ArrayList<Unit> bucket = buckets[idx];
@@ -93,8 +93,8 @@ public final class UnitSpatialIndex {
      */
     public void add(Unit u) {
         if (!u.isAlive()) return;
-        int bx = u.cellX / BUCKET;
-        int by = u.cellY / BUCKET;
+        int bx = u.getCellX() / BUCKET;
+        int by = u.getCellY() / BUCKET;
         if (bx < 0 || bx >= bucketsX || by < 0 || by >= bucketsY) return;
         int idx = by * bucketsX + bx;
         ArrayList<Unit> bucket = buckets[idx];
@@ -135,8 +135,8 @@ public final class UnitSpatialIndex {
                 if (bucket == null) continue;
                 for (int i = 0, n = bucket.size(); i < n; i++) {
                     Unit u = bucket.get(i);
-                    int dx = u.cellX - cx;
-                    int dy = u.cellY - cy;
+                    int dx = u.getCellX() - cx;
+                    int dy = u.getCellY() - cy;
                     if (dx * dx + dy * dy <= r2) out.add(u);
                 }
             }

@@ -67,7 +67,7 @@ public final class UnitDestinationSpatialIndex {
             if (cells <= 0) continue;
             int destX = u.pathCellX(cells - 1);
             int destY = u.pathCellY(cells - 1);
-            if (destX == u.cellX && destY == u.cellY) continue;
+            if (destX == u.getCellX() && destY == u.getCellY()) continue;
             int bx = destX / UnitSpatialIndex.BUCKET;
             int by = destY / UnitSpatialIndex.BUCKET;
             if (bx < 0 || bx >= bucketsX || by < 0 || by >= bucketsY) continue;

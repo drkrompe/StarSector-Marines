@@ -676,17 +676,17 @@ public class TacticalScoringTest {
         int[] pick = TacticalScoring.findFiringPosition(rocketeer, turret, sim);
         assertNotNull(pick);
         float distFromTurret = (float) Math.sqrt(
-                (pick[0] - turret.cellX) * (pick[0] - turret.cellX)
-              + (pick[1] - turret.cellY) * (pick[1] - turret.cellY));
+                (pick[0] - turret.getCellX()) * (pick[0] - turret.getCellX())
+              + (pick[1] - turret.getCellY()) * (pick[1] - turret.getCellY()));
         assertTrue(distFromTurret <= MarineSecondary.ROCKET_LAUNCHER.range,
                 "picked cell must be inside rocket range, got dist " + distFromTurret);
         // Self at (5,5); turret at primary+8. The closest in-range cell to
         // self lies on the line between, which is well outside primary range
         // — the bug was forcing it inside.
         float distFromSelf = (float) Math.sqrt(
-                (pick[0] - rocketeer.cellX) * (pick[0] - rocketeer.cellX)
-              + (pick[1] - rocketeer.cellY) * (pick[1] - rocketeer.cellY));
-        assertTrue(distFromSelf < (turretX - rocketeer.cellX),
+                (pick[0] - rocketeer.getCellX()) * (pick[0] - rocketeer.getCellX())
+              + (pick[1] - rocketeer.getCellY()) * (pick[1] - rocketeer.getCellY()));
+        assertTrue(distFromSelf < (turretX - rocketeer.getCellX()),
                 "picked cell should be on self's side of the turret");
     }
 
@@ -764,12 +764,12 @@ public class TacticalScoringTest {
         // One rocket isn't enough for a Vulcan (test above), so queue two.
         float perRocket = MarineSecondary.ROCKET_LAUNCHER.damage;
         sim.queueDetonation(new PendingDetonation(
-                turret.cellX + 0.5f, turret.cellY + 0.5f, 0.5f,
+                turret.getCellX() + 0.5f, turret.getCellY() + 0.5f, 0.5f,
                 MarineSecondary.ROCKET_LAUNCHER.aoeRadius,
                 perRocket, MarineSecondary.ROCKET_LAUNCHER.vsTurretMult,
                 0, Faction.MARINE, false));
         sim.queueDetonation(new PendingDetonation(
-                turret.cellX + 0.5f, turret.cellY + 0.5f, 0.5f,
+                turret.getCellX() + 0.5f, turret.getCellY() + 0.5f, 0.5f,
                 MarineSecondary.ROCKET_LAUNCHER.aoeRadius,
                 perRocket, MarineSecondary.ROCKET_LAUNCHER.vsTurretMult,
                 0, Faction.MARINE, false));
@@ -789,7 +789,7 @@ public class TacticalScoringTest {
 
         float bigDamage = turret.getMaxHp() * 2f;
         sim.queueDetonation(new PendingDetonation(
-                turret.cellX + 0.5f, turret.cellY + 0.5f, 0.5f,
+                turret.getCellX() + 0.5f, turret.getCellY() + 0.5f, 0.5f,
                 MarineSecondary.ROCKET_LAUNCHER.aoeRadius,
                 bigDamage, 1.0f, 0, Faction.DEFENDER, false));
 

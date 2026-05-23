@@ -30,8 +30,8 @@ public final class DroneSpawner {
     public static Drone tryLaunch(DroneHubUnit hub, BattleSimulation sim) {
         if (!hub.isAlive()) return null;
         NavigationGrid grid = sim.getGrid();
-        int hubX = hub.cellX;
-        int hubY = hub.cellY;
+        int hubX = hub.getCellX();
+        int hubY = hub.getCellY();
         int[] cell = findFreeCell(grid, sim, hubX, hubY);
         if (cell == null) return null;
         String id = "drone-" + hub.id + "-" + (++hub.dronesLaunched);
@@ -83,7 +83,7 @@ public final class DroneSpawner {
     private static boolean isCellOccupied(BattleSimulation sim, int x, int y) {
         for (Unit u : sim.getUnits()) {
             if (!u.isAlive()) continue;
-            if (u.cellX == x && u.cellY == y) return true;
+            if (u.getCellX() == x && u.getCellY() == y) return true;
         }
         return false;
     }

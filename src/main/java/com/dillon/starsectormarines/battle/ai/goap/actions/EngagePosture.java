@@ -74,8 +74,8 @@ public final class EngagePosture implements Action {
         }
         if (target == null) return ActionStatus.FAILURE;
 
-        float dist = TacticalScoring.cellDistance(member.cellX, member.cellY,
-                target.cellX, target.cellY);
+        float dist = TacticalScoring.cellDistance(member.getCellX(), member.getCellY(),
+                target.getCellX(), target.getCellY());
         // Rocketeers vs turrets use the rocket's longer range as the act-here
         // gate, so a marine inside rocket range but outside rifle range
         // engages from where they stand instead of running into rifle range.
@@ -85,7 +85,7 @@ public final class EngagePosture implements Action {
         float effectiveRange = TacticalScoring.effectiveAttackRange(member, target);
         boolean inRange = dist <= effectiveRange;
         boolean visible = TacticalScoring.canSeePair(sim.getGrid(),
-                member.cellX, member.cellY, target.cellX, target.cellY,
+                member.getCellX(), member.getCellY(), target.getCellX(), target.getCellY(),
                 member.airLosRadius, target.airLosRadius);
 
         if (inRange && visible) {
@@ -117,8 +117,8 @@ public final class EngagePosture implements Action {
                 sim.advanceMovement(member);
             } else {
                 member.moveProgress = 0f;
-                member.renderX = member.cellX;
-                member.renderY = member.cellY;
+                member.renderX = member.getCellX();
+                member.renderY = member.getCellY();
             }
         } else {
             // Stage 1 fallback for members who personally lack LOS or range
@@ -137,7 +137,7 @@ public final class EngagePosture implements Action {
                     return ActionStatus.RUNNING;
                 }
                 sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                        member.cellX, member.cellY, dest[0], dest[1], sim.getOccupancyMap()));
+                        member.getCellX(), member.getCellY(), dest[0], dest[1], sim.getOccupancyMap()));
             }
             sim.advanceMovement(member);
         }

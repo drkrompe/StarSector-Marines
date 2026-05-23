@@ -668,12 +668,12 @@ public final class SquadPlanDebugPanel implements HudPanel {
         List<CellHighlight> members = new ArrayList<>();
         for (Unit u : sim.getUnits()) {
             if (u.squadId != squad.id || !u.isAlive()) continue;
-            members.add(new CellHighlight(u.cellX, u.cellY, HighlightOverlay.COLOR_SELECTED_UNIT));
+            members.add(new CellHighlight(u.getCellX(), u.getCellY(), HighlightOverlay.COLOR_SELECTED_UNIT));
         }
         overlay.put(HighlightOverlay.SRC_SELECTED_SQUAD, members);
         if (squad.leader != null && squad.leader.isAlive()) {
             overlay.put(HighlightOverlay.SRC_CAPTAIN, List.of(
-                    new CellHighlight(squad.leader.cellX, squad.leader.cellY, HighlightOverlay.COLOR_CAPTAIN)));
+                    new CellHighlight(squad.leader.getCellX(), squad.leader.getCellY(), HighlightOverlay.COLOR_CAPTAIN)));
         } else {
             overlay.clear(HighlightOverlay.SRC_CAPTAIN);
         }

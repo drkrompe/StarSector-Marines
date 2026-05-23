@@ -110,11 +110,11 @@ public final class BackstopAssignedSquad implements Action {
         }
 
         // Path to the backstop cell. Same idempotent pattern as overwatch.
-        if ((member.cellX != m.overwatchCellX || member.cellY != m.overwatchCellY)
+        if ((member.getCellX() != m.overwatchCellX || member.getCellY() != m.overwatchCellY)
                 && member.moveProgress == 0f
                 && member.pathIdx >= member.pathCellCount()) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                    member.cellX, member.cellY,
+                    member.getCellX(), member.getCellY(),
                     m.overwatchCellX, m.overwatchCellY,
                     sim.getOccupancyMap()));
         }
@@ -122,8 +122,8 @@ public final class BackstopAssignedSquad implements Action {
             sim.advanceMovement(member);
         } else {
             member.moveProgress = 0f;
-            member.renderX = member.cellX;
-            member.renderY = member.cellY;
+            member.renderX = member.getCellX();
+            member.renderY = member.getCellY();
         }
 
         // Fire pass — all three weapons free. Backstop doctrine is "throw
@@ -134,11 +134,11 @@ public final class BackstopAssignedSquad implements Action {
             member.setTarget(target);
         }
         if (target != null) {
-            float dist = TacticalScoring.cellDistance(member.cellX, member.cellY,
-                    target.cellX, target.cellY);
+            float dist = TacticalScoring.cellDistance(member.getCellX(), member.getCellY(),
+                    target.getCellX(), target.getCellY());
             boolean inRange = dist <= member.attackRange;
-            boolean visible = sim.getGrid().hasLineOfSight(member.cellX, member.cellY,
-                    target.cellX, target.cellY);
+            boolean visible = sim.getGrid().hasLineOfSight(member.getCellX(), member.getCellY(),
+                    target.getCellX(), target.getCellY());
             if (inRange) {
                 MechCombatantBehavior.tryFireMechWeapons(member, target, dist, sim, visible);
             }
@@ -160,7 +160,7 @@ public final class BackstopAssignedSquad implements Action {
             if (other.aliveMembers == 0) continue;
             if (other.isMechSquad()) continue;
             float dist = TacticalScoring.cellDistance(
-                    member.cellX, member.cellY,
+                    member.getCellX(), member.getCellY(),
                     Math.round(other.centroidX), Math.round(other.centroidY));
             if (dist < bestDist) {
                 bestDist = dist;
@@ -193,9 +193,9 @@ public final class BackstopAssignedSquad implements Action {
         // the mech's current cell to the centroid (so it just trails the
         // squad) when no contact is known.
         float threatDx = selfSquad.lastSeenEnemyX >= 0 ? selfSquad.lastSeenEnemyX - cx
-                : cx - member.cellX;
+                : cx - member.getCellX();
         float threatDy = selfSquad.lastSeenEnemyY >= 0 ? selfSquad.lastSeenEnemyY - cy
-                : cy - member.cellY;
+                : cy - member.getCellY();
         float len = (float) Math.sqrt(threatDx * threatDx + threatDy * threatDy);
         if (len < 1e-3f) {
             // Degenerate — mech is on top of the centroid with no threat

@@ -183,7 +183,7 @@ public final class ChokePointHold implements Action {
             slots.add(new RoleAssigner.Slot<>(
                     slotName(idx),
                     1,
-                    c -> -TacticalScoring.cellDistance(c.cellX, c.cellY, cellX, cellY)));
+                    c -> -TacticalScoring.cellDistance(c.getCellX(), c.getCellY(), cellX, cellY)));
         }
         return slots;
     }
@@ -217,14 +217,14 @@ public final class ChokePointHold implements Action {
         int targetX = cell[0];
         int targetY = cell[1];
 
-        boolean atPost = (member.cellX == targetX && member.cellY == targetY);
+        boolean atPost = (member.getCellX() == targetX && member.getCellY() == targetY);
         if (!atPost) {
             // Transit: walk to the bound LOS cell. No opportunistic fire —
             // single-portal hold is about the concentrated burst, the squad
             // holds discipline en route as well as on-post.
             if (member.moveProgress == 0f) {
                 sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                        member.cellX, member.cellY, targetX, targetY,
+                        member.getCellX(), member.getCellY(), targetX, targetY,
                         sim.getOccupancyMap()));
             }
             sim.advanceMovement(member);
@@ -234,8 +234,8 @@ public final class ChokePointHold implements Action {
         // On-post — pin in place between bursts.
         if (!member.pathEmpty()) sim.clearPath(member);
         member.moveProgress = 0f;
-        member.renderX = member.cellX;
-        member.renderY = member.cellY;
+        member.renderX = member.getCellX();
+        member.renderY = member.getCellY();
 
         // Concentrated-fire trigger: ENEMY_IN_PORTAL_CELL true this tick →
         // every on-post member with LoS to the portal cell fires. The
@@ -251,11 +251,11 @@ public final class ChokePointHold implements Action {
         // LoS gate is by-cell: bound cells were picked with LoS at
         // construction, but a movable doodad or transient cover change might
         // have closed it. Re-check before firing.
-        if (!sim.getGrid().hasLineOfSight(member.cellX, member.cellY, portalX, portalY)) {
+        if (!sim.getGrid().hasLineOfSight(member.getCellX(), member.getCellY(), portalX, portalY)) {
             return ActionStatus.RUNNING;
         }
         if (member.cooldownTimer > 0f) return ActionStatus.RUNNING;
-        float d = TacticalScoring.cellDistance(member.cellX, member.cellY, portalX, portalY);
+        float d = TacticalScoring.cellDistance(member.getCellX(), member.getCellY(), portalX, portalY);
         if (d > member.attackRange) return ActionStatus.RUNNING;
 
         // STANCED fire — on-post, deliberate. Full accuracy. Same shape as
@@ -289,7 +289,7 @@ public final class ChokePointHold implements Action {
         for (Unit u : sim.getUnits()) {
             if (!u.isAlive() || !u.type.combatant) continue;
             if (u.faction == squad.faction) continue;
-            if (u.cellX == portalX && u.cellY == portalY) return u;
+            if (u.getCellX() == portalX && u.getCellY() == portalY) return u;
         }
         return null;
     }

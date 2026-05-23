@@ -156,7 +156,7 @@ public class GarrisonCordonTest {
         // sibling cell two off should usually be in LoS.
         Unit attacker = new Unit("a1", Faction.MARINE, UnitType.MARINE, post.cellX, post.cellY + 2);
         sim.addUnit(attacker);
-        assertTrue(sim.getGrid().hasLineOfSight(d1.cellX, d1.cellY, attacker.cellX, attacker.cellY),
+        assertTrue(sim.getGrid().hasLineOfSight(d1.getCellX(), d1.getCellY(), attacker.getCellX(), attacker.getCellY()),
                 "test prerequisite: attacker must be visible from the guard cell");
 
         GarrisonCordon cordon = new GarrisonCordon(posts);

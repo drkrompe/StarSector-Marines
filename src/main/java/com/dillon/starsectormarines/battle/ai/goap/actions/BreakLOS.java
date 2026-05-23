@@ -60,13 +60,13 @@ public final class BreakLOS implements Action {
             member.fallbackCellY = dest[1];
         }
 
-        boolean atDest = member.cellX == member.fallbackCellX
-                      && member.cellY == member.fallbackCellY;
+        boolean atDest = member.getCellX() == member.fallbackCellX
+                      && member.getCellY() == member.fallbackCellY;
         if (atDest) {
             if (!member.pathEmpty()) sim.clearPath(member);
             member.moveProgress = 0f;
-            member.renderX = member.cellX;
-            member.renderY = member.cellY;
+            member.renderX = member.getCellX();
+            member.renderY = member.getCellY();
             // Arrived at a hidden cell. The predicate-flip ("no longer in LoS
             // of the threat") is implicit: findFallbackPosition only picks
             // cells hidden from every enemy, so by definition no enemy still
@@ -76,7 +76,7 @@ public final class BreakLOS implements Action {
         }
         if (member.moveProgress == 0f) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                    member.cellX, member.cellY,
+                    member.getCellX(), member.getCellY(),
                     member.fallbackCellX, member.fallbackCellY,
                     sim.getOccupancyMap()));
         }

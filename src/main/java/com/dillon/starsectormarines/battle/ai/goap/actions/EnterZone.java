@@ -82,7 +82,7 @@ public final class EnterZone implements Action {
 
     @Override
     public ActionStatus execute(Unit member, Squad squad, BattleSimulation sim) {
-        if (sim.getZoneGraph().zoneIdAt(member.cellX, member.cellY) == targetZoneId) {
+        if (sim.getZoneGraph().zoneIdAt(member.getCellX(), member.getCellY()) == targetZoneId) {
             return ActionStatus.SUCCESS;
         }
         // Drop a stale-but-alive target when it's no longer worth pursuing
@@ -109,10 +109,10 @@ public final class EnterZone implements Action {
         // single-cooldown shots.
         boolean inContact = false;
         if (target != null) {
-            float d = TacticalScoring.cellDistance(member.cellX, member.cellY,
-                    target.cellX, target.cellY);
-            boolean visible = sim.getGrid().hasLineOfSight(member.cellX, member.cellY,
-                    target.cellX, target.cellY);
+            float d = TacticalScoring.cellDistance(member.getCellX(), member.getCellY(),
+                    target.getCellX(), target.getCellY());
+            boolean visible = sim.getGrid().hasLineOfSight(member.getCellX(), member.getCellY(),
+                    target.getCellX(), target.getCellY());
             inContact = d <= member.attackRange && visible;
             if (inContact && member.cooldownTimer <= 0f) {
                 sim.fireShot(member, target, FireStance.STANCED);
@@ -124,8 +124,8 @@ public final class EnterZone implements Action {
         if (inContact) {
             if (!member.pathEmpty()) sim.clearPath(member);
             member.moveProgress = 0f;
-            member.renderX = member.cellX;
-            member.renderY = member.cellY;
+            member.renderX = member.getCellX();
+            member.renderY = member.getCellY();
             // Accelerate the squad replan so SurviveContact (or any other
             // engagement-tier goal) can take over within a tick or two
             // instead of waiting the full 2s replan period. Throttled so we
@@ -141,7 +141,7 @@ public final class EnterZone implements Action {
 
         if (member.moveProgress == 0f) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                    member.cellX, member.cellY, destX, destY, sim.getOccupancyMap()));
+                    member.getCellX(), member.getCellY(), destX, destY, sim.getOccupancyMap()));
         }
         sim.advanceMovement(member);
         return ActionStatus.RUNNING;

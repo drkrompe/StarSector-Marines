@@ -50,13 +50,13 @@ public final class MechBreakContact implements Action {
             member.fallbackCellY = dest[1];
         }
 
-        boolean atDest = member.cellX == member.fallbackCellX
-                      && member.cellY == member.fallbackCellY;
+        boolean atDest = member.getCellX() == member.fallbackCellX
+                      && member.getCellY() == member.fallbackCellY;
         if (!atDest) {
             opportunisticMechFire(member, sim);
             if (member.moveProgress == 0f) {
                 sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                        member.cellX, member.cellY,
+                        member.getCellX(), member.getCellY(),
                         member.fallbackCellX, member.fallbackCellY,
                         sim.getOccupancyMap()));
             }
@@ -64,8 +64,8 @@ public final class MechBreakContact implements Action {
         } else {
             if (!member.pathEmpty()) sim.clearPath(member);
             member.moveProgress = 0f;
-            member.renderX = member.cellX;
-            member.renderY = member.cellY;
+            member.renderX = member.getCellX();
+            member.renderY = member.getCellY();
             opportunisticMechFire(member, sim);
         }
         return ActionStatus.RUNNING;
@@ -86,11 +86,11 @@ public final class MechBreakContact implements Action {
             u.setTarget(target);
         }
         if (target == null) return;
-        float dist = TacticalScoring.cellDistance(u.cellX, u.cellY,
-                target.cellX, target.cellY);
+        float dist = TacticalScoring.cellDistance(u.getCellX(), u.getCellY(),
+                target.getCellX(), target.getCellY());
         if (dist > u.attackRange) return;
-        boolean visible = sim.getGrid().hasLineOfSight(u.cellX, u.cellY,
-                target.cellX, target.cellY);
+        boolean visible = sim.getGrid().hasLineOfSight(u.getCellX(), u.getCellY(),
+                target.getCellX(), target.getCellY());
         MechCombatantBehavior.tryFireMechWeapons(u, target, dist, sim, visible);
     }
 }

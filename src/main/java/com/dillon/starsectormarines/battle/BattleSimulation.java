@@ -327,8 +327,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
      */
     public boolean isRoofShielded(Unit target) {
         if (target == null) return false;
-        return topology.getBuildingId(target.cellX, target.cellY) != 0
-                && !topology.isRoofDestroyed(target.cellX, target.cellY);
+        return topology.getBuildingId(target.getCellX(), target.getCellY()) != 0
+                && !topology.isRoofDestroyed(target.getCellX(), target.getCellY());
     }
 
     @Override
@@ -628,8 +628,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // chasing a target you can't see while taking incoming is the
         // failure mode this hook exists to break.
         boolean hasLosToCurrentTarget = TacticalScoring.canSeePair(grid,
-                target.cellX, target.cellY,
-                expectedTarget.cellX, expectedTarget.cellY,
+                target.getCellX(), target.getCellY(),
+                expectedTarget.getCellX(), expectedTarget.getCellY(),
                 target.airLosRadius, expectedTarget.airLosRadius);
         float chance = hasLosToCurrentTarget ? REPRIORITIZE_BASE_CHANCE : REPRIORITIZE_NO_LOS_CHANCE;
         if (target.rng.nextFloat() >= chance) return;
@@ -666,7 +666,7 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // Heavy compute — done on the shooter's worker by design; the result is
         // just int coords carried to the serial drain.
         int[] fallback = TacticalScoring.findFallbackPosition(target, this);
-        if (fallback[0] == target.cellX && fallback[1] == target.cellY) return;
+        if (fallback[0] == target.getCellX() && fallback[1] == target.getCellY()) return;
         // Serial callers apply the 3 fb-field writes + clearPath inline via
         // the damage service's inline applier; parallel callers queue (writes
         // to fb fields + {@code target.path} via clearPath would race the
@@ -1008,8 +1008,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // Self-cell destinations don't claim occupancy in the original
         // setPath, so skip them on both sides to keep the queued deltas
         // pure no-ops-free.
-        boolean hasOld = oldDestX != Integer.MIN_VALUE && (oldDestX != u.cellX || oldDestY != u.cellY);
-        boolean hasNew = newDestX != Integer.MIN_VALUE && (newDestX != u.cellX || newDestY != u.cellY);
+        boolean hasOld = oldDestX != Integer.MIN_VALUE && (oldDestX != u.getCellX() || oldDestY != u.getCellY());
+        boolean hasNew = newDestX != Integer.MIN_VALUE && (newDestX != u.getCellX() || newDestY != u.getCellY());
         if (!hasOld && !hasNew) return;
         damageService.applyOccupancyDelta(u,
                 hasOld ? oldDestX : Integer.MIN_VALUE,
@@ -1090,8 +1090,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
 
         int nextX = u.pathCellX(u.pathIdx);
         int nextY = u.pathCellY(u.pathIdx);
-        float dx = nextX - u.cellX;
-        float dy = nextY - u.cellY;
+        float dx = nextX - u.getCellX();
+        float dy = nextY - u.getCellY();
         float cellDist = (float) Math.sqrt(dx * dx + dy * dy);
         if (cellDist < 0.0001f) {
             u.pathIdx++;
@@ -1102,15 +1102,14 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         u.moveProgress += stepLength / cellDist;
 
         if (u.moveProgress >= 1f) {
-            u.cellX = nextX;
-            u.cellY = nextY;
-            u.renderX = u.cellX;
-            u.renderY = u.cellY;
+            u.setCellPos(nextX, nextY);
+            u.renderX = nextX;
+            u.renderY = nextY;
             u.moveProgress = 0f;
             u.pathIdx++;
         } else {
-            u.renderX = u.cellX + dx * u.moveProgress;
-            u.renderY = u.cellY + dy * u.moveProgress;
+            u.renderX = u.getCellX() + dx * u.moveProgress;
+            u.renderY = u.getCellY() + dy * u.moveProgress;
         }
     }
 
@@ -1193,8 +1192,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     public void fireShotFrom(float fromX, float fromY, Faction shooterFaction,
                              TurretKind kind, Unit target, boolean aerialShooter, boolean hasLos) {
         float distToTarget = (float) Math.sqrt(
-                (target.cellX + 0.5f - fromX) * (target.cellX + 0.5f - fromX) +
-                (target.cellY + 0.5f - fromY) * (target.cellY + 0.5f - fromY));
+                (target.getCellX() + 0.5f - fromX) * (target.getCellX() + 0.5f - fromX) +
+                (target.getCellY() + 0.5f - fromY) * (target.getCellY() + 0.5f - fromY));
         float effectiveAccuracy = kind.accuracy;
         if (kind.indirectFire) {
             float distNorm = Math.min(1f, distToTarget / Math.max(0.0001f, kind.range));
@@ -1232,8 +1231,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         // wall it actually splattered on.
         float toX, toY;
         if (hit) {
-            toX = target.cellX + 0.5f;
-            toY = target.cellY + 0.5f;
+            toX = target.getCellX() + 0.5f;
+            toY = target.getCellY() + 0.5f;
             // Endpoint scatter on a hit — purely visual for direct-fire kinds,
             // but for AoE it also scatters the splash center so a 4-round
             // grenade burst sprays the cell cluster instead of stacking on one.
@@ -1250,8 +1249,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
             // distance-scaled spread — a stray salvo at close range scatters
             // less than a stray salvo at long range.
             spread += effectiveSpread;
-            toX = target.cellX + 0.5f + (float) Math.cos(angle) * spread;
-            toY = target.cellY + 0.5f + (float) Math.sin(angle) * spread;
+            toX = target.getCellX() + 0.5f + (float) Math.cos(angle) * spread;
+            toY = target.getCellY() + 0.5f + (float) Math.sin(angle) * spread;
         }
         // Wall raycast — for ground-deployed area-spread weapons, a scattered
         // round that would fly past a wall instead splatters on that wall.
@@ -1326,8 +1325,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         float scatterRadius = kind.hitSpread * distScale * accScatterMult;
         float angle = rng.nextFloat() * (float) (Math.PI * 2);
         float r = rng.nextFloat() * scatterRadius;
-        float toX = target.cellX + 0.5f + (float) Math.cos(angle) * r;
-        float toY = target.cellY + 0.5f + (float) Math.sin(angle) * r;
+        float toX = target.getCellX() + 0.5f + (float) Math.cos(angle) * r;
+        float toY = target.getCellY() + 0.5f + (float) Math.sin(angle) * r;
 
         float flightTime = distToTarget / kind.cellsPerSec();
 

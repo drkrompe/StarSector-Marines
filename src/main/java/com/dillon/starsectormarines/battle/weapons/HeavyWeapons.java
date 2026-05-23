@@ -76,7 +76,7 @@ public class HeavyWeapons {
         // Shared with the infantry-side primaries so chaingun saturation and
         // SMG burst-spread use the same math, just with different per-weapon
         // hitSpread numbers.
-        float distToTarget = RangeFalloff.dist(shooter.cellX, shooter.cellY, target.cellX, target.cellY);
+        float distToTarget = RangeFalloff.dist(shooter.getCellX(), shooter.getCellY(), target.getCellX(), target.getCellY());
         float effectiveSpread = RangeFalloff.spread(weapon.hitSpread, distToTarget, weapon.range);
 
         // Endpoint resolves through ShotEndpoint — same hit-jitter +
@@ -199,8 +199,8 @@ public class HeavyWeapons {
                         m.lrmSalvoTarget = null;
                     } else {
                         boolean hasLos = ctx.getGrid().hasLineOfSight(
-                                u.cellX, u.cellY,
-                                m.lrmSalvoTarget.cellX, m.lrmSalvoTarget.cellY);
+                                u.getCellX(), u.getCellY(),
+                                m.lrmSalvoTarget.getCellX(), m.lrmSalvoTarget.getCellY());
                         float accMult = hasLos ? 1.0f : MechWeapon.LRM_NO_LOS_ACC_MULT;
                         fireMechWeapon(ctx, u, m.lrmSalvoTarget, m.lrmArtillery, accMult);
                         m.lrmSalvoRemaining--;
@@ -223,7 +223,7 @@ public class HeavyWeapons {
         for (Unit u : ctx.getUnits()) {
             if (u.isAlive()) continue;
             if (u.mech == null || u.mech.wreckSpawned) continue;
-            ctx.spawnSmokingWreck(u.cellX, u.cellY);
+            ctx.spawnSmokingWreck(u.getCellX(), u.getCellY());
             u.mech.wreckSpawned = true;
         }
     }

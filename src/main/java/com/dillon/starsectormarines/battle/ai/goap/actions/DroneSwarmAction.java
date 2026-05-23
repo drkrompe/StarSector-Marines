@@ -81,8 +81,8 @@ public final class DroneSwarmAction implements Action {
         int slotCount = Math.max(1, slotMemberCount(squad));
 
         TurretAim.State s = new TurretAim.State();
-        s.originCellX = d.cellX;
-        s.originCellY = d.cellY;
+        s.originCellX = d.getCellX();
+        s.originCellY = d.getCellY();
         s.originX = d.body.x;
         s.originY = d.body.y;
         s.faction = d.faction;
@@ -113,8 +113,8 @@ public final class DroneSwarmAction implements Action {
             lockedOn = tryAgroScan(d, sim);
         }
         if (lockedOn != null) {
-            d.pursuitGoalX = lockedOn.cellX + 0.5f;
-            d.pursuitGoalY = lockedOn.cellY + 0.5f;
+            d.pursuitGoalX = lockedOn.getCellX() + 0.5f;
+            d.pursuitGoalY = lockedOn.getCellY() + 0.5f;
             d.pursuitTimer = Drone.PURSUIT_LATCH_SECONDS;
         }
 
@@ -126,8 +126,7 @@ public final class DroneSwarmAction implements Action {
             tickPatrol(d, sim, slotIdx, slotCount, dt);
         }
 
-        d.cellX = (int) Math.floor(d.body.x);
-        d.cellY = (int) Math.floor(d.body.y);
+        d.setCellPos((int) Math.floor(d.body.x), (int) Math.floor(d.body.y));
         // Sync renderX/Y so the shot pipeline picks up the drone's actual
         // position. InfantryWeapons.fireShot computes the tracer origin as
         // (shooter.renderX + 0.5, shooter.renderY + 0.5); without this sync
@@ -169,8 +168,8 @@ public final class DroneSwarmAction implements Action {
     private static void tickEngage(Drone d, TurretAim.State s,
                                    int slotIdx, int slotCount,
                                    BattleSimulation sim, float dt) {
-        float tx = s.target.cellX + 0.5f;
-        float ty = s.target.cellY + 0.5f;
+        float tx = s.target.getCellX() + 0.5f;
+        float ty = s.target.getCellY() + 0.5f;
         float simTime = sim.simTickIndex * BattleSimulation.TICK_DT;
 
         float baseBearingDeg = (360f * slotIdx) / slotCount;
@@ -250,13 +249,13 @@ public final class DroneSwarmAction implements Action {
      */
     private static Unit tryAgroScan(Drone d, BattleSimulation sim) {
         Unit candidate = TacticalScoring.findBestTarget(
-                d.cellX, d.cellY, d.faction, d.squadId, d, d.airLosRadius, sim);
+                d.getCellX(), d.getCellY(), d.faction, d.squadId, d, d.airLosRadius, sim);
         if (candidate == null) return null;
         float dist = TacticalScoring.cellDistance(
-                d.cellX, d.cellY, candidate.cellX, candidate.cellY);
+                d.getCellX(), d.getCellY(), candidate.getCellX(), candidate.getCellY());
         if (dist > Drone.AGGRO_RANGE_CELLS) return null;
         boolean visible = TacticalScoring.canSeePair(sim.getGrid(),
-                d.cellX, d.cellY, candidate.cellX, candidate.cellY,
+                d.getCellX(), d.getCellY(), candidate.getCellX(), candidate.getCellY(),
                 d.airLosRadius, candidate.airLosRadius);
         return visible ? candidate : null;
     }
@@ -268,8 +267,8 @@ public final class DroneSwarmAction implements Action {
      */
     private static float[] clampGoalToLeash(Drone d, float gx, float gy) {
         if (d.homeHub == null) return new float[]{gx, gy};
-        float hubX = d.homeHub.cellX + 0.5f;
-        float hubY = d.homeHub.cellY + 0.5f;
+        float hubX = d.homeHub.getCellX() + 0.5f;
+        float hubY = d.homeHub.getCellY() + 0.5f;
         float dx = gx - hubX;
         float dy = gy - hubY;
         float dist = (float) Math.sqrt(dx * dx + dy * dy);
@@ -302,8 +301,8 @@ public final class DroneSwarmAction implements Action {
         }
         Random rng = d.rng;
         NavigationGrid grid = sim.getGrid();
-        float anchorX = d.homeHub.cellX + 0.5f;
-        float anchorY = d.homeHub.cellY + 0.5f;
+        float anchorX = d.homeHub.getCellX() + 0.5f;
+        float anchorY = d.homeHub.getCellY() + 0.5f;
         float sectorSize = 360f / slotCount;
         float sectorStart = sectorSize * slotIdx;
         for (int attempt = 0; attempt < 6; attempt++) {

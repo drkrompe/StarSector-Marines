@@ -54,9 +54,9 @@ public final class HubDemolitionSystem {
             Unit u = units.get(i);
             if (!(u instanceof DroneHubUnit h)) continue;
             if (h.isAlive() || h.demolished) continue;
-            navigation.flipCellToRubble(h.cellX, h.cellY);
+            navigation.flipCellToRubble(h.getCellX(), h.getCellY());
             h.demolished = true;
-            effects.spawnSmokingWreck(h.cellX, h.cellY);
+            effects.spawnSmokingWreck(h.getCellX(), h.getCellY());
             // Cascading kill: drones launched from this hub lose control and
             // crash with it. Set hp=0 here; the crash system (next call in
             // the tick chain) starts the per-drone fall sequence + impact FX

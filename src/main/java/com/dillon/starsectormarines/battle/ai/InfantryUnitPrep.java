@@ -35,8 +35,8 @@ public final class InfantryUnitPrep {
         if (unit.secondaryActionTimer <= 0f || unit.secondaryWeapon == null) return false;
         unit.secondaryActionTimer -= BattleSimulation.TICK_DT;
         unit.moveProgress = 0f;
-        unit.renderX = unit.cellX;
-        unit.renderY = unit.cellY;
+        unit.renderX = unit.getCellX();
+        unit.renderY = unit.getCellY();
         float fireAt = unit.secondaryWeapon.aimDuration * 0.5f;
         if (!unit.secondaryFiredThisAction && unit.secondaryActionTimer <= fireAt) {
             Unit aimTarget = sim.resolveUnit(unit.secondaryAimTargetId);
@@ -94,18 +94,18 @@ public final class InfantryUnitPrep {
         MapTurret bestTurret = null;
         float bestDistSq = Float.MAX_VALUE;
         ArrayList<Unit> scratch = new ArrayList<>();
-        sim.getUnitIndex().gather(unit.cellX, unit.cellY, range, scratch);
+        sim.getUnitIndex().gather(unit.getCellX(), unit.getCellY(), range, scratch);
         for (int i = 0, n = scratch.size(); i < n; i++) {
             Unit other = scratch.get(i);
             if (!(other instanceof MapTurret turret)) continue;
             if (!turret.isAlive()) continue;
             if (turret.faction == unit.faction) continue;
-            float dx = turret.cellX - unit.cellX;
-            float dy = turret.cellY - unit.cellY;
+            float dx = turret.getCellX() - unit.getCellX();
+            float dy = turret.getCellY() - unit.getCellY();
             float d2 = dx * dx + dy * dy;
             if (d2 > range * range) continue;
             if (d2 >= bestDistSq) continue;
-            if (!sim.getGrid().hasLineOfSight(unit.cellX, unit.cellY, turret.cellX, turret.cellY)) continue;
+            if (!sim.getGrid().hasLineOfSight(unit.getCellX(), unit.getCellY(), turret.getCellX(), turret.getCellY())) continue;
             if (!TacticalScoring.shouldCommitRocket(unit, turret, sim)) continue;
             bestTurret = turret;
             bestDistSq = d2;
@@ -120,8 +120,8 @@ public final class InfantryUnitPrep {
         // does on its own entry path so the visible behavior is consistent
         // from the first frame of the aim window.
         unit.moveProgress = 0f;
-        unit.renderX = unit.cellX;
-        unit.renderY = unit.cellY;
+        unit.renderX = unit.getCellX();
+        unit.renderY = unit.getCellY();
         return true;
     }
 }

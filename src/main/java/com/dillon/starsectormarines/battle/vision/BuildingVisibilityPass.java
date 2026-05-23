@@ -59,7 +59,7 @@ public final class BuildingVisibilityPass {
         for (Unit u : units) {
             if (!u.isAlive()) continue;
             if (!vision.isContributor(u.faction)) continue;
-            if (b.containsCell(u.cellX, u.cellY)) {
+            if (b.containsCell(u.getCellX(), u.getCellY())) {
                 return 0f;
             }
         }
@@ -72,8 +72,8 @@ public final class BuildingVisibilityPass {
         for (Unit u : units) {
             if (!u.isAlive()) continue;
             if (!vision.isContributor(u.faction)) continue;
-            int dx = u.cellX - cx;
-            int dy = u.cellY - cy;
+            int dx = u.getCellX() - cx;
+            int dy = u.getCellY() - cy;
             int distSq = dx * dx + dy * dy;
             if (distSq < closestDistSq) {
                 closestDistSq = distSq;
@@ -86,11 +86,11 @@ public final class BuildingVisibilityPass {
         // and covers a wider arc than just the centroid (a unit peeking around
         // one corner of a long building would otherwise have to walk further
         // to reveal it).
-        if (grid.hasLineOfSight(closest.cellX, closest.cellY, cx, cy)) return 0f;
-        if (grid.hasLineOfSight(closest.cellX, closest.cellY, b.minX, b.minY)) return 0f;
-        if (grid.hasLineOfSight(closest.cellX, closest.cellY, b.maxX, b.minY)) return 0f;
-        if (grid.hasLineOfSight(closest.cellX, closest.cellY, b.minX, b.maxY)) return 0f;
-        if (grid.hasLineOfSight(closest.cellX, closest.cellY, b.maxX, b.maxY)) return 0f;
+        if (grid.hasLineOfSight(closest.getCellX(), closest.getCellY(), cx, cy)) return 0f;
+        if (grid.hasLineOfSight(closest.getCellX(), closest.getCellY(), b.minX, b.minY)) return 0f;
+        if (grid.hasLineOfSight(closest.getCellX(), closest.getCellY(), b.maxX, b.minY)) return 0f;
+        if (grid.hasLineOfSight(closest.getCellX(), closest.getCellY(), b.minX, b.maxY)) return 0f;
+        if (grid.hasLineOfSight(closest.getCellX(), closest.getCellY(), b.maxX, b.maxY)) return 0f;
 
         return 1f;
     }

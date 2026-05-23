@@ -52,9 +52,9 @@ public final class EngageAtCurrentBand implements Action {
         u.setTarget(target);
         if (target == null) return ActionStatus.RUNNING;
 
-        float dist = TacticalScoring.cellDistance(u.cellX, u.cellY, target.cellX, target.cellY);
+        float dist = TacticalScoring.cellDistance(u.getCellX(), u.getCellY(), target.getCellX(), target.getCellY());
         boolean inRange = dist <= u.attackRange;
-        boolean visible = sim.getGrid().hasLineOfSight(u.cellX, u.cellY, target.cellX, target.cellY);
+        boolean visible = sim.getGrid().hasLineOfSight(u.getCellX(), u.getCellY(), target.getCellX(), target.getCellY());
 
         // The fire pass runs outside the inRange-and-visible gate because LRMs
         // are indirect-fire capable — a mech with line of sight blocked by a
@@ -79,15 +79,15 @@ public final class EngageAtCurrentBand implements Action {
                 u.targetId = 0L;
             } else {
                 sim.setPath(u, GridPathfinder.findPath(sim.getGrid(),
-                        u.cellX, u.cellY, dest[0], dest[1], sim.getOccupancyMap()));
+                        u.getCellX(), u.getCellY(), dest[0], dest[1], sim.getOccupancyMap()));
             }
         }
         if (u.pathIdx < u.pathCellCount()) {
             sim.advanceMovement(u);
         } else {
             u.moveProgress = 0f;
-            u.renderX = u.cellX;
-            u.renderY = u.cellY;
+            u.renderX = u.getCellX();
+            u.renderY = u.getCellY();
         }
         return ActionStatus.RUNNING;
     }

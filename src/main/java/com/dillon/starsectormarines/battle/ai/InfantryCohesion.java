@@ -62,34 +62,34 @@ public final class InfantryCohesion {
         Unit target = sim.targetOf(self);
         if (target != null) {
             float td = (float) Math.sqrt(
-                    (float) (target.cellX - self.cellX) * (target.cellX - self.cellX)
-                  + (float) (target.cellY - self.cellY) * (target.cellY - self.cellY));
+                    (float) (target.getCellX() - self.getCellX()) * (target.getCellX() - self.getCellX())
+                  + (float) (target.getCellY() - self.getCellY()) * (target.getCellY() - self.getCellY()));
             if (td <= self.attackRange
-                    && sim.getGrid().hasLineOfSight(self.cellX, self.cellY,
-                            target.cellX, target.cellY)) {
+                    && sim.getGrid().hasLineOfSight(self.getCellX(), self.getCellY(),
+                            target.getCellX(), target.getCellY())) {
                 return null;
             }
         }
 
         Unit leader = squad.leader;
         if (leader != null && leader != self && leader.isAlive()) {
-            float dx = leader.cellX - self.cellX;
-            float dy = leader.cellY - self.cellY;
+            float dx = leader.getCellX() - self.getCellX();
+            float dy = leader.getCellY() - self.getCellY();
             float dist = (float) Math.sqrt(dx * dx + dy * dy);
             if (dist <= COHESION_RADIUS) return null;
-            return new int[]{leader.cellX, leader.cellY};
+            return new int[]{leader.getCellX(), leader.getCellY()};
         }
 
         // Leaderless fallback — others-centroid (legacy behavior).
         // squad.centroid is sum/count over all alive members including self.
         // Reconstruct the others-only centroid: (sum - self) / (count - 1).
         int othersCount = squad.aliveMembers - 1;
-        float sumX = squad.centroidX * squad.aliveMembers - self.cellX;
-        float sumY = squad.centroidY * squad.aliveMembers - self.cellY;
+        float sumX = squad.centroidX * squad.aliveMembers - self.getCellX();
+        float sumY = squad.centroidY * squad.aliveMembers - self.getCellY();
         float cx = sumX / othersCount;
         float cy = sumY / othersCount;
-        float dx = cx - self.cellX;
-        float dy = cy - self.cellY;
+        float dx = cx - self.getCellX();
+        float dy = cy - self.getCellY();
         float dist = (float) Math.sqrt(dx * dx + dy * dy);
         if (dist <= COHESION_RADIUS) return null;
         return new int[]{Math.round(cx), Math.round(cy)};

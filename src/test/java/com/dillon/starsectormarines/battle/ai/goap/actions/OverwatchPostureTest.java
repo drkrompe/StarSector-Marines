@@ -95,10 +95,10 @@ public class OverwatchPostureTest {
         assertEquals(startCooldown, defender.cooldownTimer, 1e-6f,
                 "Overwatch must not fire — cooldownTimer should be unchanged from its starting value");
         assertTrue(defender.pathEmpty(), "Overwatch must not queue a path");
-        assertEquals(5, defender.cellX);
-        assertEquals(5, defender.cellY);
+        assertEquals(5, defender.getCellX());
+        assertEquals(5, defender.getCellY());
         assertEquals(0f, defender.moveProgress, 1e-6f);
-        assertEquals(defender.cellX, defender.renderX, 1e-6f);
-        assertEquals(defender.cellY, defender.renderY, 1e-6f);
+        assertEquals(defender.getCellX(), defender.renderX, 1e-6f);
+        assertEquals(defender.getCellY(), defender.renderY, 1e-6f);
     }
 }

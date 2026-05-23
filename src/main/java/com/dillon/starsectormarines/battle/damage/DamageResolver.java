@@ -83,7 +83,7 @@ public final class DamageResolver {
      */
     public void resolve(Unit target, float damage, float vsTurretMult, float moraleImpact) {
         boolean wasAlive = target.isAlive();
-        int targetCover = grid.getCoverAt(target.cellX, target.cellY);
+        int targetCover = grid.getCoverAt(target.getCellX(), target.getCellY());
         float dr = COVER_DAMAGE_REDUCTION[Math.min(targetCover, COVER_DAMAGE_REDUCTION.length - 1)];
         float effectiveMult = (target instanceof MapTurret) ? vsTurretMult : 1f;
         target.setHp(target.getHp() - damage * effectiveMult * (1f - dr));
@@ -142,13 +142,13 @@ public final class DamageResolver {
     private Unit pickPromotionCandidate(Squad squad, Unit deadLeader) {
         Unit best = null;
         float bestDistSq = Float.MAX_VALUE;
-        int lx = deadLeader.cellX;
-        int ly = deadLeader.cellY;
+        int lx = deadLeader.getCellX();
+        int ly = deadLeader.getCellY();
         for (Unit u : units) {
             if (u == deadLeader || !u.isAlive()) continue;
             if (u.squadId != squad.id) continue;
-            int dx = u.cellX - lx;
-            int dy = u.cellY - ly;
+            int dx = u.getCellX() - lx;
+            int dy = u.getCellY() - ly;
             float d2 = dx * dx + dy * dy;
             if (d2 < bestDistSq) {
                 bestDistSq = d2;

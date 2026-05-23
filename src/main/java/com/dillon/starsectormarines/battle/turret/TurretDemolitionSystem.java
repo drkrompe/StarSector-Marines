@@ -54,11 +54,11 @@ public final class TurretDemolitionSystem {
             Unit u = units.get(i);
             if (!(u instanceof MapTurret t)) continue;
             if (t.isAlive() || t.demolished) continue;
-            navigation.flipCellToRubble(t.cellX, t.cellY);
+            navigation.flipCellToRubble(t.getCellX(), t.getCellY());
             t.demolished = true;
             // Mount cell keeps smoking for a while so the player can see the
             // wreck is dead-and-cooling rather than just "gone".
-            effects.spawnSmokingWreck(t.cellX, t.cellY);
+            effects.spawnSmokingWreck(t.getCellX(), t.getCellY());
             releaseGuardpostIfAllTurretsDead(t, units);
         }
     }
@@ -81,7 +81,7 @@ public final class TurretDemolitionSystem {
         DefensePost owner = null;
         for (DefensePost post : defensePosts) {
             for (DefensePost.TurretSpec spec : post.turrets) {
-                if (spec.cellX == deadTurret.cellX && spec.cellY == deadTurret.cellY) {
+                if (spec.cellX == deadTurret.getCellX() && spec.cellY == deadTurret.getCellY()) {
                     owner = post;
                     break;
                 }
@@ -97,7 +97,7 @@ public final class TurretDemolitionSystem {
             for (int i = 0, n = units.size(); i < n; i++) {
                 Unit u = units.get(i);
                 if (!(u instanceof MapTurret)) continue;
-                if (u.cellX != spec.cellX || u.cellY != spec.cellY) continue;
+                if (u.getCellX() != spec.cellX || u.getCellY() != spec.cellY) continue;
                 if (u.isAlive()) { aliveAtSpec = true; break; }
             }
             if (aliveAtSpec) return;

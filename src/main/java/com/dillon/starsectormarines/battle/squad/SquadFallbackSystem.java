@@ -82,8 +82,8 @@ public final class SquadFallbackSystem {
             Unit u = units.get(i);
             if (!u.isAlive() || u.squadId != squad.id) continue;
             if (u.homeCellX < 0) continue;
-            float dx = u.homeCellX - u.cellX;
-            float dy = u.homeCellY - u.cellY;
+            float dx = u.homeCellX - u.getCellX();
+            float dy = u.homeCellY - u.getCellY();
             if (dx * dx + dy * dy > HOME_ARRIVAL_RADIUS_SQ) return false;
         }
         return true;

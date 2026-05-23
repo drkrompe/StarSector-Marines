@@ -87,7 +87,7 @@ public final class BreachToEngage implements Goal {
         if (squadZone < 0) return 0f;
         Unit target = effectiveTarget(squad, sim);
         if (target == null) return 0f;
-        int targetZone = sim.getZoneGraph().zoneIdAt(target.cellX, target.cellY);
+        int targetZone = sim.getZoneGraph().zoneIdAt(target.getCellX(), target.getCellY());
         if (targetZone < 0 || targetZone == squadZone) return 0f;
         if (anyInZoneEnemyVisible(squad, squadZone, sim)) return 0f;
         // Reachability check — fall through to EliminateEnemies if the target
@@ -111,7 +111,7 @@ public final class BreachToEngage implements Goal {
         int squadZone = ZoneQueries.squadCurrentZone(squad, sim);
         Unit target = effectiveTarget(squad, sim);
         if (target == null || squadZone < 0) return null;
-        int targetZone = sim.getZoneGraph().zoneIdAt(target.cellX, target.cellY);
+        int targetZone = sim.getZoneGraph().zoneIdAt(target.getCellX(), target.getCellY());
         if (targetZone < 0 || targetZone == squadZone) return null;
 
         List<Integer> path = ZoneQueries.zonePathBfs(squadZone, targetZone, sim);
@@ -167,14 +167,14 @@ public final class BreachToEngage implements Goal {
         // box oriented from the doorway toward the target. Cover-aware
         // scoring picks the best per slot; reject already-picked cells so
         // members spread.
-        int dirX = Integer.signum(target.cellX - dwX);
-        int dirY = Integer.signum(target.cellY - dwY);
+        int dirX = Integer.signum(target.getCellX() - dwX);
+        int dirY = Integer.signum(target.getCellY() - dwY);
         if (dirX == 0 && dirY == 0) {
             // Target on the doorway — degenerate; pick any cardinal away
             // from the squad's zone.
             dirX = 1;
         }
-        if (!pickForwardCells(forwardZone, dwX, dwY, dirX, dirY, target.cellX, target.cellY,
+        if (!pickForwardCells(forwardZone, dwX, dwY, dirX, dirY, target.getCellX(), target.getCellY(),
                 aliveCount, forwardX, forwardY, sim)) {
             return null;
         }
@@ -328,10 +328,10 @@ public final class BreachToEngage implements Goal {
         for (Unit enemy : units) {
             if (!enemy.isAlive() || !enemy.type.combatant) continue;
             if (enemy.faction == squad.faction) continue;
-            if (zones.zoneIdAt(enemy.cellX, enemy.cellY) != squadZone) continue;
+            if (zones.zoneIdAt(enemy.getCellX(), enemy.getCellY()) != squadZone) continue;
             for (Unit member : units) {
                 if (!member.isAlive() || member.squadId != squad.id) continue;
-                if (grid.hasLineOfSight(member.cellX, member.cellY, enemy.cellX, enemy.cellY)) {
+                if (grid.hasLineOfSight(member.getCellX(), member.getCellY(), enemy.getCellX(), enemy.getCellY())) {
                     return true;
                 }
             }

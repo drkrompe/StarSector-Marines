@@ -169,8 +169,8 @@ public class KillZoneIntegrationTest {
             // "shot landed near me" distance check miss. Aim at wherever the
             // defender is right now and the LoS test from the marine's cell
             // (17,5) to that point stays clear on this open arena.
-            float toCenterX = defender.cellX + 0.5f;
-            float toCenterY = defender.cellY + 0.5f;
+            float toCenterX = defender.getCellX() + 0.5f;
+            float toCenterY = defender.getCellY() + 0.5f;
             sim.postShot(new ShotEvent(17.5f, 5.5f, toCenterX, toCenterY, true, Faction.MARINE, 0.1f));
             sim.advance(dt);
         }

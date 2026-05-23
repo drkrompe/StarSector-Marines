@@ -118,7 +118,7 @@ public final class HoldPortalCordon implements Action {
             slots.add(new RoleAssigner.Slot<>(
                     post.slotName(),
                     1,
-                    c -> -TacticalScoring.cellDistance(c.cellX, c.cellY, post.cellX, post.cellY)));
+                    c -> -TacticalScoring.cellDistance(c.getCellX(), c.getCellY(), post.cellX, post.cellY)));
         }
         return slots;
     }
@@ -147,17 +147,17 @@ public final class HoldPortalCordon implements Action {
      * of which this branch maintains.
      */
     private ActionStatus executePlanter(Unit member, BattleSimulation sim) {
-        boolean onSite = (member.cellX == chargeCellX && member.cellY == chargeCellY);
+        boolean onSite = (member.getCellX() == chargeCellX && member.getCellY() == chargeCellY);
         if (onSite) {
             if (!member.pathEmpty()) sim.clearPath(member);
             member.moveProgress = 0f;
-            member.renderX = member.cellX;
-            member.renderY = member.cellY;
+            member.renderX = member.getCellX();
+            member.renderY = member.getCellY();
             return ActionStatus.RUNNING;
         }
         if (member.moveProgress == 0f) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                    member.cellX, member.cellY, chargeCellX, chargeCellY,
+                    member.getCellX(), member.getCellY(), chargeCellX, chargeCellY,
                     sim.getOccupancyMap()));
         }
         sim.advanceMovement(member);
@@ -173,13 +173,13 @@ public final class HoldPortalCordon implements Action {
      * is the layer that would change that).
      */
     private ActionStatus executeHolder(Unit member, GuardPost post, BattleSimulation sim) {
-        boolean atPost = (member.cellX == post.cellX && member.cellY == post.cellY);
+        boolean atPost = (member.getCellX() == post.cellX && member.getCellY() == post.cellY);
         if (!atPost) {
             // Transit fire — MOVING penalty applies; the holder is mid-step.
             opportunisticFire(member, sim, FireStance.MOVING);
             if (member.moveProgress == 0f) {
                 sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                        member.cellX, member.cellY, post.cellX, post.cellY,
+                        member.getCellX(), member.getCellY(), post.cellX, post.cellY,
                         sim.getOccupancyMap()));
             }
             sim.advanceMovement(member);
@@ -187,8 +187,8 @@ public final class HoldPortalCordon implements Action {
         }
         if (!member.pathEmpty()) sim.clearPath(member);
         member.moveProgress = 0f;
-        member.renderX = member.cellX;
-        member.renderY = member.cellY;
+        member.renderX = member.getCellX();
+        member.renderY = member.getCellY();
         // On-post fire — STANCED, full accuracy. This is the whole reason
         // we stop and hold: the cordon's lethality comes from stanced shots.
         opportunisticFire(member, sim, FireStance.STANCED);
@@ -213,11 +213,11 @@ public final class HoldPortalCordon implements Action {
             member.setTarget(target);
         }
         if (target == null || member.cooldownTimer > 0f) return;
-        float d = TacticalScoring.cellDistance(member.cellX, member.cellY,
-                target.cellX, target.cellY);
+        float d = TacticalScoring.cellDistance(member.getCellX(), member.getCellY(),
+                target.getCellX(), target.getCellY());
         if (d > member.attackRange) return;
-        if (!sim.getGrid().hasLineOfSight(member.cellX, member.cellY,
-                target.cellX, target.cellY)) return;
+        if (!sim.getGrid().hasLineOfSight(member.getCellX(), member.getCellY(),
+                target.getCellX(), target.getCellY())) return;
         sim.fireShot(member, target, stance);
         member.cooldownTimer = member.attackCooldown;
         member.beginBurst(target);

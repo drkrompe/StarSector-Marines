@@ -62,7 +62,7 @@ public final class EquipmentDropService {
             return;
         }
         if (carried == null || carried.isComplete()) return;
-        equipmentDrops.add(new EquipmentDrop(dead.cellX, dead.cellY, carried));
+        equipmentDrops.add(new EquipmentDrop(dead.getCellX(), dead.getCellY(), carried));
     }
 
     /**
@@ -88,7 +88,7 @@ public final class EquipmentDropService {
             if (drop.objective.isComplete()) { drop.consumed = true; continue; }
             for (Unit u : units) {
                 if (!u.isAlive() || u.faction != Faction.MARINE) continue;
-                if (u.cellX != drop.cellX || u.cellY != drop.cellY) continue;
+                if (u.getCellX() != drop.cellX || u.getCellY() != drop.cellY) continue;
                 u.role = UnitRole.PLANTER;
                 u.assignedObjective = drop.objective;
                 u.equipmentDropTarget = null;
@@ -144,7 +144,7 @@ public final class EquipmentDropService {
             if (u.role == UnitRole.KIT_RETRIEVER
                     && u.equipmentDropTarget != null
                     && !u.equipmentDropTarget.consumed) continue;
-            float d = TacticalScoring.cellDistance(u.cellX, u.cellY, cx, cy);
+            float d = TacticalScoring.cellDistance(u.getCellX(), u.getCellY(), cx, cy);
             if (d < bestDist) {
                 bestDist = d;
                 best = u;

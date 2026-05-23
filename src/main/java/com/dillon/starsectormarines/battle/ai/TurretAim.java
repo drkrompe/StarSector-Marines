@@ -111,10 +111,10 @@ public final class TurretAim {
         if (s.target == null) return;
 
         float dist = TacticalScoring.cellDistance(
-                s.originCellX, s.originCellY, s.target.cellX, s.target.cellY);
+                s.originCellX, s.originCellY, s.target.getCellX(), s.target.getCellY());
         boolean inRange = dist <= s.attackRange && dist >= s.minRange;
         boolean visible = TacticalScoring.canSeePair(grid,
-                s.originCellX, s.originCellY, s.target.cellX, s.target.cellY,
+                s.originCellX, s.originCellY, s.target.getCellX(), s.target.getCellY(),
                 shooterAirR, s.target.airLosRadius);
         // Direct-fire kinds drop on either out-of-range OR LoS loss; indirect-
         // fire kinds keep the lock when LoS breaks (the kremlin wall doesn't
@@ -128,7 +128,7 @@ public final class TurretAim {
             return;
         }
 
-        float bearing = bearingTo(s.originX, s.originY, s.target.cellX + 0.5f, s.target.cellY + 0.5f);
+        float bearing = bearingTo(s.originX, s.originY, s.target.getCellX() + 0.5f, s.target.getCellY() + 0.5f);
         float maxStep = s.turnRateDegPerSec * dt;
         s.facingDegrees = slewToward(s.facingDegrees, bearing, maxStep);
 

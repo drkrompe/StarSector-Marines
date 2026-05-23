@@ -136,15 +136,15 @@ public final class SquadStateDumper {
             }
             o.put("alive", u.isAlive());
             o.put("role", u.role != null ? u.role.name() : null);
-            o.put("cellX", u.cellX);
-            o.put("cellY", u.cellY);
+            o.put("cellX", u.getCellX());
+            o.put("cellY", u.getCellY());
             // homeCell{X,Y} = -1 sentinel for units without a post (marines,
             // patrols). Emit anyway so the dump distinguishes "no home" from
             // "home but drifted off" — key signal for diagnosing why a
             // garrison unit's findFiringPositionWithin returned null.
             o.put("homeCellX", u.homeCellX);
             o.put("homeCellY", u.homeCellY);
-            o.put("currentZone", sim.getZoneGraph().zoneIdAt(u.cellX, u.cellY));
+            o.put("currentZone", sim.getZoneGraph().zoneIdAt(u.getCellX(), u.getCellY()));
             o.put("hp", u.getHp());
             o.put("maxHp", u.getMaxHp());
             o.put("moveProgress", u.moveProgress);
@@ -168,7 +168,7 @@ public final class SquadStateDumper {
         Unit target = sim.targetOf(self);
         if (target == null) return JSONObject.NULL;
         int[] path = GridPathfinder.findPath(sim.getGrid(),
-                self.cellX, self.cellY, target.cellX, target.cellY);
+                self.getCellX(), self.getCellY(), target.getCellX(), target.getCellY());
         return path.length > 0;
     }
 
@@ -204,18 +204,18 @@ public final class SquadStateDumper {
         for (Unit e : sim.getUnits()) {
             if (!e.isAlive()) continue;
             if (e.faction != enemyFaction) continue;
-            if (sim.getZoneGraph().zoneIdAt(e.cellX, e.cellY) != targetZoneId) continue;
+            if (sim.getZoneGraph().zoneIdAt(e.getCellX(), e.getCellY()) != targetZoneId) continue;
             boolean reachable = false;
             for (Unit m : squadmates) {
                 int[] path = GridPathfinder.findPath(sim.getGrid(),
-                        m.cellX, m.cellY, e.cellX, e.cellY);
+                        m.getCellX(), m.getCellY(), e.getCellX(), e.getCellY());
                 if (path.length > 0) { reachable = true; break; }
             }
             if (!reachable) anyUnreachable = true;
             JSONObject eo = new JSONObject();
             eo.put("id", e.id);
-            eo.put("cellX", e.cellX);
-            eo.put("cellY", e.cellY);
+            eo.put("cellX", e.getCellX());
+            eo.put("cellY", e.getCellY());
             eo.put("reachableFromAnyMember", reachable);
             enemies.put(eo);
         }
