@@ -10,6 +10,12 @@ import com.dillon.starsectormarines.battle.mapgen.BlockLeaf;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import org.junit.jupiter.api.Test;
 
+import javax.imageio.ImageIO;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -194,5 +200,65 @@ public class BuildingShellCoreLabelTest {
                         "plain (no-purposes) config must never stamp labels — leaked at (" + x + "," + y + ")");
             }
         }
+    }
+
+    @Test
+    public void renderTernaryPreviewSheet() throws Exception {
+        Path outDir = Path.of("build/zone-previews");
+        Files.createDirectories(outDir);
+
+        int cellPx = 12;
+        int seeds = 8;
+        int cols = 4;
+        int rows = (seeds + cols - 1) / cols;
+        // Each panel: building leaf(2,2,19,14) → grid 22×17, plus label row
+        int panelW = 22;
+        int panelH = 17;
+        int gap = 2;
+        int imgW = cols * (panelW * cellPx + gap * cellPx) - gap * cellPx;
+        int imgH = rows * (panelH * cellPx + gap * cellPx + 16) - gap * cellPx;
+        BufferedImage sheet = new BufferedImage(imgW, imgH, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = sheet.createGraphics();
+        g.setColor(new Color(40, 40, 40));
+        g.fillRect(0, 0, imgW, imgH);
+
+        for (int i = 0; i < seeds; i++) {
+            int col = i % cols;
+            int row = i / cols;
+            int ox = col * (panelW * cellPx + gap * cellPx);
+            int oy = row * (panelH * cellPx + gap * cellPx + 16);
+
+            NavigationGrid grid = openGrid();
+            CellTopology topology = new CellTopology(W, H);
+            BlockLeaf b = leaf(2, 2, 19, 14);
+            BuildingShellCore.carve(b, grid, topology, new ArrayList<>(),
+                    new Random(i), TERNARY_CONFIG);
+
+            for (int cy = 0; cy < panelH; cy++) {
+                for (int cx = 0; cx < panelW; cx++) {
+                    Color c;
+                    if (!grid.isWalkable(cx, cy)) {
+                        c = new Color(30, 30, 30);
+                    } else if (grid.isDoorway(cx, cy)) {
+                        c = new Color(180, 140, 80);
+                    } else {
+                        RoomPurpose p = topology.getRoomPurpose(cx, cy);
+                        if (p == RoomPurpose.KEEP_THRONE)     c = new Color(60, 90, 180);
+                        else if (p == RoomPurpose.KEEP_INNER) c = new Color(200, 180, 60);
+                        else if (p == RoomPurpose.KEEP_ENTRY) c = new Color(180, 60, 60);
+                        else                                  c = new Color(120, 120, 120);
+                    }
+                    g.setColor(c);
+                    g.fillRect(ox + cx * cellPx, oy + cy * cellPx, cellPx - 1, cellPx - 1);
+                }
+            }
+            g.setColor(Color.WHITE);
+            g.drawString("seed=" + i, ox, oy + panelH * cellPx + 12);
+        }
+
+        g.dispose();
+        Path out = outDir.resolve("ternary-partition-labels.png");
+        ImageIO.write(sheet, "PNG", out.toFile());
+        System.out.println("  wrote " + out.toAbsolutePath());
     }
 }
