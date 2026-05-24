@@ -55,72 +55,59 @@ Commits: `82c76a9` (foundation), `d3f659d` (polish).
   cases, label-on-non-walkable-cell defensive case, full-carve
   roundtrip via new `BuildingShellCoreLabelTest` in `mapgen.bsp.fill`.
 
-### Slice B — `PartitionStrategy` interface (pending)
+### Slice B — `PartitionStrategy` interface (shipped)
 
-Pure extraction. No new behavior.
+Commit: `042d084`.
 
-- New `PartitionStrategy` interface in `mapgen.bsp.fill`:
-  ```java
-  interface PartitionStrategy {
-      InteriorWall carve(NavigationGrid grid, CellTopology topology,
-                         int bl, int bt, int br, int bb,
-                         Random rng, GroundKind interiorGround);
-  }
-  ```
-  (Return type may become `PartitionLayout` to carry N axes — decide at
-  implementation time.)
-- `BinaryPartitionStrategy` — lifts the current `maybeAddInteriorWall`
-  body verbatim. Singleton `INSTANCE`.
-- `BuildingConfig` carries a `PartitionStrategy` field (defaults to
-  `BinaryPartitionStrategy.INSTANCE`).
-- `BuildingShellCore.carve()` dispatches via the strategy instead of
-  calling the static helper.
-- Static `maybeAddInteriorWall` deleted; logic now lives in the
-  strategy.
+- `PartitionStrategy` interface in `mapgen.bsp.fill` with single
+  `partition()` method returning `PartitionLayout`.
+- `BinaryPartitionStrategy` lifts `maybeAddInteriorWall` body
+  verbatim. Owns `multiRoomChance` as a constructor parameter
+  (was a static constant, then a `BuildingConfig` field — now
+  belongs to the strategy). `DEFAULT` singleton at 0.65.
+- `PartitionLayout` replaces private `InteriorWall` / `InteriorWallOrient`.
+  `chamberIndex()` moved onto the layout. Initially single `int axis`;
+  generalized to `int[] axes` in Slice C.
+- `BuildingConfig` carries `PartitionStrategy` field (7-arg constructor);
+  existing 5/6-arg constructors default to `BinaryPartitionStrategy.DEFAULT`.
+- `maybeAddInteriorWall`, `openInteriorDoorway`, `InteriorWall`,
+  `InteriorWallOrient`, `chamberIndex` static method all deleted from
+  `BuildingShellCore`.
 
-**Why it's its own slice:** Slice C is a real behavior change (3
-chambers); shipping the extraction separately lets the binary path
-ship with a clean interface before any new geometry lands. Cheap to
-review, cheap to bisect.
+### Slice C — `TernaryPartitionStrategy` (shipped)
 
-### Slice C — `TernaryPartitionStrategy` (pending)
+Commit: `ee55eb0`.
 
-Three chambers along the longer axis. Asymmetric placement — middle
-chamber is narrowest so the BFS-from-center anchor reliably lands in
-an end chamber (which then gets labeled `KEEP_THRONE` by the
-distance-indexed labeling).
+- `TernaryPartitionStrategy` carves two parallel interior walls along
+  the longer axis. Falls back to `BinaryPartitionStrategy` when the
+  building is too small (long axis < 14 cells, short axis < 7).
+- Wall pair placed on the same side of center so BFS-from-center
+  anchor reliably lands in an end chamber (THRONE). RNG within bounds
+  for visual variety; middle chamber constrained to be narrower.
+- `PartitionLayout` generalized from single `int axis` to `int[] axes`
+  with sorted-bisect `chamberIndex` (0 chambers for NONE, 2 for
+  binary, 3 for ternary).
+- `punchDoorwayOnSide` updated with `pickAlongRange(min, max, int[] excludes, rng)`
+  to handle multiple partition wall exclusions.
+- Tested across 50 seeds — all produce three labeled chambers with
+  ≥3 cells each. Diagnostic preview at
+  `build/zone-previews/ternary-partition-labels.png`.
 
-- New `TernaryPartitionStrategy`. Min building dimension ~14 cells on
-  the long axis (3 chambers + 2 partition walls + room for the middle
-  chamber).
-- Carves two parallel partition walls. Punches an interior doorway
-  between each adjacent chamber pair (3 chambers → 2 interior
-  doorways).
-- Returns a layout with 2 axes; `chamberIndex` generalizes via
-  sorted-array bisect.
-- `MilitaryBaseFiller.COMMAND_CONFIG` opts in when the COMMAND sub-
-  building is large enough; otherwise falls back to
-  `BinaryPartitionStrategy` (the 2-chamber path stays valid).
-- `chamberPurposesByAnchorDistance` becomes
-  `[KEEP_THRONE, KEEP_INNER, KEEP_ENTRY]` — labeling works
-  automatically once the strategy emits 3 chambers.
+### Slice D — multi-chamber emission (shipped)
 
-**Open question to resolve at implementation:** does the strategy pick
-its asymmetry deterministically (e.g. "long axis split into 40-20-40")
-or via RNG within bounds? Probably RNG within bounds for visual
-variety; constrained enough that the middle stays narrow.
+Commit: `b8b7b9d`.
 
-### Slice D — multi-chamber emission (pending)
-
-- `KeepEntryChamberStamper` walks each labeled non-throne chamber and
-  emits one `INNER_POSITION` per chamber.
-- `KEEP_ENTRY` chambers get smaller forward garrison (current size:
-  3 marines, priority 60).
-- `KEEP_INNER` chambers get mid-strength garrison — tune at
-  implementation (probably 4 marines, priority 65 — sits between
-  ENTRY and the COMMAND_POST's 95).
-- Tests: 2-chamber case still emits one `INNER_POSITION` (existing
-  behavior preserved); 3-chamber case emits two `INNER_POSITION`s.
+- `MilitaryBaseFiller.COMMAND_CONFIG` wired to `TernaryPartitionStrategy.DEFAULT`
+  with `[KEEP_THRONE, KEEP_INNER, KEEP_ENTRY]`. Falls back to binary
+  for small keeps; binary labels distance 0 → THRONE, distance 1 → INNER.
+- `KeepEntryChamberStamper` generalized from KEEP_ENTRY-only to all
+  non-THRONE purposes. Emits one `INNER_POSITION` per chamber:
+  KEEP_INNER (priority 65, garrison 4), KEEP_ENTRY (priority 60,
+  garrison 3). A 3-chamber keep emits 2 nodes; 2-chamber emits 1.
+- Room-purpose overlay added to `BspMapPreviewTest` conquest renders
+  (semi-transparent blue/yellow/red on labeled keep interiors).
+- Tests: 3-chamber emission (2 INNER_POSITIONs with correct anchor
+  placement + priority ordering).
 
 ## Critique findings from Slice A
 

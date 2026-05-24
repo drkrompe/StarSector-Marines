@@ -14,8 +14,8 @@
   rooms are inferred-not-labeled, and the coupling points that block
   other map types. **Read this first** if you're picking up the
   refactor cold; the file:line citations are load-bearing.
-- [`room-purpose-refactor.md`](room-purpose-refactor.md) — the active
-  refactor (Slice A shipped, B/C/D outlined). Goal: carve-time
+- [`room-purpose-refactor.md`](room-purpose-refactor.md) — the
+  room-purpose refactor (all four slices shipped). Goal: carve-time
   `RoomPurpose` labels replace post-hoc zone-graph inference, so adding
   a new map type (station, ship interior) becomes "implement the
   partitioner + extend the enum" instead of "teach every consumer a new
@@ -56,9 +56,9 @@ distinction explicit at carve time.
 | Slice | Status | What |
 |---|---|---|
 | **A** | shipped (`82c76a9` + `d3f659d`) | `RoomPurpose` enum + per-cell label storage; `BuildingShellCore` stamps labels at carve time; `KeepEntryChamberStamper` migrates to label-driven detection (no more transient `ZoneGraph`). `BuildingConfig` uses `chamberPurposesByAnchorDistance` array (extensible to N chambers). |
-| **B** | pending | Extract `maybeAddInteriorWall` into `PartitionStrategy` interface. `BinaryPartitionStrategy` preserves current behavior. Pure extraction, no new gameplay. |
-| **C** | pending | `TernaryPartitionStrategy` — carve two parallel partition walls along the long axis, three chambers. `MilitaryBaseFiller` COMMAND opts in when bbox is large enough. |
-| **D** | pending | `KeepEntryChamberStamper` emits one `INNER_POSITION` per non-throne labeled chamber (entry + inner garrisons in the three-chamber case). |
+| **B** | shipped (`042d084`) | `PartitionStrategy` interface + `BinaryPartitionStrategy` extraction. `PartitionLayout` replaces private `InteriorWall`. `BuildingConfig` carries strategy field (default `BinaryPartitionStrategy.DEFAULT`). Pure extraction, no behavior change. |
+| **C** | shipped (`ee55eb0`) | `TernaryPartitionStrategy` — two parallel walls, asymmetric middle chamber, binary fallback for small buildings. `PartitionLayout` generalized to `int[] axes` with sorted-bisect `chamberIndex`. Multi-exclude doorway picker. Tested across 50 seeds. |
+| **D** | shipped (`b8b7b9d`) | `MilitaryBaseFiller.COMMAND_CONFIG` wired to ternary + `[THRONE, INNER, ENTRY]` purposes. `KeepEntryChamberStamper` scans all non-THRONE purposes (INNER priority 65 / garrison 4, ENTRY priority 60 / garrison 3). Room-purpose overlay added to conquest map previews. |
 
 Station-tier fills are an **extension**, not a slice in this sequence —
 they'll arrive as a separate track once Slice D lands and the
