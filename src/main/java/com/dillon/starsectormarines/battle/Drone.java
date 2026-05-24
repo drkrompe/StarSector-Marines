@@ -228,6 +228,7 @@ public class Drone extends Unit {
         setHp(DRONE_MAX_HP);
         this.primaryWeapon = MarineWeapon.DRONE_PULSE;
         this.attackRange = MarineWeapon.DRONE_PULSE.range;
+        this.visionRange = 44f;
         this.attackDamage = MarineWeapon.DRONE_PULSE.damage;
         this.attackCooldown = MarineWeapon.DRONE_PULSE.cooldown;
         this.accuracy = MarineWeapon.DRONE_PULSE.accuracy;

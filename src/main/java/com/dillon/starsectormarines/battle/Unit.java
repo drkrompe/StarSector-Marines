@@ -133,6 +133,8 @@ public class Unit {
     public float localMaxHp;
     public float attackDamage;
     public float attackRange;
+    /** How far this unit can see (cells). Drives fog-of-war shadowcast radius. Initialized from {@link UnitType#visionRange}; 0 falls back to {@link #attackRange}. */
+    public float visionRange;
     public float attackCooldown;
     public float cooldownTimer = 0f;
     public float accuracy;
@@ -317,6 +319,7 @@ public class Unit {
         this.localHp = type.maxHp;
         this.attackDamage = type.attackDamage;
         this.attackRange = type.attackRange;
+        this.visionRange = type.visionRange > 0f ? type.visionRange : type.attackRange;
         this.attackCooldown = type.attackCooldown;
         this.accuracy = type.accuracy;
     }

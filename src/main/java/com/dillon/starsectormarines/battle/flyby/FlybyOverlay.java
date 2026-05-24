@@ -233,6 +233,20 @@ public final class FlybyOverlay {
      * {@code retainPersistent} call evicts fighters that despawned this
      * tick (off-map, despawn-on-explode, etc.).
      */
+    /**
+     * Pushes active player-faction fighter positions into the fog-of-war as
+     * ephemeral vision sources. Fighters at altitude see a wide area below.
+     */
+    public void pushFighterVision(com.dillon.starsectormarines.battle.vision.VisionService vision,
+                                  com.dillon.starsectormarines.battle.vision.PlayerVisionState pvs) {
+        for (Fighter f : fighters) {
+            if (!pvs.isContributor(f.side)) continue;
+            int cx = (int) f.worldX;
+            int cy = (int) f.worldY;
+            vision.addEphemeralSource(cx, cy, 40, 5.0f);
+        }
+    }
+
     public void pumpEngineLights(java.util.Set<Long> seenIds) {
         if (lightAccumulator == null) return;
         for (Fighter f : fighters) {

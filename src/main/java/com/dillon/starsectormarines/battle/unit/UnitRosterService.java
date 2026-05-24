@@ -90,6 +90,8 @@ public final class UnitRosterService {
      * they run in serial phases.
      */
     private final ArrayList<Unit> pendingSpawns = new ArrayList<>();
+    /** Read-only view for callers that need to inspect pending spawns before the drain (e.g., fog-of-war contributor registration). */
+    public List<Unit> getPendingSpawns() { return pendingSpawns; }
 
     /** Next squad id to assign on shuttle deboard. Monotonically increasing across the battle's lifetime. */
     private int nextSquadId = 0;

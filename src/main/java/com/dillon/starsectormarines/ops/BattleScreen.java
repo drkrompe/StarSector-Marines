@@ -35,6 +35,7 @@ import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.compound.CompoundMarkerRenderer;
 import com.dillon.starsectormarines.battle.ui.compound.CompoundProgressPanel;
 import com.dillon.starsectormarines.battle.ui.panel.DebugTogglesPanel;
+import com.dillon.starsectormarines.battle.ui.panel.TurretAuthorPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadDetailPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadOverviewPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadPlanDebugPanel;
@@ -1308,6 +1309,18 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
         BattleSimulation sim = ctx != null ? ctx.getBattleSimulation() : null;
         if (sim == null) return;
+        // Rebuild ephemeral vision sources (shuttles + strafing fighters)
+        // each frame so the fog bitmap always reflects the latest positions.
+        // Cleared + re-pushed every frame; VisionService only processes them
+        // on vision-tick frames (every 3rd sim tick).
+        com.dillon.starsectormarines.battle.vision.VisionService vis = sim.getVision();
+        vis.clearEphemeralSources();
+        flybyOverlay.pushFighterVision(vis, sim.getVisionState());
+        for (com.dillon.starsectormarines.battle.air.Shuttle s : sim.getShuttles()) {
+            if (!s.isVisible()) continue;
+            if (!sim.getVisionState().isContributor(s.faction)) continue;
+            vis.addEphemeralSource((int) s.body.x, (int) s.body.y, 50, 3.5f);
+        }
         // Always tick — dt=0 makes the sim a no-op but still clears the per-frame event lists,
         // so a paused caller doesn't keep replaying the previous frame's shot/death sounds.
         sim.advance(dt * speedMultiplier);
@@ -1377,6 +1390,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         // fade keeps animating even when the sim is paused — matches how the
         // HUD ticks on real dt for the same reason.
         advanceRoofAlphaLerp(sim, dt);
+        if (sim != null) sim.getVision().advanceFade(dt);
         driveShuttleEngineLoop(sim);
         driveShuttleResonanceLoops(sim);
         playCombatEventSounds(sim);
@@ -1433,7 +1447,12 @@ public class BattleScreen implements Screen, BattleUiContext {
                 () -> DEBUG_RENDER_DOCKING_PATHS,
                 () -> DEBUG_RENDER_DOCKING_PATHS = !DEBUG_RENDER_DOCKING_PATHS);
         debugPanel.addAction("Force reinforcement", this::forceDefenderReinforcement);
+        TurretAuthorPanel turretAuthor = new TurretAuthorPanel(this);
+        debugPanel.addToggle("Turret author",
+                () -> turretAuthor.active,
+                () -> turretAuthor.active = !turretAuthor.active);
         hud.addPanel(debugPanel);
+        hud.addPanel(turretAuthor);
         // Compound-progress strip (Conquest-only — auto-hides when no
         // compounds are registered). Sibling to the world-anchored
         // CompoundMarkerRenderer instance constructed in this screen; the
@@ -2000,7 +2019,8 @@ public class BattleScreen implements Screen, BattleUiContext {
             // selected squad members, captain). Paints above ground decals/
             // doodads, below units so unit sprites stay legible over the tint.
             highlights.render(camera, alphaMult);
-            renderUnits(sim.getUnits(), alphaMult);
+            renderFogOverlay(sim, alphaMult);
+            renderUnits(sim, sim.getUnits(), alphaMult);
             // Fog-of-war roof pass — paints opaque BRICK tiles over the
             // interiors of buildings the player can't see, hiding any units
             // (and decals / doodads) inside. Sits above units but below
@@ -2013,7 +2033,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             // (TurretAim.airLosVisible) lets ground combatants still engage them
             // through the close walls beneath; rendering them on top makes that
             // engageability visible to the player.
-            renderDrones(sim.getUnits(), alphaMult);
+            renderDrones(sim, sim.getUnits(), alphaMult);
             // Charge sites + equipment drops sit above units so the player can
             // always see where the objectives are — even while a marine stands
             // on top of one. Shuttles still draw on top of the markers when
@@ -2739,6 +2759,55 @@ public class BattleScreen implements Screen, BattleUiContext {
     /**
      * Fog-of-war roof pass. For each building, paints a BRICK tile across its
      * interior cells, modulated by the building's tint and current alpha. The
+     * Fog-of-war overlay — draws a dark quad over every unrevealed cell in the
+     * camera viewport. Cells at the fog boundary (revealed but adjacent to
+     * unrevealed) get a softer alpha for edge smoothing.
+     */
+    private void renderFogOverlay(BattleSimulation sim, float alphaMult) {
+        com.dillon.starsectormarines.battle.vision.VisionService vis = sim.getVision();
+        if (!vis.isInitialized()) return;
+
+        boolean[] revealed = vis.cellRevealedArray();
+        int gw = vis.gridWidth();
+        int gh = vis.gridHeight();
+        float cellPx = camera.cellPxSize();
+
+        int margin = 8;
+        int minCellX = Math.max(0, (int) Math.floor(camera.screenToCellX(camera.vpX())) - margin);
+        int maxCellX = Math.min(gw - 1, (int) Math.ceil(camera.screenToCellX(camera.vpX() + camera.vpW())) + margin);
+        int minCellY = Math.max(0, (int) Math.floor(camera.screenToCellY(camera.vpY())) - margin);
+        int maxCellY = Math.min(gh - 1, (int) Math.ceil(camera.screenToCellY(camera.vpY() + camera.vpH())) + margin);
+
+        for (int cy = minCellY; cy <= maxCellY; cy++) {
+            int rowBase = cy * gw;
+            for (int cx = minCellX; cx <= maxCellX; cx++) {
+                int idx = rowBase + cx;
+                float fogAlpha;
+                if (!revealed[idx]) {
+                    fogAlpha = 0.85f;
+                } else {
+                    int darkNeighbors = 0;
+                    if (cy > 0    && !revealed[idx - gw]) darkNeighbors++;
+                    if (cy < gh-1 && !revealed[idx + gw]) darkNeighbors++;
+                    if (cx > 0    && !revealed[idx - 1])  darkNeighbors++;
+                    if (cx < gw-1 && !revealed[idx + 1])  darkNeighbors++;
+                    if (darkNeighbors == 0) continue;
+                    fogAlpha = 0.15f * darkNeighbors;
+                }
+
+                float sx = camera.cellToScreenX(cx);
+                float sy = camera.cellToScreenY(cy);
+                solidBatch.appendRect(sx, sy, sx + cellPx, sy + cellPx,
+                        0f, 0f, 0f, fogAlpha * alphaMult);
+            }
+        }
+
+        try (GlStateBracket gl = GlStateBracket.textured2D()) {
+            solidBatch.flush();
+        }
+    }
+
+    /**
      * sim's visibility pass writes {@code targetAlpha} at ~10 Hz; this method
      * lerps {@code currentAlpha → targetAlpha} so the fade is smooth across
      * frames between visibility updates. Runs after units draw, so a roofed
@@ -2812,9 +2881,10 @@ public class BattleScreen implements Screen, BattleUiContext {
                 r, g, b, alphaMult);
     }
 
-    private void renderUnits(List<Unit> units, float alphaMult) {
+    private void renderUnits(BattleSimulation sim, List<Unit> units, float alphaMult) {
         float unitSize = camera.cellPxSize() * UNIT_FRAC;
         float half = unitSize / 2f;
+        com.dillon.starsectormarines.battle.vision.VisionService vis = sim.getVision();
 
         // Turrets render in their own pass first — pavement plate + rotated
         // weapon sprite — so marines walking adjacent to a turret draw over
@@ -2848,6 +2918,12 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (u instanceof MapTurret) continue; // handled by renderTurrets above
             if (u instanceof com.dillon.starsectormarines.battle.DroneHubUnit) continue; // handled by renderDroneHubs above
             if (u instanceof com.dillon.starsectormarines.battle.Drone) continue; // handled by renderDrones above
+            byte uv = vis.getUnitVisibility(u.denseIdx);
+            if (uv == com.dillon.starsectormarines.battle.vision.VisionService.VIS_HIDDEN) continue;
+            float unitAlpha = alphaMult;
+            if (uv == com.dillon.starsectormarines.battle.vision.VisionService.VIS_FADING) {
+                unitAlpha *= vis.getFadeAlpha(u.denseIdx);
+            }
             UnitSpriteCache cache = unitSprites.get(u.type);
             // Mid-aim rocket marine swaps to the per-secondary aim sheet so
             // the launcher pose reads. Falls back to the regular sheet if the
@@ -2861,10 +2937,10 @@ public class BattleScreen implements Screen, BattleUiContext {
             }
             if (cache == null || cache.sheet == null || cache.frames == null
                     || cache.frames.frames.length == 0) {
-                renderUnitQuadFallback(u, unitSize, half, alphaMult);
+                renderUnitQuadFallback(u, unitSize, half, unitAlpha);
                 continue;
             }
-            renderUnitSprite(u, cache, unitSize, alphaMult);
+            renderUnitSprite(u, cache, unitSize, unitAlpha);
             tintedThisFrame.add(cache);
         }
         // Reset every sheet we touched so leftover tint/alpha doesn't bleed
@@ -2884,6 +2960,12 @@ public class BattleScreen implements Screen, BattleUiContext {
             // Drone HP bars draw in renderDrones — they need to layer above
             // the roof pass alongside the drone sprite itself.
             if (u instanceof com.dillon.starsectormarines.battle.Drone) continue;
+            byte uv = vis.getUnitVisibility(u.denseIdx);
+            if (uv == com.dillon.starsectormarines.battle.vision.VisionService.VIS_HIDDEN) continue;
+            float barAlpha = alphaMult;
+            if (uv == com.dillon.starsectormarines.battle.vision.VisionService.VIS_FADING) {
+                barAlpha *= vis.getFadeAlpha(u.denseIdx);
+            }
             float cx = camera.cellToScreenX(u.renderX + 0.5f);
             float cy = camera.cellToScreenY(u.renderY + 0.5f);
             float barW = unitSize;
@@ -2898,9 +2980,9 @@ public class BattleScreen implements Screen, BattleUiContext {
             } else {
                 barY = cy + half + HP_BAR_GAP;
             }
-            fillRect(barX, barY, barW, HP_BAR_H, HP_BG, alphaMult);
+            fillRect(barX, barY, barW, HP_BAR_H, HP_BG, barAlpha);
             float frac = Math.max(0f, Math.min(1f, u.getHp() / u.getMaxHp()));
-            fillRect(barX, barY, barW * frac, HP_BAR_H, HP_FG, alphaMult);
+            fillRect(barX, barY, barW * frac, HP_BAR_H, HP_FG, barAlpha);
         }
     }
 
@@ -3184,7 +3266,7 @@ public class BattleScreen implements Screen, BattleUiContext {
      * Position is read from the drone's body (fractional cell coords) so future
      * patrol motion lerps the sprite smoothly without touching this pass.
      */
-    private void renderDrones(List<Unit> units, float alphaMult) {
+    private void renderDrones(BattleSimulation sim, List<Unit> units, float alphaMult) {
         boolean any = false;
         for (Unit u : units) {
             if (!(u instanceof com.dillon.starsectormarines.battle.Drone)) continue;
@@ -3196,34 +3278,35 @@ public class BattleScreen implements Screen, BattleUiContext {
         ensureDroneSprite();
         if (droneSprite == null) return;
 
+        com.dillon.starsectormarines.battle.vision.VisionService vis = sim.getVision();
         float cellPx = camera.cellPxSize();
         float visual = com.dillon.starsectormarines.battle.Drone.VISUAL_CELLS;
         float barW = camera.cellPxSize() * 0.9f;
         for (Unit u : units) {
             if (!(u instanceof com.dillon.starsectormarines.battle.Drone)) continue;
             com.dillon.starsectormarines.battle.Drone d = (com.dillon.starsectormarines.battle.Drone) u;
-            if (d.crashed) continue; // settled — wreck on the ground handles it
+            if (d.crashed) continue;
             boolean alive = d.isAlive();
-            if (!alive && !d.crashStarted) continue; // dead but not crashing yet
+            if (!alive && !d.crashStarted) continue;
+            byte uv = vis.getUnitVisibility(d.denseIdx);
+            if (alive && uv == com.dillon.starsectormarines.battle.vision.VisionService.VIS_HIDDEN) continue;
             float cx = camera.cellToScreenX(d.body.x);
             float cy = camera.cellToScreenY(d.body.y);
-            // Crashing drones fade as they fall — alpha tracks remaining
-            // crash time so the sprite is fully opaque on death and fully
-            // gone at impact (when the SmokingWreck takes over visually).
             float drawAlpha = alphaMult;
+            if (alive && uv == com.dillon.starsectormarines.battle.vision.VisionService.VIS_FADING) {
+                drawAlpha *= vis.getFadeAlpha(d.denseIdx);
+            }
             if (!alive) {
                 float t = Math.max(0f, Math.min(1f, d.crashTimer / com.dillon.starsectormarines.battle.Drone.CRASH_DURATION_SEC));
                 drawAlpha *= t;
             }
             drawTurretLayer(droneSprite, d.body.facingDegrees, visual, cellPx, cx, cy, drawAlpha);
-            // HP bar only for live drones — a crashing drone is past the
-            // point where the bar communicates anything useful.
             if (alive) {
                 float barY = cy + visual * cellPx / 2f + HP_BAR_GAP;
                 float barX = cx - barW / 2f;
-                fillRect(barX, barY, barW, HP_BAR_H, HP_BG, alphaMult);
+                fillRect(barX, barY, barW, HP_BAR_H, HP_BG, drawAlpha);
                 float frac = Math.max(0f, Math.min(1f, d.getHp() / d.getMaxHp()));
-                fillRect(barX, barY, barW * frac, HP_BAR_H, HP_FG, alphaMult);
+                fillRect(barX, barY, barW * frac, HP_BAR_H, HP_FG, drawAlpha);
             }
         }
         droneSprite.sprite.setAngle(0f);
@@ -3396,6 +3479,45 @@ public class BattleScreen implements Screen, BattleUiContext {
             float cx = camera.cellToScreenX(v.body.x);
             float cy = camera.cellToScreenY(v.body.y);
             sheet.renderAtCenter(cx, cy);
+
+            // Turret pass — if this variant has a turret frame, draw it on top
+            // of the chassis at the mount point, rotated around its pivot.
+            if (v.type.turretFrame >= 0
+                    && v.type.turretFrame < frames.frames.length) {
+                SpriteSheetFrames.Frame tf = frames.frames[v.type.turretFrame];
+                sheet.setTexX((float) tf.x * texW / sheetW);
+                sheet.setTexY((float) (sheetH - tf.y - tf.h) * texH / sheetH);
+                sheet.setTexWidth((float) tf.w * texW / sheetW);
+                sheet.setTexHeight((float) tf.h * texH / sheetH);
+
+                float turretAspect = (float) tf.w / (float) tf.h;
+                float tDrawLong = v.type.turretVisualCells * cellPx;
+                float tDrawShort = tDrawLong / turretAspect;
+                sheet.setSize(tDrawLong, tDrawShort);
+
+                float chassisFacingDeg = v.body.facingDegrees + v.type.spriteFacingOffsetDeg;
+                float turretFacingDeg = v.turretFacingDeg + v.type.spriteFacingOffsetDeg;
+                // Mount point: rotate chassis-local offset into world frame
+                float cRad = (float) Math.toRadians(chassisFacingDeg);
+                float cc = (float) Math.cos(cRad);
+                float cs = (float) Math.sin(cRad);
+                float mountWorldX = v.type.turretMountX * cc - v.type.turretMountY * cs;
+                float mountWorldY = v.type.turretMountX * cs + v.type.turretMountY * cc;
+                // Pivot correction: shift draw position so turret pivot sits on mount
+                float tRad = (float) Math.toRadians(turretFacingDeg);
+                float tc = (float) Math.cos(tRad);
+                float ts = (float) Math.sin(tRad);
+                float pivotWorldX = v.type.turretPivotX * tc - v.type.turretPivotY * ts;
+                float pivotWorldY = v.type.turretPivotX * ts + v.type.turretPivotY * tc;
+                float drawCellX = v.body.x + mountWorldX - pivotWorldX;
+                float drawCellY = v.body.y + mountWorldY - pivotWorldY;
+
+                sheet.setAngle(turretFacingDeg);
+                sheet.renderAtCenter(
+                        camera.cellToScreenX(drawCellX),
+                        camera.cellToScreenY(drawCellY));
+            }
+
             touched.add(cache);
         }
         // Reset rotation so the singleton SpriteAPI doesn't carry our angle
