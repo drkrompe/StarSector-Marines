@@ -13,17 +13,21 @@ real gameplay.
   trunks (including perimeter exits), spur stitching to connect
   frame ends through trunk bands. Single connected graph.
 - `Vehicle` / `VehicleType` / `GroundSystem` parallel to
-  `Shuttle` / `ShuttleType` / `AirSystem`. Reuses `AirBody` as the
-  kinematic substrate; ground-only state machine (no HOVER).
+  `Shuttle` / `ShuttleType` / `AirSystem`. `GroundBody` abstraction
+  with `BicycleBody` bicycle-model kinematics; `PurePursuit`
+  carrot-picker; Reeds-Shepp docking (CSC + CCC families).
 - `ConvoyPlanner` — BFS over road graph, cell-list waypoint
   expansion, reversal for outbound.
-- Waypoint look-ahead in `GroundSystem.advancePath` — body steers
-  toward the end of the current straight, brake-formula tapers
-  speed into corners. Cargo-truck handling profile lands with
-  inertia (1.4s to cruise, 2-cell braking distance).
-- Sprite + render pass in `BattleScreen` using `trucks_2.png`
-  frame 1; sprite-facing offset compensates for the east-facing
-  texture.
+- `VehicleFootprint` wall constraint: OBB footprint checked against
+  NavigationGrid each tick; pose reverts if non-walkable.
+- Active variant: **HEAVY_APC** — 4-capacity armored personnel
+  carrier with roof-mounted HEAVY_MG turret and 20s overwatch after
+  deboard. MILITIA_TRUCK retired (sprite retained for mapgen flavor).
+- Sprite sheet `army-apc.png` with separate chassis (frame 0) and
+  turret (frame 1) frames; `turretSpriteFacingOffsetDeg` handles
+  differing frame orientations.
+- Dispatch resource-gated via `BattleResources` — compound-driven
+  ticket production (ARMORY → REINFORCEMENT at 0.05/sec/compound).
 
 ## Stage 2 scope
 
@@ -121,27 +125,31 @@ type specifically calls for sneaky reinforcements.
 
 ### 6. Vehicle variants
 
-`MILITIA_TRUCK` is the only V1 type. Stage 2 adds:
+**HEAVY_APC: shipped.** Armored 4-capacity variant with roof-mounted
+HEAVY_MG turret, 20s overwatch after deboard, dedicated `army-apc.png`
+sprite sheet. MILITIA_TRUCK retired — enum constant removed, sprite
+retained for mapgen flavor only.
 
-- **Heavy APC** — armored variant, slower, higher HP, mounted
-  turret on top (reuses shuttle `MountedTurret` infra). Drops a
-  smaller but heavier-equipped squad.
+Remaining variant ideas:
 - **Supply truck** — instead of marines, drops crates/ammo at
   defender garrisons. Different deboard logic — equipment drops,
   not units.
+- **Light scout vehicle** — faster, smaller footprint, no turret.
+  Runs supplies or carries a 2-man recon team.
 
-Both new types reuse the same kinematic + path-following code; the
-work is asset-side (sprites) + the variant-specific deboard pass.
+Both would reuse the same kinematic + path-following + wall constraint
+code; the work is asset-side (sprites) + variant-specific deboard.
 
 ### 7. Art replacement
 
-User noted V1 uses placeholder art from `trucks_2.png`. Top-down
-art is the natural fit; the existing sprite is a side-on render
-that reads weirdly when rotated. Stage 2 wants real top-down
-trucks in a sprite sheet.
+**Shipped.** `army-apc.png` is a purpose-built top-down sprite sheet
+with separate chassis (frame 0) and turret (frame 1) frames. The
+`TurretAuthorPanel` provides visual validation of mount/pivot
+positions and facing offsets.
 
 `VehicleType.spritePath` + `spriteFrame` + `spriteFacingOffsetDeg`
-all parameterize this; new art is a one-line VehicleType edit.
++ `turretSpriteFacingOffsetDeg` parameterize all of this; new
+variants are a one-enum-constant addition.
 
 ### 8. Driving-feel tuning pass
 

@@ -170,6 +170,9 @@ public class GroundSystem {
             }
         }
 
+        float prevX = v.body.x, prevY = v.body.y;
+        float prevFacing = v.body.facingDegrees;
+
         PurePursuit.Carrot carrot = PurePursuit.pick(
                 v.body.x, v.body.y, xs, ys, v.waypointIndex, v.type.lookAheadCells);
         v.waypointIndex = carrot.nextIdx;
@@ -180,6 +183,14 @@ public class GroundSystem {
         float targetSpeed = Math.min(v.type.maxSpeed, taper);
 
         v.body.tick(carrot.x, carrot.y, targetSpeed, dt);
+
+        if (!VehicleFootprint.isPoseFeasible(v.body.x, v.body.y, v.body.facingDegrees,
+                v.type.visualLengthCells, v.type.visualWidthCells, navigation.getGrid())) {
+            v.body.x = prevX;
+            v.body.y = prevY;
+            v.body.facingDegrees = prevFacing;
+            v.body.speed = 0f;
+        }
 
         int lastIdx = xs.length - 1;
         float distToLast = v.body.distanceTo(xs[lastIdx], ys[lastIdx]);

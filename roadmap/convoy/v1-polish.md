@@ -55,9 +55,9 @@ src/test/java/.../ground/ReedsSheppTest.java
   length monotonicity, CSC heading change. All pass.
 ```
 
-Scope: CSC only (~80% of dock cases). Longer families (CCC, CCSC) are
-TODOs in `enumerateCandidates` — the math is gnarly and the user
-preferred a working PoC first (see `[[feedback_ship_then_optimize]]`).
+Scope: CSC + CCC families (12 candidates). CCC landed after playtest
+showed APCs circling at tight junctions where CSC had no feasible path.
+CCSC deferred — not yet needed.
 
 ## Convoy spawn diagnostics + disconnected-graph fix
 
@@ -156,24 +156,79 @@ src/main/java/com/dillon/starsectormarines/ops/BattleScreen.java
 Reusable for any future boolean debug knob — one-line lambda per
 toggle.
 
+## HEAVY_APC — turret + overwatch
+
+MILITIA_TRUCK retired. HEAVY_APC is the sole `VehicleType` constant:
+4-capacity, roof-mounted HEAVY_MG turret, separate chassis/turret sprite
+frames in `army-apc.png`.
+
+```
+VehicleType.HEAVY_APC:
+  spriteFacingOffsetDeg=-90f, turretSpriteFacingOffsetDeg=-90f
+  turretKind=TurretKind.HEAVY_MG, departsAfterDeboard=false
+  overwatchDurationSec=20f
+  turretMount=(-0.159, 0.268), turretPivot=(0.108, 0.025)
+  turretVisualCells=0.7f
+```
+
+State machine extended: PENDING → INCOMING → LANDED → **OVERWATCH**
+→ DEPARTING → GONE. In OVERWATCH the turret aim/fire loop runs
+(shared `TurretAim.tick` + `fireSink.fire` path) and
+`overwatchCountdown` ticks down; when expired the vehicle departs.
+`departsAfterDeboard` flag on VehicleType selects between immediate
+departure (truck behavior) and overwatch entry.
+
+`turretSpriteFacingOffsetDeg` is separate from `spriteFacingOffsetDeg`
+because chassis and turret frames face different directions in the
+sprite sheet. `TurretAuthorPanel` added forward-direction arrows
+(DRIVE and BARREL) for visual offset validation.
+
+## CCC Reeds-Shepp family
+
+`LpRmLp` base function added: curve-curve-curve for tight U-turns
+where CSC has no solution (requires `ξ²+η² ≤ 16`, uses
+`u = 2·asin(√d²/4)` arcs). Four geometric transforms (identity,
+reflect μ, timeflip τ, τμ) produce 4 CCC candidates alongside the
+existing 8 CSC — total 12 per dock attempt.
+
+```
+src/test/java/.../ground/ReedsSheppTest.java
+  + cccTightUturn, cccSamplingEndpointMatchesGoal,
+    plannerHandlesTightGeometry — 3 new CCC-focused tests
+```
+
+## Wall constraint — footprint check in advancePath
+
+Vehicles now respect walls as movement constraints. `advancePath`
+saves the body pose before each tick, ticks normally, then checks
+`VehicleFootprint.isPoseFeasible()` against the navigation grid. If
+the new pose overlaps any non-walkable cell:
+
+- Position, facing, and speed revert to pre-tick values
+- Internal `steeringRad` (private to BicycleBody) is NOT reverted —
+  the "wheels keep turning" while the body is stopped
+- PurePursuit waypoint-advance may shift the carrot to the next
+  segment, naturally breaking corner deadlocks
+
+Extension point for future terrain types (road preferred, off-road
+penalty): replace the `isWalkable()` call inside
+`VehicleFootprint.isPoseFeasible()` with a cost query and feed cost
+back into `targetSpeed`. The footprint check signature stays stable.
+
 ## What's still open
 
 - **Phase 3 / Hybrid A*** — global kinodynamic planning for non-LZ
   re-routing around dynamic blockers (wrecks, other trucks). Deferred
   until ambush mechanics actually create the demand.
-- **Longer Reeds-Shepp families (CCC, CCSC)** — adds ~5–10% additional
-  dock paths in tight geometry; defer until CSC fails visibly.
+- **CCSC Reeds-Shepp family** — would add a few more dock paths in
+  complex geometry; defer until CCC+CSC fails visibly.
+- **Terrain-cost steering** — road-preferred / off-road penalty layer
+  on top of the binary walkability check. Extension point identified
+  in VehicleFootprint; not needed until missions feature off-road
+  vehicle traversal.
+- **Corner smoothing** — tight road junctions where the min turn
+  radius exceeds road width cause vehicles to pause (correct behavior
+  for the bicycle model). Smoother polyline corners or wider junction
+  road cells would eliminate the pause. Monitor in playtest.
 - **Convoy spawn dumper** triggers on FAILURE; the post-gen road-graph
-  diagnostic logs on every gen. If we want a "show me the visual
-  state" dump on success, the existing dumper has the JSON shape — just
-  invoke from `BspCityGenerator.verifyRoadGraphWalkable` when
-  blocked > 0.
-
-## Sanity check
-
-- `gradlew.bat :compileJava` → BUILD SUCCESSFUL.
-- `gradlew.bat test` → all existing tests pass.
-- Manual playtest: convoy spawns, drives the trunk, docks at LZ via
-  Reeds-Shepp curve. Pre-fix issue ("car drove right through
-  buildings") confirmed; next playtest verifies stampers stay off the
-  centerline.
+  diagnostic logs on every gen.

@@ -86,33 +86,52 @@ The service tracks requests, not in-flight spawns — once dispatched,
 the means provider's output (a `Vehicle` / `Shuttle` / squad) lives in
 the normal sim lists and ticks like any other unit.
 
-### Ticket budget (per side, mission-driven)
+### Resource-gated dispatch (BattleResources)
 
-Per-side ticket count is the simple cooldown / budget model. Each
-successful `dispatch` decrements the requesting side's count; at zero,
-triggers still fire but the service skips dispatch (and logs nothing —
-this is expected, not a failure).
-
-**Mission config carries the shape.** Refill rules belong to the
-mission, not the service. Conquest-sized matches want large mid-/late-
-battle waves; Assault-sized matches want a small attacker drip; raid
-maps want defender-only one-shot reinforcement. The service reads:
+**Status: landed.** Dispatch is gated by `BattleResources` — a
+per-faction float-pool blackboard keyed by `(Faction, ResourceType)`.
+Each alive compound produces tickets at a fixed rate; dispatch debits
+a ticket before committing a spawn.
 
 ```
-ReinforcementBudget(
-    int defenderStartingTickets, int defenderRefillPerSec, int defenderMax,
-    int attackerStartingTickets, int attackerRefillPerSec, int attackerMax
-)
+BattleResources:
+  float[][] pools  — indexed by [Faction.ordinal()][ResourceType.ordinal()]
+  produce(faction, type, amount)
+  tryConsume(faction, type, cost) → boolean
+  getBalance(faction, type) → float
+
+ResourceType:
+  REINFORCEMENT  — produced by alive ARMORYs, consumed by ReinforcementService
+  AIRSTRIKE      — produced by alive COMMAND_POSTs, reserved for future
 ```
 
-…off the mission config at battle start. Refill cadence is a simple
-per-second accumulator; "waves" emerge from per-tick refill clamped to
-`max`. More elaborate scripted wave shapes can ship later as a
-`ScriptedBudget` variant; the simple-counter form covers most missions.
+**Production is compound-driven, not mission-configured.** Each alive
+ARMORY generates `REINFORCEMENT_PER_ARMORY_PER_SEC = 0.05` tickets/sec
+(= 1 ticket per 20s per compound). As compounds fall, the production
+rate degrades proportionally — a natural attrition curve that needs no
+per-mission authoring. `supplyFaction()` maps compound ownership state
+to the producing faction (DEFENDER_HELD/CONTESTED → DEFENDER,
+MARINE_HELD → MARINE).
 
-The attacker side already has shuttle drops modeled with something
-like this today — folding it into `ReinforcementService` is the
-natural unification (see Decisions §1).
+**Tick order:** compound capture → `BattleResources.tick` →
+`ReinforcementService.tick`. Each layer sees consistent state within the
+same sim tick.
+
+`ReinforcementService.dispatch()` calls `tryConsume(side,
+REINFORCEMENT, 1.0)` before iterating means providers. Insufficient
+balance re-queues the request (deferred list added back to pending).
+No means can fulfill: ticket refunded via `produce()`, request dropped
+as before.
+
+Future extension: `AIRSTRIKE` tickets (COMMAND_POST-produced) gate a
+future air-strike dispatch layer. The `BattleResources` API is
+type-generic — new resource categories are a one-enum-constant addition.
+
+The earlier planned `ReinforcementBudget` (mission-config starting
+tickets + per-sec refill + max) is superseded by compound-driven
+production. Mission-level overrides could still layer on top as initial
+pool seeding or rate multipliers, but the compound-driven base rate
+covers the Conquest use case without per-mission authoring.
 
 ### Triggers (v1 set)
 
@@ -171,12 +190,14 @@ Smallest end-to-end slice that proves the abstraction:
 - One trigger: `GarrisonDepletedTrigger` — fires once per defender
   COMMAND_POST / BARRACKS / ARMORY compound when aggregated squad
   strength drops below 0.5; rally = compound center.
-- One means: `ConvoyMeans` (the V1+polish path, gated on road graph)
-- Strength: read but ignored — convoy always spawns 1 truck regardless
+- One means: `ConvoyMeans` (the V1+polish path, gated on road graph).
+  Now dispatches `HEAVY_APC` (MILITIA_TRUCK retired).
+- Strength: read but ignored — convoy always spawns 1 vehicle regardless
 - Rally: trigger always supplies it; means honors it
-- Tickets: not modeled — every request gets dispatch attempts. Budget
-  plumbing comes in the second slice once existing shuttle-drop
-  accounting is folded in (see Decisions §1)
+- Resource gating: **landed.** `BattleResources` compound-driven ticket
+  production gates dispatch — each alive ARMORY produces 0.05
+  REINFORCEMENT/sec; dispatch debits 1.0 per spawn. Insufficient
+  balance re-queues the request.
 
 ## v2 cut
 
@@ -239,13 +260,14 @@ its informal ticket modeling) is a natural refactor candidate: port it
 to `ShuttleMeans` + the `ReinforcementService` ticket budget. Not v1
 scope — but the v1 design already accommodates it.
 
-### 2. Ticket budget lives on the service; refill rules on the mission
+### 2. Compound-driven production replaces mission-configured budget
 
-Per-side ticket count is service state; the refill cadence /
-starting amount / max comes from `ReinforcementBudget` on the
-mission config (see "Ticket budget" above). Conquest can configure
-large mid-/late-battle waves; raids configure defender-only
-one-shot; the service code stays uniform.
+The original plan (per-side `ReinforcementBudget` on the mission config)
+was superseded by `BattleResources` — compound-driven ticket production
+tied to alive ARMORYs / COMMAND_POSTs. This naturally degrades as
+compounds fall and needs no per-mission authoring for the Conquest case.
+Mission-level overrides (initial pool seeding, rate multipliers) can
+layer on top if raid or scripted missions need different curves.
 
 ### 3. Failure = bugged-map diagnostic
 
