@@ -128,4 +128,5 @@ This repo may be useful as a reference for:
 
 ## License
 
-Not yet licensed. All rights reserved until a license is added.
+MIT — see [LICENSE](LICENSE) for details. Third-party assets are under their
+own licenses; see [mod/CREDITS](mod/CREDITS).
