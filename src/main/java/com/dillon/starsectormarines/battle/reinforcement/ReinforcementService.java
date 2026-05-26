@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.reinforcement;
 
+import com.dillon.starsectormarines.battle.sim.BattleResources;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.ResourceType;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 
@@ -21,10 +23,10 @@ import java.util.List;
  * {@code GroundSystem} / {@code AirSystem} keep the {@code *System}
  * suffix.
  *
- * <p>Ticket budget (per-side cooldown / wave shaping) is not modeled in
- * v1 — every request gets dispatch attempts. The second slice plumbs
- * {@code ReinforcementBudget} from the mission config; the v1 service
- * shape doesn't need to change to accommodate it.
+ * <p>Dispatch is resource-gated: each successful dispatch debits one
+ * {@link ResourceType#REINFORCEMENT} ticket from the requesting side's
+ * {@link BattleResources} pool. Insufficient balance re-queues the
+ * request for the next tick.
  */
 public final class ReinforcementService {
 
@@ -82,20 +84,32 @@ public final class ReinforcementService {
         for (ReinforcementTrigger trigger : triggers) {
             trigger.check(sim, pending::add);
         }
+        Deque<ReinforcementRequest> deferred = null;
         while (!pending.isEmpty()) {
             ReinforcementRequest req = pending.poll();
-            dispatch(sim, req);
+            if (!dispatch(sim, req)) {
+                if (deferred == null) deferred = new ArrayDeque<>();
+                deferred.add(req);
+            }
         }
+        if (deferred != null) pending.addAll(deferred);
     }
 
-    private void dispatch(BattleSimulation sim, ReinforcementRequest req) {
+    private boolean dispatch(BattleSimulation sim, ReinforcementRequest req) {
+        BattleResources res = sim.getBattleResources();
+        float cost = res.reinforcementCost();
+        if (!res.tryConsume(req.side, ResourceType.REINFORCEMENT, cost)) {
+            return false;
+        }
         for (ReinforcementMeans m : means) {
             if (m.canFulfill(sim, req)) {
                 m.dispatch(sim, req);
                 LOG.info("reinforcement: dispatched " + req + " via " + m.getClass().getSimpleName());
-                return;
+                return true;
             }
         }
+        res.produce(req.side, ResourceType.REINFORCEMENT, cost);
         LOG.warn("reinforcement: no means could fulfill " + req + " — bugged map?");
+        return true;
     }
 }

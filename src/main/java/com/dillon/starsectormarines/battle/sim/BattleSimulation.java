@@ -157,6 +157,8 @@ public class BattleSimulation implements WeaponSimContext {
 
     /** Per-compound capture state — defender supply structures (COMMAND_POST / BARRACKS / ARMORY) and their DEFENDER_HELD / CONTESTED / MARINE_HELD state. Populated from the {@link TacticalMap} in {@link #setTacticalMap}; ticked by {@link #compoundCapture}. Slice 1 of the central-keep design ({@code roadmap/conquest/central-keep.md}). */
     private final CompoundService compoundService = new CompoundService();
+    /** Per-faction resource pools (reinforcement tickets, airstrike tickets). Compounds produce; dispatch layers consume. Ticked after compound capture so production reflects freshest capture state. */
+    private final BattleResources battleResources = new BattleResources();
     /** Stateless tick consumer that drives the compound capture state machine. Reads zone occupancy, writes {@link #compoundService} records on its slow-tick cadence. */
     private final CompoundCaptureSystem compoundCapture = new CompoundCaptureSystem();
 
@@ -645,6 +647,10 @@ public class BattleSimulation implements WeaponSimContext {
         return compoundService;
     }
 
+    public BattleResources getBattleResources() {
+        return battleResources;
+    }
+
     /**
      * Drives the simulation forward. Accepts any real-time delta; internally
      * runs zero or more fixed 30Hz ticks until the accumulator is drained.
@@ -825,16 +831,18 @@ public class BattleSimulation implements WeaponSimContext {
         // puff drain as the wrecks, just on a shorter, fire-less timer.
         effects.tickPlumes(TICK_DT);
         tickProfile.lap(TickProfile.Phase.PLUMES);
-        // Reinforcement slow-tick: poll triggers, drain the request queue, and
-        // dispatch via the first feasible means provider. Runs before air/ground
-        // systems so a dispatched Shuttle or Vehicle gets ticked the same frame
-        // it spawns, matching the rest of the spawn ordering for those systems.
-        reinforcement.tick(TICK_DT, this);
-        // Compound capture state machine — same 1Hz cadence as reinforcement,
-        // intentionally co-located so the two layers reach the same compound
-        // state within at most a tick of each other. Slice 1 has no consumers;
-        // the system writes state but nothing reads yet.
+        // Compound capture state machine — updates DEFENDER_HELD / CONTESTED /
+        // MARINE_HELD state. Runs before resource production and reinforcement
+        // so both see the freshest capture state this tick.
         compoundCapture.tick(TICK_DT, this, compoundService);
+        // Resource production — alive compounds generate tickets (reinforcement,
+        // airstrike) into per-faction pools. Ticked after capture so a
+        // just-flipped compound stops producing immediately.
+        battleResources.tick(TICK_DT, compoundService);
+        // Reinforcement slow-tick: poll triggers, drain the request queue, and
+        // dispatch via the first feasible means provider. Dispatch debits
+        // resource tickets; insufficient balance defers the request.
+        reinforcement.tick(TICK_DT, this);
         // Air vehicles tick AFTER units so new deboarded marines aren't iterated
         // mid-loop. They'll be picked up by next tick's occupancy + target pass.
         airSystem.tick(TICK_DT);
