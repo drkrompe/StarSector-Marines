@@ -30,7 +30,7 @@ public enum VehicleType {
             /*maxSpeed*/ 3.5f, /*accel*/ 2.5f, /*brakingAccel*/ 4f,
             /*deboardInterval*/ 0.6f, /*lookAheadCells*/ 2.0f,
             /*turretFrame*/ -1, /*turretMountX*/ 0f, /*turretMountY*/ 0f,
-            /*turretPivotX*/ 0f, /*turretPivotY*/ 0f, /*turretVisualCells*/ 0f,
+            /*turretPivotX*/ 0f, /*turretPivotY*/ 0f, /*turretVisualCells*/ 0f, /*turretSpriteFacingOffsetDeg*/ 90f,
             /*turretKind*/ null, /*departsAfterDeboard*/ true, /*overwatchDurationSec*/ 0f) {
         @Override
         public GroundBody createBody() {
@@ -49,12 +49,12 @@ public enum VehicleType {
      */
     HEAVY_APC(
             "graphics/battle/vehicles/army-apc.png", /*spriteFrame*/ 0, /*frameCount*/ 2,
-            /*spriteFacingOffsetDeg*/ 90f,
+            /*spriteFacingOffsetDeg*/ -90f,
             /*capacity*/ 4, /*visualLengthCells*/ 2.4f, /*visualWidthCells*/ 1.4f,
             /*maxSpeed*/ 2.8f, /*accel*/ 1.8f, /*brakingAccel*/ 3.5f,
             /*deboardInterval*/ 0.8f, /*lookAheadCells*/ 2.2f,
             /*turretFrame*/ 1, /*turretMountX*/ -0.15866698f, /*turretMountY*/ 0.26800027f,
-            /*turretPivotX*/ 0.108333334f, /*turretPivotY*/ 0.024999995f, /*turretVisualCells*/ 0.7f,
+            /*turretPivotX*/ 0.108333334f, /*turretPivotY*/ 0.024999995f, /*turretVisualCells*/ 0.7f, /*turretSpriteFacingOffsetDeg*/ -90f,
             /*turretKind*/ TurretKind.HEAVY_MG, /*departsAfterDeboard*/ false, /*overwatchDurationSec*/ 20f) {
         @Override
         public GroundBody createBody() {
@@ -110,6 +110,8 @@ public enum VehicleType {
     public final float turretPivotY;
     /** Visual size of the turret sprite (longest axis), cells. Same semantics as {@link #visualLengthCells}. */
     public final float turretVisualCells;
+    /** Facing offset for the turret sprite, degrees. Separate from {@link #spriteFacingOffsetDeg} because chassis and turret frames may face different directions in the sheet. */
+    public final float turretSpriteFacingOffsetDeg;
     /** Weapon kind for the vehicle-mounted turret, or {@code null} if no functional weapon. Drives the aim/fire loop in {@link GroundSystem}. */
     public final TurretKind turretKind;
     /** If true, the vehicle departs immediately after all marines deboard (truck behavior). If false, it enters OVERWATCH first. */
@@ -126,6 +128,7 @@ public enum VehicleType {
                 float deboardInterval, float lookAheadCells,
                 int turretFrame, float turretMountX, float turretMountY,
                 float turretPivotX, float turretPivotY, float turretVisualCells,
+                float turretSpriteFacingOffsetDeg,
                 TurretKind turretKind, boolean departsAfterDeboard,
                 float overwatchDurationSec) {
         this.spritePath = spritePath;
@@ -146,6 +149,7 @@ public enum VehicleType {
         this.turretPivotX = turretPivotX;
         this.turretPivotY = turretPivotY;
         this.turretVisualCells = turretVisualCells;
+        this.turretSpriteFacingOffsetDeg = turretSpriteFacingOffsetDeg;
         this.turretKind = turretKind;
         this.departsAfterDeboard = departsAfterDeboard;
         this.overwatchDurationSec = overwatchDurationSec;
