@@ -104,6 +104,39 @@ public final class NavigationService {
         return (occupancyMap[y * grid.getWidth() + x] & 0xFF) > 0;
     }
 
+    @FunctionalInterface
+    public interface CellCallback {
+        void accept(int x, int y);
+    }
+
+    private CellCallback roofCollapseSink;
+
+    public void setRoofCollapseSink(CellCallback sink) { this.roofCollapseSink = sink; }
+
+    public boolean damageWall(int x, int y, int amount) {
+        if (!grid.damageCell(x, y, amount)) return false;
+        topology.setWall(x, y, false);
+        topology.setGroundKind(x, y, CellTopology.GroundKind.RUBBLE);
+        peelRoofAround(x, y);
+        markZoneGraphDirty();
+        return true;
+    }
+
+    private void peelRoofAround(int wallX, int wallY) {
+        destroyRoof(wallX - 1, wallY);
+        destroyRoof(wallX + 1, wallY);
+        destroyRoof(wallX, wallY - 1);
+        destroyRoof(wallX, wallY + 1);
+    }
+
+    public void destroyRoof(int x, int y) {
+        if (!grid.inBounds(x, y)) return;
+        if (topology.getBuildingId(x, y) == 0) return;
+        if (topology.isRoofDestroyed(x, y)) return;
+        topology.setRoofDestroyed(x, y, true);
+        if (roofCollapseSink != null) roofCollapseSink.accept(x, y);
+    }
+
     /** Flips the dirty flag — called by the sim's {@code damageCell} + the demolition passes when a walkability change happens mid-tick. */
     public void markZoneGraphDirty() { zoneGraphDirty = true; }
     public boolean isZoneGraphDirty() { return zoneGraphDirty; }

@@ -292,6 +292,15 @@ public class BattleSimulation implements WeaponSimContext {
                 hitResponse);
         this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, turretFire, rng, this::addUnit);
         this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, turretFire, rng, this::addUnit);
+        navigation.setRoofCollapseSink((x, y) -> {
+            float jx = x + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
+            float jy = y + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
+            int rubbleIdx = rng.nextFloat() < 0.5f
+                    ? com.dillon.starsectormarines.battle.fx.DecalKind.RUBBLE.index
+                    : com.dillon.starsectormarines.battle.fx.DecalKind.RUBBLE_ALT.index;
+            effects.addDecal(new com.dillon.starsectormarines.battle.fx.Decal(
+                    jx, jy, rubbleIdx, rng.nextFloat() * 360f, 1.10f));
+        });
         vision.init(grid, 256);
     }
 
@@ -301,48 +310,11 @@ public class BattleSimulation implements WeaponSimContext {
     /** Zone+portal graph layered on the {@link NavigationGrid}. Rebuilt on wall destruction so AI queries reflect the current map. */
     public ZoneGraph getZoneGraph()        { return zoneGraph; }
 
-    /**
-     * Wall-damage entry point that callers should prefer over
-     * {@link NavigationGrid#damageCell} directly — it pipes through to the
-     * grid and triggers a {@link ZoneGraph#rebuild()} when a wall actually
-     * collapses, so the AI's zone vocabulary stays in sync with reality.
-     * Returns true the call that knocks the wall down.
-     */
     @Override
     public boolean damageCell(int x, int y, int amount) {
-        if (!grid.damageCell(x, y, amount)) return false;
-        // A wall that just collapsed is now walkable + a zone-graph portal
-        // (handled inside grid.damageCell). Topology needs the visual swap:
-        // clear WALL so the wall pass stops drawing tile art, set the ground
-        // kind to RUBBLE so the floor pass picks the damaged-floor autotile.
-        topology.setWall(x, y, false);
-        topology.setGroundKind(x, y, CellTopology.GroundKind.RUBBLE);
-        // Roof cave-in: a wall just collapsed, so any building cell adjacent
-        // to this wall loses its roof (and drops a rubble decal). Without
-        // this the roof stays intact while the wall under it is gone, which
-        // reads jarringly. The four-neighbor reach is intentional — a single
-        // wall hit peels at most two cells (one on each side for interior
-        // partitions, just one for a perimeter wall).
-        peelRoofAround(x, y);
-        navigation.markZoneGraphDirty();
-        return true;
+        return navigation.damageWall(x, y, amount);
     }
 
-    private void peelRoofAround(int wallX, int wallY) {
-        destroyRoofCell(wallX - 1, wallY);
-        destroyRoofCell(wallX + 1, wallY);
-        destroyRoofCell(wallX, wallY - 1);
-        destroyRoofCell(wallX, wallY + 1);
-    }
-
-    /**
-     * True iff {@code target} is standing on a cell that's part of a building
-     * and still has its roof intact — the discriminator for the aerial /
-     * indirect-fire shield rule. Used by both the AoE pipeline (see
-     * {@link com.dillon.starsectormarines.battle.weapons.Detonations}) and
-     * the direct-fire aerial path (turret + flyby) so all elevated weapons
-     * are intercepted by intact ceilings consistently.
-     */
     public boolean isRoofShielded(Unit target) {
         if (target == null) return false;
         return topology.isRoofIntact(target.getCellX(), target.getCellY());
@@ -350,20 +322,7 @@ public class BattleSimulation implements WeaponSimContext {
 
     @Override
     public void destroyRoofCell(int x, int y) {
-        if (!grid.inBounds(x, y)) return;
-        if (topology.getBuildingId(x, y) == 0) return;
-        if (topology.isRoofDestroyed(x, y)) return;
-        topology.setRoofDestroyed(x, y, true);
-        // Rubble decal at the cell center with a small jitter + random pose,
-        // matching the ImpactDecals.PRESET HE-rubble look — sells the cave-in
-        // as "ceiling collapsed onto this tile" rather than a clean wipe.
-        float jx = x + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
-        float jy = y + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
-        int rubbleIdx = rng.nextFloat() < 0.5f
-                ? com.dillon.starsectormarines.battle.fx.DecalKind.RUBBLE.index
-                : com.dillon.starsectormarines.battle.fx.DecalKind.RUBBLE_ALT.index;
-        addDecal(new com.dillon.starsectormarines.battle.fx.Decal(
-                jx, jy, rubbleIdx, rng.nextFloat() * 360f, 1.10f));
+        navigation.destroyRoof(x, y);
     }
     public List<Unit> getUnits()           { return units; }
     public List<Shuttle> getShuttles()     { return airSystem.getShuttles(); }
