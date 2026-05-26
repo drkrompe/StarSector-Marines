@@ -6,15 +6,19 @@ import com.dillon.starsectormarines.battle.weapons.MarineLoadout;
 import com.dillon.starsectormarines.battle.unit.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.ai.TurretAim;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.NavigationService;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
+import java.util.Random;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * Owns every airborne vehicle in the battle and drives them each tick.
@@ -27,10 +31,12 @@ import java.util.Set;
  * Visual feel (bus pendulum vs nimble snap) comes from the per-{@link ShuttleType}
  * {@link AirHandling} tunables, not from authored curves.
  *
- * <p>Coupling to the rest of the simulation is mediated by
- * {@link AirSimContext} — a narrow contract for the four things air vehicles
- * actually need: grid access, RNG, occupancy lookups, and unit/squad
- * insertion. The sim implements that contract directly; tests can stub it.
+ * <p>Dependencies are constructor-injected: {@link NavigationService} for
+ * grid/occupancy, {@link UnitRosterService} for unit/squad lifecycle, a
+ * shared {@link Random} for determinism, and a unit-addition sink that
+ * composites roster insertion with fog-of-war contributor registration.
+ * The turret-aim path still takes the full {@link BattleSimulation} —
+ * decoupling {@code fireShotFrom} is a follow-up slice.
  */
 public class AirSystem {
 
@@ -49,7 +55,20 @@ public class AirSystem {
     /** Cell radius around a flying turret's origin where walls are treated as transparent — models the shuttle being "above" its containing building. Tuned to typical building wall thickness; past this, real LOS rules apply. */
     private static final float SHUTTLE_AIR_LOS_RADIUS = 3.5f;
 
+    private final NavigationService navigation;
+    private final UnitRosterService roster;
+    private final Random rng;
+    private final Consumer<Unit> addUnitSink;
+
     private final List<Shuttle> shuttles = new ArrayList<>();
+
+    public AirSystem(NavigationService navigation, UnitRosterService roster,
+                     Random rng, Consumer<Unit> addUnitSink) {
+        this.navigation = navigation;
+        this.roster = roster;
+        this.rng = rng;
+        this.addUnitSink = addUnitSink;
+    }
 
     public List<Shuttle> getShuttles() { return shuttles; }
     public void add(Shuttle s) { shuttles.add(s); }
@@ -61,14 +80,12 @@ public class AirSystem {
      * matching {@code dt} to its fixed-tick cadence (the auto-battler uses
      * 30 Hz / TICK_DT).
      *
-     * <p>Takes {@link BattleSimulation} directly (which is itself an
-     * {@link AirSimContext}) because the turret-aim path reaches into shared
-     * targeting / line-of-sight code that's typed against the full sim. The
-     * narrow context handle is still passed to the deboard path where the
-     * surface is intentionally small.
+     * <p>The deboard/hover path uses constructor-injected services. The
+     * turret-aim path still takes the full {@link BattleSimulation} for
+     * {@code fireShotFrom} and {@code resolveUnit} — follow-up slice.
      */
     public void tick(BattleSimulation sim, float dt) {
-        advanceShuttles(sim, dt);
+        advanceShuttles(dt);
         tickShuttleTurrets(sim, dt);
     }
 
@@ -84,7 +101,7 @@ public class AirSystem {
      * {@link AirHandling}. No parametric per-leg curve is needed; the arc is
      * what kinematic-limited steering produces.
      */
-    private void advanceShuttles(BattleSimulation ctx, float dt) {
+    private void advanceShuttles(float dt) {
         for (Shuttle s : shuttles) {
             switch (s.state) {
                 case PENDING:
@@ -99,9 +116,6 @@ public class AirSystem {
                     s.body.tickToward(s.lzX, s.lzY, SteeringMode.BRAKE_TO_STATION, s.type, dt);
                     updateShuttleAltitude(s, s.lzX, s.lzY, /*incoming=*/true, dt);
                     if (s.body.distanceTo(s.lzX, s.lzY) < SHUTTLE_LZ_ARRIVAL_DIST) {
-                        // Snap to the LZ — the BRAKE_TO_STATION taper is
-                        // asymptotic, so without this the shuttle would creep
-                        // the last fraction of a cell at near-zero speed.
                         s.body.teleport(s.lzX, s.lzY, s.body.facingDegrees);
                         s.altitudeT = 0f;
                         s.scaleMult = 1f;
@@ -113,7 +127,7 @@ public class AirSystem {
                 case LANDED:
                     s.deboardCountdown -= dt;
                     if (s.deboardCountdown <= 0f && s.marinesRemaining > 0) {
-                        if (tryDeboardMarine(s, ctx)) {
+                        if (tryDeboardMarine(s)) {
                             s.marinesRemaining--;
                         }
                         s.deboardCountdown = s.type.deboardInterval;
@@ -144,7 +158,7 @@ public class AirSystem {
                     // centroid, clamped to a leash radius around the LZ so a
                     // wiped squad or a runaway scout doesn't drag the shuttle
                     // across the whole map.
-                    updateHoverFollow(s, ctx);
+                    updateHoverFollow(s);
                     s.body.tickToward(s.hoverPointX, s.hoverPointY, SteeringMode.STATION, s.type, dt);
                     s.hoverTimerSec -= dt;
                     // Takeoff phase — smoothstep altitudeT 0 → 1 over
@@ -391,11 +405,11 @@ public class AirSystem {
      * shuttle doesn't snap back to the LZ on the last marine's death — it
      * stays where it was supporting.
      */
-    private void updateHoverFollow(Shuttle s, BattleSimulation sim) {
+    private void updateHoverFollow(Shuttle s) {
         if (s.squadId == Unit.NO_SQUAD) return;
         float sumX = 0f, sumY = 0f;
         int n = 0;
-        for (Unit u : sim.getUnits()) {
+        for (Unit u : roster.getUnits()) {
             if (u.squadId != s.squadId) continue;
             if (!u.isAlive()) continue;
             sumX += u.getCellX() + 0.5f;
@@ -430,25 +444,21 @@ public class AirSystem {
      * units or walls); caller leaves {@code marinesRemaining} unchanged and the
      * shuttle re-tries next interval.
      */
-    private boolean tryDeboardMarine(Shuttle s, AirSimContext ctx) {
+    private boolean tryDeboardMarine(Shuttle s) {
         int lzCellX = (int) Math.floor(s.lzX);
         int lzCellY = (int) Math.floor(s.lzY);
-        int[] cell = findDeboardCell(lzCellX, lzCellY, ctx);
+        int[] cell = findDeboardCell(lzCellX, lzCellY);
         if (cell == null) return false;
         UnitType deboardType = (s.deboardUnitType != null)
                 ? s.deboardUnitType
                 : FactionUnitRoster.forFaction(s.faction).infantry();
-        Unit marine = new Unit(ctx.nextMarineId(), s.faction, deboardType, cell[0], cell[1]);
+        Unit marine = new Unit(roster.nextMarineId(), s.faction, deboardType, cell[0], cell[1]);
         int slot = s.type.capacity - s.marinesRemaining;
         MarineLoadout loadout = (s.marineLoadout != null && slot < s.marineLoadout.length)
                 ? s.marineLoadout[slot] : null;
         if (loadout != null) {
             marine.role = loadout.role;
             marine.assignedObjective = loadout.objective;
-            // Apply primary weapon stats — overrides the UnitType.MARINE
-            // defaults baked into the Unit at construction. If the loadout
-            // didn't specify a weapon (legacy callers), the marine keeps
-            // the type defaults and behaves as before.
             if (loadout.primary != null) {
                 marine.primaryWeapon = loadout.primary;
                 marine.attackRange = loadout.primary.range;
@@ -461,20 +471,13 @@ public class AirSystem {
                 marine.secondaryAmmo = loadout.secondaryAmmo;
             }
         }
-        // Squad assignment — first deboard from a shuttle mints a new squad
-        // and takes the leader slot; subsequent deboards join the same squad.
         if (s.squadId == Unit.NO_SQUAD) {
-            s.squadId = ctx.mintSquad(s.faction, marine);
+            s.squadId = roster.mintSquad(s.faction, marine);
         }
         marine.squadId = s.squadId;
-        // Track peak strength on the squad so Story B's SurviveContact predicate
-        // (SQUAD_BELOW_HALF_STRENGTH) has a denominator. Marines deboard one at
-        // a time, so this ratchets up as the shuttle empties; once members start
-        // dying it stays put. Defender squads stamp originalSize once in
-        // BattleSetup — marine squads can't, since they grow incrementally.
-        Squad squad = ctx.getSquad(s.squadId);
+        Squad squad = roster.getSquad(s.squadId);
         if (squad != null) squad.originalSize++;
-        ctx.addUnit(marine);
+        addUnitSink.accept(marine);
         return true;
     }
 
@@ -484,8 +487,8 @@ public class AirSystem {
      * sprite doesn't draw directly under the parked shuttle. Returns
      * {@code null} if no eligible cell is found within {@link #DEBOARD_SCAN_RADIUS}.
      */
-    private int[] findDeboardCell(int lzX, int lzY, AirSimContext ctx) {
-        NavigationGrid grid = ctx.getGrid();
+    private int[] findDeboardCell(int lzX, int lzY) {
+        NavigationGrid grid = navigation.getGrid();
         Set<Long> seen = new HashSet<>();
         Queue<int[]> q = new ArrayDeque<>();
         q.add(new int[]{lzX, lzY, 0});
@@ -497,7 +500,7 @@ public class AirSystem {
             if (p[2] > 0
                     && grid.inBounds(p[0], p[1])
                     && grid.isWalkable(p[0], p[1])
-                    && !ctx.isCellOccupied(p[0], p[1])) {
+                    && !navigation.isCellOccupied(p[0], p[1])) {
                 return new int[]{p[0], p[1]};
             }
             for (int[] d : dirs) {

@@ -21,7 +21,6 @@ import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.weapons.MechLoadoutState;
 import com.dillon.starsectormarines.battle.weapons.MechWeapon;
 
-import com.dillon.starsectormarines.battle.air.AirSimContext;
 import com.dillon.starsectormarines.battle.air.AirSystem;
 import com.dillon.starsectormarines.battle.command.CommanderService;
 import com.dillon.starsectormarines.battle.compound.CompoundCaptureSystem;
@@ -92,7 +91,7 @@ import java.util.Random;
  * 24×16 grid it's a few thousand cell expansions per second, well inside the
  * budget. Spatial indexing for target search can come later if we scale up.
  */
-public class BattleSimulation implements AirSimContext, WeaponSimContext {
+public class BattleSimulation implements WeaponSimContext {
 
     /**
      * CAS handle for {@link Unit#lastReprioTickIndex}. The
@@ -129,8 +128,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     private final UnitRosterService rosterService;
     /** Alias of {@link UnitRosterService#getUnits()}. Same {@link List} instance — kept as a field so the sim's iteration / size / subList reads don't pay a per-call accessor hop. */
     private final List<Unit> units;
-    private final AirSystem airSystem = new AirSystem();
-    private final GroundSystem groundSystem = new GroundSystem();
+    private final AirSystem airSystem;
+    private final GroundSystem groundSystem;
     /** Fog-of-war state — building registry + faction contributor set + the every-3rd-tick {@link com.dillon.starsectormarines.battle.vision.BuildingVisibilityPass} driver. The {@link #getBuildings}/{@link #setBuildings}/{@link #getVisionState} delegates below forward here. */
     private final VisionService vision = new VisionService();
     /** Handheld squad weapons (rifle / SMG / DMR / rocket launcher). Owns fireShot, fireSecondary, and the per-tick burst continuation pass. Pumped each tick via {@code infantry.tick(this)}; behavior call sites still go through the delegating {@link #fireShot} / {@link #fireSecondary} wrappers on this class. */
@@ -297,6 +296,8 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         this.attackerIndex = new com.dillon.starsectormarines.battle.ai.AttackerIndexService(rosterService);
         this.unitUpdate = new com.dillon.starsectormarines.battle.ai.UnitUpdateSystem(
                 rosterService.getRegistry(), damageService, tickInnerProfile);
+        this.airSystem = new AirSystem(navigation, rosterService, rng, this::addUnit);
+        this.groundSystem = new GroundSystem(navigation, rosterService, rng, this::addUnit);
         vision.init(grid, 256);
     }
 
@@ -506,7 +507,6 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
     /** Stamped defense posts (conquest only). Called once by {@code BattleSetup} right after construction; safe to pass null/empty for missions without posts. */
     public void setDefensePosts(List<DefensePost> posts) { tactical.setDefensePosts(posts); }
 
-    @Override
     public void addUnit(Unit u) {
         rosterService.addUnit(u);
         if (vision.getVisionState().isContributor(u.faction)) {
@@ -752,26 +752,6 @@ public class BattleSimulation implements AirSimContext, WeaponSimContext {
         clearPath(target);
     }
 
-    // ---- AirSimContext: services the AirSystem reaches back for during a tick ----
-
-    @Override
-    public boolean isCellOccupied(int x, int y) {
-        if (!grid.inBounds(x, y)) return false;
-        // Read the precomputed occupancy map instead of scanning units. The map
-        // counts each unit's current cell + path destination, so a value > 0
-        // means at least one unit physically stands on (x, y) right now.
-        // Destination-only contributions count too, but a shuttle picking a
-        // deboard cell should still avoid those — a marine en route to (x, y)
-        // is about to be there.
-        return (occupancyMap[y * grid.getWidth() + x] & 0xFF) > 0;
-    }
-
-    @Override
-    public String nextMarineId() {
-        return rosterService.nextMarineId();
-    }
-
-    @Override
     public int mintSquad(Faction faction, Unit leader) {
         return rosterService.mintSquad(faction, leader);
     }

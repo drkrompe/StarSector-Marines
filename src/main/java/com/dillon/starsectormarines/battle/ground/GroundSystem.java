@@ -87,13 +87,13 @@ public class GroundSystem {
                     break;
 
                 case INCOMING:
-                    advancePath(v, v.inboundX, v.inboundY, dt, true, sim);
+                    advancePath(v, v.inboundX, v.inboundY, dt, true);
                     break;
 
                 case LANDED:
                     v.deboardCountdown -= dt;
                     if (v.deboardCountdown <= 0f && v.marinesRemaining > 0) {
-                        if (tryDeboardMarine(v, sim)) {
+                        if (tryDeboardMarine(v)) {
                             v.marinesRemaining--;
                         }
                         v.deboardCountdown = v.type.deboardInterval;
@@ -118,7 +118,7 @@ public class GroundSystem {
                     break;
 
                 case DEPARTING:
-                    advancePath(v, v.outboundX, v.outboundY, dt, false, sim);
+                    advancePath(v, v.outboundX, v.outboundY, dt, false);
                     break;
 
                 case GONE:
@@ -148,14 +148,14 @@ public class GroundSystem {
      *       that tick and retry next tick.</li>
      * </ol>
      */
-    private void advancePath(Vehicle v, float[] xs, float[] ys, float dt, boolean isInbound, AirSimContext ctx) {
+    private void advancePath(Vehicle v, float[] xs, float[] ys, float dt, boolean isInbound) {
         if (v.dockingPath != null) {
             advanceDocking(v, dt);
             return;
         }
 
         if (isInbound) {
-            tryEngageDocking(v, xs, ys, ctx);
+            tryEngageDocking(v, xs, ys);
             if (v.dockingPath != null) {
                 advanceDocking(v, dt);
                 return;
@@ -198,7 +198,7 @@ public class GroundSystem {
      * try again next tick (or never, if the geometry persists — pure
      * pursuit will then deliver the truck to the LZ via the polyline).
      */
-    private void tryEngageDocking(Vehicle v, float[] xs, float[] ys, AirSimContext ctx) {
+    private void tryEngageDocking(Vehicle v, float[] xs, float[] ys) {
         if (!(v.body instanceof BicycleBody)) return;
         int lastIdx = xs.length - 1;
         float lzX = xs[lastIdx];
@@ -215,7 +215,7 @@ public class GroundSystem {
         float turnRadius = ((BicycleBody) v.body).minTurnRadiusCells();
         ReedsShepp.Path path = ReedsShepp.shortest(start, goal, turnRadius);
         if (path == null) return;
-        if (!isPathFeasible(start, path, turnRadius, v.type, ctx.getGrid())) return;
+        if (!isPathFeasible(start, path, turnRadius, v.type, navigation.getGrid())) return;
 
         v.dockingPath = path;
         v.dockingStartPose = start;
@@ -272,15 +272,15 @@ public class GroundSystem {
      * rather than shared so the air/ground split stays clean and the BFS
      * is small enough that duplication isn't a real cost.
      */
-    private boolean tryDeboardMarine(Vehicle v, AirSimContext ctx) {
+    private boolean tryDeboardMarine(Vehicle v) {
         int lzCellX = (int) Math.floor(v.lzX);
         int lzCellY = (int) Math.floor(v.lzY);
-        int[] cell = findDeboardCell(lzCellX, lzCellY, ctx);
+        int[] cell = findDeboardCell(lzCellX, lzCellY);
         if (cell == null) return false;
         UnitType deboardType = (v.deboardUnitType != null)
                 ? v.deboardUnitType
                 : FactionUnitRoster.forFaction(v.faction).infantry();
-        Unit marine = new Unit(ctx.nextMarineId(), v.faction, deboardType, cell[0], cell[1]);
+        Unit marine = new Unit(roster.nextMarineId(), v.faction, deboardType, cell[0], cell[1]);
         int slot = v.type.capacity - v.marinesRemaining;
         MarineLoadout loadout = (v.marineLoadout != null && slot < v.marineLoadout.length)
                 ? v.marineLoadout[slot] : null;
@@ -300,14 +300,12 @@ public class GroundSystem {
             }
         }
         if (v.squadId == Unit.NO_SQUAD) {
-            v.squadId = ctx.mintSquad(v.faction, marine);
+            v.squadId = roster.mintSquad(v.faction, marine);
         }
         marine.squadId = v.squadId;
-        // Ratchet peak-strength for the SurviveContact predicate, matching
-        // the shuttle-deboard path.
-        Squad squad = ctx.getSquad(v.squadId);
+        Squad squad = roster.getSquad(v.squadId);
         if (squad != null) squad.originalSize++;
-        ctx.addUnit(marine);
+        addUnitSink.accept(marine);
         return true;
     }
 
@@ -316,8 +314,8 @@ public class GroundSystem {
      * at distance ≥ 1. Distance 0 (the LZ itself) is skipped so the marine
      * sprite doesn't draw directly under the parked truck.
      */
-    private int[] findDeboardCell(int lzX, int lzY, AirSimContext ctx) {
-        NavigationGrid grid = ctx.getGrid();
+    private int[] findDeboardCell(int lzX, int lzY) {
+        NavigationGrid grid = navigation.getGrid();
         Set<Long> seen = new HashSet<>();
         Queue<int[]> q = new ArrayDeque<>();
         q.add(new int[]{lzX, lzY, 0});
@@ -329,7 +327,7 @@ public class GroundSystem {
             if (p[2] > 0
                     && grid.inBounds(p[0], p[1])
                     && grid.isWalkable(p[0], p[1])
-                    && !ctx.isCellOccupied(p[0], p[1])) {
+                    && !navigation.isCellOccupied(p[0], p[1])) {
                 return new int[]{p[0], p[1]};
             }
             for (int[] d : dirs) {

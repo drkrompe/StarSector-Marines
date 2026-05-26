@@ -21,9 +21,9 @@ import java.util.Random;
  * this directly. Weapon-system unit tests can supply a stub that records calls
  * without dragging in the full sim.
  *
- * <p>Parallels {@link com.dillon.starsectormarines.battle.air.AirSimContext}
- * — same pattern: the sim owns subsystem instances and exposes a curated set
- * of primitives the subsystems are allowed to call back into.
+ * <p>The sim owns subsystem instances and exposes a curated set of primitives
+ * the subsystems are allowed to call back into. On the deprecation path —
+ * will be replaced by constructor-injected Services per consumer.
  */
 public interface WeaponSimContext {
 

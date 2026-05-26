@@ -94,6 +94,16 @@ public final class NavigationService {
     public UnitSpatialIndex getUnitIndex() { return unitIndex; }
     public UnitDestinationSpatialIndex getDestIndex() { return destIndex; }
 
+    /**
+     * True if any alive ground unit currently occupies the given cell (current
+     * position or path destination). Reads the precomputed {@link #occupancyMap}
+     * — no unit scan.
+     */
+    public boolean isCellOccupied(int x, int y) {
+        if (!grid.inBounds(x, y)) return false;
+        return (occupancyMap[y * grid.getWidth() + x] & 0xFF) > 0;
+    }
+
     /** Flips the dirty flag — called by the sim's {@code damageCell} + the demolition passes when a walkability change happens mid-tick. */
     public void markZoneGraphDirty() { zoneGraphDirty = true; }
     public boolean isZoneGraphDirty() { return zoneGraphDirty; }
