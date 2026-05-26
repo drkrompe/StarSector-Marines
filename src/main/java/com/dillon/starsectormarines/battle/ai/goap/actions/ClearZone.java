@@ -77,10 +77,10 @@ public final class ClearZone implements Action {
                 && sim.getZoneGraph().zoneIdAt(target.getCellX(), target.getCellY()) != targetZoneId;
         if (target == null
                 || targetOutOfZone
-                || !TacticalScoring.shouldKeepPursuing(member, target, sim)) {
+                || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
             Unit inZone = pickInZoneTarget(member, sim);
             if (inZone == null) inZone = pickNearestInZoneEnemy(member, sim);
-            target = inZone != null ? inZone : TacticalScoring.findBestTarget(member, sim);
+            target = inZone != null ? inZone : sim.getTacticalScoring().findBestTarget(member);
             member.setTarget(target);
         }
         if (target == null) return ActionStatus.RUNNING;
@@ -104,7 +104,7 @@ public final class ClearZone implements Action {
             return ActionStatus.RUNNING;
         }
         if (member.moveProgress == 0f) {
-            int[] dest = TacticalScoring.findFiringPosition(member, target, sim);
+            int[] dest = sim.getTacticalScoring().findFiringPosition(member, target);
             if (dest == null) {
                 // No reachable firing or vantage cell for this in-zone target.
                 // Drop the target — pickInZoneTarget will get a fresh shot next

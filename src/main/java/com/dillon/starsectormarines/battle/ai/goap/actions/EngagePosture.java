@@ -67,8 +67,8 @@ public final class EngagePosture implements Action {
         // no-target rather than charging in.
         Unit target = sim.targetOf(member);
         if (target == null
-                || !TacticalScoring.shouldKeepPursuing(member, target, sim)) {
-            target = TacticalScoring.findBestTarget(member, sim);
+                || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
+            target = sim.getTacticalScoring().findBestTarget(member);
             member.setTarget(target);
         }
         if (target == null) return ActionStatus.FAILURE;
@@ -96,7 +96,7 @@ public final class EngagePosture implements Action {
                     && member.secondaryCooldownTimer <= 0f
                     && TacticalScoring.isHardened(target)
                     && dist <= member.secondaryWeapon.range
-                    && TacticalScoring.shouldCommitRocket(member, target, sim)) {
+                    && sim.getTacticalScoring().shouldCommitRocket(member, target)) {
                 member.secondaryActionTimer = member.secondaryWeapon.aimDuration;
                 member.secondaryFiredThisAction = false;
                 member.setSecondaryAimTarget(target);
@@ -130,7 +130,7 @@ public final class EngagePosture implements Action {
             // on {@link ApproachPosture} concurrently with engage-only members.
             if (member.moveProgress == 0f) {
                 int[] dest = InfantryCohesion.cohesionOverride(member, sim);
-                if (dest == null) dest = TacticalScoring.findFiringPosition(member, target, sim);
+                if (dest == null) dest = sim.getTacticalScoring().findFiringPosition(member, target);
                 if (dest == null) {
                     // Same dead-end as ApproachPosture's else branch — target
                     // has no reachable firing position or vantage from here.

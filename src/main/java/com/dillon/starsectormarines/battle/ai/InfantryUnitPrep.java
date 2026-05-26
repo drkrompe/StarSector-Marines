@@ -111,7 +111,7 @@ public final class InfantryUnitPrep {
             if (d2 > range * range) continue;
             if (d2 >= bestDistSq) continue;
             if (!sim.getGrid().hasLineOfSight(unit.getCellX(), unit.getCellY(), other.getCellX(), other.getCellY())) continue;
-            if (!TacticalScoring.shouldCommitRocket(unit, other, sim)) continue;
+            if (!sim.getTacticalScoring().shouldCommitRocket(unit, other)) continue;
             bestHardened = other;
             bestDistSq = d2;
         }

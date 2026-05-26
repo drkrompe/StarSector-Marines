@@ -68,8 +68,8 @@ public final class HoldPost implements Action {
 
         Unit target = sim.targetOf(member);
         if (target == null
-                || !TacticalScoring.shouldKeepPursuing(member, target, sim)) {
-            target = TacticalScoring.findBestTarget(member, sim);
+                || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
+            target = sim.getTacticalScoring().findBestTarget(member);
             member.setTarget(target);
         }
 
@@ -104,18 +104,18 @@ public final class HoldPost implements Action {
             return ActionStatus.RUNNING;
         }
 
-        int[] firingPos = TacticalScoring.findFiringPositionWithin(
-                member, target, sim, homeX, homeY, HOLD_RADIUS);
+        int[] firingPos = sim.getTacticalScoring().findFiringPositionWithin(
+                member, target, homeX, homeY, HOLD_RADIUS);
         if (firingPos == null) {
             // Current target unreachable from any cell within the hold ring.
             // Switch to any engageable enemy that fits and re-pick.
-            Unit alt = TacticalScoring.findEngageableEnemyWithin(
-                    member, sim, homeX, homeY, HOLD_RADIUS);
+            Unit alt = sim.getTacticalScoring().findEngageableEnemyWithin(
+                    member, homeX, homeY, HOLD_RADIUS);
             if (alt != null) {
                 member.setTarget(alt);
                 target = alt;
-                firingPos = TacticalScoring.findFiringPositionWithin(
-                        member, target, sim, homeX, homeY, HOLD_RADIUS);
+                firingPos = sim.getTacticalScoring().findFiringPositionWithin(
+                        member, target, homeX, homeY, HOLD_RADIUS);
             }
         }
         if (firingPos == null || (firingPos[0] == member.getCellX() && firingPos[1] == member.getCellY())) {

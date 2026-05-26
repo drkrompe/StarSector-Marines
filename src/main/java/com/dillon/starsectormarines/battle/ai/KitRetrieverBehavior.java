@@ -53,7 +53,7 @@ public final class KitRetrieverBehavior implements UnitBehavior {
     private static void fireOpportunistically(Unit u, BattleSimulation sim) {
         Unit target = sim.targetOf(u);
         if (target == null) {
-            target = TacticalScoring.findBestTarget(u, sim);
+            target = sim.getTacticalScoring().findBestTarget(u);
             u.setTarget(target);
         }
         if (u.cooldownTimer > 0f) u.cooldownTimer -= BattleSimulation.TICK_DT;

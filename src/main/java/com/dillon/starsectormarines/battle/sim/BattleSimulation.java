@@ -194,6 +194,9 @@ public class BattleSimulation implements WeaponSimContext {
      */
     private final com.dillon.starsectormarines.battle.ai.AttackerIndexService attackerIndex;
 
+    /** Shared scoring service for target selection, firing-position, fallback, and cover queries. Constructor-injected with NavigationService, UnitRosterService, AttackerIndexService, ShotService, DoodadService. */
+    private final com.dillon.starsectormarines.battle.ai.TacticalScoring tacticalScoring;
+
     /** In-flight tracers + projectiles + per-frame event drains. Sibling slice to {@link #effects} / {@link #vision}; the {@link #postShot}, {@link #queueProjectile}, {@link #getActiveShots} et al. delegates below forward here. */
     private final ShotService shots = new ShotService();
     /** Units that transitioned from alive to dead during the last {@link #advance(float)} call. Same lifecycle as {@link #shotsThisFrame}. */
@@ -294,6 +297,8 @@ public class BattleSimulation implements WeaponSimContext {
                 rosterService, shots);
         this.squadReplan = new com.dillon.starsectormarines.battle.squad.SquadReplanSystem(rosterService);
         this.attackerIndex = new com.dillon.starsectormarines.battle.ai.AttackerIndexService(rosterService);
+        this.tacticalScoring = new com.dillon.starsectormarines.battle.ai.TacticalScoring(
+                navigation, rosterService, attackerIndex, shots, doodadService);
         this.unitUpdate = new com.dillon.starsectormarines.battle.ai.UnitUpdateSystem(
                 rosterService.getRegistry(), damageService, tickInnerProfile);
         this.airSystem = new AirSystem(navigation, rosterService, rng, this::addUnit);
@@ -487,6 +492,8 @@ public class BattleSimulation implements WeaponSimContext {
     /** Per-tick sub-step profile (per-behavior + per-primitive nanos). Reset every tick; snapshotted onto the spike record when one fires. Read by the JSON dumper. */
     public TickInnerProfile getTickInnerProfile() { return tickInnerProfile; }
     @Override public Random getRng()       { return rng; }
+    /** Shared scoring service — target selection, firing-position, fallback, cover queries. Thread-safe for reads (constructor-injected immutable service refs). */
+    public com.dillon.starsectormarines.battle.ai.TacticalScoring getTacticalScoring() { return tacticalScoring; }
     /** Delegates to {@link UnitRosterService#getSquad(int)}. Synchronized lookup; safe to call from the parallel UPDATE_UNITS dispatch (concurrent {@link #mintSquad} from drone-hub spawns publishes through the same monitor). */
     public Squad getSquad(int id) {
         return rosterService.getSquad(id);
@@ -725,7 +732,7 @@ public class BattleSimulation implements WeaponSimContext {
         if (target.rng.nextFloat() >= FALLBACK_CHANCE) return;
         // Heavy compute — done on the shooter's worker by design; the result is
         // just int coords carried to the serial drain.
-        int[] fallback = TacticalScoring.findFallbackPosition(target, this);
+        int[] fallback = tacticalScoring.findFallbackPosition(target);
         if (fallback[0] == target.getCellX() && fallback[1] == target.getCellY()) return;
         // Serial callers apply the 3 fb-field writes + clearPath inline via
         // the damage service's inline applier; parallel callers queue (writes

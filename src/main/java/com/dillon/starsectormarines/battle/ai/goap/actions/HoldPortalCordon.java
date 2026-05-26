@@ -208,8 +208,8 @@ public final class HoldPortalCordon implements Action {
     private static void opportunisticFire(Unit member, BattleSimulation sim, FireStance stance) {
         Unit target = sim.targetOf(member);
         if (target == null
-                || !TacticalScoring.shouldKeepPursuing(member, target, sim)) {
-            target = TacticalScoring.findBestTarget(member, sim);
+                || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
+            target = sim.getTacticalScoring().findBestTarget(member);
             member.setTarget(target);
         }
         if (target == null || member.cooldownTimer > 0f) return;

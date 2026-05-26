@@ -58,8 +58,8 @@ public final class ApproachPosture implements Action {
         // closer-visible-target check is what unsticks that case.
         Unit target = sim.targetOf(member);
         if (target == null
-                || !TacticalScoring.shouldKeepPursuing(member, target, sim)) {
-            target = TacticalScoring.findBestTarget(member, sim);
+                || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
+            target = sim.getTacticalScoring().findBestTarget(member);
             member.setTarget(target);
         }
         if (target == null) return ActionStatus.FAILURE;
@@ -73,7 +73,7 @@ public final class ApproachPosture implements Action {
 
         if (member.moveProgress == 0f) {
             int[] dest = InfantryCohesion.cohesionOverride(member, sim);
-            if (dest == null) dest = TacticalScoring.findFiringPosition(member, target, sim);
+            if (dest == null) dest = sim.getTacticalScoring().findFiringPosition(member, target);
             if (dest == null) {
                 // No reachable firing position OR vantage point exists for the
                 // current target — geometrically unreachable from here. Drop

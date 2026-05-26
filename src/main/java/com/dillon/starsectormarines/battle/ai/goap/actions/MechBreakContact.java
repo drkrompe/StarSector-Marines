@@ -44,8 +44,8 @@ public final class MechBreakContact implements Action {
 
     @Override
     public ActionStatus execute(Unit member, Squad squad, BattleSimulation sim) {
-        if (TacticalScoring.fallbackDestinationNeedsRefresh(member, sim)) {
-            int[] dest = TacticalScoring.findFallbackPosition(member, sim);
+        if (sim.getTacticalScoring().fallbackDestinationNeedsRefresh(member)) {
+            int[] dest = sim.getTacticalScoring().findFallbackPosition(member);
             member.fallbackCellX = dest[0];
             member.fallbackCellY = dest[1];
         }
@@ -81,8 +81,8 @@ public final class MechBreakContact implements Action {
     private static void opportunisticMechFire(Unit u, BattleSimulation sim) {
         Unit target = sim.targetOf(u);
         if (target == null
-                || !TacticalScoring.shouldKeepPursuing(u, target, sim)) {
-            target = TacticalScoring.findBestTarget(u, sim);
+                || !sim.getTacticalScoring().shouldKeepPursuing(u, target)) {
+            target = sim.getTacticalScoring().findBestTarget(u);
             u.setTarget(target);
         }
         if (target == null) return;

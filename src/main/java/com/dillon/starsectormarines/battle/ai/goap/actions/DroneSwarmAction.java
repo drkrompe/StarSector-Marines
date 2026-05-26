@@ -248,8 +248,8 @@ public final class DroneSwarmAction implements Action {
      * by {@link Drone#AGGRO_RANGE_CELLS} and an air-LoS check.
      */
     private static Unit tryAgroScan(Drone d, BattleSimulation sim) {
-        Unit candidate = TacticalScoring.findBestTarget(
-                d.getCellX(), d.getCellY(), d.faction, d.squadId, d, d.airLosRadius, sim);
+        Unit candidate = sim.getTacticalScoring().findBestTarget(
+                d.getCellX(), d.getCellY(), d.faction, d.squadId, d, d.airLosRadius);
         if (candidate == null) return null;
         float dist = TacticalScoring.cellDistance(
                 d.getCellX(), d.getCellY(), candidate.getCellX(), candidate.getCellY());

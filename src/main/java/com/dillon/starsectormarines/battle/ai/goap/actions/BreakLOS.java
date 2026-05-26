@@ -54,8 +54,8 @@ public final class BreakLOS implements Action {
 
     @Override
     public ActionStatus execute(Unit member, Squad squad, BattleSimulation sim) {
-        if (TacticalScoring.fallbackDestinationNeedsRefresh(member, sim)) {
-            int[] dest = TacticalScoring.findFallbackPosition(member, sim);
+        if (sim.getTacticalScoring().fallbackDestinationNeedsRefresh(member)) {
+            int[] dest = sim.getTacticalScoring().findFallbackPosition(member);
             member.fallbackCellX = dest[0];
             member.fallbackCellY = dest[1];
         }

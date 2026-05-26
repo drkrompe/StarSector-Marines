@@ -114,7 +114,7 @@ public class TacticalScoringTest {
         // marine doesn't need to stand <em>on</em> the crate to be behind it.
         sim.addDoodad(new Doodad(13, 10, new TileManifest.TileFrame(4, 7)));
 
-        int[] pick = TacticalScoring.bestCoverCell(15, 10, 10, 10, 4, sim);
+        int[] pick = sim.getTacticalScoring().bestCoverCell(15, 10, 10, 10, 4);
         assertNotNull(pick, "open arena with LOS should always pick something");
         assertEquals(12, pick[0],
                 "(12, 10) wins: same E-facing cover as the doodad cell, closer to anchor");
@@ -136,7 +136,7 @@ public class TacticalScoringTest {
         // threat is FURTHER north, so doodad is between). (13, 9) is north of
         // doodad — but its S-facing applies to threats from south; threat is
         // north, so S-facing doesn't help. (13, 9) is exposed.
-        int[] pick = TacticalScoring.bestCoverCell(13, 5, 13, 12, 3, sim);
+        int[] pick = sim.getTacticalScoring().bestCoverCell(13, 5, 13, 12, 3);
         assertNotNull(pick);
         assertTrue(pick[1] == 10 || pick[1] == 11,
                 "best cover cell against north threat should be south of or on the doodad, not north of it; got " + pick[0] + "," + pick[1]);
@@ -159,7 +159,7 @@ public class TacticalScoringTest {
         sim.addDoodad(new Doodad(6, 5, new TileManifest.TileFrame(4, 7)));   // heavy, blocked
         sim.addDoodad(new Doodad(12, 5, new TileManifest.TileFrame(8, 1)));  // medium, visible
 
-        int[] pick = TacticalScoring.bestCoverCell(15, 5, 9, 5, 6, sim);
+        int[] pick = sim.getTacticalScoring().bestCoverCell(15, 5, 9, 5, 6);
         assertNotNull(pick);
         assertEquals(11, pick[0],
                 "directional cover: (11, 5) is behind the visible crate from east threats, closer to anchor than the crate cell itself");
@@ -173,7 +173,7 @@ public class TacticalScoringTest {
         // Solid wall across x=10, y=0..19, isolating left from right.
         for (int y = 0; y < 20; y++) grid.setWalkable(10, y, false);
         // Threat on the right, candidates only on the left.
-        int[] pick = TacticalScoring.bestCoverCell(15, 5, 5, 5, 3, sim);
+        int[] pick = sim.getTacticalScoring().bestCoverCell(15, 5, 5, 5, 3);
         assertNull(pick, "no candidate has LOS through the wall");
     }
 
@@ -205,7 +205,7 @@ public class TacticalScoringTest {
         // distance-only score, the picker would pick the fleer (distance 10
         // vs 15). With the density penalty (3 neighbors × 5 = 15) the fleer's
         // effective score becomes 25 vs the lone enemy's 15.
-        Unit picked = TacticalScoring.findBestTarget(marine, sim);
+        Unit picked = sim.getTacticalScoring().findBestTarget(marine);
         assertNotNull(picked);
         assertEquals(lone, picked,
                 "picker should avoid the cluster and pick the isolated lone enemy");
@@ -233,7 +233,7 @@ public class TacticalScoringTest {
 
         Unit farEnemy = unit(sim, Faction.DEFENDER, 45, 10);
 
-        Unit picked = TacticalScoring.findBestTarget(marine, sim);
+        Unit picked = sim.getTacticalScoring().findBestTarget(marine);
         assertEquals(farEnemy, picked,
                 "target selection must not be gated by squad centroid distance");
     }
@@ -268,7 +268,7 @@ public class TacticalScoringTest {
         Unit m1 = unit(sim, Faction.MARINE, 5, 10);
         m1.attackRange = 30f;
 
-        int[] pick = TacticalScoring.findFiringPosition(m1, threat, sim);
+        int[] pick = sim.getTacticalScoring().findFiringPosition(m1, threat);
         assertNotNull(pick);
         boolean withinAoeRadius = (Math.abs(pick[0] - 10) <= TacticalScoring.FIRING_AOE_SPREAD_RADIUS
                 && Math.abs(pick[1] - 10) <= TacticalScoring.FIRING_AOE_SPREAD_RADIUS);
@@ -300,7 +300,7 @@ public class TacticalScoringTest {
         int[] path = new int[]{12, 12, 4, 5};
         sim.setPath(a2, path);
 
-        int count = TacticalScoring.alliesNearForSpread(self, 4, 4, sim);
+        int count = sim.getTacticalScoring().alliesNearForSpread(self, 4, 4);
         assertEquals(2, count,
                 "both the at-cell ally and the pathing-to-near-cell ally count toward AoE-spread");
     }
@@ -311,7 +311,7 @@ public class TacticalScoringTest {
         Unit self = unit(sim, Faction.MARINE, 0, 0);
         // Enemy literally on the candidate cell.
         unit(sim, Faction.DEFENDER, 4, 4);
-        int count = TacticalScoring.alliesNearForSpread(self, 4, 4, sim);
+        int count = sim.getTacticalScoring().alliesNearForSpread(self, 4, 4);
         assertEquals(0, count, "enemies don't contribute to ally-spread");
     }
 
@@ -346,7 +346,7 @@ public class TacticalScoringTest {
         Unit closer = unit(sim, Faction.DEFENDER, 9, 10);
         unit(sim, Faction.DEFENDER, 11, 10);
 
-        Unit picked = TacticalScoring.findBestTarget(marine, sim);
+        Unit picked = sim.getTacticalScoring().findBestTarget(marine);
         assertEquals(closer, picked,
                 "in-zone enemy at dist 4 must beat across-zone enemy at dist 6 (bias > 2)");
     }
@@ -384,7 +384,7 @@ public class TacticalScoringTest {
         Unit acrossClose = unit(sim, Faction.DEFENDER, 21, 10);   // dist 3, adjusted 11
         Unit inZoneFar  = unit(sim, Faction.DEFENDER, 2, 10);     // dist 16, adjusted 16
 
-        Unit picked = TacticalScoring.findBestTarget(marine, sim);
+        Unit picked = sim.getTacticalScoring().findBestTarget(marine);
         assertEquals(acrossClose, picked,
                 "very close across-zone enemy (adjusted 11) must beat distant in-zone (16)");
     }
@@ -399,7 +399,7 @@ public class TacticalScoringTest {
         Unit near = unit(sim, Faction.DEFENDER, 7, 5);
         Unit far = unit(sim, Faction.DEFENDER, 15, 5);
 
-        Unit picked = TacticalScoring.findBestTarget(marine, sim);
+        Unit picked = sim.getTacticalScoring().findBestTarget(marine);
         assertEquals(near, picked,
                 "same-zone targets — pick nearest, bias is 0");
     }
@@ -414,7 +414,7 @@ public class TacticalScoringTest {
         Unit marine = unit(sim, Faction.MARINE, 5, 5);
         Unit enemy = unit(sim, Faction.DEFENDER, 10, 5);
         TestUnits.kill(sim, enemy);
-        assertTrue(!TacticalScoring.shouldKeepPursuing(marine, enemy, sim));
+        assertTrue(!sim.getTacticalScoring().shouldKeepPursuing(marine, enemy));
     }
 
     @Test
@@ -431,7 +431,7 @@ public class TacticalScoringTest {
         unit(sim, Faction.DEFENDER, 13, 5);
         unit(sim, Faction.DEFENDER, 12, 6);
 
-        assertTrue(!TacticalScoring.shouldKeepPursuing(marine, fleer, sim),
+        assertTrue(!sim.getTacticalScoring().shouldKeepPursuing(marine, fleer),
                 "LOS lost + target in cluster -> drop pursuit");
     }
 
@@ -448,7 +448,7 @@ public class TacticalScoringTest {
         unit(sim, Faction.DEFENDER, 11, 5);
         unit(sim, Faction.DEFENDER, 10, 6);
 
-        assertTrue(TacticalScoring.shouldKeepPursuing(marine, enemy, sim));
+        assertTrue(sim.getTacticalScoring().shouldKeepPursuing(marine, enemy));
     }
 
     @Test
@@ -461,9 +461,9 @@ public class TacticalScoringTest {
         Unit distantTurret = unit(sim, Faction.DEFENDER, 20, 5);
         Unit closeMech = unit(sim, Faction.DEFENDER, 7, 5);
 
-        assertTrue(!TacticalScoring.shouldKeepPursuing(marine, distantTurret, sim),
+        assertTrue(!sim.getTacticalScoring().shouldKeepPursuing(marine, distantTurret),
                 "closer visible enemy must trigger re-target");
-        assertTrue(TacticalScoring.shouldKeepPursuing(marine, closeMech, sim),
+        assertTrue(sim.getTacticalScoring().shouldKeepPursuing(marine, closeMech),
                 "the close target itself is still a fine target to keep on");
     }
 
@@ -486,7 +486,7 @@ public class TacticalScoringTest {
         Unit infantry = unit(sim, Faction.DEFENDER, 10, 5);
         Unit mech = unit(sim, Faction.DEFENDER, UnitType.HEAVY_MECH, 20, 5);
 
-        Unit picked = TacticalScoring.findBestTarget(rocketeer, sim);
+        Unit picked = sim.getTacticalScoring().findBestTarget(rocketeer);
         assertEquals(mech, picked, "rocketeer must prefer the hardened mech over the soft infantry");
     }
 
@@ -504,7 +504,7 @@ public class TacticalScoringTest {
         // Mech is actually CLOSER than the infantry here — without affinity
         // the picker would lock the mech. Affinity must flip it.
 
-        Unit picked = TacticalScoring.findBestTarget(smg, sim);
+        Unit picked = sim.getTacticalScoring().findBestTarget(smg);
         assertEquals(infantry, picked, "SMG marine must prefer infantry even when mech is closer");
     }
 
@@ -523,7 +523,7 @@ public class TacticalScoringTest {
         Unit infantry = unit(sim, Faction.DEFENDER, 10, 5);
         Unit mech = unit(sim, Faction.DEFENDER, UnitType.HEAVY_MECH, 20, 5);
 
-        Unit picked = TacticalScoring.findBestTarget(dryRocketeer, sim);
+        Unit picked = sim.getTacticalScoring().findBestTarget(dryRocketeer);
         assertEquals(infantry, picked, "no rockets left -> pick the closer infantry, not the distant mech");
     }
 
@@ -539,7 +539,7 @@ public class TacticalScoringTest {
 
         Unit mech = unit(sim, Faction.DEFENDER, UnitType.HEAVY_MECH, 15, 5);
 
-        Unit picked = TacticalScoring.findBestTarget(rifleMarine, sim);
+        Unit picked = sim.getTacticalScoring().findBestTarget(rifleMarine);
         assertEquals(mech, picked, "single visible target is picked regardless of weapon affinity");
     }
 
@@ -558,7 +558,7 @@ public class TacticalScoringTest {
         Unit current = unit(sim, Faction.DEFENDER, 15, 5);  // distance 10
         unit(sim, Faction.DEFENDER, 13, 5);                  // distance 8
 
-        assertTrue(TacticalScoring.shouldKeepPursuing(marine, current, sim),
+        assertTrue(sim.getTacticalScoring().shouldKeepPursuing(marine, current),
                 "alternative within the retarget margin must not trigger a switch");
     }
 
@@ -588,7 +588,7 @@ public class TacticalScoringTest {
         // column 6 are the obvious "far" choice, but they're not reachable.
         unit(sim, Faction.DEFENDER, 1, 10);
 
-        int[] dest = TacticalScoring.findFallbackPosition(self, sim);
+        int[] dest = sim.getTacticalScoring().findFallbackPosition(self);
         assertTrue(dest[0] <= 5,
                 "edge-sealed cells past column 5 must not be picked even though " +
                         "ZoneDetector groups them with self — got (" + dest[0] + "," + dest[1] + ")");
@@ -611,7 +611,7 @@ public class TacticalScoringTest {
         Unit self = unit(sim, Faction.MARINE, 5, 10);
         unit(sim, Faction.DEFENDER, 15, 10);
 
-        int[] dest = TacticalScoring.findFallbackPosition(self, sim);
+        int[] dest = sim.getTacticalScoring().findFallbackPosition(self);
         // The picker should pick *something* reachable on self's side — not
         // the start cell, ideally a cell with cover. The minimum bar is
         // "the result is walkable from self's perspective."
@@ -674,7 +674,7 @@ public class TacticalScoringTest {
         int turretX = (int) Math.ceil(primary) + 8;
         MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, turretX, 5);
 
-        int[] pick = TacticalScoring.findFiringPosition(rocketeer, turret, sim);
+        int[] pick = sim.getTacticalScoring().findFiringPosition(rocketeer, turret);
         assertNotNull(pick);
         float distFromTurret = (float) Math.sqrt(
                 (pick[0] - turret.getCellX()) * (pick[0] - turret.getCellX())
@@ -697,7 +697,7 @@ public class TacticalScoringTest {
         Unit rocketeer = rocketeer(sim, Faction.MARINE, 5, 5);
         MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
 
-        assertTrue(TacticalScoring.shouldCommitRocket(rocketeer, turret, sim),
+        assertTrue(sim.getTacticalScoring().shouldCommitRocket(rocketeer, turret),
                 "first marine on a healthy turret with no inflight must commit");
     }
 
@@ -725,13 +725,13 @@ public class TacticalScoringTest {
         m0.secondaryActionTimer = MarineSecondary.ROCKET_LAUNCHER.aimDuration;
         m0.setSecondaryAimTarget(turret);
 
-        assertTrue(TacticalScoring.shouldCommitRocket(m1, turret, sim),
+        assertTrue(sim.getTacticalScoring().shouldCommitRocket(m1, turret),
                 "second marine joins when one inbound rocket isn't enough");
 
         m1.secondaryActionTimer = MarineSecondary.ROCKET_LAUNCHER.aimDuration;
         m1.setSecondaryAimTarget(turret);
 
-        assertFalse(TacticalScoring.shouldCommitRocket(m2, turret, sim),
+        assertFalse(sim.getTacticalScoring().shouldCommitRocket(m2, turret),
                 "third marine sees two inbound rockets (overkill) and must hold fire");
     }
 
@@ -751,7 +751,7 @@ public class TacticalScoringTest {
         m0.secondaryActionTimer = MarineSecondary.ROCKET_LAUNCHER.aimDuration;
         m0.setSecondaryAimTarget(turret);
 
-        assertFalse(TacticalScoring.shouldCommitRocket(m1, turret, sim),
+        assertFalse(sim.getTacticalScoring().shouldCommitRocket(m1, turret),
                 "Vulcan only needs one rocket — second marine must hold fire");
     }
 
@@ -780,7 +780,7 @@ public class TacticalScoringTest {
                     Faction.MARINE, /*aerialDelivery*/ false, 0.5f, onArrival));
         }
 
-        assertFalse(TacticalScoring.shouldCommitRocket(rocketeer, turret, sim),
+        assertFalse(sim.getTacticalScoring().shouldCommitRocket(rocketeer, turret),
                 "two inflight rockets > turret HP — don't waste a third");
     }
 
@@ -805,7 +805,7 @@ public class TacticalScoringTest {
                 /*hasBoostRamp*/ true, /*arcHeight*/ 0f,
                 Faction.DEFENDER, /*aerialDelivery*/ false, 0.5f, onArrival));
 
-        assertTrue(TacticalScoring.shouldCommitRocket(rocketeer, turret, sim),
+        assertTrue(sim.getTacticalScoring().shouldCommitRocket(rocketeer, turret),
                 "inflight projectile from a different faction must not count against the marine's projection");
     }
 
@@ -829,7 +829,7 @@ public class TacticalScoringTest {
         mA.secondaryActionTimer = MarineSecondary.ROCKET_LAUNCHER.aimDuration;
         mA.setSecondaryAimTarget(turret);
 
-        assertTrue(TacticalScoring.shouldCommitRocket(mB, turret, sim),
+        assertTrue(sim.getTacticalScoring().shouldCommitRocket(mB, turret),
                 "squad coordination is per-squad — different squads don't block each other");
     }
 }
