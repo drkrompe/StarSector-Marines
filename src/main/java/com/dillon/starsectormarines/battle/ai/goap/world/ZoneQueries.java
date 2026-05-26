@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.ai.goap.Action;
 import com.dillon.starsectormarines.battle.ai.goap.SquadPlan;
 import com.dillon.starsectormarines.battle.ai.goap.actions.ClearZone;
 import com.dillon.starsectormarines.battle.ai.goap.actions.EnterZone;
+import com.dillon.starsectormarines.battle.ai.goap.actions.HoldZone;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
 import com.dillon.starsectormarines.battle.nav.zone.Portal;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
@@ -225,6 +226,7 @@ public final class ZoneQueries {
         List<SquadPlan.Step> steps = plan.steps();
         if (steps.isEmpty()) return false;
         Action terminal = steps.get(steps.size() - 1).action;
+        if (terminal instanceof HoldZone hz) return hz.targetZoneId() == targetZoneId;
         if (terminal instanceof ClearZone cz) return cz.targetZoneId() == targetZoneId;
         if (terminal instanceof EnterZone ez) return ez.targetZoneId() == targetZoneId;
         return false;

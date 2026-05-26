@@ -11,6 +11,10 @@ package com.dillon.starsectormarines.battle.command;
  *   <li>{@link #CLEAR_ZONE} — push into the named zone and eliminate hostiles
  *       inside it. Conquest signature — spreads marine squads across charge-
  *       site zones instead of dogpiling the nearest contact.</li>
+ *   <li>{@link #SECURE_COMPOUND} — push into a compound's zone, clear it, then
+ *       hold until the compound's capture timer completes. Issued by
+ *       {@code ConquestCommand} for zones containing uncaptured compounds
+ *       that the squad's forward position has reached or passed.</li>
  *   <li>{@link #HOLD_NODE} — anchor on a tactical node and defend it. Pairs
  *       with Story H's last-stand {@code HoldPosition} when that ships.</li>
  *   <li>{@link #RUSH_OBJECTIVE} — close on a specific mission objective and
@@ -27,6 +31,7 @@ package com.dillon.starsectormarines.battle.command;
  */
 public enum AssignmentKind {
     CLEAR_ZONE,
+    SECURE_COMPOUND,
     HOLD_NODE,
     RUSH_OBJECTIVE,
     SUPPORT

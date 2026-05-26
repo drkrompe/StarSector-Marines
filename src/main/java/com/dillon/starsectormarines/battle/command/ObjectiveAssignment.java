@@ -43,6 +43,11 @@ public record ObjectiveAssignment(
         return new ObjectiveAssignment(squadId, AssignmentKind.CLEAR_ZONE, zoneId, null, UNSCOPED);
     }
 
+    /** Convenience: zone-scoped compound capture — push, clear, hold until captured. */
+    public static ObjectiveAssignment secureCompound(int squadId, int zoneId, TacticalNode compoundNode) {
+        return new ObjectiveAssignment(squadId, AssignmentKind.SECURE_COMPOUND, zoneId, compoundNode, UNSCOPED);
+    }
+
     /** Convenience: node-scoped hold with no zone + no objective backref. */
     public static ObjectiveAssignment holdNode(int squadId, TacticalNode node) {
         return new ObjectiveAssignment(squadId, AssignmentKind.HOLD_NODE, UNSCOPED, node, UNSCOPED);

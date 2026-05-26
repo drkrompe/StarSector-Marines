@@ -4,10 +4,12 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Squad;
 import com.dillon.starsectormarines.battle.ai.goap.world.ZoneQueries;
+import com.dillon.starsectormarines.battle.compound.CompoundService;
 import com.dillon.starsectormarines.battle.mapgen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
+import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 
 import java.util.ArrayList;
@@ -69,6 +71,14 @@ public final class ConquestCommand implements MissionCommand {
      */
     public static final int STRIP_COUNT = 3;
 
+    /**
+     * Forward-axis cells of lookahead beyond the squad's current position
+     * within which a compound zone is considered "ripe" for capture. Without
+     * this the assignment only fires after the squad passes the compound; a
+     * few cells of margin lets the squad begin diverting before it overshoots.
+     */
+    public static final float COMPOUND_LOOKAHEAD = 6f;
+
     private final TraversalAxis axis;
 
     /** Lazy: built on first {@link #tick}. {@link ZoneGraph} isn't reliably populated at construction time (defender placement runs after sim creation), so we defer the partition until the first slow-tick where every spawn has settled. */
@@ -96,6 +106,15 @@ public final class ConquestCommand implements MissionCommand {
     }
     /** Lateral extent of the map cached at init time so {@link #stripFor} can classify squads without needing the grid. */
     private int lateralExtent = 0;
+    /**
+     * Per-compound records mapped to the zone containing their anchor cell.
+     * Built at init time by looking up each compound record's anchor in the
+     * zone graph. Only compounds whose anchor resolves to a valid zone are
+     * included — a wall-cell anchor (rare) is silently skipped.
+     */
+    private final List<CompoundZone> compoundZones = new ArrayList<>();
+
+    private record CompoundZone(CompoundService.Record record, int zoneId, int stripIdx) {}
 
     public ConquestCommand(TraversalAxis axis) {
         this.axis = axis;
@@ -116,20 +135,32 @@ public final class ConquestCommand implements MissionCommand {
             if (squad.faction != Faction.MARINE) continue;
             if (squad.aliveMembers <= 0) continue;
             int stripIdx = stripFor(squad);
+            float squadForward = (axis == TraversalAxis.SOUTH_TO_NORTH)
+                    ? squad.centroidY : squad.centroidX;
+
+            // Pass 1: uncaptured compound at or behind the squad's forward
+            // position. Securing compounds the front line has reached (or
+            // bypassed) is highest priority — an uncaptured compound in
+            // the rear keeps spawning defenders behind you.
+            CompoundZone ripe = nearestRipeCompound(stripIdx, squadForward, sim);
+            if (ripe != null) {
+                ObjectiveAssignment cur = squad.assignedObjective;
+                if (cur == null
+                        || cur.kind() != AssignmentKind.SECURE_COMPOUND
+                        || cur.targetZoneId() != ripe.zoneId) {
+                    squad.assignedObjective = ObjectiveAssignment.secureCompound(
+                            squad.id, ripe.zoneId, ripe.record.node);
+                }
+                continue;
+            }
+
+            // Pass 2: fall through to nearest defender-occupied zone for
+            // the street-by-street push.
             int targetZone = nearestDefenderZoneInStrip(squad, stripIdx, sim);
             if (targetZone < 0) {
-                // No defender-occupied zone in this strip — squad has
-                // cleared their lane. Let EliminateEnemiesGoal handle
-                // ambient cleanup.
                 squad.assignedObjective = null;
                 continue;
             }
-            // Note: we DO NOT null out when targetZone == currentZone.
-            // ClearAssignedZoneGoal keeps firing while in the target zone
-            // (it emits a ClearZone-only customPlan in that case); nulling
-            // the assignment would cause oscillation as the goal yields,
-            // a different goal takes over, the squad drifts out of zone,
-            // commander reticks and re-assigns the same zone, etc.
             ObjectiveAssignment cur = squad.assignedObjective;
             if (cur == null
                     || cur.kind() != AssignmentKind.CLEAR_ZONE
@@ -137,6 +168,37 @@ public final class ConquestCommand implements MissionCommand {
                 squad.assignedObjective = ObjectiveAssignment.clearZone(squad.id, targetZone);
             }
         }
+    }
+
+    /**
+     * Finds the nearest uncaptured compound in this strip whose zone is at
+     * or behind the squad's forward position. "At or behind" means the
+     * compound zone's forward coordinate is {@code <=} the squad's, with a
+     * small lookahead margin so a squad approaching the compound building
+     * doesn't overshoot before the assignment triggers.
+     *
+     * <p>Returns {@code null} when no ripe compound exists in the strip —
+     * caller falls through to the generic {@link #nearestDefenderZoneInStrip}
+     * for the street-by-street push.
+     */
+    private CompoundZone nearestRipeCompound(int stripIdx, float squadForward, BattleSimulation sim) {
+        CompoundZone best = null;
+        float bestDist = Float.MAX_VALUE;
+        for (CompoundZone cz : compoundZones) {
+            if (cz.stripIdx != stripIdx) continue;
+            if (cz.record.state == CompoundService.CompoundState.MARINE_HELD) continue;
+            float compoundForward = zoneForwardCoord[cz.zoneId];
+            // Ripe = compound is at or behind the squad's forward line,
+            // with a small lookahead so the assignment fires a few cells
+            // before the squad arrives rather than after it passes.
+            if (compoundForward > squadForward + COMPOUND_LOOKAHEAD) continue;
+            float dist = Math.abs(compoundForward - squadForward);
+            if (dist < bestDist) {
+                bestDist = dist;
+                best = cz;
+            }
+        }
+        return best;
     }
 
     /**
@@ -183,6 +245,20 @@ public final class ConquestCommand implements MissionCommand {
                 Float.compare(zoneForwardCoord[b], zoneForwardCoord[a]);
         for (List<Integer> strip : stripZones) {
             strip.sort(forwardDescending);
+        }
+
+        CompoundService compounds = sim.getCompoundService();
+        if (compounds != null) {
+            for (CompoundService.Record r : compounds.getRecords()) {
+                int zoneId = graph.zoneIdAt(r.node.anchorX, r.node.anchorY);
+                if (zoneId < 0) continue;
+                float lateral = (axis == TraversalAxis.SOUTH_TO_NORTH)
+                        ? r.node.anchorX : r.node.anchorY;
+                int si = stripIndexForLateral(lateral, this.lateralExtent);
+                if (si < 0) si = 0;
+                if (si >= STRIP_COUNT) si = STRIP_COUNT - 1;
+                compoundZones.add(new CompoundZone(r, zoneId, si));
+            }
         }
     }
 
