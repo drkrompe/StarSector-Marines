@@ -158,7 +158,18 @@ public class BattleScreen implements Screen, BattleUiContext {
     private static final int    PROGRESS_ARC_SEGMENTS = 32;
 
     /** Sound IDs declared in mod/data/config/sounds.json. */
-    private static final String MUSIC_BATTLE  = "marines_battle_music";
+    private static final String[] BATTLE_MUSIC_POOL = {
+            "marines_battle_music",
+            "marines_battle_music_02",
+            "marines_battle_music_03",
+            "marines_battle_music_04",
+            "marines_battle_music_05",
+            "marines_battle_music_06",
+            "marines_battle_music_07",
+            "marines_battle_music_08",
+            "marines_battle_music_09",
+            "marines_battle_music_10",
+    };
     private static final String LOOP_TICKING  = "marines_ticking_clock";
     private static final String LOOP_ENGINE   = "marines_shuttle_engine";
     private static final String SFX_RIFLE     = "marines_smallarms_rifle";
@@ -581,7 +592,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (audioActive) return;
         audioActive = true;
         Global.getSoundPlayer().setSuspendDefaultMusicPlayback(true);
-        Global.getSoundPlayer().playCustomMusic(MUSIC_FADE_SECS, MUSIC_FADE_SECS, MUSIC_BATTLE, true);
+        String track = BATTLE_MUSIC_POOL[audioRng.nextInt(BATTLE_MUSIC_POOL.length)];
+        Global.getSoundPlayer().playCustomMusic(MUSIC_FADE_SECS, MUSIC_FADE_SECS, track, true);
         BattleSimulation sim = ctx != null ? ctx.getBattleSimulation() : null;
         int gridW = sim != null ? sim.getGrid().getWidth()  : BattleSetup.GRID_W;
         int gridH = sim != null ? sim.getGrid().getHeight() : BattleSetup.GRID_H;

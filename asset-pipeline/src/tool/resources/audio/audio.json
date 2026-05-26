@@ -16,7 +16,16 @@
   "clips": [
     // ----- music -----
     { "id": "marines_intel_music",  "source": "music/9-next-move.mp3", "kind": "music", "out": "battle/music" },
-    { "id": "marines_battle_music", "source": "music/1-behemoths.mp3", "kind": "music", "out": "battle/music" },
+    { "id": "marines_battle_music",    "source": "music/1-behemoths.mp3",                                              "kind": "music", "out": "battle/music" },
+    { "id": "marines_battle_music_02", "source": "music/DavidKBD - InterstellarPack - 01 - Interstellar.ogg",          "kind": "music", "out": "battle/music" },
+    { "id": "marines_battle_music_03", "source": "music/DavidKBD - InterstellarPack - 02 - Plasma Storm.ogg",          "kind": "music", "out": "battle/music" },
+    { "id": "marines_battle_music_04", "source": "music/DavidKBD - InterstellarPack - 03 - Temple of Madness.ogg",     "kind": "music", "out": "battle/music" },
+    { "id": "marines_battle_music_05", "source": "music/DavidKBD - InterstellarPack - 04 - Horsehead Nebula.ogg",      "kind": "music", "out": "battle/music" },
+    { "id": "marines_battle_music_06", "source": "music/DavidKBD - InterstellarPack - 05 - Forgotten Station.ogg",     "kind": "music", "out": "battle/music" },
+    { "id": "marines_battle_music_07", "source": "music/DavidKBD - InterstellarPack - 06 - Hope on the Horizon.ogg",   "kind": "music", "out": "battle/music" },
+    { "id": "marines_battle_music_08", "source": "music/DavidKBD - InterstellarPack - 07 - Electric Firework.ogg",     "kind": "music", "out": "battle/music" },
+    { "id": "marines_battle_music_09", "source": "music/DavidKBD - InterstellarPack - 08 - Synth Kobra.ogg",           "kind": "music", "out": "battle/music" },
+    { "id": "marines_battle_music_10", "source": "music/DavidKBD - InterstellarPack - 09 - Spiral of Plasma.ogg",      "kind": "music", "out": "battle/music" },
 
     // ----- small arms -----
     { "id": "marines_smallarms_rifle_01",  "source": "small-arms/Futuristic Assault Rifle Single Shot 01.wav", "kind": "positional", "out": "battle/small-arms" },

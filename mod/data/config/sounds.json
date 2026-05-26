@@ -8,9 +8,36 @@
 		"marines_intel_music":[
 			{"file":"marines_intel_music.ogg","source":"sounds/battle/music","volume":0.7},
 		],
-		# Battle background track. Played via Global.getSoundPlayer().playCustomMusic(..., "marines_battle_music", true).
+		# Battle music pool. BattleScreen picks one at random each battle via playCustomMusic.
 		"marines_battle_music":[
 			{"file":"marines_battle_music.ogg","source":"sounds/battle/music","volume":0.7},
+		],
+		"marines_battle_music_02":[
+			{"file":"marines_battle_music_02.ogg","source":"sounds/battle/music","volume":0.7},
+		],
+		"marines_battle_music_03":[
+			{"file":"marines_battle_music_03.ogg","source":"sounds/battle/music","volume":0.7},
+		],
+		"marines_battle_music_04":[
+			{"file":"marines_battle_music_04.ogg","source":"sounds/battle/music","volume":0.7},
+		],
+		"marines_battle_music_05":[
+			{"file":"marines_battle_music_05.ogg","source":"sounds/battle/music","volume":0.7},
+		],
+		"marines_battle_music_06":[
+			{"file":"marines_battle_music_06.ogg","source":"sounds/battle/music","volume":0.7},
+		],
+		"marines_battle_music_07":[
+			{"file":"marines_battle_music_07.ogg","source":"sounds/battle/music","volume":0.7},
+		],
+		"marines_battle_music_08":[
+			{"file":"marines_battle_music_08.ogg","source":"sounds/battle/music","volume":0.7},
+		],
+		"marines_battle_music_09":[
+			{"file":"marines_battle_music_09.ogg","source":"sounds/battle/music","volume":0.7},
+		],
+		"marines_battle_music_10":[
+			{"file":"marines_battle_music_10.ogg","source":"sounds/battle/music","volume":0.7},
 		],
 	},
 
