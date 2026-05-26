@@ -91,4 +91,41 @@ public class ReedsSheppTest {
         float euclid = (float) Math.sqrt(5*5 + 5*5);
         assertTrue(path.lengthCells(R) >= euclid - EPS, "path " + path.lengthCells(R) + " >= " + euclid);
     }
+
+    @Test
+    public void cccTightUturn() {
+        Pose start = new Pose(0, 0, 0);
+        Pose goal  = new Pose(2, 0, 180);
+        ReedsShepp.Path path = ReedsShepp.shortest(start, goal, R);
+        assertNotNull(path, "CCC family should find a path for tight U-turn");
+        Pose end = ReedsShepp.sample(start, R, path, path.lengthCells(R));
+        assertEquals(goal.x, end.x, 0.05f);
+        assertEquals(goal.y, end.y, 0.05f);
+    }
+
+    @Test
+    public void cccSamplingEndpointMatchesGoal() {
+        Pose start = new Pose(5, 5, 0);
+        Pose goal  = new Pose(5, 8, 150);
+        ReedsShepp.Path path = ReedsShepp.shortest(start, goal, R);
+        assertNotNull(path);
+        Pose end = ReedsShepp.sample(start, R, path, path.lengthCells(R));
+        assertEquals(goal.x, end.x, 0.02f);
+        assertEquals(goal.y, end.y, 0.02f);
+        float dAng = ((end.facingDeg - goal.facingDeg + 540) % 360) - 180;
+        assertTrue(Math.abs(dAng) < 0.5f, "facing diff " + dAng);
+    }
+
+    @Test
+    public void plannerHandlesTightGeometry() {
+        Pose start = new Pose(0, 0, 0);
+        float[][] goals = {
+                {1, 1, 180}, {0, 2, 90}, {-1, 1, 270}, {0.5f, 0.5f, 135}
+        };
+        for (float[] g : goals) {
+            Pose goal = new Pose(g[0], g[1], g[2]);
+            ReedsShepp.Path path = ReedsShepp.shortest(start, goal, R);
+            assertNotNull(path, "Should find path to (" + g[0] + "," + g[1] + "," + g[2] + ")");
+        }
+    }
 }

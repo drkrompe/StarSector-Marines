@@ -12,16 +12,13 @@ import java.util.List;
  * and that there are exactly 48 such path families (12 base "words" × 4
  * geometric transformations: identity, timeflip τ, reflect μ, τμ).
  *
- * <p>This implementation covers the <b>CSC subset</b>: the 2 base CSC
- * families (LSL, LSR) under all 4 transforms = 8 candidates. CSC paths are
- * forward/reverse maneuvers consisting of one arc, one straight, and one
- * arc — the dominant maneuver shape for truck docking from a road. Backing
- * + advancing variants come from the τ (timeflip) transform. The longer
- * CCC / CCCC / CCSC / CCSCC families are out of scope for V1; they
- * dominate only when start and goal are very close together but with
- * widely-divergent headings (parking-lot pirouettes). When we hit a case
- * that needs them, extend by adding more base-family functions to
- * {@link #enumerateCandidates}.
+ * <p>This implementation covers the <b>CSC + CCC subset</b>: 2 base CSC
+ * families (LSL, LSR) and 1 base CCC family (LRL) under all 4 transforms
+ * = 12 candidates. CSC paths (arc–straight–arc) dominate when the vehicle
+ * approaches from a road; CCC paths (arc–arc–arc) handle tight U-turns
+ * and large heading changes in close quarters where CSC is infeasible.
+ * Longer families (CCSC, CCSCC) remain out of scope — extend by adding
+ * more base-family functions to {@link #enumerateCandidates}.
  *
  * <p>Math frame convention: internal math uses the standard robotics
  * convention (θ=0 along +X, positive CCW). The public API uses the mod's
@@ -87,7 +84,7 @@ public final class ReedsShepp {
     // ---- Public API ----
 
     /**
-     * Compute the shortest CSC-subset Reeds-Shepp path from {@code start} to
+     * Compute the shortest CSC+CCC Reeds-Shepp path from {@code start} to
      * {@code goal} for a vehicle with minimum turn radius {@code turnRadius}.
      * Returns {@code null} if no candidate family is feasible — this should
      * not happen for the CSC subset on well-separated poses, but a degenerate
@@ -216,16 +213,57 @@ public final class ReedsShepp {
         return path(elem(Type.LEFT, true, t), elem(Type.STRAIGHT, true, u), elem(Type.RIGHT, true, v));
     }
 
+    // ---- CCC base family ----
+
+    /**
+     * CCC family L+R−L+ — forward left arc, reverse right arc, forward left
+     * arc. Handles tight U-turns and large heading changes in close quarters
+     * where CSC is infeasible.
+     * <pre>
+     *   After L+(t):  pos = (sin t, 1 − cos t), heading t
+     *   After R−(u):  heading = t + u  (reverse right = +heading)
+     *   After L+(v):  heading = t + u + v = φ  ⟹  v = φ − t − u
+     *
+     *   Position equations give (via sum-to-product):
+     *     ξ = x − sin φ = −4 cos(t + u/2) sin(u/2)
+     *     η = y − 1 + cos φ = −4 sin(t + u/2) sin(u/2)
+     *
+     *   Closed form:
+     *     sin(u/2) = √(ξ² + η²) / 4   — feasible iff ξ² + η² ≤ 16
+     *     u = 2 asin(sin(u/2))
+     *     t = mod2π(atan2(η, ξ) − u/2 − π)
+     *     v = mod2π(φ − t − u)
+     * </pre>
+     */
+    private static Path LpRmLp(double x, double y, double phi) {
+        double xi = x - Math.sin(phi);
+        double eta = y - 1.0 + Math.cos(phi);
+        double d2 = xi * xi + eta * eta;
+        if (d2 > 16.0) return null;
+        double sinHalfU = Math.sqrt(d2) / 4.0;
+        if (sinHalfU > 1.0 + EPS) return null;
+        if (sinHalfU > 1.0) sinHalfU = 1.0;
+        double u = 2.0 * Math.asin(sinHalfU);
+        double t = mod2pi(Math.atan2(eta, xi) - 0.5 * u - Math.PI);
+        double v = mod2pi(phi - t - u);
+        if (t < -EPS || u < -EPS || v < -EPS) return null;
+        return path(
+                elem(Type.LEFT, true, t),
+                elem(Type.RIGHT, false, u),
+                elem(Type.LEFT, true, v));
+    }
+
     // ---- Transform composition ----
 
     /**
      * Enumerate all candidate paths for the input ({@code x, y, φ}) under
-     * the CSC subset. Each base family is solved on the four transformed
-     * inputs (identity, μ reflect, τ timeflip, τμ both) and the resulting
-     * path is un-transformed.
+     * the CSC + CCC subset. Each base family is solved on the four
+     * transformed inputs (identity, μ reflect, τ timeflip, τμ both) and
+     * the resulting path is un-transformed.
      */
     private static Path[] enumerateCandidates(double x, double y, double phi) {
         return new Path[] {
+                // --- CSC families ---
                 // identity
                 LpSpLp(x, y, phi),
                 LpSpRp(x, y, phi),
@@ -237,7 +275,16 @@ public final class ReedsShepp {
                 timeflip(LpSpRp(-x, y, mod2pi(-phi))),
                 // τμ: (x, y, φ) → (-x, -y, φ); path: L↔R AND forward↔reverse
                 timeflip(reflect(LpSpLp(-x, -y, phi))),
-                timeflip(reflect(LpSpRp(-x, -y, phi)))
+                timeflip(reflect(LpSpRp(-x, -y, phi))),
+                // --- CCC family ---
+                // identity: L+R−L+
+                LpRmLp(x, y, phi),
+                // reflect μ: R+L−R+
+                reflect(LpRmLp(x, -y, mod2pi(-phi))),
+                // timeflip τ: L−R+L−
+                timeflip(LpRmLp(-x, y, mod2pi(-phi))),
+                // τμ: R−L+R−
+                timeflip(reflect(LpRmLp(-x, -y, phi)))
         };
     }
 
