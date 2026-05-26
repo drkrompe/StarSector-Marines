@@ -983,37 +983,9 @@ public class BattleSimulation implements WeaponSimContext {
      * overrun. Chained retreats would need explicit gating that we don't
      * have yet.
      */
-    /**
-     * Advances a unit one tick along its current path. Public so behaviors
-     * call this after re-pathing or as the last step of their per-tick
-     * update.
-     */
+    /** Delegates to {@link Unit#advanceAlongPath(float)}. Kept so existing behavior call sites compile unchanged. */
     public void advanceMovement(Unit u) {
-        if (u.pathIdx >= u.pathCellCount()) return;
-
-        int nextX = u.pathCellX(u.pathIdx);
-        int nextY = u.pathCellY(u.pathIdx);
-        float dx = nextX - u.getCellX();
-        float dy = nextY - u.getCellY();
-        float cellDist = (float) Math.sqrt(dx * dx + dy * dy);
-        if (cellDist < 0.0001f) {
-            u.pathIdx++;
-            return;
-        }
-
-        float stepLength = u.moveSpeed * TICK_DT; // cell-units this tick
-        u.moveProgress += stepLength / cellDist;
-
-        if (u.moveProgress >= 1f) {
-            u.setCellPos(nextX, nextY);
-            u.renderX = nextX;
-            u.renderY = nextY;
-            u.moveProgress = 0f;
-            u.pathIdx++;
-        } else {
-            u.renderX = u.getCellX() + dx * u.moveProgress;
-            u.renderY = u.getCellY() + dy * u.moveProgress;
-        }
+        u.advanceAlongPath(TICK_DT);
     }
 
     /**

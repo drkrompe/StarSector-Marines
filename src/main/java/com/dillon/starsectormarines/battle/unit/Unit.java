@@ -118,6 +118,27 @@ public class Unit {
     /** True when the unit has no path scheduled. Match for the old {@code path.isEmpty()} check. */
     public boolean pathEmpty() { return path.length == 0; }
 
+    public void advanceAlongPath(float dt) {
+        if (pathIdx >= pathCellCount()) return;
+        int nextX = pathCellX(pathIdx);
+        int nextY = pathCellY(pathIdx);
+        float dx = nextX - getCellX();
+        float dy = nextY - getCellY();
+        float cellDist = (float) Math.sqrt(dx * dx + dy * dy);
+        if (cellDist < 0.0001f) { pathIdx++; return; }
+        moveProgress += (moveSpeed * dt) / cellDist;
+        if (moveProgress >= 1f) {
+            setCellPos(nextX, nextY);
+            renderX = nextX;
+            renderY = nextY;
+            moveProgress = 0f;
+            pathIdx++;
+        } else {
+            renderX = getCellX() + dx * moveProgress;
+            renderY = getCellY() + dy * moveProgress;
+        }
+    }
+
     // Stats — initialized from UnitType, then mutable per-unit so captain traits
     // and mission modifiers can adjust an individual without changing the archetype.
     public float moveSpeed;
