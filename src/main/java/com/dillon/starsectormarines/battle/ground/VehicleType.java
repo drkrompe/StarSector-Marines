@@ -17,31 +17,6 @@ import com.dillon.starsectormarines.battle.turret.TurretKind;
 public enum VehicleType {
 
     /**
-     * Default defender-reinforcement transport — six militia, ~2 cell visual
-     * footprint. Steers via {@link BicycleBody}: ~3-cell minimum turn radius
-     * (wheelbase 1.4 / tan 25°) for "trucks have to commit to corners" feel,
-     * driver wheel-slew at 180°/s keeps cornering smooth, and pure-pursuit
-     * carrot at 2 cells out keeps it from orbiting close waypoints.
-     */
-    MILITIA_TRUCK(
-            "graphics/battle/trucks_2.png", /*spriteFrame*/ 1, /*frameCount*/ 2,
-            /*spriteFacingOffsetDeg*/ 90f,
-            /*capacity*/ 6, /*visualLengthCells*/ 2.0f, /*visualWidthCells*/ 1.1f,
-            /*maxSpeed*/ 3.5f, /*accel*/ 2.5f, /*brakingAccel*/ 4f,
-            /*deboardInterval*/ 0.6f, /*lookAheadCells*/ 2.0f,
-            /*turretFrame*/ -1, /*turretMountX*/ 0f, /*turretMountY*/ 0f,
-            /*turretPivotX*/ 0f, /*turretPivotY*/ 0f, /*turretVisualCells*/ 0f, /*turretSpriteFacingOffsetDeg*/ 90f,
-            /*turretKind*/ null, /*departsAfterDeboard*/ true, /*overwatchDurationSec*/ 0f) {
-        @Override
-        public GroundBody createBody() {
-            return new BicycleBody(
-                    /*wheelbaseCells*/ 1.4f,
-                    /*maxSteeringDeg*/ 25f, /*steeringSlewDegPerSec*/ 180f,
-                    accel, brakingAccel, maxSpeed);
-        }
-    },
-
-    /**
      * Armored personnel carrier — four marines, roof-mounted heavy MG.
      * Slower and heavier than the militia truck; stays parked after deboard
      * and provides sustained fire support from the turret until the battle
