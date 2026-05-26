@@ -1,10 +1,10 @@
 package com.dillon.starsectormarines.battle.ai;
 
-import com.dillon.starsectormarines.battle.BattleSimulation;
-import com.dillon.starsectormarines.battle.Drone;
-import com.dillon.starsectormarines.battle.DroneHubUnit;
-import com.dillon.starsectormarines.battle.DroneSpawner;
-import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.drone.Drone;
+import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
+import com.dillon.starsectormarines.battle.drone.DroneSpawner;
+import com.dillon.starsectormarines.battle.unit.Unit;
 
 /**
  * Per-tick driver for a {@link DroneHubUnit}: counts down the spawn timer and

@@ -1,9 +1,9 @@
 package com.dillon.starsectormarines.battle.objective;
 
-import com.dillon.starsectormarines.battle.BattleSimulation;
-import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.air.Shuttle;
-import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.unit.Unit;
 
 /**
  * "Kill every alive unit on the target faction." The default objective both

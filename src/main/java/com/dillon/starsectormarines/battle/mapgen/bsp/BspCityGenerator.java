@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.battle.mapgen.bsp;
 
-import com.dillon.starsectormarines.battle.DefensePost;
-import com.dillon.starsectormarines.battle.Doodad;
-import com.dillon.starsectormarines.battle.PointOfInterest;
+import com.dillon.starsectormarines.battle.turret.DefensePost;
+import com.dillon.starsectormarines.battle.map.Doodad;
+import com.dillon.starsectormarines.battle.map.PointOfInterest;
 import com.dillon.starsectormarines.battle.map.Buildings;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;

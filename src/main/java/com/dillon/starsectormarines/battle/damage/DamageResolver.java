@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.battle.damage;
 
-import com.dillon.starsectormarines.battle.MechLoadoutState;
-import com.dillon.starsectormarines.battle.Squad;
-import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.weapons.MechLoadoutState;
+import com.dillon.starsectormarines.battle.unit.Squad;
+import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.ai.TacticalScoring;
 import com.dillon.starsectormarines.battle.equipment.EquipmentDropService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;

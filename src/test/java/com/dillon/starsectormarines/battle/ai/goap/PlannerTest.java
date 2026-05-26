@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.battle.ai.goap;
 
-import com.dillon.starsectormarines.battle.BattleSimulation;
-import com.dillon.starsectormarines.battle.Squad;
-import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.Squad;
+import com.dillon.starsectormarines.battle.unit.Unit;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

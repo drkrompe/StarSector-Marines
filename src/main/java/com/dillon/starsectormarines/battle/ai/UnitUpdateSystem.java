@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.battle.ai;
 
-import com.dillon.starsectormarines.battle.BattleSimulation;
-import com.dillon.starsectormarines.battle.Unit;
-import com.dillon.starsectormarines.battle.UnitRole;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.ai.goap.GoapDroneBehavior;
 import com.dillon.starsectormarines.battle.damage.DamageService;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;

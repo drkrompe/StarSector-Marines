@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.unit;
 
-import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.unit.Unit;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 
 import java.util.Arrays;

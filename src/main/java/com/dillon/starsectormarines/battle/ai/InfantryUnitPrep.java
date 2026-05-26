@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.ai;
 
-import com.dillon.starsectormarines.battle.BattleSimulation;
-import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.Unit;
 
 import java.util.ArrayList;
 

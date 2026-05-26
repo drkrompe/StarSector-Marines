@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.battle.sprites;
 
-import com.dillon.starsectormarines.battle.Doodad;
-import com.dillon.starsectormarines.battle.PointOfInterest;
-import com.dillon.starsectormarines.battle.TileManifest;
+import com.dillon.starsectormarines.battle.map.Doodad;
+import com.dillon.starsectormarines.battle.map.PointOfInterest;
+import com.dillon.starsectormarines.battle.map.TileManifest;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.map.WallMasks;

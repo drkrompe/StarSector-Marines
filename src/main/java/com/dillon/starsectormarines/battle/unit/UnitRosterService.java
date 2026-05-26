@@ -1,9 +1,9 @@
 package com.dillon.starsectormarines.battle.unit;
 
-import com.dillon.starsectormarines.battle.Faction;
-import com.dillon.starsectormarines.battle.Squad;
-import com.dillon.starsectormarines.battle.Unit;
-import com.dillon.starsectormarines.battle.UnitSpatialIndex;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.Squad;
+import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.damage.DamageService;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;

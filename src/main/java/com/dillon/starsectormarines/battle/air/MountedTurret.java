@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.air;
 
-import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 
 /**
@@ -29,7 +29,7 @@ public final class MountedTurret {
      * Currently locked enemy as a {@link Unit#entityId} into the registry, or
      * {@code 0L} when nothing's in range/LOS. Persisted across ticks so the aim
      * loop doesn't re-acquire every frame; resolve via
-     * {@link com.dillon.starsectormarines.battle.BattleSimulation#resolveUnit}
+     * {@link com.dillon.starsectormarines.battle.sim.BattleSimulation#resolveUnit}
      * — released entities surface as {@code null} without an explicit liveness
      * check by the holder.
      */

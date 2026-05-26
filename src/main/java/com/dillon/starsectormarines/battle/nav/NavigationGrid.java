@@ -471,7 +471,7 @@ public class NavigationGrid {
      *
      * <p>Bresenham is the same stepping pass {@link #hasLineOfSight} uses;
      * the difference is this returns the BLOCKER's cell rather than a bool.
-     * Used by {@link com.dillon.starsectormarines.battle.BattleSimulation#fireShotFrom}
+     * Used by {@link com.dillon.starsectormarines.battle.sim.BattleSimulation#fireShotFrom}
      * to snap scattered rounds to the first wall in their flight path so a
      * spread-fire turret can't pepper marines behind cover.
      */

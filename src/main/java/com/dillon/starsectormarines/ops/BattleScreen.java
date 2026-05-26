@@ -1,28 +1,28 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.battle.BattleSimulation;
-import com.dillon.starsectormarines.battle.BattleSetup;
-import com.dillon.starsectormarines.battle.Decal;
-import com.dillon.starsectormarines.battle.Doodad;
-import com.dillon.starsectormarines.battle.EquipmentDrop;
-import com.dillon.starsectormarines.battle.Faction;
-import com.dillon.starsectormarines.battle.ShotEvent;
-import com.dillon.starsectormarines.battle.SmokingWreck;
-import com.dillon.starsectormarines.battle.TimeOfDay;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleSetup;
+import com.dillon.starsectormarines.battle.fx.Decal;
+import com.dillon.starsectormarines.battle.map.Doodad;
+import com.dillon.starsectormarines.battle.equipment.EquipmentDrop;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.fx.ShotEvent;
+import com.dillon.starsectormarines.battle.fx.SmokingWreck;
+import com.dillon.starsectormarines.battle.map.TimeOfDay;
 import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.sprites.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.sprites.SpriteSheetSlicer;
 import com.dillon.starsectormarines.battle.sprites.UrbanTile3;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
-import com.dillon.starsectormarines.battle.MapVehicle;
-import com.dillon.starsectormarines.battle.MarineSecondary;
-import com.dillon.starsectormarines.battle.MarineWeapon;
-import com.dillon.starsectormarines.battle.TileManifest;
+import com.dillon.starsectormarines.battle.map.MapVehicle;
+import com.dillon.starsectormarines.battle.weapons.MarineSecondary;
+import com.dillon.starsectormarines.battle.weapons.MarineWeapon;
+import com.dillon.starsectormarines.battle.map.TileManifest;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
-import com.dillon.starsectormarines.battle.Unit;
-import com.dillon.starsectormarines.battle.UnitType;
-import com.dillon.starsectormarines.battle.VehicleKind;
+import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.map.VehicleKind;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.map.WallMasks;
 import com.dillon.starsectormarines.battle.flyby.FlybyOverlay;
@@ -305,9 +305,9 @@ public class BattleScreen implements Screen, BattleUiContext {
     /** Per-{@link MarineWeapon} projectile sprite — populated only for weapons whose {@code projectileSpritePath} is non-null (SMG today). Marines without a sprite path keep the line-tracer render. */
     private final java.util.EnumMap<MarineWeapon, ShuttleSpriteCache> marineWeaponProjectileSprites =
             new java.util.EnumMap<>(MarineWeapon.class);
-    /** Per-{@link com.dillon.starsectormarines.battle.MechWeapon} projectile sprite — every mech weapon ships with one (vanilla shell / SRM / LRM art), so every entry gets loaded eagerly. */
-    private final java.util.EnumMap<com.dillon.starsectormarines.battle.MechWeapon, ShuttleSpriteCache> mechWeaponProjectileSprites =
-            new java.util.EnumMap<>(com.dillon.starsectormarines.battle.MechWeapon.class);
+    /** Per-{@link com.dillon.starsectormarines.battle.weapons.MechWeapon} projectile sprite — every mech weapon ships with one (vanilla shell / SRM / LRM art), so every entry gets loaded eagerly. */
+    private final java.util.EnumMap<com.dillon.starsectormarines.battle.weapons.MechWeapon, ShuttleSpriteCache> mechWeaponProjectileSprites =
+            new java.util.EnumMap<>(com.dillon.starsectormarines.battle.weapons.MechWeapon.class);
     /** Shared decal sheet — 13 frames horizontally, auto-sliced into a SpriteSheetFrames so individual {@link Decal#decalIndex} values map to a frame box. */
     private SpriteAPI decalSheet;
     private SpriteSheetFrames decalFrames;
@@ -342,10 +342,10 @@ public class BattleScreen implements Screen, BattleUiContext {
             new java.util.EnumMap<>(MarineSecondary.class);
     private boolean marineSecondarySpritesLoadAttempted;
     private boolean turretSpritesLoadAttempted;
-    /** Single-entry cache for the drone-hub structure sprite (same vanilla weapon-sprite shape as the turret cache). Loaded once, reused for every {@link com.dillon.starsectormarines.battle.DroneHubUnit} on the map. */
+    /** Single-entry cache for the drone-hub structure sprite (same vanilla weapon-sprite shape as the turret cache). Loaded once, reused for every {@link com.dillon.starsectormarines.battle.drone.DroneHubUnit} on the map. */
     private ShuttleSpriteCache droneHubSprite;
     private boolean droneHubSpriteLoadAttempted;
-    /** Single-entry cache for the drone sprite. Reused for every {@link com.dillon.starsectormarines.battle.Drone} launched from a hub; the body's facing drives the per-instance rotation. */
+    /** Single-entry cache for the drone sprite. Reused for every {@link com.dillon.starsectormarines.battle.drone.Drone} launched from a hub; the body's facing drives the per-instance rotation. */
     private ShuttleSpriteCache droneSprite;
     private boolean droneSpriteLoadAttempted;
     /** Sim-seconds the barrel sprite eases forward to its at-rest position after a shot. Quick snap-back-then-return reads as a real recoil pulse. */
@@ -1112,8 +1112,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         // Mech chassis projectile sprites — every entry has one (chaingun
         // shell / SRM / LRM). Same load + aspect-capture pattern as the marine
         // primaries above.
-        for (com.dillon.starsectormarines.battle.MechWeapon w
-                : com.dillon.starsectormarines.battle.MechWeapon.values()) {
+        for (com.dillon.starsectormarines.battle.weapons.MechWeapon w
+                : com.dillon.starsectormarines.battle.weapons.MechWeapon.values()) {
             if (w.projectileSpritePath == null) continue;
             try {
                 Global.getSettings().loadTexture(w.projectileSpritePath);
@@ -1147,7 +1147,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     private void ensureDroneHubSprite() {
         if (droneHubSpriteLoadAttempted) return;
         droneHubSpriteLoadAttempted = true;
-        String path = com.dillon.starsectormarines.battle.DroneHubUnit.SPRITE_PATH;
+        String path = com.dillon.starsectormarines.battle.drone.DroneHubUnit.SPRITE_PATH;
         try {
             Global.getSettings().loadTexture(path);
             SpriteAPI sprite = Global.getSettings().getSprite(path);
@@ -1168,7 +1168,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     private void ensureDroneSprite() {
         if (droneSpriteLoadAttempted) return;
         droneSpriteLoadAttempted = true;
-        String path = com.dillon.starsectormarines.battle.Drone.SPRITE_PATH;
+        String path = com.dillon.starsectormarines.battle.drone.Drone.SPRITE_PATH;
         try {
             Global.getSettings().loadTexture(path);
             SpriteAPI sprite = Global.getSettings().getSprite(path);
@@ -1697,7 +1697,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             // the chaingun gets one; rockets are tube-launched and the
             // launch animation is already the projectile sprite leaving
             // the mount.
-            if (s.mechWeapon == com.dillon.starsectormarines.battle.MechWeapon.CHAINGUN) {
+            if (s.mechWeapon == com.dillon.starsectormarines.battle.weapons.MechWeapon.CHAINGUN) {
                 impactFx.spawnMuzzleFlash(s.fromX, s.fromY, 0.55f, 0.08f);
             }
             // SAM-site launch backblast — kinds flagged hasLaunchBackblast
@@ -2928,8 +2928,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         for (Unit u : units) {
             if (!u.isAlive()) continue;
             if (u instanceof MapTurret) continue; // handled by renderTurrets above
-            if (u instanceof com.dillon.starsectormarines.battle.DroneHubUnit) continue; // handled by renderDroneHubs above
-            if (u instanceof com.dillon.starsectormarines.battle.Drone) continue; // handled by renderDrones above
+            if (u instanceof com.dillon.starsectormarines.battle.drone.DroneHubUnit) continue; // handled by renderDroneHubs above
+            if (u instanceof com.dillon.starsectormarines.battle.drone.Drone) continue; // handled by renderDrones above
             byte uv = vis.getUnitVisibility(u.denseIdx);
             if (uv == com.dillon.starsectormarines.battle.vision.VisionService.VIS_HIDDEN) continue;
             float unitAlpha = alphaMult;
@@ -2971,7 +2971,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (!u.type.combatant) continue;
             // Drone HP bars draw in renderDrones — they need to layer above
             // the roof pass alongside the drone sprite itself.
-            if (u instanceof com.dillon.starsectormarines.battle.Drone) continue;
+            if (u instanceof com.dillon.starsectormarines.battle.drone.Drone) continue;
             byte uv = vis.getUnitVisibility(u.denseIdx);
             if (uv == com.dillon.starsectormarines.battle.vision.VisionService.VIS_HIDDEN) continue;
             float barAlpha = alphaMult;
@@ -2986,8 +2986,8 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (u instanceof MapTurret) {
                 float visual = ((MapTurret) u).kind.visualCells;
                 barY = cy + visual * camera.cellPxSize() / 2f + HP_BAR_GAP;
-            } else if (u instanceof com.dillon.starsectormarines.battle.DroneHubUnit) {
-                float visual = com.dillon.starsectormarines.battle.DroneHubUnit.VISUAL_CELLS;
+            } else if (u instanceof com.dillon.starsectormarines.battle.drone.DroneHubUnit) {
+                float visual = com.dillon.starsectormarines.battle.drone.DroneHubUnit.VISUAL_CELLS;
                 barY = cy + visual * camera.cellPxSize() / 2f + HP_BAR_GAP;
             } else {
                 barY = cy + half + HP_BAR_GAP;
@@ -3225,7 +3225,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     }
 
     /**
-     * Renders {@link com.dillon.starsectormarines.battle.DroneHubUnit} entries —
+     * Renders {@link com.dillon.starsectormarines.battle.drone.DroneHubUnit} entries —
      * pavement plate under the sealed launch pad + a fixed-orientation vanilla
      * weapon sprite (the Pilum launcher reused as a drone bay). No facing or
      * recoil; the hub doesn't fire itself.
@@ -3233,7 +3233,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     private void renderDroneHubs(List<Unit> units, float alphaMult) {
         boolean any = false;
         for (Unit u : units) {
-            if (u instanceof com.dillon.starsectormarines.battle.DroneHubUnit && u.isAlive()) { any = true; break; }
+            if (u instanceof com.dillon.starsectormarines.battle.drone.DroneHubUnit && u.isAlive()) { any = true; break; }
         }
         if (!any) return;
         ensureDroneHubSprite();
@@ -3249,7 +3249,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         glColor4f(ROAD_FILL.getRed() / 255f, ROAD_FILL.getGreen() / 255f,
                 ROAD_FILL.getBlue() / 255f, alphaMult);
         for (Unit u : units) {
-            if (!(u instanceof com.dillon.starsectormarines.battle.DroneHubUnit) || !u.isAlive()) continue;
+            if (!(u instanceof com.dillon.starsectormarines.battle.drone.DroneHubUnit) || !u.isAlive()) continue;
             float x0 = camera.cellToScreenX(u.getCellX());
             float y0 = camera.cellToScreenY(u.getCellY());
             glVertex2f(x0,          y0);
@@ -3261,9 +3261,9 @@ public class BattleScreen implements Screen, BattleUiContext {
 
         // Sprite pass — single shared sprite, fixed at facing 0 (north).
         if (droneHubSprite == null) return;
-        float visual = com.dillon.starsectormarines.battle.DroneHubUnit.VISUAL_CELLS;
+        float visual = com.dillon.starsectormarines.battle.drone.DroneHubUnit.VISUAL_CELLS;
         for (Unit u : units) {
-            if (!(u instanceof com.dillon.starsectormarines.battle.DroneHubUnit) || !u.isAlive()) continue;
+            if (!(u instanceof com.dillon.starsectormarines.battle.drone.DroneHubUnit) || !u.isAlive()) continue;
             float cx = camera.cellToScreenX(u.getCellX() + 0.5f);
             float cy = camera.cellToScreenY(u.getCellY() + 0.5f);
             drawTurretLayer(droneHubSprite, /*facingDegrees=*/ 0f, visual, cellPx, cx, cy, alphaMult);
@@ -3272,7 +3272,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     }
 
     /**
-     * Renders {@link com.dillon.starsectormarines.battle.Drone} entries —
+     * Renders {@link com.dillon.starsectormarines.battle.drone.Drone} entries —
      * single shared sprite rotated to each drone's {@code AirBody.facingDegrees}.
      * No pavement plate: drones are airborne, the ground beneath stays visible.
      * Position is read from the drone's body (fractional cell coords) so future
@@ -3281,8 +3281,8 @@ public class BattleScreen implements Screen, BattleUiContext {
     private void renderDrones(BattleSimulation sim, List<Unit> units, float alphaMult) {
         boolean any = false;
         for (Unit u : units) {
-            if (!(u instanceof com.dillon.starsectormarines.battle.Drone)) continue;
-            com.dillon.starsectormarines.battle.Drone d = (com.dillon.starsectormarines.battle.Drone) u;
+            if (!(u instanceof com.dillon.starsectormarines.battle.drone.Drone)) continue;
+            com.dillon.starsectormarines.battle.drone.Drone d = (com.dillon.starsectormarines.battle.drone.Drone) u;
             if (d.crashed) continue;
             if (d.isAlive() || d.crashStarted) { any = true; break; }
         }
@@ -3292,11 +3292,11 @@ public class BattleScreen implements Screen, BattleUiContext {
 
         com.dillon.starsectormarines.battle.vision.VisionService vis = sim.getVision();
         float cellPx = camera.cellPxSize();
-        float visual = com.dillon.starsectormarines.battle.Drone.VISUAL_CELLS;
+        float visual = com.dillon.starsectormarines.battle.drone.Drone.VISUAL_CELLS;
         float barW = camera.cellPxSize() * 0.9f;
         for (Unit u : units) {
-            if (!(u instanceof com.dillon.starsectormarines.battle.Drone)) continue;
-            com.dillon.starsectormarines.battle.Drone d = (com.dillon.starsectormarines.battle.Drone) u;
+            if (!(u instanceof com.dillon.starsectormarines.battle.drone.Drone)) continue;
+            com.dillon.starsectormarines.battle.drone.Drone d = (com.dillon.starsectormarines.battle.drone.Drone) u;
             if (d.crashed) continue;
             boolean alive = d.isAlive();
             if (!alive && !d.crashStarted) continue;
@@ -3309,7 +3309,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 drawAlpha *= vis.getFadeAlpha(d.denseIdx);
             }
             if (!alive) {
-                float t = Math.max(0f, Math.min(1f, d.crashTimer / com.dillon.starsectormarines.battle.Drone.CRASH_DURATION_SEC));
+                float t = Math.max(0f, Math.min(1f, d.crashTimer / com.dillon.starsectormarines.battle.drone.Drone.CRASH_DURATION_SEC));
                 drawAlpha *= t;
             }
             drawTurretLayer(droneSprite, d.body.facingDegrees, visual, cellPx, cx, cy, drawAlpha);
@@ -3885,7 +3885,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         java.util.Set<TurretKind> touchedTurret = new java.util.HashSet<>();
         java.util.Set<MarineSecondary> touchedSecondary = new java.util.HashSet<>();
         java.util.Set<MarineWeapon> touchedPrimary = new java.util.HashSet<>();
-        java.util.Set<com.dillon.starsectormarines.battle.MechWeapon> touchedMech = new java.util.HashSet<>();
+        java.util.Set<com.dillon.starsectormarines.battle.weapons.MechWeapon> touchedMech = new java.util.HashSet<>();
         for (ShotEvent s : shots) {
             ShuttleSpriteCache cache;
             float visualCells;
@@ -3907,12 +3907,12 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (cache == null) continue;
             float linearProgress = 1f - Math.max(0f, Math.min(1f, s.lifetime / Math.max(0.001f, s.lifetimeMax)));
             // Rocket-class kinds with a boost ramp accelerate from rest to
-            // terminal velocity via {@link com.dillon.starsectormarines.battle.Projectile#applyBoostCurve}.
+            // terminal velocity via {@link com.dillon.starsectormarines.battle.fx.Projectile#applyBoostCurve}.
             // Chemical-charge shells (GRENADE_LAUNCHER, mortars) exit the
             // tube at terminal velocity and travel at constant speed — they
             // keep linear lerp, same as direct-fire tracer kinds.
             float progress = (s.turretKind != null && s.turretKind.hasBoostRamp())
-                    ? com.dillon.starsectormarines.battle.Projectile.applyBoostCurve(linearProgress)
+                    ? com.dillon.starsectormarines.battle.fx.Projectile.applyBoostCurve(linearProgress)
                     : linearProgress;
             float px = s.fromX + (s.toX - s.fromX) * progress;
             float py = s.fromY + (s.toY - s.fromY) * progress;
@@ -3978,7 +3978,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             ShuttleSpriteCache c = marineWeaponProjectileSprites.get(k);
             if (c != null) c.sprite.setAngle(0f);
         }
-        for (com.dillon.starsectormarines.battle.MechWeapon k : touchedMech) {
+        for (com.dillon.starsectormarines.battle.weapons.MechWeapon k : touchedMech) {
             ShuttleSpriteCache c = mechWeaponProjectileSprites.get(k);
             if (c != null) c.sprite.setAngle(0f);
         }
@@ -4027,7 +4027,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             // tracks the rocket's actual visual position. Rocket-class kinds
             // get the boost; chemical-charge shells stay on linear lerp.
             float progress = s.turretKind.hasBoostRamp()
-                    ? com.dillon.starsectormarines.battle.Projectile.applyBoostCurve(linearProgress)
+                    ? com.dillon.starsectormarines.battle.fx.Projectile.applyBoostCurve(linearProgress)
                     : linearProgress;
             float px = s.fromX + (s.toX - s.fromX) * progress;
             float py = s.fromY + (s.toY - s.fromY) * progress;

@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.command;
 
-import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.unit.Faction;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -14,7 +14,7 @@ import java.util.function.Consumer;
  * charge sites via {@link ConquestCommand}) install one via
  * {@link #setCommander(Faction, MissionCommand)} during {@code BattleSetup}.
  *
- * <p>Owned by {@link com.dillon.starsectormarines.battle.BattleSimulation};
+ * <p>Owned by {@link com.dillon.starsectormarines.battle.sim.BattleSimulation};
  * sibling slice to {@link com.dillon.starsectormarines.battle.fx.EffectsService},
  * {@link com.dillon.starsectormarines.battle.vision.VisionService}, and
  * {@link com.dillon.starsectormarines.battle.shots.ShotService}.

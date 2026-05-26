@@ -14,7 +14,7 @@ package com.dillon.starsectormarines.battle.ui.picking;
  * {@code SquadStateDumper} consumes it so a dump captures "which mech the
  * user was inspecting" for offline debugging of individual misbehavior.
  *
- * <p>Squad ids match {@link com.dillon.starsectormarines.battle.Squad#id}.
+ * <p>Squad ids match {@link com.dillon.starsectormarines.battle.unit.Squad#id}.
  * {@link #NONE} (-1) is the sentinel for "nothing selected" — same convention
  * the sim uses for {@code Unit.NO_SQUAD}. Unit ids are {@link String} (matches
  * {@code Unit.id}), null when no unit is pinned.

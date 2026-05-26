@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.battle.nav;
 
-import com.dillon.starsectormarines.battle.Unit;
-import com.dillon.starsectormarines.battle.UnitDestinationSpatialIndex;
-import com.dillon.starsectormarines.battle.UnitSpatialIndex;
+import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
+import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.ai.TacticalScoring;
 import com.dillon.starsectormarines.battle.damage.DamageService;
 import com.dillon.starsectormarines.battle.map.CellTopology;

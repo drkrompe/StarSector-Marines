@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.weapons;
 
-import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.unit.Unit;
 
 /**
  * Shooter posture at the moment a shot leaves the barrel. Threads through

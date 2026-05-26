@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.fx;
 
-import com.dillon.starsectormarines.battle.MechWeapon;
-import com.dillon.starsectormarines.battle.ShotEvent;
+import com.dillon.starsectormarines.battle.weapons.MechWeapon;
+import com.dillon.starsectormarines.battle.fx.ShotEvent;
 import com.dillon.starsectormarines.render2d.LightAccumulator;
 import com.dillon.starsectormarines.render2d.LightKernel;
 

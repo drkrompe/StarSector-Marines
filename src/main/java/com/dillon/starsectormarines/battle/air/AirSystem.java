@@ -1,11 +1,11 @@
 package com.dillon.starsectormarines.battle.air;
 
-import com.dillon.starsectormarines.battle.BattleSimulation;
-import com.dillon.starsectormarines.battle.FactionUnitRoster;
-import com.dillon.starsectormarines.battle.MarineLoadout;
-import com.dillon.starsectormarines.battle.Squad;
-import com.dillon.starsectormarines.battle.Unit;
-import com.dillon.starsectormarines.battle.UnitType;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
+import com.dillon.starsectormarines.battle.weapons.MarineLoadout;
+import com.dillon.starsectormarines.battle.unit.Squad;
+import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.ai.TurretAim;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 

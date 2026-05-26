@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.ui;
 
-import com.dillon.starsectormarines.battle.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.ops.BattleLayout;

@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.ground;
 
+import com.dillon.starsectormarines.battle.turret.TurretKind;
+
 /**
  * Static config for each ground-vehicle variant — sprite, capacity, handling
  * tunables, visual footprint. Parallels {@link com.dillon.starsectormarines.battle.air.ShuttleType}
@@ -9,9 +11,7 @@ package com.dillon.starsectormarines.battle.ground;
  * differential-drive {@code TrackedBody} instead of a {@link BicycleBody}
  * without changing {@link GroundSystem} at all.
  *
- * <p>V1 ships a single variant ({@link #MILITIA_TRUCK}); future entries
- * (heavy APC, armored car, tank) slot in alongside as new enum constants.
- * Each constant overrides {@link #createBody()} with its own kinematic model
+ * <p>Each constant overrides {@link #createBody()} with its own kinematic model
  * and constructor args. The sprite path resolves against the mod's atlas.
  */
 public enum VehicleType {
@@ -28,12 +28,39 @@ public enum VehicleType {
             /*spriteFacingOffsetDeg*/ 90f,
             /*capacity*/ 6, /*visualLengthCells*/ 2.0f, /*visualWidthCells*/ 1.1f,
             /*maxSpeed*/ 3.5f, /*accel*/ 2.5f, /*brakingAccel*/ 4f,
-            /*deboardInterval*/ 0.6f, /*lookAheadCells*/ 2.0f) {
+            /*deboardInterval*/ 0.6f, /*lookAheadCells*/ 2.0f,
+            /*turretFrame*/ -1, /*turretMountX*/ 0f, /*turretMountY*/ 0f,
+            /*turretPivotX*/ 0f, /*turretPivotY*/ 0f, /*turretVisualCells*/ 0f,
+            /*turretKind*/ null, /*departsAfterDeboard*/ true) {
         @Override
         public GroundBody createBody() {
             return new BicycleBody(
                     /*wheelbaseCells*/ 1.4f,
                     /*maxSteeringDeg*/ 25f, /*steeringSlewDegPerSec*/ 180f,
+                    accel, brakingAccel, maxSpeed);
+        }
+    },
+
+    /**
+     * Armored personnel carrier — four marines, roof-mounted heavy MG.
+     * Slower and heavier than the militia truck; stays parked after deboard
+     * and provides sustained fire support from the turret until the battle
+     * ends or the vehicle is destroyed.
+     */
+    HEAVY_APC(
+            "graphics/battle/vehicles/army-apc.png", /*spriteFrame*/ 0, /*frameCount*/ 2,
+            /*spriteFacingOffsetDeg*/ 90f,
+            /*capacity*/ 4, /*visualLengthCells*/ 2.4f, /*visualWidthCells*/ 1.4f,
+            /*maxSpeed*/ 2.8f, /*accel*/ 1.8f, /*brakingAccel*/ 3.5f,
+            /*deboardInterval*/ 0.8f, /*lookAheadCells*/ 2.2f,
+            /*turretFrame*/ 1, /*turretMountX*/ -0.15866698f, /*turretMountY*/ 0.26800027f,
+            /*turretPivotX*/ 0.108333334f, /*turretPivotY*/ 0.024999995f, /*turretVisualCells*/ 0.7f,
+            /*turretKind*/ TurretKind.HEAVY_MG, /*departsAfterDeboard*/ false) {
+        @Override
+        public GroundBody createBody() {
+            return new BicycleBody(
+                    /*wheelbaseCells*/ 1.6f,
+                    /*maxSteeringDeg*/ 22f, /*steeringSlewDegPerSec*/ 150f,
                     accel, brakingAccel, maxSpeed);
         }
     };
@@ -73,11 +100,31 @@ public enum VehicleType {
      */
     public final float lookAheadCells;
 
+    /** Sheet frame index for the turret sprite, or {@code -1} if this variant has no turret. */
+    public final int turretFrame;
+    /** Turret mount point on the chassis, cells from chassis center. +X right, +Y forward in chassis local frame. */
+    public final float turretMountX;
+    public final float turretMountY;
+    /** Rotation center within the turret sprite, cells from turret sprite center. +X right, +Y forward in turret local frame. */
+    public final float turretPivotX;
+    public final float turretPivotY;
+    /** Visual size of the turret sprite (longest axis), cells. Same semantics as {@link #visualLengthCells}. */
+    public final float turretVisualCells;
+    /** Weapon kind for the vehicle-mounted turret, or {@code null} if no functional weapon. Drives the aim/fire loop in {@link GroundSystem}. */
+    public final TurretKind turretKind;
+    /** If true, the vehicle departs after all marines deboard (truck behavior). If false, it stays parked in OVERWATCH with turret active (APC behavior). */
+    public final boolean departsAfterDeboard;
+
+    public boolean hasTurretWeapon() { return turretKind != null && turretFrame >= 0; }
+
     VehicleType(String spritePath, int spriteFrame, int frameCount,
                 float spriteFacingOffsetDeg,
                 int capacity, float visualLengthCells, float visualWidthCells,
                 float maxSpeed, float accel, float brakingAccel,
-                float deboardInterval, float lookAheadCells) {
+                float deboardInterval, float lookAheadCells,
+                int turretFrame, float turretMountX, float turretMountY,
+                float turretPivotX, float turretPivotY, float turretVisualCells,
+                TurretKind turretKind, boolean departsAfterDeboard) {
         this.spritePath = spritePath;
         this.spriteFrame = spriteFrame;
         this.frameCount = frameCount;
@@ -90,6 +137,14 @@ public enum VehicleType {
         this.brakingAccel = brakingAccel;
         this.deboardInterval = deboardInterval;
         this.lookAheadCells = lookAheadCells;
+        this.turretFrame = turretFrame;
+        this.turretMountX = turretMountX;
+        this.turretMountY = turretMountY;
+        this.turretPivotX = turretPivotX;
+        this.turretPivotY = turretPivotY;
+        this.turretVisualCells = turretVisualCells;
+        this.turretKind = turretKind;
+        this.departsAfterDeboard = departsAfterDeboard;
     }
 
     /**

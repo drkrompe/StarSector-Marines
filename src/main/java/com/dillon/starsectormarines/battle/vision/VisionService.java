@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.vision;
 
-import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.map.Buildings;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
@@ -83,7 +83,7 @@ public final class VisionService {
 
     /**
      * One-time setup after the grid is known. Called from
-     * {@link com.dillon.starsectormarines.battle.BattleSimulation} once the
+     * {@link com.dillon.starsectormarines.battle.sim.BattleSimulation} once the
      * map is generated. Must be called before the first {@link #tick}.
      */
     public void init(NavigationGrid grid, int unitCapacity) {

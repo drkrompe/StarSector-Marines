@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.squad;
 
-import com.dillon.starsectormarines.battle.BattleSimulation;
-import com.dillon.starsectormarines.battle.Squad;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.Squad;
 import com.dillon.starsectormarines.battle.ai.goap.GoapDroneBehavior;
 import com.dillon.starsectormarines.battle.ai.goap.GoapInfantryBehavior;
 import com.dillon.starsectormarines.battle.ai.goap.GoapMechBehavior;

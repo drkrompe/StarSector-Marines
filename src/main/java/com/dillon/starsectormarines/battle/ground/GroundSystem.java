@@ -1,13 +1,16 @@
 package com.dillon.starsectormarines.battle.ground;
 
-import com.dillon.starsectormarines.battle.FactionUnitRoster;
-import com.dillon.starsectormarines.battle.MarineLoadout;
-import com.dillon.starsectormarines.battle.Squad;
-import com.dillon.starsectormarines.battle.Unit;
-import com.dillon.starsectormarines.battle.UnitType;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
+import com.dillon.starsectormarines.battle.weapons.MarineLoadout;
+import com.dillon.starsectormarines.battle.unit.Squad;
+import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.ai.TurretAim;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.AirSimContext;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.turret.TurretKind;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -18,19 +21,15 @@ import java.util.Set;
 
 /**
  * Owns every ground vehicle in the battle and drives them each tick.
- * Today that's just the convoy trucks; future entries (player-side APCs,
- * armored cars) hook in here as they come online.
+ * Handles convoy trucks (arrive, deboard, depart) and armored vehicles
+ * like the APC (arrive, deboard, stay in overwatch with turret active).
  *
  * <p>Mirrors {@link com.dillon.starsectormarines.battle.air.AirSystem}'s
  * shape — narrow context handle, per-tick state-machine pass, BFS deboard
- * scan — minus the air-only flourish (altitude lerp, hover-station, mounted
- * turrets). Kinematics differ: ground vehicles use the {@link GroundBody}
- * abstraction (currently {@link BicycleBody}, future tank/etc) driven by
- * a pure-pursuit carrot along the polyline, instead of the shuttle's
- * "rotate-then-thrust" hover model. The carrot keeps moving forward along
- * the path so trucks never orbit a stationary waypoint, and the bicycle
- * model gives the front-steer-rear-follows feel without needing per-corner
- * tuning.
+ * scan, turret aim/fire loop. Kinematics differ: ground vehicles use the
+ * {@link GroundBody} abstraction (currently {@link BicycleBody}, future
+ * tank/etc) driven by a pure-pursuit carrot along the polyline, instead of
+ * the shuttle's "rotate-then-thrust" hover model.
  */
 public class GroundSystem {
 
@@ -63,7 +62,7 @@ public class GroundSystem {
      * fixed-tick contract as {@link com.dillon.starsectormarines.battle.air.AirSystem#tick}
      * — caller is responsible for matching {@code dt} to its tick cadence.
      */
-    public void tick(AirSimContext ctx, float dt) {
+    public void tick(BattleSimulation sim, float dt) {
         for (Vehicle v : vehicles) {
             switch (v.state) {
                 case PENDING:
@@ -72,29 +71,32 @@ public class GroundSystem {
                     break;
 
                 case INCOMING:
-                    advancePath(v, v.inboundX, v.inboundY, dt, true, ctx);
+                    advancePath(v, v.inboundX, v.inboundY, dt, true, sim);
                     break;
 
                 case LANDED:
                     v.deboardCountdown -= dt;
                     if (v.deboardCountdown <= 0f && v.marinesRemaining > 0) {
-                        if (tryDeboardMarine(v, ctx)) {
+                        if (tryDeboardMarine(v, sim)) {
                             v.marinesRemaining--;
                         }
                         v.deboardCountdown = v.type.deboardInterval;
                     }
                     if (v.marinesRemaining == 0) {
-                        // Reset the waypoint cursor for the outbound queue.
-                        // Start at index 1 — the truck is already at outbound[0]
-                        // (typically same cell as the LZ for V1's reverse path)
-                        // and steering toward outbound[1].
-                        v.waypointIndex = 1;
-                        v.state = Vehicle.State.DEPARTING;
+                        if (v.type.departsAfterDeboard) {
+                            v.waypointIndex = 1;
+                            v.state = Vehicle.State.DEPARTING;
+                        } else {
+                            v.state = Vehicle.State.OVERWATCH;
+                        }
                     }
                     break;
 
+                case OVERWATCH:
+                    break;
+
                 case DEPARTING:
-                    advancePath(v, v.outboundX, v.outboundY, dt, false, ctx);
+                    advancePath(v, v.outboundX, v.outboundY, dt, false, sim);
                     break;
 
                 case GONE:
@@ -102,6 +104,7 @@ public class GroundSystem {
                     break;
             }
         }
+        tickVehicleTurrets(sim, dt);
     }
 
     /**
@@ -317,5 +320,85 @@ public class GroundSystem {
             }
         }
         return null;
+    }
+
+    /**
+     * Per-tick aim + fire pass for every vehicle with a functional turret.
+     * Mirrors {@code AirSystem.tickShuttleTurrets}: each armed vehicle uses
+     * the shared {@link TurretAim} loop for acquisition / slew / fire-when-
+     * aligned, with the turret's world-rotated mount position as origin and
+     * {@link BattleSimulation#fireShotFrom} for shot emission.
+     *
+     * <p>Active whenever the vehicle is on-map and has ammo. OVERWATCH
+     * vehicles fire indefinitely; INCOMING / LANDED / DEPARTING vehicles
+     * also fire if armed (the APC's turret is live from the moment it
+     * rolls onto the map).
+     */
+    private void tickVehicleTurrets(BattleSimulation sim, float dt) {
+        for (Vehicle v : vehicles) {
+            if (!v.isVisible()) continue;
+            if (!v.type.hasTurretWeapon()) continue;
+            if (v.turretAmmo <= 0) continue;
+
+            TurretKind kind = v.type.turretKind;
+
+            float chassisRad = (float) Math.toRadians(v.body.facingDegrees);
+            float cc = (float) Math.cos(chassisRad);
+            float cs = (float) Math.sin(chassisRad);
+            float mountWorldX = v.body.x + v.type.turretMountX * cc - v.type.turretMountY * cs;
+            float mountWorldY = v.body.y + v.type.turretMountX * cs + v.type.turretMountY * cc;
+
+            Unit currentBurstTarget = (v.turretBurstTargetId != 0L)
+                    ? sim.resolveUnit(v.turretBurstTargetId) : null;
+
+            // Burst continuation fires ahead of fresh acquisition — the turret
+            // commits to its salvo target, matching shuttle turret behavior.
+            if (v.turretBurstRemaining > 0) {
+                v.turretBurstTimer -= dt;
+                if (v.turretBurstTimer <= 0f && currentBurstTarget != null && currentBurstTarget.isAlive()) {
+                    sim.fireShotFrom(mountWorldX, mountWorldY, v.faction, kind, currentBurstTarget, false);
+                    v.turretAmmo--;
+                    v.turretBurstRemaining--;
+                    v.turretBurstTimer = kind.burstSpacing;
+                    if (v.turretBurstRemaining == 0) v.turretBurstTargetId = 0L;
+                }
+                if (currentBurstTarget == null || !currentBurstTarget.isAlive()) {
+                    v.turretBurstRemaining = 0;
+                    v.turretBurstTargetId = 0L;
+                }
+                continue;
+            }
+
+            TurretAim.State aim = new TurretAim.State();
+            aim.originCellX = (int) Math.floor(mountWorldX);
+            aim.originCellY = (int) Math.floor(mountWorldY);
+            aim.originX = mountWorldX;
+            aim.originY = mountWorldY;
+            aim.faction = v.faction;
+            aim.facingDegrees = v.turretFacingDeg;
+            aim.turnRateDegPerSec = kind.turnRateDegPerSec;
+            aim.attackRange = kind.range;
+            aim.minRange = kind.minRange;
+            aim.cooldownTimer = v.turretCooldownTimer;
+            aim.attackCooldown = kind.cooldown;
+            aim.target = (v.turretTargetId != 0L) ? sim.resolveUnit(v.turretTargetId) : null;
+
+            TurretAim.tick(aim, sim, dt);
+
+            v.turretFacingDeg = aim.facingDegrees;
+            v.turretCooldownTimer = aim.cooldownTimer;
+            v.turretTargetId = (aim.target != null) ? aim.target.entityId : 0L;
+
+            if (aim.fireThisTick && aim.target != null) {
+                sim.fireShotFrom(mountWorldX, mountWorldY, v.faction, kind, aim.target,
+                        /*aerialShooter*/ false, aim.lastFireHadLos);
+                v.turretAmmo--;
+                if (kind.burstCount > 1 && aim.target.isAlive()) {
+                    v.turretBurstRemaining = kind.burstCount - 1;
+                    v.turretBurstTimer = kind.burstSpacing;
+                    v.turretBurstTargetId = aim.target.entityId;
+                }
+            }
+        }
     }
 }

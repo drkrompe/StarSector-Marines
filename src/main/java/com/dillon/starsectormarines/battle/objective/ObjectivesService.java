@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.objective;
 
-import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.command.CommanderService;
 
 import java.util.ArrayList;
@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 
 /**
  * Owns the mission-objective list and the per-tick dispatch. The
- * {@link com.dillon.starsectormarines.battle.BattleSimulation} delegates
+ * {@link com.dillon.starsectormarines.battle.sim.BattleSimulation} delegates
  * {@code addObjective}/{@code getObjectives} here, calls
  * {@link #installEliminationBackstopIfEmpty(Faction, Faction)} at the top of
  * its tick so legacy missions without registered objectives still terminate,

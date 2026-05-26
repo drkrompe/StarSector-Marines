@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.compound;
 
-import com.dillon.starsectormarines.battle.BattleSimulation;
-import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.ai.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 

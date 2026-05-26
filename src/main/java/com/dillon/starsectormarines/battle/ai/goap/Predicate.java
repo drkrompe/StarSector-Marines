@@ -43,7 +43,7 @@ public enum Predicate {
     // WorldStateBuilder until the owning story lands.
 
     /**
-     * Squad strength has dropped to ≤50% of {@link com.dillon.starsectormarines.battle.Squad#originalSize}.
+     * Squad strength has dropped to ≤50% of {@link com.dillon.starsectormarines.battle.unit.Squad#originalSize}.
      * Original Story B trigger — superseded by {@link #MORALE_BROKEN}, which
      * recovers over time and lets a squad re-enter the fight after pulling
      * back. Kept here (stubbed false) to preserve the enum slot until any
@@ -54,7 +54,7 @@ public enum Predicate {
     @Deprecated
     SQUAD_BELOW_HALF_STRENGTH,
     /**
-     * Squad's {@link com.dillon.starsectormarines.battle.Squad#morale} has
+     * Squad's {@link com.dillon.starsectormarines.battle.unit.Squad#morale} has
      * dropped below the broken threshold and not yet recovered above the
      * clear threshold. Story B trigger — drives SurviveContact. Drains on
      * hits/deaths, recovers when out of contact; capped by alive/original
@@ -75,7 +75,7 @@ public enum Predicate {
     ZONE_CLEAR,
     /** An enemy combatant is currently standing on the portal cell the squad's choke-point action watches. Story L trigger. */
     ENEMY_IN_PORTAL_CELL,
-    /** The squad's {@link com.dillon.starsectormarines.battle.Squad#assignedNode} carries a "must hold" priority flag. Story H gating predicate. */
+    /** The squad's {@link com.dillon.starsectormarines.battle.unit.Squad#assignedNode} carries a "must hold" priority flag. Story H gating predicate. */
     NODE_IS_MUST_HOLD,
     /** The squad's primary target sits in a high-density cluster of enemy combatants. Story I gating predicate — high density makes pursuit costly. */
     THREAT_DENSITY_HIGH_AT_TARGET,

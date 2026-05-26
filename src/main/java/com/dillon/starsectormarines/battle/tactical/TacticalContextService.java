@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.tactical;
 
-import com.dillon.starsectormarines.battle.DefensePost;
+import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.command.CommanderService;
 
 import java.util.Collections;
@@ -12,7 +12,7 @@ import java.util.List;
  * for waypoint sampling, and the {@link DefensePost} list cleanup uses to
  * release garrison patrol radii when a post is annihilated.
  *
- * <p>Owned by {@link com.dillon.starsectormarines.battle.BattleSimulation};
+ * <p>Owned by {@link com.dillon.starsectormarines.battle.sim.BattleSimulation};
  * sibling slice to {@link com.dillon.starsectormarines.battle.fx.EffectsService},
  * {@link com.dillon.starsectormarines.battle.vision.VisionService},
  * {@link com.dillon.starsectormarines.battle.shots.ShotService},

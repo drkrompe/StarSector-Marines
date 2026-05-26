@@ -1,12 +1,12 @@
 package com.dillon.starsectormarines.battle.weapons;
 
-import com.dillon.starsectormarines.battle.BattleSimulation;
-import com.dillon.starsectormarines.battle.MechLoadoutState;
-import com.dillon.starsectormarines.battle.MechWeapon;
-import com.dillon.starsectormarines.battle.PendingDetonation;
-import com.dillon.starsectormarines.battle.Projectile;
-import com.dillon.starsectormarines.battle.ShotEvent;
-import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.weapons.MechLoadoutState;
+import com.dillon.starsectormarines.battle.weapons.MechWeapon;
+import com.dillon.starsectormarines.battle.fx.PendingDetonation;
+import com.dillon.starsectormarines.battle.fx.Projectile;
+import com.dillon.starsectormarines.battle.fx.ShotEvent;
+import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.fx.ImpactProfile;
 
 /**

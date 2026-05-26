@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.render2d;
 
-import com.dillon.starsectormarines.battle.Decal;
+import com.dillon.starsectormarines.battle.fx.Decal;
 import com.dillon.starsectormarines.battle.sprites.SpriteSheetFrames;
 import com.dillon.starsectormarines.ops.battleview.BattleCamera;
 import com.fs.starfarer.api.Global;

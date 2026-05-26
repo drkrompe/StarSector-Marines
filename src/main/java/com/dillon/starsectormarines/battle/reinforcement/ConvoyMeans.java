@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.reinforcement;
 
-import com.dillon.starsectormarines.battle.BattleSimulation;
-import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.ground.ConvoyPlanner;
 import com.dillon.starsectormarines.battle.ground.Vehicle;
 import com.dillon.starsectormarines.battle.ground.VehicleType;
@@ -18,17 +18,14 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Convoy-vehicle delivery means. Spawns a {@link VehicleType#MILITIA_TRUCK}
+ * Convoy-vehicle delivery means. Spawns a {@link VehicleType#HEAVY_APC}
  * at a perimeter road-graph entry that's reachable to the request's rally
- * point, drives it in, and lets the truck deboard once near the rally
- * (the existing ground-system docking logic from
- * {@code roadmap/convoy/v1-polish.md} handles arrival).
- *
- * <p>V1 ports the routing from the now-retired {@code maybeSpawnDebugConvoy}
- * path: sort perimeter nodes by distance to the rally, BFS-flood the
- * reachable component from each, pick the entry whose component contains
- * the best interior junction near the rally. Falls back gracefully across
- * disconnected components so a stub perimeter doesn't kill the spawn.
+ * point, drives it in, deboards marines, and stays parked in overwatch
+ * with its turret active. Routing sorts perimeter nodes by distance to
+ * the rally, BFS-floods the reachable component from each, and picks
+ * the entry whose component contains the best interior junction near
+ * the rally. Falls back gracefully across disconnected components so a
+ * stub perimeter doesn't kill the spawn.
  */
 public final class ConvoyMeans implements ReinforcementMeans {
 
@@ -123,11 +120,11 @@ public final class ConvoyMeans implements ReinforcementMeans {
         float[][] outboundCells = ConvoyPlanner.reverse(inX, inY);
 
         Vehicle truck = new Vehicle(
-                VehicleType.MILITIA_TRUCK, Faction.DEFENDER,
+                VehicleType.HEAVY_APC, Faction.DEFENDER,
                 inX, inY, outboundCells[0], outboundCells[1],
                 PENDING_SEC);
         sim.addConvoyVehicle(truck);
-        LOG.info("ConvoyMeans: dispatched MILITIA_TRUCK entry=(" + entry.cellX + "," + entry.cellY
+        LOG.info("ConvoyMeans: dispatched HEAVY_APC entry=(" + entry.cellX + "," + entry.cellY
                 + ") rally=(" + rx + "," + ry + ") path=" + path.size() + "edges/" + inX.length + "wps");
     }
 

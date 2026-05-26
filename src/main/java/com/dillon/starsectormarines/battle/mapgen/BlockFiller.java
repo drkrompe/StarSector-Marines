@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.mapgen;
 
-import com.dillon.starsectormarines.battle.Doodad;
-import com.dillon.starsectormarines.battle.PointOfInterest;
+import com.dillon.starsectormarines.battle.map.Doodad;
+import com.dillon.starsectormarines.battle.map.PointOfInterest;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 

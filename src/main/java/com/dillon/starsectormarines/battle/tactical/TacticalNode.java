@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.tactical;
 
-import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.unit.Faction;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,7 +8,7 @@ import java.util.List;
 
 /**
  * Structured tactical hint produced during map generation and consumed by the
- * battle AI. Distinct from {@link com.dillon.starsectormarines.battle.PointOfInterest}:
+ * battle AI. Distinct from {@link com.dillon.starsectormarines.battle.map.PointOfInterest}:
  * a POI answers <em>"what is the mission objective"</em> (extract that
  * scientist, blow that depot); a {@link TacticalNode} answers <em>"where would
  * a sane squad position itself"</em> — turret mounts, gates, barracks, fallback

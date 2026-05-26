@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.battle.weapons;
 
-import com.dillon.starsectormarines.battle.BattleSimulation;
-import com.dillon.starsectormarines.battle.PendingDetonation;
-import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.fx.PendingDetonation;
+import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 
 import java.util.ArrayList;
@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * The physics-based AoE pipeline: rockets and missiles register a
  * {@link PendingDetonation} at fire time, fly visibly via their paired
- * {@link com.dillon.starsectormarines.battle.ShotEvent}, and detonate when
+ * {@link com.dillon.starsectormarines.battle.fx.ShotEvent}, and detonate when
  * the timer drains — applying splash damage to nearby units (LOS-gated) plus
  * wall damage at the endpoint cell.
  *

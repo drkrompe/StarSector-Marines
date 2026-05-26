@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.battle.ai.goap.actions;
 
-import com.dillon.starsectormarines.battle.BattleSimulation;
-import com.dillon.starsectormarines.battle.Squad;
-import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.Squad;
+import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.ai.MechCombatantBehavior;
 import com.dillon.starsectormarines.battle.ai.TacticalScoring;
 import com.dillon.starsectormarines.battle.ai.goap.Action;
@@ -22,7 +22,7 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
  * a single-step plan of this action, and {@code GoapMechBehavior} executes
  * it for every member each tick. Role-anchored actions (overwatch /
  * backstop) layer on top in subsequent slices and override this for
- * mechs whose {@link com.dillon.starsectormarines.battle.MechRole}-keyed
+ * mechs whose {@link com.dillon.starsectormarines.battle.weapons.MechRole}-keyed
  * goal has higher relevance.
  *
  * <p>Always returns {@link ActionStatus#RUNNING} — there's no terminal

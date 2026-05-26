@@ -32,7 +32,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * {@link #current()}, which the sim sets at the top of each tick. Static
  * access (rather than passing through every signature) is justified by the
  * 6+ call sites in {@code GridPathfinder} / {@code TacticalScoring} that
- * don't otherwise carry a {@link com.dillon.starsectormarines.battle.BattleSimulation}
+ * don't otherwise carry a {@link com.dillon.starsectormarines.battle.sim.BattleSimulation}
  * reference and shouldn't have to. The sim is single-threaded, so the
  * static slot races on nothing.
  *

@@ -4,7 +4,7 @@ package com.dillon.starsectormarines.battle.mapgen;
  * Top-level entry point for battle-map procedural generators. Implementations
  * own their algorithm (BSP, striped grid, wilderness biome, etc.) and produce
  * a fully-populated {@link MapResult} that
- * {@link com.dillon.starsectormarines.battle.BattleSetup} can hand straight to
+ * {@link com.dillon.starsectormarines.battle.sim.BattleSetup} can hand straight to
  * the sim and renderer.
  *
  * <p>Stateless contract: the same instance can be invoked from multiple seeds

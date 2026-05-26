@@ -50,7 +50,7 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
  * <p>Drives both: (a) browsing the grid with {@code (col, row)} overlays so
  * we can call out which cells are which without counting tiles in an external
  * editor, and (b) building a stable hand-curated note file we can reference
- * when wiring tiles into {@link com.dillon.starsectormarines.battle.TileManifest}.
+ * when wiring tiles into {@link com.dillon.starsectormarines.battle.map.TileManifest}.
  *
  * <p>Sheet list is hard-coded — there are four right now and a runtime
  * directory scan adds latency for no benefit. Add a new sheet by appending

@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.sprites;
 
-import com.dillon.starsectormarines.battle.TileManifest;
+import com.dillon.starsectormarines.battle.map.TileManifest;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.map.WallMasks;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;

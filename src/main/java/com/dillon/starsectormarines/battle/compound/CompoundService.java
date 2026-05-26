@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.compound;
 
-import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.tactical.TacticalMap;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 
@@ -18,7 +18,7 @@ import java.util.Map;
  *
  * <p>Naming follows the {@code *Service} convention per
  * {@code memory/battle_services_systems.md} — state owner, constructor-
- * injected into {@link com.dillon.starsectormarines.battle.BattleSimulation}.
+ * injected into {@link com.dillon.starsectormarines.battle.sim.BattleSimulation}.
  * The companion stateless tick consumer is {@link CompoundCaptureSystem};
  * v2's auto-garrison shuttle trigger and the slice-3 trigger/means gates
  * read this service without ever writing back.
@@ -105,7 +105,7 @@ public final class CompoundService {
     /**
      * Populate per-compound state from a {@link TacticalMap}'s COMMAND_POST /
      * BARRACKS / ARMORY nodes. Called once from
-     * {@link com.dillon.starsectormarines.battle.BattleSimulation#setTacticalMap}
+     * {@link com.dillon.starsectormarines.battle.sim.BattleSimulation#setTacticalMap}
      * so the service is ready before the first capture-system tick. Idempotent
      * — repeat calls re-seed every record at DEFENDER_HELD.
      */

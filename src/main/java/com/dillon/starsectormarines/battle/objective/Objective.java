@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.objective;
 
-import com.dillon.starsectormarines.battle.BattleSimulation;
-import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.Faction;
 
 /**
  * A mission goal that the simulation evaluates each tick. Replaces the

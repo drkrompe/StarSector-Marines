@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.reinforcement;
 
-import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.unit.Faction;
 
 /**
  * A request for "more units" posted by a {@link ReinforcementTrigger} and

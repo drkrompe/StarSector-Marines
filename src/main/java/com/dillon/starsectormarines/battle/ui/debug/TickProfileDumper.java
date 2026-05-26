@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.ui.debug;
 
 import com.dillon.starsectormarines.StarsectorMarinesModPlugin;
-import com.dillon.starsectormarines.battle.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
 import com.fs.starfarer.api.Global;

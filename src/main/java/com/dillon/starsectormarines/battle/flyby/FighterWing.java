@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.flyby;
 
-import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.unit.Faction;
 
 /**
  * One commitment of fighter support to a battle — a single profile flying for

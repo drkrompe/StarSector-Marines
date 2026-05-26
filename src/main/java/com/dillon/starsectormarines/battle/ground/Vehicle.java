@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.battle.ground;
 
-import com.dillon.starsectormarines.battle.Faction;
-import com.dillon.starsectormarines.battle.MarineLoadout;
-import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.weapons.MarineLoadout;
+import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.air.AirBody;
 
 /**
@@ -27,7 +27,7 @@ import com.dillon.starsectormarines.battle.air.AirBody;
  */
 public class Vehicle {
 
-    public enum State { PENDING, INCOMING, LANDED, DEPARTING, GONE }
+    public enum State { PENDING, INCOMING, LANDED, OVERWATCH, DEPARTING, GONE }
 
     public final VehicleType type;
     public final Faction faction;
@@ -54,6 +54,21 @@ public class Vehicle {
     /** Current waypoint index inside the active queue (inbound during INCOMING, outbound during DEPARTING). */
     public int waypointIndex;
 
+    /** Turret barrel facing in world frame (0° = +Y, positive CCW). Driven by {@link com.dillon.starsectormarines.battle.ai.TurretAim} when the vehicle has a {@link VehicleType#turretKind}. */
+    public float turretFacingDeg;
+    /** Sim-seconds until the turret can fire again. */
+    public float turretCooldownTimer;
+    /** Entity id of the currently locked target, or {@code 0L} when idle. */
+    public long turretTargetId;
+    /** Rounds remaining in the turret magazine. Initialized from {@link com.dillon.starsectormarines.battle.turret.TurretKind#startingAmmo}. */
+    public int turretAmmo;
+    /** Rounds left in the current burst (excluding the trigger-pull round). */
+    public int turretBurstRemaining;
+    /** Sim-seconds until the next burst round fires. */
+    public float turretBurstTimer;
+    /** Entity id of the target locked when the current burst started. */
+    public long turretBurstTargetId;
+
     /**
      * Per-deboard loadouts for this delivery. {@code marineLoadout[i]} is
      * the spec for the (i+1)-th marine to disembark; null entries (and a
@@ -65,7 +80,7 @@ public class Vehicle {
     public MarineLoadout[] marineLoadout;
 
     /**
-     * Optional override for the {@link com.dillon.starsectormarines.battle.UnitType}
+     * Optional override for the {@link com.dillon.starsectormarines.battle.unit.UnitType}
      * stamped on each deboarded passenger. {@code null} (default) means
      * {@code GroundSystem.tryDeboardMarine} picks
      * {@code FactionUnitRoster.forFaction(faction).infantry()}. Symmetric to
@@ -73,7 +88,7 @@ public class Vehicle {
      * for the requesting side rather than baking marine stats into every
      * truck.
      */
-    public com.dillon.starsectormarines.battle.UnitType deboardUnitType;
+    public com.dillon.starsectormarines.battle.unit.UnitType deboardUnitType;
 
     /**
      * Squad identity assigned to all marines deboarded from this vehicle.
@@ -117,6 +132,7 @@ public class Vehicle {
         this.lzY = inboundY[inboundY.length - 1];
         this.pendingDelay = pendingDelay;
         this.marinesRemaining = type.capacity;
+        this.turretAmmo = type.turretKind != null ? type.turretKind.startingAmmo : 0;
         this.body = type.createBody();
         // Spawn at the inbound queue's first waypoint, facing the second so
         // the truck reads as already rolling when it appears on-screen.
@@ -128,8 +144,9 @@ public class Vehicle {
         this.waypointIndex = 1;  // already at index 0, steering toward index 1
     }
 
-    /** True between INCOMING and DEPARTING (inclusive) — on-map and rendered. */
+    /** True when the vehicle is on-map and rendered. */
     public boolean isVisible() {
-        return state == State.INCOMING || state == State.LANDED || state == State.DEPARTING;
+        return state == State.INCOMING || state == State.LANDED
+                || state == State.OVERWATCH || state == State.DEPARTING;
     }
 }

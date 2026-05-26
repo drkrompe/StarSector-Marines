@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.battle.flyby;
 
-import com.dillon.starsectormarines.battle.BattleSimulation;
-import com.dillon.starsectormarines.battle.Faction;
-import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.fx.WeaponLights;
 import com.dillon.starsectormarines.ops.battleview.BattleCamera;
 import com.dillon.starsectormarines.render2d.LightAccumulator;
@@ -920,7 +920,7 @@ public final class FlybyOverlay {
             // in the same frame as the explosion FX below — flyby's missile
             // flight is already a visible projectile, so we don't need the
             // queue's countdown.
-            sim.detonateNow(new com.dillon.starsectormarines.battle.PendingDetonation(
+            sim.detonateNow(new com.dillon.starsectormarines.battle.fx.PendingDetonation(
                     p.worldX, p.worldY, /*remainingTime*/ 0f,
                     /*aoeRadius*/ r,
                     /*damage*/ p.profile.projectileAoeDamage,

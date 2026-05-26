@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Asserts structural invariants (files exist, parse, entries are well-formed
  * within sheet bounds); prints a per-sheet report to stdout listing duplicate
  * names, naming-convention drift, and any mismatches against {@link
- * com.dillon.starsectormarines.battle.TileManifest}'s hand-coded cell
+ * com.dillon.starsectormarines.battle.map.TileManifest}'s hand-coded cell
  * references.
  *
  * <p>This is intentionally a tool dressed as a test — run with
@@ -71,7 +71,7 @@ public class TilesetCatalogAuditTest {
     }
 
     /**
-     * Hand-curated cells that {@link com.dillon.starsectormarines.battle.TileManifest}
+     * Hand-curated cells that {@link com.dillon.starsectormarines.battle.map.TileManifest}
      * pins by absolute {@code (col, row)} — used to flag drift between the
      * art TileManifest was coded against and the art the catalog describes.
      * Constructed from the constants in TileManifest at the time this test

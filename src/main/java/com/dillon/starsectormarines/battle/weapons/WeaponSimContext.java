@@ -1,9 +1,9 @@
 package com.dillon.starsectormarines.battle.weapons;
 
-import com.dillon.starsectormarines.battle.PendingDetonation;
-import com.dillon.starsectormarines.battle.Projectile;
-import com.dillon.starsectormarines.battle.ShotEvent;
-import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.fx.PendingDetonation;
+import com.dillon.starsectormarines.battle.fx.Projectile;
+import com.dillon.starsectormarines.battle.fx.ShotEvent;
+import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
@@ -17,7 +17,7 @@ import java.util.Random;
  * call site, not a "the weapon system might want this someday" surface.
  * Adding to it should require a real need.
  *
- * <p>{@link com.dillon.starsectormarines.battle.BattleSimulation} implements
+ * <p>{@link com.dillon.starsectormarines.battle.sim.BattleSimulation} implements
  * this directly. Weapon-system unit tests can supply a stub that records calls
  * without dragging in the full sim.
  *
@@ -63,7 +63,7 @@ public interface WeaponSimContext {
     /**
      * Same as {@link #applyDamage(Unit, float, float)} but scales the morale
      * drain inflicted on the target's squad by {@code moraleImpact}. Sourced
-     * from the shooter's {@link com.dillon.starsectormarines.battle.UnitType#moraleImpact}
+     * from the shooter's {@link com.dillon.starsectormarines.battle.unit.UnitType#moraleImpact}
      * — militia rattle marines less than mechs do.
      */
     void applyDamage(Unit target, float damage, float vsTurretMult, float moraleImpact);

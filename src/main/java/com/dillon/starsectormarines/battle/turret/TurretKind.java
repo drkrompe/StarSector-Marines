@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.turret;
 
-import com.dillon.starsectormarines.battle.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.fx.ImpactProfile;
 
 /**
@@ -108,7 +108,7 @@ public enum TurretKind {
      * turret keeps the target locked when LoS breaks (the kremlin wall
      * blocks LoS to anything in the kill zone). Accuracy uses quadratic
      * distance falloff <em>and</em> a {@link #noLosAccuracyMult} when the
-     * shot is fired blind — see {@link com.dillon.starsectormarines.battle.BattleSimulation#fireShotFrom}.
+     * shot is fired blind — see {@link com.dillon.starsectormarines.battle.sim.BattleSimulation#fireShotFrom}.
      *
      * <p>Sprite ported from the base-game Locust SRM Launcher (ship weapon),
      * reused as a planetary defense emplacement; no {@code _recoil} variant
@@ -186,8 +186,8 @@ public enum TurretKind {
     public final float burstSpacing;
     /**
      * Splash radius in cells. {@code > 0} swings the kind onto the AoE path —
-     * {@link com.dillon.starsectormarines.battle.BattleSimulation#fireShotFrom}
-     * queues a {@link com.dillon.starsectormarines.battle.PendingDetonation}
+     * {@link com.dillon.starsectormarines.battle.sim.BattleSimulation#fireShotFrom}
+     * queues a {@link com.dillon.starsectormarines.battle.fx.PendingDetonation}
      * at the projectile's endpoint instead of resolving damage at fire time.
      */
     public final float aoeRadius;
@@ -220,8 +220,8 @@ public enum TurretKind {
     public final float arcHeight;
     /**
      * Sim-seconds the projectile is visible in flight. Drives both the
-     * {@link com.dillon.starsectormarines.battle.ShotEvent} lifetime and the
-     * paired {@link com.dillon.starsectormarines.battle.PendingDetonation}
+     * {@link com.dillon.starsectormarines.battle.fx.ShotEvent} lifetime and the
+     * paired {@link com.dillon.starsectormarines.battle.fx.PendingDetonation}
      * timer so the explosion lines up with the projectile arriving. {@code 0}
      * falls back to the legacy {@code SHOT_LIFETIME} tracer flash.
      */
@@ -259,7 +259,7 @@ public enum TurretKind {
     /**
      * Accuracy multiplier applied to shots fired without direct line of sight,
      * when {@link #indirectFire} is {@code true}. Ignored for direct-fire
-     * kinds. Mirrors {@link com.dillon.starsectormarines.battle.MechWeapon#LRM_NO_LOS_ACC_MULT}
+     * kinds. Mirrors {@link com.dillon.starsectormarines.battle.weapons.MechWeapon#LRM_NO_LOS_ACC_MULT}
      * — "battery knows roughly where the target is via squad spotting / data
      * link, but each rocket flies wider without a direct sightline."
      */
@@ -353,7 +353,7 @@ public enum TurretKind {
 
     /**
      * Projectile velocity in cells per sim-second. {@code > 0} flips the kind
-     * onto the simulated-{@link com.dillon.starsectormarines.battle.Projectile}
+     * onto the simulated-{@link com.dillon.starsectormarines.battle.fx.Projectile}
      * path — flight time becomes {@code dist / cellsPerSec} (close shots arrive
      * sooner than far ones, matching real rockets), and the shot is a real
      * entity in {@code BattleSimulation.activeProjectiles} that point defense
@@ -374,7 +374,7 @@ public enum TurretKind {
 
     /**
      * True for rocket-class kinds whose projectile accelerates from rest —
-     * applies the {@link com.dillon.starsectormarines.battle.Projectile#applyBoostCurve}
+     * applies the {@link com.dillon.starsectormarines.battle.fx.Projectile#applyBoostCurve}
      * boost-then-cruise visual curve in flight. False for chemical-charge
      * shells (grenades, mortars) which exit the tube already at terminal
      * velocity and travel at constant speed.

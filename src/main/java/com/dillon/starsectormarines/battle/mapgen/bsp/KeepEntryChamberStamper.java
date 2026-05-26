@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.mapgen.bsp;
 
-import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.map.RoomPurpose;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;

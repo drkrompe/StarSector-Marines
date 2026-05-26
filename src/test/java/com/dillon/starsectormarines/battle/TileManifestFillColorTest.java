@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle;
 
+import com.dillon.starsectormarines.battle.map.TileManifest;
+
 import org.junit.jupiter.api.Test;
 
 import javax.imageio.ImageIO;

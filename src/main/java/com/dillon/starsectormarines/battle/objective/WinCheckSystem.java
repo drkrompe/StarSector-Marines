@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.objective;
 
-import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.unit.Faction;
 
 import java.util.List;
 

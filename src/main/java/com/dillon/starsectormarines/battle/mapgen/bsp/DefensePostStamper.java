@@ -1,11 +1,11 @@
 package com.dillon.starsectormarines.battle.mapgen.bsp;
 
-import com.dillon.starsectormarines.battle.DefensePost;
-import com.dillon.starsectormarines.battle.DefensePostKind;
-import com.dillon.starsectormarines.battle.Doodad;
-import com.dillon.starsectormarines.battle.Faction;
-import com.dillon.starsectormarines.battle.PointOfInterest;
-import com.dillon.starsectormarines.battle.TileManifest;
+import com.dillon.starsectormarines.battle.turret.DefensePost;
+import com.dillon.starsectormarines.battle.turret.DefensePostKind;
+import com.dillon.starsectormarines.battle.map.Doodad;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.map.PointOfInterest;
+import com.dillon.starsectormarines.battle.map.TileManifest;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.map.CellTopology;
@@ -54,7 +54,7 @@ import java.util.Random;
  *   <li>Turret cells: walkable + {@link GroundKind#STONE} ground pad. Cover
  *       is recomputed post-stamp so the cardinal embankment neighbors register.
  *       The {@link MapTurret} unit spawned
- *       by {@link com.dillon.starsectormarines.battle.BattleSetup} occupies the
+ *       by {@link com.dillon.starsectormarines.battle.sim.BattleSetup} occupies the
  *       cell; unit-stacking prevents other units from sharing it.</li>
  *   <li>{@link TacticalNode.Kind#GUARDPOST} tactical node at the post center,
  *       carrying the tier's garrison size and priority. The defender allocator's

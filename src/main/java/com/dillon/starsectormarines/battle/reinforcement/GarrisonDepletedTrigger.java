@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.battle.reinforcement;
 
-import com.dillon.starsectormarines.battle.BattleSimulation;
-import com.dillon.starsectormarines.battle.Faction;
-import com.dillon.starsectormarines.battle.Squad;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.Squad;
 import com.dillon.starsectormarines.battle.compound.CompoundService;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 

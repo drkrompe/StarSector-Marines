@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.reinforcement;
 
-import com.dillon.starsectormarines.battle.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 

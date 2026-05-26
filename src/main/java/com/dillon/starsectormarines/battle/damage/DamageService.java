@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.battle.damage;
 
-import com.dillon.starsectormarines.battle.PendingOccupancyDelta;
-import com.dillon.starsectormarines.battle.PendingTargetMutation;
-import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.sim.PendingOccupancyDelta;
+import com.dillon.starsectormarines.battle.sim.PendingTargetMutation;
+import com.dillon.starsectormarines.battle.unit.Unit;
 
 import java.util.ArrayList;
 import java.util.Arrays;

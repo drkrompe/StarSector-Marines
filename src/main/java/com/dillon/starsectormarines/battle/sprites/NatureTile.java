@@ -12,7 +12,7 @@ package com.dillon.starsectormarines.battle.sprites;
  *       dirt, sand, water).</li>
  *   <li>{@link Kind#PLANT_OVERLAY} / {@link Kind#ROCK_OVERLAY} — doodad-style
  *       props drawn on top of a ground tile (closer in spirit to
- *       {@link com.dillon.starsectormarines.battle.Doodad} than to a base
+ *       {@link com.dillon.starsectormarines.battle.map.Doodad} than to a base
  *       autotile). Plants are only valid on grass; rocks are valid on any
  *       non-water surface. The placement layer reads
  *       {@link #canOverlay(NatureTile)} to decide where each overlay may go.</li>

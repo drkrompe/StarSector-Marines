@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.vision;
 
-import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.unit.Faction;
 
 import java.util.EnumSet;
 import java.util.Set;

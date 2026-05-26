@@ -1,9 +1,9 @@
 package com.dillon.starsectormarines.battle.equipment;
 
-import com.dillon.starsectormarines.battle.EquipmentDrop;
-import com.dillon.starsectormarines.battle.Faction;
-import com.dillon.starsectormarines.battle.Unit;
-import com.dillon.starsectormarines.battle.UnitRole;
+import com.dillon.starsectormarines.battle.equipment.EquipmentDrop;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.ai.TacticalScoring;
 import com.dillon.starsectormarines.battle.objective.Objective;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;

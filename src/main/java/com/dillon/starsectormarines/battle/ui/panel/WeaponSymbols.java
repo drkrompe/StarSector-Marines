@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.battle.ui.panel;
 
-import com.dillon.starsectormarines.battle.MarineSecondary;
-import com.dillon.starsectormarines.battle.MarineWeapon;
-import com.dillon.starsectormarines.battle.UnitRole;
+import com.dillon.starsectormarines.battle.weapons.MarineSecondary;
+import com.dillon.starsectormarines.battle.weapons.MarineWeapon;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
 
 import java.awt.Color;
 

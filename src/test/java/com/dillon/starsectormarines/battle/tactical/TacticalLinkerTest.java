@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.tactical;
 
-import com.dillon.starsectormarines.battle.Faction;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

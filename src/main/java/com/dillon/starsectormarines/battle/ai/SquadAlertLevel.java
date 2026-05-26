@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.ai;
 
-import com.dillon.starsectormarines.battle.Squad;
-import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.unit.Squad;
+import com.dillon.starsectormarines.battle.unit.Unit;
 
 /**
  * Squad-scoped awareness state. Drives the idle vs. engaged branch in
@@ -25,7 +25,7 @@ import com.dillon.starsectormarines.battle.Unit;
  *
  * <p>Squads with {@link Unit#NO_SQUAD} members (solo defenders, civilians,
  * pre-shuttle marines) skip this state machine — they run their
- * {@link com.dillon.starsectormarines.battle.UnitRole} behavior directly.
+ * {@link com.dillon.starsectormarines.battle.unit.UnitRole} behavior directly.
  */
 public enum SquadAlertLevel {
     /** No squadmate has spotted an enemy or taken fire recently. Idle routines run. */

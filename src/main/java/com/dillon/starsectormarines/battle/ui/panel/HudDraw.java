@@ -76,7 +76,7 @@ final class HudDraw {
      * "how much fight is left given current strength" — a fresh squad and a
      * lone survivor both look fully resilient when at their respective caps.
      * The break tick at {@code breakThreshold} (interpreted as a fraction of
-     * cap, matching the model in {@link com.dillon.starsectormarines.battle.BattleSimulation})
+     * cap, matching the model in {@link com.dillon.starsectormarines.battle.sim.BattleSimulation})
      * stays at a fixed position on the bar regardless of cap.
      *
      * <p>Color grades by the fill fraction; border flips red when

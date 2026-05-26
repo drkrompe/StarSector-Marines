@@ -80,7 +80,7 @@ public final class DevConfig {
      * When {@code true}: the top-left tick-profile HUD overlay renders, with
      * a DUMP button that writes the current per-phase averages to
      * {@code saves/common/starsector_marines/debug/}. The sim-side phase
-     * instrumentation in {@link com.dillon.starsectormarines.battle.BattleSimulation#tick()}
+     * instrumentation in {@link com.dillon.starsectormarines.battle.sim.BattleSimulation#tick()}
      * is always-on (cost is a handful of {@code nanoTime} calls per tick) —
      * this flag only gates the overlay + dump button.
      *

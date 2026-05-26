@@ -11,7 +11,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
  * center if the line of flight crosses one, plus a flipped hit flag so
  * the caller treats the shot as a miss against the locked target.
  *
- * <p>Used by both {@link com.dillon.starsectormarines.battle.BattleSimulation#fireShotFrom}
+ * <p>Used by both {@link com.dillon.starsectormarines.battle.sim.BattleSimulation#fireShotFrom}
  * and {@link HeavyWeapons#fireMechWeapon} so a single change to the
  * raycast convention picks both up.
  *

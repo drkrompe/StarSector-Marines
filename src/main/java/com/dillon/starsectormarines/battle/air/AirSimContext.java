@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.battle.air;
 
-import com.dillon.starsectormarines.battle.Faction;
-import com.dillon.starsectormarines.battle.Squad;
-import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.Squad;
+import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.Random;
@@ -13,7 +13,7 @@ import java.util.Random;
  * purpose: every method here is a real call site, not a "the air system might
  * want this someday" surface. Adding to it should require a real need.
  *
- * <p>{@link com.dillon.starsectormarines.battle.BattleSimulation} implements
+ * <p>{@link com.dillon.starsectormarines.battle.sim.BattleSimulation} implements
  * this directly. Air-system unit tests can supply a stub that records calls
  * without dragging in the full sim.
  */

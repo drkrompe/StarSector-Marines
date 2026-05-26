@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.battle.shots;
 
-import com.dillon.starsectormarines.battle.PendingDetonation;
-import com.dillon.starsectormarines.battle.Projectile;
-import com.dillon.starsectormarines.battle.ShotEvent;
+import com.dillon.starsectormarines.battle.fx.PendingDetonation;
+import com.dillon.starsectormarines.battle.fx.Projectile;
+import com.dillon.starsectormarines.battle.fx.ShotEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +16,7 @@ import java.util.List;
  * <p>Sibling slice to
  * {@link com.dillon.starsectormarines.battle.fx.EffectsService} and
  * {@link com.dillon.starsectormarines.battle.vision.VisionService}.
- * {@link com.dillon.starsectormarines.battle.BattleSimulation} owns one
+ * {@link com.dillon.starsectormarines.battle.sim.BattleSimulation} owns one
  * instance and delegates the {@code postShot} / {@code queueProjectile} /
  * accessor surface here; the SHOTS and PROJECTILES tick phases call
  * {@link #tickShots(float)} and
@@ -117,7 +117,7 @@ public final class ShotService {
 
     /**
      * Clears the per-frame event lists. Called from
-     * {@link com.dillon.starsectormarines.battle.BattleSimulation#advance(float)}
+     * {@link com.dillon.starsectormarines.battle.sim.BattleSimulation#advance(float)}
      * at the top of each advance.
      */
     public void beginFrame() {

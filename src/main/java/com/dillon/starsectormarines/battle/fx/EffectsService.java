@@ -1,9 +1,9 @@
 package com.dillon.starsectormarines.battle.fx;
 
 import com.dillon.starsectormarines.DevConfig;
-import com.dillon.starsectormarines.battle.Decal;
-import com.dillon.starsectormarines.battle.SmokePlume;
-import com.dillon.starsectormarines.battle.SmokingWreck;
+import com.dillon.starsectormarines.battle.fx.Decal;
+import com.dillon.starsectormarines.battle.fx.SmokePlume;
+import com.dillon.starsectormarines.battle.fx.SmokingWreck;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ import java.util.Random;
  * event queues the renderer drains each frame.
  *
  * <p>First slice of the services refactor: this class owns the state and the
- * tick logic; {@link com.dillon.starsectormarines.battle.BattleSimulation}
+ * tick logic; {@link com.dillon.starsectormarines.battle.sim.BattleSimulation}
  * keeps a single instance and delegates the matching accessors. The
  * {@link com.dillon.starsectormarines.battle.weapons.WeaponSimContext}
  * spawn methods on the sim forward here too — once that context interface is
@@ -121,7 +121,7 @@ public final class EffectsService {
 
     /**
      * Clears the per-frame event lists. Called from
-     * {@link com.dillon.starsectormarines.battle.BattleSimulation#advance(float)}
+     * {@link com.dillon.starsectormarines.battle.sim.BattleSimulation#advance(float)}
      * at the top of each advance so a paused caller doesn't keep replaying the
      * previous frame's events.
      */

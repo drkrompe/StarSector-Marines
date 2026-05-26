@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.vision;
 
-import com.dillon.starsectormarines.battle.Unit;
+import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.map.Building;
 import com.dillon.starsectormarines.battle.map.Buildings;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -9,7 +9,7 @@ import java.util.List;
 
 /**
  * Periodic pass that decides which buildings reveal their interiors to the
- * player. Driven by {@link com.dillon.starsectormarines.battle.BattleSimulation}
+ * player. Driven by {@link com.dillon.starsectormarines.battle.sim.BattleSimulation}
  * at roughly 10 Hz (every 3rd 30 Hz tick) — the render path lerps
  * {@code currentAlpha → targetAlpha} per frame so the cadence stutter doesn't
  * pop visibly.
