@@ -7,6 +7,8 @@ build/
 
 ### Starsector mod build artifacts ###
 mod/jars/*.jar
+mod/sounds/**
+!mod/sounds/.gitkeep
 
 ### Extracted API sources for IDE attachment (regenerate with unzip starfarer.api.zip) ###
 .api/
