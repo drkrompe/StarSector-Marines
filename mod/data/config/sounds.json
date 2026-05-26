@@ -135,7 +135,7 @@
 		{"file":"sounds/battle/marines_ticking_clock.ogg","pitch":1,"volume":0.5},
 	],
 	"marines_shuttle_engine":[
-		{"file":"marines_shuttle_engine.ogg","source":"sounds/battle","volume":0.7},
+		{"file":"sounds/battle/marines_shuttle_engine.ogg","pitch":1,"volume":0.7},
 	],
 
 #collapseclose
