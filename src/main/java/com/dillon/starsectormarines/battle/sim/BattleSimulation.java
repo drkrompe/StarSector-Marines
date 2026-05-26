@@ -301,8 +301,8 @@ public class BattleSimulation implements WeaponSimContext {
                 navigation, rosterService, attackerIndex, shots, doodadService);
         this.unitUpdate = new com.dillon.starsectormarines.battle.ai.UnitUpdateSystem(
                 rosterService.getRegistry(), damageService, tickInnerProfile);
-        this.airSystem = new AirSystem(navigation, rosterService, rng, this::addUnit);
-        this.groundSystem = new GroundSystem(navigation, rosterService, rng, this::addUnit);
+        this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, rng, this::addUnit);
+        this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, rng, this::addUnit);
         vision.init(grid, 256);
     }
 

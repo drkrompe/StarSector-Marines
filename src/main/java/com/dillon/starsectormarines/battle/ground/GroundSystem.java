@@ -57,15 +57,18 @@ public class GroundSystem {
 
     private final NavigationService navigation;
     private final UnitRosterService roster;
+    private final com.dillon.starsectormarines.battle.ai.TacticalScoring tacticalScoring;
     private final Random rng;
     private final Consumer<Unit> addUnitSink;
 
     private final List<Vehicle> vehicles = new ArrayList<>();
 
     public GroundSystem(NavigationService navigation, UnitRosterService roster,
+                        com.dillon.starsectormarines.battle.ai.TacticalScoring tacticalScoring,
                         Random rng, Consumer<Unit> addUnitSink) {
         this.navigation = navigation;
         this.roster = roster;
+        this.tacticalScoring = tacticalScoring;
         this.rng = rng;
         this.addUnitSink = addUnitSink;
     }
@@ -403,7 +406,7 @@ public class GroundSystem {
             aim.attackCooldown = kind.cooldown;
             aim.target = (v.turretTargetId != 0L) ? sim.resolveUnit(v.turretTargetId) : null;
 
-            TurretAim.tick(aim, sim, dt);
+            TurretAim.tick(aim, tacticalScoring, navigation.getGrid(), dt);
 
             v.turretFacingDeg = aim.facingDegrees;
             v.turretCooldownTimer = aim.cooldownTimer;

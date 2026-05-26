@@ -65,7 +65,7 @@ public final class TurretBehavior implements UnitBehavior {
         s.target = sim.targetOf(t);
         s.indirectFire = t.kind.indirectFire;
 
-        TurretAim.tick(s, sim, BattleSimulation.TICK_DT);
+        TurretAim.tick(s, sim.getTacticalScoring(), sim.getGrid(), BattleSimulation.TICK_DT);
 
         t.facingDegrees = s.facingDegrees;
         t.cooldownTimer = s.cooldownTimer;

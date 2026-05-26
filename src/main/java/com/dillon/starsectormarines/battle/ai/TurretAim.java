@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.ai;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -97,13 +96,12 @@ public final class TurretAim {
      * cooldown. The caller fires the actual shot using the appropriate
      * sim path (sim.fireShot for Units; sim.fireShotFrom for mounts).
      */
-    public static void tick(State s, BattleSimulation sim, float dt) {
+    public static void tick(State s, TacticalScoring scoring, NavigationGrid grid, float dt) {
         s.fireThisTick = false;
-        NavigationGrid grid = sim.getGrid();
         float shooterAirR = s.ignoreCloseWalls ? s.closeWallRadius : 0f;
 
         if (s.target == null) {
-            s.target = sim.getTacticalScoring().findBestTarget(
+            s.target = scoring.findBestTarget(
                     s.originCellX, s.originCellY, s.faction, s.squadId, s.excludeFromCrowding,
                     shooterAirR, /*allowNoLos*/ s.indirectFire);
         }
