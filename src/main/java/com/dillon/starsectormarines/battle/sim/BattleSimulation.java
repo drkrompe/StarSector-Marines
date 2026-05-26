@@ -93,25 +93,8 @@ import java.util.Random;
  */
 public class BattleSimulation implements WeaponSimContext {
 
-    /**
-     * CAS handle for {@link Unit#lastReprioTickIndex}. The
-     * {@link #rollReprioritizeOnHit} gate runs from the parallel UPDATE_UNITS
-     * dispatch — two shooters from different workers can hit the same target
-     * in the same tick, and a plain read-then-write of {@code lastReprioTickIndex}
-     * lets both fall through the "one roll per sim-tick" guard. CAS keeps the
-     * gate atomic so exactly one shooter wins per (target, tick).
-     */
-    private static final java.util.concurrent.atomic.AtomicIntegerFieldUpdater<Unit> LAST_REPRIO_TICK =
-            java.util.concurrent.atomic.AtomicIntegerFieldUpdater.newUpdater(Unit.class, "lastReprioTickIndex");
-
     /** Fixed simulation timestep — 30Hz. */
     public static final float TICK_DT = 1f / 30f;
-
-
-    /** Probability a hit puts the target into fall-back. Rolled once per hit; ignored if already falling back. */
-    private static final float FALLBACK_CHANCE   = 0.25f;
-    /** Sim seconds a unit stays in fall-back state once entered. After this, normal engagement resumes. */
-    private static final float FALLBACK_DURATION = 3.5f;
 
     /** Navigation slice: grid + topology + zone graph + occupancy map + spatial indices + vantage cache + LosCache lifecycle. {@link #grid} / {@link #topology} / {@link #zoneGraph} / {@link #occupancyMap} / {@link #unitIndex} / {@link #destIndex} below are alias fields that share the same instances. */
     private final NavigationService navigation;
@@ -196,6 +179,8 @@ public class BattleSimulation implements WeaponSimContext {
     private final ShotService shots = new ShotService();
     /** Turret-kind fire procedure — accuracy, scatter, raycast, damage, detonation/projectile queuing, shot-event posting. Extracted from the sim's former {@code fireShotFrom} methods. */
     private final com.dillon.starsectormarines.battle.turret.TurretFireService turretFire;
+    /** Per-hit response logic — fallback rolls + target-reprioritization rolls. Extracted from the sim's former {@code rollFallbackOnHit}/{@code rollReprioritizeOnHit}. */
+    private final com.dillon.starsectormarines.battle.damage.HitResponseService hitResponse;
     /** Units that transitioned from alive to dead during the last {@link #advance(float)} call. Same lifecycle as {@link #shotsThisFrame}. */
     private final List<Unit> deathsThisFrame = new ArrayList<>();
     /**
@@ -298,10 +283,13 @@ public class BattleSimulation implements WeaponSimContext {
                 navigation, rosterService, attackerIndex, shots, doodadService);
         this.unitUpdate = new com.dillon.starsectormarines.battle.ai.UnitUpdateSystem(
                 rosterService.getRegistry(), damageService, tickInnerProfile);
+        this.hitResponse = new com.dillon.starsectormarines.battle.damage.HitResponseService(
+                grid, rosterService.getRegistry(), tacticalScoring, damageService,
+                () -> simTickIndex);
         this.turretFire = new com.dillon.starsectormarines.battle.turret.TurretFireService(
                 rng, grid, topology, shots, damageService,
                 det -> { synchronized (detonations) { detonations.queue(det); } },
-                this::rollFallbackOnHit);
+                hitResponse);
         this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, turretFire, rng, this::addUnit);
         this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, turretFire, rng, this::addUnit);
         vision.init(grid, 256);
@@ -642,103 +630,14 @@ public class BattleSimulation implements WeaponSimContext {
         effects.spawnSmokePlume(x, y);
     }
 
-    /**
-     * Base chance a hit triggers a mech target re-evaluation when the mech
-     * still has line-of-sight to its current target. Moderate — keeps the
-     * mech from twitchy-switching every burst it takes but eventually
-     * forces a look when flankers stack up hits.
-     */
-    private static final float REPRIORITIZE_BASE_CHANCE = 0.35f;
-    /**
-     * Bump when the mech's current target has no LoS. Compounds with
-     * {@link #REPRIORITIZE_BASE_CHANCE} for a much higher reprio chance —
-     * the "I'm chasing what I can't see while someone else shoots me"
-     * failure mode that prompted this hook.
-     */
-    private static final float REPRIORITIZE_NO_LOS_CHANCE = 0.85f;
-
     @Override
     public void rollReprioritizeOnHit(Unit target, Unit shooter) {
-        if (!target.isAlive()) return;
-        // Only target-latching units reprio — mechs (lock until reset) and
-        // turrets (lock once and slew). Infantry GOAP refreshes targets on
-        // the squad replan, so the per-hit reprio would just step on the
-        // planner. Both qualifying types share the "locked on someone I
-        // can't see while flankers shoot me free" failure mode.
-        boolean qualifies = target.mech != null || target instanceof MapTurret;
-        if (!qualifies) return;
-        // One roll per sim-tick. A 4-marine squad firing in the same tick
-        // would otherwise compound a 0.35 base chance into ~0.82 cumulative
-        // — near-constant target twitching. Latch the tick index on first
-        // attempt regardless of success/failure so subsequent hits this
-        // tick wait for the next one.
-        //
-        // CAS via {@link #LAST_REPRIO_TICK} because the parallel UPDATE_UNITS
-        // dispatch can fire two shooters at the same target in the same tick
-        // from different workers — a plain read-then-write lets both fall
-        // through and burn redundant RNG.
-        int prev = LAST_REPRIO_TICK.get(target);
-        if (prev == simTickIndex) return;
-        if (!LAST_REPRIO_TICK.compareAndSet(target, prev, simTickIndex)) return;
-        // Snapshot the target's current enemy BEFORE the rng roll — the rest
-        // of this method makes decisions on this view, and the drain uses it
-        // to detect a concurrent self-retarget (target's own worker picked a
-        // new enemy during the same UPDATE_UNITS phase) so we don't clobber
-        // that newer choice with null.
-        long expectedTargetId = target.targetId;
-        Unit expectedTarget = targetOf(target);
-        // No current target → next behavior tick will pick fresh anyway.
-        if (expectedTarget == null) return;
-        // Already targeting the shooter → no point re-rolling.
-        if (shooter != null && expectedTarget == shooter) return;
-        // Reprio chance bumps heavily when current target is out of LoS —
-        // chasing a target you can't see while taking incoming is the
-        // failure mode this hook exists to break.
-        boolean hasLosToCurrentTarget = TacticalScoring.canSeePair(grid,
-                target.getCellX(), target.getCellY(),
-                expectedTarget.getCellX(), expectedTarget.getCellY(),
-                target.airLosRadius, expectedTarget.airLosRadius);
-        float chance = hasLosToCurrentTarget ? REPRIORITIZE_BASE_CHANCE : REPRIORITIZE_NO_LOS_CHANCE;
-        if (target.rng.nextFloat() >= chance) return;
-        // Clear the target — next behavior tick (EngageAtCurrentBand /
-        // OverwatchKillZone / BackstopAssignedSquad for mechs, TurretAim
-        // for turrets) calls its target-picker on the null check.
-        // findBestTarget already weights distance + LOS + threat density,
-        // so a closer-with-LOS flanker beats an out-of-LOS chase target
-        // naturally. The damage service routes serial callers through
-        // the inline applier and parallel callers through the pool-backed
-        // queue (which retains expectedTargetId for the flush-side race
-        // resolution against a concurrent self-retarget).
-        damageService.applyReprio(target, expectedTargetId);
+        hitResponse.rollReprioritizeOnHit(target, shooter);
     }
 
     @Override
     public void rollFallbackOnHit(Unit target) {
-        if (!target.isAlive()) return;
-        if (target.fallbackTimer > 0f) return;
-        if (target instanceof MapTurret) return;
-        // GOAP-driven squad members — both infantry and mechs — own their
-        // retreat through their per-squad planner now. Infantry routes
-        // through SurviveContact / BreakContact via squad morale; mech
-        // squads run on GoapMechBehavior with no flinch (Stage 1 design:
-        // mechs are implacable; morale-driven mech retreat queues for a
-        // later slice, see roadmap/ai/14-mech-stage1.md "Mech survival").
-        // The legacy per-unit fall-back roll conflicts with both planners
-        // (it can yank a planter off the charge site or break a mech's
-        // overwatch posture), so we skip every squad member here.
-        // Civilians (NO_SQUAD) keep the legacy roll — FleeBehavior depends
-        // on it.
-        if (target.squadId != Unit.NO_SQUAD) return;
-        if (target.rng.nextFloat() >= FALLBACK_CHANCE) return;
-        // Heavy compute — done on the shooter's worker by design; the result is
-        // just int coords carried to the serial drain.
-        int[] fallback = tacticalScoring.findFallbackPosition(target);
-        if (fallback[0] == target.getCellX() && fallback[1] == target.getCellY()) return;
-        // Serial callers apply the 3 fb-field writes + clearPath inline via
-        // the damage service's inline applier; parallel callers queue (writes
-        // to fb fields + {@code target.path} via clearPath would race the
-        // target's own worker reading those fields).
-        damageService.applyFallback(target, fallback[0], fallback[1]);
+        hitResponse.rollFallbackOnHit(target);
     }
 
     /** Delegates to {@link DamageService#flushPendingTargetMutations()}. Public so tests can force the drain after a direct {@code rollReprio} / {@code rollFallback} call. */
@@ -755,7 +654,7 @@ public class BattleSimulation implements WeaponSimContext {
     private void writeFallbackInline(Unit target, int fbX, int fbY) {
         target.fallbackCellX = fbX;
         target.fallbackCellY = fbY;
-        target.fallbackTimer = FALLBACK_DURATION;
+        target.fallbackTimer = com.dillon.starsectormarines.battle.damage.HitResponseService.FALLBACK_DURATION;
         clearPath(target);
     }
 

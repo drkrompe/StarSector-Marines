@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.turret;
 
 import com.dillon.starsectormarines.battle.damage.DamageService;
+import com.dillon.starsectormarines.battle.damage.HitResponseService;
 import com.dillon.starsectormarines.battle.fx.PendingDetonation;
 import com.dillon.starsectormarines.battle.fx.Projectile;
 import com.dillon.starsectormarines.battle.fx.ShotEvent;
@@ -12,7 +13,6 @@ import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.weapons.ShotRaycast;
 
 import java.util.Random;
-import java.util.function.Consumer;
 
 /**
  * Turret-kind fire procedure — accuracy roll, scatter, wall raycast, damage
@@ -22,10 +22,8 @@ import java.util.function.Consumer;
  * GroundSystem, TurretBehavior) receive the same functional interface they
  * already depend on.
  *
- * <p>Hit-response callbacks ({@code rollFallbackOnHit}) stay on
- * BattleSimulation for now — this service receives them as a
- * {@code Consumer<Unit>} bound at construction, same pattern as the existing
- * {@code addUnitSink}.
+ * <p>Hit-response is delegated to the constructor-injected
+ * {@link HitResponseService}.
  */
 public final class TurretFireService implements TurretFireSink {
 
@@ -39,7 +37,7 @@ public final class TurretFireService implements TurretFireSink {
     private final ShotService shots;
     private final DamageService damageService;
     private final DetonationSink detonationSink;
-    private final Consumer<Unit> rollFallbackOnHit;
+    private final HitResponseService hitResponse;
 
     @FunctionalInterface
     public interface DetonationSink {
@@ -49,14 +47,14 @@ public final class TurretFireService implements TurretFireSink {
     public TurretFireService(Random rng, NavigationGrid grid, CellTopology topology,
                              ShotService shots, DamageService damageService,
                              DetonationSink detonationSink,
-                             Consumer<Unit> rollFallbackOnHit) {
+                             HitResponseService hitResponse) {
         this.rng = rng;
         this.grid = grid;
         this.topology = topology;
         this.shots = shots;
         this.damageService = damageService;
         this.detonationSink = detonationSink;
-        this.rollFallbackOnHit = rollFallbackOnHit;
+        this.hitResponse = hitResponse;
     }
 
     @Override
@@ -111,7 +109,7 @@ public final class TurretFireService implements TurretFireSink {
         if (!isAoe && hit) {
             if (!aerialDelivery || !topology.isRoofIntact(target.getCellX(), target.getCellY())) {
                 damageService.applyDamage(target, kind.damage, 1f, 1f);
-                rollFallbackOnHit.accept(target);
+                hitResponse.rollFallbackOnHit(target);
             }
         }
 
