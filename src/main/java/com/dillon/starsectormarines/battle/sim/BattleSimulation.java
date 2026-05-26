@@ -107,11 +107,6 @@ public class BattleSimulation implements WeaponSimContext {
     /** Fixed simulation timestep — 30Hz. */
     public static final float TICK_DT = 1f / 30f;
 
-    /** Sim seconds a tracer stays visible after being fired. */
-    private static final float SHOT_LIFETIME = 0.15f;
-    /** Min/max near-miss offset (cells) from target cell-center on a missed shot. */
-    private static final float MISS_OFFSET_MIN = 0.5f;
-    private static final float MISS_OFFSET_MAX = 2.0f;
 
     /** Probability a hit puts the target into fall-back. Rolled once per hit; ignored if already falling back. */
     private static final float FALLBACK_CHANCE   = 0.25f;
@@ -199,6 +194,8 @@ public class BattleSimulation implements WeaponSimContext {
 
     /** In-flight tracers + projectiles + per-frame event drains. Sibling slice to {@link #effects} / {@link #vision}; the {@link #postShot}, {@link #queueProjectile}, {@link #getActiveShots} et al. delegates below forward here. */
     private final ShotService shots = new ShotService();
+    /** Turret-kind fire procedure — accuracy, scatter, raycast, damage, detonation/projectile queuing, shot-event posting. Extracted from the sim's former {@code fireShotFrom} methods. */
+    private final com.dillon.starsectormarines.battle.turret.TurretFireService turretFire;
     /** Units that transitioned from alive to dead during the last {@link #advance(float)} call. Same lifecycle as {@link #shotsThisFrame}. */
     private final List<Unit> deathsThisFrame = new ArrayList<>();
     /**
@@ -301,8 +298,12 @@ public class BattleSimulation implements WeaponSimContext {
                 navigation, rosterService, attackerIndex, shots, doodadService);
         this.unitUpdate = new com.dillon.starsectormarines.battle.ai.UnitUpdateSystem(
                 rosterService.getRegistry(), damageService, tickInnerProfile);
-        this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, this::fireShotFrom, rng, this::addUnit);
-        this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, this::fireShotFrom, rng, this::addUnit);
+        this.turretFire = new com.dillon.starsectormarines.battle.turret.TurretFireService(
+                rng, grid, topology, shots, damageService,
+                det -> { synchronized (detonations) { detonations.queue(det); } },
+                this::rollFallbackOnHit);
+        this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, turretFire, rng, this::addUnit);
+        this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, turretFire, rng, this::addUnit);
         vision.init(grid, 256);
     }
 
@@ -356,8 +357,7 @@ public class BattleSimulation implements WeaponSimContext {
      */
     public boolean isRoofShielded(Unit target) {
         if (target == null) return false;
-        return topology.getBuildingId(target.getCellX(), target.getCellY()) != 0
-                && !topology.isRoofDestroyed(target.getCellX(), target.getCellY());
+        return topology.isRoofIntact(target.getCellX(), target.getCellY());
     }
 
     @Override
@@ -1076,9 +1076,6 @@ public class BattleSimulation implements WeaponSimContext {
         setPath(u, GridPathfinder.EMPTY_PATH);
     }
 
-    // advanceBursts moved to InfantryWeapons.tick — pumped from the tick loop
-    // via `infantry.tick(this)`.
-
     /**
      * Ticks every queued {@link PendingDetonation}; when one's timer drains,
      * applies its splash damage at the endpoint and removes it from the list.
@@ -1196,206 +1193,16 @@ public class BattleSimulation implements WeaponSimContext {
         infantry.fireSecondary(this, shooter, target);
     }
 
-    /**
-     * Float-origin counterpart to {@link #fireShot(Unit, Unit)} for shooters
-     * that aren't on the unit list — today, shuttle-mounted turrets fired by
-     * {@link com.dillon.starsectormarines.battle.air.AirSystem}. Stats come
-     * from {@code kind}; origin is a world-space float pair so a hovering
-     * shuttle's mount fires from its actual rendered position rather than the
-     * floored cell center.
-     *
-     * <p>Damage / cover / fall-back / death pipeline is identical to
-     * {@link #fireShot} — implemented in terms of the same {@link WeaponSimContext}
-     * methods so a single change to applyDamage or rollFallbackOnHit picks up
-     * both fire paths. The vsTurret bonus is fixed at 1.0 because
-     * {@link TurretKind} doesn't carry a per-kind multiplier yet; if mounted
-     * heavy mortars ever want extra punch vs static defenses, this is the
-     * lever.
-     */
+    /** Delegates to {@link com.dillon.starsectormarines.battle.turret.TurretFireService}. Kept for TurretBehavior and any remaining sim-surface callers on the deprecation path. */
     public void fireShotFrom(float fromX, float fromY, Faction shooterFaction,
                              TurretKind kind, Unit target, boolean aerialShooter) {
-        // Default to hasLos=true — direct-fire callers (every existing path)
-        // already gate LoS in the aim loop, so by the time the shot is taken,
-        // the shooter sees the target. Indirect-fire callers use the explicit
-        // overload to pass the actual LoS state.
-        fireShotFrom(fromX, fromY, shooterFaction, kind, target, aerialShooter, /*hasLos*/ true);
+        turretFire.fire(fromX, fromY, shooterFaction, kind, target, aerialShooter);
     }
 
-    /**
-     * LoS-aware fire. For indirect-fire kinds ({@link TurretKind#indirectFire})
-     * applies two accuracy modifiers on top of the kind's base accuracy:
-     * <ul>
-     *   <li><b>Quadratic distance falloff</b> — effective accuracy scales by
-     *       {@code 1 - (d/range)²}. Preserves base accuracy near the battery,
-     *       drops off fast at the edge of envelope. Direct-fire kinds skip
-     *       this; their effective accuracy is the flat per-kind value.</li>
-     *   <li><b>No-LoS multiplier</b> — when {@code hasLos} is false, accuracy
-     *       is also multiplied by {@link TurretKind#noLosAccuracyMult}.
-     *       Reads as "battery firing on a spotted target without optics on it
-     *       — the salvo lands in the area but individual rockets fly wider."
-     *       Mirrors the mech LRM path's
-     *       {@link com.dillon.starsectormarines.battle.weapons.MechWeapon#LRM_NO_LOS_ACC_MULT}.</li>
-     * </ul>
-     */
+    /** Delegates to {@link com.dillon.starsectormarines.battle.turret.TurretFireService}. */
     public void fireShotFrom(float fromX, float fromY, Faction shooterFaction,
                              TurretKind kind, Unit target, boolean aerialShooter, boolean hasLos) {
-        float distToTarget = (float) Math.sqrt(
-                (target.getCellX() + 0.5f - fromX) * (target.getCellX() + 0.5f - fromX) +
-                (target.getCellY() + 0.5f - fromY) * (target.getCellY() + 0.5f - fromY));
-        float effectiveAccuracy = kind.accuracy;
-        if (kind.indirectFire) {
-            float distNorm = Math.min(1f, distToTarget / Math.max(0.0001f, kind.range));
-            float distFalloff = Math.max(0f, 1f - distNorm * distNorm);
-            float losMult = hasLos ? 1f : kind.noLosAccuracyMult;
-            effectiveAccuracy *= distFalloff * losMult;
-        }
-
-        // Simulated-projectile path: kinds with a real velocity (cellsPerSec
-        // > 0) spawn a Projectile entity that travels at dist/cellsPerSec,
-        // detonates AoE on arrival, and is queryable mid-flight (point
-        // defense future). Per the simplified model, no hit/miss roll —
-        // accuracy widens the scatter cone, the AoE radius decides what gets
-        // hurt at detonation.
-        if (kind.cellsPerSec() > 0f) {
-            spawnProjectile(fromX, fromY, shooterFaction, kind, target, aerialShooter,
-                    distToTarget, effectiveAccuracy);
-            return;
-        }
-
-        // Legacy path — direct-fire tracers (VULCAN, ARBALEST, HEPHAESTUS,
-        // HEAVY_MG, ...) still roll hit/miss and emit a ShotEvent + (for AoE
-        // sub-kinds) a PendingDetonation. Velocity is implicit in flightSec.
-        boolean hit = rng.nextFloat() < effectiveAccuracy;
-        boolean isAoe = kind.aoeRadius > 0f;
-        // Aerial delivery if the shooter is elevated (shuttle mount) or the
-        // weapon kind inherently lobs (grenade launcher). Used to decide
-        // whether intact roofs intercept this shot.
-        boolean aerialDelivery = aerialShooter || kind.arcHeight > 0f;
-        float effectiveSpread = kind.hitSpread * Math.min(1f, distToTarget / kind.range);
-
-        // Compute the visual endpoint with hit-spread / miss-scatter first —
-        // damage application is deferred until after the wall raycast so a
-        // raycast-blocked shot doesn't telepathically land damage past the
-        // wall it actually splattered on.
-        float toX, toY;
-        if (hit) {
-            toX = target.getCellX() + 0.5f;
-            toY = target.getCellY() + 0.5f;
-            // Endpoint scatter on a hit — purely visual for direct-fire kinds,
-            // but for AoE it also scatters the splash center so a 4-round
-            // grenade burst sprays the cell cluster instead of stacking on one.
-            if (effectiveSpread > 0f) {
-                float angle = rng.nextFloat() * (float) (Math.PI * 2);
-                float r = rng.nextFloat() * effectiveSpread;
-                toX += (float) Math.cos(angle) * r;
-                toY += (float) Math.sin(angle) * r;
-            }
-        } else {
-            float angle = rng.nextFloat() * (float) (Math.PI * 2);
-            float spread = MISS_OFFSET_MIN + rng.nextFloat() * (MISS_OFFSET_MAX - MISS_OFFSET_MIN);
-            // Misses get the baseline near-miss scatter plus the kind's
-            // distance-scaled spread — a stray salvo at close range scatters
-            // less than a stray salvo at long range.
-            spread += effectiveSpread;
-            toX = target.getCellX() + 0.5f + (float) Math.cos(angle) * spread;
-            toY = target.getCellY() + 0.5f + (float) Math.sin(angle) * spread;
-        }
-        // Wall raycast — for ground-deployed area-spread weapons, a scattered
-        // round that would fly past a wall instead splatters on that wall.
-        // Air-mounted variants leave kind.raycastShots = false.
-        com.dillon.starsectormarines.battle.weapons.ShotRaycast.Result snapped =
-                com.dillon.starsectormarines.battle.weapons.ShotRaycast.resolve(
-                        grid, kind.raycastShots, fromX, fromY, toX, toY, hit);
-        toX = snapped.toX();
-        toY = snapped.toY();
-        hit = snapped.hit();
-        // Direct-fire damage — applied after raycast so a wall-blocked shot
-        // can correctly count as a miss. AoE kinds skip this path; their
-        // damage resolves at endpoint via the Detonations pipeline below.
-        if (!isAoe && hit) {
-            // Aerial direct-fire (shuttle ARBALEST / HEPHAESTUS strafing) is
-            // intercepted by an intact roof — the round physically can't
-            // reach the unit underneath. Ground direct-fire (turret shooting
-            // through a doorway) is governed by the 2D LOS check inside the
-            // raycast and doesn't need this shield.
-            if (!aerialDelivery || !isRoofShielded(target)) {
-                applyDamage(target, kind.damage, 1f);
-                rollFallbackOnHit(target);
-            }
-        }
-        // AoE path — register the detonation on the queue. Lifetime matches
-        // the projectile's visible flight time so the explosion lines up with
-        // the rendered round arriving at the endpoint.
-        if (isAoe) {
-            float flight = kind.flightSec > 0f ? kind.flightSec : SHOT_LIFETIME;
-            queueDetonation(new com.dillon.starsectormarines.battle.fx.PendingDetonation(
-                    toX, toY, flight,
-                    kind.aoeRadius, kind.damage, /*vsTurretMult*/ 1f,
-                    kind.wallDamage, shooterFaction, aerialDelivery,
-                    kind.wallDamageRadius, /*spawnDustOnWallBreak*/ true, /*friendlyFireImmune*/ false));
-        }
-        float lifetime = kind.flightSec > 0f ? kind.flightSec : SHOT_LIFETIME;
-        postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooterFaction,
-                lifetime, kind, null, null));
-    }
-
-    /**
-     * Simulated-projectile fire path. Used by {@link #fireShotFrom} when the
-     * kind has {@code cellsPerSec > 0}.
-     *
-     * <p>No hit/miss roll — accuracy widens the scatter cone, the AoE radius
-     * at detonation decides who gets hurt. Endpoint is sampled from a uniform
-     * circle around the target cell with radius
-     * {@code hitSpread × min(1, dist/range) × (2 - effectiveAccuracy)}: a
-     * perfect-accuracy shot has scatter equal to the base spread (still
-     * non-zero — even precision artillery has dispersion), a half-accuracy
-     * shot doubles it, a no-LoS shot with quadratic falloff at max range
-     * goes to maximum scatter. Combined with the kind's
-     * {@link Projectile#onArrival} AoE radius, the spray pattern of a salvo
-     * blankets a believably wide area instead of stacking all rockets on the
-     * target cell.
-     *
-     * <p>Builds a {@link PendingDetonation} as the projectile's arrival
-     * payload — same damage / AoE / wall / roof / friendly-fire logic as the
-     * legacy queueDetonation path, just owned by the Projectile so a future
-     * point-defense intercept can cancel it atomically.
-     */
-    private void spawnProjectile(float fromX, float fromY, Faction shooterFaction,
-                                 TurretKind kind, Unit target, boolean aerialShooter,
-                                 float distToTarget, float effectiveAccuracy) {
-        boolean aerialDelivery = aerialShooter || kind.arcHeight > 0f;
-
-        // Scatter scales with (1 - accuracy) — at acc=1.0 the multiplier is
-        // 1.0 (still some dispersion via hitSpread), at acc=0.0 it doubles.
-        // Tied to the distance-scaled effectiveSpread so close shots still
-        // cluster tightly even at low accuracy.
-        float distScale = Math.min(1f, distToTarget / Math.max(0.0001f, kind.range));
-        float accScatterMult = 2f - Math.max(0f, Math.min(1f, effectiveAccuracy));
-        float scatterRadius = kind.hitSpread * distScale * accScatterMult;
-        float angle = rng.nextFloat() * (float) (Math.PI * 2);
-        float r = rng.nextFloat() * scatterRadius;
-        float toX = target.getCellX() + 0.5f + (float) Math.cos(angle) * r;
-        float toY = target.getCellY() + 0.5f + (float) Math.sin(angle) * r;
-
-        float flightTime = distToTarget / kind.cellsPerSec();
-
-        PendingDetonation onArrival = new PendingDetonation(
-                toX, toY, flightTime,
-                kind.aoeRadius, kind.damage, /*vsTurretMult*/ 1f,
-                kind.wallDamage, shooterFaction, aerialDelivery,
-                kind.wallDamageRadius, /*spawnDustOnWallBreak*/ true, /*friendlyFireImmune*/ false);
-        queueProjectile(new Projectile(fromX, fromY, toX, toY,
-                kind.hasBoostRamp(), kind.arcHeight,
-                shooterFaction, aerialDelivery, flightTime, onArrival));
-        // Pair with a ShotEvent so the existing audio (shotsThisFrame) +
-        // impact-FX (shotsExpiredThisFrame) dispatchers run unchanged. Same
-        // flight time keeps the two in sync — they expire on the same tick,
-        // so arrival FX line up with the projectile reaching its endpoint.
-        // The renderer skips projectile-sprite drawing for ShotEvents whose
-        // kind is on the simulated path (cellsPerSec > 0) and reads position
-        // from the paired Projectile instead.
-        postShot(new ShotEvent(fromX, fromY, toX, toY, /*hit*/ true, shooterFaction,
-                flightTime, kind, null, null));
+        turretFire.fire(fromX, fromY, shooterFaction, kind, target, aerialShooter, hasLos);
     }
 
     /**

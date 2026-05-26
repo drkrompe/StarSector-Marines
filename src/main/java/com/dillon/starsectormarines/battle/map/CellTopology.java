@@ -231,6 +231,11 @@ public class CellTopology {
     public boolean isRoofDestroyed(int x, int y)                           { return hasTag(x, y, Tag.ROOF_DESTROYED); }
     public void    setRoofDestroyed(int x, int y, boolean v)               { setTag(x, y, Tag.ROOF_DESTROYED, v); }
 
+    /** True iff the cell is part of a building and still has its intact roof — the aerial/indirect-fire shield discriminator. */
+    public boolean isRoofIntact(int x, int y) {
+        return getBuildingId(x, y) != 0 && !isRoofDestroyed(x, y);
+    }
+
     // ----- Wall direction mask -----
 
     /** Returns the wall-direction mask for this cell. 0 for non-wall cells. */
