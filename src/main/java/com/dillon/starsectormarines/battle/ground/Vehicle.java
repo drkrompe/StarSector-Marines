@@ -47,6 +47,8 @@ public class Vehicle {
     public float pendingDelay;
     public float deboardCountdown;
     public int marinesRemaining;
+    /** Sim-seconds remaining in OVERWATCH before transitioning to DEPARTING. Initialized from {@link VehicleType#overwatchDurationSec} on entering OVERWATCH. */
+    public float overwatchCountdown;
 
     /** Kinematic state — position, facing, model-specific. Driven each tick by {@link GroundSystem} via pure-pursuit + per-variant {@link GroundBody} model. */
     public final GroundBody body;

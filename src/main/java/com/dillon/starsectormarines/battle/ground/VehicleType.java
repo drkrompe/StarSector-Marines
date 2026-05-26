@@ -31,7 +31,7 @@ public enum VehicleType {
             /*deboardInterval*/ 0.6f, /*lookAheadCells*/ 2.0f,
             /*turretFrame*/ -1, /*turretMountX*/ 0f, /*turretMountY*/ 0f,
             /*turretPivotX*/ 0f, /*turretPivotY*/ 0f, /*turretVisualCells*/ 0f,
-            /*turretKind*/ null, /*departsAfterDeboard*/ true) {
+            /*turretKind*/ null, /*departsAfterDeboard*/ true, /*overwatchDurationSec*/ 0f) {
         @Override
         public GroundBody createBody() {
             return new BicycleBody(
@@ -55,7 +55,7 @@ public enum VehicleType {
             /*deboardInterval*/ 0.8f, /*lookAheadCells*/ 2.2f,
             /*turretFrame*/ 1, /*turretMountX*/ -0.15866698f, /*turretMountY*/ 0.26800027f,
             /*turretPivotX*/ 0.108333334f, /*turretPivotY*/ 0.024999995f, /*turretVisualCells*/ 0.7f,
-            /*turretKind*/ TurretKind.HEAVY_MG, /*departsAfterDeboard*/ false) {
+            /*turretKind*/ TurretKind.HEAVY_MG, /*departsAfterDeboard*/ false, /*overwatchDurationSec*/ 20f) {
         @Override
         public GroundBody createBody() {
             return new BicycleBody(
@@ -112,8 +112,10 @@ public enum VehicleType {
     public final float turretVisualCells;
     /** Weapon kind for the vehicle-mounted turret, or {@code null} if no functional weapon. Drives the aim/fire loop in {@link GroundSystem}. */
     public final TurretKind turretKind;
-    /** If true, the vehicle departs after all marines deboard (truck behavior). If false, it stays parked in OVERWATCH with turret active (APC behavior). */
+    /** If true, the vehicle departs immediately after all marines deboard (truck behavior). If false, it enters OVERWATCH first. */
     public final boolean departsAfterDeboard;
+    /** Sim-seconds the vehicle holds overwatch before departing. Only meaningful when {@link #departsAfterDeboard} is false. */
+    public final float overwatchDurationSec;
 
     public boolean hasTurretWeapon() { return turretKind != null && turretFrame >= 0; }
 
@@ -124,7 +126,8 @@ public enum VehicleType {
                 float deboardInterval, float lookAheadCells,
                 int turretFrame, float turretMountX, float turretMountY,
                 float turretPivotX, float turretPivotY, float turretVisualCells,
-                TurretKind turretKind, boolean departsAfterDeboard) {
+                TurretKind turretKind, boolean departsAfterDeboard,
+                float overwatchDurationSec) {
         this.spritePath = spritePath;
         this.spriteFrame = spriteFrame;
         this.frameCount = frameCount;
@@ -145,6 +148,7 @@ public enum VehicleType {
         this.turretVisualCells = turretVisualCells;
         this.turretKind = turretKind;
         this.departsAfterDeboard = departsAfterDeboard;
+        this.overwatchDurationSec = overwatchDurationSec;
     }
 
     /**

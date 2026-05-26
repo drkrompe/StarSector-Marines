@@ -6,10 +6,11 @@ import com.dillon.starsectormarines.battle.weapons.MarineLoadout;
 import com.dillon.starsectormarines.battle.unit.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.ai.TurretAim;
 import com.dillon.starsectormarines.battle.air.AirBody;
-import com.dillon.starsectormarines.battle.air.AirSimContext;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 
 import java.util.ArrayDeque;
@@ -17,7 +18,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
+import java.util.Random;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * Owns every ground vehicle in the battle and drives them each tick.
@@ -25,11 +28,11 @@ import java.util.Set;
  * like the APC (arrive, deboard, stay in overwatch with turret active).
  *
  * <p>Mirrors {@link com.dillon.starsectormarines.battle.air.AirSystem}'s
- * shape — narrow context handle, per-tick state-machine pass, BFS deboard
- * scan, turret aim/fire loop. Kinematics differ: ground vehicles use the
- * {@link GroundBody} abstraction (currently {@link BicycleBody}, future
- * tank/etc) driven by a pure-pursuit carrot along the polyline, instead of
- * the shuttle's "rotate-then-thrust" hover model.
+ * shape — constructor-injected services, per-tick state-machine pass, BFS
+ * deboard scan, turret aim/fire loop. Kinematics differ: ground vehicles
+ * use the {@link GroundBody} abstraction (currently {@link BicycleBody},
+ * future tank/etc) driven by a pure-pursuit carrot along the polyline,
+ * instead of the shuttle's "rotate-then-thrust" hover model.
  */
 public class GroundSystem {
 
@@ -52,7 +55,20 @@ public class GroundSystem {
     /** Sample step (cells) along the RS path when validating feasibility against {@link VehicleFootprint}. */
     private static final float DOCKING_FOOTPRINT_SAMPLE_CELLS = 0.5f;
 
+    private final NavigationService navigation;
+    private final UnitRosterService roster;
+    private final Random rng;
+    private final Consumer<Unit> addUnitSink;
+
     private final List<Vehicle> vehicles = new ArrayList<>();
+
+    public GroundSystem(NavigationService navigation, UnitRosterService roster,
+                        Random rng, Consumer<Unit> addUnitSink) {
+        this.navigation = navigation;
+        this.roster = roster;
+        this.rng = rng;
+        this.addUnitSink = addUnitSink;
+    }
 
     public List<Vehicle> getVehicles() { return vehicles; }
     public void add(Vehicle v) { vehicles.add(v); }
@@ -87,12 +103,18 @@ public class GroundSystem {
                             v.waypointIndex = 1;
                             v.state = Vehicle.State.DEPARTING;
                         } else {
+                            v.overwatchCountdown = v.type.overwatchDurationSec;
                             v.state = Vehicle.State.OVERWATCH;
                         }
                     }
                     break;
 
                 case OVERWATCH:
+                    v.overwatchCountdown -= dt;
+                    if (v.overwatchCountdown <= 0f) {
+                        v.waypointIndex = 1;
+                        v.state = Vehicle.State.DEPARTING;
+                    }
                     break;
 
                 case DEPARTING:
