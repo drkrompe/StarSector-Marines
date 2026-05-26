@@ -146,10 +146,6 @@ public final class DecalAccumulator {
     private Object lastStampedCollection;
     private long lastStampedTotal;
 
-    public DecalAccumulator() {
-        this(DEFAULT_FBO_PX_PER_CELL);
-    }
-
     public DecalAccumulator(int fboPxPerCell) {
         this.fboPxPerCell = Math.max(1, fboPxPerCell);
     }
