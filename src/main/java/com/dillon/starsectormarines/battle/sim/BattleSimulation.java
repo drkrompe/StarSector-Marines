@@ -57,8 +57,6 @@ import com.dillon.starsectormarines.battle.vision.VisionService;
 import com.dillon.starsectormarines.battle.weapons.Detonations;
 import com.dillon.starsectormarines.battle.weapons.HeavyWeapons;
 import com.dillon.starsectormarines.battle.weapons.InfantryWeapons;
-import com.dillon.starsectormarines.battle.weapons.WeaponSimContext;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -91,7 +89,7 @@ import java.util.Random;
  * 24×16 grid it's a few thousand cell expansions per second, well inside the
  * budget. Spatial indexing for target search can come later if we scale up.
  */
-public class BattleSimulation implements WeaponSimContext {
+public class BattleSimulation {
 
     /** Fixed simulation timestep — 30Hz. */
     public static final float TICK_DT = 1f / 30f;
@@ -110,12 +108,12 @@ public class BattleSimulation implements WeaponSimContext {
     private final GroundSystem groundSystem;
     /** Fog-of-war state — building registry + faction contributor set + the every-3rd-tick {@link com.dillon.starsectormarines.battle.vision.BuildingVisibilityPass} driver. The {@link #getBuildings}/{@link #setBuildings}/{@link #getVisionState} delegates below forward here. */
     private final VisionService vision = new VisionService();
-    /** Handheld squad weapons (rifle / SMG / DMR / rocket launcher). Owns fireShot, fireSecondary, and the per-tick burst continuation pass. Pumped each tick via {@code infantry.tick(this)}; behavior call sites still go through the delegating {@link #fireShot} / {@link #fireSecondary} wrappers on this class. */
-    private final InfantryWeapons infantry = new InfantryWeapons();
+    /** Handheld squad weapons (rifle / SMG / DMR / rocket launcher). Owns fireShot, fireSecondary, and the per-tick burst continuation pass. Pumped each tick via {@code infantry.tick()}; behavior call sites go through the delegating {@link #fireShot} / {@link #fireSecondary} wrappers on this class. */
+    private final InfantryWeapons infantry;
     /** Chassis-mounted weapons on motorized / heavy units (mech today, future tanks/hovercraft). Owns fireMechWeapon and the per-tick mech continuation + wreck-spawn passes. */
-    private final HeavyWeapons heavy = new HeavyWeapons();
+    private final HeavyWeapons heavy;
     /** Physics-based AoE pipeline — owns the in-flight rocket queue and drains expired entries into splash + wall damage. Both infantry rockets and mech HE rockets queue here through {@link #queueDetonation}. */
-    private final Detonations detonations = new Detonations();
+    private final Detonations detonations;
     /** Mission objective list + per-tick dispatch + the default eliminate-each-other backstop. The {@link #addObjective}/{@link #getObjectives} delegates below forward here; the OBJECTIVES phase + first-tick backstop install go through it. */
     private final ObjectivesService objectivesService = new ObjectivesService();
     /** Active equipment drops + per-tick pickup/retriever sweep + emit-on-death plumbing. Initialized in the constructor once {@link #rosterService} is available. */
@@ -288,10 +286,16 @@ public class BattleSimulation implements WeaponSimContext {
         this.hitResponse = new com.dillon.starsectormarines.battle.damage.HitResponseService(
                 grid, rosterService.getRegistry(), tacticalScoring, damageService,
                 () -> simTickIndex);
+        this.detonations = new Detonations(units, grid, topology, damageService,
+                navigation, effects);
         this.turretFire = new com.dillon.starsectormarines.battle.turret.TurretFireService(
                 rng, grid, topology, shots, damageService,
                 det -> { synchronized (detonations) { detonations.queue(det); } },
                 hitResponse);
+        this.infantry = new InfantryWeapons(units, rosterService.getRegistry(),
+                damageService, hitResponse, shots);
+        this.heavy = new HeavyWeapons(units, grid, damageService, hitResponse,
+                shots, detonations, effects);
         this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, turretFire, rng, this::addUnit);
         this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, turretFire, rng, this::addUnit);
         navigation.setRoofCollapseSink((x, y) -> {
@@ -306,13 +310,12 @@ public class BattleSimulation implements WeaponSimContext {
         vision.init(grid, 256);
     }
 
-    @Override public NavigationGrid getGrid() { return grid; }
+    public NavigationGrid getGrid() { return grid; }
     /** Categorization tags (street / rubble / wall / vehicle / etc.) for renderer + placement filters. Sibling to {@link #grid}; the pathfinder doesn't touch this. */
     public CellTopology getTopology()      { return topology; }
     /** Zone+portal graph layered on the {@link NavigationGrid}. Rebuilt on wall destruction so AI queries reflect the current map. */
     public ZoneGraph getZoneGraph()        { return zoneGraph; }
 
-    @Override
     public boolean damageCell(int x, int y, int amount) {
         return navigation.damageWall(x, y, amount);
     }
@@ -322,10 +325,6 @@ public class BattleSimulation implements WeaponSimContext {
         return topology.isRoofIntact(target.getCellX(), target.getCellY());
     }
 
-    @Override
-    public void destroyRoofCell(int x, int y) {
-        navigation.destroyRoof(x, y);
-    }
     public List<Unit> getUnits()           { return units; }
     public List<Shuttle> getShuttles()     { return airSystem.getShuttles(); }
     /** Active convoy / ground transport craft (moving trucks, APCs). Distinct from {@link #getVehicles()}, which lists the static map-vehicle obstacles. */
@@ -373,10 +372,6 @@ public class BattleSimulation implements WeaponSimContext {
     /** Wall-collapse dust-burst events queued this advance. Each entry is {x, y} at the collapsed cell's center. Drained by {@code FlybyOverlay} which owns the dust-particle pool. */
     public List<float[]> getWallDustsThisFrame() { return effects.getWallDustsThisFrame(); }
 
-    @Override
-    public void spawnDustBurst(float cellX, float cellY) {
-        effects.spawnDustBurst(cellX, cellY);
-    }
     /** Live smoking wrecks. Read-only view — the lightmap pump iterates this each frame to assert persistent wreck-fire lights during the burn phase. */
     public List<SmokingWreck> getSmokingWrecks() { return effects.getSmokingWrecks(); }
     /** Fighter wings committed to this battle. {@code FlybyOverlay} reads this on first tick and drives spawns from the per-wing schedules. Defaults to {@link FlybyRoster#EMPTY}; missions assign via {@link #setFlybyRoster}. */
@@ -430,7 +425,6 @@ public class BattleSimulation implements WeaponSimContext {
      * {@link Unit#secondaryAimTargetId}, {@link com.dillon.starsectormarines.battle.turret.MapTurret#burstTargetId})
      * where there's no companion holder unit to thread.
      */
-    @Override
     public Unit resolveUnit(long id) {
         return rosterService.getRegistry().getOrNull(id);
     }
@@ -440,9 +434,10 @@ public class BattleSimulation implements WeaponSimContext {
     public TickProfile getTickProfile() { return tickProfile; }
     /** Per-tick sub-step profile (per-behavior + per-primitive nanos). Reset every tick; snapshotted onto the spike record when one fires. Read by the JSON dumper. */
     public TickInnerProfile getTickInnerProfile() { return tickInnerProfile; }
-    @Override public Random getRng()       { return rng; }
     /** Shared scoring service — target selection, firing-position, fallback, cover queries. Thread-safe for reads (constructor-injected immutable service refs). */
     public com.dillon.starsectormarines.battle.ai.TacticalScoring getTacticalScoring() { return tacticalScoring; }
+    /** Per-hit response logic — fallback rolls + target-reprioritization rolls. */
+    public com.dillon.starsectormarines.battle.damage.HitResponseService getHitResponseService() { return hitResponse; }
     /** Delegates to {@link UnitRosterService#getSquad(int)}. Synchronized lookup; safe to call from the parallel UPDATE_UNITS dispatch (concurrent {@link #mintSquad} from drone-hub spawns publishes through the same monitor). */
     public Squad getSquad(int id) {
         return rosterService.getSquad(id);
@@ -524,14 +519,10 @@ public class BattleSimulation implements WeaponSimContext {
         groundSystem.add(v);
     }
 
-    // ---- WeaponSimContext: services the weapon subsystems reach back for ----
-
-    @Override
     public void applyDamage(Unit target, float damage, float vsTurretMult) {
         applyDamage(target, damage, vsTurretMult, 1.0f);
     }
 
-    @Override
     public void applyDamage(Unit target, float damage, float vsTurretMult, float moraleImpact) {
         damageService.applyDamage(target, damage, vsTurretMult, moraleImpact);
     }
@@ -541,16 +532,8 @@ public class BattleSimulation implements WeaponSimContext {
         damageService.flushPendingDamage();
     }
 
-    @Override
     public void postShot(ShotEvent shot) {
         shots.postShot(shot);
-    }
-
-    @Override
-    public void queueDetonation(PendingDetonation det) {
-        synchronized (detonations) {
-            detonations.queue(det);
-        }
     }
 
     /** Read-only view of in-flight rocket / missile detonations. Used by squad-coordination scorers (avoid rocket volleys against an already-doomed turret). */
@@ -578,25 +561,9 @@ public class BattleSimulation implements WeaponSimContext {
      * pipeline as a queued detonation — just without the timer delay.
      */
     public void detonateNow(PendingDetonation det) {
-        detonations.detonateNow(det, this);
+        detonations.detonateNow(det);
     }
 
-    @Override
-    public void spawnSmokingWreck(int x, int y) {
-        effects.spawnSmokingWreck(x, y);
-    }
-
-    @Override
-    public void spawnSmokePlume(float x, float y) {
-        effects.spawnSmokePlume(x, y);
-    }
-
-    @Override
-    public void rollReprioritizeOnHit(Unit target, Unit shooter) {
-        hitResponse.rollReprioritizeOnHit(target, shooter);
-    }
-
-    @Override
     public void rollFallbackOnHit(Unit target) {
         hitResponse.rollFallbackOnHit(target);
     }
@@ -767,27 +734,27 @@ public class BattleSimulation implements WeaponSimContext {
         // they emit at the right per-weapon spacing without piling onto the
         // AI's single-decision-per-tick model. Lives on the InfantryWeapons
         // subsystem; this call drains every unit's burst state.
-        infantry.tick(this);
+        infantry.tick();
         tickProfile.lap(TickProfile.Phase.INFANTRY_TICK);
         // Mech chassis weapons run on their own state bag (MechLoadoutState).
         // Continuation handling for chaingun bursts + SRM salvos, plus cooldown
         // tick-down for all three tracks. New triggers (start a burst / salvo /
         // LRM) come from CombatantBehavior; the subsystem pass also runs the
         // mech-wreck spawn for any chassis units that died this tick.
-        heavy.tick(this);
+        heavy.tick();
         tickProfile.lap(TickProfile.Phase.HEAVY_TICK);
         // Simulated-projectile path — advance each in-flight Projectile by dt,
         // detonate its onArrival payload when remainingTime hits zero, and
         // emit an arrival record for the renderer's impact-FX dispatch.
         // Runs BEFORE detonations.tick so a projectile arriving this tick
         // contributes its detonation to the same wave as legacy queue entries.
-        shots.tickProjectiles(TICK_DT, det -> detonations.detonateNow(det, this));
+        shots.tickProjectiles(TICK_DT, detonations::detonateNow);
         tickProfile.lap(TickProfile.Phase.PROJECTILES);
         // Physics-based rocket/missile damage — each pending detonation ticks
         // down its arrival timer and applies splash + wall damage when it
         // expires. Pairs with the visual ShotEvent flight; the visual and the
         // damage are queued together and arrive together.
-        detonations.tick(this);
+        detonations.tick();
         tickProfile.lap(TickProfile.Phase.DETONATIONS);
         // Drain all damage queued this tick — from UPDATE_UNITS direct fire,
         // INFANTRY_TICK / HEAVY_TICK burst continuations, PROJECTILES
@@ -1020,7 +987,7 @@ public class BattleSimulation implements WeaponSimContext {
      */
     public void fireShot(Unit shooter, Unit target,
                          com.dillon.starsectormarines.battle.weapons.FireStance stance) {
-        infantry.fireShot(this, shooter, target, stance);
+        infantry.fireShot(shooter, target, stance);
     }
 
     /**
@@ -1028,7 +995,7 @@ public class BattleSimulation implements WeaponSimContext {
      * rationale as {@link #fireShot}.
      */
     public void fireSecondary(Unit shooter, Unit target) {
-        infantry.fireSecondary(this, shooter, target);
+        infantry.fireSecondary(shooter, target);
     }
 
     /** Delegates to {@link com.dillon.starsectormarines.battle.turret.TurretFireService}. Kept for TurretBehavior and any remaining sim-surface callers on the deprecation path. */
@@ -1049,7 +1016,7 @@ public class BattleSimulation implements WeaponSimContext {
      * directly. Implementation lives in {@code battle/weapons/HeavyWeapons.java}.
      */
     public void fireMechWeapon(Unit shooter, Unit target, MechWeapon weapon) {
-        heavy.fireMechWeapon(this, shooter, target, weapon);
+        heavy.fireMechWeapon(shooter, target, weapon);
     }
 
     /**
@@ -1057,7 +1024,7 @@ public class BattleSimulation implements WeaponSimContext {
      * multiplier. Used by the LRM indirect-fire path (no LOS = reduced acc).
      */
     public void fireMechWeapon(Unit shooter, Unit target, MechWeapon weapon, float accuracyMult) {
-        heavy.fireMechWeapon(this, shooter, target, weapon, accuracyMult);
+        heavy.fireMechWeapon(shooter, target, weapon, accuracyMult);
     }
 
     // advanceMechWeapons + spawnMechWrecks moved to HeavyWeapons.tick.

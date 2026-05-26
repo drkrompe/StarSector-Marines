@@ -1,14 +1,18 @@
 package com.dillon.starsectormarines.battle.weapons;
 
+import com.dillon.starsectormarines.battle.damage.DamageService;
+import com.dillon.starsectormarines.battle.damage.HitResponseService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
-import com.dillon.starsectormarines.battle.weapons.MarineSecondary;
-import com.dillon.starsectormarines.battle.weapons.MarineWeapon;
 import com.dillon.starsectormarines.battle.fx.PendingDetonation;
 import com.dillon.starsectormarines.battle.fx.Projectile;
 import com.dillon.starsectormarines.battle.fx.ShotEvent;
+import com.dillon.starsectormarines.battle.shots.ShotService;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.UnitRegistry;
+
+import java.util.List;
 
 /**
  * Handheld squad weapons — rifles, SMGs, DMRs (primary line tracers / kinetic
@@ -17,37 +21,47 @@ import com.dillon.starsectormarines.battle.unit.Unit;
  * marines, militia, aliens, and any future squaddie wielding a
  * {@link MarineWeapon}.
  *
- * <p>Stateless today — burst continuation state lives on each {@link Unit}
+ * <p>Burst continuation state lives on each {@link Unit}
  * ({@code burstRemaining} / {@code burstTimer} / {@code burstTargetId}) so a
  * shared subsystem instance can serve every unit without per-shooter scratch
- * space. The {@link WeaponSimContext} parameter on each public call is the
- * deliberate seam: the subsystem reads grid/rng/unit-list through it and
- * pushes events (shots, detonations, deaths, fall-backs) back without ever
- * holding a {@code BattleSimulation} reference directly.
+ * space. Services are constructor-injected; the subsystem pushes events
+ * (shots, detonations, deaths, fall-backs) through them without ever
+ * holding a {@code BattleSimulation} reference.
  *
  * <p>Parallel structure to {@link com.dillon.starsectormarines.battle.air.AirSystem}:
  * the sim owns one instance and pumps it once per tick via {@link #tick}.
- * Heavy weapons (mech chassis, eventually tanks/hovercraft) get the same
- * treatment in a follow-up pass.
  */
 public class InfantryWeapons {
 
-    /** Sim seconds a tracer stays visible after being fired. Matches the legacy {@code SHOT_LIFETIME} on BattleSimulation. */
     private static final float SHOT_LIFETIME = 0.15f;
+
+    private final List<Unit> units;
+    private final UnitRegistry registry;
+    private final DamageService damageService;
+    private final HitResponseService hitResponse;
+    private final ShotService shots;
+
+    public InfantryWeapons(List<Unit> units, UnitRegistry registry,
+                           DamageService damageService, HitResponseService hitResponse,
+                           ShotService shots) {
+        this.units = units;
+        this.registry = registry;
+        this.damageService = damageService;
+        this.hitResponse = hitResponse;
+        this.shots = shots;
+    }
 
     /**
      * Per-tick burst-fire pass: every unit with {@code burstRemaining > 0}
      * decrements its {@code burstTimer}; on expiry, fires another shot at the
-     * locked burst target (if still alive) and decrements the count. Lets the
-     * AI emit a fire-once decision and this subsystem spread the remaining
-     * rounds over a few ticks at weapon-defined spacing.
+     * locked burst target (if still alive) and decrements the count.
      */
-    public void tick(WeaponSimContext ctx) {
-        for (Unit u : ctx.getUnits()) {
+    public void tick() {
+        for (Unit u : units) {
             if (u.burstRemaining <= 0 || !u.isAlive()) continue;
             u.burstTimer -= BattleSimulation.TICK_DT;
             if (u.burstTimer > 0f) continue;
-            Unit burstTarget = ctx.resolveUnit(u.burstTargetId);
+            Unit burstTarget = registry.getOrNull(u.burstTargetId);
             if (burstTarget == null || u.primaryWeapon == null) {
                 u.burstRemaining = 0;
                 u.burstTargetId = 0L;
@@ -57,7 +71,7 @@ public class InfantryWeapons {
             // walked off the firing position mid-burst, the remaining rounds
             // get the MOVING accuracy penalty — same rule a hand-rolled
             // moving-fire callsite gets.
-            fireShot(ctx, u, burstTarget, FireStance.stanceFor(u));
+            fireShot(u, burstTarget, FireStance.stanceFor(u));
             u.burstRemaining--;
             u.burstTimer = u.primaryWeapon.burstSpacing;
             if (u.burstRemaining == 0) u.burstTargetId = 0L;
@@ -75,7 +89,7 @@ public class InfantryWeapons {
      * <p>Public because behaviors call this when firing; fall-back is also
      * rolled here, which can mutate the target's path via the context.
      */
-    public void fireShot(WeaponSimContext ctx, Unit shooter, Unit target, FireStance stance) {
+    public void fireShot(Unit shooter, Unit target, FireStance stance) {
         float accuracy = shooter.accuracy;
         float damage   = shooter.attackDamage;
         float vsTurretMult = 1f;
@@ -97,15 +111,9 @@ public class InfantryWeapons {
         boolean hit = shooter.rng.nextFloat() < accuracy;
         float moraleImpact = shooter.type != null ? shooter.type.moraleImpact : 1.0f;
         if (hit) {
-            ctx.applyDamage(target, damage, vsTurretMult, moraleImpact);
-            // Fall-back roll fires only on hit; the context decides eligibility
-            // (turrets, already-falling-back units, dead units are all skipped).
-            ctx.rollFallbackOnHit(target);
-            // Reprio roll only matters for target-latching units (mechs +
-            // turrets); the context short-circuits otherwise. Gated to once
-            // per sim-tick inside the impl so a 4-marine squad opening up
-            // doesn't compound into a near-100% reprio.
-            ctx.rollReprioritizeOnHit(target, shooter);
+            damageService.applyDamage(target, damage, vsTurretMult, moraleImpact);
+            hitResponse.rollFallbackOnHit(target);
+            hitResponse.rollReprioritizeOnHit(target, shooter);
         }
 
         // Muzzle origin tracks the SHOOTER'S RENDER POSITION so the flash
@@ -127,7 +135,7 @@ public class InfantryWeapons {
                 && shooter.primaryWeapon.flightSec > 0f) {
             lifetime = shooter.primaryWeapon.flightSec;
         }
-        ctx.postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooter.faction, lifetime,
+        shots.postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooter.faction, lifetime,
                 tk, shooter.primaryWeapon, null, null, moraleImpact));
     }
 
@@ -155,7 +163,7 @@ public class InfantryWeapons {
      * <p>Caller is responsible for verifying ammo &gt; 0 and within-range
      * before calling.
      */
-    public void fireSecondary(WeaponSimContext ctx, Unit shooter, Unit target) {
+    public void fireSecondary(Unit shooter, Unit target) {
         MarineSecondary sec = shooter.secondaryWeapon;
         if (sec == null || shooter.secondaryAmmo <= 0) return;
         shooter.secondaryAmmo--;
@@ -182,12 +190,11 @@ public class InfantryWeapons {
         // hasBoostRamp=true: marine rocket is a launched missile with a
         // booster, matches locust's accelerate-from-rest visual curve.
         // arcHeight=0: direct-fire, no parabolic lob.
-        ctx.queueProjectile(new Projectile(fromX, fromY, toX, toY,
+        shots.queueProjectile(new Projectile(fromX, fromY, toX, toY,
                 /*hasBoostRamp*/ true, /*arcHeight*/ 0f,
                 shooter.faction, /*aerialDelivery*/ false,
                 sec.flightSec, onArrival));
-        // Secondary uses its per-weapon flightSec so rockets visibly travel.
-        ctx.postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooter.faction, sec.flightSec,
+        shots.postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooter.faction, sec.flightSec,
                 null, null, sec));
     }
 }

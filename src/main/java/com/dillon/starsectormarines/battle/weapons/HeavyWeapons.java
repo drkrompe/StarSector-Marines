@@ -1,13 +1,18 @@
 package com.dillon.starsectormarines.battle.weapons;
 
+import com.dillon.starsectormarines.battle.damage.DamageService;
+import com.dillon.starsectormarines.battle.damage.HitResponseService;
+import com.dillon.starsectormarines.battle.fx.EffectsService;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.shots.ShotService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.weapons.MechLoadoutState;
-import com.dillon.starsectormarines.battle.weapons.MechWeapon;
 import com.dillon.starsectormarines.battle.fx.PendingDetonation;
 import com.dillon.starsectormarines.battle.fx.Projectile;
 import com.dillon.starsectormarines.battle.fx.ShotEvent;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.fx.ImpactProfile;
+
+import java.util.List;
 
 /**
  * Chassis-mounted weapons on motorized / heavy units. Today that's just the
@@ -32,24 +37,44 @@ import com.dillon.starsectormarines.battle.fx.ImpactProfile;
  */
 public class HeavyWeapons {
 
-    /** Sim seconds a kinetic tracer stays visible after being fired. Matches the legacy {@code SHOT_LIFETIME} on BattleSimulation. */
     private static final float SHOT_LIFETIME = 0.15f;
+
+    private final List<Unit> units;
+    private final NavigationGrid grid;
+    private final DamageService damageService;
+    private final HitResponseService hitResponse;
+    private final ShotService shots;
+    private final Detonations detonations;
+    private final EffectsService effects;
+
+    public HeavyWeapons(List<Unit> units, NavigationGrid grid,
+                        DamageService damageService, HitResponseService hitResponse,
+                        ShotService shots, Detonations detonations,
+                        EffectsService effects) {
+        this.units = units;
+        this.grid = grid;
+        this.damageService = damageService;
+        this.hitResponse = hitResponse;
+        this.shots = shots;
+        this.detonations = detonations;
+        this.effects = effects;
+    }
 
     /**
      * Per-tick pass: drains queued chaingun / SRM / LRM rounds for every mech,
      * then walks the unit list to emit a smoking-wreck for any just-died mech.
      */
-    public void tick(WeaponSimContext ctx) {
-        advanceMechWeapons(ctx);
-        spawnMechWrecks(ctx);
+    public void tick() {
+        advanceMechWeapons();
+        spawnMechWrecks();
     }
 
     /**
      * Convenience overload — full accuracy. Used by all the precision-fire
      * code paths (chaingun, SRM, line-of-sight LRMs).
      */
-    public void fireMechWeapon(WeaponSimContext ctx, Unit shooter, Unit target, MechWeapon weapon) {
-        fireMechWeapon(ctx, shooter, target, weapon, 1.0f);
+    public void fireMechWeapon(Unit shooter, Unit target, MechWeapon weapon) {
+        fireMechWeapon(shooter, target, weapon, 1.0f);
     }
 
     /**
@@ -63,7 +88,7 @@ public class HeavyWeapons {
      * roll. Set to 1.0 for line-of-sight fire; the LRM indirect-fire path
      * passes {@link MechWeapon#LRM_NO_LOS_ACC_MULT}.
      */
-    public void fireMechWeapon(WeaponSimContext ctx, Unit shooter, Unit target, MechWeapon weapon, float accuracyMult) {
+    public void fireMechWeapon(Unit shooter, Unit target, MechWeapon weapon, float accuracyMult) {
         boolean hit = shooter.rng.nextFloat() < weapon.accuracy * accuracyMult;
         boolean isAoe = weapon.aoeRadius > 0f;
         float moraleImpact = shooter.type != null ? shooter.type.moraleImpact : 1.0f;
@@ -95,7 +120,7 @@ public class HeavyWeapons {
         // splatters on it instead. Shared with the turret-side raycast via
         // ShotRaycast so both sides see the same wall-snap convention.
         ShotRaycast.Result snapped = ShotRaycast.resolve(
-                ctx.getGrid(), weapon.raycastShots, fromX, fromY, toX, toY, hit);
+                grid, weapon.raycastShots, fromX, fromY, toX, toY, hit);
         toX = snapped.toX();
         toY = snapped.toY();
         hit = snapped.hit();
@@ -104,13 +129,9 @@ public class HeavyWeapons {
         // wall-blocked round correctly counts as a miss. AoE-kind shots skip
         // this and resolve at endpoint via the Detonations pipeline below.
         if (!isAoe && hit) {
-            ctx.applyDamage(target, weapon.damage, weapon.vsTurretMult, moraleImpact);
-            ctx.rollFallbackOnHit(target);
-            // Mech-vs-mech reprio — rare today (both sides have mech-only
-            // squads on their own faction) but consistent with the
-            // infantry-side rifle path. Gated to once per sim-tick inside
-            // the impl.
-            ctx.rollReprioritizeOnHit(target, shooter);
+            damageService.applyDamage(target, weapon.damage, weapon.vsTurretMult, moraleImpact);
+            hitResponse.rollFallbackOnHit(target);
+            hitResponse.rollReprioritizeOnHit(target, shooter);
         }
 
         // AOE PATH — queue a detonation at the (possibly wall-snapped)
@@ -135,7 +156,7 @@ public class HeavyWeapons {
                 // TacticalScoring.shouldCommitRocket's volley coordination so a
                 // marine rocketeer no longer ignores an inbound mech SRM volley
                 // against the same turret.
-                ctx.queueProjectile(new Projectile(
+                shots.queueProjectile(new Projectile(
                         fromX, fromY, toX, toY,
                         /*hasBoostRamp*/ true, weapon.arcHeight,
                         shooter.faction, aerial, weapon.flightSec, onArrival));
@@ -143,12 +164,12 @@ public class HeavyWeapons {
                 // Kinetic-splash kinds (chaingun) keep the legacy AoE-tracer
                 // path — no in-flight queryable entity is useful for a bullet,
                 // and the boost-curve visual would read wrong.
-                ctx.queueDetonation(onArrival);
+                detonations.queue(onArrival);
             }
         }
 
         float lifetime = weapon.flightSec > 0f ? weapon.flightSec : SHOT_LIFETIME;
-        ctx.postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooter.faction, lifetime,
+        shots.postShot(new ShotEvent(fromX, fromY, toX, toY, hit, shooter.faction, lifetime,
                 null, null, null, weapon, moraleImpact));
     }
 
@@ -165,8 +186,8 @@ public class HeavyWeapons {
      * spacing — and ticks down the per-weapon cooldowns so the next trigger
      * decision sees the right gating.
      */
-    private void advanceMechWeapons(WeaponSimContext ctx) {
-        for (Unit u : ctx.getUnits()) {
+    private void advanceMechWeapons() {
+        for (Unit u : units) {
             MechLoadoutState m = u.mech;
             if (m == null || !u.isAlive()) continue;
 
@@ -182,7 +203,7 @@ public class HeavyWeapons {
                         m.chaingunBurstRemaining = 0;
                         m.chaingunBurstTarget = null;
                     } else {
-                        fireMechWeapon(ctx, u, m.chaingunBurstTarget, m.chaingun);
+                        fireMechWeapon(u, m.chaingunBurstTarget, m.chaingun);
                         m.chaingunBurstRemaining--;
                         m.chaingunBurstTimer = m.chaingun.burstSpacing;
                         if (m.chaingunBurstRemaining == 0) m.chaingunBurstTarget = null;
@@ -198,7 +219,7 @@ public class HeavyWeapons {
                         m.srmSalvoRemaining = 0;
                         m.srmSalvoTarget = null;
                     } else {
-                        fireMechWeapon(ctx, u, m.srmSalvoTarget, m.srmPod);
+                        fireMechWeapon(u, m.srmSalvoTarget, m.srmPod);
                         m.srmSalvoRemaining--;
                         m.srmSalvoTimer = m.srmPod.burstSpacing;
                         if (m.srmSalvoRemaining == 0) m.srmSalvoTarget = null;
@@ -219,11 +240,11 @@ public class HeavyWeapons {
                         m.lrmSalvoRemaining = 0;
                         m.lrmSalvoTarget = null;
                     } else {
-                        boolean hasLos = ctx.getGrid().hasLineOfSight(
+                        boolean hasLos = grid.hasLineOfSight(
                                 u.getCellX(), u.getCellY(),
                                 m.lrmSalvoTarget.getCellX(), m.lrmSalvoTarget.getCellY());
                         float accMult = hasLos ? 1.0f : MechWeapon.LRM_NO_LOS_ACC_MULT;
-                        fireMechWeapon(ctx, u, m.lrmSalvoTarget, m.lrmArtillery, accMult);
+                        fireMechWeapon(u, m.lrmSalvoTarget, m.lrmArtillery, accMult);
                         m.lrmSalvoRemaining--;
                         m.lrmSalvoTimer = m.lrmArtillery.burstSpacing;
                         if (m.lrmSalvoRemaining == 0) m.lrmSalvoTarget = null;
@@ -240,11 +261,11 @@ public class HeavyWeapons {
      * fire, mech crossfire, marine rockets, flyby strafing — without
      * duplicating spawn logic at each kill site.
      */
-    private void spawnMechWrecks(WeaponSimContext ctx) {
-        for (Unit u : ctx.getUnits()) {
+    private void spawnMechWrecks() {
+        for (Unit u : units) {
             if (u.isAlive()) continue;
             if (u.mech == null || u.mech.wreckSpawned) continue;
-            ctx.spawnSmokingWreck(u.getCellX(), u.getCellY());
+            effects.spawnSmokingWreck(u.getCellX(), u.getCellY());
             u.mech.wreckSpawned = true;
         }
     }
