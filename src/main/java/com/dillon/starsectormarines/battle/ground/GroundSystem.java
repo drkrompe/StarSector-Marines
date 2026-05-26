@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.ground;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
+import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.weapons.MarineLoadout;
 import com.dillon.starsectormarines.battle.unit.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.ai.TurretAim;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.turret.TurretFireSink;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 
 import java.util.ArrayDeque;
@@ -57,7 +58,9 @@ public class GroundSystem {
 
     private final NavigationService navigation;
     private final UnitRosterService roster;
+    private final UnitRegistry registry;
     private final com.dillon.starsectormarines.battle.ai.TacticalScoring tacticalScoring;
+    private final TurretFireSink fireSink;
     private final Random rng;
     private final Consumer<Unit> addUnitSink;
 
@@ -65,10 +68,12 @@ public class GroundSystem {
 
     public GroundSystem(NavigationService navigation, UnitRosterService roster,
                         com.dillon.starsectormarines.battle.ai.TacticalScoring tacticalScoring,
-                        Random rng, Consumer<Unit> addUnitSink) {
+                        TurretFireSink fireSink, Random rng, Consumer<Unit> addUnitSink) {
         this.navigation = navigation;
         this.roster = roster;
+        this.registry = roster.getRegistry();
         this.tacticalScoring = tacticalScoring;
+        this.fireSink = fireSink;
         this.rng = rng;
         this.addUnitSink = addUnitSink;
     }
@@ -81,7 +86,7 @@ public class GroundSystem {
      * fixed-tick contract as {@link com.dillon.starsectormarines.battle.air.AirSystem#tick}
      * — caller is responsible for matching {@code dt} to its tick cadence.
      */
-    public void tick(BattleSimulation sim, float dt) {
+    public void tick(float dt) {
         for (Vehicle v : vehicles) {
             switch (v.state) {
                 case PENDING:
@@ -129,7 +134,7 @@ public class GroundSystem {
                     break;
             }
         }
-        tickVehicleTurrets(sim, dt);
+        tickVehicleTurrets(dt);
     }
 
     /**
@@ -345,19 +350,7 @@ public class GroundSystem {
         return null;
     }
 
-    /**
-     * Per-tick aim + fire pass for every vehicle with a functional turret.
-     * Mirrors {@code AirSystem.tickShuttleTurrets}: each armed vehicle uses
-     * the shared {@link TurretAim} loop for acquisition / slew / fire-when-
-     * aligned, with the turret's world-rotated mount position as origin and
-     * {@link BattleSimulation#fireShotFrom} for shot emission.
-     *
-     * <p>Active whenever the vehicle is on-map and has ammo. OVERWATCH
-     * vehicles fire indefinitely; INCOMING / LANDED / DEPARTING vehicles
-     * also fire if armed (the APC's turret is live from the moment it
-     * rolls onto the map).
-     */
-    private void tickVehicleTurrets(BattleSimulation sim, float dt) {
+    private void tickVehicleTurrets(float dt) {
         for (Vehicle v : vehicles) {
             if (!v.isVisible()) continue;
             if (!v.type.hasTurretWeapon()) continue;
@@ -372,14 +365,14 @@ public class GroundSystem {
             float mountWorldY = v.body.y + v.type.turretMountX * cs + v.type.turretMountY * cc;
 
             Unit currentBurstTarget = (v.turretBurstTargetId != 0L)
-                    ? sim.resolveUnit(v.turretBurstTargetId) : null;
+                    ? registry.getOrNull(v.turretBurstTargetId) : null;
 
             // Burst continuation fires ahead of fresh acquisition — the turret
             // commits to its salvo target, matching shuttle turret behavior.
             if (v.turretBurstRemaining > 0) {
                 v.turretBurstTimer -= dt;
                 if (v.turretBurstTimer <= 0f && currentBurstTarget != null && currentBurstTarget.isAlive()) {
-                    sim.fireShotFrom(mountWorldX, mountWorldY, v.faction, kind, currentBurstTarget, false);
+                    fireSink.fire(mountWorldX, mountWorldY, v.faction, kind, currentBurstTarget, false);
                     v.turretAmmo--;
                     v.turretBurstRemaining--;
                     v.turretBurstTimer = kind.burstSpacing;
@@ -404,7 +397,7 @@ public class GroundSystem {
             aim.minRange = kind.minRange;
             aim.cooldownTimer = v.turretCooldownTimer;
             aim.attackCooldown = kind.cooldown;
-            aim.target = (v.turretTargetId != 0L) ? sim.resolveUnit(v.turretTargetId) : null;
+            aim.target = (v.turretTargetId != 0L) ? registry.getOrNull(v.turretTargetId) : null;
 
             TurretAim.tick(aim, tacticalScoring, navigation.getGrid(), dt);
 
@@ -413,7 +406,7 @@ public class GroundSystem {
             v.turretTargetId = (aim.target != null) ? aim.target.entityId : 0L;
 
             if (aim.fireThisTick && aim.target != null) {
-                sim.fireShotFrom(mountWorldX, mountWorldY, v.faction, kind, aim.target,
+                fireSink.fire(mountWorldX, mountWorldY, v.faction, kind, aim.target,
                         /*aerialShooter*/ false, aim.lastFireHadLos);
                 v.turretAmmo--;
                 if (kind.burstCount > 1 && aim.target.isAlive()) {

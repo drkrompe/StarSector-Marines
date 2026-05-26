@@ -301,8 +301,8 @@ public class BattleSimulation implements WeaponSimContext {
                 navigation, rosterService, attackerIndex, shots, doodadService);
         this.unitUpdate = new com.dillon.starsectormarines.battle.ai.UnitUpdateSystem(
                 rosterService.getRegistry(), damageService, tickInnerProfile);
-        this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, rng, this::addUnit);
-        this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, rng, this::addUnit);
+        this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, this::fireShotFrom, rng, this::addUnit);
+        this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, this::fireShotFrom, rng, this::addUnit);
         vision.init(grid, 256);
     }
 
@@ -979,11 +979,11 @@ public class BattleSimulation implements WeaponSimContext {
         compoundCapture.tick(TICK_DT, this, compoundService);
         // Air vehicles tick AFTER units so new deboarded marines aren't iterated
         // mid-loop. They'll be picked up by next tick's occupancy + target pass.
-        airSystem.tick(this, TICK_DT);
+        airSystem.tick(TICK_DT);
         tickProfile.lap(TickProfile.Phase.AIR_SYSTEM);
         // Ground convoys ride the same ordering rule for the same reason —
         // deboarded militia join the roster between ticks, not mid-loop.
-        groundSystem.tick(this, TICK_DT);
+        groundSystem.tick(TICK_DT);
         tickProfile.lap(TickProfile.Phase.GROUND_SYSTEM);
         shots.tickShots(TICK_DT);
         tickProfile.lap(TickProfile.Phase.SHOTS);

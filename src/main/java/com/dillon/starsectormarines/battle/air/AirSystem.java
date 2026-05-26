@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.air;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
+import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.weapons.MarineLoadout;
 import com.dillon.starsectormarines.battle.unit.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.ai.TacticalScoring;
 import com.dillon.starsectormarines.battle.ai.TurretAim;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.turret.TurretFireSink;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -34,10 +35,9 @@ import java.util.function.Consumer;
  *
  * <p>Dependencies are constructor-injected: {@link NavigationService} for
  * grid/occupancy, {@link UnitRosterService} for unit/squad lifecycle, a
- * shared {@link Random} for determinism, and a unit-addition sink that
- * composites roster insertion with fog-of-war contributor registration.
- * The turret-aim path still takes the full {@link BattleSimulation} —
- * decoupling {@code fireShotFrom} is a follow-up slice.
+ * shared {@link Random} for determinism, a unit-addition sink that
+ * composites roster insertion with fog-of-war contributor registration,
+ * and a {@link TurretFireSink} for the mounted-turret fire path.
  */
 public class AirSystem {
 
@@ -58,18 +58,22 @@ public class AirSystem {
 
     private final NavigationService navigation;
     private final UnitRosterService roster;
+    private final UnitRegistry registry;
     private final TacticalScoring tacticalScoring;
+    private final TurretFireSink fireSink;
     private final Random rng;
     private final Consumer<Unit> addUnitSink;
 
     private final List<Shuttle> shuttles = new ArrayList<>();
 
     public AirSystem(NavigationService navigation, UnitRosterService roster,
-                     TacticalScoring tacticalScoring, Random rng,
-                     Consumer<Unit> addUnitSink) {
+                     TacticalScoring tacticalScoring, TurretFireSink fireSink,
+                     Random rng, Consumer<Unit> addUnitSink) {
         this.navigation = navigation;
         this.roster = roster;
+        this.registry = roster.getRegistry();
         this.tacticalScoring = tacticalScoring;
+        this.fireSink = fireSink;
         this.rng = rng;
         this.addUnitSink = addUnitSink;
     }
@@ -77,20 +81,9 @@ public class AirSystem {
     public List<Shuttle> getShuttles() { return shuttles; }
     public void add(Shuttle s) { shuttles.add(s); }
 
-    /**
-     * Advances every airborne vehicle one tick by {@code dt} seconds. Today
-     * that's the shuttle state machine + per-shuttle mounted-turret pass;
-     * fighter wings hook in here as they land. Caller is responsible for
-     * matching {@code dt} to its fixed-tick cadence (the auto-battler uses
-     * 30 Hz / TICK_DT).
-     *
-     * <p>The deboard/hover path uses constructor-injected services. The
-     * turret-aim path still takes the full {@link BattleSimulation} for
-     * {@code fireShotFrom} and {@code resolveUnit} — follow-up slice.
-     */
-    public void tick(BattleSimulation sim, float dt) {
+    public void tick(float dt) {
         advanceShuttles(dt);
-        tickShuttleTurrets(sim, dt);
+        tickShuttleTurrets(dt);
     }
 
     /**
@@ -238,21 +231,7 @@ public class AirSystem {
         }
     }
 
-    /**
-     * Per-tick aim + fire pass for every {@link MountedTurret} on every
-     * visible shuttle. Each turret uses the shared {@link TurretAim} loop the
-     * static map turrets do — same acquisition / slew / fire-when-aligned
-     * rules — but with the mount's world-rotated position as the origin and
-     * {@link BattleSimulation#fireShotFrom} for the shot emission so a
-     * shuttle's mid-air mount fires from its actual rendered point rather than
-     * the floored cell center.
-     *
-     * <p>Active whenever the shuttle is on the map ({@link Shuttle#isVisible()} —
-     * INCOMING, LANDED, HOVER_STATION, DEPARTING). PENDING / GONE shuttles
-     * aren't physically present, so they skip the pass. Empty turret arrays
-     * (pure transports) are a no-op.
-     */
-    private void tickShuttleTurrets(BattleSimulation sim, float dt) {
+    private void tickShuttleTurrets(float dt) {
         for (Shuttle s : shuttles) {
             if (!s.isVisible()) continue;
             if (s.turrets.length == 0) continue;
@@ -275,7 +254,7 @@ public class AirSystem {
                 // Resolve the burst victim once per tick — null surfaces both
                 // "released from registry" and "id was 0L all along," same path
                 // as TurretBehavior's MapTurret-shadow read.
-                Unit currentBurstTarget = sim.resolveUnit(mt.burstTargetId);
+                Unit currentBurstTarget = registry.getOrNull(mt.burstTargetId);
                 if (mt.burstRemaining > 0 && currentBurstTarget == null) {
                     // A burst whose victim died is dead too — release the lock so
                     // the aim loop can re-acquire a fresh target next tick.
@@ -315,7 +294,7 @@ public class AirSystem {
                 aim.minRange = mt.mount.kind.minRange;
                 aim.cooldownTimer = mt.cooldownTimer;
                 aim.attackCooldown = mt.mount.kind.cooldown;
-                aim.target = sim.resolveUnit(mt.targetId);
+                aim.target = registry.getOrNull(mt.targetId);
                 aim.ignoreCloseWalls = true;
                 aim.closeWallRadius = SHUTTLE_AIR_LOS_RADIUS;
 
@@ -339,7 +318,7 @@ public class AirSystem {
                 if (mt.burstRemaining > 0) {
                     mt.burstTimer -= dt;
                     if (mt.burstTimer <= 0f) {
-                        sim.fireShotFrom(worldX, shotOriginY, s.faction, mt.mount.kind, currentBurstTarget, /*aerialShooter*/ true);
+                        fireSink.fire(worldX, shotOriginY, s.faction, mt.mount.kind, currentBurstTarget, /*aerialShooter*/ true);
                         mt.recoilTimer = 0f;
                         mt.ammo--;
                         mt.burstRemaining--;
@@ -350,7 +329,7 @@ public class AirSystem {
                 }
 
                 if (aim.fireThisTick) {
-                    sim.fireShotFrom(worldX, shotOriginY, s.faction, mt.mount.kind, aim.target, /*aerialShooter*/ true);
+                    fireSink.fire(worldX, shotOriginY, s.faction, mt.mount.kind, aim.target, /*aerialShooter*/ true);
                     mt.recoilTimer = 0f;
                     mt.ammo--;
                     // Burst weapons latch the remaining rounds; single-shot
