@@ -3508,7 +3508,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 sheet.setSize(tDrawLong, tDrawShort);
 
                 float chassisFacingDeg = v.body.facingDegrees + v.type.spriteFacingOffsetDeg;
-                float turretFacingDeg = v.turretFacingDeg + v.type.spriteFacingOffsetDeg;
+                float turretFacingDeg = v.turretFacingDeg + v.type.turretSpriteFacingOffsetDeg;
                 // Mount point: rotate chassis-local offset into world frame
                 float cRad = (float) Math.toRadians(chassisFacingDeg);
                 float cc = (float) Math.cos(cRad);

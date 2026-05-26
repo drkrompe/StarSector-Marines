@@ -58,6 +58,10 @@ public final class TurretAuthorPanel implements HudPanel {
     private static final Color BG_COLOR = new Color(0x08, 0x0A, 0x10, 0xDD);
     private static final Color TEXT_COLOR = new Color(0xE0, 0xE8, 0xF0);
     private static final float CROSSHAIR_PX = 12f;
+    private static final Color CHASSIS_FWD_COLOR = new Color(0x20, 0xA0, 0xFF);
+    private static final Color TURRET_FWD_COLOR = new Color(0xFF, 0x40, 0x40);
+    private static final float ARROW_LENGTH = 40f;
+    private static final float ARROW_HEAD = 10f;
 
     private final BattleUiContext ctx;
     private final BitmapFont font;
@@ -155,15 +159,13 @@ public final class TurretAuthorPanel implements HudPanel {
         float turretRenderAngle;
         float turretDrawX, turretDrawY;
 
+        float turretSpriteAngle = type.turretSpriteFacingOffsetDeg;
         if (mode == Mode.PIVOT) {
-            // Pivot mode: draw turret static at chassis angle, pivot forced
-            // to (0,0) so sprite center sits on mount crosshair.
-            turretRenderAngle = chassisAngle;
+            turretRenderAngle = turretSpriteAngle;
             turretDrawX = mountScreenX;
             turretDrawY = mountScreenY;
         } else {
-            // Mount mode: turret auto-rotates with full pivot correction.
-            turretRenderAngle = turretAngleDeg + type.spriteFacingOffsetDeg;
+            turretRenderAngle = turretAngleDeg + turretSpriteAngle;
             float tRad = (float) Math.toRadians(turretRenderAngle);
             float tc = (float) Math.cos(tRad);
             float ts = (float) Math.sin(tRad);
@@ -195,6 +197,14 @@ public final class TurretAuthorPanel implements HudPanel {
             float pivotMarkerY = mountScreenY + (pivotX * ps + pivotY * pc) * PREVIEW_CELL_PX;
             drawCrosshair(pivotMarkerX, pivotMarkerY, PIVOT_COLOR, alphaMult);
         }
+
+        // --- Forward arrows — always +Y (north/up), representing sim-forward ---
+        // The sprite's visual nose should align with this arrow when the
+        // facing offset is correct.
+        drawArrow(previewCX, previewCY, 0f, 1f, ARROW_LENGTH, ARROW_HEAD,
+                CHASSIS_FWD_COLOR, alphaMult, "DRIVE");
+        drawArrow(turretDrawX, turretDrawY, 0f, 1f, ARROW_LENGTH * 0.7f, ARROW_HEAD * 0.7f,
+                TURRET_FWD_COLOR, alphaMult, "BARREL");
 
         // --- Coordinate readout ---
         Color modeColor = (mode == Mode.MOUNT) ? MOUNT_COLOR : PIVOT_COLOR;
@@ -239,6 +249,33 @@ public final class TurretAuthorPanel implements HudPanel {
             glVertex2f(cx + (float) (Math.cos(a) * 4f), cy + (float) (Math.sin(a) * 4f));
         }
         glEnd();
+    }
+
+    private void drawArrow(float ox, float oy, float dx, float dy, float length, float headSize,
+                           Color color, float alphaMult, String label) {
+        float r = color.getRed() / 255f;
+        float g = color.getGreen() / 255f;
+        float b = color.getBlue() / 255f;
+        glColor4f(r, g, b, alphaMult);
+        glLineWidth(2f);
+        float tipX = ox + dx * length;
+        float tipY = oy + dy * length;
+        glBegin(GL_LINES);
+        glVertex2f(ox, oy);
+        glVertex2f(tipX, tipY);
+        glEnd();
+        float px = -dy;
+        float py = dx;
+        glBegin(GL_TRIANGLES);
+        glVertex2f(tipX, tipY);
+        glVertex2f(tipX - dx * headSize + px * headSize * 0.4f,
+                   tipY - dy * headSize + py * headSize * 0.4f);
+        glVertex2f(tipX - dx * headSize - px * headSize * 0.4f,
+                   tipY - dy * headSize - py * headSize * 0.4f);
+        glEnd();
+        if (label != null) {
+            font.drawString(label, tipX + 6f, tipY - 4f, color, alphaMult);
+        }
     }
 
     @Override
