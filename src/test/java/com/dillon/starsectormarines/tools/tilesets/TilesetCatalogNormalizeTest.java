@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.ops;
+package com.dillon.starsectormarines.tools.tilesets;
 
 import org.json.JSONArray;
 import org.json.JSONObject;

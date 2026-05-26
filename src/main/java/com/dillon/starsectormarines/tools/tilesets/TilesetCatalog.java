@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.ops;
+package com.dillon.starsectormarines.tools.tilesets;
 
 import com.dillon.starsectormarines.StarsectorMarinesModPlugin;
 import com.fs.starfarer.api.Global;
