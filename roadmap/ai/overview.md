@@ -144,11 +144,12 @@ multi-objective missions like Conquest (per-zone clears) and Assault
 (sector sweeps). Per-squad GOAP plans tactical actions inside the
 assigned objective; commander decides which squad goes where.
 
-**Stage 1 spine + first two commanders shipped:** `MissionCommand`
-interface, `ObjectiveAssignment` record, `ClearAssignedZoneGoal`,
-`SabotageCommand`, `ConquestCommand` (lateral-strip partition). Remaining
-work (AssaultCommand, defender-side commanders, richer scoring) queued
-behind playtest + doc 15.
+**Stage 1 spine + all three marine commanders shipped:**
+`MissionCommand` interface, `ObjectiveAssignment` record,
+`ClearAssignedZoneGoal`, `SabotageCommand` (objective-cluster),
+`ConquestCommand` (lateral-strip), `AssaultCommand` (sector-grid
+sweep). Remaining work (defender-side commanders, richer scoring)
+queued behind playtest + doc 15.
 
 Design lives in [`12-squad-of-squads.md`](stories/12-squad-of-squads.md).
 

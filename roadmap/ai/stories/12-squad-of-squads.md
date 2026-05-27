@@ -308,15 +308,18 @@ What's in code:
    tick gets `CLEAR_ZONE` pointed at the forward-most defender-
    occupied zone in its strip.
 
+7. ✅ `command.AssaultCommand` — marine-side commander for ASSAULT.
+   Sector-grid partition: map divided into 4–9 rectangular sectors,
+   non-sticky squad assignment (re-evaluates per slow tick), nearest
+   defender-occupied zone within assigned sector → `CLEAR_ZONE`.
+   Implicit convergence via load-balancing when squads outnumber
+   active sectors. Design in [`16-assault-command.md`](16-assault-command.md).
+
 What's not yet in code (queued behind playtest + doc 15):
 
 - `HoldAssignedNodeGoal` (Story H — last-stand `HoldPosition` on
   `MUST_HOLD` nodes is still the gating tactical story).
 - `RushAssignedObjectiveGoal` for non-zone objectives.
-- `AssaultCommand` for code-`MissionType.ASSAULT` (search-and-destroy
-  sectoring). Pattern is a third partition shape — uniform sweep
-  tiles, distinct from SabotageCommand's objective clusters and
-  ConquestCommand's lateral strips.
 - Defender-side commanders. Gated on doc 15's perception layer so
   the defender can't read marine ground truth.
 - The "richer commander shape" originally sketched in this doc
