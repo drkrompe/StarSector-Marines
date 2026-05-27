@@ -40,12 +40,21 @@ public final class CompoundClaim {
         public final int minMembers;
         public final int maxMembers;
         public final int seedMinDim;
+        /** Minimum dimension (both axes) for a neighbor leaf to be absorbed. A member leaf of dimension N produces a sub-building of N-2 (1-cell inset); that sub-building needs ≥5 on each axis for a 3x3 interior with doors. */
+        public final int memberMinDim;
         /** Block kinds that cannot be absorbed as a neighbor (e.g. WATERFRONT, LANDING_ZONE). */
         public final Set<BlockKind> ineligibleNeighbors;
 
         public ClaimSpec(BlockKind seedKind, BlockKind demoteTo,
                          int maxPerMap, int targetMembers, int minMembers, int maxMembers,
                          int seedMinDim, Set<BlockKind> ineligibleNeighbors) {
+            this(seedKind, demoteTo, maxPerMap, targetMembers, minMembers, maxMembers,
+                    seedMinDim, seedMinDim, ineligibleNeighbors);
+        }
+
+        public ClaimSpec(BlockKind seedKind, BlockKind demoteTo,
+                         int maxPerMap, int targetMembers, int minMembers, int maxMembers,
+                         int seedMinDim, int memberMinDim, Set<BlockKind> ineligibleNeighbors) {
             this.seedKind = seedKind;
             this.demoteTo = demoteTo;
             this.maxPerMap = maxPerMap;
@@ -53,6 +62,7 @@ public final class CompoundClaim {
             this.minMembers = minMembers;
             this.maxMembers = maxMembers;
             this.seedMinDim = seedMinDim;
+            this.memberMinDim = memberMinDim;
             this.ineligibleNeighbors = ineligibleNeighbors;
         }
     }
@@ -60,7 +70,7 @@ public final class CompoundClaim {
     /** Default spec set — non-Conquest missions. One compound per kind max. */
     public static final List<ClaimSpec> DEFAULT_SPECS = Arrays.asList(
             new ClaimSpec(BlockKind.MILITARY_BASE, BlockKind.FORTIFIED_POST,
-                    1, 3, 2, 4, 6,
+                    1, 3, 2, 4, 6, 7,
                     EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE)),
             new ClaimSpec(BlockKind.GATED_HOUSING, BlockKind.BUILDING_RESIDENTIAL,
                     1, 3, 2, 4, 5,
@@ -72,7 +82,7 @@ public final class CompoundClaim {
     /** Conquest spec set — {@link BiomeCompoundSeeder} force-seeds up to 3 MILITARY_BASE leaves (one per biome band). */
     public static final List<ClaimSpec> CONQUEST_SPECS = Arrays.asList(
             new ClaimSpec(BlockKind.MILITARY_BASE, BlockKind.FORTIFIED_POST,
-                    3, 3, 2, 4, 6,
+                    3, 3, 2, 4, 6, 7,
                     EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE)),
             new ClaimSpec(BlockKind.GATED_HOUSING, BlockKind.BUILDING_RESIDENTIAL,
                     1, 3, 2, 4, 5,
@@ -173,12 +183,13 @@ public final class CompoundClaim {
 
     private static boolean isEligible(BlockLeaf leaf, ClaimSpec spec) {
         if (leaf.kind == BlockKind.COMPOUND_MEMBER) return false;
-        if (leaf.kind == spec.seedKind)             return false; // would compete for seeding
-        // Don't absorb other compound seeds either — let them seed their own compound.
+        if (leaf.kind == spec.seedKind)             return false;
         for (ClaimSpec other : DEFAULT_SPECS) {
             if (other.seedKind != spec.seedKind && leaf.kind == other.seedKind) return false;
         }
-        return !spec.ineligibleNeighbors.contains(leaf.kind);
+        if (spec.ineligibleNeighbors.contains(leaf.kind)) return false;
+        if (leaf.width() < spec.memberMinDim || leaf.height() < spec.memberMinDim) return false;
+        return true;
     }
 
     /**
