@@ -229,7 +229,7 @@ have hallway / room / hallway rhythm that fits.
 
 ---
 
-### D. Patrol intercept
+### D. Patrol intercept ✅ SHIPPED (2026-05-27)
 
 > A patrol squad hears gunfire across the map, *doesn't* just keep
 > patrolling, doesn't blindly sprint toward the noise — converges
@@ -642,7 +642,7 @@ What each story needs, so we can spot the shared dependencies.
 | A. Garrison ambush ✅ | `ENEMY_IN_KILL_ZONE`, `UNDER_FIRE_AT_LOS` | `OverwatchPosture`, `BreakLOS` | `GarrisonAmbush`, `RecoverFromAmbush` | Cover-quality scoring (also G); kill-zone gate via `Squad.holdsFireUntilKillZone` + LOS-stability ticks |
 | B. Pinned and broken ✅ | `MORALE_BROKEN` | `BreakContact` | `SurviveContact` | Squad morale state (drain/recover/cap/hysteresis); cover-out-of-LOS reuses `TacticalScoring.findFallbackPosition` |
 | C. Bounding overwatch | `ENEMY_SUPPRESSED` | `SuppressFromCover`, `BoundForward` | — | **Per-member action assignment**; `RoleAssigner` actually used |
-| D. Patrol intercept | (uses alert spread) | (uses reposition) | `ReinforceContact` | Path cost shaping for cover; flank-angle preference |
+| D. Patrol intercept ✅ | (uses alert spread) | `FlankApproach` | `ReinforceContact` | Flanking waypoint algorithm (90° off garrison axis); RoutinePatrol SUSPICIOUS yield |
 | E. Mech-screened advance | `BEHIND_FRIENDLY_RELATIVE_TO_THREAT` | `EscortFollow` (anchor=Unit variant) | — | Soft cover from non-static entities; threat-direction vector |
 | F. Objective rush under fire | (mission predicates) | `PlantCharge` | `CompleteObjective` | **Per-member goal override**; retires `PlanterBehavior` |
 | G. Cover-aware reposition ✅ | `CAN_REPOSITION` | `RepositionToCover` | — | Per-facing cover (4-way N/E/S/W) on doodads; per-unit `repositionCooldown` (1.5s) |
@@ -716,8 +716,10 @@ Recommended slicing:
 - **Slice 5 (remaining mission goal priority):** Story H — last-stand
   `HoldPosition` on `MUST_HOLD` tactical nodes. Story B already shipped
   in Slice 2.5.
-- **Slice 6 (cross-squad emergence):** Stories D, E. Patrol intercept,
-  mech screening. Story E depends on the parked mech GOAP work
+- **Slice 6 ✅ partial (cross-squad emergence):** Story D shipped
+  2026-05-27 — `ReinforceContact` goal + `FlankApproach` action with
+  flanking waypoint algorithm (90° off garrison axis). Story E (mech
+  screening) remains; depends on the parked mech GOAP work
   ([13-mech-goap.md](13-mech-goap.md)).
 
 ## What this doc is for

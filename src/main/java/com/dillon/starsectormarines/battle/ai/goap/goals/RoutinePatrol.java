@@ -52,6 +52,10 @@ public final class RoutinePatrol implements Goal {
         if (squad.faction != Faction.DEFENDER) return 0f;
         if (squad.holdsFireUntilKillZone) return 0f;
         if (squad.alertLevel == SquadAlertLevel.ENGAGED) return 0f;
+        if (squad.alertLevel == SquadAlertLevel.SUSPICIOUS
+                && squad.lastSeenEnemyX >= 0 && squad.lastSeenEnemyY >= 0) {
+            return 0f;
+        }
         return 1f;
     }
 
