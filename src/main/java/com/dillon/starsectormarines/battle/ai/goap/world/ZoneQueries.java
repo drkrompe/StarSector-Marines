@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.ai.goap.SquadPlan;
 import com.dillon.starsectormarines.battle.ai.goap.actions.ClearZone;
 import com.dillon.starsectormarines.battle.ai.goap.actions.EnterZone;
 import com.dillon.starsectormarines.battle.ai.goap.actions.HoldZone;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
 import com.dillon.starsectormarines.battle.nav.zone.Portal;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
@@ -188,12 +189,16 @@ public final class ZoneQueries {
         if (path.size() < 2) return null;
 
         ZoneGraph graph = sim.getZoneGraph();
+        NavigationGrid grid = sim.getGrid();
         List<SquadPlan.Step> steps = new ArrayList<>(2 * (path.size() - 1));
         for (int i = 1; i < path.size(); i++) {
             int zoneId = path.get(i);
             NavigationZone zone = graph.zoneById(zoneId);
             if (zone == null) return null;
-            steps.add(new SquadPlan.Step(EnterZone.forZone(zone, sim.getGrid())));
+            if (i < path.size() - 1
+                    && zone.getCellCount() == 1
+                    && grid.isDoorwayAt(zone.getCellIndices()[0])) continue;
+            steps.add(new SquadPlan.Step(EnterZone.forZone(zone, grid)));
             steps.add(new SquadPlan.Step(new ClearZone(zoneId)));
         }
         return new SquadPlan(steps);

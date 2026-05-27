@@ -109,13 +109,17 @@ public final class SecureCompoundGoal implements Goal {
         if (path.size() < 2) return null;
 
         var graph = sim.getZoneGraph();
+        var grid = sim.getGrid();
         List<SquadPlan.Step> steps = new ArrayList<>(2 * path.size());
         for (int i = 1; i < path.size(); i++) {
             int zoneId = path.get(i);
             var zone = graph.zoneById(zoneId);
             if (zone == null) return null;
+            if (i < path.size() - 1
+                    && zone.getCellCount() == 1
+                    && grid.isDoorwayAt(zone.getCellIndices()[0])) continue;
             steps.add(new SquadPlan.Step(
-                    com.dillon.starsectormarines.battle.ai.goap.actions.EnterZone.forZone(zone, sim.getGrid())));
+                    com.dillon.starsectormarines.battle.ai.goap.actions.EnterZone.forZone(zone, grid)));
             steps.add(new SquadPlan.Step(new ClearZone(zoneId)));
         }
         steps.add(new SquadPlan.Step(new HoldZone(toZone, node)));

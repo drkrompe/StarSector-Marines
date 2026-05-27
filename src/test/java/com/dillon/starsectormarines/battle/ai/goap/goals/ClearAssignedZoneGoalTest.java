@@ -148,19 +148,14 @@ public class ClearAssignedZoneGoalTest {
 
         SquadPlan plan = ClearAssignedZoneGoal.INSTANCE.customPlan(squad, sim);
         assertNotNull(plan, "reachable assignment should produce a non-null plan");
-        // Same path shape as SecureObjectiveZone: left → doorway → right
-        // produces 2 zone hops × (EnterZone, ClearZone) = 4 steps.
-        assertEquals(4, plan.stepCount(), "expect 2 zone hops × (EnterZone, ClearZone) = 4 steps");
+        // BFS path is [leftZone, doorway, rightZone]. The doorway micro-zone
+        // is skipped — pathfinder handles portal traversal at the cell level.
+        assertEquals(2, plan.stepCount(), "expect 1 zone hop × (EnterZone, ClearZone) = 2 steps");
 
-        int doorwayZone = sim.getZoneGraph().zoneIdAt(WALL_COL, 5);
         assertTrue(plan.steps().get(0).action instanceof EnterZone);
-        assertEquals(doorwayZone, ((EnterZone) plan.steps().get(0).action).targetZoneId());
+        assertEquals(rightZone, ((EnterZone) plan.steps().get(0).action).targetZoneId());
         assertTrue(plan.steps().get(1).action instanceof ClearZone);
-        assertEquals(doorwayZone, ((ClearZone) plan.steps().get(1).action).targetZoneId());
-        assertTrue(plan.steps().get(2).action instanceof EnterZone);
-        assertEquals(rightZone, ((EnterZone) plan.steps().get(2).action).targetZoneId());
-        assertTrue(plan.steps().get(3).action instanceof ClearZone);
-        assertEquals(rightZone, ((ClearZone) plan.steps().get(3).action).targetZoneId());
+        assertEquals(rightZone, ((ClearZone) plan.steps().get(1).action).targetZoneId());
     }
 
     @Test
