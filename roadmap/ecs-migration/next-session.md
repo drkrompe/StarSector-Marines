@@ -1,7 +1,7 @@
 # Next session — picking up the migration
 
-Where today's session (2026-05-27) left off. Read the
-[parent README](README.md) first for the locked-in design rules.
+Read [`overview.md`](overview.md) first for design rules.
+Shipped work is in [`complete/`](complete/).
 
 ## Commit chain so far
 
@@ -18,46 +18,30 @@ a78d417  battle: SoA cellX/cellY — Unit logical position into int[] arrays
 4edb1f4  battle: UnitSpatialIndex + DestIndex rebuild — second SoA consumer
 d2a1cbd  battle: DamageResolver.pickPromotionCandidate — third SoA consumer
 ef4d798  battle: TacticalScoring bulk loops — fourth SoA consumer
-9ff4dae  battle: SquadAlertSystem — fifth SoA consumer migration       ← 2026-05-27
-a4df09b  battle: SoA cooldownTimer — third primitive promotion          ← 2026-05-27
+9ff4dae  battle: SquadAlertSystem — fifth SoA consumer migration
+a4df09b  battle: SoA cooldownTimer — third primitive promotion
 ```
-
-Critique-agent passes on both `9ff4dae` and `a4df09b` came back SHIP,
-no chasers.
 
 ## State of play
 
 - **Three primitives promoted:** hp/maxHp, cellX/cellY, cooldownTimer.
-  cooldownTimer is the first "decrementer-style" per-tick float;
-  establishes the pattern for future timer promotions.
-- **Five concrete consumers** demonstrate the migration shape:
-  SquadMoraleSystem, spatial-index rebuild, DamageResolver,
-  TacticalScoring, and SquadAlertSystem (hottest per-tick file).
+- **Five consumers** on dense-iter + SoA array reads.
 - **Build green; all tests pass.**
 
-## Next-slice candidates
+## Active stories (priority order)
 
-### 1. Next primitive — `moveProgress` (movement interpolation)
-- Single float, ticked every frame in `Unit.advanceAlongPath`.
-- Small reader surface (renderer reads it for inter-cell lerp).
-- Same decrementer-style pattern as cooldownTimer.
+1. **[`move-render-primitives`](stories/move-render-primitives.md)** —
+   moveProgress + renderX/renderY. Natural batch (updated together in
+   `advanceAlongPath`). ~177 combined refs across ~40 files. Highest
+   churn, biggest SoA payoff.
 
-### 2. `renderX` / `renderY` (renderer hot path)
-- Paired floats written by movement, read by BattleScreen's draw loops.
-- Same parallel-array layout as cellX/cellY.
-- Natural batch with moveProgress since they're updated together in
-  `advanceAlongPath`.
+2. **[`tactical-primitives`](stories/tactical-primitives.md)** —
+   attackRange/attackDamage/accuracy. Read-heavy, low churn. TacticalScoring
+   already iterates dense — these become direct array reads.
 
-### 3. Tactical primitives — `attackRange` / `attackDamage` / `accuracy`
-Per-unit stats baked at construction, modified rarely (captain traits,
-loadout). Single-write/many-read. Lower priority since they don't
-churn per tick, but natural batch for SoA consumer hot loops in
-TacticalScoring that already read them.
-
-### 4. `secondaryAimTargetId` / `secondaryActionTimer` — paired
-`shouldCommitRocket`'s squad-aim-window scan iterates these on every
-member of the shooter's squad. Hot path during contested turret pushes
-with multi-rocketeer squads.
+3. **[`secondary-weapon-primitives`](stories/secondary-weapon-primitives.md)** —
+   secondaryAimTargetId/secondaryActionTimer/secondaryCooldownTimer. Tightly
+   scoped to ~8 files. Lowest priority.
 
 ## Sanity check before resuming
 

@@ -33,7 +33,7 @@ universe over time, not retrofitted into intel slots.
   [`conquest/central-keep.md`](conquest/central-keep.md) for the full
   shipped-with-details record. The battle tier's ongoing parallel tracks
   are convoy kinematics (`convoy/`), the Services/Systems + SoA refactor
-  (`ecs-migration/`), fog-of-war, and AI (GOAP + commander).
+  ([`ecs-migration/`](ecs-migration/overview.md)), fog-of-war, and AI (GOAP + commander).
 - **Campaign tier** — SoA `CampaignState`, contracts loop, patron houses,
   mission-resolver bridge. The Marine Ops mission-select screen consumes
   this layer. See [`campaign/`](campaign/).
