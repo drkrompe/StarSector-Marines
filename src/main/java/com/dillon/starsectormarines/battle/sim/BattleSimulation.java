@@ -686,7 +686,7 @@ public class BattleSimulation {
         // garrison/patrol behavior dispatch this tick sees fresh ENGAGED /
         // SUSPICIOUS / UNAWARE state. Solo units (squadId == NO_SQUAD) skip
         // the squad path entirely.
-        squadAlert.tick(units, TICK_DT);
+        squadAlert.tick(TICK_DT);
         tickProfile.lap(TickProfile.Phase.SQUAD_ALERT);
         // Morale recovery + hysteresis. Reads the freshly-set _engagedThisTick
         // flag from SquadAlertSystem: a squad out of contact this tick
