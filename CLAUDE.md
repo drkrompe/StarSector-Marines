@@ -57,6 +57,10 @@ roadmap/<feature>/
   and decomposition into stories.
 - As stories ship, move them from `stories/` to `complete/` with
   shipped-with-details (commit hash, what actually landed vs. planned).
+- **Update docs at commit boundaries.** When committing a story or slice,
+  update `next-session.md` (state of play, commit chain, strike-through
+  shipped stories) and log shipped work in `complete/` in the same commit
+  or immediately after. Don't accumulate doc debt across multiple commits.
 - Keep `roadmap/README.md` current focus and immediate next-up sections honest —
   if priorities shifted, say so.
 - Existing feature dirs are migrated incrementally as they're touched.
