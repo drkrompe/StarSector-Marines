@@ -1,7 +1,7 @@
 # 14 — Mech GOAP Stage 1
 
 **Active.** First implementation slice of the mech-side planner migration
-sketched in [`13-mech-goap.md`](13-mech-goap.md). Replaces
+sketched in [`13-mech-goap.md`](../stories/13-mech-goap.md). Replaces
 `MechCombatantBehavior` with a `GoapMechBehavior` that runs through the
 same squad-level planner infantry uses, with a two-role doctrine split as
 the visible payoff.
@@ -236,7 +236,7 @@ A player-issued order would write the same field a commander would.
 
 `MechRole` is assigned at spawn-time by `BattleSimulation` mech-cluster
 mint logic. **The role is stable for the duration of the battle.** The
-commander tier ([`12-squad-of-squads.md`](12-squad-of-squads.md))
+commander tier ([`12-squad-of-squads.md`](../stories/12-squad-of-squads.md))
 arrives later and writes `squad.assignedObjective` with
 `AssignmentKind.OVERWATCH_KILL_ZONE` / `BACKSTOP_SQUAD` / etc. —
 upgrading what is currently a *role default* into a *commander-issued
@@ -309,10 +309,10 @@ the first version and iterate.
 
 ## Cross-references
 
-- Parent design: [`13-mech-goap.md`](13-mech-goap.md)
-- Commander tier (future tie-in): [`12-squad-of-squads.md`](12-squad-of-squads.md)
+- Parent design: [`13-mech-goap.md`](../stories/13-mech-goap.md)
+- Commander tier (future tie-in): [`12-squad-of-squads.md`](../stories/12-squad-of-squads.md)
 - Infantry story bank (Story E pairs with mech GOAP for screened
-  advance): [`10-tactical-stories.md`](10-tactical-stories.md)
+  advance): [`10-tactical-stories.md`](../stories/10-tactical-stories.md)
 - Mech weapons: `MechWeapon.java`, `MechLoadoutState.java`
 - Current behavior (retiring): `MechCombatantBehavior.java`
 - Memory: `[[mech_weapon_aggro_distinction]]`,

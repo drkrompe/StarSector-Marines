@@ -119,7 +119,7 @@ parity-shaped and the playtest exposed the shape's flaws (tunnel-vision
 pursuit, statue-mode firefights, no retreat). Stage 2 has full license to
 replace it — no Stage 1 action / posture / target-picker is sacred.
 
-Driven by [**10 — Stage 2 Tactical Stories**](10-tactical-stories.md): a
+Driven by [**10 — Stage 2 Tactical Stories**](stories/10-tactical-stories.md): a
 story bank of combat moments we want the player to *see*, with primitives
 derived from the stories rather than from a generic GOAP rolodex.
 
@@ -135,7 +135,7 @@ cordon), K (room-clear sweep), L (choke-point ambush), M (room breach).
 
 **Remaining stories (Slices 4–6):** C (bounding overwatch), D (patrol
 intercept), E (mech-screened advance), F (objective rush under fire),
-H (last-stand camper). See `10-tactical-stories.md` for the full slicing.
+H (last-stand camper). See `stories/10-tactical-stories.md` for the full slicing.
 
 ### Squad-of-squads commander tier (active)
 
@@ -150,7 +150,7 @@ interface, `ObjectiveAssignment` record, `ClearAssignedZoneGoal`,
 work (AssaultCommand, defender-side commanders, richer scoring) queued
 behind playtest + doc 15.
 
-Design lives in [`12-squad-of-squads.md`](12-squad-of-squads.md).
+Design lives in [`12-squad-of-squads.md`](stories/12-squad-of-squads.md).
 
 ### Perception & influence (parked)
 
@@ -161,7 +161,7 @@ influence map that smooths it into a tactical field. Fixes the
 class of bugs and unlocks frontline / bulge / breakthrough reasoning
 for the commander tier.
 
-Design lives in [`15-perception-and-influence.md`](15-perception-and-influence.md).
+Design lives in [`15-perception-and-influence.md`](stories/15-perception-and-influence.md).
 **Near-term cheap wins (threat-direction cover scoring, ranged LoS
 variant, threat-set gate on `HAS_LOS_TO_TARGET`) ship first as a
 tactical task** — they lay the data-flow seam for the full system
@@ -180,7 +180,7 @@ role-aware tree via `GoapMechBehavior`. Stage 1 shipped two roles
   OverwatchKillZone, BackstopAssignedSquad, EngageAtCurrentBand, mech morale.
 
 **Stage 2 (future):** Recon + Assault roles, dynamic re-assignment from
-commander tier. High-level design in [`13-mech-goap.md`](13-mech-goap.md).
+commander tier. High-level design in [`13-mech-goap.md`](stories/13-mech-goap.md).
 
 ### Stage 3 — Mission-specific goals (future)
 

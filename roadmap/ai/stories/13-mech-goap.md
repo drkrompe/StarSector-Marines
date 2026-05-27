@@ -5,7 +5,7 @@ the mech side of the battle sim. Mechs currently run on
 `MechCombatantBehavior` — a per-unit, hand-authored ad-hoc combat loop —
 while infantry runs through the squad-level planner (`GoapInfantryBehavior`).
 This doc is the long-arc plan; the active implementation slice lives in
-[`14-mech-stage1.md`](14-mech-stage1.md).
+[`14-mech-stage1.md`](../complete/14-mech-stage1.md).
 
 **Commander-gate lifted.** The original "wait for commander tier first"
 recommendation has been overridden — Stage 1 ships with *spawn-time role
@@ -203,7 +203,7 @@ Implementation ordering:
 ## Status
 
 **Active — Stage 1 unparked 2026-05-19.** Implementation slice in
-[`14-mech-stage1.md`](14-mech-stage1.md). Stage 1 covers two roles
+[`14-mech-stage1.md`](../complete/14-mech-stage1.md). Stage 1 covers two roles
 (LR Support + Armored Support) via spawn-time assignment; Stage 2
 adds Recon + Assault and any dynamic re-assignment the commander
 tier hands down.

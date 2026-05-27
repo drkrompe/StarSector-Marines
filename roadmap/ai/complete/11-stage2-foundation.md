@@ -1,7 +1,7 @@
 # 11 — Stage 2 Foundation
 
 **Stage 2 prep.** Bookkeeping doc for the work that unlocks parallel
-subagent fanout on the [Stage 2 story bank](10-tactical-stories.md).
+subagent fanout on the [Stage 2 story bank](../stories/10-tactical-stories.md).
 
 Tier 0 is the bottleneck — shared types every story touches. Done
 in-context (not subagent), three small commits. Tier 1 fans out to ~4
@@ -177,7 +177,7 @@ discipline) is unblocked the moment Subagent D ships. Slice 2 (J + K)
 needs Subagent B's zone queries. Slice 3 (G + A + L) needs Subagent A's
 cover model.
 
-The story doc ([10-tactical-stories.md](10-tactical-stories.md)) is
+The story doc ([10-tactical-stories.md](../stories/10-tactical-stories.md)) is
 the per-story spec; this doc is just the foundation. Don't copy story
 details here — keeps the story bank single-source.
 

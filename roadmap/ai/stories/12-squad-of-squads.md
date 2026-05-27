@@ -327,6 +327,6 @@ What's not yet in code (queued behind playtest + doc 15):
 ## Cross-references
 
 - [Story bank](10-tactical-stories.md) — per-squad tactical moments
-- [Tier 1 foundation](11-stage2-foundation.md) — the planner pieces
+- [Tier 1 foundation](../complete/11-stage2-foundation.md) — the planner pieces
   this builds on
 - Memory: `[[mission_type_flavors]]`, `[[long_term_vision_sub_game]]`
