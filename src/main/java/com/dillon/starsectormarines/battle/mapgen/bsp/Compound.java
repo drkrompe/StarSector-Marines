@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.mapgen.bsp;
 
+import com.dillon.starsectormarines.battle.mapgen.BiomeKind;
 import com.dillon.starsectormarines.battle.mapgen.BlockKind;
 import com.dillon.starsectormarines.battle.mapgen.BlockLeaf;
 
@@ -50,14 +51,18 @@ public final class Compound {
     public final List<BlockLeaf> members;
     /** Per-leaf role assignment for sub-building flavoring. */
     public final Map<BlockLeaf, Role> roles;
+    /** Biome the seed leaf sits in. Null on non-conquest maps (no BiomeMap). Used by {@code MilitaryBaseFiller} to emit biome-appropriate tactical node kinds. */
+    public final BiomeKind biome;
     /** Union bounding rect (inclusive). Convenience for renderers / preview overlays — true membership is {@link #members}. */
     public final int left, top, right, bottom;
 
-    public Compound(BlockKind kind, BlockLeaf seed, List<BlockLeaf> members, Map<BlockLeaf, Role> roles) {
+    public Compound(BlockKind kind, BlockLeaf seed, List<BlockLeaf> members,
+                    Map<BlockLeaf, Role> roles, BiomeKind biome) {
         this.kind = kind;
         this.seed = seed;
         this.members = Collections.unmodifiableList(members);
         this.roles = Collections.unmodifiableMap(roles);
+        this.biome = biome;
 
         int l = Integer.MAX_VALUE, t = Integer.MAX_VALUE;
         int r = Integer.MIN_VALUE, b = Integer.MIN_VALUE;

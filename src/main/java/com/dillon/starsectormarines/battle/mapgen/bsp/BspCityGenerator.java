@@ -215,11 +215,23 @@ public final class BspCityGenerator implements MapGenerator {
         // Step 2 — label each leaf using the active zoning overlay.
         labelLeaves(partition, biomeMap, districtMap, rng);
 
+        // Step 2a — forced compound seeding across biomes. Guarantees one
+        // MILITARY_BASE seed per target biome (PORT, CITY, FORTRESS) so
+        // compounds spread along the traversal axis instead of clustering
+        // in the fortress district. Skips biomes that already have a seed
+        // from the natural theme roll. Conquest-only (biomeMap != null).
+        int forcedSeeds = BiomeCompoundSeeder.seed(partition.leaves, biomeMap);
+        if (forcedSeeds > 0) {
+            LOG.info("BspCityGenerator: force-seeded " + forcedSeeds + " compound(s) across biomes");
+        }
+
         // Step 2b — claim multi-leaf compounds (e.g. military bases). Each
         // compound's seed leaf keeps its BlockKind; absorbed neighbor leaves
         // are rewritten to COMPOUND_MEMBER so per-leaf dispatch skips them.
         Map<BlockLeaf, List<BlockLeaf>> adjacency = LeafAdjacency.compute(partition.leaves, width, height);
-        List<Compound> compounds = CompoundClaim.claim(partition.leaves, adjacency, CompoundClaim.DEFAULT_SPECS, rng);
+        List<Compound> compounds = CompoundClaim.claim(partition.leaves, adjacency,
+                biomeMap != null ? CompoundClaim.CONQUEST_SPECS : CompoundClaim.DEFAULT_SPECS,
+                biomeMap, rng);
         this.lastCompounds = compounds;
         Map<BlockLeaf, Compound> compoundBySeed = new IdentityHashMap<>();
         for (Compound c : compounds) compoundBySeed.put(c.seed, c);

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.mapgen.bsp;
 
+import com.dillon.starsectormarines.battle.mapgen.BiomeKind;
 import com.dillon.starsectormarines.battle.mapgen.BlockKind;
 import com.dillon.starsectormarines.battle.mapgen.BlockLeaf;
 
@@ -56,10 +57,22 @@ public final class CompoundClaim {
         }
     }
 
-    /** Default spec set used by {@link BspCityGenerator}. New compound kinds slot in here. */
+    /** Default spec set — non-Conquest missions. One compound per kind max. */
     public static final List<ClaimSpec> DEFAULT_SPECS = Arrays.asList(
             new ClaimSpec(BlockKind.MILITARY_BASE, BlockKind.FORTIFIED_POST,
                     1, 3, 2, 4, 6,
+                    EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE)),
+            new ClaimSpec(BlockKind.GATED_HOUSING, BlockKind.BUILDING_RESIDENTIAL,
+                    1, 3, 2, 4, 5,
+                    EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE)),
+            new ClaimSpec(BlockKind.DENSE_QUARTER, BlockKind.BUILDING_COMMERCIAL,
+                    1, 3, 2, 4, 5,
+                    EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE)));
+
+    /** Conquest spec set — {@link BiomeCompoundSeeder} force-seeds up to 3 MILITARY_BASE leaves (one per biome band). */
+    public static final List<ClaimSpec> CONQUEST_SPECS = Arrays.asList(
+            new ClaimSpec(BlockKind.MILITARY_BASE, BlockKind.FORTIFIED_POST,
+                    3, 3, 2, 4, 6,
                     EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE)),
             new ClaimSpec(BlockKind.GATED_HOUSING, BlockKind.BUILDING_RESIDENTIAL,
                     1, 3, 2, 4, 5,
@@ -78,6 +91,14 @@ public final class CompoundClaim {
     public static List<Compound> claim(List<BlockLeaf> leaves,
                                        Map<BlockLeaf, List<BlockLeaf>> adjacency,
                                        List<ClaimSpec> specs,
+                                       Random rng) {
+        return claim(leaves, adjacency, specs, null, rng);
+    }
+
+    public static List<Compound> claim(List<BlockLeaf> leaves,
+                                       Map<BlockLeaf, List<BlockLeaf>> adjacency,
+                                       List<ClaimSpec> specs,
+                                       BiomeMap biomeMap,
                                        Random rng) {
         List<Compound> out = new ArrayList<>();
         Map<BlockKind, Integer> claimedPerKind = new HashMap<>();
@@ -102,7 +123,9 @@ public final class CompoundClaim {
             for (BlockLeaf m : members) {
                 if (m != seed) m.kind = BlockKind.COMPOUND_MEMBER;
             }
-            out.add(new Compound(spec.seedKind, seed, members, roles));
+            BiomeKind biome = (biomeMap != null)
+                    ? biomeMap.biomeAt(seed.centerX(), seed.centerY()) : null;
+            out.add(new Compound(spec.seedKind, seed, members, roles, biome));
             claimedPerKind.merge(spec.seedKind, 1, Integer::sum);
         }
         return out;

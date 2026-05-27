@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.map.BuildingKind;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.map.RoomPurpose;
+import com.dillon.starsectormarines.battle.mapgen.BiomeKind;
 import com.dillon.starsectormarines.battle.mapgen.BlockKind;
 import com.dillon.starsectormarines.battle.mapgen.BlockLeaf;
 import com.dillon.starsectormarines.battle.mapgen.bsp.Compound;
@@ -150,7 +151,7 @@ public final class MilitaryBaseFiller implements CompoundFiller {
             int anchorY = (poi != null) ? poi.interiorAnchorY : (m.top + m.bottom) / 2;
             switch (role) {
                 case COMMAND:
-                    tactical.add(new TacticalNode(TacticalNode.Kind.COMMAND_POST,
+                    tactical.add(new TacticalNode(commandNodeKind(compound.biome),
                             anchorX, anchorY, m.left, m.top, m.right, m.bottom,
                             Faction.DEFENDER, 95, 4));
                     break;
@@ -176,6 +177,21 @@ public final class MilitaryBaseFiller implements CompoundFiller {
                     break;
             }
         }
+    }
+
+    /**
+     * Biome-driven node kind for the COMMAND leaf. PORT compounds anchor
+     * the convoy supply chain (ARMORY), CITY anchors walk-in (BARRACKS),
+     * FORTRESS anchors shuttle + the keep (COMMAND_POST). Null biome
+     * (non-conquest maps) defaults to COMMAND_POST.
+     */
+    private static TacticalNode.Kind commandNodeKind(BiomeKind biome) {
+        if (biome == null) return TacticalNode.Kind.COMMAND_POST;
+        return switch (biome) {
+            case PORT     -> TacticalNode.Kind.ARMORY;
+            case CITY     -> TacticalNode.Kind.BARRACKS;
+            default       -> TacticalNode.Kind.COMMAND_POST;
+        };
     }
 
     private void markMemberCells(Compound compound, boolean[][] memberCells) {
