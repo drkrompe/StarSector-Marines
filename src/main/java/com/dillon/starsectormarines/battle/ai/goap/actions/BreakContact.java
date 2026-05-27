@@ -56,7 +56,7 @@ public final class BreakContact implements Action {
         if (!atDest) {
             // Transit — opportunistic suppression while pulling back.
             opportunisticFire(member, sim, FireStance.MOVING);
-            if (member.moveProgress == 0f) {
+            if (member.getMoveProgress() == 0f) {
                 sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                         member.getCellX(), member.getCellY(),
                         member.fallbackCellX, member.fallbackCellY,
@@ -66,9 +66,8 @@ public final class BreakContact implements Action {
         } else {
             // In position — hold and fire stanced at anything that drifts in.
             if (!member.pathEmpty()) sim.clearPath(member);
-            member.moveProgress = 0f;
-            member.renderX = member.getCellX();
-            member.renderY = member.getCellY();
+            member.setMoveProgress(0f);
+            member.setRenderPos(member.getCellX(), member.getCellY());
             opportunisticFire(member, sim, FireStance.STANCED);
         }
         return ActionStatus.RUNNING;

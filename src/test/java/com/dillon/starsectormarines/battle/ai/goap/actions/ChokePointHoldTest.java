@@ -209,7 +209,7 @@ public class ChokePointHoldTest {
         hold.execute(d1, squad, sim);
 
         assertTrue(d1.pathEmpty(), "on-post member should have its path cleared");
-        assertEquals(0f, d1.moveProgress, 1e-6f);
+        assertEquals(0f, d1.getMoveProgress(), 1e-6f);
     }
 
     @Test

@@ -99,7 +99,7 @@ public final class HoldZone implements Action {
             hold(member, sim);
             return ActionStatus.RUNNING;
         }
-        if (member.moveProgress == 0f) {
+        if (member.getMoveProgress() == 0f) {
             int[] dest = sim.getTacticalScoring().findFiringPosition(member, target);
             if (dest == null) {
                 member.targetId = 0L;
@@ -133,8 +133,7 @@ public final class HoldZone implements Action {
 
     private static void hold(Unit member, BattleSimulation sim) {
         if (!member.pathEmpty()) sim.clearPath(member);
-        member.moveProgress = 0f;
-        member.renderX = member.getCellX();
-        member.renderY = member.getCellY();
+        member.setMoveProgress(0f);
+        member.setRenderPos(member.getCellX(), member.getCellY());
     }
 }

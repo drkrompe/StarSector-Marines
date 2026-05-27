@@ -195,7 +195,7 @@ public class CordonForPlantTest {
         planter.squadId = 1;
         planter.role = UnitRole.PLANTER;
         planter.assignedObjective = charge;
-        planter.moveProgress = 0f;
+        planter.setMoveProgress(0f);
         sim.addUnit(planter);
         // Tick the objective enough to flip isComplete().
         for (int i = 0; i < 200; i++) charge.tick(sim);

@@ -64,9 +64,8 @@ public final class BreakLOS implements Action {
                       && member.getCellY() == member.fallbackCellY;
         if (atDest) {
             if (!member.pathEmpty()) sim.clearPath(member);
-            member.moveProgress = 0f;
-            member.renderX = member.getCellX();
-            member.renderY = member.getCellY();
+            member.setMoveProgress(0f);
+            member.setRenderPos(member.getCellX(), member.getCellY());
             // Arrived at a hidden cell. The predicate-flip ("no longer in LoS
             // of the threat") is implicit: findFallbackPosition only picks
             // cells hidden from every enemy, so by definition no enemy still
@@ -74,7 +73,7 @@ public final class BreakLOS implements Action {
             // replan picks Overwatch or Engage from this fresh position.
             return ActionStatus.SUCCESS;
         }
-        if (member.moveProgress == 0f) {
+        if (member.getMoveProgress() == 0f) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     member.getCellX(), member.getCellY(),
                     member.fallbackCellX, member.fallbackCellY,

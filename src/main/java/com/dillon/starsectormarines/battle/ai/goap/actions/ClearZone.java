@@ -103,7 +103,7 @@ public final class ClearZone implements Action {
         if (sim.getZoneGraph().zoneIdAt(target.getCellX(), target.getCellY()) != targetZoneId) {
             return ActionStatus.RUNNING;
         }
-        if (member.moveProgress == 0f) {
+        if (member.getMoveProgress() == 0f) {
             int[] dest = sim.getTacticalScoring().findFiringPosition(member, target);
             if (dest == null) {
                 // No reachable firing or vantage cell for this in-zone target.

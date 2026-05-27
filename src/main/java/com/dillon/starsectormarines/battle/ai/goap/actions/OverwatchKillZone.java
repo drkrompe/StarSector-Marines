@@ -100,7 +100,7 @@ public final class OverwatchKillZone implements Action {
         // Path to the overwatch cell. Idempotent — only requests a new path
         // when the mech isn't already at the cell and isn't already moving.
         if ((member.getCellX() != m.overwatchCellX || member.getCellY() != m.overwatchCellY)
-                && member.moveProgress == 0f
+                && member.getMoveProgress() == 0f
                 && member.pathIdx >= member.pathCellCount()) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     member.getCellX(), member.getCellY(),
@@ -110,9 +110,8 @@ public final class OverwatchKillZone implements Action {
         if (member.pathIdx < member.pathCellCount()) {
             sim.advanceMovement(member);
         } else {
-            member.moveProgress = 0f;
-            member.renderX = member.getCellX();
-            member.renderY = member.getCellY();
+            member.setMoveProgress(0f);
+            member.setRenderPos(member.getCellX(), member.getCellY());
         }
 
         // Fire pass — withhold SRM (overwatch doctrine), allow LRM (preferred)

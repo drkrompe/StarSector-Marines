@@ -111,7 +111,7 @@ public final class BackstopAssignedSquad implements Action {
 
         // Path to the backstop cell. Same idempotent pattern as overwatch.
         if ((member.getCellX() != m.overwatchCellX || member.getCellY() != m.overwatchCellY)
-                && member.moveProgress == 0f
+                && member.getMoveProgress() == 0f
                 && member.pathIdx >= member.pathCellCount()) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     member.getCellX(), member.getCellY(),
@@ -121,9 +121,8 @@ public final class BackstopAssignedSquad implements Action {
         if (member.pathIdx < member.pathCellCount()) {
             sim.advanceMovement(member);
         } else {
-            member.moveProgress = 0f;
-            member.renderX = member.getCellX();
-            member.renderY = member.getCellY();
+            member.setMoveProgress(0f);
+            member.setRenderPos(member.getCellX(), member.getCellY());
         }
 
         // Fire pass — all three weapons free. Backstop doctrine is "throw

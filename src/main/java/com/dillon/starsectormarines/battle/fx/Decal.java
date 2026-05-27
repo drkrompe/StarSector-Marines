@@ -13,7 +13,7 @@ import com.dillon.starsectormarines.battle.unit.Unit;
  * ignore decals. Rendered by {@code BattleScreen} between the floor pass and
  * the vehicle pass so parked trucks (and units) draw on top of decals.
  *
- * <p>Position is in fractional cell coords (same convention as {@code Unit.renderX/Y}),
+ * <p>Position is in fractional cell coords (same convention as {@code Unit.getRenderX()/getRenderY()}),
  * so a decal can sit at a cell center, on a cell boundary near a wall, or
  * anywhere a hit lands.
  */

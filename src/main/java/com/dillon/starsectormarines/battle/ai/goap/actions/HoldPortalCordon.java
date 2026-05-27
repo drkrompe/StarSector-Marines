@@ -150,12 +150,11 @@ public final class HoldPortalCordon implements Action {
         boolean onSite = (member.getCellX() == chargeCellX && member.getCellY() == chargeCellY);
         if (onSite) {
             if (!member.pathEmpty()) sim.clearPath(member);
-            member.moveProgress = 0f;
-            member.renderX = member.getCellX();
-            member.renderY = member.getCellY();
+            member.setMoveProgress(0f);
+            member.setRenderPos(member.getCellX(), member.getCellY());
             return ActionStatus.RUNNING;
         }
-        if (member.moveProgress == 0f) {
+        if (member.getMoveProgress() == 0f) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     member.getCellX(), member.getCellY(), chargeCellX, chargeCellY,
                     sim.getOccupancyMap()));
@@ -167,7 +166,7 @@ public final class HoldPortalCordon implements Action {
     /**
      * Portal-holder slot: walk to the assigned guard cell while firing
      * opportunistically, then hold position firing at anything in LOS +
-     * range. The {@code moveProgress / renderX / renderY} reset is what
+     * range. The {@code setMoveProgress / setRenderPos} reset is what
      * pins the holder in place between shots — no micro-movement, the
      * Stage 2 cordon doesn't reposition (Slice 3's cover-aware reposition
      * is the layer that would change that).
@@ -177,7 +176,7 @@ public final class HoldPortalCordon implements Action {
         if (!atPost) {
             // Transit fire — MOVING penalty applies; the holder is mid-step.
             opportunisticFire(member, sim, FireStance.MOVING);
-            if (member.moveProgress == 0f) {
+            if (member.getMoveProgress() == 0f) {
                 sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                         member.getCellX(), member.getCellY(), post.cellX, post.cellY,
                         sim.getOccupancyMap()));
@@ -186,9 +185,8 @@ public final class HoldPortalCordon implements Action {
             return ActionStatus.RUNNING;
         }
         if (!member.pathEmpty()) sim.clearPath(member);
-        member.moveProgress = 0f;
-        member.renderX = member.getCellX();
-        member.renderY = member.getCellY();
+        member.setMoveProgress(0f);
+        member.setRenderPos(member.getCellX(), member.getCellY());
         // On-post fire — STANCED, full accuracy. This is the whole reason
         // we stop and hold: the cordon's lethality comes from stanced shots.
         opportunisticFire(member, sim, FireStance.STANCED);

@@ -118,9 +118,8 @@ public final class EngagePosture implements Action {
             if (member.pathIdx < member.pathCellCount()) {
                 sim.advanceMovement(member);
             } else {
-                member.moveProgress = 0f;
-                member.renderX = member.getCellX();
-                member.renderY = member.getCellY();
+                member.setMoveProgress(0f);
+                member.setRenderPos(member.getCellX(), member.getCellY());
             }
         } else {
             // Stage 1 fallback for members who personally lack LOS or range
@@ -128,7 +127,7 @@ public final class EngagePosture implements Action {
             // otherwise path to a firing position. Stage 2 retires this when
             // per-member action assignment lets us put approach-only members
             // on {@link ApproachPosture} concurrently with engage-only members.
-            if (member.moveProgress == 0f) {
+            if (member.getMoveProgress() == 0f) {
                 int[] dest = InfantryCohesion.cohesionOverride(member, sim);
                 if (dest == null) dest = sim.getTacticalScoring().findFiringPosition(member, target);
                 if (dest == null) {

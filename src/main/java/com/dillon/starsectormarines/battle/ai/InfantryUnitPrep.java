@@ -33,9 +33,8 @@ public final class InfantryUnitPrep {
     public static boolean tickAimAndShortCircuit(Unit unit, BattleSimulation sim) {
         if (unit.secondaryActionTimer <= 0f || unit.secondaryWeapon == null) return false;
         unit.secondaryActionTimer -= BattleSimulation.TICK_DT;
-        unit.moveProgress = 0f;
-        unit.renderX = unit.getCellX();
-        unit.renderY = unit.getCellY();
+        unit.setMoveProgress(0f);
+        unit.setRenderPos(unit.getCellX(), unit.getCellY());
         float fireAt = unit.secondaryWeapon.aimDuration * 0.5f;
         if (!unit.secondaryFiredThisAction && unit.secondaryActionTimer <= fireAt) {
             Unit aimTarget = sim.resolveUnit(unit.secondaryAimTargetId);
@@ -124,9 +123,8 @@ public final class InfantryUnitPrep {
         // tickAimAndShortCircuit will keep doing it. Mirrors what that method
         // does on its own entry path so the visible behavior is consistent
         // from the first frame of the aim window.
-        unit.moveProgress = 0f;
-        unit.renderX = unit.getCellX();
-        unit.renderY = unit.getCellY();
+        unit.setMoveProgress(0f);
+        unit.setRenderPos(unit.getCellX(), unit.getCellY());
         return true;
     }
 }

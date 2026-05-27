@@ -91,7 +91,7 @@ public class BreakContactTest {
 
         BreakContact.INSTANCE.execute(marine, squad, sim);
         assertTrue(marine.pathEmpty(), "arrived → no path should be queued");
-        assertEquals(0f, marine.moveProgress, 1e-6f,
+        assertEquals(0f, marine.getMoveProgress(), 1e-6f,
                 "arrived → moveProgress reset, render position pinned");
     }
 

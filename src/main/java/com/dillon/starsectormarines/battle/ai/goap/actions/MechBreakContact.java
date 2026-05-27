@@ -54,7 +54,7 @@ public final class MechBreakContact implements Action {
                       && member.getCellY() == member.fallbackCellY;
         if (!atDest) {
             opportunisticMechFire(member, sim);
-            if (member.moveProgress == 0f) {
+            if (member.getMoveProgress() == 0f) {
                 sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                         member.getCellX(), member.getCellY(),
                         member.fallbackCellX, member.fallbackCellY,
@@ -63,9 +63,8 @@ public final class MechBreakContact implements Action {
             sim.advanceMovement(member);
         } else {
             if (!member.pathEmpty()) sim.clearPath(member);
-            member.moveProgress = 0f;
-            member.renderX = member.getCellX();
-            member.renderY = member.getCellY();
+            member.setMoveProgress(0f);
+            member.setRenderPos(member.getCellX(), member.getCellY());
             opportunisticMechFire(member, sim);
         }
         return ActionStatus.RUNNING;

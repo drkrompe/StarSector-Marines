@@ -123,9 +123,8 @@ public final class EnterZone implements Action {
 
         if (inContact) {
             if (!member.pathEmpty()) sim.clearPath(member);
-            member.moveProgress = 0f;
-            member.renderX = member.getCellX();
-            member.renderY = member.getCellY();
+            member.setMoveProgress(0f);
+            member.setRenderPos(member.getCellX(), member.getCellY());
             // Accelerate the squad replan so SurviveContact (or any other
             // engagement-tier goal) can take over within a tick or two
             // instead of waiting the full 2s replan period. Throttled so we
@@ -139,7 +138,7 @@ public final class EnterZone implements Action {
             return ActionStatus.RUNNING;
         }
 
-        if (member.moveProgress == 0f) {
+        if (member.getMoveProgress() == 0f) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     member.getCellX(), member.getCellY(), destX, destY, sim.getOccupancyMap()));
         }

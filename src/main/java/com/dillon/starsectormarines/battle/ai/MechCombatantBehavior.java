@@ -45,7 +45,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
         // its short-range weapons (LRMs already fire from here via the indirect
         // path above).
         boolean closeEngagement = inRange && visible && dist <= u.mech.srmPod.range;
-        if (!closeEngagement && u.moveProgress == 0f) {
+        if (!closeEngagement && u.getMoveProgress() == 0f) {
             int[] dest = sim.getTacticalScoring().findFiringPosition(u, target);
             if (dest == null) {
                 // No reachable firing or vantage cell. Drop the target; the
@@ -60,9 +60,8 @@ public final class MechCombatantBehavior implements UnitBehavior {
         if (u.pathIdx < u.pathCellCount()) {
             sim.advanceMovement(u);
         } else {
-            u.moveProgress = 0f;
-            u.renderX = u.getCellX();
-            u.renderY = u.getCellY();
+            u.setMoveProgress(0f);
+            u.setRenderPos(u.getCellX(), u.getCellY());
         }
     }
 

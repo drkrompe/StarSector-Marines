@@ -70,7 +70,7 @@ public final class FleeBehavior implements UnitBehavior {
         u.wanderDwellTimer = 0f;
         boolean needsRepath = u.pathIdx >= u.pathCellCount()
                 || cellsTraveled(u) >= REPATH_CELL_THRESHOLD;
-        if (needsRepath && u.moveProgress == 0f) {
+        if (needsRepath && u.getMoveProgress() == 0f) {
             int[] dest = pickFleeDestination(u, threat, sim);
             if (dest != null) {
                 sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), u.getCellX(), u.getCellY(), dest[0], dest[1], sim.getOccupancyMap()));
@@ -96,13 +96,12 @@ public final class FleeBehavior implements UnitBehavior {
 
         if (u.wanderDwellTimer > 0f) {
             u.wanderDwellTimer -= BattleSimulation.TICK_DT;
-            u.renderX = u.getCellX();
-            u.renderY = u.getCellY();
-            u.moveProgress = 0f;
+            u.setRenderPos(u.getCellX(), u.getCellY());
+            u.setMoveProgress(0f);
             return;
         }
 
-        if (u.moveProgress != 0f) return;
+        if (u.getMoveProgress() != 0f) return;
         int[] dest = pickWanderDestination(u, sim);
         if (dest == null) {
             u.wanderDwellTimer = FAILED_SAMPLE_DWELL;

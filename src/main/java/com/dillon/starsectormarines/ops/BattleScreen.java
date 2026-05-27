@@ -1831,8 +1831,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         for (Unit u : sim.getDeathsThisFrame()) {
             if (u.faction == Faction.MARINE) {
                 Vector2f loc = new Vector2f(
-                        u.renderX * AUDIO_WORLD_UNITS_PER_CELL,
-                        u.renderY * AUDIO_WORLD_UNITS_PER_CELL);
+                        u.getRenderX() * AUDIO_WORLD_UNITS_PER_CELL,
+                        u.getRenderY() * AUDIO_WORLD_UNITS_PER_CELL);
                 Global.getSoundPlayer().playSound(SFX_VOICE_DEAD, 1f, 1f, loc, zeroVel);
                 break;  // one voice per frame
             }
@@ -2987,8 +2987,8 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (uv == com.dillon.starsectormarines.battle.vision.VisionService.VIS_FADING) {
                 barAlpha *= vis.getFadeAlpha(u.denseIdx);
             }
-            float cx = camera.cellToScreenX(u.renderX + 0.5f);
-            float cy = camera.cellToScreenY(u.renderY + 0.5f);
+            float cx = camera.cellToScreenX(u.getRenderX() + 0.5f);
+            float cy = camera.cellToScreenY(u.getRenderY() + 0.5f);
             float barW = unitSize;
             float barX = cx - barW / 2f;
             float barY;
@@ -3057,8 +3057,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         sheet.setAlphaMult(alphaMult);
         sheet.setNormalBlend();
         sheet.setColor(Color.WHITE);
-        float cx = camera.cellToScreenX(u.renderX + 0.5f);
-        float cy = camera.cellToScreenY(u.renderY + 0.5f);
+        float cx = camera.cellToScreenX(u.getRenderX() + 0.5f);
+        float cy = camera.cellToScreenY(u.getRenderY() + 0.5f);
         sheet.renderAtCenter(cx, cy);
     }
 
@@ -3416,8 +3416,8 @@ public class BattleScreen implements Screen, BattleUiContext {
             sheet.setAlphaMult(alphaMult);
             sheet.setNormalBlend();
             sheet.setColor(Color.WHITE);
-            float cx = camera.cellToScreenX(u.renderX + 0.5f);
-            float cy = camera.cellToScreenY(u.renderY + 0.5f);
+            float cx = camera.cellToScreenX(u.getRenderX() + 0.5f);
+            float cy = camera.cellToScreenY(u.getRenderY() + 0.5f);
             sheet.renderAtCenter(cx, cy);
             touched.add(cache);
         }
@@ -3437,8 +3437,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glBegin(GL_QUADS);
         glColor4f(c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, alphaMult);
-        float cx = camera.cellToScreenX(u.renderX + 0.5f);
-        float cy = camera.cellToScreenY(u.renderY + 0.5f);
+        float cx = camera.cellToScreenX(u.getRenderX() + 0.5f);
+        float cy = camera.cellToScreenY(u.getRenderY() + 0.5f);
         glVertex2f(cx - half, cy - half);
         glVertex2f(cx + half, cy - half);
         glVertex2f(cx + half, cy + half);

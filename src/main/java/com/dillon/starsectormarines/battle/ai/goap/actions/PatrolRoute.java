@@ -160,23 +160,21 @@ public final class PatrolRoute implements Action {
     }
 
     private static void moveToward(Unit member, BattleSimulation sim, int tx, int ty) {
-        if (member.moveProgress == 0f && member.pathIdx >= member.pathCellCount()) {
+        if (member.getMoveProgress() == 0f && member.pathIdx >= member.pathCellCount()) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     member.getCellX(), member.getCellY(), tx, ty, sim.getOccupancyMap()));
         }
         if (member.pathIdx < member.pathCellCount()) {
             sim.advanceMovement(member);
         } else {
-            member.moveProgress = 0f;
-            member.renderX = member.getCellX();
-            member.renderY = member.getCellY();
+            member.setMoveProgress(0f);
+            member.setRenderPos(member.getCellX(), member.getCellY());
         }
     }
 
     private static void hold(Unit member, BattleSimulation sim) {
         sim.clearPath(member);
-        member.moveProgress = 0f;
-        member.renderX = member.getCellX();
-        member.renderY = member.getCellY();
+        member.setMoveProgress(0f);
+        member.setRenderPos(member.getCellX(), member.getCellY());
     }
 }

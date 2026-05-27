@@ -106,7 +106,7 @@ public final class GarrisonCordon implements Action {
         boolean atPost = (member.getCellX() == post.cellX && member.getCellY() == post.cellY);
         if (!atPost) {
             opportunisticFire(member, sim, FireStance.MOVING);
-            if (member.moveProgress == 0f) {
+            if (member.getMoveProgress() == 0f) {
                 sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                         member.getCellX(), member.getCellY(), post.cellX, post.cellY,
                         sim.getOccupancyMap()));
@@ -115,9 +115,8 @@ public final class GarrisonCordon implements Action {
             return ActionStatus.RUNNING;
         }
         if (!member.pathEmpty()) sim.clearPath(member);
-        member.moveProgress = 0f;
-        member.renderX = member.getCellX();
-        member.renderY = member.getCellY();
+        member.setMoveProgress(0f);
+        member.setRenderPos(member.getCellX(), member.getCellY());
         opportunisticFire(member, sim, FireStance.STANCED);
         return ActionStatus.RUNNING;
     }

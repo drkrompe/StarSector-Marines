@@ -97,8 +97,8 @@ public class OverwatchPostureTest {
         assertTrue(defender.pathEmpty(), "Overwatch must not queue a path");
         assertEquals(5, defender.getCellX());
         assertEquals(5, defender.getCellY());
-        assertEquals(0f, defender.moveProgress, 1e-6f);
-        assertEquals(defender.getCellX(), defender.renderX, 1e-6f);
-        assertEquals(defender.getCellY(), defender.renderY, 1e-6f);
+        assertEquals(0f, defender.getMoveProgress(), 1e-6f);
+        assertEquals(defender.getCellX(), defender.getRenderX(), 1e-6f);
+        assertEquals(defender.getCellY(), defender.getRenderY(), 1e-6f);
     }
 }

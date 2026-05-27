@@ -24,12 +24,11 @@ public final class FallbackBehavior implements UnitBehavior {
         int fy = u.fallbackCellY;
         if (u.getCellX() == fx && u.getCellY() == fy) {
             sim.clearPath(u);
-            u.moveProgress = 0f;
-            u.renderX = u.getCellX();
-            u.renderY = u.getCellY();
+            u.setMoveProgress(0f);
+            u.setRenderPos(u.getCellX(), u.getCellY());
             return;
         }
-        if (u.moveProgress == 0f) {
+        if (u.getMoveProgress() == 0f) {
             sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), u.getCellX(), u.getCellY(), fx, fy, sim.getOccupancyMap()));
         }
         sim.advanceMovement(u);

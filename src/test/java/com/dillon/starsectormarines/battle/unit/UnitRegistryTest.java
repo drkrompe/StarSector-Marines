@@ -378,6 +378,108 @@ public class UnitRegistryTest {
     }
 
     @Test
+    public void allocateSeedsMoveProgressAndAccessorsRouteThroughRegistry() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        u.localMoveProgress = 0.6f;
+
+        r.allocate(u);
+
+        assertEquals(0.6f, u.getMoveProgress(), 1e-6f);
+        assertEquals(0.6f, r.getMoveProgress(u.denseIdx), 1e-6f);
+
+        u.setMoveProgress(0.2f);
+        assertEquals(0.2f, r.getMoveProgress(u.denseIdx), 1e-6f);
+        assertEquals(0.2f, u.getMoveProgress(), 1e-6f);
+    }
+
+    @Test
+    public void releaseSnapshotsMoveProgressBackToLocalField() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        r.allocate(u);
+
+        u.setMoveProgress(0.75f);
+        r.release(u.entityId);
+
+        assertNull(u.registry);
+        assertEquals(-1, u.denseIdx);
+        assertEquals(0.75f, u.getMoveProgress(), 1e-6f);
+    }
+
+    @Test
+    public void releaseTailSwapMovesMoveProgressCorrectly() {
+        UnitRegistry r = new UnitRegistry();
+        Unit a = unit("a");
+        Unit b = unit("b");
+        Unit c = unit("c");
+        long idA = r.allocate(a);
+        r.allocate(b);
+        r.allocate(c);
+        c.setMoveProgress(0.9f);
+
+        r.release(idA);
+
+        assertEquals(0, c.denseIdx);
+        assertEquals(0.9f, r.getMoveProgress(0), 1e-6f);
+        assertEquals(0.9f, c.getMoveProgress(), 1e-6f);
+    }
+
+    @Test
+    public void allocateSeedsRenderPosAndAccessorsRouteThroughRegistry() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = new Unit("u", Faction.MARINE, UnitType.MARINE_BLUE, 5, 8);
+
+        r.allocate(u);
+
+        assertEquals(5f, u.getRenderX(), 1e-6f);
+        assertEquals(8f, u.getRenderY(), 1e-6f);
+        assertEquals(5f, r.getRenderX(u.denseIdx), 1e-6f);
+        assertEquals(8f, r.getRenderY(u.denseIdx), 1e-6f);
+
+        u.setRenderPos(5.3f, 8.7f);
+        assertEquals(5.3f, r.getRenderX(u.denseIdx), 1e-6f);
+        assertEquals(8.7f, r.getRenderY(u.denseIdx), 1e-6f);
+        assertEquals(5.3f, u.getRenderX(), 1e-6f);
+        assertEquals(8.7f, u.getRenderY(), 1e-6f);
+    }
+
+    @Test
+    public void releaseSnapshotsRenderPosBackToLocalField() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = new Unit("u", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
+        r.allocate(u);
+
+        u.setRenderPos(3.5f, 7.2f);
+        r.release(u.entityId);
+
+        assertNull(u.registry);
+        assertEquals(-1, u.denseIdx);
+        assertEquals(3.5f, u.getRenderX(), 1e-6f);
+        assertEquals(7.2f, u.getRenderY(), 1e-6f);
+    }
+
+    @Test
+    public void releaseTailSwapMovesRenderPosCorrectly() {
+        UnitRegistry r = new UnitRegistry();
+        Unit a = new Unit("a", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
+        Unit b = new Unit("b", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
+        Unit c = new Unit("c", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
+        long idA = r.allocate(a);
+        r.allocate(b);
+        r.allocate(c);
+        c.setRenderPos(11.5f, 22.3f);
+
+        r.release(idA);
+
+        assertEquals(0, c.denseIdx);
+        assertEquals(11.5f, r.getRenderX(0), 1e-6f);
+        assertEquals(22.3f, r.getRenderY(0), 1e-6f);
+        assertEquals(11.5f, c.getRenderX(), 1e-6f);
+        assertEquals(22.3f, c.getRenderY(), 1e-6f);
+    }
+
+    @Test
     public void releaseOfReservedZeroSentinelIsNoOp() {
         UnitRegistry r = new UnitRegistry();
         Unit a = unit("a");

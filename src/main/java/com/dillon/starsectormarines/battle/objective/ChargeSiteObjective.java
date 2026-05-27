@@ -51,7 +51,7 @@ public final class ChargeSiteObjective implements Objective {
             if (!u.isAlive()) continue;
             if (u.role != UnitRole.PLANTER) continue;
             if (u.assignedObjective != this) continue;
-            if (u.getCellX() == cellX && u.getCellY() == cellY && u.moveProgress == 0f) {
+            if (u.getCellX() == cellX && u.getCellY() == cellY && u.getMoveProgress() == 0f) {
                 planterOnSiteThisTick = true;
                 break;
             }

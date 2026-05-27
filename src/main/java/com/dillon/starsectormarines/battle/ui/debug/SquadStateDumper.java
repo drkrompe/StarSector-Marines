@@ -147,7 +147,7 @@ public final class SquadStateDumper {
             o.put("currentZone", sim.getZoneGraph().zoneIdAt(u.getCellX(), u.getCellY()));
             o.put("hp", u.getHp());
             o.put("maxHp", u.getMaxHp());
-            o.put("moveProgress", u.moveProgress);
+            o.put("moveProgress", u.getMoveProgress());
             Unit dumpTarget = sim.targetOf(u);
             o.put("targetId", dumpTarget != null ? dumpTarget.id : null);
             // Pathfinder reachability of the unit's current target. False

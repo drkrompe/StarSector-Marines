@@ -93,9 +93,15 @@ public class Unit {
     public int localCellX;
     public int localCellY;
 
-    // Smooth render position in cell units. Equals (cellX, cellY) at rest.
-    public float renderX;
-    public float renderY;
+    /**
+     * <b>Don't read directly.</b> Smooth render-position pre-allocate seed +
+     * post-release snapshot, same lifecycle as {@link #localHp}. Canonical
+     * storage between allocate and release lives in
+     * {@code registry.renderXArray()[denseIdx]} / {@code renderYArray()[denseIdx]};
+     * go through {@link #getRenderX} / {@link #getRenderY} / {@link #setRenderPos}.
+     */
+    public float localRenderX;
+    public float localRenderY;
 
     /**
      * Current path as a flat {@code int[]} of interleaved {@code x,y} pairs —
@@ -107,7 +113,7 @@ public class Unit {
     public int[] path = GridPathfinder.EMPTY_PATH;
     /** Index of the next cell along {@link #path} to step into — addresses cells, not raw int positions (i.e. path slots {@code [pathIdx*2, pathIdx*2+1]}). */
     public int pathIdx = 0;
-    public float moveProgress = 0f; // 0..1 toward path[pathIdx]
+    public float localMoveProgress = 0f;
 
     /** Convenience accessor — number of cells in {@link #path}. */
     public int pathCellCount() { return path.length >> 1; }
@@ -126,16 +132,15 @@ public class Unit {
         float dy = nextY - getCellY();
         float cellDist = (float) Math.sqrt(dx * dx + dy * dy);
         if (cellDist < 0.0001f) { pathIdx++; return; }
-        moveProgress += (moveSpeed * dt) / cellDist;
-        if (moveProgress >= 1f) {
+        float mp = getMoveProgress() + (moveSpeed * dt) / cellDist;
+        if (mp >= 1f) {
             setCellPos(nextX, nextY);
-            renderX = nextX;
-            renderY = nextY;
-            moveProgress = 0f;
+            setRenderPos(nextX, nextY);
+            setMoveProgress(0f);
             pathIdx++;
         } else {
-            renderX = getCellX() + dx * moveProgress;
-            renderY = getCellY() + dy * moveProgress;
+            setMoveProgress(mp);
+            setRenderPos(getCellX() + dx * mp, getCellY() + dy * mp);
         }
     }
 
@@ -338,8 +343,8 @@ public class Unit {
         this.type = type;
         this.localCellX = cellX;
         this.localCellY = cellY;
-        this.renderX = cellX;
-        this.renderY = cellY;
+        this.localRenderX = cellX;
+        this.localRenderY = cellY;
         this.moveSpeed = type.moveSpeed;
         // Pre-allocate seed; UnitRegistry.allocate will read these into the
         // SoA arrays. Use the field directly here because the registry-side
@@ -416,5 +421,41 @@ public class Unit {
     public final void setCooldownTimer(float v) {
         if (registry != null) registry.setCooldownTimer(denseIdx, v);
         else localCooldownTimer = v;
+    }
+
+    public final float getMoveProgress() {
+        return (registry != null) ? registry.getMoveProgress(denseIdx) : localMoveProgress;
+    }
+
+    public final void setMoveProgress(float v) {
+        if (registry != null) registry.setMoveProgress(denseIdx, v);
+        else localMoveProgress = v;
+    }
+
+    public final float getRenderX() {
+        return (registry != null) ? registry.getRenderX(denseIdx) : localRenderX;
+    }
+
+    public final float getRenderY() {
+        return (registry != null) ? registry.getRenderY(denseIdx) : localRenderY;
+    }
+
+    public final void setRenderX(float v) {
+        if (registry != null) registry.setRenderX(denseIdx, v);
+        else localRenderX = v;
+    }
+
+    public final void setRenderY(float v) {
+        if (registry != null) registry.setRenderY(denseIdx, v);
+        else localRenderY = v;
+    }
+
+    public final void setRenderPos(float x, float y) {
+        if (registry != null) {
+            registry.setRenderPos(denseIdx, x, y);
+        } else {
+            localRenderX = x;
+            localRenderY = y;
+        }
     }
 }

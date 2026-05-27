@@ -31,17 +31,17 @@ public class FireStanceTest {
     @Test
     public void stanceForReadsMoveProgress() {
         Unit stationary = new Unit("s", Faction.MARINE, UnitType.MARINE, 0, 0);
-        stationary.moveProgress = 0f;
+        stationary.setMoveProgress(0f);
         assertEquals(FireStance.STANCED, FireStance.stanceFor(stationary),
                 "moveProgress == 0 → STANCED");
 
         Unit walking = new Unit("w", Faction.MARINE, UnitType.MARINE, 0, 0);
-        walking.moveProgress = 0.5f;
+        walking.setMoveProgress(0.5f);
         assertEquals(FireStance.MOVING, FireStance.stanceFor(walking),
                 "moveProgress > 0 → MOVING (strict rule: any lerp = moving)");
 
         Unit almostThere = new Unit("a", Faction.MARINE, UnitType.MARINE, 0, 0);
-        almostThere.moveProgress = 0.95f;
+        almostThere.setMoveProgress(0.95f);
         assertEquals(FireStance.MOVING, FireStance.stanceFor(almostThere),
                 "even a near-arrived unit is still MOVING — visually still lerping");
     }

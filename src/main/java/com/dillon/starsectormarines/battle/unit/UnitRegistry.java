@@ -84,6 +84,12 @@ public final class UnitRegistry {
     private int[] cellY = new int[INITIAL_CAPACITY];
     /** Per-unit primary weapon cooldown (sim-seconds until next fire). Same lifecycle as {@link #hp}. */
     private float[] cooldownTimer = new float[INITIAL_CAPACITY];
+    /** Per-unit movement lerp factor [0,1] toward the next path cell. Same lifecycle as {@link #hp}. */
+    private float[] moveProgress = new float[INITIAL_CAPACITY];
+    /** Per-unit smooth render X in cell units. Same lifecycle as {@link #hp}. */
+    private float[] renderX = new float[INITIAL_CAPACITY];
+    /** Per-unit smooth render Y in cell units. Same lifecycle as {@link #hp}. */
+    private float[] renderY = new float[INITIAL_CAPACITY];
     private int liveCount = 0;
     private long nextId = 1L;
 
@@ -122,6 +128,9 @@ public final class UnitRegistry {
             cellX = Arrays.copyOf(cellX, newCap);
             cellY = Arrays.copyOf(cellY, newCap);
             cooldownTimer = Arrays.copyOf(cooldownTimer, newCap);
+            moveProgress = Arrays.copyOf(moveProgress, newCap);
+            renderX = Arrays.copyOf(renderX, newCap);
+            renderY = Arrays.copyOf(renderY, newCap);
         }
         long id = nextId++;
         u.entityId = id;
@@ -137,6 +146,9 @@ public final class UnitRegistry {
         cellX[liveCount] = u.localCellX;
         cellY[liveCount] = u.localCellY;
         cooldownTimer[liveCount] = u.localCooldownTimer;
+        moveProgress[liveCount] = u.localMoveProgress;
+        renderX[liveCount] = u.localRenderX;
+        renderY[liveCount] = u.localRenderY;
         u.denseIdx = liveCount;
         u.registry = this;
         indexById.put(id, liveCount);
@@ -173,6 +185,9 @@ public final class UnitRegistry {
         released.localCellX = cellX[idx];
         released.localCellY = cellY[idx];
         released.localCooldownTimer = cooldownTimer[idx];
+        released.localMoveProgress = moveProgress[idx];
+        released.localRenderX = renderX[idx];
+        released.localRenderY = renderY[idx];
         released.denseIdx = -1;
         released.registry = null;
         if (idx != last) {
@@ -183,6 +198,9 @@ public final class UnitRegistry {
             cellX[idx] = cellX[last];
             cellY[idx] = cellY[last];
             cooldownTimer[idx] = cooldownTimer[last];
+            moveProgress[idx] = moveProgress[last];
+            renderX[idx] = renderX[last];
+            renderY[idx] = renderY[last];
             tail.denseIdx = idx;
             indexById.put(tail.entityId, idx);
         }
@@ -262,6 +280,21 @@ public final class UnitRegistry {
     public float getCooldownTimer(int idx) { return cooldownTimer[idx]; }
     public void setCooldownTimer(int idx, float v) { cooldownTimer[idx] = v; }
     public float[] cooldownTimerArray() { return cooldownTimer; }
+
+    public float getMoveProgress(int idx) { return moveProgress[idx]; }
+    public void setMoveProgress(int idx, float v) { moveProgress[idx] = v; }
+    public float[] moveProgressArray() { return moveProgress; }
+
+    public float getRenderX(int idx) { return renderX[idx]; }
+    public float getRenderY(int idx) { return renderY[idx]; }
+    public void setRenderX(int idx, float v) { renderX[idx] = v; }
+    public void setRenderY(int idx, float v) { renderY[idx] = v; }
+    public void setRenderPos(int idx, float x, float y) {
+        renderX[idx] = x;
+        renderY[idx] = y;
+    }
+    public float[] renderXArray() { return renderX; }
+    public float[] renderYArray() { return renderY; }
 
     public int liveCount() {
         return liveCount;

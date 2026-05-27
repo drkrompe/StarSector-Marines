@@ -127,13 +127,12 @@ public final class DroneSwarmAction implements Action {
         }
 
         d.setCellPos((int) Math.floor(d.body.x), (int) Math.floor(d.body.y));
-        // Sync renderX/Y so the shot pipeline picks up the drone's actual
+        // Sync render position so the shot pipeline picks up the drone's actual
         // position. InfantryWeapons.fireShot computes the tracer origin as
-        // (shooter.renderX + 0.5, shooter.renderY + 0.5); without this sync
+        // (shooter.getRenderX() + 0.5, shooter.getRenderY() + 0.5); without this sync
         // the tracers fire from the drone's spawn cell while the sprite
         // visually orbits the target.
-        d.renderX = d.body.x - 0.5f;
-        d.renderY = d.body.y - 0.5f;
+        d.setRenderPos(d.body.x - 0.5f, d.body.y - 0.5f);
 
         if (s.fireThisTick && s.target != null) {
             sim.fireShot(d, s.target, FireStance.STANCED);

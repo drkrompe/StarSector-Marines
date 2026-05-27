@@ -158,7 +158,7 @@ public class SabotageCommandTest {
         Unit p = new Unit("complete-" + name, Faction.MARINE, UnitType.MARINE, x, y);
         p.role = UnitRole.PLANTER;
         p.assignedObjective = cs;
-        p.moveProgress = 0f;
+        p.setMoveProgress(0f);
         sim.addUnit(p);
         cs.tick(sim);
         return cs;

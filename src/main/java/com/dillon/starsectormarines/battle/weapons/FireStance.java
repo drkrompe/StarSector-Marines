@@ -49,6 +49,6 @@ public enum FireStance {
      * downgraded mid-burst.
      */
     public static FireStance stanceFor(Unit u) {
-        return u.moveProgress > 0f ? MOVING : STANCED;
+        return u.getMoveProgress() > 0f ? MOVING : STANCED;
     }
 }

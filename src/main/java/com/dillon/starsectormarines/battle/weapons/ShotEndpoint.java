@@ -53,8 +53,8 @@ public final class ShotEndpoint {
      * profile.
      */
     public static Endpoint resolve(Unit target, boolean hit, float effectiveSpread, Random rng) {
-        float cx = target.renderX + 0.5f;
-        float cy = target.renderY + 0.5f;
+        float cx = target.getRenderX() + 0.5f;
+        float cy = target.getRenderY() + 0.5f;
         float angle = rng.nextFloat() * (float) (Math.PI * 2);
         float radius;
         if (hit) {

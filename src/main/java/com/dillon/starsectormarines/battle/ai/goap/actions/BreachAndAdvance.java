@@ -150,9 +150,8 @@ public final class BreachAndAdvance implements Action {
 
         if (member.getCellX() == destX && member.getCellY() == destY) {
             if (!member.pathEmpty()) sim.clearPath(member);
-            member.moveProgress = 0f;
-            member.renderX = member.getCellX();
-            member.renderY = member.getCellY();
+            member.setMoveProgress(0f);
+            member.setRenderPos(member.getCellX(), member.getCellY());
             // Squad-wide success: all members are at their forward cells.
             // Per-member success would advance the plan after the first
             // arrives, which would let the rest scramble independently.
@@ -169,7 +168,7 @@ public final class BreachAndAdvance implements Action {
             return ActionStatus.RUNNING;
         }
 
-        if (member.moveProgress == 0f) {
+        if (member.getMoveProgress() == 0f) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     member.getCellX(), member.getCellY(), destX, destY, sim.getOccupancyMap()));
         }

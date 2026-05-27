@@ -222,7 +222,7 @@ public final class ChokePointHold implements Action {
             // Transit: walk to the bound LOS cell. No opportunistic fire —
             // single-portal hold is about the concentrated burst, the squad
             // holds discipline en route as well as on-post.
-            if (member.moveProgress == 0f) {
+            if (member.getMoveProgress() == 0f) {
                 sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                         member.getCellX(), member.getCellY(), targetX, targetY,
                         sim.getOccupancyMap()));
@@ -233,9 +233,8 @@ public final class ChokePointHold implements Action {
 
         // On-post — pin in place between bursts.
         if (!member.pathEmpty()) sim.clearPath(member);
-        member.moveProgress = 0f;
-        member.renderX = member.getCellX();
-        member.renderY = member.getCellY();
+        member.setMoveProgress(0f);
+        member.setRenderPos(member.getCellX(), member.getCellY());
 
         // Concentrated-fire trigger: ENEMY_IN_PORTAL_CELL true this tick →
         // every on-post member with LoS to the portal cell fires. The
