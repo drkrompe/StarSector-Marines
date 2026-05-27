@@ -134,36 +134,78 @@ public final class ConvoyMeans implements ReinforcementMeans {
         inY[0] = offY;
         System.arraycopy(inboundCells[0], 0, inX, 1, len);
         System.arraycopy(inboundCells[1], 0, inY, 1, len);
-
-        float[][] outCoarse = ConvoyPlanner.reverse(inboundCells[0], inboundCells[1]);
-        if (outCoarse[0].length >= 2) {
-            int inLast = inboundCells[0].length - 1;
-            float lzFacing = AirBody.facingToward(
-                    inboundCells[0][inLast] - inboundCells[0][inLast - 1],
-                    inboundCells[1][inLast] - inboundCells[1][inLast - 1]);
-            int outLast = outCoarse[0].length - 1;
-            float exitFacing = AirBody.facingToward(
-                    offX - outCoarse[0][outLast], offY - outCoarse[1][outLast]);
-            float[][] outRefined = HybridAStarPlanner.refine(
-                    outCoarse[0], outCoarse[1], lzFacing, exitFacing,
-                    VehicleType.HEAVY_APC, sim.getGrid());
-            if (outRefined != null) outCoarse = outRefined;
+        float[] inH = null;
+        if (inboundCells.length > 2) {
+            inH = new float[len + 1];
+            inH[0] = AirBody.facingToward(inX[1] - inX[0], inY[1] - inY[0]);
+            System.arraycopy(inboundCells[2], 0, inH, 1, len);
         }
-        int outLen = outCoarse[0].length;
+
+        RoadGraph.Node exitNode = ConvoyPlanner.pickExitNode(graph, dest, entry);
+        List<RoadGraph.Edge> outPath = ConvoyPlanner.planPath(graph, dest, exitNode);
+        float[][] outCells;
+        if (outPath != null && !outPath.isEmpty()) {
+            outCells = ConvoyPlanner.expandToWaypoints(outPath, dest);
+        } else {
+            outCells = new float[][]{ new float[]{dest.cellX + 0.5f}, new float[]{dest.cellY + 0.5f} };
+        }
+
+        int inLast = inboundCells[0].length - 1;
+        float lzX = inboundCells[0][inLast];
+        float lzY = inboundCells[1][inLast];
+        float lzFacing = AirBody.facingToward(
+                inboundCells[0][inLast] - inboundCells[0][inLast - 1],
+                inboundCells[1][inLast] - inboundCells[1][inLast - 1]);
+        float distLzToDest = (float) Math.sqrt(
+                (lzX - outCells[0][0]) * (lzX - outCells[0][0])
+              + (lzY - outCells[1][0]) * (lzY - outCells[1][0]));
+        if (distLzToDest > 0.5f) {
+            float[] pX = new float[outCells[0].length + 1];
+            float[] pY = new float[outCells[1].length + 1];
+            pX[0] = lzX;
+            pY[0] = lzY;
+            System.arraycopy(outCells[0], 0, pX, 1, outCells[0].length);
+            System.arraycopy(outCells[1], 0, pY, 1, outCells[1].length);
+            outCells = new float[][] { pX, pY };
+        }
+
+        float exitOffX = exitNode.cellX + 0.5f;
+        float exitOffY = exitNode.cellY + 0.5f;
+        if (exitNode.cellY == 0)            exitOffY = -OFFMAP_PAD;
+        else if (exitNode.cellY == gh - 1)  exitOffY = gh + OFFMAP_PAD;
+        else if (exitNode.cellX == 0)       exitOffX = -OFFMAP_PAD;
+        else if (exitNode.cellX == gw - 1)  exitOffX = gw + OFFMAP_PAD;
+        if (outCells[0].length >= 2) {
+            int outLast = outCells[0].length - 1;
+            float exitFacing = AirBody.facingToward(
+                    exitOffX - outCells[0][outLast], exitOffY - outCells[1][outLast]);
+            outCells = ConvoyPlanner.refineWithFallback(
+                    outCells[0], outCells[1], lzFacing, exitFacing,
+                    VehicleType.HEAVY_APC, sim.getGrid());
+        }
+        int outLen = outCells[0].length;
         float[] outX = new float[outLen + 1];
         float[] outY = new float[outLen + 1];
-        System.arraycopy(outCoarse[0], 0, outX, 0, outLen);
-        System.arraycopy(outCoarse[1], 0, outY, 0, outLen);
-        outX[outLen] = offX;
-        outY[outLen] = offY;
+        System.arraycopy(outCells[0], 0, outX, 0, outLen);
+        System.arraycopy(outCells[1], 0, outY, 0, outLen);
+        outX[outLen] = exitOffX;
+        outY[outLen] = exitOffY;
+        float[] outH = new float[outLen + 1];
+        if (outCells.length > 2) {
+            System.arraycopy(outCells[2], 0, outH, 0, outLen);
+        }
+        outH[outLen] = AirBody.facingToward(exitOffX - outX[outLen - 1], exitOffY - outY[outLen - 1]);
 
         Vehicle truck = new Vehicle(
                 VehicleType.HEAVY_APC, Faction.DEFENDER,
                 inX, inY, outX, outY,
                 PENDING_SEC);
         truck.pathRefined = wasRefined;
+        truck.inboundHeading = inH;
+        truck.outboundHeading = outH;
         sim.addConvoyVehicle(truck);
         LOG.info("ConvoyMeans: dispatched HEAVY_APC entry=(" + entry.cellX + "," + entry.cellY
+                + ") exit=(" + exitNode.cellX + "," + exitNode.cellY
                 + ") rally=(" + rx + "," + ry + ") path=" + path.size() + "edges/" + inX.length + "wps");
     }
 

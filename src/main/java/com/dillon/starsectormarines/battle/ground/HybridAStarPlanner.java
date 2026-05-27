@@ -57,7 +57,7 @@ public final class HybridAStarPlanner {
      * @param goalFacingDeg desired heading at the last guide waypoint
      * @param type vehicle type (provides kinematics and footprint dims)
      * @param grid navigation grid for walkability checks
-     * @return {@code float[2][]} where [0]=X and [1]=Y, or null on failure
+     * @return {@code float[3][]} where [0]=X, [1]=Y, [2]=headingDeg, or null on failure
      */
     public static float[][] refine(float[] guideX, float[] guideY,
                                    float startFacingDeg, float goalFacingDeg,
@@ -324,14 +324,16 @@ public final class HybridAStarPlanner {
         List<float[]> poses = new ArrayList<>();
 
         for (int i = 0; i < refinedStartIdx; i++) {
-            poses.add(new float[]{guideX[i], guideY[i]});
+            float heading = AirBody.facingToward(
+                    guideX[i + 1] - guideX[i], guideY[i + 1] - guideY[i]);
+            poses.add(new float[]{guideX[i], guideY[i], heading});
         }
 
         Node terminal = (analyticFrom != null) ? analyticFrom : goalNode;
         List<float[]> lattice = new ArrayList<>();
         Node n = terminal;
         while (n != null) {
-            lattice.add(new float[]{n.x, n.y});
+            lattice.add(new float[]{n.x, n.y, n.headingDeg});
             if (n.parentKey < 0) break;
             n = best.get(n.parentKey);
         }
@@ -344,21 +346,23 @@ public final class HybridAStarPlanner {
             float total = analyticPath.lengthCells(turnRadius);
             for (float d = WAYPOINT_SPACING; d < total; d += WAYPOINT_SPACING) {
                 Pose p = ReedsShepp.sample(from, turnRadius, analyticPath, d);
-                poses.add(new float[]{p.x, p.y});
+                poses.add(new float[]{p.x, p.y, p.facingDeg});
             }
         }
 
-        poses.add(new float[]{goalPose.x, goalPose.y});
+        poses.add(new float[]{goalPose.x, goalPose.y, goalPose.facingDeg});
 
         if (poses.size() < 2) return null;
 
         float[] outX = new float[poses.size()];
         float[] outY = new float[poses.size()];
+        float[] outH = new float[poses.size()];
         for (int i = 0; i < poses.size(); i++) {
             outX[i] = poses.get(i)[0];
             outY[i] = poses.get(i)[1];
+            outH[i] = poses.get(i)[2];
         }
-        return new float[][]{outX, outY};
+        return new float[][]{outX, outY, outH};
     }
 
     // -- Helpers ------------------------------------------------------------

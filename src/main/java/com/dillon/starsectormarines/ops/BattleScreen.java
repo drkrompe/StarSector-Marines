@@ -3686,9 +3686,12 @@ public class BattleScreen implements Screen, BattleUiContext {
         font.drawString(String.format("speed: %.1f  facing: %.0f  stuck: %.2fs",
                 v.body.speed, v.body.facingDegrees, v.wallStuckTime), textX, textY, c, alphaMult);
         textY -= lineH;
-        font.drawString(String.format("pos: (%.1f, %.1f)  path: %s  wps: %d+%d",
-                v.body.x, v.body.y, v.pathRefined ? "HA*" : "coarse",
-                v.inboundX.length, v.outboundX.length), textX, textY, c, alphaMult);
+        String pathLabel = (v.inboundHeading != null || v.outboundHeading != null)
+                ? "playback" : v.pathRefined ? "HA*" : "coarse";
+        font.drawString(String.format("pos: (%.1f, %.1f)  path: %s  wps: %d+%d  prog: %.1f",
+                v.body.x, v.body.y, pathLabel,
+                v.inboundX.length, v.outboundX.length,
+                v.playbackProgress), textX, textY, c, alphaMult);
         textY -= lineH;
         if (v.type.hasTurretWeapon()) {
             font.drawString(String.format("turret: ammo=%d  facing=%.0f",

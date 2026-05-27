@@ -119,6 +119,7 @@ public class GroundSystem {
                     if (v.marinesRemaining == 0) {
                         if (v.type.departsAfterDeboard) {
                             v.waypointIndex = 1;
+                            v.playbackProgress = 0f;
                             v.state = Vehicle.State.DEPARTING;
                         } else {
                             v.overwatchCountdown = v.type.overwatchDurationSec;
@@ -131,6 +132,7 @@ public class GroundSystem {
                     v.overwatchCountdown -= dt;
                     if (v.overwatchCountdown <= 0f) {
                         v.waypointIndex = 1;
+                        v.playbackProgress = 0f;
                         v.state = Vehicle.State.DEPARTING;
                     }
                     break;
@@ -151,25 +153,30 @@ public class GroundSystem {
     }
 
     /**
-     * Path follower. Two modes:
+     * Path follower. Three modes:
      * <ol>
-     *   <li><b>Pure pursuit</b> (default) — pick a carrot along the polyline
-     *       at {@code lookAheadCells}, derive target speed from remaining
-     *       path length ({@code min(maxSpeed, sqrt(2·brake·remaining))}),
-     *       tick the body. The bicycle's steering constraint handles
-     *       cornering geometry.</li>
-     *   <li><b>Reeds-Shepp docking</b> — when an inbound truck is within
-     *       {@link #DOCKING_TRIGGER_CELLS} of the LZ on its last polyline
-     *       leg, switch to playing the body's pose along a closed-form
-     *       forward+reverse path from current pose to the LZ pose. The LZ
-     *       facing is taken from the final polyline segment's direction so
-     *       the truck arrives heading along the road. If the Reeds-Shepp
-     *       path fails the {@link VehicleFootprint} feasibility check
-     *       (sampled along its length), we fall back to pure pursuit for
-     *       that tick and retry next tick.</li>
+     *   <li><b>Direct pose playback</b> — when the path has heading data
+     *       from {@link HybridAStarPlanner}, play the planned poses
+     *       directly: accumulate distance, interpolate (x, y, heading)
+     *       along the polyline, assign to body. No steering law, no
+     *       reactive wall recovery — the plan IS the path.</li>
+     *   <li><b>Pure pursuit</b> (coarse polylines without headings) — pick
+     *       a carrot along the polyline at {@code lookAheadCells}, derive
+     *       target speed from remaining path length, tick the body. Wall
+     *       collision recovery + stuck re-plan for deviations.</li>
+     *   <li><b>Reeds-Shepp docking</b> — for inbound PurePursuit paths
+     *       within {@link #DOCKING_TRIGGER_CELLS} of the LZ, switch to RS
+     *       pose playback. Not needed for Hybrid A* paths since they
+     *       already terminate at the LZ with correct heading.</li>
      * </ol>
      */
     private void advancePath(Vehicle v, float[] xs, float[] ys, float dt, boolean isInbound) {
+        float[] headings = isInbound ? v.inboundHeading : v.outboundHeading;
+        if (headings != null) {
+            advancePlayback(v, xs, ys, headings, dt, isInbound);
+            return;
+        }
+
         if (v.dockingPath != null) {
             advanceDocking(v, dt);
             return;
@@ -270,6 +277,67 @@ public class GroundSystem {
     }
 
     /**
+     * Direct pose playback along a Hybrid A* refined path. Same pattern as
+     * {@link #advanceDocking} but for the full path: accumulate distance,
+     * interpolate (x, y, heading) between waypoints, assign to body. No
+     * steering law, no reactive collision — the plan was validated at
+     * planning time and the grid is static.
+     */
+    private void advancePlayback(Vehicle v, float[] xs, float[] ys,
+                                 float[] headings, float dt, boolean isInbound) {
+        float totalLength = polylineLength(xs, ys);
+        float remaining = totalLength - v.playbackProgress;
+        float taper = (float) Math.sqrt(2f * v.type.brakingAccel * Math.max(0f, remaining));
+        float speed = Math.min(v.type.maxSpeed, taper);
+        v.playbackProgress += speed * dt;
+
+        if (v.playbackProgress >= totalLength) {
+            int last = xs.length - 1;
+            if (isInbound) {
+                v.body.teleport(xs[last], ys[last], headings[last]);
+                v.state = Vehicle.State.LANDED;
+                v.deboardCountdown = v.type.deboardInterval;
+            } else {
+                v.state = Vehicle.State.GONE;
+            }
+            return;
+        }
+
+        float walked = 0f;
+        for (int i = 0; i < xs.length - 1; i++) {
+            float dx = xs[i + 1] - xs[i];
+            float dy = ys[i + 1] - ys[i];
+            float segLen = (float) Math.sqrt(dx * dx + dy * dy);
+            if (walked + segLen >= v.playbackProgress) {
+                float t = (segLen > 1e-6f) ? (v.playbackProgress - walked) / segLen : 0f;
+                v.body.x = xs[i] + dx * t;
+                v.body.y = ys[i] + dy * t;
+                float dh = ((headings[i + 1] - headings[i] + 540f) % 360f) - 180f;
+                v.body.facingDegrees = headings[i] + dh * t;
+                v.body.speed = speed;
+                return;
+            }
+            walked += segLen;
+        }
+
+        int last = xs.length - 1;
+        v.body.x = xs[last];
+        v.body.y = ys[last];
+        v.body.facingDegrees = headings[last];
+        v.body.speed = 0f;
+    }
+
+    private static float polylineLength(float[] xs, float[] ys) {
+        float total = 0f;
+        for (int i = 0; i < xs.length - 1; i++) {
+            float dx = xs[i + 1] - xs[i];
+            float dy = ys[i + 1] - ys[i];
+            total += (float) Math.sqrt(dx * dx + dy * dy);
+        }
+        return total;
+    }
+
+    /**
      * Re-plan from the vehicle's current pose to its remaining goal when
      * the reactive recovery has failed for {@link #REPLAN_STUCK_THRESHOLD}
      * seconds. Runs Hybrid A* once; if it finds a feasible path, replaces
@@ -300,11 +368,14 @@ public class GroundSystem {
         if (isInbound) {
             v.inboundX = refined[0];
             v.inboundY = refined[1];
+            v.inboundHeading = refined[2];
         } else {
             v.outboundX = refined[0];
             v.outboundY = refined[1];
+            v.outboundHeading = refined[2];
         }
         v.waypointIndex = 1;
+        v.playbackProgress = 0f;
         v.dockingPath = null;
         return true;
     }
