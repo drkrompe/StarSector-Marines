@@ -157,7 +157,7 @@ public final class SquadStateDumper {
             // Future make-passage actions (breach door, blow wall) should
             // key off this flag. JSONObject.NULL when the unit has no target.
             o.put("targetReachable", computeTargetReachable(u, sim));
-            o.put("cooldownTimer", u.cooldownTimer);
+            o.put("cooldownTimer", u.getCooldownTimer());
             o.put("pathLen", u.path != null ? u.path.length / 2 : 0);
             arr.put(o);
         }

@@ -56,16 +56,16 @@ public final class KitRetrieverBehavior implements UnitBehavior {
             target = sim.getTacticalScoring().findBestTarget(u);
             u.setTarget(target);
         }
-        if (u.cooldownTimer > 0f) u.cooldownTimer -= BattleSimulation.TICK_DT;
+        if (u.getCooldownTimer() > 0f) u.setCooldownTimer(u.getCooldownTimer() - BattleSimulation.TICK_DT);
         if (target == null) return;
         float dist = TacticalScoring.cellDistance(u.getCellX(), u.getCellY(), target.getCellX(), target.getCellY());
         boolean canFire = dist <= u.attackRange
                 && sim.getGrid().hasLineOfSight(u.getCellX(), u.getCellY(), target.getCellX(), target.getCellY())
-                && u.cooldownTimer <= 0f;
+                && u.getCooldownTimer() <= 0f;
         if (canFire) {
             // Retriever fires while pathing to a kit — MOVING accuracy penalty.
             sim.fireShot(u, target, FireStance.MOVING);
-            u.cooldownTimer = u.attackCooldown;
+            u.setCooldownTimer(u.attackCooldown);
             u.beginBurst(target);
         }
     }

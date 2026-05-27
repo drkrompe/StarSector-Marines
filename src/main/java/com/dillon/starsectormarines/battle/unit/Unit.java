@@ -165,7 +165,7 @@ public class Unit {
     /** How far this unit can see (cells). Drives fog-of-war shadowcast radius. Initialized from {@link UnitType#visionRange}; 0 falls back to {@link #attackRange}. */
     public float visionRange;
     public float attackCooldown;
-    public float cooldownTimer = 0f;
+    public float localCooldownTimer = 0f;
     public float accuracy;
 
     /**
@@ -260,7 +260,7 @@ public class Unit {
     public MarineSecondary secondaryWeapon;
     /** Rounds remaining on the {@link #secondaryWeapon}. Decremented on each secondary shot; once zero the marine reverts to primary fire. */
     public int secondaryAmmo;
-    /** Independent cooldown for the secondary weapon so it doesn't share state with the primary's {@link #cooldownTimer}. */
+    /** Independent cooldown for the secondary weapon so it doesn't share state with the primary's {@link #localCooldownTimer}. */
     public float secondaryCooldownTimer = 0f;
     /** Sim-seconds remaining in the secondary's aim-then-fire animation. While &gt;0 the marine is locked in place and the renderer draws the {@link MarineSecondary#aimSpritePath} pose; the actual shot launches when this drops below {@link MarineSecondary#aimDuration}/2. */
     public float secondaryActionTimer = 0f;
@@ -407,5 +407,14 @@ public class Unit {
             localCellX = x;
             localCellY = y;
         }
+    }
+
+    public final float getCooldownTimer() {
+        return (registry != null) ? registry.getCooldownTimer(denseIdx) : localCooldownTimer;
+    }
+
+    public final void setCooldownTimer(float v) {
+        if (registry != null) registry.setCooldownTimer(denseIdx, v);
+        else localCooldownTimer = v;
     }
 }

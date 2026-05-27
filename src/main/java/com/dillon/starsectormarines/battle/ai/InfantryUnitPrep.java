@@ -60,7 +60,7 @@ public final class InfantryUnitPrep {
      * range with a stale full cooldown and a perceived response lag).
      */
     public static void tickCooldowns(Unit unit) {
-        if (unit.cooldownTimer > 0f) unit.cooldownTimer -= BattleSimulation.TICK_DT;
+        if (unit.getCooldownTimer() > 0f) unit.setCooldownTimer(unit.getCooldownTimer() - BattleSimulation.TICK_DT);
         if (unit.secondaryCooldownTimer > 0f) unit.secondaryCooldownTimer -= BattleSimulation.TICK_DT;
         if (unit.repositionCooldown > 0f) unit.repositionCooldown -= BattleSimulation.TICK_DT;
     }

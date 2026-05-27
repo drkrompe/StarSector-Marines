@@ -254,7 +254,7 @@ public final class ChokePointHold implements Action {
         if (!sim.getGrid().hasLineOfSight(member.getCellX(), member.getCellY(), portalX, portalY)) {
             return ActionStatus.RUNNING;
         }
-        if (member.cooldownTimer > 0f) return ActionStatus.RUNNING;
+        if (member.getCooldownTimer() > 0f) return ActionStatus.RUNNING;
         float d = TacticalScoring.cellDistance(member.getCellX(), member.getCellY(), portalX, portalY);
         if (d > member.attackRange) return ActionStatus.RUNNING;
 
@@ -263,7 +263,7 @@ public final class ChokePointHold implements Action {
         // identically (machine guns rip a burst when the trigger fires).
         sim.fireShot(member, portalIntruder, FireStance.STANCED);
         member.setTarget(portalIntruder);
-        member.cooldownTimer = member.attackCooldown;
+        member.setCooldownTimer(member.attackCooldown);
         member.beginBurst(portalIntruder);
         return ActionStatus.RUNNING;
     }

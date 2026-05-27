@@ -60,7 +60,7 @@ public final class TurretBehavior implements UnitBehavior {
         s.turnRateDegPerSec = t.kind.turnRateDegPerSec;
         s.attackRange = t.attackRange;
         s.minRange = t.kind.minRange;
-        s.cooldownTimer = t.cooldownTimer;
+        s.cooldownTimer = t.getCooldownTimer();
         s.attackCooldown = t.attackCooldown;
         s.target = sim.targetOf(t);
         s.indirectFire = t.kind.indirectFire;
@@ -68,7 +68,7 @@ public final class TurretBehavior implements UnitBehavior {
         TurretAim.tick(s, sim.getTacticalScoring(), sim.getGrid(), BattleSimulation.TICK_DT);
 
         t.facingDegrees = s.facingDegrees;
-        t.cooldownTimer = s.cooldownTimer;
+        t.setCooldownTimer(s.cooldownTimer);
         t.setTarget(s.target);
 
         // Burst continuation runs ahead of fresh trigger pulls. A committed

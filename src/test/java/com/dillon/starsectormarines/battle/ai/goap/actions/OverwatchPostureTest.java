@@ -81,8 +81,8 @@ public class OverwatchPostureTest {
         Unit defender = defenderAt(5, 5, squadId);
         // Pre-cooldown set: if any action accidentally fires, cooldownTimer
         // would jump to attackCooldown. We assert it doesn't change.
-        defender.cooldownTimer = 0.1f;
-        float startCooldown = defender.cooldownTimer;
+        defender.setCooldownTimer(0.1f);
+        float startCooldown = defender.getCooldownTimer();
         sim.addUnit(defender);
 
         // Marine in LOS + range, but the squad's holdsFireUntilKillZone gate
@@ -92,7 +92,7 @@ public class OverwatchPostureTest {
 
         ActionStatus status = OverwatchPosture.INSTANCE.execute(defender, squad, sim);
         assertEquals(ActionStatus.RUNNING, status);
-        assertEquals(startCooldown, defender.cooldownTimer, 1e-6f,
+        assertEquals(startCooldown, defender.getCooldownTimer(), 1e-6f,
                 "Overwatch must not fire — cooldownTimer should be unchanged from its starting value");
         assertTrue(defender.pathEmpty(), "Overwatch must not queue a path");
         assertEquals(5, defender.getCellX());

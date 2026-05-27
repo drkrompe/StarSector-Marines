@@ -114,9 +114,9 @@ public final class EnterZone implements Action {
             boolean visible = sim.getGrid().hasLineOfSight(member.getCellX(), member.getCellY(),
                     target.getCellX(), target.getCellY());
             inContact = d <= member.attackRange && visible;
-            if (inContact && member.cooldownTimer <= 0f) {
+            if (inContact && member.getCooldownTimer() <= 0f) {
                 sim.fireShot(member, target, FireStance.STANCED);
-                member.cooldownTimer = member.attackCooldown;
+                member.setCooldownTimer(member.attackCooldown);
                 member.beginBurst(target);
             }
         }

@@ -102,10 +102,10 @@ public final class EngagePosture implements Action {
                 member.setSecondaryAimTarget(target);
                 startedSecondary = true;
             }
-            if (!startedSecondary && member.cooldownTimer <= 0f
+            if (!startedSecondary && member.getCooldownTimer() <= 0f
                     && dist <= member.attackRange) {
                 sim.fireShot(member, target);
-                member.cooldownTimer = member.attackCooldown;
+                member.setCooldownTimer(member.attackCooldown);
                 member.beginBurst(target);
                 // Story G — cooldown-gated cover-aware reposition replaces
                 // the old 30% per-shot RNG. A unit in heavy cover whose

@@ -82,6 +82,8 @@ public final class UnitRegistry {
     private int[] cellX = new int[INITIAL_CAPACITY];
     /** Per-unit logical cell Y, paired with {@link #cellX}. */
     private int[] cellY = new int[INITIAL_CAPACITY];
+    /** Per-unit primary weapon cooldown (sim-seconds until next fire). Same lifecycle as {@link #hp}. */
+    private float[] cooldownTimer = new float[INITIAL_CAPACITY];
     private int liveCount = 0;
     private long nextId = 1L;
 
@@ -119,6 +121,7 @@ public final class UnitRegistry {
             maxHp = Arrays.copyOf(maxHp, newCap);
             cellX = Arrays.copyOf(cellX, newCap);
             cellY = Arrays.copyOf(cellY, newCap);
+            cooldownTimer = Arrays.copyOf(cooldownTimer, newCap);
         }
         long id = nextId++;
         u.entityId = id;
@@ -133,6 +136,7 @@ public final class UnitRegistry {
         maxHp[liveCount] = u.localMaxHp;
         cellX[liveCount] = u.localCellX;
         cellY[liveCount] = u.localCellY;
+        cooldownTimer[liveCount] = u.localCooldownTimer;
         u.denseIdx = liveCount;
         u.registry = this;
         indexById.put(id, liveCount);
@@ -168,6 +172,7 @@ public final class UnitRegistry {
         released.localMaxHp = maxHp[idx];
         released.localCellX = cellX[idx];
         released.localCellY = cellY[idx];
+        released.localCooldownTimer = cooldownTimer[idx];
         released.denseIdx = -1;
         released.registry = null;
         if (idx != last) {
@@ -177,6 +182,7 @@ public final class UnitRegistry {
             maxHp[idx] = maxHp[last];
             cellX[idx] = cellX[last];
             cellY[idx] = cellY[last];
+            cooldownTimer[idx] = cooldownTimer[last];
             tail.denseIdx = idx;
             indexById.put(tail.entityId, idx);
         }
@@ -252,6 +258,10 @@ public final class UnitRegistry {
     }
     public int[] cellXArray() { return cellX; }
     public int[] cellYArray() { return cellY; }
+
+    public float getCooldownTimer(int idx) { return cooldownTimer[idx]; }
+    public void setCooldownTimer(int idx, float v) { cooldownTimer[idx] = v; }
+    public float[] cooldownTimerArray() { return cooldownTimer; }
 
     public int liveCount() {
         return liveCount;

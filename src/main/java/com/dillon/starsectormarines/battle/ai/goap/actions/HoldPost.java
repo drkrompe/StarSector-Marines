@@ -86,7 +86,7 @@ public final class HoldPost implements Action {
     }
 
     private static ActionStatus executeWithTarget(Unit member, Unit target, BattleSimulation sim, int homeX, int homeY) {
-        if (member.cooldownTimer > 0f) member.cooldownTimer -= BattleSimulation.TICK_DT;
+        if (member.getCooldownTimer() > 0f) member.setCooldownTimer(member.getCooldownTimer() - BattleSimulation.TICK_DT);
 
         float dist = TacticalScoring.cellDistance(member.getCellX(), member.getCellY(),
                 target.getCellX(), target.getCellY());
@@ -95,9 +95,9 @@ public final class HoldPost implements Action {
                 target.getCellX(), target.getCellY());
 
         if (inRange && visible) {
-            if (member.cooldownTimer <= 0f) {
+            if (member.getCooldownTimer() <= 0f) {
                 sim.fireShot(member, target);
-                member.cooldownTimer = member.attackCooldown;
+                member.setCooldownTimer(member.attackCooldown);
                 member.beginBurst(target);
             }
             hold(member, sim);

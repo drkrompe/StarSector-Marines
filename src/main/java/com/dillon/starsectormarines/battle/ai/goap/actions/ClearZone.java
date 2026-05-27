@@ -90,9 +90,9 @@ public final class ClearZone implements Action {
         boolean inRange = dist <= member.attackRange;
         boolean visible = sim.getGrid().hasLineOfSight(member.getCellX(), member.getCellY(),
                 target.getCellX(), target.getCellY());
-        if (inRange && visible && member.cooldownTimer <= 0f) {
+        if (inRange && visible && member.getCooldownTimer() <= 0f) {
             sim.fireShot(member, target);
-            member.cooldownTimer = member.attackCooldown;
+            member.setCooldownTimer(member.attackCooldown);
             member.beginBurst(target);
             return ActionStatus.RUNNING;
         }

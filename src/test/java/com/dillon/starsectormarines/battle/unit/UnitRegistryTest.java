@@ -330,6 +330,54 @@ public class UnitRegistryTest {
     }
 
     @Test
+    public void allocateSeedsCooldownTimerAndAccessorsRouteThroughRegistry() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        u.localCooldownTimer = 1.5f;
+
+        r.allocate(u);
+
+        assertEquals(1.5f, u.getCooldownTimer(), 1e-6f);
+        assertEquals(1.5f, r.getCooldownTimer(u.denseIdx), 1e-6f);
+
+        u.setCooldownTimer(0.3f);
+        assertEquals(0.3f, r.getCooldownTimer(u.denseIdx), 1e-6f);
+        assertEquals(0.3f, u.getCooldownTimer(), 1e-6f);
+    }
+
+    @Test
+    public void releaseSnapshotsCooldownTimerBackToLocalField() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        r.allocate(u);
+
+        u.setCooldownTimer(2.7f);
+        r.release(u.entityId);
+
+        assertNull(u.registry);
+        assertEquals(-1, u.denseIdx);
+        assertEquals(2.7f, u.getCooldownTimer(), 1e-6f);
+    }
+
+    @Test
+    public void releaseTailSwapMovesCooldownTimerCorrectly() {
+        UnitRegistry r = new UnitRegistry();
+        Unit a = unit("a");
+        Unit b = unit("b");
+        Unit c = unit("c");
+        long idA = r.allocate(a);
+        r.allocate(b);
+        r.allocate(c);
+        c.setCooldownTimer(4.2f);
+
+        r.release(idA);
+
+        assertEquals(0, c.denseIdx);
+        assertEquals(4.2f, r.getCooldownTimer(0), 1e-6f);
+        assertEquals(4.2f, c.getCooldownTimer(), 1e-6f);
+    }
+
+    @Test
     public void releaseOfReservedZeroSentinelIsNoOp() {
         UnitRegistry r = new UnitRegistry();
         Unit a = unit("a");

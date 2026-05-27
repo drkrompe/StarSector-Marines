@@ -3025,8 +3025,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         // launcher reads as raised/braced through the whole animation.
         boolean inAim = u.secondaryActionTimer > 0f && u.secondaryWeapon != null;
         boolean weaponUp = inAim || (u.type.combatant
-                && u.cooldownTimer > (u.attackCooldown - WEAPON_UP_TIME)
-                && u.cooldownTimer > 0f);
+                && u.getCooldownTimer() > (u.attackCooldown - WEAPON_UP_TIME)
+                && u.getCooldownTimer() > 0f);
 
         int frameIdx;
         boolean flipY;

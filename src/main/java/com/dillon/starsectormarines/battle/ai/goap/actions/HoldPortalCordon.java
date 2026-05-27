@@ -212,14 +212,14 @@ public final class HoldPortalCordon implements Action {
             target = sim.getTacticalScoring().findBestTarget(member);
             member.setTarget(target);
         }
-        if (target == null || member.cooldownTimer > 0f) return;
+        if (target == null || member.getCooldownTimer() > 0f) return;
         float d = TacticalScoring.cellDistance(member.getCellX(), member.getCellY(),
                 target.getCellX(), target.getCellY());
         if (d > member.attackRange) return;
         if (!sim.getGrid().hasLineOfSight(member.getCellX(), member.getCellY(),
                 target.getCellX(), target.getCellY())) return;
         sim.fireShot(member, target, stance);
-        member.cooldownTimer = member.attackCooldown;
+        member.setCooldownTimer(member.attackCooldown);
         member.beginBurst(target);
     }
 

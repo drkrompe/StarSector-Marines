@@ -121,7 +121,7 @@ public class ChokePointHoldTest {
         ChokePointHold hold = (ChokePointHold) squad.currentPlan.currentStep().action;
         hold.execute(d1, squad, sim);
 
-        assertEquals(0f, d1.cooldownTimer, 1e-6f,
+        assertEquals(0f, d1.getCooldownTimer(), 1e-6f,
                 "no enemy on the portal cell → no shot, cooldown stays at zero");
         assertTrue(sim.getShotsThisFrame().isEmpty(),
                 "no enemy on the portal cell → no shots emitted");
@@ -151,7 +151,7 @@ public class ChokePointHoldTest {
 
         hold.execute(d1, squad, sim);
 
-        assertTrue(d1.cooldownTimer > 0f,
+        assertTrue(d1.getCooldownTimer() > 0f,
                 "enemy on portal cell + LoS + range → defender must fire (cooldown set)");
         assertTrue(sim.getShotsThisFrame().size() > 0,
                 "enemy on portal cell + LoS + range → at least one ShotEvent emitted");
@@ -186,8 +186,8 @@ public class ChokePointHoldTest {
         hold.execute(d1, squad, sim);
         hold.execute(d2, squad, sim);
 
-        assertTrue(d1.cooldownTimer > 0f, "d1 must have fired this tick");
-        assertTrue(d2.cooldownTimer > 0f, "d2 must have fired this tick");
+        assertTrue(d1.getCooldownTimer() > 0f, "d1 must have fired this tick");
+        assertTrue(d2.getCooldownTimer() > 0f, "d2 must have fired this tick");
         assertTrue(sim.getShotsThisFrame().size() >= 2,
                 "two holders both fire → at least two ShotEvents");
     }

@@ -169,7 +169,7 @@ public class GarrisonCordonTest {
 
         cordon.execute(d1, squad, sim);
 
-        assertTrue(d1.cooldownTimer > 0f,
+        assertTrue(d1.getCooldownTimer() > 0f,
                 "on-post holder with visible enemy in range → must fire (opportunistic, no portal trigger required)");
         assertTrue(sim.getShotsThisFrame().size() > 0,
                 "shot event must be emitted for the opportunistic fire");
