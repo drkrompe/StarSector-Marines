@@ -37,7 +37,7 @@ public class InfantryUnitPrepTest {
     private static Unit rocketeer(BattleSimulation sim, Faction f, int x, int y) {
         Unit u = new Unit("u" + sim.getUnits().size(), f, UnitType.MARINE, x, y);
         u.primaryWeapon = MarineWeapon.PULSE_RIFLE;
-        u.attackRange = u.primaryWeapon.range;
+        u.setAttackRange(u.primaryWeapon.range);
         u.secondaryWeapon = MarineSecondary.ROCKET_LAUNCHER;
         u.secondaryAmmo = MarineSecondary.ROCKET_LAUNCHER.startingAmmo;
         sim.addUnit(u);

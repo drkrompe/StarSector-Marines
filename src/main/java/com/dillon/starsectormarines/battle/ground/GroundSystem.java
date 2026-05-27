@@ -482,9 +482,9 @@ public class GroundSystem {
             marine.assignedObjective = loadout.objective;
             if (loadout.primary != null) {
                 marine.primaryWeapon = loadout.primary;
-                marine.attackRange = loadout.primary.range;
-                marine.attackDamage = loadout.primary.damage;
-                marine.accuracy = loadout.primary.accuracy;
+                marine.setAttackRange(loadout.primary.range);
+                marine.setAttackDamage(loadout.primary.damage);
+                marine.setAccuracy(loadout.primary.accuracy);
                 marine.attackCooldown = loadout.primary.cooldown;
             }
             if (loadout.secondary != null && loadout.secondaryAmmo > 0) {

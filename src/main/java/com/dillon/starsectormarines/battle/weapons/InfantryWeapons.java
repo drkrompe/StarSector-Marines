@@ -90,8 +90,8 @@ public class InfantryWeapons {
      * rolled here, which can mutate the target's path via the context.
      */
     public void fireShot(Unit shooter, Unit target, FireStance stance) {
-        float accuracy = shooter.accuracy;
-        float damage   = shooter.attackDamage;
+        float accuracy = shooter.getAccuracy();
+        float damage   = shooter.getAttackDamage();
         float vsTurretMult = 1f;
         // Distance-scaled accuracy + spread only apply when the shooter has
         // a per-weapon profile (marines). Militia / aliens / turrets fall

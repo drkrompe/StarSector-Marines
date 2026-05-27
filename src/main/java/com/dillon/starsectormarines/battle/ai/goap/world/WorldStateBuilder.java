@@ -163,7 +163,7 @@ public final class WorldStateBuilder {
                 if (!enemy.isAlive() || !enemy.type.combatant) continue;
                 if (enemy.faction == squad.faction) continue;
                 float d = TacticalScoring.cellDistance(member.getCellX(), member.getCellY(), enemy.getCellX(), enemy.getCellY());
-                if (d <= member.attackRange) return true;
+                if (d <= member.getAttackRange()) return true;
             }
         }
         return false;

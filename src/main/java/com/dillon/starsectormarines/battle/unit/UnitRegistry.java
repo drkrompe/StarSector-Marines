@@ -90,6 +90,12 @@ public final class UnitRegistry {
     private float[] renderX = new float[INITIAL_CAPACITY];
     /** Per-unit smooth render Y in cell units. Same lifecycle as {@link #hp}. */
     private float[] renderY = new float[INITIAL_CAPACITY];
+    /** Per-unit base attack damage. Write-once at construction (captain traits may adjust). Same lifecycle as {@link #hp}. */
+    private float[] attackDamage = new float[INITIAL_CAPACITY];
+    /** Per-unit base attack range in cells. Same lifecycle as {@link #hp}. */
+    private float[] attackRange = new float[INITIAL_CAPACITY];
+    /** Per-unit base accuracy [0,1]. Same lifecycle as {@link #hp}. */
+    private float[] accuracy = new float[INITIAL_CAPACITY];
     private int liveCount = 0;
     private long nextId = 1L;
 
@@ -131,6 +137,9 @@ public final class UnitRegistry {
             moveProgress = Arrays.copyOf(moveProgress, newCap);
             renderX = Arrays.copyOf(renderX, newCap);
             renderY = Arrays.copyOf(renderY, newCap);
+            attackDamage = Arrays.copyOf(attackDamage, newCap);
+            attackRange = Arrays.copyOf(attackRange, newCap);
+            accuracy = Arrays.copyOf(accuracy, newCap);
         }
         long id = nextId++;
         u.entityId = id;
@@ -149,6 +158,9 @@ public final class UnitRegistry {
         moveProgress[liveCount] = u.localMoveProgress;
         renderX[liveCount] = u.localRenderX;
         renderY[liveCount] = u.localRenderY;
+        attackDamage[liveCount] = u.localAttackDamage;
+        attackRange[liveCount] = u.localAttackRange;
+        accuracy[liveCount] = u.localAccuracy;
         u.denseIdx = liveCount;
         u.registry = this;
         indexById.put(id, liveCount);
@@ -188,6 +200,9 @@ public final class UnitRegistry {
         released.localMoveProgress = moveProgress[idx];
         released.localRenderX = renderX[idx];
         released.localRenderY = renderY[idx];
+        released.localAttackDamage = attackDamage[idx];
+        released.localAttackRange = attackRange[idx];
+        released.localAccuracy = accuracy[idx];
         released.denseIdx = -1;
         released.registry = null;
         if (idx != last) {
@@ -201,6 +216,9 @@ public final class UnitRegistry {
             moveProgress[idx] = moveProgress[last];
             renderX[idx] = renderX[last];
             renderY[idx] = renderY[last];
+            attackDamage[idx] = attackDamage[last];
+            attackRange[idx] = attackRange[last];
+            accuracy[idx] = accuracy[last];
             tail.denseIdx = idx;
             indexById.put(tail.entityId, idx);
         }
@@ -295,6 +313,18 @@ public final class UnitRegistry {
     }
     public float[] renderXArray() { return renderX; }
     public float[] renderYArray() { return renderY; }
+
+    public float getAttackDamage(int idx) { return attackDamage[idx]; }
+    public void setAttackDamage(int idx, float v) { attackDamage[idx] = v; }
+    public float[] attackDamageArray() { return attackDamage; }
+
+    public float getAttackRange(int idx) { return attackRange[idx]; }
+    public void setAttackRange(int idx, float v) { attackRange[idx] = v; }
+    public float[] attackRangeArray() { return attackRange; }
+
+    public float getAccuracy(int idx) { return accuracy[idx]; }
+    public void setAccuracy(int idx, float v) { accuracy[idx] = v; }
+    public float[] accuracyArray() { return accuracy; }
 
     public int liveCount() {
         return liveCount;

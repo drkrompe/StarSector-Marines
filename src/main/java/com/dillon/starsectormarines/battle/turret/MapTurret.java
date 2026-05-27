@@ -71,10 +71,10 @@ public class MapTurret extends Unit {
         // copies these into the SoA arrays.
         setMaxHp(kind.maxHp);
         setHp(kind.maxHp);
-        this.attackDamage = kind.damage;
-        this.attackRange = kind.range;
+        this.localAttackDamage = kind.damage;
+        this.localAttackRange = kind.range;
         this.attackCooldown = kind.cooldown;
-        this.accuracy = kind.accuracy;
+        this.localAccuracy = kind.accuracy;
         this.moveSpeed = 0f;
         this.role = UnitRole.TURRET;
     }

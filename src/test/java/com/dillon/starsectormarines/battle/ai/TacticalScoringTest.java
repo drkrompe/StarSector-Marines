@@ -189,7 +189,7 @@ public class TacticalScoringTest {
         Unit marine = unit(sim, Faction.MARINE, 5, 10);
         // No squad for the marine in this test — we isolate the density
         // penalty from the cohesion clamp.
-        marine.attackRange = 30f;
+        marine.setAttackRange(30f);
 
         // Wounded fleer at (15, 10), surrounded by 3 squadmates: a tight
         // cluster well inside THREAT_DENSITY_RADIUS.
@@ -229,7 +229,7 @@ public class TacticalScoringTest {
 
         Unit marine = unit(sim, Faction.MARINE, 5, 10);
         marine.squadId = squadId;
-        marine.attackRange = 60f;
+        marine.setAttackRange(60f);
 
         Unit farEnemy = unit(sim, Faction.DEFENDER, 45, 10);
 
@@ -256,17 +256,17 @@ public class TacticalScoringTest {
         sim.addDoodad(new Doodad(10, 10, new TileManifest.TileFrame(4, 7)));
 
         Unit threat = unit(sim, Faction.DEFENDER, 18, 10);
-        threat.attackRange = 30f;
+        threat.setAttackRange(30f);
 
         // marine0 already standing on the desk cell — counted as both
         // current-cell occupancy AND an AoE-spread ally near (10, 10).
         Unit m0 = unit(sim, Faction.MARINE, 10, 10);
-        m0.attackRange = 30f;
+        m0.setAttackRange(30f);
 
         // marine1 picks a firing position now. Choose a setup where the
         // desk cell would otherwise win on cover alone.
         Unit m1 = unit(sim, Faction.MARINE, 5, 10);
-        m1.attackRange = 30f;
+        m1.setAttackRange(30f);
 
         int[] pick = sim.getTacticalScoring().findFiringPosition(m1, threat);
         assertNotNull(pick);
@@ -342,7 +342,7 @@ public class TacticalScoringTest {
         // wins (adjusted: 4 vs 14).
         BattleSimulation sim = twoZoneSim();
         Unit marine = unit(sim, Faction.MARINE, 5, 10);
-        marine.attackRange = 50f;
+        marine.setAttackRange(50f);
         Unit closer = unit(sim, Faction.DEFENDER, 9, 10);
         unit(sim, Faction.DEFENDER, 11, 10);
 
@@ -380,7 +380,7 @@ public class TacticalScoringTest {
         BattleSimulation sim = new BattleSimulation(grid, new CellTopology(40, 20));
 
         Unit marine = unit(sim, Faction.MARINE, 18, 10);
-        marine.attackRange = 50f;
+        marine.setAttackRange(50f);
         Unit acrossClose = unit(sim, Faction.DEFENDER, 21, 10);   // dist 3, adjusted 11
         Unit inZoneFar  = unit(sim, Faction.DEFENDER, 2, 10);     // dist 16, adjusted 16
 
@@ -395,7 +395,7 @@ public class TacticalScoringTest {
         // The bias is 0; nearest wins by raw distance.
         BattleSimulation sim = openArena(20, 20);
         Unit marine = unit(sim, Faction.MARINE, 5, 5);
-        marine.attackRange = 50f;
+        marine.setAttackRange(50f);
         Unit near = unit(sim, Faction.DEFENDER, 7, 5);
         Unit far = unit(sim, Faction.DEFENDER, 15, 5);
 
@@ -481,7 +481,7 @@ public class TacticalScoringTest {
         rocketeer.primaryWeapon = com.dillon.starsectormarines.battle.weapons.MarineWeapon.PULSE_RIFLE;
         rocketeer.secondaryWeapon = com.dillon.starsectormarines.battle.weapons.MarineSecondary.ROCKET_LAUNCHER;
         rocketeer.secondaryAmmo = 3;
-        rocketeer.attackRange = 40f;
+        rocketeer.setAttackRange(40f);
 
         Unit infantry = unit(sim, Faction.DEFENDER, 10, 5);
         Unit mech = unit(sim, Faction.DEFENDER, UnitType.HEAVY_MECH, 20, 5);
@@ -497,7 +497,7 @@ public class TacticalScoringTest {
         BattleSimulation sim = openArena(30, 10);
         Unit smg = unit(sim, Faction.MARINE, 5, 5);
         smg.primaryWeapon = com.dillon.starsectormarines.battle.weapons.MarineWeapon.SMG;
-        smg.attackRange = 40f;
+        smg.setAttackRange(40f);
 
         Unit infantry = unit(sim, Faction.DEFENDER, 10, 5);
         Unit mech = unit(sim, Faction.DEFENDER, UnitType.HEAVY_MECH, 8, 5);
@@ -518,7 +518,7 @@ public class TacticalScoringTest {
         dryRocketeer.primaryWeapon = com.dillon.starsectormarines.battle.weapons.MarineWeapon.PULSE_RIFLE;
         dryRocketeer.secondaryWeapon = com.dillon.starsectormarines.battle.weapons.MarineSecondary.ROCKET_LAUNCHER;
         dryRocketeer.secondaryAmmo = 0;
-        dryRocketeer.attackRange = 40f;
+        dryRocketeer.setAttackRange(40f);
 
         Unit infantry = unit(sim, Faction.DEFENDER, 10, 5);
         Unit mech = unit(sim, Faction.DEFENDER, UnitType.HEAVY_MECH, 20, 5);
@@ -535,7 +535,7 @@ public class TacticalScoringTest {
         BattleSimulation sim = openArena(30, 10);
         Unit rifleMarine = unit(sim, Faction.MARINE, 5, 5);
         rifleMarine.primaryWeapon = com.dillon.starsectormarines.battle.weapons.MarineWeapon.PULSE_RIFLE;
-        rifleMarine.attackRange = 40f;
+        rifleMarine.setAttackRange(40f);
 
         Unit mech = unit(sim, Faction.DEFENDER, UnitType.HEAVY_MECH, 15, 5);
 
@@ -634,7 +634,7 @@ public class TacticalScoringTest {
     private static Unit rocketeer(BattleSimulation sim, Faction f, int x, int y) {
         Unit u = unit(sim, f, x, y);
         u.primaryWeapon = MarineWeapon.PULSE_RIFLE;
-        u.attackRange = u.primaryWeapon.range;
+        u.setAttackRange(u.primaryWeapon.range);
         u.secondaryWeapon = MarineSecondary.ROCKET_LAUNCHER;
         u.secondaryAmmo = MarineSecondary.ROCKET_LAUNCHER.startingAmmo;
         return u;
@@ -650,12 +650,12 @@ public class TacticalScoringTest {
         assertEquals(MarineSecondary.ROCKET_LAUNCHER.range,
                 TacticalScoring.effectiveAttackRange(rocketeer, turret),
                 0.001f, "rocketeer-vs-turret must widen to rocket range");
-        assertEquals(rocketeer.attackRange,
+        assertEquals(rocketeer.getAttackRange(),
                 TacticalScoring.effectiveAttackRange(rocketeer, infantry),
                 0.001f, "vs soft target stays at primary range");
 
         rocketeer.secondaryAmmo = 0;
-        assertEquals(rocketeer.attackRange,
+        assertEquals(rocketeer.getAttackRange(),
                 TacticalScoring.effectiveAttackRange(rocketeer, turret),
                 0.001f, "empty tube falls back to primary range");
     }
@@ -670,7 +670,7 @@ public class TacticalScoringTest {
         Unit rocketeer = rocketeer(sim, Faction.MARINE, 5, 5);
         // Pulse rifle range is much shorter than rocket range (32). The
         // turret sits past pulse range but inside rocket range.
-        float primary = rocketeer.attackRange;
+        float primary = rocketeer.getAttackRange();
         int turretX = (int) Math.ceil(primary) + 8;
         MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, turretX, 5);
 

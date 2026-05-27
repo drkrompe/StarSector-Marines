@@ -53,7 +53,7 @@ public final class EngageAtCurrentBand implements Action {
         if (target == null) return ActionStatus.RUNNING;
 
         float dist = TacticalScoring.cellDistance(u.getCellX(), u.getCellY(), target.getCellX(), target.getCellY());
-        boolean inRange = dist <= u.attackRange;
+        boolean inRange = dist <= u.getAttackRange();
         boolean visible = sim.getGrid().hasLineOfSight(u.getCellX(), u.getCellY(), target.getCellX(), target.getCellY());
 
         // The fire pass runs outside the inRange-and-visible gate because LRMs

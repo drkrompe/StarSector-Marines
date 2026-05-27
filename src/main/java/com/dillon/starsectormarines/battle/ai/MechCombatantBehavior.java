@@ -28,7 +28,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
         if (target == null) return;
 
         float dist = TacticalScoring.cellDistance(u.getCellX(), u.getCellY(), target.getCellX(), target.getCellY());
-        boolean inRange = dist <= u.attackRange;
+        boolean inRange = dist <= u.getAttackRange();
         boolean visible = sim.getGrid().hasLineOfSight(u.getCellX(), u.getCellY(), target.getCellX(), target.getCellY());
 
         // The fire pass runs OUTSIDE the marine's `inRange && visible` gate

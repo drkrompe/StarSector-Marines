@@ -33,7 +33,7 @@ public enum FireStance {
      */
     MOVING(0.5f);
 
-    /** Accuracy multiplier applied to {@code shooter.accuracy} / weapon accuracy at fire time. */
+    /** Accuracy multiplier applied to {@code shooter.getAccuracy()} / weapon accuracy at fire time. */
     public final float accuracyMult;
 
     FireStance(float accuracyMult) {

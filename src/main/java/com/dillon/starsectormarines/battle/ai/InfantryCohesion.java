@@ -64,7 +64,7 @@ public final class InfantryCohesion {
             float td = (float) Math.sqrt(
                     (float) (target.getCellX() - self.getCellX()) * (target.getCellX() - self.getCellX())
                   + (float) (target.getCellY() - self.getCellY()) * (target.getCellY() - self.getCellY()));
-            if (td <= self.attackRange
+            if (td <= self.getAttackRange()
                     && sim.getGrid().hasLineOfSight(self.getCellX(), self.getCellY(),
                             target.getCellX(), target.getCellY())) {
                 return null;

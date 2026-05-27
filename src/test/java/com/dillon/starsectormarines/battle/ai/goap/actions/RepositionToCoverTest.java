@@ -83,7 +83,7 @@ public class RepositionToCoverTest {
         BattleSimulation sim = openArena(20, 20);
         sim.addDoodad(new Doodad(5, 5, new TileManifest.TileFrame(4, 7)));
         Unit marine = marineAt(sim, 5, 5);
-        marine.attackRange = 10f;
+        marine.setAttackRange(10f);
         Unit threat = enemyAt(sim, 12, 5);
         marine.setTarget(threat);
         marine.repositionCooldown = 0f;
@@ -106,7 +106,7 @@ public class RepositionToCoverTest {
         // shift one cell east.
         sim.addDoodad(new Doodad(7, 5, new TileManifest.TileFrame(4, 7))); // heavy
         Unit marine = marineAt(sim, 5, 5);
-        marine.attackRange = 10f;
+        marine.setAttackRange(10f);
         Unit threat = enemyAt(sim, 12, 5);
         marine.setTarget(threat);
         marine.repositionCooldown = 0f;

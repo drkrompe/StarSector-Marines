@@ -90,7 +90,7 @@ public final class DroneSwarmAction implements Action {
         s.excludeFromCrowding = d;
         s.facingDegrees = d.body.facingDegrees;
         s.turnRateDegPerSec = Drone.TURN_RATE_DEG_PER_SEC;
-        s.attackRange = d.attackRange;
+        s.attackRange = d.getAttackRange();
         s.minRange = 0f;
         s.cooldownTimer = d.getCooldownTimer();
         s.attackCooldown = d.attackCooldown;
@@ -175,8 +175,8 @@ public final class DroneSwarmAction implements Action {
         float driftDeg = simTime * Drone.ENGAGE_ORBIT_ANGULAR_DEG_PER_SEC;
         float orbitBearingDeg = baseBearingDeg + driftDeg;
 
-        float baseRadius = d.attackRange * Drone.ENGAGE_ORBIT_BASE_FRACTION;
-        float pulseAmplitude = d.attackRange * Drone.ENGAGE_ORBIT_PULSE_FRACTION;
+        float baseRadius = d.getAttackRange() * Drone.ENGAGE_ORBIT_BASE_FRACTION;
+        float pulseAmplitude = d.getAttackRange() * Drone.ENGAGE_ORBIT_PULSE_FRACTION;
         float pulsePhase = 2f * (float) Math.PI
                 * (Drone.ENGAGE_ORBIT_PULSE_HZ * simTime + (float) slotIdx / slotCount);
         float orbitRadius = baseRadius + pulseAmplitude * (float) Math.sin(pulsePhase);
@@ -201,7 +201,7 @@ public final class DroneSwarmAction implements Action {
         if (!latchRefreshedThisTick) {
             d.pursuitTimer -= dt;
         }
-        float comfortableDist = d.attackRange * ENGAGE_HOVER_FRACTION;
+        float comfortableDist = d.getAttackRange() * ENGAGE_HOVER_FRACTION;
         float[] hover = encircleOffset(d.pursuitGoalX, d.pursuitGoalY,
                 comfortableDist, slotIdx, slotCount);
         float[] goal = clampGoalToLeash(d, hover[0], hover[1]);

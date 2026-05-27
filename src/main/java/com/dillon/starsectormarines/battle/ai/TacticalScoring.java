@@ -268,7 +268,7 @@ public final class TacticalScoring {
      * only "is the cached target alive?", which let a target hide behind a
      * wall forever while the mech ignored opportunities in its own kill lane.
      *
-     * <p>Range check uses {@code self.attackRange} because for mechs it's set
+     * <p>Range check uses {@code self.getAttackRange()} because for mechs it's set
      * to the LRM range (40 cells, matching {@link UnitType#HEAVY_MECH}) — the
      * longest weapon's reach, which is the right "could this mech ever shoot
      * this target from here" bound. Indirect-fire (no LoS) still works on the
@@ -279,7 +279,7 @@ public final class TacticalScoring {
         Unit cur = registry.getOrNull(self.targetId);
         if (cur != null) {
             float dist = cellDistance(self.getCellX(), self.getCellY(), cur.getCellX(), cur.getCellY());
-            if (dist <= self.attackRange
+            if (dist <= self.getAttackRange()
                     && grid.hasLineOfSight(self.getCellX(), self.getCellY(), cur.getCellX(), cur.getCellY())) {
                 return cur;
             }
@@ -502,9 +502,9 @@ public final class TacticalScoring {
      */
     public static float effectiveAttackRange(Unit shooter, Unit target) {
         if (canRocketTarget(shooter, target)) {
-            return Math.max(shooter.attackRange, shooter.secondaryWeapon.range);
+            return Math.max(shooter.getAttackRange(), shooter.secondaryWeapon.range);
         }
-        return shooter.attackRange;
+        return shooter.getAttackRange();
     }
 
     /**
@@ -802,7 +802,7 @@ public final class TacticalScoring {
     public Unit findEngageableEnemyWithin(Unit self,
                                           int anchorX, int anchorY,
                                           float maxDistFromAnchor) {
-        float maxWeaponReach = self.attackRange;
+        float maxWeaponReach = self.getAttackRange();
         if (self.secondaryWeapon != null && self.secondaryAmmo > 0) {
             maxWeaponReach = Math.max(maxWeaponReach, self.secondaryWeapon.range);
         }
@@ -1113,7 +1113,7 @@ public final class TacticalScoring {
     private int[] findFiringPositionCoverPreferredImpl(Unit self, Unit target,
                                                         int rejectX, int rejectY) {
 
-        int range = Math.max(1, (int) Math.floor(self.attackRange));
+        int range = Math.max(1, (int) Math.floor(self.getAttackRange()));
         int tx = target.getCellX();
         int ty = target.getCellY();
         // Self's current cover against the target — per-facing, so a
@@ -1136,7 +1136,7 @@ public final class TacticalScoring {
                 if (cx == rejectX && cy == rejectY) continue;
 
                 float distFromTarget = (float) Math.sqrt(dx * dx + dy * dy);
-                if (distFromTarget > self.attackRange) continue;
+                if (distFromTarget > self.getAttackRange()) continue;
                 if (distFromTarget < FIRING_MIN_DISTANCE) continue;
                 if (!canSeePair(grid, cx, cy, tx, ty, self.airLosRadius, target.airLosRadius)) continue;
 
@@ -1419,7 +1419,7 @@ public final class TacticalScoring {
             Unit other = scratch.get(i);
             if (other.faction == self.faction) continue;
             if (!other.type.combatant) continue;
-            if (grid.hasLineOfSightWithin(cx, cy, other.getCellX(), other.getCellY(), other.attackRange)) return false;
+            if (grid.hasLineOfSightWithin(cx, cy, other.getCellX(), other.getCellY(), other.getAttackRange())) return false;
         }
         return true;
     }
@@ -1480,7 +1480,7 @@ public final class TacticalScoring {
         int count = 0;
         for (int i = 0, n = threats.size(); i < n; i++) {
             Unit other = threats.get(i);
-            if (grid.hasLineOfSightWithin(cx, cy, other.getCellX(), other.getCellY(), other.attackRange)) count++;
+            if (grid.hasLineOfSightWithin(cx, cy, other.getCellX(), other.getCellY(), other.getAttackRange())) count++;
         }
         return count;
     }

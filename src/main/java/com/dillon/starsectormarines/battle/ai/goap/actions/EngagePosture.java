@@ -103,7 +103,7 @@ public final class EngagePosture implements Action {
                 startedSecondary = true;
             }
             if (!startedSecondary && member.getCooldownTimer() <= 0f
-                    && dist <= member.attackRange) {
+                    && dist <= member.getAttackRange()) {
                 sim.fireShot(member, target);
                 member.setCooldownTimer(member.attackCooldown);
                 member.beginBurst(target);

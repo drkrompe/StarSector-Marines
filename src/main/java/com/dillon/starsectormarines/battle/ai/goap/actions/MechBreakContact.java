@@ -87,7 +87,7 @@ public final class MechBreakContact implements Action {
         if (target == null) return;
         float dist = TacticalScoring.cellDistance(u.getCellX(), u.getCellY(),
                 target.getCellX(), target.getCellY());
-        if (dist > u.attackRange) return;
+        if (dist > u.getAttackRange()) return;
         boolean visible = sim.getGrid().hasLineOfSight(u.getCellX(), u.getCellY(),
                 target.getCellX(), target.getCellY());
         MechCombatantBehavior.tryFireMechWeapons(u, target, dist, sim, visible);

@@ -165,13 +165,20 @@ public class Unit {
      */
     public float localHp;
     public float localMaxHp;
-    public float attackDamage;
-    public float attackRange;
-    /** How far this unit can see (cells). Drives fog-of-war shadowcast radius. Initialized from {@link UnitType#visionRange}; 0 falls back to {@link #attackRange}. */
+    /**
+     * <b>Don't read directly.</b> Pre-allocate seed + post-release snapshot
+     * for attack stats, same lifecycle as {@link #localHp}. Canonical storage
+     * between allocate and release lives in the registry's SoA arrays; go
+     * through {@link #getAttackDamage} / {@link #getAttackRange} /
+     * {@link #getAccuracy}.
+     */
+    public float localAttackDamage;
+    public float localAttackRange;
+    public float localAccuracy;
+    /** How far this unit can see (cells). Drives fog-of-war shadowcast radius. Initialized from {@link UnitType#visionRange}; 0 falls back to {@link #getAttackRange() attackRange}. */
     public float visionRange;
     public float attackCooldown;
     public float localCooldownTimer = 0f;
-    public float accuracy;
 
     /**
      * Entity id of the current target — resolves through
@@ -259,7 +266,7 @@ public class Unit {
     public int homeCellX = -1;
     public int homeCellY = -1;
 
-    /** Primary handheld weapon. Null for legacy / non-marine units — fire stats fall back to the {@link UnitType} defaults baked into {@link #attackRange}/{@link #attackDamage}/etc. Assigned at deboard time for marines. */
+    /** Primary handheld weapon. Null for legacy / non-marine units — fire stats fall back to the {@link UnitType} defaults baked into {@link #getAttackRange() attackRange}/{@link #getAttackDamage() attackDamage}/etc. Assigned at deboard time for marines. */
     public MarineWeapon primaryWeapon;
     /** Optional secondary slot (rocket launcher, future grenades). Null = no secondary. */
     public MarineSecondary secondaryWeapon;
@@ -330,8 +337,8 @@ public class Unit {
      * Mech chassis loadout. Non-null only on mech-class units ({@link UnitType#HEAVY_MECH}
      * today). When set, the unit fires three concurrent weapon tracks via the
      * mech-fire pass in {@code BattleSimulation} instead of the marine
-     * primary/secondary path; the unit's base {@link #attackDamage} /
-     * {@link #attackCooldown} are unused and {@link #attackRange} only matters
+     * primary/secondary path; the unit's base {@link #getAttackDamage() attackDamage} /
+     * {@link #attackCooldown} are unused and {@link #getAttackRange() attackRange} only matters
      * for target acquisition (set wide on {@link UnitType#HEAVY_MECH} to match
      * the LRM's reach).
      */
@@ -351,11 +358,11 @@ public class Unit {
         // setters can't route yet (registry is null).
         this.localMaxHp = type.maxHp;
         this.localHp = type.maxHp;
-        this.attackDamage = type.attackDamage;
-        this.attackRange = type.attackRange;
+        this.localAttackDamage = type.attackDamage;
+        this.localAttackRange = type.attackRange;
+        this.localAccuracy = type.accuracy;
         this.visionRange = type.visionRange > 0f ? type.visionRange : type.attackRange;
         this.attackCooldown = type.attackCooldown;
-        this.accuracy = type.accuracy;
     }
 
     public boolean isAlive() {
@@ -421,6 +428,33 @@ public class Unit {
     public final void setCooldownTimer(float v) {
         if (registry != null) registry.setCooldownTimer(denseIdx, v);
         else localCooldownTimer = v;
+    }
+
+    public final float getAttackDamage() {
+        return (registry != null) ? registry.getAttackDamage(denseIdx) : localAttackDamage;
+    }
+
+    public final void setAttackDamage(float v) {
+        if (registry != null) registry.setAttackDamage(denseIdx, v);
+        else localAttackDamage = v;
+    }
+
+    public final float getAttackRange() {
+        return (registry != null) ? registry.getAttackRange(denseIdx) : localAttackRange;
+    }
+
+    public final void setAttackRange(float v) {
+        if (registry != null) registry.setAttackRange(denseIdx, v);
+        else localAttackRange = v;
+    }
+
+    public final float getAccuracy() {
+        return (registry != null) ? registry.getAccuracy(denseIdx) : localAccuracy;
+    }
+
+    public final void setAccuracy(float v) {
+        if (registry != null) registry.setAccuracy(denseIdx, v);
+        else localAccuracy = v;
     }
 
     public final float getMoveProgress() {

@@ -58,7 +58,7 @@ public final class TurretBehavior implements UnitBehavior {
         s.excludeFromCrowding = t;
         s.facingDegrees = t.facingDegrees;
         s.turnRateDegPerSec = t.kind.turnRateDegPerSec;
-        s.attackRange = t.attackRange;
+        s.attackRange = t.getAttackRange();
         s.minRange = t.kind.minRange;
         s.cooldownTimer = t.getCooldownTimer();
         s.attackCooldown = t.attackCooldown;

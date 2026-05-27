@@ -59,7 +59,7 @@ public final class KitRetrieverBehavior implements UnitBehavior {
         if (u.getCooldownTimer() > 0f) u.setCooldownTimer(u.getCooldownTimer() - BattleSimulation.TICK_DT);
         if (target == null) return;
         float dist = TacticalScoring.cellDistance(u.getCellX(), u.getCellY(), target.getCellX(), target.getCellY());
-        boolean canFire = dist <= u.attackRange
+        boolean canFire = dist <= u.getAttackRange()
                 && sim.getGrid().hasLineOfSight(u.getCellX(), u.getCellY(), target.getCellX(), target.getCellY())
                 && u.getCooldownTimer() <= 0f;
         if (canFire) {

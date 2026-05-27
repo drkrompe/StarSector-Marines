@@ -255,7 +255,7 @@ public final class ChokePointHold implements Action {
         }
         if (member.getCooldownTimer() > 0f) return ActionStatus.RUNNING;
         float d = TacticalScoring.cellDistance(member.getCellX(), member.getCellY(), portalX, portalY);
-        if (d > member.attackRange) return ActionStatus.RUNNING;
+        if (d > member.getAttackRange()) return ActionStatus.RUNNING;
 
         // STANCED fire — on-post, deliberate. Full accuracy. Same shape as
         // HoldPortalCordon's on-post branch so burst follow-ups behave

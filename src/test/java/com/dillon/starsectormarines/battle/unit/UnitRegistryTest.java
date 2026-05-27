@@ -480,6 +480,153 @@ public class UnitRegistryTest {
     }
 
     @Test
+    public void allocateSeedsAttackDamageAndAccessorsRouteThroughRegistry() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        float typeDmg = u.getAttackDamage();
+        assertTrue(typeDmg > 0f, "test prerequisite: type seeds a non-zero attackDamage");
+
+        r.allocate(u);
+
+        assertEquals(typeDmg, r.getAttackDamage(u.denseIdx), 1e-6f);
+        assertEquals(typeDmg, u.getAttackDamage(), 1e-6f);
+
+        u.setAttackDamage(77f);
+        assertEquals(77f, r.getAttackDamage(u.denseIdx), 1e-6f);
+        assertEquals(77f, u.getAttackDamage(), 1e-6f);
+    }
+
+    @Test
+    public void releaseSnapshotsAttackDamageBackToLocalField() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        r.allocate(u);
+
+        u.setAttackDamage(33f);
+        r.release(u.entityId);
+
+        assertNull(u.registry);
+        assertEquals(-1, u.denseIdx);
+        assertEquals(33f, u.getAttackDamage(), 1e-6f);
+    }
+
+    @Test
+    public void releaseTailSwapMovesAttackDamageCorrectly() {
+        UnitRegistry r = new UnitRegistry();
+        Unit a = unit("a");
+        Unit b = unit("b");
+        Unit c = unit("c");
+        long idA = r.allocate(a);
+        r.allocate(b);
+        r.allocate(c);
+        c.setAttackDamage(55f);
+
+        r.release(idA);
+
+        assertEquals(0, c.denseIdx);
+        assertEquals(55f, r.getAttackDamage(0), 1e-6f);
+        assertEquals(55f, c.getAttackDamage(), 1e-6f);
+    }
+
+    @Test
+    public void allocateSeedsAttackRangeAndAccessorsRouteThroughRegistry() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        float typeRange = u.getAttackRange();
+        assertTrue(typeRange > 0f, "test prerequisite: type seeds a non-zero attackRange");
+
+        r.allocate(u);
+
+        assertEquals(typeRange, r.getAttackRange(u.denseIdx), 1e-6f);
+        assertEquals(typeRange, u.getAttackRange(), 1e-6f);
+
+        u.setAttackRange(20f);
+        assertEquals(20f, r.getAttackRange(u.denseIdx), 1e-6f);
+        assertEquals(20f, u.getAttackRange(), 1e-6f);
+    }
+
+    @Test
+    public void releaseSnapshotsAttackRangeBackToLocalField() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        r.allocate(u);
+
+        u.setAttackRange(15f);
+        r.release(u.entityId);
+
+        assertNull(u.registry);
+        assertEquals(-1, u.denseIdx);
+        assertEquals(15f, u.getAttackRange(), 1e-6f);
+    }
+
+    @Test
+    public void releaseTailSwapMovesAttackRangeCorrectly() {
+        UnitRegistry r = new UnitRegistry();
+        Unit a = unit("a");
+        Unit b = unit("b");
+        Unit c = unit("c");
+        long idA = r.allocate(a);
+        r.allocate(b);
+        r.allocate(c);
+        c.setAttackRange(99f);
+
+        r.release(idA);
+
+        assertEquals(0, c.denseIdx);
+        assertEquals(99f, r.getAttackRange(0), 1e-6f);
+        assertEquals(99f, c.getAttackRange(), 1e-6f);
+    }
+
+    @Test
+    public void allocateSeedsAccuracyAndAccessorsRouteThroughRegistry() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        float typeAcc = u.getAccuracy();
+        assertTrue(typeAcc > 0f, "test prerequisite: type seeds a non-zero accuracy");
+
+        r.allocate(u);
+
+        assertEquals(typeAcc, r.getAccuracy(u.denseIdx), 1e-6f);
+        assertEquals(typeAcc, u.getAccuracy(), 1e-6f);
+
+        u.setAccuracy(0.5f);
+        assertEquals(0.5f, r.getAccuracy(u.denseIdx), 1e-6f);
+        assertEquals(0.5f, u.getAccuracy(), 1e-6f);
+    }
+
+    @Test
+    public void releaseSnapshotsAccuracyBackToLocalField() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        r.allocate(u);
+
+        u.setAccuracy(0.8f);
+        r.release(u.entityId);
+
+        assertNull(u.registry);
+        assertEquals(-1, u.denseIdx);
+        assertEquals(0.8f, u.getAccuracy(), 1e-6f);
+    }
+
+    @Test
+    public void releaseTailSwapMovesAccuracyCorrectly() {
+        UnitRegistry r = new UnitRegistry();
+        Unit a = unit("a");
+        Unit b = unit("b");
+        Unit c = unit("c");
+        long idA = r.allocate(a);
+        r.allocate(b);
+        r.allocate(c);
+        c.setAccuracy(0.95f);
+
+        r.release(idA);
+
+        assertEquals(0, c.denseIdx);
+        assertEquals(0.95f, r.getAccuracy(0), 1e-6f);
+        assertEquals(0.95f, c.getAccuracy(), 1e-6f);
+    }
+
+    @Test
     public void releaseOfReservedZeroSentinelIsNoOp() {
         UnitRegistry r = new UnitRegistry();
         Unit a = unit("a");

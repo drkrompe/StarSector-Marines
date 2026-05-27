@@ -66,7 +66,7 @@ public final class ApproachPosture implements Action {
 
         float dist = TacticalScoring.cellDistance(member.getCellX(), member.getCellY(),
                 target.getCellX(), target.getCellY());
-        boolean inRange = dist <= member.attackRange;
+        boolean inRange = dist <= member.getAttackRange();
         boolean visible = sim.getGrid().hasLineOfSight(member.getCellX(), member.getCellY(),
                 target.getCellX(), target.getCellY());
         if (inRange && visible) return ActionStatus.SUCCESS;
