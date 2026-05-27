@@ -24,32 +24,33 @@ universe over time, not retrofitted into intel slots.
 
 ## Current focus
 
-The **campaign tier** is the active surface — the SoA `CampaignState`,
-contracts loop, patron houses surfacing as clients, and the
-mission-resolver bridge writing back to the campaign graph on battle
-outcomes. The Marine Ops mission-select screen is now the consumer of
-that layer. See [`campaign/`](campaign/) — `README.md` indexes the
-design docs and the `complete/` tracking history.
+**Multiple tracks progressing in parallel:**
 
-The battle/ground side continues to evolve in parallel (convoy
-kinematics, mapgen, AI) — see `roadmap/convoy/` for the ground-vehicle
-track, `roadmap/reinforcement/` for the orchestration layer above it,
-`roadmap/conquest/` for the Conquest mode design (central keep +
-compound-as-supply), `roadmap/ecs-migration/` for the long-running
-battle-tier Services/Systems + SoA refactor arc, and the recent
-session logs for other sibling-track activity.
+- **Battle tier** — the compound-capture gameplay loop (central keep +
+  compound-as-supply) is **complete for v1**: state machine, world/HUD
+  markers, reinforcement gating, ConquestObjective, BSP compound
+  generation, and multi-chamber keep all shipped. See
+  [`conquest/central-keep.md`](conquest/central-keep.md) for the full
+  shipped-with-details record. The battle tier's ongoing parallel tracks
+  are convoy kinematics (`convoy/`), the Services/Systems + SoA refactor
+  (`ecs-migration/`), fog-of-war, and AI (GOAP + commander).
+- **Campaign tier** — SoA `CampaignState`, contracts loop, patron houses,
+  mission-resolver bridge. The Marine Ops mission-select screen consumes
+  this layer. See [`campaign/`](campaign/).
+- **Map generation** — room-purpose refactor complete (Slices A–D);
+  partition strategies + per-cell labels now generalize past the keep
+  toward station / ship interiors. See [`mapgen/`](mapgen/).
 
 ## Immediate next-up
 
-1. **Loot picker UI** (`loot.md` design + implementation) — the
-   three-layer salvage model is already plumbed end-to-end
-   (`salvageEntitlement` on `MissionOutcome`; briefing has the
-   negotiation knob). What's missing is the item pool generator (vanilla
-   weapons / supplies / fuel / marines / AI cores), the roll weighted by
-   entitlement × enemy faction × planet industries, and the post-battle
-   picker grid with cargo-capacity check + 75% fence-on-spot for
-   overflow. MechWarrior Mercenaries vibe. Probably its own design doc
-   before implementation.
+1. **Loot picker UI** — the three-layer salvage model is already
+   plumbed end-to-end (`salvageEntitlement` on `MissionOutcome`;
+   briefing has the negotiation knob). What's missing is the item pool
+   generator (vanilla weapons / supplies / fuel / marines / AI cores),
+   the roll weighted by entitlement × enemy faction × planet industries,
+   and the post-battle picker grid with cargo-capacity check + 75%
+   fence-on-spot for overflow. MechWarrior Mercenaries vibe. Needs its
+   own design doc before implementation.
 2. **Offer expiry + patron archetypes** — small polish round. Offers
    currently never lapse; add expiry in `ContractLifecycleSystem`.
    Archetype byte (CORPORATE_RUSHED / FALLEN_NOBLE / etc) is designed
@@ -59,6 +60,11 @@ session logs for other sibling-track activity.
    six values; only STRIKE is generated. GARRISON + CADRE introduce
    retainer payment over time (closer to the contract design's
    "two-mode dichotomy" from `contracts.md`).
+4. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
+   (MARINE_HELD → CONTESTED → DEFENDER_HELD), AutoGarrisonTrigger,
+   marine-side compound supply, defender positive win condition. Blocked
+   on AI commander richness. See
+   [`conquest/central-keep.md`](conquest/central-keep.md) § V2.
 
 ## How to use this directory
 

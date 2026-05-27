@@ -41,6 +41,20 @@ The `mod/` folder in this repo is what ships. `mod_info.json` lists the jar at
 - Hulls/variants: `mod/data/hulls/`, `mod/data/variants/` mirroring vanilla.
 - Strings (for i18n): `mod/data/strings/strings.json`.
 
+## Doc-driven development
+
+Each session should be doc-driven: concept → planning doc → implementation tracking.
+
+- Before implementing a feature, ensure a design doc exists under `roadmap/` covering
+  the concept, decomposition into slices, and cross-refs to related systems.
+- As slices ship, update the design doc in-place: rewrite plan sections to
+  shipped-with-details (commit hash, what actually landed vs. what was planned).
+- At session end, write `roadmap/sessions/YYYY-MM-DD.md` with shipped commits,
+  open items, and notes/decisions made. If multiple sessions fall on the same day,
+  suffix with `-2`, `-3`, etc.
+- Keep `roadmap/README.md` current focus and immediate next-up sections honest —
+  if priorities shifted, say so.
+
 ## Conventions for this repo
 
 - Package root: `com.dillon.starsectormarines`.

@@ -8,10 +8,10 @@ designed around.
 ## Contents
 
 - [`central-keep.md`](central-keep.md) — central-keep map shape +
-  compound-as-supply model. Destructible defender compounds gate
-  reinforcement supply; win condition flips from "kill every defender"
-  to "destroy every supply structure." Storming the keep is the
-  climactic phase.
+  compound-as-supply model. **V1 complete** (all 6 slices shipped):
+  compound state machine, world/HUD markers, reinforcement gating,
+  ConquestObjective, BSP compound generation, multi-chamber keep.
+  V2 (territory tug-of-war) is the next phase.
 
 ## Related
 

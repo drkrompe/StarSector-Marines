@@ -227,14 +227,14 @@ with the rest of the defender count.
 
 ### Keep generation
 
-> **Status (2026-05-22):** the multi-chamber work for the keep moved
-> into its own refactor track at
-> [`../mapgen/`](../mapgen/) — the abstraction needs to
-> generalize past the keep so station / ship-interior fills can reuse
-> it. Slice 6 below ships the binary-partition antechamber pattern;
-> the three-chamber design (entry / inner / throne) lands when
-> [`../mapgen/room-purpose-refactor.md`](../mapgen/room-purpose-refactor.md)
-> reaches Slice C/D.
+> **Status (2026-05-27):** multi-chamber keep is shipped. The
+> room-purpose refactor (Slices A–D at [`../mapgen/`](../mapgen/))
+> generalized partition strategies and per-cell purpose labels;
+> Slice D wired `TernaryPartitionStrategy` + `[THRONE, INNER, ENTRY]`
+> purposes into `MilitaryBaseFiller.COMMAND_CONFIG`.
+> `KeepEntryChamberStamper` emits INNER_POSITION nodes per non-THRONE
+> chamber using label-driven detection. The full three-chamber layout
+> (entry / inner / throne) is live on Conquest maps.
 
 The keep is one big compound but with **multi-room internal structure**
 so the storming sequence reads as a sequence of rooms, not a single
@@ -271,7 +271,7 @@ full three-chamber layout.
 Per [[battle_services_systems]] — *Services own state, Systems are
 stateless tick consumers*. The compound layer splits cleanly:
 
-### `CompoundService` (new)
+### `CompoundService`
 
 Stateful registry. Owns:
 
@@ -303,7 +303,7 @@ MARINE_HELD skip is a *log-clean* optimisation (a captured compound
 can't be the source of a depletion call because no defender squad
 remains assigned to it), not a load-bearing gate.
 
-### `CompoundCaptureSystem` (new, stateless)
+### `CompoundCaptureSystem` (stateless)
 
 Slow-tick consumer (matching `ReinforcementService.tick`'s 1 Hz
 cadence). Each tick:
@@ -318,11 +318,14 @@ No state of its own. Same pattern as the rest of the
 SquadAlertSystem / SquadFallbackSystem extractions that landed in
 sibling work.
 
-### `CompoundMarkerRenderer` (new, in `ui` package)
+### `CompoundMarkerRenderer` + `CompoundProgressPanel` (in `ui.compound` package)
 
-Reads `CompoundService` each frame, renders the world-anchored
-markers + the HUD progress strip. Stateless — pure derivation from
-service state.
+`CompoundMarkerRenderer` reads `CompoundService` each frame and
+renders world-anchored markers (ring + arc + glyph). Stateless — pure
+derivation from service state plus a wall-clock pulse timer for
+contested-state animation. `CompoundProgressPanel` (HudPanel) renders
+the aggregate HUD strip. Together they form the two-tier read: primary
+= world, glance = HUD.
 
 ### Why the split
 
@@ -340,39 +343,80 @@ Three reasons:
 
 ## V1 implementation slices
 
-Each slice compiles + tests + plays standalone:
+> **Status (2026-05-27):** all six slices shipped. The v1 compound-
+> capture gameplay loop is complete end-to-end: state machine,
+> visibility, reinforcement gating, win condition, map generation, and
+> multi-chamber keep. V2 (territory tug-of-war) is the next frontier.
 
-1. **`CompoundService` + `CompoundCaptureSystem` (no consumers)**
-   — service holds per-compound state, system ticks the forward
-   transitions. No trigger / means / objective reads yet — the
-   service state is a write-only-by-system observation. Test: walk a
-   compound through DEFENDER_HELD → CONTESTED → MARINE_HELD via the
-   system + assert state transitions.
-2. **Compound markers (world + HUD)** — `CompoundMarkerRenderer`
-   reads service state, draws the faction-coloured ring + progress
-   arc at each compound anchor, plus the HUD progress strip. Lets
-   the user *see* slice 1's state machine working in playtest before
-   anything else gates on it. Sabotage charge-site markers are the
-   reference visual.
-3. **Trigger + means gating** — `GarrisonDepletedTrigger` skips
-   marine-held compounds; `ConvoyMeans` / `WalkInMeans` /
-   `ShuttleMeans` query `CompoundService.hasAliveCompound(...)` in
-   `canFulfill`. Reinforcement now naturally tapers as compounds
-   flip.
-4. **`ConquestObjective`** — replaces the marine-side
-   `EliminateFactionObjective` only on the Conquest mission factory.
-   Win on all compounds marine-held.
-5. **BSP compound generation pass** — `CompoundFiller` pass +
-   per-kind compound shapes + defence pass. Replaces the existing
-   `MilitaryBaseFiller`'s less-structured emission with a richer
-   compound topology.
-6. **Keep generation** — multi-room interior for the
-   COMMAND_POST-anchored keep. The largest map-shape change; lands
-   last because the rest of the loop already works on existing maps.
+Each slice compiled + tested + played standalone:
 
-Slices 1-4 close the gameplay loop on existing maps (no map-shape
-changes); 5-6 are polish + climactic-feel upgrades. The user-facing
-win/loss should already feel right after slice 4.
+1. **`CompoundService` + `CompoundCaptureSystem`** — shipped (`2ef9a12`).
+   `CompoundService` holds per-compound `Record` (node ref, state,
+   hold-timer, capture-progress [0,1]); `hasAliveCompound(kind, faction)`
+   for O(1) supply gates. `CompoundCaptureSystem` ticks at 1 Hz via
+   `ZoneQueries.zoneClear` — forward transitions (DEFENDER_HELD →
+   CONTESTED → MARINE_HELD) with MARINE_HOLD_TIME = 4s, DEFENDER_HOLD_TIME
+   = 1.5s. Reverse transitions wired but dormant (v2). Wired into
+   `BattleSimulation` constructor + tick loop.
+
+2. **Compound markers (world + HUD)** — shipped (`ca64832`).
+   `CompoundMarkerRenderer` draws a faction-coloured annulus ring +
+   clockwise capture-progress arc + kind glyph (C/B/A) at each compound's
+   bbox centroid. Palette mirrors charge-site markers: crimson (defender),
+   amber (contested), marine blue (captured). Contested state pulses at
+   1.2 Hz. `CompoundProgressPanel` (HudPanel) renders a top-right
+   "Supply hubs: X / Y" strip with per-compound state chips + kind ticks.
+   Both registered in `BattleScreen` — world markers render after
+   objective markers, HUD strip renders via `BattleHud`.
+
+3. **Trigger + means gating** — shipped (`11b2c9f`, critique polish
+   `ec3075e`, import fix `c59ac80`). `GarrisonDepletedTrigger` skips
+   MARINE_HELD compounds (log-clean optimisation, not load-bearing gate).
+   `ConvoyMeans.canFulfill` checks `hasAliveCompound(ARMORY, DEFENDER)`;
+   `ShuttleMeans` checks COMMAND_POST; `WalkInMeans` checks BARRACKS.
+   Gating convention: canonical gate lives in `*Means.canFulfill`, not
+   the trigger. Triggers post unconditionally; means reject when supply
+   is dead.
+
+4. **`ConquestObjective`** — shipped (`6cb1dcb`, critique polish
+   `b6d518a`). Replaces marine-side `EliminateFactionObjective` only on
+   Conquest missions (BattleSetup line 522). Complete when every defender
+   compound is MARINE_HELD + at least one marine alive. Alive-marine
+   precondition prevents same-tick mutual-victory draw when marines storm
+   the keep but all die. Defender side keeps
+   `EliminateFactionObjective(DEFENDER, MARINE)`. Thorough test suite:
+   empty-compound fail-closed, partial capture, last-marine-died race,
+   WinCheckSystem integration, displayName tracking.
+
+5. **BSP compound generation + perimeter defence** — shipped (`4b1e40e`,
+   critique polish `25ceac1`). `CompoundFiller` interface (multi-leaf
+   fill contract). `MilitaryBaseFiller` implements it: marks member cells,
+   bridges inter-leaf roads, absorbs concave notches, paints perimeter
+   wall ring (150 HP fortified), carves inset sub-buildings via
+   `BuildingShellCore` with role-specific configs, punches 1-2 gates,
+   stamps corner gun emplacements, emits tactical nodes per compound role
+   (COMMAND→COMMAND_POST pri 95/gar 4, BARRACKS pri 60/gar 4, ARMORY
+   pri 70/gar 3, VEHICLE_BAY→ARMORY pri 55/gar 3).
+   `CompoundPerimeterDefenderStamper` emits one GUARDPOST per compound
+   on the attacker-facing edge (pri 50, gar 2).
+
+6. **Keep generation — multi-chamber interior** — shipped (`b6eaad9`,
+   then superseded by room-purpose refactor Slices A–D).
+   `COMMAND_CONFIG` uses `TernaryPartitionStrategy` with
+   `[KEEP_THRONE, KEEP_INNER, KEEP_ENTRY]` room purposes. Three-chamber
+   layout: entry (pri 60/gar 3), inner (pri 65/gar 4), throne (inherits
+   COMMAND_POST pri 95/gar 4). Falls back to binary for buildings < 14
+   cells on the long axis. `KeepEntryChamberStamper` scans RoomPurpose
+   labels (not zone-graph inference) and emits INNER_POSITION tactical
+   nodes per non-THRONE chamber. Label-driven detection survives N-chamber
+   partitions. Room-purpose refactor commits: Slice A `82c76a9`/`d3f659d`,
+   Slice B `042d084`, Slice C `ee55eb0`, Slice D `b8b7b9d`.
+
+Additionally shipped after the initial slices:
+- **Compound-aware Conquest commander** (`8eeaf2a`) — SECURE_COMPOUND
+  assignment so marine squads target compound zones specifically.
+- **Resource blackboard** (`1315241`) — compound-driven reinforcement
+  ticket budgeting.
 
 ## V2 — territory tug-of-war (the north star)
 
