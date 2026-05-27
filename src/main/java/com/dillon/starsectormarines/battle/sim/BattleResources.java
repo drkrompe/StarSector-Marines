@@ -22,7 +22,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
  */
 public final class BattleResources {
 
-    private static final float REINFORCEMENT_PER_ARMORY_PER_SEC = 0.05f;
+    private static final float REINFORCEMENT_PER_ARMORY_PER_SEC = 0.0125f;
     private static final float AIRSTRIKE_PER_CP_PER_SEC = 0.0f;
     private static final float REINFORCEMENT_COST = 1.0f;
 
