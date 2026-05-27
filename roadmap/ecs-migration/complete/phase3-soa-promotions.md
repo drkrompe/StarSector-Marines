@@ -10,6 +10,8 @@ Pattern locked in; every promotion follows the same shape
 | hp / maxHp | `float[]` | `7972009` + `53ee895` | First promotion; established the pattern |
 | cellX / cellY | `int[]` | `a78d417` + `9787bd9` | Parallel arrays, not interleaved (design rule 5) |
 | cooldownTimer | `float[]` | `a4df09b` | First decrementer-style per-tick float; 13 consumer files |
+| moveProgress | `float[]` | `489b1db` | Movement lerp factor; ~50 consumer files in same commit |
+| renderX / renderY | `float[]` | `489b1db` | Smooth render position; paired setter `setRenderPos` |
 
 ## Consumer migrations (dense-iter + array reads)
 

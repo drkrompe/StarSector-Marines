@@ -20,20 +20,20 @@ d2a1cbd  battle: DamageResolver.pickPromotionCandidate — third SoA consumer
 ef4d798  battle: TacticalScoring bulk loops — fourth SoA consumer
 9ff4dae  battle: SquadAlertSystem — fifth SoA consumer migration
 a4df09b  battle: SoA cooldownTimer — third primitive promotion
+489b1db  battle: SoA moveProgress + renderX/renderY — fourth promotion  ← 2026-05-27
 ```
 
 ## State of play
 
-- **Three primitives promoted:** hp/maxHp, cellX/cellY, cooldownTimer.
+- **Six primitives promoted:** hp/maxHp, cellX/cellY, cooldownTimer,
+  moveProgress, renderX/renderY.
 - **Five consumers** on dense-iter + SoA array reads.
 - **Build green; all tests pass.**
 
 ## Active stories (priority order)
 
-1. **[`move-render-primitives`](stories/move-render-primitives.md)** —
-   moveProgress + renderX/renderY. Natural batch (updated together in
-   `advanceAlongPath`). ~177 combined refs across ~40 files. Highest
-   churn, biggest SoA payoff.
+1. ~~[`move-render-primitives`](stories/move-render-primitives.md)~~ —
+   **SHIPPED** (`489b1db`). Moved to [`complete/`](complete/phase3-soa-promotions.md).
 
 2. **[`tactical-primitives`](stories/tactical-primitives.md)** —
    attackRange/attackDamage/accuracy. Read-heavy, low churn. TacticalScoring
