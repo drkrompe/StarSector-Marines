@@ -602,7 +602,7 @@ public final class BattleSetup {
         ReinforcementService rs = sim.getReinforcementService();
         rs.addTrigger(new GarrisonDepletedTrigger());
         rs.addTrigger(new ObjectiveLostTrigger());
-        rs.addMeans(new ConvoyMeans(map.roadGraph));
+        rs.addMeans(new ConvoyMeans(map.roadGraph, axis));
         rs.addMeans(new ShuttleMeans(axis));
         rs.addMeans(new WalkInMeans(axis));
     }

@@ -135,7 +135,7 @@ public class CompoundSupplyGatingTest {
         // gate-under-test is shadowed by the road-graph guard. Synthesize a
         // minimal graph by hand: one perimeter node on the south edge.
         RoadGraph graph = singlePerimeterNodeGraph();
-        ConvoyMeans means = new ConvoyMeans(graph);
+        ConvoyMeans means = new ConvoyMeans(graph, null);
         CompoundService service = sim.getCompoundService();
         CompoundCaptureSystem system = new CompoundCaptureSystem();
         service.register(compoundAt(TacticalNode.Kind.ARMORY, 5, 5));

@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.ground.ConvoyPlanner;
 import com.dillon.starsectormarines.battle.ground.HybridAStarPlanner;
 import com.dillon.starsectormarines.battle.ground.Vehicle;
 import com.dillon.starsectormarines.battle.ground.VehicleType;
+import com.dillon.starsectormarines.battle.mapgen.TraversalAxis;
 import com.dillon.starsectormarines.battle.mapgen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 import com.fs.starfarer.api.Global;
@@ -44,9 +45,11 @@ public final class ConvoyMeans implements ReinforcementMeans {
     private static final int MIN_DEST_SEPARATION = 4;
 
     private final RoadGraph graph;
+    private final TraversalAxis axis;
 
-    public ConvoyMeans(RoadGraph graph) {
+    public ConvoyMeans(RoadGraph graph, TraversalAxis axis) {
         this.graph = graph;
+        this.axis = axis;
     }
 
     @Override
@@ -75,7 +78,7 @@ public final class ConvoyMeans implements ReinforcementMeans {
         int gw = sim.getGrid().getWidth();
         int gh = sim.getGrid().getHeight();
 
-        List<RoadGraph.Node> perim = graph.perimeterNodes();
+        List<RoadGraph.Node> perim = defenderSidePerimeter(graph.perimeterNodes(), gw, gh);
         List<RoadGraph.Node> perimByDist = sortedByDistance(perim, rx, ry);
         List<int[]> reservedLz = activeConvoyDestinations(sim);
 
@@ -207,6 +210,27 @@ public final class ConvoyMeans implements ReinforcementMeans {
         LOG.info("ConvoyMeans: dispatched HEAVY_APC entry=(" + entry.cellX + "," + entry.cellY
                 + ") exit=(" + exitNode.cellX + "," + exitNode.cellY
                 + ") rally=(" + rx + "," + ry + ") path=" + path.size() + "edges/" + inX.length + "wps");
+    }
+
+    /**
+     * Filter perimeter nodes to the defender's half of the map. Excludes
+     * the marine entry edge so convoys don't spawn behind the player's
+     * beachhead. Keeps the two lateral edges (they're neutral flanks —
+     * valid approach routes for a flanking convoy).
+     */
+    private List<RoadGraph.Node> defenderSidePerimeter(List<RoadGraph.Node> nodes, int gw, int gh) {
+        List<RoadGraph.Node> out = new ArrayList<>(nodes.size());
+        for (RoadGraph.Node n : nodes) {
+            if (isMarineEntryEdge(n, gw, gh)) continue;
+            out.add(n);
+        }
+        return out.isEmpty() ? nodes : out;
+    }
+
+    private boolean isMarineEntryEdge(RoadGraph.Node n, int gw, int gh) {
+        if (axis == TraversalAxis.SOUTH_TO_NORTH) return n.cellY == 0;
+        if (axis == TraversalAxis.WEST_TO_EAST)   return n.cellX == 0;
+        return false;
     }
 
     /** Sort {@code nodes} by squared distance to ({@code x, y}), ascending. Defensive copy — input list is not mutated. */
