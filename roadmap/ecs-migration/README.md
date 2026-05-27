@@ -75,6 +75,10 @@ Primitives promoted:
 
 - `hp` / `maxHp` — `float[]` (`7972009` + `53ee895`)
 - `cellX` / `cellY` — parallel `int[]` (`a78d417` + `9787bd9`)
+- `cooldownTimer` — `float[]` (`a4df09b`). First "decrementer-style"
+  per-tick float; 13 consumer files updated to final accessors.
+  Establishes the pattern for future timer promotions (moveProgress,
+  secondaryCooldownTimer, repositionCooldown).
 
 Layout decision for cellX/cellY: **parallel `int[]` over interleaved
 stride-2**. Locks in single-axis kernel friendliness for future
@@ -91,8 +95,13 @@ interleaved.
   than the morale loops.
 - `d2a1cbd` — `DamageResolver.pickPromotionCandidate`. Small but
   exemplary; locks the pattern across the damage path too.
+- `ef4d798` — `TacticalScoring` bulk loops (5 reader loops). Fourth
+  consumer.
+- `9ff4dae` — `SquadAlertSystem` (5 unit-iteration loops + helper).
+  Fifth consumer; hottest per-tick file with O(N²) kill-zone LoS scan.
+  Signature simplified to `tick(float dt)`.
 
-Consumer migration pattern (now consistent across all three):
+Consumer migration pattern (now consistent across all five):
 
 ```java
 Unit[] dense = registry.denseArray();
@@ -122,7 +131,7 @@ for (int i = 0; i < liveCount; i++) {
   a Unit (no entityId of its own); only its *targets* are. The class
   still holds Unit-typed `*targetId` fields routing through the
   registry, which is correct. Marked complete.
-- **Other primitives** — `cooldownTimer`, `moveProgress`,
+- **Other primitives** — `moveProgress`,
   `renderX`/`renderY`, `attackRange`/`attackDamage`/`accuracy`,
   `squadId`, `path`. Candidates listed in next-session.
 

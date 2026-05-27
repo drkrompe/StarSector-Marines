@@ -3,10 +3,9 @@
 A Starsector mod (game version 0.98a-RC8). Source-of-truth game install is at
 `C:\Program Files (x86)\Fractal Softworks\Starsector` — read-only reference, never edit.
 
-For project vision, current focus, immediate next-up, and per-session handoff
-notes, see [`roadmap/`](roadmap/). Read `roadmap/README.md` first; the most
-recent file in `roadmap/sessions/` has the latest state. Update the session
-log at the end of each working session.
+For project vision, current focus, and immediate next-up, see
+[`roadmap/`](roadmap/). Read `roadmap/README.md` first; each feature
+directory has its own design doc and `next-session.md` for handoff state.
 
 ## Build & deploy
 
@@ -43,17 +42,24 @@ The `mod/` folder in this repo is what ships. `mod_info.json` lists the jar at
 
 ## Doc-driven development
 
-Each session should be doc-driven: concept → planning doc → implementation tracking.
+Feature directories under `roadmap/` follow this layout:
 
-- Before implementing a feature, ensure a design doc exists under `roadmap/` covering
-  the concept, decomposition into slices, and cross-refs to related systems.
-- As slices ship, update the design doc in-place: rewrite plan sections to
-  shipped-with-details (commit hash, what actually landed vs. what was planned).
-- At session end, write `roadmap/sessions/YYYY-MM-DD.md` with shipped commits,
-  open items, and notes/decisions made. If multiple sessions fall on the same day,
-  suffix with `-2`, `-3`, etc.
+```
+roadmap/<feature>/
+  overview.md        — concept, scope, cross-refs to related systems
+  stories/           — active story/slice docs (one per story)
+  complete/          — shipped stories move here (commit hash, what landed)
+  next-session.md    — handoff state for picking up cold
+  *.md               — other feature-specific docs (options analysis, etc.)
+```
+
+- Before implementing a feature, ensure `overview.md` exists with the concept
+  and decomposition into stories.
+- As stories ship, move them from `stories/` to `complete/` with
+  shipped-with-details (commit hash, what actually landed vs. planned).
 - Keep `roadmap/README.md` current focus and immediate next-up sections honest —
   if priorities shifted, say so.
+- Existing feature dirs are migrated incrementally as they're touched.
 
 ## Conventions for this repo
 

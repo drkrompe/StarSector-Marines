@@ -72,9 +72,11 @@ universe over time, not retrofitted into intel slots.
   rarely; this is the stable view.
 - **`backlog.md`** — known future work, grouped by area. Edit additively as
   ideas land.
-- **`sessions/YYYY-MM-DD.md`** — per-session handoff. Write one at the end
-  of every working session: what shipped, what's open, what to do next time.
-  These are the load-bearing artifact for picking up cold.
+- **Feature directories** (`ecs-migration/`, `campaign/`, `conquest/`, etc.)
+  — each follows the `overview.md` + `stories/` + `complete/` layout
+  described in [`CLAUDE.md`](../CLAUDE.md). `next-session.md` in each dir
+  is the handoff artifact for picking up cold. Existing dirs are migrated
+  to this layout incrementally as they're touched.
 
 ## Related project context
 
