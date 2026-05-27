@@ -313,8 +313,9 @@ public final class BspCityGenerator implements MapGenerator {
         // attacker-facing edge, and 2-4 forward bunkers in the kill zone.
         // Runs after fill so the wall overrides whatever BSP put under it.
         if (biomeMap != null) {
+            boolean[][] compoundExclusion = buildCompoundExclusion(compounds, width, height);
             FortressWallStamper.stamp(grid, topology, axis, biomeMap, roadReservation,
-                    doodads, tactical, rng);
+                    compoundExclusion, doodads, tactical, rng);
         }
 
         // Step 3c' — defense posts. Manned turret emplacements scattered through
@@ -431,6 +432,27 @@ public final class BspCityGenerator implements MapGenerator {
      *       buildings" rather than as an open landing apron.</li>
      * </ul>
      */
+    /**
+     * Build an exclusion mask covering all compound member cells + a 1-cell
+     * buffer (the compound perimeter wall ring). The fortress wall stamper
+     * skips these cells so it doesn't bisect compound sub-buildings.
+     */
+    private static boolean[][] buildCompoundExclusion(List<Compound> compounds, int w, int h) {
+        boolean[][] mask = new boolean[w][h];
+        for (Compound c : compounds) {
+            int bufL = Math.max(0, c.left - 2);
+            int bufT = Math.max(0, c.top - 2);
+            int bufR = Math.min(w - 1, c.right + 2);
+            int bufB = Math.min(h - 1, c.bottom + 2);
+            for (int y = bufT; y <= bufB; y++) {
+                for (int x = bufL; x <= bufR; x++) {
+                    mask[x][y] = true;
+                }
+            }
+        }
+        return mask;
+    }
+
     private void labelLeaves(Bsp.Partition partition, BiomeMap biomeMap,
                               DistrictMap districtMap, Random rng) {
         for (BlockLeaf leaf : partition.leaves) {

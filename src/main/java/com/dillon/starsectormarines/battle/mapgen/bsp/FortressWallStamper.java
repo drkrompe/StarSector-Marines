@@ -103,20 +103,33 @@ public final class FortressWallStamper {
      */
     public static void stamp(NavigationGrid grid, CellTopology topology,
                              TraversalAxis axis, BiomeMap biomeMap,
-                             boolean[][] roadReservation,
+                             boolean[][] roadReservation, boolean[][] compoundExclusion,
                              List<Doodad> doodads, List<TacticalNode> tactical, Random rng) {
         int w = grid.getWidth();
         int h = grid.getHeight();
         int[] bbox = fortressBbox(biomeMap, w, h);
         if (bbox == null) return;
+        boolean[][] skip = mergeExclusions(roadReservation, compoundExclusion, w, h);
         boolean[][] wallMask = new boolean[w][h];
         if (axis == TraversalAxis.SOUTH_TO_NORTH) {
-            stampSouthToNorth(grid, topology, bbox, wallMask, roadReservation, tactical, w, h, rng);
+            stampSouthToNorth(grid, topology, bbox, wallMask, skip, tactical, w, h, rng);
         } else {
-            stampWestToEast(grid, topology, bbox, wallMask, roadReservation, tactical, w, h, rng);
+            stampWestToEast(grid, topology, bbox, wallMask, skip, tactical, w, h, rng);
         }
         demolishIntersectedBuildings(grid, topology, doodads, wallMask, w, h);
         sealOrphanedPockets(grid, w, h);
+    }
+
+    private static boolean[][] mergeExclusions(boolean[][] road, boolean[][] compound, int w, int h) {
+        if (compound == null) return road;
+        if (road == null) return compound;
+        boolean[][] merged = new boolean[w][h];
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                merged[x][y] = road[x][y] || compound[x][y];
+            }
+        }
+        return merged;
     }
 
     private static int[] fortressBbox(BiomeMap biomeMap, int w, int h) {
