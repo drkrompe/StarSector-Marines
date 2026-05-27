@@ -12,6 +12,9 @@ Pattern locked in; every promotion follows the same shape
 | cooldownTimer | `float[]` | `a4df09b` | First decrementer-style per-tick float; 13 consumer files |
 | moveProgress | `float[]` | `489b1db` | Movement lerp factor; ~50 consumer files in same commit |
 | renderX / renderY | `float[]` | `489b1db` | Smooth render position; paired setter `setRenderPos` |
+| attackDamage | `float[]` | `c929087` | Write-once combat stat; 34 consumer files migrated |
+| attackRange | `float[]` | `c929087` | Write-once; heaviest read density in TacticalScoring + 15 GOAP actions |
+| accuracy | `float[]` | `c929087` | Write-once; read in weapon-fire paths |
 
 ## Consumer migrations (dense-iter + array reads)
 

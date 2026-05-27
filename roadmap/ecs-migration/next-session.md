@@ -20,32 +20,32 @@ d2a1cbd  battle: DamageResolver.pickPromotionCandidate — third SoA consumer
 ef4d798  battle: TacticalScoring bulk loops — fourth SoA consumer
 9ff4dae  battle: SquadAlertSystem — fifth SoA consumer migration
 a4df09b  battle: SoA cooldownTimer — third primitive promotion
-489b1db  battle: SoA moveProgress + renderX/renderY — fourth promotion  ← 2026-05-27
+489b1db  battle: SoA moveProgress + renderX/renderY — fourth promotion
+c929087  battle: SoA attackRange/attackDamage/accuracy — fifth promotion  ← 2026-05-27
 ```
 
 ## State of play
 
-- **Six primitives promoted:** hp/maxHp, cellX/cellY, cooldownTimer,
-  moveProgress, renderX/renderY.
+- **Nine primitives promoted:** hp/maxHp, cellX/cellY, cooldownTimer,
+  moveProgress, renderX/renderY, attackDamage, attackRange, accuracy.
 - **Five consumers** on dense-iter + SoA array reads.
 - **Build green; all tests pass.**
 
 ## Active stories (priority order)
 
 1. ~~[`move-render-primitives`](stories/move-render-primitives.md)~~ —
-   **SHIPPED** (`489b1db`). Moved to [`complete/`](complete/phase3-soa-promotions.md).
+   **SHIPPED** (`489b1db`). Moved to [`complete/`](complete/move-render-primitives.md).
 
-2. **[`tactical-primitives`](stories/tactical-primitives.md)** —
-   attackRange/attackDamage/accuracy. Read-heavy, low churn. TacticalScoring
-   already iterates dense — these become direct array reads.
+2. ~~[`tactical-primitives`](stories/tactical-primitives.md)~~ —
+   **SHIPPED** (`c929087`). Logged in [`complete/`](complete/phase3-soa-promotions.md).
 
 3. **[`secondary-weapon-primitives`](stories/secondary-weapon-primitives.md)** —
    secondaryAimTargetId/secondaryActionTimer/secondaryCooldownTimer. Tightly
-   scoped to ~8 files. Lowest priority.
+   scoped to ~8 files. Next up if continuing SoA promotions.
 
 ## Sanity check before resuming
 
 - `gradlew.bat compileJava` should be clean.
 - All tests pass.
-- `git log --oneline -5` should show `a4df09b` or your own recent work
+- `git log --oneline -5` should show `c929087` or your own recent work
   at the top.
