@@ -112,7 +112,7 @@ Completed tasks (sealed in `complete/`):
 8. [GoapInfantryBehavior + dispatch flag](complete/08-behavior-wiring.md)
 9. [Behavior validation](complete/09-parity-validation.md)
 
-### Stage 2 — Real tactical actions
+### Stage 2 — Real tactical actions (in progress)
 
 **Re-imagining license.** Stage 1 infantry behavior was deliberately
 parity-shaped and the playtest exposed the shape's flaws (tunnel-vision
@@ -123,25 +123,34 @@ Driven by [**10 — Stage 2 Tactical Stories**](10-tactical-stories.md): a
 story bank of combat moments we want the player to *see*, with primitives
 derived from the stories rather than from a generic GOAP rolodex.
 
-Three cornerstones unlock the bulk of the story bank:
-1. **Engagement discipline** — fixes Stage 1's tunnel-vision pursuit;
-   cheapest, ships first
-2. **Cover model on doodads** — half the stories cite it
-3. **Per-member action assignment** — the stories most visibly distinct
-   from Stage 1 need it
+**Foundation complete** (sealed in `complete/`):
+- [Stage 2 Foundation](complete/11-stage2-foundation.md) — Tier 0 shared
+  types (predicates, per-member role slots, RoleAssigner wiring) + Tier 1
+  infrastructure (cover model, ZoneQueries, goal-priority buckets,
+  threat-density picker).
 
-See `10-tactical-stories.md` for the full slicing.
+**Shipped stories (Slices 1–3.5):** A (garrison ambush), B (pinned and
+broken), G (cover-aware reposition), I (engagement discipline), J (sabotage
+cordon), K (room-clear sweep), L (choke-point ambush), M (room breach).
 
-### Squad-of-squads commander tier (parked)
+**Remaining stories (Slices 4–6):** C (bounding overwatch), D (patrol
+intercept), E (mech-screened advance), F (objective rush under fire),
+H (last-stand camper). See `10-tactical-stories.md` for the full slicing.
+
+### Squad-of-squads commander tier (active)
 
 Strategic objective assignment above per-squad GOAP — needed for
 multi-objective missions like Conquest (per-zone clears) and Assault
 (sector sweeps). Per-squad GOAP plans tactical actions inside the
 assigned objective; commander decides which squad goes where.
 
-Design sketch lives in [`12-squad-of-squads.md`](12-squad-of-squads.md).
-Not scheduled — Tier 2 story implementations can land first with manual
-assignment stubs.
+**Stage 1 spine + first two commanders shipped:** `MissionCommand`
+interface, `ObjectiveAssignment` record, `ClearAssignedZoneGoal`,
+`SabotageCommand`, `ConquestCommand` (lateral-strip partition). Remaining
+work (AssaultCommand, defender-side commanders, richer scoring) queued
+behind playtest + doc 15.
+
+Design lives in [`12-squad-of-squads.md`](12-squad-of-squads.md).
 
 ### Perception & influence (parked)
 
@@ -158,22 +167,20 @@ variant, threat-set gate on `HAS_LOS_TO_TARGET`) ship first as a
 tactical task** — they lay the data-flow seam for the full system
 without committing to it.
 
-### Mech GOAP tree
+### Mech GOAP tree (Stage 1 complete, Stage 2 future)
 
-Promote mechs from `MechCombatantBehavior` (single-unit ad-hoc loop)
-to a planner-driven role-aware tree: LR support / armored support /
-recon / assault. **Commander-tier gate lifted 2026-05-19** —
-Stage 1 ships with spawn-time role assignment as a stub the commander
-will later override, so MechCommander-style doctrine differentiation
-visible without blocking on the commander layer.
+Mechs promoted from `MechCombatantBehavior` (retired) to a planner-driven
+role-aware tree via `GoapMechBehavior`. Stage 1 shipped two roles
+(LR Support + Armored Support) with spawn-time assignment, mech morale
+(HP-threshold drain + armor-gone cap + hysteresis), and
+`MechSurviveContact` / `MechBreakContact`.
 
-Followup hook from Story B's followup: `rollFallbackOnHit` still
-fires for mechs (legacy per-unit retreat) — the mech GOAP tree's
-analog of `BreakContact` is what retires that.
+**Stage 1 sealed in `complete/`:**
+- [Mech GOAP Stage 1](complete/14-mech-stage1.md) — MechRole, GoapMechBehavior,
+  OverwatchKillZone, BackstopAssignedSquad, EngageAtCurrentBand, mech morale.
 
-High-level design in [`13-mech-goap.md`](13-mech-goap.md). Active
-Stage 1 slice (LR Support + Armored Support, two roles) in
-[`14-mech-stage1.md`](14-mech-stage1.md).
+**Stage 2 (future):** Recon + Assault roles, dynamic re-assignment from
+commander tier. High-level design in [`13-mech-goap.md`](13-mech-goap.md).
 
 ### Stage 3 — Mission-specific goals (future)
 
