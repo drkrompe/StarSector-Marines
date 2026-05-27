@@ -32,12 +32,12 @@ public class Vehicle {
     public final VehicleType type;
     public final Faction faction;
 
-    /** Inbound path's cell-center coords. {@link #lzX}/{@link #lzY} repeat the last entry as a convenience. */
-    public final float[] inboundX;
-    public final float[] inboundY;
-    /** Outbound path's cell-center coords. Same shape as inbound; usually inbound reversed for V1. */
-    public final float[] outboundX;
-    public final float[] outboundY;
+    /** Inbound path's cell-center coords. {@link #lzX}/{@link #lzY} repeat the last entry as a convenience. Mutable — may be replaced by a re-plan. */
+    public float[] inboundX;
+    public float[] inboundY;
+    /** Outbound path's cell-center coords. Same shape as inbound; usually inbound reversed for V1. Mutable — may be replaced by a re-plan. */
+    public float[] outboundX;
+    public float[] outboundY;
 
     /** LZ position — terminal waypoint of {@link #inboundX}. */
     public final float lzX;
@@ -113,6 +113,36 @@ public class Vehicle {
     public float dockingProgressCells;
     /** Goal facing applied to the body on terminal snap-to-LZ. */
     public float dockingGoalFacingDeg;
+
+    /** Sim-seconds the vehicle has been continuously blocked by walls. Drives the reverse-recovery in {@link GroundSystem}. */
+    public float wallStuckTime;
+    /** Position where the vehicle first got stuck. Used to detect oscillation — wallStuckTime only resets when the vehicle moves meaningfully from this origin. */
+    public float stuckOriginX, stuckOriginY;
+    /** wallStuckTime value at which the last re-plan was attempted. Prevents calling the planner every tick. */
+    public float lastReplanAtStuckTime = -1f;
+    /** True if the inbound path was refined by {@link HybridAStarPlanner}. Debug diagnostic only. */
+    public boolean pathRefined;
+
+    public static final int HISTORY_SIZE = 120;
+    public final float[] histX = new float[HISTORY_SIZE];
+    public final float[] histY = new float[HISTORY_SIZE];
+    public final float[] histFacing = new float[HISTORY_SIZE];
+    public final float[] histSpeed = new float[HISTORY_SIZE];
+    public final float[] histStuck = new float[HISTORY_SIZE];
+    public final byte[] histState = new byte[HISTORY_SIZE];
+    public int histHead = 0;
+    public int histCount = 0;
+
+    public void recordTick() {
+        histX[histHead] = body.x;
+        histY[histHead] = body.y;
+        histFacing[histHead] = body.facingDegrees;
+        histSpeed[histHead] = body.speed;
+        histStuck[histHead] = wallStuckTime;
+        histState[histHead] = (byte) state.ordinal();
+        histHead = (histHead + 1) % HISTORY_SIZE;
+        if (histCount < HISTORY_SIZE) histCount++;
+    }
 
     public Vehicle(VehicleType type, Faction faction,
                    float[] inboundX, float[] inboundY,

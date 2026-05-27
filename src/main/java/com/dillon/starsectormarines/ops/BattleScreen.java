@@ -1943,6 +1943,15 @@ public class BattleScreen implements Screen, BattleUiContext {
                 debugZonesVisible = !debugZonesVisible;
                 e.consume();
             }
+            if (e.isKeyDownEvent() && e.getEventValue() == org.lwjgl.input.Keyboard.KEY_F5) {
+                int vIdx = getSelection().getSelectedVehicleIdx();
+                com.dillon.starsectormarines.battle.sim.BattleSimulation bsim = getSim();
+                if (vIdx >= 0 && bsim != null && vIdx < bsim.getConvoyVehicles().size()) {
+                    com.dillon.starsectormarines.battle.ui.debug.VehicleStateDumper.dump(
+                            bsim.getConvoyVehicles().get(vIdx), bsim.getGrid());
+                    e.consume();
+                }
+            }
         }
     }
 
@@ -3538,6 +3547,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (cache != null && cache.sheet != null) cache.sheet.setAngle(0f);
         }
         if (DEBUG_RENDER_DOCKING_PATHS) renderConvoyDockingPaths(convoy, alphaMult);
+        renderSelectedVehicleDebug(convoy, alphaMult);
     }
 
     /** Debug flag — draws Reeds-Shepp docking paths under each docking truck for math iteration. */
@@ -3604,6 +3614,89 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
 
         org.lwjgl.opengl.GL11.glPopAttrib();
+    }
+
+    private void renderSelectedVehicleDebug(
+            java.util.List<com.dillon.starsectormarines.battle.ground.Vehicle> convoy,
+            float alphaMult) {
+        int idx = getSelection().getSelectedVehicleIdx();
+        if (idx < 0 || idx >= convoy.size()) return;
+        com.dillon.starsectormarines.battle.ground.Vehicle v = convoy.get(idx);
+
+        org.lwjgl.opengl.GL11.glPushAttrib(
+                org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT
+                | org.lwjgl.opengl.GL11.GL_ENABLE_BIT
+                | org.lwjgl.opengl.GL11.GL_CURRENT_BIT
+                | org.lwjgl.opengl.GL11.GL_LINE_BIT);
+        org.lwjgl.opengl.GL11.glColorMask(true, true, true, true);
+        org.lwjgl.opengl.GL11.glDisable(org.lwjgl.opengl.GL11.GL_TEXTURE_2D);
+        org.lwjgl.opengl.GL11.glEnable(org.lwjgl.opengl.GL11.GL_BLEND);
+        org.lwjgl.opengl.GL11.glBlendFunc(
+                org.lwjgl.opengl.GL11.GL_SRC_ALPHA,
+                org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA);
+
+        float[] xs = (v.state == com.dillon.starsectormarines.battle.ground.Vehicle.State.DEPARTING)
+                ? v.outboundX : v.inboundX;
+        float[] ys = (v.state == com.dillon.starsectormarines.battle.ground.Vehicle.State.DEPARTING)
+                ? v.outboundY : v.inboundY;
+
+        org.lwjgl.opengl.GL11.glLineWidth(2f);
+        if (xs.length > 1) {
+            org.lwjgl.opengl.GL11.glBegin(org.lwjgl.opengl.GL11.GL_LINE_STRIP);
+            for (int i = 0; i < xs.length; i++) {
+                if (i < v.waypointIndex) {
+                    org.lwjgl.opengl.GL11.glColor4f(0.5f, 0.5f, 0.5f, 0.4f * alphaMult);
+                } else {
+                    org.lwjgl.opengl.GL11.glColor4f(0.2f, 0.8f, 1f, 0.8f * alphaMult);
+                }
+                org.lwjgl.opengl.GL11.glVertex2f(
+                        camera.cellToScreenX(xs[i]), camera.cellToScreenY(ys[i]));
+            }
+            org.lwjgl.opengl.GL11.glEnd();
+        }
+
+        org.lwjgl.opengl.GL11.glPointSize(6f);
+        if (v.waypointIndex >= 0 && v.waypointIndex < xs.length) {
+            org.lwjgl.opengl.GL11.glColor4f(1f, 1f, 0f, 0.9f * alphaMult);
+            org.lwjgl.opengl.GL11.glBegin(org.lwjgl.opengl.GL11.GL_POINTS);
+            org.lwjgl.opengl.GL11.glVertex2f(
+                    camera.cellToScreenX(xs[v.waypointIndex]),
+                    camera.cellToScreenY(ys[v.waypointIndex]));
+            org.lwjgl.opengl.GL11.glEnd();
+        }
+
+        org.lwjgl.opengl.GL11.glColor4f(0f, 1f, 0.3f, 0.9f * alphaMult);
+        org.lwjgl.opengl.GL11.glPointSize(5f);
+        org.lwjgl.opengl.GL11.glBegin(org.lwjgl.opengl.GL11.GL_POINTS);
+        org.lwjgl.opengl.GL11.glVertex2f(
+                camera.cellToScreenX(v.body.x), camera.cellToScreenY(v.body.y));
+        org.lwjgl.opengl.GL11.glEnd();
+
+        org.lwjgl.opengl.GL11.glPopAttrib();
+
+        float textX = camera.cellToScreenX(v.body.x) + 20f;
+        float textY = camera.cellToScreenY(v.body.y) + 40f;
+        float lineH = 16f;
+        com.dillon.starsectormarines.ui.BitmapFont font = com.dillon.starsectormarines.ui.Fonts.INSIGNIA_15_AA;
+        java.awt.Color c = new java.awt.Color(0.8f, 1f, 0.8f, 1f);
+
+        font.drawString(String.format("state: %s  wp: %d/%d", v.state, v.waypointIndex, xs.length),
+                textX, textY, c, alphaMult);
+        textY -= lineH;
+        font.drawString(String.format("speed: %.1f  facing: %.0f  stuck: %.2fs",
+                v.body.speed, v.body.facingDegrees, v.wallStuckTime), textX, textY, c, alphaMult);
+        textY -= lineH;
+        font.drawString(String.format("pos: (%.1f, %.1f)  path: %s  wps: %d+%d",
+                v.body.x, v.body.y, v.pathRefined ? "HA*" : "coarse",
+                v.inboundX.length, v.outboundX.length), textX, textY, c, alphaMult);
+        textY -= lineH;
+        if (v.type.hasTurretWeapon()) {
+            font.drawString(String.format("turret: ammo=%d  facing=%.0f",
+                    v.turretAmmo, v.turretFacingDeg), textX, textY, c, alphaMult);
+            textY -= lineH;
+        }
+        font.drawString("[F5] dump state to JSON", textX, textY,
+                new java.awt.Color(0.6f, 0.6f, 0.6f, 1f), alphaMult * 0.7f);
     }
 
     private void renderShuttles(List<Shuttle> shuttles, float alphaMult) {

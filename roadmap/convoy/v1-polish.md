@@ -215,20 +215,51 @@ penalty): replace the `isWalkable()` call inside
 `VehicleFootprint.isPoseFeasible()` with a cost query and feed cost
 back into `targetSpeed`. The footprint check signature stays stable.
 
+## Hybrid A* path planner
+
+`HybridAStarPlanner.refine()` replaces coarse cell-center waypoints
+with kinematically-feasible paths. Searches (x, y, heading) config
+space with 36 heading bins, 5 steering angles × 2 directions (forward
++ reverse), VehicleFootprint feasibility checks with 0.6-cell
+clearance inflation, and Reeds-Shepp analytic expansion. Both inbound
+and outbound paths are refined; perimeter-edge waypoints where the
+footprint extends off-grid are skipped and prepended as-is.
+
+Re-plan from stuck: when `wallStuckTime > 2.0s`, runs Hybrid A* from
+the vehicle's current pose to the remaining goal. 3-second cooldown
+between attempts. Progress-based stuck-timer: `wallStuckTime` only
+resets when the vehicle moves >1.5 cells from where it first got stuck,
+preventing oscillation from clearing the timer.
+
+## Vehicle debug tools
+
+Click-select vehicles on the battle map (1.5-cell pick radius). Debug
+overlay shows path polyline (gray=passed, cyan=ahead), state text
+(state, waypoint progress, speed, facing, wallStuckTime, path type).
+
+F5 with vehicle selected dumps JSON to
+`saves/common/starsector_marines/debug/vehicle_state.json` via
+`VehicleStateDumper`: current state, full inbound/outbound waypoints,
+120-tick history ring buffer (position, facing, speed, stuck time per
+tick), and 17×17 ASCII walkability grid centered on the vehicle.
+
 ## What's still open
 
-- **Phase 3 / Hybrid A*** — global kinodynamic planning for non-LZ
-  re-routing around dynamic blockers (wrecks, other trucks). Deferred
-  until ambush mechanics actually create the demand.
-- **CCSC Reeds-Shepp family** — would add a few more dock paths in
-  complex geometry; defer until CCC+CSC fails visibly.
+- **Direct pose playback** — the critical next step. Currently
+  Hybrid A* plans kinematically-valid paths (including forward/reverse
+  segments), but PurePursuit execution throws away direction info and
+  just chases (x,y) points. When PurePursuit deviates from the plan,
+  the reactive wall constraint can't recover reliably. Fix: play the
+  planned poses directly (same pattern as RS docking in
+  `advanceDocking`), setting body x/y/facing from the planner's output
+  each tick. This eliminates the gap between plan and execution, and
+  the reactive collision layer can be removed entirely — the plan IS
+  the path. Extension point for `advancePath`: detect whether the
+  vehicle has a Hybrid A* plan or a coarse polyline and dispatch to
+  playback vs PurePursuit accordingly.
 - **Terrain-cost steering** — road-preferred / off-road penalty layer
   on top of the binary walkability check. Extension point identified
   in VehicleFootprint; not needed until missions feature off-road
   vehicle traversal.
-- **Corner smoothing** — tight road junctions where the min turn
-  radius exceeds road width cause vehicles to pause (correct behavior
-  for the bicycle model). Smoother polyline corners or wider junction
-  road cells would eliminate the pause. Monitor in playtest.
 - **Convoy spawn dumper** triggers on FAILURE; the post-gen road-graph
   diagnostic logs on every gen.

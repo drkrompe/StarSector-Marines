@@ -55,6 +55,16 @@ public class GroundSystem {
     private static final float DOCKING_SPEED = 2.0f;
     /** Sample step (cells) along the RS path when validating feasibility against {@link VehicleFootprint}. */
     private static final float DOCKING_FOOTPRINT_SAMPLE_CELLS = 0.5f;
+    /** Sim-seconds a vehicle must be wall-blocked before it starts reversing. Brief pause reads as "realizing the turn won't fit." */
+    private static final float WALL_REVERSE_DELAY = 0.3f;
+    /** Reverse speed when backing away from a wall, cells/sec. Slower than forward cruise — cautious backup. */
+    private static final float WALL_REVERSE_SPEED = 1.4f;
+    /** Sim-seconds of continuous wall-stuck before triggering a Hybrid A* re-plan from the current pose. */
+    private static final float REPLAN_STUCK_THRESHOLD = 2.0f;
+    /** Minimum sim-seconds between re-plan attempts so a failing planner doesn't run every tick. */
+    private static final float REPLAN_COOLDOWN = 3.0f;
+    /** Distance (cells) the vehicle must move from its stuck origin before wallStuckTime resets. Prevents oscillation from clearing the timer. */
+    private static final float STUCK_ESCAPE_DIST = 1.5f;
 
     private final NavigationService navigation;
     private final UnitRosterService roster;
@@ -133,6 +143,9 @@ public class GroundSystem {
                 default:
                     break;
             }
+            if (v.isVisible()) {
+                v.recordTick();
+            }
         }
         tickVehicleTurrets(dt);
     }
@@ -182,14 +195,64 @@ public class GroundSystem {
         float taper = (float) Math.sqrt(2f * v.type.brakingAccel * Math.max(0f, remaining));
         float targetSpeed = Math.min(v.type.maxSpeed, taper);
 
+        float cdx = carrot.x - v.body.x, cdy = carrot.y - v.body.y;
+        float carrotBearing = com.dillon.starsectormarines.battle.air.AirBody.facingToward(cdx, cdy);
+        float alpha = ((carrotBearing - v.body.facingDegrees + 540f) % 360f) - 180f;
+        if (Math.abs(alpha) > 90f) {
+            targetSpeed = -targetSpeed * 0.5f;
+        }
+
         v.body.tick(carrot.x, carrot.y, targetSpeed, dt);
 
-        if (!VehicleFootprint.isPoseFeasible(v.body.x, v.body.y, v.body.facingDegrees,
-                v.type.visualLengthCells, v.type.visualWidthCells, navigation.getGrid())) {
-            v.body.x = prevX;
-            v.body.y = prevY;
-            v.body.facingDegrees = prevFacing;
-            v.body.speed = 0f;
+        NavigationGrid grid = navigation.getGrid();
+        boolean prevOnGrid = VehicleFootprint.isPoseFeasible(prevX, prevY, prevFacing,
+                v.type.visualLengthCells, v.type.visualWidthCells, grid);
+        boolean newFeasible = VehicleFootprint.isPoseFeasible(v.body.x, v.body.y, v.body.facingDegrees,
+                v.type.visualLengthCells, v.type.visualWidthCells, grid);
+        if (prevOnGrid && !newFeasible) {
+            if (v.wallStuckTime == 0f) {
+                v.stuckOriginX = prevX;
+                v.stuckOriginY = prevY;
+            }
+            v.wallStuckTime += dt;
+            if (v.wallStuckTime > REPLAN_STUCK_THRESHOLD
+                    && v.wallStuckTime - v.lastReplanAtStuckTime >= REPLAN_COOLDOWN) {
+                v.body.x = prevX;
+                v.body.y = prevY;
+                v.body.facingDegrees = prevFacing;
+                v.body.speed = 0f;
+                v.lastReplanAtStuckTime = v.wallStuckTime;
+                if (tryReplan(v, xs, ys, isInbound)) {
+                    v.wallStuckTime = 0f;
+                    v.lastReplanAtStuckTime = -1f;
+                    return;
+                }
+            }
+            if (v.wallStuckTime > WALL_REVERSE_DELAY) {
+                v.body.x = prevX;
+                v.body.y = prevY;
+                v.body.facingDegrees = prevFacing;
+                v.body.speed = 0f;
+                v.body.tick(carrot.x, carrot.y, -WALL_REVERSE_SPEED, dt);
+                if (!VehicleFootprint.isPoseFeasible(v.body.x, v.body.y, v.body.facingDegrees,
+                        v.type.visualLengthCells, v.type.visualWidthCells, grid)) {
+                    v.body.x = prevX;
+                    v.body.y = prevY;
+                    v.body.facingDegrees = prevFacing;
+                    v.body.speed = 0f;
+                }
+            } else {
+                v.body.x = prevX;
+                v.body.y = prevY;
+                v.body.facingDegrees = prevFacing;
+                v.body.speed = 0f;
+            }
+        } else if (v.wallStuckTime > 0f) {
+            float dx = v.body.x - v.stuckOriginX;
+            float dy = v.body.y - v.stuckOriginY;
+            if ( dx * dx + dy * dy > STUCK_ESCAPE_DIST * STUCK_ESCAPE_DIST) {
+                v.wallStuckTime = 0f;
+            }
         }
 
         int lastIdx = xs.length - 1;
@@ -204,6 +267,46 @@ public class GroundSystem {
                 v.state = Vehicle.State.GONE;
             }
         }
+    }
+
+    /**
+     * Re-plan from the vehicle's current pose to its remaining goal when
+     * the reactive recovery has failed for {@link #REPLAN_STUCK_THRESHOLD}
+     * seconds. Runs Hybrid A* once; if it finds a feasible path, replaces
+     * the vehicle's waypoint arrays and resets the waypoint cursor.
+     */
+    private boolean tryReplan(Vehicle v, float[] xs, float[] ys, boolean isInbound) {
+        int lastOnGrid = xs.length - 1;
+        if (xs[lastOnGrid] < 0 || ys[lastOnGrid] < 0) lastOnGrid--;
+        if (lastOnGrid < 1) return false;
+
+        float goalX = xs[lastOnGrid], goalY = ys[lastOnGrid];
+        float goalFacing;
+        if (lastOnGrid >= 1) {
+            goalFacing = AirBody.facingToward(
+                    xs[lastOnGrid] - xs[lastOnGrid - 1],
+                    ys[lastOnGrid] - ys[lastOnGrid - 1]);
+        } else {
+            goalFacing = v.body.facingDegrees;
+        }
+
+        float[] guideX = new float[]{v.body.x, goalX};
+        float[] guideY = new float[]{v.body.y, goalY};
+        float[][] refined = HybridAStarPlanner.refine(
+                guideX, guideY, v.body.facingDegrees, goalFacing,
+                v.type, navigation.getGrid());
+        if (refined == null) return false;
+
+        if (isInbound) {
+            v.inboundX = refined[0];
+            v.inboundY = refined[1];
+        } else {
+            v.outboundX = refined[0];
+            v.outboundY = refined[1];
+        }
+        v.waypointIndex = 1;
+        v.dockingPath = null;
+        return true;
     }
 
     /**

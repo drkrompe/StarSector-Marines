@@ -66,9 +66,16 @@ public class BicycleBody extends GroundBody {
         float dy = carrotY - y;
         float dist = (float) Math.sqrt(dx * dx + dy * dy);
 
+        boolean reversing = targetSpeed < 0f;
+
         // Pure-pursuit steering law. α is the carrot's bearing relative to
         // current facing, wrapped to (-180°, 180°]; α>0 means carrot is to
         // the left (CCW), so desired steering is positive (left turn).
+        //
+        // In reverse the heading equation θ'=(v/L)·tan(δ) inverts the
+        // heading response (negative v flips the sign), so we negate the
+        // desired steering — this swings the heading TOWARD the carrot
+        // while backing away from it, producing 3-point turn behavior.
         float desiredSteering;
         if (dist > 1e-4f) {
             float carrotFacingDeg = AirBody.facingToward(dx, dy);
@@ -76,6 +83,7 @@ public class BicycleBody extends GroundBody {
             float alphaRad = (float) Math.toRadians(alphaDeg);
             float numer = 2f * wheelbaseCells * (float) Math.sin(alphaRad);
             desiredSteering = (float) Math.atan2(numer, dist);
+            if (reversing) desiredSteering = -desiredSteering;
             if (desiredSteering >  maxSteeringRad) desiredSteering =  maxSteeringRad;
             if (desiredSteering < -maxSteeringRad) desiredSteering = -maxSteeringRad;
         } else {
@@ -89,19 +97,21 @@ public class BicycleBody extends GroundBody {
         if (dSteer < -steeringStep) dSteer = -steeringStep;
         steeringRad += dSteer;
 
-        // Adjust forward speed toward targetSpeed.
-        float clampedTarget = Math.max(0f, Math.min(maxSpeed, targetSpeed));
+        // Adjust speed toward targetSpeed. Reverse is capped at half forward max.
+        float maxReverse = maxSpeed * 0.5f;
+        float clampedTarget = Math.max(-maxReverse, Math.min(maxSpeed, targetSpeed));
         float dv = clampedTarget - speed;
         float speedStep = (dv >= 0f) ? accel * dt : brakingAccel * dt;
         if (dv >  speedStep) dv =  speedStep;
         if (dv < -speedStep) dv = -speedStep;
         speed += dv;
-        if (speed > maxSpeed) speed = maxSpeed;
-        if (speed < 0f) speed = 0f;
+        if (speed >  maxSpeed) speed = maxSpeed;
+        if (speed < -maxReverse) speed = -maxReverse;
 
         // Bicycle heading update: θ' = (v / L) · tan(δ). Our convention
         // (0°=+Y, positive CCW) shares CCW direction with the math frame, so
-        // positive steering increases facingDegrees.
+        // positive steering increases facingDegrees. With negative v (reverse),
+        // the heading change inverts naturally — no special-casing needed.
         float headingDotRad = (speed / wheelbaseCells) * (float) Math.tan(steeringRad);
         facingDegrees += (float) Math.toDegrees(headingDotRad) * dt;
         // Keep facing in a sane range so floats don't wander after many ticks.

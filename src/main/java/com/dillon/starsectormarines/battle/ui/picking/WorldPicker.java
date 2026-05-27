@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.ui.picking;
 
+import com.dillon.starsectormarines.battle.ground.Vehicle;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
@@ -54,13 +55,16 @@ public final class WorldPicker implements HudPanel {
 
             float worldX = camera.screenToCellX(e.getX());
             float worldY = camera.screenToCellY(e.getY());
+
+            int vehicleIdx = nearestVehicle(sim, worldX, worldY);
+            if (vehicleIdx >= 0) {
+                ctx.getSelection().selectVehicle(vehicleIdx);
+                e.consume();
+                continue;
+            }
+
             Unit picked = nearestUnit(sim, worldX, worldY);
             if (picked != null && picked.squadId != Unit.NO_SQUAD) {
-                // Capture the specific unit alongside the squad id — the
-                // SquadStateDumper surfaces this so a dump records "which
-                // member the user was inspecting when they hit DUMP",
-                // which is the signal for diagnosing individually bad-
-                // responding mechs within an otherwise-engaged squad.
                 ctx.getSelection().selectUnit(picked.squadId, picked.id);
             } else {
                 ctx.getSelection().clear();
@@ -69,12 +73,26 @@ public final class WorldPicker implements HudPanel {
         }
     }
 
-    /**
-     * Closest live unit to {@code (worldX, worldY)} within {@link #PICK_RADIUS_CELLS},
-     * or {@code null} if the closest miss exceeds the radius. Uses each unit's
-     * {@code renderX/renderY} so a unit mid-move is hit-tested at its visible
-     * position, not at its discrete grid cell.
-     */
+    private static final float VEHICLE_PICK_RADIUS_CELLS = 1.5f;
+
+    private static int nearestVehicle(BattleSimulation sim, float worldX, float worldY) {
+        List<Vehicle> vehicles = sim.getConvoyVehicles();
+        int bestIdx = -1;
+        float bestDistSq = VEHICLE_PICK_RADIUS_CELLS * VEHICLE_PICK_RADIUS_CELLS;
+        for (int i = 0; i < vehicles.size(); i++) {
+            Vehicle v = vehicles.get(i);
+            if (!v.isVisible()) continue;
+            float dx = v.body.x - worldX;
+            float dy = v.body.y - worldY;
+            float d2 = dx * dx + dy * dy;
+            if (d2 < bestDistSq) {
+                bestDistSq = d2;
+                bestIdx = i;
+            }
+        }
+        return bestIdx;
+    }
+
     private static Unit nearestUnit(BattleSimulation sim, float worldX, float worldY) {
         Unit best = null;
         float bestDistSq = PICK_RADIUS_CELLS * PICK_RADIUS_CELLS;

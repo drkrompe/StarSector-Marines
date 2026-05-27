@@ -29,7 +29,9 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.TurretMount;
 import com.dillon.starsectormarines.battle.command.ConquestCommand;
 import com.dillon.starsectormarines.battle.command.SabotageCommand;
+import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.ground.ConvoyPlanner;
+import com.dillon.starsectormarines.battle.ground.HybridAStarPlanner;
 import com.dillon.starsectormarines.battle.ground.Vehicle;
 import com.dillon.starsectormarines.battle.ground.VehicleType;
 import com.dillon.starsectormarines.battle.mapgen.road.RoadGraph;
@@ -690,6 +692,20 @@ public final class BattleSetup {
         }
         float[][] inboundCells = ConvoyPlanner.expandToWaypoints(path, entry);
 
+        if (inboundCells[0].length >= 2) {
+            int last = inboundCells[0].length - 1;
+            float startFacing = AirBody.facingToward(
+                    inboundCells[0][1] - inboundCells[0][0],
+                    inboundCells[1][1] - inboundCells[1][0]);
+            float goalFacing = AirBody.facingToward(
+                    inboundCells[0][last] - inboundCells[0][last - 1],
+                    inboundCells[1][last] - inboundCells[1][last - 1]);
+            float[][] refined = HybridAStarPlanner.refine(
+                    inboundCells[0], inboundCells[1], startFacing, goalFacing,
+                    VehicleType.HEAVY_APC, sim.getGrid());
+            if (refined != null) inboundCells = refined;
+        }
+
         // Prepend an off-map staging waypoint perpendicular to the entry's
         // edge so the truck visibly drives onto the map rather than popping
         // in at the perimeter cell.
@@ -707,11 +723,32 @@ public final class BattleSetup {
         inY[0] = offY;
         System.arraycopy(inboundCells[0], 0, inX, 1, len);
         System.arraycopy(inboundCells[1], 0, inY, 1, len);
-        float[][] outboundCells = ConvoyPlanner.reverse(inX, inY);
+
+        float[][] outCoarse = ConvoyPlanner.reverse(inboundCells[0], inboundCells[1]);
+        if (outCoarse[0].length >= 2) {
+            int inLast = inboundCells[0].length - 1;
+            float lzFacing = AirBody.facingToward(
+                    inboundCells[0][inLast] - inboundCells[0][inLast - 1],
+                    inboundCells[1][inLast] - inboundCells[1][inLast - 1]);
+            int outLast = outCoarse[0].length - 1;
+            float exitFacing = AirBody.facingToward(
+                    offX - outCoarse[0][outLast], offY - outCoarse[1][outLast]);
+            float[][] outRefined = HybridAStarPlanner.refine(
+                    outCoarse[0], outCoarse[1], lzFacing, exitFacing,
+                    VehicleType.HEAVY_APC, sim.getGrid());
+            if (outRefined != null) outCoarse = outRefined;
+        }
+        int outLen = outCoarse[0].length;
+        float[] outX = new float[outLen + 1];
+        float[] outY = new float[outLen + 1];
+        System.arraycopy(outCoarse[0], 0, outX, 0, outLen);
+        System.arraycopy(outCoarse[1], 0, outY, 0, outLen);
+        outX[outLen] = offX;
+        outY[outLen] = offY;
 
         Vehicle truck = new Vehicle(
                 VehicleType.HEAVY_APC, Faction.DEFENDER,
-                inX, inY, outboundCells[0], outboundCells[1],
+                inX, inY, outX, outY,
                 DEBUG_CONVOY_PENDING_SEC);
         sim.addConvoyVehicle(truck);
         LOG.info("convoy: spawned HEAVY_APC entry=(" + entry.cellX + "," + entry.cellY

@@ -25,6 +25,7 @@ public final class Selection {
 
     private int selectedSquadId = NONE;
     private String selectedUnitId;
+    private int selectedVehicleIdx = NONE;
 
     public int getSelectedSquadId() {
         return selectedSquadId;
@@ -46,12 +47,25 @@ public final class Selection {
         this.selectedUnitId = unitId;
     }
 
-    public void clear() {
+    public int getSelectedVehicleIdx() { return selectedVehicleIdx; }
+
+    public void selectVehicle(int vehicleIdx) {
+        this.selectedVehicleIdx = vehicleIdx;
         this.selectedSquadId = NONE;
         this.selectedUnitId = null;
     }
 
+    public void clear() {
+        this.selectedSquadId = NONE;
+        this.selectedUnitId = null;
+        this.selectedVehicleIdx = NONE;
+    }
+
     public boolean hasSquadSelection() {
         return selectedSquadId != NONE;
+    }
+
+    public boolean hasVehicleSelection() {
+        return selectedVehicleIdx != NONE;
     }
 }
