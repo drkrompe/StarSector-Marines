@@ -28,6 +28,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.TurretMount;
 import com.dillon.starsectormarines.battle.command.ConquestCommand;
+import com.dillon.starsectormarines.battle.compound.CompoundGarrisonSystem;
 import com.dillon.starsectormarines.battle.command.SabotageCommand;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.ground.ConvoyPlanner;
@@ -562,6 +563,7 @@ public final class BattleSetup {
         // occupied zone in its strip. Spreads marines across the frontage
         // instead of dogpiling the nearest defender contact.
         sim.setCommander(Faction.MARINE, new ConquestCommand(axis));
+        sim.setGarrisonSystem(new CompoundGarrisonSystem(axis));
         installReinforcementLayer(sim, map, axis);
         return sim;
     }

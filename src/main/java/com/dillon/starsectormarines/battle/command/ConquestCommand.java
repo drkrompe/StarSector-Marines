@@ -15,7 +15,9 @@ import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Marine-side strategic commander for CONQUEST — the land-war pattern
@@ -113,6 +115,7 @@ public final class ConquestCommand implements MissionCommand {
      * included — a wall-cell anchor (rare) is silently skipped.
      */
     private final List<CompoundZone> compoundZones = new ArrayList<>();
+    private final Set<Integer> heldCompoundsWithHolder = new HashSet<>();
 
     private record CompoundZone(CompoundService.Record record, int zoneId, int stripIdx) {}
 
@@ -131,9 +134,33 @@ public final class ConquestCommand implements MissionCommand {
             initializePartition(sim);
             initialized = true;
         }
+
+        // Pass 0: assign HOLD_NODE for MARINE_HELD compounds. One squad
+        // per compound, only if the squad is already in the compound's
+        // zone (garrison drops land there; assault squads passing through
+        // different zones aren't yanked off the advance).
+        heldCompoundsWithHolder.clear();
         for (Squad squad : sim.getSquads()) {
             if (squad.faction != Faction.MARINE) continue;
             if (squad.aliveMembers <= 0) continue;
+            CompoundZone held = marineHeldCompoundInSquadZone(squad, sim);
+            if (held == null) continue;
+            if (heldCompoundsWithHolder.contains(held.zoneId)) continue;
+            ObjectiveAssignment cur = squad.assignedObjective;
+            if (cur == null
+                    || cur.kind() != AssignmentKind.HOLD_NODE
+                    || cur.targetNode() != held.record.node) {
+                squad.assignedObjective = ObjectiveAssignment.holdNode(
+                        squad.id, held.record.node);
+            }
+            heldCompoundsWithHolder.add(held.zoneId);
+        }
+
+        for (Squad squad : sim.getSquads()) {
+            if (squad.faction != Faction.MARINE) continue;
+            if (squad.aliveMembers <= 0) continue;
+            if (squad.assignedObjective != null
+                    && squad.assignedObjective.kind() == AssignmentKind.HOLD_NODE) continue;
             int stripIdx = stripFor(squad);
             float squadForward = (axis == TraversalAxis.SOUTH_TO_NORTH)
                     ? squad.centroidY : squad.centroidX;
@@ -168,6 +195,23 @@ public final class ConquestCommand implements MissionCommand {
                 squad.assignedObjective = ObjectiveAssignment.clearZone(squad.id, targetZone);
             }
         }
+    }
+
+    /**
+     * Returns the MARINE_HELD compound whose zone contains this squad, or
+     * null if the squad isn't in any captured compound's zone. Used by
+     * Pass 0 to assign garrison squads to hold without pulling assault
+     * squads off the advance.
+     */
+    private CompoundZone marineHeldCompoundInSquadZone(Squad squad, BattleSimulation sim) {
+        int squadZone = sim.getZoneGraph().zoneIdAt(
+                (int) squad.centroidX, (int) squad.centroidY);
+        if (squadZone < 0) return null;
+        for (CompoundZone cz : compoundZones) {
+            if (cz.record.state != CompoundService.CompoundState.MARINE_HELD) continue;
+            if (cz.zoneId == squadZone) return cz;
+        }
+        return null;
     }
 
     /**

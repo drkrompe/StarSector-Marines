@@ -11,7 +11,9 @@ designed around.
   compound-as-supply model. **V1 complete** (all 6 slices shipped):
   compound state machine, world/HUD markers, reinforcement gating,
   ConquestObjective, BSP compound generation, multi-chamber keep.
-  V2 (territory tug-of-war) is the next phase.
+- [`tug-of-war-v2.md`](tug-of-war-v2.md) — v2 territory tug-of-war.
+  Marine garrison drops on capture + commander hold assignment.
+  **In progress.**
 
 ## Related
 

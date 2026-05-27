@@ -24,6 +24,7 @@ import com.dillon.starsectormarines.battle.weapons.MechWeapon;
 import com.dillon.starsectormarines.battle.air.AirSystem;
 import com.dillon.starsectormarines.battle.command.CommanderService;
 import com.dillon.starsectormarines.battle.compound.CompoundCaptureSystem;
+import com.dillon.starsectormarines.battle.compound.CompoundGarrisonSystem;
 import com.dillon.starsectormarines.battle.compound.CompoundService;
 import com.dillon.starsectormarines.battle.fx.EffectsService;
 import com.dillon.starsectormarines.battle.ground.GroundSystem;
@@ -159,6 +160,8 @@ public class BattleSimulation {
     private final BattleResources battleResources = new BattleResources();
     /** Stateless tick consumer that drives the compound capture state machine. Reads zone occupancy, writes {@link #compoundService} records on its slow-tick cadence. */
     private final CompoundCaptureSystem compoundCapture = new CompoundCaptureSystem();
+    /** Marine-side garrison shuttle spawner — drops friendly troops at captured compounds. Conquest-only; null on other mission types. Set via {@link #setGarrisonSystem}. */
+    private CompoundGarrisonSystem garrisonSystem;
 
     /**
      * Per-target attacker index — wraps the {@code Unit → attacker list} map
@@ -618,6 +621,10 @@ public class BattleSimulation {
         return battleResources;
     }
 
+    public void setGarrisonSystem(CompoundGarrisonSystem system) {
+        this.garrisonSystem = system;
+    }
+
     /**
      * Drives the simulation forward. Accepts any real-time delta; internally
      * runs zero or more fixed 30Hz ticks until the accumulator is drained.
@@ -802,6 +809,7 @@ public class BattleSimulation {
         // MARINE_HELD state. Runs before resource production and reinforcement
         // so both see the freshest capture state this tick.
         compoundCapture.tick(TICK_DT, this, compoundService);
+        if (garrisonSystem != null) garrisonSystem.tick(TICK_DT, this, compoundService);
         // Resource production — alive compounds generate tickets (reinforcement,
         // airstrike) into per-faction pools. Ticked after capture so a
         // just-flipped compound stops producing immediately.
