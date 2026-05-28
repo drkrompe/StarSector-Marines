@@ -11,14 +11,11 @@ import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashSet;
-import java.util.Set;
-
 /**
- * Air-drop reinforcement means. Picks a walkable LZ near the rally, mints
- * a single-cycle {@link Shuttle} that flies in from the side-appropriate
+ * Air-drop reinforcement means. Picks a viable LZ near the rally via
+ * {@link LandingZoneScorer} (walkable, outside building footprints, with a
+ * little clearance), mints a single-cycle {@link Shuttle} that flies in from
+ * the side-appropriate
  * off-map edge, lands, deboards its capacity into a fresh defender squad,
  * and departs. Reuses the existing shuttle state machine in
  * {@code AirSystem} — this class only writes the spawn-time inputs the
@@ -40,8 +37,16 @@ public final class ShuttleMeans implements ReinforcementMeans {
 
     private static final Logger LOG = Global.getLogger(ShuttleMeans.class);
 
-    /** Max BFS radius from the rally when searching for a walkable LZ cell. */
+    /** Max search radius (Manhattan) from the rally when scoring an LZ. */
     private static final int LZ_SCAN_RADIUS = 8;
+
+    /**
+     * Minimum open-neighbour count an LZ must have. A shuttle is an aircraft —
+     * it shouldn't set down in a one-cell pinch between buildings. Lenient (a
+     * cell touching a wall still qualifies); the load-bearing constraint is the
+     * scorer's walkable / no-building viability rule.
+     */
+    private static final int SHUTTLE_MIN_CLEARANCE = 2;
 
     /** Cells the off-map entry sits outside the grid. Mirrors {@code BattleSetup.SHUTTLE_OFFMAP_Y}; duplicated here so the means is self-contained and the existing constant stays {@code private}. */
     private static final float OFFMAP_PAD = 8f;
@@ -67,15 +72,17 @@ public final class ShuttleMeans implements ReinforcementMeans {
                 TacticalNode.Kind.COMMAND_POST, Faction.DEFENDER)) {
             return false;
         }
-        return findLz(sim.getGrid(), req.rallyX, req.rallyY) != null;
+        return new LandingZoneScorer(sim.getGrid(), sim.getTopology())
+                .bestNear(req.rallyX, req.rallyY, LZ_SCAN_RADIUS, SHUTTLE_MIN_CLEARANCE) != null;
     }
 
     @Override
     public void dispatch(BattleSimulation sim, ReinforcementRequest req) {
         NavigationGrid grid = sim.getGrid();
-        int[] lz = findLz(grid, req.rallyX, req.rallyY);
+        int[] lz = new LandingZoneScorer(grid, sim.getTopology())
+                .bestNear(req.rallyX, req.rallyY, LZ_SCAN_RADIUS, SHUTTLE_MIN_CLEARANCE);
         if (lz == null) {
-            LOG.warn("ShuttleMeans: no walkable LZ within " + LZ_SCAN_RADIUS
+            LOG.warn("ShuttleMeans: no viable LZ within " + LZ_SCAN_RADIUS
                     + " cells of rally=(" + req.rallyX + "," + req.rallyY + ")");
             return;
         }
@@ -102,39 +109,6 @@ public final class ShuttleMeans implements ReinforcementMeans {
         sim.addShuttle(shuttle);
         LOG.info("ShuttleMeans: dispatched " + DEFAULT_TYPE + " side=" + req.side
                 + " lz=(" + lz[0] + "," + lz[1] + ") entry=(" + entry[0] + "," + entry[1] + ")");
-    }
-
-    /**
-     * BFS from the rally for the first walkable cell. Returns {@code null}
-     * when no cell within {@link #LZ_SCAN_RADIUS} is walkable — caller treats
-     * that as "not feasible" and the next means in priority order
-     * ({@link WalkInMeans}) gets a turn.
-     */
-    private static int[] findLz(NavigationGrid grid, int rallyX, int rallyY) {
-        if (grid.inBounds(rallyX, rallyY) && grid.isWalkable(rallyX, rallyY)) {
-            return new int[]{rallyX, rallyY};
-        }
-        Set<Long> seen = new HashSet<>();
-        Deque<int[]> q = new ArrayDeque<>();
-        q.add(new int[]{rallyX, rallyY, 0});
-        seen.add(((long) rallyX << 32) | (rallyY & 0xFFFFFFFFL));
-        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-        while (!q.isEmpty()) {
-            int[] p = q.poll();
-            if (p[2] > LZ_SCAN_RADIUS) continue;
-            if (grid.inBounds(p[0], p[1]) && grid.isWalkable(p[0], p[1])) {
-                return new int[]{p[0], p[1]};
-            }
-            for (int[] d : dirs) {
-                int nx = p[0] + d[0];
-                int ny = p[1] + d[1];
-                if (!grid.inBounds(nx, ny)) continue;
-                long k = ((long) nx << 32) | (ny & 0xFFFFFFFFL);
-                if (!seen.add(k)) continue;
-                q.add(new int[]{nx, ny, p[2] + 1});
-            }
-        }
-        return null;
     }
 
     /**
