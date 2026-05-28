@@ -151,15 +151,23 @@ public class RecaptureTargetRegistryTest {
         BiomeMap biomes = biomeMap();
         TacticalNode fort = node(TacticalNode.Kind.COMMAND_POST, 10, 87, Faction.DEFENDER, 4);
         BiomeKind fs = biomes.biomeAt(fort.anchorX, fort.anchorY);
+        BiomeKind cs = biomes.biomeAt(10, 55);
+        assertNotEquals(fs, cs, "precondition: fortress and the seed-defender slice are distinct");
         RecaptureTargetRegistry reg = new RecaptureTargetRegistry(
                 new TacticalMap(List.of(fort)), biomes);
 
+        // A defender elsewhere on the seed tick so the registry locks its seed
+        // with the fortress slice conceded — otherwise the first-ever defender
+        // sighting would seed (not debounce) the slice it appears in.
+        presence(sim, "city-def", 10, 55);
         reg.tick(TICK, sim);
-        assertFalse(reg.isContested(fs), "slice seeds conceded with no defender present");
+        assertFalse(reg.isContested(fs), "fortress seeds conceded with no defender present");
 
+        // A defender now enters the fortress slice post-seed — the activation
+        // must ramp through the debounce, not flip on the first tick.
         presence(sim, "fort-def", 10, 87);
         reg.tick(TICK, sim);
-        assertFalse(reg.isContested(fs), "not yet contested 1 tick after a defender arrived (debounce)");
+        assertFalse(reg.isContested(fs), "not yet contested 1 tick after a defender entered");
         reg.tick(TICK, sim);
         assertFalse(reg.isContested(fs), "not yet contested 2 ticks after");
         reg.tick(TICK, sim);
@@ -205,7 +213,7 @@ public class RecaptureTargetRegistryTest {
         RecaptureTargetRegistry reg = new RecaptureTargetRegistry(
                 new TacticalMap(List.of(city)), biomes);
 
-        Squad wiped = garrison(sim, city, 0, 4);       // original garrison dead → open
+        garrison(sim, city, 0, 4);                     // original garrison dead → open
         presence(sim, "city-def", 10, 53);             // keeps the slice contested throughout
         reg.tick(TICK, sim);
 
@@ -218,17 +226,42 @@ public class RecaptureTargetRegistryTest {
         reg.tick(TICK, sim);
         assertTrue(reg.eligibleTargets().isEmpty(), "dispatched target is no longer eligible");
 
-        // Replacement arrives and is assigned to the node (alive members > 0).
-        wiped.aliveMembers = 3;
+        // A DISTINCT replacement squad spawns and is assigned to the node at
+        // deboard (the real arrival path — not a revived corpse). The original
+        // wiped squad stays at 0; aggregate alive on the node is now > 0.
+        Squad replacement = garrison(sim, city, 3, 3);
         reg.tick(TICK, sim);
         assertFalse(t.isOpen(), "held once an alive squad is assigned");
         assertFalse(t.isDispatched(), "dispatch flag clears on arrival so a later wipe re-opens");
         assertTrue(reg.eligibleTargets().isEmpty(), "held target is not eligible");
 
-        // Replacement is wiped → target re-opens with no timer.
-        wiped.aliveMembers = 0;
+        // Replacement is wiped (the en-route/at-post failure H1 guards) → the
+        // node re-opens with no timer because its assigned-alive drops to 0.
+        replacement.aliveMembers = 0;
         reg.tick(TICK, sim);
         assertTrue(t.isOpen(), "re-opens when the replacement is wiped");
         assertEquals(1, reg.eligibleTargets().size(), "eligible again");
+    }
+
+    @Test
+    public void contestedSeedDefersUntilDefendersExist() {
+        BattleSimulation sim = openSim();
+        BiomeMap biomes = biomeMap();
+        TacticalNode city = node(TacticalNode.Kind.HEAVY_TOWER, 10, 55, Faction.DEFENDER, 4);
+        BiomeKind cs = biomes.biomeAt(city.anchorX, city.anchorY);
+        RecaptureTargetRegistry reg = new RecaptureTargetRegistry(
+                new TacticalMap(List.of(city)), biomes);
+
+        // Ticks during sim-init before any defender is placed must not lock the
+        // front to "conceded".
+        reg.tick(TICK, sim);
+        reg.tick(TICK, sim);
+        assertFalse(reg.isContested(cs));
+
+        // First defender sighting seeds contested immediately — no debounce ramp.
+        presence(sim, "late-def", 10, 55);
+        reg.tick(TICK, sim);
+        assertTrue(reg.isContested(cs),
+                "seeds contested on first defender sighting, not after a debounce ramp");
     }
 }

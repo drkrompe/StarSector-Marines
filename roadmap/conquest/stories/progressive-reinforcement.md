@@ -230,6 +230,16 @@ reads the request's objective coordinates and assigns the squad:
   tactical node. Squad advances from delivery LZ to the position.
 - If objective is null (overflow): patrol behavior in the slice.
 
+**Contract — assign at deboard, not on arrival.** The squad's
+`assignedNode` must be set to the recapture target the moment it
+deboards at the LZ, *before* it walks to the position — it's assigned
+to the node while advancing, not once it gets there. This is what lets
+`RecaptureTargetRegistry` re-open a target whose reinforcement is wiped
+*en route*: the registry sees the squad's `assignedNode` count drop to
+zero and clears the dispatch suppression. If `assignedNode` were only
+set on physical arrival, a squad killed crossing the front would leave
+the target `open && dispatched` forever — silently un-reinforced.
+
 ### Slice 5: Wire + tune
 
 - Register `FrontLineReinforcementTrigger` + `RecaptureTargetRegistry`

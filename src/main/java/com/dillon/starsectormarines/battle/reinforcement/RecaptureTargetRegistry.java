@@ -104,16 +104,17 @@ public final class RecaptureTargetRegistry {
 
     private void updateContested(BattleSimulation sim) {
         EnumMap<BiomeKind, Integer> present = new EnumMap<>(BiomeKind.class);
+        int totalDefenders = 0;
         for (Unit u : sim.getUnits()) {
             if (u.faction != Faction.DEFENDER || !u.isAlive()) continue;
-            BiomeKind b = biomeMap.biomeAt(u.getCellX(), u.getCellY());
-            present.merge(b, 1, Integer::sum);
+            present.merge(biomeMap.biomeAt(u.getCellX(), u.getCellY()), 1, Integer::sum);
+            totalDefenders++;
         }
         for (BiomeKind b : BiomeKind.values()) {
             boolean nowPresent = present.getOrDefault(b, 0) > 0;
             if (!seeded) {
-                // First observation seeds the stable state directly so the
-                // front starts correct rather than debouncing up from "all
+                // First *real* observation seeds the stable state directly so
+                // the front starts correct rather than debouncing up from "all
                 // conceded" over the opening seconds.
                 contested.put(b, nowPresent);
                 disagreeStreak.put(b, 0);
@@ -132,10 +133,20 @@ public final class RecaptureTargetRegistry {
                 }
             }
         }
-        seeded = true;
+        // Defer locking the seed until defenders actually exist. A tick that
+        // runs during sim-init before garrisons are placed would otherwise seed
+        // every slice "conceded" and force a full debounce ramp to recover;
+        // until then each (all-conceded) tick is a harmless re-seed.
+        if (totalDefenders > 0) seeded = true;
     }
 
     private void updateOpenState(BattleSimulation sim) {
+        // Open-detection rides on two invariants the dispatch layer must keep:
+        // a wiped garrison squad keeps its assignedNode and stays in
+        // getSquads() (squads are never GC'd), and a reinforcement squad is
+        // given assignedNode == its target node at deboard. The second is what
+        // lets a squad wiped *en route* re-open the target (alive drops to 0)
+        // rather than leaving it open && dispatched forever — see markDispatched.
         Map<TacticalNode, Integer> assignedAlive = new HashMap<>();
         for (Squad squad : sim.getSquads()) {
             if (squad.faction != Faction.DEFENDER) continue;
@@ -180,7 +191,19 @@ public final class RecaptureTargetRegistry {
         return Collections.unmodifiableList(bySlice.getOrDefault(slice, List.of()));
     }
 
-    /** Mark a target as having a reinforcement en route, suppressing re-dispatch until it arrives or the wave is wiped. */
+    /**
+     * Mark a target as having a reinforcement en route, suppressing re-dispatch
+     * until it arrives or the wave is wiped.
+     *
+     * <p>Contract for the dispatch layer (slices 3-4): call this only when a
+     * means has actually dispatched, and give the spawned squad
+     * {@code assignedNode == target.node} at deboard — <em>not</em> only after
+     * it physically reaches the node. The flag self-clears the moment an alive
+     * squad is assigned to the node; if that squad is then wiped (even mid-
+     * advance) the node re-opens via {@link #updateOpenState}. Skip the
+     * at-deboard assignment and a squad wiped before arrival leaves the target
+     * {@code open && dispatched} forever — silently un-reinforced.
+     */
     public void markDispatched(RecaptureTarget target) {
         target.dispatched = true;
     }
