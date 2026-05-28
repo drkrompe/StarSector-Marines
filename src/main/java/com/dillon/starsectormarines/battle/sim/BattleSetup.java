@@ -36,8 +36,8 @@ import com.dillon.starsectormarines.battle.ground.ConvoyPlanner;
 import com.dillon.starsectormarines.battle.ground.HybridAStarPlanner;
 import com.dillon.starsectormarines.battle.ground.Vehicle;
 import com.dillon.starsectormarines.battle.ground.VehicleType;
-import com.dillon.starsectormarines.battle.mapgen.road.RoadGraph;
-import com.dillon.starsectormarines.battle.mapgen.road.RoadReservation;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadReservation;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.reinforcement.ConvoyMeans;
 import com.dillon.starsectormarines.battle.reinforcement.GarrisonDepletedTrigger;
@@ -48,12 +48,12 @@ import com.dillon.starsectormarines.battle.reinforcement.WalkInMeans;
 import com.dillon.starsectormarines.battle.ui.debug.ConvoySpawnDumper;
 import org.apache.log4j.Logger;
 import com.dillon.starsectormarines.battle.map.CellTopology;
-import com.dillon.starsectormarines.battle.mapgen.MapGenerator;
-import com.dillon.starsectormarines.battle.mapgen.MapResult;
-import com.dillon.starsectormarines.battle.mapgen.PlacementGuards;
-import com.dillon.starsectormarines.battle.mapgen.TraversalAxis;
-import com.dillon.starsectormarines.battle.mapgen.bsp.BspCityGenerator;
-import com.dillon.starsectormarines.battle.mapgen.bsp.DefensePostStamper;
+import com.dillon.starsectormarines.battle.world.gen.MapGenerator;
+import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
+import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
+import com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.objective.ConquestObjective;
@@ -116,7 +116,7 @@ public final class BattleSetup {
 
     /**
      * The active {@link MapGenerator}. {@link BspCityGenerator} produces
-     * irregular block-mosaic maps with per-{@link com.dillon.starsectormarines.battle.mapgen.BlockKind}
+     * irregular block-mosaic maps with per-{@link com.dillon.starsectormarines.battle.world.gen.BlockKind}
      * fillers (parks, plazas, industrial yards, waterfronts, fortified posts,
      * landing zones, etc.) on top of a BSP partition. {@link UrbanMapGenerator}
      * is kept around as a legacy fallback — flip this line if the new gen
@@ -1549,7 +1549,7 @@ public final class BattleSetup {
     /**
      * Defense-post turret spawner. Each {@link DefensePost} carries 1-3 turret
      * specs (LIGHT/MEDIUM = 1, LARGE = 2) at cells already stamped by
-     * {@link com.dillon.starsectormarines.battle.mapgen.bsp.DefensePostStamper}
+     * {@link com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper}
      * as walkable STONE pads — that walkability is a map-gen artifact required
      * by {@link com.dillon.starsectormarines.battle.nav.NavigationGrid#recomputeCoverAt}
      * (which skips non-walkable cells, so a fully-walled turret pad would bake

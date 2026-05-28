@@ -119,12 +119,12 @@ public class CellTopology {
      * Default 0 — meaningful only for cells tagged {@link Tag#WALL}; on
      * non-wall cells the render path never reads it. Set at gen time by
      * whatever code stamps walls (see {@link
-     * com.dillon.starsectormarines.battle.mapgen.bsp.fill.BuildingShellCore}).
+     * com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingShellCore}).
      */
     private final byte[] wallDir;
     /**
      * Per-cell building id, 0 = "not part of a building". Populated once at
-     * gen time by {@link com.dillon.starsectormarines.battle.mapgen.bsp.BuildingFloodFill}
+     * gen time by {@link com.dillon.starsectormarines.battle.world.gen.bsp.BuildingFloodFill}
      * after all stamping has settled. Used by the roof-render and fog-of-war
      * visibility passes to find the cells of a given building cheaply.
      */
@@ -152,7 +152,7 @@ public class CellTopology {
      * Per-cell {@link RoomPurpose} label. Stored as {@code ordinal() + 1} so
      * the implicit zero reads as "no carver labeled this cell." Written by
      * carve-time partitioners that know which logical room a cell belongs to
-     * (currently {@link com.dillon.starsectormarines.battle.mapgen.bsp.fill.BuildingShellCore}'s
+     * (currently {@link com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingShellCore}'s
      * partition step on opted-in {@link BuildingKind#FORTIFIED} sub-buildings).
      * Read by post-fill stampers and AI consumers that need to identify "which
      * chamber is this cell in?" without reverse-engineering via the zone graph.

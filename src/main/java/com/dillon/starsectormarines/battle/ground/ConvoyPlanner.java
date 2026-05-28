@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.ground;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
-import com.dillon.starsectormarines.battle.mapgen.road.RoadGraph;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.ArrayDeque;

@@ -9,7 +9,7 @@ import java.util.List;
 
 /**
  * One placed manned turret emplacement — the side-effect of a single
- * {@link com.dillon.starsectormarines.battle.mapgen.bsp.DefensePostStamper}
+ * {@link com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper}
  * stamp. Carries the data {@link com.dillon.starsectormarines.battle.sim.BattleSetup}
  * needs to (a) spawn the {@link MapTurret} units at the right cells with the
  * right kinds and (b) link the {@link com.dillon.starsectormarines.battle.tactical.TacticalNode}
@@ -20,7 +20,7 @@ import java.util.List;
  * emission and the squad patrol-radius reference point. Turret cells are the
  * actual {@link MapTurret} spawn positions (1 for LIGHT/MEDIUM, 2-3 for LARGE).
  *
- * <p>Immutable. Generators emit, {@link com.dillon.starsectormarines.battle.mapgen.MapResult}
+ * <p>Immutable. Generators emit, {@link com.dillon.starsectormarines.battle.world.gen.MapResult}
  * carries, the battle setup consumes.
  */
 public final class DefensePost {

@@ -30,7 +30,7 @@ public final class WallMasks {
      *
      * <p>Math y-up convention: {@code bt} is the building's BOTTOM
      * (south, smaller Y) and {@code bb} is the TOP (north, larger Y).
-     * {@link com.dillon.starsectormarines.battle.mapgen.BlockLeaf}
+     * {@link com.dillon.starsectormarines.battle.world.gen.BlockLeaf}
      * names use screen-space {@code top}/{@code bottom}, but the
      * topology is queried in math-space, so a cell at {@code y == bb}
      * sees north-of-it as out-of-building.

@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSetup;
 
 /**
  * Tier of a manned turret emplacement placed by
- * {@link com.dillon.starsectormarines.battle.mapgen.bsp.DefensePostStamper}.
+ * {@link com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper}.
  *
  * <p>Each tier picks a different visual ring (vent grates vs. sandbag
  * embankment), turret count, garrison size, and patrol radius. Higher tiers

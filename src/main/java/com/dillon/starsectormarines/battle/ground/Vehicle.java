@@ -20,7 +20,7 @@ import com.dillon.starsectormarines.battle.air.AirBody;
  * loiter / hover analog — ground vehicles drop off and leave.
  *
  * <p>Waypoints are cell-center coordinates (cellX + 0.5, cellY + 0.5) along
- * a {@link com.dillon.starsectormarines.battle.mapgen.road.RoadGraph} edge
+ * a {@link com.dillon.starsectormarines.battle.world.gen.road.RoadGraph} edge
  * sequence; they live in fractional world space the same way shuttle
  * lzX/lzY does. The terminal waypoint is the LZ — body teleports to it on
  * arrival, then transitions to LANDED.

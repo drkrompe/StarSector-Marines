@@ -441,7 +441,7 @@ public class StreetZonePreviewTest {
      *
      * <p>The {@code doors} list is the set of cells re-promoted to
      * walkable after the perimeter stamp (matches the door-punching pass
-     * inside {@link com.dillon.starsectormarines.battle.mapgen.bsp.fill.BuildingShellCore}).
+     * inside {@link com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingShellCore}).
      * Door cells stay tagged WALL by {@link CellTopology#tagDefaultWalls}
      * only if they're still non-walkable, so callers passing real door
      * coords get an interior-floor read under the doorway.

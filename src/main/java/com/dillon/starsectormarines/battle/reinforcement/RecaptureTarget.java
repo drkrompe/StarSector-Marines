@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.reinforcement;
 
-import com.dillon.starsectormarines.battle.mapgen.BiomeKind;
+import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 
 /**

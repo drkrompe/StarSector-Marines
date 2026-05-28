@@ -4,8 +4,8 @@ import com.dillon.starsectormarines.battle.sim.BattleSetup;
 
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
-import com.dillon.starsectormarines.battle.mapgen.MapGenerator;
-import com.dillon.starsectormarines.battle.mapgen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.MapGenerator;
+import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.ArrayDeque;

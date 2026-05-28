@@ -6,11 +6,11 @@ import com.dillon.starsectormarines.battle.map.TileManifest;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.map.WallMasks;
-import com.dillon.starsectormarines.battle.mapgen.BlockFiller;
-import com.dillon.starsectormarines.battle.mapgen.BlockLeaf;
-import com.dillon.starsectormarines.battle.mapgen.bsp.fill.BuildingCommercialFiller;
-import com.dillon.starsectormarines.battle.mapgen.bsp.fill.BuildingIndustrialFiller;
-import com.dillon.starsectormarines.battle.mapgen.bsp.fill.BuildingResidentialFiller;
+import com.dillon.starsectormarines.battle.world.gen.BlockFiller;
+import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingCommercialFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingIndustrialFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingResidentialFiller;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * {@link BuildingIndustrialFiller}). For each, generates a small batch of
  * standalone buildings at different sizes / seeds and renders them through
  * the real tile art so the carve + scatter passes can be reviewed without
- * having to launch the full {@link com.dillon.starsectormarines.battle.mapgen.bsp.BspCityGenerator}
+ * having to launch the full {@link com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator}
  * map.
  *
  * <p>Rendering shares the same {@link TileSink}-backed path the in-game
@@ -74,7 +74,7 @@ public class BuildingZonePreviewTest {
     /**
      * Building dimensions + seeds chosen to exercise the carve logic broadly:
      * <ul>
-     *   <li>{@code 5x5}: just above {@link com.dillon.starsectormarines.battle.mapgen.bsp.fill.BuildingResidentialFiller}'s
+     *   <li>{@code 5x5}: just above {@link com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingResidentialFiller}'s
      *       hollow threshold; eligible for a single doorway but not interior partitions.</li>
      *   <li>{@code 9x6}: width &ge; multi-room threshold — eligible for a vertical partition wall.</li>
      *   <li>{@code 6x9}: height &ge; multi-room threshold — eligible for a horizontal partition wall.</li>

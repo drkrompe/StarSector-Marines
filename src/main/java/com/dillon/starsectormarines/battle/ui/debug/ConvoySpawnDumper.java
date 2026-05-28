@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.ui.debug;
 
 import com.dillon.starsectormarines.StarsectorMarinesModPlugin;
-import com.dillon.starsectormarines.battle.mapgen.road.RoadGraph;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;

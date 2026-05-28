@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.map;
 
 /**
  * One closed building region, found by
- * {@link com.dillon.starsectormarines.battle.mapgen.bsp.BuildingFloodFill}
+ * {@link com.dillon.starsectormarines.battle.world.gen.bsp.BuildingFloodFill}
  * at map-gen time and held in the {@link Buildings} registry. Carries
  * everything the roof-render and fog-of-war visibility passes need to
  * operate without walking the whole cell grid:

@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.map;
 /**
  * Per-cell label naming the logical room a walkable interior cell belongs to.
  * Written by carve-time partitioners ({@link
- * com.dillon.starsectormarines.battle.mapgen.bsp.fill.BuildingShellCore}'s
+ * com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingShellCore}'s
  * partition step) so post-fill stampers and AI consumers can identify "which
  * chamber is this cell in?" by direct lookup instead of reverse-engineering
  * via {@link com.dillon.starsectormarines.battle.nav.zone.ZoneGraph}.

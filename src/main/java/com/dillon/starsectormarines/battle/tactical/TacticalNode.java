@@ -60,7 +60,7 @@ public final class TacticalNode {
         ARMORY,
         /** Defender airbase — LANDING_ZONE in fortress district. Reserved for v2. */
         AIRBASE,
-        /** Manned turret emplacement scattered through BEACH/PORT/kill-zone biomes. Anchored by {@link com.dillon.starsectormarines.battle.mapgen.bsp.DefensePostStamper}; squad stays near the post until its turrets are destroyed, then releases to search-and-destroy. */
+        /** Manned turret emplacement scattered through BEACH/PORT/kill-zone biomes. Anchored by {@link com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper}; squad stays near the post until its turrets are destroyed, then releases to search-and-destroy. */
         GUARDPOST,
         /**
          * Tactical anchor for a garrison position that lives <em>inside</em> a parent compound's
@@ -69,7 +69,7 @@ public final class TacticalNode {
          * ({@link com.dillon.starsectormarines.battle.compound.CompoundService}) ignores it: no
          * record, no capture marker, no supply gate. {@link TacticalLinker} also skips it for the
          * compound-leaf FALLBACK_TO pass (interior fallback is goal-AI territory, not the link
-         * graph). Emitted by {@link com.dillon.starsectormarines.battle.mapgen.bsp.KeepEntryChamberStamper}
+         * graph). Emitted by {@link com.dillon.starsectormarines.battle.world.gen.bsp.KeepEntryChamberStamper}
          * for keep antechambers; reusable for any future "interior tactical position" need
          * (warehouse interior, port admin, dockmaster office) without re-inventing the abstraction.
          */

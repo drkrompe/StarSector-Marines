@@ -124,7 +124,7 @@ public final class TileManifest {
      * Same shape as the urban-1 wall block at cols 3..5 rows 0..2 — directional
      * caps on the outside of each cell, transparent center — but the art reads
      * as a sandbag embankment rather than masonry. Used by
-     * {@link com.dillon.starsectormarines.battle.mapgen.bsp.DefensePostStamper}
+     * {@link com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper}
      * to ring MEDIUM/LARGE turret emplacements: 8 cells around the turret stamp
      * non-walkable + SEE_THROUGH + a doodad from this block, granting cover via
      * the standard wall-adjacency bake without blocking LoS or shots.

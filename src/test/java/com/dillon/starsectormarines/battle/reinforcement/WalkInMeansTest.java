@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.reinforcement;
 
 import com.dillon.starsectormarines.battle.map.CellTopology;
-import com.dillon.starsectormarines.battle.mapgen.TraversalAxis;
+import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;

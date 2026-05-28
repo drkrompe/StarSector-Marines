@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * frame index, bad overlay placement, sheet drift after a re-export) surface
  * without launching the game.
  *
- * <p>Parallel in spirit to {@link com.dillon.starsectormarines.battle.mapgen.bsp.BspMapPreviewTest}:
+ * <p>Parallel in spirit to {@link com.dillon.starsectormarines.battle.world.gen.bsp.BspMapPreviewTest}:
  * generate → render → write PNG. The difference is scope — this runs on a
  * small zone (~24x16 cells) using the real PNG tiles via
  * {@link SpriteSheetSlicer}, instead of full-city dimensions using flat color
