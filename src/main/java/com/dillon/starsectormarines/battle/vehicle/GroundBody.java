@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.ground;
+package com.dillon.starsectormarines.battle.vehicle;
 
 /**
  * Pose + integration step for one ground vehicle. Sibling abstraction to

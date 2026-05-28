@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.ground;
+package com.dillon.starsectormarines.battle.vehicle;
 
 import java.util.ArrayList;
 import java.util.List;

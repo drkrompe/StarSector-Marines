@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.ground;
+package com.dillon.starsectormarines.battle.vehicle;
 
 /**
  * Immutable (x, y, facingDeg) tuple — a vehicle pose in world coordinates,

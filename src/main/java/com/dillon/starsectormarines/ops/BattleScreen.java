@@ -15,14 +15,14 @@ import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetSlicer;
 import com.dillon.starsectormarines.battle.world.tiles.UrbanTile3;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
-import com.dillon.starsectormarines.battle.world.model.MapVehicle;
+import com.dillon.starsectormarines.battle.vehicle.MapVehicle;
 import com.dillon.starsectormarines.battle.weapons.MarineSecondary;
 import com.dillon.starsectormarines.battle.weapons.MarineWeapon;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.UnitType;
-import com.dillon.starsectormarines.battle.world.model.VehicleKind;
+import com.dillon.starsectormarines.battle.vehicle.VehicleKind;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.WallMasks;
 import com.dillon.starsectormarines.battle.flyby.FlybyOverlay;
@@ -490,15 +490,15 @@ public class BattleScreen implements Screen, BattleUiContext {
     private boolean shuttleSpritesLoadAttempted;
 
     /**
-     * Per-{@link com.dillon.starsectormarines.battle.ground.VehicleType} sprite
+     * Per-{@link com.dillon.starsectormarines.battle.vehicle.VehicleType} sprite
      * cache for the convoy render pass. Uses {@link UnitSpriteCache} so we get
      * the auto-sliced frame list — {@code trucks_2.png} contains two
      * side-by-side trucks and the {@code VehicleType.spriteFrame} field
      * indexes into the slicer output. Lazy-loaded on first attach via
      * {@link #ensureConvoySprites()}.
      */
-    private final java.util.EnumMap<com.dillon.starsectormarines.battle.ground.VehicleType, UnitSpriteCache> convoySprites =
-            new java.util.EnumMap<>(com.dillon.starsectormarines.battle.ground.VehicleType.class);
+    private final java.util.EnumMap<com.dillon.starsectormarines.battle.vehicle.VehicleType, UnitSpriteCache> convoySprites =
+            new java.util.EnumMap<>(com.dillon.starsectormarines.battle.vehicle.VehicleType.class);
     private boolean convoySpritesLoadAttempted;
 
     /**
@@ -919,7 +919,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     }
 
     /**
-     * Lazy-loads each {@link com.dillon.starsectormarines.battle.ground.VehicleType}'s
+     * Lazy-loads each {@link com.dillon.starsectormarines.battle.vehicle.VehicleType}'s
      * sheet via the shared {@link #loadUnitSheet} helper. Auto-slicing produces
      * the per-frame bounds so {@code VehicleType.spriteFrame} can index into
      * the sliced list. Failure on a single type leaves it absent from the cache;
@@ -928,8 +928,8 @@ public class BattleScreen implements Screen, BattleUiContext {
     private void ensureConvoySprites() {
         if (convoySpritesLoadAttempted) return;
         convoySpritesLoadAttempted = true;
-        for (com.dillon.starsectormarines.battle.ground.VehicleType type :
-                com.dillon.starsectormarines.battle.ground.VehicleType.values()) {
+        for (com.dillon.starsectormarines.battle.vehicle.VehicleType type :
+                com.dillon.starsectormarines.battle.vehicle.VehicleType.values()) {
             UnitSpriteCache cache = loadUnitSheet(type.spritePath);
             if (cache != null) {
                 convoySprites.put(type, cache);
@@ -3465,12 +3465,12 @@ public class BattleScreen implements Screen, BattleUiContext {
      * shorter axis is letterboxed from the frame's native aspect so the
      * truck doesn't squish at non-default visualWidth tunings.
      */
-    private void renderConvoyVehicles(java.util.List<com.dillon.starsectormarines.battle.ground.Vehicle> convoy,
+    private void renderConvoyVehicles(java.util.List<com.dillon.starsectormarines.battle.vehicle.Vehicle> convoy,
                                       float alphaMult) {
         if (convoy.isEmpty()) return;
         float cellPx = camera.cellPxSize();
         java.util.Set<UnitSpriteCache> touched = new java.util.HashSet<>();
-        for (com.dillon.starsectormarines.battle.ground.Vehicle v : convoy) {
+        for (com.dillon.starsectormarines.battle.vehicle.Vehicle v : convoy) {
             if (!v.isVisible()) continue;
             UnitSpriteCache cache = convoySprites.get(v.type);
             if (cache == null || cache.sheet == null || cache.frames == null) continue;
@@ -3560,10 +3560,10 @@ public class BattleScreen implements Screen, BattleUiContext {
      * reverse). Sampled at 0.2 cells so the curvature reads smoothly.
      * Gated behind {@link #DEBUG_RENDER_DOCKING_PATHS}.
      */
-    private void renderConvoyDockingPaths(java.util.List<com.dillon.starsectormarines.battle.ground.Vehicle> convoy,
+    private void renderConvoyDockingPaths(java.util.List<com.dillon.starsectormarines.battle.vehicle.Vehicle> convoy,
                                           float alphaMult) {
         boolean any = false;
-        for (com.dillon.starsectormarines.battle.ground.Vehicle v : convoy) {
+        for (com.dillon.starsectormarines.battle.vehicle.Vehicle v : convoy) {
             if (v.dockingPath != null) { any = true; break; }
         }
         if (!any) return;
@@ -3582,14 +3582,14 @@ public class BattleScreen implements Screen, BattleUiContext {
         org.lwjgl.opengl.GL11.glLineWidth(2.5f);
 
         final float STEP_CELLS = 0.2f;
-        for (com.dillon.starsectormarines.battle.ground.Vehicle v : convoy) {
-            com.dillon.starsectormarines.battle.ground.ReedsShepp.Path path = v.dockingPath;
+        for (com.dillon.starsectormarines.battle.vehicle.Vehicle v : convoy) {
+            com.dillon.starsectormarines.battle.vehicle.ReedsShepp.Path path = v.dockingPath;
             if (path == null) continue;
-            com.dillon.starsectormarines.battle.ground.Pose start = v.dockingStartPose;
+            com.dillon.starsectormarines.battle.vehicle.Pose start = v.dockingStartPose;
             float R = v.dockingTurnRadius;
 
             float cursor = 0f;
-            for (com.dillon.starsectormarines.battle.ground.ReedsShepp.Element e : path.elements) {
+            for (com.dillon.starsectormarines.battle.vehicle.ReedsShepp.Element e : path.elements) {
                 float segCells = e.length * R;
                 if (segCells <= 0f) continue;
                 float segEnd = cursor + segCells;
@@ -3599,13 +3599,13 @@ public class BattleScreen implements Screen, BattleUiContext {
 
                 org.lwjgl.opengl.GL11.glBegin(org.lwjgl.opengl.GL11.GL_LINE_STRIP);
                 for (float d = cursor; d <= segEnd; d += STEP_CELLS) {
-                    com.dillon.starsectormarines.battle.ground.Pose p =
-                            com.dillon.starsectormarines.battle.ground.ReedsShepp.sample(start, R, path, d);
+                    com.dillon.starsectormarines.battle.vehicle.Pose p =
+                            com.dillon.starsectormarines.battle.vehicle.ReedsShepp.sample(start, R, path, d);
                     org.lwjgl.opengl.GL11.glVertex2f(camera.cellToScreenX(p.x), camera.cellToScreenY(p.y));
                 }
                 // Cap with the exact segment-end so cusps don't show a tiny gap.
-                com.dillon.starsectormarines.battle.ground.Pose endP =
-                        com.dillon.starsectormarines.battle.ground.ReedsShepp.sample(start, R, path, segEnd);
+                com.dillon.starsectormarines.battle.vehicle.Pose endP =
+                        com.dillon.starsectormarines.battle.vehicle.ReedsShepp.sample(start, R, path, segEnd);
                 org.lwjgl.opengl.GL11.glVertex2f(camera.cellToScreenX(endP.x), camera.cellToScreenY(endP.y));
                 org.lwjgl.opengl.GL11.glEnd();
 
@@ -3617,11 +3617,11 @@ public class BattleScreen implements Screen, BattleUiContext {
     }
 
     private void renderSelectedVehicleDebug(
-            java.util.List<com.dillon.starsectormarines.battle.ground.Vehicle> convoy,
+            java.util.List<com.dillon.starsectormarines.battle.vehicle.Vehicle> convoy,
             float alphaMult) {
         int idx = getSelection().getSelectedVehicleIdx();
         if (idx < 0 || idx >= convoy.size()) return;
-        com.dillon.starsectormarines.battle.ground.Vehicle v = convoy.get(idx);
+        com.dillon.starsectormarines.battle.vehicle.Vehicle v = convoy.get(idx);
 
         org.lwjgl.opengl.GL11.glPushAttrib(
                 org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT
@@ -3635,9 +3635,9 @@ public class BattleScreen implements Screen, BattleUiContext {
                 org.lwjgl.opengl.GL11.GL_SRC_ALPHA,
                 org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA);
 
-        float[] xs = (v.state == com.dillon.starsectormarines.battle.ground.Vehicle.State.DEPARTING)
+        float[] xs = (v.state == com.dillon.starsectormarines.battle.vehicle.Vehicle.State.DEPARTING)
                 ? v.outboundX : v.inboundX;
-        float[] ys = (v.state == com.dillon.starsectormarines.battle.ground.Vehicle.State.DEPARTING)
+        float[] ys = (v.state == com.dillon.starsectormarines.battle.vehicle.Vehicle.State.DEPARTING)
                 ? v.outboundY : v.inboundY;
 
         org.lwjgl.opengl.GL11.glLineWidth(2f);

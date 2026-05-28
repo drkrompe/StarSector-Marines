@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.ui.picking;
 
-import com.dillon.starsectormarines.battle.ground.Vehicle;
+import com.dillon.starsectormarines.battle.vehicle.Vehicle;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;

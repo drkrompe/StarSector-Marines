@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.ui.debug;
 
 import com.dillon.starsectormarines.StarsectorMarinesModPlugin;
-import com.dillon.starsectormarines.battle.ground.Vehicle;
+import com.dillon.starsectormarines.battle.vehicle.Vehicle;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;

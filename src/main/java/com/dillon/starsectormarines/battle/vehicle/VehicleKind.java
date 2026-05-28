@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.world.model;
+package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetSlicer;
 

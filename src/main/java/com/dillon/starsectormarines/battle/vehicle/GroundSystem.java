@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.ground;
+package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;

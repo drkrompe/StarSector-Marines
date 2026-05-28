@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.ground;
+package com.dillon.starsectormarines.battle.vehicle;
 
 /**
  * Carrot-picker for path-following ground vehicles. Standalone so the carrot
