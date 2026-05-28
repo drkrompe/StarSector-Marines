@@ -55,8 +55,8 @@ public final class TileManifest {
     /**
      * Fifth sheet — sliced strip carrying the modern road + sidewalk look
      * plus a culvert/bench doodad set. Variable-width frames separated by
-     * alpha gutters, indexed by {@link com.dillon.starsectormarines.battle.sprites.UrbanTile3}.
-     * Loaded by {@link com.dillon.starsectormarines.battle.sprites.UrbanTile3Tileset};
+     * alpha gutters, indexed by {@link com.dillon.starsectormarines.battle.world.tiles.UrbanTile3}.
+     * Loaded by {@link com.dillon.starsectormarines.battle.world.tiles.UrbanTile3Tileset};
      * the renderer dispatches STREET cells through this sheet when it's
      * loaded and falls back to the {@link #ROAD_SHEET} autotile otherwise.
      */
@@ -409,7 +409,7 @@ public final class TileManifest {
 
     /**
      * Two-variant grass pool from {@code nature-tiles.png}, hash-picked by
-     * cell coordinate. Returns a {@link com.dillon.starsectormarines.battle.sprites.NatureTile}
+     * cell coordinate. Returns a {@link com.dillon.starsectormarines.battle.world.tiles.NatureTile}
      * — the sliced-sheet picker, not the Floors_Tiles autotile path —
      * because the nature-tile art reads better as ground for parks / open
      * space than the legacy Floors_Tiles grass blob. Render via the
@@ -419,17 +419,17 @@ public final class TileManifest {
      * per-kind edges between e.g. grass and dirt show a hard cell boundary
      * (matches the flat-edges-between-kinds convention).
      */
-    public static com.dillon.starsectormarines.battle.sprites.NatureTile pickNatureGrassTile(int x, int y) {
+    public static com.dillon.starsectormarines.battle.world.tiles.NatureTile pickNatureGrassTile(int x, int y) {
         return (stableHash(x, y) & 1) == 0
-                ? com.dillon.starsectormarines.battle.sprites.NatureTile.GRASS_1
-                : com.dillon.starsectormarines.battle.sprites.NatureTile.GRASS_2;
+                ? com.dillon.starsectormarines.battle.world.tiles.NatureTile.GRASS_1
+                : com.dillon.starsectormarines.battle.world.tiles.NatureTile.GRASS_2;
     }
 
     /** Two-variant dirt pool from {@code nature-tiles.png}, hash-picked by cell coordinate. See {@link #pickNatureGrassTile} for rationale. */
-    public static com.dillon.starsectormarines.battle.sprites.NatureTile pickNatureDirtTile(int x, int y) {
+    public static com.dillon.starsectormarines.battle.world.tiles.NatureTile pickNatureDirtTile(int x, int y) {
         return (stableHash(x, y) & 1) == 0
-                ? com.dillon.starsectormarines.battle.sprites.NatureTile.DIRT_1
-                : com.dillon.starsectormarines.battle.sprites.NatureTile.DIRT_2;
+                ? com.dillon.starsectormarines.battle.world.tiles.NatureTile.DIRT_1
+                : com.dillon.starsectormarines.battle.world.tiles.NatureTile.DIRT_2;
     }
 
     /**
@@ -573,8 +573,8 @@ public final class TileManifest {
     }
 
     /**
-     * Picks between {@link com.dillon.starsectormarines.battle.sprites.UrbanTile3#SIDEWALK}
-     * and {@link com.dillon.starsectormarines.battle.sprites.UrbanTile3#SIDEWALK_CORNER}
+     * Picks between {@link com.dillon.starsectormarines.battle.world.tiles.UrbanTile3#SIDEWALK}
+     * and {@link com.dillon.starsectormarines.battle.world.tiles.UrbanTile3#SIDEWALK_CORNER}
      * for a sidewalk cell on the {@link #STREET3_SHEET}. A cell counts as a
      * corner when two perpendicular cardinal neighbors are <em>not</em>
      * sidewalk (i.e. the sidewalk strip bends here — a building wall on one
@@ -591,7 +591,7 @@ public final class TileManifest {
      * @param eNotSidewalk  true if the east neighbor is not a sidewalk cell
      * @param wNotSidewalk  true if the west neighbor is not a sidewalk cell
      */
-    public static com.dillon.starsectormarines.battle.sprites.UrbanTile3 pickStreet3SidewalkFrame(
+    public static com.dillon.starsectormarines.battle.world.tiles.UrbanTile3 pickStreet3SidewalkFrame(
             boolean nNotSidewalk, boolean sNotSidewalk,
             boolean eNotSidewalk, boolean wNotSidewalk) {
         boolean nwBend = nNotSidewalk && wNotSidewalk;
@@ -599,9 +599,9 @@ public final class TileManifest {
         boolean swBend = sNotSidewalk && wNotSidewalk;
         boolean seBend = sNotSidewalk && eNotSidewalk;
         if (nwBend || neBend || swBend || seBend) {
-            return com.dillon.starsectormarines.battle.sprites.UrbanTile3.SIDEWALK_CORNER;
+            return com.dillon.starsectormarines.battle.world.tiles.UrbanTile3.SIDEWALK_CORNER;
         }
-        return com.dillon.starsectormarines.battle.sprites.UrbanTile3.SIDEWALK;
+        return com.dillon.starsectormarines.battle.world.tiles.UrbanTile3.SIDEWALK;
     }
 
     /**

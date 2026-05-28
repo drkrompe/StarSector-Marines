@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.map;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.sprites.NatureTile;
+import com.dillon.starsectormarines.battle.world.tiles.NatureTile;
 
 /**
  * Per-cell rendering / categorization state — what kind of cell is this

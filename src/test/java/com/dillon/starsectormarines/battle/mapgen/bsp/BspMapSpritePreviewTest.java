@@ -6,12 +6,12 @@ import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.map.WallMasks;
 import com.dillon.starsectormarines.battle.mapgen.MapResult;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.sprites.FixedGridTileDrawer;
-import com.dillon.starsectormarines.battle.sprites.Graphics2DTileSink;
-import com.dillon.starsectormarines.battle.sprites.SpriteSheetFrames;
-import com.dillon.starsectormarines.battle.sprites.SpriteSheetSlicer;
-import com.dillon.starsectormarines.battle.sprites.TileSink;
-import com.dillon.starsectormarines.battle.sprites.UrbanTile3;
+import com.dillon.starsectormarines.battle.world.tiles.FixedGridTileDrawer;
+import com.dillon.starsectormarines.battle.world.tiles.Graphics2DTileSink;
+import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
+import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetSlicer;
+import com.dillon.starsectormarines.battle.world.tiles.TileSink;
+import com.dillon.starsectormarines.battle.world.tiles.UrbanTile3;
 import org.junit.jupiter.api.Test;
 
 import javax.imageio.ImageIO;
@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 /**
  * Bridge between {@link BspMapPreviewTest} (real BSP generator, flat-color
  * per-{@link GroundKind} render) and {@link
- * com.dillon.starsectormarines.battle.sprites.StreetZonePreviewTest} (hand-
+ * com.dillon.starsectormarines.battle.world.tiles.StreetZonePreviewTest} (hand-
  * built topology, production sprite-picker render). Runs the real
  * {@link BspCityGenerator} end-to-end and renders the {@link MapResult}
  * through the same picker dispatch
@@ -304,7 +304,7 @@ public class BspMapSpritePreviewTest {
     }
 
     private void stampNatureFrame(TileSink sink, SpriteSheetFrames frames,
-                                   com.dillon.starsectormarines.battle.sprites.NatureTile tile,
+                                   com.dillon.starsectormarines.battle.world.tiles.NatureTile tile,
                                    int gridX, int gridY, int gridH) {
         if (tile == null) return;
         int idx = tile.frameIndex();

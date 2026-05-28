@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.combat.fx;
 
-import com.dillon.starsectormarines.battle.sprites.SpriteSheetSlicer;
+import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetSlicer;
 
 /**
  * Semantic names for the 13 frames in {@code mod/graphics/decals/decals.png}.

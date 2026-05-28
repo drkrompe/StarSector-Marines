@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.sprites;
+package com.dillon.starsectormarines.battle.world.tiles;
 
 import com.dillon.starsectormarines.battle.map.TileManifest;
 

@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.sprites;
+package com.dillon.starsectormarines.battle.world.tiles;
 
 /**
  * Semantic ordering of cells on {@code graphics/tilesets/urban-tileset-3.png} —

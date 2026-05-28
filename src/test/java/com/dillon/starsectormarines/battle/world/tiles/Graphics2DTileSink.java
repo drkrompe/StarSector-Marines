@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.sprites;
+package com.dillon.starsectormarines.battle.world.tiles;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;

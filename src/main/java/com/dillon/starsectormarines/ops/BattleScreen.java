@@ -11,9 +11,9 @@ import com.dillon.starsectormarines.battle.combat.fx.SmokingWreck;
 import com.dillon.starsectormarines.battle.map.TimeOfDay;
 import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
-import com.dillon.starsectormarines.battle.sprites.SpriteSheetFrames;
-import com.dillon.starsectormarines.battle.sprites.SpriteSheetSlicer;
-import com.dillon.starsectormarines.battle.sprites.UrbanTile3;
+import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
+import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetSlicer;
+import com.dillon.starsectormarines.battle.world.tiles.UrbanTile3;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.map.MapVehicle;
 import com.dillon.starsectormarines.battle.weapons.MarineSecondary;
@@ -467,18 +467,18 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     /**
      * Pixels to crop from each side of a ground-tile's source rect before
-     * sampling. Values live in {@link com.dillon.starsectormarines.battle.sprites.FixedGridTileDrawer}
+     * sampling. Values live in {@link com.dillon.starsectormarines.battle.world.tiles.FixedGridTileDrawer}
      * so the in-game renderer and the preview tests share one source of
      * truth — bumping the inset in one place reflects in both. See that
      * class's javadoc for the rationale (AA-halo + atlas-bleed seams).
      *
      * <p>Doodads and overhead-door overlays explicitly pass
-     * {@link com.dillon.starsectormarines.battle.sprites.FixedGridTileDrawer#OVERLAY_INSET_PX}
+     * {@link com.dillon.starsectormarines.battle.world.tiles.FixedGridTileDrawer#OVERLAY_INSET_PX}
      * to {@link #drawTile} — their edge pixels are visible content, not
      * part of a tiling field, so cropping would chop the sprite visibly.
      */
-    private static final int GROUND_TILE_EDGE_INSET_PX        = com.dillon.starsectormarines.battle.sprites.FixedGridTileDrawer.GROUND_INSET_PX_LARGE;
-    private static final int GROUND_SMALL_TILE_EDGE_INSET_PX  = com.dillon.starsectormarines.battle.sprites.FixedGridTileDrawer.GROUND_INSET_PX_SMALL;
+    private static final int GROUND_TILE_EDGE_INSET_PX        = com.dillon.starsectormarines.battle.world.tiles.FixedGridTileDrawer.GROUND_INSET_PX_LARGE;
+    private static final int GROUND_SMALL_TILE_EDGE_INSET_PX  = com.dillon.starsectormarines.battle.world.tiles.FixedGridTileDrawer.GROUND_INSET_PX_SMALL;
 
     /**
      * Cached shuttle sprite + natural aspect ratio (width/height) per ShuttleType.
@@ -770,26 +770,26 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (natureSheetLoadAttempted) return;
         natureSheetLoadAttempted = true;
         try {
-            Global.getSettings().loadTexture(com.dillon.starsectormarines.battle.sprites.NatureTileset.SHEET_PATH);
-            natureSheet = Global.getSettings().getSprite(com.dillon.starsectormarines.battle.sprites.NatureTileset.SHEET_PATH);
+            Global.getSettings().loadTexture(com.dillon.starsectormarines.battle.world.tiles.NatureTileset.SHEET_PATH);
+            natureSheet = Global.getSettings().getSprite(com.dillon.starsectormarines.battle.world.tiles.NatureTileset.SHEET_PATH);
             if (natureSheet == null) {
                 LOG.warn("BattleScreen: getSprite returned null for "
-                        + com.dillon.starsectormarines.battle.sprites.NatureTileset.SHEET_PATH);
+                        + com.dillon.starsectormarines.battle.world.tiles.NatureTileset.SHEET_PATH);
                 return;
             }
             try (java.io.InputStream stream = Global.getSettings().openStream(
-                    com.dillon.starsectormarines.battle.sprites.NatureTileset.SHEET_PATH)) {
+                    com.dillon.starsectormarines.battle.world.tiles.NatureTileset.SHEET_PATH)) {
                 BufferedImage img = ImageIO.read(stream);
                 if (img == null) {
                     LOG.warn("BattleScreen: ImageIO.read returned null for "
-                            + com.dillon.starsectormarines.battle.sprites.NatureTileset.SHEET_PATH);
+                            + com.dillon.starsectormarines.battle.world.tiles.NatureTileset.SHEET_PATH);
                     natureSheet = null;
                     return;
                 }
                 natureSheetPxW = img.getWidth();
                 natureSheetPxH = img.getHeight();
                 natureFrames = SpriteSheetSlicer.slice(img);
-                int expected = com.dillon.starsectormarines.battle.sprites.NatureTile.values().length;
+                int expected = com.dillon.starsectormarines.battle.world.tiles.NatureTile.values().length;
                 if (natureFrames.frames.length != expected) {
                     LOG.warn("BattleScreen: nature-tiles slicer returned "
                             + natureFrames.frames.length + " frames but NatureTile expects "
@@ -800,13 +800,13 @@ public class BattleScreen implements Screen, BattleUiContext {
                 }
                 natureBatch = new QuadBatch(natureSheet, natureSheetPxW, natureSheetPxH, 4096);
                 LOG.info("BattleScreen: loaded nature-tiles "
-                        + com.dillon.starsectormarines.battle.sprites.NatureTileset.SHEET_PATH
+                        + com.dillon.starsectormarines.battle.world.tiles.NatureTileset.SHEET_PATH
                         + " (" + natureSheetPxW + "x" + natureSheetPxH + "), "
                         + natureFrames.frames.length + " frames sliced");
             }
         } catch (Exception e) {
             LOG.error("BattleScreen: failed to load nature-tiles "
-                    + com.dillon.starsectormarines.battle.sprites.NatureTileset.SHEET_PATH, e);
+                    + com.dillon.starsectormarines.battle.world.tiles.NatureTileset.SHEET_PATH, e);
             natureSheet = null;
             natureFrames = null;
         }
@@ -2303,7 +2303,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 // this cell so painter order stays "ground, then overlay" inside
                 // the same batch. Overlays inset=0 via drawNatureTile's
                 // tile.isGround() check, so plant/rock edges aren't cropped.
-                com.dillon.starsectormarines.battle.sprites.NatureTile overlay =
+                com.dillon.starsectormarines.battle.world.tiles.NatureTile overlay =
                         topology.getNatureOverlay(x, y);
                 if (overlay != null) {
                     drawNatureTile(overlay, x, y, alphaMult);
@@ -2559,7 +2559,7 @@ public class BattleScreen implements Screen, BattleUiContext {
      * inset for {@link UrbanTile3.Kind#GROUND} tiles (street, sidewalk),
      * zero inset for overlays (doodads). Destination is always one nav cell
      * — the variable-width source frame stretches with bilinear filtering
-     * to fill it, same convention as the {@link com.dillon.starsectormarines.battle.sprites.NatureTile}
+     * to fill it, same convention as the {@link com.dillon.starsectormarines.battle.world.tiles.NatureTile}
      * render path.
      */
     private void drawUrbanTile3Frame(UrbanTile3 frame, int gridX, int gridY, float alphaMult) {
@@ -2583,12 +2583,12 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     /**
      * Counterpart to {@link #drawUrbanTile3Frame} for the nature-tiles sheet.
-     * Stamps one {@link com.dillon.starsectormarines.battle.sprites.NatureTile}
+     * Stamps one {@link com.dillon.starsectormarines.battle.world.tiles.NatureTile}
      * frame at {@code (gridX, gridY)} via the slicer-detected per-frame bbox
      * cached in {@link #natureFrames}. Ground tiles get the standard inset,
      * overlay tiles get inset=0 — same convention as urban-tileset-3.
      */
-    private void drawNatureTile(com.dillon.starsectormarines.battle.sprites.NatureTile tile,
+    private void drawNatureTile(com.dillon.starsectormarines.battle.world.tiles.NatureTile tile,
                                 int gridX, int gridY, float alphaMult) {
         if (natureBatch == null || natureFrames == null || tile == null) return;
         int idx = tile.frameIndex();

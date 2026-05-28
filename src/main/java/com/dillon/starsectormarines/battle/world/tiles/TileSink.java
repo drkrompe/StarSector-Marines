@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.sprites;
+package com.dillon.starsectormarines.battle.world.tiles;
 
 /**
  * Pixel-pushing abstraction shared by the in-game tile renderer and the

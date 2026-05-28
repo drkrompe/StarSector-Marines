@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.sprites;
+package com.dillon.starsectormarines.battle.world.tiles;
 
 /**
  * Detected sprite bounding boxes on a sheet, plus the sheet's own pixel

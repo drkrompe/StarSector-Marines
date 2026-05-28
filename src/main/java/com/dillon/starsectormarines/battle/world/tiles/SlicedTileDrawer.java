@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.sprites;
+package com.dillon.starsectormarines.battle.world.tiles;
 
 /**
  * Renders one {@link NatureTile} through a {@link TileSink}. Owns the

@@ -8,7 +8,7 @@ import com.dillon.starsectormarines.battle.mapgen.BlockFiller;
 import com.dillon.starsectormarines.battle.mapgen.BlockKind;
 import com.dillon.starsectormarines.battle.mapgen.BlockLeaf;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.sprites.NatureTile;
+import com.dillon.starsectormarines.battle.world.tiles.NatureTile;
 
 import java.util.List;
 import java.util.Random;
