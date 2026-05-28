@@ -297,12 +297,12 @@ needed in the reinforcement service itself.
 
 ## Cross-refs
 
-- [`../convoy/stage2.md`](../convoy/stage2.md) item 1 — the convoy
-  provider implementation lives there; this doc owns the orchestration
-  layer above it.
-- [`../convoy/v1-polish.md`](../convoy/v1-polish.md) — the V1 truck
-  stack the convoy means rides on (bicycle + pure pursuit + Reeds-
-  Shepp dock + road reservation).
+- [`../convoy/complete/reinforcement-integration.md`](../convoy/complete/reinforcement-integration.md)
+  — the convoy provider (`ConvoyMeans`) implementation lives there; this
+  doc owns the orchestration layer above it.
+- [`../convoy/complete/v1-polish.md`](../convoy/complete/v1-polish.md) —
+  the truck stack the convoy means rides on (bicycle + pure pursuit +
+  Reeds-Shepp dock + road reservation + Hybrid A* pose playback).
 - [[mission_type_flavors]] — Conquest is the first mission surface;
   Assault and others will follow with their own trigger flavors.
 - [[tactical_linker_compound_fallback]] — rally points reuse the

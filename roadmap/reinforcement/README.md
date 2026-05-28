@@ -20,7 +20,7 @@ REINFORCEMENT tickets, alive COMMAND_POSTs → future AIRSTRIKE tickets).
 
 ## Related
 
-- [`../convoy/`](../convoy/) — convoy (`ConvoyMeans`) dispatches
+- [`../convoy/`](../convoy/overview.md) — convoy (`ConvoyMeans`) dispatches
   HEAVY_APC. V1 polish + APC + wall constraints landed.
 - All three means providers are landed: convoy → shuttle → walk-in
   (priority order). Walk-in is the always-feasible floor.

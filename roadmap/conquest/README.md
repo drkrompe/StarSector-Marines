@@ -20,5 +20,5 @@ designed around.
 - [`../reinforcement/`](../reinforcement/) — the orchestration layer
   this design plugs into. Triggers gate on compound life; means picks
   vary by compound kind.
-- [`../convoy/`](../convoy/) — convoy is the supply means that ARMORY
+- [`../convoy/`](../convoy/overview.md) — convoy is the supply means that ARMORY
   compounds dispatch under the new model.

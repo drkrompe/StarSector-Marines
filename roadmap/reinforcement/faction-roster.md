@@ -128,14 +128,15 @@ content-driven need.
   the asymmetry vs. convoy/walk-in (both `infantry()`) reinforces
   that.
 - **`ConvoyMeans`** — spawns a *vehicle*, not infantry, so no
-  `UnitType` pick today. When the convoy disgorges marines (convoy
-  stage2.md item 3, marine interaction), it'll need the same roster
-  lookup.
+  `UnitType` pick at dispatch. Its normal deboard already routes through
+  this roster (per-faction, `ef4cfeb`); any future squashed-crew
+  ejection (convoy [`truck-infantry-interaction`](../convoy/stories/truck-infantry-interaction.md))
+  draws from the same lookup.
 
 ## Cross-refs
 
 - [`architecture.md`](architecture.md) §v4 — once this lands, the
   attacker-side walk-in / shuttle paths can drop their hard-coded
   faction reject.
-- [`../convoy/stage2.md`](../convoy/stage2.md) item 3 — convoy
-  deboard will route through the same roster.
+- [`../convoy/stories/truck-infantry-interaction.md`](../convoy/stories/truck-infantry-interaction.md)
+  — convoy crew ejection routes through the same roster.

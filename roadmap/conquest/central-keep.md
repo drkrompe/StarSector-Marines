@@ -444,7 +444,7 @@ behaviour:
 - [`../reinforcement/architecture.md`](../reinforcement/architecture.md)
   — the orchestration layer this design extends. Triggers/means
   gain compound-state gates; service shape itself doesn't change.
-- [`../convoy/`](../convoy/) — convoy is the ARMORY-tier means.
+- [`../convoy/`](../convoy/overview.md) — convoy is the ARMORY-tier means.
 - [[battle_services_systems]] — the *Service (stateful, constructor-
   injected) vs *System (stateless tick consumer) convention the
   decomposition follows.
