@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.map;
+package com.dillon.starsectormarines.battle.world.model;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 

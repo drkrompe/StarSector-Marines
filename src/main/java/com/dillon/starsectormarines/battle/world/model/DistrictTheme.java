@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.map;
+package com.dillon.starsectormarines.battle.world.model;
 
 /**
  * Per-block flavor that biases what gets generated inside the footprint. Each

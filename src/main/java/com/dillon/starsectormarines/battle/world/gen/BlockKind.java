@@ -5,7 +5,7 @@ package com.dillon.starsectormarines.battle.world.gen;
  * partition tree; the BlockKind decides which filler hollows the rect out
  * and which ground / doodads land inside.
  *
- * <p>Distinct from {@link com.dillon.starsectormarines.battle.map.CellTopology.GroundKind}
+ * <p>Distinct from {@link com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind}
  * — BlockKind is the high-level "what is this block?" label (used by the
  * generator), GroundKind is the per-cell surface (used by the renderer). A
  * single {@code PLAZA} block contains a mix of {@code TILE}, {@code STONE},
@@ -57,7 +57,7 @@ public enum BlockKind {
      * leaves with a shared outer wall ring, gates, corner gun emplacements,
      * and member leaves carved as command / barracks / armory sub-buildings.
      * Inter-leaf road frames inside the wall become {@link
-     * com.dillon.starsectormarines.battle.map.CellTopology.GroundKind#STONE}
+     * com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind#STONE}
      * parade ground — that enclosed courtyard is the visual hinge that
      * makes the cluster read as "one base" rather than "a few buildings".
      *
@@ -110,7 +110,7 @@ public enum BlockKind {
      * rocks. All walkable. Reads as a wild meadow or unmaintained park,
      * distinct from the manicured {@link #PARK} (which has a stone path
      * and benches). Pairs with the nature-zone overlay layer on
-     * {@link com.dillon.starsectormarines.battle.map.CellTopology}.
+     * {@link com.dillon.starsectormarines.battle.world.model.CellTopology}.
      */
     NATURE_GRASSLAND,
 

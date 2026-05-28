@@ -13,7 +13,7 @@ import com.dillon.starsectormarines.battle.ai.goap.Goal;
 import com.dillon.starsectormarines.battle.ai.goap.WorldState;
 import com.dillon.starsectormarines.battle.ai.goap.goals.MechSurviveContact;
 import com.dillon.starsectormarines.battle.ai.goap.world.WorldStateBuilder;
-import com.dillon.starsectormarines.battle.map.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.squad.SquadMoraleSystem;
 import org.junit.jupiter.api.Test;

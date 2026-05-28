@@ -3,28 +3,28 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleSetup;
 import com.dillon.starsectormarines.battle.combat.fx.Decal;
-import com.dillon.starsectormarines.battle.map.Doodad;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.equipment.EquipmentDrop;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.SmokingWreck;
-import com.dillon.starsectormarines.battle.map.TimeOfDay;
+import com.dillon.starsectormarines.battle.world.model.TimeOfDay;
 import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetSlicer;
 import com.dillon.starsectormarines.battle.world.tiles.UrbanTile3;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
-import com.dillon.starsectormarines.battle.map.MapVehicle;
+import com.dillon.starsectormarines.battle.world.model.MapVehicle;
 import com.dillon.starsectormarines.battle.weapons.MarineSecondary;
 import com.dillon.starsectormarines.battle.weapons.MarineWeapon;
-import com.dillon.starsectormarines.battle.map.TileManifest;
+import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.UnitType;
-import com.dillon.starsectormarines.battle.map.VehicleKind;
-import com.dillon.starsectormarines.battle.map.CellTopology;
-import com.dillon.starsectormarines.battle.map.WallMasks;
+import com.dillon.starsectormarines.battle.world.model.VehicleKind;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.WallMasks;
 import com.dillon.starsectormarines.battle.flyby.FlybyOverlay;
 import com.dillon.starsectormarines.battle.reinforcement.ReinforcementRequest;
 import com.dillon.starsectormarines.battle.reinforcement.ReinforcementService;
@@ -2836,13 +2836,13 @@ public class BattleScreen implements Screen, BattleUiContext {
      * shuttles, projectiles, and FX so all of those pierce the roof.
      */
     private void renderRoofs(BattleSimulation sim, float alphaMult) {
-        com.dillon.starsectormarines.battle.map.Buildings buildings = sim.getBuildings();
+        com.dillon.starsectormarines.battle.world.model.Buildings buildings = sim.getBuildings();
         if (buildings == null || buildings.isEmpty()) return;
         ensureFloorsSheet();
         if (floorsSheet == null || floorsBatch == null) return;
 
         CellTopology topology = sim.getTopology();
-        for (com.dillon.starsectormarines.battle.map.Building b : buildings.all()) {
+        for (com.dillon.starsectormarines.battle.world.model.Building b : buildings.all()) {
             float roofAlpha = b.currentAlpha;
             if (roofAlpha <= 0.01f) continue;
             for (int i = 0, n = b.cellCount(); i < n; i++) {
@@ -2870,11 +2870,11 @@ public class BattleScreen implements Screen, BattleUiContext {
      */
     private void advanceRoofAlphaLerp(BattleSimulation sim, float dt) {
         if (sim == null) return;
-        com.dillon.starsectormarines.battle.map.Buildings buildings = sim.getBuildings();
+        com.dillon.starsectormarines.battle.world.model.Buildings buildings = sim.getBuildings();
         if (buildings == null || buildings.isEmpty()) return;
         // ~3 alpha-units / sec → reveal in ~0.33 s, reads as a quick wipe.
         float lerpAmount = Math.min(1f, dt * 3f);
-        for (com.dillon.starsectormarines.battle.map.Building b : buildings.all()) {
+        for (com.dillon.starsectormarines.battle.world.model.Building b : buildings.all()) {
             b.currentAlpha += (b.targetAlpha - b.currentAlpha) * lerpAmount;
         }
     }

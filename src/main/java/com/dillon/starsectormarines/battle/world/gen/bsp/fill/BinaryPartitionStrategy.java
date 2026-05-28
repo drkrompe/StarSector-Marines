@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
-import com.dillon.starsectormarines.battle.map.CellTopology;
-import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.Random;

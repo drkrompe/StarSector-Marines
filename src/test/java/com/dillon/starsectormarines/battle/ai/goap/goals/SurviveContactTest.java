@@ -9,7 +9,7 @@ import com.dillon.starsectormarines.battle.ai.goap.SquadPlan;
 import com.dillon.starsectormarines.battle.ai.goap.WorldState;
 import com.dillon.starsectormarines.battle.ai.goap.actions.BreakContact;
 import com.dillon.starsectormarines.battle.ai.goap.world.WorldStateBuilder;
-import com.dillon.starsectormarines.battle.map.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import org.junit.jupiter.api.Test;
 

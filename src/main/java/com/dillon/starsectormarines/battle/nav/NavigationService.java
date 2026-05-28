@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.ai.TacticalScoring;
 import com.dillon.starsectormarines.battle.combat.DamageService;
-import com.dillon.starsectormarines.battle.map.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.profile.LosCache;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;

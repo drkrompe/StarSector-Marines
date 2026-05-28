@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.battle.vision;
 
 import com.dillon.starsectormarines.battle.unit.Unit;
-import com.dillon.starsectormarines.battle.map.Building;
-import com.dillon.starsectormarines.battle.map.Buildings;
+import com.dillon.starsectormarines.battle.world.model.Building;
+import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.List;

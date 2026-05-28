@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.world.tiles;
 
-import com.dillon.starsectormarines.battle.map.TileManifest;
+import com.dillon.starsectormarines.battle.world.model.TileManifest;
 
 /**
  * Fixed-grid counterpart to {@link SlicedTileDrawer}. Computes a tile's

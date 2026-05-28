@@ -13,7 +13,7 @@ import com.dillon.starsectormarines.battle.ai.goap.actions.ClearZone;
 import com.dillon.starsectormarines.battle.ai.goap.actions.EnterZone;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
-import com.dillon.starsectormarines.battle.map.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import org.junit.jupiter.api.Test;
 

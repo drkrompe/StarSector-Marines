@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.map;
+package com.dillon.starsectormarines.battle.world.model;
 
 /**
  * Per-cell label naming the logical room a walkable interior cell belongs to.

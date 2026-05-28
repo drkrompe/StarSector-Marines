@@ -52,7 +52,7 @@ public class NavigationGrid {
     /**
      * Tags the pathfinder + zone graph care about. Strictly nav concerns —
      * rendering / categorization tags (FLOOR, STREET, RUBBLE, WALL, VEHICLE,
-     * etc.) live on {@link com.dillon.starsectormarines.battle.map.CellTopology}
+     * etc.) live on {@link com.dillon.starsectormarines.battle.world.model.CellTopology}
      * instead.
      *
      * <p>WALKABLE MUST stay at ordinal 0 — the pathfinder masks against

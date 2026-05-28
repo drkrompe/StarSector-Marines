@@ -8,7 +8,7 @@ import java.util.List;
 
 /**
  * Structured tactical hint produced during map generation and consumed by the
- * battle AI. Distinct from {@link com.dillon.starsectormarines.battle.map.PointOfInterest}:
+ * battle AI. Distinct from {@link com.dillon.starsectormarines.battle.world.model.PointOfInterest}:
  * a POI answers <em>"what is the mission objective"</em> (extract that
  * scientist, blow that depot); a {@link TacticalNode} answers <em>"where would
  * a sane squad position itself"</em> — turret mounts, gates, barracks, fallback

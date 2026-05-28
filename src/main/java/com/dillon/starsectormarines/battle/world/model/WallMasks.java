@@ -1,6 +1,5 @@
-package com.dillon.starsectormarines.battle.map;
+package com.dillon.starsectormarines.battle.world.model;
 
-import com.dillon.starsectormarines.battle.map.TileManifest;
 
 /**
  * Shared utilities for the per-cell wall-direction mask carried by

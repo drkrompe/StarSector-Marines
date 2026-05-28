@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.map;
+package com.dillon.starsectormarines.battle.world.model;
 
 /**
  * One closed building region, found by

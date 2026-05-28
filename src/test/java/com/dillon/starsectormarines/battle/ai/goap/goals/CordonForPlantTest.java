@@ -10,7 +10,7 @@ import com.dillon.starsectormarines.battle.ai.goap.Goal;
 import com.dillon.starsectormarines.battle.ai.goap.SquadPlan;
 import com.dillon.starsectormarines.battle.ai.goap.WorldState;
 import com.dillon.starsectormarines.battle.ai.goap.actions.HoldPortalCordon;
-import com.dillon.starsectormarines.battle.map.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.unit.TestUnits;

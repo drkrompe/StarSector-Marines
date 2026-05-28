@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.map.CellTopology;
-import com.dillon.starsectormarines.battle.map.RoomPurpose;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 import org.junit.jupiter.api.Test;

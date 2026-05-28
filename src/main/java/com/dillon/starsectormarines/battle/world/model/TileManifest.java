@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.map;
+package com.dillon.starsectormarines.battle.world.model;
 
 /**
  * Hand-curated mapping from semantic battle-tile categories to source
@@ -185,7 +185,7 @@ public final class TileManifest {
 
     /**
      * Overhead-door overlay stamped on top of the floor for doorway cells (the
-     * cells {@link com.dillon.starsectormarines.battle.map.UrbanMapGenerator#punchDoorway
+     * cells {@link com.dillon.starsectormarines.battle.world.gen.UrbanMapGenerator#punchDoorway
      * punches} through building perimeters). Source art is mostly transparent
      * with a slim overhead bar — units walk underneath cleanly.
      */
@@ -530,7 +530,7 @@ public final class TileManifest {
 
     /**
      * Single-cell commercial floor on {@link #ROAD_SHEET} — fl-2 at (11, 0).
-     * Used uniformly across {@link com.dillon.starsectormarines.battle.map.CellTopology.GroundKind#TILE}
+     * Used uniformly across {@link com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind#TILE}
      * cells, no variant pool (matches how {@code fl} blankets INDOOR interiors).
      * Reads as "polished commercial panel" — squared corner markers, clean
      * mid-cell field.

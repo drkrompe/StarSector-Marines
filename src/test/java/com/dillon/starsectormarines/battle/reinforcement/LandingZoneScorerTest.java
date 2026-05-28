@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.reinforcement;
 
-import com.dillon.starsectormarines.battle.map.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import org.junit.jupiter.api.Test;
 

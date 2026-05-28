@@ -7,7 +7,7 @@ import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.compound.CompoundCaptureSystem;
 import com.dillon.starsectormarines.battle.compound.CompoundService;
-import com.dillon.starsectormarines.battle.map.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;

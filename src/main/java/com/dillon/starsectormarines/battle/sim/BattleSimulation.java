@@ -9,9 +9,9 @@ import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.SmokingWreck;
-import com.dillon.starsectormarines.battle.map.Doodad;
-import com.dillon.starsectormarines.battle.map.DoodadService;
-import com.dillon.starsectormarines.battle.map.MapVehicle;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.DoodadService;
+import com.dillon.starsectormarines.battle.world.model.MapVehicle;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Squad;
@@ -36,7 +36,7 @@ import com.dillon.starsectormarines.battle.combat.DamageResolver;
 import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.equipment.EquipmentDropService;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
-import com.dillon.starsectormarines.battle.map.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
@@ -341,13 +341,13 @@ public class BattleSimulation {
     public List<EquipmentDrop> getEquipmentDrops() { return equipmentDropService.getEquipmentDrops(); }
     public List<Doodad> getDoodads()       { return doodadService.getDoodads(); }
     /** Building registry for the roof-render + fog-of-war passes. Never null. */
-    public com.dillon.starsectormarines.battle.map.Buildings getBuildings() { return vision.getBuildings(); }
+    public com.dillon.starsectormarines.battle.world.model.Buildings getBuildings() { return vision.getBuildings(); }
     /** Faction-contributor set for the fog-of-war reveal. */
     public com.dillon.starsectormarines.battle.vision.PlayerVisionState getVisionState() { return vision.getVisionState(); }
     /** Fog-of-war service — per-cell reveal state + per-unit visibility. The renderer reads this for the fog overlay and unit visibility gate. */
     public VisionService getVision() { return vision; }
     /** Hands the sim the map's building registry. Called by BattleSetup after generation. Subsequent visibility passes will reveal/hide these buildings as contributor units move. */
-    public void setBuildings(com.dillon.starsectormarines.battle.map.Buildings buildings) {
+    public void setBuildings(com.dillon.starsectormarines.battle.world.model.Buildings buildings) {
         vision.setBuildings(buildings);
     }
     public void addDoodad(Doodad d) { doodadService.addDoodad(d); }

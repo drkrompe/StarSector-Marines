@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.battle.world.tiles;
 
-import com.dillon.starsectormarines.battle.map.TileManifest;
-import com.dillon.starsectormarines.battle.map.CellTopology;
-import com.dillon.starsectormarines.battle.map.WallMasks;
+import com.dillon.starsectormarines.battle.world.model.TileManifest;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.WallMasks;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import org.junit.jupiter.api.Test;
 

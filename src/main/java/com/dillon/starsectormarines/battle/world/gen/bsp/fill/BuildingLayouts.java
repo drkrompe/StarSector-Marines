@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
-import com.dillon.starsectormarines.battle.map.Doodad;
-import com.dillon.starsectormarines.battle.map.TileManifest;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.ArrayList;

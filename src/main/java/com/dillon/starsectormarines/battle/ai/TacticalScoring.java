@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.Projectile;
-import com.dillon.starsectormarines.battle.map.DoodadService;
+import com.dillon.starsectormarines.battle.world.model.DoodadService;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.turret.MapTurret;

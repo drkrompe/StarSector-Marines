@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.world.tiles;
 
-import com.dillon.starsectormarines.battle.map.TileManifest;
+import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import org.junit.jupiter.api.Test;
 
 import javax.imageio.ImageIO;

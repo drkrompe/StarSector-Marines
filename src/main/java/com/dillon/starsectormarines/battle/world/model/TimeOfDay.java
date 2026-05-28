@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.map;
+package com.dillon.starsectormarines.battle.world.model;
 
 /**
  * Ambient lighting state for the 2D battlefield. Consumed by the lightmap

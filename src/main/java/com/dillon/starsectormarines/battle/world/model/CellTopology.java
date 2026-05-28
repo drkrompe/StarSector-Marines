@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.map;
+package com.dillon.starsectormarines.battle.world.model;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.tiles.NatureTile;
@@ -134,7 +134,7 @@ public class CellTopology {
      * so the implicit zero reads as "unset." Stampers (residential / commercial /
      * industrial / fortified shells) write their kind across their footprint;
      * the flood-fill votes the dominant hint per component to flavor the
-     * resulting {@link com.dillon.starsectormarines.battle.map.Building}.
+     * resulting {@link com.dillon.starsectormarines.battle.world.model.Building}.
      */
     private final byte[] buildingKindHint;
     /**

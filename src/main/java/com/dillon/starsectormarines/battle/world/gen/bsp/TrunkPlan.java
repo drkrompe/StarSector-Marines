@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
-import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 
 import java.util.ArrayList;
 import java.util.List;

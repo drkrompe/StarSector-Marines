@@ -1,11 +1,15 @@
-package com.dillon.starsectormarines.battle.map;
+package com.dillon.starsectormarines.battle.world.gen;
 
 import com.dillon.starsectormarines.battle.sim.BattleSetup;
 
-import com.dillon.starsectormarines.battle.map.CellTopology;
-import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
-import com.dillon.starsectormarines.battle.world.gen.MapGenerator;
-import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.model.Building;
+import com.dillon.starsectormarines.battle.world.model.Buildings;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.world.model.DistrictTheme;
+import com.dillon.starsectormarines.battle.world.model.TileManifest;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.ArrayDeque;

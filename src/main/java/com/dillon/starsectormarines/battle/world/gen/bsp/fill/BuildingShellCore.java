@@ -1,13 +1,13 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
-import com.dillon.starsectormarines.battle.map.Doodad;
-import com.dillon.starsectormarines.battle.map.PointOfInterest;
-import com.dillon.starsectormarines.battle.map.TileManifest;
-import com.dillon.starsectormarines.battle.map.BuildingKind;
-import com.dillon.starsectormarines.battle.map.CellTopology;
-import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
-import com.dillon.starsectormarines.battle.map.RoomPurpose;
-import com.dillon.starsectormarines.battle.map.WallMasks;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
+import com.dillon.starsectormarines.battle.world.model.TileManifest;
+import com.dillon.starsectormarines.battle.world.model.BuildingKind;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.battle.world.model.WallMasks;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
@@ -59,7 +59,7 @@ final class BuildingShellCore {
         final PointOfInterest.Kind poiKind;
         /** Layout strategy applied to LARGE buildings. TINY buildings always fall back to {@link BuildingLayouts.LayoutRecipe#SHED}. */
         final BuildingLayouts.LayoutRecipe layoutRecipe;
-        /** Building-kind hint stamped across every cell of the carved footprint; the flood-fill pass votes the dominant value per connected room to flavor the resulting {@link com.dillon.starsectormarines.battle.map.Building}. */
+        /** Building-kind hint stamped across every cell of the carved footprint; the flood-fill pass votes the dominant value per connected room to flavor the resulting {@link com.dillon.starsectormarines.battle.world.model.Building}. */
         final BuildingKind buildingKind;
         /**
          * {@link RoomPurpose} labels indexed by Manhattan-distance from the

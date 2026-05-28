@@ -7,7 +7,7 @@ import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.ai.goap.Predicate;
 import com.dillon.starsectormarines.battle.ai.goap.WorldState;
-import com.dillon.starsectormarines.battle.map.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.unit.TestUnits;
 import org.junit.jupiter.api.Test;

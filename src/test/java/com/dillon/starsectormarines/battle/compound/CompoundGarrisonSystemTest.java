@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.compound;
 
 import com.dillon.starsectormarines.battle.air.Shuttle;
-import com.dillon.starsectormarines.battle.map.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;

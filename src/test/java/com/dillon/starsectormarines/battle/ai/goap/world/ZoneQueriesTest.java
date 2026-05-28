@@ -8,7 +8,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.ai.goap.SquadPlan;
 import com.dillon.starsectormarines.battle.ai.goap.actions.ClearZone;
 import com.dillon.starsectormarines.battle.ai.goap.actions.EnterZone;
-import com.dillon.starsectormarines.battle.map.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.unit.TestUnits;
 import org.junit.jupiter.api.Test;

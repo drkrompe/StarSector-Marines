@@ -1,10 +1,10 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
-import com.dillon.starsectormarines.battle.map.Building;
-import com.dillon.starsectormarines.battle.map.BuildingKind;
-import com.dillon.starsectormarines.battle.map.Buildings;
-import com.dillon.starsectormarines.battle.map.CellTopology;
-import com.dillon.starsectormarines.battle.map.CellTopology.Tag;
+import com.dillon.starsectormarines.battle.world.model.Building;
+import com.dillon.starsectormarines.battle.world.model.BuildingKind;
+import com.dillon.starsectormarines.battle.world.model.Buildings;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.CellTopology.Tag;
 
 import java.util.ArrayList;
 import java.util.EnumMap;

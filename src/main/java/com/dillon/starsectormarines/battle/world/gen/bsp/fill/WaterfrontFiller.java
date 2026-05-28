@@ -1,10 +1,10 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
-import com.dillon.starsectormarines.battle.map.Doodad;
-import com.dillon.starsectormarines.battle.map.PointOfInterest;
-import com.dillon.starsectormarines.battle.map.TileManifest;
-import com.dillon.starsectormarines.battle.map.CellTopology;
-import com.dillon.starsectormarines.battle.map.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
+import com.dillon.starsectormarines.battle.world.model.TileManifest;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockFiller;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
