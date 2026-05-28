@@ -27,6 +27,7 @@ c929087  battle: SoA attackRange/attackDamage/accuracy — fifth promotion  ← 
 7ae84e6  battle: SoA targetId — eighth (keystone cross-reference)  ← 2026-05-28
 b620e77  battle: SoA repositionCooldown — ninth (C3 Slice A)  ← 2026-05-28
 9104c85  battle: SoA fallback group + wanderDwellTimer — tenth (C3 Slice B)  ← 2026-05-28
+2f48c36  battle: relocate setPath/clearPath into NavigationService + trim sim surface  ← 2026-05-28
 ```
 
 ## State of play
@@ -65,10 +66,13 @@ primitives and the (now thin) `BattleSimulation` orchestrator:
    `wanderDwellTimer` ride-along). The whole AI countdown/cache cluster is
    now off the POJO. With this done, no per-unit primitive worth a hot-loop
    win remains except the deferred low-payoff set below.
-4. [`path-mutation-to-navigation`](stories/path-mutation-to-navigation.md) —
-   **Service** cleanup: move `setPath`/`clearPath` bodies off the sim
-   into NavigationService (which already owns the occupancy/destIndex
-   state). Thin sim delegates stay, so consumer churn is ~zero. **Next up.**
+4. ~~[`path-mutation-to-navigation`](complete/path-mutation-to-navigation.md)~~ —
+   **SHIPPED** (`2f48c36`). `setPath`/`clearPath` bodies moved into
+   NavigationService; queued occupancy-delta sink setter-injected
+   (`damageService::applyOccupancyDelta`), queue stays in DamageService;
+   thin sim delegates kept so the ~28 AI call sites are unchanged. Rode
+   along a sim-surface trim (dead `rollFallbackOnHit` deleted, four
+   `flushPending*` privatized).
 5. [`drop-sim-facade-delegators`](stories/drop-sim-facade-delegators.md) —
    **Terminal** migration story: remove the ~40 `*SimContext`-style facade
    delegators (mutating behavior delegates + service getters) so consumers
