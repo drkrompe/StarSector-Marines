@@ -12,8 +12,6 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.decision.UnitBehavior;
-import com.dillon.starsectormarines.battle.ai.goap.actions.DroneSwarmAction;
-import com.dillon.starsectormarines.battle.ai.goap.goals.DefendHubGoal;
 import com.dillon.starsectormarines.battle.decision.goap.scoring.RoleAssigner;
 
 import java.util.ArrayList;

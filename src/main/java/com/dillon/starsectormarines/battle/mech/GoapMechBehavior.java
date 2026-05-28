@@ -12,14 +12,6 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.decision.UnitBehavior;
-import com.dillon.starsectormarines.battle.ai.goap.actions.BackstopAssignedSquad;
-import com.dillon.starsectormarines.battle.ai.goap.actions.EngageAtCurrentBand;
-import com.dillon.starsectormarines.battle.ai.goap.actions.MechBreakContact;
-import com.dillon.starsectormarines.battle.ai.goap.actions.OverwatchKillZone;
-import com.dillon.starsectormarines.battle.ai.goap.goals.BackstopAssignedSquadGoal;
-import com.dillon.starsectormarines.battle.ai.goap.goals.MechEliminateEnemiesGoal;
-import com.dillon.starsectormarines.battle.ai.goap.goals.MechSurviveContact;
-import com.dillon.starsectormarines.battle.ai.goap.goals.OverwatchKillZoneGoal;
 import com.dillon.starsectormarines.battle.decision.goap.scoring.RoleAssigner;
 import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder;
 

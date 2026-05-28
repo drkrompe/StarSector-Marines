@@ -5,9 +5,9 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
-import com.dillon.starsectormarines.battle.ai.goap.actions.ClearZone;
-import com.dillon.starsectormarines.battle.ai.goap.actions.EnterZone;
-import com.dillon.starsectormarines.battle.ai.goap.actions.HoldZone;
+import com.dillon.starsectormarines.battle.decision.goap.action.ClearZone;
+import com.dillon.starsectormarines.battle.decision.goap.action.EnterZone;
+import com.dillon.starsectormarines.battle.decision.goap.action.HoldZone;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
 import com.dillon.starsectormarines.battle.nav.zone.Portal;
@@ -176,9 +176,9 @@ public final class ZoneQueries {
      * next-most-relevant goal."
      *
      * <p>Shared between MISSION-priority zone-push goals:
-     * {@link com.dillon.starsectormarines.battle.ai.goap.goals.SecureObjectiveZone}
+     * {@link com.dillon.starsectormarines.battle.infantry.SecureObjectiveZone}
      * (unit-level planter target) and
-     * {@link com.dillon.starsectormarines.battle.ai.goap.goals.ClearAssignedZoneGoal}
+     * {@link com.dillon.starsectormarines.battle.infantry.ClearAssignedZoneGoal}
      * (commander-issued squad assignment). Both compose the same step
      * sequence — just differ in how they pick the target zone.
      */
@@ -209,8 +209,8 @@ public final class ZoneQueries {
      * working toward this exact target and shouldn't have its plan thrown
      * out at the next replan tick.
      *
-     * <p>Used by {@link com.dillon.starsectormarines.battle.ai.goap.goals.ClearAssignedZoneGoal#customPlan}
-     * and {@link com.dillon.starsectormarines.battle.ai.goap.goals.SecureObjectiveZone#customPlan}
+     * <p>Used by {@link com.dillon.starsectormarines.battle.infantry.ClearAssignedZoneGoal#customPlan}
+     * and {@link com.dillon.starsectormarines.battle.infantry.SecureObjectiveZone#customPlan}
      * to keep an active multi-zone plan stable across the periodic 2-second
      * replan. Without this gate, when a squad is bifurcated across a portal
      * the BFS start zone flips with the leader/centroid each tick — even

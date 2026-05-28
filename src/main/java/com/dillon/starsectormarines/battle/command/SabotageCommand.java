@@ -23,7 +23,7 @@ import java.util.List;
  * toward the closest unfinished charge site via {@link AssignmentKind#CLEAR_ZONE}.
  * Squads <em>with</em> a planter are left alone — their unit-level
  * {@code Unit.assignedObjective} already drives
- * {@link com.dillon.starsectormarines.battle.ai.goap.goals.SecureObjectiveZone}
+ * {@link com.dillon.starsectormarines.battle.infantry.SecureObjectiveZone}
  * to the right zone, and overwriting their squad assignment would create
  * a goal collision in the MISSION bucket.
  *
@@ -108,7 +108,7 @@ public final class SabotageCommand implements MissionCommand {
      * True iff the squad has any alive {@link UnitRole#PLANTER} member whose
      * unit-level {@code assignedObjective} is an unfinished charge site.
      * Drives the "leave this squad alone" branch — see
-     * {@link com.dillon.starsectormarines.battle.ai.goap.goals.SecureObjectiveZone}
+     * {@link com.dillon.starsectormarines.battle.infantry.SecureObjectiveZone}
      * for the unit-level path the planter's targeting feeds.
      */
     private static boolean hasLivePlanter(Squad squad, BattleSimulation sim) {

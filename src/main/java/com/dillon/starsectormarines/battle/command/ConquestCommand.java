@@ -354,7 +354,7 @@ public final class ConquestCommand implements MissionCommand {
      * <p>{@code -1} when the strip has no defender-occupied zones, or
      * when the only defender zone is the squad's <em>current</em> zone
      * (in which case {@link
-     * com.dillon.starsectormarines.battle.ai.goap.goals.ClearAssignedZoneGoal}
+     * com.dillon.starsectormarines.battle.infantry.ClearAssignedZoneGoal}
      * returns relevance 0 anyway via its {@code currentZone == targetZone}
      * gate, so callers see consistent "no plan to execute" behavior and
      * the squad falls through to {@code EliminateEnemiesGoal} for in-zone

@@ -4,8 +4,8 @@ import com.dillon.starsectormarines.battle.unit.Unit;
 
 /**
  * Squad-scoped awareness state. Drives the idle vs. engaged branch in
- * {@link com.dillon.starsectormarines.battle.ai.goap.actions.HoldPost} and
- * {@link com.dillon.starsectormarines.battle.ai.goap.actions.PatrolRoute}:
+ * {@link com.dillon.starsectormarines.battle.infantry.HoldPost} and
+ * {@link com.dillon.starsectormarines.battle.infantry.PatrolRoute}:
  * a UNAWARE squad sticks to its assigned routine (hold the node / walk the
  * patrol route), an ENGAGED squad falls through to
  * {@link com.dillon.starsectormarines.battle.infantry.CombatantBehavior}

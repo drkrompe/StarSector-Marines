@@ -20,8 +20,8 @@ import com.dillon.starsectormarines.battle.unit.Unit;
  * field-of-fire spreading, and shared awareness — members stay within radius
  * of squadmates, target selection penalizes squadmates already engaging the
  * same enemy, and a squad's {@link SquadAlertLevel} drives the idle vs.
- * engaged branch in {@link com.dillon.starsectormarines.battle.ai.goap.actions.HoldPost}
- * and {@link com.dillon.starsectormarines.battle.ai.goap.actions.PatrolRoute}.
+ * engaged branch in {@link com.dillon.starsectormarines.battle.infantry.HoldPost}
+ * and {@link com.dillon.starsectormarines.battle.infantry.PatrolRoute}.
  *
  * <p>Squad identity is just an integer key on {@link Unit#squadId}. The
  * {@link Squad} object holds metadata the AI consults — leader pointer,
@@ -114,7 +114,7 @@ public final class Squad {
     public boolean fallbackTriggered = false;
     /**
      * True while the squad is still walking from the old post to the new one.
-     * {@link com.dillon.starsectormarines.battle.ai.goap.actions.HoldPost} routes
+     * {@link com.dillon.starsectormarines.battle.infantry.HoldPost} routes
      * members to their freshly-assigned home cells regardless of alert level
      * while this flag is set, and the sim clears it once every surviving
      * member is within the home-arrival radius (see
@@ -125,7 +125,7 @@ public final class Squad {
 
     /**
      * Current patrol waypoint cell. -1 sentinel = not assigned yet, the
-     * behavior picks one on next tick. {@link com.dillon.starsectormarines.battle.ai.goap.actions.PatrolRoute}
+     * behavior picks one on next tick. {@link com.dillon.starsectormarines.battle.infantry.PatrolRoute}
      * picks a new waypoint when the squad's centroid arrives at the current
      * one, then dwells {@link #patrolDwellTimer} sim-seconds before moving on.
      * Squad-scoped so all members converge on the same target rather than
@@ -137,12 +137,12 @@ public final class Squad {
     public float patrolDwellTimer = 0f;
     /**
      * Cell-radius around {@link #assignedNode} the squad samples patrol waypoints
-     * from. Default matches {@link com.dillon.starsectormarines.battle.ai.goap.actions.PatrolRoute#DEFAULT_DISTRICT_RADIUS}
+     * from. Default matches {@link com.dillon.starsectormarines.battle.infantry.PatrolRoute#DEFAULT_DISTRICT_RADIUS}
      * (wide district sweep); guardpost squads tighten this to their tier's
      * {@link DefensePostKind#patrolRadius} so they orbit the post until release.
      * Reverts to the default when {@link #defensePost} releases.
      */
-    public int patrolRadius = com.dillon.starsectormarines.battle.ai.goap.actions.PatrolRoute.DEFAULT_DISTRICT_RADIUS;
+    public int patrolRadius = com.dillon.starsectormarines.battle.infantry.PatrolRoute.DEFAULT_DISTRICT_RADIUS;
     /**
      * Defense post this squad is garrisoning. Null for regular patrols and for
      * marine squads. Set by {@link BattleSetup} post-{@code allocateDefenders}
@@ -221,7 +221,7 @@ public final class Squad {
     // ---- Story A: garrison ambush gating ----
 
     /**
-     * When true, the squad refuses to open fire from {@link com.dillon.starsectormarines.battle.ai.goap.actions.EngagePosture}
+     * When true, the squad refuses to open fire from {@link com.dillon.starsectormarines.battle.infantry.EngagePosture}
      * until {@link com.dillon.starsectormarines.battle.decision.goap.Predicate#ENEMY_IN_KILL_ZONE}
      * flips true (an enemy entered the kill zone <em>and</em> LOS to that enemy
      * has been stable for {@link com.dillon.starsectormarines.battle.squad.SquadAlertSystem#KILL_ZONE_LOS_TICKS_THRESHOLD}
@@ -285,7 +285,7 @@ public final class Squad {
     public int aliveMembersAtLastPlan = 0;
 
     /**
-     * Sim-seconds since the current {@link com.dillon.starsectormarines.battle.ai.goap.actions.BreachAndAdvance}
+     * Sim-seconds since the current {@link com.dillon.starsectormarines.battle.infantry.BreachAndAdvance}
      * step entered its stack-up phase. Used to enforce the per-step stack-up
      * timeout — once it exceeds the threshold, the breach commits regardless
      * of how many members made it to the doorway. Reset to 0 when the breach
@@ -295,7 +295,7 @@ public final class Squad {
 
     /**
      * Portal id the squad's current
-     * {@link com.dillon.starsectormarines.battle.ai.goap.actions.ChokePointHold}
+     * {@link com.dillon.starsectormarines.battle.infantry.ChokePointHold}
      * action is watching, or {@code -1} when no choke-point hold is active.
      * Set by {@code ChokePointHold} on its first execute tick (idempotent —
      * stamps the same id on every tick for the lifetime of the action) and
@@ -333,7 +333,7 @@ public final class Squad {
      *
      * <p>Idempotent or commutative per-tick writes that are gated to the squad
      * leader ({@code if (member == squad.leader)}) bypass the lock as a cheaper
-     * alternative — see {@link com.dillon.starsectormarines.battle.ai.goap.actions.PatrolRoute}'s
+     * alternative — see {@link com.dillon.starsectormarines.battle.infantry.PatrolRoute}'s
      * dwell-timer decrement for the canonical example.
      *
      * <p>Never hold this lock while acquiring another squad's lock — actions

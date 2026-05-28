@@ -1061,7 +1061,7 @@ public final class BattleSetup {
      * Fallback spawn used when the map has no defender tactical nodes (any
      * mission whose generator skips BspCityGenerator's tactical pass). Mints
      * {@link UnitRole#PATROL} squads of up to {@link DefenderRoster#patrolSquadSize}
-     * each, with {@code assignedNode = null} — {@link com.dillon.starsectormarines.battle.ai.goap.actions.PatrolRoute}
+     * each, with {@code assignedNode = null} — {@link com.dillon.starsectormarines.battle.infantry.PatrolRoute}
      * seeds off {@link Squad#centroidX}/{@code centroidY} when the anchor is
      * null, so the squad wanders from its spawn cluster outward and engages
      * on enemy LOS like the tactical-node patrol path.

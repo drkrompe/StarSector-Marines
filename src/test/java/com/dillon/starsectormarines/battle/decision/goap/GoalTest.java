@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.decision.goap;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.ai.goap.goals.EliminateEnemiesGoal;
+import com.dillon.starsectormarines.battle.infantry.EliminateEnemiesGoal;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

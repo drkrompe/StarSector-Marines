@@ -172,7 +172,7 @@ public final class WorldStateBuilder {
      * True iff every alive squadmate is within {@link InfantryCohesion#COHESION_RADIUS}
      * of the squad centroid. A scattered squad — one member out beyond the
      * radius — reads false, prompting the planner to insert a
-     * {@link com.dillon.starsectormarines.battle.ai.goap.actions.RegroupPosture}
+     * {@link com.dillon.starsectormarines.battle.infantry.RegroupPosture}
      * step before advancing.
      *
      * <p>A solo or wiped squad reads true (no scattering possible). The
@@ -186,8 +186,8 @@ public final class WorldStateBuilder {
      * has expired. Aggregated at squad scope to match the other "any
      * squadmate" predicates (HAS_LOS, IN_RANGE); the per-member decision to
      * actually reposition is made inline inside
-     * {@link com.dillon.starsectormarines.battle.ai.goap.actions.EngagePosture}'s
-     * call to {@link com.dillon.starsectormarines.battle.ai.goap.actions.RepositionToCover#tryReposition}.
+     * {@link com.dillon.starsectormarines.battle.infantry.EngagePosture}'s
+     * call to {@link com.dillon.starsectormarines.battle.infantry.RepositionToCover#tryReposition}.
      * Predicate exists for goals that want to require reposition-readiness
      * (Story C bounding overwatch is the next consumer); the basic engage
      * loop doesn't gate on it — the cooldown gate happens inside the action.
@@ -219,7 +219,7 @@ public final class WorldStateBuilder {
      * the portal the squad's choke-point action is watching
      * ({@link Squad#chokePointPortalId}). The portal id is stamped onto the
      * squad by
-     * {@link com.dillon.starsectormarines.battle.ai.goap.actions.ChokePointHold}
+     * {@link com.dillon.starsectormarines.battle.infantry.ChokePointHold}
      * on its first execute tick.
      *
      * <p>Reads false when no portal is being watched ({@code chokePointPortalId
@@ -252,7 +252,7 @@ public final class WorldStateBuilder {
     /**
      * <b>Story A trigger.</b> True when the squad's ambush gate is ready to
      * fire. Non-garrison squads always read true — they have no "wait" state,
-     * so the predicate stays a no-op in {@link com.dillon.starsectormarines.battle.ai.goap.actions.EngagePosture}'s
+     * so the predicate stays a no-op in {@link com.dillon.starsectormarines.battle.infantry.EngagePosture}'s
      * preconditions for marines and patrol squads.
      *
      * <p>Garrison squads ({@link Squad#holdsFireUntilKillZone}) read true iff:

@@ -151,7 +151,7 @@ public final class TacticalScoring {
      * Equivalent to ~8 cells of extra walking distance, so a close in-zone
      * enemy beats a slightly-further across-zone enemy without preventing
      * a meaningfully closer across-zone threat from winning. Pairs with
-     * {@link com.dillon.starsectormarines.battle.ai.goap.goals.BreachToEngage}:
+     * {@link com.dillon.starsectormarines.battle.infantry.BreachToEngage}:
      * once there's no acceptable in-zone target, the cross-zone enemy wins
      * by default and BreachToEngage's relevance flips on.
      */
@@ -470,7 +470,7 @@ public final class TacticalScoring {
      * (infantry archetypes, aliens, militia) is soft. Drives the weapon-affinity
      * bias in {@link #findBestTarget} (rocketeers prefer hardened) and the
      * rocket-eligibility gates in {@link com.dillon.starsectormarines.battle.infantry.InfantryUnitPrep#tryOpportunityRocket}
-     * and {@link com.dillon.starsectormarines.battle.ai.goap.actions.EngagePosture} —
+     * and {@link com.dillon.starsectormarines.battle.infantry.EngagePosture} —
      * marines burn a rocket on anything that earns the {@code vsTurretMult}
      * (3.5×) bonus payoff.
      */
@@ -496,7 +496,7 @@ public final class TacticalScoring {
      * Effective engagement range for {@code shooter} against {@code target} —
      * primary range, unless the shooter can rocket the target (hardened class
      * + loaded tube), in which case the rocket's longer range wins. Used by
-     * {@link com.dillon.starsectormarines.battle.ai.goap.actions.EngagePosture}'s
+     * {@link com.dillon.starsectormarines.battle.infantry.EngagePosture}'s
      * act-here gate and the firing-position picker so a rocketeer doesn't have
      * to close to rifle range before firing.
      */
@@ -773,7 +773,7 @@ public final class TacticalScoring {
      * Constrained firing-position search — like {@link #findFiringPosition} but
      * rejects any candidate whose cell-distance from ({@code anchorX},
      * {@code anchorY}) exceeds {@code maxDistFromAnchor}. Used by
-     * {@link com.dillon.starsectormarines.battle.ai.goap.actions.HoldPost} to keep engaged defenders within a tight
+     * {@link com.dillon.starsectormarines.battle.infantry.HoldPost} to keep engaged defenders within a tight
      * radius of their tactical-node anchor: they'll peek around corners and
      * grab better cover, but won't chase marines off the wall.
      *
@@ -785,7 +785,7 @@ public final class TacticalScoring {
      * Picks an enemy combatant {@code self} can engage from within
      * {@code maxDistFromAnchor} cells of the anchor — i.e. an enemy with at
      * least one reachable firing position inside the hold radius. Used by
-     * {@link com.dillon.starsectormarines.battle.ai.goap.actions.HoldPost} to retarget when the unit's current target is
+     * {@link com.dillon.starsectormarines.battle.infantry.HoldPost} to retarget when the unit's current target is
      * blocked by walls from every cell within the hold radius: rather than
      * idling on a fixated unreachable target, switch to one we can actually
      * engage from the post.
@@ -1091,7 +1091,7 @@ public final class TacticalScoring {
      * filters the candidate ring to cells whose combined (cell + doodad) cover
      * meets or exceeds the unit's current combined cover against the same
      * threat direction. When no candidate meets that threshold, returns
-     * {@code null}: callers (Story G's {@link com.dillon.starsectormarines.battle.ai.goap.actions.RepositionToCover})
+     * {@code null}: callers (Story G's {@link com.dillon.starsectormarines.battle.infantry.RepositionToCover})
      * treat that as "hold position, current cover is best."
      *
      * <p>Compared with the unfiltered {@link #findFiringPosition}, this won't
@@ -1434,8 +1434,8 @@ public final class TacticalScoring {
      * re-pick lands on the same cell.
      *
      * <p>Shared between
-     * {@link com.dillon.starsectormarines.battle.ai.goap.actions.BreakContact}
-     * and {@link com.dillon.starsectormarines.battle.ai.goap.actions.BreakLOS}
+     * {@link com.dillon.starsectormarines.battle.decision.goap.action.BreakContact}
+     * and {@link com.dillon.starsectormarines.battle.infantry.BreakLOS}
      * — both stash the picker's result on {@link Unit#getFallbackCellX()}/
      * {@link Unit#getFallbackCellY()} and need the same "re-roll when stale"
      * invariant. The SQ-17 stuck-defender dump exposed BreakLOS lacking

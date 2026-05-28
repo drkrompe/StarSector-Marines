@@ -922,7 +922,7 @@ public class BattleSimulation {
      * Each surviving member gets a new {@link Unit#homeCellX home cell} near
      * the new anchor (picked via {@link BattleSetup#pickCellsNear} so cover is
      * preserved at the new post). {@link Squad#fallbackInProgress} is set so
-     * {@link com.dillon.starsectormarines.battle.ai.goap.actions.HoldPost} routes
+     * {@link com.dillon.starsectormarines.battle.infantry.HoldPost} routes
      * members to their new homes regardless of alert level.
      *
      * <h2>Arrival pass</h2>
