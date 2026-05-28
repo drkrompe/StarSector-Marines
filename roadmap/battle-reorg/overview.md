@@ -248,7 +248,15 @@ reference-churn moves to a quiet base.
      Class-specific FQN rewrite (actions/ + goals/ stay in `ai.goap`, so no
      blanket prefix rewrite). Bidirectional import fix-ups across the move
      boundary; 10 same-package tests relocated. Build + suite green.
-   - 6b actor behaviors → `infantry/` / `mech/` / `drone/` / `turret/`.
+   - ~~6b actor behaviors → `infantry/` / `mech/` / `drone/` / `turret/`.~~
+     **SHIPPED** (`52817d7`). `infantry/` (new): CombatantBehavior,
+     InfantryCohesion, InfantryUnitPrep, KitRetrieverBehavior,
+     GoapInfantryBehavior. `mech/` (new): MechCombatantBehavior,
+     GoapMechBehavior. `drone/`: DroneHubBehavior, GoapDroneBehavior.
+     `turret/`: TurretBehavior, TurretAim, StructureBehavior. Class-specific
+     FQN rewrite per destination; 4 cross-destination bare refs gained
+     imports, same-destination refs stay same-package; staying goals/actions
+     redirected via imports. `ai/` now holds only `goap/{actions,goals}`.
    - 6c goals/actions partition per the rule above.
 7. **`weapons/` slice split** — `Marine*` → `infantry/`, `Mech*` → `mech/`
    (combat-shared half already moved in slice 1).
