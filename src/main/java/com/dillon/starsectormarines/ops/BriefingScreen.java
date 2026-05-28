@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.battle.sim.BattleSetup;
+import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;

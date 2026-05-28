@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
-import com.dillon.starsectormarines.battle.sim.BattleSetup;
+import com.dillon.starsectormarines.battle.setup.BattleSetup;
 
 /**
  * One placed vehicle on the battle map — a {@link VehicleKind} anchored to a

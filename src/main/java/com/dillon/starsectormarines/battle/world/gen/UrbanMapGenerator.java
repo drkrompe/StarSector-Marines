@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
-import com.dillon.starsectormarines.battle.sim.BattleSetup;
+import com.dillon.starsectormarines.battle.setup.BattleSetup;
 
 import com.dillon.starsectormarines.battle.world.model.Building;
 import com.dillon.starsectormarines.battle.world.model.Buildings;

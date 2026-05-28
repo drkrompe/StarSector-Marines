@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.unit;
 
-import com.dillon.starsectormarines.battle.sim.BattleSetup;
+import com.dillon.starsectormarines.battle.setup.BattleSetup;
 
 import java.util.EnumMap;
 import java.util.Map;

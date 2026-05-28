@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.turret;
 
 import com.dillon.starsectormarines.battle.drone.Drone;
 import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
-import com.dillon.starsectormarines.battle.sim.BattleSetup;
+import com.dillon.starsectormarines.battle.setup.BattleSetup;
 
 /**
  * Tier of a manned turret emplacement placed by
@@ -43,7 +43,7 @@ public enum DefensePostKind {
      * <p>Hosts no {@link com.dillon.starsectormarines.battle.turret.MapTurret}
      * — the hub's {@link com.dillon.starsectormarines.battle.turret.DefensePost#turrets}
      * list is empty, and a future {@code DroneHubUnit} spawned by
-     * {@link com.dillon.starsectormarines.battle.sim.BattleSetup} will occupy the
+     * {@link com.dillon.starsectormarines.battle.setup.BattleSetup} will occupy the
      * center cell and drive the drone spawn cadence.
      */
     DRONE_HUB(0, 0, 75, 0);

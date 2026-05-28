@@ -16,7 +16,7 @@ import java.util.List;
 /**
  * The product of a {@link MapGenerator}. Every implementation — legacy
  * striped-grid urban, BSP-based city, future wilderness/spacehulk gens —
- * returns this exact shape so {@link com.dillon.starsectormarines.battle.sim.BattleSetup}
+ * returns this exact shape so {@link com.dillon.starsectormarines.battle.setup.BattleSetup}
  * can swap implementations behind a single {@link MapGenerator} reference.
  *
  * <p>Invariants the generator must establish before returning (audited by
@@ -49,7 +49,7 @@ public final class MapResult {
      * Authored tactical hint graph the battle AI uses for squad allocation and
      * fallback routing. Never null — generators with no tactical layer return
      * an empty {@link TacticalMap}. See {@link TacticalMap} for the queries
-     * available to {@link com.dillon.starsectormarines.battle.sim.BattleSetup}.
+     * available to {@link com.dillon.starsectormarines.battle.setup.BattleSetup}.
      */
     public final TacticalMap tacticalMap;
     /**
@@ -62,7 +62,7 @@ public final class MapResult {
     /**
      * Manned turret emplacements placed by
      * {@link com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper}.
-     * {@link com.dillon.starsectormarines.battle.sim.BattleSetup} reads this list to
+     * {@link com.dillon.starsectormarines.battle.setup.BattleSetup} reads this list to
      * spawn {@link MapTurret} units at each
      * post's turret cells and to wire the {@code GUARDPOST_PATROL} squads'
      * turret-dead release condition. Empty for non-conquest generators and for

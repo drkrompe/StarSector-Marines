@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.world.model;
 
-import com.dillon.starsectormarines.battle.sim.BattleSetup;
+import com.dillon.starsectormarines.battle.setup.BattleSetup;
 
 import com.dillon.starsectormarines.ops.RiskLevel;
 

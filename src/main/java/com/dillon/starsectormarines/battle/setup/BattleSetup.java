@@ -1,5 +1,6 @@
-package com.dillon.starsectormarines.battle.sim;
+package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.MapScale;

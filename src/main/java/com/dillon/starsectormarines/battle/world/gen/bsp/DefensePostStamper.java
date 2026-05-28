@@ -54,7 +54,7 @@ import java.util.Random;
  *   <li>Turret cells: walkable + {@link GroundKind#STONE} ground pad. Cover
  *       is recomputed post-stamp so the cardinal embankment neighbors register.
  *       The {@link MapTurret} unit spawned
- *       by {@link com.dillon.starsectormarines.battle.sim.BattleSetup} occupies the
+ *       by {@link com.dillon.starsectormarines.battle.setup.BattleSetup} occupies the
  *       cell; unit-stacking prevents other units from sharing it.</li>
  *   <li>{@link TacticalNode.Kind#GUARDPOST} tactical node at the post center,
  *       carrying the tier's garrison size and priority. The defender allocator's

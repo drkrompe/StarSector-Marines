@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.squad;
 
 import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
 import com.dillon.starsectormarines.battle.drone.DroneSpawner;
-import com.dillon.starsectormarines.battle.sim.BattleSetup;
+import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
@@ -102,7 +102,7 @@ public final class Squad {
     public ObjectiveAssignment assignedObjective;
 
     /**
-     * Member count at the moment {@link com.dillon.starsectormarines.battle.sim.BattleSetup}
+     * Member count at the moment {@link com.dillon.starsectormarines.battle.setup.BattleSetup}
      * finished spawning the squad. The fallback trigger compares
      * {@link #aliveMembers} against this peak: when casualties bring the squad
      * to half or fewer of its original strength, it reassigns to the first

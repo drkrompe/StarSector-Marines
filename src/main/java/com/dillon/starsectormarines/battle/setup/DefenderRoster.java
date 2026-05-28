@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.sim;
+package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.RiskLevel;

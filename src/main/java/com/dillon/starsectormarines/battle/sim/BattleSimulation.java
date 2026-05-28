@@ -920,7 +920,7 @@ public class BattleSimulation {
      * {@link #FALLBACK_TRIGGER_RATIO} of {@link Squad#originalSize}, the squad
      * reassigns to the first {@link TacticalNode.LinkKind#FALLBACK_TO} target.
      * Each surviving member gets a new {@link Unit#homeCellX home cell} near
-     * the new anchor (picked via {@link BattleSetup#pickCellsNear} so cover is
+     * the new anchor (picked via {@link com.dillon.starsectormarines.battle.setup.BattleSetup#pickCellsNear} so cover is
      * preserved at the new post). {@link Squad#fallbackInProgress} is set so
      * {@link com.dillon.starsectormarines.battle.infantry.HoldPost} routes
      * members to their new homes regardless of alert level.
