@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.weapons;
 
 import com.dillon.starsectormarines.battle.sim.BattleSetup;
-import com.dillon.starsectormarines.battle.unit.Squad;
+import com.dillon.starsectormarines.battle.squad.Squad;
 
 /**
  * Doctrine slot for a mech chassis. Every mech carries the same all-arounder

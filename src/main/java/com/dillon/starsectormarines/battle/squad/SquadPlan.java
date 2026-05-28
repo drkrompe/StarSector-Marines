@@ -1,5 +1,7 @@
-package com.dillon.starsectormarines.battle.ai.goap;
+package com.dillon.starsectormarines.battle.squad;
 
+import com.dillon.starsectormarines.battle.ai.goap.Action;
+import com.dillon.starsectormarines.battle.ai.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.unit.Unit;
 
 import java.util.ArrayList;
@@ -14,7 +16,7 @@ import java.util.Map;
  * by {@code GoapInfantryBehavior} as each step's {@code execute} returns
  * {@link ActionStatus#SUCCESS}.
  *
- * <p>One plan per {@link com.dillon.starsectormarines.battle.unit.Squad}; under the
+ * <p>One plan per {@link com.dillon.starsectormarines.battle.squad.Squad}; under the
  * per-unit parallel dispatch in {@code BattleSimulation.tick} multiple members
  * of the same squad can call into the plan concurrently. {@link #currentIndex}
  * is therefore {@code volatile} for cheap reads, and the mutating call sites

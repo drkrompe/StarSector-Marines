@@ -1,6 +1,5 @@
-package com.dillon.starsectormarines.battle.ai;
+package com.dillon.starsectormarines.battle.squad;
 
-import com.dillon.starsectormarines.battle.unit.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 
 /**
@@ -8,7 +7,8 @@ import com.dillon.starsectormarines.battle.unit.Unit;
  * {@link com.dillon.starsectormarines.battle.ai.goap.actions.HoldPost} and
  * {@link com.dillon.starsectormarines.battle.ai.goap.actions.PatrolRoute}:
  * a UNAWARE squad sticks to its assigned routine (hold the node / walk the
- * patrol route), an ENGAGED squad falls through to {@link CombatantBehavior}
+ * patrol route), an ENGAGED squad falls through to
+ * {@link com.dillon.starsectormarines.battle.ai.CombatantBehavior}
  * so members pick targets and fight normally.
  *
  * <p>Promotion happens in {@code SquadAlertSystem.tick}, which runs once per
@@ -20,8 +20,9 @@ import com.dillon.starsectormarines.battle.unit.Unit;
  * back to SUSPICIOUS, then to UNAWARE so patrols resume their routes.
  *
  * <p>Per-unit fall-back is independent of squad alert — a marine who eats a
- * rocket still breaks contact via {@link FallbackBehavior} even if the squad
- * is UNAWARE the moment before. The alert level only governs idle behavior.
+ * rocket still breaks contact via
+ * {@link com.dillon.starsectormarines.battle.ai.FallbackBehavior} even if the
+ * squad is UNAWARE the moment before. The alert level only governs idle behavior.
  *
  * <p>Squads with {@link Unit#NO_SQUAD} members (solo defenders, civilians,
  * pre-shuttle marines) skip this state machine — they run their

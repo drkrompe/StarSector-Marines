@@ -44,7 +44,7 @@ import com.dillon.starsectormarines.battle.turret.MapTurret;
  *       {@link com.dillon.starsectormarines.battle.tactical.TacticalNode}.
  *       Holds a firing position near the node's anchor until any squadmate
  *       sees an enemy, at which point the squad's
- *       {@link com.dillon.starsectormarines.battle.ai.SquadAlertLevel}
+ *       {@link com.dillon.starsectormarines.battle.squad.SquadAlertLevel}
  *       transitions to ENGAGED and members fall through to combatant-style
  *       engagement. Replaces "everyone clusters at the defender spawn anchor"
  *       for conquest-mode maps with a tactical layer.</li>

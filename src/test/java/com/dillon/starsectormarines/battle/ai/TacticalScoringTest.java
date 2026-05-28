@@ -7,7 +7,7 @@ import com.dillon.starsectormarines.battle.weapons.MarineSecondary;
 import com.dillon.starsectormarines.battle.weapons.MarineWeapon;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.Projectile;
-import com.dillon.starsectormarines.battle.unit.Squad;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.UnitType;

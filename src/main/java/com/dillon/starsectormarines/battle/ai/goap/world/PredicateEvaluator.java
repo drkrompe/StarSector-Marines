@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.ai.goap.world;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.unit.Squad;
+import com.dillon.starsectormarines.battle.squad.Squad;
 
 /**
  * One predicate's "is this true right now?" oracle. Registered in

@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.ai.goap.Action;
 import com.dillon.starsectormarines.battle.ai.goap.Goal;
 import com.dillon.starsectormarines.battle.ai.goap.Planner;
 import com.dillon.starsectormarines.battle.ai.goap.Predicate;
-import com.dillon.starsectormarines.battle.ai.goap.SquadPlan;
+import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.ai.goap.WorldState;
 import com.dillon.starsectormarines.battle.ai.goap.actions.BreakLOS;
 import com.dillon.starsectormarines.battle.ai.goap.actions.EngagePosture;

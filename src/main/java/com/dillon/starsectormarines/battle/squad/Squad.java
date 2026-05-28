@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.unit;
+package com.dillon.starsectormarines.battle.squad;
 
 import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
 import com.dillon.starsectormarines.battle.drone.DroneSpawner;
@@ -8,11 +8,11 @@ import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.weapons.MechLoadoutState;
 
-import com.dillon.starsectormarines.battle.ai.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.ai.goap.Goal;
-import com.dillon.starsectormarines.battle.ai.goap.SquadPlan;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.Unit;
 
 /**
  * A fireteam of marines that deboarded from one shuttle, or a defender squad
