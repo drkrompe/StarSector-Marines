@@ -73,6 +73,16 @@ roadmap/<feature>/
 - Do not edit anything under `C:\Program Files (x86)\Fractal Softworks\Starsector` — it's
   read-only reference. Vanilla files there are the canonical examples for data schemas.
 
+## Code style
+
+- **Prefer `import` + simple name over inline fully-qualified names** in code
+  you write or edit (`Vehicle v`, not
+  `com.dillon.starsectormarines.battle.vehicle.Vehicle v`). Applies to new code;
+  not enforced retroactively — don't do sweeping FQN→import refactors of
+  existing files unasked, and a mechanical package-move rewrite that preserves a
+  file's pre-existing FQN style is fine. Javadoc `{@link}` FQN is fine — no need
+  to add an import used *solely* for a doc link.
+
 ## Committing (concurrent sessions share this tree)
 
 Several Claude sessions run in parallel against the same working tree, index,
