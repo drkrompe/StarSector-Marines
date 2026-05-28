@@ -241,9 +241,9 @@ defender tactical nodes and their garrison state:
 - Exposes: eligible targets (`open && !dispatched && contested`),
   mark-dispatched (de-dup), re-open on replacement-squad wipe
 
-### Slice 3a: Landing/dropoff scorer (prerequisite for 3 + 4)
+### Slice 3a: Landing/dropoff scorer — ✓ shipped `0492f36` (hardened `f2f8ac0`)
 
-New reusable tool that validates and ranks a candidate dropoff cell —
+`LandingZoneScorer` — reusable tool that validates and ranks a candidate dropoff cell —
 walkable, not inside a building (`CellTopology.getBuildingId`), not
 water, defender-side — scored by openness + clearance + proximity to
 the hint. Candidate generation stays per-means; this owns validation
@@ -267,13 +267,19 @@ New trigger (replaces or wraps `GarrisonDepletedTrigger`) that:
 
 ### Slice 4: Means delivery via scorer + squad post-deboard assignment
 
-After means dispatches and troops deboard, the dispatch layer
-reads the request's objective coordinates and assigns the squad:
-- Means LZ/entry selection routes through the landing/dropoff scorer
-  (3a) so troops never deboard in a building or on impassable ground;
-  optionally retrofit Convoy/Shuttle/WalkIn candidate selection.
+Means delivery retrofit — ✓ shipped: ShuttleMeans `5bcf716`,
+WalkInMeans `77b53b9`, ConvoyMeans `085f72a`. All three route their
+final deboard cell through `LandingZoneScorer`, so troops never deboard
+in a building or on impassable ground (shuttle/walk-in had real
+ad-hoc scans; convoy gets a viability guard since it deboards at road
+junctions).
+
+Post-deboard assignment — **pending** (lands with slice 3's trigger,
+which carries the objective). After deboard the dispatch layer reads
+the request's objective coordinates and assigns the squad:
 - If objective is set: HOLD_NODE at the recapture target's
   tactical node. Squad advances from delivery LZ to the position.
+  (See the "assign at deboard, not on arrival" contract above.)
 - If objective is null (overflow): patrol behavior in the slice.
 
 **Contract — assign at deboard, not on arrival.** The squad's
