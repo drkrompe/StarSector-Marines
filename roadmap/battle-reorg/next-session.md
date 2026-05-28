@@ -92,11 +92,19 @@ c693c27  battle-reorg: slice 6a — engine/scoring/world + dispatch + tactical �
   framework `ZoneQueries`); infantry 13 / mech 4 / drone 1. Used a
   **newline-safe** package rewrite (`s/^package [^;]+;/.../`) so the moved
   files kept their blank-after-package — no merge regression like 6b's
-  `0198331` fix. Compiled green first try (action interconnections were
-  almost all javadoc, not code). Verified no framework→feature *code* edges.
-- **FOLLOW-UP logged** (see `overview.md` open items): the `decision/`
-  built-in zone actions carry javadoc `{@link}` to infantry postures — a
-  soft doc-level framework→feature coupling, deferred.
+  `0198331` fix. Compiled green first try.
+- **CORRECTION + follow-up.** The 6c commit claimed "no framework→feature
+  code edges" — that was wrong. Slice-6c review caught a real *code* edge:
+  built-in `EnterZone` read `infantry.GoapInfantryBehavior.REPLAN_PERIOD`.
+  **Fixed in `93ccd49`** by hoisting the cadence to `Planner.REPLAN_PERIOD`
+  (dedups it from all 3 composers too). Built-in actions are now feature-dep
+  free. **Lesson:** when checking layering, grep the moved file for imports
+  of *all* feature packages (`infantry`/`mech`/`drone`), not just the action
+  names you expect. **Still-open follow-up** (pre-existing, out of reorg
+  scope, logged in `overview.md`): `decision/` dispatch/wiring classes
+  (`UnitUpdateSystem`, `TacticalScoring`, `WorldStateBuilder`) import feature
+  behaviors — inherent to role→behavior dispatch; needs a registry-style
+  rework or relocating the dispatcher. Deferred.
 - **Proceeded ahead of the facade-drop** because sibling sessions are
   paused (tree quiet). Remaining slices should re-check tree quietness.
 - **Note:** a paused sibling agent's worktree under `.claude/worktrees/`

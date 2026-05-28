@@ -300,14 +300,20 @@ into new packages — otherwise we move targets twice.
 - **`BattleSetup` decomposition** (1593 lines, mixes mission-specific
   wiring) is out of scope here — `setup/` just relocates it; splitting it
   is separate work.
-- **FOLLOW-UP (slice 6c): framework→feature javadoc coupling.** The
-  `decision/goap/action/` built-in zone actions (`EnterZone`/`ClearZone`/
-  `HoldZone`) and `BreakContact` carry javadoc `{@link}`/`{@code}` references
-  to infantry-owned postures (`ApproachPosture`, `EngagePosture`,
-  `HoldPortalCordon`, …). Code-clean — no compile dependency framework→feature
-  (verified) — but a soft doc-level coupling. When revisited: trim the doc
-  links, or reconsider whether `ZoneQueries` + the zone actions belong in
-  `infantry/` rather than `decision/`. Not blocking; deferred.
+- **FOLLOW-UP (slice 6c): framework→feature edges in `decision/`.**
+  Slice-6c review caught a real *code* edge (I had wrongly called the slice
+  code-clean): built-in `EnterZone` read
+  `infantry.GoapInfantryBehavior.REPLAN_PERIOD`. **RESOLVED** (`93ccd49`) by
+  hoisting the cadence to `Planner.REPLAN_PERIOD`. Built-in actions are now
+  free of feature code deps. **Still open (pre-existing, out of reorg scope):**
+  the `decision/` *dispatch/wiring* classes import feature behaviors —
+  `UnitUpdateSystem` maps roles → behavior `INSTANCE`s
+  (`infantry.CombatantBehavior`, `drone.DroneHubBehavior`, …),
+  `TacticalScoring` → `drone.DroneHubUnit`, `WorldStateBuilder` →
+  `infantry.InfantryCohesion`. These are inherent to the current
+  role→behavior dispatch; removing them is a separate design question
+  (registry-style dispatch, or relocating the dispatcher out of the
+  framework core). Not blocking; deferred.
 
 ## Verification per slice
 
