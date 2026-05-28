@@ -228,8 +228,16 @@ reference-churn moves to a quiet base.
    `command/`. The only bare-name fix-up was `BattleSimulation` (a `sim/`
    sibling using `BattleResources`) gaining an explicit import. No
    self-imports anywhere. 8 same-package tests relocated. Build + suite green.
-5. **`squad/` consolidation** — move `Squad` (from `unit/`), `SquadPlan`
-   (from `ai/goap/`), `SquadAlertLevel` (from `ai/`) into `squad/`.
+5. ~~**`squad/` consolidation** — move `Squad` (from `unit/`), `SquadPlan`
+   (from `ai/goap/`), `SquadAlertLevel` (from `ai/`) into `squad/`.~~
+   **SHIPPED.** First true split: 3 classes pulled into the existing
+   `squad/` (which held the 4 Squad*System consumers). Moved-file imports
+   added on the main thread (`Squad`→`unit.{Unit,Faction}`,
+   `SquadPlan`→`ai.goap.{Action,ActionStatus}`); left-behind sibling imports
+   (`squad.Squad`×2, `squad.SquadPlan`×6) fanned out to a Sonnet subagent.
+   Compiler caught one missed test sibling (`PlannerTest`, +`squad.SquadPlan`)
+   — `git mv` test-dir glob misses single-class lifts; grep bare usages in
+   `src/test` too. 111 files, build + suite green.
 6. **`ai/` dissolve** (multi-sub-slice):
    - 6a engine + scoring + world + dispatch + tactical-scoring +
      tactical-graph → `decision/`.

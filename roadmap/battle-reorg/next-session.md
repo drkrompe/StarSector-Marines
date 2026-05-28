@@ -12,6 +12,7 @@ ea177c1  battle-reorg: slice 1 — consolidate combat pipeline into combat/
 f44ba82  battle-reorg: slice 2c — map/ → world/model/, UrbanMapGenerator → world/gen/
 e63bd32  battle-reorg: slice 3 — ground/ → vehicle/, absorb MapVehicle/VehicleKind
 5b68452  battle-reorg: slice 4 — objective/reinforcement/compound + resources → command/
+6134d1e  battle-reorg: slice 5 — Squad/SquadPlan/SquadAlertLevel → squad/
 ```
 
 ## State of play
@@ -39,6 +40,16 @@ e63bd32  battle-reorg: slice 3 — ground/ → vehicle/, absorb MapVehicle/Vehic
   only bare-name casualty of the lift. No self-imports anywhere; 8
   same-package tests relocated. `ops/BattleScreen.java` (objective +
   reinforcement consumer) folded in. Build + suite green.
+- **Slice 5 SHIPPED.** First true *split*: `Squad` (from `unit/`),
+  `SquadPlan` (from `ai/goap/`), `SquadAlertLevel` (from `ai/`) pulled into
+  the existing `squad/` (already home to the 4 Squad*System consumers).
+  Moved-file imports done on main thread; the 8 identical left-behind
+  sibling imports (`squad.Squad`×2, `squad.SquadPlan`×6) fanned out to a
+  Sonnet subagent (verified clean). **Gotcha:** a same-package *test*
+  (`ai/goap/PlannerTest`) used `SquadPlan` bare — single-class lifts have no
+  test dir to `git mv`, so the relocation glob misses them; the compiler
+  caught it. **Always grep bare usages of moved types in `src/test` too.**
+  111 files, build + suite green.
 - **Proceeded ahead of the facade-drop** because sibling sessions are
   paused (tree quiet). Remaining slices should re-check tree quietness.
 - **Note:** a paused sibling agent's worktree under `.claude/worktrees/`
