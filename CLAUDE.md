@@ -73,6 +73,20 @@ roadmap/<feature>/
 - Do not edit anything under `C:\Program Files (x86)\Fractal Softworks\Starsector` — it's
   read-only reference. Vanilla files there are the canonical examples for data schemas.
 
+## Committing (concurrent sessions share this tree)
+
+Several Claude sessions run in parallel against the same working tree, index,
+and HEAD. Commit loop:
+
+1. Stage explicit paths only — `git add <path> …`, never `git add -A`/`.`.
+2. Commit with the same pathspec — `git commit -- <path> …`, never a bare
+   `git commit` (a bare commit records the whole index, sweeping in files
+   another session staged).
+3. Never `git stash` — it hides other sessions' in-flight work.
+
+A stray file or mixed hunks from a parallel session are fine — leave them
+rather than rewriting shared history to extract them.
+
 ## Multi-project layout
 
 - `:` (root) — the mod itself. `src/main/java` holds `StarsectorMarinesModPlugin`, the
@@ -87,17 +101,3 @@ roadmap/<feature>/
       Invoke via `gradlew :asset-pipeline:processModels`.
 - The mod's `jar` task pulls in `:asset-pipeline:main` outputs + JOML via the
   runtime classpath, producing a single fat jar at `mod/jars/StarsectorMarines.jar`.
-
-## Marine roster persistence
-
-`com.dillon.starsectormarines.marine.MarineRosterScript` is an `EveryFrameScript`
-registered on the sector via `Global.getSector().addScript(...)`. Starsector's
-xstream save format walks the script graph, so any plain `Serializable` POJO held
-by a registered script — including the captain list — round-trips through save/load
-with no custom serialization. `MarineRosterScript.getInstance()` finds the
-registered instance by scanning `sector.getScripts()`.
-
-When adding new persistent gameplay state, prefer this pattern: a thin
-`EveryFrameScript` holding POJOs, registered once in `onGameLoad` (idempotent —
-check via `getInstance()` first). Don't reach for `MemoryAPI` unless the data is
-genuinely just key/value primitives.
