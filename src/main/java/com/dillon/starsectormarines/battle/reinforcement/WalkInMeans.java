@@ -25,7 +25,8 @@ import java.util.function.Consumer;
 
 /**
  * Always-feasible reinforcement floor. Spawns a fresh squad of infantry on
- * a side-appropriate perimeter cell — defender = "end" side of the
+ * a side-appropriate, viable perimeter cell (walkable + outside buildings,
+ * via {@link LandingZoneScorer}) — defender = "end" side of the
  * {@link TraversalAxis} (north for SOUTH_TO_NORTH, east for WEST_TO_EAST),
  * marine = "start" side. The squad's {@link Squad#assignedNode} is set to
  * the closest compound-kind {@link TacticalNode} to the rally so
@@ -87,7 +88,8 @@ public final class WalkInMeans implements ReinforcementMeans {
                     + " rally=(" + req.rallyX + "," + req.rallyY + ")");
             return;
         }
-        List<int[]> spawnCells = collectAdjacentCells(sim.getGrid(), primary[0], primary[1], SQUAD_SIZE);
+        LandingZoneScorer scorer = new LandingZoneScorer(sim.getGrid(), sim.getTopology());
+        List<int[]> spawnCells = collectAdjacentCells(sim.getGrid(), scorer, primary[0], primary[1], SQUAD_SIZE);
         if (spawnCells.isEmpty()) {
             LOG.warn("WalkInMeans: primary cell (" + primary[0] + "," + primary[1]
                     + ") had no walkable BFS neighborhood");
@@ -127,14 +129,15 @@ public final class WalkInMeans implements ReinforcementMeans {
      */
     private int[] pickPrimaryCell(BattleSimulation sim, ReinforcementRequest req) {
         NavigationGrid grid = sim.getGrid();
+        LandingZoneScorer scorer = new LandingZoneScorer(grid, sim.getTopology());
         int gw = grid.getWidth();
         int gh = grid.getHeight();
         Edge edge = pickEdge(req, gw, gh);
-        int[] cell = scanEdge(grid, edge, req.rallyX, req.rallyY);
+        int[] cell = scanEdge(grid, scorer, edge, req.rallyX, req.rallyY);
         if (cell != null) return cell;
         for (Edge fallback : Edge.values()) {
             if (fallback == edge) continue;
-            cell = scanEdge(grid, fallback, req.rallyX, req.rallyY);
+            cell = scanEdge(grid, scorer, fallback, req.rallyX, req.rallyY);
             if (cell != null) return cell;
         }
         return null;
@@ -163,7 +166,7 @@ public final class WalkInMeans implements ReinforcementMeans {
      * coordinate is closest to the rally's. {@code null} when the edge has
      * no walkable cells at all.
      */
-    private static int[] scanEdge(NavigationGrid grid, Edge edge, int rallyX, int rallyY) {
+    private static int[] scanEdge(NavigationGrid grid, LandingZoneScorer scorer, Edge edge, int rallyX, int rallyY) {
         int gw = grid.getWidth();
         int gh = grid.getHeight();
         int best = -1;
@@ -172,7 +175,7 @@ public final class WalkInMeans implements ReinforcementMeans {
             case NORTH -> {
                 int y = gh - 1;
                 for (int x = 0; x < gw; x++) {
-                    if (!grid.isWalkable(x, y)) continue;
+                    if (!scorer.isViable(x, y)) continue;
                     int d = Math.abs(x - rallyX);
                     if (d < bestDist) { bestDist = d; best = x; }
                 }
@@ -181,7 +184,7 @@ public final class WalkInMeans implements ReinforcementMeans {
             case SOUTH -> {
                 int y = 0;
                 for (int x = 0; x < gw; x++) {
-                    if (!grid.isWalkable(x, y)) continue;
+                    if (!scorer.isViable(x, y)) continue;
                     int d = Math.abs(x - rallyX);
                     if (d < bestDist) { bestDist = d; best = x; }
                 }
@@ -190,7 +193,7 @@ public final class WalkInMeans implements ReinforcementMeans {
             case EAST -> {
                 int x = gw - 1;
                 for (int y = 0; y < gh; y++) {
-                    if (!grid.isWalkable(x, y)) continue;
+                    if (!scorer.isViable(x, y)) continue;
                     int d = Math.abs(y - rallyY);
                     if (d < bestDist) { bestDist = d; best = y; }
                 }
@@ -199,7 +202,7 @@ public final class WalkInMeans implements ReinforcementMeans {
             case WEST -> {
                 int x = 0;
                 for (int y = 0; y < gh; y++) {
-                    if (!grid.isWalkable(x, y)) continue;
+                    if (!scorer.isViable(x, y)) continue;
                     int d = Math.abs(y - rallyY);
                     if (d < bestDist) { bestDist = d; best = y; }
                 }
@@ -211,11 +214,12 @@ public final class WalkInMeans implements ReinforcementMeans {
 
     /**
      * BFS outward from {@code (px, py)} collecting up to {@code count}
-     * walkable cells, including the seed itself. Same shape as
-     * {@code AirSystem#findDeboardCell} — radius-limited, breadth-first so
-     * results stay clustered.
+     * viable cells (walkable, outside buildings — via {@link LandingZoneScorer}),
+     * including the seed itself. Same shape as {@code AirSystem#findDeboardCell}
+     * — radius-limited, breadth-first so results stay clustered.
      */
-    private static List<int[]> collectAdjacentCells(NavigationGrid grid, int px, int py, int count) {
+    private static List<int[]> collectAdjacentCells(NavigationGrid grid, LandingZoneScorer scorer,
+                                                    int px, int py, int count) {
         List<int[]> out = new ArrayList<>(count);
         Set<Long> seen = new HashSet<>();
         Deque<int[]> q = new ArrayDeque<>();
@@ -225,7 +229,7 @@ public final class WalkInMeans implements ReinforcementMeans {
         while (!q.isEmpty() && out.size() < count) {
             int[] p = q.poll();
             if (p[2] > MEMBER_SCAN_RADIUS) continue;
-            if (grid.inBounds(p[0], p[1]) && grid.isWalkable(p[0], p[1])) {
+            if (scorer.isViable(p[0], p[1])) {
                 out.add(new int[]{p[0], p[1]});
             }
             for (int[] d : dirs) {
