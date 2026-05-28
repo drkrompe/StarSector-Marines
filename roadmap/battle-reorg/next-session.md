@@ -15,6 +15,8 @@ e63bd32  battle-reorg: slice 3 — ground/ → vehicle/, absorb MapVehicle/Vehic
 6134d1e  battle-reorg: slice 5 — Squad/SquadPlan/SquadAlertLevel → squad/
 c693c27  battle-reorg: slice 6a — engine/scoring/world + dispatch + tactical → decision/
 52817d7  battle-reorg: slice 6b — actor behaviors → infantry/mech/drone/turret
+0198331  battle-reorg: split merged package/import lines from slice 6b move
+882586a  battle-reorg: slice 6c — partition goals/actions; ai/ fully dissolved
 ```
 
 ## State of play
@@ -81,6 +83,20 @@ c693c27  battle-reorg: slice 6a — engine/scoring/world + dispatch + tactical �
   compiled green first try, no cascade iteration). Staying goals/actions
   redirected purely via their imports. `ai/` now holds **only**
   `goap/{actions,goals}` — 6c finishes the dissolve.
+- **Slice 6c SHIPPED** (`882586a`) — **slice 6 / the `ai/` dissolve is
+  COMPLETE; `ai/` no longer exists.** Goals partitioned by composer
+  (infantry 12 / mech 4 / drone 1). Actions per the **lean-engine choice**
+  (user): postures stay infantry-owned, only shared/framework-consumed
+  actions are built-ins. `decision/goap/action/` built-ins = `BreakContact`
+  (cross-slice) + `ClearZone`/`EnterZone`/`HoldZone` (constructed by
+  framework `ZoneQueries`); infantry 13 / mech 4 / drone 1. Used a
+  **newline-safe** package rewrite (`s/^package [^;]+;/.../`) so the moved
+  files kept their blank-after-package — no merge regression like 6b's
+  `0198331` fix. Compiled green first try (action interconnections were
+  almost all javadoc, not code). Verified no framework→feature *code* edges.
+- **FOLLOW-UP logged** (see `overview.md` open items): the `decision/`
+  built-in zone actions carry javadoc `{@link}` to infantry postures — a
+  soft doc-level framework→feature coupling, deferred.
 - **Proceeded ahead of the facade-drop** because sibling sessions are
   paused (tree quiet). Remaining slices should re-check tree quietness.
 - **Note:** a paused sibling agent's worktree under `.claude/worktrees/`
@@ -89,17 +105,27 @@ c693c27  battle-reorg: slice 6a — engine/scoring/world + dispatch + tactical �
 ## When picking up
 
 1. Re-confirm the tree is quiet (no concurrent large churn).
-2. Next is **slice 6c (goals/actions GOAP partition)** — the last sub-slice;
-   empties `ai/` and completes the dissolve. Partition
-   `ai/goap/goals/` (21) and `ai/goap/actions/` (27) per the GOAP partition
-   rule in `overview.md`: **goals follow their composer** (Mech* → `mech/`,
-   `DefendHubGoal` → `drone/`, rest → `infantry/`; squad-coordination goals
-   park in `infantry/`); **actions follow their goal(s)** (single-slice →
-   that slice; multi-slice / base-posture → `decision/goap/action/`
-   built-ins; actor-prefixed `Mech*`/`Drone*` are unconditionally
-   slice-owned). This is **main-thread per-file judgment** — read each
-   action's referencing goals before placing it. Then `ai/` is empty (delete
-   the dir) and the dissolve is done.
+2. Next is **slice 7 (`weapons/` slice split)** — `Marine*` →
+   `infantry/`, `Mech*` → `mech/` (the combat-shared half of `weapons/`
+   already moved to `combat/` in slice 1). `infantry/` and `mech/` now
+   exist (from slice 6b/6c) so these are lifts into established packages.
+   See `overview.md` § Slice plan items 7–10. After 7: slice 8 (`entity/`
+   rename, optional — largest reference surface), slice 9 (`sim/`+`setup/`
+   tidy), slice 10 (tail: `equipment/`→`infantry/`, `flyby/`, `LosCache`).
+3. **Recipe refinements learned in slice 6** (apply going forward):
+   - For a package *split into multiple destinations*, drive the FQN rewrite
+     from an explicit `name→destpkg` map (class-specific `\b`-bounded
+     substitutions), NEVER a blanket prefix rewrite — sibling subpackages may
+     stay.
+   - Use the **newline-safe** package rewrite `s/^package [^;]+;/package X;/`
+     (NOT `s/^package .*;\s*$/.../`, which eats the trailing newline and
+     merges `package` onto the first import when there's no blank line — cost
+     6b the `0198331` fix-up).
+   - `javac` **cascade-masks** missing-symbol errors round-to-round; map the
+     same-package bare-ref surface up front (grep movers' cross-refs) so you
+     fix imports in one pass instead of N compile cycles.
+   - Only *same-package* bare refs need new imports after a move; *subpackage*
+     refs were already imports the FQN rewrite repoints automatically.
 3. Proven per-slice recipe (refine as needed):
    - `git mv` files; for a package *split*, do an **ordered** FQN rewrite
      (specific-class redirects before the general prefix rewrite).

@@ -257,7 +257,15 @@ reference-churn moves to a quiet base.
      FQN rewrite per destination; 4 cross-destination bare refs gained
      imports, same-destination refs stay same-package; staying goals/actions
      redirected via imports. `ai/` now holds only `goap/{actions,goals}`.
-   - 6c goals/actions partition per the rule above.
+   - ~~6c goals/actions partition per the rule above.~~ **SHIPPED**
+     (`882586a`). Goals follow composer (disjoint): infantry 12, mech 4,
+     drone 1. Actions — **lean-engine choice** (user, 2026-05-28): postures
+     stay infantry-owned; only genuinely-shared/framework-consumed actions
+     are built-ins. `decision/goap/action/` built-ins (4): `BreakContact`
+     (cross-slice) + `ClearZone`/`EnterZone`/`HoldZone` (constructed by the
+     framework `ZoneQueries`). infantry 13 (postures + mission actions),
+     mech 4, drone 1. **`ai/` removed entirely** — the technical-layer
+     package no longer exists; the dissolve is done.
 7. **`weapons/` slice split** — `Marine*` → `infantry/`, `Mech*` → `mech/`
    (combat-shared half already moved in slice 1).
 8. **`entity/` rename** — `unit/` → `entity/`. Largest single reference
@@ -292,6 +300,14 @@ into new packages — otherwise we move targets twice.
 - **`BattleSetup` decomposition** (1593 lines, mixes mission-specific
   wiring) is out of scope here — `setup/` just relocates it; splitting it
   is separate work.
+- **FOLLOW-UP (slice 6c): framework→feature javadoc coupling.** The
+  `decision/goap/action/` built-in zone actions (`EnterZone`/`ClearZone`/
+  `HoldZone`) and `BreakContact` carry javadoc `{@link}`/`{@code}` references
+  to infantry-owned postures (`ApproachPosture`, `EngagePosture`,
+  `HoldPortalCordon`, …). Code-clean — no compile dependency framework→feature
+  (verified) — but a soft doc-level coupling. When revisited: trim the doc
+  links, or reconsider whether `ZoneQueries` + the zone actions belong in
+  `infantry/` rather than `decision/`. Not blocking; deferred.
 
 ## Verification per slice
 
