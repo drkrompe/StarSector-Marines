@@ -72,7 +72,39 @@ dispatch:
    either still garrisoned or already have a reinforcement squad
    dispatched), fall through to the next slice toward the marine
    side. This means the defender only reinforces deep positions
-   once their rear is fully covered — a natural triage.
+   once their rear is fully covered — a natural triage. The frontline
+   filter below caps this fall-through at the contested edge: it never
+   reaches a slice the marines have fully conceded.
+
+### Frontline eligibility — contested slices only (no expiry)
+
+Recapture targets do **not** expire on a timer. Instead, a target is
+only eligible while its biome slice is part of the **contested
+front** — a slice where the defender still has a presence. As the
+marines advance and fully overrun a slice (zero alive defenders left
+in the band), that slice is **conceded**: its lost nodes drop out of
+the eligible set entirely. The defender doesn't keep throwing squads
+at positions deep behind the marine line — the front simply moves
+forward and the conceded slices fall off the back.
+
+Concretely, each dispatch cycle bins alive defender units into biome
+slices. A recapture target is eligible only if its slice still has
+≥1 alive defender. This is what bounds the round-robin's marine-side
+fall-through (step 4): the fall-through traverses still-contested
+slices but never reaches a conceded one, because conceded slices hold
+no eligible targets. It also matches the two-coordinate delivery model
+— a slice with no defenders has no safe LZ to stage from, so
+reinforcing into it was never coherent.
+
+The result is an emergent frontline: the band of slices between the
+defender's rear and the marine spearhead, where both sides overlap.
+Lost nodes on that band get re-manned; lost nodes behind it are
+written off.
+
+The offensive inverse of this filter — a staged counterattack that
+deliberately dispatches *into* a conceded slice to push the frontline
+back — is the follow-on
+[`biome-counterattack.md`](biome-counterattack.md).
 
 ### Overflow → patrol
 
@@ -172,15 +204,19 @@ nodes and their garrison state:
 - Populated at sim init from TacticalMap + BiomeMap
 - Groups nodes by biome slice at init time
 - Updated when squads are wiped (squad alive-members reaching zero)
-- Exposes: unfulfilled targets by biome slice, mark-fulfilled on
-  dispatch, re-open on replacement squad wipe
+- Bins alive defender units into biome slices per query to compute
+  the contested set (slices with ≥1 alive defender)
+- Exposes: unfulfilled targets by biome slice **filtered to contested
+  slices** (frontline eligibility), mark-fulfilled on dispatch,
+  re-open on replacement squad wipe
 
 ### Slice 3: FrontLineReinforcementTrigger
 
 New trigger (replaces or wraps `GarrisonDepletedTrigger`) that:
-- Reads `RecaptureTargetRegistry` for unfulfilled targets
+- Reads `RecaptureTargetRegistry` for unfulfilled targets in
+  contested slices only (conceded slices already filtered out)
 - Picks nearest-to-defender slice with open targets
-- Round-robins within the slice for the objective
+- Round-robins within the slice for the objective (flat, unweighted)
 - Picks a safe rally in the same slice (walkable cell near the
   defender rear of the slice) for delivery
 - Falls back to patrol on overflow (objective = null, rally = slice
@@ -203,19 +239,25 @@ reads the request's objective coordinates and assigns the squad:
 - Tune fire cadence and delivery-zone selection
 - Playtest reinforcement spread across biome bands
 
-## Open questions
+## Decisions (resolved open questions)
 
-- **Should the round-robin be weighted by node priority?** A
-  HEAVY_TOWER (high priority) might deserve reinforcement before a
-  MG_NEST (low priority) in the same slice. Counter: round-robin
-  avoids priority starvation where low-priority nodes never get help.
-- **Should recapture targets expire?** If a position has been lost
-  for 60+ seconds, maybe the defender gives up on it and focuses
-  forward positions. Prevents reinforcement waste on positions deep
-  behind the marine front line.
+- **Round-robin is not weighted by node priority.** Flat rotation
+  across unfulfilled targets in the selected slice — a HEAVY_TOWER and
+  an MG_NEST in the same slice get equal reinforcement priority. This
+  avoids starvation where low-priority nodes never get help. Priority
+  weighting is held as a future tuning knob, not built now; revisit
+  only if playtest shows key positions falling too easily.
+- **Recapture targets do not expire on a timer.** Replaced by the
+  frontline eligibility filter (see "Frontline eligibility — contested
+  slices only"): a target stays open as long as its slice is still
+  contested, and drops out the moment the slice is conceded (no alive
+  defenders left in the band). This handles the "don't reinforce deep
+  behind the marine line" concern without an arbitrary timeout.
 
 ## Cross-refs
 
+- [`biome-counterattack.md`](biome-counterattack.md) — follow-on: the
+  staged "bulge" that inverts this filter to retake conceded slices.
 - [`compound-spread.md`](compound-spread.md) — biome-spread compounds
   create the tiered map depth this system contests.
 - [`../central-keep.md`](../central-keep.md) — compound-as-supply
