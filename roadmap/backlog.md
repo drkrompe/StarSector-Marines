@@ -113,6 +113,13 @@ https://davidkbd.itch.io/eternity-metal-scfi-music-pack
 - **Mission name generation through i18n** — currently hardcoded English
   templates in `MissionGenerator`. Move to strings.json with template
   formatting.
+- **Stale `WeaponSimContext` javadoc link** — `battle/combat/fx/EffectsService.java`
+  carries a `{@link ...battle.weapons.WeaponSimContext}` doc ref to a class
+  (and package) that no longer exists. Delete or repoint when `EffectsService`
+  is next touched. (Loose end from the completed battle-reorg, slice 7.)
+- **`DistrictTheme` / `MapDistrictTheme` dedup** — two theme types across
+  `battle/world/model` and `battle/world/gen`; a logic merge, not a
+  relocation, so it was left out of the battle-reorg (slice 2).
 
 ## Performance
 
