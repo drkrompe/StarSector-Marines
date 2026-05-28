@@ -17,6 +17,8 @@ c693c27  battle-reorg: slice 6a — engine/scoring/world + dispatch + tactical �
 52817d7  battle-reorg: slice 6b — actor behaviors → infantry/mech/drone/turret
 0198331  battle-reorg: split merged package/import lines from slice 6b move
 882586a  battle-reorg: slice 6c — partition goals/actions; ai/ fully dissolved
+93ccd49  battle-reorg: hoist REPLAN_PERIOD to Planner — drop EnterZone fw->feature edge
+6e416ea  battle-reorg: slice 7 — weapons/ split: Marine*/InfantryWeapons -> infantry/, Mech* -> mech/
 ```
 
 ## State of play
@@ -105,6 +107,26 @@ c693c27  battle-reorg: slice 6a — engine/scoring/world + dispatch + tactical �
   (`UnitUpdateSystem`, `TacticalScoring`, `WorldStateBuilder`) import feature
   behaviors — inherent to role→behavior dispatch; needs a registry-style
   rework or relocating the dispatcher. Deferred.
+- **Slice 7 SHIPPED** (`6e416ea`) — **`weapons/` removed entirely.** All 7
+  remaining files split: `InfantryWeapons` + `Marine{Loadout,Secondary,Weapon}`
+  → `infantry/`; `Mech{Weapon,LoadoutState,Role}` → `mech/` (both established
+  packages from slice 6b/6c, so pure lifts-into-existing). Cleanest split
+  yet: **no cross-destination code edges** — the infantry-bound and
+  mech-bound sets only reference each other within each group, so zero new
+  code imports. The only cross links were 3 javadoc references
+  (`MarineWeapon`↔`MechWeapon`, `MechLoadoutState`→`MarineWeapon`), FQN'd per
+  convention. FQN-rewrite-created self-imports in `mech/` consumers stripped.
+  42 files, 7 renames (97–99% similarity), build + full suite green.
+  - **New recipe gotcha:** `perl -pi -e 's/// if $.==1'` over *multiple*
+    files only rewrites the FIRST file's line 1 — `$.` keeps incrementing
+    across @ARGV, it does NOT reset per file. Add `; close ARGV if eof` to
+    reset. Cost a re-run on the package-decl rewrite (silently left 6 of 7
+    package decls unchanged on the first pass — caught by re-grepping line 1
+    of all movers). **Always verify line 1 of every moved file**, not just one.
+  - Pre-existing stale `WeaponSimContext` javadoc link in
+    `combat/fx/EffectsService.java` now dangles on the dead `weapons` package
+    — logged as a deferred follow-up in `overview.md` (delete/repoint when
+    EffectsService is next touched).
 - **Proceeded ahead of the facade-drop** because sibling sessions are
   paused (tree quiet). Remaining slices should re-check tree quietness.
 - **Note:** a paused sibling agent's worktree under `.claude/worktrees/`
@@ -113,13 +135,14 @@ c693c27  battle-reorg: slice 6a — engine/scoring/world + dispatch + tactical �
 ## When picking up
 
 1. Re-confirm the tree is quiet (no concurrent large churn).
-2. Next is **slice 7 (`weapons/` slice split)** — `Marine*` →
-   `infantry/`, `Mech*` → `mech/` (the combat-shared half of `weapons/`
-   already moved to `combat/` in slice 1). `infantry/` and `mech/` now
-   exist (from slice 6b/6c) so these are lifts into established packages.
-   See `overview.md` § Slice plan items 7–10. After 7: slice 8 (`entity/`
-   rename, optional — largest reference surface), slice 9 (`sim/`+`setup/`
-   tidy), slice 10 (tail: `equipment/`→`infantry/`, `flyby/`, `LosCache`).
+2. Next is **slice 8 (`entity/` rename)** — `unit/` → `entity/`. **Optional
+   / decide at slice time** (`overview.md` Open items): it's the largest
+   single reference surface of any slice (Unit/UnitType/UnitRegistry/UnitRole
+   are referenced almost everywhere), so only do it on a genuinely quiet base
+   and weigh the churn against the clarity win. After 8: slice 9 (`sim/`+
+   `setup/` tidy — `BattleSetup`/`DefenderRoster` → `setup/`), slice 10 (tail:
+   `equipment/`→`infantry/`, `flyby/` placement, `LosCache` placement). See
+   `overview.md` § Slice plan items 8–10.
 3. **Recipe refinements learned in slice 6** (apply going forward):
    - For a package *split into multiple destinations*, drive the FQN rewrite
      from an explicit `name→destpkg` map (class-specific `\b`-bounded

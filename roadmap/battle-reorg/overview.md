@@ -266,8 +266,20 @@ reference-churn moves to a quiet base.
      framework `ZoneQueries`). infantry 13 (postures + mission actions),
      mech 4, drone 1. **`ai/` removed entirely** — the technical-layer
      package no longer exists; the dissolve is done.
-7. **`weapons/` slice split** — `Marine*` → `infantry/`, `Mech*` → `mech/`
-   (combat-shared half already moved in slice 1).
+7. ~~**`weapons/` slice split** — `Marine*` → `infantry/`, `Mech*` → `mech/`
+   (combat-shared half already moved in slice 1).~~ **SHIPPED** (`6e416ea`).
+   All 7 remaining `weapons/` files split: `InfantryWeapons` +
+   `Marine{Loadout,Secondary,Weapon}` → `infantry/`;
+   `Mech{Weapon,LoadoutState,Role}` → `mech/`. **`weapons/` removed entirely.**
+   No cross-destination *code* edges between the infantry-bound and
+   mech-bound sets (they only reference each other within each group); the
+   only cross links were javadoc (`MarineWeapon`↔`MechWeapon`,
+   `MechLoadoutState`→`MarineWeapon`) — FQN'd per the javadoc convention.
+   Self-imports the FQN rewrite created in `mech/` consumers stripped.
+   **Recipe gotcha:** `perl -pi 's/// if $.==1'` over multiple files only
+   matches the *first* file's line 1 — `$.` accumulates across @ARGV; add
+   `close ARGV if eof` to reset per file (cost a re-run on the package-decl
+   rewrite). Build + full suite green.
 8. **`entity/` rename** — `unit/` → `entity/`. Largest single reference
    surface; do on a quiet base.
 9. **`sim/`/`setup/` tidy** — `BattleSetup`/`DefenderRoster` → `setup/`;
@@ -314,6 +326,14 @@ into new packages — otherwise we move targets twice.
   role→behavior dispatch; removing them is a separate design question
   (registry-style dispatch, or relocating the dispatcher out of the
   framework core). Not blocking; deferred.
+- **FOLLOW-UP (slice 7): stale `WeaponSimContext` javadoc link.**
+  `combat/fx/EffectsService.java` carries a `{@link ...battle.weapons.WeaponSimContext}`
+  doc reference to a class that no longer exists (removed earlier, likely in
+  the facade-drop). The slice-7 `weapons/` dissolve leaves it dangling on a
+  dead package. Left as-is (the correct replacement target is unclear — the
+  concept it documented is gone); should be deleted or repointed when
+  `EffectsService` is next touched. Trivial but out of scope for a pure
+  relocation slice.
 
 ## Future direction: a thin core outside the feature packages
 
