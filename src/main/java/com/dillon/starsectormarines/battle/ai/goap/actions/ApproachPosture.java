@@ -81,7 +81,7 @@ public final class ApproachPosture implements Action {
                 // unit can actually engage. Returning RUNNING (not FAILURE)
                 // keeps the squad-level Approach plan alive; the re-acquire
                 // happens on the next per-member tick.
-                member.targetId = 0L;
+                member.setTargetId(0L);
                 return ActionStatus.RUNNING;
             }
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),

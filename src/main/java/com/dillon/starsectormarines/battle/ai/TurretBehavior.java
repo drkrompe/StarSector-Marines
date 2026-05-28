@@ -45,7 +45,7 @@ public final class TurretBehavior implements UnitBehavior {
         // Direct id-to-id copy (not setTarget) — both fields are already
         // entity ids in the same id space, no null encoding to apply.
         if (t.burstRemaining > 0) {
-            t.targetId = t.burstTargetId;
+            t.setTargetId(t.burstTargetId);
         }
 
         TurretAim.State s = new TurretAim.State();

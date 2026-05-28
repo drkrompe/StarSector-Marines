@@ -229,7 +229,7 @@ public final class DamageService {
             if (target.isAlive()) {
                 switch (m.kind) {
                     case REPRIORITIZE:
-                        if (target.targetId == m.expectedTargetId) reprioApplier.apply(target);
+                        if (target.getTargetId() == m.expectedTargetId) reprioApplier.apply(target);
                         break;
                     case FALLBACK:
                         fallbackApplier.apply(target, m.fallbackCellX, m.fallbackCellY);

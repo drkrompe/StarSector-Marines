@@ -102,7 +102,7 @@ public final class HoldZone implements Action {
         if (member.getMoveProgress() == 0f) {
             int[] dest = sim.getTacticalScoring().findFiringPosition(member, target);
             if (dest == null) {
-                member.targetId = 0L;
+                member.setTargetId(0L);
                 hold(member, sim);
                 return ActionStatus.RUNNING;
             }

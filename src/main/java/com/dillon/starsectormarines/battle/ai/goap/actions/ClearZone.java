@@ -110,7 +110,7 @@ public final class ClearZone implements Action {
                 // Drop the target — pickInZoneTarget will get a fresh shot next
                 // tick (Story K stays satisfied: we only ever clear within zone,
                 // and an unreachable in-zone target shouldn't pin the unit).
-                member.targetId = 0L;
+                member.setTargetId(0L);
                 return ActionStatus.RUNNING;
             }
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),

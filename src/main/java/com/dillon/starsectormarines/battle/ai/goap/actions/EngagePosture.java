@@ -134,7 +134,7 @@ public final class EngagePosture implements Action {
                     // Same dead-end as ApproachPosture's else branch — target
                     // has no reachable firing position or vantage from here.
                     // Drop and let findBestTarget re-pick next tick.
-                    member.targetId = 0L;
+                    member.setTargetId(0L);
                     return ActionStatus.RUNNING;
                 }
                 sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),

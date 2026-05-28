@@ -69,7 +69,7 @@ public final class AttackerIndexService {
         com.dillon.starsectormarines.battle.unit.UnitRegistry registry = rosterService.getRegistry();
         for (Unit u : units) {
             if (!u.isAlive()) continue;
-            Unit target = registry.getOrNull(u.targetId);
+            Unit target = registry.getOrNull(u.getTargetId());
             if (target == null) continue;
             ArrayList<Unit> bucket = attackersByTarget.get(target);
             if (bucket == null) {

@@ -76,7 +76,7 @@ public final class EngageAtCurrentBand implements Action {
                 // Drop and let the mech's per-tick target acquisition re-pick.
                 // LRM indirect fire above already ran for this tick — chaingun /
                 // SRM stay quiet until a reachable target is acquired.
-                u.targetId = 0L;
+                u.setTargetId(0L);
             } else {
                 sim.setPath(u, GridPathfinder.findPath(sim.getGrid(),
                         u.getCellX(), u.getCellY(), dest[0], dest[1], sim.getOccupancyMap()));

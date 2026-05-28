@@ -417,7 +417,7 @@ public class BattleSimulation {
      * the canonical read path replacing the old {@code u.target} field.
      */
     public Unit targetOf(Unit u) {
-        return rosterService.getRegistry().getOrNull(u.targetId);
+        return rosterService.getRegistry().getOrNull(u.getTargetId());
     }
 
     /**
@@ -578,7 +578,7 @@ public class BattleSimulation {
 
     /** Inline reprio write — invoked by the damage service on the serial path AND on the queued path (after the expectedTargetId race-check). The shape stays just "clear the targetId field"; the next behavior tick re-picks via {@code findBestTarget}. */
     private void writeReprioInline(Unit target) {
-        target.targetId = 0L;
+        target.setTargetId(0L);
     }
 
     /** Inline fallback write — invoked by the damage service on the serial path AND from the queued-flush. Writes the 3 fb fields and clears the stale path so the target re-paths to the fall-back cell on its next updateUnit pass. */

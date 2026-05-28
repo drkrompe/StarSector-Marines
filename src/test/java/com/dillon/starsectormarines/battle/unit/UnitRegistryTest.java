@@ -915,6 +915,54 @@ public class UnitRegistryTest {
     }
 
     @Test
+    public void allocateSeedsTargetIdAndAccessorsRouteThroughRegistry() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        u.localTargetId = 55L;
+
+        r.allocate(u);
+
+        assertEquals(55L, u.getTargetId());
+        assertEquals(55L, r.getTargetId(u.denseIdx));
+
+        u.setTargetId(8L);
+        assertEquals(8L, r.getTargetId(u.denseIdx));
+        assertEquals(8L, u.getTargetId());
+    }
+
+    @Test
+    public void releaseSnapshotsTargetIdBackToLocalField() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        r.allocate(u);
+
+        u.setTargetId(321L);
+        r.release(u.entityId);
+
+        assertNull(u.registry);
+        assertEquals(-1, u.denseIdx);
+        assertEquals(321L, u.getTargetId());
+    }
+
+    @Test
+    public void releaseTailSwapMovesTargetIdCorrectly() {
+        UnitRegistry r = new UnitRegistry();
+        Unit a = unit("a");
+        Unit b = unit("b");
+        Unit c = unit("c");
+        long idA = r.allocate(a);
+        r.allocate(b);
+        r.allocate(c);
+        c.setTargetId(642L);
+
+        r.release(idA);
+
+        assertEquals(0, c.denseIdx);
+        assertEquals(642L, r.getTargetId(0));
+        assertEquals(642L, c.getTargetId());
+    }
+
+    @Test
     public void releaseOfReservedZeroSentinelIsNoOp() {
         UnitRegistry r = new UnitRegistry();
         Unit a = unit("a");

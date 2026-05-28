@@ -67,7 +67,7 @@ public class RepositionToCoverTest {
     public void noTargetReturnsFalse() {
         BattleSimulation sim = openArena(20, 20);
         Unit marine = marineAt(sim, 5, 5);
-        marine.targetId = 0L;
+        marine.setTargetId(0L);
         marine.repositionCooldown = 0f;
 
         boolean moved = RepositionToCover.tryReposition(marine, sim);

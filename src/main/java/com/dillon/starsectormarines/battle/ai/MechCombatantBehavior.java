@@ -51,7 +51,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
                 // No reachable firing or vantage cell. Drop the target; the
                 // mech's next acquisition cycle picks something it can engage.
                 // LRMs already fired indirectly this tick if range allowed.
-                u.targetId = 0L;
+                u.setTargetId(0L);
             } else {
                 sim.setPath(u, GridPathfinder.findPath(sim.getGrid(),
                         u.getCellX(), u.getCellY(), dest[0], dest[1], sim.getOccupancyMap()));

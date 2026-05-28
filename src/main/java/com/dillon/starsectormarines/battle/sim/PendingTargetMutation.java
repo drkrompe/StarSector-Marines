@@ -24,9 +24,9 @@ public final class PendingTargetMutation {
     /** FALLBACK: target cell Y computed by the shooter's worker. Unused for REPRIORITIZE. */
     public int fallbackCellY;
     /**
-     * REPRIORITIZE: snapshot of {@code target.targetId} captured by the
+     * REPRIORITIZE: snapshot of {@code target.getTargetId()} captured by the
      * shooter's worker at enqueue time. The drain only clears
-     * {@code target.targetId} if it still equals this snapshot — protects
+     * {@code target.getTargetId()} if it still equals this snapshot — protects
      * against the target's own worker having re-targeted (e.g. picked a closer
      * flanker) during the same parallel UPDATE_UNITS phase. Without this, the
      * drain clobbers a valid post-hit re-target with null. {@code 0L} encodes

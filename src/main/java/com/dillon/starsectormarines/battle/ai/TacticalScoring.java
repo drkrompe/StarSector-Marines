@@ -276,7 +276,7 @@ public final class TacticalScoring {
      * we only ask "is the current pick clearly the wrong choice right now?".
      */
     public Unit refreshTargetIfNotShootable(Unit self) {
-        Unit cur = registry.getOrNull(self.targetId);
+        Unit cur = registry.getOrNull(self.getTargetId());
         if (cur != null) {
             float dist = cellDistance(self.getCellX(), self.getCellY(), cur.getCellX(), cur.getCellY());
             if (dist <= self.getAttackRange()

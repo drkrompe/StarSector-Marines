@@ -181,27 +181,38 @@ public class Unit {
     public float localCooldownTimer = 0f;
 
     /**
-     * Entity id of the current target — resolves through
-     * {@link com.dillon.starsectormarines.battle.unit.UnitRegistry#getOrNull(long)}
-     * (or {@link BattleSimulation#targetOf(Unit)}). {@code 0L} = no target.
+     * <b>Don't read directly.</b> Pre-allocate seed + post-release snapshot for
+     * the current-target entity id, same lifecycle as {@link #localHp}.
+     * Canonical storage between allocate and release lives in
+     * {@code registry.targetId[denseIdx]}; go through {@link #getTargetId} /
+     * {@link #setTargetId} (or {@link BattleSimulation#targetOf(Unit)} to
+     * resolve straight to the {@link Unit}). {@code 0L} = no target.
      *
-     * <p>Replaced the prior {@code Unit target} reference field. The long
-     * is generation-free dangling-ref hygiene: a released target id resolves
-     * cleanly to {@code null} via the registry without the holder needing
-     * its own {@code isAlive()} branch. Writes go through
+     * <p>The long is generation-free dangling-ref hygiene: a released target id
+     * resolves cleanly to {@code null} via the registry without the holder
+     * needing its own {@code isAlive()} branch. Writes go through
      * {@link #setTarget(Unit)} so null-vs-instance is handled in one place.
      */
-    public long targetId = 0L;
+    public long localTargetId = 0L;
+
+    public final long getTargetId() {
+        return (registry != null) ? registry.getTargetId(denseIdx) : localTargetId;
+    }
+
+    public final void setTargetId(long v) {
+        if (registry != null) registry.setTargetId(denseIdx, v);
+        else localTargetId = v;
+    }
 
     /**
-     * Convenience setter for {@link #targetId}: stores {@code t.entityId}, or
+     * Convenience setter for the target id: stores {@code t.entityId}, or
      * {@code 0L} when {@code t == null}. Single chokepoint so every writer
      * gets identical null-handling, and so a future {@code setTarget} that
      * also touches sibling state (attacker index hint, hit-streak counters)
      * only has to grow once.
      */
     public void setTarget(Unit t) {
-        this.targetId = (t == null) ? 0L : t.entityId;
+        setTargetId((t == null) ? 0L : t.entityId);
     }
 
     /**

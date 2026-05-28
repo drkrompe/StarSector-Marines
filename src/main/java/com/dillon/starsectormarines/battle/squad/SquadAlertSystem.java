@@ -298,7 +298,7 @@ public final class SquadAlertSystem {
     }
 
     /**
-     * Clears {@code u.targetId} for every alive squadmate of {@code squadId}.
+     * Clears {@code u.getTargetId()} for every alive squadmate of {@code squadId}.
      * Called at the ENGAGED→SUSPICIOUS (and SUSPICIOUS→UNAWARE) transitions
      * so a stale target id — one {@link TacticalScoring#shouldKeepPursuing
      * shouldKeepPursuing} happily keeps alive past LOS — doesn't drag the
@@ -310,7 +310,7 @@ public final class SquadAlertSystem {
      */
     private void clearSquadMemberTargets(int squadId, Unit[] dense, int liveCount) {
         for (int i = 0; i < liveCount; i++) {
-            if (dense[i].squadId == squadId) dense[i].targetId = 0L;
+            if (dense[i].squadId == squadId) dense[i].setTargetId(0L);
         }
     }
 }

@@ -73,7 +73,7 @@ public final class HitResponseService {
         int prev = LAST_REPRIO_TICK.get(target);
         if (prev == simTickIndex) return;
         if (!LAST_REPRIO_TICK.compareAndSet(target, prev, simTickIndex)) return;
-        long expectedTargetId = target.targetId;
+        long expectedTargetId = target.getTargetId();
         Unit expectedTarget = registry.getOrNull(expectedTargetId);
         if (expectedTarget == null) return;
         if (shooter != null && expectedTarget == shooter) return;
