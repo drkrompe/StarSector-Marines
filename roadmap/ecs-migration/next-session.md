@@ -73,7 +73,18 @@ primitives and the (now thin) `BattleSimulation` orchestrator:
    thin sim delegates kept so the ~28 AI call sites are unchanged. Rode
    along a sim-surface trim (dead `rollFallbackOnHit` deleted, four
    `flushPending*` privatized).
-5. [`drop-sim-facade-delegators`](stories/drop-sim-facade-delegators.md) —
+5. [`map-service-coordinator`](stories/map-service-coordinator.md) —
+   **Service** extraction: introduce a `MapService` that owns the map
+   lifecycle (runtime wall/roof destruction first, generation as a stretch
+   slice) and delegates to NavigationService + CellTopology — lifting the
+   topology-mutation behavior (`damageWall` / `destroyRoof` /
+   `flipCellToRubble` + the roof-collapse FX sink) off NavigationService,
+   which shouldn't own non-navigation map state. Resolves the
+   cross-domain-ownership smell surfaced by path-mutation; clean
+   prerequisite to the facade cleanup (it adds one more `sim.damageCell`
+   delegate, better introduced before that cleanup enumerates the surface).
+   Slice 1 (~6 runtime-modification call sites) is a standalone commit.
+6. [`drop-sim-facade-delegators`](stories/drop-sim-facade-delegators.md) —
    **Terminal** migration story: remove the ~40 `*SimContext`-style facade
    delegators (mutating behavior delegates + service getters) so consumers
    depend on services directly, not through the sim. The thin delegates
