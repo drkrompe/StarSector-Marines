@@ -72,6 +72,26 @@ and re-check the doc if you find yourself wanting to break one.
 - **`MountedTurret` non-Unit migration.** Already done — targets route
   through registry via `*targetId` fields.
 
+## Naming: defer `entity` until `Unit` *is* an id
+
+A rename — `battle.unit` → `battle.entity`, with `Unit` itself eventually
+`Entity` — was prototyped locally and reverted (2026-05-28). The decision:
+**rename last, not first.** The name `Entity` (and the `entity` package)
+should describe an *achieved* reality, not an aspiration.
+
+Today `Unit` is still a fat POJO whose primitives are being peeled into
+SoA arrays one at a time (see the promotions list in
+[`next-session.md`](next-session.md)). It is not yet an ECS entity — a
+bare id / handle over component storage owned by Systems and Services.
+Adopting ECS-entity naming now would overclaim the abstraction and burn
+the cleanest name on what is still an archetype object.
+
+**North star:** keep `battle.unit.Unit` until the SoA peel has hollowed it
+out enough that the remaining type genuinely *is* an id + thin accessor
+shim — at which point a rename to `Entity` documents what it has *become*.
+Until then the lever is data-model work (the Services-own-state peel,
+perf-gated on hot loops like `UnitUpdateSystem`), not naming.
+
 ## Memory entries to read alongside
 
 - [`battle_services_systems`](../../memory) — Service/System
