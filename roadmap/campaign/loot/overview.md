@@ -11,8 +11,7 @@ This is the MechWarrior Mercenaries appeal made concrete — the
 post-battle screen where the haul turns into kept gear or fenced cash.
 Highest user value of any campaign next-up; gated only by the loot UI,
 since the entitlement is already plumbed end-to-end through
-`MissionResolver` (`outcome.salvageEntitlement` lands on victory). See
-[[project-salvage-vision]].
+`MissionResolver` (`outcome.salvageEntitlement` lands on victory).
 
 ## Recoverable categories
 
@@ -71,4 +70,4 @@ in [`../contracts/complete/contracts-loop.md`](../contracts/complete/contracts-l
   entitlement model upstream of this screen.
 - [`../economy.md`](../economy.md) — fence-on-the-spot discount, the
   cash side of the take-it-or-leave-it choice.
-- Memory: [[project-salvage-vision]], [[project-player-background]].
+- See also: [backgrounds](../backgrounds.md).

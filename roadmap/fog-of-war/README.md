@@ -56,9 +56,37 @@ frames: decrement old footprint, shadowcast from new positions, increment.
 | Fade rate | `VisionService.advanceFade` | 3.0/sec |
 | Vision ranges | `UnitType` enum entries | varies |
 
+## Time of day
+
+Time of day is a **gameplay system, not just a render effect** — and it
+touches this system because night shrinks vision.
+
+The vision: a *night raid* mission where the player wants to be done
+before dawn. If the battle drags, the sun comes up and enemy
+reinforcements arrive — the dawn transition is a soft deadline that turns
+a stealth/ambush mission into a meatgrinder if mishandled. The visual
+cycle is the diegetic clock telling the player how long they've been
+fighting.
+
+Design notes:
+
+- **V1** ships as a single ambient knob set at battle start (Day / Dusk /
+  Night presets), implemented as a lightmap-multiply pass in the
+  [[render2d-batching]] pipeline. Night also multiplies `visionRange` down
+  — the fog/vision tie-in.
+- **Design the `TimeOfDay` type so an animated cycle slots in without
+  rework** — ambient color should be a function of battle-elapsed-time
+  even when v1 returns a constant. Don't bury TOD inside the renderer; it's
+  a gameplay-visible value the mission script reads.
+- **When the animated cycle lands**, the same clock drives reinforcement
+  triggers in Conquest/Assault (dawn-arrival reinforcements) — the soft
+  deadline becomes mechanical.
+- Light kernels and emitters (muzzle flash / HE / wreck fire) are reusable
+  regardless of TOD value; the only thing the cycle changes is ambient
+  color (and the vision multiplier).
+
 ## Future
 
-- Time-of-day multiplier on visionRange (night raids shrink vision)
 - Merge BuildingVisibilityPass into the fog bitmap (building reveals from cell coverage)
 - Last-known-position ghosts (faded silhouette at last seen location)
 - Shot/projectile visibility gating (currently shots are always visible)

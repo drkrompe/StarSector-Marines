@@ -53,6 +53,15 @@ https://davidkbd.itch.io/eternity-metal-scfi-music-pack
 - **Faction-themed UI colors per selected client** — column borders /
   accents pick up the client's faction color for a "you're in their
   context now" feel.
+- **Political world map (mission-select)** — the mission-select tactical
+  map is currently random dots that reflect no vanilla world data. The
+  aspiration is a real political map: per-planet faction holdings,
+  contested zones, faction-color regions, anchored to Starsector campaign
+  state. Until that tech exists, the list-view stays the centerpiece —
+  treat the map as a *thumbnail / spatial anchor*, keep all load-bearing
+  data on the cards/list (never "see the map for context"), and keep the
+  layout decomposable so a future political-map upgrade is an additive
+  promotion, not a redesign.
 
 ## Asset pipeline
 

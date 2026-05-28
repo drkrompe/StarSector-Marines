@@ -2,7 +2,7 @@
 
 > The longest-horizon arc: the path from desperate Tier-1 Capo runs to
 > a Tier-4 faction-flip. The Tier-4 promotion *is* the endgame — see
-> [[project-rank-ladder]]. This is the only place the campaign tier
+> [rank ladder](../themes.md). This is the only place the campaign tier
 > crosses into vanilla faction/market state, so per
 > [`../architecture.md`](../architecture.md) §5 the System that lands it
 > is the **only** `CampaignSystem` allowed to write back to vanilla.
@@ -43,7 +43,7 @@ not a convenience.
 - The exact vanilla API surface for a faction flip and a splinter
   faction, and what's reversible vs. permanent.
 - Rep consequences across the rest of the sector when a flip lands.
-- The kingmaker capstone — see [[project-moral-compass]] for the
+- The kingmaker capstone — see [moral compass](../moral-compass.md) for the
   multi-axis reveal that pays off at this tier.
 
 ## Related
@@ -55,5 +55,4 @@ not a convenience.
 - [`../architecture.md`](../architecture.md) §5 — the vanilla-writeback
   isolation rule.
 - [`../economy.md`](../economy.md) — marginal-colony reward.
-- Memory: [[project-rank-ladder]], [[project-moral-compass]],
-  [[user-battletech-campaign-lineage]].
+- Memory: [[user-battletech-campaign-lineage]].

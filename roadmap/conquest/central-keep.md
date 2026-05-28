@@ -266,6 +266,37 @@ Keep emission is gated to Conquest maps and sized to risk: a LOW
 Conquest gets the courtyard + one inner chamber; HIGH gets the
 full three-chamber layout.
 
+#### Visual north star — Star League fortresses
+
+> Design seed, not current-slice direction. No art exists for it yet.
+
+The mental image for a "real" conquest keep is a **MechWarrior-lore Star
+League-era fortress** — a massive ferrocrete castle/encampment the old
+Star League built across the sector that a Successor-State regime has
+*moved into* and garrisoned. Re-purposed old infrastructure, not new
+construction by the current defenders.
+
+- **Procgen shape.** Star League fortresses are *concentric*: outer curtain
+  wall → inner ward / courtyard → central keep proper — not the BSP "flat
+  partition" the current keep uses. When keep complexity expands beyond the
+  current entry/inner/throne chambers, prefer a dedicated `KeepFiller` /
+  `FortressFiller` with a concentric carve over more bolt-ons to
+  `MilitaryBaseFiller`'s multi-room partition. The shipped multi-chamber
+  primitives (INNER_POSITION nodes, `RoomFinder`, room-bounded spawn pools)
+  are general and scale up to a concentric fortress cleanly — not throwaway
+  2-room scaffolding.
+- **Art direction.** "Moved into" justifies visual irregularity — sealed
+  doorways, defaced Star League iconography, ferrocrete patched with
+  corrugated plate, mixed-era tech. Lets us reuse existing ruined /
+  partial-wall autotile shapes in a different *mode* rather than authoring
+  purpose-built defender art.
+- **Scale with the rank ladder.** Not every keep is an ancestral seat. A
+  frontier-outpost keep ≠ a Successor capital fortress; tie the allocation
+  to the rank-ladder visibility scaling in
+  [`../campaign/themes.md`](../campaign/themes.md). High-stakes conquest
+  battles get the full multi-building fortress; routine garrison strikes use
+  lighter keep variants.
+
 ## Decomposition — Services and Systems
 
 Per [[battle_services_systems]] — *Services own state, Systems are

@@ -290,6 +290,12 @@ sector scale (a few thousand rows).
 - [`narrative/overview.md`](narrative/overview.md) — the patron
   tapestry: comms-officer narrator, archetype content axis,
   procedural-fatigue discipline.
+- [`backgrounds.md`](backgrounds.md) — player starting-state seed (name +
+  curated mechanical background), not cosmetic customization.
+- [`moral-compass.md`](moral-compass.md) — the silent multi-axis moral
+  track; never surfaced as numbers, leaks through diegetic channels.
+- [`events.md`](events.md) — black-swan events: the cost-shaped,
+  unknown-reward third content stream beside Chains and Contracts.
 - [`infrastructure/overview.md`](infrastructure/overview.md) —
   per-planet and per-region buildings: build cost, monthly maintenance,
   exact mitigation effects, stacking rules.

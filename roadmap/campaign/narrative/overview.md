@@ -30,10 +30,9 @@ player learns about a patron flows through this filter.
 
 This is load-bearing: it makes patron-narrative-discoverable
 architectural, not just stylistic. There's no omniscient POV anywhere
-in the mission-select surface. See
-[[project-comms-officer-narrator]] memory for the full design and its
-implications for layout, mood lines, "ask the officer" levers, and
-diegetic offer filtering.
+in the mission-select surface. The full design and its implications for
+layout, mood lines, "ask the officer" levers, and diegetic offer
+filtering are described in this doc.
 
 ## Composable voice layering
 
@@ -246,8 +245,7 @@ rank) hook that makes it specific.
   hidden-heir / displaced-claim layer the fallen-noble hook draws on.
 - [`../themes.md`](../themes.md) — the four house flavors archetypes
   render through.
-- Memory: [[project-comms-officer-narrator]],
-  [[feedback-world-reactive-over-expressive]],
+- See also: [moral compass](../moral-compass.md), [events](../events.md).
+- Memory: [[feedback-world-reactive-over-expressive]],
   [[feedback-patron-narrative-discoverable]],
-  [[feedback-paycheck-runway-window]], [[project-moral-compass]],
-  [[project-black-swan-events]].
+  [[feedback-paycheck-runway-window]].

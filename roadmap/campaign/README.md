@@ -77,10 +77,10 @@ campaign tier as the active surface and tracks the next-up list there.
   Per-squad tactical AI inside the missions the campaign tier generates.
 - [`../convoy/`](../convoy/overview.md) — ground-vehicle reinforcement
   for the battle layer.
-- Memory: [[project-campaign-architecture]],
-  [[project-campaign-storage-soa]], [[project-rank-ladder]],
-  [[project-salvage-vision]], [[project-player-background]],
-  [[project-black-swan-events]], [[project-moral-compass]],
-  [[user-battletech-campaign-lineage]],
+- See also: [architecture](architecture.md), [mechanics](mechanics.md),
+  [themes](themes.md), [loot](loot/overview.md),
+  [backgrounds](backgrounds.md), [events](events.md),
+  [moral compass](moral-compass.md).
+- Memory: [[user-battletech-campaign-lineage]],
   [[feedback-world-reactive-over-expressive]],
   [[feedback-patron-narrative-discoverable]].

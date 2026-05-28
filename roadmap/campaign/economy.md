@@ -195,6 +195,41 @@ list — the player commits to an *identity* (registered legitimate
 operator vs. underworld muscle) and the world responds with which
 contracts appear, which clients open up, and which close forever.
 
+## Reputation as a scarce commodity (the second brake)
+
+Cash sinks are only half the anti-snowball. Vanilla Starsector's snowball
+is partly a cash problem and partly a "once you're trusted, every door
+opens" problem. [Scale inefficiency](#scale-inefficiency-the-anti-snowball)
+handles the first; **scarce reputation handles the second.**
+
+Reputation should be designed as a scarce **per-faction** (and partially
+sector-wide) commodity — a resource the player chooses how to *spend*, not
+a number that monotonically grows. The player can't be simultaneously
+trusted by every house, can't trivially rebuild burned bridges, and faces
+zero-sum tradeoffs when their standing in one quarter blocks them in
+another.
+
+- The MRB single-rep value (`CampaignState.playerMrbRep`) is the
+  **industry-credibility** track — keep it as the cross-faction
+  reliability score that compresses chains and gates heavy contracts.
+- **Per-faction rep** (the per-house rep rows in
+  [`mechanics.md`](mechanics.md)) is where the *constraints* live. Wire it
+  to contract gates, client availability, and licensing eligibility.
+- **Don't allow universally-loved.** Mutual-exclusivity gates — some houses
+  hate you because you helped their rivals — are the point, and the
+  [Licensing](#licensing-the-identity-dial) exclusivity tiers are the first
+  instance of this principle in code.
+- When tuning "is the player doing well" judgments (the `OfficerMoodReader`
+  SEASONED gate — see [`narrative/overview.md`](narrative/overview.md) and
+  [[feedback-paycheck-runway-window]]), reputation *breadth* should
+  eventually feed the gate ("respected by at least N houses", not just
+  "MRB rep ≥ 0"). Widening the mood reader past MRB is a follow-up once
+  per-faction rep mechanics actually move.
+
+Same brake-design philosophy as the cash side: make being a merc captain
+*expensive*, and make trust *scarce*. See
+[[feedback-hard-failure-preference]] for the broader anti-snowball stance.
+
 ## Bankruptcy (hard failure)
 
 The player **can** go bankrupt. The 3-4 week survival window is the

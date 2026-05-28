@@ -32,4 +32,4 @@ architecture commitment) logs here.
 - [`../architecture.md`](../architecture.md) — the design spec and the
   four commitments this thread implements.
 - [`../mechanics.md`](../mechanics.md) — the data model the tables encode.
-- Memory: [[project-campaign-architecture]], [[project-campaign-storage-soa]].
+- See also: [architecture](../architecture.md), [mechanics](../mechanics.md).

@@ -37,7 +37,7 @@ src/main/java/com/dillon/starsectormarines/campaign/  (new package)
 addressable." Vanilla market ids are *strings*. Fixed during the
 `CampaignState` write: added a third `marketRegistry: IdRegistry`,
 flipped `marketId` columns to `int`, updated the doc and the
-[[project-campaign-storage-soa]] memory.
+[`../../mechanics.md`](../../mechanics.md) doc.
 
 ## Architecture commitments — [`architecture.md`](../../architecture.md)
 
