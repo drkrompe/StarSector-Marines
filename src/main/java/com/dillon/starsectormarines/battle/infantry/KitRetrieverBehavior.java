@@ -1,4 +1,5 @@
-package com.dillon.starsectormarines.battle.infantry;import com.dillon.starsectormarines.battle.decision.TacticalScoring;
+package com.dillon.starsectormarines.battle.infantry;
+import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;

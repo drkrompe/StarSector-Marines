@@ -1,4 +1,5 @@
-package com.dillon.starsectormarines.battle.turret;import com.dillon.starsectormarines.battle.decision.UnitBehavior;
+package com.dillon.starsectormarines.battle.turret;
+import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Unit;

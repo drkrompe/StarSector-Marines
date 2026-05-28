@@ -1,4 +1,5 @@
-package com.dillon.starsectormarines.battle.infantry;import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
+package com.dillon.starsectormarines.battle.infantry;
+import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.Planner;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
