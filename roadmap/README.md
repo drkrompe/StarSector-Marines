@@ -36,7 +36,9 @@ universe over time, not retrofitted into intel slots.
   ([`ecs-migration/`](ecs-migration/overview.md)), fog-of-war, and AI (GOAP + commander).
   The **feature-vertical package reorg** of `battle/` is **complete** (all
   10 slices shipped; the `entity/` rename alone is deferred to
-  ecs-migration) — see [`battle-reorg/`](battle-reorg/overview.md).
+  ecs-migration) — see [`battle-reorg/`](battle-reorg/overview.md). Next up
+  on the render side: decomposing the `BattleScreen` god class into a
+  layered draw-list pipeline — see [`battle-render/`](battle-render/overview.md).
 - **Campaign tier** — SoA `CampaignState`, contracts loop, patron houses,
   mission-resolver bridge. The Marine Ops mission-select screen consumes
   this layer. See [`campaign/`](campaign/).

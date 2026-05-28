@@ -1,0 +1,152 @@
+# Battle render reorg
+
+## Why
+
+`ops/BattleScreen.java` is a ~4,360-line god class. It conflates three
+unrelated jobs:
+
+1. **Asset lifecycle** — ~900 lines of `ensureXSheet()` + a dozen `EnumMap`
+   sprite caches. Pure incidental coupling; none of it is render
+   orchestration.
+2. **Frame loop / input / audio / camera** — `attach`, `advance`, pan-drag,
+   the positional audio bed.
+3. **The render pipeline** — ~20 painter passes (`render()`, then
+   `renderTiledFloorsAndWalls`, `renderUnits`, `renderShots`, …).
+
+And #3 is itself two tangled things: the **ordered list of passes**
+(orchestration) and **each pass's pull-from-sim + geometry/sprite logic**.
+
+This is the render-side mirror of [`battle-reorg/`](../battle-reorg/): the same
+move toward services + stateless systems, with the north star that
+`BattleScreen` becomes *just the loop* and `render()` becomes *just the layer
+drain*.
+
+## Target shape
+
+```
+BattleScreen      → loop / input / audio / camera. Owns the scissor bracket.
+BattleRenderer    → drains the per-frame DrawList layer-by-layer, batches, flushes GL.
+RenderSystem(s)   → stateless; read services + camera + vision, append DrawCommands.
+render2d/*        → the primitive layer (QuadBatch, SolidQuadBatch, RibbonBatch, accumulators). Unchanged.
+BattleSprites     → asset/sprite-cache lifecycle, extracted from the screen.
+```
+
+`BattleScreen.render()` collapses to roughly:
+
+```java
+for (RenderSystem s : systems) s.collect(ctx, drawList);
+renderer.flush(drawList);   // inside the existing scissor bracket
+```
+
+## Key constraints (these shape the whole design)
+
+- **Pass order is semantic, not a depth sort.** `render()` is a carefully
+  reasoned stack — roofs over units, drones over roofs, fog between,
+  lightmap-multiply dead last, all inside one scissor bracket. The inline
+  comments there are load-bearing. A naive "global Renderable + sort by Y"
+  throws this away. → Encode order as an explicit ordered `RenderLayer`.
+- **Not everything is a textured quad.** `DecalAccumulator` / `LightAccumulator`
+  are FBO blits; the lightmap pass is a multiply-blend; contrails are ribbon
+  strips; HP bars / capture arcs / crosswalk stripes are solid geometry. → The
+  command model needs a `Custom`/callback escape hatch, not just `SpriteQuad`.
+- **GL state is hostile.** Starsector hands UI hooks a polluted GL state
+  (see memory: GL state gotchas). All batched flushes stay wrapped in
+  `GlStateBracket`; the renderer owns the bracketing so systems never touch GL.
+- **Render is per-frame, not per-tick.** Render runs faster than the 30Hz sim
+  and interpolates (`renderX/renderY`); camera/zoom, visibility fade, and
+  weapon-up/recoil timers all vary per frame. → **Pull** model: systems compute
+  draw commands fresh each frame. Cache tick-stable sub-parts only if profiling
+  flags a hot system (ship-then-optimize).
+
+## Vocabulary
+
+- **RenderLayer** — an ordered enum that *is* today's pass list. Ordinal =
+  paint order. Makes the load-bearing ordering visible data instead of an
+  implicit method-call sequence.
+- **DrawList** — per-frame collector the renderer owns. Holds `DrawCommand`s
+  tagged with a `RenderLayer`.
+- **DrawCommand** — `SpriteQuad` (sheet ref, srcRect, dstCenter, size,
+  rotation, rgba), `SolidRect`, `Ribbon`, `Custom` (a callback that does its
+  own GL bracket — the FBO/lightmap escape hatch).
+- **RenderSystem** — stateless consumer. `collect(ctx, drawList)` reads
+  services/camera/vision and appends commands into the right layer. The
+  render-side analog of a sim System. (Producer lives in the system, **not** on
+  `Unit` — `Unit` stays a pure data/sim object and never imports `SpriteAPI`.)
+- **BattleRenderer** — for each layer in order: drain commands, group
+  `SpriteQuad`s by sheet, flush each `QuadBatch` under one `GlStateBracket`,
+  run solids/ribbons/customs in submission order. Generalizes the manual
+  batching already in `renderTiledFloorsAndWalls`.
+
+## Proposed RenderLayer order (from today's `render()`)
+
+`GROUND → DECALS → VEHICLES → DOODADS → HIGHLIGHTS → FOG → UNITS → ROOFS →
+DRONES → OBJECTIVES → COMPOUND → CONVOY → SHUTTLES → SHOTS → IMPACT_FX →
+FLYBY → LIGHTING`
+
+(Lift verbatim from the call sequence + comments in `BattleScreen.render()` so
+no ordering reasoning is lost in translation.)
+
+## Stories (incremental, each verifies in-game)
+
+Deliberately **not** a big-bang. Each slice is independently shippable.
+
+- **A — Extract assets.** Move `ensureXSheet()` + caches into a `BattleSprites`
+  / sprite registry. ~900 lines out, zero behavior change. Lowest risk, biggest
+  immediate readability win. Good first Sonnet-delegated mechanical sweep.
+- **B — Extract `BattleRenderer` + `RenderContext`.** Move the existing
+  `render*` methods *verbatim* into a renderer class holding
+  camera/layout/batches/sheet refs. Still a call sequence, but severed from the
+  screen/loop/input. `BattleScreen` shrinks to the loop.
+- **C — Prove the model on one layer.** Introduce `RenderLayer` + `DrawList` +
+  the drain. Convert one pass (`SHOTS` or `UNITS`) to emit commands. End-to-end
+  validation of the command/batch/flush path on a single layer, including the
+  `Custom` escape hatch on at least one accumulator pass.
+- **D…N — One pass per slice** into `RenderSystem`s. Tiles, units, vehicles,
+  doodads, shuttles, drones, objectives, fog, impact-fx, flyby, lighting.
+- **Final — Collapse `render()`** to the systems-loop + renderer-flush + scissor
+  bracket. Delete the per-pass methods as their systems land.
+
+## Considered alternatives
+
+### A proper ECS dependency (artemis-odb) — rejected
+
+Tempting given the desired end-feel (components keyed by `long`, mutated through
+systems), but rejected for this codebase:
+
+1. **Reflection vs the sandbox — the hard blocker.** Starsector's script
+   sandbox forbids reflection (the source tree has *zero* `java.lang.reflect`
+   usage, by necessity). artemis-odb's `World`/`ComponentManager` instantiates
+   components and injects `ComponentMapper`s through libgdx `ClassReflection`
+   (→ `java.lang.reflect`) at World construction. That's core, not opt-in.
+   Verdict: this is the part that kills it.
+2. **Serialization.** Battle state is XStream-serialized `Serializable` POJOs
+   (incl. `BattleSimulation`). An Artemis `World` keeps state in its own packed
+   arrays; round-tripping it through XStream means a flatten/rehydrate adapter
+   fighting the grain of Starsector persistence.
+3. **Render is the wrong first user anyway.** ECS pays off for *persistent
+   component composition + aspect subscription* on the **sim** side. Render
+   data is derived/transient per-frame; render systems would either iterate the
+   existing registry as plain classes (Artemis adds nothing) or spawn render
+   components every frame (pure churn).
+
+If an ECS dependency is ever reconsidered, it's a **sim** decision, gated by a
+30-minute spike: construct a throwaway 2-component `World` + one system in
+`onApplicationLoad`, call `world.process()`. If it throws under the sandbox →
+done. Bundling/relocation is *not* a blocker (shadowJar already shades fastutil).
+
+### Borrow the concepts, not the jar
+
+We keep building ECS-lite by hand (the established pattern: SoA `UnitRegistry`,
+monotonic non-recycled IDs, spatial index for filtering). Aspect-subscription
+sugar — entities auto-matched to a component signature — is reproducible as a
+lightweight cached *view* over the registry (filter once, invalidate on
+add/remove) without importing a World lifecycle the sim isn't built around.
+
+## Cross-refs
+
+- `ops/BattleScreen.java` — the god class being decomposed.
+- `render2d/` — the primitive batch/accumulator layer (stays put).
+- [`battle-reorg/`](../battle-reorg/) — the sim-side sibling; same
+  services/systems north star.
+- Memory: "Battle services + systems", "Default to ECS shape", "Script
+  sandbox", "GL state gotchas", "render2d batching".
