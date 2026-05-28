@@ -336,25 +336,67 @@ public class Unit {
         setSecondaryAimTargetId((t == null) ? 0L : t.entityId);
     }
 
-    /** Burst rounds queued after the AI's initial primary shot — the sim emits one per {@link MarineWeapon#burstSpacing} interval until exhausted. 0 = single-shot mode. */
-    public int burstRemaining = 0;
-    /** Sim-seconds until the next queued burst round fires. Decremented in {@code InfantryWeapons.tick}. */
-    public float burstTimer = 0f;
     /**
+     * <b>Don't read directly.</b> Pre-allocate seed + post-release snapshot for
+     * the burst-fire state group, same lifecycle as {@link #localHp}. Canonical
+     * storage between allocate and release lives in the registry's SoA arrays;
+     * go through {@link #getBurstRemaining} / {@link #getBurstTimer} /
+     * {@link #getBurstTargetId}.
+     *
+     * <p>{@code localBurstRemaining} — burst rounds queued after the AI's
+     * initial primary shot; the sim emits one per {@link MarineWeapon#burstSpacing}
+     * interval until exhausted. 0 = single-shot mode.
+     */
+    public int localBurstRemaining = 0;
+    /**
+     * <b>Don't read directly</b> — see {@link #localBurstRemaining}.
+     * Sim-seconds until the next queued burst round fires. Decremented in
+     * {@code InfantryWeapons.tick}.
+     */
+    public float localBurstTimer = 0f;
+    /**
+     * <b>Don't read directly</b> — see {@link #localBurstRemaining}.
      * Entity id of the target captured when the burst was queued. Burst rounds
      * keep firing at this entity even if {@link #targetId} drifts to someone
      * else, so a burst doesn't smear across multiple enemies. {@code 0L} when
-     * idle (no burst active). Cleared along with {@link #burstRemaining} when
-     * the burst ends or the target is released from the registry. Resolve
+     * idle (no burst active). Cleared along with {@link #getBurstRemaining}
+     * when the burst ends or the target is released from the registry. Resolve
      * through {@link BattleSimulation#resolveUnit(long)}; writes go through
      * {@link #setBurstTarget(Unit)} (or {@link #beginBurst(Unit)}, which
      * sets it as part of the trigger).
      */
-    public long burstTargetId = 0L;
+    public long localBurstTargetId = 0L;
 
-    /** Sets {@link #burstTargetId} from a {@link Unit} ref (null → 0L). */
+    public final int getBurstRemaining() {
+        return (registry != null) ? registry.getBurstRemaining(denseIdx) : localBurstRemaining;
+    }
+
+    public final void setBurstRemaining(int v) {
+        if (registry != null) registry.setBurstRemaining(denseIdx, v);
+        else localBurstRemaining = v;
+    }
+
+    public final float getBurstTimer() {
+        return (registry != null) ? registry.getBurstTimer(denseIdx) : localBurstTimer;
+    }
+
+    public final void setBurstTimer(float v) {
+        if (registry != null) registry.setBurstTimer(denseIdx, v);
+        else localBurstTimer = v;
+    }
+
+    public final long getBurstTargetId() {
+        return (registry != null) ? registry.getBurstTargetId(denseIdx) : localBurstTargetId;
+    }
+
+    public final void setBurstTargetId(long v) {
+        if (registry != null) registry.setBurstTargetId(denseIdx, v);
+        else localBurstTargetId = v;
+    }
+
+    /** Sets {@link #getBurstTargetId()} from a {@link Unit} ref (null → 0L). */
     public void setBurstTarget(Unit t) {
-        this.burstTargetId = (t == null) ? 0L : t.entityId;
+        setBurstTargetId((t == null) ? 0L : t.entityId);
     }
 
     /**
@@ -369,8 +411,8 @@ public class Unit {
      */
     public void beginBurst(Unit target) {
         if (primaryWeapon == null || primaryWeapon.burstCount <= 1) return;
-        burstRemaining = primaryWeapon.burstCount - 1;
-        burstTimer = primaryWeapon.burstSpacing;
+        setBurstRemaining(primaryWeapon.burstCount - 1);
+        setBurstTimer(primaryWeapon.burstSpacing);
         setBurstTarget(target);
     }
 

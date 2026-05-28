@@ -771,6 +771,150 @@ public class UnitRegistryTest {
     }
 
     @Test
+    public void allocateSeedsBurstRemainingAndAccessorsRouteThroughRegistry() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        u.localBurstRemaining = 3;
+
+        r.allocate(u);
+
+        assertEquals(3, u.getBurstRemaining());
+        assertEquals(3, r.getBurstRemaining(u.denseIdx));
+
+        u.setBurstRemaining(1);
+        assertEquals(1, r.getBurstRemaining(u.denseIdx));
+        assertEquals(1, u.getBurstRemaining());
+    }
+
+    @Test
+    public void releaseSnapshotsBurstRemainingBackToLocalField() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        r.allocate(u);
+
+        u.setBurstRemaining(2);
+        r.release(u.entityId);
+
+        assertNull(u.registry);
+        assertEquals(-1, u.denseIdx);
+        assertEquals(2, u.getBurstRemaining());
+    }
+
+    @Test
+    public void releaseTailSwapMovesBurstRemainingCorrectly() {
+        UnitRegistry r = new UnitRegistry();
+        Unit a = unit("a");
+        Unit b = unit("b");
+        Unit c = unit("c");
+        long idA = r.allocate(a);
+        r.allocate(b);
+        r.allocate(c);
+        c.setBurstRemaining(5);
+
+        r.release(idA);
+
+        assertEquals(0, c.denseIdx);
+        assertEquals(5, r.getBurstRemaining(0));
+        assertEquals(5, c.getBurstRemaining());
+    }
+
+    @Test
+    public void allocateSeedsBurstTimerAndAccessorsRouteThroughRegistry() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        u.localBurstTimer = 0.25f;
+
+        r.allocate(u);
+
+        assertEquals(0.25f, u.getBurstTimer(), 1e-6f);
+        assertEquals(0.25f, r.getBurstTimer(u.denseIdx), 1e-6f);
+
+        u.setBurstTimer(0.1f);
+        assertEquals(0.1f, r.getBurstTimer(u.denseIdx), 1e-6f);
+        assertEquals(0.1f, u.getBurstTimer(), 1e-6f);
+    }
+
+    @Test
+    public void releaseSnapshotsBurstTimerBackToLocalField() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        r.allocate(u);
+
+        u.setBurstTimer(0.4f);
+        r.release(u.entityId);
+
+        assertNull(u.registry);
+        assertEquals(-1, u.denseIdx);
+        assertEquals(0.4f, u.getBurstTimer(), 1e-6f);
+    }
+
+    @Test
+    public void releaseTailSwapMovesBurstTimerCorrectly() {
+        UnitRegistry r = new UnitRegistry();
+        Unit a = unit("a");
+        Unit b = unit("b");
+        Unit c = unit("c");
+        long idA = r.allocate(a);
+        r.allocate(b);
+        r.allocate(c);
+        c.setBurstTimer(0.33f);
+
+        r.release(idA);
+
+        assertEquals(0, c.denseIdx);
+        assertEquals(0.33f, r.getBurstTimer(0), 1e-6f);
+        assertEquals(0.33f, c.getBurstTimer(), 1e-6f);
+    }
+
+    @Test
+    public void allocateSeedsBurstTargetIdAndAccessorsRouteThroughRegistry() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        u.localBurstTargetId = 88L;
+
+        r.allocate(u);
+
+        assertEquals(88L, u.getBurstTargetId());
+        assertEquals(88L, r.getBurstTargetId(u.denseIdx));
+
+        u.setBurstTargetId(9L);
+        assertEquals(9L, r.getBurstTargetId(u.denseIdx));
+        assertEquals(9L, u.getBurstTargetId());
+    }
+
+    @Test
+    public void releaseSnapshotsBurstTargetIdBackToLocalField() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        r.allocate(u);
+
+        u.setBurstTargetId(456L);
+        r.release(u.entityId);
+
+        assertNull(u.registry);
+        assertEquals(-1, u.denseIdx);
+        assertEquals(456L, u.getBurstTargetId());
+    }
+
+    @Test
+    public void releaseTailSwapMovesBurstTargetIdCorrectly() {
+        UnitRegistry r = new UnitRegistry();
+        Unit a = unit("a");
+        Unit b = unit("b");
+        Unit c = unit("c");
+        long idA = r.allocate(a);
+        r.allocate(b);
+        r.allocate(c);
+        c.setBurstTargetId(777L);
+
+        r.release(idA);
+
+        assertEquals(0, c.denseIdx);
+        assertEquals(777L, r.getBurstTargetId(0));
+        assertEquals(777L, c.getBurstTargetId());
+    }
+
+    @Test
     public void releaseOfReservedZeroSentinelIsNoOp() {
         UnitRegistry r = new UnitRegistry();
         Unit a = unit("a");

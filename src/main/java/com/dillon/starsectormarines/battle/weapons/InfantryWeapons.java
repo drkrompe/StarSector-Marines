@@ -58,13 +58,14 @@ public class InfantryWeapons {
      */
     public void tick() {
         for (Unit u : units) {
-            if (u.burstRemaining <= 0 || !u.isAlive()) continue;
-            u.burstTimer -= BattleSimulation.TICK_DT;
-            if (u.burstTimer > 0f) continue;
-            Unit burstTarget = registry.getOrNull(u.burstTargetId);
+            if (u.getBurstRemaining() <= 0 || !u.isAlive()) continue;
+            float timer = u.getBurstTimer() - BattleSimulation.TICK_DT;
+            u.setBurstTimer(timer);
+            if (timer > 0f) continue;
+            Unit burstTarget = registry.getOrNull(u.getBurstTargetId());
             if (burstTarget == null || u.primaryWeapon == null) {
-                u.burstRemaining = 0;
-                u.burstTargetId = 0L;
+                u.setBurstRemaining(0);
+                u.setBurstTargetId(0L);
                 continue;
             }
             // Burst follow-up: use the unit's current motion state. If they
@@ -72,9 +73,10 @@ public class InfantryWeapons {
             // get the MOVING accuracy penalty — same rule a hand-rolled
             // moving-fire callsite gets.
             fireShot(u, burstTarget, FireStance.stanceFor(u));
-            u.burstRemaining--;
-            u.burstTimer = u.primaryWeapon.burstSpacing;
-            if (u.burstRemaining == 0) u.burstTargetId = 0L;
+            int remaining = u.getBurstRemaining() - 1;
+            u.setBurstRemaining(remaining);
+            u.setBurstTimer(u.primaryWeapon.burstSpacing);
+            if (remaining == 0) u.setBurstTargetId(0L);
         }
     }
 

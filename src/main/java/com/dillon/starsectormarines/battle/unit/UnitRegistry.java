@@ -102,6 +102,12 @@ public final class UnitRegistry {
     private float[] secondaryActionTimer = new float[INITIAL_CAPACITY];
     /** Per-unit entity id locked at secondary aim start (0L = none). Same lifecycle as {@link #hp}. */
     private long[] secondaryAimTargetId = new long[INITIAL_CAPACITY];
+    /** Per-unit burst rounds queued after the AI's initial primary shot. Decremented one-per-spacing in {@code InfantryWeapons.tick}. Same lifecycle as {@link #hp}. */
+    private int[] burstRemaining = new int[INITIAL_CAPACITY];
+    /** Per-unit sim-seconds until the next queued burst round fires. Same lifecycle as {@link #hp}. */
+    private float[] burstTimer = new float[INITIAL_CAPACITY];
+    /** Per-unit entity id captured when the burst was queued (0L = idle). Same lifecycle as {@link #hp}. */
+    private long[] burstTargetId = new long[INITIAL_CAPACITY];
     private int liveCount = 0;
     private long nextId = 1L;
 
@@ -149,6 +155,9 @@ public final class UnitRegistry {
             secondaryCooldownTimer = Arrays.copyOf(secondaryCooldownTimer, newCap);
             secondaryActionTimer = Arrays.copyOf(secondaryActionTimer, newCap);
             secondaryAimTargetId = Arrays.copyOf(secondaryAimTargetId, newCap);
+            burstRemaining = Arrays.copyOf(burstRemaining, newCap);
+            burstTimer = Arrays.copyOf(burstTimer, newCap);
+            burstTargetId = Arrays.copyOf(burstTargetId, newCap);
         }
         long id = nextId++;
         u.entityId = id;
@@ -173,6 +182,9 @@ public final class UnitRegistry {
         secondaryCooldownTimer[liveCount] = u.localSecondaryCooldownTimer;
         secondaryActionTimer[liveCount] = u.localSecondaryActionTimer;
         secondaryAimTargetId[liveCount] = u.localSecondaryAimTargetId;
+        burstRemaining[liveCount] = u.localBurstRemaining;
+        burstTimer[liveCount] = u.localBurstTimer;
+        burstTargetId[liveCount] = u.localBurstTargetId;
         u.denseIdx = liveCount;
         u.registry = this;
         indexById.put(id, liveCount);
@@ -218,6 +230,9 @@ public final class UnitRegistry {
         released.localSecondaryCooldownTimer = secondaryCooldownTimer[idx];
         released.localSecondaryActionTimer = secondaryActionTimer[idx];
         released.localSecondaryAimTargetId = secondaryAimTargetId[idx];
+        released.localBurstRemaining = burstRemaining[idx];
+        released.localBurstTimer = burstTimer[idx];
+        released.localBurstTargetId = burstTargetId[idx];
         released.denseIdx = -1;
         released.registry = null;
         if (idx != last) {
@@ -237,6 +252,9 @@ public final class UnitRegistry {
             secondaryCooldownTimer[idx] = secondaryCooldownTimer[last];
             secondaryActionTimer[idx] = secondaryActionTimer[last];
             secondaryAimTargetId[idx] = secondaryAimTargetId[last];
+            burstRemaining[idx] = burstRemaining[last];
+            burstTimer[idx] = burstTimer[last];
+            burstTargetId[idx] = burstTargetId[last];
             tail.denseIdx = idx;
             indexById.put(tail.entityId, idx);
         }
@@ -355,6 +373,18 @@ public final class UnitRegistry {
     public long getSecondaryAimTargetId(int idx) { return secondaryAimTargetId[idx]; }
     public void setSecondaryAimTargetId(int idx, long v) { secondaryAimTargetId[idx] = v; }
     public long[] secondaryAimTargetIdArray() { return secondaryAimTargetId; }
+
+    public int getBurstRemaining(int idx) { return burstRemaining[idx]; }
+    public void setBurstRemaining(int idx, int v) { burstRemaining[idx] = v; }
+    public int[] burstRemainingArray() { return burstRemaining; }
+
+    public float getBurstTimer(int idx) { return burstTimer[idx]; }
+    public void setBurstTimer(int idx, float v) { burstTimer[idx] = v; }
+    public float[] burstTimerArray() { return burstTimer; }
+
+    public long getBurstTargetId(int idx) { return burstTargetId[idx]; }
+    public void setBurstTargetId(int idx, long v) { burstTargetId[idx] = v; }
+    public long[] burstTargetIdArray() { return burstTargetId; }
 
     public int liveCount() {
         return liveCount;
