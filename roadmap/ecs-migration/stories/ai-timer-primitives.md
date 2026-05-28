@@ -1,5 +1,11 @@
 # Story: AI countdown-timer SoA promotion
 
+> **Slice A shipped `b620e77`** (2026-05-28) — `repositionCooldown` →
+> `float[]`, riding the `tickCooldowns` drain; consumers
+> (RepositionToCover, WorldStateBuilder, EngagePosture) migrated; 3 new
+> UnitRegistryTest cases. **Slice B (fallback group) remains** — see
+> Slicing below.
+
 ## Context
 
 The per-tick AI countdown timers are the last cluster of decrementer-

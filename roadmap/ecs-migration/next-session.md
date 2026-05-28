@@ -25,6 +25,7 @@ c929087  battle: SoA attackRange/attackDamage/accuracy — fifth promotion  ← 
 01fe905  battle: SoA secondary{Cooldown,Action}Timer/secondaryAimTargetId — sixth  ← 2026-05-28
 024344f  battle: SoA burstRemaining/burstTimer/burstTargetId — seventh  ← 2026-05-28
 7ae84e6  battle: SoA targetId — eighth (keystone cross-reference)  ← 2026-05-28
+b620e77  battle: SoA repositionCooldown — ninth (C3 Slice A)  ← 2026-05-28
 ```
 
 ## State of play
@@ -32,8 +33,8 @@ c929087  battle: SoA attackRange/attackDamage/accuracy — fifth promotion  ← 
 - **Primitives promoted:** hp/maxHp, cellX/cellY, cooldownTimer,
   moveProgress, renderX/renderY, attackDamage, attackRange, accuracy,
   secondaryCooldownTimer, secondaryActionTimer, secondaryAimTargetId,
-  burstRemaining, burstTimer, burstTargetId, targetId. Three `long[]`
-  (`secondaryAimTargetId`, `burstTargetId`, `targetId`).
+  burstRemaining, burstTimer, burstTargetId, targetId, repositionCooldown.
+  Three `long[]` (`secondaryAimTargetId`, `burstTargetId`, `targetId`).
 - **Five consumers** on dense-iter + SoA array reads. (The burst pass in
   `InfantryWeapons.tick` and `targetId`'s ~17 sites route through
   accessors, not dense-iter yet.)
@@ -57,9 +58,11 @@ primitives and the (now thin) `BattleSimulation` orchestrator:
    **SHIPPED** (`7ae84e6`). `targetId` → `long[]`, the keystone
    cross-reference. ~17 consumer sites migrated (mechanical sweep fanned
    out to a Sonnet subagent). Next promotion candidate ↓.
-3. [`ai-timer-primitives`](stories/ai-timer-primitives.md) —
-   `repositionCooldown` (rides `tickCooldowns`, nearly free) + fallback
-   group (`fallbackTimer` + `fallbackCellX/Y`). Sliceable. **Next up.**
+3. [`ai-timer-primitives`](stories/ai-timer-primitives.md) — **Slice A
+   SHIPPED** (`b620e77`, `repositionCooldown`). **Slice B remains** — the
+   fallback group (`fallbackTimer` + `fallbackCellX/Y`, optional
+   `wanderDwellTimer`), driven by SquadFallbackSystem / FallbackBehavior /
+   HitResponseService. **Next up.**
 4. [`path-mutation-to-navigation`](stories/path-mutation-to-navigation.md) —
    **Service** cleanup: move `setPath`/`clearPath` bodies off the sim
    into NavigationService (which already owns the occupancy/destIndex
