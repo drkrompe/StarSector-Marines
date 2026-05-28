@@ -2,8 +2,10 @@
 
 ## State of play
 
-Concept doc written ([`overview.md`](overview.md)). No code yet. This is the
-render-side sibling of `battle-reorg/`.
+Concept doc written ([`overview.md`](overview.md)). **Story A shipped** —
+`BattleSprites` registry extracted; `BattleScreen` 4364 → 3441 lines. See
+[`complete/story-a-extract-assets.md`](complete/story-a-extract-assets.md).
+This is the render-side sibling of `battle-reorg/`.
 
 Decision recorded: **no ECS dependency** (artemis-odb rejected — reflection vs
 the Starsector sandbox is the hard blocker; render is also the wrong first ECS
@@ -12,10 +14,12 @@ views. See "Considered alternatives" in `overview.md`.
 
 ## Next-up
 
-**Story A — Extract assets.** Move the `ensureXSheet()` family + sprite caches
-out of `BattleScreen` into a `BattleSprites` registry. Mechanical, zero behavior
-change, ~900 lines. Candidate for Sonnet delegation. Verify: build + in-game
-battle renders identically.
+**Story B — Extract `BattleRenderer` + `RenderContext`.** Move the existing
+`render*`/`draw*` methods *verbatim* into a renderer class holding
+camera/layout/batches/sheet-refs (pulls sheets from `BattleSprites`, owns the
+six `QuadBatch`es currently still on the screen + `buildTileBatches()`). Still a
+call sequence, but severed from screen/loop/input — `BattleScreen` shrinks to
+the loop. Verify: build + in-game battle renders identically.
 
 ## Slice chain
 

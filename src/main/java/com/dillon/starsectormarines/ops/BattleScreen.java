@@ -12,7 +12,6 @@ import com.dillon.starsectormarines.battle.world.model.TimeOfDay;
 import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
-import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetSlicer;
 import com.dillon.starsectormarines.battle.world.tiles.UrbanTile3;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.vehicle.MapVehicle;
@@ -53,6 +52,9 @@ import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.battleview.BattleCamera;
+import com.dillon.starsectormarines.ops.battleview.BattleSprites;
+import com.dillon.starsectormarines.ops.battleview.ShuttleSpriteCache;
+import com.dillon.starsectormarines.ops.battleview.UnitSpriteCache;
 import com.dillon.starsectormarines.render2d.ContrailStyle;
 import com.dillon.starsectormarines.render2d.ContrailTrail;
 import com.dillon.starsectormarines.render2d.DecalAccumulator;
@@ -73,9 +75,7 @@ import com.fs.starfarer.api.ui.PositionAPI;
 import org.apache.log4j.Logger;
 import org.lwjgl.util.vector.Vector2f;
 
-import javax.imageio.ImageIO;
 import java.awt.Color;
-import java.awt.image.BufferedImage;
 import java.util.List;
 
 import static org.lwjgl.opengl.GL11.GL_BLEND;
@@ -138,11 +138,6 @@ public class BattleScreen implements Screen, BattleUiContext {
     private static final float SPEED_BTN_H    = 32f;
     private static final float SPEED_BTN_GAP  = 6f;
     private static final float SPEED_MARK_H   = 3f;
-
-    /** Objective marker icons — white-on-transparent shapes tinted at render time. */
-    private static final String ICON_ALARM   = "graphics/icons/Alarm 512 px.png";
-    private static final String ICON_DANGER  = "graphics/icons/Danger sign 1 512 px.png";
-    private static final String ICON_STAR    = "graphics/icons/Star 512 px.png";
 
     /** Icon tints + sizes. Sizes are fractions of {@code layout.cellSize}. */
     private static final Color  CHARGE_TINT_ACTIVE   = new Color(0xFF, 0x9A, 0x40);
@@ -271,47 +266,8 @@ public class BattleScreen implements Screen, BattleUiContext {
     private float speedBtnBottomY;
     /** Tracks the last-seen sim completion flag so we can rebuild widgets when it flips. */
     private boolean lastSimComplete;
-    /** Per-{@link UnitType} sprite sheet cache. Each entry's sheet + frames pair is null if that type's load failed; the renderer falls through to its color-quad fallback for that unit. */
-    private final java.util.EnumMap<UnitType, UnitSpriteCache> unitSprites = new java.util.EnumMap<>(UnitType.class);
-    /** Per-{@link UnitType} corpse-pose sheet — 4 frames per type, picked randomly per unit at death. Missing entries (civilians, turrets) skip the dead-render pass entirely. */
-    private final java.util.EnumMap<UnitType, UnitSpriteCache> unitDeadSprites = new java.util.EnumMap<>(UnitType.class);
-    private boolean unitSpritesLoadAttempted;
-
-    private static final class UnitSpriteCache {
-        final SpriteAPI sheet;
-        final SpriteSheetFrames frames;
-        UnitSpriteCache(SpriteAPI sheet, SpriteSheetFrames frames) {
-            this.sheet = sheet;
-            this.frames = frames;
-        }
-    }
-
-    /** Per-{@link VehicleKind.VehicleSheet} sprite cache for parked truck sprites. Same lazy-load + auto-slice pattern as the unit sheets. */
-    private final java.util.EnumMap<VehicleKind.VehicleSheet, UnitSpriteCache> vehicleSheets =
-            new java.util.EnumMap<>(VehicleKind.VehicleSheet.class);
-    private boolean vehicleSheetsLoadAttempted;
-    /** Per-{@link TurretKind} sprite + native aspect cache. Same shape as {@link ShuttleSpriteCache}: the sprite is single-frame and rotated at draw time, so no auto-slicing. */
-    private final java.util.EnumMap<TurretKind, ShuttleSpriteCache> turretSprites =
-            new java.util.EnumMap<>(TurretKind.class);
-    /** Per-{@link TurretKind} barrel sprite cache. Vanilla {@code _recoil} naming is misleading — it's the gun/barrel piece (the part that visibly recoils), not a muzzle-flash overlay. Drawn below the body and shifted backward briefly after firing. */
-    private final java.util.EnumMap<TurretKind, ShuttleSpriteCache> turretRecoilSprites =
-            new java.util.EnumMap<>(TurretKind.class);
-    /** Per-{@link TurretKind} projectile sprite (vanilla {@code bulletSprite}). Rendered rotated along the travel vector for the shot's {@link #SHOT_LIFETIME_REF} lifetime. */
-    private final java.util.EnumMap<TurretKind, ShuttleSpriteCache> turretProjectileSprites =
-            new java.util.EnumMap<>(TurretKind.class);
-    /** Per-{@link MarineSecondary} projectile sprite (rocket etc). Same rendering path as turret projectiles. */
-    private final java.util.EnumMap<MarineSecondary, ShuttleSpriteCache> marineSecondarySprites =
-            new java.util.EnumMap<>(MarineSecondary.class);
-    /** Per-{@link MarineWeapon} projectile sprite — populated only for weapons whose {@code projectileSpritePath} is non-null (SMG today). Marines without a sprite path keep the line-tracer render. */
-    private final java.util.EnumMap<MarineWeapon, ShuttleSpriteCache> marineWeaponProjectileSprites =
-            new java.util.EnumMap<>(MarineWeapon.class);
-    /** Per-{@link com.dillon.starsectormarines.battle.mech.MechWeapon} projectile sprite — every mech weapon ships with one (vanilla shell / SRM / LRM art), so every entry gets loaded eagerly. */
-    private final java.util.EnumMap<com.dillon.starsectormarines.battle.mech.MechWeapon, ShuttleSpriteCache> mechWeaponProjectileSprites =
-            new java.util.EnumMap<>(com.dillon.starsectormarines.battle.mech.MechWeapon.class);
-    /** Shared decal sheet — 13 frames horizontally, auto-sliced into a SpriteSheetFrames so individual {@link Decal#decalIndex} values map to a frame box. */
-    private SpriteAPI decalSheet;
-    private SpriteSheetFrames decalFrames;
-    private boolean decalSheetLoadAttempted;
+    /** Owns all loaded sprite sheets, frame data, and ensure/load methods. */
+    private final BattleSprites sprites = new BattleSprites();
     /**
      * Persistent decal-accumulator FBO. Each spawned decal is stamped into
      * the FBO once; the per-frame render cost is a single textured-quad
@@ -336,69 +292,10 @@ public class BattleScreen implements Screen, BattleUiContext {
      */
 //    private TimeOfDay timeOfDay = TimeOfDay.NIGHT;
     private TimeOfDay timeOfDay = TimeOfDay.DAY;
-    private static final String SPRITE_DECAL_SHEET = "graphics/decals/decals.png";
-    /** Per-{@link MarineSecondary} marine aim sheet — drawn instead of the regular type sheet while the marine is mid-aim animation. Same 7-frame WNES + weapon-up convention as the regular marine sheets, auto-sliced via {@link SpriteSheetSlicer}. */
-    private final java.util.EnumMap<MarineSecondary, UnitSpriteCache> marineSecondaryAimSheets =
-            new java.util.EnumMap<>(MarineSecondary.class);
-    private boolean marineSecondarySpritesLoadAttempted;
-    private boolean turretSpritesLoadAttempted;
-    /** Single-entry cache for the drone-hub structure sprite (same vanilla weapon-sprite shape as the turret cache). Loaded once, reused for every {@link com.dillon.starsectormarines.battle.drone.DroneHubUnit} on the map. */
-    private ShuttleSpriteCache droneHubSprite;
-    private boolean droneHubSpriteLoadAttempted;
-    /** Single-entry cache for the drone sprite. Reused for every {@link com.dillon.starsectormarines.battle.drone.Drone} launched from a hub; the body's facing drives the per-instance rotation. */
-    private ShuttleSpriteCache droneSprite;
-    private boolean droneSpriteLoadAttempted;
     /** Sim-seconds the barrel sprite eases forward to its at-rest position after a shot. Quick snap-back-then-return reads as a real recoil pulse. */
     private static final float RECOIL_DURATION = 0.12f;
     /** Peak backward displacement of the barrel sprite, as a fraction of the turret's visual long-axis (cells). Vanilla uses absolute pixel offsets per-weapon; a relative figure scales cleanly across our 5 kinds. */
     private static final float RECOIL_DISTANCE_FRAC = 0.10f;
-    /** Cached tileset sheet — lazy-loaded once per Screen lifetime. Null if load failed. */
-    private SpriteAPI tileSheet;
-    /** Pixel dimensions of the tileset PNG content (pre-POT-padding). */
-    private int tileSheetPxW;
-    private int tileSheetPxH;
-    private boolean tileSheetLoadAttempted;
-    /** Cached road tileset (second sheet, outdoor street autotile). Same lazy-load pattern as {@link #tileSheet}. */
-    private SpriteAPI roadSheet;
-    private int roadSheetPxW;
-    private int roadSheetPxH;
-    private boolean roadSheetLoadAttempted;
-    /** Cached Floors_Tiles sheet (outdoor surfaces: grass/dirt/stone/sand/snow + fl-tile cluster). 16px source cells, drawn at 2x to fit the 32px nav grid. */
-    private SpriteAPI floorsSheet;
-    private int floorsSheetPxW;
-    private int floorsSheetPxH;
-    private boolean floorsSheetLoadAttempted;
-    /** Cached Water_tiles sheet. Same 16px-at-2x setup as {@link #floorsSheet}. */
-    private SpriteAPI waterSheet;
-    private int waterSheetPxW;
-    private int waterSheetPxH;
-    private boolean waterSheetLoadAttempted;
-    /**
-     * Cached urban-tileset-3.png sheet — sliced strip carrying modern road,
-     * sidewalk, sidewalk-corner, and three doodad frames. Variable-width
-     * cells: the per-frame bbox lives in {@link #urbanTile3Frames}, populated
-     * by {@link SpriteSheetSlicer} on load. STREET cells dispatch through
-     * this sheet when loaded; the legacy {@link TileManifest#ROAD_SHEET}
-     * autotile path stays in place as a fallback for the load-failed case.
-     */
-    private SpriteAPI urbanTile3Sheet;
-    private int urbanTile3SheetPxW;
-    private int urbanTile3SheetPxH;
-    private boolean urbanTile3SheetLoadAttempted;
-    private SpriteSheetFrames urbanTile3Frames;
-    /**
-     * Cached nature-tiles.png sheet — sliced strip carrying grass / dirt /
-     * sand / water ground variants plus plant + rock overlays. Loaded the
-     * same way as {@link #urbanTile3Sheet} (slicer-detected variable bbox
-     * per frame, cached in {@link #natureFrames}). GRASS and DIRT
-     * {@link CellTopology.GroundKind} cells dispatch through this sheet —
-     * the Floors_Tiles autotile path is retired for those two kinds.
-     */
-    private SpriteAPI natureSheet;
-    private int natureSheetPxW;
-    private int natureSheetPxH;
-    private boolean natureSheetLoadAttempted;
-    private SpriteSheetFrames natureFrames;
     /**
      * Per-sheet quad batchers. Lazily constructed when each sheet finishes
      * loading. Reused across passes — the urban batch is appended to by
@@ -480,45 +377,6 @@ public class BattleScreen implements Screen, BattleUiContext {
     private static final int GROUND_TILE_EDGE_INSET_PX        = com.dillon.starsectormarines.battle.world.tiles.FixedGridTileDrawer.GROUND_INSET_PX_LARGE;
     private static final int GROUND_SMALL_TILE_EDGE_INSET_PX  = com.dillon.starsectormarines.battle.world.tiles.FixedGridTileDrawer.GROUND_INSET_PX_SMALL;
 
-    /**
-     * Cached shuttle sprite + natural aspect ratio (width/height) per ShuttleType.
-     * Captured at load time before any setSize call mutates getWidth/getHeight.
-     * EnumMap is overkill for one variant today; map keeps the door open for
-     * Valkyrie + heavier dropships in Phase 2 without restructuring.
-     */
-    private final java.util.EnumMap<ShuttleType, ShuttleSpriteCache> shuttleSprites = new java.util.EnumMap<>(ShuttleType.class);
-    private boolean shuttleSpritesLoadAttempted;
-
-    /**
-     * Per-{@link com.dillon.starsectormarines.battle.vehicle.VehicleType} sprite
-     * cache for the convoy render pass. Uses {@link UnitSpriteCache} so we get
-     * the auto-sliced frame list — {@code trucks_2.png} contains two
-     * side-by-side trucks and the {@code VehicleType.spriteFrame} field
-     * indexes into the slicer output. Lazy-loaded on first attach via
-     * {@link #ensureConvoySprites()}.
-     */
-    private final java.util.EnumMap<com.dillon.starsectormarines.battle.vehicle.VehicleType, UnitSpriteCache> convoySprites =
-            new java.util.EnumMap<>(com.dillon.starsectormarines.battle.vehicle.VehicleType.class);
-    private boolean convoySpritesLoadAttempted;
-
-    /**
-     * Vanilla engine-FX sprites — drawn under each shuttle's hull to sell
-     * the "thrusters firing" read. The flame is a column-shaped plume that
-     * elongates with throttle; the glow is a soft halo behind it. Both are
-     * tinted at draw time by {@link EngineStylePalette} based on the
-     * per-slot style read out of the .ship spec.
-     */
-    private static final String ENGINE_FLAME_SPRITE = "graphics/fx/engineflame32.png";
-    private static final String ENGINE_GLOW_SPRITE  = "graphics/fx/engineglow32.png";
-    private SpriteAPI engineFlameSprite;
-    private SpriteAPI engineGlowSprite;
-    private boolean engineFxSpritesLoadAttempted;
-
-    /** Lazy-loaded objective marker icons. Null entries fall back to colored rectangles. */
-    private SpriteAPI iconAlarm;
-    private SpriteAPI iconDanger;
-    private SpriteAPI iconStar;
-    private boolean iconsLoadAttempted;
     /** Atmosphere layer — vanilla fighters flying overhead, strafing targets of opportunity. Survives across attach() calls; lazy-loads sprites on first render. */
     private final FlybyOverlay flybyOverlay = new FlybyOverlay();
     /** Debug toggle (Z) — tints each navigation zone with a stable per-id color so the partitioning + new portals from wall breaches are eyeball-verifiable. */
@@ -542,35 +400,27 @@ public class BattleScreen implements Screen, BattleUiContext {
     /** World-layer renderer for the compound capture-state markers — faction-coloured ring + capture arc + kind glyph at each compound centroid. Stateless w.r.t. game state; wall-clock pulse only. */
     private final CompoundMarkerRenderer compoundMarkers = new CompoundMarkerRenderer();
 
-    private static final class ShuttleSpriteCache {
-        final SpriteAPI sprite;
-        final float aspect;
-        ShuttleSpriteCache(SpriteAPI sprite, float aspect) {
-            this.sprite = sprite;
-            this.aspect = aspect;
-        }
-    }
-
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
         this.position = position;
         this.ctx = ctx;
         this.speedMultiplier = 1f;
-        ensureUnitSheets();
-        ensureVehicleSheets();
-        ensureTurretSprites();
-        ensureMarineSecondarySprites();
-        ensureDecalSheet();
-        ensureTileSheet();
-        ensureRoadSheet();
-        ensureFloorsSheet();
-        ensureNatureSheet();
-        ensureWaterSheet();
-        ensureUrbanTile3Sheet();
-        ensureShuttleSprites();
-        ensureConvoySprites();
-        ensureEngineFxSprites();
-        ensureObjectiveIcons();
+        sprites.ensureUnitSheets();
+        sprites.ensureVehicleSheets();
+        sprites.ensureTurretSprites();
+        sprites.ensureMarineSecondarySprites();
+        sprites.ensureDecalSheet();
+        sprites.ensureTileSheet();
+        sprites.ensureRoadSheet();
+        sprites.ensureFloorsSheet();
+        sprites.ensureNatureSheet();
+        sprites.ensureWaterSheet();
+        sprites.ensureUrbanTile3Sheet();
+        sprites.ensureShuttleSprites();
+        sprites.ensureConvoySprites();
+        sprites.ensureEngineFxSprites();
+        sprites.ensureObjectiveIcons();
+        buildTileBatches();
         impactFx.ensureSprites();
         // Wire the lightmap sink into the flyby overlay so fighter muzzle
         // flashes + engine glows route to the same accumulator the
@@ -625,609 +475,20 @@ public class BattleScreen implements Screen, BattleUiContext {
         return DISTANT_BOOM_MIN_GAP + audioRng.nextFloat() * (DISTANT_BOOM_MAX_GAP - DISTANT_BOOM_MIN_GAP);
     }
 
-    /**
-     * Lazy-loads the battle tileset on first attach. Reads the raw PNG to
-     * capture content dimensions — {@code SpriteAPI.getTextureWidth()} reports
-     * the POT-padded texture size, but per-tile UV math needs the content
-     * width to compute texture-fraction coords correctly. Cached across attach
-     * calls; survives screen re-entry without re-decoding the PNG.
-     */
-    private void ensureTileSheet() {
-        if (tileSheetLoadAttempted) return;
-        tileSheetLoadAttempted = true;
-        try {
-            Global.getSettings().loadTexture(TileManifest.SHEET);
-            tileSheet = Global.getSettings().getSprite(TileManifest.SHEET);
-            if (tileSheet == null) {
-                LOG.warn("BattleScreen: getSprite returned null for " + TileManifest.SHEET);
-                return;
-            }
-            try (java.io.InputStream stream = Global.getSettings().openStream(TileManifest.SHEET)) {
-                BufferedImage img = ImageIO.read(stream);
-                if (img == null) {
-                    LOG.warn("BattleScreen: ImageIO.read returned null for " + TileManifest.SHEET);
-                    tileSheet = null;
-                    return;
-                }
-                tileSheetPxW = img.getWidth();
-                tileSheetPxH = img.getHeight();
-                // Tile sheet covers floors + walls + DOOR_OPEN overlays + doodads —
-                // worst case is ~map cells, so size for a generous 128×128 grid.
-                urbanBatch = new QuadBatch(tileSheet, tileSheetPxW, tileSheetPxH, 16384);
-                LOG.info("BattleScreen: loaded tileset " + TileManifest.SHEET
-                        + " (" + tileSheetPxW + "x" + tileSheetPxH + ")");
-            }
-        } catch (Exception e) {
-            LOG.error("BattleScreen: failed to load tileset " + TileManifest.SHEET, e);
-            tileSheet = null;
-        }
-    }
-
-    /** Same lazy-load pattern as {@link #ensureTileSheet} — the road sheet is its own PNG so updates don't churn the indoor floor cache. */
-    private void ensureRoadSheet() {
-        if (roadSheetLoadAttempted) return;
-        roadSheetLoadAttempted = true;
-        try {
-            Global.getSettings().loadTexture(TileManifest.ROAD_SHEET);
-            roadSheet = Global.getSettings().getSprite(TileManifest.ROAD_SHEET);
-            if (roadSheet == null) {
-                LOG.warn("BattleScreen: getSprite returned null for " + TileManifest.ROAD_SHEET);
-                return;
-            }
-            try (java.io.InputStream stream = Global.getSettings().openStream(TileManifest.ROAD_SHEET)) {
-                BufferedImage img = ImageIO.read(stream);
-                if (img == null) {
-                    LOG.warn("BattleScreen: ImageIO.read returned null for " + TileManifest.ROAD_SHEET);
-                    roadSheet = null;
-                    return;
-                }
-                roadSheetPxW = img.getWidth();
-                roadSheetPxH = img.getHeight();
-                // Road sheet covers street/sidewalk/courtyard/striped + road-sheet doodads.
-                // Less coverage than the urban sheet but still cell-count-bounded; 4096 fits ~64×64.
-                roadBatch = new QuadBatch(roadSheet, roadSheetPxW, roadSheetPxH, 4096);
-                LOG.info("BattleScreen: loaded road tileset " + TileManifest.ROAD_SHEET
-                        + " (" + roadSheetPxW + "x" + roadSheetPxH + ")");
-            }
-        } catch (Exception e) {
-            LOG.error("BattleScreen: failed to load road tileset " + TileManifest.ROAD_SHEET, e);
-            roadSheet = null;
-        }
-    }
-
-    /**
-     * Lazy-loads the outdoor surfaces sheet (Floors_Tiles.png). 16px source
-     * cells — the renderer upscales 2x to fit the 32px nav grid. Same pattern
-     * as {@link #ensureRoadSheet}.
-     */
-    private void ensureFloorsSheet() {
-        if (floorsSheetLoadAttempted) return;
-        floorsSheetLoadAttempted = true;
-        try {
-            Global.getSettings().loadTexture(TileManifest.FLOORS_SHEET);
-            floorsSheet = Global.getSettings().getSprite(TileManifest.FLOORS_SHEET);
-            if (floorsSheet == null) {
-                LOG.warn("BattleScreen: getSprite returned null for " + TileManifest.FLOORS_SHEET);
-                return;
-            }
-            try (java.io.InputStream stream = Global.getSettings().openStream(TileManifest.FLOORS_SHEET)) {
-                BufferedImage img = ImageIO.read(stream);
-                if (img == null) {
-                    LOG.warn("BattleScreen: ImageIO.read returned null for " + TileManifest.FLOORS_SHEET);
-                    floorsSheet = null;
-                    return;
-                }
-                floorsSheetPxW = img.getWidth();
-                floorsSheetPxH = img.getHeight();
-                floorsBatch = new QuadBatch(floorsSheet, floorsSheetPxW, floorsSheetPxH, 4096);
-                LOG.info("BattleScreen: loaded floors tileset " + TileManifest.FLOORS_SHEET
-                        + " (" + floorsSheetPxW + "x" + floorsSheetPxH + ")");
-            }
-        } catch (Exception e) {
-            LOG.error("BattleScreen: failed to load floors tileset " + TileManifest.FLOORS_SHEET, e);
-            floorsSheet = null;
-        }
-    }
-
-    /** Lazy-loads the Water_tiles sheet. Same setup as {@link #ensureFloorsSheet}. */
-    private void ensureWaterSheet() {
-        if (waterSheetLoadAttempted) return;
-        waterSheetLoadAttempted = true;
-        try {
-            Global.getSettings().loadTexture(TileManifest.WATER_SHEET);
-            waterSheet = Global.getSettings().getSprite(TileManifest.WATER_SHEET);
-            if (waterSheet == null) {
-                LOG.warn("BattleScreen: getSprite returned null for " + TileManifest.WATER_SHEET);
-                return;
-            }
-            try (java.io.InputStream stream = Global.getSettings().openStream(TileManifest.WATER_SHEET)) {
-                BufferedImage img = ImageIO.read(stream);
-                if (img == null) {
-                    LOG.warn("BattleScreen: ImageIO.read returned null for " + TileManifest.WATER_SHEET);
-                    waterSheet = null;
-                    return;
-                }
-                waterSheetPxW = img.getWidth();
-                waterSheetPxH = img.getHeight();
-                waterBatch = new QuadBatch(waterSheet, waterSheetPxW, waterSheetPxH, 2048);
-                LOG.info("BattleScreen: loaded water tileset " + TileManifest.WATER_SHEET
-                        + " (" + waterSheetPxW + "x" + waterSheetPxH + ")");
-            }
-        } catch (Exception e) {
-            LOG.error("BattleScreen: failed to load water tileset " + TileManifest.WATER_SHEET, e);
-            waterSheet = null;
-        }
-    }
-
-    /**
-     * Lazy-loads the nature-tiles sheet — sliced strip with grass / dirt /
-     * sand / water ground variants plus overlay frames. Same shape as
-     * {@link #ensureUrbanTile3Sheet}. On success the slicer frames live in
-     * {@link #natureFrames} and the per-sheet batch is built so GRASS and
-     * DIRT cells can dispatch through it.
-     */
-    private void ensureNatureSheet() {
-        if (natureSheetLoadAttempted) return;
-        natureSheetLoadAttempted = true;
-        try {
-            Global.getSettings().loadTexture(com.dillon.starsectormarines.battle.world.tiles.NatureTileset.SHEET_PATH);
-            natureSheet = Global.getSettings().getSprite(com.dillon.starsectormarines.battle.world.tiles.NatureTileset.SHEET_PATH);
-            if (natureSheet == null) {
-                LOG.warn("BattleScreen: getSprite returned null for "
-                        + com.dillon.starsectormarines.battle.world.tiles.NatureTileset.SHEET_PATH);
-                return;
-            }
-            try (java.io.InputStream stream = Global.getSettings().openStream(
-                    com.dillon.starsectormarines.battle.world.tiles.NatureTileset.SHEET_PATH)) {
-                BufferedImage img = ImageIO.read(stream);
-                if (img == null) {
-                    LOG.warn("BattleScreen: ImageIO.read returned null for "
-                            + com.dillon.starsectormarines.battle.world.tiles.NatureTileset.SHEET_PATH);
-                    natureSheet = null;
-                    return;
-                }
-                natureSheetPxW = img.getWidth();
-                natureSheetPxH = img.getHeight();
-                natureFrames = SpriteSheetSlicer.slice(img);
-                int expected = com.dillon.starsectormarines.battle.world.tiles.NatureTile.values().length;
-                if (natureFrames.frames.length != expected) {
-                    LOG.warn("BattleScreen: nature-tiles slicer returned "
-                            + natureFrames.frames.length + " frames but NatureTile expects "
-                            + expected + " — falling back to legacy Floors_Tiles grass/dirt");
-                    natureSheet = null;
-                    natureFrames = null;
-                    return;
-                }
-                natureBatch = new QuadBatch(natureSheet, natureSheetPxW, natureSheetPxH, 4096);
-                LOG.info("BattleScreen: loaded nature-tiles "
-                        + com.dillon.starsectormarines.battle.world.tiles.NatureTileset.SHEET_PATH
-                        + " (" + natureSheetPxW + "x" + natureSheetPxH + "), "
-                        + natureFrames.frames.length + " frames sliced");
-            }
-        } catch (Exception e) {
-            LOG.error("BattleScreen: failed to load nature-tiles "
-                    + com.dillon.starsectormarines.battle.world.tiles.NatureTileset.SHEET_PATH, e);
-            natureSheet = null;
-            natureFrames = null;
-        }
-    }
-
-    /**
-     * Lazy-loads the urban-tileset-3 sheet — sliced strip with variable-width
-     * cells separated by alpha gutters, so the frame bboxes are computed by
-     * {@link SpriteSheetSlicer} rather than read off a fixed grid. Same
-     * lazy-load shape as {@link #ensureRoadSheet}; on success the slicer
-     * frames live in {@link #urbanTile3Frames} and the per-sheet batch is
-     * built so STREET cells can dispatch through it.
-     */
-    private void ensureUrbanTile3Sheet() {
-        if (urbanTile3SheetLoadAttempted) return;
-        urbanTile3SheetLoadAttempted = true;
-        try {
-            Global.getSettings().loadTexture(TileManifest.STREET3_SHEET);
-            urbanTile3Sheet = Global.getSettings().getSprite(TileManifest.STREET3_SHEET);
-            if (urbanTile3Sheet == null) {
-                LOG.warn("BattleScreen: getSprite returned null for " + TileManifest.STREET3_SHEET);
-                return;
-            }
-            try (java.io.InputStream stream = Global.getSettings().openStream(TileManifest.STREET3_SHEET)) {
-                BufferedImage img = ImageIO.read(stream);
-                if (img == null) {
-                    LOG.warn("BattleScreen: ImageIO.read returned null for " + TileManifest.STREET3_SHEET);
-                    urbanTile3Sheet = null;
-                    return;
-                }
-                urbanTile3SheetPxW = img.getWidth();
-                urbanTile3SheetPxH = img.getHeight();
-                urbanTile3Frames = SpriteSheetSlicer.slice(img);
-                int expected = UrbanTile3.values().length;
-                if (urbanTile3Frames.frames.length != expected) {
-                    LOG.warn("BattleScreen: urban-tileset-3 slicer returned "
-                            + urbanTile3Frames.frames.length + " frames but UrbanTile3 expects "
-                            + expected + " — falling back to legacy road autotile");
-                    urbanTile3Sheet = null;
-                    urbanTile3Frames = null;
-                    return;
-                }
-                urbanTile3Batch = new QuadBatch(urbanTile3Sheet, urbanTile3SheetPxW, urbanTile3SheetPxH, 4096);
-                LOG.info("BattleScreen: loaded urban-tileset-3 " + TileManifest.STREET3_SHEET
-                        + " (" + urbanTile3SheetPxW + "x" + urbanTile3SheetPxH + "), "
-                        + urbanTile3Frames.frames.length + " frames sliced");
-            }
-        } catch (Exception e) {
-            LOG.error("BattleScreen: failed to load urban-tileset-3 " + TileManifest.STREET3_SHEET, e);
-            urbanTile3Sheet = null;
-            urbanTile3Frames = null;
-        }
-    }
-
-    /**
-     * Lazy-loads each {@link ShuttleType}'s sprite via the vanilla path lookup.
-     * Captures the natural aspect ratio before any setSize call mutates it, so
-     * render math can preserve the ship's drawn proportions across cellSize
-     * changes. Same lazy-load pattern as the marine sheet — getSprite returns
-     * a wrapper whose backing texture is null until loadTexture is called.
-     */
-    /**
-     * Lazy-loads the vanilla engine flame + glow textures. Same one-shot
-     * pattern as {@link #ensureShuttleSprites()}: try to load each path
-     * once, log + degrade gracefully if either fails. A missing engine
-     * sprite just means the engine pass renders nothing — no crash.
-     */
-    private void ensureEngineFxSprites() {
-        if (engineFxSpritesLoadAttempted) return;
-        engineFxSpritesLoadAttempted = true;
-        engineFlameSprite = loadEngineFxSpriteOrNull(ENGINE_FLAME_SPRITE);
-        engineGlowSprite  = loadEngineFxSpriteOrNull(ENGINE_GLOW_SPRITE);
-    }
-
-    private SpriteAPI loadEngineFxSpriteOrNull(String path) {
-        try {
-            Global.getSettings().loadTexture(path);
-            SpriteAPI s = Global.getSettings().getSprite(path);
-            if (s == null) {
-                LOG.warn("BattleScreen: getSprite returned null for " + path);
-            }
-            return s;
-        } catch (Exception e) {
-            LOG.error("BattleScreen: failed to load engine FX sprite " + path, e);
-            return null;
-        }
-    }
-
-    private void ensureShuttleSprites() {
-        if (shuttleSpritesLoadAttempted) return;
-        shuttleSpritesLoadAttempted = true;
-        for (ShuttleType type : ShuttleType.values()) {
-            try {
-                Global.getSettings().loadTexture(type.spritePath);
-                SpriteAPI sprite = Global.getSettings().getSprite(type.spritePath);
-                if (sprite == null) {
-                    LOG.warn("BattleScreen: getSprite returned null for " + type.spritePath);
-                    continue;
-                }
-                float w = sprite.getWidth();
-                float h = sprite.getHeight();
-                float aspect = (h > 0f) ? w / h : 1f;
-                shuttleSprites.put(type, new ShuttleSpriteCache(sprite, aspect));
-                LOG.info("BattleScreen: loaded shuttle " + type.spritePath
-                        + " (" + w + "x" + h + ", aspect=" + aspect + ")");
-            } catch (Exception e) {
-                LOG.error("BattleScreen: failed to load shuttle sprite " + type.spritePath, e);
-            }
-        }
-    }
-
-    /**
-     * Lazy-loads each {@link com.dillon.starsectormarines.battle.vehicle.VehicleType}'s
-     * sheet via the shared {@link #loadUnitSheet} helper. Auto-slicing produces
-     * the per-frame bounds so {@code VehicleType.spriteFrame} can index into
-     * the sliced list. Failure on a single type leaves it absent from the cache;
-     * the convoy render pass silently skips vehicles whose cache entry is null.
-     */
-    private void ensureConvoySprites() {
-        if (convoySpritesLoadAttempted) return;
-        convoySpritesLoadAttempted = true;
-        for (com.dillon.starsectormarines.battle.vehicle.VehicleType type :
-                com.dillon.starsectormarines.battle.vehicle.VehicleType.values()) {
-            UnitSpriteCache cache = loadUnitSheet(type.spritePath);
-            if (cache != null) {
-                convoySprites.put(type, cache);
-            } else {
-                LOG.warn("convoy: failed to load sprite for " + type
-                        + " (" + type.spritePath + ")");
-            }
-        }
-    }
-
-    /**
-     * Lazy-loads the marine sprite sheet on first attach and auto-slices it
-     * into per-frame bounding boxes. {@code getSprite} alone returns a wrapper
-     * whose backing texture is null until {@code loadTexture} is called — same
-     * pattern BitmapFont uses for font pages. Survives across multiple attach
-     * calls via the cached fields.
-     *
-     * <p>{@link SpriteSheetSlicer} runs on the raw PNG bytes via
-     * {@code openStream + ImageIO} — it handles both clean uniform-grid sheets
-     * (the reference marine sprite) and AI-generated sheets with irregular
-     * sprite spacing, so we don't have to keep the source art on a strict grid.
-     */
-    /**
-     * Lazy-loads the SABOTAGE objective marker icons. Each PNG is a 512px white
-     * shape on transparent — tinted at draw time via {@code setColor}. Same
-     * sprite-lazy-load gotcha as the tileset: {@code getSprite} returns a wrapper
-     * whose backing texture is null until {@code loadTexture} is called.
-     */
-    private void ensureObjectiveIcons() {
-        if (iconsLoadAttempted) return;
-        iconsLoadAttempted = true;
-        iconAlarm  = loadIconOrNull(ICON_ALARM);
-        iconDanger = loadIconOrNull(ICON_DANGER);
-        iconStar   = loadIconOrNull(ICON_STAR);
-    }
-
-    private SpriteAPI loadIconOrNull(String path) {
-        try {
-            Global.getSettings().loadTexture(path);
-            SpriteAPI sprite = Global.getSettings().getSprite(path);
-            if (sprite == null) {
-                LOG.warn("BattleScreen: getSprite returned null for " + path);
-                return null;
-            }
-            LOG.info("BattleScreen: loaded icon " + path);
-            return sprite;
-        } catch (Exception e) {
-            LOG.error("BattleScreen: failed to load icon " + path, e);
-            return null;
-        }
-    }
-
-    /**
-     * Loads every {@link UnitType} sprite sheet on first call and auto-slices
-     * each into per-frame bounding boxes. A type whose load fails is recorded
-     * with a null entry so its units fall back to the color-quad path without
-     * retrying every frame.
-     */
-    private void ensureUnitSheets() {
-        if (unitSpritesLoadAttempted) return;
-        unitSpritesLoadAttempted = true;
-        for (UnitType type : UnitType.values()) {
-            // TURRET sprite is per-instance via MapTurret.kind, not per-type —
-            // its spritePath is intentionally empty so we skip the load here.
-            if (type == UnitType.TURRET) continue;
-            unitSprites.put(type, loadUnitSheet(type.spritePath));
-            if (type.deadSpritePath != null) {
-                UnitSpriteCache dead = loadUnitSheet(type.deadSpritePath);
-                if (dead != null) unitDeadSprites.put(type, dead);
-            }
-        }
-    }
-
-    private void ensureVehicleSheets() {
-        if (vehicleSheetsLoadAttempted) return;
-        vehicleSheetsLoadAttempted = true;
-        for (VehicleKind.VehicleSheet sheet : VehicleKind.VehicleSheet.values()) {
-            vehicleSheets.put(sheet, loadUnitSheet(sheet.path));
-        }
-    }
-
-    /**
-     * Lazy-loads each {@link TurretKind}'s vanilla weapon sprite. Same wrapper-
-     * after-loadTexture gotcha as every other sheet, plus aspect capture before
-     * {@code setSize} clobbers {@code getWidth/getHeight}. Sprites live under
-     * {@code graphics/weapons/} in the Starsector install; Starsector's
-     * resource loader resolves them transparently — we don't ship copies in
-     * the mod folder.
-     */
-    /**
-     * Renders every persistent decal (bullet holes, craters, rubble) as a
-     * rotated quad slice of the shared sheet. Skipped entirely when the sheet
-     * failed to load. Normal-alpha blend — decals occlude rather than glow.
-     */
-    private void renderDecals(BattleSimulation sim, float alphaMult) {
-        if (decalSheet == null || decalFrames == null) return;
-        decalAccumulator.render(
-                camera,
-                sim.getGrid().getWidth(), sim.getGrid().getHeight(),
-                sim.getDecals(), sim.getDecalsEverAdded(),
-                decalSheet, decalFrames,
-                alphaMult);
-    }
-
-    /** Lazy-loads the decal sheet and auto-slices it into per-frame bounding boxes. Failure leaves both fields null and the decal pass becomes a no-op. */
-    private void ensureDecalSheet() {
-        if (decalSheetLoadAttempted) return;
-        decalSheetLoadAttempted = true;
-        try {
-            Global.getSettings().loadTexture(SPRITE_DECAL_SHEET);
-            decalSheet = Global.getSettings().getSprite(SPRITE_DECAL_SHEET);
-            if (decalSheet == null) {
-                LOG.warn("BattleScreen: getSprite returned null for " + SPRITE_DECAL_SHEET);
-                return;
-            }
-            try (java.io.InputStream stream = Global.getSettings().openStream(SPRITE_DECAL_SHEET)) {
-                BufferedImage img = ImageIO.read(stream);
-                if (img == null) {
-                    LOG.warn("BattleScreen: ImageIO.read returned null for " + SPRITE_DECAL_SHEET);
-                    decalSheet = null;
-                    return;
-                }
-                decalFrames = SpriteSheetSlicer.slice(img);
-                LOG.info("BattleScreen: auto-sliced " + SPRITE_DECAL_SHEET
-                        + " — " + decalFrames.frames.length + " frames");
-            }
-        } catch (Exception e) {
-            LOG.error("BattleScreen: failed to load decal sheet " + SPRITE_DECAL_SHEET, e);
-            decalSheet = null;
-        }
-    }
-
-    /** Lazy-loads each marine secondary's projectile sprite AND the marine-pose sheet shown during the weapon's aim cycle. The projectile is a single sprite rotated at draw time; the aim sheet is auto-sliced into 7 frames matching the regular marine convention. */
-    private void ensureMarineSecondarySprites() {
-        if (marineSecondarySpritesLoadAttempted) return;
-        marineSecondarySpritesLoadAttempted = true;
-        for (MarineSecondary sec : MarineSecondary.values()) {
-            try {
-                Global.getSettings().loadTexture(sec.projectileSpritePath);
-                SpriteAPI sprite = Global.getSettings().getSprite(sec.projectileSpritePath);
-                if (sprite == null) {
-                    LOG.warn("BattleScreen: getSprite returned null for " + sec.projectileSpritePath);
-                } else {
-                    float w = sprite.getWidth();
-                    float h = sprite.getHeight();
-                    float aspect = (h > 0f) ? w / h : 1f;
-                    marineSecondarySprites.put(sec, new ShuttleSpriteCache(sprite, aspect));
-                    LOG.info("BattleScreen: loaded " + sec.projectileSpritePath
-                            + " (" + w + "x" + h + ", aspect=" + aspect + ")");
-                }
-            } catch (Exception e) {
-                LOG.error("BattleScreen: failed to load secondary projectile " + sec.projectileSpritePath, e);
-            }
-            if (sec.aimSpritePath != null) {
-                UnitSpriteCache aim = loadUnitSheet(sec.aimSpritePath);
-                if (aim != null) marineSecondaryAimSheets.put(sec, aim);
-            }
-        }
-        // Primary projectile sprites (SMG bullet today). Skip weapons whose
-        // projectile path is null — those fire as line tracers.
-        for (MarineWeapon w : MarineWeapon.values()) {
-            if (w.projectileSpritePath == null) continue;
-            try {
-                Global.getSettings().loadTexture(w.projectileSpritePath);
-                SpriteAPI sprite = Global.getSettings().getSprite(w.projectileSpritePath);
-                if (sprite == null) {
-                    LOG.warn("BattleScreen: getSprite returned null for " + w.projectileSpritePath);
-                    continue;
-                }
-                float pw = sprite.getWidth();
-                float ph = sprite.getHeight();
-                float aspect = (ph > 0f) ? pw / ph : 1f;
-                marineWeaponProjectileSprites.put(w, new ShuttleSpriteCache(sprite, aspect));
-                LOG.info("BattleScreen: loaded " + w.projectileSpritePath
-                        + " (" + pw + "x" + ph + ", aspect=" + aspect + ")");
-            } catch (Exception e) {
-                LOG.error("BattleScreen: failed to load primary projectile " + w.projectileSpritePath, e);
-            }
-        }
-        // Mech chassis projectile sprites — every entry has one (chaingun
-        // shell / SRM / LRM). Same load + aspect-capture pattern as the marine
-        // primaries above.
-        for (com.dillon.starsectormarines.battle.mech.MechWeapon w
-                : com.dillon.starsectormarines.battle.mech.MechWeapon.values()) {
-            if (w.projectileSpritePath == null) continue;
-            try {
-                Global.getSettings().loadTexture(w.projectileSpritePath);
-                SpriteAPI sprite = Global.getSettings().getSprite(w.projectileSpritePath);
-                if (sprite == null) {
-                    LOG.warn("BattleScreen: getSprite returned null for " + w.projectileSpritePath);
-                    continue;
-                }
-                float pw = sprite.getWidth();
-                float ph = sprite.getHeight();
-                float aspect = (ph > 0f) ? pw / ph : 1f;
-                mechWeaponProjectileSprites.put(w, new ShuttleSpriteCache(sprite, aspect));
-                LOG.info("BattleScreen: loaded mech projectile " + w.projectileSpritePath
-                        + " (" + pw + "x" + ph + ", aspect=" + aspect + ")");
-            } catch (Exception e) {
-                LOG.error("BattleScreen: failed to load mech projectile " + w.projectileSpritePath, e);
-            }
-        }
-    }
-
-    private void ensureTurretSprites() {
-        if (turretSpritesLoadAttempted) return;
-        turretSpritesLoadAttempted = true;
-        for (TurretKind kind : TurretKind.values()) {
-            loadTurretSpriteInto(turretSprites,           kind, kind.spritePath);
-            loadTurretSpriteInto(turretRecoilSprites,     kind, kind.recoilSpritePath);
-            loadTurretSpriteInto(turretProjectileSprites, kind, kind.projectileSpritePath);
-        }
-    }
-
-    private void ensureDroneHubSprite() {
-        if (droneHubSpriteLoadAttempted) return;
-        droneHubSpriteLoadAttempted = true;
-        String path = com.dillon.starsectormarines.battle.drone.DroneHubUnit.SPRITE_PATH;
-        try {
-            Global.getSettings().loadTexture(path);
-            SpriteAPI sprite = Global.getSettings().getSprite(path);
-            if (sprite == null) {
-                LOG.warn("BattleScreen: getSprite returned null for " + path);
-                return;
-            }
-            float w = sprite.getWidth();
-            float h = sprite.getHeight();
-            float aspect = (h > 0f) ? w / h : 1f;
-            droneHubSprite = new ShuttleSpriteCache(sprite, aspect);
-            LOG.info("BattleScreen: loaded " + path + " (" + w + "x" + h + ", aspect=" + aspect + ")");
-        } catch (Exception e) {
-            LOG.error("BattleScreen: failed to load " + path, e);
-        }
-    }
-
-    private void ensureDroneSprite() {
-        if (droneSpriteLoadAttempted) return;
-        droneSpriteLoadAttempted = true;
-        String path = com.dillon.starsectormarines.battle.drone.Drone.SPRITE_PATH;
-        try {
-            Global.getSettings().loadTexture(path);
-            SpriteAPI sprite = Global.getSettings().getSprite(path);
-            if (sprite == null) {
-                LOG.warn("BattleScreen: getSprite returned null for " + path);
-                return;
-            }
-            float w = sprite.getWidth();
-            float h = sprite.getHeight();
-            float aspect = (h > 0f) ? w / h : 1f;
-            droneSprite = new ShuttleSpriteCache(sprite, aspect);
-            LOG.info("BattleScreen: loaded " + path + " (" + w + "x" + h + ", aspect=" + aspect + ")");
-        } catch (Exception e) {
-            LOG.error("BattleScreen: failed to load " + path, e);
-        }
-    }
-
-    /** Shared loader for the three turret-related sprite caches. Captures the native aspect before any {@code setSize} call clobbers {@code getWidth/getHeight}. */
-    private void loadTurretSpriteInto(java.util.EnumMap<TurretKind, ShuttleSpriteCache> cache,
-                                      TurretKind kind, String path) {
-        try {
-            Global.getSettings().loadTexture(path);
-            SpriteAPI sprite = Global.getSettings().getSprite(path);
-            if (sprite == null) {
-                LOG.warn("BattleScreen: getSprite returned null for " + path);
-                return;
-            }
-            float w = sprite.getWidth();
-            float h = sprite.getHeight();
-            float aspect = (h > 0f) ? w / h : 1f;
-            cache.put(kind, new ShuttleSpriteCache(sprite, aspect));
-            LOG.info("BattleScreen: loaded " + path + " (" + w + "x" + h + ", aspect=" + aspect + ")");
-        } catch (Exception e) {
-            LOG.error("BattleScreen: failed to load " + path, e);
-        }
-    }
-
-    private UnitSpriteCache loadUnitSheet(String path) {
-        try {
-            Global.getSettings().loadTexture(path);
-            SpriteAPI sprite = Global.getSettings().getSprite(path);
-            if (sprite == null) {
-                LOG.warn("BattleScreen: getSprite returned null for " + path);
-                return null;
-            }
-            try (java.io.InputStream stream = Global.getSettings().openStream(path)) {
-                BufferedImage img = ImageIO.read(stream);
-                if (img == null) {
-                    LOG.warn("BattleScreen: ImageIO.read returned null for " + path);
-                    return null;
-                }
-                SpriteSheetFrames frames = SpriteSheetSlicer.slice(img);
-                LOG.info("BattleScreen: auto-sliced " + path + " — " + frames.frames.length + " frames detected");
-                return new UnitSpriteCache(sprite, frames);
-            }
-        } catch (Exception e) {
-            LOG.error("BattleScreen: failed to load unit sheet " + path, e);
-            return null;
-        }
+    /** Rebuilds the six per-sheet tile batches from the loaded sheets. Called from attach() after all sprites.ensureX() calls. */
+    private void buildTileBatches() {
+        if (urbanBatch == null && sprites.tileSheet() != null)
+            urbanBatch = new QuadBatch(sprites.tileSheet(), sprites.tileSheetPxW(), sprites.tileSheetPxH(), 16384);
+        if (roadBatch == null && sprites.roadSheet() != null)
+            roadBatch = new QuadBatch(sprites.roadSheet(), sprites.roadSheetPxW(), sprites.roadSheetPxH(), 4096);
+        if (floorsBatch == null && sprites.floorsSheet() != null)
+            floorsBatch = new QuadBatch(sprites.floorsSheet(), sprites.floorsSheetPxW(), sprites.floorsSheetPxH(), 4096);
+        if (waterBatch == null && sprites.waterSheet() != null)
+            waterBatch = new QuadBatch(sprites.waterSheet(), sprites.waterSheetPxW(), sprites.waterSheetPxH(), 2048);
+        if (urbanTile3Batch == null && sprites.urbanTile3Sheet() != null)
+            urbanTile3Batch = new QuadBatch(sprites.urbanTile3Sheet(), sprites.urbanTile3SheetPxW(), sprites.urbanTile3SheetPxH(), 4096);
+        if (natureBatch == null && sprites.natureSheet() != null)
+            natureBatch = new QuadBatch(sprites.natureSheet(), sprites.natureSheetPxW(), sprites.natureSheetPxH(), 4096);
     }
 
     private void rebuild() {
@@ -2188,7 +1449,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                                     drawCrosswalkStripes(x, y, topology.isCrosswalkStripesHorizontal(x, y), alphaMult);
                                 }
                             }
-                        } else if (roadSheet != null) {
+                        } else if (sprites.roadSheet() != null) {
                             // Fallback path: urban-tileset-3 didn't load —
                             // use the legacy dashed-road autotile from the
                             // urban-tileset-2 sheet so STREET cells still
@@ -2213,7 +1474,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                         }
                         break;
                     case COURTYARD:
-                        if (roadSheet != null) {
+                        if (sprites.roadSheet() != null) {
                             TileManifest.TileFrame f = TileManifest.pickCourtyardTile(nWall, sWall, eWall, wWall);
                             if (f == null) {
                                 fillCell(x, y, COURTYARD_FILL, alphaMult);
@@ -2246,7 +1507,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                         // variant pool). Whole-building floor, same model as
                         // INDOOR's `fl` blanket fill.
                         TileManifest.TileFrame f = TileManifest.pickTileGroundTile(x, y);
-                        if (roadSheet != null) drawRoadTile(f, x, y, alphaMult, GROUND_TILE_EDGE_INSET_PX);
+                        if (sprites.roadSheet() != null) drawRoadTile(f, x, y, alphaMult, GROUND_TILE_EDGE_INSET_PX);
                         break;
                     }
                     case BRICK: {
@@ -2280,12 +1541,12 @@ public class BattleScreen implements Screen, BattleUiContext {
                         // neighbor (e.g. fortified post perimeter) — same neighbor
                         // semantics as the courtyard autotile.
                         TileManifest.TileFrame f = TileManifest.pickStripedTile(nWall, sWall, eWall, wWall);
-                        if (roadSheet != null) drawRoadTile(f, x, y, alphaMult, GROUND_TILE_EDGE_INSET_PX);
+                        if (sprites.roadSheet() != null) drawRoadTile(f, x, y, alphaMult, GROUND_TILE_EDGE_INSET_PX);
                         break;
                     }
                     case LZ_MARKER: {
                         TileManifest.TileFrame f = TileManifest.pickLzMarkerTile();
-                        if (roadSheet != null) drawRoadTile(f, x, y, alphaMult, GROUND_TILE_EDGE_INSET_PX);
+                        if (sprites.roadSheet() != null) drawRoadTile(f, x, y, alphaMult, GROUND_TILE_EDGE_INSET_PX);
                         break;
                     }
                     case INDOOR:
@@ -2511,10 +1772,10 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     /** Renders the doodad layer (chairs, crates, chest, LZ pads, etc.) on top of floors and below units. Branches on which sheet each doodad indexes into. */
     private void renderDoodads(BattleSimulation sim, float alphaMult) {
-        if (tileSheet == null) return;
+        if (sprites.tileSheet() == null) return;
         for (Doodad d : sim.getDoodads()) {
             if (d.fromRoadSheet) {
-                if (roadSheet != null) drawRoadTile(d.tile, d.cellX, d.cellY, alphaMult, 0);
+                if (sprites.roadSheet() != null) drawRoadTile(d.tile, d.cellX, d.cellY, alphaMult, 0);
             } else {
                 // Doodads are standalone props (chairs, crates, LZ pads) — their
                 // edge pixels are real visible content, so inset=0 to avoid
@@ -2554,7 +1815,7 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     /**
      * Stamps one {@link UrbanTile3} frame at {@code (gridX, gridY)} via the
-     * sliced-sheet bbox cached in {@link #urbanTile3Frames}. Source rect is
+     * sliced-sheet bbox from {@link BattleSprites#urbanTile3Frames()}. Source rect is
      * the slicer-detected per-frame bounding box minus the standard ground
      * inset for {@link UrbanTile3.Kind#GROUND} tiles (street, sidewalk),
      * zero inset for overlays (doodads). Destination is always one nav cell
@@ -2563,10 +1824,10 @@ public class BattleScreen implements Screen, BattleUiContext {
      * render path.
      */
     private void drawUrbanTile3Frame(UrbanTile3 frame, int gridX, int gridY, float alphaMult) {
-        if (urbanTile3Batch == null || urbanTile3Frames == null || frame == null) return;
+        if (urbanTile3Batch == null || sprites.urbanTile3Frames() == null || frame == null) return;
         int idx = frame.frameIndex();
-        if (idx < 0 || idx >= urbanTile3Frames.frames.length) return;
-        SpriteSheetFrames.Frame f = urbanTile3Frames.frames[idx];
+        if (idx < 0 || idx >= sprites.urbanTile3Frames().frames.length) return;
+        SpriteSheetFrames.Frame f = sprites.urbanTile3Frames().frames[idx];
         int inset = frame.isGround() ? GROUND_TILE_EDGE_INSET_PX : 0;
         int srcPxX = f.x + inset;
         int srcPxY = f.y + inset;
@@ -2585,15 +1846,15 @@ public class BattleScreen implements Screen, BattleUiContext {
      * Counterpart to {@link #drawUrbanTile3Frame} for the nature-tiles sheet.
      * Stamps one {@link com.dillon.starsectormarines.battle.world.tiles.NatureTile}
      * frame at {@code (gridX, gridY)} via the slicer-detected per-frame bbox
-     * cached in {@link #natureFrames}. Ground tiles get the standard inset,
+     * from {@link BattleSprites#natureFrames()}. Ground tiles get the standard inset,
      * overlay tiles get inset=0 — same convention as urban-tileset-3.
      */
     private void drawNatureTile(com.dillon.starsectormarines.battle.world.tiles.NatureTile tile,
                                 int gridX, int gridY, float alphaMult) {
-        if (natureBatch == null || natureFrames == null || tile == null) return;
+        if (natureBatch == null || sprites.natureFrames() == null || tile == null) return;
         int idx = tile.frameIndex();
-        if (idx < 0 || idx >= natureFrames.frames.length) return;
-        SpriteSheetFrames.Frame f = natureFrames.frames[idx];
+        if (idx < 0 || idx >= sprites.natureFrames().frames.length) return;
+        SpriteSheetFrames.Frame f = sprites.natureFrames().frames[idx];
         int inset = tile.isGround() ? GROUND_TILE_EDGE_INSET_PX : 0;
         int srcPxX = f.x + inset;
         int srcPxY = f.y + inset;
@@ -2654,9 +1915,9 @@ public class BattleScreen implements Screen, BattleUiContext {
             default: return;
         }
         if (kind == CellTopology.GroundKind.WATER) {
-            if (waterSheet != null) drawWaterTile(f, x, y, alphaMult);
+            if (sprites.waterSheet() != null) drawWaterTile(f, x, y, alphaMult);
         } else {
-            if (floorsSheet != null) drawFloorsTile(f, x, y, alphaMult);
+            if (sprites.floorsSheet() != null) drawFloorsTile(f, x, y, alphaMult);
         }
     }
 
@@ -2727,6 +1988,21 @@ public class BattleScreen implements Screen, BattleUiContext {
         return h & 0x7FFFFFFF;
     }
 
+    /**
+     * Renders every persistent decal (bullet holes, craters, rubble) as a
+     * rotated quad slice of the shared sheet. Skipped entirely when the sheet
+     * failed to load. Normal-alpha blend — decals occlude rather than glow.
+     */
+    private void renderDecals(BattleSimulation sim, float alphaMult) {
+        if (sprites.decalSheet() == null || sprites.decalFrames() == null) return;
+        decalAccumulator.render(
+                camera,
+                sim.getGrid().getWidth(), sim.getGrid().getHeight(),
+                sim.getDecals(), sim.getDecalsEverAdded(),
+                sprites.decalSheet(), sprites.decalFrames(),
+                alphaMult);
+    }
+
     private void renderGrid(NavigationGrid grid, CellTopology topology, float alphaMult) {
         glDisable(GL_TEXTURE_2D);
         glEnable(GL_BLEND);
@@ -2751,7 +2027,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         glVertex2f(worldX0, worldY1);
         glEnd();
 
-        if (tileSheet != null) {
+        if (sprites.tileSheet() != null) {
             renderTiledFloorsAndWalls(grid, topology, alphaMult);
         } else {
             // Fallback — solid-color walls. Same path the renderer used before
@@ -2838,8 +2114,8 @@ public class BattleScreen implements Screen, BattleUiContext {
     private void renderRoofs(BattleSimulation sim, float alphaMult) {
         com.dillon.starsectormarines.battle.world.model.Buildings buildings = sim.getBuildings();
         if (buildings == null || buildings.isEmpty()) return;
-        ensureFloorsSheet();
-        if (floorsSheet == null || floorsBatch == null) return;
+        sprites.ensureFloorsSheet();
+        if (sprites.floorsSheet() == null || floorsBatch == null) return;
 
         CellTopology topology = sim.getTopology();
         for (com.dillon.starsectormarines.battle.world.model.Building b : buildings.all()) {
@@ -2945,12 +2221,12 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (uv == com.dillon.starsectormarines.battle.vision.VisionService.VIS_FADING) {
                 unitAlpha *= vis.getFadeAlpha(u.denseIdx);
             }
-            UnitSpriteCache cache = unitSprites.get(u.type);
+            UnitSpriteCache cache = sprites.unitSprites().get(u.type);
             // Mid-aim rocket marine swaps to the per-secondary aim sheet so
             // the launcher pose reads. Falls back to the regular sheet if the
             // aim sheet failed to load.
             if (u.getSecondaryActionTimer() > 0f && u.secondaryWeapon != null) {
-                UnitSpriteCache aim = marineSecondaryAimSheets.get(u.secondaryWeapon);
+                UnitSpriteCache aim = sprites.marineSecondaryAimSheets().get(u.secondaryWeapon);
                 if (aim != null && aim.sheet != null && aim.frames != null
                         && aim.frames.frames.length > 0) {
                     cache = aim;
@@ -3085,7 +2361,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         float cellPx = camera.cellPxSize();
         java.util.Set<VehicleKind.VehicleSheet> touched = new java.util.HashSet<>();
         for (MapVehicle v : vehicles) {
-            UnitSpriteCache cache = vehicleSheets.get(v.kind.sheet);
+            UnitSpriteCache cache = sprites.vehicleSheets().get(v.kind.sheet);
             if (cache == null || cache.sheet == null || cache.frames == null) continue;
             if (v.kind.frameIndex >= cache.frames.frames.length) continue;
             SpriteAPI sheet = cache.sheet;
@@ -3129,7 +2405,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         // Reset state on each touched sheet so the singleton SpriteAPI carries
         // no leftover UVs into the next pass.
         for (VehicleKind.VehicleSheet s : touched) {
-            UnitSpriteCache cache = vehicleSheets.get(s);
+            UnitSpriteCache cache = sprites.vehicleSheets().get(s);
             if (cache != null && cache.sheet != null) cache.sheet.setColor(Color.WHITE);
         }
     }
@@ -3191,7 +2467,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         for (Unit u : units) {
             if (!(u instanceof MapTurret) || !u.isAlive()) continue;
             MapTurret t = (MapTurret) u;
-            ShuttleSpriteCache base = turretSprites.get(t.kind);
+            ShuttleSpriteCache base = sprites.turretSprites().get(t.kind);
             if (base == null) {
                 renderTurretQuadFallback(t, cellPx * UNIT_FRAC, alphaMult);
                 continue;
@@ -3203,7 +2479,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             // Driven by recoilTimer (sim-seconds since last fired round) rather
             // than cooldownTimer, so burst weapons cycle the slide per round
             // instead of only on the trigger pull.
-            ShuttleSpriteCache barrel = turretRecoilSprites.get(t.kind);
+            ShuttleSpriteCache barrel = sprites.turretRecoilSprites().get(t.kind);
             if (barrel != null) {
                 float recoilT = 0f;
                 if (t.recoilTimer < RECOIL_DURATION) {
@@ -3224,11 +2500,11 @@ public class BattleScreen implements Screen, BattleUiContext {
             touched.add(t.kind);
         }
         for (TurretKind k : touched) {
-            ShuttleSpriteCache c = turretSprites.get(k);
+            ShuttleSpriteCache c = sprites.turretSprites().get(k);
             if (c != null) c.sprite.setAngle(0f);
         }
         for (TurretKind k : touchedRecoil) {
-            ShuttleSpriteCache c = turretRecoilSprites.get(k);
+            ShuttleSpriteCache c = sprites.turretRecoilSprites().get(k);
             if (c != null) c.sprite.setAngle(0f);
         }
     }
@@ -3245,7 +2521,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (u instanceof com.dillon.starsectormarines.battle.drone.DroneHubUnit && u.isAlive()) { any = true; break; }
         }
         if (!any) return;
-        ensureDroneHubSprite();
+        sprites.ensureDroneHubSprite();
 
         float cellPx = camera.cellPxSize();
 
@@ -3269,15 +2545,15 @@ public class BattleScreen implements Screen, BattleUiContext {
         glEnd();
 
         // Sprite pass — single shared sprite, fixed at facing 0 (north).
-        if (droneHubSprite == null) return;
+        if (sprites.droneHubSprite() == null) return;
         float visual = com.dillon.starsectormarines.battle.drone.DroneHubUnit.VISUAL_CELLS;
         for (Unit u : units) {
             if (!(u instanceof com.dillon.starsectormarines.battle.drone.DroneHubUnit) || !u.isAlive()) continue;
             float cx = camera.cellToScreenX(u.getCellX() + 0.5f);
             float cy = camera.cellToScreenY(u.getCellY() + 0.5f);
-            drawTurretLayer(droneHubSprite, /*facingDegrees=*/ 0f, visual, cellPx, cx, cy, alphaMult);
+            drawTurretLayer(sprites.droneHubSprite(), /*facingDegrees=*/ 0f, visual, cellPx, cx, cy, alphaMult);
         }
-        droneHubSprite.sprite.setAngle(0f);
+        sprites.droneHubSprite().sprite.setAngle(0f);
     }
 
     /**
@@ -3296,8 +2572,8 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (d.isAlive() || d.crashStarted) { any = true; break; }
         }
         if (!any) return;
-        ensureDroneSprite();
-        if (droneSprite == null) return;
+        sprites.ensureDroneSprite();
+        if (sprites.droneSprite() == null) return;
 
         com.dillon.starsectormarines.battle.vision.VisionService vis = sim.getVision();
         float cellPx = camera.cellPxSize();
@@ -3321,7 +2597,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 float t = Math.max(0f, Math.min(1f, d.crashTimer / com.dillon.starsectormarines.battle.drone.Drone.CRASH_DURATION_SEC));
                 drawAlpha *= t;
             }
-            drawTurretLayer(droneSprite, d.body.facingDegrees, visual, cellPx, cx, cy, drawAlpha);
+            drawTurretLayer(sprites.droneSprite(), d.body.facingDegrees, visual, cellPx, cx, cy, drawAlpha);
             if (alive) {
                 float barY = cy + visual * cellPx / 2f + HP_BAR_GAP;
                 float barX = cx - barW / 2f;
@@ -3330,7 +2606,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 fillRect(barX, barY, barW * frac, HP_BAR_H, HP_FG, drawAlpha);
             }
         }
-        droneSprite.sprite.setAngle(0f);
+        sprites.droneSprite().sprite.setAngle(0f);
     }
 
     /** Renders one turret layer (body or barrel) at the given facing + center, sized to fit the visual envelope. Hoisted out so both layers share the setSize/setAngle/setColor boilerplate. */
@@ -3382,7 +2658,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         for (Unit u : units) {
             if (u.isAlive()) continue;
             if (u.deathPoseIdx < 0) continue;
-            UnitSpriteCache cache = unitDeadSprites.get(u.type);
+            UnitSpriteCache cache = sprites.unitDeadSprites().get(u.type);
             if (cache == null || cache.sheet == null || cache.frames == null
                     || cache.frames.frames.length == 0) continue;
             SpriteSheetFrames frames = cache.frames;
@@ -3472,7 +2748,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         java.util.Set<UnitSpriteCache> touched = new java.util.HashSet<>();
         for (com.dillon.starsectormarines.battle.vehicle.Vehicle v : convoy) {
             if (!v.isVisible()) continue;
-            UnitSpriteCache cache = convoySprites.get(v.type);
+            UnitSpriteCache cache = sprites.convoySprites().get(v.type);
             if (cache == null || cache.sheet == null || cache.frames == null) continue;
             if (v.type.spriteFrame < 0 || v.type.spriteFrame >= cache.frames.frames.length) continue;
             SpriteAPI sheet = cache.sheet;
@@ -3706,7 +2982,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (shuttles.isEmpty()) return;
         for (Shuttle s : shuttles) {
             if (!s.isVisible()) continue;
-            ShuttleSpriteCache cache = shuttleSprites.get(s.type);
+            ShuttleSpriteCache cache = sprites.shuttleSprites().get(s.type);
             if (cache == null) continue;
             SpriteAPI sprite = cache.sprite;
             // scaleMult drives the altitude lerp (cruise → 1.0 across the leg)
@@ -3737,7 +3013,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
         // Reset angle so the singleton sprite doesn't carry our rotation
         // into whatever else might draw it.
-        for (ShuttleSpriteCache cache : shuttleSprites.values()) {
+        for (ShuttleSpriteCache cache : sprites.shuttleSprites().values()) {
             cache.sprite.setAngle(0f);
         }
     }
@@ -3764,7 +3040,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 s.engineFxIntensity(),
                 alphaMult,
                 camera,
-                engineGlowSprite, engineFlameSprite);
+                sprites.engineGlowSprite(), sprites.engineFlameSprite());
     }
 
     /**
@@ -3786,7 +3062,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         float si = (float) Math.sin(rad);
         float cellPx = camera.cellPxSize();
         for (com.dillon.starsectormarines.battle.air.MountedTurret mt : s.turrets) {
-            ShuttleSpriteCache base = turretSprites.get(mt.mount.kind);
+            ShuttleSpriteCache base = sprites.turretSprites().get(mt.mount.kind);
             if (base == null) continue;
             // Mount offsets are defined in the shuttle's full-size frame. The
             // hull sprite renders at scaleMult × visualLengthCells (line ~2633),
@@ -3810,7 +3086,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             // axis during the recoil window after firing, then eases forward
             // over RECOIL_DURATION. Body covers the chamber end so only the
             // protruding length visibly shortens then slides back out.
-            ShuttleSpriteCache barrel = turretRecoilSprites.get(mt.mount.kind);
+            ShuttleSpriteCache barrel = sprites.turretRecoilSprites().get(mt.mount.kind);
             if (barrel != null) {
                 float recoilT = 0f;
                 if (mt.recoilTimer < RECOIL_DURATION) {
@@ -3849,14 +3125,14 @@ public class BattleScreen implements Screen, BattleUiContext {
             float cx = camera.cellToScreenX(site.cellX() + 0.5f);
             float cy = camera.cellToScreenY(site.cellY() + 0.5f);
             if (site.isComplete()) {
-                drawTintedIcon(iconDanger, cx, cy,
+                drawTintedIcon(sprites.iconDanger(), cx, cy,
                         cellPx * CHARGE_ICON_SIZE,
                         CHARGE_TINT_COMPLETE, alphaMult);
             } else {
                 float pulse = site.planterOnSite()
                         ? 1f + CHARGE_PULSE_AMP * (float) Math.sin(now * 2.0 * Math.PI * CHARGE_PULSE_HZ)
                         : 1f;
-                drawTintedIcon(iconAlarm, cx, cy,
+                drawTintedIcon(sprites.iconAlarm(), cx, cy,
                         cellPx * CHARGE_ICON_SIZE * pulse,
                         CHARGE_TINT_ACTIVE, alphaMult);
                 float progress = site.progress() / Math.max(0.001f, site.plantDuration());
@@ -3871,7 +3147,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             float cx = camera.cellToScreenX(drop.cellX + 0.5f);
             float cy = camera.cellToScreenY(drop.cellY + 0.5f);
             float pulse = 1f + KIT_DROP_PULSE_AMP * (float) Math.sin(now * 2.0 * Math.PI * KIT_DROP_PULSE_HZ);
-            drawTintedIcon(iconStar, cx, cy,
+            drawTintedIcon(sprites.iconStar(), cx, cy,
                     cellPx * KIT_DROP_SIZE * pulse,
                     KIT_DROP_TINT, alphaMult);
         }
@@ -3986,16 +3262,16 @@ public class BattleScreen implements Screen, BattleUiContext {
             ShuttleSpriteCache cache;
             float visualCells;
             if (s.turretKind != null) {
-                cache = turretProjectileSprites.get(s.turretKind);
+                cache = sprites.turretProjectileSprites().get(s.turretKind);
                 visualCells = s.turretKind.projectileVisualCells;
             } else if (s.marineSecondary != null) {
-                cache = marineSecondarySprites.get(s.marineSecondary);
+                cache = sprites.marineSecondarySprites().get(s.marineSecondary);
                 visualCells = s.marineSecondary.projectileVisualCells;
             } else if (s.marineWeapon != null && s.marineWeapon.projectileSpritePath != null) {
-                cache = marineWeaponProjectileSprites.get(s.marineWeapon);
+                cache = sprites.marineWeaponProjectileSprites().get(s.marineWeapon);
                 visualCells = s.marineWeapon.projectileVisualCells;
             } else if (s.mechWeapon != null && s.mechWeapon.projectileSpritePath != null) {
-                cache = mechWeaponProjectileSprites.get(s.mechWeapon);
+                cache = sprites.mechWeaponProjectileSprites().get(s.mechWeapon);
                 visualCells = s.mechWeapon.projectileVisualCells;
             } else {
                 continue;
@@ -4063,19 +3339,19 @@ public class BattleScreen implements Screen, BattleUiContext {
             else if (s.mechWeapon != null) touchedMech.add(s.mechWeapon);
         }
         for (TurretKind k : touchedTurret) {
-            ShuttleSpriteCache c = turretProjectileSprites.get(k);
+            ShuttleSpriteCache c = sprites.turretProjectileSprites().get(k);
             if (c != null) c.sprite.setAngle(0f);
         }
         for (MarineSecondary k : touchedSecondary) {
-            ShuttleSpriteCache c = marineSecondarySprites.get(k);
+            ShuttleSpriteCache c = sprites.marineSecondarySprites().get(k);
             if (c != null) c.sprite.setAngle(0f);
         }
         for (MarineWeapon k : touchedPrimary) {
-            ShuttleSpriteCache c = marineWeaponProjectileSprites.get(k);
+            ShuttleSpriteCache c = sprites.marineWeaponProjectileSprites().get(k);
             if (c != null) c.sprite.setAngle(0f);
         }
         for (com.dillon.starsectormarines.battle.mech.MechWeapon k : touchedMech) {
-            ShuttleSpriteCache c = mechWeaponProjectileSprites.get(k);
+            ShuttleSpriteCache c = sprites.mechWeaponProjectileSprites().get(k);
             if (c != null) c.sprite.setAngle(0f);
         }
     }
