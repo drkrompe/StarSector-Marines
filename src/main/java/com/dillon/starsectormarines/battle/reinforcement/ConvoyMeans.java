@@ -81,12 +81,13 @@ public final class ConvoyMeans implements ReinforcementMeans {
         List<RoadGraph.Node> perim = defenderSidePerimeter(graph.perimeterNodes(), gw, gh);
         List<RoadGraph.Node> perimByDist = sortedByDistance(perim, rx, ry);
         List<int[]> reservedLz = activeConvoyDestinations(sim);
+        LandingZoneScorer scorer = new LandingZoneScorer(sim.getGrid(), sim.getTopology());
 
         RoadGraph.Node entry = null;
         RoadGraph.Node dest = null;
         for (RoadGraph.Node candidate : perimByDist) {
             Set<RoadGraph.Node> reachable = reachableFrom(candidate);
-            RoadGraph.Node candDest = bestInteriorJunctionWithin(reachable, rx, ry, reservedLz);
+            RoadGraph.Node candDest = bestInteriorJunctionWithin(scorer, reachable, rx, ry, reservedLz);
             if (candDest != null && candDest != candidate) {
                 entry = candidate;
                 dest = candDest;
@@ -271,12 +272,20 @@ public final class ConvoyMeans implements ReinforcementMeans {
      * not required: an overlapping high-quality junction beats no
      * junction at all.
      *
+     * <p>Junctions whose cell isn't a viable dropoff (walkable, outside any
+     * building — {@link LandingZoneScorer}) are skipped, so the truck never
+     * parks to deboard inside a building or on blocked ground. Road-graph
+     * junctions sit on roads and normally pass; the gate guards against
+     * pathological road/building overlaps and keeps the scorer authoritative
+     * for every means' deboard cell.
+     *
      * <p>{@code reserved} is the list of {@code (lzCellX, lzCellY)} for
      * every currently in-flight or landed convoy truck. Empty list →
      * separation never kicks in, behaviour matches the pre-separation
      * implementation.
      */
-    private static RoadGraph.Node bestInteriorJunctionWithin(Set<RoadGraph.Node> reachable,
+    private static RoadGraph.Node bestInteriorJunctionWithin(LandingZoneScorer scorer,
+                                                             Set<RoadGraph.Node> reachable,
                                                              int cx, int cy,
                                                              List<int[]> reserved) {
         for (int minDegree = 3; minDegree >= 2; minDegree--) {
@@ -285,6 +294,7 @@ public final class ConvoyMeans implements ReinforcementMeans {
                 int bestD2 = Integer.MAX_VALUE;
                 for (RoadGraph.Node n : reachable) {
                     if (n.perimeter) continue;
+                    if (!scorer.isViable(n.cellX, n.cellY)) continue;
                     if (n.degree() < minDegree) continue;
                     if (useSeparation && nearAnyReserved(n.cellX, n.cellY, reserved)) continue;
                     int dx = n.cellX - cx;
