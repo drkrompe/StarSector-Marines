@@ -36,21 +36,30 @@ c929087  battle: SoA attackRange/attackDamage/accuracy — fifth promotion  ← 
 
 ## Active stories (priority order)
 
-1. ~~[`move-render-primitives`](complete/move-render-primitives.md)~~ —
-   **SHIPPED** (`489b1db`).
+Phase 3's original three (move-render, tactical, secondary-weapon) all
+shipped — see [`complete/phase3-soa-promotions.md`](complete/phase3-soa-promotions.md).
+The next batch was scoped 2026-05-28 after auditing the leftover `Unit`
+primitives and the (now thin) `BattleSimulation` orchestrator:
 
-2. ~~[`tactical-primitives`](complete/tactical-primitives.md)~~ —
-   **SHIPPED** (`c929087`). Rolled up in [`complete/phase3-soa-promotions.md`](complete/phase3-soa-promotions.md).
+1. [`burst-fire-primitives`](stories/burst-fire-primitives.md) —
+   `burstRemaining`/`burstTimer`/`burstTargetId` → int/float/long[].
+   Exact structural repeat of the secondary-weapon story; best warm-up.
+2. [`target-id-primitive`](stories/target-id-primitive.md) — `targetId`
+   → `long[]`. Keystone: hottest per-unit cross-reference, read every
+   tick; sets up deref-free dense target resolution.
+3. [`ai-timer-primitives`](stories/ai-timer-primitives.md) —
+   `repositionCooldown` (rides `tickCooldowns`, nearly free) + fallback
+   group (`fallbackTimer` + `fallbackCellX/Y`). Sliceable.
+4. [`path-mutation-to-navigation`](stories/path-mutation-to-navigation.md) —
+   **Service** cleanup: move `setPath`/`clearPath` bodies off the sim
+   into NavigationService (which already owns the occupancy/destIndex
+   state). Thin sim delegates stay, so consumer churn is ~zero.
 
-3. ~~[`secondary-weapon-primitives`](complete/secondary-weapon-primitives.md)~~ —
-   **SHIPPED** (`01fe905`). Rolled up in [`complete/phase3-soa-promotions.md`](complete/phase3-soa-promotions.md).
-
-**`stories/` is now empty.** The Phase 3 SoA-promotion backlog is drained.
-Remaining per-Unit primitive candidates (burstTimer/burstRemaining/burstTargetId,
-repositionCooldown, fallbackTimer, etc.) are small and low-churn — promote
-opportunistically when a hot path touches them. The bigger next arc is the
-Services/Systems decomposition in [`overview.md`](overview.md) (state owners
-vs. stateless tick consumers); that doesn't have story docs yet.
+Lower-priority / deferred: `attackCooldown` + `visionRange` + `moveSpeed`
+(write-once stat-block completion — tidiness, not a hot-loop win);
+`squadId` + `role` (read-mostly *branching* identity, not arithmetic
+kernels — high churn, low SoA payoff; `role` is an enum needing an
+ordinal int[]). Name them but don't lead with them.
 
 ## Sanity check before resuming
 
