@@ -30,6 +30,7 @@ b620e77  battle: SoA repositionCooldown — ninth (C3 Slice A)  ← 2026-05-28
 2f48c36  battle: relocate setPath/clearPath into NavigationService + trim sim surface  ← 2026-05-28
 c49eea7  battle: MapService — runtime map-modification coordinator (Slice 1)  ← 2026-05-28
 53d5e7d  battle: drop sim.getBattleResources facade getter (drop-facade Slice 1)  ← 2026-05-28
+9c6267e  battle: BattleView/BattleControl interfaces — GOAP spine, proving slice  ← 2026-05-28
 ```
 
 ## State of play
@@ -43,7 +44,7 @@ c49eea7  battle: MapService — runtime map-modification coordinator (Slice 1)  
 - **Five consumers** on dense-iter + SoA array reads. (The burst pass in
   `InfantryWeapons.tick`, `targetId`'s ~17 sites, and the fall-back group's
   break-contact consumers route through accessors, not dense-iter yet.)
-- **Full suite green** at `53d5e7d`. The prior `RecaptureTargetRegistryTest`
+- **Full suite green** at `9c6267e`. The prior `RecaptureTargetRegistryTest`
   / `BspMapPreviewTest` failures were sibling-session WIP and are no longer
   failing — never in any ECS-migration changeset.
 
@@ -98,14 +99,28 @@ primitives and the (now thin) `BattleSimulation` orchestrator:
    - **Slice 1 SHIPPED** (`53d5e7d`): `getBattleResources` dropped —
      `BattleResources` constructor-injected into `ReinforcementService`
      (1 consumer, no GOAP, no tests).
-   - **Next**: `getReinforcementService` (2 consumers, both non-GOAP — but
-     weigh whether it's worth dropping vs. accepting as a setup-only seam),
-     then the GOAP-bound getters (`getCompoundService`, `getTacticalScoring`,
-     `getHitResponseService`, `getUnitRegistry`, …) only after the
-     `sim`-param mechanism is settled.
-   - **Still-open big fork:** narrowing interface vs. services bundle for
-     the GOAP `Action`/`Goal` `sim` param (threaded through ~92 files).
-     Deferred on purpose by the command-tier-first ordering.
+   - **Command-tier reassessment**: getters past `getBattleResources`
+     turned out NOT one-at-a-time severable (consumers take `sim` as a
+     method param + use it for several reads). Went straight to the spine.
+     See story's "Command-tier reassessment" block.
+   - **GOAP spine mechanism DECIDED — read/mutate interface split**
+     (`BattleView` read-only / `BattleControl extends BattleView` mutators;
+     `BattleSimulation implements BattleControl`). Encodes the
+     parallel/serial thread-safety contract in types.
+     - **Proving slice SHIPPED** (`9c6267e`): interfaces + `implements` +
+       `ZoneQueries` → `BattleView`. Mechanism validated (sim upcasts;
+       consumers narrow independently; Action/Goal flip comes last).
+   - **Next slices** (incremental, callers unaffected until the last):
+     1. Narrow read-only helpers/consumers to `BattleView`
+        (`WorldStateBuilder` ~9 sim uses, `PredicateEvaluator`, the
+        read-side of postures), growing `BattleView` as needed.
+     2. Narrow mutating behaviors (postures/`*Behavior` that call
+        `setPath`/`fireShot` outside `Action.execute`) to `BattleControl`.
+     3. **Last:** flip `Action`/`Goal` interface signatures (the one
+        big-bang — every implementor `@Override`s at once; good Sonnet
+        fan-out, param-type change only, keep the name `sim`).
+   - Sweep convention: keep param NAME `sim`, change only its TYPE →
+     pure signature-level diffs.
    - NOTE: story's `Action.java`/`Goal.java` paths were stale —
      actually `battle/decision/goap/`, not `battle/ai/goap/`.
 
@@ -119,5 +134,5 @@ ordinal int[]). Name them but don't lead with them.
 
 - `gradlew.bat compileJava` should be clean.
 - All tests pass.
-- `git log --oneline -5` should show `53d5e7d` or your own recent work
+- `git log --oneline -5` should show `9c6267e` or your own recent work
   at the top.

@@ -135,6 +135,61 @@ GOAP-bound → blocked on the spine decision (do these last):
   `getAttackersOf` / `getVantagePointsFor`** — heavily consumed by GOAP
   actions/postures via `sim`. Spine-gated.
 
+### Command-tier reassessment (2026-05-28)
+
+After reading consumer *bodies* (not just the call list), the command-tier
+getters past `getBattleResources` turned out **not** one-at-a-time
+severable: `ConvoyMeans` / `ShuttleMeans` / `WalkInMeans` /
+`GarrisonDepletedTrigger` / `ConquestCommand` all receive `sim` as a
+**method parameter** (`canFulfill`/`dispatch`/`check`/`tick`) and use it
+for *several* reads each (grid, topology, squads, zone graph, vehicles),
+not just compounds. Injecting `CompoundService` removes one of N sim uses
+and doesn't let the getter drop (GOAP + UI + tests still call it) — net
+churn, no severance. `getBattleResources` was severable only because its
+sole consumer (`ReinforcementService`) is a constructor-injected stateful
+*service*, not a sim-by-param method. **Conclusion:** the command-tier
+getters need the same interface-narrowing decision as GOAP. We went
+straight to the spine.
+
+### GOAP spine mechanism — DECIDED: read/mutate interface split
+
+Chosen over the services-bundle record because it **encodes the
+thread-safety contract in the type system**. The GOAP-consumer `sim`
+surface (~24 methods) splits cleanly along the parallel/serial line:
+
+- **`BattleView`** (read-only) → the parallel-replan methods
+  (`cost`/`roles`/`relevance`/`desiredState`/`highlightCells` + query
+  helpers). A param narrowed to `BattleView` *cannot compile* a
+  `setPath`/`fireShot`/`advanceMovement` — the contract was Javadoc-only
+  before.
+- **`BattleControl extends BattleView`** (adds mutators) → the serial
+  `execute`.
+- `BattleSimulation implements BattleControl` (every method already
+  existed; zero new code).
+
+**Incremental strategy (the key unlock):** because the sim *implements*
+the interfaces, any consumer narrows its own param type **independently**,
+and callers still passing `sim` upcast automatically. So:
+
+1. ✅ Define interfaces + `implements` + migrate one read-only consumer
+   (`ZoneQueries`) — **proving slice SHIPPED `9c6267e`**.
+2. Narrow leaf consumers / helpers one slice at a time (read consumers →
+   `BattleView`, mutating behaviors → `BattleControl`). Callers unaffected.
+3. **Flip the `Action`/`Goal` interface signatures last** — the one
+   big-bang (every implementor `@Override`s at once), but by then the
+   bodies already use narrowed locals.
+
+**Sweep convention:** keep the parameter *name* `sim` (just change its
+type) so each slice is a pure signature-level change, bodies untouched —
+ideal for a Sonnet fan-out. The interface surface is grown per slice;
+adding a method `BattleSimulation` already has is zero-risk. `BattleView`
+currently exposes the high-frequency reads (grid, zoneGraph, units,
+occupancyMap, targetOf, getSquad(s), tacticalScoring); `BattleControl`
+the core mutators (setPath/clearPath/advanceMovement/fire*). Grow as
+consumers need (`resolveUnit`, `getUnitIndex`, `getDoodadCoverAt*`,
+`getCompoundService`, `getTacticalMap`, `fireShotFrom`, `queueSpawn`,
+`mintSquad`, `snapshot*`).
+
 ## Sequencing
 
 - **After** [`path-mutation-to-navigation`](path-mutation-to-navigation.md)
