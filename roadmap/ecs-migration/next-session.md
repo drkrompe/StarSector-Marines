@@ -28,6 +28,7 @@ c929087  battle: SoA attackRange/attackDamage/accuracy — fifth promotion  ← 
 b620e77  battle: SoA repositionCooldown — ninth (C3 Slice A)  ← 2026-05-28
 9104c85  battle: SoA fallback group + wanderDwellTimer — tenth (C3 Slice B)  ← 2026-05-28
 2f48c36  battle: relocate setPath/clearPath into NavigationService + trim sim surface  ← 2026-05-28
+c49eea7  battle: MapService — runtime map-modification coordinator (Slice 1)  ← 2026-05-28
 ```
 
 ## State of play
@@ -41,7 +42,7 @@ b620e77  battle: SoA repositionCooldown — ninth (C3 Slice A)  ← 2026-05-28
 - **Five consumers** on dense-iter + SoA array reads. (The burst pass in
   `InfantryWeapons.tick`, `targetId`'s ~17 sites, and the fall-back group's
   break-contact consumers route through accessors, not dense-iter yet.)
-- **Full suite green** at `9104c85`. The prior `RecaptureTargetRegistryTest`
+- **Full suite green** at `c49eea7`. The prior `RecaptureTargetRegistryTest`
   / `BspMapPreviewTest` failures were sibling-session WIP and are no longer
   failing — never in any ECS-migration changeset.
 
@@ -74,16 +75,18 @@ primitives and the (now thin) `BattleSimulation` orchestrator:
    along a sim-surface trim (dead `rollFallbackOnHit` deleted, four
    `flushPending*` privatized).
 5. [`map-service-coordinator`](stories/map-service-coordinator.md) —
-   **Service** extraction: introduce a `MapService` that owns the map
-   lifecycle (runtime wall/roof destruction first, generation as a stretch
-   slice) and delegates to NavigationService + CellTopology — lifting the
-   topology-mutation behavior (`damageWall` / `destroyRoof` /
-   `flipCellToRubble` + the roof-collapse FX sink) off NavigationService,
-   which shouldn't own non-navigation map state. Resolves the
-   cross-domain-ownership smell surfaced by path-mutation; clean
-   prerequisite to the facade cleanup (it adds one more `sim.damageCell`
-   delegate, better introduced before that cleanup enumerates the surface).
-   Slice 1 (~6 runtime-modification call sites) is a standalone commit.
+   **Service** extraction. **Slice 1 SHIPPED** (`c49eea7`,
+   [complete](complete/map-service-coordinator-slice1.md)): `MapService`
+   (in `battle.world`) now owns the runtime map-modification cycle
+   (`damageWall` / `destroyRoof` / `peelRoofAround` / `flipCellToRubble` +
+   the roof-collapse FX sink), lifted off NavigationService. CellTopology
+   stayed a data holder (sub-decision 1 resolved — no CellTopologyService).
+   `sim.damageCell` repointed to `mapService.damageWall`; the 3 consumers
+   (Detonations + the two demolition systems) swapped their `navigation`
+   field for `mapService`. **Slice 2 (generation cycle) still open** — a
+   stretch: fold the generators' grid+topology population into MapService;
+   larger surface, lower smell. Pick it up only if the seam proves worth
+   it, else go straight to the facade cleanup ↓.
 6. [`drop-sim-facade-delegators`](stories/drop-sim-facade-delegators.md) —
    **Terminal** migration story: remove the ~40 `*SimContext`-style facade
    delegators (mutating behavior delegates + service getters) so consumers
@@ -105,5 +108,5 @@ ordinal int[]). Name them but don't lead with them.
 
 - `gradlew.bat compileJava` should be clean.
 - All tests pass.
-- `git log --oneline -5` should show `01fe905` or your own recent work
+- `git log --oneline -5` should show `c49eea7` or your own recent work
   at the top.
