@@ -1024,4 +1024,153 @@ public class UnitRegistryTest {
         assertTrue(r.isLive(idA));
         assertEquals(0, r.indexOf(idA));
     }
+
+    @Test
+    public void allocateSeedsFallbackCellFromUnitsLocalFieldsAndAccessorsRouteThroughRegistry() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        // Default -1/-1 sentinel must ride the seed through allocate.
+        r.allocate(u);
+        assertEquals(-1, r.getFallbackCellX(u.denseIdx));
+        assertEquals(-1, r.getFallbackCellY(u.denseIdx));
+        assertEquals(-1, u.getFallbackCellX());
+        assertEquals(-1, u.getFallbackCellY());
+
+        u.setFallbackCell(12, 9);
+        assertEquals(12, r.getFallbackCellX(u.denseIdx));
+        assertEquals(9, r.getFallbackCellY(u.denseIdx));
+        assertEquals(12, u.getFallbackCellX());
+        assertEquals(9, u.getFallbackCellY());
+    }
+
+    @Test
+    public void releaseSnapshotsFallbackCellBackToLocalField() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        r.allocate(u);
+
+        u.setFallbackCell(42, 17);
+        r.release(u.entityId);
+
+        assertNull(u.registry);
+        assertEquals(-1, u.denseIdx);
+        assertEquals(42, u.getFallbackCellX());
+        assertEquals(17, u.getFallbackCellY());
+    }
+
+    @Test
+    public void releaseTailSwapMovesFallbackCellCorrectly() {
+        UnitRegistry r = new UnitRegistry();
+        Unit a = unit("a");
+        Unit b = unit("b");
+        Unit c = unit("c");
+        long idA = r.allocate(a);
+        r.allocate(b);
+        r.allocate(c);
+        c.setFallbackCell(99, 88);
+
+        r.release(idA);
+
+        assertEquals(0, c.denseIdx);
+        assertEquals(99, r.getFallbackCellX(0));
+        assertEquals(88, r.getFallbackCellY(0));
+        assertEquals(99, c.getFallbackCellX());
+        assertEquals(88, c.getFallbackCellY());
+    }
+
+    @Test
+    public void allocateSeedsFallbackTimerAndAccessorsRouteThroughRegistry() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        u.localFallbackTimer = 2.5f;
+
+        r.allocate(u);
+
+        assertEquals(2.5f, u.getFallbackTimer(), 1e-6f);
+        assertEquals(2.5f, r.getFallbackTimer(u.denseIdx), 1e-6f);
+
+        u.setFallbackTimer(1.25f);
+        assertEquals(1.25f, r.getFallbackTimer(u.denseIdx), 1e-6f);
+        assertEquals(1.25f, u.getFallbackTimer(), 1e-6f);
+    }
+
+    @Test
+    public void releaseSnapshotsFallbackTimerBackToLocalField() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        r.allocate(u);
+
+        u.setFallbackTimer(3.1f);
+        r.release(u.entityId);
+
+        assertNull(u.registry);
+        assertEquals(-1, u.denseIdx);
+        assertEquals(3.1f, u.getFallbackTimer(), 1e-6f);
+    }
+
+    @Test
+    public void releaseTailSwapMovesFallbackTimerCorrectly() {
+        UnitRegistry r = new UnitRegistry();
+        Unit a = unit("a");
+        Unit b = unit("b");
+        Unit c = unit("c");
+        long idA = r.allocate(a);
+        r.allocate(b);
+        r.allocate(c);
+        c.setFallbackTimer(0.4f);
+
+        r.release(idA);
+
+        assertEquals(0, c.denseIdx);
+        assertEquals(0.4f, r.getFallbackTimer(0), 1e-6f);
+        assertEquals(0.4f, c.getFallbackTimer(), 1e-6f);
+    }
+
+    @Test
+    public void allocateSeedsWanderDwellTimerAndAccessorsRouteThroughRegistry() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        u.localWanderDwellTimer = 1.5f;
+
+        r.allocate(u);
+
+        assertEquals(1.5f, u.getWanderDwellTimer(), 1e-6f);
+        assertEquals(1.5f, r.getWanderDwellTimer(u.denseIdx), 1e-6f);
+
+        u.setWanderDwellTimer(0.75f);
+        assertEquals(0.75f, r.getWanderDwellTimer(u.denseIdx), 1e-6f);
+        assertEquals(0.75f, u.getWanderDwellTimer(), 1e-6f);
+    }
+
+    @Test
+    public void releaseSnapshotsWanderDwellTimerBackToLocalField() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        r.allocate(u);
+
+        u.setWanderDwellTimer(1.2f);
+        r.release(u.entityId);
+
+        assertNull(u.registry);
+        assertEquals(-1, u.denseIdx);
+        assertEquals(1.2f, u.getWanderDwellTimer(), 1e-6f);
+    }
+
+    @Test
+    public void releaseTailSwapMovesWanderDwellTimerCorrectly() {
+        UnitRegistry r = new UnitRegistry();
+        Unit a = unit("a");
+        Unit b = unit("b");
+        Unit c = unit("c");
+        long idA = r.allocate(a);
+        r.allocate(b);
+        r.allocate(c);
+        c.setWanderDwellTimer(0.9f);
+
+        r.release(idA);
+
+        assertEquals(0, c.denseIdx);
+        assertEquals(0.9f, r.getWanderDwellTimer(0), 1e-6f);
+        assertEquals(0.9f, c.getWanderDwellTimer(), 1e-6f);
+    }
 }

@@ -112,6 +112,14 @@ public final class UnitRegistry {
     private long[] targetId = new long[INITIAL_CAPACITY];
     /** Per-unit sim-seconds until the unit may next micro-reposition between shots. Decremented in {@code InfantryUnitPrep.tickCooldowns}. Same lifecycle as {@link #hp}. */
     private float[] repositionCooldown = new float[INITIAL_CAPACITY];
+    /** Per-unit sim-seconds remaining in break-contact fall-back state (>0 = falling back toward {@link #fallbackCellX}/{@link #fallbackCellY}). Same lifecycle as {@link #hp}. */
+    private float[] fallbackTimer = new float[INITIAL_CAPACITY];
+    /** Per-unit cached fall-back destination cell X (-1 = none). Paired with {@link #fallbackCellY}; same int-pair layout as {@link #cellX}. Same lifecycle as {@link #hp}. */
+    private int[] fallbackCellX = new int[INITIAL_CAPACITY];
+    /** Per-unit cached fall-back destination cell Y, paired with {@link #fallbackCellX}. */
+    private int[] fallbackCellY = new int[INITIAL_CAPACITY];
+    /** Per-unit FLEE-role idle pause between wander legs (sim-seconds). Same lifecycle as {@link #hp}. */
+    private float[] wanderDwellTimer = new float[INITIAL_CAPACITY];
     private int liveCount = 0;
     private long nextId = 1L;
 
@@ -164,6 +172,10 @@ public final class UnitRegistry {
             burstTargetId = Arrays.copyOf(burstTargetId, newCap);
             targetId = Arrays.copyOf(targetId, newCap);
             repositionCooldown = Arrays.copyOf(repositionCooldown, newCap);
+            fallbackTimer = Arrays.copyOf(fallbackTimer, newCap);
+            fallbackCellX = Arrays.copyOf(fallbackCellX, newCap);
+            fallbackCellY = Arrays.copyOf(fallbackCellY, newCap);
+            wanderDwellTimer = Arrays.copyOf(wanderDwellTimer, newCap);
         }
         long id = nextId++;
         u.entityId = id;
@@ -193,6 +205,10 @@ public final class UnitRegistry {
         burstTargetId[liveCount] = u.localBurstTargetId;
         targetId[liveCount] = u.localTargetId;
         repositionCooldown[liveCount] = u.localRepositionCooldown;
+        fallbackTimer[liveCount] = u.localFallbackTimer;
+        fallbackCellX[liveCount] = u.localFallbackCellX;
+        fallbackCellY[liveCount] = u.localFallbackCellY;
+        wanderDwellTimer[liveCount] = u.localWanderDwellTimer;
         u.denseIdx = liveCount;
         u.registry = this;
         indexById.put(id, liveCount);
@@ -243,6 +259,10 @@ public final class UnitRegistry {
         released.localBurstTargetId = burstTargetId[idx];
         released.localTargetId = targetId[idx];
         released.localRepositionCooldown = repositionCooldown[idx];
+        released.localFallbackTimer = fallbackTimer[idx];
+        released.localFallbackCellX = fallbackCellX[idx];
+        released.localFallbackCellY = fallbackCellY[idx];
+        released.localWanderDwellTimer = wanderDwellTimer[idx];
         released.denseIdx = -1;
         released.registry = null;
         if (idx != last) {
@@ -267,6 +287,10 @@ public final class UnitRegistry {
             burstTargetId[idx] = burstTargetId[last];
             targetId[idx] = targetId[last];
             repositionCooldown[idx] = repositionCooldown[last];
+            fallbackTimer[idx] = fallbackTimer[last];
+            fallbackCellX[idx] = fallbackCellX[last];
+            fallbackCellY[idx] = fallbackCellY[last];
+            wanderDwellTimer[idx] = wanderDwellTimer[last];
             tail.denseIdx = idx;
             indexById.put(tail.entityId, idx);
         }
@@ -405,6 +429,23 @@ public final class UnitRegistry {
     public float getRepositionCooldown(int idx) { return repositionCooldown[idx]; }
     public void setRepositionCooldown(int idx, float v) { repositionCooldown[idx] = v; }
     public float[] repositionCooldownArray() { return repositionCooldown; }
+
+    public float getFallbackTimer(int idx) { return fallbackTimer[idx]; }
+    public void setFallbackTimer(int idx, float v) { fallbackTimer[idx] = v; }
+    public float[] fallbackTimerArray() { return fallbackTimer; }
+
+    public int getFallbackCellX(int idx) { return fallbackCellX[idx]; }
+    public int getFallbackCellY(int idx) { return fallbackCellY[idx]; }
+    public void setFallbackCell(int idx, int x, int y) {
+        fallbackCellX[idx] = x;
+        fallbackCellY[idx] = y;
+    }
+    public int[] fallbackCellXArray() { return fallbackCellX; }
+    public int[] fallbackCellYArray() { return fallbackCellY; }
+
+    public float getWanderDwellTimer(int idx) { return wanderDwellTimer[idx]; }
+    public void setWanderDwellTimer(int idx, float v) { wanderDwellTimer[idx] = v; }
+    public float[] wanderDwellTimerArray() { return wanderDwellTimer; }
 
     public int liveCount() {
         return liveCount;

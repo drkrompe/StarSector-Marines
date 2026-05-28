@@ -1436,15 +1436,15 @@ public final class TacticalScoring {
      * <p>Shared between
      * {@link com.dillon.starsectormarines.battle.ai.goap.actions.BreakContact}
      * and {@link com.dillon.starsectormarines.battle.ai.goap.actions.BreakLOS}
-     * — both stash the picker's result on {@link Unit#fallbackCellX}/
-     * {@link Unit#fallbackCellY} and need the same "re-roll when stale"
+     * — both stash the picker's result on {@link Unit#getFallbackCellX()}/
+     * {@link Unit#getFallbackCellY()} and need the same "re-roll when stale"
      * invariant. The SQ-17 stuck-defender dump exposed BreakLOS lacking
      * this check: once the cached cell drifted into enemy LoS the unit
      * was glued to it.
      */
     public boolean fallbackDestinationNeedsRefresh(Unit member) {
-        if (member.fallbackCellX < 0 || member.fallbackCellY < 0) return true;
-        return !isHiddenFromAllEnemies(member, member.fallbackCellX, member.fallbackCellY);
+        if (member.getFallbackCellX() < 0 || member.getFallbackCellY() < 0) return true;
+        return !isHiddenFromAllEnemies(member, member.getFallbackCellX(), member.getFallbackCellY());
     }
 
     /**

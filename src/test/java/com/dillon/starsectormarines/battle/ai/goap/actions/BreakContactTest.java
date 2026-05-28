@@ -63,8 +63,7 @@ public class BreakContactTest {
         squad.aliveMembers = 1;
 
         Unit marine = marineAt(6, 7, 1);
-        marine.fallbackCellX = -1;
-        marine.fallbackCellY = -1;
+        marine.setFallbackCell(-1, -1);
         sim.addUnit(marine);
         // One defender on the other side of the wall — gives findFallbackPosition
         // a threat to hide from.
@@ -72,7 +71,7 @@ public class BreakContactTest {
 
         ActionStatus status = BreakContact.INSTANCE.execute(marine, squad, sim);
         assertEquals(ActionStatus.RUNNING, status, "BreakContact runs perpetually");
-        assertTrue(marine.fallbackCellX >= 0 && marine.fallbackCellY >= 0,
+        assertTrue(marine.getFallbackCellX() >= 0 && marine.getFallbackCellY() >= 0,
                 "the action must have stashed a destination cell on the unit");
     }
 
@@ -84,8 +83,7 @@ public class BreakContactTest {
 
         Unit marine = marineAt(2, 2, 1);
         // Force destination to current cell — simulates "already arrived."
-        marine.fallbackCellX = 2;
-        marine.fallbackCellY = 2;
+        marine.setFallbackCell(2, 2);
         sim.addUnit(marine);
         sim.addUnit(defenderAt(11, 11));
 
@@ -105,15 +103,14 @@ public class BreakContactTest {
         // other side. Cell (10, 7) is in shadow of the wall from (3, 7), so
         // the cached destination is genuinely hidden and must stick.
         Unit marine = marineAt(10, 7, 1);
-        marine.fallbackCellX = 10;
-        marine.fallbackCellY = 7;
+        marine.setFallbackCell(10, 7);
         sim.addUnit(marine);
         sim.addUnit(defenderAt(3, 7));
 
         BreakContact.INSTANCE.execute(marine, squad, sim);
-        assertEquals(10, marine.fallbackCellX,
+        assertEquals(10, marine.getFallbackCellX(),
                 "hidden destination must hold — the picker's distFromSelf bias is what prevents churn between equally-good cells");
-        assertEquals(7, marine.fallbackCellY);
+        assertEquals(7, marine.getFallbackCellY());
     }
 
     @Test
@@ -127,13 +124,12 @@ public class BreakContactTest {
         // now the action must re-evaluate so the morale-broken squad doesn't
         // glue itself into the kill zone.
         Unit marine = marineAt(2, 2, 1);
-        marine.fallbackCellX = 2;
-        marine.fallbackCellY = 2;
+        marine.setFallbackCell(2, 2);
         sim.addUnit(marine);
         sim.addUnit(defenderAt(5, 2));
 
         BreakContact.INSTANCE.execute(marine, squad, sim);
-        boolean cellChanged = marine.fallbackCellX != 2 || marine.fallbackCellY != 2;
+        boolean cellChanged = marine.getFallbackCellX() != 2 || marine.getFallbackCellY() != 2;
         assertTrue(cellChanged,
                 "arrived destination was exposed to (5,2); re-pick should have moved fallbackCellX/Y off (2,2)");
     }
@@ -151,8 +147,7 @@ public class BreakContactTest {
         // from (3, 3) OR (3, 3) became hidden between ticks." For this open
         // patch the defender has LoS to (3, 3), so the action must replace it.
         Unit marine = marineAt(2, 2, 1);
-        marine.fallbackCellX = 3;
-        marine.fallbackCellY = 3;
+        marine.setFallbackCell(3, 3);
         sim.addUnit(marine);
         sim.addUnit(defenderAt(5, 2));
 
@@ -160,7 +155,7 @@ public class BreakContactTest {
         // Either the cell changed, or it's still visible — but in this layout
         // the defender at (5,2) has LoS to (3,3). The recompute branch should
         // have picked a different cell behind the column-7 wall.
-        boolean changed = (marine.fallbackCellX != 3 || marine.fallbackCellY != 3);
+        boolean changed = (marine.getFallbackCellX() != 3 || marine.getFallbackCellY() != 3);
         assertTrue(changed,
                 "cached (3,3) was visible to (5,2); recompute should have moved the destination");
     }

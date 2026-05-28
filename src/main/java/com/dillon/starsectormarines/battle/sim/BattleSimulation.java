@@ -583,9 +583,8 @@ public class BattleSimulation {
 
     /** Inline fallback write — invoked by the damage service on the serial path AND from the queued-flush. Writes the 3 fb fields and clears the stale path so the target re-paths to the fall-back cell on its next updateUnit pass. */
     private void writeFallbackInline(Unit target, int fbX, int fbY) {
-        target.fallbackCellX = fbX;
-        target.fallbackCellY = fbY;
-        target.fallbackTimer = com.dillon.starsectormarines.battle.damage.HitResponseService.FALLBACK_DURATION;
+        target.setFallbackCell(fbX, fbY);
+        target.setFallbackTimer(com.dillon.starsectormarines.battle.damage.HitResponseService.FALLBACK_DURATION);
         clearPath(target);
     }
 

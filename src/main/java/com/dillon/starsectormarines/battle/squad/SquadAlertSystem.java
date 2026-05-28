@@ -137,7 +137,7 @@ public final class SquadAlertSystem {
             squad.aliveMembers++;
             squad.centroidX += cellX[i];
             squad.centroidY += cellY[i];
-            if (u.fallbackTimer > 0f) squad._suspiciousThisTick = true;
+            if (u.getFallbackTimer() > 0f) squad._suspiciousThisTick = true;
 
             // Kill-zone LOS scan for garrison squads only. Looks for ANY
             // squadmate with LOS to a close enemy combatant — a single

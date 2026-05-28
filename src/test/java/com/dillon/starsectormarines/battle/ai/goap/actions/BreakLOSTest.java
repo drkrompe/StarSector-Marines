@@ -76,18 +76,17 @@ public class BreakLOSTest {
         // (10, 2) has LOS to the marine; findFallbackPosition must pick a
         // different (hidden) cell.
         Unit marine = marineAt(2, 2, squadId);
-        marine.fallbackCellX = -1;
-        marine.fallbackCellY = -1;
+        marine.setFallbackCell(-1, -1);
         sim.addUnit(marine);
         sim.addUnit(defenderAt(11, 7));
 
         ActionStatus status = BreakLOS.INSTANCE.execute(marine, squad, sim);
-        assertTrue(marine.fallbackCellX >= 0 && marine.fallbackCellY >= 0,
+        assertTrue(marine.getFallbackCellX() >= 0 && marine.getFallbackCellY() >= 0,
                 "BreakLOS must stash a destination cell on the unit");
         // Status is RUNNING if the picked cell differs from the start cell,
         // SUCCESS if findFallbackPosition decided the start cell was already
         // hidden (in which case the unit was effectively already safe).
-        boolean different = (marine.fallbackCellX != 2 || marine.fallbackCellY != 2);
+        boolean different = (marine.getFallbackCellX() != 2 || marine.getFallbackCellY() != 2);
         if (different) {
             assertEquals(ActionStatus.RUNNING, status,
                     "in-transit BreakLOS reports RUNNING while the member walks to its hidden cell");
@@ -106,8 +105,7 @@ public class BreakLOSTest {
 
         Unit marine = marineAt(2, 2, squadId);
         // Force "arrived" — fallback cell == current cell.
-        marine.fallbackCellX = 2;
-        marine.fallbackCellY = 2;
+        marine.setFallbackCell(2, 2);
         sim.addUnit(marine);
         sim.addUnit(defenderAt(11, 11));
 
@@ -132,16 +130,15 @@ public class BreakLOSTest {
 
         Unit marine = marineAt(5, 7, squadId);
         // Pre-cache a destination that's not the current cell.
-        marine.fallbackCellX = 4;
-        marine.fallbackCellY = 7;
+        marine.setFallbackCell(4, 7);
         sim.addUnit(marine);
         sim.addUnit(defenderAt(11, 7));
 
         ActionStatus status = BreakLOS.INSTANCE.execute(marine, squad, sim);
         assertEquals(ActionStatus.RUNNING, status,
                 "pre-cached destination, not arrived → RUNNING");
-        assertEquals(4, marine.fallbackCellX, "cached destination must not be recomputed mid-transit");
-        assertEquals(7, marine.fallbackCellY);
+        assertEquals(4, marine.getFallbackCellX(), "cached destination must not be recomputed mid-transit");
+        assertEquals(7, marine.getFallbackCellY());
     }
 
     @Test
@@ -159,13 +156,12 @@ public class BreakLOSTest {
         Unit marine = marineAt(2, 2, squadId);
         // Cached destination on the open side of the map — fully visible to
         // the defender at (5, 2). Pre-fix: held this cell forever.
-        marine.fallbackCellX = 3;
-        marine.fallbackCellY = 2;
+        marine.setFallbackCell(3, 2);
         sim.addUnit(marine);
         sim.addUnit(defenderAt(5, 2));
 
         BreakLOS.INSTANCE.execute(marine, squad, sim);
-        boolean changed = (marine.fallbackCellX != 3 || marine.fallbackCellY != 2);
+        boolean changed = (marine.getFallbackCellX() != 3 || marine.getFallbackCellY() != 2);
         assertTrue(changed,
                 "cached (3,2) was visible to defender at (5,2); refresh should have picked a new cell");
     }

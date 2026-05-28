@@ -16,7 +16,7 @@ import com.dillon.starsectormarines.battle.weapons.FireStance;
  * {@link TacticalScoring#findFallbackPosition}, paths there while firing on
  * the move (MOVING penalty), and on arrival holds position firing stanced at
  * anything that drifts into LOS. The destination is cached on
- * {@link Unit#fallbackCellX}/{@link Unit#fallbackCellY} — historically shared
+ * {@link Unit#getFallbackCellX()}/{@link Unit#getFallbackCellY()} — historically shared
  * with the per-unit {@code FallbackBehavior}, which now skips GOAP-driven
  * units (squad members without a mech loadout), leaving these fields owned
  * by BreakContact for marines and other infantry squad members.
@@ -47,19 +47,18 @@ public final class BreakContact implements Action {
     public ActionStatus execute(Unit member, Squad squad, BattleSimulation sim) {
         if (sim.getTacticalScoring().fallbackDestinationNeedsRefresh(member)) {
             int[] dest = sim.getTacticalScoring().findFallbackPosition(member);
-            member.fallbackCellX = dest[0];
-            member.fallbackCellY = dest[1];
+            member.setFallbackCell(dest[0], dest[1]);
         }
 
-        boolean atDest = member.getCellX() == member.fallbackCellX
-                      && member.getCellY() == member.fallbackCellY;
+        boolean atDest = member.getCellX() == member.getFallbackCellX()
+                      && member.getCellY() == member.getFallbackCellY();
         if (!atDest) {
             // Transit — opportunistic suppression while pulling back.
             opportunisticFire(member, sim, FireStance.MOVING);
             if (member.getMoveProgress() == 0f) {
                 sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                         member.getCellX(), member.getCellY(),
-                        member.fallbackCellX, member.fallbackCellY,
+                        member.getFallbackCellX(), member.getFallbackCellY(),
                         sim.getOccupancyMap()));
             }
             sim.advanceMovement(member);

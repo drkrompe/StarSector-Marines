@@ -236,10 +236,48 @@ public class Unit {
     /** {@link UnitRole#KIT_RETRIEVER} target — the dropped kit this unit is heading to recover. Cleared when picked up or when the drop is consumed by someone else. */
     public EquipmentDrop equipmentDropTarget;
 
-    /** Sim-seconds remaining in fall-back state. >0 means the unit is breaking contact toward {@link #fallbackCellX}/{@link #fallbackCellY}. */
-    public float fallbackTimer = 0f;
-    public int fallbackCellX = -1;
-    public int fallbackCellY = -1;
+    /**
+     * <b>Don't read directly.</b> Pre-allocate seed + post-release snapshot for
+     * the break-contact group, same lifecycle as {@link #localHp}. Canonical
+     * storage between allocate and release lives in the registry's SoA arrays;
+     * go through {@link #getFallbackTimer} / {@link #getFallbackCellX} /
+     * {@link #getFallbackCellY} / {@link #setFallbackCell}.
+     *
+     * <p>{@code localFallbackTimer}: sim-seconds remaining in fall-back state.
+     * >0 means the unit is breaking contact toward the cached fall-back cell.
+     */
+    public float localFallbackTimer = 0f;
+    /** <b>Don't read directly</b> — see {@link #localFallbackTimer}. Cached fall-back destination cell X (-1 = none). */
+    public int localFallbackCellX = -1;
+    /** <b>Don't read directly</b> — see {@link #localFallbackTimer}. Cached fall-back destination cell Y (-1 = none). */
+    public int localFallbackCellY = -1;
+
+    public final float getFallbackTimer() {
+        return (registry != null) ? registry.getFallbackTimer(denseIdx) : localFallbackTimer;
+    }
+
+    public final void setFallbackTimer(float v) {
+        if (registry != null) registry.setFallbackTimer(denseIdx, v);
+        else localFallbackTimer = v;
+    }
+
+    public final int getFallbackCellX() {
+        return (registry != null) ? registry.getFallbackCellX(denseIdx) : localFallbackCellX;
+    }
+
+    public final int getFallbackCellY() {
+        return (registry != null) ? registry.getFallbackCellY(denseIdx) : localFallbackCellY;
+    }
+
+    /** Every callsite writes the fall-back cell pair together (break-contact pick, inline fallback write), so the paired setter matches access and hits both SoA slots in one dispatch. */
+    public final void setFallbackCell(int x, int y) {
+        if (registry != null) {
+            registry.setFallbackCell(denseIdx, x, y);
+        } else {
+            localFallbackCellX = x;
+            localFallbackCellY = y;
+        }
+    }
 
     /**
      * <b>Don't read directly.</b> Pre-allocate seed + post-release snapshot for
@@ -266,8 +304,25 @@ public class Unit {
         else localRepositionCooldown = v;
     }
 
-    /** {@link UnitRole#FLEE} idle pause between wander legs. While >0 the civilian stands at their current cell instead of picking a new destination. Rolled fresh on arrival; ignored when a threat is in range. */
-    public float wanderDwellTimer = 0f;
+    /**
+     * <b>Don't read directly.</b> Pre-allocate seed + post-release snapshot,
+     * same lifecycle as {@link #localHp}; go through {@link #getWanderDwellTimer}
+     * / {@link #setWanderDwellTimer}.
+     *
+     * <p>{@link UnitRole#FLEE} idle pause between wander legs. While >0 the
+     * civilian stands at their current cell instead of picking a new
+     * destination. Rolled fresh on arrival; ignored when a threat is in range.
+     */
+    public float localWanderDwellTimer = 0f;
+
+    public final float getWanderDwellTimer() {
+        return (registry != null) ? registry.getWanderDwellTimer(denseIdx) : localWanderDwellTimer;
+    }
+
+    public final void setWanderDwellTimer(float v) {
+        if (registry != null) registry.setWanderDwellTimer(denseIdx, v);
+        else localWanderDwellTimer = v;
+    }
 
     /**
      * Sim-tick index of the last {@code rollReprioritizeOnHit} attempt

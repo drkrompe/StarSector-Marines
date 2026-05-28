@@ -67,7 +67,7 @@ public final class FleeBehavior implements UnitBehavior {
      * in-flight wander dwell so the civilian doesn't stand around mid-panic.
      */
     private static void updateFleeing(Unit u, Unit threat, BattleSimulation sim) {
-        u.wanderDwellTimer = 0f;
+        u.setWanderDwellTimer(0f);
         boolean needsRepath = u.pathIdx >= u.pathCellCount()
                 || cellsTraveled(u) >= REPATH_CELL_THRESHOLD;
         if (needsRepath && u.getMoveProgress() == 0f) {
@@ -89,13 +89,13 @@ public final class FleeBehavior implements UnitBehavior {
             if (u.pathIdx >= u.pathCellCount()) {
                 // Arrived this tick — clear the path and start dwelling.
                 sim.clearPath(u);
-                u.wanderDwellTimer = randomDwellSeconds(u.rng);
+                u.setWanderDwellTimer(randomDwellSeconds(u.rng));
             }
             return;
         }
 
-        if (u.wanderDwellTimer > 0f) {
-            u.wanderDwellTimer -= BattleSimulation.TICK_DT;
+        if (u.getWanderDwellTimer() > 0f) {
+            u.setWanderDwellTimer(u.getWanderDwellTimer() - BattleSimulation.TICK_DT);
             u.setRenderPos(u.getCellX(), u.getCellY());
             u.setMoveProgress(0f);
             return;
@@ -104,13 +104,13 @@ public final class FleeBehavior implements UnitBehavior {
         if (u.getMoveProgress() != 0f) return;
         int[] dest = pickWanderDestination(u, sim);
         if (dest == null) {
-            u.wanderDwellTimer = FAILED_SAMPLE_DWELL;
+            u.setWanderDwellTimer(FAILED_SAMPLE_DWELL);
             return;
         }
         sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), u.getCellX(), u.getCellY(), dest[0], dest[1], sim.getOccupancyMap()));
         if (u.pathEmpty()) {
             // Pathfinder found no route (isolated room, blocked by walls). Dwell briefly and try elsewhere.
-            u.wanderDwellTimer = FAILED_SAMPLE_DWELL;
+            u.setWanderDwellTimer(FAILED_SAMPLE_DWELL);
             return;
         }
         sim.advanceMovement(u);

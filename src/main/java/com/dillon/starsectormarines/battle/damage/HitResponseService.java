@@ -56,7 +56,7 @@ public final class HitResponseService {
 
     public void rollFallbackOnHit(Unit target) {
         if (!target.isAlive()) return;
-        if (target.fallbackTimer > 0f) return;
+        if (target.getFallbackTimer() > 0f) return;
         if (target instanceof MapTurret) return;
         if (target.squadId != Unit.NO_SQUAD) return;
         if (target.rng.nextFloat() >= FALLBACK_CHANCE) return;

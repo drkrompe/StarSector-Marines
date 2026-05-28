@@ -46,18 +46,17 @@ public final class MechBreakContact implements Action {
     public ActionStatus execute(Unit member, Squad squad, BattleSimulation sim) {
         if (sim.getTacticalScoring().fallbackDestinationNeedsRefresh(member)) {
             int[] dest = sim.getTacticalScoring().findFallbackPosition(member);
-            member.fallbackCellX = dest[0];
-            member.fallbackCellY = dest[1];
+            member.setFallbackCell(dest[0], dest[1]);
         }
 
-        boolean atDest = member.getCellX() == member.fallbackCellX
-                      && member.getCellY() == member.fallbackCellY;
+        boolean atDest = member.getCellX() == member.getFallbackCellX()
+                      && member.getCellY() == member.getFallbackCellY();
         if (!atDest) {
             opportunisticMechFire(member, sim);
             if (member.getMoveProgress() == 0f) {
                 sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                         member.getCellX(), member.getCellY(),
-                        member.fallbackCellX, member.fallbackCellY,
+                        member.getFallbackCellX(), member.getFallbackCellY(),
                         sim.getOccupancyMap()));
             }
             sim.advanceMovement(member);
