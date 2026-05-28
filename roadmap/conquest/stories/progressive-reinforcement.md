@@ -106,7 +106,12 @@ deliberately dispatches *into* a conceded slice to push the frontline
 back — is the follow-on
 [`biome-counterattack.md`](biome-counterattack.md).
 
-### Overflow → patrol
+### Overflow → patrol (deferred)
+
+> **Deferred** past the initial implementation. The front-line trigger
+> simply posts nothing when no eligible targets exist; ambient patrol
+> is already covered by the existing WalkInMeans free-agent fallback.
+> The biome-constrained overflow patrol below is a later enhancement.
 
 When a reinforcement request fires but every recapture target in
 every slice is already fulfilled (rare — means every lost position
@@ -152,6 +157,31 @@ and the squad walks to the contested turret (objective = recapture
 target anchor). No more dropping troops directly into a firefight
 or behind enemy lines.
 
+### Landing/dropoff scoring — a reusable tool
+
+The rally is only a **hint** (a region seed, e.g. the defender-rear of
+the chosen slice); it is *not* the literal landing cell. A naive fixed
+offset off the objective would routinely seed a building interior or
+unwalkable terrain. The means must never deboard troops inside a
+building or on impassable ground — so final delivery-cell selection
+goes through a shared **landing/dropoff scorer** rather than each
+means re-rolling its own ad-hoc BFS.
+
+A cell is a **viable dropoff** when it is:
+- walkable (`NavigationGrid.isWalkable`),
+- not inside a building footprint (`CellTopology.getBuildingId` unset),
+- not water / impassable ground (`CellTopology` ground kind), and
+- on the requesting side's territory (biome-slice / axis side).
+
+The scorer ranks viable cells by openness (prefer STREET/COURTYARD),
+clearance (a few free neighbours — matters for air drops), and
+proximity to the hint. Candidate *generation* stays per-means (convoy
+walks road-graph junctions, walk-in scans the map edge, shuttle/front-
+line delivery ring-search out from the hint); candidate *validation
+and ranking* is the shared tool. This both fixes the "land in a
+building" hazard and removes the duplicated selection logic across the
+three means.
+
 ### Expanding existing triggers
 
 This isn't a new trigger — it's expanding `GarrisonDepletedTrigger`
@@ -187,7 +217,7 @@ This is the intended supply-chain pressure.
 
 ## Implementation slices
 
-### Slice 1: ReinforcementRequest two-coordinate split
+### Slice 1: ReinforcementRequest two-coordinate split — ✓ shipped `1e0d388`
 
 Add `objectiveX/Y` fields to `ReinforcementRequest` alongside the
 existing `rallyX/Y`. Rally becomes the delivery hint (means use it
@@ -197,35 +227,51 @@ Means continue to use rally for delivery; dispatch layer reads
 objective to assign the deboarded squad. No behavior change yet —
 just the data plumbing.
 
-### Slice 2: Recapture target tracking
+### Slice 2: Recapture target tracking — ✓ shipped `e4a49b9` (hardened `ae5a1bd`, renamed `e4a2ed6`)
 
-New `RecaptureTargetService` that tracks all defender tactical
-nodes and their garrison state:
+`RecaptureTargetService` (per-tick, owns state) that tracks all
+defender tactical nodes and their garrison state:
 - Populated at sim init from TacticalMap + BiomeMap
 - Groups nodes by biome slice at init time
-- Updated when squads are wiped (squad alive-members reaching zero)
-- Bins alive defender units into biome slices per query to compute
-  the contested set (slices with ≥1 alive defender)
-- Exposes: unfulfilled targets by biome slice **filtered to contested
-  slices** (frontline eligibility), mark-fulfilled on dispatch,
-  re-open on replacement squad wipe
+- Open-state derived each tick from squad→node assignment
+  (zero alive assigned = open)
+- Bins alive defender units into biome slices to compute the
+  contested set, debounced over `PRESENCE_DEBOUNCE_TICKS` both ways,
+  seeded once a defender is actually observed
+- Exposes: eligible targets (`open && !dispatched && contested`),
+  mark-dispatched (de-dup), re-open on replacement-squad wipe
+
+### Slice 3a: Landing/dropoff scorer (prerequisite for 3 + 4)
+
+New reusable tool that validates and ranks a candidate dropoff cell —
+walkable, not inside a building (`CellTopology.getBuildingId`), not
+water, defender-side — scored by openness + clearance + proximity to
+the hint. Candidate generation stays per-means; this owns validation
+and ranking. Standalone unit-testable.
 
 ### Slice 3: FrontLineReinforcementTrigger
 
 New trigger (replaces or wraps `GarrisonDepletedTrigger`) that:
-- Reads `RecaptureTargetService` for unfulfilled targets in
-  contested slices only (conceded slices already filtered out)
-- Picks nearest-to-defender slice with open targets
-- Round-robins within the slice for the objective (flat, unweighted)
-- Picks a safe rally in the same slice (walkable cell near the
-  defender rear of the slice) for delivery
-- Falls back to patrol on overflow (objective = null, rally = slice
-  centroid)
+- Reads `RecaptureTargetService` for eligible targets (open,
+  undispatched, in contested slices)
+- Picks nearest-to-defender slice (biome ordinal FORTRESS > CITY >
+  PORT > BEACH) with eligible targets
+- Round-robins within the slice for the objective (flat, unweighted),
+  one dispatch per tick; calls `markDispatched`
+- Rally = a defender-rear **region hint** in that slice (a search
+  seed); the means + scorer (3a) resolve the actual viable LZ
+- Overflow → patrol is **deferred**: when no eligible targets exist
+  the trigger posts nothing (no budget-draining patrol spam). The
+  existing WalkInMeans free-agent fallback covers ambient patrol;
+  biome-constrained overflow patrol is a later enhancement.
 
-### Slice 4: Squad post-deboard assignment
+### Slice 4: Means delivery via scorer + squad post-deboard assignment
 
 After means dispatches and troops deboard, the dispatch layer
 reads the request's objective coordinates and assigns the squad:
+- Means LZ/entry selection routes through the landing/dropoff scorer
+  (3a) so troops never deboard in a building or on impassable ground;
+  optionally retrofit Convoy/Shuttle/WalkIn candidate selection.
 - If objective is set: HOLD_NODE at the recapture target's
   tactical node. Squad advances from delivery LZ to the position.
 - If objective is null (overflow): patrol behavior in the slice.
