@@ -13,6 +13,7 @@ f44ba82  battle-reorg: slice 2c — map/ → world/model/, UrbanMapGenerator →
 e63bd32  battle-reorg: slice 3 — ground/ → vehicle/, absorb MapVehicle/VehicleKind
 5b68452  battle-reorg: slice 4 — objective/reinforcement/compound + resources → command/
 6134d1e  battle-reorg: slice 5 — Squad/SquadPlan/SquadAlertLevel → squad/
+c693c27  battle-reorg: slice 6a — engine/scoring/world + dispatch + tactical → decision/
 ```
 
 ## State of play
@@ -50,6 +51,25 @@ e63bd32  battle-reorg: slice 3 — ground/ → vehicle/, absorb MapVehicle/Vehic
   test dir to `git mv`, so the relocation glob misses them; the compiler
   caught it. **Always grep bare usages of moved types in `src/test` too.**
   111 files, build + suite green.
+- **Slice 6a SHIPPED.** First sub-slice of the `ai/` dissolve. Framework
+  core out of `ai/`/`tactical/` → new `decision/`: GOAP engine (Action,
+  ActionStatus, Goal, Planner, Predicate, WorldState) → `decision/goap/`;
+  `scoring/`+`world/` → `decision/goap/{scoring,world}/`; dispatch infra
+  (UnitUpdateSystem, UnitBehavior, TacticalScoring, AttackerIndexService) +
+  the two role-agnostic dispatch behaviors (FallbackBehavior, FleeBehavior)
+  → `decision/` flat; `tactical/` graph → `decision/` flat (dissolved).
+  **`ai/` now holds only** actor behaviors + the 3 `Goap*Behavior`
+  composers + `goals/`/`actions/` (for 6b/6c). Key gotchas: (1) **no
+  blanket `ai.goap.` prefix rewrite** — `actions/`/`goals/` stay, so rewrite
+  only the 6 specific engine class FQNs + the `scoring.`/`world.`
+  subpackage prefixes; (2) **subpackage refs were already-existing imports**
+  the FQN rewrite fixed — only *same-package* bare refs needed new imports
+  (the 3 composers ← engine; staying `ai/` behaviors ← `decision.UnitBehavior`
+  /`TacticalScoring`; moved `UnitUpdateSystem`/`TacticalScoring` ← staying
+  `ai/` classes); (3) **javac cascade-masks** bare-ref errors round-to-round
+  — needed 3 full `--rerun-tasks` compiles to surface the whole set; (4) the
+  package-rewrite perl dropped the blank line after `package` in each moved
+  file (cosmetic, left as-is). 158 files, 32 renames, build + suite green.
 - **Proceeded ahead of the facade-drop** because sibling sessions are
   paused (tree quiet). Remaining slices should re-check tree quietness.
 - **Note:** a paused sibling agent's worktree under `.claude/worktrees/`
@@ -58,11 +78,17 @@ e63bd32  battle-reorg: slice 3 — ground/ → vehicle/, absorb MapVehicle/Vehic
 ## When picking up
 
 1. Re-confirm the tree is quiet (no concurrent large churn).
-2. Next is **slice 5 (`squad/` consolidation)** — move `Squad` (from
-   `unit/`), `SquadPlan` (from `ai/goap/`), `SquadAlertLevel` (from `ai/`)
-   into `squad/`. See `overview.md` § Slice plan. Note: pulling pieces *out*
-   of `unit/` and `ai/` (splits, not whole-dir renames) — each moved class
-   needs imports for the bare-name siblings it leaves behind.
+2. Next is **slice 6b (actor behaviors → `infantry/`/`mech/`/`drone/`/`turret/`)**
+   — move out of `ai/`: `CombatantBehavior`, `InfantryCohesion`,
+   `InfantryUnitPrep`, `KitRetrieverBehavior` → `infantry/`;
+   `MechCombatantBehavior` → `mech/`; `DroneHubBehavior` → `drone/`;
+   `TurretBehavior`, `TurretAim`, `StructureBehavior` → `turret/`; plus the
+   3 composers `GoapInfantryBehavior`→`infantry/`, `GoapMechBehavior`→`mech/`,
+   `GoapDroneBehavior`→`drone/`. Creates `infantry/` + `mech/`. These
+   reference the just-moved `decision/` engine (imports already point there
+   from 6a — they ride along on the move). Then **6c**: partition
+   `goals/`+`actions/` per the GOAP partition rule (main-thread judgment) —
+   that empties `ai/` and completes the dissolve.
 3. Proven per-slice recipe (refine as needed):
    - `git mv` files; for a package *split*, do an **ordered** FQN rewrite
      (specific-class redirects before the general prefix rewrite).

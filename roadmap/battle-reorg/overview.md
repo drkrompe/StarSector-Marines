@@ -239,8 +239,15 @@ reference-churn moves to a quiet base.
    — `git mv` test-dir glob misses single-class lifts; grep bare usages in
    `src/test` too. 111 files, build + suite green.
 6. **`ai/` dissolve** (multi-sub-slice):
-   - 6a engine + scoring + world + dispatch + tactical-scoring +
-     tactical-graph → `decision/`.
+   - ~~6a engine + scoring + world + dispatch + tactical-scoring +
+     tactical-graph → `decision/`.~~ **SHIPPED** (`c693c27`). GOAP engine →
+     `decision/goap/` (+ `scoring/`, `world/`); dispatch infra
+     (UnitUpdateSystem, UnitBehavior, TacticalScoring, AttackerIndexService)
+     + the two role-agnostic dispatch behaviors (FallbackBehavior,
+     FleeBehavior) → `decision/`; `tactical/` graph → `decision/` (dissolved).
+     Class-specific FQN rewrite (actions/ + goals/ stay in `ai.goap`, so no
+     blanket prefix rewrite). Bidirectional import fix-ups across the move
+     boundary; 10 same-package tests relocated. Build + suite green.
    - 6b actor behaviors → `infantry/` / `mech/` / `drone/` / `turret/`.
    - 6c goals/actions partition per the rule above.
 7. **`weapons/` slice split** — `Marine*` → `infantry/`, `Mech*` → `mech/`
