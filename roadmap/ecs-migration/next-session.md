@@ -24,6 +24,7 @@ a4df09b  battle: SoA cooldownTimer — third primitive promotion
 c929087  battle: SoA attackRange/attackDamage/accuracy — fifth promotion  ← 2026-05-27
 01fe905  battle: SoA secondary{Cooldown,Action}Timer/secondaryAimTargetId — sixth  ← 2026-05-28
 024344f  battle: SoA burstRemaining/burstTimer/burstTargetId — seventh  ← 2026-05-28
+7ae84e6  battle: SoA targetId — eighth (keystone cross-reference)  ← 2026-05-28
 ```
 
 ## State of play
@@ -31,11 +32,15 @@ c929087  battle: SoA attackRange/attackDamage/accuracy — fifth promotion  ← 
 - **Primitives promoted:** hp/maxHp, cellX/cellY, cooldownTimer,
   moveProgress, renderX/renderY, attackDamage, attackRange, accuracy,
   secondaryCooldownTimer, secondaryActionTimer, secondaryAimTargetId,
-  burstRemaining, burstTimer, burstTargetId. Two `long[]` so far
-  (`secondaryAimTargetId`, then `burstTargetId`).
+  burstRemaining, burstTimer, burstTargetId, targetId. Three `long[]`
+  (`secondaryAimTargetId`, `burstTargetId`, `targetId`).
 - **Five consumers** on dense-iter + SoA array reads. (The burst pass in
-  `InfantryWeapons.tick` routes through accessors, not dense-iter yet.)
-- **Build green; all tests pass.**
+  `InfantryWeapons.tick` and `targetId`'s ~17 sites route through
+  accessors, not dense-iter yet.)
+- **targetId-touched tests pass.** One *unrelated* pre-existing failure:
+  `BspMapPreviewTest.renderConquestBatch` (conquest map-gen walkability,
+  seed 100) from sibling mapgen commits `42b384b`/`56a0407` — not in any
+  ECS-migration changeset.
 
 ## Active stories (priority order)
 
@@ -48,12 +53,13 @@ primitives and the (now thin) `BattleSimulation` orchestrator:
    **SHIPPED** (`024344f`). `burstRemaining`/`burstTimer`/`burstTargetId`
    → int/float/long[]. The MapTurret shadowing question resolved clean
    (turret keeps its own fields). Next promotion candidate ↓.
-2. [`target-id-primitive`](stories/target-id-primitive.md) — `targetId`
-   → `long[]`. Keystone: hottest per-unit cross-reference, read every
-   tick; sets up deref-free dense target resolution.
+2. ~~[`target-id-primitive`](complete/target-id-primitive.md)~~ —
+   **SHIPPED** (`7ae84e6`). `targetId` → `long[]`, the keystone
+   cross-reference. ~17 consumer sites migrated (mechanical sweep fanned
+   out to a Sonnet subagent). Next promotion candidate ↓.
 3. [`ai-timer-primitives`](stories/ai-timer-primitives.md) —
    `repositionCooldown` (rides `tickCooldowns`, nearly free) + fallback
-   group (`fallbackTimer` + `fallbackCellX/Y`). Sliceable.
+   group (`fallbackTimer` + `fallbackCellX/Y`). Sliceable. **Next up.**
 4. [`path-mutation-to-navigation`](stories/path-mutation-to-navigation.md) —
    **Service** cleanup: move `setPath`/`clearPath` bodies off the sim
    into NavigationService (which already owns the occupancy/destIndex
