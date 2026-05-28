@@ -34,6 +34,9 @@ universe over time, not retrofitted into intel slots.
   shipped-with-details record. The battle tier's ongoing parallel tracks
   are convoy kinematics ([`convoy/`](convoy/overview.md)), the Services/Systems + SoA refactor
   ([`ecs-migration/`](ecs-migration/overview.md)), fog-of-war, and AI (GOAP + commander).
+  A documented (not-yet-executed) **feature-vertical package reorg** of
+  `battle/` is queued behind the ECS facade-drop — see
+  [`battle-reorg/`](battle-reorg/overview.md).
 - **Campaign tier** — SoA `CampaignState`, contracts loop, patron houses,
   mission-resolver bridge. The Marine Ops mission-select screen consumes
   this layer. See [`campaign/`](campaign/).
