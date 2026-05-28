@@ -14,18 +14,27 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
  * <p>Design: {@code roadmap/conquest/stories/progressive-reinforcement.md}
  * (slice 3a). Candidate <em>generation</em> stays per-means (convoy walks
  * road-graph junctions, walk-in scans the map edge, shuttle / front-line
- * delivery ring-search out from a rally hint); candidate <em>validation and
- * ranking</em> is owned here.
+ * delivery ring-search out from a rally hint); candidate <em>validation,
+ * gating, and ranking</em> are owned here.
  *
- * <p>Viability is the load-bearing guarantee: a cell is a viable dropoff only
- * if it is in bounds, walkable, and not inside a building footprint. Water and
- * walls are already non-walkable, so {@link NavigationGrid#isWalkable} covers
- * them; the building-footprint check ({@link CellTopology#getBuildingId})
- * is what stops a drop onto a walkable building <em>interior</em> cell.
+ * <p><b>Viability</b> is the load-bearing guarantee: a cell is a viable
+ * dropoff only if it is in bounds, walkable, and not inside a building
+ * footprint. Water and walls are already non-walkable, so
+ * {@link NavigationGrid#isWalkable} covers them; the building-footprint check
+ * ({@link CellTopology#getBuildingId}) is what stops a drop onto a walkable
+ * building <em>interior</em> cell.
+ *
+ * <p><b>Selection</b> is proximity-primary: among cells that are viable and
+ * clear enough ({@code minClearance} — a hard pad-size gate, so an air drop
+ * can demand more open space than a walk-in), the nearest to the hint wins,
+ * ties broken by higher {@link #quality} (open ground + clearance), then by
+ * row-major iteration order (deterministic — biases up-and-left of the hint on
+ * otherwise-equal flat ground). Quality is a tie-breaker, not traded against
+ * distance, so the choice never depends on the search radius.
  */
 public final class LandingZoneScorer {
 
-    /** Quality bonus for a cell whose ground reads as an open outdoor LZ surface. */
+    /** {@link #quality} bonus for a cell whose ground reads as an open outdoor LZ surface. */
     static final int OPEN_GROUND_BONUS = 3;
 
     private final NavigationGrid grid;
@@ -45,41 +54,54 @@ public final class LandingZoneScorer {
         return grid.inBounds(x, y) && grid.isWalkable(x, y) && topo.getBuildingId(x, y) == 0;
     }
 
-    /**
-     * Suitability of a viable cell as a dropoff: open-space clearance (count of
-     * viable 8-neighbours) plus a bonus for open outdoor ground. Returns
-     * {@link Integer#MIN_VALUE} for a non-viable cell so it can never win a
-     * ranking.
-     */
-    public int quality(int x, int y) {
-        if (!isViable(x, y)) return Integer.MIN_VALUE;
-        int clearance = 0;
+    /** Count of viable cells among the 8 neighbours — how much open space surrounds a dropoff. */
+    public int clearance(int x, int y) {
+        int n = 0;
         for (int dy = -1; dy <= 1; dy++) {
             for (int dx = -1; dx <= 1; dx++) {
                 if (dx == 0 && dy == 0) continue;
-                if (isViable(x + dx, y + dy)) clearance++;
+                if (isViable(x + dx, y + dy)) n++;
             }
         }
-        return clearance + (isOpenGround(x, y) ? OPEN_GROUND_BONUS : 0);
+        return n;
     }
 
     /**
-     * Best viable dropoff within Chebyshev {@code radius} of the hint, ranked
-     * by {@code quality - manhattanDistance} so a nearby decent cell beats a
-     * distant pristine one (and the hint itself wins when it's already a good
-     * open cell). Returns {@code {x, y}}, or {@code null} when nothing in the
-     * search box is viable — e.g. the hint sits deep inside a building with no
-     * open ground in reach.
+     * Tie-break suitability of a viable cell: {@link #clearance} plus a bonus
+     * for open outdoor ground. {@link Integer#MIN_VALUE} for a non-viable cell
+     * so it can never win a ranking.
      */
+    public int quality(int x, int y) {
+        if (!isViable(x, y)) return Integer.MIN_VALUE;
+        return clearance(x, y) + (isOpenGround(x, y) ? OPEN_GROUND_BONUS : 0);
+    }
+
+    /** {@link #bestNear(int, int, int, int)} with no clearance requirement. */
     public int[] bestNear(int hintX, int hintY, int radius) {
+        return bestNear(hintX, hintY, radius, 0);
+    }
+
+    /**
+     * Best viable dropoff within Manhattan {@code radius} of the hint that has
+     * at least {@code minClearance} open neighbours. Nearest passing cell wins;
+     * ties go to higher {@link #quality}, then row-major order. Returns
+     * {@code {x, y}}, or {@code null} when nothing in range passes — e.g. the
+     * hint sits deep inside a building with no open ground in reach, or no cell
+     * is clear enough for the requested pad size.
+     */
+    public int[] bestNear(int hintX, int hintY, int radius, int minClearance) {
         int[] best = null;
-        int bestScore = Integer.MIN_VALUE;
+        int bestDist = Integer.MAX_VALUE;
+        int bestQuality = Integer.MIN_VALUE;
         for (int y = hintY - radius; y <= hintY + radius; y++) {
             for (int x = hintX - radius; x <= hintX + radius; x++) {
-                if (!isViable(x, y)) continue;
-                int score = quality(x, y) - (Math.abs(x - hintX) + Math.abs(y - hintY));
-                if (score > bestScore) {
-                    bestScore = score;
+                int dist = Math.abs(x - hintX) + Math.abs(y - hintY);
+                if (dist > radius) continue; // Manhattan diamond — matches the ranking metric
+                if (!isViable(x, y) || clearance(x, y) < minClearance) continue;
+                int q = quality(x, y);
+                if (dist < bestDist || (dist == bestDist && q > bestQuality)) {
+                    bestDist = dist;
+                    bestQuality = q;
                     best = new int[]{x, y};
                 }
             }
@@ -87,23 +109,38 @@ public final class LandingZoneScorer {
         return best;
     }
 
+    /** {@link #bestAmong(int[], int, int, int)} with no clearance requirement. */
+    public int[] bestAmong(int[] candidatesXY, int hintX, int hintY) {
+        return bestAmong(candidatesXY, hintX, hintY, 0);
+    }
+
     /**
      * Best viable cell among caller-supplied candidates (flat {@code x,y}
-     * pairs), ranked the same way relative to the hint. For means that
-     * generate their own candidate source — convoy road-graph junctions,
-     * walk-in map-edge cells. Returns {@code {x, y}}, or {@code null} when no
-     * candidate is viable.
+     * pairs), gated and ranked like {@link #bestNear}. For means that generate
+     * their own candidate source — convoy road-graph junctions, walk-in
+     * map-edge cells. Returns {@code {x, y}}, or {@code null} when no candidate
+     * passes.
+     *
+     * @throws IllegalArgumentException if {@code candidatesXY} is not an even
+     *         number of {@code x,y} entries (a caller-construction bug).
      */
-    public int[] bestAmong(int[] candidatesXY, int hintX, int hintY) {
+    public int[] bestAmong(int[] candidatesXY, int hintX, int hintY, int minClearance) {
+        if (candidatesXY.length % 2 != 0) {
+            throw new IllegalArgumentException(
+                    "candidatesXY must be flat x,y pairs (even length); got " + candidatesXY.length);
+        }
         int[] best = null;
-        int bestScore = Integer.MIN_VALUE;
-        for (int i = 0; i + 1 < candidatesXY.length; i += 2) {
+        int bestDist = Integer.MAX_VALUE;
+        int bestQuality = Integer.MIN_VALUE;
+        for (int i = 0; i < candidatesXY.length; i += 2) {
             int x = candidatesXY[i];
             int y = candidatesXY[i + 1];
-            if (!isViable(x, y)) continue;
-            int score = quality(x, y) - (Math.abs(x - hintX) + Math.abs(y - hintY));
-            if (score > bestScore) {
-                bestScore = score;
+            if (!isViable(x, y) || clearance(x, y) < minClearance) continue;
+            int dist = Math.abs(x - hintX) + Math.abs(y - hintY);
+            int q = quality(x, y);
+            if (dist < bestDist || (dist == bestDist && q > bestQuality)) {
+                bestDist = dist;
+                bestQuality = q;
                 best = new int[]{x, y};
             }
         }
