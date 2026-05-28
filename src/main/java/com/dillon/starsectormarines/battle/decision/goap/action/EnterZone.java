@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
-import com.dillon.starsectormarines.battle.infantry.GoapInfantryBehavior;
+import com.dillon.starsectormarines.battle.decision.goap.Planner;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -133,7 +133,7 @@ public final class EnterZone implements Action {
             // changed. Without this the unit looked frozen for up to 2s
             // before the morale-broken signal could route to BreakContact.
             if (squad.timeSinceReplan >= CONTACT_HALT_REPLAN_THROTTLE) {
-                squad.timeSinceReplan = GoapInfantryBehavior.REPLAN_PERIOD;
+                squad.timeSinceReplan = Planner.REPLAN_PERIOD;
             }
             return ActionStatus.RUNNING;
         }

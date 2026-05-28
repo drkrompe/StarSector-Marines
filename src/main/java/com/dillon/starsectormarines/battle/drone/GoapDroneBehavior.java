@@ -46,8 +46,6 @@ public final class GoapDroneBehavior implements UnitBehavior {
             DroneSwarmAction.INSTANCE
     );
 
-    /** Same replan cadence as the infantry path — keeps the per-tick budget consistent across squad types and matches the period the action's slot-spread bearings stabilize over. */
-    public static final float REPLAN_PERIOD = 2.0f;
     /** Tight planner budget: the drone library is single-goal, single-action and never benefits from backward-chaining. Kept non-zero so a future second action can still be wired in. */
     public static final int PLAN_NODE_LIMIT = 32;
 
@@ -108,7 +106,7 @@ public final class GoapDroneBehavior implements UnitBehavior {
         boolean memberCountChanged = squad.aliveMembers != squad.aliveMembersAtLastPlan;
         boolean needsReplan = squad.currentPlan == null
                            || squad.currentPlan.isComplete()
-                           || squad.timeSinceReplan >= REPLAN_PERIOD
+                           || squad.timeSinceReplan >= Planner.REPLAN_PERIOD
                            || memberCountChanged;
 
         if (!needsReplan) {

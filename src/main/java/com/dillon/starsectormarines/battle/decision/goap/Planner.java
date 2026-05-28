@@ -33,6 +33,14 @@ import java.util.Set;
  */
 public final class Planner {
 
+    /**
+     * Canonical sim-seconds between forced squad replans — the shared GOAP
+     * planning cadence. Referenced by every {@code Goap*Behavior} composer's
+     * replan gate and by planner-emitted actions that reset the replan timer,
+     * so it lives framework-side rather than duplicated per actor.
+     */
+    public static final float REPLAN_PERIOD = 2.0f;
+
     /** Sentinel cost used by the priority queue's f-cost ordering when h = 0 and g = 0 — exists so the comparator stays straightforward. */
     private static final float EPS = 1e-6f;
 

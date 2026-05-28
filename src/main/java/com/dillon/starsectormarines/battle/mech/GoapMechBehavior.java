@@ -55,8 +55,6 @@ public final class GoapMechBehavior implements UnitBehavior {
             MechBreakContact.INSTANCE
     );
 
-    /** Sim-seconds between forced replans for mech squads. Same cadence as infantry — playtest will tell us if mechs want a different rhythm. */
-    public static final float REPLAN_PERIOD = 2.0f;
 
     /** Hard cap on planner-search node expansions. Stage 1 custom-plans so the planner doesn't run; the cap is set anyway for when role-anchored goals start using {@link Planner#plan}. */
     public static final int PLAN_NODE_LIMIT = 256;
@@ -108,7 +106,7 @@ public final class GoapMechBehavior implements UnitBehavior {
      * Called by {@code BattleSimulation} once per mech squad per tick during
      * the alert-update pass. Decides whether to (re)build the squad's plan
      * and does so when any trigger fires (no current plan, plan complete,
-     * member count changed, {@link #REPLAN_PERIOD} elapsed).
+     * member count changed, {@link Planner#REPLAN_PERIOD} elapsed).
      *
      * <p>Mirrors {@link GoapInfantryBehavior#replanIfNeeded} structurally
      * but operates on {@link #MECH_GOALS} / {@link #MECH_ACTIONS}. Both
@@ -126,7 +124,7 @@ public final class GoapMechBehavior implements UnitBehavior {
         boolean memberCountChanged = squad.aliveMembers != squad.aliveMembersAtLastPlan;
         boolean needsReplan = squad.currentPlan == null
                            || squad.currentPlan.isComplete()
-                           || squad.timeSinceReplan >= REPLAN_PERIOD
+                           || squad.timeSinceReplan >= Planner.REPLAN_PERIOD
                            || memberCountChanged;
 
         if (!needsReplan) {

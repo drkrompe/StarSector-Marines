@@ -28,7 +28,7 @@ public final class CommanderService {
 
     /**
      * Sim-seconds between commander-tier slow ticks. The squad-GOAP replan
-     * loop runs every {@code GoapInfantryBehavior.REPLAN_PERIOD} (2s today);
+     * loop runs every {@code Planner.REPLAN_PERIOD} (2s today);
      * the commander runs at a slower cadence so strategic assignments don't
      * thrash. Set so each commander tick is roughly bracketed by one full
      * GOAP replan cycle — gives squads a chance to act on a fresh assignment

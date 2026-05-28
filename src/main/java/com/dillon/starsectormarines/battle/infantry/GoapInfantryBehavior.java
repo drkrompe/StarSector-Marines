@@ -69,8 +69,6 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             BreakLOS.INSTANCE
     );
 
-    /** Sim-seconds between forced replans for squads whose plan didn't otherwise change. Balances responsiveness against planner cost; 2s is long enough to amortize, short enough that stale plans don't cling past a tactical shift. */
-    public static final float REPLAN_PERIOD = 2.0f;
 
     /** Hard cap on planner-search node expansions. 256 is comfortably above what Stage 1's tiny action library needs; Stage 2 may bump as the action surface grows. */
     public static final int PLAN_NODE_LIMIT = 256;
@@ -146,7 +144,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
      *   <li>No current plan</li>
      *   <li>Current plan ran to completion</li>
      *   <li>Squad lost or gained a live member since the last plan (death-driven freshness)</li>
-     *   <li>{@link #REPLAN_PERIOD} sim-seconds have elapsed since the last replan</li>
+     *   <li>{@link Planner#REPLAN_PERIOD} sim-seconds have elapsed since the last replan</li>
      * </ul>
      *
      * <p><b>Parallelism candidate.</b> Planning is purely functional and
@@ -169,7 +167,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         boolean memberCountChanged = squad.aliveMembers != squad.aliveMembersAtLastPlan;
         boolean needsReplan = squad.currentPlan == null
                            || squad.currentPlan.isComplete()
-                           || squad.timeSinceReplan >= REPLAN_PERIOD
+                           || squad.timeSinceReplan >= Planner.REPLAN_PERIOD
                            || memberCountChanged;
 
         if (!needsReplan) {
