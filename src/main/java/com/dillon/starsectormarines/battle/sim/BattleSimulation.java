@@ -425,7 +425,7 @@ public class BattleSimulation {
      * the id is unknown / released. The generic counterpart to
      * {@link #targetOf(Unit)} — used by readers of the secondary
      * id-typed fields ({@link Unit#burstTargetId},
-     * {@link Unit#secondaryAimTargetId}, {@link com.dillon.starsectormarines.battle.turret.MapTurret#burstTargetId})
+     * {@link Unit#getSecondaryAimTargetId()}, {@link com.dillon.starsectormarines.battle.turret.MapTurret#burstTargetId})
      * where there's no companion holder unit to thread.
      */
     public Unit resolveUnit(long id) {

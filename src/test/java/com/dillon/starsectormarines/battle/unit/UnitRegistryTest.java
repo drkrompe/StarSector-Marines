@@ -627,6 +627,150 @@ public class UnitRegistryTest {
     }
 
     @Test
+    public void allocateSeedsSecondaryCooldownTimerAndAccessorsRouteThroughRegistry() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        u.localSecondaryCooldownTimer = 2.5f;
+
+        r.allocate(u);
+
+        assertEquals(2.5f, u.getSecondaryCooldownTimer(), 1e-6f);
+        assertEquals(2.5f, r.getSecondaryCooldownTimer(u.denseIdx), 1e-6f);
+
+        u.setSecondaryCooldownTimer(0.4f);
+        assertEquals(0.4f, r.getSecondaryCooldownTimer(u.denseIdx), 1e-6f);
+        assertEquals(0.4f, u.getSecondaryCooldownTimer(), 1e-6f);
+    }
+
+    @Test
+    public void releaseSnapshotsSecondaryCooldownTimerBackToLocalField() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        r.allocate(u);
+
+        u.setSecondaryCooldownTimer(3.3f);
+        r.release(u.entityId);
+
+        assertNull(u.registry);
+        assertEquals(-1, u.denseIdx);
+        assertEquals(3.3f, u.getSecondaryCooldownTimer(), 1e-6f);
+    }
+
+    @Test
+    public void releaseTailSwapMovesSecondaryCooldownTimerCorrectly() {
+        UnitRegistry r = new UnitRegistry();
+        Unit a = unit("a");
+        Unit b = unit("b");
+        Unit c = unit("c");
+        long idA = r.allocate(a);
+        r.allocate(b);
+        r.allocate(c);
+        c.setSecondaryCooldownTimer(5.1f);
+
+        r.release(idA);
+
+        assertEquals(0, c.denseIdx);
+        assertEquals(5.1f, r.getSecondaryCooldownTimer(0), 1e-6f);
+        assertEquals(5.1f, c.getSecondaryCooldownTimer(), 1e-6f);
+    }
+
+    @Test
+    public void allocateSeedsSecondaryActionTimerAndAccessorsRouteThroughRegistry() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        u.localSecondaryActionTimer = 1.2f;
+
+        r.allocate(u);
+
+        assertEquals(1.2f, u.getSecondaryActionTimer(), 1e-6f);
+        assertEquals(1.2f, r.getSecondaryActionTimer(u.denseIdx), 1e-6f);
+
+        u.setSecondaryActionTimer(0.6f);
+        assertEquals(0.6f, r.getSecondaryActionTimer(u.denseIdx), 1e-6f);
+        assertEquals(0.6f, u.getSecondaryActionTimer(), 1e-6f);
+    }
+
+    @Test
+    public void releaseSnapshotsSecondaryActionTimerBackToLocalField() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        r.allocate(u);
+
+        u.setSecondaryActionTimer(0.9f);
+        r.release(u.entityId);
+
+        assertNull(u.registry);
+        assertEquals(-1, u.denseIdx);
+        assertEquals(0.9f, u.getSecondaryActionTimer(), 1e-6f);
+    }
+
+    @Test
+    public void releaseTailSwapMovesSecondaryActionTimerCorrectly() {
+        UnitRegistry r = new UnitRegistry();
+        Unit a = unit("a");
+        Unit b = unit("b");
+        Unit c = unit("c");
+        long idA = r.allocate(a);
+        r.allocate(b);
+        r.allocate(c);
+        c.setSecondaryActionTimer(0.7f);
+
+        r.release(idA);
+
+        assertEquals(0, c.denseIdx);
+        assertEquals(0.7f, r.getSecondaryActionTimer(0), 1e-6f);
+        assertEquals(0.7f, c.getSecondaryActionTimer(), 1e-6f);
+    }
+
+    @Test
+    public void allocateSeedsSecondaryAimTargetIdAndAccessorsRouteThroughRegistry() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        u.localSecondaryAimTargetId = 42L;
+
+        r.allocate(u);
+
+        assertEquals(42L, u.getSecondaryAimTargetId());
+        assertEquals(42L, r.getSecondaryAimTargetId(u.denseIdx));
+
+        u.setSecondaryAimTargetId(7L);
+        assertEquals(7L, r.getSecondaryAimTargetId(u.denseIdx));
+        assertEquals(7L, u.getSecondaryAimTargetId());
+    }
+
+    @Test
+    public void releaseSnapshotsSecondaryAimTargetIdBackToLocalField() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        r.allocate(u);
+
+        u.setSecondaryAimTargetId(123L);
+        r.release(u.entityId);
+
+        assertNull(u.registry);
+        assertEquals(-1, u.denseIdx);
+        assertEquals(123L, u.getSecondaryAimTargetId());
+    }
+
+    @Test
+    public void releaseTailSwapMovesSecondaryAimTargetIdCorrectly() {
+        UnitRegistry r = new UnitRegistry();
+        Unit a = unit("a");
+        Unit b = unit("b");
+        Unit c = unit("c");
+        long idA = r.allocate(a);
+        r.allocate(b);
+        r.allocate(c);
+        c.setSecondaryAimTargetId(999L);
+
+        r.release(idA);
+
+        assertEquals(0, c.denseIdx);
+        assertEquals(999L, r.getSecondaryAimTargetId(0));
+        assertEquals(999L, c.getSecondaryAimTargetId());
+    }
+
+    @Test
     public void releaseOfReservedZeroSentinelIsNoOp() {
         UnitRegistry r = new UnitRegistry();
         Unit a = unit("a");

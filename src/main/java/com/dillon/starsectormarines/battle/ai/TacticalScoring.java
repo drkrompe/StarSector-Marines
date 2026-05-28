@@ -555,8 +555,8 @@ public final class TacticalScoring {
                 if (u.squadId != shooter.squadId) continue;
                 if (!u.isAlive()) continue;
                 if (u.secondaryWeapon == null) continue;
-                if (u.secondaryActionTimer <= 0f) continue;
-                if (u.secondaryAimTargetId != target.entityId) continue;
+                if (u.getSecondaryActionTimer() <= 0f) continue;
+                if (u.getSecondaryAimTargetId() != target.entityId) continue;
                 total += u.secondaryWeapon.damage * u.secondaryWeapon.vsTurretMult;
             }
         }

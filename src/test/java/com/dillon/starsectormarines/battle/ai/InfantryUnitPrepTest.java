@@ -60,8 +60,8 @@ public class InfantryUnitPrepTest {
         boolean started = InfantryUnitPrep.tryOpportunityRocket(marine, sim);
         assertTrue(started, "marine in rocket range with LOS should start aim");
         assertEquals(MarineSecondary.ROCKET_LAUNCHER.aimDuration,
-                marine.secondaryActionTimer, 0.001f);
-        assertEquals(turret.entityId, marine.secondaryAimTargetId);
+                marine.getSecondaryActionTimer(), 0.001f);
+        assertEquals(turret.entityId, marine.getSecondaryAimTargetId());
     }
 
     @Test
@@ -72,14 +72,14 @@ public class InfantryUnitPrepTest {
         turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
 
         assertFalse(InfantryUnitPrep.tryOpportunityRocket(marine, sim));
-        assertEquals(0f, marine.secondaryActionTimer, 0.001f);
+        assertEquals(0f, marine.getSecondaryActionTimer(), 0.001f);
     }
 
     @Test
     public void opportunityRocketNoOpsWhenCooldownActive() {
         BattleSimulation sim = openArena(50, 10);
         Unit marine = rocketeer(sim, Faction.MARINE, 5, 5);
-        marine.secondaryCooldownTimer = 1.0f;
+        marine.setSecondaryCooldownTimer(1.0f);
         turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
 
         assertFalse(InfantryUnitPrep.tryOpportunityRocket(marine, sim));

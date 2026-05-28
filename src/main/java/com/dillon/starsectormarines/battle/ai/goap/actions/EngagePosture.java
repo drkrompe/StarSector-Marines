@@ -93,11 +93,11 @@ public final class EngagePosture implements Action {
             // target (turrets, drone hubs, heavy mechs) — anything the rocket's
             // vsTurretMult bonus is worth burning a tube on.
             if (member.secondaryWeapon != null && member.secondaryAmmo > 0
-                    && member.secondaryCooldownTimer <= 0f
+                    && member.getSecondaryCooldownTimer() <= 0f
                     && TacticalScoring.isHardened(target)
                     && dist <= member.secondaryWeapon.range
                     && sim.getTacticalScoring().shouldCommitRocket(member, target)) {
-                member.secondaryActionTimer = member.secondaryWeapon.aimDuration;
+                member.setSecondaryActionTimer(member.secondaryWeapon.aimDuration);
                 member.secondaryFiredThisAction = false;
                 member.setSecondaryAimTarget(target);
                 startedSecondary = true;

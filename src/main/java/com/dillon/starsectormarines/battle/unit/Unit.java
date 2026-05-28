@@ -272,24 +272,68 @@ public class Unit {
     public MarineSecondary secondaryWeapon;
     /** Rounds remaining on the {@link #secondaryWeapon}. Decremented on each secondary shot; once zero the marine reverts to primary fire. */
     public int secondaryAmmo;
-    /** Independent cooldown for the secondary weapon so it doesn't share state with the primary's {@link #localCooldownTimer}. */
-    public float secondaryCooldownTimer = 0f;
-    /** Sim-seconds remaining in the secondary's aim-then-fire animation. While &gt;0 the marine is locked in place and the renderer draws the {@link MarineSecondary#aimSpritePath} pose; the actual shot launches when this drops below {@link MarineSecondary#aimDuration}/2. */
-    public float secondaryActionTimer = 0f;
+    /**
+     * <b>Don't read directly.</b> Pre-allocate seed + post-release snapshot for
+     * the secondary-weapon state group, same lifecycle as {@link #localHp}.
+     * Canonical storage between allocate and release lives in the registry's
+     * SoA arrays; go through {@link #getSecondaryCooldownTimer} /
+     * {@link #getSecondaryActionTimer} / {@link #getSecondaryAimTargetId}.
+     *
+     * <p>{@code localSecondaryCooldownTimer} — independent cooldown for the
+     * secondary weapon so it doesn't share state with the primary's
+     * {@link #localCooldownTimer}.
+     */
+    public float localSecondaryCooldownTimer = 0f;
+    /**
+     * <b>Don't read directly</b> — see {@link #localSecondaryCooldownTimer}.
+     * Sim-seconds remaining in the secondary's aim-then-fire animation. While
+     * &gt;0 the marine is locked in place and the renderer draws the
+     * {@link MarineSecondary#aimSpritePath} pose; the actual shot launches when
+     * this drops below {@link MarineSecondary#aimDuration}/2.
+     */
+    public float localSecondaryActionTimer = 0f;
     /** Latched on launch within the current aim cycle so we only emit one shot per cycle, even though the trigger condition holds for several ticks past launch. */
     public boolean secondaryFiredThisAction = false;
     /**
+     * <b>Don't read directly</b> — see {@link #localSecondaryCooldownTimer}.
      * Entity id of the target locked at the start of the aim cycle. The rocket
      * fires at this entity even if the original target dies mid-aim — the
      * launcher's already committed. Resolve through
      * {@link BattleSimulation#resolveUnit(long)}; {@code 0L} = no aim target.
      * Writes go through {@link #setSecondaryAimTarget(Unit)}.
      */
-    public long secondaryAimTargetId = 0L;
+    public long localSecondaryAimTargetId = 0L;
 
-    /** Sets {@link #secondaryAimTargetId} from a {@link Unit} ref (null → 0L). */
+    public final float getSecondaryCooldownTimer() {
+        return (registry != null) ? registry.getSecondaryCooldownTimer(denseIdx) : localSecondaryCooldownTimer;
+    }
+
+    public final void setSecondaryCooldownTimer(float v) {
+        if (registry != null) registry.setSecondaryCooldownTimer(denseIdx, v);
+        else localSecondaryCooldownTimer = v;
+    }
+
+    public final float getSecondaryActionTimer() {
+        return (registry != null) ? registry.getSecondaryActionTimer(denseIdx) : localSecondaryActionTimer;
+    }
+
+    public final void setSecondaryActionTimer(float v) {
+        if (registry != null) registry.setSecondaryActionTimer(denseIdx, v);
+        else localSecondaryActionTimer = v;
+    }
+
+    public final long getSecondaryAimTargetId() {
+        return (registry != null) ? registry.getSecondaryAimTargetId(denseIdx) : localSecondaryAimTargetId;
+    }
+
+    public final void setSecondaryAimTargetId(long v) {
+        if (registry != null) registry.setSecondaryAimTargetId(denseIdx, v);
+        else localSecondaryAimTargetId = v;
+    }
+
+    /** Sets {@link #getSecondaryAimTargetId()} from a {@link Unit} ref (null → 0L). */
     public void setSecondaryAimTarget(Unit t) {
-        this.secondaryAimTargetId = (t == null) ? 0L : t.entityId;
+        setSecondaryAimTargetId((t == null) ? 0L : t.entityId);
     }
 
     /** Burst rounds queued after the AI's initial primary shot — the sim emits one per {@link MarineWeapon#burstSpacing} interval until exhausted. 0 = single-shot mode. */

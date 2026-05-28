@@ -722,13 +722,13 @@ public class TacticalScoringTest {
         assertTrue(oneRocket < turret.getMaxHp(),
                 "test invariant: Hephaestus needs >1 rocket — adjust if balance changed");
 
-        m0.secondaryActionTimer = MarineSecondary.ROCKET_LAUNCHER.aimDuration;
+        m0.setSecondaryActionTimer(MarineSecondary.ROCKET_LAUNCHER.aimDuration);
         m0.setSecondaryAimTarget(turret);
 
         assertTrue(sim.getTacticalScoring().shouldCommitRocket(m1, turret),
                 "second marine joins when one inbound rocket isn't enough");
 
-        m1.secondaryActionTimer = MarineSecondary.ROCKET_LAUNCHER.aimDuration;
+        m1.setSecondaryActionTimer(MarineSecondary.ROCKET_LAUNCHER.aimDuration);
         m1.setSecondaryAimTarget(turret);
 
         assertFalse(sim.getTacticalScoring().shouldCommitRocket(m2, turret),
@@ -748,7 +748,7 @@ public class TacticalScoringTest {
         m1.squadId = squadId;
         MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
 
-        m0.secondaryActionTimer = MarineSecondary.ROCKET_LAUNCHER.aimDuration;
+        m0.setSecondaryActionTimer(MarineSecondary.ROCKET_LAUNCHER.aimDuration);
         m0.setSecondaryAimTarget(turret);
 
         assertFalse(sim.getTacticalScoring().shouldCommitRocket(m1, turret),
@@ -826,7 +826,7 @@ public class TacticalScoringTest {
 
         MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
 
-        mA.secondaryActionTimer = MarineSecondary.ROCKET_LAUNCHER.aimDuration;
+        mA.setSecondaryActionTimer(MarineSecondary.ROCKET_LAUNCHER.aimDuration);
         mA.setSecondaryAimTarget(turret);
 
         assertTrue(sim.getTacticalScoring().shouldCommitRocket(mB, turret),

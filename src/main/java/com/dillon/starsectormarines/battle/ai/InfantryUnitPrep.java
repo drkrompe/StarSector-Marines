@@ -31,22 +31,22 @@ public final class InfantryUnitPrep {
      * and the caller should proceed normally.
      */
     public static boolean tickAimAndShortCircuit(Unit unit, BattleSimulation sim) {
-        if (unit.secondaryActionTimer <= 0f || unit.secondaryWeapon == null) return false;
-        unit.secondaryActionTimer -= BattleSimulation.TICK_DT;
+        if (unit.getSecondaryActionTimer() <= 0f || unit.secondaryWeapon == null) return false;
+        unit.setSecondaryActionTimer(unit.getSecondaryActionTimer() - BattleSimulation.TICK_DT);
         unit.setMoveProgress(0f);
         unit.setRenderPos(unit.getCellX(), unit.getCellY());
         float fireAt = unit.secondaryWeapon.aimDuration * 0.5f;
-        if (!unit.secondaryFiredThisAction && unit.secondaryActionTimer <= fireAt) {
-            Unit aimTarget = sim.resolveUnit(unit.secondaryAimTargetId);
+        if (!unit.secondaryFiredThisAction && unit.getSecondaryActionTimer() <= fireAt) {
+            Unit aimTarget = sim.resolveUnit(unit.getSecondaryAimTargetId());
             if (aimTarget != null) {
                 sim.fireSecondary(unit, aimTarget);
             }
             unit.secondaryFiredThisAction = true;
-            unit.secondaryCooldownTimer = unit.secondaryWeapon.cooldown;
+            unit.setSecondaryCooldownTimer(unit.secondaryWeapon.cooldown);
         }
-        if (unit.secondaryActionTimer <= 0f) {
-            unit.secondaryActionTimer = 0f;
-            unit.secondaryAimTargetId = 0L;
+        if (unit.getSecondaryActionTimer() <= 0f) {
+            unit.setSecondaryActionTimer(0f);
+            unit.setSecondaryAimTargetId(0L);
         }
         return true;
     }
@@ -60,7 +60,7 @@ public final class InfantryUnitPrep {
      */
     public static void tickCooldowns(Unit unit) {
         if (unit.getCooldownTimer() > 0f) unit.setCooldownTimer(unit.getCooldownTimer() - BattleSimulation.TICK_DT);
-        if (unit.secondaryCooldownTimer > 0f) unit.secondaryCooldownTimer -= BattleSimulation.TICK_DT;
+        if (unit.getSecondaryCooldownTimer() > 0f) unit.setSecondaryCooldownTimer(unit.getSecondaryCooldownTimer() - BattleSimulation.TICK_DT);
         if (unit.repositionCooldown > 0f) unit.repositionCooldown -= BattleSimulation.TICK_DT;
     }
 
@@ -86,8 +86,8 @@ public final class InfantryUnitPrep {
     public static boolean tryOpportunityRocket(Unit unit, BattleSimulation sim) {
         if (unit.secondaryWeapon == null) return false;
         if (unit.secondaryAmmo <= 0) return false;
-        if (unit.secondaryCooldownTimer > 0f) return false;
-        if (unit.secondaryActionTimer > 0f) return false;
+        if (unit.getSecondaryCooldownTimer() > 0f) return false;
+        if (unit.getSecondaryActionTimer() > 0f) return false;
 
         float range = unit.secondaryWeapon.range;
         // Hardened-target scan: any MapTurret, DroneHubUnit, or HEAVY_MECH in
@@ -116,7 +116,7 @@ public final class InfantryUnitPrep {
         }
         if (bestHardened == null) return false;
 
-        unit.secondaryActionTimer = unit.secondaryWeapon.aimDuration;
+        unit.setSecondaryActionTimer(unit.secondaryWeapon.aimDuration);
         unit.secondaryFiredThisAction = false;
         unit.setSecondaryAimTarget(bestHardened);
         // Freeze movement state for this tick — the next tick's

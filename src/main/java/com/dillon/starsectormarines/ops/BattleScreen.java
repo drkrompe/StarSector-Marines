@@ -2949,7 +2949,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             // Mid-aim rocket marine swaps to the per-secondary aim sheet so
             // the launcher pose reads. Falls back to the regular sheet if the
             // aim sheet failed to load.
-            if (u.secondaryActionTimer > 0f && u.secondaryWeapon != null) {
+            if (u.getSecondaryActionTimer() > 0f && u.secondaryWeapon != null) {
                 UnitSpriteCache aim = marineSecondaryAimSheets.get(u.secondaryWeapon);
                 if (aim != null && aim.sheet != null && aim.frames != null
                         && aim.frames.frames.length > 0) {
@@ -3023,7 +3023,7 @@ public class BattleScreen implements Screen, BattleUiContext {
 
         // Aim cycle holds the weapon-up frame for its full duration so the
         // launcher reads as raised/braced through the whole animation.
-        boolean inAim = u.secondaryActionTimer > 0f && u.secondaryWeapon != null;
+        boolean inAim = u.getSecondaryActionTimer() > 0f && u.secondaryWeapon != null;
         boolean weaponUp = inAim || (u.type.combatant
                 && u.getCooldownTimer() > (u.attackCooldown - WEAPON_UP_TIME)
                 && u.getCooldownTimer() > 0f);

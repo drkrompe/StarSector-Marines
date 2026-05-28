@@ -96,6 +96,12 @@ public final class UnitRegistry {
     private float[] attackRange = new float[INITIAL_CAPACITY];
     /** Per-unit base accuracy [0,1]. Same lifecycle as {@link #hp}. */
     private float[] accuracy = new float[INITIAL_CAPACITY];
+    /** Per-unit secondary-weapon cooldown (sim-seconds). Same lifecycle as {@link #hp}. */
+    private float[] secondaryCooldownTimer = new float[INITIAL_CAPACITY];
+    /** Per-unit sim-seconds remaining in the secondary aim-then-fire window. Same lifecycle as {@link #hp}. */
+    private float[] secondaryActionTimer = new float[INITIAL_CAPACITY];
+    /** Per-unit entity id locked at secondary aim start (0L = none). Same lifecycle as {@link #hp}. */
+    private long[] secondaryAimTargetId = new long[INITIAL_CAPACITY];
     private int liveCount = 0;
     private long nextId = 1L;
 
@@ -140,6 +146,9 @@ public final class UnitRegistry {
             attackDamage = Arrays.copyOf(attackDamage, newCap);
             attackRange = Arrays.copyOf(attackRange, newCap);
             accuracy = Arrays.copyOf(accuracy, newCap);
+            secondaryCooldownTimer = Arrays.copyOf(secondaryCooldownTimer, newCap);
+            secondaryActionTimer = Arrays.copyOf(secondaryActionTimer, newCap);
+            secondaryAimTargetId = Arrays.copyOf(secondaryAimTargetId, newCap);
         }
         long id = nextId++;
         u.entityId = id;
@@ -161,6 +170,9 @@ public final class UnitRegistry {
         attackDamage[liveCount] = u.localAttackDamage;
         attackRange[liveCount] = u.localAttackRange;
         accuracy[liveCount] = u.localAccuracy;
+        secondaryCooldownTimer[liveCount] = u.localSecondaryCooldownTimer;
+        secondaryActionTimer[liveCount] = u.localSecondaryActionTimer;
+        secondaryAimTargetId[liveCount] = u.localSecondaryAimTargetId;
         u.denseIdx = liveCount;
         u.registry = this;
         indexById.put(id, liveCount);
@@ -203,6 +215,9 @@ public final class UnitRegistry {
         released.localAttackDamage = attackDamage[idx];
         released.localAttackRange = attackRange[idx];
         released.localAccuracy = accuracy[idx];
+        released.localSecondaryCooldownTimer = secondaryCooldownTimer[idx];
+        released.localSecondaryActionTimer = secondaryActionTimer[idx];
+        released.localSecondaryAimTargetId = secondaryAimTargetId[idx];
         released.denseIdx = -1;
         released.registry = null;
         if (idx != last) {
@@ -219,6 +234,9 @@ public final class UnitRegistry {
             attackDamage[idx] = attackDamage[last];
             attackRange[idx] = attackRange[last];
             accuracy[idx] = accuracy[last];
+            secondaryCooldownTimer[idx] = secondaryCooldownTimer[last];
+            secondaryActionTimer[idx] = secondaryActionTimer[last];
+            secondaryAimTargetId[idx] = secondaryAimTargetId[last];
             tail.denseIdx = idx;
             indexById.put(tail.entityId, idx);
         }
@@ -325,6 +343,18 @@ public final class UnitRegistry {
     public float getAccuracy(int idx) { return accuracy[idx]; }
     public void setAccuracy(int idx, float v) { accuracy[idx] = v; }
     public float[] accuracyArray() { return accuracy; }
+
+    public float getSecondaryCooldownTimer(int idx) { return secondaryCooldownTimer[idx]; }
+    public void setSecondaryCooldownTimer(int idx, float v) { secondaryCooldownTimer[idx] = v; }
+    public float[] secondaryCooldownTimerArray() { return secondaryCooldownTimer; }
+
+    public float getSecondaryActionTimer(int idx) { return secondaryActionTimer[idx]; }
+    public void setSecondaryActionTimer(int idx, float v) { secondaryActionTimer[idx] = v; }
+    public float[] secondaryActionTimerArray() { return secondaryActionTimer; }
+
+    public long getSecondaryAimTargetId(int idx) { return secondaryAimTargetId[idx]; }
+    public void setSecondaryAimTargetId(int idx, long v) { secondaryAimTargetId[idx] = v; }
+    public long[] secondaryAimTargetIdArray() { return secondaryAimTargetId; }
 
     public int liveCount() {
         return liveCount;
