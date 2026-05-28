@@ -110,6 +110,8 @@ public final class UnitRegistry {
     private long[] burstTargetId = new long[INITIAL_CAPACITY];
     /** Per-unit current-target entity id (0L = no target). Same lifecycle as {@link #hp}. */
     private long[] targetId = new long[INITIAL_CAPACITY];
+    /** Per-unit sim-seconds until the unit may next micro-reposition between shots. Decremented in {@code InfantryUnitPrep.tickCooldowns}. Same lifecycle as {@link #hp}. */
+    private float[] repositionCooldown = new float[INITIAL_CAPACITY];
     private int liveCount = 0;
     private long nextId = 1L;
 
@@ -161,6 +163,7 @@ public final class UnitRegistry {
             burstTimer = Arrays.copyOf(burstTimer, newCap);
             burstTargetId = Arrays.copyOf(burstTargetId, newCap);
             targetId = Arrays.copyOf(targetId, newCap);
+            repositionCooldown = Arrays.copyOf(repositionCooldown, newCap);
         }
         long id = nextId++;
         u.entityId = id;
@@ -189,6 +192,7 @@ public final class UnitRegistry {
         burstTimer[liveCount] = u.localBurstTimer;
         burstTargetId[liveCount] = u.localBurstTargetId;
         targetId[liveCount] = u.localTargetId;
+        repositionCooldown[liveCount] = u.localRepositionCooldown;
         u.denseIdx = liveCount;
         u.registry = this;
         indexById.put(id, liveCount);
@@ -238,6 +242,7 @@ public final class UnitRegistry {
         released.localBurstTimer = burstTimer[idx];
         released.localBurstTargetId = burstTargetId[idx];
         released.localTargetId = targetId[idx];
+        released.localRepositionCooldown = repositionCooldown[idx];
         released.denseIdx = -1;
         released.registry = null;
         if (idx != last) {
@@ -261,6 +266,7 @@ public final class UnitRegistry {
             burstTimer[idx] = burstTimer[last];
             burstTargetId[idx] = burstTargetId[last];
             targetId[idx] = targetId[last];
+            repositionCooldown[idx] = repositionCooldown[last];
             tail.denseIdx = idx;
             indexById.put(tail.entityId, idx);
         }
@@ -395,6 +401,10 @@ public final class UnitRegistry {
     public long getTargetId(int idx) { return targetId[idx]; }
     public void setTargetId(int idx, long v) { targetId[idx] = v; }
     public long[] targetIdArray() { return targetId; }
+
+    public float getRepositionCooldown(int idx) { return repositionCooldown[idx]; }
+    public void setRepositionCooldown(int idx, float v) { repositionCooldown[idx] = v; }
+    public float[] repositionCooldownArray() { return repositionCooldown; }
 
     public int liveCount() {
         return liveCount;

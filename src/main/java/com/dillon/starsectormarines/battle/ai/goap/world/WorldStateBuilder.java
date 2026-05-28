@@ -196,7 +196,7 @@ public final class WorldStateBuilder {
     private static boolean evalCanReposition(Squad squad, BattleSimulation sim) {
         for (Unit u : sim.getUnits()) {
             if (!u.isAlive() || u.squadId != squad.id) continue;
-            if (u.repositionCooldown <= 0f) return true;
+            if (u.getRepositionCooldown() <= 0f) return true;
         }
         return false;
     }

@@ -242,14 +242,29 @@ public class Unit {
     public int fallbackCellY = -1;
 
     /**
-     * Sim-seconds until this unit is next eligible to micro-reposition between
-     * shots. Story G — replaces the prior per-shot 30% RNG roll with a real
-     * cooldown so a setup machine gunner in heavy cover doesn't twitch every
-     * burst, and the squad's individual marines visibly shift at different
-     * times (cooldowns decorrelate as they reset on different shots).
+     * <b>Don't read directly.</b> Pre-allocate seed + post-release snapshot for
+     * the micro-reposition cooldown, same lifecycle as {@link #localHp}.
+     * Canonical storage between allocate and release lives in
+     * {@code registry.repositionCooldown[denseIdx]}; go through
+     * {@link #getRepositionCooldown} / {@link #setRepositionCooldown}.
+     *
+     * <p>Sim-seconds until this unit is next eligible to micro-reposition
+     * between shots. Story G — replaces the prior per-shot 30% RNG roll with a
+     * real cooldown so a setup machine gunner in heavy cover doesn't twitch
+     * every burst, and the squad's individual marines visibly shift at
+     * different times (cooldowns decorrelate as they reset on different shots).
      * Ticked down each tick by {@link com.dillon.starsectormarines.battle.ai.InfantryUnitPrep#tickCooldowns}.
      */
-    public float repositionCooldown = 0f;
+    public float localRepositionCooldown = 0f;
+
+    public final float getRepositionCooldown() {
+        return (registry != null) ? registry.getRepositionCooldown(denseIdx) : localRepositionCooldown;
+    }
+
+    public final void setRepositionCooldown(float v) {
+        if (registry != null) registry.setRepositionCooldown(denseIdx, v);
+        else localRepositionCooldown = v;
+    }
 
     /** {@link UnitRole#FLEE} idle pause between wander legs. While >0 the civilian stands at their current cell instead of picking a new destination. Rolled fresh on arrival; ignored when a threat is in range. */
     public float wanderDwellTimer = 0f;

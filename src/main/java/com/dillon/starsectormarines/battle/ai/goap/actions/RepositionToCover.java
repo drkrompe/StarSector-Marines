@@ -18,7 +18,7 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
  * inter-burst micro-movement happen tick-by-tick the way the story wants
  * ("members shift one or two cells between bursts").
  *
- * <p>Cooldown-gated via {@link Unit#repositionCooldown}: when the per-unit
+ * <p>Cooldown-gated via {@link Unit#getRepositionCooldown()}: when the per-unit
  * timer is ready, look for a cover cell that's strictly better than current
  * (cover-preferred picker won't pick a downgrade), and only path there if
  * one exists. A setup machine gunner in heavy cover whose current cell
@@ -39,7 +39,7 @@ public final class RepositionToCover implements Action {
 
     /**
      * Sim-seconds between successful repositions per unit. Set on
-     * {@link Unit#repositionCooldown} when a move actually fires; gates the
+     * {@link Unit#getRepositionCooldown()} when a move actually fires; gates the
      * next attempt. Decorrelated across squadmates because each member's
      * cooldown only resets when <em>their</em> shot lands the move — so the
      * squad's repositions naturally stagger.
@@ -63,7 +63,7 @@ public final class RepositionToCover implements Action {
      * read "this tick: shifted vs. held."
      */
     public static boolean tryReposition(Unit member, BattleSimulation sim) {
-        if (member.repositionCooldown > 0f) return false;
+        if (member.getRepositionCooldown() > 0f) return false;
         Unit target = sim.targetOf(member);
         if (target == null) return false;
         int[] dest = sim.getTacticalScoring().findFiringPositionCoverPreferred(
@@ -72,7 +72,7 @@ public final class RepositionToCover implements Action {
         if (dest[0] == member.getCellX() && dest[1] == member.getCellY()) return false;
         sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                 member.getCellX(), member.getCellY(), dest[0], dest[1], sim.getOccupancyMap()));
-        member.repositionCooldown = COOLDOWN_SECONDS;
+        member.setRepositionCooldown(COOLDOWN_SECONDS);
         return true;
     }
 

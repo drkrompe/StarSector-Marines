@@ -61,7 +61,7 @@ public final class InfantryUnitPrep {
     public static void tickCooldowns(Unit unit) {
         if (unit.getCooldownTimer() > 0f) unit.setCooldownTimer(unit.getCooldownTimer() - BattleSimulation.TICK_DT);
         if (unit.getSecondaryCooldownTimer() > 0f) unit.setSecondaryCooldownTimer(unit.getSecondaryCooldownTimer() - BattleSimulation.TICK_DT);
-        if (unit.repositionCooldown > 0f) unit.repositionCooldown -= BattleSimulation.TICK_DT;
+        if (unit.getRepositionCooldown() > 0f) unit.setRepositionCooldown(unit.getRepositionCooldown() - BattleSimulation.TICK_DT);
     }
 
     /**

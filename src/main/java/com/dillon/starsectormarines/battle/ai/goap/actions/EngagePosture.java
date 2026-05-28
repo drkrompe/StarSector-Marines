@@ -111,7 +111,7 @@ public final class EngagePosture implements Action {
                 // the old 30% per-shot RNG. A unit in heavy cover whose
                 // current cell already wins cover-preferred no-ops out;
                 // exposed members move when their cooldown expires. The
-                // cooldown is per-unit (Unit.repositionCooldown), so squad
+                // cooldown is per-unit (Unit.getRepositionCooldown()), so squad
                 // members visibly shift at different times.
                 RepositionToCover.tryReposition(member, sim);
             }

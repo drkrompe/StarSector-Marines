@@ -56,7 +56,7 @@ public class RepositionToCoverTest {
         // Heavy cover right next to the marine.
         sim.addDoodad(new Doodad(6, 5, new TileManifest.TileFrame(4, 7)));
         // Cooldown set — the action must refuse to move.
-        marine.repositionCooldown = 0.5f;
+        marine.setRepositionCooldown(0.5f);
 
         boolean moved = RepositionToCover.tryReposition(marine, sim);
         assertFalse(moved, "cooldown > 0 must block reposition");
@@ -68,7 +68,7 @@ public class RepositionToCoverTest {
         BattleSimulation sim = openArena(20, 20);
         Unit marine = marineAt(sim, 5, 5);
         marine.setTargetId(0L);
-        marine.repositionCooldown = 0f;
+        marine.setRepositionCooldown(0f);
 
         boolean moved = RepositionToCover.tryReposition(marine, sim);
         assertFalse(moved, "reposition needs a target to compute threat direction");
@@ -86,7 +86,7 @@ public class RepositionToCoverTest {
         marine.setAttackRange(10f);
         Unit threat = enemyAt(sim, 12, 5);
         marine.setTarget(threat);
-        marine.repositionCooldown = 0f;
+        marine.setRepositionCooldown(0f);
 
         boolean moved = RepositionToCover.tryReposition(marine, sim);
         // Either no move (best cell IS current) or the action stamps a
@@ -109,11 +109,11 @@ public class RepositionToCoverTest {
         marine.setAttackRange(10f);
         Unit threat = enemyAt(sim, 12, 5);
         marine.setTarget(threat);
-        marine.repositionCooldown = 0f;
+        marine.setRepositionCooldown(0f);
 
         boolean moved = RepositionToCover.tryReposition(marine, sim);
         assertTrue(moved, "open-ground marine within reach of a heavy crate should shift");
-        assertEquals(RepositionToCover.COOLDOWN_SECONDS, marine.repositionCooldown, 1e-6f,
+        assertEquals(RepositionToCover.COOLDOWN_SECONDS, marine.getRepositionCooldown(), 1e-6f,
                 "successful reposition stamps the cooldown so the marine doesn't churn");
         assertFalse(marine.pathEmpty(), "successful reposition queues a path to the new cell");
     }

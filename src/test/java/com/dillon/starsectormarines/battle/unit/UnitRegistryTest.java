@@ -963,6 +963,54 @@ public class UnitRegistryTest {
     }
 
     @Test
+    public void allocateSeedsRepositionCooldownAndAccessorsRouteThroughRegistry() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        u.localRepositionCooldown = 1.5f;
+
+        r.allocate(u);
+
+        assertEquals(1.5f, u.getRepositionCooldown(), 1e-6f);
+        assertEquals(1.5f, r.getRepositionCooldown(u.denseIdx), 1e-6f);
+
+        u.setRepositionCooldown(0.75f);
+        assertEquals(0.75f, r.getRepositionCooldown(u.denseIdx), 1e-6f);
+        assertEquals(0.75f, u.getRepositionCooldown(), 1e-6f);
+    }
+
+    @Test
+    public void releaseSnapshotsRepositionCooldownBackToLocalField() {
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        r.allocate(u);
+
+        u.setRepositionCooldown(1.2f);
+        r.release(u.entityId);
+
+        assertNull(u.registry);
+        assertEquals(-1, u.denseIdx);
+        assertEquals(1.2f, u.getRepositionCooldown(), 1e-6f);
+    }
+
+    @Test
+    public void releaseTailSwapMovesRepositionCooldownCorrectly() {
+        UnitRegistry r = new UnitRegistry();
+        Unit a = unit("a");
+        Unit b = unit("b");
+        Unit c = unit("c");
+        long idA = r.allocate(a);
+        r.allocate(b);
+        r.allocate(c);
+        c.setRepositionCooldown(0.9f);
+
+        r.release(idA);
+
+        assertEquals(0, c.denseIdx);
+        assertEquals(0.9f, r.getRepositionCooldown(0), 1e-6f);
+        assertEquals(0.9f, c.getRepositionCooldown(), 1e-6f);
+    }
+
+    @Test
     public void releaseOfReservedZeroSentinelIsNoOp() {
         UnitRegistry r = new UnitRegistry();
         Unit a = unit("a");
