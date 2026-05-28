@@ -1,0 +1,35 @@
+# Line-ending policy. The repo already stores everything as LF; this pins
+# that explicitly so it no longer depends on each machine's core.autocrlf
+# (the Git-for-Windows default is autocrlf=true, which inflates LF -> CRLF
+# in the working tree and produces the "LF will be replaced by CRLF" noise).
+#
+# Default: treat as text, normalize to LF in the repo AND check out LF in
+# the working tree — no conversion, no warnings.
+* text=auto eol=lf
+
+# Windows batch scripts must keep CRLF — cmd.exe can mis-parse goto/labels
+# in LF-only .bat files.
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+
+# Binary assets — never apply text/eol filters.
+*.png      binary
+*.jpg      binary
+*.jpeg     binary
+*.gif      binary
+*.ico      binary
+*.dds      binary
+*.jar      binary
+*.zip      binary
+*.gz       binary
+*.ogg      binary
+*.wav      binary
+*.mp3      binary
+*.ttf      binary
+*.otf      binary
+*.fbx      binary
+*.glb      binary
+*.gltf     binary
+*.bvh      binary
+*.mlmodel  binary
+*.bin      binary
