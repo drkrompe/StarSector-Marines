@@ -215,7 +215,11 @@ reference-churn moves to a quiet base.
    `world/gen/`), 2c (`map/`→`world/model/` + `UrbanMapGenerator`→`gen/`).
    `MapVehicle`/`VehicleKind` parked in `world/model/` for slice 3;
    `DistrictTheme`/`MapDistrictTheme` dedup deferred.
-3. **`vehicle/`** — `ground/` → `vehicle/`, absorb `MapVehicle`/`VehicleKind`.
+3. ~~**`vehicle/`** — `ground/` → `vehicle/`, absorb `MapVehicle`/`VehicleKind`.~~
+   **SHIPPED.** `ground/` (11 files) renamed to `vehicle/`; `MapVehicle` +
+   `VehicleKind` (with nested `VehicleSheet`) lifted out of `world/model/`
+   into `vehicle/`. `ground/` dissolved. Clean package rename — no splits,
+   no new cross-imports. Build + full suite green.
 4. **`command/` consolidation** — nest `objective/` + `reinforcement/` +
    `compound/` + resources (`BattleResources`/`ResourceType`) under `command/`.
 5. **`squad/` consolidation** — move `Squad` (from `unit/`), `SquadPlan`
