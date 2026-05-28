@@ -11,7 +11,7 @@ import com.dillon.starsectormarines.battle.ai.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
-import com.dillon.starsectormarines.battle.weapons.FireStance;
+import com.dillon.starsectormarines.battle.combat.FireStance;
 
 /**
  * <b>Squad posture: move into a target zone.</b> Each member paths to a

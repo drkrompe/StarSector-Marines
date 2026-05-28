@@ -1,11 +1,9 @@
-package com.dillon.starsectormarines.battle.weapons;
+package com.dillon.starsectormarines.battle.combat;
 
-import com.dillon.starsectormarines.battle.damage.DamageService;
-import com.dillon.starsectormarines.battle.fx.EffectsService;
+import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.fx.PendingDetonation;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 
@@ -16,12 +14,12 @@ import java.util.List;
 /**
  * The physics-based AoE pipeline: rockets and missiles register a
  * {@link PendingDetonation} at fire time, fly visibly via their paired
- * {@link com.dillon.starsectormarines.battle.fx.ShotEvent}, and detonate when
+ * {@link com.dillon.starsectormarines.battle.combat.ShotEvent}, and detonate when
  * the timer drains — applying splash damage to nearby units (LOS-gated) plus
  * wall damage at the endpoint cell.
  *
  * <p>Stateful subsystem owning the in-flight queue. Both
- * {@link InfantryWeapons} (marine rocket launcher) and {@link HeavyWeapons}
+ * {@link com.dillon.starsectormarines.battle.weapons.InfantryWeapons} (marine rocket launcher) and {@link HeavyWeapons}
  * (mech SRM / LRM) queue into here through the shared
  * {@link WeaponSimContext#queueDetonation} primitive on the sim. Tested
  * implicitly by playtest; a unit-test path can swap the context for a stub.

@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.weapons;
+package com.dillon.starsectormarines.battle.combat;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Unit;
@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * Pure-enum coverage for {@link FireStance}: the accuracy multipliers + the
  * {@code stanceFor} strict-rule heuristic. Integration with
- * {@link InfantryWeapons#fireShot} is covered indirectly by callsites that
+ * {@link com.dillon.starsectormarines.battle.weapons.InfantryWeapons#fireShot} is covered indirectly by callsites that
  * pass the stance explicitly; this test pins the contract of the values.
  */
 public class FireStanceTest {

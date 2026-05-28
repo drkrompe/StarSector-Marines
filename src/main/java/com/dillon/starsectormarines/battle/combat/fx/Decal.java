@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.fx;
+package com.dillon.starsectormarines.battle.combat.fx;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Unit;

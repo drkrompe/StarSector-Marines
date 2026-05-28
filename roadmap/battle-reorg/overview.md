@@ -202,9 +202,13 @@ fan out to a Sonnet subagent (keep design/verify on the main thread).
 Ordered to remove the worst conflation first and defer the highest
 reference-churn moves to a quiet base.
 
-1. **`combat/` consolidation** — fold `fx/` + `shots/` + `damage/` + the
-   combat-shared half of `weapons/` into `combat/` (+ `combat/fx/`). Kills
-   the `fx/` simulation-state conflation; unifies the fire→damage pipeline.
+1. ~~**`combat/` consolidation** — fold `fx/` + `shots/` + `damage/` + the
+   combat-shared half of `weapons/` into `combat/` (+ `combat/fx/`).~~
+   **SHIPPED.** Killed the `fx/` simulation-state conflation; unified the
+   fire→damage pipeline. `fx/`/`shots/`/`damage/` dissolved. Note for
+   future slices: a full recompile (`--rerun-tasks`) is needed to surface
+   the complete missing-import set — Gradle's incremental compile
+   under-reports; and same-package *test* files need relocating too.
 2. **`world/` consolidation** — `map/` + `mapgen/` + `sprites/` →
    `world/{model,gen,tiles}`; merge `UrbanMapGenerator` into `gen/`; lift
    `MapVehicle`/`VehicleKind` out (staged for slice 3).

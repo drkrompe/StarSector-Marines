@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.flyby;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Unit;
-import com.dillon.starsectormarines.battle.fx.WeaponLights;
+import com.dillon.starsectormarines.battle.combat.fx.WeaponLights;
 import com.dillon.starsectormarines.ops.battleview.BattleCamera;
 import com.dillon.starsectormarines.render2d.LightAccumulator;
 import com.fs.starfarer.api.Global;
@@ -756,8 +756,8 @@ public final class FlybyOverlay {
         // Persistent decal so strafing runs leave a permanent peppered trail.
         // KINETIC profile gives bullet-hole / small-crater treatment matching
         // a fighter's chain gun, distinct from the lighter rifle marks.
-        com.dillon.starsectormarines.battle.fx.ImpactDecals.spawnImpact(sim, rng,
-                com.dillon.starsectormarines.battle.fx.ImpactProfile.KINETIC,
+        com.dillon.starsectormarines.battle.combat.fx.ImpactDecals.spawnImpact(sim, rng,
+                com.dillon.starsectormarines.battle.combat.fx.ImpactProfile.KINETIC,
                 endX, endY, isWall);
     }
 
@@ -920,7 +920,7 @@ public final class FlybyOverlay {
             // in the same frame as the explosion FX below — flyby's missile
             // flight is already a visible projectile, so we don't need the
             // queue's countdown.
-            sim.detonateNow(new com.dillon.starsectormarines.battle.fx.PendingDetonation(
+            sim.detonateNow(new com.dillon.starsectormarines.battle.combat.PendingDetonation(
                     p.worldX, p.worldY, /*remainingTime*/ 0f,
                     /*aoeRadius*/ r,
                     /*damage*/ p.profile.projectileAoeDamage,
@@ -937,8 +937,8 @@ public final class FlybyOverlay {
         if (sim != null) {
             boolean isWall = !sim.getGrid().inBounds((int) Math.floor(p.worldX), (int) Math.floor(p.worldY))
                     || !sim.getGrid().isWalkable((int) Math.floor(p.worldX), (int) Math.floor(p.worldY));
-            com.dillon.starsectormarines.battle.fx.ImpactDecals.spawnImpact(sim, rng,
-                    com.dillon.starsectormarines.battle.fx.ImpactProfile.HE,
+            com.dillon.starsectormarines.battle.combat.fx.ImpactDecals.spawnImpact(sim, rng,
+                    com.dillon.starsectormarines.battle.combat.fx.ImpactProfile.HE,
                     p.worldX, p.worldY, isWall);
         }
         // Positional detonation audio — mono pool, plays alongside Doppler launch.

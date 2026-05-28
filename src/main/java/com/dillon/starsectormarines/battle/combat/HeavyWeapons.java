@@ -1,16 +1,12 @@
-package com.dillon.starsectormarines.battle.weapons;
+package com.dillon.starsectormarines.battle.combat;
 
-import com.dillon.starsectormarines.battle.damage.DamageService;
-import com.dillon.starsectormarines.battle.damage.HitResponseService;
-import com.dillon.starsectormarines.battle.fx.EffectsService;
+import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.shots.ShotService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.fx.PendingDetonation;
-import com.dillon.starsectormarines.battle.fx.Projectile;
-import com.dillon.starsectormarines.battle.fx.ShotEvent;
 import com.dillon.starsectormarines.battle.unit.Unit;
-import com.dillon.starsectormarines.battle.fx.ImpactProfile;
+import com.dillon.starsectormarines.battle.weapons.MechWeapon;
+import com.dillon.starsectormarines.battle.weapons.MechLoadoutState;
+import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 
 import java.util.List;
 
@@ -20,7 +16,7 @@ import java.util.List;
  * artillery); future tanks, hovercraft, and additional mech chassis hook in
  * here through the same {@link MechLoadoutState} state bag.
  *
- * <p>The split from {@link InfantryWeapons} is along the unit's character —
+ * <p>The split from {@link com.dillon.starsectormarines.battle.weapons.InfantryWeapons} is along the unit's character —
  * handheld squad weapons vs vehicle-mounted hardpoints — not along weapon
  * class. A future "infantry rocket launcher" would still live in infantry;
  * a hypothetical mech-mounted rifle would live here.
@@ -176,7 +172,7 @@ public class HeavyWeapons {
     /**
      * Per-tick mech-weapon continuation — runs the three chassis tracks
      * (chaingun burst, SRM salvo, LRM salvo) for every unit with a
-     * {@link MechLoadoutState}. Mirrors {@link InfantryWeapons#tick} for the
+     * {@link MechLoadoutState}. Mirrors {@link com.dillon.starsectormarines.battle.weapons.InfantryWeapons#tick} for the
      * marine primary side; lives separate because the mech burst state is on
      * the loadout, not the unit.
      *

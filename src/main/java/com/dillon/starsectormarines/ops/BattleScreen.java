@@ -2,12 +2,12 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleSetup;
-import com.dillon.starsectormarines.battle.fx.Decal;
+import com.dillon.starsectormarines.battle.combat.fx.Decal;
 import com.dillon.starsectormarines.battle.map.Doodad;
 import com.dillon.starsectormarines.battle.equipment.EquipmentDrop;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.fx.ShotEvent;
-import com.dillon.starsectormarines.battle.fx.SmokingWreck;
+import com.dillon.starsectormarines.battle.combat.ShotEvent;
+import com.dillon.starsectormarines.battle.combat.fx.SmokingWreck;
 import com.dillon.starsectormarines.battle.map.TimeOfDay;
 import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
@@ -43,11 +43,11 @@ import com.dillon.starsectormarines.battle.ui.panel.TickProfileDebugPanel;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.ui.picking.WorldPicker;
-import com.dillon.starsectormarines.battle.fx.EffectsService;
-import com.dillon.starsectormarines.battle.fx.ImpactDecals;
-import com.dillon.starsectormarines.battle.fx.ImpactFx;
-import com.dillon.starsectormarines.battle.fx.ImpactProfile;
-import com.dillon.starsectormarines.battle.fx.WeaponLights;
+import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
+import com.dillon.starsectormarines.battle.combat.fx.ImpactDecals;
+import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
+import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
+import com.dillon.starsectormarines.battle.combat.fx.WeaponLights;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.objective.Objective;
@@ -4003,12 +4003,12 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (cache == null) continue;
             float linearProgress = 1f - Math.max(0f, Math.min(1f, s.lifetime / Math.max(0.001f, s.lifetimeMax)));
             // Rocket-class kinds with a boost ramp accelerate from rest to
-            // terminal velocity via {@link com.dillon.starsectormarines.battle.fx.Projectile#applyBoostCurve}.
+            // terminal velocity via {@link com.dillon.starsectormarines.battle.combat.Projectile#applyBoostCurve}.
             // Chemical-charge shells (GRENADE_LAUNCHER, mortars) exit the
             // tube at terminal velocity and travel at constant speed — they
             // keep linear lerp, same as direct-fire tracer kinds.
             float progress = (s.turretKind != null && s.turretKind.hasBoostRamp())
-                    ? com.dillon.starsectormarines.battle.fx.Projectile.applyBoostCurve(linearProgress)
+                    ? com.dillon.starsectormarines.battle.combat.Projectile.applyBoostCurve(linearProgress)
                     : linearProgress;
             float px = s.fromX + (s.toX - s.fromX) * progress;
             float py = s.fromY + (s.toY - s.fromY) * progress;
@@ -4123,7 +4123,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             // tracks the rocket's actual visual position. Rocket-class kinds
             // get the boost; chemical-charge shells stay on linear lerp.
             float progress = s.turretKind.hasBoostRamp()
-                    ? com.dillon.starsectormarines.battle.fx.Projectile.applyBoostCurve(linearProgress)
+                    ? com.dillon.starsectormarines.battle.combat.Projectile.applyBoostCurve(linearProgress)
                     : linearProgress;
             float px = s.fromX + (s.toX - s.fromX) * progress;
             float py = s.fromY + (s.toY - s.fromY) * progress;

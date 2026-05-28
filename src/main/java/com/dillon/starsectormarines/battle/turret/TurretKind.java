@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.turret;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.fx.ImpactProfile;
+import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 
 /**
  * Catalog of static ground-defense turrets, each backed by a vanilla Starsector
@@ -187,7 +187,7 @@ public enum TurretKind {
     /**
      * Splash radius in cells. {@code > 0} swings the kind onto the AoE path —
      * {@link com.dillon.starsectormarines.battle.sim.BattleSimulation#fireShotFrom}
-     * queues a {@link com.dillon.starsectormarines.battle.fx.PendingDetonation}
+     * queues a {@link com.dillon.starsectormarines.battle.combat.PendingDetonation}
      * at the projectile's endpoint instead of resolving damage at fire time.
      */
     public final float aoeRadius;
@@ -220,8 +220,8 @@ public enum TurretKind {
     public final float arcHeight;
     /**
      * Sim-seconds the projectile is visible in flight. Drives both the
-     * {@link com.dillon.starsectormarines.battle.fx.ShotEvent} lifetime and the
-     * paired {@link com.dillon.starsectormarines.battle.fx.PendingDetonation}
+     * {@link com.dillon.starsectormarines.battle.combat.ShotEvent} lifetime and the
+     * paired {@link com.dillon.starsectormarines.battle.combat.PendingDetonation}
      * timer so the explosion lines up with the projectile arriving. {@code 0}
      * falls back to the legacy {@code SHOT_LIFETIME} tracer flash.
      */
@@ -353,7 +353,7 @@ public enum TurretKind {
 
     /**
      * Projectile velocity in cells per sim-second. {@code > 0} flips the kind
-     * onto the simulated-{@link com.dillon.starsectormarines.battle.fx.Projectile}
+     * onto the simulated-{@link com.dillon.starsectormarines.battle.combat.Projectile}
      * path — flight time becomes {@code dist / cellsPerSec} (close shots arrive
      * sooner than far ones, matching real rockets), and the shot is a real
      * entity in {@code BattleSimulation.activeProjectiles} that point defense
@@ -374,7 +374,7 @@ public enum TurretKind {
 
     /**
      * True for rocket-class kinds whose projectile accelerates from rest —
-     * applies the {@link com.dillon.starsectormarines.battle.fx.Projectile#applyBoostCurve}
+     * applies the {@link com.dillon.starsectormarines.battle.combat.Projectile#applyBoostCurve}
      * boost-then-cruise visual curve in flight. False for chemical-charge
      * shells (grenades, mortars) which exit the tube already at terminal
      * velocity and travel at constant speed.

@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.battle.equipment.EquipmentDrop;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
-import com.dillon.starsectormarines.battle.weapons.FireStance;
+import com.dillon.starsectormarines.battle.combat.FireStance;
 
 /**
  * Kit-retriever: head for the assigned drop, fire opportunistically along

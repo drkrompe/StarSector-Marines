@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
-import com.dillon.starsectormarines.battle.damage.DamageService;
+import com.dillon.starsectormarines.battle.combat.DamageService;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
@@ -38,7 +38,7 @@ import java.util.List;
  * </ul>
  *
  * <p>Sibling slice to {@link DamageService},
- * {@link com.dillon.starsectormarines.battle.fx.EffectsService}, et al.
+ * {@link com.dillon.starsectormarines.battle.combat.fx.EffectsService}, et al.
  * Constructor-injected dependencies: {@link UnitSpatialIndex} (mirrored
  * from {@link #addUnit} so off-tick / mid-tick deboard callers see the new
  * unit on the next AI query), {@link DamageService} (for the parallel-flag
@@ -61,7 +61,7 @@ public final class UnitRosterService {
      * Dense entity registry — Phase 1 of the SoA migration. Held alongside
      * {@link #units} and kept in sync on {@link #addUnit}; releases happen
      * out of the death cascade in
-     * {@code com.dillon.starsectormarines.battle.damage.DamageResolver#resolve}
+     * {@code com.dillon.starsectormarines.battle.combat.DamageResolver#resolve}
      * via {@link #releaseFromRegistry(long)}. The list continues to carry
      * dead entries so existing post-death consumers (turret demolition,
      * drone crash) keep working until they migrate to event-driven death
@@ -140,7 +140,7 @@ public final class UnitRosterService {
     /**
      * Drops the registry entry for {@code entityId} via swap-and-pop.
      * Called by the death cascade in
-     * {@code com.dillon.starsectormarines.battle.damage.DamageResolver#resolve}.
+     * {@code com.dillon.starsectormarines.battle.combat.DamageResolver#resolve}.
      * Doesn't touch the legacy {@link #units} list — dead units stay there
      * for the post-death consumers that still iterate it.
      */

@@ -1,8 +1,8 @@
-package com.dillon.starsectormarines.battle.fx;
+package com.dillon.starsectormarines.battle.combat.fx;
 
 /**
  * Per-detonation smoke emitter parked at an HE impact site. Spawned by
- * {@link com.dillon.starsectormarines.battle.weapons.Detonations} whenever
+ * {@link com.dillon.starsectormarines.battle.combat.Detonations} whenever
  * a detonation with {@code aoeRadius > 0} resolves; the sim ages
  * {@link #remainingLifetime} and uses {@link #nextPuffTimer} to schedule
  * smoke-puff emissions the renderer drains into the impact FX engine.

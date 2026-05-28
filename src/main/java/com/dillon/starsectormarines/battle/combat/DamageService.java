@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.damage;
+package com.dillon.starsectormarines.battle.combat;
 
 import com.dillon.starsectormarines.battle.sim.PendingOccupancyDelta;
 import com.dillon.starsectormarines.battle.sim.PendingTargetMutation;
@@ -33,9 +33,9 @@ import java.util.Arrays;
  * records — they have non-primitive payloads (an enum, a "kind" tag) where
  * SoA wouldn't pay off.
  *
- * <p>Sibling slice to {@link com.dillon.starsectormarines.battle.fx.EffectsService},
+ * <p>Sibling slice to {@link com.dillon.starsectormarines.battle.combat.fx.EffectsService},
  * {@link com.dillon.starsectormarines.battle.vision.VisionService},
- * {@link com.dillon.starsectormarines.battle.shots.ShotService},
+ * {@link com.dillon.starsectormarines.battle.combat.ShotService},
  * {@link com.dillon.starsectormarines.battle.command.CommanderService},
  * {@link com.dillon.starsectormarines.battle.objective.ObjectivesService}.
  *

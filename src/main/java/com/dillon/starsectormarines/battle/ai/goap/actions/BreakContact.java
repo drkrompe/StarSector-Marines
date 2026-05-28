@@ -8,7 +8,7 @@ import com.dillon.starsectormarines.battle.ai.goap.Action;
 import com.dillon.starsectormarines.battle.ai.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.ai.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
-import com.dillon.starsectormarines.battle.weapons.FireStance;
+import com.dillon.starsectormarines.battle.combat.FireStance;
 
 /**
  * <b>Squad posture: break contact and hold in cover.</b> Each member picks an

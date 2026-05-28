@@ -2,10 +2,10 @@ package com.dillon.starsectormarines.battle.weapons;
 
 import com.dillon.starsectormarines.battle.drone.Drone;
 import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
-import com.dillon.starsectormarines.battle.fx.Projectile;
+import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 
-import com.dillon.starsectormarines.battle.fx.ImpactProfile;
+import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 
 import java.awt.Color;
@@ -133,7 +133,7 @@ public enum MarineWeapon {
     /**
      * Fraction of base {@link #accuracy} lost at {@link #range} cells.
      * 0 = no falloff (legacy flat behavior), 0.5 = halve accuracy at max
-     * range. Applied via {@link com.dillon.starsectormarines.battle.weapons.RangeFalloff#accuracy}
+     * range. Applied via {@link com.dillon.starsectormarines.battle.combat.RangeFalloff#accuracy}
      * in {@code InfantryWeapons.fireShot} — compounds multiplicatively with
      * the {@code FireStance} multiplier so a moving marine at long range is
      * doubly inaccurate.
@@ -141,7 +141,7 @@ public enum MarineWeapon {
     public final float accuracyFalloff;
     /**
      * Lateral scatter radius in cells at {@link #range}, scaling linearly
-     * with distance via {@link com.dillon.starsectormarines.battle.weapons.RangeFalloff#spread}.
+     * with distance via {@link com.dillon.starsectormarines.battle.combat.RangeFalloff#spread}.
      * Applied to both hit-endpoint jitter (the round still hits the locked
      * target for damage purposes, but the tracer endpoint scatters
      * visually) and to miss-scatter as an additive on top of the baseline

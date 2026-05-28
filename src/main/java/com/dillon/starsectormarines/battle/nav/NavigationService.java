@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.ai.TacticalScoring;
-import com.dillon.starsectormarines.battle.damage.DamageService;
+import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.profile.LosCache;
@@ -20,8 +20,8 @@ import java.util.List;
  * + dirty flag, the per-cell {@link #occupancyMap}, the unit + destination
  * spatial indices, the per-target vantage-point cache, and the per-tick
  * {@link LosCache} lifecycle. Sibling slice to
- * {@link com.dillon.starsectormarines.battle.fx.EffectsService},
- * {@link com.dillon.starsectormarines.battle.damage.DamageService},
+ * {@link com.dillon.starsectormarines.battle.combat.fx.EffectsService},
+ * {@link com.dillon.starsectormarines.battle.combat.DamageService},
  * {@link com.dillon.starsectormarines.battle.unit.UnitRosterService} et al.
  *
  * <p>The sim aliases the grid / topology / zoneGraph / occupancyMap / indices

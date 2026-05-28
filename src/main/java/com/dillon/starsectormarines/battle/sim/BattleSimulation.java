@@ -3,12 +3,12 @@ package com.dillon.starsectormarines.battle.sim;
 import com.dillon.starsectormarines.battle.drone.Drone;
 import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
 import com.dillon.starsectormarines.battle.equipment.EquipmentDrop;
-import com.dillon.starsectormarines.battle.fx.Decal;
-import com.dillon.starsectormarines.battle.fx.DecalKind;
-import com.dillon.starsectormarines.battle.fx.PendingDetonation;
-import com.dillon.starsectormarines.battle.fx.Projectile;
-import com.dillon.starsectormarines.battle.fx.ShotEvent;
-import com.dillon.starsectormarines.battle.fx.SmokingWreck;
+import com.dillon.starsectormarines.battle.combat.fx.Decal;
+import com.dillon.starsectormarines.battle.combat.fx.DecalKind;
+import com.dillon.starsectormarines.battle.combat.PendingDetonation;
+import com.dillon.starsectormarines.battle.combat.Projectile;
+import com.dillon.starsectormarines.battle.combat.ShotEvent;
+import com.dillon.starsectormarines.battle.combat.fx.SmokingWreck;
 import com.dillon.starsectormarines.battle.map.Doodad;
 import com.dillon.starsectormarines.battle.map.DoodadService;
 import com.dillon.starsectormarines.battle.map.MapVehicle;
@@ -26,14 +26,14 @@ import com.dillon.starsectormarines.battle.command.CommanderService;
 import com.dillon.starsectormarines.battle.compound.CompoundCaptureSystem;
 import com.dillon.starsectormarines.battle.compound.CompoundGarrisonSystem;
 import com.dillon.starsectormarines.battle.compound.CompoundService;
-import com.dillon.starsectormarines.battle.fx.EffectsService;
+import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.ground.GroundSystem;
 import com.dillon.starsectormarines.battle.ground.Vehicle;
 import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.ai.TacticalScoring;
 import com.dillon.starsectormarines.battle.command.MissionCommand;
-import com.dillon.starsectormarines.battle.damage.DamageResolver;
-import com.dillon.starsectormarines.battle.damage.DamageService;
+import com.dillon.starsectormarines.battle.combat.DamageResolver;
+import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.equipment.EquipmentDropService;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.map.CellTopology;
@@ -46,7 +46,7 @@ import com.dillon.starsectormarines.battle.objective.ObjectivesService;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
 import com.dillon.starsectormarines.battle.reinforcement.ReinforcementService;
-import com.dillon.starsectormarines.battle.shots.ShotService;
+import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.tactical.TacticalContextService;
 import com.dillon.starsectormarines.battle.tactical.TacticalMap;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
@@ -55,8 +55,8 @@ import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.vision.VisionService;
-import com.dillon.starsectormarines.battle.weapons.Detonations;
-import com.dillon.starsectormarines.battle.weapons.HeavyWeapons;
+import com.dillon.starsectormarines.battle.combat.Detonations;
+import com.dillon.starsectormarines.battle.combat.HeavyWeapons;
 import com.dillon.starsectormarines.battle.weapons.InfantryWeapons;
 
 import java.util.ArrayList;
@@ -183,7 +183,7 @@ public class BattleSimulation {
     /** Turret-kind fire procedure — accuracy, scatter, raycast, damage, detonation/projectile queuing, shot-event posting. Extracted from the sim's former {@code fireShotFrom} methods. */
     private final com.dillon.starsectormarines.battle.turret.TurretFireService turretFire;
     /** Per-hit response logic — fallback rolls + target-reprioritization rolls. Extracted from the sim's former {@code rollFallbackOnHit}/{@code rollReprioritizeOnHit}. */
-    private final com.dillon.starsectormarines.battle.damage.HitResponseService hitResponse;
+    private final com.dillon.starsectormarines.battle.combat.HitResponseService hitResponse;
     /** Units that transitioned from alive to dead during the last {@link #advance(float)} call. Same lifecycle as {@link #shotsThisFrame}. */
     private final List<Unit> deathsThisFrame = new ArrayList<>();
     /**
@@ -245,7 +245,7 @@ public class BattleSimulation {
         this.occupancyMap = navigation.getOccupancyMap();
         this.unitIndex = navigation.getUnitIndex();
         this.destIndex = navigation.getDestIndex();
-        this.effects = new com.dillon.starsectormarines.battle.fx.EffectsService(rng);
+        this.effects = new com.dillon.starsectormarines.battle.combat.fx.EffectsService(rng);
         this.doodadService = new DoodadService(grid);
         // DamageService construction is staged: the resolver needs the roster
         // (squad map + units list) and the equipment-drop service, both of
@@ -291,7 +291,7 @@ public class BattleSimulation {
                 navigation, rosterService, attackerIndex, shots, doodadService);
         this.unitUpdate = new com.dillon.starsectormarines.battle.ai.UnitUpdateSystem(
                 rosterService.getRegistry(), damageService, tickInnerProfile);
-        this.hitResponse = new com.dillon.starsectormarines.battle.damage.HitResponseService(
+        this.hitResponse = new com.dillon.starsectormarines.battle.combat.HitResponseService(
                 grid, rosterService.getRegistry(), tacticalScoring, damageService,
                 () -> simTickIndex);
         this.detonations = new Detonations(units, grid, topology, damageService,
@@ -310,9 +310,9 @@ public class BattleSimulation {
             float jx = x + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
             float jy = y + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
             int rubbleIdx = rng.nextFloat() < 0.5f
-                    ? com.dillon.starsectormarines.battle.fx.DecalKind.RUBBLE.index
-                    : com.dillon.starsectormarines.battle.fx.DecalKind.RUBBLE_ALT.index;
-            effects.addDecal(new com.dillon.starsectormarines.battle.fx.Decal(
+                    ? com.dillon.starsectormarines.battle.combat.fx.DecalKind.RUBBLE.index
+                    : com.dillon.starsectormarines.battle.combat.fx.DecalKind.RUBBLE_ALT.index;
+            effects.addDecal(new com.dillon.starsectormarines.battle.combat.fx.Decal(
                     jx, jy, rubbleIdx, rng.nextFloat() * 360f, 1.10f));
         });
         vision.init(grid, 256);
@@ -387,14 +387,14 @@ public class BattleSimulation {
     public void setFlybyRoster(FlybyRoster roster) { this.flybyRoster = roster != null ? roster : FlybyRoster.EMPTY; }
     public List<ShotEvent> getActiveShots(){ return shots.getActiveShots(); }
 
-    /** Thread-safe snapshot of active shots for callers iterating during the parallel UPDATE_UNITS dispatch. See {@link com.dillon.starsectormarines.battle.shots.ShotService#snapshotActiveShots()}. */
+    /** Thread-safe snapshot of active shots for callers iterating during the parallel UPDATE_UNITS dispatch. See {@link com.dillon.starsectormarines.battle.combat.ShotService#snapshotActiveShots()}. */
     public List<ShotEvent> snapshotActiveShots() { return shots.snapshotActiveShots(); }
     public List<ShotEvent> getShotsThisFrame() { return shots.getShotsThisFrame(); }
     /** Shots whose lifetime ended this advance — the "projectile arrived" event. Renderer reads this to spawn impact FX + arrival sounds at the moment a turret-shot sprite reaches its endpoint. */
     public List<ShotEvent> getShotsExpiredThisFrame() { return shots.getShotsExpiredThisFrame(); }
     /** In-flight {@link Projectile}s — slow-velocity AoE kinds. Renderer reads positions for sprite + contrail drawing. */
     public List<Projectile> getActiveProjectiles() { return shots.getActiveProjectiles(); }
-    /** Thread-safe snapshot of active projectiles for callers iterating during the parallel UPDATE_UNITS dispatch (today: squad-coordination scorers checking projected rocket damage). See {@link com.dillon.starsectormarines.battle.shots.ShotService#snapshotActiveProjectiles()}. */
+    /** Thread-safe snapshot of active projectiles for callers iterating during the parallel UPDATE_UNITS dispatch (today: squad-coordination scorers checking projected rocket damage). See {@link com.dillon.starsectormarines.battle.combat.ShotService#snapshotActiveProjectiles()}. */
     public List<Projectile> snapshotActiveProjectiles() { return shots.snapshotActiveProjectiles(); }
     /** Projectiles that arrived this tick — parallel to {@link #getShotsExpiredThisFrame} for the renderer's impact-FX dispatch. */
     public List<Projectile> getProjectilesArrivedThisFrame() { return shots.getProjectilesArrivedThisFrame(); }
@@ -445,7 +445,7 @@ public class BattleSimulation {
     /** Shared scoring service — target selection, firing-position, fallback, cover queries. Thread-safe for reads (constructor-injected immutable service refs). */
     public com.dillon.starsectormarines.battle.ai.TacticalScoring getTacticalScoring() { return tacticalScoring; }
     /** Per-hit response logic — fallback rolls + target-reprioritization rolls. */
-    public com.dillon.starsectormarines.battle.damage.HitResponseService getHitResponseService() { return hitResponse; }
+    public com.dillon.starsectormarines.battle.combat.HitResponseService getHitResponseService() { return hitResponse; }
     /** Delegates to {@link UnitRosterService#getSquad(int)}. Synchronized lookup; safe to call from the parallel UPDATE_UNITS dispatch (concurrent {@link #mintSquad} from drone-hub spawns publishes through the same monitor). */
     public Squad getSquad(int id) {
         return rosterService.getSquad(id);
@@ -506,7 +506,7 @@ public class BattleSimulation {
     /**
      * Delegates to {@link UnitRosterService#releaseFromRegistry(long)}. Two
      * known production callers (the death cascade in
-     * {@link com.dillon.starsectormarines.battle.damage.DamageResolver} and
+     * {@link com.dillon.starsectormarines.battle.combat.DamageResolver} and
      * the drone cascade in
      * {@link com.dillon.starsectormarines.battle.drone.HubDemolitionSystem})
      * release via {@code rosterService} directly; this delegate exists for
@@ -585,7 +585,7 @@ public class BattleSimulation {
     /** Inline fallback write — invoked by the damage service on the serial path AND from the queued-flush. Writes the 3 fb fields and clears the stale path so the target re-paths to the fall-back cell on its next updateUnit pass. */
     private void writeFallbackInline(Unit target, int fbX, int fbY) {
         target.setFallbackCell(fbX, fbY);
-        target.setFallbackTimer(com.dillon.starsectormarines.battle.damage.HitResponseService.FALLBACK_DURATION);
+        target.setFallbackTimer(com.dillon.starsectormarines.battle.combat.HitResponseService.FALLBACK_DURATION);
         clearPath(target);
     }
 
@@ -945,26 +945,26 @@ public class BattleSimulation {
      * Stanced-fire convenience: most callers fire from a stationary position
      * (engage loops, garrisons, turrets, mech chassis) and don't need to
      * think about stance. Routes to {@link #fireShot(Unit, Unit,
-     * com.dillon.starsectormarines.battle.weapons.FireStance)} with
-     * {@link com.dillon.starsectormarines.battle.weapons.FireStance#STANCED}.
+     * com.dillon.starsectormarines.battle.combat.FireStance)} with
+     * {@link com.dillon.starsectormarines.battle.combat.FireStance#STANCED}.
      * Callers firing while walking should call the stance-aware overload
      * with {@code MOVING} so the accuracy penalty applies.
      */
     public void fireShot(Unit shooter, Unit target) {
-        fireShot(shooter, target, com.dillon.starsectormarines.battle.weapons.FireStance.STANCED);
+        fireShot(shooter, target, com.dillon.starsectormarines.battle.combat.FireStance.STANCED);
     }
 
     /**
-     * Stance-aware fire. {@link com.dillon.starsectormarines.battle.weapons.FireStance#STANCED}
+     * Stance-aware fire. {@link com.dillon.starsectormarines.battle.combat.FireStance#STANCED}
      * preserves the base accuracy roll;
-     * {@link com.dillon.starsectormarines.battle.weapons.FireStance#MOVING}
+     * {@link com.dillon.starsectormarines.battle.combat.FireStance#MOVING}
      * halves it. Implementation lives in
      * {@code battle/weapons/InfantryWeapons.java}; this method exists so AI
      * behaviors can call {@code sim.fireShot(...)} without reaching into the
      * subsystem accessor.
      */
     public void fireShot(Unit shooter, Unit target,
-                         com.dillon.starsectormarines.battle.weapons.FireStance stance) {
+                         com.dillon.starsectormarines.battle.combat.FireStance stance) {
         infantry.fireShot(shooter, target, stance);
     }
 

@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.weapons;
+package com.dillon.starsectormarines.battle.combat;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 

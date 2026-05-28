@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.battle.weapons;
 
-import com.dillon.starsectormarines.battle.fx.Projectile;
+import com.dillon.starsectormarines.battle.combat.Projectile;
 
-import com.dillon.starsectormarines.battle.fx.ImpactProfile;
+import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 
 /**

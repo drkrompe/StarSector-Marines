@@ -2,11 +2,11 @@ package com.dillon.starsectormarines.battle.ai;
 
 import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.fx.PendingDetonation;
-import com.dillon.starsectormarines.battle.fx.Projectile;
+import com.dillon.starsectormarines.battle.combat.PendingDetonation;
+import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.map.DoodadService;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
-import com.dillon.starsectormarines.battle.shots.ShotService;
+import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;

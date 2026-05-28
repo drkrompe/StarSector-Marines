@@ -11,7 +11,7 @@ import com.dillon.starsectormarines.battle.ai.goap.SquadPlan;
 import com.dillon.starsectormarines.battle.ai.goap.WorldState;
 import com.dillon.starsectormarines.battle.ai.goap.scoring.RoleAssigner;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
-import com.dillon.starsectormarines.battle.weapons.FireStance;
+import com.dillon.starsectormarines.battle.combat.FireStance;
 
 import java.util.ArrayList;
 import java.util.List;

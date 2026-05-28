@@ -15,9 +15,9 @@ import java.util.function.Consumer;
  * {@link #setCommander(Faction, MissionCommand)} during {@code BattleSetup}.
  *
  * <p>Owned by {@link com.dillon.starsectormarines.battle.sim.BattleSimulation};
- * sibling slice to {@link com.dillon.starsectormarines.battle.fx.EffectsService},
+ * sibling slice to {@link com.dillon.starsectormarines.battle.combat.fx.EffectsService},
  * {@link com.dillon.starsectormarines.battle.vision.VisionService}, and
- * {@link com.dillon.starsectormarines.battle.shots.ShotService}.
+ * {@link com.dillon.starsectormarines.battle.combat.ShotService}.
  *
  * <p>{@link #tick(float, Consumer)} owns the COMMANDER_TICK_PERIOD cadence;
  * the per-commander dispatch goes through the supplied {@code Consumer} so

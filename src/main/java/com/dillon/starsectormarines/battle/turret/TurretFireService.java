@@ -1,16 +1,16 @@
 package com.dillon.starsectormarines.battle.turret;
 
-import com.dillon.starsectormarines.battle.damage.DamageService;
-import com.dillon.starsectormarines.battle.damage.HitResponseService;
-import com.dillon.starsectormarines.battle.fx.PendingDetonation;
-import com.dillon.starsectormarines.battle.fx.Projectile;
-import com.dillon.starsectormarines.battle.fx.ShotEvent;
+import com.dillon.starsectormarines.battle.combat.DamageService;
+import com.dillon.starsectormarines.battle.combat.HitResponseService;
+import com.dillon.starsectormarines.battle.combat.PendingDetonation;
+import com.dillon.starsectormarines.battle.combat.Projectile;
+import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.map.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.shots.ShotService;
+import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Unit;
-import com.dillon.starsectormarines.battle.weapons.ShotRaycast;
+import com.dillon.starsectormarines.battle.combat.ShotRaycast;
 
 import java.util.Random;
 

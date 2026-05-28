@@ -14,7 +14,7 @@ import com.dillon.starsectormarines.battle.ai.goap.world.WorldStateBuilder;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.Portal;
-import com.dillon.starsectormarines.battle.weapons.FireStance;
+import com.dillon.starsectormarines.battle.combat.FireStance;
 
 import java.util.ArrayList;
 import java.util.List;

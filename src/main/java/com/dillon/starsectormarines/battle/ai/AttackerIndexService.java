@@ -28,7 +28,7 @@ import java.util.List;
  * zero — they grow once and live forever.
  *
  * <p>Sibling slice to {@link com.dillon.starsectormarines.battle.unit.UnitRosterService},
- * {@link com.dillon.starsectormarines.battle.damage.DamageService}, et al.
+ * {@link com.dillon.starsectormarines.battle.combat.DamageService}, et al.
  */
 public final class AttackerIndexService {
 

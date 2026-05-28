@@ -1,9 +1,6 @@
-package com.dillon.starsectormarines.battle.fx;
+package com.dillon.starsectormarines.battle.combat.fx;
 
 import com.dillon.starsectormarines.DevConfig;
-import com.dillon.starsectormarines.battle.fx.Decal;
-import com.dillon.starsectormarines.battle.fx.SmokePlume;
-import com.dillon.starsectormarines.battle.fx.SmokingWreck;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;

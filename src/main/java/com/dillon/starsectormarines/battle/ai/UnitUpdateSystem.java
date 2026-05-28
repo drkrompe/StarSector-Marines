@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.ai.goap.GoapDroneBehavior;
-import com.dillon.starsectormarines.battle.damage.DamageService;
+import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 

@@ -1,8 +1,5 @@
-package com.dillon.starsectormarines.battle.shots;
+package com.dillon.starsectormarines.battle.combat;
 
-import com.dillon.starsectormarines.battle.fx.PendingDetonation;
-import com.dillon.starsectormarines.battle.fx.Projectile;
-import com.dillon.starsectormarines.battle.fx.ShotEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +11,7 @@ import java.util.List;
  * and the per-frame event drains the renderer pulls each frame.
  *
  * <p>Sibling slice to
- * {@link com.dillon.starsectormarines.battle.fx.EffectsService} and
+ * {@link com.dillon.starsectormarines.battle.combat.fx.EffectsService} and
  * {@link com.dillon.starsectormarines.battle.vision.VisionService}.
  * {@link com.dillon.starsectormarines.battle.sim.BattleSimulation} owns one
  * instance and delegates the {@code postShot} / {@code queueProjectile} /

@@ -9,7 +9,7 @@ import com.dillon.starsectormarines.battle.unit.Unit;
  *
  * <p>Pre-existing tests killed units with a direct {@code u.hp = 0f} write.
  * Production death (in
- * {@link com.dillon.starsectormarines.battle.damage.DamageResolver} and the
+ * {@link com.dillon.starsectormarines.battle.combat.DamageResolver} and the
  * drone-hub cascade) does two things: drives hp negative AND releases the
  * entity from the {@link UnitRegistry} via
  * {@link BattleSimulation#releaseFromRegistry}. Tests that only do the first

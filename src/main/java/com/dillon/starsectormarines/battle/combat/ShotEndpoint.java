@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.weapons;
+package com.dillon.starsectormarines.battle.combat;
 
 import com.dillon.starsectormarines.battle.unit.Unit;
 
@@ -6,8 +6,8 @@ import java.util.Random;
 
 /**
  * Single source of truth for where a fired round ends up visually, around a
- * target. Shared across {@link InfantryWeapons#fireShot},
- * {@link InfantryWeapons#fireSecondary}, and
+ * target. Shared across {@link com.dillon.starsectormarines.battle.weapons.InfantryWeapons#fireShot},
+ * {@link com.dillon.starsectormarines.battle.weapons.InfantryWeapons#fireSecondary}, and
  * {@link HeavyWeapons#fireMechWeapon} so all three live by the same rules.
  *
  * <ul>

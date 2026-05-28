@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.fx;
+package com.dillon.starsectormarines.battle.combat.fx;
 
 import com.dillon.starsectormarines.ops.battleview.BattleCamera;
 import com.fs.starfarer.api.Global;

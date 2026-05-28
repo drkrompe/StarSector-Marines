@@ -1,13 +1,16 @@
 package com.dillon.starsectormarines.battle.weapons;
 
-import com.dillon.starsectormarines.battle.damage.DamageService;
-import com.dillon.starsectormarines.battle.damage.HitResponseService;
+import com.dillon.starsectormarines.battle.combat.DamageService;
+import com.dillon.starsectormarines.battle.combat.HitResponseService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
-import com.dillon.starsectormarines.battle.fx.PendingDetonation;
-import com.dillon.starsectormarines.battle.fx.Projectile;
-import com.dillon.starsectormarines.battle.fx.ShotEvent;
-import com.dillon.starsectormarines.battle.shots.ShotService;
+import com.dillon.starsectormarines.battle.combat.PendingDetonation;
+import com.dillon.starsectormarines.battle.combat.Projectile;
+import com.dillon.starsectormarines.battle.combat.ShotEvent;
+import com.dillon.starsectormarines.battle.combat.ShotService;
+import com.dillon.starsectormarines.battle.combat.FireStance;
+import com.dillon.starsectormarines.battle.combat.RangeFalloff;
+import com.dillon.starsectormarines.battle.combat.ShotEndpoint;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;

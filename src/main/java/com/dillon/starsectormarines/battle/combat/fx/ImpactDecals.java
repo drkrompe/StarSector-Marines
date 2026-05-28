@@ -1,8 +1,6 @@
-package com.dillon.starsectormarines.battle.fx;
+package com.dillon.starsectormarines.battle.combat.fx;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.fx.Decal;
-import com.dillon.starsectormarines.battle.fx.DecalKind;
 
 import java.util.Random;
 

@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.fx;
+package com.dillon.starsectormarines.battle.combat.fx;
 
 /**
  * Visual character of an impact, decoupled from the weapon catalog. Turret

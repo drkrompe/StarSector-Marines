@@ -26,8 +26,8 @@ import java.util.function.Consumer;
  * stale path and re-pathfinds toward the kit on its next behavior tick.
  *
  * <p>Sibling slice to {@link UnitRosterService},
- * {@link com.dillon.starsectormarines.battle.damage.DamageService},
- * {@link com.dillon.starsectormarines.battle.fx.EffectsService}, et al.
+ * {@link com.dillon.starsectormarines.battle.combat.DamageService},
+ * {@link com.dillon.starsectormarines.battle.combat.fx.EffectsService}, et al.
  */
 public final class EquipmentDropService {
 

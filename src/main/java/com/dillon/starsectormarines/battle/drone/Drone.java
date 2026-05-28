@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.drone;
 
-import com.dillon.starsectormarines.battle.fx.SmokingWreck;
+import com.dillon.starsectormarines.battle.combat.fx.SmokingWreck;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Unit;
