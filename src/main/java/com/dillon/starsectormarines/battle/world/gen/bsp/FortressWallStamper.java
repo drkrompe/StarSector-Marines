@@ -7,7 +7,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.tactical.TacticalNode;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;

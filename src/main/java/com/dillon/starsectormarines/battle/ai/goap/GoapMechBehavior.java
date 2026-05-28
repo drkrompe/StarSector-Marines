@@ -1,10 +1,16 @@
 package com.dillon.starsectormarines.battle.ai.goap;
+import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
+import com.dillon.starsectormarines.battle.decision.goap.Planner;
+import com.dillon.starsectormarines.battle.decision.goap.Predicate;
+import com.dillon.starsectormarines.battle.decision.goap.WorldState;
+import com.dillon.starsectormarines.battle.decision.goap.Action;
+import com.dillon.starsectormarines.battle.decision.goap.Goal;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.unit.Unit;
-import com.dillon.starsectormarines.battle.ai.UnitBehavior;
+import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 import com.dillon.starsectormarines.battle.ai.goap.actions.BackstopAssignedSquad;
 import com.dillon.starsectormarines.battle.ai.goap.actions.EngageAtCurrentBand;
 import com.dillon.starsectormarines.battle.ai.goap.actions.MechBreakContact;
@@ -13,8 +19,8 @@ import com.dillon.starsectormarines.battle.ai.goap.goals.BackstopAssignedSquadGo
 import com.dillon.starsectormarines.battle.ai.goap.goals.MechEliminateEnemiesGoal;
 import com.dillon.starsectormarines.battle.ai.goap.goals.MechSurviveContact;
 import com.dillon.starsectormarines.battle.ai.goap.goals.OverwatchKillZoneGoal;
-import com.dillon.starsectormarines.battle.ai.goap.scoring.RoleAssigner;
-import com.dillon.starsectormarines.battle.ai.goap.world.WorldStateBuilder;
+import com.dillon.starsectormarines.battle.decision.goap.scoring.RoleAssigner;
+import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +46,7 @@ public final class GoapMechBehavior implements UnitBehavior {
 
     public static final GoapMechBehavior INSTANCE = new GoapMechBehavior();
 
-    /** Goals the squad-level planner picks from each replan. Highest-priority bucket wins, relevance breaks ties. MISSION-priority role goals come first; SURVIVAL-tier {@link MechSurviveContact} wins whenever {@link com.dillon.starsectormarines.battle.ai.goap.Predicate#MORALE_BROKEN} trips (the MISSION goals carve themselves out on that predicate too, so SURVIVAL wins outright); the ENGAGEMENT-priority ambient {@link MechEliminateEnemiesGoal} is the floor. Within MISSION, overwatch is listed first so a mixed-role squad with both roles relevant tips to overwatch (Stage 1 tie-break — per-member goal assignment in Stage 2 resolves this cleanly). */
+    /** Goals the squad-level planner picks from each replan. Highest-priority bucket wins, relevance breaks ties. MISSION-priority role goals come first; SURVIVAL-tier {@link MechSurviveContact} wins whenever {@link com.dillon.starsectormarines.battle.decision.goap.Predicate#MORALE_BROKEN} trips (the MISSION goals carve themselves out on that predicate too, so SURVIVAL wins outright); the ENGAGEMENT-priority ambient {@link MechEliminateEnemiesGoal} is the floor. Within MISSION, overwatch is listed first so a mixed-role squad with both roles relevant tips to overwatch (Stage 1 tie-break — per-member goal assignment in Stage 2 resolves this cleanly). */
     public static final List<Goal> MECH_GOALS = List.of(
             OverwatchKillZoneGoal.INSTANCE,
             BackstopAssignedSquadGoal.INSTANCE,

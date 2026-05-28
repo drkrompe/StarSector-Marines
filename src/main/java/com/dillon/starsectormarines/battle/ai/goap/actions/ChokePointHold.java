@@ -3,14 +3,14 @@ package com.dillon.starsectormarines.battle.ai.goap.actions;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
-import com.dillon.starsectormarines.battle.ai.TacticalScoring;
-import com.dillon.starsectormarines.battle.ai.goap.Action;
-import com.dillon.starsectormarines.battle.ai.goap.ActionStatus;
-import com.dillon.starsectormarines.battle.ai.goap.Predicate;
+import com.dillon.starsectormarines.battle.decision.TacticalScoring;
+import com.dillon.starsectormarines.battle.decision.goap.Action;
+import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
+import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
-import com.dillon.starsectormarines.battle.ai.goap.WorldState;
-import com.dillon.starsectormarines.battle.ai.goap.scoring.RoleAssigner;
-import com.dillon.starsectormarines.battle.ai.goap.world.WorldStateBuilder;
+import com.dillon.starsectormarines.battle.decision.goap.WorldState;
+import com.dillon.starsectormarines.battle.decision.goap.scoring.RoleAssigner;
+import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.Portal;
@@ -38,7 +38,7 @@ import java.util.List;
  * constructs one instance carrying the portal id, portal cell, and the
  * pre-picked LOS cells. Not a singleton, not registered in
  * {@code GoapInfantryBehavior.INFANTRY_ACTIONS}: the backward-chaining planner
- * never sees it. The {@link com.dillon.starsectormarines.battle.ai.goap.Predicate#ENEMY_IN_PORTAL_CELL}
+ * never sees it. The {@link com.dillon.starsectormarines.battle.decision.goap.Predicate#ENEMY_IN_PORTAL_CELL}
  * evaluator uses {@link Squad#chokePointPortalId} to know which portal cell to
  * sample — this action stamps that id on first execute (idempotent).
  *

@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.ui.compound;
 
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
-import com.dillon.starsectormarines.battle.tactical.TacticalNode;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
 import com.dillon.starsectormarines.ops.BattleLayout;

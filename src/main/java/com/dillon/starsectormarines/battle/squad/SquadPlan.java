@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.squad;
 
-import com.dillon.starsectormarines.battle.ai.goap.Action;
-import com.dillon.starsectormarines.battle.ai.goap.ActionStatus;
+import com.dillon.starsectormarines.battle.decision.goap.Action;
+import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.unit.Unit;
 
 import java.util.ArrayList;

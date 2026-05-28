@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.ai.goap.actions.PatrolRoute;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
-import com.dillon.starsectormarines.battle.tactical.TacticalContextService;
+import com.dillon.starsectormarines.battle.decision.TacticalContextService;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
 import java.util.List;

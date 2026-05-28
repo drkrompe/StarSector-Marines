@@ -1,11 +1,11 @@
 package com.dillon.starsectormarines.battle.ai.goap.goals;
 
-import com.dillon.starsectormarines.battle.ai.goap.Action;
-import com.dillon.starsectormarines.battle.ai.goap.Goal;
-import com.dillon.starsectormarines.battle.ai.goap.Planner;
-import com.dillon.starsectormarines.battle.ai.goap.Predicate;
+import com.dillon.starsectormarines.battle.decision.goap.Action;
+import com.dillon.starsectormarines.battle.decision.goap.Goal;
+import com.dillon.starsectormarines.battle.decision.goap.Planner;
+import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
-import com.dillon.starsectormarines.battle.ai.goap.WorldState;
+import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.ai.goap.actions.BreakLOS;
 import com.dillon.starsectormarines.battle.ai.goap.actions.EngagePosture;
 import org.junit.jupiter.api.Test;

@@ -4,13 +4,13 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
-import com.dillon.starsectormarines.battle.ai.goap.Action;
-import com.dillon.starsectormarines.battle.ai.goap.ActionStatus;
-import com.dillon.starsectormarines.battle.ai.goap.WorldState;
+import com.dillon.starsectormarines.battle.decision.goap.Action;
+import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
+import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.tactical.TacticalMap;
-import com.dillon.starsectormarines.battle.tactical.TacticalNode;
+import com.dillon.starsectormarines.battle.decision.TacticalMap;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 
 import java.util.List;
 

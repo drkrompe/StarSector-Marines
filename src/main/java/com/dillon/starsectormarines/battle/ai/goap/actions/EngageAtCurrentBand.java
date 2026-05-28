@@ -4,11 +4,11 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.ai.MechCombatantBehavior;
-import com.dillon.starsectormarines.battle.ai.TacticalScoring;
-import com.dillon.starsectormarines.battle.ai.goap.Action;
-import com.dillon.starsectormarines.battle.ai.goap.ActionStatus;
-import com.dillon.starsectormarines.battle.ai.goap.Predicate;
-import com.dillon.starsectormarines.battle.ai.goap.WorldState;
+import com.dillon.starsectormarines.battle.decision.TacticalScoring;
+import com.dillon.starsectormarines.battle.decision.goap.Action;
+import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
+import com.dillon.starsectormarines.battle.decision.goap.Predicate;
+import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 
 /**

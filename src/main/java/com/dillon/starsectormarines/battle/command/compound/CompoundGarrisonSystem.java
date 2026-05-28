@@ -7,7 +7,7 @@ import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.tactical.TacticalNode;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 

@@ -153,7 +153,7 @@ public class InfantryWeapons {
      *
      * <p>Same Projectile shape that locust turrets use — the rocket is a
      * real in-flight entity, queryable by squad-coordination scorers
-     * ({@link com.dillon.starsectormarines.battle.ai.TacticalScoring#shouldCommitRocket})
+     * ({@link com.dillon.starsectormarines.battle.decision.TacticalScoring#shouldCommitRocket})
      * via {@code sim.getActiveProjectiles()} and (eventually) interceptable
      * by point defense. Flight time is the per-weapon
      * {@link MarineSecondary#flightSec} constant — marines fire over a

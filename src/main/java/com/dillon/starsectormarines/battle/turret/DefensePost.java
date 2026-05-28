@@ -12,7 +12,7 @@ import java.util.List;
  * {@link com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper}
  * stamp. Carries the data {@link com.dillon.starsectormarines.battle.sim.BattleSetup}
  * needs to (a) spawn the {@link MapTurret} units at the right cells with the
- * right kinds and (b) link the {@link com.dillon.starsectormarines.battle.tactical.TacticalNode}
+ * right kinds and (b) link the {@link com.dillon.starsectormarines.battle.decision.TacticalNode}
  * to its turret list so {@code GUARDPOST_PATROL} squads can detect when all
  * their turrets are dead and release into search-and-destroy.
  *

@@ -21,7 +21,7 @@ import com.dillon.starsectormarines.battle.unit.Unit;
  *
  * <p>Per-unit fall-back is independent of squad alert — a marine who eats a
  * rocket still breaks contact via
- * {@link com.dillon.starsectormarines.battle.ai.FallbackBehavior} even if the
+ * {@link com.dillon.starsectormarines.battle.decision.FallbackBehavior} even if the
  * squad is UNAWARE the moment before. The alert level only governs idle behavior.
  *
  * <p>Squads with {@link Unit#NO_SQUAD} members (solo defenders, civilians,

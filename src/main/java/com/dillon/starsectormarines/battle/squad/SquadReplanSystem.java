@@ -11,13 +11,13 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
  * behavior matching its kind (drone / mech / infantry) so plans reflect
  * THIS tick's fresh {@code aliveMembers} + centroid + alert level before
  * any unit executes. Runs after the squad triad (alert / morale /
- * fallback) and before {@link com.dillon.starsectormarines.battle.ai.UnitUpdateSystem}.
+ * fallback) and before {@link com.dillon.starsectormarines.battle.decision.UnitUpdateSystem}.
  *
  * <p>Serial today; the planner + WorldStateBuilder + actions are designed
  * for parallel execution across squads (see {@code roadmap/ai/README.md}
  * parallelism section) and we'll fork-join here once we feel the cost.
  * When that happens, the for-loop becomes the next entity for-loop seam —
- * sibling shape to {@link com.dillon.starsectormarines.battle.ai.UnitUpdateSystem},
+ * sibling shape to {@link com.dillon.starsectormarines.battle.decision.UnitUpdateSystem},
  * just keyed on {@link Squad} instead of {@code Unit}.
  *
  * <p>Sibling System to {@link SquadAlertSystem} / {@link SquadMoraleSystem}

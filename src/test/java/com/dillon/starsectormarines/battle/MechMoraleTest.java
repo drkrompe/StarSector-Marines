@@ -9,10 +9,10 @@ import com.dillon.starsectormarines.battle.weapons.MechLoadoutState;
 import com.dillon.starsectormarines.battle.weapons.MechRole;
 
 import com.dillon.starsectormarines.battle.ai.goap.GoapMechBehavior;
-import com.dillon.starsectormarines.battle.ai.goap.Goal;
-import com.dillon.starsectormarines.battle.ai.goap.WorldState;
+import com.dillon.starsectormarines.battle.decision.goap.Goal;
+import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.ai.goap.goals.MechSurviveContact;
-import com.dillon.starsectormarines.battle.ai.goap.world.WorldStateBuilder;
+import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.squad.SquadMoraleSystem;

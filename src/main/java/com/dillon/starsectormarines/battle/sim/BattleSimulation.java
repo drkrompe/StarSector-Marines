@@ -31,7 +31,7 @@ import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.vehicle.GroundSystem;
 import com.dillon.starsectormarines.battle.vehicle.Vehicle;
 import com.dillon.starsectormarines.battle.air.Shuttle;
-import com.dillon.starsectormarines.battle.ai.TacticalScoring;
+import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.command.MissionCommand;
 import com.dillon.starsectormarines.battle.combat.DamageResolver;
 import com.dillon.starsectormarines.battle.combat.DamageService;
@@ -48,9 +48,9 @@ import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
 import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementService;
 import com.dillon.starsectormarines.battle.combat.ShotService;
-import com.dillon.starsectormarines.battle.tactical.TacticalContextService;
-import com.dillon.starsectormarines.battle.tactical.TacticalMap;
-import com.dillon.starsectormarines.battle.tactical.TacticalNode;
+import com.dillon.starsectormarines.battle.decision.TacticalContextService;
+import com.dillon.starsectormarines.battle.decision.TacticalMap;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
@@ -167,17 +167,17 @@ public class BattleSimulation {
     /**
      * Per-target attacker index — wraps the {@code Unit → attacker list} map
      * that drives O(1)-lookup crowding scoring in
-     * {@link com.dillon.starsectormarines.battle.ai.TacticalScoring}. Rebuilt
+     * {@link com.dillon.starsectormarines.battle.decision.TacticalScoring}. Rebuilt
      * once at tick top in the serial phase; read in parallel during
      * UPDATE_UNITS against the frozen snapshot. Sibling slice to
      * {@link #rosterService} / {@link #navigation}; constructed after the
-     * roster since {@link com.dillon.starsectormarines.battle.ai.AttackerIndexService#rebuild()}
+     * roster since {@link com.dillon.starsectormarines.battle.decision.AttackerIndexService#rebuild()}
      * iterates {@link UnitRosterService#getUnits()}.
      */
-    private final com.dillon.starsectormarines.battle.ai.AttackerIndexService attackerIndex;
+    private final com.dillon.starsectormarines.battle.decision.AttackerIndexService attackerIndex;
 
     /** Shared scoring service for target selection, firing-position, fallback, and cover queries. Constructor-injected with NavigationService, UnitRosterService, AttackerIndexService, ShotService, DoodadService. */
-    private final com.dillon.starsectormarines.battle.ai.TacticalScoring tacticalScoring;
+    private final com.dillon.starsectormarines.battle.decision.TacticalScoring tacticalScoring;
 
     /** In-flight tracers + projectiles + per-frame event drains. Sibling slice to {@link #effects} / {@link #vision}; the {@link #postShot}, {@link #queueProjectile}, {@link #getActiveShots} et al. delegates below forward here. */
     private final ShotService shots = new ShotService();
@@ -221,7 +221,7 @@ public class BattleSimulation {
     // sweeps every worker's slot.
 
     /** Owns the parallel UPDATE_UNITS dispatch + the worker {@code ForkJoinPool} + per-role behavior dispatch. This is the entity-for-loop seam — see the class doc for the ECS/SoA promotion plan. */
-    private final com.dillon.starsectormarines.battle.ai.UnitUpdateSystem unitUpdate;
+    private final com.dillon.starsectormarines.battle.decision.UnitUpdateSystem unitUpdate;
     private boolean complete = false;
     private Faction winner;
 
@@ -287,10 +287,10 @@ public class BattleSimulation {
         this.squadMorale = new com.dillon.starsectormarines.battle.squad.SquadMoraleSystem(
                 rosterService, shots);
         this.squadReplan = new com.dillon.starsectormarines.battle.squad.SquadReplanSystem(rosterService);
-        this.attackerIndex = new com.dillon.starsectormarines.battle.ai.AttackerIndexService(rosterService);
-        this.tacticalScoring = new com.dillon.starsectormarines.battle.ai.TacticalScoring(
+        this.attackerIndex = new com.dillon.starsectormarines.battle.decision.AttackerIndexService(rosterService);
+        this.tacticalScoring = new com.dillon.starsectormarines.battle.decision.TacticalScoring(
                 navigation, rosterService, attackerIndex, shots, doodadService);
-        this.unitUpdate = new com.dillon.starsectormarines.battle.ai.UnitUpdateSystem(
+        this.unitUpdate = new com.dillon.starsectormarines.battle.decision.UnitUpdateSystem(
                 rosterService.getRegistry(), damageService, tickInnerProfile);
         this.hitResponse = new com.dillon.starsectormarines.battle.combat.HitResponseService(
                 grid, rosterService.getRegistry(), tacticalScoring, damageService,
@@ -362,7 +362,7 @@ public class BattleSimulation {
         return doodadService.getDoodadCoverAtFacing(x, y, facing);
     }
 
-    /** Direction-agnostic doodad cover at (x, y) — max across all 4 facings. Back-compat accessor for {@link com.dillon.starsectormarines.battle.ai.TacticalScoring#findFallbackPosition} and other callers that don't carry a threat direction. */
+    /** Direction-agnostic doodad cover at (x, y) — max across all 4 facings. Back-compat accessor for {@link com.dillon.starsectormarines.battle.decision.TacticalScoring#findFallbackPosition} and other callers that don't carry a threat direction. */
     public int getDoodadCoverAt(int x, int y) {
         return doodadService.getDoodadCoverAt(x, y);
     }
@@ -444,7 +444,7 @@ public class BattleSimulation {
     /** Per-tick sub-step profile (per-behavior + per-primitive nanos). Reset every tick; snapshotted onto the spike record when one fires. Read by the JSON dumper. */
     public TickInnerProfile getTickInnerProfile() { return tickInnerProfile; }
     /** Shared scoring service — target selection, firing-position, fallback, cover queries. Thread-safe for reads (constructor-injected immutable service refs). */
-    public com.dillon.starsectormarines.battle.ai.TacticalScoring getTacticalScoring() { return tacticalScoring; }
+    public com.dillon.starsectormarines.battle.decision.TacticalScoring getTacticalScoring() { return tacticalScoring; }
     /** Per-hit response logic — fallback rolls + target-reprioritization rolls. */
     public com.dillon.starsectormarines.battle.combat.HitResponseService getHitResponseService() { return hitResponse; }
     /** Delegates to {@link UnitRosterService#getSquad(int)}. Synchronized lookup; safe to call from the parallel UPDATE_UNITS dispatch (concurrent {@link #mintSquad} from drone-hub spawns publishes through the same monitor). */
@@ -857,7 +857,7 @@ public class BattleSimulation {
         navigation.endTick();
     }
 
-    /** Delegates to {@link com.dillon.starsectormarines.battle.ai.AttackerIndexService#getAttackersOf(Unit)}. The list is mutated in-place each tick — callers must not retain it across tick boundaries. */
+    /** Delegates to {@link com.dillon.starsectormarines.battle.decision.AttackerIndexService#getAttackersOf(Unit)}. The list is mutated in-place each tick — callers must not retain it across tick boundaries. */
     public ArrayList<Unit> getAttackersOf(Unit target) {
         return attackerIndex.getAttackersOf(target);
     }

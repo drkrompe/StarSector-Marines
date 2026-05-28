@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.command;
 
-import com.dillon.starsectormarines.battle.tactical.TacticalNode;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 
 /**
  * One strategic task assigned to one squad by its faction's

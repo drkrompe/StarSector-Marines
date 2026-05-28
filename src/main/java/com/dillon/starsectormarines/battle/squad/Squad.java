@@ -8,9 +8,9 @@ import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.weapons.MechLoadoutState;
 
-import com.dillon.starsectormarines.battle.ai.goap.Goal;
+import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
-import com.dillon.starsectormarines.battle.tactical.TacticalNode;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Unit;
 
@@ -166,7 +166,7 @@ public final class Squad {
      * {@code aliveMembers / originalSize} — so a mauled squad can shake off
      * a bad engagement <em>once</em> but can never fully reset.
      *
-     * <p>Drives {@link com.dillon.starsectormarines.battle.ai.goap.Predicate#MORALE_BROKEN}
+     * <p>Drives {@link com.dillon.starsectormarines.battle.decision.goap.Predicate#MORALE_BROKEN}
      * with hysteresis on {@link #moraleBroken}: trips below
      * {@link com.dillon.starsectormarines.battle.squad.SquadMoraleSystem#MORALE_BROKEN_THRESHOLD},
      * clears above {@link com.dillon.starsectormarines.battle.squad.SquadMoraleSystem#MORALE_CLEAR_THRESHOLD}.
@@ -222,7 +222,7 @@ public final class Squad {
 
     /**
      * When true, the squad refuses to open fire from {@link com.dillon.starsectormarines.battle.ai.goap.actions.EngagePosture}
-     * until {@link com.dillon.starsectormarines.battle.ai.goap.Predicate#ENEMY_IN_KILL_ZONE}
+     * until {@link com.dillon.starsectormarines.battle.decision.goap.Predicate#ENEMY_IN_KILL_ZONE}
      * flips true (an enemy entered the kill zone <em>and</em> LOS to that enemy
      * has been stable for {@link com.dillon.starsectormarines.battle.squad.SquadAlertSystem#KILL_ZONE_LOS_TICKS_THRESHOLD}
      * ticks). Set at construction by {@code BattleSetup} for GARRISON-routed
@@ -247,7 +247,7 @@ public final class Squad {
      * fire with LoS back to the shooter — accumulates monotonically once
      * the first qualifying shot lands, never decays. Drives the
      * "ambush-is-blown" override in
-     * {@link com.dillon.starsectormarines.battle.ai.goap.world.WorldStateBuilder}'s
+     * {@link com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder}'s
      * {@code evalEnemyInKillZone}: once this passes
      * {@link com.dillon.starsectormarines.battle.squad.SquadAlertSystem#KILL_ZONE_AMBUSH_BLOWN_SECONDS}
      * the gate opens regardless of whether an enemy is in the 8-cell kill
@@ -299,7 +299,7 @@ public final class Squad {
      * action is watching, or {@code -1} when no choke-point hold is active.
      * Set by {@code ChokePointHold} on its first execute tick (idempotent —
      * stamps the same id on every tick for the lifetime of the action) and
-     * consumed by the {@link com.dillon.starsectormarines.battle.ai.goap.Predicate#ENEMY_IN_PORTAL_CELL}
+     * consumed by the {@link com.dillon.starsectormarines.battle.decision.goap.Predicate#ENEMY_IN_PORTAL_CELL}
      * evaluator to scope "which portal is this squad guarding."
      *
      * <p>Story L's choke-point ambush trigger: an enemy combatant standing on

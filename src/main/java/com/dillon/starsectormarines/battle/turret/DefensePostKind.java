@@ -16,7 +16,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSetup;
  * <p>The ring cells are non-walkable + {@code SEE_THROUGH} so they grant
  * cover to the turret in the center via the standard cover bake while leaving
  * LoS and projectile paths clear. The militia squad spawned at the
- * {@link com.dillon.starsectormarines.battle.tactical.TacticalNode.Kind#GUARDPOST}
+ * {@link com.dillon.starsectormarines.battle.decision.TacticalNode.Kind#GUARDPOST}
  * tactical node patrols a small ring around the post until every turret on
  * the post is destroyed, then releases into normal search-and-destroy.
  */
@@ -35,7 +35,7 @@ public enum DefensePostKind {
      * Spawns aerial drones periodically that patrol around the hub and engage
      * intruders; the drones (not infantry) are the defense, so the hub carries
      * a {@code garrisonSize} of 0 and the stamper skips
-     * {@link com.dillon.starsectormarines.battle.tactical.TacticalNode.Kind#GUARDPOST}
+     * {@link com.dillon.starsectormarines.battle.decision.TacticalNode.Kind#GUARDPOST}
      * node emission for this tier. Priority sits between MEDIUM and LARGE —
      * losing the hub silences the drone screen, but it's not the long-range
      * threat that ARTILLERY represents.

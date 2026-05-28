@@ -10,7 +10,7 @@ import java.util.ArrayList;
  * Sister index to {@link UnitSpatialIndex}, but keyed on each unit's
  * <em>path destination</em> cell instead of its current cell. Lets AI
  * scoring loops that need "units whose destination is near (cx, cy)" —
- * the spread-out portion of {@link com.dillon.starsectormarines.battle.ai.TacticalScoring#alliesNearForSpread}
+ * the spread-out portion of {@link com.dillon.starsectormarines.battle.decision.TacticalScoring#alliesNearForSpread}
  * — drop the residual O(N) walk over every alive unit.
  *
  * <p><b>Inclusion rule.</b> Only units that have a non-empty path AND

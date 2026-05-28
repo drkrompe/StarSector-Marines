@@ -13,7 +13,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
  *
  * <p><b>Cover.</b> Each doodad carries a {@link #cover} quality in
  * {@code [0..3]} matching the cell-grid cover scale ({@link com.dillon.starsectormarines.battle.nav.NavigationGrid#MAX_COVER}).
- * Read by {@link com.dillon.starsectormarines.battle.ai.TacticalScoring} when
+ * Read by {@link com.dillon.starsectormarines.battle.decision.TacticalScoring} when
  * picking firing positions — a marine prefers cells with high-cover doodads
  * (crates, rubble piles) over plain interior tiles. <em>Not</em> consumed by
  * {@link BattleSimulation#fireShot}: the damage-reduction lookup still reads

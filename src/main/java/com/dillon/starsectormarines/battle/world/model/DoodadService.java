@@ -9,7 +9,7 @@ import java.util.List;
 
 /**
  * Owns the battle's persistent {@link Doodad} list plus the per-cell /
- * per-facing cover lookup that {@link com.dillon.starsectormarines.battle.ai.TacticalScoring}
+ * per-facing cover lookup that {@link com.dillon.starsectormarines.battle.decision.TacticalScoring}
  * consults when scoring firing positions. Sibling slice to the other
  * services owned by {@link BattleSimulation}.
  *
@@ -46,7 +46,7 @@ public final class DoodadService {
      * <p>Multiple doodads stacking on the same cell+facing take the max.
      * Combined with cell-grid wall cover ({@link NavigationGrid#getCoverAtFacing})
      * at the consumer site —
-     * {@link com.dillon.starsectormarines.battle.ai.TacticalScoring} sums the
+     * {@link com.dillon.starsectormarines.battle.decision.TacticalScoring} sums the
      * two when scoring candidate firing positions.
      */
     private byte[] doodadCoverByFacing;
@@ -100,7 +100,7 @@ public final class DoodadService {
         return doodadCoverByFacing[(grid.index(x, y) * NavigationGrid.FACING_COUNT) + facing] & 0xFF;
     }
 
-    /** Direction-agnostic doodad cover at (x, y) — max across all 4 facings. Back-compat accessor for {@link com.dillon.starsectormarines.battle.ai.TacticalScoring#findFallbackPosition} and other callers that don't carry a threat direction. */
+    /** Direction-agnostic doodad cover at (x, y) — max across all 4 facings. Back-compat accessor for {@link com.dillon.starsectormarines.battle.decision.TacticalScoring#findFallbackPosition} and other callers that don't carry a threat direction. */
     public int getDoodadCoverAt(int x, int y) {
         if (doodadCoverByFacing == null) return 0;
         if (!grid.inBounds(x, y)) return 0;

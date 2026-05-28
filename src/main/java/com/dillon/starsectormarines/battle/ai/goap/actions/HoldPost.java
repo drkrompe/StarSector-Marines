@@ -4,10 +4,10 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
-import com.dillon.starsectormarines.battle.ai.TacticalScoring;
-import com.dillon.starsectormarines.battle.ai.goap.Action;
-import com.dillon.starsectormarines.battle.ai.goap.ActionStatus;
-import com.dillon.starsectormarines.battle.ai.goap.WorldState;
+import com.dillon.starsectormarines.battle.decision.TacticalScoring;
+import com.dillon.starsectormarines.battle.decision.goap.Action;
+import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
+import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 
 /**
@@ -31,7 +31,7 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
  *       cell and hold.</li>
  * </ul>
  *
- * <p>The squad-level {@link com.dillon.starsectormarines.battle.ai.goap.Goal}
+ * <p>The squad-level {@link com.dillon.starsectormarines.battle.decision.goap.Goal}
  * layer preempts when reality demands it — morale-broken →
  * {@code SurviveContact}, chokepoint geometry → {@code GarrisonAmbush}.
  *

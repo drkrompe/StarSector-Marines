@@ -274,7 +274,7 @@ public class NavigationGrid {
     /**
      * Scalar cover at (x, y) — the <em>sum</em> across all four facings.
      * Back-compat accessor for callers that don't carry a threat direction
-     * ({@link com.dillon.starsectormarines.battle.ai.TacticalScoring#findFallbackPosition},
+     * ({@link com.dillon.starsectormarines.battle.decision.TacticalScoring#findFallbackPosition},
      * "is this cell hidden in general?" heuristics, debug overlays).
      * Equivalent numerically to the pre-Story-G "count of cardinal walls"
      * value when the grid is freshly baked (each wall contributes 1 to one
@@ -442,8 +442,8 @@ public class NavigationGrid {
      * <p>Distance is checked once up front in squared form (no sqrt) and short-
      * circuits the Bresenham trace, so out-of-range pairs are O(1).
      *
-     * <p>Used for perception-side callers ({@link com.dillon.starsectormarines.battle.ai.TacticalScoring#isHiddenFromAllEnemies}
-     * and {@link com.dillon.starsectormarines.battle.ai.TacticalScoring#countEnemiesWithLos}).
+     * <p>Used for perception-side callers ({@link com.dillon.starsectormarines.battle.decision.TacticalScoring#isHiddenFromAllEnemies}
+     * and {@link com.dillon.starsectormarines.battle.decision.TacticalScoring#countEnemiesWithLos}).
      * Weapons, AoE splash filtering, building-visibility, and GOAP target
      * predicates keep using {@link #hasLineOfSight} until the full perception
      * layer ships — see roadmap/ai/15-perception-and-influence.md.

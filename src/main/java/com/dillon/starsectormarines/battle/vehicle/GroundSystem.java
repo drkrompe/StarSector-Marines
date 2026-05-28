@@ -69,7 +69,7 @@ public class GroundSystem {
     private final NavigationService navigation;
     private final UnitRosterService roster;
     private final UnitRegistry registry;
-    private final com.dillon.starsectormarines.battle.ai.TacticalScoring tacticalScoring;
+    private final com.dillon.starsectormarines.battle.decision.TacticalScoring tacticalScoring;
     private final TurretFireSink fireSink;
     private final Random rng;
     private final Consumer<Unit> addUnitSink;
@@ -77,7 +77,7 @@ public class GroundSystem {
     private final List<Vehicle> vehicles = new ArrayList<>();
 
     public GroundSystem(NavigationService navigation, UnitRosterService roster,
-                        com.dillon.starsectormarines.battle.ai.TacticalScoring tacticalScoring,
+                        com.dillon.starsectormarines.battle.decision.TacticalScoring tacticalScoring,
                         TurretFireSink fireSink, Random rng, Consumer<Unit> addUnitSink) {
         this.navigation = navigation;
         this.roster = roster;

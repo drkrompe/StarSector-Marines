@@ -1,11 +1,16 @@
 package com.dillon.starsectormarines.battle.ai.goap;
+import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
+import com.dillon.starsectormarines.battle.decision.goap.Planner;
+import com.dillon.starsectormarines.battle.decision.goap.WorldState;
+import com.dillon.starsectormarines.battle.decision.goap.Action;
+import com.dillon.starsectormarines.battle.decision.goap.Goal;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.ai.InfantryUnitPrep;
-import com.dillon.starsectormarines.battle.ai.UnitBehavior;
+import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 import com.dillon.starsectormarines.battle.ai.goap.actions.ApproachPosture;
 import com.dillon.starsectormarines.battle.ai.goap.actions.BreakLOS;
 import com.dillon.starsectormarines.battle.ai.goap.actions.EngagePosture;
@@ -23,8 +28,8 @@ import com.dillon.starsectormarines.battle.ai.goap.goals.RoutinePatrol;
 import com.dillon.starsectormarines.battle.ai.goap.goals.SecureCompoundGoal;
 import com.dillon.starsectormarines.battle.ai.goap.goals.SecureObjectiveZone;
 import com.dillon.starsectormarines.battle.ai.goap.goals.SurviveContact;
-import com.dillon.starsectormarines.battle.ai.goap.scoring.RoleAssigner;
-import com.dillon.starsectormarines.battle.ai.goap.world.WorldStateBuilder;
+import com.dillon.starsectormarines.battle.decision.goap.scoring.RoleAssigner;
+import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder;
 
 import java.util.ArrayList;
 import java.util.List;

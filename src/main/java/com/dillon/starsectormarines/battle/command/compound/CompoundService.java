@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.battle.command.compound;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.tactical.TacticalMap;
-import com.dillon.starsectormarines.battle.tactical.TacticalNode;
+import com.dillon.starsectormarines.battle.decision.TacticalMap;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 
 import java.util.Collection;
 import java.util.Collections;
