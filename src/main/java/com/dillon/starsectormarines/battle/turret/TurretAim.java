@@ -1,10 +1,8 @@
-package com.dillon.starsectormarines.battle.ai;
-import com.dillon.starsectormarines.battle.decision.TacticalScoring;
+package com.dillon.starsectormarines.battle.turret;import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.turret.MapTurret;
 
 /**
  * Shared turret aim/fire loop — used by both static {@link MapTurret}s

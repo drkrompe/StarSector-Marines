@@ -44,7 +44,7 @@ public final class ZoneQueries {
      * the chosen cell sits on a wall and so isn't in any zone.
      *
      * <p>Leader-anchored on purpose: cohesion already pulls drifting members
-     * toward the leader (see {@link com.dillon.starsectormarines.battle.ai.InfantryCohesion#cohesionOverride}
+     * toward the leader (see {@link com.dillon.starsectormarines.battle.infantry.InfantryCohesion#cohesionOverride}
      * and {@code memory/squad_leader_cohesion.md}), so the leader's cell is
      * the most stable point of reference for "where the squad is." Centroid
      * drifts every time a member crosses a portal — fine for the cohesion

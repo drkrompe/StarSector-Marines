@@ -1,5 +1,5 @@
 package com.dillon.starsectormarines.battle.decision;
-import com.dillon.starsectormarines.battle.ai.TurretAim;
+import com.dillon.starsectormarines.battle.turret.TurretAim;
 import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
@@ -469,7 +469,7 @@ public final class TacticalScoring {
      * ({@link MapTurret}, {@link DroneHubUnit}) and heavy mechs. Anything else
      * (infantry archetypes, aliens, militia) is soft. Drives the weapon-affinity
      * bias in {@link #findBestTarget} (rocketeers prefer hardened) and the
-     * rocket-eligibility gates in {@link com.dillon.starsectormarines.battle.ai.InfantryUnitPrep#tryOpportunityRocket}
+     * rocket-eligibility gates in {@link com.dillon.starsectormarines.battle.infantry.InfantryUnitPrep#tryOpportunityRocket}
      * and {@link com.dillon.starsectormarines.battle.ai.goap.actions.EngagePosture} —
      * marines burn a rocket on anything that earns the {@code vsTurretMult}
      * (3.5×) bonus payoff.

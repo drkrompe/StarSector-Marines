@@ -2,8 +2,6 @@ package com.dillon.starsectormarines.battle.turret;
 
 import com.dillon.starsectormarines.battle.sim.BattleSetup;
 
-import com.dillon.starsectormarines.battle.turret.MapTurret;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
 
 import java.util.List;
 

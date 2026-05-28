@@ -292,7 +292,7 @@ public class Unit {
      * real cooldown so a setup machine gunner in heavy cover doesn't twitch
      * every burst, and the squad's individual marines visibly shift at
      * different times (cooldowns decorrelate as they reset on different shots).
-     * Ticked down each tick by {@link com.dillon.starsectormarines.battle.ai.InfantryUnitPrep#tickCooldowns}.
+     * Ticked down each tick by {@link com.dillon.starsectormarines.battle.infantry.InfantryUnitPrep#tickCooldowns}.
      */
     public float localRepositionCooldown = 0f;
 

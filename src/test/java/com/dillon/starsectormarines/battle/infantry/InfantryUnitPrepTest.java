@@ -1,5 +1,4 @@
-package com.dillon.starsectormarines.battle.ai;
-
+package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.weapons.MarineSecondary;

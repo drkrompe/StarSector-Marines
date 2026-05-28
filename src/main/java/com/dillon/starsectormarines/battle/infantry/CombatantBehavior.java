@@ -1,10 +1,8 @@
-package com.dillon.starsectormarines.battle.ai;
-import com.dillon.starsectormarines.battle.decision.UnitBehavior;
+package com.dillon.starsectormarines.battle.infantry;import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Unit;
-import com.dillon.starsectormarines.battle.ai.goap.GoapInfantryBehavior;
-import com.dillon.starsectormarines.battle.ai.goap.GoapMechBehavior;
+import com.dillon.starsectormarines.battle.mech.GoapMechBehavior;
 
 /**
  * Default combat loop dispatcher. Two-way: {@link GoapMechBehavior} for

@@ -62,7 +62,7 @@ public final class Squad {
      * {@code BattleSimulation.applyDamage} promotes the closest still-alive
      * squad member to take over — preserves direction of travel through
      * the badge change. The leader's cell is the cohesion anchor that
-     * {@link com.dillon.starsectormarines.battle.ai.InfantryCohesion#cohesionOverride}
+     * {@link com.dillon.starsectormarines.battle.infantry.InfantryCohesion#cohesionOverride}
      * pulls drifting members toward; a fully-wiped squad has a null leader
      * and the cohesion helper falls back to the others-centroid.
      */

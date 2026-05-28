@@ -56,7 +56,7 @@ public class Vehicle {
     /** Current waypoint index inside the active queue (inbound during INCOMING, outbound during DEPARTING). */
     public int waypointIndex;
 
-    /** Turret barrel facing in world frame (0° = +Y, positive CCW). Driven by {@link com.dillon.starsectormarines.battle.ai.TurretAim} when the vehicle has a {@link VehicleType#turretKind}. */
+    /** Turret barrel facing in world frame (0° = +Y, positive CCW). Driven by {@link com.dillon.starsectormarines.battle.turret.TurretAim} when the vehicle has a {@link VehicleType#turretKind}. */
     public float turretFacingDeg;
     /** Sim-seconds until the turret can fire again. */
     public float turretCooldownTimer;

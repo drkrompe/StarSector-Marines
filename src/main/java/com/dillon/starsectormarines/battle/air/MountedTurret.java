@@ -10,7 +10,7 @@ import com.dillon.starsectormarines.battle.turret.TurretKind;
  * target.
  *
  * <p>Pure data, ticked by {@link AirSystem} using the shared
- * {@link com.dillon.starsectormarines.battle.ai.TurretAim} loop. Not a
+ * {@link com.dillon.starsectormarines.battle.turret.TurretAim} loop. Not a
  * {@link Unit} — shuttle turrets aren't on the unit list, don't pathfind,
  * and can't be targeted independently of their parent shuttle.
  */

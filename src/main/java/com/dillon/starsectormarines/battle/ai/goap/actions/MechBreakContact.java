@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.ai.goap.actions;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
-import com.dillon.starsectormarines.battle.ai.MechCombatantBehavior;
+import com.dillon.starsectormarines.battle.mech.MechCombatantBehavior;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;

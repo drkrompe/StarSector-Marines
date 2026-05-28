@@ -8,7 +8,7 @@ import com.dillon.starsectormarines.battle.unit.Unit;
  * {@link com.dillon.starsectormarines.battle.ai.goap.actions.PatrolRoute}:
  * a UNAWARE squad sticks to its assigned routine (hold the node / walk the
  * patrol route), an ENGAGED squad falls through to
- * {@link com.dillon.starsectormarines.battle.ai.CombatantBehavior}
+ * {@link com.dillon.starsectormarines.battle.infantry.CombatantBehavior}
  * so members pick targets and fight normally.
  *
  * <p>Promotion happens in {@code SquadAlertSystem.tick}, which runs once per

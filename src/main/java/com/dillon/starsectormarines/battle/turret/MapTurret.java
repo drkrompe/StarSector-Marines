@@ -34,7 +34,7 @@ public class MapTurret extends Unit {
      * Rounds left to fire in the current burst (excluding the first round,
      * fired as the trigger pull). {@code 0} = idle / single-shot kind. Burst
      * kinds latch this from {@link TurretKind#burstCount} when the aim loop
-     * triggers; {@link com.dillon.starsectormarines.battle.ai.TurretBehavior}
+     * triggers; {@link com.dillon.starsectormarines.battle.turret.TurretBehavior}
      * pumps the remaining rounds at {@link TurretKind#burstSpacing}.
      */
     public int burstRemaining;
@@ -45,7 +45,7 @@ public class MapTurret extends Unit {
      * salvo so the rounds chase the same victim even if a closer one walks
      * into LOS mid-burst. {@code 0L} when idle. Independent of the inherited
      * {@link Unit#getBurstTargetId()} SoA slot on purpose: turret burst-tick
-     * lives in {@link com.dillon.starsectormarines.battle.ai.TurretBehavior}
+     * lives in {@link com.dillon.starsectormarines.battle.turret.TurretBehavior}
      * and reads/writes this field directly via a MapTurret-typed reference,
      * while the inherited burst state serves marine-style
      * {@link Unit#beginBurst(Unit)} callsites the turret never invokes.
@@ -54,7 +54,7 @@ public class MapTurret extends Unit {
     /**
      * Sim-seconds since the last fired round. Reset to {@code 0} on every shot
      * (trigger pull AND each burst continuation), ticked every sim frame by
-     * {@link com.dillon.starsectormarines.battle.ai.TurretBehavior}. Lets the
+     * {@link com.dillon.starsectormarines.battle.turret.TurretBehavior}. Lets the
      * renderer drive the barrel-recoil slide per round during a burst, instead
      * of only the first round of the salvo. Initialized to {@code 1f} — well
      * past the renderer's recoil window — so unfired turrets don't read as

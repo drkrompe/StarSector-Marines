@@ -1,13 +1,13 @@
 package com.dillon.starsectormarines.battle.decision;
-import com.dillon.starsectormarines.battle.ai.CombatantBehavior;
-import com.dillon.starsectormarines.battle.ai.DroneHubBehavior;
-import com.dillon.starsectormarines.battle.ai.KitRetrieverBehavior;
-import com.dillon.starsectormarines.battle.ai.StructureBehavior;
-import com.dillon.starsectormarines.battle.ai.TurretBehavior;
+import com.dillon.starsectormarines.battle.infantry.CombatantBehavior;
+import com.dillon.starsectormarines.battle.drone.DroneHubBehavior;
+import com.dillon.starsectormarines.battle.infantry.KitRetrieverBehavior;
+import com.dillon.starsectormarines.battle.turret.StructureBehavior;
+import com.dillon.starsectormarines.battle.turret.TurretBehavior;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
-import com.dillon.starsectormarines.battle.ai.goap.GoapDroneBehavior;
+import com.dillon.starsectormarines.battle.drone.GoapDroneBehavior;
 import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
@@ -150,7 +150,7 @@ public final class UnitUpdateSystem {
     /**
      * Maps a {@link UnitRole} to its per-role {@link UnitBehavior} singleton.
      * {@code PLANTER} intentionally routes through {@link CombatantBehavior}
-     * → {@link com.dillon.starsectormarines.battle.ai.goap.GoapInfantryBehavior} — the plant action lives in the squad
+     * → {@link com.dillon.starsectormarines.battle.infantry.GoapInfantryBehavior} — the plant action lives in the squad
      * plan, not a per-unit dispatch.
      */
     private static UnitBehavior behaviorFor(UnitRole role) {

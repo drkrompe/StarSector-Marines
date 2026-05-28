@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.battle.weapons.MechLoadoutState;
 import com.dillon.starsectormarines.battle.weapons.MechRole;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
-import com.dillon.starsectormarines.battle.ai.MechCombatantBehavior;
+import com.dillon.starsectormarines.battle.mech.MechCombatantBehavior;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;

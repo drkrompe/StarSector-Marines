@@ -30,7 +30,7 @@ public enum Predicate {
     HAS_LOS_TO_TARGET,
     /** The assigned member is within their {@code attackRange} of the squad's primary target. */
     IN_RANGE_OF_TARGET,
-    /** The assigned member is within {@link com.dillon.starsectormarines.battle.ai.InfantryCohesion#COHESION_RADIUS} cells of the squad centroid. */
+    /** The assigned member is within {@link com.dillon.starsectormarines.battle.infantry.InfantryCohesion#COHESION_RADIUS} cells of the squad centroid. */
     WITHIN_COHESION_RADIUS,
     /** Goal-side marker — set true by {@code EngagePosture.effects}. The {@code EliminateEnemies} goal's desired state. */
     ENEMY_DAMAGED,

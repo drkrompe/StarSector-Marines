@@ -1,10 +1,6 @@
-package com.dillon.starsectormarines.battle.ai;
-import com.dillon.starsectormarines.battle.decision.UnitBehavior;
+package com.dillon.starsectormarines.battle.drone;import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.drone.Drone;
-import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
-import com.dillon.starsectormarines.battle.drone.DroneSpawner;
 import com.dillon.starsectormarines.battle.unit.Unit;
 
 /**

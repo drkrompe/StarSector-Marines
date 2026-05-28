@@ -21,7 +21,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
  * the hub silences the drone screen, so the player's expected to push it
  * down if the drones become a problem.
  *
- * <p>{@link UnitRole#DRONE_HUB} dispatches to {@link com.dillon.starsectormarines.battle.ai.DroneHubBehavior},
+ * <p>{@link UnitRole#DRONE_HUB} dispatches to {@link com.dillon.starsectormarines.battle.drone.DroneHubBehavior},
  * which counts down {@link #spawnCooldown} and asks {@link DroneSpawner} to
  * launch a new drone whenever the hub is below {@link #MAX_ACTIVE_DRONES}.
  */
@@ -51,7 +51,7 @@ public class DroneHubUnit extends Unit {
     /** Sim-seconds between successive launches when the hub is below the active-drone cap. Long enough that a steady DPS push thins the screen faster than the hub can replace it; short enough that ignoring the hub means dealing with drones forever. */
     public static final float SPAWN_INTERVAL_SEC = 18f;
 
-    /** Sim-seconds until the next spawn attempt. Ticked down by {@link com.dillon.starsectormarines.battle.ai.DroneHubBehavior}. */
+    /** Sim-seconds until the next spawn attempt. Ticked down by {@link com.dillon.starsectormarines.battle.drone.DroneHubBehavior}. */
     public float spawnCooldown = INITIAL_SPAWN_DELAY_SEC;
     /** Lifetime count of drones the hub has launched. Used as part of each drone's id so they're greppable in logs across the battle. */
     public int dronesLaunched;

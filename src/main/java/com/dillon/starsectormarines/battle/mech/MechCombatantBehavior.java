@@ -1,5 +1,5 @@
-package com.dillon.starsectormarines.battle.ai;
-import com.dillon.starsectormarines.battle.decision.TacticalScoring;
+package com.dillon.starsectormarines.battle.mech;import com.dillon.starsectormarines.battle.decision.TacticalScoring;
+import com.dillon.starsectormarines.battle.infantry.CombatantBehavior;
 import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -11,7 +11,7 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
  * Mech slice of the combatant loop: three concurrent weapon tracks
  * (chaingun, SRM pod, LRM artillery) with independent gating, and a
  * "stand off at LRM range when not in close engagement" movement pattern.
- * Sibling of {@link com.dillon.starsectormarines.battle.ai.goap.GoapInfantryBehavior};
+ * Sibling of {@link com.dillon.starsectormarines.battle.infantry.GoapInfantryBehavior};
  * {@link CombatantBehavior} picks between the two based on {@link Unit#mech}.
  *
  * <p>No squad cohesion — mechs are typically solo or paired and don't

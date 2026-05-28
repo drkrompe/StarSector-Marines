@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.air.SteeringMode;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
-import com.dillon.starsectormarines.battle.ai.TurretAim;
+import com.dillon.starsectormarines.battle.turret.TurretAim;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;

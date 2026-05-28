@@ -18,7 +18,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * the effective hit rate over a directional key.
  *
  * <p>Coverage is the pure-grid path only — the air-LoS variant
- * ({@link com.dillon.starsectormarines.battle.ai.TurretAim#airLosVisible}) parameterizes
+ * ({@link com.dillon.starsectormarines.battle.turret.TurretAim#airLosVisible}) parameterizes
  * on shooter+target air radii that vary per caller, so caching it would
  * either bloat the key (rare path) or risk wrong answers (sharing a slot
  * across different radii). Drones/shuttles flow through uncached; the JFR

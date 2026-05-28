@@ -1,5 +1,4 @@
-package com.dillon.starsectormarines.battle.ai.goap;
-import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
+package com.dillon.starsectormarines.battle.infantry;import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.Planner;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
@@ -9,7 +8,6 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.unit.Unit;
-import com.dillon.starsectormarines.battle.ai.InfantryUnitPrep;
 import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 import com.dillon.starsectormarines.battle.ai.goap.actions.ApproachPosture;
 import com.dillon.starsectormarines.battle.ai.goap.actions.BreakLOS;

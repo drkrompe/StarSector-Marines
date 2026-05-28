@@ -19,7 +19,7 @@ import java.util.List;
  * garrison.
  *
  * <p>Members move silently (no target acquisition, no firing) — the approach
- * is the surprise. {@link com.dillon.starsectormarines.battle.ai.goap.GoapInfantryBehavior#prepareForAction}
+ * is the surprise. {@link com.dillon.starsectormarines.battle.infantry.GoapInfantryBehavior#prepareForAction}
  * still handles turret-of-opportunity rockets above this action, which is
  * acceptable.
  *

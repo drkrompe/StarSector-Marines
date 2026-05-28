@@ -9,7 +9,7 @@ import com.dillon.starsectormarines.battle.turret.MapTurret;
  * Optional second weapon a marine can carry on top of their {@link MarineWeapon}.
  * Limited ammo (rocket launchers don't get topped up mid-mission), big single-
  * shot damage, heavy multiplier against hardened targets. AI in
- * {@link com.dillon.starsectormarines.battle.ai.CombatantBehavior} prefers the
+ * {@link com.dillon.starsectormarines.battle.infantry.CombatantBehavior} prefers the
  * secondary against {@link MapTurret} targets while ammo remains, and falls
  * back to primary fire once the tube is dry.
  *

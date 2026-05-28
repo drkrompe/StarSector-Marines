@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
-import com.dillon.starsectormarines.battle.ai.goap.GoapInfantryBehavior;
+import com.dillon.starsectormarines.battle.infantry.GoapInfantryBehavior;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
