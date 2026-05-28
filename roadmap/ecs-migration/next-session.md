@@ -29,6 +29,7 @@ b620e77  battle: SoA repositionCooldown — ninth (C3 Slice A)  ← 2026-05-28
 9104c85  battle: SoA fallback group + wanderDwellTimer — tenth (C3 Slice B)  ← 2026-05-28
 2f48c36  battle: relocate setPath/clearPath into NavigationService + trim sim surface  ← 2026-05-28
 c49eea7  battle: MapService — runtime map-modification coordinator (Slice 1)  ← 2026-05-28
+53d5e7d  battle: drop sim.getBattleResources facade getter (drop-facade Slice 1)  ← 2026-05-28
 ```
 
 ## State of play
@@ -42,7 +43,7 @@ c49eea7  battle: MapService — runtime map-modification coordinator (Slice 1)  
 - **Five consumers** on dense-iter + SoA array reads. (The burst pass in
   `InfantryWeapons.tick`, `targetId`'s ~17 sites, and the fall-back group's
   break-contact consumers route through accessors, not dense-iter yet.)
-- **Full suite green** at `c49eea7`. The prior `RecaptureTargetRegistryTest`
+- **Full suite green** at `53d5e7d`. The prior `RecaptureTargetRegistryTest`
   / `BspMapPreviewTest` failures were sibling-session WIP and are no longer
   failing — never in any ECS-migration changeset.
 
@@ -88,15 +89,25 @@ primitives and the (now thin) `BattleSimulation` orchestrator:
    larger surface, lower smell. Pick it up only if the seam proves worth
    it, else go straight to the facade cleanup ↓.
 6. [`drop-sim-facade-delegators`](stories/drop-sim-facade-delegators.md) —
-   **Terminal** migration story: remove the ~40 `*SimContext`-style facade
-   delegators (mutating behavior delegates + service getters) so consumers
-   depend on services directly, not through the sim. The thin delegates
-   kept across every prior SoA story were a deliberate zero-churn stepping
-   stone; this is the destination. Large, multi-slice; churns the GOAP
-   `Action`/`Goal` `sim`-param contract (~141-file reference surface), so
-   it wants a quiet base — do it after path-mutation + the deferred SoA
-   tail. Decide the consumer-injection mechanism (narrowing interface vs.
-   services bundle) in the story before writing code.
+   **Terminal** migration story, **IN PROGRESS**. Remove the ~40
+   `*SimContext`-style facade delegators so consumers depend on services
+   directly, not through the sim. **Decision pinned 2026-05-28** (story's
+   DECISION block): **command-tier getters first via direct injection,
+   defer the GOAP `sim`-param spine.** Slice order + getter-difficulty
+   audit live in the story.
+   - **Slice 1 SHIPPED** (`53d5e7d`): `getBattleResources` dropped —
+     `BattleResources` constructor-injected into `ReinforcementService`
+     (1 consumer, no GOAP, no tests).
+   - **Next**: `getReinforcementService` (2 consumers, both non-GOAP — but
+     weigh whether it's worth dropping vs. accepting as a setup-only seam),
+     then the GOAP-bound getters (`getCompoundService`, `getTacticalScoring`,
+     `getHitResponseService`, `getUnitRegistry`, …) only after the
+     `sim`-param mechanism is settled.
+   - **Still-open big fork:** narrowing interface vs. services bundle for
+     the GOAP `Action`/`Goal` `sim` param (threaded through ~92 files).
+     Deferred on purpose by the command-tier-first ordering.
+   - NOTE: story's `Action.java`/`Goal.java` paths were stale —
+     actually `battle/decision/goap/`, not `battle/ai/goap/`.
 
 Lower-priority / deferred: `attackCooldown` + `visionRange` + `moveSpeed`
 (write-once stat-block completion — tidiness, not a hot-loop win);
@@ -108,5 +119,5 @@ ordinal int[]). Name them but don't lead with them.
 
 - `gradlew.bat compileJava` should be clean.
 - All tests pass.
-- `git log --oneline -5` should show `c49eea7` or your own recent work
+- `git log --oneline -5` should show `53d5e7d` or your own recent work
   at the top.

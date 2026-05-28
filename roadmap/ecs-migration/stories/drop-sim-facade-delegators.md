@@ -101,6 +101,40 @@ Don't prescribe here. The likely path is **(1) as the first slice**
 (narrow the type, zero call-site churn) then **(2) or (3)** to actually
 sever the dependency. Pin the choice in this doc before writing code.
 
+## DECISION (pinned 2026-05-28)
+
+**Sequencing: command-tier getters first, defer the GOAP `sim`-param spine.**
+A chunk of the in-scope service getters are *not* reached through the GOAP
+`sim` parameter at all — they're consumed by **stateful, already-injectable**
+classes (commands, reinforcement triggers/means, the reinforcement service
+itself). Sever those by **option (3) direct injection**, one getter per
+green slice, *without* touching the `Action`/`Goal` interface. Only once
+that surface is gone do we decide option (1) vs (2) for the GOAP spine —
+with a smaller, clearer problem in front of us.
+
+### Getter difficulty audit (2026-05-28)
+
+GOAP-free → injectable now (do these first):
+
+- **`getBattleResources`** — 1 consumer (`ReinforcementService.dispatch`),
+  no GOAP, no tests. **SHIPPED `53d5e7d`** (constructor-injected
+  `BattleResources` into `ReinforcementService`).
+- **`getReinforcementService`** — 2 consumers: `BattleSetup.installReinforcementLayer`
+  (setup-time wiring, takes `sim`) and a `BattleScreen` debug hotkey
+  (UI-facade, out of scope). No GOAP. Note: removing it means the setup
+  method needs the service handed in another way (BattleSetup builds the
+  layer *onto* the sim it just created — revisit whether this getter is
+  even worth dropping vs. accepting it as a setup-only seam).
+
+GOAP-bound → blocked on the spine decision (do these last):
+
+- **`getCompoundService`** — ~8 main consumers incl. GOAP `HoldZone` +
+  `SecureCompoundGoal`, plus UI panels and a wall of tests. Hardest;
+  needs the `sim`-param mechanism settled first.
+- **`getTacticalScoring` / `getHitResponseService` / `getUnitRegistry` /
+  `getAttackersOf` / `getVantagePointsFor`** — heavily consumed by GOAP
+  actions/postures via `sim`. Spine-gated.
+
 ## Sequencing
 
 - **After** [`path-mutation-to-navigation`](path-mutation-to-navigation.md)
