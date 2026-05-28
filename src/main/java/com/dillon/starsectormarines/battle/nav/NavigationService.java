@@ -103,15 +103,6 @@ public final class NavigationService {
         return (occupancyMap[y * grid.getWidth() + x] & 0xFF) > 0;
     }
 
-    @FunctionalInterface
-    public interface CellCallback {
-        void accept(int x, int y);
-    }
-
-    private CellCallback roofCollapseSink;
-
-    public void setRoofCollapseSink(CellCallback sink) { this.roofCollapseSink = sink; }
-
     /**
      * Queued (parallel-safe) occupancy-delta sink that {@link #setPath} routes
      * through — bound to {@link DamageService#applyOccupancyDelta} at sim
@@ -125,31 +116,7 @@ public final class NavigationService {
 
     public void setOccupancyDeltaSink(DamageService.OccupancyApplier sink) { this.occupancyDeltaSink = sink; }
 
-    public boolean damageWall(int x, int y, int amount) {
-        if (!grid.damageCell(x, y, amount)) return false;
-        topology.setWall(x, y, false);
-        topology.setGroundKind(x, y, CellTopology.GroundKind.RUBBLE);
-        peelRoofAround(x, y);
-        markZoneGraphDirty();
-        return true;
-    }
-
-    private void peelRoofAround(int wallX, int wallY) {
-        destroyRoof(wallX - 1, wallY);
-        destroyRoof(wallX + 1, wallY);
-        destroyRoof(wallX, wallY - 1);
-        destroyRoof(wallX, wallY + 1);
-    }
-
-    public void destroyRoof(int x, int y) {
-        if (!grid.inBounds(x, y)) return;
-        if (topology.getBuildingId(x, y) == 0) return;
-        if (topology.isRoofDestroyed(x, y)) return;
-        topology.setRoofDestroyed(x, y, true);
-        if (roofCollapseSink != null) roofCollapseSink.accept(x, y);
-    }
-
-    /** Flips the dirty flag — called by the sim's {@code damageCell} + the demolition passes when a walkability change happens mid-tick. */
+    /** Flips the dirty flag — called by {@code MapService}'s runtime map-modification ops when a walkability change happens mid-tick. */
     public void markZoneGraphDirty() { zoneGraphDirty = true; }
     public boolean isZoneGraphDirty() { return zoneGraphDirty; }
 
@@ -291,28 +258,6 @@ public final class NavigationService {
     /** Convenience: drop the unit's path. Equivalent to {@code setPath(u, GridPathfinder.EMPTY_PATH)}. */
     public void clearPath(Unit u) {
         setPath(u, GridPathfinder.EMPTY_PATH);
-    }
-
-    /**
-     * Flips a dead structure cell (destroyed turret mount, demolished drone
-     * hub) to walkable rubble: opens the cell + all four edges, sets the
-     * topology to {@link CellTopology.GroundKind#RUBBLE}, recomputes cover
-     * on the cell and its four cardinal neighbors, and marks the zone graph
-     * dirty so {@link #flushZoneGraphIfDirty} picks up the new portal at
-     * tick end. Sibling to the wall-collapse path inside
-     * {@link NavigationGrid#damageCell} — same intent ("obstacle removed,
-     * stamp rubble, refresh navigation") for the non-wall obstacle kinds.
-     */
-    public void flipCellToRubble(int cellX, int cellY) {
-        grid.setWalkable(cellX, cellY, true);
-        grid.openAllEdges(cellX, cellY);
-        topology.setGroundKind(cellX, cellY, CellTopology.GroundKind.RUBBLE);
-        grid.recomputeCoverAt(cellX, cellY);
-        grid.recomputeCoverAt(cellX + 1, cellY);
-        grid.recomputeCoverAt(cellX - 1, cellY);
-        grid.recomputeCoverAt(cellX, cellY + 1);
-        grid.recomputeCoverAt(cellX, cellY - 1);
-        markZoneGraphDirty();
     }
 
     /**

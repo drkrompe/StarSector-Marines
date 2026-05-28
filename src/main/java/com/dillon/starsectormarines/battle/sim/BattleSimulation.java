@@ -102,6 +102,8 @@ public class BattleSimulation {
     private final NavigationGrid grid;
     /** Alias of {@link NavigationService#getTopology()}. */
     private final CellTopology topology;
+    /** Runtime map-modification coordinator: wall breach / roof crack / structure-to-rubble. Sequences the topology writes + navigation walkability/zone-graph writes + the roof-collapse decal sink. Owns behavior {@link NavigationService} no longer holds. */
+    private final com.dillon.starsectormarines.battle.world.MapService mapService;
     /** Roster service: units list + squad registry + spawn queue + ID counters. {@link #units} is an alias field that shares the same {@link List} instance. */
     private final UnitRosterService rosterService;
     /** Alias of {@link UnitRosterService#getUnits()}. Same {@link List} instance — kept as a field so the sim's iteration / size / subList reads don't pay a per-call accessor hop. */
@@ -237,6 +239,7 @@ public class BattleSimulation {
 
     public BattleSimulation(NavigationGrid grid, CellTopology topology) {
         this.navigation = new NavigationService(grid, topology);
+        this.mapService = new com.dillon.starsectormarines.battle.world.MapService(navigation);
         // Alias-fields share the same instances as the service so the sim's
         // 80+ internal `grid.*`/`topology.*`/`zoneGraph.*`/`occupancyMap[...]`
         // reads stay direct (no per-call accessor hop).
@@ -275,9 +278,9 @@ public class BattleSimulation {
         navigation.setOccupancyDeltaSink(damageService::applyOccupancyDelta);
         rosterService.setDamageService(damageService);
         this.turretDemolition = new com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem(
-                navigation, effects, tactical, rosterService);
+                mapService, effects, tactical, rosterService);
         this.hubDemolition = new com.dillon.starsectormarines.battle.drone.HubDemolitionSystem(
-                navigation, effects, rosterService);
+                mapService, effects, rosterService);
         this.droneCrashes = new com.dillon.starsectormarines.battle.drone.DroneCrashSystem(
                 navigation, effects);
         this.squadFallback = new com.dillon.starsectormarines.battle.squad.SquadFallbackSystem(
@@ -296,7 +299,7 @@ public class BattleSimulation {
                 grid, rosterService.getRegistry(), tacticalScoring, damageService,
                 () -> simTickIndex);
         this.detonations = new Detonations(units, grid, topology, damageService,
-                navigation, effects);
+                mapService, effects);
         this.turretFire = new com.dillon.starsectormarines.battle.turret.TurretFireService(
                 rng, grid, topology, shots, damageService,
                 det -> { synchronized (detonations) { detonations.queue(det); } },
@@ -307,7 +310,7 @@ public class BattleSimulation {
                 shots, detonations, effects);
         this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, turretFire, rng, this::addUnit);
         this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, turretFire, rng, this::addUnit);
-        navigation.setRoofCollapseSink((x, y) -> {
+        mapService.setRoofCollapseSink((x, y) -> {
             float jx = x + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
             float jy = y + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
             int rubbleIdx = rng.nextFloat() < 0.5f
@@ -326,7 +329,7 @@ public class BattleSimulation {
     public ZoneGraph getZoneGraph()        { return zoneGraph; }
 
     public boolean damageCell(int x, int y, int amount) {
-        return navigation.damageWall(x, y, amount);
+        return mapService.damageWall(x, y, amount);
     }
 
     public boolean isRoofShielded(Unit target) {

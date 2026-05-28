@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.combat;
 
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.world.MapService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -38,17 +38,17 @@ public class Detonations {
     private final NavigationGrid grid;
     private final CellTopology topology;
     private final DamageService damageService;
-    private final NavigationService navigation;
+    private final MapService mapService;
     private final EffectsService effects;
 
     public Detonations(List<Unit> units, NavigationGrid grid, CellTopology topology,
-                       DamageService damageService, NavigationService navigation,
+                       DamageService damageService, MapService mapService,
                        EffectsService effects) {
         this.units = units;
         this.grid = grid;
         this.topology = topology;
         this.damageService = damageService;
-        this.navigation = navigation;
+        this.mapService = mapService;
         this.effects = effects;
     }
 
@@ -128,7 +128,7 @@ public class Detonations {
                     if (topology.getBuildingId(cx, cy) == 0) continue;
                     if (topology.isRoofDestroyed(cx, cy)) continue;
                     if (!grid.hasLineOfSight(targetCx, targetCy, cx, cy)) continue;
-                    navigation.destroyRoof(cx, cy);
+                    mapService.destroyRoof(cx, cy);
                 }
             }
         }
@@ -145,7 +145,7 @@ public class Detonations {
                         float cdx = (cx + 0.5f) - det.endpointX;
                         float cdy = (cy + 0.5f) - det.endpointY;
                         if (cdx * cdx + cdy * cdy > wr2) continue;
-                        if (navigation.damageWall(cx, cy, det.wallDamage)) {
+                        if (mapService.damageWall(cx, cy, det.wallDamage)) {
                             if (det.spawnDustOnWallBreak) {
                                 effects.spawnDustBurst(cx + 0.5f, cy + 0.5f);
                             }
@@ -153,7 +153,7 @@ public class Detonations {
                     }
                 }
             } else if (grid.inBounds(targetCx, targetCy)) {
-                if (navigation.damageWall(targetCx, targetCy, det.wallDamage)
+                if (mapService.damageWall(targetCx, targetCy, det.wallDamage)
                         && det.spawnDustOnWallBreak) {
                     effects.spawnDustBurst(targetCx + 0.5f, targetCy + 0.5f);
                 }

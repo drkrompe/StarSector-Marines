@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.infantry.PatrolRoute;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
-import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.world.MapService;
 import com.dillon.starsectormarines.battle.decision.TacticalContextService;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
@@ -26,16 +26,16 @@ import java.util.List;
  */
 public final class TurretDemolitionSystem {
 
-    private final NavigationService navigation;
+    private final MapService mapService;
     private final EffectsService effects;
     private final TacticalContextService tactical;
     private final UnitRosterService roster;
 
-    public TurretDemolitionSystem(NavigationService navigation,
+    public TurretDemolitionSystem(MapService mapService,
                                   EffectsService effects,
                                   TacticalContextService tactical,
                                   UnitRosterService roster) {
-        this.navigation = navigation;
+        this.mapService = mapService;
         this.effects = effects;
         this.tactical = tactical;
         this.roster = roster;
@@ -53,7 +53,7 @@ public final class TurretDemolitionSystem {
             Unit u = units.get(i);
             if (!(u instanceof MapTurret t)) continue;
             if (t.isAlive() || t.demolished) continue;
-            navigation.flipCellToRubble(t.getCellX(), t.getCellY());
+            mapService.flipCellToRubble(t.getCellX(), t.getCellY());
             t.demolished = true;
             // Mount cell keeps smoking for a while so the player can see the
             // wreck is dead-and-cooling rather than just "gone".

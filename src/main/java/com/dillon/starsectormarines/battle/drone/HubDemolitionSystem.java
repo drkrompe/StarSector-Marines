@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.drone;
 
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
-import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.world.MapService;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
 import java.util.List;
@@ -28,14 +28,14 @@ import java.util.List;
  */
 public final class HubDemolitionSystem {
 
-    private final NavigationService navigation;
+    private final MapService mapService;
     private final EffectsService effects;
     private final UnitRosterService roster;
 
-    public HubDemolitionSystem(NavigationService navigation,
+    public HubDemolitionSystem(MapService mapService,
                                EffectsService effects,
                                UnitRosterService roster) {
-        this.navigation = navigation;
+        this.mapService = mapService;
         this.effects = effects;
         this.roster = roster;
     }
@@ -52,7 +52,7 @@ public final class HubDemolitionSystem {
             Unit u = units.get(i);
             if (!(u instanceof DroneHubUnit h)) continue;
             if (h.isAlive() || h.demolished) continue;
-            navigation.flipCellToRubble(h.getCellX(), h.getCellY());
+            mapService.flipCellToRubble(h.getCellX(), h.getCellY());
             h.demolished = true;
             effects.spawnSmokingWreck(h.getCellX(), h.getCellY());
             // Cascading kill: drones launched from this hub lose control and
