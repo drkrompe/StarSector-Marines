@@ -7,8 +7,8 @@ import com.dillon.starsectormarines.battle.tactical.TacticalNode;
  * A defender tactical position the reinforcement layer wants re-manned. One
  * per eligible defender node ({@code defaultGuard == DEFENDER},
  * {@code garrisonSize > 0}, non-AIRBASE). Owned by
- * {@link RecaptureTargetRegistry}; its mutable state is written only by the
- * registry's per-tick pass.
+ * {@link RecaptureTargetService}; its mutable state is written only by the
+ * service's per-tick pass.
  *
  * <p>Design: {@code roadmap/conquest/stories/progressive-reinforcement.md}.
  * The node's anchor is the squad-assignment coordinate (the objective in the
@@ -19,13 +19,13 @@ public final class RecaptureTarget {
 
     public final TacticalNode node;
 
-    /** Biome band the node's anchor falls in. Computed once at registry init; nodes don't move. */
+    /** Biome band the node's anchor falls in. Computed once at service init; nodes don't move. */
     public final BiomeKind slice;
 
     /**
      * True when the node currently has zero alive defenders assigned — its
      * garrison (original or a prior reinforcement) has been wiped. Recomputed
-     * each registry tick.
+     * each service tick.
      */
     boolean open;
 

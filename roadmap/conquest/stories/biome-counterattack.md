@@ -104,7 +104,7 @@ Phases: **muster → telegraph → assault → resolve.**
 This story is **blocked on** progressive reinforcement landing. It
 reuses, rather than rebuilds:
 
-- `RecaptureTargetRegistry` — knows lost nodes per slice; the bulge
+- `RecaptureTargetService` — knows lost nodes per slice; the bulge
   reads conceded slices and their nodes as objectives.
 - Two-coordinate split — stage in held territory, advance into the
   conceded slice.

@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Slice-2 coverage for {@link RecaptureTargetRegistry}: node bucketing by
+ * Slice-2 coverage for {@link RecaptureTargetService}: node bucketing by
  * biome, the open/held derivation from squad assignment, the debounced
  * contested-slice (frontline) detection, and the dispatch-dedup / reopen
  * lifecycle.
@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * so the tests stay robust to the map's per-column boundary jitter — they only
  * assume the three band-center anchors land in three distinct biomes.
  */
-public class RecaptureTargetRegistryTest {
+public class RecaptureTargetServiceTest {
 
     private static final int W = 20;
     private static final int H = 100;
@@ -77,7 +77,7 @@ public class RecaptureTargetRegistryTest {
         return u;
     }
 
-    private static RecaptureTarget targetFor(RecaptureTargetRegistry reg, TacticalNode node) {
+    private static RecaptureTarget targetFor(RecaptureTargetService reg, TacticalNode node) {
         for (RecaptureTarget t : reg.allTargets()) {
             if (t.node == node) return t;
         }
@@ -99,7 +99,7 @@ public class RecaptureTargetRegistryTest {
         assertNotEquals(ps, fs, "precondition: port and fortress anchors are in distinct biomes");
 
         TacticalMap tmap = new TacticalMap(List.of(port, city, fort));
-        RecaptureTargetRegistry reg = new RecaptureTargetRegistry(tmap, biomes);
+        RecaptureTargetService reg = new RecaptureTargetService(tmap, biomes);
 
         assertEquals(3, reg.allTargets().size());
         assertEquals(1, reg.targetsInSlice(ps).size());
@@ -117,7 +117,7 @@ public class RecaptureTargetRegistryTest {
         TacticalNode marine     = node(TacticalNode.Kind.BEACHHEAD, 10, 10, Faction.MARINE, 4);
 
         TacticalMap tmap = new TacticalMap(List.of(garrisoned, airbase, noGarrison, marine));
-        RecaptureTargetRegistry reg = new RecaptureTargetRegistry(tmap, biomes);
+        RecaptureTargetService reg = new RecaptureTargetService(tmap, biomes);
 
         assertEquals(1, reg.allTargets().size(), "only the garrisoned defender node is a recapture target");
         assertEquals(garrisoned, reg.allTargets().get(0).node);
@@ -129,7 +129,7 @@ public class RecaptureTargetRegistryTest {
         BiomeMap biomes = biomeMap();
         TacticalNode city = node(TacticalNode.Kind.HEAVY_TOWER, 10, 55, Faction.DEFENDER, 4);
         BiomeKind cs = biomes.biomeAt(city.anchorX, city.anchorY);
-        RecaptureTargetRegistry reg = new RecaptureTargetRegistry(
+        RecaptureTargetService reg = new RecaptureTargetService(
                 new TacticalMap(List.of(city)), biomes);
 
         Unit defender = presence(sim, "city-def", 10, 55);
@@ -153,7 +153,7 @@ public class RecaptureTargetRegistryTest {
         BiomeKind fs = biomes.biomeAt(fort.anchorX, fort.anchorY);
         BiomeKind cs = biomes.biomeAt(10, 55);
         assertNotEquals(fs, cs, "precondition: fortress and the seed-defender slice are distinct");
-        RecaptureTargetRegistry reg = new RecaptureTargetRegistry(
+        RecaptureTargetService reg = new RecaptureTargetService(
                 new TacticalMap(List.of(fort)), biomes);
 
         // A defender elsewhere on the seed tick so the registry locks its seed
@@ -184,7 +184,7 @@ public class RecaptureTargetRegistryTest {
         BiomeKind ps = biomes.biomeAt(port.anchorX, port.anchorY);
         assertNotEquals(cs, ps, "precondition: distinct slices");
 
-        RecaptureTargetRegistry reg = new RecaptureTargetRegistry(
+        RecaptureTargetService reg = new RecaptureTargetService(
                 new TacticalMap(List.of(city, port)), biomes);
 
         // Both garrisons wiped → both nodes open. City slice has a live
@@ -210,7 +210,7 @@ public class RecaptureTargetRegistryTest {
         BattleSimulation sim = openSim();
         BiomeMap biomes = biomeMap();
         TacticalNode city = node(TacticalNode.Kind.HEAVY_TOWER, 10, 55, Faction.DEFENDER, 4);
-        RecaptureTargetRegistry reg = new RecaptureTargetRegistry(
+        RecaptureTargetService reg = new RecaptureTargetService(
                 new TacticalMap(List.of(city)), biomes);
 
         garrison(sim, city, 0, 4);                     // original garrison dead → open
@@ -249,7 +249,7 @@ public class RecaptureTargetRegistryTest {
         BiomeMap biomes = biomeMap();
         TacticalNode city = node(TacticalNode.Kind.HEAVY_TOWER, 10, 55, Faction.DEFENDER, 4);
         BiomeKind cs = biomes.biomeAt(city.anchorX, city.anchorY);
-        RecaptureTargetRegistry reg = new RecaptureTargetRegistry(
+        RecaptureTargetService reg = new RecaptureTargetService(
                 new TacticalMap(List.of(city)), biomes);
 
         // Ticks during sim-init before any defender is placed must not lock the

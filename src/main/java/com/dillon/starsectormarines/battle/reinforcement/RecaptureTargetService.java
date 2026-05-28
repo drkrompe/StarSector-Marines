@@ -48,7 +48,7 @@ import java.util.Map;
  * {@link #tick} accumulator (same shape as {@link ReinforcementService}); it
  * owns state rather than being a stateless consumer.
  */
-public final class RecaptureTargetRegistry {
+public final class RecaptureTargetService {
 
     /**
      * Consecutive slow-ticks a slice's presence observation must disagree with
@@ -71,7 +71,7 @@ public final class RecaptureTargetRegistry {
     private boolean seeded = false;
     private float accumulator = 0f;
 
-    public RecaptureTargetRegistry(TacticalMap tacticalMap, BiomeMap biomeMap) {
+    public RecaptureTargetService(TacticalMap tacticalMap, BiomeMap biomeMap) {
         this.biomeMap = biomeMap;
         for (TacticalNode node : tacticalMap.forFaction(Faction.DEFENDER)) {
             if (!isRecaptureEligible(node)) continue;

@@ -199,7 +199,7 @@ just the data plumbing.
 
 ### Slice 2: Recapture target tracking
 
-New `RecaptureTargetRegistry` that tracks all defender tactical
+New `RecaptureTargetService` that tracks all defender tactical
 nodes and their garrison state:
 - Populated at sim init from TacticalMap + BiomeMap
 - Groups nodes by biome slice at init time
@@ -213,7 +213,7 @@ nodes and their garrison state:
 ### Slice 3: FrontLineReinforcementTrigger
 
 New trigger (replaces or wraps `GarrisonDepletedTrigger`) that:
-- Reads `RecaptureTargetRegistry` for unfulfilled targets in
+- Reads `RecaptureTargetService` for unfulfilled targets in
   contested slices only (conceded slices already filtered out)
 - Picks nearest-to-defender slice with open targets
 - Round-robins within the slice for the objective (flat, unweighted)
@@ -234,7 +234,7 @@ reads the request's objective coordinates and assigns the squad:
 `assignedNode` must be set to the recapture target the moment it
 deboards at the LZ, *before* it walks to the position — it's assigned
 to the node while advancing, not once it gets there. This is what lets
-`RecaptureTargetRegistry` re-open a target whose reinforcement is wiped
+`RecaptureTargetService` re-open a target whose reinforcement is wiped
 *en route*: the registry sees the squad's `assignedNode` count drop to
 zero and clears the dispatch suppression. If `assignedNode` were only
 set on physical arrival, a squad killed crossing the front would leave
@@ -242,7 +242,7 @@ the target `open && dispatched` forever — silently un-reinforced.
 
 ### Slice 5: Wire + tune
 
-- Register `FrontLineReinforcementTrigger` + `RecaptureTargetRegistry`
+- Register `FrontLineReinforcementTrigger` + `RecaptureTargetService`
   in `installReinforcementLayer`
 - Retire or gate old `GarrisonDepletedTrigger` (compound-only
   variant) so requests don't duplicate
