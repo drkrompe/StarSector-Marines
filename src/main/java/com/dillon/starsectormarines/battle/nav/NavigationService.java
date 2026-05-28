@@ -113,6 +113,19 @@ public final class NavigationService {
 
     public void setRoofCollapseSink(CellCallback sink) { this.roofCollapseSink = sink; }
 
+    /**
+     * Queued (parallel-safe) occupancy-delta sink that {@link #setPath} routes
+     * through — bound to {@link DamageService#applyOccupancyDelta} at sim
+     * construction. The queue itself stays in {@link DamageService} (the owner
+     * of the parallel-dispatch safety queues); this is just the enqueue hook.
+     * Setter-injected rather than constructor-injected because the sim builds
+     * this service before {@link DamageService} exists (the inline applier the
+     * damage service needs is one of <em>our</em> methods).
+     */
+    private DamageService.OccupancyApplier occupancyDeltaSink;
+
+    public void setOccupancyDeltaSink(DamageService.OccupancyApplier sink) { this.occupancyDeltaSink = sink; }
+
     public boolean damageWall(int x, int y, int amount) {
         if (!grid.damageCell(x, y, amount)) return false;
         topology.setWall(x, y, false);
@@ -236,6 +249,49 @@ public final class NavigationService {
             incrementOccupancy(newDestX, newDestY);
             destIndex.addDestination(u, newDestX, newDestY);
         }
+    }
+
+    /**
+     * Replaces a unit's path and queues a deferred {@link #occupancyMap} +
+     * {@link #destIndex} update. {@code u.path} / {@code u.pathIdx} are
+     * unit-local and mutated inline; the shared spatial-state change goes
+     * through the queued {@link #occupancyDeltaSink} so the parallel
+     * UPDATE_UNITS dispatch never races on the occupancy map or destIndex
+     * (the delta drains in APPLY_OCCUPANCY at the end of the dispatch).
+     * Pass {@link GridPathfinder#EMPTY_PATH} (or call {@link #clearPath})
+     * to drop the current path.
+     *
+     * <p>Self-cell destinations don't claim occupancy, so both halves of the
+     * delta skip them; if neither old nor new destination is occupancy-bearing
+     * the sink call is elided entirely.
+     */
+    public void setPath(Unit u, int[] newPath) {
+        int oldDestX = pathDestX(u);
+        int oldDestY = pathDestY(u);
+        u.path = newPath;
+        u.pathIdx = newPath.length == 0 ? 0 : 1;
+        int newDestX;
+        int newDestY;
+        if (newPath.length > 0) {
+            newDestX = newPath[newPath.length - 2];
+            newDestY = newPath[newPath.length - 1];
+        } else {
+            newDestX = Integer.MIN_VALUE;
+            newDestY = Integer.MIN_VALUE;
+        }
+        boolean hasOld = oldDestX != Integer.MIN_VALUE && (oldDestX != u.getCellX() || oldDestY != u.getCellY());
+        boolean hasNew = newDestX != Integer.MIN_VALUE && (newDestX != u.getCellX() || newDestY != u.getCellY());
+        if (!hasOld && !hasNew) return;
+        occupancyDeltaSink.apply(u,
+                hasOld ? oldDestX : Integer.MIN_VALUE,
+                hasOld ? oldDestY : Integer.MIN_VALUE,
+                hasNew ? newDestX : Integer.MIN_VALUE,
+                hasNew ? newDestY : Integer.MIN_VALUE);
+    }
+
+    /** Convenience: drop the unit's path. Equivalent to {@code setPath(u, GridPathfinder.EMPTY_PATH)}. */
+    public void clearPath(Unit u) {
+        setPath(u, GridPathfinder.EMPTY_PATH);
     }
 
     /**

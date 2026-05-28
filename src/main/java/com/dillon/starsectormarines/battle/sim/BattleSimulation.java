@@ -267,6 +267,11 @@ public class BattleSimulation {
                 this::writeReprioInline,
                 this::writeFallbackInline,
                 navigation::applyOccupancyDeltaInline);
+        // setPath/clearPath bodies live on NavigationService; they enqueue
+        // their occupancy/destIndex delta through the damage service's
+        // queued (parallel-safe) path. Wired here since the navigation
+        // service is built before the damage service exists.
+        navigation.setOccupancyDeltaSink(damageService::applyOccupancyDelta);
         rosterService.setDamageService(damageService);
         this.turretDemolition = new com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem(
                 navigation, effects, tactical, rosterService);
@@ -484,8 +489,8 @@ public class BattleSimulation {
         }
     }
 
-    /** Delegates to {@link UnitRosterService#flushPendingSpawns()}. Public so tests can force the drain after a {@code queueSpawn} call. Registers fog-of-war contributors for any player-faction spawns. */
-    public void flushPendingSpawns() {
+    /** Mirrors queued drone-hub spawns into the units list. Delegates to {@link UnitRosterService#flushPendingSpawns()}; registers fog-of-war contributors for any player-faction spawns. */
+    private void flushPendingSpawns() {
         List<Unit> pending = rosterService.getPendingSpawns();
         int spawnCount = pending.size();
         if (spawnCount == 0) return;
@@ -530,8 +535,8 @@ public class BattleSimulation {
         damageService.applyDamage(target, damage, vsTurretMult, moraleImpact);
     }
 
-    /** Delegates to {@link DamageService#flushPendingDamage()}. Public so tests can force the drain after a direct {@code applyDamage} call to assert immediate side effects. */
-    public void flushPendingDamage() {
+    /** Drains all damage queued this tick. Delegates to {@link DamageService#flushPendingDamage()}. */
+    private void flushPendingDamage() {
         damageService.flushPendingDamage();
     }
 
@@ -567,12 +572,8 @@ public class BattleSimulation {
         detonations.detonateNow(det);
     }
 
-    public void rollFallbackOnHit(Unit target) {
-        hitResponse.rollFallbackOnHit(target);
-    }
-
-    /** Delegates to {@link DamageService#flushPendingTargetMutations()}. Public so tests can force the drain after a direct {@code rollReprio} / {@code rollFallback} call. */
-    public void flushPendingTargetMutations() {
+    /** Drains target-side reprio / fall-back enqueues from this tick's weapon hits. Delegates to {@link DamageService#flushPendingTargetMutations()}. */
+    private void flushPendingTargetMutations() {
         damageService.flushPendingTargetMutations();
     }
 
@@ -866,54 +867,24 @@ public class BattleSimulation {
     }
 
     /**
-     * Replaces a unit's path and queues a deferred {@link NavigationService#getOccupancyMap()
-     * occupancyMap} + {@link NavigationService#getDestIndex() destIndex}
-     * update. Public so AI behaviors in {@code battle.ai} can route their
-     * movement through this method instead of touching {@code u.path}
+     * Delegates to {@link NavigationService#setPath(Unit, int[])}. Kept on the
+     * sim's surface so AI behaviors in {@code battle.ai} can route movement
+     * through {@code sim.setPath(...)} instead of touching {@code u.path}
      * directly. Pass {@link GridPathfinder#EMPTY_PATH} (or call
      * {@link #clearPath(Unit)}) to drop the current path.
-     *
-     * <p>{@code u.path} / {@code u.pathIdx} are unit-local and mutated inline.
-     * Shared spatial state goes through {@link DamageService}'s occupancy
-     * queue so the per-unit dispatch never races on the occupancy map or
-     * destIndex; the delta drains in APPLY_OCCUPANCY at the end of
-     * UPDATE_UNITS, before any subsequent phase reads the map.
      */
     public void setPath(Unit u, int[] newPath) {
-        int oldDestX = NavigationService.pathDestX(u);
-        int oldDestY = NavigationService.pathDestY(u);
-        u.path = newPath;
-        u.pathIdx = newPath.length == 0 ? 0 : 1;
-        int newDestX;
-        int newDestY;
-        if (newPath.length > 0) {
-            newDestX = newPath[newPath.length - 2];
-            newDestY = newPath[newPath.length - 1];
-        } else {
-            newDestX = Integer.MIN_VALUE;
-            newDestY = Integer.MIN_VALUE;
-        }
-        // Self-cell destinations don't claim occupancy in the original
-        // setPath, so skip them on both sides to keep the queued deltas
-        // pure no-ops-free.
-        boolean hasOld = oldDestX != Integer.MIN_VALUE && (oldDestX != u.getCellX() || oldDestY != u.getCellY());
-        boolean hasNew = newDestX != Integer.MIN_VALUE && (newDestX != u.getCellX() || newDestY != u.getCellY());
-        if (!hasOld && !hasNew) return;
-        damageService.applyOccupancyDelta(u,
-                hasOld ? oldDestX : Integer.MIN_VALUE,
-                hasOld ? oldDestY : Integer.MIN_VALUE,
-                hasNew ? newDestX : Integer.MIN_VALUE,
-                hasNew ? newDestY : Integer.MIN_VALUE);
+        navigation.setPath(u, newPath);
     }
 
-    /** Delegates to {@link DamageService#flushPendingOccupancyDeltas()}. Public so tests can force the drain after a direct {@code setPath} call. */
-    public void flushPendingOccupancyDeltas() {
+    /** Applies occupancy + destIndex deltas queued by {@link #setPath} during the per-unit dispatch. Delegates to {@link DamageService#flushPendingOccupancyDeltas()}. */
+    private void flushPendingOccupancyDeltas() {
         damageService.flushPendingOccupancyDeltas();
     }
 
-    /** Convenience: drop the unit's path. Equivalent to {@code setPath(u, GridPathfinder.EMPTY_PATH)}. */
+    /** Convenience: drop the unit's path. Delegates to {@link NavigationService#clearPath(Unit)}. */
     public void clearPath(Unit u) {
-        setPath(u, GridPathfinder.EMPTY_PATH);
+        navigation.clearPath(u);
     }
 
     /**
