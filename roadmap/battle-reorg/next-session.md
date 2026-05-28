@@ -11,6 +11,7 @@ ea177c1  battle-reorg: slice 1 — consolidate combat pipeline into combat/
 579db91  battle-reorg: slice 2b — mapgen/ tree → world/gen/
 f44ba82  battle-reorg: slice 2c — map/ → world/model/, UrbanMapGenerator → world/gen/
 e63bd32  battle-reorg: slice 3 — ground/ → vehicle/, absorb MapVehicle/VehicleKind
+5b68452  battle-reorg: slice 4 — objective/reinforcement/compound + resources → command/
 ```
 
 ## State of play
@@ -31,6 +32,13 @@ e63bd32  battle-reorg: slice 3 — ground/ → vehicle/, absorb MapVehicle/Vehic
   — no class splits, no new cross-imports (ground files and the two lifted
   classes never referenced each other). One outside-`battle/` consumer
   (`ops/BattleScreen.java`) folded into the same commit. Build + suite green.
+- **Slice 4 SHIPPED.** `objective/` (6), `reinforcement/` (12), `compound/`
+  (3) nested under `command/` as subpackages; `BattleResources` +
+  `ResourceType` lifted flat from `sim/` into `command/`. `BattleSimulation`
+  (sim sibling) gained an explicit `command.BattleResources` import — the
+  only bare-name casualty of the lift. No self-imports anywhere; 8
+  same-package tests relocated. `ops/BattleScreen.java` (objective +
+  reinforcement consumer) folded in. Build + suite green.
 - **Proceeded ahead of the facade-drop** because sibling sessions are
   paused (tree quiet). Remaining slices should re-check tree quietness.
 - **Note:** a paused sibling agent's worktree under `.claude/worktrees/`
@@ -39,9 +47,11 @@ e63bd32  battle-reorg: slice 3 — ground/ → vehicle/, absorb MapVehicle/Vehic
 ## When picking up
 
 1. Re-confirm the tree is quiet (no concurrent large churn).
-2. Next is **slice 4 (`command/` consolidation)** — nest `objective/` +
-   `reinforcement/` + `compound/` + resources (`BattleResources`/
-   `ResourceType`) under `command/`. See `overview.md` § Slice plan.
+2. Next is **slice 5 (`squad/` consolidation)** — move `Squad` (from
+   `unit/`), `SquadPlan` (from `ai/goap/`), `SquadAlertLevel` (from `ai/`)
+   into `squad/`. See `overview.md` § Slice plan. Note: pulling pieces *out*
+   of `unit/` and `ai/` (splits, not whole-dir renames) — each moved class
+   needs imports for the bare-name siblings it leaves behind.
 3. Proven per-slice recipe (refine as needed):
    - `git mv` files; for a package *split*, do an **ordered** FQN rewrite
      (specific-class redirects before the general prefix rewrite).

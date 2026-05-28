@@ -220,8 +220,14 @@ reference-churn moves to a quiet base.
    `VehicleKind` (with nested `VehicleSheet`) lifted out of `world/model/`
    into `vehicle/`. `ground/` dissolved. Clean package rename — no splits,
    no new cross-imports. Build + full suite green.
-4. **`command/` consolidation** — nest `objective/` + `reinforcement/` +
-   `compound/` + resources (`BattleResources`/`ResourceType`) under `command/`.
+4. ~~**`command/` consolidation** — nest `objective/` + `reinforcement/` +
+   `compound/` + resources (`BattleResources`/`ResourceType`) under `command/`.~~
+   **SHIPPED.** `objective/` (6), `reinforcement/` (12), `compound/` (3)
+   moved in as `command/{objective,reinforcement,compound}/` subpackages;
+   `BattleResources` + `ResourceType` lifted flat from `sim/` into
+   `command/`. The only bare-name fix-up was `BattleSimulation` (a `sim/`
+   sibling using `BattleResources`) gaining an explicit import. No
+   self-imports anywhere. 8 same-package tests relocated. Build + suite green.
 5. **`squad/` consolidation** — move `Squad` (from `unit/`), `SquadPlan`
    (from `ai/goap/`), `SquadAlertLevel` (from `ai/`) into `squad/`.
 6. **`ai/` dissolve** (multi-sub-slice):
