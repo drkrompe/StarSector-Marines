@@ -1,7 +1,5 @@
 package com.dillon.starsectormarines.battle.nav;
 
-import com.dillon.starsectormarines.battle.profile.LosCache;
-
 import java.util.Arrays;
 
 /**

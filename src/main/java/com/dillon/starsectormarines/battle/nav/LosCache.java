@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.profile;
+package com.dillon.starsectormarines.battle.nav;
 
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 
@@ -24,7 +24,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * across different radii). Drones/shuttles flow through uncached; the JFR
  * showed ground-vs-ground is the 99% case.
  *
- * <p>Access pattern mirrors {@link TickInnerProfile}: static
+ * <p>Access pattern mirrors {@link com.dillon.starsectormarines.battle.profile.TickInnerProfile}: static
  * {@link #current()} slot the sim sets at tick begin and clears at tick
  * end. {@link com.dillon.starsectormarines.battle.nav.NavigationGrid#hasLineOfSight}
  * null-checks the slot and falls through to the live Bresenham when off-tick

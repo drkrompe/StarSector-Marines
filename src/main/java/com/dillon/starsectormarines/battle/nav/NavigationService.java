@@ -7,7 +7,6 @@ import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
-import com.dillon.starsectormarines.battle.profile.LosCache;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
