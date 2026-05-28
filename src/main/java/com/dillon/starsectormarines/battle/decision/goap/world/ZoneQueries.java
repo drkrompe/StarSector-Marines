@@ -1,5 +1,5 @@
 package com.dillon.starsectormarines.battle.decision.goap.world;
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
@@ -52,7 +52,7 @@ public final class ZoneQueries {
      * squad is bifurcated around an obstacle, which oscillates a zone-push
      * plan in and out of the same building.
      */
-    public static int squadCurrentZone(Squad squad, BattleSimulation sim) {
+    public static int squadCurrentZone(Squad squad, BattleView sim) {
         if (squad == null || sim == null) return -1;
         if (squad.aliveMembers <= 0) return -1;
         Unit leader = squad.leader;
@@ -76,7 +76,7 @@ public final class ZoneQueries {
      * fields, and this method is the seam those reads grow under without
      * forcing callers to change.
      */
-    public static int objectiveZone(Squad squad, BattleSimulation sim) {
+    public static int objectiveZone(Squad squad, BattleView sim) {
         if (squad == null || sim == null) return -1;
         TacticalNode node = squad.assignedNode;
         if (node == null) return -1;
@@ -89,7 +89,7 @@ public final class ZoneQueries {
      * returns an immutable view, so callers don't have to fetch the zone by
      * id themselves.
      */
-    public static List<Integer> portalsOf(int zoneId, BattleSimulation sim) {
+    public static List<Integer> portalsOf(int zoneId, BattleView sim) {
         if (sim == null) return Collections.emptyList();
         NavigationZone zone = sim.getZoneGraph().zoneById(zoneId);
         if (zone == null) return Collections.emptyList();
@@ -103,7 +103,7 @@ public final class ZoneQueries {
      * cheaper than walking the zone's full cell list since zones often hold
      * hundreds of cells.
      */
-    public static boolean zoneClear(int zoneId, Faction enemyFaction, BattleSimulation sim) {
+    public static boolean zoneClear(int zoneId, Faction enemyFaction, BattleView sim) {
         if (sim == null || enemyFaction == null) return true;
         ZoneGraph graph = sim.getZoneGraph();
         if (graph.zoneById(zoneId) == null) return true;
@@ -123,7 +123,7 @@ public final class ZoneQueries {
      * room-by-room sweep planner; mirrors {@link ZoneGraph#areConnected} but
      * records parent pointers so the full path can be reconstructed.
      */
-    public static List<Integer> zonePathBfs(int fromZone, int toZone, BattleSimulation sim) {
+    public static List<Integer> zonePathBfs(int fromZone, int toZone, BattleView sim) {
         if (sim == null) return Collections.emptyList();
         ZoneGraph graph = sim.getZoneGraph();
         if (graph.zoneById(fromZone) == null || graph.zoneById(toZone) == null) {
@@ -182,7 +182,7 @@ public final class ZoneQueries {
      * (commander-issued squad assignment). Both compose the same step
      * sequence — just differ in how they pick the target zone.
      */
-    public static SquadPlan synthesizeZonePushPlan(int fromZone, int toZone, BattleSimulation sim) {
+    public static SquadPlan synthesizeZonePushPlan(int fromZone, int toZone, BattleView sim) {
         if (sim == null || fromZone < 0 || toZone < 0 || fromZone == toZone) return null;
         List<Integer> path = zonePathBfs(fromZone, toZone, sim);
         if (path.size() < 2) return null;
