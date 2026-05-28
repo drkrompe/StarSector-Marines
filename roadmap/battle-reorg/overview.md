@@ -315,6 +315,35 @@ into new packages — otherwise we move targets twice.
   (registry-style dispatch, or relocating the dispatcher out of the
   framework core). Not blocking; deferred.
 
+## Future direction: a thin core outside the feature packages
+
+Not scheduled — a thing to think about once the reorg + `ecs-migration`
+settle. Slice 6's `decision/` work exposed two distinct "shared core vs
+feature" axes worth a deliberate design pass:
+
+1. **Dispatch inversion (mechanism must not import behavior).** Today the
+   core dispatch/wiring — `UnitUpdateSystem`'s role→behavior `switch`,
+   plus `TacticalScoring` / `WorldStateBuilder` reaching into specific
+   behaviors — imports concrete feature classes, a framework→feature edge
+   inherent to the current design (see Open items). The clean shape is a
+   **role/behavior registry the core owns and each feature registers into at
+   startup**, so `decision/` never names `infantry.CombatantBehavior` et al.
+   This converges with [`ecs-migration`](../ecs-migration/overview.md): the
+   `switch(role)` dispatcher is the "entity for-loop" that becomes a set of
+   Systems registered on the sim. **Prefer letting the ecs-migration subsume
+   this** over a standalone pass — and note `UnitUpdateSystem` is the hot
+   parallel per-unit loop, so indirection there carries a real perf cost.
+
+2. **A shared "ground combatant" base (mech as an infantry variant).** Mech,
+   infantry (and future tanks) likely share a combatant core — GOAP composer
+   shape, posture vocabulary, squad coordination — with mech specializing
+   weapons (`HeavyWeapons`) and kinematics (`GroundBody`). Tempting to extract
+   now, but hold to the lean-engine rule adopted in slice 6c: **promote shared
+   pieces to a common base only when a second actor genuinely consumes them**,
+   not preemptively — otherwise we're guessing the abstraction. The
+   `infantry/` ↔ `mech/` split is the right starting point; the third
+   duplicated concept is the promote signal.
+
 ## Verification per slice
 
 - `gradlew.bat compileJava` clean.
