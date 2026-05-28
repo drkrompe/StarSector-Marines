@@ -19,7 +19,10 @@ c693c27  battle-reorg: slice 6a — engine/scoring/world + dispatch + tactical �
 882586a  battle-reorg: slice 6c — partition goals/actions; ai/ fully dissolved
 93ccd49  battle-reorg: hoist REPLAN_PERIOD to Planner — drop EnterZone fw->feature edge
 6e416ea  battle-reorg: slice 7 — weapons/ split: Marine*/InfantryWeapons -> infantry/, Mech* -> mech/
+84867f0  battle-reorg: slice 9 — BattleSetup + DefenderRoster sim/ -> setup/
 ```
+
+(Slice 8, the `entity/` rename, was **skipped by decision** — see State of play.)
 
 ## State of play
 
@@ -127,6 +130,25 @@ c693c27  battle-reorg: slice 6a — engine/scoring/world + dispatch + tactical �
     `combat/fx/EffectsService.java` now dangles on the dead `weapons` package
     — logged as a deferred follow-up in `overview.md` (delete/repoint when
     EffectsService is next touched).
+- **Slice 8 (`entity/` rename) SKIPPED — by decision, not deferral of
+  effort.** `unit/` → `entity/` was prototyped (build went green) and then
+  reverted. Rationale: `Unit` is still a fat POJO whose primitives are being
+  peeled into SoA arrays — it is not yet an ECS id, so naming it `entity`
+  front-runs the data model. Decision recorded in
+  [`ecs-migration/overview.md` § "Naming: defer `entity` …"](../ecs-migration/overview.md)
+  (commit `5212ade`): **rename last, when the type has *become* an id.** Do
+  not re-attempt the rename as part of this reorg.
+- **Slice 9 SHIPPED** (`84867f0`). `BattleSetup` + `DefenderRoster` → new
+  `setup/`; `BattleSimulation` + `PendingOccupancyDelta` +
+  `PendingTargetMutation` stay in `sim/`. Cleanest split yet: `DefenderRoster`
+  is private to `BattleSetup` (zero external FQN refs) so it rode along free;
+  the only manual touch-ups were `BattleSetup` gaining an explicit
+  `sim.BattleSimulation` import (it used its old sibling by bare name) and
+  FQN'ing `BattleSimulation`'s one `{@link BattleSetup#pickCellsNear}`
+  javadoc. **Recipe note:** `git mv` does not create the destination dir —
+  `mkdir -p setup/` first (the first attempt failed with a misleading
+  "No such file or directory" against the *source*). 22 files, 2 renames,
+  build + full suite green.
 - **Proceeded ahead of the facade-drop** because sibling sessions are
   paused (tree quiet). Remaining slices should re-check tree quietness.
 - **Note:** a paused sibling agent's worktree under `.claude/worktrees/`
@@ -135,14 +157,14 @@ c693c27  battle-reorg: slice 6a — engine/scoring/world + dispatch + tactical �
 ## When picking up
 
 1. Re-confirm the tree is quiet (no concurrent large churn).
-2. Next is **slice 8 (`entity/` rename)** — `unit/` → `entity/`. **Optional
-   / decide at slice time** (`overview.md` Open items): it's the largest
-   single reference surface of any slice (Unit/UnitType/UnitRegistry/UnitRole
-   are referenced almost everywhere), so only do it on a genuinely quiet base
-   and weigh the churn against the clarity win. After 8: slice 9 (`sim/`+
-   `setup/` tidy — `BattleSetup`/`DefenderRoster` → `setup/`), slice 10 (tail:
-   `equipment/`→`infantry/`, `flyby/` placement, `LosCache` placement). See
-   `overview.md` § Slice plan items 8–10.
+2. Next (and last) is **slice 10 (tail tidy)** — three small, independent
+   moves: fold `equipment/` into `infantry/` (kit drops + retrieval); settle
+   `flyby/` placement (standalone feature domain vs `ui/flyby/` — it's a
+   presentation/light-sim hybrid, see `overview.md` Open items); and `LosCache`
+   placement (`profile/` today — candidate to `nav/` or `decision/`). Each is
+   its own commit; do whichever the tree is quiet for. **Slice 8 (`entity/`
+   rename) is intentionally skipped** (see State of play) — with that out,
+   slice 10 closes the reorg. See `overview.md` § Slice plan item 10.
 3. **Recipe refinements learned in slice 6** (apply going forward):
    - For a package *split into multiple destinations*, drive the FQN rewrite
      from an explicit `name→destpkg` map (class-specific `\b`-bounded

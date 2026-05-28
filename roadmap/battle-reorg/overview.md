@@ -280,10 +280,21 @@ reference-churn moves to a quiet base.
    matches the *first* file's line 1 — `$.` accumulates across @ARGV; add
    `close ARGV if eof` to reset per file (cost a re-run on the package-decl
    rewrite). Build + full suite green.
-8. **`entity/` rename** — `unit/` → `entity/`. Largest single reference
-   surface; do on a quiet base.
-9. **`sim/`/`setup/` tidy** — `BattleSetup`/`DefenderRoster` → `setup/`;
-   confirm `Pending*` plumbing stays in `sim/`.
+8. **`entity/` rename** — `unit/` → `entity/`. **DEFERRED (decision, not
+   just optional).** The rename was prototyped and reverted — `Unit` is
+   still a fat POJO mid-SoA-gutting, not an ECS id, so `entity` naming would
+   front-run the data model. Rename *last*, when the type has become an id.
+   See [`ecs-migration/overview.md` § "Naming: defer `entity` until `Unit`
+   *is* an id"](../ecs-migration/overview.md).
+9. ~~**`sim/`/`setup/` tidy** — `BattleSetup`/`DefenderRoster` → `setup/`;
+   confirm `Pending*` plumbing stays in `sim/`.~~ **SHIPPED** (`84867f0`).
+   `BattleSetup` + `DefenderRoster` → new `setup/`; `BattleSimulation` +
+   `PendingOccupancyDelta` + `PendingTargetMutation` stay in `sim/`. Only
+   cross-edges: `BattleSetup` gained an explicit `sim.BattleSimulation`
+   import (bare ref to its old sibling), and `BattleSimulation`'s lone
+   `{@link BattleSetup#pickCellsNear}` javadoc was FQN'd. `DefenderRoster`
+   is private to `BattleSetup` (no external FQN refs) and rode along.
+   22 files, 2 renames, build + full suite green.
 10. **tail tidy** — fold `equipment/` into `infantry/`; settle `flyby/`
     (standalone vs `ui/flyby/`); `LosCache` placement (`profile/` vs `nav/`).
 
