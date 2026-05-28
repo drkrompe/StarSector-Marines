@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.ui.compound;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.compound.CompoundService;
+import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 import com.dillon.starsectormarines.ops.battleview.BattleCamera;
 import com.dillon.starsectormarines.ui.BitmapFont;

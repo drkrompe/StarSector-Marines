@@ -5,8 +5,8 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
-import com.dillon.starsectormarines.battle.objective.ChargeSiteObjective;
-import com.dillon.starsectormarines.battle.objective.Objective;
+import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
+import com.dillon.starsectormarines.battle.command.objective.Objective;
 
 import java.util.ArrayList;
 import java.util.List;

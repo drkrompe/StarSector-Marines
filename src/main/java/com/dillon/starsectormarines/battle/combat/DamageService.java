@@ -37,7 +37,7 @@ import java.util.Arrays;
  * {@link com.dillon.starsectormarines.battle.vision.VisionService},
  * {@link com.dillon.starsectormarines.battle.combat.ShotService},
  * {@link com.dillon.starsectormarines.battle.command.CommanderService},
- * {@link com.dillon.starsectormarines.battle.objective.ObjectivesService}.
+ * {@link com.dillon.starsectormarines.battle.command.objective.ObjectivesService}.
  *
  * <p>Appliers are bound method refs supplied once at construction so they're
  * shared between the inline branch and the flush branch — one allocation for

@@ -17,7 +17,7 @@ import java.util.List;
  * {@link com.dillon.starsectormarines.battle.vision.VisionService},
  * {@link com.dillon.starsectormarines.battle.combat.ShotService},
  * {@link CommanderService},
- * {@link com.dillon.starsectormarines.battle.objective.ObjectivesService}.
+ * {@link com.dillon.starsectormarines.battle.command.objective.ObjectivesService}.
  *
  * <p>Pure data holder — no tick logic. Set once by {@code BattleSetup}
  * during construction, read for the lifetime of the battle.

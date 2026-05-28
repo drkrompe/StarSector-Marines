@@ -20,7 +20,7 @@ import java.util.List;
  * <b>Squad posture: cordon a room's doorways while the planter channels.</b>
  * Story J's "1 planter + N portal-holders" composition lives entirely here:
  * a {@code "planter"} slot paths to the charge cell and dwells (so
- * {@link com.dillon.starsectormarines.battle.objective.ChargeSiteObjective}
+ * {@link com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective}
  * accumulates progress), while {@code "portal:N"} slots each path once to
  * a guard cell adjacent to their doorway and hold position firing on
  * anything in LOS + range.
@@ -142,7 +142,7 @@ public final class HoldPortalCordon implements Action {
      * Planter slot: path to the charge cell, sit on it. No firing — the
      * planter is channelling. Matches the legacy {@code PlanterBehavior}
      * shape (path → arrive → dwell) without the standalone dispatch.
-     * {@link com.dillon.starsectormarines.battle.objective.ChargeSiteObjective#tick}
+     * {@link com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective#tick}
      * keys off PLANTER role + on-site cell + {@code moveProgress == 0}, all
      * of which this branch maintains.
      */

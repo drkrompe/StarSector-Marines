@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.ai.TacticalScoring;
-import com.dillon.starsectormarines.battle.objective.Objective;
+import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
 import java.util.ArrayList;

@@ -8,7 +8,7 @@ import com.dillon.starsectormarines.battle.ai.goap.Predicate;
 import com.dillon.starsectormarines.battle.ai.goap.SquadPlan;
 import com.dillon.starsectormarines.battle.ai.goap.WorldState;
 import com.dillon.starsectormarines.battle.ai.goap.world.ZoneQueries;
-import com.dillon.starsectormarines.battle.objective.ChargeSiteObjective;
+import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 
 /**
  * Story K — Room-clear sweep. Fires for marine squads that have an

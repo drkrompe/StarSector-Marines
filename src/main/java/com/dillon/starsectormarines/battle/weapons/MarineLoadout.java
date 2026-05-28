@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.weapons;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 
-import com.dillon.starsectormarines.battle.objective.Objective;
+import com.dillon.starsectormarines.battle.command.objective.Objective;
 
 /**
  * Per-slot loadout for a shuttle's marine roster. One {@code MarineLoadout}

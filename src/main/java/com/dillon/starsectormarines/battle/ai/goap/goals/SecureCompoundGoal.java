@@ -12,7 +12,7 @@ import com.dillon.starsectormarines.battle.ai.goap.actions.HoldZone;
 import com.dillon.starsectormarines.battle.ai.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
-import com.dillon.starsectormarines.battle.compound.CompoundService;
+import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 
 import java.util.ArrayList;
@@ -27,7 +27,7 @@ import java.util.List;
  * <p>Three-phase plan: push to the compound's zone (zone-graph BFS),
  * clear enemies ({@link ClearZone}), then hold until the capture timer
  * completes ({@link HoldZone}). The hold phase keeps marines present in the
- * zone so {@link com.dillon.starsectormarines.battle.compound.CompoundCaptureSystem}
+ * zone so {@link com.dillon.starsectormarines.battle.command.compound.CompoundCaptureSystem}
  * accumulates toward {@link CompoundService.CompoundState#MARINE_HELD}.
  *
  * <p>Relevance 0.9 — above {@link ClearAssignedZoneGoal}'s 0.8 so a squad

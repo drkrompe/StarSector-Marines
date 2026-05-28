@@ -9,7 +9,7 @@ import com.dillon.starsectormarines.battle.weapons.MarineWeapon;
 import com.dillon.starsectormarines.battle.weapons.MechLoadoutState;
 
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
-import com.dillon.starsectormarines.battle.objective.Objective;
+import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 
 import java.util.Random;

@@ -22,10 +22,11 @@ import com.dillon.starsectormarines.battle.weapons.MechLoadoutState;
 import com.dillon.starsectormarines.battle.weapons.MechWeapon;
 
 import com.dillon.starsectormarines.battle.air.AirSystem;
+import com.dillon.starsectormarines.battle.command.BattleResources;
 import com.dillon.starsectormarines.battle.command.CommanderService;
-import com.dillon.starsectormarines.battle.compound.CompoundCaptureSystem;
-import com.dillon.starsectormarines.battle.compound.CompoundGarrisonSystem;
-import com.dillon.starsectormarines.battle.compound.CompoundService;
+import com.dillon.starsectormarines.battle.command.compound.CompoundCaptureSystem;
+import com.dillon.starsectormarines.battle.command.compound.CompoundGarrisonSystem;
+import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.vehicle.GroundSystem;
 import com.dillon.starsectormarines.battle.vehicle.Vehicle;
@@ -41,11 +42,11 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
-import com.dillon.starsectormarines.battle.objective.Objective;
-import com.dillon.starsectormarines.battle.objective.ObjectivesService;
+import com.dillon.starsectormarines.battle.command.objective.Objective;
+import com.dillon.starsectormarines.battle.command.objective.ObjectivesService;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
-import com.dillon.starsectormarines.battle.reinforcement.ReinforcementService;
+import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementService;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.tactical.TacticalContextService;
 import com.dillon.starsectormarines.battle.tactical.TacticalMap;
@@ -134,8 +135,8 @@ public class BattleSimulation {
     /** Per-tick squad-level GOAP replan pass — dispatches each squad to drone / mech / infantry behavior. Initialized in the constructor. */
     private final com.dillon.starsectormarines.battle.squad.SquadReplanSystem squadReplan;
     /** Per-tick win-condition evaluator — pure function over the objective list; sim writes the {@link #complete}/{@link #winner} fields on terminal result. Initialized in the constructor. */
-    private final com.dillon.starsectormarines.battle.objective.WinCheckSystem winCheck =
-            new com.dillon.starsectormarines.battle.objective.WinCheckSystem();
+    private final com.dillon.starsectormarines.battle.command.objective.WinCheckSystem winCheck =
+            new com.dillon.starsectormarines.battle.command.objective.WinCheckSystem();
     /** Persistent {@link Doodad} list + per-cell/per-facing cover lookup the AI consults when scoring firing positions. Initialized in the constructor once {@link #grid} is available. */
     private final DoodadService doodadService;
     private final List<MapVehicle> vehicles = new ArrayList<>();
@@ -608,7 +609,7 @@ public class BattleSimulation {
     }
 
     /** Reinforcement service for trigger / means registration. {@code BattleSetup} populates this per mission. */
-    public com.dillon.starsectormarines.battle.reinforcement.ReinforcementService getReinforcementService() {
+    public com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementService getReinforcementService() {
         return reinforcement;
     }
 
@@ -838,7 +839,7 @@ public class BattleSimulation {
         // (e.g., a rocket shredding a wall section) collapse into one rebuild.
         navigation.flushZoneGraphIfDirty();
         tickProfile.lap(TickProfile.Phase.ZONE_GRAPH);
-        com.dillon.starsectormarines.battle.objective.WinCheckSystem.WinResult result =
+        com.dillon.starsectormarines.battle.command.objective.WinCheckSystem.WinResult result =
                 winCheck.tick(objectivesService.getObjectives());
         if (result.complete()) {
             complete = true;

@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.equipment;
 
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 
-import com.dillon.starsectormarines.battle.objective.Objective;
+import com.dillon.starsectormarines.battle.command.objective.Objective;
 
 /**
  * A dropped equipment kit on the battlefield. Spawned when a {@link UnitRole#PLANTER}

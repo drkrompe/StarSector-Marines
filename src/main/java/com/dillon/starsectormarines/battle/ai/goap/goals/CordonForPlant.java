@@ -13,7 +13,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
 import com.dillon.starsectormarines.battle.nav.zone.Portal;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
-import com.dillon.starsectormarines.battle.objective.ChargeSiteObjective;
+import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 
 import java.util.ArrayList;
 import java.util.List;

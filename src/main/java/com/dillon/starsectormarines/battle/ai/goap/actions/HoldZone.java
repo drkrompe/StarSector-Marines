@@ -9,7 +9,7 @@ import com.dillon.starsectormarines.battle.ai.goap.Action;
 import com.dillon.starsectormarines.battle.ai.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.ai.goap.WorldState;
 import com.dillon.starsectormarines.battle.ai.goap.world.ZoneQueries;
-import com.dillon.starsectormarines.battle.compound.CompoundService;
+import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.tactical.TacticalNode;
 
@@ -20,7 +20,7 @@ import com.dillon.starsectormarines.battle.tactical.TacticalNode;
  * {@link ActionStatus#SUCCESS} once the compound's state reaches
  * {@link CompoundService.CompoundState#MARINE_HELD}.
  *
- * <p>Capture progress is driven by {@link com.dillon.starsectormarines.battle.compound.CompoundCaptureSystem}
+ * <p>Capture progress is driven by {@link com.dillon.starsectormarines.battle.command.compound.CompoundCaptureSystem}
  * at 1 Hz — this action's job is simply to keep marines present in the zone
  * so the capture timer accumulates. Engagement behavior mirrors
  * {@link ClearZone}: in-zone enemies are preferred, out-of-zone enemies are
