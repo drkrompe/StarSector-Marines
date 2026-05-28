@@ -1,5 +1,12 @@
 # Story: secondaryAimTargetId / secondaryActionTimer / secondaryCooldownTimer
 
+**Shipped `01fe905`** (2026-05-28). Two `float[]` + one `long[]`
+(`secondaryAimTargetId` — first long[] primitive in the registry) +
+final accessors on UnitRegistry; consumers migrated from direct field
+reads (InfantryUnitPrep, EngagePosture, TacticalScoring squad-aim scan,
+BattleScreen). 9 new UnitRegistryTest tests. Rollup in
+[`phase3-soa-promotions.md`](phase3-soa-promotions.md).
+
 ## Context
 
 Paired fields for the secondary weapon subsystem (rocket volleys).

@@ -15,6 +15,9 @@ Pattern locked in; every promotion follows the same shape
 | attackDamage | `float[]` | `c929087` | Write-once combat stat; 34 consumer files migrated |
 | attackRange | `float[]` | `c929087` | Write-once; heaviest read density in TacticalScoring + 15 GOAP actions |
 | accuracy | `float[]` | `c929087` | Write-once; read in weapon-fire paths |
+| secondaryCooldownTimer | `float[]` | `01fe905` | Secondary (rocket) cooldown; ticked in InfantryUnitPrep |
+| secondaryActionTimer | `float[]` | `01fe905` | Aim-then-fire window; read in TacticalScoring squad-aim scan + BattleScreen pose |
+| secondaryAimTargetId | `long[]` | `01fe905` | First `long[]` primitive; entity id locked at aim start |
 
 ## Consumer migrations (dense-iter + array reads)
 

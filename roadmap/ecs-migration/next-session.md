@@ -22,30 +22,39 @@ ef4d798  battle: TacticalScoring bulk loops — fourth SoA consumer
 a4df09b  battle: SoA cooldownTimer — third primitive promotion
 489b1db  battle: SoA moveProgress + renderX/renderY — fourth promotion
 c929087  battle: SoA attackRange/attackDamage/accuracy — fifth promotion  ← 2026-05-27
+01fe905  battle: SoA secondary{Cooldown,Action}Timer/secondaryAimTargetId — sixth  ← 2026-05-28
 ```
 
 ## State of play
 
-- **Nine primitives promoted:** hp/maxHp, cellX/cellY, cooldownTimer,
-  moveProgress, renderX/renderY, attackDamage, attackRange, accuracy.
+- **Twelve primitives promoted:** hp/maxHp, cellX/cellY, cooldownTimer,
+  moveProgress, renderX/renderY, attackDamage, attackRange, accuracy,
+  secondaryCooldownTimer, secondaryActionTimer, secondaryAimTargetId.
+  The last is the **first `long[]` primitive** in the registry.
 - **Five consumers** on dense-iter + SoA array reads.
 - **Build green; all tests pass.**
 
 ## Active stories (priority order)
 
-1. ~~[`move-render-primitives`](stories/move-render-primitives.md)~~ —
-   **SHIPPED** (`489b1db`). Moved to [`complete/`](complete/move-render-primitives.md).
+1. ~~[`move-render-primitives`](complete/move-render-primitives.md)~~ —
+   **SHIPPED** (`489b1db`).
 
-2. ~~[`tactical-primitives`](stories/tactical-primitives.md)~~ —
-   **SHIPPED** (`c929087`). Logged in [`complete/`](complete/phase3-soa-promotions.md).
+2. ~~[`tactical-primitives`](complete/tactical-primitives.md)~~ —
+   **SHIPPED** (`c929087`). Rolled up in [`complete/phase3-soa-promotions.md`](complete/phase3-soa-promotions.md).
 
-3. **[`secondary-weapon-primitives`](stories/secondary-weapon-primitives.md)** —
-   secondaryAimTargetId/secondaryActionTimer/secondaryCooldownTimer. Tightly
-   scoped to ~8 files. Next up if continuing SoA promotions.
+3. ~~[`secondary-weapon-primitives`](complete/secondary-weapon-primitives.md)~~ —
+   **SHIPPED** (`01fe905`). Rolled up in [`complete/phase3-soa-promotions.md`](complete/phase3-soa-promotions.md).
+
+**`stories/` is now empty.** The Phase 3 SoA-promotion backlog is drained.
+Remaining per-Unit primitive candidates (burstTimer/burstRemaining/burstTargetId,
+repositionCooldown, fallbackTimer, etc.) are small and low-churn — promote
+opportunistically when a hot path touches them. The bigger next arc is the
+Services/Systems decomposition in [`overview.md`](overview.md) (state owners
+vs. stateless tick consumers); that doesn't have story docs yet.
 
 ## Sanity check before resuming
 
 - `gradlew.bat compileJava` should be clean.
 - All tests pass.
-- `git log --oneline -5` should show `c929087` or your own recent work
+- `git log --oneline -5` should show `01fe905` or your own recent work
   at the top.

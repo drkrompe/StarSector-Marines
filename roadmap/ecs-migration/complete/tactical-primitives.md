@@ -1,5 +1,9 @@
 # Story: attackRange / attackDamage / accuracy SoA promotion
 
+**Shipped `c929087`** (2026-05-27). Three `float[]` arrays + final accessors
+on UnitRegistry; 34 consumer files migrated from direct field reads.
+Rollup in [`phase3-soa-promotions.md`](phase3-soa-promotions.md).
+
 ## Context
 
 Per-unit combat stats baked at construction, modified rarely (captain
