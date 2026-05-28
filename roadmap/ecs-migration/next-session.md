@@ -69,6 +69,16 @@ primitives and the (now thin) `BattleSimulation` orchestrator:
    **Service** cleanup: move `setPath`/`clearPath` bodies off the sim
    into NavigationService (which already owns the occupancy/destIndex
    state). Thin sim delegates stay, so consumer churn is ~zero. **Next up.**
+5. [`drop-sim-facade-delegators`](stories/drop-sim-facade-delegators.md) —
+   **Terminal** migration story: remove the ~40 `*SimContext`-style facade
+   delegators (mutating behavior delegates + service getters) so consumers
+   depend on services directly, not through the sim. The thin delegates
+   kept across every prior SoA story were a deliberate zero-churn stepping
+   stone; this is the destination. Large, multi-slice; churns the GOAP
+   `Action`/`Goal` `sim`-param contract (~141-file reference surface), so
+   it wants a quiet base — do it after path-mutation + the deferred SoA
+   tail. Decide the consumer-injection mechanism (narrowing interface vs.
+   services bundle) in the story before writing code.
 
 Lower-priority / deferred: `attackCooldown` + `visionRange` + `moveSpeed`
 (write-once stat-block completion — tidiness, not a hot-loop win);

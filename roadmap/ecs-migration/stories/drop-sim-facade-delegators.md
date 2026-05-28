@@ -1,0 +1,134 @@
+# Story: drop the BattleSimulation facade delegators (terminal migration story)
+
+## Context
+
+`BattleSimulation` is no longer a god class — it's a thin orchestrator
+that owns the tick loop and a constellation of constructor-injected
+Services. But it still carries ~40 **facade delegators**: one-line
+methods that forward into a service so a consumer can reach the service
+through the sim instead of holding it directly. Two flavors:
+
+- **Mutating behavior delegates** — `advanceMovement`, `fireShot` /
+  `fireSecondary` / `fireMechWeapon` / `fireShotFrom`, `applyDamage`,
+  `postShot`, `queueProjectile`, `setPath` / `clearPath`, `mintSquad`,
+  `resolveUnit`, `targetOf`, `detonateNow`, `addUnit` / `queueSpawn`.
+- **Service getters** — `getTacticalScoring`, `getHitResponseService`,
+  `getReinforcementService`, `getCompoundService`, `getBattleResources`,
+  `getUnitRegistry`, `getUnitIndex`, `getDestIndex`, `getVision`,
+  `getDoodadCoverAt*`, `getVantagePointsFor`, `getAttackersOf`.
+
+These are the residue of the old `*SimContext` interface pattern: every
+subsystem reached into the sim for read/write access. The migration's
+stated direction is to **drop that pattern in favor of explicit per-class
+deps** ([`overview.md`](../overview.md) — "Decompose into Services …
+Drop the context-interface pattern").
+
+**The delegators were kept on purpose.** Every SoA-promotion story so far
+(`target-id-primitive`, `ai-timer-primitives`, …) deliberately kept the
+facade delegates as thin one-liners to hold per-promotion consumer churn
+at **zero** — see the "Keep thin sim delegates" sections in those stories
+and in [`path-mutation-to-navigation`](path-mutation-to-navigation.md).
+That was a **stepping stone**, never the endpoint. This story is the
+endpoint: consumers depend on the specific services they need, and the
+facade methods come off the sim.
+
+## Why this is the big one
+
+The `sim` handle is welded into the GOAP contract. `Action` (and `Goal`)
+thread `BattleSimulation sim` through `cost(state, squad, sim)`,
+`execute(member, squad, sim)`, `roles(squad, sim)`,
+`highlightCells(squad, sim)` ([`Action.java`](../../../src/main/java/com/dillon/starsectormarines/battle/ai/goap/Action.java)).
+`BattleSimulation` is referenced in **~141 battle files**. So removing
+the delegators is not a mechanical rename — it forces a decision about
+*how a consumer acquires the services it needs*, and that decision has to
+flow through the action/goal/behavior interface signatures.
+
+## Scope
+
+### In scope (the delegators come off)
+
+The mutating behavior delegates and the service getters listed above.
+After [`path-mutation-to-navigation`](path-mutation-to-navigation.md)
+lands, `setPath` / `clearPath` are already pure `NavigationService`
+delegates, so they fold in here cleanly.
+
+### Out of scope (stays on the sim)
+
+- **The sim's genuine public API** — `advance(float)`, `isComplete`,
+  `getWinner`, `getGrid` / `getTopology` / `getZoneGraph`, `damageCell`.
+  This is the battle's top-level handle, not a service forward.
+- **Render / UI facade reads** consumed by `BattleScreen`, `FlybyOverlay`,
+  and the HUD/debug panels — `getDecals`, `getActiveShots`,
+  `getSmokingWrecks`, `getShuttles`, `getActiveProjectiles`, etc. The
+  render layer legitimately treats the sim as the battle facade; pushing
+  the renderer onto per-service refs is a separate question with no ECS
+  payoff. Revisit only if it falls out naturally.
+- **Test-only seams** already minimized (`releaseFromRegistry` for
+  `TestUnits.kill`).
+
+## Approach — the real design fork (decide before starting)
+
+The constraint that shapes everything: GOAP actions are **stateless
+singletons** ([`Action.java`](../../../src/main/java/com/dillon/starsectormarines/battle/ai/goap/Action.java)
+class doc) — the planner holds one shared instance per action type and
+runs search in parallel. So an action **cannot** hold per-battle service
+references as fields. Whatever replaces `sim` must be *passed in* and must
+honor the parallel-replan read-only contract (`cost` / `roles` /
+`preconditions` run concurrently; `execute` runs serial).
+
+Three candidate shapes, roughly in increasing ambition:
+
+1. **Narrowing context interface(s).** Replace the `BattleSimulation sim`
+   parameter with one or more role-scoped read interfaces
+   (e.g. `MovementContext`, `CombatContext`, `WorldQuery`) that
+   `BattleSimulation` implements. *Pro:* incremental, keeps a single
+   passed handle, drops nothing from call sites but narrows the type.
+   *Con:* the sim still implements everything — it's a smaller seam, not
+   no seam. A genuine waypoint, possibly the right *first* slice.
+2. **Services bundle / context record.** Pass an immutable
+   `BattleServices` record (the constructor-injected services grouped)
+   into `execute` / `cost` instead of the sim. Consumers pull
+   `services.navigation()`, `services.weapons()`, etc. *Pro:* the sim
+   stops being the access path; services are named explicitly. *Con:*
+   touches every action/goal signature once.
+3. **Direct per-consumer injection where the consumer is itself a
+   stateful holder.** Behaviors that already hold state
+   (`InfantryWeapons`, `TacticalScoring`, the `*System` classes) are
+   constructor-injected today — extend that so they never read through
+   the sim. Stateless actions still need option 1 or 2 for their slice.
+
+Don't prescribe here. The likely path is **(1) as the first slice**
+(narrow the type, zero call-site churn) then **(2) or (3)** to actually
+sever the dependency. Pin the choice in this doc before writing code.
+
+## Sequencing
+
+- **After** [`path-mutation-to-navigation`](path-mutation-to-navigation.md)
+  (so `setPath`/`clearPath` are already clean nav delegates) and after the
+  remaining low-payoff SoA promotions are either done or explicitly
+  deferred — this story churns interface signatures, so it wants a quiet
+  base.
+- **Incrementally, one service at a time.** Migrate every consumer of one
+  getter (say `getTacticalScoring()`), delete that getter, commit green;
+  repeat. Same per-slice discipline the SoA promotions ran under. A
+  single mechanical sweep per service is a good Sonnet-subagent fan-out
+  (cf. the `targetId` sweep), with the interface-shape design kept on the
+  main thread.
+
+## Acceptance
+
+- The in-scope facade delegators are gone from `BattleSimulation`;
+  consumers acquire services via the chosen mechanism, not through the sim.
+- `BattleSimulation`'s public surface is tick-loop + lifecycle +
+  render-facade reads only.
+- GOAP `Action` / `Goal` no longer take a raw `BattleSimulation` (or take
+  a deliberately narrowed type per the chosen approach).
+- `gradlew.bat compileJava` clean; full suite green.
+
+## Priority
+
+The migration's **terminal** story — the destination the whole arc was a
+stepping stone toward. Lower urgency than any perf-bearing SoA work (this
+is coupling reduction, not a hot-loop win), but it's what "BattleSimulation
+is just the tick loop" actually requires. Large; budget it as its own
+multi-slice arc, not a single commit.
