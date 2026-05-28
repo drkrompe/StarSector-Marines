@@ -1,6 +1,5 @@
-package com.dillon.starsectormarines.battle.equipment;
+package com.dillon.starsectormarines.battle.infantry;
 
-import com.dillon.starsectormarines.battle.equipment.EquipmentDrop;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.UnitRole;

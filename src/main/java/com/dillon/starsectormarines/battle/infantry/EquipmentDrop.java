@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.equipment;
+package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 
