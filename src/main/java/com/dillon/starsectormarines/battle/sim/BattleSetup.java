@@ -16,11 +16,11 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
-import com.dillon.starsectormarines.battle.weapons.MarineLoadout;
-import com.dillon.starsectormarines.battle.weapons.MarineSecondary;
-import com.dillon.starsectormarines.battle.weapons.MarineWeapon;
-import com.dillon.starsectormarines.battle.weapons.MechLoadoutState;
-import com.dillon.starsectormarines.battle.weapons.MechRole;
+import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
+import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.mech.MechLoadoutState;
+import com.dillon.starsectormarines.battle.mech.MechRole;
 
 import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.Shuttle;

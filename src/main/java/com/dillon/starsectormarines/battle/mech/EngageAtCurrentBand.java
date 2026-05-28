@@ -21,7 +21,7 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
  * a single-step plan of this action, and {@code GoapMechBehavior} executes
  * it for every member each tick. Role-anchored actions (overwatch /
  * backstop) layer on top in subsequent slices and override this for
- * mechs whose {@link com.dillon.starsectormarines.battle.weapons.MechRole}-keyed
+ * mechs whose {@link com.dillon.starsectormarines.battle.mech.MechRole}-keyed
  * goal has higher relevance.
  *
  * <p>Always returns {@link ActionStatus#RUNNING} — there's no terminal

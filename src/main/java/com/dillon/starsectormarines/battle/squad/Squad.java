@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
-import com.dillon.starsectormarines.battle.weapons.MechLoadoutState;
+import com.dillon.starsectormarines.battle.mech.MechLoadoutState;
 
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;

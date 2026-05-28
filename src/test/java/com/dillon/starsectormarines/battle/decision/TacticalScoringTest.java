@@ -2,8 +2,8 @@ package com.dillon.starsectormarines.battle.decision;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.weapons.MarineSecondary;
-import com.dillon.starsectormarines.battle.weapons.MarineWeapon;
+import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -477,8 +477,8 @@ public class TacticalScoringTest {
         // the mech — the affinity bonus overcomes the distance gap.
         BattleSimulation sim = openArena(30, 10);
         Unit rocketeer = unit(sim, Faction.MARINE, 5, 5);
-        rocketeer.primaryWeapon = com.dillon.starsectormarines.battle.weapons.MarineWeapon.PULSE_RIFLE;
-        rocketeer.secondaryWeapon = com.dillon.starsectormarines.battle.weapons.MarineSecondary.ROCKET_LAUNCHER;
+        rocketeer.primaryWeapon = com.dillon.starsectormarines.battle.infantry.MarineWeapon.PULSE_RIFLE;
+        rocketeer.secondaryWeapon = com.dillon.starsectormarines.battle.infantry.MarineSecondary.ROCKET_LAUNCHER;
         rocketeer.secondaryAmmo = 3;
         rocketeer.setAttackRange(40f);
 
@@ -495,7 +495,7 @@ public class TacticalScoringTest {
         // infantry. No rocket, so suitability against the mech is poor.
         BattleSimulation sim = openArena(30, 10);
         Unit smg = unit(sim, Faction.MARINE, 5, 5);
-        smg.primaryWeapon = com.dillon.starsectormarines.battle.weapons.MarineWeapon.SMG;
+        smg.primaryWeapon = com.dillon.starsectormarines.battle.infantry.MarineWeapon.SMG;
         smg.setAttackRange(40f);
 
         Unit infantry = unit(sim, Faction.DEFENDER, 10, 5);
@@ -514,8 +514,8 @@ public class TacticalScoringTest {
         // infantry wins on distance.
         BattleSimulation sim = openArena(30, 10);
         Unit dryRocketeer = unit(sim, Faction.MARINE, 5, 5);
-        dryRocketeer.primaryWeapon = com.dillon.starsectormarines.battle.weapons.MarineWeapon.PULSE_RIFLE;
-        dryRocketeer.secondaryWeapon = com.dillon.starsectormarines.battle.weapons.MarineSecondary.ROCKET_LAUNCHER;
+        dryRocketeer.primaryWeapon = com.dillon.starsectormarines.battle.infantry.MarineWeapon.PULSE_RIFLE;
+        dryRocketeer.secondaryWeapon = com.dillon.starsectormarines.battle.infantry.MarineSecondary.ROCKET_LAUNCHER;
         dryRocketeer.secondaryAmmo = 0;
         dryRocketeer.setAttackRange(40f);
 
@@ -533,7 +533,7 @@ public class TacticalScoringTest {
         // not a hard filter.
         BattleSimulation sim = openArena(30, 10);
         Unit rifleMarine = unit(sim, Faction.MARINE, 5, 5);
-        rifleMarine.primaryWeapon = com.dillon.starsectormarines.battle.weapons.MarineWeapon.PULSE_RIFLE;
+        rifleMarine.primaryWeapon = com.dillon.starsectormarines.battle.infantry.MarineWeapon.PULSE_RIFLE;
         rifleMarine.setAttackRange(40f);
 
         Unit mech = unit(sim, Faction.DEFENDER, UnitType.HEAVY_MECH, 15, 5);

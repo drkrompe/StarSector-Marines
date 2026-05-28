@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.weapons;
+package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.sim.BattleSetup;
 import com.dillon.starsectormarines.battle.squad.Squad;

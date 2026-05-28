@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.SmokingWreck;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.weapons.MechLoadoutState;
+import com.dillon.starsectormarines.battle.mech.MechLoadoutState;
 
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 

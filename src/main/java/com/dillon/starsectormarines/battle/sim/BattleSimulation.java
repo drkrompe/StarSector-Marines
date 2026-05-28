@@ -18,8 +18,8 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
-import com.dillon.starsectormarines.battle.weapons.MechLoadoutState;
-import com.dillon.starsectormarines.battle.weapons.MechWeapon;
+import com.dillon.starsectormarines.battle.mech.MechLoadoutState;
+import com.dillon.starsectormarines.battle.mech.MechWeapon;
 
 import com.dillon.starsectormarines.battle.air.AirSystem;
 import com.dillon.starsectormarines.battle.command.BattleResources;
@@ -58,7 +58,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.vision.VisionService;
 import com.dillon.starsectormarines.battle.combat.Detonations;
 import com.dillon.starsectormarines.battle.combat.HeavyWeapons;
-import com.dillon.starsectormarines.battle.weapons.InfantryWeapons;
+import com.dillon.starsectormarines.battle.infantry.InfantryWeapons;
 
 import java.util.ArrayList;
 import java.util.Collection;

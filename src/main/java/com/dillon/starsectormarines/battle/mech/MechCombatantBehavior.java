@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.infantry.CombatantBehavior;
 import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.weapons.MechLoadoutState;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 
@@ -83,7 +82,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
      *       target is in LRM range, off cooldown, ammo &gt; 0, AND outside
      *       chaingun range (the "we're not currently engaged at short range"
      *       gate the user spec'd). When {@code hasLos} is false, the rocket's
-     *       hit roll is scaled by {@link com.dillon.starsectormarines.battle.weapons.MechWeapon#LRM_NO_LOS_ACC_MULT}
+     *       hit roll is scaled by {@link com.dillon.starsectormarines.battle.mech.MechWeapon#LRM_NO_LOS_ACC_MULT}
      *       — "we know roughly where they are, but we can't see them, so a
      *       chunk of the salvo flies wide."</li>
      * </ul>
@@ -138,7 +137,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
                 && dist >  m.chaingun.range) {
             float accMult = hasLos
                     ? 1.0f
-                    : com.dillon.starsectormarines.battle.weapons.MechWeapon.LRM_NO_LOS_ACC_MULT;
+                    : com.dillon.starsectormarines.battle.mech.MechWeapon.LRM_NO_LOS_ACC_MULT;
             sim.fireMechWeapon(u, target, m.lrmArtillery, accMult);
             m.lrmAmmoSalvos--;
             m.lrmCooldown = m.lrmArtillery.cooldown;

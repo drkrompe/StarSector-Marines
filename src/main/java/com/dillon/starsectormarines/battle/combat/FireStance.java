@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.unit.Unit;
 
 /**
  * Shooter posture at the moment a shot leaves the barrel. Threads through
- * {@link com.dillon.starsectormarines.battle.weapons.InfantryWeapons#fireShot} as an accuracy multiplier — damage is
+ * {@link com.dillon.starsectormarines.battle.infantry.InfantryWeapons#fireShot} as an accuracy multiplier — damage is
  * unchanged, the bullet just lands wider when the shooter is on the move.
  * Replaces the implicit "everything fires at base accuracy" baseline that
  * worked while the only firing path was a stationary engagement loop.

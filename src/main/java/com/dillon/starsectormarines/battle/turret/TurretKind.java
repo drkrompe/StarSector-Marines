@@ -259,7 +259,7 @@ public enum TurretKind {
     /**
      * Accuracy multiplier applied to shots fired without direct line of sight,
      * when {@link #indirectFire} is {@code true}. Ignored for direct-fire
-     * kinds. Mirrors {@link com.dillon.starsectormarines.battle.weapons.MechWeapon#LRM_NO_LOS_ACC_MULT}
+     * kinds. Mirrors {@link com.dillon.starsectormarines.battle.mech.MechWeapon#LRM_NO_LOS_ACC_MULT}
      * — "battery knows roughly where the target is via squad spotting / data
      * link, but each rocket flies wider without a direct sightline."
      */

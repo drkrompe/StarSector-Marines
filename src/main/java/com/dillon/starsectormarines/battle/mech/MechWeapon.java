@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.weapons;
+package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.Projectile;
@@ -12,8 +12,8 @@ import java.awt.Color;
 
 /**
  * Chassis-mounted heavy weapons carried by mech-class units (currently just
- * {@link UnitType#HEAVY_MECH}). Distinct from {@link MarineWeapon} +
- * {@link MarineSecondary} because the lore concept is different — these are
+ * {@link UnitType#HEAVY_MECH}). Distinct from {@link com.dillon.starsectormarines.battle.infantry.MarineWeapon} +
+ * {@link com.dillon.starsectormarines.battle.infantry.MarineSecondary} because the lore concept is different — these are
  * armored-vehicle hardpoints, not handheld squad gear — and the firing model
  * differs too: a mech runs all three weapon tracks concurrently, each on its
  * own cooldown and engagement band, rather than the marine's primary-or-

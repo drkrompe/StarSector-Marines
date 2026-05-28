@@ -16,8 +16,8 @@ import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetSlicer;
 import com.dillon.starsectormarines.battle.world.tiles.UrbanTile3;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.vehicle.MapVehicle;
-import com.dillon.starsectormarines.battle.weapons.MarineSecondary;
-import com.dillon.starsectormarines.battle.weapons.MarineWeapon;
+import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.Unit;
@@ -305,9 +305,9 @@ public class BattleScreen implements Screen, BattleUiContext {
     /** Per-{@link MarineWeapon} projectile sprite — populated only for weapons whose {@code projectileSpritePath} is non-null (SMG today). Marines without a sprite path keep the line-tracer render. */
     private final java.util.EnumMap<MarineWeapon, ShuttleSpriteCache> marineWeaponProjectileSprites =
             new java.util.EnumMap<>(MarineWeapon.class);
-    /** Per-{@link com.dillon.starsectormarines.battle.weapons.MechWeapon} projectile sprite — every mech weapon ships with one (vanilla shell / SRM / LRM art), so every entry gets loaded eagerly. */
-    private final java.util.EnumMap<com.dillon.starsectormarines.battle.weapons.MechWeapon, ShuttleSpriteCache> mechWeaponProjectileSprites =
-            new java.util.EnumMap<>(com.dillon.starsectormarines.battle.weapons.MechWeapon.class);
+    /** Per-{@link com.dillon.starsectormarines.battle.mech.MechWeapon} projectile sprite — every mech weapon ships with one (vanilla shell / SRM / LRM art), so every entry gets loaded eagerly. */
+    private final java.util.EnumMap<com.dillon.starsectormarines.battle.mech.MechWeapon, ShuttleSpriteCache> mechWeaponProjectileSprites =
+            new java.util.EnumMap<>(com.dillon.starsectormarines.battle.mech.MechWeapon.class);
     /** Shared decal sheet — 13 frames horizontally, auto-sliced into a SpriteSheetFrames so individual {@link Decal#decalIndex} values map to a frame box. */
     private SpriteAPI decalSheet;
     private SpriteSheetFrames decalFrames;
@@ -1112,8 +1112,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         // Mech chassis projectile sprites — every entry has one (chaingun
         // shell / SRM / LRM). Same load + aspect-capture pattern as the marine
         // primaries above.
-        for (com.dillon.starsectormarines.battle.weapons.MechWeapon w
-                : com.dillon.starsectormarines.battle.weapons.MechWeapon.values()) {
+        for (com.dillon.starsectormarines.battle.mech.MechWeapon w
+                : com.dillon.starsectormarines.battle.mech.MechWeapon.values()) {
             if (w.projectileSpritePath == null) continue;
             try {
                 Global.getSettings().loadTexture(w.projectileSpritePath);
@@ -1697,7 +1697,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             // the chaingun gets one; rockets are tube-launched and the
             // launch animation is already the projectile sprite leaving
             // the mount.
-            if (s.mechWeapon == com.dillon.starsectormarines.battle.weapons.MechWeapon.CHAINGUN) {
+            if (s.mechWeapon == com.dillon.starsectormarines.battle.mech.MechWeapon.CHAINGUN) {
                 impactFx.spawnMuzzleFlash(s.fromX, s.fromY, 0.55f, 0.08f);
             }
             // SAM-site launch backblast — kinds flagged hasLaunchBackblast
@@ -3981,7 +3981,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         java.util.Set<TurretKind> touchedTurret = new java.util.HashSet<>();
         java.util.Set<MarineSecondary> touchedSecondary = new java.util.HashSet<>();
         java.util.Set<MarineWeapon> touchedPrimary = new java.util.HashSet<>();
-        java.util.Set<com.dillon.starsectormarines.battle.weapons.MechWeapon> touchedMech = new java.util.HashSet<>();
+        java.util.Set<com.dillon.starsectormarines.battle.mech.MechWeapon> touchedMech = new java.util.HashSet<>();
         for (ShotEvent s : shots) {
             ShuttleSpriteCache cache;
             float visualCells;
@@ -4074,7 +4074,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             ShuttleSpriteCache c = marineWeaponProjectileSprites.get(k);
             if (c != null) c.sprite.setAngle(0f);
         }
-        for (com.dillon.starsectormarines.battle.weapons.MechWeapon k : touchedMech) {
+        for (com.dillon.starsectormarines.battle.mech.MechWeapon k : touchedMech) {
             ShuttleSpriteCache c = mechWeaponProjectileSprites.get(k);
             if (c != null) c.sprite.setAngle(0f);
         }

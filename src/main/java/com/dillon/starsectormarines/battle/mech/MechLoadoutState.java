@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.weapons;
+package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.sim.BattleSetup;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -16,7 +16,7 @@ import com.dillon.starsectormarines.battle.unit.Unit;
  * {@link #chaingunBurstTimer} / {@link #chaingunBurstTarget}, and the SRM
  * salvo equivalents below) rather than borrowing the {@link Unit}-level
  * primary-weapon cooldown/burst state — the three tracks fire concurrently,
- * so shared fields would collide. Mechs don't carry a {@link MarineWeapon}
+ * so shared fields would collide. Mechs don't carry a {@link com.dillon.starsectormarines.battle.infantry.MarineWeapon}
  * either, so there's no marine fire path to reuse.
  */
 public final class MechLoadoutState {

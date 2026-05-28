@@ -15,7 +15,7 @@ package com.dillon.starsectormarines.battle.combat;
  *       and a {@code accuracyFalloff} fraction lost by max range.</li>
  * </ul>
  *
- * <p>Used by both {@link com.dillon.starsectormarines.battle.weapons.InfantryWeapons} (handheld primaries) and
+ * <p>Used by both {@link com.dillon.starsectormarines.battle.infantry.InfantryWeapons} (handheld primaries) and
  * {@link HeavyWeapons} (mech hardpoints) so a chaingun and an SMG share the
  * same physical model — the per-weapon tuning numbers differ, not the math.
  */

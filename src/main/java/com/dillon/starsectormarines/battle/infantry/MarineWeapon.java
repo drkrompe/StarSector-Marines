@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.weapons;
+package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.drone.Drone;
 import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
@@ -145,7 +145,7 @@ public enum MarineWeapon {
      * Applied to both hit-endpoint jitter (the round still hits the locked
      * target for damage purposes, but the tracer endpoint scatters
      * visually) and to miss-scatter as an additive on top of the baseline
-     * near-miss ring. Mirrors {@link MechWeapon#hitSpread}.
+     * near-miss ring. Mirrors {@link com.dillon.starsectormarines.battle.mech.MechWeapon#hitSpread}.
      */
     public final float hitSpread;
 

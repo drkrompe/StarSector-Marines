@@ -19,7 +19,7 @@ import java.util.List;
  * wall damage at the endpoint cell.
  *
  * <p>Stateful subsystem owning the in-flight queue. Both
- * {@link com.dillon.starsectormarines.battle.weapons.InfantryWeapons} (marine rocket launcher) and {@link HeavyWeapons}
+ * {@link com.dillon.starsectormarines.battle.infantry.InfantryWeapons} (marine rocket launcher) and {@link HeavyWeapons}
  * (mech SRM / LRM) queue into here through the shared
  * {@link WeaponSimContext#queueDetonation} primitive on the sim. Tested
  * implicitly by playtest; a unit-test path can swap the context for a stub.
