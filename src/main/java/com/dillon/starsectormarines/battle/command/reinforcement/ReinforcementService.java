@@ -44,7 +44,14 @@ public final class ReinforcementService {
     private final List<ReinforcementMeans> means = new ArrayList<>();
     private final Deque<ReinforcementRequest> pending = new ArrayDeque<>();
 
+    /** Per-faction resource pool each dispatch debits a {@link ResourceType#REINFORCEMENT} ticket from. Constructor-injected — owned by {@link BattleSimulation}, not reached through it. */
+    private final BattleResources resources;
+
     private float accumulator = 0f;
+
+    public ReinforcementService(BattleResources resources) {
+        this.resources = resources;
+    }
 
     public void addTrigger(ReinforcementTrigger trigger) { triggers.add(trigger); }
 
@@ -96,9 +103,8 @@ public final class ReinforcementService {
     }
 
     private boolean dispatch(BattleSimulation sim, ReinforcementRequest req) {
-        BattleResources res = sim.getBattleResources();
-        float cost = res.reinforcementCost();
-        if (!res.tryConsume(req.side, ResourceType.REINFORCEMENT, cost)) {
+        float cost = resources.reinforcementCost();
+        if (!resources.tryConsume(req.side, ResourceType.REINFORCEMENT, cost)) {
             return false;
         }
         for (ReinforcementMeans m : means) {
@@ -108,7 +114,7 @@ public final class ReinforcementService {
                 return true;
             }
         }
-        res.produce(req.side, ResourceType.REINFORCEMENT, cost);
+        resources.produce(req.side, ResourceType.REINFORCEMENT, cost);
         LOG.warn("reinforcement: no means could fulfill " + req + " — bugged map?");
         return true;
     }
