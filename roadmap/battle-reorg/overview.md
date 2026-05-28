@@ -295,8 +295,27 @@ reference-churn moves to a quiet base.
    `{@link BattleSetup#pickCellsNear}` javadoc was FQN'd. `DefenderRoster`
    is private to `BattleSetup` (no external FQN refs) and rode along.
    22 files, 2 renames, build + full suite green.
-10. **tail tidy** — fold `equipment/` into `infantry/`; settle `flyby/`
-    (standalone vs `ui/flyby/`); `LosCache` placement (`profile/` vs `nav/`).
+10. ~~**tail tidy** — fold `equipment/` into `infantry/`; settle `flyby/`
+    (standalone vs `ui/flyby/`); `LosCache` placement (`profile/` vs `nav/`).~~
+    **SHIPPED — closes the reorg.** Three independent moves:
+    - **10a** (`99650d5`): `EquipmentDrop` + `EquipmentDropService` →
+      `infantry/` (kit-drop emission + pickup/assignment sweep are
+      infantry-only). `equipment/` dissolved. Stripped two now-same-package
+      `EquipmentDrop` imports; repointed 5 outside consumers.
+    - **10b** (`8d5d283`): `LosCache` `profile/` → `nav/` (it caches
+      `NavigationGrid#hasLineOfSight`; both code consumers are `nav/`).
+      FQN'd the lone `{@link TickInnerProfile}` ref since that class stays
+      in `profile/`. `profile/` now = `{TickProfile, TickInnerProfile}`.
+    - **10c** (decision, doc-only): `flyby/` **stays standalone** — it's a
+      self-contained feature domain (own data/roster + render + a narrow
+      sim coupling), not presentation, so it does *not* nest under `ui/`.
+      Forward-looking convergence onto `air/` recorded below + in
+      `roadmap/backlog.md`; the move rides the future AirBody refactor.
+
+**The reorg is COMPLETE** as of `8d5d283`. Every technical-layer
+catch-all is dissolved; the only un-executed item is the `entity/` rename
+(slice 8), deliberately deferred to the ecs-migration (rename when `Unit`
+*is* an id). No further reorg slices are queued.
 
 ## Sequencing
 
@@ -314,10 +333,24 @@ into new packages — otherwise we move targets twice.
 - **`entity/` rename is optional.** Biggest reference churn of any slice;
   if the cost outweighs the clarity win, keep `unit/`. Flagged, not forced.
 - **`flyby/`** is a hybrid (presentation + light sim that queues
-  detonations). Kept standalone as a feature domain; could nest under
-  `ui/` if it stays presentation-only.
-- **`LosCache`** is a line-of-sight cache, not a profiler — it sits in
-  `profile/` today. Candidate to move to `nav/` or `decision/`.
+  detonations). **RESOLVED (slice 10c): stays standalone.** It's a
+  self-contained feature domain — own data/roster model
+  (`FlybyRoster`/`PlayerFleetWings`/`FighterProfile`/`WeaponClass`), its
+  own GL renderer, and a narrow sim coupling
+  (`BattleSimulation#applyExternalDamage`) — consumed from `ops/` mission
+  setup. That's more than presentation, so it does not belong under `ui/`.
+  **Forward-looking convergence:** the long-term vision is to rebuild
+  flyby fighters on the `AirBody` abstraction (genuine flying entities:
+  spawn on/off map, land at bases, be shot down), at which point `flyby/`
+  folds into `air/`. Deliberately *not* moved now — flyby shares zero code
+  with `AirBody` today, so relocating it would front-run the data model
+  (same reasoning as the deferred `unit/`→`entity/` rename). Logged as a
+  feature in `roadmap/backlog.md`; the move rides that refactor.
+- **`LosCache`** is a line-of-sight cache, not a profiler.
+  **RESOLVED (slice 10b): moved `profile/` → `nav/`.** Both code consumers
+  (`NavigationService`, `NavigationGrid`) live in `nav/`, and it memoizes
+  `NavigationGrid#hasLineOfSight`, so `nav/` is the natural home;
+  `decision/` was the other candidate but never references it.
 - **`DistrictTheme` (`map/`) vs `MapDistrictTheme` (`mapgen/`)** — possible
   duplication to consolidate during the `world/` slice.
 - **`BattleSetup` decomposition** (1593 lines, mixes mission-specific

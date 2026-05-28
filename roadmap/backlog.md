@@ -28,6 +28,18 @@ https://davidkbd.itch.io/eternity-metal-scfi-music-pack
   current client's list. Not a separate client row.
 - **Mission gating by reputation** — locked client rows already exist;
   extend to per-mission gating (e.g., high-risk only at WELCOMING+).
+- **Flyby fighters as real air entities** — flyby fighters are today a
+  scripted cosmetic overlay (`battle/flyby/`: heading-based weave +
+  strafing runs, a single sim coupling via
+  `BattleSimulation#applyExternalDamage`). Long-term, rebuild them on the
+  `AirBody` abstraction they'd share with shuttles (`battle/air/`) so they
+  become genuine flying entities — spawn in/off the map edges, optionally
+  land at bases on larger maps, take fire and be shot down. When that
+  refactor lands, fold `flyby/` into `air/`. The package move was
+  deliberately *not* done in battle-reorg slice 10: flyby shares zero code
+  with `AirBody` today, so relocating it now would front-run the data model
+  — the same call made for the deferred `unit/`→`entity/` rename. Relocate
+  when it has *become* an air entity, not before.
 
 ## UI
 

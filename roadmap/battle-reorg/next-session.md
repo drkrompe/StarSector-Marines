@@ -20,9 +20,17 @@ c693c27  battle-reorg: slice 6a — engine/scoring/world + dispatch + tactical �
 93ccd49  battle-reorg: hoist REPLAN_PERIOD to Planner — drop EnterZone fw->feature edge
 6e416ea  battle-reorg: slice 7 — weapons/ split: Marine*/InfantryWeapons -> infantry/, Mech* -> mech/
 84867f0  battle-reorg: slice 9 — BattleSetup + DefenderRoster sim/ -> setup/
+99650d5  battle-reorg: slice 10a — equipment/ -> infantry/ (kit drops + retrieval)
+8d5d283  battle-reorg: slice 10b — LosCache profile/ -> nav/
 ```
 
 (Slice 8, the `entity/` rename, was **skipped by decision** — see State of play.)
+
+**The reorg is COMPLETE as of `8d5d283` (slice 10).** Every
+technical-layer catch-all is dissolved. The only un-executed item is the
+`entity/` rename (slice 8), deliberately deferred to ecs-migration. No
+further reorg slices are queued — this handoff is now a record, not a
+to-do.
 
 ## State of play
 
@@ -149,6 +157,32 @@ c693c27  battle-reorg: slice 6a — engine/scoring/world + dispatch + tactical �
   `mkdir -p setup/` first (the first attempt failed with a misleading
   "No such file or directory" against the *source*). 22 files, 2 renames,
   build + full suite green.
+- **Slice 10 SHIPPED — closes the reorg.** Three independent moves:
+  - **10a** (`99650d5`): `EquipmentDrop` + `EquipmentDropService` →
+    `infantry/`; `equipment/` dissolved. Stripped two now-same-package
+    `EquipmentDrop` imports (in `EquipmentDropService` itself and
+    `KitRetrieverBehavior`); repointed 5 outside consumers (`DamageResolver`,
+    `BattleSimulation`, `Unit`, `UnitRole`, `BattleScreen`). 8 files, 2
+    renames (95/98%).
+  - **10b** (`8d5d283`): `LosCache` `profile/` → `nav/` (caches
+    `NavigationGrid#hasLineOfSight`; both code consumers are `nav/`).
+    Stripped the redundant `LosCache` import from both consumers; **FQN'd
+    the lone `{@link TickInnerProfile}` javadoc ref** — that class stays in
+    `profile/`, so the bare same-package link would dangle after the move
+    (the one non-mechanical touch). `profile/` now = `{TickProfile,
+    TickInnerProfile}`. 3 files, 1 rename (97%).
+  - **10c** (decision, doc-only): `flyby/` **stays standalone**. It's a
+    feature domain (data/roster + render + a narrow sim coupling), not a UI
+    panel. Forward-looking `air/` convergence (rebuild fighters on
+    `AirBody`) recorded in `overview.md` Open items + `roadmap/backlog.md`;
+    the package move rides that future refactor, *not* this reorg — same
+    "relocate when it has become the thing" call as the slice-8 deferral.
+  - **Tooling note:** verified each move with the IntelliJ MCP
+    `build_project` (fast compile-clean check; catches missed refs without
+    a gradle `--rerun-tasks`) then the authoritative `gradlew test`. The
+    MCP exposes *rename*, not *move*, so it couldn't perform the
+    relocations themselves — but `rename_refactoring` is the right tool for
+    the eventual `unit/`→`entity/` package rename (slice 8) when un-deferred.
 - **Proceeded ahead of the facade-drop** because sibling sessions are
   paused (tree quiet). Remaining slices should re-check tree quietness.
 - **Note:** a paused sibling agent's worktree under `.claude/worktrees/`
@@ -156,16 +190,18 @@ c693c27  battle-reorg: slice 6a — engine/scoring/world + dispatch + tactical �
 
 ## When picking up
 
-1. Re-confirm the tree is quiet (no concurrent large churn).
-2. Next (and last) is **slice 10 (tail tidy)** — three small, independent
-   moves: fold `equipment/` into `infantry/` (kit drops + retrieval); settle
-   `flyby/` placement (standalone feature domain vs `ui/flyby/` — it's a
-   presentation/light-sim hybrid, see `overview.md` Open items); and `LosCache`
-   placement (`profile/` today — candidate to `nav/` or `decision/`). Each is
-   its own commit; do whichever the tree is quiet for. **Slice 8 (`entity/`
-   rename) is intentionally skipped** (see State of play) — with that out,
-   slice 10 closes the reorg. See `overview.md` § Slice plan item 10.
-3. **Recipe refinements learned in slice 6** (apply going forward):
+**The reorg is done — nothing here is queued.** All 10 slices shipped
+(slice 8, the `entity/` rename, deliberately deferred to ecs-migration).
+The recipe notes below are retained as a **playbook for the next package
+move** — the deferred `unit/`→`entity/` rename, or the future `flyby/` →
+`air/` fold when fighters are rebuilt on `AirBody`. For those, prefer the
+IntelliJ MCP: `rename_refactoring` for a true rename (e.g. `unit`→`entity`,
+no collision), and `build_project` for a fast compile-clean check between
+edits. The MCP has no *move* refactoring, so cross-package *moves* (like
+`flyby/`→`air/`) stay git-mv + import-rewrite, verified with `build_project`
+then `gradlew test`.
+
+**Recipe refinements learned in slice 6** (apply to any future move):
    - For a package *split into multiple destinations*, drive the FQN rewrite
      from an explicit `name→destpkg` map (class-specific `\b`-bounded
      substitutions), NEVER a blanket prefix rewrite — sibling subpackages may
