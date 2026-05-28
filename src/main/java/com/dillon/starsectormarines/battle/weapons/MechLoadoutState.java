@@ -11,11 +11,13 @@ import com.dillon.starsectormarines.battle.unit.Unit;
  * ammo / cooldown / salvo trackers — concurrent fire across all three tracks
  * is the whole point of the mech, so each weapon's state is independent.
  *
- * <p>Chaingun fire reuses {@link Unit#cooldownTimer} / {@link Unit#burstRemaining}
- * / {@link Unit#burstTimer} / {@link Unit#burstTargetId} — those fields are
- * unused on mechs (mechs don't carry a {@link MarineWeapon}), so we piggyback
- * cleanly. SRM salvo state is local here because it can run concurrently with
- * a chaingun burst, and reusing the same burst fields would collide.
+ * <p>Each weapon track keeps its own cooldown + burst/salvo trackers on this
+ * class ({@link #chaingunCooldown} / {@link #chaingunBurstRemaining} /
+ * {@link #chaingunBurstTimer} / {@link #chaingunBurstTarget}, and the SRM
+ * salvo equivalents below) rather than borrowing the {@link Unit}-level
+ * primary-weapon cooldown/burst state — the three tracks fire concurrently,
+ * so shared fields would collide. Mechs don't carry a {@link MarineWeapon}
+ * either, so there's no marine fire path to reuse.
  */
 public final class MechLoadoutState {
 

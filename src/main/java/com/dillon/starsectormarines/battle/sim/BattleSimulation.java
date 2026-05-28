@@ -424,7 +424,7 @@ public class BattleSimulation {
      * Resolves an arbitrary entity id to its {@link Unit}, or {@code null} when
      * the id is unknown / released. The generic counterpart to
      * {@link #targetOf(Unit)} — used by readers of the secondary
-     * id-typed fields ({@link Unit#burstTargetId},
+     * id-typed fields ({@link Unit#getBurstTargetId()},
      * {@link Unit#getSecondaryAimTargetId()}, {@link com.dillon.starsectormarines.battle.turret.MapTurret#burstTargetId})
      * where there's no companion holder unit to thread.
      */
