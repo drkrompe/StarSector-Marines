@@ -26,6 +26,7 @@ c929087  battle: SoA attackRange/attackDamage/accuracy — fifth promotion  ← 
 024344f  battle: SoA burstRemaining/burstTimer/burstTargetId — seventh  ← 2026-05-28
 7ae84e6  battle: SoA targetId — eighth (keystone cross-reference)  ← 2026-05-28
 b620e77  battle: SoA repositionCooldown — ninth (C3 Slice A)  ← 2026-05-28
+9104c85  battle: SoA fallback group + wanderDwellTimer — tenth (C3 Slice B)  ← 2026-05-28
 ```
 
 ## State of play
@@ -33,15 +34,15 @@ b620e77  battle: SoA repositionCooldown — ninth (C3 Slice A)  ← 2026-05-28
 - **Primitives promoted:** hp/maxHp, cellX/cellY, cooldownTimer,
   moveProgress, renderX/renderY, attackDamage, attackRange, accuracy,
   secondaryCooldownTimer, secondaryActionTimer, secondaryAimTargetId,
-  burstRemaining, burstTimer, burstTargetId, targetId, repositionCooldown.
+  burstRemaining, burstTimer, burstTargetId, targetId, repositionCooldown,
+  fallbackTimer, fallbackCellX/fallbackCellY, wanderDwellTimer.
   Three `long[]` (`secondaryAimTargetId`, `burstTargetId`, `targetId`).
 - **Five consumers** on dense-iter + SoA array reads. (The burst pass in
-  `InfantryWeapons.tick` and `targetId`'s ~17 sites route through
-  accessors, not dense-iter yet.)
-- **targetId-touched tests pass.** One *unrelated* pre-existing failure:
-  `BspMapPreviewTest.renderConquestBatch` (conquest map-gen walkability,
-  seed 100) from sibling mapgen commits `42b384b`/`56a0407` — not in any
-  ECS-migration changeset.
+  `InfantryWeapons.tick`, `targetId`'s ~17 sites, and the fall-back group's
+  break-contact consumers route through accessors, not dense-iter yet.)
+- **Full suite green** at `9104c85`. The prior `RecaptureTargetRegistryTest`
+  / `BspMapPreviewTest` failures were sibling-session WIP and are no longer
+  failing — never in any ECS-migration changeset.
 
 ## Active stories (priority order)
 
@@ -58,15 +59,16 @@ primitives and the (now thin) `BattleSimulation` orchestrator:
    **SHIPPED** (`7ae84e6`). `targetId` → `long[]`, the keystone
    cross-reference. ~17 consumer sites migrated (mechanical sweep fanned
    out to a Sonnet subagent). Next promotion candidate ↓.
-3. [`ai-timer-primitives`](stories/ai-timer-primitives.md) — **Slice A
-   SHIPPED** (`b620e77`, `repositionCooldown`). **Slice B remains** — the
-   fallback group (`fallbackTimer` + `fallbackCellX/Y`, optional
-   `wanderDwellTimer`), driven by SquadFallbackSystem / FallbackBehavior /
-   HitResponseService. **Next up.**
+3. ~~[`ai-timer-primitives`](complete/ai-timer-primitives.md)~~ —
+   **SHIPPED** in two slices: Slice A `b620e77` (`repositionCooldown`),
+   Slice B `9104c85` (`fallbackTimer` + `fallbackCellX/Y` + the optional
+   `wanderDwellTimer` ride-along). The whole AI countdown/cache cluster is
+   now off the POJO. With this done, no per-unit primitive worth a hot-loop
+   win remains except the deferred low-payoff set below.
 4. [`path-mutation-to-navigation`](stories/path-mutation-to-navigation.md) —
    **Service** cleanup: move `setPath`/`clearPath` bodies off the sim
    into NavigationService (which already owns the occupancy/destIndex
-   state). Thin sim delegates stay, so consumer churn is ~zero.
+   state). Thin sim delegates stay, so consumer churn is ~zero. **Next up.**
 
 Lower-priority / deferred: `attackCooldown` + `visionRange` + `moveSpeed`
 (write-once stat-block completion — tidiness, not a hot-loop win);
