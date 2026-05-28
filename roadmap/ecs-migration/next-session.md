@@ -23,15 +23,18 @@ a4df09b  battle: SoA cooldownTimer — third primitive promotion
 489b1db  battle: SoA moveProgress + renderX/renderY — fourth promotion
 c929087  battle: SoA attackRange/attackDamage/accuracy — fifth promotion  ← 2026-05-27
 01fe905  battle: SoA secondary{Cooldown,Action}Timer/secondaryAimTargetId — sixth  ← 2026-05-28
+024344f  battle: SoA burstRemaining/burstTimer/burstTargetId — seventh  ← 2026-05-28
 ```
 
 ## State of play
 
-- **Twelve primitives promoted:** hp/maxHp, cellX/cellY, cooldownTimer,
+- **Primitives promoted:** hp/maxHp, cellX/cellY, cooldownTimer,
   moveProgress, renderX/renderY, attackDamage, attackRange, accuracy,
-  secondaryCooldownTimer, secondaryActionTimer, secondaryAimTargetId.
-  The last is the **first `long[]` primitive** in the registry.
-- **Five consumers** on dense-iter + SoA array reads.
+  secondaryCooldownTimer, secondaryActionTimer, secondaryAimTargetId,
+  burstRemaining, burstTimer, burstTargetId. Two `long[]` so far
+  (`secondaryAimTargetId`, then `burstTargetId`).
+- **Five consumers** on dense-iter + SoA array reads. (The burst pass in
+  `InfantryWeapons.tick` routes through accessors, not dense-iter yet.)
 - **Build green; all tests pass.**
 
 ## Active stories (priority order)
@@ -41,9 +44,10 @@ shipped — see [`complete/phase3-soa-promotions.md`](complete/phase3-soa-promot
 The next batch was scoped 2026-05-28 after auditing the leftover `Unit`
 primitives and the (now thin) `BattleSimulation` orchestrator:
 
-1. [`burst-fire-primitives`](stories/burst-fire-primitives.md) —
-   `burstRemaining`/`burstTimer`/`burstTargetId` → int/float/long[].
-   Exact structural repeat of the secondary-weapon story; best warm-up.
+1. ~~[`burst-fire-primitives`](complete/burst-fire-primitives.md)~~ —
+   **SHIPPED** (`024344f`). `burstRemaining`/`burstTimer`/`burstTargetId`
+   → int/float/long[]. The MapTurret shadowing question resolved clean
+   (turret keeps its own fields). Next promotion candidate ↓.
 2. [`target-id-primitive`](stories/target-id-primitive.md) — `targetId`
    → `long[]`. Keystone: hottest per-unit cross-reference, read every
    tick; sets up deref-free dense target resolution.
