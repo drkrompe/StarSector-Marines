@@ -209,9 +209,12 @@ reference-churn moves to a quiet base.
    future slices: a full recompile (`--rerun-tasks`) is needed to surface
    the complete missing-import set — Gradle's incremental compile
    under-reports; and same-package *test* files need relocating too.
-2. **`world/` consolidation** — `map/` + `mapgen/` + `sprites/` →
-   `world/{model,gen,tiles}`; merge `UrbanMapGenerator` into `gen/`; lift
-   `MapVehicle`/`VehicleKind` out (staged for slice 3).
+2. ~~**`world/` consolidation** — `map/` + `mapgen/` + `sprites/` →
+   `world/{model,gen,tiles}`; merge `UrbanMapGenerator` into `gen/`.~~
+   **SHIPPED** as 2a (`sprites/`→`world/tiles/`), 2b (`mapgen/` tree →
+   `world/gen/`), 2c (`map/`→`world/model/` + `UrbanMapGenerator`→`gen/`).
+   `MapVehicle`/`VehicleKind` parked in `world/model/` for slice 3;
+   `DistrictTheme`/`MapDistrictTheme` dedup deferred.
 3. **`vehicle/`** — `ground/` → `vehicle/`, absorb `MapVehicle`/`VehicleKind`.
 4. **`command/` consolidation** — nest `objective/` + `reinforcement/` +
    `compound/` + resources (`BattleResources`/`ResourceType`) under `command/`.
