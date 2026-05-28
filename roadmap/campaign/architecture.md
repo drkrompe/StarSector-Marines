@@ -109,10 +109,11 @@ transitively, the indices remain valid across save/load.
 
 ## Followups this doc gates
 
-- `contracts.md` — contract resolution writes to `STAKES`, `HOUSES`
-  (promotion progress), `PLAYER_REP`. Will be a System.
-- `infrastructure.md` — buildings modulate `housePower` /
-  default-rate math. Probably a passive modifier table read by
-  multiple systems.
-- `t3-endgame.md` — the only System allowed to write back to vanilla
-  state.
+- [`contracts/overview.md`](contracts/overview.md) — contract resolution
+  writes to `STAKES`, `HOUSES` (promotion progress), `PLAYER_REP`.
+  Landed as `ContractLifecycleSystem`.
+- [`infrastructure/overview.md`](infrastructure/overview.md) — buildings
+  modulate `housePower` / default-rate math. Probably a passive modifier
+  table read by multiple systems.
+- [`t3-endgame/overview.md`](t3-endgame/overview.md) — the only System
+  allowed to write back to vanilla state.

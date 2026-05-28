@@ -12,7 +12,7 @@ import java.util.Random;
  * manifests through what the officer <em>observed</em> about the patron
  * (rushed, faded, ideological, polished, evasive, clumsy), not through the
  * patron's own words. See {@code [[project_comms_officer_narrator]]} memory
- * and {@code roadmap/campaign/contracts.md} for the full design.
+ * and {@code roadmap/campaign/narrative/overview.md} for the full design.
  *
  * <p>The archetype drives the observation register; the same patron rotates
  * through a small bank of templates per archetype so repeat work doesn't

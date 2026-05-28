@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.campaign;
 
 /**
  * Contract archetype — drives generation, payment structure, and chain
- * contribution per <code>roadmap/campaign/contracts.md</code>.
+ * contribution per <code>roadmap/campaign/contracts/overview.md</code>.
  *
  * <p>Two modes hang off this:
  * <ul>

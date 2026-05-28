@@ -124,7 +124,7 @@ public class ResultsScreen implements Screen {
 
             // Salvage entitlement — only when the mission carried salvage rights
             // (contract-bound). Faction-direct missions don't roll salvage and
-            // skip this row entirely. Picker UI is deferred to loot.md.
+            // skip this row entirely. Picker UI is deferred to loot/overview.md.
             if (outcome.salvageEntitlement > 0) {
                 widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                         Strings.get("resultsSalvageLabel"),

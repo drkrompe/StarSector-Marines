@@ -283,13 +283,18 @@ sector scale (a few thousand rows).
   stakes, relationships, chains, player reputation), tick loop,
   rank-ladder visibility, stake-transfer mechanics, hidden-heir
   layer. **Drafted.**
-- `contracts.md` — contract types (Strike, Garrison, Cadre, Escort,
-  Planetary Assault), their time-commitment semantics, salvage and
-  payment terms, the merc-registry reputation track.
-- `infrastructure.md` — per-planet and per-region buildings: build
-  cost, monthly maintenance, exact mitigation effects, stacking rules.
-- `t3-endgame.md` — faction flips, market ownership change, vanilla
-  rep consequences, splinter-faction creation, the "marginal colony as
-  reward" mechanic.
-- `flavors/` — per-flavor authoring notes: nameset, mission archetype
-  catalog, prose templates. One file per flavor.
+- [`contracts/overview.md`](contracts/overview.md) — contract types
+  (Strike, Garrison, Cadre, Escort, Planetary Assault), their
+  time-commitment semantics, salvage and payment terms, the
+  merc-registry reputation track. **Drafted + loop playable.**
+- [`narrative/overview.md`](narrative/overview.md) — the patron
+  tapestry: comms-officer narrator, archetype content axis,
+  procedural-fatigue discipline.
+- [`infrastructure/overview.md`](infrastructure/overview.md) —
+  per-planet and per-region buildings: build cost, monthly maintenance,
+  exact mitigation effects, stacking rules.
+- [`t3-endgame/overview.md`](t3-endgame/overview.md) — faction flips,
+  market ownership change, vanilla rep consequences, splinter-faction
+  creation, the "marginal colony as reward" mechanic.
+- [`flavors/`](flavors/README.md) — per-flavor authoring notes: nameset,
+  mission archetype catalog, prose templates. One file per flavor.

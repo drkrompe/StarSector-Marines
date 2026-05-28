@@ -50,7 +50,7 @@ public final class ContractGenerator implements CampaignSystem {
     /** Default T1 Strike baseline payout in credits. Per economy.md, T1 = 1× baseline. */
     private static final int T1_STRIKE_PAYOUT = 25_000;
 
-    /** Default Strike-Raid salvage cap (per contracts.md §"Salvage Layer 1"). */
+    /** Default Strike-Raid salvage cap (per contracts/overview.md §"Salvage Layer 1"). */
     private static final byte STRIKE_RAID_SALVAGE_BASELINE = 60;
 
     @Override

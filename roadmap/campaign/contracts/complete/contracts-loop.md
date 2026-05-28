@@ -1,8 +1,8 @@
-# 02 — Contracts loop, end-to-end
+# Contracts loop, end-to-end
 
 Implementation half of the contract design from
-[`../contracts.md`](../contracts.md). Builds on the skeleton +
-Systems framework from [`01-skeleton-and-systems-framework.md`](01-skeleton-and-systems-framework.md).
+[`../overview.md`](../overview.md). Builds on the skeleton +
+Systems framework from [`skeleton-and-systems-framework.md`](../../framework/complete/skeleton-and-systems-framework.md).
 This pass takes the contract layer from "design doc + empty SoA table
 slot" to a **playable loop**: T1 patrons spawn offers, patrons show up
 as clients on local planets, the player picks a mission with a
@@ -10,7 +10,7 @@ salvage-vs-cash negotiation knob, the battle resolves, and the
 resolver bridge writes the outcome back to `CampaignState` with rep +
 phase deltas.
 
-Source session: [`../../sessions/2026-05-21-3.md`](../../sessions/2026-05-21-3.md).
+Source session: [`../../../sessions/2026-05-21-3.md`](../../../sessions/2026-05-21-3.md).
 
 ## Contracts table — sixth SoA table on `CampaignState`
 
@@ -131,7 +131,7 @@ src/main/java/com/dillon/starsectormarines/ops/BriefingScreen.java
   + Salvage row beneath, only when salvageBaseline > 0 (contract
     missions). Shows "60% — +0% cash" with −/+ buttons at the right
     edge that adjust salvageNegotiated in 10-point steps within
-    [0, salvageBaseline]. Curve per contracts.md §"Salvage Layer 2":
+    [0, salvageBaseline]. Curve per the contracts overview §"Salvage Layer 2":
     cashMultiplier = 100 + (baseline − negotiated) × 0.5
   + adjustSalvage() — Mission is immutable, so it builds a replacement
     and swaps it through ctx.setSelectedMission. Accept reads the
@@ -139,7 +139,7 @@ src/main/java/com/dillon/starsectormarines/ops/BriefingScreen.java
 
 src/main/java/com/dillon/starsectormarines/ops/ResultsScreen.java
   + Salvage row beneath Payout when outcome.salvageEntitlement > 0.
-    Picker UI deferred to loot.md; this just confirms the entitlement
+    Picker UI deferred to loot/overview.md; this just confirms the entitlement
     landed on the outcome.
 ```
 
@@ -213,7 +213,7 @@ method together act as a copyable template — see
 
 - **Loot picker UI** — `salvageEntitlement` lands on the outcome and
   the results screen shows the %, but there's no item pool / item roll
-  / picker grid yet. That's `loot.md` territory and a session of its
+  / picker grid yet. That's `loot/overview.md` territory and a session of its
   own.
 - **OFFERED → ACTIVE flip on briefing accept** — currently single-
   phase STRIKE contracts skip ACTIVE entirely (OFFERED → COMPLETED
@@ -225,7 +225,7 @@ method together act as a copyable template — see
   scaling concern, but the offer pool doesn't *feel* alive without
   expiry. Small lifecycle addition in `ContractLifecycleSystem`.
 - **Patron archetype byte populated at seed time** — designed in
-  `mechanics.md` and `contracts.md` (CORPORATE_RUSHED / FALLEN_NOBLE /
+  `mechanics.md` and the narrative overview (CORPORATE_RUSHED / FALLEN_NOBLE /
   TRUE_BELIEVER / etc), unused so far. `HouseSeeder` doesn't populate
   it; briefing flavor doesn't read it.
 - **Contract generator for non-STRIKE types** — ESCORT,

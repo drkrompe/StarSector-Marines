@@ -296,13 +296,16 @@ with it, the player feels the world acting on them.
 - [`mechanics.md`](mechanics.md) — data model the economy operates
   on (houses, stakes, reputation, chains, mission → stake-transfer
   resolution).
-- `contracts.md` — full contract-type specifications (Strike,
-  Garrison, Cadre, Escort, Planetary Assault) with their terms,
-  salvage rights, time commitments, and how each maps to direct
-  contracts vs. background-sim garrison contracts.
-- `infrastructure.md` — per-planet and per-region buildings: build
-  cost, monthly maintenance, exact mitigation effects, stacking
-  rules.
-- `t3-endgame.md` — faction flips, market ownership change, vanilla
-  rep consequences, the "marginal colony as reward" mechanic. Where
-  the economy and mechanics docs cross into vanilla state.
+- [`contracts/overview.md`](contracts/overview.md) — full contract-type
+  specifications (Strike, Garrison, Cadre, Escort, Planetary Assault)
+  with their terms, salvage rights, time commitments, and how each maps
+  to direct contracts vs. background-sim garrison contracts.
+- [`loot/overview.md`](loot/overview.md) — post-battle salvage screen;
+  the "fence on the spot" discount conversion lives here.
+- [`infrastructure/overview.md`](infrastructure/overview.md) —
+  per-planet and per-region buildings: build cost, monthly maintenance,
+  exact mitigation effects, stacking rules.
+- [`t3-endgame/overview.md`](t3-endgame/overview.md) — faction flips,
+  market ownership change, vanilla rep consequences, the "marginal
+  colony as reward" mechanic. Where the economy and mechanics docs cross
+  into vanilla state.

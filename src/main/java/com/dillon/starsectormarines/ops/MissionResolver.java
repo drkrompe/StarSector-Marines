@@ -95,7 +95,7 @@ public final class MissionResolver {
                 : rawMarinesLost;
 
         // Cash multiplier applies the salvage-traded-for-cash bump from briefing
-        // acceptance (see contracts.md §"Salvage Layer 2"). 100 = baseline.
+        // acceptance (see contracts/overview.md §"Salvage Layer 2"). 100 = baseline.
         int cashMult = mission.cashMultiplier & 0xFF;
         if (cashMult <= 0) cashMult = 100;
         int payoutEarned = victory ? (int) ((long) mission.payout * cashMult / 100L) : 0;
@@ -311,7 +311,7 @@ public final class MissionResolver {
      * script is registered yet (skeleton path — predates the campaign script's
      * install).
      *
-     * <p>Resolution rules (per contracts.md §Lifecycle):
+     * <p>Resolution rules (per contracts/overview.md §Lifecycle):
      * <ul>
      *   <li>Victory advances {@code phasesDone}; on {@code phasesDone >= phasesTotal}
      *       the state flips ACTIVE/IN_PROGRESS → COMPLETED.</li>

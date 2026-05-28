@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.campaign;
 
 /**
  * Lifecycle state of a {@link ContractType contract} — see
- * <code>roadmap/campaign/contracts.md</code> §"Lifecycle".
+ * <code>roadmap/campaign/contracts/overview.md</code> §"Lifecycle".
  *
  * <pre>
  *  ACTIVE ──► IN_PROGRESS ──► COMPLETED

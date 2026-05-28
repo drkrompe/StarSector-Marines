@@ -190,7 +190,7 @@ public class BriefingScreen implements Screen {
 
         // Salvage negotiation — only for contract-bound missions (faction-direct
         // missions don't carry a salvage cap). The −/+ buttons trade salvage
-        // for cash per contracts.md §"Salvage Layer 2": cashMultiplier =
+        // for cash per contracts/overview.md §"Salvage Layer 2": cashMultiplier =
         // 100 + (baseline − negotiated) * 0.5.
         int salvageBaseline = m.salvageBaseline & 0xFF;
         if (salvageBaseline > 0) {
@@ -659,7 +659,7 @@ public class BriefingScreen implements Screen {
      * negotiated values flow through to the resolver bridge without special
      * casing.
      *
-     * <p>Curve per {@code roadmap/campaign/contracts.md} §"Salvage Layer 2":
+     * <p>Curve per {@code roadmap/campaign/contracts/overview.md} §"Salvage Layer 2":
      * {@code cashMultiplier = 100 + (baseline − negotiated) * 0.5}. Integer
      * math is fine in 10-point steps (* 0.5 → / 2 with even deltas).
      */

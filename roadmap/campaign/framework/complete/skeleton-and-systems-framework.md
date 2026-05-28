@@ -1,14 +1,14 @@
-# 01 — Skeleton data model + Systems framework
+# Skeleton data model + Systems framework
 
 First code drop for the campaign tier. The design discussion had already
-landed in [`themes.md`](../themes.md), [`economy.md`](../economy.md), and
-[`mechanics.md`](../mechanics.md); this pass turned the SoA data model
+landed in [`themes.md`](../../themes.md), [`economy.md`](../../economy.md), and
+[`mechanics.md`](../../mechanics.md); this pass turned the SoA data model
 into a compiling skeleton, baked in the four architectural commitments
 that any future campaign code has to honor, and hung a dev-gated debug
 intel off the state so subsequent systems have something concrete to
 playtest against.
 
-Source session: [`../../sessions/2026-05-21.md`](../../sessions/2026-05-21.md).
+Source session: [`../../../sessions/2026-05-21.md`](../../../sessions/2026-05-21.md).
 
 ## SoA data model
 
@@ -39,7 +39,7 @@ addressable." Vanilla market ids are *strings*. Fixed during the
 flipped `marketId` columns to `int`, updated the doc and the
 [[project-campaign-storage-soa]] memory.
 
-## Architecture commitments — [`architecture.md`](../architecture.md)
+## Architecture commitments — [`architecture.md`](../../architecture.md)
 
 Baked the architectural principles in *before* systems started landing.
 Four commitments, each framed with "cost of not honoring" so they're
@@ -150,7 +150,7 @@ having the data live; it persists either way).
 - **No stake seeding.** Every house starts owning zero industries;
   faction baseline owns 100% of every market. Stakes accrue via
   contract resolution (not wired here — that's
-  [`02-contracts-loop.md`](02-contracts-loop.md)).
+  [`contracts-loop.md`](../../contracts/complete/contracts-loop.md)).
 - **No relationship edges.** Visibility computation is implemented in
   `mechanics.md` only; no code reads `relationships[]` yet.
 - **No autonomous tick.** `onDailyTick` is five stub comments —

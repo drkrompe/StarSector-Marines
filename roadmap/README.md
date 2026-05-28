@@ -49,8 +49,8 @@ universe over time, not retrofitted into intel slots.
    generator (vanilla weapons / supplies / fuel / marines / AI cores),
    the roll weighted by entitlement × enemy faction × planet industries,
    and the post-battle picker grid with cargo-capacity check + 75%
-   fence-on-spot for overflow. MechWarrior Mercenaries vibe. Needs its
-   own design doc before implementation.
+   fence-on-spot for overflow. MechWarrior Mercenaries vibe. Designed in
+   [`campaign/loot/overview.md`](campaign/loot/overview.md).
 2. **Offer expiry + patron archetypes** — small polish round. Offers
    currently never lapse; add expiry in `ContractLifecycleSystem`.
    Archetype byte (CORPORATE_RUSHED / FALLEN_NOBLE / etc) is designed
@@ -59,7 +59,7 @@ universe over time, not retrofitted into intel slots.
 3. **Contract generation for non-STRIKE types** — `ContractType` has
    six values; only STRIKE is generated. GARRISON + CADRE introduce
    retainer payment over time (closer to the contract design's
-   "two-mode dichotomy" from `contracts.md`).
+   "two-mode dichotomy" from `campaign/contracts/overview.md`).
 4. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
    (MARINE_HELD → CONTESTED → DEFENDER_HELD), AutoGarrisonTrigger,
    marine-side compound supply, defender positive win condition. Blocked

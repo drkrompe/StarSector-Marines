@@ -428,7 +428,7 @@ public class CommsConsolePanel extends OpsPanel {
      * {@link MarineOpsContext#setSelectedMission} with a new instance — same
      * id, adjusted negotiated + cashMultiplier.
      *
-     * <p>Curve per {@code roadmap/campaign/contracts.md} §"Salvage Layer 2":
+     * <p>Curve per {@code roadmap/campaign/contracts/overview.md} §"Salvage Layer 2":
      * cashMultiplier = 100 + (baseline - negotiated) * 0.5.
      */
     private void setSalvage(int newValue) {

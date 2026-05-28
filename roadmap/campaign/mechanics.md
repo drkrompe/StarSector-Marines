@@ -73,7 +73,7 @@ status              byte      // ACTIVE / DORMANT / HIDDEN_PRETENDER / DEPOSED
 archetype           byte      // TIME_RUSHED / FALLEN_NOBLE / TRUE_BELIEVER /
                               // ESTABLISHED / SUSPICIOUS / NEWCOMER — patron
                               // content-axis; drives briefing register
-                              // (see contracts.md). May shift on state events.
+                              // (see narrative/overview.md). May shift on state events.
 ambitionType        byte      // CONSOLIDATE_STAKE / DISPLACE_RIVAL /
                               // PROMOTE / CLAIM_THRONE / etc.
 ambitionTargetId    long      // stake / industry / rival house id
@@ -367,13 +367,14 @@ status quo paying. Both are valid, both have rep consequences.
 
 ## Followup docs
 
-- `contracts.md` — contract-type specifications, how each rank-tier
-  maps to which contracts appear, salvage/payment/time terms.
-- `infrastructure.md` — per-planet and per-region buildings, their
-  in-game effects on the data model (stake influence, garrison
-  default rate reduction).
-- `t3-endgame.md` — Tier-4 promotion attempts: vanilla faction
-  flip, splinter faction creation, market ownership change. Where
-  this doc crosses into vanilla state.
-- `narrative.md` (candidate) — hidden heirs, story missions,
-  scripted character arcs that layer onto the procedural graph.
+- [`contracts/overview.md`](contracts/overview.md) — contract-type
+  specifications, how each rank-tier maps to which contracts appear,
+  salvage/payment/time terms.
+- [`infrastructure/overview.md`](infrastructure/overview.md) —
+  per-planet and per-region buildings, their in-game effects on the
+  data model (stake influence, garrison default rate reduction).
+- [`t3-endgame/overview.md`](t3-endgame/overview.md) — Tier-4 promotion
+  attempts: vanilla faction flip, splinter faction creation, market
+  ownership change. Where this doc crosses into vanilla state.
+- [`narrative/overview.md`](narrative/overview.md) — hidden heirs, story
+  missions, scripted character arcs that layer onto the procedural graph.

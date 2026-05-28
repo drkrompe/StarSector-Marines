@@ -27,7 +27,7 @@ import java.util.EnumSet;
  *       housePower is actually populated by other systems.</li>
  * </ul>
  *
- * <p>See <code>roadmap/campaign/contracts.md</code> §"Default mechanics".
+ * <p>See <code>roadmap/campaign/contracts/overview.md</code> §"Default mechanics".
  */
 public final class ContractLifecycleSystem implements CampaignSystem {
 

@@ -19,11 +19,11 @@ import java.util.Random;
  * {@link CampaignState}{@code .houseArchetype[]} — never reorder
  * existing entries; append-only. The enum is intentionally
  * open-ended so future archetypes (the {@code procedural fatigue}
- * mitigation #2 from {@code contracts.md}) can be added without
+ * mitigation #2 from {@code narrative/overview.md}) can be added without
  * migration.
  *
  * <p>Starter set is the six from
- * {@code roadmap/campaign/contracts.md} §"Patron archetypes".
+ * {@code roadmap/campaign/narrative/overview.md} §"Patron archetypes".
  *
  * <h2>Offer windows</h2>
  * Each archetype carries an inclusive (min, max) range for how many
