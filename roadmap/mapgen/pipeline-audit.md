@@ -151,7 +151,8 @@ via zoning.
 
 **Between fill and stamp, or within fill, before doorway punching.**
 
-The cleaner design (now in flight, see `room-purpose-refactor.md`):
+The cleaner design (shipped — see
+[`complete/room-purpose-refactor.md`](complete/room-purpose-refactor.md)):
 
 1. Extend `BuildingShellCore.BuildingConfig` to include a
    `RoomPurpose[] chamberPurposesByAnchorDistance` — distance-indexed
