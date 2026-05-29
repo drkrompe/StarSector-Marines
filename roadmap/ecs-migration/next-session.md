@@ -31,7 +31,11 @@ b620e77  battle: SoA repositionCooldown — ninth (C3 Slice A)  ← 2026-05-28
 c49eea7  battle: MapService — runtime map-modification coordinator (Slice 1)  ← 2026-05-28
 53d5e7d  battle: drop sim.getBattleResources facade getter (drop-facade Slice 1)  ← 2026-05-28
 9c6267e  battle: BattleView/BattleControl interfaces — GOAP spine, proving slice  ← 2026-05-28
+5f1bd7a  battle: narrow WorldStateBuilder + PredicateEvaluator to BattleView  ← 2026-05-29
 ```
+
+(Sibling tracks on top of HEAD, not ECS-migration: `9084ed4` battle-render
+Story B, `31d8b17` goap shared zone-entry rule.)
 
 ## State of play
 
@@ -51,10 +55,13 @@ c49eea7  battle: MapService — runtime map-modification coordinator (Slice 1)  
 ## Active stories (priority order)
 
 > **TL;DR for a cold start:** stories 1–4 + story 5 Slice 1 are shipped.
-> **Resume at story 6** ([`drop-sim-facade-delegators`](stories/drop-sim-facade-delegators.md)) —
-> the GOAP spine mechanism is decided/proven; next action is sweep slice 1
-> (narrow `WorldStateBuilder` + read-only helpers to `BattleView`). Story 5
-> Slice 2 (map generation) is an optional stretch, not the critical path.
+> **Story 6** ([`drop-sim-facade-delegators`](stories/drop-sim-facade-delegators.md))
+> is in progress: GOAP spine proven (`9c6267e`), read-only sweep slice 1
+> landed `WorldStateBuilder` + `PredicateEvaluator` → `BattleView` (`5f1bd7a`).
+> **Resume:** finish slice 1 read-side — narrow the **postures' read paths**
+> (`EngagePosture`/`RegroupPosture`/etc. preconditions + relevance) to
+> `BattleView`, then move to slice 2 (mutating behaviors → `BattleControl`).
+> Story 5 Slice 2 (map generation) is an optional stretch, not the path.
 
 Phase 3's original three (move-render, tactical, secondary-weapon) all
 shipped — see [`complete/phase3-soa-promotions.md`](complete/phase3-soa-promotions.md).

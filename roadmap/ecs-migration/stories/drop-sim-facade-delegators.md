@@ -175,6 +175,12 @@ and callers still passing `sim` upcast automatically. So:
    (`ZoneQueries`) — **proving slice SHIPPED `9c6267e`**.
 2. Narrow leaf consumers / helpers one slice at a time (read consumers →
    `BattleView`, mutating behaviors → `BattleControl`). Callers unaffected.
+   - ✅ **Read sweep slice 1 SHIPPED `5f1bd7a`**: `WorldStateBuilder.build`
+     + every `PredicateEvaluator` → `BattleView`. Grew `BattleView` with
+     `getUnitIndex` + `snapshotActiveShots` (both already on the sim). All
+     ~20 call sites upcast — zero caller churn. Next: posture read paths
+     (`EngagePosture`/`RegroupPosture` preconditions/relevance) →
+     `BattleView`, then the mutating behaviors → `BattleControl`.
 3. **Flip the `Action`/`Goal` interface signatures last** — the one
    big-bang (every implementor `@Override`s at once), but by then the
    bodies already use narrowed locals.
