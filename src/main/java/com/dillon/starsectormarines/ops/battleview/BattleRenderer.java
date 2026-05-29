@@ -70,8 +70,10 @@ public class BattleRenderer {
     private static final Color MARINE_COLOR   = new Color(0x5A, 0xA0, 0xE0);
     private static final Color DEFENDER_COLOR = new Color(0xE0, 0x6A, 0x6A);
     private static final Color CIVILIAN_COLOR = new Color(0xC8, 0xC8, 0x80);
-    private static final Color HP_BG          = new Color(0x60, 0x20, 0x20);
-    private static final Color HP_FG          = new Color(0x40, 0xC0, 0x40);
+    // Package-visible: shared between the inline UNITS pass and DroneRenderSystem
+    // (single source of truth, same rationale as RECOIL_* for shuttle turrets).
+    static final Color HP_BG          = new Color(0x60, 0x20, 0x20);
+    static final Color HP_FG          = new Color(0x40, 0xC0, 0x40);
     /** Dual-use in BattleScreen (spawnImpactFx); duplicated here for zero back-dependency. */
     private static final Color MARINE_TRACER  = new Color(0xFF, 0xE0, 0x70);
     /** Dual-use in BattleScreen (spawnImpactFx); duplicated here for zero back-dependency. */
@@ -81,8 +83,8 @@ public class BattleRenderer {
     private static final float SHOT_LIFETIME_REF = 0.15f;
 
     private static final float UNIT_FRAC      = 1.00f; // sprite fills the cell
-    private static final float HP_BAR_H       = 3f;
-    private static final float HP_BAR_GAP     = 2f;
+    static final float HP_BAR_H       = 3f;
+    static final float HP_BAR_GAP     = 2f;
 
     /** Icon tints + sizes. Sizes are fractions of {@code layout.cellSize}. */
     private static final Color  CHARGE_TINT_ACTIVE   = new Color(0xFF, 0x9A, 0x40);
@@ -213,6 +215,7 @@ public class BattleRenderer {
                 new GroundRenderSystem(sprites),
                 new VehicleRenderSystem(sprites),
                 new DoodadRenderSystem(sprites),
+                new DroneRenderSystem(sprites),
                 new ConvoyRenderSystem(sprites),
                 new ShuttleRenderSystem(sprites));
     }
@@ -639,6 +642,12 @@ public class BattleRenderer {
         sprites.droneHubSprite().sprite.setAngle(0f);
     }
 
+    /**
+     * @deprecated Superseded by {@link DroneRenderSystem} (DRONES layer: hull
+     * {@code SPRITE} + HP-bar {@code SOLID_RECT}s). Retained <em>uncalled</em> as a
+     * one-line-rewire rollback until confirmed in a live battle, then deleted.
+     */
+    @Deprecated
     private void renderDrones(BattleSimulation sim, List<Unit> units, float alphaMult) {
         boolean any = false;
         for (Unit u : units) {
@@ -1327,10 +1336,10 @@ public class BattleRenderer {
         // objective markers, shuttles (aircraft), projectiles, and flyby
         // — all of which should pierce the roof.
         renderRoofs(sim, rc.alphaMult);
-        // Drones live above the roof layer — they hover at roof altitude,
-        // so a drone over a building should visually overlay the BRICK roof
-        // tile rather than be occluded by it.
-        renderDrones(sim, sim.getUnits(), rc.alphaMult);
+        // DRONES layer — drones live above the roof layer (they hover at roof
+        // altitude, so a drone over a building overlays the BRICK roof tile rather
+        // than being occluded). Hull SPRITE + HP-bar SOLID_RECTs via DroneRenderSystem.
+        drainLayer(RenderLayer.DRONES);
         // Charge sites + equipment drops sit above units so the player can
         // always see where the objectives are.
         renderObjectiveMarkers(sim, rc.alphaMult);

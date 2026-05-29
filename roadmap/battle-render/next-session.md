@@ -63,10 +63,19 @@ inline — unlike CONVOY). `drawTurretLayer` + `RECOIL_*` constants stay (still
 shared by the inline map-turret/drone passes). See
 [`complete/story-h-shuttles-system.md`](complete/story-h-shuttles-system.md).
 
-Next pass migration is **DRONES**, then **UNITS** (see below). Drones hover at
-roof altitude (paint above ROOFS); likely rotated sprites — can reuse the
-SPRITE path or the Story-G rotated-sheet-quad path depending on whether they're
-whole sprites or sheet sub-rects.
+**Story I (DRONES → `DroneRenderSystem`) shipped** (in-game verify pending) —
+drones above the roof layer: hull `SPRITE` + HP-bar `SOLID_RECT`s, same crash/
+vision gating + fade as the inline pass. First system added straight into the
+registry (list entry + dropped inline drain slot). Drone sprite load hoisted to
+`BattleScreen.attach` so collect stays GL-free; `HP_*` constants made
+package-visible (shared with the inline UNITS HP bars). No rotation-parity risk
+(`SPRITE`/`setAngle`). See
+[`complete/story-i-drones-system.md`](complete/story-i-drones-system.md).
+
+Next (and last before the endgame) is **UNITS** — the heavy one: live unit
+sprites + HP bars (`SOLID_RECT`) + the turret / drone-hub / dead-unit sub-passes,
+all currently inline under `renderUnits`. The `renderDroneHubs` lazy-load + the
+`drawTurretLayer` helper get absorbed here.
 
 **Structural: the `List<RenderSystem>` registry shipped.** `RenderSystem` now
 declares `layer()`; `BattleRenderer` holds an ordered `List<RenderSystem>`
@@ -119,7 +128,8 @@ DOODADS)~~ ✅ → ~~engine/game package split (structural foundation)~~ ✅ →
 ~~H (SHUTTLES → ShuttleRenderSystem; SPRITE + Custom; verified, fallback deleted)~~ ✅ →
 ~~RenderSystem registry (ordered `List<RenderSystem>` + `layer()`; collect-all
 phase split out)~~ ✅ →
-I…N (DRONES, then UNITS) →
+~~I (DRONES → DroneRenderSystem; SPRITE + SOLID_RECT; in-game-verify pending)~~ ✅ →
+UNITS (sprites + HP bars + turret/drone-hub/dead sub-passes) →
 Final (collapse `render()` to systems-loop + drain — fold inline passes into
 the collect-all/drain-all loop as they migrate).
 
@@ -144,6 +154,8 @@ the collect-all/drain-all loop as they migrate).
   GROUND relies on spatial coherence (street/grass regions) for long runs.
 - FBO accumulators (decal/lightmap) are still inline — they'll need `Custom`
   (or a dedicated command) when their layers migrate.
-- **In-game-pending validation**: none outstanding. SHOTS (C), DOODADS (D),
-  GROUND (E), VEHICLES (F), CONVOY (G), SHUTTLES (H) all verified; fallbacks
-  deleted.
+- **In-game-pending validation**: **DRONES (I)** — confirm drones render rotated
+  over roofs with HP bars + correct fade on going-hidden and on crash, before
+  deleting its `@Deprecated` fallback (low risk: SPRITE/`setAngle` + SOLID_RECT,
+  no rotation-convention change). SHOTS (C), DOODADS (D), GROUND (E), VEHICLES (F),
+  CONVOY (G), SHUTTLES (H) verified; fallbacks deleted.
