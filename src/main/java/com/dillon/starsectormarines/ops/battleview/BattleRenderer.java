@@ -16,7 +16,6 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.MapVehicle;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKind;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
-import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.model.TimeOfDay;
 import com.dillon.starsectormarines.battle.world.model.WallMasks;
@@ -131,11 +130,23 @@ public class BattleRenderer {
     private RenderContext rc;
 
     /**
-     * Per-frame draw-command collector. Cleared at the top of {@link #renderWorld};
-     * Story C routes only the {@link RenderLayer#SHOTS} layer through it (see
-     * {@link #collectShots} / {@link #drainLayer}). Other passes still draw inline.
+     * Per-frame draw-command collector. Cleared at the top of {@link #renderWorld}.
+     * Migrated layers route through it ({@link RenderLayer#SHOTS},
+     * {@link RenderLayer#DOODADS}); the rest still draw inline.
      */
     private final DrawList drawList = new DrawList();
+
+    /**
+     * Maps a sprite sheet to its per-sheet {@link QuadBatch}, so
+     * {@link #drainLayer} can resolve a {@link DrawCommand.SheetQuad}'s sheet to
+     * the batch that owns it. Populated in {@link #buildTileBatches()}; reuses the
+     * same batch instances the inline tile passes use (batches reset after each
+     * flush, so cross-pass reuse within a frame is fine).
+     */
+    private final java.util.Map<SpriteAPI, QuadBatch> batchBySheet = new java.util.IdentityHashMap<>();
+
+    /** Story D — first pass migrated to a {@link RenderSystem}; emits the DOODADS layer. */
+    private final DoodadRenderSystem doodadSystem;
 
     /**
      * Per-sheet quad batchers. Lazily constructed in {@link #buildTileBatches()}.
@@ -201,6 +212,7 @@ public class BattleRenderer {
 
     public BattleRenderer(BattleSprites sprites) {
         this.sprites = sprites;
+        this.doodadSystem = new DoodadRenderSystem(sprites);
     }
 
     // ---- lifecycle -----------------------------------------------------------
@@ -228,6 +240,19 @@ public class BattleRenderer {
             urbanTile3Batch = new QuadBatch(sprites.urbanTile3Sheet(), sprites.urbanTile3SheetPxW(), sprites.urbanTile3SheetPxH(), 4096);
         if (natureBatch == null && sprites.natureSheet() != null)
             natureBatch = new QuadBatch(sprites.natureSheet(), sprites.natureSheetPxW(), sprites.natureSheetPxH(), 4096);
+
+        // Register the per-sheet batches so drainLayer can resolve a SheetQuad's
+        // sheet to its batch. Same instances the inline tile passes use.
+        registerBatch(sprites.tileSheet(), urbanBatch);
+        registerBatch(sprites.roadSheet(), roadBatch);
+        registerBatch(sprites.floorsSheet(), floorsBatch);
+        registerBatch(sprites.waterSheet(), waterBatch);
+        registerBatch(sprites.urbanTile3Sheet(), urbanTile3Batch);
+        registerBatch(sprites.natureSheet(), natureBatch);
+    }
+
+    private void registerBatch(SpriteAPI sheet, QuadBatch batch) {
+        if (sheet != null && batch != null) batchBySheet.put(sheet, batch);
     }
 
     // ---- accessors for BattleScreen.advance() --------------------------------
@@ -502,22 +527,6 @@ public class BattleRenderer {
                 rw = stripeW; rh = cell - 2 * perpInset;
             }
             solidBatch.appendRect(rx, ry, rx + rw, ry + rh, sr, sg, sb, alpha);
-        }
-    }
-
-    private void renderDoodads(BattleSimulation sim, float alphaMult) {
-        if (sprites.tileSheet() == null) return;
-        for (Doodad d : sim.getDoodads()) {
-            if (d.fromRoadSheet) {
-                if (sprites.roadSheet() != null) drawRoadTile(d.tile, d.cellX, d.cellY, alphaMult, 0);
-            } else {
-                drawTile(d.tile, d.cellX, d.cellY, alphaMult, 0);
-            }
-        }
-        try (GlStateBracket gl = GlStateBracket.textured2D()) {
-            if (roadBatch       != null) roadBatch.flush();
-            if (urbanTile3Batch != null) urbanTile3Batch.flush();
-            if (urbanBatch      != null) urbanBatch.flush();
         }
     }
 
@@ -1634,7 +1643,7 @@ public class BattleRenderer {
             float cellPxLocal = rc.camera.cellPxSize();
             float pxH = visualCells * cellPxLocal;
             float pxW = pxH * cache.aspect;
-            drawList.add(RenderLayer.SHOTS, new DrawCommand.SpriteQuad(
+            drawList.add(RenderLayer.SHOTS, new DrawCommand.Sprite(
                     cache.sprite,
                     rc.camera.cellToScreenX(px), rc.camera.cellToScreenY(py),
                     pxW, pxH, bearing,
@@ -1856,24 +1865,45 @@ public class BattleRenderer {
 
     /**
      * Replays one layer's queued {@link DrawCommand}s in submission order. A run
-     * of consecutive {@link DrawCommand.SpriteQuad}s shares one
-     * {@link GlStateBracket#textured2D()} bracket; each {@link DrawCommand.Custom}
-     * runs standalone (it owns its own GL state). This is the generalization of
-     * the manual batch-and-flush pattern in {@link #renderTiledFloorsAndWalls}.
+     * of consecutive {@link DrawCommand.SheetQuad}s is grouped by sheet, appended
+     * to each sheet's {@link QuadBatch}, and flushed under one
+     * {@link GlStateBracket#textured2D()}; a run of {@link DrawCommand.Sprite}s
+     * shares one bracket and renders each via {@code renderAtCenter}; each
+     * {@link DrawCommand.Custom} runs standalone (it owns its own GL state). This
+     * generalizes the manual batch-and-flush pattern in
+     * {@link #renderTiledFloorsAndWalls}.
      */
     private void drainLayer(RenderLayer layer) {
         List<DrawCommand> cmds = drawList.commands(layer);
         int n = cmds.size();
         int i = 0;
         while (i < n) {
-            if (cmds.get(i) instanceof DrawCommand.SpriteQuad) {
+            DrawCommand c = cmds.get(i);
+            if (c instanceof DrawCommand.SheetQuad) {
                 try (GlStateBracket gl = GlStateBracket.textured2D()) {
-                    while (i < n && cmds.get(i) instanceof DrawCommand.SpriteQuad sq) {
-                        drawSpriteQuad(sq);
+                    // First-touched order; cross-sheet doodad overlap doesn't occur,
+                    // so inter-sheet flush order is immaterial.
+                    java.util.LinkedHashSet<QuadBatch> touched = new java.util.LinkedHashSet<>();
+                    while (i < n && cmds.get(i) instanceof DrawCommand.SheetQuad sq) {
+                        QuadBatch b = batchBySheet.get(sq.sheet());
+                        if (b != null) {
+                            b.append(sq.srcX(), sq.srcY(), sq.srcW(), sq.srcH(),
+                                    sq.cx(), sq.cy(), sq.w(), sq.h(),
+                                    sq.r(), sq.g(), sq.b(), sq.a());
+                            touched.add(b);
+                        }
+                        i++;
+                    }
+                    for (QuadBatch b : touched) b.flush();
+                }
+            } else if (c instanceof DrawCommand.Sprite) {
+                try (GlStateBracket gl = GlStateBracket.textured2D()) {
+                    while (i < n && cmds.get(i) instanceof DrawCommand.Sprite sp) {
+                        drawSprite(sp);
                         i++;
                     }
                 }
-            } else if (cmds.get(i) instanceof DrawCommand.Custom custom) {
+            } else if (c instanceof DrawCommand.Custom custom) {
                 custom.draw().run();
                 i++;
             } else {
@@ -1882,7 +1912,7 @@ public class BattleRenderer {
         }
     }
 
-    private static void drawSpriteQuad(DrawCommand.SpriteQuad q) {
+    private static void drawSprite(DrawCommand.Sprite q) {
         SpriteAPI sprite = q.sprite();
         sprite.setSize(q.w(), q.h());
         sprite.setAngle(q.angleDeg());
@@ -1913,7 +1943,10 @@ public class BattleRenderer {
         // (and later units) draw on top of bullet holes and craters.
         renderDecals(sim, rc.alphaMult);
         renderVehicles(sim, rc.alphaMult);
-        renderDoodads(sim, rc.alphaMult);
+        // DOODADS layer — command-driven via DoodadRenderSystem (Story D): the
+        // first sheet-batched pass routed through the draw list.
+        doodadSystem.collect(rc, drawList);
+        drainLayer(RenderLayer.DOODADS);
         // Debug cell highlights — published by HUD panels (plan-step cells,
         // selected squad members, captain). Paints above ground decals/
         // doodads, below units so unit sprites stay legible over the tint.

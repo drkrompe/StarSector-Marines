@@ -2,54 +2,60 @@
 
 ## State of play
 
-Concept doc written ([`overview.md`](overview.md)). **Stories A + B + C shipped.**
+Concept doc written ([`overview.md`](overview.md)). **Stories A–D shipped.**
 - A — `BattleSprites` asset registry ([`complete/story-a-extract-assets.md`](complete/story-a-extract-assets.md)).
-- B — `BattleRenderer` + `RenderContext`; world-render pipeline severed from the
-  loop ([`complete/story-b-battlerenderer.md`](complete/story-b-battlerenderer.md)).
-- C — `RenderLayer` + `DrawList` + `DrawCommand` + the `drainLayer` drain; the
-  `SHOTS` pass converted to emit commands
-  ([`complete/story-c-drawlist-model.md`](complete/story-c-drawlist-model.md)).
+- B — `BattleRenderer` + `RenderContext`; pipeline severed from the loop
+  ([`complete/story-b-battlerenderer.md`](complete/story-b-battlerenderer.md)).
+- C — `RenderLayer` + `DrawList` + `DrawCommand` + `drainLayer`; the `SHOTS` pass
+  converted ([`complete/story-c-drawlist-model.md`](complete/story-c-drawlist-model.md)).
+- D — first sheet-batched pass + `RenderSystem`: `DOODADS` migrated to
+  `DoodadRenderSystem` emitting `SheetQuad`s; drain gained the per-sheet
+  `QuadBatch` grouping path ([`complete/story-d-doodads-system.md`](complete/story-d-doodads-system.md)).
 
-The draw-list model is now proven on one layer. `renderWorld` clears the
-`DrawList`, runs the ~16 still-inline passes, and at the SHOTS seam does
-`collectShots(...)` → `drainLayer(SHOTS)`. `DrawCommand` has `SpriteQuad`
-(single rotated sprite) + `Custom` (own-GL escape hatch — contrails + tracers).
+Command vocabulary now: `SheetQuad` (batched sheet sub-rect),
+`Sprite` (whole-texture `renderAtCenter`), `Custom` (own-GL escape hatch). Two
+passes (`SHOTS`, `DOODADS`) route through the draw list; ~15 still draw inline.
+`renderWorld` hand-wires `doodadSystem.collect` + `drainLayer`.
 
 ## Next-up
 
-**Story D — migrate the next pass into the command model.** Pick a **sheet-based**
-pass (tiles/`GROUND` or `UNITS`) so this slice finally exercises the `QuadBatch`
-sheet-grouping path that SHOTS didn't (SHOTS only had single sprites + customs).
-This is where:
-- `SpriteQuad` likely gains (or gets a sibling for) the **sheet + sub-rect**
-  form so the drain can group by sheet and flush via `QuadBatch`.
-- `SolidRect` lands as a first-class command (HP bars, fills) if UNITS is chosen.
-- The **`RenderSystem` interface** (`collect(ctx, drawList)`) + a small registry
-  is introduced — D…N is "one pass per slice into `RenderSystem`s." Story C kept
-  `collectShots` as a private method on `BattleRenderer`; D is the right time to
-  lift the interface.
+**Story E — migrate another pass into a `RenderSystem`.** Good candidates, in
+rough increasing order of size/risk:
+- **VEHICLES / CONVOY / SHUTTLES / DRONES** — single rotated sprites, so they map
+  to the existing `Sprite` command (no new command type). `renderVehicles` is a
+  clean, medium pass; converting it is mostly mechanical and proves a second
+  `Sprite`-emitting system.
+- **GROUND** (`renderTiledFloorsAndWalls`) — biggest payoff (it's the heaviest
+  `QuadBatch` user and the pass `drainLayer` most directly generalizes), but
+  large and multi-sub-case (autotiles, crosswalks→`SolidRect`, walls, nature
+  overlays). Will likely force the first **`SolidRect`** command + the rotated
+  `SheetQuad` form.
+- **UNITS** — sprites + HP bars (`SolidRect`) + sub-passes (turrets/drones/dead).
 
-Then D…N convert the remaining passes one per slice; Final collapses `render()`
-to the systems-loop + drain.
+When the third or fourth system lands, introduce the **`List<RenderSystem>`
+registry** + start collapsing `renderWorld` toward the systems-loop + drain
+endgame (the overview's "Final").
 
-Carry-over follow-ups (do opportunistically, not blockers): dedupe
-`MARINE_TRACER`/`DEFENDER_TRACER`/`bearingDeg()` duplication; restore the fuller
-inter-pass comments in `renderWorld`.
+Carry-over follow-ups (opportunistic): dedupe `MARINE_TRACER`/`DEFENDER_TRACER`/
+`bearingDeg()`; restore fuller inter-pass comments; drop pre-existing unused
+imports (`ShuttleType`, `LightKernel`).
 
 ## Slice chain
 
-A (assets) → B (`BattleRenderer`/`RenderContext` extraction, verbatim) →
-~~C (prove `RenderLayer`/`DrawList`/drain on one layer)~~ ✅ →
-D…N (one pass per slice into `RenderSystem`s) → Final (collapse `render()`).
+A → B → ~~C (prove model on SHOTS)~~ ✅ → ~~D (first sheet pass + RenderSystem,
+DOODADS)~~ ✅ → E…N (one pass per slice into `RenderSystem`s) →
+Final (collapse `render()` to systems-loop + drain).
 
 ## Watch-outs
 
 - Pass order in `renderWorld` is semantic — `RenderLayer` is the verbatim list.
-  When migrating a pass, emit into its existing layer; don't re-derive order.
-- Keep every batched flush inside a `GlStateBracket` (polluted GL state). The
-  drain owns this for `SpriteQuad` runs; `Custom` callbacks own their own.
-- `Custom` escape hatch is proven on the contrail accumulator (Story C). The
-  FBO accumulators (decal/lightmap) are still inline — they'll need `Custom`
+  Emit a migrated pass into its existing layer; don't re-derive order.
+- Keep every batched flush inside a `GlStateBracket`. The drain owns this for
+  `SheetQuad`/`Sprite` runs; `Custom` callbacks own their own.
+- **`drainLayer` flushes touched batches in first-touched order**, not a fixed
+  per-layer sheet order — fine for DOODADS (no cross-sheet overlap). A pass that
+  needs deterministic inter-sheet layering will need explicit ordering.
+- FBO accumulators (decal/lightmap) are still inline — they'll need `Custom`
   (or a dedicated command) when their layers migrate.
-- **SHOTS validation is in-game-pending** — render-behavior change; confirm
-  tracers/projectiles/contrails render identically and contrails age on pause.
+- **In-game-pending validation** for both SHOTS (C) and DOODADS (D) — render
+  changes; confirm in a real battle.
