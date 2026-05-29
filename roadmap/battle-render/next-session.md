@@ -29,20 +29,25 @@ the clean seam the remaining pass migrations land on.
 
 ## Next-up
 
-**Story E — GROUND (`renderTiledFloorsAndWalls`) → `GroundRenderSystem`.** Now the
-target (it's the heaviest `QuadBatch` user and the top render-CPU root per the
-backlog JFR capture), landing on the fresh engine/game seam. It forces the
-deferred command/drain work:
-- **Add `DrawCommand.SolidRect`** (engine) for the FLOOR_COLOR backing fill,
-  `fillCell` road/courtyard fallbacks, crosswalk stripes, and the wall-fill
-  fallback. Drained via `SolidQuadBatch`.
-- **Strict painter-order drain** — teach `DrawListRenderer.drain` to flush the
-  active batch when the sheet/command-type changes, so submission order *is* paint
-  order (no per-layer config in the engine). `GroundRenderSystem` emits in tiers
-  (backing solids → base tiles bucketed per sheet → overlays: crosswalk/nature/
-  doorway → walls) so each sheet stays contiguous = fully batched (matches today's
-  flush count). Convert the DOODADS path to the same model. This is the upgrade
-  past the current first-touched drain (see Watch-outs).
+**⚠️ FIRST: in-game-verify GROUND, then delete the retained fallback.** Story E
+(GROUND → `GroundRenderSystem`) **shipped** (`dadcf8b`) but is a render change —
+needs a live-battle check: floors/streets/sidewalks/grass/water autotiles, nature
+overlays, doorways, crosswalk stripes, walls, and the courtyard/road solid
+fallbacks all render as before. The old `renderGrid`/`renderTiledFloorsAndWalls` +
+`draw*` helpers + sidewalk predicates are retained `@Deprecated` and **uncalled**
+in `BattleRenderer` as a one-line-rewire rollback. Once verified good, **delete
+that dead block** (it's the bulk of the remaining god-class tile code) — that's
+the immediate follow-up.
+
+**Story E shipped — what landed:**
+- `DrawCommand.SolidRect` + the pooled, mutable tagged command buffer
+  (`2ee5b89`): `DrawList` recycles per-layer `DrawCommand[]` slots so the dense
+  GROUND pass (~38k tiles) allocates nothing steady-state.
+- `DrawListRenderer.drain` is strict-painter: submission order = paint order,
+  one `GlStateBracket` per layer, flush-on-sheet/kind-change. DOODADS converted
+  (emits road-then-urban contiguous).
+- `GroundRenderSystem` emits per-tile commands in cell order (base → nature
+  overlay → doorway), then a wall pass; backing fill first.
 
 Other passes after GROUND, rough increasing size: **VEHICLES / CONVOY / SHUTTLES /
 DRONES** (single rotated sprites → existing `Sprite` command), then **UNITS**
@@ -67,19 +72,24 @@ imports (`ShuttleType`, `LightKernel`).
 
 A → B → ~~C (prove model on SHOTS)~~ ✅ → ~~D (first sheet pass + RenderSystem,
 DOODADS)~~ ✅ → ~~engine/game package split (structural foundation)~~ ✅ →
-E…N (one pass per slice into `RenderSystem`s; E = GROUND) →
+~~pooled command buffer + SolidRect + strict-painter drain~~ ✅ →
+~~E (GROUND → GroundRenderSystem; in-game-verify + delete fallback pending)~~ ✅ →
+F…N (VEHICLES/CONVOY/SHUTTLES/DRONES, then UNITS) →
 Final (collapse `render()` to systems-loop + drain).
 
 ## Watch-outs
 
 - Pass order in `renderWorld` is semantic — `RenderLayer` is the verbatim list.
   Emit a migrated pass into its existing layer; don't re-derive order.
-- Keep every batched flush inside a `GlStateBracket`. The drain owns this for
-  `SheetQuad`/`Sprite` runs; `Custom` callbacks own their own.
-- **`drainLayer` flushes touched batches in first-touched order**, not a fixed
-  per-layer sheet order — fine for DOODADS (no cross-sheet overlap). A pass that
-  needs deterministic inter-sheet layering will need explicit ordering.
+- Keep every batched flush inside a `GlStateBracket`. The drain owns this (one
+  bracket per layer, spanning all batch/sprite runs); `Custom` callbacks drop out
+  of the bracket and own their own GL.
+- **The drain is strict-painter now** (submission order = paint order), not
+  first-touched. A migrated system must therefore emit in paint order, and emit
+  each sheet's quads contiguously to batch them (one flush per contiguous run).
+  GROUND relies on spatial coherence (street/grass regions) for long runs.
 - FBO accumulators (decal/lightmap) are still inline — they'll need `Custom`
   (or a dedicated command) when their layers migrate.
-- **In-game-pending validation** for both SHOTS (C) and DOODADS (D) — render
-  changes; confirm in a real battle.
+- **In-game-pending validation**: SHOTS (C), DOODADS (D), and **GROUND (E)** —
+  render changes; confirm in a real battle. GROUND also gates deleting the
+  retained `@Deprecated` fallback in `BattleRenderer`.
