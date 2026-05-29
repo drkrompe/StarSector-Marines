@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
+import com.dillon.starsectormarines.battle.command.compound.CompoundService;
+import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.unit.Unit;
@@ -62,4 +65,25 @@ public interface BattleView {
 
     /** Thread-safe snapshot of active shots, safe to iterate during the parallel replan window. */
     List<ShotEvent> snapshotActiveShots();
+
+    /** Live projectiles in flight. */
+    List<Projectile> getActiveProjectiles();
+
+    /** Resolve a unit id through the registry, or {@code null} if no live unit holds it. */
+    Unit resolveUnit(long id);
+
+    /** Doodad-provided cover at a cell against fire incoming from {@code (fromDx, fromDy)}. */
+    int getDoodadCoverAt(int x, int y, int fromDx, int fromDy);
+
+    /** Doodad-provided cover at a cell for a facing octant. */
+    int getDoodadCoverAtFacing(int x, int y, int facing);
+
+    /** Doodad-provided cover at a cell, omnidirectional. */
+    int getDoodadCoverAt(int x, int y);
+
+    /** Battle-scoped tactical hint map from the map generator (firing-position graph, defense posts). */
+    TacticalMap getTacticalMap();
+
+    /** Compound capture/garrison service — zone-ownership queries. Read-only in the replan window (same returned-handle caveat as {@link #getTacticalScoring}). */
+    CompoundService getCompoundService();
 }

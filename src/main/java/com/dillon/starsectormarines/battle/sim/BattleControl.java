@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 
@@ -41,4 +42,10 @@ public interface BattleControl extends BattleView {
 
     /** Mech fire with explicit accuracy multiplier (LRM indirect-fire path). */
     void fireMechWeapon(Unit shooter, Unit target, MechWeapon weapon, float accuracyMult);
+
+    /** Queue a unit spawn for the serial spawn-flush (drone-hub / reinforcement spawns). */
+    void queueSpawn(Unit u);
+
+    /** Mint a new squad for {@code faction} with an optional {@code leader}; returns the new squad id. */
+    int mintSquad(Faction faction, Unit leader);
 }
