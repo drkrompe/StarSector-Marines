@@ -3,84 +3,102 @@ package com.dillon.starsectormarines.render2d;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
 import java.awt.Color;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 
 /**
- * The engine-side drain: replays a flat list of {@link DrawCommand}s in
- * submission order, turning the deferred command stream into batched GL calls.
+ * The engine-side drain: replays a layer's pooled {@link DrawCommand} buffer in
+ * <strong>strict submission order</strong>, turning the deferred command stream
+ * into batched GL calls. Submission order <em>is</em> paint order — the drain
+ * holds no per-layer config; the collecting system owns the order (and emits each
+ * sheet's quads contiguously so they batch into one flush).
  *
- * <p>A run of consecutive {@link DrawCommand.SheetQuad}s is grouped by sheet,
- * appended to each sheet's {@link QuadBatch} (resolved through the caller-owned
- * {@code batchBySheet} registry), and flushed under one
- * {@link GlStateBracket#textured2D()}; a run of {@link DrawCommand.Sprite}s
- * shares one bracket and renders each via {@code renderAtCenter}; each
- * {@link DrawCommand.Custom} runs standalone (it owns its own GL state).
+ * <p>It coalesces runs: consecutive {@code SHEET_QUAD}s sharing a sheet append to
+ * that sheet's {@link QuadBatch} and flush once; a run of {@code SOLID_RECT}s
+ * fills the shared {@link SolidQuadBatch} and flushes; a run of {@code SPRITE}s
+ * renders each via {@code renderAtCenter}; a {@code CUSTOM} runs standalone (it
+ * owns its own GL state). The batch flush flips when the sheet or command kind
+ * changes, so anything painted later in submission order lands on top.
  *
- * <p>Pure mechanism: this knows nothing about <em>which</em> layers exist or
- * <em>what order</em> they paint in — the caller (game side) owns that and hands
- * over one layer's commands plus the sheet→batch map. The render-side analog of
- * a sim system's stateless tick.
+ * <p>Pure mechanism: knows nothing about which layers exist or their order — the
+ * caller hands one layer's buffer plus the sheet→batch map and the solid batch.
  */
 public final class DrawListRenderer {
 
     private DrawListRenderer() {}
 
     /**
-     * Drain {@code cmds} into GL, resolving {@link DrawCommand.SheetQuad} sheets
-     * through {@code batchBySheet}. See the class doc for the per-command-kind
-     * batching contract.
+     * Drain {@code count} commands from {@code buf} (a pooled backing array; only
+     * indices {@code 0..count} are live). {@code batchBySheet} resolves a
+     * {@code SHEET_QUAD}'s sheet to its {@link QuadBatch}; {@code solidBatch} is
+     * the shared fill batch for {@code SOLID_RECT} runs.
      */
-    public static void drain(List<DrawCommand> cmds, Map<SpriteAPI, QuadBatch> batchBySheet) {
-        int n = cmds.size();
+    public static void drain(DrawCommand[] buf, int count,
+                             Map<SpriteAPI, QuadBatch> batchBySheet, SolidQuadBatch solidBatch) {
         int i = 0;
-        while (i < n) {
-            DrawCommand c = cmds.get(i);
-            if (c instanceof DrawCommand.SheetQuad) {
-                try (GlStateBracket gl = GlStateBracket.textured2D()) {
-                    // First-touched order; cross-sheet doodad overlap doesn't occur,
-                    // so inter-sheet flush order is immaterial.
-                    LinkedHashSet<QuadBatch> touched = new LinkedHashSet<>();
-                    while (i < n && cmds.get(i) instanceof DrawCommand.SheetQuad sq) {
-                        QuadBatch b = batchBySheet.get(sq.sheet());
-                        if (b != null) {
-                            b.append(sq.srcX(), sq.srcY(), sq.srcW(), sq.srcH(),
-                                    sq.cx(), sq.cy(), sq.w(), sq.h(),
-                                    sq.r(), sq.g(), sq.b(), sq.a());
-                            touched.add(b);
+        while (i < count) {
+            DrawCommand c = buf[i];
+            switch (c.kind) {
+                case SHEET_QUAD: {
+                    SpriteAPI sheet = c.sprite;
+                    QuadBatch b = batchBySheet.get(sheet);
+                    try (GlStateBracket gl = GlStateBracket.textured2D()) {
+                        // Same-sheet run: append contiguous SHEET_QUADs of this sheet, then flush once.
+                        while (i < count
+                                && buf[i].kind == DrawCommand.Kind.SHEET_QUAD
+                                && buf[i].sprite == sheet) {
+                            DrawCommand q = buf[i];
+                            if (b != null) {
+                                b.append(q.srcX, q.srcY, q.srcW, q.srcH,
+                                        q.cx, q.cy, q.w, q.h,
+                                        q.r, q.g, q.b, q.a);
+                            }
+                            i++;
                         }
-                        i++;
+                        if (b != null) b.flush();
                     }
-                    for (QuadBatch b : touched) b.flush();
+                    break;
                 }
-            } else if (c instanceof DrawCommand.Sprite) {
-                try (GlStateBracket gl = GlStateBracket.textured2D()) {
-                    while (i < n && cmds.get(i) instanceof DrawCommand.Sprite sp) {
-                        drawSprite(sp);
-                        i++;
+                case SOLID_RECT: {
+                    try (GlStateBracket gl = GlStateBracket.textured2D()) {
+                        while (i < count && buf[i].kind == DrawCommand.Kind.SOLID_RECT) {
+                            DrawCommand q = buf[i];
+                            // cx/cy = (x0,y0), w/h = (x1,y1).
+                            solidBatch.appendRect(q.cx, q.cy, q.w, q.h, q.r, q.g, q.b, q.a);
+                            i++;
+                        }
+                        solidBatch.flush();
                     }
+                    break;
                 }
-            } else if (c instanceof DrawCommand.Custom custom) {
-                custom.draw().run();
-                i++;
-            } else {
-                i++;
+                case SPRITE: {
+                    try (GlStateBracket gl = GlStateBracket.textured2D()) {
+                        while (i < count && buf[i].kind == DrawCommand.Kind.SPRITE) {
+                            drawSprite(buf[i]);
+                            i++;
+                        }
+                    }
+                    break;
+                }
+                case CUSTOM:
+                default:
+                    c.custom.run();
+                    i++;
+                    break;
             }
         }
     }
 
-    private static void drawSprite(DrawCommand.Sprite q) {
-        SpriteAPI sprite = q.sprite();
-        sprite.setSize(q.w(), q.h());
-        sprite.setAngle(q.angleDeg());
-        sprite.setAlphaMult(q.a());
+    private static void drawSprite(DrawCommand q) {
+        SpriteAPI sprite = q.sprite;
+        sprite.setSize(q.w, q.h);
+        sprite.setAngle(q.angleDeg);
+        sprite.setAlphaMult(q.a);
         sprite.setNormalBlend();
         // Avoid a per-quad Color alloc for the common untinted case (all SHOTS
         // projectiles are white); only build a Color when an actual tint is set.
-        sprite.setColor(q.r() == 1f && q.g() == 1f && q.b() == 1f
-                ? Color.WHITE : new Color(q.r(), q.g(), q.b()));
-        sprite.renderAtCenter(q.cx(), q.cy());
+        sprite.setColor(q.r == 1f && q.g == 1f && q.b == 1f
+                ? Color.WHITE : new Color(q.r, q.g, q.b));
+        sprite.renderAtCenter(q.cx, q.cy);
         // Reset rotation so the shared cached sprite carries no angle into other passes.
         sprite.setAngle(0f);
     }

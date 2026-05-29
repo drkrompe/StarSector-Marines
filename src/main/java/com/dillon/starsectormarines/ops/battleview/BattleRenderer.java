@@ -1601,10 +1601,10 @@ public class BattleRenderer {
      * shots — so it must not be gated on {@code shots} being non-empty.
      */
     private void collectShots(List<ShotEvent> shots, float alphaMult) {
-        drawList.add(RenderLayer.SHOTS, new DrawCommand.Custom(() -> renderContrails(shots, alphaMult)));
+        drawList.addCustom(RenderLayer.SHOTS, () -> renderContrails(shots, alphaMult));
         if (shots.isEmpty()) return;
 
-        drawList.add(RenderLayer.SHOTS, new DrawCommand.Custom(() -> drawTracers(shots, alphaMult)));
+        drawList.addCustom(RenderLayer.SHOTS, () -> drawTracers(shots, alphaMult));
 
         for (ShotEvent s : shots) {
             ShuttleSpriteCache cache;
@@ -1645,11 +1645,11 @@ public class BattleRenderer {
             float cellPxLocal = rc.camera.cellPxSize();
             float pxH = visualCells * cellPxLocal;
             float pxW = pxH * cache.aspect;
-            drawList.add(RenderLayer.SHOTS, new DrawCommand.Sprite(
+            drawList.addSprite(RenderLayer.SHOTS,
                     cache.sprite,
                     rc.camera.cellToScreenX(px), rc.camera.cellToScreenY(py),
                     pxW, pxH, bearing,
-                    1f, 1f, 1f, alphaMult));
+                    1f, 1f, 1f, alphaMult);
             boolean engineTrail = s.mechWeapon != null && s.mechWeapon.engineTrail;
             boolean smokeTrail  = s.turretKind != null && s.turretKind.smokeTrail
                     && !kindUsesContrailRibbon(s.turretKind);
@@ -1873,7 +1873,7 @@ public class BattleRenderer {
      * {@link #renderTiledFloorsAndWalls}.
      */
     private void drainLayer(RenderLayer layer) {
-        DrawListRenderer.drain(drawList.commands(layer), batchBySheet);
+        DrawListRenderer.drain(drawList.buffer(layer), drawList.count(layer), batchBySheet, solidBatch);
     }
 
     // ---- main entry point ----------------------------------------------------
