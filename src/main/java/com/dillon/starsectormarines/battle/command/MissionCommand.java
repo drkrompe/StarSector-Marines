@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.command;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
@@ -12,7 +11,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
  * assignment and picks MISSION-priority goals accordingly.
  *
  * <p>Cadence — slower than the per-squad replan loop. Driven by
- * {@link BattleSimulation#COMMANDER_TICK_PERIOD} (2.5s today; tunable as
+ * {@link CommanderService#COMMANDER_TICK_PERIOD} (2.5s today; tunable as
  * playtest exposes pressure points). The sim batches all commanders'
  * {@link #tick(BattleView)} calls into the same slow-tick boundary
  * before the per-squad replan pass, so a squad that replans this tick sees
@@ -45,7 +44,7 @@ public interface MissionCommand {
      * {@link ObjectiveAssignment} onto each squad of {@link #faction()}.
      *
      * <p>Called by {@code BattleSimulation.tick} at the commander cadence
-     * — typically every {@link BattleSimulation#COMMANDER_TICK_PERIOD}
+     * — typically every {@link CommanderService#COMMANDER_TICK_PERIOD}
      * sim-seconds — before the per-squad GOAP replan pass.
      */
     void tick(BattleView sim);
