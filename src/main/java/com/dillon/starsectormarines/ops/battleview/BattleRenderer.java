@@ -101,10 +101,13 @@ public class BattleRenderer {
     /** Window (s) after a unit fires during which we show the weapon-up pose. */
     private static final float WEAPON_UP_TIME = 0.25f;
 
-    /** Sim-seconds the barrel sprite eases forward to its at-rest position after a shot. */
-    private static final float RECOIL_DURATION = 0.12f;
-    /** Peak backward displacement of the barrel sprite, as a fraction of the turret's visual long-axis (cells). */
-    private static final float RECOIL_DISTANCE_FRAC = 0.10f;
+    /**
+     * Sim-seconds the barrel sprite eases forward to its at-rest position after a shot.
+     * Package-visible: shared by the map-turret pass here and {@link ShuttleRenderSystem}.
+     */
+    static final float RECOIL_DURATION = 0.12f;
+    /** Peak backward displacement of the barrel sprite, as a fraction of the turret's visual long-axis (cells). Shared with {@link ShuttleRenderSystem}. */
+    static final float RECOIL_DISTANCE_FRAC = 0.10f;
 
     /** Turret-pad fill (shared road color). The tile/crosswalk/courtyard fills moved to {@code GroundRenderSystem}. */
     private static final Color ROAD_FILL      = new Color(TileManifest.ROAD_FILL_RGB);
@@ -143,6 +146,9 @@ public class BattleRenderer {
 
     /** CONVOY layer — convoy trucks + turrets, emitted as rotated batched sheet-quads. */
     private final ConvoyRenderSystem convoySystem;
+
+    /** SHUTTLES layer — aircraft hulls + turrets (SPRITE) + engine FX (Custom). */
+    private final ShuttleRenderSystem shuttleSystem;
 
     /**
      * Per-sheet quad batchers. Lazily constructed in {@link #buildTileBatches()}.
@@ -212,6 +218,7 @@ public class BattleRenderer {
         this.groundSystem = new GroundRenderSystem(sprites);
         this.vehicleSystem = new VehicleRenderSystem(sprites);
         this.convoySystem = new ConvoyRenderSystem(sprites);
+        this.shuttleSystem = new ShuttleRenderSystem(sprites);
     }
 
     // ---- lifecycle -----------------------------------------------------------
@@ -919,6 +926,14 @@ public class BattleRenderer {
                 new java.awt.Color(0.6f, 0.6f, 0.6f, 1f), alphaMult * 0.7f);
     }
 
+    /**
+     * @deprecated Superseded by {@link ShuttleRenderSystem} (SHUTTLES layer:
+     * hull/turret {@code SPRITE}s + engine-FX {@code Custom}). Retained
+     * <em>uncalled</em> with its {@code renderShuttleEngines}/
+     * {@code renderShuttleTurrets} helpers as a one-line-rewire rollback until
+     * confirmed in a live battle, then deleted.
+     */
+    @Deprecated
     private void renderShuttles(List<Shuttle> shuttles, float alphaMult) {
         if (shuttles.isEmpty()) return;
         for (Shuttle s : shuttles) {
@@ -1417,7 +1432,10 @@ public class BattleRenderer {
         drainLayer(RenderLayer.CONVOY);
         if (DEBUG_RENDER_DOCKING_PATHS) renderConvoyDockingPaths(convoy, rc.alphaMult);
         renderSelectedVehicleDebug(convoy, rc.alphaMult);
-        renderShuttles(sim.getShuttles(), rc.alphaMult);
+        // SHUTTLES layer — aircraft hulls + turrets (SPRITE) + engine FX (Custom)
+        // via ShuttleRenderSystem.
+        shuttleSystem.collect(rc, drawList);
+        drainLayer(RenderLayer.SHUTTLES);
         // SHOTS layer — command-driven (Story C): collect into the draw list,
         // then drain it through the batch/flush path instead of drawing inline.
         collectShots(sim.getActiveShots(), rc.alphaMult);
