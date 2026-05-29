@@ -1,8 +1,10 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 
@@ -54,4 +56,10 @@ public interface BattleView {
 
     /** Tactical scoring service — firing-position / vantage queries. Read-only in the replan window. */
     TacticalScoring getTacticalScoring();
+
+    /** Per-tick spatial index for radius/proximity unit queries. */
+    UnitSpatialIndex getUnitIndex();
+
+    /** Thread-safe snapshot of active shots, safe to iterate during the parallel replan window. */
+    List<ShotEvent> snapshotActiveShots();
 }

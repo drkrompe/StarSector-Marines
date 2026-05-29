@@ -1,5 +1,5 @@
 package com.dillon.starsectormarines.battle.decision.goap.world;
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
@@ -18,7 +18,7 @@ import java.util.Map;
 
 /**
  * Builds a {@link WorldState} snapshot for one squad from current
- * {@link BattleSimulation} state. Called by the squad-level replan pass
+ * {@link BattleView} state. Called by the squad-level replan pass
  * — runs in parallel across squads, read-only against the sim.
  *
  * <p>The registry-of-evaluators approach (one {@link PredicateEvaluator}
@@ -81,7 +81,7 @@ public final class WorldStateBuilder {
      * downstream {@code satisfies} / heuristic math doesn't conflate "false"
      * with "unconstrained."
      */
-    public static WorldState build(Squad squad, BattleSimulation sim) {
+    public static WorldState build(Squad squad, BattleView sim) {
         WorldState state = WorldState.EMPTY;
         for (Map.Entry<Predicate, PredicateEvaluator> e : EVALUATORS.entrySet()) {
             state = state.with(e.getKey(), e.getValue().evaluate(squad, sim));
@@ -91,7 +91,7 @@ public final class WorldStateBuilder {
 
     // --- Stage 1 evaluators ---------------------------------------------
 
-    private static boolean evalHasTarget(Squad squad, BattleSimulation sim) {
+    private static boolean evalHasTarget(Squad squad, BattleView sim) {
         for (Unit u : sim.getUnits()) {
             if (!u.isAlive()) continue;
             if (!u.type.combatant) continue;
@@ -123,7 +123,7 @@ public final class WorldStateBuilder {
      */
     private static final float HAS_LOS_THREAT_SET_RADIUS = 20f;
 
-    private static boolean evalHasLosToTarget(Squad squad, BattleSimulation sim) {
+    private static boolean evalHasLosToTarget(Squad squad, BattleView sim) {
         if (squad.lastSeenEnemyX < 0 || squad.lastSeenEnemyY < 0) return false;
 
         NavigationGrid grid = sim.getGrid();
@@ -154,7 +154,7 @@ public final class WorldStateBuilder {
         return false;
     }
 
-    private static boolean evalInRangeOfTarget(Squad squad, BattleSimulation sim) {
+    private static boolean evalInRangeOfTarget(Squad squad, BattleView sim) {
         List<Unit> units = sim.getUnits();
         for (Unit member : units) {
             if (!member.isAlive() || member.squadId != squad.id) continue;
@@ -192,7 +192,7 @@ public final class WorldStateBuilder {
      * (Story C bounding overwatch is the next consumer); the basic engage
      * loop doesn't gate on it — the cooldown gate happens inside the action.
      */
-    private static boolean evalCanReposition(Squad squad, BattleSimulation sim) {
+    private static boolean evalCanReposition(Squad squad, BattleView sim) {
         for (Unit u : sim.getUnits()) {
             if (!u.isAlive() || u.squadId != squad.id) continue;
             if (u.getRepositionCooldown() <= 0f) return true;
@@ -200,7 +200,7 @@ public final class WorldStateBuilder {
         return false;
     }
 
-    private static boolean evalWithinCohesionRadius(Squad squad, BattleSimulation sim) {
+    private static boolean evalWithinCohesionRadius(Squad squad, BattleView sim) {
         if (squad.aliveMembers <= 1) return true;
         float r2 = InfantryCohesion.COHESION_RADIUS * InfantryCohesion.COHESION_RADIUS;
         for (Unit u : sim.getUnits()) {
@@ -229,7 +229,7 @@ public final class WorldStateBuilder {
      * means alive, combatant, opposite faction — same rules every other
      * predicate uses.
      */
-    private static boolean evalEnemyInPortalCell(Squad squad, BattleSimulation sim) {
+    private static boolean evalEnemyInPortalCell(Squad squad, BattleView sim) {
         int portalId = squad.chokePointPortalId;
         if (portalId < 0) return false;
         Portal p = sim.getZoneGraph().portalById(portalId);
@@ -273,7 +273,7 @@ public final class WorldStateBuilder {
      *       backstop above has already fired).</li>
      * </ul>
      */
-    private static boolean evalEnemyInKillZone(Squad squad, BattleSimulation sim) {
+    private static boolean evalEnemyInKillZone(Squad squad, BattleView sim) {
         if (!squad.holdsFireUntilKillZone) return true;
         if (squad.timeUnderSustainedFire >= SquadAlertSystem.KILL_ZONE_AMBUSH_BLOWN_SECONDS) return true;
         if (squad.killZoneLosTicks < SquadAlertSystem.KILL_ZONE_LOS_TICKS_THRESHOLD) return false;
@@ -310,7 +310,7 @@ public final class WorldStateBuilder {
      * but the shot grazed past a corner)" from "we're standing in the firing
      * lane."
      */
-    private static boolean evalUnderFireAtLos(Squad squad, BattleSimulation sim) {
+    private static boolean evalUnderFireAtLos(Squad squad, BattleView sim) {
         // Snapshot — runs during parallel UPDATE_UNITS dispatch, can't iterate
         // the live activeShots list because concurrent postShot() appends will
         // CME the iterator.
