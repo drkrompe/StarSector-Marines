@@ -127,6 +127,14 @@ the collect-all/drain-all loop as they migrate).
 
 - Pass order in `renderWorld` is semantic — `RenderLayer` is the verbatim list.
   Emit a migrated pass into its existing layer; don't re-derive order.
+- **The drain sequence is NOT `RenderLayer` ordinal order.** CONVOY/SHUTTLES drain
+  *late* — after the lower-ordinal UNITS/ROOFS/etc. inline passes — because those
+  inline passes still sit between them in paint order. The endgame drain-all loop
+  must preserve the per-slot interleave; do **not** "simplify" it to iterate
+  `worldSystems` or sort by `layer().ordinal()` (that would silently float
+  CONVOY/SHUTTLES ahead of the unmigrated inline passes). `layer()` is metadata
+  for the eventual fold-in, not a drain-order source — the drains pass explicit
+  `RenderLayer.X` literals on purpose.
 - Keep every batched flush inside a `GlStateBracket`. The drain owns this (one
   bracket per layer, spanning all batch/sprite runs); `Custom` callbacks drop out
   of the bracket and own their own GL.
