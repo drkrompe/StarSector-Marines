@@ -73,9 +73,19 @@ campaign work.)
 > and the cosmetic leftover GOAP callers (`replanIfNeeded` trio,
 > `SquadReplanSystem.tick`, `DroneSpawner.tryLaunch`) still take
 > `BattleSimulation` and upcast — narrowing them is optional polish, not
-> coupling reduction. **Next real work is elsewhere** — story 5 Slice 2
-> (map generation) is the remaining optional stretch in this migration; the
-> battle-tier ECS arc is otherwise at its terminal state.
+> coupling reduction.
+>
+> **NEXT PHASE — the component model** (seeded 2026-05-29, not yet started).
+> The SoA-peel + facade work built ECS's storage/transform half; the
+> identity/composition half remains. See [`component-model.md`](component-model.md)
+> (north star) + its two stories. **Resume at
+> [`collapse-unit-handle`](stories/collapse-unit-handle.md)** — hollow `Unit`
+> to an id handle, retire the `local*` duality — then
+> [`component-grouping`](stories/component-grouping.md) — named component
+> structs; optional capabilities as *presence*, not nullable fields. **Forcing
+> function:** the imminent vehicle HP / ground+air-body / mounted-weapon work
+> — model those as components, not more nullable `Unit` fields. Story 5 Slice
+> 2 (map generation) is a separate optional stretch.
 
 Phase 3's original three (move-render, tactical, secondary-weapon) all
 shipped — see [`complete/phase3-soa-promotions.md`](complete/phase3-soa-promotions.md).

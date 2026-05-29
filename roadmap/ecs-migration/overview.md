@@ -92,6 +92,25 @@ shim — at which point a rename to `Entity` documents what it has *become*.
 Until then the lever is data-model work (the Services-own-state peel,
 perf-gated on hot loops like `UnitUpdateSystem`), not naming.
 
+## Next phase: the component model
+
+The SoA-peel and the [facade-decoupling](stories/drop-sim-facade-delegators.md)
+work built the **storage + transform** half of ECS. The next phase closes
+the **identity + composition** gap — see [`component-model.md`](component-model.md)
+for the north star (engine-vs-game framing, the Artemis gap, the
+Valhalla-aligned target) and its two seeded stories:
+
+- [`collapse-unit-handle`](stories/collapse-unit-handle.md) — finish
+  hollowing `Unit` to an id handle; retire the `local*` duality; unblock
+  the `Entity` rename above.
+- [`component-grouping`](stories/component-grouping.md) — group SoA columns
+  into named component structs (Valhalla-aligned); model optional
+  capabilities (the incoming **vehicle HP / ground+air bodies / mounted
+  weapons**) as component *presence* over nullable-field if/else.
+
+These are pulled by the imminent vehicle-entity work — that's the forcing
+function that makes the optional-capability explosion concrete.
+
 ## Memory entries to read alongside
 
 - [`battle_services_systems`](../../memory) — Service/System
