@@ -28,6 +28,11 @@ public final class VehicleRenderSystem implements RenderSystem {
     }
 
     @Override
+    public RenderLayer layer() {
+        return RenderLayer.VEHICLES;
+    }
+
+    @Override
     public void collect(RenderContext ctx, DrawList out) {
         List<MapVehicle> vehicles = ctx.sim.getVehicles();
         if (vehicles.isEmpty()) return;

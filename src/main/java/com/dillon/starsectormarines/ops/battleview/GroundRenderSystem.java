@@ -64,6 +64,11 @@ public final class GroundRenderSystem implements RenderSystem {
     }
 
     @Override
+    public RenderLayer layer() {
+        return RenderLayer.GROUND;
+    }
+
+    @Override
     public void collect(RenderContext ctx, DrawList out) {
         this.out = out;
         this.cam = ctx.camera;

@@ -33,6 +33,11 @@ public final class ShuttleRenderSystem implements RenderSystem {
     }
 
     @Override
+    public RenderLayer layer() {
+        return RenderLayer.SHUTTLES;
+    }
+
+    @Override
     public void collect(RenderContext ctx, DrawList out) {
         List<Shuttle> shuttles = ctx.sim.getShuttles();
         if (shuttles.isEmpty()) return;

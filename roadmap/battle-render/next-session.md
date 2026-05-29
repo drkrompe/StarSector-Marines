@@ -68,12 +68,16 @@ roof altitude (paint above ROOFS); likely rotated sprites — can reuse the
 SPRITE path or the Story-G rotated-sheet-quad path depending on whether they're
 whole sprites or sheet sub-rects.
 
-**Structural: the `List<RenderSystem>` registry is now overdue.** Five systems
-exist (doodad/ground/vehicle/convoy/shuttle) but `renderWorld` still hand-wires
-each `collect` + `drainLayer`. Per the overview's "Final", introduce an ordered
-`List<RenderSystem>` (each system knowing its layer) and collapse the migrated
-passes toward a systems-loop + drain. Worth doing before/alongside DRONES so the
-loop shape is in place as the last passes land.
+**Structural: the `List<RenderSystem>` registry shipped.** `RenderSystem` now
+declares `layer()`; `BattleRenderer` holds an ordered `List<RenderSystem>`
+(ground/vehicle/doodad/convoy/shuttle) instead of five named fields. `renderWorld`
+split into a **collect-all phase** (one registry loop — collect is layer-tagged +
+GL-free, so order among collects is immaterial) then the existing **drain
+sequence**, where each migrated layer's drain is interleaved with the not-yet-
+migrated inline passes at their paint-order slots. Behavior-identical (no GL/paint
+change). The endgame: as each inline pass migrates it joins the list and its
+bespoke drain slot folds into a drain-all loop, leaving collect-all → drain-all.
+See [`complete/story-registry-consolidation.md`](complete/story-registry-consolidation.md).
 
 **Story E shipped — what landed:**
 - `DrawCommand.SolidRect` + the pooled, mutable tagged command buffer
@@ -112,9 +116,12 @@ DOODADS)~~ ✅ → ~~engine/game package split (structural foundation)~~ ✅ →
 ~~E (GROUND → GroundRenderSystem; verified, fallback deleted)~~ ✅ →
 ~~F (VEHICLES → VehicleRenderSystem; verified, fallback deleted)~~ ✅ →
 ~~G (CONVOY → ConvoyRenderSystem + rotated SHEET_QUAD; verified, fallback deleted)~~ ✅ →
-~~H (SHUTTLES → ShuttleRenderSystem; SPRITE + Custom; in-game-verify pending)~~ ✅ →
-I…N (DRONES, then UNITS; + RenderSystem registry) →
-Final (collapse `render()` to systems-loop + drain).
+~~H (SHUTTLES → ShuttleRenderSystem; SPRITE + Custom; verified, fallback deleted)~~ ✅ →
+~~RenderSystem registry (ordered `List<RenderSystem>` + `layer()`; collect-all
+phase split out)~~ ✅ →
+I…N (DRONES, then UNITS) →
+Final (collapse `render()` to systems-loop + drain — fold inline passes into
+the collect-all/drain-all loop as they migrate).
 
 ## Watch-outs
 

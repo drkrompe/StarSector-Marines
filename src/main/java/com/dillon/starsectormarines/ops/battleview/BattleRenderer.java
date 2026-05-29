@@ -134,20 +134,16 @@ public class BattleRenderer {
      */
     private final java.util.Map<SpriteAPI, QuadBatch> batchBySheet = new java.util.IdentityHashMap<>();
 
-    /** Story D — first pass migrated to a {@link RenderSystem}; emits the DOODADS layer. */
-    private final DoodadRenderSystem doodadSystem;
-
-    /** GROUND layer — tiled floor/wall terrain, emitted as pooled per-tile commands. */
-    private final GroundRenderSystem groundSystem;
-
-    /** VEHICLES layer — parked map vehicles, emitted as one batched sheet-quad each. */
-    private final VehicleRenderSystem vehicleSystem;
-
-    /** CONVOY layer — convoy trucks + turrets, emitted as rotated batched sheet-quads. */
-    private final ConvoyRenderSystem convoySystem;
-
-    /** SHUTTLES layer — aircraft hulls + turrets (SPRITE) + engine FX (Custom). */
-    private final ShuttleRenderSystem shuttleSystem;
+    /**
+     * The migrated world-render producers, in paint order. {@link #renderWorld}
+     * collects every system into {@link #drawList} up front (each tags its own
+     * {@link RenderSystem#layer()}, so collect order is immaterial), then drains
+     * each layer in {@link RenderLayer} order — interleaving the not-yet-migrated
+     * inline passes at their layer slots. As an inline pass migrates it joins this
+     * list and its bespoke drain slot folds into the layer drain sequence; the
+     * endgame is collect-all then drain-all with no inline passes left.
+     */
+    private final List<RenderSystem> worldSystems;
 
     /**
      * Per-sheet quad batchers. Lazily constructed in {@link #buildTileBatches()}.
@@ -213,11 +209,12 @@ public class BattleRenderer {
 
     public BattleRenderer(BattleSprites sprites) {
         this.sprites = sprites;
-        this.doodadSystem = new DoodadRenderSystem(sprites);
-        this.groundSystem = new GroundRenderSystem(sprites);
-        this.vehicleSystem = new VehicleRenderSystem(sprites);
-        this.convoySystem = new ConvoyRenderSystem(sprites);
-        this.shuttleSystem = new ShuttleRenderSystem(sprites);
+        this.worldSystems = List.of(
+                new GroundRenderSystem(sprites),
+                new VehicleRenderSystem(sprites),
+                new DoodadRenderSystem(sprites),
+                new ConvoyRenderSystem(sprites),
+                new ShuttleRenderSystem(sprites));
     }
 
     // ---- lifecycle -----------------------------------------------------------
@@ -1298,9 +1295,15 @@ public class BattleRenderer {
         this.rc = rc;
         drawList.clear();
         BattleSimulation sim = rc.sim;
+        // Collect phase — every migrated system appends into its own layer buffer.
+        // Order is immaterial (each command is layer-tagged + GL-free); the drains
+        // below replay layers in paint order, interleaving the inline passes that
+        // haven't migrated yet.
+        for (RenderSystem system : worldSystems) {
+            system.collect(rc, drawList);
+        }
         // GROUND layer — tiled floor/wall terrain via GroundRenderSystem (pooled
         // per-tile commands), drained through the strict-painter batch path.
-        groundSystem.collect(rc, drawList);
         drainLayer(RenderLayer.GROUND);
         if (rc.debugZonesVisible) renderZoneOverlay(sim, rc.alphaMult);
         // Decals sit between the floor pass and vehicles so parked trucks
@@ -1308,11 +1311,9 @@ public class BattleRenderer {
         renderDecals(sim, rc.alphaMult);
         // VEHICLES layer — parked map vehicles via VehicleRenderSystem, one
         // batched sheet-quad each (drained through the strict-painter path).
-        vehicleSystem.collect(rc, drawList);
         drainLayer(RenderLayer.VEHICLES);
         // DOODADS layer — command-driven via DoodadRenderSystem (Story D): the
         // first sheet-batched pass routed through the draw list.
-        doodadSystem.collect(rc, drawList);
         drainLayer(RenderLayer.DOODADS);
         // Debug cell highlights — published by HUD panels (plan-step cells,
         // selected squad members, captain). Paints above ground decals/
@@ -1340,13 +1341,11 @@ public class BattleRenderer {
         // batched sheet-quads), just under shuttles. The debug overlays the old
         // pass dispatched are own-GL line passes and run inline after the drain.
         java.util.List<com.dillon.starsectormarines.battle.vehicle.Vehicle> convoy = sim.getConvoyVehicles();
-        convoySystem.collect(rc, drawList);
         drainLayer(RenderLayer.CONVOY);
         if (DEBUG_RENDER_DOCKING_PATHS) renderConvoyDockingPaths(convoy, rc.alphaMult);
         renderSelectedVehicleDebug(convoy, rc.alphaMult);
         // SHUTTLES layer — aircraft hulls + turrets (SPRITE) + engine FX (Custom)
         // via ShuttleRenderSystem.
-        shuttleSystem.collect(rc, drawList);
         drainLayer(RenderLayer.SHUTTLES);
         // SHOTS layer — command-driven (Story C): collect into the draw list,
         // then drain it through the batch/flush path instead of drawing inline.

@@ -26,6 +26,11 @@ public final class DoodadRenderSystem implements RenderSystem {
     }
 
     @Override
+    public RenderLayer layer() {
+        return RenderLayer.DOODADS;
+    }
+
+    @Override
     public void collect(RenderContext ctx, DrawList out) {
         SpriteAPI urban = sprites.tileSheet();
         if (urban == null) return;

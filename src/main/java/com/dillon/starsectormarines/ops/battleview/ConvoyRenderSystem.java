@@ -33,6 +33,11 @@ public final class ConvoyRenderSystem implements RenderSystem {
     }
 
     @Override
+    public RenderLayer layer() {
+        return RenderLayer.CONVOY;
+    }
+
+    @Override
     public void collect(RenderContext ctx, DrawList out) {
         List<Vehicle> convoy = ctx.sim.getConvoyVehicles();
         if (convoy.isEmpty()) return;

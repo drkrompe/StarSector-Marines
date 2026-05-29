@@ -21,4 +21,11 @@ public interface RenderSystem {
 
     /** Read the frame's {@link RenderContext} and append commands into {@code out}. */
     void collect(RenderContext ctx, DrawList out);
+
+    /**
+     * The {@link RenderLayer} this system feeds. Lets {@link BattleRenderer} hold
+     * an ordered registry and drain a system's layer without re-stating the layer
+     * at the call site (the system is the single source of truth for its layer).
+     */
+    RenderLayer layer();
 }
