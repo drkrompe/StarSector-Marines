@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.infantry;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
@@ -52,7 +51,7 @@ public final class CordonForPlant implements Goal {
     }
 
     @Override
-    public float relevance(WorldState state, Squad squad, BattleSimulation sim) {
+    public float relevance(WorldState state, Squad squad, BattleView sim) {
         int planterZone = findPlanterZone(squad, sim);
         if (planterZone < 0) return 0f;
         int squadZone = ZoneQueries.squadCurrentZone(squad, sim);
@@ -63,12 +62,12 @@ public final class CordonForPlant implements Goal {
     }
 
     @Override
-    public WorldState desiredState(Squad squad, BattleSimulation sim) {
+    public WorldState desiredState(Squad squad, BattleView sim) {
         return WorldState.EMPTY;
     }
 
     @Override
-    public SquadPlan customPlan(Squad squad, BattleSimulation sim) {
+    public SquadPlan customPlan(Squad squad, BattleView sim) {
         ChargeSiteObjective charge = findActiveChargeObjective(squad, sim);
         if (charge == null) return null;
         int planterZone = sim.getZoneGraph().zoneIdAt(charge.cellX(), charge.cellY());

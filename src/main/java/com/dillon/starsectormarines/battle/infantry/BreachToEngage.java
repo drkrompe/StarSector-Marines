@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.infantry;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
@@ -80,7 +79,7 @@ public final class BreachToEngage implements Goal {
     @Override public Priority priority() { return Priority.ENGAGEMENT; }
 
     @Override
-    public float relevance(WorldState state, Squad squad, BattleSimulation sim) {
+    public float relevance(WorldState state, Squad squad, BattleView sim) {
         if (squad.holdsFireUntilKillZone) return 0f;
         if (squad.moraleBroken) return 0f;
         int squadZone = ZoneQueries.squadCurrentZone(squad, sim);
@@ -98,7 +97,7 @@ public final class BreachToEngage implements Goal {
     }
 
     @Override
-    public WorldState desiredState(Squad squad, BattleSimulation sim) {
+    public WorldState desiredState(Squad squad, BattleView sim) {
         // Diagnostic only — custom-plan path bypasses Planner.plan. No
         // predicate captures "we're in the same zone as the threat" today;
         // leaving empty so the HUD shows the goal name without a misleading
@@ -107,7 +106,7 @@ public final class BreachToEngage implements Goal {
     }
 
     @Override
-    public SquadPlan customPlan(Squad squad, BattleSimulation sim) {
+    public SquadPlan customPlan(Squad squad, BattleView sim) {
         int squadZone = ZoneQueries.squadCurrentZone(squad, sim);
         Unit target = effectiveTarget(squad, sim);
         if (target == null || squadZone < 0) return null;

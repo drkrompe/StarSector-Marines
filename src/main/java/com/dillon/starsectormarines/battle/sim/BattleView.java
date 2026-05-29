@@ -63,6 +63,9 @@ public interface BattleView {
     /** Per-tick spatial index for radius/proximity unit queries. */
     UnitSpatialIndex getUnitIndex();
 
+    /** Monotonic tick counter, for time-parametrized AI motion (drone orbit phase, etc.). */
+    int getSimTickIndex();
+
     /** Thread-safe snapshot of active shots, safe to iterate during the parallel replan window. */
     List<ShotEvent> snapshotActiveShots();
 

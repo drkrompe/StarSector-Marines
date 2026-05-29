@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.mech;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
@@ -47,7 +47,7 @@ public final class OverwatchKillZoneGoal implements Goal {
     @Override public Priority priority() { return Priority.MISSION; }
 
     @Override
-    public float relevance(WorldState state, Squad squad, BattleSimulation sim) {
+    public float relevance(WorldState state, Squad squad, BattleView sim) {
         // Yield to SurviveContact when the squad is morale-broken. Same
         // carve-out shape as {@link ClearAssignedZoneGoal} — a role-driven
         // hold is a tactical hint, not a unit-level objective, and a broken
@@ -64,12 +64,12 @@ public final class OverwatchKillZoneGoal implements Goal {
     }
 
     @Override
-    public WorldState desiredState(Squad squad, BattleSimulation sim) {
+    public WorldState desiredState(Squad squad, BattleView sim) {
         return DESIRED;
     }
 
     @Override
-    public SquadPlan customPlan(Squad squad, BattleSimulation sim) {
+    public SquadPlan customPlan(Squad squad, BattleView sim) {
         return new SquadPlan(List.of(new SquadPlan.Step(OverwatchKillZone.INSTANCE)));
     }
 }

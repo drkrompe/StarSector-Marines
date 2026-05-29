@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.decision.goap;
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleControl;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.unit.Unit;
@@ -15,16 +16,16 @@ import java.util.List;
  * step and the assigned {@link Unit}'s fields, never on the action.
  *
  * <p>The {@link #preconditions()} / {@link #effects()} pair is what the
- * planner reasons about; {@link #cost(WorldState, Squad, BattleSimulation)}
+ * planner reasons about; {@link #cost(WorldState, Squad, BattleView)}
  * tunes which equally-valid plans the search prefers; {@link #execute}
  * runs one tick of the action against the sim during the serial
  * unit-update pass.
  *
- * <p><b>Thread-safety contract:</b> {@link #preconditions()},
- * {@link #effects()}, and {@link #cost} run during the parallel replan
- * window — they must be read-only against {@link BattleSimulation} state.
- * {@link #execute} runs only in the serial unit-update pass and is free
- * to mutate the sim.
+ * <p><b>Thread-safety contract</b> (now encoded in the parameter types):
+ * {@link #preconditions()}, {@link #effects()}, and {@link #cost} run during
+ * the parallel replan window — they take a read-only {@link BattleView}.
+ * {@link #execute} runs only in the serial unit-update pass and takes a
+ * {@link BattleControl}, free to mutate the sim.
  */
 public interface Action {
 
@@ -55,10 +56,10 @@ public interface Action {
      * firing-position move that finds high-cover cells nearby). Stage 1
      * implementations return a constant.
      *
-     * <p>Called during the parallel replan window — must be read-only against
-     * {@code sim}.
+     * <p>Called during the parallel replan window — the {@link BattleView}
+     * type makes it a compile error to mutate the sim here.
      */
-    float cost(WorldState state, Squad squad, BattleSimulation sim);
+    float cost(WorldState state, Squad squad, BattleView sim);
 
     /**
      * How many squad members this action consumes from the squad pool when
@@ -91,7 +92,7 @@ public interface Action {
      * {@code squad.aliveMembers} is fine; the assigner only fills what's
      * available.
      */
-    default List<RoleAssigner.Slot<Unit>> roles(Squad squad, BattleSimulation sim) {
+    default List<RoleAssigner.Slot<Unit>> roles(Squad squad, BattleView sim) {
         return List.of(new RoleAssigner.Slot<>("any", squad.aliveMembers, c -> 0f));
     }
 
@@ -104,7 +105,7 @@ public interface Action {
      *   <li>{@link ActionStatus#FAILURE} — invalidate the plan, trigger replan.</li>
      * </ul>
      */
-    ActionStatus execute(Unit member, Squad squad, BattleSimulation sim);
+    ActionStatus execute(Unit member, Squad squad, BattleControl sim);
 
     /**
      * Cells this action operates on, for the debug-overlay highlight tool. The
@@ -119,7 +120,7 @@ public interface Action {
      * stays the same in case a future caller invokes it during the parallel
      * replan window.
      */
-    default List<int[]> highlightCells(Squad squad, BattleSimulation sim) {
+    default List<int[]> highlightCells(Squad squad, BattleView sim) {
         return List.of();
     }
 }

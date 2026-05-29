@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleControl;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
@@ -46,11 +47,11 @@ public final class FlankApproach implements Action {
     @Override public String name() { return "FlankApproach"; }
     @Override public WorldState preconditions() { return WorldState.EMPTY; }
     @Override public WorldState effects() { return WorldState.EMPTY; }
-    @Override public float cost(WorldState s, Squad squad, BattleSimulation sim) { return 1f; }
+    @Override public float cost(WorldState s, Squad squad, BattleView sim) { return 1f; }
     @Override public int requiredMembers() { return 1; }
 
     @Override
-    public ActionStatus execute(Unit member, Squad squad, BattleSimulation sim) {
+    public ActionStatus execute(Unit member, Squad squad, BattleControl sim) {
         float dx = squad.centroidX - waypointX;
         float dy = squad.centroidY - waypointY;
         if (Math.sqrt(dx * dx + dy * dy) <= ARRIVAL_RADIUS) {
@@ -72,7 +73,7 @@ public final class FlankApproach implements Action {
     }
 
     @Override
-    public List<int[]> highlightCells(Squad squad, BattleSimulation sim) {
+    public List<int[]> highlightCells(Squad squad, BattleView sim) {
         return List.of(new int[]{waypointX, waypointY});
     }
 }

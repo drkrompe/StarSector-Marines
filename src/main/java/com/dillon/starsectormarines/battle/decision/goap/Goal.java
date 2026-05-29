@@ -1,5 +1,5 @@
 package com.dillon.starsectormarines.battle.decision.goap;
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 
@@ -19,8 +19,7 @@ import java.util.List;
  *
  * <p>Stateless singletons, same thread-safety contract as {@link Action}:
  * {@link #relevance}, {@link #priority}, and {@link #desiredState} run
- * during the parallel replan window and must be read-only against
- * {@link BattleSimulation}.
+ * during the parallel replan window and take a read-only {@link BattleView}.
  */
 public interface Goal {
 
@@ -54,7 +53,7 @@ public interface Goal {
      * falls back to it when no higher-priority goal has a reachable plan.
      * Zero or negative values disable the goal for this squad-tick.
      */
-    float relevance(WorldState state, Squad squad, BattleSimulation sim);
+    float relevance(WorldState state, Squad squad, BattleView sim);
 
     /**
      * Which {@link Priority} bucket this goal lives in. Defaults to
@@ -70,7 +69,7 @@ public interface Goal {
      * a tiny state setting only the goal-marker predicates (e.g.
      * {@code ENEMY_DAMAGED = true}). Predicates not specified are unconstrained.
      */
-    WorldState desiredState(Squad squad, BattleSimulation sim);
+    WorldState desiredState(Squad squad, BattleView sim);
 
     /**
      * Escape hatch for goals that synthesize their plan directly rather than
@@ -90,7 +89,7 @@ public interface Goal {
      * <p>Called during the parallel replan window — must be read-only against
      * {@code sim} like the rest of the goal API.
      */
-    default SquadPlan customPlan(Squad squad, BattleSimulation sim) {
+    default SquadPlan customPlan(Squad squad, BattleView sim) {
         return null;
     }
 
@@ -113,7 +112,7 @@ public interface Goal {
      * (strictly-greater comparison means earlier equal-relevance entries
      * are kept; in practice deterministic given the input list order).
      */
-    static Goal pickMostRelevant(List<Goal> goals, WorldState state, Squad squad, BattleSimulation sim) {
+    static Goal pickMostRelevant(List<Goal> goals, WorldState state, Squad squad, BattleView sim) {
         Priority[] buckets = Priority.values();
         Goal[] bucketBest = new Goal[buckets.length];
         float[] bucketBestRelevance = new float[buckets.length];

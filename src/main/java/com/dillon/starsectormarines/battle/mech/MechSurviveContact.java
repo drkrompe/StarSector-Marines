@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.mech;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
@@ -42,17 +42,17 @@ public final class MechSurviveContact implements Goal {
     @Override public Priority priority() { return Priority.SURVIVAL; }
 
     @Override
-    public float relevance(WorldState state, Squad squad, BattleSimulation sim) {
+    public float relevance(WorldState state, Squad squad, BattleView sim) {
         return state.get(Predicate.MORALE_BROKEN) ? 1.0f : 0f;
     }
 
     @Override
-    public WorldState desiredState(Squad squad, BattleSimulation sim) {
+    public WorldState desiredState(Squad squad, BattleView sim) {
         return WorldState.EMPTY.with(Predicate.MORALE_BROKEN, false);
     }
 
     @Override
-    public SquadPlan customPlan(Squad squad, BattleSimulation sim) {
+    public SquadPlan customPlan(Squad squad, BattleView sim) {
         return new SquadPlan(List.of(new SquadPlan.Step(MechBreakContact.INSTANCE)));
     }
 }

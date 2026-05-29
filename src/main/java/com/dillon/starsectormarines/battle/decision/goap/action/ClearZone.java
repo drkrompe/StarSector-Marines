@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.decision.goap.action;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -44,7 +44,7 @@ public final class ClearZone extends AbstractZoneAction {
     @Override public String name() { return "ClearZone[" + targetZoneId + "]"; }
 
     @Override
-    public ActionStatus execute(Unit member, Squad squad, BattleSimulation sim) {
+    public ActionStatus execute(Unit member, Squad squad, BattleControl sim) {
         // Quick exit when the zone reads clear for this squad's enemy faction.
         // Checked from anywhere (global predicate) so an all-outside squad —
         // e.g. the lone in-zone member died — still advances the plan rather

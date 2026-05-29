@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -55,11 +55,11 @@ public final class GarrisonCordon implements Action {
     @Override public String name() { return "GarrisonCordon[" + posts.size() + "]"; }
     @Override public WorldState preconditions() { return WorldState.EMPTY; }
     @Override public WorldState effects() { return WorldState.EMPTY; }
-    @Override public float cost(WorldState s, Squad squad, BattleSimulation sim) { return 1f; }
+    @Override public float cost(WorldState s, Squad squad, BattleView sim) { return 1f; }
     @Override public int requiredMembers() { return Math.max(1, posts.size()); }
 
     @Override
-    public java.util.List<int[]> highlightCells(Squad squad, BattleSimulation sim) {
+    public java.util.List<int[]> highlightCells(Squad squad, BattleView sim) {
         java.util.List<int[]> out = new java.util.ArrayList<>(posts.size());
         for (HoldPortalCordon.GuardPost p : posts) out.add(new int[]{p.cellX, p.cellY});
         return out;
@@ -72,7 +72,7 @@ public final class GarrisonCordon implements Action {
      * (no planter slot to compete with).
      */
     @Override
-    public List<RoleAssigner.Slot<Unit>> roles(Squad squad, BattleSimulation sim) {
+    public List<RoleAssigner.Slot<Unit>> roles(Squad squad, BattleView sim) {
         List<RoleAssigner.Slot<Unit>> slots = new ArrayList<>(posts.size());
         for (HoldPortalCordon.GuardPost post : posts) {
             slots.add(new RoleAssigner.Slot<>(
@@ -84,7 +84,7 @@ public final class GarrisonCordon implements Action {
     }
 
     @Override
-    public ActionStatus execute(Unit member, Squad squad, BattleSimulation sim) {
+    public ActionStatus execute(Unit member, Squad squad, BattleControl sim) {
         SquadPlan plan = squad.currentPlan;
         SquadPlan.Step step = plan != null && !plan.isComplete() ? plan.currentStep() : null;
         String slotName = step != null ? step.slotOf(member) : null;

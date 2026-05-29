@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -85,11 +86,11 @@ public final class BreachAndAdvance implements Action {
     @Override public String name() { return "BreachAndAdvance[portal=" + portalId + "]"; }
     @Override public WorldState preconditions() { return WorldState.EMPTY; }
     @Override public WorldState effects() { return WorldState.EMPTY; }
-    @Override public float cost(WorldState s, Squad squad, BattleSimulation sim) { return 1f; }
+    @Override public float cost(WorldState s, Squad squad, BattleView sim) { return 1f; }
     @Override public int requiredMembers() { return Math.max(1, stackUpX.length); }
 
     @Override
-    public java.util.List<int[]> highlightCells(Squad squad, BattleSimulation sim) {
+    public java.util.List<int[]> highlightCells(Squad squad, BattleView sim) {
         // Stack-up + forward cells together — the player sees the full breach
         // path: where the squad pools and where they're pushing through to.
         java.util.List<int[]> out = new java.util.ArrayList<>(stackUpX.length * 2);
@@ -102,7 +103,7 @@ public final class BreachAndAdvance implements Action {
 
     /** One slot per breach position, named "breacher:N". Members are scored by negated distance to their slot's stack-up cell — closest member wins, so the squad's natural order at the door is preserved. */
     @Override
-    public List<RoleAssigner.Slot<Unit>> roles(Squad squad, BattleSimulation sim) {
+    public List<RoleAssigner.Slot<Unit>> roles(Squad squad, BattleView sim) {
         List<RoleAssigner.Slot<Unit>> slots = new ArrayList<>(stackUpX.length);
         for (int i = 0; i < stackUpX.length; i++) {
             final int sx = stackUpX[i];
@@ -116,7 +117,7 @@ public final class BreachAndAdvance implements Action {
     }
 
     @Override
-    public ActionStatus execute(Unit member, Squad squad, BattleSimulation sim) {
+    public ActionStatus execute(Unit member, Squad squad, BattleControl sim) {
         SquadPlan plan = squad.currentPlan;
         SquadPlan.Step step = plan != null && !plan.isComplete() ? plan.currentStep() : null;
         String slotName = step != null ? step.slotOf(member) : null;

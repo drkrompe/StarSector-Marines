@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.mech;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
@@ -45,7 +45,7 @@ public final class BackstopAssignedSquadGoal implements Goal {
     @Override public Priority priority() { return Priority.MISSION; }
 
     @Override
-    public float relevance(WorldState state, Squad squad, BattleSimulation sim) {
+    public float relevance(WorldState state, Squad squad, BattleView sim) {
         // Yield to SurviveContact when morale-broken — see the matching gate
         // in {@link OverwatchKillZoneGoal#relevance}. Backstop is a pacing
         // hint, not a unit-level objective; a mauled armored-support squad
@@ -73,12 +73,12 @@ public final class BackstopAssignedSquadGoal implements Goal {
     }
 
     @Override
-    public WorldState desiredState(Squad squad, BattleSimulation sim) {
+    public WorldState desiredState(Squad squad, BattleView sim) {
         return DESIRED;
     }
 
     @Override
-    public SquadPlan customPlan(Squad squad, BattleSimulation sim) {
+    public SquadPlan customPlan(Squad squad, BattleView sim) {
         return new SquadPlan(List.of(new SquadPlan.Step(BackstopAssignedSquad.INSTANCE)));
     }
 }

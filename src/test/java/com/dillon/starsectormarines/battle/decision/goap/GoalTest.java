@@ -1,5 +1,5 @@
 package com.dillon.starsectormarines.battle.decision.goap;
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.infantry.EliminateEnemiesGoal;
 import org.junit.jupiter.api.Test;
@@ -78,8 +78,8 @@ public class GoalTest {
         return new Goal() {
             @Override public String name() { return name; }
             @Override public Goal.Priority priority() { return priority; }
-            @Override public float relevance(WorldState s, Squad sq, BattleSimulation sim) { return relevance; }
-            @Override public WorldState desiredState(Squad sq, BattleSimulation sim) { return WorldState.EMPTY; }
+            @Override public float relevance(WorldState s, Squad sq, BattleView sim) { return relevance; }
+            @Override public WorldState desiredState(Squad sq, BattleView sim) { return WorldState.EMPTY; }
         };
     }
 }

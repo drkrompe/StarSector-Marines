@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.infantry;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
@@ -47,7 +47,7 @@ public final class RoutinePatrol implements Goal {
     }
 
     @Override
-    public float relevance(WorldState state, Squad squad, BattleSimulation sim) {
+    public float relevance(WorldState state, Squad squad, BattleView sim) {
         if (squad.faction != Faction.DEFENDER) return 0f;
         if (squad.holdsFireUntilKillZone) return 0f;
         if (squad.alertLevel == SquadAlertLevel.ENGAGED) return 0f;
@@ -59,12 +59,12 @@ public final class RoutinePatrol implements Goal {
     }
 
     @Override
-    public WorldState desiredState(Squad squad, BattleSimulation sim) {
+    public WorldState desiredState(Squad squad, BattleView sim) {
         return WorldState.EMPTY;
     }
 
     @Override
-    public SquadPlan customPlan(Squad squad, BattleSimulation sim) {
+    public SquadPlan customPlan(Squad squad, BattleView sim) {
         return new SquadPlan(List.of(new SquadPlan.Step(PatrolRoute.INSTANCE)));
     }
 }

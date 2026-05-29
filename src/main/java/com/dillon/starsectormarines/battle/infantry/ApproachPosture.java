@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleControl;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -42,11 +43,11 @@ public final class ApproachPosture implements Action {
     @Override public String name() { return "Approach"; }
     @Override public WorldState preconditions() { return PRE; }
     @Override public WorldState effects() { return EFF; }
-    @Override public float cost(WorldState s, Squad squad, BattleSimulation sim) { return 2f; }
+    @Override public float cost(WorldState s, Squad squad, BattleView sim) { return 2f; }
     @Override public int requiredMembers() { return 1; }
 
     @Override
-    public ActionStatus execute(Unit member, Squad squad, BattleSimulation sim) {
+    public ActionStatus execute(Unit member, Squad squad, BattleControl sim) {
         // Cooldown ticks are handled by GoapInfantryBehavior.prepareForAction
         // before this method runs — see InfantryUnitPrep.
 

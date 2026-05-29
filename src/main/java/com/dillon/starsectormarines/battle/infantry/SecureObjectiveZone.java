@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.infantry;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
@@ -49,7 +48,7 @@ public final class SecureObjectiveZone implements Goal {
     }
 
     @Override
-    public float relevance(WorldState state, Squad squad, BattleSimulation sim) {
+    public float relevance(WorldState state, Squad squad, BattleView sim) {
         int targetZone = findObjectiveZone(squad, sim);
         if (targetZone < 0) return 0f;
         int currentZone = ZoneQueries.squadCurrentZone(squad, sim);
@@ -63,12 +62,12 @@ public final class SecureObjectiveZone implements Goal {
     }
 
     @Override
-    public WorldState desiredState(Squad squad, BattleSimulation sim) {
+    public WorldState desiredState(Squad squad, BattleView sim) {
         return DESIRED;
     }
 
     @Override
-    public SquadPlan customPlan(Squad squad, BattleSimulation sim) {
+    public SquadPlan customPlan(Squad squad, BattleView sim) {
         int to = findObjectiveZone(squad, sim);
         // Plan stickiness: same rationale as ClearAssignedZoneGoal — when
         // the squad is bifurcated across a portal mid-sweep, the BFS path

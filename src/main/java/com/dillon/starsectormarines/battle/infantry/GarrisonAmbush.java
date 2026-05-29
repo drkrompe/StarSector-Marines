@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.infantry;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
@@ -68,7 +67,7 @@ public final class GarrisonAmbush implements Goal {
     }
 
     @Override
-    public float relevance(WorldState state, Squad squad, BattleSimulation sim) {
+    public float relevance(WorldState state, Squad squad, BattleView sim) {
         // Garrison gate — same flag OverwatchPosture's preconditions read
         // through ENEMY_IN_KILL_ZONE. Set at squad mint for GARRISON nodes.
         if (!squad.holdsFireUntilKillZone) return 0f;
@@ -110,12 +109,12 @@ public final class GarrisonAmbush implements Goal {
     }
 
     @Override
-    public WorldState desiredState(Squad squad, BattleSimulation sim) {
+    public WorldState desiredState(Squad squad, BattleView sim) {
         return WorldState.EMPTY;
     }
 
     @Override
-    public SquadPlan customPlan(Squad squad, BattleSimulation sim) {
+    public SquadPlan customPlan(Squad squad, BattleView sim) {
         int zoneId = ZoneQueries.squadCurrentZone(squad, sim);
         if (zoneId < 0) return null;
         NavigationZone zone = sim.getZoneGraph().zoneById(zoneId);

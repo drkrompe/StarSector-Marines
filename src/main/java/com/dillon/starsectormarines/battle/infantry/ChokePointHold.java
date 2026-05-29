@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.infantry;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
@@ -78,11 +78,11 @@ public final class ChokePointHold implements Action {
     @Override public String name() { return "ChokePointHold[" + portalId + "]"; }
     @Override public WorldState preconditions() { return WorldState.EMPTY; }
     @Override public WorldState effects() { return WorldState.EMPTY; }
-    @Override public float cost(WorldState s, Squad squad, BattleSimulation sim) { return 1f; }
+    @Override public float cost(WorldState s, Squad squad, BattleView sim) { return 1f; }
     @Override public int requiredMembers() { return Math.max(1, losCells.size()); }
 
     @Override
-    public java.util.List<int[]> highlightCells(Squad squad, BattleSimulation sim) {
+    public java.util.List<int[]> highlightCells(Squad squad, BattleView sim) {
         // LOS cells + the watched portal cell so the player can see both the
         // firing posts AND the doorway that triggers concentrated fire.
         java.util.List<int[]> out = new java.util.ArrayList<>(losCells.size() + 1);
@@ -175,7 +175,7 @@ public final class ChokePointHold implements Action {
      * stable in practice.
      */
     @Override
-    public List<RoleAssigner.Slot<Unit>> roles(Squad squad, BattleSimulation sim) {
+    public List<RoleAssigner.Slot<Unit>> roles(Squad squad, BattleView sim) {
         List<RoleAssigner.Slot<Unit>> slots = new ArrayList<>(losCells.size());
         for (int i = 0; i < losCells.size(); i++) {
             final int idx = i;
@@ -193,7 +193,7 @@ public final class ChokePointHold implements Action {
     public static String slotName(int idx) { return "losCell:" + idx; }
 
     @Override
-    public ActionStatus execute(Unit member, Squad squad, BattleSimulation sim) {
+    public ActionStatus execute(Unit member, Squad squad, BattleControl sim) {
         // Stamp portal id idempotently — the predicate evaluator needs to know
         // which portal cell to sample. Writing the same value on every tick is
         // harmless and saves a "has the squad been stamped" flag. Under the

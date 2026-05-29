@@ -410,6 +410,8 @@ public class BattleSimulation implements BattleControl {
     public byte[] getOccupancyMap()        { return occupancyMap; }
     /** Bucketed spatial index over alive units. Rebuilt at the top of each tick by {@link #tick()}. */
     public UnitSpatialIndex getUnitIndex() { return unitIndex; }
+    /** Monotonic tick counter, for time-parametrized AI motion (drone orbit phase, etc.). */
+    public int getSimTickIndex() { return simTickIndex; }
     /**
      * Dense entity registry for SoA consumers — bulk readers that want to
      * iterate {@code [0, liveCount())} over {@link UnitRegistry#denseArray()}

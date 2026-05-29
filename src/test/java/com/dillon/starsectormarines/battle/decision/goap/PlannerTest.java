@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.decision.goap;
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleControl;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.unit.Unit;
@@ -125,9 +126,9 @@ public class PlannerTest {
             @Override public String name() { return name; }
             @Override public WorldState preconditions() { return pre; }
             @Override public WorldState effects() { return eff; }
-            @Override public float cost(WorldState s, Squad sq, BattleSimulation sim) { return cost; }
+            @Override public float cost(WorldState s, Squad sq, BattleView sim) { return cost; }
             @Override public int requiredMembers() { return 1; }
-            @Override public ActionStatus execute(Unit m, Squad sq, BattleSimulation sim) {
+            @Override public ActionStatus execute(Unit m, Squad sq, BattleControl sim) {
                 return ActionStatus.SUCCESS;
             }
         };

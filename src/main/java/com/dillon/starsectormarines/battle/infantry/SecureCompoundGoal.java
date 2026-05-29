@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.infantry;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -54,7 +53,7 @@ public final class SecureCompoundGoal implements Goal {
     }
 
     @Override
-    public float relevance(WorldState state, Squad squad, BattleSimulation sim) {
+    public float relevance(WorldState state, Squad squad, BattleView sim) {
         ObjectiveAssignment assignment = squad.assignedObjective;
         if (assignment == null) return 0f;
         if (assignment.kind() != AssignmentKind.SECURE_COMPOUND) return 0f;
@@ -74,12 +73,12 @@ public final class SecureCompoundGoal implements Goal {
     }
 
     @Override
-    public WorldState desiredState(Squad squad, BattleSimulation sim) {
+    public WorldState desiredState(Squad squad, BattleView sim) {
         return DESIRED;
     }
 
     @Override
-    public SquadPlan customPlan(Squad squad, BattleSimulation sim) {
+    public SquadPlan customPlan(Squad squad, BattleView sim) {
         ObjectiveAssignment assignment = squad.assignedObjective;
         if (assignment == null || assignment.kind() != AssignmentKind.SECURE_COMPOUND) return null;
         int to = assignment.targetZoneId();

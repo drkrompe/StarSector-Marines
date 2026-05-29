@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.drone;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
@@ -68,11 +69,11 @@ public final class DroneSwarmAction implements Action {
     @Override public String name() { return "DroneSwarm"; }
     @Override public WorldState preconditions() { return WorldState.EMPTY; }
     @Override public WorldState effects() { return WorldState.EMPTY; }
-    @Override public float cost(WorldState s, Squad squad, BattleSimulation sim) { return 1f; }
+    @Override public float cost(WorldState s, Squad squad, BattleView sim) { return 1f; }
     @Override public int requiredMembers() { return 1; }
 
     @Override
-    public ActionStatus execute(Unit member, Squad squad, BattleSimulation sim) {
+    public ActionStatus execute(Unit member, Squad squad, BattleControl sim) {
         if (!(member instanceof Drone)) return ActionStatus.FAILURE;
         Drone d = (Drone) member;
         if (!d.isAlive()) return ActionStatus.RUNNING;
@@ -166,10 +167,10 @@ public final class DroneSwarmAction implements Action {
      */
     private static void tickEngage(Drone d, TurretAim.State s,
                                    int slotIdx, int slotCount,
-                                   BattleSimulation sim, float dt) {
+                                   BattleView sim, float dt) {
         float tx = s.target.getCellX() + 0.5f;
         float ty = s.target.getCellY() + 0.5f;
-        float simTime = sim.simTickIndex * BattleSimulation.TICK_DT;
+        float simTime = sim.getSimTickIndex() * BattleSimulation.TICK_DT;
 
         float baseBearingDeg = (360f * slotIdx) / slotCount;
         float driftDeg = simTime * Drone.ENGAGE_ORBIT_ANGULAR_DEG_PER_SEC;
