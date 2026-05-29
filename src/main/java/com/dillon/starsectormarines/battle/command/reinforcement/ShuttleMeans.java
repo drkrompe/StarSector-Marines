@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.command.reinforcement;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleControl;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.air.Shuttle;
@@ -61,7 +62,7 @@ public final class ShuttleMeans implements ReinforcementMeans {
     }
 
     @Override
-    public boolean canFulfill(BattleSimulation sim, ReinforcementRequest req) {
+    public boolean canFulfill(BattleView sim, ReinforcementRequest req) {
         if (!req.hasRally()) return false;
         if (req.side != Faction.DEFENDER) return false;
         // Compound-as-supply gate: shuttle drops are sourced from the
@@ -77,7 +78,7 @@ public final class ShuttleMeans implements ReinforcementMeans {
     }
 
     @Override
-    public void dispatch(BattleSimulation sim, ReinforcementRequest req) {
+    public void dispatch(BattleControl sim, ReinforcementRequest req) {
         NavigationGrid grid = sim.getGrid();
         int[] lz = new LandingZoneScorer(grid, sim.getTopology())
                 .bestNear(req.rallyX, req.rallyY, LZ_SCAN_RADIUS, SHUTTLE_MIN_CLEARANCE);

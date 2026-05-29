@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.command;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
@@ -41,7 +41,7 @@ public final class SabotageCommand implements MissionCommand {
     }
 
     @Override
-    public void tick(BattleSimulation sim) {
+    public void tick(BattleView sim) {
         List<ChargeSiteObjective> sites = collectUnfinishedSites(sim);
         if (sites.isEmpty()) {
             // All charges planted — nothing left to assign. Clear any
@@ -87,7 +87,7 @@ public final class SabotageCommand implements MissionCommand {
         }
     }
 
-    private static List<ChargeSiteObjective> collectUnfinishedSites(BattleSimulation sim) {
+    private static List<ChargeSiteObjective> collectUnfinishedSites(BattleView sim) {
         List<ChargeSiteObjective> out = new ArrayList<>(3);
         for (Objective o : sim.getObjectives()) {
             if (o instanceof ChargeSiteObjective cs && !cs.isComplete()) {
@@ -97,7 +97,7 @@ public final class SabotageCommand implements MissionCommand {
         return out;
     }
 
-    private static void clearAllAssignments(BattleSimulation sim) {
+    private static void clearAllAssignments(BattleView sim) {
         for (Squad squad : sim.getSquads()) {
             if (squad.faction != Faction.MARINE) continue;
             squad.assignedObjective = null;
@@ -111,7 +111,7 @@ public final class SabotageCommand implements MissionCommand {
      * {@link com.dillon.starsectormarines.battle.infantry.SecureObjectiveZone}
      * for the unit-level path the planter's targeting feeds.
      */
-    private static boolean hasLivePlanter(Squad squad, BattleSimulation sim) {
+    private static boolean hasLivePlanter(Squad squad, BattleView sim) {
         for (Unit u : sim.getUnits()) {
             if (!u.isAlive() || u.squadId != squad.id) continue;
             if (u.role != UnitRole.PLANTER) continue;

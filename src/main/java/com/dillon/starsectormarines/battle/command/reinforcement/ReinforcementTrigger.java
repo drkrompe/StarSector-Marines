@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.command.reinforcement;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 
 import java.util.function.Consumer;
 
@@ -20,5 +20,5 @@ public interface ReinforcementTrigger {
      * Called on the service's slow-tick cadence; should be cheap enough to
      * run every tick anyway (the cadence is for noise control, not cost).
      */
-    void check(BattleSimulation sim, Consumer<ReinforcementRequest> out);
+    void check(BattleView sim, Consumer<ReinforcementRequest> out);
 }

@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.command.objective;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.unit.Unit;
@@ -31,7 +31,7 @@ public final class EliminateFactionObjective implements Objective {
     public Faction owningFaction() { return owner; }
 
     @Override
-    public void tick(BattleSimulation sim) {
+    public void tick(BattleView sim) {
         if (complete) return;
         for (Unit u : sim.getUnits()) {
             if (u.isAlive() && u.faction == target) return;

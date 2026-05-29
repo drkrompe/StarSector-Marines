@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.command;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
 /**
@@ -13,7 +14,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
  * <p>Cadence — slower than the per-squad replan loop. Driven by
  * {@link BattleSimulation#COMMANDER_TICK_PERIOD} (2.5s today; tunable as
  * playtest exposes pressure points). The sim batches all commanders'
- * {@link #tick(BattleSimulation)} calls into the same slow-tick boundary
+ * {@link #tick(BattleView)} calls into the same slow-tick boundary
  * before the per-squad replan pass, so a squad that replans this tick sees
  * the freshest assignment.
  *
@@ -47,7 +48,7 @@ public interface MissionCommand {
      * — typically every {@link BattleSimulation#COMMANDER_TICK_PERIOD}
      * sim-seconds — before the per-squad GOAP replan pass.
      */
-    void tick(BattleSimulation sim);
+    void tick(BattleView sim);
 
     /**
      * Default no-op commander used when a faction has no commander wired.
@@ -57,6 +58,6 @@ public interface MissionCommand {
      */
     MissionCommand NOOP = new MissionCommand() {
         @Override public Faction faction() { return null; }
-        @Override public void tick(BattleSimulation sim) { /* deliberate no-op */ }
+        @Override public void tick(BattleView sim) { /* deliberate no-op */ }
     };
 }

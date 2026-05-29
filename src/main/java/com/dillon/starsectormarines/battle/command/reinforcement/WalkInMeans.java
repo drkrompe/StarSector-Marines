@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.command.reinforcement;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleControl;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -65,7 +66,7 @@ public final class WalkInMeans implements ReinforcementMeans {
     }
 
     @Override
-    public boolean canFulfill(BattleSimulation sim, ReinforcementRequest req) {
+    public boolean canFulfill(BattleView sim, ReinforcementRequest req) {
         if (!req.hasRally()) return false;
         if (req.side != Faction.DEFENDER) return false;
         // Compound-as-supply gate: walk-in is the BARRACKS-supplied means.
@@ -81,7 +82,7 @@ public final class WalkInMeans implements ReinforcementMeans {
     }
 
     @Override
-    public void dispatch(BattleSimulation sim, ReinforcementRequest req) {
+    public void dispatch(BattleControl sim, ReinforcementRequest req) {
         int[] primary = pickPrimaryCell(sim, req);
         if (primary == null) {
             LOG.warn("WalkInMeans: no walkable perimeter cell for side=" + req.side
@@ -127,7 +128,7 @@ public final class WalkInMeans implements ReinforcementMeans {
      * any walkable cell (degenerate — the map is fully walled in along that
      * edge), so {@link #canFulfill} can reject the request cleanly.
      */
-    private int[] pickPrimaryCell(BattleSimulation sim, ReinforcementRequest req) {
+    private int[] pickPrimaryCell(BattleView sim, ReinforcementRequest req) {
         NavigationGrid grid = sim.getGrid();
         LandingZoneScorer scorer = new LandingZoneScorer(grid, sim.getTopology());
         int gw = grid.getWidth();
@@ -252,7 +253,7 @@ public final class WalkInMeans implements ReinforcementMeans {
      * they spot enemies, but they won't have a directional pull off the
      * perimeter).
      */
-    private static TacticalNode nearestCompoundNode(BattleSimulation sim, int rallyX, int rallyY) {
+    private static TacticalNode nearestCompoundNode(BattleView sim, int rallyX, int rallyY) {
         TacticalMap map = sim.getTacticalMap();
         if (map == null) return null;
         List<TacticalNode> near = map.nearest(rallyX, rallyY, 1,

@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.command.compound;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.air.Shuttle;
@@ -56,7 +56,7 @@ public final class CompoundGarrisonSystem {
         this.axis = axis;
     }
 
-    public void tick(float dt, BattleSimulation sim, CompoundService service) {
+    public void tick(float dt, BattleControl sim, CompoundService service) {
         if (service == null || service.getRecords().isEmpty()) return;
         accumulator += dt;
         if (accumulator < TICK_PERIOD) return;
@@ -77,7 +77,7 @@ public final class CompoundGarrisonSystem {
         }
     }
 
-    private boolean spawnGarrisonShuttle(BattleSimulation sim, TacticalNode node) {
+    private boolean spawnGarrisonShuttle(BattleControl sim, TacticalNode node) {
         NavigationGrid grid = sim.getGrid();
         int[] lz = findCompoundLz(grid, node);
         if (lz == null) {

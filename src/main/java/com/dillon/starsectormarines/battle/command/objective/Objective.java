@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.command.objective;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
 /**
@@ -17,7 +17,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
  *
  * <p>Implementations are typically stateful — a charge-site objective tracks
  * per-site plant progress, an extraction objective tracks whether the VIP
- * has reached the exfil. The simulation calls {@link #tick(BattleSimulation)}
+ * has reached the exfil. The simulation calls {@link #tick(BattleView)}
  * once per fixed timestep so objectives can drive their own state machines
  * (timers, distance checks, contested actions) without needing hooks back
  * into the unit update loop.
@@ -27,8 +27,8 @@ public interface Objective {
     /** Which side this objective belongs to — i.e., who needs to satisfy it to win. */
     Faction owningFaction();
 
-    /** Advances any internal state for this tick. Called once per simulation tick. */
-    void tick(BattleSimulation sim);
+    /** Advances any internal state for this tick. Called once per simulation tick. Read-only against the sim. */
+    void tick(BattleView sim);
 
     /** Once true, never reverts — the side that owns this objective has fulfilled it. */
     boolean isComplete();

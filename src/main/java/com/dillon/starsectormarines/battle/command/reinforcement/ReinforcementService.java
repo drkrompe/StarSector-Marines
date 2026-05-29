@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.command.reinforcement;
 
 import com.dillon.starsectormarines.battle.command.BattleResources;
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.command.ResourceType;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
@@ -82,7 +82,7 @@ public final class ReinforcementService {
      * the first means that can fulfill it. Requests that no means can
      * fulfill are logged as bugged-map diagnostics and dropped.
      */
-    public void tick(float dt, BattleSimulation sim) {
+    public void tick(float dt, BattleControl sim) {
         if (triggers.isEmpty() && pending.isEmpty()) return;
         accumulator += dt;
         if (accumulator < REINFORCEMENT_TICK_PERIOD) return;
@@ -102,7 +102,7 @@ public final class ReinforcementService {
         if (deferred != null) pending.addAll(deferred);
     }
 
-    private boolean dispatch(BattleSimulation sim, ReinforcementRequest req) {
+    private boolean dispatch(BattleControl sim, ReinforcementRequest req) {
         float cost = resources.reinforcementCost();
         if (!resources.tryConsume(req.side, ResourceType.REINFORCEMENT, cost)) {
             return false;

@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.command.reinforcement;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
@@ -33,7 +33,7 @@ public final class GarrisonDepletedTrigger implements ReinforcementTrigger {
     private final Set<TacticalNode> posted = new HashSet<>();
 
     @Override
-    public void check(BattleSimulation sim, Consumer<ReinforcementRequest> out) {
+    public void check(BattleView sim, Consumer<ReinforcementRequest> out) {
         CompoundService compounds = sim.getCompoundService();
         Map<TacticalNode, int[]> agg = new HashMap<>();
         for (Squad squad : sim.getSquads()) {

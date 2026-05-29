@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.command.compound;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
@@ -38,7 +38,7 @@ public final class CompoundCaptureSystem {
      * occupancy reads (via {@link ZoneQueries#zoneClear}) iterate the live
      * unit list once per compound per slow tick.
      */
-    public void tick(float dt, BattleSimulation sim, CompoundService service) {
+    public void tick(float dt, BattleView sim, CompoundService service) {
         if (service == null || service.getRecords().isEmpty()) return;
         accumulator += dt;
         if (accumulator < CAPTURE_TICK_PERIOD) return;

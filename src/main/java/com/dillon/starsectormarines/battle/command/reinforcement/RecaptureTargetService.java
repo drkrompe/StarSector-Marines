@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.command.reinforcement;
 
 import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BiomeMap;
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -93,7 +93,7 @@ public final class RecaptureTargetService {
     }
 
     /** Slow-tick: accumulate {@code dt}, then on cadence recompute contested slices and open targets. */
-    public void tick(float dt, BattleSimulation sim) {
+    public void tick(float dt, BattleView sim) {
         if (targets.isEmpty()) return;
         accumulator += dt;
         if (accumulator < TICK_PERIOD) return;
@@ -102,7 +102,7 @@ public final class RecaptureTargetService {
         updateOpenState(sim);
     }
 
-    private void updateContested(BattleSimulation sim) {
+    private void updateContested(BattleView sim) {
         EnumMap<BiomeKind, Integer> present = new EnumMap<>(BiomeKind.class);
         int totalDefenders = 0;
         for (Unit u : sim.getUnits()) {
@@ -140,7 +140,7 @@ public final class RecaptureTargetService {
         if (totalDefenders > 0) seeded = true;
     }
 
-    private void updateOpenState(BattleSimulation sim) {
+    private void updateOpenState(BattleView sim) {
         // Open-detection rides on two invariants the dispatch layer must keep:
         // a wiped garrison squad keeps its assignedNode and stays in
         // getSquads() (squads are never GC'd), and a reinforcement squad is

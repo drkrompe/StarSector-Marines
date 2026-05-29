@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.command.objective;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
@@ -44,7 +45,7 @@ public final class ChargeSiteObjective implements Objective {
     public Faction owningFaction() { return Faction.MARINE; }
 
     @Override
-    public void tick(BattleSimulation sim) {
+    public void tick(BattleView sim) {
         if (complete) return;
         planterOnSiteThisTick = false;
         for (Unit u : sim.getUnits()) {

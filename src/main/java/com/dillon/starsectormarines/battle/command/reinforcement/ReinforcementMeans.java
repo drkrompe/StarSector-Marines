@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.command.reinforcement;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleControl;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 
 /**
  * A way to deliver reinforcements to a battle. The {@link ReinforcementService}
@@ -20,12 +21,12 @@ public interface ReinforcementMeans {
      * LZ; walk-in needs a usable perimeter cell. Cheap probe — called
      * once per request per means provider.
      */
-    boolean canFulfill(BattleSimulation sim, ReinforcementRequest req);
+    boolean canFulfill(BattleView sim, ReinforcementRequest req);
 
     /**
      * Spawn the actual units. May post {@link com.dillon.starsectormarines.battle.Vehicle},
      * {@code Shuttle}, or {@code Squad}/{@code Unit} into the sim's normal
      * lists. Called only after {@link #canFulfill} returns {@code true}.
      */
-    void dispatch(BattleSimulation sim, ReinforcementRequest req);
+    void dispatch(BattleControl sim, ReinforcementRequest req);
 }

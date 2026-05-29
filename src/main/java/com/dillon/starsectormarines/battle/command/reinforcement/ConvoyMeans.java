@@ -1,7 +1,8 @@
 package com.dillon.starsectormarines.battle.command.reinforcement;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleControl;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.ConvoyPlanner;
 import com.dillon.starsectormarines.battle.vehicle.HybridAStarPlanner;
@@ -53,7 +54,7 @@ public final class ConvoyMeans implements ReinforcementMeans {
     }
 
     @Override
-    public boolean canFulfill(BattleSimulation sim, ReinforcementRequest req) {
+    public boolean canFulfill(BattleView sim, ReinforcementRequest req) {
         if (graph == null || graph.nodes().isEmpty()) return false;
         if (req.side != Faction.DEFENDER) return false;
         if (!req.hasRally()) return false;
@@ -72,7 +73,7 @@ public final class ConvoyMeans implements ReinforcementMeans {
     }
 
     @Override
-    public void dispatch(BattleSimulation sim, ReinforcementRequest req) {
+    public void dispatch(BattleControl sim, ReinforcementRequest req) {
         int rx = req.rallyX;
         int ry = req.rallyY;
         int gw = sim.getGrid().getWidth();
@@ -309,7 +310,7 @@ public final class ConvoyMeans implements ReinforcementMeans {
     }
 
     /** {@code (lzCellX, lzCellY)} of every convoy vehicle that's still inbound or landed. DEPARTING / GONE trucks aren't holding the cell any more, so they're excluded. */
-    private static List<int[]> activeConvoyDestinations(BattleSimulation sim) {
+    private static List<int[]> activeConvoyDestinations(BattleView sim) {
         List<int[]> out = new ArrayList<>();
         for (Vehicle v : sim.getConvoyVehicles()) {
             if (v.state == Vehicle.State.DEPARTING || v.state == Vehicle.State.GONE) continue;

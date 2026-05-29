@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.command.reinforcement;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
@@ -36,7 +36,7 @@ public final class ObjectiveLostTrigger implements ReinforcementTrigger {
     private final Set<Integer> postedZones = new HashSet<>();
 
     @Override
-    public void check(BattleSimulation sim, Consumer<ReinforcementRequest> out) {
+    public void check(BattleView sim, Consumer<ReinforcementRequest> out) {
         ZoneGraph graph = sim.getZoneGraph();
         if (graph == null) return;
 

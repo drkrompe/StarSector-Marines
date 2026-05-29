@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.command;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
@@ -129,7 +129,7 @@ public final class ConquestCommand implements MissionCommand {
     }
 
     @Override
-    public void tick(BattleSimulation sim) {
+    public void tick(BattleView sim) {
         if (!initialized) {
             initializePartition(sim);
             initialized = true;
@@ -203,7 +203,7 @@ public final class ConquestCommand implements MissionCommand {
      * Pass 0 to assign garrison squads to hold without pulling assault
      * squads off the advance.
      */
-    private CompoundZone marineHeldCompoundInSquadZone(Squad squad, BattleSimulation sim) {
+    private CompoundZone marineHeldCompoundInSquadZone(Squad squad, BattleView sim) {
         int squadZone = sim.getZoneGraph().zoneIdAt(
                 (int) squad.centroidX, (int) squad.centroidY);
         if (squadZone < 0) return null;
@@ -225,7 +225,7 @@ public final class ConquestCommand implements MissionCommand {
      * caller falls through to the generic {@link #nearestDefenderZoneInStrip}
      * for the street-by-street push.
      */
-    private CompoundZone nearestRipeCompound(int stripIdx, float squadForward, BattleSimulation sim) {
+    private CompoundZone nearestRipeCompound(int stripIdx, float squadForward, BattleView sim) {
         CompoundZone best = null;
         float bestDist = Float.MAX_VALUE;
         for (CompoundZone cz : compoundZones) {
@@ -252,7 +252,7 @@ public final class ConquestCommand implements MissionCommand {
      * sorted forward-to-back so {@link #forwardMostDefenderZone} can short-
      * circuit on the first defender-occupied entry.
      */
-    private void initializePartition(BattleSimulation sim) {
+    private void initializePartition(BattleView sim) {
         NavigationGrid grid = sim.getGrid();
         ZoneGraph graph = sim.getZoneGraph();
         int gridW = grid.getWidth();
@@ -360,7 +360,7 @@ public final class ConquestCommand implements MissionCommand {
      * the squad falls through to {@code EliminateEnemiesGoal} for in-zone
      * engagement).
      */
-    private int nearestDefenderZoneInStrip(Squad squad, int stripIdx, BattleSimulation sim) {
+    private int nearestDefenderZoneInStrip(Squad squad, int stripIdx, BattleView sim) {
         if (stripIdx < 0 || stripIdx >= stripZones.size()) return -1;
         float squadForward = (axis == TraversalAxis.SOUTH_TO_NORTH) ? squad.centroidY : squad.centroidX;
 

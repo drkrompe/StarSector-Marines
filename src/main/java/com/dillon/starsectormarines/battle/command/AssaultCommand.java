@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 
@@ -52,7 +52,7 @@ public final class AssaultCommand implements MissionCommand {
     }
 
     @Override
-    public void tick(BattleSimulation sim) {
+    public void tick(BattleView sim) {
         if (!initialized) {
             initializeSectors(sim);
             initialized = true;
@@ -91,7 +91,7 @@ public final class AssaultCommand implements MissionCommand {
         }
     }
 
-    private void initializeSectors(BattleSimulation sim) {
+    private void initializeSectors(BattleView sim) {
         NavigationGrid grid = sim.getGrid();
         ZoneGraph graph = sim.getZoneGraph();
         int gridW = grid.getWidth();
@@ -146,7 +146,7 @@ public final class AssaultCommand implements MissionCommand {
         }
     }
 
-    private void computeActiveSectors(BattleSimulation sim, boolean[] active, int[] defenderZoneCount) {
+    private void computeActiveSectors(BattleView sim, boolean[] active, int[] defenderZoneCount) {
         int sectorCount = sectorCols * sectorRows;
         for (int s = 0; s < sectorCount; s++) {
             int count = 0;
@@ -206,7 +206,7 @@ public final class AssaultCommand implements MissionCommand {
         return -1;
     }
 
-    private int nearestDefenderZoneInSector(Squad squad, int sectorIdx, BattleSimulation sim) {
+    private int nearestDefenderZoneInSector(Squad squad, int sectorIdx, BattleView sim) {
         if (sectorIdx < 0 || sectorIdx >= sectorZones.size()) return -1;
         int bestZone = -1;
         float bestDistSq = Float.MAX_VALUE;
