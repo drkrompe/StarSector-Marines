@@ -50,6 +50,12 @@ c49eea7  battle: MapService — runtime map-modification coordinator (Slice 1)  
 
 ## Active stories (priority order)
 
+> **TL;DR for a cold start:** stories 1–4 + story 5 Slice 1 are shipped.
+> **Resume at story 6** ([`drop-sim-facade-delegators`](stories/drop-sim-facade-delegators.md)) —
+> the GOAP spine mechanism is decided/proven; next action is sweep slice 1
+> (narrow `WorldStateBuilder` + read-only helpers to `BattleView`). Story 5
+> Slice 2 (map generation) is an optional stretch, not the critical path.
+
 Phase 3's original three (move-render, tactical, secondary-weapon) all
 shipped — see [`complete/phase3-soa-promotions.md`](complete/phase3-soa-promotions.md).
 The next batch was scoped 2026-05-28 after auditing the leftover `Unit`
@@ -90,12 +96,12 @@ primitives and the (now thin) `BattleSimulation` orchestrator:
    larger surface, lower smell. Pick it up only if the seam proves worth
    it, else go straight to the facade cleanup ↓.
 6. [`drop-sim-facade-delegators`](stories/drop-sim-facade-delegators.md) —
-   **Terminal** migration story, **IN PROGRESS**. Remove the ~40
-   `*SimContext`-style facade delegators so consumers depend on services
-   directly, not through the sim. **Decision pinned 2026-05-28** (story's
-   DECISION block): **command-tier getters first via direct injection,
-   defer the GOAP `sim`-param spine.** Slice order + getter-difficulty
-   audit live in the story.
+   **Terminal** migration story, **IN PROGRESS ← CURRENT FOCUS**. Remove
+   the ~40 `*SimContext`-style facade delegators so consumers depend on
+   services directly, not through the sim. **Design risk is retired** — the
+   GOAP spine mechanism is decided and proven (see below); the rest is a
+   mechanical, commit-green-per-slice sweep. Full decision history +
+   getter-difficulty audit live in the story's DECISION block.
    - **Slice 1 SHIPPED** (`53d5e7d`): `getBattleResources` dropped —
      `BattleResources` constructor-injected into `ReinforcementService`
      (1 consumer, no GOAP, no tests).
