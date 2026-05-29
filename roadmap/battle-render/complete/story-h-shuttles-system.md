@@ -1,4 +1,4 @@
-# Story H — SHUTTLES pass → ShuttleRenderSystem — ✅ SHIPPED (in-game verify pending)
+# Story H — SHUTTLES pass → ShuttleRenderSystem — ✅ SHIPPED & VERIFIED
 
 Aircraft (shuttles) + their mounted turrets + engine FX migrated into the
 command model as `ShuttleRenderSystem`, emitting the `SHUTTLES` layer. First pass
@@ -36,17 +36,22 @@ the old end-of-pass `setAngle(0)` reset loop is dropped.
 ## Verified
 
 `mcp__intellij__build_project` clean; `gradlew test` green. **In-game render
-verification pending** — confirm shuttle hulls render with engine FX beneath
-them, turrets at the right mounts with recoil kick, correct altitude offset, and
-that aircraft still pierce the fog-roof (paint above ROOFS). The inline
-`renderShuttles` + `renderShuttleEngines` + `renderShuttleTurrets` are retained
-`@Deprecated` + **uncalled** as a one-line-rewire rollback; delete once parity is
-confirmed.
+confirmed in live play** — hulls render with engine FX beneath, turrets at the
+right mounts with recoil kick, correct altitude offset, aircraft pierce the
+fog-roof. A background critique returned clean (no Critical/Worth-fixing): paint
+order, the engine-FX `Custom` GL-state parity, turret kinematics byte-for-byte,
+hull sizing, and the dropped `setAngle(0)` reset all confirmed correct. The
+inline `renderShuttles` + `renderShuttleEngines` + `renderShuttleTurrets`
+fallback has been **deleted** (orphaned `Shuttle` import dropped with it).
 
 ## Notes / follow-ups
 
 - The engine-FX `Custom` allocates one lambda per shuttle per frame (sparse
-  layer; acceptable — ship-then-optimize). If shuttle counts ever spike, hoist to
-  a reusable command.
-- `drawTurretLayer` (now referenced only by the deprecated `renderShuttleTurrets`)
-  is retained with that cluster; it goes when the fallback is deleted.
+  layer; acceptable — ship-then-optimize). The pooled `CUSTOM` slot also retains
+  the lambda + captured `Shuttle`/camera across frames until reused (pure
+  retention, zero render impact). If shuttle counts ever spike, hoist to a
+  reusable command.
+- `drawTurretLayer` was **not** deleted — it is still live, shared by the
+  inline map-turret / drone-hub / drone passes (`BattleRenderer` ~592/595/641/
+  680). `RECOIL_DURATION`/`RECOIL_DISTANCE_FRAC` likewise stay (shared with the
+  map-turret pass).

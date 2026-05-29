@@ -19,7 +19,6 @@ import com.dillon.starsectormarines.battle.world.model.TimeOfDay;
 import com.dillon.starsectormarines.battle.world.model.WallMasks;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.world.tiles.UrbanTile3;
-import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.ui.compound.CompoundMarkerRenderer;
@@ -924,93 +923,6 @@ public class BattleRenderer {
         }
         font.drawString("[F5] dump state to JSON", textX, textY,
                 new java.awt.Color(0.6f, 0.6f, 0.6f, 1f), alphaMult * 0.7f);
-    }
-
-    /**
-     * @deprecated Superseded by {@link ShuttleRenderSystem} (SHUTTLES layer:
-     * hull/turret {@code SPRITE}s + engine-FX {@code Custom}). Retained
-     * <em>uncalled</em> with its {@code renderShuttleEngines}/
-     * {@code renderShuttleTurrets} helpers as a one-line-rewire rollback until
-     * confirmed in a live battle, then deleted.
-     */
-    @Deprecated
-    private void renderShuttles(List<Shuttle> shuttles, float alphaMult) {
-        if (shuttles.isEmpty()) return;
-        for (Shuttle s : shuttles) {
-            if (!s.isVisible()) continue;
-            ShuttleSpriteCache cache = sprites.shuttleSprites().get(s.type);
-            if (cache == null) continue;
-            SpriteAPI sprite = cache.sprite;
-            float pxLen = s.type.visualLengthCells * rc.camera.cellPxSize() * s.scaleMult;
-            float pxH = pxLen;
-            float pxW = pxLen * cache.aspect;
-            sprite.setSize(pxW, pxH);
-            sprite.setAngle(s.body.facingDegrees);
-            sprite.setAlphaMult(alphaMult);
-            sprite.setNormalBlend();
-            sprite.setColor(Color.WHITE);
-            float altOffset = s.visualAltitudeOffsetCells();
-            float cx = rc.camera.cellToScreenX(s.body.x);
-            float cy = rc.camera.cellToScreenY(s.body.y + altOffset);
-            renderShuttleEngines(s, alphaMult, altOffset);
-            sprite.renderAtCenter(cx, cy);
-            renderShuttleTurrets(s, alphaMult, altOffset);
-        }
-        for (ShuttleSpriteCache cache : sprites.shuttleSprites().values()) {
-            cache.sprite.setAngle(0f);
-        }
-    }
-
-    private void renderShuttleEngines(com.dillon.starsectormarines.battle.air.Shuttle s, float alphaMult,
-                                      float altOffsetCells) {
-        com.dillon.starsectormarines.battle.air.engine.EngineFxRenderer.draw(
-                com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver.resolve(s.type),
-                s.body.x, s.body.y,
-                s.body.facingDegrees,
-                s.scaleMult,
-                altOffsetCells,
-                s.engineFxIntensity(),
-                alphaMult,
-                rc.camera,
-                sprites.engineGlowSprite(), sprites.engineFlameSprite());
-    }
-
-    private void renderShuttleTurrets(com.dillon.starsectormarines.battle.air.Shuttle s, float alphaMult,
-                                      float altOffsetCells) {
-        if (s.turrets.length == 0) return;
-        float rad = (float) Math.toRadians(s.body.facingDegrees);
-        float c = (float) Math.cos(rad);
-        float si = (float) Math.sin(rad);
-        float cellPx = rc.camera.cellPxSize();
-        for (com.dillon.starsectormarines.battle.air.MountedTurret mt : s.turrets) {
-            ShuttleSpriteCache base = sprites.turretSprites().get(mt.mount.kind);
-            if (base == null) continue;
-            float lx = mt.mount.localOffsetX * s.scaleMult;
-            float ly = mt.mount.localOffsetY * s.scaleMult;
-            float worldOffsetX = lx * c - ly * si;
-            float worldOffsetY = lx * si + ly * c;
-            float wx = s.body.x + worldOffsetX;
-            float wy = s.body.y + worldOffsetY + altOffsetCells;
-            float screenX = rc.camera.cellToScreenX(wx);
-            float screenY = rc.camera.cellToScreenY(wy);
-            float layerVisualCells = mt.mount.kind.visualCells * s.scaleMult * s.type.turretVisualScale;
-
-            ShuttleSpriteCache barrel = sprites.turretRecoilSprites().get(mt.mount.kind);
-            if (barrel != null) {
-                float recoilT = 0f;
-                if (mt.recoilTimer < RECOIL_DURATION) {
-                    recoilT = 1f - mt.recoilTimer / RECOIL_DURATION;
-                }
-                float pushPx = recoilT * RECOIL_DISTANCE_FRAC * layerVisualCells * cellPx;
-                double brad = Math.toRadians(mt.facingDegrees);
-                float bx =  (float) Math.sin(brad)  * pushPx;
-                float by = -(float) Math.cos(brad)  * pushPx;
-                drawTurretLayer(barrel, mt.facingDegrees, layerVisualCells, cellPx,
-                        screenX + bx, screenY + by, alphaMult);
-            }
-            drawTurretLayer(base, mt.facingDegrees, layerVisualCells, cellPx,
-                    screenX, screenY, alphaMult);
-        }
     }
 
     private void renderObjectiveMarkers(BattleSimulation sim, float alphaMult) {

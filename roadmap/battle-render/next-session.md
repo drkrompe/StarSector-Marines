@@ -55,11 +55,12 @@ paths, selected-vehicle) stay inline after the drain. The sprite-sheet batch
 registration is now a shared `registerSpriteSheetBatches` helper. See
 [`complete/story-g-convoy-system.md`](complete/story-g-convoy-system.md).
 
-**Story H (SHUTTLES → `ShuttleRenderSystem`) shipped** (in-game verify pending) —
-aircraft hull + turrets as `SPRITE`s, engine FX as a `CUSTOM` (own-GL escape
-hatch); first system to combine both. All whole-texture sprites → no batch
+**Story H (SHUTTLES → `ShuttleRenderSystem`) shipped & verified** (fallback
+deleted) — aircraft hull + turrets as `SPRITE`s, engine FX as a `CUSTOM` (own-GL
+escape hatch); first system to combine both. All whole-texture sprites → no batch
 registration. **No rotation-parity risk** (uses `SPRITE`/`setAngle`, identical to
-inline — unlike CONVOY). See
+inline — unlike CONVOY). `drawTurretLayer` + `RECOIL_*` constants stay (still
+shared by the inline map-turret/drone passes). See
 [`complete/story-h-shuttles-system.md`](complete/story-h-shuttles-system.md).
 
 Next pass migration is **DRONES**, then **UNITS** (see below). Drones hover at
@@ -128,7 +129,6 @@ Final (collapse `render()` to systems-loop + drain).
   GROUND relies on spatial coherence (street/grass regions) for long runs.
 - FBO accumulators (decal/lightmap) are still inline — they'll need `Custom`
   (or a dedicated command) when their layers migrate.
-- **In-game-pending validation**: **SHUTTLES (H)** — confirm hull/engine-FX/
-  turret rendering + fog-roof piercing before deleting its `@Deprecated` fallback
-  (low risk: SPRITE/`setAngle`, no rotation-convention change). SHOTS (C),
-  DOODADS (D), GROUND (E), VEHICLES (F), CONVOY (G) verified; fallbacks deleted.
+- **In-game-pending validation**: none outstanding. SHOTS (C), DOODADS (D),
+  GROUND (E), VEHICLES (F), CONVOY (G), SHUTTLES (H) all verified; fallbacks
+  deleted.
