@@ -95,7 +95,8 @@ id          long
 houseId     long
 marketId    int       // interned vanilla market id
 industryId  int       // interned vanilla industry id
-share       byte      // 0..255 = % controlled, divide by 255 for fraction
+share       short     // 0..255 = % controlled, divide by 255 for fraction
+                      // (short, not byte: 0..255 overflows a signed byte)
 ```
 
 A stake is one house's claim on a slice of one industry. Multiple

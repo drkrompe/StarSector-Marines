@@ -57,6 +57,21 @@ same-market locality directly rather than the `relationships[]` table.
   (drift cadence/magnitude, conservation, Chronicle storage, discovery surface,
   …) — most are C/D balance-pass concerns.
 
+## Follow-ups surfaced by the Slice B review
+
+- **`StakeLedger` composite index.** `seizeShare` does up to 3 linear
+  `findStake` scans — fine at once-per-mission, but Slice C's weekly drift over
+  all ACTIVE houses turns that into O(houses × stakes). Add a
+  `(house,market,industry) → row` index *when C lands*, not before.
+- **Debug `forceComplete` political shift.** `CampaignDebugIntel.forceComplete`
+  flips contract state + rep but intentionally skips the stake seizure /
+  promotion (it has no struck industry). For playtesting the political layer
+  without running battles, give it a target-derived industry and call the same
+  primitives — small, deferred.
+- The contract-targeting / affinity / tier-scaling items in
+  [`complete/slice-b-player-transfer.md`](complete/slice-b-player-transfer.md)
+  §"Follow-ups".
+
 ## Commit chain
 
 - Slice A — genesis seeding (`HouseSeeder` rewrite + overview + README row).

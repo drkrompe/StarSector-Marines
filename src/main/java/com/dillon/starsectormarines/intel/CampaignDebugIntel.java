@@ -514,8 +514,12 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
                 : s.contractAcceptedTick[row];
     }
 
-    /** Debug-only contract closure — mirrors {@code MissionResolver.applyContractBridge}
-     *  victory path so this exercises the same state-write surface end-to-end. */
+    /** Debug-only contract closure: flips the contract to COMPLETED and bumps patron
+     *  rep — the contract-state half of {@code MissionResolver.applyContractBridge}.
+     *  It does <em>not</em> apply the political shift (stake seizure + promotion):
+     *  that needs a struck industry from a real mission resolution, which this pure
+     *  contract-state poke has no source for. Architecture §5 blesses this debug
+     *  divergence; see next-session.md for the playtest-value follow-up. */
     private static void forceComplete(CampaignState s, long id) {
         int row = s.contractIndex(id);
         if (row < 0) return;

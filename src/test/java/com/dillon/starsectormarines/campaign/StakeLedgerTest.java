@@ -80,6 +80,51 @@ public class StakeLedgerTest {
     }
 
     @Test
+    public void claimedTotalNeverExceedsCeilingWhenWinnerAlreadyHoldsShare() {
+        CampaignState s = new CampaignState();
+        long target = house(s, "Target");
+        long patron = house(s, "Patron");
+        s.addStake(patron, MARKET, INDUSTRY, (short) 240);
+        s.addStake(target, MARKET, INDUSTRY, (short) 15); // pie is full: 240 + 15 = 255
+
+        int gained = StakeLedger.seizeShare(s, target, patron, MARKET, INDUSTRY, 20);
+
+        assertEquals(15, gained, "winner can only take what the loser holds — the pie is already full");
+        assertEquals(255, StakeLedger.shareOf(s, patron, MARKET, INDUSTRY), "winner caps at the ceiling, nothing dropped");
+        assertEquals(0, StakeLedger.shareOf(s, target, MARKET, INDUSTRY));
+        assertEquals(255, StakeLedger.totalClaimedShare(s, MARKET, INDUSTRY), "total holds at the ceiling");
+    }
+
+    @Test
+    public void returnsZeroWhenLoserEmptyAndPieFull() {
+        CampaignState s = new CampaignState();
+        long other  = house(s, "Other");
+        long target = house(s, "Target");
+        long patron = house(s, "Patron");
+        s.addStake(other, MARKET, INDUSTRY, (short) 255); // no rival share to take, no open pool
+
+        int gained = StakeLedger.seizeShare(s, target, patron, MARKET, INDUSTRY, 20);
+
+        assertEquals(0, gained, "nothing to take and nothing open → clean zero");
+        assertEquals(-1, StakeLedger.findStake(s, patron, MARKET, INDUSTRY), "no empty winner row is created");
+    }
+
+    @Test
+    public void grantingToExistingWinnerRowIncrementsNotAppends() {
+        CampaignState s = new CampaignState();
+        long target = house(s, "Target");
+        long patron = house(s, "Patron");
+        s.addStake(target, MARKET, INDUSTRY, (short) 60);
+        s.addStake(patron, MARKET, INDUSTRY, (short) 30); // winner already holds a stake
+        int rowsBefore = s.stakeCount;
+
+        StakeLedger.seizeShare(s, target, patron, MARKET, INDUSTRY, 20);
+
+        assertEquals(50, StakeLedger.shareOf(s, patron, MARKET, INDUSTRY), "winner's existing row is incremented");
+        assertEquals(rowsBefore, s.stakeCount, "no new row appended when the winner already holds the industry");
+    }
+
+    @Test
     public void revivesTombstonedRowRatherThanDuplicating() {
         CampaignState s = new CampaignState();
         long a = house(s, "A");

@@ -45,6 +45,18 @@ public class HousePromotionTest {
     }
 
     @Test
+    public void landingExactlyOnThresholdPromotesWithZeroCarry() {
+        CampaignState s = new CampaignState();
+        int row = house(s, HouseRank.TIER_1, 85); // threshold 100
+
+        int promotions = HousePromotion.addProgressAndPromote(s, row, 15, 10); // 85 + 15 == 100 exactly
+
+        assertEquals(1, promotions, "progress == threshold must promote (>=, not >)");
+        assertEquals(HouseRank.TIER_2, HouseRank.fromByte(s.houseRank[row]));
+        assertEquals(0, s.housePromotionProgress[row], "exact landing carries zero remainder");
+    }
+
+    @Test
     public void largeDeltaCascadesMultipleTiers() {
         CampaignState s = new CampaignState();
         int row = house(s, HouseRank.TIER_1, 0); // thresholds: T1=100, T2=300

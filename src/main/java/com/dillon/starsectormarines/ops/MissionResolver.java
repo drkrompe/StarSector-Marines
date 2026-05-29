@@ -423,6 +423,9 @@ public final class MissionResolver {
         int targetRow = state.houseIndex(targetId);
         if (targetRow < 0) return;
         int marketIdx   = state.houseMarketId[targetRow];
+        // intern (not get): a strike can be the first time an industry enters the
+        // registry — seeding only interns industries that existed at game start.
+        // The patron then takes its foothold purely from the unclaimed remainder.
         int industryIdx = state.industryRegistry.intern(outcome.targetIndustryId);
 
         int gained = StakeLedger.seizeShare(state, targetId, patronId, marketIdx, industryIdx,

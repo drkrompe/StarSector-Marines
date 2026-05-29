@@ -34,6 +34,7 @@ public final class HousePromotion {
      * negative delta to hold a rival down). Does not promote.
      */
     public static void addProgress(CampaignState state, int houseRow, int delta) {
+        if (houseRow < 0) return; // tolerate a missed lookup — this is the shared entry point
         int next = state.housePromotionProgress[houseRow] + delta;
         if (next < 0) next = 0;
         if (next > Short.MAX_VALUE) next = Short.MAX_VALUE;
@@ -46,6 +47,7 @@ public final class HousePromotion {
      * of promotions that fired (0 if none).
      */
     public static int addProgressAndPromote(CampaignState state, int houseRow, int delta, int day) {
+        if (houseRow < 0) return 0; // tolerate a missed lookup — this is the shared entry point
         addProgress(state, houseRow, delta);
 
         int promotions = 0;
