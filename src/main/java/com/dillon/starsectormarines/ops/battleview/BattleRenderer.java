@@ -5,8 +5,6 @@ import com.dillon.starsectormarines.render2d.DecalAccumulator;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
 import com.dillon.starsectormarines.battle.flyby.FlybyOverlay;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -131,6 +129,13 @@ public class BattleRenderer {
 
     private final BattleSprites sprites;
     private RenderContext rc;
+
+    /**
+     * Per-frame draw-command collector. Cleared at the top of {@link #renderWorld};
+     * Story C routes only the {@link RenderLayer#SHOTS} layer through it (see
+     * {@link #collectShots} / {@link #drainLayer}). Other passes still draw inline.
+     */
+    private final DrawList drawList = new DrawList();
 
     /**
      * Per-sheet quad batchers. Lazily constructed in {@link #buildTileBatches()}.
@@ -1574,42 +1579,22 @@ public class BattleRenderer {
         glEnd();
     }
 
-    private void renderShots(List<ShotEvent> shots, float alphaMult) {
-        renderContrails(shots, alphaMult);
+    /**
+     * Collects the {@link RenderLayer#SHOTS} layer into the {@link #drawList}
+     * instead of drawing inline — the first pass migrated to the command model
+     * (Story C). Submission order matches the old {@code renderShots}: contrails,
+     * then hitscan tracers, then projectile sprites.
+     *
+     * <p>The contrails {@link DrawCommand.Custom} is emitted unconditionally — its
+     * callback ages and decays existing trails every frame, even with no live
+     * shots — so it must not be gated on {@code shots} being non-empty.
+     */
+    private void collectShots(List<ShotEvent> shots, float alphaMult) {
+        drawList.add(RenderLayer.SHOTS, new DrawCommand.Custom(() -> renderContrails(shots, alphaMult)));
         if (shots.isEmpty()) return;
 
-        glDisable(GL_TEXTURE_2D);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        org.lwjgl.opengl.GL11.glLineWidth(2f);
-        glBegin(org.lwjgl.opengl.GL11.GL_LINES);
-        for (ShotEvent s : shots) {
-            if (s.turretKind != null) continue;
-            if (s.marineSecondary != null) continue;
-            if (s.marineWeapon != null && s.marineWeapon.projectileSpritePath != null) continue;
-            if (s.mechWeapon != null && s.mechWeapon.projectileSpritePath != null) continue;
-            float t = Math.max(0f, Math.min(1f, s.lifetime / Math.max(0.001f, s.lifetimeMax)));
-            Color c;
-            if (s.marineWeapon != null) {
-                c = s.marineWeapon.tracerColor;
-            } else {
-                c = s.shooterFaction == Faction.MARINE ? MARINE_TRACER : DEFENDER_TRACER;
-            }
-            glColor4f(c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, t * alphaMult);
-            float x0 = rc.camera.cellToScreenX(s.fromX);
-            float y0 = rc.camera.cellToScreenY(s.fromY);
-            float x1 = rc.camera.cellToScreenX(s.toX);
-            float y1 = rc.camera.cellToScreenY(s.toY);
-            glVertex2f(x0, y0);
-            glVertex2f(x1, y1);
-        }
-        glEnd();
-        org.lwjgl.opengl.GL11.glLineWidth(1f);
+        drawList.add(RenderLayer.SHOTS, new DrawCommand.Custom(() -> drawTracers(shots, alphaMult)));
 
-        java.util.Set<TurretKind> touchedTurret = new java.util.HashSet<>();
-        java.util.Set<MarineSecondary> touchedSecondary = new java.util.HashSet<>();
-        java.util.Set<MarineWeapon> touchedPrimary = new java.util.HashSet<>();
-        java.util.Set<com.dillon.starsectormarines.battle.mech.MechWeapon> touchedMech = new java.util.HashSet<>();
         for (ShotEvent s : shots) {
             ShuttleSpriteCache cache;
             float visualCells;
@@ -1646,16 +1631,14 @@ public class BattleRenderer {
             } else {
                 bearing = bearingDeg(s.fromX, s.fromY, s.toX, s.toY);
             }
-            SpriteAPI sprite = cache.sprite;
             float cellPxLocal = rc.camera.cellPxSize();
             float pxH = visualCells * cellPxLocal;
             float pxW = pxH * cache.aspect;
-            sprite.setSize(pxW, pxH);
-            sprite.setAngle(bearing);
-            sprite.setAlphaMult(alphaMult);
-            sprite.setNormalBlend();
-            sprite.setColor(Color.WHITE);
-            sprite.renderAtCenter(rc.camera.cellToScreenX(px), rc.camera.cellToScreenY(py));
+            drawList.add(RenderLayer.SHOTS, new DrawCommand.SpriteQuad(
+                    cache.sprite,
+                    rc.camera.cellToScreenX(px), rc.camera.cellToScreenY(py),
+                    pxW, pxH, bearing,
+                    1f, 1f, 1f, alphaMult));
             boolean engineTrail = s.mechWeapon != null && s.mechWeapon.engineTrail;
             boolean smokeTrail  = s.turretKind != null && s.turretKind.smokeTrail
                     && !kindUsesContrailRibbon(s.turretKind);
@@ -1666,27 +1649,42 @@ public class BattleRenderer {
                 if (engineTrail) impactFx.spawnEngineTrail(px + tailDx, py + tailDy, 0.18f);
                 else             impactFx.spawnSmokeTrail (px + tailDx, py + tailDy, 0.20f);
             }
-            if (s.turretKind != null) touchedTurret.add(s.turretKind);
-            else if (s.marineSecondary != null) touchedSecondary.add(s.marineSecondary);
-            else if (s.marineWeapon != null) touchedPrimary.add(s.marineWeapon);
-            else if (s.mechWeapon != null) touchedMech.add(s.mechWeapon);
         }
-        for (TurretKind k : touchedTurret) {
-            ShuttleSpriteCache c = sprites.turretProjectileSprites().get(k);
-            if (c != null) c.sprite.setAngle(0f);
+    }
+
+    /**
+     * Hitscan tracer lines for shots without a projectile sprite. Drawn as one
+     * {@code GL_LINES} block faithful to the ambient mid-{@code renderWorld} GL
+     * state, invoked as a {@link DrawCommand.Custom} from {@link #drainLayer}.
+     */
+    private void drawTracers(List<ShotEvent> shots, float alphaMult) {
+        glDisable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        org.lwjgl.opengl.GL11.glLineWidth(2f);
+        glBegin(org.lwjgl.opengl.GL11.GL_LINES);
+        for (ShotEvent s : shots) {
+            if (s.turretKind != null) continue;
+            if (s.marineSecondary != null) continue;
+            if (s.marineWeapon != null && s.marineWeapon.projectileSpritePath != null) continue;
+            if (s.mechWeapon != null && s.mechWeapon.projectileSpritePath != null) continue;
+            float t = Math.max(0f, Math.min(1f, s.lifetime / Math.max(0.001f, s.lifetimeMax)));
+            Color c;
+            if (s.marineWeapon != null) {
+                c = s.marineWeapon.tracerColor;
+            } else {
+                c = s.shooterFaction == Faction.MARINE ? MARINE_TRACER : DEFENDER_TRACER;
+            }
+            glColor4f(c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, t * alphaMult);
+            float x0 = rc.camera.cellToScreenX(s.fromX);
+            float y0 = rc.camera.cellToScreenY(s.fromY);
+            float x1 = rc.camera.cellToScreenX(s.toX);
+            float y1 = rc.camera.cellToScreenY(s.toY);
+            glVertex2f(x0, y0);
+            glVertex2f(x1, y1);
         }
-        for (MarineSecondary k : touchedSecondary) {
-            ShuttleSpriteCache c = sprites.marineSecondarySprites().get(k);
-            if (c != null) c.sprite.setAngle(0f);
-        }
-        for (MarineWeapon k : touchedPrimary) {
-            ShuttleSpriteCache c = sprites.marineWeaponProjectileSprites().get(k);
-            if (c != null) c.sprite.setAngle(0f);
-        }
-        for (com.dillon.starsectormarines.battle.mech.MechWeapon k : touchedMech) {
-            ShuttleSpriteCache c = sprites.mechWeaponProjectileSprites().get(k);
-            if (c != null) c.sprite.setAngle(0f);
-        }
+        glEnd();
+        org.lwjgl.opengl.GL11.glLineWidth(1f);
     }
 
     private void renderContrails(List<ShotEvent> shots, float alphaMult) {
@@ -1854,6 +1852,51 @@ public class BattleRenderer {
         glEnd();
     }
 
+    // ---- draw-list drain ------------------------------------------------------
+
+    /**
+     * Replays one layer's queued {@link DrawCommand}s in submission order. A run
+     * of consecutive {@link DrawCommand.SpriteQuad}s shares one
+     * {@link GlStateBracket#textured2D()} bracket; each {@link DrawCommand.Custom}
+     * runs standalone (it owns its own GL state). This is the generalization of
+     * the manual batch-and-flush pattern in {@link #renderTiledFloorsAndWalls}.
+     */
+    private void drainLayer(RenderLayer layer) {
+        List<DrawCommand> cmds = drawList.commands(layer);
+        int n = cmds.size();
+        int i = 0;
+        while (i < n) {
+            if (cmds.get(i) instanceof DrawCommand.SpriteQuad) {
+                try (GlStateBracket gl = GlStateBracket.textured2D()) {
+                    while (i < n && cmds.get(i) instanceof DrawCommand.SpriteQuad sq) {
+                        drawSpriteQuad(sq);
+                        i++;
+                    }
+                }
+            } else if (cmds.get(i) instanceof DrawCommand.Custom custom) {
+                custom.draw().run();
+                i++;
+            } else {
+                i++;
+            }
+        }
+    }
+
+    private static void drawSpriteQuad(DrawCommand.SpriteQuad q) {
+        SpriteAPI sprite = q.sprite();
+        sprite.setSize(q.w(), q.h());
+        sprite.setAngle(q.angleDeg());
+        sprite.setAlphaMult(q.a());
+        sprite.setNormalBlend();
+        // Avoid a per-quad Color alloc for the common untinted case (all SHOTS
+        // projectiles are white); only build a Color when an actual tint is set.
+        sprite.setColor(q.r() == 1f && q.g() == 1f && q.b() == 1f
+                ? Color.WHITE : new Color(q.r(), q.g(), q.b()));
+        sprite.renderAtCenter(q.cx(), q.cy());
+        // Reset rotation so the shared cached sprite carries no angle into other passes.
+        sprite.setAngle(0f);
+    }
+
     // ---- main entry point ----------------------------------------------------
 
     /**
@@ -1862,6 +1905,7 @@ public class BattleRenderer {
      */
     public void renderWorld(RenderContext rc) {
         this.rc = rc;
+        drawList.clear();
         BattleSimulation sim = rc.sim;
         renderGrid(sim.getGrid(), sim.getTopology(), rc.alphaMult);
         if (rc.debugZonesVisible) renderZoneOverlay(sim, rc.alphaMult);
@@ -1895,7 +1939,10 @@ public class BattleRenderer {
         // Ground convoys layer just under shuttles.
         renderConvoyVehicles(sim.getConvoyVehicles(), rc.alphaMult);
         renderShuttles(sim.getShuttles(), rc.alphaMult);
-        renderShots(sim.getActiveShots(), rc.alphaMult);
+        // SHOTS layer — command-driven (Story C): collect into the draw list,
+        // then drain it through the batch/flush path instead of drawing inline.
+        collectShots(sim.getActiveShots(), rc.alphaMult);
+        drainLayer(RenderLayer.SHOTS);
         // Impact FX: sparks, dust, smoke at shot endpoints.
         impactFx.render(rc.camera, rc.alphaMult);
         // Flyby layer lives above everything ground-side.

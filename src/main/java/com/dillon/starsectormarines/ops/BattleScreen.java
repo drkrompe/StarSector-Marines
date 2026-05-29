@@ -829,7 +829,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             // shot line so the multiply pass doesn't darken pulse-rifle /
             // railgun / militia tracer beams. Marines use their per-weapon
             // tracerColor; other factions fall back to the same palette
-            // renderShots reads.
+            // BattleRenderer.drawTracers reads.
             Color tracerColor = (s.marineWeapon != null)
                     ? s.marineWeapon.tracerColor
                     : (s.shooterFaction == Faction.MARINE ? MARINE_TRACER : DEFENDER_TRACER);
