@@ -177,13 +177,46 @@ and callers still passing `sim` upcast automatically. So:
    `BattleView`, mutating behaviors → `BattleControl`). Callers unaffected.
    - ✅ **Read sweep slice 1 SHIPPED `5f1bd7a`**: `WorldStateBuilder.build`
      + every `PredicateEvaluator` → `BattleView`. Grew `BattleView` with
-     `getUnitIndex` + `snapshotActiveShots` (both already on the sim). All
-     ~20 call sites upcast — zero caller churn. Next: posture read paths
-     (`EngagePosture`/`RegroupPosture` preconditions/relevance) →
-     `BattleView`, then the mutating behaviors → `BattleControl`.
-3. **Flip the `Action`/`Goal` interface signatures last** — the one
-   big-bang (every implementor `@Override`s at once), but by then the
-   bodies already use narrowed locals.
+     `getUnitIndex` + `snapshotActiveShots`. Plus `57304e0`:
+     `InfantryCohesion.cohesionOverride` → `BattleView` (the postures'
+     shared read helper; their `cost`/`relevance` are interface overrides,
+     so they only flip in step 3).
+   - ✅ **Interface growth `0c91af4`**: audited every `sim.*` call in the
+     GOAP packages and grew `BattleView`/`BattleControl` to the full
+     surface, so the helper sweep + flip never touch the interface files
+     (conflict-free for parallel fan-out).
+   - ✅ **Helper sweep `62ed71f`**: every private/static GOAP helper
+     narrowed by what it does with the sim (read → `BattleView`, mutate →
+     `BattleControl`). Fanned out to 3 Sonnet agents (infantry / mech /
+     drone+goap-action); central compile + commit on the main thread.
+     Callers still pass `BattleSimulation` → upcast, stays green.
+3. ✅ **Interface flip SHIPPED `61e322a`** — the big-bang. `Action`'s
+   `cost`/`roles`/`highlightCells` → `BattleView`, `execute` →
+   `BattleControl`; `Goal`'s `relevance`/`desiredState`/`customPlan`/
+   `pickMostRelevant` → `BattleView`. All ~38 implementors `@Override`d
+   at once (3-agent fan-out, param-type only, name kept `sim`). Rode
+   along `getSimTickIndex()` on `BattleView` (was a raw public-field read
+   in `DroneSwarmAction.tickEngage`). Test doubles in `PlannerTest`/
+   `GoalTest` updated. Build + full suite green. The parallel-replan
+   read-only contract is now compile-enforced, not Javadoc-only.
+
+## What remains (command tier)
+
+The GOAP surface is done. The remaining in-scope facade coupling is the
+**command tier**: `command/` (`AssaultCommand`/`ConquestCommand`/
+`SabotageCommand`/`MissionCommand`), `command/reinforcement/`
+(`ConvoyMeans`/`ShuttleMeans`/`WalkInMeans`/`GarrisonDepletedTrigger`/
+`ObjectiveLostTrigger`/`RecaptureTargetService` + the `ReinforcementMeans`/
+`ReinforcementTrigger` interfaces), and `command/objective/` (the
+`Objective` interface + `ConquestObjective`/`ChargeSiteObjective`/
+`EliminateFactionObjective`). These take a raw `BattleSimulation` method
+param and use it for several reads (grid, topology, squads, zone graph,
+vehicles) plus the occasional spawn/mint. Same playbook: grow the
+read/mutate interfaces as needed → narrow helpers → flip the
+command/objective/reinforcement interface signatures. No parallel-replan
+thread-safety angle (these run serial), so lower stakes than the GOAP
+spine — pure coupling reduction. Render/UI facade reads remain on the sim
+(out of scope, see below).
 
 **Sweep convention:** keep the parameter *name* `sim` (just change its
 type) so each slice is a pure signature-level change, bodies untouched —
