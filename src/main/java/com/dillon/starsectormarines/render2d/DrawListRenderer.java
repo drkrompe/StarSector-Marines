@@ -9,15 +9,18 @@ import java.util.Map;
  * The engine-side drain: replays a layer's pooled {@link DrawCommand} buffer in
  * <strong>strict submission order</strong>, turning the deferred command stream
  * into batched GL calls. Submission order <em>is</em> paint order — the drain
- * holds no per-layer config; the collecting system owns the order (and emits each
- * sheet's quads contiguously so they batch into one flush).
+ * holds no per-layer config; the collecting system owns the order.
  *
- * <p>It coalesces runs: consecutive {@code SHEET_QUAD}s sharing a sheet append to
- * that sheet's {@link QuadBatch} and flush once; a run of {@code SOLID_RECT}s
- * fills the shared {@link SolidQuadBatch} and flushes; a run of {@code SPRITE}s
- * renders each via {@code renderAtCenter}; a {@code CUSTOM} runs standalone (it
- * owns its own GL state). The batch flush flips when the sheet or command kind
- * changes, so anything painted later in submission order lands on top.
+ * <p>It coalesces consecutive same-sheet {@code SHEET_QUAD}s into one
+ * {@link QuadBatch} flush and consecutive {@code SOLID_RECT}s into one
+ * {@link SolidQuadBatch} flush, flipping the active batch (and flushing the
+ * previous) whenever the sheet or command kind changes — so anything submitted
+ * later lands on top. A whole run of batch/sprite work shares <em>one</em>
+ * {@link GlStateBracket} ({@code glPushAttrib}/{@code glPopAttrib} is not cheap,
+ * and {@code QuadBatch}/{@code SolidQuadBatch} are designed to interleave under a
+ * single {@code textured2D()} bracket). A {@code CUSTOM} owns its own GL state, so
+ * the drain flushes pending batches, closes the bracket, runs the callback, then
+ * reopens lazily.
  *
  * <p>Pure mechanism: knows nothing about which layers exist or their order — the
  * caller hands one layer's buffer plus the sheet→batch map and the solid batch.
@@ -34,58 +37,56 @@ public final class DrawListRenderer {
      */
     public static void drain(DrawCommand[] buf, int count,
                              Map<SpriteAPI, QuadBatch> batchBySheet, SolidQuadBatch solidBatch) {
-        int i = 0;
-        while (i < count) {
+        GlStateBracket bracket = null;
+        QuadBatch activeSheet = null;     // sheet batch with pending appends (else null)
+        SpriteAPI activeSheetKey = null;
+        boolean solidPending = false;     // solidBatch has pending appends
+
+        for (int i = 0; i < count; i++) {
             DrawCommand c = buf[i];
             switch (c.kind) {
                 case SHEET_QUAD: {
-                    SpriteAPI sheet = c.sprite;
-                    QuadBatch b = batchBySheet.get(sheet);
-                    try (GlStateBracket gl = GlStateBracket.textured2D()) {
-                        // Same-sheet run: append contiguous SHEET_QUADs of this sheet, then flush once.
-                        while (i < count
-                                && buf[i].kind == DrawCommand.Kind.SHEET_QUAD
-                                && buf[i].sprite == sheet) {
-                            DrawCommand q = buf[i];
-                            if (b != null) {
-                                b.append(q.srcX, q.srcY, q.srcW, q.srcH,
-                                        q.cx, q.cy, q.w, q.h,
-                                        q.r, q.g, q.b, q.a);
-                            }
-                            i++;
-                        }
-                        if (b != null) b.flush();
+                    if (c.sprite != activeSheetKey) {
+                        if (activeSheet != null) activeSheet.flush();
+                        if (solidPending) { solidBatch.flush(); solidPending = false; }
+                        activeSheetKey = c.sprite;
+                        activeSheet = batchBySheet.get(c.sprite);
+                    }
+                    if (bracket == null) bracket = GlStateBracket.textured2D();
+                    if (activeSheet != null) {
+                        activeSheet.append(c.srcX, c.srcY, c.srcW, c.srcH,
+                                c.cx, c.cy, c.w, c.h, c.r, c.g, c.b, c.a);
                     }
                     break;
                 }
                 case SOLID_RECT: {
-                    try (GlStateBracket gl = GlStateBracket.textured2D()) {
-                        while (i < count && buf[i].kind == DrawCommand.Kind.SOLID_RECT) {
-                            DrawCommand q = buf[i];
-                            // cx/cy = (x0,y0), w/h = (x1,y1).
-                            solidBatch.appendRect(q.cx, q.cy, q.w, q.h, q.r, q.g, q.b, q.a);
-                            i++;
-                        }
-                        solidBatch.flush();
-                    }
+                    if (activeSheet != null) { activeSheet.flush(); activeSheet = null; activeSheetKey = null; }
+                    if (bracket == null) bracket = GlStateBracket.textured2D();
+                    solidBatch.appendRect(c.cx, c.cy, c.w, c.h, c.r, c.g, c.b, c.a); // cx/cy=(x0,y0), w/h=(x1,y1)
+                    solidPending = true;
                     break;
                 }
                 case SPRITE: {
-                    try (GlStateBracket gl = GlStateBracket.textured2D()) {
-                        while (i < count && buf[i].kind == DrawCommand.Kind.SPRITE) {
-                            drawSprite(buf[i]);
-                            i++;
-                        }
-                    }
+                    if (activeSheet != null) { activeSheet.flush(); activeSheet = null; activeSheetKey = null; }
+                    if (solidPending) { solidBatch.flush(); solidPending = false; }
+                    if (bracket == null) bracket = GlStateBracket.textured2D();
+                    drawSprite(c);
                     break;
                 }
                 case CUSTOM:
-                default:
+                default: {
+                    if (activeSheet != null) { activeSheet.flush(); activeSheet = null; activeSheetKey = null; }
+                    if (solidPending) { solidBatch.flush(); solidPending = false; }
+                    if (bracket != null) { bracket.close(); bracket = null; }
                     c.custom.run();
-                    i++;
                     break;
+                }
             }
         }
+
+        if (activeSheet != null) activeSheet.flush();
+        if (solidPending) solidBatch.flush();
+        if (bracket != null) bracket.close();
     }
 
     private static void drawSprite(DrawCommand q) {

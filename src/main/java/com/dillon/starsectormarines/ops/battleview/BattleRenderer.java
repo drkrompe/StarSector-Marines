@@ -150,6 +150,9 @@ public class BattleRenderer {
     /** Story D — first pass migrated to a {@link RenderSystem}; emits the DOODADS layer. */
     private final DoodadRenderSystem doodadSystem;
 
+    /** GROUND layer — tiled floor/wall terrain, emitted as pooled per-tile commands. */
+    private final GroundRenderSystem groundSystem;
+
     /**
      * Per-sheet quad batchers. Lazily constructed in {@link #buildTileBatches()}.
      * Reused across passes.
@@ -215,6 +218,7 @@ public class BattleRenderer {
     public BattleRenderer(BattleSprites sprites) {
         this.sprites = sprites;
         this.doodadSystem = new DoodadRenderSystem(sprites);
+        this.groundSystem = new GroundRenderSystem(sprites);
     }
 
     // ---- lifecycle -----------------------------------------------------------
@@ -672,6 +676,15 @@ public class BattleRenderer {
                 alphaMult);
     }
 
+    /**
+     * @deprecated Superseded by {@link GroundRenderSystem} (GROUND layer, pooled
+     * command model). Retained <em>uncalled</em> as a one-line-rewire rollback
+     * reference until the new pass is confirmed in a live battle, then deleted.
+     * {@code renderTiledFloorsAndWalls}, {@code fillCell}, the {@code draw*} tile
+     * helpers, and the {@code isSidewalk*}/{@code isRoadBoundary} predicates below
+     * are kept for the same reason.
+     */
+    @Deprecated
     private void renderGrid(NavigationGrid grid, CellTopology topology, float alphaMult) {
         glDisable(GL_TEXTURE_2D);
         glEnable(GL_BLEND);
@@ -1886,7 +1899,10 @@ public class BattleRenderer {
         this.rc = rc;
         drawList.clear();
         BattleSimulation sim = rc.sim;
-        renderGrid(sim.getGrid(), sim.getTopology(), rc.alphaMult);
+        // GROUND layer — tiled floor/wall terrain via GroundRenderSystem (pooled
+        // per-tile commands), drained through the strict-painter batch path.
+        groundSystem.collect(rc, drawList);
+        drainLayer(RenderLayer.GROUND);
         if (rc.debugZonesVisible) renderZoneOverlay(sim, rc.alphaMult);
         // Decals sit between the floor pass and vehicles so parked trucks
         // (and later units) draw on top of bullet holes and craters.
