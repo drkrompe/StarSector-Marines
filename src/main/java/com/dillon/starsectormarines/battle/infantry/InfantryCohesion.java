@@ -1,5 +1,5 @@
 package com.dillon.starsectormarines.battle.infantry;
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 
@@ -48,7 +48,7 @@ public final class InfantryCohesion {
      * is fine; the failure mode was units stuck navigating <em>to</em>
      * the battlefield. See {@code memory/squad_leader_cohesion.md}.
      */
-    public static int[] cohesionOverride(Unit self, BattleSimulation sim) {
+    public static int[] cohesionOverride(Unit self, BattleView sim) {
         if (self.squadId == Unit.NO_SQUAD) return null;
         Squad squad = sim.getSquad(self.squadId);
         if (squad == null || squad.aliveMembers <= 1) return null;
