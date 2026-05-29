@@ -41,6 +41,22 @@ https://davidkbd.itch.io/eternity-metal-scfi-music-pack
   — the same call made for the deferred `unit/`→`entity/` rename. Relocate
   when it has *become* an air entity, not before.
 
+## Bugs
+
+- **`HoldPost` double-ticks the attack cooldown** — `HoldPost.executeWithTarget`
+  (`battle/infantry/HoldPost.java`, the `if (getCooldownTimer() > 0f)
+  setCooldownTimer(... - TICK_DT)` line) drains the cooldown a second time,
+  on top of `InfantryUnitPrep.tickCooldowns` already called from
+  `GoapInfantryBehavior.prepareForAction` before `execute`. So garrison /
+  guard-post units (the `GuardPost` goal → `HoldPost` action) fire ~2× too
+  slowly. `EngagePosture` is the correct pattern — it never manually
+  decrements, it only gates on `getCooldownTimer() <= 0f` and resets after
+  firing. Fix = delete the manual decrement in `HoldPost`. Pre-existing
+  (predates the GOAP `BattleView`/`BattleControl` flip); surfaced by the
+  flip's critique pass. Behavioral change → verify garrison fire cadence
+  after. Cross-ref: `HoldPost` is also the fattest sim CPU path (see
+  Performance § below), so this also slightly inflates that profile.
+
 ## UI
 
 - **Briefing screen** (also gameplay item above).
