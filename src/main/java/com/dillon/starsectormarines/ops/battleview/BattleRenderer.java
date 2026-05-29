@@ -141,6 +141,9 @@ public class BattleRenderer {
     /** VEHICLES layer — parked map vehicles, emitted as one batched sheet-quad each. */
     private final VehicleRenderSystem vehicleSystem;
 
+    /** CONVOY layer — convoy trucks + turrets, emitted as rotated batched sheet-quads. */
+    private final ConvoyRenderSystem convoySystem;
+
     /**
      * Per-sheet quad batchers. Lazily constructed in {@link #buildTileBatches()}.
      * Reused across passes.
@@ -208,6 +211,7 @@ public class BattleRenderer {
         this.doodadSystem = new DoodadRenderSystem(sprites);
         this.groundSystem = new GroundRenderSystem(sprites);
         this.vehicleSystem = new VehicleRenderSystem(sprites);
+        this.convoySystem = new ConvoyRenderSystem(sprites);
     }
 
     // ---- lifecycle -----------------------------------------------------------
@@ -245,10 +249,17 @@ public class BattleRenderer {
         registerBatch(sprites.urbanTile3Sheet(), urbanTile3Batch);
         registerBatch(sprites.natureSheet(), natureBatch);
 
-        // Sprite-sheet batches for the VEHICLES layer (VehicleRenderSystem).
-        // Vehicle sheets are loaded by ensureVehicleSheets() before this runs
-        // (BattleScreen.attach order). batchBySheet owns the QuadBatch refs.
-        for (UnitSpriteCache cache : sprites.vehicleSheets().values()) {
+        // Sprite-sheet batches for the VEHICLES + CONVOY layers (Vehicle/Convoy
+        // RenderSystems). Their sheets are loaded by ensureVehicleSheets() /
+        // ensureConvoySprites() before this runs (BattleScreen.attach order).
+        // batchBySheet owns the QuadBatch refs.
+        registerSpriteSheetBatches(sprites.vehicleSheets().values());
+        registerSpriteSheetBatches(sprites.convoySprites().values());
+    }
+
+    /** Builds + registers one {@link QuadBatch} per distinct sheet in {@code caches} (idempotent). */
+    private void registerSpriteSheetBatches(java.util.Collection<UnitSpriteCache> caches) {
+        for (UnitSpriteCache cache : caches) {
             if (cache == null || cache.sheet == null || cache.frames == null) continue;
             if (batchBySheet.containsKey(cache.sheet)) continue;
             registerBatch(cache.sheet,
@@ -764,6 +775,15 @@ public class BattleRenderer {
         glEnd();
     }
 
+    /**
+     * @deprecated Superseded by {@link ConvoyRenderSystem} (CONVOY layer, rotated
+     * batched sheet-quads). Retained <em>uncalled</em> as a one-line-rewire
+     * rollback reference until the new pass is confirmed in a live battle, then
+     * deleted. The debug overlays it dispatched ({@code renderConvoyDockingPaths},
+     * {@code renderSelectedVehicleDebug}) are live and now called from
+     * {@code renderWorld}.
+     */
+    @Deprecated
     private void renderConvoyVehicles(java.util.List<com.dillon.starsectormarines.battle.vehicle.Vehicle> convoy,
                                       float alphaMult) {
         if (convoy.isEmpty()) return;
@@ -1477,8 +1497,14 @@ public class BattleRenderer {
         // Compound capture-state markers — faction-coloured ring +
         // capture-progress arc + kind glyph at each defender compound.
         compoundMarkers.render(sim, sim.getCompoundService(), rc.camera, rc.alphaMult);
-        // Ground convoys layer just under shuttles.
-        renderConvoyVehicles(sim.getConvoyVehicles(), rc.alphaMult);
+        // CONVOY layer — convoy trucks + turrets via ConvoyRenderSystem (rotated
+        // batched sheet-quads), just under shuttles. The debug overlays the old
+        // pass dispatched are own-GL line passes and run inline after the drain.
+        java.util.List<com.dillon.starsectormarines.battle.vehicle.Vehicle> convoy = sim.getConvoyVehicles();
+        convoySystem.collect(rc, drawList);
+        drainLayer(RenderLayer.CONVOY);
+        if (DEBUG_RENDER_DOCKING_PATHS) renderConvoyDockingPaths(convoy, rc.alphaMult);
+        renderSelectedVehicleDebug(convoy, rc.alphaMult);
         renderShuttles(sim.getShuttles(), rc.alphaMult);
         // SHOTS layer — command-driven (Story C): collect into the draw list,
         // then drain it through the batch/flush path instead of drawing inline.

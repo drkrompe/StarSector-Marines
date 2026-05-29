@@ -43,9 +43,22 @@ before that runs). UNITS/DRONES reuse the same seam. Inline `renderVehicles`
 retained `@Deprecated`+uncalled pending the live check. See
 [`complete/story-f-vehicles-system.md`](complete/story-f-vehicles-system.md).
 
-Next pass migration is **CONVOY / SHUTTLES / DRONES**, then **UNITS** (see below).
-Note SHUTTLES/DRONES aren't "single sprite": shuttles interleave engine FX
-(own-GL `Custom`) + turret layers per craft; plan those as multi-command emits.
+**Story G (CONVOY → `ConvoyRenderSystem`) shipped** (in-game verify pending) —
+convoy trucks + turrets now emit **rotated** batched sheet-quads. This added the
+engine extension **rotation on `SHEET_QUAD`** (`DrawCommand`/`DrawList`
+`addSheetQuad(..., angleDeg, ...)` overload; drain routes `angleDeg != 0` →
+`QuadBatch.appendRotated`, keeps the cheap axis-aligned path for dense tile
+layers). Reused by UNITS/DRONES. ⚠️ **Parity risk to verify**: rotation moved
+from `SpriteAPI.setAngle` to `appendRotated` (manual CCW corners) — confirm
+convoy chassis/turrets aren't mirrored or sign-flipped. Debug overlays (docking
+paths, selected-vehicle) stay inline after the drain. The sprite-sheet batch
+registration is now a shared `registerSpriteSheetBatches` helper. See
+[`complete/story-g-convoy-system.md`](complete/story-g-convoy-system.md).
+
+Next pass migration is **SHUTTLES / DRONES**, then **UNITS** (see below).
+SHUTTLES/DRONES aren't "single sprite": shuttles interleave engine FX (own-GL
+`Custom`) + turret layers per craft; plan those as multi-command emits. They can
+reuse the rotated-sheet-quad path Story G just added.
 
 **Story E shipped — what landed:**
 - `DrawCommand.SolidRect` + the pooled, mutable tagged command buffer
@@ -83,7 +96,8 @@ DOODADS)~~ ✅ → ~~engine/game package split (structural foundation)~~ ✅ →
 ~~pooled command buffer + SolidRect + strict-painter drain~~ ✅ →
 ~~E (GROUND → GroundRenderSystem; verified, fallback deleted)~~ ✅ →
 ~~F (VEHICLES → VehicleRenderSystem; verified, fallback deleted)~~ ✅ →
-G…N (CONVOY/SHUTTLES/DRONES, then UNITS) →
+~~G (CONVOY → ConvoyRenderSystem + rotated SHEET_QUAD; in-game-verify pending)~~ ✅ →
+H…N (SHUTTLES/DRONES, then UNITS) →
 Final (collapse `render()` to systems-loop + drain).
 
 ## Watch-outs
@@ -99,7 +113,7 @@ Final (collapse `render()` to systems-loop + drain).
   GROUND relies on spatial coherence (street/grass regions) for long runs.
 - FBO accumulators (decal/lightmap) are still inline — they'll need `Custom`
   (or a dedicated command) when their layers migrate.
-- **In-game-pending validation**: none outstanding — SHOTS (C), DOODADS (D),
-  GROUND (E), VEHICLES (F) all verified in a live battle; fallbacks deleted.
-  New render-changing passes still need a live-battle check before their
-  fallback is removed.
+- **In-game-pending validation**: **CONVOY (G)** — verify rotated chassis/turret
+  parity (appendRotated vs setAngle) before deleting its `@Deprecated` fallback.
+  SHOTS (C), DOODADS (D), GROUND (E), VEHICLES (F) already verified; fallbacks
+  deleted. New render-changing passes always need a live-battle check first.

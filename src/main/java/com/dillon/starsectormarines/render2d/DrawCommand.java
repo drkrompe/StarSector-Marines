@@ -48,10 +48,23 @@ public final class DrawCommand {
     public void setSheetQuad(SpriteAPI sheet, int srcX, int srcY, int srcW, int srcH,
                              float cx, float cy, float w, float h,
                              float r, float g, float b, float a) {
+        setSheetQuad(sheet, srcX, srcY, srcW, srcH, cx, cy, w, h, 0f, r, g, b, a);
+    }
+
+    /**
+     * Rotated variant of {@link #setSheetQuad}: {@code angleDeg} rotates the dst
+     * rect (CCW) about its center; the sub-rect still samples axis-aligned. The
+     * drain routes {@code angleDeg != 0} through {@link QuadBatch#appendRotated}
+     * and keeps the axis-aligned fast path for the dense tile layers. Reuses the
+     * {@code SHEET_QUAD} kind so rotated and unrotated quads batch on one sheet.
+     */
+    public void setSheetQuad(SpriteAPI sheet, int srcX, int srcY, int srcW, int srcH,
+                             float cx, float cy, float w, float h, float angleDeg,
+                             float r, float g, float b, float a) {
         this.kind = Kind.SHEET_QUAD;
         this.sprite = sheet;
         this.srcX = srcX; this.srcY = srcY; this.srcW = srcW; this.srcH = srcH;
-        this.cx = cx; this.cy = cy; this.w = w; this.h = h;
+        this.cx = cx; this.cy = cy; this.w = w; this.h = h; this.angleDeg = angleDeg;
         this.r = r; this.g = g; this.b = b; this.a = a;
         this.custom = null;
     }

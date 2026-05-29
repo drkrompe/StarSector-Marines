@@ -54,8 +54,13 @@ public final class DrawListRenderer {
                     }
                     if (bracket == null) bracket = GlStateBracket.textured2D();
                     if (activeSheet != null) {
-                        activeSheet.append(c.srcX, c.srcY, c.srcW, c.srcH,
-                                c.cx, c.cy, c.w, c.h, c.r, c.g, c.b, c.a);
+                        if (c.angleDeg == 0f) {
+                            activeSheet.append(c.srcX, c.srcY, c.srcW, c.srcH,
+                                    c.cx, c.cy, c.w, c.h, c.r, c.g, c.b, c.a);
+                        } else {
+                            activeSheet.appendRotated(c.srcX, c.srcY, c.srcW, c.srcH,
+                                    c.cx, c.cy, c.w, c.h, c.angleDeg, c.r, c.g, c.b, c.a);
+                        }
                     }
                     break;
                 }
