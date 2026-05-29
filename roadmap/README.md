@@ -38,7 +38,11 @@ universe over time, not retrofitted into intel slots.
   10 slices shipped; the `entity/` rename alone is deferred to
   ecs-migration). Next up on the render side: decomposing the `BattleScreen`
   god class into a layered draw-list pipeline — see
-  [`battle-render/`](battle-render/overview.md).
+  [`battle-render/`](battle-render/overview.md). A new **design-stage**
+  track — [`command-powers/`](command-powers/overview.md) — brainstorms the
+  player-agency layer (orbital strikes, marine drops, recon) and its
+  between-battle meta-progression spine; powers are sourced diegetically from
+  the player's fleet (ship + hull-mod flavor).
 - **Campaign tier** — SoA `CampaignState`, contracts loop, patron houses,
   mission-resolver bridge. The Marine Ops mission-select screen consumes
   this layer. See [`campaign/`](campaign/).
