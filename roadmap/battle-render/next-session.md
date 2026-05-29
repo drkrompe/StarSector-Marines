@@ -2,10 +2,14 @@
 
 ## State of play
 
-Concept doc written ([`overview.md`](overview.md)). **Story A shipped** —
-`BattleSprites` registry extracted; `BattleScreen` 4364 → 3441 lines. See
-[`complete/story-a-extract-assets.md`](complete/story-a-extract-assets.md).
-This is the render-side sibling of `battle-reorg/`.
+Concept doc written ([`overview.md`](overview.md)). **Stories A + B shipped.**
+`BattleScreen` 4364 → **1251 lines** across the two slices:
+- A — `BattleSprites` asset registry ([`complete/story-a-extract-assets.md`](complete/story-a-extract-assets.md)).
+- B — `BattleRenderer` + `RenderContext`; world-render pipeline severed from the
+  loop ([`complete/story-b-battlerenderer.md`](complete/story-b-battlerenderer.md)).
+
+`BattleScreen` is now ~the loop/input/audio + scissor bracket + chrome.
+`render()` = scissor → `renderer.renderWorld(rc)` → chrome.
 
 Decision recorded: **no ECS dependency** (artemis-odb rejected — reflection vs
 the Starsector sandbox is the hard blocker; render is also the wrong first ECS
@@ -14,12 +18,16 @@ views. See "Considered alternatives" in `overview.md`.
 
 ## Next-up
 
-**Story B — Extract `BattleRenderer` + `RenderContext`.** Move the existing
-`render*`/`draw*` methods *verbatim* into a renderer class holding
-camera/layout/batches/sheet-refs (pulls sheets from `BattleSprites`, owns the
-six `QuadBatch`es currently still on the screen + `buildTileBatches()`). Still a
-call sequence, but severed from screen/loop/input — `BattleScreen` shrinks to
-the loop. Verify: build + in-game battle renders identically.
+**Story C — Prove the DrawList model on one layer.** Introduce `RenderLayer`
+(the ordered enum that *is* today's pass list) + `DrawList` + the drain in
+`BattleRenderer`. Convert ONE pass (`SHOTS` or `UNITS`) to emit `DrawCommand`s
+instead of drawing inline, and validate the command/batch/flush path end-to-end
+on that single layer — **including the `Custom` escape hatch** on at least one
+accumulator pass (FBO/lightmap/contrail). See `overview.md` §Stories C.
+
+Carry-over follow-ups from Story B (do opportunistically, not blockers): dedupe
+`MARINE_TRACER`/`DEFENDER_TRACER`/`bearingDeg()` duplication; restore the fuller
+inter-pass comments in `renderWorld`; drop unused imports in `BattleScreen`.
 
 ## Slice chain
 
