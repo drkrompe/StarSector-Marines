@@ -1,5 +1,5 @@
 package com.dillon.starsectormarines.battle.decision.goap;
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 
@@ -12,7 +12,7 @@ import java.util.Set;
 
 /**
  * Backward-chaining A* planner over the GOAP action space. F.E.A.R.-style:
- * start at the goal's {@link Goal#desiredState(Squad, BattleSimulation)},
+ * start at the goal's {@link Goal#desiredState(Squad, BattleView)},
  * regress through actions whose {@link Action#effects()} satisfy unsatisfied
  * predicates, terminate when the regressed state is satisfied by the
  * current world.
@@ -58,8 +58,9 @@ public final class Planner {
      *                  effects don't help any unsatisfied predicate at each
      *                  search step
      * @param squad     planning squad (passed through to {@link Action#cost})
-     * @param sim       sim context (passed through to {@link Action#cost} —
-     *                  read-only during the replan window)
+     * @param sim       read-only sim view (passed through to {@link Action#cost};
+     *                  {@link BattleView} enforces the replan-window read-only
+     *                  contract at compile time)
      * @param nodeLimit safety cap on node expansions. 256 is plenty for the
      *                  Stage 1 library; raise as the action surface grows.
      */
@@ -68,7 +69,7 @@ public final class Planner {
             WorldState goal,
             List<Action> available,
             Squad squad,
-            BattleSimulation sim,
+            BattleView sim,
             int nodeLimit) {
 
         // Trivial case: goal already satisfied. Return an empty plan rather
