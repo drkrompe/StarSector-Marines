@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.render2d.DrawCommand;
+
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;

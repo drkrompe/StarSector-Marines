@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
-import com.dillon.starsectormarines.ops.battleview.BattleCamera;
+import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.fs.starfarer.api.input.InputEventAPI;
 
 import java.util.List;

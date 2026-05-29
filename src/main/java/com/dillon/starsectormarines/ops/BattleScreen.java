@@ -51,7 +51,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.i18n.Strings;
-import com.dillon.starsectormarines.ops.battleview.BattleCamera;
+import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
 import com.dillon.starsectormarines.ops.battleview.ShuttleSpriteCache;
 import com.dillon.starsectormarines.ops.battleview.UnitSpriteCache;

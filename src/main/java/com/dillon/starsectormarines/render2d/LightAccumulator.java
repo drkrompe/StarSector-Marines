@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.render2d;
 
 import com.dillon.starsectormarines.battle.world.model.TimeOfDay;
-import com.dillon.starsectormarines.ops.battleview.BattleCamera;
+
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.apache.log4j.Logger;

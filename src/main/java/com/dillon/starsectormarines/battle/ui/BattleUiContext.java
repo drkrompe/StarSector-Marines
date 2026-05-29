@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.ops.BattleLayout;
-import com.dillon.starsectormarines.ops.battleview.BattleCamera;
+import com.dillon.starsectormarines.render2d.BattleCamera;
 
 /**
  * Shared accessors a {@link HudPanel} needs to read state and write selection.

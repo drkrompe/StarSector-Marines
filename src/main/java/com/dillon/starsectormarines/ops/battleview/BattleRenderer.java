@@ -26,6 +26,8 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.ui.compound.CompoundMarkerRenderer;
 import com.dillon.starsectormarines.render2d.ContrailStyle;
+import com.dillon.starsectormarines.render2d.DrawCommand;
+import com.dillon.starsectormarines.render2d.DrawListRenderer;
 import com.dillon.starsectormarines.render2d.ContrailTrail;
 import com.dillon.starsectormarines.render2d.GlStateBracket;
 import com.dillon.starsectormarines.render2d.LightAccumulator;
@@ -1864,67 +1866,14 @@ public class BattleRenderer {
     // ---- draw-list drain ------------------------------------------------------
 
     /**
-     * Replays one layer's queued {@link DrawCommand}s in submission order. A run
-     * of consecutive {@link DrawCommand.SheetQuad}s is grouped by sheet, appended
-     * to each sheet's {@link QuadBatch}, and flushed under one
-     * {@link GlStateBracket#textured2D()}; a run of {@link DrawCommand.Sprite}s
-     * shares one bracket and renders each via {@code renderAtCenter}; each
-     * {@link DrawCommand.Custom} runs standalone (it owns its own GL state). This
-     * generalizes the manual batch-and-flush pattern in
+     * Drains one layer's queued {@link DrawCommand}s through the engine
+     * {@link DrawListRenderer}. The game side owns <em>which</em> layer and the
+     * paint order; the engine owns <em>how</em> the command stream batches and
+     * flushes. Generalizes the manual batch-and-flush pattern in
      * {@link #renderTiledFloorsAndWalls}.
      */
     private void drainLayer(RenderLayer layer) {
-        List<DrawCommand> cmds = drawList.commands(layer);
-        int n = cmds.size();
-        int i = 0;
-        while (i < n) {
-            DrawCommand c = cmds.get(i);
-            if (c instanceof DrawCommand.SheetQuad) {
-                try (GlStateBracket gl = GlStateBracket.textured2D()) {
-                    // First-touched order; cross-sheet doodad overlap doesn't occur,
-                    // so inter-sheet flush order is immaterial.
-                    java.util.LinkedHashSet<QuadBatch> touched = new java.util.LinkedHashSet<>();
-                    while (i < n && cmds.get(i) instanceof DrawCommand.SheetQuad sq) {
-                        QuadBatch b = batchBySheet.get(sq.sheet());
-                        if (b != null) {
-                            b.append(sq.srcX(), sq.srcY(), sq.srcW(), sq.srcH(),
-                                    sq.cx(), sq.cy(), sq.w(), sq.h(),
-                                    sq.r(), sq.g(), sq.b(), sq.a());
-                            touched.add(b);
-                        }
-                        i++;
-                    }
-                    for (QuadBatch b : touched) b.flush();
-                }
-            } else if (c instanceof DrawCommand.Sprite) {
-                try (GlStateBracket gl = GlStateBracket.textured2D()) {
-                    while (i < n && cmds.get(i) instanceof DrawCommand.Sprite sp) {
-                        drawSprite(sp);
-                        i++;
-                    }
-                }
-            } else if (c instanceof DrawCommand.Custom custom) {
-                custom.draw().run();
-                i++;
-            } else {
-                i++;
-            }
-        }
-    }
-
-    private static void drawSprite(DrawCommand.Sprite q) {
-        SpriteAPI sprite = q.sprite();
-        sprite.setSize(q.w(), q.h());
-        sprite.setAngle(q.angleDeg());
-        sprite.setAlphaMult(q.a());
-        sprite.setNormalBlend();
-        // Avoid a per-quad Color alloc for the common untinted case (all SHOTS
-        // projectiles are white); only build a Color when an actual tint is set.
-        sprite.setColor(q.r() == 1f && q.g() == 1f && q.b() == 1f
-                ? Color.WHITE : new Color(q.r(), q.g(), q.b()));
-        sprite.renderAtCenter(q.cx(), q.cy());
-        // Reset rotation so the shared cached sprite carries no angle into other passes.
-        sprite.setAngle(0f);
+        DrawListRenderer.drain(drawList.commands(layer), batchBySheet);
     }
 
     // ---- main entry point ----------------------------------------------------

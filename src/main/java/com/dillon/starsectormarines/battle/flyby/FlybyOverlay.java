@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.combat.fx.WeaponLights;
-import com.dillon.starsectormarines.ops.battleview.BattleCamera;
+import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.LightAccumulator;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.graphics.SpriteAPI;

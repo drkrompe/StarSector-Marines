@@ -1,11 +1,11 @@
-package com.dillon.starsectormarines.ops.battleview;
+package com.dillon.starsectormarines.render2d;
 
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
 /**
- * One unit of deferred world-render work, appended into a {@link DrawList} by a
- * collecting pass (a {@link RenderSystem}) and replayed in layer order by
- * {@link BattleRenderer#drainLayer}.
+ * One unit of deferred world-render work, appended into a per-frame draw list by
+ * a collecting render system and replayed in submission order by the drain
+ * ({@link DrawListRenderer}).
  *
  * <p>The command model deliberately is <em>not</em> "everything is a textured
  * quad": the renderer mixes batched sheet quads, single rotated sprites, solid
@@ -18,11 +18,11 @@ public sealed interface DrawCommand
 
     /**
      * A sub-rect of a named sprite sheet, batched through a per-sheet
-     * {@link com.dillon.starsectormarines.render2d.QuadBatch}. This is the
+     * {@link QuadBatch}. This is the
      * many-quads-one-sheet form (tiles, doodads, roofs): the drain groups
      * consecutive {@code SheetQuad}s by {@link #sheet()} identity, appends each
      * to that sheet's batch, and flushes the touched batches under one
-     * {@link com.dillon.starsectormarines.render2d.GlStateBracket}.
+     * {@link GlStateBracket}.
      *
      * <p>{@code src*} is the sub-rect in sheet-image pixels (top-down);
      * {@code cx/cy} + {@code w/h} are the screen-space destination center + size
@@ -44,7 +44,7 @@ public sealed interface DrawCommand
      * pixels; {@code angleDeg} is the rotation; {@code r/g/b/a} are tint + alpha.
      *
      * <p>The drain wraps a run of consecutive {@code Sprite}s in one
-     * {@link com.dillon.starsectormarines.render2d.GlStateBracket} and resets the
+     * {@link GlStateBracket} and resets the
      * sprite angle to 0 after each render so the cached {@link SpriteAPI} carries
      * no rotation into other passes.
      */

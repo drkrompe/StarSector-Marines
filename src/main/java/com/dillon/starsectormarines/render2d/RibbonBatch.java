@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.render2d;
 
-import com.dillon.starsectormarines.ops.battleview.BattleCamera;
 
 import static org.lwjgl.opengl.GL11.GL_QUADS;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;

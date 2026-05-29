@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.air.engine;
 
 import com.dillon.starsectormarines.battle.combat.fx.WeaponLights;
-import com.dillon.starsectormarines.ops.battleview.BattleCamera;
+import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.LightAccumulator;
 import com.dillon.starsectormarines.render2d.LightKernel;
 import com.fs.starfarer.api.graphics.SpriteAPI;

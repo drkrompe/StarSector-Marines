@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.ui.highlight;
 
-import com.dillon.starsectormarines.ops.battleview.BattleCamera;
+import com.dillon.starsectormarines.render2d.BattleCamera;
 
 import java.awt.Color;
 import java.util.ArrayList;

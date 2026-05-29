@@ -2,7 +2,8 @@ package com.dillon.starsectormarines.ops.battleview;
 
 /**
  * A stateless world-render producer: reads services/camera/vision off the
- * per-frame {@link RenderContext} and appends {@link DrawCommand}s into the
+ * per-frame {@link RenderContext} and appends
+ * {@link com.dillon.starsectormarines.render2d.DrawCommand}s into the
  * {@link DrawList}. The render-side analog of a sim {@code System}.
  *
  * <p>Pull model — {@link #collect} runs fresh every frame (render is per-frame,

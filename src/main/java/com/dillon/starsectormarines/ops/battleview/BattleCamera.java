@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.ops.battleview;
+package com.dillon.starsectormarines.render2d;
 
 /**
  * Pan + zoom transform for the battle screen. Bridges sim-space (cells, with

@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
+import com.dillon.starsectormarines.render2d.BattleCamera;
+import com.dillon.starsectormarines.render2d.DrawCommand;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
 /**

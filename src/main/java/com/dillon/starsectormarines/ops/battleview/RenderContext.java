@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.ops.BattleLayout;
+import com.dillon.starsectormarines.render2d.BattleCamera;
 
 /**
  * Per-frame carrier passed from {@link com.dillon.starsectormarines.ops.BattleScreen} into
