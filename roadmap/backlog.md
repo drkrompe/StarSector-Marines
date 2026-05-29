@@ -136,6 +136,19 @@ https://davidkbd.itch.io/eternity-metal-scfi-music-pack
 - **`DistrictTheme` / `MapDistrictTheme` dedup** — two theme types across
   `battle/world/model` and `battle/world/gen`; a logic merge, not a
   relocation, so it was left out of the battle-reorg (slice 2).
+- **Relocate `BattleSimulation.TICK_DT`** — the fixed-timestep constant
+  (`1f/30f`) lives on `BattleSimulation` and is referenced in ~17 files
+  across combat / decision / drone / infantry / mech / turret / command.
+  After the GOAP + command tiers narrowed to `BattleView`/`BattleControl`,
+  this static-constant reference is the *only* thing keeping a
+  `BattleSimulation` import alive in several otherwise-decoupled files
+  (e.g. `ChargeSiteObjective`, `HoldPost`, `DroneSwarmAction`) — they'd
+  compile against a stub `BattleView` if not for it. Move `TICK_DT` to a
+  neutral home (a `BattleConstants`/`Timestep` holder, or a `static final`
+  on `BattleView`) and repoint all callers. Pure tidiness — a shared
+  literal, not behavioral coupling — and the last thread of the
+  `drop-sim-facade-delegators` story's "BattleSimulation is just the tick
+  loop" north star. Surfaced by that story's command-tier critique pass.
 
 ## Performance
 
