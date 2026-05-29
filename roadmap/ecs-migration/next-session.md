@@ -35,7 +35,10 @@ c49eea7  battle: MapService — runtime map-modification coordinator (Slice 1)  
 57304e0  battle: narrow InfantryCohesion.cohesionOverride to BattleView  ← 2026-05-29
 0c91af4  battle: grow BattleView/BattleControl to full GOAP surface (pre-flip)  ← 2026-05-29
 62ed71f  battle: narrow GOAP helper methods to BattleView/BattleControl (pre-flip sweep)  ← 2026-05-29
-61e322a  battle: flip Action/Goal GOAP contract to BattleView/BattleControl (TERMINAL)  ← 2026-05-29
+61e322a  battle: flip Action/Goal GOAP contract to BattleView/BattleControl  ← 2026-05-29
+65ed79a  battle: narrow Planner.plan to BattleView (critique follow-up)  ← 2026-05-29
+a734122  battle: grow BattleView/BattleControl with command-tier surface  ← 2026-05-29
+cb91e87  battle: flip command tier to BattleView/BattleControl  ← 2026-05-29
 ```
 
 (Sibling tracks interleaved on HEAD, not ECS-migration: `9084ed4` battle-render
@@ -60,19 +63,19 @@ campaign work.)
 ## Active stories (priority order)
 
 > **TL;DR for a cold start:** stories 1–4 + story 5 Slice 1 are shipped.
-> **Story 6** ([`drop-sim-facade-delegators`](stories/drop-sim-facade-delegators.md)) —
-> the GOAP spine flip is **DONE** (`61e322a`): `Action`/`Goal` now take
-> `BattleView` (read) / `BattleControl` (mutate), the thread-safety contract
-> is compile-enforced, all ~38 implementors + helpers narrowed, suite green.
-> **Resume on the command tier** — the remaining in-scope surface: the
-> command/reinforcement/objective classes (`ConvoyMeans`, `ConquestCommand`,
-> `GarrisonDepletedTrigger`, the `Objective`/`ReinforcementMeans`/
-> `ReinforcementTrigger` interfaces, etc.) still take raw `BattleSimulation`
-> as a method param. Same playbook: grow the interfaces if needed → narrow
-> helpers → flip the command/objective/reinforcement interface signatures.
-> Lower stakes (no parallel-replan thread-safety angle) but the same
-> coupling-reduction win. Render/UI facade reads stay on the sim (out of
-> scope). Story 5 Slice 2 (map generation) is an optional stretch.
+> **Story 6** ([`drop-sim-facade-delegators`](stories/drop-sim-facade-delegators.md))
+> — both substantive tiers **DONE**: the GOAP spine (`61e322a`) and the
+> command tier (`cb91e87`) now depend on `BattleView` (read) / `BattleControl`
+> (mutate), not raw `BattleSimulation`. ~55 files narrowed total; suite green.
+> **What's left is out-of-scope or cosmetic** (see story doc): render/UI
+> facade reads stay on the sim by design; the `decision/` per-unit dispatch
+> (`UnitBehavior.update` + `FallbackBehavior`/`FleeBehavior`/`CombatantBehavior`)
+> and the cosmetic leftover GOAP callers (`replanIfNeeded` trio,
+> `SquadReplanSystem.tick`, `DroneSpawner.tryLaunch`) still take
+> `BattleSimulation` and upcast — narrowing them is optional polish, not
+> coupling reduction. **Next real work is elsewhere** — story 5 Slice 2
+> (map generation) is the remaining optional stretch in this migration; the
+> battle-tier ECS arc is otherwise at its terminal state.
 
 Phase 3's original three (move-render, tactical, secondary-weapon) all
 shipped — see [`complete/phase3-soa-promotions.md`](complete/phase3-soa-promotions.md).
@@ -114,8 +117,8 @@ primitives and the (now thin) `BattleSimulation` orchestrator:
    larger surface, lower smell. Pick it up only if the seam proves worth
    it, else go straight to the facade cleanup ↓.
 6. [`drop-sim-facade-delegators`](stories/drop-sim-facade-delegators.md) —
-   **Terminal** migration story. **GOAP spine flip DONE; command tier
-   remains ← CURRENT FOCUS.** Goal: consumers depend on a scoped contract
+   **Terminal** migration story. **GOAP spine + command tier both DONE.**
+   Goal: consumers depend on a scoped contract
    (`BattleView`/`BattleControl`), not the whole orchestrator. Full
    decision history lives in the story's DECISION block.
    - **Slice 1 SHIPPED** (`53d5e7d`): `getBattleResources` dropped.
@@ -134,20 +137,28 @@ primitives and the (now thin) `BattleSimulation` orchestrator:
        `customPlan`/`pickMostRelevant` → `BattleView`; `execute` →
        `BattleControl`. All ~38 implementors `@Override`d at once (3-agent
        fan-out). Thread-safety contract now **compile-enforced**. Suite green.
-   - **REMAINING (command tier):** `command/`, `command/reinforcement/`,
-     `command/objective/`, `command/compound/` classes still take raw
-     `BattleSimulation` as a method param (`ConvoyMeans`/`ShuttleMeans`/
-     `WalkInMeans`.canFulfill/dispatch, `*Command`.tick, `GarrisonDepleted
-     Trigger`.check, the `Objective`/`ReinforcementMeans`/`Reinforcement
-     Trigger` interfaces). Same playbook — grow interfaces as needed →
-     narrow helpers → flip the command/objective/reinforcement interface
-     signatures. No parallel-replan thread-safety angle, so lower stakes;
-     pure coupling reduction.
-   - **Out of scope (stays on sim):** render/UI facade reads
-     (`BattleScreen`, `FlybyOverlay`, HUD/debug panels), the sim's genuine
-     public API (`advance`/`isComplete`/`getGrid`/`getTopology`/`damageCell`),
-     and the cosmetic leftover callers (`replanIfNeeded` trio, `Planner.plan`,
-     `SquadReplanSystem.tick`, `DroneSpawner.tryLaunch` — they upcast fine).
+   - **Command tier SHIPPED** (`a734122` grow, `cb91e87` flip): the four
+     command-tier interfaces now take scoped views — `Objective.tick`,
+     `MissionCommand.tick`, `ReinforcementMeans.canFulfill`,
+     `ReinforcementTrigger.check` → `BattleView`; `ReinforcementMeans.dispatch`
+     → `BattleControl`. All ~15 impls + concrete services narrowed by
+     read/mutate (2-agent fan-out). Only the reinforcement spawn paths land
+     on `BattleControl`; commands/objectives/triggers/recapture are read-only.
+     `Planner.plan` also narrowed to `BattleView` (`65ed79a`, critique
+     follow-up). `getBattleResources` dropped earlier (`53d5e7d`).
+   - **Done for this story's substantive scope.** Both tiers that reach the
+     sim through a contract — GOAP + command — now depend on
+     `BattleView`/`BattleControl`.
+   - **Out of scope / cosmetic (stays on `BattleSimulation`):** render/UI
+     facade reads (`BattleScreen`, `FlybyOverlay`, HUD/debug panels), the
+     sim's genuine public API (`advance`/`isComplete`/`getGrid`/`getTopology`/
+     `damageCell`), the `decision/` per-unit dispatch (`UnitBehavior.update`
+     + `Fallback`/`Flee`/`CombatantBehavior` — they read+mutate, would be
+     `BattleControl`, but it's dispatch plumbing, not a facade delegator),
+     and the leftover GOAP callers (`replanIfNeeded` trio,
+     `SquadReplanSystem.tick`, `DroneSpawner.tryLaunch` — upcast fine).
+     None are coupling-reduction wins; leave unless a future pass wants the
+     uniformity.
    - Sweep convention: keep param NAME `sim`, change only its TYPE.
    - NOTE: `Action.java`/`Goal.java` live in `battle/decision/goap/`
      (story's old `battle/ai/goap/` paths were stale).

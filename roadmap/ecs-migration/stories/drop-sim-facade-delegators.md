@@ -200,23 +200,50 @@ and callers still passing `sim` upcast automatically. So:
    `GoalTest` updated. Build + full suite green. The parallel-replan
    read-only contract is now compile-enforced, not Javadoc-only.
 
-## What remains (command tier)
+## Command tier — SHIPPED (`a734122` grow, `cb91e87` flip)
 
-The GOAP surface is done. The remaining in-scope facade coupling is the
-**command tier**: `command/` (`AssaultCommand`/`ConquestCommand`/
-`SabotageCommand`/`MissionCommand`), `command/reinforcement/`
-(`ConvoyMeans`/`ShuttleMeans`/`WalkInMeans`/`GarrisonDepletedTrigger`/
-`ObjectiveLostTrigger`/`RecaptureTargetService` + the `ReinforcementMeans`/
-`ReinforcementTrigger` interfaces), and `command/objective/` (the
-`Objective` interface + `ConquestObjective`/`ChargeSiteObjective`/
-`EliminateFactionObjective`). These take a raw `BattleSimulation` method
-param and use it for several reads (grid, topology, squads, zone graph,
-vehicles) plus the occasional spawn/mint. Same playbook: grow the
-read/mutate interfaces as needed → narrow helpers → flip the
-command/objective/reinforcement interface signatures. No parallel-replan
-thread-safety angle (these run serial), so lower stakes than the GOAP
-spine — pure coupling reduction. Render/UI facade reads remain on the sim
-(out of scope, see below).
+The second and final substantive tier. The four command-tier interfaces
+now take scoped views:
+
+- `Objective.tick` → `BattleView` (objectives advance their own
+  completion state by reading the sim; zero sim mutators in any impl).
+- `MissionCommand.tick` → `BattleView` (commands orchestrate by writing
+  `Squad.assignedObjective` — a Squad-object mutation, not a sim one).
+- `ReinforcementMeans.canFulfill` → `BattleView` (cheap feasibility
+  probe); `ReinforcementMeans.dispatch` → `BattleControl` (spawns:
+  addUnit/addShuttle/addConvoyVehicle/mintSquad).
+- `ReinforcementTrigger.check` → `BattleView` (reads sim, posts requests
+  to a Consumer).
+
+All ~15 impls + the concrete services (`ReinforcementService`,
+`RecaptureTargetService`, `CompoundCaptureSystem`, `CompoundGarrisonSystem`)
+narrowed by what each method does with the sim (2-agent fan-out, central
+compile). Only the reinforcement spawn paths land on `BattleControl`;
+commands, objectives, triggers, and capture/recapture tracking are
+read-only `BattleView`. `getBattleResources` was dropped earlier
+(`53d5e7d`), and `Planner.plan` narrowed to `BattleView` (`65ed79a`).
+
+## What's left (out of scope / cosmetic)
+
+The story's two substantive tiers — GOAP and command — both depend on the
+contract now. What still takes a raw `BattleSimulation` is deliberately
+left:
+
+- **Render/UI facade reads** (`BattleScreen`, `FlybyOverlay`, HUD/debug
+  panels) — the render layer legitimately treats the sim as the battle
+  facade; no ECS payoff (per Scope § above).
+- **`decision/` per-unit dispatch** — `UnitBehavior.update(Unit,
+  BattleSimulation)` and `FallbackBehavior`/`FleeBehavior`/
+  `CombatantBehavior`. These read AND mutate (they fire / move / tick the
+  unit), so they'd be `BattleControl`, but `update` is the dispatch entry
+  point, not a service-forwarding facade delegator. Narrowing it is
+  uniformity, not coupling reduction.
+- **Cosmetic GOAP-caller leftovers** — `GoapXBehavior.replanIfNeeded`,
+  `SquadReplanSystem.tick`, `DroneSpawner.tryLaunch`. They pass the sim
+  into now-narrowed params and upcast fine; narrowing them buys nothing.
+
+Pick these up only if a future pass wants the across-the-board uniformity;
+none is a coupling-reduction win.
 
 **Sweep convention:** keep the parameter *name* `sim` (just change its
 type) so each slice is a pure signature-level change, bodies untouched —
