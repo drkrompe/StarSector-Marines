@@ -642,58 +642,6 @@ public class BattleRenderer {
         sprites.droneHubSprite().sprite.setAngle(0f);
     }
 
-    /**
-     * @deprecated Superseded by {@link DroneRenderSystem} (DRONES layer: hull
-     * {@code SPRITE} + HP-bar {@code SOLID_RECT}s). Retained <em>uncalled</em> as a
-     * one-line-rewire rollback until confirmed in a live battle, then deleted.
-     */
-    @Deprecated
-    private void renderDrones(BattleSimulation sim, List<Unit> units, float alphaMult) {
-        boolean any = false;
-        for (Unit u : units) {
-            if (!(u instanceof com.dillon.starsectormarines.battle.drone.Drone)) continue;
-            com.dillon.starsectormarines.battle.drone.Drone d = (com.dillon.starsectormarines.battle.drone.Drone) u;
-            if (d.crashed) continue;
-            if (d.isAlive() || d.crashStarted) { any = true; break; }
-        }
-        if (!any) return;
-        sprites.ensureDroneSprite();
-        if (sprites.droneSprite() == null) return;
-
-        com.dillon.starsectormarines.battle.vision.VisionService vis = sim.getVision();
-        float cellPx = rc.camera.cellPxSize();
-        float visual = com.dillon.starsectormarines.battle.drone.Drone.VISUAL_CELLS;
-        float barW = rc.camera.cellPxSize() * 0.9f;
-        for (Unit u : units) {
-            if (!(u instanceof com.dillon.starsectormarines.battle.drone.Drone)) continue;
-            com.dillon.starsectormarines.battle.drone.Drone d = (com.dillon.starsectormarines.battle.drone.Drone) u;
-            if (d.crashed) continue;
-            boolean alive = d.isAlive();
-            if (!alive && !d.crashStarted) continue;
-            byte uv = vis.getUnitVisibility(d.denseIdx);
-            if (alive && uv == com.dillon.starsectormarines.battle.vision.VisionService.VIS_HIDDEN) continue;
-            float cx = rc.camera.cellToScreenX(d.body.x);
-            float cy = rc.camera.cellToScreenY(d.body.y);
-            float drawAlpha = alphaMult;
-            if (alive && uv == com.dillon.starsectormarines.battle.vision.VisionService.VIS_FADING) {
-                drawAlpha *= vis.getFadeAlpha(d.denseIdx);
-            }
-            if (!alive) {
-                float t = Math.max(0f, Math.min(1f, d.crashTimer / com.dillon.starsectormarines.battle.drone.Drone.CRASH_DURATION_SEC));
-                drawAlpha *= t;
-            }
-            drawTurretLayer(sprites.droneSprite(), d.body.facingDegrees, visual, cellPx, cx, cy, drawAlpha);
-            if (alive) {
-                float barY = cy + visual * cellPx / 2f + HP_BAR_GAP;
-                float barX = cx - barW / 2f;
-                fillRect(barX, barY, barW, HP_BAR_H, HP_BG, drawAlpha);
-                float frac = Math.max(0f, Math.min(1f, d.getHp() / d.getMaxHp()));
-                fillRect(barX, barY, barW * frac, HP_BAR_H, HP_FG, drawAlpha);
-            }
-        }
-        sprites.droneSprite().sprite.setAngle(0f);
-    }
-
     private static void drawTurretLayer(ShuttleSpriteCache cache, float facingDegrees, float visualCells,
                                         float cellPx, float cx, float cy, float alphaMult) {
         SpriteAPI sprite = cache.sprite;

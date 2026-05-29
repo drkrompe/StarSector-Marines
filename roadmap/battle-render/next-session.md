@@ -63,7 +63,7 @@ inline — unlike CONVOY). `drawTurretLayer` + `RECOIL_*` constants stay (still
 shared by the inline map-turret/drone passes). See
 [`complete/story-h-shuttles-system.md`](complete/story-h-shuttles-system.md).
 
-**Story I (DRONES → `DroneRenderSystem`) shipped** (in-game verify pending) —
+**Story I (DRONES → `DroneRenderSystem`) shipped & verified** (fallback deleted) —
 drones above the roof layer: hull `SPRITE` + HP-bar `SOLID_RECT`s, same crash/
 vision gating + fade as the inline pass. First system added straight into the
 registry (list entry + dropped inline drain slot). Drone sprite load hoisted to
@@ -128,7 +128,7 @@ DOODADS)~~ ✅ → ~~engine/game package split (structural foundation)~~ ✅ →
 ~~H (SHUTTLES → ShuttleRenderSystem; SPRITE + Custom; verified, fallback deleted)~~ ✅ →
 ~~RenderSystem registry (ordered `List<RenderSystem>` + `layer()`; collect-all
 phase split out)~~ ✅ →
-~~I (DRONES → DroneRenderSystem; SPRITE + SOLID_RECT; in-game-verify pending)~~ ✅ →
+~~I (DRONES → DroneRenderSystem; SPRITE + SOLID_RECT; verified, fallback deleted)~~ ✅ →
 UNITS (sprites + HP bars + turret/drone-hub/dead sub-passes) →
 Final (collapse `render()` to systems-loop + drain — fold inline passes into
 the collect-all/drain-all loop as they migrate).
@@ -154,8 +154,6 @@ the collect-all/drain-all loop as they migrate).
   GROUND relies on spatial coherence (street/grass regions) for long runs.
 - FBO accumulators (decal/lightmap) are still inline — they'll need `Custom`
   (or a dedicated command) when their layers migrate.
-- **In-game-pending validation**: **DRONES (I)** — confirm drones render rotated
-  over roofs with HP bars + correct fade on going-hidden and on crash, before
-  deleting its `@Deprecated` fallback (low risk: SPRITE/`setAngle` + SOLID_RECT,
-  no rotation-convention change). SHOTS (C), DOODADS (D), GROUND (E), VEHICLES (F),
-  CONVOY (G), SHUTTLES (H) verified; fallbacks deleted.
+- **In-game-pending validation**: none outstanding. SHOTS (C), DOODADS (D),
+  GROUND (E), VEHICLES (F), CONVOY (G), SHUTTLES (H), DRONES (I) all verified;
+  fallbacks deleted.

@@ -1,4 +1,4 @@
-# Story I — DRONES pass → DroneRenderSystem — ✅ SHIPPED (in-game verify pending)
+# Story I — DRONES pass → DroneRenderSystem — ✅ SHIPPED & VERIFIED
 
 Recon/attack drones (`renderDrones`) migrated into the command model as
 `DroneRenderSystem`, emitting the `DRONES` layer. First system to land directly
@@ -49,9 +49,11 @@ is identical by construction (no `appendRotated` convention question like CONVOY
 
 ## Verified
 
-`mcp__intellij__build_project` clean; `gradlew test` green. **In-game render
-verification pending** — confirm drones render rotated over roofs with HP bars,
-correct fade on going-hidden and on crash. The inline `renderDrones` is retained
-`@Deprecated` + **uncalled** as a one-line-rewire rollback; delete once parity is
-confirmed. (`drawTurretLayer` stays — still live for the map-turret / drone-hub
-passes.)
+`mcp__intellij__build_project` clean; `gradlew test` green. **Confirmed in live
+play** (drones render rotated over roofs with HP bars; fade correct). A background
+critique verified byte-for-byte parity against the original `renderDrones` across
+all gating/geometry/paint-order/blend areas (notably: SOLID_RECT blend inherits
+the `GlStateBracket` SRC_ALPHA/ONE_MINUS_SRC_ALPHA, matching the old `fillRect`;
+drain replays per-drone hull-then-bar in submission order). The inline
+`renderDrones` fallback has been **deleted**. (`drawTurretLayer` stays — still
+live for the map-turret / drone-hub passes.)
