@@ -35,8 +35,17 @@ passed (and fixed a latent beach-doodad bug); the old `@Deprecated`
 orphaned constants were removed from `BattleRenderer` (−426 lines). The live
 `renderZoneOverlay`/`renderDecals` (interleaved in that span) were preserved.
 
-Next pass migration is **VEHICLES / CONVOY / SHUTTLES / DRONES** (single rotated
-sprites → existing `Sprite` command), then **UNITS** (see below).
+**Story F (VEHICLES → `VehicleRenderSystem`) shipped** (in-game verify pending) —
+parked map vehicles now emit one batched `SHEET_QUAD` each. This added the
+**sprite-sheet batch registration** seam: `buildTileBatches` builds+registers a
+`QuadBatch` per vehicle sheet (sheets are loaded by `ensureVehicleSheets()`
+before that runs). UNITS/DRONES reuse the same seam. Inline `renderVehicles`
+retained `@Deprecated`+uncalled pending the live check. See
+[`complete/story-f-vehicles-system.md`](complete/story-f-vehicles-system.md).
+
+Next pass migration is **CONVOY / SHUTTLES / DRONES**, then **UNITS** (see below).
+Note SHUTTLES/DRONES aren't "single sprite": shuttles interleave engine FX
+(own-GL `Custom`) + turret layers per craft; plan those as multi-command emits.
 
 **Story E shipped — what landed:**
 - `DrawCommand.SolidRect` + the pooled, mutable tagged command buffer
@@ -73,7 +82,8 @@ A → B → ~~C (prove model on SHOTS)~~ ✅ → ~~D (first sheet pass + RenderS
 DOODADS)~~ ✅ → ~~engine/game package split (structural foundation)~~ ✅ →
 ~~pooled command buffer + SolidRect + strict-painter drain~~ ✅ →
 ~~E (GROUND → GroundRenderSystem; verified, fallback deleted)~~ ✅ →
-F…N (VEHICLES/CONVOY/SHUTTLES/DRONES, then UNITS) →
+~~F (VEHICLES → VehicleRenderSystem; in-game-verify pending)~~ ✅ →
+G…N (CONVOY/SHUTTLES/DRONES, then UNITS) →
 Final (collapse `render()` to systems-loop + drain).
 
 ## Watch-outs
@@ -89,5 +99,6 @@ Final (collapse `render()` to systems-loop + drain).
   GROUND relies on spatial coherence (street/grass regions) for long runs.
 - FBO accumulators (decal/lightmap) are still inline — they'll need `Custom`
   (or a dedicated command) when their layers migrate.
-- **In-game-pending validation**: SHOTS (C), DOODADS (D). GROUND (E) is verified
-  (fallback deleted). New render-changing passes still need a live-battle check.
+- **In-game-pending validation**: SHOTS (C), DOODADS (D), **VEHICLES (F)**.
+  GROUND (E) is verified (fallback deleted). New render-changing passes still
+  need a live-battle check; F also gates deleting its `@Deprecated` fallback.

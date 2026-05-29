@@ -140,6 +140,9 @@ public class BattleRenderer {
     /** GROUND layer — tiled floor/wall terrain, emitted as pooled per-tile commands. */
     private final GroundRenderSystem groundSystem;
 
+    /** VEHICLES layer — parked map vehicles, emitted as one batched sheet-quad each. */
+    private final VehicleRenderSystem vehicleSystem;
+
     /**
      * Per-sheet quad batchers. Lazily constructed in {@link #buildTileBatches()}.
      * Reused across passes.
@@ -206,6 +209,7 @@ public class BattleRenderer {
         this.sprites = sprites;
         this.doodadSystem = new DoodadRenderSystem(sprites);
         this.groundSystem = new GroundRenderSystem(sprites);
+        this.vehicleSystem = new VehicleRenderSystem(sprites);
     }
 
     // ---- lifecycle -----------------------------------------------------------
@@ -242,6 +246,16 @@ public class BattleRenderer {
         registerBatch(sprites.waterSheet(), waterBatch);
         registerBatch(sprites.urbanTile3Sheet(), urbanTile3Batch);
         registerBatch(sprites.natureSheet(), natureBatch);
+
+        // Sprite-sheet batches for the VEHICLES layer (VehicleRenderSystem).
+        // Vehicle sheets are loaded by ensureVehicleSheets() before this runs
+        // (BattleScreen.attach order). batchBySheet owns the QuadBatch refs.
+        for (UnitSpriteCache cache : sprites.vehicleSheets().values()) {
+            if (cache == null || cache.sheet == null || cache.frames == null) continue;
+            if (batchBySheet.containsKey(cache.sheet)) continue;
+            registerBatch(cache.sheet,
+                    new QuadBatch(cache.sheet, cache.frames.sheetWidth, cache.frames.sheetHeight, 256));
+        }
     }
 
     private void registerBatch(SpriteAPI sheet, QuadBatch batch) {
@@ -510,6 +524,13 @@ public class BattleRenderer {
         sheet.renderAtCenter(cx, cy);
     }
 
+    /**
+     * @deprecated Superseded by {@link VehicleRenderSystem} (VEHICLES layer,
+     * batched sheet-quads). Retained <em>uncalled</em> as a one-line-rewire
+     * rollback reference until the new pass is confirmed in a live battle, then
+     * deleted.
+     */
+    @Deprecated
     private void renderVehicles(BattleSimulation sim, float alphaMult) {
         java.util.List<MapVehicle> vehicles = sim.getVehicles();
         if (vehicles.isEmpty()) return;
@@ -1485,7 +1506,10 @@ public class BattleRenderer {
         // Decals sit between the floor pass and vehicles so parked trucks
         // (and later units) draw on top of bullet holes and craters.
         renderDecals(sim, rc.alphaMult);
-        renderVehicles(sim, rc.alphaMult);
+        // VEHICLES layer — parked map vehicles via VehicleRenderSystem, one
+        // batched sheet-quad each (drained through the strict-painter path).
+        vehicleSystem.collect(rc, drawList);
+        drainLayer(RenderLayer.VEHICLES);
         // DOODADS layer — command-driven via DoodadRenderSystem (Story D): the
         // first sheet-batched pass routed through the draw list.
         doodadSystem.collect(rc, drawList);
