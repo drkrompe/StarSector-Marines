@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
@@ -99,7 +100,7 @@ public final class GarrisonAmbush implements Goal {
      * not the goal. If a future story wants the goal to gate on visibility,
      * swap in {@code state.get(Predicate.HAS_LOS_TO_TARGET)} here.
      */
-    private static boolean enemyKnown(Squad squad, BattleSimulation sim) {
+    private static boolean enemyKnown(Squad squad, BattleView sim) {
         for (Unit u : sim.getUnits()) {
             if (!u.isAlive() || !u.type.combatant) continue;
             if (u.faction == squad.faction) continue;
@@ -137,7 +138,7 @@ public final class GarrisonAmbush implements Goal {
      * to match — extra members idle on the same plan tick but the squad still
      * runs the hold.
      */
-    private static SquadPlan planSingleIngress(Squad squad, BattleSimulation sim,
+    private static SquadPlan planSingleIngress(Squad squad, BattleView sim,
                                                 int zoneId, int portalId) {
         ZoneGraph graph = sim.getZoneGraph();
         NavigationGrid grid = sim.getGrid();
@@ -169,7 +170,7 @@ public final class GarrisonAmbush implements Goal {
      * neighbor of the doorway that lives inside the squad's zone, falling
      * back to the doorway cell itself in degenerate geometry.
      */
-    private static SquadPlan planMultiPortal(NavigationZone zone, int zoneId, BattleSimulation sim) {
+    private static SquadPlan planMultiPortal(NavigationZone zone, int zoneId, BattleView sim) {
         List<HoldPortalCordon.GuardPost> posts = buildGuardPosts(zone, zoneId, sim);
         if (posts.isEmpty()) return null;
         List<SquadPlan.Step> steps = new ArrayList<>(1);
@@ -185,7 +186,7 @@ public final class GarrisonAmbush implements Goal {
      * to the doorway cell itself in degenerate map geometry.
      */
     private static List<HoldPortalCordon.GuardPost> buildGuardPosts(
-            NavigationZone zone, int zoneId, BattleSimulation sim) {
+            NavigationZone zone, int zoneId, BattleView sim) {
         ZoneGraph graph = sim.getZoneGraph();
         NavigationGrid grid = sim.getGrid();
         int w = grid.getWidth();

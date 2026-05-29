@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.decision.goap.action;
 
+import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.combat.FireStance;
@@ -63,7 +65,7 @@ abstract class AbstractZoneAction implements Action {
     @Override public int requiredMembers() { return 1; }
 
     /** True iff {@code member}'s logical cell lies inside {@link #targetZoneId}. */
-    protected final boolean memberInZone(Unit member, BattleSimulation sim) {
+    protected final boolean memberInZone(Unit member, BattleView sim) {
         return sim.getZoneGraph().zoneIdAt(member.getCellX(), member.getCellY()) == targetZoneId;
     }
 
@@ -84,7 +86,7 @@ abstract class AbstractZoneAction implements Action {
      *        goal take over; when false (commitment semantics), the member
      *        keeps pushing into the zone while firing.
      */
-    protected final void advanceIntoZone(Unit member, Squad squad, BattleSimulation sim,
+    protected final void advanceIntoZone(Unit member, Squad squad, BattleControl sim,
                                          int destX, int destY, boolean haltOnContact) {
         Unit target = sim.targetOf(member);
         if (target == null || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
@@ -138,7 +140,7 @@ abstract class AbstractZoneAction implements Action {
     }
 
     /** {@link #interiorCell} resolved from a zone id against the live graph/grid. */
-    protected static int[] interiorCellOf(int zoneId, BattleSimulation sim) {
+    protected static int[] interiorCellOf(int zoneId, BattleView sim) {
         return interiorCell(sim.getZoneGraph().zoneById(zoneId), sim.getGrid());
     }
 }

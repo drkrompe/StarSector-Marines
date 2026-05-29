@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleControl;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Unit;
 
 import java.util.ArrayList;
@@ -31,7 +33,7 @@ public final class InfantryUnitPrep {
      * fire, no re-target). Returns {@code false} when the unit is not aiming
      * and the caller should proceed normally.
      */
-    public static boolean tickAimAndShortCircuit(Unit unit, BattleSimulation sim) {
+    public static boolean tickAimAndShortCircuit(Unit unit, BattleControl sim) {
         if (unit.getSecondaryActionTimer() <= 0f || unit.secondaryWeapon == null) return false;
         unit.setSecondaryActionTimer(unit.getSecondaryActionTimer() - BattleSimulation.TICK_DT);
         unit.setMoveProgress(0f);
@@ -84,7 +86,7 @@ public final class InfantryUnitPrep {
      * rest of its tick — same convention as {@link #tickAimAndShortCircuit}).
      * Returns {@code false} when nothing changed.
      */
-    public static boolean tryOpportunityRocket(Unit unit, BattleSimulation sim) {
+    public static boolean tryOpportunityRocket(Unit unit, BattleView sim) {
         if (unit.secondaryWeapon == null) return false;
         if (unit.secondaryAmmo <= 0) return false;
         if (unit.getSecondaryCooldownTimer() > 0f) return false;

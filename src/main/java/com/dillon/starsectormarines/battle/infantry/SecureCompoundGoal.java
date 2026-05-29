@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
@@ -104,7 +105,7 @@ public final class SecureCompoundGoal implements Goal {
     }
 
     private static SquadPlan synthesizeSecurePlan(int fromZone, int toZone, TacticalNode node,
-                                                   BattleSimulation sim) {
+                                                   BattleView sim) {
         List<Integer> path = ZoneQueries.zonePathBfs(fromZone, toZone, sim);
         if (path.size() < 2) return null;
 

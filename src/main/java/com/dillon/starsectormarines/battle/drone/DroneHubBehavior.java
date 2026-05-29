@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.drone;
 import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Unit;
 
 /**
@@ -35,7 +36,7 @@ public final class DroneHubBehavior implements UnitBehavior {
         hub.spawnCooldown = DroneHubUnit.SPAWN_INTERVAL_SEC;
     }
 
-    private static int countActiveDrones(BattleSimulation sim, DroneHubUnit hub) {
+    private static int countActiveDrones(BattleView sim, DroneHubUnit hub) {
         int n = 0;
         for (Unit u : sim.getUnits()) {
             if (!(u instanceof Drone)) continue;

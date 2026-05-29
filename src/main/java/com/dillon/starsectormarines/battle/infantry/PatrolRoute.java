@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleControl;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
@@ -121,7 +123,7 @@ public final class PatrolRoute implements Action {
      * current waypoint; falls back to a random walkable cell in that radius.
      * Returns null if neither produces a valid cell.
      */
-    private static int[] pickWaypoint(Unit member, Squad squad, BattleSimulation sim) {
+    private static int[] pickWaypoint(Unit member, Squad squad, BattleView sim) {
         TacticalNode anchor = squad.assignedNode;
         TacticalMap map = sim.getTacticalMap();
         int radius = squad.patrolRadius;
@@ -159,7 +161,7 @@ public final class PatrolRoute implements Action {
         return null;
     }
 
-    private static void moveToward(Unit member, BattleSimulation sim, int tx, int ty) {
+    private static void moveToward(Unit member, BattleControl sim, int tx, int ty) {
         if (member.getMoveProgress() == 0f && member.pathIdx >= member.pathCellCount()) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     member.getCellX(), member.getCellY(), tx, ty, sim.getOccupancyMap()));
@@ -172,7 +174,7 @@ public final class PatrolRoute implements Action {
         }
     }
 
-    private static void hold(Unit member, BattleSimulation sim) {
+    private static void hold(Unit member, BattleControl sim) {
         sim.clearPath(member);
         member.setMoveProgress(0f);
         member.setRenderPos(member.getCellX(), member.getCellY());

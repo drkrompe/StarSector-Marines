@@ -3,6 +3,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.infantry.CombatantBehavior;
 import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 
+import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
@@ -87,14 +88,14 @@ public final class MechCombatantBehavior implements UnitBehavior {
      *       chunk of the salvo flies wide."</li>
      * </ul>
      */
-    public static void tryFireMechWeapons(Unit u, Unit target, float dist, BattleSimulation sim, boolean hasLos) {
+    public static void tryFireMechWeapons(Unit u, Unit target, float dist, BattleControl sim, boolean hasLos) {
         tryFireChaingun(u, target, dist, sim, hasLos);
         tryFireSrm(u, target, dist, sim, hasLos);
         tryFireLrm(u, target, dist, sim, hasLos);
     }
 
     /** Chaingun track: close-band sustained fire — needs LOS, fires when target is within chaingun range and the weapon is off cooldown. */
-    public static void tryFireChaingun(Unit u, Unit target, float dist, BattleSimulation sim, boolean hasLos) {
+    public static void tryFireChaingun(Unit u, Unit target, float dist, BattleControl sim, boolean hasLos) {
         MechLoadoutState m = u.mech;
         if (hasLos && m.chaingunCooldown <= 0f && m.chaingunBurstRemaining <= 0
                 && dist <= m.chaingun.range) {
@@ -109,7 +110,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
     }
 
     /** SRM pod track: mid-close salvo — needs LOS, ammo-limited. Skip this call from any action whose doctrine withholds SRMs (e.g. LR Support overwatch). */
-    public static void tryFireSrm(Unit u, Unit target, float dist, BattleSimulation sim, boolean hasLos) {
+    public static void tryFireSrm(Unit u, Unit target, float dist, BattleControl sim, boolean hasLos) {
         MechLoadoutState m = u.mech;
         if (hasLos && m.srmCooldown <= 0f && m.srmAmmoSalvos > 0 && m.srmSalvoRemaining <= 0
                 && dist <= m.srmPod.range) {
@@ -130,7 +131,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
      * only fires when not actively in close engagement. No-LOS shots get the
      * indirect-fire accuracy penalty {@link MechWeapon#LRM_NO_LOS_ACC_MULT}.
      */
-    public static void tryFireLrm(Unit u, Unit target, float dist, BattleSimulation sim, boolean hasLos) {
+    public static void tryFireLrm(Unit u, Unit target, float dist, BattleControl sim, boolean hasLos) {
         MechLoadoutState m = u.mech;
         if (m.lrmCooldown <= 0f && m.lrmAmmoSalvos > 0 && m.lrmSalvoRemaining <= 0
                 && dist <= m.lrmArtillery.range

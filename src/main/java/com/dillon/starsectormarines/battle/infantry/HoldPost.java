@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
@@ -85,7 +86,7 @@ public final class HoldPost implements Action {
         return returnToHome(member, sim, homeX, homeY);
     }
 
-    private static ActionStatus executeWithTarget(Unit member, Unit target, BattleSimulation sim, int homeX, int homeY) {
+    private static ActionStatus executeWithTarget(Unit member, Unit target, BattleControl sim, int homeX, int homeY) {
         if (member.getCooldownTimer() > 0f) member.setCooldownTimer(member.getCooldownTimer() - BattleSimulation.TICK_DT);
 
         float dist = TacticalScoring.cellDistance(member.getCellX(), member.getCellY(),
@@ -126,7 +127,7 @@ public final class HoldPost implements Action {
         return ActionStatus.RUNNING;
     }
 
-    private static ActionStatus investigateClamped(Unit member, BattleSimulation sim,
+    private static ActionStatus investigateClamped(Unit member, BattleControl sim,
                                                     Squad squad, int homeX, int homeY) {
         int tx = squad.lastSeenEnemyX;
         int ty = squad.lastSeenEnemyY;
@@ -140,7 +141,7 @@ public final class HoldPost implements Action {
         return ActionStatus.RUNNING;
     }
 
-    private static ActionStatus returnToHome(Unit member, BattleSimulation sim, int homeX, int homeY) {
+    private static ActionStatus returnToHome(Unit member, BattleControl sim, int homeX, int homeY) {
         if (member.getCellX() == homeX && member.getCellY() == homeY) {
             hold(member, sim);
             return ActionStatus.RUNNING;
@@ -149,7 +150,7 @@ public final class HoldPost implements Action {
         return ActionStatus.RUNNING;
     }
 
-    private static void moveToward(Unit member, BattleSimulation sim, int tx, int ty) {
+    private static void moveToward(Unit member, BattleControl sim, int tx, int ty) {
         if (member.getMoveProgress() == 0f && member.pathIdx >= member.pathCellCount()) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     member.getCellX(), member.getCellY(), tx, ty, sim.getOccupancyMap()));
@@ -162,7 +163,7 @@ public final class HoldPost implements Action {
         }
     }
 
-    private static void hold(Unit member, BattleSimulation sim) {
+    private static void hold(Unit member, BattleControl sim) {
         sim.clearPath(member);
         member.setMoveProgress(0f);
         member.setRenderPos(member.getCellX(), member.getCellY());

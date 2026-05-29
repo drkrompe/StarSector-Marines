@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.decision.goap.action;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
@@ -131,7 +132,7 @@ public final class ClearZone extends AbstractZoneAction {
      * exists (caller falls back to {@link #pickNearestInZoneEnemy}, then
      * to the normal squad-aware picker).
      */
-    private Unit pickInZoneTarget(Unit self, BattleSimulation sim) {
+    private Unit pickInZoneTarget(Unit self, BattleView sim) {
         Faction enemy = enemyOf(self.faction);
         Unit best = null;
         float bestDist = Float.MAX_VALUE;
@@ -166,7 +167,7 @@ public final class ClearZone extends AbstractZoneAction {
      * is geometrically stuck — surfaced via clearZoneReachability in
      * {@link com.dillon.starsectormarines.battle.ui.debug.SquadStateDumper}).
      */
-    private Unit pickNearestInZoneEnemy(Unit self, BattleSimulation sim) {
+    private Unit pickNearestInZoneEnemy(Unit self, BattleView sim) {
         Faction enemy = enemyOf(self.faction);
         Unit best = null;
         float bestDist = Float.MAX_VALUE;

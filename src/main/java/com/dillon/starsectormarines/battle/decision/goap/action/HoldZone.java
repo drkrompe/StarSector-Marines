@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.decision.goap.action;
 
+import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
@@ -67,7 +69,7 @@ public final class HoldZone extends AbstractZoneAction {
         return ActionStatus.RUNNING;
     }
 
-    private ActionStatus engageInZone(Unit member, Squad squad, BattleSimulation sim, Faction enemy) {
+    private ActionStatus engageInZone(Unit member, Squad squad, BattleControl sim, Faction enemy) {
         Unit target = sim.targetOf(member);
         boolean targetOutOfZone = target != null
                 && sim.getZoneGraph().zoneIdAt(target.getCellX(), target.getCellY()) != targetZoneId;
@@ -113,7 +115,7 @@ public final class HoldZone extends AbstractZoneAction {
         return ActionStatus.RUNNING;
     }
 
-    private Unit pickInZoneTarget(Unit self, BattleSimulation sim, Faction enemy) {
+    private Unit pickInZoneTarget(Unit self, BattleView sim, Faction enemy) {
         Unit best = null;
         float bestDist = Float.MAX_VALUE;
         for (Unit other : sim.getUnits()) {
@@ -131,7 +133,7 @@ public final class HoldZone extends AbstractZoneAction {
         return best;
     }
 
-    private static void hold(Unit member, BattleSimulation sim) {
+    private static void hold(Unit member, BattleControl sim) {
         if (!member.pathEmpty()) sim.clearPath(member);
         member.setMoveProgress(0f);
         member.setRenderPos(member.getCellX(), member.getCellY());

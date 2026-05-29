@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
@@ -84,7 +85,7 @@ public final class ReinforceContact implements Goal {
 
     // ---- Flanking waypoint algorithm ----
 
-    static int[] computeFlankWaypoint(Squad squad, BattleSimulation sim) {
+    static int[] computeFlankWaypoint(Squad squad, BattleView sim) {
         int contactX = squad.lastSeenEnemyX;
         int contactY = squad.lastSeenEnemyY;
 
@@ -121,7 +122,7 @@ public final class ReinforceContact implements Goal {
         return snapToWalkable(rawX, rawY, sim.getGrid(), contactX, contactY);
     }
 
-    private static Squad findEngagedFriendlyNearContact(Squad self, BattleSimulation sim) {
+    private static Squad findEngagedFriendlyNearContact(Squad self, BattleView sim) {
         Collection<Squad> squads = sim.getSquads();
         Squad best = null;
         float bestDist = Float.MAX_VALUE;

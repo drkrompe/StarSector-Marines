@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.drone;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.air.SteeringMode;
@@ -213,7 +214,7 @@ public final class DroneSwarmAction implements Action {
      * constraint keeps the swarm fanned around the hub rather than orbiting
      * in a single bunch.
      */
-    private static void tickPatrol(Drone d, BattleSimulation sim,
+    private static void tickPatrol(Drone d, BattleView sim,
                                    int slotIdx, int slotCount, float dt) {
         ensureSectorWaypoint(d, sim, slotIdx, slotCount);
         d.body.tickToward(d.patrolGoalX, d.patrolGoalY,
@@ -245,7 +246,7 @@ public final class DroneSwarmAction implements Action {
      * for its squad-aware crowding + threat-density scoring, then post-filters
      * by {@link Drone#AGGRO_RANGE_CELLS} and an air-LoS check.
      */
-    private static Unit tryAgroScan(Drone d, BattleSimulation sim) {
+    private static Unit tryAgroScan(Drone d, BattleView sim) {
         Unit candidate = sim.getTacticalScoring().findBestTarget(
                 d.getCellX(), d.getCellY(), d.faction, d.squadId, d, d.airLosRadius);
         if (candidate == null) return null;
@@ -276,7 +277,7 @@ public final class DroneSwarmAction implements Action {
     }
 
     /** Picks an initial sector waypoint if the drone has never had one. */
-    private static void ensureSectorWaypoint(Drone d, BattleSimulation sim,
+    private static void ensureSectorWaypoint(Drone d, BattleView sim,
                                              int slotIdx, int slotCount) {
         if (Float.isNaN(d.patrolGoalX) || Float.isNaN(d.patrolGoalY)) {
             pickSectorWaypoint(d, sim, slotIdx, slotCount);
@@ -290,7 +291,7 @@ public final class DroneSwarmAction implements Action {
      * the distribution is uniform on the disk's annular slice. In-bounds
      * fallback: 6 attempts, then snap to the hub anchor.
      */
-    private static void pickSectorWaypoint(Drone d, BattleSimulation sim,
+    private static void pickSectorWaypoint(Drone d, BattleView sim,
                                            int slotIdx, int slotCount) {
         if (d.homeHub == null) {
             d.patrolGoalX = d.body.x;

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -143,7 +144,7 @@ public final class OverwatchKillZone implements Action {
      * distance from the mech's current cell. Returns {@code null} when no cell
      * satisfies the filter — caller falls back to parity engagement.
      */
-    private static int[] pickOverwatchCell(Unit member, Squad squad, BattleSimulation sim) {
+    private static int[] pickOverwatchCell(Unit member, Squad squad, BattleView sim) {
         NavigationGrid grid = sim.getGrid();
         int tx = squad.lastSeenEnemyX;
         int ty = squad.lastSeenEnemyY;

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -147,7 +148,7 @@ public final class BackstopAssignedSquad implements Action {
      * target. Returns {@code null} when no friendly infantry squad exists
      * (mech-only side, or all infantry wiped) — caller falls back to parity.
      */
-    private static Squad pickBackedSquad(Unit member, Squad selfSquad, BattleSimulation sim) {
+    private static Squad pickBackedSquad(Unit member, Squad selfSquad, BattleView sim) {
         Squad best = null;
         float bestDist = Float.MAX_VALUE;
         for (Squad other : sim.getSquads()) {
@@ -180,7 +181,7 @@ public final class BackstopAssignedSquad implements Action {
      * cell. Returns {@code null} when no walkable cell exists within a
      * small search radius (essentially never, but defensive).
      */
-    private static int[] pickBackstopCell(Unit member, Squad selfSquad, Squad backed, BattleSimulation sim) {
+    private static int[] pickBackstopCell(Unit member, Squad selfSquad, Squad backed, BattleView sim) {
         NavigationGrid grid = sim.getGrid();
         float cx = backed.centroidX;
         float cy = backed.centroidY;

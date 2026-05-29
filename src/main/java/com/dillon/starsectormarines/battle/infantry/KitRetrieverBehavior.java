@@ -3,6 +3,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
@@ -51,7 +52,7 @@ public final class KitRetrieverBehavior implements UnitBehavior {
      * itself (unlike the GOAP path where {@code InfantryUnitPrep.tickCooldowns}
      * does it before {@code Action.execute}).
      */
-    private static void fireOpportunistically(Unit u, BattleSimulation sim) {
+    private static void fireOpportunistically(Unit u, BattleControl sim) {
         Unit target = sim.targetOf(u);
         if (target == null) {
             target = sim.getTacticalScoring().findBestTarget(u);

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.drone;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 
@@ -66,7 +67,7 @@ public final class DroneSpawner {
      * drones from clumping on the same neighbor cell when several hubs sit close
      * together.
      */
-    private static int[] findFreeCell(NavigationGrid grid, BattleSimulation sim, int hubX, int hubY) {
+    private static int[] findFreeCell(NavigationGrid grid, BattleView sim, int hubX, int hubY) {
         for (int r = SEARCH_MIN_RADIUS; r <= SEARCH_MAX_RADIUS; r++) {
             for (int dy = -r; dy <= r; dy++) {
                 for (int dx = -r; dx <= r; dx++) {
@@ -84,7 +85,7 @@ public final class DroneSpawner {
     }
 
     /** True if any alive unit currently logically occupies {@code (x, y)}. Cheap linear scan — defender + marine rosters cap small enough that this is fine inside an interval-gated tick. */
-    private static boolean isCellOccupied(BattleSimulation sim, int x, int y) {
+    private static boolean isCellOccupied(BattleView sim, int x, int y) {
         for (Unit u : sim.getUnits()) {
             if (!u.isAlive()) continue;
             if (u.getCellX() == x && u.getCellY() == y) return true;

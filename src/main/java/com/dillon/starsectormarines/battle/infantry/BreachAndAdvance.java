@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -182,7 +183,7 @@ public final class BreachAndAdvance implements Action {
      * Squad-scope decision: a single member arriving doesn't flip the squad
      * to advance — we want the visible "stacked" beat before commitment.
      */
-    private boolean squadIsStacked(Squad squad, BattleSimulation sim) {
+    private boolean squadIsStacked(Squad squad, BattleView sim) {
         if (squad.aliveMembers <= 0) return false;
         int alive = 0;
         int near = 0;
@@ -201,7 +202,7 @@ public final class BreachAndAdvance implements Action {
     }
 
     /** True iff every alive squad member is at their assigned forward cell. Plan SUCCESS condition. */
-    private boolean allMembersAtForward(Squad squad, BattleSimulation sim) {
+    private boolean allMembersAtForward(Squad squad, BattleView sim) {
         SquadPlan plan = squad.currentPlan;
         if (plan == null || plan.isComplete()) return false;
         SquadPlan.Step step = plan.currentStep();

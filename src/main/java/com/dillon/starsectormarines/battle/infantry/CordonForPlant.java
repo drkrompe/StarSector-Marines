@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
@@ -89,13 +90,13 @@ public final class CordonForPlant implements Goal {
      * the lookup {@link SecureObjectiveZone#findObjectiveZone} does — kept
      * separate to avoid one goal's edge-case logic leaking into the other.
      */
-    private static int findPlanterZone(Squad squad, BattleSimulation sim) {
+    private static int findPlanterZone(Squad squad, BattleView sim) {
         ChargeSiteObjective cs = findActiveChargeObjective(squad, sim);
         return cs == null ? -1 : sim.getZoneGraph().zoneIdAt(cs.cellX(), cs.cellY());
     }
 
     /** Returns the in-progress charge an alive squadmate is assigned to, or null. Two callers want it (relevance via zone lookup; customPlan needs the cells). */
-    private static ChargeSiteObjective findActiveChargeObjective(Squad squad, BattleSimulation sim) {
+    private static ChargeSiteObjective findActiveChargeObjective(Squad squad, BattleView sim) {
         for (Unit u : sim.getUnits()) {
             if (!u.isAlive() || u.squadId != squad.id) continue;
             if (u.role != UnitRole.PLANTER) continue;
@@ -115,7 +116,7 @@ public final class CordonForPlant implements Goal {
      * holder still has LOS through the portal in that case.
      */
     private static List<HoldPortalCordon.GuardPost> buildGuardPosts(
-            NavigationZone zone, int zoneId, BattleSimulation sim) {
+            NavigationZone zone, int zoneId, BattleView sim) {
         ZoneGraph graph = sim.getZoneGraph();
         NavigationGrid grid = sim.getGrid();
         int w = grid.getWidth();

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
@@ -75,7 +76,7 @@ public final class MechBreakContact implements Action {
      * accuracy penalty — preserves the "arc artillery over cover while
      * pulling back" read.
      */
-    private static void opportunisticMechFire(Unit u, BattleSimulation sim) {
+    private static void opportunisticMechFire(Unit u, BattleControl sim) {
         Unit target = sim.targetOf(u);
         if (target == null
                 || !sim.getTacticalScoring().shouldKeepPursuing(u, target)) {

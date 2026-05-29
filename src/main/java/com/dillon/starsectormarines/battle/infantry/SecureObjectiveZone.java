@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
@@ -92,7 +93,7 @@ public final class SecureObjectiveZone implements Goal {
      * fire) will add other objective types; this method is the seam they
      * extend under without touching the customPlan logic above.
      */
-    private static int findObjectiveZone(Squad squad, BattleSimulation sim) {
+    private static int findObjectiveZone(Squad squad, BattleView sim) {
         for (Unit u : sim.getUnits()) {
             if (!u.isAlive() || u.squadId != squad.id) continue;
             if (u.assignedObjective instanceof ChargeSiteObjective cs) {

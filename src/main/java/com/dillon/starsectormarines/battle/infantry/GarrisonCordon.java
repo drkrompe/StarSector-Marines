@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -102,7 +103,7 @@ public final class GarrisonCordon implements Action {
      * {@code moveProgress / renderX / renderY} pins the holder in place
      * between bursts so they don't drift off-post.
      */
-    private ActionStatus executeHolder(Unit member, HoldPortalCordon.GuardPost post, BattleSimulation sim) {
+    private ActionStatus executeHolder(Unit member, HoldPortalCordon.GuardPost post, BattleControl sim) {
         boolean atPost = (member.getCellX() == post.cellX && member.getCellY() == post.cellY);
         if (!atPost) {
             opportunisticFire(member, sim, FireStance.MOVING);
@@ -127,7 +128,7 @@ public final class GarrisonCordon implements Action {
      * shape; if a fourth opportunistic-fire caller appears we'll lift this
      * to a shared static.
      */
-    private static void opportunisticFire(Unit member, BattleSimulation sim, FireStance stance) {
+    private static void opportunisticFire(Unit member, BattleControl sim, FireStance stance) {
         Unit target = sim.targetOf(member);
         if (target == null
                 || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {

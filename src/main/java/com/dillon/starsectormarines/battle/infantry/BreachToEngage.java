@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -189,7 +190,7 @@ public final class BreachToEngage implements Goal {
      * doorway cell if no candidates qualify (degenerate but defensive).
      */
     private static boolean pickFriendlySideCells(int squadZone, int dwX, int dwY, int count,
-                                                 int[] outX, int[] outY, BattleSimulation sim) {
+                                                 int[] outX, int[] outY, BattleView sim) {
         NavigationGrid grid = sim.getGrid();
         ZoneGraph zones = sim.getZoneGraph();
         List<float[]> candidates = new ArrayList<>();
@@ -229,7 +230,7 @@ public final class BreachToEngage implements Goal {
      */
     private static boolean pickForwardCells(int targetZone, int dwX, int dwY, int dirX, int dirY,
                                             int threatX, int threatY,
-                                            int count, int[] outX, int[] outY, BattleSimulation sim) {
+                                            int count, int[] outX, int[] outY, BattleView sim) {
         NavigationGrid grid = sim.getGrid();
         ZoneGraph zones = sim.getZoneGraph();
         // Build the search box: depth cells in dir, half-width cells perpendicular.
@@ -283,7 +284,7 @@ public final class BreachToEngage implements Goal {
      * {@code null} when no direct portal exists. Used to find the doorway
      * BFS told us to cross.
      */
-    private static Portal portalBetween(int zoneA, int zoneB, BattleSimulation sim) {
+    private static Portal portalBetween(int zoneA, int zoneB, BattleView sim) {
         ZoneGraph graph = sim.getZoneGraph();
         var zone = graph.zoneById(zoneA);
         if (zone == null) return null;
@@ -303,7 +304,7 @@ public final class BreachToEngage implements Goal {
      * still have an answer for newly-spawned squads that haven't ticked
      * targeting yet.
      */
-    private static Unit effectiveTarget(Squad squad, BattleSimulation sim) {
+    private static Unit effectiveTarget(Squad squad, BattleView sim) {
         for (Unit u : sim.getUnits()) {
             if (!u.isAlive() || u.squadId != squad.id) continue;
             Unit t = sim.targetOf(u);
@@ -320,7 +321,7 @@ public final class BreachToEngage implements Goal {
      * "engage in-zone before breach" safety check that complements the
      * per-unit zone-mismatch scoring bias.
      */
-    private static boolean anyInZoneEnemyVisible(Squad squad, int squadZone, BattleSimulation sim) {
+    private static boolean anyInZoneEnemyVisible(Squad squad, int squadZone, BattleView sim) {
         NavigationGrid grid = sim.getGrid();
         ZoneGraph zones = sim.getZoneGraph();
         List<Unit> units = sim.getUnits();

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
@@ -146,7 +147,7 @@ public final class HoldPortalCordon implements Action {
      * keys off PLANTER role + on-site cell + {@code moveProgress == 0}, all
      * of which this branch maintains.
      */
-    private ActionStatus executePlanter(Unit member, BattleSimulation sim) {
+    private ActionStatus executePlanter(Unit member, BattleControl sim) {
         boolean onSite = (member.getCellX() == chargeCellX && member.getCellY() == chargeCellY);
         if (onSite) {
             if (!member.pathEmpty()) sim.clearPath(member);
@@ -171,7 +172,7 @@ public final class HoldPortalCordon implements Action {
      * Stage 2 cordon doesn't reposition (Slice 3's cover-aware reposition
      * is the layer that would change that).
      */
-    private ActionStatus executeHolder(Unit member, GuardPost post, BattleSimulation sim) {
+    private ActionStatus executeHolder(Unit member, GuardPost post, BattleControl sim) {
         boolean atPost = (member.getCellX() == post.cellX && member.getCellY() == post.cellY);
         if (!atPost) {
             // Transit fire — MOVING penalty applies; the holder is mid-step.
@@ -203,7 +204,7 @@ public final class HoldPortalCordon implements Action {
      * way EngagePosture does it so machine-gun weapons still rip a burst
      * from the post.
      */
-    private static void opportunisticFire(Unit member, BattleSimulation sim, FireStance stance) {
+    private static void opportunisticFire(Unit member, BattleControl sim, FireStance stance) {
         Unit target = sim.targetOf(member);
         if (target == null
                 || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {

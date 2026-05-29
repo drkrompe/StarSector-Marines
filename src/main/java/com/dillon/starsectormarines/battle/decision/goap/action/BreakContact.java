@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.decision.goap.action;
 
+import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
@@ -78,7 +79,7 @@ public final class BreakContact implements Action {
      * shared lift if a fourth caller shows up; for now duplication is cheaper
      * than another helper class.
      */
-    private static void opportunisticFire(Unit member, BattleSimulation sim, FireStance stance) {
+    private static void opportunisticFire(Unit member, BattleControl sim, FireStance stance) {
         Unit target = sim.targetOf(member);
         if (target == null
                 || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {

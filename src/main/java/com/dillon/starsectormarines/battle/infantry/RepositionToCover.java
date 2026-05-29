@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -62,7 +63,7 @@ public final class RepositionToCover implements Action {
      * callers don't have to act on it, but a debug overlay can use it to
      * read "this tick: shifted vs. held."
      */
-    public static boolean tryReposition(Unit member, BattleSimulation sim) {
+    public static boolean tryReposition(Unit member, BattleControl sim) {
         if (member.getRepositionCooldown() > 0f) return false;
         Unit target = sim.targetOf(member);
         if (target == null) return false;

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -106,7 +107,7 @@ public final class ChokePointHold implements Action {
     public static List<int[]> pickLosCells(int portalX, int portalY,
                                            int anchorX, int anchorY,
                                            int maxCells,
-                                           BattleSimulation sim) {
+                                           BattleView sim) {
         if (maxCells <= 0) return List.of();
         List<int[]> picked = new ArrayList<>(maxCells);
         for (int i = 0; i < maxCells; i++) {
@@ -135,7 +136,7 @@ public final class ChokePointHold implements Action {
      */
     private static int[] bestCoverCellExcluding(int threatX, int threatY,
                                                 int nearX, int nearY, int radius,
-                                                BattleSimulation sim,
+                                                BattleView sim,
                                                 List<int[]> exclude) {
         NavigationGrid grid = sim.getGrid();
         int[] best = null;
@@ -278,13 +279,13 @@ public final class ChokePointHold implements Action {
      * this is required: the evaluator reads that field to know which portal
      * cell to sample. {@link #execute} sets it as the first thing it does.
      */
-    private boolean triggerActive(Squad squad, BattleSimulation sim) {
+    private boolean triggerActive(Squad squad, BattleView sim) {
         WorldState ws = WorldStateBuilder.build(squad, sim);
         return ws.get(Predicate.ENEMY_IN_PORTAL_CELL);
     }
 
     /** First alive enemy combatant standing on the portal cell, or null. Matches the rule the evaluator uses. */
-    private Unit enemyOnPortalCell(Squad squad, BattleSimulation sim) {
+    private Unit enemyOnPortalCell(Squad squad, BattleView sim) {
         for (Unit u : sim.getUnits()) {
             if (!u.isAlive() || !u.type.combatant) continue;
             if (u.faction == squad.faction) continue;

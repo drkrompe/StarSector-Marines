@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.unit.Unit;
@@ -83,7 +84,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
      * when the unit is locked in aim (existing or freshly initiated) — caller
      * should skip {@code action.execute} this frame.
      */
-    public static boolean prepareForAction(Unit unit, BattleSimulation sim) {
+    public static boolean prepareForAction(Unit unit, BattleControl sim) {
         if (InfantryUnitPrep.tickAimAndShortCircuit(unit, sim)) return false;
         InfantryUnitPrep.tickCooldowns(unit);
         if (InfantryUnitPrep.tryOpportunityRocket(unit, sim)) return false;
