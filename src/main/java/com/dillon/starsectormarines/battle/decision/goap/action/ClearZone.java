@@ -5,9 +5,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
-import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
-import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 
@@ -36,28 +34,34 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
  * custom plan. Empty preconditions/effects: not used by the backward-chaining
  * planner.
  */
-public final class ClearZone implements Action {
-
-    private final int targetZoneId;
+public final class ClearZone extends AbstractZoneAction {
 
     public ClearZone(int targetZoneId) {
-        this.targetZoneId = targetZoneId;
+        super(targetZoneId);
     }
 
-    public int targetZoneId() { return targetZoneId; }
-
     @Override public String name() { return "ClearZone[" + targetZoneId + "]"; }
-    @Override public WorldState preconditions() { return WorldState.EMPTY; }
-    @Override public WorldState effects() { return WorldState.EMPTY; }
-    @Override public float cost(WorldState s, Squad squad, BattleSimulation sim) { return 1f; }
-    @Override public int requiredMembers() { return 1; }
 
     @Override
     public ActionStatus execute(Unit member, Squad squad, BattleSimulation sim) {
         // Quick exit when the zone reads clear for this squad's enemy faction.
+        // Checked from anywhere (global predicate) so an all-outside squad —
+        // e.g. the lone in-zone member died — still advances the plan rather
+        // than deadlocking behind the zone-entry gate below.
         Faction enemy = enemyOf(squad.faction);
         if (ZoneQueries.zoneClear(targetZoneId, enemy, sim)) {
             return ActionStatus.SUCCESS;
+        }
+
+        // Zone-entry rule (AbstractZoneAction): a member standing outside the
+        // zone consolidates in — firing suppressively while it moves — before
+        // it engages. Don't clear the room from the doorway.
+        if (!memberInZone(member, sim)) {
+            int[] interior = interiorCellOf(targetZoneId, sim);
+            if (interior != null) {
+                advanceIntoZone(member, squad, sim, interior[0], interior[1], false);
+            }
+            return ActionStatus.RUNNING;
         }
 
         // Refresh target: prefer an in-zone enemy. An out-of-zone fixation

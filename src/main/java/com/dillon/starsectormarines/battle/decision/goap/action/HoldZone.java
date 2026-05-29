@@ -5,9 +5,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
-import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
-import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
@@ -31,29 +29,31 @@ import com.dillon.starsectormarines.battle.decision.TacticalNode;
  * {@link com.dillon.starsectormarines.battle.infantry.SecureCompoundGoal}'s
  * custom plan.
  */
-public final class HoldZone implements Action {
+public final class HoldZone extends AbstractZoneAction {
 
-    private final int targetZoneId;
     private final TacticalNode compoundNode;
 
     public HoldZone(int targetZoneId, TacticalNode compoundNode) {
-        this.targetZoneId = targetZoneId;
+        super(targetZoneId);
         this.compoundNode = compoundNode;
     }
 
-    public int targetZoneId() { return targetZoneId; }
-
     @Override public String name() { return "HoldZone[" + targetZoneId + "]"; }
-    @Override public WorldState preconditions() { return WorldState.EMPTY; }
-    @Override public WorldState effects() { return WorldState.EMPTY; }
-    @Override public float cost(WorldState s, Squad squad, BattleSimulation sim) { return 1f; }
-    @Override public int requiredMembers() { return 1; }
 
     @Override
     public ActionStatus execute(Unit member, Squad squad, BattleSimulation sim) {
         CompoundService.Record record = sim.getCompoundService().getRecord(compoundNode);
         if (record != null && record.state == CompoundService.CompoundState.MARINE_HELD) {
             return ActionStatus.SUCCESS;
+        }
+
+        // Zone-entry rule (AbstractZoneAction): pull a member standing outside
+        // the zone in to the compound anchor before it holds/engages. Without
+        // it the squad fights the room from the doorway and the capture stays
+        // CONTESTED (one marine in, defenders in) forever.
+        if (!memberInZone(member, sim)) {
+            advanceIntoZone(member, squad, sim, compoundNode.anchorX, compoundNode.anchorY, false);
+            return ActionStatus.RUNNING;
         }
 
         Faction enemy = squad.faction == Faction.MARINE ? Faction.DEFENDER : Faction.MARINE;
