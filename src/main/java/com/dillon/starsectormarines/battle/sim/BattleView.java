@@ -1,10 +1,14 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
+import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.vehicle.Vehicle;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
@@ -89,4 +93,16 @@ public interface BattleView {
 
     /** Compound capture/garrison service — zone-ownership queries. Read-only in the replan window (same returned-handle caveat as {@link #getTacticalScoring}). */
     CompoundService getCompoundService();
+
+    /** Per-cell structural topology (walls/roofs/cover classes). Rebuilt on map modification. */
+    CellTopology getTopology();
+
+    /** Active air shuttles in the battle. */
+    List<Shuttle> getShuttles();
+
+    /** Active convoy ground vehicles in the battle. */
+    List<Vehicle> getConvoyVehicles();
+
+    /** Mission objectives carried by both sides. */
+    List<Objective> getObjectives();
 }

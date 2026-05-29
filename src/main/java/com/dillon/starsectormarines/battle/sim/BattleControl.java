@@ -2,8 +2,10 @@ package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
+import com.dillon.starsectormarines.battle.vehicle.Vehicle;
 
 /**
  * Read + mutate window onto the battle, for code that runs during the
@@ -48,4 +50,13 @@ public interface BattleControl extends BattleView {
 
     /** Mint a new squad for {@code faction} with an optional {@code leader}; returns the new squad id. */
     int mintSquad(Faction faction, Unit leader);
+
+    /** Add a freshly spawned unit to the roster (walk-in reinforcement). */
+    void addUnit(Unit u);
+
+    /** Add a shuttle to the air system (shuttle reinforcement / garrison drop). */
+    void addShuttle(Shuttle s);
+
+    /** Add a convoy vehicle to the ground system (convoy reinforcement). */
+    void addConvoyVehicle(Vehicle v);
 }
