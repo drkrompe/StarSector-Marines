@@ -1,4 +1,4 @@
-# Story E — GROUND tile/wall pass → GroundRenderSystem — ✅ SHIPPED (in-game verify pending)
+# Story E — GROUND tile/wall pass → GroundRenderSystem — ✅ SHIPPED & VERIFIED
 
 The heaviest render pass (`renderGrid` + `renderTiledFloorsAndWalls`, the top
 render-CPU root per the backlog JFR capture) migrated into the command model.
@@ -43,11 +43,18 @@ DOODADS converted to the same model (emits road-then-urban contiguous).
 ## Verified
 
 `mcp__intellij__build_project` clean; `gradlew test` green. **In-game render
-verification still required** (correctness of every tile kind, overlays, walls,
-fallbacks). The old `renderGrid`/`renderTiledFloorsAndWalls`/`draw*`/predicate
-methods are retained `@Deprecated` + **uncalled** in `BattleRenderer` as a
-one-line-rewire rollback; **delete them once the live battle confirms parity**
-(immediate follow-up).
+verification passed** — every tile kind, nature overlays, doorways, crosswalk
+stripes, walls, and the courtyard/road solid fallbacks render correctly. It also
+fixed a latent bug: beach doodads now render (the old inline path had a
+sheet-contiguity quirk the strict-painter drain corrects).
+
+The retained `@Deprecated` fallback (`renderGrid`/`renderTiledFloorsAndWalls`/
+`fillCell`/`draw*Tile`/`drawCrosswalkStripes`/`isSidewalk*`/`isRoadBoundary`/
+`isInBoundsWall`/`cellHash` + the orphaned `FLOOR_COLOR`/`WALL_COLOR`/
+`COURTYARD_FILL`/`CROSSWALK_*`/`GROUND_TILE_EDGE_INSET_PX` constants) has been
+**deleted** (−426 lines from `BattleRenderer`). The interleaved live
+`renderZoneOverlay`/`renderDecals` were preserved; `ROAD_FILL` stays (turret
+pads) as does `GROUND_SMALL_TILE_EDGE_INSET_PX`.
 
 ## Notes / follow-ups
 

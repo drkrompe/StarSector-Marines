@@ -29,15 +29,14 @@ the clean seam the remaining pass migrations land on.
 
 ## Next-up
 
-**⚠️ FIRST: in-game-verify GROUND, then delete the retained fallback.** Story E
-(GROUND → `GroundRenderSystem`) **shipped** (`dadcf8b`) but is a render change —
-needs a live-battle check: floors/streets/sidewalks/grass/water autotiles, nature
-overlays, doorways, crosswalk stripes, walls, and the courtyard/road solid
-fallbacks all render as before. The old `renderGrid`/`renderTiledFloorsAndWalls` +
-`draw*` helpers + sidewalk predicates are retained `@Deprecated` and **uncalled**
-in `BattleRenderer` as a one-line-rewire rollback. Once verified good, **delete
-that dead block** (it's the bulk of the remaining god-class tile code) — that's
-the immediate follow-up.
+**Story E is shipped, verified, and the fallback is deleted.** In-game check
+passed (and fixed a latent beach-doodad bug); the old `@Deprecated`
+`renderGrid`/`renderTiledFloorsAndWalls`/`draw*Tile`/predicate block + its
+orphaned constants were removed from `BattleRenderer` (−426 lines). The live
+`renderZoneOverlay`/`renderDecals` (interleaved in that span) were preserved.
+
+Next pass migration is **VEHICLES / CONVOY / SHUTTLES / DRONES** (single rotated
+sprites → existing `Sprite` command), then **UNITS** (see below).
 
 **Story E shipped — what landed:**
 - `DrawCommand.SolidRect` + the pooled, mutable tagged command buffer
@@ -73,7 +72,7 @@ imports (`ShuttleType`, `LightKernel`).
 A → B → ~~C (prove model on SHOTS)~~ ✅ → ~~D (first sheet pass + RenderSystem,
 DOODADS)~~ ✅ → ~~engine/game package split (structural foundation)~~ ✅ →
 ~~pooled command buffer + SolidRect + strict-painter drain~~ ✅ →
-~~E (GROUND → GroundRenderSystem; in-game-verify + delete fallback pending)~~ ✅ →
+~~E (GROUND → GroundRenderSystem; verified, fallback deleted)~~ ✅ →
 F…N (VEHICLES/CONVOY/SHUTTLES/DRONES, then UNITS) →
 Final (collapse `render()` to systems-loop + drain).
 
@@ -90,6 +89,5 @@ Final (collapse `render()` to systems-loop + drain).
   GROUND relies on spatial coherence (street/grass regions) for long runs.
 - FBO accumulators (decal/lightmap) are still inline — they'll need `Custom`
   (or a dedicated command) when their layers migrate.
-- **In-game-pending validation**: SHOTS (C), DOODADS (D), and **GROUND (E)** —
-  render changes; confirm in a real battle. GROUND also gates deleting the
-  retained `@Deprecated` fallback in `BattleRenderer`.
+- **In-game-pending validation**: SHOTS (C), DOODADS (D). GROUND (E) is verified
+  (fallback deleted). New render-changing passes still need a live-battle check.
