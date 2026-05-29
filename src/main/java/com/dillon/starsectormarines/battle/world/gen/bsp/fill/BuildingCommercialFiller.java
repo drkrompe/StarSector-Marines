@@ -1,18 +1,13 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
-import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.model.BuildingKind;
-import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockFiller;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
-import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-
-import java.util.List;
-import java.util.Random;
+import com.dillon.starsectormarines.battle.world.gen.GenContext;
 
 /**
  * {@link BlockFiller} for {@link BlockKind#BUILDING_COMMERCIAL} leaves. Carves
@@ -57,13 +52,8 @@ public final class BuildingCommercialFiller implements BlockFiller {
     public BlockKind kind() { return BlockKind.BUILDING_COMMERCIAL; }
 
     @Override
-    public void fill(BlockLeaf leaf,
-                     NavigationGrid grid,
-                     CellTopology topology,
-                     List<PointOfInterest> pois,
-                     List<Doodad> doodads,
-                     Random rng) {
-        PointOfInterest poi = BuildingShellCore.carve(leaf, grid, topology, doodads, rng, CONFIG);
-        if (poi != null) pois.add(poi);
+    public void fill(BlockLeaf leaf, GenContext ctx) {
+        PointOfInterest poi = BuildingShellCore.carve(leaf, ctx.grid, ctx.topology, ctx.doodads, ctx.rng, CONFIG);
+        if (poi != null) ctx.pois.add(poi);
     }
 }

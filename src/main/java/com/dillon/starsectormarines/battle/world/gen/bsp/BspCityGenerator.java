@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockFiller;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
+import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.MapDistrictTheme;
 import com.dillon.starsectormarines.battle.world.gen.MapGenerator;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
@@ -141,6 +142,14 @@ public final class BspCityGenerator implements MapGenerator {
         NavigationGrid grid = new NavigationGrid(width, height);
         CellTopology topology = new CellTopology(width, height);
 
+        // The generation blackboard. Spine (grid/topology/rng + the output
+        // accumulators) lives on the context; optional overlays (biome map,
+        // road masks, compounds) are bound under BspKeys as they're computed.
+        // Fillers read everything they need off ctx; the post-fill stampers
+        // still take explicit args this slice (they migrate to ctx + GenStage
+        // in the next slice), sourced from the same context fields.
+        GenContext ctx = new GenContext(grid, topology, rng, width, height);
+
         // Step 0 — initialize every cell as walkable STREET. Fillers overwrite
         // both the ground kind and walkability inside their leaves; the road
         // frame keeps these defaults.
@@ -196,6 +205,8 @@ public final class BspCityGenerator implements MapGenerator {
             biomeMap = new BiomeMap(width, height, axis, rng);
             this.lastBiomeMap = biomeMap;
             this.lastDistrictMap = null;
+            ctx.put(BspKeys.BIOME_MAP, biomeMap);
+            ctx.put(BspKeys.AXIS, axis);
             LOG.info("BspCityGenerator: " + partition.leaves.size() + " leaves on "
                     + width + "x" + height + " grid, "
                     + plan.trunks.size() + " trunk(s), biome axis=" + axis);
@@ -206,6 +217,7 @@ public final class BspCityGenerator implements MapGenerator {
             districtMap.forceThemeAt(ixCenterX, ixCenterY, MapDistrictTheme.CIVIC);
             this.lastDistrictMap = districtMap;
             this.lastBiomeMap = null;
+            ctx.put(BspKeys.DISTRICT_MAP, districtMap);
             LOG.info("BspCityGenerator: " + partition.leaves.size() + " leaves on "
                     + width + "x" + height + " grid, "
                     + plan.trunks.size() + " trunk(s), "
@@ -233,6 +245,7 @@ public final class BspCityGenerator implements MapGenerator {
                 biomeMap != null ? CompoundClaim.CONQUEST_SPECS : CompoundClaim.DEFAULT_SPECS,
                 biomeMap, rng);
         this.lastCompounds = compounds;
+        ctx.put(BspKeys.COMPOUNDS, compounds);
         Map<BlockLeaf, Compound> compoundBySeed = new IdentityHashMap<>();
         for (Compound c : compounds) compoundBySeed.put(c.seed, c);
         if (!compounds.isEmpty()) {
@@ -256,27 +269,28 @@ public final class BspCityGenerator implements MapGenerator {
         // visually drives "through" the stamped structure.
         this.lastRoadGraph = RoadGraphBuilder.build(plan.roadCells, plan);
         boolean[][] roadReservation = RoadReservation.mask(this.lastRoadGraph, width, height);
+        ctx.put(BspKeys.ROAD_CELLS, plan.roadCells);
+        ctx.put(BspKeys.ROAD_RESERVATION, roadReservation);
+        ctx.put(BspKeys.ROAD_GRAPH, this.lastRoadGraph);
 
         // Step 3 — dispatch fillers. Each per-leaf filler owns its leaf's
         // cells (NOT the road frame around it); compound fillers own the
         // union of their member leaves plus the bridged road between them.
-        List<PointOfInterest> pois = new ArrayList<>();
-        List<Doodad> doodads = new ArrayList<>();
-        List<TacticalNode> tactical = new ArrayList<>();
-        List<DefensePost> defensePosts = new ArrayList<>();
+        // Output accumulators live on the context now (ctx.pois / ctx.doodads
+        // / ctx.tactical / ctx.defensePosts). Fillers append to them via ctx;
+        // the stampers below still take the lists explicitly, sourced from ctx.
         for (BlockLeaf leaf : partition.leaves) {
             if (leaf.kind == BlockKind.COMPOUND_MEMBER) continue;
             Compound compound = compoundBySeed.get(leaf);
             if (compound != null) {
                 CompoundFiller cFiller = compoundFillers.get(compound.kind);
                 if (cFiller != null) {
-                    cFiller.fill(compound, grid, topology, plan.roadCells, roadReservation,
-                            pois, doodads, tactical, rng);
+                    cFiller.fill(compound, ctx);
                 }
                 continue;
             }
             BlockFiller filler = fillers.get(leaf.kind);
-            filler.fill(leaf, grid, topology, pois, doodads, rng);
+            filler.fill(leaf, ctx);
         }
 
         // Step 3a' — pedestrian-frame classification. Per-leaf-pair RNG roll
@@ -303,7 +317,7 @@ public final class BspCityGenerator implements MapGenerator {
         // cells — doodads, walls, building hints, nature overlays — so
         // nothing else "lives" in the reserved water strip.
         if (biomeMap != null) {
-            applyBeachShoreline(grid, topology, axis, biomeMap, roadReservation, doodads, rng);
+            applyBeachShoreline(grid, topology, axis, biomeMap, roadReservation, ctx.doodads, rng);
         }
 
         // Step 3c — fortress super-wall. Stamps the Kremlin-style perimeter
@@ -315,7 +329,7 @@ public final class BspCityGenerator implements MapGenerator {
         if (biomeMap != null) {
             boolean[][] compoundExclusion = buildCompoundExclusion(compounds, width, height);
             FortressWallStamper.stamp(grid, topology, axis, biomeMap, roadReservation,
-                    compoundExclusion, doodads, tactical, rng);
+                    compoundExclusion, ctx.doodads, ctx.tactical, rng);
         }
 
         // Step 3c' — defense posts. Manned turret emplacements scattered through
@@ -326,7 +340,7 @@ public final class BspCityGenerator implements MapGenerator {
         // produced by the wall and forward bunkers.
         if (biomeMap != null) {
             DefensePostStamper.stamp(grid, topology, axis, biomeMap, roadReservation,
-                    doodads, tactical, defensePosts, rng);
+                    ctx.doodads, ctx.tactical, ctx.defensePosts, rng);
         }
 
         // Step 3c'' — compound perimeter defenders. Walks the already-emitted
@@ -335,7 +349,7 @@ public final class BspCityGenerator implements MapGenerator {
         // compound-as-supply design — gives the defender allocator explicit
         // lookout positions on the approach to each supply structure without
         // any allocator changes. See roadmap/conquest/central-keep.md.
-        CompoundPerimeterDefenderStamper.stamp(grid, axis, tactical);
+        CompoundPerimeterDefenderStamper.stamp(grid, axis, ctx.tactical);
 
         // Step 3c''' — keep multi-chamber detection. When the COMMAND_POST
         // sub-building got a BuildingShellCore multi-room partition (≥7
@@ -346,14 +360,14 @@ public final class BspCityGenerator implements MapGenerator {
         // not in the compound-leaf fallback graph. Defender allocator picks
         // it up Pass 1 so the antechamber gets manned. Slice 6 of
         // central-keep.md (patch 1 of the slice-6 fix sequence).
-        KeepEntryChamberStamper.stamp(grid, topology, tactical);
+        KeepEntryChamberStamper.stamp(grid, topology, ctx.tactical);
 
         // Step 3d — link tactical nodes. Runs once after every node is
         // emitted (from compound fillers + fortress wall stamping); geometric
         // rules wire up OVERWATCHES, SUPPLIES, FALLBACK_TO, GUARDS. Always
         // runs even in legacy non-conquest mode — the compound fillers may
         // still have contributed BARRACKS/COMMAND/ARMORY nodes.
-        this.lastTacticalMap = new TacticalMap(tactical);
+        this.lastTacticalMap = new TacticalMap(ctx.tactical);
         TacticalLinker.link(this.lastTacticalMap);
 
         // Step 4 — finalize: HP on walls, cover bake, wall flag, spawn anchors.
@@ -385,7 +399,7 @@ public final class BspCityGenerator implements MapGenerator {
 
         return new MapResult(grid, topology,
                 marine[0], marine[1], defender[0], defender[1],
-                pois, doodads, this.lastTacticalMap, buildings, defensePosts, this.lastRoadGraph);
+                ctx.pois, ctx.doodads, this.lastTacticalMap, buildings, ctx.defensePosts, this.lastRoadGraph);
     }
 
     private static void verifyRoadGraphWalkable(NavigationGrid grid, RoadGraph graph) {

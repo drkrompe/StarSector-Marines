@@ -1,18 +1,12 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
-import com.dillon.starsectormarines.battle.world.model.Doodad;
-import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
-import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-
-import java.util.List;
-import java.util.Random;
 
 /**
  * Strategy interface for per-{@link BlockKind} fill. The orchestrator
  * ({@code BspCityGenerator}) hands each leaf to the matching filler, which
  * paints ground kinds, carves walls / doorways, and emits POIs + doodads
- * into the accumulator lists.
+ * into the {@link GenContext}'s accumulator lists.
  *
  * <p>The interface is intentionally narrow: a filler MUST NOT touch the
  * shared road frame around the leaf (that's the orchestrator's job) and
@@ -26,8 +20,8 @@ import java.util.Random;
  *       set the cells it owns to the appropriate ground kind — leaving a
  *       cell at STREET would visually disconnect from the surrounding road
  *       in a way that reads wrong.</li>
- *   <li>The filler may append to {@code pois} and {@code doodads}; both
- *       lists are mutable and shared across all fillers for one run.</li>
+ *   <li>The filler may append to {@code ctx.pois} and {@code ctx.doodads};
+ *       both lists are mutable and shared across all fillers for one run.</li>
  *   <li>The filler must respect the {@link MapResult} invariants
  *       (doorways have walkable cells on both sides, POI perimeters are
  *       closed, etc.) inside its own rect.</li>
@@ -39,20 +33,13 @@ public interface BlockFiller {
     BlockKind kind();
 
     /**
-     * Paint {@code leaf}'s rect into the grid + topology, optionally emitting
-     * POIs / doodads.
+     * Paint {@code leaf}'s rect into the context's grid + topology, optionally
+     * emitting POIs / doodads.
      *
-     * @param leaf      the rect this filler owns
-     * @param grid      nav grid — set walkability, doorways, cover
-     * @param topology  per-cell ground kind + flags (wall, etc.)
-     * @param pois      accumulator for landmark buildings
-     * @param doodads   accumulator for placed decorative tiles
-     * @param rng       deterministic source, seeded by the orchestrator
+     * @param leaf the rect this filler owns
+     * @param ctx  generation blackboard — {@code grid} (walkability, doorways,
+     *             cover), {@code topology} (ground kind + flags), {@code pois}
+     *             / {@code doodads} accumulators, and the seeded {@code rng}
      */
-    void fill(BlockLeaf leaf,
-              NavigationGrid grid,
-              CellTopology topology,
-              List<PointOfInterest> pois,
-              List<Doodad> doodads,
-              Random rng);
+    void fill(BlockLeaf leaf, GenContext ctx);
 }

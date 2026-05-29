@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockFiller;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
+import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.List;
@@ -58,8 +59,12 @@ public final class LandingZoneFiller implements BlockFiller {
     public BlockKind kind() { return BlockKind.LANDING_ZONE; }
 
     @Override
-    public void fill(BlockLeaf leaf, NavigationGrid grid, CellTopology topology,
-                     List<PointOfInterest> pois, List<Doodad> doodads, Random rng) {
+    public void fill(BlockLeaf leaf, GenContext ctx) {
+        NavigationGrid grid = ctx.grid;
+        CellTopology topology = ctx.topology;
+        List<PointOfInterest> pois = ctx.pois;
+        List<Doodad> doodads = ctx.doodads;
+        Random rng = ctx.rng;
         // Whole leaf is a walkable striped pad. Walkability was set true by
         // the orchestrator initial pass; we leave it that way (no perimeter
         // wall) and overwrite the ground kind so the renderer paints striped

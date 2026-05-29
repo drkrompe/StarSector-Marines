@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.WallMasks;
 import com.dillon.starsectormarines.battle.world.gen.BlockFiller;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
+import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingCommercialFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingIndustrialFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingResidentialFiller;
@@ -475,9 +476,10 @@ public class BuildingZonePreviewTest {
         }
 
         BlockLeaf leaf = new BlockLeaf(leafLeft, leafTop, leafRight, leafBottom, false);
-        List<PointOfInterest> pois = new ArrayList<>();
-        List<Doodad> doodads = new ArrayList<>();
-        filler.fill(leaf, grid, topology, pois, doodads, new Random(variant.seed));
+        GenContext ctx = new GenContext(grid, topology, new Random(variant.seed), gridW, gridH);
+        filler.fill(leaf, ctx);
+        List<PointOfInterest> pois = ctx.pois;
+        List<Doodad> doodads = ctx.doodads;
 
         // Sync WALL tags from nav walkability — matches the orchestrator's
         // post-fill pass. The wall picker reads {@code topology.isWall}, not

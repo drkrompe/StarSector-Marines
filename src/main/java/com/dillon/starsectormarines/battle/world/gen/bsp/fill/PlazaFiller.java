@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockFiller;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
+import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.ArrayList;
@@ -50,12 +51,12 @@ public final class PlazaFiller implements BlockFiller {
     public BlockKind kind() { return BlockKind.PLAZA; }
 
     @Override
-    public void fill(BlockLeaf leaf,
-                     NavigationGrid grid,
-                     CellTopology topology,
-                     List<PointOfInterest> pois,
-                     List<Doodad> doodads,
-                     Random rng) {
+    public void fill(BlockLeaf leaf, GenContext ctx) {
+        NavigationGrid grid = ctx.grid;
+        CellTopology topology = ctx.topology;
+        List<PointOfInterest> pois = ctx.pois;
+        List<Doodad> doodads = ctx.doodads;
+        Random rng = ctx.rng;
 
         // Carve the leaf as walkable brick-paved plaza pavement.
         for (int y = leaf.top; y <= leaf.bottom; y++) {

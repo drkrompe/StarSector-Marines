@@ -8,6 +8,8 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
+import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.Compound;
 import com.dillon.starsectormarines.battle.world.gen.bsp.CompoundFiller;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -50,15 +52,15 @@ public final class GatedHousingFiller implements CompoundFiller {
     @Override public BlockKind kind() { return BlockKind.GATED_HOUSING; }
 
     @Override
-    public void fill(Compound compound,
-                     NavigationGrid grid,
-                     CellTopology topology,
-                     boolean[][] roadCells,
-                     boolean[][] roadReservation,
-                     List<PointOfInterest> pois,
-                     List<Doodad> doodads,
-                     List<TacticalNode> tactical,
-                     Random rng) {
+    public void fill(Compound compound, GenContext ctx) {
+        NavigationGrid grid = ctx.grid;
+        CellTopology topology = ctx.topology;
+        boolean[][] roadCells = ctx.get(BspKeys.ROAD_CELLS);
+        boolean[][] roadReservation = ctx.get(BspKeys.ROAD_RESERVATION);
+        List<PointOfInterest> pois = ctx.pois;
+        List<Doodad> doodads = ctx.doodads;
+        List<TacticalNode> tactical = ctx.tactical;
+        Random rng = ctx.rng;
         int w = grid.getWidth();
         int h = grid.getHeight();
 

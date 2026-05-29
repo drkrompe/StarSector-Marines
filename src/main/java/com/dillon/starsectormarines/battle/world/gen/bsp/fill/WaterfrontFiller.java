@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockFiller;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
+import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.List;
@@ -49,8 +50,12 @@ public final class WaterfrontFiller implements BlockFiller {
     public BlockKind kind() { return BlockKind.WATERFRONT; }
 
     @Override
-    public void fill(BlockLeaf leaf, NavigationGrid grid, CellTopology topology,
-                     List<PointOfInterest> pois, List<Doodad> doodads, Random rng) {
+    public void fill(BlockLeaf leaf, GenContext ctx) {
+        NavigationGrid grid = ctx.grid;
+        CellTopology topology = ctx.topology;
+        List<PointOfInterest> pois = ctx.pois;
+        List<Doodad> doodads = ctx.doodads;
+        Random rng = ctx.rng;
 
         // 1. Default the entire leaf to sand. Both water and shore overwrite
         //    selectively below; anything left over reads as continuous beach.
