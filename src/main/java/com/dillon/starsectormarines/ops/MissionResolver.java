@@ -6,6 +6,8 @@ import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractState;
+import com.dillon.starsectormarines.campaign.HousePromotion;
+import com.dillon.starsectormarines.campaign.StakeLedger;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.Rank;
@@ -75,6 +77,23 @@ public final class MissionResolver {
 
     /** Memory key prefix on the target {@link MarketAPI} for the per-industry counter. */
     private static final String DAMAGE_KEY_PREFIX = "$marines_industry_damage_";
+
+    /**
+     * Stake (0..255 byte-share) the patron seizes from the contract's target on a
+     * victorious contract mission. ~8% of an industry — a seeded plurality is
+     * ~110/255, so a backed patron flips one over a handful of strikes, while
+     * autonomous drift would take many months (the decisive-accelerant principle,
+     * {@code living-world/overview.md}). Tier-scaling (T2/T3 move more) is a later
+     * refinement; STRIKE/RAID is the only generated contract today.
+     */
+    private static final int CONTRACT_STAKE_SEIZE = 20;
+
+    /**
+     * Promotion progress the patron accrues per victorious contract mission. T1→T2
+     * threshold is 100 ({@link com.dillon.starsectormarines.campaign.HouseRank}),
+     * so ~7 wins for a backed Baron to make Count — fast next to autonomous creep.
+     */
+    private static final int CONTRACT_PROMOTION_PROGRESS = 15;
 
     private MissionResolver() {}
 
@@ -365,11 +384,58 @@ public final class MissionResolver {
                 LOG.info("MarineOps: contract " + outcome.contractId + " phase "
                         + phasesDone + "/" + phasesTotal + " done");
             }
+            // Every victorious mission leaves a permanent mark on the political map:
+            // the patron seizes ground from the target and climbs the rank ladder.
+            applyPoliticalShift(state, row, outcome, day);
         } else {
             state.contractState[row] = ContractState.FAILED.toByte();
             tickPatronRep(state, patronId, -2, day, false);
             LOG.info("MarineOps: contract " + outcome.contractId + " FAILED");
         }
+    }
+
+    /**
+     * Writes a victorious mission's result into the political simulation: the
+     * patron seizes a slice of the struck industry from the contract's target and
+     * accrues promotion progress. This is the Slice-B impact-ladder rung
+     * ({@code living-world/overview.md}) — the first time player ops leave a
+     * *permanent* mark on the houses graph rather than just on contract state.
+     *
+     * <p>The contested ground is the <em>target's</em> market + the struck
+     * industry: patron and target are picked sector-wide by {@code ContractGenerator}
+     * and usually sit on different markets, so the patron expands into the rival's
+     * turf rather than consolidating a shared one. Market-local targeting (so
+     * transfers contest a single market) is a {@code ContractGenerator} refinement
+     * tracked for a later slice.
+     *
+     * <p>Mechanism lives in {@link StakeLedger#seizeShare} and
+     * {@link HousePromotion#addProgressAndPromote}; the magnitudes are policy here
+     * ({@link #CONTRACT_STAKE_SEIZE}, {@link #CONTRACT_PROMOTION_PROGRESS}). No-ops
+     * cleanly when the contract has no target / industry (e.g. a debug-spawned or
+     * non-strike contract).
+     */
+    private static void applyPoliticalShift(CampaignState state, int row, MissionOutcome outcome, int day) {
+        long patronId = state.contractPatronHouseId[row];
+        long targetId = state.contractTargetHouseId[row];
+        if (patronId == -1L || targetId == -1L) return;
+        if (outcome.targetIndustryId == null) return;
+
+        int targetRow = state.houseIndex(targetId);
+        if (targetRow < 0) return;
+        int marketIdx   = state.houseMarketId[targetRow];
+        int industryIdx = state.industryRegistry.intern(outcome.targetIndustryId);
+
+        int gained = StakeLedger.seizeShare(state, targetId, patronId, marketIdx, industryIdx,
+                CONTRACT_STAKE_SEIZE);
+
+        int patronRow = state.houseIndex(patronId);
+        int promotions = patronRow >= 0
+                ? HousePromotion.addProgressAndPromote(state, patronRow, CONTRACT_PROMOTION_PROGRESS, day)
+                : 0;
+
+        LOG.info("MarineOps: political shift — patron " + patronId + " seized " + gained
+                + "/255 of " + outcome.targetIndustryId + " from target " + targetId
+                + (promotions > 0 ? " and promoted " + promotions + " rank(s)" : ""));
     }
 
     /** Find-or-create the patron's rep row and apply a small delta. */

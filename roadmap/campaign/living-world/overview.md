@@ -154,14 +154,23 @@ Each slice is independently observable.
 
 | Slice | Lands | Observable result |
 | --- | --- | --- |
-| **A — Genesis** | 2–4 houses/market + deterministic stake seeding | Briefings get teeth: *"the refinery you're hitting is 40% House X, contested by House Y."* Pure data, no behavior. |
-| **B — Player transfer** | `MissionResolver` victory → stake moves target→patron + promotion bump | The impact-ladder T1 rung is real; player actions leave permanent marks. World still static otherwise. |
+| ~~**A — Genesis**~~ ✅ | 2–4 houses/market + deterministic stake seeding | Briefings get teeth: *"the refinery you're hitting is 40% House X, contested by House Y."* Pure data, no behavior. |
+| ~~**B — Player transfer**~~ ✅ | `MissionResolver` victory → stake moves target→patron + promotion bump | The impact-ladder T1 rung is real; player actions leave permanent marks. World still static otherwise. |
 | **C — Drift** | The breathing loop; `AutonomousPromotionSystem` live on real holdings | Shares creep; houses promote on their own. First "the world has a life." |
 | **D — Chains + Chronicle** | NPC `chains[]`, big resolutions, `DiscoveryPropagation` printing dispatches | Full "map shifted while you were away" + the intervention hook. |
 | **E — Consolidation + ambition** | `DORMANT`-on-empty, ambition re-eval, `CLAIM_THRONE` | Long-tail texture + the on-ramp to [`../t3-endgame/`](../t3-endgame/overview.md). |
 
 A–B deliver real value with **zero** autonomous sim and directly unstub
 the keystone. C–D are the living world. E is the long tail.
+
+**Shipped:** A (genesis seeding) and B (player stake transfer + promotion) —
+see [`complete/`](complete/). The reusable primitives they introduced —
+[`StakeLedger`](../../../src/main/java/com/dillon/starsectormarines/campaign/StakeLedger.java)
+(stake moves) and
+[`HousePromotion`](../../../src/main/java/com/dillon/starsectormarines/campaign/HousePromotion.java)
+(rank ladder) — are the seams Slices C–D build the autonomous loops on, so
+the drift/chain work is "call the same primitives on a tick" rather than new
+mutation logic.
 
 ## Two payoffs that fall out for free
 
