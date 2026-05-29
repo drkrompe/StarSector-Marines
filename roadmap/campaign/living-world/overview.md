@@ -172,7 +172,12 @@ the keystone. C–D are the living world. E is the long tail.
   to the faction-flip endgame — the autonomous loop produces Tier-4
   aspirants without special-casing.
 
-## The ambition layer (the "game" half — least explored)
+## The ambition layer (the "game" half)
+
+> Designed in depth in [`ambition.md`](ambition.md) — the trait
+> vocabulary, the three-layer (flavor × archetype × trait) model,
+> friction-as-content, the vertical loyalty axis, and the
+> feel-out-your-patron discovery surface.
 
 For any loop above to fire, houses need ambitions (currently always
 `NONE`). Assignment is the behavior/content layer, and the difference
