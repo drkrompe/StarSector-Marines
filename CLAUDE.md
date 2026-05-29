@@ -97,6 +97,13 @@ and HEAD. Commit loop:
 A stray file or mixed hunks from a parallel session are fine — leave them
 rather than rewriting shared history to extract them.
 
+## Your PWD is C:/Users/Dillon/IdeaProjects/starsectormarines
+Note that unless you `cd` to a different directory your primary directory will already be:
+```sh
+cd "C:/Users/Dillon/IdeaProjects/starsectormarines";
+```
+- 99% of the time, there is no need to cd to the project root for things like git or reading files.
+
 ## Multi-project layout
 
 - `:` (root) — the mod itself. `src/main/java` holds `StarsectorMarinesModPlugin`, the
