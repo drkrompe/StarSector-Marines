@@ -13,8 +13,6 @@ import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.UnitType;
-import com.dillon.starsectormarines.battle.vehicle.MapVehicle;
-import com.dillon.starsectormarines.battle.vehicle.VehicleKind;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.model.TimeOfDay;
@@ -522,63 +520,6 @@ public class BattleRenderer {
         float cx = rc.camera.cellToScreenX(u.getRenderX() + 0.5f);
         float cy = rc.camera.cellToScreenY(u.getRenderY() + 0.5f);
         sheet.renderAtCenter(cx, cy);
-    }
-
-    /**
-     * @deprecated Superseded by {@link VehicleRenderSystem} (VEHICLES layer,
-     * batched sheet-quads). Retained <em>uncalled</em> as a one-line-rewire
-     * rollback reference until the new pass is confirmed in a live battle, then
-     * deleted.
-     */
-    @Deprecated
-    private void renderVehicles(BattleSimulation sim, float alphaMult) {
-        java.util.List<MapVehicle> vehicles = sim.getVehicles();
-        if (vehicles.isEmpty()) return;
-
-        float cellPx = rc.camera.cellPxSize();
-        java.util.Set<VehicleKind.VehicleSheet> touched = new java.util.HashSet<>();
-        for (MapVehicle v : vehicles) {
-            UnitSpriteCache cache = sprites.vehicleSheets().get(v.kind.sheet);
-            if (cache == null || cache.sheet == null || cache.frames == null) continue;
-            if (v.kind.frameIndex >= cache.frames.frames.length) continue;
-            SpriteAPI sheet = cache.sheet;
-            SpriteSheetFrames frames = cache.frames;
-            SpriteSheetFrames.Frame f = frames.frames[v.kind.frameIndex];
-
-            float texW = sheet.getTextureWidth();
-            float texH = sheet.getTextureHeight();
-            int sheetW = frames.sheetWidth;
-            int sheetH = frames.sheetHeight;
-            sheet.setTexX((float) f.x * texW / sheetW);
-            sheet.setTexY((float) (sheetH - f.y - f.h) * texH / sheetH);
-            sheet.setTexWidth((float) f.w * texW / sheetW);
-            sheet.setTexHeight((float) f.h * texH / sheetH);
-
-            float footW = v.kind.footprintCellsX * cellPx;
-            float footH = v.kind.footprintCellsY * cellPx;
-            float frameAspect = (float) f.w / (float) f.h;
-            float footAspect  = footW / footH;
-            float drawW, drawH;
-            if (frameAspect > footAspect) {
-                drawW = footW;
-                drawH = footW / frameAspect;
-            } else {
-                drawH = footH;
-                drawW = footH * frameAspect;
-            }
-            sheet.setSize(drawW, drawH);
-            sheet.setAlphaMult(alphaMult);
-            sheet.setNormalBlend();
-            sheet.setColor(Color.WHITE);
-            float cx = rc.camera.cellToScreenX(v.cellX + v.kind.footprintCellsX / 2f);
-            float cy = rc.camera.cellToScreenY(v.cellY + v.kind.footprintCellsY / 2f);
-            sheet.renderAtCenter(cx, cy);
-            touched.add(v.kind.sheet);
-        }
-        for (VehicleKind.VehicleSheet s : touched) {
-            UnitSpriteCache cache = sprites.vehicleSheets().get(s);
-            if (cache != null && cache.sheet != null) cache.sheet.setColor(Color.WHITE);
-        }
     }
 
     private void renderTurrets(List<Unit> units, float alphaMult) {

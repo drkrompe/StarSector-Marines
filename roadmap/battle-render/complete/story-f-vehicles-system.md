@@ -1,4 +1,4 @@
-# Story F — VEHICLES pass → VehicleRenderSystem — ✅ SHIPPED (in-game verify pending)
+# Story F — VEHICLES pass → VehicleRenderSystem — ✅ SHIPPED & VERIFIED
 
 Parked map vehicles (`renderVehicles`) migrated into the command model as
 `VehicleRenderSystem`, emitting the `VEHICLES` layer.
@@ -29,10 +29,13 @@ sprite state to leak, so the color-reset loop is gone.
 ## Verified
 
 `mcp__intellij__build_project` clean; `gradlew test` green. **In-game render
-verification pending** — confirm parked vehicles draw at the right place/size/
-frame, above decals and below doodads/units. The inline `renderVehicles` is
-retained `@Deprecated` + **uncalled** as a one-line-rewire rollback; delete once
-the live battle confirms parity.
+verification passed** — parked vehicles draw correctly, above decals and below
+doodads/units. A background critique pass independently confirmed behavior
+parity, batch lifecycle, and the safety of dropping the shared-sprite color
+reset (the `QuadBatch` path never mutates the shared sprite; all downstream
+sheet-sharers re-specify their own color/tex). The inline `renderVehicles`
+fallback has been **deleted** (+ its now-orphaned `MapVehicle`/`VehicleKind`
+imports).
 
 ## Notes
 
