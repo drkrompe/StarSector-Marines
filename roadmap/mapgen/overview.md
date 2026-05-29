@@ -97,10 +97,27 @@ equivalent to pre-refactor behaviour; Slice D is the first commit that
 changes what the player sees (the central keep now has two interior
 garrisons instead of one).
 
-## Active stories
+## Active tracks
 
-Station-tier fills are an **extension**, not a slice in the A–D sequence.
-The two articulated next tracks live in [`stories/`](stories/):
+### Composable generation pipeline (in design)
+
+The next structural push: decompose the monolithic
+`BspCityGenerator.generate()` into a **context + stages + recipe** shape
+so map *types* become compositions of stages, not forks of one method.
+Design doc: [`composable-pipeline.md`](composable-pipeline.md). This is
+the **enabler** under the station / corridor work — it's the "different
+orchestrator" the station story predicted.
+
+| Slice | Story | What |
+| --- | --- | --- |
+| **1** | [`gen-context`](stories/gen-context.md) | `GenContext` typed-blackboard; collapse the 9-arg pass signatures. Behavior-preserving. |
+| **2** | _(to author)_ | `GenStage` interface; extract each numbered step into a stage object. |
+| **3** | _(to author)_ | `GenRecipe`; named recipes per map type; `BattleSetup` selects one. |
+
+### Station / ship fills (extension, post-pipeline)
+
+Station-tier fills are an **extension**, not a slice in the A–D
+room-purpose sequence. They ride on the recipe machinery above:
 
 | Story | What it adds |
 | --- | --- |
@@ -109,12 +126,14 @@ The two articulated next tracks live in [`stories/`](stories/):
 
 ### Why this order
 
-Corridors are the load-bearing blocker: BSP leaves are atomic buildings
-and roads are perimeter filler, so connecting rooms as first-class
-connective structure has to exist before station "rooms + corridors"
-fills mean anything. Station interior fills are the payoff that rides on
-top. Ship interiors are the same machinery turned up (tighter rooms) and
-follow stations.
+The composable pipeline comes first because it's the seam the rest hangs
+on: without recipes, a station map is a third fork of `generate()`.
+Corridors are then the load-bearing blocker for station content — BSP
+leaves are atomic buildings and roads are perimeter filler, so
+connecting rooms as first-class connective structure has to exist before
+station "rooms + corridors" fills mean anything. Station interior fills
+are the payoff that rides on top. Ship interiors are the same machinery
+turned up (tighter rooms) and follow stations.
 
 ## Cross-references
 
@@ -141,6 +160,8 @@ follow stations.
   scope framing. The stable view; edit rarely.
 - **`pipeline-audit.md`** — the load-bearing pipeline survey; the audit
   the refactor was scoped against.
+- **`composable-pipeline.md`** — design doc for the context+stages+recipe
+  decomposition of the orchestrator (the current in-design track).
 - **`stories/`** — active/queued story docs, one per slice.
 - **`complete/`** — sealed shipped work (commit hash + what actually
   landed).

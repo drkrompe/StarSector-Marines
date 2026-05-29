@@ -38,19 +38,28 @@ findings) in
 
 ## Next up (priority order)
 
-Station-tier fills are an **extension**, not a continuation of the A–D
-sequence. Both tracks live in [`stories/`](stories/):
+The current track is the **composable generation pipeline** — decompose
+`BspCityGenerator.generate()` into context + stages + recipe so map types
+compose instead of forking. Design agreed (typed-blackboard `GenContext`,
+incremental rollout). Design doc:
+[`composable-pipeline.md`](composable-pipeline.md).
 
-1. **[`corridors-first-class`](stories/corridors-first-class.md)** — the
-   real blocker. BSP treats leaves as atomic buildings and roads as
-   perimeter filler; stations need corridors as first-class connective
-   structure. Likely wants a different orchestrator (corridors-primary,
-   rooms-as-vertices), so keep `PartitionStrategy` / `RoomPurpose` from
-   baking in the BSP-only bbox-leaf shape.
-2. **[`station-interior-fills`](stories/station-interior-fills.md)** —
-   rides on corridors. Extend `RoomPurpose` (HANGAR / COMMAND /
-   HABITATION / CORRIDOR) + implement a station `PartitionStrategy`. The
-   payoff the refactor was built toward.
+1. **[`gen-context`](stories/gen-context.md)** — Slice 1. Introduce
+   `GenContext` (typed blackboard via `GenKey<T>`) + `ConquestKeys`;
+   collapse the 9-arg `fill` / `stamp` / `partition` signatures onto it.
+   Behavior-preserving; lock against `BspMapPreviewTest` seeds. The
+   signature sweep is delegate-to-Sonnet; design + verify on main.
+2. **Slice 2 (to author)** — `GenStage` interface; extract each numbered
+   `generate()` step into a stage object. `generate()` becomes
+   "build ctx, run an ordered `List<GenStage>`."
+3. **Slice 3 (to author)** — `GenRecipe`; `ConquestCityRecipe` /
+   `LegacyUrbanRecipe`; `BattleSetup` selects by mission.
+
+Station-tier fills (extension, post-pipeline) are parked in
+[`stories/`](stories/): **[`corridors-first-class`](stories/corridors-first-class.md)**
+(the real blocker — corridors as first-class connective structure) and
+**[`station-interior-fills`](stories/station-interior-fills.md)** (rides
+on corridors + the recipe machinery).
 
 ## Sanity check before resuming
 
