@@ -1,4 +1,4 @@
-# Story G — CONVOY pass → ConvoyRenderSystem — ✅ SHIPPED (in-game verify pending)
+# Story G — CONVOY pass → ConvoyRenderSystem — ✅ SHIPPED & VERIFIED
 
 Ground convoy vehicles (`renderConvoyVehicles`) migrated into the command model
 as `ConvoyRenderSystem`, emitting the `CONVOY` layer. First pass to use
@@ -37,18 +37,18 @@ future cleanup if wanted.
 
 ## Verified
 
-`mcp__intellij__build_project` clean; `gradlew test` green. **In-game render
-verification pending — and this slice has a real parity risk to check:** the
-rotation now goes through `QuadBatch.appendRotated` (manual CCW corner rotation)
-instead of `SpriteAPI.setAngle`. Confirm convoy chassis + turrets point the
-right way (not mirrored / off by a sign) and sit at the right mount position,
-above ground and below shuttles. The inline `renderConvoyVehicles` is retained
-`@Deprecated` + **uncalled** as a one-line-rewire rollback; delete once the live
-battle confirms parity.
+`mcp__intellij__build_project` clean; `gradlew test` green. **Rotation parity
+confirmed** — a background critique proved (in code) that `appendRotated` matches
+`SpriteAPI.setAngle` in sign and zero: `appendRotated` at θ=0 is byte-identical
+to `append`, and its `(+cos/−sin, +sin/+cos)` CCW matrix is the same one
+`TurretAuthorPanel` pairs with `setAngle` to *define* the turret mount/pivot
+offsets (so the offsets are correct under it), corroborated by the SHOTS pass
+(`atan2−90` → `setAngle`, same 0°=art-up reference) drawing in the same
+`renderWorld` ortho space. Confirmed in live play. The inline
+`renderConvoyVehicles` fallback has been **deleted**.
 
 ## Notes
 
-- If appendRotated's convention turns out to differ from `setAngle`, the fix is
-  localized: negate `angleDeg` (or add a 90° offset) at the two emit sites, or
-  add a setAngle-matching rotation to the drain. Verify before deleting the
-  fallback.
+- The only thing not provable from code is the absolute handedness of Starsector's
+  undocumented `SpriteAPI.setAngle` — but that's the convention the entire
+  existing render path already stands on, so it's settled in practice.

@@ -43,8 +43,8 @@ before that runs). UNITS/DRONES reuse the same seam. Inline `renderVehicles`
 retained `@Deprecated`+uncalled pending the live check. See
 [`complete/story-f-vehicles-system.md`](complete/story-f-vehicles-system.md).
 
-**Story G (CONVOY → `ConvoyRenderSystem`) shipped** (in-game verify pending) —
-convoy trucks + turrets now emit **rotated** batched sheet-quads. This added the
+**Story G (CONVOY → `ConvoyRenderSystem`) shipped & verified** (fallback deleted)
+— convoy trucks + turrets now emit **rotated** batched sheet-quads. This added the
 engine extension **rotation on `SHEET_QUAD`** (`DrawCommand`/`DrawList`
 `addSheetQuad(..., angleDeg, ...)` overload; drain routes `angleDeg != 0` →
 `QuadBatch.appendRotated`, keeps the cheap axis-aligned path for dense tile
@@ -96,7 +96,7 @@ DOODADS)~~ ✅ → ~~engine/game package split (structural foundation)~~ ✅ →
 ~~pooled command buffer + SolidRect + strict-painter drain~~ ✅ →
 ~~E (GROUND → GroundRenderSystem; verified, fallback deleted)~~ ✅ →
 ~~F (VEHICLES → VehicleRenderSystem; verified, fallback deleted)~~ ✅ →
-~~G (CONVOY → ConvoyRenderSystem + rotated SHEET_QUAD; in-game-verify pending)~~ ✅ →
+~~G (CONVOY → ConvoyRenderSystem + rotated SHEET_QUAD; verified, fallback deleted)~~ ✅ →
 H…N (SHUTTLES/DRONES, then UNITS) →
 Final (collapse `render()` to systems-loop + drain).
 
@@ -113,7 +113,6 @@ Final (collapse `render()` to systems-loop + drain).
   GROUND relies on spatial coherence (street/grass regions) for long runs.
 - FBO accumulators (decal/lightmap) are still inline — they'll need `Custom`
   (or a dedicated command) when their layers migrate.
-- **In-game-pending validation**: **CONVOY (G)** — verify rotated chassis/turret
-  parity (appendRotated vs setAngle) before deleting its `@Deprecated` fallback.
-  SHOTS (C), DOODADS (D), GROUND (E), VEHICLES (F) already verified; fallbacks
-  deleted. New render-changing passes always need a live-battle check first.
+- **In-game-pending validation**: none outstanding — SHOTS (C), DOODADS (D),
+  GROUND (E), VEHICLES (F), CONVOY (G) all verified; fallbacks deleted. New
+  render-changing passes always need a live-battle check before fallback removal.
