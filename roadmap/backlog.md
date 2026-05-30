@@ -31,7 +31,9 @@ https://davidkbd.itch.io/eternity-metal-scfi-music-pack
 - **Flyby fighters as real air entities** — flyby fighters are today a
   scripted cosmetic overlay (`battle/flyby/`: heading-based weave +
   strafing runs, a single sim coupling via
-  `BattleSimulation#applyExternalDamage`). Long-term, rebuild them on the
+  `BattleSimulation#applyExternalDamage`). Blocked on the `.ship`-driven
+  kinematic model now designed in [`fighters/`](fighters/overview.md)
+  (its S4). Long-term, rebuild them on the
   `AirBody` abstraction they'd share with shuttles (`battle/air/`) so they
   become genuine flying entities — spawn in/off the map edges, optionally
   land at bases on larger maps, take fire and be shot down. When that
