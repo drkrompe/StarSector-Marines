@@ -72,10 +72,21 @@ package-visible (shared with the inline UNITS HP bars). No rotation-parity risk
 (`SPRITE`/`setAngle`). See
 [`complete/story-i-drones-system.md`](complete/story-i-drones-system.md).
 
-Next (and last before the endgame) is **UNITS** — the heavy one: live unit
-sprites + HP bars (`SOLID_RECT`) + the turret / drone-hub / dead-unit sub-passes,
-all currently inline under `renderUnits`. The `renderDroneHubs` lazy-load + the
-`drawTurretLayer` helper get absorbed here.
+Next (and last before the endgame) is **UNITS** — the heavy one. **Recon written
++ shape decided**: [`stories/story-j-units.md`](stories/story-j-units.md).
+`renderUnits` is five strata painted in fixed order into the `UNITS` layer
+(turret footprint+sprite → hub footprint+sprite → dead sprites → live sprites →
+HP bars, bars last = layer-wide on top). It migrates into the command model **and**
+fixes the system's internal shape to the ECS-native target: a **type-flyweight
+`RenderAppearance` descriptor + capability tags** (render-side, keyed by
+`UnitType`; `Unit` stays `SpriteAPI`-free per the overview boundary), consumed by
+a stateless `UnitRenderService` that **sweeps once per render-task-kind**
+(footprints → sprites → bars). Per-stratum sweeps dissolve the bars-on-top
+paint-order constraint (the bar sweep just runs last) — this is `UnitRegistry`
+Phase 2 applied to the render tier. One engine addition: a **vertical-flip option
+on `SHEET_QUAD`** for the SOUTH-weapon-up mirror. `renderDroneHubs` lazy-load +
+`drawTurretLayer` get absorbed; reusable `HpBarDecor`/`GroundFootprint` emit
+helpers fall out (slice 1 retrofits `DroneRenderSystem` onto `HpBarDecor`).
 
 **Structural: the `List<RenderSystem>` registry shipped.** `RenderSystem` now
 declares `layer()`; `BattleRenderer` holds an ordered `List<RenderSystem>`
@@ -129,7 +140,11 @@ DOODADS)~~ ✅ → ~~engine/game package split (structural foundation)~~ ✅ →
 ~~RenderSystem registry (ordered `List<RenderSystem>` + `layer()`; collect-all
 phase split out)~~ ✅ →
 ~~I (DRONES → DroneRenderSystem; SPRITE + SOLID_RECT; verified, fallback deleted)~~ ✅ →
-UNITS (sprites + HP bars + turret/drone-hub/dead sub-passes) →
+UNITS (Story J — recon written, shape decided: flyweight `RenderAppearance` +
+capability tags + per-stratum `UnitRenderService` sweep). Sub-slices:
+J1 `HpBarDecor` + retrofit `DroneRenderSystem` → J2 `RenderAppearance` table+tags
+→ J3 dead units `SHEET_QUAD` → J4 turret/hub footprint+sprite → J5 live infantry
+(+`SHEET_QUAD` vertical-flip engine add) → J6 HP-bar sweep → delete fallback →
 Final (collapse `render()` to systems-loop + drain — fold inline passes into
 the collect-all/drain-all loop as they migrate).
 
@@ -153,7 +168,17 @@ the collect-all/drain-all loop as they migrate).
   each sheet's quads contiguously to batch them (one flush per contiguous run).
   GROUND relies on spatial coherence (street/grass regions) for long runs.
 - FBO accumulators (decal/lightmap) are still inline — they'll need `Custom`
-  (or a dedicated command) when their layers migrate.
+  (or a dedicated command) when their layers migrate. The UNITS service contract
+  is named "emit render *tasks*" because the same sweep eventually emits a second
+  stream (decal-accumulator writes) alongside `DrawCommand`s — but units drop no
+  decals, so Story J exercises only the draw stream.
+- **UNITS flyweight boundary**: `RenderAppearance` + capability tags are
+  render-side (`ops/battleview`), keyed by `UnitType`. Do **not** add `SpriteAPI`
+  or render fields to `Unit`/`UnitType` (overview's hard rule). The "component on
+  the entity" is a type→descriptor lookup.
+- **UNITS engine gap**: live infantry need a SOUTH-weapon-up vertical mirror;
+  `QuadBatch.append` has fixed UV orientation. The `SHEET_QUAD` flip add (flag or
+  `appendFlippedV`) lands in slice J5 — turret/hub/dead don't need it.
 - **In-game-pending validation**: none outstanding. SHOTS (C), DOODADS (D),
   GROUND (E), VEHICLES (F), CONVOY (G), SHUTTLES (H), DRONES (I) all verified;
   fallbacks deleted.
