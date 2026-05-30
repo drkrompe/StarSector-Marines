@@ -115,6 +115,8 @@ public final class FortressWallStamper implements GenStage {
         if (biomeMap == null) return;
         NavigationGrid grid = ctx.grid;
         CellTopology topology = ctx.topology;
+        TraversalAxis axis = ctx.get(BspKeys.AXIS);
+        Random rng = ctx.rng;
         int w = grid.getWidth();
         int h = grid.getHeight();
         int[] bbox = fortressBbox(biomeMap, w, h);
@@ -122,8 +124,6 @@ public final class FortressWallStamper implements GenStage {
         boolean[][] compoundExclusion = buildCompoundExclusion(ctx.get(BspKeys.COMPOUNDS), w, h);
         boolean[][] skip = mergeExclusions(ctx.get(BspKeys.ROAD_RESERVATION), compoundExclusion, w, h);
         boolean[][] wallMask = new boolean[w][h];
-        TraversalAxis axis = ctx.get(BspKeys.AXIS);
-        Random rng = ctx.rng;
         if (axis == TraversalAxis.SOUTH_TO_NORTH) {
             stampSouthToNorth(grid, topology, bbox, wallMask, skip, ctx.tactical, w, h, rng);
         } else {
