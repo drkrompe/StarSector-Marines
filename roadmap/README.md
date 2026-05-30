@@ -47,11 +47,13 @@ universe over time, not retrofitted into intel slots.
   hooking the headless sim and vanilla `CombatEngineAPI` together (the reverse of
   how the mod is built); the near-term thread is sim-authoritative *proxy targets*
   vanilla carriers/fighters can engage, with two throwaway de-risking probes.
-  A third **design-stage** track — [`fighters/`](fighters/overview.md) —
-  designs a `.ship`-driven kinematic model (sourced at runtime from
-  `ShipHullSpecAPI`, so modded fighters fly for free) scaled and re-flavored
-  for ground-scale combat in atmosphere; it's the data-model foundation the
-  "flyby fighters as real air entities" backlog item is blocked on.
+  A third **design-stage** track — [`air/`](air/overview.md) — recaptures
+  vanilla/modded airborne craft (fighters and overhead ships) as sim entities
+  via a shared `ShipHullSpecAPI`-sourced hull-extraction pipeline (kinematics +
+  concave-poly geometry, so modded craft work for free), scaled and re-flavored
+  for ground-scale combat in atmosphere; shuttles are its already-shipped
+  exemplar, and it's the data-model foundation the "flyby fighters as real air
+  entities" backlog item is blocked on.
 - **Campaign tier** — SoA `CampaignState`, contracts loop, patron houses,
   mission-resolver bridge. The Marine Ops mission-select screen consumes
   this layer. See [`campaign/`](campaign/).

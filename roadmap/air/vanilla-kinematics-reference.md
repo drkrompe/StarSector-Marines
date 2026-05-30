@@ -4,7 +4,7 @@
 > read-only game install (`starsector-core/data/hulls/`) for tuning the scale
 > factor and sanity-checking feel. They are **not** a runtime data path — at
 > runtime, read kinematics off `ShipHullSpecAPI.getEngineSpec()` (see
-> [`overview.md`](overview.md) § "Where the data lives").
+> [`hull-extraction.md`](hull-extraction.md) § "Where the data lives").
 >
 > Source: Starsector 0.98a-RC8, `ship_data.csv` + `wing_data.csv`. Re-scrape if
 > the game version changes.
