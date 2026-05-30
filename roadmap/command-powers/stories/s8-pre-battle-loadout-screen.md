@@ -45,8 +45,13 @@ moment the command-powers economy was designed around.
 
 One full-canvas takeover, four regions:
 
-- **MISSION** — planet crop + reticle, type / risk / payout, salvage negotiation,
-  briefing prose. (Ported from today's `BriefingScreen`.)
+- **MISSION** — type / risk / payout, salvage negotiation, briefing prose. The
+  decorative planet crop + reticle is **dropped** (it provided no gameplay and
+  ate ~70% of the screen via the old `INFO_W`-fixed split); that space is
+  reclaimed for the action regions below. A future *battlespace preview* could
+  one day occupy a corner here, but it's parked as a separate speculative story
+  — the layout must stand on its own without it. See
+  [`../../mapgen/stories/battlespace-preview.md`](../../mapgen/stories/battlespace-preview.md).
 - **YOUR FLEET BRINGS** — committable assets as opt-in rows: transports, carriers
   (fighter cover), and **power-source ships** (e.g. an Apogee that grants Recon
   Sweep). Committing a row feeds the `Detachment` *and* the contested-asset
@@ -75,12 +80,22 @@ One full-canvas takeover, four regions:
 - **Verify:** picking a mission → Brief & Deploy → full screen → Deploy → battle,
   with the same manifest/roster a no-deselect Accept produced pre-revival.
 
-### Slice B — Two-source presentation + member-level commitment
-- Restructure the screen into "Your Fleet Brings" / "Employer Provides" panels.
+### Slice B — Action-dominant rebuild: two-source presentation (+ member-level commitment)
+- **Drop the planet map and rebuild the layout action-dominant.** `BriefingLayout`
+  currently pins controls to a fixed 380px `INFO_W` strip and gives the
+  decorative map all remaining width — invert that: the full canvas is the
+  action area. No map surface at all (the future preview re-introduces its own
+  if it ever lands).
+- Restructure into "Your Fleet Brings" / "Employer Provides" panels across the
+  reclaimed width.
 - Surface **power-source ships** as their own committable rows (the Apogee /
   Hi-Res Sensors carrier). This makes **member-level commitment** real — the top
   S2 follow-up — so power narrowing finally has something to narrow against, and
   `DevConfig.ALWAYS_GRANT_RECON_PING` can flip off to feel the gating.
+
+  *May split: B-1 = drop map + two-source reflow of existing controls
+  (transports/carriers/employer); B-2 = power-source committable rows +
+  narrowing. B-1 alone already answers the "reclaim the map space" feedback.*
 
 ### Slice C — Command Deck (slotting UI)
 - Slottable-powers list with a *constant* command budget (S5 does the curve).
