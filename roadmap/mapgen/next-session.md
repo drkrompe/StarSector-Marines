@@ -16,7 +16,8 @@ b8b7b9d  mapgen: Slice D — ternary keep wiring + multi-chamber stamper emissio
 5e5ae91  mapgen: Slice 1 — GenContext blackboard; collapse fill SPI signatures
 09d2590  mapgen: deterministic leaf-adjacency neighbor order
 53fe951  mapgen: defense-post partition guard checks real footprint, not bbox
-65c5686  mapgen: Slice 2a — GenStage pipeline (extract generate() into stages)  ← latest mapgen work
+65c5686  mapgen: Slice 2a — GenStage pipeline (extract generate() into stages)
+8666b8f  mapgen: Slice 2b — fold stampers into GenStage classes  ← latest mapgen work
 ```
 
 Full per-slice mapping (what landed vs. planned, Slice A critique
@@ -59,17 +60,19 @@ incremental rollout). Design doc:
   `run(ctx)` classes is 2b. Verification surfaced + fixed two pre-existing gen
   bugs (non-deterministic adjacency `09d2590`; defense-post stranding `53fe951`).
   See [`complete/gen-stages.md`](complete/gen-stages.md).
+- **Slice 2b — stampers as `GenStage` classes: ✅ shipped (`8666b8f`).** The
+  four post-fill stampers implement `GenStage` directly; `run(ctx)` replaced the
+  static `stamp(...)` signatures, `buildCompoundExclusion` moved into
+  `FortressWallStamper`, `buildStages()` lists the stamper instances, and the
+  two stamper tests drive through a `GenContext`. Behavior-equivalent; full
+  suite green. `stampNonConquest` / `stampPost` / `blockedFootprint` stay static
+  (called outside the pipeline). See [`complete/gen-stages.md`](complete/gen-stages.md).
 
-1. **Slice 2b (next)** — fold the four stampers (`FortressWallStamper`,
-   `DefensePostStamper`, `CompoundPerimeterDefenderStamper`,
-   `KeepEntryChamberStamper`) into `run(ctx)` `GenStage` classes; drop the
-   static `stamp(...)` signatures; convert `KeepEntryChamberStamperTest` +
-   `CompoundPerimeterDefenderStamperTest` to drive via `ctx`. Replace the
-   lambdas in `BspCityGenerator.buildStages()` with the stamper instances and
-   move `buildCompoundExclusion` into `FortressWallStamper`.
-2. **Slice 3 (to author)** — `GenRecipe`; `ConquestCityRecipe` /
-   `LegacyUrbanRecipe`; `BattleSetup` selects by mission. The conquest/legacy
-   `ctx.has(AXIS)` gates inside the biome stages collapse into recipe membership.
+1. **Slice 3 (next, to author)** — `GenRecipe`; `ConquestCityRecipe` /
+   `LegacyUrbanRecipe`; `BattleSetup` selects by mission. Every stage now
+   implements `GenStage`, so a recipe is just an ordered `List<GenStage>`. The
+   conquest/legacy `ctx.has(AXIS)` / `BIOME_MAP` self-gates inside the biome
+   stages + stampers collapse into recipe membership.
 
 Station-tier fills (extension, post-pipeline) are parked in
 [`stories/`](stories/): **[`corridors-first-class`](stories/corridors-first-class.md)**
@@ -77,12 +80,16 @@ Station-tier fills (extension, post-pipeline) are parked in
 **[`station-interior-fills`](stories/station-interior-fills.md)** (rides
 on corridors + the recipe machinery).
 
-### Slice 1 critique follow-ups (carry into Slice 2b)
+### Slice 1 critique follow-ups (still open — carry into Slice 3 / filler rework)
 
 Background critique of `5e5ae91` confirmed behavior-preservation (no
-blocker); these minor items are still open — Slice 2a extracted the
-orchestrator into stages but didn't rework the fillers, so fold them in
-when Slice 2b touches the same code:
+blocker); these minor items are still open. Slices 2a/2b reworked the
+orchestrator + stampers but not the fillers, so these filler-level items
+stayed untouched — fold them in when Slice 3 (or a filler-rework pass)
+next edits the same code. (The Slice 2a critique's own nits are resolved:
+the `PedestrianFrameStage` `~50%` comment was fixed in `8666b8f`; the
+`GenStage` "no instance fields" Javadoc vs `FillDispatchStage`'s config
+registries is a documented, intentional tension, not a defect.)
 
 - **Test gap.** `BuildingZonePreviewTest` builds a `GenContext` but never
   binds `ROAD_CELLS` / `ROAD_RESERVATION`, so the compound-filler
