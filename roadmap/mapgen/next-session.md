@@ -65,6 +65,29 @@ Station-tier fills (extension, post-pipeline) are parked in
 **[`station-interior-fills`](stories/station-interior-fills.md)** (rides
 on corridors + the recipe machinery).
 
+### Slice 1 critique follow-ups (carry into Slice 2)
+
+Background critique of `5e5ae91` confirmed behavior-preservation (no
+blocker); these minor items were deferred, fold them in when Slice 2
+touches the same code:
+
+- **Test gap.** `BuildingZonePreviewTest` builds a `GenContext` but never
+  binds `ROAD_CELLS` / `ROAD_RESERVATION`, so the compound-filler
+  overlay-read path is unguarded there (it rests on `BspMapPreviewTest`).
+  When stampers/compound fills become stages, add overlay-bound coverage.
+- **Dead alias locals.** The mechanical sweep copied unused params forward
+  as unused locals (`StubBlockFiller`; the `pois` alias in the
+  POI-less per-leaf fillers — IndustrialYard / LandingZone / Waterfront /
+  Nature / Park / Plaza / WastelandRubble). Harmless; drop when Slice 2
+  reworks each filler.
+- **`ctx.get` null seam.** Unbound-key reads return `null` silently — the
+  "always non-null" contract the old param list carried is gone. Fine
+  while the orchestrator binds everything pre-dispatch; if Slice 2/3 stage
+  reordering makes overlay availability non-obvious, add the
+  `stage.requires(KEY)` build-time assert sketched in
+  [`composable-pipeline.md`](composable-pipeline.md) § Decisions.
+- **Unused imports** from the sweep: already cleaned (`b8d992f`).
+
 ## Sanity check before resuming
 
 - `gradlew.bat compileJava` clean.
