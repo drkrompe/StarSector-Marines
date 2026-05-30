@@ -144,7 +144,8 @@ phase split out)~~ ✅ →
 ~~I (DRONES → DroneRenderSystem; SPRITE + SOLID_RECT; verified, fallback deleted)~~ ✅ →
 UNITS (Story J — IN PROGRESS, shape decided: flyweight `RenderAppearance` +
 capability tags + per-stratum `UnitRenderService` sweep). Sub-slices:
-~~J1 `HpBarDecor` + retrofit `DroneRenderSystem`~~ ✅ → J2 `RenderAppearance` table+tags
+~~J1 `HpBarDecor` + retrofit `DroneRenderSystem`~~ ✅ →
+~~J2 `RenderAppearance` table+tags (flyweight `of(UnitType)`; no pass change)~~ ✅
 → J3 dead units `SHEET_QUAD` → J4 turret/hub footprint+sprite → J5 live infantry
 (+`SHEET_QUAD` vertical-flip engine add) → J6 HP-bar sweep → delete fallback →
 Final (collapse `render()` to systems-loop + drain — fold inline passes into

@@ -140,9 +140,18 @@ Game-side emit helpers the sweeps call (and other systems reuse):
    `HpBarDecor.*` (non-behavioral, awaiting its slice-6 migration). `HP_BAR_GAP`
    stays on `BattleRenderer` (placement, caller-owned). Behavior-identical (same
    geometry/colors); compile + suite green.
-2. **`RenderAppearance` table + capability tags** (render-side, keyed by
-   `UnitType`/kind) — descriptor build + `appearanceOf`. No pass change yet; just
-   stand up the flyweight + tags the sweeps will read.
+2. ~~**`RenderAppearance` table + capability tags**~~ **SHIPPED.**
+   `RenderAppearance` (render-side, `ops/battleview`) is an `EnumMap<UnitType,…>`
+   flyweight built once at class-load via `derive(UnitType)` — the inline
+   `instanceof`/`combatant`/`deathPoseIdx` ladder stated once. Tags:
+   `spriteKind` (`SHEET`/`WHOLE_SPRITE`/`NONE`), `drawsFootprint`, `drawsHpBar`,
+   `hasDeathPose`, `frameLayout`, `renderScale`. `of(UnitType)` is the lookup.
+   Per-*kind* turret geometry (`visualCells`, sprite) and footprint color stay
+   resolved at sweep time (not type-flyweight) — see the class scope note. No
+   pass change; `renderUnits` still reads the inline ladder (consumers land J3–J6).
+   `RenderAppearanceTest` pins the derivation against `UnitType`. The
+   `UnitType`↔subclass invariant (`TURRET`/`DRONE_HUB_STRUCTURE`/`DRONE` ⟺ the
+   three subclasses) was verified before keying on type.
 3. **Dead units → `SHEET_QUAD`** via the frame-sheet emit (simplest sprite case:
    no flip, no bar). Warm-up for batched infantry.
 4. **MapTurret + DroneHub** → `GroundFootprint` + whole-`SPRITE` + (bar deferred
