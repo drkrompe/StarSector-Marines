@@ -100,9 +100,15 @@ detachment UI. S8 collapses both into one screen.
    summary + "Brief & Deploy" → full-screen `BriefingScreen` (now canonical);
    deleted dead `TacticalMapPanel` + `MissionPopupOverlay`. See
    [`complete/s8-slice1-revive-canonical.md`](complete/s8-slice1-revive-canonical.md).
-2. **Slice B — Two-source presentation + member-level commitment** (the top S2
-   follow-up): power-source ships as their own committable rows; then flip
-   `DevConfig.ALWAYS_GRANT_RECON_PING` off to feel the gating.
+2. **Slice B — action-dominant layout (two-source).** Split into two parts:
+   - ~~**B-1 — drop map + two-source reflow.**~~ ✅ — `BriefingLayout` full-canvas
+     two columns (map gone); `BriefingScreen` = left Mission column + right
+     "Your Fleet Brings / Employer Provides". See
+     [`complete/s8-slice2-action-layout.md`](complete/s8-slice2-action-layout.md).
+   - **B-2 — member-level commitment** (the top S2 follow-up): power-source ships
+     (Apogee / Hi-Res Sensors) as committable rows in *Your Fleet Brings*, so
+     `PowerCatalog` narrows to the committed subset; then flip
+     `DevConfig.ALWAYS_GRANT_RECON_PING` off to feel the gating.
 3. **Slice C — Command Deck (slotting UI)**: slottable powers under a constant
    command budget (S5 does the real curve); slotted subset filters
    `PowerCatalog.resolve`.
