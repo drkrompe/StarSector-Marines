@@ -4,17 +4,31 @@
 
 ## Where this is
 
-**First code shipped.** S1 (the power framework skeleton — recon ping) is built
-and compile-verified; see [`complete/s1-power-framework-skeleton.md`](complete/s1-power-framework-skeleton.md).
-The design skeleton (below) is load-bearing; most forks are decided, a few
-remain open. **In-game feel-out of S1 is still pending** — placeholder tuning
-hasn't been exercised in live play.
+**S1 shipped + S2 in progress (explicit-detachment arc).** S1 (power framework
+skeleton — recon ping) is built; see
+[`complete/s1-power-framework-skeleton.md`](complete/s1-power-framework-skeleton.md).
+**Fork #1 is resolved — explicit detachment** (overview § "The commitment
+layer"): the committed detachment is the single source of powers + fighter cover
++ shuttles, with the employer/contract as a co-source. S2 is decomposed into 3
+slices (see [`stories/s2-*.md`](stories/s2-fleet-available-powers-resolver.md)):
+
+- **Slice 1 — resolver core + powers-from-fleet.** ✅ shipped, compile-verified —
+  [`complete/s2-slice1-detachment-resolver-core.md`](complete/s2-slice1-detachment-resolver-core.md).
+- **Slice 2 — commitment narrowing** (powers/shuttles from the committed subset;
+  employer-power rolls; baseline ReconPing behind DevConfig). ⏳ next.
+- **Slice 3 — fighter-cover opt-in UI.** ⏳ after Slice 2.
+
+**In-game feel-out still pending** across the board.
 
 ### Commit chain
 
 - S1 — `battle/power/` (CommandPower, ReconPing, CommandPowerService,
   CommandPowerSystem) + `CommandPowerPanel` + BattleSimulation/BattleScreen
   wire-up. Invoke → target → resolve → cooldown loop end-to-end with one power.
+- S2 Slice 1 — `ops/detachment/` (Detachment, DetachmentResolver, PowerCatalog)
+  + `ops/MissionLaunch` shared accept path + `BattleSimulation.setCommandPowers`
+  + `Mission.employerPowerIds`. Powers now sourced from the fleet; Briefing/Comms
+  accept duplication collapsed. Default behavior preserved.
 
 ## Docs in this dir
 
@@ -50,9 +64,8 @@ hasn't been exercised in live play.
 
 ## Open forks (resolve as you reach them)
 
-1. **"Committed" = explicit detachment vs implicit fleet** — gates S2's design.
-   Recommendation in the doc: explicit detachment (legible risk). **Settle
-   before building S2.**
+1. ~~**"Committed" = explicit detachment vs implicit fleet**~~ — **resolved:
+   explicit detachment** (overview § "The commitment layer").
 2. **Survey Equipment double life** — pre-battle intel vs in-battle scan-ahead
    vs both. Sets the pattern for double-life mods.
 3. **UI surface** — power bar placement + zone-targeting flow in the full-canvas
@@ -62,11 +75,12 @@ hasn't been exercised in live play.
 
 ## Suggested starting point
 
-S1 (framework skeleton, recon-ping) is **shipped**. Next, either:
-1. **Feel-out S1 in live play** (`gradlew runStarsector`) and tune the
-   placeholders (2 CP / 8s cooldown / 8-cell × 15s reveal), or
-2. **Settle fork #1** (explicit detachment vs implicit fleet) and start **S2**
-   (the fleet → available-powers resolver).
+S2 Slice 1 (detachment resolver core) is **shipped**. Continue the arc:
+1. **Slice 2 — commitment narrowing**: `PowerCatalog.resolve` scans only the
+   committed subset; light up `MissionGenerator.rollEmployerPowers`; gate the
+   baseline ReconPing behind `DevConfig`.
+2. **Slice 3 — fighter-cover opt-in UI**: replace `PlayerFleetWings.fromPlayerFleet`
+   whole-fleet auto with committed-carriers → wings + opt-in toggles.
 
 S3/S6 want the parked **flyby → `AirBody` real-air-entity** promotion so
 orbital/air assets can be contested.

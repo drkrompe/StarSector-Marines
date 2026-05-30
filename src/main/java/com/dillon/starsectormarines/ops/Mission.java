@@ -2,6 +2,9 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * A contract offered to the player. {@link #normalizedX}/{@link #normalizedY}
  * are 0..1 within the tactical map area — the tactical panel converts them to
@@ -31,6 +34,13 @@ public final class Mission {
     public final FlybyRoster   clientFighterSupport;
     public final FlybyRoster   enemyFighterSupport;
     /**
+     * Command-power ids the employer/contract offers for this mission — the
+     * co-source alongside the player's committed fleet (see
+     * {@code ops.detachment.PowerCatalog}). Empty for missions whose employer
+     * offers no powers; populated by {@code MissionGenerator} (Slice 2).
+     */
+    public final List<String>  employerPowerIds;
+    /**
      * Total marine drops the mission needs delivered. With cycling, one
      * physical transport can cover multiple drops by flying repeat sorties —
      * so this is "marines that have to land," not "transports required."
@@ -42,7 +52,7 @@ public final class Mission {
     /**
      * Drops the employer covers. Distributed across a small number of
      * physical Aeroshuttles cycling to deliver these drops (see
-     * {@code BriefingScreen.EMPLOYER_PHYSICAL_CAP}) — every visible
+     * {@code DetachmentResolver.EMPLOYER_PHYSICAL_CAP}) — every visible
      * employer ship returns to base between sorties just like the player's.
      * The player's transports cycle to cover the remaining
      * {@code max(0, requiredDrops - employerShuttles)} drops.
@@ -88,7 +98,7 @@ public final class Mission {
         this(id, name, type, source, payout, risk, requirements, flavor,
                 normalizedX, normalizedY, clientFighterSupport, enemyFighterSupport,
                 requiredDrops, employerShuttles, targetPlanetName, targetIndustryId,
-                -1L, (byte) 0, (byte) 0, (byte) 100);
+                -1L, (byte) 0, (byte) 0, (byte) 100, Collections.emptyList());
     }
 
     public Mission(String id,
@@ -110,7 +120,8 @@ public final class Mission {
                    long contractId,
                    byte salvageBaseline,
                    byte salvageNegotiated,
-                   byte cashMultiplier) {
+                   byte cashMultiplier,
+                   List<String> employerPowerIds) {
         this.id           = id;
         this.name         = name;
         this.type         = type;
@@ -123,6 +134,9 @@ public final class Mission {
         this.normalizedY  = normalizedY;
         this.clientFighterSupport = clientFighterSupport != null ? clientFighterSupport : FlybyRoster.EMPTY;
         this.enemyFighterSupport  = enemyFighterSupport  != null ? enemyFighterSupport  : FlybyRoster.EMPTY;
+        this.employerPowerIds     = employerPowerIds != null
+                ? Collections.unmodifiableList(new java.util.ArrayList<>(employerPowerIds))
+                : Collections.emptyList();
         this.requiredDrops = Math.max(0, requiredDrops);
         this.employerShuttles = Math.max(0, Math.min(employerShuttles, this.requiredDrops));
         this.targetPlanetName = targetPlanetName;

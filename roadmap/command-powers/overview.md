@@ -250,25 +250,44 @@ Open within this thread: do unlocked LZs persist for the rest of the battle once
 earned, or can the enemy re-contest them (re-establishing AA, retaking a node)?
 Re-contest pairs with the [`../conquest/`](../conquest/) tug-of-war v2 direction.
 
+## The commitment layer — explicit detachment (decided)
+
+Fork #1 ("what 'committed' means") is **resolved: explicit detachment.** The
+player nominates a detachment of their fleet to the ground op, and that
+committed detachment is the **single source** of all three battle-support
+kinds, replacing the old "auto-scan the whole fleet" behavior:
+
+1. **Active command powers** — from committed ships / their hull mods.
+2. **Passive fighter cover** — from committed carriers' fitted bays.
+3. **Shuttle transport** — from committed transports.
+
+The **employer/contract is a co-source** alongside the player's own ships: a
+`Mission` already carries `clientFighterSupport` + `employerShuttles`, and now
+also `employerPowerIds` — so a patron can offer command powers / passives as
+part of the contract ([[feedback_patron_narrative_discoverable]]).
+
+This unifies what were three independent fleet-scans (fighter wings, shuttles,
+and — newly — powers) under one opt-in commitment, and it's what makes the
+attrition-not-deletion counterplay legible: the committed ships are exactly the
+ones at CR/crew risk. It's resolved by `ops.detachment.DetachmentResolver` into a
+`Detachment` (pre-resolved capability lists), the single path both pre-battle
+entry points route through (`ops.MissionLaunch`). See the
+[S2 story](stories/s2-fleet-available-powers-resolver.md) for the 3-slice build.
+
 ## Still open (for the brainstorm)
 
 Forks resolved above: loadout granularity, the active/passive line,
-counterplay, the cost model, and roster entry. What's still live:
+counterplay, the cost model, roster entry, and **what "committed" means**
+(explicit detachment, above). What's still live:
 
-1. **What "committed" means.** The loadout draws on *committed* fleet assets,
-   and counterplay costs those assets CR/crew. So is committing a ship to the
-   ground op a separate pre-mission step (you nominate an "orbital support
-   detachment" that's then unavailable / at-risk), or is it implicit in bringing
-   the fleet? The detachment framing makes the risk legible and creates a
-   fleet-management decision; the implicit framing is lower-friction.
-2. **Intel vs active-scan split for "becomes a power" mods.** Survey Equipment
+1. **Intel vs active-scan split for "becomes a power" mods.** Survey Equipment
    could be pre-battle-only (briefing intel), in-battle-only (scan-ahead
    targeting), or both as separate slottable powers. Sets the pattern for every
    double-life mod.
-3. **UI surface.** Where the power bar lives in the full-canvas battle takeover,
+2. **UI surface.** Where the power bar lives in the full-canvas battle takeover,
    and how zone-targeting (pick-a-cell, telegraph, confirm) works. Ties into
    [[gl_state_gotchas]] and the existing battle HUD.
-4. **CP regen vs cooldowns balance** — how much of the brake is the shared CP
+3. **CP regen vs cooldowns balance** — how much of the brake is the shared CP
    pool vs per-power cooldowns/charges. Tuning, but it shapes whether the feel
    is "spend a budget" or "manage timers."
 

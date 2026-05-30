@@ -49,8 +49,10 @@ public class MarineOpsContext {
     private Mission selectedMission;
     /** Captain chosen to lead the accepted mission. Sticky across screen swaps. */
     private String selectedCaptainId;
-    /** Current battle simulation — built by BriefingScreen.onAccept, read by BattleScreen. */
+    /** Current battle simulation — built by the accept path (MissionLaunch), read by BattleScreen. */
     private BattleSimulation battleSimulation;
+    /** Detachment committed to the current battle — resolved by {@link MissionLaunch}, kept for the battle UI / debug. */
+    private com.dillon.starsectormarines.ops.detachment.Detachment detachment;
     /** Frozen outcome from the most recent applied mission — read by ResultsScreen. */
     private MissionOutcome lastOutcome;
     private ScreenId currentScreen = ScreenId.MISSION_SELECT;
@@ -125,6 +127,14 @@ public class MarineOpsContext {
 
     public void setBattleSimulation(BattleSimulation simulation) {
         this.battleSimulation = simulation;
+    }
+
+    public com.dillon.starsectormarines.ops.detachment.Detachment getDetachment() {
+        return detachment;
+    }
+
+    public void setDetachment(com.dillon.starsectormarines.ops.detachment.Detachment detachment) {
+        this.detachment = detachment;
     }
 
     public MissionOutcome getLastOutcome() {

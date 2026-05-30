@@ -239,7 +239,8 @@ public final class MissionGenerator {
                 contractId,
                 state.contractSalvageBaseline[row],
                 state.contractSalvageNegotiated[row],
-                state.contractCashMultiplier[row]);
+                state.contractCashMultiplier[row],
+                java.util.Collections.emptyList()); // employer powers: rolled in Slice 2
     }
 
     private static String pickFirstNonDisruptedIndustry(MarketAPI market) {

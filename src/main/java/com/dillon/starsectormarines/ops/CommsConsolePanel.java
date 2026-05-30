@@ -1,11 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.DevConfig;
-import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
-import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.flyby.PlayerFleetWings;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineCaptain;
@@ -16,7 +12,6 @@ import com.dillon.starsectormarines.ui.LabelWidget;
 import com.dillon.starsectormarines.ui.WidgetRoot;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.graphics.SpriteAPI;
-import com.fs.starfarer.api.impl.campaign.ids.Industries;
 import org.apache.log4j.Logger;
 
 import java.awt.Color;
@@ -80,9 +75,6 @@ public class CommsConsolePanel extends OpsPanel {
     private static final float BTN_H          = 32f;
     private static final float BTN_GAP        = 12f;
     private static final float SQUAD_ROW_H    = 32f;
-
-    /** Employer Aeroshuttle cap — keeps the ramp from feeling like a deluge. */
-    private static final int   EMPLOYER_PHYSICAL_CAP = 3;
 
     /** Track these so the panel can re-render the map sprite + node frame each tick. */
     private float mapDrawX;
@@ -444,7 +436,8 @@ public class CommsConsolePanel extends OpsPanel {
                 m.id, m.name, m.type, m.source, m.payout, m.risk, m.requirements, m.flavor,
                 m.normalizedX, m.normalizedY, m.clientFighterSupport, m.enemyFighterSupport,
                 m.requiredDrops, m.employerShuttles, m.targetPlanetName, m.targetIndustryId,
-                m.contractId, m.salvageBaseline, (byte) next, (byte) cashMult);
+                m.contractId, m.salvageBaseline, (byte) next, (byte) cashMult,
+                m.employerPowerIds);
         ctx.setSelectedMission(replaced);
     }
 
@@ -460,32 +453,10 @@ public class CommsConsolePanel extends OpsPanel {
         LOG.info("MarineOps: accept (inline) mission id=" + m.id + " name='" + m.name
                 + "' type=" + m.type + " captain=" + captainStr);
 
-        List<ShuttleAssignment> manifest = buildShuttleManifest(m, effectivePlayerShuttles());
-        boolean enemyHasHeavyArmor = planetHasHeavyArmaments(m.targetPlanetName);
-
-        BattleSimulation sim;
-        long seed = System.currentTimeMillis();
-        switch (m.type) {
-            case SABOTAGE:
-                sim = BattleSetup.createSabotage(seed, manifest, enemyHasHeavyArmor, m.risk);
-                break;
-            case CONQUEST:
-                sim = BattleSetup.createConquest(seed, manifest, enemyHasHeavyArmor, m.risk);
-                break;
-            case ASSAULT:
-            case RAID:
-            case EXTRACTION:
-            default:
-                sim = BattleSetup.createPlaceholder(seed, manifest, enemyHasHeavyArmor, m.risk, m.type);
-        }
-        sim.setFlybyRoster(FlybyRoster.combine(
-                effectiveAlliedRoster(m), m.enemyFighterSupport));
+        BattleSimulation sim = MissionLaunch.buildSimulation(
+                ctx, m, effectivePlayerShuttles(), PlayerFleetWings.fromPlayerFleet());
         ctx.setBattleSimulation(sim);
         ctx.goTo(ScreenId.BATTLE);
-    }
-
-    private FlybyRoster effectiveAlliedRoster(Mission m) {
-        return FlybyRoster.combine(m.clientFighterSupport, PlayerFleetWings.fromPlayerFleet());
     }
 
     private List<ShuttleType> effectivePlayerShuttles() {
@@ -500,71 +471,9 @@ public class CommsConsolePanel extends OpsPanel {
         return m.employerShuttles >= 1 || !selectedShuttles.isEmpty();
     }
 
-    /**
-     * Mirror of the old BriefingScreen helper — keeps acceptance behavior
-     * identical: employer Aeroshuttles cycle first; player shuttles cycle next
-     * to cover the remaining drops in priority order.
-     */
-    private static List<ShuttleAssignment> buildShuttleManifest(
-            Mission m, List<ShuttleType> playerShuttles) {
-        List<ShuttleAssignment> out = new ArrayList<>();
-        int employerPhysical = employerPhysicalShipCount(m);
-        if (employerPhysical > 0) {
-            int employerDrops = m.employerShuttles;
-            int eBase = employerDrops / employerPhysical;
-            int eExtra = employerDrops % employerPhysical;
-            ShuttleType employerType = DevConfig.FORCE_EMPLOYER_VALKYRIE
-                    ? ShuttleType.VALKYRIE : ShuttleType.AEROSHUTTLE;
-            for (int i = 0; i < employerPhysical; i++) {
-                int cycles = eBase + (i < eExtra ? 1 : 0);
-                out.add(new ShuttleAssignment(employerType, cycles));
-            }
-        }
-        int playerDrops = Math.max(0, m.requiredDrops - m.employerShuttles);
-        if (playerDrops == 0) return out;
-        int transportsUsed = Math.min(playerDrops, playerShuttles.size());
-        if (transportsUsed == 0) {
-            for (int i = 0; i < playerDrops; i++) {
-                out.add(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1));
-            }
-            return out;
-        }
-        int baseCycles = playerDrops / transportsUsed;
-        int extraCycles = playerDrops % transportsUsed;
-        for (int i = 0; i < transportsUsed; i++) {
-            int cycles = baseCycles + (i < extraCycles ? 1 : 0);
-            out.add(new ShuttleAssignment(playerShuttles.get(i), cycles));
-        }
-        return out;
-    }
-
-    private static int employerPhysicalShipCount(Mission m) {
-        if (m.employerShuttles <= 0) return 0;
-        return Math.min(m.employerShuttles, EMPLOYER_PHYSICAL_CAP);
-    }
-
     private static String shuttleDisplayName(ShuttleType t) {
         String n = t.name();
         return n.charAt(0) + n.substring(1).toLowerCase();
-    }
-
-    /**
-     * True if the target planet hosts an industry that produces or demands
-     * heavy armaments — drives the defender's mech slot. Ported from
-     * BriefingScreen.
-     */
-    private static boolean planetHasHeavyArmaments(String targetPlanetName) {
-        if (targetPlanetName == null) return false;
-        for (com.fs.starfarer.api.campaign.econ.MarketAPI market
-                : Global.getSector().getEconomy().getMarketsCopy()) {
-            if (market == null || market.getPrimaryEntity() == null) continue;
-            if (!targetPlanetName.equals(market.getPrimaryEntity().getName())) continue;
-            return market.hasIndustry(Industries.HEAVYINDUSTRY)
-                || market.hasIndustry(Industries.ORBITALWORKS)
-                || market.hasIndustry(Industries.GROUNDDEFENSES)
-                || market.hasIndustry(Industries.HEAVYBATTERIES);
-        }
-        return false;
     }
 
     @Override

@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
@@ -8,6 +7,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.flyby.FighterWing;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.flyby.PlayerFleetWings;
+import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -80,8 +80,6 @@ public class BriefingScreen implements Screen {
     /** Wrap width for the flavor paragraph (info zone width minus pads). */
     private float flavorW;
 
-    /** Cap on the number of <em>physical</em> employer Aeroshuttles. The employer's contribution is still {@code m.employerShuttles} drops, but distributed across at most this many cycling ships — so the wave reads as recurring activity, not a one-shot deluge. */
-    private static final int   EMPLOYER_PHYSICAL_CAP = 3;
     private static final int   RETICLE_SEGS  = 24;
     private static final float RETICLE_INNER = 6f;
     private static final float RETICLE_OUTER = 18f;
@@ -250,7 +248,7 @@ public class BriefingScreen implements Screen {
                 labelX, y, LABEL_COLOR));
         y -= ROW_GAP;
 
-        List<ShuttleAssignment> manifest = buildShuttleManifest(m, effectivePlayerShuttles());
+        List<ShuttleAssignment> manifest = DetachmentResolver.buildShuttleManifest(m, effectivePlayerShuttles());
         java.util.Map<Integer, Integer> playerCyclesByIndex = computePlayerCyclesByIndex(m, manifest);
         for (int i = 0; i < cachedAvailable.size(); i++) {
             final int idx = i;
@@ -442,7 +440,7 @@ public class BriefingScreen implements Screen {
             int gap = m.requiredDrops - m.employerShuttles;
             return "Insufficient — need 1 transport (or employer cover for " + gap + " drops)";
         }
-        List<ShuttleAssignment> manifest = buildShuttleManifest(m, playerShuttles);
+        List<ShuttleAssignment> manifest = DetachmentResolver.buildShuttleManifest(m, playerShuttles);
         // Collapse identical (type, cycles) pairs so two Valkyries each doing 1
         // sortie read as "2× Valkyrie" and a single Valkyrie cycling twice reads
         // as "1× Valkyrie (2 sorties)". These are different gameplay realities
@@ -451,7 +449,7 @@ public class BriefingScreen implements Screen {
         java.util.LinkedHashMap<java.util.Map.Entry<ShuttleType, Integer>, Integer> playerGroups =
                 new java.util.LinkedHashMap<>();
         java.util.LinkedHashMap<Integer, Integer> employerGroups = new java.util.LinkedHashMap<>();
-        int employerPhysical = employerPhysicalShipCount(m);
+        int employerPhysical = DetachmentResolver.employerPhysicalShipCount(m);
         for (int idx = 0; idx < manifest.size(); idx++) {
             ShuttleAssignment a = manifest.get(idx);
             if (idx < employerPhysical) {
@@ -517,80 +515,11 @@ public class BriefingScreen implements Screen {
         }
         // The manifest's leading entries are physical employer Aeroshuttles
         // (possibly cycling); the rest are player entries in selected order.
-        int employerPhysical = employerPhysicalShipCount(m);
+        int employerPhysical = DetachmentResolver.employerPhysicalShipCount(m);
         for (int k = 0; k < selectedIndices.size()
                 && (employerPhysical + k) < manifest.size(); k++) {
             ShuttleAssignment a = manifest.get(employerPhysical + k);
             out.put(selectedIndices.get(k), a.cycles);
-        }
-        return out;
-    }
-
-    /**
-     * Number of physical employer Aeroshuttles for a mission. The employer
-     * still delivers {@code m.employerShuttles} drops total — those drops
-     * are now distributed across at most {@link #EMPLOYER_PHYSICAL_CAP}
-     * cycling ships, so the wave reads as recurring activity rather than a
-     * one-shot deluge of single-use Aeroshuttles. Returns 0 when the
-     * employer contributes nothing.
-     */
-    private static int employerPhysicalShipCount(Mission m) {
-        if (m.employerShuttles <= 0) return 0;
-        return Math.min(m.employerShuttles, EMPLOYER_PHYSICAL_CAP);
-    }
-
-    /**
-     * Builds the full {@link ShuttleAssignment} list — what ships fly and how
-     * many sorties each performs. Employer slots come first as cycling
-     * Aeroshuttles; the player's selected transports cover the remaining
-     * drops via cycling. Both sides have {@code totalCycles > 1} when there
-     * are more drops than physical ships — every visible shuttle returns to
-     * base and comes back.
-     *
-     * <p>Distribution: with {@code N} ships needing to cover {@code D} drops,
-     * the first {@code (D mod N)} ships get {@code ceil(D/N)} cycles and the
-     * rest get {@code floor(D/N)}. Player ships are priority-sorted, so a
-     * Valkyrie works harder than a Mudskipper when the math is uneven.
-     *
-     * <p>When the player has selected zero transports and the employer doesn't
-     * cover all the drops, the manifest only covers the employer's portion —
-     * battle runs short-handed. The briefing gate blocks before that's an
-     * issue, but the function itself doesn't assume gate enforcement.
-     */
-    private static java.util.List<ShuttleAssignment> buildShuttleManifest(
-            Mission m, java.util.List<ShuttleType> playerShuttles) {
-        java.util.List<ShuttleAssignment> out = new java.util.ArrayList<>();
-        int employerPhysical = employerPhysicalShipCount(m);
-        if (employerPhysical > 0) {
-            int employerDrops = m.employerShuttles;
-            int eBase = employerDrops / employerPhysical;
-            int eExtra = employerDrops % employerPhysical;
-            // Dev toggle — swap employer Aeroshuttles for Valkyries so the
-            // full A2G turret kit (including the grenade launcher) flies
-            // without needing a player Valkyrie. See DevConfig.
-            ShuttleType employerType = com.dillon.starsectormarines.DevConfig.FORCE_EMPLOYER_VALKYRIE
-                    ? ShuttleType.VALKYRIE : ShuttleType.AEROSHUTTLE;
-            for (int i = 0; i < employerPhysical; i++) {
-                int cycles = eBase + (i < eExtra ? 1 : 0);
-                out.add(new ShuttleAssignment(employerType, cycles));
-            }
-        }
-        int playerDrops = Math.max(0, m.requiredDrops - m.employerShuttles);
-        if (playerDrops == 0) return out;
-        int transportsUsed = Math.min(playerDrops, playerShuttles.size());
-        if (transportsUsed == 0) {
-            // Gated normally, but if somehow we get here pad with employer-style
-            // aeroshuttles so the battle still functions.
-            for (int i = 0; i < playerDrops; i++) {
-                out.add(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1));
-            }
-            return out;
-        }
-        int baseCycles = playerDrops / transportsUsed;
-        int extraCycles = playerDrops % transportsUsed;
-        for (int i = 0; i < transportsUsed; i++) {
-            int cycles = baseCycles + (i < extraCycles ? 1 : 0);
-            out.add(new ShuttleAssignment(playerShuttles.get(i), cycles));
         }
         return out;
     }
@@ -603,45 +532,13 @@ public class BriefingScreen implements Screen {
         LOG.info("MarineOps: accept mission id=" + m.id + " name='" + m.name
                 + "' type=" + m.type + " captain=" + captainStr);
 
-        // Resolve the shuttle manifest. Player's best transports get picked
-        // first up to the requirement; if employer is covering the gap, fewer
-        // player ships get drawn from. Either way the final list is exactly
-        // requiredShuttles long, and each entry is the ShuttleType that'll
-        // spawn in battle — so the player sees the same hulls in the brief and
-        // on the LZ.
-        // Use the selected subset, not the full available list — players who
-        // deselect a transport in the briefing shouldn't see it fly anyway.
-        List<ShuttleAssignment> manifest = buildShuttleManifest(m, effectivePlayerShuttles());
-
-        // Heavy-armaments availability on the target world drives whether
-        // the defender side fields a HEAVY_MECH. The commodity description ties
-        // mechs/tanks/hovercraft to that good — so a planet that produces it
-        // (Heavy Industry, Orbital Works) or stockpiles it for use (Ground
-        // Defenses, Heavy Batteries) is exactly where a mech walks the line.
-        boolean enemyHasHeavyArmor = planetHasHeavyArmaments(m.targetPlanetName);
-
-        // Mission-type-specific setup. Each type wires its own objectives and
-        // loadouts; falls back to ASSAULT for types not yet built out.
-        BattleSimulation sim;
-        long seed = System.currentTimeMillis();
-        switch (m.type) {
-            case SABOTAGE:
-                sim = BattleSetup.createSabotage(seed, manifest, enemyHasHeavyArmor, m.risk);
-                break;
-            case CONQUEST:
-                sim = BattleSetup.createConquest(seed, manifest, enemyHasHeavyArmor, m.risk);
-                break;
-            case ASSAULT:
-            case RAID:
-            case EXTRACTION:
-            default:
-                sim = BattleSetup.createPlaceholder(seed, manifest, enemyHasHeavyArmor, m.risk, m.type);
-        }
-        // Fold employer support + the player's own fitted bays + enemy support
-        // into a single roster the overlay drives spawns from. Re-queries the
-        // player fleet here (instead of trusting the briefing-display result)
-        // because the player can refit between viewing and accepting.
-        sim.setFlybyRoster(FlybyRoster.combine(effectiveAlliedRoster(m), m.enemyFighterSupport));
+        // Resolve the committed detachment (transports + marine fighter cover +
+        // command powers) and build the battle. Re-queries the player fleet here
+        // (instead of trusting the briefing-display result) because the player
+        // can refit between viewing and accepting; the deselected transports are
+        // already filtered out of effectivePlayerShuttles().
+        BattleSimulation sim = MissionLaunch.buildSimulation(
+                ctx, m, effectivePlayerShuttles(), PlayerFleetWings.fromPlayerFleet());
         ctx.setBattleSimulation(sim);
         ctx.goTo(ScreenId.BATTLE);
     }
@@ -677,37 +574,10 @@ public class BriefingScreen implements Screen {
                 m.id, m.name, m.type, m.source, m.payout, m.risk, m.requirements, m.flavor,
                 m.normalizedX, m.normalizedY, m.clientFighterSupport, m.enemyFighterSupport,
                 m.requiredDrops, m.employerShuttles, m.targetPlanetName, m.targetIndustryId,
-                m.contractId, m.salvageBaseline, (byte) next, (byte) cashMult);
+                m.contractId, m.salvageBaseline, (byte) next, (byte) cashMult,
+                m.employerPowerIds);
         ctx.setSelectedMission(replaced);
         rebuild();
-    }
-
-    /**
-     * True when the target planet's market hosts at least one industry that
-     * produces or demands heavy armaments. Producers: Heavy Industry, Orbital
-     * Works. Consumers: Ground Defenses, Heavy Batteries. The flag drives the
-     * defender's mech slot in {@link BattleSetup} — lore-correct because a
-     * planet without any of those industries has no organic source of heavy
-     * armaments and shouldn't be fielding mechs.
-     *
-     * <p>Returns false when the mission has no target planet name (story /
-     * non-industry ops) or no market is found by that name. Iterates the
-     * economy via the same lookup {@code MissionResolver.applyIndustryDisruption}
-     * uses, since {@link Mission#targetPlanetName} is the canonical key both
-     * sides agree on.
-     */
-    private static boolean planetHasHeavyArmaments(String targetPlanetName) {
-        if (targetPlanetName == null) return false;
-        for (com.fs.starfarer.api.campaign.econ.MarketAPI market
-                : Global.getSector().getEconomy().getMarketsCopy()) {
-            if (market == null || market.getPrimaryEntity() == null) continue;
-            if (!targetPlanetName.equals(market.getPrimaryEntity().getName())) continue;
-            return market.hasIndustry(com.fs.starfarer.api.impl.campaign.ids.Industries.HEAVYINDUSTRY)
-                || market.hasIndustry(com.fs.starfarer.api.impl.campaign.ids.Industries.ORBITALWORKS)
-                || market.hasIndustry(com.fs.starfarer.api.impl.campaign.ids.Industries.GROUNDDEFENSES)
-                || market.hasIndustry(com.fs.starfarer.api.impl.campaign.ids.Industries.HEAVYBATTERIES);
-        }
-        return false;
     }
 
     @Override

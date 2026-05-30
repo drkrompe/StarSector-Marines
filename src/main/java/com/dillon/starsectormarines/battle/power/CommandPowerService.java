@@ -77,13 +77,26 @@ public final class CommandPowerService {
     private final List<ActivePing> activePings = new ArrayList<>();
 
     public CommandPowerService() {
-        // S1: the single recon-ping power is always available. S2 replaces this
-        // with the fleet -> available-powers resolver.
-        register(new ReconPing());
+        // Roster starts empty; the battle setup injects the resolved powers via
+        // BattleSimulation#setCommandPowers -> setPowers (the fleet -> powers
+        // resolver, ops.detachment). An empty roster hides the power UI.
     }
 
     public void register(CommandPower power) {
         powers.put(power.id, power);
+    }
+
+    /**
+     * Replace the available-power roster wholesale — called once at battle setup
+     * (before the first tick) with the detachment-resolved powers. Clears any
+     * prior roster + cooldown state so a re-setup can't leave stale timers.
+     */
+    public void setPowers(List<CommandPower> resolved) {
+        powers.clear();
+        cooldowns.clear();
+        if (resolved != null) {
+            for (CommandPower power : resolved) register(power);
+        }
     }
 
     // ---- reads (UI + view layer) ----

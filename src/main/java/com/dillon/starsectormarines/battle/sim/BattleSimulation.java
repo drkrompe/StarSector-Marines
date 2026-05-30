@@ -153,7 +153,7 @@ public class BattleSimulation implements BattleControl {
     /** Per-faction strategic commander tier. Owns the slow-tick cadence; the {@link #setCommander}/{@link #getCommander} delegates below forward here, and the COMMANDER phase calls {@link CommanderService#tick}. */
     private final CommanderService commanders = new CommanderService();
 
-    /** Player command-power layer — the in-battle activation economy (command-point pool + per-power cooldowns), the UI-requested activation queue, and in-flight transient effects. State owner, ticked by {@link #commandPowerSystem} in the command tier. Available-power roster is hardcoded to {@code ReconPing} in S1 ({@code roadmap/command-powers/stories/s1-power-framework-skeleton.md}); the S2 fleet&rarr;powers resolver replaces that. {@link #getCommandPowerService} below exposes it to the UI + the view-layer fog projection. */
+    /** Player command-power layer — the in-battle activation economy (command-point pool + per-power cooldowns), the UI-requested activation queue, and in-flight transient effects. State owner, ticked by {@link #commandPowerSystem} in the command tier. The available-power roster is injected at battle setup via {@link #setCommandPowers} from the detachment resolver ({@code ops.detachment}); it starts empty. {@link #getCommandPowerService} below exposes it to the UI + the view-layer fog projection. */
     private final com.dillon.starsectormarines.battle.power.CommandPowerService commandPowers =
             new com.dillon.starsectormarines.battle.power.CommandPowerService();
     /** Stateless consumer that drains queued activations (commit cost + cooldown + resolve), regens command points, and ages cooldowns + transient pings each tick. */
@@ -360,6 +360,8 @@ public class BattleSimulation implements BattleControl {
     public VisionService getVision() { return vision; }
     /** Player command-power layer. The battle UI reads the pool / cooldowns and calls {@link com.dillon.starsectormarines.battle.power.CommandPowerService#requestActivation}; {@code BattleScreen.advance} projects its active recon pings into the fog as ephemeral vision sources. */
     public com.dillon.starsectormarines.battle.power.CommandPowerService getCommandPowerService() { return commandPowers; }
+    /** Inject the detachment-resolved command-power roster. Called once at battle setup ({@code ops.MissionLaunch}), mirroring {@link #setFlybyRoster}; an empty/{@code null} list leaves the power UI hidden. */
+    public void setCommandPowers(List<com.dillon.starsectormarines.battle.power.CommandPower> powers) { commandPowers.setPowers(powers); }
     /** Hands the sim the map's building registry. Called by BattleSetup after generation. Subsequent visibility passes will reveal/hide these buildings as contributor units move. */
     public void setBuildings(com.dillon.starsectormarines.battle.world.model.Buildings buildings) {
         vision.setBuildings(buildings);

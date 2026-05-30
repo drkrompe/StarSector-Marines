@@ -3,19 +3,31 @@
 > The diegetic-loadout core: your fleet is your spellbook. Maps real fleet
 > composition to the set of powers the player may slot.
 
-## ⚠ Settle first: what does "committed" mean?
+## ✅ Fork resolved: explicit detachment (unifying powers + fighters + shuttles)
 
-This story sits on the one **still-open** fork (overview § Still open #1):
+Fork #1 is settled — **explicit detachment** (overview § "The commitment layer").
+The player commits a detachment of their fleet; that detachment is the *single
+source* of all three battle-support kinds (active command powers, passive
+fighter cover, shuttle transport), replacing the prior three independent
+whole-fleet scans. The **employer/contract is a co-source** (`Mission` now
+carries `employerPowerIds` alongside `clientFighterSupport` / `employerShuttles`).
 
-- **Explicit detachment** — the player nominates an "orbital support
-  detachment" pre-mission; those ships source the powers, are unavailable for a
-  concurrent space engagement, and are the ones at CR/crew risk from
-  counterplay. *Legible risk, real fleet-management decision.* **Recommended.**
-- **Implicit fleet** — the whole fleet contributes; lower friction, but the
-  risk is invisible until it happens.
+### Build decomposition (3 slices, one session)
 
-Resolve this before building — it changes the resolver's *input* (a detachment
-vs the whole fleet) and the pre-battle UI.
+- **Slice 1 — Resolver core + powers-from-fleet (foundation).** New
+  `ops.detachment` package (`Detachment`, `DetachmentResolver`, `PowerCatalog`);
+  `BattleSimulation.setCommandPowers` + `CommandPowerService.setPowers` (empty
+  ctor); shared `ops.MissionLaunch.buildSimulation` both `onAccept` paths route
+  through (collapsing the Briefing/Comms duplication); `Mission.employerPowerIds`
+  (empty default); baseline `ReconPing` always seeded so the loop stays
+  demoable. Committed set = whole fleet → default behavior preserved; only the
+  *source of powers* + accept dedup change.
+- **Slice 2 — Commitment narrowing.** `PowerCatalog.resolve` scans only the
+  committed subset; `MissionGenerator.rollEmployerPowers` lights up the employer
+  co-source; baseline ReconPing gated behind `DevConfig`.
+- **Slice 3 — Fighter cover opt-in UI.** Replace `PlayerFleetWings.fromPlayerFleet`
+  whole-fleet auto with committed-carriers → wings; carrier-bay opt-in toggles in
+  both screens (unified "Committed Detachment" section).
 
 ## Goal
 
