@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.flyby.PlayerFleetWings;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineCaptain;
@@ -85,8 +86,10 @@ public class CommsConsolePanel extends OpsPanel {
 
     /** Per-mission UI state — reset on mission switch via {@link #lastExpandedMissionId}. */
     private final Set<Integer> deselectedTransports = new HashSet<>();
+    private final Set<Integer> deselectedCarriers = new HashSet<>();
     private String lastExpandedMissionId;
     private List<ShuttleType> cachedAvailable = Collections.emptyList();
+    private List<PlayerFleetWings.CarrierBay> cachedCarriers = Collections.emptyList();
 
     /** Dossier-stack scroll offset (in cards). Reset on client switch. */
     private int scrollOffset;
@@ -188,6 +191,7 @@ public class CommsConsolePanel extends OpsPanel {
                                 : !expandedId.equals(lastExpandedMissionId)) {
             lastExpandedMissionId = expandedId;
             deselectedTransports.clear();
+            deselectedCarriers.clear();
             // Default captain — first ACTIVE, if nothing's set. Mirrors the
             // pre-inline-expand BriefingScreen behavior so accept works
             // without forcing a captain click.
@@ -200,6 +204,7 @@ public class CommsConsolePanel extends OpsPanel {
             }
         }
         cachedAvailable = PlayerFleetShuttles.queryAvailable();
+        cachedCarriers = PlayerFleetWings.committableCarriers();
 
         // Reset scroll on client switch — re-entering a familiar client keeps
         // their stack position survives until the user picks another client.
@@ -330,6 +335,30 @@ public class CommsConsolePanel extends OpsPanel {
             y -= ROW_H + ROW_GAP;
         }
 
+        // Fighter cover — one opt-in toggle per committable carrier.
+        if (!cachedCarriers.isEmpty()) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, "Fighter cover:", subX, y, LABEL_COLOR));
+            y -= ROW_H;
+            for (int i = 0; i < cachedCarriers.size(); i++) {
+                final int idx = i;
+                PlayerFleetWings.CarrierBay carrier = cachedCarriers.get(i);
+                boolean committed = !deselectedCarriers.contains(idx);
+                String marker = committed ? "[x]" : "[ ]";
+                String rowLabel = marker + " " + carrier.shipName
+                        + " (" + carrier.bayCount() + (carrier.bayCount() == 1 ? " bay" : " bays") + ")"
+                        + (committed ? "" : " — held back");
+                Color rowColor = committed ? VALUE_COLOR : LABEL_COLOR;
+                ButtonWidget toggle = new ButtonWidget(subX, y - ROW_H + 6f, subW, ROW_H,
+                        () -> {
+                            if (deselectedCarriers.contains(idx)) deselectedCarriers.remove(idx);
+                            else deselectedCarriers.add(idx);
+                        });
+                widgets.add(toggle);
+                widgets.add(new LabelWidget(Fonts.ORBITRON_20, rowLabel, subX + 6f, y, rowColor));
+                y -= ROW_H + ROW_GAP;
+            }
+        }
+
         // Captain rows.
         MarineRosterScript scr = MarineRosterScript.getInstance();
         List<MarineCaptain> captains = scr != null
@@ -391,11 +420,14 @@ public class CommsConsolePanel extends OpsPanel {
         float sliderH = (m.salvageBaseline & 0xFF) > 0
                 ? (SalvageSliderWidget.DEFAULT_HEIGHT + SECTION_GAP) : 0f;
         float transportH = ROW_H + transportRows * (ROW_H + ROW_GAP); // label + rows
+        // Fighter-cover section: a "Fighter cover:" label + one row per carrier (only when present).
+        float carrierH = cachedCarriers.isEmpty()
+                ? 0f : ROW_H + cachedCarriers.size() * (ROW_H + ROW_GAP);
         float captainH = SECTION_GAP + SQUAD_ROW_H + captainRows * (SQUAD_ROW_H + ROW_GAP);
         float buttonsH = SECTION_GAP + BTN_H + PAD;
 
         return header + ExpandedCardWidget.SECTION_GAP
-                + sliderH + transportH + captainH + buttonsH;
+                + sliderH + transportH + carrierH + captainH + buttonsH;
     }
 
     private void onCardClicked(Mission mission) {
@@ -454,7 +486,7 @@ public class CommsConsolePanel extends OpsPanel {
                 + "' type=" + m.type + " captain=" + captainStr);
 
         BattleSimulation sim = MissionLaunch.buildSimulation(
-                ctx, m, effectivePlayerShuttles(), PlayerFleetWings.fromPlayerFleet());
+                ctx, m, effectivePlayerShuttles(), committedWings());
         ctx.setBattleSimulation(sim);
         ctx.goTo(ScreenId.BATTLE);
     }
@@ -465,6 +497,15 @@ public class CommsConsolePanel extends OpsPanel {
             if (!deselectedTransports.contains(i)) out.add(cachedAvailable.get(i));
         }
         return out;
+    }
+
+    /** Marine-side fighter cover from the committed carriers (player side only). */
+    private FlybyRoster committedWings() {
+        List<PlayerFleetWings.CarrierBay> committed = new ArrayList<>();
+        for (int i = 0; i < cachedCarriers.size(); i++) {
+            if (!deselectedCarriers.contains(i)) committed.add(cachedCarriers.get(i));
+        }
+        return PlayerFleetWings.rosterFrom(committed);
     }
 
     private static boolean isTransportSufficient(Mission m, List<ShuttleType> selectedShuttles) {

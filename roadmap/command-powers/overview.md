@@ -272,7 +272,7 @@ attrition-not-deletion counterplay legible: the committed ships are exactly the
 ones at CR/crew risk. It's resolved by `ops.detachment.DetachmentResolver` into a
 `Detachment` (pre-resolved capability lists), the single path both pre-battle
 entry points route through (`ops.MissionLaunch`). See the
-[S2 story](stories/s2-fleet-available-powers-resolver.md) for the 3-slice build.
+[S2 story](complete/s2-fleet-available-powers-resolver.md) for the 3-slice build.
 
 ## Still open (for the brainstorm)
 

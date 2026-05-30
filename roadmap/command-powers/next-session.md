@@ -4,24 +4,26 @@
 
 ## Where this is
 
-**S1 shipped + S2 in progress (explicit-detachment arc).** S1 (power framework
+**S1 + S2 shipped (explicit-detachment arc complete).** S1 (power framework
 skeleton — recon ping) is built; see
 [`complete/s1-power-framework-skeleton.md`](complete/s1-power-framework-skeleton.md).
 **Fork #1 is resolved — explicit detachment** (overview § "The commitment
 layer"): the committed detachment is the single source of powers + fighter cover
-+ shuttles, with the employer/contract as a co-source. S2 is decomposed into 3
-slices (see [`stories/s2-*.md`](stories/s2-fleet-available-powers-resolver.md)):
++ shuttles, with the employer/contract as a co-source. S2 shipped across 3 slices
+(see [`complete/s2-*.md`](complete/s2-fleet-available-powers-resolver.md)):
 
-- **Slice 1 — resolver core + powers-from-fleet.** ✅ shipped, compile-verified —
-  [`complete/s2-slice1-detachment-resolver-core.md`](complete/s2-slice1-detachment-resolver-core.md).
-- **Slice 2 — employer co-source + baseline gate.** ✅ shipped —
-  [`complete/s2-slice2-employer-cosource-baseline-gate.md`](complete/s2-slice2-employer-cosource-baseline-gate.md).
-  (Power *narrowing* moved to Slice 3 — it needs the commit UI to mean anything.)
-- **Slice 3 — unified Committed-Detachment UI + narrowing.** ⏳ next: carrier-bay
-  opt-in toggles + committed-ship set drives power/fighter narrowing off the
-  whole fleet.
+- **Slice 1 — resolver core + powers-from-fleet.** ✅ — `a338cc7`.
+- **Slice 2 — employer co-source + baseline gate.** ✅ — `3362e9b`.
+- **Slice 3 — fighter-cover opt-in UI.** ✅ — carrier opt-in toggles in both
+  pre-battle screens; `PlayerFleetWings` committed-carrier resolution.
 
-**In-game feel-out still pending** across the board.
+**In-game feel-out still pending** across the board — `gradlew runStarsector`,
+accept a mission via both entry points, confirm carriers/transports/powers track
+the committed detachment.
+
+**Top remaining follow-up:** power narrowing rides the whole fleet until a
+*member-level* commitment surface exists (a recon-source ship is neither
+transport nor carrier). See the Slice 3 doc § follow-ups.
 
 ### Commit chain
 
@@ -35,14 +37,18 @@ slices (see [`stories/s2-*.md`](stories/s2-fleet-available-powers-resolver.md)):
 - S2 Slice 2 — `DevConfig.ALWAYS_GRANT_RECON_PING` gate on the baseline ReconPing
   + `MissionGenerator.rollEmployerPowers` lighting up the contract co-source
   (`PowerCatalog` now reads `Mission.employerPowerIds`).
+- S2 Slice 3 — `PlayerFleetWings` committed-carrier resolution (`committableCarriers`
+  / `rosterFrom`) + carrier opt-in toggles in BriefingScreen + CommsConsolePanel;
+  `onAccept` passes the committed-carrier roster, not the whole-fleet scan.
 
 ## Docs in this dir
 
 - [`overview.md`](overview.md) — the concept + all decisions. Read first.
 - [`ship-hullmod-survey.md`](ship-hullmod-survey.md) — the mined vanilla flavor
   catalog that seeds the power families and the S2 mapping table.
-- [`complete/`](complete/) — shipped stories. **S1 lives here now.**
-- [`stories/`](stories/) — S2–S7. S2–S4 are implementation-ready; S5–S7 are
+- [`complete/`](complete/) — shipped stories. **S1 + S2 (umbrella + 3 slice
+  docs) live here now.**
+- [`stories/`](stories/) — S3–S7. S3–S4 are implementation-ready; S5–S7 are
   design-forward stubs.
 
 ## Decisions locked (this session)
@@ -81,12 +87,15 @@ slices (see [`stories/s2-*.md`](stories/s2-fleet-available-powers-resolver.md)):
 
 ## Suggested starting point
 
-S2 Slice 1 (detachment resolver core) is **shipped**. Continue the arc:
-1. **Slice 2 — commitment narrowing**: `PowerCatalog.resolve` scans only the
-   committed subset; light up `MissionGenerator.rollEmployerPowers`; gate the
-   baseline ReconPing behind `DevConfig`.
-2. **Slice 3 — fighter-cover opt-in UI**: replace `PlayerFleetWings.fromPlayerFleet`
-   whole-fleet auto with committed-carriers → wings + opt-in toggles.
+S2 (explicit-detachment arc) is **fully shipped**. Next, either:
+1. **Feel-out the arc in live play** (`gradlew runStarsector`) — accept via both
+   entry points, confirm carrier/transport opt-in + powers track the detachment.
+2. **Member-level commitment** (the top S2 follow-up): a support-detachment
+   category so a recon-source ship (Apogee / Hi-Res Sensors) can be committed,
+   making power narrowing meaningful. Flip `DevConfig.ALWAYS_GRANT_RECON_PING`
+   off to feel the gap.
+3. **S3 — Orbital Fire Support** (first real combat power): the most legible
+   "I did something" power, now that the resolver + detachment plumbing exists.
 
 S3/S6 want the parked **flyby → `AirBody` real-air-entity** promotion so
 orbital/air assets can be contested.

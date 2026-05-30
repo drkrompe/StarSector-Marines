@@ -107,6 +107,15 @@ public class BriefingScreen implements Screen {
      */
     private List<ShuttleType> cachedAvailable = java.util.Collections.emptyList();
 
+    /**
+     * Indices into {@link #cachedCarriers} the player has deselected for the
+     * current mission's fighter cover. Default empty = all carriers committed.
+     * Reset alongside {@link #deselectedTransports} when the mission changes.
+     */
+    private final java.util.Set<Integer> deselectedCarriers = new java.util.HashSet<>();
+    /** Snapshot of {@link PlayerFleetWings#committableCarriers()} taken per {@link #rebuild()}, so toggle indices stay stable across a layout. */
+    private List<PlayerFleetWings.CarrierBay> cachedCarriers = java.util.Collections.emptyList();
+
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
         this.position = position;
@@ -136,9 +145,11 @@ public class BriefingScreen implements Screen {
         if (m != null && !m.id.equals(lastSelectedMissionId)) {
             lastSelectedMissionId = m.id;
             deselectedTransports.clear();
+            deselectedCarriers.clear();
         }
-        // Snapshot the available transports once per build so toggle indices are stable.
+        // Snapshot the available transports + carriers once per build so toggle indices are stable.
         cachedAvailable = PlayerFleetShuttles.queryAvailable();
+        cachedCarriers = PlayerFleetWings.committableCarriers();
 
         // Map zone header — mission name (large)
         widgets.add(new LabelWidget(Fonts.ORBITRON_24_BOLD,
@@ -223,8 +234,8 @@ public class BriefingScreen implements Screen {
         y -= ROW_GAP;
 
         // Air support rows — what each side brings. Allied = employer support
-        // + the player's own fitted fighter bays (queried live so swapping
-        // fighters in the refit screen between visits is reflected here).
+        // + the player's committed carrier bays (opt-in toggles below, queried
+        // live so swapping fighters in the refit screen between visits shows up).
         FlybyRoster allied = effectiveAlliedRoster(m);
         widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("briefingAlliedAir"),
                 labelX, y, LABEL_COLOR));
@@ -232,6 +243,30 @@ public class BriefingScreen implements Screen {
                 summarizeWings(allied, Faction.MARINE),
                 valueX, y, VALUE_COLOR));
         y -= ROW_GAP;
+
+        // Carrier opt-in rows — one clickable toggle per committable carrier.
+        // Default committed; deselecting holds the carrier's bays out of the fight.
+        for (int i = 0; i < cachedCarriers.size(); i++) {
+            final int idx = i;
+            PlayerFleetWings.CarrierBay carrier = cachedCarriers.get(i);
+            boolean committed = !deselectedCarriers.contains(idx);
+            String marker = committed ? "[x]" : "[ ]";
+            String rowLabel = marker + " " + carrier.shipName
+                    + " (" + carrier.bayCount() + (carrier.bayCount() == 1 ? " bay" : " bays") + ")"
+                    + (committed ? "" : " — held back");
+            Color rowColor = committed ? VALUE_COLOR : LABEL_COLOR;
+            ButtonWidget toggle = new ButtonWidget(valueX, y - BTN_H + 6f,
+                    layout.infoZone.w - (valueX - layout.infoZone.x) - INNER_PAD,
+                    BTN_H,
+                    () -> {
+                        if (deselectedCarriers.contains(idx)) deselectedCarriers.remove(idx);
+                        else deselectedCarriers.add(idx);
+                        rebuild();
+                    });
+            widgets.add(toggle);
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, rowLabel, valueX + 6f, y, rowColor));
+            y -= ROW_GAP;
+        }
 
         widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("briefingEnemyAir"),
                 labelX, y, LABEL_COLOR));
@@ -375,12 +410,26 @@ public class BriefingScreen implements Screen {
     }
 
     /**
-     * Combined marine-side roster: mission employer's support plus whatever the
-     * player has fitted in their own carrier bays. Used by both the briefing
-     * display and {@link #onAccept} so the two never drift.
+     * Combined marine-side roster: mission employer's support plus the player's
+     * <em>committed</em> carriers (opt-in). Used by both the briefing display and
+     * {@link #onAccept} so the two never drift.
      */
     private FlybyRoster effectiveAlliedRoster(Mission m) {
-        return FlybyRoster.combine(m.clientFighterSupport, PlayerFleetWings.fromPlayerFleet());
+        return FlybyRoster.combine(m.clientFighterSupport, committedWings());
+    }
+
+    /** Currently-committed carriers — {@link #cachedCarriers} minus the deselected. */
+    private List<PlayerFleetWings.CarrierBay> committedCarriers() {
+        List<PlayerFleetWings.CarrierBay> out = new java.util.ArrayList<>();
+        for (int i = 0; i < cachedCarriers.size(); i++) {
+            if (!deselectedCarriers.contains(i)) out.add(cachedCarriers.get(i));
+        }
+        return out;
+    }
+
+    /** Marine-side fighter cover from the committed carriers (player side only). */
+    private FlybyRoster committedWings() {
+        return PlayerFleetWings.rosterFrom(committedCarriers());
     }
 
     /**
@@ -538,7 +587,7 @@ public class BriefingScreen implements Screen {
         // can refit between viewing and accepting; the deselected transports are
         // already filtered out of effectivePlayerShuttles().
         BattleSimulation sim = MissionLaunch.buildSimulation(
-                ctx, m, effectivePlayerShuttles(), PlayerFleetWings.fromPlayerFleet());
+                ctx, m, effectivePlayerShuttles(), committedWings());
         ctx.setBattleSimulation(sim);
         ctx.goTo(ScreenId.BATTLE);
     }

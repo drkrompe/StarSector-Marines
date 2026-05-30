@@ -1,7 +1,18 @@
-# S2 — Fleet → available-powers resolver
+# S2 — Fleet → available-powers resolver — ✅ SHIPPED (all 3 slices)
 
 > The diegetic-loadout core: your fleet is your spellbook. Maps real fleet
 > composition to the set of powers the player may slot.
+
+**Shipped across 3 slices** (compile-verified; in-game feel-out pending):
+- Slice 1 — [`s2-slice1-detachment-resolver-core.md`](s2-slice1-detachment-resolver-core.md) — `commit a338cc7`
+- Slice 2 — [`s2-slice2-employer-cosource-baseline-gate.md`](s2-slice2-employer-cosource-baseline-gate.md) — `commit 3362e9b`
+- Slice 3 — [`s2-slice3-fighter-cover-opt-in.md`](s2-slice3-fighter-cover-opt-in.md) — this commit
+
+**Remaining follow-up** (not blocking S2): power narrowing rides the whole fleet
+until a *member-level* commitment surface exists (a recon-source ship is neither
+transport nor carrier). See Slice 3 doc § follow-ups.
+
+The umbrella design below is preserved for reference.
 
 ## ✅ Fork resolved: explicit detachment (unifying powers + fighters + shuttles)
 
