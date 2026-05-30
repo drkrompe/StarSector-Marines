@@ -17,7 +17,9 @@ b8b7b9d  mapgen: Slice D — ternary keep wiring + multi-chamber stamper emissio
 09d2590  mapgen: deterministic leaf-adjacency neighbor order
 53fe951  mapgen: defense-post partition guard checks real footprint, not bbox
 65c5686  mapgen: Slice 2a — GenStage pipeline (extract generate() into stages)
-8666b8f  mapgen: Slice 2b — fold stampers into GenStage classes  ← latest mapgen work
+8666b8f  mapgen: Slice 2b — fold stampers into GenStage classes
+bf0cf22  mapgen: hoist FortressWallStamper ctx reads to top of run()
+7016b8e  mapgen: Slice 3 — GenRecipe; conquest/legacy recipes selected by axis  ← latest mapgen work
 ```
 
 Full per-slice mapping (what landed vs. planned, Slice A critique
@@ -68,17 +70,30 @@ incremental rollout). Design doc:
   suite green. `stampNonConquest` / `stampPost` / `blockedFootprint` stay static
   (called outside the pipeline). See [`complete/gen-stages.md`](complete/gen-stages.md).
 
-1. **Slice 3 (next, to author)** — `GenRecipe`; `ConquestCityRecipe` /
-   `LegacyUrbanRecipe`; `BattleSetup` selects by mission. Every stage now
-   implements `GenStage`, so a recipe is just an ordered `List<GenStage>`. The
-   conquest/legacy `ctx.has(AXIS)` / `BIOME_MAP` self-gates inside the biome
-   stages + stampers collapse into recipe membership.
+- **Slice 3 — `GenRecipe` + conquest/legacy recipes: ✅ shipped (`7016b8e`).**
+  `GenRecipe` is a named, ordered `List<GenStage>`; `BspCityGenerator` builds a
+  `ConquestCity` recipe (full list) + a `LegacyUrban` recipe (full minus the six
+  conquest-only stages) and `generate(…, axis)` selects by axis. The
+  conquest/legacy fork is now recipe membership. Byte-identical output (all six
+  dropped stages verified RNG/mutation-inert in legacy mode); full suite green.
+  See [`complete/gen-recipe.md`](complete/gen-recipe.md).
 
-Station-tier fills (extension, post-pipeline) are parked in
-[`stories/`](stories/): **[`corridors-first-class`](stories/corridors-first-class.md)**
-(the real blocker — corridors as first-class connective structure) and
-**[`station-interior-fills`](stories/station-interior-fills.md)** (rides
-on corridors + the recipe machinery).
+**The composable-pipeline core (context + stages + recipes) is complete.**
+Adding a map type is now additive — author a recipe + its domain stages; the
+generic stages (`FillDispatchStage`, `TacticalLinkStage`, `FinalizeStage`) are
+reused verbatim. Candidate next tracks (priority order):
+
+1. **Strip the now-redundant conquest-only self-gates** (optional cleanup) —
+   the six conquest-only stages keep belt-and-suspenders `BIOME_MAP`/`AXIS`
+   guards that recipe membership now makes dead. Low-risk follow-up; leave them
+   if a future recipe might list a stage without binding the overlay.
+2. **Slice 1 filler-level critique nits** (see section below) — fold in when a
+   filler-rework pass next touches that code.
+3. **Station-tier track** — [`stories/corridors-first-class.md`](stories/corridors-first-class.md)
+   (the real blocker — corridors as first-class connective structure) then
+   [`stories/station-interior-fills.md`](stories/station-interior-fills.md)
+   (rides on corridors + the recipe machinery); both plug in as new recipes +
+   domain stages on the now-complete pipeline.
 
 ### Slice 1 critique follow-ups (still open — carry into Slice 3 / filler rework)
 

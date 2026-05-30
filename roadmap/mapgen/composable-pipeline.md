@@ -166,7 +166,7 @@ plugs in as station stages here.
 | --- | --- | --- |
 | **1** | ✅ [`complete/gen-context.md`](complete/gen-context.md) (`5e5ae91`) | `GenContext` + `GenKey` + `BspKeys`; collapse the **fill SPI** (`BlockFiller` 6-arg, `CompoundFiller` 9-arg) onto `ctx`. `generate()` stays imperative. Byte-identical output. Stampers + `partition`/`carve` deliberately deferred (see the story's scope-refinement note). |
 | **2** | _(to author)_ | `GenStage` interface; extract each numbered step — **including the stampers** — into a stage object; `generate()` becomes "build ctx, run an ordered `List<GenStage>`." Conditionals become stage-presence. Stampers' `stamp(ctx)` + their tests convert here. |
-| **3** | _(to author)_ | `GenRecipe`; `ConquestCityRecipe` / `LegacyUrbanRecipe`; `BattleSetup` selects by mission. Adding a map type becomes additive. |
+| **3** | ✅ [`complete/gen-recipe.md`](complete/gen-recipe.md) (`7016b8e`) | `GenRecipe` + `ConquestCity` / `LegacyUrban` recipes; `generate(…, axis)` selects by axis (and `BattleSetup` picks the axis per mission, so selection is mission-driven transitively). Conquest/legacy fork is now recipe membership; adding a map type is additive. Byte-identical output. |
 | **4+** | [`stories/station-interior-fills.md`](stories/station-interior-fills.md), [`stories/corridors-first-class.md`](stories/corridors-first-class.md) | Station / ship recipes + their domain stages. Out of scope here; this track is the enabler. |
 
 > **Note on the `GenKey` holder name.** The design sketch above calls it
