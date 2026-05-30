@@ -142,6 +142,37 @@ sugar — entities auto-matched to a component signature — is reproducible as 
 lightweight cached *view* over the registry (filter once, invalidate on
 add/remove) without importing a World lifecycle the sim isn't built around.
 
+### vs. Artemis — what's bridged, what's deferred (and why)
+
+The hand-rolled shape sits *right up against* the artemis-odb API surface
+(`[[user_artemis_ecs_framing]]`). Reading the map by Artemis concept:
+
+| Artemis | Here | Status |
+|---------|------|--------|
+| Entity (`int` id) | monotonic `entityId` + dense `denseIdx`, swap-and-pop, no gen bits | **bridged** |
+| Component store / `ComponentMapper<T>` | `UnitRegistry` SoA columns (`hp[]`, `cellX[]`, timers) behind hand-written typed accessors | **bridged, not abstracted** — no generic mapper; per-column accessors |
+| Flyweight/type-shared appearance | `RenderAppearance` keyed by `UnitType` (Story J) | ours; Artemis has no first-class flyweight — it'd be a tag + side table |
+| Aspect (all/one/exclude signature) | capability tags (`drawsHpBar`, `spriteKind`, …) | **the gap** — the tags *are* a signature, but matched by an **eager per-frame sweep**, not a maintained subscription |
+| `World` / injection / `process()` | explicit service wiring | **deliberately absent** — reflection-driven; the sandbox forbids `java.lang.reflect` (the hard blocker above) |
+
+The one abstraction that would complete the Artemis silhouette is the
+**maintained aspect-view** (filter once, invalidate on entity churn) replacing the
+eager sweep. Two reasons it's deferred, not forgotten:
+
+1. **It's a sim decision, not a render one.** Render is a per-frame *pull* — it
+   re-derives facing/fade/recoil/interpolated position every frame regardless, so
+   a maintained subscription buys render almost nothing. The payoff is on the sim
+   side, for expensive filters that stay stable across ticks. Formalizing it *for
+   render* would be premature (`[[feedback_ship_then_optimize]]`).
+2. **It lands naturally at `UnitRegistry` Phase 2.** When the sim's hot loops flip
+   to iterate the registry (the registry's own documented next phase), the cached
+   view is the right tool to introduce *there*.
+
+So Story J intentionally takes the component + tag + system *shape* (flyweight
+appearance, capability tags, stateless per-stratum sweep service) **without**
+reaching for the aspect-view — the shape is the reusable win; the subscription
+machinery is sim-tier work gated behind Phase 2.
+
 ## Cross-refs
 
 - `ops/BattleScreen.java` — the god class being decomposed.
