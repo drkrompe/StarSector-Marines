@@ -154,6 +154,12 @@ Game-side emit helpers the sweeps call (and other systems reuse):
    three subclasses) was verified before keying on type.
 3. **Dead units → `SHEET_QUAD`** via the frame-sheet emit (simplest sprite case:
    no flip, no bar). Warm-up for batched infantry.
+   ⚠️ **`hasDeathPose` does NOT subsume the corpse check.** `deathPoseIdx` is set
+   to `rng.nextInt(4)` for *every* dying unit (`DamageResolver`), including
+   null-corpse types (civilians have no dead sheet). The inline dead sweep ANDs
+   two gates: a non-null dead-sheet cache (⟺ the flyweight's `hasDeathPose`) **and**
+   the instance `deathPoseIdx >= 0`. The J3 sweep must keep BOTH — skip on
+   `!app.hasDeathPose` *and* on `deathPoseIdx < 0`.
 4. **MapTurret + DroneHub** → `GroundFootprint` + whole-`SPRITE` + (bar deferred
    to slice 6). Absorbs `drawTurretLayer` + `renderDroneHubs`; hoists the hub
    lazy-load.
