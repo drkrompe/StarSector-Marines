@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.ops.detachment;
 
-import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
@@ -101,13 +100,12 @@ public final class DetachmentResolver {
             int employerDrops = m.employerShuttles;
             int eBase = employerDrops / employerPhysical;
             int eExtra = employerDrops % employerPhysical;
-            // Dev toggle — swap employer Aeroshuttles for Valkyries so the full
-            // A2G turret kit flies without needing a player Valkyrie. See DevConfig.
-            ShuttleType employerType = DevConfig.FORCE_EMPLOYER_VALKYRIE
-                    ? ShuttleType.VALKYRIE : ShuttleType.AEROSHUTTLE;
+            // Employer flies unarmed Aeroshuttles (the "token force" flavor — the
+            // player supplies heavy lift). To test armed Valkyries, seed the
+            // player fleet via DevConfig.DEBUG_SEED_PLAYER_VALKYRIES instead.
             for (int i = 0; i < employerPhysical; i++) {
                 int cycles = eBase + (i < eExtra ? 1 : 0);
-                out.add(new ShuttleAssignment(employerType, cycles));
+                out.add(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, cycles));
             }
         }
         int playerDrops = Math.max(0, m.requiredDrops - m.employerShuttles);

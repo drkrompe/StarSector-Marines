@@ -72,6 +72,12 @@ public final class PlayerFleetShuttles {
                     + " → " + (t != null ? t.name() : "(not a transport)"));
             if (t != null) out.add(t);
         }
+        // Dev seed — pretend the player fields N Valkyries so the commitment UI
+        // + gate + manifest all exercise the real path without a curated fleet.
+        // See DevConfig.DEBUG_SEED_PLAYER_VALKYRIES.
+        for (int i = 0; i < com.dillon.starsectormarines.DevConfig.DEBUG_SEED_PLAYER_VALKYRIES; i++) {
+            out.add(ShuttleType.VALKYRIE);
+        }
         out.sort((a, b) -> Integer.compare(priorityIndex(a), priorityIndex(b)));
         return out;
     }

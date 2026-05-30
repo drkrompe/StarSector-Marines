@@ -11,18 +11,22 @@ package com.dillon.starsectormarines;
 public final class DevConfig {
 
     /**
-     * When {@code true}: bypass mission transport gating and let the employer
-     * shoulder the full {@code requiredDrops} via cycling Aeroshuttles. Lets
-     * us playtest any mission without curating a player fleet — every drop
-     * arrives via employer transports, all of them cycling, so wave behavior
-     * is exercised end-to-end without owning a single Valkyrie.
+     * When {@code > 0}: seed the player's available-transport list
+     * ({@code PlayerFleetShuttles.queryAvailable}) with this many Valkyries,
+     * as if the player fielded them. Unlike the old transport-gate bypass,
+     * this feeds the <em>real</em> resolver path: the seeded ships show up as
+     * committable rows in the pre-battle UI, the transport-sufficiency gate
+     * passes because the player genuinely has lift, and the manifest is built
+     * from the committed subset via the normal cycling math. Lets us exercise
+     * armed-Valkyrie / A2G behavior and the commitment UI without curating a
+     * real fleet — and crucially without disabling the UI it's meant to test.
      *
-     * <p>Production behavior: employer is capped by
-     * {@code MissionGenerator.employerCoverageCap} (3/4/5 by risk), forcing
-     * the player to supply transports for the bulk of any non-trivial
-     * mission.
+     * <p>{@code 0} disables the seed and only the player's actual fleet hulls
+     * field transports (production behavior). The seeded type is Valkyrie
+     * (full A2G turret kit); edit {@code PlayerFleetShuttles} if another hull
+     * is wanted.
      */
-    public static final boolean UNLIMITED_TRANSPORT = true;
+    public static final int DEBUG_SEED_PLAYER_VALKYRIES = 8;
 
     /**
      * When {@code > 0}: overrides {@link com.dillon.starsectormarines.ops.Mission#requiredDrops}
@@ -36,20 +40,6 @@ public final class DevConfig {
      * through a CONQUEST-HIGH 40-drop wave to test one thing.
      */
     public static final int DROP_COUNT_OVERRIDE = 40;
-
-    /**
-     * When {@code true}: every employer-supplied transport flies as a Valkyrie
-     * instead of an Aeroshuttle. Pairs naturally with {@link #UNLIMITED_TRANSPORT}
-     * — flipping both on guarantees a battlefield full of armed Valkyries with
-     * the full A2G turret kit (Arbalests + Grenade Launcher), so any new
-     * shuttle-mount behavior gets exercised without needing to field a player
-     * Valkyrie yourself.
-     *
-     * <p>Production behavior: employer transports default to Aeroshuttles
-     * (unarmed nimble drop craft), matching the "token force" flavor — the
-     * player supplies the heavy lift.
-     */
-    public static final boolean FORCE_EMPLOYER_VALKYRIE = true;
 
     /**
      * FBO pixel resolution per nav-grid cell for the decal accumulator.
