@@ -106,6 +106,30 @@ Deliberately **not** a big-bang. Each slice is independently shippable.
 - **Final — Collapse `render()`** to the systems-loop + renderer-flush + scissor
   bracket. Delete the per-pass methods as their systems land.
 
+## Future: camera view-projection + camera-Z
+
+> Beyond this reorg's scope (the decomposition above is purely structural). A
+> forward direction, captured so the air/altitude work has something to point at.
+
+Today's `BattleCamera` is a 2D fit-to-viewport projection: `MIN_ZOOM = 1.0`
+means the whole map already fits at rest, and you only zoom *in* from there.
+Two pressures want more:
+
+- **Larger maps.** A planned **512+** cell dimension makes "whole map fits at
+  zoom 1.0" pixel-starved; you want to pull the camera back/up past full-map and
+  navigate a slice.
+- **Airborne altitude.** The `air/` category (fighters, overhead ships) wants
+  altitude to be a real coordinate, not a render-small fake. A camera with a
+  **Z** gives both the camera and the craft a shared height axis.
+
+Direction: replace the fitted-ortho zoom with a **proper view-projection** and a
+**camera-Z** (height above the battlefield) driving zoom/altitude transitions.
+Orthographic-with-Z vs. perspective is open. This is a `render2d` engine change
+(the camera mechanism already lives there post engine/game split); the concrete
+passes and `RenderSystem`s shouldn't care, since they consume the camera
+projection abstractly. Cross-ref: [`../air/ships.md`](../air/ships.md) §
+"Scale & altitude", [`../air/hull-extraction.md`](../air/hull-extraction.md).
+
 ## Considered alternatives
 
 ### A proper ECS dependency (artemis-odb) — rejected
@@ -179,5 +203,7 @@ machinery is sim-tier work gated behind Phase 2.
 - `render2d/` — the primitive batch/accumulator layer (stays put).
 - [`battle-reorg/`](../battle-reorg/) — the sim-side sibling; same
   services/systems north star.
+- [`air/`](../air/overview.md) — depends on the camera-Z direction above for
+  airborne-craft altitude and true zoom-out.
 - Memory: "Battle services + systems", "Default to ECS shape", "Script
   sandbox", "GL state gotchas", "render2d batching".

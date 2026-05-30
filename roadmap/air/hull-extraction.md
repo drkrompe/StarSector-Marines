@@ -101,22 +101,38 @@ The kinematic seam already exists: `battle/air/AirBody` (composed state +
   frictionless; our atmosphere isn't. This is the primary "feel" dial that
   separates our craft from the source model.
 
-## Scale & atmosphere leeway
+## Scale — three decoupled factors
 
-Keep the **vanilla ratios** as the backbone — the contrast (interceptor turn
-150–225 vs bomber 30–90; capital sluggishness vs frigate agility) *is* the
-gameplay. Apply divergence uniformly on top:
+A hull's vanilla `su` are **arena units, not meters** (sized so a fleet reads at
+fleet-camera zoom). Don't import `su` as physical size. Instead, three scales are
+kept **independent**:
 
-- **Global `SCALE` (su → cells).** Vanilla numbers are tuned for a zoomed-out
-  arena; at ground scale you want lower absolute cells/sec while preserving
-  inter-hull ratios. One factor on speed + both accels (turn rates are angular,
-  unscaled). The scale problem is mild for fighters and severe for ships
-  ([`ships.md`](ships.md)).
+1. **Silhouette / shape** ← the vanilla `bounds` polygon, *normalized*. Faithful
+   proportions; no scale baked in.
+2. **Absolute footprint** ← a real-world size class per hull → meters → cells, at
+   the anchor **1 cell = 1 m**. A fighter ≈ a few cars (~15 cells), a frigate ≈
+   an office building (~60–80 cells). This is **not** derived from `su`. The
+   normalized bounds polygon is re-stretched to the class length. Full
+   calibration table + the on-map class cutoff live in [`ships.md`](ships.md).
+3. **Kinematic feel** ← `getEngineSpec()` × a kinematic `SCALE`, entirely
+   separate from footprint. Vanilla numbers are tuned for a zoomed-out arena, so
+   at ground scale you want lower absolute cells/sec while **preserving inter-hull
+   ratios** — the contrast (interceptor turn 150–225 vs bomber 30–90; capital
+   sluggishness vs frigate agility) *is* the gameplay. One factor on speed + both
+   accels; turn rates are angular and unscaled.
+
+## Atmosphere leeway
+
+Layered on top of the kinematic profile, uniformly:
+
 - **Linear drag / lateral damping.** Atmosphere bleeds momentum — the cheapest,
   highest-leverage atmosphere knob.
 - **Turn-rate nudges for readability** at a close ground camera. Flavor only;
   keep small.
 - **Banking visual** derived from `angVelDegPerSec` — cosmetic, zero sim cost.
+- **Altitude** is a real camera-shared **Z**, not a render-small trick — see
+  [`ships.md`](ships.md) § "Scale & altitude" and the render layer's planned
+  camera-Z upgrade.
 
 ## Open questions (shared)
 

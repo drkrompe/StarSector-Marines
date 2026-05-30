@@ -52,24 +52,48 @@ space as `bounds`. Optional, but it opens "aim between the turrets" / "hit a
 specific mount" if ship targeting ever wants sub-hull precision. Defer until a
 gameplay reason appears.
 
-## Scale & altitude — the hard part
+## Scale & altitude — resolved direction
 
-The scale problem the fighters track waves at **bites hard** here. A capital is
-~400–600 su long; a marine-scale cell is tiny by comparison. Two framings, and
-the targeting model flows from the choice:
+The earlier "on-map giant vs. high-altitude small" framing dissolved once we
+stopped treating Starsector `su` as physical size. Vanilla `su` are *arena*
+units (sized so a fleet reads at fleet-camera zoom), not meters. **Anchor:
+1 cell = 1 m.** Re-scaled to plausible real-world footprints, most of what shows
+up over a ground battle simply *fits*:
 
-- **On-map giant** — the ship is a literal huge silhouette over the battlefield.
-  Faithful poly collision, dramatic, but dominates the map and strains the
-  ground camera.
-- **High-altitude small** — rendered small/distant at altitude; collision poly
-  scaled down to match. Reads as "up there," and raises the real question of
-  **whether ground weapons can even reach it** (range/ceiling gating becomes a
-  gameplay lever, not a bug).
+| class | real-world anchor | footprint | on-map? |
+| --- | --- | --- | --- |
+| fighter | a few cars (~15 m) | ~15 cells | yes |
+| frigate | office building (~60–80 m) | ~40–80 cells | yes |
+| destroyer / cruiser | larger | ~100–200 cells | borderline; map-size dependent |
+| capital | — | too large | **no — orbital / off-map fire support** |
 
-This is the same atmospheric-altitude flavor lever from
-[`hull-extraction.md`](hull-extraction.md), turned up. Likely a per-craft or
-per-mission altitude band rather than one global answer. **Open — needs a
-call before ship collision is built.**
+Two consequences:
+
+- **The silhouette comes from vanilla `bounds`; the absolute size comes from a
+  real-world class anchor — not `su`.** Three scales are decoupled (see
+  [`hull-extraction.md`](hull-extraction.md) § "Scale"): polygon *shape* (vanilla
+  bounds, normalized), *footprint* (class anchor × 1 m/cell), and *kinematic
+  feel* (engine stats × kinematic `SCALE`). The `bounds` polygon is normalized
+  and re-stretched to the class length.
+- **Size self-selects what's even on the battlefield.** A capital doesn't strafe
+  infantry; realistically it stands off and bombards from orbit. So capitals are
+  off-map fire support, never rendered as an on-map polygon — the fiction
+  removes the hardest case rather than us solving "draw a 600-cell ship."
+
+Larger maps push the cutoff *up*: at a planned **512+** cell dimension a frigate
+(~60–80 cells) is a comfortable fraction and even a cruiser fits, so more classes
+become plausibly on-map.
+
+**Altitude is a real Z, not a fake shrink.** Rather than rendering distant ships
+artificially small, airborne craft live at a camera-shared **Z height**; the
+current fit-to-viewport camera (`MIN_ZOOM = 1.0` = whole map fits, zoom *in*
+only) already provides the "squint and believe" view at its default rest state,
+and zoom-in is the hull-detail / hit-FX view. True zoom-out beyond full-map and a
+proper altitude axis arrive with the render layer's planned **camera view-proj +
+camera-Z** upgrade — see `roadmap/battle-render/overview.md` § "Future: camera
+view-projection + camera-Z". Whether ground weapons have a ceiling/range gate
+against airborne ships then becomes a deliberate difficulty lever rather than a
+scale hack.
 
 ## Modules deferred
 
@@ -87,10 +111,14 @@ cross-linked so the eventual integration story doesn't get designed twice.
 
 ## Open questions
 
-- On-map giant vs high-altitude small (above) — gates the whole collision build.
+- The size-class → meters table above is a first calibration pass — tune the
+  per-class anchors against the real cell budget once a target map size is fixed.
 - Do ground weapons have a ceiling / range gate against airborne ships, and is
-  that the intended difficulty lever?
+  that the intended difficulty lever? (Now a camera-Z / altitude question — see
+  the render-layer dependency above.)
 - Does a ship take cumulative hull damage and get driven off / shot down, or is
   it invulnerable scenery you can only suppress? (Sim commitment scales with the
   answer.)
-- Decomposition (stories) — deferred until the scale/altitude call is made.
+- Decomposition (stories) — the on-map collision build can proceed for the
+  fighter/frigate/destroyer classes; capital off-map fire support is a separate,
+  later concern.
