@@ -5,13 +5,12 @@ import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.vision.VisionService;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
-import java.awt.Color;
-
 /**
  * Emits the {@link RenderLayer#DRONES} layer — recon/attack drones that hover at
  * roof altitude (painted above ROOFS so a drone over a building overlays the roof
  * rather than being occluded by it). Per live/crashing drone: one rotated
- * {@code SPRITE} hull, then — while alive — a two-rect {@code SOLID_RECT} HP bar.
+ * {@code SPRITE} hull, then — while alive — an HP bar via the shared
+ * {@link HpBarDecor} (placement uses the layer's own {@code HP_BAR_GAP}).
  *
  * <p>Faithful port of the former inline {@code BattleRenderer.renderDrones}: same
  * crash/visibility gating and fade-alpha (VIS_FADING fade + crash fade-out), same
@@ -74,17 +73,9 @@ public final class DroneRenderSystem implements RenderSystem {
 
             if (alive) {
                 float barY = cy + pxH / 2f + BattleRenderer.HP_BAR_GAP;
-                float barX = cx - barW / 2f;
-                addBar(out, barX, barY, barW, BattleRenderer.HP_BG, drawAlpha);
-                float frac = Math.max(0f, Math.min(1f, d.getHp() / d.getMaxHp()));
-                addBar(out, barX, barY, barW * frac, BattleRenderer.HP_FG, drawAlpha);
+                HpBarDecor.emit(out, RenderLayer.DRONES, cx, barY, barW,
+                        d.getHp() / d.getMaxHp(), drawAlpha);
             }
         }
-    }
-
-    private static void addBar(DrawList out, float x, float y, float w, Color color, float alpha) {
-        if (w <= 0f) return;
-        out.addSolidRect(RenderLayer.DRONES, x, y, x + w, y + BattleRenderer.HP_BAR_H,
-                color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f, alpha);
     }
 }

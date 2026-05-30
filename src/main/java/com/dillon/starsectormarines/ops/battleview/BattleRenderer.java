@@ -70,10 +70,6 @@ public class BattleRenderer {
     private static final Color MARINE_COLOR   = new Color(0x5A, 0xA0, 0xE0);
     private static final Color DEFENDER_COLOR = new Color(0xE0, 0x6A, 0x6A);
     private static final Color CIVILIAN_COLOR = new Color(0xC8, 0xC8, 0x80);
-    // Package-visible: shared between the inline UNITS pass and DroneRenderSystem
-    // (single source of truth, same rationale as RECOIL_* for shuttle turrets).
-    static final Color HP_BG          = new Color(0x60, 0x20, 0x20);
-    static final Color HP_FG          = new Color(0x40, 0xC0, 0x40);
     /** Dual-use in BattleScreen (spawnImpactFx); duplicated here for zero back-dependency. */
     private static final Color MARINE_TRACER  = new Color(0xFF, 0xE0, 0x70);
     /** Dual-use in BattleScreen (spawnImpactFx); duplicated here for zero back-dependency. */
@@ -83,7 +79,8 @@ public class BattleRenderer {
     private static final float SHOT_LIFETIME_REF = 0.15f;
 
     private static final float UNIT_FRAC      = 1.00f; // sprite fills the cell
-    static final float HP_BAR_H       = 3f;
+    /** Gap between an entity's top edge and its HP bar (placement, caller-owned).
+     *  Bar style (height/colors) lives in {@link HpBarDecor}. */
     static final float HP_BAR_GAP     = 2f;
 
     /** Icon tints + sizes. Sizes are fractions of {@code layout.cellSize}. */
@@ -486,9 +483,9 @@ public class BattleRenderer {
             } else {
                 barY = cy + half + HP_BAR_GAP;
             }
-            fillRect(barX, barY, barW, HP_BAR_H, HP_BG, barAlpha);
+            fillRect(barX, barY, barW, HpBarDecor.HP_BAR_H, HpBarDecor.HP_BG, barAlpha);
             float frac = Math.max(0f, Math.min(1f, u.getHp() / u.getMaxHp()));
-            fillRect(barX, barY, barW * frac, HP_BAR_H, HP_FG, barAlpha);
+            fillRect(barX, barY, barW * frac, HpBarDecor.HP_BAR_H, HpBarDecor.HP_FG, barAlpha);
         }
     }
 

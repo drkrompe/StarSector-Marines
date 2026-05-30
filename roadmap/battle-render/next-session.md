@@ -86,7 +86,9 @@ paint-order constraint (the bar sweep just runs last) — this is `UnitRegistry`
 Phase 2 applied to the render tier. One engine addition: a **vertical-flip option
 on `SHEET_QUAD`** for the SOUTH-weapon-up mirror. `renderDroneHubs` lazy-load +
 `drawTurretLayer` get absorbed; reusable `HpBarDecor`/`GroundFootprint` emit
-helpers fall out (slice 1 retrofits `DroneRenderSystem` onto `HpBarDecor`).
+helpers fall out. **Slice 1 shipped:** `HpBarDecor` is the canonical two-rect
+bar (owns `HP_BG`/`HP_FG`/`HP_BAR_H`); `DroneRenderSystem` retrofitted onto it,
+inline UNITS pass re-points at it (behavior-identical pending its slice-6 move).
 
 **Structural: the `List<RenderSystem>` registry shipped.** `RenderSystem` now
 declares `layer()`; `BattleRenderer` holds an ordered `List<RenderSystem>`
@@ -140,9 +142,9 @@ DOODADS)~~ ✅ → ~~engine/game package split (structural foundation)~~ ✅ →
 ~~RenderSystem registry (ordered `List<RenderSystem>` + `layer()`; collect-all
 phase split out)~~ ✅ →
 ~~I (DRONES → DroneRenderSystem; SPRITE + SOLID_RECT; verified, fallback deleted)~~ ✅ →
-UNITS (Story J — recon written, shape decided: flyweight `RenderAppearance` +
+UNITS (Story J — IN PROGRESS, shape decided: flyweight `RenderAppearance` +
 capability tags + per-stratum `UnitRenderService` sweep). Sub-slices:
-J1 `HpBarDecor` + retrofit `DroneRenderSystem` → J2 `RenderAppearance` table+tags
+~~J1 `HpBarDecor` + retrofit `DroneRenderSystem`~~ ✅ → J2 `RenderAppearance` table+tags
 → J3 dead units `SHEET_QUAD` → J4 turret/hub footprint+sprite → J5 live infantry
 (+`SHEET_QUAD` vertical-flip engine add) → J6 HP-bar sweep → delete fallback →
 Final (collapse `render()` to systems-loop + drain — fold inline passes into

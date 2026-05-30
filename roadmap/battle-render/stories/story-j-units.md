@@ -1,4 +1,4 @@
-# Story J — UNITS pass → component/tag render service — 🔍 RECON (not started)
+# Story J — UNITS pass → component/tag render service — 🚧 IN PROGRESS (slice 1 shipped)
 
 The heavy pass, and the last inline world pass before the endgame. `renderUnits`
 is not one pass — it's **five strata painted in a fixed order into the `UNITS`
@@ -132,8 +132,14 @@ Game-side emit helpers the sweeps call (and other systems reuse):
 
 ## Slice chain (each independently shippable + in-game verified)
 
-1. **`HpBarDecor` + retrofit `DroneRenderSystem`** to use it. Proves the shared
-   behavior, validates "bar onto another layer," zero UNITS change. Lowest risk.
+1. ~~**`HpBarDecor` + retrofit `DroneRenderSystem`** to use it.~~ **SHIPPED.**
+   `HpBarDecor.emit(out, layer, cx, baseY, width, hpFrac, alpha)` is the canonical
+   two-`SOLID_RECT` bar and now owns the bar's intrinsic style (`HP_BG`/`HP_FG`/
+   `HP_BAR_H` moved off `BattleRenderer`). `DroneRenderSystem.addBar` collapsed
+   into it; the inline UNITS pass re-points its `fillRect` calls at
+   `HpBarDecor.*` (non-behavioral, awaiting its slice-6 migration). `HP_BAR_GAP`
+   stays on `BattleRenderer` (placement, caller-owned). Behavior-identical (same
+   geometry/colors); compile + suite green.
 2. **`RenderAppearance` table + capability tags** (render-side, keyed by
    `UnitType`/kind) — descriptor build + `appearanceOf`. No pass change yet; just
    stand up the flyweight + tags the sweeps will read.
