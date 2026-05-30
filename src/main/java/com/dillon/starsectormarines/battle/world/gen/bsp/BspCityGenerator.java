@@ -1,8 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
-import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
-import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -36,7 +34,6 @@ import com.dillon.starsectormarines.battle.world.gen.road.RoadReservation;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.decision.TacticalLinker;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
-import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
