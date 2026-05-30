@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
 import com.dillon.starsectormarines.battle.world.model.Doodad;
-import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.model.TileManifest.TileFrame;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -46,7 +45,6 @@ public final class ParkFiller implements BlockFiller {
     public void fill(BlockLeaf leaf, GenContext ctx) {
         NavigationGrid grid = ctx.grid;
         CellTopology topology = ctx.topology;
-        List<PointOfInterest> pois = ctx.pois;
         List<Doodad> doodads = ctx.doodads;
         Random rng = ctx.rng;
 
