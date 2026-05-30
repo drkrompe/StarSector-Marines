@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.ops.Mission;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ShipVariantAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
+import com.fs.starfarer.api.impl.campaign.ids.HullMods;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
@@ -32,8 +33,8 @@ public final class PowerCatalog {
     // ---- Recon Ping sources (survey § Recon/Intel/EW, through the projection lens) ----
     /** High Resolution Sensors — flavor text literally "increases the ship's in-combat vision range." No {@code ids.HullMods} constant exists for it, hence the literal. */
     private static final String HIRES_SENSORS_MOD = "hiressensors";
-    /** Surveying Equipment — the planetary-investigation tool ({@code ids.HullMods.SURVEYING_EQUIPMENT}). */
-    private static final String SURVEYING_EQUIPMENT_MOD = "surveying_equipment";
+    /** Surveying Equipment — the planetary-investigation tool. */
+    private static final String SURVEYING_EQUIPMENT_MOD = HullMods.SURVEYING_EQUIPMENT;
     /** Apogee — built-in survey/sensor suite (the canonical scanner cruiser). Base hull id. */
     private static final String APOGEE_HULL = "apogee";
 
@@ -43,17 +44,19 @@ public final class PowerCatalog {
      * Resolve the command-power roster for a battle from the committed ships plus
      * the mission's employer offerings, deduped by power id.
      *
-     * <p>Slice 1 unconditionally seeds a baseline {@link ReconPing} so the demo
-     * loop survives a fleet with no recon-capable ship (the power UI hides itself
-     * on an empty roster); Slice 2 gates that baseline behind {@code DevConfig}
-     * once real sourcing takes over. The ship/employer mapping below is already
-     * live so dropping the baseline is a one-line change.
+     * <p>Recon ping is now <em>sourced</em> — from a committed ship's kit (below)
+     * or the employer's offer. The {@link com.dillon.starsectormarines.DevConfig#ALWAYS_GRANT_RECON_PING}
+     * dev flag seeds it unconditionally so the loop stays demoable on a fleet
+     * with no recon ship (the power UI hides itself on an empty roster); flip it
+     * off to feel the real gating.
      */
     public static List<CommandPower> resolve(List<FleetMemberAPI> committedShips, Mission m) {
         Map<String, CommandPower> byId = new LinkedHashMap<>();
 
-        // Slice 1 baseline — always grant recon ping (keeps the power loop demoable).
-        byId.put(ReconPing.ID, new ReconPing());
+        // Dev convenience — grant recon ping for free (see DevConfig). Off in prod.
+        if (com.dillon.starsectormarines.DevConfig.ALWAYS_GRANT_RECON_PING) {
+            byId.put(ReconPing.ID, new ReconPing());
+        }
 
         if (committedShips != null) {
             for (FleetMemberAPI ship : committedShips) contribute(ship, byId);

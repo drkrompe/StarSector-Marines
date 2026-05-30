@@ -22,12 +22,18 @@ carries `employerPowerIds` alongside `clientFighterSupport` / `employerShuttles`
   (empty default); baseline `ReconPing` always seeded so the loop stays
   demoable. Committed set = whole fleet → default behavior preserved; only the
   *source of powers* + accept dedup change.
-- **Slice 2 — Commitment narrowing.** `PowerCatalog.resolve` scans only the
-  committed subset; `MissionGenerator.rollEmployerPowers` lights up the employer
-  co-source; baseline ReconPing gated behind `DevConfig`.
-- **Slice 3 — Fighter cover opt-in UI.** Replace `PlayerFleetWings.fromPlayerFleet`
-  whole-fleet auto with committed-carriers → wings; carrier-bay opt-in toggles in
-  both screens (unified "Committed Detachment" section).
+- **Slice 2 — Employer co-source + baseline gate.** `MissionGenerator.rollEmployerPowers`
+  lights up the patron/contract co-source (`Mission.employerPowerIds` →
+  `PowerCatalog`); the baseline ReconPing is gated behind
+  `DevConfig.ALWAYS_GRANT_RECON_PING`. **Note:** *power* narrowing-to-committed-
+  subset moved to Slice 3 — it's meaningless before the commit UI exists (a recon
+  ship is neither a transport nor a carrier, so there's nothing to narrow
+  against). Shuttles are *already* a committed subset via `deselectedTransports`.
+- **Slice 3 — Unified Committed-Detachment UI + narrowing.** Replace
+  `PlayerFleetWings.fromPlayerFleet` whole-fleet auto with committed-carriers →
+  wings; carrier-bay opt-in toggles alongside the transport toggles (one
+  "Committed Detachment" section). The committed-ship set this UI produces is
+  what finally narrows power-sourcing (and fighter cover) off the whole fleet.
 
 ## Goal
 

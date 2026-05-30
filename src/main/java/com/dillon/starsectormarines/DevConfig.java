@@ -125,5 +125,17 @@ public final class DevConfig {
      */
     public static final boolean DEBUG_CLIENT = true;
 
+    /**
+     * When {@code true}: every battle grants the recon-ping command power for
+     * free, regardless of fleet or employer. A dev convenience so the
+     * command-power loop stays exercised while the roster is shallow.
+     *
+     * <p>Production behavior: recon ping must be <em>sourced</em> — a committed
+     * ship with the right kit (Hi-Res Sensors / Surveying Equipment / an Apogee,
+     * see {@code ops.detachment.PowerCatalog}) or an employer/contract that offers
+     * it ({@code Mission.employerPowerIds}). Flip off to feel the real gating.
+     */
+    public static final boolean ALWAYS_GRANT_RECON_PING = true;
+
     private DevConfig() {}
 }

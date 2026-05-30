@@ -211,6 +211,7 @@ public final class MissionGenerator {
             requiredDrops = com.dillon.starsectormarines.DevConfig.DROP_COUNT_OVERRIDE;
         }
         int employerShuttles = rollEmployerShuttles(r, risk, requiredDrops);
+        java.util.List<String> employerPowers = rollEmployerPowers(r, risk);
 
         float x = 0.08f + r.nextFloat() * 0.84f;
         float y = 0.08f + r.nextFloat() * 0.84f;
@@ -240,7 +241,7 @@ public final class MissionGenerator {
                 state.contractSalvageBaseline[row],
                 state.contractSalvageNegotiated[row],
                 state.contractCashMultiplier[row],
-                java.util.Collections.emptyList()); // employer powers: rolled in Slice 2
+                employerPowers);
     }
 
     private static String pickFirstNonDisruptedIndustry(MarketAPI market) {
@@ -476,5 +477,27 @@ public final class MissionGenerator {
                 break;
         }
         return Math.max(0, Math.min(coverage, cap));
+    }
+
+    /**
+     * Rolls the command powers the employer/contract offers for this mission —
+     * the patron co-source for the player's command-power roster
+     * ([[feedback_patron_narrative_discoverable]]). Returns power ids
+     * ({@code ReconPing.ID}, …) that {@code ops.detachment.PowerCatalog} maps to
+     * instances. Modest, risk-scaled chance; empty most of the time so a player
+     * who brings no recon ship can't lean on the employer every mission.
+     *
+     * <p>Only recon ping exists today, so that's the whole offer pool; widen as
+     * the catalog grows.
+     */
+    private static java.util.List<String> rollEmployerPowers(Random r, RiskLevel risk) {
+        float chance;
+        switch (risk) {
+            case HIGH:   chance = 0.45f; break;
+            case MEDIUM: chance = 0.30f; break;
+            default:     chance = 0.15f; break;
+        }
+        if (r.nextFloat() >= chance) return java.util.Collections.emptyList();
+        return java.util.List.of(com.dillon.starsectormarines.battle.power.ReconPing.ID);
     }
 }

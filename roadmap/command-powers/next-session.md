@@ -14,9 +14,12 @@ slices (see [`stories/s2-*.md`](stories/s2-fleet-available-powers-resolver.md)):
 
 - **Slice 1 — resolver core + powers-from-fleet.** ✅ shipped, compile-verified —
   [`complete/s2-slice1-detachment-resolver-core.md`](complete/s2-slice1-detachment-resolver-core.md).
-- **Slice 2 — commitment narrowing** (powers/shuttles from the committed subset;
-  employer-power rolls; baseline ReconPing behind DevConfig). ⏳ next.
-- **Slice 3 — fighter-cover opt-in UI.** ⏳ after Slice 2.
+- **Slice 2 — employer co-source + baseline gate.** ✅ shipped —
+  [`complete/s2-slice2-employer-cosource-baseline-gate.md`](complete/s2-slice2-employer-cosource-baseline-gate.md).
+  (Power *narrowing* moved to Slice 3 — it needs the commit UI to mean anything.)
+- **Slice 3 — unified Committed-Detachment UI + narrowing.** ⏳ next: carrier-bay
+  opt-in toggles + committed-ship set drives power/fighter narrowing off the
+  whole fleet.
 
 **In-game feel-out still pending** across the board.
 
@@ -29,6 +32,9 @@ slices (see [`stories/s2-*.md`](stories/s2-fleet-available-powers-resolver.md)):
   + `ops/MissionLaunch` shared accept path + `BattleSimulation.setCommandPowers`
   + `Mission.employerPowerIds`. Powers now sourced from the fleet; Briefing/Comms
   accept duplication collapsed. Default behavior preserved.
+- S2 Slice 2 — `DevConfig.ALWAYS_GRANT_RECON_PING` gate on the baseline ReconPing
+  + `MissionGenerator.rollEmployerPowers` lighting up the contract co-source
+  (`PowerCatalog` now reads `Mission.employerPowerIds`).
 
 ## Docs in this dir
 

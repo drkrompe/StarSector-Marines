@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
+import com.dillon.starsectormarines.ops.detachment.Detachment;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.FactionAPI;
 import com.fs.starfarer.api.campaign.PlanetAPI;
@@ -52,7 +53,7 @@ public class MarineOpsContext {
     /** Current battle simulation — built by the accept path (MissionLaunch), read by BattleScreen. */
     private BattleSimulation battleSimulation;
     /** Detachment committed to the current battle — resolved by {@link MissionLaunch}, kept for the battle UI / debug. */
-    private com.dillon.starsectormarines.ops.detachment.Detachment detachment;
+    private Detachment detachment;
     /** Frozen outcome from the most recent applied mission — read by ResultsScreen. */
     private MissionOutcome lastOutcome;
     private ScreenId currentScreen = ScreenId.MISSION_SELECT;
@@ -129,11 +130,11 @@ public class MarineOpsContext {
         this.battleSimulation = simulation;
     }
 
-    public com.dillon.starsectormarines.ops.detachment.Detachment getDetachment() {
+    public Detachment getDetachment() {
         return detachment;
     }
 
-    public void setDetachment(com.dillon.starsectormarines.ops.detachment.Detachment detachment) {
+    public void setDetachment(Detachment detachment) {
         this.detachment = detachment;
     }
 
