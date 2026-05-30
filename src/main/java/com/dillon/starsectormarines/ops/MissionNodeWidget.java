@@ -23,10 +23,10 @@ import static org.lwjgl.opengl.GL11.glLineWidth;
 import static org.lwjgl.opengl.GL11.glVertex2f;
 
 /**
- * One clickable mission marker on the tactical map. Renders as a filled circle
- * in the {@link MissionType}'s color with a single-letter glyph centered. The
- * hover popup is rendered separately by {@link MissionPopupOverlay} — keeps
- * popups always on top of every node body regardless of widget ordering.
+ * One clickable mission marker on the thumbnail planet map in
+ * {@link CommsConsolePanel}. Renders as a filled circle in the
+ * {@link MissionType}'s color with a single-letter glyph centered; clicking it
+ * expands the matching dossier card.
  *
  * <p>Hit-test is the bounding box (square), not the visible circle — close
  * enough at this scale and avoids the radius math per input event.

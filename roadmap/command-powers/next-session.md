@@ -87,15 +87,30 @@ transport nor carrier). See the Slice 3 doc § follow-ups.
 
 ## Suggested starting point
 
-S2 (explicit-detachment arc) is **fully shipped**. Next, either:
-1. **Feel-out the arc in live play** (`gradlew runStarsector`) — accept via both
-   entry points, confirm carrier/transport opt-in + powers track the detachment.
-2. **Member-level commitment** (the top S2 follow-up): a support-detachment
-   category so a recon-source ship (Apogee / Hi-Res Sensors) can be committed,
-   making power narrowing meaningful. Flip `DevConfig.ALWAYS_GRANT_RECON_PING`
-   off to feel the gap.
-3. **S3 — Orbital Fire Support** (first real combat power): the most legible
-   "I did something" power, now that the resolver + detachment plumbing exists.
+S2 (explicit-detachment arc) is **fully shipped**. **Direction chosen
+(2026-05-30):** revive the full-screen pre-battle surface as the canonical
+loadout/briefing screen — see [S8](stories/s8-pre-battle-loadout-screen.md). The
+inline `CommsConsolePanel` card is too cramped for the "your fleet brings vs.
+employer brings" distinction + the power-slotting (deck-building) the two-phase
+economy needs, and the dead `BriefingScreen` carries a drifting duplicate of the
+detachment UI. S8 collapses both into one screen.
+
+**S8 build order:**
+1. ~~**Slice A — Revive & make canonical.**~~ ✅ — inline card → read-only
+   summary + "Brief & Deploy" → full-screen `BriefingScreen` (now canonical);
+   deleted dead `TacticalMapPanel` + `MissionPopupOverlay`. See
+   [`complete/s8-slice1-revive-canonical.md`](complete/s8-slice1-revive-canonical.md).
+2. **Slice B — Two-source presentation + member-level commitment** (the top S2
+   follow-up): power-source ships as their own committable rows; then flip
+   `DevConfig.ALWAYS_GRANT_RECON_PING` off to feel the gating.
+3. **Slice C — Command Deck (slotting UI)**: slottable powers under a constant
+   command budget (S5 does the real curve); slotted subset filters
+   `PowerCatalog.resolve`.
+
+Alternatives if priorities shift: **S3 — Orbital Fire Support** (first real
+combat power, resolver + detachment plumbing is ready). In-game **feel-out** of
+the S2 arc is still pending but is largely subsumed by S8 Slice A (which reworks
+the same surface).
 
 S3/S6 want the parked **flyby → `AirBody` real-air-entity** promotion so
 orbital/air assets can be contested.

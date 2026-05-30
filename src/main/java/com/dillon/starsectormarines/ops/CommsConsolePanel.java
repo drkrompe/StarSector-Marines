@@ -1,12 +1,5 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.air.ShuttleType;
-import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
-import com.dillon.starsectormarines.battle.flyby.PlayerFleetWings;
-import com.dillon.starsectormarines.i18n.Strings;
-import com.dillon.starsectormarines.marine.MarineCaptain;
-import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.LabelWidget;
@@ -17,10 +10,7 @@ import org.apache.log4j.Logger;
 
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_LINE_LOOP;
@@ -40,10 +30,12 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
  * The console region of the mission-select screen — owns the briefing-room
  * layout: officer summary header on top, thumbnail planet map on the left
  * of the body, dossier stack of offered missions on the right. When a
- * dossier is selected (clicked), it inline-expands in place with the full
- * briefing prose + salvage slider + transport toggles + captain rows +
- * accept/decline. The old separate BriefingScreen is unreachable from
- * this surface as of step 4 of the list-view plan.
+ * dossier is selected (clicked), it inline-expands in place as a
+ * <em>read-only summary</em> (briefing prose + meta) with a
+ * <em>Brief &amp; Deploy</em> action. Brief &amp; Deploy hands off to the
+ * full-screen {@link BriefingScreen} — the canonical pre-battle surface that
+ * owns the commitment controls (transports, fighter cover, captain, salvage)
+ * and launches the battle (roadmap command-powers S8 Slice A).
  *
  * <p>Inline-expand state lives on {@link MarineOpsContext#getSelectedMission()}
  * — null = no expansion; non-null = that mission is the expanded one. The
@@ -56,11 +48,8 @@ public class CommsConsolePanel extends OpsPanel {
 
     private static final Color FRAME_COLOR    = new Color(0x4A, 0x6B, 0x8C);
     private static final Color EMPTY_HINT     = new Color(0x88, 0xA8, 0xCC);
-    private static final Color LABEL_COLOR    = new Color(0x88, 0xA8, 0xCC);
-    private static final Color VALUE_COLOR    = new Color(0xE0, 0xE8, 0xF4);
     private static final Color HEADER_COLOR   = new Color(0xC8, 0xE0, 0xFF);
     private static final Color ACCEPT_COLOR   = new Color(0xC8, 0xFF, 0xE0);
-    private static final Color BLOCKED_COLOR  = new Color(0xFF, 0x80, 0x80);
 
     private static final float PAD            = 12f;
     private static final float HEADER_H       = 28f;
@@ -70,12 +59,8 @@ public class CommsConsolePanel extends OpsPanel {
     private static final float NODE_SIZE      = 22f;
     private static final float CARD_H         = 72f;
     private static final float CARD_GAP       = 8f;
-    private static final float ROW_H          = 26f;
-    private static final float ROW_GAP        = 4f;
-    private static final float SECTION_GAP    = 14f;
     private static final float BTN_H          = 32f;
     private static final float BTN_GAP        = 12f;
-    private static final float SQUAD_ROW_H    = 32f;
 
     /** Track these so the panel can re-render the map sprite + node frame each tick. */
     private float mapDrawX;
@@ -83,13 +68,6 @@ public class CommsConsolePanel extends OpsPanel {
     private float mapDrawW;
     private float mapDrawH;
     private final List<MissionNodeWidget> mapNodes = new ArrayList<>();
-
-    /** Per-mission UI state — reset on mission switch via {@link #lastExpandedMissionId}. */
-    private final Set<Integer> deselectedTransports = new HashSet<>();
-    private final Set<Integer> deselectedCarriers = new HashSet<>();
-    private String lastExpandedMissionId;
-    private List<ShuttleType> cachedAvailable = Collections.emptyList();
-    private List<PlayerFleetWings.CarrierBay> cachedCarriers = Collections.emptyList();
 
     /** Dossier-stack scroll offset (in cards). Reset on client switch. */
     private int scrollOffset;
@@ -185,26 +163,9 @@ public class CommsConsolePanel extends OpsPanel {
         }
 
         Mission expanded = ctx.getSelectedMission();
-        // Reset per-mission state when the expanded mission changes.
-        String expandedId = expanded != null ? expanded.id : null;
-        if (expandedId == null ? lastExpandedMissionId != null
-                                : !expandedId.equals(lastExpandedMissionId)) {
-            lastExpandedMissionId = expandedId;
-            deselectedTransports.clear();
-            deselectedCarriers.clear();
-            // Default captain — first ACTIVE, if nothing's set. Mirrors the
-            // pre-inline-expand BriefingScreen behavior so accept works
-            // without forcing a captain click.
-            if (expanded != null && ctx.getSelectedCaptainId() == null) {
-                MarineRosterScript scr = MarineRosterScript.getInstance();
-                if (scr != null) {
-                    List<MarineCaptain> active = scr.roster().active();
-                    if (!active.isEmpty()) ctx.setSelectedCaptainId(active.get(0).id());
-                }
-            }
-        }
-        cachedAvailable = PlayerFleetShuttles.queryAvailable();
-        cachedCarriers = PlayerFleetWings.committableCarriers();
+        // The expanded card is a read-only summary now (S8 Slice A) — the
+        // commitment controls (transports, fighter cover, captain, salvage)
+        // live on the full-screen BriefingScreen reached via Brief & Deploy.
 
         // Reset scroll on client switch — re-entering a familiar client keeps
         // their stack position survives until the user picks another client.
@@ -281,117 +242,26 @@ public class CommsConsolePanel extends OpsPanel {
     }
 
     /**
-     * Lays out the slider buttons, transport toggles, captain rows, and
-     * accept/decline buttons inside the expanded card. Sub-widgets are added
-     * AFTER the card body to the same widget tree so they get input priority
-     * in {@link WidgetRoot}'s reverse-order dispatch.
+     * Lays out the expanded card's action buttons. As of S8 Slice A the card is
+     * a read-only summary (title + meta + briefing prose drawn by
+     * {@link ExpandedCardWidget}); the only controls are <em>Brief &amp;
+     * Deploy</em> (→ full-screen {@link BriefingScreen} for commitment) and
+     * <em>Decline</em> (collapse). Added AFTER the card body so they get input
+     * priority in {@link WidgetRoot}'s reverse-order dispatch.
      */
     private void layoutExpandedSubWidgets(WidgetRoot widgets, ExpandedCardWidget card) {
         Mission m = card.mission;
         float subX = card.x + ExpandedCardWidget.PAD_X;
         float subW = card.w - 2 * ExpandedCardWidget.PAD_X;
-        float y = card.subWidgetTopY();
 
-        // Salvage slider — only when the mission carries a salvage cap (contract-bound).
-        int salvageBaseline = m.salvageBaseline & 0xFF;
-        if (salvageBaseline > 0) {
-            int negotiated = m.salvageNegotiated & 0xFF;
-            // Widget renders entirely within its declared rect (caption on
-            // top, slider row at the bottom — see SalvageSliderWidget). y
-            // tracks the top edge of the row so the widget sits with its top
-            // at y and stack continues below.
-            float sliderH = SalvageSliderWidget.DEFAULT_HEIGHT;
-            float sliderY = y - sliderH;
-            widgets.add(new SalvageSliderWidget(subX, sliderY, subW, sliderH,
-                    salvageBaseline, negotiated, this::setSalvage));
-            y -= sliderH + SECTION_GAP;
-        }
-
-        // Transport selection — one toggle row per available shuttle.
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20, "Transport:", subX, y, LABEL_COLOR));
-        y -= ROW_H;
-        for (int i = 0; i < cachedAvailable.size(); i++) {
-            final int idx = i;
-            ShuttleType type = cachedAvailable.get(i);
-            boolean selectedShuttle = !deselectedTransports.contains(idx);
-            String marker = selectedShuttle ? "[x]" : "[ ]";
-            String rowLabel = marker + " 1× " + shuttleDisplayName(type)
-                    + (selectedShuttle ? "" : " — held back");
-            Color rowColor = selectedShuttle ? VALUE_COLOR : LABEL_COLOR;
-            ButtonWidget toggle = new ButtonWidget(subX, y - ROW_H + 6f, subW, ROW_H,
-                    () -> {
-                        if (deselectedTransports.contains(idx)) deselectedTransports.remove(idx);
-                        else deselectedTransports.add(idx);
-                    });
-            widgets.add(toggle);
-            widgets.add(new LabelWidget(Fonts.ORBITRON_20, rowLabel,
-                    subX + 6f, y, rowColor));
-            y -= ROW_H + ROW_GAP;
-        }
-        if (m.employerShuttles > 0) {
-            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                    m.employerShuttles + "× employer Aeroshuttle",
-                    subX + 6f, y, VALUE_COLOR));
-            y -= ROW_H + ROW_GAP;
-        }
-
-        // Fighter cover — one opt-in toggle per committable carrier.
-        if (!cachedCarriers.isEmpty()) {
-            widgets.add(new LabelWidget(Fonts.ORBITRON_20, "Fighter cover:", subX, y, LABEL_COLOR));
-            y -= ROW_H;
-            for (int i = 0; i < cachedCarriers.size(); i++) {
-                final int idx = i;
-                PlayerFleetWings.CarrierBay carrier = cachedCarriers.get(i);
-                boolean committed = !deselectedCarriers.contains(idx);
-                String marker = committed ? "[x]" : "[ ]";
-                String rowLabel = marker + " " + carrier.shipName
-                        + " (" + carrier.bayCount() + (carrier.bayCount() == 1 ? " bay" : " bays") + ")"
-                        + (committed ? "" : " — held back");
-                Color rowColor = committed ? VALUE_COLOR : LABEL_COLOR;
-                ButtonWidget toggle = new ButtonWidget(subX, y - ROW_H + 6f, subW, ROW_H,
-                        () -> {
-                            if (deselectedCarriers.contains(idx)) deselectedCarriers.remove(idx);
-                            else deselectedCarriers.add(idx);
-                        });
-                widgets.add(toggle);
-                widgets.add(new LabelWidget(Fonts.ORBITRON_20, rowLabel, subX + 6f, y, rowColor));
-                y -= ROW_H + ROW_GAP;
-            }
-        }
-
-        // Captain rows.
-        MarineRosterScript scr = MarineRosterScript.getInstance();
-        List<MarineCaptain> captains = scr != null
-                ? scr.roster().active() : Collections.<MarineCaptain>emptyList();
-        y -= SECTION_GAP - ROW_GAP;
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, "Captain:", subX, y, HEADER_COLOR));
-        y -= SQUAD_ROW_H;
-        if (captains.isEmpty()) {
-            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                    "No active captains available.", subX, y, LABEL_COLOR));
-            y -= SQUAD_ROW_H;
-        } else {
-            float buttonsTop = card.y + PAD + BTN_H + SECTION_GAP;
-            for (MarineCaptain c : captains) {
-                if (y < buttonsTop) break;
-                widgets.add(new CaptainRowWidget(c, subX, y - SQUAD_ROW_H + 4f,
-                        subW, SQUAD_ROW_H,
-                        ctx::getSelectedCaptainId, ctx::setSelectedCaptainId));
-                y -= SQUAD_ROW_H + ROW_GAP;
-            }
-        }
-
-        // Accept / Decline.
         float btnY = card.y + PAD;
         float btnW = (subW - BTN_GAP) / 2f;
-        boolean canAccept = isTransportSufficient(m, effectivePlayerShuttles());
-        ButtonWidget accept = new ButtonWidget(subX, btnY, btnW, BTN_H,
-                canAccept ? () -> onAccept(m) : null);
-        widgets.add(accept);
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                canAccept ? "Accept" : "Insufficient Transport",
-                subX + 12f, btnY + BTN_H - 6f,
-                canAccept ? ACCEPT_COLOR : BLOCKED_COLOR));
+        ButtonWidget brief = new ButtonWidget(subX, btnY, btnW, BTN_H,
+                () -> onBriefAndDeploy(m));
+        widgets.add(brief);
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, "Brief & Deploy ▸",
+                subX + 12f, btnY + BTN_H - 6f, ACCEPT_COLOR));
+
         float declineX = subX + btnW + BTN_GAP;
         ButtonWidget decline = new ButtonWidget(declineX, btnY, btnW, BTN_H,
                 this::onDecline);
@@ -400,7 +270,10 @@ public class CommsConsolePanel extends OpsPanel {
                 declineX + 12f, btnY + BTN_H - 6f, HEADER_COLOR));
     }
 
-    /** Total height required for the expanded card based on its contents. */
+    /**
+     * Height for the read-only expanded card: the header block (title + meta +
+     * briefing prose) plus a gap and the action-button row.
+     */
     private float computeExpandedHeight(Mission m, float w) {
         float header = ExpandedCardWidget.PAD_Y
                 + Fonts.ORBITRON_20_BOLD.getLineHeight()
@@ -408,26 +281,8 @@ public class CommsConsolePanel extends OpsPanel {
                 + Fonts.ORBITRON_20.getLineHeight()
                 + ExpandedCardWidget.SECTION_GAP
                 + ExpandedCardWidget.measureBriefingHeight(m.flavor, w - 2 * ExpandedCardWidget.PAD_X);
-
-        int transportRows = cachedAvailable.size() + (m.employerShuttles > 0 ? 1 : 0);
-        int captainRows = 0;
-        MarineRosterScript scr = MarineRosterScript.getInstance();
-        if (scr != null) captainRows = Math.min(3, scr.roster().active().size());
-        if (captainRows == 0) captainRows = 1; // "no active captains" line
-
-        // Match SalvageSliderWidget's DEFAULT_HEIGHT + section gap so the
-        // expanded card grows to fit it. Mirrors layoutExpandedSubWidgets.
-        float sliderH = (m.salvageBaseline & 0xFF) > 0
-                ? (SalvageSliderWidget.DEFAULT_HEIGHT + SECTION_GAP) : 0f;
-        float transportH = ROW_H + transportRows * (ROW_H + ROW_GAP); // label + rows
-        // Fighter-cover section: a "Fighter cover:" label + one row per carrier (only when present).
-        float carrierH = cachedCarriers.isEmpty()
-                ? 0f : ROW_H + cachedCarriers.size() * (ROW_H + ROW_GAP);
-        float captainH = SECTION_GAP + SQUAD_ROW_H + captainRows * (SQUAD_ROW_H + ROW_GAP);
-        float buttonsH = SECTION_GAP + BTN_H + PAD;
-
-        return header + ExpandedCardWidget.SECTION_GAP
-                + sliderH + transportH + carrierH + captainH + buttonsH;
+        float buttonsH = ExpandedCardWidget.SECTION_GAP + BTN_H + PAD;
+        return header + ExpandedCardWidget.SECTION_GAP + buttonsH;
     }
 
     private void onCardClicked(Mission mission) {
@@ -447,74 +302,18 @@ public class CommsConsolePanel extends OpsPanel {
     }
 
     /**
-     * Apply an absolute negotiated-salvage value to the expanded mission.
-     * The Mission object is immutable so we replace
-     * {@link MarineOpsContext#setSelectedMission} with a new instance — same
-     * id, adjusted negotiated + cashMultiplier.
-     *
-     * <p>Curve per {@code roadmap/campaign/contracts/overview.md} §"Salvage Layer 2":
-     * cashMultiplier = 100 + (baseline - negotiated) * 0.5.
+     * Open the full-screen {@link BriefingScreen} for this mission — the
+     * canonical pre-battle surface where the player commits the detachment
+     * (transports, fighter cover, captain), negotiates salvage, and deploys.
+     * The mission is already the selected one (the card only expands when
+     * selected); we set it again defensively and transition.
      */
-    private void setSalvage(int newValue) {
-        Mission m = ctx.getSelectedMission();
+    private void onBriefAndDeploy(Mission m) {
         if (m == null) return;
-        int baseline = m.salvageBaseline & 0xFF;
-        if (baseline <= 0) return;
-        int next = Math.max(0, Math.min(baseline, newValue));
-        int current = m.salvageNegotiated & 0xFF;
-        if (next == current) return;
-        int cashMult = 100 + (baseline - next) / 2;
-        Mission replaced = new Mission(
-                m.id, m.name, m.type, m.source, m.payout, m.risk, m.requirements, m.flavor,
-                m.normalizedX, m.normalizedY, m.clientFighterSupport, m.enemyFighterSupport,
-                m.requiredDrops, m.employerShuttles, m.targetPlanetName, m.targetIndustryId,
-                m.contractId, m.salvageBaseline, (byte) next, (byte) cashMult,
-                m.employerPowerIds);
-        ctx.setSelectedMission(replaced);
-    }
-
-    /**
-     * Build the BattleSimulation and transition to BATTLE. Ported from the old
-     * BriefingScreen — same accept semantics so resolver writeback + battle setup
-     * are unchanged.
-     */
-    private void onAccept(Mission m) {
-        if (m == null) return;
-        MarineCaptain c = ctx.getSelectedCaptain();
-        String captainStr = c != null ? c.id() + " (" + c.name() + ")" : "none";
-        LOG.info("MarineOps: accept (inline) mission id=" + m.id + " name='" + m.name
-                + "' type=" + m.type + " captain=" + captainStr);
-
-        BattleSimulation sim = MissionLaunch.buildSimulation(
-                ctx, m, effectivePlayerShuttles(), committedWings());
-        ctx.setBattleSimulation(sim);
-        ctx.goTo(ScreenId.BATTLE);
-    }
-
-    private List<ShuttleType> effectivePlayerShuttles() {
-        List<ShuttleType> out = new ArrayList<>();
-        for (int i = 0; i < cachedAvailable.size(); i++) {
-            if (!deselectedTransports.contains(i)) out.add(cachedAvailable.get(i));
-        }
-        return out;
-    }
-
-    /** Marine-side fighter cover from the committed carriers (player side only). */
-    private FlybyRoster committedWings() {
-        List<PlayerFleetWings.CarrierBay> committed = new ArrayList<>();
-        for (int i = 0; i < cachedCarriers.size(); i++) {
-            if (!deselectedCarriers.contains(i)) committed.add(cachedCarriers.get(i));
-        }
-        return PlayerFleetWings.rosterFrom(committed);
-    }
-
-    private static boolean isTransportSufficient(Mission m, List<ShuttleType> selectedShuttles) {
-        return m.employerShuttles >= 1 || !selectedShuttles.isEmpty();
-    }
-
-    private static String shuttleDisplayName(ShuttleType t) {
-        String n = t.name();
-        return n.charAt(0) + n.substring(1).toLowerCase();
+        LOG.info("MarineOps: brief & deploy mission id=" + m.id + " name='" + m.name
+                + "' type=" + m.type);
+        ctx.setSelectedMission(m);
+        ctx.goTo(ScreenId.BRIEFING);
     }
 
     @Override

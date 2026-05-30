@@ -284,8 +284,12 @@ counterplay, the cost model, roster entry, and **what "committed" means**
    could be pre-battle-only (briefing intel), in-battle-only (scan-ahead
    targeting), or both as separate slottable powers. Sets the pattern for every
    double-life mod.
-2. **UI surface.** Where the power bar lives in the full-canvas battle takeover,
-   and how zone-targeting (pick-a-cell, telegraph, confirm) works. Ties into
+2. **UI surface.** Two surfaces, splitting apart: (a) the **pre-battle loadout**
+   surface — where the player commits the detachment + slots powers under a
+   budget — is now scoped as [S8](stories/s8-pre-battle-loadout-screen.md)
+   (revive the full-screen briefing as the canonical loadout screen); (b) the
+   **in-battle power bar** — placement + zone-targeting (pick-a-cell, telegraph,
+   confirm) in the full-canvas battle takeover — stays open here. Both tie into
    [[gl_state_gotchas]] and the existing battle HUD.
 3. **CP regen vs cooldowns balance** — how much of the brake is the shared CP
    pool vs per-power cooldowns/charges. Tuning, but it shapes whether the feel
@@ -310,6 +314,11 @@ Not yet broken into `stories/` files — these are the brainstorm seeds:
 - **S4 — Marine Insertion power.** Player-invoked squad drop reusing the
   shuttle/convoy delivery vector at a *fixed safe LZ* first; closes the convoy
   open question. Deliberately ships before the geography layer (S6).
+- **S8 — Pre-Battle Loadout & Briefing Screen.** Revive the dead full-screen
+  briefing as the single canonical pre-battle surface; grow it into the
+  detachment-commit + power-slotting (deck-building) UI the two-phase economy
+  needs. Resolves open fork #2(a) and hosts S2's deferred slotting UI. See
+  [`stories/s8-pre-battle-loadout-screen.md`](stories/s8-pre-battle-loadout-screen.md).
 - **S5 — Command-level meta-progression.** XP, the command-point budget
   curve, and the capacity scaling persisted in the campaign tier (roster entry
   rides vanilla acquisition + spoils, so this story is capacity-only).

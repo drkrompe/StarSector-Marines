@@ -13,8 +13,8 @@ import java.awt.Color;
  * with from this planet, with a Back footer that dismisses the dialog.
  *
  * <p>Selection is sticky on the {@link MarineOpsContext} — clicking a row sets
- * {@code ctx.selectedClient}, which {@code TacticalMapPanel} will key off when
- * we wire up missions next slice.
+ * {@code ctx.selectedClient}, which {@code CommsConsolePanel} keys off to
+ * populate its dossier stack + map markers.
  */
 public class ClientListPanel extends OpsPanel {
 

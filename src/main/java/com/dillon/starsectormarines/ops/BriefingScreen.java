@@ -42,14 +42,18 @@ import static org.lwjgl.opengl.GL11.glLineWidth;
 import static org.lwjgl.opengl.GL11.glVertex2f;
 
 /**
- * Two-zone briefing screen. The left zone shows a zoomed crop of the planet's
- * equirectangular unwrap around the mission's normalized coords with a target
- * reticle marking the spot; the right zone lists mission details and the
- * Accept / Back actions.
+ * The canonical pre-battle surface (roadmap command-powers S8). Reached from
+ * the mission-select list via the dossier card's <em>Brief &amp; Deploy</em>
+ * action ({@link CommsConsolePanel}). The left zone shows a zoomed crop of the
+ * planet's equirectangular unwrap around the mission's normalized coords with a
+ * target reticle; the right zone owns the commitment controls — transport +
+ * fighter-cover opt-in toggles, captain selection, salvage negotiation — and
+ * the Accept / Back actions.
  *
- * <p>Accept currently no-ops with a log line — mission resolution lands in the
- * next slice. Back returns to {@link ScreenId#MISSION_SELECT}; client + cache
- * state on the context survive the trip.
+ * <p>Accept resolves the committed detachment and launches the battle via
+ * {@link MissionLaunch#buildSimulation} → {@link ScreenId#BATTLE}. Back returns
+ * to {@link ScreenId#MISSION_SELECT}; client + cache state on the context
+ * survive the trip.
  */
 public class BriefingScreen implements Screen {
 
