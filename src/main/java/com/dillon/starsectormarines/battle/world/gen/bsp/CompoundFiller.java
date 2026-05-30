@@ -41,4 +41,25 @@ public interface CompoundFiller {
      * can leave the list untouched.
      */
     void fill(Compound compound, GenContext ctx);
+
+    /**
+     * Fail-fast guard for the road-overlay contract above. {@link #fill} hands
+     * {@link BspKeys#ROAD_CELLS} / {@link BspKeys#ROAD_RESERVATION} straight into
+     * the road-bridging and wall-ring passes, which index the arrays directly —
+     * an unbound (null) overlay NPEs deep inside those passes rather than at the
+     * boundary. Implementations call this at the top of {@link #fill} so a recipe
+     * that dispatches compounds before
+     * {@link com.dillon.starsectormarines.battle.world.gen.road.RoadGraph} is
+     * built (or a generator that forgets the documented all-false fallback) fails
+     * with a clear, named error instead. Recipe ordering is the normal guarantee;
+     * this enforces the "always non-null" contract for the rest.
+     */
+    default void requireRoadOverlays(GenContext ctx) {
+        if (ctx.get(BspKeys.ROAD_CELLS) == null || ctx.get(BspKeys.ROAD_RESERVATION) == null) {
+            throw new IllegalStateException(getClass().getSimpleName()
+                    + " requires ROAD_CELLS + ROAD_RESERVATION to be bound before fill "
+                    + "(RoadGraphStage binds them; generators without a road graph must bind "
+                    + "all-false masks)");
+        }
+    }
 }

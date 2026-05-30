@@ -53,6 +53,7 @@ public final class DenseQuarterFiller implements CompoundFiller {
 
     @Override
     public void fill(Compound compound, GenContext ctx) {
+        requireRoadOverlays(ctx);
         NavigationGrid grid = ctx.grid;
         CellTopology topology = ctx.topology;
         boolean[][] roadCells = ctx.get(BspKeys.ROAD_CELLS);

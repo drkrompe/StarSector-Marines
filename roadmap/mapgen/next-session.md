@@ -92,41 +92,44 @@ reused verbatim. Candidate next tracks (priority order):
   a tested, intentional "no attacker side → nothing to place" behavior — left
   flexible pending how compounds compose into future recipes.
 
-1. **Slice 1 filler-level critique nits** (see section below) — fold in when a
-   filler-rework pass next touches that code.
-2. **Station-tier track** — [`stories/corridors-first-class.md`](stories/corridors-first-class.md)
+- **Slice 1 filler-level critique nits: ✅ done.** Dead alias locals dropped
+  across the POI-less fillers + `StubBlockFiller` (`1e0c72b`); the compound-filler
+  road-overlay path now has isolated coverage + a fail-fast precondition
+  (`requireRoadOverlays` on `CompoundFiller`, with `CompoundFillerOverlayTest`).
+  See the section below for what each resolution was.
+
+1. **Station-tier track** — [`stories/corridors-first-class.md`](stories/corridors-first-class.md)
    (the real blocker — corridors as first-class connective structure) then
    [`stories/station-interior-fills.md`](stories/station-interior-fills.md)
    (rides on corridors + the recipe machinery); both plug in as new recipes +
    domain stages on the now-complete pipeline.
 
-### Slice 1 critique follow-ups (still open — carry into Slice 3 / filler rework)
+### Slice 1 critique follow-ups — all resolved
 
-Background critique of `5e5ae91` confirmed behavior-preservation (no
-blocker); these minor items are still open. Slices 2a/2b reworked the
-orchestrator + stampers but not the fillers, so these filler-level items
-stayed untouched — fold them in when Slice 3 (or a filler-rework pass)
-next edits the same code. (The Slice 2a critique's own nits are resolved:
-the `PedestrianFrameStage` `~50%` comment was fixed in `8666b8f`; the
-`GenStage` "no instance fields" Javadoc vs `FillDispatchStage`'s config
-registries is a documented, intentional tension, not a defect.)
+Background critique of `5e5ae91` confirmed behavior-preservation (no blocker);
+the minor items it raised are now closed:
 
-- **Test gap.** `BuildingZonePreviewTest` builds a `GenContext` but never
-  binds `ROAD_CELLS` / `ROAD_RESERVATION`, so the compound-filler
-  overlay-read path is unguarded there (it rests on `BspMapPreviewTest`).
-  When stampers/compound fills become stages, add overlay-bound coverage.
-- **Dead alias locals.** The mechanical sweep copied unused params forward
-  as unused locals (`StubBlockFiller`; the `pois` alias in the
-  POI-less per-leaf fillers — IndustrialYard / LandingZone / Waterfront /
-  Nature / Park / Plaza / WastelandRubble). Harmless; drop when Slice 2
-  reworks each filler.
-- **`ctx.get` null seam.** Unbound-key reads return `null` silently — the
-  "always non-null" contract the old param list carried is gone. Fine
-  while the orchestrator binds everything pre-dispatch; if Slice 2/3 stage
-  reordering makes overlay availability non-obvious, add the
-  `stage.requires(KEY)` build-time assert sketched in
-  [`composable-pipeline.md`](composable-pipeline.md) § Decisions.
+- **Test gap — done.** The compound-filler overlay-read path
+  (`ROAD_CELLS` / `ROAD_RESERVATION`) was only integration-covered by
+  `BspMapPreviewTest`. `CompoundFillerOverlayTest` now covers it in isolation:
+  `MilitaryBaseFiller.fill` with overlays bound (runs, emits nodes, paints the
+  wall ring) and unbound (fails fast). `BuildingZonePreviewTest` was left as-is —
+  it only drives the single-leaf building fillers, which don't read the overlays,
+  so binding them there would exercise nothing.
+- **Dead alias locals — done (`1e0c72b`).** Unused `pois` (+ a few `doodads` /
+  `rng` / `grid`) aliases and the imports they orphaned were removed from the
+  POI-less fillers + `StubBlockFiller`, confirmed via IntelliJ inspection.
+- **`ctx.get` null seam — addressed pragmatically.** Rather than the heavier
+  `stage.requires(KEY)` build-time framework (disproportionate now that recipes
+  are explicit, verified lists), the highest-risk consumers — the three compound
+  fillers, which index `ROAD_CELLS`/`ROAD_RESERVATION` directly and would NPE
+  deep inside — now call `CompoundFiller.requireRoadOverlays(ctx)` to fail fast
+  with a named error. A general per-stage `requires()` assertion remains a
+  possible future addition if recipe authoring grows error-prone.
 - **Unused imports** from the sweep: already cleaned (`b8d992f`).
+- **Slice 2a critique nits resolved:** `PedestrianFrameStage` `~50%` comment
+  fixed in `8666b8f`; the `GenStage` "no instance fields" Javadoc vs
+  `FillDispatchStage`'s config registries is documented, intentional tension.
 
 ## Sanity check before resuming
 
