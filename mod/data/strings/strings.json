@@ -42,9 +42,13 @@
 
 		# Briefing screen
 		"briefingHeader":         "Briefing",
-		"briefingAccept":         "Accept Mission",
+		"briefingAccept":         "Deploy",
 		"briefingSquadLead":      "Squad Lead",
 		"briefingNoCaptains":     "No captains on roster",
+		"briefingYourFleet":      "Your Fleet Brings",
+		"briefingEmployerProvides": "Employer Provides",
+		"briefingFighterCover":   "Fighter cover:",
+		"briefingPowers":         "Powers:",
 		"briefingAlliedAir":      "Allied Air",
 		"briefingEnemyAir":       "Enemy Air",
 		"briefingAirNone":        "None",

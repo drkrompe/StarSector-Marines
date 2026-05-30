@@ -257,7 +257,9 @@ public class BriefingScreen implements Screen {
                 x, sectionTop, HEADER_COLOR));
 
         float listTop = sectionTop - 28f;
-        // Leave room for the Deploy/Back row that sits at the bottom of the columns.
+        // Reserve the same bottom band the right column gives Deploy/Back, so the
+        // captain list and the buttons line up across columns. leftCol.y ==
+        // rightCol.y (both built from the shared bodyBottom in BriefingLayout).
         float buttonsTop = layout.leftCol.y + INNER_PAD + BTN_H + SECTION_GAP;
 
         MarineRosterScript script = MarineRosterScript.getInstance();
@@ -286,9 +288,15 @@ public class BriefingScreen implements Screen {
         float x = layout.rightCol.x + INNER_PAD;
         float valueX = x + LABEL_COL_W;
         float y = layout.rightCol.y + layout.rightCol.h - INNER_PAD;
+        float rowW = layout.rightCol.w - 2 * INNER_PAD;
+        // Bottom band reserved for the Deploy/Back row (see buildButtons). Rows
+        // stop here rather than overdrawing the buttons — under a tall list
+        // (e.g. a big DEBUG_SEED_PLAYER_VALKYRIES) the lowest sections (employer
+        // readout) truncate first; transports + the gate, which come first, win.
+        float floor = layout.rightCol.y + INNER_PAD + BTN_H + SECTION_GAP;
 
         // === YOUR FLEET BRINGS ===
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, "Your Fleet Brings", x, y, HEADER_COLOR));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, Strings.get("briefingYourFleet"), x, y, HEADER_COLOR));
         y -= ROW_GAP;
 
         // Transport — one toggle row per available shuttle, with sortie-cycle annotation.
@@ -297,6 +305,7 @@ public class BriefingScreen implements Screen {
         List<ShuttleAssignment> manifest = DetachmentResolver.buildShuttleManifest(m, effectivePlayerShuttles());
         java.util.Map<Integer, Integer> playerCyclesByIndex = computePlayerCyclesByIndex(m, manifest);
         for (int i = 0; i < cachedAvailable.size(); i++) {
+            if (y < floor) return;
             final int idx = i;
             ShuttleType type = cachedAvailable.get(i);
             boolean selected = !deselectedTransports.contains(idx);
@@ -307,8 +316,7 @@ public class BriefingScreen implements Screen {
             if (selected && cycles > 1) rowLabel.append(" (").append(cycles).append(" sorties)");
             else if (!selected) rowLabel.append(" — held back");
             Color rowColor = selected ? VALUE_COLOR : LABEL_COLOR;
-            ButtonWidget toggle = new ButtonWidget(x, y - BTN_H + 6f,
-                    layout.rightCol.w - 2 * INNER_PAD, BTN_H,
+            ButtonWidget toggle = new ButtonWidget(x, y - BTN_H + 6f, rowW, BTN_H,
                     () -> {
                         if (deselectedTransports.contains(idx)) deselectedTransports.remove(idx);
                         else deselectedTransports.add(idx);
@@ -319,17 +327,18 @@ public class BriefingScreen implements Screen {
             y -= ROW_GAP;
         }
         boolean transportOk = isTransportSufficient(m, effectivePlayerShuttles());
-        if (!transportOk) {
+        if (!transportOk && y >= floor) {
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                     "Need at least 1 transport (your fleet or employer)", x + 6f, y, BLOCKED_COLOR));
             y -= ROW_GAP;
         }
 
         // Fighter cover — one opt-in toggle per committable carrier.
-        if (!cachedCarriers.isEmpty()) {
-            widgets.add(new LabelWidget(Fonts.ORBITRON_20, "Fighter cover:", x, y, LABEL_COLOR));
+        if (!cachedCarriers.isEmpty() && y >= floor) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("briefingFighterCover"), x, y, LABEL_COLOR));
             y -= ROW_GAP;
             for (int i = 0; i < cachedCarriers.size(); i++) {
+                if (y < floor) return;
                 final int idx = i;
                 PlayerFleetWings.CarrierBay carrier = cachedCarriers.get(i);
                 boolean committed = !deselectedCarriers.contains(idx);
@@ -338,8 +347,7 @@ public class BriefingScreen implements Screen {
                         + " (" + carrier.bayCount() + (carrier.bayCount() == 1 ? " bay" : " bays") + ")"
                         + (committed ? "" : " — held back");
                 Color rowColor = committed ? VALUE_COLOR : LABEL_COLOR;
-                ButtonWidget toggle = new ButtonWidget(x, y - BTN_H + 6f,
-                        layout.rightCol.w - 2 * INNER_PAD, BTN_H,
+                ButtonWidget toggle = new ButtonWidget(x, y - BTN_H + 6f, rowW, BTN_H,
                         () -> {
                             if (deselectedCarriers.contains(idx)) deselectedCarriers.remove(idx);
                             else deselectedCarriers.add(idx);
@@ -353,22 +361,27 @@ public class BriefingScreen implements Screen {
 
         // === EMPLOYER PROVIDES === (read-only co-source)
         y -= SECTION_GAP;
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, "Employer Provides", x, y, HEADER_COLOR));
+        if (y < floor) return;
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, Strings.get("briefingEmployerProvides"), x, y, HEADER_COLOR));
         y -= ROW_GAP;
 
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("briefingTransport"), x, y, LABEL_COLOR));
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                m.employerShuttles > 0 ? m.employerShuttles + "× Aeroshuttle" : Strings.get("briefingAirNone"),
-                valueX, y, VALUE_COLOR));
-        y -= ROW_GAP;
+        if (y >= floor) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("briefingTransport"), x, y, LABEL_COLOR));
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    m.employerShuttles > 0 ? m.employerShuttles + "× Aeroshuttle" : Strings.get("briefingAirNone"),
+                    valueX, y, VALUE_COLOR));
+            y -= ROW_GAP;
+        }
 
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("briefingAlliedAir"), x, y, LABEL_COLOR));
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                summarizeWings(m.clientFighterSupport, Faction.MARINE), valueX, y, VALUE_COLOR));
-        y -= ROW_GAP;
+        if (y >= floor) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("briefingAlliedAir"), x, y, LABEL_COLOR));
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    summarizeWings(m.clientFighterSupport, Faction.MARINE), valueX, y, VALUE_COLOR));
+            y -= ROW_GAP;
+        }
 
-        if (m.employerPowerIds != null && !m.employerPowerIds.isEmpty()) {
-            widgets.add(new LabelWidget(Fonts.ORBITRON_20, "Powers:", x, y, LABEL_COLOR));
+        if (y >= floor && m.employerPowerIds != null && !m.employerPowerIds.isEmpty()) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("briefingPowers"), x, y, LABEL_COLOR));
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                     summarizePowerIds(m.employerPowerIds), valueX, y, VALUE_COLOR));
             y -= ROW_GAP;
