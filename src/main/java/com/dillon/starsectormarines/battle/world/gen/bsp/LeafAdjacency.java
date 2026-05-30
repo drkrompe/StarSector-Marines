@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.bsp;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -26,8 +27,20 @@ import java.util.Set;
  * adjacent to itself). The result is an {@link IdentityHashMap} so callers
  * can use {@link BlockLeaf} references directly as keys without worrying
  * about value-based equals/hashCode (there isn't one).
+ *
+ * <p>Each neighbor list is sorted by {@link #BY_POSITION} (top, then left) so
+ * the ordering is stable across runs. The adjacency <em>relation</em> was
+ * always deterministic, but the list order used to fall out of identity-hashed
+ * {@link HashSet} iteration — and {@link CompoundClaim} walks these lists to
+ * grow compounds, so an unstable order made the whole map non-reproducible
+ * from its seed. Leaf rects are disjoint, so {@code (top, left)} is a unique
+ * key per leaf.
  */
 public final class LeafAdjacency {
+
+    /** Stable neighbor ordering — leaf rects are disjoint so (top, left) is unique. */
+    private static final Comparator<BlockLeaf> BY_POSITION =
+            Comparator.comparingInt((BlockLeaf l) -> l.top).thenComparingInt(l -> l.left);
 
     /**
      * Max road-strip depth to scan from a leaf's outer edge before giving up
@@ -43,8 +56,8 @@ public final class LeafAdjacency {
     /**
      * Compute the adjacency map. Each leaf's value list contains every leaf
      * separated from it by ≤ {@link #MAX_ROAD_SCAN_DEPTH} road cells in any
-     * of the four cardinal directions. Order of neighbors is not stable
-     * across runs — callers that care should sort.
+     * of the four cardinal directions, sorted by {@link #BY_POSITION} for a
+     * run-stable order.
      */
     public static Map<BlockLeaf, List<BlockLeaf>> compute(List<BlockLeaf> leaves, int width, int height) {
         // Cell→leaf lookup. Cells inside no leaf (road, perimeter, trunk)
@@ -81,7 +94,9 @@ public final class LeafAdjacency {
 
         Map<BlockLeaf, List<BlockLeaf>> out = new IdentityHashMap<>(sets.size() * 2);
         for (Map.Entry<BlockLeaf, Set<BlockLeaf>> e : sets.entrySet()) {
-            out.put(e.getKey(), new ArrayList<>(e.getValue()));
+            List<BlockLeaf> list = new ArrayList<>(e.getValue());
+            list.sort(BY_POSITION);
+            out.put(e.getKey(), list);
         }
         return out;
     }
