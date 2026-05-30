@@ -276,11 +276,12 @@ counterplay, the cost model, and roster entry. What's still live:
 
 Not yet broken into `stories/` files — these are the brainstorm seeds:
 
-- **S1 — Power framework skeleton.** A `CommandPower` abstraction, a
-  command-point pool on the battle sim, and one trivial power (e.g. a recon
-  ping that lifts fog in a radius) wired end-to-end through the battle UI.
-  Proves the invoke → target → resolve → cooldown loop. ([[feedback_ship_then_optimize]]:
-  one working power before the catalog.)
+- ~~**S1 — Power framework skeleton.**~~ ✅ **Shipped** — see
+  [`complete/s1-power-framework-skeleton.md`](complete/s1-power-framework-skeleton.md).
+  `CommandPower` + `ReconPing` + `CommandPowerService`/`CommandPowerSystem` +
+  `CommandPowerPanel`, with the invoke → target → resolve → cooldown loop wired
+  end-to-end. ([[feedback_ship_then_optimize]]: one working power before the
+  catalog.)
 - **S2 — Fleet → available-powers resolver.** Read the mission's fleet
   composition, map ship/hull-mod presence to an available-power set. This is
   the diegetic-loadout core.

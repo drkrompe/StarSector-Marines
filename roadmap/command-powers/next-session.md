@@ -4,16 +4,25 @@
 
 ## Where this is
 
-**Design stage.** No code yet. This session created the track via a brainstorm
-with the user and seeded it from a vanilla ship/hull-mod flavor survey. The
-design skeleton is load-bearing; several forks are decided, a few remain open.
+**First code shipped.** S1 (the power framework skeleton — recon ping) is built
+and compile-verified; see [`complete/s1-power-framework-skeleton.md`](complete/s1-power-framework-skeleton.md).
+The design skeleton (below) is load-bearing; most forks are decided, a few
+remain open. **In-game feel-out of S1 is still pending** — placeholder tuning
+hasn't been exercised in live play.
+
+### Commit chain
+
+- S1 — `battle/power/` (CommandPower, ReconPing, CommandPowerService,
+  CommandPowerSystem) + `CommandPowerPanel` + BattleSimulation/BattleScreen
+  wire-up. Invoke → target → resolve → cooldown loop end-to-end with one power.
 
 ## Docs in this dir
 
 - [`overview.md`](overview.md) — the concept + all decisions. Read first.
 - [`ship-hullmod-survey.md`](ship-hullmod-survey.md) — the mined vanilla flavor
   catalog that seeds the power families and the S2 mapping table.
-- [`stories/`](stories/) — S1–S7. S1–S4 are implementation-ready; S5–S7 are
+- [`complete/`](complete/) — shipped stories. **S1 lives here now.**
+- [`stories/`](stories/) — S2–S7. S2–S4 are implementation-ready; S5–S7 are
   design-forward stubs.
 
 ## Decisions locked (this session)
@@ -53,10 +62,14 @@ design skeleton is load-bearing; several forks are decided, a few remain open.
 
 ## Suggested starting point
 
-S1 (framework skeleton, recon-ping) is self-contained and design-fork-free —
-start there. Then settle fork #1 before S2. S3/S6 want the parked
-**flyby → `AirBody` real-air-entity** promotion so orbital/air assets can be
-contested.
+S1 (framework skeleton, recon-ping) is **shipped**. Next, either:
+1. **Feel-out S1 in live play** (`gradlew runStarsector`) and tune the
+   placeholders (2 CP / 8s cooldown / 8-cell × 15s reveal), or
+2. **Settle fork #1** (explicit detachment vs implicit fleet) and start **S2**
+   (the fleet → available-powers resolver).
+
+S3/S6 want the parked **flyby → `AirBody` real-air-entity** promotion so
+orbital/air assets can be contested.
 
 ## Cross-track dependencies
 

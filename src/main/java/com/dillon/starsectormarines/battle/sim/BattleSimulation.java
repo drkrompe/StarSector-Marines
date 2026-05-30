@@ -153,6 +153,13 @@ public class BattleSimulation implements BattleControl {
     /** Per-faction strategic commander tier. Owns the slow-tick cadence; the {@link #setCommander}/{@link #getCommander} delegates below forward here, and the COMMANDER phase calls {@link CommanderService#tick}. */
     private final CommanderService commanders = new CommanderService();
 
+    /** Player command-power layer — the in-battle activation economy (command-point pool + per-power cooldowns), the UI-requested activation queue, and in-flight transient effects. State owner, ticked by {@link #commandPowerSystem} in the command tier. Available-power roster is hardcoded to {@code ReconPing} in S1 ({@code roadmap/command-powers/stories/s1-power-framework-skeleton.md}); the S2 fleet&rarr;powers resolver replaces that. {@link #getCommandPowerService} below exposes it to the UI + the view-layer fog projection. */
+    private final com.dillon.starsectormarines.battle.power.CommandPowerService commandPowers =
+            new com.dillon.starsectormarines.battle.power.CommandPowerService();
+    /** Stateless consumer that drains queued activations (commit cost + cooldown + resolve), regens command points, and ages cooldowns + transient pings each tick. */
+    private final com.dillon.starsectormarines.battle.power.CommandPowerSystem commandPowerSystem =
+            new com.dillon.starsectormarines.battle.power.CommandPowerSystem(commandPowers);
+
     /** Per-faction resource pools (reinforcement tickets, airstrike tickets). Compounds produce; dispatch layers consume. Ticked after compound capture so production reflects freshest capture state. Declared before {@link #reinforcement} so it can be constructor-injected into it. */
     private final BattleResources battleResources = new BattleResources();
 
@@ -351,6 +358,8 @@ public class BattleSimulation implements BattleControl {
     public com.dillon.starsectormarines.battle.vision.PlayerVisionState getVisionState() { return vision.getVisionState(); }
     /** Fog-of-war service — per-cell reveal state + per-unit visibility. The renderer reads this for the fog overlay and unit visibility gate. */
     public VisionService getVision() { return vision; }
+    /** Player command-power layer. The battle UI reads the pool / cooldowns and calls {@link com.dillon.starsectormarines.battle.power.CommandPowerService#requestActivation}; {@code BattleScreen.advance} projects its active recon pings into the fog as ephemeral vision sources. */
+    public com.dillon.starsectormarines.battle.power.CommandPowerService getCommandPowerService() { return commandPowers; }
     /** Hands the sim the map's building registry. Called by BattleSetup after generation. Subsequent visibility passes will reveal/hide these buildings as contributor units move. */
     public void setBuildings(com.dillon.starsectormarines.battle.world.model.Buildings buildings) {
         vision.setBuildings(buildings);
@@ -716,6 +725,11 @@ public class BattleSimulation implements BattleControl {
         // assignment written this tick is visible to the GOAP relevance pass
         // below. Cadence + early-skip-when-empty live inside the registry.
         commanders.tick(TICK_DT, cmd -> cmd.tick(this));
+        // Player command powers — commit any activations the UI queued this
+        // frame (pay command points + start cooldown + resolve the effect),
+        // regen the pool, and age cooldowns + transient reveals down. Folds
+        // into the COMMANDER region's lap; cost is trivial.
+        commandPowerSystem.tick(TICK_DT);
         tickProfile.lap(TickProfile.Phase.COMMANDER);
         // Squad-level GOAP replan pass. See SquadReplanSystem class doc for
         // ordering + parallelism notes.

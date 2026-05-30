@@ -437,6 +437,14 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (!sim.getVisionState().isContributor(s.faction)) continue;
             vis.addEphemeralSource((int) s.body.x, (int) s.body.y, 50, 3.5f);
         }
+        // Player recon-ping reveals — same ephemeral-source seam as shuttles.
+        // The sim owns the ping list + time-to-live; we just project the live
+        // ones into the fog each frame (airLosRadius 0 = walls block, so the
+        // reveal respects line of sight via the existing shadowcast).
+        for (com.dillon.starsectormarines.battle.power.CommandPowerService.ActivePing p
+                : sim.getCommandPowerService().getActivePings()) {
+            vis.addEphemeralSource(p.cellX, p.cellY, p.radius, 0f);
+        }
         // Always tick — dt=0 makes the sim a no-op but still clears the per-frame event lists,
         // so a paused caller doesn't keep replaying the previous frame's shot/death sounds.
         sim.advance(dt * speedMultiplier);
@@ -544,6 +552,11 @@ public class BattleScreen implements Screen, BattleUiContext {
         // claim their own rows via consume(); WorldPicker only fires on the
         // leftover unconsumed clicks that landed in the world rect.
         hud.addPanel(new WorldPicker(this));
+        // Command-power bar (bottom-center) + click-to-target. Added after
+        // WorldPicker so reverse-order input lets it claim the button click and
+        // the targeting world-click before the picker turns them into a squad
+        // selection; when not targeting, world clicks fall through to the picker.
+        hud.addPanel(new com.dillon.starsectormarines.battle.ui.panel.CommandPowerPanel(this));
         hud.addPanel(new SquadOverviewPanel(this));
         hud.addPanel(new SquadDetailPanel(this));
         // Per-squad GOAP plan readout. Compact when nothing is selected; full
