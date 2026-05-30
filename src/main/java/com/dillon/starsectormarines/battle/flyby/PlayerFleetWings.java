@@ -88,7 +88,10 @@ public final class PlayerFleetWings {
                 FighterProfile profile = profileFromWingId(wingId);
                 if (profile != null) profiles.add(profile); // unmapped wing — skip silently
             }
-            if (!profiles.isEmpty()) out.add(new CarrierBay(member.getShipName(), profiles));
+            if (!profiles.isEmpty()) {
+                String name = member.getShipName() != null ? member.getShipName() : "Carrier";
+                out.add(new CarrierBay(name, profiles));
+            }
         }
         return out;
     }
