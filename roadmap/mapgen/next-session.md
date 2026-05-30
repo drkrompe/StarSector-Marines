@@ -16,7 +16,7 @@ b8b7b9d  mapgen: Slice D — ternary keep wiring + multi-chamber stamper emissio
 5e5ae91  mapgen: Slice 1 — GenContext blackboard; collapse fill SPI signatures
 09d2590  mapgen: deterministic leaf-adjacency neighbor order
 53fe951  mapgen: defense-post partition guard checks real footprint, not bbox
-<this>   mapgen: Slice 2a — GenStage pipeline (extract generate() into stages)  ← latest mapgen work
+65c5686  mapgen: Slice 2a — GenStage pipeline (extract generate() into stages)  ← latest mapgen work
 ```
 
 Full per-slice mapping (what landed vs. planned, Slice A critique
