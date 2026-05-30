@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.BlockFiller;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.GenRecipe;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.MapGenerator;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
@@ -50,19 +51,23 @@ import java.util.Map;
 import java.util.Random;
 
 /**
- * The BSP-based urban map generator, reified as a context + stage pipeline. The
- * {@code generate()} entry point builds a {@link GenContext} blackboard, runs an
- * ordered {@link GenStage} list, and assembles the {@link MapResult} from the
- * context. Each numbered step of the legacy monolith lives in its own stage —
- * the per-step passes under {@code bsp.stage}, plus the four post-fill stampers
- * ({@link FortressWallStamper}, {@link DefensePostStamper},
+ * The BSP-based urban map generator, reified as a context + stage + recipe
+ * pipeline. The {@code generate()} entry point builds a {@link GenContext}
+ * blackboard, selects a {@link GenRecipe}, runs it, and assembles the
+ * {@link MapResult} from the context. Each numbered step of the legacy monolith
+ * lives in its own stage — the per-step passes under {@code bsp.stage}, plus the
+ * four post-fill stampers ({@link FortressWallStamper}, {@link DefensePostStamper},
  * {@link CompoundPerimeterDefenderStamper}, {@link KeepEntryChamberStamper}),
  * which each implement {@link GenStage} directly.
  *
- * <p>The conquest/legacy fork is expressed as {@code ctx.has(BspKeys.AXIS)}
- * checks inside the affected stages — biome stages no-op when the axis is
- * absent. Once {@code GenRecipe} lands (Slice 3) those gates collapse into
- * per-map-type stage lists.
+ * <p>The conquest/legacy fork is now <b>recipe membership</b>: the conquest
+ * recipe runs the full stage list, the legacy recipe omits the conquest-only
+ * stages ({@code CompoundSeed}, biome ground override, beach shoreline, fortress
+ * wall, defense posts, compound-perimeter defenders) entirely. Stages shared by
+ * both modes ({@code ZoningOverlay}, {@code LabelLeaves}, {@code CompoundClaim},
+ * {@code SpawnAnchor}) still fork internally on {@link BspKeys#BIOME_MAP} /
+ * {@link BspKeys#AXIS}. {@code generate(…, axis)} picks the recipe by axis
+ * presence; output is byte-identical to the pre-recipe single-list path.
  *
  * <p>Filler registration happens once in the constructor. New per-kind fillers
  * replace the {@link StubBlockFiller} entries via {@code register(...)}; the
@@ -74,8 +79,10 @@ public final class BspCityGenerator implements MapGenerator {
     private final Map<BlockKind, BlockFiller> fillers = new EnumMap<>(BlockKind.class);
     private final Map<BlockKind, CompoundFiller> compoundFillers = new EnumMap<>(BlockKind.class);
 
-    /** The ordered pipeline. Built once in the constructor; replayed per {@code generate()} call against a fresh context. */
-    private final List<GenStage> stages;
+    /** Conquest map recipe (full stage list). Built once in the constructor; replayed per {@code generate()} call against a fresh context. */
+    private final GenRecipe conquestRecipe;
+    /** Legacy district-urban recipe (conquest-only stages omitted). */
+    private final GenRecipe legacyRecipe;
 
     public BspCityGenerator() {
         // Default every kind to a stub. Real fillers replace these via
@@ -103,37 +110,68 @@ public final class BspCityGenerator implements MapGenerator {
         registerCompound(new GatedHousingFiller());
         registerCompound(new DenseQuarterFiller());
 
-        this.stages = buildStages();
+        this.conquestRecipe = buildConquestRecipe();
+        this.legacyRecipe = buildLegacyRecipe();
     }
 
     /**
-     * The legacy ConquestCity / LegacyUrban sequence, in call order. Biome
-     * stages and the conquest-only stampers self-gate on {@link BspKeys#BIOME_MAP}
-     * / {@link BspKeys#AXIS}, pulling their args off the context. Output is
-     * byte-identical to the pre-pipeline monolith — same {@code rng} draws in
-     * the same order.
+     * The conquest map recipe — the full stage sequence, in call order. The
+     * biome stages + conquest-only stampers still self-gate on
+     * {@link BspKeys#BIOME_MAP} / {@link BspKeys#AXIS} (belt-and-suspenders), but
+     * the axis is always bound on the conquest path so every stage proceeds.
+     * Output is byte-identical to the pre-recipe single-list path — same
+     * {@code rng} draws in the same order.
      */
-    private List<GenStage> buildStages() {
-        return List.of(
+    private GenRecipe buildConquestRecipe() {
+        return new GenRecipe("ConquestCity", List.of(
                 new InitFloorStage(),                       // Step 0
                 new TrunkSkeletonStage(),                   // Step 1a
                 new BspPartitionStage(),                    // Step 1b
                 new ZoningOverlayStage(),                   // Step 1c
                 new LabelLeavesStage(),                     // Step 2
-                new CompoundSeedStage(),                    // Step 2a
+                new CompoundSeedStage(),                    // Step 2a   conquest-only
                 new CompoundClaimStage(),                   // Step 2b
                 new RoadGraphStage(),                       // Step 2c
                 new FillDispatchStage(fillers, compoundFillers), // Step 3
                 new PedestrianFrameStage(),                 // Step 3a'
-                new BiomeGroundOverrideStage(),             // Step 3b
-                new BeachShorelineStage(),                  // Step 3b'
-                new FortressWallStamper(),                  // Step 3c
-                new DefensePostStamper(),                   // Step 3c'
-                new CompoundPerimeterDefenderStamper(),     // Step 3c''
+                new BiomeGroundOverrideStage(),             // Step 3b   conquest-only
+                new BeachShorelineStage(),                  // Step 3b'  conquest-only
+                new FortressWallStamper(),                  // Step 3c   conquest-only
+                new DefensePostStamper(),                   // Step 3c'  conquest-only
+                new CompoundPerimeterDefenderStamper(),     // Step 3c'' conquest-only
                 new KeepEntryChamberStamper(),              // Step 3c'''
                 new TacticalLinkStage(),                    // Step 3d
                 new FinalizeStage(),                        // Step 4 + 4b
-                new SpawnAnchorStage());                    // spawn anchors
+                new SpawnAnchorStage()));                   // spawn anchors
+    }
+
+    /**
+     * The legacy district-urban recipe — the conquest recipe minus the six
+     * conquest-only stages (compound seeding, biome ground override, beach
+     * shoreline, fortress wall, defense posts, compound-perimeter defenders).
+     * Each omitted stage was verified RNG- and mutation-inert when
+     * {@link BspKeys#BIOME_MAP} / {@link BspKeys#AXIS} is unbound, so dropping
+     * them from the list reproduces the old legacy path exactly: the kept stages
+     * keep their relative order and see an identical {@code rng} stream. The
+     * shared stages ({@code ZoningOverlay} / {@code LabelLeaves} /
+     * {@code CompoundClaim} / {@code SpawnAnchor}) fork to their district / legacy
+     * behavior internally.
+     */
+    private GenRecipe buildLegacyRecipe() {
+        return new GenRecipe("LegacyUrban", List.of(
+                new InitFloorStage(),                       // Step 0
+                new TrunkSkeletonStage(),                   // Step 1a
+                new BspPartitionStage(),                    // Step 1b
+                new ZoningOverlayStage(),                   // Step 1c   binds DISTRICT_MAP
+                new LabelLeavesStage(),                     // Step 2
+                new CompoundClaimStage(),                   // Step 2b
+                new RoadGraphStage(),                       // Step 2c
+                new FillDispatchStage(fillers, compoundFillers), // Step 3
+                new PedestrianFrameStage(),                 // Step 3a'
+                new KeepEntryChamberStamper(),              // Step 3c'''
+                new TacticalLinkStage(),                    // Step 3d
+                new FinalizeStage(),                        // Step 4 + 4b
+                new SpawnAnchorStage()));                   // spawn anchors
     }
 
     /** Swap in a compound-aware filler. Idempotent — last write wins. */
@@ -177,9 +215,11 @@ public final class BspCityGenerator implements MapGenerator {
         GenContext ctx = new GenContext(grid, topology, rng, width, height, seed);
         if (axis != null) ctx.put(BspKeys.AXIS, axis);
 
-        for (GenStage stage : stages) {
-            stage.run(ctx);
-        }
+        // Recipe selection is the conquest/legacy fork: axis present → the full
+        // conquest sequence; axis absent → the legacy district recipe (which
+        // omits the conquest-only stages rather than running them as no-ops).
+        GenRecipe recipe = (axis != null) ? conquestRecipe : legacyRecipe;
+        recipe.run(ctx);
 
         // Surface the preview accessors + assemble the result from the context.
         this.lastBiomeMap = ctx.get(BspKeys.BIOME_MAP);
