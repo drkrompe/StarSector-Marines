@@ -164,10 +164,15 @@ plugs in as station stages here.
 
 | Slice | Story | What |
 | --- | --- | --- |
-| **1** | [`stories/gen-context.md`](stories/gen-context.md) | `GenContext` + `GenKey` + `ConquestKeys`; collapse the 9-arg `fill` / `stamp` / `partition` signatures to take `ctx`. `generate()` stays imperative. Byte-identical output. |
-| **2** | _(to author)_ | `GenStage` interface; extract each numbered step into a stage object; `generate()` becomes "build ctx, run an ordered `List<GenStage>`." Conditionals become stage-presence. |
+| **1** | ✅ [`complete/gen-context.md`](complete/gen-context.md) (`5e5ae91`) | `GenContext` + `GenKey` + `BspKeys`; collapse the **fill SPI** (`BlockFiller` 6-arg, `CompoundFiller` 9-arg) onto `ctx`. `generate()` stays imperative. Byte-identical output. Stampers + `partition`/`carve` deliberately deferred (see the story's scope-refinement note). |
+| **2** | _(to author)_ | `GenStage` interface; extract each numbered step — **including the stampers** — into a stage object; `generate()` becomes "build ctx, run an ordered `List<GenStage>`." Conditionals become stage-presence. Stampers' `stamp(ctx)` + their tests convert here. |
 | **3** | _(to author)_ | `GenRecipe`; `ConquestCityRecipe` / `LegacyUrbanRecipe`; `BattleSetup` selects by mission. Adding a map type becomes additive. |
 | **4+** | [`stories/station-interior-fills.md`](stories/station-interior-fills.md), [`stories/corridors-first-class.md`](stories/corridors-first-class.md) | Station / ship recipes + their domain stages. Out of scope here; this track is the enabler. |
+
+> **Note on the `GenKey` holder name.** The design sketch above calls it
+> `ConquestKeys`; the shipped Slice 1 named it `BspKeys` — these overlays
+> serve the whole BSP city generator (conquest + legacy district modes),
+> not just conquest. Station/ship would declare their own holder.
 
 ## Verification posture
 

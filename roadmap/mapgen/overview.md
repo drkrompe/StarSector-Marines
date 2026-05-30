@@ -110,8 +110,8 @@ orchestrator" the station story predicted.
 
 | Slice | Story | What |
 | --- | --- | --- |
-| **1** | [`gen-context`](stories/gen-context.md) | `GenContext` typed-blackboard; collapse the 9-arg pass signatures. Behavior-preserving. |
-| **2** | _(to author)_ | `GenStage` interface; extract each numbered step into a stage object. |
+| **1** | ✅ [`gen-context`](complete/gen-context.md) (`5e5ae91`) | `GenContext` typed-blackboard; collapse the fill SPI (`BlockFiller`/`CompoundFiller`) onto `ctx`. Behavior-preserving. |
+| **2** | _(to author)_ | `GenStage` interface; extract each numbered step (incl. stampers) into a stage object. |
 | **3** | _(to author)_ | `GenRecipe`; named recipes per map type; `BattleSetup` selects one. |
 
 ### Station / ship fills (extension, post-pipeline)

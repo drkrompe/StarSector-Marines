@@ -44,15 +44,19 @@ compose instead of forking. Design agreed (typed-blackboard `GenContext`,
 incremental rollout). Design doc:
 [`composable-pipeline.md`](composable-pipeline.md).
 
-1. **[`gen-context`](stories/gen-context.md)** — Slice 1. Introduce
-   `GenContext` (typed blackboard via `GenKey<T>`) + `ConquestKeys`;
-   collapse the 9-arg `fill` / `stamp` / `partition` signatures onto it.
-   Behavior-preserving; lock against `BspMapPreviewTest` seeds. The
-   signature sweep is delegate-to-Sonnet; design + verify on main.
-2. **Slice 2 (to author)** — `GenStage` interface; extract each numbered
-   `generate()` step into a stage object. `generate()` becomes
-   "build ctx, run an ordered `List<GenStage>`."
-3. **Slice 3 (to author)** — `GenRecipe`; `ConquestCityRecipe` /
+- **Slice 1 — `GenContext` + fill-SPI collapse: ✅ shipped (`5e5ae91`).**
+  `GenContext` / `GenKey<T>` / `BspKeys` landed; `BlockFiller` (6-arg) and
+  `CompoundFiller` (9-arg) now take `(…, ctx)`. Orchestrator binds overlays
+  under `BspKeys` and threads `ctx`. Behavior-preserving; build clean,
+  suite green. Scope sharpened to the fill SPI only — stampers +
+  `partition`/`carve` deferred (see
+  [`complete/gen-context.md`](complete/gen-context.md)).
+
+1. **Slice 2 (next, to author)** — `GenStage { void run(GenContext ctx); }`;
+   extract each numbered `generate()` step **including the four stampers**
+   into a stage object (their `stamp(ctx)` + dedicated tests convert here).
+   `generate()` becomes "build ctx, run an ordered `List<GenStage>`."
+2. **Slice 3 (to author)** — `GenRecipe`; `ConquestCityRecipe` /
    `LegacyUrbanRecipe`; `BattleSetup` selects by mission.
 
 Station-tier fills (extension, post-pipeline) are parked in
