@@ -20,7 +20,8 @@ import java.util.Random;
  * so the water cells survive (the override skips {@link GroundKind#WATER}).
  * Strips any leaf-fill state at the shoreline cells — doodads, walls, building
  * hints, nature overlays — so nothing else "lives" in the reserved water strip.
- * Conquest-only — a no-op when {@link BspKeys#BIOME_MAP} is unbound.
+ * Conquest-recipe-only — requires {@link BspKeys#BIOME_MAP} and throws if
+ * invoked without it (recipe membership keeps it off the legacy path).
  *
  * <p>For {@link TraversalAxis#SOUTH_TO_NORTH} the band sits at the bottom of
  * the map (low {@code y}); for {@link TraversalAxis#WEST_TO_EAST} at the left
@@ -50,7 +51,10 @@ public final class BeachShorelineStage implements GenStage {
     @Override
     public void run(GenContext ctx) {
         BiomeMap biomeMap = ctx.get(BspKeys.BIOME_MAP);
-        if (biomeMap == null) return;
+        if (biomeMap == null) {
+            throw new IllegalStateException(
+                    "BeachShorelineStage requires BIOME_MAP — conquest recipe only");
+        }
         applyBeachShoreline(ctx.grid, ctx.topology, ctx.get(BspKeys.AXIS), biomeMap,
                 ctx.get(BspKeys.ROAD_RESERVATION), ctx.doodads, ctx.rng);
     }

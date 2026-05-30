@@ -83,13 +83,18 @@ Adding a map type is now additive — author a recipe + its domain stages; the
 generic stages (`FillDispatchStage`, `TacticalLinkStage`, `FinalizeStage`) are
 reused verbatim. Candidate next tracks (priority order):
 
-1. **Strip the now-redundant conquest-only self-gates** (optional cleanup) —
-   the six conquest-only stages keep belt-and-suspenders `BIOME_MAP`/`AXIS`
-   guards that recipe membership now makes dead. Low-risk follow-up; leave them
-   if a future recipe might list a stage without binding the overlay.
-2. **Slice 1 filler-level critique nits** (see section below) — fold in when a
+- **Self-gate cleanup: ✅ done.** The four conquest-*geometry* stages
+  (`BiomeGroundOverride`, `BeachShoreline`, `FortressWall`, `DefensePost`) now
+  **fail-fast** — `if (biomeMap == null) throw` instead of the dead silent
+  no-op — so mis-composing them into a non-conquest recipe surfaces loudly. The
+  two compound stages kept their graceful handling on purpose: `CompoundSeed`
+  delegates null-tolerance to its seeder, and `CompoundPerimeter`'s axis-skip is
+  a tested, intentional "no attacker side → nothing to place" behavior — left
+  flexible pending how compounds compose into future recipes.
+
+1. **Slice 1 filler-level critique nits** (see section below) — fold in when a
    filler-rework pass next touches that code.
-3. **Station-tier track** — [`stories/corridors-first-class.md`](stories/corridors-first-class.md)
+2. **Station-tier track** — [`stories/corridors-first-class.md`](stories/corridors-first-class.md)
    (the real blocker — corridors as first-class connective structure) then
    [`stories/station-interior-fills.md`](stories/station-interior-fills.md)
    (rides on corridors + the recipe machinery); both plug in as new recipes +

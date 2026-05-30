@@ -59,8 +59,8 @@ import java.util.Random;
  *
  * <p>Pipeline step 3c, run as a {@link GenStage}: {@link #run} pulls the biome
  * map, compound list, axis, road reservation, and output accumulators off the
- * {@link GenContext}. Conquest-only — a no-op when {@link BspKeys#BIOME_MAP} is
- * unbound.
+ * {@link GenContext}. Conquest-recipe-only — {@link #run} requires
+ * {@link BspKeys#BIOME_MAP} and throws if it is unbound.
  */
 public final class FortressWallStamper implements GenStage {
 
@@ -100,10 +100,12 @@ public final class FortressWallStamper implements GenStage {
     public FortressWallStamper() {}
 
     /**
-     * Stamp the wall + towers + gates + forward bunkers. No-op when the biome
-     * map is unbound (legacy non-conquest path) or the fortress biome's
-     * bounding box is too small to fit a meaningful wall (degenerate biome
-     * layouts on very small maps).
+     * Stamp the wall + towers + gates + forward bunkers. Conquest-recipe-only:
+     * requires {@link BspKeys#BIOME_MAP} and throws if invoked without it
+     * (recipe membership keeps it off the legacy path). Still a clean no-op when
+     * the fortress biome's bounding box is too small to fit a meaningful wall
+     * (degenerate biome layouts on very small maps) — that's real geometry, not
+     * a missing overlay.
      *
      * <p>Mutates {@code ctx.doodads} — strips any entries that fall inside a
      * demolished building footprint, so debris doesn't float in mid-air on
@@ -112,7 +114,10 @@ public final class FortressWallStamper implements GenStage {
     @Override
     public void run(GenContext ctx) {
         BiomeMap biomeMap = ctx.get(BspKeys.BIOME_MAP);
-        if (biomeMap == null) return;
+        if (biomeMap == null) {
+            throw new IllegalStateException(
+                    "FortressWallStamper requires BIOME_MAP — conquest recipe only");
+        }
         NavigationGrid grid = ctx.grid;
         CellTopology topology = ctx.topology;
         TraversalAxis axis = ctx.get(BspKeys.AXIS);

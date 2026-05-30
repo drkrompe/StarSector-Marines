@@ -66,10 +66,10 @@ import java.util.Random;
  * </ul>
  *
  * <p>Pipeline step 3c', run as a {@link GenStage}: {@link #run} rolls the
- * per-biome budgets off {@code ctx.rng} and places each tier. Conquest-only — a
- * no-op when {@link BspKeys#BIOME_MAP} is unbound. The non-conquest scatter
- * ({@link #stampNonConquest}) stays a static entry point called directly by
- * {@code BattleSetup} outside the generation pipeline.
+ * per-biome budgets off {@code ctx.rng} and places each tier. Conquest-recipe-only —
+ * {@link #run} requires {@link BspKeys#BIOME_MAP} and throws if it is unbound.
+ * The non-conquest scatter ({@link #stampNonConquest}) stays a static entry
+ * point called directly by {@code BattleSetup} outside the generation pipeline.
  */
 public final class DefensePostStamper implements GenStage {
 
@@ -114,13 +114,18 @@ public final class DefensePostStamper implements GenStage {
      * {@code ctx.topology} to stamp each ring + turret cell, append doodads,
      * emit {@link TacticalNode}s, and append the {@link DefensePost} records.
      *
-     * <p>No-op when {@link BspKeys#BIOME_MAP} is unbound (legacy non-conquest
-     * path — that path stamps via {@link #stampNonConquest} instead).
+     * <p>Conquest-recipe-only: requires {@link BspKeys#BIOME_MAP} and throws if
+     * invoked without it. The legacy / non-conquest path stamps via
+     * {@link #stampNonConquest} instead (a separate static entry, not this stage).
      */
     @Override
     public void run(GenContext ctx) {
         BiomeMap biomeMap = ctx.get(BspKeys.BIOME_MAP);
-        if (biomeMap == null) return;
+        if (biomeMap == null) {
+            throw new IllegalStateException(
+                    "DefensePostStamper requires BIOME_MAP — conquest recipe only "
+                            + "(non-conquest maps use stampNonConquest)");
+        }
         NavigationGrid grid = ctx.grid;
         CellTopology topology = ctx.topology;
         TraversalAxis axis = ctx.get(BspKeys.AXIS);
