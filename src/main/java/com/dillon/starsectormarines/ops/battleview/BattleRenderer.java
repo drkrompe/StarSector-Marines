@@ -78,7 +78,11 @@ public class BattleRenderer {
     /** Sim-seconds shots live for — must match {@code BattleSimulation.SHOT_LIFETIME}. Used to fade tracer alpha. */
     private static final float SHOT_LIFETIME_REF = 0.15f;
 
-    private static final float UNIT_FRAC      = 1.00f; // sprite fills the cell
+    /** Base unit-sprite size as a fraction of the cell (sprite fills the cell).
+     *  Package-visible: the base size is shared across UNITS strata — the
+     *  {@link UnitRenderService} dead sweep multiplies it by {@code renderScale}
+     *  exactly as the inline live/dead passes do, so they must read one constant. */
+    static final float UNIT_FRAC      = 1.00f;
     /** Gap between an entity's top edge and its HP bar (placement, caller-owned).
      *  Bar style (height/colors) lives in {@link HpBarDecor}. */
     static final float HP_BAR_GAP     = 2f;

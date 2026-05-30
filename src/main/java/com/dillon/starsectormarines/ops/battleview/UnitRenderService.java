@@ -57,7 +57,8 @@ public final class UnitRenderService implements RenderSystem {
      */
     private void sweepDeadSprites(RenderContext ctx, DrawList out) {
         BattleCamera cam = ctx.camera;
-        float unitSize = cam.cellPxSize(); // UNIT_FRAC == 1f
+        // Base cell-sprite size shared across UNITS strata; renderScale applied below.
+        float unitSize = cam.cellPxSize() * BattleRenderer.UNIT_FRAC;
         float alphaMult = ctx.alphaMult;
 
         for (Unit u : ctx.sim.getUnits()) {
