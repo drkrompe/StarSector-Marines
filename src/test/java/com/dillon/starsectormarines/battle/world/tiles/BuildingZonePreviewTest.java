@@ -475,7 +475,7 @@ public class BuildingZonePreviewTest {
         }
 
         BlockLeaf leaf = new BlockLeaf(leafLeft, leafTop, leafRight, leafBottom, false);
-        GenContext ctx = new GenContext(grid, topology, new Random(variant.seed), gridW, gridH);
+        GenContext ctx = new GenContext(grid, topology, new Random(variant.seed), gridW, gridH, variant.seed);
         filler.fill(leaf, ctx);
         List<PointOfInterest> pois = ctx.pois;
         List<Doodad> doodads = ctx.doodads;

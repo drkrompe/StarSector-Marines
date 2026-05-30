@@ -47,6 +47,13 @@ public final class GenContext {
     public final Random rng;
     public final int width;
     public final int height;
+    /**
+     * The raw generation seed. {@code rng} is already derived from it; this is
+     * kept separately for passes that seed their own deterministic sub-RNG off
+     * the same value (e.g. the building flood-fill's per-building variation)
+     * rather than drawing from the shared {@code rng} stream.
+     */
+    public final long seed;
 
     /** Landmark buildings emitted by fillers / stampers. */
     public final List<PointOfInterest> pois = new ArrayList<>();
@@ -67,12 +74,13 @@ public final class GenContext {
     private final Map<GenKey<?>, Object> store = new HashMap<>();
 
     public GenContext(NavigationGrid grid, CellTopology topology, Random rng,
-                      int width, int height) {
+                      int width, int height, long seed) {
         this.grid = grid;
         this.topology = topology;
         this.rng = rng;
         this.width = width;
         this.height = height;
+        this.seed = seed;
     }
 
     /** Bind {@code value} under {@code key}. Last write wins. */

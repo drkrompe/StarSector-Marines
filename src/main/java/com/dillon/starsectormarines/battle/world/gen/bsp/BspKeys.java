@@ -1,8 +1,10 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
+import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.world.gen.GenKey;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
+import com.dillon.starsectormarines.battle.world.model.Buildings;
 
 import java.util.List;
 
@@ -39,4 +41,24 @@ public final class BspKeys {
 
     /** Claimed multi-leaf compounds; perimeter stampers read it for exclusion masks. */
     public static final GenKey<List<Compound>> COMPOUNDS = GenKey.of("compounds");
+
+    // --- pipeline intermediates (produced by one stage, consumed by later ones) ---
+
+    /** Trunk skeleton (arterials + sub-rects + intersection). Produced by the trunk stage, read by BSP partition / zoning / pedestrian / road-graph stages. */
+    public static final GenKey<TrunkPlan.Plan> TRUNK_PLAN = GenKey.of("trunkPlan");
+
+    /** BSP leaf partition over the trunk sub-rects. Produced by the partition stage, read by label / seed / claim / fill / pedestrian stages. */
+    public static final GenKey<Bsp.Partition> PARTITION = GenKey.of("partition");
+
+    /** Linked tactical-node graph. Produced by the tactical-link stage, flows into {@code MapResult}. */
+    public static final GenKey<TacticalMap> TACTICAL_MAP = GenKey.of("tacticalMap");
+
+    /** Flood-filled building registry. Produced by the finalize stage, flows into {@code MapResult}. */
+    public static final GenKey<Buildings> BUILDINGS = GenKey.of("buildings");
+
+    /** Marine spawn cell {@code [x, y]}. Produced by the spawn stage. */
+    public static final GenKey<int[]> MARINE_SPAWN = GenKey.of("marineSpawn");
+
+    /** Defender spawn cell {@code [x, y]}. Produced by the spawn stage. */
+    public static final GenKey<int[]> DEFENDER_SPAWN = GenKey.of("defenderSpawn");
 }

@@ -12,7 +12,11 @@ work is sealed in [`complete/`](complete/).
 d3f659d  mapgen: Slice A polish — distance-indexed label contract + critique NITs
 042d084  mapgen: Slice B — PartitionStrategy interface + BinaryPartitionStrategy
 ee55eb0  mapgen: Slice C — TernaryPartitionStrategy + N-axis PartitionLayout
-b8b7b9d  mapgen: Slice D — ternary keep wiring + multi-chamber stamper emission  ← latest mapgen work
+b8b7b9d  mapgen: Slice D — ternary keep wiring + multi-chamber stamper emission
+5e5ae91  mapgen: Slice 1 — GenContext blackboard; collapse fill SPI signatures
+09d2590  mapgen: deterministic leaf-adjacency neighbor order
+53fe951  mapgen: defense-post partition guard checks real footprint, not bbox
+<this>   mapgen: Slice 2a — GenStage pipeline (extract generate() into stages)  ← latest mapgen work
 ```
 
 Full per-slice mapping (what landed vs. planned, Slice A critique
@@ -46,18 +50,26 @@ incremental rollout). Design doc:
 
 - **Slice 1 — `GenContext` + fill-SPI collapse: ✅ shipped (`5e5ae91`).**
   `GenContext` / `GenKey<T>` / `BspKeys` landed; `BlockFiller` (6-arg) and
-  `CompoundFiller` (9-arg) now take `(…, ctx)`. Orchestrator binds overlays
-  under `BspKeys` and threads `ctx`. Behavior-preserving; build clean,
-  suite green. Scope sharpened to the fill SPI only — stampers +
-  `partition`/`carve` deferred (see
-  [`complete/gen-context.md`](complete/gen-context.md)).
+  `CompoundFiller` (9-arg) now take `(…, ctx)`. See
+  [`complete/gen-context.md`](complete/gen-context.md).
+- **Slice 2a — `GenStage` pipeline: ✅ shipped.** Each numbered `generate()`
+  step is now a `GenStage` class under `bsp/stage/`; `generate()` builds `ctx`,
+  runs an ordered `List<GenStage>`, assembles `MapResult`. Behavior-equivalent.
+  The four stampers run as `GenStage` **lambdas** for now — folding them into
+  `run(ctx)` classes is 2b. Verification surfaced + fixed two pre-existing gen
+  bugs (non-deterministic adjacency `09d2590`; defense-post stranding `53fe951`).
+  See [`complete/gen-stages.md`](complete/gen-stages.md).
 
-1. **Slice 2 (next, to author)** — `GenStage { void run(GenContext ctx); }`;
-   extract each numbered `generate()` step **including the four stampers**
-   into a stage object (their `stamp(ctx)` + dedicated tests convert here).
-   `generate()` becomes "build ctx, run an ordered `List<GenStage>`."
+1. **Slice 2b (next)** — fold the four stampers (`FortressWallStamper`,
+   `DefensePostStamper`, `CompoundPerimeterDefenderStamper`,
+   `KeepEntryChamberStamper`) into `run(ctx)` `GenStage` classes; drop the
+   static `stamp(...)` signatures; convert `KeepEntryChamberStamperTest` +
+   `CompoundPerimeterDefenderStamperTest` to drive via `ctx`. Replace the
+   lambdas in `BspCityGenerator.buildStages()` with the stamper instances and
+   move `buildCompoundExclusion` into `FortressWallStamper`.
 2. **Slice 3 (to author)** — `GenRecipe`; `ConquestCityRecipe` /
-   `LegacyUrbanRecipe`; `BattleSetup` selects by mission.
+   `LegacyUrbanRecipe`; `BattleSetup` selects by mission. The conquest/legacy
+   `ctx.has(AXIS)` gates inside the biome stages collapse into recipe membership.
 
 Station-tier fills (extension, post-pipeline) are parked in
 [`stories/`](stories/): **[`corridors-first-class`](stories/corridors-first-class.md)**
@@ -65,11 +77,12 @@ Station-tier fills (extension, post-pipeline) are parked in
 **[`station-interior-fills`](stories/station-interior-fills.md)** (rides
 on corridors + the recipe machinery).
 
-### Slice 1 critique follow-ups (carry into Slice 2)
+### Slice 1 critique follow-ups (carry into Slice 2b)
 
 Background critique of `5e5ae91` confirmed behavior-preservation (no
-blocker); these minor items were deferred, fold them in when Slice 2
-touches the same code:
+blocker); these minor items are still open — Slice 2a extracted the
+orchestrator into stages but didn't rework the fillers, so fold them in
+when Slice 2b touches the same code:
 
 - **Test gap.** `BuildingZonePreviewTest` builds a `GenContext` but never
   binds `ROAD_CELLS` / `ROAD_RESERVATION`, so the compound-filler
