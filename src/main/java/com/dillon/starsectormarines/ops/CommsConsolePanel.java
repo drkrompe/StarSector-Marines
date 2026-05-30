@@ -167,8 +167,8 @@ public class CommsConsolePanel extends OpsPanel {
         // commitment controls (transports, fighter cover, captain, salvage)
         // live on the full-screen BriefingScreen reached via Brief & Deploy.
 
-        // Reset scroll on client switch — re-entering a familiar client keeps
-        // their stack position survives until the user picks another client.
+        // Reset scroll on client switch — the stack position holds until the
+        // user picks a different client.
         String clientKey = selected.identity();
         if (!clientKey.equals(lastClientForScroll)) {
             lastClientForScroll = clientKey;
