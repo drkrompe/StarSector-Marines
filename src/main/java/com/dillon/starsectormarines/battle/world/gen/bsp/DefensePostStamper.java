@@ -343,12 +343,14 @@ public final class DefensePostStamper {
             }
             if (tooCloseToExistingPost(defensePosts, cx, cy)) continue;
             // Final gate — would stamping this footprint partition the walkable
-            // graph? Catches the case where the post sits between an existing
-            // non-walkable mass (BSP outdoor wall, building, fortress wall) and
-            // open ground, sealing off a thin strip the footprint check on its
-            // own can't see.
-            if (PlacementGuards.wouldPartitionWalkable(
-                    grid, cx - halfX, cy - halfY, halfX * 2 + 1, halfY * 2 + 1)) continue;
+            // graph? Catches the post sealing a thin strip against an existing
+            // non-walkable mass (BSP wall, building, fortress wall), AND the
+            // post boxing in one of its OWN open footprint cells (a vent ring's
+            // corner trapped between the ring arms and pre-existing water/wall).
+            // Pass the actual blocked cells, not the bbox — sparse footprints
+            // (LIGHT cross, WEDGE/TRAPEZOID notches) leave bbox cells walkable,
+            // and those open cells must stay in the connectivity check.
+            if (PlacementGuards.wouldPartitionWalkable(grid, blockedFootprint(tier, shape, cx, cy))) continue;
             DefensePost post = stampPost(grid, topology, doodads, tier, shape, cx, cy, rng);
             defensePosts.add(post);
             // Tiers with a zero garrison (DRONE_HUB) defend themselves via
@@ -372,6 +374,79 @@ public final class DefensePostStamper {
     private static int shapeHalfY(DefensePostKind tier, DefensePostShape shape) {
         if (shape != null) return shape.halfY;
         return 1;
+    }
+
+    /**
+     * The exact cells a post of {@code tier}/{@code shape} centered at
+     * {@code (cx, cy)} turns non-walkable. Must mirror the per-tier stamp
+     * methods cell-for-cell — {@code DefensePostFootprintTest} pins that
+     * correspondence. Used by the partition guard so it sees the post's real
+     * (often sparse) silhouette rather than a solid bbox: LIGHT is a cardinal
+     * cross with open corners, WEDGE/TRAPEZOID notch their back row, and only
+     * those open cells can be boxed in by adjacent water/walls.
+     */
+    static int[][] blockedFootprint(DefensePostKind tier, DefensePostShape shape, int cx, int cy) {
+        int[][] offsets;
+        switch (tier) {
+            case LIGHT:
+                offsets = new int[][]{{0, -1}, {0, 1}, {-1, 0}, {1, 0}, {0, 0}};
+                break;
+            case MEDIUM:
+            case DRONE_HUB:
+                offsets = solidRectOffsets(1, 1);
+                break;
+            case ARTILLERY:
+                offsets = solidRectOffsets(2, 1);
+                break;
+            case LARGE:
+                offsets = largeOffsets(shape);
+                break;
+            default:
+                throw new IllegalStateException("Unhandled tier " + tier);
+        }
+        int[][] out = new int[offsets.length][2];
+        for (int i = 0; i < offsets.length; i++) {
+            out[i][0] = cx + offsets[i][0];
+            out[i][1] = cy + offsets[i][1];
+        }
+        return out;
+    }
+
+    /** Non-walkable offsets per LARGE silhouette. LINE_H/LINE_V/TRIANGLE fill their bbox; WEDGE/TRAPEZOID leave back-row cells open. */
+    private static int[][] largeOffsets(DefensePostShape shape) {
+        switch (shape) {
+            case LINE_H:
+            case TRIANGLE_FORMATION:
+                return solidRectOffsets(2, 1);
+            case LINE_V:
+                return solidRectOffsets(1, 2);
+            case WEDGE:
+                return new int[][]{
+                        {-2, 1}, {-1, 1}, {0, 1}, {1, 1}, {2, 1},
+                        {-1, 0}, {0, 0}, {1, 0},
+                        {0, -1}};
+            case TRAPEZOID:
+                return new int[][]{
+                        {-2, 1}, {-1, 1}, {0, 1}, {1, 1}, {2, 1},
+                        {-2, 0}, {-1, 0}, {0, 0}, {1, 0}, {2, 0},
+                        {-1, -1}, {0, -1}, {1, -1}};
+            default:
+                throw new IllegalStateException("Unhandled shape " + shape);
+        }
+    }
+
+    /** All offsets of a solid {@code (2*halfX+1)×(2*halfY+1)} block centered on the origin. */
+    private static int[][] solidRectOffsets(int halfX, int halfY) {
+        int[][] out = new int[(2 * halfX + 1) * (2 * halfY + 1)][2];
+        int i = 0;
+        for (int dy = -halfY; dy <= halfY; dy++) {
+            for (int dx = -halfX; dx <= halfX; dx++) {
+                out[i][0] = dx;
+                out[i][1] = dy;
+                i++;
+            }
+        }
+        return out;
     }
 
     /** Bounding box of every cell tagged with {@code biome}. Null if the biome has no cells. */
@@ -482,7 +557,9 @@ public final class DefensePostStamper {
      * {@code shape} is non-null for LARGE only and selects the per-placement
      * silhouette variant; LIGHT/MEDIUM ignore it.
      */
-    private static DefensePost stampPost(NavigationGrid grid, CellTopology topology,
+    // Package-private (not private) so DefensePostFootprintTest can stamp a
+    // single post and confirm its non-walkable cells match blockedFootprint.
+    static DefensePost stampPost(NavigationGrid grid, CellTopology topology,
                                          List<Doodad> doodads, DefensePostKind tier,
                                          DefensePostShape shape,
                                          int cx, int cy, Random rng) {

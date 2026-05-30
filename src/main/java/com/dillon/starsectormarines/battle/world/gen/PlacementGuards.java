@@ -48,26 +48,58 @@ public final class PlacementGuards {
     }
 
     /**
-     * Simulated-stamp connectivity check. Treats the rectangle
-     * {@code [minX..minX+width-1] × [minY..minY+height-1]} as non-walkable,
-     * picks the first walkable cell outside that set as a BFS seed, walks the
-     * walkable graph, and returns true if any walkable cell would remain
-     * unreached.
+     * Rectangular-footprint connectivity check — convenience overload for
+     * stampers whose footprint fills its whole bounding box (e.g. parked
+     * vehicles). Treats every cell of
+     * {@code [minX..minX+width-1] × [minY..minY+height-1]} as non-walkable and
+     * delegates to {@link #wouldPartitionWalkable(NavigationGrid, int[][])}.
      *
-     * <p>Catches the case where the rectangle sits adjacent to a wall and
-     * seals off a thin strip. Runs in {@code O(w*h)} on the grid but only
-     * needs to fire for anchors that pass the cheaper footprint/doorway
-     * gates, so typical use is a handful of calls per gen, not hundreds.
+     * <p><b>Do not use for sparse footprints</b> (a defense-post vent ring
+     * leaves its bbox corners walkable): treating the whole rect as blocked
+     * excludes those open cells from the check, so a corner the real stamp
+     * leaves walkable — and that some pre-existing wall/water boxes in — is
+     * silently missed. Such callers must pass the actual blocked cells.
      */
     public static boolean wouldPartitionWalkable(NavigationGrid grid,
                                                  int minX, int minY,
                                                  int width, int height) {
+        int[][] cells = new int[width * height][2];
+        int i = 0;
+        for (int dy = 0; dy < height; dy++) {
+            for (int dx = 0; dx < width; dx++) {
+                cells[i][0] = minX + dx;
+                cells[i][1] = minY + dy;
+                i++;
+            }
+        }
+        return wouldPartitionWalkable(grid, cells);
+    }
+
+    /**
+     * Simulated-stamp connectivity check. Treats {@code stampedCells} (the
+     * exact cells a stamp will turn non-walkable) as blocked, picks the first
+     * walkable cell outside that set as a BFS seed, walks the walkable graph,
+     * and returns true if any walkable cell would remain unreached.
+     *
+     * <p>Catches two cases the cheaper footprint gate misses: the stamp sealing
+     * a thin strip against an existing non-walkable mass, AND the stamp boxing
+     * in one of its <em>own</em> footprint cells that it leaves walkable (a vent
+     * ring's open corner trapped between the ring arms and pre-existing
+     * water/wall). The latter is why this takes the real blocked-cell set rather
+     * than a bounding rect — open footprint cells stay in the walkable graph and
+     * are checked for reachability like any other cell.
+     *
+     * <p>Runs in {@code O(w*h)} on the grid but only fires for anchors that pass
+     * the cheaper footprint/doorway gates, so typical use is a handful of calls
+     * per gen, not hundreds.
+     */
+    public static boolean wouldPartitionWalkable(NavigationGrid grid, int[][] stampedCells) {
         int gridW = grid.getWidth();
         int gridH = grid.getHeight();
         Set<Integer> stamped = new HashSet<>();
-        for (int dy = 0; dy < height; dy++) {
-            for (int dx = 0; dx < width; dx++) {
-                stamped.add((minY + dy) * gridW + (minX + dx));
+        for (int[] c : stampedCells) {
+            if (c[0] >= 0 && c[0] < gridW && c[1] >= 0 && c[1] < gridH) {
+                stamped.add(c[1] * gridW + c[0]);
             }
         }
 
