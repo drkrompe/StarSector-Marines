@@ -1,4 +1,4 @@
-# Story J — UNITS pass → component/tag render service — 🚧 IN PROGRESS (slice 1 shipped)
+# Story J — UNITS pass → component/tag render service — 🚧 IN PROGRESS (slices 1–3 shipped)
 
 The heavy pass, and the last inline world pass before the endgame. `renderUnits`
 is not one pass — it's **five strata painted in a fixed order into the `UNITS`
@@ -152,14 +152,26 @@ Game-side emit helpers the sweeps call (and other systems reuse):
    `RenderAppearanceTest` pins the derivation against `UnitType`. The
    `UnitType`↔subclass invariant (`TURRET`/`DRONE_HUB_STRUCTURE`/`DRONE` ⟺ the
    three subclasses) was verified before keying on type.
-3. **Dead units → `SHEET_QUAD`** via the frame-sheet emit (simplest sprite case:
-   no flip, no bar). Warm-up for batched infantry.
-   ⚠️ **`hasDeathPose` does NOT subsume the corpse check.** `deathPoseIdx` is set
-   to `rng.nextInt(4)` for *every* dying unit (`DamageResolver`), including
-   null-corpse types (civilians have no dead sheet). The inline dead sweep ANDs
-   two gates: a non-null dead-sheet cache (⟺ the flyweight's `hasDeathPose`) **and**
-   the instance `deathPoseIdx >= 0`. The J3 sweep must keep BOTH — skip on
-   `!app.hasDeathPose` *and* on `deathPoseIdx < 0`.
+3. ~~**Dead units → `SHEET_QUAD`** via the frame-sheet emit (simplest sprite case:
+   no flip, no bar). Warm-up for batched infantry.~~ **SHIPPED.**
+   `UnitRenderService` (render-side, `ops/battleview`, `layer() == UNITS`) stands
+   up the Story J per-stratum-sweep consumer; for J3 only its `sweepDeadSprites`
+   is live. It reads the `RenderAppearance` flyweight (first consumer) and emits
+   one batched `SHEET_QUAD` per corpse via `out.addSheetQuad`. Wired into
+   `worldSystems` (collected up front); the dead sheets are registered in
+   `buildTileBatches` via `registerSpriteSheetBatches(unitDeadSprites().values())`.
+   The inline `renderUnits` drops its `renderDeadUnits(...)` call (method deleted)
+   for `drainLayer(RenderLayer.UNITS)` at the **same dead-units slot** — after
+   turrets/hubs, before the live + bar loops — so paint order is preserved
+   (turrets → hubs → dead → live → bars). Faithful port: same two gates, same
+   pose-frame selection, same aspect-fit, **no vision gate** (corpses persist
+   through fog, as before), no flip, no bar. Compile + suite green; awaiting a
+   live verify (corpses render at the right pose/scale, batched).
+   ⚠️ **`hasDeathPose` does NOT subsume the corpse check** (carried into the J3
+   sweep): `deathPoseIdx` is set to `rng.nextInt(4)` for *every* dying unit
+   (`DamageResolver`), including null-corpse types (civilians have no dead sheet).
+   The sweep keeps BOTH gates — skip on `!app.hasDeathPose` *and* on
+   `deathPoseIdx < 0` — plus the cache load-guard.
 4. **MapTurret + DroneHub** → `GroundFootprint` + whole-`SPRITE` + (bar deferred
    to slice 6). Absorbs `drawTurretLayer` + `renderDroneHubs`; hoists the hub
    lazy-load.

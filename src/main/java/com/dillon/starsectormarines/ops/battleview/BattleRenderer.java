@@ -212,6 +212,7 @@ public class BattleRenderer {
                 new GroundRenderSystem(sprites),
                 new VehicleRenderSystem(sprites),
                 new DoodadRenderSystem(sprites),
+                new UnitRenderService(sprites),
                 new DroneRenderSystem(sprites),
                 new ConvoyRenderSystem(sprites),
                 new ShuttleRenderSystem(sprites));
@@ -258,6 +259,11 @@ public class BattleRenderer {
         // batchBySheet owns the QuadBatch refs.
         registerSpriteSheetBatches(sprites.vehicleSheets().values());
         registerSpriteSheetBatches(sprites.convoySprites().values());
+
+        // Dead-unit corpse sheets for the UNITS layer (UnitRenderService dead
+        // sweep, slice J3) so dead infantry batch via SHEET_QUAD. Loaded by
+        // ensureUnitSprites() before this runs (BattleScreen.attach order).
+        registerSpriteSheetBatches(sprites.unitDeadSprites().values());
     }
 
     /** Builds + registers one {@link QuadBatch} per distinct sheet in {@code caches} (idempotent). */
@@ -425,7 +431,10 @@ public class BattleRenderer {
 
         renderTurrets(units, alphaMult);
         renderDroneHubs(units, alphaMult);
-        renderDeadUnits(units, unitSize, alphaMult);
+        // Dead-unit corpse sweep — migrated to the UNITS layer (UnitRenderService,
+        // slice J3); drained here at the dead-units slot so paint order holds
+        // (turrets → hubs → dead → live → bars). Collected up front in renderWorld.
+        drainLayer(RenderLayer.UNITS);
 
         java.util.Set<UnitSpriteCache> tintedThisFrame = new java.util.HashSet<>();
         for (Unit u : units) {
@@ -667,50 +676,6 @@ public class BattleRenderer {
         glVertex2f(cx + half, cy + half);
         glVertex2f(cx - half, cy + half);
         glEnd();
-    }
-
-    private void renderDeadUnits(List<Unit> units, float unitSize, float alphaMult) {
-        java.util.Set<UnitSpriteCache> touched = new java.util.HashSet<>();
-        for (Unit u : units) {
-            if (u.isAlive()) continue;
-            if (u.deathPoseIdx < 0) continue;
-            UnitSpriteCache cache = sprites.unitDeadSprites().get(u.type);
-            if (cache == null || cache.sheet == null || cache.frames == null
-                    || cache.frames.frames.length == 0) continue;
-            SpriteSheetFrames frames = cache.frames;
-            int frameIdx = ((u.deathPoseIdx % frames.frames.length) + frames.frames.length) % frames.frames.length;
-            SpriteSheetFrames.Frame f = frames.frames[frameIdx];
-            SpriteAPI sheet = cache.sheet;
-            float texW = sheet.getTextureWidth();
-            float texH = sheet.getTextureHeight();
-            int sheetW = frames.sheetWidth;
-            int sheetH = frames.sheetHeight;
-            sheet.setTexX((float) f.x * texW / sheetW);
-            sheet.setTexY((float) (sheetH - f.y - f.h) * texH / sheetH);
-            sheet.setTexWidth((float) f.w * texW / sheetW);
-            sheet.setTexHeight((float) f.h * texH / sheetH);
-            float scaledSize = unitSize * u.type.renderScale;
-            float targetW, targetH;
-            if (f.w >= f.h) {
-                targetW = scaledSize;
-                targetH = scaledSize * f.h / (float) f.w;
-            } else {
-                targetH = scaledSize;
-                targetW = scaledSize * f.w / (float) f.h;
-            }
-            sheet.setSize(targetW, targetH);
-            sheet.setAngle(0f);
-            sheet.setAlphaMult(alphaMult);
-            sheet.setNormalBlend();
-            sheet.setColor(Color.WHITE);
-            float cx = rc.camera.cellToScreenX(u.getRenderX() + 0.5f);
-            float cy = rc.camera.cellToScreenY(u.getRenderY() + 0.5f);
-            sheet.renderAtCenter(cx, cy);
-            touched.add(cache);
-        }
-        for (UnitSpriteCache c : touched) {
-            c.sheet.setColor(Color.WHITE);
-        }
     }
 
     private void renderUnitQuadFallback(Unit u, float unitSize, float half, float alphaMult) {
