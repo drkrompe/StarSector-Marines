@@ -42,7 +42,11 @@ universe over time, not retrofitted into intel slots.
   track — [`command-powers/`](command-powers/overview.md) — brainstorms the
   player-agency layer (orbital strikes, marine drops, recon) and its
   between-battle meta-progression spine; powers are sourced diegetically from
-  the player's fleet (ship + hull-mod flavor).
+  the player's fleet (ship + hull-mod flavor). A second **design-stage** track —
+  [`vanilla-combat-bridge/`](vanilla-combat-bridge/overview.md) — explores
+  hooking the headless sim and vanilla `CombatEngineAPI` together (the reverse of
+  how the mod is built); the near-term thread is sim-authoritative *proxy targets*
+  vanilla carriers/fighters can engage, with two throwaway de-risking probes.
 - **Campaign tier** — SoA `CampaignState`, contracts loop, patron houses,
   mission-resolver bridge. The Marine Ops mission-select screen consumes
   this layer. See [`campaign/`](campaign/).

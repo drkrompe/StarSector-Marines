@@ -1,0 +1,214 @@
+# Vanilla Combat Bridge
+
+> Can our headless ground sim and Starsector's real-time combat engine talk to
+> each other? Feasibility/exploration doc — concept + verified API facts +
+> decomposition into de-risking probes. Nothing here is committed code yet.
+
+## What this is
+
+The mod's whole architecture so far runs the *other* way: we built a **separate
+headless ground-battle sim** (`battle/`) that borrows vanilla *art* but touches
+zero combat APIs. This track explores the reverse — **hooking our sim and the
+vanilla `CombatEngineAPI` together**, in whichever direction turns out tractable.
+
+The motivating community ask: *operate an Armatura-style walking mech (which is
+a vanilla combat ship) while respecting wall collisions* — i.e. urban/interior
+mech combat with terrain, keeping the vanilla piloting feel. That single ask
+actually splits into two opposite bridges, and the realistic near-term win is a
+**third** framing (proxy targets) that sidesteps the hardest part of both.
+
+## The ask conflates two opposite bridges
+
+The mech-ness and the walls live in different engines, and neither engine owns
+both halves:
+
+- **The mech behaviour** — leg-walk animation, weapon mounts, ship systems, the
+  real-time *piloting feel* — lives entirely as **vanilla combat scripts** that
+  only run inside `CombatEngineAPI`. We cannot run those headless.
+- **The walls** — walkability, cover, tile collision — live entirely in **our
+  headless tile sim** (`battle/`), which is decoupled from the combat engine by
+  design.
+
+So you can't get both for free. The directions:
+
+- **Direction A — walls *into* vanilla combat.** Keep Armatura mechs intact; add
+  terrain to the vanilla engine. Natural fit for the literal ask. Feasible as a
+  *prototype* (see § Verified facts: positions are mutable), but the honest scope
+  is a long tail — every vanilla mechanic that assumes open space (projectiles,
+  beams, ship AI pathing, ship systems, every other mod's ships) ignores walls
+  until individually patched. Never "done."
+- **Direction B — Armatura mechs *into* our sim.** Keep walls; reimplement the
+  mech as our units. We already ingest vanilla art + `.ship`/`.variant` stats
+  ([[vanilla_ship_spec_scraping]]), and walls come free. But the *behaviour* is
+  vanilla script we'd reimplement per mech, and our sim is an **auto-battler**,
+  not a piloting sim — "operate a mech" implies real-time player control we don't
+  have. Bigger, different product.
+
+## The tractable third framing: proxy targets (the recommended entry)
+
+Most of what people actually want from cross-engine interaction doesn't need
+terrain collision *or* a full mech port. It needs **sim entities to be visible
+and reactive in vanilla's targeting graph**: e.g. a carrier floating "above" the
+ground battle launching fighters that strafe our sim's turrets and infantry
+squads.
+
+That's done with **proxy / avatar entities**. Each sim entity that must interact
+with vanilla gets a lightweight, invisible vanilla `ShipAPI` proxy:
+
+```
+sim turret / squad  ──►  invisible ShipAPI proxy (owner = enemy side)
+   each frame:  proxy.getLocation().set(simX, simY)   // sim owns position
+                proxy.getVelocity().set(0, 0)         // vanilla never drifts it
+   on damage:   drain proxy hitpoints delta → sim entity HP; despawn on death
+   render:      proxy is invisible (extraAlphaMult = 0); our renderer draws it
+```
+
+To vanilla, a proxy is just an enemy ship — so **carrier AI, fighter launches,
+and strafing runs work against it natively, with zero targeting AI written by
+us.** This is the compelling near-term feature *and* the cheapest de-risk of the
+whole bridge: it dodges the terrain long-tail entirely.
+
+### Architecture decision: sim-authoritative, vanilla-targeting
+
+- **The sim stays authoritative** for the ground entities' position and combat
+  state. Proxies are slaved avatars, not independent ships — we re-`set()` their
+  position every frame, so a stray hull bump or weapon impulse self-corrects.
+- **Vanilla owns its own ships** (the carrier, its fighters, their weapons).
+- **Pick one authority per interaction** to avoid double-resolving the same
+  fight. For air-to-ground, the carrier side is vanilla-authoritative; the proxy
+  just exposes a hittable hull + HP and drains damage back into the sim. For
+  return fire, either mount a real vanilla weapon on the proxy and let the
+  engine resolve it against the carrier's shields/armor/flux (cheap, looks
+  great), *or* drive `engine.spawnProjectile(...)` from the sim's fire logic.
+
+## Verified API facts (read from `.api/com/fs/starfarer/api/combat/`)
+
+These are the load-bearing truths the whole track rests on — confirmed against
+the unzipped API source, not recalled:
+
+1. **No terrain in vanilla combat.** No walls, impassable geometry, or nav grid.
+   Collision is purely entity-vs-entity (circle `collisionRadius` or polygon
+   `BoundsAPI`). `getMapWidth/Height` are *soft* retreat boundaries. The only
+   collidable static-ish objects are asteroids (real entities).
+2. **Positions and velocities ARE mutable.** `CombatEntityAPI.getLocation()` /
+   `getVelocity()` return the **live LWJGL `Vector2f`**, not copies.
+   `entity.getLocation().set(x, y)` is the canonical teleport; `getVelocity()
+   .set(...)` likewise. This is what makes Direction A's post-physics wall-clamp
+   and the proxy position-slaving possible. *(A first exploration pass wrongly
+   reported "no position authority — hard blocker." It's wrong; positions are
+   writable. This fact flips the verdict.)*
+3. **Full AI replacement.** `ship.setShipAI(ShipAIPlugin)` swaps a ship's entire
+   movement brain — our grid pathfinder could drive a mech's thrust commands.
+4. **Per-frame plugin hook.** `EveryFrameCombatPlugin.advance(amount, events)`
+   runs once per frame (downstream of the frame's physics integration) and can
+   draw arbitrary GL in world space via `renderInWorldCoords(viewport)`.
+5. **Runtime entity injection.** `engine.getFleetManager(owner).spawnShipOrWing(
+   specId, location, facing)` returns a live `ShipAPI` you can inject mid-combat.
+6. **Sprite suppression.** `ship.setExtraAlphaMult(0f)` makes a proxy invisible;
+   `setLayer(CombatEngineLayers)` controls draw layer. Invisible hitbox + our own
+   renderer = clean visual ownership.
+7. **Collision classes are coarse** (`NONE, FIGHTER, SHIP, ASTEROID, PLANET,
+   GAS_CLOUD, STAR, …`). There is **no** "shootable but not hull-bumpable" class —
+   to be hittable by weapons a proxy must be a collidable class (`SHIP`/`FIGHTER`),
+   which also collides hull-to-hull. We rely on per-frame position-`set()` to make
+   bumps self-correct rather than a special class.
+
+## Reality checks (do not skip)
+
+- **Vanilla combat is strictly 2D — there is no Z / altitude.** A carrier
+  "floating above" ground units is a *spatial convention*, not real elevation.
+  Everything shares one plane: targeting (2D distance) is fine, but hull
+  collision is real. Mitigations: keep carriers in an "airspace" band our sim
+  treats as overhead (the *fighters* do the air-to-ground work, the carrier
+  stays back), and rely on per-frame position-`set()` so any overlap resolves
+  to no net movement of the sim-owned entity.
+- **Pick one combat authority per interaction** (above) — the single biggest
+  correctness trap is two engines independently resolving the same damage.
+- **Granularity:** one proxy per *squad* (aggregated HP) / per *turret*, never
+  per soldier. Vanilla handles dozens of ships / hundreds of fighters fine, so
+  squad-granularity proxies are cheap; per-soldier would not be.
+- **Neuter the proxy:** no-op `ShipAIPlugin` (or an engineless spec), zeroed
+  velocity each frame, high mass so weapon impulse barely moves it before the
+  clamp catches it.
+
+## Why *not* run our sim as the authority under vanilla's renderer
+
+A tempting framing is "vanilla just renders; our tick loop is the truth,
+position-`set()`ing every ship each frame." Avoid it as the primary model: you'd
+be perpetually correcting vanilla's integrator against ours (jitter, desync), and
+the moment the player takes *direct* control of a ship the authority model
+breaks. Direction A's clean version is a *single* post-physics constraint pass,
+not a second full simulation underneath. Proxies are deliberately the *opposite*:
+sim-authoritative entities that vanilla only *targets*, never *drives*.
+
+## Code structure (proposed)
+
+The bridge code is **Starsector-combat-engine-facing** — it imports
+`CombatEngineAPI`, `EveryFrameCombatPlugin`, `ShipAPI`. That is exactly the
+dependency the headless sim (`battle/`) deliberately does **not** have. To keep
+the sim's zero-combat-API-coupling invariant intact, the bridge lives in its
+**own top-level package, not inside `battle/`**:
+
+```
+com.dillon.starsectormarines.combathybrid
+  package-info.java        — charter: bridges headless battle sim ⇄ vanilla
+                             CombatEngineAPI; owns proxies + per-frame plugin;
+                             one-way dependency on battle/ (reads sim, never the
+                             reverse). (per [[feedback_package_info_charters]])
+  WallClampPlugin          — Direction A probe (S1)
+  ProxyTargetPlugin        — proxy-target probe (S2)
+  proxy/                   — SimEntityProxy, the avatar pattern + lifecycle
+```
+
+Dependency arrow points **one way**: `combathybrid` → `battle` (reads sim state,
+slaves proxies, drains damage back via the sim's existing external-damage path).
+`battle/` must never import `combathybrid` — that would re-couple the sim to the
+combat engine and undo the decoupling the whole project rests on.
+
+## Candidate first stories
+
+Both are throwaway probes whose only job is to answer the load-bearing unknowns
+cheaply, before any real feature investment ([[feedback_ship_then_optimize]]):
+
+- **S1 — Wall-clamp probe.** A ~100-line `EveryFrameCombatPlugin` that draws a
+  hardcoded box of wall tiles in `renderInWorldCoords` and clamps any ship out of
+  those tiles each frame (position-`set()` + velocity-slide). Fly a ship into it.
+  Answers the only UX question that matters for Direction A: **does a post-physics
+  position-clamp feel like a wall, or like mush?** See
+  [`stories/s1-wall-clamp-probe.md`](stories/s1-wall-clamp-probe.md).
+- **S2 — Proxy-target probe.** Spawn one invisible `owner = enemy` `ShipAPI`
+  proxy at a fixed point, drain its HP to a log line, and watch whether a player
+  carrier's fighters strafe it. Answers: **does vanilla carrier/fighter AI engage
+  a slaved proxy sensibly?** If yes, "carrier reacts to ground entities" is mostly
+  plumbing from there. See
+  [`stories/s2-proxy-target-probe.md`](stories/s2-proxy-target-probe.md).
+
+Sequencing: **S2 first.** It's the more compelling feature *and* the cheaper
+de-risk (no terrain mess at all). S1 informs whether Direction A is worth
+pursuing beyond a curiosity.
+
+## Open questions
+
+1. **Coordinate mapping.** Sim cells ↔ vanilla world pixels. The sim has no
+   inherent scale (cells are abstract); we pick a pixels-per-cell and an origin.
+   Which band of the vanilla map is "airspace" vs "ground"?
+2. **Damage drain path.** Reuse the sim's existing external-damage entry point
+   (the flyby/command-powers work pokes `BattleSimulation` via an
+   `applyExternalDamage`-style call) rather than inventing a new one. Confirm the
+   exact method when S2 starts.
+3. **Projectiles & beams through walls (Direction A only).** Out of scope for the
+   probes; this is the long tail that decides if Direction A is ever more than a
+   toy.
+4. **Player-piloted mech vs sim authority.** If the player ever *directly* pilots
+   a bridged mech, who owns its position? The proxy model assumes sim authority;
+   direct piloting breaks it. Likely a separate, later design.
+5. **CR / attrition coupling.** Does a proxy's destruction feed back to the
+   campaign fleet the way [`../command-powers/`](../command-powers/overview.md)
+   counterplay does? Natural tie-in, not needed for the probes.
+
+## How this directory is laid out
+
+- **`overview.md`** (this file) — concept, verified facts, architecture, probes.
+- **`stories/`** — the active probe docs.
+- **`complete/`** — sealed shipped work (empty until a probe lands).
+- **`next-session.md`** — handoff state once implementation starts (not yet).
