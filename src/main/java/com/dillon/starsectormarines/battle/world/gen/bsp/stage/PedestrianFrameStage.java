@@ -45,7 +45,7 @@ public final class PedestrianFrameStage implements GenStage {
     private static final int PEDESTRIAN_SCAN_DEPTH = 5;
     /** Frame widths up to this count qualify as "narrow" and may be converted to pedestrian zones. Wider frames stay vehicular. */
     private static final int PEDESTRIAN_MAX_FRAME_WIDTH = 4;
-    /** Per-leaf-pair probability of converting their shared frame to a pedestrian zone. ~50% gives noticeable variety on larger maps without taking over. */
+    /** Per-leaf-pair probability of converting their shared frame to a pedestrian zone. 0.8 gives noticeable variety on larger maps without taking over. */
     private static final float PEDESTRIAN_FRAME_CHANCE = 0.8f;
 
     @Override

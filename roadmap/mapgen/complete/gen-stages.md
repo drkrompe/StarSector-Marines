@@ -1,4 +1,4 @@
-# Slice 2 — `GenStage` pipeline (extract `generate()` into stages) — ✅ SHIPPED (2a)
+# Slice 2 — `GenStage` pipeline (extract `generate()` into stages) — ✅ SHIPPED (2a + 2b)
 
 Second slice of the [composable generation pipeline](../composable-pipeline.md).
 Reifies the monolithic `BspCityGenerator.generate()` into an ordered
@@ -37,16 +37,31 @@ accessors (`getLastBiomeMap`/`…Compounds`/`…TacticalMap`/`…RoadGraph`,
 `getLastDistrictMap`). The conquest/legacy fork is now `ctx.has(BspKeys.AXIS)`
 checks inside the biome stages (they no-op without the axis).
 
-### Stampers (deferred to 2b)
+### Stampers (2b)
 
-The four post-fill stampers (`FortressWallStamper`, `DefensePostStamper`,
-`CompoundPerimeterDefenderStamper`, `KeepEntryChamberStamper`) are invoked as
-`GenStage` **lambdas** built in `BspCityGenerator` (steps 3c/3c'/3c''/3c'''),
-each pulling its args off `ctx` and gating on `BIOME_MAP` where the legacy code
-did. `buildCompoundExclusion` stays a private helper for the fortress lambda.
-Folding each stamper into a `run(ctx)` `GenStage` class (and converting their
-two unit tests) is **2b**, intentionally left as the next step — the lambdas are
-fully functional, so the slice ships complete and behavior-equivalent.
+The four post-fill stampers now **implement `GenStage` directly** — `run(ctx)`
+replaces the old static `stamp(...)` signatures, pulling args off `ctx` and
+gating on `BIOME_MAP` / `AXIS` exactly as the 2a lambdas did:
+
+- `FortressWallStamper` (step 3c) — `run` reads `BIOME_MAP` (gate), `COMPOUNDS`,
+  `ROAD_RESERVATION`, `AXIS`. `buildCompoundExclusion` moved out of
+  `BspCityGenerator` into the stamper as a private static helper.
+- `DefensePostStamper` (step 3c') — `run` reads `BIOME_MAP` (gate),
+  `ROAD_RESERVATION`, `AXIS`. The non-conquest scatter (`stampNonConquest`) and
+  the test-facing `stampPost` / `blockedFootprint` stay static (called outside
+  the pipeline / by `DefensePostFootprintTest`).
+- `CompoundPerimeterDefenderStamper` (step 3c'') — `run` reads `AXIS` (early-out
+  when unbound).
+- `KeepEntryChamberStamper` (step 3c''') — `run` always runs; reads only spine
+  (`grid`/`topology`/`tactical`).
+
+`BspCityGenerator.buildStages()` now lists `new FortressWallStamper()` … in
+place of the lambda factories; the four `*Stage()` factory methods and
+`buildCompoundExclusion` are gone. `KeepEntryChamberStamperTest` and
+`CompoundPerimeterDefenderStamperTest` drive the stages through a `GenContext`
+(seed `ctx.tactical`, run, read back) instead of the static call. Output is
+unchanged — the full suite (incl. `BspMapPreviewTest`'s strict per-seed
+connectivity assertion) stays green.
 
 ## Verification + two pre-existing bugs surfaced
 
@@ -79,9 +94,9 @@ seed produced maps differing in thousands of cells. Root cause and fixes
 
 ## Next
 
-**2b** — fold the four stampers into `run(ctx)` `GenStage` classes, drop their
-static `stamp(...)` signatures, and convert `KeepEntryChamberStamperTest` +
-`CompoundPerimeterDefenderStamperTest` to drive via `ctx`. Then **Slice 3**
-(`GenRecipe` / `ConquestCityRecipe` / `LegacyUrbanRecipe`; `BattleSetup` selects
-by mission) — the conquest/legacy `ctx.has(AXIS)` gates collapse into recipe
-membership. See [`../composable-pipeline.md`](../composable-pipeline.md).
+**Slice 3** (`GenRecipe` / `ConquestCityRecipe` / `LegacyUrbanRecipe`;
+`BattleSetup` selects by mission) — every stage now implements `GenStage`, so a
+recipe is just an ordered `List<GenStage>`. The conquest/legacy `ctx.has(AXIS)` /
+`BIOME_MAP` gates inside the biome stages + stampers collapse into recipe
+membership (a stage that's only in the conquest recipe no longer needs to
+self-gate). See [`../composable-pipeline.md`](../composable-pipeline.md).

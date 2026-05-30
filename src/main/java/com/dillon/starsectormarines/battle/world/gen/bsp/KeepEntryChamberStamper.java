@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -59,8 +61,12 @@ import java.util.List;
  * MULTI_ROOM partition lands. The doc's full 3-chamber (entry / inner /
  * throne) design needs the BSP carve to support 3-way partitioning,
  * which is a follow-up.
+ *
+ * <p>Pipeline step 3c''', run as a {@link GenStage}: {@link #run} walks
+ * {@code ctx.tactical} for COMMAND_POST nodes and appends INNER_POSITION nodes.
+ * Always runs (no conquest gate) — a legacy keep can carry multi-room labels too.
  */
-public final class KeepEntryChamberStamper {
+public final class KeepEntryChamberStamper implements GenStage {
 
     /** Minimum number of labeled cells in the entry chamber for it to qualify. Single-cell pockets aren't large enough to read as a chamber; they're just irregular building geometry. */
     private static final int MIN_CHAMBER_CELLS = 3;
@@ -70,17 +76,20 @@ public final class KeepEntryChamberStamper {
     private static final int INNER_CHAMBER_PRIORITY = 65;
     private static final int INNER_CHAMBER_GARRISON = 4;
 
-    private KeepEntryChamberStamper() {}
+    public KeepEntryChamberStamper() {}
 
     /**
      * Emit one INNER_POSITION tactical node per COMMAND_POST whose sub-building
-     * has a multi-room partition. New nodes are appended to {@code tactical}
+     * has a multi-room partition. New nodes are appended to {@code ctx.tactical}
      * in-place; {@link TacticalLinker} (which runs after this stamper) does NOT
      * wire INNER_POSITION into its compound-leaf FALLBACK_TO pass — interior
      * fallback is goal-AI territory, not the link graph.
      */
-    public static void stamp(NavigationGrid grid, CellTopology topology, List<TacticalNode> tactical) {
-        if (grid == null || topology == null || tactical == null) return;
+    @Override
+    public void run(GenContext ctx) {
+        NavigationGrid grid = ctx.grid;
+        CellTopology topology = ctx.topology;
+        List<TacticalNode> tactical = ctx.tactical;
         List<TacticalNode> initial = new ArrayList<>(tactical);
         for (TacticalNode node : initial) {
             if (node.kind != TacticalNode.Kind.COMMAND_POST) continue;

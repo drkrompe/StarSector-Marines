@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
@@ -34,8 +36,12 @@ import java.util.List;
  * <p>V1 ships exactly one GUARDPOST per compound on the attacker-facing
  * edge. The design doc allows for risk-scaled 1-2 turrets per compound;
  * that's a tuning pass to do under playtest rather than guess in code.
+ *
+ * <p>Pipeline step 3c'', run as a {@link GenStage}: {@link #run} reads the
+ * traversal axis off the {@link GenContext} and appends to {@code ctx.tactical}.
+ * No-ops on legacy maps (unbound {@link BspKeys#AXIS}).
  */
-public final class CompoundPerimeterDefenderStamper {
+public final class CompoundPerimeterDefenderStamper implements GenStage {
 
     /** How many cells away from the compound bbox to look for a walkable cell to anchor the GUARDPOST. Tight so the guard sits *just outside* the compound, on the approach the attacker has to cross. */
     private static final int OUTSIDE_SCAN_DEPTH = 3;
@@ -45,26 +51,29 @@ public final class CompoundPerimeterDefenderStamper {
     /** Squad size for the perimeter guardpost — a lookout team, not a full garrison. The compound's own node already carries the heavy garrison. */
     private static final int PERIMETER_GUARDPOST_GARRISON = 2;
 
-    private CompoundPerimeterDefenderStamper() {}
+    public CompoundPerimeterDefenderStamper() {}
 
     /**
-     * Emit one perimeter GUARDPOST per compound leaf in {@code tactical}. New
-     * nodes are appended to the list in-place so {@link TacticalLinker} can
+     * Emit one perimeter GUARDPOST per compound leaf in {@code ctx.tactical}.
+     * New nodes are appended to the list in-place so {@link TacticalLinker} can
      * wire them with the same pass that handles the original compound nodes.
      *
-     * <p>{@code axis} drives the choice of attacker-facing edge: defender
-     * is at the "end" of the axis (NORTH for {@link TraversalAxis#SOUTH_TO_NORTH},
-     * EAST for {@link TraversalAxis#WEST_TO_EAST}), so the attacker-facing
-     * compound edge is the opposite side. {@code axis == null} (legacy
-     * non-Conquest paths) returns early — without a known attacker side the
-     * stamper would arbitrarily place the lookout on a non-attacker edge.
-     * Legacy MILITARY_BASE compounds keep the existing un-anchored guardpost
-     * footprint from the visual corner emplacements.
+     * <p>The traversal axis ({@link BspKeys#AXIS}) drives the choice of
+     * attacker-facing edge: defender is at the "end" of the axis (NORTH for
+     * {@link TraversalAxis#SOUTH_TO_NORTH}, EAST for
+     * {@link TraversalAxis#WEST_TO_EAST}), so the attacker-facing compound edge
+     * is the opposite side. An unbound axis (legacy non-Conquest paths) returns
+     * early — without a known attacker side the stamper would arbitrarily place
+     * the lookout on a non-attacker edge. Legacy MILITARY_BASE compounds keep
+     * the existing un-anchored guardpost footprint from the visual corner
+     * emplacements.
      */
-    public static void stamp(NavigationGrid grid, TraversalAxis axis,
-                             List<TacticalNode> tactical) {
-        if (grid == null || tactical == null) return;
+    @Override
+    public void run(GenContext ctx) {
+        TraversalAxis axis = ctx.get(BspKeys.AXIS);
         if (axis == null) return;
+        NavigationGrid grid = ctx.grid;
+        List<TacticalNode> tactical = ctx.tactical;
         // Snapshot the initial node list — appending while iterating would
         // re-process the GUARDPOSTs we just emitted.
         List<TacticalNode> initial = new ArrayList<>(tactical);

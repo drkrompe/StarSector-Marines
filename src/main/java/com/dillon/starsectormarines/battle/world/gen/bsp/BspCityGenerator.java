@@ -53,9 +53,11 @@ import java.util.Random;
  * The BSP-based urban map generator, reified as a context + stage pipeline. The
  * {@code generate()} entry point builds a {@link GenContext} blackboard, runs an
  * ordered {@link GenStage} list, and assembles the {@link MapResult} from the
- * context. Each numbered step of the legacy monolith now lives in its own stage
- * under {@code bsp.stage}; the four post-fill stampers are still invoked here as
- * {@link GenStage} lambdas (their conversion to stage classes is the next slice).
+ * context. Each numbered step of the legacy monolith lives in its own stage —
+ * the per-step passes under {@code bsp.stage}, plus the four post-fill stampers
+ * ({@link FortressWallStamper}, {@link DefensePostStamper},
+ * {@link CompoundPerimeterDefenderStamper}, {@link KeepEntryChamberStamper}),
+ * which each implement {@link GenStage} directly.
  *
  * <p>The conquest/legacy fork is expressed as {@code ctx.has(BspKeys.AXIS)}
  * checks inside the affected stages — biome stages no-op when the axis is
@@ -106,10 +108,10 @@ public final class BspCityGenerator implements MapGenerator {
 
     /**
      * The legacy ConquestCity / LegacyUrban sequence, in call order. Biome
-     * stages self-gate on {@link BspKeys#BIOME_MAP}; the four stampers are
-     * inline lambdas pulling their args off the context (they become stage
-     * classes in the next slice). Output is byte-identical to the pre-pipeline
-     * monolith — same {@code rng} draws in the same order.
+     * stages and the conquest-only stampers self-gate on {@link BspKeys#BIOME_MAP}
+     * / {@link BspKeys#AXIS}, pulling their args off the context. Output is
+     * byte-identical to the pre-pipeline monolith — same {@code rng} draws in
+     * the same order.
      */
     private List<GenStage> buildStages() {
         return List.of(
@@ -125,63 +127,13 @@ public final class BspCityGenerator implements MapGenerator {
                 new PedestrianFrameStage(),                 // Step 3a'
                 new BiomeGroundOverrideStage(),             // Step 3b
                 new BeachShorelineStage(),                  // Step 3b'
-                fortressWallStage(),                        // Step 3c
-                defensePostStage(),                         // Step 3c'
-                compoundPerimeterDefenderStage(),           // Step 3c''
-                keepEntryChamberStage(),                    // Step 3c'''
+                new FortressWallStamper(),                  // Step 3c
+                new DefensePostStamper(),                   // Step 3c'
+                new CompoundPerimeterDefenderStamper(),     // Step 3c''
+                new KeepEntryChamberStamper(),              // Step 3c'''
                 new TacticalLinkStage(),                    // Step 3d
                 new FinalizeStage(),                        // Step 4 + 4b
                 new SpawnAnchorStage());                    // spawn anchors
-    }
-
-    /**
-     * Step 3c — fortress super-wall. Stamps the Kremlin-style perimeter around
-     * the FORTRESS_DISTRICT biome. Conquest-only; runs after fill so the wall
-     * overrides whatever BSP put under it. The compound-exclusion mask keeps it
-     * from bisecting compound sub-buildings.
-     */
-    private static GenStage fortressWallStage() {
-        return ctx -> {
-            BiomeMap biomeMap = ctx.get(BspKeys.BIOME_MAP);
-            if (biomeMap == null) return;
-            List<Compound> compounds = ctx.get(BspKeys.COMPOUNDS);
-            boolean[][] compoundExclusion = buildCompoundExclusion(compounds, ctx.width, ctx.height);
-            FortressWallStamper.stamp(ctx.grid, ctx.topology, ctx.get(BspKeys.AXIS), biomeMap,
-                    ctx.get(BspKeys.ROAD_RESERVATION), compoundExclusion,
-                    ctx.doodads, ctx.tactical, ctx.rng);
-        };
-    }
-
-    /**
-     * Step 3c' — defense posts. Manned turret emplacements scattered through
-     * BEACH / PORT / FORTRESS_DISTRICT. Conquest-only; runs AFTER the fortress
-     * wall so kill-zone posts can't overlap wall cells.
-     */
-    private static GenStage defensePostStage() {
-        return ctx -> {
-            BiomeMap biomeMap = ctx.get(BspKeys.BIOME_MAP);
-            if (biomeMap == null) return;
-            DefensePostStamper.stamp(ctx.grid, ctx.topology, ctx.get(BspKeys.AXIS), biomeMap,
-                    ctx.get(BspKeys.ROAD_RESERVATION), ctx.doodads, ctx.tactical,
-                    ctx.defensePosts, ctx.rng);
-        };
-    }
-
-    /**
-     * Step 3c'' — compound perimeter defenders. Stamps a GUARDPOST on each
-     * compound's attacker-facing edge. No-ops on legacy maps (null axis).
-     */
-    private static GenStage compoundPerimeterDefenderStage() {
-        return ctx -> CompoundPerimeterDefenderStamper.stamp(
-                ctx.grid, ctx.get(BspKeys.AXIS), ctx.tactical);
-    }
-
-    /**
-     * Step 3c''' — keep multi-chamber detection. Emits an INNER_POSITION anchor
-     * for each non-throne chamber of a multi-room COMMAND_POST. Always runs.
-     */
-    private static GenStage keepEntryChamberStage() {
-        return ctx -> KeepEntryChamberStamper.stamp(ctx.grid, ctx.topology, ctx.tactical);
     }
 
     /** Swap in a compound-aware filler. Idempotent — last write wins. */
@@ -246,27 +198,6 @@ public final class BspCityGenerator implements MapGenerator {
                 marine[0], marine[1], defender[0], defender[1],
                 ctx.pois, ctx.doodads, this.lastTacticalMap, buildings,
                 ctx.defensePosts, this.lastRoadGraph);
-    }
-
-    /**
-     * Build an exclusion mask covering all compound member cells + a 1-cell
-     * buffer (the compound perimeter wall ring). The fortress wall stamper
-     * skips these cells so it doesn't bisect compound sub-buildings.
-     */
-    private static boolean[][] buildCompoundExclusion(List<Compound> compounds, int w, int h) {
-        boolean[][] mask = new boolean[w][h];
-        for (Compound c : compounds) {
-            int bufL = Math.max(0, c.left - 2);
-            int bufT = Math.max(0, c.top - 2);
-            int bufR = Math.min(w - 1, c.right + 2);
-            int bufB = Math.min(h - 1, c.bottom + 2);
-            for (int y = bufT; y <= bufB; y++) {
-                for (int x = bufL; x <= bufR; x++) {
-                    mask[x][y] = true;
-                }
-            }
-        }
-        return mask;
     }
 
     /** Last district map produced by {@link #generate} — exposed for the preview test's overlay rendering. Null in conquest (biome) mode. */

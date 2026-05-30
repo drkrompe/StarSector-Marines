@@ -11,6 +11,8 @@ import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
+import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -62,8 +64,14 @@ import java.util.Random;
  *       role keeps it within {@link DefensePostKind#patrolRadius} of the post
  *       until every turret is destroyed.</li>
  * </ul>
+ *
+ * <p>Pipeline step 3c', run as a {@link GenStage}: {@link #run} rolls the
+ * per-biome budgets off {@code ctx.rng} and places each tier. Conquest-only — a
+ * no-op when {@link BspKeys#BIOME_MAP} is unbound. The non-conquest scatter
+ * ({@link #stampNonConquest}) stays a static entry point called directly by
+ * {@code BattleSetup} outside the generation pipeline.
  */
-public final class DefensePostStamper {
+public final class DefensePostStamper implements GenStage {
 
     /** Per-biome stamp budgets — rolled inside {@link #stamp} as MIN + rng.nextInt(MAX - MIN + 1). */
     private static final int BEACH_LIGHT_MIN         = 1, BEACH_LIGHT_MAX         = 2;
@@ -99,21 +107,28 @@ public final class DefensePostStamper {
     /** Conquest CITY-biome drone-hub count — 1-2 hubs scattered through the civilian core, reading as the city's air-defense network. Kept low while the drone-spawn logic is still pending; can scale up once the feature is fully wired. */
     private static final int CITY_DRONE_HUB_MIN = 1, CITY_DRONE_HUB_MAX = 2;
 
-    private DefensePostStamper() {}
+    public DefensePostStamper() {}
 
     /**
-     * Roll per-biome counts, place posts, mutate {@code grid} / {@code topology}
-     * to stamp each ring + turret cell, append doodads, emit
-     * {@link TacticalNode}s, and append the {@link DefensePost} records.
+     * Roll per-biome counts, place posts, mutate {@code ctx.grid} /
+     * {@code ctx.topology} to stamp each ring + turret cell, append doodads,
+     * emit {@link TacticalNode}s, and append the {@link DefensePost} records.
      *
-     * <p>No-op if {@code biomeMap} is null (legacy non-conquest path).
+     * <p>No-op when {@link BspKeys#BIOME_MAP} is unbound (legacy non-conquest
+     * path — that path stamps via {@link #stampNonConquest} instead).
      */
-    public static void stamp(NavigationGrid grid, CellTopology topology,
-                             TraversalAxis axis, BiomeMap biomeMap,
-                             boolean[][] roadReservation,
-                             List<Doodad> doodads, List<TacticalNode> tactical,
-                             List<DefensePost> defensePosts, Random rng) {
+    @Override
+    public void run(GenContext ctx) {
+        BiomeMap biomeMap = ctx.get(BspKeys.BIOME_MAP);
         if (biomeMap == null) return;
+        NavigationGrid grid = ctx.grid;
+        CellTopology topology = ctx.topology;
+        TraversalAxis axis = ctx.get(BspKeys.AXIS);
+        boolean[][] roadReservation = ctx.get(BspKeys.ROAD_RESERVATION);
+        List<Doodad> doodads = ctx.doodads;
+        List<TacticalNode> tactical = ctx.tactical;
+        List<DefensePost> defensePosts = ctx.defensePosts;
+        Random rng = ctx.rng;
         int w = grid.getWidth();
         int h = grid.getHeight();
 

@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
+import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
@@ -54,8 +56,13 @@ import java.util.Random;
  * cell that ends up in neither region (e.g., a building interior whose only
  * doorway was painted over by the wall), preserving the map's single-component
  * walkability invariant that the preview test asserts.
+ *
+ * <p>Pipeline step 3c, run as a {@link GenStage}: {@link #run} pulls the biome
+ * map, compound list, axis, road reservation, and output accumulators off the
+ * {@link GenContext}. Conquest-only — a no-op when {@link BspKeys#BIOME_MAP} is
+ * unbound.
  */
-public final class FortressWallStamper {
+public final class FortressWallStamper implements GenStage {
 
     /** Pull the wall this many cells back from the fortress biome's bounding box. Larger = bigger kill-zone buffer; smaller = wall hugs the biome edge. */
     private static final int SETBACK_CELLS = 12;
@@ -90,34 +97,63 @@ public final class FortressWallStamper {
     /** Ground that demolished building footprints fall back to — STONE reads as cleared parade ground / fortified killing field. */
     private static final GroundKind DEMOLISHED_GROUND = GroundKind.STONE;
 
-    private FortressWallStamper() {}
+    public FortressWallStamper() {}
 
     /**
-     * Stamp the wall + towers + gates + forward bunkers. No-op if the
-     * fortress biome's bounding box is too small to fit a meaningful wall
-     * (this guards against degenerate biome layouts on very small maps).
+     * Stamp the wall + towers + gates + forward bunkers. No-op when the biome
+     * map is unbound (legacy non-conquest path) or the fortress biome's
+     * bounding box is too small to fit a meaningful wall (degenerate biome
+     * layouts on very small maps).
      *
-     * <p>Mutates {@code doodads} — strips any entries that fall inside a
+     * <p>Mutates {@code ctx.doodads} — strips any entries that fall inside a
      * demolished building footprint, so debris doesn't float in mid-air on
      * cleared parade ground.
      */
-    public static void stamp(NavigationGrid grid, CellTopology topology,
-                             TraversalAxis axis, BiomeMap biomeMap,
-                             boolean[][] roadReservation, boolean[][] compoundExclusion,
-                             List<Doodad> doodads, List<TacticalNode> tactical, Random rng) {
+    @Override
+    public void run(GenContext ctx) {
+        BiomeMap biomeMap = ctx.get(BspKeys.BIOME_MAP);
+        if (biomeMap == null) return;
+        NavigationGrid grid = ctx.grid;
+        CellTopology topology = ctx.topology;
         int w = grid.getWidth();
         int h = grid.getHeight();
         int[] bbox = fortressBbox(biomeMap, w, h);
         if (bbox == null) return;
-        boolean[][] skip = mergeExclusions(roadReservation, compoundExclusion, w, h);
+        boolean[][] compoundExclusion = buildCompoundExclusion(ctx.get(BspKeys.COMPOUNDS), w, h);
+        boolean[][] skip = mergeExclusions(ctx.get(BspKeys.ROAD_RESERVATION), compoundExclusion, w, h);
         boolean[][] wallMask = new boolean[w][h];
+        TraversalAxis axis = ctx.get(BspKeys.AXIS);
+        Random rng = ctx.rng;
         if (axis == TraversalAxis.SOUTH_TO_NORTH) {
-            stampSouthToNorth(grid, topology, bbox, wallMask, skip, tactical, w, h, rng);
+            stampSouthToNorth(grid, topology, bbox, wallMask, skip, ctx.tactical, w, h, rng);
         } else {
-            stampWestToEast(grid, topology, bbox, wallMask, skip, tactical, w, h, rng);
+            stampWestToEast(grid, topology, bbox, wallMask, skip, ctx.tactical, w, h, rng);
         }
-        demolishIntersectedBuildings(grid, topology, doodads, wallMask, w, h);
+        demolishIntersectedBuildings(grid, topology, ctx.doodads, wallMask, w, h);
         sealOrphanedPockets(grid, w, h);
+    }
+
+    /**
+     * Build an exclusion mask covering all compound member cells + a 1-cell
+     * buffer (the compound perimeter wall ring). The wall stamper skips these
+     * cells so it doesn't bisect compound sub-buildings. A {@code null} or empty
+     * compound list yields an all-false mask (nothing excluded).
+     */
+    private static boolean[][] buildCompoundExclusion(List<Compound> compounds, int w, int h) {
+        boolean[][] mask = new boolean[w][h];
+        if (compounds == null) return mask;
+        for (Compound c : compounds) {
+            int bufL = Math.max(0, c.left - 2);
+            int bufT = Math.max(0, c.top - 2);
+            int bufR = Math.min(w - 1, c.right + 2);
+            int bufB = Math.min(h - 1, c.bottom + 2);
+            for (int y = bufT; y <= bufB; y++) {
+                for (int x = bufL; x <= bufR; x++) {
+                    mask[x][y] = true;
+                }
+            }
+        }
+        return mask;
     }
 
     private static boolean[][] mergeExclusions(boolean[][] road, boolean[][] compound, int w, int h) {

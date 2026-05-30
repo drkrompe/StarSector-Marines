@@ -1,13 +1,16 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -31,6 +34,21 @@ public class CompoundPerimeterDefenderStamperTest {
         return grid;
     }
 
+    /**
+     * Drive the stamper as a {@link GenStage}: bind {@code axis} under
+     * {@link BspKeys#AXIS} (skipped for the null-axis legacy case), seed
+     * {@code ctx.tactical} from the caller's nodes, run, then mirror the result
+     * back so the assertions read {@code tactical} like the old static call did.
+     */
+    private static void runStamper(NavigationGrid grid, TraversalAxis axis, List<TacticalNode> tactical) {
+        GenContext ctx = new GenContext(grid, new CellTopology(W, H), new Random(0), W, H, 0L);
+        if (axis != null) ctx.put(BspKeys.AXIS, axis);
+        ctx.tactical.addAll(tactical);
+        new CompoundPerimeterDefenderStamper().run(ctx);
+        tactical.clear();
+        tactical.addAll(ctx.tactical);
+    }
+
     /** Compound node anchored at the bbox centroid with a (left, top)-(right, bottom) footprint. defaultGuard = DEFENDER mirrors what {@link com.dillon.starsectormarines.battle.world.gen.bsp.fill.MilitaryBaseFiller} emits. */
     private static TacticalNode compoundNode(TacticalNode.Kind kind,
                                              int left, int top, int right, int bottom) {
@@ -52,7 +70,7 @@ public class CompoundPerimeterDefenderStamperTest {
         List<TacticalNode> tactical = new ArrayList<>();
         tactical.add(compound);
 
-        CompoundPerimeterDefenderStamper.stamp(grid, TraversalAxis.SOUTH_TO_NORTH, tactical);
+        runStamper(grid, TraversalAxis.SOUTH_TO_NORTH, tactical);
 
         assertEquals(2, tactical.size(), "one GUARDPOST should have been appended");
         TacticalNode guardpost = tactical.get(1);
@@ -72,7 +90,7 @@ public class CompoundPerimeterDefenderStamperTest {
         List<TacticalNode> tactical = new ArrayList<>();
         tactical.add(compound);
 
-        CompoundPerimeterDefenderStamper.stamp(grid, TraversalAxis.WEST_TO_EAST, tactical);
+        runStamper(grid, TraversalAxis.WEST_TO_EAST, tactical);
 
         assertEquals(2, tactical.size());
         TacticalNode guardpost = tactical.get(1);
@@ -92,7 +110,7 @@ public class CompoundPerimeterDefenderStamperTest {
         tactical.add(compoundNode(TacticalNode.Kind.ARMORY,      4, 10, 6, 12));
         tactical.add(compoundNode(TacticalNode.Kind.COMMAND_POST, 12, 4, 14, 6));
 
-        CompoundPerimeterDefenderStamper.stamp(grid, TraversalAxis.SOUTH_TO_NORTH, tactical);
+        runStamper(grid, TraversalAxis.SOUTH_TO_NORTH, tactical);
 
         assertEquals(6, tactical.size(), "three compounds → three GUARDPOSTs appended");
         int guardposts = 0;
@@ -116,7 +134,7 @@ public class CompoundPerimeterDefenderStamperTest {
         tactical.add(tower);
         tactical.add(existingGuard);
 
-        CompoundPerimeterDefenderStamper.stamp(grid, TraversalAxis.SOUTH_TO_NORTH, tactical);
+        runStamper(grid, TraversalAxis.SOUTH_TO_NORTH, tactical);
 
         assertEquals(2, tactical.size(), "no compound nodes → no new GUARDPOSTs emitted");
     }
@@ -140,7 +158,7 @@ public class CompoundPerimeterDefenderStamperTest {
         List<TacticalNode> tactical = new ArrayList<>();
         tactical.add(compound);
 
-        CompoundPerimeterDefenderStamper.stamp(grid, TraversalAxis.SOUTH_TO_NORTH, tactical);
+        runStamper(grid, TraversalAxis.SOUTH_TO_NORTH, tactical);
 
         assertEquals(1, tactical.size(),
                 "no walkable cell on attacker-facing approach → no GUARDPOST emitted");
@@ -161,7 +179,7 @@ public class CompoundPerimeterDefenderStamperTest {
         List<TacticalNode> tactical = new ArrayList<>();
         tactical.add(compound);
 
-        CompoundPerimeterDefenderStamper.stamp(grid, null, tactical);
+        runStamper(grid, null, tactical);
 
         assertEquals(1, tactical.size(),
                 "null axis (legacy maps) must skip stamping — no attacker side known");

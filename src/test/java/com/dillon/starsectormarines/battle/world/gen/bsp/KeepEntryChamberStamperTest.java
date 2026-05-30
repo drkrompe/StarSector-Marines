@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -9,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -57,6 +59,19 @@ public class KeepEntryChamberStamperTest {
         }
     }
 
+    /**
+     * Drive the stamper as a {@link GenStage}: seed {@code ctx.tactical} from the
+     * caller's node list, run the stage, then mirror the (appended) result back
+     * into {@code tactical} so the assertions read it like the old static call did.
+     */
+    private static void runStamper(NavigationGrid grid, CellTopology topology, List<TacticalNode> tactical) {
+        GenContext ctx = new GenContext(grid, topology, new Random(0), W, H, 0L);
+        ctx.tactical.addAll(tactical);
+        new KeepEntryChamberStamper().run(ctx);
+        tactical.clear();
+        tactical.addAll(ctx.tactical);
+    }
+
     @Test
     public void singleRoomBuildingSkipsEmission() {
         // Single-room COMMAND building — labelRooms stamps THRONE across the
@@ -68,7 +83,7 @@ public class KeepEntryChamberStamperTest {
         List<TacticalNode> tactical = new ArrayList<>();
         tactical.add(cp);
 
-        KeepEntryChamberStamper.stamp(grid, topology, tactical);
+        runStamper(grid, topology, tactical);
 
         assertEquals(1, tactical.size(),
                 "single-room keep has no entry chamber to emit");
@@ -89,7 +104,7 @@ public class KeepEntryChamberStamperTest {
         List<TacticalNode> tactical = new ArrayList<>();
         tactical.add(cp);
 
-        KeepEntryChamberStamper.stamp(grid, topology, tactical);
+        runStamper(grid, topology, tactical);
 
         assertEquals(2, tactical.size(),
                 "multi-room keep should emit an entry-chamber INNER_POSITION");
@@ -113,7 +128,7 @@ public class KeepEntryChamberStamperTest {
         List<TacticalNode> tactical = new ArrayList<>();
         tactical.add(cp);
 
-        KeepEntryChamberStamper.stamp(grid, topology, tactical);
+        runStamper(grid, topology, tactical);
 
         assertEquals(1, tactical.size(),
                 "unlabeled building must not crash; skip emission");
@@ -133,7 +148,7 @@ public class KeepEntryChamberStamperTest {
         List<TacticalNode> tactical = new ArrayList<>();
         tactical.add(bx);
 
-        KeepEntryChamberStamper.stamp(grid, topology, tactical);
+        runStamper(grid, topology, tactical);
 
         assertEquals(1, tactical.size(),
                 "non-COMMAND_POST kinds must not get the chamber emission");
@@ -152,7 +167,7 @@ public class KeepEntryChamberStamperTest {
         List<TacticalNode> tactical = new ArrayList<>();
         tactical.add(cp);
 
-        KeepEntryChamberStamper.stamp(grid, topology, tactical);
+        runStamper(grid, topology, tactical);
 
         assertEquals(2, tactical.size(),
                 "vertical-partition keep should emit an entry-chamber INNER_POSITION");
@@ -180,7 +195,7 @@ public class KeepEntryChamberStamperTest {
         List<TacticalNode> tactical = new ArrayList<>();
         tactical.add(cp);
 
-        KeepEntryChamberStamper.stamp(grid, topology, tactical);
+        runStamper(grid, topology, tactical);
 
         assertEquals(2, tactical.size(),
                 "remaining walkable entry cells still form a valid chamber");
@@ -203,7 +218,7 @@ public class KeepEntryChamberStamperTest {
         List<TacticalNode> tactical = new ArrayList<>();
         tactical.add(cp);
 
-        KeepEntryChamberStamper.stamp(grid, topology, tactical);
+        runStamper(grid, topology, tactical);
 
         assertEquals(3, tactical.size(),
                 "3-chamber keep should emit COMMAND_POST + 2 INNER_POSITIONs");
@@ -236,7 +251,7 @@ public class KeepEntryChamberStamperTest {
         List<TacticalNode> tactical = new ArrayList<>();
         tactical.add(cp);
 
-        KeepEntryChamberStamper.stamp(grid, topology, tactical);
+        runStamper(grid, topology, tactical);
 
         assertEquals(1, tactical.size(),
                 "2-cell entry chamber is below MIN_CHAMBER_CELLS — must not emit");
