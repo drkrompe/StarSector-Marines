@@ -68,7 +68,9 @@ public class BattleRenderer {
     // ---- render-only constants -----------------------------------------------
 
     private static final Color MARINE_COLOR   = new Color(0x5A, 0xA0, 0xE0);
-    private static final Color DEFENDER_COLOR = new Color(0xE0, 0x6A, 0x6A);
+    /** Defender quad-fallback color. Package-visible: shared with {@link UnitRenderService}'s
+     *  turret-sprite-missing fallback (the live-unit fallback below migrates in J5). */
+    static final Color DEFENDER_COLOR = new Color(0xE0, 0x6A, 0x6A);
     private static final Color CIVILIAN_COLOR = new Color(0xC8, 0xC8, 0x80);
     /** Dual-use in BattleScreen (spawnImpactFx); duplicated here for zero back-dependency. */
     private static final Color MARINE_TRACER  = new Color(0xFF, 0xE0, 0x70);
@@ -110,9 +112,6 @@ public class BattleRenderer {
     static final float RECOIL_DURATION = 0.12f;
     /** Peak backward displacement of the barrel sprite, as a fraction of the turret's visual long-axis (cells). Shared with {@link ShuttleRenderSystem}. */
     static final float RECOIL_DISTANCE_FRAC = 0.10f;
-
-    /** Turret-pad fill (shared road color). The tile/crosswalk/courtyard fills moved to {@code GroundRenderSystem}. */
-    private static final Color ROAD_FILL      = new Color(TileManifest.ROAD_FILL_RGB);
 
     private static final int GROUND_SMALL_TILE_EDGE_INSET_PX = com.dillon.starsectormarines.battle.world.tiles.FixedGridTileDrawer.GROUND_INSET_PX_SMALL;
 
@@ -433,11 +432,11 @@ public class BattleRenderer {
         float half = unitSize / 2f;
         com.dillon.starsectormarines.battle.vision.VisionService vis = sim.getVision();
 
-        renderTurrets(units, alphaMult);
-        renderDroneHubs(units, alphaMult);
-        // Dead-unit corpse sweep — migrated to the UNITS layer (UnitRenderService,
-        // slice J3); drained here at the dead-units slot so paint order holds
-        // (turrets → hubs → dead → live → bars). Collected up front in renderWorld.
+        // UNITS layer (UnitRenderService, collected up front in renderWorld):
+        // footprints → turret bodies → hub bodies → dead sprites. Drained here
+        // before the still-inline live + HP-bar loops so the full paint order
+        // holds (footprints → turret → hub → dead → live → bars). Live infantry
+        // (J5) and the bar sweep (J6) migrate into the service next.
         drainLayer(RenderLayer.UNITS);
 
         java.util.Set<UnitSpriteCache> tintedThisFrame = new java.util.HashSet<>();
@@ -547,139 +546,6 @@ public class BattleRenderer {
         float cx = rc.camera.cellToScreenX(u.getRenderX() + 0.5f);
         float cy = rc.camera.cellToScreenY(u.getRenderY() + 0.5f);
         sheet.renderAtCenter(cx, cy);
-    }
-
-    private void renderTurrets(List<Unit> units, float alphaMult) {
-        boolean any = false;
-        for (Unit u : units) {
-            if (u instanceof MapTurret && u.isAlive()) { any = true; break; }
-        }
-        if (!any) return;
-
-        float cellPx = rc.camera.cellPxSize();
-
-        glDisable(GL_TEXTURE_2D);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glBegin(GL_QUADS);
-        glColor4f(ROAD_FILL.getRed() / 255f, ROAD_FILL.getGreen() / 255f,
-                ROAD_FILL.getBlue() / 255f, alphaMult);
-        for (Unit u : units) {
-            if (!(u instanceof MapTurret) || !u.isAlive()) continue;
-            float x0 = rc.camera.cellToScreenX(u.getCellX());
-            float y0 = rc.camera.cellToScreenY(u.getCellY());
-            glVertex2f(x0,          y0);
-            glVertex2f(x0 + cellPx, y0);
-            glVertex2f(x0 + cellPx, y0 + cellPx);
-            glVertex2f(x0,          y0 + cellPx);
-        }
-        glEnd();
-
-        java.util.Set<TurretKind> touched = new java.util.HashSet<>();
-        java.util.Set<TurretKind> touchedRecoil = new java.util.HashSet<>();
-        for (Unit u : units) {
-            if (!(u instanceof MapTurret) || !u.isAlive()) continue;
-            MapTurret t = (MapTurret) u;
-            ShuttleSpriteCache base = sprites.turretSprites().get(t.kind);
-            if (base == null) {
-                renderTurretQuadFallback(t, cellPx * UNIT_FRAC, alphaMult);
-                continue;
-            }
-            float cx = rc.camera.cellToScreenX(t.getCellX() + 0.5f);
-            float cy = rc.camera.cellToScreenY(t.getCellY() + 0.5f);
-
-            ShuttleSpriteCache barrel = sprites.turretRecoilSprites().get(t.kind);
-            if (barrel != null) {
-                float recoilT = 0f;
-                if (t.recoilTimer < RECOIL_DURATION) {
-                    recoilT = 1f - t.recoilTimer / RECOIL_DURATION;
-                }
-                float pushPx = recoilT * RECOIL_DISTANCE_FRAC * t.kind.visualCells * cellPx;
-                double rad = Math.toRadians(t.facingDegrees);
-                float bx =  (float) Math.sin(rad)  * pushPx;
-                float by = -(float) Math.cos(rad)  * pushPx;
-                drawTurretLayer(barrel, t.facingDegrees, t.kind.visualCells, cellPx, cx + bx, cy + by, alphaMult);
-                touchedRecoil.add(t.kind);
-            }
-            drawTurretLayer(base, t.facingDegrees, t.kind.visualCells, cellPx, cx, cy, alphaMult);
-            touched.add(t.kind);
-        }
-        for (TurretKind k : touched) {
-            ShuttleSpriteCache c = sprites.turretSprites().get(k);
-            if (c != null) c.sprite.setAngle(0f);
-        }
-        for (TurretKind k : touchedRecoil) {
-            ShuttleSpriteCache c = sprites.turretRecoilSprites().get(k);
-            if (c != null) c.sprite.setAngle(0f);
-        }
-    }
-
-    private void renderDroneHubs(List<Unit> units, float alphaMult) {
-        boolean any = false;
-        for (Unit u : units) {
-            if (u instanceof com.dillon.starsectormarines.battle.drone.DroneHubUnit && u.isAlive()) { any = true; break; }
-        }
-        if (!any) return;
-        sprites.ensureDroneHubSprite();
-
-        float cellPx = rc.camera.cellPxSize();
-
-        glDisable(GL_TEXTURE_2D);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glBegin(GL_QUADS);
-        glColor4f(ROAD_FILL.getRed() / 255f, ROAD_FILL.getGreen() / 255f,
-                ROAD_FILL.getBlue() / 255f, alphaMult);
-        for (Unit u : units) {
-            if (!(u instanceof com.dillon.starsectormarines.battle.drone.DroneHubUnit) || !u.isAlive()) continue;
-            float x0 = rc.camera.cellToScreenX(u.getCellX());
-            float y0 = rc.camera.cellToScreenY(u.getCellY());
-            glVertex2f(x0,          y0);
-            glVertex2f(x0 + cellPx, y0);
-            glVertex2f(x0 + cellPx, y0 + cellPx);
-            glVertex2f(x0,          y0 + cellPx);
-        }
-        glEnd();
-
-        if (sprites.droneHubSprite() == null) return;
-        float visual = com.dillon.starsectormarines.battle.drone.DroneHubUnit.VISUAL_CELLS;
-        for (Unit u : units) {
-            if (!(u instanceof com.dillon.starsectormarines.battle.drone.DroneHubUnit) || !u.isAlive()) continue;
-            float cx = rc.camera.cellToScreenX(u.getCellX() + 0.5f);
-            float cy = rc.camera.cellToScreenY(u.getCellY() + 0.5f);
-            drawTurretLayer(sprites.droneHubSprite(), 0f, visual, cellPx, cx, cy, alphaMult);
-        }
-        sprites.droneHubSprite().sprite.setAngle(0f);
-    }
-
-    private static void drawTurretLayer(ShuttleSpriteCache cache, float facingDegrees, float visualCells,
-                                        float cellPx, float cx, float cy, float alphaMult) {
-        SpriteAPI sprite = cache.sprite;
-        float pxH = visualCells * cellPx;
-        float pxW = pxH * cache.aspect;
-        sprite.setSize(pxW, pxH);
-        sprite.setAngle(facingDegrees);
-        sprite.setAlphaMult(alphaMult);
-        sprite.setNormalBlend();
-        sprite.setColor(Color.WHITE);
-        sprite.renderAtCenter(cx, cy);
-    }
-
-    private void renderTurretQuadFallback(MapTurret t, float unitSize, float alphaMult) {
-        glDisable(GL_TEXTURE_2D);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glColor4f(DEFENDER_COLOR.getRed() / 255f, DEFENDER_COLOR.getGreen() / 255f,
-                DEFENDER_COLOR.getBlue() / 255f, alphaMult);
-        float cx = rc.camera.cellToScreenX(t.getCellX() + 0.5f);
-        float cy = rc.camera.cellToScreenY(t.getCellY() + 0.5f);
-        float half = unitSize / 2f;
-        glBegin(GL_QUADS);
-        glVertex2f(cx - half, cy - half);
-        glVertex2f(cx + half, cy - half);
-        glVertex2f(cx + half, cy + half);
-        glVertex2f(cx - half, cy + half);
-        glEnd();
     }
 
     private void renderUnitQuadFallback(Unit u, float unitSize, float half, float alphaMult) {

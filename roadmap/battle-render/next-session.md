@@ -95,8 +95,15 @@ derivation. J3 — `UnitRenderService` (`layer() == UNITS`) stands up the
 per-stratum-sweep consumer; its **dead-sprite sweep** is the first flyweight
 consumer, emitting one batched `SHEET_QUAD` per corpse. Inline `renderUnits`
 dropped `renderDeadUnits` (deleted) for `drainLayer(UNITS)` at the dead slot;
-dead sheets registered in `buildTileBatches`. Live-verify pending (corpse
-pose/scale/batching). J4–J6 add the remaining strata to the service.
+dead sheets registered in `buildTileBatches`. J4 — `GroundFootprint` helper (owns
+`ROAD_FILL`, camera-free one-cell pad); `UnitRenderService` gained
+`sweepFootprints` → `sweepTurretBodies` → `sweepHubBodies` (then the J3 dead
+sweep), absorbing `renderTurrets`/`renderDroneHubs`/`drawTurretLayer`/
+`renderTurretQuadFallback` (all deleted, with `ROAD_FILL`); `renderUnits` head
+collapsed to one `drainLayer(UNITS)`; `DEFENDER_COLOR` package-visible; hub
+lazy-load hoisted to `BattleScreen.attach`. **Intentional**: footprints sweep
+before all bodies now (was per-type interleaved). Live-verify pending. J5 (live
+infantry + flip engine-add) and J6 (HP-bar sweep) finish the service.
 
 **Structural: the `List<RenderSystem>` registry shipped.** `RenderSystem` now
 declares `layer()`; `BattleRenderer` holds an ordered `List<RenderSystem>`
@@ -155,7 +162,9 @@ capability tags + per-stratum `UnitRenderService` sweep). Sub-slices:
 ~~J1 `HpBarDecor` + retrofit `DroneRenderSystem`~~ ✅ →
 ~~J2 `RenderAppearance` table+tags (flyweight `of(UnitType)`; no pass change)~~ ✅
 → ~~J3 dead units `SHEET_QUAD` (`UnitRenderService` + dead sweep; live-verify
-pending)~~ ✅ → J4 turret/hub footprint+sprite → J5 live infantry
+pending)~~ ✅ → ~~J4 turret/hub footprint+sprite (`GroundFootprint` helper;
+absorbed `renderTurrets`/`renderDroneHubs`/`drawTurretLayer`; hub lazy-load
+hoisted; live-verify pending)~~ ✅ → J5 live infantry
 (+`SHEET_QUAD` vertical-flip engine add) → J6 HP-bar sweep → delete fallback →
 Final (collapse `render()` to systems-loop + drain — fold inline passes into
 the collect-all/drain-all loop as they migrate).
@@ -191,8 +200,10 @@ the collect-all/drain-all loop as they migrate).
 - **UNITS engine gap**: live infantry need a SOUTH-weapon-up vertical mirror;
   `QuadBatch.append` has fixed UV orientation. The `SHEET_QUAD` flip add (flag or
   `appendFlippedV`) lands in slice J5 — turret/hub/dead don't need it.
-- **In-game-pending validation**: **J3 dead-unit `SHEET_QUAD` sweep** — confirm
-  corpses still render at the right pose frame, scale, and position now that they
-  go through the batched `SHEET_QUAD`/`QuadBatch` path (was immediate-mode
-  `setTex*`/`renderAtCenter`). SHOTS (C), DOODADS (D), GROUND (E), VEHICLES (F),
-  CONVOY (G), SHUTTLES (H), DRONES (I) all verified; fallbacks deleted.
+- **In-game-pending validation**: **J3 + J4 UNITS strata** (verify together) —
+  J3 dead corpses (pose frame / scale / position through the batched `SHEET_QUAD`
+  path); J4 turret bodies (recoil displacement + facing, base/barrel), drone hubs,
+  and the `ROAD_FILL` footprint pads (now `SOLID_RECT`s, swept before all bodies).
+  Watch the turret-sprite-overhangs-neighbor-pad case (intentional order change).
+  SHOTS (C), DOODADS (D), GROUND (E), VEHICLES (F), CONVOY (G), SHUTTLES (H),
+  DRONES (I) all verified; fallbacks deleted.

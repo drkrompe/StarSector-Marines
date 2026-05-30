@@ -1,4 +1,4 @@
-# Story J — UNITS pass → component/tag render service — 🚧 IN PROGRESS (slices 1–3 shipped)
+# Story J — UNITS pass → component/tag render service — 🚧 IN PROGRESS (slices 1–4 shipped)
 
 The heavy pass, and the last inline world pass before the endgame. `renderUnits`
 is not one pass — it's **five strata painted in a fixed order into the `UNITS`
@@ -124,8 +124,10 @@ Game-side emit helpers the sweeps call (and other systems reuse):
 - **`HpBarDecor.emit(out, layer, cx, topY, width, hpFrac, alpha)`** — the two
   `SOLID_RECT`s, layer-agnostic. `DroneRenderSystem.addBar` collapses into this;
   shuttles can adopt it later by running a bar sweep last in `SHUTTLES`.
-- **`GroundFootprint.emit(out, layer, cellX, cellY, cellPx, color, alpha)`** —
-  the ROAD_FILL pad under turrets/hubs.
+- **`GroundFootprint.emit(out, layer, x0, y0, cellPx, alpha)`** — the one-cell
+  ROAD_FILL pad under turrets/hubs. *(Shipped J4 with this signature: the helper
+  owns the `ROAD_FILL` color, and takes the cell's screen-space origin `(x0,y0)`
+  — `cellToScreen` of the integer cell — keeping it camera-free like `HpBarDecor`.)*
 - **frame-sheet sprite emit** — frame sub-rect → `SHEET_QUAD` (+ flip), shared by
   live + dead; carries the frame-selection helpers (`computeFacing`/`pickFrame`/
   `eightWay`) game-side.
@@ -172,9 +174,27 @@ Game-side emit helpers the sweeps call (and other systems reuse):
    (`DamageResolver`), including null-corpse types (civilians have no dead sheet).
    The sweep keeps BOTH gates — skip on `!app.hasDeathPose` *and* on
    `deathPoseIdx < 0` — plus the cache load-guard.
-4. **MapTurret + DroneHub** → `GroundFootprint` + whole-`SPRITE` + (bar deferred
+4. ~~**MapTurret + DroneHub** → `GroundFootprint` + whole-`SPRITE` + (bar deferred
    to slice 6). Absorbs `drawTurretLayer` + `renderDroneHubs`; hoists the hub
-   lazy-load.
+   lazy-load.~~ **SHIPPED.**
+   `UnitRenderService` gained three sweeps in paint order: `sweepFootprints`
+   (turret + hub road pads via the new `GroundFootprint` helper, **first** so pads
+   sit under all bodies), `sweepTurretBodies` (recoil barrel + base whole-`SPRITE`s,
+   or a `DEFENDER_COLOR` `SOLID_RECT` fallback when the base sprite is missing),
+   `sweepHubBodies` (unrotated hub `SPRITE`). `emitWholeSprite` mirrors
+   `ShuttleRenderSystem.emitTurretLayer`; recoil reads `BattleRenderer.RECOIL_*`.
+   `BattleRenderer` deleted `renderTurrets`/`renderDroneHubs`/`drawTurretLayer`/
+   `renderTurretQuadFallback` + the `ROAD_FILL` constant (now owned by
+   `GroundFootprint`); `renderUnits` collapsed its turret/hub/drain head to a
+   single `drainLayer(UNITS)`. `DEFENDER_COLOR` made package-visible (shared with
+   the turret fallback; live-unit fallback migrates J5). Hub lazy-load
+   (`ensureDroneHubSprite`) hoisted to `BattleScreen.attach` so `collect` is
+   GL-free. The `setAngle(0)` reset loops are gone — the `SPRITE` drain resets
+   angle per draw. ⚠️ **One intentional paint-order refinement**: footprints now
+   sweep before *all* bodies (inline interleaved them per structure type), so a
+   turret sprite overhanging a neighbor's pad now paints on top — visually
+   equivalent except in that degenerate overlap, where the new order is more
+   correct. Live-verify pending (turret recoil/facing, hub, footprints).
 5. **Live infantry** → `SHEET_QUAD` + the flip extension + frame-selection
    helpers. The core slice.
 6. **HP-bar sweep** for turret/hub/unit via `HpBarDecor`, run last → confirm
