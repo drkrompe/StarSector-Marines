@@ -166,6 +166,50 @@ public final class QuadBatch {
     }
 
     /**
+     * Queue one textured quad with the source sub-rect mirrored vertically
+     * (top↔bottom). Identical to {@link #append} but the four destination corners
+     * sample the swapped V coordinates — the engine equivalent of the old
+     * negative-{@code setTexHeight} flip used for the SOUTH-weapon-up infantry
+     * pose. Axis-aligned only (the mirror has no rotated caller).
+     */
+    public void appendFlippedV(int srcX, int srcY, int srcW, int srcH,
+                               float dstCx, float dstCy, float dstW, float dstH,
+                               float r, float g, float b, float a) {
+        ensureCapacity(quadCount + 1);
+
+        float texU = sheet.getTextureWidth();
+        float texV = sheet.getTextureHeight();
+        float u0 = ((float) srcX           / sheetPxW) * texU;
+        float u1 = ((float) (srcX + srcW)  / sheetPxW) * texU;
+        float v0 = texV - ((float) srcY           / sheetPxH) * texV;
+        float v1 = texV - ((float) (srcY + srcH)  / sheetPxH) * texV;
+
+        float halfW = dstW * 0.5f;
+        float halfH = dstH * 0.5f;
+        float x0 = dstCx - halfW;
+        float x1 = dstCx + halfW;
+        float y0 = dstCy - halfH;
+        float y1 = dstCy + halfH;
+
+        int o = quadCount * FLOATS_PER_QUAD;
+        // V swapped vs append(): bottom corners take v0, top corners take v1.
+        // BL — (x0, y0) ↔ (u0, v0)
+        data[o++] = x0; data[o++] = y0; data[o++] = u0; data[o++] = v0;
+        data[o++] = r;  data[o++] = g;  data[o++] = b;  data[o++] = a;
+        // BR — (x1, y0) ↔ (u1, v0)
+        data[o++] = x1; data[o++] = y0; data[o++] = u1; data[o++] = v0;
+        data[o++] = r;  data[o++] = g;  data[o++] = b;  data[o++] = a;
+        // TR — (x1, y1) ↔ (u1, v1)
+        data[o++] = x1; data[o++] = y1; data[o++] = u1; data[o++] = v1;
+        data[o++] = r;  data[o++] = g;  data[o++] = b;  data[o++] = a;
+        // TL — (x0, y1) ↔ (u0, v1)
+        data[o++] = x0; data[o++] = y1; data[o++] = u0; data[o++] = v1;
+        data[o++] = r;  data[o++] = g;  data[o++] = b;  data[o] = a;
+
+        quadCount++;
+    }
+
+    /**
      * Emit all queued quads as one {@code glBegin(GL_QUADS)} block.
      * No-op if empty. Resets the queue. Caller is responsible for any
      * surrounding GL state — see {@link GlStateBracket#textured2D()}.

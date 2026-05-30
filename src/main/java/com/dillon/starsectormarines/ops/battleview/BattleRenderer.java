@@ -12,12 +12,10 @@ import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Unit;
-import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.model.TimeOfDay;
 import com.dillon.starsectormarines.battle.world.model.WallMasks;
-import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.world.tiles.UrbanTile3;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -67,11 +65,6 @@ public class BattleRenderer {
 
     // ---- render-only constants -----------------------------------------------
 
-    private static final Color MARINE_COLOR   = new Color(0x5A, 0xA0, 0xE0);
-    /** Defender quad-fallback color. Package-visible: shared with {@link UnitRenderService}'s
-     *  turret-sprite-missing fallback (the live-unit fallback below migrates in J5). */
-    static final Color DEFENDER_COLOR = new Color(0xE0, 0x6A, 0x6A);
-    private static final Color CIVILIAN_COLOR = new Color(0xC8, 0xC8, 0x80);
     /** Dual-use in BattleScreen (spawnImpactFx); duplicated here for zero back-dependency. */
     private static final Color MARINE_TRACER  = new Color(0xFF, 0xE0, 0x70);
     /** Dual-use in BattleScreen (spawnImpactFx); duplicated here for zero back-dependency. */
@@ -101,9 +94,6 @@ public class BattleRenderer {
     private static final float  KIT_DROP_PULSE_AMP   = 0.10f;
     private static final float  KIT_DROP_PULSE_HZ    = 0.6f;
     private static final int    PROGRESS_ARC_SEGMENTS = 32;
-
-    /** Window (s) after a unit fires during which we show the weapon-up pose. */
-    private static final float WEAPON_UP_TIME = 0.25f;
 
     /**
      * Sim-seconds the barrel sprite eases forward to its at-rest position after a shot.
@@ -263,10 +253,13 @@ public class BattleRenderer {
         registerSpriteSheetBatches(sprites.vehicleSheets().values());
         registerSpriteSheetBatches(sprites.convoySprites().values());
 
-        // Dead-unit corpse sheets for the UNITS layer (UnitRenderService dead
-        // sweep, slice J3) so dead infantry batch via SHEET_QUAD. Loaded by
-        // ensureUnitSprites() before this runs (BattleScreen.attach order).
+        // Unit sheets for the UNITS layer (UnitRenderService sprite sweeps) so
+        // dead + live infantry and secondary-aim poses batch via SHEET_QUAD.
+        // Loaded by ensureUnitSheets()/ensureMarineSecondarySprites() before this
+        // runs (BattleScreen.attach order).
         registerSpriteSheetBatches(sprites.unitDeadSprites().values());
+        registerSpriteSheetBatches(sprites.unitSprites().values());
+        registerSpriteSheetBatches(sprites.marineSecondaryAimSheets().values());
     }
 
     /** Builds + registers one {@link QuadBatch} per distinct sheet in {@code caches} (idempotent). */
@@ -433,43 +426,11 @@ public class BattleRenderer {
         com.dillon.starsectormarines.battle.vision.VisionService vis = sim.getVision();
 
         // UNITS layer (UnitRenderService, collected up front in renderWorld):
-        // footprints → turret bodies → hub bodies → dead sprites. Drained here
-        // before the still-inline live + HP-bar loops so the full paint order
-        // holds (footprints → turret → hub → dead → live → bars). Live infantry
-        // (J5) and the bar sweep (J6) migrate into the service next.
+        // footprints → turret bodies → hub bodies → dead sprites → live infantry.
+        // Drained here before the still-inline HP-bar loop so the full paint order
+        // holds (footprints → turret → hub → dead → live → bars). The bar sweep
+        // (J6) is the last stratum still inline.
         drainLayer(RenderLayer.UNITS);
-
-        java.util.Set<UnitSpriteCache> tintedThisFrame = new java.util.HashSet<>();
-        for (Unit u : units) {
-            if (!u.isAlive()) continue;
-            if (u instanceof MapTurret) continue;
-            if (u instanceof com.dillon.starsectormarines.battle.drone.DroneHubUnit) continue;
-            if (u instanceof com.dillon.starsectormarines.battle.drone.Drone) continue;
-            byte uv = vis.getUnitVisibility(u.denseIdx);
-            if (uv == com.dillon.starsectormarines.battle.vision.VisionService.VIS_HIDDEN) continue;
-            float unitAlpha = alphaMult;
-            if (uv == com.dillon.starsectormarines.battle.vision.VisionService.VIS_FADING) {
-                unitAlpha *= vis.getFadeAlpha(u.denseIdx);
-            }
-            UnitSpriteCache cache = sprites.unitSprites().get(u.type);
-            if (u.getSecondaryActionTimer() > 0f && u.secondaryWeapon != null) {
-                UnitSpriteCache aim = sprites.marineSecondaryAimSheets().get(u.secondaryWeapon);
-                if (aim != null && aim.sheet != null && aim.frames != null
-                        && aim.frames.frames.length > 0) {
-                    cache = aim;
-                }
-            }
-            if (cache == null || cache.sheet == null || cache.frames == null
-                    || cache.frames.frames.length == 0) {
-                renderUnitQuadFallback(u, unitSize, half, unitAlpha);
-                continue;
-            }
-            renderUnitSprite(u, cache, unitSize, unitAlpha);
-            tintedThisFrame.add(cache);
-        }
-        for (UnitSpriteCache cache : tintedThisFrame) {
-            cache.sheet.setColor(Color.WHITE);
-        }
 
         for (Unit u : units) {
             if (!u.isAlive()) continue;
@@ -499,72 +460,6 @@ public class BattleRenderer {
             float frac = Math.max(0f, Math.min(1f, u.getHp() / u.getMaxHp()));
             fillRect(barX, barY, barW * frac, HpBarDecor.HP_BAR_H, HpBarDecor.HP_FG, barAlpha);
         }
-    }
-
-    private void renderUnitSprite(Unit u, UnitSpriteCache cache, float unitSize, float alphaMult) {
-        SpriteAPI sheet = cache.sheet;
-        SpriteSheetFrames frames = cache.frames;
-        float texW = sheet.getTextureWidth();
-        float texH = sheet.getTextureHeight();
-        int sheetW = frames.sheetWidth;
-        int sheetH = frames.sheetHeight;
-
-        boolean inAim = u.getSecondaryActionTimer() > 0f && u.secondaryWeapon != null;
-        boolean weaponUp = inAim || (u.type.combatant
-                && u.getCooldownTimer() > (u.attackCooldown - WEAPON_UP_TIME)
-                && u.getCooldownTimer() > 0f);
-
-        int frameIdx;
-        boolean flipY;
-        if (u.type.frameLayout == UnitType.FrameLayout.EIGHT_WAY_NO_WEAPON_UP) {
-            EightWayFacing ef = computeEightWayFacing(u, rc.sim);
-            frameIdx = pickFrameEightWay(ef);
-            flipY = false;
-        } else {
-            Facing facing = computeFacing(u, rc.sim);
-            frameIdx = pickFrame(facing, weaponUp);
-            flipY = weaponUp && facing == Facing.SOUTH;
-        }
-        if (frameIdx >= frames.frames.length) frameIdx = 0;
-        SpriteSheetFrames.Frame f = frames.frames[frameIdx];
-
-        sheet.setTexX((float) f.x * texW / sheetW);
-        sheet.setTexWidth((float) f.w * texW / sheetW);
-        if (flipY) {
-            sheet.setTexY((float) (sheetH - f.y) * texH / sheetH);
-            sheet.setTexHeight(-(float) f.h * texH / sheetH);
-        } else {
-            sheet.setTexY((float) (sheetH - f.y - f.h) * texH / sheetH);
-            sheet.setTexHeight((float) f.h * texH / sheetH);
-        }
-        float targetH = unitSize * u.type.renderScale;
-        float targetW = targetH * f.w / (float) f.h;
-        sheet.setSize(targetW, targetH);
-        sheet.setAlphaMult(alphaMult);
-        sheet.setNormalBlend();
-        sheet.setColor(Color.WHITE);
-        float cx = rc.camera.cellToScreenX(u.getRenderX() + 0.5f);
-        float cy = rc.camera.cellToScreenY(u.getRenderY() + 0.5f);
-        sheet.renderAtCenter(cx, cy);
-    }
-
-    private void renderUnitQuadFallback(Unit u, float unitSize, float half, float alphaMult) {
-        Color c;
-        if (u.faction == Faction.MARINE)       c = MARINE_COLOR;
-        else if (u.faction == Faction.DEFENDER) c = DEFENDER_COLOR;
-        else                                    c = CIVILIAN_COLOR;
-        glDisable(GL_TEXTURE_2D);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glBegin(GL_QUADS);
-        glColor4f(c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, alphaMult);
-        float cx = rc.camera.cellToScreenX(u.getRenderX() + 0.5f);
-        float cy = rc.camera.cellToScreenY(u.getRenderY() + 0.5f);
-        glVertex2f(cx - half, cy - half);
-        glVertex2f(cx + half, cy - half);
-        glVertex2f(cx + half, cy + half);
-        glVertex2f(cx - half, cy + half);
-        glEnd();
     }
 
     /** Debug flag — draws Reeds-Shepp docking paths under each docking truck for math iteration. */
@@ -959,92 +854,6 @@ public class BattleRenderer {
         float dy = toY - fromY;
         if (dx == 0f && dy == 0f) return 0f;
         return (float) Math.toDegrees(Math.atan2(dy, dx)) - 90f;
-    }
-
-    private enum Facing { WEST, NORTH, EAST, SOUTH }
-
-    private static Facing computeFacing(Unit u, BattleSimulation sim) {
-        Unit target = sim != null ? sim.targetOf(u) : null;
-        if (target != null) {
-            int dx = target.getCellX() - u.getCellX();
-            int dy = target.getCellY() - u.getCellY();
-            if (dx != 0 || dy != 0) return facingFromDelta(dx, dy);
-        }
-        if (u.pathIdx < u.pathCellCount()) {
-            int dx = u.pathCellX(u.pathIdx) - u.getCellX();
-            int dy = u.pathCellY(u.pathIdx) - u.getCellY();
-            if (dx != 0 || dy != 0) return facingFromDelta(dx, dy);
-        }
-        return Facing.SOUTH;
-    }
-
-    private static Facing facingFromDelta(int dx, int dy) {
-        if (Math.abs(dx) > Math.abs(dy)) return dx > 0 ? Facing.EAST : Facing.WEST;
-        return dy > 0 ? Facing.NORTH : Facing.SOUTH;
-    }
-
-    private static int pickFrame(Facing facing, boolean weaponUp) {
-        if (weaponUp) {
-            switch (facing) {
-                case WEST:  return 4;
-                case EAST:  return 5;
-                case NORTH: return 6;
-                case SOUTH: return 6; // vertical mirror applied at draw time
-            }
-        } else {
-            switch (facing) {
-                case WEST:  return 0;
-                case NORTH: return 1;
-                case EAST:  return 2;
-                case SOUTH: return 3;
-            }
-        }
-        return 3;
-    }
-
-    private enum EightWayFacing { W, NW, N, NE, E, SE, S, SW }
-
-    private static EightWayFacing computeEightWayFacing(Unit u, BattleSimulation sim) {
-        Unit target = sim != null ? sim.targetOf(u) : null;
-        if (target != null) {
-            int dx = target.getCellX() - u.getCellX();
-            int dy = target.getCellY() - u.getCellY();
-            if (dx != 0 || dy != 0) return eightWayFromDelta(dx, dy);
-        }
-        if (u.pathIdx < u.pathCellCount()) {
-            int dx = u.pathCellX(u.pathIdx) - u.getCellX();
-            int dy = u.pathCellY(u.pathIdx) - u.getCellY();
-            if (dx != 0 || dy != 0) return eightWayFromDelta(dx, dy);
-        }
-        return EightWayFacing.S;
-    }
-
-    private static EightWayFacing eightWayFromDelta(int dx, int dy) {
-        int adx = Math.abs(dx);
-        int ady = Math.abs(dy);
-        boolean diag = Math.min(adx, ady) * 1000 >= Math.max(adx, ady) * 414;
-        if (diag) {
-            if (dx > 0 && dy > 0) return EightWayFacing.NE;
-            if (dx > 0 && dy < 0) return EightWayFacing.SE;
-            if (dx < 0 && dy > 0) return EightWayFacing.NW;
-            return EightWayFacing.SW;
-        }
-        if (adx > ady) return dx > 0 ? EightWayFacing.E : EightWayFacing.W;
-        return dy > 0 ? EightWayFacing.N : EightWayFacing.S;
-    }
-
-    private static int pickFrameEightWay(EightWayFacing f) {
-        switch (f) {
-            case W:  return 0;
-            case NW: return 1;
-            case SE: return 2;
-            case S:  return 3;
-            case SW: return 4;
-            case NE: return 5;
-            case E:  return 6;
-            case N:  return 1; // no dedicated N — borrow NW
-        }
-        return 3;
     }
 
     private static void fillRect(float rx, float ry, float rw, float rh, Color c, float alpha) {

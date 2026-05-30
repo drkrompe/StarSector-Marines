@@ -1,4 +1,4 @@
-# Story J — UNITS pass → component/tag render service — 🚧 IN PROGRESS (slices 1–4 shipped)
+# Story J — UNITS pass → component/tag render service — 🚧 IN PROGRESS (slices 1–5 shipped)
 
 The heavy pass, and the last inline world pass before the endgame. `renderUnits`
 is not one pass — it's **five strata painted in a fixed order into the `UNITS`
@@ -106,6 +106,14 @@ UV orientation and no flip. UNITS needs a **vertical-flip option on `SHEET_QUAD`
 Isolated to the live-infantry slice — turret/hub/dead all use whole-`SPRITE` or
 unflipped sheet quads.
 
+**SHIPPED (J5).** Both: a `QuadBatch.appendFlippedV` (append with the bottom/top
+V swapped — axis-aligned only, no rotated caller) **and** a `flipV` flag on the
+`SHEET_QUAD` command to carry it through the deferred model
+(`DrawCommand.setSheetQuadFlippedV`, `DrawList.addSheetQuadFlippedV`; the drain
+picks `appendRotated` / `appendFlippedV` / `append`). The canonical
+`setSheetQuad` resets `flipV=false`, so pooled-slot reuse can't leak a stale
+flip.
+
 ## GL-free-collect chores (same discipline as DRONES)
 
 - Hoist `ensureDroneHubSprite()` to `BattleScreen.attach` (it's a `loadTexture`
@@ -195,8 +203,28 @@ Game-side emit helpers the sweeps call (and other systems reuse):
    turret sprite overhanging a neighbor's pad now paints on top — visually
    equivalent except in that degenerate overlap, where the new order is more
    correct. Live-verify pending (turret recoil/facing, hub, footprints).
-5. **Live infantry** → `SHEET_QUAD` + the flip extension + frame-selection
-   helpers. The core slice.
+5. ~~**Live infantry** → `SHEET_QUAD` + the flip extension + frame-selection
+   helpers. The core slice.~~ **SHIPPED.**
+   `UnitRenderService.sweepLiveSprites` (last sprite stratum) emits live
+   infantry/civilians as batched `SHEET_QUAD`s. Claims the
+   `RenderAppearance.SpriteKind.SHEET` types — the tag-driven equivalent of the
+   inline `!(instanceof MapTurret|DroneHubUnit|Drone)` excludes (closes the J4
+   critique's mixed-idiom nit for this sweep). Faithful port of the inline
+   live loop + `renderUnitSprite`: same VIS_HIDDEN/VIS_FADING gating + fade,
+   secondary-aim sheet override, weapon-up window, frame selection, `renderScale`
+   sizing; colored-quad fallback (faction colors moved into the service). The
+   per-frame sheet `setColor`/tint-reset bookkeeping is **gone** — color is
+   explicit per quad. **Engine add**: `QuadBatch.appendFlippedV` + a `flipV` flag
+   on the `SHEET_QUAD` command (`DrawCommand.setSheetQuadFlippedV` /
+   `DrawList.addSheetQuadFlippedV`; drain routes `flipV` → `appendFlippedV`),
+   reproducing the SOUTH-weapon-up vertical mirror that was a negative
+   `setTexHeight` inline. The six frame-selection helpers + `Facing`/
+   `EightWayFacing` enums + `WEAPON_UP_TIME` moved verbatim into the service.
+   `BattleRenderer` deleted `renderUnitSprite`/`renderUnitQuadFallback` + those
+   helpers/enums/constant + the faction colors; live + dead + aim sheets now
+   registered in `buildTileBatches`. `renderUnits` is now just
+   `drainLayer(UNITS)` + the inline bar loop (J6). Live-verify pending (facings,
+   weapon-up + SOUTH flip, aim poses, batched live sprites, fog fade).
 6. **HP-bar sweep** for turret/hub/unit via `HpBarDecor`, run last → confirm
    layer-wide bars-on-top holds.
 7. Delete the `renderUnits` fallback after a live verify.

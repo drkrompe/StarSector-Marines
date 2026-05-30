@@ -102,8 +102,17 @@ sweep), absorbing `renderTurrets`/`renderDroneHubs`/`drawTurretLayer`/
 `renderTurretQuadFallback` (all deleted, with `ROAD_FILL`); `renderUnits` head
 collapsed to one `drainLayer(UNITS)`; `DEFENDER_COLOR` package-visible; hub
 lazy-load hoisted to `BattleScreen.attach`. **Intentional**: footprints sweep
-before all bodies now (was per-type interleaved). Live-verify pending. J5 (live
-infantry + flip engine-add) and J6 (HP-bar sweep) finish the service.
+before all bodies now (was per-type interleaved). J5 — `sweepLiveSprites` (last
+sprite stratum) emits live infantry as `SHEET_QUAD`s, claiming the
+`SpriteKind.SHEET` types (tag-driven, replacing the inline instanceof excludes).
+**Engine add**: `QuadBatch.appendFlippedV` + a `flipV` flag on the `SHEET_QUAD`
+command for the SOUTH-weapon-up mirror. Frame-selection helpers + `Facing`/
+`EightWayFacing` enums + `WEAPON_UP_TIME` + faction-fallback colors moved into the
+service; `BattleRenderer` deleted `renderUnitSprite`/`renderUnitQuadFallback` +
+those, and registers live/dead/aim sheets in `buildTileBatches`. `renderUnits` is
+now `drainLayer(UNITS)` + the inline HP-bar loop only. Live-verify pending. **J6
+(HP-bar sweep) is the last stratum** → then delete the (now near-empty)
+`renderUnits` + collapse to collect-all/drain-all.
 
 **Structural: the `List<RenderSystem>` registry shipped.** `RenderSystem` now
 declares `layer()`; `BattleRenderer` holds an ordered `List<RenderSystem>`
@@ -164,8 +173,9 @@ capability tags + per-stratum `UnitRenderService` sweep). Sub-slices:
 → ~~J3 dead units `SHEET_QUAD` (`UnitRenderService` + dead sweep; live-verify
 pending)~~ ✅ → ~~J4 turret/hub footprint+sprite (`GroundFootprint` helper;
 absorbed `renderTurrets`/`renderDroneHubs`/`drawTurretLayer`; hub lazy-load
-hoisted; live-verify pending)~~ ✅ → J5 live infantry
-(+`SHEET_QUAD` vertical-flip engine add) → J6 HP-bar sweep → delete fallback →
+hoisted; live-verify pending)~~ ✅ → ~~J5 live infantry (`sweepLiveSprites` +
+`QuadBatch.appendFlippedV`/`flipV` engine add; frame helpers moved game-side;
+live-verify pending)~~ ✅ → J6 HP-bar sweep → delete fallback →
 Final (collapse `render()` to systems-loop + drain — fold inline passes into
 the collect-all/drain-all loop as they migrate).
 
@@ -197,13 +207,17 @@ the collect-all/drain-all loop as they migrate).
   render-side (`ops/battleview`), keyed by `UnitType`. Do **not** add `SpriteAPI`
   or render fields to `Unit`/`UnitType` (overview's hard rule). The "component on
   the entity" is a type→descriptor lookup.
-- **UNITS engine gap**: live infantry need a SOUTH-weapon-up vertical mirror;
-  `QuadBatch.append` has fixed UV orientation. The `SHEET_QUAD` flip add (flag or
-  `appendFlippedV`) lands in slice J5 — turret/hub/dead don't need it.
-- **In-game-pending validation**: **J3 + J4 UNITS strata** (verify together) —
+- **UNITS engine gap — CLOSED (J5)**: the SOUTH-weapon-up vertical mirror shipped
+  as `QuadBatch.appendFlippedV` + a `flipV` flag on the `SHEET_QUAD` command
+  (`addSheetQuadFlippedV`; drain routes rotated/flipped/plain). Axis-aligned only.
+  Canonical `setSheetQuad` resets `flipV=false` so pooled slots can't leak it.
+- **In-game-pending validation**: **J3 + J4 + J5 UNITS strata** (verify together) —
   J3 dead corpses (pose frame / scale / position through the batched `SHEET_QUAD`
   path); J4 turret bodies (recoil displacement + facing, base/barrel), drone hubs,
-  and the `ROAD_FILL` footprint pads (now `SOLID_RECT`s, swept before all bodies).
-  Watch the turret-sprite-overhangs-neighbor-pad case (intentional order change).
+  and the `ROAD_FILL` footprint pads (now `SOLID_RECT`s, swept before all bodies;
+  watch the turret-overhangs-neighbor-pad case); **J5 live infantry** — facings
+  (WNES + 8-way mech), weapon-up pose + the **SOUTH-weapon-up vertical flip**
+  (the engine `appendFlippedV` — verify the mirror matches the old negative-
+  `setTexHeight`), secondary-aim sheets, batched live sprites, and fog fade-out.
   SHOTS (C), DOODADS (D), GROUND (E), VEHICLES (F), CONVOY (G), SHUTTLES (H),
   DRONES (I) all verified; fallbacks deleted.

@@ -67,6 +67,14 @@ public final class DrawList {
         slot(layer).setSheetQuad(sheet, srcX, srcY, srcW, srcH, cx, cy, w, h, angleDeg, r, g, b, a);
     }
 
+    /** Vertically-mirrored sheet-quad (axis-aligned): samples the sub-rect top↔bottom flipped. */
+    public void addSheetQuadFlippedV(RenderLayer layer, SpriteAPI sheet,
+                                     int srcX, int srcY, int srcW, int srcH,
+                                     float cx, float cy, float w, float h,
+                                     float r, float g, float b, float a) {
+        slot(layer).setSheetQuadFlippedV(sheet, srcX, srcY, srcW, srcH, cx, cy, w, h, r, g, b, a);
+    }
+
     public void addSprite(RenderLayer layer, SpriteAPI sprite,
                           float cx, float cy, float w, float h, float angleDeg,
                           float r, float g, float b, float a) {

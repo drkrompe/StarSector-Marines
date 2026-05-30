@@ -42,6 +42,8 @@ public final class DrawCommand {
     int srcX, srcY, srcW, srcH;
     float cx, cy, w, h;
     float angleDeg;
+    /** {@code SHEET_QUAD} only: sample the sub-rect mirrored vertically (the SOUTH-weapon-up flip). Always axis-aligned. */
+    boolean flipV;
     float r, g, b, a;
     Runnable custom;
 
@@ -65,8 +67,21 @@ public final class DrawCommand {
         this.sprite = sheet;
         this.srcX = srcX; this.srcY = srcY; this.srcW = srcW; this.srcH = srcH;
         this.cx = cx; this.cy = cy; this.w = w; this.h = h; this.angleDeg = angleDeg;
+        this.flipV = false;
         this.r = r; this.g = g; this.b = b; this.a = a;
         this.custom = null;
+    }
+
+    /**
+     * Vertically-mirrored {@code SHEET_QUAD} (axis-aligned): the dst rect samples
+     * the sub-rect top↔bottom flipped. The drain routes this through
+     * {@link QuadBatch#appendFlippedV}. Used for the SOUTH-weapon-up infantry pose.
+     */
+    public void setSheetQuadFlippedV(SpriteAPI sheet, int srcX, int srcY, int srcW, int srcH,
+                                     float cx, float cy, float w, float h,
+                                     float r, float g, float b, float a) {
+        setSheetQuad(sheet, srcX, srcY, srcW, srcH, cx, cy, w, h, 0f, r, g, b, a);
+        this.flipV = true;
     }
 
     public void setSprite(SpriteAPI sprite,
