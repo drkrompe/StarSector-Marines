@@ -199,14 +199,62 @@ public class BattleRenderer {
 
     public BattleRenderer(BattleSprites sprites) {
         this.sprites = sprites;
+        // The full world-render pass list, in paint order — every pass now lives
+        // here (collect-all → drain-all; see renderWorld). Order is verbatim today's
+        // pass sequence; RenderLayer ordinal mirrors it. Within a shared layer
+        // (GROUND, CONVOY) list order = submission order = paint sub-order, so the
+        // debug overlay producers sit right after the body producer they paint over.
+        // Stateful/own-GL passes keep their state + render* bodies on this class and
+        // join via RenderSystem.of(...) emitting a Custom (the FBO/own-GL escape hatch).
         this.worldSystems = List.of(
                 new GroundRenderSystem(sprites),
+                // Zone debug overlay paints on top of ground tiles, under decals.
+                RenderSystem.of(RenderLayer.GROUND, (ctx, out) -> {
+                    if (ctx.debugZonesVisible)
+                        out.addCustom(RenderLayer.GROUND, () -> renderZoneOverlay(ctx.sim, ctx.alphaMult));
+                }),
+                RenderSystem.of(RenderLayer.DECALS, (ctx, out) ->
+                        out.addCustom(RenderLayer.DECALS, () -> renderDecals(ctx.sim, ctx.alphaMult))),
                 new VehicleRenderSystem(sprites),
                 new DoodadRenderSystem(sprites),
+                RenderSystem.of(RenderLayer.HIGHLIGHTS, (ctx, out) ->
+                        out.addCustom(RenderLayer.HIGHLIGHTS, () -> ctx.highlights.render(ctx.camera, ctx.alphaMult))),
+                RenderSystem.of(RenderLayer.FOG, (ctx, out) ->
+                        out.addCustom(RenderLayer.FOG, () -> renderFogOverlay(ctx.sim, ctx.alphaMult))),
                 new UnitRenderService(sprites),
+                RenderSystem.of(RenderLayer.ROOFS, (ctx, out) ->
+                        out.addCustom(RenderLayer.ROOFS, () -> renderRoofs(ctx.sim, ctx.alphaMult))),
                 new DroneRenderSystem(sprites),
+                RenderSystem.of(RenderLayer.OBJECTIVES, (ctx, out) ->
+                        out.addCustom(RenderLayer.OBJECTIVES, () -> renderObjectiveMarkers(ctx.sim, ctx.alphaMult))),
+                RenderSystem.of(RenderLayer.COMPOUND, (ctx, out) ->
+                        out.addCustom(RenderLayer.COMPOUND, () -> compoundMarkers.render(
+                                ctx.sim, ctx.sim.getCompoundService(), ctx.camera, ctx.alphaMult))),
                 new ConvoyRenderSystem(sprites),
-                new ShuttleRenderSystem(sprites));
+                // Convoy debug overlays (own-GL line passes) paint over the convoy sprites.
+                RenderSystem.of(RenderLayer.CONVOY, (ctx, out) ->
+                        out.addCustom(RenderLayer.CONVOY, () -> {
+                            java.util.List<com.dillon.starsectormarines.battle.vehicle.Vehicle> convoy =
+                                    ctx.sim.getConvoyVehicles();
+                            if (DEBUG_RENDER_DOCKING_PATHS) renderConvoyDockingPaths(convoy, ctx.alphaMult);
+                            renderSelectedVehicleDebug(convoy, ctx.alphaMult);
+                        })),
+                new ShuttleRenderSystem(sprites),
+                // SHOTS emits batchable sprite commands + Custom contrails/tracers (Story C).
+                RenderSystem.of(RenderLayer.SHOTS, (ctx, out) ->
+                        collectShots(ctx.sim.getActiveShots(), ctx.alphaMult)),
+                RenderSystem.of(RenderLayer.IMPACT_FX, (ctx, out) ->
+                        out.addCustom(RenderLayer.IMPACT_FX, () -> impactFx.render(ctx.camera, ctx.alphaMult))),
+                RenderSystem.of(RenderLayer.FLYBY, (ctx, out) ->
+                        out.addCustom(RenderLayer.FLYBY, () -> flybyOverlay.render(ctx.camera, ctx.alphaMult))),
+                RenderSystem.of(RenderLayer.LIGHTING, (ctx, out) ->
+                        out.addCustom(RenderLayer.LIGHTING, () -> {
+                            TimeOfDay tod = timeOfDay.evaluateAt(0f);
+                            if (!tod.bypass)
+                                lightAccumulator.render(ctx.camera, tod,
+                                        ctx.sim.getGrid().getWidth(), ctx.sim.getGrid().getHeight(),
+                                        ctx.alphaMult);
+                        })));
     }
 
     // ---- lifecycle -----------------------------------------------------------
@@ -844,80 +892,24 @@ public class BattleRenderer {
     /**
      * Renders all world-layer passes. Called from {@code BattleScreen.render()} between
      * scissor setup and {@code glPopAttrib}.
+     *
+     * <p><strong>collect-all → drain-all.</strong> Every pass now lives in
+     * {@link #worldSystems} (in paint order). The collect phase appends each
+     * system's commands into its layer buffer — GL-free and order-immaterial
+     * <em>across</em> layers (commands are layer-tagged); within a shared layer,
+     * registry list order is submission order. The drain phase then replays layers
+     * in {@link RenderLayer} order, which <em>is</em> paint order (ordinal = paint
+     * order), batching/flushing each. The per-seam ordering rationale lives in the
+     * {@link RenderLayer} javadoc — do not re-derive it here.
      */
     public void renderWorld(RenderContext rc) {
         this.rc = rc;
         drawList.clear();
-        BattleSimulation sim = rc.sim;
-        // Collect phase — every migrated system appends into its own layer buffer.
-        // Order is immaterial (each command is layer-tagged + GL-free); the drains
-        // below replay layers in paint order, interleaving the inline passes that
-        // haven't migrated yet.
         for (RenderSystem system : worldSystems) {
             system.collect(rc, drawList);
         }
-        // GROUND layer — tiled floor/wall terrain via GroundRenderSystem (pooled
-        // per-tile commands), drained through the strict-painter batch path.
-        drainLayer(RenderLayer.GROUND);
-        if (rc.debugZonesVisible) renderZoneOverlay(sim, rc.alphaMult);
-        // Decals sit between the floor pass and vehicles so parked trucks
-        // (and later units) draw on top of bullet holes and craters.
-        renderDecals(sim, rc.alphaMult);
-        // VEHICLES layer — parked map vehicles via VehicleRenderSystem, one
-        // batched sheet-quad each (drained through the strict-painter path).
-        drainLayer(RenderLayer.VEHICLES);
-        // DOODADS layer — command-driven via DoodadRenderSystem (Story D): the
-        // first sheet-batched pass routed through the draw list.
-        drainLayer(RenderLayer.DOODADS);
-        // Debug cell highlights — published by HUD panels (plan-step cells,
-        // selected squad members, captain). Paints above ground decals/
-        // doodads, below units so unit sprites stay legible over the tint.
-        rc.highlights.render(rc.camera, rc.alphaMult);
-        renderFogOverlay(sim, rc.alphaMult);
-        // UNITS layer — fully command-driven via UnitRenderService (Story J):
-        // footprints → turret bodies → hub bodies → dead → live infantry → HP bars
-        // (bars last = layer-wide on top). Collected up front; drained here in slot.
-        drainLayer(RenderLayer.UNITS);
-        // Fog-of-war roof pass — paints opaque BRICK tiles over the
-        // interiors of buildings the player can't see, hiding any units
-        // (and decals / doodads) inside. Sits above units but below
-        // objective markers, shuttles (aircraft), projectiles, and flyby
-        // — all of which should pierce the roof.
-        renderRoofs(sim, rc.alphaMult);
-        // DRONES layer — drones live above the roof layer (they hover at roof
-        // altitude, so a drone over a building overlays the BRICK roof tile rather
-        // than being occluded). Hull SPRITE + HP-bar SOLID_RECTs via DroneRenderSystem.
-        drainLayer(RenderLayer.DRONES);
-        // Charge sites + equipment drops sit above units so the player can
-        // always see where the objectives are.
-        renderObjectiveMarkers(sim, rc.alphaMult);
-        // Compound capture-state markers — faction-coloured ring +
-        // capture-progress arc + kind glyph at each defender compound.
-        compoundMarkers.render(sim, sim.getCompoundService(), rc.camera, rc.alphaMult);
-        // CONVOY layer — convoy trucks + turrets via ConvoyRenderSystem (rotated
-        // batched sheet-quads), just under shuttles. The debug overlays the old
-        // pass dispatched are own-GL line passes and run inline after the drain.
-        java.util.List<com.dillon.starsectormarines.battle.vehicle.Vehicle> convoy = sim.getConvoyVehicles();
-        drainLayer(RenderLayer.CONVOY);
-        if (DEBUG_RENDER_DOCKING_PATHS) renderConvoyDockingPaths(convoy, rc.alphaMult);
-        renderSelectedVehicleDebug(convoy, rc.alphaMult);
-        // SHUTTLES layer — aircraft hulls + turrets (SPRITE) + engine FX (Custom)
-        // via ShuttleRenderSystem.
-        drainLayer(RenderLayer.SHUTTLES);
-        // SHOTS layer — command-driven (Story C): collect into the draw list,
-        // then drain it through the batch/flush path instead of drawing inline.
-        collectShots(sim.getActiveShots(), rc.alphaMult);
-        drainLayer(RenderLayer.SHOTS);
-        // Impact FX: sparks, dust, smoke at shot endpoints.
-        impactFx.render(rc.camera, rc.alphaMult);
-        // Flyby layer lives above everything ground-side.
-        flybyOverlay.render(rc.camera, rc.alphaMult);
-        // Lightmap multiply — last world-layer pass so darkness covers everything.
-        TimeOfDay tod = timeOfDay.evaluateAt(0f);
-        if (!tod.bypass) {
-            lightAccumulator.render(rc.camera, tod,
-                    sim.getGrid().getWidth(), sim.getGrid().getHeight(),
-                    rc.alphaMult);
+        for (RenderLayer layer : RenderLayer.values()) {
+            drainLayer(layer);
         }
     }
 }

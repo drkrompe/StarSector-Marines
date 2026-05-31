@@ -191,23 +191,30 @@ hoisted; live-verify pending)~~ ✅ → ~~J5 live infantry (`sweepLiveSprites` +
 live-verify pending)~~ ✅ → ~~J6 HP-bar sweep (`sweepHpBars` last; `drawsHpBar`
 tag)~~ ✅ → ~~delete `renderUnits` fallback (folded into J6 — `renderWorld` calls
 `drainLayer(UNITS)` directly)~~ ✅ →
-Final (collapse `render()` to systems-loop + drain — fold inline passes into
-the collect-all/drain-all loop as they migrate). **Story J shipped & verified
-(in `complete/`).** "Final" is a separate cross-layer endgame (NOT just UNITS) —
-it's now the only structural battle-render work left.
+~~Final (collapse `render()` to systems-loop + drain — fold inline passes into
+the collect-all/drain-all loop)~~ ✅ **CODE-COMPLETE, in-game verify pending.**
+Every formerly-inline pass joined `worldSystems` via the new
+`RenderSystem.of(layer, collectFn)` adapter (emitting a `Custom`, the own-GL/FBO
+escape hatch); `renderWorld` is now just `collect-all` then
+`for (RenderLayer l : values()) drainLayer(l)`. Per-seam ordering rationale moved
+to `RenderLayer` per-constant javadoc. Behavior-identical by construction. See
+[`complete/story-final-collapse.md`](complete/story-final-collapse.md). With Final
+done, the **only** remaining battle-render work is the deferred `QuadBatch.flush`
+perf spike.
 
 ## Watch-outs
 
 - Pass order in `renderWorld` is semantic — `RenderLayer` is the verbatim list.
   Emit a migrated pass into its existing layer; don't re-derive order.
-- **The drain sequence is NOT `RenderLayer` ordinal order.** CONVOY/SHUTTLES drain
-  *late* — after the lower-ordinal UNITS/ROOFS/etc. inline passes — because those
-  inline passes still sit between them in paint order. The endgame drain-all loop
-  must preserve the per-slot interleave; do **not** "simplify" it to iterate
-  `worldSystems` or sort by `layer().ordinal()` (that would silently float
-  CONVOY/SHUTTLES ahead of the unmigrated inline passes). `layer()` is metadata
-  for the eventual fold-in, not a drain-order source — the drains pass explicit
-  `RenderLayer.X` literals on purpose.
+- **Drain order is now `RenderLayer.values()` ordinal order — and that's correct
+  (Final).** This watch-out used to say the opposite: while inline passes still sat
+  *between* migrated drains, an ordinal-order drain would have floated
+  CONVOY/SHUTTLES ahead of them. That hazard is **retired** — every pass is now a
+  `worldSystems` producer, so ordinal order == paint order. The new constraint:
+  `RenderLayer` ordinal **is** the verbatim paint order, and within a shared layer
+  (GROUND, CONVOY) registry list order is submission order. Don't reorder the enum
+  or the registry list without re-deriving the per-seam rationale (now in
+  `RenderLayer` per-constant javadoc).
 - Keep every batched flush inside a `GlStateBracket`. The drain owns this (one
   bracket per layer, spanning all batch/sprite runs); `Custom` callbacks drop out
   of the bracket and own their own GL.
@@ -237,9 +244,11 @@ it's now the only structural battle-render work left.
   as `QuadBatch.appendFlippedV` + a `flipV` flag on the `SHEET_QUAD` command
   (`addSheetQuadFlippedV`; drain routes rotated/flipped/plain). Axis-aligned only.
   Canonical `setSheetQuad` resets `flipV=false` so pooled slots can't leak it.
-- **In-game-pending validation**: **none.** Story J (UNITS, all strata + the
-  black-box regression fix) verified in-game. SHOTS (C), DOODADS (D), GROUND (E),
-  VEHICLES (F), CONVOY (G), SHUTTLES (H), DRONES (I), UNITS (J) all verified;
-  every world pass is now command-driven.
-  SHOTS (C), DOODADS (D), GROUND (E), VEHICLES (F), CONVOY (G), SHUTTLES (H),
-  DRONES (I) all verified; fallbacks deleted.
+- **In-game-pending validation**: **Final (collapse).** Behavior-identical by
+  construction (each pass emits into its existing layer slot; ordinal order = the
+  old call sequence), but the collapse touches every pass, so a full-frame smoke
+  check is the gate before graduating `story-final-collapse.md`: zones overlay,
+  decals/craters, fog edges, roofs over unseen interiors, objective pulses,
+  compound rings, convoy debug paths, shots/contrails, impact FX, flyby, day/night
+  lightmap. All prior stories — SHOTS (C), DOODADS (D), GROUND (E), VEHICLES (F),
+  CONVOY (G), SHUTTLES (H), DRONES (I), UNITS (J) — verified; fallbacks deleted.

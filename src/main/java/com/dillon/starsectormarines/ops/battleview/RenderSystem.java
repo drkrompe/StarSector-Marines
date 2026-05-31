@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import java.util.function.BiConsumer;
+
 /**
  * A stateless world-render producer: reads services/camera/vision off the
  * per-frame {@link RenderContext} and appends
@@ -28,4 +30,23 @@ public interface RenderSystem {
      * at the call site (the system is the single source of truth for its layer).
      */
     RenderLayer layer();
+
+    /**
+     * Adapter for renderer-owned passes that don't warrant a dedicated class —
+     * stateful render resources (FBO accumulators, contrails, impact FX) and
+     * simple own-GL overlays (fog, roofs, markers, debug). They keep their state
+     * and {@code render*} bodies on {@link BattleRenderer} and join the ordered
+     * registry by emitting via {@code collect} (typically a single
+     * {@link DrawList#addCustom} — the sanctioned escape hatch for passes that
+     * own their own GL / FBO blits).
+     *
+     * @param layer the layer this pass feeds (also the layer it must emit into)
+     * @param collect appends this frame's commands; runs once per frame, GL-free
+     */
+    static RenderSystem of(RenderLayer layer, BiConsumer<RenderContext, DrawList> collect) {
+        return new RenderSystem() {
+            @Override public void collect(RenderContext ctx, DrawList out) { collect.accept(ctx, out); }
+            @Override public RenderLayer layer() { return layer; }
+        };
+    }
 }
