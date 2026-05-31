@@ -72,11 +72,16 @@ package-visible (shared with the inline UNITS HP bars). No rotation-parity risk
 (`SPRITE`/`setAngle`). See
 [`complete/story-i-drones-system.md`](complete/story-i-drones-system.md).
 
-**UNITS — the heavy one — is CODE-COMPLETE** (Story J, slices 1–7; in-game verify
-pending): [`stories/story-j-units.md`](stories/story-j-units.md). The whole
-`renderUnits` pass + sub-methods are gone — UNITS is fully command-driven via
-`UnitRenderService`'s six per-stratum sweeps. The recap below is the original
-shape rationale (kept for context); see the slice log at the end for what shipped.
+**UNITS — the heavy one — is ✅ SHIPPED & VERIFIED** (Story J, slices 1–7 + a
+black-box regression fix), moved to
+[`complete/story-j-units.md`](complete/story-j-units.md). The whole `renderUnits`
+pass + sub-methods are gone — UNITS is fully command-driven via
+`UnitRenderService`'s six per-stratum sweeps. In-game verified post-fix
+(transparency clean; recoil/footprints/hubs/dead-poses/facings/flip/bars all
+correct). With UNITS done, **every world pass is migrated** — the only remaining
+battle-render work is the cross-layer **"Final"** collapse (below) and the
+deferred `QuadBatch.flush` perf spike. The recap below is the original shape
+rationale (kept for context); the slice log is in the complete/ doc.
 `renderUnits` is five strata painted in fixed order into the `UNITS` layer
 (turret footprint+sprite → hub footprint+sprite → dead sprites → live sprites →
 HP bars, bars last = layer-wide on top). It migrates into the command model **and**
@@ -187,9 +192,9 @@ live-verify pending)~~ ✅ → ~~J6 HP-bar sweep (`sweepHpBars` last; `drawsHpBa
 tag)~~ ✅ → ~~delete `renderUnits` fallback (folded into J6 — `renderWorld` calls
 `drainLayer(UNITS)` directly)~~ ✅ →
 Final (collapse `render()` to systems-loop + drain — fold inline passes into
-the collect-all/drain-all loop as they migrate). **Story J is code-complete;
-only the in-game verify + a possible critique pass remain before it moves to
-`complete/`.** "Final" is a separate cross-layer endgame (NOT just UNITS).
+the collect-all/drain-all loop as they migrate). **Story J shipped & verified
+(in `complete/`).** "Final" is a separate cross-layer endgame (NOT just UNITS) —
+it's now the only structural battle-render work left.
 
 ## Watch-outs
 
@@ -232,19 +237,9 @@ only the in-game verify + a possible critique pass remain before it moves to
   as `QuadBatch.appendFlippedV` + a `flipV` flag on the `SHEET_QUAD` command
   (`addSheetQuadFlippedV`; drain routes rotated/flipped/plain). Axis-aligned only.
   Canonical `setSheetQuad` resets `flipV=false` so pooled slots can't leak it.
-- **In-game-pending validation**: **J3 + J4 + J5 UNITS strata** (verify together) —
-  J3 dead corpses (pose frame / scale / position through the batched `SHEET_QUAD`
-  path); J4 turret bodies (recoil displacement + facing, base/barrel), drone hubs,
-  and the `ROAD_FILL` footprint pads (now `SOLID_RECT`s, swept before all bodies;
-  watch the turret-overhangs-neighbor-pad case); **J5 live infantry** — facings
-  (WNES + 8-way mech), weapon-up pose + the **SOUTH-weapon-up vertical flip**
-  (the engine `appendFlippedV` — verify the mirror matches the old negative-
-  `setTexHeight`), secondary-aim sheets, batched live sprites, and fog fade-out;
-  **J6 HP bars** — bars paint on top across all kinds (turret/hub higher by visual
-  extent, infantry just above the sprite), fade with fog. This is the whole UNITS
-  pass at once (renderUnits is gone), so it's the load-bearing verify for Story J.
-  **Black-box regression fixed** (foreign `renderAtCenter` polluting blend within
-  the UNITS bracket; drain now re-asserts batch state after `SPRITE`s) — re-verify
-  that units/mechs/bodies render with clean transparency.
+- **In-game-pending validation**: **none.** Story J (UNITS, all strata + the
+  black-box regression fix) verified in-game. SHOTS (C), DOODADS (D), GROUND (E),
+  VEHICLES (F), CONVOY (G), SHUTTLES (H), DRONES (I), UNITS (J) all verified;
+  every world pass is now command-driven.
   SHOTS (C), DOODADS (D), GROUND (E), VEHICLES (F), CONVOY (G), SHUTTLES (H),
   DRONES (I) all verified; fallbacks deleted.

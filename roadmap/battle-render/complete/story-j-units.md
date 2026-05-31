@@ -1,6 +1,39 @@
-# Story J — UNITS pass → component/tag render service — 🚧 CODE-COMPLETE (slices 1–7 shipped; in-game verify pending)
+# Story J — UNITS pass → component/tag render service — ✅ SHIPPED & VERIFIED
 
-The heavy pass, and the last inline world pass before the endgame. `renderUnits`
+The heaviest world pass is now fully command-driven: the entire inline
+`renderUnits` (five strata + ~8 sub-methods) is gone, replaced by one stateless
+`UnitRenderService` with six per-stratum sweeps (footprints → turret → hub → dead
+→ live → bars) that branch on a type-flyweight `RenderAppearance` + capability
+tags. `renderWorld` drains `RenderLayer.UNITS` directly at the units slot.
+
+**Shipped-with-details (commit chain):**
+- `74d794f` J1 — `HpBarDecor` (canonical two-`SOLID_RECT` bar; owns `HP_BG`/
+  `HP_FG`/`HP_BAR_H`); `DroneRenderSystem` retrofitted onto it.
+- `88e13ff` J2 + `52e7ed9` chaser — `RenderAppearance` flyweight `of(UnitType)` +
+  capability tags; `RenderAppearanceTest` pins the derivation.
+- `0da9dc7` J3 + `9e094e4` chaser — dead corpses → batched `SHEET_QUAD`;
+  `UnitRenderService` stood up; share `UNIT_FRAC`.
+- `6f65b8a` J4 — turret + hub footprints (`GroundFootprint`) + whole-`SPRITE`
+  bodies; absorbed `renderTurrets`/`renderDroneHubs`/`drawTurretLayer`; hub
+  lazy-load hoisted.
+- `d1059b4` J5 — live infantry → `SHEET_QUAD` + the `QuadBatch.appendFlippedV` /
+  `flipV` engine addition (SOUTH-weapon-up mirror); frame helpers moved game-side.
+- `a279a9e` J6 + `fb15cf8` doc chaser — HP-bar sweep (last) + `renderUnits`
+  deleted (slice 7 folded in).
+- `d7120d2` **regression fix** — re-assert textured-2D blend after a `SPRITE`
+  (`renderAtCenter`) in the drain. UNITS was the first layer to mix `SPRITE` →
+  `SHEET_QUAD` in one bracket; the foreign `renderAtCenter` left the blend func
+  mutated, so unit/mech/corpse sheets drew transparent texels opaque (black
+  boxes). Fixed via `GlStateBracket.applyTextured2DState()` on the `SPRITE`→batch
+  transition. See `[[gl_state_gotchas]]`.
+
+**Verified in-game** (post-fix): units/mechs/corpses render with clean
+transparency; turret recoil/footprints, drone hubs, dead poses, live facings +
+SOUTH-weapon-up flip, and bars-on-top across all kinds all looked correct.
+Per-slice critiques (J3–J6) all returned clean. Each slice's "SHIPPED" note below
+records what landed vs. planned.
+
+The original design rationale follows. `renderUnits`
 is not one pass — it's **five strata painted in a fixed order into the `UNITS`
 layer**, each a sweep over the unit list. This story migrates it into the
 command model, but unlike C–I it also fixes the *internal shape* of the system to
