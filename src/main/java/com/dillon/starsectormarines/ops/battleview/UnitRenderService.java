@@ -22,13 +22,13 @@ import java.awt.Color;
  * on top across all kinds" is simply "the bar sweep runs last". See
  * {@code roadmap/battle-render/stories/story-j-units.md}.
  *
- * <p><b>Migration state (slice J5).</b> Live now: footprints, turret + hub
- * whole-sprite bodies, dead-sprites, and the <em>live-infantry</em> sprites
- * (batched {@code SHEET_QUAD}, with the SOUTH-weapon-up vertical flip). Still
- * inline in {@code BattleRenderer.renderUnits}: only the layer-wide HP-bar pass
- * (J6). {@code renderUnits} drains this layer ({@code drainLayer(RenderLayer.UNITS)})
- * before its inline bar loop, so the full paint order holds: footprints → turret →
- * hub → dead → live → bars.
+ * <p><b>Complete (slice J6).</b> All six sweeps are live here — footprints, turret
+ * + hub whole-sprite bodies, dead-sprites, live-infantry sprites (batched
+ * {@code SHEET_QUAD}, with the SOUTH-weapon-up vertical flip), and the layer-wide
+ * HP-bar pass. The inline {@code BattleRenderer.renderUnits} is gone;
+ * {@code renderWorld} drains this layer ({@code drainLayer(RenderLayer.UNITS)})
+ * directly at the units slot. Collect order = paint order: footprints → turret →
+ * hub → dead → live → bars (bars last = layer-wide on top).
  *
  * <p><b>Sweep order is paint order.</b> The collect order below <em>is</em> the
  * submission (= paint) order under the strict-painter drain. One intentional
