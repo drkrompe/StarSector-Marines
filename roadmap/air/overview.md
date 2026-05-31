@@ -2,7 +2,7 @@
 
 > Umbrella doc for airborne craft in the battle tier. Read this first, then the
 > shared core ([`hull-extraction.md`](hull-extraction.md)) and the per-class
-> docs ([`fighters.md`](fighters.md), [`ships.md`](ships.md)). **Design stage**
+> docs ([`fighters/`](fighters/overview.md), [`ships/`](ships/overview.md)). **Design stage**
 > except where noted (shuttles have shipped).
 
 ## What this is
@@ -45,11 +45,11 @@ are the design-stage members that extend it.
 ## Members
 
 - **Shuttles** — shipped. The reference implementation of the shared substrate.
-- **Fighters / drones** — [`fighters.md`](fighters.md). The existing
+- **Fighters / drones** — [`fighters/`](fighters/overview.md). The existing
   `battle/flyby/` fighters are a cosmetic overlay (dead weight, ripe for
   replacement); this designs them as real `AirBody` entities. Unblocks the
   `roadmap/backlog.md` "flyby fighters as real air entities" item.
-- **Ships** — [`ships.md`](ships.md). Overhead craft modeled with full concave
+- **Ships** — [`ships/`](ships/overview.md). Overhead craft modeled with full concave
   hull collision so ground defenses can target them and hits land on the actual
   hull shape.
 
@@ -65,7 +65,7 @@ are the design-stage members that extend it.
   same "data-driven body + steering" shape, different medium.
 - `roadmap/vanilla-combat-bridge/overview.md` — adjacent: its proxy-target
   thread is the other side of "vanilla ships and our sim interact." Ground
-  defenses targeting ships (in [`ships.md`](ships.md)) lives next door.
+  defenses targeting ships (in [`ships/`](ships/overview.md)) lives next door.
 - `roadmap/command-powers/` — fighter cover is surfaced to the player as a
   command power; this category is the sim substrate those wings fly on.
 - Memory: [[air_vehicle_kinematics]], [[air_unit_render_sync]],

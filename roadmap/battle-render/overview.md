@@ -127,7 +127,7 @@ Direction: replace the fitted-ortho zoom with a **proper view-projection** and a
 Orthographic-with-Z vs. perspective is open. This is a `render2d` engine change
 (the camera mechanism already lives there post engine/game split); the concrete
 passes and `RenderSystem`s shouldn't care, since they consume the camera
-projection abstractly. Cross-ref: [`../air/ships.md`](../air/ships.md) §
+projection abstractly. Cross-ref: [`../air/ships/`](../air/ships/overview.md) §
 "Scale & altitude", [`../air/hull-extraction.md`](../air/hull-extraction.md).
 
 ## Considered alternatives

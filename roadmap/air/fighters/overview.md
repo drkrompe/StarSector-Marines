@@ -1,8 +1,8 @@
 # Fighters / drones
 
-> Fighter-class member of the [`air/`](overview.md) category. The shared
+> Fighter-class member of the [`air/`](../overview.md) category. The shared
 > vanilla-hull → sim-entity pipeline lives in
-> [`hull-extraction.md`](hull-extraction.md); this doc covers what's
+> [`hull-extraction.md`](../hull-extraction.md); this doc covers what's
 > fighter-specific. **Design stage.**
 
 ## What this is
@@ -11,7 +11,7 @@ Small, fast, swarm-in-wings craft — interceptors, fighters, bombers, drones �
 recaptured from vanilla/modded hulls and re-flavored for ground-scale
 atmospheric combat. The goal is the role contrast players know: interceptors are
 twitchy, bombers are sluggish, drones are cheap and nimble. We borrow the
-vanilla *ratios* (see [`vanilla-kinematics-reference.md`](vanilla-kinematics-reference.md))
+vanilla *ratios* (see [`vanilla-kinematics-reference.md`](../vanilla-kinematics-reference.md))
 and apply the shared `SCALE` + atmosphere knobs.
 
 ## The flyby fighters are dead weight
@@ -57,7 +57,7 @@ is render/flyby-tier.
 ## Collision
 
 Fighters are small and numerous; full hull-polygon collision (the approach for
-[`ships.md`](ships.md)) is overkill. `collisionRadius` (or an OBB) is plenty for
+[`ships`](../ships/overview.md)) is overkill. `collisionRadius` (or an OBB) is plenty for
 "is the AA hitting the gunship." Revisit only if a specific interaction rewards
 sub-fighter precision.
 

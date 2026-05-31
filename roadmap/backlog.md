@@ -33,7 +33,7 @@ https://davidkbd.itch.io/eternity-metal-scfi-music-pack
   strafing runs, a single sim coupling via
   `BattleSimulation#applyExternalDamage`). Blocked on the `.ship`-driven
   kinematic model now designed in [`air/`](air/overview.md)
-  ([`air/fighters.md`](air/fighters.md) S4). Long-term, rebuild them on the
+  ([`air/fighters/`](air/fighters/overview.md) S4). Long-term, rebuild them on the
   `AirBody` abstraction they'd share with shuttles (`battle/air/`) so they
   become genuine flying entities — spawn in/off the map edges, optionally
   land at bases on larger maps, take fire and be shot down. When that

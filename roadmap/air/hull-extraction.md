@@ -85,7 +85,7 @@ The kinematic seam already exists: `battle/air/AirBody` (composed state +
 | `getDeceleration()` | `brakingAccel()` | × `SCALE` |
 | `getMaxTurnRate()` | `maxTurnRateDegPerSec()` | deg/sec — unit-invariant, no scale |
 | `getTurnAcceleration()` | *(no equivalent)* | AirBody rate-limits the slew but has no accel ramp; `angVelDegPerSec` is currently informational. **Gap to close** if turn-ramp feel matters. |
-| `mass` | *(steering: unused)* | collision/ramming momentum only — see ship collision in [`ships.md`](ships.md) |
+| `mass` | *(steering: unused)* | collision/ramming momentum only — see ship collision in [`ships/`](ships/overview.md) |
 | — | `lateralDriftDamping()` | **no vanilla equivalent** — our atmosphere flavor knob |
 | — | `stationDamping()` | our flavor knob (hover settle) |
 
@@ -117,7 +117,7 @@ kept **independent**:
    base **and modded** — for free. Calibrate the one constant by anchoring a
    single familiar class to a believable size (~0.6–0.75 m/px puts a fighter at
    ~16 m, a frigate at ~60 m, a capital at ~250 m); every other hull follows.
-   The per-class table in [`ships.md`](ships.md) is a *sanity-check* for picking
+   The per-class table in [`ships/`](ships/overview.md) is a *sanity-check* for picking
    that constant, not the mechanism.
 
    > **Reconciliation point.** `battle/air/engine/ShipSpecEngineParser` today
@@ -148,7 +148,7 @@ Layered on top of the kinematic profile, uniformly:
   keep small.
 - **Banking visual** derived from `angVelDegPerSec` — cosmetic, zero sim cost.
 - **Altitude** is a real camera-shared **Z**, not a render-small trick — see
-  [`ships.md`](ships.md) § "Scale & altitude" and the render layer's planned
+  [`ships/`](ships/overview.md) § "Scale & altitude" and the render layer's planned
   camera-Z upgrade.
 
 ## Open questions (shared)
@@ -158,4 +158,4 @@ Layered on top of the kinematic profile, uniformly:
 - Where does `SCALE` live — one battle-tier constant, or per-map (different feel
   at "high altitude" vs "low pass")?
 - One enriched record per hull vs separate kinematic / geometry records? See the
-  loadout-vs-kinematics split in [`fighters.md`](fighters.md).
+  loadout-vs-kinematics split in [`fighters/`](fighters/overview.md).

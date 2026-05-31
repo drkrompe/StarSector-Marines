@@ -1,8 +1,8 @@
 # Ships
 
-> Ship-class member of the [`air/`](overview.md) category. The shared
+> Ship-class member of the [`air/`](../overview.md) category. The shared
 > vanilla-hull → sim-entity pipeline lives in
-> [`hull-extraction.md`](hull-extraction.md); this doc covers what's
+> [`hull-extraction.md`](../hull-extraction.md); this doc covers what's
 > ship-specific. **Design stage.**
 
 ## What this is
@@ -28,7 +28,7 @@ gives the Starsector-faithful "shoot the exposed flank, not the empty space
 between the prongs" feel. Frigate hulls already carry the detail to make this
 read — wolf is a 16-point concave poly, lasher 18.
 
-Pipeline (see [`hull-extraction.md`](hull-extraction.md) for the extraction):
+Pipeline (see [`hull-extraction.md`](../hull-extraction.md) for the extraction):
 
 1. **Broad phase** — `collisionRadius` circle test. Cheap reject before any
    per-segment work. This is the *only* role the circle plays — it is not a
@@ -40,7 +40,7 @@ Pipeline (see [`hull-extraction.md`](hull-extraction.md) for the extraction):
 
 The polygon is rotated to the ship's facing each tick (we own this; the live
 `BoundsAPI.update()` isn't available headlessly — see the runtime caveat in
-[`hull-extraction.md`](hull-extraction.md)).
+[`hull-extraction.md`](../hull-extraction.md)).
 
 `mass` (`ship_data.csv`) becomes relevant here if we ever model knockback /
 ramming; for "ground weapon hits ship" it's not needed.
@@ -59,7 +59,7 @@ stopped treating Starsector `su` as physical size. Vanilla `su` are *arena*
 units (sized so a fleet reads at fleet-camera zoom), not meters. **Anchor:
 1 cell = 1 m**, and — the key unblock — **one global `METERS_PER_PX` constant**
 sizes every hull, because all Starsector sprites share one pixel density (see
-[`hull-extraction.md`](hull-extraction.md) § "Scale"). Vanilla's own internal
+[`hull-extraction.md`](../hull-extraction.md) § "Scale"). Vanilla's own internal
 consistency then carries the whole relative-size ladder for free, **and modded
 hulls inherit it** (they were built to sit next to vanilla at that same density).
 
@@ -79,7 +79,7 @@ Two consequences:
 
 - **The silhouette comes from vanilla `bounds`; the absolute size comes from one
   global `METERS_PER_PX` — not `su`, and not per-hull.** Three scales are
-  decoupled (see [`hull-extraction.md`](hull-extraction.md) § "Scale"): polygon
+  decoupled (see [`hull-extraction.md`](../hull-extraction.md) § "Scale"): polygon
   *shape* (vanilla bounds, normalized), *footprint* (sprite/bounds px × the one
   constant), and *kinematic feel* (engine stats × kinematic `SCALE`).
 - **Size self-selects what's even on the battlefield.** A capital doesn't strafe
