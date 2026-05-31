@@ -1,4 +1,6 @@
-# Final — collapse `renderWorld` to collect-all → drain-all — ✅ SHIPPED
+# Final — collapse `renderWorld` to collect-all → drain-all — ✅ SHIPPED & VERIFIED
+
+> Commits: `82f349a` (collapse), `391cb6d` (thread DrawList through collectShots).
 
 The last structural step of the battle-render reorg. After every world pass had
 migrated to a `RenderSystem` (Stories C–J) or stayed inline as a renderer-owned
@@ -65,9 +67,12 @@ the verbatim old call sequence, so the net GL command stream is unchanged:
 
 ## Verified
 
-`gradlew build` clean; tests green. In-game smoke check: <PENDING — zones overlay,
-decals/craters, fog edges, roofs over unseen interiors, objective pulses, compound
-rings, convoy debug paths, shots/contrails, impact FX, flyby, day/night lightmap>.
+`gradlew build` clean; tests green. Background critique came back SAFE TO SHIP —
+paint order confirmed byte-for-byte seam-by-seam, `collectShots`' trail-spawn
+side-effect still lands same-frame, conditionals equivalent, no `ctx`/`this.rc`
+staleness. **In-game smoke check passed** (zones overlay, decals/craters, fog
+edges, roofs over unseen interiors, objective pulses, compound rings, convoy debug
+paths, shots/contrails, impact FX, flyby, day/night lightmap all correct).
 
 ## What's left on battle-render
 

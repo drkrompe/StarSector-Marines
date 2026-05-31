@@ -1,5 +1,10 @@
 # Battle render reorg — next session
 
+> ✅ **STRUCTURAL REORG COMPLETE.** All stories A–J + Final shipped & verified.
+> `BattleScreen` is the loop; `renderWorld` is two loops (collect-all → drain-all);
+> every world pass is a `worldSystems` producer. The only battle-render work left
+> is the **deferred `QuadBatch.flush` perf spike** (engine-only — see below).
+
 ## State of play
 
 Concept doc written ([`overview.md`](overview.md)). **Stories A–D shipped.**
@@ -192,7 +197,7 @@ live-verify pending)~~ ✅ → ~~J6 HP-bar sweep (`sweepHpBars` last; `drawsHpBa
 tag)~~ ✅ → ~~delete `renderUnits` fallback (folded into J6 — `renderWorld` calls
 `drainLayer(UNITS)` directly)~~ ✅ →
 ~~Final (collapse `render()` to systems-loop + drain — fold inline passes into
-the collect-all/drain-all loop)~~ ✅ **CODE-COMPLETE, in-game verify pending.**
+the collect-all/drain-all loop)~~ ✅ **SHIPPED & VERIFIED.**
 Every formerly-inline pass joined `worldSystems` via the new
 `RenderSystem.of(layer, collectFn)` adapter (emitting a `Custom`, the own-GL/FBO
 escape hatch); `renderWorld` is now just `collect-all` then
@@ -244,11 +249,10 @@ perf spike.
   as `QuadBatch.appendFlippedV` + a `flipV` flag on the `SHEET_QUAD` command
   (`addSheetQuadFlippedV`; drain routes rotated/flipped/plain). Axis-aligned only.
   Canonical `setSheetQuad` resets `flipV=false` so pooled slots can't leak it.
-- **In-game-pending validation**: **Final (collapse).** Behavior-identical by
-  construction (each pass emits into its existing layer slot; ordinal order = the
-  old call sequence), but the collapse touches every pass, so a full-frame smoke
-  check is the gate before graduating `story-final-collapse.md`: zones overlay,
-  decals/craters, fog edges, roofs over unseen interiors, objective pulses,
-  compound rings, convoy debug paths, shots/contrails, impact FX, flyby, day/night
-  lightmap. All prior stories — SHOTS (C), DOODADS (D), GROUND (E), VEHICLES (F),
-  CONVOY (G), SHUTTLES (H), DRONES (I), UNITS (J) — verified; fallbacks deleted.
+- **In-game-pending validation**: **none.** Final (collapse) verified in-game
+  (zones overlay, decals/craters, fog edges, roofs over unseen interiors, objective
+  pulses, compound rings, convoy debug paths, shots/contrails, impact FX, flyby,
+  day/night lightmap all correct). Every story — SHOTS (C), DOODADS (D), GROUND (E),
+  VEHICLES (F), CONVOY (G), SHUTTLES (H), DRONES (I), UNITS (J), Final — verified;
+  fallbacks deleted. **The battle-render structural reorg is complete** — only the
+  deferred `QuadBatch.flush` perf spike remains.

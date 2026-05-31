@@ -36,9 +36,11 @@ universe over time, not retrofitted into intel slots.
   ([`ecs-migration/`](ecs-migration/overview.md)), fog-of-war, and AI (GOAP + commander).
   The **feature-vertical package reorg** of `battle/` is **complete** (all
   10 slices shipped; the `entity/` rename alone is deferred to
-  ecs-migration). Next up on the render side: decomposing the `BattleScreen`
-  god class into a layered draw-list pipeline — see
-  [`battle-render/`](battle-render/overview.md). A new **design-stage**
+  ecs-migration). On the render side, the **`BattleScreen` god-class
+  decomposition into a layered draw-list pipeline is complete** (stories A–J +
+  Final shipped & verified — `renderWorld` is now collect-all → drain-all over a
+  `RenderSystem` registry); only the deferred `QuadBatch.flush` perf spike
+  remains. See [`battle-render/`](battle-render/overview.md). A new **design-stage**
   track — [`command-powers/`](command-powers/overview.md) — brainstorms the
   player-agency layer (orbital strikes, marine drops, recon) and its
   between-battle meta-progression spine; powers are sourced diegetically from
