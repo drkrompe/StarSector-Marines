@@ -242,7 +242,7 @@ public class BattleRenderer {
                 new ShuttleRenderSystem(sprites),
                 // SHOTS emits batchable sprite commands + Custom contrails/tracers (Story C).
                 RenderSystem.of(RenderLayer.SHOTS, (ctx, out) ->
-                        collectShots(ctx.sim.getActiveShots(), ctx.alphaMult)),
+                        collectShots(out, ctx.sim.getActiveShots(), ctx.alphaMult)),
                 RenderSystem.of(RenderLayer.IMPACT_FX, (ctx, out) ->
                         out.addCustom(RenderLayer.IMPACT_FX, () -> impactFx.render(ctx.camera, ctx.alphaMult))),
                 RenderSystem.of(RenderLayer.FLYBY, (ctx, out) ->
@@ -697,11 +697,11 @@ public class BattleRenderer {
      * callback ages and decays existing trails every frame, even with no live
      * shots — so it must not be gated on {@code shots} being non-empty.
      */
-    private void collectShots(List<ShotEvent> shots, float alphaMult) {
-        drawList.addCustom(RenderLayer.SHOTS, () -> renderContrails(shots, alphaMult));
+    private void collectShots(DrawList out, List<ShotEvent> shots, float alphaMult) {
+        out.addCustom(RenderLayer.SHOTS, () -> renderContrails(shots, alphaMult));
         if (shots.isEmpty()) return;
 
-        drawList.addCustom(RenderLayer.SHOTS, () -> drawTracers(shots, alphaMult));
+        out.addCustom(RenderLayer.SHOTS, () -> drawTracers(shots, alphaMult));
 
         for (ShotEvent s : shots) {
             ShuttleSpriteCache cache;
@@ -742,7 +742,7 @@ public class BattleRenderer {
             float cellPxLocal = rc.camera.cellPxSize();
             float pxH = visualCells * cellPxLocal;
             float pxW = pxH * cache.aspect;
-            drawList.addSprite(RenderLayer.SHOTS,
+            out.addSprite(RenderLayer.SHOTS,
                     cache.sprite,
                     rc.camera.cellToScreenX(px), rc.camera.cellToScreenY(py),
                     pxW, pxH, bearing,
