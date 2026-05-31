@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.LabelWidget;
+import com.dillon.starsectormarines.ui.SpriteThumbWidget;
 import com.dillon.starsectormarines.ui.WidgetRoot;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventAPI;
@@ -78,6 +79,8 @@ public class BriefingScreen implements Screen {
     private static final float SECTION_GAP = 16f;
     private static final float SQUAD_ROW_H = 32f;
     private static final float SQUAD_ROW_GAP = 4f;
+    /** Ship-sprite thumbnail box at the left of each fleet (transport / carrier) row. */
+    private static final float THUMB = 24f;
 
     /** Top-y of the flavor paragraph in the left column, cached for renderFlavor. */
     private float flavorY;
@@ -312,7 +315,7 @@ public class BriefingScreen implements Screen {
             String marker = selected ? "[x]" : "[ ]";
             int cycles = playerCyclesByIndex.getOrDefault(idx, 0);
             StringBuilder rowLabel = new StringBuilder();
-            rowLabel.append(marker).append(" 1× ").append(shuttleDisplayName(type));
+            rowLabel.append(marker).append(' ').append(shuttleDisplayName(type));
             if (selected && cycles > 1) rowLabel.append(" (").append(cycles).append(" sorties)");
             else if (!selected) rowLabel.append(" — held back");
             Color rowColor = selected ? VALUE_COLOR : LABEL_COLOR;
@@ -323,7 +326,8 @@ public class BriefingScreen implements Screen {
                         rebuild();
                     });
             widgets.add(toggle);
-            widgets.add(new LabelWidget(Fonts.ORBITRON_20, rowLabel.toString(), x + 6f, y, rowColor));
+            widgets.add(new SpriteThumbWidget(type.spritePath, x, y - 20f, THUMB, THUMB));
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, rowLabel.toString(), x + THUMB + 10f, y, rowColor));
             y -= ROW_GAP;
         }
         boolean transportOk = isTransportSufficient(m, effectivePlayerShuttles());
@@ -354,7 +358,8 @@ public class BriefingScreen implements Screen {
                             rebuild();
                         });
                 widgets.add(toggle);
-                widgets.add(new LabelWidget(Fonts.ORBITRON_20, rowLabel, x + 6f, y, rowColor));
+                widgets.add(new SpriteThumbWidget(carrier.spriteName, x, y - 20f, THUMB, THUMB));
+                widgets.add(new LabelWidget(Fonts.ORBITRON_20, rowLabel, x + THUMB + 10f, y, rowColor));
                 y -= ROW_GAP;
             }
         }

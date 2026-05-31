@@ -54,11 +54,14 @@ public final class PlayerFleetWings {
     public static final class CarrierBay {
         /** Ship name for the toggle row label. */
         public final String shipName;
+        /** Hull combat-sprite path for the pre-battle thumbnail; null if unavailable. */
+        public final String spriteName;
         /** Mapped fighter bays on this ship (unmapped wings already filtered out). */
         public final List<FighterProfile> profiles;
 
-        CarrierBay(String shipName, List<FighterProfile> profiles) {
+        CarrierBay(String shipName, String spriteName, List<FighterProfile> profiles) {
             this.shipName = shipName;
+            this.spriteName = spriteName;
             this.profiles = profiles;
         }
 
@@ -90,7 +93,8 @@ public final class PlayerFleetWings {
             }
             if (!profiles.isEmpty()) {
                 String name = member.getShipName() != null ? member.getShipName() : "Carrier";
-                out.add(new CarrierBay(name, profiles));
+                String spriteName = member.getHullSpec() != null ? member.getHullSpec().getSpriteName() : null;
+                out.add(new CarrierBay(name, spriteName, profiles));
             }
         }
         return out;

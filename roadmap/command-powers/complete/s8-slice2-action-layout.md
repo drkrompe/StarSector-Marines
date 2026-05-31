@@ -35,6 +35,21 @@ throwaway proportion-tweak and did the real action-dominant layout. The
 "your fleet vs. the employer" split (already the two co-sources the `Detachment`
 resolver produces) is now legible instead of merged into one "Allied Air" line.
 
+## Follow-on: ship thumbnails
+
+The fleet rows (transports + carriers) now render the actual ship combat sprite
+as a thumbnail, the same trick vanilla's pre-battle ship selector uses
+(`ShipHullSpecAPI.getSpriteName()` → `getSprite(path)` → scale down). New
+reusable `ui/SpriteThumbWidget` aspect-fits + centers a texture into a box,
+non-interactive so the row toggle still owns clicks. Transports read the path
+straight off `ShuttleType.spritePath` (no plumbing); carriers gained a
+`spriteName` field on `PlayerFleetWings.CarrierBay`, captured from
+`member.getHullSpec().getSpriteName()`. The widget handles the two SpriteAPI
+footguns — mutable-singleton state (resets tex-region/angle/color each render;
+caches natural dims per path so a `setSize` can't compound-shrink the image
+frame over frame) and lazy load (`loadTexture` once, paint next frame). Also
+distinguishes the otherwise-identical seeded-Valkyrie rows at a glance.
+
 ## Still ahead
 
 - **Slice B part 2 — member-level commitment.** Surface power-source ships
