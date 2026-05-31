@@ -41,6 +41,11 @@ public final class DrawListRenderer {
         QuadBatch activeSheet = null;     // sheet batch with pending appends (else null)
         SpriteAPI activeSheetKey = null;
         boolean solidPending = false;     // solidBatch has pending appends
+        // A SPRITE draws via SpriteAPI.renderAtCenter — a foreign call that mutates
+        // the blend func / colorMask and doesn't restore them. When the next batch
+        // op runs in the same bracket, re-assert our textured-2D state first, else
+        // it inherits the foreign blend and draws transparent texels opaque (black).
+        boolean spritePolluted = false;
 
         for (int i = 0; i < count; i++) {
             DrawCommand c = buf[i];
@@ -53,6 +58,7 @@ public final class DrawListRenderer {
                         activeSheet = batchBySheet.get(c.sprite);
                     }
                     if (bracket == null) bracket = GlStateBracket.textured2D();
+                    else if (spritePolluted) { GlStateBracket.applyTextured2DState(); spritePolluted = false; }
                     if (activeSheet != null) {
                         if (c.angleDeg != 0f) {
                             activeSheet.appendRotated(c.srcX, c.srcY, c.srcW, c.srcH,
@@ -70,6 +76,7 @@ public final class DrawListRenderer {
                 case SOLID_RECT: {
                     if (activeSheet != null) { activeSheet.flush(); activeSheet = null; activeSheetKey = null; }
                     if (bracket == null) bracket = GlStateBracket.textured2D();
+                    else if (spritePolluted) { GlStateBracket.applyTextured2DState(); spritePolluted = false; }
                     solidBatch.appendRect(c.cx, c.cy, c.w, c.h, c.r, c.g, c.b, c.a); // cx/cy=(x0,y0), w/h=(x1,y1)
                     solidPending = true;
                     break;
@@ -79,6 +86,7 @@ public final class DrawListRenderer {
                     if (solidPending) { solidBatch.flush(); solidPending = false; }
                     if (bracket == null) bracket = GlStateBracket.textured2D();
                     drawSprite(c);
+                    spritePolluted = true;
                     break;
                 }
                 case CUSTOM:

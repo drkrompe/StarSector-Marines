@@ -55,6 +55,21 @@ public final class GlStateBracket implements AutoCloseable {
      */
     public static GlStateBracket textured2D() {
         glPushAttrib(GL_COLOR_BUFFER_BIT | GL_TEXTURE_BIT | GL_ENABLE_BIT | GL_CURRENT_BIT);
+        applyTextured2DState();
+        return new GlStateBracket();
+    }
+
+    /**
+     * Forces the clean textured-2D-with-normal-alpha baseline <em>without</em>
+     * pushing/popping. Used by {@link textured2D()} after its push, and by the
+     * drain to <strong>re-assert</strong> this state mid-bracket after a foreign
+     * draw (a {@code SPRITE}'s {@code SpriteAPI.renderAtCenter}) has mutated the
+     * blend func / colorMask — otherwise a subsequent batched
+     * {@link QuadBatch#flush()} in the same bracket would inherit the foreign blend
+     * state and render transparent texels opaque (black). Cheap (a handful of GL
+     * enables); no attrib stack traffic.
+     */
+    public static void applyTextured2DState() {
         // Starsector leaves the alpha channel masked off in some UI paths
         // — force it on so per-vertex alpha actually reaches the framebuffer.
         glColorMask(true, true, true, true);
@@ -62,7 +77,6 @@ public final class GlStateBracket implements AutoCloseable {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glDisable(GL_DEPTH_TEST);
-        return new GlStateBracket();
     }
 
     /**

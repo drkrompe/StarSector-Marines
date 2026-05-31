@@ -206,6 +206,15 @@ only the in-game verify + a possible critique pass remain before it moves to
 - Keep every batched flush inside a `GlStateBracket`. The drain owns this (one
   bracket per layer, spanning all batch/sprite runs); `Custom` callbacks drop out
   of the bracket and own their own GL.
+- **`SPRITE` (`renderAtCenter`) pollutes blend state mid-bracket** — fixed, but
+  the lesson holds. A `SPRITE` command draws via Starsector's
+  `SpriteAPI.renderAtCenter`, a foreign call that mutates the blend func/colorMask
+  and doesn't restore them. UNITS is the first layer to run `SPRITE` (turret/hub)
+  *then* `SHEET_QUAD` (units) in one bracket, and the sheet quads inherited the
+  foreign blend → transparent texels drew opaque (black boxes around units/mechs/
+  bodies). Fix: the drain re-asserts `GlStateBracket.applyTextured2DState()` on the
+  `SPRITE`→batch transition (`spritePolluted` flag). Any future layer mixing
+  whole-`SPRITE`s with batched quads is now covered.
 - **The drain is strict-painter now** (submission order = paint order), not
   first-touched. A migrated system must therefore emit in paint order, and emit
   each sheet's quads contiguously to batch them (one flush per contiguous run).
@@ -234,5 +243,8 @@ only the in-game verify + a possible critique pass remain before it moves to
   **J6 HP bars** — bars paint on top across all kinds (turret/hub higher by visual
   extent, infantry just above the sprite), fade with fog. This is the whole UNITS
   pass at once (renderUnits is gone), so it's the load-bearing verify for Story J.
+  **Black-box regression fixed** (foreign `renderAtCenter` polluting blend within
+  the UNITS bracket; drain now re-asserts batch state after `SPRITE`s) — re-verify
+  that units/mechs/bodies render with clean transparency.
   SHOTS (C), DOODADS (D), GROUND (E), VEHICLES (F), CONVOY (G), SHUTTLES (H),
   DRONES (I) all verified; fallbacks deleted.
