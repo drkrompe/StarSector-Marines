@@ -109,11 +109,28 @@ kept **independent**:
 
 1. **Silhouette / shape** ← the vanilla `bounds` polygon, *normalized*. Faithful
    proportions; no scale baked in.
-2. **Absolute footprint** ← a real-world size class per hull → meters → cells, at
-   the anchor **1 cell = 1 m**. A fighter ≈ a few cars (~15 cells), a frigate ≈
-   an office building (~60–80 cells). This is **not** derived from `su`. The
-   normalized bounds polygon is re-stretched to the class length. Full
-   calibration table + the on-map class cutoff live in [`ships.md`](ships.md).
+2. **Absolute footprint** ← the sprite/`bounds` pixel extent × **one global
+   `METERS_PER_PX` constant**, at the anchor **1 cell = 1 m**. This is **not**
+   derived from `su`, and crucially **not** a per-hull number: every Starsector
+   hull is drawn at one shared pixel density (so ships read correctly next to
+   each other), so a single factor reproduces the whole relative-size ladder —
+   base **and modded** — for free. Calibrate the one constant by anchoring a
+   single familiar class to a believable size (~0.6–0.75 m/px puts a fighter at
+   ~16 m, a frigate at ~60 m, a capital at ~250 m); every other hull follows.
+   The per-class table in [`ships.md`](ships.md) is a *sanity-check* for picking
+   that constant, not the mechanism.
+
+   > **Reconciliation point.** `battle/air/engine/ShipSpecEngineParser` today
+   > does the *opposite* — per-ship normalization (`pxPerCell = spriteHeightPx /
+   > visualLengthCells`), which discards relative size so each art-directed
+   > shuttle/fighter renders at its chosen length. Adopting the global factor
+   > flips `visualLengthCells` from authored to **derived** (`pxExtent ×
+   > METERS_PER_PX`), and the same `pxPerCell` then unifies footprint with the
+   > slot-scraping transform ([[vanilla_ship_spec_scraping]]) instead of each
+   > normalizing independently. Keep an explicit per-craft override only for
+   > deliberately non-vanilla-scale craft. Use the `bounds` extent (not sprite
+   > `height`, which carries transparent margin) for the actual collision
+   > footprint.
 3. **Kinematic feel** ← `getEngineSpec()` × a kinematic `SCALE`, entirely
    separate from footprint. Vanilla numbers are tuned for a zoomed-out arena, so
    at ground scale you want lower absolute cells/sec while **preserving inter-hull

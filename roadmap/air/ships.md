@@ -57,24 +57,31 @@ gameplay reason appears.
 The earlier "on-map giant vs. high-altitude small" framing dissolved once we
 stopped treating Starsector `su` as physical size. Vanilla `su` are *arena*
 units (sized so a fleet reads at fleet-camera zoom), not meters. **Anchor:
-1 cell = 1 m.** Re-scaled to plausible real-world footprints, most of what shows
-up over a ground battle simply *fits*:
+1 cell = 1 m**, and — the key unblock — **one global `METERS_PER_PX` constant**
+sizes every hull, because all Starsector sprites share one pixel density (see
+[`hull-extraction.md`](hull-extraction.md) § "Scale"). Vanilla's own internal
+consistency then carries the whole relative-size ladder for free, **and modded
+hulls inherit it** (they were built to sit next to vanilla at that same density).
 
-| class | real-world anchor | footprint | on-map? |
-| --- | --- | --- | --- |
-| fighter | a few cars (~15 m) | ~15 cells | yes |
-| frigate | office building (~60–80 m) | ~40–80 cells | yes |
-| destroyer / cruiser | larger | ~100–200 cells | borderline; map-size dependent |
-| capital | — | too large | **no — orbital / off-map fire support** |
+At ~0.65 m/px the roster lands on a coherent, believable ladder — this table is
+the **calibration sanity-check** you eyeball to pick the one constant, not a
+per-class mechanism:
+
+| class | sprite-height px | → length | on-map? |
+| --- | --: | --: | --- |
+| fighter (talon) | 24 | ~16 m / ~16 cells | yes |
+| frigate (lasher) | 96 | ~62 m | yes |
+| destroyer (hammerhead) | 164 | ~107 m | yes |
+| cruiser (eagle) | 218 | ~142 m | borderline; map-size dependent |
+| capital (onslaught) | 384 | ~250 m | **no — orbital / off-map fire support** |
 
 Two consequences:
 
-- **The silhouette comes from vanilla `bounds`; the absolute size comes from a
-  real-world class anchor — not `su`.** Three scales are decoupled (see
-  [`hull-extraction.md`](hull-extraction.md) § "Scale"): polygon *shape* (vanilla
-  bounds, normalized), *footprint* (class anchor × 1 m/cell), and *kinematic
-  feel* (engine stats × kinematic `SCALE`). The `bounds` polygon is normalized
-  and re-stretched to the class length.
+- **The silhouette comes from vanilla `bounds`; the absolute size comes from one
+  global `METERS_PER_PX` — not `su`, and not per-hull.** Three scales are
+  decoupled (see [`hull-extraction.md`](hull-extraction.md) § "Scale"): polygon
+  *shape* (vanilla bounds, normalized), *footprint* (sprite/bounds px × the one
+  constant), and *kinematic feel* (engine stats × kinematic `SCALE`).
 - **Size self-selects what's even on the battlefield.** A capital doesn't strafe
   infantry; realistically it stands off and bombards from orbit. So capitals are
   off-map fire support, never rendered as an on-map polygon — the fiction
@@ -111,8 +118,9 @@ cross-linked so the eventual integration story doesn't get designed twice.
 
 ## Open questions
 
-- The size-class → meters table above is a first calibration pass — tune the
-  per-class anchors against the real cell budget once a target map size is fixed.
+- Pick the single `METERS_PER_PX` constant (~0.6–0.75 m/px) — anchor one
+  familiar class against the real cell budget once a target map size is fixed;
+  the rest of the ladder follows automatically.
 - Do ground weapons have a ceiling / range gate against airborne ships, and is
   that the intended difficulty lever? (Now a camera-Z / altitude question — see
   the render-layer dependency above.)
