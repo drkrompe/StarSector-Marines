@@ -66,6 +66,7 @@ public final class UnitRenderService implements RenderSystem {
         sweepHubBodies(ctx, out);
         sweepDeadSprites(ctx, out);
         sweepLiveSprites(ctx, out);
+        sweepHpBars(ctx, out);
     }
 
     /**
@@ -311,6 +312,46 @@ public final class UnitRenderService implements RenderSystem {
     private static void emitSolidQuad(DrawList out, float cx, float cy, float half, Color c, float alpha) {
         out.addSolidRect(RenderLayer.UNITS, cx - half, cy - half, cx + half, cy + half,
                 c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, alpha);
+    }
+
+    /**
+     * HP bars for combatants (drones excluded — they bar themselves in the DRONES
+     * layer). Runs <b>last</b> so bars paint over every body in the layer — the
+     * per-stratum sweep that dissolves the old per-entity decorator ordering trap.
+     * Faithful port of the inline bar loop: same combatant/visibility gating + fade
+     * alpha, same per-kind {@code barY} (turret/hub sit higher by their visual
+     * extent), via the shared {@link HpBarDecor}. The {@code drawsHpBar} tag is the
+     * combatant-and-not-drone check.
+     */
+    private void sweepHpBars(RenderContext ctx, DrawList out) {
+        BattleCamera cam = ctx.camera;
+        float cellPx = cam.cellPxSize();
+        float unitSize = cellPx * BattleRenderer.UNIT_FRAC;
+        float half = unitSize / 2f;
+        float alphaMult = ctx.alphaMult;
+        VisionService vis = ctx.sim.getVision();
+
+        for (Unit u : ctx.sim.getUnits()) {
+            if (!u.isAlive()) continue;
+            if (!RenderAppearance.of(u.type).drawsHpBar) continue;
+            byte uv = vis.getUnitVisibility(u.denseIdx);
+            if (uv == VisionService.VIS_HIDDEN) continue;
+            float barAlpha = alphaMult;
+            if (uv == VisionService.VIS_FADING) barAlpha *= vis.getFadeAlpha(u.denseIdx);
+
+            float cx = cam.cellToScreenX(u.getRenderX() + 0.5f);
+            float cy = cam.cellToScreenY(u.getRenderY() + 0.5f);
+            float barY;
+            if (u instanceof MapTurret) {
+                barY = cy + ((MapTurret) u).kind.visualCells * cellPx / 2f + BattleRenderer.HP_BAR_GAP;
+            } else if (u instanceof DroneHubUnit) {
+                barY = cy + DroneHubUnit.VISUAL_CELLS * cellPx / 2f + BattleRenderer.HP_BAR_GAP;
+            } else {
+                barY = cy + half + BattleRenderer.HP_BAR_GAP;
+            }
+            HpBarDecor.emit(out, RenderLayer.UNITS, cx, barY, unitSize,
+                    u.getHp() / u.getMaxHp(), barAlpha);
+        }
     }
 
     // ---- frame selection (game-side; moved verbatim from BattleRenderer) ------

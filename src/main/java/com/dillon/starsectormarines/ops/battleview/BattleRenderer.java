@@ -8,10 +8,8 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.model.TimeOfDay;
@@ -418,48 +416,6 @@ public class BattleRenderer {
         batch.append(srcPxX, srcTopPxY, srcPxW, srcPxH,
                 cx, cy, cellPx, cellPx,
                 r, g, b, alphaMult);
-    }
-
-    private void renderUnits(BattleSimulation sim, List<Unit> units, float alphaMult) {
-        float unitSize = rc.camera.cellPxSize() * UNIT_FRAC;
-        float half = unitSize / 2f;
-        com.dillon.starsectormarines.battle.vision.VisionService vis = sim.getVision();
-
-        // UNITS layer (UnitRenderService, collected up front in renderWorld):
-        // footprints → turret bodies → hub bodies → dead sprites → live infantry.
-        // Drained here before the still-inline HP-bar loop so the full paint order
-        // holds (footprints → turret → hub → dead → live → bars). The bar sweep
-        // (J6) is the last stratum still inline.
-        drainLayer(RenderLayer.UNITS);
-
-        for (Unit u : units) {
-            if (!u.isAlive()) continue;
-            if (!u.type.combatant) continue;
-            if (u instanceof com.dillon.starsectormarines.battle.drone.Drone) continue;
-            byte uv = vis.getUnitVisibility(u.denseIdx);
-            if (uv == com.dillon.starsectormarines.battle.vision.VisionService.VIS_HIDDEN) continue;
-            float barAlpha = alphaMult;
-            if (uv == com.dillon.starsectormarines.battle.vision.VisionService.VIS_FADING) {
-                barAlpha *= vis.getFadeAlpha(u.denseIdx);
-            }
-            float cx = rc.camera.cellToScreenX(u.getRenderX() + 0.5f);
-            float cy = rc.camera.cellToScreenY(u.getRenderY() + 0.5f);
-            float barW = unitSize;
-            float barX = cx - barW / 2f;
-            float barY;
-            if (u instanceof MapTurret) {
-                float visual = ((MapTurret) u).kind.visualCells;
-                barY = cy + visual * rc.camera.cellPxSize() / 2f + HP_BAR_GAP;
-            } else if (u instanceof com.dillon.starsectormarines.battle.drone.DroneHubUnit) {
-                float visual = com.dillon.starsectormarines.battle.drone.DroneHubUnit.VISUAL_CELLS;
-                barY = cy + visual * rc.camera.cellPxSize() / 2f + HP_BAR_GAP;
-            } else {
-                barY = cy + half + HP_BAR_GAP;
-            }
-            fillRect(barX, barY, barW, HpBarDecor.HP_BAR_H, HpBarDecor.HP_BG, barAlpha);
-            float frac = Math.max(0f, Math.min(1f, u.getHp() / u.getMaxHp()));
-            fillRect(barX, barY, barW * frac, HpBarDecor.HP_BAR_H, HpBarDecor.HP_FG, barAlpha);
-        }
     }
 
     /** Debug flag — draws Reeds-Shepp docking paths under each docking truck for math iteration. */
@@ -918,7 +874,10 @@ public class BattleRenderer {
         // doodads, below units so unit sprites stay legible over the tint.
         rc.highlights.render(rc.camera, rc.alphaMult);
         renderFogOverlay(sim, rc.alphaMult);
-        renderUnits(sim, sim.getUnits(), rc.alphaMult);
+        // UNITS layer — fully command-driven via UnitRenderService (Story J):
+        // footprints → turret bodies → hub bodies → dead → live infantry → HP bars
+        // (bars last = layer-wide on top). Collected up front; drained here in slot.
+        drainLayer(RenderLayer.UNITS);
         // Fog-of-war roof pass — paints opaque BRICK tiles over the
         // interiors of buildings the player can't see, hiding any units
         // (and decals / doodads) inside. Sits above units but below

@@ -72,8 +72,11 @@ package-visible (shared with the inline UNITS HP bars). No rotation-parity risk
 (`SPRITE`/`setAngle`). See
 [`complete/story-i-drones-system.md`](complete/story-i-drones-system.md).
 
-Next (and last before the endgame) is **UNITS** — the heavy one. **Recon written
-+ shape decided**: [`stories/story-j-units.md`](stories/story-j-units.md).
+**UNITS — the heavy one — is CODE-COMPLETE** (Story J, slices 1–7; in-game verify
+pending): [`stories/story-j-units.md`](stories/story-j-units.md). The whole
+`renderUnits` pass + sub-methods are gone — UNITS is fully command-driven via
+`UnitRenderService`'s six per-stratum sweeps. The recap below is the original
+shape rationale (kept for context); see the slice log at the end for what shipped.
 `renderUnits` is five strata painted in fixed order into the `UNITS` layer
 (turret footprint+sprite → hub footprint+sprite → dead sprites → live sprites →
 HP bars, bars last = layer-wide on top). It migrates into the command model **and**
@@ -109,10 +112,15 @@ sprite stratum) emits live infantry as `SHEET_QUAD`s, claiming the
 command for the SOUTH-weapon-up mirror. Frame-selection helpers + `Facing`/
 `EightWayFacing` enums + `WEAPON_UP_TIME` + faction-fallback colors moved into the
 service; `BattleRenderer` deleted `renderUnitSprite`/`renderUnitQuadFallback` +
-those, and registers live/dead/aim sheets in `buildTileBatches`. `renderUnits` is
-now `drainLayer(UNITS)` + the inline HP-bar loop only. Live-verify pending. **J6
-(HP-bar sweep) is the last stratum** → then delete the (now near-empty)
-`renderUnits` + collapse to collect-all/drain-all.
+those, and registers live/dead/aim sheets in `buildTileBatches`. J5 critique came
+back **clean** (flip math + pooled-slot `flipV` hygiene both verified correct).
+J6 — `sweepHpBars` runs last (`drawsHpBar` tag = combatant && !drone), faithful
+port of the inline bar loop via `HpBarDecor`. With the last stratum migrated,
+`renderUnits` was deleted outright (slice 7 folded in) and `renderWorld` calls
+`drainLayer(RenderLayer.UNITS)` directly. **The whole `renderUnits` pass +
+sub-methods are gone; UNITS is fully command-driven via `UnitRenderService`'s six
+sweeps.** Only the in-game verify (J3+J4+J5+J6 together) remains before Story J
+moves to `complete/`.
 
 **Structural: the `List<RenderSystem>` registry shipped.** `RenderSystem` now
 declares `layer()`; `BattleRenderer` holds an ordered `List<RenderSystem>`
@@ -166,7 +174,7 @@ DOODADS)~~ ✅ → ~~engine/game package split (structural foundation)~~ ✅ →
 ~~RenderSystem registry (ordered `List<RenderSystem>` + `layer()`; collect-all
 phase split out)~~ ✅ →
 ~~I (DRONES → DroneRenderSystem; SPRITE + SOLID_RECT; verified, fallback deleted)~~ ✅ →
-UNITS (Story J — IN PROGRESS, shape decided: flyweight `RenderAppearance` +
+UNITS (Story J — CODE-COMPLETE, in-game verify pending: flyweight `RenderAppearance` +
 capability tags + per-stratum `UnitRenderService` sweep). Sub-slices:
 ~~J1 `HpBarDecor` + retrofit `DroneRenderSystem`~~ ✅ →
 ~~J2 `RenderAppearance` table+tags (flyweight `of(UnitType)`; no pass change)~~ ✅
@@ -175,9 +183,13 @@ pending)~~ ✅ → ~~J4 turret/hub footprint+sprite (`GroundFootprint` helper;
 absorbed `renderTurrets`/`renderDroneHubs`/`drawTurretLayer`; hub lazy-load
 hoisted; live-verify pending)~~ ✅ → ~~J5 live infantry (`sweepLiveSprites` +
 `QuadBatch.appendFlippedV`/`flipV` engine add; frame helpers moved game-side;
-live-verify pending)~~ ✅ → J6 HP-bar sweep → delete fallback →
+live-verify pending)~~ ✅ → ~~J6 HP-bar sweep (`sweepHpBars` last; `drawsHpBar`
+tag)~~ ✅ → ~~delete `renderUnits` fallback (folded into J6 — `renderWorld` calls
+`drainLayer(UNITS)` directly)~~ ✅ →
 Final (collapse `render()` to systems-loop + drain — fold inline passes into
-the collect-all/drain-all loop as they migrate).
+the collect-all/drain-all loop as they migrate). **Story J is code-complete;
+only the in-game verify + a possible critique pass remain before it moves to
+`complete/`.** "Final" is a separate cross-layer endgame (NOT just UNITS).
 
 ## Watch-outs
 
@@ -218,6 +230,9 @@ the collect-all/drain-all loop as they migrate).
   watch the turret-overhangs-neighbor-pad case); **J5 live infantry** — facings
   (WNES + 8-way mech), weapon-up pose + the **SOUTH-weapon-up vertical flip**
   (the engine `appendFlippedV` — verify the mirror matches the old negative-
-  `setTexHeight`), secondary-aim sheets, batched live sprites, and fog fade-out.
+  `setTexHeight`), secondary-aim sheets, batched live sprites, and fog fade-out;
+  **J6 HP bars** — bars paint on top across all kinds (turret/hub higher by visual
+  extent, infantry just above the sprite), fade with fog. This is the whole UNITS
+  pass at once (renderUnits is gone), so it's the load-bearing verify for Story J.
   SHOTS (C), DOODADS (D), GROUND (E), VEHICLES (F), CONVOY (G), SHUTTLES (H),
   DRONES (I) all verified; fallbacks deleted.

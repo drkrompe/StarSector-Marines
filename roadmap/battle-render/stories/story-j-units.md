@@ -1,4 +1,4 @@
-# Story J — UNITS pass → component/tag render service — 🚧 IN PROGRESS (slices 1–5 shipped)
+# Story J — UNITS pass → component/tag render service — 🚧 CODE-COMPLETE (slices 1–7 shipped; in-game verify pending)
 
 The heavy pass, and the last inline world pass before the endgame. `renderUnits`
 is not one pass — it's **five strata painted in a fixed order into the `UNITS`
@@ -225,9 +225,23 @@ Game-side emit helpers the sweeps call (and other systems reuse):
    registered in `buildTileBatches`. `renderUnits` is now just
    `drainLayer(UNITS)` + the inline bar loop (J6). Live-verify pending (facings,
    weapon-up + SOUTH flip, aim poses, batched live sprites, fog fade).
-6. **HP-bar sweep** for turret/hub/unit via `HpBarDecor`, run last → confirm
-   layer-wide bars-on-top holds.
-7. Delete the `renderUnits` fallback after a live verify.
+6. ~~**HP-bar sweep** for turret/hub/unit via `HpBarDecor`, run last → confirm
+   layer-wide bars-on-top holds.~~ **SHIPPED.**
+   `UnitRenderService.sweepHpBars` runs **last** in `collect` → bars paint over
+   every body in the layer (the per-stratum sweep that dissolves the per-entity
+   ordering trap). Faithful port of the inline bar loop: same combatant +
+   VIS_HIDDEN/VIS_FADING gating + fade alpha, same per-kind `barY` (turret/hub
+   sit higher by their visual extent), emitted via the shared `HpBarDecor`. The
+   gate is the `drawsHpBar` tag (`combatant && !drone`) — tag-driven, replacing
+   the inline `!combatant`/`instanceof Drone` skips. `fillRect` stays on
+   `BattleRenderer` (still used by `drawTintedIcon`).
+7. ~~Delete the `renderUnits` fallback after a live verify.~~ **SHIPPED (folded
+   into J6).** With every stratum migrated, `renderUnits` was pure ceremony (one
+   `drainLayer` + the bar loop); J6 deleted it outright and `renderWorld` now
+   calls `drainLayer(RenderLayer.UNITS)` directly at the UNITS slot. *(The broader
+   "Final" — collapsing all of `renderWorld` to a uniform collect-all/drain-all
+   loop — is out of Story J scope; the drain sequence is NOT ordinal order, see
+   next-session watch-outs.)*
 
 Slices 1–3 de-risk the pattern before the heavy infantry slice. Slice 2 is the
 one that commits the codebase to the flyweight+tags shape.
