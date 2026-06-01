@@ -188,7 +188,7 @@ public final class TickProfileDebugPanel implements HudPanel {
             double ms = totalNs / 1_000_000.0;
             double hz = ms > 0.0 ? (1000.0 / ms) : 0.0;
             summary = String.format("%.2f ms / %.0f Hz  (%du)",
-                    ms, hz, sim.getUnits().size());
+                    ms, hz, sim.liveUnitCount());
         }
         Color summaryColor = idle ? IDLE_FG : LABEL_FG;
         rowFont.drawString(summary, x0 + PAD_INNER, headerY - 4f, summaryColor, alphaMult);

@@ -96,8 +96,9 @@ public final class SquadDetailPanel implements HudPanel {
         // mode picks it up.
         if (s.faction != Faction.MARINE) return;
         currentSquad = s;
-        for (Unit u : sim.getUnits()) {
-            if (u.squadId != squadId || !u.isAlive()) continue;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            Unit u = sim.liveUnitAt(i);
+            if (u.squadId != squadId) continue;
             members.add(u);
         }
         // Leader first (if set + alive), then stable by unit id so the row

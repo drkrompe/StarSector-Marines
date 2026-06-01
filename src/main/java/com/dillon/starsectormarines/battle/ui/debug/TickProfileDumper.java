@@ -57,7 +57,7 @@ public final class TickProfileDumper {
             root.put("schemaVersion", SCHEMA_VERSION);
             root.put("simTickIndex", sim.simTickIndex);
             root.put("windowSamples", profile.sampleCount());
-            root.put("unitCount", sim.getUnits().size());
+            root.put("unitCount", sim.liveUnitCount());
             root.put("squadCount", sim.getSquads().size());
             root.put("triggerSource", spike != null ? "auto-spike" : "manual");
 

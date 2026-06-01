@@ -80,8 +80,9 @@ public final class SquadOverviewPanel implements HudPanel {
         // Bucket marines by squad so the equipment summary is one pass over
         // the unit list rather than nSquads × nUnits.
         Map<Integer, int[]> weaponCounts = new HashMap<>(); // 0: RIF, 1: SMG, 2: DMR, 3: RKT
-        for (Unit u : sim.getUnits()) {
-            if (u.faction != Faction.MARINE || u.squadId == Unit.NO_SQUAD || !u.isAlive()) continue;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            Unit u = sim.liveUnitAt(i);
+            if (u.faction != Faction.MARINE || u.squadId == Unit.NO_SQUAD) continue;
             int[] counts = weaponCounts.computeIfAbsent(u.squadId, k -> new int[4]);
             if (u.primaryWeapon != null) {
                 switch (u.primaryWeapon) {

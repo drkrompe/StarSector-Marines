@@ -129,7 +129,12 @@ public final class SquadStateDumper {
     private static JSONArray buildMembersJson(Squad squad, BattleSimulation sim,
                                               String selectedUnitId) throws Exception {
         JSONArray arr = new JSONArray();
-        for (Unit u : sim.getUnits()) {
+        // Live members only (dense registry) — a dead member has left the
+        // registry, so the dump no longer lists corpses. The "why is this squad
+        // stuck" diagnostic cares about the survivors; squad-level aliveMembers
+        // carries attrition. The per-member "alive" field is now always true.
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            Unit u = sim.liveUnitAt(i);
             if (u.squadId != squad.id) continue;
             JSONObject o = new JSONObject();
             o.put("id", u.id);
@@ -197,14 +202,15 @@ public final class SquadStateDumper {
         Faction enemyFaction = squad.faction == Faction.MARINE ? Faction.DEFENDER : Faction.MARINE;
 
         List<Unit> squadmates = new ArrayList<>();
-        for (Unit u : sim.getUnits()) {
-            if (u.squadId == squad.id && u.isAlive()) squadmates.add(u);
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            Unit u = sim.liveUnitAt(i);
+            if (u.squadId == squad.id) squadmates.add(u);
         }
 
         JSONArray enemies = new JSONArray();
         boolean anyUnreachable = false;
-        for (Unit e : sim.getUnits()) {
-            if (!e.isAlive()) continue;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            Unit e = sim.liveUnitAt(i);
             if (e.faction != enemyFaction) continue;
             if (sim.getZoneGraph().zoneIdAt(e.getCellX(), e.getCellY()) != targetZoneId) continue;
             boolean reachable = false;
