@@ -15,22 +15,31 @@
 > pruned, faction-default tracer colors deduped onto `ShotFx.defaultTracerColor`).
 > Full write-up: [`complete/fx-shots-command-model.md`](complete/fx-shots-command-model.md).
 >
-> 🎯 **Active next: pick from the shelf.** The remaining `Custom` passes sort into
-> three buckets — **gut-check each for "debug-only / likely-removed" or "placeholder
-> art" before investing; `Custom` is a fine home for both, so don't migrate doomed
-> scaffolding:**
-> - **Debug-only — NOT migration targets** (leave as `Custom` dev tools, or delete
->   when retired): `renderZoneOverlayDebug` (Z toggle), `renderConvoyDockingPathsDebug`
->   (`DEBUG_RENDER_DOCKING_PATHS`), `renderSelectedVehicleDebug`. All marked
->   `@DebugOnly` (`com.dillon.starsectormarines.DebugOnly`) — `grep @DebugOnly` finds
->   every debug-only member for a future prod-build strip pass. Apply the marker to
->   other debug members (toggles, the `debugZonesVisible` field, state dumpers) as
->   they're spotted.
-> - **Legitimately `Custom` (stay)** — FBO/own-GL: `renderDecals`, `impactFx`,
->   `flybyOverlay`, `lightAccumulator`.
-> - **Migration candidates** (gameplay geometry, several unlocked by `LINE`/`RIBBON`):
->   `highlights`, `renderFogOverlay`, `renderRoofs`, `renderObjectiveMarkers`,
->   `compoundMarkers` — but confirm each is staying (not placeholder viz) first.
+> 🎯 **Phase 3 — remaining gameplay-geometry passes — triaged into three stories.**
+> The leftover `Custom` passes were gut-checked (debug-only / placeholder before
+> investing; `Custom` is a fine home for both). The non-debug, non-FBO passes split:
+> - **3a — fog + roofs — CODE-COMPLETE, in-game verify pending.** The two clean
+>   wins (already batch-shaped production passes). `collectFogOverlay` emits
+>   `SOLID_RECT`, `collectRoofs` emits `SHEET_QUAD` (floors sheet already registered);
+>   both local `GlStateBracket` flushes deleted, now drained. No engine add.
+>   Story: [`stories/geometry-fog-roofs-command-model.md`](stories/geometry-fog-roofs-command-model.md).
+> - **3b — objective + compound markers — design-stage, BLOCKED on an arc primitive.**
+>   Both draw ring/arc geometry the command set can't express; needs a `POLY` kind
+>   (Option A) or tessellation (Option B). `compoundMarkers` is also self-described
+>   provisional v1 viz — confirm sprites-vs-arcs before building arc infra.
+>   Story: [`stories/geometry-markers-command-model.md`](stories/geometry-markers-command-model.md).
+> - **3c — highlight overlay — design-stage, mixed debug/gameplay fate.** Serves a
+>   debug source (`SRC_ACTION_CELLS`) and a gameplay source (`SRC_SELECTED_SQUAD`);
+>   needs a split-vs-whole-vs-defer decision first.
+>   Story: [`stories/geometry-highlights-command-model.md`](stories/geometry-highlights-command-model.md).
+>
+> **Still `Custom` and staying** — debug-only (all `@DebugOnly`):
+> `renderZoneOverlayDebug` (Z toggle), `renderConvoyDockingPathsDebug`
+> (`DEBUG_RENDER_DOCKING_PATHS`), `renderSelectedVehicleDebug`; and legitimate
+> FBO/own-GL: `renderDecals`, `impactFx`, `flybyOverlay`, `lightAccumulator`.
+> Apply `@DebugOnly` to other debug members as spotted (`grep @DebugOnly` = the
+> prod-build strip index).
+>
 > Or the optional perf follow-up still on the shelf: the ground-FBO
 > work-reduction spike ([`stories/perf-ground-fbo-cache.md`](stories/perf-ground-fbo-cache.md)).
 
@@ -289,7 +298,12 @@ perf spike.
   as `QuadBatch.appendFlippedV` + a `flipV` flag on the `SHEET_QUAD` command
   (`addSheetQuadFlippedV`; drain routes rotated/flipped/plain). Axis-aligned only.
   Canonical `setSheetQuad` resets `flipV=false` so pooled slots can't leak it.
-- **In-game-pending validation**: **none.** Final (collapse) verified in-game
+- **In-game-pending validation**: **Phase 3a (fog + roofs).** They were migrated
+  from inline `Custom`/bracket-flush to drained `SOLID_RECT`/`SHEET_QUAD` commands —
+  visually should be identical (fog edge-darkening gradient; roof fade-in/out over
+  unseen interiors), but confirm in-game. Compile-clean in isolation; full build is
+  currently red on a sibling session's `RenderPositionService` (fastutil), which
+  blocks deploy until that's resolved. Final (collapse) verified in-game
   (zones overlay, decals/craters, fog edges, roofs over unseen interiors, objective
   pulses, compound rings, convoy debug paths, shots/contrails, impact FX, flyby,
   day/night lightmap all correct). Every story — SHOTS (C), DOODADS (D), GROUND (E),

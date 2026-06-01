@@ -211,10 +211,10 @@ public class BattleRenderer {
                 RenderSystem.of(RenderLayer.HIGHLIGHTS, (ctx, out) ->
                         out.addCustom(RenderLayer.HIGHLIGHTS, () -> ctx.highlights.render(ctx.camera, ctx.alphaMult))),
                 RenderSystem.of(RenderLayer.FOG, (ctx, out) ->
-                        out.addCustom(RenderLayer.FOG, () -> renderFogOverlay(ctx.sim, ctx.alphaMult))),
+                        collectFogOverlay(ctx.sim, out, ctx.alphaMult)),
                 new UnitRenderService(sprites),
                 RenderSystem.of(RenderLayer.ROOFS, (ctx, out) ->
-                        out.addCustom(RenderLayer.ROOFS, () -> renderRoofs(ctx.sim, ctx.alphaMult))),
+                        collectRoofs(ctx.sim, out, ctx.alphaMult)),
                 new DroneRenderSystem(sprites),
                 RenderSystem.of(RenderLayer.OBJECTIVES, (ctx, out) ->
                         out.addCustom(RenderLayer.OBJECTIVES, () -> renderObjectiveMarkers(ctx.sim, ctx.alphaMult))),
@@ -378,7 +378,7 @@ public class BattleRenderer {
                 alphaMult);
     }
 
-    private void renderFogOverlay(BattleSimulation sim, float alphaMult) {
+    private void collectFogOverlay(BattleSimulation sim, DrawList out, float alphaMult) {
         com.dillon.starsectormarines.battle.vision.VisionService vis = sim.getVision();
         if (!vis.isInitialized()) return;
 
@@ -412,21 +412,17 @@ public class BattleRenderer {
 
                 float sx = rc.camera.cellToScreenX(cx);
                 float sy = rc.camera.cellToScreenY(cy);
-                solidBatch.appendRect(sx, sy, sx + cellPx, sy + cellPx,
+                out.addSolidRect(RenderLayer.FOG, sx, sy, sx + cellPx, sy + cellPx,
                         0f, 0f, 0f, fogAlpha * alphaMult);
             }
         }
-
-        try (GlStateBracket gl = GlStateBracket.textured2D()) {
-            solidBatch.flush();
-        }
     }
 
-    private void renderRoofs(BattleSimulation sim, float alphaMult) {
+    private void collectRoofs(BattleSimulation sim, DrawList out, float alphaMult) {
         com.dillon.starsectormarines.battle.world.model.Buildings buildings = sim.getBuildings();
         if (buildings == null || buildings.isEmpty()) return;
-        sprites.ensureFloorsSheet();
-        if (sprites.floorsSheet() == null || floorsBatch == null) return;
+        // Floors sheet is ensured at BattleScreen.attach; collect stays GL-free. Guard covers the not-loaded case.
+        if (sprites.floorsSheet() == null) return;
 
         CellTopology topology = sim.getTopology();
         for (com.dillon.starsectormarines.battle.world.model.Building b : buildings.all()) {
@@ -437,20 +433,15 @@ public class BattleRenderer {
                 int cy = b.cellsY[i];
                 if (topology.isRoofDestroyed(cx, cy)) continue;
                 TileManifest.TileFrame f = TileManifest.pickBrickTile(cx, cy);
-                appendSmallTileTinted(floorsBatch, f, cx, cy,
+                addSmallTileTinted(out, f, cx, cy,
                         b.tintR, b.tintG, b.tintB, roofAlpha * alphaMult);
             }
         }
-
-        try (GlStateBracket gl = GlStateBracket.textured2D()) {
-            floorsBatch.flush();
-        }
     }
 
-    private void appendSmallTileTinted(QuadBatch batch, TileManifest.TileFrame f,
-                                       int gridX, int gridY,
-                                       float r, float g, float b, float alphaMult) {
-        if (batch == null) return;
+    private void addSmallTileTinted(DrawList out, TileManifest.TileFrame f,
+                                    int gridX, int gridY,
+                                    float r, float g, float b, float alphaMult) {
         int inset = GROUND_SMALL_TILE_EDGE_INSET_PX;
         int srcPxX = f.col * TileManifest.FLOORS_TILE_SIZE + inset;
         int srcTopPxY = f.row * TileManifest.FLOORS_TILE_SIZE + inset;
@@ -460,7 +451,8 @@ public class BattleRenderer {
         float cellPx = rc.camera.cellPxSize();
         float cx = rc.camera.cellToScreenX(gridX + 0.5f);
         float cy = rc.camera.cellToScreenY(gridY + 0.5f);
-        batch.append(srcPxX, srcTopPxY, srcPxW, srcPxH,
+        out.addSheetQuad(RenderLayer.ROOFS, sprites.floorsSheet(),
+                srcPxX, srcTopPxY, srcPxW, srcPxH,
                 cx, cy, cellPx, cellPx,
                 r, g, b, alphaMult);
     }
