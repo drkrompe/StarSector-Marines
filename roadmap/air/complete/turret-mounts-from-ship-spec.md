@@ -13,11 +13,20 @@ at the global density; `ShuttleType.kitFor`/`a2gKit` return `TurretKind[]`;
 `Shuttle.turretSpread` and `AirScale.TURRET_AUTHORING_HULL_CELLS` are **deleted**,
 `turretWorldX/Y` simplified to `extraScale` only. Compiles clean.
 
-**Outstanding:** in-game eyeball that turrets land on the painted hardpoints
-across Kite / Valkyrie / Buffalo and that per-turret LoS still differentiates.
-One known limitation: the loadout count is capped at `min(kit, mountableSlots)`,
-so a hull's first N mountable slots get turrets in spec order (no kind↔slot-type
-matching yet — see Out of scope).
+**Follow-up — center-pivot offset (`bc5234b`).** First cut anchored slots at the
+sprite *pixel centre*, but vanilla authors them relative to the hull `center`
+(centroid of gravity, toward the tail), so turrets landed off the painted
+hardpoints — invisible on small hulls, ~0.85 cells on a Valkyrie. Fixed by
+extracting `WeaponSlotParser` and folding the `(center − pixelCentre)`
+compensation into the scrape; verified with the new `TurretSlotPreviewTest`
+(projects the scrape onto the sprite). The deeper unifying fix — anchor the whole
+entity at the centroid of gravity so rotation pivots there and the compensation
+disappears — is [`anchor-at-center-of-gravity.md`](../stories/anchor-at-center-of-gravity.md).
+
+**Outstanding:** in-game eyeball that turrets land on the painted hardpoints and
+that per-turret LoS still differentiates. Known limitation: the loadout count is
+capped at `min(kit, mountableSlots)`, so a hull's first N mountable slots get
+turrets in spec order (no kind↔slot-type matching yet — see Out of scope).
 
 ## The bug
 
