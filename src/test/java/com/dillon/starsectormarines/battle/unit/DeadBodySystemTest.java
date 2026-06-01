@@ -62,6 +62,7 @@ public class DeadBodySystemTest {
         DeadBody body = sim.getDeadBodies().get(id);
         assertNotNull(body);
         assertEquals(UnitType.MARINE, body.type, "body carries the dead unit's archetype");
+        assertEquals(Faction.DEFENDER, body.faction, "body carries the dead unit's side");
         assertTrue(body.deathPoseIdx >= 0 && body.deathPoseIdx < 4,
                 "a damage-resolver death rolls a valid prone-pose frame");
     }

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.component.ComponentStore;
 import com.dillon.starsectormarines.battle.component.Crashing;
 import com.dillon.starsectormarines.battle.drone.Drone;
@@ -7,16 +8,23 @@ import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.vision.VisionService;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
+import java.util.Map;
+
 /**
  * Emits the {@link RenderLayer#DRONES} layer — recon/attack drones that hover at
  * roof altitude (painted above ROOFS so a drone over a building overlays the roof
- * rather than being occluded by it). Per live/crashing drone: one rotated
- * {@code SPRITE} hull, then — while alive — an HP bar via the shared
- * {@link HpBarDecor} (placement uses the layer's own {@code HP_BAR_GAP}).
+ * rather than being occluded by it). Two passes: crashing wrecks (read straight
+ * from the {@link Crashing} component store, fading hull only, drawn first so they
+ * sit under the living) then live drones (dense-registry iteration — one rotated
+ * {@code SPRITE} hull + an HP bar via the shared {@link HpBarDecor}, placement
+ * uses the layer's own {@code HP_BAR_GAP}).
  *
  * <p>Faithful port of the former inline {@code BattleRenderer.renderDrones}: same
  * crash/visibility gating and fade-alpha (VIS_FADING fade + crash fade-out), same
- * hull sizing and HP-bar geometry, same per-drone hull-then-bar submission order.
+ * hull sizing and HP-bar geometry. The single units-list scan (live + dead) split
+ * into a corpse pass over the crash store and a live pass over the registry — a
+ * crashing drone is an entity with a {@code Crashing} component and no live
+ * registry row, so neither pass needs the legacy units list.
  * The hull goes through the whole-texture {@code SPRITE} command (no batch
  * registration), which resets sprite angle after each draw — so the old
  * end-of-pass {@code setAngle(0)} reset is dropped. The drone sprite is loaded at
@@ -49,38 +57,47 @@ public final class DroneRenderSystem implements RenderSystem {
         float pxW = pxH * cache.aspect;
         float barW = cellPx * 0.9f;
 
+        // Crashing (dead, falling) drones first so their fading wrecks paint
+        // UNDER the live drones. A dead drone is an entity that no longer sits in
+        // the live registry but still carries a Crashing component — read that
+        // store directly (no units-list scan, no Unit handle): the component owns
+        // the body the wreck tracks and the timer that fades it out. No vision
+        // gate, matching the legacy pass (a crash is always shown).
         ComponentStore<Crashing> crashStore = ctx.sim.getCrashing();
-        for (Unit u : ctx.sim.getUnits()) {
+        for (Map.Entry<Long, Crashing> e : crashStore.entries()) {
+            Crashing crash = e.getValue();
+            AirBody body = crash.body;
+            float t = Math.max(0f, Math.min(1f, crash.timer / Drone.CRASH_DURATION_SEC));
+            float drawAlpha = alphaMult * t;
+            float cx = cam.cellToScreenX(body.x);
+            float cy = cam.cellToScreenY(body.y);
+            out.addSprite(RenderLayer.DRONES, cache.sprite,
+                    cx, cy, pxW, pxH, body.facingDegrees,
+                    1f, 1f, 1f, drawAlpha);
+        }
+
+        // Live drones — iterate the dense registry; the corpse never appears.
+        for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
+            Unit u = ctx.sim.liveUnitAt(i);
             if (!(u instanceof Drone)) continue;
             Drone d = (Drone) u;
-            boolean alive = d.isAlive();
-            // A dead drone is drawn only while it carries a Crashing component
-            // (falling); once it settles the component is gone and it drops off.
-            Crashing crash = alive ? null : crashStore.get(d.entityId);
-            if (!alive && crash == null) continue;
             byte uv = vis.getUnitVisibility(d.denseIdx);
-            if (alive && uv == VisionService.VIS_HIDDEN) continue;
+            if (uv == VisionService.VIS_HIDDEN) continue;
 
             float cx = cam.cellToScreenX(d.body.x);
             float cy = cam.cellToScreenY(d.body.y);
             float drawAlpha = alphaMult;
-            if (alive && uv == VisionService.VIS_FADING) {
+            if (uv == VisionService.VIS_FADING) {
                 drawAlpha *= vis.getFadeAlpha(d.denseIdx);
-            }
-            if (!alive) {
-                float t = Math.max(0f, Math.min(1f, crash.timer / Drone.CRASH_DURATION_SEC));
-                drawAlpha *= t;
             }
 
             out.addSprite(RenderLayer.DRONES, cache.sprite,
                     cx, cy, pxW, pxH, d.body.facingDegrees,
                     1f, 1f, 1f, drawAlpha);
 
-            if (alive) {
-                float barY = cy + pxH / 2f + BattleRenderer.HP_BAR_GAP;
-                HpBarDecor.emit(out, RenderLayer.DRONES, cx, barY, barW,
-                        d.getHp() / d.getMaxHp(), drawAlpha);
-            }
+            float barY = cy + pxH / 2f + BattleRenderer.HP_BAR_GAP;
+            HpBarDecor.emit(out, RenderLayer.DRONES, cx, barY, barW,
+                    d.getHp() / d.getMaxHp(), drawAlpha);
         }
     }
 }

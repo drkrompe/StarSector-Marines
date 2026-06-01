@@ -1,8 +1,9 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.component.DeadBody;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractState;
@@ -22,6 +23,7 @@ import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import org.apache.log4j.Logger;
 
 import java.text.MessageFormat;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -100,13 +102,21 @@ public final class MissionResolver {
     public static MissionOutcome compute(BattleSimulation sim, Mission mission, MarineCaptain captain) {
         boolean victory = sim.getWinner() == Faction.MARINE;
 
-        int marinesEngaged = 0;
-        int rawMarinesLost = 0;
-        for (Unit u : sim.getUnits()) {
-            if (u.faction != Faction.MARINE) continue;
-            marinesEngaged++;
-            if (!u.isAlive()) rawMarinesLost++;
+        // Casualty tally without the legacy units list: survivors come from the
+        // dense registry (live-only), casualties from the corpse home — the
+        // DeadBody store retains every death for the whole battle and carries the
+        // dead unit's faction. A deboarded marine is in exactly one of the two
+        // (live registry or a corpse), so engaged = survivors + casualties.
+        UnitRegistry registry = sim.getUnitRegistry();
+        int marinesAlive = 0;
+        for (int i = 0, n = registry.liveCount(); i < n; i++) {
+            if (registry.get(i).faction == Faction.MARINE) marinesAlive++;
         }
+        int rawMarinesLost = 0;
+        for (Map.Entry<Long, DeadBody> e : sim.getDeadBodies().entries()) {
+            if (e.getValue().faction == Faction.MARINE) rawMarinesLost++;
+        }
+        int marinesEngaged = marinesAlive + rawMarinesLost;
 
         boolean hasFieldMedic = captain != null && captain.traits().contains(Trait.FIELD_MEDIC);
         int marinesLost = hasFieldMedic
