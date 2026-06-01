@@ -42,7 +42,7 @@ public enum ShuttleType implements AirHandling {
     // {@link #KITE} so the player's roster shows the right name.
     AEROSHUTTLE(
             "graphics/ships/aeroshuttle/aeroshuttle_base.png",
-            4, 3.0f, 10f, 0.6f,
+            4, 10f, 0.6f,
             Profiles.NIMBLE, 1, 25f, 60f),
 
     KITE(
@@ -50,70 +50,66 @@ public enum ShuttleType implements AirHandling {
             // visually identical to AEROSHUTTLE, but tagged as Kite in the
             // briefing so the player sees what's actually in their fleet.
             "graphics/ships/aeroshuttle/aeroshuttle_base.png",
-            4, 3.0f, 9f, 0.6f,
+            4, 9f, 0.6f,
             Profiles.NIMBLE, 1, 25f, 60f,
             "kite", "kite_original"),
 
     HERMES(
             "graphics/ships/hermes/hermes_base.png",
-            3, 2.8f, 11f, 0.5f,
+            3, 11f, 0.5f,
             Profiles.NIMBLE, 1, 25f, 55f,
             "hermes"),
 
     MUDSKIPPER(
             "graphics/ships/mudskipper/mudskipper.png",
-            4, 3.2f, 12f, 0.55f,
+            4, 12f, 0.55f,
             Profiles.NIMBLE, 1, 25f, 60f,
             "mudskipper", "mudskipper_mk2"),
 
     SHEPHERD(
             "graphics/ships/drone_tender.png",
-            4, 3.5f, 7f, 0.7f,
+            4, 7f, 0.7f,
             Profiles.MEDIUM, 0, 0f, 80f,
             "shepherd"),
 
     WAYFARER(
             "graphics/ships/wayfarer/wayfarer.png",
-            4, 3.5f, 8f, 0.65f,
+            4, 8f, 0.65f,
             Profiles.MEDIUM, 0, 0f, 80f,
             "wayfarer"),
 
     BUFFALO(
             "graphics/ships/buffalo/buffalo_base.png",
-            6, 4.0f, 6f, 0.9f,
+            6, 6f, 0.9f,
             Profiles.BUS, 0, 0f, 100f,
             "buffalo"),
 
     TARSUS(
             "graphics/ships/tarsus/tarsus_base.png",
-            5, 4.5f, 6f, 0.85f,
+            5, 6f, 0.85f,
             Profiles.BUS, 0, 0f, 90f,
             "tarsus"),
 
     MULE(
             "graphics/ships/mule/mule_base.png",
-            6, 4.5f, 7f, 0.75f,
+            6, 7f, 0.75f,
             Profiles.BUS, 0, 0f, 100f,
             "mule"),
 
     NEBULA(
             "graphics/ships/nebula/nebula.png",
-            7, 5.0f, 5f, 0.85f,
+            7, 5f, 0.85f,
             Profiles.BUS, 0, 0f, 120f,
             "nebula"),
 
     VALKYRIE(
             "graphics/ships/valkyrie/valkyrie_ap.png",
-            8, 5.0f, 7f, 0.8f,
+            8, 7f, 0.8f,
             Profiles.BUS, 4, 60f, 150f,
-            // Slim hull (~2.4 cells wide at cruise) needs the turrets dialed
-            // down so a 1.8-cell Arbalest doesn't render wider than the ship.
-            0.55f,
             "valkyrie");
 
     public final String spritePath;
     public final int capacity;
-    public final float visualLengthCells;
     /** Cruise / max forward velocity, cells/sec. Used as the AirHandling#maxSpeed cap. */
     public final float maxSpeed;
     public final float deboardInterval;
@@ -124,46 +120,35 @@ public enum ShuttleType implements AirHandling {
     public final float fireSupportSec;
     /** Maximum HP for the shuttle as a whole. Drives the pressure-to-leave exit during hover; no damage source exists yet, so the field is wired forward for future anti-air work. */
     public final float maxHp;
-    /**
-     * Per-shuttle multiplier on the rendered turret size. Counters the fact
-     * that {@link #visualLengthCells} is squashed differently across hulls
-     * (so big ships don't dominate the screen) — a 1.8-cell {@link TurretKind#ARBALEST}
-     * that reads correctly on a chunky Aeroshuttle (5.6 cells wide) overhangs a
-     * slim Valkyrie (2.4 cells wide). Default {@code 1.0} preserves the
-     * original look on Aeroshuttle / Mudskipper / Kite / Hermes; tall slim
-     * hulls dial this down so their turrets fit the hull width.
-     */
-    public final float turretVisualScale;
     /** Vanilla hull IDs that map to this type when scanning the player's fleet. */
     public final List<String> matchingHullIds;
 
-    ShuttleType(String spritePath, int capacity, float visualLengthCells,
+    ShuttleType(String spritePath, int capacity,
                 float maxSpeed, float deboardInterval,
                 HandlingProfile handling,
                 int hardpoints, float fireSupportSec, float maxHp,
-                String... matchingHullIds) {
-        this(spritePath, capacity, visualLengthCells, maxSpeed, deboardInterval,
-                handling, hardpoints, fireSupportSec, maxHp, /*turretVisualScale*/ 1.0f,
-                matchingHullIds);
-    }
-
-    ShuttleType(String spritePath, int capacity, float visualLengthCells,
-                float maxSpeed, float deboardInterval,
-                HandlingProfile handling,
-                int hardpoints, float fireSupportSec, float maxHp,
-                float turretVisualScale,
                 String... matchingHullIds) {
         this.spritePath = spritePath;
         this.capacity = capacity;
-        this.visualLengthCells = visualLengthCells;
         this.maxSpeed = maxSpeed;
         this.deboardInterval = deboardInterval;
         this.handling = handling;
         this.hardpoints = hardpoints;
         this.fireSupportSec = fireSupportSec;
         this.maxHp = maxHp;
-        this.turretVisualScale = turretVisualScale;
         this.matchingHullIds = Collections.unmodifiableList(Arrays.asList(matchingHullIds));
+    }
+
+    /**
+     * Vanilla hull whose {@code .ship} pixel extent sets this type's render
+     * footprint, via
+     * {@link com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver}.
+     * Normally the first fleet-match id. {@link #AEROSHUTTLE} has no fleet-match
+     * hull and there's no {@code aeroshuttle.ship}, but it renders Kite's sprite
+     * at Kite's size — so it borrows {@code "kite"}.
+     */
+    public String renderHullId() {
+        return matchingHullIds.isEmpty() ? "kite" : matchingHullIds.get(0);
     }
 
     @Override public float maxSpeed()                 { return maxSpeed; }

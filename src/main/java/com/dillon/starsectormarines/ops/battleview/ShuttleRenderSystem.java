@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.air.engine.EngineFxRenderer;
 import com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver;
+import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
 import java.util.List;
@@ -65,8 +66,11 @@ public final class ShuttleRenderSystem implements RenderSystem {
                     cam,
                     sprites.engineGlowSprite(), sprites.engineFlameSprite()));
 
-            // Hull.
-            float pxLen = s.type.visualLengthCells * cellPx * s.scaleMult;
+            // Hull. Length is derived from the hull's sprite pixel extent via
+            // the one global pixel-density factor (HullFootprintResolver), not a
+            // hand-authored per-type value.
+            float pxLen = HullFootprintResolver.visualLengthCells(s.type.renderHullId())
+                    * cellPx * s.scaleMult;
             float pxH = pxLen;
             float pxW = pxLen * cache.aspect;
             float cx = cam.cellToScreenX(s.body.x);
@@ -94,7 +98,7 @@ public final class ShuttleRenderSystem implements RenderSystem {
             float worldOffsetY = lx * si + ly * c;
             float screenX = cam.cellToScreenX(s.body.x + worldOffsetX);
             float screenY = cam.cellToScreenY(s.body.y + worldOffsetY + altOffset);
-            float layerVisualCells = mt.mount.kind.visualCells * s.scaleMult * s.type.turretVisualScale;
+            float layerVisualCells = mt.mount.kind.visualCells * s.scaleMult;
 
             ShuttleSpriteCache barrel = sprites.turretRecoilSprites().get(mt.mount.kind);
             if (barrel != null) {

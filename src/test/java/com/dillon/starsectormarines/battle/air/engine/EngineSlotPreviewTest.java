@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.air.engine;
 
+import com.dillon.starsectormarines.battle.air.AirScale;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import org.junit.jupiter.api.Assumptions;
@@ -81,14 +82,14 @@ public class EngineSlotPreviewTest {
             // kite_original; we only need one preview per visual hull.)
             String hullId = type.matchingHullIds.get(0);
             totalSlots += renderOne(coreDir, type.name(), hullId, type.spritePath,
-                    type.visualLengthCells, renderedHulls, skippedHulls);
+                    renderedHulls, skippedHulls);
         }
         // Fighter profiles use the same scrape — verifies the FlybyOverlay
         // path produces sensible engine layouts before they hit the screen.
         for (FighterProfile profile : FighterProfile.values()) {
             if (profile.hullId == null) continue;
             totalSlots += renderOne(coreDir, profile.name(), profile.hullId, profile.spritePath,
-                    profile.visualLengthCells, renderedHulls, skippedHulls);
+                    renderedHulls, skippedHulls);
         }
 
         System.out.println("EngineSlotPreviewTest: " + renderedHulls.size()
@@ -104,7 +105,6 @@ public class EngineSlotPreviewTest {
 
     /** Loads + parses + writes one hull's preview PNG. Returns the number of slots parsed (0 on skip). */
     private static int renderOne(Path coreDir, String label, String hullId, String relSpritePath,
-                                 float visualLengthCells,
                                  List<String> renderedHulls, List<String> skippedHulls) throws Exception {
         Path shipPath   = coreDir.resolve("data/hulls/" + hullId + ".ship");
         Path spritePath = coreDir.resolve(relSpritePath);
@@ -113,12 +113,18 @@ public class EngineSlotPreviewTest {
             return 0;
         }
         String shipJson = Files.readString(shipPath);
-        EngineSlotData[] slots = ShipSpecEngineParser.parse(shipJson, visualLengthCells);
         BufferedImage sprite = ImageIO.read(Files.newInputStream(spritePath));
         if (sprite == null) {
             skippedHulls.add(hullId + " (sprite read failed)");
             return 0;
         }
+        // Render length is derived from the global pixel density (AirScale),
+        // exactly as the runtime does — the sprite's pixel height equals vanilla's
+        // .ship `height`. The preview round-trip is invariant to the exact value
+        // (it cancels in displayPxPerCell), so this only sets the printed label,
+        // but keeping it runtime-consistent avoids confusion.
+        float visualLengthCells = AirScale.cellsForHeightPx(sprite.getHeight());
+        EngineSlotData[] slots = ShipSpecEngineParser.parse(shipJson, visualLengthCells);
         BufferedImage preview = renderPreview(label, hullId, visualLengthCells, sprite, slots);
         Path outPath = OUT_DIR.resolve(hullId + ".png");
         ImageIO.write(preview, "PNG", outPath.toFile());

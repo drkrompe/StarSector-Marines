@@ -16,11 +16,15 @@ import java.util.Map;
  * resolutions (no hullId, missing .ship, malformed JSON) log once and cache
  * an empty array so the render pass degrades silently.
  *
- * <p>One cache shared across air entities — a shuttle and a fighter that
- * both reference (say) {@code "wayfarer"} resolve through the same entry.
- * Same parser as the preview test ({@link ShipSpecEngineParser}), so the
- * in-game coordinates and the {@code build/engine-previews/*.png} images
- * track the same source of truth.
+ * <p>One cache shared across air entities, keyed by hull id. The cached slot
+ * positions are scaled to the {@code visualLengthCells} of the <em>first</em>
+ * caller for a given hull. That's safe today because shuttle hull ids and flyby
+ * fighter hull ids are disjoint, and shuttles all resolve their length the same
+ * way (the global density via {@link HullFootprintResolver}); if a hull is ever
+ * shared across callers wanting different lengths, key this cache on
+ * {@code (hullId, length)}. Same parser as the preview test
+ * ({@link ShipSpecEngineParser}), so the in-game coordinates and the
+ * {@code build/engine-previews/*.png} images track the same source of truth.
  */
 public final class EngineSlotResolver {
 
@@ -59,15 +63,17 @@ public final class EngineSlotResolver {
     }
 
     /**
-     * Shuttle-specific convenience that picks the first matching vanilla
-     * hull id off the type and threads through to
-     * {@link #resolve(String, float)} with the type's
-     * {@link ShuttleType#visualLengthCells}. Types with no matching hull id
-     * (e.g. {@code AEROSHUTTLE}) return an empty array.
+     * Shuttle-specific convenience that picks the first matching vanilla hull
+     * id off the type and threads through to {@link #resolve(String, float)}
+     * with the hull's globally-derived render length
+     * ({@link HullFootprintResolver#visualLengthCells(String)}) — so the engine
+     * slots scale to the same footprint the hull sprite renders at. Types with
+     * no matching hull id (e.g. {@code AEROSHUTTLE}) return an empty array.
      */
     public static EngineSlotData[] resolve(ShuttleType type) {
         if (type.matchingHullIds.isEmpty()) return EMPTY;
-        return resolve(type.matchingHullIds.get(0), type.visualLengthCells);
+        String hullId = type.matchingHullIds.get(0);
+        return resolve(hullId, HullFootprintResolver.visualLengthCells(hullId));
     }
 
     private static EngineSlotData[] doResolve(String hullId, float visualLengthCells) {
