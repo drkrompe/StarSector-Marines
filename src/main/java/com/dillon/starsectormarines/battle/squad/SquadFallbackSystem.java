@@ -2,10 +2,12 @@ package com.dillon.starsectormarines.battle.squad;
 
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -37,6 +39,9 @@ public final class SquadFallbackSystem {
     /** Squared cell distance from a unit to its home cell counted as "arrived." */
     private static final float HOME_ARRIVAL_RADIUS_SQ = 2.0f * 2.0f;
 
+    /** Reused scratch for a squad's live members, gathered in entityId (= spawn) order before cover redistribution. Serial-phase use only. */
+    private final List<Unit> memberScratch = new ArrayList<>();
+
     private final NavigationService navigation;
     private final UnitRosterService roster;
     private final Consumer<Unit> pathClearer;
@@ -49,14 +54,15 @@ public final class SquadFallbackSystem {
         this.pathClearer = pathClearer;
     }
 
-    public void tick(List<Unit> units) {
+    public void tick() {
+        UnitRegistry registry = roster.getRegistry();
         for (Squad squad : roster.getSquads()) {
             if (squad.assignedNode == null) continue;
             if (squad.aliveMembers == 0) continue;
 
             // Arrival pass for in-progress retreats.
             if (squad.fallbackInProgress) {
-                if (allMembersHome(squad, units)) squad.fallbackInProgress = false;
+                if (allMembersHome(squad, registry)) squad.fallbackInProgress = false;
                 continue;
             }
 
@@ -68,7 +74,7 @@ public final class SquadFallbackSystem {
             if (targets.isEmpty()) continue;
 
             TacticalNode newNode = targets.get(0);
-            assignFallbackHomes(squad, newNode, units);
+            assignFallbackHomes(squad, newNode, registry);
             squad.assignedNode = newNode;
             squad.fallbackTriggered = true;
             squad.fallbackInProgress = true;
@@ -76,10 +82,10 @@ public final class SquadFallbackSystem {
     }
 
     /** True when every alive squad member is within {@link #HOME_ARRIVAL_RADIUS_SQ} of their home cell — caller treats that as "the retreat is finished." */
-    private boolean allMembersHome(Squad squad, List<Unit> units) {
-        for (int i = 0, n = units.size(); i < n; i++) {
-            Unit u = units.get(i);
-            if (!u.isAlive() || u.squadId != squad.id) continue;
+    private boolean allMembersHome(Squad squad, UnitRegistry registry) {
+        for (int i = 0, n = registry.liveCount(); i < n; i++) {
+            Unit u = registry.get(i);
+            if (u.squadId != squad.id) continue;
             if (u.homeCellX < 0) continue;
             float dx = u.homeCellX - u.getCellX();
             float dy = u.homeCellY - u.getCellY();
@@ -89,20 +95,38 @@ public final class SquadFallbackSystem {
     }
 
     /**
+     * Gathers {@code squad}'s live members into {@link #memberScratch}, sorted
+     * by {@code entityId} so the iteration order matches the old units-list
+     * (insertion = spawn) order the cover-priority assignment relied on — the
+     * dense registry reorders on swap-and-pop release, so we re-establish spawn
+     * order explicitly. Returns the reused scratch list (valid until the next
+     * call).
+     */
+    private List<Unit> squadMembersInSpawnOrder(Squad squad, UnitRegistry registry) {
+        memberScratch.clear();
+        for (int i = 0, n = registry.liveCount(); i < n; i++) {
+            Unit u = registry.get(i);
+            if (u.squadId == squad.id) memberScratch.add(u);
+        }
+        memberScratch.sort((a, b) -> Long.compare(a.entityId, b.entityId));
+        return memberScratch;
+    }
+
+    /**
      * Distributes new home cells around {@code newNode}'s anchor to every
      * surviving member of {@code squad}. Reuses
      * {@link BattleSetup#pickCellsNear} so the cover-sorted ordering is the
-     * same one the original spawn used — the highest-rank survivors (iterated
-     * in unit list order, which preserves spawn priority) take the best new
-     * cover stacks.
+     * same one the original spawn used — the highest-rank survivors (taken in
+     * spawn order via {@link #squadMembersInSpawnOrder}, which preserves spawn
+     * priority) take the best new cover stacks.
      */
-    private void assignFallbackHomes(Squad squad, TacticalNode newNode, List<Unit> units) {
+    private void assignFallbackHomes(Squad squad, TacticalNode newNode, UnitRegistry registry) {
         List<int[]> cells = BattleSetup.pickCellsNear(navigation.getGrid(), navigation.getZoneGraph(),
                 newNode.anchorX, newNode.anchorY, 5, squad.aliveMembers);
+        List<Unit> members = squadMembersInSpawnOrder(squad, registry);
         int idx = 0;
-        for (int i = 0, n = units.size(); i < n; i++) {
-            Unit u = units.get(i);
-            if (!u.isAlive() || u.squadId != squad.id) continue;
+        for (int i = 0, n = members.size(); i < n; i++) {
+            Unit u = members.get(i);
             if (idx >= cells.size()) {
                 // Out of cells — keep the survivor's current home so they
                 // don't end up homeless. They'll just hold where they are.

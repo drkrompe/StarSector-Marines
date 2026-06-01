@@ -6,7 +6,6 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Owns the per-cell fog-of-war bitmap, per-unit visibility state, and the
@@ -203,18 +202,17 @@ public final class VisionService {
      * VISION-phase tick. Processes one fog cohort, updates unit visibility,
      * and runs the building visibility pass.
      */
-    public void tick(int simTickIndex, List<Unit> units, NavigationGrid grid,
-                     UnitRegistry registry) {
+    public void tick(int simTickIndex, NavigationGrid grid, UnitRegistry registry) {
         if (simTickIndex % 3 != 0) return;
 
         if (initialized) {
             tickFogCohort(registry);
             tickEphemeralSources();
-            sweepUnitVisibility(units);
+            sweepUnitVisibility(registry);
         }
 
         if (!buildings.isEmpty()) {
-            BuildingVisibilityPass.update(buildings, units, grid, visionState);
+            BuildingVisibilityPass.update(buildings, registry, grid, visionState);
         }
     }
 
@@ -358,18 +356,14 @@ public final class VisionService {
         }
     }
 
-    private void sweepUnitVisibility(List<Unit> units) {
-        for (Unit u : units) {
-            if (u.denseIdx < 0) continue;
+    private void sweepUnitVisibility(UnitRegistry registry) {
+        for (int i = 0, n = registry.liveCount(); i < n; i++) {
+            Unit u = registry.get(i);
             ensureUnitCapacity(u.denseIdx + 1);
 
             if (visionState.isContributor(u.faction)) {
                 unitVisibility[u.denseIdx] = VIS_VISIBLE;
                 fadeAlpha[u.denseIdx] = 1f;
-                continue;
-            }
-
-            if (!u.isAlive()) {
                 continue;
             }
 

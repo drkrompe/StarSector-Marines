@@ -719,9 +719,9 @@ public class BattleSimulation implements BattleControl {
         // 30 Hz sim). The render path lerps current→target alpha per frame so
         // this cadence stays invisible. Ephemeral sources (shuttles, fighters)
         // are pushed by BattleScreen.advance() each frame before this call.
-        vision.tick(simTickIndex, units, grid, rosterService.getRegistry());
+        vision.tick(simTickIndex, grid, rosterService.getRegistry());
         tickProfile.lap(TickProfile.Phase.VISION);
-        navigation.rebuildOccupancyMap(units);
+        navigation.rebuildOccupancyMap(rosterService.getRegistry());
         tickProfile.lap(TickProfile.Phase.REBUILD_OCCUPANCY);
         // Rebuild the spatial index BEFORE the AI passes so per-tick scoring
         // (exposure, threat density, allies-near) reads a consistent
@@ -756,7 +756,7 @@ public class BattleSimulation implements BattleControl {
         // clears the in-progress flag. Runs after alerts (so we see fresh
         // aliveMembers) and before updateUnit (so the new home cells are
         // visible to garrison dispatch this same tick).
-        squadFallback.tick(units);
+        squadFallback.tick();
         tickProfile.lap(TickProfile.Phase.SQUAD_FALLBACK);
         // Commander-tier slow tick — runs before per-squad replan so any
         // assignment written this tick is visible to the GOAP relevance pass

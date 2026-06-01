@@ -11,7 +11,6 @@ import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Owns the spatial state slice that {@code BattleSimulation} previously held
@@ -169,11 +168,10 @@ public final class NavigationService {
      * incremented — so units picking positions later in the same tick see
      * the freshest information.
      */
-    public void rebuildOccupancyMap(List<Unit> units) {
+    public void rebuildOccupancyMap(UnitRegistry registry) {
         Arrays.fill(occupancyMap, (byte) 0);
-        for (int i = 0, n = units.size(); i < n; i++) {
-            Unit u = units.get(i);
-            if (!u.isAlive()) continue;
+        for (int i = 0, n = registry.liveCount(); i < n; i++) {
+            Unit u = registry.get(i);
             incrementOccupancy(u.getCellX(), u.getCellY());
             int destX = pathDestX(u);
             if (destX != Integer.MIN_VALUE) {

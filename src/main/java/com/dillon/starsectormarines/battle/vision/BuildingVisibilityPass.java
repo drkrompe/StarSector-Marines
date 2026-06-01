@@ -1,11 +1,10 @@
 package com.dillon.starsectormarines.battle.vision;
 
 import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.world.model.Building;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-
-import java.util.List;
 
 /**
  * Periodic pass that decides which buildings reveal their interiors to the
@@ -41,23 +40,23 @@ public final class BuildingVisibilityPass {
     private BuildingVisibilityPass() {}
 
     public static void update(Buildings buildings,
-                              List<Unit> units,
+                              UnitRegistry registry,
                               NavigationGrid grid,
                               PlayerVisionState vision) {
         if (buildings == null || buildings.isEmpty()) return;
 
         for (Building b : buildings.all()) {
-            b.targetAlpha = computeTargetAlpha(b, units, grid, vision);
+            b.targetAlpha = computeTargetAlpha(b, registry, grid, vision);
         }
     }
 
     private static float computeTargetAlpha(Building b,
-                                            List<Unit> units,
+                                            UnitRegistry registry,
                                             NavigationGrid grid,
                                             PlayerVisionState vision) {
-        // Pass 1 — anyone inside the bbox? Cheap.
-        for (Unit u : units) {
-            if (!u.isAlive()) continue;
+        // Pass 1 — anyone inside the bbox? Cheap. (Dense registry is live-only.)
+        for (int i = 0, n = registry.liveCount(); i < n; i++) {
+            Unit u = registry.get(i);
             if (!vision.isContributor(u.faction)) continue;
             if (b.containsCell(u.getCellX(), u.getCellY())) {
                 return 0f;
@@ -69,8 +68,8 @@ public final class BuildingVisibilityPass {
         int cy = (b.minY + b.maxY) >> 1;
         Unit closest = null;
         int closestDistSq = MAX_VISION_RANGE * MAX_VISION_RANGE + 1;
-        for (Unit u : units) {
-            if (!u.isAlive()) continue;
+        for (int i = 0, n = registry.liveCount(); i < n; i++) {
+            Unit u = registry.get(i);
             if (!vision.isContributor(u.faction)) continue;
             int dx = u.getCellX() - cx;
             int dy = u.getCellY() - cy;
