@@ -95,7 +95,7 @@ public class CompoundGarrisonSystemTest {
         tickGarrison(garrison, sim, service, 1);
 
         Shuttle shuttle = sim.getShuttles().get(sim.getShuttles().size() - 1);
-        assertEquals(node, shuttle.garrisonNode,
+        assertEquals(node, shuttle.mission.garrisonNode,
                 "garrison shuttle carries the compound node so its squad is born holding");
     }
 
@@ -120,13 +120,13 @@ public class CompoundGarrisonSystemTest {
 
         // Fly the shuttle in and deboard its first marine (squad minted then).
         int guard = 0;
-        while (shuttle.squadId == Unit.NO_SQUAD && guard++ < 8000) {
+        while (shuttle.mission.squadId == Unit.NO_SQUAD && guard++ < 8000) {
             sim.advance(BattleSimulation.TICK_DT);
         }
-        assertTrue(shuttle.squadId != Unit.NO_SQUAD,
+        assertTrue(shuttle.mission.squadId != Unit.NO_SQUAD,
                 "garrison shuttle should deboard within the tick budget");
 
-        Squad gsquad = sim.getSquad(shuttle.squadId);
+        Squad gsquad = sim.getSquad(shuttle.mission.squadId);
         assertNotNull(gsquad);
         ObjectiveAssignment a = gsquad.assignedObjective;
         assertNotNull(a, "garrison squad is born with an objective");

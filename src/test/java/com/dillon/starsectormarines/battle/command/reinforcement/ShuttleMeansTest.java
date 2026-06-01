@@ -58,8 +58,8 @@ public class ShuttleMeansTest {
 
         List<Shuttle> shuttles = sim.getShuttles();
         assertEquals(1, shuttles.size(), "one shuttle dispatched");
-        int lzX = (int) shuttles.get(0).lzX;
-        int lzY = (int) shuttles.get(0).lzY;
+        int lzX = (int) shuttles.get(0).mission.lzX;
+        int lzY = (int) shuttles.get(0).mission.lzY;
         assertEquals(0, topo.getBuildingId(lzX, lzY), "LZ must be outside any building footprint");
         assertTrue(sim.getGrid().isWalkable(lzX, lzY), "LZ must be walkable");
     }

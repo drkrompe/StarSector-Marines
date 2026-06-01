@@ -39,9 +39,9 @@ public final class EliminateFactionObjective implements Objective {
         }
         for (Shuttle s : sim.getShuttles()) {
             if (s.faction != target) continue;
-            if (s.marinesRemaining > 0
-                    && s.state != Shuttle.State.DEPARTING
-                    && s.state != Shuttle.State.GONE) {
+            if (s.mission.marinesRemaining > 0
+                    && s.mission.state != Shuttle.State.DEPARTING
+                    && s.mission.state != Shuttle.State.GONE) {
                 return;
             }
         }

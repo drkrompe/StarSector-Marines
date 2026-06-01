@@ -131,8 +131,8 @@ public class AirSystem {
      * The single authoritative release point for an air entity — drops every
      * component this system holds for {@code entityId}. Called at the one death
      * transition (DEPARTING → GONE). <b>Every</b> future removal path (AA
-     * shoot-down — the {@link Shuttle#hp}/{@code HOVER_HP_THRESHOLD} fields are
-     * wired forward for it — or pruning GONE craft from the list) MUST funnel
+     * shoot-down — {@link ShuttleMission#hp} / {@link Shuttle#HOVER_HP_THRESHOLD}
+     * are wired forward for it — or pruning GONE craft from the list) MUST funnel
      * through here. Register each new air component store's removal in this one
      * method and adding a component can't reintroduce an orphan leak.
      */
@@ -149,7 +149,7 @@ public class AirSystem {
      * "armed."
      */
     private boolean shouldHoverLoiter(Shuttle s) {
-        return s.assignedRole != null && airTurrets.has(s.entityId);
+        return s.mission.assignedRole != null && airTurrets.has(s.entityId);
     }
 
     /** True when every mounted turret has fired dry (or the craft is unarmed) — a HOVER_STATION exit trigger. */
@@ -174,7 +174,7 @@ public class AirSystem {
         for (Shuttle s : shuttles) {
             // GONE craft already released their components at the death
             // transition; skip (don't re-advance, which would resurrect them).
-            if (s.state == Shuttle.State.GONE) continue;
+            if (s.mission.state == Shuttle.State.GONE) continue;
             // PENDING (off-map re-arm) intentionally keeps advancing: the cycle
             // teleport zeroes the body, so demand decays to 0 over the rearm
             // window and the next INCOMING sortie spools the plumes up from cold.
@@ -197,52 +197,52 @@ public class AirSystem {
      */
     private void advanceShuttles(float dt) {
         for (Shuttle s : shuttles) {
-            switch (s.state) {
+            switch (s.mission.state) {
                 case PENDING:
-                    s.pendingDelay -= dt;
-                    if (s.pendingDelay <= 0f) {
-                        beginShuttleLeg(s, s.lzX, s.lzY);
-                        s.state = Shuttle.State.INCOMING;
+                    s.mission.pendingDelay -= dt;
+                    if (s.mission.pendingDelay <= 0f) {
+                        beginShuttleLeg(s, s.mission.lzX, s.mission.lzY);
+                        s.mission.state = Shuttle.State.INCOMING;
                     }
                     break;
 
                 case INCOMING:
-                    AirSteeringSystem.steer(s.body, s.lzX, s.lzY, SteeringMode.BRAKE_TO_STATION, s.type, dt);
-                    updateShuttleAltitude(s, s.lzX, s.lzY, /*incoming=*/true, dt);
-                    if (s.body.distanceTo(s.lzX, s.lzY) < SHUTTLE_LZ_ARRIVAL_DIST) {
-                        s.body.teleport(s.lzX, s.lzY, s.body.facingDegrees);
+                    AirSteeringSystem.steer(s.body, s.mission.lzX, s.mission.lzY, SteeringMode.BRAKE_TO_STATION, s.type, dt);
+                    updateShuttleAltitude(s, s.mission.lzX, s.mission.lzY, /*incoming=*/true, dt);
+                    if (s.body.distanceTo(s.mission.lzX, s.mission.lzY) < SHUTTLE_LZ_ARRIVAL_DIST) {
+                        s.body.teleport(s.mission.lzX, s.mission.lzY, s.body.facingDegrees);
                         s.altitudeT = 0f;
                         s.scaleMult = 1f;
-                        s.state = Shuttle.State.LANDED;
-                        s.deboardCountdown = s.type.deboardInterval;
+                        s.mission.state = Shuttle.State.LANDED;
+                        s.mission.deboardCountdown = s.type.deboardInterval;
                     }
                     break;
 
                 case LANDED:
-                    s.deboardCountdown -= dt;
-                    if (s.deboardCountdown <= 0f && s.marinesRemaining > 0) {
+                    s.mission.deboardCountdown -= dt;
+                    if (s.mission.deboardCountdown <= 0f && s.mission.marinesRemaining > 0) {
                         if (tryDeboardMarine(s)) {
-                            s.marinesRemaining--;
+                            s.mission.marinesRemaining--;
                         }
-                        s.deboardCountdown = s.type.deboardInterval;
+                        s.mission.deboardCountdown = s.type.deboardInterval;
                     }
-                    if (s.marinesRemaining == 0) {
+                    if (s.mission.marinesRemaining == 0) {
                         if (shouldHoverLoiter(s)) {
                             // Lift off the LZ and station-keep above the squad
                             // for the type's fire-support window. Initial hover
                             // point is the LZ; each subsequent tick follows the
                             // squad centroid (leashed to LZ radius).
-                            s.hoverPointX = s.lzX;
-                            s.hoverPointY = s.lzY;
-                            s.hoverTimerSec = s.type.fireSupportSec;
-                            s.takeoffTimer = Shuttle.T_TAKEOFF_SEC;
+                            s.mission.hoverPointX = s.mission.lzX;
+                            s.mission.hoverPointY = s.mission.lzY;
+                            s.mission.hoverTimerSec = s.type.fireSupportSec;
+                            s.mission.takeoffTimer = Shuttle.T_TAKEOFF_SEC;
                             s.altitudeT = 0f;       // smoothstep ramps from here
                             s.scaleMult = 1f;
-                            s.departingFromHover = false;
-                            s.state = Shuttle.State.HOVER_STATION;
+                            s.mission.departingFromHover = false;
+                            s.mission.state = Shuttle.State.HOVER_STATION;
                         } else {
-                            beginShuttleLeg(s, s.exitX, s.exitY);
-                            s.state = Shuttle.State.DEPARTING;
+                            beginShuttleLeg(s, s.mission.exitX, s.mission.exitY);
+                            s.mission.state = Shuttle.State.DEPARTING;
                         }
                     }
                     break;
@@ -253,14 +253,14 @@ public class AirSystem {
                     // wiped squad or a runaway scout doesn't drag the shuttle
                     // across the whole map.
                     updateHoverFollow(s);
-                    AirSteeringSystem.steer(s.body, s.hoverPointX, s.hoverPointY, SteeringMode.STATION, s.type, dt);
-                    s.hoverTimerSec -= dt;
+                    AirSteeringSystem.steer(s.body, s.mission.hoverPointX, s.mission.hoverPointY, SteeringMode.STATION, s.type, dt);
+                    s.mission.hoverTimerSec -= dt;
                     // Takeoff phase — smoothstep altitudeT 0 → 1 over
                     // T_TAKEOFF_SEC for a visible acceleration / deceleration
                     // climb instead of a one-tick pop into the air.
-                    if (s.takeoffTimer > 0f) {
-                        s.takeoffTimer -= dt;
-                        float u = 1f - Math.max(0f, s.takeoffTimer / Shuttle.T_TAKEOFF_SEC);
+                    if (s.mission.takeoffTimer > 0f) {
+                        s.mission.takeoffTimer -= dt;
+                        float u = 1f - Math.max(0f, s.mission.takeoffTimer / Shuttle.T_TAKEOFF_SEC);
                         s.altitudeT = u * u * (3f - 2f * u);  // smoothstep
                     } else {
                         s.altitudeT = 1f;
@@ -272,41 +272,41 @@ public class AirSystem {
                     // Exit triggers — first-of (timer expired, all ammo dry,
                     // HP pressure). HP threshold is wired forward for AA work;
                     // today there's no damage source so it never trips.
-                    boolean fuelOut = s.hoverTimerSec <= 0f;
+                    boolean fuelOut = s.mission.hoverTimerSec <= 0f;
                     boolean ammoOut = allTurretsDry(s);
-                    boolean hpPressured = s.hp <= s.type.maxHp * Shuttle.HOVER_HP_THRESHOLD;
+                    boolean hpPressured = s.mission.hp <= s.type.maxHp * Shuttle.HOVER_HP_THRESHOLD;
                     if (fuelOut || ammoOut || hpPressured) {
-                        beginShuttleLeg(s, s.exitX, s.exitY);
-                        s.departingFromHover = true;
-                        s.state = Shuttle.State.DEPARTING;
+                        beginShuttleLeg(s, s.mission.exitX, s.mission.exitY);
+                        s.mission.departingFromHover = true;
+                        s.mission.state = Shuttle.State.DEPARTING;
                     }
                     break;
 
                 case DEPARTING:
-                    AirSteeringSystem.steer(s.body, s.exitX, s.exitY, SteeringMode.CRUISE, s.type, dt);
-                    updateShuttleAltitude(s, s.exitX, s.exitY, /*incoming=*/false, dt);
-                    if (s.body.distanceTo(s.exitX, s.exitY) < SHUTTLE_EXIT_ARRIVAL_DIST) {
-                        if (s.currentCycle + 1 < s.totalCycles) {
+                    AirSteeringSystem.steer(s.body, s.mission.exitX, s.mission.exitY, SteeringMode.CRUISE, s.type, dt);
+                    updateShuttleAltitude(s, s.mission.exitX, s.mission.exitY, /*incoming=*/false, dt);
+                    if (s.body.distanceTo(s.mission.exitX, s.mission.exitY) < SHUTTLE_EXIT_ARRIVAL_DIST) {
+                        if (s.mission.currentCycle + 1 < s.mission.totalCycles) {
                             // Recycle for another sortie. The shuttle drops out of
                             // view (PENDING is invisible + engine-silent) for
                             // s.rearmDelay sim-seconds, then re-enters INCOMING.
                             // Per-cycle loadout refreshes here so SABOTAGE planters
                             // target the next charge site on each return trip.
-                            s.currentCycle++;
-                            if (s.cycleLoadouts != null && s.currentCycle < s.cycleLoadouts.length) {
-                                s.marineLoadout = s.cycleLoadouts[s.currentCycle];
+                            s.mission.currentCycle++;
+                            if (s.mission.cycleLoadouts != null && s.mission.currentCycle < s.mission.cycleLoadouts.length) {
+                                s.mission.marineLoadout = s.mission.cycleLoadouts[s.mission.currentCycle];
                             }
-                            s.marinesRemaining = s.type.capacity;
-                            s.pendingDelay = s.rearmDelay;
+                            s.mission.marinesRemaining = s.type.capacity;
+                            s.mission.pendingDelay = s.mission.rearmDelay;
                             // Each sortie spawns an independent squad — without
                             // this reset, marines from cycle N+1 reinforce the
                             // surviving squad from cycle N instead of forming
                             // a fresh fireteam at the LZ.
-                            s.squadId = Unit.NO_SQUAD;
-                            s.body.teleport(s.entryX, s.entryY,
-                                    AirBody.facingToward(s.lzX - s.entryX, s.lzY - s.entryY));
+                            s.mission.squadId = Unit.NO_SQUAD;
+                            s.body.teleport(s.mission.entryX, s.mission.entryY,
+                                    AirBody.facingToward(s.mission.lzX - s.mission.entryX, s.mission.lzY - s.mission.entryY));
                             s.altitudeT = 1f;
-                            s.departingFromHover = false;
+                            s.mission.departingFromHover = false;
                             // Re-arm: refill every mount's magazine, drop any
                             // stale target lock so the next hover starts clean.
                             AirTurrets rearm = airTurrets.get(s.entityId);
@@ -317,11 +317,11 @@ public class AirSystem {
                                     mt.cooldownTimer = 0f;
                                 }
                             }
-                            s.state = Shuttle.State.PENDING;
+                            s.mission.state = Shuttle.State.PENDING;
                         } else {
                             // Terminal — the craft is done. Release all its air
                             // components in one place (the single death seam).
-                            s.state = Shuttle.State.GONE;
+                            s.mission.state = Shuttle.State.GONE;
                             releaseAirEntity(s.entityId);
                         }
                     }
@@ -457,7 +457,7 @@ public class AirSystem {
      * entry point, or the LZ).
      */
     private void beginShuttleLeg(Shuttle s, float toX, float toY) {
-        s.legStartDist = Math.max(0.001f, s.body.distanceTo(toX, toY));
+        s.mission.legStartDist = Math.max(0.001f, s.body.distanceTo(toX, toY));
     }
 
     /**
@@ -467,14 +467,14 @@ public class AirSystem {
      * sine wobble that's gated by altitudeT so it dies cleanly on the ground.
      */
     private void updateShuttleAltitude(Shuttle s, float toX, float toY, boolean incoming, float dt) {
-        if (!incoming && s.departingFromHover) {
+        if (!incoming && s.mission.departingFromHover) {
             // Departing straight out of HOVER_STATION — the shuttle is already
             // at cruise altitude, so a distance-ratio lerp from "ground" would
             // make it visibly descend and re-climb. Hold at the top.
             s.altitudeT = 1f;
         } else {
             float remaining = s.body.distanceTo(toX, toY);
-            float ratio = remaining / s.legStartDist;
+            float ratio = remaining / s.mission.legStartDist;
             if (ratio < 0f) ratio = 0f;
             if (ratio > 1f) ratio = 1f;
             s.altitudeT = incoming ? ratio : (1f - ratio);
@@ -494,12 +494,12 @@ public class AirSystem {
      * stays where it was supporting.
      */
     private void updateHoverFollow(Shuttle s) {
-        if (s.squadId == Unit.NO_SQUAD) return;
+        if (s.mission.squadId == Unit.NO_SQUAD) return;
         float sumX = 0f, sumY = 0f;
         int n = 0;
         for (int i = 0, live = registry.liveCount(); i < live; i++) {
             Unit u = registry.get(i);
-            if (u.squadId != s.squadId) continue;
+            if (u.squadId != s.mission.squadId) continue;
             sumX += u.getCellX() + 0.5f;
             sumY += u.getCellY() + 0.5f;
             n++;
@@ -507,22 +507,22 @@ public class AirSystem {
         if (n == 0) return;  // squad wiped — hold current hover point
         float cx = sumX / n;
         float cy = sumY / n;
-        float dx = cx - s.lzX;
-        float dy = cy - s.lzY;
+        float dx = cx - s.mission.lzX;
+        float dy = cy - s.mission.lzY;
         float dist = (float) Math.sqrt(dx * dx + dy * dy);
         // Rear-overwatch standoff: shift the hover point from centroid back
         // toward the LZ. Below the standoff radius there's no stable bearing,
         // so just hold over the LZ until the squad pushes out.
         if (dist > Shuttle.HOVER_STANDOFF_CELLS) {
             float k = (dist - Shuttle.HOVER_STANDOFF_CELLS) / dist;
-            cx = s.lzX + dx * k;
-            cy = s.lzY + dy * k;
+            cx = s.mission.lzX + dx * k;
+            cy = s.mission.lzY + dy * k;
         } else {
-            cx = s.lzX;
-            cy = s.lzY;
+            cx = s.mission.lzX;
+            cy = s.mission.lzY;
         }
-        s.hoverPointX = cx;
-        s.hoverPointY = cy;
+        s.mission.hoverPointX = cx;
+        s.mission.hoverPointY = cy;
     }
 
     /**
@@ -533,17 +533,17 @@ public class AirSystem {
      * shuttle re-tries next interval.
      */
     private boolean tryDeboardMarine(Shuttle s) {
-        int lzCellX = (int) Math.floor(s.lzX);
-        int lzCellY = (int) Math.floor(s.lzY);
+        int lzCellX = (int) Math.floor(s.mission.lzX);
+        int lzCellY = (int) Math.floor(s.mission.lzY);
         int[] cell = findDeboardCell(lzCellX, lzCellY);
         if (cell == null) return false;
-        UnitType deboardType = (s.deboardUnitType != null)
-                ? s.deboardUnitType
+        UnitType deboardType = (s.mission.deboardUnitType != null)
+                ? s.mission.deboardUnitType
                 : FactionUnitRoster.forFaction(s.faction).infantry();
         Unit marine = new Unit(roster.nextMarineId(), s.faction, deboardType, cell[0], cell[1]);
-        int slot = s.type.capacity - s.marinesRemaining;
-        MarineLoadout loadout = (s.marineLoadout != null && slot < s.marineLoadout.length)
-                ? s.marineLoadout[slot] : null;
+        int slot = s.type.capacity - s.mission.marinesRemaining;
+        MarineLoadout loadout = (s.mission.marineLoadout != null && slot < s.mission.marineLoadout.length)
+                ? s.mission.marineLoadout[slot] : null;
         if (loadout != null) {
             marine.role = loadout.role;
             marine.assignedObjective = loadout.objective;
@@ -559,19 +559,19 @@ public class AirSystem {
                 marine.secondaryAmmo = loadout.secondaryAmmo;
             }
         }
-        if (s.squadId == Unit.NO_SQUAD) {
-            s.squadId = roster.mintSquad(s.faction, marine);
+        if (s.mission.squadId == Unit.NO_SQUAD) {
+            s.mission.squadId = roster.mintSquad(s.faction, marine);
             // Garrison drops are born holding their compound: stamp HOLD_NODE so
             // the squad runs GarrisonCompound from its first tick rather than
             // idling until a commander assignment (and so the commander leaves
             // it on station — Pass 1/2 skip HOLD_NODE squads). See Shuttle#garrisonNode.
-            if (s.garrisonNode != null) {
-                Squad garrison = roster.getSquad(s.squadId);
-                if (garrison != null) garrison.assignHoldNode(s.garrisonNode);
+            if (s.mission.garrisonNode != null) {
+                Squad garrison = roster.getSquad(s.mission.squadId);
+                if (garrison != null) garrison.assignHoldNode(s.mission.garrisonNode);
             }
         }
-        marine.squadId = s.squadId;
-        Squad squad = roster.getSquad(s.squadId);
+        marine.squadId = s.mission.squadId;
+        Squad squad = roster.getSquad(s.mission.squadId);
         if (squad != null) squad.originalSize++;
         addUnitSink.accept(marine);
         return true;

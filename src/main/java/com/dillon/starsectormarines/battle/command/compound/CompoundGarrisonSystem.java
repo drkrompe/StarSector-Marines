@@ -96,12 +96,12 @@ public final class CompoundGarrisonSystem {
                 entry[0], entry[1],
                 entry[2], entry[3],
                 0f);
-        shuttle.totalCycles = 1;
-        shuttle.deboardUnitType = FactionUnitRoster.forFaction(Faction.MARINE).infantry();
+        shuttle.mission.totalCycles = 1;
+        shuttle.mission.deboardUnitType = FactionUnitRoster.forFaction(Faction.MARINE).infantry();
         // The deboarded squad is born holding this compound (HOLD_NODE → the
         // GarrisonCompound behavior), so it garrisons without the commander
         // pinning whichever assault squad captured the place.
-        shuttle.garrisonNode = node;
+        shuttle.mission.garrisonNode = node;
         sim.addShuttle(shuttle);
         LOG.info("CompoundGarrisonSystem: garrison shuttle dispatched to compound "
                 + node.kind + " lz=(" + lz[0] + "," + lz[1] + ")");

@@ -500,8 +500,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         // position (no altitude offset), so cruise altitude doesn't lift the
         // halo off the ground — the shuttle stays a flying spotlight.
         for (com.dillon.starsectormarines.battle.air.Shuttle s : sim.getShuttles()) {
-            if (s.state == com.dillon.starsectormarines.battle.air.Shuttle.State.PENDING
-                    || s.state == com.dillon.starsectormarines.battle.air.Shuttle.State.GONE) continue;
+            if (s.mission.state == com.dillon.starsectormarines.battle.air.Shuttle.State.PENDING
+                    || s.mission.state == com.dillon.starsectormarines.battle.air.Shuttle.State.GONE) continue;
             com.dillon.starsectormarines.battle.air.engine.EngineFxRenderer.emitLights(
                     com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver.resolve(s.type),
                     s.body.x, s.body.y,
@@ -766,7 +766,7 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     /** Per-frame velocity for {@link #driveShuttleResonanceLoops} Doppler — reads the AirBody directly. Returns zero on the ground / off-screen so audio stays parked. */
     private static Vector2f shuttleVelocity(Shuttle s) {
-        if (s.state != Shuttle.State.INCOMING && s.state != Shuttle.State.DEPARTING) {
+        if (s.mission.state != Shuttle.State.INCOMING && s.mission.state != Shuttle.State.DEPARTING) {
             return new Vector2f(0f, 0f);
         }
         return new Vector2f(s.body.vx * AUDIO_WORLD_UNITS_PER_CELL,

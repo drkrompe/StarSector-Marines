@@ -98,12 +98,12 @@ public final class ShuttleMeans implements ReinforcementMeans {
                 entry[0], entry[1],
                 entry[2], entry[3],
                 /*pendingDelay*/ 0f);
-        shuttle.totalCycles = 1;
+        shuttle.mission.totalCycles = 1;
         // Reinforcement shuttles deboard the faction's elite tier (the
         // narrative of "expensive air-drop = stiffening delivery"). Default
         // player shuttles leave deboardUnitType null and get the bulk
         // infantry slot — see roadmap/reinforcement/faction-roster.md.
-        shuttle.deboardUnitType = FactionUnitRoster.forFaction(req.side).elite();
+        shuttle.mission.deboardUnitType = FactionUnitRoster.forFaction(req.side).elite();
         // No marineLoadout / no turret kit — AirSystem deboards plain COMBATANT
         // units and the null assignedRole skips HOVER_STATION (shuttle drops,
         // unloads, and leaves immediately).
