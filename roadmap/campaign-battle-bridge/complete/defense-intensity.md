@@ -6,7 +6,20 @@
 > planetary defenses. "This world is fortified" becomes something the player
 > reads off the ground they land on.
 
-**Status:** in progress.
+**Status:** ✅ shipped (`794795e`).
+
+## Shipped (`794795e`)
+
+Landed as designed. The pipe (`TargetProfile` + `TargetProfileResolver` +
+`MapGenerator.generate(…, profile)` overload + `BspKeys.MARKET_PROFILE`) and the
+defense-intensity consumer both went in. Measured across the conquest test
+seeds: a `NEUTRAL` world fields 15 towers/seed all `VULCAN` (byte-identical to
+pre-bridge); a fortified world (`defenseLevel 7`) fields **34 towers/seed, all
+`HEPHAESTUS`** — ×2.27 the line, fully tier-escalated. `MAX_TOWERS` raised
+32→48; the fortified line came in under it (supply supported 34). Only
+`createConquest` was threaded (the only path running `OverwatchTowerStage`);
+`GAIN = 0.18`, tier bands at defenseLevel ≥ 2 (ARBALEST) / ≥ 4 (HEPHAESTUS) —
+all tuning values, worth eyeballing in-game.
 
 ## Scope
 

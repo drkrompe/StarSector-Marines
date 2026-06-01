@@ -64,9 +64,11 @@ reads only `defenseLevel`), so the extraction is stable as consumers opt in:
 
 ## Consumers (each an independent slice off the shared pipe)
 
-1. **Defense intensity** *(first slice — see [`stories/defense-intensity.md`](stories/defense-intensity.md))*.
+1. **Defense intensity** — ✅ shipped (`794795e`, see
+   [`complete/defense-intensity.md`](complete/defense-intensity.md)).
    `defenseLevel` → `OverwatchTowerStage` gun budget multiply + turret-tier
-   escalation (`VULCAN → ARBALEST → HEPHAESTUS`). "This world is *fortified*."
+   escalation (`VULCAN → ARBALEST → HEPHAESTUS`). A fortified world fields ×2.3
+   the overwatch line, all heavy. "This world is *fortified*."
 2. **Urban composition.** `marketSize` / `spaceportTier` → `DistrictMap` /
    `BiomeMap` theme weighting: big worlds skew dense residential + commercial,
    a spaceport pulls in port + landing structures, a backwater reads sparse.

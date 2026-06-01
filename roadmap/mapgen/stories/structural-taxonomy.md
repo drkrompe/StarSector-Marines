@@ -195,19 +195,13 @@ length.
    scoring already supported) so non-conquest maps get corner guns too. Both were
    deliberately deferred from the first consumer slice to isolate placement from
    balance.
-2. **Defense intensity from the market (needs the campaign→battle bridge).** The
-   tower budget scales with map size today (`CELLS_PER_TOWER`); it *should* also
-   scale with how fortified the target world is — a market with Planetary Defenses
-   / Orbital Station / Heavy Industry, or a command-HQ structure, fields more and
-   heavier guns; a soft civilian world far fewer. This is a multiply on the
-   area-derived base, already flagged as the seam in `OverwatchTowerStage`. The
-   real dependency is **plumbing market/economy data into generation** —
-   `MapGenerator.generate(…)` takes no campaign context today, so this rides on a
-   campaign→battle bridge slice (the same plumbing a "defender roster reflects
-   garrison strength" feature wants). A map-intrinsic proxy is available sooner:
-   weight the budget by the high-value structures the generator already places
-   (fortress presence, command-post / armory POIs, compound count) without any
-   campaign data — a reasonable interim if the bridge is far off.
+2. **Defense intensity from the market.** ✅ shipped — this parked slice became
+   the [campaign → battle bridge](../../campaign-battle-bridge/overview.md)
+   feature in its own right. `MapGenerator.generate(…)` now takes a
+   `TargetProfile`; `OverwatchTowerStage` scales its budget *and* turret tier off
+   the target world's `defenseLevel` (planetary defenses / orbital station / high
+   command). See
+   [`campaign-battle-bridge/complete/defense-intensity.md`](../../campaign-battle-bridge/complete/defense-intensity.md).
 3. **Membership consumer.** Garrison / fallback nodes (`BARRACKS`, `FALLBACK_TO`)
    want high-enclosure *membership* (the shipped `TacticalRegion.enclosure`), not
    the positional read — the other half of the corner-tower split. Plumb
