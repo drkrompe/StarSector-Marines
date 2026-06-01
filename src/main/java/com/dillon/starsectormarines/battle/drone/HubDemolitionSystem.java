@@ -31,14 +31,14 @@ import java.util.List;
  * stays as a defensive double-fire guard (a death publishes exactly once) and
  * as the "already rubble" marker the renderer reads.
  *
- * <p>The drone cascade still scans the legacy roster list to find the hub's
- * drones, but each cascade-killed drone now {@link DeathDispatcher#publish
- * publishes} its own {@code DeathEvent} (in addition to the direct hp=0 +
- * release), so the same death-event seam that handles a shot-down drone also
- * starts a cascade-killed drone's crash — the {@code DroneCrashSystem} attaches
- * its {@code Crashing} component off that event, not a list scan. The publish
- * is re-entrant (it happens while the dispatcher is mid-{@code drain()}); the
- * dispatcher drains in waves precisely so these land in the same drain.
+ * <p>The drone cascade finds the hub's drones in the dense registry, and each
+ * cascade-killed drone {@link DeathDispatcher#publish publishes} its own
+ * {@code DeathEvent} (in addition to the direct hp=0 + release), so the same
+ * death-event seam that handles a shot-down drone also starts a cascade-killed
+ * drone's crash — the {@code DroneCrashSystem} attaches its {@code Crashing}
+ * component off that event, not a list scan. The publish is re-entrant (it
+ * happens while the dispatcher is mid-{@code drain()}); the dispatcher drains in
+ * waves precisely so these land in the same drain.
  *
  * <p>Sibling to other {@code *System} consumers — all dependencies
  * constructor-injected, no per-event state.
@@ -80,8 +80,8 @@ public final class HubDemolitionSystem {
     /**
      * Cascading kill: drones launched from {@code h} lose control and crash
      * with it. Set hp=0 here; the crash system (next phase in the tick chain)
-     * starts the per-drone fall sequence + impact FX by iterating the legacy
-     * units list. Release from the dense registry in the same beat so the next
+     * starts the per-drone fall sequence + impact FX off the {@code DeathEvent}
+     * each kill publishes. Release from the dense registry in the same beat so the next
      * tick's UPDATE_UNITS dispatch doesn't see a hp=0 drone in the dense view —
      * {@code DamageResolver} is the registry's only other release path, and
      * this cascade bypasses it.
