@@ -41,7 +41,7 @@ a734122  battle: grow BattleView/BattleControl with command-tier surface  ← 20
 cb91e87  battle: flip command tier to BattleView/BattleControl  ← 2026-05-29
 c50e50d  battle: collapse Group N local* duality (Phase A Slice 1)  ← 2026-06-01
 2e03ade  battle: fix Group N accessor NPE on unregistered units (corpse iter)  ← 2026-06-01
-<spine>  battle: DeathDispatcher mailbox + migrate turret demolition (spine foundation)  ← 2026-06-01
+1201585  battle: DeathDispatcher mailbox + migrate turret demolition (spine foundation)  ← 2026-06-01
 ```
 
 (Sibling tracks interleaved on HEAD, not ECS-migration: `9084ed4` battle-render
