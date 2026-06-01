@@ -9,15 +9,12 @@ import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
-import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Marine-side strategic commander for CONQUEST — the land-war pattern
@@ -137,7 +134,6 @@ public final class ConquestCommand implements MissionCommand {
      * included — a wall-cell anchor (rare) is silently skipped.
      */
     private final List<CompoundZone> compoundZones = new ArrayList<>();
-    private final Set<Integer> heldCompoundsWithHolder = new HashSet<>();
 
     private record CompoundZone(CompoundService.Record record, int zoneId, int stripIdx) {}
 
@@ -157,27 +153,12 @@ public final class ConquestCommand implements MissionCommand {
             initialized = true;
         }
 
-        // Pass 0: assign HOLD_NODE for MARINE_HELD compounds. One squad per
-        // compound, only if the squad is standing in the compound's footprint
-        // (garrison drops land on the parade ground; assault squads crossing
-        // distant streets aren't yanked off the advance).
-        heldCompoundsWithHolder.clear();
-        for (Squad squad : sim.getSquads()) {
-            if (squad.faction != Faction.MARINE) continue;
-            if (squad.aliveMembers <= 0) continue;
-            CompoundZone held = marineHeldCompoundContainingSquad(squad, sim);
-            if (held == null) continue;
-            if (heldCompoundsWithHolder.contains(held.zoneId)) continue;
-            ObjectiveAssignment cur = squad.assignedObjective;
-            if (cur == null
-                    || cur.kind() != AssignmentKind.HOLD_NODE
-                    || cur.targetNode() != held.record.node) {
-                squad.assignedObjective = ObjectiveAssignment.holdNode(
-                        squad.id, held.record.node);
-            }
-            heldCompoundsWithHolder.add(held.zoneId);
-        }
-
+        // Compound garrisons are NOT assigned here. The dedicated holding squad
+        // is shipped in by CompoundGarrisonSystem and born with HOLD_NODE at
+        // deboard (see AirSystem.tryDeboardMarine), so it holds without the
+        // commander pinning whichever assault squad happened to be standing in
+        // the compound at capture. The loop below leaves any HOLD_NODE squad
+        // alone (the skip), and the capturing assault squad keeps advancing.
         for (Squad squad : sim.getSquads()) {
             if (squad.faction != Faction.MARINE) continue;
             if (squad.aliveMembers <= 0) continue;
@@ -217,45 +198,6 @@ public final class ConquestCommand implements MissionCommand {
                 squad.assignedObjective = ObjectiveAssignment.clearZone(squad.id, targetZone);
             }
         }
-    }
-
-    /**
-     * Margin (cells) added to a compound's footprint when deciding whether a
-     * squad is "at" it for the HOLD_NODE assignment. Garrison troops land on
-     * the parade ground / perimeter rim, which can sit a cell or two outside
-     * the building union bbox; the margin catches them while still excluding
-     * assault squads crossing distant streets.
-     */
-    private static final int HOLD_FOOTPRINT_MARGIN = 3;
-
-    /**
-     * Returns the MARINE_HELD compound whose <em>footprint</em> contains this
-     * squad, or null if the squad isn't standing in any captured compound. Used
-     * by Pass 0 to assign garrison squads to hold without pulling assault
-     * squads off the advance.
-     *
-     * <p>Tests the squad centroid against the compound node's persisted
-     * footprint ({@link TacticalNode#compoundLeft()} … the union bbox of the
-     * whole base) expanded by {@link #HOLD_FOOTPRINT_MARGIN}, not zone equality:
-     * garrison drops land on the outdoor parade ground, a different zone than
-     * the building interior, so a zone-equality gate never matched them and
-     * they fell through to a SECURE_COMPOUND (re-capture) assignment instead of
-     * holding.
-     */
-    private CompoundZone marineHeldCompoundContainingSquad(Squad squad, BattleView sim) {
-        int cx = Math.round(squad.centroidX);
-        int cy = Math.round(squad.centroidY);
-        for (CompoundZone cz : compoundZones) {
-            if (cz.record.state != CompoundService.CompoundState.MARINE_HELD) continue;
-            TacticalNode n = cz.record.node;
-            if (cx >= n.compoundLeft() - HOLD_FOOTPRINT_MARGIN
-                    && cx <= n.compoundRight() + HOLD_FOOTPRINT_MARGIN
-                    && cy >= n.compoundTop() - HOLD_FOOTPRINT_MARGIN
-                    && cy <= n.compoundBottom() + HOLD_FOOTPRINT_MARGIN) {
-                return cz;
-            }
-        }
-        return null;
     }
 
     /**

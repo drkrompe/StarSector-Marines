@@ -456,6 +456,14 @@ public class AirSystem {
         }
         if (s.squadId == Unit.NO_SQUAD) {
             s.squadId = roster.mintSquad(s.faction, marine);
+            // Garrison drops are born holding their compound: stamp HOLD_NODE so
+            // the squad runs GarrisonCompound from its first tick rather than
+            // idling until a commander assignment (and so the commander leaves
+            // it on station — Pass 1/2 skip HOLD_NODE squads). See Shuttle#garrisonNode.
+            if (s.garrisonNode != null) {
+                Squad garrison = roster.getSquad(s.squadId);
+                if (garrison != null) garrison.assignHoldNode(s.garrisonNode);
+            }
         }
         marine.squadId = s.squadId;
         Squad squad = roster.getSquad(s.squadId);

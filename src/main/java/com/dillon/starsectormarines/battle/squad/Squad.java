@@ -372,4 +372,14 @@ public final class Squad {
     public boolean isDroneSquad() {
         return droneHub != null;
     }
+
+    /**
+     * Assign this squad a {@code HOLD_NODE} objective for {@code node} — used by
+     * compound garrison drops so the deboarded squad is born holding (runs
+     * {@code GarrisonCompound} from its first tick). Keeps the command-layer
+     * {@link ObjectiveAssignment} construction off the air/deboard path.
+     */
+    public void assignHoldNode(TacticalNode node) {
+        this.assignedObjective = ObjectiveAssignment.holdNode(this.id, node);
+    }
 }

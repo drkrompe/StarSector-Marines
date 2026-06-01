@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.turret.TurretRole;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 
 /**
  * One troop-drop shuttle. Separate from {@link Unit} because shuttles are
@@ -141,6 +142,18 @@ public class Shuttle {
      * the faction's standard infantry.
      */
     public UnitType deboardUnitType;
+
+    /**
+     * Compound this shuttle's deboarded squad should garrison, or {@code null}
+     * for assault / reinforcement drops. Non-null only for
+     * {@link com.dillon.starsectormarines.battle.command.compound.CompoundGarrisonSystem}
+     * holding drops: {@code AirSystem.tryDeboardMarine} stamps the freshly
+     * minted squad with a {@code HOLD_NODE} objective for this node, so the
+     * garrison is born into the {@code GarrisonCompound} behavior (patrol the
+     * compound, re-clear rooms on counter-attack) instead of waiting for — or
+     * being pulled off by — a commander assignment.
+     */
+    public TacticalNode garrisonNode;
 
     /**
      * Mounted turrets, sized to {@code type.hardpoints} and populated from

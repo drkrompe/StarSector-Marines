@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.command.compound.CompoundCaptureSyste
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -411,29 +412,45 @@ public class ConquestCommandTest {
     }
 
     @Test
-    public void garrisonOnParadeGroundGetsHoldNode() {
-        // 0b: a marine squad standing on the parade ground (a different zone
-        // than the building interior, but inside the compound footprint) must
-        // be assigned HOLD_NODE. The old zone-equality gate never matched it,
-        // so it fell through to SECURE_COMPOUND and never garrisoned.
+    public void capturingAssaultSquadIsNotPinnedHoldingTheCompound() {
+        // The squad that captured a compound must keep advancing — the
+        // dedicated garrison squad (shipped in by CompoundGarrisonSystem, born
+        // holding) does the holding. The commander never assigns HOLD_NODE
+        // itself, so an assault squad sitting in a MARINE_HELD compound is not
+        // pinned.
         BattleSimulation sim = walledBuildingSim();
         TacticalNode node = new TacticalNode(TacticalNode.Kind.ARMORY, 5, 5,
-                4, 4, 6, 6, Faction.DEFENDER, 80, 4); // footprint = building room
+                4, 4, 6, 6, Faction.DEFENDER, 80, 4);
         captureCompound(sim, node);
 
-        // Squad on the parade ground at (9,5): inside the footprint+margin but a
-        // different zone than the building interior (5,5).
-        Squad squad = addMarineSquad(sim, 9f, 5f);
-        assertNotEquals(sim.getZoneGraph().zoneIdAt(9, 5), sim.getZoneGraph().zoneIdAt(5, 5),
-                "test prerequisite: parade and building are distinct zones");
-
+        Squad squad = addMarineSquad(sim, 5f, 5f); // standing in the captured compound
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
         cmd.tick(sim);
 
         ObjectiveAssignment a = squad.assignedObjective;
-        assertNotNull(a, "garrison squad in the footprint should get an assignment");
+        boolean pinned = a != null && a.kind() == AssignmentKind.HOLD_NODE;
+        assertFalse(pinned, "the capturing assault squad must not be pinned holding the compound");
+    }
+
+    @Test
+    public void commanderLeavesABornHoldingGarrisonAlone() {
+        // A garrison squad arrives born with HOLD_NODE (stamped at deboard).
+        // The commander must respect it — not overwrite it with a strip clear —
+        // so the garrison stays on station.
+        BattleSimulation sim = walledBuildingSim();
+        TacticalNode node = new TacticalNode(TacticalNode.Kind.ARMORY, 5, 5,
+                4, 4, 6, 6, Faction.DEFENDER, 80, 4);
+        captureCompound(sim, node);
+
+        Squad garrison = addMarineSquad(sim, 5f, 5f);
+        garrison.assignHoldNode(node); // born holding
+        ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+        cmd.tick(sim);
+
+        ObjectiveAssignment a = garrison.assignedObjective;
+        assertNotNull(a, "born-holding garrison keeps an assignment");
         assertEquals(AssignmentKind.HOLD_NODE, a.kind(),
-                "squad on the parade ground (in the footprint) holds the compound");
+                "commander must not overwrite a born-holding garrison's HOLD_NODE");
         assertEquals(node, a.targetNode());
     }
 

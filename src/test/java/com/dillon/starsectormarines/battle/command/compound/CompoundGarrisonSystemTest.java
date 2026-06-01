@@ -6,6 +6,9 @@ import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -77,6 +80,58 @@ public class CompoundGarrisonSystemTest {
         Shuttle last = sim.getShuttles().get(sim.getShuttles().size() - 1);
         assertEquals(Faction.MARINE, last.faction,
                 "garrison shuttle must be marine-faction");
+    }
+
+    @Test
+    public void garrisonShuttleCarriesItsCompoundNode() {
+        BattleSimulation sim = openSim();
+        CompoundService service = sim.getCompoundService();
+        CompoundCaptureSystem capture = new CompoundCaptureSystem();
+        CompoundGarrisonSystem garrison = new CompoundGarrisonSystem(TraversalAxis.SOUTH_TO_NORTH);
+        TacticalNode node = barracksAt(5, 5);
+        service.register(node);
+
+        captureCompound(sim, service, capture);
+        tickGarrison(garrison, sim, service, 1);
+
+        Shuttle shuttle = sim.getShuttles().get(sim.getShuttles().size() - 1);
+        assertEquals(node, shuttle.garrisonNode,
+                "garrison shuttle carries the compound node so its squad is born holding");
+    }
+
+    @Test
+    public void deboardedGarrisonSquadIsBornHoldingItsCompound() {
+        BattleSimulation sim = openSim();
+        CompoundService service = sim.getCompoundService();
+        CompoundCaptureSystem capture = new CompoundCaptureSystem();
+        CompoundGarrisonSystem garrison = new CompoundGarrisonSystem(TraversalAxis.SOUTH_TO_NORTH);
+        TacticalNode node = barracksAt(5, 5);
+        service.register(node);
+
+        captureCompound(sim, service, capture);
+        tickGarrison(garrison, sim, service, 1);
+        Shuttle shuttle = sim.getShuttles().get(sim.getShuttles().size() - 1);
+
+        // Keep a defender alive (far from the compound) so the battle doesn't
+        // auto-complete the instant capture finishes — otherwise advance() stops
+        // ticking and the shuttle never flies in. Added after capture so the
+        // capture itself still saw a clear compound.
+        sim.addUnit(new Unit("d-far", Faction.DEFENDER, UnitType.MARINE, 9, 9));
+
+        // Fly the shuttle in and deboard its first marine (squad minted then).
+        int guard = 0;
+        while (shuttle.squadId == Unit.NO_SQUAD && guard++ < 8000) {
+            sim.advance(BattleSimulation.TICK_DT);
+        }
+        assertTrue(shuttle.squadId != Unit.NO_SQUAD,
+                "garrison shuttle should deboard within the tick budget");
+
+        Squad gsquad = sim.getSquad(shuttle.squadId);
+        assertNotNull(gsquad);
+        ObjectiveAssignment a = gsquad.assignedObjective;
+        assertNotNull(a, "garrison squad is born with an objective");
+        assertEquals(AssignmentKind.HOLD_NODE, a.kind(), "born into the HOLD_NODE garrison behavior");
+        assertEquals(node, a.targetNode(), "holds the compound it was shipped in to garrison");
     }
 
     @Test
