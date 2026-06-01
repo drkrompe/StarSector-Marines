@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.combat.fx.Decal;
@@ -245,6 +246,7 @@ public class BattleScreen implements Screen, BattleUiContext {
      */
     private float lastAdvanceDt = 0f;
     /** Debug toggle (Z) — tints each navigation zone with a stable per-id color so the partitioning + new portals from wall breaches are eyeball-verifiable. */
+    @DebugOnly
     private boolean debugZonesVisible;
     /**
      * True while this screen owns the audio side effects (custom music + ticking-clock loop
@@ -1058,6 +1060,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     }
 
     /** Debug-only: Z toggles {@link #debugZonesVisible}. Used to eyeball-verify the zone graph after wall breaches. */
+    @DebugOnly
     private void handleDebugZoneToggle(List<InputEventAPI> events) {
         if (events == null) return;
         for (InputEventAPI e : events) {
@@ -1087,6 +1090,7 @@ public class BattleScreen implements Screen, BattleUiContext {
      * <p>RMB instead of LMB so widget clicks aren't shadowed; Shift gate so a
      * stray right-click can't accidentally rearrange the map.
      */
+    @DebugOnly
     private void handleDebugDamageInput(List<InputEventAPI> events) {
         if (events == null || layout == null || camera == null || ctx == null) return;
         BattleSimulation sim = ctx.getBattleSimulation();

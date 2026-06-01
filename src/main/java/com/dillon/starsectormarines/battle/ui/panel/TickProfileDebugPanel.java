@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.ui.panel;
 
+import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
@@ -38,6 +39,7 @@ import java.util.List;
  * is always on — the lap calls are cheap and we want the numbers warm
  * whenever someone flips the panel on.
  */
+@DebugOnly
 public final class TickProfileDebugPanel implements HudPanel {
 
     private static final float PANEL_W       = 320f;

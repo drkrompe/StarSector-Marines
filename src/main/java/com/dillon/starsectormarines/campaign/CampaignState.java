@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign;
 
+import com.dillon.starsectormarines.DebugOnly;
 import java.io.Serializable;
 import java.util.Arrays;
 
@@ -154,6 +155,7 @@ public final class CampaignState implements Serializable {
     // ---------- Debug overrides (not persisted intentionally? keep persisted — small) ----------
 
     /** When true, mission generators ignore campaign-tier gating (rep, rank, flavor). Debug only. */
+    @DebugOnly
     public boolean debugBypassHouseGating = false;
 
     // ---------- Mutators ----------

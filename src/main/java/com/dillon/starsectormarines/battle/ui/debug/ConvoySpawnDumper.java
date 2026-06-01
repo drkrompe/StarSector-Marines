@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.ui.debug;
 
+import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.StarsectorMarinesModPlugin;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.fs.starfarer.api.Global;
@@ -28,6 +29,7 @@ import java.util.Map;
  * {@link SquadStateDumper} — {@link java.nio.file} / {@link java.io.File}
  * are blocked by the Starsector script sandbox.
  */
+@DebugOnly
 public final class ConvoySpawnDumper {
 
     private static final Logger LOG = Logger.getLogger(ConvoySpawnDumper.class);

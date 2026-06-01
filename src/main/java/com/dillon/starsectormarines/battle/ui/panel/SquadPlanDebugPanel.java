@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.ui.panel;
 
+import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -56,6 +57,7 @@ import java.util.Set;
  * gameplay UI doesn't apply to debug overlays. Compact mode keeps Orbitron 20
  * to match the rest of the HUD.
  */
+@DebugOnly
 public final class SquadPlanDebugPanel implements HudPanel {
 
     // --- Shared layout ---

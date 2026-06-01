@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.ui.panel;
 
+import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.StarsectorMarinesModPlugin;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
@@ -45,6 +46,7 @@ import static org.lwjgl.opengl.GL11.*;
  * <p>R resets both points to (0,0). Esc closes the panel. All values are
  * clamped to the frame's AABB so a mis-click can't send the turret off-screen.
  */
+@DebugOnly
 public final class TurretAuthorPanel implements HudPanel {
 
     private static final Logger LOG = Global.getLogger(TurretAuthorPanel.class);

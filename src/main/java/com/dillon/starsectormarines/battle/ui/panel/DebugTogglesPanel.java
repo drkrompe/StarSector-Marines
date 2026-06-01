@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.ui.panel;
 
+import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
 import com.dillon.starsectormarines.ops.BattleLayout;
@@ -52,6 +53,7 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
  * follows the panel itself rather than a config flag — the header bar
  * is small and always-on; expand only renders the body.
  */
+@DebugOnly
 public final class DebugTogglesPanel implements HudPanel {
 
     /** One row in the panel. {@code checkboxState == null} marks an action row (no checkbox, action glyph). */

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.ui.debug;
 
+import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.StarsectorMarinesModPlugin;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -37,6 +38,7 @@ import java.util.Map;
  * offline inspection. Overwrites on each click; copy the file out of
  * common/ if you want a history.
  */
+@DebugOnly
 public final class SquadStateDumper {
 
     private static final Logger LOG = Logger.getLogger(SquadStateDumper.class);

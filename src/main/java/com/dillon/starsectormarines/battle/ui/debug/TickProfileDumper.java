@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.ui.debug;
 
+import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.StarsectorMarinesModPlugin;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
@@ -23,6 +24,7 @@ import org.json.JSONObject;
  * the last completed averaging window, not the in-progress one. If the user
  * mashes DUMP at a moment of interest, they get the averages preceding it.
  */
+@DebugOnly
 public final class TickProfileDumper {
 
     private static final Logger LOG = Logger.getLogger(TickProfileDumper.class);

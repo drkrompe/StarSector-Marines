@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.tools.tilesets;
 
+import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.world.tiles.NatureTile;
 import com.dillon.starsectormarines.battle.world.tiles.NatureTileset;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
@@ -59,6 +60,7 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
  * directory scan adds latency for no benefit. Add a new sheet by appending
  * to {@link #SHEETS}.
  */
+@DebugOnly
 public class TilesetDebugScreen implements Screen {
 
     private static final Logger LOG = Global.getLogger(TilesetDebugScreen.class);

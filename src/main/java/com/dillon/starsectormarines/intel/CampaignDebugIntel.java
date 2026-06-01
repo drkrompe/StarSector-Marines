@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.intel;
 
+import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.CampaignSystem;
@@ -42,6 +43,7 @@ import java.util.Set;
  *       state. Useful when iterating on seeder logic.</li>
  * </ul>
  */
+@DebugOnly
 public class CampaignDebugIntel extends BaseIntelPlugin {
 
     public static final String TAG = "marines_campaign_debug";

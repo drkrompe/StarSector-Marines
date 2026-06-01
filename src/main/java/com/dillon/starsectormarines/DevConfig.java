@@ -26,6 +26,7 @@ public final class DevConfig {
      * (full A2G turret kit); edit {@code PlayerFleetShuttles} if another hull
      * is wanted.
      */
+    @DebugOnly
     public static final int DEBUG_SEED_PLAYER_VALKYRIES = 8;
 
     /**
@@ -39,6 +40,7 @@ public final class DevConfig {
      * <p>Useful for iterating on shuttle / drop-flow behavior without sitting
      * through a CONQUEST-HIGH 40-drop wave to test one thing.
      */
+    @DebugOnly
     public static final int DROP_COUNT_OVERRIDE = 40;
 
     /**
@@ -78,6 +80,7 @@ public final class DevConfig {
      * cross-frame read/write buffers, ECS pivot). Flip off once we've cashed
      * in the data and the panel would just be eye candy.
      */
+    @DebugOnly
     public static final boolean PROFILE_TICK_PHASES = true;
 
     /**
@@ -88,6 +91,7 @@ public final class DevConfig {
      * {@link com.dillon.starsectormarines.campaign.CampaignStateScript} runs
      * either way.
      */
+    @DebugOnly
     public static final boolean CAMPAIGN_DEBUG_INTEL = true;
 
     /**
@@ -100,6 +104,7 @@ public final class DevConfig {
      * {@code MissionGenerator}. Until then this flag exists as a forward
      * declaration so consumers can branch on it from day one.
      */
+    @DebugOnly
     public static final boolean BYPASS_HOUSE_GATING = false;
 
     /**
@@ -113,6 +118,7 @@ public final class DevConfig {
      * tactical map list gets long. That's the point — flip off for any build
      * showing the intended experience.
      */
+    @DebugOnly
     public static final boolean DEBUG_CLIENT = true;
 
     /**
@@ -125,6 +131,7 @@ public final class DevConfig {
      * see {@code ops.detachment.PowerCatalog}) or an employer/contract that offers
      * it ({@code Mission.employerPowerIds}). Flip off to feel the real gating.
      */
+    @DebugOnly
     public static final boolean ALWAYS_GRANT_RECON_PING = true;
 
     private DevConfig() {}

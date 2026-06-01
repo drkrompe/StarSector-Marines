@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.ui.debug;
 
+import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.StarsectorMarinesModPlugin;
 import com.dillon.starsectormarines.battle.vehicle.Vehicle;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -15,6 +16,7 @@ import org.json.JSONObject;
  * history ring buffer, and a local walkability grid sample around the
  * vehicle for offline analysis of stuck-in-wall scenarios.
  */
+@DebugOnly
 public final class VehicleStateDumper {
 
     private static final Logger LOG = Logger.getLogger(VehicleStateDumper.class);

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetSlicer;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -46,6 +47,7 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
  * <p>Empty / failed sheets are still listed so missing assets read as "0
  * frames" rather than disappearing from the grid.
  */
+@DebugOnly
 public class UnitSliceDebugScreen implements Screen {
 
     private static final Logger LOG = Global.getLogger(UnitSliceDebugScreen.class);
