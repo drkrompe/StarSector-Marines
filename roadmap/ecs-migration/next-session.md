@@ -47,7 +47,7 @@ c50e50d  battle: collapse Group N local* duality (Phase A Slice 1)  ← 2026-06-
 40fa668  battle: model the drone crash as a Crashing component (first composition slice)  ← 2026-06-01
 90f5fd5  battle: decompose render position out of UnitRegistry into RenderPositionService  ← 2026-06-01
 aa55855  ai(ecs-migration): document the first-write invariant on RenderPositionService setters  ← 2026-06-01
-<pending> battle: migrate dead-sprite render onto a DeadBody component (last Bucket-B reader)  ← 2026-06-01
+0967df5  battle: migrate dead-sprite render onto a DeadBody component (last Bucket-B reader)  ← 2026-06-01
 ```
 
 (Sibling tracks interleaved on HEAD, not ECS-migration: `9084ed4` battle-render
