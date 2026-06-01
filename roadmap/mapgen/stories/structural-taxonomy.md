@@ -195,15 +195,28 @@ length.
    scoring already supported) so non-conquest maps get corner guns too. Both were
    deliberately deferred from the first consumer slice to isolate placement from
    balance.
-2. **Membership consumer.** Garrison / fallback nodes (`BARRACKS`, `FALLBACK_TO`)
+2. **Defense intensity from the market (needs the campaign→battle bridge).** The
+   tower budget scales with map size today (`CELLS_PER_TOWER`); it *should* also
+   scale with how fortified the target world is — a market with Planetary Defenses
+   / Orbital Station / Heavy Industry, or a command-HQ structure, fields more and
+   heavier guns; a soft civilian world far fewer. This is a multiply on the
+   area-derived base, already flagged as the seam in `OverwatchTowerStage`. The
+   real dependency is **plumbing market/economy data into generation** —
+   `MapGenerator.generate(…)` takes no campaign context today, so this rides on a
+   campaign→battle bridge slice (the same plumbing a "defender roster reflects
+   garrison strength" feature wants). A map-intrinsic proxy is available sooner:
+   weight the budget by the high-value structures the generator already places
+   (fortress presence, command-post / armory POIs, compound count) without any
+   campaign data — a reasonable interim if the bridge is far off.
+3. **Membership consumer.** Garrison / fallback nodes (`BARRACKS`, `FALLBACK_TO`)
    want high-enclosure *membership* (the shipped `TacticalRegion.enclosure`), not
    the positional read — the other half of the corner-tower split. Plumb
    `TacticalRegion` into `MapResult` when a consumer outside the generator needs it.
-3. **Lever 2 — structure injection (own session).** Gated courtyards / walled
+4. **Lever 2 — structure injection (own session).** Gated courtyards / walled
    pockets / denser alleys, tagged at carve time; the artifact picks them up
    automatically (a courtyard with one gate reads as high-enclosure,
    `openingCount == 1`). See [`../overview.md`](../overview.md).
-4. **Station reuse.** The station recipe's discrete rooms feed the *same*
+5. **Station reuse.** The station recipe's discrete rooms feed the *same*
    `TacticalRegion` vocabulary (a room is just a high-enclosure region whose
    mouths are doorways), so the corridor taxonomy and this one converge.
 
