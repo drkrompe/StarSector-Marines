@@ -94,11 +94,34 @@ campaign work.)
 > subsumes the old Slice 3 (corpse home is the enabler). **Resume there.**
 > Audit done: ~20 Bucket-A live-iterators (→ dense registry), **4** Bucket-B
 > corpse-readers (dead-sprite render + drone-crash + turret/hub demolition),
-> ~10 Bucket-C UI/debug (live-filtered). **Next concrete step: decide the
-> corpse-home shape** (recommended: death-event + corpse-decal + crash-FX +
-> demolition-handler; alt: deferred release), then migrate the 4 readers, then
-> the Bucket-A sweep, then delete the list. **Slice 2 (Group S seed) is
-> independent** — can land anytime.
+> ~10 Bucket-C UI/debug (live-filtered).
+>
+> **Corpse-home shape DECIDED (2026-06-01):** death-event **mailbox/distributor**
+> (`DeathDispatcher`) + a **lightweight body entity** — NOT a render-locked
+> decal (would block future medics/revive). On death: publish `DeathEvent`,
+> remove the unit from the live registry; subscribed handlers (render, drone-
+> crash, turret/hub demolition, future medic) decide representation. See the
+> story's "corpse-home design (decided)" section + [[battle_death_dispatcher_design]].
+>
+> **Build sequence (resume here):**
+> 1. **Foundation slice** — `DeathEvent` + `DeathDispatcher`; publish from
+>    `DamageResolver.resolve` (the death branch, alongside the existing
+>    `deathSink`/`releaseFromRegistry`); introduce in parallel, nothing migrated
+>    yet. Then migrate the **first handler** to prove the seam (turret/hub
+>    demolition is simplest — same-tick reaction, no lifecycle/render).
+> 2. Migrate the remaining Bucket-B readers (drone-crash lifecycle, dead-sprite
+>    render off a body store).
+> 3. Bucket-A sweep (`getUnits()` → dense registry; fan out to Sonnet).
+> 4. Bucket-C cleanup; delete `UnitRosterService.units`.
+> 5. Revert Group-N accessors to unconditional (fail-loud); drop the
+>    `midCombatAccessorsReturnDefaultsWhenUnregistered` regression test.
+>
+> Death path facts for the build: `DamageResolver.resolve` (`died` branch,
+> ~line 97-120) already does `deathSink.accept(target)` →
+> `BattleSimulation.getDeathsThisFrame()`, `equipmentDrops.emitIfApplicable`,
+> leader promo, `roster.releaseFromRegistry(entityId)`. The list is NOT touched
+> on death — corpses persist there the whole battle (no cleanup path).
+> **Slice 2 (Group S seed) is independent** — can land anytime.
 >
 > **NEXT PHASE — the component model** (seeded 2026-05-29, **Phase A in
 > flight**). The SoA-peel + facade work built ECS's storage/transform half;

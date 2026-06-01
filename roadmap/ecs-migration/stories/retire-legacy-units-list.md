@@ -60,31 +60,41 @@ left reading the registry. `SquadStateDumper` is the one that wants dead
 members for diagnostics — give it the corpse mechanism or drop dead-member
 dumping.
 
-## The corpse-home design (the crux — decide before building)
+## The corpse-home design (decided 2026-06-01)
 
-The 4 readers split into **static** (render a frozen corpse) vs **lifecycle/
-reaction** (run post-death behavior). The recommended model handles both
-without keeping dead `Unit`s in a list:
+A **death-event mailbox/distributor** + a **lightweight body entity** —
+see [[battle_death_dispatcher_design]]. Chosen over both a render-locked decal
+and deferred-release.
 
-**On death (`DamageResolver.resolve`), emit a death event carrying a corpse
-snapshot, then release from the registry immediately.** Consumers react:
+**On death (`DamageResolver.resolve`): publish a `DeathEvent`, then clean the
+unit up / remove it from the live `UnitRegistry`.** A `DeathDispatcher`
+(mailbox) fans the event to subscribed handlers, each deciding how to represent
+the death — the reaction is decoupled from the death site, so new post-death
+behavior attaches as a handler, not an edit to the death method.
 
-- **Infantry/static** → stamp a render-only **corpse decal**
-  `{type, faction, renderX, renderY, deathPoseIdx}` into a `List<CorpseDecal>`.
-  `sweepDeadSprites` iterates decals, not units. No entity, no tick.
-- **Drone crash** → spawn a **crash FX** (animation) seeded with
-  `body.x/y/facing` at death; the crash becomes an FX lifecycle, not a `Unit`
-  lifecycle. (`DroneCrashSystem` → an FX emitter.)
-- **Turret/hub demolition** → a **death-event handler** flips rubble / cascades
-  immediately on the event, instead of scanning the list for `!isAlive()`.
+The corpse is **not** a render-locked decal — that freezes it into "just a
+sprite" and blocks later interaction. It is a **lightweight body entity**
+(identity + location + the render-needed fields, minimal state), removed from
+the *live* registry but still an entity, so future mechanics — **medics, a
+revive / "downed-not-dead" state** — can find and act on it. Revive = a handler
+intercepts the death event (or re-allocates the body into the live registry)
+instead of finalizing the corpse.
 
-Alternative considered — **deferred release** (keep the dying entity registered
-with a `DYING` role until its animation completes, then release): less code for
-the crash/demolition cases (they stay in dense-iter), but muddies the
-"registry == live only" invariant and leaves a dead-ish unit observable. The
-event+decal+FX model keeps the invariant clean and is the ECS-aligned target;
-it's also the natural seam for a future **revive** mechanic (a death event can
-resolve to "downed, not dead" and re-allocate instead of stamping a decal).
+Handlers (initial set, mapping the 4 Bucket-B readers):
+- **Render** → draws bodies from the corpse/body store (replaces
+  `sweepDeadSprites` scanning the units list).
+- **Drone crash** → drives the fall→impact→wreck lifecycle off the body /
+  a crash FX seeded with `body.x/y/facing`.
+- **Turret demolition** / **hub demolition** → flip rubble / cascade-kill on
+  the event, instead of scanning the list for `!isAlive()`.
+- *(future)* **medic** → query downed bodies, revive.
+
+Open sub-questions for the build (resolve as we go, don't over-design):
+- Where bodies live — a dedicated `CorpseService` / body store vs a second
+  registry. Keep it minimal; it only needs what the handlers read.
+- Whether the multi-tick lifecycles (crash, demolition) run on the body entity
+  directly or as FX seeded from the event. Pick per-handler; the mailbox
+  doesn't care.
 
 ## Sequencing
 
