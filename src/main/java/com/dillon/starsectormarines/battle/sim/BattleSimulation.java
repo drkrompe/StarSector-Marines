@@ -326,13 +326,13 @@ public class BattleSimulation implements BattleControl {
         this.hitResponse = new com.dillon.starsectormarines.battle.combat.HitResponseService(
                 grid, rosterService.getRegistry(), tacticalScoring, damageService,
                 () -> simTickIndex);
-        this.detonations = new Detonations(units, grid, topology, damageService,
+        this.detonations = new Detonations(rosterService.getRegistry(), grid, topology, damageService,
                 mapService, effects);
         this.turretFire = new com.dillon.starsectormarines.battle.turret.TurretFireService(
                 rng, grid, topology, shots, damageService,
                 det -> { synchronized (detonations) { detonations.queue(det); } },
                 hitResponse);
-        this.infantry = new InfantryWeapons(units, rosterService.getRegistry(),
+        this.infantry = new InfantryWeapons(rosterService.getRegistry(),
                 damageService, hitResponse, shots);
         this.heavy = new HeavyWeapons(rosterService.getRegistry(), grid, damageService, hitResponse,
                 shots, detonations);
@@ -378,6 +378,10 @@ public class BattleSimulation implements BattleControl {
     public List<Shuttle> getShuttles()     { return airSystem.getShuttles(); }
     /** Smoothed per-slot engine-FX demand for a shuttle (by air entity id), or {@code null} if it has no engine plumes. The render + light passes feed it to {@code EngineFxRenderer}; advanced each tick by {@code AirSystem}. */
     public float[] getThrusterGlow(Shuttle s) { return airSystem.thrusterGlow(s.entityId); }
+    /** Attaches a turret loadout to a shuttle (presence component). Called at setup once the shuttle is added (id minted); no-op for an empty loadout. */
+    public void attachAirTurrets(Shuttle s, com.dillon.starsectormarines.battle.air.MountedTurret[] mounts) { airSystem.attachTurrets(s.entityId, mounts); }
+    /** A shuttle's mounted turrets (by air entity id), or {@code null} if it carries no turret component. Read by the shuttle render pass. */
+    public com.dillon.starsectormarines.battle.air.MountedTurret[] getAirTurretMounts(Shuttle s) { return airSystem.mountsFor(s.entityId); }
     /** Active convoy / ground transport craft (moving trucks, APCs). Distinct from {@link #getVehicles()}, which lists the static map-vehicle obstacles. */
     public List<Vehicle> getConvoyVehicles() { return groundSystem.getVehicles(); }
     public List<Objective> getObjectives() { return objectivesService.getObjectives(); }

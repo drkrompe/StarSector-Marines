@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,16 +39,24 @@ public class InfantryWeapons {
 
     private static final float SHOT_LIFETIME = 0.15f;
 
-    private final List<Unit> units;
     private final UnitRegistry registry;
     private final DamageService damageService;
     private final HitResponseService hitResponse;
     private final ShotService shots;
 
-    public InfantryWeapons(List<Unit> units, UnitRegistry registry,
+    /**
+     * Reused per-tick gather of the units with an active burst before the
+     * continuation pass. fireShot resolves damage inline in this serial phase,
+     * so a killing round releases its target and swap-and-pops the registry;
+     * gathering first makes the iteration a snapshot so that release can't
+     * reshuffle the slots out from under it. Only mid-burst units are gathered
+     * (a small fraction), so the copy is cheap.
+     */
+    private final List<Unit> burstScratch = new ArrayList<>();
+
+    public InfantryWeapons(UnitRegistry registry,
                            DamageService damageService, HitResponseService hitResponse,
                            ShotService shots) {
-        this.units = units;
         this.registry = registry;
         this.damageService = damageService;
         this.hitResponse = hitResponse;
@@ -60,8 +69,16 @@ public class InfantryWeapons {
      * locked burst target (if still alive) and decrements the count.
      */
     public void tick() {
-        for (Unit u : units) {
-            if (u.getBurstRemaining() <= 0 || !u.isAlive()) continue;
+        // Gather the mid-burst units first (read-only over the dense registry),
+        // then run the continuation pass over the snapshot — see burstScratch.
+        burstScratch.clear();
+        for (int i = 0, n = registry.liveCount(); i < n; i++) {
+            Unit u = registry.get(i);
+            if (u.getBurstRemaining() > 0) burstScratch.add(u);
+        }
+        for (int i = 0, n = burstScratch.size(); i < n; i++) {
+            Unit u = burstScratch.get(i);
+            if (u.getBurstRemaining() <= 0 || !u.isAlive()) continue; // killed/cleared earlier this pass
             float timer = u.getBurstTimer() - BattleSimulation.TICK_DT;
             u.setBurstTimer(timer);
             if (timer > 0f) continue;
@@ -81,6 +98,7 @@ public class InfantryWeapons {
             u.setBurstTimer(u.primaryWeapon.burstSpacing);
             if (remaining == 0) u.setBurstTargetId(0L);
         }
+        burstScratch.clear();
     }
 
     /**

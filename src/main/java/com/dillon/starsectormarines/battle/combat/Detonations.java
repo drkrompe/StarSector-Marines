@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.MapService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
 import java.util.ArrayList;
@@ -34,17 +35,26 @@ public class Detonations {
     private final List<PendingDetonation> pending = new ArrayList<>();
     private final List<PendingDetonation> pendingView = Collections.unmodifiableList(pending);
 
-    private final List<Unit> units;
+    private final UnitRegistry registry;
     private final NavigationGrid grid;
     private final CellTopology topology;
     private final DamageService damageService;
     private final MapService mapService;
     private final EffectsService effects;
 
-    public Detonations(List<Unit> units, NavigationGrid grid, CellTopology topology,
+    /**
+     * Reused per-detonation gather of the units in splash range before any
+     * damage is applied. applyDamage resolves inline in this serial phase, so a
+     * lethal splash releases its target and swap-and-pops the registry;
+     * gathering the in-range set first makes the apply pass a snapshot so that
+     * release can't reshuffle the dense slots mid-loop.
+     */
+    private final List<Unit> aoeScratch = new ArrayList<>();
+
+    public Detonations(UnitRegistry registry, NavigationGrid grid, CellTopology topology,
                        DamageService damageService, MapService mapService,
                        EffectsService effects) {
-        this.units = units;
+        this.registry = registry;
         this.grid = grid;
         this.topology = topology;
         this.damageService = damageService;
@@ -104,8 +114,11 @@ public class Detonations {
                 effects.spawnSmokePlume(det.endpointX, det.endpointY);
             }
             float r2 = det.aoeRadius * det.aoeRadius;
-            for (Unit u : units) {
-                if (!u.isAlive()) continue;
+            // Gather the in-range, LOS-visible, non-roof-shielded units first
+            // (read-only over the live registry), then apply — see aoeScratch.
+            aoeScratch.clear();
+            for (int i = 0, n = registry.liveCount(); i < n; i++) {
+                Unit u = registry.get(i);
                 if (det.friendlyFireImmune && u.faction == det.shooterFaction) continue;
                 float dx = (u.getCellX() + 0.5f) - det.endpointX;
                 float dy = (u.getCellY() + 0.5f) - det.endpointY;
@@ -114,8 +127,12 @@ public class Detonations {
                 if (det.aerialDelivery
                         && topology.getBuildingId(u.getCellX(), u.getCellY()) != 0
                         && !topology.isRoofDestroyed(u.getCellX(), u.getCellY())) continue;
-                damageService.applyDamage(u, det.damage, det.vsTurretMult, 1f);
+                aoeScratch.add(u);
             }
+            for (int i = 0, n = aoeScratch.size(); i < n; i++) {
+                damageService.applyDamage(aoeScratch.get(i), det.damage, det.vsTurretMult, 1f);
+            }
+            aoeScratch.clear();
             int rCells = (int) Math.ceil(det.aoeRadius);
             for (int dy = -rCells; dy <= rCells; dy++) {
                 for (int dx = -rCells; dx <= rCells; dx++) {
