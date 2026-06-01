@@ -154,8 +154,21 @@ nonsensical interior turrets.
 per-direction runs instead of summing): a candidate overwatch cell is walkable,
 has a non-walkable ("cover at back") cardinal neighbor, and a long *outward*
 open-run (away from that wall) over a low-cover region. Score ≈ (cover behind) ×
-(outward run into low cover). The game already bakes per-facing cover
-(`NavigationGrid.getCoverAtFacing`), so this composes with existing cover data.
+(capped outward run into low cover) × (corner bonus). The game already bakes
+per-facing cover (`NavigationGrid.getCoverAtFacing`), so this composes with
+existing cover data.
+
+A **gut-check overlay exists** — `TacticalRegionPreviewTest` draws the
+non-max-suppressed top candidates as orange arrows (firing direction) on the
+kind + heat PNGs. Building it surfaced two non-obvious requirements: (1) the
+map edge must NOT count as "cover at back" (else map-spanning edge sightlines
+dominate the ranking), and (2) **the read needs the assault axis** — a defender
+overwatch fires *toward the attacker* (decreasing depth: south for
+SOUTH_TO_NORTH). Without that orientation it finds wall-backed sightlines facing
+the wrong way (they clustered on the beach firing inland). Reach is capped (~14
+cells) so corner quality wins over raw sightline length. The scoring lives in
+the preview test for now (single caller); promote it to the taxonomy package
+when the first consumer slice formalizes the positional layer.
 
 ## Future slices
 
