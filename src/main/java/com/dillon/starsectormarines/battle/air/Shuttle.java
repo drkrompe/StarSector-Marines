@@ -29,6 +29,16 @@ public class Shuttle {
 
     public enum State { PENDING, INCOMING, LANDED, HOVER_STATION, DEPARTING, GONE }
 
+    /**
+     * Air-entity id — a monotonic {@code long}, assigned by {@link AirSystem#add}
+     * when this shuttle is registered (0 means "not yet registered"). Keys this
+     * craft's components in the air component stores (today:
+     * {@link com.dillon.starsectormarines.battle.air.engine.ThrusterFx}). Disjoint
+     * from unit ids; never recycled, so no generation bits. The first step of the
+     * air tier's [air-entity-composition] migration — air craft as real entities.
+     */
+    public long entityId;
+
     public final ShuttleType type;
     public final Faction faction;
 

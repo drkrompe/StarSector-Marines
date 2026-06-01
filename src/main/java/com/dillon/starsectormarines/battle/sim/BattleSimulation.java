@@ -372,6 +372,8 @@ public class BattleSimulation implements BattleControl {
     /** Corpse body store — a {@code DeadBody} component per dead unit. Read by the dead-sprite renderer (paired with the surviving render-position component); written only by {@link #deadBodySystem}. Survives registry release (keyed by entity id). */
     public com.dillon.starsectormarines.battle.component.ComponentStore<com.dillon.starsectormarines.battle.component.DeadBody> getDeadBodies() { return deadBodies; }
     public List<Shuttle> getShuttles()     { return airSystem.getShuttles(); }
+    /** Smoothed per-slot engine-FX demand for a shuttle (by air entity id), or {@code null} if it has no engine plumes. The render + light passes feed it to {@code EngineFxRenderer}; advanced each tick by {@code AirSystem}. */
+    public float[] getThrusterGlow(Shuttle s) { return airSystem.thrusterGlow(s.entityId); }
     /** Active convoy / ground transport craft (moving trucks, APCs). Distinct from {@link #getVehicles()}, which lists the static map-vehicle obstacles. */
     public List<Vehicle> getConvoyVehicles() { return groundSystem.getVehicles(); }
     public List<Objective> getObjectives() { return objectivesService.getObjectives(); }

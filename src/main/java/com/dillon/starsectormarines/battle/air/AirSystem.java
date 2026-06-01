@@ -1,5 +1,10 @@
 package com.dillon.starsectormarines.battle.air;
 
+import com.dillon.starsectormarines.battle.air.engine.EngineSlotData;
+import com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver;
+import com.dillon.starsectormarines.battle.air.engine.ThrusterFx;
+import com.dillon.starsectormarines.battle.air.engine.ThrusterFxSystem;
+import com.dillon.starsectormarines.battle.component.ComponentStore;
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
@@ -66,6 +71,12 @@ public class AirSystem {
 
     private final List<Shuttle> shuttles = new ArrayList<>();
 
+    /** Smoothed per-slot engine-FX demand, keyed by air entity id. Advanced each tick by {@link ThrusterFxSystem}; read by the shuttle render + light passes. */
+    private final ComponentStore<ThrusterFx> thrusterFx = new ComponentStore<>();
+
+    /** Monotonic air-entity id source. Starts at 1 so 0 reads as "unregistered". Never recycled — see {@link Shuttle#entityId}. */
+    private long nextAirId = 1L;
+
     public AirSystem(NavigationService navigation, UnitRosterService roster,
                      TacticalScoring tacticalScoring, TurretFireSink fireSink,
                      Random rng, Consumer<Unit> addUnitSink) {
@@ -79,11 +90,44 @@ public class AirSystem {
     }
 
     public List<Shuttle> getShuttles() { return shuttles; }
-    public void add(Shuttle s) { shuttles.add(s); }
+
+    public void add(Shuttle s) {
+        if (s.entityId == 0L) s.entityId = nextAirId++;
+        shuttles.add(s);
+    }
+
+    /**
+     * The smoothed per-slot engine-FX demand for {@code entityId}, or
+     * {@code null} if that air entity has no engine slots / no FX component yet.
+     * The render + light passes feed this to {@code EngineFxRenderer} as the
+     * per-slot demand, so plumes ramp instead of snapping.
+     */
+    public float[] thrusterGlow(long entityId) {
+        ThrusterFx fx = thrusterFx.get(entityId);
+        return fx == null ? null : fx.smoothed;
+    }
 
     public void tick(float dt) {
         advanceShuttles(dt);
         tickShuttleTurrets(dt);
+        advanceThrusterFx(dt);
+    }
+
+    /**
+     * Ramps each live shuttle's smoothed thruster demand toward the
+     * {@link com.dillon.starsectormarines.battle.air.engine.ThrusterDemand}
+     * target (computed from the freshly-steered body). GONE craft drop their
+     * component so the store tracks only live air entities.
+     */
+    private void advanceThrusterFx(float dt) {
+        for (Shuttle s : shuttles) {
+            if (s.state == Shuttle.State.GONE) {
+                thrusterFx.remove(s.entityId);
+                continue;
+            }
+            EngineSlotData[] slots = EngineSlotResolver.resolve(s.type);
+            ThrusterFxSystem.advance(s.entityId, slots, s.body, s.type, thrusterFx, dt);
+        }
     }
 
     /**
@@ -110,7 +154,7 @@ public class AirSystem {
                     break;
 
                 case INCOMING:
-                    s.body.tickToward(s.lzX, s.lzY, SteeringMode.BRAKE_TO_STATION, s.type, dt);
+                    AirSteeringSystem.steer(s.body, s.lzX, s.lzY, SteeringMode.BRAKE_TO_STATION, s.type, dt);
                     updateShuttleAltitude(s, s.lzX, s.lzY, /*incoming=*/true, dt);
                     if (s.body.distanceTo(s.lzX, s.lzY) < SHUTTLE_LZ_ARRIVAL_DIST) {
                         s.body.teleport(s.lzX, s.lzY, s.body.facingDegrees);
@@ -156,7 +200,7 @@ public class AirSystem {
                     // wiped squad or a runaway scout doesn't drag the shuttle
                     // across the whole map.
                     updateHoverFollow(s);
-                    s.body.tickToward(s.hoverPointX, s.hoverPointY, SteeringMode.STATION, s.type, dt);
+                    AirSteeringSystem.steer(s.body, s.hoverPointX, s.hoverPointY, SteeringMode.STATION, s.type, dt);
                     s.hoverTimerSec -= dt;
                     // Takeoff phase — smoothstep altitudeT 0 → 1 over
                     // T_TAKEOFF_SEC for a visible acceleration / deceleration
@@ -186,7 +230,7 @@ public class AirSystem {
                     break;
 
                 case DEPARTING:
-                    s.body.tickToward(s.exitX, s.exitY, SteeringMode.CRUISE, s.type, dt);
+                    AirSteeringSystem.steer(s.body, s.exitX, s.exitY, SteeringMode.CRUISE, s.type, dt);
                     updateShuttleAltitude(s, s.exitX, s.exitY, /*incoming=*/false, dt);
                     if (s.body.distanceTo(s.exitX, s.exitY) < SHUTTLE_EXIT_ARRIVAL_DIST) {
                         if (s.currentCycle + 1 < s.totalCycles) {

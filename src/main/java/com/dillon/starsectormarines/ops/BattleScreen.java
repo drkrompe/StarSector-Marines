@@ -502,10 +502,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         for (com.dillon.starsectormarines.battle.air.Shuttle s : sim.getShuttles()) {
             if (s.state == com.dillon.starsectormarines.battle.air.Shuttle.State.PENDING
                     || s.state == com.dillon.starsectormarines.battle.air.Shuttle.State.GONE) continue;
-            com.dillon.starsectormarines.battle.air.engine.EngineSlotData[] engineSlots =
-                    com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver.resolve(s.type);
             com.dillon.starsectormarines.battle.air.engine.EngineFxRenderer.emitLights(
-                    engineSlots,
+                    com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver.resolve(s.type),
                     s.body.x, s.body.y,
                     s.body.facingDegrees,
                     s.scaleMult,
@@ -514,8 +512,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                     renderer.getLightAccumulator(),
                     ((long) System.identityHashCode(s)) << 16,
                     seenLightIds,
-                    com.dillon.starsectormarines.battle.air.engine.ThrusterDemand.compute(
-                            engineSlots, s.body, s.type));
+                    sim.getThrusterGlow(s));
         }
         // Fighter engine halos — FlybyOverlay owns the fighter list, so it
         // pumps directly into our seen-id set.

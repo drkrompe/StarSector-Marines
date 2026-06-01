@@ -3,11 +3,9 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.air.engine.EngineFxRenderer;
-import com.dillon.starsectormarines.battle.air.engine.EngineSlotData;
 import com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver;
 import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
 import com.dillon.starsectormarines.battle.air.engine.HullPivotResolver;
-import com.dillon.starsectormarines.battle.air.engine.ThrusterDemand;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
 import java.util.List;
@@ -57,22 +55,20 @@ public final class ShuttleRenderSystem implements RenderSystem {
 
             float altOffset = s.visualAltitudeOffsetCells();
 
-            // Engine FX (own GL) under the hull. Per-slot demand blooms the
-            // thrusters actually pushing / turning the hull this tick.
-            out.addCustom(RenderLayer.SHUTTLES, () -> {
-                EngineSlotData[] engineSlots = EngineSlotResolver.resolve(s.type);
-                EngineFxRenderer.draw(
-                        engineSlots,
-                        s.body.x, s.body.y,
-                        s.body.facingDegrees,
-                        s.scaleMult,
-                        altOffset,
-                        s.engineFxIntensity(),
-                        alphaMult,
-                        cam,
-                        sprites.engineGlowSprite(), sprites.engineFlameSprite(),
-                        ThrusterDemand.compute(engineSlots, s.body, s.type));
-            });
+            // Engine FX (own GL) under the hull. The per-slot demand (smoothed
+            // each sim tick by AirSystem's ThrusterFxSystem) blooms the thrusters
+            // actually pushing / turning the hull and ramps instead of snapping.
+            out.addCustom(RenderLayer.SHUTTLES, () -> EngineFxRenderer.draw(
+                    EngineSlotResolver.resolve(s.type),
+                    s.body.x, s.body.y,
+                    s.body.facingDegrees,
+                    s.scaleMult,
+                    altOffset,
+                    s.engineFxIntensity(),
+                    alphaMult,
+                    cam,
+                    sprites.engineGlowSprite(), sprites.engineFlameSprite(),
+                    ctx.sim.getThrusterGlow(s)));
 
             // Hull. Length is derived from the hull's sprite pixel extent via
             // the one global pixel-density factor (HullFootprintResolver), not a

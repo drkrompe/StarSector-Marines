@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.air.AirSteeringSystem;
 import com.dillon.starsectormarines.battle.air.SteeringMode;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.turret.TurretAim;
@@ -189,7 +190,7 @@ public final class DroneSwarmAction implements Action {
         float orbitY = ty + orbitRadius * oy;
 
         float[] goal = clampGoalToLeash(d, orbitX, orbitY);
-        d.body.tickToward(goal[0], goal[1], SteeringMode.CRUISE, Drone.HANDLING, dt);
+        AirSteeringSystem.steer(d.body, goal[0], goal[1], SteeringMode.CRUISE, Drone.HANDLING, dt);
     }
 
     /**
@@ -206,7 +207,7 @@ public final class DroneSwarmAction implements Action {
         float[] hover = encircleOffset(d.pursuitGoalX, d.pursuitGoalY,
                 comfortableDist, slotIdx, slotCount);
         float[] goal = clampGoalToLeash(d, hover[0], hover[1]);
-        d.body.tickToward(goal[0], goal[1], SteeringMode.BRAKE_TO_STATION, Drone.HANDLING, dt);
+        AirSteeringSystem.steer(d.body, goal[0], goal[1], SteeringMode.BRAKE_TO_STATION, Drone.HANDLING, dt);
     }
 
     /**
@@ -218,7 +219,7 @@ public final class DroneSwarmAction implements Action {
     private static void tickPatrol(Drone d, BattleView sim,
                                    int slotIdx, int slotCount, float dt) {
         ensureSectorWaypoint(d, sim, slotIdx, slotCount);
-        d.body.tickToward(d.patrolGoalX, d.patrolGoalY,
+        AirSteeringSystem.steer(d.body, d.patrolGoalX, d.patrolGoalY,
                 SteeringMode.CRUISE, Drone.HANDLING, dt);
         if (d.body.distanceTo(d.patrolGoalX, d.patrolGoalY)
                 <= Drone.PATROL_WAYPOINT_ARRIVE_DIST) {
