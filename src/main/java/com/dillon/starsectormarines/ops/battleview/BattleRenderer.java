@@ -9,13 +9,9 @@ import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
-import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.model.TimeOfDay;
-import com.dillon.starsectormarines.battle.world.model.WallMasks;
-import com.dillon.starsectormarines.battle.world.tiles.UrbanTile3;
-import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.ui.compound.CompoundMarkerRenderer;
 import com.dillon.starsectormarines.render2d.ContrailStyle;
@@ -24,7 +20,6 @@ import com.dillon.starsectormarines.render2d.DrawListRenderer;
 import com.dillon.starsectormarines.render2d.ContrailTrail;
 import com.dillon.starsectormarines.render2d.GlStateBracket;
 import com.dillon.starsectormarines.render2d.LightAccumulator;
-import com.dillon.starsectormarines.render2d.LightKernel;
 import com.dillon.starsectormarines.render2d.LineBatch;
 import com.dillon.starsectormarines.render2d.QuadBatch;
 import com.dillon.starsectormarines.render2d.RibbonBatch;
@@ -63,13 +58,6 @@ public class BattleRenderer {
     private static final Logger LOG = Global.getLogger(BattleRenderer.class);
 
     // ---- render-only constants -----------------------------------------------
-
-    /** Dual-use in BattleScreen (spawnImpactFx); duplicated here for zero back-dependency. */
-    private static final Color MARINE_TRACER  = new Color(0xFF, 0xE0, 0x70);
-    /** Dual-use in BattleScreen (spawnImpactFx); duplicated here for zero back-dependency. */
-    private static final Color DEFENDER_TRACER = new Color(0xFF, 0x70, 0x40);
-    /** Hitscan tracer line width in px (was {@code glLineWidth(2f)} in the old immediate-mode pass). */
-    private static final float TRACER_WIDTH = 2f;
 
     /** Sim-seconds shots live for — must match {@code BattleSimulation.SHOT_LIFETIME}. Used to fade tracer alpha. */
     private static final float SHOT_LIFETIME_REF = 0.15f;
@@ -249,9 +237,13 @@ public class BattleRenderer {
                             renderSelectedVehicleDebug(convoy, ctx.alphaMult);
                         })),
                 new ShuttleRenderSystem(sprites),
-                // SHOTS emits batchable sprite commands + Custom contrails/tracers (Story C).
+                // SHOTS: contrails first (stateful Custom, lifecycle still owned here — F4
+                // will split it into an FX service), then the ShotRenderService body sweeps
+                // (tracers → projectile sprites). Listed contrails-first so submission order
+                // stays contrails → tracers → sprites.
                 RenderSystem.of(RenderLayer.SHOTS, (ctx, out) ->
-                        collectShots(out, ctx.sim.getActiveShots(), ctx.alphaMult)),
+                        out.addCustom(RenderLayer.SHOTS, () -> renderContrails(ctx.sim.getActiveShots(), ctx.alphaMult))),
+                new ShotRenderService(sprites, impactFx),
                 RenderSystem.of(RenderLayer.IMPACT_FX, (ctx, out) ->
                         out.addCustom(RenderLayer.IMPACT_FX, () -> impactFx.render(ctx.camera, ctx.alphaMult))),
                 RenderSystem.of(RenderLayer.FLYBY, (ctx, out) ->
@@ -696,95 +688,6 @@ public class BattleRenderer {
         glEnd();
     }
 
-    /**
-     * Collects the {@link RenderLayer#SHOTS} layer into the {@link #drawList}
-     * instead of drawing inline — the first pass migrated to the command model
-     * (Story C). Submission order matches the old {@code renderShots}: contrails
-     * ({@code Custom}), then hitscan tracers ({@code LINE} commands, F1), then
-     * projectile sprites ({@code SPRITE} commands).
-     *
-     * <p>The contrails {@link DrawCommand.Custom} is emitted unconditionally — its
-     * callback ages and decays existing trails every frame, even with no live
-     * shots — so it must not be gated on {@code shots} being non-empty.
-     */
-    private void collectShots(DrawList out, List<ShotEvent> shots, float alphaMult) {
-        out.addCustom(RenderLayer.SHOTS, () -> renderContrails(shots, alphaMult));
-        if (shots.isEmpty()) return;
-
-        // Hitscan tracers (shots with no projectile sprite) → batched LINE commands.
-        for (ShotEvent s : shots) {
-            if (s.turretKind != null) continue;
-            if (s.marineSecondary != null) continue;
-            if (s.marineWeapon != null && s.marineWeapon.projectileSpritePath != null) continue;
-            if (s.mechWeapon != null && s.mechWeapon.projectileSpritePath != null) continue;
-            float t = Math.max(0f, Math.min(1f, s.lifetime / Math.max(0.001f, s.lifetimeMax)));
-            Color c = s.marineWeapon != null
-                    ? s.marineWeapon.tracerColor
-                    : (s.shooterFaction == Faction.MARINE ? MARINE_TRACER : DEFENDER_TRACER);
-            out.addLine(RenderLayer.SHOTS,
-                    rc.camera.cellToScreenX(s.fromX), rc.camera.cellToScreenY(s.fromY),
-                    rc.camera.cellToScreenX(s.toX),   rc.camera.cellToScreenY(s.toY),
-                    TRACER_WIDTH,
-                    c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, t * alphaMult);
-        }
-
-        for (ShotEvent s : shots) {
-            ShuttleSpriteCache cache;
-            float visualCells;
-            if (s.turretKind != null) {
-                cache = sprites.turretProjectileSprites().get(s.turretKind);
-                visualCells = s.turretKind.projectileVisualCells;
-            } else if (s.marineSecondary != null) {
-                cache = sprites.marineSecondarySprites().get(s.marineSecondary);
-                visualCells = s.marineSecondary.projectileVisualCells;
-            } else if (s.marineWeapon != null && s.marineWeapon.projectileSpritePath != null) {
-                cache = sprites.marineWeaponProjectileSprites().get(s.marineWeapon);
-                visualCells = s.marineWeapon.projectileVisualCells;
-            } else if (s.mechWeapon != null && s.mechWeapon.projectileSpritePath != null) {
-                cache = sprites.mechWeaponProjectileSprites().get(s.mechWeapon);
-                visualCells = s.mechWeapon.projectileVisualCells;
-            } else {
-                continue;
-            }
-            if (cache == null) continue;
-            float linearProgress = 1f - Math.max(0f, Math.min(1f, s.lifetime / Math.max(0.001f, s.lifetimeMax)));
-            float progress = (s.turretKind != null && s.turretKind.hasBoostRamp())
-                    ? com.dillon.starsectormarines.battle.combat.Projectile.applyBoostCurve(linearProgress)
-                    : linearProgress;
-            float px = s.fromX + (s.toX - s.fromX) * progress;
-            float py = s.fromY + (s.toY - s.fromY) * progress;
-            float bearing;
-            float arcH = 0f;
-            if (s.mechWeapon != null) arcH = s.mechWeapon.arcHeight;
-            else if (s.turretKind != null) arcH = s.turretKind.arcHeight;
-            if (arcH > 0f) {
-                py += arcH * 4f * progress * (1f - progress);
-                float tangentDy = (s.toY - s.fromY) + arcH * 4f * (1f - 2f * progress);
-                bearing = bearingDeg(0f, 0f, s.toX - s.fromX, tangentDy);
-            } else {
-                bearing = bearingDeg(s.fromX, s.fromY, s.toX, s.toY);
-            }
-            float cellPxLocal = rc.camera.cellPxSize();
-            float pxH = visualCells * cellPxLocal;
-            float pxW = pxH * cache.aspect;
-            out.addSprite(RenderLayer.SHOTS,
-                    cache.sprite,
-                    rc.camera.cellToScreenX(px), rc.camera.cellToScreenY(py),
-                    pxW, pxH, bearing,
-                    1f, 1f, 1f, alphaMult);
-            boolean engineTrail = s.mechWeapon != null && s.mechWeapon.engineTrail;
-            boolean smokeTrail  = s.turretKind != null && s.turretKind.smokeTrail
-                    && !kindUsesContrailRibbon(s.turretKind);
-            if ((engineTrail || smokeTrail) && progress > 0.02f && progress < 0.98f) {
-                float headingRad = (float) Math.toRadians(bearing);
-                float tailDx = -(float) Math.sin(headingRad) * 0.15f;
-                float tailDy = -(float) Math.cos(headingRad) * 0.15f;
-                if (engineTrail) impactFx.spawnEngineTrail(px + tailDx, py + tailDy, 0.18f);
-                else             impactFx.spawnSmokeTrail (px + tailDx, py + tailDy, 0.20f);
-            }
-        }
-    }
-
     private void renderContrails(List<ShotEvent> shots, float alphaMult) {
         if (!contrailsLive.isEmpty()) {
             java.util.Set<ShotEvent> current = java.util.Collections.newSetFromMap(
@@ -841,13 +744,6 @@ public class BattleRenderer {
 
     private static boolean kindUsesContrailRibbon(TurretKind kind) {
         return kind == TurretKind.LOCUST;
-    }
-
-    private static float bearingDeg(float fromX, float fromY, float toX, float toY) {
-        float dx = toX - fromX;
-        float dy = toY - fromY;
-        if (dx == 0f && dy == 0f) return 0f;
-        return (float) Math.toDegrees(Math.atan2(dy, dx)) - 90f;
     }
 
     private static void fillRect(float rx, float ry, float rw, float rh, Color c, float alpha) {

@@ -70,6 +70,13 @@ public class BattleSprites {
             new java.util.EnumMap<>(MarineWeapon.class);
     private final java.util.EnumMap<com.dillon.starsectormarines.battle.mech.MechWeapon, ShuttleSpriteCache> mechWeaponProjectileSprites =
             new java.util.EnumMap<>(com.dillon.starsectormarines.battle.mech.MechWeapon.class);
+    /**
+     * Projectile sprites keyed by texture path — the carrier-agnostic view {@code ShotFx}
+     * resolves against (any weapon declaring the same path shares the one loaded sprite).
+     * Populated alongside the per-source maps above as each projectile sprite loads.
+     */
+    private final java.util.Map<String, ShuttleSpriteCache> projectileSpriteByPath =
+            new java.util.HashMap<>();
     private final java.util.EnumMap<MarineSecondary, UnitSpriteCache> marineSecondaryAimSheets =
             new java.util.EnumMap<>(MarineSecondary.class);
     private boolean marineSecondarySpritesLoadAttempted;
@@ -159,6 +166,8 @@ public class BattleSprites {
     public java.util.EnumMap<MarineSecondary, ShuttleSpriteCache> marineSecondarySprites() { return marineSecondarySprites; }
     public java.util.EnumMap<MarineWeapon, ShuttleSpriteCache> marineWeaponProjectileSprites() { return marineWeaponProjectileSprites; }
     public java.util.EnumMap<com.dillon.starsectormarines.battle.mech.MechWeapon, ShuttleSpriteCache> mechWeaponProjectileSprites() { return mechWeaponProjectileSprites; }
+    /** Carrier-agnostic projectile-sprite lookup by texture path (what {@code ShotFx.Sprite} resolves against). Null if not loaded / no such path. */
+    public ShuttleSpriteCache projectileSprite(String path) { return path == null ? null : projectileSpriteByPath.get(path); }
     public java.util.EnumMap<MarineSecondary, UnitSpriteCache> marineSecondaryAimSheets() { return marineSecondaryAimSheets; }
     public SpriteAPI decalSheet()                  { return decalSheet; }
     public SpriteSheetFrames decalFrames()         { return decalFrames; }
@@ -567,7 +576,9 @@ public class BattleSprites {
                     float w = sprite.getWidth();
                     float h = sprite.getHeight();
                     float aspect = (h > 0f) ? w / h : 1f;
-                    marineSecondarySprites.put(sec, new ShuttleSpriteCache(sprite, aspect));
+                    ShuttleSpriteCache cache = new ShuttleSpriteCache(sprite, aspect);
+                    marineSecondarySprites.put(sec, cache);
+                    projectileSpriteByPath.put(sec.projectileSpritePath, cache);
                     LOG.info("BattleSprites: loaded " + sec.projectileSpritePath
                             + " (" + w + "x" + h + ", aspect=" + aspect + ")");
                 }
@@ -593,7 +604,9 @@ public class BattleSprites {
                 float pw = sprite.getWidth();
                 float ph = sprite.getHeight();
                 float aspect = (ph > 0f) ? pw / ph : 1f;
-                marineWeaponProjectileSprites.put(w, new ShuttleSpriteCache(sprite, aspect));
+                ShuttleSpriteCache cache = new ShuttleSpriteCache(sprite, aspect);
+                marineWeaponProjectileSprites.put(w, cache);
+                projectileSpriteByPath.put(w.projectileSpritePath, cache);
                 LOG.info("BattleSprites: loaded " + w.projectileSpritePath
                         + " (" + pw + "x" + ph + ", aspect=" + aspect + ")");
             } catch (Exception e) {
@@ -616,7 +629,9 @@ public class BattleSprites {
                 float pw = sprite.getWidth();
                 float ph = sprite.getHeight();
                 float aspect = (ph > 0f) ? pw / ph : 1f;
-                mechWeaponProjectileSprites.put(w, new ShuttleSpriteCache(sprite, aspect));
+                ShuttleSpriteCache cache = new ShuttleSpriteCache(sprite, aspect);
+                mechWeaponProjectileSprites.put(w, cache);
+                projectileSpriteByPath.put(w.projectileSpritePath, cache);
                 LOG.info("BattleSprites: loaded mech projectile " + w.projectileSpritePath
                         + " (" + pw + "x" + ph + ", aspect=" + aspect + ")");
             } catch (Exception e) {
@@ -632,6 +647,8 @@ public class BattleSprites {
             loadTurretSpriteInto(turretSprites,           kind, kind.spritePath);
             loadTurretSpriteInto(turretRecoilSprites,     kind, kind.recoilSpritePath);
             loadTurretSpriteInto(turretProjectileSprites, kind, kind.projectileSpritePath);
+            ShuttleSpriteCache proj = turretProjectileSprites.get(kind);
+            if (proj != null) projectileSpriteByPath.put(kind.projectileSpritePath, proj);
         }
     }
 

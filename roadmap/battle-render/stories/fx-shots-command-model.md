@@ -142,14 +142,21 @@ TurretKind; `boostRamp`/`contrail` from the weapon's own declaration.
   J2). **Path-keyed sprite cache deferred to F3** — it's caller-less until the
   sweep consumes it (no-stopgap); `Sprite.spritePath` is the contract that enables
   it. `Tracer.color == null` ⇒ faction default resolved at sweep.
-- **F3 — `ShotRenderService` sweeps + path-keyed sprite cache.** Re-key the
-  projectile-sprite texture cache in `BattleSprites` by path (so `Body.Sprite`
-  resolves carrier-agnostically and the discriminator never exists). Stand up the
-  per-stratum sweep consumer keyed purely on `ShotFx` effects; migrate
-  projectile-sprite emission + the tracer sweep, dropping the `collectShots`
-  carrier cascade and the tracer `Custom`. Engine/smoke-trail spawns
-  (`impactFx.spawnEngineTrail/spawnSmokeTrail`) move into the sprite sweep, gated
-  on the `engineTrail`/`smokeTrail` effects.
+- ~~**F3 — `ShotRenderService` sweeps + path-keyed sprite cache.**~~ ✅ **SHIPPED
+  & VERIFIED.** `BattleSprites` gained a `projectileSpriteByPath` map +
+  `projectileSprite(path)` getter (populated at all four projectile-load sites) so
+  `Body.Sprite` resolves carrier-agnostically — the discriminator never existed.
+  `ShotRenderService` (a `RenderSystem`, `layer() == SHOTS`) runs two effect-keyed
+  sweeps — tracers (`LINE`) then projectile sprites (`SPRITE`) — driven by
+  `ShotFx.of(s)`, no carrier branching; engine/smoke-trail spawns moved into the
+  sprite sweep gated on the `engineTrail`/`smokeTrail` effects. `BattleRenderer`
+  deleted `collectShots` (carrier cascade + tracer `Custom`) and `bearingDeg`;
+  SHOTS is now two registry entries — the contrails `Custom` (lifecycle still here,
+  F4) ordered before `new ShotRenderService(sprites, impactFx)`. Fidelity critique
+  came back clean (tracer/sprite/trail/order/cache all byte-faithful to the old
+  pass); in-game verified (all shot types + tracers + arcs/boost/contrail/trails
+  identical). The `renderContrails`/`kindUsesContrailRibbon`/`styleFor` trio stays
+  for F4.
 - **F4 — Contrail state/render split.** Extract `ContrailFxService` (owns
   `contrailsLive`/`contrailsDecaying` + aging, `tick(dt)`); the sweep emits the
   ribbon. Decide: a `RIBBON` `DrawCommand` (ribbon becomes data) vs. keep
