@@ -184,6 +184,38 @@ Open sub-questions for the build (resolve as we go, don't over-design):
   paired with render position, no-body-while-alive). **With this, all four
   Bucket-B corpse-readers are off the list — sequencing step 1 (corpse home) is
   done.**
+- **Bucket A wave 2 + Bucket C SHIPPED (2026-06-01) — every production reader off
+  the list.** Six commits (`f6851eb` → `78f54fe`):
+  - *Dead-unit readers.* `DeadBody` gained `faction`; `MissionResolver`'s casualty
+    count is now live registry + `DeadBody` store (survivors + corpses, no
+    live+dead scan). `DroneRenderSystem`'s dead pass reads the `Crashing` store
+    directly (the wreck tracks the component's `AirBody`, no `Unit` handle). The
+    dead-mech smoking wreck moved off `HeavyWeapons.spawnMechWrecks` onto a
+    `MechWreckSystem` death-event handler (the one death seam catches every kill
+    path); HeavyWeapons dropped its `effects` + `units` fields.
+  - *Mutate-during-iteration → snapshot-then-apply.* The combat continuation +
+    AoE readers fire damage inline in serial phases (`insideParallel` is false
+    outside UPDATE_UNITS), so a lethal hit runs `DamageResolver.resolve` →
+    `releaseFromRegistry` and swap-and-pops the dead target out of the dense
+    table mid-walk. `InfantryWeapons.tick` (gather mid-burst units),
+    `HeavyWeapons.advanceMechWeapons` (gather mechs), `Detonations.detonate`
+    (gather in-splash), `FlybyOverlay` ×2 (gather in-radius), and
+    `HubDemolitionSystem.cascadeKillDrones` (gather the hub's drones) each gather
+    the matching set first, then apply over the snapshot — reused scratch lists,
+    allocation-free in steady state for the hot passes.
+  - *Simple live + Bucket-C.* `EquipmentDropService` (+ its two helpers) and the
+    `TurretDemolitionSystem` guardpost scan walk the dense registry (the latter
+    only ever cared about live turrets — the old "needs dead turrets" comment was
+    wrong). `SquadOverviewPanel`/`SquadDetailPanel`/`SquadPlanDebugPanel` →
+    dense; `TickProfileDumper`/`TickProfileDebugPanel` unitCount →
+    `liveUnitCount()` (live, was live+dead); `SquadStateDumper` member dump went
+    live-only (corpses no longer listed — the stuck-squad diagnostic cares about
+    survivors, squad-level `aliveMembers` carries attrition). Dropped the dead
+    `DamageResolver.units` field.
+  - **No production reader of `getUnits()`/`UnitRosterService.units` remains.**
+    What's left is the accessor definitions, the sim's internal `units` alias
+    (passed to `vision.tick`/`rebuildOccupancyMap`/`squadFallback.tick`), and the
+    test surface — all step 4.
 
 ## Sequencing
 
@@ -196,21 +228,21 @@ Open sub-questions for the build (resolve as we go, don't over-design):
    in the dead-body + render-position component stores and absent from the live
    registry's health/AI — exactly the composition target
    ([[feedback_build_composition_now]]). No Bucket-B reader scans the list.
-2. **Bucket A sweep.** Migrate the live-iterators `getUnits()` → dense
-   registry. *(WAVE 1 + 1b DONE — `9b4100a`/`008afb1`/`b2e0df2`: added the
-   read-only `BattleView.liveUnitCount()/liveUnitAt(int)` accessor, then
-   converted 46 live-only loops across 30 files via a 6-way Sonnet fan-out on
-   disjoint files + a main-thread straggler pass. Remaining `getUnits()` readers
-   need non-mechanical handling: dead-unit readers (`MissionResolver`,
-   `DroneRenderSystem`, `SquadStateDumper`) want a corpse/`DeadBody` source;
-   `FlybyOverlay` AoE loops mutate mid-iteration (snapshot-then-apply);
-   `EquipmentDropService` passes the list to helpers; `DamageResolver.units` +
-   the demolition guardpost scans go at list-deletion; Bucket-C UI panels +
-   `.size()` counters are mechanical when wanted. See next-session.md step 3.)*
-3. **Bucket C cleanup.** Point UI/debug/flyby at the registry; resolve
-   `SquadStateDumper`'s dead-member dump.
-4. **Delete `UnitRosterService.units`.** No readers remain; `release()` stops
-   retaining corpses.
+2. ~~**Bucket A sweep.** Migrate the live-iterators `getUnits()` → dense
+   registry.~~ **DONE — wave 1+1b (`9b4100a`/`008afb1`/`b2e0df2`) + wave 2
+   (`f6851eb`→`78f54fe`).** Wave 1 converted 46 live-only loops across 30 files
+   (6-way Sonnet fan-out + straggler pass); wave 2 handled the non-mechanical
+   remainder — dead-unit readers (corpse/`Crashing` stores + a `MechWreckSystem`
+   death handler), mutate-during-iteration sites (snapshot-then-apply), and the
+   simple live readers. See the Progress block above.
+3. ~~**Bucket C cleanup.** Point UI/debug/flyby at the registry; resolve
+   `SquadStateDumper`'s dead-member dump.~~ **DONE (wave 2).** Panels + profile
+   counters → dense/`liveUnitCount()`; `SquadStateDumper` member dump went
+   live-only (corpses dropped, by design). `FlybyOverlay` AoE → snapshot.
+4. **Delete `UnitRosterService.units`.** No production readers remain. Repoint
+   the sim's internal `units` alias (vision/nav/squad-fallback) off the field,
+   drop `getUnits()` from the three types, migrate the test surface, then
+   `release()` stops retaining corpses.
 5. **Revert Group-N accessors to unconditional** (fail-loud) — live units are
    now always registered; the null-safe branch is dead. Same for the Slice-2/3
    seed/corpse work if not already done.

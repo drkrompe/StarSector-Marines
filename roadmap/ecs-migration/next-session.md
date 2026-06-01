@@ -51,6 +51,12 @@ aa55855  ai(ecs-migration): document the first-write invariant on RenderPosition
 9b4100a  battle: add read-only live-iteration accessor to BattleView (Bucket-A prereq)  ← 2026-06-01
 008afb1  battle: Bucket-A sweep — migrate live-iterators off getUnits() (wave 1, 26 files)  ← 2026-06-01
 b2e0df2  battle: Bucket-A sweep wave 1b — convert the isAlive-not-first live-iterators  ← 2026-06-01
+f6851eb  battle: wave-2 dead-unit readers — corpse store + crash store, off the units list  ← 2026-06-01
+1d677e7  battle: mech wreck → death-event handler; HeavyWeapons off the units list  ← 2026-06-01
+a30f0bd  battle: InfantryWeapons + Detonations off the units list (snapshot-then-apply)  ← 2026-06-01
+7b66db8  battle: FlybyOverlay AoE + hub cascade off the units list (snapshot-then-apply)  ← 2026-06-01
+c1fb304  battle: EquipmentDrop + turret guardpost scan dense; drop DamageResolver dead field  ← 2026-06-01
+78f54fe  battle: UI/debug consumers off the units list (Bucket-C)  ← 2026-06-01
 ```
 
 (Sibling tracks interleaved on HEAD, not ECS-migration: `9084ed4` battle-render
@@ -59,6 +65,15 @@ campaign work.)
 
 ## State of play
 
+- **Legacy units-list retirement — ALL PRODUCTION READERS OFF (2026-06-01).**
+  Bucket-A waves 1+1b + wave 2 are done: every production consumer of
+  `getUnits()`/`UnitRosterService.units` now reads the dense registry (live), the
+  `DeadBody`/`Crashing` component stores (dead), or reacts to a `DeathEvent`
+  (mech wreck). Mutate-during-iteration sites (combat continuation passes, AoE
+  detonations, flyby strafe, hub cascade) use gather-then-apply snapshots because
+  inline `DamageResolver.resolve` releases the dead target mid-walk. **Only the
+  accessor definitions, the sim's internal `units` alias, and the test surface
+  remain — that's step 4 (delete the list).**
 - **Primitives promoted:** hp/maxHp, cellX/cellY, cooldownTimer,
   moveProgress, renderX/renderY, attackDamage, attackRange, accuracy,
   secondaryCooldownTimer, secondaryActionTimer, secondaryAimTargetId,
@@ -186,22 +201,35 @@ campaign work.)
 >    dropping the redundant `!isAlive()` skip. Fanned out to 6 Sonnet sweepers on
 >    disjoint files; conservative rule (convert only explicit-isAlive-gate loops),
 >    then a main-thread 1b pass for the isAlive-not-first stragglers. Suite green.
->    **REMAINING `getUnits()` readers** (need non-mechanical handling — wave 2):
->    - **Dead-unit readers** → need a corpse/DeadBody source, not `liveUnitAt`:
->      `MissionResolver` (casualty count), `DroneRenderSystem` (renders crashing
->      dead drones), `SquadStateDumper` (dead-member debug dump).
->    - **Mid-loop mutation** → snapshot-then-apply: `FlybyOverlay` AoE tracer loops
->      (`applyExternalDamage` mid-iteration, ~631/695).
->    - **List passed to helpers** → thread the registry through:
->      `EquipmentDropService` (passes the list to `hasLivingRetriever` /
->      `nearestAvailableMarine`).
->    - **Field alias / demolition residue** (handle at list-deletion):
->      `DamageResolver.units` field, `HubDemolitionSystem`/`TurretDemolitionSystem`
->      guardpost scans.
->    - **Bucket-C UI** (live-gated, mechanical when wanted): `SquadPlanDebugPanel`,
->      `SquadDetailPanel`, `SquadOverviewPanel`; the `.size()` counters
->      (`TickProfileDumper`, `TickProfileDebugPanel`) — decide live vs live+dead.
-> 4. Bucket-C cleanup; delete `UnitRosterService.units`.
+>    **WAVE 2 DONE** (`f6851eb`/`1d677e7`/`a30f0bd`/`7b66db8`/`c1fb304`/`78f54fe`):
+>    every remaining production reader migrated off `getUnits()`/`.units`:
+>    - **Dead-unit readers** — `MissionResolver` casualty count = live registry +
+>      `DeadBody` store (DeadBody gained `faction`); `DroneRenderSystem` dead pass
+>      reads the `Crashing` store directly (no Unit handle); the dead-mech wreck
+>      became a `MechWreckSystem` death-event handler (HeavyWeapons dropped its
+>      `effects`+`units` fields); `SquadStateDumper` member dump went live-only.
+>    - **Mutate-during-iteration → snapshot-then-apply** (inline `resolve` releases
+>      the dead target mid-walk): `InfantryWeapons.tick` (gather mid-burst units),
+>      `Detonations` AoE, `HeavyWeapons.advanceMechWeapons` (gather mechs),
+>      `FlybyOverlay` ×2, `HubDemolitionSystem` cascade. Each gathers the matching
+>      set first, then applies over the snapshot.
+>    - **Simple live + UI/debug** → dense registry: `EquipmentDropService`
+>      (+helpers), `TurretDemolitionSystem` guardpost scan (only live turrets
+>      matter — the old "needs dead turrets" comment was wrong), `SquadOverviewPanel`,
+>      `SquadDetailPanel`, `SquadPlanDebugPanel`; `.size()` counters →
+>      `liveUnitCount()` (live, was live+dead). Dropped the dead `DamageResolver.units`.
+>
+>    **REMAINING `getUnits()`/`.units` callers = step-4 only:** the accessor
+>    *definitions* (BattleView/BattleSimulation/UnitRosterService), the sim's
+>    internal `units` alias passed to `vision.tick` / `rebuildOccupancyMap` /
+>    `squadFallback.tick`, and the test surface (~13 files using `getUnits().get(i)`
+>    / `.size()`, some with index-after-kill semantics).
+> 4. **Delete `UnitRosterService.units`.** Repoint the three internal-alias readers
+>    (vision/nav/squad-fallback) off the `units` field, drop `getUnits()` from
+>    BattleView/BattleSimulation/UnitRosterService + the sim's `units` field, then
+>    migrate the test surface (`getUnits().get(i)` → `liveUnitAt`, `.size()` →
+>    `liveUnitCount`; audit kill-then-index tests for swap-and-pop order). Largest
+>    remaining chunk; gated on the test-surface sweep, not on any production reader.
 > 5. Revert Group-N accessors to unconditional (fail-loud); drop the
 >    `midCombatAccessorsReturnDefaultsWhenUnregistered` regression test.
 >
