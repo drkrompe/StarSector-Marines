@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.render2d.DecalAccumulator;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
 import com.dillon.starsectormarines.battle.flyby.FlybyOverlay;
@@ -201,7 +202,7 @@ public class BattleRenderer {
                 // Zone debug overlay paints on top of ground tiles, under decals.
                 RenderSystem.of(RenderLayer.GROUND, (ctx, out) -> {
                     if (ctx.debugZonesVisible)
-                        out.addCustom(RenderLayer.GROUND, () -> renderZoneOverlay(ctx.sim, ctx.alphaMult));
+                        out.addCustom(RenderLayer.GROUND, () -> renderZoneOverlayDebug(ctx.sim, ctx.alphaMult));
                 }),
                 RenderSystem.of(RenderLayer.DECALS, (ctx, out) ->
                         out.addCustom(RenderLayer.DECALS, () -> renderDecals(ctx.sim, ctx.alphaMult))),
@@ -226,7 +227,7 @@ public class BattleRenderer {
                         out.addCustom(RenderLayer.CONVOY, () -> {
                             java.util.List<com.dillon.starsectormarines.battle.vehicle.Vehicle> convoy =
                                     ctx.sim.getConvoyVehicles();
-                            if (DEBUG_RENDER_DOCKING_PATHS) renderConvoyDockingPaths(convoy, ctx.alphaMult);
+                            if (DEBUG_RENDER_DOCKING_PATHS) renderConvoyDockingPathsDebug(convoy, ctx.alphaMult);
                             renderSelectedVehicleDebug(convoy, ctx.alphaMult);
                         })),
                 new ShuttleRenderSystem(sprites),
@@ -336,7 +337,8 @@ public class BattleRenderer {
     /** Accessor for {@code BattleScreen.detach()} — release FBO resources. */
     public DecalAccumulator getDecalAccumulator() { return decalAccumulator; }
 
-    private void renderZoneOverlay(BattleSimulation sim, float alphaMult) {
+    @DebugOnly
+    private void renderZoneOverlayDebug(BattleSimulation sim, float alphaMult) {
         com.dillon.starsectormarines.battle.nav.zone.ZoneGraph zones = sim.getZoneGraph();
         NavigationGrid grid = sim.getGrid();
         glDisable(GL_TEXTURE_2D);
@@ -464,10 +466,12 @@ public class BattleRenderer {
     }
 
     /** Debug flag — draws Reeds-Shepp docking paths under each docking truck for math iteration. */
+    @DebugOnly
     public static boolean DEBUG_RENDER_DOCKING_PATHS = true;
 
-    private void renderConvoyDockingPaths(java.util.List<com.dillon.starsectormarines.battle.vehicle.Vehicle> convoy,
-                                          float alphaMult) {
+    @DebugOnly
+    private void renderConvoyDockingPathsDebug(java.util.List<com.dillon.starsectormarines.battle.vehicle.Vehicle> convoy,
+                                               float alphaMult) {
         boolean any = false;
         for (com.dillon.starsectormarines.battle.vehicle.Vehicle v : convoy) {
             if (v.dockingPath != null) { any = true; break; }
@@ -521,6 +525,7 @@ public class BattleRenderer {
         org.lwjgl.opengl.GL11.glPopAttrib();
     }
 
+    @DebugOnly
     private void renderSelectedVehicleDebug(
             java.util.List<com.dillon.starsectormarines.battle.vehicle.Vehicle> convoy,
             float alphaMult) {

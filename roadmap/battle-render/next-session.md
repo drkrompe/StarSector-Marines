@@ -20,8 +20,12 @@
 > art" before investing; `Custom` is a fine home for both, so don't migrate doomed
 > scaffolding:**
 > - **Debug-only — NOT migration targets** (leave as `Custom` dev tools, or delete
->   when retired): `renderZoneOverlay` (Z toggle), `renderConvoyDockingPaths`
->   (`DEBUG_RENDER_DOCKING_PATHS`), `renderSelectedVehicleDebug`.
+>   when retired): `renderZoneOverlayDebug` (Z toggle), `renderConvoyDockingPathsDebug`
+>   (`DEBUG_RENDER_DOCKING_PATHS`), `renderSelectedVehicleDebug`. All marked
+>   `@DebugOnly` (`com.dillon.starsectormarines.DebugOnly`) — `grep @DebugOnly` finds
+>   every debug-only member for a future prod-build strip pass. Apply the marker to
+>   other debug members (toggles, the `debugZonesVisible` field, state dumpers) as
+>   they're spotted.
 > - **Legitimately `Custom` (stay)** — FBO/own-GL: `renderDecals`, `impactFx`,
 >   `flybyOverlay`, `lightAccumulator`.
 > - **Migration candidates** (gameplay geometry, several unlocked by `LINE`/`RIBBON`):
