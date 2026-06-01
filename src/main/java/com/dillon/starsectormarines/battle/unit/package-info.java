@@ -11,8 +11,8 @@
  *           {@code UnitType}).
  * <br>Boundary: data substrate only — behaviors live in the actor domains
  *           ({@code infantry/}, {@code mech/}, ...), not here. For
- *           proximity, use a spatial index's {@code gather()}; never walk
- *           {@code getUnits()}. Mid-migration: {@code Unit} is a fat POJO
+ *           proximity, use a spatial index's {@code gather()}; never scan
+ *           the live registry. Mid-migration: {@code Unit} is a fat POJO
  *           being gutted into SoA arrays and is not yet an ECS id — which
  *           is why this package is still {@code unit/}, not {@code entity/}
  *           (rename deferred until the type has <em>become</em> an id).

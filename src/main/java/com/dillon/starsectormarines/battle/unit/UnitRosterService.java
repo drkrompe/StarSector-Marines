@@ -18,9 +18,10 @@ import java.util.List;
  * slices that all share a lifetime ("until the battle ends"):
  *
  * <ul>
- *   <li>Live unit list ({@link #getUnits()}) — single canonical view; the
- *       sim aliases this on construction so internal iteration reads the
- *       same instance.</li>
+ *   <li>Live unit registry ({@link #getRegistry()}) — the dense, live-only
+ *       entity table; {@link #releaseFromRegistry} swap-and-pops the dead
+ *       out. Post-death state lives in the corpse component stores, not a
+ *       retained list.</li>
  *   <li>Squad registry (keyed by {@link Squad#id}). Lookup via
  *       {@link #getSquad(int)} (synchronized to fence against same-tick
  *       {@link #mintSquad} from drone-hub spawns), iteration via
@@ -55,17 +56,14 @@ public final class UnitRosterService {
      *  which the harness prevents. */
     private DamageService damageService;
 
-    private final List<Unit> units = new ArrayList<>();
-
     /**
-     * Dense entity registry — Phase 1 of the SoA migration. Held alongside
-     * {@link #units} and kept in sync on {@link #addUnit}; releases happen
-     * out of the death cascade in
+     * Dense, live-only entity registry — the canonical roster. Populated on
+     * {@link #addUnit}; releases happen out of the death cascade in
      * {@code com.dillon.starsectormarines.battle.combat.DamageResolver#resolve}
-     * via {@link #releaseFromRegistry(long)}. The list continues to carry
-     * dead entries so existing post-death consumers (turret demolition,
-     * drone crash) keep working until they migrate to event-driven death
-     * emit in a later phase.
+     * via {@link #releaseFromRegistry(long)} (swap-and-pop). Post-death state
+     * is carried by the corpse component stores (DeadBody / Crashing / render
+     * position), keyed by entity id and surviving release — there is no
+     * retained live+dead list (that legacy collection is gone).
      */
     private final UnitRegistry registry = new UnitRegistry();
     /**
@@ -110,8 +108,6 @@ public final class UnitRosterService {
         this.damageService = damageService;
     }
 
-    public List<Unit> getUnits() { return units; }
-
     /**
      * Exposes the raw squads map for {@code BattleSimulation}'s alias-field
      * init so the sim's 40+ internal {@code squads.get / squads.values}
@@ -130,7 +126,6 @@ public final class UnitRosterService {
      */
     public void addUnit(Unit u) {
         registry.allocate(u);
-        units.add(u);
         unitIndex.add(u);
     }
 
@@ -141,8 +136,8 @@ public final class UnitRosterService {
      * Drops the registry entry for {@code entityId} via swap-and-pop.
      * Called by the death cascade in
      * {@code com.dillon.starsectormarines.battle.combat.DamageResolver#resolve}.
-     * Doesn't touch the legacy {@link #units} list — dead units stay there
-     * for the post-death consumers that still iterate it.
+     * Post-death readers source the corpse from the component stores (keyed by
+     * entity id, surviving release), so the entity stays observable afterward.
      */
     public void releaseFromRegistry(long entityId) {
         registry.release(entityId);
@@ -156,11 +151,11 @@ public final class UnitRosterService {
      * parallel-flag itself lives on {@link DamageService} so the two
      * queue patterns share one source of truth.
      *
-     * <p>Within-tick drift: a queued unit isn't visible to {@link #getUnits()}
-     * until the drain. {@code DroneSpawner.isCellOccupied} iterates units, so
-     * if two hubs spawn in the same tick the second won't see the first and
-     * could pick the same cell. Hub spawn intervals make same-tick double-
-     * spawn rare; the next tick's REBUILD_OCCUPANCY restores the picture.
+     * <p>Within-tick drift: a queued unit isn't visible in the live registry
+     * until the drain. {@code DroneSpawner.isCellOccupied} iterates the live
+     * registry, so if two hubs spawn in the same tick the second won't see the
+     * first and could pick the same cell. Hub spawn intervals make same-tick
+     * double-spawn rare; the next tick's REBUILD_OCCUPANCY restores the picture.
      */
     public void queueSpawn(Unit u) {
         if (!damageService.isParallel()) {

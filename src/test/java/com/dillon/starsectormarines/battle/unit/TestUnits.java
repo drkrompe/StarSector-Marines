@@ -29,11 +29,12 @@ public final class TestUnits {
 
     /**
      * Kill {@code u} the same way the production damage path does: drive hp
-     * to 0 and release the dense-registry entry. The legacy {@code units}
-     * list still keeps the dead unit (matching prod's
-     * {@code DamageResolver.resolve} path), so any test still iterating
-     * {@code sim.getUnits()} sees the corpse — but registry-resolve readers
-     * see {@code null}.
+     * to 0 and release the dense-registry entry (swap-and-pop). After the call
+     * the unit is gone from the live registry and {@code sim.resolveUnit(
+     * u.entityId)} returns {@code null}, exactly as after a real damage kill;
+     * the corpse's post-death state lives in the component stores. A caller
+     * still holding the {@code Unit} reference (e.g. from {@link #snapshot})
+     * can read its frozen hp via the release snapshot.
      */
     public static void kill(BattleSimulation sim, Unit u) {
         u.setHp(0f);

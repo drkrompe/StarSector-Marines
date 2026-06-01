@@ -104,10 +104,8 @@ public class BattleSimulation implements BattleControl {
     private final CellTopology topology;
     /** Runtime map-modification coordinator: wall breach / roof crack / structure-to-rubble. Sequences the topology writes + navigation walkability/zone-graph writes + the roof-collapse decal sink. Owns behavior {@link NavigationService} no longer holds. */
     private final com.dillon.starsectormarines.battle.world.MapService mapService;
-    /** Roster service: units list + squad registry + spawn queue + ID counters. {@link #units} is an alias field that shares the same {@link List} instance. */
+    /** Roster service: live unit registry + squad registry + spawn queue + ID counters. */
     private final UnitRosterService rosterService;
-    /** Alias of {@link UnitRosterService#getUnits()}. Same {@link List} instance — kept as a field so the sim's iteration / size / subList reads don't pay a per-call accessor hop. */
-    private final List<Unit> units;
     private final AirSystem airSystem;
     private final GroundSystem groundSystem;
     /** Fog-of-war state — building registry + faction contributor set + the every-3rd-tick {@link com.dillon.starsectormarines.battle.vision.BuildingVisibilityPass} driver. The {@link #getBuildings}/{@link #setBuildings}/{@link #getVisionState} delegates below forward here. */
@@ -192,7 +190,7 @@ public class BattleSimulation implements BattleControl {
      * UPDATE_UNITS against the frozen snapshot. Sibling slice to
      * {@link #rosterService} / {@link #navigation}; constructed after the
      * roster since {@link com.dillon.starsectormarines.battle.decision.AttackerIndexService#rebuild()}
-     * iterates {@link UnitRosterService#getUnits()}.
+     * iterates the live unit registry.
      */
     private final com.dillon.starsectormarines.battle.decision.AttackerIndexService attackerIndex;
 
@@ -277,12 +275,6 @@ public class BattleSimulation implements BattleControl {
         // which we build right after. We construct the service second and
         // wire it with damageResolver::resolve as the applier method ref.
         this.rosterService = new UnitRosterService(unitIndex, null);
-        // Alias-fields share the same collection instances as the service so
-        // the internal `units` iteration stays direct (no per-call accessor
-        // hop). Squad reads now route through rosterService directly — the
-        // squads alias was dropped when SquadReplanSystem absorbed the last
-        // inline iterator.
-        this.units = rosterService.getUnits();
         this.equipmentDropService = new EquipmentDropService(rosterService, this::clearPath);
         this.damageResolver = new DamageResolver(
                 navigation, rosterService, equipmentDropService,
@@ -364,8 +356,6 @@ public class BattleSimulation implements BattleControl {
         if (target == null) return false;
         return topology.isRoofIntact(target.getCellX(), target.getCellY());
     }
-
-    public List<Unit> getUnits()           { return units; }
 
     @Override public int liveUnitCount() { return rosterService.getRegistry().liveCount(); }
     @Override public Unit liveUnitAt(int index) { return rosterService.getRegistry().get(index); }

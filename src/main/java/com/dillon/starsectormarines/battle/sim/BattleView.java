@@ -48,16 +48,13 @@ public interface BattleView {
     /** Zone+portal graph layered on the {@link NavigationGrid}. Rebuilt on wall destruction so AI queries reflect the current map. */
     ZoneGraph getZoneGraph();
 
-    /** Live + corpse unit list. Callers must not retain across tick boundaries. */
-    List<Unit> getUnits();
-
     /**
      * Number of live units in the dense registry — the corpse-free count for
-     * live iteration. Paired with {@link #liveUnitAt(int)} this replaces the
-     * {@code for (Unit u : getUnits()) if (!u.isAlive()) continue;} idiom: the
-     * dense registry holds only live units, so the skip is unnecessary. The
-     * read-only, allocation-free path as the legacy {@code getUnits()} list is
-     * retired.
+     * live iteration. Paired with {@link #liveUnitAt(int)} this is the
+     * read-only, allocation-free live-iteration path: the dense registry holds
+     * only live units, so no {@code isAlive()} skip is needed. (Replaced the
+     * retired live+dead {@code getUnits()} list; post-death state lives in the
+     * corpse component stores.)
      */
     int liveUnitCount();
 
