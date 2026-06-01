@@ -118,8 +118,6 @@ public class BattleScreen implements Screen, BattleUiContext {
     private static final Color BANNER_BG      = new Color(0x10, 0x14, 0x1E);
     private static final Color VICTORY_COLOR  = new Color(0x80, 0xE0, 0x80);
     private static final Color DEFEAT_COLOR   = new Color(0xE0, 0x60, 0x60);
-    private static final Color MARINE_TRACER  = new Color(0xFF, 0xE0, 0x70);
-    private static final Color DEFENDER_TRACER = new Color(0xFF, 0x70, 0x40);
     private static final float SPEED_BTN_W    = 60f;
     private static final float SPEED_BTN_H    = 32f;
     private static final float SPEED_BTN_GAP  = 6f;
@@ -853,7 +851,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             // BattleRenderer.drawTracers reads.
             Color tracerColor = (s.marineWeapon != null)
                     ? s.marineWeapon.tracerColor
-                    : (s.shooterFaction == Faction.MARINE ? MARINE_TRACER : DEFENDER_TRACER);
+                    : com.dillon.starsectormarines.ops.battleview.ShotFx.defaultTracerColor(s.shooterFaction);
             WeaponLights.laserPath(renderer.getLightAccumulator(), s.fromX, s.fromY, s.toX, s.toY, tracerColor);
         }
         for (ShotEvent s : sim.getShotsExpiredThisFrame()) {

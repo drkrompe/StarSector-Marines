@@ -1,10 +1,13 @@
 # Phase 2 — FX command-model migration (SHOTS as the flyweight template)
 
-> **Status: design-stage / not started.** The structural reorg (Stories A–J +
-> Final) and the `QuadBatch.flush` perf spike are done. This opens the *next*
-> battle-render epic: dissolving the residual `Custom` escape hatches into the
-> command model, using SHOTS/FX as the template — applying the Story-J
-> flyweight + capability-tag + stateless-sweep pattern one tier earlier.
+> **Status: SHIPPED (F1–F5).** SHOTS is now fully command-driven — zero `Custom`
+> left in the layer; the deferred command stream is the auditable unit for it.
+> Landed the Story-J flyweight + capability-tag + stateless-sweep pattern one tier
+> earlier: a `LINE` + `RIBBON` draw command, the carrier-agnostic `ShotFx`
+> composition, `ShotRenderService` (path-keyed sprites), and `ContrailFxService`
+> (trail state split out of render). See each slice below for commit-level detail;
+> F5 (this close-out) pruned the orphaned per-carrier sprite maps + getters and
+> deduped the faction-default tracer colors onto `ShotFx.defaultTracerColor`.
 
 ## Why this, why now
 
@@ -177,13 +180,18 @@ TurretKind; `boostRamp`/`contrail` from the weapon's own declaration.
   shared-bracket-GL/pooled-ref); in-game verified. **Invariant pinned in the drain:**
   ribbon styles must be normal-blend (they share the `textured2D()` bracket); an
   additive style would need its own `additiveBlend()` bracket.
-- **F5 — Final sweep + close-out.** The three render bodies are already gone
-  (`collectShots`/`drawTracers` in F3, `renderContrails`/`styleFor`/
-  `kindUsesContrailRibbon` in F4) — SHOTS is fully command-driven. F5 is the
-  bookkeeping tail: prune any now-dead per-enum projectile-sprite getters in
-  `BattleSprites` the path-keyed cache orphaned, dedupe the
-  `MARINE_TRACER`/`DEFENDER_TRACER` constants (live in both `ShotRenderService`
-  and `BattleScreen`), and move this doc to `complete/`.
+- ~~**F5 — Final sweep + close-out.**~~ ✅ **SHIPPED.** The three render bodies were
+  already gone (`collectShots`/`drawTracers` in F3, `renderContrails`/`styleFor`/
+  `kindUsesContrailRibbon` in F4). F5 removed the orphans the path-keyed cache left
+  behind: the four dead per-carrier sprite getters + the three write-only EnumMaps
+  (`turretProjectileSprites`/`marineWeaponProjectileSprites`/`mechWeaponProjectile
+  Sprites`) and the `marineSecondarySprites` map — `projectileSpriteByPath` is now
+  the sole projectile store (turret load refactored to a path-keyed
+  `loadTurretSprite`). The duplicated `MARINE_TRACER`/`DEFENDER_TRACER` constants
+  (in `ShotRenderService` + `BattleScreen`) collapsed onto
+  `ShotFx.defaultTracerColor(Faction)`, the single source of truth. Pure cleanup,
+  no behavior change (identical tracer RGB, identical cache population); compile +
+  `ShotFxTest` green.
 
 ## Template payoff — the remaining `Custom` passes
 

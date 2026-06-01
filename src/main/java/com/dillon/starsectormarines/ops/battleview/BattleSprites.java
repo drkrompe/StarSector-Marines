@@ -58,22 +58,15 @@ public class BattleSprites {
             new java.util.EnumMap<>(TurretKind.class);
     private final java.util.EnumMap<TurretKind, ShuttleSpriteCache> turretRecoilSprites =
             new java.util.EnumMap<>(TurretKind.class);
-    private final java.util.EnumMap<TurretKind, ShuttleSpriteCache> turretProjectileSprites =
-            new java.util.EnumMap<>(TurretKind.class);
     private boolean turretSpritesLoadAttempted;
 
     // ---- marine secondary sprites -------------------------------------------
 
-    private final java.util.EnumMap<MarineSecondary, ShuttleSpriteCache> marineSecondarySprites =
-            new java.util.EnumMap<>(MarineSecondary.class);
-    private final java.util.EnumMap<MarineWeapon, ShuttleSpriteCache> marineWeaponProjectileSprites =
-            new java.util.EnumMap<>(MarineWeapon.class);
-    private final java.util.EnumMap<com.dillon.starsectormarines.battle.mech.MechWeapon, ShuttleSpriteCache> mechWeaponProjectileSprites =
-            new java.util.EnumMap<>(com.dillon.starsectormarines.battle.mech.MechWeapon.class);
     /**
      * Projectile sprites keyed by texture path — the carrier-agnostic view {@code ShotFx}
      * resolves against (any weapon declaring the same path shares the one loaded sprite).
-     * Populated alongside the per-source maps above as each projectile sprite loads.
+     * The single projectile-sprite store; the old per-source maps were write-only once
+     * the shot pass went path-keyed (F3/F5) and are gone.
      */
     private final java.util.Map<String, ShuttleSpriteCache> projectileSpriteByPath =
             new java.util.HashMap<>();
@@ -162,10 +155,6 @@ public class BattleSprites {
     public java.util.EnumMap<VehicleKind.VehicleSheet, UnitSpriteCache> vehicleSheets() { return vehicleSheets; }
     public java.util.EnumMap<TurretKind, ShuttleSpriteCache> turretSprites()   { return turretSprites; }
     public java.util.EnumMap<TurretKind, ShuttleSpriteCache> turretRecoilSprites() { return turretRecoilSprites; }
-    public java.util.EnumMap<TurretKind, ShuttleSpriteCache> turretProjectileSprites() { return turretProjectileSprites; }
-    public java.util.EnumMap<MarineSecondary, ShuttleSpriteCache> marineSecondarySprites() { return marineSecondarySprites; }
-    public java.util.EnumMap<MarineWeapon, ShuttleSpriteCache> marineWeaponProjectileSprites() { return marineWeaponProjectileSprites; }
-    public java.util.EnumMap<com.dillon.starsectormarines.battle.mech.MechWeapon, ShuttleSpriteCache> mechWeaponProjectileSprites() { return mechWeaponProjectileSprites; }
     /** Carrier-agnostic projectile-sprite lookup by texture path (what {@code ShotFx.Sprite} resolves against). Null if not loaded / no such path. */
     public ShuttleSpriteCache projectileSprite(String path) { return path == null ? null : projectileSpriteByPath.get(path); }
     public java.util.EnumMap<MarineSecondary, UnitSpriteCache> marineSecondaryAimSheets() { return marineSecondaryAimSheets; }
@@ -577,7 +566,6 @@ public class BattleSprites {
                     float h = sprite.getHeight();
                     float aspect = (h > 0f) ? w / h : 1f;
                     ShuttleSpriteCache cache = new ShuttleSpriteCache(sprite, aspect);
-                    marineSecondarySprites.put(sec, cache);
                     projectileSpriteByPath.put(sec.projectileSpritePath, cache);
                     LOG.info("BattleSprites: loaded " + sec.projectileSpritePath
                             + " (" + w + "x" + h + ", aspect=" + aspect + ")");
@@ -605,7 +593,6 @@ public class BattleSprites {
                 float ph = sprite.getHeight();
                 float aspect = (ph > 0f) ? pw / ph : 1f;
                 ShuttleSpriteCache cache = new ShuttleSpriteCache(sprite, aspect);
-                marineWeaponProjectileSprites.put(w, cache);
                 projectileSpriteByPath.put(w.projectileSpritePath, cache);
                 LOG.info("BattleSprites: loaded " + w.projectileSpritePath
                         + " (" + pw + "x" + ph + ", aspect=" + aspect + ")");
@@ -630,7 +617,6 @@ public class BattleSprites {
                 float ph = sprite.getHeight();
                 float aspect = (ph > 0f) ? pw / ph : 1f;
                 ShuttleSpriteCache cache = new ShuttleSpriteCache(sprite, aspect);
-                mechWeaponProjectileSprites.put(w, cache);
                 projectileSpriteByPath.put(w.projectileSpritePath, cache);
                 LOG.info("BattleSprites: loaded mech projectile " + w.projectileSpritePath
                         + " (" + pw + "x" + ph + ", aspect=" + aspect + ")");
@@ -644,10 +630,10 @@ public class BattleSprites {
         if (turretSpritesLoadAttempted) return;
         turretSpritesLoadAttempted = true;
         for (TurretKind kind : TurretKind.values()) {
-            loadTurretSpriteInto(turretSprites,           kind, kind.spritePath);
-            loadTurretSpriteInto(turretRecoilSprites,     kind, kind.recoilSpritePath);
-            loadTurretSpriteInto(turretProjectileSprites, kind, kind.projectileSpritePath);
-            ShuttleSpriteCache proj = turretProjectileSprites.get(kind);
+            loadTurretSpriteInto(turretSprites,       kind, kind.spritePath);
+            loadTurretSpriteInto(turretRecoilSprites, kind, kind.recoilSpritePath);
+            // Projectile sprite is path-keyed only (carrier-agnostic) — no per-kind map.
+            ShuttleSpriteCache proj = loadTurretSprite(kind.projectileSpritePath);
             if (proj != null) projectileSpriteByPath.put(kind.projectileSpritePath, proj);
         }
     }
@@ -694,24 +680,31 @@ public class BattleSprites {
         }
     }
 
-    /** Shared loader for the three turret-related sprite caches. Captures the native aspect before any {@code setSize} call clobbers {@code getWidth/getHeight}. */
-    public void loadTurretSpriteInto(java.util.EnumMap<TurretKind, ShuttleSpriteCache> cache,
-                                     TurretKind kind, String path) {
+    /** Loads one turret-related sprite + its native aspect (captured before any {@code setSize} clobbers {@code getWidth/getHeight}); null on failure. */
+    public ShuttleSpriteCache loadTurretSprite(String path) {
         try {
             Global.getSettings().loadTexture(path);
             SpriteAPI sprite = Global.getSettings().getSprite(path);
             if (sprite == null) {
                 LOG.warn("BattleSprites: getSprite returned null for " + path);
-                return;
+                return null;
             }
             float w = sprite.getWidth();
             float h = sprite.getHeight();
             float aspect = (h > 0f) ? w / h : 1f;
-            cache.put(kind, new ShuttleSpriteCache(sprite, aspect));
             LOG.info("BattleSprites: loaded " + path + " (" + w + "x" + h + ", aspect=" + aspect + ")");
+            return new ShuttleSpriteCache(sprite, aspect);
         } catch (Exception e) {
             LOG.error("BattleSprites: failed to load " + path, e);
+            return null;
         }
+    }
+
+    /** {@link #loadTurretSprite} into a per-kind map (turret body + recoil sprites, read by the turret renderer). */
+    public void loadTurretSpriteInto(java.util.EnumMap<TurretKind, ShuttleSpriteCache> cache,
+                                     TurretKind kind, String path) {
+        ShuttleSpriteCache c = loadTurretSprite(path);
+        if (c != null) cache.put(kind, c);
     }
 
     public UnitSpriteCache loadUnitSheet(String path) {

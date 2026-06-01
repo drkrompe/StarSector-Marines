@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
-import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
 import java.awt.Color;
@@ -31,9 +30,6 @@ import java.util.List;
  */
 public final class ShotRenderService implements RenderSystem {
 
-    /** Dual-use in BattleScreen (spawnImpactFx); kept independent here for zero back-dependency. */
-    private static final Color MARINE_TRACER   = new Color(0xFF, 0xE0, 0x70);
-    private static final Color DEFENDER_TRACER  = new Color(0xFF, 0x70, 0x40);
     /** Hitscan tracer line width in px (was {@code glLineWidth(2f)} in the old immediate-mode pass). */
     private static final float TRACER_WIDTH = 2f;
 
@@ -63,7 +59,7 @@ public final class ShotRenderService implements RenderSystem {
             float lifeT = Math.max(0f, Math.min(1f, s.lifetime / Math.max(0.001f, s.lifetimeMax)));
             Color c = tracer.color() != null
                     ? tracer.color()
-                    : (s.shooterFaction == Faction.MARINE ? MARINE_TRACER : DEFENDER_TRACER);
+                    : ShotFx.defaultTracerColor(s.shooterFaction);
             out.addLine(RenderLayer.SHOTS,
                     cam.cellToScreenX(s.fromX), cam.cellToScreenY(s.fromY),
                     cam.cellToScreenX(s.toX),   cam.cellToScreenY(s.toY),

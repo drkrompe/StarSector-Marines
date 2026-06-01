@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.render2d.ContrailStyle;
 
 import java.awt.Color;
@@ -53,9 +54,23 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
 
     /**
      * Hitscan tracer line. {@code color} {@code null} → the sweep resolves the
-     * faction-default color from the shot (per-shot, not type-flyweight).
+     * faction-default color from the shot via {@link #defaultTracerColor} (per-shot,
+     * not type-flyweight).
      */
     public record Tracer(Color color) implements Body {}
+
+    /** Faction-default hitscan tracer colors — what a null-color {@link Tracer} resolves to. */
+    public static final Color MARINE_TRACER   = new Color(0xFF, 0xE0, 0x70);
+    public static final Color DEFENDER_TRACER = new Color(0xFF, 0x70, 0x40);
+
+    /**
+     * The tracer color for a shot whose {@link Tracer#color} is null — the shot's
+     * faction default (single source of truth for the tracer-line color and the
+     * matching light-path stamp). Any non-marine faction reads as the defender hue.
+     */
+    public static Color defaultTracerColor(Faction faction) {
+        return faction == Faction.MARINE ? MARINE_TRACER : DEFENDER_TRACER;
+    }
 
     private static final EnumMap<TurretKind, ShotFx>      TURRET    = build(TurretKind.class,      ShotFx::deriveTurret);
     private static final EnumMap<MarineWeapon, ShotFx>    PRIMARY   = build(MarineWeapon.class,    ShotFx::derivePrimary);

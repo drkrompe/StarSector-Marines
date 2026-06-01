@@ -7,16 +7,20 @@
 > ✅ **`QuadBatch.flush` perf spike — SHIPPED & VERIFIED** (client-side vertex
 > arrays; −75% combined flush CPU, in-game render correct — see below).
 >
-> 🎯 **Active next: Phase 2 — FX command-model migration.** Dissolve the residual
-> `Custom` escape hatches into the command model, SHOTS/FX first, using the
-> Story-J flyweight + capability-tag + stateless-sweep pattern as the template.
-> Design + slice plan: [`stories/fx-shots-command-model.md`](stories/fx-shots-command-model.md).
-> **F1–F4 shipped** (`LINE` command + `LineBatch`; `ShotFx` composition + test;
-> `ShotRenderService` + path-keyed sprite cache; contrail state/render split via a
-> `RIBBON` command + `ContrailFxService`). SHOTS is now fully command-driven — no
-> `Custom` left in the layer. **F5** is the close-out tail (prune orphaned getters,
-> dedupe tracer constants, move the doc to `complete/`).
-> Optional perf follow-up still on the shelf: the ground-FBO work-reduction spike.
+> ✅ **Phase 2 — FX command-model migration — COMPLETE (F1–F5).** SHOTS is now
+> fully command-driven — zero `Custom` left in the layer. Shipped: a `LINE` +
+> `RIBBON` draw command, the carrier-agnostic `ShotFx` composition + pinning test,
+> `ShotRenderService` (path-keyed sprites), `ContrailFxService` (trail state split
+> out of render), and the F5 close-out (orphaned per-carrier sprite maps/getters
+> pruned, faction-default tracer colors deduped onto `ShotFx.defaultTracerColor`).
+> Full write-up: [`complete/fx-shots-command-model.md`](complete/fx-shots-command-model.md).
+>
+> 🎯 **Active next: pick from the shelf.** The remaining `Custom` passes sort into
+> migratable-geometry (convoy-debug paths, zone overlay, objective arcs/rings,
+> compound markers — several now unlocked by the `LINE`/`RIBBON` primitives) and
+> legitimately-`Custom` FBO blits (`DecalAccumulator`/`LightAccumulator`, flyby).
+> Or the optional perf follow-up still on the shelf: the ground-FBO
+> work-reduction spike ([`stories/perf-ground-fbo-cache.md`](stories/perf-ground-fbo-cache.md)).
 
 ## State of play
 
@@ -191,9 +195,10 @@ the story to `complete/`. Follow-up spike (bigger work-reduction lever) stubbed:
 [`stories/perf-ground-fbo-cache.md`](stories/perf-ground-fbo-cache.md).
 Cross-ref backlog § Performance.
 
-Carry-over follow-ups (opportunistic): dedupe `MARINE_TRACER`/`DEFENDER_TRACER`/
-`bearingDeg()`; restore fuller inter-pass comments; drop pre-existing unused
-imports (`ShuttleType`, `LightKernel`).
+Carry-over follow-ups (opportunistic): ~~dedupe `MARINE_TRACER`/`DEFENDER_TRACER`~~
+(done in F5 → `ShotFx.defaultTracerColor`); dedupe `bearingDeg()` (still duplicated
+in `ShotRenderService` + `BattleScreen`); restore fuller inter-pass comments; drop
+pre-existing unused imports (`ShuttleType`, `LightKernel`).
 
 ## Slice chain
 
