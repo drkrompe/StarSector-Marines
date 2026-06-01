@@ -31,6 +31,20 @@ public enum BlockKind {
     /** Marine touchdown area — striped floor + directional arrows + LZ marker decal. Marine spawn anchors prefer this kind when present. */
     LANDING_ZONE,
 
+    /**
+     * Spaceport apron — the <em>open killing ground</em>. A wide walkable
+     * striped pad with only <b>sparse, isolated hard-cover islands</b> (parked
+     * cargo blocks) and a single hardened control-tower POI. Long sightlines,
+     * little cover: the frontage you cross under fire, and the natural home of
+     * the defense-intensity overwatch line. The economy-reflective counterpart
+     * to a {@code SPACEPORT} world's port band — tactically the opposite of the
+     * dense {@link #DENSE_BLOCK} CQB and the cover-rich {@link #INDUSTRIAL_YARD}.
+     *
+     * <p>Filled by {@code SpaceportFiller}; lives in the {@code HARBOR_PORT}
+     * theme. See {@code roadmap/economic-districts/overview.md}.
+     */
+    SPACEPORT_PAD,
+
     /** Green block — grass blob center, sparse stone paths, optional benches. Low cover. */
     PARK,
 

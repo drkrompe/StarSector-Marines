@@ -154,19 +154,22 @@ public enum MapDistrictTheme {
                 .build();
 
         // Port / harbor — warehouses, yards, commercial offices, the
-        // occasional harbor battery. No WATERFRONT here in v1 (it expects to
+        // occasional harbor battery, and the spaceport apron itself
+        // (SPACEPORT_PAD — the open killing ground that gives the port band its
+        // signature open frontage). No WATERFRONT here in v1 (it expects to
         // sit on the map edge); commit-2 work will revisit interior water if
         // we want piers cutting into the port.
         HARBOR_PORT.table = WeightedTable.<BlockKind>builder()
-                .add(BlockKind.BUILDING_INDUSTRIAL,  26)
-                .add(BlockKind.INDUSTRIAL_YARD,      20)
-                .add(BlockKind.BUILDING_COMMERCIAL,  13)
-                .add(BlockKind.WASTELAND_RUBBLE,      9)
+                .add(BlockKind.BUILDING_INDUSTRIAL,  22)
+                .add(BlockKind.SPACEPORT_PAD,        18)  // the spaceport apron — open killing ground
+                .add(BlockKind.INDUSTRIAL_YARD,      18)
+                .add(BlockKind.BUILDING_COMMERCIAL,  12)
+                .add(BlockKind.WASTELAND_RUBBLE,      8)
                 .add(BlockKind.FORTIFIED_POST,        8)
-                .add(BlockKind.NATURE_WETLAND,        6)  // brackish marsh between piers
-                .add(BlockKind.BUILDING_RESIDENTIAL,  6)
-                .add(BlockKind.PLAZA,                 5)
-                .add(BlockKind.DENSE_BLOCK,           5)  // dockside tenements
+                .add(BlockKind.NATURE_WETLAND,        5)  // brackish marsh between piers
+                .add(BlockKind.BUILDING_RESIDENTIAL,  5)
+                .add(BlockKind.PLAZA,                 4)
+                .add(BlockKind.DENSE_BLOCK,           4)  // dockside tenements
                 .add(BlockKind.NATURE_BEACH,          2)  // sandy spit beside the docks
                 .build();
 

@@ -126,7 +126,12 @@ new `BlockKind`/filler. All reuse existing tile sheets.
    `BiomeMap`'s CITY band (the urban bulk) and `DistrictMap`'s interior rolls
    now lean toward the world's economy, `NEUTRAL` byte-identical. The plumbing is
    proven on known output; slices 1–4 are now pure content drops onto a live pipe.
-1. **Spaceport** (cheapest new — mostly sharpening the existing port path).
+1. ~~**Spaceport** (cheapest new — mostly sharpening the existing port path).~~
+   ✅ **shipped** — see [`complete/slice-1-spaceport.md`](complete/slice-1-spaceport.md).
+   `SPACEPORT_PAD` + `SpaceportFiller`: open walkable apron, sparse isolated
+   hard-cover islands (real cover via the bake), a control-tower COMMS POI;
+   wired into the `HARBOR_PORT` theme so every conquest port band gains the open
+   frontage. Connectivity gate holds.
 2. **Mining** (strongest identity; introduces the impassable-pit nav treatment).
 3. **Refinery / fuel** (round hard-cover footprints; reuses much of mining).
 4. **Agriculture** (open + see-through greenhouse walls).

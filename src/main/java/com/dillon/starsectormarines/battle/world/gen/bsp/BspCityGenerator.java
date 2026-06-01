@@ -24,6 +24,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.fill.MilitaryBaseFiller
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.NatureZoneFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.ParkFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.PlazaFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.SpaceportFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.WastelandRubbleFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.WaterfrontFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.BeachShorelineStage;
@@ -99,6 +100,7 @@ public final class BspCityGenerator implements MapGenerator {
         register(new BuildingIndustrialFiller());
         register(new FortifiedPostFiller());
         register(new LandingZoneFiller());
+        register(new SpaceportFiller());
         register(new PlazaFiller());
         register(new ParkFiller());
         register(new IndustrialYardFiller());
