@@ -79,11 +79,12 @@ public class OverwatchPostureTest {
         squad.aliveMembers = 1;
 
         Unit defender = defenderAt(5, 5, squadId);
-        // Pre-cooldown set: if any action accidentally fires, cooldownTimer
+        sim.addUnit(defender);
+        // Seed a known non-default cooldown (after registration, so it routes
+        // through the registry): if any action accidentally fires, cooldownTimer
         // would jump to attackCooldown. We assert it doesn't change.
         defender.setCooldownTimer(0.1f);
         float startCooldown = defender.getCooldownTimer();
-        sim.addUnit(defender);
 
         // Marine in LOS + range, but the squad's holdsFireUntilKillZone gate
         // is closed (killZoneLosTicks defaults to 0). Overwatch must hold.

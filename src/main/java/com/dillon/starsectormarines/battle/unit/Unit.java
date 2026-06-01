@@ -1,17 +1,14 @@
 package com.dillon.starsectormarines.battle.unit;
 
 import com.dillon.starsectormarines.battle.drone.Drone;
-import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.mech.MechLoadoutState;
 
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
-import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 
 import java.util.Random;
 
@@ -202,20 +199,20 @@ public class Unit {
      * needing its own {@code isAlive()} branch. Writes go through
      * {@link #setTarget(Unit)} so null-vs-instance is handled in one place.
      *
-     * <p><b>Mid-combat-column contract.</b> Unlike hp/cell/render, these
-     * mid-combat columns (targetId, cooldown/timers, burst/secondary/fallback/
-     * reposition/wander) carry no {@code local*} shadow on {@link Unit}. When
-     * the unit is unregistered — pre-allocate, or a released corpse still on the
-     * legacy units list that systems iterate (e.g. {@code InfantryWeapons.tick})
-     * — the getter returns the type default and the setter is a no-op, so a
-     * corpse reads as having no active combat state instead of throwing.
+     * <p><b>Mid-combat-column contract.</b> Unlike hp/cell, these mid-combat
+     * columns (targetId, cooldown/timers, burst/secondary/fallback/reposition/wander)
+     * carry no {@code local*} shadow on {@link Unit} — their canonical storage is
+     * the registry's SoA arrays and they are only meaningful for a registered, live
+     * unit. The accessors read/write the registry unconditionally; calling them on
+     * an unregistered unit is a programming error (fail-loud) now that the live
+     * registry is the sole roster and no observable unit is ever unregistered.
      */
     public final long getTargetId() {
-        return (registry != null) ? registry.getTargetId(denseIdx) : 0L;
+        return registry.getTargetId(denseIdx);
     }
 
     public final void setTargetId(long v) {
-        if (registry != null) registry.setTargetId(denseIdx, v);
+        registry.setTargetId(denseIdx, v);
     }
 
     /**
@@ -257,24 +254,24 @@ public class Unit {
      * -1 = none). Canonical storage lives in the registry's SoA arrays.
      */
     public final float getFallbackTimer() {
-        return (registry != null) ? registry.getFallbackTimer(denseIdx) : 0f;
+        return registry.getFallbackTimer(denseIdx);
     }
 
     public final void setFallbackTimer(float v) {
-        if (registry != null) registry.setFallbackTimer(denseIdx, v);
+        registry.setFallbackTimer(denseIdx, v);
     }
 
     public final int getFallbackCellX() {
-        return (registry != null) ? registry.getFallbackCellX(denseIdx) : -1;
+        return registry.getFallbackCellX(denseIdx);
     }
 
     public final int getFallbackCellY() {
-        return (registry != null) ? registry.getFallbackCellY(denseIdx) : -1;
+        return registry.getFallbackCellY(denseIdx);
     }
 
     /** Every callsite writes the fall-back cell pair together (break-contact pick, inline fallback write), so the paired setter matches access and hits both SoA slots in one dispatch. */
     public final void setFallbackCell(int x, int y) {
-        if (registry != null) registry.setFallbackCell(denseIdx, x, y);
+        registry.setFallbackCell(denseIdx, x, y);
     }
 
     /**
@@ -287,11 +284,11 @@ public class Unit {
      * Canonical storage lives in {@code registry.repositionCooldown[denseIdx]}.
      */
     public final float getRepositionCooldown() {
-        return (registry != null) ? registry.getRepositionCooldown(denseIdx) : 0f;
+        return registry.getRepositionCooldown(denseIdx);
     }
 
     public final void setRepositionCooldown(float v) {
-        if (registry != null) registry.setRepositionCooldown(denseIdx, v);
+        registry.setRepositionCooldown(denseIdx, v);
     }
 
     /**
@@ -301,11 +298,11 @@ public class Unit {
      * Canonical storage lives in {@code registry.wanderDwellTimer[denseIdx]}.
      */
     public final float getWanderDwellTimer() {
-        return (registry != null) ? registry.getWanderDwellTimer(denseIdx) : 0f;
+        return registry.getWanderDwellTimer(denseIdx);
     }
 
     public final void setWanderDwellTimer(float v) {
-        if (registry != null) registry.setWanderDwellTimer(denseIdx, v);
+        registry.setWanderDwellTimer(denseIdx, v);
     }
 
     /**
@@ -346,11 +343,11 @@ public class Unit {
      * {@code registry.secondaryCooldownTimer[denseIdx]}.
      */
     public final float getSecondaryCooldownTimer() {
-        return (registry != null) ? registry.getSecondaryCooldownTimer(denseIdx) : 0f;
+        return registry.getSecondaryCooldownTimer(denseIdx);
     }
 
     public final void setSecondaryCooldownTimer(float v) {
-        if (registry != null) registry.setSecondaryCooldownTimer(denseIdx, v);
+        registry.setSecondaryCooldownTimer(denseIdx, v);
     }
 
     /**
@@ -360,11 +357,11 @@ public class Unit {
      * this drops below {@link MarineSecondary#aimDuration}/2.
      */
     public final float getSecondaryActionTimer() {
-        return (registry != null) ? registry.getSecondaryActionTimer(denseIdx) : 0f;
+        return registry.getSecondaryActionTimer(denseIdx);
     }
 
     public final void setSecondaryActionTimer(float v) {
-        if (registry != null) registry.setSecondaryActionTimer(denseIdx, v);
+        registry.setSecondaryActionTimer(denseIdx, v);
     }
 
     /**
@@ -375,11 +372,11 @@ public class Unit {
      * Writes go through {@link #setSecondaryAimTarget(Unit)}.
      */
     public final long getSecondaryAimTargetId() {
-        return (registry != null) ? registry.getSecondaryAimTargetId(denseIdx) : 0L;
+        return registry.getSecondaryAimTargetId(denseIdx);
     }
 
     public final void setSecondaryAimTargetId(long v) {
-        if (registry != null) registry.setSecondaryAimTargetId(denseIdx, v);
+        registry.setSecondaryAimTargetId(denseIdx, v);
     }
 
     /** Sets {@link #getSecondaryAimTargetId()} from a {@link Unit} ref (null → 0L). */
@@ -394,11 +391,11 @@ public class Unit {
      * {@code registry.burstRemaining[denseIdx]}.
      */
     public final int getBurstRemaining() {
-        return (registry != null) ? registry.getBurstRemaining(denseIdx) : 0;
+        return registry.getBurstRemaining(denseIdx);
     }
 
     public final void setBurstRemaining(int v) {
-        if (registry != null) registry.setBurstRemaining(denseIdx, v);
+        registry.setBurstRemaining(denseIdx, v);
     }
 
     /**
@@ -406,11 +403,11 @@ public class Unit {
      * {@code InfantryWeapons.tick}.
      */
     public final float getBurstTimer() {
-        return (registry != null) ? registry.getBurstTimer(denseIdx) : 0f;
+        return registry.getBurstTimer(denseIdx);
     }
 
     public final void setBurstTimer(float v) {
-        if (registry != null) registry.setBurstTimer(denseIdx, v);
+        registry.setBurstTimer(denseIdx, v);
     }
 
     /**
@@ -424,11 +421,11 @@ public class Unit {
      * sets it as part of the trigger).
      */
     public final long getBurstTargetId() {
-        return (registry != null) ? registry.getBurstTargetId(denseIdx) : 0L;
+        return registry.getBurstTargetId(denseIdx);
     }
 
     public final void setBurstTargetId(long v) {
-        if (registry != null) registry.setBurstTargetId(denseIdx, v);
+        registry.setBurstTargetId(denseIdx, v);
     }
 
     /** Sets {@link #getBurstTargetId()} from a {@link Unit} ref (null → 0L). */
@@ -545,11 +542,11 @@ public class Unit {
     }
 
     public final float getCooldownTimer() {
-        return (registry != null) ? registry.getCooldownTimer(denseIdx) : 0f;
+        return registry.getCooldownTimer(denseIdx);
     }
 
     public final void setCooldownTimer(float v) {
-        if (registry != null) registry.setCooldownTimer(denseIdx, v);
+        registry.setCooldownTimer(denseIdx, v);
     }
 
     public final float getAttackDamage() {
@@ -580,11 +577,11 @@ public class Unit {
     }
 
     public final float getMoveProgress() {
-        return (registry != null) ? registry.getMoveProgress(denseIdx) : 0f;
+        return registry.getMoveProgress(denseIdx);
     }
 
     public final void setMoveProgress(float v) {
-        if (registry != null) registry.setMoveProgress(denseIdx, v);
+        registry.setMoveProgress(denseIdx, v);
     }
 
     public final float getRenderX() {

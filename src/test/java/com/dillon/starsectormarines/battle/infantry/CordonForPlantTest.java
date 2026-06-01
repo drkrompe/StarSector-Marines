@@ -194,8 +194,8 @@ public class CordonForPlantTest {
         planter.squadId = 1;
         planter.role = UnitRole.PLANTER;
         planter.assignedObjective = charge;
-        planter.setMoveProgress(0f);
         sim.addUnit(planter);
+        planter.setMoveProgress(0f);
         // Tick the objective enough to flip isComplete().
         for (int i = 0; i < 200; i++) charge.tick(sim);
         assertTrue(charge.isComplete(), "test prerequisite: charge completes after dwell");
