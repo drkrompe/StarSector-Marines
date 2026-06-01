@@ -42,6 +42,11 @@ findings) in
 - Build green; `BuildingShellCoreLabelTest` + ternary 50-seed coverage
   pass. Diagnostic preview at
   `build/zone-previews/ternary-partition-labels.png`.
+- **Validation scan harness (this session): added.**
+  `MapValidationScanTest` (sibling to the `BspMapPreviewTest` previews) runs
+  three structural scans over the 10-seed batch and prints a per-seed report —
+  see the "Validation harness" section below for what landed, what it found,
+  and the scans still on the menu.
 
 ## Next up (priority order)
 
@@ -131,8 +136,92 @@ the minor items it raised are now closed:
   fixed in `8666b8f`; the `GenStage` "no instance fields" Javadoc vs
   `FillDispatchStage`'s config registries is documented, intentional tension.
 
+## Validation harness (gut-check loop, this session)
+
+The map-gen working loop leans on two complementary dev-tools-dressed-as-tests:
+the **previews** (`BspMapPreviewTest` — color-coded ground/biome/tactical/road
+PNGs for the eye) and now the **scans** (`MapValidationScanTest` — structural
+checks that surface missing rules as numbers). Run both after touching gen
+rules; re-run to see the delta.
+
+### What landed
+
+`MapValidationScanTest` (`src/test/java/.../world/gen/bsp/`) runs three scans
+over the same 10 seeds the previews use (6 legacy 80×80 + 4 conquest 240×160):
+
+1. **Connectivity (cell vs. edge).** The preview test's `assertConnected`
+   floods 4-neighbor over `isWalkable` — *cell* connectivity. The real
+   `GridPathfinder` honors per-edge walls (dual-side check, `GridPathfinder`
+   L289-290). This scan floods both models and reports the delta. Because a
+   diagonal move in `GridPathfinder` requires both adjacent cardinal edges,
+   **cardinal edge-flood reachability == the pathfinder's full connectivity**,
+   so cardinal flooding is the exact oracle. Hard-asserts `edgeComponents ==
+   cellComponents`.
+2. **Semantic reachability.** From the marine spawn, runs the *real*
+   `GridPathfinder` to the defender spawn + every tactical node; reports the
+   assault-distance distribution. Hard-asserts defender reachable.
+3. **Tactical-node placement.** Every node anchor on a walkable cell (the
+   `53fe951` defense-post stranding class). Reported, not yet asserted.
+
+### What it found (baseline, all 10 seeds)
+
+- **Connectivity delta is zero everywhere.** Cell- and edge-models agree (1
+  component, identical sizes). This confirms walls today are *cells*
+  (non-walkable), not edge-blocks — so the two models *can't* disagree yet.
+  The edge scan is a **no-op guard now**, armed to fire the moment corridors
+  introduce edge-based passages or any `blockEdge` rule. That's deliberate: the
+  acceptance gate exists before the work that needs it.
+- **Semantic reachability is clean.** Defender reachable on every seed; every
+  tactical node reachable. Assault distances sane (legacy 22–59; conquest
+  median ~110–140 on a 160-tall map).
+- **⚠ Open finding — non-walkable node anchors.** ~25 tactical-node anchors
+  *per conquest map* (24–31 across the four seeds) sit on **non-walkable
+  cells**. All reachable via the nearest walkable neighbor, so not a
+  connectivity break — but the convention "a node anchor is where a unit
+  stands" is violated en masse. Same class as `53fe951`, now a standing number.
+  **Follow-up:** decide whether anchors should be forced walkable (and which
+  node kinds legitimately sit on a wall, e.g. a tower the garrison stands
+  beside) before promoting scan #3 to a hard assert.
+
+### Scans still on the menu (priority candidates)
+
+These were scoped this session but not built — each isolates a further class of
+missing rule, and several become load-bearing once corridors land:
+
+- **Doorway integrity** — per interior-wall / per-building: assert a connecting
+  doorway exists. Directly relevant to the corridors doorway-coordination gap
+  (`BuildingShellCore` places doorways independently).
+- **Promote scan #3** once the non-walkable-anchor question above is resolved.
+- **Edge-scan teeth** — currently a no-op; it gains real coverage the moment an
+  edge-based passage (corridor) exists. No work needed until then beyond
+  keeping it in the batch.
+
+## Captured directions (other paths for future sessions)
+
+Surfaced while scoping this session; parked deliberately so they're not lost:
+
+- **Validation-first as corridor prep (the chosen thread's tail).** The scan
+  harness above *is* the acceptance harness `corridors-first-class` needs —
+  corridors are connectivity structure, so they can't be authored without a
+  reachability oracle that says whether they actually connect rooms. The edge
+  scan + a doorway-integrity scan are that oracle. Carry them into the corridor
+  work as pass/fail gates.
+- **Battlespace readability (theorycraft finding).** The conquest previews
+  read as a *uniform* sea of small buildings — the fortress/keep and compounds
+  don't pop out of the city texture, and the south→north assault gradient isn't
+  visually legible. This is art-direction/tuning, not structure: compound
+  size/placement, fortress-district density vs. city, assault-gradient
+  legibility. Gut-checkable purely via the conquest previews. No story doc yet;
+  worth one if we pick it up.
+
 ## Sanity check before resuming
 
 - `gradlew.bat compileJava` clean.
-- `gradlew.bat test` — map-gen label/partition tests green.
+- `gradlew.bat :test` — map-gen label/partition tests green. (Use the
+  `:test` task, not bare `test` — the `:asset-pipeline:test` subproject has a
+  pre-existing unrelated failure that red-builds a project-wide `test`.)
+- `gradlew.bat :test --tests "*MapValidationScanTest*"` — scan report prints,
+  all hard invariants hold.
+- `gradlew.bat :test --tests "*BspMapPreviewTest*"` — regenerates the preview
+  PNGs under `build/map-previews/`.
 - `git log --oneline -1 b8b7b9d` confirms Slice D is in history.
