@@ -29,10 +29,19 @@ public class AirBody {
     /** Velocity, cells/sec. */
     public float vx, vy;
 
+    /**
+     * Linear acceleration over the last tick, cells/sec² — the realized
+     * {@code Δv/dt} from {@link #tickToward}. This is the "intended velocity
+     * change" the engine-FX read uses to bloom the thrusters actually doing the
+     * pushing (see {@code ThrusterDemand}); zero between ticks / after a
+     * {@link #teleport}.
+     */
+    public float ax, ay;
+
     /** Facing — 0° = +Y, positive CCW. Matches Starsector sprite convention. */
     public float facingDegrees;
 
-    /** Heading change rate, deg/sec. Currently informational; the steering loop computes its own turn-rate-limited slew. */
+    /** Realized heading change rate over the last tick, deg/sec (shortest-arc Δfacing/dt). Populated by {@link #tickToward}; drives the rotational term of the engine-FX thruster weighting. */
     public float angVelDegPerSec;
 
     /**
@@ -56,6 +65,10 @@ public class AirBody {
      * </ol>
      */
     public void tickToward(float gx, float gy, SteeringMode mode, AirHandling handling, float dt) {
+        // Pre-step snapshot so we can report the realized accel / turn rate the
+        // engine-FX thruster weighting reads.
+        float vx0 = vx, vy0 = vy, facing0 = facingDegrees;
+
         float dx = gx - x;
         float dy = gy - y;
         float dist = (float) Math.sqrt(dx * dx + dy * dy);
@@ -119,6 +132,15 @@ public class AirBody {
 
         x += vx * dt;
         y += vy * dt;
+
+        // Realized dynamics for the engine-FX read. Guard tiny dt to avoid a
+        // divide blow-up; the facing delta walks the shortest arc through ±180.
+        if (dt > 1e-6f) {
+            ax = (vx - vx0) / dt;
+            ay = (vy - vy0) / dt;
+            float dFacing = ((facingDegrees - facing0 + 540f) % 360f) - 180f;
+            angVelDegPerSec = dFacing / dt;
+        }
     }
 
     /** Distance to ({@code gx, gy}), cells. */
@@ -136,6 +158,7 @@ public class AirBody {
     public void teleport(float px, float py, float facingDeg) {
         x = px; y = py;
         vx = 0f; vy = 0f;
+        ax = 0f; ay = 0f;
         facingDegrees = facingDeg;
         angVelDegPerSec = 0f;
     }

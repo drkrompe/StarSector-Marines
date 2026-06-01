@@ -44,12 +44,17 @@ public final class EngineFxRenderer {
     /** Minimum glow display size — guards against degenerate glows on tiny / parked entities. */
     private static final float GLOW_MIN_CELL_FRACTION = 0.4f;
 
+    /**
+     * Per-slot floor when a {@code perSlotDemand} array is supplied: an idle
+     * thruster (demand 0) still draws at this fraction of the master intensity,
+     * so a lit engine never blinks fully dark. Matches the old uniform
+     * {@code Shuttle.HOVER_FX_FLOOR} so a stationary hover reads the same.
+     */
+    private static final float DEMAND_FLOOR = 0.45f;
+
     private EngineFxRenderer() {}
 
-    /**
-     * Draws every engine plume for one air entity. No-ops gracefully when
-     * the slot list is empty, both sprites are null, or intensity is zero.
-     */
+    /** Uniform overload — every slot glows at {@code intensity} (legacy / fixed-throttle callers). */
     public static void draw(
             EngineSlotData[] slots,
             float worldX, float worldY,
@@ -60,6 +65,31 @@ public final class EngineFxRenderer {
             float alphaMult,
             BattleCamera camera,
             SpriteAPI glowSprite, SpriteAPI flameSprite) {
+        draw(slots, worldX, worldY, facingDegrees, scaleMult, altOffsetCells,
+                intensity, alphaMult, camera, glowSprite, flameSprite, null);
+    }
+
+    /**
+     * Draws every engine plume for one air entity. No-ops gracefully when
+     * the slot list is empty, both sprites are null, or intensity is zero.
+     *
+     * <p>{@code perSlotDemand} (aligned with {@code slots}, from
+     * {@link ThrusterDemand}) weights each plume by how hard that thruster is
+     * working — aft mains bloom on acceleration, the maneuvering side flares in
+     * a turn. {@code null} keeps the old uniform behaviour (every slot at
+     * {@code intensity}).
+     */
+    public static void draw(
+            EngineSlotData[] slots,
+            float worldX, float worldY,
+            float facingDegrees,
+            float scaleMult,
+            float altOffsetCells,
+            float intensity,
+            float alphaMult,
+            BattleCamera camera,
+            SpriteAPI glowSprite, SpriteAPI flameSprite,
+            float[] perSlotDemand) {
 
         if (slots == null || slots.length == 0) return;
         if (glowSprite == null && flameSprite == null) return;
@@ -70,7 +100,11 @@ public final class EngineFxRenderer {
         float sin = (float) Math.sin(rad);
         float cellPx = camera.cellPxSize();
 
-        for (EngineSlotData es : slots) {
+        for (int si = 0; si < slots.length; si++) {
+            EngineSlotData es = slots[si];
+            // Each thruster's intensity is the master throttle scaled by how
+            // much that nozzle is contributing this tick (1.0 when uniform).
+            float intensityS = intensity * slotFactor(perSlotDemand, si);
             // Slot world position — scale-then-rotate so engines stay locked
             // to their hardpoints through any scaling the caller applies.
             float lx = es.localX * scaleMult;
@@ -91,13 +125,13 @@ public final class EngineFxRenderer {
             float plumeDY = (float)  Math.cos(plumeRad);
 
             float lenCells   = es.lengthCells * scaleMult
-                    * (LEN_INTENSITY_FLOOR   + (1f - LEN_INTENSITY_FLOOR)   * intensity);
+                    * (LEN_INTENSITY_FLOOR   + (1f - LEN_INTENSITY_FLOOR)   * intensityS);
             float widthCells = es.widthCells  * scaleMult
-                    * (WIDTH_INTENSITY_FLOOR + (1f - WIDTH_INTENSITY_FLOOR) * intensity);
+                    * (WIDTH_INTENSITY_FLOOR + (1f - WIDTH_INTENSITY_FLOOR) * intensityS);
             float lenPx = lenCells * cellPx;
             float widthPx = widthCells * cellPx;
             float flameAlpha = alphaMult
-                    * (ALPHA_INTENSITY_FLOOR + (1f - ALPHA_INTENSITY_FLOOR) * intensity);
+                    * (ALPHA_INTENSITY_FLOOR + (1f - ALPHA_INTENSITY_FLOOR) * intensityS);
 
             Color flame = EngineStylePalette.flameColor(es.style);
 
@@ -163,6 +197,27 @@ public final class EngineFxRenderer {
             LightAccumulator lights,
             long baseId,
             java.util.Set<Long> seenIds) {
+        emitLights(slots, worldX, worldY, facingDegrees, scaleMult, altOffsetCells,
+                intensity, lights, baseId, seenIds, null);
+    }
+
+    /**
+     * Per-slot overload of {@link #emitLights} — {@code perSlotDemand} (from
+     * {@link ThrusterDemand}) scales each halo's brightness and radius the same
+     * way it scales the plume in {@link #draw}, so a working thruster's light
+     * tracks its bloom. {@code null} keeps the uniform behaviour.
+     */
+    public static void emitLights(
+            EngineSlotData[] slots,
+            float worldX, float worldY,
+            float facingDegrees,
+            float scaleMult,
+            float altOffsetCells,
+            float intensity,
+            LightAccumulator lights,
+            long baseId,
+            java.util.Set<Long> seenIds,
+            float[] perSlotDemand) {
 
         if (slots == null || slots.length == 0 || lights == null) return;
         if (intensity <= 0f) return;
@@ -171,12 +226,9 @@ public final class EngineFxRenderer {
         float cos = (float) Math.cos(rad);
         float sin = (float) Math.sin(rad);
 
-        float intensityCurve = WeaponLights.ENGINE_INTENSITY_FLOOR
-                + (WeaponLights.ENGINE_INTENSITY_CEIL - WeaponLights.ENGINE_INTENSITY_FLOOR)
-                  * Math.max(0f, Math.min(1f, intensity));
-
         for (int i = 0; i < slots.length; i++) {
             EngineSlotData es = slots[i];
+            float intensityS = intensity * slotFactor(perSlotDemand, i);
             float lx = es.localX * scaleMult;
             float ly = es.localY * scaleMult;
             float wx = worldX + lx * cos - ly * sin;
@@ -187,15 +239,32 @@ public final class EngineFxRenderer {
             float g = flame.getGreen() / 255f * WeaponLights.ENGINE_RGB_SCALE;
             float b = flame.getBlue()  / 255f * WeaponLights.ENGINE_RGB_SCALE;
 
+            float intensityCurve = WeaponLights.ENGINE_INTENSITY_FLOOR
+                    + (WeaponLights.ENGINE_INTENSITY_CEIL - WeaponLights.ENGINE_INTENSITY_FLOOR)
+                      * Math.max(0f, Math.min(1f, intensityS));
+
             // Halo radius scales with slot width and throttle; min floor so
             // idle engines still show a small glow.
             float radius = Math.max(0.6f,
-                    es.widthCells * scaleMult * 1.8f * (0.6f + 0.4f * intensity));
+                    es.widthCells * scaleMult * 1.8f * (0.6f + 0.4f * intensityS));
 
             long id = baseId ^ ((long) (i + 1) * 0x9E3779B97F4A7C15L);
             lights.putPersistent(id, wx, wy, radius, LightKernel.ENGINE_GLOW,
                     r, g, b, intensityCurve);
             if (seenIds != null) seenIds.add(id);
         }
+    }
+
+    /**
+     * The effective per-slot intensity multiplier: {@code 1} when no demand
+     * array is supplied (uniform), else {@link #DEMAND_FLOOR} lerped to 1 by the
+     * clamped demand for slot {@code i}.
+     */
+    private static float slotFactor(float[] perSlotDemand, int i) {
+        if (perSlotDemand == null || i >= perSlotDemand.length) return 1f;
+        float d = perSlotDemand[i];
+        if (d < 0f) d = 0f;
+        else if (d > 1f) d = 1f;
+        return DEMAND_FLOOR + (1f - DEMAND_FLOOR) * d;
     }
 }
