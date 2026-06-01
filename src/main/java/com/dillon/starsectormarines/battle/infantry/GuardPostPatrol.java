@@ -6,12 +6,10 @@ import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
-import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
-import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 /**
@@ -47,8 +45,10 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
  *   <li><b>INVESTIGATE</b> — no target, SUSPICIOUS with a last-seen cell: lean
  *       toward the noise, clamped to the box.</li>
  *   <li><b>QUIET</b> — no target, unaware: round a squad-scoped waypoint sampled
- *       inside the box (leader-gated dwell, mirroring {@link PatrolRoute}),
- *       firing opportunistically at anything visible.</li>
+ *       inside the box via {@link PatrolMotion} (this action supplies the
+ *       box-sample {@link PatrolMotion.WaypointSource}, including the
+ *       out-of-box staleness check), firing opportunistically at anything
+ *       visible.</li>
  * </ul>
  *
  * <p>Not a singleton: each plan carries the box (anchor + radius) resolved from
@@ -65,10 +65,21 @@ public final class GuardPostPatrol implements Action {
     /** Half-extent of the patrol box, in cells, around the post anchor. */
     private final int radius;
 
+    /** Box-sample waypoint strategy, widened to re-roll a waypoint that has drifted outside the box (shared {@code patrolWaypointX/Y} isn't reset on a posture switch). */
+    private final PatrolMotion.WaypointSource waypointSource;
+
     public GuardPostPatrol(int anchorX, int anchorY, int radius) {
         this.anchorX = anchorX;
         this.anchorY = anchorY;
         this.radius = Math.max(1, radius);
+        this.waypointSource = new PatrolMotion.WaypointSource() {
+            @Override public int[] next(Unit member, Squad squad, BattleView sim) {
+                return nextWaypoint(member, squad, sim);
+            }
+            @Override public boolean needsNew(Squad squad) {
+                return needsNewWaypoint(squad);
+            }
+        };
     }
 
     @Override public String name() { return "GuardPostPatrol"; }
@@ -101,7 +112,7 @@ public final class GuardPostPatrol implements Action {
             return investigateClamped(member, sim, squad);
         }
 
-        return patrol(member, squad, sim);
+        return PatrolMotion.advance(member, squad, sim, waypointSource, /*fireWhilePatrolling*/ true);
     }
 
     /**
@@ -129,7 +140,7 @@ public final class GuardPostPatrol implements Action {
                 member.setCooldownTimer(member.attackCooldown);
                 member.beginBurst(target);
             }
-            hold(member, sim);
+            PatrolMotion.hold(member, sim);
             return ActionStatus.RUNNING;
         }
 
@@ -146,10 +157,10 @@ public final class GuardPostPatrol implements Action {
             }
         }
         if (firingPos == null || (firingPos[0] == member.getCellX() && firingPos[1] == member.getCellY())) {
-            hold(member, sim);
+            PatrolMotion.hold(member, sim);
             return ActionStatus.RUNNING;
         }
-        moveToward(member, sim, firingPos[0], firingPos[1]);
+        PatrolMotion.moveToward(member, sim, firingPos[0], firingPos[1]);
         return ActionStatus.RUNNING;
     }
 
@@ -162,53 +173,8 @@ public final class GuardPostPatrol implements Action {
             tx = anchorX + Math.round((tx - anchorX) * scale);
             ty = anchorY + Math.round((ty - anchorY) * scale);
         }
-        moveToward(member, sim, tx, ty);
+        PatrolMotion.moveToward(member, sim, tx, ty);
         return ActionStatus.RUNNING;
-    }
-
-    /** QUIET wander — squad-scoped waypoint inside the box, leader-gated dwell, opportunistic fire. Mirrors {@link GarrisonPatrol#patrol}/{@link PatrolRoute} but samples the box instead of rotating rooms/nodes. */
-    private ActionStatus patrol(Unit member, Squad squad, BattleControl sim) {
-        if (squad.patrolDwellTimer > 0f) {
-            if (member == squad.leader) squad.patrolDwellTimer -= BattleSimulation.TICK_DT;
-            holdAndFire(member, sim);
-            return ActionStatus.RUNNING;
-        }
-        if (needsNewWaypoint(squad)) {
-            synchronized (squad.lock) {
-                // Re-check under the lock — a sibling worker may have already
-                // advanced the waypoint and started a new dwell.
-                if (squad.patrolDwellTimer > 0f || !needsNewWaypoint(squad)) {
-                    holdAndFire(member, sim);
-                    return ActionStatus.RUNNING;
-                }
-                int[] wp = nextWaypoint(member, squad, sim);
-                if (wp != null) {
-                    squad.patrolWaypointX = wp[0];
-                    squad.patrolWaypointY = wp[1];
-                }
-                squad.patrolDwellTimer = PatrolRoute.PATROL_DWELL_SECONDS;
-            }
-            holdAndFire(member, sim);
-            return ActionStatus.RUNNING;
-        }
-        moveTowardWithFire(member, sim, squad.patrolWaypointX, squad.patrolWaypointY);
-        return ActionStatus.RUNNING;
-    }
-
-    /**
-     * Whether the squad needs a fresh waypoint roll: none set, arrived at the
-     * current one, or — crucially — the current waypoint is <em>outside the
-     * box</em>. {@code patrolWaypointX/Y} is shared squad state written by every
-     * patrol posture ({@link PatrolRoute}, {@link GarrisonPatrol}, this), and
-     * nothing resets it on a posture switch, so a squad entering this action
-     * could inherit a far waypoint. Re-rolling (or holding when the roll fails)
-     * instead of walking to it keeps the squad inside its emplacement box.
-     */
-    private boolean needsNewWaypoint(Squad squad) {
-        if (!hasValidWaypoint(squad)) return true;
-        if (squadHasArrived(squad)) return true;
-        return Math.abs(squad.patrolWaypointX - anchorX) > radius
-                || Math.abs(squad.patrolWaypointY - anchorY) > radius;
     }
 
     /**
@@ -229,75 +195,27 @@ public final class GuardPostPatrol implements Action {
         return null;
     }
 
-    private static boolean hasValidWaypoint(Squad squad) {
-        return squad.patrolWaypointX >= 0 && squad.patrolWaypointY >= 0;
-    }
-
-    private static boolean squadHasArrived(Squad squad) {
-        if (squad.aliveMembers == 0) return true;
-        float dx = squad.centroidX - squad.patrolWaypointX;
-        float dy = squad.centroidY - squad.patrolWaypointY;
-        return Math.sqrt(dx * dx + dy * dy) <= PatrolRoute.PATROL_ARRIVAL_RADIUS;
+    /**
+     * Needs a fresh waypoint roll: none set, arrived at the current one, or —
+     * crucially — the current waypoint is <em>outside the box</em>.
+     * {@code patrolWaypointX/Y} is shared squad state written by every patrol
+     * posture and isn't reset on a posture switch, so a squad entering this
+     * action could inherit a far waypoint. Re-rolling (or holding when the roll
+     * fails) instead of walking to it keeps the squad inside its box.
+     */
+    private boolean needsNewWaypoint(Squad squad) {
+        if (!PatrolMotion.hasValidWaypoint(squad)) return true;
+        if (PatrolMotion.squadHasArrived(squad)) return true;
+        return Math.abs(squad.patrolWaypointX - anchorX) > radius
+                || Math.abs(squad.patrolWaypointY - anchorY) > radius;
     }
 
     private static ActionStatus returnTo(Unit member, BattleControl sim, int tx, int ty) {
         if (member.getCellX() == tx && member.getCellY() == ty) {
-            hold(member, sim);
+            PatrolMotion.hold(member, sim);
             return ActionStatus.RUNNING;
         }
-        moveToward(member, sim, tx, ty);
+        PatrolMotion.moveToward(member, sim, tx, ty);
         return ActionStatus.RUNNING;
-    }
-
-    /** Opportunistic fire at a visible in-range enemy without moving. */
-    private static void holdAndFire(Unit member, BattleControl sim) {
-        fireIfAble(member, sim);
-        hold(member, sim);
-    }
-
-    /** Path toward the waypoint, firing opportunistically while moving. */
-    private static void moveTowardWithFire(Unit member, BattleControl sim, int tx, int ty) {
-        fireIfAble(member, sim);
-        moveToward(member, sim, tx, ty);
-    }
-
-    private static void moveToward(Unit member, BattleControl sim, int tx, int ty) {
-        if (member.getMoveProgress() == 0f && member.pathIdx >= member.pathCellCount()) {
-            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                    member.getCellX(), member.getCellY(), tx, ty, sim.getOccupancyMap()));
-        }
-        if (member.pathIdx < member.pathCellCount()) {
-            sim.advanceMovement(member);
-        } else {
-            member.setMoveProgress(0f);
-            member.setRenderPos(member.getCellX(), member.getCellY());
-        }
-    }
-
-    private static void hold(Unit member, BattleControl sim) {
-        sim.clearPath(member);
-        member.setMoveProgress(0f);
-        member.setRenderPos(member.getCellX(), member.getCellY());
-    }
-
-    private static void fireIfAble(Unit member, BattleControl sim) {
-        if (member.getCooldownTimer() > 0f) {
-            member.setCooldownTimer(member.getCooldownTimer() - BattleSimulation.TICK_DT);
-        }
-        Unit target = sim.targetOf(member);
-        if (target == null || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
-            target = sim.getTacticalScoring().findBestTarget(member);
-            member.setTarget(target);
-        }
-        if (target == null) return;
-        float dist = TacticalScoring.cellDistance(member.getCellX(), member.getCellY(),
-                target.getCellX(), target.getCellY());
-        boolean visible = sim.getGrid().hasLineOfSight(member.getCellX(), member.getCellY(),
-                target.getCellX(), target.getCellY());
-        if (dist <= member.getAttackRange() && visible && member.getCooldownTimer() <= 0f) {
-            sim.fireShot(member, target, FireStance.MOVING);
-            member.setCooldownTimer(member.attackCooldown);
-            member.beginBurst(target);
-        }
     }
 }

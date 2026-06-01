@@ -61,15 +61,27 @@ Fixed by treating an out-of-box waypoint as "needs re-roll" (`needsNewWaypoint`)
 — the squad re-rolls in-box or holds, never walks to the stale cell.
 Regression-covered by `inheritedOutOfBoxWaypointIsRerolledNotWalkedTo`.
 
-## Follow-ups
+## Shared patrol motion (landed)
 
-- **Shared patrol motion.** `GuardPostPatrol` triplicates `GarrisonPatrol`'s and
-  `PatrolRoute`'s dwell-gated waypoint walk + the static fire/move helpers
-  (`holdAndFire`/`moveTowardWithFire`/`moveToward`/`hold`/`fireIfAble`). Three
-  callers crosses the threshold where a shared `PatrolMotion` helper (waypoint
-  strategy injected: box-sample vs room-round-robin vs node-route) pays off, and
-  would centralize the waypoint-lifecycle invalidation the post-commit fix added
-  locally. Worth doing next; bake the box/anchor invalidation into the seam.
+The dwell-gated waypoint walk + static fire/move helpers were triplicated across
+`PatrolRoute` (district node route), `GarrisonPatrol` (compound room round-robin),
+and `GuardPostPatrol` (emplacement box). Extracted to **`PatrolMotion`**: a
+stateless helper owning the leader-gated dwell, the lock-guarded waypoint write,
+the arrival test, and the path/hold/opportunistic-fire primitives. The three
+postures now differ on exactly two axes, both passed into `PatrolMotion.advance`:
+
+- a **`WaypointSource`** (functional interface) — `next(member, squad, sim)` for
+  the strategy, plus a `needsNew(squad)` default (no-waypoint / arrived) that
+  `GuardPostPatrol` widens with its out-of-box staleness check;
+- a **`fireWhilePatrolling`** flag — garrison/guard fire opportunistically while
+  walking; the plain district patrol does not.
+
+Dwell/arrival constants moved from `PatrolRoute` (`PATROL_DWELL_SECONDS`,
+`PATROL_ARRIVAL_RADIUS`) to `PatrolMotion` (`DWELL_SECONDS`, `ARRIVAL_RADIUS`) —
+their natural home now that the loop lives there. `DEFAULT_DISTRICT_RADIUS` stays
+on `PatrolRoute` (route-specific). Behavior is unchanged — the full infantry +
+turret suites pass, including `GarrisonPatrolTest`, `GuardPostPatrolTest`, and
+`TurretDemolitionSystemTest`.
 - **Release semantics.** A released turret squad (`defensePost == null`) still
   carries `holdsFireUntilKillZone`, so it falls to `HoldPost` rather than the
   search-and-destroy `RoutinePatrol` the `TurretDemolitionSystem` doc implies.

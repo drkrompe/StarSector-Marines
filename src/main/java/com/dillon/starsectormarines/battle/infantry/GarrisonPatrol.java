@@ -1,18 +1,14 @@
 package com.dillon.starsectormarines.battle.infantry;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
-import com.dillon.starsectormarines.battle.combat.FireStance;
-import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.goap.action.ClearZone;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
-import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
 
@@ -40,9 +36,10 @@ import java.util.List;
  *       zone is chosen deterministically), so a small garrison masses on the
  *       breach rather than splitting.</li>
  *   <li><b>QUIET</b> — all rooms clear: round-robin a squad-scoped waypoint
- *       across the room interiors (leader-gated dwell, mirroring
- *       {@link PatrolRoute}), firing opportunistically at anything visible so
- *       an intruder on the courtyard isn't ignored.</li>
+ *       across the room interiors via {@link PatrolMotion} (this action only
+ *       supplies the room-round-robin {@link PatrolMotion.WaypointSource}),
+ *       firing opportunistically at anything visible so an intruder on the
+ *       courtyard isn't ignored.</li>
  * </ul>
  *
  * <p>Not a singleton: each plan carries the garrison-zone list computed at
@@ -53,6 +50,9 @@ public final class GarrisonPatrol implements Action {
 
     /** Garrison rooms, sorted descending by cell count (as {@link com.dillon.starsectormarines.battle.decision.goap.world.GarrisonArea#garrisonZones} returns them). */
     private final List<Integer> garrisonZones;
+
+    /** Room-round-robin waypoint strategy (default staleness: no-waypoint or arrived). Resolve once — zones are fixed for this plan. */
+    private final PatrolMotion.WaypointSource waypointSource = (member, squad, sim) -> nextWaypoint(squad, sim);
 
     public GarrisonPatrol(List<Integer> garrisonZones) {
         this.garrisonZones = garrisonZones;
@@ -78,36 +78,8 @@ public final class GarrisonPatrol implements Action {
             }
         }
 
-        // QUIET — rooms clear: patrol the room interiors.
-        return patrol(member, squad, sim);
-    }
-
-    private ActionStatus patrol(Unit member, Squad squad, BattleControl sim) {
-        if (squad.patrolDwellTimer > 0f) {
-            if (member == squad.leader) squad.patrolDwellTimer -= BattleSimulation.TICK_DT;
-            holdAndFire(member, sim);
-            return ActionStatus.RUNNING;
-        }
-        if (!hasValidWaypoint(squad) || squadHasArrived(squad)) {
-            synchronized (squad.lock) {
-                // Re-check under the lock — a sibling worker may have already
-                // advanced the waypoint and started a new dwell.
-                if (squad.patrolDwellTimer > 0f || (hasValidWaypoint(squad) && !squadHasArrived(squad))) {
-                    holdAndFire(member, sim);
-                    return ActionStatus.RUNNING;
-                }
-                int[] wp = nextWaypoint(squad, sim);
-                if (wp != null) {
-                    squad.patrolWaypointX = wp[0];
-                    squad.patrolWaypointY = wp[1];
-                }
-                squad.patrolDwellTimer = PatrolRoute.PATROL_DWELL_SECONDS;
-            }
-            holdAndFire(member, sim);
-            return ActionStatus.RUNNING;
-        }
-        moveTowardWithFire(member, sim, squad.patrolWaypointX, squad.patrolWaypointY);
-        return ActionStatus.RUNNING;
+        // QUIET — rooms clear: patrol the room interiors, firing opportunistically.
+        return PatrolMotion.advance(member, squad, sim, waypointSource, /*fireWhilePatrolling*/ true);
     }
 
     /**
@@ -131,60 +103,5 @@ public final class GarrisonPatrol implements Action {
         int pick = cells[cells.length / 2];
         int w = sim.getGrid().getWidth();
         return new int[]{ pick % w, pick / w };
-    }
-
-    private static boolean hasValidWaypoint(Squad squad) {
-        return squad.patrolWaypointX >= 0 && squad.patrolWaypointY >= 0;
-    }
-
-    private static boolean squadHasArrived(Squad squad) {
-        if (squad.aliveMembers == 0) return true;
-        float dx = squad.centroidX - squad.patrolWaypointX;
-        float dy = squad.centroidY - squad.patrolWaypointY;
-        return Math.sqrt(dx * dx + dy * dy) <= PatrolRoute.PATROL_ARRIVAL_RADIUS;
-    }
-
-    /** Opportunistic fire at a visible in-range enemy without moving. */
-    private static void holdAndFire(Unit member, BattleControl sim) {
-        fireIfAble(member, sim);
-        sim.clearPath(member);
-        member.setMoveProgress(0f);
-        member.setRenderPos(member.getCellX(), member.getCellY());
-    }
-
-    /** Path toward the waypoint, firing opportunistically while moving. */
-    private static void moveTowardWithFire(Unit member, BattleControl sim, int tx, int ty) {
-        fireIfAble(member, sim);
-        if (member.getMoveProgress() == 0f && member.pathIdx >= member.pathCellCount()) {
-            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                    member.getCellX(), member.getCellY(), tx, ty, sim.getOccupancyMap()));
-        }
-        if (member.pathIdx < member.pathCellCount()) {
-            sim.advanceMovement(member);
-        } else {
-            member.setMoveProgress(0f);
-            member.setRenderPos(member.getCellX(), member.getCellY());
-        }
-    }
-
-    private static void fireIfAble(Unit member, BattleControl sim) {
-        if (member.getCooldownTimer() > 0f) {
-            member.setCooldownTimer(member.getCooldownTimer() - BattleSimulation.TICK_DT);
-        }
-        Unit target = sim.targetOf(member);
-        if (target == null || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
-            target = sim.getTacticalScoring().findBestTarget(member);
-            member.setTarget(target);
-        }
-        if (target == null) return;
-        float dist = TacticalScoring.cellDistance(member.getCellX(), member.getCellY(),
-                target.getCellX(), target.getCellY());
-        boolean visible = sim.getGrid().hasLineOfSight(member.getCellX(), member.getCellY(),
-                target.getCellX(), target.getCellY());
-        if (dist <= member.getAttackRange() && visible && member.getCooldownTimer() <= 0f) {
-            sim.fireShot(member, target, FireStance.MOVING);
-            member.setCooldownTimer(member.attackCooldown);
-            member.beginBurst(target);
-        }
     }
 }
