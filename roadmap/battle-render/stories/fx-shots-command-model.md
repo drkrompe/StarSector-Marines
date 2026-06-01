@@ -133,16 +133,23 @@ TurretKind; `boostRamp`/`contrail` from the weapon's own declaration.
   `collectShots` (same exclusion logic, same submission slot) and deleted.
   In-game: tracers draw identically; sprite shots unaffected. Foundational beyond
   SHOTS — the `LINE` primitive also unlocks the convoy-debug paths + zone grid.
-- **F2 — `ShotFx` composition + path-keyed sprite cache.** Stand up the `ShotFx`
-  record + `of(ShotEvent)` derivation; re-key the projectile-sprite texture cache
-  in `BattleSprites` by path (so `Body.SPRITE` resolves carrier-agnostically and
-  the discriminator never exists). Pin the derivation with a `ShotFxTest` (mirrors
-  `RenderAppearanceTest`). No pass change yet (mirrors J2).
-- **F3 — `ShotRenderService` sweeps.** Stand up the per-stratum sweep consumer
-  keyed purely on `ShotFx` effects; migrate projectile-sprite emission + the
-  tracer sweep, dropping the `collectShots` carrier cascade and the tracer
-  `Custom`. Engine/smoke-trail spawns (`impactFx.spawnEngineTrail/spawnSmokeTrail`)
-  move into the sprite sweep, gated on the `engineTrail`/`smokeTrail` effects.
+- ~~**F2 — `ShotFx` composition.**~~ ✅ **SHIPPED.** `ShotFx` record (sealed
+  `Body` = `Sprite(spritePath, visualCells)` | `Tracer(Color?)`, + `arcHeight` /
+  `boostRamp` / `engineTrail` / `smokeTrail` / `contrail`), per-enum tables +
+  `of(ShotEvent)` dispatcher, derivation reading each weapon enum's data
+  render-side. `ShotFxTest` pins the derivation across every value of all four
+  sources + the no-source case (green). Pure data + test, no pass change (mirrors
+  J2). **Path-keyed sprite cache deferred to F3** — it's caller-less until the
+  sweep consumes it (no-stopgap); `Sprite.spritePath` is the contract that enables
+  it. `Tracer.color == null` ⇒ faction default resolved at sweep.
+- **F3 — `ShotRenderService` sweeps + path-keyed sprite cache.** Re-key the
+  projectile-sprite texture cache in `BattleSprites` by path (so `Body.Sprite`
+  resolves carrier-agnostically and the discriminator never exists). Stand up the
+  per-stratum sweep consumer keyed purely on `ShotFx` effects; migrate
+  projectile-sprite emission + the tracer sweep, dropping the `collectShots`
+  carrier cascade and the tracer `Custom`. Engine/smoke-trail spawns
+  (`impactFx.spawnEngineTrail/spawnSmokeTrail`) move into the sprite sweep, gated
+  on the `engineTrail`/`smokeTrail` effects.
 - **F4 — Contrail state/render split.** Extract `ContrailFxService` (owns
   `contrailsLive`/`contrailsDecaying` + aging, `tick(dt)`); the sweep emits the
   ribbon. Decide: a `RIBBON` `DrawCommand` (ribbon becomes data) vs. keep
