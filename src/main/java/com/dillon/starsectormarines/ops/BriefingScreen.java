@@ -4,6 +4,9 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.DevConfig;
+import com.dillon.starsectormarines.battle.flyby.DebugAirRoster;
+import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.flyby.FighterWing;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.flyby.PlayerFleetWings;
@@ -117,6 +120,15 @@ public class BriefingScreen implements Screen {
     private final java.util.Set<Integer> deselectedCarriers = new java.util.HashSet<>();
     /** Snapshot of {@link PlayerFleetWings#committableCarriers()} taken per {@link #rebuild()}, so toggle indices stay stable across a layout. */
     private List<PlayerFleetWings.CarrierBay> cachedCarriers = java.util.Collections.emptyList();
+
+    /**
+     * Debug aircraft-picker selections — keys {@code "<SIDE>|<PROFILE>"} (e.g.
+     * {@code "DEFENDER|TALON"}). Each toggled-on pair force-spawns a debug wing on
+     * that side at deploy. Gated behind {@link DevConfig#DEBUG_AIRCRAFT_PICKER};
+     * intentionally NOT reset on mission switch — it's a test config, not mission
+     * state, so a chosen calibration setup carries across missions.
+     */
+    private final java.util.Set<String> debugAirSelections = new java.util.HashSet<>();
 
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
@@ -298,6 +310,13 @@ public class BriefingScreen implements Screen {
         // readout) truncate first; transports + the gate, which come first, win.
         float floor = layout.rightCol.y + INNER_PAD + BTN_H + SECTION_GAP;
 
+        // Debug air picker (dev-gated) sits at the top so its toggles never
+        // truncate under a tall transport/carrier list below.
+        if (DevConfig.DEBUG_AIRCRAFT_PICKER) {
+            y = buildDebugAirPanel(x, y, rowW, floor);
+            y -= SECTION_GAP;
+        }
+
         // === YOUR FLEET BRINGS ===
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, Strings.get("briefingYourFleet"), x, y, HEADER_COLOR));
         y -= ROW_GAP;
@@ -434,6 +453,57 @@ public class BriefingScreen implements Screen {
         return PlayerFleetWings.rosterFrom(committedCarriers());
     }
 
+    // ---- debug air picker (DevConfig.DEBUG_AIRCRAFT_PICKER) ----
+
+    /**
+     * Renders the per-side fighter force-spawn toggles at the top of the right
+     * column (one row per {@link FighterProfile}, an ATK + DEF toggle each), and
+     * returns the new y cursor. Only called when the dev flag is on.
+     */
+    private float buildDebugAirPanel(float x, float y, float rowW, float floor) {
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, "AIR DEBUG — force-spawn (atk / def)", x, y, HEADER_COLOR));
+        y -= ROW_GAP;
+        float nameW = 96f;
+        float togW = 64f;
+        float togGap = 8f;
+        float atkX = x + nameW;
+        float defX = atkX + togW + togGap;
+        for (FighterProfile p : FighterProfile.values()) {
+            if (y < floor) return y;
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, profileDisplayName(p.name()), x, y, LABEL_COLOR));
+            addDebugAirToggle(p, Faction.MARINE,   "ATK", atkX, y, togW);
+            addDebugAirToggle(p, Faction.DEFENDER, "DEF", defX, y, togW);
+            y -= ROW_GAP;
+        }
+        return y;
+    }
+
+    /** One {@code [x]}/{@code [ ]} toggle button for a (profile, side) pair in the debug picker. */
+    private void addDebugAirToggle(FighterProfile profile, Faction side, String text, float bx, float y, float w) {
+        final String key = side.name() + "|" + profile.name();
+        boolean on = debugAirSelections.contains(key);
+        widgets.add(new ButtonWidget(bx, y - BTN_H + 6f, w, BTN_H, () -> {
+            if (!debugAirSelections.remove(key)) debugAirSelections.add(key);
+            rebuild();
+        }));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                (on ? "[x] " : "[ ] ") + text, bx + 4f, y, on ? ACCEPT_COLOR : LABEL_COLOR));
+    }
+
+    /** Force-spawned wings from the debug picker (both sides), or {@link FlybyRoster#EMPTY} when off / nothing picked. */
+    private FlybyRoster debugWings() {
+        if (!DevConfig.DEBUG_AIRCRAFT_PICKER || debugAirSelections.isEmpty()) return FlybyRoster.EMPTY;
+        java.util.List<FighterWing> wings = new java.util.ArrayList<>();
+        for (String key : debugAirSelections) {
+            int bar = key.indexOf('|');
+            if (bar <= 0) continue;
+            Faction side = Faction.valueOf(key.substring(0, bar));
+            FighterProfile profile = FighterProfile.valueOf(key.substring(bar + 1));
+            wings.add(DebugAirRoster.wing(profile, side));
+        }
+        return wings.isEmpty() ? FlybyRoster.EMPTY : new FlybyRoster(wings);
+    }
+
     /**
      * Compact one-line summary of the wings on a side. Example output:
      * {@code "2× Broadsword, 1× Talon"} or "None" when empty. Counts collapse
@@ -543,7 +613,7 @@ public class BriefingScreen implements Screen {
         // command powers) and build the battle. The deselected transports are
         // already filtered out of effectivePlayerShuttles().
         BattleSimulation sim = MissionLaunch.buildSimulation(
-                ctx, m, effectivePlayerShuttles(), committedWings());
+                ctx, m, effectivePlayerShuttles(), committedWings(), debugWings());
         ctx.setBattleSimulation(sim);
         ctx.goTo(ScreenId.BATTLE);
     }

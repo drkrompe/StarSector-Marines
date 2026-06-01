@@ -44,6 +44,23 @@ public final class DevConfig {
     public static final int DROP_COUNT_OVERRIDE = 40;
 
     /**
+     * When {@code true}: show an "AIR DEBUG — force-spawn" panel at the top of the
+     * pre-battle {@link com.dillon.starsectormarines.ops.BriefingScreen} with a
+     * per-side (Attacker = MARINE / Defender = DEFENDER) toggle for every
+     * {@link com.dillon.starsectormarines.battle.flyby.FighterProfile}. Toggled-on
+     * (profile, side) pairs force-spawn a debug fighter wing on that side at
+     * battle start — independent of the player's fleet and the mission's enemy
+     * air roll — via {@link com.dillon.starsectormarines.battle.flyby.DebugAirRoster}.
+     *
+     * <p>Built for fighter-feel calibration (the scraped {@code AirHandling} +
+     * atmosphere knobs): get any aircraft flying for either side on demand,
+     * without curating a carrier fleet or a mission that happens to field enemy
+     * fighters. {@code false} hides the panel entirely (no behavior change).
+     */
+    @DebugOnly
+    public static final boolean DEBUG_AIRCRAFT_PICKER = true;
+
+    /**
      * FBO pixel resolution per nav-grid cell for the decal accumulator.
      * 32 = native (matches the 32px source sheets, no downsample at neutral
      * zoom). Drop to 16 for ~¼ VRAM at the cost of visible softness; raise

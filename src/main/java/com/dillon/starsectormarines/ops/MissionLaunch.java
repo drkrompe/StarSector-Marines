@@ -33,11 +33,15 @@ public final class MissionLaunch {
      *
      * @param committedShuttles the player's committed transports (priority-sorted)
      * @param committedWings    the player's committed marine-side fighter cover
+     * @param debugWings        force-spawned debug wings (both sides), from the
+     *                          {@code DEBUG_AIRCRAFT_PICKER} briefing panel;
+     *                          {@link FlybyRoster#EMPTY} in normal play
      */
     public static BattleSimulation buildSimulation(MarineOpsContext ctx,
                                                    Mission m,
                                                    List<ShuttleType> committedShuttles,
-                                                   FlybyRoster committedWings) {
+                                                   FlybyRoster committedWings,
+                                                   FlybyRoster debugWings) {
         Detachment det = DetachmentResolver.resolve(m, committedShuttles, committedWings);
 
         // Heavy-armaments availability on the target world drives whether the
@@ -66,8 +70,11 @@ public final class MissionLaunch {
         }
 
         // Marine-side fighter cover (committed bays + employer) combined with the
-        // mission's enemy support; then the active command-power roster.
-        sim.setFlybyRoster(FlybyRoster.combine(det.marineWings, m.enemyFighterSupport));
+        // mission's enemy support, then any force-spawned debug wings (both sides
+        // — each FighterWing carries its own side, so the overlay spawns it right);
+        // then the active command-power roster.
+        sim.setFlybyRoster(FlybyRoster.combine(
+                FlybyRoster.combine(det.marineWings, m.enemyFighterSupport), debugWings));
         sim.setCommandPowers(det.powers);
 
         ctx.setDetachment(det);
