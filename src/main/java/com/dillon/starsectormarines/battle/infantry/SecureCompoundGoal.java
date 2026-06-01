@@ -98,15 +98,16 @@ public final class SecureCompoundGoal implements Goal {
             if (!ZoneQueries.zoneClear(to, enemy, sim)) {
                 steps.add(new SquadPlan.Step(new ClearZone(to)));
             }
-            steps.add(new SquadPlan.Step(new HoldZone(to, node)));
+            int[][] cells = HoldZone.pickHoldCells(node, to, squad.aliveMembers, sim);
+            steps.add(new SquadPlan.Step(new HoldZone(to, node, cells[0], cells[1])));
             return new SquadPlan(steps);
         }
 
-        return synthesizeSecurePlan(from, to, node, sim);
+        return synthesizeSecurePlan(from, to, node, squad.aliveMembers, sim);
     }
 
     private static SquadPlan synthesizeSecurePlan(int fromZone, int toZone, TacticalNode node,
-                                                   BattleView sim) {
+                                                   int memberCount, BattleView sim) {
         List<Integer> path = ZoneQueries.zonePathBfs(fromZone, toZone, sim);
         if (path.size() < 2) return null;
 
@@ -129,7 +130,8 @@ public final class SecureCompoundGoal implements Goal {
                 steps.add(new SquadPlan.Step(new ClearZone(zoneId)));
             }
         }
-        steps.add(new SquadPlan.Step(new HoldZone(toZone, node)));
+        int[][] cells = HoldZone.pickHoldCells(node, toZone, memberCount, sim);
+        steps.add(new SquadPlan.Step(new HoldZone(toZone, node, cells[0], cells[1])));
         return new SquadPlan(steps);
     }
 
