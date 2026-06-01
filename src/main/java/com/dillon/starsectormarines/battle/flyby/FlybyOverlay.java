@@ -208,6 +208,14 @@ public final class FlybyOverlay {
 
     private final Random rng = new Random();
 
+    /**
+     * Reused per-shot gather of the units inside a tracer's AoE before damage is
+     * applied. applyExternalDamage resolves inline (resolve → release), so a
+     * lethal hit swap-and-pops the dense registry; gathering the in-radius set
+     * first makes the apply pass a snapshot rather than a corrupted dense walk.
+     */
+    private final List<Unit> aoeHits = new ArrayList<>();
+
     /** Sim-seconds since the current battle started — drives roster spawn scheduling. Reset when the sim instance changes. */
     private float simTime = 0f;
     /** Identity of the last sim we ticked; on change we treat it as a new battle and reset spawn tracking + visual state. */
@@ -625,20 +633,27 @@ public final class FlybyOverlay {
             // BURST_AOE_RADIUS_CELLS takes the per-tracer damage. Friendly fire
             // off; we still gate on enemy-side faction so a scattered round
             // doesn't clip the fighter's own ground forces.
-            boolean anyHit = false;
             Faction enemy = (f.side == Faction.MARINE) ? Faction.DEFENDER : Faction.MARINE;
             float r2 = BURST_AOE_RADIUS_CELLS * BURST_AOE_RADIUS_CELLS;
-            for (Unit u : sim.getUnits()) {
-                if (!u.isAlive() || u.faction != enemy) continue;
+            // Gather the in-radius, non-roof-shielded enemies, then apply — see
+            // aoeHits (applyExternalDamage releases on a kill mid-walk).
+            aoeHits.clear();
+            for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+                Unit u = sim.liveUnitAt(i);
+                if (u.faction != enemy) continue;
                 float ux = (u.getRenderX() + 0.5f) - endX;
                 float uy = (u.getRenderY() + 0.5f) - endY;
                 if (ux * ux + uy * uy <= r2) {
                     // Aerial strafing: intact roofs intercept tracer rounds.
                     if (sim.isRoofShielded(u)) continue;
-                    sim.applyExternalDamage(u, f.profile.perTracerDamage);
-                    anyHit = true;
+                    aoeHits.add(u);
                 }
             }
+            boolean anyHit = !aoeHits.isEmpty();
+            for (int i = 0, n = aoeHits.size(); i < n; i++) {
+                sim.applyExternalDamage(aoeHits.get(i), f.profile.perTracerDamage);
+            }
+            aoeHits.clear();
             if (anyHit) {
                 spawnImpact(endX, endY, f.profile.tracerColor);
             } else {
@@ -692,17 +707,25 @@ public final class FlybyOverlay {
         if (sim != null) {
             Faction enemy = (f.side == Faction.MARINE) ? Faction.DEFENDER : Faction.MARINE;
             float r2 = RUN_AOE_RADIUS_CELLS * RUN_AOE_RADIUS_CELLS;
-            for (Unit u : sim.getUnits()) {
-                if (!u.isAlive() || u.faction != enemy) continue;
+            // Gather the in-radius, non-roof-shielded enemies, then apply — see
+            // aoeHits (applyExternalDamage releases on a kill mid-walk).
+            aoeHits.clear();
+            for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+                Unit u = sim.liveUnitAt(i);
+                if (u.faction != enemy) continue;
                 float ux = (u.getRenderX() + 0.5f) - endX;
                 float uy = (u.getRenderY() + 0.5f) - endY;
                 if (ux * ux + uy * uy <= r2) {
                     // Strafing run damage — intact roofs intercept.
                     if (sim.isRoofShielded(u)) continue;
-                    sim.applyExternalDamage(u, RUN_DAMAGE_PER_HIT);
-                    anyHit = true;
+                    aoeHits.add(u);
                 }
             }
+            anyHit = !aoeHits.isEmpty();
+            for (int i = 0, n = aoeHits.size(); i < n; i++) {
+                sim.applyExternalDamage(aoeHits.get(i), RUN_DAMAGE_PER_HIT);
+            }
+            aoeHits.clear();
         }
         if (anyHit) {
             // Bright tracer-color glow on a connecting hit — same read as the

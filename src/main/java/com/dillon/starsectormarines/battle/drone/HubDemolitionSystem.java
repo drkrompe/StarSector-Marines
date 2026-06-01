@@ -3,10 +3,12 @@ package com.dillon.starsectormarines.battle.drone;
 import com.dillon.starsectormarines.battle.unit.DeathDispatcher;
 import com.dillon.starsectormarines.battle.unit.DeathEvent;
 import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.world.MapService;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -84,19 +86,29 @@ public final class HubDemolitionSystem {
      * {@code DamageResolver} is the registry's only other release path, and
      * this cascade bypasses it.
      *
-     * <p>Reads the legacy roster list to find the hub's drones — one of the
-     * {@code retire-legacy-units-list} corpse-adjacent reads; migrates with the
-     * rest of that bucket. Each killed drone publishes a {@code DeathEvent} so
-     * the death-event seam starts its crash (the {@code DroneCrashSystem}
-     * attaches its {@code Crashing} component on that event), exactly as a
-     * shot-down drone's resolve-published death does.
+     * <p>Finds the hub's drones in the dense registry (live-only — a dead drone
+     * is already gone). Each killed drone publishes a {@code DeathEvent} so the
+     * death-event seam starts its crash (the {@code DroneCrashSystem} attaches
+     * its {@code Crashing} component on that event), exactly as a shot-down
+     * drone's resolve-published death does.
+     *
+     * <p>Gather-then-kill: {@code releaseFromRegistry} swap-and-pops the dense
+     * table, so collecting the doomed drones first keeps the kill loop from
+     * corrupting a live registry walk.
      */
     private void cascadeKillDrones(DroneHubUnit h) {
-        List<Unit> units = roster.getUnits();
-        for (int j = 0, m = units.size(); j < m; j++) {
-            Unit other = units.get(j);
-            if (!(other instanceof Drone d)) continue;
-            if (!d.isAlive() || d.homeHub != h) continue;
+        UnitRegistry registry = roster.getRegistry();
+        List<Drone> doomed = null;
+        for (int i = 0, n = registry.liveCount(); i < n; i++) {
+            Unit u = registry.get(i);
+            if (u instanceof Drone d && d.homeHub == h) {
+                if (doomed == null) doomed = new ArrayList<>();
+                doomed.add(d);
+            }
+        }
+        if (doomed == null) return;
+        for (int i = 0, n = doomed.size(); i < n; i++) {
+            Drone d = doomed.get(i);
             d.setHp(0f);
             // Publish before release, mirroring DamageResolver.resolve's
             // ordering — re-entrant into the in-progress drain, fanned out on
