@@ -13,13 +13,25 @@ non-sticky assignment, implicit convergence via load-balancing.
 
 ## Immediate next
 
-0. **Garrison zone-clear scoping** (`stories/17-garrison-zone-clear-scoping.md`)
-   — `SecureCompoundGoal` plans emit `ClearZone[0]` against the whole-map
-   outdoor zone, so secure/garrison squads charge the map instead of holding
-   the compound. Fix is an AABB size+containment gate on which zones get a
-   `ClearZone` step (design complete in the story). Surgical; small scope.
-   Also logs two follow-ups: assault-side `CLEAR_ZONE[0]` mirror bug, and the
-   too-strict `HOLD_NODE` gate that mis-routes garrisons into `SECURE_COMPOUND`.
+0. ~~**Garrison zone-clear scoping**~~ — **core fix shipped** (`2b31af4`).
+   `SecureCompoundGoal.synthesizeSecurePlan` now AABB-gates which route zones
+   get a `ClearZone` (`isGarrisonZone`: size gate + containment gate), so the
+   outdoor flood is transited not cleared and `HoldZone` is reachable.
+   `SecureCompoundGoalTest` covers it. Two follow-ups from the story are still
+   **open** (promoted to items 0a/0b); the off-path multi-room "plan reshape"
+   was deferred into the GarrisonCompound follow-on.
+0a. **Assault-side `CLEAR_ZONE[0]` mirror** — `ConquestCommand` Pass 2
+   (`nearestDefenderZoneInStrip`) and `AssaultCommand`'s sweep can hand a squad
+   a full clear against the outdoor zone the same way. AABB gate doesn't apply
+   (no compound box); wants a "never enqueue a full clear against the open
+   exterior zone" guard. See `stories/17-garrison-zone-clear-scoping.md`
+   § Follow-ups.
+0b. **Garrison never actually holds (`HOLD_NODE` gate too strict)** —
+   `ConquestCommand` Pass 0 only assigns `HOLD_NODE` when the squad centroid is
+   *inside the compound zone*, but garrison troops land on the outdoor parade
+   ground, so they fall through to `SECURE_COMPOUND`. Relax the gate (or have
+   `CompoundGarrisonSystem` stamp `HOLD_NODE` at spawn). This is *why* a
+   garrison squad was running a charge objective at all.
 1. **Perception cheap wins** (`stories/15-perception-and-influence.md`
    § Near-term cheap wins) — threat-direction cover scoring, ranged LoS
    variant, threat-set gate on `HAS_LOS_TO_TARGET`. Lay the data-flow
@@ -52,6 +64,7 @@ non-sticky assignment, implicit convergence via load-balancing.
 - `stories/15-perception-and-influence.md` — perception + influence map
 - `stories/16-assault-command.md` — assault commander design (shipped)
 - `stories/17-garrison-zone-clear-scoping.md` — AABB-gated SecureCompound
-  plan scoping (active; fixes garrison "charge the map" bug)
+  plan scoping (core fix shipped `2b31af4`; two follow-ups + GarrisonCompound
+  reshape still open)
 - `complete/` — sealed shipped work (Stage 1 tasks 01–09, Stage 2
   foundation 11, mech Stage 1 14)

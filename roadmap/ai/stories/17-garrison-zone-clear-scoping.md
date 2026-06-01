@@ -1,8 +1,30 @@
 # 17 — Garrison Zone-Clear Scoping (AABB-gated SecureCompound plans)
 
-**Active.** Fixes a `SecureCompoundGoal` plan-synthesis bug where a squad
-tasked to secure/hold a compound charges across the entire map instead of
-defending it, then sketches the richer garrison behavior it unlocks.
+**Core fix shipped** (`2b31af4`). Fixes a `SecureCompoundGoal` plan-synthesis
+bug where a squad tasked to secure/hold a compound charges across the entire
+map instead of defending it, then sketches the richer garrison behavior it
+unlocks.
+
+## What shipped (`2b31af4`)
+
+The AABB size+containment gate landed as a **filter on the BFS-path plan**:
+`synthesizeSecurePlan` now emits a transit `EnterZone` for every route zone
+but only adds a `ClearZone` for zones that pass `isGarrisonZone` (size gate:
+`cellCount ≤ 1.25 × bbox area`; containment gate: `≥50%` of cells inside the
+node bbox). The outdoor flood fails the size gate via an O(1) field read, so
+`ClearZone[outdoor]` is gone and `HoldZone` is reachable. Covered by
+`SecureCompoundGoalTest` (transit-not-clear, clear-then-hold, in-zone).
+
+**Deferred** (folded into the GarrisonCompound follow-on below): the richer
+"plan reshape" that enumerates the compound's *own* zones directly to also
+clear *off-path* rooms. The current fix clears only garrison zones that lie on
+the BFS route to the anchor — a multi-room compound whose side rooms branch
+off the path won't get those rooms cleared. Not required to kill the observed
+"charge the map" bug; the natural home for it is the patrol-the-sub-zones
+GarrisonCompound goal, which needs the full `garrisonZones` set anyway.
+
+The two follow-ups below (assault-side `CLEAR_ZONE[0]` mirror, too-strict
+`HOLD_NODE` gate) remain **open** — not addressed by this commit.
 
 ## The bug (observed)
 
