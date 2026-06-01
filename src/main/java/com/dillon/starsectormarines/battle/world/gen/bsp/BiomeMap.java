@@ -113,10 +113,10 @@ public final class BiomeMap {
     }
 
     /**
-     * The structural theme for a biome band, ignoring economy flex. CITY's
-     * baseline is {@link MapDistrictTheme#MIXED}; the live, economy-aware lookup
-     * is the instance {@link #themeAt} (which substitutes {@link #cityTheme} for
-     * CITY). Kept static for callers that want the band default.
+     * The structural (economy-independent) theme for a biome band. CITY's
+     * baseline is {@link MapDistrictTheme#MIXED}; the live lookup the labeler
+     * uses is the instance {@link #themeAt}, which substitutes the economy-flexed
+     * {@link #cityTheme} for CITY.
      */
     public static MapDistrictTheme themeFor(BiomeKind biome) {
         switch (biome) {

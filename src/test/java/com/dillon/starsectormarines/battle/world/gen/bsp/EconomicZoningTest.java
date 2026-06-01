@@ -101,6 +101,14 @@ public class EconomicZoningTest {
         }
     }
 
+    /**
+     * Statistical, pinned to fixed seeds so it can't flake: the p=0.55 interior
+     * redirect makes a heavy-industry world field <em>comfortably</em> more
+     * interior INDUSTRIAL districts than a neutral one. The {@code + 5} margin
+     * (expected delta ~20 over these seeds) keeps it a real-shift assertion, not
+     * a knife-edge one — a seed-set change would have to halve the effect to
+     * surprise it.
+     */
     @Test
     void districtMapInteriorLeansIndustrialOnAHeavyIndustryWorld() {
         int emptyIndustrial = 0, heavyIndustrial = 0;
@@ -110,8 +118,8 @@ public class EconomicZoningTest {
             heavyIndustrial += interiorIndustrial(new DistrictMap(100, 100, new Random(seed),
                     EnumSet.of(EconomicFunction.HEAVY_INDUSTRY)));
         }
-        assertTrue(heavyIndustrial > emptyIndustrial,
-                "heavy-industry world should field more interior INDUSTRIAL districts ("
+        assertTrue(heavyIndustrial >= emptyIndustrial + 5,
+                "heavy-industry world should field comfortably more interior INDUSTRIAL districts ("
                         + heavyIndustrial + ") than a neutral one (" + emptyIndustrial + ")");
     }
 
