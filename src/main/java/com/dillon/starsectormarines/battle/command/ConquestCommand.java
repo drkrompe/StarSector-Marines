@@ -157,15 +157,15 @@ public final class ConquestCommand implements MissionCommand {
             initialized = true;
         }
 
-        // Pass 0: assign HOLD_NODE for MARINE_HELD compounds. One squad
-        // per compound, only if the squad is already in the compound's
-        // zone (garrison drops land there; assault squads passing through
-        // different zones aren't yanked off the advance).
+        // Pass 0: assign HOLD_NODE for MARINE_HELD compounds. One squad per
+        // compound, only if the squad is standing in the compound's footprint
+        // (garrison drops land on the parade ground; assault squads crossing
+        // distant streets aren't yanked off the advance).
         heldCompoundsWithHolder.clear();
         for (Squad squad : sim.getSquads()) {
             if (squad.faction != Faction.MARINE) continue;
             if (squad.aliveMembers <= 0) continue;
-            CompoundZone held = marineHeldCompoundInSquadZone(squad, sim);
+            CompoundZone held = marineHeldCompoundContainingSquad(squad, sim);
             if (held == null) continue;
             if (heldCompoundsWithHolder.contains(held.zoneId)) continue;
             ObjectiveAssignment cur = squad.assignedObjective;
@@ -220,18 +220,40 @@ public final class ConquestCommand implements MissionCommand {
     }
 
     /**
-     * Returns the MARINE_HELD compound whose zone contains this squad, or
-     * null if the squad isn't in any captured compound's zone. Used by
-     * Pass 0 to assign garrison squads to hold without pulling assault
-     * squads off the advance.
+     * Margin (cells) added to a compound's footprint when deciding whether a
+     * squad is "at" it for the HOLD_NODE assignment. Garrison troops land on
+     * the parade ground / perimeter rim, which can sit a cell or two outside
+     * the building union bbox; the margin catches them while still excluding
+     * assault squads crossing distant streets.
      */
-    private CompoundZone marineHeldCompoundInSquadZone(Squad squad, BattleView sim) {
-        int squadZone = sim.getZoneGraph().zoneIdAt(
-                (int) squad.centroidX, (int) squad.centroidY);
-        if (squadZone < 0) return null;
+    private static final int HOLD_FOOTPRINT_MARGIN = 3;
+
+    /**
+     * Returns the MARINE_HELD compound whose <em>footprint</em> contains this
+     * squad, or null if the squad isn't standing in any captured compound. Used
+     * by Pass 0 to assign garrison squads to hold without pulling assault
+     * squads off the advance.
+     *
+     * <p>Tests the squad centroid against the compound node's persisted
+     * footprint ({@link TacticalNode#compoundLeft()} … the union bbox of the
+     * whole base) expanded by {@link #HOLD_FOOTPRINT_MARGIN}, not zone equality:
+     * garrison drops land on the outdoor parade ground, a different zone than
+     * the building interior, so a zone-equality gate never matched them and
+     * they fell through to a SECURE_COMPOUND (re-capture) assignment instead of
+     * holding.
+     */
+    private CompoundZone marineHeldCompoundContainingSquad(Squad squad, BattleView sim) {
+        int cx = Math.round(squad.centroidX);
+        int cy = Math.round(squad.centroidY);
         for (CompoundZone cz : compoundZones) {
             if (cz.record.state != CompoundService.CompoundState.MARINE_HELD) continue;
-            if (cz.zoneId == squadZone) return cz;
+            TacticalNode n = cz.record.node;
+            if (cx >= n.compoundLeft() - HOLD_FOOTPRINT_MARGIN
+                    && cx <= n.compoundRight() + HOLD_FOOTPRINT_MARGIN
+                    && cy >= n.compoundTop() - HOLD_FOOTPRINT_MARGIN
+                    && cy <= n.compoundBottom() + HOLD_FOOTPRINT_MARGIN) {
+                return cz;
+            }
         }
         return null;
     }

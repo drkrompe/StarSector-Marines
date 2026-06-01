@@ -8,6 +8,9 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.command.compound.CompoundService;
+import com.dillon.starsectormarines.battle.command.compound.CompoundCaptureSystem;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -370,6 +373,68 @@ public class ConquestCommandTest {
 
         assertNull(squad.assignedObjective,
                 "exterior-only defender → no CLEAR_ZONE; squad engages ambiently");
+    }
+
+    /**
+     * An enclosed 3×3 building room (interior x∈[4,6], y∈[4,6]) sealed by a
+     * one-cell wall ring with a doorway at (7,5), surrounded by open parade
+     * ground. The building interior is its own zone; the parade is another.
+     * Lets the 0b test put a garrison squad on the parade (a different zone
+     * from the building) but inside the compound footprint.
+     */
+    private static BattleSimulation walledBuildingSim() {
+        NavigationGrid grid = new NavigationGrid(W, H);
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) {
+                grid.setWalkableFloor(x, y);
+            }
+        }
+        // Wall ring around the room at [3..7]×[3..7]; carve the interior back open.
+        for (int x = 3; x <= 7; x++) { grid.setWalkable(x, 3, false); grid.setWalkable(x, 7, false); }
+        for (int y = 3; y <= 7; y++) { grid.setWalkable(3, y, false); grid.setWalkable(7, y, false); }
+        grid.setWalkableFloor(7, 5);
+        grid.setDoorway(7, 5, true); // building ↔ parade
+        return new BattleSimulation(grid, new CellTopology(W, H));
+    }
+
+    /** Registers a compound node and drives it to MARINE_HELD via the capture system. */
+    private static void captureCompound(BattleSimulation sim, TacticalNode node) {
+        CompoundService service = sim.getCompoundService();
+        service.register(node);
+        CompoundCaptureSystem capture = new CompoundCaptureSystem();
+        sim.addUnit(new Unit("cap-m", Faction.MARINE, UnitType.MARINE, node.anchorX, node.anchorY));
+        int ticks = 2 + (int) Math.ceil(
+                CompoundService.MARINE_HOLD_TIME / CompoundCaptureSystem.CAPTURE_TICK_PERIOD);
+        for (int i = 0; i < ticks; i++) {
+            capture.tick(CompoundCaptureSystem.CAPTURE_TICK_PERIOD, sim, service);
+        }
+    }
+
+    @Test
+    public void garrisonOnParadeGroundGetsHoldNode() {
+        // 0b: a marine squad standing on the parade ground (a different zone
+        // than the building interior, but inside the compound footprint) must
+        // be assigned HOLD_NODE. The old zone-equality gate never matched it,
+        // so it fell through to SECURE_COMPOUND and never garrisoned.
+        BattleSimulation sim = walledBuildingSim();
+        TacticalNode node = new TacticalNode(TacticalNode.Kind.ARMORY, 5, 5,
+                4, 4, 6, 6, Faction.DEFENDER, 80, 4); // footprint = building room
+        captureCompound(sim, node);
+
+        // Squad on the parade ground at (9,5): inside the footprint+margin but a
+        // different zone than the building interior (5,5).
+        Squad squad = addMarineSquad(sim, 9f, 5f);
+        assertNotEquals(sim.getZoneGraph().zoneIdAt(9, 5), sim.getZoneGraph().zoneIdAt(5, 5),
+                "test prerequisite: parade and building are distinct zones");
+
+        ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+        cmd.tick(sim);
+
+        ObjectiveAssignment a = squad.assignedObjective;
+        assertNotNull(a, "garrison squad in the footprint should get an assignment");
+        assertEquals(AssignmentKind.HOLD_NODE, a.kind(),
+                "squad on the parade ground (in the footprint) holds the compound");
+        assertEquals(node, a.targetNode());
     }
 
     @Test
