@@ -55,11 +55,13 @@ gameplay reason appears.
 ## Scale & altitude — resolved direction
 
 > **The one-constant footprint is shipped** (for shuttles; ships inherit it) —
-> `battle/air/AirScale.METERS_PER_PX = 0.65`, derived length via
-> `HullFootprintResolver`. See
-> [`../complete/global-pixel-density-scale.md`](../complete/global-pixel-density-scale.md).
-> The ladder below is now the live behavior, not a proposal; the constant's
-> absolute calibration is still pending playtest.
+> `battle/air/AirScale.METERS_PER_PX`, derived length via `HullFootprintResolver`.
+> See [`../complete/global-pixel-density-scale.md`](../complete/global-pixel-density-scale.md).
+> The *relative* ladder below is now the live behavior. The **absolute** scale,
+> however, was dialled to a gameplay value (`0.045`, ~4× smaller hulls beside
+> ~1-cell infantry) rather than the realistic ~0.65 metres the table assumes —
+> so treat the table as the **future realistic lever** (a one-constant bump once
+> maps grow), not today's on-screen sizes.
 
 The earlier "on-map giant vs. high-altitude small" framing dissolved once we
 stopped treating Starsector `su` as physical size. Vanilla `su` are *arena*
@@ -125,10 +127,10 @@ cross-linked so the eventual integration story doesn't get designed twice.
 
 ## Open questions
 
-- ~~Pick the single `METERS_PER_PX` constant~~ — **done: `0.65`** in
-  `AirScale` ([`../complete/global-pixel-density-scale.md`](../complete/global-pixel-density-scale.md)).
-  Absolute calibration against a fixed target map size (and the resulting **map
-  growth** to fit ~172-cell capitals' smaller cousins) is the remaining tuning.
+- ~~Pick the single `METERS_PER_PX` constant~~ — **done**, calibrated to `0.045`
+  (gameplay scale) in `AirScale` ([`../complete/global-pixel-density-scale.md`](../complete/global-pixel-density-scale.md)).
+  Bumping it back toward the realistic ~0.65 (and the **map growth** that
+  requires) is a deliberate future lever, not pending tuning.
 - Do ground weapons have a ceiling / range gate against airborne ships, and is
   that the intended difficulty lever? (Now a camera-Z / altitude question — see
   the render-layer dependency above.)

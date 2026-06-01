@@ -5,7 +5,7 @@
 > [`hull-extraction.md`](../hull-extraction.md) § Scale and the resolved
 > direction in [`ships/overview.md`](../ships/overview.md) § "Scale & altitude".
 
-## Shipped — `c553532` (code), playtest calibration pending
+## Shipped — `c553532` (machinery) + calibration/turret-scale follow-up
 
 Landed: `battle/air/AirScale` (the one constant), `HullFootprintResolver`
 (cached `.ship`-height → derived length), `ShuttleType` stripped of the authored
@@ -14,13 +14,24 @@ Landed: `battle/air/AirScale` (the one constant), `HullFootprintResolver`
 hull and its engine FX share one derived length. Parser left pure; flyby
 fighters left for the fighters track (disjoint hull ids).
 
-**Outstanding (slice 6):** the `0.65` constant is unverified in-game — shuttles
-are now ~14–34× larger than before, which presumes the planned 512+ maps. Tune
-`AirScale.METERS_PER_PX` against the live ground camera, re-check turret
-`visualCells` against the larger hulls, and track **map growth** as the
-downstream dependency. A full `gradlew build` was blocked at commit time by an
-unrelated concurrent-session error in `ShotRenderService` (not this story);
-files verified clean via IDE inspection.
+**Calibration + turret param-awareness (follow-up commit).** The realistic
+`0.65` was too big in practice, so `METERS_PER_PX` was dialled to **`0.045`** —
+smallest shuttle (Kite) back to ~3 cells, Valkyrie ~12, a true ~4× ladder beside
+~1-cell infantry. At that scale the literal "1 cell = 1 m" anchor is relaxed:
+these are gameplay-scale units, not realistic metres (documented on the
+constant). The turret geometry was also made **param-aware** — mount offsets and
+`TurretKind.visualCells` are read in a hull frame normalized to
+`AirScale.TURRET_AUTHORING_HULL_CELLS` (default `4`) and scaled by
+`derivedHullLength / that` in `ShuttleRenderSystem`, so the whole turret assembly
+flat-scales with the hull and tracks `METERS_PER_PX` instead of clustering tiny
+at the centre. Two clean knobs result: `METERS_PER_PX` (overall ship size) and
+`TURRET_AUTHORING_HULL_CELLS` (turret-to-hull ratio).
+
+**Outstanding:** final in-game eyeball of both knobs (a full `gradlew build` was
+blocked at commit time by an unrelated concurrent-session error in
+`ShotRenderService`, not this story; files verified clean via IDE inspection).
+Realistic absolute scale + 512-map growth is now a deliberate *future* lever,
+not a blocker.
 
 ## Goal
 
@@ -36,12 +47,13 @@ density we discovered from the base game" work.
 
 ## Decisions (locked)
 
-- **`METERS_PER_PX = 0.65`, full realistic scale.** Confirmed with eyes open on
-  the magnitude: this is a **14–34× blow-up** over today's authored sizes
-  (Kite 66px → ~43 cells vs current 3.0; Valkyrie 264px → ~172 cells vs current
-  5.0). A 172 m Valkyrie dropship is true-to-life — and it **presumes the
-  planned 512+ cell maps**; on today's maps these craft dominate the field.
-  That's accepted: the absolute scale is the destination, maps grow to meet it.
+- **`METERS_PER_PX` calibrated to `0.045` (gameplay scale).** First locked at the
+  realistic `0.65` (Kite ~43 cells, Valkyrie ~172 — true metres, presuming 512+
+  maps), but that dwarfed current maps in practice, so it was dialled back to
+  `0.045`: Kite ~3 cells, Valkyrie ~12, a true ~4× ladder beside ~1-cell
+  infantry. The literal "1 cell = 1 m" anchor is therefore relaxed — these are
+  play-scale units. Realistic absolute scale + bigger maps remain a deliberate
+  future lever; the machinery makes it a one-constant change.
 - **Re-scale shuttles now (full adoption).** Shuttles are the only shipped
   on-map air craft and the live calibration target.
 - **The parser stays a pure "render at length L" function.** The global-density

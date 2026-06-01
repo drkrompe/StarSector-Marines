@@ -125,7 +125,9 @@ kept **independent**:
    > Previously `ShipSpecEngineParser` did the *opposite* — per-ship
    > normalization (`pxPerCell = spriteHeightPx / visualLengthCells`), which
    > discarded relative size. The global factor now lives in `battle/air/AirScale`
-   > (`METERS_PER_PX = 0.65`); `visualLengthCells` is **derived** (`spriteHeightPx
+   > (`METERS_PER_PX = 0.045`, a gameplay scale — the realistic ~0.65 dwarfed
+   > current maps and is now a future lever); `visualLengthCells` is **derived**
+   > (`spriteHeightPx
    > × METERS_PER_PX`) by `HullFootprintResolver`, so `pxPerCell` collapses to the
    > constant `1/METERS_PER_PX` and footprint unifies with the slot-scraping
    > transform ([[vanilla_ship_spec_scraping]]). The parser itself stayed a pure

@@ -27,16 +27,27 @@ public final class AirScale {
 
     private AirScale() {}
 
-    /** Anchor of the whole system: one sim cell is one metre. */
+    /**
+     * Nominal anchor of the unit system: one sim cell is one "metre". At the
+     * gameplay-tuned density below these are play-scale units, not literal
+     * metres — see {@link #METERS_PER_PX}.
+     */
     public static final float METERS_PER_CELL = 1f;
 
     /**
-     * Metres per sprite pixel — the one factor that sizes all hulls. {@code 0.65}
-     * puts a Talon fighter at ~16 m, a Lasher frigate at ~62 m, an Onslaught
-     * capital at ~250 m (off-map). Realistic absolute scale; presumes the
-     * planned 512+ cell maps. Tune in playtest.
+     * The one factor that sizes every air hull: render length =
+     * {@code spriteHeightPx × this}. Because all vanilla art shares one pixel
+     * density, this single number reproduces the whole relative-size ladder —
+     * base and modded — for free.
+     *
+     * <p><b>Gameplay scale, not literal metres.</b> The realistic calibration
+     * (~0.65 → a Kite at ~43 cells, a Valkyrie at ~172) dwarfed current maps, so
+     * this is dialled down for playability: at {@code 0.045} the smallest shuttle
+     * (Kite, 66 px) reads at ~3 cells and a Valkyrie (264 px) at ~12 — a true
+     * ~4× ladder, sized to sit beside ~1-cell infantry. Re-dial freely; turret
+     * geometry tracks it automatically (see {@link #TURRET_AUTHORING_HULL_CELLS}).
      */
-    public static final float METERS_PER_PX = 0.65f;
+    public static final float METERS_PER_PX = 0.045f;
 
     /**
      * The px↔cell ratio. Constant for every hull — this is the collapse that
@@ -53,6 +64,21 @@ public final class AirScale {
      * hull still draws something rather than collapsing to a point.
      */
     public static final float FALLBACK_LENGTH_CELLS = 8f;
+
+    /**
+     * The hull render length (cells) the shuttle turret kit was authored
+     * against — the mount offsets in {@code ShuttleType.a2gKit} and the
+     * {@code TurretKind.visualCells} sizes read correctly on a hull this long.
+     * Turret geometry is scaled by {@code derivedHullLength / this}, so turrets
+     * stay glued to the hull at a fixed proportion and track {@link #METERS_PER_PX}
+     * (flat scaling) instead of clustering tiny at the hull's center.
+     *
+     * <p>This is the <b>turret-to-hull ratio</b> knob, independent of
+     * {@link #METERS_PER_PX} (the <b>overall ship size</b> knob): raise it to
+     * shrink turrets relative to their hull, lower it to grow them. Tune in
+     * playtest alongside {@code METERS_PER_PX}.
+     */
+    public static final float TURRET_AUTHORING_HULL_CELLS = 4f;
 
     /** Forward render extent, in cells, for a sprite/hull this many pixels tall. */
     public static float cellsForHeightPx(float spriteHeightPx) {

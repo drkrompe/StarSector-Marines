@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.air.AirScale;
 import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.air.engine.EngineFxRenderer;
@@ -69,8 +70,8 @@ public final class ShuttleRenderSystem implements RenderSystem {
             // Hull. Length is derived from the hull's sprite pixel extent via
             // the one global pixel-density factor (HullFootprintResolver), not a
             // hand-authored per-type value.
-            float pxLen = HullFootprintResolver.visualLengthCells(s.type.renderHullId())
-                    * cellPx * s.scaleMult;
+            float hullLenCells = HullFootprintResolver.visualLengthCells(s.type.renderHullId());
+            float pxLen = hullLenCells * cellPx * s.scaleMult;
             float pxH = pxLen;
             float pxW = pxLen * cache.aspect;
             float cx = cam.cellToScreenX(s.body.x);
@@ -79,12 +80,18 @@ public final class ShuttleRenderSystem implements RenderSystem {
                     cx, cy, pxW, pxH, s.body.facingDegrees,
                     1f, 1f, 1f, alphaMult);
 
-            emitTurrets(out, cam, cellPx, alphaMult, s);
+            emitTurrets(out, cam, cellPx, alphaMult, s, hullLenCells);
         }
     }
 
-    private void emitTurrets(DrawList out, BattleCamera cam, float cellPx, float alphaMult, Shuttle s) {
+    private void emitTurrets(DrawList out, BattleCamera cam, float cellPx, float alphaMult,
+                             Shuttle s, float hullLenCells) {
         if (s.turrets.length == 0) return;
+        // Mount offsets and turret sizes are authored in a hull frame normalized
+        // to AirScale.TURRET_AUTHORING_HULL_CELLS; scale them by the hull's actual
+        // derived length so the whole turret assembly flat-scales with the hull
+        // (and tracks METERS_PER_PX) rather than staying tiny at the center.
+        float turretScale = hullLenCells / AirScale.TURRET_AUTHORING_HULL_CELLS;
         float rad = (float) Math.toRadians(s.body.facingDegrees);
         float c = (float) Math.cos(rad);
         float si = (float) Math.sin(rad);
@@ -92,13 +99,13 @@ public final class ShuttleRenderSystem implements RenderSystem {
         for (MountedTurret mt : s.turrets) {
             ShuttleSpriteCache base = sprites.turretSprites().get(mt.mount.kind);
             if (base == null) continue;
-            float lx = mt.mount.localOffsetX * s.scaleMult;
-            float ly = mt.mount.localOffsetY * s.scaleMult;
+            float lx = mt.mount.localOffsetX * s.scaleMult * turretScale;
+            float ly = mt.mount.localOffsetY * s.scaleMult * turretScale;
             float worldOffsetX = lx * c - ly * si;
             float worldOffsetY = lx * si + ly * c;
             float screenX = cam.cellToScreenX(s.body.x + worldOffsetX);
             float screenY = cam.cellToScreenY(s.body.y + worldOffsetY + altOffset);
-            float layerVisualCells = mt.mount.kind.visualCells * s.scaleMult;
+            float layerVisualCells = mt.mount.kind.visualCells * s.scaleMult * turretScale;
 
             ShuttleSpriteCache barrel = sprites.turretRecoilSprites().get(mt.mount.kind);
             if (barrel != null) {
