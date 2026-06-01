@@ -392,9 +392,9 @@ public class AirSystem {
         if (s.squadId == Unit.NO_SQUAD) return;
         float sumX = 0f, sumY = 0f;
         int n = 0;
-        for (Unit u : roster.getUnits()) {
+        for (int i = 0, live = registry.liveCount(); i < live; i++) {
+            Unit u = registry.get(i);
             if (u.squadId != s.squadId) continue;
-            if (!u.isAlive()) continue;
             sumX += u.getCellX() + 0.5f;
             sumY += u.getCellY() + 0.5f;
             n++;

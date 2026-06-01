@@ -105,8 +105,9 @@ public final class RecaptureTargetService {
     private void updateContested(BattleView sim) {
         EnumMap<BiomeKind, Integer> present = new EnumMap<>(BiomeKind.class);
         int totalDefenders = 0;
-        for (Unit u : sim.getUnits()) {
-            if (u.faction != Faction.DEFENDER || !u.isAlive()) continue;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            Unit u = sim.liveUnitAt(i);
+            if (u.faction != Faction.DEFENDER) continue;
             present.merge(biomeMap.biomeAt(u.getCellX(), u.getCellY()), 1, Integer::sum);
             totalDefenders++;
         }

@@ -550,10 +550,10 @@ public final class TacticalScoring {
     private float projectedRocketDamageOnTarget(Unit shooter, Unit target) {
         float total = 0f;
         if (shooter.squadId != Unit.NO_SQUAD) {
-            for (Unit u : roster.getUnits()) {
+            for (int i = 0, n = registry.liveCount(); i < n; i++) {
+                Unit u = registry.get(i);
                 if (u == shooter) continue;
                 if (u.squadId != shooter.squadId) continue;
-                if (!u.isAlive()) continue;
                 if (u.secondaryWeapon == null) continue;
                 if (u.getSecondaryActionTimer() <= 0f) continue;
                 if (u.getSecondaryAimTargetId() != target.entityId) continue;

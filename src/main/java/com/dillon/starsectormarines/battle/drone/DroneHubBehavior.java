@@ -38,9 +38,9 @@ public final class DroneHubBehavior implements UnitBehavior {
 
     private static int countActiveDrones(BattleView sim, DroneHubUnit hub) {
         int n = 0;
-        for (Unit u : sim.getUnits()) {
+        for (int i = 0, live = sim.liveUnitCount(); i < live; i++) {
+            Unit u = sim.liveUnitAt(i);
             if (!(u instanceof Drone)) continue;
-            if (!u.isAlive()) continue;
             if (((Drone) u).homeHub == hub) n++;
         }
         return n;
