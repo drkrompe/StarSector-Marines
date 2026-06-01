@@ -32,10 +32,19 @@ goal + `GarrisonPatrol` action: re-clear any contested room (delegating to
 the room interiors (leader-gated dwell) with opportunistic fire. Serves both
 the marine `HOLD_NODE` holder and the defender base garrison; for a
 multi-building defender compound only the **primary** node patrols (others hold
-their building via `GuardPost`, which yields only for the primary). The Pass-0
-`HOLD_NODE` gate was relaxed from zone-equality to point-in-`compoundBounds` so
-a squad on the parade ground actually holds. (`GarrisonCompoundTest`,
-`GarrisonAreaTest`, `ConquestCommandTest`, `AssaultCommandTest`.)
+their building via `GuardPost`, which yields only for the primary).
+(`GarrisonCompoundTest`, `GarrisonAreaTest`.)
+
+**Who holds — born-holding garrison** (`08ef31e`) — the holder is the dedicated
+squad shipped in by `CompoundGarrisonSystem`, not whoever captured the place.
+The garrison shuttle carries its compound node; `AirSystem` stamps the deboarded
+squad with `HOLD_NODE` at mint (`Squad.assignHoldNode`), so it's born into
+`GarrisonCompound`. `ConquestCommand` no longer assigns `HOLD_NODE` at all
+(Pass 0 removed) — it only *respects* an existing one (Pass 1/2 skip), so the
+capturing assault squad is re-tasked to keep advancing instead of being pinned.
+The garrison stays on its compound for the battle (re-clears on counter-attack);
+release-when-quiet is unimplemented. (`CompoundGarrisonSystemTest`,
+`ConquestCommandTest`.)
 
 ## Remaining follow-ups
 
@@ -47,6 +56,10 @@ a squad on the parade ground actually holds. (`GarrisonCompoundTest`,
 - **SecureCompound off-path rooms.** The capture-time `synthesizeSecurePlan`
   still clears only rooms on the BFS route to the anchor. Now lower priority:
   `GarrisonCompound` re-clears every room once the compound flips `MARINE_HELD`.
+- **Release-when-quiet.** A born-holding garrison stays on its compound for the
+  rest of the battle. If garrisons should rejoin the advance after the area's
+  been quiet for a while, that's an added rule (clear `HOLD_NODE` on a quiet
+  timer so the commander re-tasks the squad).
 
 ## The bug (observed)
 

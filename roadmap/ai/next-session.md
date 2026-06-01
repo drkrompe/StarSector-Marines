@@ -21,14 +21,15 @@ footprint into battle.
 ## Immediate next
 
 0. ~~**Garrison zone-clear scoping + multi-building garrison**~~ — **shipped**
-   (`2b31af4`, `4cebcb8`, `87cf47c`, `94e3060`, `8e73d0d`, `7fc2415`). The AABB
-   scoping fix, both command-side mirror bugs (0a exterior-clear guard, 0b
-   `HOLD_NODE` gate), and the richer `GarrisonCompound`/`GarrisonPatrol`
-   multi-building garrison (marine `HOLD_NODE` holder + defender base garrison,
-   primary-node coordination) all landed. See
-   `stories/17-garrison-zone-clear-scoping.md` § What shipped. Two small
-   follow-ups remain (courtyard move-to-engage; SecureCompound off-path rooms
-   — now low priority) in that doc's § Remaining follow-ups.
+   (`2b31af4`, `4cebcb8`, `87cf47c`, `94e3060`, `8e73d0d`, `7fc2415`, `08ef31e`).
+   The AABB scoping fix, the 0a exterior-clear guard, the richer
+   `GarrisonCompound`/`GarrisonPatrol` multi-building garrison (marine holder +
+   defender base garrison, primary-node coordination), and 0b — the captured
+   compound is held by the dedicated born-holding garrison squad shipped in by
+   `CompoundGarrisonSystem` (the capturing assault squad keeps advancing). See
+   `stories/17-garrison-zone-clear-scoping.md` § What shipped. Small follow-ups
+   remain (courtyard move-to-engage; SecureCompound off-path rooms;
+   release-when-quiet) in that doc's § Remaining follow-ups.
 1. **Perception cheap wins** (`stories/15-perception-and-influence.md`
    § Near-term cheap wins) — threat-direction cover scoring, ranged LoS
    variant, threat-set gate on `HAS_LOS_TO_TARGET`. Lay the data-flow
