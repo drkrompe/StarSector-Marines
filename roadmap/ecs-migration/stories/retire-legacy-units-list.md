@@ -144,17 +144,39 @@ Open sub-questions for the build (resolve as we go, don't over-design):
     tier — capability-as-presence + a system over the component-set, FX as a
     side effect of having the component. The pattern the rest of the migration
     follows (see [[feedback_build_composition_now]]).
+- **Slice 2c-enabler SHIPPED (2026-06-01) — first column decomposed out of the
+  kitchen-sink.** Render position (`renderX/renderY`) lifted from the dense
+  `UnitRegistry` into a standalone `RenderPositionService` (`battle.unit`), a
+  thin float API over a `ComponentStore<RenderPosition>` (new `RenderPosition`
+  component in `battle.component`). Keyed by `entityId` and **not removed on
+  release**, so a released corpse still resolves its death-pose location
+  directly through the service — the survive-release property
+  `sweepDeadSprites` needs. `Unit.getRenderX()/setRenderPos()` route through a
+  per-unit `renderPositions` reference set at `allocate` and **not nulled** on
+  release (unlike `registry`). The dense `renderX/renderY` columns, their
+  grow/swap/snapshot, the `getRenderX(idx)`/`renderXArray()` accessors, and the
+  render half of the `local*` release-snapshot are all gone; `localRenderX/Y`
+  is now a pre-allocate seed only. Picked render first because the audit found
+  **zero** dense-array readers of it (every reader is the per-entity accessor),
+  so it's zero-perf-cost and zero-behavior-change for the living. Hot-dense
+  columns (`cellX/cellY`, hp, timers) stay dense. Tests: `RenderPositionServiceTest`
+  (8) + rewritten `UnitRegistryTest` render cases (route-through-service,
+  survives-release, undisturbed-by-tail-swap). Full suite green.
+  - **Still on the list:** `sweepDeadSprites` itself still *scans* `getUnits()`
+    for dead units (reading the now-surviving `getRenderX()`); migrating that
+    scan to a corpse/dead-pose iteration source is the remaining 2c work.
 
 ## Sequencing
 
 1. **Corpse home (enabler).** Build the death-event + component mechanism;
    migrate the 4 Bucket-B readers off the list. *(Death-event mechanism +
    turret demolition + hub demolition + drone crash done — see Progress; the
-   crash proved the component pattern. Remaining: `UnitRenderService.`
-   `sweepDeadSprites` — the infantry dead-pose render, the one corpse-reader
-   that genuinely needs a position+render body to survive release. This is where
-   the `UnitRegistry`-decomposition-into-component-services work gets pulled in —
-   a corpse = an entity present in the position+render component stores but not
+   crash proved the component pattern. **Render position is now decomposed out
+   of `UnitRegistry` into `RenderPositionService` (entity-id-keyed, survives
+   release)** — the first per-component-service split and the survive-release
+   enabler `sweepDeadSprites` needs. Remaining: migrate `UnitRenderService.`
+   `sweepDeadSprites` off the `getUnits()` scan onto a corpse/dead-pose
+   iteration source — a corpse = an entity present in the render store but not
    health/AI. See [[feedback_build_composition_now]].)*
 2. **Bucket A sweep.** Migrate the ~20 live-iterators `getUnits()` → dense
    registry. Fan out to Sonnet; each is a local `isAlive`-gate → dense loop.

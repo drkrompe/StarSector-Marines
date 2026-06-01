@@ -105,10 +105,24 @@ the component boundaries now so Valhalla is a layout swap, not a rewrite.
   - **B2 first component SHIPPED:** `ComponentStore<T>` + `Crashing` (the drone
     crash) — `40fa668`. Validated capability-as-presence on real, motivated work
     (the crash) exactly as the guardrails prescribe.
-  - **Next pull:** decompose `UnitRegistry` (the single kitchen-sink archetype)
-    into per-component services so a corpse is an entity with a *subset* of
-    components — pulled by `UnitRenderService.sweepDeadSprites` (infantry dead
-    pose surviving release). Then B1 grouping for the dense columns.
+  - **B2.5 first column decomposed out of the kitchen-sink SHIPPED:** render
+    position (`renderX/renderY`) lifted from the dense `UnitRegistry` into a
+    standalone `RenderPositionService` (in `battle.unit`), a thin float API over
+    a `ComponentStore<RenderPosition>` (new `RenderPosition` component). Keyed by
+    `entityId`, **survives registry release** — so a corpse keeps its death-pose
+    location for free, and "where do I draw" is one shared component instead of a
+    column redefined per entity. Render was the natural first cut: an audit found
+    **zero** dense-array readers of `renderXArray()/renderYArray()` (every reader
+    goes through the `getRenderX()` accessor), so the move is zero-perf-cost and
+    zero-behavior-change for the living, and it collapses the render half of the
+    `local*`/release-snapshot duality. Hot-dense columns (`cellX/cellY`, hp,
+    combat/AI timers) stay in the dense table — pulled only as a consumer demands.
+  - **Next pull:** migrate `UnitRenderService.sweepDeadSprites` itself off the
+    legacy `getUnits()` scan — the render-survives-release enabler is now in
+    place, so the remaining work is a corpse iteration source (a dead-pose
+    component the sweep reads, the way `DroneRenderSystem` reads the crash store)
+    rather than scanning the units list for `!isAlive()`. Then B1 grouping for the
+    dense columns.
 - **Phase C — deferred (gated on heterogeneity).** Generic aspect /
   presence-bitset queries and (if ever) multi-archetype storage. Only when
   branch-on-`role` + sentinel columns measurably cost more than a bitset

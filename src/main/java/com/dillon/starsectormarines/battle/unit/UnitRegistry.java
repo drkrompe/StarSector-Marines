@@ -86,10 +86,6 @@ public final class UnitRegistry {
     private float[] cooldownTimer = new float[INITIAL_CAPACITY];
     /** Per-unit movement lerp factor [0,1] toward the next path cell. Same lifecycle as {@link #hp}. */
     private float[] moveProgress = new float[INITIAL_CAPACITY];
-    /** Per-unit smooth render X in cell units. Same lifecycle as {@link #hp}. */
-    private float[] renderX = new float[INITIAL_CAPACITY];
-    /** Per-unit smooth render Y in cell units. Same lifecycle as {@link #hp}. */
-    private float[] renderY = new float[INITIAL_CAPACITY];
     /** Per-unit base attack damage. Write-once at construction (captain traits may adjust). Same lifecycle as {@link #hp}. */
     private float[] attackDamage = new float[INITIAL_CAPACITY];
     /** Per-unit base attack range in cells. Same lifecycle as {@link #hp}. */
@@ -125,6 +121,18 @@ public final class UnitRegistry {
 
     private final Long2IntOpenHashMap indexById = new Long2IntOpenHashMap();
 
+    /**
+     * Smooth render position, decomposed out of the dense table into a
+     * standalone entity-id-keyed service so it survives release (the corpse
+     * draws its frozen death pose where it fell). The registry owns the
+     * instance and seeds it in {@link #allocate}; {@link Unit#getRenderX()} /
+     * {@link Unit#setRenderPos} route through the per-unit
+     * {@link Unit#renderPositions} reference, which is <b>not</b> nulled on
+     * release. See {@link RenderPositionService} for the entity-id-keyed
+     * rationale.
+     */
+    private final RenderPositionService renderPositions = new RenderPositionService();
+
     public UnitRegistry() {
         // Make missing-key lookups return INVALID_INDEX directly. The remove
         // path relies on this too: Long2IntOpenHashMap.remove returns the
@@ -159,8 +167,6 @@ public final class UnitRegistry {
             cellY = Arrays.copyOf(cellY, newCap);
             cooldownTimer = Arrays.copyOf(cooldownTimer, newCap);
             moveProgress = Arrays.copyOf(moveProgress, newCap);
-            renderX = Arrays.copyOf(renderX, newCap);
-            renderY = Arrays.copyOf(renderY, newCap);
             attackDamage = Arrays.copyOf(attackDamage, newCap);
             attackRange = Arrays.copyOf(attackRange, newCap);
             accuracy = Arrays.copyOf(accuracy, newCap);
@@ -189,8 +195,6 @@ public final class UnitRegistry {
         maxHp[liveCount] = u.localMaxHp;
         cellX[liveCount] = u.localCellX;
         cellY[liveCount] = u.localCellY;
-        renderX[liveCount] = u.localRenderX;
-        renderY[liveCount] = u.localRenderY;
         attackDamage[liveCount] = u.localAttackDamage;
         attackRange[liveCount] = u.localAttackRange;
         accuracy[liveCount] = u.localAccuracy;
@@ -215,6 +219,11 @@ public final class UnitRegistry {
         wanderDwellTimer[liveCount] = 0f;
         u.denseIdx = liveCount;
         u.registry = this;
+        // Seed + wire the decomposed render-position service. Unlike the dense
+        // columns above, this reference is NOT nulled on release — the entry
+        // survives so a released corpse still resolves its death-pose location.
+        renderPositions.set(id, u.localRenderX, u.localRenderY);
+        u.renderPositions = renderPositions;
         indexById.put(id, liveCount);
         liveCount++;
         return id;
@@ -240,21 +249,23 @@ public final class UnitRegistry {
         int last = liveCount - 1;
         // Snapshot HP + cell back onto the released unit so post-release
         // readers (corpses still in the legacy units list; isAlive() chained
-        // via getHp() in flyout / drone-crash code; the drone-crash sprite
-        // that still needs to know where to draw the corpse) see the
-        // moment-of-death values rather than stale defaults.
+        // via getHp() in flyout / drone-crash code) see the moment-of-death
+        // values rather than stale defaults. Render position is NOT snapshotted
+        // here — it lives in the decomposed RenderPositionService keyed by
+        // entityId, which is not cleared on release, so the corpse's death-pose
+        // location survives directly (no local* twin needed).
         Unit released = dense[idx];
         released.localHp = hp[idx];
         released.localMaxHp = maxHp[idx];
         released.localCellX = cellX[idx];
         released.localCellY = cellY[idx];
-        released.localRenderX = renderX[idx];
-        released.localRenderY = renderY[idx];
         released.localAttackDamage = attackDamage[idx];
         released.localAttackRange = attackRange[idx];
         released.localAccuracy = accuracy[idx];
         released.denseIdx = -1;
         released.registry = null;
+        // Deliberately keep released.renderPositions wired — the service entry
+        // survives so getRenderX()/getRenderY() still resolve for the corpse.
         if (idx != last) {
             Unit tail = dense[last];
             dense[idx] = tail;
@@ -264,8 +275,6 @@ public final class UnitRegistry {
             cellY[idx] = cellY[last];
             cooldownTimer[idx] = cooldownTimer[last];
             moveProgress[idx] = moveProgress[last];
-            renderX[idx] = renderX[last];
-            renderY[idx] = renderY[last];
             attackDamage[idx] = attackDamage[last];
             attackRange[idx] = attackRange[last];
             accuracy[idx] = accuracy[last];
@@ -365,16 +374,13 @@ public final class UnitRegistry {
     public void setMoveProgress(int idx, float v) { moveProgress[idx] = v; }
     public float[] moveProgressArray() { return moveProgress; }
 
-    public float getRenderX(int idx) { return renderX[idx]; }
-    public float getRenderY(int idx) { return renderY[idx]; }
-    public void setRenderX(int idx, float v) { renderX[idx] = v; }
-    public void setRenderY(int idx, float v) { renderY[idx] = v; }
-    public void setRenderPos(int idx, float x, float y) {
-        renderX[idx] = x;
-        renderY[idx] = y;
-    }
-    public float[] renderXArray() { return renderX; }
-    public float[] renderYArray() { return renderY; }
+    /**
+     * The decomposed render-position service this registry seeds + wires on
+     * {@link #allocate}. Render position is keyed by {@link Unit#entityId} and
+     * survives release (see {@link RenderPositionService}); the registry no
+     * longer holds dense {@code renderX/renderY} columns.
+     */
+    public RenderPositionService getRenderPositions() { return renderPositions; }
 
     public float getAttackDamage(int idx) { return attackDamage[idx]; }
     public void setAttackDamage(int idx, float v) { attackDamage[idx] = v; }

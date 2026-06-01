@@ -64,6 +64,17 @@ public class Unit {
      */
     public UnitRegistry registry;
 
+    /**
+     * The decomposed render-position service this unit's render coordinates
+     * live in, keyed by {@link #entityId}. Set once by
+     * {@link UnitRegistry#allocate} and — unlike {@link #registry} — <b>not</b>
+     * cleared on release, so {@link #getRenderX()} / {@link #getRenderY()} keep
+     * resolving the death-pose location for a released corpse. {@code null}
+     * only in the pre-allocate window, where {@link #localRenderX} /
+     * {@link #localRenderY} are the seed.
+     */
+    public RenderPositionService renderPositions;
+
     public final String id;
     public final Faction faction;
     /** Archetype — drives sprite + base stat block. Set once at construction. */
@@ -95,11 +106,13 @@ public class Unit {
     public int localCellY;
 
     /**
-     * <b>Don't read directly.</b> Smooth render-position pre-allocate seed +
-     * post-release snapshot, same lifecycle as {@link #localHp}. Canonical
-     * storage between allocate and release lives in
-     * {@code registry.renderXArray()[denseIdx]} / {@code renderYArray()[denseIdx]};
-     * go through {@link #getRenderX} / {@link #getRenderY} / {@link #setRenderPos}.
+     * <b>Don't read directly.</b> Smooth render-position <em>pre-allocate seed
+     * only</em>. {@link UnitRegistry#allocate} copies these into the
+     * {@link RenderPositionService}, after which that service is canonical and
+     * survives release — there is no post-release snapshot back to these fields
+     * (unlike {@link #localHp}, which still shadows the live-only dense hp
+     * column). Go through {@link #getRenderX} / {@link #getRenderY} /
+     * {@link #setRenderPos}.
      */
     public float localRenderX;
     public float localRenderY;
@@ -575,26 +588,26 @@ public class Unit {
     }
 
     public final float getRenderX() {
-        return (registry != null) ? registry.getRenderX(denseIdx) : localRenderX;
+        return (renderPositions != null) ? renderPositions.getX(entityId) : localRenderX;
     }
 
     public final float getRenderY() {
-        return (registry != null) ? registry.getRenderY(denseIdx) : localRenderY;
+        return (renderPositions != null) ? renderPositions.getY(entityId) : localRenderY;
     }
 
     public final void setRenderX(float v) {
-        if (registry != null) registry.setRenderX(denseIdx, v);
+        if (renderPositions != null) renderPositions.setX(entityId, v);
         else localRenderX = v;
     }
 
     public final void setRenderY(float v) {
-        if (registry != null) registry.setRenderY(denseIdx, v);
+        if (renderPositions != null) renderPositions.setY(entityId, v);
         else localRenderY = v;
     }
 
     public final void setRenderPos(float x, float y) {
-        if (registry != null) {
-            registry.setRenderPos(denseIdx, x, y);
+        if (renderPositions != null) {
+            renderPositions.set(entityId, x, y);
         } else {
             localRenderX = x;
             localRenderY = y;

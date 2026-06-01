@@ -396,55 +396,64 @@ public class UnitRegistryTest {
     }
 
     @Test
-    public void allocateSeedsRenderPosAndAccessorsRouteThroughRegistry() {
+    public void allocateSeedsRenderPosAndAccessorsRouteThroughService() {
         UnitRegistry r = new UnitRegistry();
         Unit u = new Unit("u", Faction.MARINE, UnitType.MARINE_BLUE, 5, 8);
 
-        r.allocate(u);
+        long id = r.allocate(u);
 
+        // Seeded from the unit's pre-allocate cell into the decomposed service.
         assertEquals(5f, u.getRenderX(), 1e-6f);
         assertEquals(8f, u.getRenderY(), 1e-6f);
-        assertEquals(5f, r.getRenderX(u.denseIdx), 1e-6f);
-        assertEquals(8f, r.getRenderY(u.denseIdx), 1e-6f);
+        assertEquals(5f, r.getRenderPositions().getX(id), 1e-6f);
+        assertEquals(8f, r.getRenderPositions().getY(id), 1e-6f);
 
         u.setRenderPos(5.3f, 8.7f);
-        assertEquals(5.3f, r.getRenderX(u.denseIdx), 1e-6f);
-        assertEquals(8.7f, r.getRenderY(u.denseIdx), 1e-6f);
+        assertEquals(5.3f, r.getRenderPositions().getX(id), 1e-6f);
+        assertEquals(8.7f, r.getRenderPositions().getY(id), 1e-6f);
         assertEquals(5.3f, u.getRenderX(), 1e-6f);
         assertEquals(8.7f, u.getRenderY(), 1e-6f);
     }
 
     @Test
-    public void releaseSnapshotsRenderPosBackToLocalField() {
+    public void renderPosSurvivesReleaseForTheCorpse() {
         UnitRegistry r = new UnitRegistry();
         Unit u = new Unit("u", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
-        r.allocate(u);
+        long id = r.allocate(u);
 
         u.setRenderPos(3.5f, 7.2f);
         r.release(u.entityId);
 
+        // Dropped from the live dense table...
         assertNull(u.registry);
         assertEquals(-1, u.denseIdx);
+        // ...but render position lives in the entity-id-keyed service, which is
+        // not cleared on release, so the corpse still resolves where it fell —
+        // directly through the service, no local* snapshot involved.
+        assertTrue(r.getRenderPositions().has(id));
         assertEquals(3.5f, u.getRenderX(), 1e-6f);
         assertEquals(7.2f, u.getRenderY(), 1e-6f);
+        assertEquals(3.5f, r.getRenderPositions().getX(id), 1e-6f);
     }
 
     @Test
-    public void releaseTailSwapMovesRenderPosCorrectly() {
+    public void renderPosIsUndisturbedByDenseTailSwap() {
         UnitRegistry r = new UnitRegistry();
         Unit a = new Unit("a", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
         Unit b = new Unit("b", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
         Unit c = new Unit("c", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
         long idA = r.allocate(a);
         r.allocate(b);
-        r.allocate(c);
+        long idC = r.allocate(c);
         c.setRenderPos(11.5f, 22.3f);
 
+        // Releasing a swap-pops c into a's old dense slot — render position is
+        // keyed by entity id, not dense index, so c's render pos is untouched.
         r.release(idA);
 
         assertEquals(0, c.denseIdx);
-        assertEquals(11.5f, r.getRenderX(0), 1e-6f);
-        assertEquals(22.3f, r.getRenderY(0), 1e-6f);
+        assertEquals(11.5f, r.getRenderPositions().getX(idC), 1e-6f);
+        assertEquals(22.3f, r.getRenderPositions().getY(idC), 1e-6f);
         assertEquals(11.5f, c.getRenderX(), 1e-6f);
         assertEquals(22.3f, c.getRenderY(), 1e-6f);
     }

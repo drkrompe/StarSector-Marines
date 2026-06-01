@@ -45,6 +45,7 @@ c50e50d  battle: collapse Group N local* duality (Phase A Slice 1)  ← 2026-06-
 7661571  battle: migrate hub demolition onto the death-event seam (spine slice 2a)  ← 2026-06-01
 2a3abc8  battle: harden DeathDispatcher.drain() for re-entrant publish  ← 2026-06-01
 40fa668  battle: model the drone crash as a Crashing component (first composition slice)  ← 2026-06-01
+<pending> battle: decompose render position out of UnitRegistry into RenderPositionService  ← 2026-06-01
 ```
 
 (Sibling tracks interleaved on HEAD, not ECS-migration: `9084ed4` battle-render
@@ -77,10 +78,19 @@ campaign work.)
   system over the component-set, FX as a side effect. The hub cascade publishes
   per-drone `DeathEvent`s so the seam handles cascade kills. **This is the
   pattern everything else follows now — stop deferring composition to a "future
-  phase."** ([[feedback_build_composition_now]].) Remaining Bucket-B reader:
-  `UnitRenderService.sweepDeadSprites` (infantry dead pose) — the one that pulls
-  in `UnitRegistry` → per-component-service decomposition (a corpse = an entity
-  with position+render components, no health/AI).
+  phase."** ([[feedback_build_composition_now]].)
+- **`UnitRegistry` decomposition STARTED — render position pulled out.** Render
+  position (`renderX/renderY`) is now a standalone `RenderPositionService`
+  (`battle.unit`), a float API over a `ComponentStore<RenderPosition>`, keyed by
+  `entityId` and **surviving registry release** — the corpse keeps its death-pose
+  location for free. Picked first because nothing reads it densely (zero
+  `renderXArray()` callers), so it's zero-perf / zero-behavior-change for the
+  living and collapses the render half of the `local*` duality. Hot-dense
+  columns (`cellX/cellY`, hp, timers) stay in the dense table. This is the
+  survive-release enabler for the last Bucket-B reader,
+  `UnitRenderService.sweepDeadSprites` (infantry dead pose) — which still
+  *scans* `getUnits()`; migrating that scan onto a corpse iteration source is
+  the remaining 2c step.
 
 ## Active stories (priority order)
 
@@ -147,15 +157,23 @@ campaign work.)
 >    over the component-set; FX is the side effect of the component. First real
 >    composition in the battle tier — the pattern the rest follows. Drain
 >    hardened for the re-entrant cascade publish. See the spine story's Progress.
-> 2c. **NEXT — `UnitRenderService.sweepDeadSprites` (infantry dead pose).** The
->    last Bucket-B reader, and the one that genuinely needs a corpse to survive
->    release. **This pulls in the `UnitRegistry`-decomposition the user called
->    for:** split the single kitchen-sink table into per-component services
->    (`CellPositionService`, `HealthService`, `RenderPositionService`, …) with
->    `UnitRegistry` as a facade, so a corpse is just an entity present in the
->    position+render stores and absent from health/AI — not a redefined field
->    bag, not a parallel `CorpseService`. Build composition, don't defer it
->    ([[feedback_build_composition_now]]). The `Crashing` slice is the template.
+> 2c. **`UnitRegistry` decomposition — render position SHIPPED; sweepDeadSprites
+>    scan migration NEXT.** The user called for splitting the single kitchen-sink
+>    table into per-component services so a corpse is just an entity present in a
+>    *subset* of stores. **Started:** render position (`renderX/renderY`) → a
+>    standalone `RenderPositionService` (a float API over a
+>    `ComponentStore<RenderPosition>`), keyed by `entityId`, surviving release —
+>    so the corpse's death-pose location persists with no `local*` snapshot. Picked
+>    render first because the audit found zero dense readers of it (so zero-perf /
+>    zero-behavior-change); `cellX/cellY`/hp/timers stay dense until a consumer
+>    pulls them out. **Remaining 2c:** `UnitRenderService.sweepDeadSprites` still
+>    *scans* `getUnits()` for `!isAlive()`; give it a corpse/dead-pose iteration
+>    source (a dead-pose component the sweep reads, the way `DroneRenderSystem`
+>    reads the crash store) so it no longer touches the legacy list. Then the
+>    other per-component splits land as their consumers demand them (next likely:
+>    a `deathPoseIdx`/`DeadBody` component to retire the sweep's list scan). Build
+>    composition, don't defer it ([[feedback_build_composition_now]]). The
+>    `Crashing` slice + `RenderPositionService` are the templates.
 > 3. Bucket-A sweep (`getUnits()` → dense registry; fan out to Sonnet).
 > 4. Bucket-C cleanup; delete `UnitRosterService.units`.
 > 5. Revert Group-N accessors to unconditional (fail-loud); drop the
