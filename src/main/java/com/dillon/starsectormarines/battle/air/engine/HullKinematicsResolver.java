@@ -52,12 +52,16 @@ public final class HullKinematicsResolver {
             ShipHullSpecAPI spec = Global.getSettings().getHullSpec(hullId);
             ShipHullSpecAPI.EngineSpecAPI eng = spec.getEngineSpec();
             float maxSpeedSu = eng.getMaxSpeed();
-            if (maxSpeedSu <= 0f) {
-                LOG.warn("HullKinematicsResolver: " + hullId + " has zero maxSpeed — using FALLBACK");
+            float maxTurnSu = eng.getMaxTurnRate();
+            // A craft that can't move or can't turn is a degenerate spec — fall
+            // back rather than ship a fighter that flies a dead-straight line.
+            if (maxSpeedSu <= 0f || maxTurnSu <= 0f) {
+                LOG.warn("HullKinematicsResolver: " + hullId + " degenerate maneuver spec (maxSpeed="
+                        + maxSpeedSu + ", maxTurnRate=" + maxTurnSu + ") — using FALLBACK");
                 return FALLBACK;
             }
             return HullKinematics.fromSpec(
-                    maxSpeedSu, eng.getAcceleration(), eng.getDeceleration(), eng.getMaxTurnRate());
+                    maxSpeedSu, eng.getAcceleration(), eng.getDeceleration(), maxTurnSu);
         } catch (Exception e) {
             LOG.warn("HullKinematicsResolver: " + hullId + " — "
                     + e.getClass().getSimpleName() + ": " + e.getMessage());
