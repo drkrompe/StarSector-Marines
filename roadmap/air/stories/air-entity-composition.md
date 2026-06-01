@@ -114,6 +114,11 @@ a later slice.
   reintroduce an orphan leak. The future AA shoot-down path (the `Shuttle.hp` /
   `HOVER_HP_THRESHOLD` fields are wired forward for it) just calls
   `releaseAirEntity` — a one-liner, not a leak risk.
+- **AEROSHUTTLE plume positioning fidelity.** AEROSHUTTLE renders the aeroshuttle
+  sprite but borrows `kite`'s hull (`renderHullId`), so its engine plumes now
+  *show* (fixed in `27250d7`) but sit at kite's slot geometry projected onto the
+  aeroshuttle sprite — close, not pixel-true. Real fix needs an `aeroshuttle.ship`
+  (none in vanilla) or hand-authored slots. Cosmetic; low priority.
 - **Per-tick `float[]` alloc in `ThrusterDemand.compute`** (one per shuttle per
   tick). Fine at current counts ([[ship-then-optimize]]); revisit if fighter
   swarms make air-FX allocation measurable (folds into the slice-5 dense pass).

@@ -61,19 +61,31 @@ Fighters are small and numerous; full hull-polygon collision (the approach for
 "is the AA hitting the gunship." Revisit only if a specific interaction rewards
 sub-fighter precision.
 
+## The shared core now exists
+
+The `air-entity-composition` migration (slices 1–3, shipped) built the substrate
+this track was waiting on: `entityId` + `AirBody` (pure kinematic data) +
+`AirSteeringSystem` + component stores (`ThrusterFx` plumes, `AirTurrets`) + a
+single `releaseAirEntity` death seam, all proven on shuttles. Fighters now
+**compose that core** rather than inventing a parallel one — and the
+movement-handler rewrite is the concrete next step.
+
 ## Decomposition into stories
 
-Design-stage; sequence not yet committed.
+The active plan lives in
+[`../stories/fighter-air-entities.md`](../stories/fighter-air-entities.md) (slice
+4 of air-entity-composition — fighters compose the core + rewrite the scripted
+movement onto `AirBody`). Its sub-slices:
 
-- **S1 — Kinematic profile + loader.** A `KinematicProfile` record from
-  `ShipHullSpecAPI.getEngineSpec()` keyed on hull id, `SCALE` applied at
-  construction. Resolve the separate-vs-enriched-record question. Unit-test
-  against known hulls (Talon, Trident) to lock the scale factor.
-- **S2 — `FighterType` / `AirHandling` adapter.** Adapt `KinematicProfile` into
-  an `AirHandling` so an `AirBody` flies a fighter. Layer the atmosphere knobs.
-  Mirrors `ShuttleType`'s relationship to `AirHandling`.
-- **S3 — Wing composition.** Read `num` / `formation` / `range` / `role` from
-  `wing_data.csv` to drive wing size and formation behavior.
-- **S4 — Flyby fighters become real air entities** (the backlog item). Rebuild
-  `flyby/` fighters on `AirBody`: spawn from map edges, take fire, get shot
-  down, optionally land at bases. Fold `flyby/` into `air/`. Blocked on S1–S2.
+- **4a — `FighterType` : `AirHandling`** — kinematic tiers (interceptor / fighter
+  / bomber / drone) + engine-slot resolution. Folds in the old S1 (kinematic
+  profile from vanilla engine ratios, scale-locked by a hull unit-test) and S2
+  (the `AirHandling` adapter, mirroring `ShuttleType`).
+- **4b — `FighterMission` + system** — real `AirBody` driven by
+  `AirSteeringSystem`; the strafe state machine ported off headings onto
+  goals/modes. **The movement-handler rewrite.**
+- **4c — repoint FX/fire/render to the body; delete the scripted motion.**
+- **4d — fold `flyby/` → `air/`** (the backlog item; deferred package move, now
+  that it shares `AirBody`).
+- **Later — wing composition** (old S3: `wing_data.csv` num/formation/role) and
+  **fighters take fire / get shot down** (4e; gated on AA).
