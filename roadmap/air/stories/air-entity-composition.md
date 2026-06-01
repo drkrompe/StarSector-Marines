@@ -93,6 +93,19 @@ a later slice.
 5. **Dense-SoA promotion + unified id space** — gated on a fighter-swarm perf
    read; only when branch/sentinel cost beats a dense table.
 
+## Follow-ups (from slice-1 critique)
+
+- **Wire `ThrusterFx` removal to the eventual shuttle death/removal path.** Today
+  `GONE` is the only terminal state and `advanceThrusterFx` removes the component
+  there; shuttles are never removed from the list. When the AA work lands a
+  shoot-down path (the `Shuttle.hp` / `HOVER_HP_THRESHOLD` fields are already
+  wired forward for it), that path must drop the component — or expose an
+  `AirSystem.remove(Shuttle)` that drops list entry + component together — else
+  it orphans. Latent, not live. Tie to the AA story.
+- **Per-tick `float[]` alloc in `ThrusterDemand.compute`** (one per shuttle per
+  tick). Fine at current counts ([[ship-then-optimize]]); revisit if fighter
+  swarms make air-FX allocation measurable (folds into the slice-5 dense pass).
+
 ## Out of scope
 
 - Generic `Aspect`/`World`/bitset queries (Phase C of the migration — deferred).

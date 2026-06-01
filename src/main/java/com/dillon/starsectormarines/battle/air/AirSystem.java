@@ -125,6 +125,12 @@ public class AirSystem {
                 thrusterFx.remove(s.entityId);
                 continue;
             }
+            // PENDING (off-map re-arm) intentionally keeps advancing: the cycle
+            // teleport zeroes the body, so demand decays to 0 over the rearm
+            // window and the next INCOMING sortie spools the plumes up from cold.
+            // GONE is the only terminal removal today; when a non-GONE removal
+            // path lands (AA shoot-down — see Shuttle.hp/HOVER_HP_THRESHOLD), it
+            // must drop this component too or it orphans. See air-entity-composition.
             EngineSlotData[] slots = EngineSlotResolver.resolve(s.type);
             ThrusterFxSystem.advance(s.entityId, slots, s.body, s.type, thrusterFx, dt);
         }
