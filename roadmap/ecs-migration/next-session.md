@@ -61,6 +61,7 @@ c1fb304  battle: EquipmentDrop + turret guardpost scan dense; drop DamageResolve
 879c766  test: migrate the test surface off sim.getUnits() (step 4 stage B)  ← 2026-06-01
 1ed41bc  battle: delete the legacy live+dead units list (step 4 stage C)  ← 2026-06-01
 58d6d5e  battle: Group-N accessors fail-loud again (step 5)  ← 2026-06-01
+e038706  battle: SoA Group-S seed-only stats — collapse the local* duality (Phase A Slice 2)  ← 2026-06-01
 ```
 
 (Sibling tracks interleaved on HEAD, not ECS-migration: `9084ed4` battle-render
@@ -96,10 +97,16 @@ campaign work.)
 - **Five consumers** on dense-iter + SoA array reads. (The burst pass in
   `InfantryWeapons.tick`, `targetId`'s ~17 sites, and the fall-back group's
   break-contact consumers route through accessors, not dense-iter yet.)
-- **Duality collapse (Phase A) underway.** Of the 22 promoted columns, the
-  14 Group-N (mid-combat-only) `local*` twins are now gone (`c50e50d`); their
-  accessors read the registry unconditionally. The remaining `local*` are the
-  4 Group-S seed-only stats + the 5 Group-C corpse-read fields (Slices 2–3).
+- **Duality collapse (Phase A) — Slices 1 & 2 DONE.** Of the 22 promoted
+  columns, the 14 Group-N (mid-combat-only) twins are gone (`c50e50d`) and the
+  4 Group-S seed-only stats (maxHp/attackDamage/attackRange/accuracy) are gone
+  (`e038706`): both groups' accessors now read the registry unconditionally
+  (fail-loud). Group-S kept a write-only `seed*` field per stat (ctor +
+  subclass overrides + deboard loadout write it; `allocate` consumes it;
+  `release` does NOT snapshot it back — no post-release reader). The remaining
+  `local*` are exactly the 5 Group-C corpse-read fields (hp/cellX/cellY +
+  render via RenderPositionService) — **Slice 3 is all that's left of the
+  duality collapse.**
 - **Full suite green at 592 tests** (after the death-dispatcher foundation
   slice). The earlier sibling compile break in `ShotRenderService.java` has
   since resolved.
@@ -264,16 +271,20 @@ campaign work.)
 >   accessors now read the registry unconditionally; `allocate` resets them on
 >   slot reuse. ~250 net lines gone.
 > - **Slice 2 (Group S — seed-only: maxHp, attackDamage/Range/accuracy)** —
->   NEXT. These are written pre-allocate (ctor + deboard loadout) but never
->   read post-release; collapsing them needs the seed to reach `allocate`
->   without a `local*` twin (reorder deboard so `allocate` precedes the loadout
->   setters, or a seed-spec). Removes the pre-allocate window.
-> - **Slice 3 (Group C — corpse: hp, cellX/Y, renderX/Y)** — the only fields
->   with post-release readers (isAlive, demolition cell, dead-sprite, death
->   audio). Target: an explicit **death-snapshot** instead of permanent
->   `local*` shadows — possibly realized as a stamped corpse *decal* or a
->   minimal "body" entity (renderable + location), which also leaves room for
->   a future revive mechanic. Decide the shape when we reach it.
+>   **SHIPPED** (`e038706`). Collapsed via a **seed-spec** (write-only `seed*`
+>   fields consumed by `allocate`) rather than the deboard reorder — turret
+>   stats vary by `kind`, not `UnitType`, so `allocate` can't seed from the
+>   archetype alone; a per-instance seed channel is required regardless. The 4
+>   accessors are now unconditional/fail-loud; `release` drops their snapshot.
+> - **Slice 3 (Group C — corpse: hp, cellX/Y, renderX/Y)** — **NEXT, and the
+>   last of the duality collapse.** The only fields with post-release readers
+>   (isAlive, demolition cell, dead-sprite, death audio). Target: an explicit
+>   **death-snapshot** instead of permanent `local*` shadows — possibly
+>   realized as a stamped corpse *decal* or a minimal "body" entity (renderable
+>   + location), which also leaves room for a future revive mechanic. renderX/Y
+>   already decomposed into `RenderPositionService` (survives release); hp +
+>   cellX/Y are the remaining `local*` snapshot. Decide the shape when we reach
+>   it (re-examine the readers with fresh eyes first).
 >
 > Then [`component-grouping`](stories/component-grouping.md) — named component
 > structs; optional capabilities as *presence*, not nullable fields. **Forcing
@@ -377,5 +388,5 @@ ordinal int[]). Name them but don't lead with them.
 
 - `gradlew.bat compileJava` should be clean.
 - All tests pass.
-- `git log --oneline -5` should show `58d6d5e` (units-list spine complete)
-  or your own recent work at the top.
+- `git log --oneline -5` should show `e038706` (Phase A Slice 2 — Group-S
+  seed-only stats) or your own recent work at the top.

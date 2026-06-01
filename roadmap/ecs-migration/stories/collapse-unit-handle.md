@@ -127,15 +127,30 @@ release-snapshot tests, converted allocate-seed → allocate-defaults, added a
 slot-reuse reset test. ~250 net lines gone. Suite: `UnitRegistryTest` green;
 full `:test` blocked by an unrelated sibling compile break (ShotRenderService).
 
-### Slice 2 — Group S (seed-only) — NEXT
+### Slice 2 — Group S (seed-only) — SHIPPED
 
 maxHp/attackDamage/attackRange/accuracy are written pre-allocate but never
-read post-release. Collapsing their `local*` needs the seed to reach
-`allocate` without a twin: either reorder the deboard path so `allocate`
-precedes the loadout setters (so those route through the registry), or pass a
-seed-spec into `allocate`. Subclass ctors (Drone/DroneHubUnit/MapTurret)
-override these stats, so a seed-spec must carry per-instance values — the
-reorder is likely simpler. Removes the pre-allocate window entirely.
+read post-release (verified: every `getMaxHp`/`maxHpArray`/attack-stat reader
+runs on a live unit — HP-bar render, `DamageResolver` on the target being hit,
+`SquadMoraleSystem`'s live array, live panels). Collapsed via a **dedicated
+seed-spec** rather than the deboard reorder: the `local*` twins became
+write-only `seedMaxHp`/`seedAttackDamage`/`seedAttackRange`/`seedAccuracy`
+fields that the ctor archetype seed, the subclass overrides (Drone / DroneHub
+/ MapTurret), and the shuttle/vehicle deboard loadout write; `allocate` copies
+them into the SoA columns and the registry is canonical from then on. The four
+accessors now read the registry **unconditionally (fail-loud)** like Group-N,
+and `release` no longer snapshots them. The reorder was rejected because turret
+stats vary by `kind` (not `UnitType`), so `allocate` can't seed from the
+archetype alone — a per-instance seed channel is required regardless, and the
+seed-spec keeps the deboard block intact.
+
+This leaves `local*` meaning exactly "Group-C corpse snapshot" (hp/cell). Test
+surface: dropped the 3 Group-S release-snapshot tests in `UnitRegistryTest` +
+the `maxHp` assertion in the hp-snapshot test; repointed the pre-allocate
+`getX()` reads in the allocate-seed tests to the seed fields; moved 2 fixtures
+(`InfantryUnitPrepTest`, `KillZoneIntegrationTest`) that seeded stats
+pre-allocate to write after `addUnit`. Full suite green (658). Removes the
+pre-allocate window for these four stats entirely.
 
 ### Slice 3 — Group C (corpse) — DESIGN FORK
 
