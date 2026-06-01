@@ -77,10 +77,13 @@ The active plan lives in
 4 of air-entity-composition — fighters compose the core + rewrite the scripted
 movement onto `AirBody`). Its sub-slices:
 
-- **4a — `FighterType` : `AirHandling`** — kinematic tiers (interceptor / fighter
-  / bomber / drone) + engine-slot resolution. Folds in the old S1 (kinematic
-  profile from vanilla engine ratios, scale-locked by a hull unit-test) and S2
-  (the `AirHandling` adapter, mirroring `ShuttleType`).
+- **4a — `HullKinematicsResolver` → `AirHandling` (scraped, mod-aware)** — read
+  the hull's real maneuver stats from the runtime spec
+  (`getHullSpec(id).getEngineSpec()`, sourced from `ship_data.csv` merged across
+  vanilla + all mods), convert to ground scale + atmosphere knobs, cache by hull
+  id. The hull's own data defines interceptor-vs-bomber feel, and any modded hull
+  in the stock format works with no new code. Folds in the old S1/S2 (kinematic
+  profile + `AirHandling` adapter) but data-driven, not hand-tiered.
 - **4b — `FighterMission` + system** — real `AirBody` driven by
   `AirSteeringSystem`; the strafe state machine ported off headings onto
   goals/modes. **The movement-handler rewrite.**

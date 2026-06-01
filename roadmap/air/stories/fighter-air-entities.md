@@ -37,12 +37,15 @@ A fighter becomes an air entity, exactly like a shuttle:
   (interceptor carves, bomber pendulums) **falls out of the handling profile** —
   the same kinematic-limited steering that gives shuttles their arc, no scripted
   weave needed.
-- **`FighterType` implements `AirHandling`** — mirrors `ShuttleType`. Per-tier
-  tunables (maxSpeed / accel / brakingAccel / maxTurnRate / lateral+station
-  damping) for INTERCEPTOR / FIGHTER / BOMBER / DRONE. Seed from vanilla engine
-  ratios ([[vanilla_ship_spec_scraping]],
-  [`vanilla-kinematics-reference.md`](../vanilla-kinematics-reference.md)) + the
-  atmosphere knobs; hand-tuned tiers are a fine first cut ([[ship-then-optimize]]).
+- **Handling is *scraped*, not hand-tiered.** A fighter's `AirHandling` comes
+  from `HullKinematicsResolver.resolve(hullId)` — the hull's real maneuver stats
+  read live from `Global.getSettings().getHullSpec(hullId).getEngineSpec()`
+  (`getMaxSpeed/getAcceleration/getDeceleration/getMaxTurnRate/getTurnAcceleration`,
+  sourced from `ship_data.csv`, **merged across vanilla + every loaded mod**).
+  So interceptor-vs-bomber feel is the *data's*, and any modded fighter using the
+  stock ship file format flies correctly with **no new code**. A thin
+  `FighterType`/profile may still bind `hullId` ↔ `FighterProfile`, but it no
+  longer hand-authors kinematics.
 - **`ThrusterFx`** — engine plumes for free: the slot resolver keys on the
   fighter's `renderHullId`, the smoothing system already advances any air entity.
 - **`FighterMission`** — the strafing-run state machine, ported off headings onto
@@ -84,9 +87,25 @@ when `flyby/` folds into `air/`; until then `FlybyOverlay`'s draw is reused.
 
 ## Decomposition (committable sub-slices)
 
-- **4a — `FighterType` : `AirHandling`.** The kinematic tiers + engine-slot
-  resolution (renderHullId). Pure; unit-test the tiers against known hulls
-  (Talon/Trident) to lock the scale. No behavior change yet.
+- **4a — `HullKinematicsResolver` → `AirHandling` (scraped, mod-aware).** Read the
+  hull's real maneuver stats from the runtime spec
+  (`getHullSpec(id).getEngineSpec()` — `maxSpeed/acceleration/deceleration/
+  maxTurnRate/turnAcceleration`, merged across vanilla + all mods) and convert to
+  our `AirHandling`:
+  - **Linear** (`maxSpeed/accel/decel`, in `su`/sec) → cells/sec via a calibrated
+    speed scale. `su` ≈ sprite pixels, so seed from `AirScale.METERS_PER_PX` ×
+    an **atmosphere speed mult** (fighters should read faster over the
+    battlefield than their campaign crawl).
+  - **Angular** (`maxTurnRate`, deg/sec) passes through — angular rate is
+    scale-invariant.
+  - **Lateral / station damping** aren't in the ship spec (vanilla space-flight
+    has no atmospheric drag) — these are the **atmosphere knobs**, a tunable
+    constant (or derived from decel), giving the boat-feel.
+
+  Cache by hull id (mirrors `EngineSlotResolver`/`HullFootprintResolver`);
+  sandbox-safe (SettingsAPI, no file I/O). Unit-test the conversion against known
+  hulls (Talon/Trident) to lock the scale band + guard a missing/zero spec. No
+  behavior change yet — the resolver is just available.
 - **4b — `FighterMission` + `FighterMissionSystem`.** Real `AirBody` per fighter,
   driven by `AirSteeringSystem`; port the strafe state machine to goals/modes.
   Fighters now move on real kinematics. **This is the movement-handler rewrite.**
@@ -99,6 +118,16 @@ when `flyby/` folds into `air/`; until then `FlybyOverlay`'s draw is reused.
   `AirBody`.
 - **(Future) 4e — Fighters take fire / get shot down.** Wire `hp` + the AA path
   through the same death seam; land at bases. Gated on the AA work.
+
+## Follow-up — unify shuttle kinematics onto the scraped resolver
+
+`ShuttleType.HandlingProfile` is hand-tuned tiers (NIMBLE/MEDIUM/BUS) — the same
+thing 4a replaces for fighters. Once `HullKinematicsResolver` exists and is
+calibrated, shuttles should adopt it too (their `matchingHullIds[0]`/`renderHullId`
+already names a real hull), retiring the hand-authored profiles so *all* air craft
+— shuttle and fighter, vanilla and modded — derive their feel from one scraped
+source. Not in this slice (don't perturb shipped shuttle feel mid-fighter-work),
+but it's the consistency endpoint.
 
 ## Out of scope
 
