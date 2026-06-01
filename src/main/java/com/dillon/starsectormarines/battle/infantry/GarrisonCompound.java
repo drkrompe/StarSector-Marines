@@ -29,6 +29,12 @@ import java.util.List;
  * engagement default so the garrison doesn't abandon the compound to chase.
  * Yields (0) on morale break so {@code SurviveContact} (SURVIVAL) takes over.
  *
+ * <p>The marine holder garrisons whatever area it has — even a single-room
+ * captured compound (one garrison zone) runs {@link GarrisonPatrol}, which
+ * degenerates to holding/patrolling that one room. Marines never run
+ * {@link GuardPost} (it is gated on the defender {@code holdsFireUntilKillZone}
+ * flag), so this goal is the only marine garrison behavior.
+ *
  * <p>Also serves the <b>defender</b> base garrison: a squad with the
  * {@code holdsFireUntilKillZone} flag whose {@link Squad#assignedNode} sits in
  * a multi-building compound (≥2 garrison rooms). Because every building's
@@ -36,8 +42,8 @@ import java.util.List;
  * <em>primary</em> node (highest {@link TacticalNode#priorityScore}, anchor
  * tie-break) runs the area patrol; the others keep holding their own building
  * via {@link GuardPost} (which yields to this goal only for the primary). A
- * single-building / standalone post (one garrison zone) stays on
- * {@link GuardPost} entirely.
+ * single-building / standalone <em>defender</em> post (one garrison zone) stays
+ * on {@link GuardPost} — only the defender path has the ≥2-zone gate.
  *
  * <p>The plan is a single perpetual {@link GarrisonPatrol} parameterised by the
  * compound's garrison zones (see {@link GarrisonArea#garrisonZones}).

@@ -61,6 +61,33 @@ release-when-quiet is unimplemented. (`CompoundGarrisonSystemTest`,
   been quiet for a while, that's an added rule (clear `HOLD_NODE` on a quiet
   timer so the commander re-tasks the squad).
 
+### Found in critique (post-ship)
+
+- **Defender primary-node death → no failover.** `isPrimaryGarrisonNode` is a
+  pure function of node priority/anchor, not squad liveness — so if the
+  highest-priority node's squad is wiped, no surviving garrison squad takes over
+  the area patrol; they each leash to their own building via `GuardPost`. Elect
+  primacy among nodes with a live squad. (Defender path only; marine holder is
+  one squad per compound, unaffected.)
+- **Wiped marine garrison never regenerates.** `CompoundGarrisonSystem` re-arms
+  only on `MARINE_HELD → DEFENDER_HELD → MARINE_HELD`. If the born-holding
+  garrison squad is wiped while the compound stays `MARINE_HELD`, no replacement
+  is dispatched. Depends on whether `MARINE_HELD` can persist with zero marines
+  present — confirm, and re-arm on "held but ungarrisoned" if so.
+- **Two-large-exterior maps.** The exterior guard flags a zone only when it
+  dominates ≥2× the next-largest. A map split into two comparable open expanses
+  flags neither, so a squad could still be ordered to clear one (the original
+  "charge the map" hazard, re-skinned). Latent on current single-exterior maps;
+  consider an absolute "fraction of total walkable" threshold as a backstop.
+- **Per-member contest scan cost** (`GarrisonPatrol`) and the **3×
+  `garrisonZones` recompute per replan** (`GarrisonCompound`) are wasteful but
+  correct (static zones). Hoist to a leader-gated / memoized cache if a profile
+  flags it. Quality-only.
+
+(Critique also flagged a suspected round-robin cursor collapse; verified a
+non-issue — interior cells always resolve to their own zone, locked in by
+`GarrisonPatrolTest`.)
+
 ## The bug (observed)
 
 A CONQUEST reinforcement squad (SQ-87 in the captured dump) was assigned
