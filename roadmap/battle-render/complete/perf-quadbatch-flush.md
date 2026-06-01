@@ -86,6 +86,14 @@ tiles; FBO-cache the static ground). Split out as a follow-up spike:
   enable or pointer binding leaks into Starsector's polluted UI GL state. The
   server-side `GlStateBracket` is unchanged (it already saves `GL_CURRENT_BIT`,
   so current color is clean at bracket boundaries).
+- **Array-buffer guard (critique chaser).** LWJGL 2's `gl*Pointer(FloatBuffer)`
+  overloads call `ensureArrayVBOdisabled` and throw `OpenGLException` if a VBO is
+  bound to `GL_ARRAY_BUFFER` (check on by default). The old immediate-mode path
+  was immune; `glPushClientAttrib` doesn't cover that binding. Since the host
+  state is polluted and a co-loaded mod could leave a VBO bound, each flush now
+  saves `GL_ARRAY_BUFFER_BINDING`, unbinds for the draw, and restores after. A
+  binding-state `glGetInteger` is not a GPU stall and is negligible at a few
+  dozen flushes/frame.
 - `GL_QUADS` kept (valid under `glDrawArrays` in Starsector's compatibility
   profile) — no index buffer, no triangle conversion, vertex layout unchanged.
 

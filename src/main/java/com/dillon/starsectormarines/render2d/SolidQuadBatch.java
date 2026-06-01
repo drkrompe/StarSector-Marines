@@ -13,9 +13,13 @@ import static org.lwjgl.opengl.GL11.glColorPointer;
 import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glDrawArrays;
 import static org.lwjgl.opengl.GL11.glEnableClientState;
+import static org.lwjgl.opengl.GL11.glGetInteger;
 import static org.lwjgl.opengl.GL11.glPopClientAttrib;
 import static org.lwjgl.opengl.GL11.glPushClientAttrib;
 import static org.lwjgl.opengl.GL11.glVertexPointer;
+import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
+import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER_BINDING;
+import static org.lwjgl.opengl.GL15.glBindBuffer;
 
 /**
  * Untextured-quad counterpart to {@link QuadBatch}. Emits solid-colored
@@ -90,6 +94,11 @@ public final class SolidQuadBatch {
         buf.put(data, 0, floats);
         buf.flip();
 
+        // See QuadBatch.flush: unbind any host-bound VBO so LWJGL's
+        // ensureArrayVBOdisabled check doesn't throw on the client-array pointers.
+        int prevArrayBuffer = glGetInteger(GL_ARRAY_BUFFER_BINDING);
+        if (prevArrayBuffer != 0) glBindBuffer(GL_ARRAY_BUFFER, 0);
+
         // Interleaved layout: (x, y, r, g, b, a), stride = 6 floats. No texcoords.
         int strideBytes = 6 * 4;
         glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
@@ -99,6 +108,8 @@ public final class SolidQuadBatch {
         buf.position(2); glColorPointer(4, strideBytes, buf);
         glDrawArrays(GL_QUADS, 0, verts);
         glPopClientAttrib();
+
+        if (prevArrayBuffer != 0) glBindBuffer(GL_ARRAY_BUFFER, prevArrayBuffer);
 
         quadCount = 0;
     }
