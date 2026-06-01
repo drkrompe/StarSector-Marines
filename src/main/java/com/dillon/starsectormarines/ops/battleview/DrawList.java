@@ -87,6 +87,12 @@ public final class DrawList {
         slot(layer).setSolidRect(x0, y0, x1, y1, r, g, b, a);
     }
 
+    /** {@code (x0,y0)}–{@code (x1,y1)} are screen-space endpoints; {@code width} is the line width. */
+    public void addLine(RenderLayer layer, float x0, float y0, float x1, float y1, float width,
+                        float r, float g, float b, float a) {
+        slot(layer).setLine(x0, y0, x1, y1, width, r, g, b, a);
+    }
+
     public void addCustom(RenderLayer layer, Runnable draw) {
         slot(layer).setCustom(draw);
     }

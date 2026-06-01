@@ -122,12 +122,17 @@ TurretKind; `boostRamp`/`contrail` from the weapon's own declaration.
 
 ## Slices (each independently shippable + in-game verified)
 
-- **F1 — `LINE` draw command (engine add).** Add `LINE` to `DrawCommand.Kind` +
-  `DrawList.addLine(...)` + a drain path (a `LineBatch` in `render2d` drawing
-  `GL_LINES` via vertex arrays — *not* immediate mode; reuse the lesson from the
-  `QuadBatch.flush` work). Migrate `drawTracers` off the raw-`GL_LINES` `Custom`
-  onto `LINE` commands. Foundational beyond SHOTS — also unlocks the convoy-debug
-  path lines and the zone-overlay grid. Verify: tracers draw identically.
+- ~~**F1 — `LINE` draw command (engine add).**~~ ✅ **SHIPPED & VERIFIED.**
+  `LINE` kind on `DrawCommand` (+ `setLine`; reuses `cx,cy`/`w,h` as endpoints,
+  `angleDeg` as width) + `DrawList.addLine(...)` + a `LineBatch` (`render2d`,
+  `GL_LINES` via client-side vertex arrays — not immediate mode; carries the
+  array-buffer guard + client-attrib bracketing from the `QuadBatch.flush` work).
+  Drain gained a `LineBatch` param + `LINE` case, a peer to `SOLID_RECT`:
+  flush-on-kind-switch and flush-on-width-change (width is per-flush GL state).
+  `drawTracers` migrated off the raw-`GL_LINES` `Custom` to `addLine` emission in
+  `collectShots` (same exclusion logic, same submission slot) and deleted.
+  In-game: tracers draw identically; sprite shots unaffected. Foundational beyond
+  SHOTS — the `LINE` primitive also unlocks the convoy-debug paths + zone grid.
 - **F2 — `ShotFx` composition + path-keyed sprite cache.** Stand up the `ShotFx`
   record + `of(ShotEvent)` derivation; re-key the projectile-sprite texture cache
   in `BattleSprites` by path (so `Body.SPRITE` resolves carrier-agnostically and

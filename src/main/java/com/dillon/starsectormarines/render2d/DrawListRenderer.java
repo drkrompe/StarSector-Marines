@@ -12,9 +12,10 @@ import java.util.Map;
  * holds no per-layer config; the collecting system owns the order.
  *
  * <p>It coalesces consecutive same-sheet {@code SHEET_QUAD}s into one
- * {@link QuadBatch} flush and consecutive {@code SOLID_RECT}s into one
- * {@link SolidQuadBatch} flush, flipping the active batch (and flushing the
- * previous) whenever the sheet or command kind changes — so anything submitted
+ * {@link QuadBatch} flush, consecutive {@code SOLID_RECT}s into one
+ * {@link SolidQuadBatch} flush, and consecutive same-width {@code LINE}s into one
+ * {@link LineBatch} flush, flipping the active batch (and flushing the previous)
+ * whenever the sheet, line width, or command kind changes — so anything submitted
  * later lands on top. A whole run of batch/sprite work shares <em>one</em>
  * {@link GlStateBracket} ({@code glPushAttrib}/{@code glPopAttrib} is not cheap,
  * and {@code QuadBatch}/{@code SolidQuadBatch} are designed to interleave under a
@@ -33,14 +34,17 @@ public final class DrawListRenderer {
      * Drain {@code count} commands from {@code buf} (a pooled backing array; only
      * indices {@code 0..count} are live). {@code batchBySheet} resolves a
      * {@code SHEET_QUAD}'s sheet to its {@link QuadBatch}; {@code solidBatch} is
-     * the shared fill batch for {@code SOLID_RECT} runs.
+     * the shared fill batch for {@code SOLID_RECT} runs; {@code lineBatch} is the
+     * shared batch for {@code LINE} runs.
      */
     public static void drain(DrawCommand[] buf, int count,
-                             Map<SpriteAPI, QuadBatch> batchBySheet, SolidQuadBatch solidBatch) {
+                             Map<SpriteAPI, QuadBatch> batchBySheet, SolidQuadBatch solidBatch,
+                             LineBatch lineBatch) {
         GlStateBracket bracket = null;
         QuadBatch activeSheet = null;     // sheet batch with pending appends (else null)
         SpriteAPI activeSheetKey = null;
         boolean solidPending = false;     // solidBatch has pending appends
+        boolean linePending = false;      // lineBatch has pending appends
         // A SPRITE draws via SpriteAPI.renderAtCenter — a foreign call that mutates
         // the blend func / colorMask and doesn't restore them. When the next batch
         // op runs in the same bracket, re-assert our textured-2D state first, else
@@ -54,6 +58,7 @@ public final class DrawListRenderer {
                     if (c.sprite != activeSheetKey) {
                         if (activeSheet != null) activeSheet.flush();
                         if (solidPending) { solidBatch.flush(); solidPending = false; }
+                        if (linePending) { lineBatch.flush(); linePending = false; }
                         activeSheetKey = c.sprite;
                         activeSheet = batchBySheet.get(c.sprite);
                     }
@@ -75,15 +80,29 @@ public final class DrawListRenderer {
                 }
                 case SOLID_RECT: {
                     if (activeSheet != null) { activeSheet.flush(); activeSheet = null; activeSheetKey = null; }
+                    if (linePending) { lineBatch.flush(); linePending = false; }
                     if (bracket == null) bracket = GlStateBracket.textured2D();
                     else if (spritePolluted) { GlStateBracket.applyTextured2DState(); spritePolluted = false; }
                     solidBatch.appendRect(c.cx, c.cy, c.w, c.h, c.r, c.g, c.b, c.a); // cx/cy=(x0,y0), w/h=(x1,y1)
                     solidPending = true;
                     break;
                 }
+                case LINE: {
+                    if (activeSheet != null) { activeSheet.flush(); activeSheet = null; activeSheetKey = null; }
+                    if (solidPending) { solidBatch.flush(); solidPending = false; }
+                    if (bracket == null) bracket = GlStateBracket.textured2D();
+                    else if (spritePolluted) { GlStateBracket.applyTextured2DState(); spritePolluted = false; }
+                    // Line width is per-flush GL state — flush the run before it changes.
+                    if (linePending && c.angleDeg != lineBatch.width()) { lineBatch.flush(); }
+                    lineBatch.setWidth(c.angleDeg);
+                    lineBatch.append(c.cx, c.cy, c.w, c.h, c.r, c.g, c.b, c.a); // cx/cy=(x0,y0), w/h=(x1,y1), angleDeg=width
+                    linePending = true;
+                    break;
+                }
                 case SPRITE: {
                     if (activeSheet != null) { activeSheet.flush(); activeSheet = null; activeSheetKey = null; }
                     if (solidPending) { solidBatch.flush(); solidPending = false; }
+                    if (linePending) { lineBatch.flush(); linePending = false; }
                     if (bracket == null) bracket = GlStateBracket.textured2D();
                     drawSprite(c);
                     spritePolluted = true;
@@ -93,6 +112,7 @@ public final class DrawListRenderer {
                 default: {
                     if (activeSheet != null) { activeSheet.flush(); activeSheet = null; activeSheetKey = null; }
                     if (solidPending) { solidBatch.flush(); solidPending = false; }
+                    if (linePending) { lineBatch.flush(); linePending = false; }
                     if (bracket != null) { bracket.close(); bracket = null; }
                     c.custom.run();
                     break;
@@ -102,6 +122,7 @@ public final class DrawListRenderer {
 
         if (activeSheet != null) activeSheet.flush();
         if (solidPending) solidBatch.flush();
+        if (linePending) lineBatch.flush();
         if (bracket != null) bracket.close();
     }
 

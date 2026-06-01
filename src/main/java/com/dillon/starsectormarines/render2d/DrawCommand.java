@@ -26,6 +26,11 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
  *   <li>{@code SOLID_RECT} — untextured fill; {@code cx/cy} reused as corner
  *       {@code (x0,y0)} and {@code w/h} as the opposing corner {@code (x1,y1)};
  *       color {@code r/g/b/a}. Batched through a {@link SolidQuadBatch}.</li>
+ *   <li>{@code LINE} — untextured line segment; {@code cx/cy} = start
+ *       {@code (x0,y0)}, {@code w/h} = end {@code (x1,y1)}, {@code angleDeg}
+ *       reused as the line width; color {@code r/g/b/a}. Batched through a
+ *       {@link LineBatch} (width is per-flush state — the drain flushes on a
+ *       width change).</li>
  *   <li>{@code CUSTOM} — {@code custom} owns its own GL state (FBO blits, the
  *       lightmap multiply, ribbon contrails); the drain just runs it.</li>
  * </ul>
@@ -35,7 +40,7 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
  */
 public final class DrawCommand {
 
-    public enum Kind { SHEET_QUAD, SPRITE, SOLID_RECT, CUSTOM }
+    public enum Kind { SHEET_QUAD, SPRITE, SOLID_RECT, LINE, CUSTOM }
 
     Kind kind;
     SpriteAPI sprite;
@@ -100,6 +105,20 @@ public final class DrawCommand {
         this.kind = Kind.SOLID_RECT;
         this.sprite = null;
         this.cx = x0; this.cy = y0; this.w = x1; this.h = y1;
+        this.r = r; this.g = g; this.b = b; this.a = a;
+        this.custom = null;
+    }
+
+    /**
+     * {@code (x0,y0)}–{@code (x1,y1)} are the segment endpoints (screen space);
+     * {@code width} is the line width (reuses the {@code angleDeg} slot).
+     */
+    public void setLine(float x0, float y0, float x1, float y1, float width,
+                        float r, float g, float b, float a) {
+        this.kind = Kind.LINE;
+        this.sprite = null;
+        this.cx = x0; this.cy = y0; this.w = x1; this.h = y1;
+        this.angleDeg = width;
         this.r = r; this.g = g; this.b = b; this.a = a;
         this.custom = null;
     }

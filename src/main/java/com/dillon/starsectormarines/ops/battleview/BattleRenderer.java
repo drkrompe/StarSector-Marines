@@ -25,6 +25,7 @@ import com.dillon.starsectormarines.render2d.ContrailTrail;
 import com.dillon.starsectormarines.render2d.GlStateBracket;
 import com.dillon.starsectormarines.render2d.LightAccumulator;
 import com.dillon.starsectormarines.render2d.LightKernel;
+import com.dillon.starsectormarines.render2d.LineBatch;
 import com.dillon.starsectormarines.render2d.QuadBatch;
 import com.dillon.starsectormarines.render2d.RibbonBatch;
 import com.dillon.starsectormarines.render2d.SolidQuadBatch;
@@ -67,6 +68,8 @@ public class BattleRenderer {
     private static final Color MARINE_TRACER  = new Color(0xFF, 0xE0, 0x70);
     /** Dual-use in BattleScreen (spawnImpactFx); duplicated here for zero back-dependency. */
     private static final Color DEFENDER_TRACER = new Color(0xFF, 0x70, 0x40);
+    /** Hitscan tracer line width in px (was {@code glLineWidth(2f)} in the old immediate-mode pass). */
+    private static final float TRACER_WIDTH = 2f;
 
     /** Sim-seconds shots live for — must match {@code BattleSimulation.SHOT_LIFETIME}. Used to fade tracer alpha. */
     private static final float SHOT_LIFETIME_REF = 0.15f;
@@ -151,6 +154,12 @@ public class BattleRenderer {
      * ordering with the textured batches.
      */
     private final SolidQuadBatch solidBatch = new SolidQuadBatch(256);
+
+    /**
+     * Shared line batch for {@code LINE} commands (hitscan tracers; later the
+     * convoy-debug paths + zone grid). Width is per-flush state — see {@link LineBatch}.
+     */
+    private final LineBatch lineBatch = new LineBatch(256);
 
     /**
      * Solid-color ribbon batch for in-flight projectile contrails.
@@ -690,8 +699,9 @@ public class BattleRenderer {
     /**
      * Collects the {@link RenderLayer#SHOTS} layer into the {@link #drawList}
      * instead of drawing inline — the first pass migrated to the command model
-     * (Story C). Submission order matches the old {@code renderShots}: contrails,
-     * then hitscan tracers, then projectile sprites.
+     * (Story C). Submission order matches the old {@code renderShots}: contrails
+     * ({@code Custom}), then hitscan tracers ({@code LINE} commands, F1), then
+     * projectile sprites ({@code SPRITE} commands).
      *
      * <p>The contrails {@link DrawCommand.Custom} is emitted unconditionally — its
      * callback ages and decays existing trails every frame, even with no live
@@ -701,7 +711,22 @@ public class BattleRenderer {
         out.addCustom(RenderLayer.SHOTS, () -> renderContrails(shots, alphaMult));
         if (shots.isEmpty()) return;
 
-        out.addCustom(RenderLayer.SHOTS, () -> drawTracers(shots, alphaMult));
+        // Hitscan tracers (shots with no projectile sprite) → batched LINE commands.
+        for (ShotEvent s : shots) {
+            if (s.turretKind != null) continue;
+            if (s.marineSecondary != null) continue;
+            if (s.marineWeapon != null && s.marineWeapon.projectileSpritePath != null) continue;
+            if (s.mechWeapon != null && s.mechWeapon.projectileSpritePath != null) continue;
+            float t = Math.max(0f, Math.min(1f, s.lifetime / Math.max(0.001f, s.lifetimeMax)));
+            Color c = s.marineWeapon != null
+                    ? s.marineWeapon.tracerColor
+                    : (s.shooterFaction == Faction.MARINE ? MARINE_TRACER : DEFENDER_TRACER);
+            out.addLine(RenderLayer.SHOTS,
+                    rc.camera.cellToScreenX(s.fromX), rc.camera.cellToScreenY(s.fromY),
+                    rc.camera.cellToScreenX(s.toX),   rc.camera.cellToScreenY(s.toY),
+                    TRACER_WIDTH,
+                    c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, t * alphaMult);
+        }
 
         for (ShotEvent s : shots) {
             ShuttleSpriteCache cache;
@@ -758,41 +783,6 @@ public class BattleRenderer {
                 else             impactFx.spawnSmokeTrail (px + tailDx, py + tailDy, 0.20f);
             }
         }
-    }
-
-    /**
-     * Hitscan tracer lines for shots without a projectile sprite. Drawn as one
-     * {@code GL_LINES} block faithful to the ambient mid-{@code renderWorld} GL
-     * state, invoked as a {@link DrawCommand.Custom} from {@link #drainLayer}.
-     */
-    private void drawTracers(List<ShotEvent> shots, float alphaMult) {
-        glDisable(GL_TEXTURE_2D);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        org.lwjgl.opengl.GL11.glLineWidth(2f);
-        glBegin(org.lwjgl.opengl.GL11.GL_LINES);
-        for (ShotEvent s : shots) {
-            if (s.turretKind != null) continue;
-            if (s.marineSecondary != null) continue;
-            if (s.marineWeapon != null && s.marineWeapon.projectileSpritePath != null) continue;
-            if (s.mechWeapon != null && s.mechWeapon.projectileSpritePath != null) continue;
-            float t = Math.max(0f, Math.min(1f, s.lifetime / Math.max(0.001f, s.lifetimeMax)));
-            Color c;
-            if (s.marineWeapon != null) {
-                c = s.marineWeapon.tracerColor;
-            } else {
-                c = s.shooterFaction == Faction.MARINE ? MARINE_TRACER : DEFENDER_TRACER;
-            }
-            glColor4f(c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, t * alphaMult);
-            float x0 = rc.camera.cellToScreenX(s.fromX);
-            float y0 = rc.camera.cellToScreenY(s.fromY);
-            float x1 = rc.camera.cellToScreenX(s.toX);
-            float y1 = rc.camera.cellToScreenY(s.toY);
-            glVertex2f(x0, y0);
-            glVertex2f(x1, y1);
-        }
-        glEnd();
-        org.lwjgl.opengl.GL11.glLineWidth(1f);
     }
 
     private void renderContrails(List<ShotEvent> shots, float alphaMult) {
@@ -884,7 +874,7 @@ public class BattleRenderer {
      * per tile pass, now driven by {@link GroundRenderSystem}.
      */
     private void drainLayer(RenderLayer layer) {
-        DrawListRenderer.drain(drawList.buffer(layer), drawList.count(layer), batchBySheet, solidBatch);
+        DrawListRenderer.drain(drawList.buffer(layer), drawList.count(layer), batchBySheet, solidBatch, lineBatch);
     }
 
     // ---- main entry point ----------------------------------------------------
