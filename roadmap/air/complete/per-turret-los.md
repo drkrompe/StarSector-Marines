@@ -6,6 +6,12 @@
 
 ## Shipped — `6f0d586`, in-game verification pending
 
+> **Partly superseded by [`turret-mounts-from-ship-spec.md`](turret-mounts-from-ship-spec.md)
+> (`5290e17`).** `turretSpread` was deleted there — turret positions now come
+> from the hull's real `weaponSlots`, not authored offsets × a per-ship factor.
+> The per-mount LoS payoff below still holds (the shared `turretWorldX/Y` helper
+> and per-`State` origins remain); only the *position source* changed.
+
 Landed exactly as designed below. `Shuttle` gained a cached `turretSpread()`
 plus shared `turretWorldX/Y(mount, cos, sin, extraScale)`; `AirSystem` positions
 sim mounts through them (`extraScale = 1`, ground-real) so `originCellX/Y` spread

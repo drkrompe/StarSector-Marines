@@ -7,6 +7,13 @@
 
 ## Shipped — `c553532` (machinery) + calibration/turret-scale follow-up
 
+> **Turret-placement part superseded by
+> [`turret-mounts-from-ship-spec.md`](turret-mounts-from-ship-spec.md) (`5290e17`).**
+> `TURRET_AUTHORING_HULL_CELLS` and the per-ship `turretSpread` factor were
+> deleted — turret positions now come from each hull's real `weaponSlots` at this
+> same density, no per-ship factor. The hull-footprint + `METERS_PER_PX` work
+> here is unchanged.
+
 Landed: `battle/air/AirScale` (the one constant), `HullFootprintResolver`
 (cached `.ship`-height → derived length), `ShuttleType` stripped of the authored
 `visualLengthCells` and the `turretVisualScale` hack (`+ renderHullId()`), and

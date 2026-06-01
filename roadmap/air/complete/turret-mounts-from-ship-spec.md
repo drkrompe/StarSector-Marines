@@ -2,8 +2,22 @@
 
 > Shared-core member of the [`air/`](../overview.md) category. Corrects the
 > turret-placement approach from
-> [`global-pixel-density-scale.md`](../complete/global-pixel-density-scale.md)
-> and [`per-turret-los.md`](../complete/per-turret-los.md). **Active.**
+> [`global-pixel-density-scale.md`](global-pixel-density-scale.md) and
+> [`per-turret-los.md`](per-turret-los.md).
+
+## Shipped — `5290e17`, in-game verification pending
+
+Landed as designed. New `TurretSlotResolver` scrapes `weaponSlots` and converts
+at the global density; `ShuttleType.kitFor`/`a2gKit` return `TurretKind[]`;
+`BattleSetup.equipDefaultTurrets` zips kinds with real slot positions;
+`Shuttle.turretSpread` and `AirScale.TURRET_AUTHORING_HULL_CELLS` are **deleted**,
+`turretWorldX/Y` simplified to `extraScale` only. Compiles clean.
+
+**Outstanding:** in-game eyeball that turrets land on the painted hardpoints
+across Kite / Valkyrie / Buffalo and that per-turret LoS still differentiates.
+One known limitation: the loadout count is capped at `min(kit, mountableSlots)`,
+so a hull's first N mountable slots get turrets in spec order (no kind↔slot-type
+matching yet — see Out of scope).
 
 ## The bug
 
