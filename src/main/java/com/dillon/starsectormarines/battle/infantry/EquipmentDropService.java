@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
@@ -19,7 +20,8 @@ import java.util.function.Consumer;
  * runs once per tick to drive pickups, retriever assignments, and cleanup.
  *
  * <p>Constructor-injected dependencies: {@link UnitRosterService} for the
- * units-list iteration the pickup + assignment passes do, and a
+ * dense-registry iteration the pickup + assignment passes do (live marines
+ * only), and a
  * {@link Consumer Consumer&lt;Unit&gt;} path-clearer (the sim's
  * {@code clearPath} method-ref) so a freshly-assigned retriever drops its
  * stale path and re-pathfinds toward the kit on its next behavior tick.
@@ -79,14 +81,18 @@ public final class EquipmentDropService {
      */
     public void tick() {
         if (equipmentDrops.isEmpty()) return;
-        List<Unit> units = rosterService.getUnits();
+        // Live-only over the dense registry — every pass here gates on alive
+        // marines and mutates only role/target fields (no death), so a plain
+        // dense walk is safe; the corpse never appears.
+        UnitRegistry registry = rosterService.getRegistry();
 
         // Pickup pass — any marine standing on a drop cell takes the kit.
         for (EquipmentDrop drop : equipmentDrops) {
             if (drop.consumed) continue;
             if (drop.objective.isComplete()) { drop.consumed = true; continue; }
-            for (Unit u : units) {
-                if (!u.isAlive() || u.faction != Faction.MARINE) continue;
+            for (int i = 0, n = registry.liveCount(); i < n; i++) {
+                Unit u = registry.get(i);
+                if (u.faction != Faction.MARINE) continue;
                 if (u.getCellX() != drop.cellX || u.getCellY() != drop.cellY) continue;
                 u.role = UnitRole.PLANTER;
                 u.assignedObjective = drop.objective;
@@ -99,8 +105,8 @@ public final class EquipmentDropService {
         // Assignment pass — make sure each unconsumed drop has a retriever.
         for (EquipmentDrop drop : equipmentDrops) {
             if (drop.consumed) continue;
-            if (hasLivingRetriever(drop, units)) continue;
-            Unit nearest = nearestAvailableMarine(drop.cellX, drop.cellY, units);
+            if (hasLivingRetriever(drop, registry)) continue;
+            Unit nearest = nearestAvailableMarine(drop.cellX, drop.cellY, registry);
             if (nearest != null) {
                 nearest.role = UnitRole.KIT_RETRIEVER;
                 nearest.equipmentDropTarget = drop;
@@ -116,9 +122,9 @@ public final class EquipmentDropService {
         }
     }
 
-    private boolean hasLivingRetriever(EquipmentDrop drop, List<Unit> units) {
-        for (Unit u : units) {
-            if (!u.isAlive()) continue;
+    private boolean hasLivingRetriever(EquipmentDrop drop, UnitRegistry registry) {
+        for (int i = 0, n = registry.liveCount(); i < n; i++) {
+            Unit u = registry.get(i);
             if (u.role == UnitRole.KIT_RETRIEVER && u.equipmentDropTarget == drop) return true;
         }
         return false;
@@ -132,11 +138,12 @@ public final class EquipmentDropService {
      * combatant, finished planter, retriever whose kit got picked up — is
      * eligible. Returns null only when every alive marine is genuinely busy.
      */
-    private Unit nearestAvailableMarine(int cx, int cy, List<Unit> units) {
+    private Unit nearestAvailableMarine(int cx, int cy, UnitRegistry registry) {
         Unit best = null;
         float bestDist = Float.MAX_VALUE;
-        for (Unit u : units) {
-            if (!u.isAlive() || u.faction != Faction.MARINE) continue;
+        for (int i = 0, n = registry.liveCount(); i < n; i++) {
+            Unit u = registry.get(i);
+            if (u.faction != Faction.MARINE) continue;
             if (u.role == UnitRole.PLANTER
                     && u.assignedObjective != null
                     && !u.assignedObjective.isComplete()) continue;

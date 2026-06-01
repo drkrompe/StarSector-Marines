@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.turret;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.DeathEvent;
 import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.infantry.PatrolRoute;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.world.MapService;
@@ -79,14 +80,15 @@ public final class TurretDemolitionSystem {
      * ~10-15 per battle, posts at ~5-8, units at the few hundred peak — total
      * work bounded and infrequent.
      *
-     * <p>Reads the legacy roster list for the "is any turret at this spec cell
-     * still alive?" query — it needs the dead turrets too (a demolished turret
-     * at a spec cell counts as down), which the live-only registry wouldn't
-     * carry. This is one of the {@code retire-legacy-units-list} corpse-reads;
-     * it migrates with the rest of that bucket, not in this seam slice.
+     * <p>Reads the dense registry for the "is any turret at this spec cell still
+     * alive?" query. The query only cares about <em>live</em> turrets — a spec
+     * with no live turret at its cell counts as down, which covers the
+     * demolished, never-spawned, and just-killed cases alike — so the live-only
+     * registry is exactly the right view (a dead turret is simply absent). No
+     * corpse read needed.
      */
     private void releaseGuardpostIfAllTurretsDead(MapTurret deadTurret) {
-        List<Unit> units = roster.getUnits();
+        UnitRegistry registry = roster.getRegistry();
         List<DefensePost> defensePosts = tactical.getDefensePosts();
         if (defensePosts.isEmpty()) return;
         DefensePost owner = null;
@@ -105,11 +107,12 @@ public final class TurretDemolitionSystem {
         // already-demolished and the never-spawned edge cases.
         for (DefensePost.TurretSpec spec : owner.turrets) {
             boolean aliveAtSpec = false;
-            for (int i = 0, n = units.size(); i < n; i++) {
-                Unit u = units.get(i);
+            for (int i = 0, n = registry.liveCount(); i < n; i++) {
+                Unit u = registry.get(i);
                 if (!(u instanceof MapTurret)) continue;
                 if (u.getCellX() != spec.cellX || u.getCellY() != spec.cellY) continue;
-                if (u.isAlive()) { aliveAtSpec = true; break; }
+                aliveAtSpec = true;
+                break;
             }
             if (aliveAtSpec) return;
         }

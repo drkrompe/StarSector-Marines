@@ -14,7 +14,6 @@ import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 
-import java.util.List;
 import java.util.Random;
 import java.util.function.Consumer;
 
@@ -57,7 +56,6 @@ public final class DamageResolver {
     public static final float[] COVER_DAMAGE_REDUCTION = { 0f, 0.15f, 0.30f, 0.45f };
 
     private final NavigationGrid grid;
-    private final List<Unit> units;
     private final Int2ObjectMap<Squad> squads;
     private final UnitRosterService roster;
     private final EquipmentDropService equipmentDrops;
@@ -72,7 +70,6 @@ public final class DamageResolver {
                           DeathDispatcher deathDispatcher,
                           Random rng) {
         this.grid = navigation.getGrid();
-        this.units = roster.getUnits();
         this.squads = roster.getSquadsMap();
         this.roster = roster;
         this.equipmentDrops = equipmentDrops;
@@ -121,15 +118,15 @@ public final class DamageResolver {
             // Publish the death to the mailbox BEFORE the registry release,
             // so a handler that wants the live entity still sees it. Buffered:
             // handlers don't run here — DeathDispatcher.drain() fans them out
-            // at the demolition phase. Migrated handlers (turret demolition
-            // today) react off this; consumers not yet migrated still scan the
-            // legacy list. See DeathDispatcher + retire-legacy-units-list.
+            // at the demolition phase. Every post-death reaction (turret + hub
+            // demolition, drone crash, mech wreck, dead-body/render) now reacts
+            // off this event, not a list scan. See DeathDispatcher +
+            // retire-legacy-units-list.
             deathDispatcher.publish(new DeathEvent(target));
-            // Drop the dense-registry entry. The legacy units list keeps
-            // the dead unit so post-death consumers (drone crash, hub
-            // demolition, etc.) still see it; those migrate in later slices,
-            // at which point this release becomes the sole death bookkeeping.
-            // See UnitRegistry class doc.
+            // Drop the dense-registry entry. The legacy units list still retains
+            // the dead unit (no cleanup path) until it's deleted outright, but
+            // nothing reads a released unit through it anymore — this release is
+            // effectively the death bookkeeping. See UnitRegistry class doc.
             roster.releaseFromRegistry(target.entityId);
         }
         // Morale drain — branches on unit type. Gated on moraleImpact > 0
