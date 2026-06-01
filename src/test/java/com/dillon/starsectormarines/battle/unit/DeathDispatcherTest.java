@@ -63,6 +63,28 @@ public class DeathDispatcherTest {
     }
 
     @Test
+    public void reentrantPublishDuringDrainIsFannedOutInTheSameDrain() {
+        DeathDispatcher dispatcher = new DeathDispatcher();
+        List<String> seen = new ArrayList<>();
+        // Handler A models a cascade: seeing the hub die, it kills a drone —
+        // publishing a fresh DeathEvent while drain() is still fanning out.
+        dispatcher.subscribe(e -> {
+            if (e.unit().id.equals("hub")) {
+                dispatcher.publish(new DeathEvent(unit("drone")));
+            }
+        });
+        // Handler B records every event it is handed.
+        dispatcher.subscribe(e -> seen.add(e.unit().id));
+
+        dispatcher.publish(new DeathEvent(unit("hub")));
+        dispatcher.drain();
+
+        // The drone death, published mid-drain, is fanned out in the same drain
+        // (next wave) — exactly once, after the hub. No drop, no double-fire.
+        assertEquals(List.of("hub", "drone"), seen);
+    }
+
+    @Test
     public void drainOnEmptyBufferIsANoOp() {
         DeathDispatcher dispatcher = new DeathDispatcher();
         int[] calls = {0};
