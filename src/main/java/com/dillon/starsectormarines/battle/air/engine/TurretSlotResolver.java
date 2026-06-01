@@ -1,9 +1,7 @@
 package com.dillon.starsectormarines.battle.air.engine;
 
-import com.dillon.starsectormarines.battle.air.AirScale;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -13,12 +11,11 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Scrapes mountable weapon-slot positions out of a vanilla {@code .ship} hull
- * spec and converts each into the shuttle-local frame at the one global pixel
- * density ({@link AirScale#METERS_PER_PX}) — the same transform
- * {@link ShipSpecEngineParser} applies to engine slots. The result is each
- * hardpoint's real on-hull position in cells, so shuttle turrets mount where the
- * artist painted the turret slots instead of at hand-authored generic offsets.
+ * Filters {@link WeaponSlotParser}'s scrape down to mountable weapon-slot
+ * positions — each already in the shuttle-local frame at the one global pixel
+ * density and center-compensated. The result is each hardpoint's real on-hull
+ * position in cells, so shuttle turrets mount where the artist painted the
+ * turret slots instead of at hand-authored generic offsets.
  *
  * <p>No per-ship scaling: every hull's slots come out of the same density, so
  * relative placement falls out of vanilla's own art consistency (base and
@@ -63,21 +60,11 @@ public final class TurretSlotResolver {
         String path = "data/hulls/" + hullId + ".ship";
         try {
             JSONObject spec = Global.getSettings().loadJSON(path);
-            JSONArray slots = spec.optJSONArray("weaponSlots");
-            if (slots == null || slots.length() == 0) return EMPTY;
-            // px → cell at the global density (METERS_PER_CELL == 1).
-            float k = AirScale.METERS_PER_PX / AirScale.METERS_PER_CELL;
-            List<float[]> out = new ArrayList<>(slots.length());
-            for (int i = 0; i < slots.length(); i++) {
-                JSONObject slot = slots.getJSONObject(i);
-                if (!MOUNTABLE.contains(slot.optString("type", ""))) continue;
-                JSONArray loc = slot.optJSONArray("locations");
-                if (loc == null || loc.length() < 2) continue;
-                float vx = (float) loc.getDouble(0);
-                float vy = (float) loc.getDouble(1);
-                // Same frame swap as ShipSpecEngineParser: vanilla port (+Y) →
-                // our starboard-negative (-X); vanilla forward (+X) → our forward (+Y).
-                out.add(new float[]{ -vy * k, vx * k });
+            List<float[]> out = new ArrayList<>();
+            for (WeaponSlot slot : WeaponSlotParser.parse(spec)) {
+                if (MOUNTABLE.contains(slot.type())) {
+                    out.add(new float[]{ slot.localX(), slot.localY() });
+                }
             }
             return out.toArray(new float[0][]);
         } catch (Exception e) {
