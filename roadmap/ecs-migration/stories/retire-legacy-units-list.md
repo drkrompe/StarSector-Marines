@@ -196,8 +196,17 @@ Open sub-questions for the build (resolve as we go, don't over-design):
    in the dead-body + render-position component stores and absent from the live
    registry's health/AI — exactly the composition target
    ([[feedback_build_composition_now]]). No Bucket-B reader scans the list.
-2. **Bucket A sweep.** Migrate the ~20 live-iterators `getUnits()` → dense
-   registry. Fan out to Sonnet; each is a local `isAlive`-gate → dense loop.
+2. **Bucket A sweep.** Migrate the live-iterators `getUnits()` → dense
+   registry. *(WAVE 1 + 1b DONE — `9b4100a`/`008afb1`/`b2e0df2`: added the
+   read-only `BattleView.liveUnitCount()/liveUnitAt(int)` accessor, then
+   converted 46 live-only loops across 30 files via a 6-way Sonnet fan-out on
+   disjoint files + a main-thread straggler pass. Remaining `getUnits()` readers
+   need non-mechanical handling: dead-unit readers (`MissionResolver`,
+   `DroneRenderSystem`, `SquadStateDumper`) want a corpse/`DeadBody` source;
+   `FlybyOverlay` AoE loops mutate mid-iteration (snapshot-then-apply);
+   `EquipmentDropService` passes the list to helpers; `DamageResolver.units` +
+   the demolition guardpost scans go at list-deletion; Bucket-C UI panels +
+   `.size()` counters are mechanical when wanted. See next-session.md step 3.)*
 3. **Bucket C cleanup.** Point UI/debug/flyby at the registry; resolve
    `SquadStateDumper`'s dead-member dump.
 4. **Delete `UnitRosterService.units`.** No readers remain; `release()` stops

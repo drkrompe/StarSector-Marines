@@ -48,6 +48,9 @@ c50e50d  battle: collapse Group N local* duality (Phase A Slice 1)  ← 2026-06-
 90f5fd5  battle: decompose render position out of UnitRegistry into RenderPositionService  ← 2026-06-01
 aa55855  ai(ecs-migration): document the first-write invariant on RenderPositionService setters  ← 2026-06-01
 0967df5  battle: migrate dead-sprite render onto a DeadBody component (last Bucket-B reader)  ← 2026-06-01
+9b4100a  battle: add read-only live-iteration accessor to BattleView (Bucket-A prereq)  ← 2026-06-01
+008afb1  battle: Bucket-A sweep — migrate live-iterators off getUnits() (wave 1, 26 files)  ← 2026-06-01
+b2e0df2  battle: Bucket-A sweep wave 1b — convert the isAlive-not-first live-iterators  ← 2026-06-01
 ```
 
 (Sibling tracks interleaved on HEAD, not ECS-migration: `9084ed4` battle-render
@@ -175,11 +178,29 @@ campaign work.)
 >    dense columns (`cellX/cellY`/hp/timers) stay until a consumer pulls them
 >    (B1 grouping). ([[feedback_build_composition_now]].)
 >
-> 3. **NEXT — Bucket-A sweep.** Migrate the ~20 live-iterators `getUnits()` →
->    dense registry; each is a local `isAlive`-gate → dense `[0, liveCount())`
->    loop. Mechanical; fan out to Sonnet. (`GoapInfantryBehavior`, live passes in
->    `UnitRenderService`, `WorldPicker`, `AttackerIndexService`, `FleeBehavior`,
->    `TacticalScoring`, objective/recapture counts, etc.)
+> 3. **Bucket-A sweep — WAVE 1 + 1b DONE** (`9b4100a` prereq + `008afb1` +
+>    `b2e0df2`). Added the read-only `BattleView.liveUnitCount()/liveUnitAt(int)`
+>    accessor, then converted **46 live-only `getUnits()` loops across 30 files**
+>    (GOAP world/action, infantry, mech/drone/air, decision/command/objectives,
+>    render-live passes, picking, flyby targeting) to dense-registry iteration,
+>    dropping the redundant `!isAlive()` skip. Fanned out to 6 Sonnet sweepers on
+>    disjoint files; conservative rule (convert only explicit-isAlive-gate loops),
+>    then a main-thread 1b pass for the isAlive-not-first stragglers. Suite green.
+>    **REMAINING `getUnits()` readers** (need non-mechanical handling — wave 2):
+>    - **Dead-unit readers** → need a corpse/DeadBody source, not `liveUnitAt`:
+>      `MissionResolver` (casualty count), `DroneRenderSystem` (renders crashing
+>      dead drones), `SquadStateDumper` (dead-member debug dump).
+>    - **Mid-loop mutation** → snapshot-then-apply: `FlybyOverlay` AoE tracer loops
+>      (`applyExternalDamage` mid-iteration, ~631/695).
+>    - **List passed to helpers** → thread the registry through:
+>      `EquipmentDropService` (passes the list to `hasLivingRetriever` /
+>      `nearestAvailableMarine`).
+>    - **Field alias / demolition residue** (handle at list-deletion):
+>      `DamageResolver.units` field, `HubDemolitionSystem`/`TurretDemolitionSystem`
+>      guardpost scans.
+>    - **Bucket-C UI** (live-gated, mechanical when wanted): `SquadPlanDebugPanel`,
+>      `SquadDetailPanel`, `SquadOverviewPanel`; the `.size()` counters
+>      (`TickProfileDumper`, `TickProfileDebugPanel`) — decide live vs live+dead.
 > 4. Bucket-C cleanup; delete `UnitRosterService.units`.
 > 5. Revert Group-N accessors to unconditional (fail-loud); drop the
 >    `midCombatAccessorsReturnDefaultsWhenUnregistered` regression test.
