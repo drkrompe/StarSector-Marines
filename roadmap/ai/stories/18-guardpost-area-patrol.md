@@ -51,13 +51,25 @@ This finally gives `patrolRadius` a live consumer while the post stands.
 live post and `HoldPost` once `defensePost` is cleared; (2) the QUIET wander
 keeps its waypoint inside the `anchor ± radius` box across 200 advances.
 
+## Post-commit fix
+
+The critique pass caught a real bug: `Squad.patrolWaypointX/Y` is shared state
+written by every patrol posture (`PatrolRoute`, `GarrisonPatrol`,
+`GuardPostPatrol`) and nothing resets it on a posture switch, so a turret squad
+inheriting a far waypoint would walk *outside* its box until it arrived there.
+Fixed by treating an out-of-box waypoint as "needs re-roll" (`needsNewWaypoint`)
+— the squad re-rolls in-box or holds, never walks to the stale cell.
+Regression-covered by `inheritedOutOfBoxWaypointIsRerolledNotWalkedTo`.
+
 ## Follow-ups
 
-- **Shared patrol motion.** `GuardPostPatrol` duplicates `GarrisonPatrol`'s
-  dwell-gated waypoint walk + opportunistic-fire helpers (and `HoldPost`'s
-  engagement branch). Two callers with ~60 identical lines is borderline; a
-  shared `PatrolMotion` helper (waypoint strategy injected) could fold them
-  together. Deferred — ship the behavior first, refactor under the critique pass.
+- **Shared patrol motion.** `GuardPostPatrol` triplicates `GarrisonPatrol`'s and
+  `PatrolRoute`'s dwell-gated waypoint walk + the static fire/move helpers
+  (`holdAndFire`/`moveTowardWithFire`/`moveToward`/`hold`/`fireIfAble`). Three
+  callers crosses the threshold where a shared `PatrolMotion` helper (waypoint
+  strategy injected: box-sample vs room-round-robin vs node-route) pays off, and
+  would centralize the waypoint-lifecycle invalidation the post-commit fix added
+  locally. Worth doing next; bake the box/anchor invalidation into the seam.
 - **Release semantics.** A released turret squad (`defensePost == null`) still
   carries `holdsFireUntilKillZone`, so it falls to `HoldPost` rather than the
   search-and-destroy `RoutinePatrol` the `TurretDemolitionSystem` doc implies.

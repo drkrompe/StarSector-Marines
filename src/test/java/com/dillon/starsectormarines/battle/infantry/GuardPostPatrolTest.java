@@ -93,4 +93,30 @@ public class GuardPostPatrolTest {
                             + ") escaped the patrol box");
         }
     }
+
+    @Test
+    public void inheritedOutOfBoxWaypointIsRerolledNotWalkedTo() {
+        int anchorX = 20, anchorY = 20, radius = 4;
+        BattleSimulation sim = openArena(40, 40);
+        Squad squad = postedSquad(sim, anchorX, anchorY, radius);
+
+        Unit leader = new Unit("L", Faction.DEFENDER, UnitType.MARINE, anchorX, anchorY);
+        sim.addUnit(leader);
+        squad.leader = leader;
+
+        // Simulate a posture switch: the squad carries a waypoint left by a
+        // previous (wider) patrol, well outside this post's box. The squad is
+        // NOT arrived at it (centroid sits on the anchor) and the dwell has
+        // expired — the pre-fix code would have walked toward the stale cell.
+        squad.patrolWaypointX = anchorX + 15;
+        squad.patrolWaypointY = anchorY + 15;
+        squad.patrolDwellTimer = 0f;
+
+        GuardPostPatrol patrol = new GuardPostPatrol(anchorX, anchorY, radius);
+        patrol.execute(leader, squad, sim);
+
+        assertTrue(Math.abs(squad.patrolWaypointX - anchorX) <= radius
+                        && Math.abs(squad.patrolWaypointY - anchorY) <= radius,
+                "an inherited out-of-box waypoint must be re-rolled into the box, not walked to");
+    }
 }

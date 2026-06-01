@@ -173,11 +173,11 @@ public final class GuardPostPatrol implements Action {
             holdAndFire(member, sim);
             return ActionStatus.RUNNING;
         }
-        if (!hasValidWaypoint(squad) || squadHasArrived(squad)) {
+        if (needsNewWaypoint(squad)) {
             synchronized (squad.lock) {
                 // Re-check under the lock — a sibling worker may have already
                 // advanced the waypoint and started a new dwell.
-                if (squad.patrolDwellTimer > 0f || (hasValidWaypoint(squad) && !squadHasArrived(squad))) {
+                if (squad.patrolDwellTimer > 0f || !needsNewWaypoint(squad)) {
                     holdAndFire(member, sim);
                     return ActionStatus.RUNNING;
                 }
@@ -193,6 +193,22 @@ public final class GuardPostPatrol implements Action {
         }
         moveTowardWithFire(member, sim, squad.patrolWaypointX, squad.patrolWaypointY);
         return ActionStatus.RUNNING;
+    }
+
+    /**
+     * Whether the squad needs a fresh waypoint roll: none set, arrived at the
+     * current one, or — crucially — the current waypoint is <em>outside the
+     * box</em>. {@code patrolWaypointX/Y} is shared squad state written by every
+     * patrol posture ({@link PatrolRoute}, {@link GarrisonPatrol}, this), and
+     * nothing resets it on a posture switch, so a squad entering this action
+     * could inherit a far waypoint. Re-rolling (or holding when the roll fails)
+     * instead of walking to it keeps the squad inside its emplacement box.
+     */
+    private boolean needsNewWaypoint(Squad squad) {
+        if (!hasValidWaypoint(squad)) return true;
+        if (squadHasArrived(squad)) return true;
+        return Math.abs(squad.patrolWaypointX - anchorX) > radius
+                || Math.abs(squad.patrolWaypointY - anchorY) > radius;
     }
 
     /**
