@@ -118,11 +118,14 @@ new `BlockKind`/filler. All reuse existing tile sheets.
 
 ## Slice plan
 
-0. **Substrate (shared dependency).** `EconomicFunction` enum +
+0. ~~**Substrate (shared dependency).** `EconomicFunction` enum +
    `TargetProfile.functions` + resolver mapping + `DistrictMap`/`BiomeMap`
-   economy-weighted selection. No new districts yet — wire the existing themes to
-   the economy so the plumbing is proven on known output (e.g. `INDUSTRIAL`
-   biased up on a heavy-industry world). `NEUTRAL` ⇒ unchanged.
+   economy-weighted selection.~~ ✅ **shipped** — see
+   [`complete/slice-0-substrate.md`](complete/slice-0-substrate.md). The eight
+   `EconomicFunction`s map onto the existing nine themes via `EconomicZoning`;
+   `BiomeMap`'s CITY band (the urban bulk) and `DistrictMap`'s interior rolls
+   now lean toward the world's economy, `NEUTRAL` byte-identical. The plumbing is
+   proven on known output; slices 1–4 are now pure content drops onto a live pipe.
 1. **Spaceport** (cheapest new — mostly sharpening the existing port path).
 2. **Mining** (strongest identity; introduces the impassable-pit nav treatment).
 3. **Refinery / fuel** (round hard-cover footprints; reuses much of mining).
@@ -135,6 +138,24 @@ register in `BspCityGenerator` + a preview/validation test, mirroring how the
 existing fillers are structured. Connectivity + garrison-deployability invariants
 (`MapValidationScanTest`) gate every one — impassable pits especially must not
 partition the walkable graph.
+
+## Doodad palette (placeholder now, bespoke art later)
+
+Districts ship with **placeholder doodads** drawn from the existing `TileManifest`
+pools — every slice is playable with zero art. Sharper silhouettes are a later
+art pass (slice 5); the palette below is the shopping list to generate against,
+so the decorative read can be filled in without touching gen code. **All
+pure-visual** — none of these affect nav / cover (that lives in the filler's
+cell stamps, per "identity lives in the nav layout" above).
+
+| District    | Doodad silhouettes to author                                        |
+|-------------|---------------------------------------------------------------------|
+| Spaceport   | parked crate-stacks, fuel bowsers, tug/loader, pad-edge light masts |
+| Mining      | headframe / pithead tower, conveyor segments, ore heaps, skip carts |
+| Refinery    | cylindrical storage tanks, pipe-run segments, flare stack, valves   |
+| Agriculture | grain silos, greenhouse frames, irrigation booms, crop rows         |
+
+Until then these read as generic crates / grates / rocks from the shared sheets.
 
 ## Cross-refs
 - [`../campaign-battle-bridge/overview.md`](../campaign-battle-bridge/overview.md)

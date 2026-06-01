@@ -61,6 +61,7 @@ reads only `defenseLevel`), so the extraction is stable as consumers opt in:
 | `defenseLevel` | ground defenses / heavy batteries / orbital station / high command / planetary shield | **defense intensity (consumer 1)** |
 | `spaceportTier`| spaceport / megaport industry                       | port + landing structures |
 | `factionId`    | `MarketAPI.getFactionId()`                          | cosmetic / roster, later |
+| `functions`    | present industries → `EconomicFunction` set         | **urban composition (consumer 2)** — economy-reflective districts |
 
 ## Consumers (each an independent slice off the shared pipe)
 
@@ -69,10 +70,13 @@ reads only `defenseLevel`), so the extraction is stable as consumers opt in:
    `defenseLevel` → `OverwatchTowerStage` gun budget multiply + turret-tier
    escalation (`VULCAN → ARBALEST → HEPHAESTUS`). A fortified world fields ×2.3
    the overwatch line, all heavy. "This world is *fortified*."
-2. **Urban composition.** `marketSize` / `spaceportTier` → `DistrictMap` /
-   `BiomeMap` theme weighting: big worlds skew dense residential + commercial,
-   a spaceport pulls in port + landing structures, a backwater reads sparse.
-   "Big port city vs. backwater." Touches both theme-selection paths.
+2. **Urban composition.** `functions` (+ `marketSize` / `spaceportTier`) →
+   `DistrictMap` / `BiomeMap` theme weighting: a mining world reads industrial, a
+   farming colony rural, a trade hub civic. Grew into its own feature —
+   [`../economic-districts/overview.md`](../economic-districts/overview.md) —
+   since doing it justice means designing new district archetypes, not just
+   reweighting. **Substrate shipped** (slice 0): `EconomicFunction` +
+   `TargetProfile.functions` + economy-weighted CITY band / interior rolls.
 3. **Hard installations as map features.** Orbital station / battery / shield
    presence placed as actual map structures — Lever-2-style content injection
    (see [`../mapgen/stories/structural-taxonomy.md`](../mapgen/stories/structural-taxonomy.md)).

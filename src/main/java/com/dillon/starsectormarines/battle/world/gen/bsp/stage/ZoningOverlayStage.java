@@ -1,8 +1,10 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.stage;
 
+import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.MapDistrictTheme;
+import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BiomeMap;
 import com.dillon.starsectormarines.battle.world.gen.bsp.Bsp;
@@ -10,6 +12,9 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.DistrictMap;
 import com.dillon.starsectormarines.battle.world.gen.bsp.TrunkPlan;
 import org.apache.log4j.Logger;
+
+import java.util.EnumSet;
+import java.util.Set;
 
 /**
  * Step 1c — lay down the zoning overlay. In conquest mode
@@ -32,14 +37,18 @@ public final class ZoningOverlayStage implements GenStage {
         TraversalAxis axis = ctx.get(BspKeys.AXIS);
         TrunkPlan.Plan plan = ctx.get(BspKeys.TRUNK_PLAN);
         Bsp.Partition partition = ctx.get(BspKeys.PARTITION);
+        TargetProfile profile = ctx.get(BspKeys.MARKET_PROFILE);
+        Set<EconomicFunction> functions = profile != null
+                ? profile.functions() : EnumSet.noneOf(EconomicFunction.class);
         if (axis != null) {
-            BiomeMap biomeMap = new BiomeMap(ctx.width, ctx.height, axis, ctx.rng);
+            BiomeMap biomeMap = new BiomeMap(ctx.width, ctx.height, axis, ctx.rng, functions);
             ctx.put(BspKeys.BIOME_MAP, biomeMap);
             LOG.info("BspCityGenerator: " + partition.leaves.size() + " leaves on "
                     + ctx.width + "x" + ctx.height + " grid, "
-                    + plan.trunks.size() + " trunk(s), biome axis=" + axis);
+                    + plan.trunks.size() + " trunk(s), biome axis=" + axis
+                    + ", econ=" + functions);
         } else {
-            DistrictMap districtMap = new DistrictMap(ctx.width, ctx.height, ctx.rng);
+            DistrictMap districtMap = new DistrictMap(ctx.width, ctx.height, ctx.rng, functions);
             int ixCenterX = (plan.intersection.x0 + plan.intersection.x1) / 2;
             int ixCenterY = (plan.intersection.y0 + plan.intersection.y1) / 2;
             districtMap.forceThemeAt(ixCenterX, ixCenterY, MapDistrictTheme.CIVIC);

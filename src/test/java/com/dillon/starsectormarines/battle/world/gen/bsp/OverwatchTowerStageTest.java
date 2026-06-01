@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
@@ -11,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -68,7 +70,8 @@ public class OverwatchTowerStageTest {
     @Test
     void fortifiedWorldsFieldMoreAndHeavierGuns() {
         BspCityGenerator gen = new BspCityGenerator();
-        TargetProfile fortified = new TargetProfile(8, 5, 7, 2, "hegemony"); // defenseLevel 7 → heavy tier
+        TargetProfile fortified = new TargetProfile(8, 5, 7, 2, "hegemony",
+                EnumSet.of(EconomicFunction.HEAVY_INDUSTRY)); // defenseLevel 7 → heavy tier
         int neutralTotal = 0, fortifiedTotal = 0, fortifiedHeavy = 0, neutralHeavy = 0;
         for (long seed : CONQUEST_SEEDS) {
             List<DefensePost> n = towers(gen.generate(240, 160, seed, TraversalAxis.SOUTH_TO_NORTH, TargetProfile.NEUTRAL));

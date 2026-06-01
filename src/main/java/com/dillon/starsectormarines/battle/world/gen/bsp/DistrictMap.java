@@ -1,8 +1,12 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
+import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
+import com.dillon.starsectormarines.battle.world.gen.EconomicZoning;
 import com.dillon.starsectormarines.battle.world.gen.MapDistrictTheme;
 
+import java.util.EnumSet;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * Coarse district overlay used by {@link BspCityGenerator} to bias leaf
@@ -34,19 +38,37 @@ public final class DistrictMap {
     private static final int TARGET_DISTRICT_SIZE = 20;
     /** Probability that a district adopts a neighbor's theme during the smoothing pass. Higher = bigger clusters. */
     private static final float SMOOTH_PROBABILITY = 0.45f;
+    /** Probability an interior district is redirected to the world's economy-aligned theme. 0 when no economic signal. */
+    private static final float ECON_BIAS_PROBABILITY = 0.55f;
 
     private final int districtsX;
     private final int districtsY;
     private final int cellW;
     private final int cellH;
     private final MapDistrictTheme[][] themes;
+    /** The economy-aligned theme interior districts lean toward, or null when the world carries no economic signal (the pre-bridge path). */
+    private final MapDistrictTheme econTheme;
 
+    /** No-economy overload — pure geographic theme rolls, reproducing pre-bridge output. */
     public DistrictMap(int gridW, int gridH, Random rng) {
+        this(gridW, gridH, rng, EnumSet.noneOf(EconomicFunction.class));
+    }
+
+    /**
+     * Economy-aware overload. Interior districts are nudged toward the world's
+     * dominant {@link EconomicFunction} theme (via {@link EconomicZoning}) with
+     * {@link #ECON_BIAS_PROBABILITY}; edge districts keep their geographic
+     * character (coast / outskirts fade). With an empty function set there is no
+     * economy theme and <em>no extra rng draw is taken</em>, so the output is
+     * byte-identical to the no-economy overload.
+     */
+    public DistrictMap(int gridW, int gridH, Random rng, Set<EconomicFunction> functions) {
         this.districtsX = Math.max(1, Math.round((float) gridW / TARGET_DISTRICT_SIZE));
         this.districtsY = Math.max(1, Math.round((float) gridH / TARGET_DISTRICT_SIZE));
         this.cellW = gridW / districtsX;
         this.cellH = gridH / districtsY;
         this.themes = new MapDistrictTheme[districtsX][districtsY];
+        this.econTheme = EconomicZoning.dominantTheme(functions);
         assignThemes(rng);
     }
 
@@ -100,8 +122,20 @@ public final class DistrictMap {
      * (matches real city geography — water and edges fade into wasteland);
      * interior districts skew toward CIVIC / RESIDENTIAL (city center is dense).
      * INDUSTRIAL and MIXED appear in both regimes.
+     *
+     * <p>When the world carries an economic signal ({@link #econTheme} non-null),
+     * interior districts are then redirected to that theme with
+     * {@link #ECON_BIAS_PROBABILITY} — the economy's read concentrated in the
+     * city core. With no signal the geographic roll stands and no extra rng draw
+     * is consumed, preserving pre-bridge output exactly.
      */
     private MapDistrictTheme pickInitialTheme(boolean edge, Random rng) {
+        MapDistrictTheme base = rollGeographicTheme(edge, rng);
+        if (econTheme == null || edge) return base;
+        return rng.nextFloat() < ECON_BIAS_PROBABILITY ? econTheme : base;
+    }
+
+    private MapDistrictTheme rollGeographicTheme(boolean edge, Random rng) {
         float r = rng.nextFloat();
         if (edge) {
             if (r < 0.25f) return MapDistrictTheme.WATERFRONT;

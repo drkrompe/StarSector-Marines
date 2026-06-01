@@ -1,10 +1,14 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
 import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
+import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
+import com.dillon.starsectormarines.battle.world.gen.EconomicZoning;
 import com.dillon.starsectormarines.battle.world.gen.MapDistrictTheme;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 
+import java.util.EnumSet;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * Large-region zoning layer used for conquest maps. Lays {@link BiomeKind}
@@ -61,12 +65,29 @@ public final class BiomeMap {
     private final int height;
     private final TraversalAxis axis;
     private final BiomeKind[][] cells;
+    /** Theme the CITY band resolves to — economy-flexed (see {@link #themeAt}). {@link MapDistrictTheme#MIXED} with no economic signal. */
+    private final MapDistrictTheme cityTheme;
 
+    /** No-economy overload — the CITY band stays {@link MapDistrictTheme#MIXED}, reproducing pre-bridge output. */
     public BiomeMap(int width, int height, TraversalAxis axis, Random rng) {
+        this(width, height, axis, rng, EnumSet.noneOf(EconomicFunction.class));
+    }
+
+    /**
+     * Economy-aware overload. The fixed band sequence (beach → port → city →
+     * fortress) is structural and unchanged; the only flex is the CITY band's
+     * theme — the urban bulk of the map (35–75% of the axis) — which leans
+     * toward the world's {@link EconomicFunction} mix via
+     * {@link EconomicZoning#dominantTheme}. An empty set ⇒ {@code MIXED}, i.e.
+     * byte-identical to the no-economy overload.
+     */
+    public BiomeMap(int width, int height, TraversalAxis axis, Random rng, Set<EconomicFunction> functions) {
         this.width = width;
         this.height = height;
         this.axis = axis;
         this.cells = new BiomeKind[width][height];
+        MapDistrictTheme econ = EconomicZoning.dominantTheme(functions);
+        this.cityTheme = econ != null ? econ : MapDistrictTheme.MIXED;
         if (axis == TraversalAxis.SOUTH_TO_NORTH) {
             layoutAlongY(rng);
         } else {
@@ -85,9 +106,18 @@ public final class BiomeMap {
     }
 
     public MapDistrictTheme themeAt(int x, int y) {
-        return themeFor(biomeAt(x, y));
+        BiomeKind biome = biomeAt(x, y);
+        // CITY is the one economy-flexed band; every other band's theme is structural.
+        if (biome == BiomeKind.CITY) return cityTheme;
+        return themeFor(biome);
     }
 
+    /**
+     * The structural theme for a biome band, ignoring economy flex. CITY's
+     * baseline is {@link MapDistrictTheme#MIXED}; the live, economy-aware lookup
+     * is the instance {@link #themeAt} (which substitutes {@link #cityTheme} for
+     * CITY). Kept static for callers that want the band default.
+     */
     public static MapDistrictTheme themeFor(BiomeKind biome) {
         switch (biome) {
             case BEACH:             return MapDistrictTheme.COASTAL_BEACH;

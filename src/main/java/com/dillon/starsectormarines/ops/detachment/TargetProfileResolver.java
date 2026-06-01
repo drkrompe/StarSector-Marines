@@ -1,9 +1,12 @@
 package com.dillon.starsectormarines.ops.detachment;
 
+import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Industries;
+
+import java.util.EnumSet;
 
 /**
  * Extracts the {@link TargetProfile} for a battle from the vanilla economy — the
@@ -45,7 +48,36 @@ public final class TargetProfileResolver {
                 Math.round(market.getStabilityValue()),
                 defenseLevel(market),
                 spaceportTier(market),
-                market.getFactionId() != null ? market.getFactionId() : "");
+                market.getFactionId() != null ? market.getFactionId() : "",
+                functions(market));
+    }
+
+    /**
+     * Map the market's present industries onto the campaign-decoupled
+     * {@link EconomicFunction} vocabulary the generator reads. Presence-only —
+     * which roles the world plays, not how big each is. The vanilla id list is
+     * the only place {@code Industries.*} leaks toward the battle tier; the
+     * resulting {@link EnumSet} crosses the boundary, not the {@code MarketAPI}.
+     */
+    private static EnumSet<EconomicFunction> functions(MarketAPI m) {
+        EnumSet<EconomicFunction> fns = EnumSet.noneOf(EconomicFunction.class);
+        if (m.hasIndustry(Industries.POPULATION))    fns.add(EconomicFunction.HABITATION);
+        if (m.hasIndustry(Industries.COMMERCE))      fns.add(EconomicFunction.COMMERCE);
+        if (m.hasIndustry(Industries.HEAVYINDUSTRY)
+                || m.hasIndustry(Industries.LIGHTINDUSTRY)
+                || m.hasIndustry(Industries.ORBITALWORKS)) fns.add(EconomicFunction.HEAVY_INDUSTRY);
+        if (m.hasIndustry(Industries.SPACEPORT)
+                || m.hasIndustry(Industries.MEGAPORT))  fns.add(EconomicFunction.SPACEPORT);
+        if (m.hasIndustry(Industries.MINING)
+                || m.hasIndustry(Industries.TECHMINING)) fns.add(EconomicFunction.MINING);
+        if (m.hasIndustry(Industries.REFINING)
+                || m.hasIndustry(Industries.FUELPROD))   fns.add(EconomicFunction.REFINING);
+        if (m.hasIndustry(Industries.FARMING)
+                || m.hasIndustry(Industries.AQUACULTURE)) fns.add(EconomicFunction.AGRICULTURE);
+        if (m.hasIndustry(Industries.MILITARYBASE)
+                || m.hasIndustry(Industries.HIGHCOMMAND)
+                || m.hasIndustry(Industries.PATROLHQ))   fns.add(EconomicFunction.MILITARY);
+        return fns;
     }
 
     /**
