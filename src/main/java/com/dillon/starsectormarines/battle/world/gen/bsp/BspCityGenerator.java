@@ -38,9 +38,11 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.PedestrianFrameSt
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.RoadGraphStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.SpawnAnchorStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.TacticalLinkStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.TacticalRegionStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.TrunkSkeletonStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.ZoningOverlayStage;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
+import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 
@@ -142,6 +144,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new KeepEntryChamberStamper(),              // Step 3c'''
                 new TacticalLinkStage(),                    // Step 3d
                 new FinalizeStage(),                        // Step 4 + 4b
+                new TacticalRegionStage(),                  // structural taxonomy (post-finalize)
                 new SpawnAnchorStage()));                   // spawn anchors
     }
 
@@ -171,6 +174,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new KeepEntryChamberStamper(),              // Step 3c'''
                 new TacticalLinkStage(),                    // Step 3d
                 new FinalizeStage(),                        // Step 4 + 4b
+                new TacticalRegionStage(),                  // structural taxonomy (post-finalize)
                 new SpawnAnchorStage()));                   // spawn anchors
     }
 
@@ -229,6 +233,7 @@ public final class BspCityGenerator implements MapGenerator {
         this.lastTacticalMap = ctx.get(BspKeys.TACTICAL_MAP);
         RoadGraph roadGraph = ctx.get(BspKeys.ROAD_GRAPH);
         this.lastRoadGraph = roadGraph != null ? roadGraph : RoadGraph.EMPTY;
+        this.lastTacticalRegions = ctx.get(BspKeys.TACTICAL_REGIONS);
 
         Buildings buildings = ctx.get(BspKeys.BUILDINGS);
         int[] marine = ctx.get(BspKeys.MARINE_SPAWN);
@@ -259,4 +264,8 @@ public final class BspCityGenerator implements MapGenerator {
     /** Last road graph produced by {@link #generate}. Exposed for the preview test's overlay rendering. {@link RoadGraph#EMPTY} only if generation never ran. */
     private RoadGraph lastRoadGraph = RoadGraph.EMPTY;
     public RoadGraph getLastRoadGraph() { return lastRoadGraph; }
+
+    /** Last tactical-region segmentation produced by {@link #generate} — the structural-taxonomy artifact. Exposed for the preview/analysis test; null only if generation never ran. */
+    private TacticalRegionMap lastTacticalRegions;
+    public TacticalRegionMap getLastTacticalRegions() { return lastTacticalRegions; }
 }

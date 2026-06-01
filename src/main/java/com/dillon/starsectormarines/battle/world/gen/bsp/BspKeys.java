@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.world.gen.GenKey;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
+import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
 
 import java.util.List;
@@ -55,6 +56,9 @@ public final class BspKeys {
 
     /** Flood-filled building registry. Produced by the finalize stage, flows into {@code MapResult}. */
     public static final GenKey<Buildings> BUILDINGS = GenKey.of("buildings");
+
+    /** Tactical-region segmentation (structural taxonomy). Produced after finalize; preview/analysis artifact, not yet in {@code MapResult}. */
+    public static final GenKey<TacticalRegionMap> TACTICAL_REGIONS = GenKey.of("tacticalRegions");
 
     /** Marine spawn cell {@code [x, y]}. Produced by the spawn stage. */
     public static final GenKey<int[]> MARINE_SPAWN = GenKey.of("marineSpawn");

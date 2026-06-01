@@ -42,11 +42,15 @@ findings) in
 - Build green; `BuildingShellCoreLabelTest` + ternary 50-seed coverage
   pass. Diagnostic preview at
   `build/zone-previews/ternary-partition-labels.png`.
-- **Validation scan harness (this session): added.**
+- **Validation scan harness: added.**
   `MapValidationScanTest` (sibling to the `BspMapPreviewTest` previews) runs
   three structural scans over the 10-seed batch and prints a per-seed report —
   see the "Validation harness" section below for what landed, what it found,
   and the scans still on the menu.
+- **Structural taxonomy — Lever 1 (this session): landed.** The city publishes
+  a `TacticalRegion` segmentation of its porous walkable space (texture, not
+  topology — see the section below + [`stories/structural-taxonomy.md`](stories/structural-taxonomy.md)).
+  Foundation only: no runtime consumer yet, byte-identical maps.
 
 ## Next up (priority order)
 
@@ -209,6 +213,38 @@ missing rule, and several become load-bearing once corridors land:
   edge-based passage (corridor) exists. No work needed until then beyond
   keeping it in the batch.
 
+## Structural taxonomy — Lever 1 (this session)
+
+The reframe and full design are in
+[`stories/structural-taxonomy.md`](stories/structural-taxonomy.md). What landed:
+
+- **The premise we threw out.** The corridors story sketched the taxonomy over
+  a *connectivity graph* (degree / depth / articulation / bridges). Grounding
+  the code killed that for the city: `LeafAdjacency` is trunk-*segmented*
+  (clustering, not movement) and the porous walkable blob has no real
+  chokepoints (a road-graph "bridge" is bypassed across the adjacent park). The
+  city is the *negative* of the station — streets are the space, blocks are the
+  obstacles — so **texture, not topology**, is the readable signal.
+- **The artifact** (`battle.world.gen.taxonomy`, generator-agnostic):
+  `TacticalRegionMap.build(grid, topology, axis)` floods the walkable space into
+  `TacticalRegion`s — a cardinally-connected run of one `RegionKind`
+  (`STREET / PLAZA / COURTYARD / OPEN_GROUND / RUBBLE / BUILDING_INTERIOR`,
+  mapped from `GroundKind`) — each tagged with **cover density**, **mean
+  exposure** (cardinal open-cross reach), **enclosure + opening count** (a
+  *local* defensible-pocket measure, robust to porosity), and a geometric
+  **assault-depth band** (`UNSET` in legacy mode).
+- **Wiring.** `TacticalRegionStage` runs after `FinalizeStage` in both recipes;
+  binds `BspKeys.TACTICAL_REGIONS`; exposed via
+  `BspCityGenerator.getLastTacticalRegions()`. Pure analysis (no `rng`, no
+  mutation) → **byte-identical maps**. Deliberately **not** in `MapResult` yet —
+  that lands with the first runtime consumer.
+- **Gut-check + gate.** `TacticalRegionPreviewTest` writes
+  `build/map-previews/taxonomy-*-{kind,heat}.png` (regions by kind with
+  defensible pockets ringed; cover→exposure heat) + prints per-seed summaries.
+  `TacticalRegionTest` asserts the invariants (exact walkable partition,
+  attributes in range, no isolated pockets, axis-driven depth, seed
+  determinism).
+
 ## Captured directions (other paths for future sessions)
 
 Surfaced while scoping this session; parked deliberately so they're not lost:
@@ -226,19 +262,22 @@ Surfaced while scoping this session; parked deliberately so they're not lost:
   size/placement, fortress-district density vs. city, assault-gradient
   legibility. Gut-checkable purely via the conquest previews. No story doc yet;
   worth one if we pick it up.
-- **Structural taxonomy + city-gen upgrade (candidate dedicated session).**
-  General direction (city + station + ship): generators *publish* structural
-  annotations — the connectivity graph + topological roles (degree, depth from
-  entry, articulation points / bridges, spine-vs-loop) and positional roles
-  (threshold / overwatch / deep cover) — and placement passes *consume* them as
-  aspect queries instead of re-deriving geometry. The room-purpose seam
-  generalized; first built in the corridor work. The existing **city**
-  generator is the prime retrofit (it already has `RoadGraph` + `LeafAdjacency`,
-  but `FortressWallStamper` / `DefensePostStamper` / `CompoundPerimeterDefenderStamper`
-  still use magic offsets). A pure session could upgrade city gen to publish +
-  consume the taxonomy — de-fragilizing placement and directly feeding the
-  battlespace-readability item above. See `overview.md` § "Structural taxonomy"
-  and [`stories/corridors-first-class.md`](stories/corridors-first-class.md).
+- **Structural taxonomy (city) — Lever 1 landed; Lever 2 + consumer parked.**
+  The general direction (generators *publish* structure, passes *consume* it as
+  aspect queries) hit the city this session. Key correction: the station-shaped
+  "connectivity graph + topological roles" framing does **not** transfer to the
+  porous open-with-obstacles city — no real chokepoints exist, so we read
+  *texture* (`TacticalRegion` segmentation) instead of topology. See the
+  "Structural taxonomy — Lever 1" section below + [`stories/structural-taxonomy.md`](stories/structural-taxonomy.md).
+  Still parked:
+  - **First consumer (Lever-1 payoff).** Migrate one placement pass
+    (`DefensePostStamper`'s biome-band proxy is the natural first) to query
+    region attributes; plumb `TacticalRegion` into `MapResult` here. First
+    player-visible change; RNG parity checked.
+  - **Lever 2 — inject structure (its own session).** Gated courtyards / walled
+    pockets / denser alleys, tagged at carve time; the artifact picks them up
+    automatically. The "upgrade city generation" session.
+  - Still feeds the **battlespace-readability** item above.
 
 ## Sanity check before resuming
 
@@ -250,4 +289,8 @@ Surfaced while scoping this session; parked deliberately so they're not lost:
   all hard invariants hold.
 - `gradlew.bat :test --tests "*BspMapPreviewTest*"` — regenerates the preview
   PNGs under `build/map-previews/`.
+- `gradlew.bat :test --tests "*TacticalRegionTest*"` — structural-taxonomy
+  invariants hold (exact walkable partition, attribute ranges, determinism).
+- `gradlew.bat :test --tests "*TacticalRegionPreviewTest*"` — regenerates
+  `build/map-previews/taxonomy-*-{kind,heat}.png` for the gut-check.
 - `git log --oneline -1 b8b7b9d` confirms Slice D is in history.

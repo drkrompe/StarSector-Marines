@@ -154,10 +154,22 @@ is the prime retrofit candidate: it already produces a `RoadGraph` and a
 footprint validation, `CompoundPerimeterDefenderStamper`'s outward edge
 scan). Upgrading city gen to publish + consume a structural taxonomy would
 de-fragilize those passes and feed **battlespace readability** (set-pieces
-at meaningful graph positions, not scattered). Candidate for a dedicated
-session — see [`next-session.md`](next-session.md). Design detail:
+at meaningful positions, not scattered).
+
+**City correction — texture, not topology.** Grounding the code (2026-06-01)
+showed the graph framing above is *station*-shaped and doesn't transfer to the
+city. The city is **open-with-obstacles** and porous: infantry walkable space
+is ~one connected blob, so neither graph yields real chokepoints (a road-graph
+"bridge" is bypassed across the adjacent park; `LeafAdjacency` is a
+trunk-segmented *clustering* relation, not a movement graph). The city-correct
+taxonomy reads the **texture** of the porous space — segment it into
+`TacticalRegion`s tagged with cover / exposure / enclosure / assault-depth —
+and that became this generator's first real implementation (Lever 1). Full
+treatment + the two-lever framing (read texture now; *inject* structure later)
+in [`stories/structural-taxonomy.md`](stories/structural-taxonomy.md); the
+station-shaped graph framing lives on for stations in
 [`stories/corridors-first-class.md`](stories/corridors-first-class.md) §
-"Structural taxonomy".
+"Structural taxonomy", and the two converge once stations carve discrete rooms.
 
 ## Cross-references
 
