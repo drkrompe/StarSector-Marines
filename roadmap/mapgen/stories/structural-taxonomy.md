@@ -118,7 +118,64 @@ change** (pure analysis, draws no `rng`).
 - `exposure` precomputed once as a global cross-run grid (four linear sweeps),
   then averaged per region.
 
+## Membership vs. positional — the corner-tower correction (playtest read, 2026-06-01)
+
+Eyeballing the Lever-1 previews surfaced the limit of region-level attributes:
+the **enclosure** attribute is a *membership* read ("is this a holdable
+pocket?"), and it is **blind to fields of fire**. The walls that make a
+courtyard/interior score high-enclosure are the same walls that wall *in* a
+turret's arc — so the auto-ringed "defensible pocket" is the *worst* place to
+mount a gun. An enclosed pocket is valuable, but for the opposite role: a
+garrison hunker / fallback / last stand (and CQB value to the **attacker** once
+breached). It is defender-favorable only if you're holding the *room*, not
+projecting force from it.
+
+A defender's emplacement wants the **positional** read instead — a **corner
+tower**: cover/wall at its *back*, commanding a long sightline *out* over
+low-cover ground. That's the intersection of "enclosure behind" and "exposure
+ahead, facing outward" — **directional and per-cell**; a region average can't
+see it (an interior's *mean* exposure is low precisely because it's walled). So:
+
+- **Membership** (region attributes, shipped) answers *where to garrison / fall
+  back* — high-enclosure pockets, by `RegionKind` + depth.
+- **Positional** (per-cell roles, not yet built) answers *where to mount a gun*
+  — the corner tower / overwatch cell. This is the corridors-doc "positional
+  axis" (threshold / overwatch / deep cover); the placement use-case shows it's
+  the **load-bearing** layer, not a deferred nicety.
+
+Two different queries → two different node kinds (don't collapse them). The
+overwatch corner already exists **by hand**: `FortressWallStamper` puts
+`HEAVY_TOWER`s on the attacker-facing wall edge overlooking the kill zone with
+magic offsets — *that is* the corner tower. The positional layer generalizes it
+so every walled compound earns perimeter towers facing out, instead of
+nonsensical interior turrets.
+
+**Sketch of the positional read** (reuses the cross-exposure grid, retaining
+per-direction runs instead of summing): a candidate overwatch cell is walkable,
+has a non-walkable ("cover at back") cardinal neighbor, and a long *outward*
+open-run (away from that wall) over a low-cover region. Score ≈ (cover behind) ×
+(outward run into low cover). The game already bakes per-facing cover
+(`NavigationGrid.getCoverAtFacing`), so this composes with existing cover data.
+
 ## Future slices
+
+1. **First consumer (Lever-1 payoff).** Migrate one placement pass to query the
+   taxonomy. **Split by role, per the corner-tower correction above:** a
+   defender turret / heavy emplacement wants a **positional overwatch corner**
+   (cover-at-back + outward field of fire over a low-cover region), NOT a
+   high-enclosure region — so this slice likely needs the per-cell positional
+   read, at least a v0. Garrison / fallback nodes (`BARRACKS`, `FALLBACK_TO`)
+   are the ones that want high-enclosure *membership*. `DefensePostStamper`'s
+   biome-band proxy is the natural migration target; depth still tiers it.
+   First player-visible change; plumb `TacticalRegion` into `MapResult` here;
+   RNG-parity carefully checked.
+2. **Lever 2 — structure injection (own session).** Gated courtyards / walled
+   pockets / denser alleys, tagged at carve time; the artifact picks them up
+   automatically (a courtyard with one gate reads as high-enclosure,
+   `openingCount == 1`). See [`../overview.md`](../overview.md).
+3. **Station reuse.** The station recipe's discrete rooms feed the *same*
+   `TacticalRegion` vocabulary (a room is just a high-enclosure region whose
+   mouths are doorways), so the corridor taxonomy and this one converge.
 
 1. **First consumer (Lever-1 payoff).** Migrate one placement pass to query
    the taxonomy — e.g. `DefensePostStamper`'s biome-band proxy → region
