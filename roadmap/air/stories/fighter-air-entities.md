@@ -87,8 +87,13 @@ when `flyby/` folds into `air/`; until then `FlybyOverlay`'s draw is reused.
 
 ## Decomposition (committable sub-slices)
 
-- **4a — `HullKinematicsResolver` → `AirHandling` (scraped, mod-aware).** Read the
-  hull's real maneuver stats from the runtime spec
+- **4a — `HullKinematicsResolver` → `AirHandling` (scraped, mod-aware) — SHIPPED
+  `c807773`.** `HullKinematics` (pure) + `HullKinematicsResolver` (runtime,
+  cached); `HullKinematicsTest` locks the conversion with real Talon/Trident
+  values. No behavior change yet — available for 4b. Calibration knobs
+  (`SPEED_ATMO_MULT` 1.3, `TURN_ATMO_MULT` 1.0, lateral/station damping) live in
+  `HullKinematics` for in-game tuning. Read the hull's real maneuver stats from
+  the runtime spec
   (`getHullSpec(id).getEngineSpec()` — `maxSpeed/acceleration/deceleration/
   maxTurnRate/turnAcceleration`, merged across vanilla + all mods) and convert to
   our `AirHandling`:
