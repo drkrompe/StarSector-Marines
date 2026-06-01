@@ -55,29 +55,62 @@ interface on the event.
   emits only the current ribbons. This is the `battle_services_systems` rule
   (services own state, systems are stateless) applied to the render tier.
 
-## The central open question — the flyweight key
+## The flyweight key — RESOLVED (per-enum tables + discriminator)
 
-`RenderAppearance` keys on a single `UnitType` → one `EnumMap`. A shot's
-appearance is keyed by **one of four** weapon-source enums
-(`TurretKind`/`MarineSecondary`/`MarineWeapon`/`MechWeapon`), whichever field is
-populated on the `ShotEvent`. Options to resolve before F2:
+`RenderAppearance` keys on a single `UnitType`. A shot's appearance is keyed by
+**one of four** mutually-exclusive weapon-source enums (`TurretKind` /
+`MarineWeapon` / `MarineSecondary` / `MechWeapon`), per `ShotEvent`'s own
+contract. Decision: **per-enum tables + a `ShotAppearance.of(ShotEvent)`
+dispatcher**, render-side.
 
-1. **Per-enum tables + a `ShotAppearance.of(ShotEvent)` dispatcher** that reads
-   the populated source and delegates to that enum's table. Keeps each table a
-   clean `EnumMap`; the dispatch is one `switch` on which field is non-null,
-   resolved once per shot per frame (not per stratum).
-2. **A shared `WeaponSource` interface** the four enums implement, exposing the
-   tag-relevant fields; `ShotAppearance` derives from the interface. Fewer
-   tables, but touches sim enums (weigh against the "don't couple sim to render"
-   grain — exposing *data* the sim already has is fine; exposing render concepts
-   is not).
-3. **Resolve tags eagerly onto the `ShotEvent` at spawn** (sim-side). Rejected on
-   first pass — that *is* a render field on a sim object.
+Rejected — a shared `WeaponSource` interface the four enums implement: the
+FX-relevant field *sets genuinely diverge* (`arcHeight` on TurretKind+MechWeapon
+only; `engineTrail` MechWeapon only; `smokeTrail` TurretKind only; `tracerColor`
+meaningful on MarineWeapon only). A common interface would be fat (most enums
+return defaults) **and** would push render accessors onto sim enums — the
+coupling direction the reorg fights. It only pays off alongside a sim-side
+weapon unification, which is out of scope.
 
-Lean (1): it's the least sim-invasive and keeps the flyweight relationship pure.
-Confirm the exact enum/field names at implementation (`projectileSpritePath`,
-`projectileVisualCells`, `arcHeight`, `hasBoostRamp()`, `engineTrail`,
-`smokeTrail`, `tracerColor`, `kindUsesContrailRibbon` → `LOCUST`).
+`ShotAppearance` (render-side flyweight; `ShotEvent` stays dumb):
+
+```
+FxStratum     stratum          // PROJECTILE_SPRITE | TRACER — which body sweep claims it
+SpriteSource  spriteSource     // TURRET|MARINE_PRIMARY|MARINE_SECONDARY|MECH; null when TRACER
+float         projectileVisualCells, arcHeight
+boolean       boostRamp, engineTrail, smokeTrail, contrailRibbon
+Color         tracerColor      // type-fixed; null => sweep resolves faction default
+```
+
+Built once per enum value into four `EnumMap`s; `of(ShotEvent)` switches on the
+single non-null source (all-null → a shared faction-default-tracer singleton).
+
+Three shape-determining facts confirmed from the enums:
+
+1. **Sprite-cache map is per-source** (`turretProjectileSprites()` vs
+   `marineWeaponProjectileSprites()` vs `marineSecondarySprites()` vs
+   `mechWeaponProjectileSprites()`), so the descriptor carries a `SpriteSource`
+   discriminator. The sprite sweep does **one** switch on it to pick the cache
+   map + look up the shot's enum ref — a cache selector, not the FX-kind
+   dispatch (which stays tag-driven). The four caches really are separate.
+2. **Contrail is a modifier tag, not a stratum.** `LOCUST` renders a projectile
+   sprite *and* a contrail ribbon (and suppresses its smoke puff:
+   `smokeTrail && !usesContrailRibbon`). So a shot can appear in both the sprite
+   sweep and the contrail sweep — like UNITS' footprint + body sweeps over one
+   entity. Sweeps are not mutually exclusive.
+3. **Tracer color is not fully type-flyweight.** The no-source faction tracer
+   (`MARINE_TRACER`/`DEFENDER_TRACER`) depends on `shooterFaction` (per-shot), so
+   `tracerColor` is non-null only for marine primaries; otherwise the sweep picks
+   faction color from the shot — the same "dynamic input at sweep time" rule
+   `RenderAppearance` uses for hp/facing.
+
+Sprite-vs-tracer derivation: TurretKind/MarineSecondary always sprite;
+MechWeapon always sprite (all entries have `projectileSpritePath`); MarineWeapon
+sprite iff `projectileSpritePath != null` (SMG only — PULSE_RIFLE/DMR/DRONE_PULSE
+tracer); bare no-source shot → TRACER. `boostRamp` = TurretKind LOCUST only;
+`contrailRibbon` = TurretKind LOCUST only; `engineTrail` = MechWeapon flag;
+`smokeTrail` = TurretKind flag minus ribbon kinds. `F2` pins all of this in a
+`ShotAppearanceTest` across every enum value of all four enums + the no-source
+case (mirrors `RenderAppearanceTest`).
 
 ## Slices (each independently shippable + in-game verified)
 
