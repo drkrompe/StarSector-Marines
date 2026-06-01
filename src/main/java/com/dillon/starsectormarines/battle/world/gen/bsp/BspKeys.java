@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen.bsp;
 
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.world.gen.GenKey;
+import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
@@ -30,6 +31,9 @@ public final class BspKeys {
 
     /** Traversal axis for biome banding + attacker-facing orientation. Set only in conquest mode. */
     public static final GenKey<TraversalAxis> AXIS = GenKey.of("axis");
+
+    /** Campaign → battle read of the target world (planetary defenses, market size, …). Always bound; {@link TargetProfile#NEUTRAL} when no market backs the battle. */
+    public static final GenKey<TargetProfile> MARKET_PROFILE = GenKey.of("marketProfile");
 
     /** The painted trunk + BSP-frame road mask; compound fillers read it to find bridged inter-leaf cells. */
     public static final GenKey<boolean[][]> ROAD_CELLS = GenKey.of("roadCells");

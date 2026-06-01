@@ -54,6 +54,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.MapGenerator;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
+import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper;
@@ -252,14 +253,14 @@ public final class BattleSetup {
                     entry[0], entry[1],
                     entry[2], entry[3],
                     i * SHUTTLE_DROP_STAGGER_SEC);
-            shuttle.totalCycles = a.cycles;
+            shuttle.mission.totalCycles = a.cycles;
             MarineLoadout[][] cycleLoadouts = new MarineLoadout[a.cycles][];
             for (int c = 0; c < a.cycles; c++) {
                 cycleLoadouts[c] = buildSabotageLoadout(shuttle.type.capacity, objectives, globalDropIdx, rng);
                 globalDropIdx++;
             }
-            shuttle.cycleLoadouts = cycleLoadouts;
-            shuttle.marineLoadout = cycleLoadouts[0];
+            shuttle.mission.cycleLoadouts = cycleLoadouts;
+            shuttle.mission.marineLoadout = cycleLoadouts[0];
             sim.addShuttle(shuttle);
             equipDefaultTurrets(sim, shuttle);
         }
@@ -365,11 +366,11 @@ public final class BattleSetup {
      */
     private static void equipDefaultTurrets(BattleSimulation sim, Shuttle shuttle) {
         if (shuttle.type.hardpoints <= 0) return;
-        if (shuttle.assignedRole == null) shuttle.assignedRole = TurretRole.A2G;
+        if (shuttle.mission.assignedRole == null) shuttle.mission.assignedRole = TurretRole.A2G;
         // Loadout (what) from the role/hardpoint kit; positions (where) from the
         // hull's real weapon slots, converted at the one global pixel density.
         // Zip kind[i] with slot[i]; clamp to whichever runs out first.
-        TurretKind[] kit = ShuttleType.kitFor(shuttle.assignedRole, shuttle.type.hardpoints);
+        TurretKind[] kit = ShuttleType.kitFor(shuttle.mission.assignedRole, shuttle.type.hardpoints);
         float[][] slots = TurretSlotResolver.resolve(shuttle.type.renderHullId());
         int n = Math.min(kit.length, slots.length);
         if (n <= 0) return;
@@ -462,15 +463,15 @@ public final class BattleSetup {
                     entry[0], entry[1],
                     entry[2], entry[3],
                     i * SHUTTLE_DROP_STAGGER_SEC);
-            shuttle.totalCycles = a.cycles;
+            shuttle.mission.totalCycles = a.cycles;
             // Per-cycle weapon loadouts — re-rolled each sortie so a cycling
             // shuttle doesn't deboard the same exact fireteam composition twice.
             MarineLoadout[][] cycleLoadouts = new MarineLoadout[a.cycles][];
             for (int c = 0; c < a.cycles; c++) {
                 cycleLoadouts[c] = buildBaseLoadouts(shuttle.type.capacity, rng);
             }
-            shuttle.cycleLoadouts = cycleLoadouts;
-            shuttle.marineLoadout = cycleLoadouts[0];
+            shuttle.mission.cycleLoadouts = cycleLoadouts;
+            shuttle.mission.marineLoadout = cycleLoadouts[0];
             sim.addShuttle(shuttle);
             equipDefaultTurrets(sim, shuttle);
         }
@@ -502,14 +503,17 @@ public final class BattleSetup {
      * in FORTRESS_DISTRICT (with garrison squads at the wall's tactical nodes).
      */
     public static BattleSimulation createConquest(long seed, List<ShuttleAssignment> manifest,
-                                                  boolean enemyHasHeavyArmor, RiskLevel risk) {
+                                                  boolean enemyHasHeavyArmor, RiskLevel risk,
+                                                  TargetProfile profile) {
         MapScale scale = MapScale.forRisk(risk);
         Random rng = new Random(seed);
         TraversalAxis axis = rng.nextBoolean() ? TraversalAxis.SOUTH_TO_NORTH : TraversalAxis.WEST_TO_EAST;
         // Generator uses its own seeded RNG — pass the same seed so different
         // mission types from the same seed still produce comparable layouts;
         // axis flips deterministically off the first bit of our wrapper RNG.
-        MapResult map = MAP_GEN.generate(scale.width, scale.height, seed, axis);
+        // The target world's profile (planetary defenses, …) rides in so the
+        // overwatch line reflects how fortified the planet is.
+        MapResult map = MAP_GEN.generate(scale.width, scale.height, seed, axis, profile);
 
         List<MapVehicle> vehiclePlacements = stampVehicles(map.grid, map.topology, rng);
         BattleSimulation sim = new BattleSimulation(map.grid, map.topology);
@@ -557,13 +561,13 @@ public final class BattleSetup {
                     entry[0], entry[1],
                     entry[2], entry[3],
                     i * SHUTTLE_DROP_STAGGER_SEC);
-            shuttle.totalCycles = a.cycles;
+            shuttle.mission.totalCycles = a.cycles;
             MarineLoadout[][] cycleLoadouts = new MarineLoadout[a.cycles][];
             for (int c = 0; c < a.cycles; c++) {
                 cycleLoadouts[c] = buildBaseLoadouts(shuttle.type.capacity, rng);
             }
-            shuttle.cycleLoadouts = cycleLoadouts;
-            shuttle.marineLoadout = cycleLoadouts[0];
+            shuttle.mission.cycleLoadouts = cycleLoadouts;
+            shuttle.mission.marineLoadout = cycleLoadouts[0];
             sim.addShuttle(shuttle);
             equipDefaultTurrets(sim, shuttle);
         }

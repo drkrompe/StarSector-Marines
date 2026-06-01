@@ -30,4 +30,18 @@ public interface MapGenerator {
     default MapResult generate(int width, int height, long seed, TraversalAxis axis) {
         return generate(width, height, seed);
     }
+
+    /**
+     * Campaign-aware build: the target world's {@link TargetProfile} (planetary
+     * defenses, market size, spaceport — extracted at the launch boundary) is
+     * carried in so generation can reflect <em>which</em> world the battle is
+     * over. Default implementation ignores the profile and delegates to
+     * {@link #generate(int, int, long, TraversalAxis)} — only generators that
+     * read campaign signal need to override this. The campaign → battle bridge
+     * passes {@link TargetProfile#NEUTRAL} when no market backs the battle, so
+     * overriding generators keep their pre-bridge output byte-identical.
+     */
+    default MapResult generate(int width, int height, long seed, TraversalAxis axis, TargetProfile profile) {
+        return generate(width, height, seed, axis);
+    }
 }

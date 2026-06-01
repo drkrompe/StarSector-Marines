@@ -4,8 +4,10 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.ops.detachment.Detachment;
 import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
+import com.dillon.starsectormarines.ops.detachment.TargetProfileResolver;
 
 import java.util.List;
 
@@ -42,6 +44,11 @@ public final class MissionLaunch {
         // defender side fields a HEAVY_MECH (see BattleSetup).
         boolean enemyHasHeavyArmor = DetachmentResolver.planetHasHeavyArmaments(m.targetPlanetName);
 
+        // Campaign → battle bridge: the target world's planetary defenses /
+        // market read, distilled once at the boundary so generation can reflect
+        // which world the battle is over. NEUTRAL for story ops with no market.
+        TargetProfile profile = TargetProfileResolver.resolve(m.targetPlanetName);
+
         long seed = System.currentTimeMillis();
         BattleSimulation sim;
         switch (m.type) {
@@ -49,7 +56,7 @@ public final class MissionLaunch {
                 sim = BattleSetup.createSabotage(seed, det.shuttleManifest, enemyHasHeavyArmor, m.risk);
                 break;
             case CONQUEST:
-                sim = BattleSetup.createConquest(seed, det.shuttleManifest, enemyHasHeavyArmor, m.risk);
+                sim = BattleSetup.createConquest(seed, det.shuttleManifest, enemyHasHeavyArmor, m.risk, profile);
                 break;
             case ASSAULT:
             case RAID:

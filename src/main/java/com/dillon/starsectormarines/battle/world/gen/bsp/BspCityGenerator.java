@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenRecipe;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.MapGenerator;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingCommercialFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingIndustrialFiller;
@@ -209,6 +210,18 @@ public final class BspCityGenerator implements MapGenerator {
      */
     @Override
     public MapResult generate(int width, int height, long seed, TraversalAxis axis) {
+        return generate(width, height, seed, axis, TargetProfile.NEUTRAL);
+    }
+
+    /**
+     * Canonical entry point — all overloads funnel here. The {@code profile}
+     * (campaign → battle bridge) is bound on the context under
+     * {@link BspKeys#MARKET_PROFILE} for stages that scale off the target world
+     * (e.g. {@link OverwatchTowerStage}'s defense intensity);
+     * {@link TargetProfile#NEUTRAL} reproduces the pre-bridge output.
+     */
+    @Override
+    public MapResult generate(int width, int height, long seed, TraversalAxis axis, TargetProfile profile) {
         Random rng = new Random(seed);
         NavigationGrid grid = new NavigationGrid(width, height);
         CellTopology topology = new CellTopology(width, height);
@@ -219,6 +232,7 @@ public final class BspCityGenerator implements MapGenerator {
         // BspKeys as the stages compute them.
         GenContext ctx = new GenContext(grid, topology, rng, width, height, seed);
         if (axis != null) ctx.put(BspKeys.AXIS, axis);
+        ctx.put(BspKeys.MARKET_PROFILE, profile != null ? profile : TargetProfile.NEUTRAL);
 
         // Recipe selection is the conquest/legacy fork: axis present → the full
         // conquest sequence; axis absent → the legacy district recipe (which

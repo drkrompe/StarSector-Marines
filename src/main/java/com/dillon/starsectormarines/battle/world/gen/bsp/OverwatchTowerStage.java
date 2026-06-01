@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
+import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.DepthBand;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.OverwatchScorer;
@@ -61,17 +62,31 @@ public final class OverwatchTowerStage implements GenStage {
      * often bite before the budget does, so this is a ceiling on intent, not a
      * guaranteed count.
      *
-     * <p><b>Future:</b> this base budget is the natural multiply-point for a
-     * campaign-driven <em>defense intensity</em> — a market's Planetary Defenses /
-     * Heavy Industry level and command-HQ presence should raise the gun count once
-     * market data is plumbed into generation. See
-     * {@code roadmap/mapgen/stories/structural-taxonomy.md}.
+     * <p>This base is then multiplied by a campaign-driven <em>defense
+     * intensity</em> (see {@link #DEFENSE_INTENSITY_GAIN}) so a fortified target
+     * world fields a longer, heavier overwatch line than a soft one — the
+     * campaign → battle bridge realized. See
+     * {@code roadmap/campaign-battle-bridge/stories/defense-intensity.md}.
      */
     private static final int CELLS_PER_TOWER = 2500;
     /** Floor so even a small map fields a token overwatch line. */
     private static final int MIN_TOWERS = 3;
-    /** Safety ceiling so a pathological map size can't request hundreds of placement attempts. */
-    private static final int MAX_TOWERS = 32;
+    /**
+     * Safety ceiling so a pathological map size can't request hundreds of
+     * placement attempts. Raised above the area-derived conquest base (240×160
+     * ≈ 15) so a maximally-fortified world can roughly double its line before
+     * the ceiling bites — on dense worlds the physical site supply +
+     * {@link #MIN_SEPARATION} are the real limiter well before this.
+     */
+    private static final int MAX_TOWERS = 48;
+    /**
+     * Per-{@link TargetProfile#defenseLevel()} budget gain: the area-derived base
+     * is multiplied by {@code 1 + GAIN × defenseLevel}. At the ~0–7 defense-level
+     * range this spans ×1.0 (undefended / {@link TargetProfile#NEUTRAL}) to
+     * ~×2.3 (star-fortress + heavy batteries + high command). NEUTRAL → ×1.0, so
+     * the no-campaign path is byte-identical to the pre-bridge output.
+     */
+    private static final float DEFENSE_INTENSITY_GAIN = 0.18f;
     /** Minimum cell distance from any existing defense post (and from another tower) — avoids doubling up on a position the kill-zone posts already cover. */
     private static final int MIN_SEPARATION = 12;
     /**
@@ -83,8 +98,10 @@ public final class OverwatchTowerStage implements GenStage {
      */
     private static final EnumSet<DepthBand> ALLOWED_BANDS = EnumSet.of(DepthBand.MID, DepthBand.DEEP);
 
-    /** Single light auto-cannon — the same turret the LIGHT defense post mounts. */
-    private static final TurretKind TOWER_TURRET = TurretKind.VULCAN;
+    /** Defense level (inclusive) at/above which towers upgrade from {@link TurretKind#VULCAN} to the mid {@link TurretKind#ARBALEST}. */
+    private static final int TIER_MID_DEFENSE = 2;
+    /** Defense level (inclusive) at/above which towers upgrade to the heavy {@link TurretKind#HEPHAESTUS}. */
+    private static final int TIER_HEAVY_DEFENSE = 4;
 
     public OverwatchTowerStage() {}
 
@@ -99,9 +116,16 @@ public final class OverwatchTowerStage implements GenStage {
         CellTopology topology = ctx.topology;
         TraversalAxis axis = ctx.get(BspKeys.AXIS);
 
-        // Budget scales with map size — see CELLS_PER_TOWER.
-        int budget = Math.max(MIN_TOWERS, Math.min(MAX_TOWERS,
-                Math.round((float) (ctx.width * ctx.height) / CELLS_PER_TOWER)));
+        TargetProfile profile = ctx.get(BspKeys.MARKET_PROFILE);
+        if (profile == null) profile = TargetProfile.NEUTRAL;
+
+        // Budget scales with map size (CELLS_PER_TOWER), then with how fortified
+        // the target world is (defense intensity) — a hardened core world fields
+        // a longer line than a soft frontier colony. NEUTRAL ⇒ ×1.0.
+        float intensity = 1f + DEFENSE_INTENSITY_GAIN * profile.defenseLevel();
+        int areaBudget = Math.round((float) (ctx.width * ctx.height) / CELLS_PER_TOWER);
+        int budget = Math.max(MIN_TOWERS, Math.min(MAX_TOWERS, Math.round(areaBudget * intensity)));
+        TurretKind turret = turretForDefense(profile.defenseLevel());
 
         List<OverwatchSite> sites = OverwatchScorer.findSites(grid, regions, axis);
         List<DefensePost> posts = ctx.defensePosts;
@@ -125,7 +149,7 @@ public final class OverwatchTowerStage implements GenStage {
 
             stampTowerMount(grid, topology, x, y);
             List<DefensePost.TurretSpec> turrets = new ArrayList<>(1);
-            turrets.add(new DefensePost.TurretSpec(TOWER_TURRET, x, y));
+            turrets.add(new DefensePost.TurretSpec(turret, x, y));
             // LIGHT tier = single turret; no GUARDPOST node is emitted (see class
             // doc), so the tier's garrison metadata is inert — the tower is unmanned.
             posts.add(new DefensePost(DefensePostKind.LIGHT, x, y, turrets));
@@ -174,6 +198,18 @@ public final class OverwatchTowerStage implements GenStage {
         grid.setCoverAtFacing(x, y, NavigationGrid.FACING_E, coverFromNeighbor(grid, x + 1, y));
         grid.setCoverAtFacing(x, y, NavigationGrid.FACING_S, coverFromNeighbor(grid, x, y + 1));
         grid.setCoverAtFacing(x, y, NavigationGrid.FACING_W, coverFromNeighbor(grid, x - 1, y));
+    }
+
+    /**
+     * Turret a tower mounts for a given target {@link TargetProfile#defenseLevel()}:
+     * a fortified world's overwatch line isn't just longer, it's heavier.
+     * {@code VULCAN} (light, the baseline / NEUTRAL kind) → {@code ARBALEST}
+     * (mid) → {@code HEPHAESTUS} (heavy) by defense band.
+     */
+    private static TurretKind turretForDefense(int defenseLevel) {
+        if (defenseLevel >= TIER_HEAVY_DEFENSE) return TurretKind.HEPHAESTUS;
+        if (defenseLevel >= TIER_MID_DEFENSE) return TurretKind.ARBALEST;
+        return TurretKind.VULCAN;
     }
 
     /** 1 if the neighbor at {@code (x,y)} is in-bounds and non-walkable, 0 otherwise. */
