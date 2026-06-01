@@ -1,28 +1,35 @@
 package com.dillon.starsectormarines.battle.turret;
 
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.unit.DeathEvent;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.infantry.PatrolRoute;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.world.MapService;
 import com.dillon.starsectormarines.battle.decision.TacticalContextService;
+import com.dillon.starsectormarines.battle.unit.DeathDispatcher;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
 import java.util.List;
 
 /**
- * Stateless tick consumer that converts destroyed {@link MapTurret}s into
- * walkable rubble at the end of {@code BattleSimulation.tick}. Pairs with
- * {@code HubDemolitionSystem} (same flip-to-rubble pattern for drone hubs)
- * but stays separate because the post-demolish step — releasing the squad
- * that was guarding the post once every turret on it is dead — is
- * turret-only and would clutter the hub path.
+ * Death-event handler that converts a destroyed {@link MapTurret} into walkable
+ * rubble. Subscribes to the {@link DeathDispatcher}; fires once per turret
+ * death when the mailbox drains (the {@code DEMOLISH_TURRETS} phase). Pairs
+ * with {@code HubDemolitionSystem} (same flip-to-rubble pattern for drone hubs)
+ * but stays separate because the post-demolish step — releasing the squad that
+ * was guarding the post once every turret on it is dead — is turret-only and
+ * would clutter the hub path.
  *
- * <p>Idempotency is via {@link MapTurret#demolished}: successive ticks
- * skip wrecks the system has already processed.
+ * <p>Migrated off the legacy {@code List<Unit>} scan (the old per-tick
+ * {@code !isAlive() && !demolished} sweep) to the event seam — the first
+ * handler proving the {@code retire-legacy-units-list} spine. The
+ * {@link MapTurret#demolished} flag stays as a defensive double-fire guard
+ * (a death publishes exactly once, so it's belt-and-suspenders) and as the
+ * "already rubble" marker the renderer reads.
  *
- * <p>Sibling to other {@code *System} tick consumers — single {@link #tick}
- * entry point, all dependencies constructor-injected.
+ * <p>Sibling to other {@code *System} consumers — all dependencies
+ * constructor-injected, no per-event state.
  */
 public final class TurretDemolitionSystem {
 
@@ -42,24 +49,22 @@ public final class TurretDemolitionSystem {
     }
 
     /**
-     * Walks {@code units}, flipping any newly-dead, not-yet-demolished
-     * {@link MapTurret} into walkable rubble + a smoking wreck, and
-     * releasing the owning defense post's squad if every turret on the post
-     * is now down. Safe to call every tick — work is gated on
-     * {@link MapTurret#demolished}.
+     * Death-event callback. Flips a newly-dead {@link MapTurret} into walkable
+     * rubble + a smoking wreck and releases the owning defense post's squad if
+     * every turret on the post is now down. Ignores non-turret deaths and
+     * already-demolished turrets (the latter can't happen via the dispatcher —
+     * a death publishes once — but the guard keeps the method safe if ever
+     * called twice).
      */
-    public void tick(List<Unit> units) {
-        for (int i = 0, n = units.size(); i < n; i++) {
-            Unit u = units.get(i);
-            if (!(u instanceof MapTurret t)) continue;
-            if (t.isAlive() || t.demolished) continue;
-            mapService.flipCellToRubble(t.getCellX(), t.getCellY());
-            t.demolished = true;
-            // Mount cell keeps smoking for a while so the player can see the
-            // wreck is dead-and-cooling rather than just "gone".
-            effects.spawnSmokingWreck(t.getCellX(), t.getCellY());
-            releaseGuardpostIfAllTurretsDead(t, units);
-        }
+    public void onDeath(DeathEvent event) {
+        if (!(event.unit() instanceof MapTurret t)) return;
+        if (t.demolished) return;
+        mapService.flipCellToRubble(t.getCellX(), t.getCellY());
+        t.demolished = true;
+        // Mount cell keeps smoking for a while so the player can see the
+        // wreck is dead-and-cooling rather than just "gone".
+        effects.spawnSmokingWreck(t.getCellX(), t.getCellY());
+        releaseGuardpostIfAllTurretsDead(t);
     }
 
     /**
@@ -73,8 +78,15 @@ public final class TurretDemolitionSystem {
      * <p>Linear scan through posts + units is fine here: turret deaths cap at
      * ~10-15 per battle, posts at ~5-8, units at the few hundred peak — total
      * work bounded and infrequent.
+     *
+     * <p>Reads the legacy roster list for the "is any turret at this spec cell
+     * still alive?" query — it needs the dead turrets too (a demolished turret
+     * at a spec cell counts as down), which the live-only registry wouldn't
+     * carry. This is one of the {@code retire-legacy-units-list} corpse-reads;
+     * it migrates with the rest of that bucket, not in this seam slice.
      */
-    private void releaseGuardpostIfAllTurretsDead(MapTurret deadTurret, List<Unit> units) {
+    private void releaseGuardpostIfAllTurretsDead(MapTurret deadTurret) {
+        List<Unit> units = roster.getUnits();
         List<DefensePost> defensePosts = tactical.getDefensePosts();
         if (defensePosts.isEmpty()) return;
         DefensePost owner = null;

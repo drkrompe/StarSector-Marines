@@ -46,7 +46,7 @@ live pass, `WorldPicker`, `AttackerIndexService`, `FleeBehavior`,
 |---|---|---|
 | `UnitRenderService.sweepDeadSprites` | draw the frozen death pose for the rest of the battle | **static** — render-only |
 | `DroneCrashSystem` | multi-tick fall → impact → wreck animation | **lifecycle** — ticks `crashTimer`, reads `body.x/y/facing` |
-| `TurretDemolitionSystem` | flip dead turret cell to rubble; mark `demolished` | **reaction** — same-tick, reads `cellX/Y` |
+| ~~`TurretDemolitionSystem`~~ | flip dead turret cell to rubble; mark `demolished` | **reaction** — same-tick, reads `cellX/Y` — **MIGRATED** to `onDeath(DeathEvent)` (foundation slice). Its guardpost-all-dead scan still reads the list; migrates with the rest of this bucket. |
 | `HubDemolitionSystem` | cascade-kill a dead hub's drones; flip to rubble | **reaction** — same-tick, reads `homeHub` backlink |
 
 Collective field needs (the corpse-record spec): `type`, `faction`,
@@ -96,10 +96,33 @@ Open sub-questions for the build (resolve as we go, don't over-design):
   directly or as FX seeded from the event. Pick per-handler; the mailbox
   doesn't care.
 
+## Progress
+
+- **Foundation slice SHIPPED (2026-06-01).** `DeathDispatcher` (buffered
+  mailbox — `publish` on death, per-tick `drain()` fans out to subscribers at
+  the demolition phase) + `DeathEvent(Unit)` in `battle/unit`.
+  `DamageResolver.resolve` publishes in the `died` branch before
+  `releaseFromRegistry`, alongside the untouched `deathSink`. The dispatcher
+  dispatches serially (resolve is serial-only — inline or off the
+  `flushPendingDamage` drain), so no synchronization needed. **First handler
+  migrated:** `TurretDemolitionSystem` now reacts via `onDeath(DeathEvent)`
+  instead of a per-tick `List<Unit>` scan; the sim subscribes it and the old
+  `tick(units)` call became `deathDispatcher.drain()` at the same phase slot
+  (timing preserved). Tests: `DeathDispatcherTest`, `TurretDemolitionSystemTest`.
+  - **Why buffered, not synchronous:** `resolve` fires at several tick points
+    (inline direct fire, the APPLY_DAMAGE queue drain, AoE detonations,
+    off-tick strafing). Buffering decouples *when a death is recorded* from
+    *when its reaction runs*, so handlers fire once per tick at one known serial
+    phase — exactly the end-of-tick timing the batch demolition had, and by
+    drain time every this-tick death is settled (so sibling-state queries like
+    "all turrets on this post dead?" behave identically).
+
 ## Sequencing
 
 1. **Corpse home (enabler).** Build the death-event + corpse-decal (+ crash-FX,
    demolition-handler) mechanism; migrate the 4 Bucket-B readers off the list.
+   *(Death-event mechanism + turret demolition done — see Progress. Remaining:
+   hub demolition, drone crash, dead-sprite render.)*
 2. **Bucket A sweep.** Migrate the ~20 live-iterators `getUnits()` → dense
    registry. Fan out to Sonnet; each is a local `isAlive`-gate → dense loop.
 3. **Bucket C cleanup.** Point UI/debug/flyby at the registry; resolve

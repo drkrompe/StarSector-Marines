@@ -122,7 +122,7 @@ public class BattleSimulation implements BattleControl {
     private final ObjectivesService objectivesService = new ObjectivesService();
     /** Active equipment drops + per-tick pickup/retriever sweep + emit-on-death plumbing. Initialized in the constructor once {@link #rosterService} is available. */
     private final EquipmentDropService equipmentDropService;
-    /** Per-tick demolition pass for destroyed {@link MapTurret}s — flips mount cell to walkable rubble + releases the guardpost if every turret on the post is down. Initialized in the constructor. */
+    /** Death-event handler for destroyed {@link MapTurret}s — flips mount cell to walkable rubble + releases the guardpost if every turret on the post is down. Subscribed to {@link #deathDispatcher} in the constructor; fires on {@link #deathDispatcher}{@code .drain()} at the DEMOLISH_TURRETS phase. */
     private final com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem turretDemolition;
     /** Per-tick demolition pass for destroyed {@link DroneHubUnit}s — flips hub cell to walkable rubble + cascade-kills the launched drones. Initialized in the constructor. */
     private final com.dillon.starsectormarines.battle.drone.HubDemolitionSystem hubDemolition;
@@ -197,6 +197,9 @@ public class BattleSimulation implements BattleControl {
     private final com.dillon.starsectormarines.battle.combat.HitResponseService hitResponse;
     /** Units that transitioned from alive to dead during the last {@link #advance(float)} call. Same lifecycle as {@link #shotsThisFrame}. */
     private final List<Unit> deathsThisFrame = new ArrayList<>();
+    /** Death-event mailbox — {@code DamageResolver} publishes a {@link com.dillon.starsectormarines.battle.unit.DeathEvent} per death; subscribed handlers (turret demolition today) react on {@link com.dillon.starsectormarines.battle.unit.DeathDispatcher#drain()} at the demolition phase. The seam that lets post-death behavior migrate off the legacy units-list scan. */
+    private final com.dillon.starsectormarines.battle.unit.DeathDispatcher deathDispatcher =
+            new com.dillon.starsectormarines.battle.unit.DeathDispatcher();
     /**
      * Parallel-dispatch safety queues + the {@code insideParallel} flag.
      * Owns the SoA damage queue + {@link PendingTargetMutation} and
@@ -273,7 +276,7 @@ public class BattleSimulation implements BattleControl {
         this.equipmentDropService = new EquipmentDropService(rosterService, this::clearPath);
         this.damageResolver = new DamageResolver(
                 navigation, rosterService, equipmentDropService,
-                deathsThisFrame::add, rng);
+                deathsThisFrame::add, deathDispatcher, rng);
         this.damageService = new DamageService(
                 damageResolver::resolve,
                 this::writeReprioInline,
@@ -287,6 +290,7 @@ public class BattleSimulation implements BattleControl {
         rosterService.setDamageService(damageService);
         this.turretDemolition = new com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem(
                 mapService, effects, tactical, rosterService);
+        deathDispatcher.subscribe(turretDemolition::onDeath);
         this.hubDemolition = new com.dillon.starsectormarines.battle.drone.HubDemolitionSystem(
                 mapService, effects, rosterService);
         this.droneCrashes = new com.dillon.starsectormarines.battle.drone.DroneCrashSystem(
@@ -801,10 +805,15 @@ public class BattleSimulation implements BattleControl {
         // for state the parallel UPDATE_UNITS dispatch couldn't touch.
         flushPendingTargetMutations();
         tickProfile.lap(TickProfile.Phase.APPLY_DAMAGE);
-        // Convert any turrets that just died into walkable rubble so the next
-        // tick's pathfinding + zone graph sees the hole, and the floor pass
-        // picks the cell up as rubble.
-        turretDemolition.tick(units);
+        // Drain the death mailbox: fan this tick's deaths out to the
+        // subscribed handlers. Turret demolition reacts here (flips dead
+        // turret cells to walkable rubble so next tick's pathfinding + zone
+        // graph see the hole, and the floor pass picks the cell up as rubble);
+        // more post-death handlers (hub demolition, drone crash) migrate onto
+        // this drain in later slices. By this point flushPendingDamage has run,
+        // so every unit that died this tick is fully dead — the handlers see
+        // the same settled state the old end-of-tick scan did.
+        deathDispatcher.drain();
         tickProfile.lap(TickProfile.Phase.DEMOLISH_TURRETS);
         // Same rubble-conversion pass for destroyed drone hubs — they're
         // static STRUCTUREs sitting on sealed non-walkable cells, so leaving

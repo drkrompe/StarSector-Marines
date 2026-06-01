@@ -8,6 +8,8 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentDropService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.squad.SquadMoraleSystem;
+import com.dillon.starsectormarines.battle.unit.DeathDispatcher;
+import com.dillon.starsectormarines.battle.unit.DeathEvent;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -24,7 +26,9 @@ import java.util.function.Consumer;
  *   <li>Cover lookup + cover-reduction curve</li>
  *   <li>HP write + death detection</li>
  *   <li>Death cascade — death-pose roll, death-sink emit ({@code deathsThisFrame}),
- *       equipment drop, squad-leader promotion if the dead unit led one</li>
+ *       equipment drop, squad-leader promotion if the dead unit led one,
+ *       {@link DeathDispatcher#publish death-event publish} for the migrated
+ *       post-death handlers, then dense-registry release</li>
  *   <li>Morale drain — per-mech HP threshold drain for {@link MechLoadoutState}
  *       chassis, per-squad hit/death drain (cooldown-gated) for infantry, no-op
  *       for solo units</li>
@@ -58,12 +62,14 @@ public final class DamageResolver {
     private final UnitRosterService roster;
     private final EquipmentDropService equipmentDrops;
     private final Consumer<Unit> deathSink;
+    private final DeathDispatcher deathDispatcher;
     private final Random rng;
 
     public DamageResolver(NavigationService navigation,
                           UnitRosterService roster,
                           EquipmentDropService equipmentDrops,
                           Consumer<Unit> deathSink,
+                          DeathDispatcher deathDispatcher,
                           Random rng) {
         this.grid = navigation.getGrid();
         this.units = roster.getUnits();
@@ -71,6 +77,7 @@ public final class DamageResolver {
         this.roster = roster;
         this.equipmentDrops = equipmentDrops;
         this.deathSink = deathSink;
+        this.deathDispatcher = deathDispatcher;
         this.rng = rng;
     }
 
@@ -111,11 +118,18 @@ public final class DamageResolver {
                     ls.leader = pickPromotionCandidate(ls, target);
                 }
             }
+            // Publish the death to the mailbox BEFORE the registry release,
+            // so a handler that wants the live entity still sees it. Buffered:
+            // handlers don't run here — DeathDispatcher.drain() fans them out
+            // at the demolition phase. Migrated handlers (turret demolition
+            // today) react off this; consumers not yet migrated still scan the
+            // legacy list. See DeathDispatcher + retire-legacy-units-list.
+            deathDispatcher.publish(new DeathEvent(target));
             // Drop the dense-registry entry. The legacy units list keeps
-            // the dead unit so post-death consumers (turret demolition,
-            // drone crash, etc.) still see it; those migrate in a later
-            // phase, at which point this release becomes the sole death
-            // bookkeeping. See UnitRegistry class doc.
+            // the dead unit so post-death consumers (drone crash, hub
+            // demolition, etc.) still see it; those migrate in later slices,
+            // at which point this release becomes the sole death bookkeeping.
+            // See UnitRegistry class doc.
             roster.releaseFromRegistry(target.entityId);
         }
         // Morale drain — branches on unit type. Gated on moraleImpact > 0

@@ -41,6 +41,7 @@ a734122  battle: grow BattleView/BattleControl with command-tier surface  ← 20
 cb91e87  battle: flip command tier to BattleView/BattleControl  ← 2026-05-29
 c50e50d  battle: collapse Group N local* duality (Phase A Slice 1)  ← 2026-06-01
 2e03ade  battle: fix Group N accessor NPE on unregistered units (corpse iter)  ← 2026-06-01
+<spine>  battle: DeathDispatcher mailbox + migrate turret demolition (spine foundation)  ← 2026-06-01
 ```
 
 (Sibling tracks interleaved on HEAD, not ECS-migration: `9084ed4` battle-render
@@ -62,11 +63,12 @@ campaign work.)
   14 Group-N (mid-combat-only) `local*` twins are now gone (`c50e50d`); their
   accessors read the registry unconditionally. The remaining `local*` are the
   4 Group-S seed-only stats + the 5 Group-C corpse-read fields (Slices 2–3).
-- **Full suite green** at `9c6267e`; Slice 1 verified via `UnitRegistryTest`
-  (green) + clean `javac` of the touched files. The full `:test` run is
-  currently blocked by an unrelated sibling compile break in
-  `ops/battleview/ShotRenderService.java` (battle-render WIP, untracked) —
-  not an ECS-migration file; re-run `:test` once that lands.
+- **Full suite green at 592 tests** (after the death-dispatcher foundation
+  slice). The earlier sibling compile break in `ShotRenderService.java` has
+  since resolved.
+- **Death-event seam LANDED** — `DeathDispatcher` mailbox is live; turret
+  demolition is the first migrated handler. See the spine story's build
+  sequence (step 1 shipped, step 2 next).
 
 ## Active stories (priority order)
 
@@ -104,13 +106,27 @@ campaign work.)
 > story's "corpse-home design (decided)" section + [[battle_death_dispatcher_design]].
 >
 > **Build sequence (resume here):**
-> 1. **Foundation slice** — `DeathEvent` + `DeathDispatcher`; publish from
->    `DamageResolver.resolve` (the death branch, alongside the existing
->    `deathSink`/`releaseFromRegistry`); introduce in parallel, nothing migrated
->    yet. Then migrate the **first handler** to prove the seam (turret/hub
->    demolition is simplest — same-tick reaction, no lifecycle/render).
-> 2. Migrate the remaining Bucket-B readers (drone-crash lifecycle, dead-sprite
->    render off a body store).
+> 1. ~~**Foundation slice** — `DeathEvent` + `DeathDispatcher`; publish from
+>    `DamageResolver.resolve`; migrate the first handler to prove the seam.~~
+>    **SHIPPED.** `DeathDispatcher` (buffered mailbox: publish → per-tick
+>    `drain()` at the demolition phase) + `DeathEvent(Unit)` in `battle/unit`.
+>    `DamageResolver.resolve` publishes in the `died` branch (before
+>    `releaseFromRegistry`, alongside the untouched `deathSink`).
+>    **`TurretDemolitionSystem` migrated** off the per-tick `List<Unit>` scan to
+>    `onDeath(DeathEvent)`, subscribed in the sim ctor; the old
+>    `turretDemolition.tick(units)` call is now `deathDispatcher.drain()` at the
+>    same `DEMOLISH_TURRETS` phase slot (timing preserved — by drain time every
+>    this-tick death is settled, so the all-turrets-dead guardpost scan behaves
+>    identically). Behavior-preserving: the guardpost scan still reads the
+>    legacy list (a Bucket-B corpse-read it migrates with in step 2).
+>    Tests: `DeathDispatcherTest` (4) + `TurretDemolitionSystemTest` (2). Suite
+>    green at 592.
+> 2. **NEXT — remaining Bucket-B handlers.** `HubDemolitionSystem` →
+>    `onDeath` (carries the drone cascade-kill: still reads the list to find
+>    `homeHub`-linked drones — decide whether the cascade stays a list scan or
+>    becomes per-drone death events). `DroneCrashSystem` (multi-tick lifecycle)
+>    and the dead-sprite render both want a **body store** to drive off, not the
+>    list — that's where the lightweight body entity gets built.
 > 3. Bucket-A sweep (`getUnits()` → dense registry; fan out to Sonnet).
 > 4. Bucket-C cleanup; delete `UnitRosterService.units`.
 > 5. Revert Group-N accessors to unconditional (fail-loud); drop the
