@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.EnumMap;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -45,18 +46,29 @@ import static org.junit.jupiter.api.Assertions.fail;
  *       objectives) — using the real {@link GridPathfinder}. Catches a stranded
  *       objective / garrison and reports the assault-distance distribution
  *       (is the fight the right length?).</li>
- *   <li><b>Tactical-node placement.</b> Every node anchor must sit on a
- *       walkable cell. A node on a wall/void cell is the exact bug class fixed
- *       by hand in {@code 53fe951} (defense-post stranding) — here it is a
- *       standing scan.</li>
+ *   <li><b>Garrison deployability.</b> Models the real consumer
+ *       ({@code BattleSetup.pickCellsNear}, {@code GARRISON_SPAWN_RADIUS = 5}):
+ *       a garrison node's <em>anchor</em> is the emplacement cell — for a
+ *       {@code HEAVY_TOWER} / {@code MG_NEST} / {@code FORWARD_BUNKER} /
+ *       {@code GUARDPOST} that cell is the turret mount or wall crenellation
+ *       and is <em>intentionally non-walkable</em> ({@code
+ *       FortressWallStamper.emitHeavyTower}, {@code
+ *       DefensePostStamper.emitGuardpostNode}). The squad spawns on walkable
+ *       cells <em>near</em> the anchor, so the real invariant is not "anchor
+ *       walkable" but "≥ 1 deployable cell within radius 5" — if zero, {@code
+ *       pickCellsNear} returns empty and the allocator silently drops the squad
+ *       ({@code BattleSetup} L1028-1033). That zero case is the bug class fixed
+ *       by hand in {@code 53fe951}; "fewer than {@code garrisonSize} cells" is
+ *       a softer "cramped garrison" signal (squad deploys under-strength).</li>
  * </ol>
  *
  * <p>Run via {@code gradlew :test --tests "*MapValidationScanTest*"}. Hard
- * invariants (spawns walkable + reachable, edge/cell connectivity agree) assert
- * and fail the build; softer findings (per-node reachability) print as a report
- * for the human to read. As the corridor work lands, the reported findings are
- * the candidates to promote to asserts — this is the acceptance harness the
- * corridors-first-class story rides on.
+ * invariants assert and fail the build (spawns walkable + mutually reachable,
+ * edge/cell connectivity agree, every garrison node has ≥ 1 reachable
+ * deployable cell); softer findings print as a report for the human (cramped
+ * garrisons, emplacement anchors on structure cells). As the corridor work
+ * lands, the reported findings are the candidates to promote to asserts — this
+ * is the acceptance harness the corridors-first-class story rides on.
  */
 public class MapValidationScanTest {
 
@@ -67,6 +79,17 @@ public class MapValidationScanTest {
     private static final int CONQUEST_W = 240;
     private static final int CONQUEST_H = 160;
     private static final long[] CONQUEST_SEEDS = { 1L, 42L, 100L, 777L };
+
+    /**
+     * Manhattan radius the garrison allocator sweeps around a node anchor for
+     * spawn cells — mirrors {@code BattleSetup.GARRISON_SPAWN_RADIUS} (kept in
+     * sync by hand; the production constant is private). The deployability scan
+     * counts walkable cells in this diamond as a faithful proxy for
+     * {@code pickCellsNear}. It is an <em>upper bound</em>: the real picker
+     * additionally filters to cells in the anchor's reachable zone, so a count
+     * here is "at most this many deployable" — a zero is a hard "cannot deploy".
+     */
+    private static final int GARRISON_SPAWN_RADIUS = 5;
 
     @Test
     void scanLegacyBatch() {
@@ -115,6 +138,12 @@ public class MapValidationScanTest {
             if (!reach.defenderReachable) {
                 failures.add(label + " seed " + seed
                         + ": defender spawn UNREACHABLE from marine spawn (real pathfinder)");
+            }
+            for (String u : reach.undeployable) {
+                failures.add(label + " seed " + seed + ": garrison " + u);
+            }
+            for (String u : reach.unreachable) {
+                failures.add(label + " seed " + seed + ": garrison " + u);
             }
             if (conn.edgeComponents != conn.cellComponents) {
                 failures.add(label + " seed " + seed + ": cell/edge connectivity disagree — "
@@ -250,28 +279,38 @@ public class MapValidationScanTest {
         boolean defenderReachable;
         int defenderPathCells;
         int nodeCount;
-        int nodesReachable;
-        int nodesNonWalkableAnchor;
+        int garrisonNodeCount;
+        int garrisonNodesReachable;
         int minNodeDist = Integer.MAX_VALUE;
         int maxNodeDist;
         int medianNodeDist;
-        List<String> findings = new ArrayList<>();
+        int anchorsOnStructure;
+        EnumMap<TacticalNode.Kind, Integer> anchorsOnStructureByKind = new EnumMap<>(TacticalNode.Kind.class);
+        /** garrisonSize > 0 nodes with zero deployable cells in radius — the real bug. */
+        List<String> undeployable = new ArrayList<>();
+        /** garrisonSize > 0 nodes with fewer deployable cells than garrisonSize — under-strength. */
+        List<String> cramped = new ArrayList<>();
+        List<String> unreachable = new ArrayList<>();
 
         String report() {
             StringBuilder sb = new StringBuilder();
-            sb.append("  reachability: defender ")
+            sb.append("  deployability: defender ")
               .append(defenderReachable ? ("OK (" + defenderPathCells + " cells)") : "UNREACHABLE")
-              .append(" | tactical nodes ").append(nodesReachable).append("/").append(nodeCount).append(" reachable");
-            if (nodeCount > 0 && nodesReachable > 0) {
+              .append(" | garrison nodes ").append(garrisonNodesReachable).append("/").append(garrisonNodeCount)
+              .append(" deployable+reachable");
+            if (garrisonNodesReachable > 0) {
                 sb.append(" | assault dist min/med/max = ")
                   .append(minNodeDist == Integer.MAX_VALUE ? "-" : minNodeDist)
                   .append("/").append(medianNodeDist).append("/").append(maxNodeDist).append(" cells");
             }
-            if (nodesNonWalkableAnchor > 0) {
-                sb.append("\n    note: ").append(nodesNonWalkableAnchor)
-                  .append(" node anchor(s) on non-walkable cells (pathed to nearest walkable neighbor)");
+            if (anchorsOnStructure > 0) {
+                sb.append("\n    info: ").append(anchorsOnStructure)
+                  .append(" emplacement anchor(s) on structure (non-walkable) cells — by design, garrison spawns within radius ")
+                  .append(GARRISON_SPAWN_RADIUS).append("; by kind: ").append(anchorsOnStructureByKind);
             }
-            for (String f : findings) sb.append("\n    !! ").append(f);
+            for (String f : cramped)      sb.append("\n    ~  cramped: ").append(f);
+            for (String f : undeployable) sb.append("\n    !! UNDEPLOYABLE: ").append(f);
+            for (String f : unreachable)  sb.append("\n    !! UNREACHABLE: ").append(f);
             return sb.toString();
         }
     }
@@ -289,30 +328,40 @@ public class MapValidationScanTest {
         if (tactical != null) {
             for (TacticalNode n : tactical.all()) {
                 r.nodeCount++;
-                int gx = n.anchorX, gy = n.anchorY;
-                boolean anchorWalkable = grid.isWalkable(gx, gy);
-                if (!anchorWalkable) {
-                    int[] near = nearestWalkable(grid, gx, gy, 2);
-                    if (near == null) {
-                        r.nodesNonWalkableAnchor++;
-                        r.findings.add(n.kind + " @" + gx + "," + gy
-                                + " — anchor non-walkable, no walkable cell within radius 2 (stranded)");
-                        continue;
-                    }
-                    r.nodesNonWalkableAnchor++;
-                    gx = near[0];
-                    gy = near[1];
+                if (!grid.isWalkable(n.anchorX, n.anchorY)) {
+                    r.anchorsOnStructure++;
+                    r.anchorsOnStructureByKind.merge(n.kind, 1, Integer::sum);
                 }
-                int[] path = GridPathfinder.findPath(grid, msx, msy, gx, gy);
+                // Only garrison-bearing nodes need deployable cells; GATE /
+                // OBJECTIVE / BEACHHEAD etc. carry no squad to place.
+                if (n.garrisonSize <= 0) continue;
+                r.garrisonNodeCount++;
+
+                // Model BattleSetup.pickCellsNear: walkable cells within the
+                // GARRISON_SPAWN_RADIUS Manhattan diamond around the anchor.
+                List<int[]> deployable = walkableCellsWithin(grid, n.anchorX, n.anchorY, GARRISON_SPAWN_RADIUS);
+                String tag = n.kind + " @" + n.anchorX + "," + n.anchorY + " (garrison " + n.garrisonSize + ")";
+                if (deployable.isEmpty()) {
+                    r.undeployable.add(tag + " — 0 walkable cells within radius " + GARRISON_SPAWN_RADIUS
+                            + "; pickCellsNear would return empty, squad silently dropped");
+                    continue;
+                }
+                if (deployable.size() < n.garrisonSize) {
+                    r.cramped.add(tag + " — only " + deployable.size() + " deployable cell(s)");
+                }
+                // Reachability + assault distance: path to the closest deployable
+                // cell (deployable is sorted nearest-first).
+                int[] goal = deployable.get(0);
+                int[] path = GridPathfinder.findPath(grid, msx, msy, goal[0], goal[1]);
                 if (path.length > 0) {
-                    r.nodesReachable++;
+                    r.garrisonNodesReachable++;
                     int cells = path.length / 2;
                     dists.add(cells);
                     r.minNodeDist = Math.min(r.minNodeDist, cells);
                     r.maxNodeDist = Math.max(r.maxNodeDist, cells);
                 } else {
-                    r.findings.add(n.kind + " @" + n.anchorX + "," + n.anchorY
-                            + " — UNREACHABLE from marine spawn (real pathfinder)");
+                    r.unreachable.add(tag + " — deployable cell " + goal[0] + "," + goal[1]
+                            + " not reachable from marine spawn (real pathfinder)");
                 }
             }
         }
@@ -323,19 +372,25 @@ public class MapValidationScanTest {
         return r;
     }
 
-    /** Nearest walkable cell to {@code (x,y)} within Chebyshev radius {@code maxR} (ring-by-ring), or null. */
-    private static int[] nearestWalkable(NavigationGrid grid, int x, int y, int maxR) {
+    /**
+     * Walkable cells within Manhattan radius {@code maxR} of {@code (x,y)},
+     * sorted nearest-first — the deployability proxy for
+     * {@code BattleSetup.pickCellsNear} (minus the production picker's
+     * reachable-zone filter and cover sort, neither of which changes whether a
+     * cell <em>exists</em> to spawn on).
+     */
+    private static List<int[]> walkableCellsWithin(NavigationGrid grid, int x, int y, int maxR) {
         int w = grid.getWidth(), h = grid.getHeight();
-        for (int rad = 1; rad <= maxR; rad++) {
-            for (int dy = -rad; dy <= rad; dy++) {
-                for (int dx = -rad; dx <= rad; dx++) {
-                    if (Math.max(Math.abs(dx), Math.abs(dy)) != rad) continue;
-                    int nx = x + dx, ny = y + dy;
-                    if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
-                    if (grid.isWalkable(nx, ny)) return new int[]{nx, ny};
-                }
+        List<int[]> out = new ArrayList<>();
+        for (int ny = y - maxR; ny <= y + maxR; ny++) {
+            for (int nx = x - maxR; nx <= x + maxR; nx++) {
+                int dist = Math.abs(nx - x) + Math.abs(ny - y);
+                if (dist > maxR) continue;
+                if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+                if (grid.isWalkable(nx, ny)) out.add(new int[]{nx, ny, dist});
             }
         }
-        return null;
+        out.sort((a, b) -> Integer.compare(a[2], b[2]));
+        return out;
     }
 }

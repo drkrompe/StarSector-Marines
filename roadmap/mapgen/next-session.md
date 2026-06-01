@@ -160,8 +160,12 @@ over the same 10 seeds the previews use (6 legacy 80×80 + 4 conquest 240×160):
 2. **Semantic reachability.** From the marine spawn, runs the *real*
    `GridPathfinder` to the defender spawn + every tactical node; reports the
    assault-distance distribution. Hard-asserts defender reachable.
-3. **Tactical-node placement.** Every node anchor on a walkable cell (the
-   `53fe951` defense-post stranding class). Reported, not yet asserted.
+3. **Garrison deployability.** Models the real consumer
+   (`BattleSetup.pickCellsNear`, `GARRISON_SPAWN_RADIUS = 5`): a garrison
+   node's anchor is the *emplacement* cell (turret mount / wall crenellation,
+   intentionally non-walkable); the squad spawns on walkable cells *near* it.
+   Hard-asserts every `garrisonSize > 0` node has ≥ 1 reachable deployable cell
+   within radius 5; reports "cramped" (fewer than `garrisonSize`).
 
 ### What it found (baseline, all 10 seeds)
 
@@ -172,16 +176,21 @@ over the same 10 seeds the previews use (6 legacy 80×80 + 4 conquest 240×160):
   introduce edge-based passages or any `blockEdge` rule. That's deliberate: the
   acceptance gate exists before the work that needs it.
 - **Semantic reachability is clean.** Defender reachable on every seed; every
-  tactical node reachable. Assault distances sane (legacy 22–59; conquest
-  median ~110–140 on a 160-tall map).
-- **⚠ Open finding — non-walkable node anchors.** ~25 tactical-node anchors
-  *per conquest map* (24–31 across the four seeds) sit on **non-walkable
-  cells**. All reachable via the nearest walkable neighbor, so not a
-  connectivity break — but the convention "a node anchor is where a unit
-  stands" is violated en masse. Same class as `53fe951`, now a standing number.
-  **Follow-up:** decide whether anchors should be forced walkable (and which
-  node kinds legitimately sit on a wall, e.g. a tower the garrison stands
-  beside) before promoting scan #3 to a hard assert.
+  garrison node deployable + reachable. Assault distances sane (legacy 4–59;
+  conquest median ~110–140 on a 160-tall map).
+- **Investigated + resolved — non-walkable node anchors are NOT a bug.** The
+  first cut of scan #3 ("anchor must be walkable") flagged ~25 anchors per
+  conquest map (`HEAVY_TOWER` / `MG_NEST` / `FORWARD_BUNKER` / `GUARDPOST`) on
+  non-walkable cells. Tracing the consumer settled it: those anchors are
+  *deliberately* the structure cell (`FortressWallStamper.emitHeavyTower` —
+  "anchor at the turret-mount center"; `emitMgNest` — "single cell on the
+  wall"; `DefensePostStamper.emitGuardpostNode` — turret-center anchor). The
+  garrison allocator (`BattleSetup.pickCellsNear`) never stands a unit on the
+  anchor — it sweeps a radius-5 diamond for walkable cells nearby. So the
+  contract is "anchor = emplacement, garrison spawns around it," and the bug was
+  in the *scan*, not the generator. Scan #3 was rewritten to model the real
+  invariant (≥ 1 reachable deployable cell in radius 5); all 10 seeds pass, and
+  the non-walkable anchors now print as `info:` (by design), not a finding.
 
 ### Scans still on the menu (priority candidates)
 
@@ -191,7 +200,11 @@ missing rule, and several become load-bearing once corridors land:
 - **Doorway integrity** — per interior-wall / per-building: assert a connecting
   doorway exists. Directly relevant to the corridors doorway-coordination gap
   (`BuildingShellCore` places doorways independently).
-- **Promote scan #3** once the non-walkable-anchor question above is resolved.
+- **Zone-accurate deployability** — scan #3 counts walkable cells in the radius
+  diamond (an upper bound); the real `pickCellsNear` also filters to the
+  anchor's reachable *zone*. A future tightening could build the `ZoneGraph`
+  and call the real picker for an exact count. Low priority — the upper-bound
+  zero-check already catches the squad-silently-dropped bug.
 - **Edge-scan teeth** — currently a no-op; it gains real coverage the moment an
   edge-based passage (corridor) exists. No work needed until then beyond
   keeping it in the batch.
