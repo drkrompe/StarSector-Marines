@@ -549,9 +549,10 @@ public class AirSystem {
             marine.assignedObjective = loadout.objective;
             if (loadout.primary != null) {
                 marine.primaryWeapon = loadout.primary;
-                marine.setAttackRange(loadout.primary.range);
-                marine.setAttackDamage(loadout.primary.damage);
-                marine.setAccuracy(loadout.primary.accuracy);
+                // Pre-allocate seed (marine not yet added to the registry).
+                marine.seedAttackRange = loadout.primary.range;
+                marine.seedAttackDamage = loadout.primary.damage;
+                marine.seedAccuracy = loadout.primary.accuracy;
                 marine.attackCooldown = loadout.primary.cooldown;
             }
             if (loadout.secondary != null && loadout.secondaryAmmo > 0) {

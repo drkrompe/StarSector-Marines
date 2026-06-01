@@ -221,14 +221,14 @@ public class Drone extends Unit {
     public Drone(String id, Faction faction, int cellX, int cellY, DroneHubUnit homeHub) {
         super(id, faction, UnitType.DRONE, cellX, cellY);
         this.homeHub = homeHub;
-        setMaxHp(DRONE_MAX_HP);
+        this.seedMaxHp = DRONE_MAX_HP;
         setHp(DRONE_MAX_HP);
         this.primaryWeapon = MarineWeapon.DRONE_PULSE;
-        this.localAttackRange = MarineWeapon.DRONE_PULSE.range;
+        this.seedAttackRange = MarineWeapon.DRONE_PULSE.range;
         this.visionRange = 44f;
-        this.localAttackDamage = MarineWeapon.DRONE_PULSE.damage;
+        this.seedAttackDamage = MarineWeapon.DRONE_PULSE.damage;
         this.attackCooldown = MarineWeapon.DRONE_PULSE.cooldown;
-        this.localAccuracy = MarineWeapon.DRONE_PULSE.accuracy;
+        this.seedAccuracy = MarineWeapon.DRONE_PULSE.accuracy;
         this.moveSpeed = 0f;
         this.airLosRadius = DRONE_AIR_LOS_RADIUS;
         this.role = UnitRole.DRONE_PATROL;

@@ -68,7 +68,12 @@ public final class UnitRegistry {
      * has dropped it (legacy {@code units} list path).
      */
     private float[] hp = new float[INITIAL_CAPACITY];
-    /** Per-unit max HP, same lifecycle as {@link #hp}. */
+    /**
+     * Per-unit max HP. <b>Seed-only</b> lifecycle (unlike {@link #hp}):
+     * {@link #allocate} seeds it from {@link Unit#seedMaxHp} and it is canonical
+     * thereafter, but {@link #release} does NOT snapshot it back — no
+     * post-release reader exists.
+     */
     private float[] maxHp = new float[INITIAL_CAPACITY];
     /**
      * Per-unit logical cell X — the pathfinder's domain (integer cells). Same
@@ -86,11 +91,11 @@ public final class UnitRegistry {
     private float[] cooldownTimer = new float[INITIAL_CAPACITY];
     /** Per-unit movement lerp factor [0,1] toward the next path cell. Same lifecycle as {@link #hp}. */
     private float[] moveProgress = new float[INITIAL_CAPACITY];
-    /** Per-unit base attack damage. Write-once at construction (captain traits may adjust). Same lifecycle as {@link #hp}. */
+    /** Per-unit base attack damage. Seed-only lifecycle (seeded from {@link Unit#seedAttackDamage}, not snapshotted on release) — see {@link #maxHp}. */
     private float[] attackDamage = new float[INITIAL_CAPACITY];
-    /** Per-unit base attack range in cells. Same lifecycle as {@link #hp}. */
+    /** Per-unit base attack range in cells. Seed-only lifecycle (seeded from {@link Unit#seedAttackRange}) — see {@link #maxHp}. */
     private float[] attackRange = new float[INITIAL_CAPACITY];
-    /** Per-unit base accuracy [0,1]. Same lifecycle as {@link #hp}. */
+    /** Per-unit base accuracy [0,1]. Seed-only lifecycle (seeded from {@link Unit#seedAccuracy}) — see {@link #maxHp}. */
     private float[] accuracy = new float[INITIAL_CAPACITY];
     /** Per-unit secondary-weapon cooldown (sim-seconds). Same lifecycle as {@link #hp}. */
     private float[] secondaryCooldownTimer = new float[INITIAL_CAPACITY];
@@ -187,17 +192,19 @@ public final class UnitRegistry {
         u.entityId = id;
         dense[liveCount] = u;
         // Seed the seed-bearing columns from the unit's pre-allocation transient
-        // fields. After this point these are canonical — the unit's local* twins
-        // are stale until release snapshots the corpse-read subset (hp/maxHp/
-        // cell/render) back for post-release readers (corpse on the legacy units
-        // list, isAlive() on a dead drone before its crash sequence finishes).
+        // fields. After this point these are canonical. The corpse-read subset
+        // (hp/cell) keeps its local* twin so release can snapshot the
+        // moment-of-death value back for post-release readers (isAlive() on a
+        // dead drone before its crash sequence finishes); the Group-S stats
+        // (maxHp + attack stats) seed from write-only seed* fields and are never
+        // snapshotted back — they have no post-release reader.
         hp[liveCount] = u.localHp;
-        maxHp[liveCount] = u.localMaxHp;
+        maxHp[liveCount] = u.seedMaxHp;
         cellX[liveCount] = u.localCellX;
         cellY[liveCount] = u.localCellY;
-        attackDamage[liveCount] = u.localAttackDamage;
-        attackRange[liveCount] = u.localAttackRange;
-        accuracy[liveCount] = u.localAccuracy;
+        attackDamage[liveCount] = u.seedAttackDamage;
+        attackRange[liveCount] = u.seedAttackRange;
+        accuracy[liveCount] = u.seedAccuracy;
         // Reset the mid-combat-only columns to their defaults. These have no
         // pre-allocation seed (a fresh unit starts at rest) and no post-release
         // reader, so they carry no local* twin on Unit; the explicit reset
@@ -248,20 +255,18 @@ public final class UnitRegistry {
         if (idx == INVALID_INDEX) return;
         int last = liveCount - 1;
         // Snapshot HP + cell back onto the released unit so post-release
-        // readers (corpses still in the legacy units list; isAlive() chained
-        // via getHp() in flyout / drone-crash code) see the moment-of-death
-        // values rather than stale defaults. Render position is NOT snapshotted
-        // here — it lives in the decomposed RenderPositionService keyed by
-        // entityId, which is not cleared on release, so the corpse's death-pose
-        // location survives directly (no local* twin needed).
+        // readers (isAlive() chained via getHp() in drone-crash code; the
+        // moment-of-death cell read by the crash sprite / equipment-drop emit)
+        // see the moment-of-death values rather than stale defaults. The
+        // Group-S stats (maxHp + attack stats) are deliberately NOT snapshotted —
+        // they have no post-release reader and carry no local* twin. Render
+        // position is NOT snapshotted here either — it lives in the decomposed
+        // RenderPositionService keyed by entityId, which is not cleared on
+        // release, so the corpse's death-pose location survives directly.
         Unit released = dense[idx];
         released.localHp = hp[idx];
-        released.localMaxHp = maxHp[idx];
         released.localCellX = cellX[idx];
         released.localCellY = cellY[idx];
-        released.localAttackDamage = attackDamage[idx];
-        released.localAttackRange = attackRange[idx];
-        released.localAccuracy = accuracy[idx];
         released.denseIdx = -1;
         released.registry = null;
         // Deliberately keep released.renderPositions wired — the service entry

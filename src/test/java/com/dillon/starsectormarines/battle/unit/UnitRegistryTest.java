@@ -205,15 +205,16 @@ public class UnitRegistryTest {
     public void allocateSeedsHpFromUnitsLocalFieldsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
         Unit u = unit("u");
-        // Pre-allocate: ctor seeded localHp from type.maxHp (MARINE_BLUE),
-        // accessors fall through to the local field.
-        float typeMaxHp = u.getMaxHp();
+        // Pre-allocate: ctor seeded localHp + seedMaxHp from type.maxHp
+        // (MARINE_BLUE). The Group-S maxHp accessor is fail-loud pre-allocate,
+        // so read the seed field directly here.
+        float typeMaxHp = u.seedMaxHp;
         assertTrue(typeMaxHp > 0f, "test prerequisite: type seeds a non-zero maxHp");
 
         r.allocate(u);
 
         // Post-allocate: getter reads the registry slot, which should mirror
-        // the localHp/localMaxHp values from the pre-allocate ctor.
+        // the localHp / seedMaxHp values from the pre-allocate ctor.
         assertEquals(typeMaxHp, r.getHp(u.denseIdx), 1e-6f);
         assertEquals(typeMaxHp, r.getMaxHp(u.denseIdx), 1e-6f);
         assertEquals(typeMaxHp, u.getHp(), 1e-6f);
@@ -234,17 +235,17 @@ public class UnitRegistryTest {
         r.allocate(u);
 
         u.setHp(17f);
-        u.setMaxHp(99f);
         r.release(u.entityId);
 
         // After release: registry no longer holds the slot, but post-release
-        // readers still holding the unit reference (test fixtures, any
-        // corpse-side consumer) can read sane HP because release snapshotted
-        // the moment-of-death value back onto localHp/localMaxHp.
+        // readers still holding the unit reference (any corpse-side consumer)
+        // can read sane HP because release snapshotted the moment-of-death
+        // value back onto localHp. (maxHp is Group-S — seed-only, never
+        // snapshotted — so getMaxHp() on a released unit is a fail-loud
+        // programming error, not a defined read.)
         assertNull(u.registry);
         assertEquals(-1, u.denseIdx);
         assertEquals(17f, u.getHp(), 1e-6f);
-        assertEquals(99f, u.getMaxHp(), 1e-6f);
     }
 
     @Test
@@ -462,7 +463,7 @@ public class UnitRegistryTest {
     public void allocateSeedsAttackDamageAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
         Unit u = unit("u");
-        float typeDmg = u.getAttackDamage();
+        float typeDmg = u.seedAttackDamage;
         assertTrue(typeDmg > 0f, "test prerequisite: type seeds a non-zero attackDamage");
 
         r.allocate(u);
@@ -473,20 +474,6 @@ public class UnitRegistryTest {
         u.setAttackDamage(77f);
         assertEquals(77f, r.getAttackDamage(u.denseIdx), 1e-6f);
         assertEquals(77f, u.getAttackDamage(), 1e-6f);
-    }
-
-    @Test
-    public void releaseSnapshotsAttackDamageBackToLocalField() {
-        UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
-        r.allocate(u);
-
-        u.setAttackDamage(33f);
-        r.release(u.entityId);
-
-        assertNull(u.registry);
-        assertEquals(-1, u.denseIdx);
-        assertEquals(33f, u.getAttackDamage(), 1e-6f);
     }
 
     @Test
@@ -511,7 +498,7 @@ public class UnitRegistryTest {
     public void allocateSeedsAttackRangeAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
         Unit u = unit("u");
-        float typeRange = u.getAttackRange();
+        float typeRange = u.seedAttackRange;
         assertTrue(typeRange > 0f, "test prerequisite: type seeds a non-zero attackRange");
 
         r.allocate(u);
@@ -522,20 +509,6 @@ public class UnitRegistryTest {
         u.setAttackRange(20f);
         assertEquals(20f, r.getAttackRange(u.denseIdx), 1e-6f);
         assertEquals(20f, u.getAttackRange(), 1e-6f);
-    }
-
-    @Test
-    public void releaseSnapshotsAttackRangeBackToLocalField() {
-        UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
-        r.allocate(u);
-
-        u.setAttackRange(15f);
-        r.release(u.entityId);
-
-        assertNull(u.registry);
-        assertEquals(-1, u.denseIdx);
-        assertEquals(15f, u.getAttackRange(), 1e-6f);
     }
 
     @Test
@@ -560,7 +533,7 @@ public class UnitRegistryTest {
     public void allocateSeedsAccuracyAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
         Unit u = unit("u");
-        float typeAcc = u.getAccuracy();
+        float typeAcc = u.seedAccuracy;
         assertTrue(typeAcc > 0f, "test prerequisite: type seeds a non-zero accuracy");
 
         r.allocate(u);
@@ -571,20 +544,6 @@ public class UnitRegistryTest {
         u.setAccuracy(0.5f);
         assertEquals(0.5f, r.getAccuracy(u.denseIdx), 1e-6f);
         assertEquals(0.5f, u.getAccuracy(), 1e-6f);
-    }
-
-    @Test
-    public void releaseSnapshotsAccuracyBackToLocalField() {
-        UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
-        r.allocate(u);
-
-        u.setAccuracy(0.8f);
-        r.release(u.entityId);
-
-        assertNull(u.registry);
-        assertEquals(-1, u.denseIdx);
-        assertEquals(0.8f, u.getAccuracy(), 1e-6f);
     }
 
     @Test

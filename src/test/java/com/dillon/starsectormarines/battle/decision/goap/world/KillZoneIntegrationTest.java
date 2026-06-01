@@ -145,13 +145,14 @@ public class KillZoneIntegrationTest {
 
         Unit defender = new Unit("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5);
         defender.squadId = defSquadId;
+        sim.addUnit(defender);
         // Tank up so the marine's return fire doesn't kill us before the
         // ambush-blown threshold lands — the accumulator only ticks while at
         // least one squadmate is alive, and a dead squad short-circuits the
-        // sustained-fire scan to nothing.
+        // sustained-fire scan to nothing. Set after addUnit — hp/maxHp are
+        // registry-backed once allocated.
         defender.setHp(1_000_000f);
         defender.setMaxHp(1_000_000f);
-        sim.addUnit(defender);
         // Marine 12 cells away — well outside KILL_ZONE_RANGE_CELLS (8) so
         // the existing proximity gate would never trip. The marine's actual
         // shots don't matter for this test — we control the under-fire signal

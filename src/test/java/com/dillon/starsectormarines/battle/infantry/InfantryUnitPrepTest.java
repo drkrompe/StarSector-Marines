@@ -34,10 +34,12 @@ public class InfantryUnitPrepTest {
     private static Unit rocketeer(BattleSimulation sim, Faction f, int x, int y) {
         Unit u = new Unit("u" + sim.liveUnitCount(), f, UnitType.MARINE, x, y);
         u.primaryWeapon = MarineWeapon.PULSE_RIFLE;
-        u.setAttackRange(u.primaryWeapon.range);
         u.secondaryWeapon = MarineSecondary.ROCKET_LAUNCHER;
         u.secondaryAmmo = MarineSecondary.ROCKET_LAUNCHER.startingAmmo;
         sim.addUnit(u);
+        // attackRange is a Group-S registry-backed stat — set after the unit is
+        // registered (the accessor is fail-loud pre-allocate).
+        u.setAttackRange(u.primaryWeapon.range);
         return u;
     }
 

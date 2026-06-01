@@ -158,33 +158,43 @@ public class Unit {
     // and mission modifiers can adjust an individual without changing the archetype.
     public float moveSpeed;
     /**
-     * <b>Don't read these directly.</b> {@code localHp} / {@code localMaxHp}
-     * are transient backing storage used in two windows: pre-allocation
-     * (before {@link UnitRegistry#allocate} copies the seed into the SoA
-     * array) and post-release (registry release snapshots the moment-of-death
-     * value back so corpses on the legacy units list still report a sane
-     * value). The canonical storage between those two boundaries is
+     * <b>Don't read directly.</b> {@code localHp} is transient backing storage
+     * used in two windows: pre-allocation (before {@link UnitRegistry#allocate}
+     * copies the seed into the SoA hp array) and post-release (registry release
+     * snapshots the moment-of-death value back so a post-release reader still
+     * holding the {@link Unit} reference — {@code isAlive()} chained via
+     * {@link #getHp()} on a dead drone before its crash sequence finishes — sees
+     * a sane value). The canonical storage between those two boundaries is
      * {@code registry.hpArray()[denseIdx]} — go through {@link #getHp} /
      * {@link #setHp}.
      *
      * <p>Public so {@link UnitRegistry} (a sibling package) can seed/snapshot
      * the slot at allocate/release time. If {@link Unit} is ever promoted to
-     * {@code Serializable} for the campaign tier, these need {@code transient}
+     * {@code Serializable} for the campaign tier, this needs {@code transient}
      * or a package-private accessor on the registry — xstream would otherwise
      * walk and save a stale post-release snapshot.
      */
     public float localHp;
-    public float localMaxHp;
     /**
-     * <b>Don't read directly.</b> Pre-allocate seed + post-release snapshot
-     * for attack stats, same lifecycle as {@link #localHp}. Canonical storage
-     * between allocate and release lives in the registry's SoA arrays; go
-     * through {@link #getAttackDamage} / {@link #getAttackRange} /
+     * <b>Don't read directly. Pre-allocate seed ONLY.</b> The Group-S stat
+     * columns (max HP + the three attack stats) differ from {@link #localHp}:
+     * they have <em>no</em> post-release reader, so {@link UnitRegistry#allocate}
+     * copies these into the SoA arrays and the registry is canonical from then
+     * on — the accessors read the registry unconditionally (fail-loud on an
+     * unregistered unit, like the mid-combat columns) and {@code release} does
+     * NOT snapshot them back. These fields are write-only <em>construction</em>
+     * input: the ctor archetype seed, the subclass overrides
+     * ({@link com.dillon.starsectormarines.battle.drone.Drone} /
+     * {@link com.dillon.starsectormarines.battle.drone.DroneHubUnit} /
+     * {@link com.dillon.starsectormarines.battle.turret.MapTurret}), and the
+     * shuttle/vehicle deboard loadout. Once allocated, go through
+     * {@link #getMaxHp} / {@link #getAttackDamage} / {@link #getAttackRange} /
      * {@link #getAccuracy}.
      */
-    public float localAttackDamage;
-    public float localAttackRange;
-    public float localAccuracy;
+    public float seedMaxHp;
+    public float seedAttackDamage;
+    public float seedAttackRange;
+    public float seedAccuracy;
     /** How far this unit can see (cells). Drives fog-of-war shadowcast radius. Initialized from {@link UnitType#visionRange}; 0 falls back to {@link #getAttackRange() attackRange}. */
     public float visionRange;
     public float attackCooldown;
@@ -476,11 +486,11 @@ public class Unit {
         // Pre-allocate seed; UnitRegistry.allocate will read these into the
         // SoA arrays. Use the field directly here because the registry-side
         // setters can't route yet (registry is null).
-        this.localMaxHp = type.maxHp;
         this.localHp = type.maxHp;
-        this.localAttackDamage = type.attackDamage;
-        this.localAttackRange = type.attackRange;
-        this.localAccuracy = type.accuracy;
+        this.seedMaxHp = type.maxHp;
+        this.seedAttackDamage = type.attackDamage;
+        this.seedAttackRange = type.attackRange;
+        this.seedAccuracy = type.accuracy;
         this.visionRange = type.visionRange > 0f ? type.visionRange : type.attackRange;
         this.attackCooldown = type.attackCooldown;
     }
@@ -507,13 +517,18 @@ public class Unit {
         else localHp = v;
     }
 
+    // Group-S seed-only stats (maxHp + the three attack stats): canonical
+    // storage is the registry's SoA arrays, seeded once from the seed* fields
+    // at allocate. No post-release reader, so the accessors read the registry
+    // unconditionally — calling them on an unregistered unit is a programming
+    // error (fail-loud), matching the mid-combat columns. Pre-allocate writers
+    // seed the seed* fields directly.
     public final float getMaxHp() {
-        return (registry != null) ? registry.getMaxHp(denseIdx) : localMaxHp;
+        return registry.getMaxHp(denseIdx);
     }
 
     public final void setMaxHp(float v) {
-        if (registry != null) registry.setMaxHp(denseIdx, v);
-        else localMaxHp = v;
+        registry.setMaxHp(denseIdx, v);
     }
 
     // Logical-cell accessors. Same shape as hp/maxHp: registry routes when
@@ -550,30 +565,27 @@ public class Unit {
     }
 
     public final float getAttackDamage() {
-        return (registry != null) ? registry.getAttackDamage(denseIdx) : localAttackDamage;
+        return registry.getAttackDamage(denseIdx);
     }
 
     public final void setAttackDamage(float v) {
-        if (registry != null) registry.setAttackDamage(denseIdx, v);
-        else localAttackDamage = v;
+        registry.setAttackDamage(denseIdx, v);
     }
 
     public final float getAttackRange() {
-        return (registry != null) ? registry.getAttackRange(denseIdx) : localAttackRange;
+        return registry.getAttackRange(denseIdx);
     }
 
     public final void setAttackRange(float v) {
-        if (registry != null) registry.setAttackRange(denseIdx, v);
-        else localAttackRange = v;
+        registry.setAttackRange(denseIdx, v);
     }
 
     public final float getAccuracy() {
-        return (registry != null) ? registry.getAccuracy(denseIdx) : localAccuracy;
+        return registry.getAccuracy(denseIdx);
     }
 
     public final void setAccuracy(float v) {
-        if (registry != null) registry.setAccuracy(denseIdx, v);
-        else localAccuracy = v;
+        registry.setAccuracy(denseIdx, v);
     }
 
     public final float getMoveProgress() {

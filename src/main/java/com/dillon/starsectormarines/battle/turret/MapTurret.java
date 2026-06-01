@@ -67,15 +67,15 @@ public class MapTurret extends Unit {
         this.kind = kind;
         // TurretKind stats override the UnitType.TURRET zero-base. Doing it here
         // (rather than in UnitType) keeps the per-kind balance in one place.
-        // Pre-allocate seed; setMaxHp/setHp route to the unit's local fields
-        // here because registry is still null. UnitRegistry.allocate later
-        // copies these into the SoA arrays.
-        setMaxHp(kind.maxHp);
+        // Pre-allocate construction seed: the Group-S stats write the seed*
+        // fields and setHp routes to localHp (registry is still null).
+        // UnitRegistry.allocate later copies these into the SoA arrays.
+        this.seedMaxHp = kind.maxHp;
         setHp(kind.maxHp);
-        this.localAttackDamage = kind.damage;
-        this.localAttackRange = kind.range;
+        this.seedAttackDamage = kind.damage;
+        this.seedAttackRange = kind.range;
         this.attackCooldown = kind.cooldown;
-        this.localAccuracy = kind.accuracy;
+        this.seedAccuracy = kind.accuracy;
         this.moveSpeed = 0f;
         this.role = UnitRole.TURRET;
     }
