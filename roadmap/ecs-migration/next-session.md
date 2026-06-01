@@ -40,6 +40,7 @@ c49eea7  battle: MapService — runtime map-modification coordinator (Slice 1)  
 a734122  battle: grow BattleView/BattleControl with command-tier surface  ← 2026-05-29
 cb91e87  battle: flip command tier to BattleView/BattleControl  ← 2026-05-29
 c50e50d  battle: collapse Group N local* duality (Phase A Slice 1)  ← 2026-06-01
+2e03ade  battle: fix Group N accessor NPE on unregistered units (corpse iter)  ← 2026-06-01
 ```
 
 (Sibling tracks interleaved on HEAD, not ECS-migration: `9084ed4` battle-render
@@ -81,6 +82,23 @@ campaign work.)
 > `SquadReplanSystem.tick`, `DroneSpawner.tryLaunch`) still take
 > `BattleSimulation` and upcast — narrowing them is optional polish, not
 > coupling reduction.
+>
+> **SPINE PIVOT (2026-06-01): retire the legacy units list.** The Slice-1
+> corpse NPE (`getBurstRemaining` on a released unit, fixed `2e03ade`) exposed
+> the root cause — two parallel unit collections that disagree about death
+> (registry = live only; `UnitRosterService.units` = live + retained corpses).
+> The null-safe accessor fix papers over the bug *class*; deleting the list
+> removes it (and lets the accessors revert to fail-loud). User chose to make
+> this **the spine** of the component-model phase. See
+> [`retire-legacy-units-list`](stories/retire-legacy-units-list.md) — it
+> subsumes the old Slice 3 (corpse home is the enabler). **Resume there.**
+> Audit done: ~20 Bucket-A live-iterators (→ dense registry), **4** Bucket-B
+> corpse-readers (dead-sprite render + drone-crash + turret/hub demolition),
+> ~10 Bucket-C UI/debug (live-filtered). **Next concrete step: decide the
+> corpse-home shape** (recommended: death-event + corpse-decal + crash-FX +
+> demolition-handler; alt: deferred release), then migrate the 4 readers, then
+> the Bucket-A sweep, then delete the list. **Slice 2 (Group S seed) is
+> independent** — can land anytime.
 >
 > **NEXT PHASE — the component model** (seeded 2026-05-29, **Phase A in
 > flight**). The SoA-peel + facade work built ECS's storage/transform half;
