@@ -99,15 +99,6 @@
 	"marines_ambient_fan_noise":[
 		{"file":"sounds/battle/ambient/marines_ambient_fan_noise.ogg","pitch":1,"volume":0.5},
 	],
-	"marines_ambient_fan_reso_1":[
-		{"file":"sounds/battle/ambient/marines_ambient_fan_reso_1.ogg","pitch":1,"volume":0.5},
-	],
-	"marines_ambient_fan_reso_2":[
-		{"file":"sounds/battle/ambient/marines_ambient_fan_reso_2.ogg","pitch":1,"volume":0.5},
-	],
-	"marines_ambient_fan_reso_3":[
-		{"file":"sounds/battle/ambient/marines_ambient_fan_reso_3.ogg","pitch":1,"volume":0.5},
-	],
 	"marines_ambient_helicopter_2":[
 		{"file":"sounds/battle/ambient/marines_ambient_helicopter_2.ogg","pitch":1,"volume":0.5},
 	],
@@ -130,13 +121,57 @@
 		{"file":"sounds/battle/ambient/marines_ambient_wind_up_long_1.ogg","pitch":1,"volume":0.5},
 	],
 
-	# ----- mission flavor: ticking clock loops over every mission, shuttle engine plays during fly-in/out -----
+	# ----- mission flavor: ticking clock loops over every mission -----
 	"marines_ticking_clock":[
 		{"file":"sounds/battle/marines_ticking_clock.ogg","pitch":1,"volume":0.5},
 	],
-	"marines_shuttle_engine":[
-		{"file":"sounds/battle/marines_shuttle_engine.ogg","pitch":1,"volume":0.7},
-	],
+
+#collapseclose
+
+#collapseopen VEHICLE ENGINE LOOPS
+
+	# Per-vehicle engine loops borrowed from the base game's sfx_engines/ set — one clip per
+	# (tech tier × hull size). The combat engine picks these internally by hull style + size and
+	# never registers them as sound ids, so we register our own ids here pointing straight at the
+	# core files (resolves against the read-only core install at runtime, same no-redistribution
+	# trick as the flyby weapon block below). All clips are mono → positional playLoop.
+	#
+	# Ids follow marines_engine_<tier>_<size>; EngineVoice.forSpec maps a hull's engine style +
+	# hullSize to one of these. Dweller has no fighter-size clip (clamped to frigate in EngineVoice).
+
+	# --- lotek (LOW_TECH) ---
+	"marines_engine_lotek_fighter":[   {"file":"sounds/sfx_engines/engine_01_lotek_00_fighter.ogg","pitch":1,"volume":0.8} ],
+	"marines_engine_lotek_frigate":[   {"file":"sounds/sfx_engines/engine_01_lotek_01_frigate.ogg","pitch":1,"volume":0.8} ],
+	"marines_engine_lotek_destroyer":[ {"file":"sounds/sfx_engines/engine_01_lotek_02_destroyer.ogg","pitch":1,"volume":0.8} ],
+	"marines_engine_lotek_cruiser":[   {"file":"sounds/sfx_engines/engine_01_lotek_03_cruiser.ogg","pitch":1,"volume":0.8} ],
+	"marines_engine_lotek_capital":[   {"file":"sounds/sfx_engines/engine_01_lotek_04_capital.ogg","pitch":1,"volume":0.8} ],
+
+	# --- midtek (MIDLINE) ---
+	"marines_engine_midtek_fighter":[   {"file":"sounds/sfx_engines/engine_02_midtek_00_fighter.ogg","pitch":1,"volume":0.8} ],
+	"marines_engine_midtek_frigate":[   {"file":"sounds/sfx_engines/engine_02_midtek_01_frigate.ogg","pitch":1,"volume":0.8} ],
+	"marines_engine_midtek_destroyer":[ {"file":"sounds/sfx_engines/engine_02_midtek_02_destroyer.ogg","pitch":1,"volume":0.8} ],
+	"marines_engine_midtek_cruiser":[   {"file":"sounds/sfx_engines/engine_02_midtek_03_cruiser.ogg","pitch":1,"volume":0.8} ],
+	"marines_engine_midtek_capital":[   {"file":"sounds/sfx_engines/engine_02_midtek_04_capital.ogg","pitch":1,"volume":0.8} ],
+
+	# --- hitek (HIGH_TECH) ---
+	"marines_engine_hitek_fighter":[   {"file":"sounds/sfx_engines/engine_03_hitek_00_fighter.ogg","pitch":1,"volume":0.8} ],
+	"marines_engine_hitek_frigate":[   {"file":"sounds/sfx_engines/engine_03_hitek_01_frigate.ogg","pitch":1,"volume":0.8} ],
+	"marines_engine_hitek_destroyer":[ {"file":"sounds/sfx_engines/engine_03_hitek_02_destroyer.ogg","pitch":1,"volume":0.8} ],
+	"marines_engine_hitek_cruiser":[   {"file":"sounds/sfx_engines/engine_03_hitek_03_cruiser.ogg","pitch":1,"volume":0.8} ],
+	"marines_engine_hitek_capital":[   {"file":"sounds/sfx_engines/engine_03_hitek_04_capital.ogg","pitch":1,"volume":0.8} ],
+
+	# --- omega ---
+	"marines_engine_omega_fighter":[   {"file":"sounds/sfx_engines/engine_04_omega_00_fighter.ogg","pitch":1,"volume":0.8} ],
+	"marines_engine_omega_frigate":[   {"file":"sounds/sfx_engines/engine_04_omega_01_frigate.ogg","pitch":1,"volume":0.8} ],
+	"marines_engine_omega_destroyer":[ {"file":"sounds/sfx_engines/engine_04_omega_02_destroyer.ogg","pitch":1,"volume":0.8} ],
+	"marines_engine_omega_cruiser":[   {"file":"sounds/sfx_engines/engine_04_omega_03_cruiser.ogg","pitch":1,"volume":0.8} ],
+	"marines_engine_omega_capital":[   {"file":"sounds/sfx_engines/engine_04_omega_04_capital.ogg","pitch":1,"volume":0.8} ],
+
+	# --- dweller (no fighter clip — EngineVoice clamps dweller+fighter to frigate) ---
+	"marines_engine_dweller_frigate":[   {"file":"sounds/sfx_engines/engine_05_dweller_01_frigate.ogg","pitch":1,"volume":0.8} ],
+	"marines_engine_dweller_destroyer":[ {"file":"sounds/sfx_engines/engine_05_dweller_02_destroyer.ogg","pitch":1,"volume":0.8} ],
+	"marines_engine_dweller_cruiser":[   {"file":"sounds/sfx_engines/engine_05_dweller_03_cruiser.ogg","pitch":1,"volume":0.8} ],
+	"marines_engine_dweller_capital":[   {"file":"sounds/sfx_engines/engine_05_dweller_04_capital.ogg","pitch":1,"volume":0.8} ],
 
 #collapseclose
 

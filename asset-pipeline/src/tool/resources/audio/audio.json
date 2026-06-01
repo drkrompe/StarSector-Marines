@@ -46,9 +46,6 @@
 
     // ----- ambient machinery (positional loops anchored to a random map cell at battle start) -----
     { "id": "marines_ambient_fan_noise",        "source": "ambient-machinery/fan_noise.wav",          "kind": "positional", "out": "battle/ambient" },
-    { "id": "marines_ambient_fan_reso_1",       "source": "ambient-machinery/fan_reso_1.wav",         "kind": "positional", "out": "battle/ambient" },
-    { "id": "marines_ambient_fan_reso_2",       "source": "ambient-machinery/fan_reso_2.wav",         "kind": "positional", "out": "battle/ambient" },
-    { "id": "marines_ambient_fan_reso_3",       "source": "ambient-machinery/fan_reso_3.wav",         "kind": "positional", "out": "battle/ambient" },
     { "id": "marines_ambient_helicopter_2",     "source": "ambient-machinery/helicopter_2.wav",       "kind": "positional", "out": "battle/ambient" },
     { "id": "marines_ambient_loudmotor_3",      "source": "ambient-machinery/loudmotor3.wav",         "kind": "positional", "out": "battle/ambient" },
     { "id": "marines_ambient_motor_1",          "source": "ambient-machinery/motor_1.wav",            "kind": "positional", "out": "battle/ambient" },
@@ -79,7 +76,8 @@
     { "id": "marines_voice_dead_19", "source": "voice-dead-lines/19.mp3", "kind": "positional", "out": "battle/voice-dead" },
 
     // ----- misc -----
-    { "id": "marines_ticking_clock",  "source": "ticking-clock.wav",                "kind": "ui", "out": "battle" },
-    { "id": "marines_shuttle_engine", "source": "shuttle-engine/engine_hum.ogg",     "kind": "ui", "out": "battle" }
+    // Vehicle engine loops are NOT encoded here — they reference the base game's sounds/sfx_engines/
+    // clips directly (see the VEHICLE ENGINE LOOPS block in mod/data/config/sounds.json).
+    { "id": "marines_ticking_clock",  "source": "ticking-clock.wav",                "kind": "ui", "out": "battle" }
   ]
 }

@@ -101,6 +101,37 @@ The kinematic seam already exists: `battle/air/AirBody` (composed state +
   frictionless; our atmosphere isn't. This is the primary "feel" dial that
   separates our craft from the source model.
 
+## Engine audio → `EngineVoice` (SHIPPED)
+
+The same hull spec that gives us plume positions also tells us what the engines
+**sound** like. The base game ships one engine loop per `(tech tier × hull size)`
+in `starsector-core/sounds/sfx_engines/` — five tiers (`lotek/midtek/hitek/omega/
+dweller`) × five sizes (`fighter…capital`), all mono ~10 s loops. The combat
+engine picks one internally from each engine slot's `style` + the hull's
+`hullSize`; it never registers them as named sound ids, so we register our own
+(`marines_engine_<tier>_<size>`, the *VEHICLE ENGINE LOOPS* block in
+`sounds.json`) pointing straight at the core files — the resolve-against-core
+trick the flyby weapon SFX already use, no redistribution.
+
+- **`EngineVoice`** (`battle/air/engine/EngineVoice`) — an immutable **flyweight**:
+  `{ tier, size, loopSoundId }`, interned one-per-`(tier,size)` via
+  `forSpec(style, hullSize)`. Mirrors `EngineSlotData`: per-hull-immutable data
+  shared across entities, never copied per craft. Style→tier maps the five core
+  tiers 1:1 (`LOW_TECH→lotek`, `MIDLINE→midtek`, `HIGH_TECH→hitek`, `OMEGA`,
+  `DWELLER`); boss/faction styles with no clip (THREAT, ONSLAUGHT_MKI, …) fall
+  back by feel. Dweller has no fighter clip → clamps to dweller frigate.
+- **`EngineVoiceResolver.resolve(hullId)`** — sibling of `EngineSlotResolver`:
+  loads the `.ship`, tallies the dominant engine-slot `style` + reads `hullSize`,
+  returns the interned voice. Cached per hull.
+- **Consumers** read `voice.loopSoundId` and emit a **positional** `playLoop`
+  (clips are mono) — `BattleScreen` per shuttle (volume = `engineIntensity`,
+  pitch sweeps idle→cruise + per-craft jitter), `FlybyOverlay` per fighter. The
+  old custom industrial hum + `fan_reso` resonance clips are retired; the
+  environmental ambient bed (fan/motor/radiator/helicopter) stays custom.
+
+This is the audio analogue of the kinematics/geometry rows above: one hull id →
+one more derived component, no per-hull special-casing, modded hulls for free.
+
 ## Scale — three decoupled factors
 
 A hull's vanilla `su` are **arena units, not meters** (sized so a fleet reads at

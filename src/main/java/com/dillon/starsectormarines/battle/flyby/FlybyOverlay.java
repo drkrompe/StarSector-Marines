@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.AirHandling;
 import com.dillon.starsectormarines.battle.air.AirSteeringSystem;
 import com.dillon.starsectormarines.battle.air.SteeringMode;
+import com.dillon.starsectormarines.battle.air.engine.EngineVoice;
+import com.dillon.starsectormarines.battle.air.engine.EngineVoiceResolver;
 import com.dillon.starsectormarines.battle.air.engine.HullKinematicsResolver;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -67,17 +69,12 @@ public final class FlybyOverlay {
     public static final String SFX_MISSILE_LAUNCH = "marines_flyby_missile";
     public static final String SFX_MISSILE_IMPACT = "marines_flyby_missile_impact";
 
-    /**
-     * Per-fighter engine resonance loops — each fighter picks one of these three at spawn
-     * and plays it positionally every frame so the airy fan/reso texture banks past the
-     * camera as the jet does. Doppler is handled by OpenAL via the velocity arg.
-     */
-    private static final String[] ENGINE_LOOP_IDS = {
-            "marines_ambient_fan_reso_1",
-            "marines_ambient_fan_reso_2",
-            "marines_ambient_fan_reso_3",
-    };
-    /** Base volume for a single fighter's resonance loop. Distance attenuation does the rest as the fighter approaches and recedes from the listener. */
+    // Per-fighter engine loop: each fighter resolves its {@link EngineVoice} at spawn (from the
+    // profile's hull tech tier + size) and plays that base-game sfx_engines clip positionally
+    // every frame, so the engine note banks past the camera as the jet does. Doppler is handled
+    // by OpenAL via the velocity arg.
+
+    /** Base volume for a single fighter's engine loop. Distance attenuation does the rest as the fighter approaches and recedes from the listener. */
     private static final float ENGINE_LOOP_VOLUME = 0.5f;
     /** ±pitch range applied per-fighter so simultaneous fighters drawing the same clip don't phase-lock. */
     private static final float ENGINE_LOOP_PITCH_JITTER = 0.10f;
@@ -1091,7 +1088,7 @@ public final class FlybyOverlay {
      */
     private void driveEngineLoops() {
         for (Fighter f : fighters) {
-            String loopId = ENGINE_LOOP_IDS[f.engineLoopIdx];
+            String loopId = f.engineVoice.loopSoundId;
             Vector2f loc = new Vector2f(f.worldX * AUDIO_WORLD_UNITS_PER_CELL,
                                         f.worldY * AUDIO_WORLD_UNITS_PER_CELL);
             Vector2f vel = new Vector2f(f.vx * AUDIO_WORLD_UNITS_PER_CELL,
@@ -1210,7 +1207,7 @@ public final class FlybyOverlay {
         f.weaveFreq = WEAVE_FREQ_HZ_MIN + rng.nextFloat() * (WEAVE_FREQ_HZ_MAX - WEAVE_FREQ_HZ_MIN);
         f.weaveAmpDeg = WEAVE_AMP_DEG_MIN + rng.nextFloat() * (WEAVE_AMP_DEG_MAX - WEAVE_AMP_DEG_MIN);
         f.runScanTimer = RUN_TRIGGER_INTERVAL_SEC;
-        f.engineLoopIdx = rng.nextInt(ENGINE_LOOP_IDS.length);
+        f.engineVoice = EngineVoiceResolver.resolve(f.profile.hullId);
         f.enginePitchOffset = (rng.nextFloat() * 2f - 1f) * ENGINE_LOOP_PITCH_JITTER;
         fighters.add(f);
     }
@@ -1538,10 +1535,11 @@ public final class FlybyOverlay {
         float runOutX, runOutY;
         float runFireAccumulator;
 
-        // Per-fighter positional engine loop — index into ENGINE_LOOP_IDS and a small
-        // pitch offset, both rolled once at spawn so the fighter sounds consistent
-        // across its lifetime but distinct from its wing-mates.
-        int engineLoopIdx;
+        // Per-fighter positional engine loop — the shared {@link EngineVoice} flyweight
+        // (resolved from the profile's hull at spawn) and a small pitch offset rolled once
+        // at spawn, so the fighter sounds consistent across its lifetime but distinct from
+        // its wing-mates.
+        EngineVoice engineVoice;
         float enginePitchOffset;
     }
 

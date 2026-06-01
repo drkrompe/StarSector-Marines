@@ -12,6 +12,8 @@ import com.dillon.starsectormarines.battle.combat.fx.SmokingWreck;
 import com.dillon.starsectormarines.battle.world.model.TimeOfDay;
 import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.air.engine.EngineVoice;
+import com.dillon.starsectormarines.battle.air.engine.EngineVoiceResolver;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.world.tiles.UrbanTile3;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
@@ -138,7 +140,6 @@ public class BattleScreen implements Screen, BattleUiContext {
             "marines_battle_music_10",
     };
     private static final String LOOP_TICKING  = "marines_ticking_clock";
-    private static final String LOOP_ENGINE   = "marines_shuttle_engine";
     private static final String SFX_RIFLE     = "marines_smallarms_rifle";
     private static final String SFX_VOICE_DEAD = "marines_voice_dead";
     private static final String SFX_DISTANT_BOOM = "marines_explosion_muffled";
@@ -160,10 +161,8 @@ public class BattleScreen implements Screen, BattleUiContext {
      * Pool of ambient loop sound-ids the battle picks 1-2 from at attach time for environmental
      * background. Subway-train and wind-up-long are intentionally excluded — they feel more like
      * situational cues than ambient bed; trivial to flip in if a battle wants the urban-rail or
-     * winding-mechanism vibe. The fan_reso_1/2/3 clips also live in {@link #VEHICLE_ENGINE_LOOPS}
-     * and follow shuttles + flyby fighters as positional engine resonance — they read as airy
-     * overhead-mechanical noise that's distinctive enough that hearing it in the static ambient
-     * bed reads as "another shuttle nearby," so we keep them out of the bed.
+     * winding-mechanism vibe. Vehicle engines no longer draw from this bed — each shuttle / fighter
+     * plays its own {@link EngineVoice} clip from the base game's {@code sfx_engines/} set.
      */
     private static final String[] AMBIENT_LOOP_POOL = {
             "marines_ambient_fan_noise",
@@ -174,22 +173,10 @@ public class BattleScreen implements Screen, BattleUiContext {
             "marines_ambient_helicopter_2",
     };
 
-    /**
-     * Per-vehicle positional engine resonance loops. Each visible shuttle (and each flyby fighter,
-     * driven from {@link FlybyOverlay}) picks one of these three by stable hash and plays it at
-     * its world position every frame — OpenAL spatialization gives each vehicle a distinct
-     * doppler-shifted whoosh as it banks overhead. Cycling across three clips means three shuttles
-     * landing simultaneously each contribute a unique texture instead of folding into one voice.
-     */
-    private static final String[] VEHICLE_ENGINE_LOOPS = {
-            "marines_ambient_fan_reso_1",
-            "marines_ambient_fan_reso_2",
-            "marines_ambient_fan_reso_3",
-    };
-    /** Volume scalar on the shuttle resonance loop. Layered on top of the existing UI engine hum, so kept moderate — the hum is the bass, this is the airy top layer. */
-    private static final float SHUTTLE_RESONANCE_VOLUME = 0.5f;
-    /** ±range of the per-shuttle pitch offset, so simultaneous shuttles playing the same reso clip don't beat against each other in lockstep. */
-    private static final float SHUTTLE_RESONANCE_PITCH_JITTER = 0.08f;
+    /** Volume scalar on a shuttle's engine loop, multiplied by {@link Shuttle#engineIntensity()} and the per-clip base in sounds.json. */
+    private static final float SHUTTLE_ENGINE_VOLUME = 0.9f;
+    /** ±range of the per-shuttle pitch offset, so simultaneous shuttles playing the same engine clip don't beat against each other in lockstep. */
+    private static final float SHUTTLE_ENGINE_PITCH_JITTER = 0.08f;
     /** Volume for ambient loops — quiet bed, well under foreground SFX. Multiplied with the per-clip base in sounds.json. */
     private static final float AMBIENT_VOLUME = 0.2f;
     /** Real-time gap (seconds) between sporadic distant explosions. Range is rolled each time. */
@@ -523,8 +510,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         // HUD ticks on real dt for the same reason.
         advanceRoofAlphaLerp(sim, dt);
         if (sim != null) sim.getVision().advanceFade(dt);
-        driveShuttleEngineLoop(sim);
-        driveShuttleResonanceLoops(sim);
+        driveShuttleEngineLoops(sim);
         playCombatEventSounds(sim);
         // Rebuild widgets when the sim transitions to complete so the bottom
         // action button swaps from Back to Continue.
@@ -709,62 +695,38 @@ public class BattleScreen implements Screen, BattleUiContext {
     }
 
     /**
-     * Drives the shared shuttle engine loop from the loudest visible shuttle each frame.
-     * playUILoop has no per-entity identifier (unlike the positional playLoop), so three
-     * shuttles cruising in at once share a single loop voice — taking the max means N
-     * landing shuttles don't N-times the volume. When no shuttles are visible, we skip
-     * the call entirely and the loop self-fades over Starsector's default UI-loop hold.
+     * Per-shuttle positional engine loop — every visible shuttle emits its
+     * {@link EngineVoice} clip (a base-game {@code sfx_engines} loop chosen from the hull's
+     * tech tier + size, resolved once per hull by {@link EngineVoiceResolver}) at its world
+     * position every frame. The shuttle itself is the {@code playingEntity} key, so three
+     * shuttles landing at once stay on three distinct voices even when they share a clip id.
      *
-     * <p>Pitch sweeps {@link #ENGINE_PITCH_IDLE} → {@link #ENGINE_PITCH_CRUISE} across the
-     * intensity range; volume is the intensity itself (multiplied by the per-clip base in
-     * sounds.json, so on-ground idle still reads as audible but not pushy).
+     * <p>Volume scales by {@link Shuttle#engineIntensity()} so on-ground idle reads quiet and
+     * cruise reads loud; pitch sweeps {@link #ENGINE_PITCH_IDLE} → {@link #ENGINE_PITCH_CRUISE}
+     * across that range plus a small per-shuttle deterministic offset (from the identity hash,
+     * stable frame-to-frame) so two craft on the same clip don't phase-lock. Velocity feeds
+     * OpenAL Doppler as a shuttle banks over the camera. When no shuttles are visible we skip
+     * the call and the loops self-fade over Starsector's default loop hold.
      */
-    private void driveShuttleEngineLoop(BattleSimulation sim) {
-        float maxIntensity = 0f;
-        for (Shuttle s : sim.getShuttles()) {
-            if (!s.isVisible()) continue;
-            float i = s.engineIntensity();
-            if (i > maxIntensity) maxIntensity = i;
-        }
-        if (maxIntensity <= 0f) return;
-        float pitch = ENGINE_PITCH_IDLE + (ENGINE_PITCH_CRUISE - ENGINE_PITCH_IDLE) * maxIntensity;
-        Global.getSoundPlayer().playUILoop(LOOP_ENGINE, pitch, maxIntensity);
-    }
-
-    /**
-     * Per-shuttle positional resonance loops — every visible shuttle emits one of three
-     * {@code marines_ambient_fan_reso_*} clips at its world position, so the airy fan/reso
-     * texture follows the actual vehicle rather than sitting in a fixed ambient bed anchor.
-     *
-     * <p>Assignment is by {@link System#identityHashCode(Object)} mod 3 — stable for the
-     * shuttle's lifetime, and we don't care about save/load consistency (audio is not
-     * persisted state). The {@code playingEntity} key is the shuttle itself, which keeps
-     * three simultaneous shuttles on three voices even when they share the same clip id.
-     *
-     * <p>Pitch carries a small per-shuttle deterministic offset so two shuttles drawing the
-     * same reso clip don't run in phase lock; volume scales by {@link Shuttle#engineIntensity()}
-     * so off-screen / on-ground reads quieter. Velocity is fed through so OpenAL applies
-     * Doppler as a shuttle banks over the camera.
-     */
-    private void driveShuttleResonanceLoops(BattleSimulation sim) {
+    private void driveShuttleEngineLoops(BattleSimulation sim) {
         for (Shuttle s : sim.getShuttles()) {
             if (!s.isVisible()) continue;
             float intensity = s.engineIntensity();
             if (intensity <= 0f) continue;
+            EngineVoice voice = EngineVoiceResolver.resolve(s.type.renderHullId());
             int idHash = System.identityHashCode(s);
-            int resoIdx = (idHash & 0x7fffffff) % VEHICLE_ENGINE_LOOPS.length;
-            String loopId = VEHICLE_ENGINE_LOOPS[resoIdx];
             // Deterministic ±jitter from the hash so the offset doesn't change frame-to-frame.
-            float pitchOffset = (((idHash >> 8) & 0xff) / 255f * 2f - 1f) * SHUTTLE_RESONANCE_PITCH_JITTER;
+            float pitchOffset = (((idHash >> 8) & 0xff) / 255f * 2f - 1f) * SHUTTLE_ENGINE_PITCH_JITTER;
+            float pitch = ENGINE_PITCH_IDLE + (ENGINE_PITCH_CRUISE - ENGINE_PITCH_IDLE) * intensity + pitchOffset;
             Vector2f loc = new Vector2f(s.body.x * AUDIO_WORLD_UNITS_PER_CELL,
                                         s.body.y * AUDIO_WORLD_UNITS_PER_CELL);
             Vector2f vel = shuttleVelocity(s);
-            Global.getSoundPlayer().playLoop(loopId, s, 1f + pitchOffset,
-                    SHUTTLE_RESONANCE_VOLUME * intensity, loc, vel);
+            Global.getSoundPlayer().playLoop(voice.loopSoundId, s, pitch,
+                    SHUTTLE_ENGINE_VOLUME * intensity, loc, vel);
         }
     }
 
-    /** Per-frame velocity for {@link #driveShuttleResonanceLoops} Doppler — reads the AirBody directly. Returns zero on the ground / off-screen so audio stays parked. */
+    /** Per-frame velocity for {@link #driveShuttleEngineLoops} Doppler — reads the AirBody directly. Returns zero on the ground / off-screen so audio stays parked. */
     private static Vector2f shuttleVelocity(Shuttle s) {
         if (s.mission.state != Shuttle.State.INCOMING && s.mission.state != Shuttle.State.DEPARTING) {
             return new Vector2f(0f, 0f);
