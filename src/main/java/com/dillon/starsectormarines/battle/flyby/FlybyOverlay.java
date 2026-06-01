@@ -1,5 +1,10 @@
 package com.dillon.starsectormarines.battle.flyby;
 
+import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.air.AirHandling;
+import com.dillon.starsectormarines.battle.air.AirSteeringSystem;
+import com.dillon.starsectormarines.battle.air.SteeringMode;
+import com.dillon.starsectormarines.battle.air.engine.HullKinematicsResolver;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Unit;
@@ -108,12 +113,12 @@ public final class FlybyOverlay {
     private static final float OFFMAP_PAD = 8f;
 
     // ---- Motion ---------------------------------------------------------------
-    /** Speed bounds (cells/sec). 1.5x the pre-curve numbers so fighters read as atmospheric jets, not patrolling drones. */
-    private static final float SPEED_MIN = 9f;
-    private static final float SPEED_MAX = 15f;
-    /** Max yaw rate (degrees/sec). Caps how tight a fighter can bank — keeps strafing loops feeling like real arcs, not pivots in place. */
-    private static final float TURN_RATE_DEG_PER_SEC = 80f;
-    /** Weave parameters during CRUISE — sinusoid added to base heading, so the path snakes lazily instead of running straight. */
+    // Movement is the real AirBody flight model now — speed / accel / turn come
+    // from the hull's scraped AirHandling (HullKinematicsResolver), so the old
+    // fixed SPEED_MIN/MAX + TURN_RATE_DEG_PER_SEC scripted-glide knobs are gone.
+    /** How far ahead the CRUISE goal point sits along the weaving heading; the body chases it, so the lazy snake becomes an emergent banked drift. */
+    private static final float CRUISE_LOOKAHEAD_CELLS = 12f;
+    /** Weave parameters during CRUISE — sinusoid on the base heading; now offsets the goal point the body steers toward. */
     private static final float WEAVE_FREQ_HZ_MIN  = 0.15f;
     private static final float WEAVE_FREQ_HZ_MAX  = 0.45f;
     private static final float WEAVE_AMP_DEG_MIN  = 12f;
@@ -346,28 +351,49 @@ public final class FlybyOverlay {
     }
 
     /**
-     * Per-tick fighter update. Steers heading toward the state-driven target
-     * heading at a clamped rate (so paths arc, never snap), advances position
-     * along the new heading, then runs state-specific firing logic.
+     * Per-tick fighter update. Picks a goal point for the current state, flies
+     * the real {@link AirBody} toward it via {@link AirSteeringSystem} under the
+     * hull's scraped {@link AirHandling} (so the banked arc emerges from turn
+     * rate + accel, not a scripted heading-lerp), syncs the legacy read-surface
+     * from the body, then runs state-specific firing logic.
      */
     private void tickFighter(Fighter f, float dt, BattleSimulation sim) {
-        // 1. Determine target heading based on current state.
-        float targetHeading = pickTargetHeading(f, dt);
+        // 1. Goal point for the current state. CRUISE chases a point ahead along
+        //    a weaving heading (lazy snake → emergent banked drift); BANK_BACK /
+        //    RUN steer to their waypoints.
+        float gx, gy;
+        switch (f.runState) {
+            case BANK_BACK:
+                gx = f.runInX;  gy = f.runInY;  break;
+            case RUN:
+                gx = f.runOutX; gy = f.runOutY; break;
+            case NONE:
+            default:
+                f.weavePhase += dt * 2f * (float) Math.PI * f.weaveFreq;
+                float weaveHeading = f.baseHeadingDeg + (float) Math.sin(f.weavePhase) * f.weaveAmpDeg;
+                float wr = (float) Math.toRadians(weaveHeading);
+                gx = f.worldX + (float) Math.cos(wr) * CRUISE_LOOKAHEAD_CELLS;
+                gy = f.worldY + (float) Math.sin(wr) * CRUISE_LOOKAHEAD_CELLS;
+                break;
+        }
 
-        // 2. Steer toward it at the clamped rate. Wobble overlay (aggro) is added
-        //    AFTER steering so it doesn't fight the heading lock-in for state goals.
-        float diff = wrapAngleDiffDeg(targetHeading - f.headingDeg);
-        float maxStep = TURN_RATE_DEG_PER_SEC * dt;
-        f.headingDeg += clamp(diff, -maxStep, maxStep);
-        f.headingDeg = wrap360(f.headingDeg);
+        // 2. Drive the flight model toward the goal at cruise throttle. Fighters
+        //    never brake-to-station — they carry speed through the turn.
+        AirSteeringSystem.steer(f.body, gx, gy, SteeringMode.CRUISE, f.handling, dt);
 
-        // 3. Cosmetic wobble while dogfighting — affects facing only, not motion.
+        // 3. Sync the legacy read-surface from the body (math 0=+X convention)
+        //    so the unchanged fire / render / vision / engine-glow code is right.
+        f.worldX = f.body.x; f.worldY = f.body.y;
+        f.vx = f.body.vx;    f.vy = f.body.vy;
+        f.speed = f.body.speed();
+        f.headingDeg = wrap360(f.body.facingDegrees + 90f);
+
+        // 4. Cosmetic wobble while dogfighting — facing only, not motion.
         f.wobblePhase += dt * 2f * (float) Math.PI * DOGFIGHT_WOBBLE_HZ;
-        float drawnFacing = f.headingDeg
+        f.facingDeg = f.headingDeg
                 + (f.aggroTimer > 0f ? (float) Math.sin(f.wobblePhase) * DOGFIGHT_WOBBLE_DEG : 0f);
-        f.facingDeg = drawnFacing;
 
-        // 4. Aggro decay — and aggro cancels any active strafing run (you don't strafe while being chased).
+        // 5. Aggro decay — and aggro cancels any active strafing run (you don't strafe while being chased).
         if (f.aggroTimer > 0f) {
             f.aggroTimer = Math.max(0f, f.aggroTimer - dt);
             if (f.runState != RunState.NONE) {
@@ -375,13 +401,6 @@ public final class FlybyOverlay {
                 f.runRearmTimer = RUN_REARM_COOLDOWN;
             }
         }
-
-        // 5. Move along heading.
-        float rad = (float) Math.toRadians(f.headingDeg);
-        f.vx = (float) Math.cos(rad) * f.speed;
-        f.vy = (float) Math.sin(rad) * f.speed;
-        f.worldX += f.vx * dt;
-        f.worldY += f.vy * dt;
 
         // 6. State-specific firing + transitions.
         f.runRearmTimer = Math.max(0f, f.runRearmTimer - dt);
@@ -395,24 +414,6 @@ public final class FlybyOverlay {
             case RUN:
                 tickRun(f, dt, sim);
                 break;
-        }
-    }
-
-    /**
-     * In CRUISE: weave the base heading via sinusoid (lazy snake). In BANK_BACK / RUN:
-     * point at the active waypoint. Aggro doesn't override — the wobble is layered
-     * onto facing for visual chase only.
-     */
-    private float pickTargetHeading(Fighter f, float dt) {
-        switch (f.runState) {
-            case BANK_BACK:
-                return headingTo(f.worldX, f.worldY, f.runInX, f.runInY);
-            case RUN:
-                return headingTo(f.worldX, f.worldY, f.runOutX, f.runOutY);
-            case NONE:
-            default:
-                f.weavePhase += dt * 2f * (float) Math.PI * f.weaveFreq;
-                return f.baseHeadingDeg + (float) Math.sin(f.weavePhase) * f.weaveAmpDeg;
         }
     }
 
@@ -1185,10 +1186,24 @@ public final class FlybyOverlay {
         Fighter f = new Fighter();
         f.profile = wing.profile;
         f.side = wing.side;
-        f.worldX = sx; f.worldY = sy;
         f.exitX = ex;  f.exitY = ey;
-        f.speed = SPEED_MIN + rng.nextFloat() * (SPEED_MAX - SPEED_MIN);
         f.baseHeadingDeg = headingTo(sx, sy, ex, ey);
+
+        // Flight model: scrape the hull's maneuver profile, drop the body at the
+        // entry edge facing the exit, and seed it at cruise speed so the jet
+        // enters fast instead of accelerating from a dead stop off-map.
+        f.handling = HullKinematicsResolver.resolve(f.profile.hullId);
+        float entryFacing = f.baseHeadingDeg - 90f;   // math 0=+X → our 0=+Y
+        f.body.teleport(sx, sy, entryFacing);
+        float rad = (float) Math.toRadians(entryFacing);
+        float fx = -(float) Math.sin(rad);
+        float fy =  (float) Math.cos(rad);
+        f.body.vx = fx * f.handling.maxSpeed();
+        f.body.vy = fy * f.handling.maxSpeed();
+
+        // Seed the synced read-surface for any pre-first-tick reader.
+        f.worldX = sx; f.worldY = sy;
+        f.speed = f.handling.maxSpeed();
         f.headingDeg = f.baseHeadingDeg;
         f.facingDeg = f.baseHeadingDeg;
         f.weavePhase = rng.nextFloat() * (float) (2 * Math.PI);
@@ -1224,18 +1239,9 @@ public final class FlybyOverlay {
         return (float) Math.toDegrees(Math.atan2(toY - fromY, toX - fromX));
     }
 
-    /** Folds an angle delta into [-180, 180] so steering takes the short way around. */
-    private static float wrapAngleDiffDeg(float deg) {
-        return ((deg + 540f) % 360f) - 180f;
-    }
-
     private static float wrap360(float deg) {
         float r = deg % 360f;
         return r < 0f ? r + 360f : r;
-    }
-
-    private static float clamp(float v, float lo, float hi) {
-        return v < lo ? lo : (v > hi ? hi : v);
     }
 
     // ---- Rendering ------------------------------------------------------------
@@ -1490,12 +1496,20 @@ public final class FlybyOverlay {
         FighterProfile profile;
         Faction side;
 
-        // Position + motion. Heading is math-standard (0=+X, CCW); we steer it
-        // toward state-dependent targets at TURN_RATE_DEG_PER_SEC.
+        // Flight model — the real kinematics (0°=+Y facing, accel/turn/lateral
+        // damping). Driven each tick by AirSteeringSystem under `handling`, the
+        // hull's scraped maneuver profile. This is the source of truth for motion.
+        final AirBody body = new AirBody();
+        AirHandling handling;
+
+        // Legacy read-surface, SYNCED from `body` each tick so the unchanged
+        // fire / render / vision / engine-glow code keeps reading the same
+        // fields in the math-standard (0=+X) convention it always has.
+        // ([[air_unit_render_sync]] — sync, don't let consumers chase a ghost.)
         float worldX, worldY;
-        float vx, vy;          // derived from heading + speed each tick; cached for engine-glow render
+        float vx, vy;
         float speed;
-        float headingDeg;
+        float headingDeg;      // body.facingDegrees + 90 (our 0=+Y → math 0=+X)
         float facingDeg;       // headingDeg + cosmetic wobble; what the sprite draws at
         float exitX, exitY;    // original exit waypoint (for re-anchoring base heading after a RUN)
 
