@@ -5,8 +5,9 @@
 > implementation. Generalizes the room-purpose seam from "which room is the
 > throne" to a vocabulary the whole map publishes and placement passes query.
 
-**Status:** design converged (2026-06-01), Lever-1 foundation in progress.
-Parked behind the shipped room-purpose refactor + composable pipeline.
+**Status:** Lever-1 foundation shipped (`537ca03`); positional read promoted to
+`OverwatchScorer` (`3426109`); first consumer `OverwatchTowerStage` shipped
+(`9320da7`). Lever 2 + tower manning + legacy adoption parked (see Future slices).
 
 ## The premise we had to throw out
 
@@ -158,48 +159,51 @@ open-run (away from that wall) over a low-cover region. Score ≈ (cover behind)
 per-facing cover (`NavigationGrid.getCoverAtFacing`), so this composes with
 existing cover data.
 
-A **gut-check overlay exists** — `TacticalRegionPreviewTest` draws the
-non-max-suppressed top candidates as orange arrows (firing direction) on the
-kind + heat PNGs. Building it surfaced two non-obvious requirements: (1) the
-map edge must NOT count as "cover at back" (else map-spanning edge sightlines
-dominate the ranking), and (2) **the read needs the assault axis** — a defender
-overwatch fires *toward the attacker* (decreasing depth: south for
-SOUTH_TO_NORTH). Without that orientation it finds wall-backed sightlines facing
-the wrong way (they clustered on the beach firing inland). Reach is capped (~14
-cells) so corner quality wins over raw sightline length. The scoring lives in
-the preview test for now (single caller); promote it to the taxonomy package
-when the first consumer slice formalizes the positional layer.
+The scoring is now **shipped as `taxonomy.OverwatchScorer`** (`3426109`) —
+`findSites(grid, regions, axis)` returns the score-sorted, non-max-suppressed
+`OverwatchSite` set (position + outward firing direction + corner flag); the
+`TacticalRegionPreviewTest` overlay (orange arrows on the kind + heat PNGs) is
+now just the top-N render of that API. Building the read surfaced two non-obvious
+requirements baked into the scorer: (1) the map edge must NOT count as "cover at
+back" (else map-spanning edge sightlines dominate the ranking), and (2) **the
+read needs the assault axis** — a defender overwatch fires *toward the attacker*
+(decreasing depth: south for SOUTH_TO_NORTH). Without that orientation it finds
+wall-backed sightlines facing the wrong way (they clustered on the beach firing
+inland). Reach is capped (~14 cells) so corner quality wins over raw sightline
+length.
+
+## Slices
+
+- **First consumer (Lever-1 payoff): ✅ shipped (`9320da7`).** `OverwatchTowerStage`
+  — a composable post-finalize `GenStage` in `battle.world.gen.bsp` — consumes
+  the published positional read (`OverwatchScorer`) and mounts a few defender
+  **corner-tower guns** (cover-at-back + outward field of fire) in the conquest
+  recipe, the corner-tower correction made real. Chosen over biasing
+  `DefensePostStamper`'s anchors (a buried, conquest-specific mutation) precisely
+  because a dedicated stage is *composable* — any recipe opts in by listing it,
+  the "generators publish, passes consume" pattern. Unmanned this slice (no
+  `GUARDPOST` node) so defender balance is untouched; rng-free + deterministic;
+  re-publishes `TACTICAL_REGIONS` so the artifact stays grid-consistent.
+  `MapResult` was *not* plumbed — this consumer reads the artifact in-pipeline via
+  `ctx`, so the plumbing is deferred to the first *out-of-generator* consumer.
 
 ## Future slices
 
-1. **First consumer (Lever-1 payoff).** Migrate one placement pass to query the
-   taxonomy. **Split by role, per the corner-tower correction above:** a
-   defender turret / heavy emplacement wants a **positional overwatch corner**
-   (cover-at-back + outward field of fire over a low-cover region), NOT a
-   high-enclosure region — so this slice likely needs the per-cell positional
-   read, at least a v0. Garrison / fallback nodes (`BARRACKS`, `FALLBACK_TO`)
-   are the ones that want high-enclosure *membership*. `DefensePostStamper`'s
-   biome-band proxy is the natural migration target; depth still tiers it.
-   First player-visible change; plumb `TacticalRegion` into `MapResult` here;
-   RNG-parity carefully checked.
-2. **Lever 2 — structure injection (own session).** Gated courtyards / walled
+1. **Man the towers + adopt into legacy.** Give the overwatch towers a small
+   `GUARDPOST` garrison (tuning the defender roster for the added squads) and add
+   `OverwatchTowerStage` to the legacy recipe (axis-null → direction-agnostic
+   scoring already supported) so non-conquest maps get corner guns too. Both were
+   deliberately deferred from the first consumer slice to isolate placement from
+   balance.
+2. **Membership consumer.** Garrison / fallback nodes (`BARRACKS`, `FALLBACK_TO`)
+   want high-enclosure *membership* (the shipped `TacticalRegion.enclosure`), not
+   the positional read — the other half of the corner-tower split. Plumb
+   `TacticalRegion` into `MapResult` when a consumer outside the generator needs it.
+3. **Lever 2 — structure injection (own session).** Gated courtyards / walled
    pockets / denser alleys, tagged at carve time; the artifact picks them up
    automatically (a courtyard with one gate reads as high-enclosure,
    `openingCount == 1`). See [`../overview.md`](../overview.md).
-3. **Station reuse.** The station recipe's discrete rooms feed the *same*
-   `TacticalRegion` vocabulary (a room is just a high-enclosure region whose
-   mouths are doorways), so the corridor taxonomy and this one converge.
-
-1. **First consumer (Lever-1 payoff).** Migrate one placement pass to query
-   the taxonomy — e.g. `DefensePostStamper`'s biome-band proxy → region
-   attributes (heavy posts seek *enclosed, mid/deep* regions; light posts seek
-   *forward, exposed*). First slice that changes what the player sees; plumb
-   `TacticalRegion` into `MapResult` here. RNG-parity carefully checked.
-2. **Lever 2 — structure injection (own session).** Gated courtyards / walled
-   pockets / denser alleys, tagged at carve time; the artifact picks them up
-   automatically (a courtyard with one gate reads as high-enclosure,
-   `openingCount == 1`). See [`../overview.md`](../overview.md).
-3. **Station reuse.** The station recipe's discrete rooms feed the *same*
+4. **Station reuse.** The station recipe's discrete rooms feed the *same*
    `TacticalRegion` vocabulary (a room is just a high-enclosure region whose
    mouths are doorways), so the corridor taxonomy and this one converge.
 

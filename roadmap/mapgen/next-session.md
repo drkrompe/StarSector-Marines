@@ -20,7 +20,10 @@ b8b7b9d  mapgen: Slice D — ternary keep wiring + multi-chamber stamper emissio
 8666b8f  mapgen: Slice 2b — fold stampers into GenStage classes
 bf0cf22  mapgen: hoist FortressWallStamper ctx reads to top of run()
 7016b8e  mapgen: Slice 3 — GenRecipe; conquest/legacy recipes selected by axis
-537ca03  mapgen: structural taxonomy Lever 1 — TacticalRegion segmentation  ← latest mapgen work
+537ca03  mapgen: structural taxonomy Lever 1 — TacticalRegion segmentation
+6cdd6c7  mapgen: overwatch-corner overlay in TacticalRegionPreviewTest (positional gut-check)
+3426109  mapgen: promote overwatch-corner scorer to taxonomy package (positional read)
+9320da7  mapgen: OverwatchTowerStage — first taxonomy consumer (corner-tower guns)  ← latest mapgen work
 ```
 
 Full per-slice mapping (what landed vs. planned, Slice A critique
@@ -48,10 +51,14 @@ findings) in
   three structural scans over the 10-seed batch and prints a per-seed report —
   see the "Validation harness" section below for what landed, what it found,
   and the scans still on the menu.
-- **Structural taxonomy — Lever 1 (this session): landed.** The city publishes
+- **Structural taxonomy — Lever 1 + first consumer: landed.** The city publishes
   a `TacticalRegion` segmentation of its porous walkable space (texture, not
   topology — see the section below + [`stories/structural-taxonomy.md`](stories/structural-taxonomy.md)).
-  Foundation only: no runtime consumer yet, byte-identical maps.
+  The positional read is promoted to `taxonomy.OverwatchScorer` (`3426109`), and
+  its **first consumer** is live: `OverwatchTowerStage` (`9320da7`) mounts a few
+  unmanned defender corner-tower guns at the strongest overwatch sites in the
+  conquest recipe — the first player-visible payoff. Connectivity +
+  garrison-deployability scans hold; placement is rng-free + deterministic.
 
 ## Next up (priority order)
 
