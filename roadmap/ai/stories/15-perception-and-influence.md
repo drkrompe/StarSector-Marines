@@ -133,6 +133,16 @@ behind a building still believes the enemy is there until either
   ground truth.
 - Tactical scorers (target picking, firing position, fallback
   picker) all read believed contacts.
+- `GuardPostPatrol.computeLeash` — its **enemy** force tally
+  (`TacticalScoring.countCombatantsWithin(enemyFaction, …)`, the
+  odds-scaled engage-leash collapse from story 18) is an omniscient
+  ground-truth read of the same class. Swap to a belief-gated count
+  so a guard post can't collapse against an unseen flank — the
+  intended fog-of-war read is "hold forward until the second push
+  reveals itself." The **friendly** tally in the same method is
+  honest (own-faction positions = `friendly_influence`) and stays.
+  Longer-term this whole local ratio is just a point-read of the
+  influence field (`hostile_believed` vs `friendly_influence`).
 
 ## Commander influence map
 

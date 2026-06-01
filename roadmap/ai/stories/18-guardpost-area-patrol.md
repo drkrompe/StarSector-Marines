@@ -132,6 +132,18 @@ once per squad-tick (leader-gated, cached on the action; siblings read it).
 Covered by `TacticalScoringTest` (faction/radius/combatant-flag tally + dead-unit
 drop). The forward-vs-fallback feel itself is left to playtest.
 
+**Perception debt (accepted, documented).** The *enemy* half of the tally is an
+omniscient ground-truth read — the same "reacts to enemies it hasn't observed"
+class as `WorldStateBuilder.HAS_LOS_TO_TARGET`, which story 15 (perception) is
+parked to fix. Kept as interim debt (consistent with the rest of today's
+omniscient tactical layer) rather than hand-rolling a perception gate now; the
+`computeLeash` enemy read is registered in `stories/15-perception-and-influence.md`
+§ "Where this plugs in" to swap to `squad.believedEnemies` (Tier B) when belief
+lands — and the whole local ratio ultimately becomes a point-read of the
+commander influence field. The *friendly* half is honest (own-faction positions)
+and carries no debt. `SENSE_MARGIN` is a hand-rolled stand-in for that future
+perception radius.
+
 ## Open follow-ups
 
 - **Release semantics.** A released turret squad (`defensePost == null`) still

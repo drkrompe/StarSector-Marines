@@ -215,11 +215,23 @@ public final class GuardPostPatrol implements Action {
      * nearby friendly squads, so a lone attacker faces squad + turret and the
      * guard holds forward; a second attacker push tips the ratio and pulls it
      * back. No contesting enemy in sensing range → the full box.
+     *
+     * <p><b>Perception debt (story 15).</b> The {@code foes} tally is an
+     * <em>omniscient</em> ground-truth read — the same "squads react to enemies
+     * they have no business knowing about" class as
+     * {@link com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder}'s
+     * {@code HAS_LOS_TO_TARGET}. Acceptable interim while the perception layer is
+     * parked; swap to {@code squad.believedEnemies} (Tier B) when it lands so a
+     * post can't collapse against an unseen flank. The {@code friends} tally
+     * does <em>not</em> carry this debt — a faction legitimately knows its own
+     * positions (the {@code friendly_influence} channel).
      */
     private float computeLeash(Squad squad, BattleControl sim) {
         Faction enemy = squad.faction == Faction.MARINE ? Faction.DEFENDER : Faction.MARINE;
         float sense = radius + SENSE_MARGIN;
         TacticalScoring scoring = sim.getTacticalScoring();
+        // PERCEPTION-DEBT (story 15): omniscient enemy read; swap to
+        // squad.believedEnemies when Tier B belief ships.
         int foes = scoring.countCombatantsWithin(enemy, anchorX, anchorY, sense);
         if (foes == 0) return radius;
         int friends = scoring.countCombatantsWithin(squad.faction, anchorX, anchorY, sense);
