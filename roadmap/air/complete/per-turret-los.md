@@ -1,8 +1,26 @@
 # Story — Per-turret LoS for air mounts (sim/render-synced positions)
 
 > Shared-core member of the [`air/`](../overview.md) category — builds on the
-> shipped [`complete/global-pixel-density-scale.md`](../complete/global-pixel-density-scale.md)
-> (hulls are now large enough that body-center LoS is wrong). **Active.**
+> shipped [`global-pixel-density-scale.md`](global-pixel-density-scale.md)
+> (hulls are now large enough that body-center LoS is wrong).
+
+## Shipped — `6f0d586`, in-game verification pending
+
+Landed exactly as designed below. `Shuttle` gained a cached `turretSpread()`
+plus shared `turretWorldX/Y(mount, cos, sin, extraScale)`; `AirSystem` positions
+sim mounts through them (`extraScale = 1`, ground-real) so `originCellX/Y` spread
+across the hull and the already-per-mount `TurretAim` LoS (`canSeePair` /
+`airLosVisible`) differentiates front from rear for free; `ShuttleRenderSystem`
+uses the same helper (`extraScale = scaleMult` + altitude Y-offset) so a round
+fires from where the turret is drawn. Turret size now scales by `turretSpread`
+too. No new LoS code — just real per-mount inputs.
+
+**Outstanding:** in-game eyeball of the front-vs-rear divergence on a long
+shuttle straddling a wall (full `gradlew build` blocked at commit time by an
+unrelated concurrent-session `ShotRenderService` error; edited files verified
+clean via IDE inspection bar pre-existing javadoc-link noise in `Shuttle`).
+`SHUTTLE_AIR_LOS_RADIUS = 3.5` is a fixed cell radius — revisit if it reads
+wrong relative to a very large hull.
 
 ## Goal
 
