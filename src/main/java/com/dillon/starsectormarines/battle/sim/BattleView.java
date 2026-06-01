@@ -51,6 +51,26 @@ public interface BattleView {
     /** Live + corpse unit list. Callers must not retain across tick boundaries. */
     List<Unit> getUnits();
 
+    /**
+     * Number of live units in the dense registry — the corpse-free count for
+     * live iteration. Paired with {@link #liveUnitAt(int)} this replaces the
+     * {@code for (Unit u : getUnits()) if (!u.isAlive()) continue;} idiom: the
+     * dense registry holds only live units, so the skip is unnecessary. The
+     * read-only, allocation-free path as the legacy {@code getUnits()} list is
+     * retired.
+     */
+    int liveUnitCount();
+
+    /**
+     * Live unit at dense index {@code [0, liveUnitCount())}. Iteration order is
+     * registry-dense (insertion order with swap-and-pop on release), <b>not</b>
+     * stable across releases — fine for a within-tick read pass, not for
+     * anything that assumes a fixed battle-long ordering. Safe to call during
+     * the parallel replan window (read-only; the dense array is stable across
+     * the dispatch since spawns are queued).
+     */
+    Unit liveUnitAt(int index);
+
     /** Per-cell unit count, indexed by {@link NavigationGrid#index(int, int)}. */
     byte[] getOccupancyMap();
 

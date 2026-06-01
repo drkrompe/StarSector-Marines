@@ -362,6 +362,10 @@ public class BattleSimulation implements BattleControl {
     }
 
     public List<Unit> getUnits()           { return units; }
+
+    @Override public int liveUnitCount() { return rosterService.getRegistry().liveCount(); }
+    @Override public Unit liveUnitAt(int index) { return rosterService.getRegistry().get(index); }
+
     /** Crash component store — entities falling out of the sky after death (a {@code Crashing} component each). Read by the drone renderer to draw the falling sprite + fade; written only by {@link #droneCrashes}. */
     public com.dillon.starsectormarines.battle.component.ComponentStore<com.dillon.starsectormarines.battle.component.Crashing> getCrashing() { return crashing; }
 
