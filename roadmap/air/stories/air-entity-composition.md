@@ -83,8 +83,13 @@ a later slice.
      **Fixed the oscillation.** `ThrusterFxSystemTest` green.
    - **Outstanding:** in-game eyeball of the ramp feel; attack/decay rates
      (`ThrusterFxSystem.ATTACK_PER_SEC`/`DECAY_PER_SEC`) are first-cut tunables.
-2. **Turrets as a presence component** — lift `MountedTurret[]` into a
-   `ComponentStore<AirTurrets>`; the turret-fire loop iterates the store's set.
+2. **Turrets as a presence component — SHIPPED `3050a1e`.** `MountedTurret[]`
+   lifted off `Shuttle` into a `ComponentStore<AirTurrets>` keyed by entity id;
+   armed craft carry it, transports don't — presence is the gate (replaced the
+   `turrets.length == 0` scans). `shouldHoverLoiter`/`allTurretsDry` moved into
+   `AirSystem` (query the store); `releaseAirEntity` drops it via the slice-1
+   death seam. Entity flow corrected: `addShuttle` (mint id) → `equipDefaultTurrets`
+   → `attachAirTurrets`. Render reads via `getAirTurretMounts`. Air-path tests green.
 3. **`ShuttleMission` component** — peel the state machine off `Shuttle` toward
    an id + composition; `Shuttle` shrinks to a handle.
 4. **Fighters compose the same core** — real `AirBody`/engine/turret components
