@@ -4,7 +4,23 @@
 > "Reconciliation point" called out in
 > [`hull-extraction.md`](../hull-extraction.md) § Scale and the resolved
 > direction in [`ships/overview.md`](../ships/overview.md) § "Scale & altitude".
-> **Active.**
+
+## Shipped — `c553532` (code), playtest calibration pending
+
+Landed: `battle/air/AirScale` (the one constant), `HullFootprintResolver`
+(cached `.ship`-height → derived length), `ShuttleType` stripped of the authored
+`visualLengthCells` and the `turretVisualScale` hack (`+ renderHullId()`), and
+`ShuttleRenderSystem` / `EngineSlotResolver` routed through the resolver so a
+hull and its engine FX share one derived length. Parser left pure; flyby
+fighters left for the fighters track (disjoint hull ids).
+
+**Outstanding (slice 6):** the `0.65` constant is unverified in-game — shuttles
+are now ~14–34× larger than before, which presumes the planned 512+ maps. Tune
+`AirScale.METERS_PER_PX` against the live ground camera, re-check turret
+`visualCells` against the larger hulls, and track **map growth** as the
+downstream dependency. A full `gradlew build` was blocked at commit time by an
+unrelated concurrent-session error in `ShotRenderService` (not this story);
+files verified clean via IDE inspection.
 
 ## Goal
 

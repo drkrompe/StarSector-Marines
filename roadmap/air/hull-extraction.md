@@ -120,17 +120,20 @@ kept **independent**:
    The per-class table in [`ships/`](ships/overview.md) is a *sanity-check* for picking
    that constant, not the mechanism.
 
-   > **Reconciliation point.** `battle/air/engine/ShipSpecEngineParser` today
-   > does the *opposite* — per-ship normalization (`pxPerCell = spriteHeightPx /
-   > visualLengthCells`), which discards relative size so each art-directed
-   > shuttle/fighter renders at its chosen length. Adopting the global factor
-   > flips `visualLengthCells` from authored to **derived** (`pxExtent ×
-   > METERS_PER_PX`), and the same `pxPerCell` then unifies footprint with the
-   > slot-scraping transform ([[vanilla_ship_spec_scraping]]) instead of each
-   > normalizing independently. Keep an explicit per-craft override only for
-   > deliberately non-vanilla-scale craft. Use the `bounds` extent (not sprite
-   > `height`, which carries transparent margin) for the actual collision
-   > footprint.
+   > **Reconciliation point — SHIPPED for shuttles** (see
+   > [`complete/global-pixel-density-scale.md`](complete/global-pixel-density-scale.md)).
+   > Previously `ShipSpecEngineParser` did the *opposite* — per-ship
+   > normalization (`pxPerCell = spriteHeightPx / visualLengthCells`), which
+   > discarded relative size. The global factor now lives in `battle/air/AirScale`
+   > (`METERS_PER_PX = 0.65`); `visualLengthCells` is **derived** (`spriteHeightPx
+   > × METERS_PER_PX`) by `HullFootprintResolver`, so `pxPerCell` collapses to the
+   > constant `1/METERS_PER_PX` and footprint unifies with the slot-scraping
+   > transform ([[vanilla_ship_spec_scraping]]). The parser itself stayed a pure
+   > "render at length L" function — the global policy lives in the caller (it
+   > passes the derived length), which is why flyby fighters were left untouched.
+   > Per-craft override deferred (no off-scale craft yet). **Still open for
+   > ships:** use the `bounds` extent (not sprite `height`, which carries
+   > transparent margin) for the actual collision footprint.
 3. **Kinematic feel** ← `getEngineSpec()` × a kinematic `SCALE`, entirely
    separate from footprint. Vanilla numbers are tuned for a zoomed-out arena, so
    at ground scale you want lower absolute cells/sec while **preserving inter-hull
