@@ -43,6 +43,8 @@ c50e50d  battle: collapse Group N local* duality (Phase A Slice 1)  ← 2026-06-
 2e03ade  battle: fix Group N accessor NPE on unregistered units (corpse iter)  ← 2026-06-01
 1201585  battle: DeathDispatcher mailbox + migrate turret demolition (spine foundation)  ← 2026-06-01
 7661571  battle: migrate hub demolition onto the death-event seam (spine slice 2a)  ← 2026-06-01
+2a3abc8  battle: harden DeathDispatcher.drain() for re-entrant publish  ← 2026-06-01
+40fa668  battle: model the drone crash as a Crashing component (first composition slice)  ← 2026-06-01
 ```
 
 (Sibling tracks interleaved on HEAD, not ECS-migration: `9084ed4` battle-render
@@ -67,11 +69,18 @@ campaign work.)
 - **Full suite green at 592 tests** (after the death-dispatcher foundation
   slice). The earlier sibling compile break in `ShotRenderService.java` has
   since resolved.
-- **Death-event seam LANDED** — `DeathDispatcher` mailbox is live; **turret +
-  hub demolition** both migrated (slice 2a). Both reactions now fire in the one
-  `deathDispatcher.drain()` at the unified `DEMOLISH` profiler phase. See the
-  spine story's build sequence (steps 1 + hub done; drone-crash + dead-sprite
-  body store next).
+- **Death-event seam LANDED + COMPOSITION STARTED.** `DeathDispatcher` mailbox
+  is live (wave-drained, re-entrant-safe). Turret + hub demolition migrated to
+  `onDeath` handlers (unified `DEMOLISH` phase). **The drone crash is now a
+  `Crashing` component** (`battle.component.ComponentStore<T>` + `Crashing`) —
+  the first real composition in the battle tier: capability-as-presence, a
+  system over the component-set, FX as a side effect. The hub cascade publishes
+  per-drone `DeathEvent`s so the seam handles cascade kills. **This is the
+  pattern everything else follows now — stop deferring composition to a "future
+  phase."** ([[feedback_build_composition_now]].) Remaining Bucket-B reader:
+  `UnitRenderService.sweepDeadSprites` (infantry dead pose) — the one that pulls
+  in `UnitRegistry` → per-component-service decomposition (a corpse = an entity
+  with position+render components, no health/AI).
 
 ## Active stories (priority order)
 
@@ -132,13 +141,21 @@ campaign work.)
 >    `DeathEvent` (harmless until the crash system moves onto the seam — then the
 >    cascade must publish per-drone events, and the `drain()` loop must tolerate
 >    re-entrant `publish` growing `pending`). Test: `HubDemolitionSystemTest`.
-> 2b. **NEXT — `DroneCrashSystem` + dead-sprite render → body store.** These two
->    are the multi-tick / render-only Bucket-B readers; both want the
->    **lightweight body entity / body store** built (that's the real new
->    structure of this step). The crash system either reacts to a drone
->    `DeathEvent` to *seed* a crash FX + body, or keeps ticking a body's
->    `crashTimer`; the dead-sprite render draws frozen poses off the body store
->    instead of scanning the units list for `!isAlive()`.
+> 2b. ~~**`DroneCrashSystem` → component**~~ — **SHIPPED** (`2a3abc8` +
+>    `40fa668`). The crash is now a `Crashing` component in a presence-based
+>    `ComponentStore` (new `battle.component` package), processed by a system
+>    over the component-set; FX is the side effect of the component. First real
+>    composition in the battle tier — the pattern the rest follows. Drain
+>    hardened for the re-entrant cascade publish. See the spine story's Progress.
+> 2c. **NEXT — `UnitRenderService.sweepDeadSprites` (infantry dead pose).** The
+>    last Bucket-B reader, and the one that genuinely needs a corpse to survive
+>    release. **This pulls in the `UnitRegistry`-decomposition the user called
+>    for:** split the single kitchen-sink table into per-component services
+>    (`CellPositionService`, `HealthService`, `RenderPositionService`, …) with
+>    `UnitRegistry` as a facade, so a corpse is just an entity present in the
+>    position+render stores and absent from health/AI — not a redefined field
+>    bag, not a parallel `CorpseService`. Build composition, don't defer it
+>    ([[feedback_build_composition_now]]). The `Crashing` slice is the template.
 > 3. Bucket-A sweep (`getUnits()` → dense registry; fan out to Sonnet).
 > 4. Bucket-C cleanup; delete `UnitRosterService.units`.
 > 5. Revert Group-N accessors to unconditional (fail-loud); drop the

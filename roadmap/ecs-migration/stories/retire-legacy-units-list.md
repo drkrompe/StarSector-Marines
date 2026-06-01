@@ -44,8 +44,8 @@ live pass, `WorldPicker`, `AttackerIndexService`, `FleeBehavior`,
 ### Bucket B — corpse-readers (4 sites) — need a corpse home
 | Site | Post-death job | Shape |
 |---|---|---|
-| `UnitRenderService.sweepDeadSprites` | draw the frozen death pose for the rest of the battle | **static** — render-only |
-| `DroneCrashSystem` | multi-tick fall → impact → wreck animation | **lifecycle** — ticks `crashTimer`, reads `body.x/y/facing` |
+| `UnitRenderService.sweepDeadSprites` | draw the frozen death pose for the rest of the battle | **static** — render-only — the last Bucket-B reader; wants a body/corpse the way the crash now uses a component (an entity present in position+render component stores after release) |
+| ~~`DroneCrashSystem`~~ | multi-tick fall → impact → wreck animation | **lifecycle** — **MIGRATED** to a `Crashing` **component** + presence-driven system (slice 2b). The crash is composition now: a dead drone *has* a `Crashing` component, the system processes the component-set (no units-list scan), FX is the side effect. `DroneRenderSystem` reads the same store. The hub cascade publishes per-drone `DeathEvent`s so the seam handles cascade kills too. |
 | ~~`TurretDemolitionSystem`~~ | flip dead turret cell to rubble; mark `demolished` | **reaction** — same-tick, reads `cellX/Y` — **MIGRATED** to `onDeath(DeathEvent)` (foundation slice). Its guardpost-all-dead scan still reads the list; migrates with the rest of this bucket. |
 | ~~`HubDemolitionSystem`~~ | cascade-kill a dead hub's drones; flip to rubble | **reaction** — same-tick, reads `homeHub` backlink — **MIGRATED** to `onDeath(DeathEvent)` (slice 2a). Its drone cascade still scans the list, and the drones it hp=0s bypass `DamageResolver` so they don't publish their own `DeathEvent` — fine while the crash system list-scans for dead drones; revisit when it migrates. |
 
@@ -125,21 +125,37 @@ Open sub-questions for the build (resolve as we go, don't over-design):
   `DEMOLISH_TURRETS` + `DEMOLISH_HUBS` collapsed into a single `DEMOLISH` phase.
   Test: `HubDemolitionSystemTest` (demolition + same-tick cascade→crash
   ordering + control drone untouched).
-  - **Known follow-up (carried):** the drone cascade still scans the legacy
-    list and the drones it kills (hp=0 + release) bypass `DamageResolver`, so
-    they publish no `DeathEvent`. Harmless while `DroneCrashSystem` detects dead
-    drones by list scan; when the crash system moves onto the event seam the
-    cascade must publish per-drone `DeathEvent`s (or the crash system keeps a
-    list scan). Re-entrant publish during `drain()` needs the index-based drain
-    loop to tolerate `pending` growth — verify before wiring that up.
+- **Slice 2b SHIPPED (2026-06-01) — first composition slice.** The drone crash
+  is now a `Crashing` **component**, not a per-tick type scan. Commits:
+  - `2a3abc8` — hardened `DeathDispatcher.drain()` to two swap buffers, drained
+    in waves, so a `DeathEvent` published *by a handler mid-fan-out* (a cascade)
+    is itself fanned out in the same drain. Prerequisite for the cascade publish.
+  - `40fa668` — new `battle.component` package: `ComponentStore<T>` (presence-
+    based, entity-id-keyed sparse store; a system iterates `entries()`, no
+    null-check / no role branch; survives registry release) + `Crashing` (the
+    falling-after-death component, composes with `AirBody`, carries its own
+    timer/spin so the processor is entity-agnostic). `DroneCrashSystem` is now
+    `onDeath` (attach component + opening plume) + `tick(dt)` (process the
+    component-set → spin, count down, wreck on impact, detach). `Drone` lost
+    `crashStarted/crashTimer/crashed` (store presence is the state).
+    `HubDemolitionSystem`'s cascade publishes a `DeathEvent` per drone so the
+    seam crashes cascade-kills too. `DroneRenderSystem` reads the store.
+  - **Why this matters:** it's the first real **composition** in the battle
+    tier — capability-as-presence + a system over the component-set, FX as a
+    side effect of having the component. The pattern the rest of the migration
+    follows (see [[feedback_build_composition_now]]).
 
 ## Sequencing
 
-1. **Corpse home (enabler).** Build the death-event + corpse-decal (+ crash-FX,
-   demolition-handler) mechanism; migrate the 4 Bucket-B readers off the list.
-   *(Death-event mechanism + turret demolition + hub demolition done — see
-   Progress. Remaining: drone crash, dead-sprite render — the two that want the
-   actual body store built.)*
+1. **Corpse home (enabler).** Build the death-event + component mechanism;
+   migrate the 4 Bucket-B readers off the list. *(Death-event mechanism +
+   turret demolition + hub demolition + drone crash done — see Progress; the
+   crash proved the component pattern. Remaining: `UnitRenderService.`
+   `sweepDeadSprites` — the infantry dead-pose render, the one corpse-reader
+   that genuinely needs a position+render body to survive release. This is where
+   the `UnitRegistry`-decomposition-into-component-services work gets pulled in —
+   a corpse = an entity present in the position+render component stores but not
+   health/AI. See [[feedback_build_composition_now]].)*
 2. **Bucket A sweep.** Migrate the ~20 live-iterators `getUnits()` → dense
    registry. Fan out to Sonnet; each is a local `isAlive`-gate → dense loop.
 3. **Bucket C cleanup.** Point UI/debug/flyby at the registry; resolve

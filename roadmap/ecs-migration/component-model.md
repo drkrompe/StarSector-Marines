@@ -1,9 +1,16 @@
-# North star: the component model (ECS migration, next phase)
+# The component model (ECS migration — Phase B, IN FLIGHT)
 
-Where the migration is *heading* once the SoA-peel + facade-decoupling
-work settles. Read [`overview.md`](overview.md) first for the locked-in
-direction and the SoA design rules; this doc is the next-phase target, not
-yet a set of in-flight slices (the slices live in [`stories/`](stories/)).
+The composition half of the ECS migration. Read [`overview.md`](overview.md)
+first for the locked-in direction and the SoA design rules.
+
+**Phase B has started — composition is being built, not deferred.** The first
+component shipped 2026-06-01: `battle.component.ComponentStore<T>` (presence-
+based, entity-id-keyed) + the `Crashing` component, with the drone crash
+reworked into a system over that component-set (FX as a side effect of the
+component). See the spine story's slice 2b. The direction has been settled
+across many sessions — **do not re-litigate it as a future "pivot"; reach for
+a component + a system over its set whenever new entity capability or per-tick
+side-effect work lands.** ([[feedback_build_composition_now]].)
 
 Framed in the engine-vs-game lens the project runs under
 ([`user_engine_game_framing`](../../memory)): **World + Systems +
@@ -90,12 +97,18 @@ the component boundaries now so Valhalla is a layout swap, not a rewrite.
   seed/snapshot. Unblocks the `Unit` → `Entity` rename
   (overview.md's naming north star). *Do this before the optional explosion
   ossifies the duality.*
-- **Phase B — [`component-grouping`](stories/component-grouping.md).**
-  Group the SoA columns into named component structs; introduce the first
-  genuinely-*optional* capability (the incoming vehicle body/HP, or
-  `SecondaryWeapon`) as a **sparse component with presence**, processed by a
-  system that iterates only entities that have it. Hand-rolled presence per
-  optional component — **no generic `Aspect`/`World` machinery yet.**
+- **Phase B — [`component-grouping`](stories/component-grouping.md). IN FLIGHT.**
+  Group the SoA columns into named component structs; model optional
+  capabilities as **sparse components with presence**, processed by systems that
+  iterate only entities that have them. Hand-rolled presence per optional
+  component — **no generic `Aspect`/`World` machinery yet.**
+  - **B2 first component SHIPPED:** `ComponentStore<T>` + `Crashing` (the drone
+    crash) — `40fa668`. Validated capability-as-presence on real, motivated work
+    (the crash) exactly as the guardrails prescribe.
+  - **Next pull:** decompose `UnitRegistry` (the single kitchen-sink archetype)
+    into per-component services so a corpse is an entity with a *subset* of
+    components — pulled by `UnitRenderService.sweepDeadSprites` (infantry dead
+    pose surviving release). Then B1 grouping for the dense columns.
 - **Phase C — deferred (gated on heterogeneity).** Generic aspect /
   presence-bitset queries and (if ever) multi-archetype storage. Only when
   branch-on-`role` + sentinel columns measurably cost more than a bitset
