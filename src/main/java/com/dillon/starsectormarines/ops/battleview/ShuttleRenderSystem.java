@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.air.engine.EngineFxRenderer;
 import com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver;
 import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
+import com.dillon.starsectormarines.battle.air.engine.HullPivotResolver;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
 import java.util.List;
@@ -73,8 +74,20 @@ public final class ShuttleRenderSystem implements RenderSystem {
             float pxLen = hullLenCells * cellPx * s.scaleMult;
             float pxH = pxLen;
             float pxW = pxLen * cache.aspect;
-            float cx = cam.cellToScreenX(s.body.x);
-            float cy = cam.cellToScreenY(s.body.y + altOffset);
+            // Anchor the hull at its centre of gravity: offset the sprite's pixel
+            // centre from body by the pivot (sprite-pixel-centre relative to the
+            // authored `center`), rotated by facing and scaled by the altitude
+            // zoom. This keeps `center` fixed at body so the hull rotates about
+            // its CoG — and, since body == CoG, the center-relative turret and
+            // engine slots land on their painted hardpoints.
+            float[] pivot = HullPivotResolver.pivotOffset(s.type.renderHullId());
+            float rad = (float) Math.toRadians(s.body.facingDegrees);
+            float pc = (float) Math.cos(rad);
+            float psn = (float) Math.sin(rad);
+            float pvx = pivot[0] * s.scaleMult;
+            float pvy = pivot[1] * s.scaleMult;
+            float cx = cam.cellToScreenX(s.body.x + (pvx * pc - pvy * psn));
+            float cy = cam.cellToScreenY(s.body.y + (pvx * psn + pvy * pc) + altOffset);
             out.addSprite(RenderLayer.SHUTTLES, cache.sprite,
                     cx, cy, pxW, pxH, s.body.facingDegrees,
                     1f, 1f, 1f, alphaMult);
