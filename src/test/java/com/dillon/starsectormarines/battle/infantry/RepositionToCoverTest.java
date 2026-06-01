@@ -36,13 +36,13 @@ public class RepositionToCoverTest {
     }
 
     private static Unit marineAt(BattleSimulation sim, int x, int y) {
-        Unit u = new Unit("m" + sim.getUnits().size(), Faction.MARINE, UnitType.MARINE, x, y);
+        Unit u = new Unit("m" + sim.liveUnitCount(), Faction.MARINE, UnitType.MARINE, x, y);
         sim.addUnit(u);
         return u;
     }
 
     private static Unit enemyAt(BattleSimulation sim, int x, int y) {
-        Unit u = new Unit("e" + sim.getUnits().size(), Faction.DEFENDER, UnitType.MARINE, x, y);
+        Unit u = new Unit("e" + sim.liveUnitCount(), Faction.DEFENDER, UnitType.MARINE, x, y);
         sim.addUnit(u);
         return u;
     }

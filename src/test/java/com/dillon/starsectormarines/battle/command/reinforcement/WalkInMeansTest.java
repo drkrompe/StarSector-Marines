@@ -54,9 +54,13 @@ public class WalkInMeansTest {
         assertTrue(means.canFulfill(sim, req));
         means.dispatch(sim, req);
 
-        long defenders = sim.getUnits().stream().filter(u -> u.faction == Faction.DEFENDER).count();
+        long defenders = 0;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            if (sim.liveUnitAt(i).faction == Faction.DEFENDER) defenders++;
+        }
         assertTrue(defenders > 0, "walk-in spawned at least one defender");
-        for (Unit u : sim.getUnits()) {
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            Unit u = sim.liveUnitAt(i);
             if (u.faction != Faction.DEFENDER) continue;
             assertEquals(0, topo.getBuildingId(u.getCellX(), u.getCellY()),
                     "no walk-in unit may spawn inside a building footprint");

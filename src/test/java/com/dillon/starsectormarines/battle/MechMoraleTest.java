@@ -71,7 +71,7 @@ public class MechMoraleTest {
     public void crossingFirstHpThresholdDrainsOnePerThreshold() {
         BattleSimulation sim = openSim();
         Squad sq = mechSquad(sim, 1, MechRole.ARMORED_SUPPORT);
-        Unit mech = sim.getUnits().get(0);
+        Unit mech = sim.liveUnitAt(0);
         float starting = mech.mech.morale;
 
         // Damage to 70% HP — crosses the 0.75 threshold once.
@@ -88,7 +88,7 @@ public class MechMoraleTest {
     public void multipleThresholdsInOneHitDrainMultipleSteps() {
         BattleSimulation sim = openSim();
         Squad sq = mechSquad(sim, 1, MechRole.ARMORED_SUPPORT);
-        Unit mech = sim.getUnits().get(0);
+        Unit mech = sim.liveUnitAt(0);
 
         // Damage straight to ~5% HP — crosses 0.75, 0.50, 0.25, 0.10 (4 thresholds).
         sim.applyDamage(mech, mech.getMaxHp() * 0.95f, 1f);
@@ -104,7 +104,7 @@ public class MechMoraleTest {
     public void thresholdsAreMonotonic_reDamageBelowDoesNotDrainAgain() {
         BattleSimulation sim = openSim();
         Squad sq = mechSquad(sim, 1, MechRole.ARMORED_SUPPORT);
-        Unit mech = sim.getUnits().get(0);
+        Unit mech = sim.liveUnitAt(0);
 
         // First hit: cross 0.75 (1 drain).
         sim.applyDamage(mech, mech.getMaxHp() * 0.30f, 1f);
@@ -126,7 +126,7 @@ public class MechMoraleTest {
         // stay at its initial 1.0 even after a mech takes a hit.
         BattleSimulation sim = openSim();
         Squad sq = mechSquad(sim, 4, MechRole.ARMORED_SUPPORT);
-        Unit mech = sim.getUnits().get(0);
+        Unit mech = sim.liveUnitAt(0);
 
         sim.applyDamage(mech, mech.getMaxHp() * 0.30f, 1f);
 
@@ -141,7 +141,7 @@ public class MechMoraleTest {
         BattleSimulation sim = openSim();
         Squad sq = mechSquad(sim, 1, MechRole.ARMORED_SUPPORT);
         hideEnemy(sim);
-        Unit mech = sim.getUnits().get(0);
+        Unit mech = sim.liveUnitAt(0);
         mech.setHp(mech.getMaxHp() * 0.40f); // below the 0.50 gate
         mech.mech.morale = 1.0f; // overshoot — caller forced past cap, recovery clamps
         mech.mech.timeSinceUnderFire = 10f; // out of under-fire window
@@ -157,7 +157,7 @@ public class MechMoraleTest {
         BattleSimulation sim = openSim();
         Squad sq = mechSquad(sim, 1, MechRole.ARMORED_SUPPORT);
         hideEnemy(sim);
-        Unit mech = sim.getUnits().get(0);
+        Unit mech = sim.liveUnitAt(0);
         mech.mech.morale = 0.10f; // below 0.60 broken threshold (cap=1.0)
         mech.mech.timeSinceUnderFire = 0f; // in under-fire — no recovery
 
@@ -176,7 +176,7 @@ public class MechMoraleTest {
         BattleSimulation sim = openSim();
         Squad sq = mechSquad(sim, 1, MechRole.ARMORED_SUPPORT);
         hideEnemy(sim);
-        Unit mech = sim.getUnits().get(0);
+        Unit mech = sim.liveUnitAt(0);
         mech.mech.morale = 0.70f;
         mech.mech.moraleBroken = true;
         mech.mech.timeSinceUnderFire = 10f;
@@ -193,11 +193,12 @@ public class MechMoraleTest {
         BattleSimulation sim = openSim();
         Squad sq = mechSquad(sim, 4, MechRole.ARMORED_SUPPORT);
         hideEnemy(sim);
-        sim.getUnits().get(0).mech.morale = 0.05f;
-        sim.getUnits().get(1).mech.morale = 0.05f;
-        sim.getUnits().get(2).mech.morale = 1.0f;
-        sim.getUnits().get(3).mech.morale = 1.0f;
-        for (Unit u : sim.getUnits()) {
+        sim.liveUnitAt(0).mech.morale = 0.05f;
+        sim.liveUnitAt(1).mech.morale = 0.05f;
+        sim.liveUnitAt(2).mech.morale = 1.0f;
+        sim.liveUnitAt(3).mech.morale = 1.0f;
+        for (int i = 0; i < sim.liveUnitCount(); i++) {
+            Unit u = sim.liveUnitAt(i);
             if (u.mech != null) u.mech.timeSinceUnderFire = 0f;
         }
 
@@ -213,9 +214,10 @@ public class MechMoraleTest {
         BattleSimulation sim = openSim();
         Squad sq = mechSquad(sim, 4, MechRole.ARMORED_SUPPORT);
         hideEnemy(sim);
-        sim.getUnits().get(0).mech.morale = 0.05f;
-        for (int i = 1; i < 4; i++) sim.getUnits().get(i).mech.morale = 1.0f;
-        for (Unit u : sim.getUnits()) {
+        sim.liveUnitAt(0).mech.morale = 0.05f;
+        for (int i = 1; i < 4; i++) sim.liveUnitAt(i).mech.morale = 1.0f;
+        for (int i = 0; i < sim.liveUnitCount(); i++) {
+            Unit u = sim.liveUnitAt(i);
             if (u.mech != null) u.mech.timeSinceUnderFire = 0f;
         }
 

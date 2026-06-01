@@ -237,10 +237,10 @@ public class UnitRegistryTest {
         u.setMaxHp(99f);
         r.release(u.entityId);
 
-        // After release: registry no longer holds the slot, but legacy
-        // consumers iterating sim.getUnits() can still read sane HP from the
-        // unit reference because release snapshotted the moment-of-death
-        // value back onto localHp/localMaxHp.
+        // After release: registry no longer holds the slot, but post-release
+        // readers still holding the unit reference (test fixtures, any
+        // corpse-side consumer) can read sane HP because release snapshotted
+        // the moment-of-death value back onto localHp/localMaxHp.
         assertNull(u.registry);
         assertEquals(-1, u.denseIdx);
         assertEquals(17f, u.getHp(), 1e-6f);

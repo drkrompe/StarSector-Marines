@@ -203,7 +203,8 @@ public class SecureObjectiveZoneTest {
         sim.addUnit(planter);
 
         // Advance objective progress past its duration so isComplete() flips true.
-        for (Unit u : sim.getUnits()) {
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            Unit u = sim.liveUnitAt(i);
             if (u.role == UnitRole.PLANTER) {
                 u.setCellPos(8, 3);
                 u.setMoveProgress(0f);

@@ -145,7 +145,7 @@ public class ConquestObjectiveTest {
         // Use a held marine reference so we can kill it after the
         // capture-loop adds its own (and that one too).
         captureAll(sim, service, system, 5, 5);
-        for (Unit u : sim.getUnits()) {
+        for (Unit u : TestUnits.snapshot(sim)) {
             if (u.faction == Faction.MARINE) TestUnits.kill(sim, u);
         }
 
@@ -179,7 +179,7 @@ public class ConquestObjectiveTest {
         // we then kill every marine to simulate the "stormed the keep but
         // got wiped" tick.
         captureAll(sim, service, system, 5, 5);
-        for (Unit u : sim.getUnits()) {
+        for (Unit u : TestUnits.snapshot(sim)) {
             if (u.faction == Faction.MARINE) TestUnits.kill(sim, u);
         }
 

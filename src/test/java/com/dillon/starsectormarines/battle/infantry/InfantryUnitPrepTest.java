@@ -32,7 +32,7 @@ public class InfantryUnitPrepTest {
     }
 
     private static Unit rocketeer(BattleSimulation sim, Faction f, int x, int y) {
-        Unit u = new Unit("u" + sim.getUnits().size(), f, UnitType.MARINE, x, y);
+        Unit u = new Unit("u" + sim.liveUnitCount(), f, UnitType.MARINE, x, y);
         u.primaryWeapon = MarineWeapon.PULSE_RIFLE;
         u.setAttackRange(u.primaryWeapon.range);
         u.secondaryWeapon = MarineSecondary.ROCKET_LAUNCHER;
@@ -42,7 +42,7 @@ public class InfantryUnitPrepTest {
     }
 
     private static MapTurret turret(BattleSimulation sim, Faction f, TurretKind kind, int x, int y) {
-        MapTurret t = new MapTurret("t" + sim.getUnits().size(), f, kind, x, y);
+        MapTurret t = new MapTurret("t" + sim.liveUnitCount(), f, kind, x, y);
         sim.addUnit(t);
         return t;
     }

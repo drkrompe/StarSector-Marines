@@ -120,9 +120,9 @@ public class GarrisonAmbushTest {
     public void relevancePositiveForGarrisonInPortalZoneWithEnemy() {
         BattleSimulation sim = singlePortalRoom();
         Squad squad = garrisonSquadAt(1, 6f, 6f, 2);
-        // Put a defender member inside the room too, so sim.getUnits() reflects
+        // Put a defender member inside the room too, so the live roster reflects
         // a realistic squad layout (the relevance check itself only consults
-        // squad.holdsFireUntilKillZone + the unit list for "enemy known").
+        // squad.holdsFireUntilKillZone + the live units for "enemy known").
         Unit defender = new Unit("d1", Faction.DEFENDER, UnitType.MARINE, 5, 6);
         defender.squadId = squad.id;
         sim.addUnit(defender);

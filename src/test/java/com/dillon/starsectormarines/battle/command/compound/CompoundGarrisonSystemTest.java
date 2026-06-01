@@ -226,7 +226,7 @@ public class CompoundGarrisonSystemTest {
                 "no duplicate shuttle while compound stays MARINE_HELD");
 
         // Defender recaptures: kill the marine, add a defender, tick capture system.
-        for (Unit u : sim.getUnits()) {
+        for (Unit u : TestUnits.snapshot(sim)) {
             if (u.faction == Faction.MARINE) TestUnits.kill(sim, u);
         }
         sim.addUnit(new Unit("def-1", Faction.DEFENDER, UnitType.MILITIA, 5, 5));
@@ -246,7 +246,7 @@ public class CompoundGarrisonSystemTest {
         tickGarrison(garrison, sim, service, 1);
 
         // Second marine capture → second garrison shuttle.
-        for (Unit u : sim.getUnits()) {
+        for (Unit u : TestUnits.snapshot(sim)) {
             if (u.faction == Faction.DEFENDER) TestUnits.kill(sim, u);
         }
         sim.addUnit(new Unit("cap-m2", Faction.MARINE, UnitType.MARINE, 5, 5));

@@ -3,6 +3,9 @@ package com.dillon.starsectormarines.battle.unit;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Unit;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Test-only helpers for unit lifecycle that mirror production semantics
  * the test fixtures can't get for free.
@@ -35,5 +38,22 @@ public final class TestUnits {
     public static void kill(BattleSimulation sim, Unit u) {
         u.setHp(0f);
         sim.releaseFromRegistry(u.entityId);
+    }
+
+    /**
+     * Snapshot of the currently-live units in dense-registry order, as a fresh
+     * {@code List<Unit>}. Replaces the old {@code sim.getUnits()} for tests that
+     * index ({@code .get(i)}) or iterate the roster: capture it <em>once</em>
+     * before any {@link #kill}, and the held references stay stable across
+     * subsequent kills — mirroring how the legacy live+dead list kept dead
+     * entries at their slots. (Re-snapshotting after a kill reflects swap-and-pop
+     * reordering, so don't re-take it mid-sequence when stable indices matter.)
+     */
+    public static List<Unit> snapshot(BattleSimulation sim) {
+        List<Unit> out = new ArrayList<>(sim.liveUnitCount());
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            out.add(sim.liveUnitAt(i));
+        }
+        return out;
     }
 }

@@ -56,8 +56,9 @@ public class BreachAndAdvanceTest {
     private static SquadPlan attach(BattleSimulation sim, Squad squad, BreachAndAdvance action) {
         SquadPlan.Step step = new SquadPlan.Step(action);
         int slotIdx = 0;
-        for (Unit u : sim.getUnits()) {
-            if (!u.isAlive() || u.squadId != squad.id) continue;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            Unit u = sim.liveUnitAt(i);
+            if (u.squadId != squad.id) continue;
             step.assignments.put("breacher:" + slotIdx, new java.util.ArrayList<>(List.of(u)));
             slotIdx++;
         }
@@ -80,7 +81,7 @@ public class BreachAndAdvanceTest {
 
         // No members are near the stack-up cells yet → first execute should
         // path members toward the stack-up cell, not the forward cell.
-        Unit m0 = sim.getUnits().get(0);
+        Unit m0 = sim.liveUnitAt(0);
         action.execute(m0, sq, sim);
         assertNotEquals(0, m0.pathCellCount(), "stack-up phase queues a path");
         // Path destination is the stack-up cell, not the forward cell.
@@ -136,7 +137,7 @@ public class BreachAndAdvanceTest {
         // timer says we've waited long enough.
         sq.breachStackupTimer = BreachAndAdvance.STACKUP_TIMEOUT_SECONDS + 0.1f;
 
-        Unit m0 = sim.getUnits().get(0);
+        Unit m0 = sim.liveUnitAt(0);
         action.execute(m0, sq, sim);
         int destX = m0.pathCellX(m0.pathCellCount() - 1);
         assertEquals(14, destX, "timeout commits the breach — path heads for forward cell");
