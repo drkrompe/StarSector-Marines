@@ -46,6 +46,8 @@ c50e50d  battle: collapse Group N local* duality (Phase A Slice 1)  ← 2026-06-
 2a3abc8  battle: harden DeathDispatcher.drain() for re-entrant publish  ← 2026-06-01
 40fa668  battle: model the drone crash as a Crashing component (first composition slice)  ← 2026-06-01
 90f5fd5  battle: decompose render position out of UnitRegistry into RenderPositionService  ← 2026-06-01
+aa55855  ai(ecs-migration): document the first-write invariant on RenderPositionService setters  ← 2026-06-01
+<pending> battle: migrate dead-sprite render onto a DeadBody component (last Bucket-B reader)  ← 2026-06-01
 ```
 
 (Sibling tracks interleaved on HEAD, not ECS-migration: `9084ed4` battle-render
@@ -79,18 +81,22 @@ campaign work.)
   per-drone `DeathEvent`s so the seam handles cascade kills. **This is the
   pattern everything else follows now — stop deferring composition to a "future
   phase."** ([[feedback_build_composition_now]].)
-- **`UnitRegistry` decomposition STARTED — render position pulled out.** Render
-  position (`renderX/renderY`) is now a standalone `RenderPositionService`
+- **`UnitRegistry` decomposition + corpse home — DONE through all of Bucket-B.**
+  Render position (`renderX/renderY`) is now a standalone `RenderPositionService`
   (`battle.unit`), a float API over a `ComponentStore<RenderPosition>`, keyed by
-  `entityId` and **surviving registry release** — the corpse keeps its death-pose
-  location for free. Picked first because nothing reads it densely (zero
-  `renderXArray()` callers), so it's zero-perf / zero-behavior-change for the
-  living and collapses the render half of the `local*` duality. Hot-dense
-  columns (`cellX/cellY`, hp, timers) stay in the dense table. This is the
-  survive-release enabler for the last Bucket-B reader,
-  `UnitRenderService.sweepDeadSprites` (infantry dead pose) — which still
-  *scans* `getUnits()`; migrating that scan onto a corpse iteration source is
-  the remaining 2c step.
+  `entityId` and **surviving registry release**. Picked first because nothing
+  reads it densely (zero `renderXArray()` callers), so it's zero-perf /
+  zero-behavior-change for the living and collapses the render half of the
+  `local*` duality. Hot-dense columns (`cellX/cellY`, hp, timers) stay dense.
+- **Dead-sprite render migrated → corpse home complete.** `sweepDeadSprites` no
+  longer scans `getUnits()`: a `DeadBody` component (`type` + `deathPoseIdx`) is
+  recorded on every `DeathEvent` by `DeadBodySystem`, and the sweep iterates
+  `getDeadBodies()` paired with the surviving render-position entry. **A corpse
+  is now literally an entity present in the dead-body + render-position stores
+  and absent from the live registry's health/AI** — the composition the user
+  asked for, realized. All four Bucket-B corpse-readers are off the list
+  (sequencing step 1 done). **Next is Bucket-A** (the ~20 live-iterators →
+  dense registry; mechanical, fan-out-able to Sonnet).
 
 ## Active stories (priority order)
 
@@ -157,24 +163,23 @@ campaign work.)
 >    over the component-set; FX is the side effect of the component. First real
 >    composition in the battle tier — the pattern the rest follows. Drain
 >    hardened for the re-entrant cascade publish. See the spine story's Progress.
-> 2c. **`UnitRegistry` decomposition — render position SHIPPED; sweepDeadSprites
->    scan migration NEXT.** The user called for splitting the single kitchen-sink
->    table into per-component services so a corpse is just an entity present in a
->    *subset* of stores. **Started:** render position (`renderX/renderY`) → a
->    standalone `RenderPositionService` (a float API over a
->    `ComponentStore<RenderPosition>`), keyed by `entityId`, surviving release —
->    so the corpse's death-pose location persists with no `local*` snapshot. Picked
->    render first because the audit found zero dense readers of it (so zero-perf /
->    zero-behavior-change); `cellX/cellY`/hp/timers stay dense until a consumer
->    pulls them out. **Remaining 2c:** `UnitRenderService.sweepDeadSprites` still
->    *scans* `getUnits()` for `!isAlive()`; give it a corpse/dead-pose iteration
->    source (a dead-pose component the sweep reads, the way `DroneRenderSystem`
->    reads the crash store) so it no longer touches the legacy list. Then the
->    other per-component splits land as their consumers demand them (next likely:
->    a `deathPoseIdx`/`DeadBody` component to retire the sweep's list scan). Build
->    composition, don't defer it ([[feedback_build_composition_now]]). The
->    `Crashing` slice + `RenderPositionService` are the templates.
-> 3. Bucket-A sweep (`getUnits()` → dense registry; fan out to Sonnet).
+> 2c. ~~**`UnitRegistry` decomposition — render position + dead-sprite render.**~~
+>    **SHIPPED.** Render position (`renderX/renderY`) → a standalone
+>    `RenderPositionService` (float API over a `ComponentStore<RenderPosition>`),
+>    keyed by `entityId`, surviving release. Then the dead-sprite render moved off
+>    the `getUnits()` scan onto a `DeadBody` component (`type` + `deathPoseIdx`,
+>    recorded on every `DeathEvent` by `DeadBodySystem`), paired at draw time with
+>    the surviving render-position entry. A corpse is now an entity present in the
+>    dead-body + render-position stores and absent from the live registry —
+>    **corpse home complete; all four Bucket-B readers off the list.** Remaining
+>    dense columns (`cellX/cellY`/hp/timers) stay until a consumer pulls them
+>    (B1 grouping). ([[feedback_build_composition_now]].)
+>
+> 3. **NEXT — Bucket-A sweep.** Migrate the ~20 live-iterators `getUnits()` →
+>    dense registry; each is a local `isAlive`-gate → dense `[0, liveCount())`
+>    loop. Mechanical; fan out to Sonnet. (`GoapInfantryBehavior`, live passes in
+>    `UnitRenderService`, `WorldPicker`, `AttackerIndexService`, `FleeBehavior`,
+>    `TacticalScoring`, objective/recapture counts, etc.)
 > 4. Bucket-C cleanup; delete `UnitRosterService.units`.
 > 5. Revert Group-N accessors to unconditional (fail-loud); drop the
 >    `midCombatAccessorsReturnDefaultsWhenUnregistered` regression test.

@@ -117,12 +117,18 @@ the component boundaries now so Valhalla is a layout swap, not a rewrite.
     zero-behavior-change for the living, and it collapses the render half of the
     `local*`/release-snapshot duality. Hot-dense columns (`cellX/cellY`, hp,
     combat/AI timers) stay in the dense table — pulled only as a consumer demands.
-  - **Next pull:** migrate `UnitRenderService.sweepDeadSprites` itself off the
-    legacy `getUnits()` scan — the render-survives-release enabler is now in
-    place, so the remaining work is a corpse iteration source (a dead-pose
-    component the sweep reads, the way `DroneRenderSystem` reads the crash store)
-    rather than scanning the units list for `!isAlive()`. Then B1 grouping for the
-    dense columns.
+  - **B2.6 dead-sprite render decomposed SHIPPED — corpse home complete.**
+    `UnitRenderService.sweepDeadSprites` no longer scans `getUnits()`: a `DeadBody`
+    component (render identity: `type` + `deathPoseIdx`) is recorded on every
+    `DeathEvent` by `DeadBodySystem`, and the sweep iterates that store paired
+    with the surviving `RenderPositionService` entry. A corpse is now literally an
+    entity present in the dead-body + render-position stores and absent from the
+    live registry's health/AI — the composition target, realized. All four
+    Bucket-B corpse-readers are off the legacy list.
+  - **Next:** Bucket-A sweep — the ~20 live-iterators move `getUnits()` → dense
+    registry; then Bucket-C, delete the list, revert Group-N accessors to
+    fail-loud. Plus B1 grouping for the dense columns (Position/Combat/… structs)
+    when a consumer pulls it.
 - **Phase C — deferred (gated on heterogeneity).** Generic aspect /
   presence-bitset queries and (if ever) multi-archetype storage. Only when
   branch-on-`role` + sentinel columns measurably cost more than a bitset

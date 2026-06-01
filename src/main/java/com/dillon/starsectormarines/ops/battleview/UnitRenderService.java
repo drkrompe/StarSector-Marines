@@ -1,9 +1,12 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.component.ComponentStore;
+import com.dillon.starsectormarines.battle.component.DeadBody;
 import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.RenderPositionService;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vision.VisionService;
@@ -11,6 +14,7 @@ import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
 import java.awt.Color;
+import java.util.Map;
 
 /**
  * Emits the {@link RenderLayer#UNITS} layer — the heavy world pass. Story J's
@@ -173,30 +177,41 @@ public final class UnitRenderService implements RenderSystem {
      * selection, same aspect-fit into the {@code renderScale}d cell box, no vision
      * gate (corpses persist through fog), no flip, no HP bar.
      *
+     * <p>Sourced from the {@code DeadBody} corpse store (keyed by entity id),
+     * <em>not</em> the legacy units list — a body is recorded on the death event
+     * and the position comes from the surviving render-position component under
+     * the same id, so the corpse composes its location rather than holding a
+     * released {@link Unit} handle.
+     *
      * <p>Two gates, both required: {@link RenderAppearance#hasDeathPose} is the
      * type-level "this type declares a corpse sheet" flag, but {@code deathPoseIdx}
-     * is set to a non-negative pose for <em>every</em> dying unit (including
-     * null-corpse civilians), so the instance {@code deathPoseIdx >= 0} check is
-     * still needed — the flyweight tag does not subsume it. The cache guard then
-     * covers the not-yet-loaded / empty-sheet case.
+     * is set to a non-negative pose only for units that died through the damage
+     * resolver (a cascade-killed drone keeps {@code -1}), so the instance
+     * {@code deathPoseIdx >= 0} check is still needed — the flyweight tag does not
+     * subsume it. The cache guard then covers the not-yet-loaded / empty-sheet
+     * case. No vision gate: corpses persist through fog.
      */
     private void sweepDeadSprites(RenderContext ctx, DrawList out) {
+        ComponentStore<DeadBody> bodies = ctx.sim.getDeadBodies();
+        if (bodies.isEmpty()) return;
+
         BattleCamera cam = ctx.camera;
         // Base cell-sprite size shared across UNITS strata; renderScale applied below.
         float unitSize = cam.cellPxSize() * BattleRenderer.UNIT_FRAC;
         float alphaMult = ctx.alphaMult;
+        RenderPositionService renderPositions = ctx.sim.getUnitRegistry().getRenderPositions();
 
-        for (Unit u : ctx.sim.getUnits()) {
-            if (u.isAlive()) continue;
-            if (u.deathPoseIdx < 0) continue;
-            RenderAppearance app = RenderAppearance.of(u.type);
+        for (Map.Entry<Long, DeadBody> entry : bodies.entries()) {
+            DeadBody body = entry.getValue();
+            if (body.deathPoseIdx < 0) continue;
+            RenderAppearance app = RenderAppearance.of(body.type);
             if (!app.hasDeathPose) continue;
-            UnitSpriteCache cache = sprites.unitDeadSprites().get(u.type);
+            UnitSpriteCache cache = sprites.unitDeadSprites().get(body.type);
             if (cache == null || cache.sheet == null || cache.frames == null
                     || cache.frames.frames.length == 0) continue;
 
             SpriteSheetFrames frames = cache.frames;
-            int frameIdx = ((u.deathPoseIdx % frames.frames.length) + frames.frames.length)
+            int frameIdx = ((body.deathPoseIdx % frames.frames.length) + frames.frames.length)
                     % frames.frames.length;
             SpriteSheetFrames.Frame f = frames.frames[frameIdx];
 
@@ -209,8 +224,9 @@ public final class UnitRenderService implements RenderSystem {
                 targetH = scaledSize;
                 targetW = scaledSize * f.w / (float) f.h;
             }
-            float cx = cam.cellToScreenX(u.getRenderX() + 0.5f);
-            float cy = cam.cellToScreenY(u.getRenderY() + 0.5f);
+            long id = entry.getKey();
+            float cx = cam.cellToScreenX(renderPositions.getX(id) + 0.5f);
+            float cy = cam.cellToScreenY(renderPositions.getY(id) + 0.5f);
             out.addSheetQuad(RenderLayer.UNITS, cache.sheet,
                     f.x, f.y, f.w, f.h,
                     cx, cy, targetW, targetH,

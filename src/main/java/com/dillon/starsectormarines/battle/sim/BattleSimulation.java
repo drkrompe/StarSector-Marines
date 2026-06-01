@@ -131,6 +131,11 @@ public class BattleSimulation implements BattleControl {
             new com.dillon.starsectormarines.battle.component.ComponentStore<>();
     /** Drone-crash system — death-event handler that attaches a {@code Crashing} component to a dead drone + the per-tick processor that drives the fall/impact lifecycle over {@link #crashing}. Subscribed to {@link #deathDispatcher} in the constructor. */
     private final com.dillon.starsectormarines.battle.drone.DroneCrashSystem droneCrashes;
+    /** Corpse body store — a {@code DeadBody} component per dead unit (the corpse home). Populated by {@link #deadBodySystem} on death, read by the dead-sprite renderer (which pairs it with the surviving render-position component to draw the frozen death pose). Keyed by entity id, so a corpse survives release from {@link UnitRegistry}. */
+    private final com.dillon.starsectormarines.battle.component.ComponentStore<com.dillon.starsectormarines.battle.component.DeadBody> deadBodies =
+            new com.dillon.starsectormarines.battle.component.ComponentStore<>();
+    /** Dead-body system — death-event handler that records a {@code DeadBody} component for every unit that dies, over {@link #deadBodies}. Subscribed to {@link #deathDispatcher} in the constructor. */
+    private final com.dillon.starsectormarines.battle.unit.DeadBodySystem deadBodySystem;
     /** Per-tick squad fall-back driver — arrival detection + trigger evaluation. Initialized in the constructor. */
     private final com.dillon.starsectormarines.battle.squad.SquadFallbackSystem squadFallback;
     /** Per-tick squad alert / awareness driver — drives the ENGAGED/SUSPICIOUS/UNAWARE state machine + kill-zone gating + audible-gunfire promotion. Initialized in the constructor. */
@@ -300,6 +305,8 @@ public class BattleSimulation implements BattleControl {
         this.droneCrashes = new com.dillon.starsectormarines.battle.drone.DroneCrashSystem(
                 navigation, effects, crashing);
         deathDispatcher.subscribe(droneCrashes::onDeath);
+        this.deadBodySystem = new com.dillon.starsectormarines.battle.unit.DeadBodySystem(deadBodies);
+        deathDispatcher.subscribe(deadBodySystem::onDeath);
         this.squadFallback = new com.dillon.starsectormarines.battle.squad.SquadFallbackSystem(
                 navigation, rosterService, this::clearPath);
         this.squadAlert = new com.dillon.starsectormarines.battle.squad.SquadAlertSystem(
@@ -357,6 +364,9 @@ public class BattleSimulation implements BattleControl {
     public List<Unit> getUnits()           { return units; }
     /** Crash component store — entities falling out of the sky after death (a {@code Crashing} component each). Read by the drone renderer to draw the falling sprite + fade; written only by {@link #droneCrashes}. */
     public com.dillon.starsectormarines.battle.component.ComponentStore<com.dillon.starsectormarines.battle.component.Crashing> getCrashing() { return crashing; }
+
+    /** Corpse body store — a {@code DeadBody} component per dead unit. Read by the dead-sprite renderer (paired with the surviving render-position component); written only by {@link #deadBodySystem}. Survives registry release (keyed by entity id). */
+    public com.dillon.starsectormarines.battle.component.ComponentStore<com.dillon.starsectormarines.battle.component.DeadBody> getDeadBodies() { return deadBodies; }
     public List<Shuttle> getShuttles()     { return airSystem.getShuttles(); }
     /** Active convoy / ground transport craft (moving trucks, APCs). Distinct from {@link #getVehicles()}, which lists the static map-vehicle obstacles. */
     public List<Vehicle> getConvoyVehicles() { return groundSystem.getVehicles(); }

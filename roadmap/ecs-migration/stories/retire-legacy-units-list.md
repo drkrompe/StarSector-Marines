@@ -44,7 +44,7 @@ live pass, `WorldPicker`, `AttackerIndexService`, `FleeBehavior`,
 ### Bucket B — corpse-readers (4 sites) — need a corpse home
 | Site | Post-death job | Shape |
 |---|---|---|
-| `UnitRenderService.sweepDeadSprites` | draw the frozen death pose for the rest of the battle | **static** — render-only — the last Bucket-B reader; wants a body/corpse the way the crash now uses a component (an entity present in position+render component stores after release) |
+| ~~`UnitRenderService.sweepDeadSprites`~~ | draw the frozen death pose for the rest of the battle | **static** — render-only — **MIGRATED** to a `DeadBody` **component**. A body is recorded on every `DeathEvent` (`DeadBodySystem`), and the sweep iterates that store paired with the surviving render-position component — no units-list scan, no `Unit` handle. Same render gates (pose ≥ 0 / `hasDeathPose` / cache). **All four Bucket-B readers now done → corpse home complete.** |
 | ~~`DroneCrashSystem`~~ | multi-tick fall → impact → wreck animation | **lifecycle** — **MIGRATED** to a `Crashing` **component** + presence-driven system (slice 2b). The crash is composition now: a dead drone *has* a `Crashing` component, the system processes the component-set (no units-list scan), FX is the side effect. `DroneRenderSystem` reads the same store. The hub cascade publishes per-drone `DeathEvent`s so the seam handles cascade kills too. |
 | ~~`TurretDemolitionSystem`~~ | flip dead turret cell to rubble; mark `demolished` | **reaction** — same-tick, reads `cellX/Y` — **MIGRATED** to `onDeath(DeathEvent)` (foundation slice). Its guardpost-all-dead scan still reads the list; migrates with the rest of this bucket. |
 | ~~`HubDemolitionSystem`~~ | cascade-kill a dead hub's drones; flip to rubble | **reaction** — same-tick, reads `homeHub` backlink — **MIGRATED** to `onDeath(DeathEvent)` (slice 2a). Its drone cascade still scans the list, and the drones it hp=0s bypass `DamageResolver` so they don't publish their own `DeathEvent` — fine while the crash system list-scans for dead drones; revisit when it migrates. |
@@ -165,19 +165,37 @@ Open sub-questions for the build (resolve as we go, don't over-design):
   - **Still on the list:** `sweepDeadSprites` itself still *scans* `getUnits()`
     for dead units (reading the now-surviving `getRenderX()`); migrating that
     scan to a corpse/dead-pose iteration source is the remaining 2c work.
+- **Slice 2c SHIPPED (2026-06-01) — corpse home complete; last Bucket-B reader
+  migrated.** `UnitRenderService.sweepDeadSprites` no longer scans the legacy
+  `getUnits()` list. New `DeadBody` component (`battle.component`) — the corpse's
+  render identity (`type` + `deathPoseIdx`); a `DeadBodySystem` (`battle.unit`)
+  subscribed to the death dispatcher records one on **every** `DeathEvent`,
+  keyed by entity id, surviving release. The render sweep iterates the
+  `getDeadBodies()` store and pairs each body with its surviving
+  `RenderPositionService` entry (the prior slice) to place the sprite — a corpse
+  is now literally *an entity present in the dead-body + render-position stores
+  and absent from the live registry*. Render gates unchanged (`deathPoseIdx ≥ 0`
+  / `hasDeathPose` / cache guard), still no vision gate. Attaches a body for
+  every death (not just sprited types) so the store is a true body home for
+  future medics/revive; the render filter handles "has corpse art". Verified
+  faithful: both production death paths publish a `DeathEvent` (`DamageResolver`
+  + the hub cascade), so every corpse-with-pose that the old list-scan drew now
+  has a `DeadBody`. Test: `DeadBodySystemTest` (attach-on-drain, survives-release
+  paired with render position, no-body-while-alive). **With this, all four
+  Bucket-B corpse-readers are off the list — sequencing step 1 (corpse home) is
+  done.**
 
 ## Sequencing
 
-1. **Corpse home (enabler).** Build the death-event + component mechanism;
-   migrate the 4 Bucket-B readers off the list. *(Death-event mechanism +
-   turret demolition + hub demolition + drone crash done — see Progress; the
-   crash proved the component pattern. **Render position is now decomposed out
-   of `UnitRegistry` into `RenderPositionService` (entity-id-keyed, survives
-   release)** — the first per-component-service split and the survive-release
-   enabler `sweepDeadSprites` needs. Remaining: migrate `UnitRenderService.`
-   `sweepDeadSprites` off the `getUnits()` scan onto a corpse/dead-pose
-   iteration source — a corpse = an entity present in the render store but not
-   health/AI. See [[feedback_build_composition_now]].)*
+1. ~~**Corpse home (enabler).** Build the death-event + component mechanism;
+   migrate the 4 Bucket-B readers off the list.~~ **DONE.** Death-event mechanism
+   + turret demolition + hub demolition + drone crash (`Crashing` component) +
+   render-position decomposition (`RenderPositionService`, entity-id-keyed,
+   survives release) + the dead-sprite render (`DeadBody` component +
+   `DeadBodySystem`, the last Bucket-B reader). A corpse is now an entity present
+   in the dead-body + render-position component stores and absent from the live
+   registry's health/AI — exactly the composition target
+   ([[feedback_build_composition_now]]). No Bucket-B reader scans the list.
 2. **Bucket A sweep.** Migrate the ~20 live-iterators `getUnits()` → dense
    registry. Fan out to Sonnet; each is a local `isAlive`-gate → dense loop.
 3. **Bucket C cleanup.** Point UI/debug/flyby at the registry; resolve
