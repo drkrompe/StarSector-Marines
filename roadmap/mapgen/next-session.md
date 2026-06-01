@@ -19,7 +19,8 @@ b8b7b9d  mapgen: Slice D — ternary keep wiring + multi-chamber stamper emissio
 65c5686  mapgen: Slice 2a — GenStage pipeline (extract generate() into stages)
 8666b8f  mapgen: Slice 2b — fold stampers into GenStage classes
 bf0cf22  mapgen: hoist FortressWallStamper ctx reads to top of run()
-7016b8e  mapgen: Slice 3 — GenRecipe; conquest/legacy recipes selected by axis  ← latest mapgen work
+7016b8e  mapgen: Slice 3 — GenRecipe; conquest/legacy recipes selected by axis
+537ca03  mapgen: structural taxonomy Lever 1 — TacticalRegion segmentation  ← latest mapgen work
 ```
 
 Full per-slice mapping (what landed vs. planned, Slice A critique
