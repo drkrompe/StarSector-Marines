@@ -57,6 +57,10 @@ a30f0bd  battle: InfantryWeapons + Detonations off the units list (snapshot-then
 7b66db8  battle: FlybyOverlay AoE + hub cascade off the units list (snapshot-then-apply)  ← 2026-06-01
 c1fb304  battle: EquipmentDrop + turret guardpost scan dense; drop DamageResolver dead field  ← 2026-06-01
 78f54fe  battle: UI/debug consumers off the units list (Bucket-C)  ← 2026-06-01
+8b0e110  battle: repoint internal consumers to the dense registry (step 4 stage A)  ← 2026-06-01
+879c766  test: migrate the test surface off sim.getUnits() (step 4 stage B)  ← 2026-06-01
+1ed41bc  battle: delete the legacy live+dead units list (step 4 stage C)  ← 2026-06-01
+58d6d5e  battle: Group-N accessors fail-loud again (step 5)  ← 2026-06-01
 ```
 
 (Sibling tracks interleaved on HEAD, not ECS-migration: `9084ed4` battle-render
@@ -65,15 +69,24 @@ campaign work.)
 
 ## State of play
 
-- **Legacy units-list retirement — ALL PRODUCTION READERS OFF (2026-06-01).**
-  Bucket-A waves 1+1b + wave 2 are done: every production consumer of
-  `getUnits()`/`UnitRosterService.units` now reads the dense registry (live), the
-  `DeadBody`/`Crashing` component stores (dead), or reacts to a `DeathEvent`
-  (mech wreck). Mutate-during-iteration sites (combat continuation passes, AoE
-  detonations, flyby strafe, hub cascade) use gather-then-apply snapshots because
-  inline `DamageResolver.resolve` releases the dead target mid-walk. **Only the
-  accessor definitions, the sim's internal `units` alias, and the test surface
-  remain — that's step 4 (delete the list).**
+- **Legacy units-list retirement — COMPLETE (2026-06-01). THE SPINE IS DONE.**
+  `UnitRosterService.units`, `getUnits()` (roster + sim + `BattleView`), and the
+  sim's `units` alias are all **deleted**. The dense `UnitRegistry` is the sole
+  live roster; post-death state lives entirely in the component stores
+  (`DeadBody` / `Crashing` / `RenderPositionService`) keyed by entity id and
+  surviving release. A corpse is literally an entity present in those stores and
+  absent from the live registry. Stages: A (`8b0e110`) repointed the three
+  internal consumers (vision/nav/squad-fallback) to the registry — squad-fallback
+  gathers members sorted by `entityId` to preserve the spawn-priority cover order
+  the insertion-ordered list gave; B (`879c766`) migrated the ~13-file test
+  surface (added `TestUnits.snapshot(sim)` for the index/iterate-then-kill
+  patterns the dense swap-and-pop would otherwise corrupt); C (`1ed41bc`) deleted
+  the list. **Step 5 (`58d6d5e`) reverted all 14 Group-N accessor pairs to
+  unconditional registry reads (fail-loud)** — the null-safe branch only existed
+  for the released-corpse-on-the-list case, now impossible. Four tests that seeded
+  Group-N state pre-`addUnit` were fixed to write after registration. Full suite
+  green at 649 tests. **The acceptance criteria are all met; this story moves to
+  `complete/`.**
 - **Primitives promoted:** hp/maxHp, cellX/cellY, cooldownTimer,
   moveProgress, renderX/renderY, attackDamage, attackRange, accuracy,
   secondaryCooldownTimer, secondaryActionTimer, secondaryAimTargetId,
@@ -219,19 +232,15 @@ campaign work.)
 >      `SquadDetailPanel`, `SquadPlanDebugPanel`; `.size()` counters →
 >      `liveUnitCount()` (live, was live+dead). Dropped the dead `DamageResolver.units`.
 >
->    **REMAINING `getUnits()`/`.units` callers = step-4 only:** the accessor
->    *definitions* (BattleView/BattleSimulation/UnitRosterService), the sim's
->    internal `units` alias passed to `vision.tick` / `rebuildOccupancyMap` /
->    `squadFallback.tick`, and the test surface (~13 files using `getUnits().get(i)`
->    / `.size()`, some with index-after-kill semantics).
-> 4. **Delete `UnitRosterService.units`.** Repoint the three internal-alias readers
->    (vision/nav/squad-fallback) off the `units` field, drop `getUnits()` from
->    BattleView/BattleSimulation/UnitRosterService + the sim's `units` field, then
->    migrate the test surface (`getUnits().get(i)` → `liveUnitAt`, `.size()` →
->    `liveUnitCount`; audit kill-then-index tests for swap-and-pop order). Largest
->    remaining chunk; gated on the test-surface sweep, not on any production reader.
-> 5. Revert Group-N accessors to unconditional (fail-loud); drop the
->    `midCombatAccessorsReturnDefaultsWhenUnregistered` regression test.
+>    **No `getUnits()`/`.units` callers remain — the accessors are gone.**
+> 4. ~~**Delete `UnitRosterService.units`.**~~ **DONE** (stages A `8b0e110` / B
+>    `879c766` / C `1ed41bc`). Internal consumers repointed to the registry,
+>    `getUnits()` dropped from all three types, the sim's `units` alias removed,
+>    the test surface migrated (`TestUnits.snapshot` for index/iterate-then-kill).
+> 5. ~~Revert Group-N accessors to unconditional (fail-loud); drop the
+>    `midCombatAccessorsReturnDefaultsWhenUnregistered` regression test.~~ **DONE**
+>    (`58d6d5e`). All 14 Group-N pairs unconditional; regression test removed;
+>    four pre-allocate-seed tests fixed to write after `addUnit`.
 >
 > Death path facts for the build: `DamageResolver.resolve` (`died` branch,
 > ~line 97-120) already does `deathSink.accept(target)` →
@@ -368,5 +377,5 @@ ordinal int[]). Name them but don't lead with them.
 
 - `gradlew.bat compileJava` should be clean.
 - All tests pass.
-- `git log --oneline -5` should show `9c6267e` or your own recent work
-  at the top.
+- `git log --oneline -5` should show `58d6d5e` (units-list spine complete)
+  or your own recent work at the top.

@@ -239,26 +239,44 @@ Open sub-questions for the build (resolve as we go, don't over-design):
    `SquadStateDumper`'s dead-member dump.~~ **DONE (wave 2).** Panels + profile
    counters → dense/`liveUnitCount()`; `SquadStateDumper` member dump went
    live-only (corpses dropped, by design). `FlybyOverlay` AoE → snapshot.
-4. **Delete `UnitRosterService.units`.** No production readers remain. Repoint
-   the sim's internal `units` alias (vision/nav/squad-fallback) off the field,
-   drop `getUnits()` from the three types, migrate the test surface, then
-   `release()` stops retaining corpses.
-5. **Revert Group-N accessors to unconditional** (fail-loud) — live units are
-   now always registered; the null-safe branch is dead. Same for the Slice-2/3
-   seed/corpse work if not already done.
+4. ~~**Delete `UnitRosterService.units`.**~~ **DONE (2026-06-01).** Stages A
+   (`8b0e110`) / B (`879c766`) / C (`1ed41bc`). Repointed the three internal
+   consumers (vision/nav/squad-fallback) to the dense registry; dropped
+   `getUnits()` from `BattleView`/`BattleSimulation`/`UnitRosterService` + the
+   sim's `units` alias + the list field + `addUnit`'s `units.add`. `release()`
+   now retains nothing (the dense entry is the only roster slot). Test surface
+   migrated via a new `TestUnits.snapshot(sim)` (a before-kills live-units list
+   whose held refs survive later kills — the faithful stand-in for the old
+   live+dead list wherever a test indexes/iterates then kills; the dense
+   registry reorders on swap-and-pop). squad-fallback preserves the old
+   insertion-order cover priority by gathering members sorted by `entityId`.
+5. ~~**Revert Group-N accessors to unconditional** (fail-loud).~~ **DONE
+   (2026-06-01, `58d6d5e`).** All 14 Group-N getter/setter pairs read/write the
+   registry unconditionally again — the null-safe branch only existed for the
+   released-corpse-on-the-list case, now impossible. Dropped the
+   `midCombatAccessorsReturnDefaultsWhenUnregistered` regression test. The flip
+   surfaced four tests that seeded Group-N state before `sim.addUnit` (relying
+   on the old no-op); moved those writes after registration. Group-S seed-only
+   `local*` (maxHp/attack*/accuracy) stay for the pre-allocate window — that's
+   the independent Slice 2.
 
 Independent of this spine: **Slice 2 (Group S seed-only stats)** can land
 whenever — it removes the pre-allocate window and is orthogonal to the list.
 
-## Acceptance
+## Acceptance — ALL MET (2026-06-01)
 
-- `UnitRosterService.units` is gone; nothing reads a `registry == null` `Unit`.
-- Corpses render (decals) and drone-crash/demolition still work, sourced from
-  the corpse mechanism, not the list.
-- Group-N accessors are unconditional again; the `midCombatAccessorsReturn
-  DefaultsWhenUnregistered` regression test is removed or repurposed.
-- Full suite green; a play-test confirms corpses, crashes, and turret/hub
-  demolition look unchanged.
+- ✅ `UnitRosterService.units` is gone; no observable `Unit` has
+  `registry == null` (the only `registry == null` window left is the
+  pre-allocate seed, which the Group-S `local*` fallback covers — independent
+  Slice 2).
+- ✅ Corpses render and drone-crash/demolition still work, sourced from the
+  `DeadBody` / `Crashing` / `RenderPositionService` component stores + the
+  `DeathDispatcher` handlers, not the list.
+- ✅ Group-N accessors are unconditional again; the
+  `midCombatAccessorsReturnDefaultsWhenUnregistered` regression test removed.
+- ✅ Full suite green at 649 tests. (Play-test of corpses/crashes/demolition
+  appearance left to the next on-device run — code paths unchanged from the
+  already-shipped component-store render.)
 
 ## Risk / notes
 
