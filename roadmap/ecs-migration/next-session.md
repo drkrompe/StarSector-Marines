@@ -39,6 +39,7 @@ c49eea7  battle: MapService — runtime map-modification coordinator (Slice 1)  
 65ed79a  battle: narrow Planner.plan to BattleView (critique follow-up)  ← 2026-05-29
 a734122  battle: grow BattleView/BattleControl with command-tier surface  ← 2026-05-29
 cb91e87  battle: flip command tier to BattleView/BattleControl  ← 2026-05-29
+c50e50d  battle: collapse Group N local* duality (Phase A Slice 1)  ← 2026-06-01
 ```
 
 (Sibling tracks interleaved on HEAD, not ECS-migration: `9084ed4` battle-render
@@ -56,9 +57,15 @@ campaign work.)
 - **Five consumers** on dense-iter + SoA array reads. (The burst pass in
   `InfantryWeapons.tick`, `targetId`'s ~17 sites, and the fall-back group's
   break-contact consumers route through accessors, not dense-iter yet.)
-- **Full suite green** at `9c6267e`. The prior `RecaptureTargetRegistryTest`
-  / `BspMapPreviewTest` failures were sibling-session WIP and are no longer
-  failing — never in any ECS-migration changeset.
+- **Duality collapse (Phase A) underway.** Of the 22 promoted columns, the
+  14 Group-N (mid-combat-only) `local*` twins are now gone (`c50e50d`); their
+  accessors read the registry unconditionally. The remaining `local*` are the
+  4 Group-S seed-only stats + the 5 Group-C corpse-read fields (Slices 2–3).
+- **Full suite green** at `9c6267e`; Slice 1 verified via `UnitRegistryTest`
+  (green) + clean `javac` of the touched files. The full `:test` run is
+  currently blocked by an unrelated sibling compile break in
+  `ops/battleview/ShotRenderService.java` (battle-render WIP, untracked) —
+  not an ECS-migration file; re-run `:test` once that lands.
 
 ## Active stories (priority order)
 
@@ -75,13 +82,33 @@ campaign work.)
 > `BattleSimulation` and upcast — narrowing them is optional polish, not
 > coupling reduction.
 >
-> **NEXT PHASE — the component model** (seeded 2026-05-29, not yet started).
-> The SoA-peel + facade work built ECS's storage/transform half; the
-> identity/composition half remains. See [`component-model.md`](component-model.md)
-> (north star) + its two stories. **Resume at
-> [`collapse-unit-handle`](stories/collapse-unit-handle.md)** — hollow `Unit`
-> to an id handle, retire the `local*` duality — then
-> [`component-grouping`](stories/component-grouping.md) — named component
+> **NEXT PHASE — the component model** (seeded 2026-05-29, **Phase A in
+> flight**). The SoA-peel + facade work built ECS's storage/transform half;
+> the identity/composition half remains. See [`component-model.md`](component-model.md)
+> (north star) + its two stories.
+>
+> **Phase A — [`collapse-unit-handle`](stories/collapse-unit-handle.md)** is
+> sliced N → S → C after auditing the spawn + corpse seams (see the story's
+> Progress block):
+> - **Slice 1 (Group N) SHIPPED** (`c50e50d`): the 14 mid-combat-only columns
+>   (timers, burst/secondary/target/fallback/reposition/wander) had no
+>   pre-allocate seed and no post-release reader — their `local*` twins,
+>   accessor fallbacks, and release snapshots were dead weight. Deleted;
+>   accessors now read the registry unconditionally; `allocate` resets them on
+>   slot reuse. ~250 net lines gone.
+> - **Slice 2 (Group S — seed-only: maxHp, attackDamage/Range/accuracy)** —
+>   NEXT. These are written pre-allocate (ctor + deboard loadout) but never
+>   read post-release; collapsing them needs the seed to reach `allocate`
+>   without a `local*` twin (reorder deboard so `allocate` precedes the loadout
+>   setters, or a seed-spec). Removes the pre-allocate window.
+> - **Slice 3 (Group C — corpse: hp, cellX/Y, renderX/Y)** — the only fields
+>   with post-release readers (isAlive, demolition cell, dead-sprite, death
+>   audio). Target: an explicit **death-snapshot** instead of permanent
+>   `local*` shadows — possibly realized as a stamped corpse *decal* or a
+>   minimal "body" entity (renderable + location), which also leaves room for
+>   a future revive mechanic. Decide the shape when we reach it.
+>
+> Then [`component-grouping`](stories/component-grouping.md) — named component
 > structs; optional capabilities as *presence*, not nullable fields. **Forcing
 > function:** the imminent vehicle HP / ground+air-body / mounted-weapon work
 > — model those as components, not more nullable `Unit` fields. Story 5 Slice
