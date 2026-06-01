@@ -16,9 +16,17 @@
 > Full write-up: [`complete/fx-shots-command-model.md`](complete/fx-shots-command-model.md).
 >
 > 🎯 **Active next: pick from the shelf.** The remaining `Custom` passes sort into
-> migratable-geometry (convoy-debug paths, zone overlay, objective arcs/rings,
-> compound markers — several now unlocked by the `LINE`/`RIBBON` primitives) and
-> legitimately-`Custom` FBO blits (`DecalAccumulator`/`LightAccumulator`, flyby).
+> three buckets — **gut-check each for "debug-only / likely-removed" or "placeholder
+> art" before investing; `Custom` is a fine home for both, so don't migrate doomed
+> scaffolding:**
+> - **Debug-only — NOT migration targets** (leave as `Custom` dev tools, or delete
+>   when retired): `renderZoneOverlay` (Z toggle), `renderConvoyDockingPaths`
+>   (`DEBUG_RENDER_DOCKING_PATHS`), `renderSelectedVehicleDebug`.
+> - **Legitimately `Custom` (stay)** — FBO/own-GL: `renderDecals`, `impactFx`,
+>   `flybyOverlay`, `lightAccumulator`.
+> - **Migration candidates** (gameplay geometry, several unlocked by `LINE`/`RIBBON`):
+>   `highlights`, `renderFogOverlay`, `renderRoofs`, `renderObjectiveMarkers`,
+>   `compoundMarkers` — but confirm each is staying (not placeholder viz) first.
 > Or the optional perf follow-up still on the shelf: the ground-FBO
 > work-reduction spike ([`stories/perf-ground-fbo-cache.md`](stories/perf-ground-fbo-cache.md)).
 
