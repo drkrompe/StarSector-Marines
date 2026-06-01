@@ -564,7 +564,7 @@ public class AirSystem {
             // Garrison drops are born holding their compound: stamp HOLD_NODE so
             // the squad runs GarrisonCompound from its first tick rather than
             // idling until a commander assignment (and so the commander leaves
-            // it on station — Pass 1/2 skip HOLD_NODE squads). See Shuttle#garrisonNode.
+            // it on station — Pass 1/2 skip HOLD_NODE squads). See ShuttleMission#garrisonNode.
             if (s.mission.garrisonNode != null) {
                 Squad garrison = roster.getSquad(s.mission.squadId);
                 if (garrison != null) garrison.assignHoldNode(s.mission.garrisonNode);

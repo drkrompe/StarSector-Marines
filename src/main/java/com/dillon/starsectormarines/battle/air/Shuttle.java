@@ -1,23 +1,22 @@
 package com.dillon.starsectormarines.battle.air;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Unit;
 
 /**
  * One troop-drop shuttle — an air entity: an {@code entityId}, kinematics
  * ({@link AirBody}), render state, and a composed {@link ShuttleMission} (the
  * delivery state machine + per-sortie lifecycle). Engine plumes and turrets are
  * components keyed by {@link #entityId} in {@link AirSystem}'s stores, not fields
- * here. Separate from {@link Unit} because shuttles fly in fractional world
- * space, rotate freely, and don't pathfind or fight on the grid.
+ * here. Separate from a grid {@code Unit} because shuttles fly in fractional
+ * world space, rotate freely, and don't pathfind or fight on the grid.
  *
  * <p>The shared core (id + body + render) is mission-agnostic so a fighter
  * (planned) can compose the same core with a different mission component; the
  * shuttle-specific lifecycle lives entirely in {@link #mission}.
  *
- * <p>Coord convention matches {@link Unit#cellX}/{@link Unit#cellY}: cell-units
- * with Y up. Entry/exit points sit outside the grid so the shuttle reads as
- * off-screen before INCOMING and after DEPARTING.
+ * <p>Coord convention is cell-units with Y up (same frame as ground units).
+ * Entry/exit points sit outside the grid so the shuttle reads as off-screen
+ * before INCOMING and after DEPARTING.
  */
 public class Shuttle {
 
