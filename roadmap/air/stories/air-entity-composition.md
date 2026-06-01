@@ -90,8 +90,15 @@ a later slice.
    `AirSystem` (query the store); `releaseAirEntity` drops it via the slice-1
    death seam. Entity flow corrected: `addShuttle` (mint id) → `equipDefaultTurrets`
    → `attachAirTurrets`. Render reads via `getAirTurretMounts`. Air-path tests green.
-3. **`ShuttleMission` component** — peel the state machine off `Shuttle` toward
-   an id + composition; `Shuttle` shrinks to a handle.
+3. **`ShuttleMission` component — SHIPPED `a9ad43f`.** The delivery state machine
+   + per-sortie lifecycle (state, LZ/entry/exit, deboard, cycles, hover, squad,
+   garrison, hp) grouped into a `ShuttleMission` composed on `Shuttle`
+   (`s.mission`). `Shuttle` shrank to the shared air-entity core: `entityId` +
+   `AirBody` + render state + the mission (engine/turret already in stores). The
+   state-machine behavior was already a system (`AirSystem`), so this was pure
+   data grouping — ~100 `s.X` → `s.mission.X` accesses (compiler-as-worklist;
+   `State` enum stays on `Shuttle`; ctor signature unchanged). A fighter composes
+   the same core with a different mission. Full compile + air/objective tests green.
 4. **Fighters compose the same core** — real `AirBody`/engine/turret components
    with a `FighterMission`; retire `FlybyOverlay`'s parallel cosmetic path
    (the `roadmap/backlog.md` "flyby fighters as real air entities" item).
