@@ -12,8 +12,10 @@ sim mounts through them (`extraScale = 1`, ground-real) so `originCellX/Y` sprea
 across the hull and the already-per-mount `TurretAim` LoS (`canSeePair` /
 `airLosVisible`) differentiates front from rear for free; `ShuttleRenderSystem`
 uses the same helper (`extraScale = scaleMult` + altitude Y-offset) so a round
-fires from where the turret is drawn. Turret size now scales by `turretSpread`
-too. No new LoS code — just real per-mount inputs.
+fires from where the turret is drawn. No new LoS code — just real per-mount
+inputs. (`turretSpread` drives mount **position** only; turret **size** stays
+fixed per kind, like a ground `MapTurret` — corrected in a follow-up after an
+initial version wrongly scaled size by `turretSpread`.)
 
 **Outstanding:** in-game eyeball of the front-vs-rear divergence on a long
 shuttle straddling a wall (full `gradlew build` blocked at commit time by an

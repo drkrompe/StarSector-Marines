@@ -245,13 +245,15 @@ public class Shuttle {
     }
 
     /**
-     * Lazily-resolved turret spread factor: the hull's derived render length
-     * ({@link HullFootprintResolver}) over {@link AirScale#TURRET_AUTHORING_HULL_CELLS},
-     * the reference hull the mount offsets + turret sizes were authored against.
-     * Scaling by this keeps turrets glued to the hull at any pixel density
-     * ({@link AirScale#METERS_PER_PX}) — and, crucially, <b>spreads the sim mount
+     * Lazily-resolved turret <b>position</b> spread factor: the hull's derived
+     * render length ({@link HullFootprintResolver}) over
+     * {@link AirScale#TURRET_AUTHORING_HULL_CELLS}, the reference hull the mount
+     * offsets were authored against. Scaling a mount's offset by this places it
+     * correctly on a hull of any size — and, crucially, <b>spreads the sim mount
      * origins across a large hull</b> so each turret's LoS is computed from its
-     * own position rather than the shared body cell. {@code -1} = not yet resolved.
+     * own position rather than the shared body cell. Drives turret placement
+     * only; turret <em>size</em> is fixed per kind ({@code TurretKind.visualCells},
+     * like a ground {@code MapTurret}). {@code -1} = not yet resolved.
      */
     private float cachedTurretSpread = -1f;
 

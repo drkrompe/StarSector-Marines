@@ -45,7 +45,8 @@ public final class AirScale {
      * this is dialled down for playability: at {@code 0.045} the smallest shuttle
      * (Kite, 66 px) reads at ~3 cells and a Valkyrie (264 px) at ~12 — a true
      * ~4× ladder, sized to sit beside ~1-cell infantry. Re-dial freely; turret
-     * geometry tracks it automatically (see {@link #TURRET_AUTHORING_HULL_CELLS}).
+     * mount positions track it automatically (turret <em>size</em> is fixed per
+     * kind — see {@link #TURRET_AUTHORING_HULL_CELLS}).
      */
     public static final float METERS_PER_PX = 0.045f;
 
@@ -66,17 +67,17 @@ public final class AirScale {
     public static final float FALLBACK_LENGTH_CELLS = 8f;
 
     /**
-     * The hull render length (cells) the shuttle turret kit was authored
-     * against — the mount offsets in {@code ShuttleType.a2gKit} and the
-     * {@code TurretKind.visualCells} sizes read correctly on a hull this long.
-     * Turret geometry is scaled by {@code derivedHullLength / this}, so turrets
-     * stay glued to the hull at a fixed proportion and track {@link #METERS_PER_PX}
-     * (flat scaling) instead of clustering tiny at the hull's center.
+     * The hull render length (cells) the shuttle turret <b>mount offsets</b>
+     * ({@code ShuttleType.a2gKit}) were authored against. A mount's offset is
+     * scaled by {@code derivedHullLength / this}, so it sits at the right spot on
+     * a hull of any size and spreads across a large hull — which is what lets
+     * each turret's line of sight differ front-to-rear.
      *
-     * <p>This is the <b>turret-to-hull ratio</b> knob, independent of
-     * {@link #METERS_PER_PX} (the <b>overall ship size</b> knob): raise it to
-     * shrink turrets relative to their hull, lower it to grow them. Tune in
-     * playtest alongside {@code METERS_PER_PX}.
+     * <p>Drives turret <b>placement</b> only, never turret <b>size</b>: a turret
+     * is fixed hardware — the same {@code TurretKind} renders at its
+     * {@code visualCells} on every hull, exactly like a ground {@code MapTurret}.
+     * Raise this to pull mounts toward center, lower it to spread them out.
+     * Independent of {@link #METERS_PER_PX} (overall ship size).
      */
     public static final float TURRET_AUTHORING_HULL_CELLS = 4f;
 

@@ -19,13 +19,15 @@ fighters left for the fighters track (disjoint hull ids).
 smallest shuttle (Kite) back to ~3 cells, Valkyrie ~12, a true ~4× ladder beside
 ~1-cell infantry. At that scale the literal "1 cell = 1 m" anchor is relaxed:
 these are gameplay-scale units, not realistic metres (documented on the
-constant). The turret geometry was also made **param-aware** — mount offsets and
-`TurretKind.visualCells` are read in a hull frame normalized to
-`AirScale.TURRET_AUTHORING_HULL_CELLS` (default `4`) and scaled by
-`derivedHullLength / that` in `ShuttleRenderSystem`, so the whole turret assembly
-flat-scales with the hull and tracks `METERS_PER_PX` instead of clustering tiny
-at the centre. Two clean knobs result: `METERS_PER_PX` (overall ship size) and
-`TURRET_AUTHORING_HULL_CELLS` (turret-to-hull ratio).
+constant). Turret **placement** was also made **param-aware** — mount offsets
+are read in a hull frame normalized to `AirScale.TURRET_AUTHORING_HULL_CELLS`
+(default `4`) and scaled by `derivedHullLength / that`, so mounts sit correctly
+on a hull of any size instead of clustering at the centre. Two clean knobs
+result: `METERS_PER_PX` (overall ship size) and `TURRET_AUTHORING_HULL_CELLS`
+(mount spread). Note: turret **size** is *not* hull-scaled — a `TurretKind`
+renders at its fixed `visualCells` on every hull (like a ground `MapTurret`); an
+initial version wrongly scaled size by the hull factor and was corrected in the
+per-turret-LoS follow-up.
 
 **Outstanding:** final in-game eyeball of both knobs (a full `gradlew build` was
 blocked at commit time by an unrelated concurrent-session error in
