@@ -11,12 +11,11 @@ import com.dillon.starsectormarines.battle.decision.goap.action.ClearZone;
 import com.dillon.starsectormarines.battle.decision.goap.action.EnterZone;
 import com.dillon.starsectormarines.battle.decision.goap.action.HoldZone;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
+import com.dillon.starsectormarines.battle.decision.goap.world.GarrisonArea;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
-import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -106,22 +105,6 @@ public final class SecureCompoundGoal implements Goal {
         return synthesizeSecurePlan(from, to, node, sim);
     }
 
-    /**
-     * Multiplier on the compound's bbox area above which a zone is treated as
-     * open ground to transit, not a room to clear. The outdoor flood-fill (one
-     * zone spanning the whole exterior) dwarfs any building box and is rejected
-     * by this gate alone; the slack absorbs door/edge cells that spill just
-     * outside the box.
-     */
-    private static final float MAX_GARRISON_AREA_RATIO = 1.25f;
-
-    /**
-     * Minimum fraction of a zone's cells that must fall inside the compound's
-     * bbox for the zone to count as part of the garrison (and so earn a
-     * {@link ClearZone} step rather than a bare transit {@link EnterZone}).
-     */
-    private static final float MIN_INSIDE_FRACTION = 0.5f;
-
     private static SquadPlan synthesizeSecurePlan(int fromZone, int toZone, TacticalNode node,
                                                    BattleView sim) {
         List<Integer> path = ZoneQueries.zonePathBfs(fromZone, toZone, sim);
@@ -142,47 +125,12 @@ public final class SecureCompoundGoal implements Goal {
             // keeps the squad from parking on a ClearZone against the unbounded
             // outdoor zone (it always holds a stray defender) — see story 17.
             steps.add(new SquadPlan.Step(EnterZone.forZone(zone, grid)));
-            if (isGarrisonZone(zone, node, grid)) {
+            if (GarrisonArea.isGarrisonZone(zone, node.left, node.top, node.right, node.bottom, grid)) {
                 steps.add(new SquadPlan.Step(new ClearZone(zoneId)));
             }
         }
         steps.add(new SquadPlan.Step(new HoldZone(toZone, node)));
         return new SquadPlan(steps);
-    }
-
-    /**
-     * True iff {@code zone} is small enough and sits mostly inside the
-     * compound's bounding box — i.e. it's a room the garrison should clear,
-     * not open ground it merely crosses. Two gates, cheap one first:
-     *
-     * <ol>
-     *   <li><b>Size (O(1)):</b> a zone meaningfully larger than the compound's
-     *       footprint is transit ground. {@link NavigationZone#getCellCount()}
-     *       is a field read, so the outdoor flood bails here without its
-     *       thousands of cells ever being iterated.</li>
-     *   <li><b>Containment (O(cells), only on size-gate survivors):</b> a
-     *       point-in-rect test per cell; the zone qualifies when at least
-     *       {@link #MIN_INSIDE_FRACTION} of its cells fall inside the box.</li>
-     * </ol>
-     *
-     * <p>A multi-room compound clears each interior room (each small + inside
-     * the box); the open exterior fails the size gate and is transited only.
-     * Uses the raw building bbox — if the courtyard/parade ground should be
-     * held too, expand the box by a margin here (story 17's tuning knob).
-     */
-    private static boolean isGarrisonZone(NavigationZone zone, TacticalNode node, NavigationGrid grid) {
-        long compoundArea = (long) (node.right - node.left + 1) * (node.bottom - node.top + 1);
-        if (zone.getCellCount() > MAX_GARRISON_AREA_RATIO * compoundArea) return false;
-
-        int width = grid.getWidth();
-        int[] cells = zone.getCellIndices();
-        int inside = 0;
-        for (int idx : cells) {
-            int x = idx % width;
-            int y = idx / width;
-            if (x >= node.left && x <= node.right && y >= node.top && y <= node.bottom) inside++;
-        }
-        return inside >= MIN_INSIDE_FRACTION * cells.length;
     }
 
     private static boolean planEndsWithHoldZone(SquadPlan plan, int targetZoneId) {
