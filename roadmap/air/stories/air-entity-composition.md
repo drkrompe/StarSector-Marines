@@ -95,13 +95,13 @@ a later slice.
 
 ## Follow-ups (from slice-1 critique)
 
-- **Wire `ThrusterFx` removal to the eventual shuttle death/removal path.** Today
-  `GONE` is the only terminal state and `advanceThrusterFx` removes the component
-  there; shuttles are never removed from the list. When the AA work lands a
-  shoot-down path (the `Shuttle.hp` / `HOVER_HP_THRESHOLD` fields are already
-  wired forward for it), that path must drop the component — or expose an
-  `AirSystem.remove(Shuttle)` that drops list entry + component together — else
-  it orphans. Latent, not live. Tie to the AA story.
+- **Component release seam — DONE.** `AirSystem.releaseAirEntity(entityId)` is the
+  single authoritative drop-all-components point, called at the one death
+  transition (DEPARTING → GONE). New air component stores (slice 2 turrets, …)
+  register their removal in that one method, so adding a component can't
+  reintroduce an orphan leak. The future AA shoot-down path (the `Shuttle.hp` /
+  `HOVER_HP_THRESHOLD` fields are wired forward for it) just calls
+  `releaseAirEntity` — a one-liner, not a leak risk.
 - **Per-tick `float[]` alloc in `ThrusterDemand.compute`** (one per shuttle per
   tick). Fine at current counts ([[ship-then-optimize]]); revisit if fighter
   swarms make air-FX allocation measurable (folds into the slice-5 dense pass).

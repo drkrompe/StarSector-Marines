@@ -107,6 +107,20 @@ public class AirSystem {
         return fx == null ? null : fx.smoothed;
     }
 
+    /**
+     * The single authoritative release point for an air entity — drops every
+     * component this system holds for {@code entityId}. Called at the one death
+     * transition (DEPARTING → GONE). <b>Every</b> future removal path (AA
+     * shoot-down — the {@link Shuttle#hp}/{@code HOVER_HP_THRESHOLD} fields are
+     * wired forward for it — or pruning GONE craft from the list) MUST funnel
+     * through here. Register each new air component store's removal in this one
+     * method and adding a component can't reintroduce an orphan leak.
+     */
+    private void releaseAirEntity(long entityId) {
+        thrusterFx.remove(entityId);
+        // Future air component stores (turrets, mission, …) drop here too.
+    }
+
     public void tick(float dt) {
         advanceShuttles(dt);
         tickShuttleTurrets(dt);
@@ -121,16 +135,12 @@ public class AirSystem {
      */
     private void advanceThrusterFx(float dt) {
         for (Shuttle s : shuttles) {
-            if (s.state == Shuttle.State.GONE) {
-                thrusterFx.remove(s.entityId);
-                continue;
-            }
+            // GONE craft already released their components at the death
+            // transition; skip (don't re-advance, which would resurrect them).
+            if (s.state == Shuttle.State.GONE) continue;
             // PENDING (off-map re-arm) intentionally keeps advancing: the cycle
             // teleport zeroes the body, so demand decays to 0 over the rearm
             // window and the next INCOMING sortie spools the plumes up from cold.
-            // GONE is the only terminal removal today; when a non-GONE removal
-            // path lands (AA shoot-down — see Shuttle.hp/HOVER_HP_THRESHOLD), it
-            // must drop this component too or it orphans. See air-entity-composition.
             EngineSlotData[] slots = EngineSlotResolver.resolve(s.type);
             ThrusterFxSystem.advance(s.entityId, slots, s.body, s.type, thrusterFx, dt);
         }
@@ -269,7 +279,10 @@ public class AirSystem {
                             }
                             s.state = Shuttle.State.PENDING;
                         } else {
+                            // Terminal — the craft is done. Release all its air
+                            // components in one place (the single death seam).
                             s.state = Shuttle.State.GONE;
+                            releaseAirEntity(s.entityId);
                         }
                     }
                     break;
