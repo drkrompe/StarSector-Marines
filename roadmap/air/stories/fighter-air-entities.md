@@ -131,6 +131,18 @@ when `flyby/` folds into `air/`; until then `FlybyOverlay`'s draw is reused.
 - **(Future) 4e — Fighters take fire / get shot down.** Wire `hp` + the AA path
   through the same death seam; land at bases. Gated on the AA work.
 
+## Calibration tooling — SHIPPED `12c5cb0`
+
+A dev-gated **briefing aircraft picker** (`DevConfig.DEBUG_AIRCRAFT_PICKER`) drives
+4b's in-game calibration: an "AIR DEBUG — force-spawn" panel at the top of
+`BriefingScreen` with per-side (Attacker/Defender) toggles for every
+`FighterProfile`. Toggled pairs force-spawn debug wings on either side
+(`DebugAirRoster.wing`, threaded through `MissionLaunch.buildSimulation`'s new
+`debugWings` arg), independent of the player's carriers or the mission's enemy-air
+roll — so any aircraft can be put in the air for either side on demand while
+tuning `SPEED_ATMO_MULT` / `TURN_ATMO_MULT` / damping. Hidden (zero behavior
+change) when the flag is off.
+
 ## Follow-up — unify shuttle kinematics onto the scraped resolver
 
 `ShuttleType.HandlingProfile` is hand-tuned tiers (NIMBLE/MEDIUM/BUS) — the same
