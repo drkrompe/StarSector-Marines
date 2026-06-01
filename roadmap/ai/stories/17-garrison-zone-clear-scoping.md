@@ -63,12 +63,19 @@ release-when-quiet is unimplemented. (`CompoundGarrisonSystemTest`,
 
 ### Found in critique (post-ship)
 
-- **Defender primary-node death → no failover.** `isPrimaryGarrisonNode` is a
-  pure function of node priority/anchor, not squad liveness — so if the
+- **Defender primary-node death → no failover (intentional).** If the
   highest-priority node's squad is wiped, no surviving garrison squad takes over
-  the area patrol; they each leash to their own building via `GuardPost`. Elect
-  primacy among nodes with a live squad. (Defender path only; marine holder is
-  one squad per compound, unaffected.)
+  the whole-base area patrol — each just holds its own building via `GuardPost`.
+  We are **not** fixing this at the goal layer: "should another squad be
+  committed to defend/re-take this compound?" is a *strategic* call that belongs
+  to a future **defender commander tier** (today defenders are purely reactive —
+  `CompoundGarrisonSystem` + reinforcement triggers, no commander). A naive
+  goal-layer failover (or per-squad reinforcement) risks **piecemeal
+  commitment**: a train of single squads trickling in to "re-capture" without
+  ever massing the numbers to actually succeed. The commander must decide to
+  mass deliberately. See [`12-squad-of-squads.md`](12-squad-of-squads.md)
+  § defender-side commanders (gated on doc 15). Holding-own-building is an
+  acceptable interim. (Marine holder is one squad per compound — unaffected.)
 - **Wiped marine garrison never regenerates.** `CompoundGarrisonSystem` re-arms
   only on `MARINE_HELD → DEFENDER_HELD → MARINE_HELD`. If the born-holding
   garrison squad is wiped while the compound stays `MARINE_HELD`, no replacement

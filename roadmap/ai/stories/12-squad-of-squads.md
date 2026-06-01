@@ -143,6 +143,18 @@ strip is breached. Needs the perception layer (doc 15) genuinely
 landed because a defender commander reading marine ground truth is
 exactly the omniscience cheat doc 15 calls out.
 
+> **Compound re-garrison / recapture is this commander's job, not the
+> garrison goal's.** When a compound's garrison is wiped (or a held
+> compound is lost), deciding whether to commit another squad to
+> defend/retake it is a strategic call that lives here. Avoid
+> **piecemeal commitment** — a train of single squads trickling in to
+> recapture without ever massing the numbers to succeed. The commander
+> should batch a deliberate force or not bother. This is *why* story 17's
+> garrison layer deliberately has no per-squad failover when the primary
+> garrison node's squad dies (see
+> [`17-garrison-zone-clear-scoping.md`](17-garrison-zone-clear-scoping.md)
+> § Found in critique).
+
 ### Legacy shape — for reference only
 
 State the *eventual* Conquest Commander tracks per faction (parked
