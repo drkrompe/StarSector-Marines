@@ -94,14 +94,14 @@ public final class ShuttleRenderSystem implements RenderSystem {
             if (base == null) continue;
             // Same world-position helper the sim uses (so a round fires from
             // where the turret is drawn), with the render-only altitude zoom
-            // (scaleMult) and the altitude Y-offset layered on top. turretSpread
-            // drives the mount POSITION across the hull.
+            // (scaleMult) and the altitude Y-offset layered on top. The mount
+            // offset is the real weapon-slot position; no per-ship factor.
             float screenX = cam.cellToScreenX(s.turretWorldX(mt.mount, c, si, s.scaleMult));
             float screenY = cam.cellToScreenY(s.turretWorldY(mt.mount, c, si, s.scaleMult) + altOffset);
             // Turret SIZE is intrinsic to the kind — an ARBALEST is the same
             // physical size on every hull, exactly like a ground MapTurret
             // (UnitRenderService draws it at visualCells flat). Only the altitude
-            // visual zoom applies; turretSpread (hull placement) never touches size.
+            // visual zoom applies; the hull never scales turret size.
             float layerVisualCells = mt.mount.kind.visualCells * s.scaleMult;
 
             ShuttleSpriteCache barrel = sprites.turretRecoilSprites().get(mt.mount.kind);

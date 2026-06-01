@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.air;
 
-import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.unit.Unit;
@@ -245,51 +244,31 @@ public class Shuttle {
     }
 
     /**
-     * Lazily-resolved turret <b>position</b> spread factor: the hull's derived
-     * render length ({@link HullFootprintResolver}) over
-     * {@link AirScale#TURRET_AUTHORING_HULL_CELLS}, the reference hull the mount
-     * offsets were authored against. Scaling a mount's offset by this places it
-     * correctly on a hull of any size — and, crucially, <b>spreads the sim mount
-     * origins across a large hull</b> so each turret's LoS is computed from its
-     * own position rather than the shared body cell. Drives turret placement
-     * only; turret <em>size</em> is fixed per kind ({@code TurretKind.visualCells},
-     * like a ground {@code MapTurret}). {@code -1} = not yet resolved.
-     */
-    private float cachedTurretSpread = -1f;
-
-    /** @see #cachedTurretSpread */
-    public float turretSpread() {
-        if (cachedTurretSpread < 0f) {
-            float hullLenCells = HullFootprintResolver.visualLengthCells(type.renderHullId());
-            cachedTurretSpread = hullLenCells / AirScale.TURRET_AUTHORING_HULL_CELLS;
-        }
-        return cachedTurretSpread;
-    }
-
-    /**
-     * World-frame X of a mount's pivot: its hull-local offset scaled by
-     * {@link #turretSpread()} and rotated by the body facing, added to
-     * {@code body.x}. {@code extraScale} is an extra multiplier the
-     * <em>renderer</em> applies for the altitude visual zoom ({@link #scaleMult});
-     * the sim passes {@code 1} — a turret's position is a ground-projected,
-     * sim-real quantity. Shared by {@link AirSystem} (sim) and the shuttle render
-     * pass so the two can't drift ({@code rounds-fire-from-where-it's-drawn}).
+     * World-frame X of a mount's pivot: its hull-local slot offset — already in
+     * cells at the one global pixel density, scraped from the hull's
+     * {@code weaponSlots} by
+     * {@link com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver} —
+     * rotated by the body facing and added to {@code body.x}. {@code extraScale}
+     * is an extra multiplier the <em>renderer</em> applies for the altitude
+     * visual zoom ({@link #scaleMult}); the sim passes {@code 1} (a turret's
+     * position is a ground-projected, sim-real quantity). Shared by
+     * {@link AirSystem} (sim) and the shuttle render pass so a round fires from
+     * where the turret is drawn. No per-ship scaling — the density is the only
+     * factor, applied once at scrape time.
      *
      * @param facingCos {@code cos(toRadians(body.facingDegrees))}, hoisted by the caller
      * @param facingSin {@code sin(toRadians(body.facingDegrees))}, hoisted by the caller
      */
     public float turretWorldX(TurretMount m, float facingCos, float facingSin, float extraScale) {
-        float spread = turretSpread() * extraScale;
-        float lx = m.localOffsetX * spread;
-        float ly = m.localOffsetY * spread;
+        float lx = m.localOffsetX * extraScale;
+        float ly = m.localOffsetY * extraScale;
         return body.x + lx * facingCos - ly * facingSin;
     }
 
     /** World-frame Y counterpart of {@link #turretWorldX}; the renderer adds the altitude Y-offset on top. */
     public float turretWorldY(TurretMount m, float facingCos, float facingSin, float extraScale) {
-        float spread = turretSpread() * extraScale;
-        float lx = m.localOffsetX * spread;
-        float ly = m.localOffsetY * spread;
+        float lx = m.localOffsetX * extraScale;
+        float ly = m.localOffsetY * extraScale;
         return body.y + lx * facingSin + ly * facingCos;
     }
 

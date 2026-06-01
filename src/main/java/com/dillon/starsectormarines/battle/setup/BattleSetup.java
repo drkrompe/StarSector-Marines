@@ -28,6 +28,8 @@ import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.TurretMount;
+import com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver;
+import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.command.AssaultCommand;
 import com.dillon.starsectormarines.battle.command.ConquestCommand;
 import com.dillon.starsectormarines.battle.command.compound.CompoundGarrisonSystem;
@@ -364,10 +366,15 @@ public final class BattleSetup {
     private static void equipDefaultTurrets(Shuttle shuttle) {
         if (shuttle.type.hardpoints <= 0) return;
         if (shuttle.assignedRole == null) shuttle.assignedRole = TurretRole.A2G;
-        TurretMount[] mounts = ShuttleType.kitFor(shuttle.assignedRole, shuttle.type.hardpoints);
-        MountedTurret[] turrets = new MountedTurret[mounts.length];
-        for (int i = 0; i < mounts.length; i++) {
-            turrets[i] = new MountedTurret(mounts[i]);
+        // Loadout (what) from the role/hardpoint kit; positions (where) from the
+        // hull's real weapon slots, converted at the one global pixel density.
+        // Zip kind[i] with slot[i]; clamp to whichever runs out first.
+        TurretKind[] kit = ShuttleType.kitFor(shuttle.assignedRole, shuttle.type.hardpoints);
+        float[][] slots = TurretSlotResolver.resolve(shuttle.type.renderHullId());
+        int n = Math.min(kit.length, slots.length);
+        MountedTurret[] turrets = new MountedTurret[n];
+        for (int i = 0; i < n; i++) {
+            turrets[i] = new MountedTurret(new TurretMount(kit[i], slots[i][0], slots[i][1]));
             turrets[i].facingDegrees = shuttle.body.facingDegrees;
         }
         shuttle.turrets = turrets;

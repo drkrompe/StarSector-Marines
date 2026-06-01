@@ -29,9 +29,11 @@ import java.util.List;
  * <p>Combat capability is orthogonal to handling: Valkyrie is a heavy bus
  * AND fully armed (4 hardpoints, 150 HP, 60s loiter), while a Mudskipper is
  * nimble with a single hardpoint and 25s of fire-support fuel.
- * {@link #kitFor} maps {@code (role, hardpoints)} to a concrete mount layout
- * — the default A2G role expands to a mix of Arbalests + a Hephaestus on
- * larger hulls, and a single Heavy Mortar on a one-hardpoint tugboat.
+ * {@link #kitFor} maps {@code (role, hardpoints)} to a turret loadout (which
+ * {@link TurretKind}s) — the default A2G role expands to a mix of Arbalests + a
+ * Hephaestus on larger hulls, and a single Heavy MG on a one-hardpoint tugboat.
+ * Where each turret <em>sits</em> comes from the hull's real {@code weaponSlots}
+ * ({@link com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver}).
  */
 public enum ShuttleType implements AirHandling {
 
@@ -173,59 +175,49 @@ public enum ShuttleType implements AirHandling {
     }
 
     /**
-     * Expands a {@link TurretRole} into the concrete {@link TurretMount}
-     * layout for a hull of {@code hardpoints} mount points. {@code null} role
-     * or zero hardpoints returns an empty array — these shuttles skip
-     * HOVER_STATION entirely and depart as pure transports.
+     * Expands a {@link TurretRole} into the turret <b>loadout</b> (which
+     * {@link TurretKind}s) for a hull of {@code hardpoints} mount points.
+     * {@code null} role or zero hardpoints returns an empty array — these
+     * shuttles skip HOVER_STATION entirely and depart as pure transports.
+     *
+     * <p>This picks <em>what</em> the hull carries; <em>where</em> each turret
+     * sits comes from the hull's real {@code weaponSlots}
+     * ({@link com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver}),
+     * paired up at setup. Returns at most {@code hardpoints} kinds; the actual
+     * mount count is further clamped to the number of real slots available.
      *
      * <p>Today only A2G has a populated kit. The AA / POINT_DEFENSE branches
      * return empty until anti-air entities and in-flight missile targeting
      * are surfaced as real targets — the role itself is honored, but the
-     * mount loadout has nothing meaningful to mount.
+     * loadout has nothing meaningful to mount.
      */
-    public static TurretMount[] kitFor(TurretRole role, int hardpoints) {
-        if (role == null || hardpoints <= 0) return new TurretMount[0];
+    public static TurretKind[] kitFor(TurretRole role, int hardpoints) {
+        if (role == null || hardpoints <= 0) return new TurretKind[0];
         switch (role) {
             case A2G:           return a2gKit(hardpoints);
             case AA:
             case POINT_DEFENSE:
-            default:            return new TurretMount[0];
+            default:            return new TurretKind[0];
         }
     }
 
     /**
-     * Default A2G fits — small craft get a single Heavy MG (wide-spread
-     * suppression suits a nimble craft circling overhead); larger hulls fan
-     * out Arbalests plus a Hephaestus for sustained DPS. Mount offsets are in
-     * the shuttle's local frame: +Y is toward the nose, +X is the right side
-     * of the hull, in cells.
+     * Default A2G loadout by hardpoint count — small craft get a single Heavy MG
+     * (wide-spread suppression suits a nimble craft circling overhead); larger
+     * hulls fan out Arbalests plus a Hephaestus for sustained DPS and a rear
+     * grenade pod. Kinds only; positions come from the hull's weapon slots in
+     * spec order, so the listing order here is the slot-assignment order.
      */
-    private static TurretMount[] a2gKit(int hardpoints) {
+    private static TurretKind[] a2gKit(int hardpoints) {
         switch (hardpoints) {
-            case 1: return new TurretMount[]{
-                    new TurretMount(TurretKind.HEAVY_MG, 0f, 0f),
-            };
-            case 2: return new TurretMount[]{
-                    new TurretMount(TurretKind.ARBALEST, -0.6f, +0.6f),
-                    new TurretMount(TurretKind.ARBALEST, +0.6f, +0.6f),
-            };
-            case 3: return new TurretMount[]{
-                    new TurretMount(TurretKind.ARBALEST, -0.6f, +0.6f),
-                    new TurretMount(TurretKind.ARBALEST, +0.6f, +0.6f),
-                    new TurretMount(TurretKind.HEPHAESTUS, 0f, -0.8f),
-            };
+            case 1: return new TurretKind[]{ TurretKind.HEAVY_MG };
+            case 2: return new TurretKind[]{ TurretKind.ARBALEST, TurretKind.ARBALEST };
+            case 3: return new TurretKind[]{
+                    TurretKind.ARBALEST, TurretKind.ARBALEST, TurretKind.HEPHAESTUS };
             case 4:
-            default: return new TurretMount[]{
-                    new TurretMount(TurretKind.ARBALEST, -0.7f, +0.8f),
-                    // Port wing carries the wide-spread Heavy MG for area
-                    // suppression — pairs with the precision Arbalest opposite
-                    // it so the player reads both close-band patterns at once.
-                    new TurretMount(TurretKind.HEAVY_MG, +0.7f, +0.8f),
-                    new TurretMount(TurretKind.ARBALEST, 0f, +0.3f),
-                    // Rear-mounted indirect-fire pod — lobs arc'd grenades at
-                    // structures + clusters past min-range.
-                    new TurretMount(TurretKind.GRENADE_LAUNCHER, 0f, -0.9f),
-            };
+            default: return new TurretKind[]{
+                    TurretKind.ARBALEST, TurretKind.HEAVY_MG,
+                    TurretKind.ARBALEST, TurretKind.GRENADE_LAUNCHER };
         }
     }
 

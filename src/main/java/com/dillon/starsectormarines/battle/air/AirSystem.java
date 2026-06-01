@@ -270,13 +270,13 @@ public class AirSystem {
                     mt.targetId = mt.burstTargetId;
                 }
 
-                // Per-mount world position: the hull-local offset spread across
-                // the hull (Shuttle.turretSpread) and rotated by body facing.
-                // Sim passes extraScale=1 — this is a ground-projected, sim-real
-                // position; the renderer adds the altitude zoom. Spreading the
-                // origins across a large hull is what lets each mount's LoS
-                // (resolved per-State below) differ front-to-rear. Same helper
-                // the render pass uses, so a round fires from where it's drawn.
+                // Per-mount world position: the hull-local slot offset (scraped
+                // from the hull's weaponSlots at the global density) rotated by
+                // body facing. Sim passes extraScale=1 — a ground-projected,
+                // sim-real position; the renderer adds the altitude zoom. Because
+                // mounts sit at the real, fore-aft-spread hardpoints, each mount's
+                // LoS (resolved per-State below) differs front-to-rear. Same
+                // helper the render pass uses, so a round fires from where it's drawn.
                 float worldX = s.turretWorldX(mt.mount, c, si, 1f);
                 float worldY = s.turretWorldY(mt.mount, c, si, 1f);
 

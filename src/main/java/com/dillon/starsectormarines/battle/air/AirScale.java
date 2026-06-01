@@ -44,9 +44,10 @@ public final class AirScale {
      * (~0.65 → a Kite at ~43 cells, a Valkyrie at ~172) dwarfed current maps, so
      * this is dialled down for playability: at {@code 0.045} the smallest shuttle
      * (Kite, 66 px) reads at ~3 cells and a Valkyrie (264 px) at ~12 — a true
-     * ~4× ladder, sized to sit beside ~1-cell infantry. Re-dial freely; turret
-     * mount positions track it automatically (turret <em>size</em> is fixed per
-     * kind — see {@link #TURRET_AUTHORING_HULL_CELLS}).
+     * ~4× ladder, sized to sit beside ~1-cell infantry. Re-dial freely; engine
+     * slots and turret mount positions (scraped from each hull's
+     * {@code weaponSlots} at this density) track it automatically. Turret
+     * <em>size</em> is fixed per kind, independent of this.
      */
     public static final float METERS_PER_PX = 0.045f;
 
@@ -65,21 +66,6 @@ public final class AirScale {
      * hull still draws something rather than collapsing to a point.
      */
     public static final float FALLBACK_LENGTH_CELLS = 8f;
-
-    /**
-     * The hull render length (cells) the shuttle turret <b>mount offsets</b>
-     * ({@code ShuttleType.a2gKit}) were authored against. A mount's offset is
-     * scaled by {@code derivedHullLength / this}, so it sits at the right spot on
-     * a hull of any size and spreads across a large hull — which is what lets
-     * each turret's line of sight differ front-to-rear.
-     *
-     * <p>Drives turret <b>placement</b> only, never turret <b>size</b>: a turret
-     * is fixed hardware — the same {@code TurretKind} renders at its
-     * {@code visualCells} on every hull, exactly like a ground {@code MapTurret}.
-     * Raise this to pull mounts toward center, lower it to spread them out.
-     * Independent of {@link #METERS_PER_PX} (overall ship size).
-     */
-    public static final float TURRET_AUTHORING_HULL_CELLS = 4f;
 
     /** Forward render extent, in cells, for a sprite/hull this many pixels tall. */
     public static float cellsForHeightPx(float spriteHeightPx) {
