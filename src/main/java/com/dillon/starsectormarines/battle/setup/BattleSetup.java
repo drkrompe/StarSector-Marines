@@ -260,8 +260,8 @@ public final class BattleSetup {
             }
             shuttle.cycleLoadouts = cycleLoadouts;
             shuttle.marineLoadout = cycleLoadouts[0];
-            equipDefaultTurrets(shuttle);
             sim.addShuttle(shuttle);
+            equipDefaultTurrets(sim, shuttle);
         }
 
         allocateDefenders(sim, map, DefenderRoster.forMission(MissionType.SABOTAGE, risk, enemyHasHeavyArmor), rng);
@@ -363,7 +363,7 @@ public final class BattleSetup {
      * <p>Mounts start with their facing aligned to the shuttle's nose so
      * the first hover-station tick doesn't snap turrets through a 90° swing.
      */
-    private static void equipDefaultTurrets(Shuttle shuttle) {
+    private static void equipDefaultTurrets(BattleSimulation sim, Shuttle shuttle) {
         if (shuttle.type.hardpoints <= 0) return;
         if (shuttle.assignedRole == null) shuttle.assignedRole = TurretRole.A2G;
         // Loadout (what) from the role/hardpoint kit; positions (where) from the
@@ -372,12 +372,15 @@ public final class BattleSetup {
         TurretKind[] kit = ShuttleType.kitFor(shuttle.assignedRole, shuttle.type.hardpoints);
         float[][] slots = TurretSlotResolver.resolve(shuttle.type.renderHullId());
         int n = Math.min(kit.length, slots.length);
+        if (n <= 0) return;
         MountedTurret[] turrets = new MountedTurret[n];
         for (int i = 0; i < n; i++) {
             turrets[i] = new MountedTurret(new TurretMount(kit[i], slots[i][0], slots[i][1]));
             turrets[i].facingDegrees = shuttle.body.facingDegrees;
         }
-        shuttle.turrets = turrets;
+        // Attach as a presence component — requires the entity id, so the caller
+        // must have run sim.addShuttle (which mints it) first.
+        sim.attachAirTurrets(shuttle, turrets);
     }
 
     private static MarineLoadout[] buildBaseLoadouts(int capacity, Random rng) {
@@ -468,8 +471,8 @@ public final class BattleSetup {
             }
             shuttle.cycleLoadouts = cycleLoadouts;
             shuttle.marineLoadout = cycleLoadouts[0];
-            equipDefaultTurrets(shuttle);
             sim.addShuttle(shuttle);
+            equipDefaultTurrets(sim, shuttle);
         }
 
         // Defenders pre-spawn around tactical-node anchors (garrison squads
@@ -561,8 +564,8 @@ public final class BattleSetup {
             }
             shuttle.cycleLoadouts = cycleLoadouts;
             shuttle.marineLoadout = cycleLoadouts[0];
-            equipDefaultTurrets(shuttle);
             sim.addShuttle(shuttle);
+            equipDefaultTurrets(sim, shuttle);
         }
 
         allocateDefenders(sim, map, DefenderRoster.forMission(MissionType.CONQUEST, risk, enemyHasHeavyArmor), rng);

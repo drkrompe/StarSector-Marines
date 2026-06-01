@@ -74,6 +74,9 @@ public class AirSystem {
     /** Smoothed per-slot engine-FX demand, keyed by air entity id. Advanced each tick by {@link ThrusterFxSystem}; read by the shuttle render + light passes. */
     private final ComponentStore<ThrusterFx> thrusterFx = new ComponentStore<>();
 
+    /** Turret loadout per armed air craft, keyed by air entity id. Present only on craft with a fire-support role; pure transports carry no entry. */
+    private final ComponentStore<AirTurrets> airTurrets = new ComponentStore<>();
+
     /** Monotonic air-entity id source. Starts at 1 so 0 reads as "unregistered". Never recycled — see {@link Shuttle#entityId}. */
     private long nextAirId = 1L;
 
@@ -108,6 +111,23 @@ public class AirSystem {
     }
 
     /**
+     * Attaches a turret loadout to an air entity (presence component). No-op for
+     * a null/empty loadout — a craft with no mounts simply carries no
+     * {@link AirTurrets} component. Called at setup once the entity id is minted.
+     */
+    public void attachTurrets(long entityId, MountedTurret[] mounts) {
+        if (mounts != null && mounts.length > 0) {
+            airTurrets.add(entityId, new AirTurrets(mounts));
+        }
+    }
+
+    /** The craft's mounts, or {@code null} if it carries no turret component. Read by the shuttle render pass. */
+    public MountedTurret[] mountsFor(long entityId) {
+        AirTurrets t = airTurrets.get(entityId);
+        return t == null ? null : t.mounts;
+    }
+
+    /**
      * The single authoritative release point for an air entity — drops every
      * component this system holds for {@code entityId}. Called at the one death
      * transition (DEPARTING → GONE). <b>Every</b> future removal path (AA
@@ -118,7 +138,24 @@ public class AirSystem {
      */
     private void releaseAirEntity(long entityId) {
         thrusterFx.remove(entityId);
-        // Future air component stores (turrets, mission, …) drop here too.
+        airTurrets.remove(entityId);
+        // Future air component stores (mission, …) drop here too.
+    }
+
+    /**
+     * True when this craft is armed and assigned a fire-support role — after
+     * LANDED → marinesRemaining==0, gates the HOVER_STATION transition vs. the
+     * immediate DEPARTING path. Presence of the {@link AirTurrets} component IS
+     * "armed."
+     */
+    private boolean shouldHoverLoiter(Shuttle s) {
+        return s.assignedRole != null && airTurrets.has(s.entityId);
+    }
+
+    /** True when every mounted turret has fired dry (or the craft is unarmed) — a HOVER_STATION exit trigger. */
+    private boolean allTurretsDry(Shuttle s) {
+        AirTurrets t = airTurrets.get(s.entityId);
+        return t == null || t.allDry();
     }
 
     public void tick(float dt) {
@@ -190,7 +227,7 @@ public class AirSystem {
                         s.deboardCountdown = s.type.deboardInterval;
                     }
                     if (s.marinesRemaining == 0) {
-                        if (s.shouldHoverLoiter()) {
+                        if (shouldHoverLoiter(s)) {
                             // Lift off the LZ and station-keep above the squad
                             // for the type's fire-support window. Initial hover
                             // point is the LZ; each subsequent tick follows the
@@ -236,7 +273,7 @@ public class AirSystem {
                     // HP pressure). HP threshold is wired forward for AA work;
                     // today there's no damage source so it never trips.
                     boolean fuelOut = s.hoverTimerSec <= 0f;
-                    boolean ammoOut = s.allTurretsDry();
+                    boolean ammoOut = allTurretsDry(s);
                     boolean hpPressured = s.hp <= s.type.maxHp * Shuttle.HOVER_HP_THRESHOLD;
                     if (fuelOut || ammoOut || hpPressured) {
                         beginShuttleLeg(s, s.exitX, s.exitY);
@@ -272,10 +309,13 @@ public class AirSystem {
                             s.departingFromHover = false;
                             // Re-arm: refill every mount's magazine, drop any
                             // stale target lock so the next hover starts clean.
-                            for (MountedTurret mt : s.turrets) {
-                                mt.ammo = mt.mount.kind.startingAmmo;
-                                mt.targetId = 0L;
-                                mt.cooldownTimer = 0f;
+                            AirTurrets rearm = airTurrets.get(s.entityId);
+                            if (rearm != null) {
+                                for (MountedTurret mt : rearm.mounts) {
+                                    mt.ammo = mt.mount.kind.startingAmmo;
+                                    mt.targetId = 0L;
+                                    mt.cooldownTimer = 0f;
+                                }
                             }
                             s.state = Shuttle.State.PENDING;
                         } else {
@@ -297,11 +337,13 @@ public class AirSystem {
     private void tickShuttleTurrets(float dt) {
         for (Shuttle s : shuttles) {
             if (!s.isVisible()) continue;
-            if (s.turrets.length == 0) continue;
+            // Presence: only armed craft carry an AirTurrets component.
+            AirTurrets t = airTurrets.get(s.entityId);
+            if (t == null) continue;
             float rad = (float) Math.toRadians(s.body.facingDegrees);
             float c = (float) Math.cos(rad);
             float si = (float) Math.sin(rad);
-            for (MountedTurret mt : s.turrets) {
+            for (MountedTurret mt : t.mounts) {
                 // Age the per-shot recoil timer every tick; reset to 0 on each
                 // fired round below. Lets the renderer cycle the barrel slide
                 // per round during a burst, not just on the trigger pull.

@@ -95,17 +95,18 @@ public final class ShuttleRenderSystem implements RenderSystem {
                     cx, cy, pxW, pxH, s.body.facingDegrees,
                     1f, 1f, 1f, alphaMult);
 
-            emitTurrets(out, cam, cellPx, alphaMult, s);
+            emitTurrets(out, cam, cellPx, alphaMult, s, ctx.sim.getAirTurretMounts(s));
         }
     }
 
-    private void emitTurrets(DrawList out, BattleCamera cam, float cellPx, float alphaMult, Shuttle s) {
-        if (s.turrets.length == 0) return;
+    private void emitTurrets(DrawList out, BattleCamera cam, float cellPx, float alphaMult,
+                             Shuttle s, MountedTurret[] mounts) {
+        if (mounts == null) return;
         float rad = (float) Math.toRadians(s.body.facingDegrees);
         float c = (float) Math.cos(rad);
         float si = (float) Math.sin(rad);
         float altOffset = s.visualAltitudeOffsetCells();
-        for (MountedTurret mt : s.turrets) {
+        for (MountedTurret mt : mounts) {
             ShuttleSpriteCache base = sprites.turretSprites().get(mt.mount.kind);
             if (base == null) continue;
             // Same world-position helper the sim uses (so a round fires from

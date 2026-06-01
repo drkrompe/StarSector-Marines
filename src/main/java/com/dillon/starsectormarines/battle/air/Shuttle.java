@@ -166,14 +166,6 @@ public class Shuttle {
     public TacticalNode garrisonNode;
 
     /**
-     * Mounted turrets, sized to {@code type.hardpoints} and populated from
-     * {@link ShuttleType#kitFor} when {@link #assignedRole} is non-null.
-     * Empty (length-0) array on pure transports — the per-tick turret pass
-     * is a no-op in that case.
-     */
-    public MountedTurret[] turrets = new MountedTurret[0];
-
-    /**
      * Sim-seconds of fire-support fuel remaining. Initialized from
      * {@link ShuttleType#fireSupportSec} when transitioning to HOVER_STATION
      * and counted down each tick. Hits zero → DEPARTING.
@@ -245,15 +237,6 @@ public class Shuttle {
     }
 
     /**
-     * True when this shuttle is armed and assigned a fire-support role —
-     * after LANDED → marinesRemaining==0, this gates the HOVER_STATION
-     * transition vs. the immediate DEPARTING path.
-     */
-    public boolean shouldHoverLoiter() {
-        return assignedRole != null && turrets.length > 0;
-    }
-
-    /**
      * World-frame X of a mount's pivot: its hull-local slot offset — already in
      * cells at the one global pixel density, scraped from the hull's
      * {@code weaponSlots} by
@@ -280,15 +263,6 @@ public class Shuttle {
         float lx = m.localOffsetX * extraScale;
         float ly = m.localOffsetY * extraScale;
         return body.y + lx * facingSin + ly * facingCos;
-    }
-
-    /** True when every mounted turret has fired its magazine dry. Drives one of the HOVER_STATION exit triggers. */
-    public boolean allTurretsDry() {
-        if (turrets.length == 0) return true;
-        for (MountedTurret t : turrets) {
-            if (!t.ammoDry()) return false;
-        }
-        return true;
     }
 
     /**
