@@ -3,13 +3,16 @@ package com.dillon.starsectormarines.battle.command;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.decision.goap.world.GarrisonArea;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
+import com.dillon.starsectormarines.battle.nav.zone.Portal;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,16 +22,33 @@ import java.util.List;
 /**
  * Marine-side strategic commander for CONQUEST — the land-war pattern
  * (total map control along the {@link TraversalAxis}, push enemies toward
- * the far side). Partitions the map into {@link #STRIP_COUNT} lateral
- * strips perpendicular to the traversal axis at first tick, sticky-assigns
- * each marine squad to one strip, then per slow tick assigns each squad
- * a {@link AssignmentKind#CLEAR_ZONE} pointed at the
- * <em>nearest defender-occupied zone in its strip</em> (with a positive-
- * forward bias on ties). The slow-tick cycle then iterates the squad
- * one defender position at a time as each is cleared — fixes the
- * "drop-off then drive inland" bug where targeting the strip's deepest
- * defender pulled squads past LZ-side defenders along zone-graph BFS
- * paths that took the shortest open route.
+ * the far side). Two passes per slow tick:
+ *
+ * <ol>
+ *   <li><b>Deliberate compound capture (map-global).</b> Conquest is won
+ *       only when every supply compound is {@code MARINE_HELD}, so capture
+ *       is treated as the objective it is rather than an accident of the
+ *       front line washing over a building. A <em>measured detachment</em>
+ *       (one squad, two for a multi-room keep) is peeled off to
+ *       {@link AssignmentKind#SECURE_COMPOUND} a compound the moment it is
+ *       <em>uncontested</em> — nearest squads assigned, capped per compound
+ *       so the whole force is never stripped off the enemy. A compound that
+ *       still holds defenders is only assigned to a squad already in/adjacent
+ *       to it (commit incidental presence; never feed a lone squad into a
+ *       defended building). "Contested" is judged over the compound's
+ *       {@link GarrisonArea garrison zones} — the AABB-gated rooms — so a
+ *       defender merely loitering in the open street nearby never blocks a
+ *       capture order, and the unbounded outdoor flood never counts as "in"
+ *       the compound. See {@code roadmap/conquest/stories/deliberate-compound-capture.md}.</li>
+ *   <li><b>Strip clear-zone push.</b> Every squad not pulled for capture
+ *       falls through to the lateral-strip search-and-destroy: it is
+ *       sticky-assigned to one of {@link #STRIP_COUNT} strips at first
+ *       observation and pointed at the <em>nearest defender-occupied zone in
+ *       its strip</em> (positive-forward bias on ties), iterating one defender
+ *       position at a time as each clears — fixes the "drop-off then drive
+ *       inland" bug where targeting the strip's deepest defender pulled
+ *       squads past LZ-side defenders along the shortest open BFS route.</li>
+ * </ol>
  *
  * <p>Distinct partition strategy from {@link SabotageCommand}'s
  * objective-cluster shape. SabotageCommand has N sectors centered on named
@@ -71,12 +91,21 @@ public final class ConquestCommand implements MissionCommand {
     public static final int STRIP_COUNT = 3;
 
     /**
-     * Forward-axis cells of lookahead beyond the squad's current position
-     * within which a compound zone is considered "ripe" for capture. Without
-     * this the assignment only fires after the squad passes the compound; a
-     * few cells of margin lets the squad begin diverting before it overshoots.
+     * Garrison-zone room count at or above which a compound rates a two-squad
+     * capture detachment instead of one — the "scale by size" rule. A
+     * standalone ARMORY/BARRACKS resolves to one or two rooms (one squad); a
+     * multi-chamber central keep resolves to several (two squads, so a single
+     * counter-drop mid-capture doesn't lose the take). Tunable.
      */
-    public static final float COMPOUND_LOOKAHEAD = 6f;
+    public static final int LARGE_COMPOUND_ROOMS = 3;
+
+    /**
+     * Cells of slack added around a compound's footprint when resolving its
+     * garrison zones (see {@link GarrisonArea#garrisonZones}). Small on purpose
+     * — just enough to absorb the perimeter wall ring without dragging the open
+     * exterior across the size gate.
+     */
+    public static final int GARRISON_MARGIN = 2;
 
     private final TraversalAxis axis;
 
@@ -128,14 +157,19 @@ public final class ConquestCommand implements MissionCommand {
      */
     private static final float EXTERIOR_DOMINANCE_RATIO = 2.0f;
     /**
-     * Per-compound records mapped to the zone containing their anchor cell.
-     * Built at init time by looking up each compound record's anchor in the
-     * zone graph. Only compounds whose anchor resolves to a valid zone are
-     * included — a wall-cell anchor (rare) is silently skipped.
+     * Per-compound capture targets, built once at init. Each caches the
+     * compound's anchor zone (the {@code SECURE_COMPOUND} push/hold target,
+     * matching where {@code CompoundCaptureSystem} samples occupancy), its
+     * garrison zones (the AABB-gated rooms used for the contested test), and
+     * the size-scaled squad quota. Topology is static after spawn settle, so
+     * the garrison-zone set is frozen here; only the per-tick {@code record.state}
+     * and live defender occupancy vary. Compounds whose anchor sits on a wall
+     * cell (rare) are skipped.
      */
-    private final List<CompoundZone> compoundZones = new ArrayList<>();
+    private final List<CompoundTarget> compoundTargets = new ArrayList<>();
 
-    private record CompoundZone(CompoundService.Record record, int zoneId, int stripIdx) {}
+    private record CompoundTarget(CompoundService.Record record, int anchorZoneId,
+                                  int[] garrisonZones, int desiredSquads) {}
 
     public ConquestCommand(TraversalAxis axis) {
         this.axis = axis;
@@ -153,39 +187,33 @@ public final class ConquestCommand implements MissionCommand {
             initialized = true;
         }
 
-        // Compound garrisons are NOT assigned here. The dedicated holding squad
-        // is shipped in by CompoundGarrisonSystem and born with HOLD_NODE at
-        // deboard (see AirSystem.tryDeboardMarine), so it holds without the
-        // commander pinning whichever assault squad happened to be standing in
-        // the compound at capture. The loop below leaves any HOLD_NODE squad
-        // alone (the skip), and the capturing assault squad keeps advancing.
+        // Candidate squads for assignment: alive marines, minus any born-holding
+        // garrison squad. Compound garrisons are NOT assigned here — the dedicated
+        // holding squad is shipped in by CompoundGarrisonSystem born with HOLD_NODE
+        // at deboard (see AirSystem.tryDeboardMarine), so it holds without the
+        // commander pinning whichever assault squad happened to be standing in the
+        // compound at capture. Skipping HOLD_NODE here leaves the garrison on
+        // station and lets the capturing assault squad keep advancing.
+        List<Squad> squads = new ArrayList<>();
         for (Squad squad : sim.getSquads()) {
             if (squad.faction != Faction.MARINE) continue;
             if (squad.aliveMembers <= 0) continue;
             if (squad.assignedObjective != null
                     && squad.assignedObjective.kind() == AssignmentKind.HOLD_NODE) continue;
+            squads.add(squad);
+        }
+
+        // Pass 1: deliberate compound capture. Pulls a capped detachment off
+        // the hunt for each capturable compound; squads it commits are tracked
+        // in `committed` and skipped by the strip push below.
+        IntOpenHashSet committed = new IntOpenHashSet();
+        assignCompoundCaptures(squads, committed, sim);
+
+        // Pass 2: every uncommitted squad runs the lateral-strip search-and-
+        // destroy push against the nearest defender-occupied zone in its strip.
+        for (Squad squad : squads) {
+            if (committed.contains(squad.id)) continue;
             int stripIdx = stripFor(squad);
-            float squadForward = (axis == TraversalAxis.SOUTH_TO_NORTH)
-                    ? squad.centroidY : squad.centroidX;
-
-            // Pass 1: uncaptured compound at or behind the squad's forward
-            // position. Securing compounds the front line has reached (or
-            // bypassed) is highest priority — an uncaptured compound in
-            // the rear keeps spawning defenders behind you.
-            CompoundZone ripe = nearestRipeCompound(stripIdx, squadForward, sim);
-            if (ripe != null) {
-                ObjectiveAssignment cur = squad.assignedObjective;
-                if (cur == null
-                        || cur.kind() != AssignmentKind.SECURE_COMPOUND
-                        || cur.targetZoneId() != ripe.zoneId) {
-                    squad.assignedObjective = ObjectiveAssignment.secureCompound(
-                            squad.id, ripe.zoneId, ripe.record.node);
-                }
-                continue;
-            }
-
-            // Pass 2: fall through to nearest defender-occupied zone for
-            // the street-by-street push.
             int targetZone = nearestDefenderZoneInStrip(squad, stripIdx, sim);
             if (targetZone < 0) {
                 squad.assignedObjective = null;
@@ -201,34 +229,141 @@ public final class ConquestCommand implements MissionCommand {
     }
 
     /**
-     * Finds the nearest uncaptured compound in this strip whose zone is at
-     * or behind the squad's forward position. "At or behind" means the
-     * compound zone's forward coordinate is {@code <=} the squad's, with a
-     * small lookahead margin so a squad approaching the compound building
-     * doesn't overshoot before the assignment triggers.
+     * Assign a measured capture detachment to each capturable compound.
+     * Three phases over the candidate {@code squads}, marking each committed
+     * squad in {@code committed} so the strip push skips it:
      *
-     * <p>Returns {@code null} when no ripe compound exists in the strip —
-     * caller falls through to the generic {@link #nearestDefenderZoneInStrip}
-     * for the street-by-street push.
+     * <ol>
+     *   <li><b>Preserve.</b> A squad already on {@code SECURE_COMPOUND} for a
+     *       still-capturable compound keeps it (stability across replans) and
+     *       fills one of that compound's slots — a squad mid-capture is by
+     *       definition the "already adjacent" case.</li>
+     *   <li><b>Uncontested fill.</b> For compounds with no defender in any
+     *       garrison zone, greedily assign the nearest uncommitted squads up
+     *       to the per-compound quota. Greedy nearest-pair so several
+     *       compounds spread the squads rather than all piling on the closest
+     *       one.</li>
+     *   <li><b>Contested adjacent.</b> For compounds that still hold defenders,
+     *       commit only uncommitted squads already in/adjacent to a garrison
+     *       zone — convert incidental presence into a committed capture; never
+     *       pull a fresh squad into a defended building.</li>
+     * </ol>
      */
-    private CompoundZone nearestRipeCompound(int stripIdx, float squadForward, BattleView sim) {
-        CompoundZone best = null;
-        float bestDist = Float.MAX_VALUE;
-        for (CompoundZone cz : compoundZones) {
-            if (cz.stripIdx != stripIdx) continue;
-            if (cz.record.state == CompoundService.CompoundState.MARINE_HELD) continue;
-            float compoundForward = zoneForwardCoord[cz.zoneId];
-            // Ripe = compound is at or behind the squad's forward line,
-            // with a small lookahead so the assignment fires a few cells
-            // before the squad arrives rather than after it passes.
-            if (compoundForward > squadForward + COMPOUND_LOOKAHEAD) continue;
-            float dist = Math.abs(compoundForward - squadForward);
-            if (dist < bestDist) {
-                bestDist = dist;
-                best = cz;
+    private void assignCompoundCaptures(List<Squad> squads, IntOpenHashSet committed, BattleView sim) {
+        if (compoundTargets.isEmpty() || squads.isEmpty()) return;
+
+        int n = compoundTargets.size();
+        int[] slots = new int[n];        // remaining capture slots per compound
+        boolean[] contested = new boolean[n];
+        for (int i = 0; i < n; i++) {
+            CompoundTarget t = compoundTargets.get(i);
+            if (t.record.state == CompoundService.CompoundState.MARINE_HELD) {
+                slots[i] = 0;            // already ours — no detachment
+                continue;
+            }
+            slots[i] = t.desiredSquads;
+            contested[i] = isContested(t, sim);
+        }
+
+        // Phase 1: preserve in-flight captures.
+        for (Squad squad : squads) {
+            ObjectiveAssignment a = squad.assignedObjective;
+            if (a == null || a.kind() != AssignmentKind.SECURE_COMPOUND) continue;
+            int idx = targetIndexForAnchorZone(a.targetZoneId());
+            if (idx < 0 || slots[idx] <= 0) continue;
+            slots[idx]--;
+            committed.add(squad.id);
+        }
+
+        // Phase 2: greedy nearest-pair fill of uncontested compounds.
+        while (true) {
+            int bestSquad = -1, bestTarget = -1;
+            float bestDist = Float.MAX_VALUE;
+            for (Squad squad : squads) {
+                if (committed.contains(squad.id)) continue;
+                for (int i = 0; i < n; i++) {
+                    if (slots[i] <= 0 || contested[i]) continue;
+                    float d = distSq(squad, compoundTargets.get(i));
+                    if (d < bestDist) {
+                        bestDist = d;
+                        bestSquad = squad.id;
+                        bestTarget = i;
+                    }
+                }
+            }
+            if (bestSquad < 0) break;
+            commitCapture(squadById(squads, bestSquad), compoundTargets.get(bestTarget), committed);
+            slots[bestTarget]--;
+        }
+
+        // Phase 3: commit already-adjacent squads to contested compounds.
+        for (int i = 0; i < n; i++) {
+            if (slots[i] <= 0 || !contested[i]) continue;
+            CompoundTarget t = compoundTargets.get(i);
+            for (Squad squad : squads) {
+                if (slots[i] <= 0) break;
+                if (committed.contains(squad.id)) continue;
+                if (!squadAdjacentToCompound(squad, t, sim)) continue;
+                commitCapture(squad, t, committed);
+                slots[i]--;
             }
         }
-        return best;
+    }
+
+    private void commitCapture(Squad squad, CompoundTarget t, IntOpenHashSet committed) {
+        committed.add(squad.id);
+        ObjectiveAssignment cur = squad.assignedObjective;
+        if (cur == null
+                || cur.kind() != AssignmentKind.SECURE_COMPOUND
+                || cur.targetZoneId() != t.anchorZoneId) {
+            squad.assignedObjective = ObjectiveAssignment.secureCompound(
+                    squad.id, t.anchorZoneId, t.record.node);
+        }
+    }
+
+    /** True iff any of the compound's garrison rooms holds a live defender. The AABB-gated garrison-zone set excludes the open exterior, so a defender loitering in the street outside doesn't read as contesting the compound. */
+    private boolean isContested(CompoundTarget t, BattleView sim) {
+        for (int zoneId : t.garrisonZones) {
+            if (!ZoneQueries.zoneClear(zoneId, Faction.DEFENDER, sim)) return true;
+        }
+        return false;
+    }
+
+    /** True iff the squad currently stands in, or in a zone bordering, one of the compound's garrison rooms — the "already there, commit the capture" gate for contested compounds. */
+    private boolean squadAdjacentToCompound(Squad squad, CompoundTarget t, BattleView sim) {
+        int cz = ZoneQueries.squadCurrentZone(squad, sim);
+        if (cz < 0) return false;
+        if (containsZone(t.garrisonZones, cz)) return true;
+        ZoneGraph graph = sim.getZoneGraph();
+        for (int portalId : ZoneQueries.portalsOf(cz, sim)) {
+            Portal p = graph.portalById(portalId);
+            if (p == null) continue;
+            if (containsZone(t.garrisonZones, p.otherZone(cz))) return true;
+        }
+        return false;
+    }
+
+    private int targetIndexForAnchorZone(int anchorZoneId) {
+        for (int i = 0; i < compoundTargets.size(); i++) {
+            if (compoundTargets.get(i).anchorZoneId == anchorZoneId) return i;
+        }
+        return -1;
+    }
+
+    private static float distSq(Squad squad, CompoundTarget t) {
+        float dx = squad.centroidX - t.record.node.anchorX;
+        float dy = squad.centroidY - t.record.node.anchorY;
+        return dx * dx + dy * dy;
+    }
+
+    private static boolean containsZone(int[] zones, int zoneId) {
+        for (int z : zones) if (z == zoneId) return true;
+        return false;
+    }
+
+    private static Squad squadById(List<Squad> squads, int id) {
+        for (Squad s : squads) if (s.id == id) return s;
+        return null;
     }
 
     /**
@@ -295,16 +430,27 @@ public final class ConquestCommand implements MissionCommand {
         CompoundService compounds = sim.getCompoundService();
         if (compounds != null) {
             for (CompoundService.Record r : compounds.getRecords()) {
-                int zoneId = graph.zoneIdAt(r.node.anchorX, r.node.anchorY);
-                if (zoneId < 0) continue;
-                float lateral = (axis == TraversalAxis.SOUTH_TO_NORTH)
-                        ? r.node.anchorX : r.node.anchorY;
-                int si = stripIndexForLateral(lateral, this.lateralExtent);
-                if (si < 0) si = 0;
-                if (si >= STRIP_COUNT) si = STRIP_COUNT - 1;
-                compoundZones.add(new CompoundZone(r, zoneId, si));
+                int anchorZone = graph.zoneIdAt(r.node.anchorX, r.node.anchorY);
+                if (anchorZone < 0) continue;  // wall-cell anchor (rare) — skip
+                int[] garrisonZones = resolveGarrisonZones(r, anchorZone, sim);
+                int desiredSquads = garrisonZones.length >= LARGE_COMPOUND_ROOMS ? 2 : 1;
+                compoundTargets.add(new CompoundTarget(r, anchorZone, garrisonZones, desiredSquads));
             }
         }
+    }
+
+    /**
+     * The compound's garrison rooms via the AABB size+containment gate, as an
+     * int array. Falls back to the anchor zone alone when the footprint
+     * resolves to nothing (degenerate footprint or a synthetic test grid) so
+     * the contested test always has at least the capture zone to look at.
+     */
+    private static int[] resolveGarrisonZones(CompoundService.Record r, int anchorZone, BattleView sim) {
+        List<Integer> zones = GarrisonArea.garrisonZones(r.node, GARRISON_MARGIN, sim);
+        if (zones.isEmpty()) return new int[] { anchorZone };
+        int[] out = new int[zones.size()];
+        for (int i = 0; i < out.length; i++) out[i] = zones.get(i);
+        return out;
     }
 
     /**

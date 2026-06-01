@@ -14,6 +14,11 @@ designed around.
 - [`tug-of-war-v2.md`](tug-of-war-v2.md) — v2 territory tug-of-war.
   Marine garrison drops on capture + commander hold assignment.
   **In progress.**
+- [`complete/deliberate-compound-capture.md`](complete/deliberate-compound-capture.md)
+  — smarter attacker commander: deliberate, capped, uncontested-aware
+  compound capture (replaces the strip-local "ripe" heuristic that left
+  objectives uncaptured while squads swarmed search-and-destroy).
+  **Shipped.**
 
 ## Related
 

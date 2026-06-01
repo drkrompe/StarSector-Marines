@@ -25,6 +25,17 @@ post anchor with half-extent `squad.patrolRadius` instead of `HoldPost`'s
 static 6-cell leash. Finally a live consumer for the per-tier
 `DefensePostKind.patrolRadius`. See `stories/18-guardpost-area-patrol.md`.
 
+Deliberate compound capture shipped (2026-06-01): `ConquestCommand` no
+longer relies on the strip-local "compound is behind my front line" ripe
+heuristic — which left objectives uncaptured while squads swarmed
+search-and-destroy after convoy drops. New map-global
+`assignCompoundCaptures` pass peels a capped detachment (1 squad, 2 for a
+multi-room keep) onto each compound the moment it's **uncontested**
+(judged over `GarrisonArea` AABB-gated rooms, so an exterior defender
+doesn't block it); contested compounds only commit an already-adjacent
+squad; everyone else stays on the strip search-and-destroy push. See
+`roadmap/conquest/complete/deliberate-compound-capture.md`.
+
 ## Immediate next
 
 0. ~~**Garrison zone-clear scoping + multi-building garrison**~~ — **shipped**

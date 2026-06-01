@@ -482,4 +482,198 @@ public class ConquestCommandTest {
         assertNotEquals(cmdSN.stripIndexOf(sqSN.id), cmdWE.stripIndexOf(sqWE.id),
                 "axis flip should produce different strip assignments for the same coord");
     }
+
+    // ---- Deliberate compound-capture pass ----
+
+    /**
+     * Carve a sealed 3×3 room (interior {@code [cx-1..cx+1]×[cy-1..cy+1]}) into an
+     * otherwise open grid: a one-cell wall ring with a single doorway at the top
+     * ({@code (cx, cy-2)}) connecting the room to the exterior. The room becomes
+     * its own navigation zone; the surrounding flood is the exterior.
+     */
+    private static void carveRoom(NavigationGrid grid, int cx, int cy) {
+        for (int x = cx - 2; x <= cx + 2; x++) {
+            grid.setWalkable(x, cy - 2, false);
+            grid.setWalkable(x, cy + 2, false);
+        }
+        for (int y = cy - 2; y <= cy + 2; y++) {
+            grid.setWalkable(cx - 2, y, false);
+            grid.setWalkable(cx + 2, y, false);
+        }
+        grid.setWalkableFloor(cx, cy - 2);
+        grid.setDoorway(cx, cy - 2, true);
+    }
+
+    /** One sealed 3×3 compound building centred at (5,5) in an otherwise open map. */
+    private static BattleSimulation oneCompoundSim() {
+        NavigationGrid grid = new NavigationGrid(W, H);
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) grid.setWalkableFloor(x, y);
+        }
+        carveRoom(grid, 5, 5);
+        return new BattleSimulation(grid, new CellTopology(W, H));
+    }
+
+    /** Two sealed compound buildings — strip 0 at (5,5), strip 2 at (24,5). */
+    private static BattleSimulation twoCompoundSim() {
+        NavigationGrid grid = new NavigationGrid(W, H);
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) grid.setWalkableFloor(x, y);
+        }
+        carveRoom(grid, 5, 5);
+        carveRoom(grid, 24, 5);
+        return new BattleSimulation(grid, new CellTopology(W, H));
+    }
+
+    /** Three sealed rooms in a band sharing wall columns — one multi-room compound footprint. */
+    private static BattleSimulation threeRoomCompoundSim() {
+        NavigationGrid grid = new NavigationGrid(W, H);
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) grid.setWalkableFloor(x, y);
+        }
+        carveRoom(grid, 5, 5);
+        carveRoom(grid, 9, 5);
+        carveRoom(grid, 13, 5);
+        return new BattleSimulation(grid, new CellTopology(W, H));
+    }
+
+    /** Register a compound node (DEFENDER_HELD) without driving it to capture. */
+    private static TacticalNode registerCompound(BattleSimulation sim, TacticalNode node) {
+        sim.getCompoundService().register(node);
+        return node;
+    }
+
+    private static boolean isSecureCompound(Squad squad) {
+        ObjectiveAssignment a = squad.assignedObjective;
+        return a != null && a.kind() == AssignmentKind.SECURE_COMPOUND;
+    }
+
+    @Test
+    public void uncontestedCompoundPullsNearestSquadAndCapsAtOne() {
+        // One small (single-room) compound, uncontested (no defenders). Two
+        // squads: the near one is peeled off to capture; the far one is NOT —
+        // the per-compound cap (1 for a single-room compound) leaves it free to
+        // keep hunting.
+        BattleSimulation sim = oneCompoundSim();
+        TacticalNode node = registerCompound(sim, new TacticalNode(
+                TacticalNode.Kind.ARMORY, 5, 5, 4, 4, 6, 6, Faction.DEFENDER, 80, 4));
+        Squad near = addMarineSquad(sim, 5f, 5f);    // inside the building
+        Squad far = addMarineSquad(sim, 24f, 5f);    // far away, strip 2
+
+        ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+        cmd.tick(sim);
+
+        assertTrue(isSecureCompound(near), "nearest squad should be assigned to capture the uncontested compound");
+        int anchorZone = sim.getZoneGraph().zoneIdAt(node.anchorX, node.anchorY);
+        assertEquals(anchorZone, near.assignedObjective.targetZoneId(), "SECURE_COMPOUND target is the anchor zone");
+        assertEquals(node, near.assignedObjective.targetNode());
+        assertFalse(isSecureCompound(far), "the cap is 1 — the far squad must not also be pulled onto the same compound");
+    }
+
+    @Test
+    public void twoUncontestedCompoundsSpreadSquadsNotPileThem() {
+        // Two single-room compounds, two squads, each near a different one.
+        // Greedy nearest-pair must spread them — one squad per compound — not
+        // pile both on the closer compound.
+        BattleSimulation sim = twoCompoundSim();
+        TacticalNode a = registerCompound(sim, new TacticalNode(
+                TacticalNode.Kind.ARMORY, 5, 5, 4, 4, 6, 6, Faction.DEFENDER, 80, 4));
+        TacticalNode b = registerCompound(sim, new TacticalNode(
+                TacticalNode.Kind.BARRACKS, 24, 5, 23, 4, 25, 6, Faction.DEFENDER, 80, 4));
+        Squad sqA = addMarineSquad(sim, 5f, 5f);
+        Squad sqB = addMarineSquad(sim, 24f, 5f);
+
+        ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+        cmd.tick(sim);
+
+        assertTrue(isSecureCompound(sqA) && isSecureCompound(sqB), "both squads should be on capture duty");
+        int zoneA = sim.getZoneGraph().zoneIdAt(a.anchorX, a.anchorY);
+        int zoneB = sim.getZoneGraph().zoneIdAt(b.anchorX, b.anchorY);
+        assertEquals(zoneA, sqA.assignedObjective.targetZoneId(), "squad A → compound A");
+        assertEquals(zoneB, sqB.assignedObjective.targetZoneId(), "squad B → compound B");
+    }
+
+    @Test
+    public void multiRoomCompoundRatesTwoSquads() {
+        // A multi-room compound (three garrison rooms) rates a two-squad
+        // detachment; both nearby squads are committed to it.
+        BattleSimulation sim = threeRoomCompoundSim();
+        // Sanity: the three rooms really are distinct zones.
+        int z1 = sim.getZoneGraph().zoneIdAt(5, 5);
+        int z2 = sim.getZoneGraph().zoneIdAt(9, 5);
+        int z3 = sim.getZoneGraph().zoneIdAt(13, 5);
+        assertNotEquals(z1, z2);
+        assertNotEquals(z2, z3);
+
+        TacticalNode node = registerCompound(sim, new TacticalNode(
+                TacticalNode.Kind.COMMAND_POST, 5, 5, 3, 3, 15, 7, Faction.DEFENDER, 90, 4));
+        Squad sqA = addMarineSquad(sim, 5f, 5f);
+        Squad sqB = addMarineSquad(sim, 9f, 5f);
+
+        ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+        cmd.tick(sim);
+
+        assertTrue(isSecureCompound(sqA), "first squad captures the keep");
+        assertTrue(isSecureCompound(sqB), "multi-room keep rates a 2nd capture squad");
+    }
+
+    @Test
+    public void defenderInOpenExteriorDoesNotMarkCompoundContested() {
+        // The contested test runs over the AABB-gated garrison rooms, so a
+        // defender loitering in the open street outside the building must NOT
+        // make the compound read as contested — the squad is still peeled off
+        // to capture it.
+        BattleSimulation sim = oneCompoundSim();
+        TacticalNode node = registerCompound(sim, new TacticalNode(
+                TacticalNode.Kind.ARMORY, 5, 5, 4, 4, 6, 6, Faction.DEFENDER, 80, 4));
+        Squad squad = addMarineSquad(sim, 5f, 1f);   // near the building, in the exterior
+        addDefender(sim, 5, 1);                       // exterior (not in a garrison room)
+
+        ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+        cmd.tick(sim);
+
+        assertTrue(isSecureCompound(squad),
+                "an exterior defender does not contest the compound — capture still fires");
+    }
+
+    @Test
+    public void contestedCompoundDoesNotPullADistantSquad() {
+        // Defender INSIDE the building → contested. A squad in the same strip
+        // but out in the exterior (not adjacent to a garrison room) is not
+        // pulled onto a capture; it runs the ordinary clear-zone push toward
+        // the defended room instead.
+        BattleSimulation sim = oneCompoundSim();
+        registerCompound(sim, new TacticalNode(
+                TacticalNode.Kind.ARMORY, 5, 5, 4, 4, 6, 6, Faction.DEFENDER, 80, 4));
+        Squad squad = addMarineSquad(sim, 8f, 8f);   // exterior, strip 0
+        addDefender(sim, 5, 5);                       // inside the building room
+
+        ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+        cmd.tick(sim);
+
+        assertFalse(isSecureCompound(squad), "a contested compound must not pull a non-adjacent squad");
+        ObjectiveAssignment a = squad.assignedObjective;
+        assertNotNull(a, "the defended room is a strip clear-zone target");
+        assertEquals(AssignmentKind.CLEAR_ZONE, a.kind());
+        int roomZone = sim.getZoneGraph().zoneIdAt(5, 5);
+        assertEquals(roomZone, a.targetZoneId(), "the clear-zone push points at the defended compound room");
+    }
+
+    @Test
+    public void contestedCompoundCommitsAnAlreadyAdjacentSquad() {
+        // Squad already inside the building while a defender is also there →
+        // commit the capture (convert incidental presence into a committed
+        // SECURE_COMPOUND), rather than leaving it on an ambient clear.
+        BattleSimulation sim = oneCompoundSim();
+        TacticalNode node = registerCompound(sim, new TacticalNode(
+                TacticalNode.Kind.ARMORY, 5, 5, 4, 4, 6, 6, Faction.DEFENDER, 80, 4));
+        Squad squad = addMarineSquad(sim, 4f, 4f);   // inside the building room
+        addDefender(sim, 6, 6);                       // also inside → contested
+
+        ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+        cmd.tick(sim);
+
+        assertTrue(isSecureCompound(squad), "a squad already in a contested compound commits to capturing it");
+        assertEquals(node, squad.assignedObjective.targetNode());
+    }
 }
