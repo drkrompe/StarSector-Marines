@@ -106,6 +106,20 @@ Deliberately **not** a big-bang. Each slice is independently shippable.
 - **Final — Collapse `render()`** to the systems-loop + renderer-flush + scissor
   bracket. Delete the per-pass methods as their systems land.
 
+### Phase 2 — FX command-model migration (post-reorg)
+
+Stories A–J + Final are shipped: `render()` is collect-all → drain-all. But ~10
+`worldSystems` entries are still `Custom` escape hatches (own-GL blobs the drain
+can't batch or audit) — the reorg *wrapped* them in the systems list without
+expressing them *as data*. Phase 2 dissolves the **migratable** ones into the
+command model, using SHOTS/FX as the worked template: apply Story J's flyweight
+(`ShotAppearance`) + capability tags + stateless per-stratum sweep
+(`ShotRenderService`) one tier earlier, add a `LINE` `DrawCommand` primitive, and
+split stateful FX (contrail lifecycle) into services. FBO blits (decals,
+lightmap) *stay* `Custom` — the goal is that every `Custom` is a genuine own-GL
+escape, not geometry hiding from the drain. Design + slices:
+[`stories/fx-shots-command-model.md`](stories/fx-shots-command-model.md).
+
 ## Future: camera view-projection + camera-Z
 
 > Beyond this reorg's scope (the decomposition above is purely structural). A

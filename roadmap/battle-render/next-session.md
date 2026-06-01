@@ -5,9 +5,13 @@
 > every world pass is a `worldSystems` producer.
 >
 > ✅ **`QuadBatch.flush` perf spike — SHIPPED & VERIFIED** (client-side vertex
-> arrays; −75% combined flush CPU, in-game render correct — see below). Optional
-> follow-up: the ground-FBO work-reduction spike (stubbed, not started). With
-> this done, the battle-render track has **no remaining open work**.
+> arrays; −75% combined flush CPU, in-game render correct — see below).
+>
+> 🎯 **Active next: Phase 2 — FX command-model migration.** Dissolve the residual
+> `Custom` escape hatches into the command model, SHOTS/FX first, using the
+> Story-J flyweight + capability-tag + stateless-sweep pattern as the template.
+> Design + slice plan: [`stories/fx-shots-command-model.md`](stories/fx-shots-command-model.md).
+> Optional perf follow-up still on the shelf: the ground-FBO work-reduction spike.
 
 ## State of play
 
