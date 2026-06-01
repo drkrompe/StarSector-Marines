@@ -47,7 +47,7 @@ live pass, `WorldPicker`, `AttackerIndexService`, `FleeBehavior`,
 | `UnitRenderService.sweepDeadSprites` | draw the frozen death pose for the rest of the battle | **static** — render-only |
 | `DroneCrashSystem` | multi-tick fall → impact → wreck animation | **lifecycle** — ticks `crashTimer`, reads `body.x/y/facing` |
 | ~~`TurretDemolitionSystem`~~ | flip dead turret cell to rubble; mark `demolished` | **reaction** — same-tick, reads `cellX/Y` — **MIGRATED** to `onDeath(DeathEvent)` (foundation slice). Its guardpost-all-dead scan still reads the list; migrates with the rest of this bucket. |
-| `HubDemolitionSystem` | cascade-kill a dead hub's drones; flip to rubble | **reaction** — same-tick, reads `homeHub` backlink |
+| ~~`HubDemolitionSystem`~~ | cascade-kill a dead hub's drones; flip to rubble | **reaction** — same-tick, reads `homeHub` backlink — **MIGRATED** to `onDeath(DeathEvent)` (slice 2a). Its drone cascade still scans the list, and the drones it hp=0s bypass `DamageResolver` so they don't publish their own `DeathEvent` — fine while the crash system list-scans for dead drones; revisit when it migrates. |
 
 Collective field needs (the corpse-record spec): `type`, `faction`,
 `cellX/cellY`, `renderX/renderY`, `deathPoseIdx`; drone crash adds
@@ -116,13 +116,30 @@ Open sub-questions for the build (resolve as we go, don't over-design):
     phase — exactly the end-of-tick timing the batch demolition had, and by
     drain time every this-tick death is settled (so sibling-state queries like
     "all turrets on this post dead?" behave identically).
+- **Slice 2a SHIPPED (2026-06-01).** `HubDemolitionSystem` migrated off its
+  per-tick `List<Unit>` scan to `onDeath(DeathEvent)`, same shape as turret
+  demolition — flip the dead hub's cell to rubble + smoking wreck, then
+  cascade-kill the hub's launched drones. The sim subscribes it; the old
+  `hubDemolition.tick(units)` call is gone (both demolitions now react in the
+  one `deathDispatcher.drain()`). The two now-unified profiler phases
+  `DEMOLISH_TURRETS` + `DEMOLISH_HUBS` collapsed into a single `DEMOLISH` phase.
+  Test: `HubDemolitionSystemTest` (demolition + same-tick cascade→crash
+  ordering + control drone untouched).
+  - **Known follow-up (carried):** the drone cascade still scans the legacy
+    list and the drones it kills (hp=0 + release) bypass `DamageResolver`, so
+    they publish no `DeathEvent`. Harmless while `DroneCrashSystem` detects dead
+    drones by list scan; when the crash system moves onto the event seam the
+    cascade must publish per-drone `DeathEvent`s (or the crash system keeps a
+    list scan). Re-entrant publish during `drain()` needs the index-based drain
+    loop to tolerate `pending` growth — verify before wiring that up.
 
 ## Sequencing
 
 1. **Corpse home (enabler).** Build the death-event + corpse-decal (+ crash-FX,
    demolition-handler) mechanism; migrate the 4 Bucket-B readers off the list.
-   *(Death-event mechanism + turret demolition done — see Progress. Remaining:
-   hub demolition, drone crash, dead-sprite render.)*
+   *(Death-event mechanism + turret demolition + hub demolition done — see
+   Progress. Remaining: drone crash, dead-sprite render — the two that want the
+   actual body store built.)*
 2. **Bucket A sweep.** Migrate the ~20 live-iterators `getUnits()` → dense
    registry. Fan out to Sonnet; each is a local `isAlive`-gate → dense loop.
 3. **Bucket C cleanup.** Point UI/debug/flyby at the registry; resolve

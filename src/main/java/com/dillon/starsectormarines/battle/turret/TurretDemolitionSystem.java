@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * Death-event handler that converts a destroyed {@link MapTurret} into walkable
  * rubble. Subscribes to the {@link DeathDispatcher}; fires once per turret
- * death when the mailbox drains (the {@code DEMOLISH_TURRETS} phase). Pairs
+ * death when the mailbox drains (the {@code DEMOLISH} phase). Pairs
  * with {@code HubDemolitionSystem} (same flip-to-rubble pattern for drone hubs)
  * but stays separate because the post-demolish step — releasing the squad that
  * was guarding the post once every turret on it is dead — is turret-only and

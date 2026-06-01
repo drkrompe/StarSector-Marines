@@ -66,9 +66,11 @@ campaign work.)
 - **Full suite green at 592 tests** (after the death-dispatcher foundation
   slice). The earlier sibling compile break in `ShotRenderService.java` has
   since resolved.
-- **Death-event seam LANDED** — `DeathDispatcher` mailbox is live; turret
-  demolition is the first migrated handler. See the spine story's build
-  sequence (step 1 shipped, step 2 next).
+- **Death-event seam LANDED** — `DeathDispatcher` mailbox is live; **turret +
+  hub demolition** both migrated (slice 2a). Both reactions now fire in the one
+  `deathDispatcher.drain()` at the unified `DEMOLISH` profiler phase. See the
+  spine story's build sequence (steps 1 + hub done; drone-crash + dead-sprite
+  body store next).
 
 ## Active stories (priority order)
 
@@ -121,12 +123,21 @@ campaign work.)
 >    legacy list (a Bucket-B corpse-read it migrates with in step 2).
 >    Tests: `DeathDispatcherTest` (4) + `TurretDemolitionSystemTest` (2). Suite
 >    green at 592.
-> 2. **NEXT — remaining Bucket-B handlers.** `HubDemolitionSystem` →
->    `onDeath` (carries the drone cascade-kill: still reads the list to find
->    `homeHub`-linked drones — decide whether the cascade stays a list scan or
->    becomes per-drone death events). `DroneCrashSystem` (multi-tick lifecycle)
->    and the dead-sprite render both want a **body store** to drive off, not the
->    list — that's where the lightweight body entity gets built.
+> 2. ~~**Hub demolition (slice 2a)**~~ — **SHIPPED.** `HubDemolitionSystem` →
+>    `onDeath(DeathEvent)`, same shape as turret demolition; both now react in
+>    the one `deathDispatcher.drain()`, and the `DEMOLISH_TURRETS`+`DEMOLISH_HUBS`
+>    profiler phases collapsed to a single `DEMOLISH`. The drone cascade kept its
+>    list scan; the drones it hp=0s still bypass `DamageResolver` and publish no
+>    `DeathEvent` (harmless until the crash system moves onto the seam — then the
+>    cascade must publish per-drone events, and the `drain()` loop must tolerate
+>    re-entrant `publish` growing `pending`). Test: `HubDemolitionSystemTest`.
+> 2b. **NEXT — `DroneCrashSystem` + dead-sprite render → body store.** These two
+>    are the multi-tick / render-only Bucket-B readers; both want the
+>    **lightweight body entity / body store** built (that's the real new
+>    structure of this step). The crash system either reacts to a drone
+>    `DeathEvent` to *seed* a crash FX + body, or keeps ticking a body's
+>    `crashTimer`; the dead-sprite render draws frozen poses off the body store
+>    instead of scanning the units list for `!isAlive()`.
 > 3. Bucket-A sweep (`getUnits()` → dense registry; fan out to Sonnet).
 > 4. Bucket-C cleanup; delete `UnitRosterService.units`.
 > 5. Revert Group-N accessors to unconditional (fail-loud); drop the

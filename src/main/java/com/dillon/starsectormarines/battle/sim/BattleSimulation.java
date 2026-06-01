@@ -122,9 +122,9 @@ public class BattleSimulation implements BattleControl {
     private final ObjectivesService objectivesService = new ObjectivesService();
     /** Active equipment drops + per-tick pickup/retriever sweep + emit-on-death plumbing. Initialized in the constructor once {@link #rosterService} is available. */
     private final EquipmentDropService equipmentDropService;
-    /** Death-event handler for destroyed {@link MapTurret}s — flips mount cell to walkable rubble + releases the guardpost if every turret on the post is down. Subscribed to {@link #deathDispatcher} in the constructor; fires on {@link #deathDispatcher}{@code .drain()} at the DEMOLISH_TURRETS phase. */
+    /** Death-event handler for destroyed {@link MapTurret}s — flips mount cell to walkable rubble + releases the guardpost if every turret on the post is down. Subscribed to {@link #deathDispatcher} in the constructor; fires on {@link #deathDispatcher}{@code .drain()} at the DEMOLISH phase. */
     private final com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem turretDemolition;
-    /** Per-tick demolition pass for destroyed {@link DroneHubUnit}s — flips hub cell to walkable rubble + cascade-kills the launched drones. Initialized in the constructor. */
+    /** Death-event handler for destroyed {@link DroneHubUnit}s — flips hub cell to walkable rubble + cascade-kills the launched drones. Subscribed to {@link #deathDispatcher} in the constructor; fires on {@link #deathDispatcher}{@code .drain()} at the DEMOLISH phase. */
     private final com.dillon.starsectormarines.battle.drone.HubDemolitionSystem hubDemolition;
     /** Per-tick crash sequence for dead {@link Drone}s — three-phase falling / impact lifecycle. Initialized in the constructor. */
     private final com.dillon.starsectormarines.battle.drone.DroneCrashSystem droneCrashes;
@@ -197,7 +197,7 @@ public class BattleSimulation implements BattleControl {
     private final com.dillon.starsectormarines.battle.combat.HitResponseService hitResponse;
     /** Units that transitioned from alive to dead during the last {@link #advance(float)} call. Same lifecycle as {@link #shotsThisFrame}. */
     private final List<Unit> deathsThisFrame = new ArrayList<>();
-    /** Death-event mailbox — {@code DamageResolver} publishes a {@link com.dillon.starsectormarines.battle.unit.DeathEvent} per death; subscribed handlers (turret demolition today) react on {@link com.dillon.starsectormarines.battle.unit.DeathDispatcher#drain()} at the demolition phase. The seam that lets post-death behavior migrate off the legacy units-list scan. */
+    /** Death-event mailbox — {@code DamageResolver} publishes a {@link com.dillon.starsectormarines.battle.unit.DeathEvent} per death; subscribed handlers (turret + hub demolition today) react on {@link com.dillon.starsectormarines.battle.unit.DeathDispatcher#drain()} at the demolition phase. The seam that lets post-death behavior migrate off the legacy units-list scan. */
     private final com.dillon.starsectormarines.battle.unit.DeathDispatcher deathDispatcher =
             new com.dillon.starsectormarines.battle.unit.DeathDispatcher();
     /**
@@ -293,6 +293,7 @@ public class BattleSimulation implements BattleControl {
         deathDispatcher.subscribe(turretDemolition::onDeath);
         this.hubDemolition = new com.dillon.starsectormarines.battle.drone.HubDemolitionSystem(
                 mapService, effects, rosterService);
+        deathDispatcher.subscribe(hubDemolition::onDeath);
         this.droneCrashes = new com.dillon.starsectormarines.battle.drone.DroneCrashSystem(
                 navigation, effects);
         this.squadFallback = new com.dillon.starsectormarines.battle.squad.SquadFallbackSystem(
@@ -790,8 +791,8 @@ public class BattleSimulation implements BattleControl {
         // INFANTRY_TICK / HEAVY_TICK burst continuations, PROJECTILES
         // arrivals, and DETONATIONS AoE. Single late drain (rather than one
         // after every damage-emitter) keeps the rule simple: damage applies
-        // before any phase that reads alive-state — DEMOLISH_TURRETS /
-        // DEMOLISH_HUBS / DRONE_CRASHES / WIN_CHECK all run after this.
+        // before any phase that reads alive-state — DEMOLISH /
+        // DRONE_CRASHES / WIN_CHECK all run after this.
         // Trade-off: a target queued for death in UPDATE_UNITS is still alive
         // during the subsystem ticks this tick, so its burst continuations
         // fire one more round. Considered "doomed unit gets a final action"
@@ -806,24 +807,22 @@ public class BattleSimulation implements BattleControl {
         flushPendingTargetMutations();
         tickProfile.lap(TickProfile.Phase.APPLY_DAMAGE);
         // Drain the death mailbox: fan this tick's deaths out to the
-        // subscribed handlers. Turret demolition reacts here (flips dead
-        // turret cells to walkable rubble so next tick's pathfinding + zone
-        // graph see the hole, and the floor pass picks the cell up as rubble);
-        // more post-death handlers (hub demolition, drone crash) migrate onto
-        // this drain in later slices. By this point flushPendingDamage has run,
-        // so every unit that died this tick is fully dead — the handlers see
-        // the same settled state the old end-of-tick scan did.
+        // subscribed handlers. Turret + hub demolition both react here — turret
+        // demolition flips dead turret cells to walkable rubble (so next tick's
+        // pathfinding + zone graph see the hole, and the floor pass picks the
+        // cell up as rubble), hub demolition does the same for destroyed drone
+        // hubs (static STRUCTUREs on sealed non-walkable cells — leaving the
+        // cell sealed would orphan an invisible obstacle) and cascade-kills the
+        // hub's drones. The drone-crash lifecycle migrates onto this drain in a
+        // later slice. By this point flushPendingDamage has run, so every unit
+        // that died this tick is fully dead — the handlers see the same settled
+        // state the old end-of-tick scan did.
         deathDispatcher.drain();
-        tickProfile.lap(TickProfile.Phase.DEMOLISH_TURRETS);
-        // Same rubble-conversion pass for destroyed drone hubs — they're
-        // static STRUCTUREs sitting on sealed non-walkable cells, so leaving
-        // the cell sealed after death would orphan an invisible obstacle.
-        hubDemolition.tick(units);
-        tickProfile.lap(TickProfile.Phase.DEMOLISH_HUBS);
+        tickProfile.lap(TickProfile.Phase.DEMOLISH);
         // Drone crash sequence: detect newly-dead drones, tick their fall
-        // timer, drop a SmokingWreck on impact. Runs after the hub demolition
-        // pass so a hub destruction (which kills its drones via setting hp=0)
-        // gets the crashes started on the same tick.
+        // timer, drop a SmokingWreck on impact. Runs after the demolition drain
+        // so a hub destruction (which cascade-kills its drones via setting
+        // hp=0) gets the crashes started on the same tick.
         droneCrashes.tick(units, TICK_DT);
         tickProfile.lap(TickProfile.Phase.DRONE_CRASHES);
         // Age smoking wrecks + emit any puff events that came due this tick.
