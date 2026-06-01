@@ -1,30 +1,52 @@
 # 17 — Garrison Zone-Clear Scoping (AABB-gated SecureCompound plans)
 
-**Core fix shipped** (`2b31af4`). Fixes a `SecureCompoundGoal` plan-synthesis
-bug where a squad tasked to secure/hold a compound charges across the entire
-map instead of defending it, then sketches the richer garrison behavior it
-unlocks.
+**Shipped** — the scoping fix, both command-side mirror bugs (0a/0b), and the
+richer multi-building garrison behavior all landed. Originally a
+`SecureCompoundGoal` plan-synthesis bug where a squad tasked to secure/hold a
+compound charges the whole map; grew into the garrison-area primitive and the
+`GarrisonCompound` patrol behavior it unlocked.
 
-## What shipped (`2b31af4`)
+## What shipped
 
-The AABB size+containment gate landed as a **filter on the BFS-path plan**:
-`synthesizeSecurePlan` now emits a transit `EnterZone` for every route zone
-but only adds a `ClearZone` for zones that pass `isGarrisonZone` (size gate:
-`cellCount ≤ 1.25 × bbox area`; containment gate: `≥50%` of cells inside the
-node bbox). The outdoor flood fails the size gate via an O(1) field read, so
-`ClearZone[outdoor]` is gone and `HoldZone` is reachable. Covered by
-`SecureCompoundGoalTest` (transit-not-clear, clear-then-hold, in-zone).
+**Scoping fix** (`2b31af4`) — the AABB size+containment gate as a filter on the
+BFS-path plan: `synthesizeSecurePlan` emits a transit `EnterZone` for every
+route zone but only a `ClearZone` for zones passing `isGarrisonZone` (size:
+`cellCount ≤ 1.25 × bbox`; containment: `≥50%` inside). The outdoor flood fails
+the size gate (O(1) field read), so `ClearZone[outdoor]` is gone and `HoldZone`
+is reachable. (`SecureCompoundGoalTest`.)
 
-**Deferred** (folded into the GarrisonCompound follow-on below): the richer
-"plan reshape" that enumerates the compound's *own* zones directly to also
-clear *off-path* rooms. The current fix clears only garrison zones that lie on
-the BFS route to the anchor — a multi-room compound whose side rooms branch
-off the path won't get those rooms cleared. Not required to kill the observed
-"charge the map" bug; the natural home for it is the patrol-the-sub-zones
-GarrisonCompound goal, which needs the full `garrisonZones` set anyway.
+**Garrison-area primitive** (`87cf47c`, `94e3060`) — the gate lifted into a
+stateless `GarrisonArea` (`isGarrisonZone` + `garrisonZones`, 1-cell doorway
+micro-zones filtered). `TacticalNode` gained a persisted `compoundBounds` (the
+gen-time compound union bbox, stamped by `MilitaryBaseFiller`; defaults to the
+node's own bbox), so a garrison knows the whole base, not one building.
 
-The two follow-ups below (assault-side `CLEAR_ZONE[0]` mirror, too-strict
-`HOLD_NODE` gate) remain **open** — not addressed by this commit.
+**Bug 0a** (`4cebcb8`) — `ConquestCommand`/`AssaultCommand` cache the exterior
+zone (largest by cells, only when it dominates ≥2× the next) and never hand it
+out as a `CLEAR_ZONE` target.
+
+**Bug 0b + richer garrison** (`8e73d0d`, `7fc2415`) — `HOLD_NODE` had no
+consumer goal, so captured compounds were ungarrisoned. New `GarrisonCompound`
+goal + `GarrisonPatrol` action: re-clear any contested room (delegating to
+`ClearZone` for the no-chase-across-boundary property), else round-robin patrol
+the room interiors (leader-gated dwell) with opportunistic fire. Serves both
+the marine `HOLD_NODE` holder and the defender base garrison; for a
+multi-building defender compound only the **primary** node patrols (others hold
+their building via `GuardPost`, which yields only for the primary). The Pass-0
+`HOLD_NODE` gate was relaxed from zone-equality to point-in-`compoundBounds` so
+a squad on the parade ground actually holds. (`GarrisonCompoundTest`,
+`GarrisonAreaTest`, `ConquestCommandTest`, `AssaultCommandTest`.)
+
+## Remaining follow-ups
+
+- **Courtyard engagement.** `GarrisonPatrol` re-clears garrison *rooms* and
+  fires opportunistically, but an enemy standing on the courtyard/parade ground
+  (inside the footprint but in a too-large, gate-excluded zone) isn't actively
+  moved-to-engage — only shot at if already in LoS. A "defend the footprint AABB"
+  move-to-engage step would close this.
+- **SecureCompound off-path rooms.** The capture-time `synthesizeSecurePlan`
+  still clears only rooms on the BFS route to the anchor. Now lower priority:
+  `GarrisonCompound` re-clears every room once the compound flips `MARINE_HELD`.
 
 ## The bug (observed)
 

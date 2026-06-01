@@ -8,30 +8,27 @@ Slice 6). All three marine-side commanders now ship: `SabotageCommand`
 `AssaultCommand` (sector-grid sweep). Mech GOAP Stage 1 is complete
 (two roles, morale, break-contact).
 
-`AssaultCommand` just shipped (2026-05-27). Sector-grid partition with
+`AssaultCommand` shipped (2026-05-27). Sector-grid partition with
 non-sticky assignment, implicit convergence via load-balancing.
+
+Story 17 shipped (2026-06-01): garrison zone-clear scoping + the
+`GarrisonCompound`/`GarrisonPatrol` multi-building garrison (marine
+captured-compound holder + defender base garrison) + the 0a/0b
+command-side fixes. `GarrisonArea` is now the reusable size+containment
+gate; `TacticalNode.compoundBounds` persists the gen-time compound
+footprint into battle.
 
 ## Immediate next
 
-0. ~~**Garrison zone-clear scoping**~~ — **core fix shipped** (`2b31af4`).
-   `SecureCompoundGoal.synthesizeSecurePlan` now AABB-gates which route zones
-   get a `ClearZone` (`isGarrisonZone`: size gate + containment gate), so the
-   outdoor flood is transited not cleared and `HoldZone` is reachable.
-   `SecureCompoundGoalTest` covers it. Two follow-ups from the story are still
-   **open** (promoted to items 0a/0b); the off-path multi-room "plan reshape"
-   was deferred into the GarrisonCompound follow-on.
-0a. **Assault-side `CLEAR_ZONE[0]` mirror** — `ConquestCommand` Pass 2
-   (`nearestDefenderZoneInStrip`) and `AssaultCommand`'s sweep can hand a squad
-   a full clear against the outdoor zone the same way. AABB gate doesn't apply
-   (no compound box); wants a "never enqueue a full clear against the open
-   exterior zone" guard. See `stories/17-garrison-zone-clear-scoping.md`
-   § Follow-ups.
-0b. **Garrison never actually holds (`HOLD_NODE` gate too strict)** —
-   `ConquestCommand` Pass 0 only assigns `HOLD_NODE` when the squad centroid is
-   *inside the compound zone*, but garrison troops land on the outdoor parade
-   ground, so they fall through to `SECURE_COMPOUND`. Relax the gate (or have
-   `CompoundGarrisonSystem` stamp `HOLD_NODE` at spawn). This is *why* a
-   garrison squad was running a charge objective at all.
+0. ~~**Garrison zone-clear scoping + multi-building garrison**~~ — **shipped**
+   (`2b31af4`, `4cebcb8`, `87cf47c`, `94e3060`, `8e73d0d`, `7fc2415`). The AABB
+   scoping fix, both command-side mirror bugs (0a exterior-clear guard, 0b
+   `HOLD_NODE` gate), and the richer `GarrisonCompound`/`GarrisonPatrol`
+   multi-building garrison (marine `HOLD_NODE` holder + defender base garrison,
+   primary-node coordination) all landed. See
+   `stories/17-garrison-zone-clear-scoping.md` § What shipped. Two small
+   follow-ups remain (courtyard move-to-engage; SecureCompound off-path rooms
+   — now low priority) in that doc's § Remaining follow-ups.
 1. **Perception cheap wins** (`stories/15-perception-and-influence.md`
    § Near-term cheap wins) — threat-direction cover scoring, ranged LoS
    variant, threat-set gate on `HAS_LOS_TO_TARGET`. Lay the data-flow
@@ -64,7 +61,8 @@ non-sticky assignment, implicit convergence via load-balancing.
 - `stories/15-perception-and-influence.md` — perception + influence map
 - `stories/16-assault-command.md` — assault commander design (shipped)
 - `stories/17-garrison-zone-clear-scoping.md` — AABB-gated SecureCompound
-  plan scoping (core fix shipped `2b31af4`; two follow-ups + GarrisonCompound
-  reshape still open)
+  scoping + `GarrisonCompound`/`GarrisonPatrol` multi-building garrison + 0a/0b
+  command fixes (all shipped; `GarrisonArea` is the reusable gate primitive,
+  `TacticalNode.compoundBounds` the persisted footprint)
 - `complete/` — sealed shipped work (Stage 1 tasks 01–09, Stage 2
   foundation 11, mech Stage 1 14)
