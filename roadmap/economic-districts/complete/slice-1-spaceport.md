@@ -16,7 +16,8 @@ run for the slice-0 substrate: a content drop onto a live pipe.
     budget `area / 42` clamped `[2, 8]`, kept off the perimeter, off the tower,
     and never cardinally adjacent to each other. **Tactical identity is real
     nav structure** (the economic-districts rule): cover is *derived* from these
-    walls at the finalize bake (`recomputeCoverAt`), and `seedWallHp` makes them
+    walls at the finalize bake (`recomputeCoverAt`), and `FinalizeStage`'s
+    blanket `seedWallHp` pass (over all non-walkable cells) makes them
     destructible cargo — not pure-visual doodads;
   - a single hardened **control-tower** hardpoint in a corner (3×3 shell, one
     inward-facing doorway, `COMMS` POI) — the apron's tactical anchor. Skipped on

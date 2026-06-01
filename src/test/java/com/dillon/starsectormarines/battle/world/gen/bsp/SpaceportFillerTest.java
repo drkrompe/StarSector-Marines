@@ -86,28 +86,42 @@ public class SpaceportFillerTest {
 
     @Test
     void apronStaysOneConnectedRegion() {
-        // Sweep seeds: hard cover and the tower must never split the apron.
-        for (long seed : new long[] { 1L, 2L, 3L, 42L, 100L, 777L }) {
-            BlockLeaf leaf = new BlockLeaf(2, 2, 15, 13, false);
-            GenContext ctx = fill(leaf, 20, 18, seed);
-            assertEquals(walkableCount(ctx, leaf), reachableFromCorner(ctx, leaf),
-                    "apron walkable cells split into >1 region (seed " + seed + ")");
+        // Sweep seeds AND leaf shapes (square, wide, thin): hard cover and the
+        // tower must never split the apron, whatever the BSP hands us.
+        int[][] shapes = {
+                {2, 2, 15, 13},   // 14×12 wide
+                {2, 2, 8, 8},     //  7×7 square (smallest that carves a tower)
+                {2, 2, 8, 21},    //  7×20 thin column
+        };
+        for (int[] s : shapes) {
+            for (long seed : new long[] { 1L, 2L, 3L, 13L, 42L, 100L, 777L, 9999L }) {
+                BlockLeaf leaf = new BlockLeaf(s[0], s[1], s[2], s[3], false);
+                GenContext ctx = fill(leaf, s[2] + 3, s[3] + 3, seed);
+                assertEquals(walkableCount(ctx, leaf), reachableFromCorner(ctx, leaf),
+                        "apron split into >1 region (shape " + leaf.width() + "x" + leaf.height()
+                                + ", seed " + seed + ")");
+            }
         }
     }
 
     @Test
-    void smallLeafSkipsTowerButStillFieldsCover() {
-        // Below the tower-min leaf size: open apron + cover islands, no tower POI.
+    void smallLeafSkipsTowerButIslandsStillProduceCover() {
+        // Below the tower-min leaf size: open apron + cover islands, no tower.
+        // With no tower walls present, any cover is PROOF the islands produce it
+        // — this isolates the island mechanic the large-leaf test can't.
         BlockLeaf leaf = new BlockLeaf(1, 1, 6, 6, false); // 6×6
         GenContext ctx = fill(leaf, 10, 10, 3L);
         assertTrue(ctx.pois.isEmpty(), "a small apron shouldn't carve a control tower");
-        int nonWalkable = 0;
+
+        int nonWalkable = 0, covered = 0;
         for (int y = leaf.top; y <= leaf.bottom; y++) {
             for (int x = leaf.left; x <= leaf.right; x++) {
                 if (!ctx.grid.isWalkable(x, y)) nonWalkable++;
+                else if (ctx.grid.getCoverAt(x, y) > 0) covered++;
             }
         }
         assertTrue(nonWalkable >= 2, "small apron should still scatter hard-cover islands");
+        assertTrue(covered > 0, "cover islands produced no cover (no tower here — must be the islands)");
     }
 
     @Test
