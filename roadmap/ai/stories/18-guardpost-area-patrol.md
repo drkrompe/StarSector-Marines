@@ -83,15 +83,30 @@ on `PatrolRoute` (route-specific). Behavior is unchanged — the full infantry +
 turret suites pass, including `GarrisonPatrolTest`, `GuardPostPatrolTest`, and
 `TurretDemolitionSystemTest`.
 
+## Patrol-leash scale pass (landed)
+
+At 1 cell ≈ 1 m the original leashes were tiny relative to weapon range
+(rifle 24 m) and map size (MEDIUM 144×80, LARGE 240×160 m): a LARGE post's
+squad wandered an 8 m box while its own guns reached 24 m, and a whole district
+patrol covered 20 m. Retuned in weapon-range units:
+
+| Leash | Was | Now | ≈ rifle range |
+| --- | --- | --- | --- |
+| `DefensePostKind.LIGHT.patrolRadius` | 4 | 12 | 0.5× |
+| `MEDIUM` | 6 | 18 | 0.75× |
+| `LARGE` | 8 | 28 | 1.2× |
+| `ARTILLERY` | 3 | 10 | 0.4× (crew stays near launchers) |
+| `DRONE_HUB` | 0 | 0 | — (drones defend) |
+| `PatrolRoute.DEFAULT_DISTRICT_RADIUS` | 20 | 44 | 1.8× |
+| `HoldPost.HOLD_RADIUS` | 6 | 12 | 0.5× |
+
+This also resolves the tiny-radius wander-jitter the critique pass flagged —
+every post box is now comfortably larger than `PatrolMotion.ARRIVAL_RADIUS` (3),
+so squads settle on a waypoint instead of re-rolling every dwell.
+
 ## Open follow-ups
 
 - **Release semantics.** A released turret squad (`defensePost == null`) still
   carries `holdsFireUntilKillZone`, so it falls to `HoldPost` rather than the
   search-and-destroy `RoutinePatrol` the `TurretDemolitionSystem` doc implies.
   Pre-existing; untouched here. Worth revisiting if "released → roam" is wanted.
-- **Tiny-radius wander jitter.** At ARTILLERY (radius 3) / LIGHT (4) the box
-  half-extent is ≤ `PatrolMotion.ARRIVAL_RADIUS` (3), so the centroid counts as
-  "arrived" almost everywhere in the box and the squad re-rolls every dwell
-  rather than settling — reads as twitch-in-place, partly defeating the "sit on
-  the post" flavour intent. A `radius ≤ ARRIVAL_RADIUS → pure hold` special-case
-  (or accepting it) would resolve it. Flagged by the critique pass.

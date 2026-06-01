@@ -40,8 +40,8 @@ public final class PatrolRoute implements Action {
 
     public static final PatrolRoute INSTANCE = new PatrolRoute();
 
-    /** Default cell-radius around {@link Squad#assignedNode} a patrol squad samples waypoints from. Tight enough that a patrol stays in its district; loose enough that 5–7 candidate nodes are available on a typical conquest map. Used as the {@link Squad#patrolRadius} default at squad mint; per-squad overrides remain possible. */
-    public static final int DEFAULT_DISTRICT_RADIUS = 20;
+    /** Default cell-radius (≈ metres) around {@link Squad#assignedNode} a patrol squad samples waypoints from — ~1.8× infantry weapon range (~24), so a district patrol covers a real chunk of a 144–240-wide map rather than a third of its own gun range. Used as the {@link Squad#patrolRadius} default at squad mint; per-squad overrides remain possible. */
+    public static final int DEFAULT_DISTRICT_RADIUS = 44;
     /** Max attempts to roll a random walkable fallback cell when no other tactical nodes are in range. */
     private static final int FALLBACK_SAMPLE_ATTEMPTS = 16;
 

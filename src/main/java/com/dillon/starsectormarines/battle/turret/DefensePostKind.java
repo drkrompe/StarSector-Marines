@@ -23,13 +23,13 @@ import com.dillon.starsectormarines.battle.setup.BattleSetup;
 public enum DefensePostKind {
 
     /** Single light turret in a 4-cell vent ring. Beach-tier flavor — small footprint, militia-only squad. */
-    LIGHT    (1, 4, 60, 4),
+    LIGHT    (1, 4, 60, 12),
     /** Single mid-weight turret in an 8-cell sandbag embankment. Port-tier — readable as deliberate fortification, mostly militia with 1-2 regulars. */
-    MEDIUM   (1, 6, 70, 6),
+    MEDIUM   (1, 6, 70, 18),
     /** 2-3 turrets in an extended embankment line. Kill-zone tier — mixed regulars + heavy turrets, longest patrol leash. */
-    LARGE    (3, 8, 80, 8),
-    /** Two-LOCUST rocket battery in a 5×3 bow-out embankment, placed deep in the fortress interior (behind the kremlin wall). Long-range salvo emplacement — battery crew is small (4) and stays on the launchers, hence the tight patrol radius. Higher priority than LARGE so the defender allocator fills artillery first when the roster runs short — losing the battery means losing the long-range threat that punishes the attacker's approach. */
-    ARTILLERY(2, 4, 85, 3),
+    LARGE    (3, 8, 80, 28),
+    /** Two-LOCUST rocket battery in a 5×3 bow-out embankment, placed deep in the fortress interior (behind the kremlin wall). Long-range salvo emplacement — battery crew is small (4) and stays on the launchers, hence the tighter patrol radius. Higher priority than LARGE so the defender allocator fills artillery first when the roster runs short — losing the battery means losing the long-range threat that punishes the attacker's approach. */
+    ARTILLERY(2, 4, 85, 10),
     /**
      * Drone launch hub — 3×3 embankment ring around a central launch platform.
      * Spawns aerial drones periodically that patrol around the hub and engage
@@ -54,7 +54,7 @@ public enum DefensePostKind {
     public final int garrisonSize;
     /** Tactical priority [0..100] — higher tiers outrank lower so wall-area LARGE posts get filled before beach LIGHTs when the roster runs short. */
     public final int priorityScore;
-    /** Cells from the post anchor the garrison patrol may wander. Tighter for LIGHT (sit-on-the-post), looser for LARGE (loose perimeter sweep). */
+    /** Half-extent (cells ≈ metres) of the box the guard squad patrols around the post anchor. Scaled against infantry weapon range (~24): LIGHT ~0.5× rifle (sit near the post), MEDIUM ~0.75×, LARGE ~1.2× (a real perimeter sweep), ARTILLERY ~0.4× (crew stays near the launchers). Tight absolute values would leave a squad leashed to a third of its own weapon range. */
     public final int patrolRadius;
 
     DefensePostKind(int turretCount, int garrisonSize, int priorityScore, int patrolRadius) {

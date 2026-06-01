@@ -45,8 +45,8 @@ public final class HoldPost implements Action {
 
     public static final HoldPost INSTANCE = new HoldPost();
 
-    /** Cell radius around a member's home cell inside which it will reposition. Tight — about one block of slack so the unit can flank to the corner of their post or step to a better cover stack, but won't walk into the open street to chase. */
-    public static final float HOLD_RADIUS = 6f;
+    /** Cell radius (≈ metres) around a member's home cell inside which it will reposition — ~0.5× infantry weapon range (~24), so a held guard can flank across a building's worth of frontage or step to a better cover stack, but won't walk out into the open street to chase. */
+    public static final float HOLD_RADIUS = 12f;
 
     private HoldPost() {}
 
