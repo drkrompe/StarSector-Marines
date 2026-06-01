@@ -1,13 +1,20 @@
 package com.dillon.starsectormarines.battle.turret;
 
+import com.dillon.starsectormarines.battle.infantry.PatrolRoute;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -57,6 +64,46 @@ public class TurretDemolitionSystemTest {
                 "the mount cell flips to walkable rubble");
         assertTrue(sim.getSmokingWrecks().size() > wrecksBefore,
                 "a smoking wreck is dropped on the mount cell");
+    }
+
+    @Test
+    public void guardpostSquadIsReleasedOnceEveryTurretOnThePostIsDown() {
+        BattleSimulation sim = openArena(20, 20);
+        // A two-turret defense post; a garrison squad orbiting it on a tight
+        // patrol radius. When BOTH turrets die the post is "down" and the
+        // squad should revert to the wide default radius + drop its post link.
+        MapTurret a = new MapTurret("ta", Faction.DEFENDER, TurretKind.VULCAN, 10, 10);
+        MapTurret b = new MapTurret("tb", Faction.DEFENDER, TurretKind.VULCAN, 11, 10);
+        sim.addUnit(a);
+        sim.addUnit(b);
+        // A lone, far-off MARINE keeps the battle in progress across both ticks
+        // — without a live unit on each side the win-check eliminates MARINE
+        // after tick 1 and the second advance() would no-op before the drain.
+        sim.addUnit(new Unit("m0", Faction.MARINE, UnitType.MARINE, 1, 1));
+        DefensePost post = new DefensePost(DefensePostKind.LIGHT, 10, 10, List.of(
+                new DefensePost.TurretSpec(TurretKind.VULCAN, 10, 10),
+                new DefensePost.TurretSpec(TurretKind.VULCAN, 11, 10)));
+        sim.setDefensePosts(List.of(post));
+
+        int squadId = sim.mintSquad(Faction.DEFENDER, null);
+        Squad garrison = sim.getSquad(squadId);
+        garrison.defensePost = post;
+        garrison.patrolRadius = 4; // tight orbit while the post is live
+
+        // Kill only the first turret — the post still has a live turret, so
+        // the squad must stay pinned to it.
+        sim.applyDamage(a, 100_000f, 3.5f, 0f);
+        sim.advance(BattleSimulation.TICK_DT);
+        assertEquals(post, garrison.defensePost,
+                "one turret still alive → guardpost squad stays pinned");
+        assertEquals(4, garrison.patrolRadius, "patrol radius unchanged while the post holds");
+
+        // Kill the second — now every turret on the post is down.
+        sim.applyDamage(b, 100_000f, 3.5f, 0f);
+        sim.advance(BattleSimulation.TICK_DT);
+        assertNull(garrison.defensePost, "post fully down → squad released from the guardpost");
+        assertEquals(PatrolRoute.DEFAULT_DISTRICT_RADIUS, garrison.patrolRadius,
+                "released squad reverts to the wide default patrol radius");
     }
 
     @Test
