@@ -1,6 +1,6 @@
 # Deliberate, capped, uncontested-aware compound capture
 
-> **Shipped** (commit `PENDING`). `ConquestCommand`'s strip-local "ripe"
+> **Shipped** (commit `6e7743d`). `ConquestCommand`'s strip-local "ripe"
 > compound pass was replaced with a map-global `assignCompoundCaptures`
 > pass + 6 new `ConquestCommandTest` cases. What landed matches the design
 > below.
