@@ -114,7 +114,6 @@ public class Unit {
     public int[] path = GridPathfinder.EMPTY_PATH;
     /** Index of the next cell along {@link #path} to step into — addresses cells, not raw int positions (i.e. path slots {@code [pathIdx*2, pathIdx*2+1]}). */
     public int pathIdx = 0;
-    public float localMoveProgress = 0f;
 
     /** Convenience accessor — number of cells in {@link #path}. */
     public int pathCellCount() { return path.length >> 1; }
@@ -179,30 +178,23 @@ public class Unit {
     /** How far this unit can see (cells). Drives fog-of-war shadowcast radius. Initialized from {@link UnitType#visionRange}; 0 falls back to {@link #getAttackRange() attackRange}. */
     public float visionRange;
     public float attackCooldown;
-    public float localCooldownTimer = 0f;
 
     /**
-     * <b>Don't read directly.</b> Pre-allocate seed + post-release snapshot for
-     * the current-target entity id, same lifecycle as {@link #localHp}.
-     * Canonical storage between allocate and release lives in
-     * {@code registry.targetId[denseIdx]}; go through {@link #getTargetId} /
-     * {@link #setTargetId} (or {@link BattleSimulation#targetOf(Unit)} to
-     * resolve straight to the {@link Unit}). {@code 0L} = no target.
+     * Current-target entity id; {@code 0L} = no target. Canonical storage is
+     * {@code registry.targetId[denseIdx]} — resolve to a {@link Unit} via
+     * {@link BattleSimulation#targetOf(Unit)}.
      *
      * <p>The long is generation-free dangling-ref hygiene: a released target id
      * resolves cleanly to {@code null} via the registry without the holder
      * needing its own {@code isAlive()} branch. Writes go through
      * {@link #setTarget(Unit)} so null-vs-instance is handled in one place.
      */
-    public long localTargetId = 0L;
-
     public final long getTargetId() {
-        return (registry != null) ? registry.getTargetId(denseIdx) : localTargetId;
+        return registry.getTargetId(denseIdx);
     }
 
     public final void setTargetId(long v) {
-        if (registry != null) registry.setTargetId(denseIdx, v);
-        else localTargetId = v;
+        registry.setTargetId(denseIdx, v);
     }
 
     /**
@@ -238,91 +230,61 @@ public class Unit {
     public EquipmentDrop equipmentDropTarget;
 
     /**
-     * <b>Don't read directly.</b> Pre-allocate seed + post-release snapshot for
-     * the break-contact group, same lifecycle as {@link #localHp}. Canonical
-     * storage between allocate and release lives in the registry's SoA arrays;
-     * go through {@link #getFallbackTimer} / {@link #getFallbackCellX} /
-     * {@link #getFallbackCellY} / {@link #setFallbackCell}.
-     *
-     * <p>{@code localFallbackTimer}: sim-seconds remaining in fall-back state.
-     * >0 means the unit is breaking contact toward the cached fall-back cell.
+     * Break-contact fall-back state. {@code fallbackTimer} is sim-seconds
+     * remaining in fall-back; &gt;0 means the unit is breaking contact toward
+     * the cached fall-back cell ({@code fallbackCellX}/{@code fallbackCellY},
+     * -1 = none). Canonical storage lives in the registry's SoA arrays.
      */
-    public float localFallbackTimer = 0f;
-    /** <b>Don't read directly</b> — see {@link #localFallbackTimer}. Cached fall-back destination cell X (-1 = none). */
-    public int localFallbackCellX = -1;
-    /** <b>Don't read directly</b> — see {@link #localFallbackTimer}. Cached fall-back destination cell Y (-1 = none). */
-    public int localFallbackCellY = -1;
-
     public final float getFallbackTimer() {
-        return (registry != null) ? registry.getFallbackTimer(denseIdx) : localFallbackTimer;
+        return registry.getFallbackTimer(denseIdx);
     }
 
     public final void setFallbackTimer(float v) {
-        if (registry != null) registry.setFallbackTimer(denseIdx, v);
-        else localFallbackTimer = v;
+        registry.setFallbackTimer(denseIdx, v);
     }
 
     public final int getFallbackCellX() {
-        return (registry != null) ? registry.getFallbackCellX(denseIdx) : localFallbackCellX;
+        return registry.getFallbackCellX(denseIdx);
     }
 
     public final int getFallbackCellY() {
-        return (registry != null) ? registry.getFallbackCellY(denseIdx) : localFallbackCellY;
+        return registry.getFallbackCellY(denseIdx);
     }
 
     /** Every callsite writes the fall-back cell pair together (break-contact pick, inline fallback write), so the paired setter matches access and hits both SoA slots in one dispatch. */
     public final void setFallbackCell(int x, int y) {
-        if (registry != null) {
-            registry.setFallbackCell(denseIdx, x, y);
-        } else {
-            localFallbackCellX = x;
-            localFallbackCellY = y;
-        }
+        registry.setFallbackCell(denseIdx, x, y);
     }
 
     /**
-     * <b>Don't read directly.</b> Pre-allocate seed + post-release snapshot for
-     * the micro-reposition cooldown, same lifecycle as {@link #localHp}.
-     * Canonical storage between allocate and release lives in
-     * {@code registry.repositionCooldown[denseIdx]}; go through
-     * {@link #getRepositionCooldown} / {@link #setRepositionCooldown}.
-     *
-     * <p>Sim-seconds until this unit is next eligible to micro-reposition
+     * Sim-seconds until this unit is next eligible to micro-reposition
      * between shots. Story G — replaces the prior per-shot 30% RNG roll with a
      * real cooldown so a setup machine gunner in heavy cover doesn't twitch
      * every burst, and the squad's individual marines visibly shift at
      * different times (cooldowns decorrelate as they reset on different shots).
      * Ticked down each tick by {@link com.dillon.starsectormarines.battle.infantry.InfantryUnitPrep#tickCooldowns}.
+     * Canonical storage lives in {@code registry.repositionCooldown[denseIdx]}.
      */
-    public float localRepositionCooldown = 0f;
-
     public final float getRepositionCooldown() {
-        return (registry != null) ? registry.getRepositionCooldown(denseIdx) : localRepositionCooldown;
+        return registry.getRepositionCooldown(denseIdx);
     }
 
     public final void setRepositionCooldown(float v) {
-        if (registry != null) registry.setRepositionCooldown(denseIdx, v);
-        else localRepositionCooldown = v;
+        registry.setRepositionCooldown(denseIdx, v);
     }
 
     /**
-     * <b>Don't read directly.</b> Pre-allocate seed + post-release snapshot,
-     * same lifecycle as {@link #localHp}; go through {@link #getWanderDwellTimer}
-     * / {@link #setWanderDwellTimer}.
-     *
-     * <p>{@link UnitRole#FLEE} idle pause between wander legs. While >0 the
+     * {@link UnitRole#FLEE} idle pause between wander legs. While &gt;0 the
      * civilian stands at their current cell instead of picking a new
      * destination. Rolled fresh on arrival; ignored when a threat is in range.
+     * Canonical storage lives in {@code registry.wanderDwellTimer[denseIdx]}.
      */
-    public float localWanderDwellTimer = 0f;
-
     public final float getWanderDwellTimer() {
-        return (registry != null) ? registry.getWanderDwellTimer(denseIdx) : localWanderDwellTimer;
+        return registry.getWanderDwellTimer(denseIdx);
     }
 
     public final void setWanderDwellTimer(float v) {
-        if (registry != null) registry.setWanderDwellTimer(denseIdx, v);
-        else localWanderDwellTimer = v;
+        registry.setWanderDwellTimer(denseIdx, v);
     }
 
     /**
@@ -354,63 +316,49 @@ public class Unit {
     public MarineSecondary secondaryWeapon;
     /** Rounds remaining on the {@link #secondaryWeapon}. Decremented on each secondary shot; once zero the marine reverts to primary fire. */
     public int secondaryAmmo;
+    /** Latched on launch within the current aim cycle so we only emit one shot per cycle, even though the trigger condition holds for several ticks past launch. */
+    public boolean secondaryFiredThisAction = false;
+
     /**
-     * <b>Don't read directly.</b> Pre-allocate seed + post-release snapshot for
-     * the secondary-weapon state group, same lifecycle as {@link #localHp}.
-     * Canonical storage between allocate and release lives in the registry's
-     * SoA arrays; go through {@link #getSecondaryCooldownTimer} /
-     * {@link #getSecondaryActionTimer} / {@link #getSecondaryAimTargetId}.
-     *
-     * <p>{@code localSecondaryCooldownTimer} — independent cooldown for the
-     * secondary weapon so it doesn't share state with the primary's
-     * {@link #localCooldownTimer}.
+     * Independent cooldown for the secondary weapon (sim-seconds) so it doesn't
+     * share state with the primary's cooldown timer. Canonical storage lives in
+     * {@code registry.secondaryCooldownTimer[denseIdx]}.
      */
-    public float localSecondaryCooldownTimer = 0f;
+    public final float getSecondaryCooldownTimer() {
+        return registry.getSecondaryCooldownTimer(denseIdx);
+    }
+
+    public final void setSecondaryCooldownTimer(float v) {
+        registry.setSecondaryCooldownTimer(denseIdx, v);
+    }
+
     /**
-     * <b>Don't read directly</b> — see {@link #localSecondaryCooldownTimer}.
      * Sim-seconds remaining in the secondary's aim-then-fire animation. While
      * &gt;0 the marine is locked in place and the renderer draws the
      * {@link MarineSecondary#aimSpritePath} pose; the actual shot launches when
      * this drops below {@link MarineSecondary#aimDuration}/2.
      */
-    public float localSecondaryActionTimer = 0f;
-    /** Latched on launch within the current aim cycle so we only emit one shot per cycle, even though the trigger condition holds for several ticks past launch. */
-    public boolean secondaryFiredThisAction = false;
+    public final float getSecondaryActionTimer() {
+        return registry.getSecondaryActionTimer(denseIdx);
+    }
+
+    public final void setSecondaryActionTimer(float v) {
+        registry.setSecondaryActionTimer(denseIdx, v);
+    }
+
     /**
-     * <b>Don't read directly</b> — see {@link #localSecondaryCooldownTimer}.
      * Entity id of the target locked at the start of the aim cycle. The rocket
      * fires at this entity even if the original target dies mid-aim — the
      * launcher's already committed. Resolve through
      * {@link BattleSimulation#resolveUnit(long)}; {@code 0L} = no aim target.
      * Writes go through {@link #setSecondaryAimTarget(Unit)}.
      */
-    public long localSecondaryAimTargetId = 0L;
-
-    public final float getSecondaryCooldownTimer() {
-        return (registry != null) ? registry.getSecondaryCooldownTimer(denseIdx) : localSecondaryCooldownTimer;
-    }
-
-    public final void setSecondaryCooldownTimer(float v) {
-        if (registry != null) registry.setSecondaryCooldownTimer(denseIdx, v);
-        else localSecondaryCooldownTimer = v;
-    }
-
-    public final float getSecondaryActionTimer() {
-        return (registry != null) ? registry.getSecondaryActionTimer(denseIdx) : localSecondaryActionTimer;
-    }
-
-    public final void setSecondaryActionTimer(float v) {
-        if (registry != null) registry.setSecondaryActionTimer(denseIdx, v);
-        else localSecondaryActionTimer = v;
-    }
-
     public final long getSecondaryAimTargetId() {
-        return (registry != null) ? registry.getSecondaryAimTargetId(denseIdx) : localSecondaryAimTargetId;
+        return registry.getSecondaryAimTargetId(denseIdx);
     }
 
     public final void setSecondaryAimTargetId(long v) {
-        if (registry != null) registry.setSecondaryAimTargetId(denseIdx, v);
-        else localSecondaryAimTargetId = v;
+        registry.setSecondaryAimTargetId(denseIdx, v);
     }
 
     /** Sets {@link #getSecondaryAimTargetId()} from a {@link Unit} ref (null → 0L). */
@@ -419,27 +367,34 @@ public class Unit {
     }
 
     /**
-     * <b>Don't read directly.</b> Pre-allocate seed + post-release snapshot for
-     * the burst-fire state group, same lifecycle as {@link #localHp}. Canonical
-     * storage between allocate and release lives in the registry's SoA arrays;
-     * go through {@link #getBurstRemaining} / {@link #getBurstTimer} /
-     * {@link #getBurstTargetId}.
-     *
-     * <p>{@code localBurstRemaining} — burst rounds queued after the AI's
-     * initial primary shot; the sim emits one per {@link MarineWeapon#burstSpacing}
-     * interval until exhausted. 0 = single-shot mode.
+     * Burst rounds queued after the AI's initial primary shot; the sim emits
+     * one per {@link MarineWeapon#burstSpacing} interval until exhausted.
+     * 0 = single-shot mode. Canonical storage lives in
+     * {@code registry.burstRemaining[denseIdx]}.
      */
-    public int localBurstRemaining = 0;
+    public final int getBurstRemaining() {
+        return registry.getBurstRemaining(denseIdx);
+    }
+
+    public final void setBurstRemaining(int v) {
+        registry.setBurstRemaining(denseIdx, v);
+    }
+
     /**
-     * <b>Don't read directly</b> — see {@link #localBurstRemaining}.
      * Sim-seconds until the next queued burst round fires. Decremented in
      * {@code InfantryWeapons.tick}.
      */
-    public float localBurstTimer = 0f;
+    public final float getBurstTimer() {
+        return registry.getBurstTimer(denseIdx);
+    }
+
+    public final void setBurstTimer(float v) {
+        registry.setBurstTimer(denseIdx, v);
+    }
+
     /**
-     * <b>Don't read directly</b> — see {@link #localBurstRemaining}.
      * Entity id of the target captured when the burst was queued. Burst rounds
-     * keep firing at this entity even if {@link #targetId} drifts to someone
+     * keep firing at this entity even if {@link #getTargetId()} drifts to someone
      * else, so a burst doesn't smear across multiple enemies. {@code 0L} when
      * idle (no burst active). Cleared along with {@link #getBurstRemaining}
      * when the burst ends or the target is released from the registry. Resolve
@@ -447,33 +402,12 @@ public class Unit {
      * {@link #setBurstTarget(Unit)} (or {@link #beginBurst(Unit)}, which
      * sets it as part of the trigger).
      */
-    public long localBurstTargetId = 0L;
-
-    public final int getBurstRemaining() {
-        return (registry != null) ? registry.getBurstRemaining(denseIdx) : localBurstRemaining;
-    }
-
-    public final void setBurstRemaining(int v) {
-        if (registry != null) registry.setBurstRemaining(denseIdx, v);
-        else localBurstRemaining = v;
-    }
-
-    public final float getBurstTimer() {
-        return (registry != null) ? registry.getBurstTimer(denseIdx) : localBurstTimer;
-    }
-
-    public final void setBurstTimer(float v) {
-        if (registry != null) registry.setBurstTimer(denseIdx, v);
-        else localBurstTimer = v;
-    }
-
     public final long getBurstTargetId() {
-        return (registry != null) ? registry.getBurstTargetId(denseIdx) : localBurstTargetId;
+        return registry.getBurstTargetId(denseIdx);
     }
 
     public final void setBurstTargetId(long v) {
-        if (registry != null) registry.setBurstTargetId(denseIdx, v);
-        else localBurstTargetId = v;
+        registry.setBurstTargetId(denseIdx, v);
     }
 
     /** Sets {@link #getBurstTargetId()} from a {@link Unit} ref (null → 0L). */
@@ -590,12 +524,11 @@ public class Unit {
     }
 
     public final float getCooldownTimer() {
-        return (registry != null) ? registry.getCooldownTimer(denseIdx) : localCooldownTimer;
+        return registry.getCooldownTimer(denseIdx);
     }
 
     public final void setCooldownTimer(float v) {
-        if (registry != null) registry.setCooldownTimer(denseIdx, v);
-        else localCooldownTimer = v;
+        registry.setCooldownTimer(denseIdx, v);
     }
 
     public final float getAttackDamage() {
@@ -626,12 +559,11 @@ public class Unit {
     }
 
     public final float getMoveProgress() {
-        return (registry != null) ? registry.getMoveProgress(denseIdx) : localMoveProgress;
+        return registry.getMoveProgress(denseIdx);
     }
 
     public final void setMoveProgress(float v) {
-        if (registry != null) registry.setMoveProgress(denseIdx, v);
-        else localMoveProgress = v;
+        registry.setMoveProgress(denseIdx, v);
     }
 
     public final float getRenderX() {

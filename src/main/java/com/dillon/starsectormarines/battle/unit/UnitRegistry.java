@@ -180,35 +180,39 @@ public final class UnitRegistry {
         long id = nextId++;
         u.entityId = id;
         dense[liveCount] = u;
-        // Seed SoA from the unit's pre-allocation transient fields. After this
-        // point hp[idx]/maxHp[idx]/cellX[idx]/cellY[idx] is canonical — the
-        // unit's localHp/localMaxHp/localCellX/localCellY fields are stale
-        // until release writes them back for post-release readers (corpse on
-        // the legacy units list, isAlive() on a dead drone before its crash
-        // sequence finishes).
+        // Seed the seed-bearing columns from the unit's pre-allocation transient
+        // fields. After this point these are canonical — the unit's local* twins
+        // are stale until release snapshots the corpse-read subset (hp/maxHp/
+        // cell/render) back for post-release readers (corpse on the legacy units
+        // list, isAlive() on a dead drone before its crash sequence finishes).
         hp[liveCount] = u.localHp;
         maxHp[liveCount] = u.localMaxHp;
         cellX[liveCount] = u.localCellX;
         cellY[liveCount] = u.localCellY;
-        cooldownTimer[liveCount] = u.localCooldownTimer;
-        moveProgress[liveCount] = u.localMoveProgress;
         renderX[liveCount] = u.localRenderX;
         renderY[liveCount] = u.localRenderY;
         attackDamage[liveCount] = u.localAttackDamage;
         attackRange[liveCount] = u.localAttackRange;
         accuracy[liveCount] = u.localAccuracy;
-        secondaryCooldownTimer[liveCount] = u.localSecondaryCooldownTimer;
-        secondaryActionTimer[liveCount] = u.localSecondaryActionTimer;
-        secondaryAimTargetId[liveCount] = u.localSecondaryAimTargetId;
-        burstRemaining[liveCount] = u.localBurstRemaining;
-        burstTimer[liveCount] = u.localBurstTimer;
-        burstTargetId[liveCount] = u.localBurstTargetId;
-        targetId[liveCount] = u.localTargetId;
-        repositionCooldown[liveCount] = u.localRepositionCooldown;
-        fallbackTimer[liveCount] = u.localFallbackTimer;
-        fallbackCellX[liveCount] = u.localFallbackCellX;
-        fallbackCellY[liveCount] = u.localFallbackCellY;
-        wanderDwellTimer[liveCount] = u.localWanderDwellTimer;
+        // Reset the mid-combat-only columns to their defaults. These have no
+        // pre-allocation seed (a fresh unit starts at rest) and no post-release
+        // reader, so they carry no local* twin on Unit; the explicit reset
+        // clears any stale value left in a dense slot reused after a
+        // swap-and-pop release.
+        cooldownTimer[liveCount] = 0f;
+        moveProgress[liveCount] = 0f;
+        secondaryCooldownTimer[liveCount] = 0f;
+        secondaryActionTimer[liveCount] = 0f;
+        secondaryAimTargetId[liveCount] = 0L;
+        burstRemaining[liveCount] = 0;
+        burstTimer[liveCount] = 0f;
+        burstTargetId[liveCount] = 0L;
+        targetId[liveCount] = 0L;
+        repositionCooldown[liveCount] = 0f;
+        fallbackTimer[liveCount] = 0f;
+        fallbackCellX[liveCount] = -1;
+        fallbackCellY[liveCount] = -1;
+        wanderDwellTimer[liveCount] = 0f;
         u.denseIdx = liveCount;
         u.registry = this;
         indexById.put(id, liveCount);
@@ -244,25 +248,11 @@ public final class UnitRegistry {
         released.localMaxHp = maxHp[idx];
         released.localCellX = cellX[idx];
         released.localCellY = cellY[idx];
-        released.localCooldownTimer = cooldownTimer[idx];
-        released.localMoveProgress = moveProgress[idx];
         released.localRenderX = renderX[idx];
         released.localRenderY = renderY[idx];
         released.localAttackDamage = attackDamage[idx];
         released.localAttackRange = attackRange[idx];
         released.localAccuracy = accuracy[idx];
-        released.localSecondaryCooldownTimer = secondaryCooldownTimer[idx];
-        released.localSecondaryActionTimer = secondaryActionTimer[idx];
-        released.localSecondaryAimTargetId = secondaryAimTargetId[idx];
-        released.localBurstRemaining = burstRemaining[idx];
-        released.localBurstTimer = burstTimer[idx];
-        released.localBurstTargetId = burstTargetId[idx];
-        released.localTargetId = targetId[idx];
-        released.localRepositionCooldown = repositionCooldown[idx];
-        released.localFallbackTimer = fallbackTimer[idx];
-        released.localFallbackCellX = fallbackCellX[idx];
-        released.localFallbackCellY = fallbackCellY[idx];
-        released.localWanderDwellTimer = wanderDwellTimer[idx];
         released.denseIdx = -1;
         released.registry = null;
         if (idx != last) {

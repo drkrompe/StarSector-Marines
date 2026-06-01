@@ -330,33 +330,18 @@ public class UnitRegistryTest {
     }
 
     @Test
-    public void allocateSeedsCooldownTimerAndAccessorsRouteThroughRegistry() {
+    public void allocateCooldownTimerDefaultsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
         Unit u = unit("u");
-        u.localCooldownTimer = 1.5f;
 
         r.allocate(u);
 
-        assertEquals(1.5f, u.getCooldownTimer(), 1e-6f);
-        assertEquals(1.5f, r.getCooldownTimer(u.denseIdx), 1e-6f);
+        assertEquals(0f, u.getCooldownTimer(), 1e-6f);
+        assertEquals(0f, r.getCooldownTimer(u.denseIdx), 1e-6f);
 
         u.setCooldownTimer(0.3f);
         assertEquals(0.3f, r.getCooldownTimer(u.denseIdx), 1e-6f);
         assertEquals(0.3f, u.getCooldownTimer(), 1e-6f);
-    }
-
-    @Test
-    public void releaseSnapshotsCooldownTimerBackToLocalField() {
-        UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
-        r.allocate(u);
-
-        u.setCooldownTimer(2.7f);
-        r.release(u.entityId);
-
-        assertNull(u.registry);
-        assertEquals(-1, u.denseIdx);
-        assertEquals(2.7f, u.getCooldownTimer(), 1e-6f);
     }
 
     @Test
@@ -378,33 +363,18 @@ public class UnitRegistryTest {
     }
 
     @Test
-    public void allocateSeedsMoveProgressAndAccessorsRouteThroughRegistry() {
+    public void allocateMoveProgressDefaultsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
         Unit u = unit("u");
-        u.localMoveProgress = 0.6f;
 
         r.allocate(u);
 
-        assertEquals(0.6f, u.getMoveProgress(), 1e-6f);
-        assertEquals(0.6f, r.getMoveProgress(u.denseIdx), 1e-6f);
+        assertEquals(0f, u.getMoveProgress(), 1e-6f);
+        assertEquals(0f, r.getMoveProgress(u.denseIdx), 1e-6f);
 
         u.setMoveProgress(0.2f);
         assertEquals(0.2f, r.getMoveProgress(u.denseIdx), 1e-6f);
         assertEquals(0.2f, u.getMoveProgress(), 1e-6f);
-    }
-
-    @Test
-    public void releaseSnapshotsMoveProgressBackToLocalField() {
-        UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
-        r.allocate(u);
-
-        u.setMoveProgress(0.75f);
-        r.release(u.entityId);
-
-        assertNull(u.registry);
-        assertEquals(-1, u.denseIdx);
-        assertEquals(0.75f, u.getMoveProgress(), 1e-6f);
     }
 
     @Test
@@ -627,33 +597,18 @@ public class UnitRegistryTest {
     }
 
     @Test
-    public void allocateSeedsSecondaryCooldownTimerAndAccessorsRouteThroughRegistry() {
+    public void allocateSecondaryCooldownTimerDefaultsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
         Unit u = unit("u");
-        u.localSecondaryCooldownTimer = 2.5f;
 
         r.allocate(u);
 
-        assertEquals(2.5f, u.getSecondaryCooldownTimer(), 1e-6f);
-        assertEquals(2.5f, r.getSecondaryCooldownTimer(u.denseIdx), 1e-6f);
+        assertEquals(0f, u.getSecondaryCooldownTimer(), 1e-6f);
+        assertEquals(0f, r.getSecondaryCooldownTimer(u.denseIdx), 1e-6f);
 
         u.setSecondaryCooldownTimer(0.4f);
         assertEquals(0.4f, r.getSecondaryCooldownTimer(u.denseIdx), 1e-6f);
         assertEquals(0.4f, u.getSecondaryCooldownTimer(), 1e-6f);
-    }
-
-    @Test
-    public void releaseSnapshotsSecondaryCooldownTimerBackToLocalField() {
-        UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
-        r.allocate(u);
-
-        u.setSecondaryCooldownTimer(3.3f);
-        r.release(u.entityId);
-
-        assertNull(u.registry);
-        assertEquals(-1, u.denseIdx);
-        assertEquals(3.3f, u.getSecondaryCooldownTimer(), 1e-6f);
     }
 
     @Test
@@ -675,33 +630,18 @@ public class UnitRegistryTest {
     }
 
     @Test
-    public void allocateSeedsSecondaryActionTimerAndAccessorsRouteThroughRegistry() {
+    public void allocateSecondaryActionTimerDefaultsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
         Unit u = unit("u");
-        u.localSecondaryActionTimer = 1.2f;
 
         r.allocate(u);
 
-        assertEquals(1.2f, u.getSecondaryActionTimer(), 1e-6f);
-        assertEquals(1.2f, r.getSecondaryActionTimer(u.denseIdx), 1e-6f);
+        assertEquals(0f, u.getSecondaryActionTimer(), 1e-6f);
+        assertEquals(0f, r.getSecondaryActionTimer(u.denseIdx), 1e-6f);
 
         u.setSecondaryActionTimer(0.6f);
         assertEquals(0.6f, r.getSecondaryActionTimer(u.denseIdx), 1e-6f);
         assertEquals(0.6f, u.getSecondaryActionTimer(), 1e-6f);
-    }
-
-    @Test
-    public void releaseSnapshotsSecondaryActionTimerBackToLocalField() {
-        UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
-        r.allocate(u);
-
-        u.setSecondaryActionTimer(0.9f);
-        r.release(u.entityId);
-
-        assertNull(u.registry);
-        assertEquals(-1, u.denseIdx);
-        assertEquals(0.9f, u.getSecondaryActionTimer(), 1e-6f);
     }
 
     @Test
@@ -723,33 +663,18 @@ public class UnitRegistryTest {
     }
 
     @Test
-    public void allocateSeedsSecondaryAimTargetIdAndAccessorsRouteThroughRegistry() {
+    public void allocateSecondaryAimTargetIdDefaultsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
         Unit u = unit("u");
-        u.localSecondaryAimTargetId = 42L;
 
         r.allocate(u);
 
-        assertEquals(42L, u.getSecondaryAimTargetId());
-        assertEquals(42L, r.getSecondaryAimTargetId(u.denseIdx));
+        assertEquals(0L, u.getSecondaryAimTargetId());
+        assertEquals(0L, r.getSecondaryAimTargetId(u.denseIdx));
 
         u.setSecondaryAimTargetId(7L);
         assertEquals(7L, r.getSecondaryAimTargetId(u.denseIdx));
         assertEquals(7L, u.getSecondaryAimTargetId());
-    }
-
-    @Test
-    public void releaseSnapshotsSecondaryAimTargetIdBackToLocalField() {
-        UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
-        r.allocate(u);
-
-        u.setSecondaryAimTargetId(123L);
-        r.release(u.entityId);
-
-        assertNull(u.registry);
-        assertEquals(-1, u.denseIdx);
-        assertEquals(123L, u.getSecondaryAimTargetId());
     }
 
     @Test
@@ -771,33 +696,18 @@ public class UnitRegistryTest {
     }
 
     @Test
-    public void allocateSeedsBurstRemainingAndAccessorsRouteThroughRegistry() {
+    public void allocateBurstRemainingDefaultsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
         Unit u = unit("u");
-        u.localBurstRemaining = 3;
 
         r.allocate(u);
 
-        assertEquals(3, u.getBurstRemaining());
-        assertEquals(3, r.getBurstRemaining(u.denseIdx));
+        assertEquals(0, u.getBurstRemaining());
+        assertEquals(0, r.getBurstRemaining(u.denseIdx));
 
         u.setBurstRemaining(1);
         assertEquals(1, r.getBurstRemaining(u.denseIdx));
         assertEquals(1, u.getBurstRemaining());
-    }
-
-    @Test
-    public void releaseSnapshotsBurstRemainingBackToLocalField() {
-        UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
-        r.allocate(u);
-
-        u.setBurstRemaining(2);
-        r.release(u.entityId);
-
-        assertNull(u.registry);
-        assertEquals(-1, u.denseIdx);
-        assertEquals(2, u.getBurstRemaining());
     }
 
     @Test
@@ -819,33 +729,18 @@ public class UnitRegistryTest {
     }
 
     @Test
-    public void allocateSeedsBurstTimerAndAccessorsRouteThroughRegistry() {
+    public void allocateBurstTimerDefaultsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
         Unit u = unit("u");
-        u.localBurstTimer = 0.25f;
 
         r.allocate(u);
 
-        assertEquals(0.25f, u.getBurstTimer(), 1e-6f);
-        assertEquals(0.25f, r.getBurstTimer(u.denseIdx), 1e-6f);
+        assertEquals(0f, u.getBurstTimer(), 1e-6f);
+        assertEquals(0f, r.getBurstTimer(u.denseIdx), 1e-6f);
 
         u.setBurstTimer(0.1f);
         assertEquals(0.1f, r.getBurstTimer(u.denseIdx), 1e-6f);
         assertEquals(0.1f, u.getBurstTimer(), 1e-6f);
-    }
-
-    @Test
-    public void releaseSnapshotsBurstTimerBackToLocalField() {
-        UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
-        r.allocate(u);
-
-        u.setBurstTimer(0.4f);
-        r.release(u.entityId);
-
-        assertNull(u.registry);
-        assertEquals(-1, u.denseIdx);
-        assertEquals(0.4f, u.getBurstTimer(), 1e-6f);
     }
 
     @Test
@@ -867,33 +762,18 @@ public class UnitRegistryTest {
     }
 
     @Test
-    public void allocateSeedsBurstTargetIdAndAccessorsRouteThroughRegistry() {
+    public void allocateBurstTargetIdDefaultsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
         Unit u = unit("u");
-        u.localBurstTargetId = 88L;
 
         r.allocate(u);
 
-        assertEquals(88L, u.getBurstTargetId());
-        assertEquals(88L, r.getBurstTargetId(u.denseIdx));
+        assertEquals(0L, u.getBurstTargetId());
+        assertEquals(0L, r.getBurstTargetId(u.denseIdx));
 
         u.setBurstTargetId(9L);
         assertEquals(9L, r.getBurstTargetId(u.denseIdx));
         assertEquals(9L, u.getBurstTargetId());
-    }
-
-    @Test
-    public void releaseSnapshotsBurstTargetIdBackToLocalField() {
-        UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
-        r.allocate(u);
-
-        u.setBurstTargetId(456L);
-        r.release(u.entityId);
-
-        assertNull(u.registry);
-        assertEquals(-1, u.denseIdx);
-        assertEquals(456L, u.getBurstTargetId());
     }
 
     @Test
@@ -915,33 +795,18 @@ public class UnitRegistryTest {
     }
 
     @Test
-    public void allocateSeedsTargetIdAndAccessorsRouteThroughRegistry() {
+    public void allocateTargetIdDefaultsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
         Unit u = unit("u");
-        u.localTargetId = 55L;
 
         r.allocate(u);
 
-        assertEquals(55L, u.getTargetId());
-        assertEquals(55L, r.getTargetId(u.denseIdx));
+        assertEquals(0L, u.getTargetId());
+        assertEquals(0L, r.getTargetId(u.denseIdx));
 
         u.setTargetId(8L);
         assertEquals(8L, r.getTargetId(u.denseIdx));
         assertEquals(8L, u.getTargetId());
-    }
-
-    @Test
-    public void releaseSnapshotsTargetIdBackToLocalField() {
-        UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
-        r.allocate(u);
-
-        u.setTargetId(321L);
-        r.release(u.entityId);
-
-        assertNull(u.registry);
-        assertEquals(-1, u.denseIdx);
-        assertEquals(321L, u.getTargetId());
     }
 
     @Test
@@ -963,33 +828,18 @@ public class UnitRegistryTest {
     }
 
     @Test
-    public void allocateSeedsRepositionCooldownAndAccessorsRouteThroughRegistry() {
+    public void allocateRepositionCooldownDefaultsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
         Unit u = unit("u");
-        u.localRepositionCooldown = 1.5f;
 
         r.allocate(u);
 
-        assertEquals(1.5f, u.getRepositionCooldown(), 1e-6f);
-        assertEquals(1.5f, r.getRepositionCooldown(u.denseIdx), 1e-6f);
+        assertEquals(0f, u.getRepositionCooldown(), 1e-6f);
+        assertEquals(0f, r.getRepositionCooldown(u.denseIdx), 1e-6f);
 
         u.setRepositionCooldown(0.75f);
         assertEquals(0.75f, r.getRepositionCooldown(u.denseIdx), 1e-6f);
         assertEquals(0.75f, u.getRepositionCooldown(), 1e-6f);
-    }
-
-    @Test
-    public void releaseSnapshotsRepositionCooldownBackToLocalField() {
-        UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
-        r.allocate(u);
-
-        u.setRepositionCooldown(1.2f);
-        r.release(u.entityId);
-
-        assertNull(u.registry);
-        assertEquals(-1, u.denseIdx);
-        assertEquals(1.2f, u.getRepositionCooldown(), 1e-6f);
     }
 
     @Test
@@ -1026,7 +876,30 @@ public class UnitRegistryTest {
     }
 
     @Test
-    public void allocateSeedsFallbackCellFromUnitsLocalFieldsAndAccessorsRouteThroughRegistry() {
+    public void allocateResetsMidCombatColumnsWhenReusingAFreedSlot() {
+        UnitRegistry r = new UnitRegistry();
+        Unit a = unit("a");
+        long idA = r.allocate(a);
+        // Dirty several mid-combat columns on slot 0.
+        a.setCooldownTimer(2.5f);
+        a.setTargetId(99L);
+        a.setBurstRemaining(3);
+        a.setFallbackCell(7, 8);
+        r.release(idA);
+
+        // A fresh unit reusing slot 0 must see defaults, not the stale values.
+        Unit b = unit("b");
+        r.allocate(b);
+        assertEquals(0, b.denseIdx);
+        assertEquals(0f, b.getCooldownTimer(), 1e-6f);
+        assertEquals(0L, b.getTargetId());
+        assertEquals(0, b.getBurstRemaining());
+        assertEquals(-1, b.getFallbackCellX());
+        assertEquals(-1, b.getFallbackCellY());
+    }
+
+    @Test
+    public void allocateFallbackCellDefaultsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
         Unit u = unit("u");
         // Default -1/-1 sentinel must ride the seed through allocate.
@@ -1041,21 +914,6 @@ public class UnitRegistryTest {
         assertEquals(9, r.getFallbackCellY(u.denseIdx));
         assertEquals(12, u.getFallbackCellX());
         assertEquals(9, u.getFallbackCellY());
-    }
-
-    @Test
-    public void releaseSnapshotsFallbackCellBackToLocalField() {
-        UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
-        r.allocate(u);
-
-        u.setFallbackCell(42, 17);
-        r.release(u.entityId);
-
-        assertNull(u.registry);
-        assertEquals(-1, u.denseIdx);
-        assertEquals(42, u.getFallbackCellX());
-        assertEquals(17, u.getFallbackCellY());
     }
 
     @Test
@@ -1079,33 +937,18 @@ public class UnitRegistryTest {
     }
 
     @Test
-    public void allocateSeedsFallbackTimerAndAccessorsRouteThroughRegistry() {
+    public void allocateFallbackTimerDefaultsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
         Unit u = unit("u");
-        u.localFallbackTimer = 2.5f;
 
         r.allocate(u);
 
-        assertEquals(2.5f, u.getFallbackTimer(), 1e-6f);
-        assertEquals(2.5f, r.getFallbackTimer(u.denseIdx), 1e-6f);
+        assertEquals(0f, u.getFallbackTimer(), 1e-6f);
+        assertEquals(0f, r.getFallbackTimer(u.denseIdx), 1e-6f);
 
         u.setFallbackTimer(1.25f);
         assertEquals(1.25f, r.getFallbackTimer(u.denseIdx), 1e-6f);
         assertEquals(1.25f, u.getFallbackTimer(), 1e-6f);
-    }
-
-    @Test
-    public void releaseSnapshotsFallbackTimerBackToLocalField() {
-        UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
-        r.allocate(u);
-
-        u.setFallbackTimer(3.1f);
-        r.release(u.entityId);
-
-        assertNull(u.registry);
-        assertEquals(-1, u.denseIdx);
-        assertEquals(3.1f, u.getFallbackTimer(), 1e-6f);
     }
 
     @Test
@@ -1127,33 +970,18 @@ public class UnitRegistryTest {
     }
 
     @Test
-    public void allocateSeedsWanderDwellTimerAndAccessorsRouteThroughRegistry() {
+    public void allocateWanderDwellTimerDefaultsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
         Unit u = unit("u");
-        u.localWanderDwellTimer = 1.5f;
 
         r.allocate(u);
 
-        assertEquals(1.5f, u.getWanderDwellTimer(), 1e-6f);
-        assertEquals(1.5f, r.getWanderDwellTimer(u.denseIdx), 1e-6f);
+        assertEquals(0f, u.getWanderDwellTimer(), 1e-6f);
+        assertEquals(0f, r.getWanderDwellTimer(u.denseIdx), 1e-6f);
 
         u.setWanderDwellTimer(0.75f);
         assertEquals(0.75f, r.getWanderDwellTimer(u.denseIdx), 1e-6f);
         assertEquals(0.75f, u.getWanderDwellTimer(), 1e-6f);
-    }
-
-    @Test
-    public void releaseSnapshotsWanderDwellTimerBackToLocalField() {
-        UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
-        r.allocate(u);
-
-        u.setWanderDwellTimer(1.2f);
-        r.release(u.entityId);
-
-        assertNull(u.registry);
-        assertEquals(-1, u.denseIdx);
-        assertEquals(1.2f, u.getWanderDwellTimer(), 1e-6f);
     }
 
     @Test
