@@ -15,7 +15,6 @@ import java.awt.image.BufferedImage;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
@@ -59,26 +58,12 @@ public class TacticalRegionPreviewTest {
         KIND_COLORS.put(RegionKind.OTHER,             new Color(255,   0, 255));
     }
 
-    // --- overwatch-corner scoring (the positional read; see structural-taxonomy.md) ---
-    // A defender turret wants cover at its back + a long field of fire OUT over
-    // low-cover ground — NOT a high-enclosure pocket (whose walls box the arc in).
-    // These thresholds are display heuristics, tuned by eyeballing the overlay.
+    // --- overwatch-corner overlay (the positional read) ---
+    // The scoring now lives in OverwatchScorer (the promoted, tested API); this
+    // test only draws the top-N strongest sites as the gut-check overlay.
 
-    /** {E, W, N, S} as {dx, dy}; reach grid index matches this order. */
-    private static final int[][] DIRS = { {1, 0}, {-1, 0}, {0, 1}, {0, -1} };
-    /** Minimum outward open-run (cells) before a position counts as a real field of fire. */
-    private static final int MIN_OVERWATCH_REACH = 6;
-    /** Reach past this contributes nothing extra to the score — beyond ~14 cells it's all "long field of fire"; corner quality should win, not raw sightline length (which otherwise lets map-spanning edge cells dominate). */
-    private static final int OVERWATCH_REACH_CAP = 14;
-    /** Forward region must be at most this cover-dense — a killing ground, not another building. */
-    private static final float FWD_COVER_MAX = 0.45f;
-    /** Non-max suppression radius: keep only the strongest pick within this Manhattan range. */
-    private static final int OVERWATCH_SEP = 8;
     /** Cap markers drawn per map so the overlay stays readable. */
     private static final int OVERWATCH_MAX_MARKERS = 18;
-
-    /** One candidate corner-tower position: cell + outward firing direction + score. */
-    private record Overwatch(int x, int y, int dx, int dy, float score) {}
 
     @Test
     void renderConquestTaxonomy() throws Exception {
@@ -146,7 +131,8 @@ public class TacticalRegionPreviewTest {
         // low-cover ground. The defender-turret read. Drawn on both images;
         // on the heat image each arrow should sit at a green/red boundary
         // pointing into the red (the killing ground it commands).
-        List<Overwatch> overwatch = findOverwatch(map, regions, axis, w, h);
+        List<OverwatchSite> overwatch = OverwatchScorer.findSites(map.grid, regions, axis);
+        if (overwatch.size() > OVERWATCH_MAX_MARKERS) overwatch = overwatch.subList(0, OVERWATCH_MAX_MARKERS);
         drawOverwatch(gk, overwatch, h, cellPx);
         drawOverwatch(gh, overwatch, h, cellPx);
 
@@ -190,118 +176,20 @@ public class TacticalRegionPreviewTest {
         g.drawString(text, 5, h * cellPx + 14);
     }
 
-    /**
-     * Score every walkable cell as a candidate corner-tower and return the
-     * strongest, non-max-suppressed set. A cell scores in direction {@code d}
-     * when the cell <em>behind</em> it (opposite {@code d}) is non-walkable
-     * (cover at back), the open-run ahead in {@code d} is long (a real field of
-     * fire), and the region immediately ahead is low-cover (a killing ground,
-     * not another building). Corner positions — a perpendicular neighbor also
-     * walled — score higher. The result is the per-cell max over the four
-     * directions, then greedy non-max suppression at {@link #OVERWATCH_SEP}.
-     */
-    private static List<Overwatch> findOverwatch(MapResult map, TacticalRegionMap regions,
-                                                 TraversalAxis axis, int w, int h) {
-        // In conquest mode, a defender overwatch fires TOWARD the attacker edge
-        // (decreasing depth): south for SOUTH_TO_NORTH, west for WEST_TO_EAST.
-        // Restricting the firing direction to attacker-ward both orients the
-        // markers correctly and distributes them (they land at the attacker-
-        // facing edge of each open field, not all along the largest one). Legacy
-        // maps have no attacker edge, so all four directions stay in play.
-        int adx = 0, ady = 0;
-        if (axis == TraversalAxis.SOUTH_TO_NORTH) ady = -1;
-        else if (axis == TraversalAxis.WEST_TO_EAST) adx = -1;
-        boolean restrictDir = adx != 0 || ady != 0;
-
-        int[][][] reach = computeOpenRuns(map, w, h); // [dir][x][y], dir order == DIRS
-        List<Overwatch> picks = new ArrayList<>();
-        for (int y = 0; y < h; y++) {
-            for (int x = 0; x < w; x++) {
-                if (!map.grid.isWalkable(x, y)) continue;
-                float best = 0f;
-                int bestDx = 0, bestDy = 0;
-                for (int d = 0; d < DIRS.length; d++) {
-                    int dx = DIRS[d][0], dy = DIRS[d][1];
-                    if (restrictDir && (dx != adx || dy != ady)) continue;
-                    // Cover at back: the cell opposite the firing direction is a
-                    // REAL wall/building (in-bounds non-walkable). The map edge
-                    // (OOB) does NOT count — a tower mounted against the map
-                    // boundary firing inward isn't a tactical backstop, and
-                    // those cells' map-spanning sightlines would dominate.
-                    int bx = x - dx, by = y - dy;
-                    boolean backCover = bx >= 0 && bx < w && by >= 0 && by < h && !map.grid.isWalkable(bx, by);
-                    if (!backCover) continue;
-                    int run = reach[d][x][y];
-                    if (run < MIN_OVERWATCH_REACH) continue;
-                    // Forward ground must be a low-cover killing field, not a building.
-                    TacticalRegion fwd = regions.regionAt(x + dx, y + dy);
-                    if (fwd != null && fwd.coverDensity > FWD_COVER_MAX) continue;
-                    // Cap reach so corner quality wins over raw sightline length.
-                    boolean corner = perpWalled(map, x, y, dx, dy);
-                    float score = Math.min(run, OVERWATCH_REACH_CAP) * (corner ? 1.25f : 1f);
-                    if (score > best) { best = score; bestDx = dx; bestDy = dy; }
-                }
-                if (best > 0f) picks.add(new Overwatch(x, y, bestDx, bestDy, best));
-            }
-        }
-        // Greedy non-max suppression: strongest first, drop anything within OVERWATCH_SEP.
-        picks.sort(Comparator.comparingDouble((Overwatch o) -> o.score).reversed());
-        List<Overwatch> kept = new ArrayList<>();
-        for (Overwatch o : picks) {
-            boolean near = false;
-            for (Overwatch k : kept) {
-                if (Math.abs(k.x - o.x) + Math.abs(k.y - o.y) < OVERWATCH_SEP) { near = true; break; }
-            }
-            if (!near) kept.add(o);
-            if (kept.size() >= OVERWATCH_MAX_MARKERS) break;
-        }
-        return kept;
-    }
-
-    /** True when a cell perpendicular to the firing axis is also non-walkable — i.e. the position is a corner, not a flat wall. */
-    private static boolean perpWalled(MapResult map, int x, int y, int dx, int dy) {
-        // Perpendicular axis: swap components.
-        return nonWalkable(map, x + dy, y + dx) || nonWalkable(map, x - dy, y - dx);
-    }
-
-    private static boolean nonWalkable(MapResult map, int x, int y) {
-        return x < 0 || x >= map.grid.getWidth() || y < 0 || y >= map.grid.getHeight() || !map.grid.isWalkable(x, y);
-    }
-
-    /** Open-run grids: {@code [dir][x][y]} = walkable cells ahead in {@code DIRS[dir]} before a wall (excluding self). */
-    private static int[][][] computeOpenRuns(MapResult map, int w, int h) {
-        int[][] east = new int[w][h], west = new int[w][h], north = new int[w][h], south = new int[w][h];
-        for (int y = 0; y < h; y++) {
-            for (int x = 0; x < w; x++) {
-                if (!map.grid.isWalkable(x, y)) continue;
-                west[x][y]  = (x > 0 && map.grid.isWalkable(x - 1, y)) ? west[x - 1][y] + 1 : 0;
-                south[x][y] = (y > 0 && map.grid.isWalkable(x, y - 1)) ? south[x][y - 1] + 1 : 0;
-            }
-        }
-        for (int y = h - 1; y >= 0; y--) {
-            for (int x = w - 1; x >= 0; x--) {
-                if (!map.grid.isWalkable(x, y)) continue;
-                east[x][y]  = (x < w - 1 && map.grid.isWalkable(x + 1, y)) ? east[x + 1][y] + 1 : 0;
-                north[x][y] = (y < h - 1 && map.grid.isWalkable(x, y + 1)) ? north[x][y + 1] + 1 : 0;
-            }
-        }
-        return new int[][][] { east, west, north, south }; // order matches DIRS {E, W, N, S}
-    }
-
     /** Orange dot at the position + a line in the firing direction (+ arrowhead). */
-    private static void drawOverwatch(Graphics2D g, List<Overwatch> picks, int gridH, int cellPx) {
+    private static void drawOverwatch(Graphics2D g, List<OverwatchSite> picks, int gridH, int cellPx) {
         int len = Math.max(cellPx * 3, 16);
-        for (Overwatch o : picks) {
-            int cx = o.x * cellPx + cellPx / 2;
-            int cy = (gridH - 1 - o.y) * cellPx + cellPx / 2;
-            int tx = cx + o.dx * len;
-            int ty = cy - o.dy * len; // image-y is flipped relative to grid-y
+        for (OverwatchSite o : picks) {
+            int cx = o.x() * cellPx + cellPx / 2;
+            int cy = (gridH - 1 - o.y()) * cellPx + cellPx / 2;
+            int tx = cx + o.dirX() * len;
+            int ty = cy - o.dirY() * len; // image-y is flipped relative to grid-y
             g.setStroke(new BasicStroke(2f));
             g.setColor(new Color(255, 150, 40));
             g.drawLine(cx, cy, tx, ty);
             // Arrowhead: two short barbs back from the tip.
-            int hx = -o.dx, hy = o.dy; // back along the shaft (image space)
-            int px = -o.dy, py = -o.dx; // perpendicular in image space
+            int hx = -o.dirX(), hy = o.dirY(); // back along the shaft (image space)
+            int px = -o.dirY(), py = -o.dirX(); // perpendicular in image space
             g.drawLine(tx, ty, tx + (hx + px) * cellPx / 2, ty + (hy + py) * cellPx / 2);
             g.drawLine(tx, ty, tx + (hx - px) * cellPx / 2, ty + (hy - py) * cellPx / 2);
             g.setColor(new Color(255, 200, 80));
