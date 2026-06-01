@@ -45,6 +45,21 @@ public final class AssaultCommand implements MissionCommand {
     private float[] zoneCentroidY;
     private float[] sectorCentroidX;
     private float[] sectorCentroidY;
+    /**
+     * Zone id of the open exterior — the largest zone by cell count, cached at
+     * init. Never handed out as a {@code CLEAR_ZONE} target and never counts
+     * toward a sector being "active": the exterior flood spans the map and
+     * always holds a stray defender, so a squad ordered to clear it charges
+     * the map forever. Outdoor defenders are still engaged ambiently via
+     * {@code EliminateEnemiesGoal}. Keyed on largest-by-cells rather than id 0
+     * because the flood-fill ids zones by scan order. Only set when the largest
+     * zone <em>dominates</em> (≥ {@link #EXTERIOR_DOMINANCE_RATIO}× the
+     * second-largest), so a map of comparably-sized rooms excludes nothing.
+     * {@code -1} until init / when nothing dominates.
+     */
+    private int exteriorZoneId = -1;
+    /** The largest zone is the open exterior only when at least this many times bigger than the next-largest. */
+    private static final float EXTERIOR_DOMINANCE_RATIO = 2.0f;
 
     @Override
     public Faction faction() {
@@ -108,9 +123,17 @@ public final class AssaultCommand implements MissionCommand {
         zoneCentroidX = new float[zoneCount];
         zoneCentroidY = new float[zoneCount];
 
+        int largestCells = -1, secondCells = -1, largestZone = -1;
         for (NavigationZone zone : graph.getZones()) {
             int[] cells = zone.getCellIndices();
             if (cells.length == 0) continue;
+            if (cells.length > largestCells) {
+                secondCells = largestCells;
+                largestCells = cells.length;
+                largestZone = zone.getZoneId();
+            } else if (cells.length > secondCells) {
+                secondCells = cells.length;
+            }
             float sumX = 0f, sumY = 0f;
             for (int cellIdx : cells) {
                 sumX += (cellIdx % gridW);
@@ -129,6 +152,11 @@ public final class AssaultCommand implements MissionCommand {
             if (col < 0) col = 0;
             if (row < 0) row = 0;
             sectorZones.get(row * sectorCols + col).add(id);
+        }
+
+        if (largestZone >= 0
+                && (secondCells <= 0 || largestCells >= EXTERIOR_DOMINANCE_RATIO * secondCells)) {
+            exteriorZoneId = largestZone;
         }
 
         sectorCentroidX = new float[sectorCount];
@@ -151,6 +179,7 @@ public final class AssaultCommand implements MissionCommand {
         for (int s = 0; s < sectorCount; s++) {
             int count = 0;
             for (int zoneId : sectorZones.get(s)) {
+                if (zoneId == exteriorZoneId) continue;
                 if (!ZoneQueries.zoneClear(zoneId, Faction.DEFENDER, sim)) {
                     count++;
                 }
@@ -211,6 +240,7 @@ public final class AssaultCommand implements MissionCommand {
         int bestZone = -1;
         float bestDistSq = Float.MAX_VALUE;
         for (int zoneId : sectorZones.get(sectorIdx)) {
+            if (zoneId == exteriorZoneId) continue;
             if (ZoneQueries.zoneClear(zoneId, Faction.DEFENDER, sim)) continue;
             float dx = zoneCentroidX[zoneId] - squad.centroidX;
             float dy = zoneCentroidY[zoneId] - squad.centroidY;

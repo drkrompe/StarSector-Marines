@@ -77,6 +77,34 @@ public class ConquestCommandTest {
         return new BattleSimulation(grid, new CellTopology(W, H));
     }
 
+    /**
+     * One big exterior flood zone plus a small enclosed room in the top-left
+     * corner (interior x∈[0,2], y∈[0,2], 9 cells), sealed by an L-wall with a
+     * single doorway at (3,1). The exterior is by far the largest zone, so it
+     * becomes {@code ConquestCommand}'s cached exterior id — the zone the
+     * commander must never hand out as a CLEAR_ZONE target. Both room and
+     * exterior sit in strip 0 (x &lt; W/3), so one squad's strip can hold a
+     * defender in each.
+     */
+    private static BattleSimulation roomPlusExteriorSim() {
+        NavigationGrid grid = new NavigationGrid(W, H);
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) {
+                grid.setWalkableFloor(x, y);
+            }
+        }
+        // Seal the corner room: L-wall at x=3 (y=0,2) and y=3 (x=0..3),
+        // doorway at (3,1) connecting the room to the exterior.
+        grid.setWalkable(3, 0, false);
+        grid.setWalkable(3, 2, false);
+        grid.setWalkable(0, 3, false);
+        grid.setWalkable(1, 3, false);
+        grid.setWalkable(2, 3, false);
+        grid.setWalkable(3, 3, false);
+        grid.setDoorway(3, 1, true);
+        return new BattleSimulation(grid, new CellTopology(W, H));
+    }
+
     private static Squad addMarineSquad(BattleSimulation sim, float centroidX, float centroidY) {
         Unit leader = new Unit("m", Faction.MARINE, UnitType.MARINE,
                 Math.round(centroidX), Math.round(centroidY));
@@ -300,6 +328,48 @@ public class ConquestCommandTest {
                 "wiped squad should not receive an assignment");
         assertEquals(-1, cmd.stripIndexOf(squad.id),
                 "wiped squad should not even get a strip slotted");
+    }
+
+    @Test
+    public void exteriorZoneIsNeverAssignedAsClearTarget() {
+        // Squad in the open exterior with a defender also outdoors AND a
+        // defender in the enclosed room — all in strip 0. The exterior is the
+        // largest zone, so it must be skipped; the squad is pointed at the
+        // room instead of being told to clear the whole map.
+        BattleSimulation sim = roomPlusExteriorSim();
+        ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+        Squad squad = addMarineSquad(sim, 6f, 8f);   // exterior, strip 0
+        addDefender(sim, 7, 8);                       // exterior, strip 0
+        addDefender(sim, 1, 1);                       // enclosed room, strip 0
+
+        cmd.tick(sim);
+
+        ObjectiveAssignment a = squad.assignedObjective;
+        assertNotNull(a, "a clearable room defender exists → squad gets an assignment");
+        assertEquals(AssignmentKind.CLEAR_ZONE, a.kind());
+        int roomZone = sim.getZoneGraph().zoneIdAt(1, 1);
+        int exteriorZone = sim.getZoneGraph().zoneIdAt(6, 8);
+        assertEquals(roomZone, a.targetZoneId(),
+                "target must be the enclosed room, not the open exterior");
+        assertNotEquals(exteriorZone, a.targetZoneId(),
+                "the exterior flood zone must never be a CLEAR_ZONE target");
+    }
+
+    @Test
+    public void exteriorOnlyDefenderLeavesAssignmentNull() {
+        // The only defender stands in the open exterior. There's nothing
+        // clearable, so the assignment is cleared and the squad falls through
+        // to EliminateEnemies (engages outdoors ambiently) — it does NOT get
+        // told to clear the whole exterior.
+        BattleSimulation sim = roomPlusExteriorSim();
+        ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+        Squad squad = addMarineSquad(sim, 6f, 8f);   // exterior, strip 0
+        addDefender(sim, 8, 8);                       // exterior, strip 0
+
+        cmd.tick(sim);
+
+        assertNull(squad.assignedObjective,
+                "exterior-only defender → no CLEAR_ZONE; squad engages ambiently");
     }
 
     @Test

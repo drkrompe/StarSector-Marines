@@ -109,6 +109,28 @@ public final class ConquestCommand implements MissionCommand {
     /** Lateral extent of the map cached at init time so {@link #stripFor} can classify squads without needing the grid. */
     private int lateralExtent = 0;
     /**
+     * Zone id of the open exterior — the largest zone by cell count, cached at
+     * init. Never handed out as a {@code CLEAR_ZONE} target: the exterior flood
+     * spans the whole map, always holds a stray defender, and so reads as
+     * "never clear" — a squad ordered to clear it charges the map forever
+     * instead of doing focused area control. Outdoor defenders are still
+     * engaged ambiently via {@code EliminateEnemiesGoal} when in LoS. We key on
+     * largest-by-cells rather than id 0 because the flood-fill ids zones by
+     * scan order, so id 0 can land on an indoor region. Only set when the
+     * largest zone <em>dominates</em> — at least {@link #EXTERIOR_DOMINANCE_RATIO}×
+     * the second-largest — so a map whose zones are all comparable in size
+     * (no single open expanse) excludes nothing. {@code -1} until init / when
+     * nothing dominates.
+     */
+    private int exteriorZoneId = -1;
+    /**
+     * The largest zone is only treated as the open exterior when it is at least
+     * this many times bigger than the next-largest zone. The real outdoor flood
+     * dwarfs every building; a map of similarly-sized rooms has no exterior to
+     * exclude.
+     */
+    private static final float EXTERIOR_DOMINANCE_RATIO = 2.0f;
+    /**
      * Per-compound records mapped to the zone containing their anchor cell.
      * Built at init time by looking up each compound record's anchor in the
      * zone graph. Only compounds whose anchor resolves to a valid zone are
@@ -249,7 +271,7 @@ public final class ConquestCommand implements MissionCommand {
      * Lazy strip partition. Equal-width along the lateral axis (x for
      * SOUTH_TO_NORTH push, y for WEST_TO_EAST push); each zone is bucketed
      * by its centroid's lateral coordinate. Within each strip, zones are
-     * sorted forward-to-back so {@link #forwardMostDefenderZone} can short-
+     * sorted forward-to-back so {@link #nearestDefenderZoneInStrip} can short-
      * circuit on the first defender-occupied entry.
      */
     private void initializePartition(BattleView sim) {
@@ -264,9 +286,17 @@ public final class ConquestCommand implements MissionCommand {
         zoneForwardCoord = new float[graph.getZones().size()];
         Arrays.fill(zoneForwardCoord, 0f);
 
+        int largestCells = -1, secondCells = -1, largestZone = -1;
         for (NavigationZone zone : graph.getZones()) {
             int[] cells = zone.getCellIndices();
             if (cells.length == 0) continue;
+            if (cells.length > largestCells) {
+                secondCells = largestCells;
+                largestCells = cells.length;
+                largestZone = zone.getZoneId();
+            } else if (cells.length > secondCells) {
+                secondCells = cells.length;
+            }
             float sumX = 0f, sumY = 0f;
             for (int cellIdx : cells) {
                 sumX += (cellIdx % gridW);
@@ -283,6 +313,13 @@ public final class ConquestCommand implements MissionCommand {
             int stripIdx = stripIndexForLateral(lateral, this.lateralExtent);
             if (stripIdx < 0 || stripIdx >= STRIP_COUNT) continue;
             stripZones.get(stripIdx).add(zone.getZoneId());
+        }
+
+        // Only flag an exterior when one zone dominates — the real outdoor
+        // flood does; a map of comparable rooms has nothing to exclude.
+        if (largestZone >= 0
+                && (secondCells <= 0 || largestCells >= EXTERIOR_DOMINANCE_RATIO * secondCells)) {
+            exteriorZoneId = largestZone;
         }
 
         Comparator<Integer> forwardDescending = (a, b) ->
@@ -369,6 +406,7 @@ public final class ConquestCommand implements MissionCommand {
         int bestBackwardZone = -1;
         float bestBackwardDist = Float.MAX_VALUE;
         for (int zoneId : stripZones.get(stripIdx)) {
+            if (zoneId == exteriorZoneId) continue;
             if (ZoneQueries.zoneClear(zoneId, Faction.DEFENDER, sim)) continue;
             float zoneForward = zoneForwardCoord[zoneId];
             float delta = zoneForward - squadForward;
