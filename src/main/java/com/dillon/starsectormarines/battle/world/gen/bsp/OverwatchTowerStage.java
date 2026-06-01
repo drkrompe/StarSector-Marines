@@ -53,8 +53,25 @@ import java.util.List;
  */
 public final class OverwatchTowerStage implements GenStage {
 
-    /** Cap on towers placed per map — keeps the overwatch line additive to the existing posts, not a wall of guns. */
-    private static final int MAX_TOWERS = 6;
+    /**
+     * Map cells per overwatch gun — the tower budget scales with map size rather
+     * than a flat cap, so a big conquest map fields a proportionally longer
+     * overwatch line (240×160 ≈ 15) and a small map a short one. The physical
+     * site supply (wall-backed, attacker-facing corners) and {@link #MIN_SEPARATION}
+     * often bite before the budget does, so this is a ceiling on intent, not a
+     * guaranteed count.
+     *
+     * <p><b>Future:</b> this base budget is the natural multiply-point for a
+     * campaign-driven <em>defense intensity</em> — a market's Planetary Defenses /
+     * Heavy Industry level and command-HQ presence should raise the gun count once
+     * market data is plumbed into generation. See
+     * {@code roadmap/mapgen/stories/structural-taxonomy.md}.
+     */
+    private static final int CELLS_PER_TOWER = 2500;
+    /** Floor so even a small map fields a token overwatch line. */
+    private static final int MIN_TOWERS = 3;
+    /** Safety ceiling so a pathological map size can't request hundreds of placement attempts. */
+    private static final int MAX_TOWERS = 32;
     /** Minimum cell distance from any existing defense post (and from another tower) — avoids doubling up on a position the kill-zone posts already cover. */
     private static final int MIN_SEPARATION = 12;
     /**
@@ -82,13 +99,17 @@ public final class OverwatchTowerStage implements GenStage {
         CellTopology topology = ctx.topology;
         TraversalAxis axis = ctx.get(BspKeys.AXIS);
 
+        // Budget scales with map size — see CELLS_PER_TOWER.
+        int budget = Math.max(MIN_TOWERS, Math.min(MAX_TOWERS,
+                Math.round((float) (ctx.width * ctx.height) / CELLS_PER_TOWER)));
+
         List<OverwatchSite> sites = OverwatchScorer.findSites(grid, regions, axis);
         List<DefensePost> posts = ctx.defensePosts;
         List<int[]> placed = new ArrayList<>();
 
         int towers = 0;
         for (OverwatchSite s : sites) {
-            if (towers >= MAX_TOWERS) break;
+            if (towers >= budget) break;
             int x = s.x(), y = s.y();
             // Depth gate — keep towers on the contested approach (axis maps depth
             // to a band; legacy maps have UNSET depth, so the gate is skipped).
