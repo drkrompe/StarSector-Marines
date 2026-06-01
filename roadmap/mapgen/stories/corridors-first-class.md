@@ -114,6 +114,45 @@ Rules that fall out:
   the threshold). Why: a fight in a bare 2-cell corridor reads as a
   genuinely strange thing to see and should never be generated.
 
+### Structural taxonomy — generator publishes, passes consume
+
+The `CorridorStage` emits the room/corridor **graph as first-class output**,
+not just carved cells. Downstream passes (turret / garrison / objective
+placement) then *query structure* instead of re-deriving geometry — the same
+seam the room-purpose refactor proved ("which room is the throne"), generalized
+from room labels to the whole connectivity graph + its derived roles. It
+inverts today's fragile flow, where stampers guess tactical positions from raw
+geometry with magic offsets (`FortressWallStamper` sets back exactly 12 cells
+from a biome edge). Generator publishes structure; the tactical pass interprets
+it. Two axes, captured during generation:
+
+**Which room (membership).**
+- *Topological role*, free from the graph: **degree** (1 = dead-end/terminal,
+  2 = pass-through, ≥3 = hub); **depth from entry** (BFS from the attacker edge
+  — the indoor analogue of the conquest assault gradient); **articulation points
+  / bridges** (Tarjan — a bridge corridor is the only link to a subtree, an
+  articulation room is must-pass; these are the defender's natural fortify
+  points); **on-spine vs on-loop** (main line vs flank).
+- *Thematic kind* — the station HANGAR / COMMAND / HABITATION set
+  ([`station-interior-fills`](station-interior-fills.md)) — is a **later layer**
+  that sits on top of the topological role.
+
+**Where in the room (positional)**, knowable because the stage placed the doors:
+**threshold** (just inside a door — dominates the approach), **corridor-mouth /
+overwatch** (line of sight down a corridor — enfilades transit), **deep / corner
+cover** (fallback / last stand).
+
+Placement passes become aspect queries over this — a heavy tower wants
+`{bridge-corridor mouth, mid-depth, hub-adjacent}`; a fallback bunker wants
+`{deep terminal room, covers own threshold}`; a flank watch wants `{overwatch on
+a loop corridor}`. **Scope:** the graph + topological roles are v1 (cheap,
+generic, the foundation everything queries); thematic kinds and per-cell
+firing-position roles are a deliberate later layer. The non-negotiable: the
+stage **publishes the graph**, not just cells.
+
+> Not corridor-specific — a general map-gen direction (city + station + ship).
+> See [`../overview.md`](../overview.md) § "Structural taxonomy".
+
 ### The validation harness is the gate
 
 `MapValidationScanTest` (built this session) is the acceptance harness:

@@ -135,6 +135,30 @@ station "rooms + corridors" fills mean anything. Station interior fills
 are the payoff that rides on top. Ship interiors are the same machinery
 turned up (tighter rooms) and follow stations.
 
+### Structural taxonomy (cross-cutting — all generators)
+
+A general direction that generalizes the room-purpose seam: **generators
+publish structural annotations; placement / tactical passes consume them
+rather than re-deriving geometry.** The room-purpose refactor proved this
+for "which room is the throne." The corridor work extends it to the whole
+connectivity graph — room **degree**, **depth from entry**, **articulation
+points / bridges**, **spine-vs-loop** edges — plus positional roles
+(threshold / overwatch / deep cover). Turret, garrison, and objective
+passes become *aspect queries* over the published structure instead of
+stampers guessing from raw geometry with magic offsets.
+
+This is not corridor- or station-specific. The existing **city** generator
+is the prime retrofit candidate: it already produces a `RoadGraph` and a
+`LeafAdjacency` graph, yet its stampers still each re-derive structure
+(`FortressWallStamper`'s 12-cell biome setback, `DefensePostStamper`'s
+footprint validation, `CompoundPerimeterDefenderStamper`'s outward edge
+scan). Upgrading city gen to publish + consume a structural taxonomy would
+de-fragilize those passes and feed **battlespace readability** (set-pieces
+at meaningful graph positions, not scattered). Candidate for a dedicated
+session — see [`next-session.md`](next-session.md). Design detail:
+[`stories/corridors-first-class.md`](stories/corridors-first-class.md) §
+"Structural taxonomy".
+
 ## Cross-references
 
 - [`pipeline-audit.md`](pipeline-audit.md) — full survey of the current

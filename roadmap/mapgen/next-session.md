@@ -226,6 +226,19 @@ Surfaced while scoping this session; parked deliberately so they're not lost:
   size/placement, fortress-district density vs. city, assault-gradient
   legibility. Gut-checkable purely via the conquest previews. No story doc yet;
   worth one if we pick it up.
+- **Structural taxonomy + city-gen upgrade (candidate dedicated session).**
+  General direction (city + station + ship): generators *publish* structural
+  annotations — the connectivity graph + topological roles (degree, depth from
+  entry, articulation points / bridges, spine-vs-loop) and positional roles
+  (threshold / overwatch / deep cover) — and placement passes *consume* them as
+  aspect queries instead of re-deriving geometry. The room-purpose seam
+  generalized; first built in the corridor work. The existing **city**
+  generator is the prime retrofit (it already has `RoadGraph` + `LeafAdjacency`,
+  but `FortressWallStamper` / `DefensePostStamper` / `CompoundPerimeterDefenderStamper`
+  still use magic offsets). A pure session could upgrade city gen to publish +
+  consume the taxonomy — de-fragilizing placement and directly feeding the
+  battlespace-readability item above. See `overview.md` § "Structural taxonomy"
+  and [`stories/corridors-first-class.md`](stories/corridors-first-class.md).
 
 ## Sanity check before resuming
 
