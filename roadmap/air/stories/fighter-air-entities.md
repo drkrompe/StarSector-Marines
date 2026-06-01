@@ -111,9 +111,16 @@ when `flyby/` folds into `air/`; until then `FlybyOverlay`'s draw is reused.
   sandbox-safe (SettingsAPI, no file I/O). Unit-test the conversion against known
   hulls (Talon/Trident) to lock the scale band + guard a missing/zero spec. No
   behavior change yet — the resolver is just available.
-- **4b — `FighterMission` + `FighterMissionSystem`.** Real `AirBody` per fighter,
-  driven by `AirSteeringSystem`; port the strafe state machine to goals/modes.
-  Fighters now move on real kinematics. **This is the movement-handler rewrite.**
+- **4b — fly on `AirBody` — SHIPPED `eb5a95b`.** Each `Fighter` composes an
+  `AirBody` + the hull's scraped `AirHandling`; the per-tick handler picks a goal
+  point per state (CRUISE chases a point ahead along the weaving heading;
+  BANK_BACK/RUN steer to waypoints) and drives the body via `AirSteeringSystem` at
+  cruise throttle — the banked arc emerges from the hull's real turn/accel, not a
+  heading-lerp. Legacy `worldX/headingDeg/…` kept as a body-synced read-surface so
+  fire/render/FX are untouched ([[air_unit_render_sync]]); dead scripted-glide
+  knobs removed. Done as an in-place `FlybyOverlay` rewrite (a separate
+  `FighterMissionSystem` waits for the 4d fold). **Open: in-game calibration of
+  the atmosphere knobs (`SPEED_ATMO_MULT` etc.) — the feel is now one-place tunable.**
 - **4c — Repoint FX + fire + render to `body`; delete the scripted motion.** The
   `Fighter` struct loses its kinematic fields (gains an `AirBody` + `entityId` +
   `FighterMission`, or is replaced by a `Fighter` air-entity like `Shuttle`).
