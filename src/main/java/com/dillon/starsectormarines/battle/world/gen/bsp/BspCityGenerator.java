@@ -145,6 +145,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new TacticalLinkStage(),                    // Step 3d
                 new FinalizeStage(),                        // Step 4 + 4b
                 new TacticalRegionStage(),                  // structural taxonomy (post-finalize)
+                new OverwatchTowerStage(),                  // taxonomy consumer — corner-tower guns
                 new SpawnAnchorStage()));                   // spawn anchors
     }
 
