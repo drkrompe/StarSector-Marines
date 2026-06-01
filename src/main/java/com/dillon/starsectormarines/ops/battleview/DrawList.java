@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.render2d.ContrailTrail;
 import com.dillon.starsectormarines.render2d.DrawCommand;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
@@ -91,6 +92,11 @@ public final class DrawList {
     public void addLine(RenderLayer layer, float x0, float y0, float x1, float y1, float width,
                         float r, float g, float b, float a) {
         slot(layer).setLine(x0, y0, x1, y1, width, r, g, b, a);
+    }
+
+    /** Queue a contrail ribbon; the drain expands {@code trail}'s samples cell→screen at draw time. */
+    public void addRibbon(RenderLayer layer, ContrailTrail trail, float alphaMult) {
+        slot(layer).setRibbon(trail, alphaMult);
     }
 
     public void addCustom(RenderLayer layer, Runnable draw) {

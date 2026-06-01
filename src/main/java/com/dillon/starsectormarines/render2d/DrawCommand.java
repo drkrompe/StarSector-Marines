@@ -31,8 +31,14 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
  *       reused as the line width; color {@code r/g/b/a}. Batched through a
  *       {@link LineBatch} (width is per-flush state — the drain flushes on a
  *       width change).</li>
+ *   <li>{@code RIBBON} — a contrail/plume sample history; {@code trail} = the
+ *       {@link ContrailTrail}, {@code a} = the alpha mult folded into the
+ *       ribbon's per-vertex alpha. Unlike every other kind (which carries
+ *       pre-converted screen-space coords), the ribbon's vertices are expanded
+ *       cell→screen at drain time, so the drain feeds it the camera. Batched
+ *       through a {@link RibbonBatch}.</li>
  *   <li>{@code CUSTOM} — {@code custom} owns its own GL state (FBO blits, the
- *       lightmap multiply, ribbon contrails); the drain just runs it.</li>
+ *       lightmap multiply); the drain just runs it.</li>
  * </ul>
  *
  * <p>Written through the public {@code set*} methods (called cross-package by the
@@ -40,7 +46,7 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
  */
 public final class DrawCommand {
 
-    public enum Kind { SHEET_QUAD, SPRITE, SOLID_RECT, LINE, CUSTOM }
+    public enum Kind { SHEET_QUAD, SPRITE, SOLID_RECT, LINE, RIBBON, CUSTOM }
 
     Kind kind;
     SpriteAPI sprite;
@@ -50,6 +56,8 @@ public final class DrawCommand {
     /** {@code SHEET_QUAD} only: sample the sub-rect mirrored vertically (the SOUTH-weapon-up flip). Always axis-aligned. */
     boolean flipV;
     float r, g, b, a;
+    /** {@code RIBBON} only: the contrail sample history the drain expands. */
+    ContrailTrail trail;
     Runnable custom;
 
     public void setSheetQuad(SpriteAPI sheet, int srcX, int srcY, int srcW, int srcH,
@@ -74,6 +82,7 @@ public final class DrawCommand {
         this.cx = cx; this.cy = cy; this.w = w; this.h = h; this.angleDeg = angleDeg;
         this.flipV = false;
         this.r = r; this.g = g; this.b = b; this.a = a;
+        this.trail = null;
         this.custom = null;
     }
 
@@ -96,6 +105,7 @@ public final class DrawCommand {
         this.sprite = sprite;
         this.cx = cx; this.cy = cy; this.w = w; this.h = h; this.angleDeg = angleDeg;
         this.r = r; this.g = g; this.b = b; this.a = a;
+        this.trail = null;
         this.custom = null;
     }
 
@@ -106,6 +116,7 @@ public final class DrawCommand {
         this.sprite = null;
         this.cx = x0; this.cy = y0; this.w = x1; this.h = y1;
         this.r = r; this.g = g; this.b = b; this.a = a;
+        this.trail = null;
         this.custom = null;
     }
 
@@ -120,12 +131,27 @@ public final class DrawCommand {
         this.cx = x0; this.cy = y0; this.w = x1; this.h = y1;
         this.angleDeg = width;
         this.r = r; this.g = g; this.b = b; this.a = a;
+        this.trail = null;
+        this.custom = null;
+    }
+
+    /**
+     * {@code trail} is the live contrail sample history (expanded cell→screen at
+     * drain time by a {@link RibbonBatch}); {@code alphaMult} is folded into every
+     * ribbon vertex's alpha.
+     */
+    public void setRibbon(ContrailTrail trail, float alphaMult) {
+        this.kind = Kind.RIBBON;
+        this.sprite = null;
+        this.trail = trail;
+        this.a = alphaMult;
         this.custom = null;
     }
 
     public void setCustom(Runnable custom) {
         this.kind = Kind.CUSTOM;
         this.sprite = null;
+        this.trail = null;
         this.custom = custom;
     }
 }

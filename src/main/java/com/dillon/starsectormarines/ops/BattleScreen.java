@@ -466,6 +466,12 @@ public class BattleScreen implements Screen, BattleUiContext {
             renderer.getImpactFx().spawnAmbientFire(burst[0], burst[1], burst[2]);
         }
         renderer.getImpactFx().advance(dt * speedMultiplier);
+        // Contrail trails — push the leading-edge sample for each in-flight
+        // contrail shot and age the lot. Real (unscaled) dt, not sim-time, so
+        // trails keep dissipating during sim pause (matches the old render-frame
+        // aging). Ticked here, after sim.advance, so samples read post-tick
+        // positions; the render pass just emits the ribbons.
+        renderer.getContrailFx().tick(sim.getActiveShots(), dt);
         // Compound markers pulse on wall-clock so a paused sim still
         // visibly throbs at contested compounds — the player keeps reading
         // state during pauses (mirrors the charge-site marker behaviour).

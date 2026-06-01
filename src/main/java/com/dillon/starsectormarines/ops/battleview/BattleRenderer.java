@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.ops.battleview;
 
-import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.render2d.DecalAccumulator;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
 import com.dillon.starsectormarines.battle.flyby.FlybyOverlay;
@@ -8,16 +7,13 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.model.TimeOfDay;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.ui.compound.CompoundMarkerRenderer;
-import com.dillon.starsectormarines.render2d.ContrailStyle;
 import com.dillon.starsectormarines.render2d.DrawCommand;
 import com.dillon.starsectormarines.render2d.DrawListRenderer;
-import com.dillon.starsectormarines.render2d.ContrailTrail;
 import com.dillon.starsectormarines.render2d.GlStateBracket;
 import com.dillon.starsectormarines.render2d.LightAccumulator;
 import com.dillon.starsectormarines.render2d.LineBatch;
@@ -108,7 +104,7 @@ public class BattleRenderer {
 
     /**
      * Maps a sprite sheet to its per-sheet {@link QuadBatch}, so
-     * {@link #drainLayer} can resolve a {@link DrawCommand.SheetQuad}'s sheet to
+     * {@link #drainLayer} can resolve a {@link DrawCommand} {@code SHEET_QUAD}'s sheet to
      * the batch that owns it. Populated in {@link #buildTileBatches()}; reuses the
      * same batch instances the inline tile passes use (batches reset after each
      * flush, so cross-pass reuse within a frame is fine).
@@ -150,20 +146,17 @@ public class BattleRenderer {
     private final LineBatch lineBatch = new LineBatch(256);
 
     /**
-     * Solid-color ribbon batch for in-flight projectile contrails.
+     * Drain-owned ribbon batch for {@code RIBBON} commands (in-flight projectile
+     * contrails). Threaded into {@link DrawListRenderer#drain}; the trail lifecycle
+     * itself lives in {@link #contrailFx}.
      */
     private final RibbonBatch contrailBatch = new RibbonBatch(256);
 
     /**
-     * Active contrails keyed by their owning shot. Identity map.
+     * Contrail trail lifecycle (state) — ticked from {@code BattleScreen.advance},
+     * emits {@code RIBBON} commands in its world-pass {@link RenderSystem}.
      */
-    private final java.util.IdentityHashMap<ShotEvent, ContrailTrail> contrailsLive =
-            new java.util.IdentityHashMap<>();
-
-    /**
-     * Trails whose owning shot has expired but whose samples haven't all aged out yet.
-     */
-    private final java.util.ArrayList<ContrailTrail> contrailsDecaying = new java.util.ArrayList<>();
+    private final ContrailFxService contrailFx = new ContrailFxService();
 
     /**
      * Persistent decal-accumulator FBO.
@@ -237,12 +230,12 @@ public class BattleRenderer {
                             renderSelectedVehicleDebug(convoy, ctx.alphaMult);
                         })),
                 new ShuttleRenderSystem(sprites),
-                // SHOTS: contrails first (stateful Custom, lifecycle still owned here — F4
-                // will split it into an FX service), then the ShotRenderService body sweeps
-                // (tracers → projectile sprites). Listed contrails-first so submission order
-                // stays contrails → tracers → sprites.
+                // SHOTS: contrails first (the ContrailFxService emits RIBBON commands; its
+                // trail lifecycle is ticked from BattleScreen.advance), then the
+                // ShotRenderService body sweeps (tracers → projectile sprites). Listed
+                // contrails-first so submission order stays contrails → tracers → sprites.
                 RenderSystem.of(RenderLayer.SHOTS, (ctx, out) ->
-                        out.addCustom(RenderLayer.SHOTS, () -> renderContrails(ctx.sim.getActiveShots(), ctx.alphaMult))),
+                        contrailFx.collect(out, ctx.alphaMult)),
                 new ShotRenderService(sprites, impactFx),
                 RenderSystem.of(RenderLayer.IMPACT_FX, (ctx, out) ->
                         out.addCustom(RenderLayer.IMPACT_FX, () -> impactFx.render(ctx.camera, ctx.alphaMult))),
@@ -330,6 +323,9 @@ public class BattleRenderer {
 
     /** Accessor for {@code BattleScreen.advance()} — spawn and advance impact FX particles. */
     public ImpactFx getImpactFx() { return impactFx; }
+
+    /** Accessor for {@code BattleScreen.advance()} — tick the contrail trail lifecycle on real dt. */
+    public ContrailFxService getContrailFx() { return contrailFx; }
 
     /** Accessor for {@code BattleScreen.advance()} — pulse compound markers on wall-clock. */
     public CompoundMarkerRenderer getCompoundMarkers() { return compoundMarkers; }
@@ -688,63 +684,6 @@ public class BattleRenderer {
         glEnd();
     }
 
-    private void renderContrails(List<ShotEvent> shots, float alphaMult) {
-        if (!contrailsLive.isEmpty()) {
-            java.util.Set<ShotEvent> current = java.util.Collections.newSetFromMap(
-                    new java.util.IdentityHashMap<>());
-            current.addAll(shots);
-            java.util.Iterator<java.util.Map.Entry<ShotEvent, ContrailTrail>> it =
-                    contrailsLive.entrySet().iterator();
-            while (it.hasNext()) {
-                java.util.Map.Entry<ShotEvent, ContrailTrail> e = it.next();
-                if (!current.contains(e.getKey())) {
-                    contrailsDecaying.add(e.getValue());
-                    it.remove();
-                }
-            }
-        }
-
-        for (ShotEvent s : shots) {
-            if (s.turretKind == null || !kindUsesContrailRibbon(s.turretKind)) continue;
-            float linearProgress = 1f - Math.max(0f, Math.min(1f, s.lifetime / Math.max(0.001f, s.lifetimeMax)));
-            float progress = s.turretKind.hasBoostRamp()
-                    ? com.dillon.starsectormarines.battle.combat.Projectile.applyBoostCurve(linearProgress)
-                    : linearProgress;
-            float px = s.fromX + (s.toX - s.fromX) * progress;
-            float py = s.fromY + (s.toY - s.fromY) * progress;
-            float arcH = s.turretKind.arcHeight;
-            if (arcH > 0f) py += arcH * 4f * progress * (1f - progress);
-            ContrailTrail trail = contrailsLive.get(s);
-            if (trail == null) {
-                trail = new ContrailTrail(styleFor(s.turretKind), 32);
-                contrailsLive.put(s, trail);
-            }
-            trail.pushSample(px, py);
-        }
-
-        float dt = rc.realDt;
-        if (dt > 0f) {
-            for (ContrailTrail t : contrailsLive.values()) t.advance(dt);
-            for (ContrailTrail t : contrailsDecaying)      t.advance(dt);
-        }
-        contrailsDecaying.removeIf(ContrailTrail::isEmpty);
-
-        if (contrailsLive.isEmpty() && contrailsDecaying.isEmpty()) return;
-        for (ContrailTrail t : contrailsLive.values()) contrailBatch.append(t, rc.camera, alphaMult);
-        for (ContrailTrail t : contrailsDecaying)      contrailBatch.append(t, rc.camera, alphaMult);
-        if (contrailBatch.isEmpty()) return;
-        try (GlStateBracket gl = GlStateBracket.textured2D()) {
-            contrailBatch.flush();
-        }
-    }
-
-    private static ContrailStyle styleFor(TurretKind kind) {
-        return ContrailStyle.MISSILE_SMOKE;
-    }
-
-    private static boolean kindUsesContrailRibbon(TurretKind kind) {
-        return kind == TurretKind.LOCUST;
-    }
 
     private static void fillRect(float rx, float ry, float rw, float rh, Color c, float alpha) {
         if (rw <= 0f || rh <= 0f) return;
@@ -770,7 +709,8 @@ public class BattleRenderer {
      * per tile pass, now driven by {@link GroundRenderSystem}.
      */
     private void drainLayer(RenderLayer layer) {
-        DrawListRenderer.drain(drawList.buffer(layer), drawList.count(layer), batchBySheet, solidBatch, lineBatch);
+        DrawListRenderer.drain(drawList.buffer(layer), drawList.count(layer), batchBySheet, solidBatch,
+                lineBatch, contrailBatch, rc.camera);
     }
 
     // ---- main entry point ----------------------------------------------------

@@ -11,6 +11,11 @@
 > `Custom` escape hatches into the command model, SHOTS/FX first, using the
 > Story-J flyweight + capability-tag + stateless-sweep pattern as the template.
 > Design + slice plan: [`stories/fx-shots-command-model.md`](stories/fx-shots-command-model.md).
+> **F1–F4 shipped** (`LINE` command + `LineBatch`; `ShotFx` composition + test;
+> `ShotRenderService` + path-keyed sprite cache; contrail state/render split via a
+> `RIBBON` command + `ContrailFxService`). SHOTS is now fully command-driven — no
+> `Custom` left in the layer. **F5** is the close-out tail (prune orphaned getters,
+> dedupe tracer constants, move the doc to `complete/`).
 > Optional perf follow-up still on the shelf: the ground-FBO work-reduction spike.
 
 ## State of play

@@ -157,14 +157,33 @@ TurretKind; `boostRamp`/`contrail` from the weapon's own declaration.
   pass); in-game verified (all shot types + tracers + arcs/boost/contrail/trails
   identical). The `renderContrails`/`kindUsesContrailRibbon`/`styleFor` trio stays
   for F4.
-- **F4 — Contrail state/render split.** Extract `ContrailFxService` (owns
-  `contrailsLive`/`contrailsDecaying` + aging, `tick(dt)`); the sweep emits the
-  ribbon. Decide: a `RIBBON` `DrawCommand` (ribbon becomes data) vs. keep
-  `RibbonBatch` but make the flush drain-owned. Removes the contrail `Custom` and
-  the unconditional-emit smell.
-- **F5 — Delete inline fallbacks.** Remove `collectShots`/`drawTracers`/
-  `renderContrails` from `BattleRenderer`; SHOTS fully command-driven. Move this
-  doc to `complete/`.
+- ~~**F4 — Contrail state/render split.**~~ ✅ **SHIPPED & VERIFIED.** Decision:
+  **full `RIBBON` `DrawCommand`** (ribbon becomes data, not a drain-owned-flush
+  hack). `ContrailFxService` (`ops/battleview/`, sibling to `ImpactFx`) owns the
+  `live`/`decaying` trail maps + the retire→push-sample→age→drop lifecycle in
+  `tick(shots, dt)`, called from `BattleScreen.advance` after `sim.advance` on
+  real (unscaled) dt so trails dissipate during pause — exactly the old
+  `rc.realDt` value. Fully carrier-agnostic: `fx.contrail()` both selects the shot
+  and *is* the `ContrailStyle`; `fx.boostRamp()`/`fx.arcHeight()` drive the sample
+  position. `kindUsesContrailRibbon` + `styleFor` deleted. New `RIBBON` kind on
+  `DrawCommand` carries a `ContrailTrail` ref + alpha; the drain gained a
+  `RibbonBatch` + `BattleCamera` param (the ribbon is the one kind not
+  pre-converted to screen space — `RibbonBatch.append` expands cell→screen at
+  drain time) and a `RIBBON` case peer to `LINE` with `ribbonPending` flushes at
+  every kind-switch. Consecutive ribbons coalesce to one `GL_QUADS` block, same as
+  the old single flush. The contrail `Custom` is gone — SHOTS is now
+  `contrailFx.collect` → `ShotRenderService` (paint order preserved). Fidelity
+  critique returned PASS on all 8 axes (selection/position/style/dt/decay/order/
+  shared-bracket-GL/pooled-ref); in-game verified. **Invariant pinned in the drain:**
+  ribbon styles must be normal-blend (they share the `textured2D()` bracket); an
+  additive style would need its own `additiveBlend()` bracket.
+- **F5 — Final sweep + close-out.** The three render bodies are already gone
+  (`collectShots`/`drawTracers` in F3, `renderContrails`/`styleFor`/
+  `kindUsesContrailRibbon` in F4) — SHOTS is fully command-driven. F5 is the
+  bookkeeping tail: prune any now-dead per-enum projectile-sprite getters in
+  `BattleSprites` the path-keyed cache orphaned, dedupe the
+  `MARINE_TRACER`/`DEFENDER_TRACER` constants (live in both `ShotRenderService`
+  and `BattleScreen`), and move this doc to `complete/`.
 
 ## Template payoff — the remaining `Custom` passes
 
