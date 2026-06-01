@@ -831,4 +831,44 @@ public class TacticalScoringTest {
         assertTrue(sim.getTacticalScoring().shouldCommitRocket(mB, turret),
                 "squad coordination is per-squad — different squads don't block each other");
     }
+
+    // ---------------------------------------------------------------------
+    // Part 8 — local force tally (odds-aware tactics)
+    // ---------------------------------------------------------------------
+
+    @Test
+    public void countCombatantsWithinTalliesByFactionRadiusAndCombatantFlag() {
+        BattleSimulation sim = openArena(50, 50);
+        // Defenders near the anchor: 3 marines + a live turret (turrets are
+        // combatants, so they bolster the defending side).
+        unit(sim, Faction.DEFENDER, 20, 20);
+        unit(sim, Faction.DEFENDER, 21, 20);
+        unit(sim, Faction.DEFENDER, 20, 21);
+        turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 22, 20);
+        // A civilian defender must NOT count — non-combatant.
+        unit(sim, Faction.DEFENDER, UnitType.CIVILIAN, 19, 20);
+        // Attackers: two inside the radius, one far outside it.
+        unit(sim, Faction.MARINE, 24, 20);   // d = 4
+        unit(sim, Faction.MARINE, 20, 25);    // d = 5
+        unit(sim, Faction.MARINE, 49, 49);    // d ≈ 41, outside r=10
+
+        TacticalScoring s = sim.getTacticalScoring();
+        assertEquals(4, s.countCombatantsWithin(Faction.DEFENDER, 20, 20, 10f),
+                "3 defender marines + live turret; civilian excluded");
+        assertEquals(2, s.countCombatantsWithin(Faction.MARINE, 20, 20, 10f),
+                "two nearby attackers count; the distant one is outside the radius");
+    }
+
+    @Test
+    public void countCombatantsWithinDropsDeadUnits() {
+        BattleSimulation sim = openArena(30, 30);
+        unit(sim, Faction.MARINE, 15, 15);
+        Unit doomed = unit(sim, Faction.MARINE, 16, 15);
+        TacticalScoring s = sim.getTacticalScoring();
+        assertEquals(2, s.countCombatantsWithin(Faction.MARINE, 15, 15, 8f), "both alive");
+
+        sim.applyDamage(doomed, 100_000f, 3.5f, 0f);
+        assertEquals(1, s.countCombatantsWithin(Faction.MARINE, 15, 15, 8f),
+                "a dead combatant drops out of the tally");
+    }
 }

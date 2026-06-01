@@ -826,6 +826,24 @@ public final class TacticalScoring {
         return best;
     }
 
+    /**
+     * Count of alive combatants of {@code faction} within {@code radius} cells
+     * of {@code (cx, cy)} — a cheap local force tally for odds-aware tactics
+     * (e.g. a guard post tightening its engage leash when outnumbered). Goes
+     * through the spatial index, not a full unit scan. Live turrets and drones
+     * count (they're combatants); civilians don't.
+     */
+    public int countCombatantsWithin(Faction faction, int cx, int cy, float radius) {
+        ArrayList<Unit> scratch = new ArrayList<>();
+        unitIndex.gather(cx, cy, radius, scratch);
+        int count = 0;
+        for (int i = 0, n = scratch.size(); i < n; i++) {
+            Unit u = scratch.get(i);
+            if (u.faction == faction && u.isAlive() && u.type.combatant) count++;
+        }
+        return count;
+    }
+
     public int[] findFiringPositionWithin(Unit self, Unit target,
                                           int anchorX, int anchorY, float maxDistFromAnchor) {
         long _profT0 = System.nanoTime();

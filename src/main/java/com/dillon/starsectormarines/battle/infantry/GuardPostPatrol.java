@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -39,9 +40,15 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
  *   <li><b>FALLBACK</b> — the squad is retreating to a new post: every member
  *       walks to its home cell regardless of alert (mirrors {@link HoldPost}).</li>
  *   <li><b>ENGAGE</b> — a target is acquired: engage it, repositioning to a
- *       firing cell clamped to the patrol box (so the squad masses on the
- *       emplacement and never chases an intruder out across the map). The full
- *       box is the engagement leash — same extent as the quiet wander.</li>
+ *       firing cell clamped to an <em>odds-scaled</em> leash around the post.
+ *       At even-or-better odds the leash is the full box, so the squad fights
+ *       forward to the perimeter against a lone attacker; as it gets
+ *       outnumbered the leash collapses toward a tight defensive ring on the
+ *       post's cover and turret, giving ground to the strongpoint rather than
+ *       trading shots out on the edge where it gets walked off the line. The
+ *       post's own live turret(s) count toward the defenders, so the guard
+ *       holds forward while the turret stands and falls back once a second
+ *       attacker push tips the ratio.</li>
  *   <li><b>INVESTIGATE</b> — no target, SUSPICIOUS with a last-seen cell: lean
  *       toward the noise, clamped to the box.</li>
  *   <li><b>QUIET</b> — no target, unaware: round a squad-scoped waypoint sampled
@@ -60,10 +67,25 @@ public final class GuardPostPatrol implements Action {
     /** Max attempts to roll a random walkable cell inside the box before giving up this tick and dwelling on the current waypoint. */
     private static final int WAYPOINT_SAMPLE_ATTEMPTS = 16;
 
+    /** Cells beyond the box, ≈ one rifle range, that the odds tally reaches — so the squad senses a build-up massing just outside its box, not only the foes already inside it. */
+    private static final float SENSE_MARGIN = 24f;
+    /** Floor the engage leash collapses to when heavily outnumbered — a tight ring on the post's cover + turret, the squad's last-ditch defensive footing. */
+    private static final float DEFENSIVE_RING = 6f;
+
     private final int anchorX;
     private final int anchorY;
     /** Half-extent of the patrol box, in cells, around the post anchor. */
     private final int radius;
+
+    /**
+     * Engage leash for this tick, shrunk from {@link #radius} toward
+     * {@link #DEFENSIVE_RING} as the squad gets outnumbered (see
+     * {@link #computeLeash}). Volatile + leader-gated: the leader recomputes
+     * the local force tally once per tick and the squad's other members read
+     * its value (they share the same anchor-centred counts, so one gather per
+     * squad-tick suffices). {@code -1} until first computed.
+     */
+    private volatile float cachedLeashRadius = -1f;
 
     /** Box-sample waypoint strategy, widened to re-roll a waypoint that has drifted outside the box (shared {@code patrolWaypointX/Y} isn't reset on a posture switch). */
     private final PatrolMotion.WaypointSource waypointSource;
@@ -104,7 +126,7 @@ public final class GuardPostPatrol implements Action {
             member.setTarget(target);
         }
         if (target != null) {
-            return engage(member, target, sim);
+            return engage(member, target, squad, sim);
         }
 
         if (squad.alertLevel == SquadAlertLevel.SUSPICIOUS
@@ -116,14 +138,18 @@ public final class GuardPostPatrol implements Action {
     }
 
     /**
-     * Engage {@code target}, leashed to the patrol box. Fires in place when in
-     * range + LOS; otherwise repositions to a firing cell within {@link #radius}
-     * of the post anchor, switching to any other box-engageable enemy if the
-     * current target can't be reached from inside the box. Mirrors
-     * {@link HoldPost}'s engagement, anchored to the post box rather than the
-     * member's tight home ring.
+     * Engage {@code target}, leashed to the odds-scaled ring around the post
+     * (see {@link #effectiveLeash}). Fires in place when in range + LOS
+     * <em>and</em> still inside the leash; otherwise repositions to a firing
+     * cell within the leash of the post anchor, switching to any other
+     * leash-engageable enemy if the current target can't be reached from
+     * inside it. A member that has drifted beyond a now-shrunk leash gives
+     * ground — it stops trading shots from the perimeter and paths back toward
+     * the strongpoint even if it could still fire from where it stands.
      */
-    private ActionStatus engage(Unit member, Unit target, BattleControl sim) {
+    private ActionStatus engage(Unit member, Unit target, Squad squad, BattleControl sim) {
+        float leash = effectiveLeash(member, squad, sim);
+
         if (member.getCooldownTimer() > 0f) {
             member.setCooldownTimer(member.getCooldownTimer() - BattleSimulation.TICK_DT);
         }
@@ -133,8 +159,10 @@ public final class GuardPostPatrol implements Action {
         boolean inRange = dist <= member.getAttackRange();
         boolean visible = sim.getGrid().hasLineOfSight(member.getCellX(), member.getCellY(),
                 target.getCellX(), target.getCellY());
+        boolean withinLeash = TacticalScoring.cellDistance(anchorX, anchorY,
+                member.getCellX(), member.getCellY()) <= leash;
 
-        if (inRange && visible) {
+        if (inRange && visible && withinLeash) {
             if (member.getCooldownTimer() <= 0f) {
                 sim.fireShot(member, target);
                 member.setCooldownTimer(member.attackCooldown);
@@ -145,15 +173,15 @@ public final class GuardPostPatrol implements Action {
         }
 
         int[] firingPos = sim.getTacticalScoring().findFiringPositionWithin(
-                member, target, anchorX, anchorY, radius);
+                member, target, anchorX, anchorY, leash);
         if (firingPos == null) {
             Unit alt = sim.getTacticalScoring().findEngageableEnemyWithin(
-                    member, anchorX, anchorY, radius);
+                    member, anchorX, anchorY, leash);
             if (alt != null) {
                 member.setTarget(alt);
                 target = alt;
                 firingPos = sim.getTacticalScoring().findFiringPositionWithin(
-                        member, target, anchorX, anchorY, radius);
+                        member, target, anchorX, anchorY, leash);
             }
         }
         if (firingPos == null || (firingPos[0] == member.getCellX() && firingPos[1] == member.getCellY())) {
@@ -162,6 +190,42 @@ public final class GuardPostPatrol implements Action {
         }
         PatrolMotion.moveToward(member, sim, firingPos[0], firingPos[1]);
         return ActionStatus.RUNNING;
+    }
+
+    /**
+     * This tick's engage leash. The leader recomputes the odds-scaled value
+     * once per tick (one force tally per squad); other members read its cached
+     * result, and the first call before the leader has run computes inline.
+     * Leaderless squads fall back to the last cached value (or a one-off
+     * compute), which is harmless — a stale leash for a few ticks just delays
+     * the give-ground response.
+     */
+    private float effectiveLeash(Unit member, Squad squad, BattleControl sim) {
+        if (member == squad.leader || cachedLeashRadius < 0f) {
+            cachedLeashRadius = computeLeash(squad, sim);
+        }
+        return cachedLeashRadius;
+    }
+
+    /**
+     * Maps the local enemy:defender ratio around the post to a leash between
+     * {@link #DEFENSIVE_RING} (heavily outnumbered → collapse onto the post)
+     * and the full box {@link #radius} (even-or-better odds → fight forward to
+     * the perimeter). Defenders include the post's live turret(s) and any
+     * nearby friendly squads, so a lone attacker faces squad + turret and the
+     * guard holds forward; a second attacker push tips the ratio and pulls it
+     * back. No contesting enemy in sensing range → the full box.
+     */
+    private float computeLeash(Squad squad, BattleControl sim) {
+        Faction enemy = squad.faction == Faction.MARINE ? Faction.DEFENDER : Faction.MARINE;
+        float sense = radius + SENSE_MARGIN;
+        TacticalScoring scoring = sim.getTacticalScoring();
+        int foes = scoring.countCombatantsWithin(enemy, anchorX, anchorY, sense);
+        if (foes == 0) return radius;
+        int friends = scoring.countCombatantsWithin(squad.faction, anchorX, anchorY, sense);
+        float factor = Math.min(1f, friends / (float) foes);
+        float inner = Math.min(DEFENSIVE_RING, radius);
+        return inner + (radius - inner) * factor;
     }
 
     private ActionStatus investigateClamped(Unit member, BattleControl sim, Squad squad) {

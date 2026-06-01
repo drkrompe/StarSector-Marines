@@ -104,6 +104,34 @@ This also resolves the tiny-radius wander-jitter the critique pass flagged —
 every post box is now comfortably larger than `PatrolMotion.ARRIVAL_RADIUS` (3),
 so squads settle on a waypoint instead of re-rolling every dwell.
 
+## Odds-scaled engage leash (landed)
+
+Playtest showed posted squads getting *walked off their strongpoint*: a target
+near the box edge pulled the firing solution outward (`findFiringPositionWithin`
+scores by proximity to the member's current cell), the squad clustered on the
+perimeter, and a steady trickle of attackers kept re-pulling them before the
+QUIET patrol could re-centre. Worse when it mattered most — outnumbered, they'd
+hold the edge and get ground down instead of falling back to cover.
+
+Fix: the engage leash is no longer the fixed box — it's scaled by the local
+enemy:defender ratio around the post (`GuardPostPatrol.computeLeash`).
+
+- **Even-or-better odds → full box.** A lone attacker faces the squad *plus the
+  post's live turret(s)* (turrets are combatants, so they count toward the
+  defenders), so the guard fights forward to the perimeter as before.
+- **Outnumbered → collapse toward a tight `DEFENSIVE_RING` (6) on the post.** As
+  a second attacker push tips the ratio, the leash shrinks; members that have
+  drifted past it stop trading shots from the edge and path back toward the
+  strongpoint — giving ground to the turret/cover rather than getting walked
+  off the line. Linear in `min(1, friends/foes)`.
+
+The tally is `TacticalScoring.countCombatantsWithin(faction, cx, cy, radius)` (a
+new spatial-index primitive), sensed over the box + one rifle range
+(`SENSE_MARGIN` 24) so a build-up massing just outside the box is seen. Computed
+once per squad-tick (leader-gated, cached on the action; siblings read it).
+Covered by `TacticalScoringTest` (faction/radius/combatant-flag tally + dead-unit
+drop). The forward-vs-fallback feel itself is left to playtest.
+
 ## Open follow-ups
 
 - **Release semantics.** A released turret squad (`defensePost == null`) still
