@@ -97,6 +97,20 @@ and HEAD. Commit loop:
 A stray file or mixed hunks from a parallel session are fine — leave them
 rather than rewriting shared history to extract them.
 
+### Commit-command mechanics (these have bitten before)
+
+- **`-m` goes BEFORE `--`.** `git commit -m "msg" -- <path> …`. Anything after
+  `--` is a pathspec, so `git commit -- <path> -m "msg"` makes git treat `-m`
+  and the message as filenames (`pathspec '-m' did not match any file(s)`).
+- **Match the shell to the tool.** The here-string for multi-line messages
+  (`-m @'…'@`) is **PowerShell only** — use it in the PowerShell tool. The
+  **Bash** tool reads `@'…'@` literally and mangles the commit. In the Bash
+  tool, pass the message as a normal double-quoted string (`-m "line1
+  line2"`); avoid backticks and `$` in it, or single-quote. Pick one tool per
+  commit and quote for that shell.
+- A failed-pathspec error means **nothing was committed** — fix the flag order
+  / quoting and re-run (the `git add` already staged the files; don't re-add).
+
 ## Your PWD is C:/Users/Dillon/IdeaProjects/starsectormarines
 Note that unless you `cd` to a different directory your primary directory will already be:
 ```sh
