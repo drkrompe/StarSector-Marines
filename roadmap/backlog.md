@@ -162,10 +162,17 @@ as separate entries below.
 
 ### Render path (the bigger share — 367 samples)
 
-- **`QuadBatch.flush` dominates** — 285 samples (78% of render). Reason
-  unconfirmed: could be too many small batches not amortizing GL state
-  changes, driver-side stalls being attributed to flush, or CPU-bound
-  float-buffer packing in the flush body itself.
+- **`QuadBatch.flush`** — was 78% of render / 17.4% of total mod CPU. ✅ **FIXED
+  & VERIFIED (2026-06-01)** — see `battle-render/complete/perf-quadbatch-flush.md`.
+  Confirmed across 3 captures it was the per-vertex immediate-mode submission
+  (12 JNI calls/quad), *not* float-packing (`append` <1%) or GL-submit-stall or
+  flush-thrash (the drain already coalesces). Fix: both `QuadBatch.flush` +
+  `SolidQuadBatch.flush` → client-side vertex arrays + `glDrawArrays` (not a VBO
+  — marginal here). **Result: −75% combined flush CPU** (722→178 samples;
+  SolidQuadBatch 193→1; render path 37%→18% of our CPU). Residual `QuadBatch`
+  cost is the GROUND batch's per-frame memcpy + draw submission → addressed by
+  the ground-FBO follow-up (`battle-render/stories/perf-ground-fbo-cache.md`).
+  The candidates below are superseded.
 - **Roots:** 233 samples cascade from `BattleScreen.renderGrid`, 51 from
   `MarineOpsPanelPlugin.render`. Floor + wall tiled passes are the
   biggest single sub-pass (25 samples to

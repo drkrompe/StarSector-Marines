@@ -1,12 +1,21 @@
 package com.dillon.starsectormarines.render2d;
 
+import org.lwjgl.BufferUtils;
+
+import java.nio.FloatBuffer;
+
+import static org.lwjgl.opengl.GL11.GL_CLIENT_VERTEX_ARRAY_BIT;
+import static org.lwjgl.opengl.GL11.GL_COLOR_ARRAY;
 import static org.lwjgl.opengl.GL11.GL_QUADS;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL11.glBegin;
-import static org.lwjgl.opengl.GL11.glColor4f;
+import static org.lwjgl.opengl.GL11.GL_VERTEX_ARRAY;
+import static org.lwjgl.opengl.GL11.glColorPointer;
 import static org.lwjgl.opengl.GL11.glDisable;
-import static org.lwjgl.opengl.GL11.glEnd;
-import static org.lwjgl.opengl.GL11.glVertex2f;
+import static org.lwjgl.opengl.GL11.glDrawArrays;
+import static org.lwjgl.opengl.GL11.glEnableClientState;
+import static org.lwjgl.opengl.GL11.glPopClientAttrib;
+import static org.lwjgl.opengl.GL11.glPushClientAttrib;
+import static org.lwjgl.opengl.GL11.glVertexPointer;
 
 /**
  * Untextured-quad counterpart to {@link QuadBatch}. Emits solid-colored
@@ -34,6 +43,9 @@ public final class SolidQuadBatch {
     private float[] data;
     private int quadCount;
 
+    /** Cached direct buffer the flush copies {@link #data} into for {@code glDrawArrays}. */
+    private FloatBuffer vbuf;
+
     public SolidQuadBatch(int initialQuadCapacity) {
         this.data = new float[Math.max(1, initialQuadCapacity) * FLOATS_PER_QUAD];
         this.quadCount = 0;
@@ -59,23 +71,44 @@ public final class SolidQuadBatch {
     }
 
     /**
-     * Emit all queued quads as one {@code glBegin(GL_QUADS)} block.
-     * No-op if empty. Resets the queue. Disables {@code GL_TEXTURE_2D}
-     * before drawing so a stale texture binding doesn't bleed through
-     * — paired flushes with {@link QuadBatch} handle re-enabling.
+     * Emit all queued quads as one {@code glDrawArrays(GL_QUADS, …)} from a
+     * client-side interleaved vertex array (see {@link QuadBatch#flush()} for the
+     * rationale — the per-vertex {@code glBegin} loop was the dominant render-CPU
+     * cost). No-op if empty. Resets the queue. Disables {@code GL_TEXTURE_2D}
+     * before drawing so a stale texture binding doesn't bleed through — paired
+     * flushes with {@link QuadBatch} handle re-enabling. Brackets its client-array
+     * enables with {@code glPushClientAttrib}/{@code glPopClientAttrib}.
      */
     public void flush() {
         if (quadCount == 0) return;
         glDisable(GL_TEXTURE_2D);
-        glBegin(GL_QUADS);
+
         int verts = quadCount * 4;
-        for (int v = 0; v < verts; v++) {
-            int o = v * 6;
-            glColor4f(data[o + 2], data[o + 3], data[o + 4], data[o + 5]);
-            glVertex2f(data[o], data[o + 1]);
-        }
-        glEnd();
+        int floats = verts * 6;
+        FloatBuffer buf = ensureBuffer(floats);
+        buf.clear();
+        buf.put(data, 0, floats);
+        buf.flip();
+
+        // Interleaved layout: (x, y, r, g, b, a), stride = 6 floats. No texcoords.
+        int strideBytes = 6 * 4;
+        glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_COLOR_ARRAY);
+        buf.position(0); glVertexPointer(2, strideBytes, buf);
+        buf.position(2); glColorPointer(4, strideBytes, buf);
+        glDrawArrays(GL_QUADS, 0, verts);
+        glPopClientAttrib();
+
         quadCount = 0;
+    }
+
+    /** Lazily (re)allocate the direct buffer to hold at least {@code floats} elements. */
+    private FloatBuffer ensureBuffer(int floats) {
+        if (vbuf == null || vbuf.capacity() < floats) {
+            vbuf = BufferUtils.createFloatBuffer(data.length);
+        }
+        return vbuf;
     }
 
     private void ensureCapacity(int neededQuads) {

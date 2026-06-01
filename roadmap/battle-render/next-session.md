@@ -2,8 +2,12 @@
 
 > ✅ **STRUCTURAL REORG COMPLETE.** All stories A–J + Final shipped & verified.
 > `BattleScreen` is the loop; `renderWorld` is two loops (collect-all → drain-all);
-> every world pass is a `worldSystems` producer. The only battle-render work left
-> is the **deferred `QuadBatch.flush` perf spike** (engine-only — see below).
+> every world pass is a `worldSystems` producer.
+>
+> ✅ **`QuadBatch.flush` perf spike — SHIPPED & VERIFIED** (client-side vertex
+> arrays; −75% combined flush CPU, in-game render correct — see below). Optional
+> follow-up: the ground-FBO work-reduction spike (stubbed, not started). With
+> this done, the battle-render track has **no remaining open work**.
 
 ## State of play
 
@@ -161,12 +165,22 @@ When the third or fourth system lands, introduce the **`List<RenderSystem>`
 registry** + start collapsing `renderWorld` toward the systems-loop + drain
 endgame (the overview's "Final").
 
-**Deferred story — QuadBatch.flush batching revisit (perf spike).** The backlog
-JFR capture shows `QuadBatch.flush` is 78% of render CPU but the lever is
-unconfirmed (CPU float-packing vs GL submit vs too-many-small-flushes). Profile
-the flush body first, then pick: VBO, flush-coalescing, or runtime atlas. Drops
-in *below* the command model (engine-only) — game `RenderSystem`s never see it.
-The command stream is now the auditable unit. Cross-ref backlog § Performance.
+**`QuadBatch.flush` perf — ✅ SHIPPED & VERIFIED** (−75% combined flush CPU;
+722→178 samples, SolidQuadBatch 193→1).
+See [`complete/perf-quadbatch-flush.md`](complete/perf-quadbatch-flush.md).
+The lever was **confirmed** across 3 JFR captures: the per-vertex immediate-mode
+loop (`glColor4f`+`glTexCoord2f`+`glVertex2f` × 4 = 12 JNI calls/quad) is 77.9%
+of render CPU / 29% of total mod CPU; `append` (packing) is <1%, so it's
+submission cost, not float-packing or GL-submit-stall or flush-thrash (the drain
+already coalesces). Fix landed: both `QuadBatch.flush` and `SolidQuadBatch.flush`
+now use **client-side vertex arrays + `glDrawArrays`** (not a VBO — its
+GPU-residency win is marginal for fill-trivial quads and adds streaming/binding
+hazards), bracketed with `glPushClientAttrib`/`glPopClientAttrib`. `append`
+untouched. Engine-only, below the command model — game `RenderSystem`s never see
+it. **Next:** in-game visual check + re-profile vs the 6/01 baseline, then move
+the story to `complete/`. Follow-up spike (bigger work-reduction lever) stubbed:
+[`stories/perf-ground-fbo-cache.md`](stories/perf-ground-fbo-cache.md).
+Cross-ref backlog § Performance.
 
 Carry-over follow-ups (opportunistic): dedupe `MARINE_TRACER`/`DEFENDER_TRACER`/
 `bearingDeg()`; restore fuller inter-pass comments; drop pre-existing unused
