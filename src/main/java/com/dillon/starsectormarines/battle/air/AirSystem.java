@@ -270,15 +270,15 @@ public class AirSystem {
                     mt.targetId = mt.burstTargetId;
                 }
 
-                float lx = mt.mount.localOffsetX;
-                float ly = mt.mount.localOffsetY;
-                // CCW rotation by `rad`. Local frame: +X = right of nose,
-                // +Y = forward (nose). At facing 0 the shuttle faces +Y, so
-                // local (0,1) maps to world (0,1) — north.
-                float worldOffsetX = lx * c - ly * si;
-                float worldOffsetY = lx * si + ly * c;
-                float worldX = s.body.x + worldOffsetX;
-                float worldY = s.body.y + worldOffsetY;
+                // Per-mount world position: the hull-local offset spread across
+                // the hull (Shuttle.turretSpread) and rotated by body facing.
+                // Sim passes extraScale=1 — this is a ground-projected, sim-real
+                // position; the renderer adds the altitude zoom. Spreading the
+                // origins across a large hull is what lets each mount's LoS
+                // (resolved per-State below) differ front-to-rear. Same helper
+                // the render pass uses, so a round fires from where it's drawn.
+                float worldX = s.turretWorldX(mt.mount, c, si, 1f);
+                float worldY = s.turretWorldY(mt.mount, c, si, 1f);
 
                 TurretAim.State aim = new TurretAim.State();
                 aim.originCellX = (int) Math.floor(worldX);

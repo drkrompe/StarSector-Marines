@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.air;
 
+import com.dillon.starsectormarines.battle.air.engine.HullFootprintResolver;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.unit.Unit;
@@ -241,6 +242,53 @@ public class Shuttle {
      */
     public boolean shouldHoverLoiter() {
         return assignedRole != null && turrets.length > 0;
+    }
+
+    /**
+     * Lazily-resolved turret spread factor: the hull's derived render length
+     * ({@link HullFootprintResolver}) over {@link AirScale#TURRET_AUTHORING_HULL_CELLS},
+     * the reference hull the mount offsets + turret sizes were authored against.
+     * Scaling by this keeps turrets glued to the hull at any pixel density
+     * ({@link AirScale#METERS_PER_PX}) — and, crucially, <b>spreads the sim mount
+     * origins across a large hull</b> so each turret's LoS is computed from its
+     * own position rather than the shared body cell. {@code -1} = not yet resolved.
+     */
+    private float cachedTurretSpread = -1f;
+
+    /** @see #cachedTurretSpread */
+    public float turretSpread() {
+        if (cachedTurretSpread < 0f) {
+            float hullLenCells = HullFootprintResolver.visualLengthCells(type.renderHullId());
+            cachedTurretSpread = hullLenCells / AirScale.TURRET_AUTHORING_HULL_CELLS;
+        }
+        return cachedTurretSpread;
+    }
+
+    /**
+     * World-frame X of a mount's pivot: its hull-local offset scaled by
+     * {@link #turretSpread()} and rotated by the body facing, added to
+     * {@code body.x}. {@code extraScale} is an extra multiplier the
+     * <em>renderer</em> applies for the altitude visual zoom ({@link #scaleMult});
+     * the sim passes {@code 1} — a turret's position is a ground-projected,
+     * sim-real quantity. Shared by {@link AirSystem} (sim) and the shuttle render
+     * pass so the two can't drift ({@code rounds-fire-from-where-it's-drawn}).
+     *
+     * @param facingCos {@code cos(toRadians(body.facingDegrees))}, hoisted by the caller
+     * @param facingSin {@code sin(toRadians(body.facingDegrees))}, hoisted by the caller
+     */
+    public float turretWorldX(TurretMount m, float facingCos, float facingSin, float extraScale) {
+        float spread = turretSpread() * extraScale;
+        float lx = m.localOffsetX * spread;
+        float ly = m.localOffsetY * spread;
+        return body.x + lx * facingCos - ly * facingSin;
+    }
+
+    /** World-frame Y counterpart of {@link #turretWorldX}; the renderer adds the altitude Y-offset on top. */
+    public float turretWorldY(TurretMount m, float facingCos, float facingSin, float extraScale) {
+        float spread = turretSpread() * extraScale;
+        float lx = m.localOffsetX * spread;
+        float ly = m.localOffsetY * spread;
+        return body.y + lx * facingSin + ly * facingCos;
     }
 
     /** True when every mounted turret has fired its magazine dry. Drives one of the HOVER_STATION exit triggers. */

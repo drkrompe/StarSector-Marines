@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.ops.battleview;
 
-import com.dillon.starsectormarines.battle.air.AirScale;
 import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.air.engine.EngineFxRenderer;
@@ -80,32 +79,28 @@ public final class ShuttleRenderSystem implements RenderSystem {
                     cx, cy, pxW, pxH, s.body.facingDegrees,
                     1f, 1f, 1f, alphaMult);
 
-            emitTurrets(out, cam, cellPx, alphaMult, s, hullLenCells);
+            emitTurrets(out, cam, cellPx, alphaMult, s);
         }
     }
 
-    private void emitTurrets(DrawList out, BattleCamera cam, float cellPx, float alphaMult,
-                             Shuttle s, float hullLenCells) {
+    private void emitTurrets(DrawList out, BattleCamera cam, float cellPx, float alphaMult, Shuttle s) {
         if (s.turrets.length == 0) return;
-        // Mount offsets and turret sizes are authored in a hull frame normalized
-        // to AirScale.TURRET_AUTHORING_HULL_CELLS; scale them by the hull's actual
-        // derived length so the whole turret assembly flat-scales with the hull
-        // (and tracks METERS_PER_PX) rather than staying tiny at the center.
-        float turretScale = hullLenCells / AirScale.TURRET_AUTHORING_HULL_CELLS;
         float rad = (float) Math.toRadians(s.body.facingDegrees);
         float c = (float) Math.cos(rad);
         float si = (float) Math.sin(rad);
         float altOffset = s.visualAltitudeOffsetCells();
+        // Turret size scales with the hull the same way the sim spreads the mount
+        // positions (Shuttle.turretSpread), plus the altitude visual zoom.
+        float turretVisualScale = s.scaleMult * s.turretSpread();
         for (MountedTurret mt : s.turrets) {
             ShuttleSpriteCache base = sprites.turretSprites().get(mt.mount.kind);
             if (base == null) continue;
-            float lx = mt.mount.localOffsetX * s.scaleMult * turretScale;
-            float ly = mt.mount.localOffsetY * s.scaleMult * turretScale;
-            float worldOffsetX = lx * c - ly * si;
-            float worldOffsetY = lx * si + ly * c;
-            float screenX = cam.cellToScreenX(s.body.x + worldOffsetX);
-            float screenY = cam.cellToScreenY(s.body.y + worldOffsetY + altOffset);
-            float layerVisualCells = mt.mount.kind.visualCells * s.scaleMult * turretScale;
+            // Same world-position helper the sim uses (so a round fires from
+            // where the turret is drawn), with the render-only altitude zoom
+            // (scaleMult) and the altitude Y-offset layered on top.
+            float screenX = cam.cellToScreenX(s.turretWorldX(mt.mount, c, si, s.scaleMult));
+            float screenY = cam.cellToScreenY(s.turretWorldY(mt.mount, c, si, s.scaleMult) + altOffset);
+            float layerVisualCells = mt.mount.kind.visualCells * turretVisualScale;
 
             ShuttleSpriteCache barrel = sprites.turretRecoilSprites().get(mt.mount.kind);
             if (barrel != null) {
