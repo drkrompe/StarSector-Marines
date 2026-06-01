@@ -33,7 +33,8 @@ universe over time, not retrofitted into intel slots.
   [`conquest/central-keep.md`](conquest/central-keep.md) for the full
   shipped-with-details record. The battle tier's ongoing parallel tracks
   are convoy kinematics ([`convoy/`](convoy/overview.md)), the Services/Systems + SoA refactor
-  ([`ecs-migration/`](ecs-migration/overview.md)), fog-of-war, and AI (GOAP + commander).
+  ([`ecs-migration/`](ecs-migration/overview.md)), fog-of-war
+  ([`fog-of-war/`](fog-of-war/overview.md)), and AI (GOAP + commander).
   The **feature-vertical package reorg** of `battle/` is **complete** (all
   10 slices shipped; the `entity/` rename alone is deferred to
   ecs-migration). On the render side, the **`BattleScreen` god-class
