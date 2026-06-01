@@ -82,7 +82,16 @@ their natural home now that the loop lives there. `DEFAULT_DISTRICT_RADIUS` stay
 on `PatrolRoute` (route-specific). Behavior is unchanged — the full infantry +
 turret suites pass, including `GarrisonPatrolTest`, `GuardPostPatrolTest`, and
 `TurretDemolitionSystemTest`.
+
+## Open follow-ups
+
 - **Release semantics.** A released turret squad (`defensePost == null`) still
   carries `holdsFireUntilKillZone`, so it falls to `HoldPost` rather than the
   search-and-destroy `RoutinePatrol` the `TurretDemolitionSystem` doc implies.
   Pre-existing; untouched here. Worth revisiting if "released → roam" is wanted.
+- **Tiny-radius wander jitter.** At ARTILLERY (radius 3) / LIGHT (4) the box
+  half-extent is ≤ `PatrolMotion.ARRIVAL_RADIUS` (3), so the centroid counts as
+  "arrived" almost everywhere in the box and the squad re-rolls every dwell
+  rather than settling — reads as twitch-in-place, partly defeating the "sit on
+  the post" flavour intent. A `radius ≤ ARRIVAL_RADIUS → pure hold` special-case
+  (or accepting it) would resolve it. Flagged by the critique pass.
