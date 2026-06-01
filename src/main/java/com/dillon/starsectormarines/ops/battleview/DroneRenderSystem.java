@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.component.ComponentStore;
+import com.dillon.starsectormarines.battle.component.Crashing;
 import com.dillon.starsectormarines.battle.drone.Drone;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.vision.VisionService;
@@ -47,12 +49,15 @@ public final class DroneRenderSystem implements RenderSystem {
         float pxW = pxH * cache.aspect;
         float barW = cellPx * 0.9f;
 
+        ComponentStore<Crashing> crashStore = ctx.sim.getCrashing();
         for (Unit u : ctx.sim.getUnits()) {
             if (!(u instanceof Drone)) continue;
             Drone d = (Drone) u;
-            if (d.crashed) continue;
             boolean alive = d.isAlive();
-            if (!alive && !d.crashStarted) continue;
+            // A dead drone is drawn only while it carries a Crashing component
+            // (falling); once it settles the component is gone and it drops off.
+            Crashing crash = alive ? null : crashStore.get(d.entityId);
+            if (!alive && crash == null) continue;
             byte uv = vis.getUnitVisibility(d.denseIdx);
             if (alive && uv == VisionService.VIS_HIDDEN) continue;
 
@@ -63,7 +68,7 @@ public final class DroneRenderSystem implements RenderSystem {
                 drawAlpha *= vis.getFadeAlpha(d.denseIdx);
             }
             if (!alive) {
-                float t = Math.max(0f, Math.min(1f, d.crashTimer / Drone.CRASH_DURATION_SEC));
+                float t = Math.max(0f, Math.min(1f, crash.timer / Drone.CRASH_DURATION_SEC));
                 drawAlpha *= t;
             }
 

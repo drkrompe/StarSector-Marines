@@ -78,17 +78,18 @@ public class HubDemolitionSystemTest {
         sim.applyDamage(deadHub, 100_000f, 3.5f, 0f);
         sim.advance(BattleSimulation.TICK_DT);
 
-        // The dead hub's drones are killed by the cascade and — because the
-        // demolition drain runs before the drone-crash phase — already entered
-        // the crash sequence on this same tick.
+        // The dead hub's drones are killed by the cascade and — because each
+        // publishes a DeathEvent that the wave-drain fans out in the same drain,
+        // before the drone-crash phase — already carry a Crashing component
+        // (entered the crash sequence) on this same tick.
         assertFalse(d1.isAlive(), "cascade sets hp=0 on the dead hub's drones");
         assertFalse(d2.isAlive(), "cascade sets hp=0 on the dead hub's drones");
-        assertTrue(d1.crashStarted, "cascaded drone enters the crash sequence the same tick");
-        assertTrue(d2.crashStarted, "cascaded drone enters the crash sequence the same tick");
+        assertTrue(sim.getCrashing().has(d1.entityId), "cascaded drone gets a Crashing component the same tick");
+        assertTrue(sim.getCrashing().has(d2.entityId), "cascaded drone gets a Crashing component the same tick");
 
         // The other hub's drone is untouched.
         assertTrue(control.isAlive(), "a drone homed to a live hub is not part of the cascade");
-        assertFalse(control.crashStarted, "the untouched drone never starts crashing");
+        assertFalse(sim.getCrashing().has(control.entityId), "the untouched drone never starts crashing");
         assertFalse(liveHub.demolished, "the undamaged hub is not demolished");
     }
 

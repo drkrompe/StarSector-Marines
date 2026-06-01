@@ -126,7 +126,10 @@ public class BattleSimulation implements BattleControl {
     private final com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem turretDemolition;
     /** Death-event handler for destroyed {@link DroneHubUnit}s — flips hub cell to walkable rubble + cascade-kills the launched drones. Subscribed to {@link #deathDispatcher} in the constructor; fires on {@link #deathDispatcher}{@code .drain()} at the DEMOLISH phase. */
     private final com.dillon.starsectormarines.battle.drone.HubDemolitionSystem hubDemolition;
-    /** Per-tick crash sequence for dead {@link Drone}s — three-phase falling / impact lifecycle. Initialized in the constructor. */
+    /** Crash component store — entities currently falling out of the sky after death. Populated by {@link #droneCrashes} on drone death (a {@code Crashing} component), processed by it each tick, and read by the drone renderer to draw the falling sprite. Keyed by entity id, so a crashing drone keeps its component after release from {@link UnitRegistry}. */
+    private final com.dillon.starsectormarines.battle.component.ComponentStore<com.dillon.starsectormarines.battle.component.Crashing> crashing =
+            new com.dillon.starsectormarines.battle.component.ComponentStore<>();
+    /** Drone-crash system — death-event handler that attaches a {@code Crashing} component to a dead drone + the per-tick processor that drives the fall/impact lifecycle over {@link #crashing}. Subscribed to {@link #deathDispatcher} in the constructor. */
     private final com.dillon.starsectormarines.battle.drone.DroneCrashSystem droneCrashes;
     /** Per-tick squad fall-back driver — arrival detection + trigger evaluation. Initialized in the constructor. */
     private final com.dillon.starsectormarines.battle.squad.SquadFallbackSystem squadFallback;
@@ -292,10 +295,11 @@ public class BattleSimulation implements BattleControl {
                 mapService, effects, tactical, rosterService);
         deathDispatcher.subscribe(turretDemolition::onDeath);
         this.hubDemolition = new com.dillon.starsectormarines.battle.drone.HubDemolitionSystem(
-                mapService, effects, rosterService);
+                mapService, effects, rosterService, deathDispatcher);
         deathDispatcher.subscribe(hubDemolition::onDeath);
         this.droneCrashes = new com.dillon.starsectormarines.battle.drone.DroneCrashSystem(
-                navigation, effects);
+                navigation, effects, crashing);
+        deathDispatcher.subscribe(droneCrashes::onDeath);
         this.squadFallback = new com.dillon.starsectormarines.battle.squad.SquadFallbackSystem(
                 navigation, rosterService, this::clearPath);
         this.squadAlert = new com.dillon.starsectormarines.battle.squad.SquadAlertSystem(
@@ -351,6 +355,8 @@ public class BattleSimulation implements BattleControl {
     }
 
     public List<Unit> getUnits()           { return units; }
+    /** Crash component store — entities falling out of the sky after death (a {@code Crashing} component each). Read by the drone renderer to draw the falling sprite + fade; written only by {@link #droneCrashes}. */
+    public com.dillon.starsectormarines.battle.component.ComponentStore<com.dillon.starsectormarines.battle.component.Crashing> getCrashing() { return crashing; }
     public List<Shuttle> getShuttles()     { return airSystem.getShuttles(); }
     /** Active convoy / ground transport craft (moving trucks, APCs). Distinct from {@link #getVehicles()}, which lists the static map-vehicle obstacles. */
     public List<Vehicle> getConvoyVehicles() { return groundSystem.getVehicles(); }
@@ -819,11 +825,12 @@ public class BattleSimulation implements BattleControl {
         // state the old end-of-tick scan did.
         deathDispatcher.drain();
         tickProfile.lap(TickProfile.Phase.DEMOLISH);
-        // Drone crash sequence: detect newly-dead drones, tick their fall
-        // timer, drop a SmokingWreck on impact. Runs after the demolition drain
-        // so a hub destruction (which cascade-kills its drones via setting
-        // hp=0) gets the crashes started on the same tick.
-        droneCrashes.tick(units, TICK_DT);
+        // Drone crash sequence: advance every entity that has a Crashing
+        // component (attached in the death drain above) — spin the fall, drop a
+        // SmokingWreck on impact, detach on settle. Runs after the demolition
+        // drain so a hub destruction (which cascade-kills + publishes deaths for
+        // its drones) gets those crashes attached on the same tick.
+        droneCrashes.tick(TICK_DT);
         tickProfile.lap(TickProfile.Phase.DRONE_CRASHES);
         // Age smoking wrecks + emit any puff events that came due this tick.
         effects.tickWrecks(TICK_DT);

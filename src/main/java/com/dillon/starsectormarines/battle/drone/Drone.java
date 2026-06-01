@@ -218,17 +218,6 @@ public class Drone extends Unit {
      */
     public static final float CRASH_SPIN_DEG_PER_SEC = 720f;
 
-    /**
-     * Crash state — three-phase lifecycle: alive (default flags) → falling
-     * (crashStarted, crashTimer counts down) → settled (crashed). The
-     * sim's {@code tickDroneCrashes} pass walks these transitions; the
-     * renderer reads {@link #crashStarted} + {@link #crashed} to decide
-     * whether to draw the falling sprite with the spin/fade overlay.
-     */
-    public boolean crashStarted = false;
-    public float crashTimer = 0f;
-    public boolean crashed = false;
-
     public Drone(String id, Faction faction, int cellX, int cellY, DroneHubUnit homeHub) {
         super(id, faction, UnitType.DRONE, cellX, cellY);
         this.homeHub = homeHub;

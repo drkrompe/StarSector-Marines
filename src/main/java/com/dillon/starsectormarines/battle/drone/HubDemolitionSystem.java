@@ -29,12 +29,14 @@ import java.util.List;
  * stays as a defensive double-fire guard (a death publishes exactly once) and
  * as the "already rubble" marker the renderer reads.
  *
- * <p>The drone cascade still scans the legacy roster list, and the drones it
- * kills (hp=0 + release) bypass {@link com.dillon.starsectormarines.battle.combat.DamageResolver}
- * — so they never publish their own {@code DeathEvent}. That's fine while
- * {@link DroneCrashSystem} detects dead drones by scanning the list; when the
- * crash system migrates onto the event seam, this cascade must publish
- * per-drone {@code DeathEvent}s (or the crash system keeps a list scan).
+ * <p>The drone cascade still scans the legacy roster list to find the hub's
+ * drones, but each cascade-killed drone now {@link DeathDispatcher#publish
+ * publishes} its own {@code DeathEvent} (in addition to the direct hp=0 +
+ * release), so the same death-event seam that handles a shot-down drone also
+ * starts a cascade-killed drone's crash — the {@code DroneCrashSystem} attaches
+ * its {@code Crashing} component off that event, not a list scan. The publish
+ * is re-entrant (it happens while the dispatcher is mid-{@code drain()}); the
+ * dispatcher drains in waves precisely so these land in the same drain.
  *
  * <p>Sibling to other {@code *System} consumers — all dependencies
  * constructor-injected, no per-event state.
@@ -44,13 +46,16 @@ public final class HubDemolitionSystem {
     private final MapService mapService;
     private final EffectsService effects;
     private final UnitRosterService roster;
+    private final DeathDispatcher deathDispatcher;
 
     public HubDemolitionSystem(MapService mapService,
                                EffectsService effects,
-                               UnitRosterService roster) {
+                               UnitRosterService roster,
+                               DeathDispatcher deathDispatcher) {
         this.mapService = mapService;
         this.effects = effects;
         this.roster = roster;
+        this.deathDispatcher = deathDispatcher;
     }
 
     /**
@@ -81,7 +86,10 @@ public final class HubDemolitionSystem {
      *
      * <p>Reads the legacy roster list to find the hub's drones — one of the
      * {@code retire-legacy-units-list} corpse-adjacent reads; migrates with the
-     * crash system, not in this seam slice.
+     * rest of that bucket. Each killed drone publishes a {@code DeathEvent} so
+     * the death-event seam starts its crash (the {@code DroneCrashSystem}
+     * attaches its {@code Crashing} component on that event), exactly as a
+     * shot-down drone's resolve-published death does.
      */
     private void cascadeKillDrones(DroneHubUnit h) {
         List<Unit> units = roster.getUnits();
@@ -90,6 +98,10 @@ public final class HubDemolitionSystem {
             if (!(other instanceof Drone d)) continue;
             if (!d.isAlive() || d.homeHub != h) continue;
             d.setHp(0f);
+            // Publish before release, mirroring DamageResolver.resolve's
+            // ordering — re-entrant into the in-progress drain, fanned out on
+            // the next wave (the dispatcher is wave-drained for exactly this).
+            deathDispatcher.publish(new DeathEvent(d));
             roster.releaseFromRegistry(d.entityId);
         }
     }
