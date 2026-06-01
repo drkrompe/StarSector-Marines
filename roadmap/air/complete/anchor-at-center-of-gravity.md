@@ -2,9 +2,25 @@
 
 > Shared-core member of the [`air/`](../overview.md) category. The unifying fix
 > behind the turret-position bug (see
-> [`turret-mounts-from-ship-spec.md`](../complete/turret-mounts-from-ship-spec.md))
-> — and it would **supersede** the per-slot center compensation shipped there.
-> **Active / design.**
+> [`turret-mounts-from-ship-spec.md`](turret-mounts-from-ship-spec.md)) — it
+> **supersedes** the per-slot center compensation shipped there.
+
+## Shipped — `5146218`, in-game rotation eyeball pending
+
+Landed as designed. New `HullPivotResolver` gives `(pixelCentre − center)` per
+hull; `ShuttleRenderSystem` offsets the hull sprite's pixel centre from `body` by
+that pivot (rotated by facing, scaled by altitude), so `center` (the CoG) sits at
+`body` and the hull rotates about it. The `WeaponSlotParser` compensation was
+reverted to the raw center-relative scrape; turrets, engine FX, and the sim all
+read `body + R(facing)·offset` unchanged — now correct because `body` is the CoG.
+Engine FX fixed for free (no engine-parser change). `TurretSlotPreviewTest`
+re-anchored at `center`; regenerated previews confirm quads sit on the painted
+hardpoints across the roster.
+
+**Outstanding:** in-game eyeball that a long hull (Valkyrie) now pivots about its
+aft CoG rather than its geometric middle, and that turrets/plumes stay glued
+through the turn. Future collision `bounds` (ships story) inherit this anchor for
+free. The full `gradlew :test` run regenerated the previews clean.
 
 ## The insight
 
