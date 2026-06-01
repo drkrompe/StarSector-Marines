@@ -60,14 +60,21 @@ public final class RenderPositionService {
         }
     }
 
-    /** Sets only the render X axis (keeps Y); for the rare single-axis writer. */
+    /**
+     * Sets only the render X axis (keeps Y); for the rare single-axis writer.
+     * <b>Invariant:</b> an entity's <em>first</em> render write must be the
+     * paired {@link #set} (which {@link UnitRegistry#allocate} guarantees by
+     * seeding at spawn) — a single-axis setter on a never-seeded entity zeros
+     * the other axis. The absent-entity {@code add} here is a defensive seed,
+     * not a supported first-write path.
+     */
     public void setX(long entityId, float renderX) {
         RenderPosition p = store.get(entityId);
         if (p == null) store.add(entityId, new RenderPosition(renderX, 0f));
         else p.x = renderX;
     }
 
-    /** Sets only the render Y axis (keeps X). */
+    /** Sets only the render Y axis (keeps X). Same first-write invariant as {@link #setX}. */
     public void setY(long entityId, float renderY) {
         RenderPosition p = store.get(entityId);
         if (p == null) store.add(entityId, new RenderPosition(0f, renderY));
