@@ -63,16 +63,21 @@ public final class EngineSlotResolver {
     }
 
     /**
-     * Shuttle-specific convenience that picks the first matching vanilla hull
-     * id off the type and threads through to {@link #resolve(String, float)}
-     * with the hull's globally-derived render length
+     * Shuttle-specific convenience that resolves engine slots for the hull this
+     * type actually <em>renders</em> ({@link ShuttleType#renderHullId()}) and
+     * threads through to {@link #resolve(String, float)} with that hull's
+     * globally-derived render length
      * ({@link HullFootprintResolver#visualLengthCells(String)}) — so the engine
-     * slots scale to the same footprint the hull sprite renders at. Types with
-     * no matching hull id (e.g. {@code AEROSHUTTLE}) return an empty array.
+     * slots scale to, and key off, the same hull the sprite + footprint use.
+     *
+     * <p>Keying on {@code renderHullId()} (not the fleet-match list) is what gives
+     * {@code AEROSHUTTLE} its plumes: it carries no fleet-match hull id but renders
+     * the {@code kite} sprite at {@code kite}'s footprint, so it borrows
+     * {@code kite}'s engine slots too. Types with no render hull return empty.
      */
     public static EngineSlotData[] resolve(ShuttleType type) {
-        if (type.matchingHullIds.isEmpty()) return EMPTY;
-        String hullId = type.matchingHullIds.get(0);
+        String hullId = type.renderHullId();
+        if (hullId == null || hullId.isEmpty()) return EMPTY;
         return resolve(hullId, HullFootprintResolver.visualLengthCells(hullId));
     }
 
