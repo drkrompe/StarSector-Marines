@@ -1,13 +1,14 @@
 package com.dillon.starsectormarines.battle.combat;
 
-import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.mech.MechLoadoutState;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -26,43 +27,44 @@ import java.util.List;
  * (HE, queues detonation, indirect-fire-capable). Continuation pumps the
  * queued bursts / salvos at per-weapon spacing in {@link #tick}.
  *
- * <p>Smoking-wreck spawn for dead mechs also lives here — idempotent via
- * the {@code wreckSpawned} latch on {@link MechLoadoutState} so any kill
- * path (chaingun crossfire, marine rocket, flyby strafe, debug damage)
- * lands exactly one wreck.
+ * <p>Smoking-wreck spawn for dead mechs is no longer here — it moved to the
+ * {@code MechWreckSystem} death-event handler, so it reacts to the one death
+ * seam instead of re-scanning the unit list each tick.
  */
 public class HeavyWeapons {
 
     private static final float SHOT_LIFETIME = 0.15f;
 
-    private final List<Unit> units;
+    private final UnitRegistry registry;
     private final NavigationGrid grid;
     private final DamageService damageService;
     private final HitResponseService hitResponse;
     private final ShotService shots;
     private final Detonations detonations;
-    private final EffectsService effects;
 
-    public HeavyWeapons(List<Unit> units, NavigationGrid grid,
+    /**
+     * Reused per-tick gather of the live mechs before the continuation pass.
+     * The pass fires weapons, which can kill a target and release it from the
+     * registry mid-pass (swap-and-pop); gathering first makes the iteration a
+     * snapshot, so a release doesn't reshuffle the slots out from under it.
+     * Only mechs are gathered (a handful per battle), so the copy is cheap.
+     */
+    private final List<Unit> mechScratch = new ArrayList<>();
+
+    public HeavyWeapons(UnitRegistry registry, NavigationGrid grid,
                         DamageService damageService, HitResponseService hitResponse,
-                        ShotService shots, Detonations detonations,
-                        EffectsService effects) {
-        this.units = units;
+                        ShotService shots, Detonations detonations) {
+        this.registry = registry;
         this.grid = grid;
         this.damageService = damageService;
         this.hitResponse = hitResponse;
         this.shots = shots;
         this.detonations = detonations;
-        this.effects = effects;
     }
 
-    /**
-     * Per-tick pass: drains queued chaingun / SRM / LRM rounds for every mech,
-     * then walks the unit list to emit a smoking-wreck for any just-died mech.
-     */
+    /** Per-tick pass: drains queued chaingun / SRM / LRM rounds for every mech. */
     public void tick() {
         advanceMechWeapons();
-        spawnMechWrecks();
     }
 
     /**
@@ -183,9 +185,20 @@ public class HeavyWeapons {
      * decision sees the right gating.
      */
     private void advanceMechWeapons() {
-        for (Unit u : units) {
+        // Gather the live mechs first (read-only over the dense registry), then
+        // run the continuation pass over the snapshot — fireMechWeapon resolves
+        // damage inline in this serial phase, so a kill releases its target and
+        // swap-and-pops the registry; iterating a snapshot keeps that from
+        // corrupting the pass.
+        mechScratch.clear();
+        for (int i = 0, n = registry.liveCount(); i < n; i++) {
+            Unit u = registry.get(i);
+            if (u.mech != null) mechScratch.add(u);
+        }
+        for (int i = 0, n = mechScratch.size(); i < n; i++) {
+            Unit u = mechScratch.get(i);
+            if (!u.isAlive()) continue; // killed earlier in this same pass
             MechLoadoutState m = u.mech;
-            if (m == null || !u.isAlive()) continue;
 
             if (m.chaingunCooldown > 0f) m.chaingunCooldown -= BattleSimulation.TICK_DT;
             if (m.srmCooldown      > 0f) m.srmCooldown      -= BattleSimulation.TICK_DT;
@@ -247,22 +260,6 @@ public class HeavyWeapons {
                     }
                 }
             }
-        }
-    }
-
-    /**
-     * Walks the unit list and emits a smoking-wreck on the cell of any
-     * just-died mech ({@link MechLoadoutState#wreckSpawned} is the
-     * idempotency latch). Catches mech deaths from every code path — primary
-     * fire, mech crossfire, marine rockets, flyby strafing — without
-     * duplicating spawn logic at each kill site.
-     */
-    private void spawnMechWrecks() {
-        for (Unit u : units) {
-            if (u.isAlive()) continue;
-            if (u.mech == null || u.mech.wreckSpawned) continue;
-            effects.spawnSmokingWreck(u.getCellX(), u.getCellY());
-            u.mech.wreckSpawned = true;
         }
     }
 }

@@ -136,6 +136,8 @@ public class BattleSimulation implements BattleControl {
             new com.dillon.starsectormarines.battle.component.ComponentStore<>();
     /** Dead-body system — death-event handler that records a {@code DeadBody} component for every unit that dies, over {@link #deadBodies}. Subscribed to {@link #deathDispatcher} in the constructor. */
     private final com.dillon.starsectormarines.battle.unit.DeadBodySystem deadBodySystem;
+    /** Mech-wreck system — death-event handler that drops a smoking wreck on a dead chassis unit's cell (replaces the former HeavyWeapons per-tick scan). Subscribed to {@link #deathDispatcher} in the constructor. */
+    private final com.dillon.starsectormarines.battle.mech.MechWreckSystem mechWreckSystem;
     /** Per-tick squad fall-back driver — arrival detection + trigger evaluation. Initialized in the constructor. */
     private final com.dillon.starsectormarines.battle.squad.SquadFallbackSystem squadFallback;
     /** Per-tick squad alert / awareness driver — drives the ENGAGED/SUSPICIOUS/UNAWARE state machine + kill-zone gating + audible-gunfire promotion. Initialized in the constructor. */
@@ -307,6 +309,8 @@ public class BattleSimulation implements BattleControl {
         deathDispatcher.subscribe(droneCrashes::onDeath);
         this.deadBodySystem = new com.dillon.starsectormarines.battle.unit.DeadBodySystem(deadBodies);
         deathDispatcher.subscribe(deadBodySystem::onDeath);
+        this.mechWreckSystem = new com.dillon.starsectormarines.battle.mech.MechWreckSystem(effects);
+        deathDispatcher.subscribe(mechWreckSystem::onDeath);
         this.squadFallback = new com.dillon.starsectormarines.battle.squad.SquadFallbackSystem(
                 navigation, rosterService, this::clearPath);
         this.squadAlert = new com.dillon.starsectormarines.battle.squad.SquadAlertSystem(
@@ -330,8 +334,8 @@ public class BattleSimulation implements BattleControl {
                 hitResponse);
         this.infantry = new InfantryWeapons(units, rosterService.getRegistry(),
                 damageService, hitResponse, shots);
-        this.heavy = new HeavyWeapons(units, grid, damageService, hitResponse,
-                shots, detonations, effects);
+        this.heavy = new HeavyWeapons(rosterService.getRegistry(), grid, damageService, hitResponse,
+                shots, detonations);
         this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, turretFire, rng, this::addUnit);
         this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, turretFire, rng, this::addUnit);
         mapService.setRoofCollapseSink((x, y) -> {
@@ -792,8 +796,8 @@ public class BattleSimulation implements BattleControl {
         // Mech chassis weapons run on their own state bag (MechLoadoutState).
         // Continuation handling for chaingun bursts + SRM salvos, plus cooldown
         // tick-down for all three tracks. New triggers (start a burst / salvo /
-        // LRM) come from CombatantBehavior; the subsystem pass also runs the
-        // mech-wreck spawn for any chassis units that died this tick.
+        // LRM) come from CombatantBehavior. (The dead-mech smoking wreck now
+        // fires off the MechWreckSystem death handler, not this pass.)
         heavy.tick();
         tickProfile.lap(TickProfile.Phase.HEAVY_TICK);
         // Simulated-projectile path — advance each in-flight Projectile by dt,
@@ -948,7 +952,8 @@ public class BattleSimulation implements BattleControl {
      * unit in radius takes damage regardless of faction.
      */
     // advancePendingDetonations + detonate moved to weapons/Detonations.
-    // spawnMechWrecks moved to weapons/HeavyWeapons (pumped from heavy.tick).
+    // The dead-mech smoking wreck moved off HeavyWeapons onto the
+    // MechWreckSystem death-event handler (one death seam, no per-tick scan).
     // Both subsystems own their own state; the sim just calls their tick()
     // from the tick loop and exposes spawnSmokingWreck + damageCell as
     // context primitives.
@@ -1055,7 +1060,8 @@ public class BattleSimulation implements BattleControl {
         heavy.fireMechWeapon(shooter, target, weapon, accuracyMult);
     }
 
-    // advanceMechWeapons + spawnMechWrecks moved to HeavyWeapons.tick.
+    // advanceMechWeapons moved to HeavyWeapons.tick; the dead-mech wreck moved
+    // to the MechWreckSystem death-event handler.
 
     /**
      * Applies damage from an external source (flyby strafing run) to a unit
