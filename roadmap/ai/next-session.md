@@ -18,6 +18,13 @@ command-side fixes. `GarrisonArea` is now the reusable size+containment
 gate; `TacticalNode.compoundBounds` persists the gen-time compound
 footprint into battle.
 
+Story 18 shipped (2026-06-01): turret-emplacement area patrol. Turret
+defender squads now run `GuardPost` → `GuardPostPatrol` (open-terrain
+counterpart to `GarrisonPatrol`) — they wander an AABB box centred on the
+post anchor with half-extent `squad.patrolRadius` instead of `HoldPost`'s
+static 6-cell leash. Finally a live consumer for the per-tier
+`DefensePostKind.patrolRadius`. See `stories/18-guardpost-area-patrol.md`.
+
 ## Immediate next
 
 0. ~~**Garrison zone-clear scoping + multi-building garrison**~~ — **shipped**

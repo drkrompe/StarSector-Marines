@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
+import com.dillon.starsectormarines.battle.turret.DefensePost;
 
 import java.util.List;
 
@@ -19,11 +20,15 @@ import java.util.List;
  * tie) for chokepoint-shaped zones, and to {@link SurviveContact} (higher
  * SURVIVAL priority) when morale breaks.
  *
- * <p>Custom-plan: a single-step plan of {@link HoldPost}. The action runs
- * perpetually (always returns RUNNING); the squad-level periodic replan is
- * what swaps goals when conditions change (target gained → still GuardPost,
- * same action but engagement branch; morale broken → SurviveContact;
- * chokepoint geometry exposed → GarrisonAmbush).
+ * <p>Custom-plan: for a squad still linked to a live turret emplacement
+ * ({@link Squad#defensePost} set — turrets standing), a {@link GuardPostPatrol}
+ * that wanders the post's bounding box ({@link Squad#patrolRadius} around the
+ * post anchor). Otherwise — a released turret squad (post demolished) or a
+ * non-turret garrison post — a single-step plan of {@link HoldPost}, the tight
+ * static hold. Either action runs perpetually (always returns RUNNING); the
+ * squad-level periodic replan is what swaps goals when conditions change
+ * (morale broken → SurviveContact; chokepoint geometry exposed →
+ * GarrisonAmbush).
  */
 public final class GuardPost implements Goal {
 
@@ -55,6 +60,11 @@ public final class GuardPost implements Goal {
 
     @Override
     public SquadPlan customPlan(Squad squad, BattleView sim) {
+        DefensePost post = squad.defensePost;
+        if (post != null) {
+            return new SquadPlan(List.of(new SquadPlan.Step(
+                    new GuardPostPatrol(post.anchorX, post.anchorY, squad.patrolRadius))));
+        }
         return new SquadPlan(List.of(new SquadPlan.Step(HoldPost.INSTANCE)));
     }
 }
