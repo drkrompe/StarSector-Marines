@@ -1,11 +1,11 @@
 package com.dillon.starsectormarines.battle.decision;
 import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Per-target attacker index — for each unit currently targeted by at least
@@ -64,10 +64,9 @@ public final class AttackerIndexService {
             pool.add(bucket);
         }
         attackersByTarget.clear();
-        List<Unit> units = rosterService.getUnits();
-        com.dillon.starsectormarines.battle.unit.UnitRegistry registry = rosterService.getRegistry();
-        for (Unit u : units) {
-            if (!u.isAlive()) continue;
+        UnitRegistry registry = rosterService.getRegistry();
+        for (int i = 0, n = registry.liveCount(); i < n; i++) {
+            Unit u = registry.get(i);
             Unit target = registry.getOrNull(u.getTargetId());
             if (target == null) continue;
             ArrayList<Unit> bucket = attackersByTarget.get(target);

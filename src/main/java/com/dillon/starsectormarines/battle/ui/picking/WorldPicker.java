@@ -96,8 +96,8 @@ public final class WorldPicker implements HudPanel {
     private static Unit nearestUnit(BattleSimulation sim, float worldX, float worldY) {
         Unit best = null;
         float bestDistSq = PICK_RADIUS_CELLS * PICK_RADIUS_CELLS;
-        for (Unit u : sim.getUnits()) {
-            if (!u.isAlive()) continue;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            Unit u = sim.liveUnitAt(i);
             float dx = u.getRenderX() - worldX;
             float dy = u.getRenderY() - worldY;
             float d2 = dx * dx + dy * dy;

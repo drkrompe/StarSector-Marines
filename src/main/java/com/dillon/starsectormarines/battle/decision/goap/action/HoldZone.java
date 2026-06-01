@@ -117,8 +117,8 @@ public final class HoldZone extends AbstractZoneAction {
     private Unit pickInZoneTarget(Unit self, BattleView sim, Faction enemy) {
         Unit best = null;
         float bestDist = Float.MAX_VALUE;
-        for (Unit other : sim.getUnits()) {
-            if (!other.isAlive()) continue;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            Unit other = sim.liveUnitAt(i);
             if (other.faction != enemy) continue;
             if (!other.type.combatant) continue;
             if (sim.getZoneGraph().zoneIdAt(other.getCellX(), other.getCellY()) != targetZoneId) continue;

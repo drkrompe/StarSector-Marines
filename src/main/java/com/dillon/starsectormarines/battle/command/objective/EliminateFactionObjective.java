@@ -33,8 +33,9 @@ public final class EliminateFactionObjective implements Objective {
     @Override
     public void tick(BattleView sim) {
         if (complete) return;
-        for (Unit u : sim.getUnits()) {
-            if (u.isAlive() && u.faction == target) return;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            Unit u = sim.liveUnitAt(i);
+            if (u.faction == target) return;
         }
         for (Shuttle s : sim.getShuttles()) {
             if (s.faction != target) continue;

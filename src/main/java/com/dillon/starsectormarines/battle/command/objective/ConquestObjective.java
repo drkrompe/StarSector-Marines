@@ -81,8 +81,9 @@ public final class ConquestObjective implements Objective {
     }
 
     private static boolean anyMarineInPlay(BattleView sim) {
-        for (Unit u : sim.getUnits()) {
-            if (u.isAlive() && u.faction == Faction.MARINE) return true;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            Unit u = sim.liveUnitAt(i);
+            if (u.faction == Faction.MARINE) return true;
         }
         for (Shuttle s : sim.getShuttles()) {
             if (s.faction != Faction.MARINE) continue;

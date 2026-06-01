@@ -92,8 +92,8 @@ public final class WorldStateBuilder {
     // --- Stage 1 evaluators ---------------------------------------------
 
     private static boolean evalHasTarget(Squad squad, BattleView sim) {
-        for (Unit u : sim.getUnits()) {
-            if (!u.isAlive()) continue;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            Unit u = sim.liveUnitAt(i);
             if (!u.type.combatant) continue;
             if (u.faction == squad.faction) continue;
             return true;
@@ -127,13 +127,13 @@ public final class WorldStateBuilder {
         if (squad.lastSeenEnemyX < 0 || squad.lastSeenEnemyY < 0) return false;
 
         NavigationGrid grid = sim.getGrid();
-        List<Unit> units = sim.getUnits();
 
         // Pre-collect squad members once so the inner loop is O(threat-set × squad-size)
         // instead of O(threat-set × total-units).
         List<Unit> members = new ArrayList<>(4);
-        for (Unit u : units) {
-            if (u.isAlive() && u.squadId == squad.id) members.add(u);
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            Unit u = sim.liveUnitAt(i);
+            if (u.squadId == squad.id) members.add(u);
         }
         if (members.isEmpty()) return false;
 
@@ -155,11 +155,12 @@ public final class WorldStateBuilder {
     }
 
     private static boolean evalInRangeOfTarget(Squad squad, BattleView sim) {
-        List<Unit> units = sim.getUnits();
-        for (Unit member : units) {
-            if (!member.isAlive() || member.squadId != squad.id) continue;
-            for (Unit enemy : units) {
-                if (!enemy.isAlive() || !enemy.type.combatant) continue;
+        for (int mi = 0, n = sim.liveUnitCount(); mi < n; mi++) {
+            Unit member = sim.liveUnitAt(mi);
+            if (member.squadId != squad.id) continue;
+            for (int ei = 0; ei < n; ei++) {
+                Unit enemy = sim.liveUnitAt(ei);
+                if (!enemy.type.combatant) continue;
                 if (enemy.faction == squad.faction) continue;
                 float d = TacticalScoring.cellDistance(member.getCellX(), member.getCellY(), enemy.getCellX(), enemy.getCellY());
                 if (d <= member.getAttackRange()) return true;
@@ -193,8 +194,9 @@ public final class WorldStateBuilder {
      * loop doesn't gate on it — the cooldown gate happens inside the action.
      */
     private static boolean evalCanReposition(Squad squad, BattleView sim) {
-        for (Unit u : sim.getUnits()) {
-            if (!u.isAlive() || u.squadId != squad.id) continue;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            Unit u = sim.liveUnitAt(i);
+            if (u.squadId != squad.id) continue;
             if (u.getRepositionCooldown() <= 0f) return true;
         }
         return false;
@@ -203,8 +205,9 @@ public final class WorldStateBuilder {
     private static boolean evalWithinCohesionRadius(Squad squad, BattleView sim) {
         if (squad.aliveMembers <= 1) return true;
         float r2 = InfantryCohesion.COHESION_RADIUS * InfantryCohesion.COHESION_RADIUS;
-        for (Unit u : sim.getUnits()) {
-            if (!u.isAlive() || u.squadId != squad.id) continue;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            Unit u = sim.liveUnitAt(i);
+            if (u.squadId != squad.id) continue;
             float dx = u.getCellX() - squad.centroidX;
             float dy = u.getCellY() - squad.centroidY;
             if (dx * dx + dy * dy > r2) return false;
@@ -239,8 +242,9 @@ public final class WorldStateBuilder {
         int dwIdx = p.getDoorwayCellIdx();
         int dwX = dwIdx % w;
         int dwY = dwIdx / w;
-        for (Unit u : sim.getUnits()) {
-            if (!u.isAlive() || !u.type.combatant) continue;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            Unit u = sim.liveUnitAt(i);
+            if (!u.type.combatant) continue;
             if (u.faction == squad.faction) continue;
             if (u.getCellX() == dwX && u.getCellY() == dwY) return true;
         }
@@ -279,11 +283,12 @@ public final class WorldStateBuilder {
         if (squad.killZoneLosTicks < SquadAlertSystem.KILL_ZONE_LOS_TICKS_THRESHOLD) return false;
         NavigationGrid grid = sim.getGrid();
         int range2 = SquadAlertSystem.KILL_ZONE_RANGE_CELLS * SquadAlertSystem.KILL_ZONE_RANGE_CELLS;
-        List<Unit> units = sim.getUnits();
-        for (Unit member : units) {
-            if (!member.isAlive() || member.squadId != squad.id) continue;
-            for (Unit enemy : units) {
-                if (!enemy.isAlive() || !enemy.type.combatant) continue;
+        for (int mi = 0, n = sim.liveUnitCount(); mi < n; mi++) {
+            Unit member = sim.liveUnitAt(mi);
+            if (member.squadId != squad.id) continue;
+            for (int ei = 0; ei < n; ei++) {
+                Unit enemy = sim.liveUnitAt(ei);
+                if (!enemy.type.combatant) continue;
                 if (enemy.faction == squad.faction) continue;
                 int dx = enemy.getCellX() - member.getCellX();
                 int dy = enemy.getCellY() - member.getCellY();
@@ -317,11 +322,11 @@ public final class WorldStateBuilder {
         List<ShotEvent> shots = sim.snapshotActiveShots();
         if (shots.isEmpty()) return false;
         NavigationGrid grid = sim.getGrid();
-        List<Unit> units = sim.getUnits();
         for (ShotEvent shot : shots) {
             if (shot.shooterFaction == squad.faction) continue;
-            for (Unit member : units) {
-                if (!member.isAlive() || member.squadId != squad.id) continue;
+            for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+                Unit member = sim.liveUnitAt(i);
+                if (member.squadId != squad.id) continue;
                 float dx = shot.toX - (member.getCellX() + 0.5f);
                 float dy = shot.toY - (member.getCellY() + 0.5f);
                 if (dx * dx + dy * dy > 4f) continue; // 2 cells squared

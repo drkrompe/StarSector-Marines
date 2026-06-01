@@ -56,8 +56,9 @@ public final class OverwatchKillZoneGoal implements Goal {
         // because MISSION outranks SURVIVAL unconditionally.
         if (state.get(Predicate.MORALE_BROKEN)) return 0f;
         if (squad.lastSeenEnemyX < 0 || squad.lastSeenEnemyY < 0) return 0f;
-        for (Unit u : sim.getUnits()) {
-            if (!u.isAlive() || u.squadId != squad.id) continue;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            Unit u = sim.liveUnitAt(i);
+            if (u.squadId != squad.id) continue;
             if (u.mech != null && u.mech.role == MechRole.LR_SUPPORT) return 1f;
         }
         return 0f;

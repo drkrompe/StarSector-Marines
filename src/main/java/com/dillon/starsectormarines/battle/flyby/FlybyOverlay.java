@@ -510,8 +510,9 @@ public final class FlybyOverlay {
         Faction enemy = (f.side == Faction.MARINE) ? Faction.DEFENDER : Faction.MARINE;
         float clusterR2 = CLUSTER_RADIUS_CELLS * CLUSTER_RADIUS_CELLS;
         List<Unit> enemies = new ArrayList<>();
-        for (Unit u : sim.getUnits()) {
-            if (u.isAlive() && u.faction == enemy) enemies.add(u);
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            Unit u = sim.liveUnitAt(i);
+            if (u.faction == enemy) enemies.add(u);
         }
         if (enemies.size() < CLUSTER_MIN_UNITS) return false;
 
@@ -565,8 +566,9 @@ public final class FlybyOverlay {
 
         Unit best = null;
         float bestDist = STRAFE_RANGE_CELLS;
-        for (Unit u : sim.getUnits()) {
-            if (!u.isAlive() || u.faction != enemy) continue;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            Unit u = sim.liveUnitAt(i);
+            if (u.faction != enemy) continue;
             float ux = (u.getRenderX() + 0.5f) - f.worldX;
             float uy = (u.getRenderY() + 0.5f) - f.worldY;
             float dist = (float) Math.sqrt(ux * ux + uy * uy);

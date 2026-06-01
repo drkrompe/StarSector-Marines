@@ -143,8 +143,8 @@ public final class BreachToEngage implements Goal {
         // Member count — slot count matches alive members so each member has
         // a stack-up + forward cell pair. Slot 0 binds the closest member.
         int aliveCount = 0;
-        for (Unit u : sim.getUnits()) {
-            if (u.isAlive() && u.squadId == squad.id) aliveCount++;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Unit u = sim.liveUnitAt(i);
+            if (u.squadId == squad.id) aliveCount++;
         }
         if (aliveCount <= 0) return null;
 
@@ -304,8 +304,8 @@ public final class BreachToEngage implements Goal {
      * targeting yet.
      */
     private static Unit effectiveTarget(Squad squad, BattleView sim) {
-        for (Unit u : sim.getUnits()) {
-            if (!u.isAlive() || u.squadId != squad.id) continue;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Unit u = sim.liveUnitAt(i);
+            if (u.squadId != squad.id) continue;
             Unit t = sim.targetOf(u);
             if (t != null) return t;
         }
@@ -323,13 +323,13 @@ public final class BreachToEngage implements Goal {
     private static boolean anyInZoneEnemyVisible(Squad squad, int squadZone, BattleView sim) {
         NavigationGrid grid = sim.getGrid();
         ZoneGraph zones = sim.getZoneGraph();
-        List<Unit> units = sim.getUnits();
-        for (Unit enemy : units) {
-            if (!enemy.isAlive() || !enemy.type.combatant) continue;
+        int liveN = sim.liveUnitCount();
+        for (int ei = 0; ei < liveN; ei++) { Unit enemy = sim.liveUnitAt(ei);
+            if (!enemy.type.combatant) continue;
             if (enemy.faction == squad.faction) continue;
             if (zones.zoneIdAt(enemy.getCellX(), enemy.getCellY()) != squadZone) continue;
-            for (Unit member : units) {
-                if (!member.isAlive() || member.squadId != squad.id) continue;
+            for (int mi = 0; mi < liveN; mi++) { Unit member = sim.liveUnitAt(mi);
+                if (member.squadId != squad.id) continue;
                 if (grid.hasLineOfSight(member.getCellX(), member.getCellY(), enemy.getCellX(), enemy.getCellY())) {
                     return true;
                 }

@@ -123,8 +123,9 @@ public final class FleeBehavior implements UnitBehavior {
     private static Unit findNearestThreat(Unit self, BattleSimulation sim) {
         Unit best = null;
         float bestDist = PERCEPTION_RADIUS;
-        for (Unit u : sim.getUnits()) {
-            if (!u.isAlive() || u == self) continue;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            Unit u = sim.liveUnitAt(i);
+            if (u == self) continue;
             if (!u.type.combatant) continue;
             float d = TacticalScoring.cellDistance(self.getCellX(), self.getCellY(), u.getCellX(), u.getCellY());
             if (d <= bestDist) {

@@ -48,8 +48,8 @@ public final class ChargeSiteObjective implements Objective {
     public void tick(BattleView sim) {
         if (complete) return;
         planterOnSiteThisTick = false;
-        for (Unit u : sim.getUnits()) {
-            if (!u.isAlive()) continue;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            Unit u = sim.liveUnitAt(i);
             if (u.role != UnitRole.PLANTER) continue;
             if (u.assignedObjective != this) continue;
             if (u.getCellX() == cellX && u.getCellY() == cellY && u.getMoveProgress() == 0f) {

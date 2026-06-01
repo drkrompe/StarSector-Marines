@@ -107,8 +107,8 @@ public final class ZoneQueries {
         if (sim == null || enemyFaction == null) return true;
         ZoneGraph graph = sim.getZoneGraph();
         if (graph.zoneById(zoneId) == null) return true;
-        for (Unit u : sim.getUnits()) {
-            if (!u.isAlive()) continue;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            Unit u = sim.liveUnitAt(i);
             if (u.faction != enemyFaction) continue;
             if (graph.zoneIdAt(u.getCellX(), u.getCellY()) == zoneId) return false;
         }

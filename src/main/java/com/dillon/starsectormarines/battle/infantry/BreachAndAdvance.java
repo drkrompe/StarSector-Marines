@@ -189,12 +189,12 @@ public final class BreachAndAdvance implements Action {
         int alive = 0;
         int near = 0;
         float r2 = STACKUP_ARRIVAL_RADIUS * STACKUP_ARRIVAL_RADIUS;
-        for (Unit u : sim.getUnits()) {
-            if (!u.isAlive() || u.squadId != squad.id) continue;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Unit u = sim.liveUnitAt(i);
+            if (u.squadId != squad.id) continue;
             alive++;
-            for (int i = 0; i < stackUpX.length; i++) {
-                float dx = u.getCellX() - stackUpX[i];
-                float dy = u.getCellY() - stackUpY[i];
+            for (int i2 = 0; i2 < stackUpX.length; i2++) {
+                float dx = u.getCellX() - stackUpX[i2];
+                float dy = u.getCellY() - stackUpY[i2];
                 if (dx * dx + dy * dy <= r2) { near++; break; }
             }
         }
@@ -210,8 +210,8 @@ public final class BreachAndAdvance implements Action {
         // Sibling worker may have advanced past the end between isComplete()
         // and currentStep() under parallel dispatch.
         if (step == null) return false;
-        for (Unit u : sim.getUnits()) {
-            if (!u.isAlive() || u.squadId != squad.id) continue;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Unit u = sim.liveUnitAt(i);
+            if (u.squadId != squad.id) continue;
             String name = step.slotOf(u);
             if (name == null) continue;
             int s = parseSlotIndex(name);

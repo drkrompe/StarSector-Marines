@@ -53,8 +53,9 @@ public final class BackstopAssignedSquadGoal implements Goal {
         // squad on the next replan after morale recovers.
         if (state.get(Predicate.MORALE_BROKEN)) return 0f;
         boolean hasArmored = false;
-        for (Unit u : sim.getUnits()) {
-            if (!u.isAlive() || u.squadId != squad.id) continue;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            Unit u = sim.liveUnitAt(i);
+            if (u.squadId != squad.id) continue;
             if (u.mech != null && u.mech.role == MechRole.ARMORED_SUPPORT) {
                 hasArmored = true;
                 break;

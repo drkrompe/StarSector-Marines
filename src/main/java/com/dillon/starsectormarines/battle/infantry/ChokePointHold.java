@@ -286,8 +286,8 @@ public final class ChokePointHold implements Action {
 
     /** First alive enemy combatant standing on the portal cell, or null. Matches the rule the evaluator uses. */
     private Unit enemyOnPortalCell(Squad squad, BattleView sim) {
-        for (Unit u : sim.getUnits()) {
-            if (!u.isAlive() || !u.type.combatant) continue;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Unit u = sim.liveUnitAt(i);
+            if (!u.type.combatant) continue;
             if (u.faction == squad.faction) continue;
             if (u.getCellX() == portalX && u.getCellY() == portalY) return u;
         }

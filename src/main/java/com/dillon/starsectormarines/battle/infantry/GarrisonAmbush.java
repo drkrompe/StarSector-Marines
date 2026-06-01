@@ -100,8 +100,8 @@ public final class GarrisonAmbush implements Goal {
      * swap in {@code state.get(Predicate.HAS_LOS_TO_TARGET)} here.
      */
     private static boolean enemyKnown(Squad squad, BattleView sim) {
-        for (Unit u : sim.getUnits()) {
-            if (!u.isAlive() || !u.type.combatant) continue;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Unit u = sim.liveUnitAt(i);
+            if (!u.type.combatant) continue;
             if (u.faction == squad.faction) continue;
             return true;
         }

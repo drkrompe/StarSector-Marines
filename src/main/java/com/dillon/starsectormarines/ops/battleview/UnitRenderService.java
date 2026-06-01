@@ -84,8 +84,8 @@ public final class UnitRenderService implements RenderSystem {
         BattleCamera cam = ctx.camera;
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
-        for (Unit u : ctx.sim.getUnits()) {
-            if (!u.isAlive()) continue;
+        for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
+            Unit u = ctx.sim.liveUnitAt(i);
             if (!RenderAppearance.of(u.type).drawsFootprint) continue;
             float x0 = cam.cellToScreenX(u.getCellX());
             float y0 = cam.cellToScreenY(u.getCellY());
@@ -106,8 +106,9 @@ public final class UnitRenderService implements RenderSystem {
         BattleCamera cam = ctx.camera;
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
-        for (Unit u : ctx.sim.getUnits()) {
-            if (!(u instanceof MapTurret) || !u.isAlive()) continue;
+        for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
+            Unit u = ctx.sim.liveUnitAt(i);
+            if (!(u instanceof MapTurret)) continue;
             MapTurret t = (MapTurret) u;
             float cx = cam.cellToScreenX(t.getCellX() + 0.5f);
             float cy = cam.cellToScreenY(t.getCellY() + 0.5f);
@@ -148,8 +149,9 @@ public final class UnitRenderService implements RenderSystem {
         BattleCamera cam = ctx.camera;
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
-        for (Unit u : ctx.sim.getUnits()) {
-            if (!(u instanceof DroneHubUnit) || !u.isAlive()) continue;
+        for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
+            Unit u = ctx.sim.liveUnitAt(i);
+            if (!(u instanceof DroneHubUnit)) continue;
             float cx = cam.cellToScreenX(u.getCellX() + 0.5f);
             float cy = cam.cellToScreenY(u.getCellY() + 0.5f);
             emitWholeSprite(out, hub, 0f, DroneHubUnit.VISUAL_CELLS, cellPx, cx, cy, alphaMult);
@@ -256,8 +258,8 @@ public final class UnitRenderService implements RenderSystem {
         float alphaMult = ctx.alphaMult;
         VisionService vis = sim.getVision();
 
-        for (Unit u : sim.getUnits()) {
-            if (!u.isAlive()) continue;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            Unit u = sim.liveUnitAt(i);
             if (RenderAppearance.of(u.type).spriteKind != RenderAppearance.SpriteKind.SHEET) continue;
             byte uv = vis.getUnitVisibility(u.denseIdx);
             if (uv == VisionService.VIS_HIDDEN) continue;
@@ -347,8 +349,8 @@ public final class UnitRenderService implements RenderSystem {
         float alphaMult = ctx.alphaMult;
         VisionService vis = ctx.sim.getVision();
 
-        for (Unit u : ctx.sim.getUnits()) {
-            if (!u.isAlive()) continue;
+        for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
+            Unit u = ctx.sim.liveUnitAt(i);
             if (!RenderAppearance.of(u.type).drawsHpBar) continue;
             byte uv = vis.getUnitVisibility(u.denseIdx);
             if (uv == VisionService.VIS_HIDDEN) continue;

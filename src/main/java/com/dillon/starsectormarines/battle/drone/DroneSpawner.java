@@ -86,8 +86,8 @@ public final class DroneSpawner {
 
     /** True if any alive unit currently logically occupies {@code (x, y)}. Cheap linear scan — defender + marine rosters cap small enough that this is fine inside an interval-gated tick. */
     private static boolean isCellOccupied(BattleView sim, int x, int y) {
-        for (Unit u : sim.getUnits()) {
-            if (!u.isAlive()) continue;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            Unit u = sim.liveUnitAt(i);
             if (u.getCellX() == x && u.getCellY() == y) return true;
         }
         return false;
