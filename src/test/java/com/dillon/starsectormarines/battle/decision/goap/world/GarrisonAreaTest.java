@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -64,6 +65,67 @@ public class GarrisonAreaTest {
                 "the outdoor flood fails the size gate");
         assertFalse(GarrisonArea.isGarrisonZone(startRoom, 25, 0, 29, 9, grid),
                 "a small room outside the footprint fails the containment gate");
+    }
+
+    /**
+     * A large outdoor flood (x 0..23) and a two-room building on the far side:
+     * Room A (x 25..39, y 0..4) and Room B (x 25..39, y 6..9), split by a wall
+     * at y=5 with a doorway, the building reached from outdoors through a
+     * doorway at (24,2). A node's compound footprint spanning the whole
+     * building (x 25..39) should pull in BOTH rooms while the outdoor flood
+     * stays out (it's bigger than 1.25× the footprint).
+     */
+    private static BattleSimulation twoRoomBuildingSim() {
+        int w = 40, h = 10;
+        NavigationGrid grid = new NavigationGrid(w, h);
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                if (x == 24) continue;            // wall column outdoor|building
+                if (x >= 25 && y == 5) continue;  // wall row splitting the two rooms
+                grid.setWalkableFloor(x, y);
+            }
+        }
+        grid.setWalkableFloor(24, 2);
+        grid.setDoorway(24, 2, true);             // outdoor ↔ Room A
+        grid.setWalkableFloor(32, 5);
+        grid.setDoorway(32, 5, true);             // Room A ↔ Room B
+        return new BattleSimulation(grid, new CellTopology(w, h));
+    }
+
+    @Test
+    public void compoundFootprintPullsInEveryBuildingRoomButNotTheOutdoor() {
+        BattleSimulation sim = twoRoomBuildingSim();
+        // Node anchored in Room A, own bbox just the anchor — the widened
+        // compound footprint is what should span both rooms.
+        TacticalNode node = new TacticalNode(TacticalNode.Kind.COMMAND_POST, 30, 2,
+                30, 2, 30, 2, Faction.DEFENDER, 95, 4);
+        node.setCompoundBounds(25, 0, 39, 9);
+
+        int roomA = sim.getZoneGraph().zoneIdAt(30, 2);
+        int roomB = sim.getZoneGraph().zoneIdAt(30, 8);
+        int outdoor = sim.getZoneGraph().zoneIdAt(10, 5);
+
+        List<Integer> zones = GarrisonArea.garrisonZones(node, 0, sim);
+        assertTrue(zones.contains(roomA), "Room A is in the compound footprint");
+        assertTrue(zones.contains(roomB), "Room B is in the compound footprint");
+        assertFalse(zones.contains(outdoor), "the outdoor flood stays out of the garrison area");
+    }
+
+    @Test
+    public void garrisonFootprintDefaultsToOwnBboxWhenUnset() {
+        // Without setCompoundBounds, the footprint is the node's own bbox, so a
+        // node scoped to one room only garrisons that room.
+        BattleSimulation sim = twoRoomBuildingSim();
+        TacticalNode node = new TacticalNode(TacticalNode.Kind.COMMAND_POST, 30, 2,
+                25, 0, 39, 4, Faction.DEFENDER, 95, 4); // own bbox = Room A only
+        assertEquals(25, node.compoundLeft(), "footprint defaults to own bbox left");
+        assertEquals(4, node.compoundBottom(), "footprint defaults to own bbox bottom");
+
+        int roomA = sim.getZoneGraph().zoneIdAt(30, 2);
+        int roomB = sim.getZoneGraph().zoneIdAt(30, 8);
+        List<Integer> zones = GarrisonArea.garrisonZones(node, 0, sim);
+        assertTrue(zones.contains(roomA), "own-bbox footprint covers Room A");
+        assertFalse(zones.contains(roomB), "own-bbox footprint excludes Room B");
     }
 
     @Test

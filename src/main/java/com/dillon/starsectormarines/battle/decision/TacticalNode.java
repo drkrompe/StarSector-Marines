@@ -124,6 +124,20 @@ public final class TacticalNode {
     /** Suggested squad slot count at this node. Fixed per-kind for v1; future {@code requestedShare} ratio can supersede. */
     public final int garrisonSize;
 
+    /**
+     * Footprint the AI treats as this node's <em>garrison area</em> — the box a
+     * squad holding the node patrols and re-clears, as opposed to the single
+     * building the node's own {@link #left}/{@link #top}/{@link #right}/{@link
+     * #bottom} bbox covers. Defaults to that own bbox; the compound filler
+     * ({@link com.dillon.starsectormarines.battle.world.gen.bsp.fill.MilitaryBaseFiller})
+     * widens it to the parent compound's union bbox (all member buildings +
+     * parade ground) via {@link #setCompoundBounds} so a garrison covers the
+     * whole base rather than one wing. Mutated once during map generation
+     * (same lifecycle as {@link #links}); treat as frozen once the
+     * {@link TacticalMap} is exposed.
+     */
+    private int compoundLeft, compoundTop, compoundRight, compoundBottom;
+
     private final List<Link> links = new ArrayList<>();
 
     public TacticalNode(Kind kind, int anchorX, int anchorY,
@@ -139,7 +153,30 @@ public final class TacticalNode {
         this.defaultGuard = defaultGuard;
         this.priorityScore = priorityScore;
         this.garrisonSize = garrisonSize;
+        // Default the garrison footprint to this node's own bbox; the compound
+        // filler widens it for multi-building bases via setCompoundBounds.
+        this.compoundLeft = left;
+        this.compoundTop = top;
+        this.compoundRight = right;
+        this.compoundBottom = bottom;
     }
+
+    /**
+     * Widen this node's garrison footprint to a parent compound's union bbox.
+     * Called once by the compound filler at map-gen time; not for runtime
+     * mutation. See {@link #compoundLeft} for the lifecycle contract.
+     */
+    public void setCompoundBounds(int left, int top, int right, int bottom) {
+        this.compoundLeft = left;
+        this.compoundTop = top;
+        this.compoundRight = right;
+        this.compoundBottom = bottom;
+    }
+
+    public int compoundLeft()   { return compoundLeft; }
+    public int compoundTop()    { return compoundTop; }
+    public int compoundRight()  { return compoundRight; }
+    public int compoundBottom() { return compoundBottom; }
 
     public List<Link> links() {
         return Collections.unmodifiableList(links);

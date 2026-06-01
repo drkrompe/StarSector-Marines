@@ -152,33 +152,26 @@ public final class MilitaryBaseFiller implements CompoundFiller {
             PointOfInterest poi = leafPois.get(m);
             int anchorX = (poi != null) ? poi.interiorAnchorX : (m.left + m.right) / 2;
             int anchorY = (poi != null) ? poi.interiorAnchorY : (m.top + m.bottom) / 2;
+
+            TacticalNode.Kind kind;
+            int priority, garrison;
             switch (role) {
-                case COMMAND:
-                    tactical.add(new TacticalNode(commandNodeKind(compound.biome),
-                            anchorX, anchorY, m.left, m.top, m.right, m.bottom,
-                            Faction.DEFENDER, 95, 4));
-                    break;
-                case BARRACKS:
-                    tactical.add(new TacticalNode(TacticalNode.Kind.BARRACKS,
-                            anchorX, anchorY, m.left, m.top, m.right, m.bottom,
-                            Faction.DEFENDER, 60, 4));
-                    break;
-                case ARMORY:
-                    tactical.add(new TacticalNode(TacticalNode.Kind.ARMORY,
-                            anchorX, anchorY, m.left, m.top, m.right, m.bottom,
-                            Faction.DEFENDER, 70, 3));
-                    break;
-                case VEHICLE_BAY:
-                    // Treat as ARMORY for now — same supply-line role; could split when
-                    // vehicle-spawn AI lands. No dedicated kind yet to keep the enum lean.
-                    tactical.add(new TacticalNode(TacticalNode.Kind.ARMORY,
-                            anchorX, anchorY, m.left, m.top, m.right, m.bottom,
-                            Faction.DEFENDER, 55, 3));
-                    break;
-                default:
-                    // Roles added later should default to no emission until classified.
-                    break;
+                case COMMAND     -> { kind = commandNodeKind(compound.biome); priority = 95; garrison = 4; }
+                case BARRACKS    -> { kind = TacticalNode.Kind.BARRACKS;      priority = 60; garrison = 4; }
+                case ARMORY      -> { kind = TacticalNode.Kind.ARMORY;        priority = 70; garrison = 3; }
+                // Treat VEHICLE_BAY as ARMORY for now — same supply-line role; could split
+                // when vehicle-spawn AI lands. No dedicated kind yet to keep the enum lean.
+                case VEHICLE_BAY -> { kind = TacticalNode.Kind.ARMORY;        priority = 55; garrison = 3; }
+                // Roles added later should default to no emission until classified.
+                default          -> { continue; }
             }
+            TacticalNode node = new TacticalNode(kind, anchorX, anchorY,
+                    m.left, m.top, m.right, m.bottom, Faction.DEFENDER, priority, garrison);
+            // Garrison footprint = the whole compound (all member buildings +
+            // parade ground), so a squad holding this node patrols the base
+            // rather than its single wing. See TacticalNode#compoundLeft.
+            node.setCompoundBounds(compound.left, compound.top, compound.right, compound.bottom);
+            tactical.add(node);
         }
     }
 

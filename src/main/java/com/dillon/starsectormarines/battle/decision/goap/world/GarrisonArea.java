@@ -46,12 +46,12 @@ public final class GarrisonArea {
     public static final float MIN_INSIDE_FRACTION = 0.5f;
 
     /**
-     * Zone ids that make up {@code node}'s garrison area — its footprint
-     * (currently the node's own bbox; story-17 follow-on slice 3 widens this to
-     * the persisted compound union bbox) expanded by {@code margin} cells, then
-     * filtered through the size + containment gate. Sorted descending by cell
-     * count so callers that want the dominant room first get it cheaply.
-     * Returns an empty list for a null node/sim.
+     * Zone ids that make up {@code node}'s garrison area — its compound
+     * footprint ({@link TacticalNode#compoundLeft()} … the persisted union bbox
+     * of the whole base, or the node's own bbox for a standalone post) expanded
+     * by {@code margin} cells, then filtered through the size + containment
+     * gate. Sorted descending by cell count so callers that want the dominant
+     * room first get it cheaply. Returns an empty list for a null node/sim.
      *
      * <p>{@code margin} absorbs the perimeter wall ring / parade-ground rim so
      * rooms whose cells spill a cell or two past the raw footprint still
@@ -60,10 +60,10 @@ public final class GarrisonArea {
      */
     public static List<Integer> garrisonZones(TacticalNode node, int margin, BattleView sim) {
         if (node == null || sim == null) return List.of();
-        int boxL = node.left - margin;
-        int boxT = node.top - margin;
-        int boxR = node.right + margin;
-        int boxB = node.bottom + margin;
+        int boxL = node.compoundLeft() - margin;
+        int boxT = node.compoundTop() - margin;
+        int boxR = node.compoundRight() + margin;
+        int boxB = node.compoundBottom() + margin;
 
         ZoneGraph graph = sim.getZoneGraph();
         NavigationGrid grid = sim.getGrid();
