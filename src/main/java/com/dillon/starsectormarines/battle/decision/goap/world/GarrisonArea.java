@@ -69,6 +69,10 @@ public final class GarrisonArea {
         NavigationGrid grid = sim.getGrid();
         List<Integer> out = new ArrayList<>();
         for (NavigationZone zone : graph.getZones()) {
+            // Skip 1-cell doorway micro-zones — they're portals between rooms,
+            // not rooms to patrol, and would otherwise inflate the room count
+            // (and so the multi-building check) of a single-building footprint.
+            if (zone.getCellCount() == 1 && grid.isDoorwayAt(zone.getCellIndices()[0])) continue;
             if (isGarrisonZone(zone, boxL, boxT, boxR, boxB, grid)) {
                 out.add(zone.getZoneId());
             }

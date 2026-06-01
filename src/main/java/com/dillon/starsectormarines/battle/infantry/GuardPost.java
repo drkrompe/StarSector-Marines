@@ -40,7 +40,12 @@ public final class GuardPost implements Goal {
 
     @Override
     public float relevance(WorldState state, Squad squad, BattleView sim) {
-        return squad.holdsFireUntilKillZone ? 1.0f : 0f;
+        if (!squad.holdsFireUntilKillZone) return 0f;
+        // Yield to GarrisonCompound for the primary node of a multi-building
+        // compound — that squad patrols the whole base instead of leashing to
+        // one post. Non-primary squads keep holding their own building here.
+        if (GarrisonCompound.defenderAreaPatrol(squad, sim)) return 0f;
+        return 1.0f;
     }
 
     @Override
