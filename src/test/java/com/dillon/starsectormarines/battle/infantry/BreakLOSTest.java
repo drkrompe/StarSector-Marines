@@ -76,8 +76,8 @@ public class BreakLOSTest {
         // (10, 2) has LOS to the marine; findFallbackPosition must pick a
         // different (hidden) cell.
         Unit marine = marineAt(2, 2, squadId);
-        marine.setFallbackCell(-1, -1);
         sim.addUnit(marine);
+        marine.setFallbackCell(-1, -1);
         sim.addUnit(defenderAt(11, 7));
 
         ActionStatus status = BreakLOS.INSTANCE.execute(marine, squad, sim);
@@ -104,9 +104,9 @@ public class BreakLOSTest {
         squad.aliveMembers = 1;
 
         Unit marine = marineAt(2, 2, squadId);
+        sim.addUnit(marine);
         // Force "arrived" — fallback cell == current cell.
         marine.setFallbackCell(2, 2);
-        sim.addUnit(marine);
         sim.addUnit(defenderAt(11, 11));
 
         ActionStatus status = BreakLOS.INSTANCE.execute(marine, squad, sim);
@@ -129,9 +129,9 @@ public class BreakLOSTest {
         squad.aliveMembers = 1;
 
         Unit marine = marineAt(5, 7, squadId);
+        sim.addUnit(marine);
         // Pre-cache a destination that's not the current cell.
         marine.setFallbackCell(4, 7);
-        sim.addUnit(marine);
         sim.addUnit(defenderAt(11, 7));
 
         ActionStatus status = BreakLOS.INSTANCE.execute(marine, squad, sim);
@@ -154,10 +154,10 @@ public class BreakLOSTest {
         squad.aliveMembers = 1;
 
         Unit marine = marineAt(2, 2, squadId);
+        sim.addUnit(marine);
         // Cached destination on the open side of the map — fully visible to
         // the defender at (5, 2). Pre-fix: held this cell forever.
         marine.setFallbackCell(3, 2);
-        sim.addUnit(marine);
         sim.addUnit(defenderAt(5, 2));
 
         BreakLOS.INSTANCE.execute(marine, squad, sim);

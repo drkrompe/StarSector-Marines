@@ -899,6 +899,35 @@ public class UnitRegistryTest {
     }
 
     @Test
+    public void midCombatAccessorsReturnDefaultsWhenUnregistered() {
+        // Mid-combat columns carry no local* shadow on Unit, so their accessors
+        // must be null-safe for the unregistered window — pre-allocate AND the
+        // released-corpse case that lives on the legacy units list and gets
+        // iterated by systems like InfantryWeapons.tick (regression: that path
+        // called getBurstRemaining() before the isAlive() gate and NPE'd).
+        Unit fresh = unit("fresh");   // never allocated → registry == null
+        assertEquals(0, fresh.getBurstRemaining());
+        assertEquals(0L, fresh.getTargetId());
+        assertEquals(0f, fresh.getCooldownTimer(), 1e-6f);
+        assertEquals(-1, fresh.getFallbackCellX());
+        // Setters on an unregistered unit are no-ops, not throws.
+        fresh.setBurstRemaining(5);
+        fresh.setTargetId(7L);
+        assertEquals(0, fresh.getBurstRemaining());
+        assertEquals(0L, fresh.getTargetId());
+
+        UnitRegistry r = new UnitRegistry();
+        Unit u = unit("u");
+        r.allocate(u);
+        u.setBurstRemaining(3);
+        u.setBurstTimer(0.5f);
+        r.release(u.entityId);   // corpse: registry == null again
+        assertEquals(0, u.getBurstRemaining());
+        assertEquals(0f, u.getBurstTimer(), 1e-6f);
+        assertEquals(0L, u.getTargetId());
+    }
+
+    @Test
     public void allocateFallbackCellDefaultsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
         Unit u = unit("u");

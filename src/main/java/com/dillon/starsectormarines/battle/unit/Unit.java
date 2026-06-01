@@ -188,13 +188,21 @@ public class Unit {
      * resolves cleanly to {@code null} via the registry without the holder
      * needing its own {@code isAlive()} branch. Writes go through
      * {@link #setTarget(Unit)} so null-vs-instance is handled in one place.
+     *
+     * <p><b>Mid-combat-column contract.</b> Unlike hp/cell/render, these
+     * mid-combat columns (targetId, cooldown/timers, burst/secondary/fallback/
+     * reposition/wander) carry no {@code local*} shadow on {@link Unit}. When
+     * the unit is unregistered — pre-allocate, or a released corpse still on the
+     * legacy units list that systems iterate (e.g. {@code InfantryWeapons.tick})
+     * — the getter returns the type default and the setter is a no-op, so a
+     * corpse reads as having no active combat state instead of throwing.
      */
     public final long getTargetId() {
-        return registry.getTargetId(denseIdx);
+        return (registry != null) ? registry.getTargetId(denseIdx) : 0L;
     }
 
     public final void setTargetId(long v) {
-        registry.setTargetId(denseIdx, v);
+        if (registry != null) registry.setTargetId(denseIdx, v);
     }
 
     /**
@@ -236,24 +244,24 @@ public class Unit {
      * -1 = none). Canonical storage lives in the registry's SoA arrays.
      */
     public final float getFallbackTimer() {
-        return registry.getFallbackTimer(denseIdx);
+        return (registry != null) ? registry.getFallbackTimer(denseIdx) : 0f;
     }
 
     public final void setFallbackTimer(float v) {
-        registry.setFallbackTimer(denseIdx, v);
+        if (registry != null) registry.setFallbackTimer(denseIdx, v);
     }
 
     public final int getFallbackCellX() {
-        return registry.getFallbackCellX(denseIdx);
+        return (registry != null) ? registry.getFallbackCellX(denseIdx) : -1;
     }
 
     public final int getFallbackCellY() {
-        return registry.getFallbackCellY(denseIdx);
+        return (registry != null) ? registry.getFallbackCellY(denseIdx) : -1;
     }
 
     /** Every callsite writes the fall-back cell pair together (break-contact pick, inline fallback write), so the paired setter matches access and hits both SoA slots in one dispatch. */
     public final void setFallbackCell(int x, int y) {
-        registry.setFallbackCell(denseIdx, x, y);
+        if (registry != null) registry.setFallbackCell(denseIdx, x, y);
     }
 
     /**
@@ -266,11 +274,11 @@ public class Unit {
      * Canonical storage lives in {@code registry.repositionCooldown[denseIdx]}.
      */
     public final float getRepositionCooldown() {
-        return registry.getRepositionCooldown(denseIdx);
+        return (registry != null) ? registry.getRepositionCooldown(denseIdx) : 0f;
     }
 
     public final void setRepositionCooldown(float v) {
-        registry.setRepositionCooldown(denseIdx, v);
+        if (registry != null) registry.setRepositionCooldown(denseIdx, v);
     }
 
     /**
@@ -280,11 +288,11 @@ public class Unit {
      * Canonical storage lives in {@code registry.wanderDwellTimer[denseIdx]}.
      */
     public final float getWanderDwellTimer() {
-        return registry.getWanderDwellTimer(denseIdx);
+        return (registry != null) ? registry.getWanderDwellTimer(denseIdx) : 0f;
     }
 
     public final void setWanderDwellTimer(float v) {
-        registry.setWanderDwellTimer(denseIdx, v);
+        if (registry != null) registry.setWanderDwellTimer(denseIdx, v);
     }
 
     /**
@@ -325,11 +333,11 @@ public class Unit {
      * {@code registry.secondaryCooldownTimer[denseIdx]}.
      */
     public final float getSecondaryCooldownTimer() {
-        return registry.getSecondaryCooldownTimer(denseIdx);
+        return (registry != null) ? registry.getSecondaryCooldownTimer(denseIdx) : 0f;
     }
 
     public final void setSecondaryCooldownTimer(float v) {
-        registry.setSecondaryCooldownTimer(denseIdx, v);
+        if (registry != null) registry.setSecondaryCooldownTimer(denseIdx, v);
     }
 
     /**
@@ -339,11 +347,11 @@ public class Unit {
      * this drops below {@link MarineSecondary#aimDuration}/2.
      */
     public final float getSecondaryActionTimer() {
-        return registry.getSecondaryActionTimer(denseIdx);
+        return (registry != null) ? registry.getSecondaryActionTimer(denseIdx) : 0f;
     }
 
     public final void setSecondaryActionTimer(float v) {
-        registry.setSecondaryActionTimer(denseIdx, v);
+        if (registry != null) registry.setSecondaryActionTimer(denseIdx, v);
     }
 
     /**
@@ -354,11 +362,11 @@ public class Unit {
      * Writes go through {@link #setSecondaryAimTarget(Unit)}.
      */
     public final long getSecondaryAimTargetId() {
-        return registry.getSecondaryAimTargetId(denseIdx);
+        return (registry != null) ? registry.getSecondaryAimTargetId(denseIdx) : 0L;
     }
 
     public final void setSecondaryAimTargetId(long v) {
-        registry.setSecondaryAimTargetId(denseIdx, v);
+        if (registry != null) registry.setSecondaryAimTargetId(denseIdx, v);
     }
 
     /** Sets {@link #getSecondaryAimTargetId()} from a {@link Unit} ref (null → 0L). */
@@ -373,11 +381,11 @@ public class Unit {
      * {@code registry.burstRemaining[denseIdx]}.
      */
     public final int getBurstRemaining() {
-        return registry.getBurstRemaining(denseIdx);
+        return (registry != null) ? registry.getBurstRemaining(denseIdx) : 0;
     }
 
     public final void setBurstRemaining(int v) {
-        registry.setBurstRemaining(denseIdx, v);
+        if (registry != null) registry.setBurstRemaining(denseIdx, v);
     }
 
     /**
@@ -385,11 +393,11 @@ public class Unit {
      * {@code InfantryWeapons.tick}.
      */
     public final float getBurstTimer() {
-        return registry.getBurstTimer(denseIdx);
+        return (registry != null) ? registry.getBurstTimer(denseIdx) : 0f;
     }
 
     public final void setBurstTimer(float v) {
-        registry.setBurstTimer(denseIdx, v);
+        if (registry != null) registry.setBurstTimer(denseIdx, v);
     }
 
     /**
@@ -403,11 +411,11 @@ public class Unit {
      * sets it as part of the trigger).
      */
     public final long getBurstTargetId() {
-        return registry.getBurstTargetId(denseIdx);
+        return (registry != null) ? registry.getBurstTargetId(denseIdx) : 0L;
     }
 
     public final void setBurstTargetId(long v) {
-        registry.setBurstTargetId(denseIdx, v);
+        if (registry != null) registry.setBurstTargetId(denseIdx, v);
     }
 
     /** Sets {@link #getBurstTargetId()} from a {@link Unit} ref (null → 0L). */
@@ -524,11 +532,11 @@ public class Unit {
     }
 
     public final float getCooldownTimer() {
-        return registry.getCooldownTimer(denseIdx);
+        return (registry != null) ? registry.getCooldownTimer(denseIdx) : 0f;
     }
 
     public final void setCooldownTimer(float v) {
-        registry.setCooldownTimer(denseIdx, v);
+        if (registry != null) registry.setCooldownTimer(denseIdx, v);
     }
 
     public final float getAttackDamage() {
@@ -559,11 +567,11 @@ public class Unit {
     }
 
     public final float getMoveProgress() {
-        return registry.getMoveProgress(denseIdx);
+        return (registry != null) ? registry.getMoveProgress(denseIdx) : 0f;
     }
 
     public final void setMoveProgress(float v) {
-        registry.setMoveProgress(denseIdx, v);
+        if (registry != null) registry.setMoveProgress(denseIdx, v);
     }
 
     public final float getRenderX() {

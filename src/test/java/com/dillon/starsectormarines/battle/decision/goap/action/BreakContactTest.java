@@ -63,8 +63,8 @@ public class BreakContactTest {
         squad.aliveMembers = 1;
 
         Unit marine = marineAt(6, 7, 1);
-        marine.setFallbackCell(-1, -1);
         sim.addUnit(marine);
+        marine.setFallbackCell(-1, -1);
         // One defender on the other side of the wall — gives findFallbackPosition
         // a threat to hide from.
         sim.addUnit(defenderAt(10, 7));
@@ -82,9 +82,9 @@ public class BreakContactTest {
         squad.aliveMembers = 1;
 
         Unit marine = marineAt(2, 2, 1);
+        sim.addUnit(marine);
         // Force destination to current cell — simulates "already arrived."
         marine.setFallbackCell(2, 2);
-        sim.addUnit(marine);
         sim.addUnit(defenderAt(11, 11));
 
         BreakContact.INSTANCE.execute(marine, squad, sim);
@@ -103,8 +103,8 @@ public class BreakContactTest {
         // other side. Cell (10, 7) is in shadow of the wall from (3, 7), so
         // the cached destination is genuinely hidden and must stick.
         Unit marine = marineAt(10, 7, 1);
-        marine.setFallbackCell(10, 7);
         sim.addUnit(marine);
+        marine.setFallbackCell(10, 7);
         sim.addUnit(defenderAt(3, 7));
 
         BreakContact.INSTANCE.execute(marine, squad, sim);
@@ -124,8 +124,8 @@ public class BreakContactTest {
         // now the action must re-evaluate so the morale-broken squad doesn't
         // glue itself into the kill zone.
         Unit marine = marineAt(2, 2, 1);
-        marine.setFallbackCell(2, 2);
         sim.addUnit(marine);
+        marine.setFallbackCell(2, 2);
         sim.addUnit(defenderAt(5, 2));
 
         BreakContact.INSTANCE.execute(marine, squad, sim);
@@ -147,8 +147,8 @@ public class BreakContactTest {
         // from (3, 3) OR (3, 3) became hidden between ticks." For this open
         // patch the defender has LoS to (3, 3), so the action must replace it.
         Unit marine = marineAt(2, 2, 1);
-        marine.setFallbackCell(3, 3);
         sim.addUnit(marine);
+        marine.setFallbackCell(3, 3);
         sim.addUnit(defenderAt(5, 2));
 
         BreakContact.INSTANCE.execute(marine, squad, sim);
