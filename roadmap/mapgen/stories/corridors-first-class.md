@@ -14,8 +14,12 @@ published and the validation scan gating one-component connectivity.
 [Slice 2 — topological roles (`6a07e8f`)](../complete/station-topology-roles.md)
 realized the "structural taxonomy" section below: `StationTopologyStage` derives
 **depth-from-entry, articulation rooms, bridge corridors, and on-spine/on-loop**
-onto the graph (Tarjan + BFS, cross-checked by a brute-force oracle). The design
-below is the converged spec (2026-06-01). Remaining: junction-bulge width policy,
+onto the graph (Tarjan + BFS, cross-checked by a brute-force oracle).
+[Concentric "onion" layout (`c447104`)](../complete/station-concentric-rings.md)
+then added the **defense-station** layout — defensive rings around a central
+core — which *consumes* those roles as designed: the inter-ring gates are the
+bridges, depth-from-entry is the radial assault gradient. The design below is the
+converged spec (2026-06-01). Remaining: a junction/gate-bulge width policy,
 edge-based doors, the first role-querying placement pass, and the thematic
 station kinds ([`station-interior-fills`](station-interior-fills.md)).
 

@@ -25,7 +25,8 @@ bf0cf22  mapgen: hoist FortressWallStamper ctx reads to top of run()
 3426109  mapgen: promote overwatch-corner scorer to taxonomy package (positional read)
 9320da7  mapgen: OverwatchTowerStage — first taxonomy consumer (corner-tower guns)
 aae4244  mapgen: station interiors slice 1 — rooms + corridors as a recipe
-6a07e8f  mapgen: station topological roles — depth / articulation / bridge / on-loop  ← latest mapgen work
+6a07e8f  mapgen: station topological roles — depth / articulation / bridge / on-loop
+c447104  mapgen: concentric "onion" station layout — defensive rings around a core  ← latest mapgen work
 ```
 
 Full per-slice mapping (what landed vs. planned, Slice A critique
@@ -126,6 +127,11 @@ reused verbatim. Candidate next tracks (priority order):
    depth-from-entry, articulation rooms, bridge corridors, and on-spine/on-loop
    onto `StationGraph` (Tarjan + BFS, brute-force-oracle gated). See
    [`complete/station-topology-roles.md`](complete/station-topology-roles.md).
+   **Concentric "onion" layout shipped (`c447104`)**: the defense-station layout —
+   defensive rings around a central control core, inter-ring gates as the topology
+   bridges, depth-from-entry as the radial assault gradient. See
+   [`complete/station-concentric-rings.md`](complete/station-concentric-rings.md).
+   Previews: `build/map-previews/concentric-*.png` + `concentric-roles-*.png`.
    **Next on this track** (priority order):
    - **First role-querying placement pass** — the first time the roles drive
      something player-visible: defensive emplacements biased to
