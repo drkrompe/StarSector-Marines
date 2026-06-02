@@ -32,13 +32,18 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.BiomeGroundOverri
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.BspPartitionStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.CompoundClaimStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.CompoundSeedStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.CorridorStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FillDispatchStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InitFloorStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InitSolidStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.LabelLeavesStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.PedestrianFrameStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.RoadGraphStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.RoomCarveStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.SpawnAnchorStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.StationPartitionStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.StationSpawnStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.TacticalLinkStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.TacticalRegionStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.TrunkSkeletonStage;
@@ -88,6 +93,9 @@ public final class BspCityGenerator implements MapGenerator {
     /** Legacy district-urban recipe (conquest-only stages omitted). */
     private final GenRecipe legacyRecipe;
 
+    /** Station-interior recipe — the inverted (solid-default) rooms-and-corridors map type. Selected via {@link #generateStation}. */
+    private final GenRecipe stationRecipe;
+
     public BspCityGenerator() {
         // Default every kind to a stub. Real fillers replace these via
         // register(...). Order doesn't matter — each filler self-identifies
@@ -117,6 +125,7 @@ public final class BspCityGenerator implements MapGenerator {
 
         this.conquestRecipe = buildConquestRecipe();
         this.legacyRecipe = buildLegacyRecipe();
+        this.stationRecipe = buildStationRecipe();
     }
 
     /**
@@ -182,6 +191,29 @@ public final class BspCityGenerator implements MapGenerator {
                 new SpawnAnchorStage()));                   // spawn anchors
     }
 
+    /**
+     * The station-interior recipe — the inversion of the city. Where the urban
+     * recipes start all-walkable and carve walls, the station starts all-solid
+     * ({@link InitSolidStage}) and carves rooms ({@link RoomCarveStage}) out of
+     * the BSP leaves, then a {@link CorridorStage} connects them along a
+     * spanning-tree-plus-sparse-loops subset of the leaf-adjacency graph and
+     * publishes the room/corridor {@link StationGraph}. Spawns land at the two
+     * ends of that graph's diameter ({@link StationSpawnStage}). The generic
+     * {@link TacticalLinkStage} + {@link FinalizeStage} are reused verbatim
+     * (no tactical nodes yet → an empty {@code TacticalMap}; finalize tags the
+     * un-carved hull as wall and flood-fills the interior buildings).
+     */
+    private GenRecipe buildStationRecipe() {
+        return new GenRecipe("Station", List.of(
+                new InitSolidStage(),         // solid hull
+                new StationPartitionStage(),  // BSP leaves (reuses Bsp.partition)
+                new RoomCarveStage(),         // carve one room per leaf
+                new CorridorStage(),          // connect rooms; publish StationGraph
+                new StationSpawnStage(),      // diameter-endpoint spawns
+                new TacticalLinkStage(),      // (empty node list → empty map)
+                new FinalizeStage()));        // wall HP / cover / wall tags / buildings
+    }
+
     /** Swap in a compound-aware filler. Idempotent — last write wins. */
     public void registerCompound(CompoundFiller filler) {
         compoundFillers.put(filler.kind(), filler);
@@ -242,7 +274,39 @@ public final class BspCityGenerator implements MapGenerator {
         GenRecipe recipe = (axis != null) ? conquestRecipe : legacyRecipe;
         recipe.run(ctx);
 
-        // Surface the preview accessors + assemble the result from the context.
+        return assembleResult(ctx);
+    }
+
+    /**
+     * Station-interior generation — the inverted (solid-default) rooms-and-
+     * corridors map type. Runs the {@link #buildStationRecipe() station recipe}
+     * against a fresh context and assembles the {@link MapResult} via the same
+     * tail as {@link #generate}. Not part of the {@link MapGenerator} interface
+     * (no production caller selects stations yet); the preview/scan gut-check
+     * tests drive it directly, and it's the entry battle setup will call once
+     * stations are wired in.
+     */
+    public MapResult generateStation(int width, int height, long seed) {
+        Random rng = new Random(seed);
+        NavigationGrid grid = new NavigationGrid(width, height);
+        CellTopology topology = new CellTopology(width, height);
+
+        GenContext ctx = new GenContext(grid, topology, rng, width, height, seed);
+        ctx.put(BspKeys.MARKET_PROFILE, TargetProfile.NEUTRAL);
+
+        stationRecipe.run(ctx);
+
+        return assembleResult(ctx);
+    }
+
+    /**
+     * Surface the preview accessors and assemble the {@link MapResult} from a
+     * finished context. Overlays a given recipe didn't produce read back null
+     * and degrade gracefully (empty compound list, {@link RoadGraph#EMPTY}, null
+     * biome/district/tactical-region maps) — so this is shared verbatim across
+     * the urban and station recipes.
+     */
+    private MapResult assembleResult(GenContext ctx) {
         this.lastBiomeMap = ctx.get(BspKeys.BIOME_MAP);
         this.lastDistrictMap = ctx.get(BspKeys.DISTRICT_MAP);
         List<Compound> compounds = ctx.get(BspKeys.COMPOUNDS);
@@ -256,7 +320,7 @@ public final class BspCityGenerator implements MapGenerator {
         int[] marine = ctx.get(BspKeys.MARINE_SPAWN);
         int[] defender = ctx.get(BspKeys.DEFENDER_SPAWN);
 
-        return new MapResult(grid, topology,
+        return new MapResult(ctx.grid, ctx.topology,
                 marine[0], marine[1], defender[0], defender[1],
                 ctx.pois, ctx.doodads, this.lastTacticalMap, buildings,
                 ctx.defensePosts, this.lastRoadGraph);

@@ -30,4 +30,14 @@ public enum RoomPurpose {
     KEEP_INNER,
     /** Fortress keep — deepest chamber, contains the COMMAND_POST anchor. The conquest objective; defender doctrine elite garrisons here. */
     KEEP_THRONE,
+    /**
+     * Station/ship connective passage — a carved corridor cell, distinct from
+     * the rooms it joins. Written by the station generator's corridor pass
+     * ({@link com.dillon.starsectormarines.battle.world.gen.bsp.stage.CorridorStage})
+     * so post-fill consumers and the preview can tell transit space from room
+     * space. The "corridors as first-class connective structure" label —
+     * topological role (degree / depth / on-spine) is a later layer that sits
+     * on top of this membership marker.
+     */
+    CORRIDOR,
 }

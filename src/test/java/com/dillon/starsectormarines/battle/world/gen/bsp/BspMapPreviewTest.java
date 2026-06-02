@@ -216,6 +216,47 @@ public class BspMapPreviewTest {
         System.out.println("  wrote " + contactPath.toAbsolutePath());
     }
 
+    /**
+     * Station-interior preview — the inverted (solid-default) rooms-and-corridors
+     * map type. Hull renders black, carved rooms in beige ({@code INDOOR}),
+     * corridors in striped-yellow ({@code STRIPED}) tinted cyan by the
+     * {@code CORRIDOR} room-purpose overlay. Eyeball: rooms are discrete, every
+     * room is reached through a corridor, no floating islands, a few loop
+     * alternates visible. Connectivity is hard-asserted (same oracle as the city
+     * batches).
+     */
+    @Test
+    void renderStationBatch() throws Exception {
+        Files.createDirectories(OUT_DIR);
+        BspCityGenerator gen = new BspCityGenerator();
+
+        BufferedImage[] perSeed = new BufferedImage[SEEDS.length];
+        List<String> failures = new java.util.ArrayList<>();
+        for (int i = 0; i < SEEDS.length; i++) {
+            long seed = SEEDS[i];
+            MapResult map = gen.generateStation(GRID_W, GRID_H, seed);
+            BufferedImage img = renderMap(map, seed, null, null,
+                    gen.getLastCompounds(), gen.getLastTacticalMap(), CELL_PX);
+            perSeed[i] = img;
+            Path out = OUT_DIR.resolve(String.format("station-seed-%04d.png", (int) seed));
+            ImageIO.write(img, "PNG", out.toFile());
+            System.out.println("  wrote " + out.toAbsolutePath());
+            try {
+                assertConnected(map, seed);
+            } catch (AssertionError ae) {
+                failures.add(ae.getMessage());
+            }
+        }
+        if (!failures.isEmpty()) {
+            throw new AssertionError(String.join("\n", failures));
+        }
+
+        BufferedImage contact = composeContactSheet(perSeed, 3);
+        Path contactPath = OUT_DIR.resolve("station-contact.png");
+        ImageIO.write(contact, "PNG", contactPath.toFile());
+        System.out.println("  wrote " + contactPath.toAbsolutePath());
+    }
+
     /** Walks the walkable subgraph from one seed cell; fails if any walkable cell is unreached. */
     private static void assertConnected(MapResult map, long seed) {
         NavigationGrid grid = map.grid;
@@ -340,6 +381,7 @@ public class BspMapPreviewTest {
                     case KEEP_THRONE: rc = new Color(60, 90, 180); break;
                     case KEEP_INNER:  rc = new Color(200, 180, 60); break;
                     case KEEP_ENTRY:  rc = new Color(180, 60, 60); break;
+                    case CORRIDOR:    rc = new Color(80, 200, 200); break;
                     default: continue;
                 }
                 g.setColor(rc);

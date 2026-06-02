@@ -55,6 +55,9 @@ public final class BspKeys {
     /** BSP leaf partition over the trunk sub-rects. Produced by the partition stage, read by label / seed / claim / fill / pedestrian stages. */
     public static final GenKey<Bsp.Partition> PARTITION = GenKey.of("partition");
 
+    /** Station room/corridor connectivity graph. Produced by the station corridor stage; read by the station spawn stage + (future) placement passes. Null in city modes. */
+    public static final GenKey<StationGraph> STATION_GRAPH = GenKey.of("stationGraph");
+
     /** Linked tactical-node graph. Produced by the tactical-link stage, flows into {@code MapResult}. */
     public static final GenKey<TacticalMap> TACTICAL_MAP = GenKey.of("tacticalMap");
 

@@ -80,6 +80,8 @@ public class MapValidationScanTest {
     private static final int CONQUEST_H = 160;
     private static final long[] CONQUEST_SEEDS = { 1L, 42L, 100L, 777L };
 
+    private static final long[] STATION_SEEDS = { 1L, 42L, 100L, 777L, 1234L, 9999L };
+
     /**
      * Manhattan radius the garrison allocator sweeps around a node anchor for
      * spawn cells — mirrors {@code BattleSetup.GARRISON_SPAWN_RADIUS} (kept in
@@ -99,6 +101,65 @@ public class MapValidationScanTest {
     @Test
     void scanConquestBatch() {
         runBatch("CONQUEST", CONQUEST_SEEDS, CONQUEST_W, CONQUEST_H, TraversalAxis.SOUTH_TO_NORTH);
+    }
+
+    /**
+     * Station-interior scan — the acceptance gate the corridors-first-class story
+     * rides on. The station inverts the city (solid-default; rooms + corridors
+     * carved), so the load-bearing invariant is that the corridor spine actually
+     * connects every room: <b>exactly one</b> walkable component (no islands),
+     * and the marine spawn can <em>path</em> to the defender spawn via the real
+     * {@link GridPathfinder}. Corridors are cell-based here (no edge-doors yet),
+     * so the cell/edge models still agree — the edge scan stays the armed no-op
+     * it is for the city.
+     */
+    @Test
+    void scanStationBatch() {
+        BspCityGenerator gen = new BspCityGenerator();
+        List<String> failures = new ArrayList<>();
+
+        System.out.println("=== Map validation scan: STATION (" + GRID_W + "x" + GRID_H + ") ===");
+        for (long seed : STATION_SEEDS) {
+            MapResult map = gen.generateStation(GRID_W, GRID_H, seed);
+            TacticalMap tactical = gen.getLastTacticalMap();
+
+            System.out.println("\n-- seed " + seed + " --");
+
+            ConnectivityResult conn = scanConnectivity(map.grid);
+            System.out.println(conn.report());
+
+            ReachabilityResult reach = scanReachability(map, tactical);
+            System.out.println(reach.report());
+
+            NavigationGrid grid = map.grid;
+            if (!grid.isWalkable(map.marineSpawnX, map.marineSpawnY)) {
+                failures.add("STATION seed " + seed + ": marine spawn on non-walkable cell ("
+                        + map.marineSpawnX + "," + map.marineSpawnY + ")");
+            }
+            if (!grid.isWalkable(map.defenderSpawnX, map.defenderSpawnY)) {
+                failures.add("STATION seed " + seed + ": defender spawn on non-walkable cell ("
+                        + map.defenderSpawnX + "," + map.defenderSpawnY + ")");
+            }
+            if (!reach.defenderReachable) {
+                failures.add("STATION seed " + seed
+                        + ": defender spawn UNREACHABLE from marine spawn (real pathfinder)");
+            }
+            if (conn.cellComponents != 1) {
+                failures.add("STATION seed " + seed + ": walkable space has " + conn.cellComponents
+                        + " components (expected 1 — corridor spine left island rooms)");
+            }
+            if (conn.edgeComponents != conn.cellComponents) {
+                failures.add("STATION seed " + seed + ": cell/edge connectivity disagree — "
+                        + conn.cellComponents + " cell-components vs " + conn.edgeComponents
+                        + " edge-components");
+            }
+        }
+
+        if (!failures.isEmpty()) {
+            fail("STATION scan found " + failures.size() + " invariant violation(s):\n  "
+                    + String.join("\n  ", failures));
+        }
+        System.out.println("\nSTATION: all hard invariants held.");
     }
 
     /**
