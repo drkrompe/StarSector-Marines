@@ -1,13 +1,13 @@
 package com.dillon.starsectormarines.combathybrid;
 
 import com.dillon.starsectormarines.DebugOnly;
-import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Unit;
-import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.model.MapScale;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.BattleCreationPlugin;
@@ -62,6 +62,8 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
     private static final String PROXY_VARIANT = "vigilance_Standard";
     /** S3a: cell gap between adjacent turrets in the demo row (≥ marker width at scale 50). */
     private static final int SIM_TURRET_CELL_SPACING = 6;
+    /** S3b: fixed seed for the probe cityscape so the backdrop is reproducible across launches. */
+    private static final long SIM_MAP_SEED = 42L;
 
     private boolean canvas;
 
@@ -126,9 +128,12 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
 
         // Spectator: detach the camera's owner so no ship is player-piloted.
         engine.setPlayerShipExternal(null);
-        // Backdrop plate under the ships (verified fact 10).
-        engine.addLayeredRenderingPlugin(new CanvasBackdropRenderer(
-                CANVAS_GRID.width, CANVAS_GRID.height, S0BattleProbe.WORLD_UNITS_PER_CELL));
+        // Placeholder grid plate under the ships (verified fact 10). SIM_COUPLED draws
+        // the real ground scene instead (GroundSceneBackdrop), so skip the grid there.
+        if (S0BattleProbe.mode() != S0BattleProbe.Mode.SIM_COUPLED) {
+            engine.addLayeredRenderingPlugin(new CanvasBackdropRenderer(
+                    CANVAS_GRID.width, CANVAS_GRID.height, S0BattleProbe.WORLD_UNITS_PER_CELL));
+        }
 
         float halfH = CANVAS_GRID.height * S0BattleProbe.WORLD_UNITS_PER_CELL * 0.5f;
         if (S0BattleProbe.mode() == S0BattleProbe.Mode.SIM_COUPLED) {
@@ -143,25 +148,22 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
     }
 
     /**
-     * S3a (fan-out): AI carriers vs a row of invisible proxies, each backed by a
-     * real turret in <b>one</b> {@link BattleSimulation}. The sim is built here —
-     * outside the combat plugin — so the engine's repeated {@code init} can't
-     * rebuild it; {@link GroundSimBridge} only references it. The turrets sit on a
+     * S3a (fan-out) + S3b (backdrop): AI carriers vs a row of invisible proxies, each
+     * backed by a real turret in <b>one</b> {@link BattleSimulation} that also renders
+     * its terrain + structures under the ships ({@link GroundSceneBackdrop}). The sim
+     * is a real generated cityscape ({@link BspCityGenerator}), built here — outside
+     * the combat plugins — so the engine's repeated {@code init} can't rebuild it, and
+     * both the bridge and the backdrop reference the same instance. Turrets sit on a
      * short row through the grid center (which projects to world origin), so the
-     * markers spread out on the plate for the fighters to chew through.
+     * markers spread across the city for the fighters to chew through.
      */
     private void setupSimCoupled(CombatEngineAPI engine, float halfH) {
         spawnRow(engine, FleetSide.PLAYER, PROXY_CARRIER_SHIPS, -halfH * 0.6f, 90f, 900f);
 
         int gridW = CANVAS_GRID.width, gridH = CANVAS_GRID.height;
-        NavigationGrid grid = new NavigationGrid(gridW, gridH);
-        CellTopology topology = new CellTopology(gridW, gridH);
-        for (int y = 0; y < gridH; y++) {
-            for (int x = 0; x < gridW; x++) {
-                grid.setWalkableFloor(x, y);
-            }
-        }
-        BattleSimulation sim = new BattleSimulation(grid, topology);
+        MapResult map = new BspCityGenerator().generate(gridW, gridH, SIM_MAP_SEED);
+        BattleSimulation sim = new BattleSimulation(map.grid, map.topology);
+        sim.setBuildings(map.buildings);
 
         // A short row of mixed-kind turrets centered on the grid (cell cx → world 0).
         int cx = gridW / 2, cy = gridH / 2;
@@ -178,6 +180,10 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
         // from advance() and would strand the death events).
         sim.addObjective(new NeverEndObjective(Faction.DEFENDER));
 
+        // The real ground scene under the ships, and the proxy/damage coupling — both
+        // over the same sim. Backdrop is below-ships; the bridge is an every-frame plugin.
+        engine.addLayeredRenderingPlugin(new GroundSceneBackdrop(
+                sim, gridW, gridH, S0BattleProbe.WORLD_UNITS_PER_CELL));
         engine.addPlugin(new GroundSimBridge(
                 sim, turrets, gridW, gridH, S0BattleProbe.WORLD_UNITS_PER_CELL, PROXY_VARIANT));
     }

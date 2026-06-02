@@ -34,11 +34,20 @@ Decomposition (stories written):
   **generalized to one-sim/many-proxies** and the damage scale retuned 0.1 → 0.02 so turrets
   attrit over several passes. The "individual simulation setup" concern is retired: the sim is
   built once, outside the plugin; the bridge only references it.
-- **S3b — cityscape backdrop.** Ground renderer → below-ships layer.
+- **S3b — cityscape backdrop** *(BUILT — awaiting playtest, Ctrl+Shift+K).* The real
+  ground scene (terrain + structures) now renders under the ships. **Key finding: the
+  render-target seam is the camera, already present** — a world-configured `BattleCamera`
+  (world-unit viewport) makes the existing `BattleRenderer` draw in combat world coords;
+  no `SceneCamera` interface / no codebase sweep. `GroundSceneBackdrop` + a
+  `renderWorld(rc, EnumSet)` subset overload; probe sim is now a real `BspCityGenerator`
+  cityscape shared by bridge + backdrop. Deferred: FBO decals/lighting + screen-coupled
+  fog/highlights/units/FX.
 - **S3c — airspace banding / AI gating.** The hard de-risk; resolve the spatial fork.
 - **S3d — shuttle scale-down handoff.** Diegetic bridge between the two scales.
 
-### S3a probe pieces (combathybrid)
+### S3a + S3b probe pieces (combathybrid)
+- `GroundSceneBackdrop` — below-ships plugin; world-configured `BattleCamera` + reused
+  `BattleRenderer`; draws GROUND/DOODADS/ROOFS of the bridge's sim. Replaces the grid plate.
 - `GroundSimBridge` — references one externally-owned sim, mirrors N targetable units as
   proxies, ticks the sim once/frame, despawns proxies on sim death. Idempotent `init`.
   (Supersedes the single-proxy `SimCoupledProxyPlugin`, now deleted.)

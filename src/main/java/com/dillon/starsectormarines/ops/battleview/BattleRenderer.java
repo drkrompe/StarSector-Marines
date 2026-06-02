@@ -706,13 +706,29 @@ public class BattleRenderer {
      * {@link RenderLayer} javadoc — do not re-derive it here.
      */
     public void renderWorld(RenderContext rc) {
+        renderWorld(rc, java.util.EnumSet.allOf(RenderLayer.class));
+    }
+
+    /**
+     * Renders only the requested {@link RenderLayer}s — the render-target seam for
+     * hosts that want a subset of the scene. A system is collected only if its
+     * {@link RenderSystem#layer()} is in {@code layers} (so passes whose sheets a
+     * host didn't load never run), and only those layers are drained. Paint order
+     * within the subset is unchanged (drain still walks the enum in ordinal order).
+     *
+     * <p>The combat-bridge backdrop ({@code GroundSceneBackdrop}) uses this to draw
+     * just terrain + structures under the vanilla ships, with a world-space camera —
+     * collect emits world-unit coords, drain brackets its own GL, so the same
+     * pipeline serves the standalone screen view and the combat layer unchanged.
+     */
+    public void renderWorld(RenderContext rc, java.util.EnumSet<RenderLayer> layers) {
         this.rc = rc;
         drawList.clear();
         for (RenderSystem system : worldSystems) {
-            system.collect(rc, drawList);
+            if (layers.contains(system.layer())) system.collect(rc, drawList);
         }
         for (RenderLayer layer : RenderLayer.values()) {
-            drainLayer(layer);
+            if (layers.contains(layer)) drainLayer(layer);
         }
     }
 }
