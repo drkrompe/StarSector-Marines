@@ -123,10 +123,36 @@ this is a per-group sweep, not one commit.
      handle in scope, pending a wired field/param: `InfantryUnitPrep.tickCooldowns`,
      `TurretAim`/`TurretFireService` statics, `DroneSwarmAction.tickPursue`/
      `clampGoalToLeash`, `SquadFallbackSystem.allMembersHome`, `SquadAlertSystem`.
-   - **2b — field-wired services (next).** `TacticalScoring` (53), `VisionService`,
-     `NavigationService`, `AttackerIndexService`, `SquadMoraleSystem`,
-     `SquadFallbackSystem`, `SquadAlertSystem` — no `sim` param; wire a `World`
-     field at construction, then sweep. Main-thread (touches ctor wiring).
+   - **2b — no-sim-param services SHIPPED (2026-06-02, `00f2e1d` + `3d96e5a`).**
+     Key refinement vs. the original "field-wire World everywhere" plan: most of
+     these services are **dense iterators that already hold the registry + loop
+     index `i`**, so the right conversion is `registry.<col>(i)` — zero map probe,
+     strictly better than routing through `World` (which would re-probe an index
+     it doesn't have). `World`/`registry` by-id was used only where a bare id /
+     `Unit` ref is in scope without the index, resolving the index once.
+     - Part 1 (`00f2e1d`): `AttackerIndexService.rebuild`,
+       `SquadFallbackSystem.allMembersHome`, `SquadAlertSystem.clearSquadMemberTargets`,
+       `NavigationService.rebuildOccupancyMap`, `VisionService.sweepUnitVisibility`
+       (dense-index); `SquadMoraleSystem` (threads cellX/cellY arrays beside its
+       hp/maxHp); `InfantryUnitPrep.tickCooldowns` (now takes `World`),
+       `DroneSwarmAction` tickPursue/clampGoalToLeash (now take `BattleView`),
+       `VisionService.tickFogCohort`/`addContributor` + `NavigationService.setPath`
+       (by-id; NavigationService gains a setter-injected `registry` field —
+       built before `World`).
+     - Part 2 (`3d96e5a`): turret aim/fire statics — `TurretFireService` (World
+       ctor field, resolve target cell once in `fire`), `TurretAim.tick` (World
+       param; safe fail-loud since callers recreate `State` each tick so the
+       target is always freshly acquired/live). Callers `TurretBehavior` +
+       `DroneSwarmAction` pass `sim.world()`; `AirSystem` + `GroundSystem` gain a
+       `World` ctor field.
+   - **TacticalScoring (53 sites) — deliberately deferred to its own slice.**
+     NOT a mechanical sweep: several sites sit inside the `for dy/for dx`
+     candidate loops and dense-iteration loops, where a blanket
+     `u.getCellX()` → `world.cellX(id)` would inject a HashMap probe per
+     iteration (the cache-locality regression the guardrail forbids). The
+     conversion is hoist-fixed-coords (self/target once before the loop) +
+     dense-array the per-iteration reads (like `findBestTargetImpl` already
+     does). It already holds `registry`, so no ctor wiring — just careful.
    - **2c — hot loops + render → dense-array / RenderPositionService**, not
      `world.<col>(id)` (the cache-locality guardrail). Renderers, combat
      resolvers, bulk systems. Careful, possibly per-file.

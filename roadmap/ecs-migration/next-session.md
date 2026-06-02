@@ -115,15 +115,28 @@ reference `entityId` instead** (the dangling-ref NPE class). New story:
      actions, infantry/mech postures+behaviors, drone swarm, command objectives,
      debug panels) → `sim.world().<col>(id)`. 5 Sonnet agents, disjoint buckets,
      green at 705.
-   - **Next: slice 2b** — field-wire `World` into the no-`sim`-param services
-     (`TacticalScoring` (53!), `VisionService`, `NavigationService`,
-     `AttackerIndexService`, `SquadMoraleSystem`, `SquadFallbackSystem`,
-     `SquadAlertSystem`) then sweep them (main-thread, touches ctor wiring). Then
-     **2c**: hot loops + render → dense-array/`RenderPositionService` (NOT
-     `world.<col>(id)` — cache-locality guardrail). Then model `mech` & other
+   - **Slice 2b SHIPPED (`00f2e1d` + `3d96e5a`): no-sim-param services.** Key
+     refinement vs. plan: most are **dense iterators already holding registry +
+     loop index `i`** → `registry.<col>(i)` (zero map probe), strictly better than
+     routing through `World` (which re-probes an index it doesn't have).
+     by-id `World`/`registry` only where a bare id/`Unit` ref is in scope.
+     Part 1: AttackerIndexService, SquadFallbackSystem, SquadAlertSystem,
+     NavigationService (rebuildOccupancyMap dense-index + setPath via a new
+     setter-injected `registry` field), VisionService (sweep dense-index;
+     tickFogCohort/addContributor by-id), SquadMoraleSystem (cellX/cellY arrays),
+     InfantryUnitPrep.tickCooldowns (World param), DroneSwarmAction
+     tickPursue/clampGoalToLeash (BattleView param). Part 2: turret aim/fire
+     statics (TurretFireService World field; TurretAim.tick World param; AirSystem
+     + GroundSystem gain a World ctor field). Green at 705 both.
+   - **Next: TacticalScoring (53 sites) — its OWN slice, NOT a sweep.** Several
+     sites are inside the `for dy/for dx` candidate loops + dense-iteration loops;
+     a blanket `world.cellX(id)` there injects a probe per iteration (guardrail
+     violation). Conversion = hoist self/target coords once before the loop +
+     dense-array the per-iteration `other.getCellX()` reads. It already holds
+     `registry`, so no ctor wiring. Then **2c**: hot loops + render → dense-array/
+     `RenderPositionService` (NOT `world.<col>(id)`). Then model `mech` & other
      optional `Unit` fields as `ComponentStore`s (cold face); then delete
-     `Unit.registry`+`denseIdx`; then `Unit`→`Entity`. Leftover 2a sites (no handle
-     in scope) are folded into 2b/2c — see the story.
+     `Unit.registry`+`denseIdx`; then `Unit`→`Entity`.
    Design LOCKED with the user (2026-06-02): a **two-faced `World`** facade over
    the existing stores. **Hot face** = primitive by-id accessors (`world.hp(id)`,
    `cellX/Y`, `renderX/Y`, combat stats) backed directly by the dense SoA — zero
