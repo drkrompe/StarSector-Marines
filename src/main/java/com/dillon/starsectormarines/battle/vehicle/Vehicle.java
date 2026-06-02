@@ -50,11 +50,16 @@ public class Vehicle {
     /** Sim-seconds remaining in OVERWATCH before transitioning to DEPARTING. Initialized from {@link VehicleType#overwatchDurationSec} on entering OVERWATCH. */
     public float overwatchCountdown;
 
-    /** Kinematic state — position, facing, model-specific. Driven each tick by {@link GroundSystem} via pure-pursuit + per-variant {@link GroundBody} model. */
+    /** Kinematic state — position, facing, model-specific. Driven each tick by {@link VehicleController} via pure-pursuit + per-variant {@link GroundBody} model. The renderer and turret loop read the pose off this body. */
     public final GroundBody body;
 
-    /** Current waypoint index inside the active queue (inbound during INCOMING, outbound during DEPARTING). */
-    public int waypointIndex;
+    /**
+     * Owns this vehicle's motion (corridor cursor, playback/docking state,
+     * recovery). Assigned by {@link GroundSystem#add} when the vehicle joins
+     * the system; {@code null} only before then. See
+     * {@code navigation-rework/overview.md}.
+     */
+    public VehicleController controller;
 
     /** Turret barrel facing in world frame (0° = +Y, positive CCW). Driven by {@link com.dillon.starsectormarines.battle.turret.TurretAim} when the vehicle has a {@link VehicleType#turretKind}. */
     public float turretFacingDeg;
@@ -99,36 +104,13 @@ public class Vehicle {
      */
     public int squadId = Unit.NO_SQUAD;
 
-    /**
-     * Active Reeds-Shepp docking path, or {@code null} if not in docking mode.
-     * When non-null, {@link GroundSystem} bypasses pure-pursuit and plays the
-     * body's pose along the sampled path at constant docking speed. Set once
-     * by {@link GroundSystem} when the inbound truck enters the LZ approach
-     * window; cleared on arrival.
-     */
-    public ReedsShepp.Path dockingPath;
-    public Pose dockingStartPose;
-    public float dockingTurnRadius;
-    /** Cells traveled along {@link #dockingPath} so far. */
-    public float dockingProgressCells;
-    /** Goal facing applied to the body on terminal snap-to-LZ. */
-    public float dockingGoalFacingDeg;
-
-    /** Sim-seconds the vehicle has been continuously blocked by walls. Drives the reverse-recovery in {@link GroundSystem}. */
-    public float wallStuckTime;
-    /** Position where the vehicle first got stuck. Used to detect oscillation — wallStuckTime only resets when the vehicle moves meaningfully from this origin. */
-    public float stuckOriginX, stuckOriginY;
-    /** wallStuckTime value at which the last re-plan was attempted. Prevents calling the planner every tick. */
-    public float lastReplanAtStuckTime = -1f;
-    /** True if the inbound path was refined by {@link HybridAStarPlanner}. Debug diagnostic only. */
+    /** True if the inbound path was refined by {@link HybridAStarPlanner}. Debug diagnostic only. Set at spawn. */
     public boolean pathRefined;
 
-    /** Heading (degrees) at each inbound waypoint. Non-null = path is Hybrid A* refined and should use direct pose playback instead of PurePursuit. */
+    /** Heading (degrees) at each inbound waypoint. Non-null = path is Hybrid A* refined and should use direct pose playback instead of PurePursuit. Set at spawn. */
     public float[] inboundHeading;
-    /** Heading (degrees) at each outbound waypoint. Non-null = refined path with playback. */
+    /** Heading (degrees) at each outbound waypoint. Non-null = refined path with playback. Set at spawn. */
     public float[] outboundHeading;
-    /** Distance (cells) traveled along the active refined polyline during pose playback. */
-    public float playbackProgress;
 
     public static final int HISTORY_SIZE = 120;
     public final float[] histX = new float[HISTORY_SIZE];
@@ -145,7 +127,7 @@ public class Vehicle {
         histY[histHead] = body.y;
         histFacing[histHead] = body.facingDegrees;
         histSpeed[histHead] = body.speed;
-        histStuck[histHead] = wallStuckTime;
+        histStuck[histHead] = (controller != null) ? controller.wallStuckTime() : 0f;
         histState[histHead] = (byte) state.ordinal();
         histHead = (histHead + 1) % HISTORY_SIZE;
         if (histCount < HISTORY_SIZE) histCount++;
@@ -180,7 +162,8 @@ public class Vehicle {
         float nextX = inboundX[1];
         float nextY = inboundY[1];
         body.teleport(spawnX, spawnY, AirBody.facingToward(nextX - spawnX, nextY - spawnY));
-        this.waypointIndex = 1;  // already at index 0, steering toward index 1
+        // The controller starts its corridor cursor at index 1 (already at
+        // index 0, steering toward index 1); see VehicleController.tick.
     }
 
     /** True when the vehicle is on-map and rendered. */

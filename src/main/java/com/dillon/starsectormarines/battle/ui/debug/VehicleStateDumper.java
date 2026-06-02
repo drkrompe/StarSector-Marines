@@ -40,9 +40,9 @@ public final class VehicleStateDumper {
             body.put("speed", round(v.body.speed));
             root.put("body", body);
 
-            root.put("waypointIndex", v.waypointIndex);
-            root.put("playbackProgress", round(v.playbackProgress));
-            root.put("wallStuckTime", round(v.wallStuckTime));
+            root.put("waypointIndex", v.controller != null ? v.controller.waypointIndex() : 1);
+            root.put("playbackProgress", round(v.controller != null ? v.controller.playbackProgress() : 0f));
+            root.put("wallStuckTime", round(v.controller != null ? v.controller.wallStuckTime() : 0f));
             root.put("pathRefined", v.pathRefined);
             root.put("hasPlayback", v.inboundHeading != null || v.outboundHeading != null);
             root.put("marinesRemaining", v.marinesRemaining);

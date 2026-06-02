@@ -473,7 +473,7 @@ public class BattleRenderer {
                                                float alphaMult) {
         boolean any = false;
         for (com.dillon.starsectormarines.battle.vehicle.Vehicle v : convoy) {
-            if (v.dockingPath != null) { any = true; break; }
+            if (v.controller != null && v.controller.dockingPath() != null) { any = true; break; }
         }
         if (!any) return;
 
@@ -492,10 +492,12 @@ public class BattleRenderer {
 
         final float STEP_CELLS = 0.2f;
         for (com.dillon.starsectormarines.battle.vehicle.Vehicle v : convoy) {
-            com.dillon.starsectormarines.battle.vehicle.ReedsShepp.Path path = v.dockingPath;
+            com.dillon.starsectormarines.battle.vehicle.VehicleController ctrl = v.controller;
+            if (ctrl == null) continue;
+            com.dillon.starsectormarines.battle.vehicle.ReedsShepp.Path path = ctrl.dockingPath();
             if (path == null) continue;
-            com.dillon.starsectormarines.battle.vehicle.Pose start = v.dockingStartPose;
-            float R = v.dockingTurnRadius;
+            com.dillon.starsectormarines.battle.vehicle.Pose start = ctrl.dockingStartPose();
+            float R = ctrl.dockingTurnRadius();
 
             float cursor = 0f;
             for (com.dillon.starsectormarines.battle.vehicle.ReedsShepp.Element e : path.elements) {
@@ -531,6 +533,10 @@ public class BattleRenderer {
         int idx = rc.selection.getSelectedVehicleIdx();
         if (idx < 0 || idx >= convoy.size()) return;
         com.dillon.starsectormarines.battle.vehicle.Vehicle v = convoy.get(idx);
+        com.dillon.starsectormarines.battle.vehicle.VehicleController ctrl = v.controller;
+        int wp = (ctrl != null) ? ctrl.waypointIndex() : 1;
+        float stuckSecs = (ctrl != null) ? ctrl.wallStuckTime() : 0f;
+        float playbackProg = (ctrl != null) ? ctrl.playbackProgress() : 0f;
 
         org.lwjgl.opengl.GL11.glPushAttrib(
                 org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT
@@ -553,7 +559,7 @@ public class BattleRenderer {
         if (xs.length > 1) {
             org.lwjgl.opengl.GL11.glBegin(org.lwjgl.opengl.GL11.GL_LINE_STRIP);
             for (int i = 0; i < xs.length; i++) {
-                if (i < v.waypointIndex) {
+                if (i < wp) {
                     org.lwjgl.opengl.GL11.glColor4f(0.5f, 0.5f, 0.5f, 0.4f * alphaMult);
                 } else {
                     org.lwjgl.opengl.GL11.glColor4f(0.2f, 0.8f, 1f, 0.8f * alphaMult);
@@ -565,12 +571,12 @@ public class BattleRenderer {
         }
 
         org.lwjgl.opengl.GL11.glPointSize(6f);
-        if (v.waypointIndex >= 0 && v.waypointIndex < xs.length) {
+        if (wp >= 0 && wp < xs.length) {
             org.lwjgl.opengl.GL11.glColor4f(1f, 1f, 0f, 0.9f * alphaMult);
             org.lwjgl.opengl.GL11.glBegin(org.lwjgl.opengl.GL11.GL_POINTS);
             org.lwjgl.opengl.GL11.glVertex2f(
-                    rc.camera.cellToScreenX(xs[v.waypointIndex]),
-                    rc.camera.cellToScreenY(ys[v.waypointIndex]));
+                    rc.camera.cellToScreenX(xs[wp]),
+                    rc.camera.cellToScreenY(ys[wp]));
             org.lwjgl.opengl.GL11.glEnd();
         }
 
@@ -589,18 +595,18 @@ public class BattleRenderer {
         com.dillon.starsectormarines.ui.BitmapFont font = com.dillon.starsectormarines.ui.Fonts.INSIGNIA_15_AA;
         java.awt.Color c = new java.awt.Color(0.8f, 1f, 0.8f, 1f);
 
-        font.drawString(String.format("state: %s  wp: %d/%d", v.state, v.waypointIndex, xs.length),
+        font.drawString(String.format("state: %s  wp: %d/%d", v.state, wp, xs.length),
                 textX, textY, c, alphaMult);
         textY -= lineH;
         font.drawString(String.format("speed: %.1f  facing: %.0f  stuck: %.2fs",
-                v.body.speed, v.body.facingDegrees, v.wallStuckTime), textX, textY, c, alphaMult);
+                v.body.speed, v.body.facingDegrees, stuckSecs), textX, textY, c, alphaMult);
         textY -= lineH;
         String pathLabel = (v.inboundHeading != null || v.outboundHeading != null)
                 ? "playback" : v.pathRefined ? "HA*" : "coarse";
         font.drawString(String.format("pos: (%.1f, %.1f)  path: %s  wps: %d+%d  prog: %.1f",
                 v.body.x, v.body.y, pathLabel,
                 v.inboundX.length, v.outboundX.length,
-                v.playbackProgress), textX, textY, c, alphaMult);
+                playbackProg), textX, textY, c, alphaMult);
         textY -= lineH;
         if (v.type.hasTurretWeapon()) {
             font.drawString(String.format("turret: ammo=%d  facing=%.0f",
