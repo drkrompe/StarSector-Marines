@@ -91,11 +91,20 @@ entity has hp, so a null-check there would be noise.
 ~516 self-accessor call sites across 72 files (`u.getHp()`, `u.getCellX()`, …) —
 this is a per-group sweep, not one commit.
 
-1. **Introduce `World` over the existing stores; prove both faces on one group
-   each.** Add the hot-face primitives for one dense group (e.g. `hp`) and the
-   cold-face `getOrNull` for one optional capability (e.g. `mech` →
-   `getOrNull(MechLoadout.class)`). Migrate just those call sites. Leave the
-   other ~500 on the current `Unit` accessors. Validates the shape end-to-end.
+1. **Introduce `World` over the existing stores; prove both faces — SHIPPED
+   (2026-06-02).** `battle.sim.World` (named there, not `battle.world` — that
+   package is map/terrain): hot face `world.hp(id)`/`setHp` over new
+   `UnitRegistry.hpById`/`setHpById` (one map probe + array read, fail-loud on a
+   dead id); cold face `world.id(id).getOrNull(Cmp.class)` via a
+   `Map<Class<?>, ComponentStore<?>>`. `EntityHandle` is a tiny record (allocates
+   per `.id()` — cold-path only). Wired into `BattleSimulation` (`sim.world()`)
+   over the existing `Crashing` + `DeadBody` stores. Proven by `WorldTest` (3
+   tests): hot face hits the same dense slot as the registry/OO accessor + is
+   fail-loud on a released/unknown id; cold face is presence-by-type (instance
+   when present, null when absent or no store). **No production call site migrated
+   yet** — the abstraction is in place, zero behavior change, suite green at 692.
+   (Cold face proven with the existing `DeadBody` store rather than `mech`, which
+   is still a `Unit` field — moving `mech` field→store is a later slice.)
 2. **Per-accessor-group sweeps.** One group at a time (cell pair, render pos,
    combat stats, AI timers), `Unit` accessor → `world.<prim>(id)`. Mechanical
    and wide — fan out to Sonnet ([[feedback_delegate_mechanical_sonnet]]); keep

@@ -136,6 +136,8 @@ public class BattleSimulation implements BattleControl {
     private final com.dillon.starsectormarines.battle.unit.DeadBodySystem deadBodySystem;
     /** Mech-wreck system — death-event handler that drops a smoking wreck on a dead chassis unit's cell (replaces the former HeavyWeapons per-tick scan). Subscribed to {@link #deathDispatcher} in the constructor. */
     private final com.dillon.starsectormarines.battle.mech.MechWreckSystem mechWreckSystem;
+    /** Entity-access facade — the artemis-shaped by-id read layer over the dense registry (hot primitives) + the sparse component stores (cold projection). Access half of the world-facade endgame; see {@link World}. Constructed in the ctor once the roster + stores exist. */
+    private final World world;
     /** Per-tick squad fall-back driver — arrival detection + trigger evaluation. Initialized in the constructor. */
     private final com.dillon.starsectormarines.battle.squad.SquadFallbackSystem squadFallback;
     /** Per-tick squad alert / awareness driver — drives the ENGAGED/SUSPICIOUS/UNAWARE state machine + kill-zone gating + audible-gunfire promotion. Initialized in the constructor. */
@@ -291,6 +293,13 @@ public class BattleSimulation implements BattleControl {
         // service is built before the damage service exists.
         navigation.setOccupancyDeltaSink(damageService::applyOccupancyDelta);
         rosterService.setDamageService(damageService);
+        // Entity-access facade over the dense registry + the sparse stores that
+        // exist today. The cold-face type→store map starts with the two raw
+        // ComponentStores (Crashing, DeadBody); groups decomposed out of the
+        // dense table register here as they land.
+        this.world = new World(rosterService.getRegistry(), java.util.Map.of(
+                com.dillon.starsectormarines.battle.component.Crashing.class, crashing,
+                com.dillon.starsectormarines.battle.component.DeadBody.class, deadBodies));
         this.turretDemolition = new com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem(
                 mapService, effects, tactical, rosterService);
         deathDispatcher.subscribe(turretDemolition::onDeath);
@@ -360,6 +369,9 @@ public class BattleSimulation implements BattleControl {
 
     @Override public int liveUnitCount() { return rosterService.getRegistry().liveCount(); }
     @Override public Unit liveUnitAt(int index) { return rosterService.getRegistry().get(index); }
+
+    /** Entity-access facade — by-id hot primitives ({@code world().hp(id)}) over the dense SoA + cold {@code world().id(id).getOrNull(Cmp.class)} projection over the sparse stores. See {@link World}. */
+    public World world() { return world; }
 
     /** Crash component store — entities falling out of the sky after death (a {@code Crashing} component each). Read by the drone renderer to draw the falling sprite + fade; written only by {@link #droneCrashes}. */
     public com.dillon.starsectormarines.battle.component.ComponentStore<com.dillon.starsectormarines.battle.component.Crashing> getCrashing() { return crashing; }

@@ -345,6 +345,25 @@ public final class UnitRegistry {
     public void setMaxHp(int idx, float v) { maxHp[idx] = v; }
 
     /**
+     * Resolves a live entity id to its dense slot, fail-loud on an
+     * unknown/released id. Backs the {@code *ById} hot-face accessors: those
+     * serve random-access reads of live entities, so a dead id is a programming
+     * error (unlike {@link #getOrNull}, whose null is a defined "dead/never"
+     * answer for held-ref liveness).
+     */
+    private int requireIndex(long id) {
+        int idx = indexById.get(id);
+        if (idx == INVALID_INDEX) throw new IllegalArgumentException("no live entity for id " + id);
+        return idx;
+    }
+
+    // By-id hot-face accessors — one map probe + array read, no Unit deref. The
+    // World facade's primitive face (world.hp(id) &c.) routes here; bulk systems
+    // still iterate the dense arrays directly over [0, liveCount()).
+    public float hpById(long id) { return hp[requireIndex(id)]; }
+    public void setHpById(long id, float v) { hp[requireIndex(id)] = v; }
+
+    /**
      * Raw {@code float[]} hp view for bulk iteration over
      * {@code [0, liveCount())}. Same caveat as {@link #denseArray()} —
      * the array reference may be replaced by {@link #allocate(Unit)} on

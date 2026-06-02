@@ -106,7 +106,13 @@ reference `entityId` instead** (the dangling-ref NPE class). New story:
   suite green at 689.
 
 **Next (in priority order):**
-1. **Endgame: [`world-facade`](stories/world-facade.md) — delete `Unit.registry`.**
+1. **Endgame: [`world-facade`](stories/world-facade.md) — delete `Unit.registry`.
+   Slice 1 SHIPPED (2026-06-02):** `battle.sim.World` introduced + wired
+   (`sim.world()`), both faces proven by `WorldTest`, no call sites migrated yet,
+   suite green at 692. **Next slice:** start the per-group accessor sweeps
+   (`u.getHp()` → `world.hp(id)` where the caller has an id not a held `Unit`;
+   bulk dense walks stay on the arrays) — fan to Sonnet. Then model `mech` (and
+   other optional `Unit` fields) as a `ComponentStore` for the cold face.
    Design LOCKED with the user (2026-06-02): a **two-faced `World`** facade over
    the existing stores. **Hot face** = primitive by-id accessors (`world.hp(id)`,
    `cellX/Y`, `renderX/Y`, combat stats) backed directly by the dense SoA — zero
