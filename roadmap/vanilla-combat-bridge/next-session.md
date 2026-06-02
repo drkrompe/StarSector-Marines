@@ -28,21 +28,28 @@ proxies; area damage for strafes + main-battery fire), and the **spatial fork** 
 ground-band AI-gating vs loose convention — decide at S3c).
 
 Decomposition (stories written):
-- **S3a — sim coupling slice** *(BUILT — awaiting playtest, Ctrl+Shift+K).* One real
-  `MapTurret` behind the S2 proxy; vanilla damage → `applyExternalDamage` (scaled 0.1×);
-  sim death event (`subscribeDeath`) despawns the proxy. See the story's "Implementation"
-  section for the decisions (HP-as-sensor, NeverEndObjective, tick-with-real-dt, ≤1-tick
-  despawn latency). Verdict pending: is the round-trip clean enough to fan out to many units?
+- **S3a — sim coupling slice** *(BUILT, one round-trip confirmed — fuller playtest batched
+  for later, Ctrl+Shift+K).* Round-trip PASSED on the first single-proxy run (vanilla dmg →
+  `applyExternalDamage` → sim death event → despawn, same beat, sim owned the kill). Then
+  **generalized to one-sim/many-proxies** and the damage scale retuned 0.1 → 0.02 so turrets
+  attrit over several passes. The "individual simulation setup" concern is retired: the sim is
+  built once, outside the plugin; the bridge only references it.
 - **S3b — cityscape backdrop.** Ground renderer → below-ships layer.
 - **S3c — airspace banding / AI gating.** The hard de-risk; resolve the spatial fork.
 - **S3d — shuttle scale-down handoff.** Diegetic bridge between the two scales.
 
 ### S3a probe pieces (combathybrid)
-- `SimCoupledProxyPlugin` — owns the one-unit sim, ticks it, closes both event loops.
-- `NeverEndObjective` — keeps a one-DEFENDER sim from auto-completing (else `advance()`
-  early-returns and the death event never drains).
+- `GroundSimBridge` — references one externally-owned sim, mirrors N targetable units as
+  proxies, ticks the sim once/frame, despawns proxies on sim death. Idempotent `init`.
+  (Supersedes the single-proxy `SimCoupledProxyPlugin`, now deleted.)
+- `NeverEndObjective` — keeps an all-DEFENDER sim from auto-completing (else `advance()`
+  early-returns and death events never drain).
 - `BattleSimulation.subscribeDeath(Consumer<DeathEvent>)` — new one-way sim→adapter seam.
-- Mode `SIM_COUPLED` on `S0BattleProbe`; hotkey Ctrl+Shift+K.
+- `S0BattleCreationPlugin.setupSimCoupled` builds the sim + a row of mixed-kind turrets
+  *outside* the plugin. Mode `SIM_COUPLED` on `S0BattleProbe`; hotkey Ctrl+Shift+K.
+
+**Next build candidate (S3a is functionally done):** S3b cityscape backdrop — draw the real
+ground scene under the ships so the proxy markers sit on the actual map.
 
 Overview open question #2 is answered: the external-damage path is `applyExternalDamage`.
 

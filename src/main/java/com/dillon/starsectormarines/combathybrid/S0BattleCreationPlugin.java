@@ -1,6 +1,13 @@
 package com.dillon.starsectormarines.combathybrid;
 
 import com.dillon.starsectormarines.DebugOnly;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.turret.MapTurret;
+import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.MapScale;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.BattleCreationPlugin;
@@ -13,6 +20,9 @@ import com.fs.starfarer.api.mission.FleetSide;
 import com.fs.starfarer.api.mission.MissionDefinitionAPI;
 import org.apache.log4j.Logger;
 import org.lwjgl.util.vector.Vector2f;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Minimal, campaign-location-independent battle definition for the combat-bridge probes.
@@ -29,6 +39,10 @@ import org.lwjgl.util.vector.Vector2f;
  *   <li><b>PROXY_TARGET</b> — S2. Same spectator host, but spawns an AI carrier on the
  *       player side and a single invisible owner-1 proxy ({@link ProxyTargetPlugin}) to
  *       test whether native carrier/fighter AI engages a slaved sim avatar.</li>
+ *   <li><b>SIM_COUPLED</b> — S3a. Like PROXY_TARGET, but builds one
+ *       {@link BattleSimulation} of mixed turrets here and mirrors each as a proxy via
+ *       {@link GroundSimBridge} — vanilla damage drains the real sim units, sim deaths
+ *       despawn the proxies. The sim is built outside the combat plugin on purpose.</li>
  * </ul>
  */
 @DebugOnly
@@ -44,8 +58,10 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
     private static final String[] CANVAS_ENEMY_SHIPS = {"tempest_Attack", "shrike_Attack"};
     /** S2: carriers on the player side whose fighters should engage the proxy. */
     private static final String[] PROXY_CARRIER_SHIPS = {"heron_Strike", "drover_Strike"};
-    /** S2: the hull behind the invisible proxy (sprite hidden; any small hull works). */
+    /** S2/S3a: the hull behind each invisible proxy (sprite hidden; any small hull works). */
     private static final String PROXY_VARIANT = "vigilance_Standard";
+    /** S3a: cell gap between adjacent turrets in the demo row (≥ marker width at scale 50). */
+    private static final int SIM_TURRET_CELL_SPACING = 6;
 
     private boolean canvas;
 
@@ -127,22 +143,43 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
     }
 
     /**
-     * S3a: same host as S2 (AI carriers vs an invisible proxy), but the proxy is
-     * backed by a live sim turret. The proxy spawns at world origin — the center
-     * cell of the sim grid, which {@link SimCoupledProxyPlugin} centers there — so
-     * the marker and the sim unit coincide.
+     * S3a (fan-out): AI carriers vs a row of invisible proxies, each backed by a
+     * real turret in <b>one</b> {@link BattleSimulation}. The sim is built here —
+     * outside the combat plugin — so the engine's repeated {@code init} can't
+     * rebuild it; {@link GroundSimBridge} only references it. The turrets sit on a
+     * short row through the grid center (which projects to world origin), so the
+     * markers spread out on the plate for the fighters to chew through.
      */
     private void setupSimCoupled(CombatEngineAPI engine, float halfH) {
         spawnRow(engine, FleetSide.PLAYER, PROXY_CARRIER_SHIPS, -halfH * 0.6f, 90f, 900f);
 
-        Vector2f anchor = new Vector2f(0f, 0f); // sim grid center -> world origin
-        ShipAPI proxy = spawnValidated(engine, FleetSide.ENEMY, PROXY_VARIANT, anchor, 270f);
-        if (proxy != null) {
-            engine.addPlugin(new SimCoupledProxyPlugin(
-                    proxy, CANVAS_GRID.width, CANVAS_GRID.height, S0BattleProbe.WORLD_UNITS_PER_CELL));
-        } else {
-            LOG.warn("S3a: proxy variant [" + PROXY_VARIANT + "] missing; no sim-coupled proxy spawned.");
+        int gridW = CANVAS_GRID.width, gridH = CANVAS_GRID.height;
+        NavigationGrid grid = new NavigationGrid(gridW, gridH);
+        CellTopology topology = new CellTopology(gridW, gridH);
+        for (int y = 0; y < gridH; y++) {
+            for (int x = 0; x < gridW; x++) {
+                grid.setWalkableFloor(x, y);
+            }
         }
+        BattleSimulation sim = new BattleSimulation(grid, topology);
+
+        // A short row of mixed-kind turrets centered on the grid (cell cx → world 0).
+        int cx = gridW / 2, cy = gridH / 2;
+        TurretKind[] kinds = {TurretKind.VULCAN, TurretKind.ARBALEST, TurretKind.HEPHAESTUS,
+                TurretKind.DUAL_FLAK, TurretKind.HEAVY_MG};
+        List<Unit> turrets = new ArrayList<>();
+        for (int i = 0; i < kinds.length; i++) {
+            int dx = (i - kinds.length / 2) * SIM_TURRET_CELL_SPACING;
+            MapTurret t = new MapTurret("bridge_turret_" + i, Faction.DEFENDER, kinds[i], cx + dx, cy);
+            sim.addUnit(t);
+            turrets.add(t);
+        }
+        // Keep the all-DEFENDER sim from auto-completing (a completed sim early-returns
+        // from advance() and would strand the death events).
+        sim.addObjective(new NeverEndObjective(Faction.DEFENDER));
+
+        engine.addPlugin(new GroundSimBridge(
+                sim, turrets, gridW, gridH, S0BattleProbe.WORLD_UNITS_PER_CELL, PROXY_VARIANT));
     }
 
     /** S2: AI carrier(s) on the player side + one invisible slaved proxy on the enemy side. */
