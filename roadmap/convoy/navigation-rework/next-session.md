@@ -42,6 +42,21 @@ watch tight back-to-back turns); (b) `MIN_LOOKAHEAD_CELLS 1.2` is below the
 ~3.96-cell min turn radius — if pursuit visibly oscillates in slow corners,
 raise the floor or lean harder on the curvature cap.
 
+**Committed reverse recovery landed (the slice-3 "blocked → back up" rung).** A
+playtest showed a truck stuck in tiny-reverse oscillation at the mouth of a
+3-wide corridor it had to enter aligned (it arrived sideways; min turn radius
+~3.96 > the gap, so it can't pivot in place). Root cause: `planLocal` returns
+null there → coarse-corridor pursuit drives into the wall → the old
+`wallStuckRecovery` pulsed ONE reverse tick per frame, which the next frame's
+forward move cancelled. Replaced the pulse with a **committed** maneuver
+(`Recovery.REVERSING`): on blocked-past-`WALL_REVERSE_DELAY`, `maxReverseDistance`
+marches the reverse axis footprint-checking each step to find the achievable
+backup (bounded by what's behind), then a dedicated `advanceReverse` phase owns
+the pose and backs up that far while aiming the nose at the corridor (3-point
+setup), before forcing a fresh forward plan from the roomier pose.
+`MAX_RECOVERY_ATTEMPTS=5` consecutive fruitless tries → hold position (no thrash).
+Unit-tested (`VehicleControllerRecoveryTest`, 3 green).
+
 Track: full layered rewrite anchored on a **rolling-horizon local Hybrid A\***
 planner with always-on kinematic tracking. No backward-compat constraint — the
 old `headings != null` dead-reckon fork is deleted, not kept.
@@ -70,7 +85,13 @@ local planner for reverse / 3-point extraction.
       `refineWithFallback` / `deriveSegmentHeadings` / `refine`. **90° snaps
       dead in code (playtest pending).**
       ([`complete/slice-2-live-tracking.md`](complete/slice-2-live-tracking.md)) ✅
-- [ ] **Slice 3** — recovery ladder. ([`stories/slice-3-recovery-ladder.md`](stories/slice-3-recovery-ladder.md))
+- [~] **Slice 3** — recovery ladder. The "blocked → committed backup" rung
+      landed (committed `Recovery.REVERSING` + `maxReverseDistance`, replacing the
+      oscillating pulse; see State of play). Remaining rungs: drift handling, a
+      real give-up (re-route from nearest road node / deload-in-place) instead of
+      hold-position after `MAX_RECOVERY_ATTEMPTS`, and using the local planner's
+      reverse for true 3-point extraction.
+      ([`stories/slice-3-recovery-ladder.md`](stories/slice-3-recovery-ladder.md))
 - [~] **Slice 4** — tuning & feel (absorbs `../stories/driving-feel-tuning.md`).
       Corner-speed governor + speed-scaled look-ahead landed early (see State of
       play); remaining constant-tuning open.
@@ -92,21 +113,30 @@ local planner for reverse / 3-point extraction.
 
 ## Picking up cold
 
-Slices 0–2 are done. The control stack is live: `VehicleController.tick` →
-`corridor.advance(pose)` → terminal RS docking (inbound) → arrival → rolling
-`LocalTrajectoryPlanner.plan` refresh → `PurePursuit` carrot along the
-trajectory (coarse-corridor fallback when `plan()` is `null`) → `body.tick` →
-shared `wallStuckRecovery` reverse stub. The synthetic-heading fork and the
-full-path `refine` are gone.
+Slices 0–2 are done; slices 3–4 partially in (see State of play). The control
+stack is live: `VehicleController.tick` → `corridor.advance(pose)` → committed
+reverse recovery (if `REVERSING`) → terminal RS docking (inbound) → arrival →
+rolling `LocalTrajectoryPlanner.plan` refresh → speed-scaled `PurePursuit` carrot
+along the trajectory (coarse-corridor fallback when `plan()` is `null`) →
+curvature-capped `body.tick` → `wallStuckRecovery` (now a committed-backup
+trigger). The synthetic-heading fork and the full-path `refine` are gone.
 
-**First: playtest slice 2** (see Next up — it's the unverified bit). Then start
-**slice 3 — recovery ladder**. The two slice-2 stubs it replaces:
-1. `VehicleController.wallStuckRecovery` — the ad-hoc revert-and-reverse-pulse.
+**First: playtest** the corner governor + reverse recovery on a cornering convoy
+run (the prior stuck-truck case). Then finish **slice 3 — recovery ladder**.
+What's left now that the committed backup is in:
+1. The remaining rungs: drift handling, and a real **give-up** — after
+   `MAX_RECOVERY_ATTEMPTS` the controller just holds position; replace with a
+   re-route from the nearest road node, or deload-in-place, so a kinematically
+   impossible corridor doesn't strand the truck.
 2. The `else` branch in `advance` where `trajectory == null` falls back to
-   coarse-corridor pursuit (currently also how the off-map drive-on works).
-Formalize both into drift → blocked → stuck → giveup, using
-`LocalTrajectoryPlanner` (reverse / 3-point) for extraction and a full re-route
-from the nearest road node for "stuck." Heed slice-1 critique #1 (near-goal
-`null` is arrival, already special-cased before planning) so recovery never
-fires at the LZ. Attach a critique-pass agent.
+   coarse-corridor pursuit (also how the off-map drive-on works) — the dumb
+   pursuit there is what drives into the wall in the first place; consider using
+   `LocalTrajectoryPlanner`'s reverse-capable search for true 3-point extraction
+   instead of the straight-ish backup.
+Deeper root cause worth a separate look: the cost router (clearance radius 1)
+will route a truck through a 3-wide gap it fits *statically* but can't *enter*
+kinematically (min turn radius ~3.96). A turn-aware clearance or approach check
+in `cost-field-routing` would stop picking those corridors. Heed slice-1 critique
+\#1 (near-goal `null` is arrival, special-cased before planning) so recovery
+never fires at the LZ. Attach a critique-pass agent.
 </content>

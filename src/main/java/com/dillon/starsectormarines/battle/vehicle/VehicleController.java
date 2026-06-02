@@ -87,6 +87,24 @@ public final class VehicleController {
     /** Floor the curvature governor slows to, as a fraction of {@link VehicleType#maxSpeed} — keeps creeping through the corner, never a mid-route stop. */
     private static final float CURVE_MIN_SPEED_FRAC = 0.35f;
 
+    /**
+     * Target backup distance (cells) for a committed reverse recovery — enough
+     * to open room for a fresh forward plan to swing the nose around, but capped
+     * to whatever is actually clear behind ({@link #maxReverseDistance}).
+     */
+    static final float REVERSE_RECOVERY_CELLS = 3.5f;
+    /** Below this achievable backup (cells) reversing can't gain useful room (walls close behind) — don't start a maneuver that goes nowhere. */
+    static final float MIN_USEFUL_REVERSE_CELLS = 0.75f;
+    /** Step (cells) for the backward footprint march that measures achievable backup distance — sub-cell so a 1-cell wall behind can't slip between samples. */
+    private static final float REVERSE_MARCH_STEP = 0.25f;
+    /**
+     * Consecutive failed recoveries (a backup that didn't yield even one feasible
+     * forward step) before the controller stops retrying and holds position. The
+     * formal give-up rung — re-route / abandon / deload-in-place — is slice 3;
+     * this just stops the visible thrash when a route is kinematically impossible.
+     */
+    private static final int MAX_RECOVERY_ATTEMPTS = 5;
+
     private final Vehicle vehicle;
     private final NavigationService navigation;
 
@@ -115,6 +133,14 @@ public final class VehicleController {
     private float wallStuckTime;
     /** Position where the vehicle first got stuck; wallStuckTime only resets once it moves meaningfully away. */
     private float stuckOriginX, stuckOriginY;
+
+    /** Recovery phase. {@code REVERSING} means a committed backup maneuver owns the pose until it completes. */
+    private enum Recovery { NONE, REVERSING }
+    private Recovery recovery = Recovery.NONE;
+    /** Cells of backup still owed on the active reverse maneuver. */
+    private float reverseRemaining;
+    /** Consecutive failed recoveries; reset on any clean forward step, caps via {@link #MAX_RECOVERY_ATTEMPTS}. */
+    private int recoveryAttempts;
 
     /** Set true the tick the vehicle reaches its terminal waypoint; cleared by {@link #consumeArrived()}. */
     private boolean arrived;
@@ -168,6 +194,9 @@ public final class VehicleController {
             sinceReplan = 0f;
             trajCarrotAtEnd = false;
             dockingPath = null;
+            recovery = Recovery.NONE;
+            recoveryAttempts = 0;
+            wallStuckTime = 0f;
             lastInbound = isInbound;
         }
 
@@ -186,6 +215,16 @@ public final class VehicleController {
         // Keep the advisory cursor abreast of the pose so remainingLength /
         // the rolling goal measure from the current segment.
         corridor.advance(body.x, body.y);
+
+        // --- Committed reverse recovery ------------------------------------
+        // A backup maneuver owns the pose until it finishes (or backs into
+        // something). This must run before the forward track so the two don't
+        // alternate tick-to-tick — the cancellation that produced the old
+        // tiny-reverse oscillation.
+        if (recovery == Recovery.REVERSING) {
+            advanceReverse(dt);
+            return;
+        }
 
         // --- Terminal docking phase (inbound only) -------------------------
         if (isInbound) {
@@ -282,7 +321,7 @@ public final class VehicleController {
         boolean exitingOffMap = !navigation.getGrid().inBounds(
                 (int) Math.floor(carrot.x), (int) Math.floor(carrot.y));
         if (!exitingOffMap) {
-            wallStuckRecovery(body, type, carrot, prevX, prevY, prevFacing, dt);
+            wallStuckRecovery(body, type, prevX, prevY, prevFacing, dt);
         }
     }
 
@@ -351,14 +390,18 @@ public final class VehicleController {
     }
 
     /**
-     * Wall-stuck reverse stub (shared by both carrot sources). When a move
-     * carries a previously-feasible body into an infeasible pose, revert the
-     * move; after {@link #WALL_REVERSE_DELAY} seconds blocked, pulse a reverse.
-     * A trajectory is feasible by construction so this rarely fires while
-     * tracking one — it mainly guards the coarse-corridor fallback. The formal
-     * recovery ladder (drift → blocked → stuck → giveup) lands in slice 3.
+     * Forward-move feasibility guard + committed-backup trigger. When a forward
+     * move carries a previously-feasible body into a wall, revert it; once
+     * blocked past {@link #WALL_REVERSE_DELAY} seconds, hand off to a
+     * <em>committed</em> reverse maneuver ({@link #beginReverseRecovery}) instead
+     * of pulsing a single reverse tick. The old pulse alternated with the next
+     * tick's forward move and cancelled out — the tiny-reverse oscillation. A
+     * trajectory is feasible by construction, so this mostly guards the
+     * coarse-corridor fallback (where the planner found no forward plan). The
+     * rest of the recovery ladder (drift → blocked → stuck → give-up re-route)
+     * is slice 3.
      */
-    private void wallStuckRecovery(GroundBody body, VehicleType type, PurePursuit.Carrot carrot,
+    private void wallStuckRecovery(GroundBody body, VehicleType type,
                                    float prevX, float prevY, float prevFacing, float dt) {
         NavigationGrid grid = navigation.getGrid();
         boolean prevOnGrid = VehicleFootprint.isPoseFeasible(prevX, prevY, prevFacing,
@@ -377,22 +420,110 @@ public final class VehicleController {
             body.facingDegrees = prevFacing;
             body.speed = 0f;
             if (wallStuckTime > WALL_REVERSE_DELAY) {
-                body.tick(carrot.x, carrot.y, -WALL_REVERSE_SPEED, dt);
-                if (!VehicleFootprint.isPoseFeasible(body.x, body.y, body.facingDegrees,
-                        type.visualLengthCells, type.visualWidthCells, grid)) {
-                    body.x = prevX;
-                    body.y = prevY;
-                    body.facingDegrees = prevFacing;
-                    body.speed = 0f;
-                }
+                beginReverseRecovery(body, type);
             }
-        } else if (wallStuckTime > 0f) {
+            return;
+        }
+
+        // Clean forward step (or prev was off-grid): not consecutively stuck.
+        if (newFeasible) recoveryAttempts = 0;
+        if (wallStuckTime > 0f) {
             float dx = body.x - stuckOriginX;
             float dy = body.y - stuckOriginY;
             if (dx * dx + dy * dy > STUCK_ESCAPE_DIST * STUCK_ESCAPE_DIST) {
                 wallStuckTime = 0f;
             }
         }
+    }
+
+    /**
+     * Enter a committed reverse maneuver: back up to the achievable distance
+     * (bounded by what's actually clear behind — {@link #maxReverseDistance}) so
+     * a fresh forward plan has room to swing the nose around. Skips the maneuver
+     * when nothing useful is reachable behind, and after
+     * {@link #MAX_RECOVERY_ATTEMPTS} fruitless tries holds position rather than
+     * thrash (a kinematically impossible corridor — the slice-3 give-up rung
+     * re-routes or deloads in place).
+     */
+    private void beginReverseRecovery(GroundBody body, VehicleType type) {
+        if (recoveryAttempts >= MAX_RECOVERY_ATTEMPTS) return;
+        float achievable = maxReverseDistance(body.x, body.y, body.facingDegrees,
+                type, navigation.getGrid());
+        recoveryAttempts++;
+        if (achievable < MIN_USEFUL_REVERSE_CELLS) return; // boxed in — can't gain room
+        reverseRemaining = achievable;
+        recovery = Recovery.REVERSING;
+        trajectory = null; // the forward plan is stale; replan after backing up
+    }
+
+    /**
+     * One tick of the committed backup. Reverses while aiming the nose at the
+     * corridor ahead (BicycleBody negates steering in reverse, so the nose swings
+     * <em>toward</em> the carrot as the body backs away — a 3-point-turn setup),
+     * footprint-gated each tick. Stops when the owed distance is consumed or the
+     * body backs into something, then forces a forward replan from the new pose.
+     */
+    private void advanceReverse(float dt) {
+        GroundBody body = vehicle.body;
+        VehicleType type = vehicle.type;
+        NavigationGrid grid = navigation.getGrid();
+
+        float horizon = Math.max(MIN_LOOKAHEAD_CELLS, type.lookAheadCells);
+        Pose ahead = corridor.targetAhead(body.x, body.y, horizon);
+
+        float prevX = body.x, prevY = body.y, prevFacing = body.facingDegrees;
+        body.tick(ahead.x, ahead.y, -WALL_REVERSE_SPEED, dt);
+
+        if (!VehicleFootprint.isPoseFeasible(body.x, body.y, body.facingDegrees,
+                type.visualLengthCells, type.visualWidthCells, grid)) {
+            // Backed into something — this is as far as we get. (The march budget
+            // is a straight-line estimate; the steered reverse can curve into a
+            // wall the march didn't sample, so the per-tick gate is the backstop.)
+            body.x = prevX;
+            body.y = prevY;
+            body.facingDegrees = prevFacing;
+            body.speed = 0f;
+            endReverseRecovery();
+            return;
+        }
+
+        reverseRemaining -= (float) Math.hypot(body.x - prevX, body.y - prevY);
+        if (reverseRemaining <= 0f) endReverseRecovery();
+    }
+
+    /** Exit the reverse maneuver and force a fresh forward plan from the new, roomier pose. */
+    private void endReverseRecovery() {
+        recovery = Recovery.NONE;
+        trajectory = null;
+        sinceReplan = REPLAN_INTERVAL_SEC; // replan on the next forward tick
+        wallStuckTime = 0f;
+    }
+
+    /**
+     * Achievable straight-back distance (cells) before the footprint would hit a
+     * wall or leave the grid — the "back up to where you can, accounting for
+     * what's behind you" calculation. Marches the reverse axis
+     * {@code (sin θ, −cos θ)} in {@link #REVERSE_MARCH_STEP} increments,
+     * footprint-checking each, capped at {@link #REVERSE_RECOVERY_CELLS}. A
+     * conservative budget for {@link #advanceReverse} (which may steer and curve);
+     * the per-tick gate there handles any deviation. Package-private + static for
+     * {@code VehicleControllerRecoveryTest}.
+     */
+    static float maxReverseDistance(float x, float y, float facingDeg,
+                                    VehicleType type, NavigationGrid grid) {
+        float rad = (float) Math.toRadians(facingDeg);
+        float bx =  (float) Math.sin(rad);   // reverse axis = −forward = −(−sinθ, cosθ)
+        float by = -(float) Math.cos(rad);
+        float dist = 0f;
+        while (dist + REVERSE_MARCH_STEP <= REVERSE_RECOVERY_CELLS) {
+            float nd = dist + REVERSE_MARCH_STEP;
+            if (!VehicleFootprint.isPoseFeasible(x + bx * nd, y + by * nd, facingDeg,
+                    type.visualLengthCells, type.visualWidthCells, grid)) {
+                break;
+            }
+            dist = nd;
+        }
+        return dist;
     }
 
     /**
