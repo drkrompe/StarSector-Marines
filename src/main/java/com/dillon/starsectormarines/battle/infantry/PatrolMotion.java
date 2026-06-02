@@ -64,7 +64,7 @@ public final class PatrolMotion {
     public static ActionStatus advance(Unit member, Squad squad, BattleControl sim,
                                        WaypointSource source, boolean fireWhilePatrolling) {
         if (squad.patrolDwellTimer > 0f) {
-            if (member.entityId == squad.leaderId) squad.patrolDwellTimer -= BattleSimulation.TICK_DT;
+            if (ticksDwell(member, squad, sim)) squad.patrolDwellTimer -= BattleSimulation.TICK_DT;
             onHold(member, sim, fireWhilePatrolling);
             return ActionStatus.RUNNING;
         }
@@ -86,8 +86,40 @@ public final class PatrolMotion {
             onHold(member, sim, fireWhilePatrolling);
             return ActionStatus.RUNNING;
         }
-        onMove(member, sim, squad.patrolWaypointX, squad.patrolWaypointY, fireWhilePatrolling);
+        boolean moving = onMove(member, sim, squad.patrolWaypointX, squad.patrolWaypointY, fireWhilePatrolling);
+        if (!moving) {
+            // The waypoint is unreachable from here — GridPathfinder found no
+            // route (not an arrival: arrival is caught by needsNew above, so
+            // reaching this park means there is genuinely no path). Invalidate
+            // the waypoint so needsNew re-picks next tick. Without this the
+            // round-robin never advances (it only rolls over on arrival) and the
+            // squad parks on the unreachable cell forever — a garrison whose
+            // next room sits across a wall the zone graph floods past but the
+            // pathfinder honors ([[zone_graph_ignores_edges]]) would freeze in
+            // place. Lock-guarded like the pick above so a sibling worker's
+            // fresh waypoint isn't clobbered.
+            synchronized (squad.lock) {
+                squad.patrolWaypointX = -1;
+                squad.patrolWaypointY = -1;
+            }
+        }
         return ActionStatus.RUNNING;
+    }
+
+    /**
+     * Whether THIS member counts down the shared dwell timer this tick. Normally
+     * only the leader does, so the timer decrements once per tick rather than
+     * once per member. But if the leader is dead or unset — {@code leaderId} is
+     * the {@code 0L} wipe sentinel, or resolves to no live unit (a death path
+     * that didn't promote) — no member would match and the dwell would never
+     * expire, parking the whole squad in {@link #onHold} forever (the SQ-96
+     * garrison stall). Fall back to letting every member tick it: the timer
+     * drains faster while leaderless (self-corrects on the next promotion) but
+     * the patrol never freezes.
+     */
+    private static boolean ticksDwell(Unit member, Squad squad, BattleView sim) {
+        if (member.entityId == squad.leaderId) return true;
+        return squad.leaderId == 0L || sim.resolveUnit(squad.leaderId) == null;
     }
 
     public static boolean hasValidWaypoint(Squad squad) {
@@ -106,23 +138,31 @@ public final class PatrolMotion {
         hold(member, sim);
     }
 
-    private static void onMove(Unit member, BattleControl sim, int tx, int ty, boolean fire) {
+    private static boolean onMove(Unit member, BattleControl sim, int tx, int ty, boolean fire) {
         if (fire) fireIfAble(member, sim);
-        moveToward(member, sim, tx, ty);
+        return moveToward(member, sim, tx, ty);
     }
 
-    /** Path one tick toward {@code (tx,ty)}; on arrival (or no path) park in place. */
-    public static void moveToward(Unit member, BattleControl sim, int tx, int ty) {
+    /**
+     * Path one tick toward {@code (tx,ty)}. Returns {@code true} while the member
+     * has a path to follow (moving, or sitting on the target with a trivial
+     * one-cell path), {@code false} when the pathfinder returns no route from the
+     * current cell — i.e. the target is unreachable and the member parks in
+     * place. Callers driving a re-rollable waypoint use the {@code false} return
+     * to pick a different target instead of parking forever.
+     */
+    public static boolean moveToward(Unit member, BattleControl sim, int tx, int ty) {
         if (sim.world().moveProgress(member.entityId) == 0f && member.pathIdx >= member.pathCellCount()) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), tx, ty, sim.getOccupancyMap()));
         }
         if (member.pathIdx < member.pathCellCount()) {
             sim.advanceMovement(member);
-        } else {
-            sim.world().setMoveProgress(member.entityId, 0f);
-            member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
+            return true;
         }
+        sim.world().setMoveProgress(member.entityId, 0f);
+        member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
+        return false;
     }
 
     /** Stop and clear any path — park the member on its current cell. */

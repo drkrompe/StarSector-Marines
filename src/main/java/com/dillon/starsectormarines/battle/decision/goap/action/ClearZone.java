@@ -110,16 +110,29 @@ public final class ClearZone extends AbstractZoneAction {
         }
         if (sim.world().moveProgress(member.entityId) == 0f) {
             int[] dest = sim.getTacticalScoring().findFiringPosition(member, target);
-            if (dest == null) {
-                // No reachable firing or vantage cell for this in-zone target.
-                // Drop the target — pickInZoneTarget will get a fresh shot next
-                // tick (Story K stays satisfied: we only ever clear within zone,
-                // and an unreachable in-zone target shouldn't pin the unit).
+            int[] path = dest == null ? GridPathfinder.EMPTY_PATH
+                    : GridPathfinder.findPath(sim.getGrid(),
+                            sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+                            dest[0], dest[1], sim.getOccupancyMap());
+            if (path.length == 0) {
+                // No reachable firing cell for this in-zone target: either
+                // findFiringPosition found nothing, OR it returned a LOS+range
+                // cell the pathfinder can't route to. The latter is the trap —
+                // its stage-1 search doesn't verify reachability, so a target
+                // walled off within the flood-zone (zones ignore edges, the
+                // pathfinder honors them — [[zone_graph_ignores_edges]]) yields
+                // a cell on the wrong side of a wall. Setting that empty path
+                // would pin the unit in place forever (the SQ-96 garrison
+                // freeze, here on the assault path). Drop the target instead —
+                // pickInZoneTarget re-acquires next tick (Story K stays
+                // satisfied: we only ever clear within zone). A zone whose every
+                // survivor is unreachable idles here pending a make-passage /
+                // breach action — the documented limitation, surfaced via
+                // SquadStateDumper.clearZoneReachability.
                 sim.world().setTargetId(member.entityId, 0L);
                 return ActionStatus.RUNNING;
             }
-            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                    sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), dest[0], dest[1], sim.getOccupancyMap()));
+            sim.setPath(member, path);
         }
         sim.advanceMovement(member);
         return ActionStatus.RUNNING;
