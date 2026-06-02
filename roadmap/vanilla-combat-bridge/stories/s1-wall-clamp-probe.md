@@ -1,4 +1,18 @@
-# S1 — Wall-clamp probe
+# S1 — Wall-clamp probe — ⏸ SHELVED (2026-06)
+
+> **Decision:** not pursuing for now. The product direction landed on **fleet-above /
+> ground-battle-below with cross-interaction** (the proxy / air-to-ground framing, S2),
+> not putting walls into the vanilla combat plane (Direction A). The whole point of S1
+> was to gate Direction A on feel — and we're choosing not to walk down Direction A's
+> long tail (projectiles/beams/AI all ignore walls until individually patched). Walls
+> stay in our headless sim, where they already work.
+>
+> Kept (not deleted) because the post-physics `getLocation()`/`getVelocity()` clamp is
+> still a real, verified technique (overview fact 2) if a future feature ever wants a
+> single ship to respect a barrier in the vanilla plane. Revisit only if that need
+> appears.
+
+---
 
 > Throwaway probe for Direction A (walls into vanilla combat). Answers one UX
 > question: does a post-physics position-clamp *feel* like a solid wall?

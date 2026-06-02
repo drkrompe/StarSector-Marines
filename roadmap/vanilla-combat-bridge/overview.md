@@ -238,11 +238,10 @@ cheaply, before any real feature investment ([[feedback_ship_then_optimize]]):
   restored (via `PlayerFleetStash`). Proves facts 8–12 compose. Sealed in
   [`complete/s0b-spectator-canvas.md`](complete/s0b-spectator-canvas.md). **Answer: yes
   — vanilla combat can host our sim.**
-- **S1 — Wall-clamp probe.** A ~100-line `EveryFrameCombatPlugin` that draws a
-  hardcoded box of wall tiles in `renderInWorldCoords` and clamps any ship out of
-  those tiles each frame (position-`set()` + velocity-slide). Fly a ship into it.
-  Answers the only UX question that matters for Direction A: **does a post-physics
-  position-clamp feel like a wall, or like mush?** See
+- **S1 — Wall-clamp probe.** ⏸ *shelved (2026-06).* Direction A (walls into the
+  vanilla plane) is not the chosen direction — the product is fleet-above /
+  ground-below with cross-interaction (the proxy framing). Walls stay in the headless
+  sim. Kept as a documented technique only. See
   [`stories/s1-wall-clamp-probe.md`](stories/s1-wall-clamp-probe.md).
 - **S2 — Proxy-target probe.** Spawn one invisible `owner = enemy` `ShipAPI`
   proxy at a fixed point, drain its HP to a log line, and watch whether a player
@@ -252,10 +251,10 @@ cheaply, before any real feature investment ([[feedback_ship_then_optimize]]):
   [`stories/s2-proxy-target-probe.md`](stories/s2-proxy-target-probe.md).
 
 Sequencing: ~~**S0 first**~~ ✅ done (S0 + S0b shipped — a campaign-launched combat
-instance that hosts a sim-driven spectator canvas). Next: **S2** — the more compelling
-feature *and* the cheaper de-risk (no terrain mess at all); it now has a proven combat
-host to spawn proxies into. S1 informs whether Direction A is worth pursuing beyond a
-curiosity.
+instance that hosts a sim-driven spectator canvas). Next: **S2** — the chosen direction
+(fleet-above / ground-below with cross-interaction); it now has a proven combat host to
+spawn proxies into. ~~S1~~ shelved — Direction A (walls in the vanilla plane) is not the
+product direction; walls stay in the headless sim.
 
 ## Open questions
 
