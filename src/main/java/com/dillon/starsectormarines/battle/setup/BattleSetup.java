@@ -1543,26 +1543,39 @@ public final class BattleSetup {
      * that direction. The cell itself isn't recomputed — non-walkable cells
      * don't carry valid cover values; the demolition path re-bakes on death.
      */
-    private static void spawnDefensePostTurrets(BattleSimulation sim, List<DefensePost> posts) {
+    /**
+     * Public so the combat-bridge ({@code combathybrid.S0BattleCreationPlugin}) spawns
+     * the planet's defenses through the <em>same</em> path the standalone battle uses —
+     * no reimplementation to drift from this one (its earlier copy omitted the cover
+     * recompute). Returns the spawned structure units (turrets + drone hubs) in spawn
+     * order, for callers that need to reference them (the bridge mirrors them as proxies).
+     */
+    public static List<Unit> spawnDefensePostTurrets(BattleSimulation sim, List<DefensePost> posts) {
+        List<Unit> spawned = new ArrayList<>();
         int i = 0;
         int h = 0;
         for (DefensePost post : posts) {
             for (DefensePost.TurretSpec spec : post.turrets) {
-                sim.addUnit(new MapTurret("t" + i++, Faction.DEFENDER, spec.kind, spec.cellX, spec.cellY));
+                MapTurret turret = new MapTurret("t" + i++, Faction.DEFENDER, spec.kind, spec.cellX, spec.cellY);
+                sim.addUnit(turret);
                 sim.getGrid().setWalkable(spec.cellX, spec.cellY, false);
                 sim.getGrid().recomputeCoverAt(spec.cellX + 1, spec.cellY);
                 sim.getGrid().recomputeCoverAt(spec.cellX - 1, spec.cellY);
                 sim.getGrid().recomputeCoverAt(spec.cellX, spec.cellY + 1);
                 sim.getGrid().recomputeCoverAt(spec.cellX, spec.cellY - 1);
+                spawned.add(turret);
             }
             // DRONE_HUB has no turrets — the hub structure occupies the sealed
             // center cell (already flipped non-walkable by the stamper's
             // sealInnerCell call). Spawning the DroneHubUnit here gives it HP
             // and a render target; the drones it'll launch come in a follow-up.
             if (post.tier == DefensePostKind.DRONE_HUB) {
-                sim.addUnit(new DroneHubUnit("dh" + h++, Faction.DEFENDER, post.anchorX, post.anchorY));
+                DroneHubUnit hub = new DroneHubUnit("dh" + h++, Faction.DEFENDER, post.anchorX, post.anchorY);
+                sim.addUnit(hub);
+                spawned.add(hub);
             }
         }
+        return spawned;
     }
 
     private static long key(int x, int y) {

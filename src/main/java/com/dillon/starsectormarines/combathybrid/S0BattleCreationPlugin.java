@@ -1,11 +1,8 @@
 package com.dillon.starsectormarines.combathybrid;
 
 import com.dillon.starsectormarines.DebugOnly;
-import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
+import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.turret.DefensePost;
-import com.dillon.starsectormarines.battle.turret.DefensePostKind;
-import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
@@ -26,7 +23,6 @@ import com.fs.starfarer.api.mission.MissionDefinitionAPI;
 import org.apache.log4j.Logger;
 import org.lwjgl.util.vector.Vector2f;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -167,7 +163,7 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
      * the fleet. We generate the map exactly as
      * {@link com.dillon.starsectormarines.battle.setup.BattleSetup#createConquest} does —
      * biome-banded along a {@link TraversalAxis}, with buildings, doodads, roads, and the
-     * pre-stamped {@link DefensePost} layout — but stop at the <em>map</em>: no marines,
+     * pre-stamped defense-post layout — but stop at the <em>map</em>: no marines,
      * defenders, shuttles, or reinforcement (that's the battle, not the map). The
      * defense-post turrets are spawned as real targetable structures and mirrored as
      * proxies, so the carriers' fighters strafe the planet's actual defenses.
@@ -192,24 +188,10 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
         sim.setDefensePosts(map.defensePosts);
         for (Doodad d : map.doodads) sim.addDoodad(d);
 
-        // Spawn the pre-stamped defense-post turrets as real structures (mirrors
-        // BattleSetup.spawnDefensePostTurrets: flip the mount cell non-walkable), and
-        // collect them as the proxy/targetable set. Drone-hub posts get a hub unit too.
-        List<Unit> targetable = new ArrayList<>();
-        int t = 0, h = 0;
-        for (DefensePost post : map.defensePosts) {
-            for (DefensePost.TurretSpec spec : post.turrets) {
-                MapTurret turret = new MapTurret("bridge_t" + t++, Faction.DEFENDER, spec.kind, spec.cellX, spec.cellY);
-                sim.addUnit(turret);
-                sim.getGrid().setWalkable(spec.cellX, spec.cellY, false);
-                targetable.add(turret);
-            }
-            if (post.tier == DefensePostKind.DRONE_HUB) {
-                DroneHubUnit hub = new DroneHubUnit("bridge_dh" + h++, Faction.DEFENDER, post.anchorX, post.anchorY);
-                sim.addUnit(hub);
-                targetable.add(hub);
-            }
-        }
+        // Spawn the planet's defenses through the SAME path the standalone battle uses
+        // (BattleSetup.spawnDefensePostTurrets), and mirror the returned structures as
+        // proxies — so the fleet strafes real defenses with no reimplementation to drift.
+        List<Unit> targetable = BattleSetup.spawnDefensePostTurrets(sim, map.defensePosts);
         LOG.info("S3: loaded Conquest map [" + scale + " " + gridW + "x" + gridH + ", axis=" + axis
                 + "] — " + map.defensePosts.size() + " defense posts, " + targetable.size() + " targetable structures.");
 
