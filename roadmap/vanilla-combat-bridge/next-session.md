@@ -118,11 +118,28 @@ Verified: the three changed files pass IntelliJ per-file error analysis. Full
 `gradlew compileJava` is currently red on an *unrelated* concurrent-session refactor
 (`battle/ui/highlight/HighlightOverlay` + `BattleCamera`) — left untouched.
 
+## Plugin pick CONFIRMED working; variant-id crash fixed
+
+Second playtest: `S0BattleCreationPlugin SELECTED [mode=SPECTATOR_CANVAS]` +
+`setDoNotEndCombat=true` both logged — **the pick fix works, our plugin runs.** It
+then crashed: `[wolf_Standard] is not a valid ship variant id` from `spawnShipOrWing`.
+The guessed stock ids were wrong (vanilla ships are `vigilance_Standard`,
+`tempest_Attack`, etc. — `wolf_Standard`/`lasher_Standard`/`hound_Standard` don't
+exist as variant files).
+
+Two lessons baked in: (1) `createFleetMember` resolves variants *lazily* (BASIC's bad
+enemy ids never threw at build), but `spawnShipOrWing` resolves *eagerly* and throws;
+(2) both paths now use real ids (`vigilance_Standard` + `vigilance_Strike` for the
+BASIC enemy, `vigilance_Standard`/`brawler_Assault` vs `tempest_Attack`/`shrike_Attack`
+for the canvas) and **validate via `Global.getSettings().getVariant(id) != null`
+before use** — a bad id now logs + skips instead of aborting the launch.
+
 ## Immediate next-up
 
-- **Re-playtest S0 + S0b** — first confirm the `S0BattleCreationPlugin SELECTED` log
-  line appears (proves the pick fix). Then fill the checklists above; the spectator
-  levers (no-deploy, no player ship) are only now genuinely under test.
+- **Re-playtest S0b (Ctrl+Shift+N)** — past the spawn crash now. Fill the spectator
+  checklist above: the high-value unknown is whether `setPlayerShipExternal(null)` +
+  `useDefaultAI=true` actually yields a no-control spectator, or the engine still
+  hands you a ship. Then S0 BASIC (Ctrl+Shift+B) should also work end-to-end with F10.
 - After S0b verdict: **S2 — proxy-target probe** (spawn the proxy into the now-proven
   combat instance), then wire HP drain into the sim's external-damage path (open
   question #2).

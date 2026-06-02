@@ -53,10 +53,11 @@ public final class S0BattleProbe {
      */
     public static final float WORLD_UNITS_PER_CELL = 50f;
 
-    /** Variant used if the player has no combat ships, so the probe still demos. */
-    private static final String FALLBACK_PLAYER_VARIANT = "wolf_Standard";
+    /** Variant used if the player has no combat ships, so the probe still demos.
+     *  Must be a real variant id from data/variants. */
+    private static final String FALLBACK_PLAYER_VARIANT = "vigilance_Standard";
 
-    private static final String[] ENEMY_VARIANTS = {"lasher_Standard", "hound_Standard"};
+    private static final String[] ENEMY_VARIANTS = {"vigilance_Standard", "vigilance_Strike"};
 
     /**
      * Raised for the duration of a single {@link #launch()} so
@@ -159,6 +160,12 @@ public final class S0BattleProbe {
         CampaignFleetAPI fleet = f.createEmptyFleet(Factions.HEGEMONY, "Test Opposition", true);
         fleet.getMemoryWithoutUpdate().set(PROBE_FLAG, true);
         for (String variantId : ENEMY_VARIANTS) {
+            // createFleetMember resolves the variant lazily, so a bad id would crash
+            // later during battle build with an opaque trace — validate up front.
+            if (Global.getSettings().getVariant(variantId) == null) {
+                LOG.warn("S0 probe: skipping unknown enemy variant id [" + variantId + "]");
+                continue;
+            }
             fleet.getFleetData().addFleetMember(
                     f.createFleetMember(FleetMemberType.SHIP, variantId));
         }

@@ -38,9 +38,10 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
     /** Canvas demo grid (the MEDIUM mission tier). */
     private static final MapScale CANVAS_GRID = MapScale.MEDIUM;
 
-    /** Stock variants spawned for the spectator canvas (throwaway; roster isn't the point of S0b). */
-    private static final String[] CANVAS_PLAYER_SHIPS = {"wolf_Standard", "lasher_Standard"};
-    private static final String[] CANVAS_ENEMY_SHIPS = {"hound_Standard", "vigilance_Standard"};
+    /** Stock variants spawned for the spectator canvas (throwaway; roster isn't the point of S0b).
+     *  Must be real variant ids from data/variants — validated before spawn. */
+    private static final String[] CANVAS_PLAYER_SHIPS = {"vigilance_Standard", "brawler_Assault"};
+    private static final String[] CANVAS_ENEMY_SHIPS = {"tempest_Attack", "shrike_Attack"};
 
     private boolean spectator;
 
@@ -122,8 +123,15 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
                                  float y, float facing, float spacing) {
         float startX = -((variantIds.length - 1) * spacing) * 0.5f;
         for (int i = 0; i < variantIds.length; i++) {
+            String id = variantIds[i];
+            // Validate first — a bad id throws inside spawnShipOrWing and aborts the
+            // whole launch (it runs in startBattle). Skip + log instead.
+            if (Global.getSettings().getVariant(id) == null) {
+                LOG.warn("S0b: skipping unknown variant id [" + id + "] for side " + side);
+                continue;
+            }
             float x = startX + i * spacing;
-            engine.getFleetManager(side).spawnShipOrWing(variantIds[i], new Vector2f(x, y), facing);
+            engine.getFleetManager(side).spawnShipOrWing(id, new Vector2f(x, y), facing);
         }
     }
 }
