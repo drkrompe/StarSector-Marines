@@ -62,6 +62,9 @@ c1fb304  battle: EquipmentDrop + turret guardpost scan dense; drop DamageResolve
 1ed41bc  battle: delete the legacy live+dead units list (step 4 stage C)  ← 2026-06-01
 58d6d5e  battle: Group-N accessors fail-loud again (step 5)  ← 2026-06-01
 e038706  battle: SoA Group-S seed-only stats — collapse the local* duality (Phase A Slice 2)  ← 2026-06-01
+31058bf  battle: collapse cell local* via DeathEvent snapshot (Phase A Slice 3a)  ← 2026-06-02
+2a25347  battle: UnitSpatialIndex.gather skips dead units (fail-loud cell fix)  ← 2026-06-02
+<next>    battle: SquadDetailPanel value-snapshot + getMaxHp re-fail-loud (Phase A Slice 3b)  ← 2026-06-02
 ```
 
 (Sibling tracks interleaved on HEAD, not ECS-migration: `9084ed4` battle-render
@@ -105,11 +108,20 @@ campaign work.)
   three demolition/wreck death-handlers read the death cell off the event
   instead of the released unit; `localCellX/Y` → write-only `seedCellX/seedCellY`,
   `getCellX/getCellY/setCellPos` fail-loud, `release` drops the cell snapshot.
-  **The ONLY `local*` left is `localHp`** — its sole post-release reader is the
-  `SquadDetailPanel` HUD snapshot (member killed mid-frame). `localRenderX/Y` are
-  seed-only already (RenderPositionService survives release). **Slice 3b (hp via
-  HUD value-snapshot) is all that's left of the duality collapse** — see
-  [`collapse-unit-handle`](stories/collapse-unit-handle.md).
+  (Hotfix `2a25347`: `UnitSpatialIndex.gather` now skips dead stale entries
+  before the now-fail-loud cell read.) **Slice 3b (2026-06-02)** moved the
+  `SquadDetailPanel` HUD off post-release reads — it snapshots displayed values
+  (`MemberRow`) at `update()` instead of holding live refs, so `getMaxHp`
+  reverted to fail-loud (the `33ba6c6` workaround is gone).
+- **`localHp` is the lone surviving `local*` — a pinned minimum, not a loose
+  end.** Audit (2026-06-02): its fallback is load-bearing for every held-`Unit`-ref
+  `isAlive()` check (mech salvo / turret+vehicle aim / flyby / wiped-squad
+  leader) — when the target is released, `isAlive()` (via `getHp`) must return
+  false, not NPE. **Fully removing it needs a separate ref→id migration**
+  (migrate those held refs to `registry.isLive(id)`, the move `targetId` already
+  made); that plus this pinned `localHp` gates the `Unit` → `Entity` rename. See
+  [`collapse-unit-handle`](stories/collapse-unit-handle.md). `localRenderX/Y` are
+  seed-only already (RenderPositionService survives release).
 - **Full suite green at 592 tests** (after the death-dispatcher foundation
   slice). The earlier sibling compile break in `ShotRenderService.java` has
   since resolved.

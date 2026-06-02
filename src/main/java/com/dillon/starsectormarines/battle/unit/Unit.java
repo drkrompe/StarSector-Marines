@@ -17,16 +17,18 @@ import java.util.Random;
  * {@link BattleSimulation}. Fields are public for hot-path access from the
  * tick loop; the package keeps the surface narrow.
  *
- * <p>Position is split: {@link #cellX}/{@link #cellY} are the logical cell
- * (what pathfinding sees), while {@link #renderX}/{@link #renderY} are the
+ * <p>Position is split: {@link #getCellX}/{@link #getCellY} are the logical cell
+ * (what pathfinding sees), while {@link #getRenderX}/{@link #getRenderY} are the
  * smooth-interpolated position inside the cell grid (in cell units, fractional)
  * that the renderer reads. The two coincide when the unit is at rest or has
- * just landed in a new cell.
+ * just landed in a new cell. (Both pairs are SoA columns now — cell on the
+ * registry, render on the {@link RenderPositionService} — reached through these
+ * accessors, not direct fields.)
  *
- * <p>{@link #path} + {@link #pathIdx} + {@link #moveProgress} describe the
+ * <p>{@link #path} + {@link #pathIdx} + {@link #getMoveProgress} describe the
  * current movement step. The simulation rebuilds {@code path} when the unit is
- * between cells ({@code moveProgress == 0}) and lerps {@code renderX/Y} toward
- * {@code path[pathIdx]} as {@code moveProgress} climbs from 0 to 1; on arrival
+ * between cells ({@code moveProgress == 0}) and lerps render position toward
+ * {@code path[pathIdx]} as move-progress climbs from 0 to 1; on arrival
  * the logical cell advances and progress resets.
  */
 public class Unit {
@@ -162,13 +164,26 @@ public class Unit {
     // and mission modifiers can adjust an individual without changing the archetype.
     public float moveSpeed;
     /**
-     * <b>Don't read directly.</b> {@code localHp} is transient backing storage
-     * used in two windows: pre-allocation (before {@link UnitRegistry#allocate}
-     * copies the seed into the SoA hp array) and post-release (registry release
-     * snapshots the moment-of-death value back so a post-release reader still
-     * holding the {@link Unit} reference — {@code isAlive()} chained via
-     * {@link #getHp()} on a dead drone before its crash sequence finishes — sees
-     * a sane value). The canonical storage between those two boundaries is
+     * <b>Don't read directly. The lone surviving {@code local*} shadow</b> — the
+     * pinned minimum the lifecycle still needs (Group N/S and the cell pair are
+     * all fail-loud now). Transient backing storage in two windows: pre-allocation
+     * (before {@link UnitRegistry#allocate} copies the seed into the SoA hp array)
+     * and post-release (release snapshots the moment-of-death value back).
+     *
+     * <p><b>Why hp alone keeps the snapshot.</b> Unlike the cell pair (whose
+     * post-release readers now read the {@code DeathEvent} snapshot), hp has a
+     * pervasive post-release reader that no event can serve: every place that
+     * holds a {@link Unit} reference across ticks and asks {@link #isAlive()} to
+     * learn whether its target died — mech salvo targets
+     * ({@code MechLoadoutState.lrmSalvoTarget} &c.), turret/vehicle aim targets,
+     * the flyby projectile target, a wiped squad's {@code leader}. When such a
+     * target is swap-and-popped from the registry, {@code isAlive()} (chained via
+     * {@link #getHp()}) must return false rather than NPE — the {@code localHp}
+     * fallback (≤0 at death) is what makes that work. Removing this field requires
+     * first migrating those held object-refs to id-based liveness
+     * ({@code registry.isLive(id)} / resolve-by-id), a separate migration.
+     *
+     * <p>The canonical storage between the two boundaries is
      * {@code registry.hpArray()[denseIdx]} — go through {@link #getHp} /
      * {@link #setHp}.
      *
@@ -184,13 +199,11 @@ public class Unit {
      * columns (max HP + the three attack stats) differ from {@link #localHp}:
      * {@link UnitRegistry#allocate} copies these into the SoA arrays and the
      * registry is canonical from then on, and {@code release} does NOT snapshot
-     * them back. The three attack-stat accessors read the registry
-     * unconditionally (fail-loud on an unregistered unit, like the mid-combat
-     * columns) since nothing reads them post-release. {@link #getMaxHp} is the
-     * exception: it falls back to {@code seedMaxHp} when unregistered, so
-     * per-frame HUD snapshots can read a member killed mid-frame — exact because
-     * maxHp is never mutated after the seed (see {@link #getMaxHp}). These fields
-     * are write-only <em>construction</em> input: the ctor archetype seed,
+     * them back. All four accessors read the registry unconditionally (fail-loud
+     * on an unregistered unit, like the mid-combat columns) since nothing reads
+     * them post-release — the HUD that once read {@code getMaxHp} post-release now
+     * snapshots the row by value at {@code update()} (see {@code SquadDetailPanel}).
+     * These fields are write-only <em>construction</em> input: the ctor archetype seed,
      * the subclass overrides
      * ({@link com.dillon.starsectormarines.battle.drone.Drone} /
      * {@link com.dillon.starsectormarines.battle.drone.DroneHubUnit} /
@@ -527,19 +540,14 @@ public class Unit {
 
     // Group-S seed-only stats (maxHp + the three attack stats): canonical
     // storage is the registry's SoA arrays, seeded once from the seed* fields
-    // at allocate. Pre-allocate writers seed the seed* fields directly.
-    //
-    // maxHp carves out a post-release reader: per-frame HUD snapshots (e.g.
-    // SquadDetailPanel) capture squad members BEFORE sim.advance, then read them
-    // for the row's HP bar AFTER advance — by which point a member killed this
-    // frame is already released (registry == null). getHp tolerates that via its
-    // localHp shadow; getMaxHp mirrors it by falling back to seedMaxHp. The
-    // fallback is exact, not an approximation: maxHp is never mutated after the
-    // allocate seed (setMaxHp has no callers), so seedMaxHp == the registry slot
-    // for the unit's whole life. The three attack stats stay fail-loud below —
-    // they have no post-release reader.
+    // at allocate. Pre-allocate writers seed the seed* fields directly; all four
+    // accessors read the registry unconditionally (fail-loud on an unregistered
+    // unit) since nothing reads them post-release. (SquadDetailPanel used to be
+    // a post-release maxHp reader — it now snapshots the row's hp/maxHp by value
+    // at update() while the member is still live, so getMaxHp no longer needs the
+    // seedMaxHp fallback that c33ba6c6 added.)
     public final float getMaxHp() {
-        return (registry != null) ? registry.getMaxHp(denseIdx) : seedMaxHp;
+        return registry.getMaxHp(denseIdx);
     }
 
     public final void setMaxHp(float v) {

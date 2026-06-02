@@ -185,13 +185,39 @@ release-snapshot test became `releaseDoesNotSnapshotCellPosCellIsSeedOnly`
 (registry, dispatcher, all three demolition/crash/body handlers, plus
 Mech/Squad-morale + KillZone integration).
 
-#### Slice 3b — hp collapse via HUD value-snapshot — NEXT, last of the duality
+#### Slice 3b — HUD value-snapshot + getMaxHp re-fail-loud — SHIPPED (2026-06-02)
 
-`localHp` is the only `local*` left with a post-release reader: `SquadDetailPanel`
-snapshots live `Unit` refs in `update()` (pre-advance) and reads `getHp/getMaxHp`
-in `render()` (post-advance), so a member killed mid-frame is already released.
-Fix: snapshot the **displayed values** (hp, maxHp, weapon abbrevs, ammo) at
-`update()` instead of holding live refs. Then drop `localHp` + `getMaxHp`'s
-`seedMaxHp` fallback → `getHp/getMaxHp` fail-loud; `release` stops snapshotting
-hp. That kills the last Group-C shadow and the whole `local*` duality, unblocking
-the `Unit` → `Entity` rename.
+`SquadDetailPanel` snapshotted live `Unit` refs in `update()` (pre-advance) and
+read `getHp/getMaxHp` in `render()` (post-advance), so a member killed mid-frame
+was a post-release reader (the reason `33ba6c6` added a `getMaxHp` →
+`seedMaxHp` fallback). Fixed properly: the panel now snapshots the **displayed
+values** into an immutable `MemberRow(hp, maxHp, primary, secondary, ammo, role)`
+at `update()` while every member is still live; `render()` reads only the frozen
+row — a frozen-frame HUD that never touches live/post-release state. With the
+HUD no longer a post-release `getMaxHp` reader (audit: it was the only one),
+`getMaxHp` reverts to the clean Group-S fail-loud contract (the `33ba6c6`
+fallback is gone). Suite green at 675.
+
+#### `localHp` is the pinned minimum — full removal needs a held-ref → id migration
+
+**Finding (2026-06-02): `localHp` cannot be dropped without a separate, larger
+migration.** A fresh audit while attempting `getHp` fail-loud showed its
+`localHp` fallback is load-bearing for **every place that holds a `Unit`
+reference across ticks and calls `isAlive()` to learn its target died** — mech
+salvo targets (`MechLoadoutState.lrmSalvoTarget` &c.), turret/vehicle aim
+targets (`aim.target`, `currentBurstTarget`), the flyby projectile target
+(`p.target`), a wiped squad's `leader`. When such a target is swap-and-popped
+from the registry, `isAlive()` (chained through `getHp()`) must return false
+rather than NPE; the `localHp` snapshot (≤0 at death) is what makes that work.
+Cell escaped this because its post-release readers became the `DeathEvent`
+snapshot — but hp's readers are these *held object refs*, which no event can
+serve.
+
+So the duality collapse **completes to a pinned, documented one-field minimum**
+(`localHp` = the `isAlive()` corpse-window net, documented at the field site).
+Removing the last shadow requires first migrating those held `Unit` refs to
+id-based liveness (`registry.isLive(id)` / resolve-by-id) — the same ref→id move
+the `targetId` SoA promotion did for the primary target, applied to the
+secondary/aim/salvo/leader refs. That is its own story; tracked as a follow-up,
+and it (plus this pinned `localHp`) is what still gates the `Unit` → `Entity`
+rename.

@@ -1,10 +1,13 @@
 package com.dillon.starsectormarines.battle.ui.panel;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.SquadMoraleSystem;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
@@ -55,10 +58,27 @@ public final class SquadDetailPanel implements HudPanel {
     private static final Color NAME_FG       = new Color(0xE0, 0xE0, 0xE0);
 
     private final BattleUiContext ctx;
-    /** Snapshot of the selected squad's marines, refreshed each frame. */
-    private final List<Unit> members = new ArrayList<>();
+    /**
+     * Per-frame snapshot of the selected squad's marine rows, captured in
+     * {@link #update} (pre-advance) and read in {@link #render} (post-advance).
+     * Snapshots the displayed <em>values</em> rather than holding live
+     * {@link Unit} refs: a member killed during the frame's {@code advance()} is
+     * released from the registry by render time, and reading its Group-C hp /
+     * Group-S maxHp accessors would fail loud. Freezing the row at update keeps
+     * the just-killed member's last bar on screen for that frame without any
+     * post-release accessor read.
+     */
+    private final List<MemberRow> rows = new ArrayList<>();
     private Squad currentSquad;
     private boolean backHovered;
+
+    /**
+     * One marine's render data, frozen at snapshot time. {@code primary} /
+     * {@code secondary} are the loadout descriptors (immutable, not
+     * registry-backed — safe to hold); hp/maxHp/ammo/role are copied by value.
+     */
+    private record MemberRow(float hp, float maxHp, MarineWeapon primary,
+                             MarineSecondary secondary, int secondaryAmmo, UnitRole role) {}
 
     public SquadDetailPanel(BattleUiContext ctx) {
         this.ctx = ctx;
@@ -75,7 +95,7 @@ public final class SquadDetailPanel implements HudPanel {
     }
 
     private void refreshSnapshot() {
-        members.clear();
+        rows.clear();
         currentSquad = null;
         BattleSimulation sim = ctx.getSim();
         Selection sel = ctx.getSelection();
@@ -96,20 +116,28 @@ public final class SquadDetailPanel implements HudPanel {
         // mode picks it up.
         if (s.faction != Faction.MARINE) return;
         currentSquad = s;
+        // Gather the live members, sort for stable row order, then freeze each
+        // into a MemberRow. All accessor reads happen here, while every unit is
+        // still registered — render() touches only the frozen values.
+        List<Unit> live = new ArrayList<>();
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             Unit u = sim.liveUnitAt(i);
             if (u.squadId != squadId) continue;
-            members.add(u);
+            live.add(u);
         }
         // Leader first (if set + alive), then stable by unit id so the row
         // order is deterministic across frames.
-        members.sort(Comparator
+        live.sort(Comparator
                 .comparing((Unit u) -> currentSquad.leader != null && currentSquad.leader == u ? 0 : 1)
                 .thenComparing(u -> u.id));
+        for (Unit u : live) {
+            rows.add(new MemberRow(u.getHp(), u.getMaxHp(), u.primaryWeapon,
+                    u.secondaryWeapon, u.secondaryAmmo, u.role));
+        }
     }
 
     private float panelHeight() {
-        return HEADER_H + members.size() * ROW_H + PAD_INNER;
+        return HEADER_H + rows.size() * ROW_H + PAD_INNER;
     }
 
     private float panelX() {
@@ -169,8 +197,8 @@ public final class SquadDetailPanel implements HudPanel {
                 SquadMoraleSystem.MORALE_BROKEN_THRESHOLD, alphaMult);
 
         // Marine rows.
-        for (int i = 0; i < members.size(); i++) {
-            Unit m = members.get(i);
+        for (int i = 0; i < rows.size(); i++) {
+            MemberRow m = rows.get(i);
             float rowY = headerY - (i + 1) * ROW_H;
             float textBaseline = rowY + ROW_H - 6f;
             float rowLeft = x0 + PAD_INNER;
@@ -178,8 +206,8 @@ public final class SquadDetailPanel implements HudPanel {
             String tag = "M-" + (i + 1);
             Fonts.ORBITRON_20.drawString(tag, rowLeft + COL_NAME, textBaseline, NAME_FG, alphaMult);
 
-            float memberHp = m.getHp();
-            float memberMaxHp = m.getMaxHp();
+            float memberHp = m.hp();
+            float memberMaxHp = m.maxHp();
             float frac = memberMaxHp > 0f ? memberHp / memberMaxHp : 0f;
             float barY = rowY + (ROW_H - HP_BAR_H) * 0.5f;
             HudDraw.prepBlend();
@@ -190,21 +218,21 @@ public final class SquadDetailPanel implements HudPanel {
             Fonts.ORBITRON_20.drawString(curHp + "/" + maxHp,
                     rowLeft + COL_HP_TEXT, textBaseline, NAME_FG, alphaMult);
 
-            String primary = WeaponSymbols.primaryAbbrev(m.primaryWeapon);
+            String primary = WeaponSymbols.primaryAbbrev(m.primary());
             Fonts.ORBITRON_20.drawString(primary,
                     rowLeft + COL_PRIMARY, textBaseline,
-                    WeaponSymbols.primaryColor(m.primaryWeapon), alphaMult);
+                    WeaponSymbols.primaryColor(m.primary()), alphaMult);
 
-            if (m.secondaryWeapon != null) {
-                String sec = WeaponSymbols.secondaryAbbrev(m.secondaryWeapon);
+            if (m.secondary() != null) {
+                String sec = WeaponSymbols.secondaryAbbrev(m.secondary());
                 if (sec != null) {
-                    String text = m.secondaryAmmo > 0 ? sec + "x" + m.secondaryAmmo : sec;
-                    Color c = m.secondaryAmmo > 0 ? WeaponSymbols.SECONDARY_FG : WeaponSymbols.SECONDARY_EMPTY;
+                    String text = m.secondaryAmmo() > 0 ? sec + "x" + m.secondaryAmmo() : sec;
+                    Color c = m.secondaryAmmo() > 0 ? WeaponSymbols.SECONDARY_FG : WeaponSymbols.SECONDARY_EMPTY;
                     Fonts.ORBITRON_20.drawString(text, rowLeft + COL_SECONDARY, textBaseline, c, alphaMult);
                 }
             }
 
-            String role = WeaponSymbols.roleBadge(m.role);
+            String role = WeaponSymbols.roleBadge(m.role());
             if (role != null) {
                 Fonts.ORBITRON_20.drawString(role,
                         rowLeft + COL_ROLE, textBaseline, WeaponSymbols.ROLE_BADGE_FG, alphaMult);
