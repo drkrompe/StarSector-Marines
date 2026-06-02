@@ -95,6 +95,8 @@ public final class ConcentricLayoutStage implements GenStage {
             StationGraph.Room left = addRoom(rooms, ringList, ring, oL,    iT,     iL - 1, iB);
 
             bandCycle.add(new StationGraph.Room[]{ tl, top, tr, right, br, bottom, bl, left });
+            // Gallery side indices: 0=top, 1=right, 2=bottom, 3=left — the same
+            // convention gateSides() rotates over. Keep these two in lock-step.
             bandGallery.add(new StationGraph.Room[]{ top, right, bottom, left });
         }
 
@@ -140,9 +142,9 @@ public final class ConcentricLayoutStage implements GenStage {
         ctx.put(BspKeys.STATION_GRAPH, graph);
     }
 
-    /** Which gallery sides to gate for a boundary: 1 gate → one rotating side; 2 gates → two opposite sides. */
-    private static int[] gateSides(int ring, int gates) {
-        int base = ring % 4;
+    /** Which gallery sides (0=top,1=right,2=bottom,3=left) to gate: 1 gate → one rotating side; 2 gates → two opposite sides. {@code sideBase} is the pre-rotated index. */
+    private static int[] gateSides(int sideBase, int gates) {
+        int base = Math.floorMod(sideBase, 4);
         return gates >= 2 ? new int[]{ base, (base + 2) % 4 } : new int[]{ base };
     }
 
@@ -154,9 +156,11 @@ public final class ConcentricLayoutStage implements GenStage {
         return r;
     }
 
+    /** Carve a door between two rooms and record the edge — but only if the carve actually connected them, so the graph never claims a phantom connection. */
     private static void connect(GenContext ctx, StationGraph graph,
                                 StationGraph.Room a, StationGraph.Room b) {
-        StationCarve.carveDoorBetween(ctx, a, b);
-        graph.addCorridor(a.id, b.id);
+        if (StationCarve.carveDoorBetween(ctx, a, b)) {
+            graph.addCorridor(a.id, b.id);
+        }
     }
 }

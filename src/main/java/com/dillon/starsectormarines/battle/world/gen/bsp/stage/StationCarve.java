@@ -46,45 +46,43 @@ final class StationCarve {
      * Carve a 2-wide door through the wall gap between two axis-aligned-adjacent
      * rooms, centered on their shared-edge overlap. Only solid gap cells are
      * converted (room interiors are skipped), so the result is a clean opening
-     * meeting both interiors. No-op if the rooms aren't adjacent / don't overlap.
+     * meeting both interiors.
+     *
+     * @return {@code true} if a connecting door was carved; {@code false} if the
+     *     rooms aren't adjacent / their interiors don't overlap (nothing carved).
+     *     Callers record a graph edge only on {@code true}, so the published
+     *     {@link StationGraph} never claims a connection the cells don't have.
      */
-    static void carveDoorBetween(GenContext ctx, StationGraph.Room a, StationGraph.Room b) {
+    static boolean carveDoorBetween(GenContext ctx, StationGraph.Room a, StationGraph.Room b) {
         if (a.right < b.left || b.right < a.left) {
             // Horizontal adjacency — gap runs along x.
             StationGraph.Room left  = a.right < b.left ? a : b;
             StationGraph.Room right = left == a ? b : a;
             int y0 = Math.max(left.top, right.top) + 1;        // interior overlap (inset by 1)
             int y1 = Math.min(left.bottom, right.bottom) - 1;
-            if (y1 < y0) return;
+            if (y1 < y0) return false;
             int yA = (y0 + y1) / 2;
             int yB = yA + 1 <= y1 ? yA + 1 : yA - 1;
             for (int x = left.right - 1; x <= right.left + 1; x++) {
                 carveDoorCell(ctx, x, yA);
                 if (yB >= y0) carveDoorCell(ctx, x, yB);
             }
+            return true;
         } else if (a.bottom < b.top || b.bottom < a.top) {
             // Vertical adjacency — gap runs along y.
             StationGraph.Room top = a.bottom < b.top ? a : b;
             StationGraph.Room bot = top == a ? b : a;
             int x0 = Math.max(top.left, bot.left) + 1;
             int x1 = Math.min(top.right, bot.right) - 1;
-            if (x1 < x0) return;
+            if (x1 < x0) return false;
             int xA = (x0 + x1) / 2;
             int xB = xA + 1 <= x1 ? xA + 1 : xA - 1;
             for (int y = top.bottom - 1; y <= bot.top + 1; y++) {
                 carveDoorCell(ctx, xA, y);
                 if (xB >= x0) carveDoorCell(ctx, xB, y);
             }
+            return true;
         }
-    }
-
-    /** True iff the two rooms' rects are axis-aligned-adjacent (touching across a thin wall, with ≥2 interior overlap on the shared edge). */
-    static boolean adjacent(StationGraph.Room a, StationGraph.Room b) {
-        boolean xTouch = a.right < b.left ? b.left - a.right <= 2 : (b.right < a.left ? a.left - b.right <= 2 : false);
-        boolean yTouch = a.bottom < b.top ? b.top - a.bottom <= 2 : (b.bottom < a.top ? a.top - b.bottom <= 2 : false);
-        boolean xOverlap = Math.min(a.right, b.right) - Math.max(a.left, b.left) >= 1;
-        boolean yOverlap = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) >= 1;
-        // Horizontally adjacent: separated in x, overlapping in y (and vice-versa).
-        return (xTouch && yOverlap) || (yTouch && xOverlap);
+        return false;
     }
 }
