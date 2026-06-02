@@ -39,13 +39,16 @@ Decomposition:
 - **S3c — airspace banding / AI gating.** The hard de-risk; resolve the spatial fork.
 - **S3d — shuttle scale-down handoff.** Diegetic bridge between the two scales.
 
-### Open follow-up — ground/ship scale (from S3b playtest)
-At `WORLD_UNITS_PER_CELL = 50` the ground cells read **too large relative to the
-spacecraft** — ships should tower over individual ground tiles. Fix is the single
-`S0BattleProbe.WORLD_UNITS_PER_CELL` knob (lower it; backdrop + proxies both derive from it,
-so they stay locked). Value is a visual judgment to dial in-game — the architecture's
-deferred cross-scale convention surfacing early. Do as a quick scaling pass (with S3c or
-standalone) before further visual work.
+### Scale + real-map pass (done after S3b playtest)
+- `WORLD_UNITS_PER_CELL` lowered **50 → 20** (ground cells read too large vs ships at 50;
+  at 20 ships tower over tiles). Backdrop + proxies both derive from it, so they stay
+  locked. Still a visual knob — re-dial freely if scale feels off.
+- The `SIM_COUPLED` probe now loads the **real Conquest map at LARGE (240×160)** instead of
+  a generic MEDIUM city: `BspCityGenerator.generate(w,h,seed, axis, NEUTRAL)` (non-null axis
+  → `conquestRecipe` with biome bands + `DefensePostStamper`), `setBuildings`/`setDefensePosts`/
+  `setTacticalMap`/doodads, defense-post turrets spawned + mirrored as proxies (fighters
+  strafe the planet's actual defenses). `canvasGrid()` returns LARGE for SIM_COUPLED only.
+  Map only — no marines/defenders/shuttles/reinforcement (that's the battle, not the map).
 
 ### S3a + S3b probe pieces (combathybrid)
 - `GroundSceneBackdrop` — below-ships plugin; world-configured `BattleCamera` + reused

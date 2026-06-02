@@ -1,13 +1,18 @@
 package com.dillon.starsectormarines.combathybrid;
 
 import com.dillon.starsectormarines.DebugOnly;
+import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.turret.DefensePost;
+import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.MapScale;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.BattleCreationPlugin;
@@ -23,6 +28,7 @@ import org.lwjgl.util.vector.Vector2f;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Minimal, campaign-location-independent battle definition for the combat-bridge probes.
@@ -39,10 +45,12 @@ import java.util.List;
  *   <li><b>PROXY_TARGET</b> — S2. Same spectator host, but spawns an AI carrier on the
  *       player side and a single invisible owner-1 proxy ({@link ProxyTargetPlugin}) to
  *       test whether native carrier/fighter AI engages a slaved sim avatar.</li>
- *   <li><b>SIM_COUPLED</b> — S3a. Like PROXY_TARGET, but builds one
- *       {@link BattleSimulation} of mixed turrets here and mirrors each as a proxy via
- *       {@link GroundSimBridge} — vanilla damage drains the real sim units, sim deaths
- *       despawn the proxies. The sim is built outside the combat plugin on purpose.</li>
+ *   <li><b>SIM_COUPLED</b> — S3a/S3b. Loads the real Conquest map at LARGE into one
+ *       {@link BattleSimulation}, renders its terrain + structures under the ships
+ *       ({@link GroundSceneBackdrop}), and mirrors the map's defense-post turrets as
+ *       proxies ({@link GroundSimBridge}) so vanilla fighters strafe the planet's actual
+ *       defenses — sim deaths despawn the proxies. The sim is built outside the combat
+ *       plugins on purpose.</li>
  * </ul>
  */
 @DebugOnly
@@ -50,8 +58,16 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
 
     private static final Logger LOG = Global.getLogger(S0BattleCreationPlugin.class);
 
-    /** Canvas demo grid (the MEDIUM mission tier). */
+    /** Canvas demo grid for S0b/S2 (the MEDIUM mission tier). SIM_COUPLED uses {@link #canvasGrid()}. */
     private static final MapScale CANVAS_GRID = MapScale.MEDIUM;
+
+    /**
+     * Grid tier for the spectator host. SIM_COUPLED loads the real Conquest map at the
+     * LARGE (HIGH-risk siege) tier we actually play; the other canvas probes stay MEDIUM.
+     */
+    private static MapScale canvasGrid() {
+        return S0BattleProbe.mode() == S0BattleProbe.Mode.SIM_COUPLED ? MapScale.LARGE : CANVAS_GRID;
+    }
 
     /** Throwaway stock variants — must be real ids from data/variants (validated before spawn). */
     private static final String[] CANVAS_PLAYER_SHIPS = {"vigilance_Standard", "brawler_Assault"};
@@ -60,9 +76,7 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
     private static final String[] PROXY_CARRIER_SHIPS = {"heron_Strike", "drover_Strike"};
     /** S2/S3a: the hull behind each invisible proxy (sprite hidden; any small hull works). */
     private static final String PROXY_VARIANT = "vigilance_Standard";
-    /** S3a: cell gap between adjacent turrets in the demo row (≥ marker width at scale 50). */
-    private static final int SIM_TURRET_CELL_SPACING = 6;
-    /** S3b: fixed seed for the probe cityscape so the backdrop is reproducible across launches. */
+    /** S3b: fixed seed for the probe Conquest map so the backdrop is reproducible across launches. */
     private static final long SIM_MAP_SEED = 42L;
 
     private boolean canvas;
@@ -110,8 +124,9 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
         // No addFleetMember: ships are spawned directly in afterDefinitionLoad, so
         // there are no reserves and the deploy dialog never appears.
 
-        float halfW = CANVAS_GRID.width * S0BattleProbe.WORLD_UNITS_PER_CELL * 0.5f;
-        float halfH = CANVAS_GRID.height * S0BattleProbe.WORLD_UNITS_PER_CELL * 0.5f;
+        MapScale grid = canvasGrid();
+        float halfW = grid.width * S0BattleProbe.WORLD_UNITS_PER_CELL * 0.5f;
+        float halfH = grid.height * S0BattleProbe.WORLD_UNITS_PER_CELL * 0.5f;
         // Pad the map past the plate so the free camera can pan beyond the edges.
         loader.initMap(-halfW * 1.5f, halfW * 1.5f, -halfH * 1.5f, halfH * 1.5f);
         loader.setHyperspaceMode(false);
@@ -135,7 +150,7 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
                     CANVAS_GRID.width, CANVAS_GRID.height, S0BattleProbe.WORLD_UNITS_PER_CELL));
         }
 
-        float halfH = CANVAS_GRID.height * S0BattleProbe.WORLD_UNITS_PER_CELL * 0.5f;
+        float halfH = canvasGrid().height * S0BattleProbe.WORLD_UNITS_PER_CELL * 0.5f;
         if (S0BattleProbe.mode() == S0BattleProbe.Mode.SIM_COUPLED) {
             setupSimCoupled(engine, halfH);
         } else if (S0BattleProbe.mode() == S0BattleProbe.Mode.PROXY_TARGET) {
@@ -148,44 +163,64 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
     }
 
     /**
-     * S3a (fan-out) + S3b (backdrop): AI carriers vs a row of invisible proxies, each
-     * backed by a real turret in <b>one</b> {@link BattleSimulation} that also renders
-     * its terrain + structures under the ships ({@link GroundSceneBackdrop}). The sim
-     * is a real generated cityscape ({@link BspCityGenerator}), built here — outside
-     * the combat plugins — so the engine's repeated {@code init} can't rebuild it, and
-     * both the bridge and the backdrop reference the same instance. Turrets sit on a
-     * short row through the grid center (which projects to world origin), so the
-     * markers spread across the city for the fighters to chew through.
+     * S3a (fan-out) + S3b (backdrop): the real <b>Conquest map at the LARGE tier</b> under
+     * the fleet. We generate the map exactly as
+     * {@link com.dillon.starsectormarines.battle.setup.BattleSetup#createConquest} does —
+     * biome-banded along a {@link TraversalAxis}, with buildings, doodads, roads, and the
+     * pre-stamped {@link DefensePost} layout — but stop at the <em>map</em>: no marines,
+     * defenders, shuttles, or reinforcement (that's the battle, not the map). The
+     * defense-post turrets are spawned as real targetable structures and mirrored as
+     * proxies, so the carriers' fighters strafe the planet's actual defenses.
+     *
+     * <p>One {@link BattleSimulation}, built here outside the combat plugins (so the
+     * engine's repeated {@code init} can't rebuild it); the {@link GroundSceneBackdrop}
+     * renders its terrain + structures and the {@link GroundSimBridge} drives the
+     * proxy/damage coupling — both over the same instance.
      */
     private void setupSimCoupled(CombatEngineAPI engine, float halfH) {
         spawnRow(engine, FleetSide.PLAYER, PROXY_CARRIER_SHIPS, -halfH * 0.6f, 90f, 900f);
 
-        int gridW = CANVAS_GRID.width, gridH = CANVAS_GRID.height;
-        MapResult map = new BspCityGenerator().generate(gridW, gridH, SIM_MAP_SEED);
-        BattleSimulation sim = new BattleSimulation(map.grid, map.topology);
-        sim.setBuildings(map.buildings);
+        MapScale scale = canvasGrid();           // LARGE for SIM_COUPLED
+        int gridW = scale.width, gridH = scale.height;
+        Random rng = new Random(SIM_MAP_SEED);
+        TraversalAxis axis = rng.nextBoolean() ? TraversalAxis.SOUTH_TO_NORTH : TraversalAxis.WEST_TO_EAST;
+        MapResult map = new BspCityGenerator().generate(gridW, gridH, SIM_MAP_SEED, axis, TargetProfile.NEUTRAL);
 
-        // A short row of mixed-kind turrets centered on the grid (cell cx → world 0).
-        int cx = gridW / 2, cy = gridH / 2;
-        TurretKind[] kinds = {TurretKind.VULCAN, TurretKind.ARBALEST, TurretKind.HEPHAESTUS,
-                TurretKind.DUAL_FLAK, TurretKind.HEAVY_MG};
-        List<Unit> turrets = new ArrayList<>();
-        for (int i = 0; i < kinds.length; i++) {
-            int dx = (i - kinds.length / 2) * SIM_TURRET_CELL_SPACING;
-            MapTurret t = new MapTurret("bridge_turret_" + i, Faction.DEFENDER, kinds[i], cx + dx, cy);
-            sim.addUnit(t);
-            turrets.add(t);
+        BattleSimulation sim = new BattleSimulation(map.grid, map.topology);
+        sim.setTacticalMap(map.tacticalMap);
+        sim.setBuildings(map.buildings);
+        sim.setDefensePosts(map.defensePosts);
+        for (Doodad d : map.doodads) sim.addDoodad(d);
+
+        // Spawn the pre-stamped defense-post turrets as real structures (mirrors
+        // BattleSetup.spawnDefensePostTurrets: flip the mount cell non-walkable), and
+        // collect them as the proxy/targetable set. Drone-hub posts get a hub unit too.
+        List<Unit> targetable = new ArrayList<>();
+        int t = 0, h = 0;
+        for (DefensePost post : map.defensePosts) {
+            for (DefensePost.TurretSpec spec : post.turrets) {
+                MapTurret turret = new MapTurret("bridge_t" + t++, Faction.DEFENDER, spec.kind, spec.cellX, spec.cellY);
+                sim.addUnit(turret);
+                sim.getGrid().setWalkable(spec.cellX, spec.cellY, false);
+                targetable.add(turret);
+            }
+            if (post.tier == DefensePostKind.DRONE_HUB) {
+                DroneHubUnit hub = new DroneHubUnit("bridge_dh" + h++, Faction.DEFENDER, post.anchorX, post.anchorY);
+                sim.addUnit(hub);
+                targetable.add(hub);
+            }
         }
+        LOG.info("S3: loaded Conquest map [" + scale + " " + gridW + "x" + gridH + ", axis=" + axis
+                + "] — " + map.defensePosts.size() + " defense posts, " + targetable.size() + " targetable structures.");
+
         // Keep the all-DEFENDER sim from auto-completing (a completed sim early-returns
         // from advance() and would strand the death events).
         sim.addObjective(new NeverEndObjective(Faction.DEFENDER));
 
-        // The real ground scene under the ships, and the proxy/damage coupling — both
-        // over the same sim. Backdrop is below-ships; the bridge is an every-frame plugin.
         engine.addLayeredRenderingPlugin(new GroundSceneBackdrop(
                 sim, gridW, gridH, S0BattleProbe.WORLD_UNITS_PER_CELL));
         engine.addPlugin(new GroundSimBridge(
-                sim, turrets, gridW, gridH, S0BattleProbe.WORLD_UNITS_PER_CELL, PROXY_VARIANT));
+                sim, targetable, gridW, gridH, S0BattleProbe.WORLD_UNITS_PER_CELL, PROXY_VARIANT));
     }
 
     /** S2: AI carrier(s) on the player side + one invisible slaved proxy on the enemy side. */

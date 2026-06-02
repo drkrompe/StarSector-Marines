@@ -54,13 +54,15 @@ public final class S0BattleProbe {
     public static final int PLAYER_SUBSET_SIZE = 2;
 
     /**
-     * World units per sim cell when projecting the grid into vanilla combat. See
-     * the overview size gut-check: at 50, the LARGE 240×160 grid is 12000×8000 world
-     * units — comfortably inside vanilla's normal field — and ships read at a sane
-     * size relative to the plate. The right value is ultimately per-use (overhead-air
-     * vs on-the-ground), but 50 is the working default the canvas is built around.
+     * World units per sim cell when projecting the grid into vanilla combat. Lowered
+     * from the original 50 after the S3b playtest: at 50 the ground cells read too large
+     * relative to the spacecraft. At 20 the LARGE 240×160 Conquest map is 4800×3200 world
+     * units and ships tower over individual tiles, which reads right. Both the backdrop
+     * and the proxies derive from this constant, so they stay locked at any value. The
+     * right number is ultimately per-use (overhead-air vs on-the-ground) — this is the
+     * working default the canvas is built around.
      */
-    public static final float WORLD_UNITS_PER_CELL = 50f;
+    public static final float WORLD_UNITS_PER_CELL = 20f;
 
     /** Variant used if the player has no combat ships, so the probe still demos.
      *  Must be a real variant id from data/variants. */
