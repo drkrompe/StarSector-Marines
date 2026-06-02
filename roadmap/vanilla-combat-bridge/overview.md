@@ -167,9 +167,17 @@ combat engine and undo the decoupling the whole project rests on.
 
 ## Candidate first stories
 
-Both are throwaway probes whose only job is to answer the load-bearing unknowns
+All are throwaway probes whose only job is to answer the load-bearing unknowns
 cheaply, before any real feature investment ([[feedback_ship_then_optimize]]):
 
+- **S0 — Battle bootstrap probe.** *(in progress — code landed, awaiting playtest)*
+  The probe upstream of S1/S2: both of those assume "a test mission" is already
+  running, but the real product launches combat from the *campaign* tied to the
+  player's *actual* fleet. S0 proves we can (1) launch a vanilla `CombatEngineAPI`
+  battle from the campaign with a roster we choose — *some* of the player fleet —
+  and (2) own when that battle is considered complete (suppress vanilla's auto-end;
+  call `endCombat` on our terms). Ctrl+Shift+B on the campaign map; F10 to end.
+  See [`stories/s0-battle-bootstrap.md`](stories/s0-battle-bootstrap.md).
 - **S1 — Wall-clamp probe.** A ~100-line `EveryFrameCombatPlugin` that draws a
   hardcoded box of wall tiles in `renderInWorldCoords` and clamps any ship out of
   those tiles each frame (position-`set()` + velocity-slide). Fly a ship into it.
@@ -183,9 +191,10 @@ cheaply, before any real feature investment ([[feedback_ship_then_optimize]]):
   plumbing from there. See
   [`stories/s2-proxy-target-probe.md`](stories/s2-proxy-target-probe.md).
 
-Sequencing: **S2 first.** It's the more compelling feature *and* the cheaper
-de-risk (no terrain mess at all). S1 informs whether Direction A is worth
-pursuing beyond a curiosity.
+Sequencing: **S0 first** (it gates the other two — they need a combat instance to
+live in, launched from the campaign rather than a title-screen mission). Then
+**S2** — the more compelling feature *and* the cheaper de-risk (no terrain mess at
+all). S1 informs whether Direction A is worth pursuing beyond a curiosity.
 
 ## Open questions
 
@@ -209,6 +218,6 @@ pursuing beyond a curiosity.
 ## How this directory is laid out
 
 - **`overview.md`** (this file) — concept, verified facts, architecture, probes.
-- **`stories/`** — the active probe docs.
-- **`complete/`** — sealed shipped work (empty until a probe lands).
-- **`next-session.md`** — handoff state once implementation starts (not yet).
+- **`stories/`** — the active probe docs (`s0-battle-bootstrap`, `s1-wall-clamp-probe`, `s2-proxy-target-probe`).
+- **`complete/`** — sealed shipped work (empty until a probe's verdict lands).
+- **`next-session.md`** — handoff state; S0 code has landed, awaiting playtest.

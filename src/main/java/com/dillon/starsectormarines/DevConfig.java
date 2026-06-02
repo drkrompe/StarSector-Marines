@@ -151,5 +151,20 @@ public final class DevConfig {
     @DebugOnly
     public static final boolean ALWAYS_GRANT_RECON_PING = true;
 
+    /**
+     * When {@code true}: register the vanilla-combat-bridge <b>S0 battle-bootstrap
+     * probe</b> — a campaign-map hotkey (<b>Ctrl+Shift+B</b>) that launches a real
+     * vanilla {@code CombatEngineAPI} battle using a synthetic subset of the player
+     * fleet, with the mod owning when the battle ends (press {@code F10} in combat).
+     *
+     * <p>Throwaway feasibility scaffolding for
+     * {@code roadmap/vanilla-combat-bridge/} (the {@code combathybrid} package).
+     * Registers {@code CombatHybridCampaignPlugin} + {@code CombatHybridInputListener}
+     * at game load; both are no-ops until the hotkey arms them. Flip off (or strip
+     * the {@code combathybrid} probe classes) for prod builds.
+     */
+    @DebugOnly
+    public static final boolean S0_COMBAT_PROBE = true;
+
     private DevConfig() {}
 }
