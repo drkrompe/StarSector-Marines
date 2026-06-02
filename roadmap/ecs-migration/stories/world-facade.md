@@ -247,19 +247,27 @@ this is a per-group sweep, not one commit.
      `stanceFor(float)` (caller passes `getMoveProgress`); `alliesNearForSpread`
      pass-2 (`requireLiveIndex` per gathered candidate); `BattleSimulation`
      reprio/fallback inline appliers (by-index setters).
-   - **Remaining holdouts before the field can go (next):**
-     `TacticalScoring.effectiveAttackRange` (static; callers at 958/1017 have the
-     registry, EngagePosture:84 + 3 `TacticalScoringTest` cases call it statically →
-     either make it take the resolved range or go instance), `UnitRenderService`
-     `computeFacing`/`computeEightWayFacing` + `emitLiveSprite` cooldown (thread
-     `uCellX/uCellY`/cooldown down from the `i`-indexed `sweepLiveSprites`; target
-     cell resolves via `sim.getUnitRegistry()` under the existing `sim != null`
-     gate), `DamageService:248` reprio race-check (`getTargetId` — inject a `World`/
-     by-id reader, or pass `expectedTargetId` to the registry-holding applier).
-     `combathybrid/GroundSimBridge` is sibling-owned — coordinate, don't convert.
+   - **Final accessor holdouts cleared (`a972bbb`).** All three:
+     `TacticalScoring.effectiveAttackRange` now takes the resolved range as a
+     param (the two `findFiringPosition` impls resolve `selfIdx` first and pass
+     `registry.getAttackRange(selfIdx)`; `EngagePosture` passes
+     `sim.world().attackRange(id)`; 3 `TacticalScoringTest` cases pass
+     `rocketeer.getAttackRange()`). `UnitRenderService.emitLiveSprite` takes the
+     dense index `i` from `sweepLiveSprites` (cooldown + self cell by-index,
+     zero probe); `computeFacing`/`computeEightWayFacing` take `selfCellX/Y` and
+     resolve the target cell by id under the `sim != null` gate.
+     `DamageService:248` reprio race-check moved registry-side into
+     `writeReprioInline` (`ReprioApplier.apply` gains `expectedTargetId`), so the
+     flush drain no longer reads `target.getTargetId()`. Also folded in:
+     `InfantryWeapons.fireShot` reads accuracy/damage by-index. Green at 733.
+   - **Sole remaining field-deletion blocker: `combathybrid/GroundSimBridge`**
+     (sibling-owned — 3 `getCellX/getCellY/getHp` no-arg calls at lines 142/170/183).
+     Coordinate with the combathybrid session before converting; once it's off the
+     no-arg accessors, NOTHING outside `Unit.java` + tests routes through denseIdx.
    - **Then:** rework `isAlive()` off `denseIdx` (currently
      `registry != null && getHp(denseIdx) > 0`), delete the no-arg `Unit` accessors
-     + the `registry`/`denseIdx` fields.
+     + the `registry`/`denseIdx` fields, then convert the `UnitRegistryTest`/
+     `WorldTest` `u.denseIdx` reads (they assert against the dense slot directly).
 5. **`Unit` → `Entity` rename** (`rename_refactoring`, see
    [[intellij_mcp_refactor_tools]]). Cheap IntelliJ rename; avoid file moves.
 

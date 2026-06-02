@@ -200,16 +200,24 @@ reference `entityId` instead** (the dangling-ref NPE class). New story:
          rebuild-time (was a latent live/snapshot mismatch).
        - **Low-ripple holdouts cleared (`c884f0b`):** `FireStance.stanceFor(float)`,
          `alliesNearForSpread` pass-2, `BattleSimulation` reprio/fallback inline.
-       - **Holdouts LEFT (next slice):** `TacticalScoring.effectiveAttackRange`
-         (static; 958/1017 have registry, EngagePosture:84 + 3 `TacticalScoringTest`
-         call it statically), `UnitRenderService.computeFacing/computeEightWayFacing`
-         + `emitLiveSprite` cooldown (thread `uCellX/uCellY`/cooldown from the
-         `i`-indexed `sweepLiveSprites`), `DamageService:248` (`getTargetId` reprio
-         race-check — inject a `World`/by-id reader or pass `expectedTargetId` to the
-         registry-holding applier). `combathybrid/GroundSimBridge` is sibling-owned.
+       - **Final accessor holdouts cleared (`a972bbb`).**
+         `TacticalScoring.effectiveAttackRange` takes the resolved range as a param
+         (findFiringPosition impls resolve selfIdx first; EngagePosture passes
+         `sim.world().attackRange(id)`; 3 tests pass `rocketeer.getAttackRange()`).
+         `UnitRenderService.emitLiveSprite` takes dense index `i` (cooldown + self
+         cell by-index); `computeFacing/computeEightWayFacing` take `selfCellX/Y`
+         and resolve target cell by id under the `sim != null` gate.
+         `DamageService:248` reprio race-check moved registry-side into
+         `writeReprioInline` (`ReprioApplier.apply` gains `expectedTargetId`).
+         Folded in: `InfantryWeapons.fireShot` accuracy/damage by-index. Green at 733.
+       - **Sole remaining field-deletion blocker: `combathybrid/GroundSimBridge`**
+         (sibling-owned; `getCellX/getCellY/getHp` no-arg at 142/170/183). Coordinate
+         with the combathybrid session before converting — once it's off the no-arg
+         accessors NOTHING outside `Unit.java` + tests touches denseIdx.
        - **Then:** rework `isAlive()` off `denseIdx`, delete the no-arg `Unit`
-         accessors + `registry`/`denseIdx` fields, then `Unit`→`Entity` rename
-         (cheap IntelliJ rename; avoid file moves).
+         accessors + `registry`/`denseIdx` fields, convert the `UnitRegistryTest`/
+         `WorldTest` `u.denseIdx` reads (assert the dense slot directly), then
+         `Unit`→`Entity` rename (cheap IntelliJ rename; avoid file moves).
    - Then model `mech` & other optional `Unit` fields as `ComponentStore`s (cold
      face); then delete `Unit.registry`+`denseIdx` (mops up the TacticalScoring +
      combat leftovers above); then `Unit`→`Entity`.
