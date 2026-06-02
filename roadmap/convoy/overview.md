@@ -43,6 +43,13 @@ back to `PurePursuit` (`advancePath`). Within docking range it switches
 to Reeds-Shepp playback (`advanceDocking`). State machine:
 PENDING → INCOMING → LANDED → OVERWATCH → DEPARTING → GONE.
 
+> **Under active rework.** This dispatch is the source of the 90°-corner
+> snaps and the recovery failures — see
+> [`navigation-rework/`](navigation-rework/overview.md), which replaces the
+> dead-reckon fork with always-on kinematic tracking over a rolling-horizon
+> local planner. The description above is the *current* (to-be-replaced)
+> design.
+
 The road graph itself is generator-side
 (`battle/mapgen/road/RoadGraphBuilder`, `RoadReservation`); see
 [[road_graph_design]].
@@ -62,7 +69,7 @@ Remaining Stage 2 work lives in [`stories/`](stories/):
 | [`truck-infantry-interaction`](stories/truck-infantry-interaction.md) | marines vs. trucks — dodge / squash / hybrid |
 | [`vehicle-damage`](stories/vehicle-damage.md) | trucks take anti-vehicle fire; wrecks block roads |
 | [`vehicle-variants`](stories/vehicle-variants.md) | supply truck + light scout (asset-side + deboard logic) |
-| [`driving-feel-tuning`](stories/driving-feel-tuning.md) | deliberate post-playtest controller tuning pass |
+| [`driving-feel-tuning`](stories/driving-feel-tuning.md) | deliberate post-playtest controller tuning pass — **folded into [`navigation-rework`](navigation-rework/overview.md) slice 4** |
 
 ### Why this order
 
