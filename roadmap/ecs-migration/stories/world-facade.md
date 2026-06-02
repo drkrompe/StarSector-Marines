@@ -105,10 +105,37 @@ this is a per-group sweep, not one commit.
    yet** — the abstraction is in place, zero behavior change, suite green at 692.
    (Cold face proven with the existing `DeadBody` store rather than `mech`, which
    is still a `Unit` field — moving `mech` field→store is a later slice.)
-2. **Per-accessor-group sweeps.** One group at a time (cell pair, render pos,
-   combat stats, AI timers), `Unit` accessor → `world.<prim>(id)`. Mechanical
-   and wide — fan out to Sonnet ([[feedback_delegate_mechanical_sonnet]]); keep
-   design/verify on the main thread. Full suite each group.
+2. **Per-group accessor sweeps** — `Unit` accessor → `world.<col>(id)`. Fanned
+   to Sonnet ([[feedback_delegate_mechanical_sonnet]]) by disjoint file bucket
+   (not by group — file-disjoint avoids concurrent-edit conflicts); design/verify
+   on the main thread; full suite each wave. Prereq SHIPPED: the complete by-id
+   `World` surface + `UnitRegistry.requireLiveIndex` + `BattleView.world()`
+   (`c69a24b`).
+   - **2a — AI decision layer SHIPPED (2026-06-02, `4c3ec2f`).** ~37 files: GOAP
+     actions, infantry/mech postures + behaviors, drone swarm action, command
+     objectives, debug panels — all reach state via the `BattleView`/`BattleControl`
+     they already receive. 5 Sonnet agents, disjoint buckets, green at 705.
+     **Decision-cadence only.** Out of this wave (deliberately): hot per-frame/
+     per-tick loops (renderers, combat resolvers `DamageResolver`/`HeavyWeapons`/
+     `HitResponseService`/`Detonations`, bulk systems `VisionService`/
+     `UnitSpatialIndex`/`InfantryWeapons`), render accessors (`getRenderX/Y`), and
+     optional-capability fields (`mech`). Leftover decision sites with no `World`
+     handle in scope, pending a wired field/param: `InfantryUnitPrep.tickCooldowns`,
+     `TurretAim`/`TurretFireService` statics, `DroneSwarmAction.tickPursue`/
+     `clampGoalToLeash`, `SquadFallbackSystem.allMembersHome`, `SquadAlertSystem`.
+   - **2b — field-wired services (next).** `TacticalScoring` (53), `VisionService`,
+     `NavigationService`, `AttackerIndexService`, `SquadMoraleSystem`,
+     `SquadFallbackSystem`, `SquadAlertSystem` — no `sim` param; wire a `World`
+     field at construction, then sweep. Main-thread (touches ctor wiring).
+   - **2c — hot loops + render → dense-array / RenderPositionService**, not
+     `world.<col>(id)` (the cache-locality guardrail). Renderers, combat
+     resolvers, bulk systems. Careful, possibly per-file.
+3. **Model the remaining optional fields as presence components** as they're
+   touched (`secondaryWeapon`/`secondaryAmmo`, `assignedObjective`,
+   `equipmentDropTarget`) — `getOrNull` instead of nullable-field + null-check.
+4. **Delete `Unit.registry` + `denseIdx`.** Once no caller self-routes.
+5. **`Unit` → `Entity` rename** (`rename_refactoring`, see
+   [[intellij_mcp_refactor_tools]]).
 3. **Model the remaining optional fields as presence components** as they're
    touched (`secondaryWeapon`/`secondaryAmmo`, `assignedObjective`,
    `equipmentDropTarget`) — `getOrNull` instead of nullable-field + null-check.

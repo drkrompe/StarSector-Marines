@@ -106,13 +106,24 @@ reference `entityId` instead** (the dangling-ref NPE class). New story:
   suite green at 689.
 
 **Next (in priority order):**
-1. **Endgame: [`world-facade`](stories/world-facade.md) — delete `Unit.registry`.
-   Slice 1 SHIPPED (2026-06-02):** `battle.sim.World` introduced + wired
-   (`sim.world()`), both faces proven by `WorldTest`, no call sites migrated yet,
-   suite green at 692. **Next slice:** start the per-group accessor sweeps
-   (`u.getHp()` → `world.hp(id)` where the caller has an id not a held `Unit`;
-   bulk dense walks stay on the arrays) — fan to Sonnet. Then model `mech` (and
-   other optional `Unit` fields) as a `ComponentStore` for the cold face.
+1. **Endgame: [`world-facade`](stories/world-facade.md) — delete `Unit.registry`.**
+   - Slice 1 SHIPPED (`1e30bcf`): `battle.sim.World` introduced + wired, both faces
+     proven by `WorldTest`.
+   - Sweep prereq SHIPPED (`c69a24b`): complete by-id `World` surface +
+     `UnitRegistry.requireLiveIndex` + `BattleView.world()`.
+   - **Slice 2a SHIPPED (`4c3ec2f`): AI decision-layer sweep** — ~37 files (GOAP
+     actions, infantry/mech postures+behaviors, drone swarm, command objectives,
+     debug panels) → `sim.world().<col>(id)`. 5 Sonnet agents, disjoint buckets,
+     green at 705.
+   - **Next: slice 2b** — field-wire `World` into the no-`sim`-param services
+     (`TacticalScoring` (53!), `VisionService`, `NavigationService`,
+     `AttackerIndexService`, `SquadMoraleSystem`, `SquadFallbackSystem`,
+     `SquadAlertSystem`) then sweep them (main-thread, touches ctor wiring). Then
+     **2c**: hot loops + render → dense-array/`RenderPositionService` (NOT
+     `world.<col>(id)` — cache-locality guardrail). Then model `mech` & other
+     optional `Unit` fields as `ComponentStore`s (cold face); then delete
+     `Unit.registry`+`denseIdx`; then `Unit`→`Entity`. Leftover 2a sites (no handle
+     in scope) are folded into 2b/2c — see the story.
    Design LOCKED with the user (2026-06-02): a **two-faced `World`** facade over
    the existing stores. **Hot face** = primitive by-id accessors (`world.hp(id)`,
    `cellX/Y`, `renderX/Y`, combat stats) backed directly by the dense SoA — zero
