@@ -4,7 +4,10 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.ConvoyPlanner;
+import com.dillon.starsectormarines.battle.vehicle.TerrainCostField;
 import com.dillon.starsectormarines.battle.vehicle.Vehicle;
+import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
+import com.dillon.starsectormarines.battle.vehicle.VehicleRoutePlanner;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
@@ -15,8 +18,10 @@ import org.apache.log4j.Logger;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -42,9 +47,19 @@ public final class ConvoyMeans implements ReinforcementMeans {
     private static final float OFFMAP_PAD = 6f;
     /** Minimum cell separation between a fresh dispatch's destination junction and any already-active convoy truck's LZ. Soft preference — exhausted before degrading to no-separation (see {@link #bestInteriorJunctionWithin}) so a clogged rally still resolves rather than failing. */
     private static final int MIN_DEST_SEPARATION = 4;
+    /** Max Chebyshev rings {@link #snapToMask} searches when pulling an eroded perimeter cell onto the nearest drivable cell. Generous — clearance radius is only 1–2, so the nearest in-mask cell is a couple cells in. */
+    private static final int SNAP_RADIUS = 8;
 
     private final RoadGraph graph;
     private final TraversalAxis axis;
+    /**
+     * Per-battle terrain cost field, baked lazily on first dispatch. Ground kinds
+     * are effectively static (rubble appears only on wall breach); a slightly
+     * stale macro route is fine — the rolling local planner handles live terrain.
+     */
+    private TerrainCostField costField;
+    /** Clearance masks keyed by footprint radius, eroded + cached lazily (one entry per distinct vehicle width). */
+    private final Map<Integer, VehicleClearance> clearanceByRadius = new HashMap<>();
 
     public ConvoyMeans(RoadGraph graph, TraversalAxis axis) {
         this.graph = graph;
@@ -99,18 +114,38 @@ public final class ConvoyMeans implements ReinforcementMeans {
             return;
         }
 
-        List<RoadGraph.Edge> path = ConvoyPlanner.planPath(graph, entry, dest);
-        if (path == null || path.isEmpty()) {
-            LOG.warn("ConvoyMeans: planPath failed entry=(" + entry.cellX + "," + entry.cellY
-                    + ")→dest=(" + dest.cellX + "," + dest.cellY + ")");
+        // Cost-field routing (cost-field-routing slice 2): roads are a cost
+        // *bias* now, not a topology the truck is confined to — the route hugs
+        // streets but cuts across open ground when that genuinely pays. The road
+        // graph still SELECTS the entry perimeter node + interior drop-off
+        // junction (good, scored drop-offs); only the route BETWEEN them is now a
+        // cost-weighted grid search. The ReferenceCorridor → LocalTrajectoryPlanner
+        // → VehicleController stack downstream is unchanged.
+        int radius = VehicleClearance.radiusForWidth(VehicleType.HEAVY_APC.visualWidthCells);
+        TerrainCostField cost = costFieldFor(sim);
+        VehicleClearance clr = clearanceFor(sim, radius);
+
+        // Snap the graph node cells into the clearance mask: at radius ≥1 the mask
+        // erodes every cell within r of the border (and of any wall), so a
+        // perimeter entry — and often a junction hard against a building — isn't
+        // itself passable and route() would return null. Snap to the nearest cell
+        // the footprint actually fits.
+        int[] entryCell = snapToMask(clr, entry.cellX, entry.cellY);
+        int[] destCell  = snapToMask(clr, dest.cellX, dest.cellY);
+        if (entryCell == null || destCell == null) {
+            LOG.warn("ConvoyMeans: no clearance cell (r=" + radius + ") near entry=("
+                    + entry.cellX + "," + entry.cellY + ") or dest=("
+                    + dest.cellX + "," + dest.cellY + ") — skipping HEAVY_APC");
             return;
         }
 
-        // Coarse road-graph corridor only — the VehicleController's rolling
-        // local planner rounds corners on the fly. No spawn-time full-path HA*
-        // refine and no synthetic per-waypoint headings (that fork produced the
-        // 90° snaps; see navigation-rework/overview.md).
-        float[][] inboundCells = ConvoyPlanner.expandToWaypoints(path, entry);
+        float[][] inboundCells = VehicleRoutePlanner.route(
+                entryCell[0], entryCell[1], destCell[0], destCell[1], sim.getGrid(), cost, clr);
+        if (inboundCells == null) {
+            LOG.warn("ConvoyMeans: cost route failed entry=(" + entry.cellX + "," + entry.cellY
+                    + ")→dest=(" + dest.cellX + "," + dest.cellY + ") for HEAVY_APC (r=" + radius + ")");
+            return;
+        }
 
         float offX = entry.cellX + 0.5f;
         float offY = entry.cellY + 0.5f;
@@ -127,13 +162,21 @@ public final class ConvoyMeans implements ReinforcementMeans {
         System.arraycopy(inboundCells[0], 0, inX, 1, len);
         System.arraycopy(inboundCells[1], 0, inY, 1, len);
 
+        // Exit perimeter node still chosen by the graph (farthest reachable from
+        // entry, so the truck drives across the city rather than reversing out its
+        // gate); the route there is cost-field. Snap the eroded perimeter cell in.
         RoadGraph.Node exitNode = ConvoyPlanner.pickExitNode(graph, dest, entry);
-        List<RoadGraph.Edge> outPath = ConvoyPlanner.planPath(graph, dest, exitNode);
-        float[][] outCells;
-        if (outPath != null && !outPath.isEmpty()) {
-            outCells = ConvoyPlanner.expandToWaypoints(outPath, dest);
-        } else {
-            outCells = new float[][]{ new float[]{dest.cellX + 0.5f}, new float[]{dest.cellY + 0.5f} };
+        int[] exitCell = snapToMask(clr, exitNode.cellX, exitNode.cellY);
+        float[][] outCells = null;
+        if (exitCell != null) {
+            outCells = VehicleRoutePlanner.route(
+                    destCell[0], destCell[1], exitCell[0], exitCell[1], sim.getGrid(), cost, clr);
+        }
+        if (outCells == null) {
+            // Exit unreachable across terrain for this footprint (or no clearance
+            // cell near it) — fall back to a single-cell stub at the LZ; the
+            // off-map waypoint appended below still pulls the truck off the board.
+            outCells = new float[][]{ new float[]{destCell[0] + 0.5f}, new float[]{destCell[1] + 0.5f} };
         }
 
         int inLast = inboundCells[0].length - 1;
@@ -173,7 +216,49 @@ public final class ConvoyMeans implements ReinforcementMeans {
         sim.addConvoyVehicle(truck);
         LOG.info("ConvoyMeans: dispatched HEAVY_APC entry=(" + entry.cellX + "," + entry.cellY
                 + ") exit=(" + exitNode.cellX + "," + exitNode.cellY
-                + ") rally=(" + rx + "," + ry + ") path=" + path.size() + "edges/" + inX.length + "wps");
+                + ") rally=(" + rx + "," + ry + ") wps=" + inX.length + "in/" + outX.length + "out");
+    }
+
+    /** Lazily bakes (and caches) the per-battle terrain cost field from the map's ground kinds. */
+    private TerrainCostField costFieldFor(BattleControl sim) {
+        if (costField == null) costField = TerrainCostField.from(sim.getTopology());
+        return costField;
+    }
+
+    /** Lazily erodes (and caches) a clearance mask for the given footprint radius. */
+    private VehicleClearance clearanceFor(BattleControl sim, int radius) {
+        VehicleClearance c = clearanceByRadius.get(radius);
+        if (c == null) {
+            c = VehicleClearance.erode(sim.getGrid(), radius);
+            clearanceByRadius.put(radius, c);
+        }
+        return c;
+    }
+
+    /**
+     * Nearest cell to ({@code x, y}) the vehicle footprint fits in
+     * ({@link VehicleClearance#isPassable}), searched in expanding Chebyshev
+     * rings out to {@link #SNAP_RADIUS}, nearest-Euclidean within a ring.
+     * Returns {@code {cx, cy}}, or {@code null} if nothing in range fits — pulls
+     * eroded perimeter / wall-hugging graph cells onto a drivable cell so the
+     * cost router gets passable endpoints (the slice-0 perimeter-erosion fix).
+     */
+    private static int[] snapToMask(VehicleClearance clr, int x, int y) {
+        if (clr.isPassable(x, y)) return new int[]{x, y};
+        for (int r = 1; r <= SNAP_RADIUS; r++) {
+            int bestX = -1, bestY = -1, bestD2 = Integer.MAX_VALUE;
+            for (int dy = -r; dy <= r; dy++) {
+                for (int dx = -r; dx <= r; dx++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue; // ring perimeter only
+                    int nx = x + dx, ny = y + dy;
+                    if (!clr.isPassable(nx, ny)) continue;
+                    int d2 = dx * dx + dy * dy;
+                    if (d2 < bestD2) { bestD2 = d2; bestX = nx; bestY = ny; }
+                }
+            }
+            if (bestX >= 0) return new int[]{bestX, bestY};
+        }
+        return null;
     }
 
     /**
