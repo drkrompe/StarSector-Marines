@@ -45,6 +45,12 @@ public final class DiamondLayoutStage implements GenStage {
     /** Innermost ring(s) (by ring index, 1 = just outside the core) that keep corners + a loop — where the isolated cardinal spokes interconnect. */
     private static final int CONNECTIVE_RINGS = 1;
 
+    // The isolated-port semantic needs ≥ 2 ring bands: the outer (isolated) ring(s)
+    // reach the connective inner ring via spokes. At bands == 1 the single ring is
+    // necessarily the connective loop (otherwise its 4 galleries, with no spokes,
+    // would be islands) — a valid but degenerate diamond with no isolated ports.
+    // Station dimensions (80×80 → 3 bands) are well clear of that floor.
+
     @Override
     public void run(GenContext ctx) {
         int w = ctx.width;

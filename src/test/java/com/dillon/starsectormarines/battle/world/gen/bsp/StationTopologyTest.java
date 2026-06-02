@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 
@@ -259,6 +260,18 @@ public class StationTopologyTest {
                     failures.add("seed " + seed + ": map corner (" + xy[0] + "," + xy[1] + ") is walkable (not a dead corner)");
                 }
             }
+
+            // Determinism: regenerate the same seed → identical structure + roles.
+            BspCityGenerator gen2 = new BspCityGenerator();
+            gen2.generateDiamondStation(W, H, seed);
+            StationGraph g2 = gen2.getLastStationGraph();
+            boolean same = g2.roomCount() == n && g2.corridorCount() == g.corridorCount()
+                    && g2.coreRoom() == core && Arrays.equals(g2.ports(), g.ports());
+            for (int r = 0; same && r < n; r++) {
+                same = g2.ringOf(r) == g.ringOf(r) && g2.depthFromEntry(r) == g.depthFromEntry(r);
+            }
+            for (int i = 0; same && i < g.corridorCount(); i++) same = g2.isBridge(i) == g.isBridge(i);
+            if (!same) failures.add("seed " + seed + ": non-deterministic diamond across regeneration");
 
             System.out.printf("seed %d (diamond): %d rooms, %d ports, %d bridges, core depth %d, maxDepth %d%n",
                     seed, n, g.ports().length, bridgeCount(g), g.depthFromEntry(core), maxDepth(g, n));
