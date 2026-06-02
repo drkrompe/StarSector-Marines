@@ -38,7 +38,7 @@ import java.util.List;
  */
 public final class StationGraph {
 
-    /** One carved room. {@code id} indexes {@link #rooms()}; bounds are the inclusive leaf rect. */
+    /** One carved room. {@code id} indexes {@link #rooms()}; bounds are the inclusive cell rect. */
     public static final class Room {
         public final int id;
         public final int left;
@@ -49,13 +49,18 @@ public final class StationGraph {
         public final int centerY;
 
         public Room(int id, BlockLeaf leaf) {
+            this(id, leaf.left, leaf.top, leaf.right, leaf.bottom);
+        }
+
+        /** Explicit-bounds room — used by layouts that don't come from a {@link BlockLeaf} (e.g. concentric rings). */
+        public Room(int id, int left, int top, int right, int bottom) {
             this.id = id;
-            this.left = leaf.left;
-            this.top = leaf.top;
-            this.right = leaf.right;
-            this.bottom = leaf.bottom;
-            this.centerX = leaf.centerX();
-            this.centerY = leaf.centerY();
+            this.left = left;
+            this.top = top;
+            this.right = right;
+            this.bottom = bottom;
+            this.centerX = (left + right) / 2;
+            this.centerY = (top + bottom) / 2;
         }
     }
 
@@ -73,6 +78,10 @@ public final class StationGraph {
     private final List<Room> rooms;
     private final List<Corridor> corridors = new ArrayList<>();
     private final List<List<Integer>> adjacency;
+
+    // --- structural layout metadata: set by layouts that have a ring/core notion (concentric); -1 otherwise ---
+    private int[] ringOf;   // 0 = core, rising outward; null for layouts without rings (BSP station)
+    private int coreRoom = -1;
 
     // --- derived topological roles: null until StationTopologyStage calls applyRoles ---
     private int entryRoom = -1;
@@ -128,6 +137,33 @@ public final class StationGraph {
     /** Number of corridors meeting this room — 1 = dead-end, 2 = pass-through, ≥3 = hub. */
     public int degree(int roomId) {
         return adjacency.get(roomId).size();
+    }
+
+    // ----- Ring/core layout metadata (concentric stations) -----
+
+    /**
+     * Record the concentric-ring structure. {@code ringOf} is indexed by room id
+     * (0 = core, rising outward); {@code coreRoom} is the central control room.
+     * Set by {@code ConcentricLayoutStage}; layouts without rings leave it unset.
+     */
+    public void setRings(int[] ringOf, int coreRoom) {
+        this.ringOf = ringOf;
+        this.coreRoom = coreRoom;
+    }
+
+    /** True once {@link #setRings} has run — this is a concentric-ring station. */
+    public boolean hasRings() {
+        return ringOf != null;
+    }
+
+    /** Concentric ring index for a room — 0 = core, rising outward. -1 if this layout has no rings. */
+    public int ringOf(int roomId) {
+        return ringOf == null ? -1 : ringOf[roomId];
+    }
+
+    /** The central control-core room id, or -1 if this layout has no core. */
+    public int coreRoom() {
+        return coreRoom;
     }
 
     // ----- Topological roles (populated by StationTopologyStage) -----

@@ -258,6 +258,68 @@ public class BspMapPreviewTest {
     }
 
     /**
+     * Concentric "onion" station preview — the defense-station layout: nested
+     * defensive rings (beige room bands) around a central control core, breached
+     * by gated ring walls. Eyeball: visible concentric rings, a central core, the
+     * marine spawn (green) in the outer ring and the defender (red) in the core,
+     * and the inward spiral of gates. Connectivity hard-asserted.
+     */
+    @Test
+    void renderConcentricStationBatch() throws Exception {
+        Files.createDirectories(OUT_DIR);
+        BspCityGenerator gen = new BspCityGenerator();
+
+        BufferedImage[] perSeed = new BufferedImage[SEEDS.length];
+        List<String> failures = new java.util.ArrayList<>();
+        for (int i = 0; i < SEEDS.length; i++) {
+            long seed = SEEDS[i];
+            MapResult map = gen.generateConcentricStation(GRID_W, GRID_H, seed);
+            BufferedImage img = renderMap(map, seed, null, null,
+                    gen.getLastCompounds(), gen.getLastTacticalMap(), CELL_PX);
+            perSeed[i] = img;
+            Path out = OUT_DIR.resolve(String.format("concentric-%04d.png", (int) seed));
+            ImageIO.write(img, "PNG", out.toFile());
+            System.out.println("  wrote " + out.toAbsolutePath());
+            try {
+                assertConnected(map, seed);
+            } catch (AssertionError ae) {
+                failures.add(ae.getMessage());
+            }
+        }
+        if (!failures.isEmpty()) {
+            throw new AssertionError(String.join("\n", failures));
+        }
+
+        BufferedImage contact = composeContactSheet(perSeed, 3);
+        Path contactPath = OUT_DIR.resolve("concentric-contact.png");
+        ImageIO.write(contact, "PNG", contactPath.toFile());
+        System.out.println("  wrote " + contactPath.toAbsolutePath());
+    }
+
+    /** Concentric station topological-roles preview — radial depth gradient (green outer ring → red core), gate bridges, ring loops. */
+    @Test
+    void renderConcentricRolesBatch() throws Exception {
+        Files.createDirectories(OUT_DIR);
+        BspCityGenerator gen = new BspCityGenerator();
+
+        BufferedImage[] perSeed = new BufferedImage[SEEDS.length];
+        for (int i = 0; i < SEEDS.length; i++) {
+            long seed = SEEDS[i];
+            MapResult map = gen.generateConcentricStation(GRID_W, GRID_H, seed);
+            BufferedImage img = renderStationRoles(map, gen.getLastStationGraph(), seed, CELL_PX);
+            perSeed[i] = img;
+            Path out = OUT_DIR.resolve(String.format("concentric-roles-%04d.png", (int) seed));
+            ImageIO.write(img, "PNG", out.toFile());
+            System.out.println("  wrote " + out.toAbsolutePath());
+        }
+
+        BufferedImage contact = composeContactSheet(perSeed, 3);
+        Path contactPath = OUT_DIR.resolve("concentric-roles-contact.png");
+        ImageIO.write(contact, "PNG", contactPath.toFile());
+        System.out.println("  wrote " + contactPath.toAbsolutePath());
+    }
+
+    /**
      * Station <em>topological roles</em> preview — the foundation later placement
      * rules query, made visible. Rooms are filled by depth-from-entry (green at
      * the marine breach → red at the deep defender end); articulation (must-pass)

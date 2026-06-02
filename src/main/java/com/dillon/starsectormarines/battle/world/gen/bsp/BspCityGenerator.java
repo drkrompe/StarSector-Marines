@@ -32,6 +32,8 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.BiomeGroundOverri
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.BspPartitionStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.CompoundClaimStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.CompoundSeedStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.ConcentricLayoutStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.CoreSpawnStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.CorridorStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FillDispatchStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
@@ -97,6 +99,9 @@ public final class BspCityGenerator implements MapGenerator {
     /** Station-interior recipe — the inverted (solid-default) rooms-and-corridors map type. Selected via {@link #generateStation}. */
     private final GenRecipe stationRecipe;
 
+    /** Concentric "onion" station recipe — defensive rings around a central core. Selected via {@link #generateConcentricStation}. */
+    private final GenRecipe concentricStationRecipe;
+
     public BspCityGenerator() {
         // Default every kind to a stub. Real fillers replace these via
         // register(...). Order doesn't matter — each filler self-identifies
@@ -127,6 +132,7 @@ public final class BspCityGenerator implements MapGenerator {
         this.conquestRecipe = buildConquestRecipe();
         this.legacyRecipe = buildLegacyRecipe();
         this.stationRecipe = buildStationRecipe();
+        this.concentricStationRecipe = buildConcentricStationRecipe();
     }
 
     /**
@@ -216,6 +222,26 @@ public final class BspCityGenerator implements MapGenerator {
                 new FinalizeStage()));        // wall HP / cover / wall tags / buildings
     }
 
+    /**
+     * The concentric "onion" station recipe — the defense-station layout. Same
+     * solid-default inversion as {@link #buildStationRecipe}, but
+     * {@link ConcentricLayoutStage} replaces the BSP partition + corridor with
+     * nested defensive rings around a central control core, and
+     * {@link CoreSpawnStage} pins the defender to the core / the marine to the
+     * outer ring. {@link StationTopologyStage} then reads the gates as bridges
+     * and the radial gradient as depth-from-entry; the generic
+     * {@link TacticalLinkStage} + {@link FinalizeStage} are reused verbatim.
+     */
+    private GenRecipe buildConcentricStationRecipe() {
+        return new GenRecipe("ConcentricStation", List.of(
+                new InitSolidStage(),         // solid hull
+                new ConcentricLayoutStage(),  // rings + core + doors + gates; publish StationGraph
+                new CoreSpawnStage(),         // defender at core, marine at outer ring
+                new StationTopologyStage(),   // radial depth / gate bridges / on-loop
+                new TacticalLinkStage(),      // (empty node list → empty map)
+                new FinalizeStage()));        // wall HP / cover / wall tags / buildings
+    }
+
     /** Swap in a compound-aware filler. Idempotent — last write wins. */
     public void registerCompound(CompoundFiller filler) {
         compoundFillers.put(filler.kind(), filler);
@@ -297,6 +323,27 @@ public final class BspCityGenerator implements MapGenerator {
         ctx.put(BspKeys.MARKET_PROFILE, TargetProfile.NEUTRAL);
 
         stationRecipe.run(ctx);
+
+        return assembleResult(ctx);
+    }
+
+    /**
+     * Concentric "onion" station generation — the defense-station layout:
+     * defensive rings around a central control core, the player breaching the
+     * outer ring and fighting inward through gated ring walls. Like
+     * {@link #generateStation} it's not on the {@link MapGenerator} interface
+     * (no production caller selects stations yet); the preview/scan tests drive
+     * it directly.
+     */
+    public MapResult generateConcentricStation(int width, int height, long seed) {
+        Random rng = new Random(seed);
+        NavigationGrid grid = new NavigationGrid(width, height);
+        CellTopology topology = new CellTopology(width, height);
+
+        GenContext ctx = new GenContext(grid, topology, rng, width, height, seed);
+        ctx.put(BspKeys.MARKET_PROFILE, TargetProfile.NEUTRAL);
+
+        concentricStationRecipe.run(ctx);
 
         return assembleResult(ctx);
     }

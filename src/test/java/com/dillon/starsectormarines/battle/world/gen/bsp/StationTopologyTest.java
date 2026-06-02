@@ -128,6 +128,76 @@ public class StationTopologyTest {
         }
     }
 
+    /**
+     * Concentric station structure — the "besieged core" invariants on top of the
+     * reused Tarjan/oracle machinery: the core is a single-entrance dead-end whose
+     * gate is a real bridge, and depth-from-entry rises monotonically inward across
+     * every radial gate (the assault gradient). The bridge oracle is re-run on the
+     * concentric graph (same independent remove-and-flood as the BSP test).
+     */
+    @Test
+    void concentricStationStructureInvariants() {
+        BspCityGenerator gen = new BspCityGenerator();
+        List<String> failures = new ArrayList<>();
+
+        for (long seed : SEEDS) {
+            gen.generateConcentricStation(W, H, seed);
+            StationGraph g = gen.getLastStationGraph();
+            if (g == null || !g.hasRings() || !g.hasRoles()) {
+                failures.add("seed " + seed + ": concentric graph missing rings/roles");
+                continue;
+            }
+            int n = g.roomCount();
+            int core = g.coreRoom();
+            List<int[]> edges = edgesOf(g);
+
+            if (core < 0 || g.ringOf(core) != 0) {
+                failures.add("seed " + seed + ": core room " + core + " ring=" + g.ringOf(core) + " (expected 0)");
+            }
+            // Besieged core: single entrance, and that entrance is a bridge.
+            if (g.degree(core) != 1) {
+                failures.add("seed " + seed + ": core degree " + g.degree(core) + " (expected 1 — single entrance)");
+            }
+            for (int i = 0; i < edges.size(); i++) {
+                if ((edges.get(i)[0] == core || edges.get(i)[1] == core) && !g.isBridge(i)) {
+                    failures.add("seed " + seed + ": core gate (corridor " + i + ") is not a bridge");
+                }
+            }
+            // Bridge oracle on the concentric graph (independent of Tarjan).
+            for (int i = 0; i < edges.size(); i++) {
+                boolean oracle = !connected(n, edges, i, -1);
+                if (g.isBridge(i) != oracle) {
+                    failures.add("seed " + seed + ": corridor " + i + " bridge=" + g.isBridge(i) + " oracle=" + oracle);
+                }
+            }
+            // Radial gates: depth rises inward (toward the lower ring index / core).
+            for (int[] e : edges) {
+                int ra = g.ringOf(e[0]), rb = g.ringOf(e[1]);
+                if (Math.abs(ra - rb) != 1) continue;
+                int outer = ra > rb ? e[0] : e[1];
+                int inner = ra > rb ? e[1] : e[0];
+                if (g.depthFromEntry(inner) < g.depthFromEntry(outer)) {
+                    failures.add("seed " + seed + ": radial gate " + outer + "->" + inner
+                            + " depth drops inward (" + g.depthFromEntry(outer) + " -> " + g.depthFromEntry(inner) + ")");
+                }
+            }
+
+            System.out.printf("seed %d (concentric): %d rooms, maxRing %d, core depth %d, maxDepth %d, bridges %d%n",
+                    seed, n, maxRing(g, n), g.depthFromEntry(core), maxDepth(g, n), bridgeCount(g));
+        }
+
+        if (!failures.isEmpty()) {
+            fail("Concentric structure found " + failures.size() + " violation(s):\n  "
+                    + String.join("\n  ", failures));
+        }
+    }
+
+    private static int maxRing(StationGraph g, int n) {
+        int m = 0;
+        for (int r = 0; r < n; r++) m = Math.max(m, g.ringOf(r));
+        return m;
+    }
+
     private static List<int[]> edgesOf(StationGraph g) {
         List<int[]> edges = new ArrayList<>();
         for (StationGraph.Corridor c : g.corridors()) {

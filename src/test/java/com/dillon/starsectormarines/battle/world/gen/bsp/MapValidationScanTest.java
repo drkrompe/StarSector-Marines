@@ -163,6 +163,56 @@ public class MapValidationScanTest {
     }
 
     /**
+     * Concentric "onion" station scan — the gates must actually connect every
+     * ring to the core. Same gate as the BSP station (one walkable component, no
+     * islands; marine→defender pathable via the real {@link GridPathfinder}), but
+     * here the defender is the core, so this proves the assault can reach the
+     * core through the ring walls.
+     */
+    @Test
+    void scanConcentricStationBatch() {
+        BspCityGenerator gen = new BspCityGenerator();
+        List<String> failures = new ArrayList<>();
+
+        System.out.println("=== Map validation scan: CONCENTRIC (" + GRID_W + "x" + GRID_H + ") ===");
+        for (long seed : STATION_SEEDS) {
+            MapResult map = gen.generateConcentricStation(GRID_W, GRID_H, seed);
+            TacticalMap tactical = gen.getLastTacticalMap();
+
+            System.out.println("\n-- seed " + seed + " --");
+
+            ConnectivityResult conn = scanConnectivity(map.grid);
+            System.out.println(conn.report());
+            ReachabilityResult reach = scanReachability(map, tactical);
+            System.out.println(reach.report());
+
+            NavigationGrid grid = map.grid;
+            if (!grid.isWalkable(map.marineSpawnX, map.marineSpawnY)) {
+                failures.add("CONCENTRIC seed " + seed + ": marine spawn on non-walkable cell");
+            }
+            if (!grid.isWalkable(map.defenderSpawnX, map.defenderSpawnY)) {
+                failures.add("CONCENTRIC seed " + seed + ": defender (core) spawn on non-walkable cell");
+            }
+            if (!reach.defenderReachable) {
+                failures.add("CONCENTRIC seed " + seed + ": core UNREACHABLE from the outer ring (real pathfinder)");
+            }
+            if (conn.cellComponents != 1) {
+                failures.add("CONCENTRIC seed " + seed + ": walkable space has " + conn.cellComponents
+                        + " components (expected 1 — a ring was left ungated)");
+            }
+            if (conn.edgeComponents != conn.cellComponents) {
+                failures.add("CONCENTRIC seed " + seed + ": cell/edge connectivity disagree");
+            }
+        }
+
+        if (!failures.isEmpty()) {
+            fail("CONCENTRIC scan found " + failures.size() + " invariant violation(s):\n  "
+                    + String.join("\n  ", failures));
+        }
+        System.out.println("\nCONCENTRIC: all hard invariants held.");
+    }
+
+    /**
      * Generates each seed, runs the three scans, prints the report, and collects
      * hard-invariant violations across the whole batch (so one bad seed doesn't
      * mask the others). Throws once at the end if any seed failed an invariant.
