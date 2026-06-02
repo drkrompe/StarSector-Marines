@@ -15,8 +15,9 @@
 > pruned, faction-default tracer colors deduped onto `ShotFx.defaultTracerColor`).
 > Full write-up: [`complete/fx-shots-command-model.md`](complete/fx-shots-command-model.md).
 >
-> 🎯 **Phase 3 — remaining gameplay-geometry passes — triaged into three stories.**
-> The leftover `Custom` passes were gut-checked (debug-only / placeholder before
+> 🎯 **Phase 3 — remaining gameplay-geometry passes — 3a + 3b SHIPPED; 3c is the
+> only one left (and recommended deferred).** Triaged into three stories; the
+> leftover `Custom` passes were gut-checked (debug-only / placeholder before
 > investing; `Custom` is a fine home for both). The non-debug, non-FBO passes split:
  - **3a — fog + roofs — ✅ SHIPPED & VERIFIED** (`d874cf8`). The two clean
 >   wins (already batch-shaped production passes). `collectFogOverlay` emits
@@ -26,19 +27,18 @@
 >   Moved to [`complete/geometry-fog-roofs-command-model.md`](complete/geometry-fog-roofs-command-model.md).
 >   ⚠️ Verify surfaced a **sim** follow-up (not render): roof reveal under-reveals
 >   vs. shooting LoS — logged in fog-of-war backlog.
-> - **3b — objective + compound markers — CODE-COMPLETE, in-game verify pending.**
->   Viz stays vector ring/arc/glyph; arc approach is Option A (`POLY` kind) realized
->   leanly — `SolidQuadBatch.appendQuad` (free corners) + a `PolyMesh` carrier
->   routed through the existing `solidBatch` (no duplicate batch class). All three
->   slices shipped: **S1 (engine)** `POLY` command + `PolyMesh` + `PolyTess` (shared
->   annulus/arc tess) + `PolyTessTest` (passing); **S2** objective markers →
+> - **3b — objective + compound markers — ✅ SHIPPED & VERIFIED** (`87ab432` S1,
+>   `0be86c1` S2, `c5cb8c3` S3). Viz stayed vector ring/arc/glyph; arc approach was
+>   Option A (`POLY` kind) realized leanly — `SolidQuadBatch.appendQuad` (free
+>   corners) + a `PolyMesh` carrier routed through the existing `solidBatch` (no
+>   duplicate batch class). **S1 (engine)** `POLY` command + `PolyMesh` + `PolyTess`
+>   (shared annulus/arc tess) + `PolyTessTest`; **S2** objective markers →
 >   `SPRITE`+`POLY` (inline `drawTintedIcon`/`drawProgressArc`/`fillRect` deleted);
->   **S3** compound markers → `POLY`+`LINE`+glyph `CUSTOM` — and
->   `CompoundMarkerRenderer` **moved** `battle.ui.compound` → `ops.battleview` (it's
->   now a command-emitting producer; the move avoids a new ops.battleview ↔
->   battle.ui.compound package cycle). Pending: in-game verify of both markers
->   (charge-site icons+arc; compound rings/arcs/rims/glyphs).
->   Story: [`stories/geometry-markers-command-model.md`](stories/geometry-markers-command-model.md).
+>   **S3** compound markers → `POLY`+`LINE`+glyph `CUSTOM`, and
+>   `CompoundMarkerRenderer` **moved** `battle.ui.compound` → `ops.battleview` (now a
+>   command-emitting producer; avoids a new package cycle). Both markers verified
+>   in-game (arc fill direction, concentric overlap, no blend artifacts).
+>   Moved to [`complete/geometry-markers-command-model.md`](complete/geometry-markers-command-model.md).
 > - **3c — highlight overlay — design-stage, mixed debug/gameplay fate.** Serves a
 >   debug source (`SRC_ACTION_CELLS`) and a gameplay source (`SRC_SELECTED_SQUAD`);
 >   needs a split-vs-whole-vs-defer decision first.

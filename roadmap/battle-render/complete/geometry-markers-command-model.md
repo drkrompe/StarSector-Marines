@@ -1,7 +1,18 @@
 # Phase 3b — objective + compound markers → command model (Bucket B)
 
-> **Status: DECISIONS RESOLVED — implementing.** Bucket A is shipped. The two
-> design questions are answered (2026-06-02):
+> **✅ SHIPPED & VERIFIED** (2026-06-02; commits `87ab432` S1, `0be86c1` S2,
+> `c5cb8c3` S3). Both markers verified in-game: charge-site icons + clockwise
+> progress arc, equipment-drop stars, and compound rings/arcs/rims/glyphs all
+> render correctly through the `POLY`/`SPRITE`/`LINE`/`CUSTOM` command path — no
+> blend/transparency artifacts, arc fill direction and concentric overlap correct.
+> Bonus cleanups: deleted duplicated inline `drawProgressArc`/`drawAnnulus`/
+> `drawTintedIcon`/`fillRect` (arc math now in shared `PolyTess`); moved
+> `CompoundMarkerRenderer` `battle.ui.compound` → `ops.battleview` (it's a
+> command-emitting producer now; avoids a new package cycle).
+>
+> ---
+> *Decision record + slice plan below (kept for context).* The two
+> design questions were answered (2026-06-02):
 > - **Viz direction:** *keep the vector ring/arc/glyph language* (permanent, not
 >   reworked to sprites). So we build the arc primitive and migrate both passes
 >   fully.
