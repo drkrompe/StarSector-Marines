@@ -56,12 +56,13 @@ public final class HitResponseService {
 
     public void rollFallbackOnHit(Unit target) {
         if (!target.isAlive()) return;
-        if (target.getFallbackTimer() > 0f) return;
+        int tIdx = registry.requireLiveIndex(target.entityId);
+        if (registry.getFallbackTimer(tIdx) > 0f) return;
         if (target instanceof MapTurret) return;
         if (target.squadId != Unit.NO_SQUAD) return;
         if (target.rng.nextFloat() >= FALLBACK_CHANCE) return;
         int[] fallback = tacticalScoring.findFallbackPosition(target);
-        if (fallback[0] == target.getCellX() && fallback[1] == target.getCellY()) return;
+        if (fallback[0] == registry.getCellX(tIdx) && fallback[1] == registry.getCellY(tIdx)) return;
         damageService.applyFallback(target, fallback[0], fallback[1]);
     }
 
@@ -73,13 +74,15 @@ public final class HitResponseService {
         int prev = LAST_REPRIO_TICK.get(target);
         if (prev == simTickIndex) return;
         if (!LAST_REPRIO_TICK.compareAndSet(target, prev, simTickIndex)) return;
-        long expectedTargetId = target.getTargetId();
+        int tIdx = registry.requireLiveIndex(target.entityId);
+        long expectedTargetId = registry.getTargetId(tIdx);
         Unit expectedTarget = registry.getOrNull(expectedTargetId);
         if (expectedTarget == null) return;
         if (shooter != null && expectedTarget == shooter) return;
+        int etIdx = registry.requireLiveIndex(expectedTarget.entityId);
         boolean hasLosToCurrentTarget = TacticalScoring.canSeePair(grid,
-                target.getCellX(), target.getCellY(),
-                expectedTarget.getCellX(), expectedTarget.getCellY(),
+                registry.getCellX(tIdx), registry.getCellY(tIdx),
+                registry.getCellX(etIdx), registry.getCellY(etIdx),
                 target.airLosRadius, expectedTarget.airLosRadius);
         float chance = hasLosToCurrentTarget ? REPRIORITIZE_BASE_CHANCE : REPRIORITIZE_NO_LOS_CHANCE;
         if (target.rng.nextFloat() >= chance) return;

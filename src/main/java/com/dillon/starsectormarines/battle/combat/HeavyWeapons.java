@@ -101,7 +101,10 @@ public class HeavyWeapons {
         // Shared with the infantry-side primaries so chaingun saturation and
         // SMG burst-spread use the same math, just with different per-weapon
         // hitSpread numbers.
-        float distToTarget = RangeFalloff.dist(shooter.getCellX(), shooter.getCellY(), target.getCellX(), target.getCellY());
+        int shooterIdx = registry.requireLiveIndex(shooter.entityId);
+        int targetIdx = registry.requireLiveIndex(target.entityId);
+        float distToTarget = RangeFalloff.dist(registry.getCellX(shooterIdx), registry.getCellY(shooterIdx),
+                registry.getCellX(targetIdx), registry.getCellY(targetIdx));
         float effectiveSpread = RangeFalloff.spread(weapon.hitSpread, distToTarget, weapon.range);
 
         // Endpoint resolves through ShotEndpoint — same hit-jitter +
@@ -254,9 +257,11 @@ public class HeavyWeapons {
                         m.lrmSalvoRemaining = 0;
                         m.lrmSalvoTargetId = 0L;
                     } else {
+                        int uIdx = registry.requireLiveIndex(u.entityId);
+                        int lrmIdx = registry.requireLiveIndex(lrmTarget.entityId);
                         boolean hasLos = grid.hasLineOfSight(
-                                u.getCellX(), u.getCellY(),
-                                lrmTarget.getCellX(), lrmTarget.getCellY());
+                                registry.getCellX(uIdx), registry.getCellY(uIdx),
+                                registry.getCellX(lrmIdx), registry.getCellY(lrmIdx));
                         float accMult = hasLos ? 1.0f : MechWeapon.LRM_NO_LOS_ACC_MULT;
                         fireMechWeapon(u, lrmTarget, m.lrmArtillery, accMult);
                         m.lrmSalvoRemaining--;

@@ -96,7 +96,11 @@ public final class DamageResolver {
     public void resolve(Unit target, float damage, float vsTurretMult, float moraleImpact) {
         boolean wasAlive = target.isAlive();
         if (!wasAlive) return;
-        int targetCover = grid.getCoverAt(target.getCellX(), target.getCellY());
+        UnitRegistry registry = roster.getRegistry();
+        int tIdx = registry.requireLiveIndex(target.entityId);
+        int tcx = registry.getCellX(tIdx);
+        int tcy = registry.getCellY(tIdx);
+        int targetCover = grid.getCoverAt(tcx, tcy);
         float dr = COVER_DAMAGE_REDUCTION[Math.min(targetCover, COVER_DAMAGE_REDUCTION.length - 1)];
         // vsTurretMult is misnamed history — it's the "vs hardened" multiplier.
         // Honor it for every class TacticalScoring.isHardened recognizes so the
@@ -105,7 +109,7 @@ public final class DamageResolver {
         // assuming 3.5×, which suppressed the second/third volley rocket the
         // squad gate actually needed). One contract, one classifier.
         float effectiveMult = TacticalScoring.isHardened(target) ? vsTurretMult : 1f;
-        target.setHp(target.getHp() - damage * effectiveMult * (1f - dr));
+        registry.setHp(tIdx, registry.getHp(tIdx) - damage * effectiveMult * (1f - dr));
         boolean died = wasAlive && !target.isAlive();
         if (died) {
             target.deathPoseIdx = rng.nextInt(4);
@@ -133,7 +137,7 @@ public final class DamageResolver {
             // retire-legacy-units-list. Snapshot the death cell into the event
             // here, while the target is still registered — handlers run at the
             // drain (post-release) where the Group-C cell accessors fail loud.
-            deathDispatcher.publish(new DeathEvent(target, target.getCellX(), target.getCellY()));
+            deathDispatcher.publish(new DeathEvent(target, tcx, tcy));
             // Drop the dense-registry entry. The legacy units list still retains
             // the dead unit (no cleanup path) until it's deleted outright, but
             // nothing reads a released unit through it anymore — this release is
@@ -183,9 +187,10 @@ public final class DamageResolver {
     private Unit pickPromotionCandidate(Squad squad, Unit deadLeader) {
         Unit best = null;
         float bestDistSq = Float.MAX_VALUE;
-        int lx = deadLeader.getCellX();
-        int ly = deadLeader.getCellY();
         UnitRegistry registry = roster.getRegistry();
+        int ldrIdx = registry.requireLiveIndex(deadLeader.entityId);
+        int lx = registry.getCellX(ldrIdx);
+        int ly = registry.getCellY(ldrIdx);
         Unit[] dense = registry.denseArray();
         int[] cellX = registry.cellXArray();
         int[] cellY = registry.cellYArray();
@@ -251,9 +256,11 @@ public final class DamageResolver {
     private void applyMechHpThresholdDrain(Unit target) {
         MechLoadoutState m = target.mech;
         m.timeSinceUnderFire = 0f;
-        float maxHp = target.getMaxHp();
+        UnitRegistry registry = roster.getRegistry();
+        int tIdx = registry.requireLiveIndex(target.entityId);
+        float maxHp = registry.getMaxHp(tIdx);
         if (maxHp <= 0f) return;
-        float frac = Math.max(0f, target.getHp()) / maxHp;
+        float frac = Math.max(0f, registry.getHp(tIdx)) / maxHp;
         int newCount = 0;
         for (float t : SquadMoraleSystem.MECH_HP_DRAIN_THRESHOLDS) {
             if (frac <= t) newCount++;

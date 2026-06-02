@@ -117,16 +117,21 @@ public class Detonations {
             // Gather the in-range, LOS-visible, non-roof-shielded units first
             // (read-only over the live registry), then apply — see aoeScratch.
             aoeScratch.clear();
+            Unit[] dense = registry.denseArray();
+            int[] cellX = registry.cellXArray();
+            int[] cellY = registry.cellYArray();
             for (int i = 0, n = registry.liveCount(); i < n; i++) {
-                Unit u = registry.get(i);
+                Unit u = dense[i];
                 if (det.friendlyFireImmune && u.faction == det.shooterFaction) continue;
-                float dx = (u.getCellX() + 0.5f) - det.endpointX;
-                float dy = (u.getCellY() + 0.5f) - det.endpointY;
+                int ucx = cellX[i];
+                int ucy = cellY[i];
+                float dx = (ucx + 0.5f) - det.endpointX;
+                float dy = (ucy + 0.5f) - det.endpointY;
                 if (dx * dx + dy * dy > r2) continue;
-                if (!grid.hasLineOfSight(targetCx, targetCy, u.getCellX(), u.getCellY())) continue;
+                if (!grid.hasLineOfSight(targetCx, targetCy, ucx, ucy)) continue;
                 if (det.aerialDelivery
-                        && topology.getBuildingId(u.getCellX(), u.getCellY()) != 0
-                        && !topology.isRoofDestroyed(u.getCellX(), u.getCellY())) continue;
+                        && topology.getBuildingId(ucx, ucy) != 0
+                        && !topology.isRoofDestroyed(ucx, ucy)) continue;
                 aoeScratch.add(u);
             }
             for (int i = 0, n = aoeScratch.size(); i < n; i++) {
