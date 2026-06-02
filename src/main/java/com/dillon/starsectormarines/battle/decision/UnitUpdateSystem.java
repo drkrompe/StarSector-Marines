@@ -133,7 +133,7 @@ public final class UnitUpdateSystem {
     private void updateUnit(Unit u, BattleSimulation sim) {
         long t0 = System.nanoTime();
         TickInnerProfile.Bucket bucket;
-        if (u.getFallbackTimer() > 0f) {
+        if (sim.world().fallbackTimer(u.entityId) > 0f) {
             FallbackBehavior.INSTANCE.update(u, sim);
             bucket = TickInnerProfile.Bucket.BEHAVIOR_FALLBACK;
         } else {

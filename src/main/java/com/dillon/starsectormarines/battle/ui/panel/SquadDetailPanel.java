@@ -131,7 +131,7 @@ public final class SquadDetailPanel implements HudPanel {
                 .comparing((Unit u) -> currentSquad.leaderId == u.entityId ? 0 : 1)
                 .thenComparing(u -> u.id));
         for (Unit u : live) {
-            rows.add(new MemberRow(u.getHp(), u.getMaxHp(), u.primaryWeapon,
+            rows.add(new MemberRow(sim.world().hp(u.entityId), sim.world().maxHp(u.entityId), u.primaryWeapon,
                     u.secondaryWeapon, u.secondaryAmmo, u.role));
         }
     }

@@ -113,7 +113,7 @@ public final class GarrisonPatrol implements Action {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             Unit e = sim.liveUnitAt(i);
             if (e.faction != enemy || !e.type.combatant) continue;
-            if (sim.getZoneGraph().zoneIdAt(e.getCellX(), e.getCellY()) != zoneId) continue;
+            if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(e.entityId), sim.world().cellY(e.entityId)) != zoneId) continue;
             if (sim.getTacticalScoring().hasReachableFiringSpot(member, e)) return true;
         }
         return false;

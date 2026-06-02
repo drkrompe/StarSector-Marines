@@ -112,12 +112,13 @@ public final class HubDemolitionSystem {
         if (doomed == null) return;
         for (int i = 0, n = doomed.size(); i < n; i++) {
             Drone d = doomed.get(i);
-            d.setHp(0f);
+            int idx = registry.requireLiveIndex(d.entityId);
+            registry.setHp(idx, 0f);
             // Publish before release, mirroring DamageResolver.resolve's
             // ordering — re-entrant into the in-progress drain, fanned out on
             // the next wave (the dispatcher is wave-drained for exactly this).
             // Snapshot the cell while the drone is still registered.
-            deathDispatcher.publish(new DeathEvent(d, d.getCellX(), d.getCellY()));
+            deathDispatcher.publish(new DeathEvent(d, registry.getCellX(idx), registry.getCellY(idx)));
             roster.releaseFromRegistry(d.entityId);
         }
     }

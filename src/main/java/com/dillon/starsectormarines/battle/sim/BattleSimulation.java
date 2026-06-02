@@ -365,7 +365,9 @@ public class BattleSimulation implements BattleControl {
 
     public boolean isRoofShielded(Unit target) {
         if (target == null) return false;
-        return topology.isRoofIntact(target.getCellX(), target.getCellY());
+        UnitRegistry registry = rosterService.getRegistry();
+        int idx = registry.requireLiveIndex(target.entityId);
+        return topology.isRoofIntact(registry.getCellX(idx), registry.getCellY(idx));
     }
 
     @Override public int liveUnitCount() { return rosterService.getRegistry().liveCount(); }
@@ -479,7 +481,8 @@ public class BattleSimulation implements BattleControl {
      * the canonical read path replacing the old {@code u.target} field.
      */
     public Unit targetOf(Unit u) {
-        return rosterService.getRegistry().getOrNull(u.getTargetId());
+        UnitRegistry registry = rosterService.getRegistry();
+        return registry.getOrNull(registry.getTargetId(registry.requireLiveIndex(u.entityId)));
     }
 
     /**

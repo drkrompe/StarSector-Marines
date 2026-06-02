@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.drone;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
+import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
 
@@ -35,8 +36,10 @@ public final class DroneSpawner {
     public static Drone tryLaunch(DroneHubUnit hub, BattleSimulation sim) {
         if (!hub.isAlive()) return null;
         NavigationGrid grid = sim.getGrid();
-        int hubX = hub.getCellX();
-        int hubY = hub.getCellY();
+        UnitRegistry registry = sim.getUnitRegistry();
+        int hubIdx = registry.requireLiveIndex(hub.entityId);
+        int hubX = registry.getCellX(hubIdx);
+        int hubY = registry.getCellY(hubIdx);
         int[] cell = findFreeCell(grid, sim, hubX, hubY);
         if (cell == null) return null;
         String id = "drone-" + hub.id + "-" + (++hub.dronesLaunched);
@@ -88,7 +91,7 @@ public final class DroneSpawner {
     private static boolean isCellOccupied(BattleView sim, int x, int y) {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             Unit u = sim.liveUnitAt(i);
-            if (u.getCellX() == x && u.getCellY() == y) return true;
+            if (sim.world().cellX(u.entityId) == x && sim.world().cellY(u.entityId) == y) return true;
         }
         return false;
     }

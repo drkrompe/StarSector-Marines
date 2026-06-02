@@ -118,7 +118,7 @@ public final class TurretDemolitionSystem {
             for (int i = 0, n = registry.liveCount(); i < n; i++) {
                 Unit u = registry.get(i);
                 if (!(u instanceof MapTurret)) continue;
-                if (u.getCellX() != spec.cellX || u.getCellY() != spec.cellY) continue;
+                if (registry.getCellX(i) != spec.cellX || registry.getCellY(i) != spec.cellY) continue;
                 aliveAtSpec = true;
                 break;
             }

@@ -63,7 +63,11 @@ public final class EquipmentDropService {
             return;
         }
         if (carried == null || carried.isComplete()) return;
-        equipmentDrops.add(new EquipmentDrop(dead.getCellX(), dead.getCellY(), carried));
+        // Called from DamageResolver.resolve's died branch before release, so the
+        // dead unit is still registered — resolve its cell by index once.
+        UnitRegistry registry = rosterService.getRegistry();
+        int idx = registry.requireLiveIndex(dead.entityId);
+        equipmentDrops.add(new EquipmentDrop(registry.getCellX(idx), registry.getCellY(idx), carried));
     }
 
     /**
@@ -93,7 +97,7 @@ public final class EquipmentDropService {
             for (int i = 0, n = registry.liveCount(); i < n; i++) {
                 Unit u = registry.get(i);
                 if (u.faction != Faction.MARINE) continue;
-                if (u.getCellX() != drop.cellX || u.getCellY() != drop.cellY) continue;
+                if (registry.getCellX(i) != drop.cellX || registry.getCellY(i) != drop.cellY) continue;
                 u.role = UnitRole.PLANTER;
                 u.assignedObjective = drop.objective;
                 u.equipmentDropTarget = null;
@@ -150,7 +154,7 @@ public final class EquipmentDropService {
             if (u.role == UnitRole.KIT_RETRIEVER
                     && u.equipmentDropTarget != null
                     && !u.equipmentDropTarget.consumed) continue;
-            float d = TacticalScoring.cellDistance(u.getCellX(), u.getCellY(), cx, cy);
+            float d = TacticalScoring.cellDistance(registry.getCellX(i), registry.getCellY(i), cx, cy);
             if (d < bestDist) {
                 bestDist = d;
                 best = u;
