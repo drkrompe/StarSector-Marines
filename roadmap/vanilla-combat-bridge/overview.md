@@ -243,11 +243,10 @@ cheaply, before any real feature investment ([[feedback_ship_then_optimize]]):
   ground-below with cross-interaction (the proxy framing). Walls stay in the headless
   sim. Kept as a documented technique only. See
   [`stories/s1-wall-clamp-probe.md`](stories/s1-wall-clamp-probe.md).
-- **S2 — Proxy-target probe.** 🔨 *built, awaiting playtest.* Ctrl+Shift+J: an AI
-  carrier vs one invisible `owner=enemy` `ShipAPI` proxy (sim-slaved, HP-drain logged,
-  crosshair marker). Answers: **does vanilla carrier/fighter AI engage a slaved proxy
-  sensibly?** If yes, "the fleet above reacts to the ground battle below" is mostly
-  plumbing. See [`stories/s2-proxy-target-probe.md`](stories/s2-proxy-target-probe.md).
+- **S2 — Proxy-target probe.** ✅ *shipped + playtested — works.* Ctrl+Shift+J: vanilla
+  carrier/fighter AI strafes a sim-slaved invisible proxy with zero targeting code from
+  us. The cross-engine bridge is validated. Sealed in
+  [`complete/s2-proxy-target-probe.md`](complete/s2-proxy-target-probe.md).
 - **S3 (hypothetical) — inject the 2nd engine layer.** Once proxies prove cross-engine
   targeting works, S3 starts rendering/simulating our *actual* ground battle "below" the
   vanilla fleet fight: the headless `battle/` sim driving a fleet of proxies (one per
@@ -284,6 +283,6 @@ product direction; walls stay in the headless sim.
 ## How this directory is laid out
 
 - **`overview.md`** (this file) — concept, verified facts, architecture, probes.
-- **`stories/`** — the active probe docs (`s1-wall-clamp-probe`, `s2-proxy-target-probe`).
-- **`complete/`** — sealed shipped work (`s0-battle-bootstrap`, `s0b-spectator-canvas`).
-- **`next-session.md`** — handoff state; S0 + S0b shipped & playtested, next is S2.
+- **`stories/`** — the active probe docs (`s1-wall-clamp-probe` — shelved).
+- **`complete/`** — sealed shipped work (`s0-battle-bootstrap`, `s0b-spectator-canvas`, `s2-proxy-target-probe`).
+- **`next-session.md`** — handoff state; S0 / S0b / S2 shipped & playtested. Next: sim HP-drain wiring → S3.

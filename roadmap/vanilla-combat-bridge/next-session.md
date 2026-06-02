@@ -2,68 +2,51 @@
 
 ## State of play
 
-**S0 + S0b are shipped and playtested.** A vanilla `CombatEngineAPI` battle can be
-launched from the campaign with a roster we choose, the mod owns when it ends, and the
-whole thing can run as a blank, sim-driven **spectator canvas** (no deploy picker, free
-camera, below-ships backdrop, starved HUD + our overlay, clean exit with the player
-fleet intact). The "vanilla combat as a host for our ground sim" thesis is proven.
+**S0, S0b, and S2 are all shipped and playtested.** The cross-engine bridge is proven
+end to end:
 
-Sealed: `complete/s0-battle-bootstrap.md`, `complete/s0b-spectator-canvas.md`.
-Triggers (dev, gated by `DevConfig.S0_COMBAT_PROBE`): **Ctrl+Shift+B** = basic battle,
-**Ctrl+Shift+N** = spectator canvas, **F10** in combat = end.
+- **S0** — launch a vanilla `CombatEngineAPI` battle from the campaign with a chosen
+  roster; the mod owns when it ends (Ctrl+Shift+B, F10).
+- **S0b** — run it as a blank spectator canvas: no deploy picker, free camera (real
+  zoom), below-ships backdrop, starved HUD, clean exit with the player fleet restored
+  (Ctrl+Shift+N).
+- **S2** — vanilla carrier/fighter AI strafes a sim-slaved invisible proxy with **zero
+  targeting code from us** (Ctrl+Shift+J). The whole bet pays off.
 
-## Hard-won facts (all in overview §"round 2" + the `startbattle_plugin_pick_deferred` memory)
+**S1** shelved (Direction A / walls-in-the-plane is not the product direction).
 
-- `startBattle` resolves the `BattleCreationPlugin` a frame *later* → gate selection by
-  an **opponent-fleet memory tag** (`PROBE_FLAG`), not a transient armed flag.
-- `startBattle` deploys from the **real** player fleet, ignoring the context fleet → for
-  a spectator, **stash** the real fleet (`PlayerFleetStash`) and re-attach it **~0.5s
-  into combat** (NOT on exit — restoring after combat-end makes the resolution read an
-  empty fleet and declare a game-over).
-- `spawnShipOrWing` resolves variant ids **eagerly** (validate first); `createFleetMember`
-  is **lazy**. Real ids: `vigilance_Standard`, `tempest_Attack`, `brawler_Assault`, …
-- Can't draw over a *populated* command bar (no above-UI combat hook) → starve the HUD
-  (spectator + 0 CP) instead.
-- Working scale: `WORLD_UNITS_PER_CELL = 50` (size gut-check).
+Sealed: `complete/{s0-battle-bootstrap, s0b-spectator-canvas, s2-proxy-target-probe}.md`.
 
-## S2 — proxy-target probe: BUILT, awaiting playtest
+## Next: the first real two-engine coupling (toward S3)
 
-**Ctrl+Shift+J.** Rides the spectator canvas; adds `Mode.PROXY_TARGET`,
-`S0BattleCreationPlugin.setupProxyTarget` (AI carriers `heron_Strike`+`drover_Strike` on
-the player side, one invisible owner-1 proxy `vigilance_Standard` on the enemy side), and
-`ProxyTargetPlugin` (pins position/velocity, holds fire, `extraAlphaMult=0`, logs HP
-delta, despawns at 0, draws a red crosshair marker at the proxy). Compiles clean.
+Replace the S2 proxy's standalone HP counter with a real sim `Unit`:
 
-S1 is shelved (Direction A not the product direction). Camera fix landed (`set()`-based,
-real zoom). Decision: **fleet-above / ground-below with cross-interaction** is the path.
+- **The hook exists:** `BattleSimulation.applyExternalDamage(Unit target, float damage)`
+  (`BattleSimulation.java:1087`) — built for flyby strafing, routes through
+  `DamageResolver` with morale + fallback short-circuited, runs cover/HP-write/death
+  cascade normally. Drain the proxy's per-frame HP delta into it.
+- **Shape:** one proxy per sim squad/turret. Proxy position ← unit cell (× `WORLD_UNITS_PER_CELL`
+  = 50). Proxy HP delta → `applyExternalDamage`. Unit death → despawn proxy; proxy gone
+  → stop driving. This is the first slice of **S3** (overview): the headless `battle/`
+  sim driving a *fleet* of proxies under the vanilla fleet fight, with the real ground
+  scene rendered on the below-ships layer and full above⇄below cross-interaction.
+- **Open question #2** (overview) is now answered: the external-damage path is
+  `applyExternalDamage`.
 
-### Playtest checklist (Ctrl+Shift+J)
-- [ ] Carriers launch fighters that fly to + strafe the crosshair marker (the invisible
-      proxy) — native AI, zero targeting code from us.
-- [ ] `S2 proxy: HP …` ticks down under fire; `destroyed by vanilla AI` at zero.
-- [ ] Proxy stays pinned under fire (no drift/knockback).
-- [ ] Clean F10 exit, fleet restored (S0b carry-over).
-- [ ] **Verdict:** does native AI engage the slaved proxy well enough to build on?
+## Reusable combathybrid pieces
 
-## Immediate next-up
+- `CombatHybridCampaignPlugin` — tag-armed `BattleCreationPlugin` selection (`PROBE_FLAG`).
+- `S0BattleProbe` — launch + `Mode` {BASIC, SPECTATOR_CANVAS, PROXY_TARGET} + `PlayerFleetStash`.
+- `SpectatorCanvasPlugin` — free cam (`viewport.set()`-based), HUD starve, fleet restore.
+- `CanvasBackdropRenderer` — below-ships render layer (`SolidQuadBatch` + `GlStateBracket`).
+- `ProxyTargetPlugin` — the proxy/avatar pattern (pin + invisible + HP drain + marker).
+- Scale: `WORLD_UNITS_PER_CELL = 50`. Real variant ids validated before spawn.
 
-- **Playtest S2.** If native AI engages cleanly → the cross-engine targeting bet holds.
-- **Next story after S2's verdict:** wire the proxy HP drain into `BattleSimulation`'s
-  external-damage path (overview open question #2) — one proxy per squad/turret, real sim
-  HP. Then **S3** (overview) — inject the actual ground sim as a fleet of proxies under
-  the vanilla fleet fight (the real two-engine co-existence; user flagged this as the
-  direction). Scope S3 for real once S2 + the HP-drain wiring are proven.
+## Gotchas (also in the `startbattle_plugin_pick_deferred` memory + overview facts)
 
-## Reusable combathybrid pieces (for S3 / the HP-drain story)
-
-- `CombatHybridCampaignPlugin` — tag-armed `BattleCreationPlugin` selection.
-- `S0BattleProbe` — launch + `PlayerFleetStash` (spectator without game-over).
-- `SpectatorCanvasPlugin` — free cam (`set()`-based), HUD starve, fleet restore.
-- `CanvasBackdropRenderer` — below-ships render layer.
-- `ProxyTargetPlugin` — the proxy/avatar pattern (pin + invisible + HP drain).
-
-## Cleanup debt (low priority)
-
-- The probes are all `@DebugOnly` + dev-gated; no production wiring yet. Fine to leave.
-- `CanvasBackdropRenderer` / `SpectatorCanvasPlugin` GL is minimal (solid quads). When a
-  real sim plate is rendered, reuse the `render2d` batches under `GlStateBracket`.
+- `startBattle` picks the `BattleCreationPlugin` a frame late → gate by opponent-fleet
+  memory tag, not an armed flag.
+- `startBattle` deploys from the REAL player fleet → stash it for spectator; restore
+  ~0.5s INTO combat, not on exit (else game-over).
+- `setViewMult` is inert under `setExternalControl` → drive `viewport.set(llx,lly,w,h)`.
+- `spawnShipOrWing` resolves variant ids eagerly (validate); `createFleetMember` is lazy.

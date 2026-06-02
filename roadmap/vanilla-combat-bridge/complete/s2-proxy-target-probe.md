@@ -1,8 +1,19 @@
-# S2 — Proxy-target probe
+# S2 — Proxy-target probe — ✅ SHIPPED
 
-> **Built, awaiting playtest.** Answers: does vanilla carrier/fighter AI engage a
-> sim-slaved proxy entity sensibly? If yes, "the fleet above reacts to the ground
-> battle below" is mostly plumbing.
+> **Verified in playtest — IT WORKS.** Commit chain: `bad02fa`.
+>
+> **Verdict:** vanilla carrier/fighter AI launches and strafes a sim-slaved, invisible
+> owner-1 proxy with **zero targeting code written by us**. The proxy stays pinned under
+> fire, its HP drains, it despawns at zero. The whole cross-engine bridge is validated:
+> any vanilla (or modded) ship/fighter/weapon/AI engages our ground entities natively
+> once they're exposed as proxies. "The fleet above reacts to the ground battle below"
+> is now mostly plumbing.
+>
+> **Next slice (toward S3):** replace the proxy's standalone HP counter with a real sim
+> `Unit` — drain the proxy's per-frame HP delta into `BattleSimulation.applyExternalDamage(
+> Unit, float)` (already exists, built for flyby strafing: routes through `DamageResolver`
+> with morale/fallback short-circuited). One proxy per squad/turret; proxy death ⇄ unit
+> death. That's the first real two-engine coupling.
 
 ## Trigger / what shipped
 
