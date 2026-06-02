@@ -147,6 +147,15 @@ public final class UnitSpatialIndex {
                 if (bucket == null) continue;
                 for (int i = 0, n = bucket.size(); i < n; i++) {
                     Unit u = bucket.get(i);
+                    // Skip units that died since the last rebuild — the index is
+                    // rebuilt per-tick, so a unit killed (and registry-released)
+                    // mid-tick lingers in its old bucket until then. isAlive()
+                    // reads the surviving hp shadow; the cell accessor below is
+                    // fail-loud on a released unit, so this skip both honors the
+                    // "alive units" contract and keeps the stale corpse from
+                    // NPE-ing the cell read. (Callers also filter, but gather
+                    // owns the cell read, so the guard has to live here.)
+                    if (!u.isAlive()) continue;
                     int dx = u.getCellX() - cx;
                     int dy = u.getCellY() - cy;
                     if (dx * dx + dy * dy <= r2) out.add(u);

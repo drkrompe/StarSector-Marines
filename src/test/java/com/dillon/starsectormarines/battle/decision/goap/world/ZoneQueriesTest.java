@@ -112,6 +112,7 @@ public class ZoneQueriesTest {
         squad.centroidX = 2f;
         squad.centroidY = 2f;
         Unit leader = new Unit("m1", Faction.MARINE, UnitType.MARINE, 8, 3);
+        sim.addUnit(leader); // register so getCellX routes through the registry (cell is fail-loud pre-allocate)
         squad.leader = leader;
         int rightZone = sim.getZoneGraph().zoneIdAt(8, 3);
         int leftZone  = sim.getZoneGraph().zoneIdAt(2, 2);

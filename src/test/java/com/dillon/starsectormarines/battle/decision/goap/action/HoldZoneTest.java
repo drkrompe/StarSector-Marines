@@ -109,7 +109,9 @@ public class HoldZoneTest {
         // code produced; roles() should fan them out to the four hold cells.
         List<Unit> members = new ArrayList<>();
         for (int i = 0; i < 4; i++) {
-            members.add(new Unit("m" + i, Faction.MARINE, UnitType.MARINE, 5, 4));
+            Unit m = new Unit("m" + i, Faction.MARINE, UnitType.MARINE, 5, 4);
+            sim.addUnit(m); // register so RoleAssigner's getCellX read routes through the registry
+            members.add(m);
         }
 
         List<RoleAssigner.Slot<Unit>> slots = hold.roles(squad, sim);
