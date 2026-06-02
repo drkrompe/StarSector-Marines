@@ -46,20 +46,22 @@ public class VehicleControllerRecoveryTest {
 
     @Test
     public void wallPartwayBehindBoundsTheDistance() {
-        // Floor only at y>=6; truck at y=8.5 (rear sample at 7.3 clears row 6).
+        // Floor only at y>=6; truck at y=8.5 → rear sample at 7.3. Backing keeps
+        // the rear ≥ row 6 until 7.3−d < 6 (d > 1.3), step-quantized to 1.25.
         NavigationGrid g = block(12, 16, 0, 6, 11, 15);
         float d = reverse(g, 5.5f, 8.5f);
-        assertTrue(d > 0f && d < VehicleController.REVERSE_RECOVERY_CELLS,
-                "a wall ~1.3 cells behind bounds the backup short of the full budget, was " + d);
+        assertEquals(1.25f, d, EPS, "wall ~1.3 cells behind bounds the backup to 1.25");
+        assertTrue(d < VehicleController.REVERSE_RECOVERY_CELLS, "and short of the full budget");
     }
 
     @Test
     public void wallImmediatelyBehindIsBelowTheUsefulThreshold() {
         // Floor only at y>=8; truck at y=9.2 is feasible (rear sample at 8.0),
-        // but a single back-step pushes the rear into the y<8 wall.
+        // but the first 0.25 back-step pushes the rear sample to floor 7 (< 8 wall).
         NavigationGrid g = block(12, 16, 0, 8, 11, 15);
         float d = reverse(g, 5.5f, 9.2f);
+        assertEquals(0f, d, EPS, "boxed in behind → zero achievable backup");
         assertTrue(d < VehicleController.MIN_USEFUL_REVERSE_CELLS,
-                "boxed in behind → backup below the useful threshold (controller skips it), was " + d);
+                "→ below the useful threshold, so the controller skips the maneuver");
     }
 }

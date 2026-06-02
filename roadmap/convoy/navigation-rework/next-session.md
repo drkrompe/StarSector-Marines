@@ -54,8 +54,12 @@ marches the reverse axis footprint-checking each step to find the achievable
 backup (bounded by what's behind), then a dedicated `advanceReverse` phase owns
 the pose and backs up that far while aiming the nose at the corridor (3-point
 setup), before forcing a fresh forward plan from the roomier pose.
-`MAX_RECOVERY_ATTEMPTS=5` consecutive fruitless tries → hold position (no thrash).
-Unit-tested (`VehicleControllerRecoveryTest`, 3 green).
+After `MAX_RECOVERY_ATTEMPTS=5` recoveries **without net progress toward the LZ**
+→ hold position (no thrash). The give-up counter resets only when corridor
+remaining-length drops `RECOVERY_PROGRESS_MARGIN` below its best-so-far — NOT on
+any feasible forward step, or an oscillating box-in (back up, nudge one step,
+re-stick) would reset every cycle and loop forever (the critique CRITICAL).
+Unit-tested (`VehicleControllerRecoveryTest`, 3 green, march values pinned).
 
 Track: full layered rewrite anchored on a **rolling-horizon local Hybrid A\***
 planner with always-on kinematic tracking. No backward-compat constraint — the

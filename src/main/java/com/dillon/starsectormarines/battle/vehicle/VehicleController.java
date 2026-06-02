@@ -98,12 +98,19 @@ public final class VehicleController {
     /** Step (cells) for the backward footprint march that measures achievable backup distance — sub-cell so a 1-cell wall behind can't slip between samples. */
     private static final float REVERSE_MARCH_STEP = 0.25f;
     /**
-     * Consecutive failed recoveries (a backup that didn't yield even one feasible
-     * forward step) before the controller stops retrying and holds position. The
-     * formal give-up rung — re-route / abandon / deload-in-place — is slice 3;
-     * this just stops the visible thrash when a route is kinematically impossible.
+     * Recoveries without net progress toward the LZ before the controller stops
+     * retrying and holds position. The formal give-up rung — re-route / abandon /
+     * deload-in-place — is slice 3; this just stops the visible thrash when a
+     * route is kinematically impossible.
      */
     private static final int MAX_RECOVERY_ATTEMPTS = 5;
+    /**
+     * Corridor remaining-length (cells) the vehicle must shave below its best-so-far
+     * to count as real progress and reset {@link #recoveryAttempts}. Above the
+     * per-cycle drift of an oscillating box-in (which nets ~0) but below genuine
+     * forward travel, so a true grind survives while a thrash caps out.
+     */
+    private static final float RECOVERY_PROGRESS_MARGIN = 1.0f;
 
     private final Vehicle vehicle;
     private final NavigationService navigation;
@@ -139,8 +146,10 @@ public final class VehicleController {
     private Recovery recovery = Recovery.NONE;
     /** Cells of backup still owed on the active reverse maneuver. */
     private float reverseRemaining;
-    /** Consecutive failed recoveries; reset on any clean forward step, caps via {@link #MAX_RECOVERY_ATTEMPTS}. */
+    /** Recoveries since the last net progress toward the LZ; caps via {@link #MAX_RECOVERY_ATTEMPTS}. */
     private int recoveryAttempts;
+    /** Best (smallest) corridor remaining-length reached so far; resetting {@link #recoveryAttempts} requires beating it by {@link #RECOVERY_PROGRESS_MARGIN}. */
+    private float recoveryBestRemaining = Float.MAX_VALUE;
 
     /** Set true the tick the vehicle reaches its terminal waypoint; cleared by {@link #consumeArrived()}. */
     private boolean arrived;
@@ -196,6 +205,7 @@ public final class VehicleController {
             dockingPath = null;
             recovery = Recovery.NONE;
             recoveryAttempts = 0;
+            recoveryBestRemaining = Float.MAX_VALUE;
             wallStuckTime = 0f;
             lastInbound = isInbound;
         }
@@ -404,6 +414,20 @@ public final class VehicleController {
     private void wallStuckRecovery(GroundBody body, VehicleType type,
                                    float prevX, float prevY, float prevFacing, float dt) {
         NavigationGrid grid = navigation.getGrid();
+
+        // Reset the give-up counter only on genuine NET progress toward the LZ,
+        // not on any feasible forward step. An oscillating box-in (back up, nudge
+        // one feasible step forward, re-stick) takes a feasible step every cycle;
+        // a per-step reset would let it loop forever and the cap would never fire.
+        // Progress is measured by corridor remaining-length dropping a margin
+        // below the best reached so far — a back→nudge→re-stick cycle nets zero,
+        // so attempts accumulate to MAX_RECOVERY_ATTEMPTS and the truck settles.
+        float rem = corridor.remainingLength(body.x, body.y);
+        if (rem < recoveryBestRemaining - RECOVERY_PROGRESS_MARGIN) {
+            recoveryBestRemaining = rem;
+            recoveryAttempts = 0;
+        }
+
         boolean prevOnGrid = VehicleFootprint.isPoseFeasible(prevX, prevY, prevFacing,
                 type.visualLengthCells, type.visualWidthCells, grid);
         boolean newFeasible = VehicleFootprint.isPoseFeasible(body.x, body.y, body.facingDegrees,
@@ -425,8 +449,6 @@ public final class VehicleController {
             return;
         }
 
-        // Clean forward step (or prev was off-grid): not consecutively stuck.
-        if (newFeasible) recoveryAttempts = 0;
         if (wallStuckTime > 0f) {
             float dx = body.x - stuckOriginX;
             float dy = body.y - stuckOriginY;
