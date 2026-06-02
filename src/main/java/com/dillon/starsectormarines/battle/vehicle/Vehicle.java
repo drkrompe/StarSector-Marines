@@ -61,6 +61,15 @@ public class Vehicle {
      */
     public VehicleController controller;
 
+    /**
+     * Per-battle routing inputs, stashed by the spawn layer ({@code ConvoyMeans})
+     * so the recovery ladder can re-route mid-drive ("lap around" a stuck spot)
+     * via {@link VehicleRoutePlanner}. Both {@code null} for vehicles that aren't
+     * cost-field-routed (e.g. legacy/debug spawns) — re-route is then skipped.
+     */
+    public TerrainCostField routeCostField;
+    public VehicleClearance routeClearance;
+
     /** Turret barrel facing in world frame (0° = +Y, positive CCW). Driven by {@link com.dillon.starsectormarines.battle.turret.TurretAim} when the vehicle has a {@link VehicleType#turretKind}. */
     public float turretFacingDeg;
     /** Sim-seconds until the turret can fire again. */

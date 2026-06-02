@@ -61,6 +61,26 @@ any feasible forward step, or an oscillating box-in (back up, nudge one step,
 re-stick) would reset every cycle and loop forever (the critique CRITICAL).
 Unit-tested (`VehicleControllerRecoveryTest`, 3 green, march values pinned).
 
+**Rung 3 — stall detection → "lap around" re-route (landed).** A later playtest
+showed a *different* stuck mode: a truck orbiting a 90° turn into a 3-wide
+corridor it can't round at its turn radius — `wallStuckTime` stayed 0 (it never
+hit a wall), so the contact-based reverse recovery never fired; the body just
+limit-cycled the `alpha>90` forward/reverse flip making zero net progress. Fix
+(per the user's "detect it and build a different plan", NOT track harder):
+- **Detection** runs every tick at the top of `advance()` (before any early
+  return): no net corridor-progress for `STALL_SECONDS` (4) = non-convergence,
+  catching open-space orbits as well as wall contact.
+- **Re-route** (`attemptReroute` → `VehicleRoutePlanner.routeAvoiding`): re-runs
+  the cost router from the current pose to the route's goal (its last on-grid
+  waypoint), dropping an impassable disc (`REROUTE_AVOID_RADIUS=3`) on the stuck
+  spot so it finds a genuinely different corridor — the lap. Swaps the new
+  polyline onto the `Vehicle` and rebuilds the corridor (`initCorridor`). Null
+  (boxed in) → hold + retry every `STALL_SECONDS` (grid may open via a breach).
+- Plumbing stayed thin: the controller already holds the route + vehicle, so only
+  the per-battle `TerrainCostField`+`VehicleClearance` are stashed on the
+  `Vehicle` (by `ConvoyMeans`). `snapToMask` moved to `VehicleRoutePlanner`
+  (shared spawn + re-route). `routeAvoiding` unit-tested (detour vs. null).
+
 Track: full layered rewrite anchored on a **rolling-horizon local Hybrid A\***
 planner with always-on kinematic tracking. No backward-compat constraint — the
 old `headings != null` dead-reckon fork is deleted, not kept.
@@ -89,12 +109,12 @@ local planner for reverse / 3-point extraction.
       `refineWithFallback` / `deriveSegmentHeadings` / `refine`. **90° snaps
       dead in code (playtest pending).**
       ([`complete/slice-2-live-tracking.md`](complete/slice-2-live-tracking.md)) ✅
-- [~] **Slice 3** — recovery ladder. The "blocked → committed backup" rung
-      landed (committed `Recovery.REVERSING` + `maxReverseDistance`, replacing the
-      oscillating pulse; see State of play). Remaining rungs: drift handling, a
-      real give-up (re-route from nearest road node / deload-in-place) instead of
-      hold-position after `MAX_RECOVERY_ATTEMPTS`, and using the local planner's
-      reverse for true 3-point extraction.
+- [~] **Slice 3** — recovery ladder. Rungs 2 (committed reverse backup) and 3
+      (stall detection → cost-router "lap around" re-route) landed; see State of
+      play. Remaining: a real give-up beyond hold-and-retry (deload-in-place?),
+      and the deeper cure — turn-aware clearance in `cost-field-routing` so the
+      router stops picking gaps the truck can't turn into (rung 3 makes it
+      non-fatal meanwhile).
       ([`stories/slice-3-recovery-ladder.md`](stories/slice-3-recovery-ladder.md))
 - [~] **Slice 4** — tuning & feel (absorbs `../stories/driving-feel-tuning.md`).
       Corner-speed governor + speed-scaled look-ahead landed early (see State of

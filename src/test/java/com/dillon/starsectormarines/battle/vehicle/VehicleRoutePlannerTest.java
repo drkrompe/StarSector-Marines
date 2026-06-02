@@ -225,6 +225,48 @@ public class VehicleRoutePlannerTest {
     }
 
     @Test
+    public void avoidingRegionForcesADetour() {
+        // Two horizontal lanes (rows 2 and 8) joined at both ends by vertical
+        // links, so start (1,2) → goal (9,2) can go straight across row 2 OR
+        // detour down to row 8 and back. Avoiding a disc on row 2 forces the lap.
+        NavigationGrid grid = new NavigationGrid(12, 11);
+        carve(grid, 1, 1, 10, 3);   // top lane (rows 1..3, so radius-0/centerline at row 2)
+        carve(grid, 1, 7, 10, 9);   // bottom lane
+        carve(grid, 1, 1, 3, 9);    // left link
+        carve(grid, 8, 1, 10, 9);   // right link
+        CellTopology topo = new CellTopology(12, 11);
+        fillKind(topo, GroundKind.GRASS);
+        TerrainCostField cost = TerrainCostField.from(topo);
+        VehicleClearance clr = VehicleClearance.erode(grid, 0);
+
+        float[][] direct = VehicleRoutePlanner.route(1, 2, 9, 2, grid, cost, clr);
+        assertNotNull(direct);
+        assertTrue(routeCovers(direct, 5, 2), "the unobstructed route runs straight across the top lane");
+
+        float[][] detour = VehicleRoutePlanner.routeAvoiding(1, 2, 9, 2, grid, cost, clr, 5, 2, 2f);
+        assertNotNull(detour, "a lap via the bottom lane exists");
+        assertFalse(routeCovers(detour, 5, 2), "the re-route avoids the blocked spot");
+        float maxY = 0f;
+        for (float yy : detour[1]) maxY = Math.max(maxY, yy);
+        assertTrue(maxY >= 7f, "the lap dips into the bottom lane (rows 7-9), was maxY=" + maxY);
+        assertRouteClear(detour, clr);
+    }
+
+    @Test
+    public void avoidingTheOnlyPathReturnsNull() {
+        // Single straight corridor; blocking its middle disconnects the goal.
+        NavigationGrid grid = new NavigationGrid(12, 5);
+        carve(grid, 0, 1, 11, 3);
+        CellTopology topo = new CellTopology(12, 5);
+        fillKind(topo, GroundKind.GRASS);
+        TerrainCostField cost = TerrainCostField.from(topo);
+        VehicleClearance clr = VehicleClearance.erode(grid, 0);
+
+        assertNull(VehicleRoutePlanner.routeAvoiding(1, 2, 10, 2, grid, cost, clr, 6, 2, 2f),
+                "avoiding the only corridor leaves no route → null (caller gives up)");
+    }
+
+    @Test
     public void unreachableGoalGivesNoRoute() {
         NavigationGrid grid = new NavigationGrid(8, 8);
         carve(grid, 1, 1, 2, 2); // isolated pocket

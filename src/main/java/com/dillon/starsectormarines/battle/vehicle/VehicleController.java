@@ -111,6 +111,16 @@ public final class VehicleController {
      * forward travel, so a true grind survives while a thrash caps out.
      */
     private static final float RECOVERY_PROGRESS_MARGIN = 1.0f;
+    /**
+     * Seconds of no net progress toward the goal before escalating to a re-route
+     * ("lap around"). Generous, so the fast local reverse recovery (rung 2) gets
+     * to resolve a wall bump first and legitimate slow corners don't false-trip.
+     */
+    private static final float STALL_SECONDS = 4.0f;
+    /** Rings {@link VehicleRoutePlanner#snapToMask} searches to pull the re-route's current/goal cells onto the clearance mask. */
+    private static final int REROUTE_SNAP_RADIUS = 8;
+    /** Radius (cells) of the impassable disc the re-route drops on the stuck spot, forcing a different corridor. ≥ a road width so it actually blocks the failing mouth. */
+    private static final float REROUTE_AVOID_RADIUS = 3.0f;
 
     private final Vehicle vehicle;
     private final NavigationService navigation;
@@ -150,6 +160,8 @@ public final class VehicleController {
     private int recoveryAttempts;
     /** Best (smallest) corridor remaining-length reached so far; resetting {@link #recoveryAttempts} requires beating it by {@link #RECOVERY_PROGRESS_MARGIN}. */
     private float recoveryBestRemaining = Float.MAX_VALUE;
+    /** Seconds since the last net progress toward the goal; crossing {@link #STALL_SECONDS} triggers a re-route. */
+    private float timeSinceProgress;
 
     /** Set true the tick the vehicle reaches its terminal waypoint; cleared by {@link #consumeArrived()}. */
     private boolean arrived;
@@ -197,20 +209,26 @@ public final class VehicleController {
         float[] ys = isInbound ? vehicle.inboundY : vehicle.outboundY;
 
         if (lastInbound == null || lastInbound != isInbound) {
-            corridor = new ReferenceCorridor(xs, ys, 1);
-            trajectory = null;
-            trajProgress = 0f;
-            sinceReplan = 0f;
-            trajCarrotAtEnd = false;
-            dockingPath = null;
-            recovery = Recovery.NONE;
-            recoveryAttempts = 0;
-            recoveryBestRemaining = Float.MAX_VALUE;
-            wallStuckTime = 0f;
+            initCorridor(xs, ys);
             lastInbound = isInbound;
         }
 
         advance(xs, ys, dt, isInbound);
+    }
+
+    /** (Re)build the corridor for a route array and clear all per-route tracking + recovery state. Used on direction flip and on a recovery re-route. */
+    private void initCorridor(float[] xs, float[] ys) {
+        corridor = new ReferenceCorridor(xs, ys, 1);
+        trajectory = null;
+        trajProgress = 0f;
+        sinceReplan = 0f;
+        trajCarrotAtEnd = false;
+        dockingPath = null;
+        recovery = Recovery.NONE;
+        recoveryAttempts = 0;
+        recoveryBestRemaining = Float.MAX_VALUE;
+        wallStuckTime = 0f;
+        timeSinceProgress = 0f;
     }
 
     /**
@@ -225,6 +243,26 @@ public final class VehicleController {
         // Keep the advisory cursor abreast of the pose so remainingLength /
         // the rolling goal measure from the current segment.
         corridor.advance(body.x, body.y);
+
+        // --- Non-convergence detection (runs every tick, before any early
+        // return, so it catches an open-space orbit as well as wall contact).
+        // Progress = corridor remaining-length dropping a margin below the best
+        // reached. No progress for STALL_SECONDS → the truck isn't converging
+        // (orbiting a turn it can't make, or stuck reversing): escalate to a
+        // re-route that laps around the failing spot. ---------------------------
+        float rem = corridor.remainingLength(body.x, body.y);
+        if (rem < recoveryBestRemaining - RECOVERY_PROGRESS_MARGIN) {
+            recoveryBestRemaining = rem;
+            recoveryAttempts = 0;
+            timeSinceProgress = 0f;
+        } else {
+            timeSinceProgress += dt;
+            if (timeSinceProgress > STALL_SECONDS) {
+                boolean rerouted = attemptReroute(body);
+                timeSinceProgress = 0f; // rate-limit retries whether or not it took
+                if (rerouted) return;   // next tick drives the fresh corridor cleanly
+            }
+        }
 
         // --- Committed reverse recovery ------------------------------------
         // A backup maneuver owns the pose until it finishes (or backs into
@@ -415,18 +453,9 @@ public final class VehicleController {
                                    float prevX, float prevY, float prevFacing, float dt) {
         NavigationGrid grid = navigation.getGrid();
 
-        // Reset the give-up counter only on genuine NET progress toward the LZ,
-        // not on any feasible forward step. An oscillating box-in (back up, nudge
-        // one feasible step forward, re-stick) takes a feasible step every cycle;
-        // a per-step reset would let it loop forever and the cap would never fire.
-        // Progress is measured by corridor remaining-length dropping a margin
-        // below the best reached so far — a back→nudge→re-stick cycle nets zero,
-        // so attempts accumulate to MAX_RECOVERY_ATTEMPTS and the truck settles.
-        float rem = corridor.remainingLength(body.x, body.y);
-        if (rem < recoveryBestRemaining - RECOVERY_PROGRESS_MARGIN) {
-            recoveryBestRemaining = rem;
-            recoveryAttempts = 0;
-        }
+        // (Net-progress tracking that resets recoveryAttempts now lives at the top
+        // of advance(), so it runs every tick — including the open-space orbit
+        // where this wall-contact path never fires.)
 
         boolean prevOnGrid = VehicleFootprint.isPoseFeasible(prevX, prevY, prevFacing,
                 type.visualLengthCells, type.visualWidthCells, grid);
@@ -546,6 +575,74 @@ public final class VehicleController {
             dist = nd;
         }
         return dist;
+    }
+
+    /**
+     * Recovery rung 3 — "lap around". When the truck has stopped converging,
+     * re-route from its current pose to the route's goal via the cost router,
+     * dropping an impassable disc on the stuck spot so the search picks a
+     * genuinely different corridor. Swaps the new polyline onto the vehicle and
+     * rebuilds the corridor. Returns {@code false} (no change) when the vehicle
+     * isn't cost-field-routed, the endpoints can't be snapped, or avoiding the
+     * stuck spot disconnects the goal (genuinely boxed in → the truck holds; the
+     * stall timer retries every {@link #STALL_SECONDS} in case the grid opens up).
+     */
+    private boolean attemptReroute(GroundBody body) {
+        TerrainCostField cost = vehicle.routeCostField;
+        VehicleClearance clr = vehicle.routeClearance;
+        if (cost == null || clr == null) return false; // not cost-routed — can't lap
+        boolean inbound = lastInbound != null && lastInbound;
+        float[] xs = inbound ? vehicle.inboundX : vehicle.outboundX;
+        float[] ys = inbound ? vehicle.inboundY : vehicle.outboundY;
+        NavigationGrid grid = navigation.getGrid();
+
+        int goalIdx = lastOnGridIndex(xs, ys, grid);
+        if (goalIdx < 1) return false;
+        int[] goal = VehicleRoutePlanner.snapToMask(clr,
+                (int) Math.floor(xs[goalIdx]), (int) Math.floor(ys[goalIdx]), REROUTE_SNAP_RADIUS);
+        int[] cur = VehicleRoutePlanner.snapToMask(clr,
+                (int) Math.floor(body.x), (int) Math.floor(body.y), REROUTE_SNAP_RADIUS);
+        if (goal == null || cur == null) return false;
+
+        int stuckX = (int) Math.floor(body.x), stuckY = (int) Math.floor(body.y);
+        float[][] re = VehicleRoutePlanner.routeAvoiding(cur[0], cur[1], goal[0], goal[1],
+                grid, cost, clr, stuckX, stuckY, REROUTE_AVOID_RADIUS);
+        if (re == null) return false; // boxed in — hold (rung 4)
+
+        float[][] full = appendTail(re, xs, ys, goalIdx);
+        if (inbound) {
+            vehicle.inboundX = full[0];
+            vehicle.inboundY = full[1];
+        } else {
+            vehicle.outboundX = full[0];
+            vehicle.outboundY = full[1];
+        }
+        initCorridor(full[0], full[1]);
+        return true;
+    }
+
+    /** Highest index whose cell is in-bounds — the route's last on-grid waypoint (outbound's true last is the off-map exit). {@code -1} if none. */
+    private static int lastOnGridIndex(float[] xs, float[] ys, NavigationGrid grid) {
+        for (int i = xs.length - 1; i >= 0; i--) {
+            if (grid.inBounds((int) Math.floor(xs[i]), (int) Math.floor(ys[i]))) return i;
+        }
+        return -1;
+    }
+
+    /** Append the original route's tail past {@code goalIdx} (the off-map exit waypoints, if any) onto the re-routed polyline. */
+    private static float[][] appendTail(float[][] re, float[] xs, float[] ys, int goalIdx) {
+        int tail = xs.length - 1 - goalIdx;
+        if (tail <= 0) return re;
+        int rn = re[0].length;
+        float[] nx = new float[rn + tail];
+        float[] ny = new float[rn + tail];
+        System.arraycopy(re[0], 0, nx, 0, rn);
+        System.arraycopy(re[1], 0, ny, 0, rn);
+        for (int i = 0; i < tail; i++) {
+            nx[rn + i] = xs[goalIdx + 1 + i];
+            ny[rn + i] = ys[goalIdx + 1 + i];
+        }
+        return new float[][]{nx, ny};
     }
 
     /**

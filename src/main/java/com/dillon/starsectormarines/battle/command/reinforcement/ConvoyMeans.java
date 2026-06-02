@@ -47,7 +47,7 @@ public final class ConvoyMeans implements ReinforcementMeans {
     private static final float OFFMAP_PAD = 6f;
     /** Minimum cell separation between a fresh dispatch's destination junction and any already-active convoy truck's LZ. Soft preference — exhausted before degrading to no-separation (see {@link #bestInteriorJunctionWithin}) so a clogged rally still resolves rather than failing. */
     private static final int MIN_DEST_SEPARATION = 4;
-    /** Max Chebyshev rings {@link #snapToMask} searches when pulling an eroded perimeter cell onto the nearest drivable cell. Generous — clearance radius is only 1–2, so the nearest in-mask cell is a couple cells in. */
+    /** Max Chebyshev rings {@link VehicleRoutePlanner#snapToMask} searches when pulling an eroded perimeter cell onto the nearest drivable cell. Generous — clearance radius is only 1–2, so the nearest in-mask cell is a couple cells in. */
     private static final int SNAP_RADIUS = 8;
 
     private final RoadGraph graph;
@@ -130,8 +130,8 @@ public final class ConvoyMeans implements ReinforcementMeans {
         // perimeter entry — and often a junction hard against a building — isn't
         // itself passable and route() would return null. Snap to the nearest cell
         // the footprint actually fits.
-        int[] entryCell = snapToMask(clr, entry.cellX, entry.cellY);
-        int[] destCell  = snapToMask(clr, dest.cellX, dest.cellY);
+        int[] entryCell = VehicleRoutePlanner.snapToMask(clr, entry.cellX, entry.cellY, SNAP_RADIUS);
+        int[] destCell  = VehicleRoutePlanner.snapToMask(clr, dest.cellX, dest.cellY, SNAP_RADIUS);
         if (entryCell == null || destCell == null) {
             LOG.warn("ConvoyMeans: no clearance cell (r=" + radius + ") near entry=("
                     + entry.cellX + "," + entry.cellY + ") or dest=("
@@ -176,7 +176,7 @@ public final class ConvoyMeans implements ReinforcementMeans {
         // entry, so the truck drives across the city rather than reversing out its
         // gate); the route there is cost-field. Snap the eroded perimeter cell in.
         RoadGraph.Node exitNode = ConvoyPlanner.pickExitNode(graph, dest, entry);
-        int[] exitCell = snapToMask(clr, exitNode.cellX, exitNode.cellY);
+        int[] exitCell = VehicleRoutePlanner.snapToMask(clr, exitNode.cellX, exitNode.cellY, SNAP_RADIUS);
         float[][] outCells = null;
         if (exitCell != null) {
             outCells = VehicleRoutePlanner.route(
@@ -223,6 +223,9 @@ public final class ConvoyMeans implements ReinforcementMeans {
                 VehicleType.HEAVY_APC, Faction.DEFENDER,
                 inX, inY, outX, outY,
                 PENDING_SEC);
+        // Stash the routing inputs so the recovery ladder can re-route mid-drive.
+        truck.routeCostField = cost;
+        truck.routeClearance = clr;
         sim.addConvoyVehicle(truck);
         LOG.info("ConvoyMeans: dispatched HEAVY_APC entry=(" + entry.cellX + "," + entry.cellY
                 + ") exit=(" + exitNode.cellX + "," + exitNode.cellY
@@ -243,32 +246,6 @@ public final class ConvoyMeans implements ReinforcementMeans {
             clearanceByRadius.put(radius, c);
         }
         return c;
-    }
-
-    /**
-     * Nearest cell to ({@code x, y}) the vehicle footprint fits in
-     * ({@link VehicleClearance#isPassable}), searched in expanding Chebyshev
-     * rings out to {@link #SNAP_RADIUS}, nearest-Euclidean within a ring.
-     * Returns {@code {cx, cy}}, or {@code null} if nothing in range fits — pulls
-     * eroded perimeter / wall-hugging graph cells onto a drivable cell so the
-     * cost router gets passable endpoints (the slice-0 perimeter-erosion fix).
-     */
-    private static int[] snapToMask(VehicleClearance clr, int x, int y) {
-        if (clr.isPassable(x, y)) return new int[]{x, y};
-        for (int r = 1; r <= SNAP_RADIUS; r++) {
-            int bestX = -1, bestY = -1, bestD2 = Integer.MAX_VALUE;
-            for (int dy = -r; dy <= r; dy++) {
-                for (int dx = -r; dx <= r; dx++) {
-                    if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue; // ring perimeter only
-                    int nx = x + dx, ny = y + dy;
-                    if (!clr.isPassable(nx, ny)) continue;
-                    int d2 = dx * dx + dy * dy;
-                    if (d2 < bestD2) { bestD2 = d2; bestX = nx; bestY = ny; }
-                }
-            }
-            if (bestX >= 0) return new int[]{bestX, bestY};
-        }
-        return null;
     }
 
     /**
