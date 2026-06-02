@@ -168,6 +168,21 @@ them once combat ends. Safety: restores on an 8s timeout if combat never starts
 `SpectatorCanvasPlugin.init` calls `markCombatEntered()` so the restore fires on the
 first campaign frame after the battle. **Compiles clean (full `compileJava` green).**
 
+### Fifth playtest: spectator works; F10 exit triggered a game over
+
+Picker gone, spectator camera + auto-fight confirmed, and the fleet DID restore (log:
+`restored 2 player ships`) — but the restore fired on return to campaign (RestoreScript),
+*after* F10, so the post-battle resolution saw an empty fleet and declared the player
+**defeated / game over**.
+
+Fix: restore the fleet **during** combat (`SpectatorCanvasPlugin`, `FLEET_RESTORE_DELAY`
+= 0.5s in) — after the deploy-skip is locked, before any exit — so resolution reads a
+healthy fleet. `PlayerFleetStash.restore()` is now public + idempotent; the campaign-side
+`RestoreScript` stays only as a safety net (combat-never-started timeout). Watch on
+re-test: that the during-combat restore doesn't re-show a deploy/reinforcement prompt,
+and that exiting (F10) lands back in the campaign cleanly with no game over and the full
+fleet intact.
+
 ### S0b re-playtest checklist
 - [ ] Ctrl+Shift+N: no deployment picker, no "press Tab" prompt — straight into the
       watched battle.

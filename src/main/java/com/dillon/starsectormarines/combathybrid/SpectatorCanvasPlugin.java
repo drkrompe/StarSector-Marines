@@ -44,10 +44,20 @@ public class SpectatorCanvasPlugin extends BaseEveryFrameCombatPlugin {
     private static final float MIN_ZOOM = 0.05f;
     private static final float MAX_ZOOM = 4f;
 
+    /**
+     * Seconds into the battle before re-attaching the stashed player fleet. Must be
+     * &gt;0 so the deploy-skip decision (empty fleet at battle build) is already locked,
+     * but well before the player can end the fight — so the post-battle resolution
+     * reads a healthy fleet and doesn't register a "defeated" game over.
+     */
+    private static final float FLEET_RESTORE_DELAY = 0.5f;
+
     private CombatEngineAPI engine;
     private final Vector2f center = new Vector2f(0f, 0f);
     private float zoom = 0.4f; // < 1 = zoomed out, to take in the whole plate
     private boolean initialized;
+    private float combatTime;
+    private boolean fleetRestored;
 
     @Override
     public void init(CombatEngineAPI engine) {
@@ -96,6 +106,15 @@ public class SpectatorCanvasPlugin extends BaseEveryFrameCombatPlugin {
             vp.setExternalControl(true);
             zoom = vp.getViewMult();
             initialized = true;
+        }
+
+        // Re-attach the stashed player fleet a beat in — after the deploy-skip is
+        // locked, before the player can end the fight — so the post-battle resolution
+        // sees a healthy fleet instead of declaring a "defeated" game over.
+        combatTime += amount;
+        if (!fleetRestored && combatTime > FLEET_RESTORE_DELAY) {
+            PlayerFleetStash.restore();
+            fleetRestored = true;
         }
 
         // Spectator: never let a player ship take WASD; we own the camera.

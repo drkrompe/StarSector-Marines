@@ -79,7 +79,18 @@ public final class PlayerFleetStash {
         combatEntered = true;
     }
 
-    private static void restore() {
+    /**
+     * Re-attach the stashed members. Idempotent (no-op if nothing is stashed).
+     *
+     * <p>Called from the combat side a beat into the spectator battle — NOT after
+     * combat ends — so the post-battle campaign resolution reads a <em>healthy</em>
+     * fleet. Ending combat with an empty player fleet makes the campaign conclude the
+     * fleet was wiped ("defeated" / game over). By the time {@code advance} first
+     * runs, the deploy-skip decision is already locked, so restoring here doesn't
+     * bring the picker back; it only re-arms the fleet for resolution. The transient
+     * {@link RestoreScript} remains as a safety net for paths that never enter combat.
+     */
+    public static void restore() {
         if (stashed == null) return;
         CampaignFleetAPI pf = Global.getSector().getPlayerFleet();
         if (pf != null) {
