@@ -104,7 +104,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
             if (m.chaingun.burstCount > 1) {
                 m.chaingunBurstRemaining = m.chaingun.burstCount - 1;
                 m.chaingunBurstTimer = m.chaingun.burstSpacing;
-                m.chaingunBurstTarget = target;
+                m.chaingunBurstTargetId = target.entityId;
             }
         }
     }
@@ -120,7 +120,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
             if (m.srmPod.burstCount > 1) {
                 m.srmSalvoRemaining = m.srmPod.burstCount - 1;
                 m.srmSalvoTimer = m.srmPod.burstSpacing;
-                m.srmSalvoTarget = target;
+                m.srmSalvoTargetId = target.entityId;
             }
         }
     }
@@ -145,7 +145,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
             if (m.lrmArtillery.burstCount > 1) {
                 m.lrmSalvoRemaining = m.lrmArtillery.burstCount - 1;
                 m.lrmSalvoTimer = m.lrmArtillery.burstSpacing;
-                m.lrmSalvoTarget = target;
+                m.lrmSalvoTargetId = target.entityId;
             }
         }
     }

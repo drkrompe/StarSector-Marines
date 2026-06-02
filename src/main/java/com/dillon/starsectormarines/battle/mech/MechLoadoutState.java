@@ -13,7 +13,7 @@ import com.dillon.starsectormarines.battle.unit.Unit;
  *
  * <p>Each weapon track keeps its own cooldown + burst/salvo trackers on this
  * class ({@link #chaingunCooldown} / {@link #chaingunBurstRemaining} /
- * {@link #chaingunBurstTimer} / {@link #chaingunBurstTarget}, and the SRM
+ * {@link #chaingunBurstTimer} / {@link #chaingunBurstTargetId}, and the SRM
  * salvo equivalents below) rather than borrowing the {@link Unit}-level
  * primary-weapon cooldown/burst state — the three tracks fire concurrently,
  * so shared fields would collide. Mechs don't carry a {@link com.dillon.starsectormarines.battle.infantry.MarineWeapon}
@@ -41,8 +41,15 @@ public final class MechLoadoutState {
     public int chaingunBurstRemaining = 0;
     /** Sim-seconds until the next chaingun round emits. Ignored when {@link #chaingunBurstRemaining} == 0. */
     public float chaingunBurstTimer = 0f;
-    /** Target locked at burst start — burst keeps firing here even if {@link Unit#target} drifts mid-stream. */
-    public Unit chaingunBurstTarget;
+    /**
+     * Entity id of the target locked at burst start — burst keeps firing here
+     * even if the mech's primary target drifts mid-stream. {@code 0L} = no
+     * locked target. Held as an id (not a {@link Unit} ref) so a target killed
+     * mid-burst resolves cleanly to {@code null} via {@code registry.getOrNull}
+     * instead of dangling — see {@code entity-id-handle} story. Resolved in the
+     * {@code HeavyWeapons} continuation pass; written by {@code MechCombatantBehavior}.
+     */
+    public long chaingunBurstTargetId;
 
     /** Sim-seconds until SRM_POD can launch another salvo. Decremented in the per-tick mech-fire pass. */
     public float srmCooldown = 0f;
@@ -52,8 +59,8 @@ public final class MechLoadoutState {
     public int srmSalvoRemaining = 0;
     /** Sim-seconds until the next rocket in the current salvo launches. Ignored when {@link #srmSalvoRemaining} == 0. */
     public float srmSalvoTimer = 0f;
-    /** Target locked at salvo start. Held until exhausted so the salvo doesn't smear across multiple enemies. */
-    public Unit srmSalvoTarget;
+    /** Entity id of the target locked at salvo start, held until the salvo is exhausted so it doesn't smear across enemies. {@code 0L} = none; resolved via {@code registry.getOrNull} (dangling-safe). */
+    public long srmSalvoTargetId;
 
     /** Sim-seconds until LRM_ARTILLERY can fire another salvo. */
     public float lrmCooldown = 0f;
@@ -63,8 +70,8 @@ public final class MechLoadoutState {
     public int lrmSalvoRemaining = 0;
     /** Sim-seconds until the next rocket in the current LRM salvo launches. Ignored when {@link #lrmSalvoRemaining} == 0. */
     public float lrmSalvoTimer = 0f;
-    /** Target locked at salvo start. */
-    public Unit lrmSalvoTarget;
+    /** Entity id of the target locked at salvo start. {@code 0L} = none; resolved via {@code registry.getOrNull} (dangling-safe). */
+    public long lrmSalvoTargetId;
 
     /** Latched true once the sim has emitted a smoking-wreck for this mech's death. Prevents re-spawn across ticks if the death-scan pass runs again with the mech still in the units list. */
     public boolean wreckSpawned = false;

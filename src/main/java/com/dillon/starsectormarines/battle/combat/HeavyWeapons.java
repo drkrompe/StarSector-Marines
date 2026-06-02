@@ -204,18 +204,21 @@ public class HeavyWeapons {
             if (m.srmCooldown      > 0f) m.srmCooldown      -= BattleSimulation.TICK_DT;
             if (m.lrmCooldown      > 0f) m.lrmCooldown      -= BattleSimulation.TICK_DT;
 
-            // Chaingun burst continuation.
+            // Chaingun burst continuation. getOrNull resolves a released (or
+            // 0L = none) target to null, so the lock drops without an isAlive()
+            // on a dangling ref.
             if (m.chaingunBurstRemaining > 0) {
                 m.chaingunBurstTimer -= BattleSimulation.TICK_DT;
                 if (m.chaingunBurstTimer <= 0f) {
-                    if (m.chaingunBurstTarget == null || !m.chaingunBurstTarget.isAlive()) {
+                    Unit cgTarget = registry.getOrNull(m.chaingunBurstTargetId);
+                    if (cgTarget == null) {
                         m.chaingunBurstRemaining = 0;
-                        m.chaingunBurstTarget = null;
+                        m.chaingunBurstTargetId = 0L;
                     } else {
-                        fireMechWeapon(u, m.chaingunBurstTarget, m.chaingun);
+                        fireMechWeapon(u, cgTarget, m.chaingun);
                         m.chaingunBurstRemaining--;
                         m.chaingunBurstTimer = m.chaingun.burstSpacing;
-                        if (m.chaingunBurstRemaining == 0) m.chaingunBurstTarget = null;
+                        if (m.chaingunBurstRemaining == 0) m.chaingunBurstTargetId = 0L;
                     }
                 }
             }
@@ -224,14 +227,15 @@ public class HeavyWeapons {
             if (m.srmSalvoRemaining > 0) {
                 m.srmSalvoTimer -= BattleSimulation.TICK_DT;
                 if (m.srmSalvoTimer <= 0f) {
-                    if (m.srmSalvoTarget == null || !m.srmSalvoTarget.isAlive()) {
+                    Unit srmTarget = registry.getOrNull(m.srmSalvoTargetId);
+                    if (srmTarget == null) {
                         m.srmSalvoRemaining = 0;
-                        m.srmSalvoTarget = null;
+                        m.srmSalvoTargetId = 0L;
                     } else {
-                        fireMechWeapon(u, m.srmSalvoTarget, m.srmPod);
+                        fireMechWeapon(u, srmTarget, m.srmPod);
                         m.srmSalvoRemaining--;
                         m.srmSalvoTimer = m.srmPod.burstSpacing;
-                        if (m.srmSalvoRemaining == 0) m.srmSalvoTarget = null;
+                        if (m.srmSalvoRemaining == 0) m.srmSalvoTargetId = 0L;
                     }
                 }
             }
@@ -245,18 +249,19 @@ public class HeavyWeapons {
             if (m.lrmSalvoRemaining > 0) {
                 m.lrmSalvoTimer -= BattleSimulation.TICK_DT;
                 if (m.lrmSalvoTimer <= 0f) {
-                    if (m.lrmSalvoTarget == null || !m.lrmSalvoTarget.isAlive()) {
+                    Unit lrmTarget = registry.getOrNull(m.lrmSalvoTargetId);
+                    if (lrmTarget == null) {
                         m.lrmSalvoRemaining = 0;
-                        m.lrmSalvoTarget = null;
+                        m.lrmSalvoTargetId = 0L;
                     } else {
                         boolean hasLos = grid.hasLineOfSight(
                                 u.getCellX(), u.getCellY(),
-                                m.lrmSalvoTarget.getCellX(), m.lrmSalvoTarget.getCellY());
+                                lrmTarget.getCellX(), lrmTarget.getCellY());
                         float accMult = hasLos ? 1.0f : MechWeapon.LRM_NO_LOS_ACC_MULT;
-                        fireMechWeapon(u, m.lrmSalvoTarget, m.lrmArtillery, accMult);
+                        fireMechWeapon(u, lrmTarget, m.lrmArtillery, accMult);
                         m.lrmSalvoRemaining--;
                         m.lrmSalvoTimer = m.lrmArtillery.burstSpacing;
-                        if (m.lrmSalvoRemaining == 0) m.lrmSalvoTarget = null;
+                        if (m.lrmSalvoRemaining == 0) m.lrmSalvoTargetId = 0L;
                     }
                 }
             }
