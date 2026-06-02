@@ -6,10 +6,22 @@
 > the audit ([`../pipeline-audit.md`](../pipeline-audit.md) §
 > "Corridors — the bigger blocker for stations").
 
-**Status:** design converged (2026-06-01), not yet implemented. Parked
-behind the shipped room-purpose refactor (Slices A–D) and the composable
-pipeline (context + stages + recipes, all shipped). This is the next
-abstraction the map-gen pipeline needs before station fills can land.
+**Status:** **slice 1 shipped (`aae4244`)** — see
+[`../complete/station-interiors-slice-1.md`](../complete/station-interiors-slice-1.md).
+The rooms-and-corridors model is proven end to end as a `StationRecipe`
+(InitSolid → StationPartition → RoomCarve → Corridor → StationSpawn) with the
+room/corridor `StationGraph` published and the validation scan gating one-
+component connectivity. The design below is the converged spec (2026-06-01);
+slice 1 realized the "first vertical slice" sketch with the deviations noted
+in the complete doc. Remaining: topological roles on the graph, junction-bulge
+width policy, edge-based doors, and the thematic station kinds
+([`station-interior-fills`](station-interior-fills.md)).
+
+> **Slice-1 deviation from this doc.** Step 1 below ("extract road carving out
+> of `Bsp.partition()`") was **not** done — the station recipe just ignores the
+> road mask, so the city path is untouched and there's no byte-identical gate to
+> defend. The extraction is code-sharing elegance, not a functional
+> prerequisite, and may never be needed.
 
 ## Problem
 

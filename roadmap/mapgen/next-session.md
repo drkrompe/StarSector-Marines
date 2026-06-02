@@ -23,7 +23,8 @@ bf0cf22  mapgen: hoist FortressWallStamper ctx reads to top of run()
 537ca03  mapgen: structural taxonomy Lever 1 — TacticalRegion segmentation
 6cdd6c7  mapgen: overwatch-corner overlay in TacticalRegionPreviewTest (positional gut-check)
 3426109  mapgen: promote overwatch-corner scorer to taxonomy package (positional read)
-9320da7  mapgen: OverwatchTowerStage — first taxonomy consumer (corner-tower guns)  ← latest mapgen work
+9320da7  mapgen: OverwatchTowerStage — first taxonomy consumer (corner-tower guns)
+aae4244  mapgen: station interiors slice 1 — rooms + corridors as a recipe  ← latest mapgen work
 ```
 
 Full per-slice mapping (what landed vs. planned, Slice A critique
@@ -116,10 +117,21 @@ reused verbatim. Candidate next tracks (priority order):
   See the section below for what each resolution was.
 
 1. **Station-tier track** — [`stories/corridors-first-class.md`](stories/corridors-first-class.md)
-   (the real blocker — corridors as first-class connective structure) then
-   [`stories/station-interior-fills.md`](stories/station-interior-fills.md)
-   (rides on corridors + the recipe machinery); both plug in as new recipes +
-   domain stages on the now-complete pipeline.
+   **slice 1 shipped (`aae4244`)**: rooms + corridors as a `StationRecipe`
+   (InitSolid → StationPartition → RoomCarve → Corridor → StationSpawn), the
+   room/corridor `StationGraph` published, validation scan gating one-component
+   connectivity. See [`complete/station-interiors-slice-1.md`](complete/station-interiors-slice-1.md).
+   **Next on this track** (priority order):
+   - **Topological roles on `StationGraph`** — depth-from-entry (indoor assault
+     gradient), articulation/bridges, on-spine vs on-loop. Degree is already
+     free; this is the layer placement passes query.
+   - **Width policy / junction bulges** — degree-≥3 junctions widen to 4–6-wide
+     arenas; ban hold-nodes on degree-2 corridor cells, then promote the scan's
+     cramped-garrison finding to a hard assert.
+   - **Station thematic kinds** — [`stories/station-interior-fills.md`](stories/station-interior-fills.md)
+     (`HANGAR / COMMAND / HABITATION`); sits on top of the topological role.
+   - **Edge-based doors** — arms the validation scan's (currently no-op)
+     edge-connectivity check; hull/wall toughness tuning; spawn spatial spread.
 
 ### Slice 1 critique follow-ups — all resolved
 
