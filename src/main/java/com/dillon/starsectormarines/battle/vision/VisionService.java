@@ -133,7 +133,7 @@ public final class VisionService {
      * on the fog bitmap. Assigned to the smallest cohort. Runs an immediate
      * shadowcast so the unit's surroundings reveal on the spawn frame.
      */
-    public void addContributor(Unit u) {
+    public void addContributor(Unit u, UnitRegistry registry) {
         if (!initialized) return;
 
         FogCohort smallest = cohorts[0];
@@ -145,8 +145,9 @@ public final class VisionService {
 
         ContributorEntry entry = new ContributorEntry();
         entry.unitId = u.entityId;
-        entry.lastCellX = u.getCellX();
-        entry.lastCellY = u.getCellY();
+        int liveIdx = registry.requireLiveIndex(u.entityId);
+        entry.lastCellX = registry.getCellX(liveIdx);
+        entry.lastCellY = registry.getCellY(liveIdx);
 
         int range = Math.min(MAX_VISION_RANGE, (int) u.visionRange);
         int count = Shadowcast.castFrom(grid, entry.lastCellX, entry.lastCellY,
@@ -321,8 +322,9 @@ public final class VisionService {
                 continue;
             }
 
-            int cx = u.getCellX();
-            int cy = u.getCellY();
+            int liveIdx = registry.requireLiveIndex(e.unitId);
+            int cx = registry.getCellX(liveIdx);
+            int cy = registry.getCellY(liveIdx);
             if (cx == e.lastCellX && cy == e.lastCellY) continue;
 
             decrementFootprint(e);
@@ -369,7 +371,7 @@ public final class VisionService {
                 continue;
             }
 
-            boolean revealed = isCellRevealed(u.getCellX(), u.getCellY());
+            boolean revealed = isCellRevealed(registry.getCellX(i), registry.getCellY(i));
             byte prev = unitVisibility[u.denseIdx];
 
             if (revealed) {

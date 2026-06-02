@@ -292,6 +292,7 @@ public class BattleSimulation implements BattleControl {
         // queued (parallel-safe) path. Wired here since the navigation
         // service is built before the damage service exists.
         navigation.setOccupancyDeltaSink(damageService::applyOccupancyDelta);
+        navigation.setRegistry(rosterService.getRegistry());
         rosterService.setDamageService(damageService);
         // Entity-access facade over the dense registry + the sparse stores that
         // exist today. The cold-face type→store map starts with the two raw
@@ -525,7 +526,7 @@ public class BattleSimulation implements BattleControl {
     public void addUnit(Unit u) {
         rosterService.addUnit(u);
         if (vision.getVisionState().isContributor(u.faction)) {
-            vision.addContributor(u);
+            vision.addContributor(u, rosterService.getRegistry());
         }
     }
 
@@ -541,7 +542,7 @@ public class BattleSimulation implements BattleControl {
         rosterService.queueSpawn(u);
         if (idBefore == 0L && u.entityId != 0L
                 && vision.getVisionState().isContributor(u.faction)) {
-            vision.addContributor(u);
+            vision.addContributor(u, rosterService.getRegistry());
         }
     }
 
@@ -554,7 +555,7 @@ public class BattleSimulation implements BattleControl {
         rosterService.flushPendingSpawns();
         for (Unit u : snapshot) {
             if (vision.getVisionState().isContributor(u.faction)) {
-                vision.addContributor(u);
+                vision.addContributor(u, rosterService.getRegistry());
             }
         }
     }

@@ -123,7 +123,7 @@ public final class DroneSwarmAction implements Action {
         if (s.target != null) {
             tickEngage(d, s, slotIdx, slotCount, sim, dt);
         } else if (d.pursuitTimer > 0f) {
-            tickPursue(d, lockedOn != null, slotIdx, slotCount, dt);
+            tickPursue(d, lockedOn != null, slotIdx, slotCount, sim, dt);
         } else {
             tickPatrol(d, sim, slotIdx, slotCount, dt);
         }
@@ -189,7 +189,7 @@ public final class DroneSwarmAction implements Action {
         float orbitX = tx + orbitRadius * ox;
         float orbitY = ty + orbitRadius * oy;
 
-        float[] goal = clampGoalToLeash(d, orbitX, orbitY);
+        float[] goal = clampGoalToLeash(d, sim, orbitX, orbitY);
         AirSteeringSystem.steer(d.body, goal[0], goal[1], SteeringMode.CRUISE, Drone.HANDLING, dt);
     }
 
@@ -199,14 +199,14 @@ public final class DroneSwarmAction implements Action {
      * sourced the refresh this tick.
      */
     private static void tickPursue(Drone d, boolean latchRefreshedThisTick,
-                                   int slotIdx, int slotCount, float dt) {
+                                   int slotIdx, int slotCount, BattleView sim, float dt) {
         if (!latchRefreshedThisTick) {
             d.pursuitTimer -= dt;
         }
-        float comfortableDist = d.getAttackRange() * ENGAGE_HOVER_FRACTION;
+        float comfortableDist = sim.world().attackRange(d.entityId) * ENGAGE_HOVER_FRACTION;
         float[] hover = encircleOffset(d.pursuitGoalX, d.pursuitGoalY,
                 comfortableDist, slotIdx, slotCount);
-        float[] goal = clampGoalToLeash(d, hover[0], hover[1]);
+        float[] goal = clampGoalToLeash(d, sim, hover[0], hover[1]);
         AirSteeringSystem.steer(d.body, goal[0], goal[1], SteeringMode.BRAKE_TO_STATION, Drone.HANDLING, dt);
     }
 
@@ -266,10 +266,10 @@ public final class DroneSwarmAction implements Action {
      * {@link Drone#ENGAGE_LEASH_RADIUS_CELLS} of the hub anchor. Points
      * outside the leash are pulled radially inward to the leash boundary.
      */
-    private static float[] clampGoalToLeash(Drone d, float gx, float gy) {
+    private static float[] clampGoalToLeash(Drone d, BattleView sim, float gx, float gy) {
         if (d.homeHub == null) return new float[]{gx, gy};
-        float hubX = d.homeHub.getCellX() + 0.5f;
-        float hubY = d.homeHub.getCellY() + 0.5f;
+        float hubX = sim.world().cellX(d.homeHub.entityId) + 0.5f;
+        float hubY = sim.world().cellY(d.homeHub.entityId) + 0.5f;
         float dx = gx - hubX;
         float dy = gy - hubY;
         float dist = (float) Math.sqrt(dx * dx + dy * dy);

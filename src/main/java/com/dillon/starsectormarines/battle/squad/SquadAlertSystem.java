@@ -280,7 +280,7 @@ public final class SquadAlertSystem {
                     // zone). Drop targets here; next behavior tick re-picks
                     // via findBestTarget — no LOS to anything = null target,
                     // which is the correct posture for a squad in SUSPICIOUS.
-                    clearSquadMemberTargets(squad.id, dense, liveCount);
+                    clearSquadMemberTargets(squad.id, registry, dense, liveCount);
                 } else if (squad.alertLevel == SquadAlertLevel.SUSPICIOUS
                         && squad.timeSinceContact >= Squad.ENGAGED_DECAY_SECONDS + Squad.SUSPICIOUS_DECAY_SECONDS) {
                     squad.alertLevel = SquadAlertLevel.UNAWARE;
@@ -289,7 +289,7 @@ public final class SquadAlertSystem {
                     // Belt-and-braces: any target re-acquired during
                     // SUSPICIOUS (via a transient LOS flicker that didn't
                     // bump back to ENGAGED) shouldn't survive into UNAWARE.
-                    clearSquadMemberTargets(squad.id, dense, liveCount);
+                    clearSquadMemberTargets(squad.id, registry, dense, liveCount);
                 }
             }
         }
@@ -306,9 +306,9 @@ public final class SquadAlertSystem {
      * {@link TacticalScoring#findBestTarget findBestTarget} or holds null if
      * nobody's visible.
      */
-    private void clearSquadMemberTargets(int squadId, Unit[] dense, int liveCount) {
+    private void clearSquadMemberTargets(int squadId, UnitRegistry registry, Unit[] dense, int liveCount) {
         for (int i = 0; i < liveCount; i++) {
-            if (dense[i].squadId == squadId) dense[i].setTargetId(0L);
+            if (dense[i].squadId == squadId) registry.setTargetId(i, 0L);
         }
     }
 }

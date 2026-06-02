@@ -72,6 +72,15 @@ public final class NavigationService {
      */
     private boolean zoneGraphDirty = false;
 
+    /**
+     * Dense entity store, for by-id current-cell reads in {@link #setPath} (the
+     * one occupancy path that holds a {@link Unit} ref without the dense index
+     * in hand). Setter-injected after construction because the registry is built
+     * after this service; never null once the sim is wired. Part of the
+     * {@code world-facade} migration off {@code Unit}'s self-routing accessors.
+     */
+    private UnitRegistry registry;
+
     public NavigationService(NavigationGrid grid, CellTopology topology) {
         this.grid = grid;
         this.topology = topology;
@@ -81,6 +90,9 @@ public final class NavigationService {
         this.zoneGraph = new ZoneGraph(grid);
         this.zoneGraph.rebuild();
     }
+
+    /** Injects the dense entity store once it's built (see {@link #registry}). Called once at sim construction. */
+    public void setRegistry(UnitRegistry registry) { this.registry = registry; }
 
     public NavigationGrid getGrid() { return grid; }
     /** Categorization tags (street / rubble / wall / vehicle / etc.) for renderer + placement filters. Sibling to {@link #grid}; the pathfinder doesn't touch this. */
@@ -172,11 +184,13 @@ public final class NavigationService {
         Arrays.fill(occupancyMap, (byte) 0);
         for (int i = 0, n = registry.liveCount(); i < n; i++) {
             Unit u = registry.get(i);
-            incrementOccupancy(u.getCellX(), u.getCellY());
+            int curX = registry.getCellX(i);
+            int curY = registry.getCellY(i);
+            incrementOccupancy(curX, curY);
             int destX = pathDestX(u);
             if (destX != Integer.MIN_VALUE) {
                 int destY = pathDestY(u);
-                if (destX != u.getCellX() || destY != u.getCellY()) {
+                if (destX != curX || destY != curY) {
                     incrementOccupancy(destX, destY);
                 }
             }
@@ -243,8 +257,11 @@ public final class NavigationService {
             newDestX = Integer.MIN_VALUE;
             newDestY = Integer.MIN_VALUE;
         }
-        boolean hasOld = oldDestX != Integer.MIN_VALUE && (oldDestX != u.getCellX() || oldDestY != u.getCellY());
-        boolean hasNew = newDestX != Integer.MIN_VALUE && (newDestX != u.getCellX() || newDestY != u.getCellY());
+        int idx = registry.requireLiveIndex(u.entityId);
+        int curX = registry.getCellX(idx);
+        int curY = registry.getCellY(idx);
+        boolean hasOld = oldDestX != Integer.MIN_VALUE && (oldDestX != curX || oldDestY != curY);
+        boolean hasNew = newDestX != Integer.MIN_VALUE && (newDestX != curX || newDestY != curY);
         if (!hasOld && !hasNew) return;
         occupancyDeltaSink.apply(u,
                 hasOld ? oldDestX : Integer.MIN_VALUE,

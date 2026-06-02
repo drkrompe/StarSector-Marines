@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
+import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Unit;
 
 import java.util.ArrayList;
@@ -61,10 +62,14 @@ public final class InfantryUnitPrep {
      * doesn't freeze cooldown drain (otherwise the marine arrives at firing
      * range with a stale full cooldown and a perceived response lag).
      */
-    public static void tickCooldowns(Unit unit) {
-        if (unit.getCooldownTimer() > 0f) unit.setCooldownTimer(unit.getCooldownTimer() - BattleSimulation.TICK_DT);
-        if (unit.getSecondaryCooldownTimer() > 0f) unit.setSecondaryCooldownTimer(unit.getSecondaryCooldownTimer() - BattleSimulation.TICK_DT);
-        if (unit.getRepositionCooldown() > 0f) unit.setRepositionCooldown(unit.getRepositionCooldown() - BattleSimulation.TICK_DT);
+    public static void tickCooldowns(Unit unit, World world) {
+        long id = unit.entityId;
+        float cd = world.cooldownTimer(id);
+        if (cd > 0f) world.setCooldownTimer(id, cd - BattleSimulation.TICK_DT);
+        float scd = world.secondaryCooldownTimer(id);
+        if (scd > 0f) world.setSecondaryCooldownTimer(id, scd - BattleSimulation.TICK_DT);
+        float rcd = world.repositionCooldown(id);
+        if (rcd > 0f) world.setRepositionCooldown(id, rcd - BattleSimulation.TICK_DT);
     }
 
     /**

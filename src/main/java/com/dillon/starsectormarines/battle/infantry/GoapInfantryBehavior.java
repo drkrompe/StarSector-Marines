@@ -87,7 +87,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
      */
     public static boolean prepareForAction(Unit unit, BattleControl sim) {
         if (InfantryUnitPrep.tickAimAndShortCircuit(unit, sim)) return false;
-        InfantryUnitPrep.tickCooldowns(unit);
+        InfantryUnitPrep.tickCooldowns(unit, sim.world());
         if (InfantryUnitPrep.tryOpportunityRocket(unit, sim)) return false;
         return true;
     }
