@@ -185,9 +185,29 @@ this is a per-group sweep, not one commit.
        index to expose cells or an accepted small per-candidate probe). Both are
        isolated, zero-probe-today via denseIdx, and naturally forced when
        `Unit.getCellX()`/`getAttackRange()` are deleted.
-   - **2c — hot loops + render → dense-array / RenderPositionService**, not
-     `world.<col>(id)` (the cache-locality guardrail). Renderers, combat
-     resolvers, bulk systems. Careful, possibly per-file.
+   - **2d — hot loops + render → dense-array / by-id-once**, not
+     `world.<col>(id)` blind-swept (the cache-locality guardrail). Renderers,
+     combat resolvers, bulk systems. Careful, per-file. Per-site rule established:
+     **bulk dense loops** (iterating `[0, liveCount())`) → `denseArray()` +
+     `cellX/cellY` arrays, hoist once per iteration; **per-event / held-ref**
+     (resolvers, hit-response) → `requireLiveIndex` once then by-index;
+     `getRenderX/getRenderY` are **already** id-keyed via `RenderPositionService`
+     (not denseIdx) — leave them; `isAlive()` stays (the liveness primitive,
+     reworked in task #14). Parallel-phase index lookups are safe (releases/spawns
+     are deferred to serial drains; `getOrNull` already probes `indexById`
+     concurrently).
+     - **Part 1 SHIPPED (2026-06-02, `884a4bd`) — combat resolvers.**
+       `DamageResolver` (serial `APPLY_DAMAGE` drain → resolve target index once,
+       by-index cell/hp, snapshot death cell; promotion loop already dense-array;
+       mech-drain by index), `Detonations.detonate` AoE gather (bulk loop →
+       dense-array, `ucx/ucy` hoisted — was 4-5 `getCellX()` per iteration),
+       `HitResponseService` (parallel-phase; resolve target + `expectedTarget`
+       index once), `HeavyWeapons.fireMechWeapon` + LRM-salvo LoS (indices once).
+       Deferred to task #14: `FireStance.stanceFor` (static) +
+       `DamageService:248` `getTargetId()` (holds only the id resolver by design).
+     - **Part 2 (next) — bulk systems + the rest of the hot path:**
+       `InfantryWeapons` (7), `FlybyOverlay` (15), then renderers + the remaining
+       bulk-iteration sites (`UnitSpatialIndex`, etc.). Same per-site rule.
 3. **Model the remaining optional fields as presence components** as they're
    touched (`secondaryWeapon`/`secondaryAmmo`, `assignedObjective`,
    `equipmentDropTarget`) — `getOrNull` instead of nullable-field + null-check.

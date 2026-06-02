@@ -150,10 +150,20 @@ reference `entityId` instead** (the dangling-ref NPE class). New story:
        (static + tested/called statically → make instance or range-param) and
        `alliesNearForSpread` pass-2 (per-candidate `destIndex` gather). Both
        isolated, zero-probe-today, forced when `Unit.getCellX/getAttackRange` go.
-   - Then **2d** (was 2c): hot loops + render → dense-array/`RenderPositionService`
-     (NOT `world.<col>(id)`). Then model `mech` & other optional `Unit` fields as
-     `ComponentStore`s (cold face); then delete `Unit.registry`+`denseIdx` (mops
-     up the two TacticalScoring leftovers above); then `Unit`→`Entity`.
+   - **2d — hot loops + render. PART 1 SHIPPED (`884a4bd`) — combat resolvers.**
+     Per-site rule: **bulk dense loops** → `denseArray()` + `cellX/cellY` arrays
+     (hoist per iteration); **per-event/held-ref** → `requireLiveIndex` once then
+     by-index; `getRenderX/getRenderY` already id-keyed via `RenderPositionService`
+     (leave); `isAlive()` stays (task #14). Parallel-phase index lookups are safe
+     (releases deferred to serial drains; `getOrNull` already probes concurrently).
+     Done: `DamageResolver` (serial `APPLY_DAMAGE` drain), `Detonations` AoE gather
+     (dense-array), `HitResponseService` (parallel), `HeavyWeapons`. Deferred to
+     task #14: `FireStance.stanceFor` (static), `DamageService:248` (no registry).
+     - **PART 2 (next):** `InfantryWeapons` (7) + `FlybyOverlay` (15), then
+       renderers + remaining bulk-iteration sites (`UnitSpatialIndex` &c.).
+   - Then model `mech` & other optional `Unit` fields as `ComponentStore`s (cold
+     face); then delete `Unit.registry`+`denseIdx` (mops up the TacticalScoring +
+     combat leftovers above); then `Unit`→`Entity`.
    Design LOCKED with the user (2026-06-02): a **two-faced `World`** facade over
    the existing stores. **Hot face** = primitive by-id accessors (`world.hp(id)`,
    `cellX/Y`, `renderX/Y`, combat stats) backed directly by the dense SoA — zero
