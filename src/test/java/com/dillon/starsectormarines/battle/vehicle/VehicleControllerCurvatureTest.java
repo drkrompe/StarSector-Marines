@@ -87,4 +87,20 @@ public class VehicleControllerCurvatureTest {
         assertTrue(turnOf(xs, ys) > 75f, "a hairpin is well past the full-slow threshold");
         assertEquals(MAX * 0.35f, capOf(xs, ys), EPS, "the cap floors at the min fraction, never below");
     }
+
+    @Test
+    public void measuresFromTheBodyWithANonZeroStartIndexOffTheVertices() {
+        // Production anchoring: trajectory tracking passes startIdx=1 and the
+        // corridor passes corridor.cursor(), with the body sitting off the
+        // polyline vertices. Vertices before startIdx are skipped; the first
+        // measured segment runs body → xs[startIdx]. Corridor: a straight east
+        // run that turns north at index 3; body mid-segment, slightly off-line.
+        float[] xs = {0, 2, 4, 4, 4};
+        float[] ys = {0, 0, 0, 3, 6};
+        // startIdx=2 skips (0,0)/(2,0); body just shy of (4,0), 0.3 off the line.
+        float turn = VehicleController.previewTurnDegrees(xs, ys, 2, 2.5f, 0.3f);
+        assertTrue(turn > 75f, "the upcoming ~right-angle turn is measured from the body, was " + turn);
+        float cap = VehicleController.curvatureSpeedCap(xs, ys, 2, 2.5f, 0.3f, MAX);
+        assertEquals(MAX * 0.35f, cap, EPS, "a hard corner ahead caps to the floor regardless of start index");
+    }
 }

@@ -34,8 +34,13 @@ to whichever polyline is tracked (local trajectory *or* coarse corridor):
   as the truck slows (tight corners track closely instead of the fixed look-ahead
   chord cutting the inside of the turn), stretching back to cruise look-ahead on
   straights.
-Unit-tested (`VehicleControllerCurvatureTest`, 6 green); the rest of slice-4 feel
-tuning (constants) is still open and **wants the same playtest**.
+Unit-tested (`VehicleControllerCurvatureTest`, 7 green); the rest of slice-4 feel
+tuning (constants) is still open and **wants the same playtest**. Playtest-watch
+items: (a) a sharp corner sitting just past the 4-cell preview window can be
+entered a touch fast before the next replan (low risk at ~0.7 cells/replan, but
+watch tight back-to-back turns); (b) `MIN_LOOKAHEAD_CELLS 1.2` is below the
+~3.96-cell min turn radius — if pursuit visibly oscillates in slow corners,
+raise the floor or lean harder on the curvature cap.
 
 Track: full layered rewrite anchored on a **rolling-horizon local Hybrid A\***
 planner with always-on kinematic tracking. No backward-compat constraint — the
