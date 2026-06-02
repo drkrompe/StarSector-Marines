@@ -121,8 +121,10 @@ public final class DamageResolver {
             // at the demolition phase. Every post-death reaction (turret + hub
             // demolition, drone crash, mech wreck, dead-body/render) now reacts
             // off this event, not a list scan. See DeathDispatcher +
-            // retire-legacy-units-list.
-            deathDispatcher.publish(new DeathEvent(target));
+            // retire-legacy-units-list. Snapshot the death cell into the event
+            // here, while the target is still registered — handlers run at the
+            // drain (post-release) where the Group-C cell accessors fail loud.
+            deathDispatcher.publish(new DeathEvent(target, target.getCellX(), target.getCellY()));
             // Drop the dense-registry entry. The legacy units list still retains
             // the dead unit (no cleanup path) until it's deleted outright, but
             // nothing reads a released unit through it anymore — this release is

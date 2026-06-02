@@ -8,14 +8,19 @@ package com.dillon.starsectormarines.battle.unit;
  * subscribed handlers (turret/hub demolition, drone crash, render, future
  * medic) that decide how to represent the death.
  *
- * <p><b>Transitional shape.</b> The event currently carries the dead
- * {@link Unit} itself — at publish time the unit is still a live object (it is
+ * <p><b>Self-contained snapshot, growing.</b> The event carries the dead
+ * {@link Unit} for handlers that need its concrete subtype ({@code instanceof}
+ * for the drone crash / turret + hub demolition / mech wreck), plus a snapshot
+ * of the moment-of-death state those handlers read. The snapshot is captured at
+ * publish time, while the unit is still live and registered — the unit is
  * released from the dense {@link UnitRegistry} immediately <em>after</em> the
- * publish, and the legacy roster list still retains it), so handlers can read
- * its type, cell, and back-links directly. As the
- * {@code retire-legacy-units-list} spine progresses and the corpse becomes a
- * lightweight body entity, this record grows toward a self-contained snapshot
- * (type, faction, cell, render pos, death-pose) so handlers no longer deref a
- * {@code registry == null} unit. Keep it minimal until a handler needs more.
+ * publish, after which its Group-C accessors are fail-loud (the {@code local*}
+ * shadow for those columns is gone). So handlers must read the event's snapshot,
+ * <b>not</b> the unit's accessors, for any post-release value.
+ *
+ * <p>{@link #cellX} / {@link #cellY} are the logical death cell — where the
+ * demolition systems flip rubble and the wreck systems drop a smoking wreck.
+ * As the corpse grows into a fuller body entity this record grows with it (hp,
+ * render pos) only when a handler actually needs the field. Keep it minimal.
  */
-public record DeathEvent(Unit unit) {}
+public record DeathEvent(Unit unit, int cellX, int cellY) {}

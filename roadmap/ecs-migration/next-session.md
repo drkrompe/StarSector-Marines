@@ -97,16 +97,19 @@ campaign work.)
 - **Five consumers** on dense-iter + SoA array reads. (The burst pass in
   `InfantryWeapons.tick`, `targetId`'s ~17 sites, and the fall-back group's
   break-contact consumers route through accessors, not dense-iter yet.)
-- **Duality collapse (Phase A) — Slices 1 & 2 DONE.** Of the 22 promoted
-  columns, the 14 Group-N (mid-combat-only) twins are gone (`c50e50d`) and the
-  4 Group-S seed-only stats (maxHp/attackDamage/attackRange/accuracy) are gone
-  (`e038706`): both groups' accessors now read the registry unconditionally
-  (fail-loud). Group-S kept a write-only `seed*` field per stat (ctor +
-  subclass overrides + deboard loadout write it; `allocate` consumes it;
-  `release` does NOT snapshot it back — no post-release reader). The remaining
-  `local*` are exactly the 5 Group-C corpse-read fields (hp/cellX/cellY +
-  render via RenderPositionService) — **Slice 3 is all that's left of the
-  duality collapse.**
+- **Duality collapse (Phase A) — Slices 1, 2 & 3a DONE.** Of the 22 promoted
+  columns, the 14 Group-N (mid-combat-only) twins are gone (`c50e50d`), the
+  4 Group-S seed-only stats are gone (`e038706`), and **the cell pair
+  (cellX/cellY) is now seed-only too (Slice 3a, 2026-06-02)**: `DeathEvent`
+  became a self-contained snapshot (`DeathEvent(unit, cellX, cellY)`) so the
+  three demolition/wreck death-handlers read the death cell off the event
+  instead of the released unit; `localCellX/Y` → write-only `seedCellX/seedCellY`,
+  `getCellX/getCellY/setCellPos` fail-loud, `release` drops the cell snapshot.
+  **The ONLY `local*` left is `localHp`** — its sole post-release reader is the
+  `SquadDetailPanel` HUD snapshot (member killed mid-frame). `localRenderX/Y` are
+  seed-only already (RenderPositionService survives release). **Slice 3b (hp via
+  HUD value-snapshot) is all that's left of the duality collapse** — see
+  [`collapse-unit-handle`](stories/collapse-unit-handle.md).
 - **Full suite green at 592 tests** (after the death-dispatcher foundation
   slice). The earlier sibling compile break in `ShotRenderService.java` has
   since resolved.

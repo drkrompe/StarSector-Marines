@@ -152,11 +152,46 @@ the `maxHp` assertion in the hp-snapshot test; repointed the pre-allocate
 pre-allocate to write after `addUnit`. Full suite green (658). Removes the
 pre-allocate window for these four stats entirely.
 
-### Slice 3 — Group C (corpse) — DESIGN FORK
+### Slice 3 — Group C (corpse) — fresh-eyes re-audit (2026-06-02)
 
-The 5 corpse-read fields need a value readable after `release`. Direction
-(user, 2026-06-01): an explicit **death-snapshot** over permanent `local*`
-shadows — and the corpse could be realized as a stamped **decal**, or as a
-minimal separate **"body" entity** (renderable + location only), which would
-also leave room for a future **revive** mechanic. Decide the concrete shape
-when we reach it (re-examine the readers with fresh eyes first).
+The spine's component-store migration shrank Group C far below the original
+5-field picture. A fresh audit of the actual post-release readers:
+
+| `local*` | Pre-alloc seed | Post-release reader(s) |
+|---|---|---|
+| `localCellX/Y` | ctor | **3 death-event handlers** read `getCellX/Y` at drain (post-release): `TurretDemolitionSystem`, `HubDemolitionSystem`, `MechWreckSystem` |
+| `localHp` | ctor / turret `setHp` | **1 site:** `SquadDetailPanel` holds member refs across `advance()`, reads `getHp`/`getMaxHp` for a member killed mid-frame |
+| `localRenderX/Y` | ctor | **none** — already seed-only (`RenderPositionService` is canonical post-allocate, survives release) |
+
+The decal-vs-body-entity fork is **already resolved by the spine**: the corpse
+*is* a lightweight body entity — present in the `DeadBody` + `RenderPositionService`
+(+ `Crashing`) stores keyed by `entityId`, absent from the live registry. What
+remained was just where the 3 cell-readers + 1 hp-reader get their value.
+
+#### Slice 3a — cell collapse via DeathEvent snapshot — SHIPPED (2026-06-02)
+
+`DeathEvent` grew into the self-contained snapshot its own javadoc already
+promised: `record DeathEvent(Unit unit, int cellX, int cellY)`. Both publish
+sites (`DamageResolver.resolve`, `HubDemolitionSystem` cascade) snapshot the
+cell **at publish, while the unit is still registered**; the three demolition /
+wreck handlers read `event.cellX()/cellY()` instead of the released unit's
+accessors (`releaseGuardpostIfAllTurretsDead` takes the cell as params now). With
+no post-release cell reader left, `localCellX/Y` became write-only
+**`seedCellX/seedCellY`** (the Group-S seed-spec shape): `getCellX/getCellY/setCellPos`
+read/write the registry **unconditionally (fail-loud)**; `allocate` seeds from the
+seed fields; `release` no longer snapshots cell. `UnitRegistryTest`'s cell
+release-snapshot test became `releaseDoesNotSnapshotCellPosCellIsSeedOnly`
+(asserts fail-loud post-release); the seed + tail-swap tests stay. Suite green
+(registry, dispatcher, all three demolition/crash/body handlers, plus
+Mech/Squad-morale + KillZone integration).
+
+#### Slice 3b — hp collapse via HUD value-snapshot — NEXT, last of the duality
+
+`localHp` is the only `local*` left with a post-release reader: `SquadDetailPanel`
+snapshots live `Unit` refs in `update()` (pre-advance) and reads `getHp/getMaxHp`
+in `render()` (post-advance), so a member killed mid-frame is already released.
+Fix: snapshot the **displayed values** (hp, maxHp, weapon abbrevs, ammo) at
+`update()` instead of holding live refs. Then drop `localHp` + `getMaxHp`'s
+`seedMaxHp` fallback → `getHp/getMaxHp` fail-loud; `release` stops snapshotting
+hp. That kills the last Group-C shadow and the whole `local*` duality, unblocking
+the `Unit` → `Entity` rename.

@@ -20,6 +20,11 @@ public class DeathDispatcherTest {
         return new Unit(id, Faction.MARINE, UnitType.MARINE, 0, 0);
     }
 
+    /** Death event for {@code u} — cell is irrelevant to dispatcher mechanics. */
+    private static DeathEvent death(Unit u) {
+        return new DeathEvent(u, 0, 0);
+    }
+
     @Test
     public void publishDoesNotInvokeHandlersUntilDrain() {
         DeathDispatcher dispatcher = new DeathDispatcher();
@@ -27,7 +32,7 @@ public class DeathDispatcherTest {
         dispatcher.subscribe(e -> seen.add(e.unit()));
 
         Unit u = unit("a");
-        dispatcher.publish(new DeathEvent(u));
+        dispatcher.publish(death(u));
         assertTrue(seen.isEmpty(), "publish must buffer — handlers fire only on drain");
 
         dispatcher.drain();
@@ -41,8 +46,8 @@ public class DeathDispatcherTest {
         dispatcher.subscribe(e -> log.add("h1:" + e.unit().id));
         dispatcher.subscribe(e -> log.add("h2:" + e.unit().id));
 
-        dispatcher.publish(new DeathEvent(unit("a")));
-        dispatcher.publish(new DeathEvent(unit("b")));
+        dispatcher.publish(death(unit("a")));
+        dispatcher.publish(death(unit("b")));
         dispatcher.drain();
 
         // Outer loop is publish order, inner loop is subscribe order.
@@ -55,7 +60,7 @@ public class DeathDispatcherTest {
         List<Unit> seen = new ArrayList<>();
         dispatcher.subscribe(e -> seen.add(e.unit()));
 
-        dispatcher.publish(new DeathEvent(unit("a")));
+        dispatcher.publish(death(unit("a")));
         dispatcher.drain();
         dispatcher.drain(); // second drain has nothing buffered
 
@@ -70,13 +75,13 @@ public class DeathDispatcherTest {
         // publishing a fresh DeathEvent while drain() is still fanning out.
         dispatcher.subscribe(e -> {
             if (e.unit().id.equals("hub")) {
-                dispatcher.publish(new DeathEvent(unit("drone")));
+                dispatcher.publish(death(unit("drone")));
             }
         });
         // Handler B records every event it is handed.
         dispatcher.subscribe(e -> seen.add(e.unit().id));
 
-        dispatcher.publish(new DeathEvent(unit("hub")));
+        dispatcher.publish(death(unit("hub")));
         dispatcher.drain();
 
         // The drone death, published mid-drain, is fanned out in the same drain

@@ -76,8 +76,12 @@ public final class UnitRegistry {
      */
     private float[] maxHp = new float[INITIAL_CAPACITY];
     /**
-     * Per-unit logical cell X — the pathfinder's domain (integer cells). Same
-     * grow/swap/snapshot lifecycle as {@link #hp}. Parallel-array layout (not
+     * Per-unit logical cell X — the pathfinder's domain (integer cells).
+     * <b>Seed-only</b> lifecycle (like {@link #maxHp}, not {@link #hp}):
+     * {@link #allocate} seeds it from {@link Unit#seedCellX} and it is canonical
+     * thereafter, but {@link #release} does NOT snapshot it back — the death cell
+     * its post-release readers want now travels on the {@code DeathEvent}.
+     * Parallel-array layout (not
      * interleaved int[] cellXY stride-2) so any future single-axis sweep
      * (e.g. axis-aligned partition, sort by x) reads at full cache-line
      * efficiency without striding past the off-axis values. Paired access
@@ -192,16 +196,16 @@ public final class UnitRegistry {
         u.entityId = id;
         dense[liveCount] = u;
         // Seed the seed-bearing columns from the unit's pre-allocation transient
-        // fields. After this point these are canonical. The corpse-read subset
-        // (hp/cell) keeps its local* twin so release can snapshot the
-        // moment-of-death value back for post-release readers (isAlive() on a
-        // dead drone before its crash sequence finishes); the Group-S stats
-        // (maxHp + attack stats) seed from write-only seed* fields and are never
-        // snapshotted back — they have no post-release reader.
+        // fields. After this point these are canonical. hp still keeps its
+        // local* twin so release can snapshot the moment-of-death value back for
+        // the one remaining post-release reader (the HUD reading a member killed
+        // mid-frame). The Group-S stats (maxHp + attack stats) and the cell pair
+        // seed from write-only seed* fields and are never snapshotted back — the
+        // cell's post-release readers now read it off the DeathEvent snapshot.
         hp[liveCount] = u.localHp;
         maxHp[liveCount] = u.seedMaxHp;
-        cellX[liveCount] = u.localCellX;
-        cellY[liveCount] = u.localCellY;
+        cellX[liveCount] = u.seedCellX;
+        cellY[liveCount] = u.seedCellY;
         attackDamage[liveCount] = u.seedAttackDamage;
         attackRange[liveCount] = u.seedAttackRange;
         accuracy[liveCount] = u.seedAccuracy;
@@ -254,19 +258,18 @@ public final class UnitRegistry {
         int idx = indexById.remove(id);
         if (idx == INVALID_INDEX) return;
         int last = liveCount - 1;
-        // Snapshot HP + cell back onto the released unit so post-release
-        // readers (isAlive() chained via getHp() in drone-crash code; the
-        // moment-of-death cell read by the crash sprite / equipment-drop emit)
-        // see the moment-of-death values rather than stale defaults. The
-        // Group-S stats (maxHp + attack stats) are deliberately NOT snapshotted —
-        // they have no post-release reader and carry no local* twin. Render
-        // position is NOT snapshotted here either — it lives in the decomposed
-        // RenderPositionService keyed by entityId, which is not cleared on
-        // release, so the corpse's death-pose location survives directly.
+        // Snapshot HP back onto the released unit so the one remaining
+        // post-release reader (the HUD reading a member killed mid-frame via
+        // getHp()) sees the moment-of-death value rather than a stale default.
+        // The cell pair is NOT snapshotted anymore: its post-release readers
+        // (the turret/hub demolition + mech wreck handlers) read the death cell
+        // off the DeathEvent snapshot, so the cell carries no local* twin — like
+        // the Group-S stats. Render position is NOT snapshotted here either — it
+        // lives in the decomposed RenderPositionService keyed by entityId, which
+        // is not cleared on release, so the corpse's death-pose location survives
+        // directly.
         Unit released = dense[idx];
         released.localHp = hp[idx];
-        released.localCellX = cellX[idx];
-        released.localCellY = cellY[idx];
         released.denseIdx = -1;
         released.registry = null;
         // Deliberately keep released.renderPositions wired — the service entry

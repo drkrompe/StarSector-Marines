@@ -269,9 +269,9 @@ public class UnitRegistryTest {
     }
 
     @Test
-    public void allocateSeedsCellPosFromUnitsLocalFieldsAndAccessorsRouteThroughRegistry() {
+    public void allocateSeedsCellPosFromUnitsSeedFieldsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
-        // Unit ctor takes initial cellX/cellY, stamped into localCellX/Y pre-alloc.
+        // Unit ctor takes initial cellX/cellY, stamped into seedCellX/Y pre-alloc.
         Unit u = new Unit("u", Faction.MARINE, UnitType.MARINE_BLUE, 7, 3);
 
         r.allocate(u);
@@ -288,7 +288,7 @@ public class UnitRegistryTest {
     }
 
     @Test
-    public void releaseSnapshotsCellPosBackToLocalFieldForPostReleaseReaders() {
+    public void releaseDoesNotSnapshotCellPosCellIsSeedOnly() {
         UnitRegistry r = new UnitRegistry();
         Unit u = new Unit("u", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
         r.allocate(u);
@@ -296,14 +296,15 @@ public class UnitRegistryTest {
         u.setCellPos(42, 17);
         r.release(u.entityId);
 
-        // Post-release: the legacy units list keeps the corpse, and the
-        // drone-crash sprite / equipment-drop emit reads cellX/Y off the
-        // released unit. Without the snapshot they'd read 0 instead of the
-        // moment-of-death cell.
+        // Cell is Group-C seed-only now: release no longer snapshots it back.
+        // The death cell its former post-release readers (turret/hub demolition,
+        // mech wreck) want travels on the DeathEvent snapshot instead, so the
+        // cell accessors are fail-loud on a released unit — like the Group-S
+        // stats and the mid-combat columns.
         assertNull(u.registry);
         assertEquals(-1, u.denseIdx);
-        assertEquals(42, u.getCellX());
-        assertEquals(17, u.getCellY());
+        assertThrows(NullPointerException.class, u::getCellX);
+        assertThrows(NullPointerException.class, u::getCellY);
     }
 
     @Test

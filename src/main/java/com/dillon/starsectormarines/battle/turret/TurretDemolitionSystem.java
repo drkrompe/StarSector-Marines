@@ -60,12 +60,16 @@ public final class TurretDemolitionSystem {
     public void onDeath(DeathEvent event) {
         if (!(event.unit() instanceof MapTurret t)) return;
         if (t.demolished) return;
-        mapService.flipCellToRubble(t.getCellX(), t.getCellY());
+        // Death cell from the event snapshot — the turret is released by the
+        // time this drains, so its Group-C cell accessors are fail-loud.
+        int cx = event.cellX();
+        int cy = event.cellY();
+        mapService.flipCellToRubble(cx, cy);
         t.demolished = true;
         // Mount cell keeps smoking for a while so the player can see the
         // wreck is dead-and-cooling rather than just "gone".
-        effects.spawnSmokingWreck(t.getCellX(), t.getCellY());
-        releaseGuardpostIfAllTurretsDead(t);
+        effects.spawnSmokingWreck(cx, cy);
+        releaseGuardpostIfAllTurretsDead(cx, cy);
     }
 
     /**
@@ -86,15 +90,19 @@ public final class TurretDemolitionSystem {
      * demolished, never-spawned, and just-killed cases alike — so the live-only
      * registry is exactly the right view (a dead turret is simply absent). No
      * corpse read needed.
+     *
+     * <p>{@code deadCellX/Y} are the dead turret's death cell, snapshotted off
+     * the {@link DeathEvent} — the turret is already released here, so its own
+     * cell accessors would fail loud.
      */
-    private void releaseGuardpostIfAllTurretsDead(MapTurret deadTurret) {
+    private void releaseGuardpostIfAllTurretsDead(int deadCellX, int deadCellY) {
         UnitRegistry registry = roster.getRegistry();
         List<DefensePost> defensePosts = tactical.getDefensePosts();
         if (defensePosts.isEmpty()) return;
         DefensePost owner = null;
         for (DefensePost post : defensePosts) {
             for (DefensePost.TurretSpec spec : post.turrets) {
-                if (spec.cellX == deadTurret.getCellX() && spec.cellY == deadTurret.getCellY()) {
+                if (spec.cellX == deadCellX && spec.cellY == deadCellY) {
                     owner = post;
                     break;
                 }

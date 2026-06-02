@@ -71,9 +71,12 @@ public final class HubDemolitionSystem {
     public void onDeath(DeathEvent event) {
         if (!(event.unit() instanceof DroneHubUnit h)) return;
         if (h.demolished) return;
-        mapService.flipCellToRubble(h.getCellX(), h.getCellY());
+        // Death cell from the event snapshot — the hub is released by drain time.
+        int cx = event.cellX();
+        int cy = event.cellY();
+        mapService.flipCellToRubble(cx, cy);
         h.demolished = true;
-        effects.spawnSmokingWreck(h.getCellX(), h.getCellY());
+        effects.spawnSmokingWreck(cx, cy);
         cascadeKillDrones(h);
     }
 
@@ -113,7 +116,8 @@ public final class HubDemolitionSystem {
             // Publish before release, mirroring DamageResolver.resolve's
             // ordering — re-entrant into the in-progress drain, fanned out on
             // the next wave (the dispatcher is wave-drained for exactly this).
-            deathDispatcher.publish(new DeathEvent(d));
+            // Snapshot the cell while the drone is still registered.
+            deathDispatcher.publish(new DeathEvent(d, d.getCellX(), d.getCellY()));
             roster.releaseFromRegistry(d.entityId);
         }
     }

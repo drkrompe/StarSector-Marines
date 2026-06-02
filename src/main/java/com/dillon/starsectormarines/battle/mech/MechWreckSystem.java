@@ -45,7 +45,9 @@ public final class MechWreckSystem {
         Unit u = event.unit();
         MechLoadoutState m = u.mech;
         if (m == null || m.wreckSpawned) return;
-        effects.spawnSmokingWreck(u.getCellX(), u.getCellY());
+        // Read the death cell off the event snapshot: the unit is released by
+        // the time this drains, so its Group-C cell accessors are fail-loud.
+        effects.spawnSmokingWreck(event.cellX(), event.cellY());
         m.wreckSpawned = true;
     }
 }

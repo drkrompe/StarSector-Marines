@@ -91,16 +91,20 @@ public class Unit {
     public final Random rng = new Random();
 
     /**
-     * <b>Don't read directly.</b> Logical-cell pre-allocate seed +
-     * post-release snapshot, same lifecycle as {@link #localHp}. Canonical
-     * storage between allocate and release lives in
-     * {@code registry.cellXArray()[denseIdx]} / {@code cellYArray()[denseIdx]};
-     * go through {@link #getCellX} / {@link #getCellY} / {@link #setCellPos}.
-     * Public for the same sibling-package seeding/snapshot reason as
-     * {@code localHp}.
+     * <b>Don't read directly. Pre-allocate seed ONLY.</b> The logical death cell
+     * used to have a post-release snapshot like {@link #localHp}, but its three
+     * post-release readers (the turret / hub demolition + mech wreck handlers)
+     * now read the cell off the {@link DeathEvent} snapshot instead, so the cell
+     * needs no shadow on the corpse — it's pure construction input now, like the
+     * Group-S {@code seed*} stats. {@link UnitRegistry#allocate} copies these
+     * into the SoA cell arrays and the registry is canonical from then on;
+     * {@code release} does NOT snapshot them back. Once allocated, go through
+     * {@link #getCellX} / {@link #getCellY} / {@link #setCellPos} (fail-loud on
+     * an unregistered unit). Public for the same sibling-package seeding reason
+     * as {@code seed*}.
      */
-    public int localCellX;
-    public int localCellY;
+    public int seedCellX;
+    public int seedCellY;
 
     /**
      * <b>Don't read directly.</b> Smooth render-position <em>pre-allocate seed
@@ -482,8 +486,8 @@ public class Unit {
         this.id = id;
         this.faction = faction;
         this.type = type;
-        this.localCellX = cellX;
-        this.localCellY = cellY;
+        this.seedCellX = cellX;
+        this.seedCellY = cellY;
         this.localRenderX = cellX;
         this.localRenderY = cellY;
         this.moveSpeed = type.moveSpeed;
@@ -542,14 +546,18 @@ public class Unit {
         registry.setMaxHp(denseIdx, v);
     }
 
-    // Logical-cell accessors. Same shape as hp/maxHp: registry routes when
-    // allocated, local field pre-/post-allocate. Final for CHA monomorphism.
+    // Logical-cell accessors. Canonical storage is the registry's SoA arrays,
+    // seeded once from seedCellX/seedCellY at allocate. Like the Group-N/S
+    // columns these read/write the registry unconditionally (fail-loud on an
+    // unregistered unit) — the seed* fields are the only pre-allocate channel,
+    // and the post-release death cell now travels on the DeathEvent snapshot, so
+    // no corpse reads cell off the released unit. Final for CHA monomorphism.
     public final int getCellX() {
-        return (registry != null) ? registry.getCellX(denseIdx) : localCellX;
+        return registry.getCellX(denseIdx);
     }
 
     public final int getCellY() {
-        return (registry != null) ? registry.getCellY(denseIdx) : localCellY;
+        return registry.getCellY(denseIdx);
     }
 
     /**
@@ -559,12 +567,7 @@ public class Unit {
      * both SoA slots without a second method dispatch.
      */
     public final void setCellPos(int x, int y) {
-        if (registry != null) {
-            registry.setCellPos(denseIdx, x, y);
-        } else {
-            localCellX = x;
-            localCellY = y;
-        }
+        registry.setCellPos(denseIdx, x, y);
     }
 
     public final float getCooldownTimer() {
