@@ -126,7 +126,7 @@ public final class UnitRosterService {
      */
     public void addUnit(Unit u) {
         registry.allocate(u);
-        unitIndex.add(u);
+        unitIndex.add(registry, u);
     }
 
     /** Returns the dense entity registry. See {@link UnitRegistry} for the contract + migration phasing. */

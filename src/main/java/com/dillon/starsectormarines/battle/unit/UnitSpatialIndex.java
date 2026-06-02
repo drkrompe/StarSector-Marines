@@ -1,10 +1,7 @@
 package com.dillon.starsectormarines.battle.unit;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-
-import com.dillon.starsectormarines.battle.unit.UnitRegistry;
-
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Bucketed spatial index over alive units. Rebuilt once per sim tick so AI
@@ -17,10 +14,19 @@ import java.util.ArrayList;
  * touches roughly {@code (R/BUCKET)²} buckets. With R=20 and BUCKET=16 that
  * is 4–9 buckets — bounded regardless of total unit count.
  *
- * <p><b>Allocation.</b> Bucket lists are recycled into {@link #pool} between
- * rebuilds, so steady-state allocation is zero. Callers passing an output
- * {@link ArrayList} to {@link #gather} pay nothing per call past clearing
- * the buffer.
+ * <p><b>Snapshot positions.</b> Each entry denormalizes the unit's cell at
+ * insert time into a {@link Bucket}'s parallel {@code cellX}/{@code cellY}
+ * arrays, so {@link #gather}'s distance filter reads a stored int rather than
+ * the unit's live cell. This (a) keeps the cell read off the dense SoA — no
+ * {@code Unit} indirection and no per-candidate registry probe — and (b) makes
+ * the index self-consistent: bucketing <em>and</em> the distance test both use
+ * the same rebuild-time position. Queries therefore see positions as of the
+ * last {@link #rebuild}, which is exactly the per-tick-snapshot contract.
+ *
+ * <p><b>Allocation.</b> {@link Bucket}s are recycled into {@link #pool} between
+ * rebuilds and their backing arrays grow-and-stay, so steady-state allocation
+ * is zero. Callers passing an output {@link ArrayList} to {@link #gather} pay
+ * nothing per call past clearing the buffer.
  *
  * <p><b>Threading.</b> Single-threaded against the sim today. The squad-GOAP
  * replan loop is the next likely parallel surface — when that lands, this
@@ -37,16 +43,48 @@ public final class UnitSpatialIndex {
      */
     public static final int BUCKET = 16;
 
+    /**
+     * One spatial bucket: parallel arrays of unit refs and their rebuild-time
+     * snapshot cell, grown on demand and recycled across rebuilds so
+     * steady-state allocation stays zero. The snapshot cell is what lets
+     * {@link #gather} filter by distance without reading the position back off
+     * the unit (no SoA indirection, no registry probe per candidate).
+     */
+    private static final class Bucket {
+        Unit[] units = new Unit[8];
+        int[] cellX = new int[8];
+        int[] cellY = new int[8];
+        int size;
+
+        void add(Unit u, int x, int y) {
+            if (size == units.length) {
+                int cap = size << 1;
+                units = Arrays.copyOf(units, cap);
+                cellX = Arrays.copyOf(cellX, cap);
+                cellY = Arrays.copyOf(cellY, cap);
+            }
+            units[size] = u;
+            cellX[size] = x;
+            cellY[size] = y;
+            size++;
+        }
+
+        /** Clears for reuse, nulling unit slots so a released unit isn't pinned alive between rebuilds. */
+        void clear() {
+            for (int i = 0; i < size; i++) units[i] = null;
+            size = 0;
+        }
+    }
+
     private final int bucketsX;
     private final int bucketsY;
-    private final ArrayList<Unit>[] buckets;
-    private final ArrayList<ArrayList<Unit>> pool = new ArrayList<>();
+    private final Bucket[] buckets;
+    private final ArrayList<Bucket> pool = new ArrayList<>();
 
-    @SuppressWarnings("unchecked")
     public UnitSpatialIndex(int gridWidth, int gridHeight) {
         this.bucketsX = Math.max(1, (gridWidth + BUCKET - 1) / BUCKET);
         this.bucketsY = Math.max(1, (gridHeight + BUCKET - 1) / BUCKET);
-        this.buckets = (ArrayList<Unit>[]) new ArrayList[bucketsX * bucketsY];
+        this.buckets = new Bucket[bucketsX * bucketsY];
     }
 
     /**
@@ -57,15 +95,12 @@ public final class UnitSpatialIndex {
      * range directly — released slots are excluded by the registry, so no
      * per-call {@code isAlive()} branch in the inner loop. Cell positions
      * are read from the SoA arrays ({@code cellXArray()} / {@code cellYArray()})
-     * with no Unit-object indirection; the prefetcher streams both axes in
-     * tandem under the sequential index walk. The {@code dense[]} ref is
-     * still loaded per unit to populate the bucket, but the bucket payload
-     * is itself the {@code Unit} reference — the SoA win lives on the
-     * cell-read side.
+     * with no Unit-object indirection, then stored alongside the {@code Unit}
+     * ref in the bucket so {@link #gather} never has to read them back.
      */
     public void rebuild(UnitRegistry registry) {
         for (int i = 0; i < buckets.length; i++) {
-            ArrayList<Unit> b = buckets[i];
+            Bucket b = buckets[i];
             if (b != null) {
                 b.clear();
                 pool.add(b);
@@ -77,18 +112,10 @@ public final class UnitSpatialIndex {
         int[] cellY = registry.cellYArray();
         int liveCount = registry.liveCount();
         for (int i = 0; i < liveCount; i++) {
-            int bx = cellX[i] / BUCKET;
-            int by = cellY[i] / BUCKET;
-            if (bx < 0 || bx >= bucketsX || by < 0 || by >= bucketsY) continue;
-            int idx = by * bucketsX + bx;
-            ArrayList<Unit> bucket = buckets[idx];
-            if (bucket == null) {
-                bucket = pool.isEmpty()
-                        ? new ArrayList<>(8)
-                        : pool.remove(pool.size() - 1);
-                buckets[idx] = bucket;
-            }
-            bucket.add(dense[i]);
+            int x = cellX[i];
+            int y = cellY[i];
+            Bucket bucket = bucketAt(x, y);
+            if (bucket != null) bucket.add(dense[i], x, y);
         }
     }
 
@@ -99,24 +126,36 @@ public final class UnitSpatialIndex {
      * skipped (the index never holds them). A unit appearing twice in the
      * same bucket would double-count; callers must guarantee a unit isn't
      * already in the index when calling this. {@code addUnit} on
-     * {@link com.dillon.starsectormarines.battle.sim.BattleSimulation} is the
-     * only caller and is the sole add-path for live units, so the contract
-     * holds in practice.
+     * {@link UnitRosterService} is the only caller and is the sole add-path
+     * for live units, so the contract holds in practice.
+     *
+     * <p>Takes the registry to resolve the unit's cell once (by entity id) —
+     * the cell is denormalized into the bucket, mirroring {@link #rebuild}.
      */
-    public void add(Unit u) {
+    public void add(UnitRegistry registry, Unit u) {
         if (!u.isAlive()) return;
-        int bx = u.getCellX() / BUCKET;
-        int by = u.getCellY() / BUCKET;
-        if (bx < 0 || bx >= bucketsX || by < 0 || by >= bucketsY) return;
+        int idx = registry.requireLiveIndex(u.entityId);
+        int x = registry.getCellX(idx);
+        int y = registry.getCellY(idx);
+        Bucket bucket = bucketAt(x, y);
+        if (bucket != null) bucket.add(u, x, y);
+    }
+
+    /**
+     * Returns the bucket covering ({@code cellX}, {@code cellY}), allocating
+     * one from the pool on first use, or {@code null} if the cell is off-grid.
+     */
+    private Bucket bucketAt(int cellX, int cellY) {
+        int bx = cellX / BUCKET;
+        int by = cellY / BUCKET;
+        if (bx < 0 || bx >= bucketsX || by < 0 || by >= bucketsY) return null;
         int idx = by * bucketsX + bx;
-        ArrayList<Unit> bucket = buckets[idx];
+        Bucket bucket = buckets[idx];
         if (bucket == null) {
-            bucket = pool.isEmpty()
-                    ? new ArrayList<>(8)
-                    : pool.remove(pool.size() - 1);
+            bucket = pool.isEmpty() ? new Bucket() : pool.remove(pool.size() - 1);
             buckets[idx] = bucket;
         }
-        bucket.add(u);
+        return bucket;
     }
 
     /**
@@ -143,21 +182,23 @@ public final class UnitSpatialIndex {
         float r2 = radius * radius;
         for (int by = y0; by <= y1; by++) {
             for (int bx = x0; bx <= x1; bx++) {
-                ArrayList<Unit> bucket = buckets[by * bucketsX + bx];
+                Bucket bucket = buckets[by * bucketsX + bx];
                 if (bucket == null) continue;
-                for (int i = 0, n = bucket.size(); i < n; i++) {
-                    Unit u = bucket.get(i);
-                    // Skip units that died since the last rebuild — the index is
-                    // rebuilt per-tick, so a unit killed (and registry-released)
-                    // mid-tick lingers in its old bucket until then. isAlive()
-                    // reads the surviving hp shadow; the cell accessor below is
-                    // fail-loud on a released unit, so this skip both honors the
-                    // "alive units" contract and keeps the stale corpse from
-                    // NPE-ing the cell read. (Callers also filter, but gather
-                    // owns the cell read, so the guard has to live here.)
+                Unit[] units = bucket.units;
+                int[] bcx = bucket.cellX;
+                int[] bcy = bucket.cellY;
+                for (int i = 0, n = bucket.size; i < n; i++) {
+                    Unit u = units[i];
+                    // Skip units released since the last rebuild — the index is a
+                    // per-tick snapshot, so a unit killed (and registry-released)
+                    // mid-tick lingers in its old bucket until then. The snapshot
+                    // cell below is a stored int (no fail-loud read), but the
+                    // "alive units only" contract still requires the skip so dead
+                    // units aren't handed back. (Callers also filter, but gather
+                    // owns the contract.)
                     if (!u.isAlive()) continue;
-                    int dx = u.getCellX() - cx;
-                    int dy = u.getCellY() - cy;
+                    int dx = bcx[i] - cx;
+                    int dy = bcy[i] - cy;
                     if (dx * dx + dy * dy <= r2) out.add(u);
                 }
             }
