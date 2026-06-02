@@ -1,7 +1,22 @@
-# S3b — Cityscape backdrop (stub)
+# S3b — Cityscape backdrop — ✅ SHIPPED
 
-> Render the real ground scene *behind* the vanilla combat layer, so the fleet fight
-> visibly happens over a battlefield. Scoped, not built. Follows S3a.
+> **Verified in playtest — IT WORKS.** Commit: `347160a`.
+>
+> **Verdict:** the real ground scene (terrain + building structures) renders under the
+> vanilla ships, panning/zooming with the free-cam, with the proxy markers locked to it.
+> The render-target seam turned out to be the camera itself — a world-configured
+> `BattleCamera` (world-unit viewport) makes the existing `BattleRenderer` draw in combat
+> world coords, no `SceneCamera` interface / no codebase sweep. The concept is proven.
+>
+> **Open follow-up — ground/ship scale.** At `WORLD_UNITS_PER_CELL = 50` the ground cells
+> read too large relative to the spacecraft; ships should tower over individual tiles. The
+> fix is the single `S0BattleProbe.WORLD_UNITS_PER_CELL` knob (lower it — backdrop and
+> proxies both derive from it, so they stay locked). The right value is a visual judgment
+> to dial in-game; this is the architecture's deferred cross-scale convention surfacing
+> early. Tracked as the scaling pass (with S3c, or standalone).
+
+> _Story (as built):_ render the real ground scene *behind* the vanilla combat layer, so
+> the fleet fight visibly happens over a battlefield. Follows S3a.
 
 ## Goal
 

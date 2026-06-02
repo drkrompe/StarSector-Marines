@@ -27,23 +27,25 @@ targetability tiers** (infantry never directly targetable; structures/defenses g
 proxies; area damage for strafes + main-battery fire), and the **spatial fork** (hard
 ground-band AI-gating vs loose convention — decide at S3c).
 
-Decomposition (stories written):
-- **S3a — sim coupling slice** *(BUILT, one round-trip confirmed — fuller playtest batched
-  for later, Ctrl+Shift+K).* Round-trip PASSED on the first single-proxy run (vanilla dmg →
-  `applyExternalDamage` → sim death event → despawn, same beat, sim owned the kill). Then
-  **generalized to one-sim/many-proxies** and the damage scale retuned 0.1 → 0.02 so turrets
-  attrit over several passes. The "individual simulation setup" concern is retired: the sim is
-  built once, outside the plugin; the bridge only references it.
-- **S3b — cityscape backdrop** *(BUILT — awaiting playtest, Ctrl+Shift+K).* The real
-  ground scene (terrain + structures) now renders under the ships. **Key finding: the
-  render-target seam is the camera, already present** — a world-configured `BattleCamera`
-  (world-unit viewport) makes the existing `BattleRenderer` draw in combat world coords;
-  no `SceneCamera` interface / no codebase sweep. `GroundSceneBackdrop` + a
-  `renderWorld(rc, EnumSet)` subset overload; probe sim is now a real `BspCityGenerator`
-  cityscape shared by bridge + backdrop. Deferred: FBO decals/lighting + screen-coupled
-  fog/highlights/units/FX.
+Decomposition:
+- **S3a — sim coupling slice** ✅ **SHIPPED + playtested** (`905d8e9` → `dd06104`).
+  Event-translated round-trip confirmed (vanilla dmg → `applyExternalDamage` → sim death →
+  despawn, same beat, sim owns the kill); generalized to one-sim/many-proxies. Sealed:
+  `complete/s3a-sim-coupling-slice.md`.
+- **S3b — cityscape backdrop** ✅ **SHIPPED + playtested** (`347160a`). Real terrain +
+  structures render under the ships. **Render-target seam = the camera, already present** —
+  a world-configured `BattleCamera` makes the existing `BattleRenderer` draw in combat world
+  coords; no `SceneCamera` interface / no sweep. Sealed: `complete/s3b-cityscape-backdrop.md`.
 - **S3c — airspace banding / AI gating.** The hard de-risk; resolve the spatial fork.
 - **S3d — shuttle scale-down handoff.** Diegetic bridge between the two scales.
+
+### Open follow-up — ground/ship scale (from S3b playtest)
+At `WORLD_UNITS_PER_CELL = 50` the ground cells read **too large relative to the
+spacecraft** — ships should tower over individual ground tiles. Fix is the single
+`S0BattleProbe.WORLD_UNITS_PER_CELL` knob (lower it; backdrop + proxies both derive from it,
+so they stay locked). Value is a visual judgment to dial in-game — the architecture's
+deferred cross-scale convention surfacing early. Do as a quick scaling pass (with S3c or
+standalone) before further visual work.
 
 ### S3a + S3b probe pieces (combathybrid)
 - `GroundSceneBackdrop` — below-ships plugin; world-configured `BattleCamera` + reused
@@ -57,8 +59,9 @@ Decomposition (stories written):
 - `S0BattleCreationPlugin.setupSimCoupled` builds the sim + a row of mixed-kind turrets
   *outside* the plugin. Mode `SIM_COUPLED` on `S0BattleProbe`; hotkey Ctrl+Shift+K.
 
-**Next build candidate (S3a is functionally done):** S3b cityscape backdrop — draw the real
-ground scene under the ships so the proxy markers sit on the actual map.
+**Next up:** the ground/ship **scaling pass** (lower `WORLD_UNITS_PER_CELL`, dial in-game),
+then **S3c — airspace banding / AI gating** (watch unmodified ship AI against the ground
+band first; only write a `ShipAIPlugin` if it misbehaves).
 
 Overview open question #2 is answered: the external-damage path is `applyExternalDamage`.
 

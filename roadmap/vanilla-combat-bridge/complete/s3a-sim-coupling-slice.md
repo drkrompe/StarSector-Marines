@@ -1,10 +1,19 @@
-# S3a — Sim coupling slice
+# S3a — Sim coupling slice — ✅ SHIPPED
 
-> The first **real** two-engine coupling. S2 proved vanilla AI engages a proxy; S3a
-> replaces the proxy's throwaway HP counter with a live sim `Unit`, so a vanilla
-> fighter actually kills a ground entity *in our sim*. Proves Decision 1 (event-
-> translated coupling, [`../architecture.md`](../architecture.md)) end-to-end with one
-> entity. Throwaway dev scaffolding.
+> **Verified in playtest — IT WORKS.** Commit chain: `905d8e9` (single-proxy round-trip)
+> → `dd06104` (generalized to one-sim/many-proxies + damage retune).
+>
+> **Verdict:** the event-translated coupling holds end to end. A vanilla fighter's fire
+> drains a real `BattleSimulation` turret's HP via `applyExternalDamage`; the *sim*
+> decides death; the death event despawns the proxy — same beat, no lag, no HP mirrored.
+> Generalized to one sim / many proxies (`GroundSimBridge`), each unit's proxy attriting
+> and despawning independently. The "individual simulation setup" concern is retired: the
+> sim is built once, outside the plugin, and the bridge only references it.
+
+> _Story (as built):_ the first **real** two-engine coupling. S2 proved vanilla AI engages
+> a proxy; S3a replaces the proxy's throwaway HP counter with a live sim `Unit`, so a
+> vanilla fighter actually kills a ground entity *in our sim*. Proves Decision 1 (event-
+> translated coupling, [`../architecture.md`](../architecture.md)). Throwaway dev scaffolding.
 
 ## Goal
 
