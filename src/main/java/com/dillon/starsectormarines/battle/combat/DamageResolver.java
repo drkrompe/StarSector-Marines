@@ -145,7 +145,11 @@ public final class DamageResolver {
         // skip both — their behaviors don't consult MORALE_BROKEN.
         if (wasAlive && moraleImpact > 0f) {
             if (target.mech != null) {
-                applyMechHpThresholdDrain(target);
+                // Only a SURVIVING mech accrues HP-threshold morale drain. A mech
+                // killed by this very hit was already released from the registry
+                // (above), so getMaxHp() would NPE under the Group-S seed-only
+                // contract — and a dead mech's threshold morale is moot anyway.
+                if (!died) applyMechHpThresholdDrain(target);
             } else if (target.squadId != Unit.NO_SQUAD) {
                 applySquadMoraleDrain(target, moraleImpact, died);
             }
