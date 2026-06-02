@@ -34,6 +34,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.CompoundClaimStag
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.CompoundSeedStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.ConcentricLayoutStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.CoreSpawnStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.DiamondLayoutStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.CorridorStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FillDispatchStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
@@ -102,6 +103,9 @@ public final class BspCityGenerator implements MapGenerator {
     /** Concentric "onion" station recipe — defensive rings around a central core. Selected via {@link #generateConcentricStation}. */
     private final GenRecipe concentricStationRecipe;
 
+    /** Diamond defense-station recipe — cardinal ports converging inward to a besieged core. Selected via {@link #generateDiamondStation}. */
+    private final GenRecipe diamondStationRecipe;
+
     public BspCityGenerator() {
         // Default every kind to a stub. Real fillers replace these via
         // register(...). Order doesn't matter — each filler self-identifies
@@ -133,6 +137,7 @@ public final class BspCityGenerator implements MapGenerator {
         this.legacyRecipe = buildLegacyRecipe();
         this.stationRecipe = buildStationRecipe();
         this.concentricStationRecipe = buildConcentricStationRecipe();
+        this.diamondStationRecipe = buildDiamondStationRecipe();
     }
 
     /**
@@ -242,6 +247,23 @@ public final class BspCityGenerator implements MapGenerator {
                 new FinalizeStage()));        // wall HP / cover / wall tags / buildings
     }
 
+    /**
+     * The diamond defense-station recipe — the cardinal-ports-converging-inward
+     * layout. {@link DiamondLayoutStage} replaces the concentric layout with a
+     * diamond footprint (dead map corners), isolated outer ports, radial cardinal
+     * spokes, and a single connective ring; {@link CoreSpawnStage} (reused) drops
+     * the marine at a random port and the defender at the core.
+     */
+    private GenRecipe buildDiamondStationRecipe() {
+        return new GenRecipe("DiamondStation", List.of(
+                new InitSolidStage(),         // solid hull
+                new DiamondLayoutStage(),     // diamond rings + ports + spokes; publish StationGraph
+                new CoreSpawnStage(),         // defender at core, marine at a port
+                new StationTopologyStage(),   // radial depth / port + spoke bridges / connective loop
+                new TacticalLinkStage(),
+                new FinalizeStage()));
+    }
+
     /** Swap in a compound-aware filler. Idempotent — last write wins. */
     public void registerCompound(CompoundFiller filler) {
         compoundFillers.put(filler.kind(), filler);
@@ -344,6 +366,25 @@ public final class BspCityGenerator implements MapGenerator {
         ctx.put(BspKeys.MARKET_PROFILE, TargetProfile.NEUTRAL);
 
         concentricStationRecipe.run(ctx);
+
+        return assembleResult(ctx);
+    }
+
+    /**
+     * Diamond defense-station generation — cardinal ports converging inward to a
+     * besieged core (dead map corners, isolated outer spokes, a connective inner
+     * ring). Like the other station entries it's not on the {@link MapGenerator}
+     * interface yet; the preview/scan tests drive it directly.
+     */
+    public MapResult generateDiamondStation(int width, int height, long seed) {
+        Random rng = new Random(seed);
+        NavigationGrid grid = new NavigationGrid(width, height);
+        CellTopology topology = new CellTopology(width, height);
+
+        GenContext ctx = new GenContext(grid, topology, rng, width, height, seed);
+        ctx.put(BspKeys.MARKET_PROFILE, TargetProfile.NEUTRAL);
+
+        diamondStationRecipe.run(ctx);
 
         return assembleResult(ctx);
     }

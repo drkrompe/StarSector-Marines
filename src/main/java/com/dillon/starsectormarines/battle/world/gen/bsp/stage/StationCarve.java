@@ -32,6 +32,18 @@ final class StationCarve {
         topo.setRoomPurpose(x, y, RoomPurpose.CORRIDOR);
     }
 
+    /**
+     * Carve a door between two rooms and record the edge on the graph — but only
+     * if the carve actually connected them ({@link #carveDoorBetween} returned
+     * true), so the published {@link StationGraph} never claims a connection the
+     * cells don't have. The shared connect primitive for the ring layouts.
+     */
+    static void connect(GenContext ctx, StationGraph graph, StationGraph.Room a, StationGraph.Room b) {
+        if (carveDoorBetween(ctx, a, b)) {
+            graph.addCorridor(a.id, b.id);
+        }
+    }
+
     /** Carve an inclusive rect as walkable {@link GroundKind#INDOOR} room floor. */
     static void carveRoomRect(GenContext ctx, int left, int top, int right, int bottom) {
         for (int y = top; y <= bottom; y++) {

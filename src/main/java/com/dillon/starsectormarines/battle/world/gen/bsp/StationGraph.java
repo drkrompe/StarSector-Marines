@@ -82,6 +82,7 @@ public final class StationGraph {
     // --- structural layout metadata: set by layouts that have a ring/core notion (concentric); -1 otherwise ---
     private int[] ringOf;   // 0 = core, rising outward; null for layouts without rings (BSP station)
     private int coreRoom = -1;
+    private int[] ports = new int[0];   // entry-port room ids (the diamond layout's cardinal landing zones); empty otherwise
 
     // --- derived topological roles: null until StationTopologyStage calls applyRoles ---
     private int entryRoom = -1;
@@ -164,6 +165,21 @@ public final class StationGraph {
     /** The central control-core room id, or -1 if this layout has no core. */
     public int coreRoom() {
         return coreRoom;
+    }
+
+    /**
+     * Record the entry-port room ids — the diamond layout's cardinal landing
+     * zones (the isolated outer-ring galleries). Published for a future
+     * multi-spawn insertion that lands forces at several ports at once; a single
+     * spawn uses just one today.
+     */
+    public void setPorts(int[] ports) {
+        this.ports = ports;
+    }
+
+    /** Entry-port room ids (cardinal landing zones), or an empty array for layouts without ports. */
+    public int[] ports() {
+        return ports;
     }
 
     // ----- Topological roles (populated by StationTopologyStage) -----

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
+import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayDeque;
@@ -189,6 +190,96 @@ public class StationTopologyTest {
         if (!failures.isEmpty()) {
             fail("Concentric structure found " + failures.size() + " violation(s):\n  "
                     + String.join("\n  ", failures));
+        }
+    }
+
+    /**
+     * Diamond station structure — the cardinal-ports-converging-inward invariants:
+     * every port is an isolated degree-1 entry whose spoke is a bridge, the outer
+     * shell is all bridges (no on-loop rooms) while a connective ring loops, the
+     * core is a besieged degree-1 bridge room, depth rises inward, and the 4 map
+     * corners are dead (the diamond footprint). Bridge oracle re-run independently.
+     */
+    @Test
+    void diamondStationStructureInvariants() {
+        BspCityGenerator gen = new BspCityGenerator();
+        List<String> failures = new ArrayList<>();
+
+        for (long seed : SEEDS) {
+            MapResult map = gen.generateDiamondStation(W, H, seed);
+            StationGraph g = gen.getLastStationGraph();
+            if (g == null || !g.hasRings() || !g.hasRoles() || g.ports().length == 0) {
+                failures.add("seed " + seed + ": diamond graph missing rings/roles/ports");
+                continue;
+            }
+            int n = g.roomCount();
+            int core = g.coreRoom();
+            List<int[]> edges = edgesOf(g);
+
+            // Core + ports are besieged degree-1 entries whose corridors are bridges.
+            checkDegreeOneBridge(g, edges, core, "core", seed, failures);
+            for (int p : g.ports()) {
+                if (g.ringOf(p) > 1) {   // an isolated outer port (ring 1 = connective)
+                    checkDegreeOneBridge(g, edges, p, "port", seed, failures);
+                }
+            }
+
+            // Outer-shell rooms (ring ≥ 2) are never on a loop; a connective ring does loop.
+            boolean anyLoop = false;
+            for (int r = 0; r < n; r++) {
+                if (g.ringOf(r) >= 2 && g.isOnLoop(r)) {
+                    failures.add("seed " + seed + ": outer room " + r + " (ring " + g.ringOf(r) + ") is on a loop");
+                }
+                anyLoop |= g.isOnLoop(r);
+            }
+            if (!anyLoop) failures.add("seed " + seed + ": no connective loop ring (everything is a bridge)");
+
+            // Bridge oracle (independent of Tarjan).
+            for (int i = 0; i < edges.size(); i++) {
+                boolean oracle = !connected(n, edges, i, -1);
+                if (g.isBridge(i) != oracle) {
+                    failures.add("seed " + seed + ": corridor " + i + " bridge=" + g.isBridge(i) + " oracle=" + oracle);
+                }
+            }
+
+            // Valid BFS layering from the entry port: every corridor spans ≤ 1 depth
+            // step. (Depth is radial from the ONE entry port, not concentric — the
+            // other 3 spokes are dead-end branches whose ports are the deep ends, so
+            // "monotone inward" holds only on the entry spoke, not globally.)
+            for (int[] e : edges) {
+                if (Math.abs(g.depthFromEntry(e[0]) - g.depthFromEntry(e[1])) > 1) {
+                    failures.add("seed " + seed + ": corridor " + e[0] + "-" + e[1] + " spans > 1 depth step");
+                }
+            }
+
+            // Dead corners — the diamond footprint: the 4 map-corner regions are solid.
+            int c = 6;   // inside the outer ring's corner region (hull margin + ~half a band)
+            for (int[] xy : new int[][]{ {c, c}, {W - 1 - c, c}, {c, H - 1 - c}, {W - 1 - c, H - 1 - c} }) {
+                if (map.grid.isWalkable(xy[0], xy[1])) {
+                    failures.add("seed " + seed + ": map corner (" + xy[0] + "," + xy[1] + ") is walkable (not a dead corner)");
+                }
+            }
+
+            System.out.printf("seed %d (diamond): %d rooms, %d ports, %d bridges, core depth %d, maxDepth %d%n",
+                    seed, n, g.ports().length, bridgeCount(g), g.depthFromEntry(core), maxDepth(g, n));
+        }
+
+        if (!failures.isEmpty()) {
+            fail("Diamond structure found " + failures.size() + " violation(s):\n  "
+                    + String.join("\n  ", failures));
+        }
+    }
+
+    /** Assert a room has exactly one corridor and that corridor is a bridge (a besieged degree-1 terminal). */
+    private static void checkDegreeOneBridge(StationGraph g, List<int[]> edges, int room,
+                                             String label, long seed, List<String> failures) {
+        if (g.degree(room) != 1) {
+            failures.add("seed " + seed + ": " + label + " " + room + " degree " + g.degree(room) + " (expected 1)");
+        }
+        for (int i = 0; i < edges.size(); i++) {
+            if ((edges.get(i)[0] == room || edges.get(i)[1] == room) && !g.isBridge(i)) {
+                failures.add("seed " + seed + ": " + label + " " + room + " corridor " + i + " is not a bridge");
+            }
         }
     }
 

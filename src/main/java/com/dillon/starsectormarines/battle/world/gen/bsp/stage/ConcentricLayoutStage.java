@@ -15,11 +15,10 @@ import java.util.List;
  * and fights <em>inward</em> through gated ring walls toward the core (the
  * defender's last stand / the objective).
  *
- * <p>Geometry: nested centered rectangles inset by {@link #RING_THICKNESS} from
- * a 1-cell hull margin, until the innermost rect is the {@link #coreInset core}.
- * Each ring <em>band</em> (the frame between two consecutive rects) is split into
- * 8 rooms — 4 corner strongpoints + 4 edge galleries — carved inset by 1 so
- * 1-cell walls separate every room and every ring. Connectivity is then carved:
+ * <p>Geometry comes from {@link RingGeometry}: nested centered rectangles down to
+ * a central core, each ring <em>band</em> split into 8 rooms — 4 corner
+ * strongpoints + 4 edge galleries — carved inset by 1 so 1-cell walls separate
+ * every room and every ring. Connectivity is then carved:
  * <ul>
  *   <li><b>Intra-ring doors</b> — the 8 rooms of a band are linked in a cycle
  *       (corner↔gallery↔…), so each ring is a loop (flanking space).</li>
@@ -39,12 +38,6 @@ import java.util.List;
  */
 public final class ConcentricLayoutStage implements GenStage {
 
-    /** Solid hull cells reserved at the map perimeter (the outer ring sits just inside). */
-    private static final int HULL_MARGIN = 1;
-    /** Radial thickness of each ring band, in cells. */
-    private static final int RING_THICKNESS = 10;
-    /** Stop adding rings once the remaining center would be smaller than this — that center becomes the core. */
-    private static final int CORE_MIN = 12;
     /** Gates on the outermost ring boundary — a flanking loop near the breach. */
     private static final int OUTER_GATES = 2;
     /** Gates on every inner ring boundary — each a hard must-pass bridge toward the core. */
@@ -55,15 +48,7 @@ public final class ConcentricLayoutStage implements GenStage {
         int w = ctx.width;
         int h = ctx.height;
 
-        // Nested rectangle insets: HULL_MARGIN outward-most, each +RING_THICKNESS,
-        // stopping while the next-inner rect is still ≥ CORE_MIN on its short side.
-        List<Integer> insets = new ArrayList<>();
-        insets.add(HULL_MARGIN);
-        int d = HULL_MARGIN;
-        while (Math.min(w, h) - 2 * (d + RING_THICKNESS) >= CORE_MIN) {
-            d += RING_THICKNESS;
-            insets.add(d);
-        }
+        List<Integer> insets = RingGeometry.insets(w, h);
         int bands = insets.size() - 1;          // ring bands between consecutive insets
         int coreInset = insets.get(insets.size() - 1);
 
@@ -80,29 +65,21 @@ public final class ConcentricLayoutStage implements GenStage {
 
         for (int i = 0; i < bands; i++) {
             int ring = bands - i;               // core = 0, innermost band = 1, outermost = bands
-            int dOuter = insets.get(i);
-            int dInner = insets.get(i + 1);
-            int oL = dOuter, oT = dOuter, oR = w - 1 - dOuter, oB = h - 1 - dOuter;
-            int iL = dInner, iT = dInner, iR = w - 1 - dInner, iB = h - 1 - dInner;
+            int[][] rects = RingGeometry.bandRects(w, h, insets.get(i), insets.get(i + 1));
 
-            StationGraph.Room tl = addRoom(rooms, ringList, ring, oL,     oT,     iL - 1, iT - 1);
-            StationGraph.Room top = addRoom(rooms, ringList, ring, iL,    oT,     iR,     iT - 1);
-            StationGraph.Room tr = addRoom(rooms, ringList, ring, iR + 1, oT,     oR,     iT - 1);
-            StationGraph.Room right = addRoom(rooms, ringList, ring, iR + 1, iT,   oR,     iB);
-            StationGraph.Room br = addRoom(rooms, ringList, ring, iR + 1, iB + 1, oR,     oB);
-            StationGraph.Room bottom = addRoom(rooms, ringList, ring, iL,   iB + 1, iR,     oB);
-            StationGraph.Room bl = addRoom(rooms, ringList, ring, oL,     iB + 1, iL - 1, oB);
-            StationGraph.Room left = addRoom(rooms, ringList, ring, oL,    iT,     iL - 1, iB);
-
-            bandCycle.add(new StationGraph.Room[]{ tl, top, tr, right, br, bottom, bl, left });
-            // Gallery side indices: 0=top, 1=right, 2=bottom, 3=left — the same
-            // convention gateSides() rotates over. Keep these two in lock-step.
-            bandGallery.add(new StationGraph.Room[]{ top, right, bottom, left });
+            StationGraph.Room[] cyc = new StationGraph.Room[rects.length];
+            for (int s = 0; s < rects.length; s++) {
+                cyc[s] = addRoom(rooms, ringList, ring, rects[s]);
+            }
+            bandCycle.add(cyc);
+            // Galleries by side (0=top,1=right,2=bottom,3=left) — odd cyclic slots.
+            bandGallery.add(new StationGraph.Room[]{
+                    cyc[RingGeometry.galleryIndex(0)], cyc[RingGeometry.galleryIndex(1)],
+                    cyc[RingGeometry.galleryIndex(2)], cyc[RingGeometry.galleryIndex(3)] });
         }
 
         // Core room (ring 0).
-        int cI = coreInset;
-        StationGraph.Room core = addRoom(rooms, ringList, 0, cI, cI, w - 1 - cI, h - 1 - cI);
+        StationGraph.Room core = addRoom(rooms, ringList, 0, RingGeometry.rectAt(w, h, coreInset));
 
         // Build the graph + ring metadata.
         int[] ringOf = new int[ringList.size()];
@@ -118,7 +95,7 @@ public final class ConcentricLayoutStage implements GenStage {
         // Intra-ring doors — link each band's 8 rooms into a loop.
         for (StationGraph.Room[] cyc : bandCycle) {
             for (int j = 0; j < cyc.length; j++) {
-                connect(ctx, graph, cyc[j], cyc[(j + 1) % cyc.length]);
+                StationCarve.connect(ctx, graph, cyc[j], cyc[(j + 1) % cyc.length]);
             }
         }
 
@@ -135,7 +112,7 @@ public final class ConcentricLayoutStage implements GenStage {
             for (int side : gateSides(ring + gateRot, gates)) {
                 StationGraph.Room outer = outerGal[side];
                 StationGraph.Room inner = toCore ? core : innerGal[side];
-                connect(ctx, graph, outer, inner);
+                StationCarve.connect(ctx, graph, outer, inner);
             }
         }
 
@@ -149,18 +126,10 @@ public final class ConcentricLayoutStage implements GenStage {
     }
 
     private static StationGraph.Room addRoom(List<StationGraph.Room> rooms, List<Integer> ringList,
-                                             int ring, int left, int top, int right, int bottom) {
-        StationGraph.Room r = new StationGraph.Room(rooms.size(), left, top, right, bottom);
+                                             int ring, int[] rect) {
+        StationGraph.Room r = new StationGraph.Room(rooms.size(), rect[0], rect[1], rect[2], rect[3]);
         rooms.add(r);
         ringList.add(ring);
         return r;
-    }
-
-    /** Carve a door between two rooms and record the edge — but only if the carve actually connected them, so the graph never claims a phantom connection. */
-    private static void connect(GenContext ctx, StationGraph graph,
-                                StationGraph.Room a, StationGraph.Room b) {
-        if (StationCarve.carveDoorBetween(ctx, a, b)) {
-            graph.addCorridor(a.id, b.id);
-        }
     }
 }

@@ -296,6 +296,67 @@ public class BspMapPreviewTest {
         System.out.println("  wrote " + contactPath.toAbsolutePath());
     }
 
+    /**
+     * Diamond defense-station preview — cardinal ports converging inward. Eyeball:
+     * dead map corners (diamond/cruciform footprint), 4 cardinal ports at the
+     * edge-midpoints, straight cardinal corridors spoking inward to a connective
+     * ring, then the core. Connectivity hard-asserted.
+     */
+    @Test
+    void renderDiamondStationBatch() throws Exception {
+        Files.createDirectories(OUT_DIR);
+        BspCityGenerator gen = new BspCityGenerator();
+
+        BufferedImage[] perSeed = new BufferedImage[SEEDS.length];
+        List<String> failures = new java.util.ArrayList<>();
+        for (int i = 0; i < SEEDS.length; i++) {
+            long seed = SEEDS[i];
+            MapResult map = gen.generateDiamondStation(GRID_W, GRID_H, seed);
+            BufferedImage img = renderMap(map, seed, null, null,
+                    gen.getLastCompounds(), gen.getLastTacticalMap(), CELL_PX);
+            perSeed[i] = img;
+            Path out = OUT_DIR.resolve(String.format("diamond-%04d.png", (int) seed));
+            ImageIO.write(img, "PNG", out.toFile());
+            System.out.println("  wrote " + out.toAbsolutePath());
+            try {
+                assertConnected(map, seed);
+            } catch (AssertionError ae) {
+                failures.add(ae.getMessage());
+            }
+        }
+        if (!failures.isEmpty()) {
+            throw new AssertionError(String.join("\n", failures));
+        }
+
+        BufferedImage contact = composeContactSheet(perSeed, 3);
+        Path contactPath = OUT_DIR.resolve("diamond-contact.png");
+        ImageIO.write(contact, "PNG", contactPath.toFile());
+        System.out.println("  wrote " + contactPath.toAbsolutePath());
+    }
+
+    /** Diamond station topological-roles preview — radial depth gradient (green ports → red core), spoke + port bridges, the single connective-ring loop. */
+    @Test
+    void renderDiamondRolesBatch() throws Exception {
+        Files.createDirectories(OUT_DIR);
+        BspCityGenerator gen = new BspCityGenerator();
+
+        BufferedImage[] perSeed = new BufferedImage[SEEDS.length];
+        for (int i = 0; i < SEEDS.length; i++) {
+            long seed = SEEDS[i];
+            MapResult map = gen.generateDiamondStation(GRID_W, GRID_H, seed);
+            BufferedImage img = renderStationRoles(map, gen.getLastStationGraph(), seed, CELL_PX);
+            perSeed[i] = img;
+            Path out = OUT_DIR.resolve(String.format("diamond-roles-%04d.png", (int) seed));
+            ImageIO.write(img, "PNG", out.toFile());
+            System.out.println("  wrote " + out.toAbsolutePath());
+        }
+
+        BufferedImage contact = composeContactSheet(perSeed, 3);
+        Path contactPath = OUT_DIR.resolve("diamond-roles-contact.png");
+        ImageIO.write(contact, "PNG", contactPath.toFile());
+        System.out.println("  wrote " + contactPath.toAbsolutePath());
+    }
+
     /** Concentric station topological-roles preview — radial depth gradient (green outer ring → red core), gate bridges, ring loops. */
     @Test
     void renderConcentricRolesBatch() throws Exception {

@@ -213,6 +213,54 @@ public class MapValidationScanTest {
     }
 
     /**
+     * Diamond defense-station scan — the cardinal spokes must connect every
+     * isolated port through to the core. One walkable component (no port left a
+     * dead pod), marine→core pathable via the real {@link GridPathfinder}.
+     */
+    @Test
+    void scanDiamondStationBatch() {
+        BspCityGenerator gen = new BspCityGenerator();
+        List<String> failures = new ArrayList<>();
+
+        System.out.println("=== Map validation scan: DIAMOND (" + GRID_W + "x" + GRID_H + ") ===");
+        for (long seed : STATION_SEEDS) {
+            MapResult map = gen.generateDiamondStation(GRID_W, GRID_H, seed);
+            TacticalMap tactical = gen.getLastTacticalMap();
+
+            System.out.println("\n-- seed " + seed + " --");
+
+            ConnectivityResult conn = scanConnectivity(map.grid);
+            System.out.println(conn.report());
+            ReachabilityResult reach = scanReachability(map, tactical);
+            System.out.println(reach.report());
+
+            NavigationGrid grid = map.grid;
+            if (!grid.isWalkable(map.marineSpawnX, map.marineSpawnY)) {
+                failures.add("DIAMOND seed " + seed + ": marine spawn on non-walkable cell");
+            }
+            if (!grid.isWalkable(map.defenderSpawnX, map.defenderSpawnY)) {
+                failures.add("DIAMOND seed " + seed + ": defender (core) spawn on non-walkable cell");
+            }
+            if (!reach.defenderReachable) {
+                failures.add("DIAMOND seed " + seed + ": core UNREACHABLE from the port (real pathfinder)");
+            }
+            if (conn.cellComponents != 1) {
+                failures.add("DIAMOND seed " + seed + ": walkable space has " + conn.cellComponents
+                        + " components (expected 1 — a port/spoke was left disconnected)");
+            }
+            if (conn.edgeComponents != conn.cellComponents) {
+                failures.add("DIAMOND seed " + seed + ": cell/edge connectivity disagree");
+            }
+        }
+
+        if (!failures.isEmpty()) {
+            fail("DIAMOND scan found " + failures.size() + " invariant violation(s):\n  "
+                    + String.join("\n  ", failures));
+        }
+        System.out.println("\nDIAMOND: all hard invariants held.");
+    }
+
+    /**
      * Generates each seed, runs the three scans, prints the report, and collects
      * hard-invariant violations across the whole batch (so one bad seed doesn't
      * mask the others). Throws once at the end if any seed failed an invariant.
