@@ -49,14 +49,31 @@ Docs: `stories/s0-battle-bootstrap.md`; overview resequenced (S0 → S2 → S1).
 - [ ] Does `setDoNotEndCombat` also hold the player-retreat path, or only
       side-eliminated?
 
-## Immediate next-up (after S0 verdict)
+## Canvas feasibility (researched, recorded in overview facts 8–12)
 
-- If S0 is green: **S2 — proxy-target probe** is the next build (it now has a real
-  combat instance to spawn the proxy into). Then wire the HP drain into the sim's
-  external-damage path (overview Open question #2).
-- If `startBattle`/return-to-map has rough edges: note them here; they bound how
-  the real ground-battle launch will eventually hook in (the mod currently launches
-  its *own* custom-visual-dialog battles, not vanilla combat — see
+The five "how much can we bend the combat shell" gating questions came back all
+feasible — free camera (`ViewportAPI.setExternalControl`), full input override
+(`processInputPreCoreControls` + `consume`), render below ships
+(`addLayeredRenderingPlugin` + layer stack), skip the deploy dialog (`spawnShipOrWing`
+instead of reserves). The one hard limit: **you can't draw over a populated command
+bar** (combat has no above-UI hook, unlike the campaign's `CampaignUIRenderingListener`)
+— so the move is to *starve* the HUD via spectator + zero CP, not cover it. Full
+detail + citations in `overview.md` § "round 2: vanilla combat as a sim canvas".
+
+These are scoped into **S0b — spectator-canvas probe** (`stories/s0b-spectator-canvas.md`),
+which exercises all of them at once. Not built yet.
+
+## Immediate next-up
+
+- **S0b — spectator-canvas probe** is now the natural next build: it composes facts
+  8–12 (blank HUD + free cam + below-ships backdrop + UI overlay + no-dialog setup)
+  and feeds the coordinate-mapping open question (#1). Cheaper than S2 and proves the
+  "combat as a host" thesis directly.
+- After S0b: **S2 — proxy-target probe** (spawn the proxy into the now-proven combat
+  instance), then wire HP drain into the sim's external-damage path (open question #2).
+- If `startBattle`/return-to-map has rough edges from the S0 playtest: note them here;
+  they bound how the real ground-battle launch eventually hooks in (the mod currently
+  launches its *own* custom-visual-dialog battles, not vanilla combat — see
   [[custom_visual_dialog_pattern]]).
 
 ## Watch out for

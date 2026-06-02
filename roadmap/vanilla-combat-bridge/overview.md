@@ -113,6 +113,54 @@ the unzipped API source, not recalled:
    which also collides hull-to-hull. We rely on per-frame position-`set()` to make
    bumps self-correct rather than a special class.
 
+## Verified API facts — round 2: vanilla combat as a sim canvas
+
+Confirmed against the unzipped API while scoping how much of vanilla's combat shell
+we can bend (the gating questions for turning a combat instance into a sim-driven
+canvas). Citations are file:line in `.api/com/fs/starfarer/api/combat/`.
+
+8. **Free camera is a first-class hook.** `ViewportAPI.setExternalControl(true)`
+   tells the engine to stop setting viewport params each frame; then
+   `setCenter(Vector2f)` + `setViewMult(zoom)` drive it (`ViewportAPI.java:43-53`).
+   WASD via `Keyboard.isKeyDown`, RMB-drag via `InputEventAPI.getDX/getDY` on
+   `isRMBDownEvent`. Detach from the ship by running spectator (no player ship) or
+   `CombatUIAPI.setDisablePlayerShipControlOneFrame(true)` each frame.
+9. **Full input override.** `EveryFrameCombatPlugin.processInputPreCoreControls(
+   amount, events)` runs *before* core controls; `event.consume()` swallows any
+   event before vanilla sees it (`EveryFrameCombatPlugin.java:9`). Plus
+   `setDisablePlayerShipControlOneFrame`. (Campaign side already proven via S0's
+   `CampaignInputListener`.)
+10. **Render below ships / under base FX.** `engine.addLayeredRenderingPlugin(
+    CombatLayeredRenderingPlugin)` (`CombatEngineAPI.java:334`); the plugin's
+    `getActiveLayers()` picks from the full stack `BELOW_PLANETS → PLANET_LAYER →
+    CLOUD_LAYER → BELOW_SHIPS_LAYER → UNDER_SHIPS_LAYER → … → JUST_BELOW_WIDGETS`
+    (`CombatEngineLayers.java`). Plus `setBackgroundColor` / `setRenderStarfield`.
+11. **Skip the deploy/command dialog (workaround).** The dialog appears because
+    player ships sit in *reserves*. Instead of `loader.addFleetMember`, spawn
+    directly onto the field in `afterDefinitionLoad` via
+    `engine.getFleetManager(side).spawnShipOrWing(specId, loc, facing)`
+    (`CombatFleetManagerAPI.java:39`). Nothing in reserve → no deploy prompt.
+    `setSideDeploymentOverrideSide` / `BattleCreationContext.enemyDeployAll` assist.
+12. **You CANNOT draw over the top-level command widgets.** Combat exposes a single
+    screen-space hook, `EveryFrameCombatPlugin.renderInUICoords` (no "above-UI"
+    variant), and the layer stack caps at `JUST_BELOW_WIDGETS` — both render
+    *beneath* the HUD. Contrast the campaign, which *does* expose above-UI tiers
+    (`CampaignUIRenderingListener.renderInUICoordsAboveUIBelowTooltips` /
+    `...AboveUIAndTooltips`). The asymmetry is deliberate: there is no documented
+    combat hook above the widgets. **Workaround: starve the widgets, don't cover
+    them** — run spectator + zero command points so the command UI / weapon groups /
+    flux-hull readouts have nothing to display; then `renderInUICoords` is
+    effectively the topmost visible layer. Residual chrome (pause text, time-flow
+    indicator) still pokes through; lay content out to avoid those zones. A
+    raw-GL-after-UI hack is rejected — no clean post-UI combat callback, and combat
+    hands us a polluted GL state ([[gl_state_gotchas]]).
+
+**Takeaway:** facts 8–12 together mean a vanilla combat instance can be reduced to a
+near-blank, sim-driven canvas (spectator + free cam + below-ships layers + UI
+overdraw + scripted no-dialog setup + total input control). The single hard limit is
+fact 12 — but a sim takeover doesn't want a populated command bar anyway, so starving
+it is the right move, not a compromise.
+
 ## Reality checks (do not skip)
 
 - **Vanilla combat is strictly 2D — there is no Z / altitude.** A carrier
@@ -178,6 +226,13 @@ cheaply, before any real feature investment ([[feedback_ship_then_optimize]]):
   and (2) own when that battle is considered complete (suppress vanilla's auto-end;
   call `endCombat` on our terms). Ctrl+Shift+B on the campaign map; F10 to end.
   See [`stories/s0-battle-bootstrap.md`](stories/s0-battle-bootstrap.md).
+- **S0b — Spectator-canvas probe.** *(scoped, not built)* Builds on S0. Turns the
+  launched combat into a sim-driven canvas to exercise verified facts 8–12 at once:
+  spectator (no player ship) + zero CP so the HUD is empty, free camera
+  (WASD + RMB-drag via `setExternalControl`), a below-ships `CombatLayeredRenderingPlugin`
+  drawing a backdrop, a `renderInUICoords` overlay, and no-deploy setup via
+  `spawnShipOrWing`. Answers: **can we reduce vanilla combat to a blank host we
+  render and drive ourselves?** See [`stories/s0b-spectator-canvas.md`](stories/s0b-spectator-canvas.md).
 - **S1 — Wall-clamp probe.** A ~100-line `EveryFrameCombatPlugin` that draws a
   hardcoded box of wall tiles in `renderInWorldCoords` and clamps any ship out of
   those tiles each frame (position-`set()` + velocity-slide). Fly a ship into it.
@@ -218,6 +273,6 @@ all). S1 informs whether Direction A is worth pursuing beyond a curiosity.
 ## How this directory is laid out
 
 - **`overview.md`** (this file) — concept, verified facts, architecture, probes.
-- **`stories/`** — the active probe docs (`s0-battle-bootstrap`, `s1-wall-clamp-probe`, `s2-proxy-target-probe`).
+- **`stories/`** — the active probe docs (`s0-battle-bootstrap`, `s0b-spectator-canvas`, `s1-wall-clamp-probe`, `s2-proxy-target-probe`).
 - **`complete/`** — sealed shipped work (empty until a probe's verdict lands).
 - **`next-session.md`** — handoff state; S0 code has landed, awaiting playtest.
