@@ -72,20 +72,22 @@ public class InfantryWeapons {
         // Gather the mid-burst units first (read-only over the dense registry),
         // then run the continuation pass over the snapshot — see burstScratch.
         burstScratch.clear();
+        Unit[] dense = registry.denseArray();
         for (int i = 0, n = registry.liveCount(); i < n; i++) {
-            Unit u = registry.get(i);
-            if (u.getBurstRemaining() > 0) burstScratch.add(u);
+            if (registry.getBurstRemaining(i) > 0) burstScratch.add(dense[i]);
         }
         for (int i = 0, n = burstScratch.size(); i < n; i++) {
             Unit u = burstScratch.get(i);
-            if (u.getBurstRemaining() <= 0 || !u.isAlive()) continue; // killed/cleared earlier this pass
-            float timer = u.getBurstTimer() - BattleSimulation.TICK_DT;
-            u.setBurstTimer(timer);
+            if (!u.isAlive()) continue; // killed earlier this pass
+            int idx = registry.requireLiveIndex(u.entityId);
+            if (registry.getBurstRemaining(idx) <= 0) continue; // cleared earlier this pass
+            float timer = registry.getBurstTimer(idx) - BattleSimulation.TICK_DT;
+            registry.setBurstTimer(idx, timer);
             if (timer > 0f) continue;
-            Unit burstTarget = registry.getOrNull(u.getBurstTargetId());
+            Unit burstTarget = registry.getOrNull(registry.getBurstTargetId(idx));
             if (burstTarget == null || u.primaryWeapon == null) {
-                u.setBurstRemaining(0);
-                u.setBurstTargetId(0L);
+                registry.setBurstRemaining(idx, 0);
+                registry.setBurstTargetId(idx, 0L);
                 continue;
             }
             // Burst follow-up: use the unit's current motion state. If they
@@ -93,10 +95,14 @@ public class InfantryWeapons {
             // get the MOVING accuracy penalty — same rule a hand-rolled
             // moving-fire callsite gets.
             fireShot(u, burstTarget, FireStance.stanceFor(u));
-            int remaining = u.getBurstRemaining() - 1;
-            u.setBurstRemaining(remaining);
-            u.setBurstTimer(u.primaryWeapon.burstSpacing);
-            if (remaining == 0) u.setBurstTargetId(0L);
+            // fireShot resolves damage inline; a killing round releases its
+            // target and swap-and-pops the dense registry, which can relocate
+            // u's slot — re-resolve before the post-fire burst writes.
+            idx = registry.requireLiveIndex(u.entityId);
+            int remaining = registry.getBurstRemaining(idx) - 1;
+            registry.setBurstRemaining(idx, remaining);
+            registry.setBurstTimer(idx, u.primaryWeapon.burstSpacing);
+            if (remaining == 0) registry.setBurstTargetId(idx, 0L);
         }
         burstScratch.clear();
     }
@@ -121,7 +127,10 @@ public class InfantryWeapons {
         // through to their baked Unit stats with flat accuracy and the
         // baseline miss-scatter ring — preserves the legacy behavior for
         // every "no MarineWeapon" caller.
-        float dist = RangeFalloff.dist(shooter.getCellX(), shooter.getCellY(), target.getCellX(), target.getCellY());
+        int shooterIdx = registry.requireLiveIndex(shooter.entityId);
+        int targetIdx = registry.requireLiveIndex(target.entityId);
+        float dist = RangeFalloff.dist(registry.getCellX(shooterIdx), registry.getCellY(shooterIdx),
+                registry.getCellX(targetIdx), registry.getCellY(targetIdx));
         float effectiveSpread = 0f;
         if (shooter.primaryWeapon != null) {
             MarineWeapon w = shooter.primaryWeapon;
