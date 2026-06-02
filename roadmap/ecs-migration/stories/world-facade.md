@@ -145,14 +145,36 @@ this is a per-group sweep, not one commit.
        target is always freshly acquired/live). Callers `TurretBehavior` +
        `DroneSwarmAction` pass `sim.world()`; `AirSystem` + `GroundSystem` gain a
        `World` ctor field.
-   - **TacticalScoring (53 sites) — deliberately deferred to its own slice.**
-     NOT a mechanical sweep: several sites sit inside the `for dy/for dx`
-     candidate loops and dense-iteration loops, where a blanket
-     `u.getCellX()` → `world.cellX(id)` would inject a HashMap probe per
-     iteration (the cache-locality regression the guardrail forbids). The
-     conversion is hoist-fixed-coords (self/target once before the loop) +
-     dense-array the per-iteration reads (like `findBestTargetImpl` already
-     does). It already holds `registry`, so no ctor wiring — just careful.
+   - **TacticalScoring (53 sites) — its own slice, NOT a mechanical sweep.**
+     Several sites sit inside the `for dy/for dx` candidate loops and
+     dense-iteration loops, where a blanket `u.getCellX()` → `world.cellX(id)`
+     would inject a HashMap probe per iteration (the cache-locality regression
+     the guardrail forbids). The conversion is hoist-fixed-coords (self/target
+     once before the loop) + dense-array the per-iteration reads (like
+     `findBestTargetImpl` already does). It already holds `registry`, so no ctor
+     wiring — just careful.
+     - **Part 1 SHIPPED (2026-06-02, `e1f86cc`).** Every self/target-style ref
+       (`self`, `target`, `cur`, `currentTarget`, `closerVisible`, `member`) now
+       resolves its index once per method via `registry.requireLiveIndex` and
+       reuses locals — removing the per-candidate `self.getCellX()` denseIdx
+       reads from the firing-position + vantage loops (fewer indirections AND
+       fail-loud on a released id). `findBestTargetImpl` passes candidate `ox/oy`
+       through to `scoreThreatDensity`/`scoreZoneMismatch` (now `int`-coord
+       signatures) so the dense loop stops re-reading `other.getCellX()`;
+       `projectedRocketDamageOnTarget`'s dense-index timer reads use loop index
+       `i`; `occupantsExcludingSelf` takes `selfCellX/selfCellY` (path-dest reads
+       stay — plain `int[]` field, not denseIdx). Suite green at 723.
+     - **Part 2 (remaining) — gathered-list held-ref reads.** The cell reads
+       over spatial-gather result lists (`enemy` in `findEngageableEnemyWithin`,
+       `other` in `isHiddenFromAllEnemies` + the static `countEnemiesWithLos`,
+       `u` in `alliesNearForSpread` pass-2) are zero-probe TODAY via denseIdx, so
+       converting them to by-id would *inject* probes — the guardrail case. The
+       hot one (static `countEnemiesWithLos`, called per-candidate in
+       `findFallbackPosition`) needs the threat set pre-resolved into parallel
+       `int[]` cell + `float[]` range arrays once at gather time, then per-cell
+       reads hit arrays. `effectiveAttackRange` is `static` (no `registry`) —
+       either make it instance or take pre-resolved range. Best done with perf in
+       view; it's also the natural moment denseIdx deletion (task #14) forces.
    - **2c — hot loops + render → dense-array / RenderPositionService**, not
      `world.<col>(id)` (the cache-locality guardrail). Renderers, combat
      resolvers, bulk systems. Careful, possibly per-file.

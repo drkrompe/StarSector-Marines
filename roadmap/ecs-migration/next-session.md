@@ -128,15 +128,32 @@ reference `entityId` instead** (the dangling-ref NPE class). New story:
      tickPursue/clampGoalToLeash (BattleView param). Part 2: turret aim/fire
      statics (TurretFireService World field; TurretAim.tick World param; AirSystem
      + GroundSystem gain a World ctor field). Green at 705 both.
-   - **Next: TacticalScoring (53 sites) — its OWN slice, NOT a sweep.** Several
-     sites are inside the `for dy/for dx` candidate loops + dense-iteration loops;
-     a blanket `world.cellX(id)` there injects a probe per iteration (guardrail
-     violation). Conversion = hoist self/target coords once before the loop +
-     dense-array the per-iteration `other.getCellX()` reads. It already holds
-     `registry`, so no ctor wiring. Then **2c**: hot loops + render → dense-array/
-     `RenderPositionService` (NOT `world.<col>(id)`). Then model `mech` & other
-     optional `Unit` fields as `ComponentStore`s (cold face); then delete
-     `Unit.registry`+`denseIdx`; then `Unit`→`Entity`.
+   - **TacticalScoring (53 sites) — its OWN slice, NOT a sweep. PART 1 SHIPPED
+     (`e1f86cc`).** Every self/target-style ref (`self`/`target`/`cur`/
+     `currentTarget`/`closerVisible`/`member`) now resolves its index once per
+     method via `registry.requireLiveIndex` and reuses locals — removing the
+     per-candidate `self.getCellX()` denseIdx reads from the firing-position
+     (`for dy/for dx`) + vantage loops (fewer indirections AND fail-loud on a
+     released id). `findBestTargetImpl` passes candidate `ox/oy` through to
+     `scoreThreatDensity`/`scoreZoneMismatch` (now `int`-coord signatures) so the
+     dense loop stops re-reading `other.getCellX()`; `projectedRocketDamageOnTarget`
+     dense-index timer reads use loop `i`; `occupantsExcludingSelf` takes
+     `selfCellX/selfCellY`. Suite green at 723.
+     - **PART 2 (next) — gathered-list held-ref reads.** Cell reads over
+       spatial-gather lists (`enemy` in `findEngageableEnemyWithin`, `other` in
+       `isHiddenFromAllEnemies` + static `countEnemiesWithLos`, `u` in
+       `alliesNearForSpread` pass-2) are zero-probe TODAY via denseIdx →
+       converting to by-id would *inject* probes (the guardrail case). The hot
+       one (static `countEnemiesWithLos`, per-candidate in `findFallbackPosition`)
+       needs the threat set pre-resolved into parallel `int[]` cell + `float[]`
+       range arrays once at gather, then per-cell reads hit arrays.
+       `effectiveAttackRange` is `static` (no `registry`) — make it instance or
+       take a pre-resolved range. Do with perf in view (natural moment denseIdx
+       deletion forces).
+   - Then **2c**: hot loops + render → dense-array/`RenderPositionService` (NOT
+     `world.<col>(id)`). Then model `mech` & other optional `Unit` fields as
+     `ComponentStore`s (cold face); then delete `Unit.registry`+`denseIdx`; then
+     `Unit`→`Entity`.
    Design LOCKED with the user (2026-06-02): a **two-faced `World`** facade over
    the existing stores. **Hot face** = primitive by-id accessors (`world.hp(id)`,
    `cellX/Y`, `renderX/Y`, combat stats) backed directly by the dense SoA — zero
