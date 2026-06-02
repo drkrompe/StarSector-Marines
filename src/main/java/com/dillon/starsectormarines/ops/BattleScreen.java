@@ -43,6 +43,7 @@ import com.dillon.starsectormarines.battle.ui.panel.SquadOverviewPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadPlanDebugPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TickProfileDebugPanel;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
+import com.dillon.starsectormarines.battle.ui.highlight.SelectionHighlightPublisher;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.ui.picking.WorldPicker;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
@@ -463,6 +464,11 @@ public class BattleScreen implements Screen, BattleUiContext {
         // visibly throbs at contested compounds — the player keeps reading
         // state during pauses (mirrors the charge-site marker behaviour).
         renderer.getCompoundMarkers().update(dt);
+        // Selected-squad highlight — production cue (works without the debug
+        // panel). Republished each frame off post-tick unit positions so the
+        // green cells track members as they move; clears itself when the
+        // selection drops or the squad is wiped out.
+        SelectionHighlightPublisher.publish(selection, sim, highlights);
         // Light pass — tick transient lights and re-assert persistent lights
         // for every emitter that lives across frames (burning wrecks, air
         // vehicle engines). All persistent ids accumulate into seenLightIds;

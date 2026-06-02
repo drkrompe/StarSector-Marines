@@ -217,7 +217,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
                 detailContentH = computeDetailContentHeight(s);
                 detailScroll.setMetrics(detailContentH, detailViewportHeight());
                 publishStepHighlights(s, sim);
-                publishSquadAndCaptainHighlights(s, sim);
+                publishCaptainHighlight(s);
                 return;
             }
             // Selected squad vanished (wiped out, or stale id). Fall through to
@@ -228,8 +228,10 @@ public final class SquadPlanDebugPanel implements HudPanel {
         highlightedStepIndices.clear();
         HighlightOverlay overlay = ctx.getHighlights();
         overlay.clear(HighlightOverlay.SRC_ACTION_CELLS);
-        overlay.clear(HighlightOverlay.SRC_SELECTED_SQUAD);
         overlay.clear(HighlightOverlay.SRC_CAPTAIN);
+        // SRC_SELECTED_SQUAD is owned by SelectionHighlightPublisher (production)
+        // now — it clears itself when the selection drops, so the panel no longer
+        // touches it.
 
         for (Squad s : sim.getSquads()) {
             if (s.aliveMembers <= 0) continue;
@@ -660,20 +662,13 @@ public final class SquadPlanDebugPanel implements HudPanel {
     }
 
     /**
-     * Always-on highlights for the selected squad: every alive member's cell
-     * in green, plus the captain's cell in gold layered on top (paint order
-     * is insertion order, so we add members first, captain last). Captain
-     * source is omitted when no leader is assigned.
+     * Debug captain badge: the selected squad's leader cell in gold. The green
+     * selected-squad member highlight is a production cue now, published every
+     * frame by {@code SelectionHighlightPublisher} — this panel only adds the
+     * (debug-only) captain marker on top. Source is cleared when no leader.
      */
-    private void publishSquadAndCaptainHighlights(Squad squad, BattleSimulation sim) {
+    private void publishCaptainHighlight(Squad squad) {
         HighlightOverlay overlay = ctx.getHighlights();
-        List<CellHighlight> members = new ArrayList<>();
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Unit u = sim.liveUnitAt(i);
-            if (u.squadId != squad.id) continue;
-            members.add(new CellHighlight(u.getCellX(), u.getCellY(), HighlightOverlay.COLOR_SELECTED_UNIT));
-        }
-        overlay.put(HighlightOverlay.SRC_SELECTED_SQUAD, members);
         if (squad.leader != null && squad.leader.isAlive()) {
             overlay.put(HighlightOverlay.SRC_CAPTAIN, List.of(
                     new CellHighlight(squad.leader.getCellX(), squad.leader.getCellY(), HighlightOverlay.COLOR_CAPTAIN)));
