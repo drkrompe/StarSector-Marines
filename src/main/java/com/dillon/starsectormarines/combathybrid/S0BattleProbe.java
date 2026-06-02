@@ -33,8 +33,25 @@ public final class S0BattleProbe {
 
     private static final Logger LOG = Global.getLogger(S0BattleProbe.class);
 
+    /** Which probe battle to launch. */
+    public enum Mode {
+        /** S0: player-piloted battle from a chosen fleet subset (requirements 1 + 2). */
+        BASIC,
+        /** S0b: spectator canvas — no player ship, free cam, below-ships backdrop, no deploy dialog. */
+        SPECTATOR_CANVAS
+    }
+
     /** How many of the player's combat-ready ships the probe fields. */
     public static final int PLAYER_SUBSET_SIZE = 2;
+
+    /**
+     * World units per sim cell when projecting the grid into vanilla combat. See
+     * the overview size gut-check: at 50, the LARGE 240×160 grid is 12000×8000 world
+     * units — comfortably inside vanilla's normal field — and ships read at a sane
+     * size relative to the plate. The right value is ultimately per-use (overhead-air
+     * vs on-the-ground), but 50 is the working default the canvas is built around.
+     */
+    public static final float WORLD_UNITS_PER_CELL = 50f;
 
     /** Variant used if the player has no combat ships, so the probe still demos. */
     private static final String FALLBACK_PLAYER_VARIANT = "wolf_Standard";
@@ -48,11 +65,22 @@ public final class S0BattleProbe {
      * the game loop is single-threaded so no further synchronization is needed.
      */
     private static volatile boolean armed = false;
+    private static volatile Mode mode = Mode.BASIC;
 
     private S0BattleProbe() {}
 
     public static boolean isArmed() {
         return armed;
+    }
+
+    /** Which battle the armed {@link S0BattleCreationPlugin} should build. */
+    public static Mode mode() {
+        return mode;
+    }
+
+    /** S0b entry point — launch the spectator canvas instead of the basic battle. */
+    public static void launchSpectatorCanvas() {
+        launch(Mode.SPECTATOR_CANVAS);
     }
 
     /**
@@ -63,7 +91,12 @@ public final class S0BattleProbe {
      * also self-heals if {@code startBattle} declines to launch.
      */
     public static void launch() {
+        launch(Mode.BASIC);
+    }
+
+    private static void launch(Mode requested) {
         if (Global.getSector() == null) return;
+        mode = requested;
 
         CampaignFleetAPI player = buildPlayerSubset();
         CampaignFleetAPI enemy = buildEnemyFleet();
@@ -82,7 +115,7 @@ public final class S0BattleProbe {
 
         armed = true;
         try {
-            LOG.info("S0 probe: launching vanilla combat — player subset="
+            LOG.info("S0 probe: launching vanilla combat [" + mode + "] — player subset="
                     + player.getFleetData().getNumMembers()
                     + " vs enemy=" + enemy.getFleetData().getNumMembers());
             Global.getSector().getCampaignUI().startBattle(ctx);

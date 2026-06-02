@@ -60,17 +60,50 @@ bar** (combat has no above-UI hook, unlike the campaign's `CampaignUIRenderingLi
 — so the move is to *starve* the HUD via spectator + zero CP, not cover it. Full
 detail + citations in `overview.md` § "round 2: vanilla combat as a sim canvas".
 
-These are scoped into **S0b — spectator-canvas probe** (`stories/s0b-spectator-canvas.md`),
-which exercises all of them at once. Not built yet.
+These are built into **S0b — spectator-canvas probe** (`stories/s0b-spectator-canvas.md`),
+which exercises all of them at once. **Built, compiles, awaiting playtest.**
+
+## Size gut-check (recorded)
+
+Our grids: SMALL 112×64, MEDIUM 144×80, LARGE 240×160 cells; at the 1 m/cell target
+that's ~64–240 m across (urban/infantry scale). Vanilla combat playfield is normally
+18,000–24,000 world units — but we set it ourselves via `loader.initMap`, so fitting
+isn't a constraint. The real free parameter is **world-units-per-cell**, seeded at
+**`S0BattleProbe.WORLD_UNITS_PER_CELL = 50`** (LARGE → 12000×8000, inside vanilla's
+range; ships read sanely). Tension to remember: vanilla ships are ground-tiny at this
+scale (a frigate ≈ 1.6 cells) — fine for overhead-air (S2), but a vanilla mech placed
+at ground level would need ~5–6× sprite upscale. So the scale is per-use, not global.
+
+## S0b — built (uncommitted unless noted)
+
+New in `combathybrid`:
+- `SpectatorCanvasPlugin` — free cam (WASD poll + RMB-drag + scroll via
+  `setExternalControl`/`setCenter`/`setViewMult`), input consume, screen-space
+  overlay marker, disables player-ship control each frame.
+- `CanvasBackdropRenderer` (`CombatLayeredRenderingPlugin`) — dark plate + grid lines
+  on `BELOW_SHIPS_LAYER`, sized to grid × 50.
+- `S0BattleProbe.Mode` {BASIC, SPECTATOR_CANVAS} + `launchSpectatorCanvas()`.
+- `S0BattleCreationPlugin` branches: spectator path fields both sides AI @ 0 CP,
+  spawns stock ships directly in `afterDefinitionLoad` (no deploy dialog), sizes the
+  map, installs the canvas + backdrop, `setPlayerShipExternal(null)`.
+- `CombatHybridInputListener` — Ctrl+Shift+N.
+
+### S0b playtest checklist (riskiest bits flagged)
+- [ ] Ctrl+Shift+N starts combat with **no deploy dialog**, ships already placed.
+- [ ] **No player ship** — does `setPlayerShipExternal(null)` + `useDefaultAI=true`
+      actually yield a spectator, or does the engine force-pick a flagship? (highest risk)
+- [ ] HUD effectively empty; the top-left overlay marker is visible (fact 12).
+- [ ] WASD pan / RMB-drag / scroll-zoom work; camera stays ours across pause.
+- [ ] Backdrop plate renders **under** the ships; ship FX on top.
+- [ ] F10 still ends combat (S0 carry-over).
+- [ ] `spawnShipOrWing` with the stock variant ids resolves (watch the log for spawn failures).
 
 ## Immediate next-up
 
-- **S0b — spectator-canvas probe** is now the natural next build: it composes facts
-  8–12 (blank HUD + free cam + below-ships backdrop + UI overlay + no-dialog setup)
-  and feeds the coordinate-mapping open question (#1). Cheaper than S2 and proves the
-  "combat as a host" thesis directly.
-- After S0b: **S2 — proxy-target probe** (spawn the proxy into the now-proven combat
-  instance), then wire HP drain into the sim's external-damage path (open question #2).
+- **Playtest S0 + S0b**, fill the checklists above.
+- After S0b verdict: **S2 — proxy-target probe** (spawn the proxy into the now-proven
+  combat instance), then wire HP drain into the sim's external-damage path (open
+  question #2).
 - If `startBattle`/return-to-map has rough edges from the S0 playtest: note them here;
   they bound how the real ground-battle launch eventually hooks in (the mod currently
   launches its *own* custom-visual-dialog battles, not vanilla combat — see

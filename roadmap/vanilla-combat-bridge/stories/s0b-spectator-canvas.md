@@ -1,9 +1,16 @@
 # S0b — Spectator-canvas probe
 
-> Scoped, not yet built. Builds directly on S0. Proves that a launched vanilla
+> **Built, awaiting playtest.** Builds directly on S0. Proves that a launched vanilla
 > combat instance can be reduced to a **blank, sim-driven canvas** — the host
 > environment Direction A / the hybrid needs. Exercises verified facts 8–12
 > (overview § round 2) in one probe. Throwaway dev scaffolding.
+
+## Trigger / scale
+
+**Ctrl+Shift+N** on the campaign map (vs Ctrl+Shift+B for the basic S0 battle).
+Canvas is built around `S0BattleProbe.WORLD_UNITS_PER_CELL = 50` (overview size
+gut-check) over the MEDIUM 144×80 grid → a 7200×4000-unit plate; the vanilla map is
+padded to 1.5× that so the free camera can pan past the edges.
 
 ## Goal
 

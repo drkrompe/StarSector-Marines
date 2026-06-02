@@ -8,13 +8,18 @@ import org.lwjgl.input.Keyboard;
 import java.util.List;
 
 /**
- * Dev hotkey for the S0 probe: <b>Ctrl+Shift+B</b> on the campaign map launches a
- * vanilla combat instance via {@link S0BattleProbe#launch()}.
+ * Dev hotkeys for the combat-bridge probes, on the campaign map:
+ * <ul>
+ *   <li><b>Ctrl+Shift+B</b> → {@link S0BattleProbe#launch()} (S0: player-piloted
+ *       battle from a chosen fleet subset).</li>
+ *   <li><b>Ctrl+Shift+N</b> → {@link S0BattleProbe#launchSpectatorCanvas()} (S0b:
+ *       spectator canvas — free cam, below-ships backdrop, no deploy dialog).</li>
+ * </ul>
  *
  * <p>A {@link CampaignInputListener} (rather than an intel button) so the trigger
  * only fires on the campaign map — exactly where {@code startBattle} expects to be
  * called — with no risk of launching combat from inside an open UI panel. The
- * Ctrl+Shift modifier keeps it clear of the bare {@code B} campaign binding.
+ * Ctrl+Shift modifier keeps it clear of the bare campaign bindings.
  *
  * <p>Registered transiently each game load by {@code StarsectorMarinesModPlugin},
  * gated by {@code DevConfig.S0_COMBAT_PROBE}.
@@ -31,12 +36,16 @@ public class CombatHybridInputListener implements CampaignInputListener {
     public void processCampaignInputPreCore(List<InputEventAPI> events) {
         for (InputEventAPI e : events) {
             if (e.isConsumed()) continue;
-            if (e.isKeyDownEvent()
-                    && e.getEventValue() == Keyboard.KEY_B
-                    && e.isCtrlDown()
-                    && e.isShiftDown()) {
+            if (!e.isKeyDownEvent() || !e.isCtrlDown() || !e.isShiftDown()) continue;
+
+            if (e.getEventValue() == Keyboard.KEY_B) {
                 e.consume();
                 S0BattleProbe.launch();
+                break;
+            }
+            if (e.getEventValue() == Keyboard.KEY_N) {
+                e.consume();
+                S0BattleProbe.launchSpectatorCanvas();
                 break;
             }
         }
