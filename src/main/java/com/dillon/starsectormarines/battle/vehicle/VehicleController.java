@@ -234,9 +234,22 @@ public final class VehicleController {
         }
 
         body.tick(carrot.x, carrot.y, targetSpeed, dt);
-        trajProgress += (float) Math.hypot(body.x - prevX, body.y - prevY);
+        if (trajectory != null) {
+            trajProgress += (float) Math.hypot(body.x - prevX, body.y - prevY);
+        }
 
-        wallStuckRecovery(body, type, carrot, prevX, prevY, prevFacing, dt);
+        // Skip the footprint gate while the carrot is pulling the body across
+        // the map edge. The inbound staging waypoint (spawn) and the outbound
+        // exit waypoint (GONE) are off-grid by design — there are no walls out
+        // there. Without this, the gate reverts every move at the perimeter and
+        // a departing truck oscillates at the edge instead of driving off (the
+        // old playback fork drove off un-gated; this restores the exit, not the
+        // rails).
+        boolean exitingOffMap = !navigation.getGrid().inBounds(
+                (int) Math.floor(carrot.x), (int) Math.floor(carrot.y));
+        if (!exitingOffMap) {
+            wallStuckRecovery(body, type, carrot, prevX, prevY, prevFacing, dt);
+        }
     }
 
     /**

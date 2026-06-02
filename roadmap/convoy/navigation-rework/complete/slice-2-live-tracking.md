@@ -54,6 +54,29 @@ What actually landed vs. planned:
 Constants (`REPLAN_INTERVAL_SEC`, `REPLAN_DRIFT_CELLS`, `REPLAN_CONSUMED_FRACTION`)
 are slice-2 starting values — tuned for feel in slice 4.
 
+## Critique follow-up (post-ship, same slice)
+
+A background critique pass found **one ship-blocking regression** and confirmed
+every other risk it probed (off-map drive-on, `trajProgress`, replan churn,
+inbound arrival, wall-stuck/trajectory interaction, brake taper, spawn-site
+edits, deletion safety) was already handled correctly.
+
+- **CRITICAL — departing trucks never reached GONE (fixed).** The outbound
+  corridor ends at an off-map exit waypoint, and arrival needs the body within
+  `EXIT_ARRIVAL_DIST` of it — but the footprint gate in `wallStuckRecovery`
+  reverted every move as the OBB poked off-grid at the perimeter, so the truck
+  oscillated at the edge forever. (The deleted playback fork drove off-map
+  *un-gated*, which is how outbound used to terminate.) Fix: skip
+  `wallStuckRecovery` when the pursuit carrot is off-grid — the staging (inbound
+  spawn) and exit (outbound GONE) waypoints are off-grid by design and have no
+  walls, so the body drives off freely and arrival fires. Restores the exit, not
+  the rails. (`VehicleController.advance`.)
+- **Trivial — `trajProgress` no longer accumulates on corridor-fallback ticks**
+  (was cosmetically non-zero in the debug overlay while `trajectory == null`,
+  contradicting its Javadoc). Guarded with `trajectory != null`.
+- Deferred (NICE-TO-HAVE, slice 5): `offCorridorDistance` is O(n) per replan
+  check — scan from the cursor window when convoy counts grow.
+
 ---
 
 ## Goal
