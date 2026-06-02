@@ -138,6 +138,16 @@ public final class ConvoyMeans implements ReinforcementMeans {
                     + dest.cellX + "," + dest.cellY + ") — skipping HEAVY_APC");
             return;
         }
+        // Distinct graph nodes can snap to the same in-mask cell on a small or
+        // heavily-eroded map; that's a degenerate start==goal route (null), not a
+        // no-path failure — log it as its own case so the route()-null warn below
+        // stays meaningful.
+        if (entryCell[0] == destCell[0] && entryCell[1] == destCell[1]) {
+            LOG.warn("ConvoyMeans: entry and dest snapped to the same clearance cell ("
+                    + entryCell[0] + "," + entryCell[1] + ") — drop-off too close to the gate"
+                    + " for HEAVY_APC; skipping");
+            return;
+        }
 
         float[][] inboundCells = VehicleRoutePlanner.route(
                 entryCell[0], entryCell[1], destCell[0], destCell[1], sim.getGrid(), cost, clr);
