@@ -317,18 +317,21 @@ public final class Squad {
     public volatile int chokePointPortalId = -1;
 
     /**
-     * Hub this squad's drones launched from, or {@code null} for marine /
-     * defender squads. Set when {@link com.dillon.starsectormarines.battle.drone.DroneSpawner}
-     * mints the squad on the hub's first launch; cleared (along with member
-     * cascade-kill) when the hub is destroyed via {@code BattleSimulation.demolishDeadDroneHubs}.
+     * Entity id of the hub this squad's drones launched from, or {@code 0L} for
+     * marine / defender squads. Set when
+     * {@link com.dillon.starsectormarines.battle.drone.DroneSpawner} mints the
+     * squad on the hub's first launch. Held as an id, not a {@link DroneHubUnit}
+     * ref: the hub can be destroyed (and registry-released) while the squad is
+     * torn down, so resolve on demand via {@code sim.resolveUnit(droneHubId)} —
+     * {@code null} means the hub is gone.
      *
-     * <p>Drives squad-level dispatch in {@code BattleSimulation.tick}'s
-     * replan loop: {@link #isDroneSquad()} routes to {@code GoapDroneBehavior}
-     * instead of the mech / infantry paths. Also referenced by
-     * {@code DroneSwarmAction} for hub-anchored positioning (patrol orbit
-     * center + engagement leash clamp).
+     * <p>Drives squad-level dispatch in {@code BattleSimulation.tick}'s replan
+     * loop: {@link #isDroneSquad()} routes to {@code GoapDroneBehavior} instead
+     * of the mech / infantry paths. ({@code isDroneSquad} reads the id presence,
+     * so it stays true for the squad's life; {@code DefendHubGoal} resolves the
+     * id to gate relevance on the hub still being alive.)
      */
-    public DroneHubUnit droneHub;
+    public long droneHubId;
 
     /**
      * Per-squad monitor for guarding squad-shared mutable state from concurrent
@@ -377,7 +380,7 @@ public final class Squad {
      * skip the infantry/mech action sets entirely.
      */
     public boolean isDroneSquad() {
-        return droneHub != null;
+        return droneHubId != 0L;
     }
 
     /**

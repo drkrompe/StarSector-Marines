@@ -67,8 +67,11 @@ Held-ref → id, smallest-blast-radius first; each independently shippable + gre
    squad to "infantry" once leaderless; now a `mechSquad` flag is set once at
    mint from the first member (squads are homogeneous), so it survives leader
    death. Full suite green at 677.
-3. **`Squad.droneHub`** (`DroneHubUnit`) → `droneHubId`. Same pattern; smaller
-   (hub goals + spawner). The other persistent-held ref on `Squad`.
+3. **`Squad.droneHub` → `droneHubId` — SHIPPED (2026-06-02).** The other
+   persistent-held ref on `Squad`. `isDroneSquad()` reads id presence
+   (`droneHubId != 0L`) — stable for the squad's life; `DefendHubGoal.relevance`
+   resolves `sim.resolveUnit(droneHubId)` to gate on the hub still being alive
+   (null = destroyed). Writer in `DroneSpawner` stores `hub.entityId`. Green at 677.
 4. **Turret aim (cosmetic, deferred)** — `TurretAim.State.{target,
    excludeFromCrowding}` are **transient**: the State is rebuilt fresh each tick
    and `target` is `getOrNull`-resolved from the caller's canonical id field

@@ -49,7 +49,7 @@ public final class DroneSpawner {
         if (hub.droneSquad == null) {
             int squadId = sim.mintSquad(hub.faction, drone);
             Squad squad = sim.getSquad(squadId);
-            squad.droneHub = hub;
+            squad.droneHubId = hub.entityId;
             hub.droneSquad = squad;
             drone.squadId = squadId;
         } else {
