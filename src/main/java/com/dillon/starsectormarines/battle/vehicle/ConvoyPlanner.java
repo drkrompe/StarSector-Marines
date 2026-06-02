@@ -1,12 +1,9 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
-import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
-import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -147,71 +144,5 @@ public final class ConvoyPlanner {
             }
         }
         return best;
-    }
-
-    private static final int PREFIX_REFINE_LEN = 40;
-
-    /**
-     * Try Hybrid A* on the full path; if that exceeds the iteration
-     * budget, retry on just the first {@value #PREFIX_REFINE_LEN}
-     * waypoints (enough to cover the departure maneuver and a couple
-     * of turns), then stitch segment-derived headings for the
-     * remaining straight road portion. Always returns
-     * {@code float[3][]} with headings.
-     */
-    public static float[][] refineWithFallback(float[] xs, float[] ys,
-                                               float startFacing, float goalFacing,
-                                               VehicleType type, NavigationGrid grid) {
-        if (xs.length < 2) {
-            return new float[][] { xs.clone(), ys.clone(), deriveSegmentHeadings(xs, ys) };
-        }
-
-        float[][] full = HybridAStarPlanner.refine(xs, ys, startFacing, goalFacing, type, grid);
-        if (full != null) return full;
-
-        int prefixLen = Math.min(xs.length, PREFIX_REFINE_LEN);
-        if (prefixLen >= 2 && prefixLen < xs.length) {
-            float prefixGoalFacing = AirBody.facingToward(
-                    xs[prefixLen - 1] - xs[prefixLen - 2],
-                    ys[prefixLen - 1] - ys[prefixLen - 2]);
-            float[][] prefixRefined = HybridAStarPlanner.refine(
-                    Arrays.copyOf(xs, prefixLen), Arrays.copyOf(ys, prefixLen),
-                    startFacing, prefixGoalFacing, type, grid);
-            if (prefixRefined != null) {
-                int rLen = prefixRefined[0].length;
-                int suffixLen = xs.length - prefixLen;
-                float[] outX = new float[rLen + suffixLen];
-                float[] outY = new float[rLen + suffixLen];
-                float[] outH = new float[rLen + suffixLen];
-                System.arraycopy(prefixRefined[0], 0, outX, 0, rLen);
-                System.arraycopy(prefixRefined[1], 0, outY, 0, rLen);
-                System.arraycopy(prefixRefined[2], 0, outH, 0, rLen);
-                System.arraycopy(xs, prefixLen, outX, rLen, suffixLen);
-                System.arraycopy(ys, prefixLen, outY, rLen, suffixLen);
-                for (int i = rLen; i < outX.length - 1; i++) {
-                    outH[i] = AirBody.facingToward(outX[i + 1] - outX[i], outY[i + 1] - outY[i]);
-                }
-                outH[outX.length - 1] = outH[outX.length - 2];
-                return new float[][] { outX, outY, outH };
-            }
-        }
-
-        return new float[][] { xs.clone(), ys.clone(), deriveSegmentHeadings(xs, ys) };
-    }
-
-    /**
-     * Derive heading at each waypoint from the direction to the next
-     * waypoint. Fallback for when {@link HybridAStarPlanner} refinement
-     * fails — gives {@link GroundSystem} enough heading data for pose
-     * playback so the vehicle doesn't fall back to PurePursuit.
-     */
-    public static float[] deriveSegmentHeadings(float[] xs, float[] ys) {
-        int n = xs.length;
-        float[] h = new float[n];
-        for (int i = 0; i < n - 1; i++) {
-            h[i] = AirBody.facingToward(xs[i + 1] - xs[i], ys[i + 1] - ys[i]);
-        }
-        if (n >= 2) h[n - 1] = h[n - 2];
-        return h;
     }
 }

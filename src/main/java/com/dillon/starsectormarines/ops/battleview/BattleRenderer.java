@@ -536,7 +536,7 @@ public class BattleRenderer {
         com.dillon.starsectormarines.battle.vehicle.VehicleController ctrl = v.controller;
         int wp = (ctrl != null) ? ctrl.waypointIndex() : 1;
         float stuckSecs = (ctrl != null) ? ctrl.wallStuckTime() : 0f;
-        float playbackProg = (ctrl != null) ? ctrl.playbackProgress() : 0f;
+        float trajProg = (ctrl != null) ? ctrl.trajectoryProgress() : 0f;
 
         org.lwjgl.opengl.GL11.glPushAttrib(
                 org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT
@@ -601,12 +601,12 @@ public class BattleRenderer {
         font.drawString(String.format("speed: %.1f  facing: %.0f  stuck: %.2fs",
                 v.body.speed, v.body.facingDegrees, stuckSecs), textX, textY, c, alphaMult);
         textY -= lineH;
-        String pathLabel = (v.inboundHeading != null || v.outboundHeading != null)
-                ? "playback" : v.pathRefined ? "HA*" : "coarse";
+        String pathLabel = (ctrl != null && ctrl.dockingPath() != null) ? "docking"
+                : (ctrl != null && ctrl.hasTrajectory()) ? "tracking" : "corridor";
         font.drawString(String.format("pos: (%.1f, %.1f)  path: %s  wps: %d+%d  prog: %.1f",
                 v.body.x, v.body.y, pathLabel,
                 v.inboundX.length, v.outboundX.length,
-                playbackProg), textX, textY, c, alphaMult);
+                trajProg), textX, textY, c, alphaMult);
         textY -= lineH;
         if (v.type.hasTurretWeapon()) {
             font.drawString(String.format("turret: ammo=%d  facing=%.0f",

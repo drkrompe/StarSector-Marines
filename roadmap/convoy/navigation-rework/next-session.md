@@ -2,35 +2,43 @@
 
 ## State of play
 
-**Slices 0–1 shipped.** The seam (slice 0) and the rolling-horizon planner
-(slice 1) are in. Motion is still byte-identical to pre-rework — the planner
-exists and is unit-tested but is **not yet wired to motion**. Slice 2 is the
-behavioral pivot that flips to it and kills the 90° snaps.
+**Slices 0–2 shipped.** The seam (0), the rolling-horizon planner (1), and live
+always-kinematic tracking (2) are in. The `headings != null` dead-reckon fork is
+**gone** — vehicles track a rolling local `Trajectory` (or the coarse corridor
+as a kinematic fallback) every tick; RS docking is the one surviving rails case.
+The 90° snaps are dead **in code** — but slice-2 acceptance is partly visual, so
+a **convoy-run playtest is still outstanding** (see Next up).
 
 - Slice 0: `VehicleController` + `ReferenceCorridor` seam; `GroundSystem`
   drives motion via `controller.tick(dt, inbound)` + `consumeArrived()`.
   ([`complete/slice-0-controller-seam.md`](complete/slice-0-controller-seam.md))
 - Slice 1: `LocalTrajectoryPlanner` + `Trajectory` +
-  `HybridAStarPlanner.planLocal` (bounded window, soft goal). Pure,
-  unit-tested, untouched live `refine()`.
+  `HybridAStarPlanner.planLocal` (bounded window, soft goal). Pure, unit-tested.
   ([`complete/slice-1-local-planner.md`](complete/slice-1-local-planner.md))
+- Slice 2: `VehicleController.tick` tracks the rolling `Trajectory` (BicycleBody
+  + PurePursuit), corridor-pursuit fallback when `plan()` is `null`; deleted the
+  whole synthetic-heading fork (`refineWithFallback`/`deriveSegmentHeadings`/
+  heading arrays/spawn-time `refine`) **and** the now-orphaned full-path
+  `HybridAStarPlanner.refine` (which also resolved slice-1 critique #7).
+  ([`complete/slice-2-live-tracking.md`](complete/slice-2-live-tracking.md))
 
 Track: full layered rewrite anchored on a **rolling-horizon local Hybrid A\***
-planner with always-on kinematic tracking. No backward-compat constraint — we
-delete the old `headings != null` dead-reckon fork rather than keep it.
+planner with always-on kinematic tracking. No backward-compat constraint — the
+old `headings != null` dead-reckon fork is deleted, not kept.
 
-Read [`overview.md`](overview.md) first — it has the diagnosis (the
-`refineWithFallback` synthetic-heading fork is why corners snap 90° and
-recovery never fires) and the target architecture.
+Read [`overview.md`](overview.md) first — it has the diagnosis and the target
+architecture.
 
-**Next up: slice 2** — wire `VehicleController.tick` to track the rolling
-`Trajectory` with `BicycleBody` + `PurePursuit` every tick (replan every K
-ticks / on deviation); **delete `advancePlayback`, `ConvoyPlanner.refineWithFallback`,
-`deriveSegmentHeadings`, and the `inbound/outboundHeading` arrays**. Keep RS
-docking as the terminal LZ phase. The 90° snaps die here — attach a critique-pass
-agent (it's the regression-prone behavioral pivot). Heed slice 1's note: the
-replan cadence must keep the rolling goal marching down the corridor or corners
-under-turn.
+**Next up: PLAYTEST slice 2, then slice 3.** Slice 2's acceptance is partly
+visual and can't be self-verified headless. Run a convoy with a cornering route
+and confirm by eye: (a) no 90° snaps — corners are continuous min-radius arcs;
+(b) inbound trucks reach the LZ with a sane heading → LANDED, departing trucks
+reach GONE; (c) the off-map drive-on and RS docking still look right. Off *feel*
+is slice 4 (tuning); a *broken* arrival/stuck/drive-on is a slice-2 bug to fix
+first. Then **slice 3 — recovery ladder**: replace the ad-hoc reverse stub in
+`VehicleController.wallStuckRecovery` + the `plan()==null` corridor-pursuit
+fallback with a formal escalation (drift → blocked → stuck → giveup), using the
+local planner for reverse / 3-point extraction.
 
 ## Slice chain
 
@@ -38,9 +46,10 @@ under-turn.
       behavior change. ([`complete/slice-0-controller-seam.md`](complete/slice-0-controller-seam.md)) ✅
 - [x] **Slice 1** — `LocalTrajectoryPlanner` (bounded rolling-horizon HA\*),
       unit-tested standalone. ([`complete/slice-1-local-planner.md`](complete/slice-1-local-planner.md)) ✅
-- [ ] **Slice 2** — live tracking; delete `advancePlayback` /
-      `refineWithFallback` / `deriveSegmentHeadings`. **90° snaps die here.**
-      ([`stories/slice-2-live-tracking.md`](stories/slice-2-live-tracking.md))
+- [x] **Slice 2** — live tracking; deleted `advancePlayback` /
+      `refineWithFallback` / `deriveSegmentHeadings` / `refine`. **90° snaps
+      dead in code (playtest pending).**
+      ([`complete/slice-2-live-tracking.md`](complete/slice-2-live-tracking.md)) ✅
 - [ ] **Slice 3** — recovery ladder. ([`stories/slice-3-recovery-ladder.md`](stories/slice-3-recovery-ladder.md))
 - [ ] **Slice 4** — tuning & feel (absorbs `../stories/driving-feel-tuning.md`).
       ([`stories/slice-4-tuning-feel.md`](stories/slice-4-tuning-feel.md))
@@ -61,18 +70,21 @@ under-turn.
 
 ## Picking up cold
 
-Slices 0–1 are done: the seam (`VehicleController` + `ReferenceCorridor`) and
-the planner (`LocalTrajectoryPlanner.plan` → `Trajectory`, backed by
-`HybridAStarPlanner.planLocal`) both exist and are tested. Start at **slice 2**:
-inside `VehicleController.tick`, replace the `advance`/`advancePlayback`
-dispatch with a live loop — hold a current `Trajectory`, refresh it from
-`LocalTrajectoryPlanner.plan(currentPose, corridor, type, grid)` every K ticks
-(or when consumed / drifted), `PurePursuit.pick` a carrot along the
-*trajectory* (not the coarse corridor), brake-taper on
-`trajectory.lengthCells() + corridor.remainingLength`, `body.tick(...)`, then
-advance the corridor cursor by projecting the new pose. Delete `advancePlayback`,
-`ConvoyPlanner.refineWithFallback` + `deriveSegmentHeadings`, and the
-`inbound/outboundHeading` arrays + `headings != null` dispatch. Keep
-`advanceDocking` (RS) as the terminal LZ phase. Sync `body.x/y` → renderer each
-tick (`[[air_unit_render_sync]]`). Attach a critique-pass agent.
+Slices 0–2 are done. The control stack is live: `VehicleController.tick` →
+`corridor.advance(pose)` → terminal RS docking (inbound) → arrival → rolling
+`LocalTrajectoryPlanner.plan` refresh → `PurePursuit` carrot along the
+trajectory (coarse-corridor fallback when `plan()` is `null`) → `body.tick` →
+shared `wallStuckRecovery` reverse stub. The synthetic-heading fork and the
+full-path `refine` are gone.
+
+**First: playtest slice 2** (see Next up — it's the unverified bit). Then start
+**slice 3 — recovery ladder**. The two slice-2 stubs it replaces:
+1. `VehicleController.wallStuckRecovery` — the ad-hoc revert-and-reverse-pulse.
+2. The `else` branch in `advance` where `trajectory == null` falls back to
+   coarse-corridor pursuit (currently also how the off-map drive-on works).
+Formalize both into drift → blocked → stuck → giveup, using
+`LocalTrajectoryPlanner` (reverse / 3-point) for extraction and a full re-route
+from the nearest road node for "stuck." Heed slice-1 critique #1 (near-goal
+`null` is arrival, already special-cased before planning) so recovery never
+fires at the LZ. Attach a critique-pass agent.
 </content>

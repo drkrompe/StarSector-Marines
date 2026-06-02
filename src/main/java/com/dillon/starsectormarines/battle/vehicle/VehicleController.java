@@ -5,22 +5,37 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 
 /**
- * Owns one ground vehicle's motion: the active {@link ReferenceCorridor}, the
- * playback / pure-pursuit / Reeds-Shepp-docking dispatch, and the reactive
- * recovery state. {@link GroundSystem}'s state machine drives a vehicle by
- * calling {@link #tick(float, boolean)} each INCOMING / DEPARTING frame and
- * reading {@link #consumeArrived()} to fire the state transition.
+ * Owns one ground vehicle's motion: the active {@link ReferenceCorridor}
+ * (advisory coarse route), the rolling {@link Trajectory} it tracks, the
+ * pure-pursuit + Reeds-Shepp-docking dispatch, and the reactive recovery stub.
+ * {@link GroundSystem}'s state machine drives a vehicle by calling
+ * {@link #tick(float, boolean)} each INCOMING / DEPARTING frame and reading
+ * {@link #consumeArrived()} to fire the state transition.
  *
- * <p>This is the seam the navigation rework plugs into (slice 0). The body of
- * {@link #tick} is, for now, a faithful relocation of {@code GroundSystem}'s
- * old {@code advancePath} / {@code advancePlayback} / {@code advanceDocking}
- * dispatch — same dead-reckon-vs-pursuit fork, same constants, byte-identical
- * motion. Slices 1–3 replace the body without touching {@code GroundSystem}.
+ * <p><b>Always kinematic, never on rails.</b> The body's own {@link BicycleBody}
+ * kinematics govern the pose every tick — the controller only ever feeds it a
+ * carrot + a target speed. There are two carrot sources:
+ * <ol>
+ *   <li><b>Rolling local trajectory</b> (primary) — {@link LocalTrajectoryPlanner}
+ *       turns the corridor into a short feasible {@link Trajectory} the body
+ *       pursues. Refreshed every {@link #REPLAN_INTERVAL_SEC} / when consumed /
+ *       on drift. This is what plans <em>through</em> corners so they read as
+ *       continuous min-radius arcs.</li>
+ *   <li><b>Coarse corridor</b> (fallback) — when the local plan returns
+ *       {@code null} (off-map approach before the truck reaches the grid, or a
+ *       transient planner gap) the body pursues the advisory corridor polyline
+ *       directly. Still kinematic, so still smooth; the slice-3 recovery ladder
+ *       replaces this null-handling with a formal escalation.</li>
+ * </ol>
+ * The old dead-reckon "playback along synthetic-heading rails" fork is gone —
+ * that was the source of the 90° corner snaps. Reeds-Shepp docking is the one
+ * surviving rails case, as a terminal LZ phase (see {@code navigation-rework/
+ * overview.md}).
  *
  * <p>Motion state that used to live as loose fields on {@link Vehicle}
- * (waypoint cursor, playback progress, docking path, wall-stuck timers) now
- * lives here, where it belongs. The pose itself stays on {@link Vehicle#body}
- * because the renderer and turret loop read it.
+ * (waypoint cursor, docking path, wall-stuck timers) lives here, where it
+ * belongs. The pose itself stays on {@link Vehicle#body} because the renderer
+ * and turret loop read it.
  */
 public final class VehicleController {
 
@@ -30,10 +45,10 @@ public final class VehicleController {
     private static final float EXIT_ARRIVAL_DIST = 1.0f;
     /**
      * Range from LZ (cells) at which an inbound truck attempts to switch from
-     * pure-pursuit-along-polyline to Reeds-Shepp docking. Sized to ~2× the
-     * truck's min turn radius so the RS path fits in a comfortable window
-     * — long enough to be useful, short enough that the path doesn't snake
-     * through walls beyond the local LZ neighborhood.
+     * pursuit to Reeds-Shepp docking. Sized to ~2× the truck's min turn radius
+     * so the RS path fits in a comfortable window — long enough to be useful,
+     * short enough that the path doesn't snake through walls beyond the local
+     * LZ neighborhood.
      */
     private static final float DOCKING_TRIGGER_CELLS = 6f;
     /** Constant forward speed (cells/sec) along the Reeds-Shepp docking path. Slower than cruise to read as a careful approach. */
@@ -44,22 +59,32 @@ public final class VehicleController {
     private static final float WALL_REVERSE_DELAY = 0.3f;
     /** Reverse speed when backing away from a wall, cells/sec. Slower than forward cruise — cautious backup. */
     private static final float WALL_REVERSE_SPEED = 1.4f;
-    /** Sim-seconds of continuous wall-stuck before triggering a Hybrid A* re-plan from the current pose. */
-    private static final float REPLAN_STUCK_THRESHOLD = 2.0f;
-    /** Minimum sim-seconds between re-plan attempts so a failing planner doesn't run every tick. */
-    private static final float REPLAN_COOLDOWN = 3.0f;
     /** Distance (cells) the vehicle must move from its stuck origin before wallStuckTime resets. Prevents oscillation from clearing the timer. */
     private static final float STUCK_ESCAPE_DIST = 1.5f;
+
+    /** Max sim-seconds a local {@link Trajectory} is tracked before a fresh plan is requested. Keeps the rolling goal marching down the corridor. */
+    private static final float REPLAN_INTERVAL_SEC = 0.25f;
+    /** Off-corridor drift (cells) that forces an immediate replan rather than waiting out the interval. */
+    private static final float REPLAN_DRIFT_CELLS = 2.0f;
+    /** Fraction of the current trajectory's length that may be consumed before a replan is forced (so we plan the next horizon before running out). */
+    private static final float REPLAN_CONSUMED_FRACTION = 0.5f;
 
     private final Vehicle vehicle;
     private final NavigationService navigation;
 
-    /** Active corridor for the current direction; rebuilt when inbound flips to outbound (or on re-plan). */
+    /** Active corridor for the current direction; rebuilt when inbound flips to outbound. */
     private ReferenceCorridor corridor;
     /** Last direction passed to {@link #tick}; a change rebuilds the corridor. {@code null} until the first tick. */
     private Boolean lastInbound;
-    /** Distance (cells) travelled along the active refined polyline during pose playback. */
-    private float playbackProgress;
+
+    /** Current rolling local plan the body is tracking, or {@code null} when on the coarse-corridor fallback. */
+    private Trajectory trajectory;
+    /** Arc-distance (cells) consumed along {@link #trajectory} since it was planned; resets on replan. */
+    private float trajProgress;
+    /** Sim-seconds since the last local plan; gates the replan cadence. */
+    private float sinceReplan;
+    /** True when last tick's carrot pinned to the trajectory end (consumed) — forces a replan. */
+    private boolean trajCarrotAtEnd;
 
     /** Active Reeds-Shepp docking path, or {@code null} when not docking. */
     private ReedsShepp.Path dockingPath;
@@ -72,8 +97,6 @@ public final class VehicleController {
     private float wallStuckTime;
     /** Position where the vehicle first got stuck; wallStuckTime only resets once it moves meaningfully away. */
     private float stuckOriginX, stuckOriginY;
-    /** wallStuckTime value at which the last re-plan was attempted. Prevents calling the planner every tick. */
-    private float lastReplanAtStuckTime = -1f;
 
     /** Set true the tick the vehicle reaches its terminal waypoint; cleared by {@link #consumeArrived()}. */
     private boolean arrived;
@@ -85,8 +108,10 @@ public final class VehicleController {
 
     /** Sim-seconds the vehicle has been continuously wall-blocked. Debug/history read. */
     public float wallStuckTime() { return wallStuckTime; }
-    /** Distance travelled along the active playback polyline. Debug read. */
-    public float playbackProgress() { return playbackProgress; }
+    /** Arc-distance consumed along the current local trajectory, or 0 on the corridor fallback. Debug read. */
+    public float trajectoryProgress() { return trajProgress; }
+    /** True when the controller is tracking a feasible local plan (vs. the coarse-corridor fallback). Debug read. */
+    public boolean hasTrajectory() { return trajectory != null; }
     /** Active waypoint cursor into the coarse corridor. Debug read. */
     public int waypointIndex() { return corridor != null ? corridor.cursor() : 1; }
     /** Active Reeds-Shepp docking path, or {@code null} when not docking. Debug overlay read. */
@@ -108,66 +133,95 @@ public final class VehicleController {
     }
 
     /**
-     * Advance the vehicle one tick along its active path. {@code isInbound}
-     * selects the inbound vs. outbound waypoint arrays; a change of direction
-     * since the previous tick rebuilds the corridor and resets playback /
-     * docking state (this replaces the old manual {@code waypointIndex = 1;
-     * playbackProgress = 0} resets in {@code GroundSystem}'s LANDED/OVERWATCH).
+     * Advance the vehicle one tick. {@code isInbound} selects the inbound vs.
+     * outbound corridor; a change of direction since the previous tick rebuilds
+     * the corridor and clears the rolling plan / docking state (this replaces
+     * the old manual {@code waypointIndex = 1} resets in {@code GroundSystem}'s
+     * LANDED/OVERWATCH).
      */
     public void tick(float dt, boolean isInbound) {
         float[] xs = isInbound ? vehicle.inboundX : vehicle.outboundX;
         float[] ys = isInbound ? vehicle.inboundY : vehicle.outboundY;
-        float[] headings = isInbound ? vehicle.inboundHeading : vehicle.outboundHeading;
 
         if (lastInbound == null || lastInbound != isInbound) {
             corridor = new ReferenceCorridor(xs, ys, 1);
-            playbackProgress = 0f;
+            trajectory = null;
+            trajProgress = 0f;
+            sinceReplan = 0f;
+            trajCarrotAtEnd = false;
             dockingPath = null;
             lastInbound = isInbound;
         }
 
-        advance(xs, ys, headings, dt, isInbound);
+        advance(xs, ys, dt, isInbound);
     }
 
     /**
-     * Path follower. Three modes (unchanged from the pre-rework
-     * {@code GroundSystem.advancePath}):
-     * <ol>
-     *   <li><b>Direct pose playback</b> — when the path carries
-     *       {@link HybridAStarPlanner} heading data, play the planned poses
-     *       directly. No steering law, no reactive recovery.</li>
-     *   <li><b>Pure pursuit</b> (coarse polylines without headings) — carrot
-     *       along the corridor, brake taper to the LZ, wall-stuck recovery +
-     *       stuck re-plan.</li>
-     *   <li><b>Reeds-Shepp docking</b> — for inbound pursuit paths within
-     *       {@link #DOCKING_TRIGGER_CELLS} of the LZ.</li>
-     * </ol>
+     * One tracking step. Priority: terminal RS docking (inbound) → arrival →
+     * rolling local-trajectory tracking → coarse-corridor pursuit fallback,
+     * with a shared wall-stuck reverse stub wrapping the kinematic move.
      */
-    private void advance(float[] xs, float[] ys, float[] headings, float dt, boolean isInbound) {
-        if (headings != null) {
-            advancePlayback(xs, ys, headings, dt, isInbound);
-            return;
-        }
-
-        if (dockingPath != null) {
-            advanceDocking(dt);
-            return;
-        }
-
-        if (isInbound) {
-            tryEngageDocking(xs, ys);
-            if (dockingPath != null) {
-                advanceDocking(dt);
-                return;
-            }
-        }
-
+    private void advance(float[] xs, float[] ys, float dt, boolean isInbound) {
         GroundBody body = vehicle.body;
         VehicleType type = vehicle.type;
-        float prevX = body.x, prevY = body.y;
-        float prevFacing = body.facingDegrees;
 
-        PurePursuit.Carrot carrot = corridor.carrot(body.x, body.y, type.lookAheadCells);
+        // Keep the advisory cursor abreast of the pose so remainingLength /
+        // the rolling goal measure from the current segment.
+        corridor.advance(body.x, body.y);
+
+        // --- Terminal docking phase (inbound only) -------------------------
+        if (isInbound) {
+            if (dockingPath != null) { advanceDocking(dt); return; }
+            tryEngageDocking(xs, ys);
+            if (dockingPath != null) { advanceDocking(dt); return; }
+        }
+
+        // --- Arrival -------------------------------------------------------
+        // Checked before planning: as the truck nears the corridor end the
+        // rolling goal pins to the endpoint and the local plan legitimately
+        // returns null (start already inside the soft goal radius). That is
+        // "arrived / coasting in," NOT a stuck signal — handle it here so it
+        // never escalates to recovery (slice-1 critique #1).
+        int lastIdx = xs.length - 1;
+        float distToLast = body.distanceTo(xs[lastIdx], ys[lastIdx]);
+        float threshold = isInbound ? LZ_ARRIVAL_DIST : EXIT_ARRIVAL_DIST;
+        if (distToLast < threshold) {
+            if (isInbound) body.teleport(xs[lastIdx], ys[lastIdx], body.facingDegrees);
+            arrived = true;
+            return;
+        }
+
+        // --- Rolling local-trajectory refresh ------------------------------
+        sinceReplan += dt;
+        if (needsReplan(body)) {
+            Pose pose = new Pose(body.x, body.y, body.facingDegrees);
+            trajectory = LocalTrajectoryPlanner.plan(pose, corridor, type, navigation.getGrid());
+            trajProgress = 0f;
+            sinceReplan = 0f;
+            trajCarrotAtEnd = false;
+        }
+
+        // --- Track (trajectory if we have one, else the coarse corridor) ---
+        float prevX = body.x, prevY = body.y, prevFacing = body.facingDegrees;
+
+        float[] px, py;
+        int startIdx;
+        if (trajectory != null) {
+            px = trajectory.xs();
+            py = trajectory.ys();
+            startIdx = 1;   // poses[0] is the plan-time pose; scan forward from 1
+        } else {
+            px = xs;
+            py = ys;
+            startIdx = corridor.cursor();
+        }
+
+        PurePursuit.Carrot carrot = PurePursuit.pick(body.x, body.y, px, py, startIdx, type.lookAheadCells);
+        if (trajectory != null) trajCarrotAtEnd = carrot.atEnd;
+
+        // Brake taper always sizes to the distance still to drive to the LZ
+        // along the corridor, so the truck comes to a clean stop at the end
+        // regardless of where the local horizon currently ends.
         float remaining = corridor.remainingLength(body.x, body.y);
         float taper = (float) Math.sqrt(2f * type.brakingAccel * Math.max(0f, remaining));
         float targetSpeed = Math.min(type.maxSpeed, taper);
@@ -180,36 +234,53 @@ public final class VehicleController {
         }
 
         body.tick(carrot.x, carrot.y, targetSpeed, dt);
+        trajProgress += (float) Math.hypot(body.x - prevX, body.y - prevY);
 
+        wallStuckRecovery(body, type, carrot, prevX, prevY, prevFacing, dt);
+    }
+
+    /**
+     * Decide whether to request a fresh local plan this tick: no current plan,
+     * the replan interval elapsed, the current plan is consumed (carrot pinned
+     * to its end or past the consume fraction), or the body has drifted off the
+     * advisory corridor.
+     */
+    private boolean needsReplan(GroundBody body) {
+        if (trajectory == null) return true;
+        if (sinceReplan >= REPLAN_INTERVAL_SEC) return true;
+        if (trajCarrotAtEnd) return true;
+        if (trajProgress >= trajectory.lengthCells() * REPLAN_CONSUMED_FRACTION) return true;
+        if (corridor.offCorridorDistance(body.x, body.y) > REPLAN_DRIFT_CELLS) return true;
+        return false;
+    }
+
+    /**
+     * Wall-stuck reverse stub (shared by both carrot sources). When a move
+     * carries a previously-feasible body into an infeasible pose, revert the
+     * move; after {@link #WALL_REVERSE_DELAY} seconds blocked, pulse a reverse.
+     * A trajectory is feasible by construction so this rarely fires while
+     * tracking one — it mainly guards the coarse-corridor fallback. The formal
+     * recovery ladder (drift → blocked → stuck → giveup) lands in slice 3.
+     */
+    private void wallStuckRecovery(GroundBody body, VehicleType type, PurePursuit.Carrot carrot,
+                                   float prevX, float prevY, float prevFacing, float dt) {
         NavigationGrid grid = navigation.getGrid();
         boolean prevOnGrid = VehicleFootprint.isPoseFeasible(prevX, prevY, prevFacing,
                 type.visualLengthCells, type.visualWidthCells, grid);
         boolean newFeasible = VehicleFootprint.isPoseFeasible(body.x, body.y, body.facingDegrees,
                 type.visualLengthCells, type.visualWidthCells, grid);
+
         if (prevOnGrid && !newFeasible) {
             if (wallStuckTime == 0f) {
                 stuckOriginX = prevX;
                 stuckOriginY = prevY;
             }
             wallStuckTime += dt;
-            if (wallStuckTime > REPLAN_STUCK_THRESHOLD
-                    && wallStuckTime - lastReplanAtStuckTime >= REPLAN_COOLDOWN) {
-                body.x = prevX;
-                body.y = prevY;
-                body.facingDegrees = prevFacing;
-                body.speed = 0f;
-                lastReplanAtStuckTime = wallStuckTime;
-                if (tryReplan(xs, ys, isInbound)) {
-                    wallStuckTime = 0f;
-                    lastReplanAtStuckTime = -1f;
-                    return;
-                }
-            }
+            body.x = prevX;
+            body.y = prevY;
+            body.facingDegrees = prevFacing;
+            body.speed = 0f;
             if (wallStuckTime > WALL_REVERSE_DELAY) {
-                body.x = prevX;
-                body.y = prevY;
-                body.facingDegrees = prevFacing;
-                body.speed = 0f;
                 body.tick(carrot.x, carrot.y, -WALL_REVERSE_SPEED, dt);
                 if (!VehicleFootprint.isPoseFeasible(body.x, body.y, body.facingDegrees,
                         type.visualLengthCells, type.visualWidthCells, grid)) {
@@ -218,11 +289,6 @@ public final class VehicleController {
                     body.facingDegrees = prevFacing;
                     body.speed = 0f;
                 }
-            } else {
-                body.x = prevX;
-                body.y = prevY;
-                body.facingDegrees = prevFacing;
-                body.speed = 0f;
             }
         } else if (wallStuckTime > 0f) {
             float dx = body.x - stuckOriginX;
@@ -231,121 +297,14 @@ public final class VehicleController {
                 wallStuckTime = 0f;
             }
         }
-
-        int lastIdx = xs.length - 1;
-        float distToLast = body.distanceTo(xs[lastIdx], ys[lastIdx]);
-        float threshold = isInbound ? LZ_ARRIVAL_DIST : EXIT_ARRIVAL_DIST;
-        if (distToLast < threshold) {
-            if (isInbound) {
-                body.teleport(xs[lastIdx], ys[lastIdx], body.facingDegrees);
-            }
-            arrived = true;
-        }
     }
 
     /**
-     * Direct pose playback along a Hybrid A* refined path. Accumulate distance,
-     * interpolate (x, y, heading) between waypoints, assign to body. No steering
-     * law, no reactive collision — the plan was validated at planning time and
-     * the grid is static.
-     */
-    private void advancePlayback(float[] xs, float[] ys, float[] headings, float dt, boolean isInbound) {
-        GroundBody body = vehicle.body;
-        VehicleType type = vehicle.type;
-        float totalLength = polylineLength(xs, ys);
-        float remaining = totalLength - playbackProgress;
-        float taper = (float) Math.sqrt(2f * type.brakingAccel * Math.max(0f, remaining));
-        float speed = Math.min(type.maxSpeed, taper);
-        playbackProgress += speed * dt;
-
-        if (playbackProgress >= totalLength) {
-            int last = xs.length - 1;
-            if (isInbound) {
-                body.teleport(xs[last], ys[last], headings[last]);
-            }
-            arrived = true;
-            return;
-        }
-
-        float walked = 0f;
-        for (int i = 0; i < xs.length - 1; i++) {
-            float dx = xs[i + 1] - xs[i];
-            float dy = ys[i + 1] - ys[i];
-            float segLen = (float) Math.sqrt(dx * dx + dy * dy);
-            if (walked + segLen >= playbackProgress) {
-                float t = (segLen > 1e-6f) ? (playbackProgress - walked) / segLen : 0f;
-                body.x = xs[i] + dx * t;
-                body.y = ys[i] + dy * t;
-                float dh = ((headings[i + 1] - headings[i] + 540f) % 360f) - 180f;
-                body.facingDegrees = headings[i] + dh * t;
-                body.speed = speed;
-                return;
-            }
-            walked += segLen;
-        }
-
-        int last = xs.length - 1;
-        body.x = xs[last];
-        body.y = ys[last];
-        body.facingDegrees = headings[last];
-        body.speed = 0f;
-    }
-
-    private static float polylineLength(float[] xs, float[] ys) {
-        float total = 0f;
-        for (int i = 0; i < xs.length - 1; i++) {
-            float dx = xs[i + 1] - xs[i];
-            float dy = ys[i + 1] - ys[i];
-            total += (float) Math.sqrt(dx * dx + dy * dy);
-        }
-        return total;
-    }
-
-    /**
-     * Re-plan from the vehicle's current pose to its remaining goal when the
-     * reactive recovery has failed for {@link #REPLAN_STUCK_THRESHOLD} seconds.
-     * Runs Hybrid A* once; on success replaces the vehicle's waypoint arrays,
-     * rebuilds the corridor, and resets the playback/docking cursors.
-     */
-    private boolean tryReplan(float[] xs, float[] ys, boolean isInbound) {
-        GroundBody body = vehicle.body;
-        int lastOnGrid = xs.length - 1;
-        if (xs[lastOnGrid] < 0 || ys[lastOnGrid] < 0) lastOnGrid--;
-        if (lastOnGrid < 1) return false;
-
-        float goalX = xs[lastOnGrid], goalY = ys[lastOnGrid];
-        float goalFacing = AirBody.facingToward(
-                xs[lastOnGrid] - xs[lastOnGrid - 1],
-                ys[lastOnGrid] - ys[lastOnGrid - 1]);
-
-        float[] guideX = new float[]{body.x, goalX};
-        float[] guideY = new float[]{body.y, goalY};
-        float[][] refined = HybridAStarPlanner.refine(
-                guideX, guideY, body.facingDegrees, goalFacing,
-                vehicle.type, navigation.getGrid());
-        if (refined == null) return false;
-
-        if (isInbound) {
-            vehicle.inboundX = refined[0];
-            vehicle.inboundY = refined[1];
-            vehicle.inboundHeading = refined[2];
-        } else {
-            vehicle.outboundX = refined[0];
-            vehicle.outboundY = refined[1];
-            vehicle.outboundHeading = refined[2];
-        }
-        corridor = new ReferenceCorridor(refined[0], refined[1], 1);
-        playbackProgress = 0f;
-        dockingPath = null;
-        return true;
-    }
-
-    /**
-     * Try to switch the inbound truck from pure pursuit to a Reeds-Shepp
-     * docking maneuver when within {@link #DOCKING_TRIGGER_CELLS} of the LZ.
-     * The candidate RS path is footprint-checked along its length; if any pose
-     * is non-walkable, docking stays off this tick (pure pursuit then delivers
-     * the truck to the LZ via the polyline).
+     * Try to switch the inbound truck from pursuit to a Reeds-Shepp docking
+     * maneuver when within {@link #DOCKING_TRIGGER_CELLS} of the LZ. The
+     * candidate RS path is footprint-checked along its length; if any pose is
+     * non-walkable, docking stays off this tick (pursuit then delivers the
+     * truck to the LZ via the corridor).
      */
     private void tryEngageDocking(float[] xs, float[] ys) {
         GroundBody body = vehicle.body;
@@ -372,6 +331,7 @@ public final class VehicleController {
         dockingTurnRadius = turnRadius;
         dockingProgressCells = 0f;
         dockingGoalFacingDeg = lzFacingDeg;
+        trajectory = null;   // docking owns the pose now
     }
 
     /**
@@ -400,7 +360,7 @@ public final class VehicleController {
      * Sample-based feasibility: walk the RS path at
      * {@link #DOCKING_FOOTPRINT_SAMPLE_CELLS} resolution and footprint-check
      * each pose. Conservative — false-positive rejection on a clear path is
-     * fine because we just fall back to pure pursuit.
+     * fine because we just fall back to pursuit.
      */
     private static boolean isPathFeasible(Pose start, ReedsShepp.Path path,
                                           float turnRadius, VehicleType type,

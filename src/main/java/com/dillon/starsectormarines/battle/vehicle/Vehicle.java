@@ -104,14 +104,6 @@ public class Vehicle {
      */
     public int squadId = Unit.NO_SQUAD;
 
-    /** True if the inbound path was refined by {@link HybridAStarPlanner}. Debug diagnostic only. Set at spawn. */
-    public boolean pathRefined;
-
-    /** Heading (degrees) at each inbound waypoint. Non-null = path is Hybrid A* refined and should use direct pose playback instead of PurePursuit. Set at spawn. */
-    public float[] inboundHeading;
-    /** Heading (degrees) at each outbound waypoint. Non-null = refined path with playback. Set at spawn. */
-    public float[] outboundHeading;
-
     public static final int HISTORY_SIZE = 120;
     public final float[] histX = new float[HISTORY_SIZE];
     public final float[] histY = new float[HISTORY_SIZE];

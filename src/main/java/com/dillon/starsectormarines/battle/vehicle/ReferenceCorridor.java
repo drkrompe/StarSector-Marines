@@ -51,6 +51,20 @@ public final class ReferenceCorridor {
         return c;
     }
 
+    /**
+     * Advance the cursor past any waypoint the pose has crossed, without
+     * picking a carrot. The controller calls this once per tick so
+     * {@link #remainingLength} and {@link #targetAhead} measure from the
+     * current segment as the vehicle tracks the (advisory) corridor — otherwise
+     * {@code remainingLength} would keep summing already-passed segments and
+     * leave the brake taper too lenient. {@code lookAhead 0} makes
+     * {@link PurePursuit#pick} return immediately after its crossed-waypoint
+     * advance, so we just keep its {@code nextIdx}.
+     */
+    public void advance(float poseX, float poseY) {
+        cursor = PurePursuit.pick(poseX, poseY, xs, ys, cursor, 0f).nextIdx;
+    }
+
     /** Remaining polyline length from the pose to the final waypoint. */
     public float remainingLength(float poseX, float poseY) {
         return PurePursuit.remainingPathLength(poseX, poseY, xs, ys, cursor);

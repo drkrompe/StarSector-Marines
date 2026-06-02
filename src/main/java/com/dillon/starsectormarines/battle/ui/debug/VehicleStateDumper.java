@@ -41,10 +41,9 @@ public final class VehicleStateDumper {
             root.put("body", body);
 
             root.put("waypointIndex", v.controller != null ? v.controller.waypointIndex() : 1);
-            root.put("playbackProgress", round(v.controller != null ? v.controller.playbackProgress() : 0f));
+            root.put("trajectoryProgress", round(v.controller != null ? v.controller.trajectoryProgress() : 0f));
             root.put("wallStuckTime", round(v.controller != null ? v.controller.wallStuckTime() : 0f));
-            root.put("pathRefined", v.pathRefined);
-            root.put("hasPlayback", v.inboundHeading != null || v.outboundHeading != null);
+            root.put("hasTrajectory", v.controller != null && v.controller.hasTrajectory());
             root.put("marinesRemaining", v.marinesRemaining);
             root.put("overwatchCountdown", round(v.overwatchCountdown));
             root.put("turretAmmo", v.turretAmmo);

@@ -34,9 +34,7 @@ import com.dillon.starsectormarines.battle.command.AssaultCommand;
 import com.dillon.starsectormarines.battle.command.ConquestCommand;
 import com.dillon.starsectormarines.battle.command.compound.CompoundGarrisonSystem;
 import com.dillon.starsectormarines.battle.command.SabotageCommand;
-import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.vehicle.ConvoyPlanner;
-import com.dillon.starsectormarines.battle.vehicle.HybridAStarPlanner;
 import com.dillon.starsectormarines.battle.vehicle.Vehicle;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
@@ -711,21 +709,10 @@ public final class BattleSetup {
                     graph, entry, dest, gw, gh, map.defenderSpawnX, map.defenderSpawnY);
             return;
         }
+        // Coarse road-graph corridor only — no spawn-time HA* refine, no
+        // synthetic per-waypoint headings. The VehicleController's rolling
+        // local planner rounds corners on the fly (navigation-rework/overview.md).
         float[][] inboundCells = ConvoyPlanner.expandToWaypoints(path, entry);
-
-        if (inboundCells[0].length >= 2) {
-            int last = inboundCells[0].length - 1;
-            float startFacing = AirBody.facingToward(
-                    inboundCells[0][1] - inboundCells[0][0],
-                    inboundCells[1][1] - inboundCells[1][0]);
-            float goalFacing = AirBody.facingToward(
-                    inboundCells[0][last] - inboundCells[0][last - 1],
-                    inboundCells[1][last] - inboundCells[1][last - 1]);
-            float[][] refined = HybridAStarPlanner.refine(
-                    inboundCells[0], inboundCells[1], startFacing, goalFacing,
-                    VehicleType.HEAVY_APC, sim.getGrid());
-            if (refined != null) inboundCells = refined;
-        }
 
         // Prepend an off-map staging waypoint perpendicular to the entry's
         // edge so the truck visibly drives onto the map rather than popping
@@ -744,12 +731,6 @@ public final class BattleSetup {
         inY[0] = offY;
         System.arraycopy(inboundCells[0], 0, inX, 1, len);
         System.arraycopy(inboundCells[1], 0, inY, 1, len);
-        float[] inH = null;
-        if (inboundCells.length > 2) {
-            inH = new float[len + 1];
-            inH[0] = AirBody.facingToward(inX[1] - inX[0], inY[1] - inY[0]);
-            System.arraycopy(inboundCells[2], 0, inH, 1, len);
-        }
 
         RoadGraph.Node exitNode = ConvoyPlanner.pickExitNode(graph, dest, entry);
         List<RoadGraph.Edge> outPath = ConvoyPlanner.planPath(graph, dest, exitNode);
@@ -763,9 +744,6 @@ public final class BattleSetup {
         int inLast = inboundCells[0].length - 1;
         float lzX = inboundCells[0][inLast];
         float lzY = inboundCells[1][inLast];
-        float lzFacing = AirBody.facingToward(
-                inboundCells[0][inLast] - inboundCells[0][inLast - 1],
-                inboundCells[1][inLast] - inboundCells[1][inLast - 1]);
         float distLzToDest = (float) Math.sqrt(
                 (lzX - outCells[0][0]) * (lzX - outCells[0][0])
               + (lzY - outCells[1][0]) * (lzY - outCells[1][0]));
@@ -785,14 +763,6 @@ public final class BattleSetup {
         else if (exitNode.cellY == gh - 1)  exitOffY = gh + DEBUG_CONVOY_OFFMAP_PAD;
         else if (exitNode.cellX == 0)       exitOffX = -DEBUG_CONVOY_OFFMAP_PAD;
         else if (exitNode.cellX == gw - 1)  exitOffX = gw + DEBUG_CONVOY_OFFMAP_PAD;
-        if (outCells[0].length >= 2) {
-            int outLast = outCells[0].length - 1;
-            float exitFacing = AirBody.facingToward(
-                    exitOffX - outCells[0][outLast], exitOffY - outCells[1][outLast]);
-            outCells = ConvoyPlanner.refineWithFallback(
-                    outCells[0], outCells[1], lzFacing, exitFacing,
-                    VehicleType.HEAVY_APC, sim.getGrid());
-        }
         int outLen = outCells[0].length;
         float[] outX = new float[outLen + 1];
         float[] outY = new float[outLen + 1];
@@ -800,18 +770,11 @@ public final class BattleSetup {
         System.arraycopy(outCells[1], 0, outY, 0, outLen);
         outX[outLen] = exitOffX;
         outY[outLen] = exitOffY;
-        float[] outH = new float[outLen + 1];
-        if (outCells.length > 2) {
-            System.arraycopy(outCells[2], 0, outH, 0, outLen);
-        }
-        outH[outLen] = AirBody.facingToward(exitOffX - outX[outLen - 1], exitOffY - outY[outLen - 1]);
 
         Vehicle truck = new Vehicle(
                 VehicleType.HEAVY_APC, Faction.DEFENDER,
                 inX, inY, outX, outY,
                 DEBUG_CONVOY_PENDING_SEC);
-        truck.inboundHeading = inH;
-        truck.outboundHeading = outH;
         sim.addConvoyVehicle(truck);
         LOG.info("convoy: spawned HEAVY_APC entry=(" + entry.cellX + "," + entry.cellY
                 + ") exit=(" + exitNode.cellX + "," + exitNode.cellY
