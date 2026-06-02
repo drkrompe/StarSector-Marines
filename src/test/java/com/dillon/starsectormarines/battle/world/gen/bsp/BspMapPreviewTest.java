@@ -257,6 +257,113 @@ public class BspMapPreviewTest {
         System.out.println("  wrote " + contactPath.toAbsolutePath());
     }
 
+    /**
+     * Station <em>topological roles</em> preview — the foundation later placement
+     * rules query, made visible. Rooms are filled by depth-from-entry (green at
+     * the marine breach → red at the deep defender end); articulation (must-pass)
+     * rooms get a white ring; corridors draw as center-to-center lines, red for
+     * bridges (sole link, on-spine) and cyan for loop edges (alternate route).
+     * Eyeball: the depth gradient should flow from the green spawn to the red
+     * spawn, bridges should sit on the obvious chokepoints, and loops should be
+     * the visibly redundant connections.
+     */
+    @Test
+    void renderStationRolesBatch() throws Exception {
+        Files.createDirectories(OUT_DIR);
+        BspCityGenerator gen = new BspCityGenerator();
+
+        BufferedImage[] perSeed = new BufferedImage[SEEDS.length];
+        for (int i = 0; i < SEEDS.length; i++) {
+            long seed = SEEDS[i];
+            MapResult map = gen.generateStation(GRID_W, GRID_H, seed);
+            BufferedImage img = renderStationRoles(map, gen.getLastStationGraph(), seed, CELL_PX);
+            perSeed[i] = img;
+            Path out = OUT_DIR.resolve(String.format("station-roles-%04d.png", (int) seed));
+            ImageIO.write(img, "PNG", out.toFile());
+            System.out.println("  wrote " + out.toAbsolutePath());
+        }
+
+        BufferedImage contact = composeContactSheet(perSeed, 3);
+        Path contactPath = OUT_DIR.resolve("station-roles-contact.png");
+        ImageIO.write(contact, "PNG", contactPath.toFile());
+        System.out.println("  wrote " + contactPath.toAbsolutePath());
+    }
+
+    private static BufferedImage renderStationRoles(MapResult map, StationGraph graph, long seed, int cellPx) {
+        NavigationGrid grid = map.grid;
+        int w = grid.getWidth(), h = grid.getHeight();
+        int imgW = w * cellPx;
+        int imgH = h * cellPx + 24;
+        BufferedImage img = new BufferedImage(imgW, imgH, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = img.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        g.setColor(new Color(15, 15, 18));
+        g.fillRect(0, 0, imgW, imgH);
+
+        int maxDepth = 1;
+        for (StationGraph.Room r : graph.rooms()) maxDepth = Math.max(maxDepth, graph.depthFromEntry(r.id));
+
+        // Carved corridor cells in neutral gray so the actual passages read.
+        g.setColor(new Color(110, 110, 120));
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                if (map.topology.getRoomPurpose(x, y) == RoomPurpose.CORRIDOR) {
+                    g.fillRect(x * cellPx, (h - 1 - y) * cellPx, cellPx, cellPx);
+                }
+            }
+        }
+
+        // Rooms filled by depth gradient (entry green → deep red).
+        for (StationGraph.Room r : graph.rooms()) {
+            int depth = graph.depthFromEntry(r.id);
+            float t = depth < 0 ? 1f : (float) depth / maxDepth;
+            float hue = 0.33f * (1f - t);   // 0.33 green → 0.0 red
+            g.setColor(Color.getHSBColor(hue, 0.55f, 0.80f));
+            int sx = r.left * cellPx;
+            int sy = (h - 1 - r.bottom) * cellPx;
+            g.fillRect(sx, sy, (r.right - r.left + 1) * cellPx, (r.bottom - r.top + 1) * cellPx);
+        }
+
+        // Corridor edges: red = bridge (on-spine), cyan = loop.
+        List<StationGraph.Corridor> corridors = graph.corridors();
+        g.setStroke(new BasicStroke(2f));
+        for (int i = 0; i < corridors.size(); i++) {
+            StationGraph.Corridor c = corridors.get(i);
+            StationGraph.Room a = graph.room(c.roomA);
+            StationGraph.Room b = graph.room(c.roomB);
+            g.setColor(graph.isBridge(i) ? new Color(235, 70, 70) : new Color(70, 210, 235));
+            g.drawLine(a.centerX * cellPx + cellPx / 2, (h - 1 - a.centerY) * cellPx + cellPx / 2,
+                       b.centerX * cellPx + cellPx / 2, (h - 1 - b.centerY) * cellPx + cellPx / 2);
+        }
+
+        // Articulation rooms: white ring.
+        g.setColor(Color.WHITE);
+        g.setStroke(new BasicStroke(2f));
+        for (StationGraph.Room r : graph.rooms()) {
+            if (!graph.isArticulation(r.id)) continue;
+            int sx = r.left * cellPx;
+            int sy = (h - 1 - r.bottom) * cellPx;
+            g.drawRect(sx, sy, (r.right - r.left + 1) * cellPx - 1, (r.bottom - r.top + 1) * cellPx - 1);
+        }
+
+        drawDiamond(g, new Color(80, 230, 110), map.marineSpawnX,   map.marineSpawnY,   h, cellPx);
+        drawDiamond(g, new Color(240, 80,  80), map.defenderSpawnX, map.defenderSpawnY, h, cellPx);
+
+        g.setColor(new Color(0, 0, 0, 200));
+        g.fillRect(0, h * cellPx, imgW, 24);
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        int bridges = 0, arts = 0;
+        for (int i = 0; i < graph.corridorCount(); i++) if (graph.isBridge(i)) bridges++;
+        for (StationGraph.Room r : graph.rooms()) if (graph.isArticulation(r.id)) arts++;
+        g.drawString(String.format("seed=%d  rooms=%d  bridges=%d  artic=%d  maxDepth=%d",
+                seed, graph.roomCount(), bridges, arts, maxDepth), 6, h * cellPx + 16);
+
+        g.dispose();
+        return img;
+    }
+
     /** Walks the walkable subgraph from one seed cell; fails if any walkable cell is unreached. */
     private static void assertConnected(MapResult map, long seed) {
         NavigationGrid grid = map.grid;

@@ -44,6 +44,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.RoomCarveStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.SpawnAnchorStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.StationPartitionStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.StationSpawnStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.StationTopologyStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.TacticalLinkStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.TacticalRegionStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.TrunkSkeletonStage;
@@ -210,6 +211,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new RoomCarveStage(),         // carve one room per leaf
                 new CorridorStage(),          // connect rooms; publish StationGraph
                 new StationSpawnStage(),      // diameter-endpoint spawns
+                new StationTopologyStage(),   // derive depth / articulation / bridge / on-loop roles
                 new TacticalLinkStage(),      // (empty node list → empty map)
                 new FinalizeStage()));        // wall HP / cover / wall tags / buildings
     }
@@ -315,6 +317,7 @@ public final class BspCityGenerator implements MapGenerator {
         RoadGraph roadGraph = ctx.get(BspKeys.ROAD_GRAPH);
         this.lastRoadGraph = roadGraph != null ? roadGraph : RoadGraph.EMPTY;
         this.lastTacticalRegions = ctx.get(BspKeys.TACTICAL_REGIONS);
+        this.lastStationGraph = ctx.get(BspKeys.STATION_GRAPH);
 
         Buildings buildings = ctx.get(BspKeys.BUILDINGS);
         int[] marine = ctx.get(BspKeys.MARINE_SPAWN);
@@ -349,4 +352,8 @@ public final class BspCityGenerator implements MapGenerator {
     /** Last tactical-region segmentation produced by {@link #generate} — the structural-taxonomy artifact. Exposed for the preview/analysis test; null only if generation never ran. */
     private TacticalRegionMap lastTacticalRegions;
     public TacticalRegionMap getLastTacticalRegions() { return lastTacticalRegions; }
+
+    /** Last station room/corridor graph produced by {@link #generateStation} (with topological roles applied). Exposed for the station preview/topology tests; null in city modes. */
+    private StationGraph lastStationGraph;
+    public StationGraph getLastStationGraph() { return lastStationGraph; }
 }

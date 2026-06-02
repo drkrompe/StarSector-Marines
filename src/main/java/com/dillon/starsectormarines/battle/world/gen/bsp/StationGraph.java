@@ -14,16 +14,27 @@ import java.util.List;
  *
  * <p>This is the "generator publishes structure, passes consume it" seam the
  * corridors-first-class design centers on: downstream placement/spawn passes
- * query this graph (degree, neighbors, room centers) instead of re-deriving
- * topology from raw geometry. For this first slice the graph carries the
- * structure + the trivially-free {@link #degree(int)}; richer topological roles
- * (depth-from-entry, articulation points, on-spine vs on-loop) are a later layer
- * that sits on top of these vertices and edges.
+ * query this graph instead of re-deriving topology from raw geometry. Two tiers
+ * of signal:
+ * <ul>
+ *   <li><b>Structure</b> — rooms, corridors, {@link #neighbors neighbors},
+ *       {@link #degree degree} (1 = dead-end, 2 = pass-through, ≥3 = hub). Built
+ *       at carve time by {@link
+ *       com.dillon.starsectormarines.battle.world.gen.bsp.stage.CorridorStage}
+ *       ({@link #addCorridor}).</li>
+ *   <li><b>Topological roles</b> — {@link #depthFromEntry depth-from-entry} (the
+ *       indoor assault gradient), {@link #isArticulation articulation rooms} +
+ *       {@link #isBridge bridge corridors} (must-pass fortify points), and
+ *       {@link #isOnLoop on-spine vs on-loop} (main line vs flank). Derived
+ *       <em>after</em> spawns are known by {@link
+ *       com.dillon.starsectormarines.battle.world.gen.bsp.stage.StationTopologyStage}
+ *       via {@link #applyRoles}; {@link #hasRoles} reports whether they're
+ *       populated. These are the foundation later placement rules query.</li>
+ * </ul>
  *
- * <p>Built incrementally by {@link
- * com.dillon.starsectormarines.battle.world.gen.bsp.stage.CorridorStage}
- * ({@link #addCorridor}) and then treated as read-only by consumers. Room id ==
- * index into {@link #rooms()}, assigned in BSP leaf order (deterministic).
+ * <p>Treated as read-only by consumers once both tiers are filled. Room id ==
+ * index into {@link #rooms()}, assigned in BSP leaf order (deterministic);
+ * corridor index == position in {@link #corridors()} (addition order).
  */
 public final class StationGraph {
 
@@ -63,6 +74,13 @@ public final class StationGraph {
     private final List<Corridor> corridors = new ArrayList<>();
     private final List<List<Integer>> adjacency;
 
+    // --- derived topological roles: null until StationTopologyStage calls applyRoles ---
+    private int entryRoom = -1;
+    private int[] depthFromEntry;     // BFS hops from entryRoom; -1 if unreachable
+    private boolean[] articulation;   // must-pass room: its removal disconnects the graph
+    private boolean[] onLoop;         // room touches a cycle (has ≥1 non-bridge incident corridor)
+    private boolean[] bridgeCorridor; // per corridors() index: the sole link to a subtree
+
     public StationGraph(List<Room> rooms) {
         this.rooms = List.copyOf(rooms);
         this.adjacency = new ArrayList<>(rooms.size());
@@ -98,6 +116,10 @@ public final class StationGraph {
         return List.copyOf(corridors);
     }
 
+    public int corridorCount() {
+        return corridors.size();
+    }
+
     /** Neighbor room ids reachable by one corridor from {@code roomId}. */
     public List<Integer> neighbors(int roomId) {
         return adjacency.get(roomId);
@@ -106,5 +128,53 @@ public final class StationGraph {
     /** Number of corridors meeting this room — 1 = dead-end, 2 = pass-through, ≥3 = hub. */
     public int degree(int roomId) {
         return adjacency.get(roomId).size();
+    }
+
+    // ----- Topological roles (populated by StationTopologyStage) -----
+
+    /**
+     * Install the derived topological roles. Called once by
+     * {@link com.dillon.starsectormarines.battle.world.gen.bsp.stage.StationTopologyStage}
+     * after spawns are known. Arrays are stored by reference (the stage hands off
+     * ownership); {@code depthFromEntry}/{@code articulation}/{@code onLoop} are
+     * indexed by room id, {@code bridgeCorridor} by {@link #corridors()} index.
+     */
+    public void applyRoles(int entryRoom, int[] depthFromEntry, boolean[] articulation,
+                           boolean[] onLoop, boolean[] bridgeCorridor) {
+        this.entryRoom = entryRoom;
+        this.depthFromEntry = depthFromEntry;
+        this.articulation = articulation;
+        this.onLoop = onLoop;
+        this.bridgeCorridor = bridgeCorridor;
+    }
+
+    /** True once {@link #applyRoles} has run — guards the role accessors below. */
+    public boolean hasRoles() {
+        return depthFromEntry != null;
+    }
+
+    /** The attacker-entry room (marine spawn) BFS depth is measured from. -1 until roles are applied. */
+    public int entryRoom() {
+        return entryRoom;
+    }
+
+    /** Corridor hops from the entry room — the indoor assault gradient. -1 if unreachable (or roles unapplied). */
+    public int depthFromEntry(int roomId) {
+        return depthFromEntry[roomId];
+    }
+
+    /** Must-pass room: removing it (and its corridors) disconnects the graph. The defender's natural fortify point. */
+    public boolean isArticulation(int roomId) {
+        return articulation[roomId];
+    }
+
+    /** True iff the room touches a cycle (has ≥1 non-bridge corridor) — on a flank/loop rather than purely on the spine. */
+    public boolean isOnLoop(int roomId) {
+        return onLoop[roomId];
+    }
+
+    /** Bridge corridor (by {@link #corridors()} index): the sole link to a subtree — on-spine, no alternate route. */
+    public boolean isBridge(int corridorIndex) {
+        return bridgeCorridor[corridorIndex];
     }
 }
