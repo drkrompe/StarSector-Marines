@@ -96,10 +96,13 @@ public final class VehicleRoutePlanner {
 
     /**
      * True if the straight segment between two cell centers stays entirely within
-     * the clearance mask. Uses an Amanatides–Woo voxel traversal so <em>every</em>
-     * cell the segment intersects — including corner-graze cells — is checked; a
-     * single sub-clearance cell on the line fails the test. Conservative at exact
-     * diagonal corners (visits both adjacent cells), which is the safe bias.
+     * the clearance mask. Uses an Amanatides–Woo voxel traversal that checks every
+     * cell the segment's interior passes through (start cell pre-loop, each stepped
+     * cell including the end); a single sub-clearance cell on the line fails the
+     * test. At an exact grid-corner crossing the {@code tMaxX < tMaxY} tie-break
+     * steps Y first, so only the cells the line actually enters are checked — the
+     * diagonally-opposite cell it merely grazes at the corner point is not, which
+     * is correct: a vehicle on the centerline never enters that cell's interior.
      */
     private static boolean segmentClear(int[] cells, int from, int to, VehicleClearance clearance) {
         double x0 = cells[from * 2] + 0.5, y0 = cells[from * 2 + 1] + 0.5;
