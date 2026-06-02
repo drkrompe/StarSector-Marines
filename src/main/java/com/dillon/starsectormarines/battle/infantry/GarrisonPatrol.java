@@ -68,18 +68,55 @@ public final class GarrisonPatrol implements Action {
     public ActionStatus execute(Unit member, Squad squad, BattleControl sim) {
         Faction enemy = squad.faction == Faction.MARINE ? Faction.DEFENDER : Faction.MARINE;
 
-        // CONTEST — re-clear the first room (largest first) that holds an enemy.
-        // ClearZone owns the engage-in-zone / no-chase-across-portals logic; we
-        // coerce its SUCCESS to RUNNING since garrisoning never terminates.
+        // CONTEST — re-clear the first room (largest first) that holds an enemy
+        // we can actually engage. ClearZone owns the engage-in-zone /
+        // no-chase-across-portals logic; we coerce its SUCCESS to RUNNING since
+        // garrisoning never terminates.
+        //
+        // The engageability gate is load-bearing: a surviving enemy alone isn't
+        // enough to enter CONTEST — this marine must have a reachable firing
+        // position for it. Otherwise a defender whose only LOS cells sit across
+        // a wall (a captured compound's exterior turret floods into the interior
+        // room in the zone graph but is fenced off for the pathfinder —
+        // [[zone_graph_ignores_edges]]) pins the garrison in a CONTEST it can
+        // never act on, freezing it on an unreachable target instead of
+        // patrolling. When nothing engageable remains, fall through to QUIET —
+        // which still fires opportunistically if the enemy ever comes into view.
         for (int zoneId : garrisonZones) {
-            if (!ZoneQueries.zoneClear(zoneId, enemy, sim)) {
-                new ClearZone(zoneId).execute(member, squad, sim);
-                return ActionStatus.RUNNING;
-            }
+            if (ZoneQueries.zoneClear(zoneId, enemy, sim)) continue;
+            if (!zoneHasEngageableEnemy(zoneId, member, enemy, sim)) continue;
+            new ClearZone(zoneId).execute(member, squad, sim);
+            return ActionStatus.RUNNING;
         }
 
         // QUIET — rooms clear: patrol the room interiors, firing opportunistically.
         return PatrolMotion.advance(member, squad, sim, waypointSource, /*fireWhilePatrolling*/ true);
+    }
+
+    /**
+     * True iff some live enemy combatant standing in {@code zoneId} has a firing
+     * position {@code member} can actually reach — the gate for entering CONTEST
+     * on that room. Mirrors the in-zone enemy scan of
+     * {@link ZoneQueries#zoneClear}, but adds the reachability test it omits:
+     * {@code zoneClear} answers "is anyone here", this answers "can we engage
+     * them" via {@link com.dillon.starsectormarines.battle.decision.TacticalScoring#hasReachableFiringSpot}.
+     * Without the latter a garrison freezes on a surviving-but-unreachable enemy
+     * (see the CONTEST comment + the SQ-96 walled-off-turret case).
+     *
+     * <p>Per-member by design: a marine that can reach the breach contests it;
+     * one walled off from every survivor patrols instead and fires only if the
+     * enemy comes into the open. Cost is bounded — the enemy scan is the same
+     * O(units) pass {@code zoneClear} already runs, and the reachability probe
+     * fires only for the (few) enemies actually inside the room.
+     */
+    private boolean zoneHasEngageableEnemy(int zoneId, Unit member, Faction enemy, BattleControl sim) {
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            Unit e = sim.liveUnitAt(i);
+            if (e.faction != enemy || !e.type.combatant) continue;
+            if (sim.getZoneGraph().zoneIdAt(e.getCellX(), e.getCellY()) != zoneId) continue;
+            if (sim.getTacticalScoring().hasReachableFiringSpot(member, e)) return true;
+        }
+        return false;
     }
 
     /**

@@ -770,6 +770,39 @@ public final class TacticalScoring {
     }
 
     /**
+     * True iff {@code self} can actually take up a firing position against
+     * {@code target} — i.e. some walkable cell with LOS + weapon range to the
+     * target is <em>reachable from {@code self} by the pathfinder</em>.
+     *
+     * <p>This is the reachability check {@link #findFiringPosition} deliberately
+     * skips: its stage-1 result is LOS-and-range only (a per-candidate pathfind
+     * would tank the hot reposition path), so it can hand back a firing cell
+     * that sits on the far side of a wall from {@code self}. A caller that paths
+     * to such a cell gets an empty path and freezes. So here we verify the
+     * stage-1 cell is pathable, and when it isn't, fall back to the
+     * reachable-vantage probe — the authoritative "can I even approach?".
+     *
+     * <p>The gate {@link com.dillon.starsectormarines.battle.infantry.GarrisonPatrol}
+     * uses so a garrison doesn't wedge itself re-clearing an enemy it can never
+     * close on — e.g. a surviving turret whose only LOS cells lie across a wall
+     * the zone graph floods past but the pathfinder honors
+     * ([[zone_graph_ignores_edges]]). Cost: one {@link #findFiringPosition}
+     * plus at most a couple of pathfinds; invoke only when a cheaper "is anyone
+     * even here" gate (e.g. zone-clear) has already passed.
+     */
+    public boolean hasReachableFiringSpot(Unit self, Unit target) {
+        int[] spot = findFiringPosition(self, target);
+        if (spot == null) return false;
+        // A stage-2 vantage is already reachability-checked, so this pathfind
+        // only ever fails when findFiringPosition returned a stage-1 (LOS+range)
+        // cell that's walled off from self — in which case the vantage probe is
+        // the real verdict on whether an approach exists at all.
+        int[] path = GridPathfinder.findPath(grid, self.getCellX(), self.getCellY(), spot[0], spot[1]);
+        if (path.length > 0) return true;
+        return pickReachableVantage(self, target) != null;
+    }
+
+    /**
      * Constrained firing-position search — like {@link #findFiringPosition} but
      * rejects any candidate whose cell-distance from ({@code anchorX},
      * {@code anchorY}) exceeds {@code maxDistFromAnchor}. Used by

@@ -871,4 +871,57 @@ public class TacticalScoringTest {
         assertEquals(1, s.countCombatantsWithin(Faction.MARINE, 15, 15, 8f),
                 "a dead combatant drops out of the tally");
     }
+
+    // ---------------------------------------------------------------------
+    // Part N — hasReachableFiringSpot (the garrison-freeze gate)
+    // ---------------------------------------------------------------------
+
+    /** Two rooms (x1–10 and x12–22, y1–7) split by a solid wall column at x=11. */
+    private static BattleSimulation twoRoomsWalledAt11() {
+        int w = 24, h = 9;
+        NavigationGrid grid = new NavigationGrid(w, h);
+        CellTopology topology = new CellTopology(w, h);
+        for (int y = 1; y <= 7; y++) {
+            for (int x = 1; x <= 22; x++) {
+                if (x == 11) continue;   // wall column dividing the two rooms
+                grid.setWalkableFloor(x, y);
+            }
+        }
+        return new BattleSimulation(grid, topology);
+    }
+
+    @Test
+    public void hasReachableFiringSpotFalseWhenTargetIsWalledOff() {
+        // Enemy in the east room, out of weapon range, behind a solid wall: no
+        // LOS crosses it and no path goes around it, so every firing cell sits
+        // in the unreachable room. The gate must read false — this is exactly
+        // the SQ-96 freeze (findFiringPosition hands back a LOS+range cell that
+        // GridPathfinder can't route to).
+        BattleSimulation sim = twoRoomsWalledAt11();
+        Unit marine = new Unit("m", Faction.MARINE, UnitType.MARINE, 5, 4);
+        Unit enemy  = new Unit("d", Faction.DEFENDER, UnitType.MARINE, 17, 4);
+        sim.addUnit(marine);
+        sim.addUnit(enemy);
+
+        assertNotNull(sim.getTacticalScoring().findFiringPosition(marine, enemy),
+                "a LOS+range firing cell exists in the enemy's room — but it's unreachable");
+        assertFalse(sim.getTacticalScoring().hasReachableFiringSpot(marine, enemy),
+                "walled-off enemy with no reachable firing position → not engageable");
+    }
+
+    @Test
+    public void hasReachableFiringSpotTrueWhenAPathExists() {
+        // Same geometry, but a doorway in the wall opens a route into the east
+        // room: now a reachable firing position exists, so the gate flips true.
+        BattleSimulation sim = twoRoomsWalledAt11();
+        sim.getGrid().setWalkableFloor(11, 4);
+        sim.getGrid().setDoorway(11, 4, true);
+        Unit marine = new Unit("m", Faction.MARINE, UnitType.MARINE, 5, 4);
+        Unit enemy  = new Unit("d", Faction.DEFENDER, UnitType.MARINE, 17, 4);
+        sim.addUnit(marine);
+        sim.addUnit(enemy);
+
+        assertTrue(sim.getTacticalScoring().hasReachableFiringSpot(marine, enemy),
+                "with a doorway the marine can reach a firing position → engageable");
+    }
 }
