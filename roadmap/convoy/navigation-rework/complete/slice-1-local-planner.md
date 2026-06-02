@@ -1,7 +1,56 @@
-# Slice 1 — Rolling-horizon local planner
+# Slice 1 — Rolling-horizon local planner  ✅ SHIPPED
 
 > Build `LocalTrajectoryPlanner` in isolation and prove it out with unit
 > tests before it touches live motion. The heart of the rewrite.
+
+## Shipped
+
+Commit: _(this commit)_ — `battle/vehicle/` local planner + `Trajectory`,
+unit-tested. Not yet wired to motion (that's slice 2).
+
+What actually landed vs. planned:
+
+- **`Trajectory`** (new) — immutable dense pose sequence (`xs/ys/headings`),
+  cumulative arc length, `lengthCells()`, `sampleAtDistance(d)` (shortest-arc
+  heading interp, mirrors the old playback sampler), and `start/end/pose(i)`.
+  Always ≥2 poses; the planner returns `null` (not an empty `Trajectory`) for
+  "no trajectory".
+- **`HybridAStarPlanner.planLocal(...)`** (new, additive) — the bounded
+  rolling-horizon search. Reuses the existing private helpers (`Node`,
+  `heuristic`, `tryAnalyticExpansion`, `headingBinFor`, `stateIndex`,
+  successor gen, RS analytic) so the proven `refine()` path is **untouched**
+  (zero regression risk; consolidating the two onto a shared core is deferred
+  until slice 2 retires the full-path refine usage). Two differences from
+  `refine()`: (a) successor expansion **and** the grid-distance flood are
+  clamped to a cell window; (b) acceptance is a goal **radius** (any heading)
+  rather than exact cell+heading — plus the usual RS analytic shortcut to the
+  exact goal pose. `computeGridDistance` gained a windowed overload (old 5-arg
+  delegates to it with the whole grid).
+- **`LocalTrajectoryPlanner.plan(start, corridor, type, grid)`** (new) — pure
+  policy layer: derives the horizon (`max(6, 2.5×turnRadius)`), the soft goal
+  via `corridor.targetAhead`, the goal radius (`0.75×turnRadius`, floor 1.5),
+  and the search window (start↔goal span + `turnRadius + ½footprint + 2`
+  slack), then calls `planLocal` and wraps the result in a `Trajectory`.
+- **Constants recorded** on `LocalTrajectoryPlanner` (`HORIZON_*`,
+  `GOAL_RADIUS_*`, `WINDOW_SLACK_CELLS`, `LOCAL_MAX_ITERATIONS=4000`) —
+  slice-1 starting values, to be tuned in slice 4.
+
+Tests (`LocalTrajectoryPlannerTest`, all green): straight clear lane → smooth
+feasible trajectory staying near centerline; wide 90° corner → feasible rounded
+trajectory with a real (>30°) net turn and **no heading jump >40°/pose** (the
+explicit anti-snap assertion); walled-off goal → `null`; 3-cell tight elbow →
+`null`-or-feasible, never an infeasible returned path. `Global.getLogger` in
+`HybridAStarPlanner`'s static init is headless-safe (tests construct the
+planner directly).
+
+Note (informs slice 2): a single local plan from well *before* a bend turns
+only slightly — the full corner is rounded over several replans as the vehicle
+advances. The slice-2 replan cadence has to be frequent enough that the rolling
+goal keeps marching down the corridor.
+
+---
+
+## Original plan (for reference)
 
 ## Goal
 

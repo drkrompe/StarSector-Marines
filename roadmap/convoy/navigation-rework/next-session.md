@@ -2,12 +2,18 @@
 
 ## State of play
 
-**Slice 0 shipped — seam in place, no behavior change yet.** The
-`VehicleController` + `ReferenceCorridor` seam is extracted; `GroundSystem`'s
-state machine drives motion through `controller.tick(dt, inbound)` +
-`consumeArrived()`. Motion is byte-identical (still the old `headings != null`
-fork, still 90° corners) — slice 2 is where that changes. Details in
-[`complete/slice-0-controller-seam.md`](complete/slice-0-controller-seam.md).
+**Slices 0–1 shipped.** The seam (slice 0) and the rolling-horizon planner
+(slice 1) are in. Motion is still byte-identical to pre-rework — the planner
+exists and is unit-tested but is **not yet wired to motion**. Slice 2 is the
+behavioral pivot that flips to it and kills the 90° snaps.
+
+- Slice 0: `VehicleController` + `ReferenceCorridor` seam; `GroundSystem`
+  drives motion via `controller.tick(dt, inbound)` + `consumeArrived()`.
+  ([`complete/slice-0-controller-seam.md`](complete/slice-0-controller-seam.md))
+- Slice 1: `LocalTrajectoryPlanner` + `Trajectory` +
+  `HybridAStarPlanner.planLocal` (bounded window, soft goal). Pure,
+  unit-tested, untouched live `refine()`.
+  ([`complete/slice-1-local-planner.md`](complete/slice-1-local-planner.md))
 
 Track: full layered rewrite anchored on a **rolling-horizon local Hybrid A\***
 planner with always-on kinematic tracking. No backward-compat constraint — we
@@ -17,16 +23,21 @@ Read [`overview.md`](overview.md) first — it has the diagnosis (the
 `refineWithFallback` synthetic-heading fork is why corners snap 90° and
 recovery never fires) and the target architecture.
 
-**Next up: slice 1** — build `LocalTrajectoryPlanner` standalone with unit
-tests; it doesn't touch live motion, so it's safe to develop while the
-`Squad.leader` refactor churns the tree.
+**Next up: slice 2** — wire `VehicleController.tick` to track the rolling
+`Trajectory` with `BicycleBody` + `PurePursuit` every tick (replan every K
+ticks / on deviation); **delete `advancePlayback`, `ConvoyPlanner.refineWithFallback`,
+`deriveSegmentHeadings`, and the `inbound/outboundHeading` arrays**. Keep RS
+docking as the terminal LZ phase. The 90° snaps die here — attach a critique-pass
+agent (it's the regression-prone behavioral pivot). Heed slice 1's note: the
+replan cadence must keep the rolling goal marching down the corridor or corners
+under-turn.
 
 ## Slice chain
 
 - [x] **Slice 0** — `VehicleController` + `ReferenceCorridor` seam, no
       behavior change. ([`complete/slice-0-controller-seam.md`](complete/slice-0-controller-seam.md)) ✅
-- [ ] **Slice 1** — `LocalTrajectoryPlanner` (bounded rolling-horizon HA\*),
-      unit-tested standalone. ([`stories/slice-1-local-planner.md`](stories/slice-1-local-planner.md))
+- [x] **Slice 1** — `LocalTrajectoryPlanner` (bounded rolling-horizon HA\*),
+      unit-tested standalone. ([`complete/slice-1-local-planner.md`](complete/slice-1-local-planner.md)) ✅
 - [ ] **Slice 2** — live tracking; delete `advancePlayback` /
       `refineWithFallback` / `deriveSegmentHeadings`. **90° snaps die here.**
       ([`stories/slice-2-live-tracking.md`](stories/slice-2-live-tracking.md))
@@ -50,10 +61,18 @@ tests; it doesn't touch live motion, so it's safe to develop while the
 
 ## Picking up cold
 
-Slice 0 is done — the seam (`VehicleController` + `ReferenceCorridor`) is the
-single place to plug into. Start at **slice 1**: build `LocalTrajectoryPlanner`
-as a pure function (pose + corridor + grid → feasible `Trajectory`) wrapping
-the existing `HybridAStarPlanner` search on a bounded window, exercised only by
-unit tests. It doesn't wire into motion yet (that's slice 2), so it's
-unaffected by whatever else is churning the main tree.
+Slices 0–1 are done: the seam (`VehicleController` + `ReferenceCorridor`) and
+the planner (`LocalTrajectoryPlanner.plan` → `Trajectory`, backed by
+`HybridAStarPlanner.planLocal`) both exist and are tested. Start at **slice 2**:
+inside `VehicleController.tick`, replace the `advance`/`advancePlayback`
+dispatch with a live loop — hold a current `Trajectory`, refresh it from
+`LocalTrajectoryPlanner.plan(currentPose, corridor, type, grid)` every K ticks
+(or when consumed / drifted), `PurePursuit.pick` a carrot along the
+*trajectory* (not the coarse corridor), brake-taper on
+`trajectory.lengthCells() + corridor.remainingLength`, `body.tick(...)`, then
+advance the corridor cursor by projecting the new pose. Delete `advancePlayback`,
+`ConvoyPlanner.refineWithFallback` + `deriveSegmentHeadings`, and the
+`inbound/outboundHeading` arrays + `headings != null` dispatch. Keep
+`advanceDocking` (RS) as the terminal LZ phase. Sync `body.x/y` → renderer each
+tick (`[[air_unit_render_sync]]`). Attach a critique-pass agent.
 </content>
