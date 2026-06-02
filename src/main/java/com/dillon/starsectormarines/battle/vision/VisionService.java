@@ -363,25 +363,28 @@ public final class VisionService {
     private void sweepUnitVisibility(UnitRegistry registry) {
         for (int i = 0, n = registry.liveCount(); i < n; i++) {
             Unit u = registry.get(i);
-            ensureUnitCapacity(u.denseIdx + 1);
+            // i IS the dense index (registry.get(i) == dense[i], dense[i].denseIdx==i),
+            // and the visibility/fade arrays are keyed by dense index — so i indexes
+            // them directly, no u.denseIdx field read.
+            ensureUnitCapacity(i + 1);
 
             if (visionState.isContributor(u.faction)) {
-                unitVisibility[u.denseIdx] = VIS_VISIBLE;
-                fadeAlpha[u.denseIdx] = 1f;
+                unitVisibility[i] = VIS_VISIBLE;
+                fadeAlpha[i] = 1f;
                 continue;
             }
 
             boolean revealed = isCellRevealed(registry.getCellX(i), registry.getCellY(i));
-            byte prev = unitVisibility[u.denseIdx];
+            byte prev = unitVisibility[i];
 
             if (revealed) {
-                unitVisibility[u.denseIdx] = VIS_VISIBLE;
-                fadeAlpha[u.denseIdx] = 1f;
+                unitVisibility[i] = VIS_VISIBLE;
+                fadeAlpha[i] = 1f;
             } else if (prev == VIS_VISIBLE) {
-                unitVisibility[u.denseIdx] = VIS_FADING;
+                unitVisibility[i] = VIS_FADING;
                 // fadeAlpha stays at 1.0 — advanceFade will tick it down
             } else if (prev != VIS_FADING) {
-                unitVisibility[u.denseIdx] = VIS_HIDDEN;
+                unitVisibility[i] = VIS_HIDDEN;
             }
         }
     }
