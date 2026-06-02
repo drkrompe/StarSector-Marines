@@ -283,6 +283,10 @@ product direction; walls stay in the headless sim.
 ## How this directory is laid out
 
 - **`overview.md`** (this file) — concept, verified facts, architecture, probes.
-- **`stories/`** — the active probe docs (`s1-wall-clamp-probe` — shelved).
+- **`architecture.md`** — post-S2 north star: the event-adapter coupling decision,
+  proxy/targetability model, spatial fork, and the S3a–d decomposition. **Read this
+  before building any S3 story.**
+- **`stories/`** — `s3a-sim-coupling-slice` (next build), `s3b-cityscape-backdrop`,
+  `s3c-airspace-gating`, `s3d-shuttle-scaledown` (stubs); `s1-wall-clamp-probe` (shelved).
 - **`complete/`** — sealed shipped work (`s0-battle-bootstrap`, `s0b-spectator-canvas`, `s2-proxy-target-probe`).
-- **`next-session.md`** — handoff state; S0 / S0b / S2 shipped & playtested. Next: sim HP-drain wiring → S3.
+- **`next-session.md`** — handoff state; S0 / S0b / S2 shipped & playtested. Next: S3a sim-coupling slice.

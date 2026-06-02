@@ -17,21 +17,25 @@ end to end:
 
 Sealed: `complete/{s0-battle-bootstrap, s0b-spectator-canvas, s2-proxy-target-probe}.md`.
 
-## Next: the first real two-engine coupling (toward S3)
+## S3 phase planned — read `architecture.md` first
 
-Replace the S2 proxy's standalone HP counter with a real sim `Unit`:
+The post-S2 architecture is written down in [`architecture.md`](architecture.md): the
+**event-translated coupling decision** (sim-authoritative; proxy HP is a throwaway
+hittable surface; vanilla→sim = damage delta via `applyExternalDamage`; sim→vanilla =
+pub/sub death/spawn mailbox; no state mirroring), the **proxy-as-aggregation /
+targetability tiers** (infantry never directly targetable; structures/defenses get
+proxies; area damage for strafes + main-battery fire), and the **spatial fork** (hard
+ground-band AI-gating vs loose convention — decide at S3c).
 
-- **The hook exists:** `BattleSimulation.applyExternalDamage(Unit target, float damage)`
-  (`BattleSimulation.java:1087`) — built for flyby strafing, routes through
-  `DamageResolver` with morale + fallback short-circuited, runs cover/HP-write/death
-  cascade normally. Drain the proxy's per-frame HP delta into it.
-- **Shape:** one proxy per sim squad/turret. Proxy position ← unit cell (× `WORLD_UNITS_PER_CELL`
-  = 50). Proxy HP delta → `applyExternalDamage`. Unit death → despawn proxy; proxy gone
-  → stop driving. This is the first slice of **S3** (overview): the headless `battle/`
-  sim driving a *fleet* of proxies under the vanilla fleet fight, with the real ground
-  scene rendered on the below-ships layer and full above⇄below cross-interaction.
-- **Open question #2** (overview) is now answered: the external-damage path is
-  `applyExternalDamage`.
+Decomposition (stories written):
+- **S3a — sim coupling slice** *(next build).* One real `Unit` behind a proxy; HP-drain
+  via `BattleSimulation.applyExternalDamage` (`BattleSimulation.java:1087`); sim death
+  event despawns the proxy. Smallest end-to-end test of the coupling decision.
+- **S3b — cityscape backdrop.** Ground renderer → below-ships layer.
+- **S3c — airspace banding / AI gating.** The hard de-risk; resolve the spatial fork.
+- **S3d — shuttle scale-down handoff.** Diegetic bridge between the two scales.
+
+Overview open question #2 is answered: the external-damage path is `applyExternalDamage`.
 
 ## Reusable combathybrid pieces
 
