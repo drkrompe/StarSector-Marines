@@ -75,6 +75,11 @@ public final class TerrainCostField {
         return cost[idx];
     }
 
+    /** Backing array for {@link VehicleRoutePlanner} to hand straight to the pathfinder — do not mutate. */
+    float[] costArray() {
+        return cost;
+    }
+
     /** The multiplicative cost a vehicle pays to drive onto a cell of this ground kind. */
     static float costFor(GroundKind kind) {
         switch (kind) {

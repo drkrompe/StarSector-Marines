@@ -191,7 +191,26 @@ public final class GridPathfinder {
      */
     public static int[] findPath(NavigationGrid grid, int startX, int startY, int goalX, int goalY,
                                   byte[] occupancy) {
-        return findPath(grid, startX, startY, goalX, goalY, USE_CARDINAL_NAVIGATION, occupancy);
+        return findPath(grid, startX, startY, goalX, goalY, USE_CARDINAL_NAVIGATION, occupancy, null, null);
+    }
+
+    /**
+     * Cost-field overload for vehicle routing. {@code costField}, when non-null,
+     * is a per-cell traversal multiplier indexed by {@link NavigationGrid#index}:
+     * the step cost into a cell becomes {@code DIR_COST[dir] × costField[nIdx]},
+     * so search prefers cheap terrain (roads at baseline 1.0) yet crosses dearer
+     * terrain when it shortens the route. {@code passable}, when non-null, gates
+     * traversal in place of raw walkability — a vehicle-clearance mask, so the
+     * route can never thread a gap the footprint can't fit. Both endpoints must
+     * be passable. Baseline cost 1.0 keeps the octile heuristic admissible.
+     *
+     * <p>Generalizes the {@link #OCCUPANCY_PENALTY} hook (the occupancy path adds
+     * a flat per-occupant penalty; this multiplies by terrain). Infantry callers
+     * keep their existing signatures untouched.
+     */
+    public static int[] findPath(NavigationGrid grid, int startX, int startY, int goalX, int goalY,
+                                  float[] costField, boolean[] passable) {
+        return findPath(grid, startX, startY, goalX, goalY, USE_CARDINAL_NAVIGATION, null, costField, passable);
     }
 
     /**
@@ -208,9 +227,15 @@ public final class GridPathfinder {
      */
     public static int[] findPath(NavigationGrid grid, int startX, int startY, int goalX, int goalY,
                                   boolean cardinalOnly, byte[] occupancy) {
+        return findPath(grid, startX, startY, goalX, goalY, cardinalOnly, occupancy, null, null);
+    }
+
+    /** Full-control overload threading both the occupancy penalty and the cost-field / clearance gate. */
+    public static int[] findPath(NavigationGrid grid, int startX, int startY, int goalX, int goalY,
+                                  boolean cardinalOnly, byte[] occupancy, float[] costField, boolean[] passable) {
         long _profT0 = System.nanoTime();
         try {
-            return findPathInner(grid, startX, startY, goalX, goalY, cardinalOnly, occupancy);
+            return findPathInner(grid, startX, startY, goalX, goalY, cardinalOnly, occupancy, costField, passable);
         } finally {
             TickInnerProfile p = TickInnerProfile.current();
             if (p != null) p.record(TickInnerProfile.Bucket.PATHFIND, System.nanoTime() - _profT0);
@@ -218,17 +243,26 @@ public final class GridPathfinder {
     }
 
     private static int[] findPathInner(NavigationGrid grid, int startX, int startY, int goalX, int goalY,
-                                        boolean cardinalOnly, byte[] occupancy) {
+                                        boolean cardinalOnly, byte[] occupancy, float[] costField, boolean[] passable) {
         if (!grid.isWalkable(startX, startY) || !grid.isWalkable(goalX, goalY)) {
             return EMPTY_PATH;
-        }
-        if (startX == goalX && startY == goalY) {
-            return new int[]{startX, startY};
         }
 
         int w = grid.getWidth();
         int h = grid.getHeight();
         int totalCells = w * h;
+
+        int startIdx = startY * w + startX;
+        int goalIdx  = goalY  * w + goalX;
+
+        // Clearance gate: a vehicle whose footprint can't sit on either endpoint
+        // has no route. (Endpoint snapping for eroded perimeter cells is slice 2's job.)
+        if (passable != null && (!passable[startIdx] || !passable[goalIdx])) {
+            return EMPTY_PATH;
+        }
+        if (startX == goalX && startY == goalY) {
+            return new int[]{startX, startY};
+        }
 
         Workspace ws = WORKSPACE.get();
         ws.ensureCapacity(totalCells);
@@ -239,8 +273,6 @@ public final class GridPathfinder {
         int[] parentIdx = ws.parentIdx;
         int[] heapPos = ws.heapPos;
 
-        int startIdx = startY * w + startX;
-        int goalIdx  = goalY  * w + goalX;
         int dirCount = cardinalOnly ? 4 : 8;
 
         gCost[startIdx] = 0;
@@ -285,6 +317,7 @@ public final class GridPathfinder {
                 int nIdx = ny * w + nx;
 
                 if ((cellFlags[nIdx] & 1L) == 0L) continue;
+                if (passable != null && !passable[nIdx]) continue;
                 // Dual-side edge check: source cell's edge AND destination's reciprocal.
                 if ((edgePass[currentIdx] & DIR_EDGE_MASK[dirI]) == 0) continue;
                 if ((edgePass[nIdx]       & DIR_OPP_EDGE_MASK[dirI]) == 0) continue;
@@ -309,6 +342,7 @@ public final class GridPathfinder {
                 if (heapPos[nIdx] == CLOSED) continue;
 
                 float stepCost = DIR_COST[dirI];
+                if (costField != null) stepCost *= costField[nIdx];
                 if (occupancy != null) {
                     int occCount = occupancy[nIdx] & 0xFF;
                     if (occCount > 0) stepCost += OCCUPANCY_PENALTY * occCount;

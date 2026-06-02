@@ -88,4 +88,9 @@ public final class VehicleClearance {
     public boolean isPassableAt(int idx) {
         return passable[idx];
     }
+
+    /** Backing mask for {@link VehicleRoutePlanner} to hand straight to the pathfinder — do not mutate. */
+    boolean[] passableArray() {
+        return passable;
+    }
 }
