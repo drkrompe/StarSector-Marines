@@ -47,19 +47,15 @@ public class Unit {
     public long entityId = 0L;
 
     /**
-     * Dense-array index in {@link UnitRegistry}, or {@code -1} when the unit
-     * isn't currently allocated (pre-allocate, or after release). Used by
-     * {@link #getHp} / {@link #setHp} to address the SoA hp slot. The
-     * registry updates this on allocate and on swap-and-pop release moves;
-     * cleared to -1 by release on the unit being removed.
-     */
-    public int denseIdx = -1;
-
-    /**
      * Back-reference to the registry currently holding this unit, or
-     * {@code null} when not allocated. Lets the per-unit hp accessors
-     * find the SoA slot without threading the registry through every
-     * call site. Set by {@link UnitRegistry#allocate}; cleared by release.
+     * {@code null} when not allocated. Lets the per-unit accessors resolve
+     * their SoA slot (by {@link #entityId}, via {@link #idx()}) without
+     * threading the registry through every call site, and serves as the
+     * allocation/liveness marker ({@code registry == null} ⇒ released or
+     * pre-allocate). Set by {@link UnitRegistry#allocate}; cleared by release.
+     * (The cached {@code denseIdx} field this used to sit beside is gone — the
+     * slot is now always resolved through the registry's id→index map, the
+     * single source of truth, so a held ref can never carry a stale index.)
      */
     public UnitRegistry registry;
 
@@ -141,21 +137,27 @@ public class Unit {
 
     public void advanceAlongPath(float dt) {
         if (pathIdx >= pathCellCount()) return;
+        // Per-tick movement step: resolve the dense slot once, then read/write
+        // the cell + move-progress columns by index (not through the per-call
+        // OO accessors, which would each re-probe the id→index map).
+        int idx = idx();
         int nextX = pathCellX(pathIdx);
         int nextY = pathCellY(pathIdx);
-        float dx = nextX - getCellX();
-        float dy = nextY - getCellY();
+        int curX = registry.getCellX(idx);
+        int curY = registry.getCellY(idx);
+        float dx = nextX - curX;
+        float dy = nextY - curY;
         float cellDist = (float) Math.sqrt(dx * dx + dy * dy);
         if (cellDist < 0.0001f) { pathIdx++; return; }
-        float mp = getMoveProgress() + (moveSpeed * dt) / cellDist;
+        float mp = registry.getMoveProgress(idx) + (moveSpeed * dt) / cellDist;
         if (mp >= 1f) {
-            setCellPos(nextX, nextY);
+            registry.setCellPos(idx, nextX, nextY);
             setRenderPos(nextX, nextY);
-            setMoveProgress(0f);
+            registry.setMoveProgress(idx, 0f);
             pathIdx++;
         } else {
-            setMoveProgress(mp);
-            setRenderPos(getCellX() + dx * mp, getCellY() + dy * mp);
+            registry.setMoveProgress(idx, mp);
+            setRenderPos(curX + dx * mp, curY + dy * mp);
         }
     }
 
@@ -211,7 +213,7 @@ public class Unit {
 
     /**
      * Current-target entity id; {@code 0L} = no target. Canonical storage is
-     * {@code registry.targetId[denseIdx]} — resolve to a {@link Unit} via
+     * {@code registry.targetId[idx]} — resolve to a {@link Unit} via
      * {@link BattleSimulation#targetOf(Unit)}.
      *
      * <p>The long is generation-free dangling-ref hygiene: a released target id
@@ -228,11 +230,11 @@ public class Unit {
      * registry is the sole roster and no observable unit is ever unregistered.
      */
     public final long getTargetId() {
-        return registry.getTargetId(denseIdx);
+        return registry.getTargetId(idx());
     }
 
     public final void setTargetId(long v) {
-        registry.setTargetId(denseIdx, v);
+        registry.setTargetId(idx(), v);
     }
 
     /**
@@ -274,24 +276,24 @@ public class Unit {
      * -1 = none). Canonical storage lives in the registry's SoA arrays.
      */
     public final float getFallbackTimer() {
-        return registry.getFallbackTimer(denseIdx);
+        return registry.getFallbackTimer(idx());
     }
 
     public final void setFallbackTimer(float v) {
-        registry.setFallbackTimer(denseIdx, v);
+        registry.setFallbackTimer(idx(), v);
     }
 
     public final int getFallbackCellX() {
-        return registry.getFallbackCellX(denseIdx);
+        return registry.getFallbackCellX(idx());
     }
 
     public final int getFallbackCellY() {
-        return registry.getFallbackCellY(denseIdx);
+        return registry.getFallbackCellY(idx());
     }
 
     /** Every callsite writes the fall-back cell pair together (break-contact pick, inline fallback write), so the paired setter matches access and hits both SoA slots in one dispatch. */
     public final void setFallbackCell(int x, int y) {
-        registry.setFallbackCell(denseIdx, x, y);
+        registry.setFallbackCell(idx(), x, y);
     }
 
     /**
@@ -301,28 +303,28 @@ public class Unit {
      * every burst, and the squad's individual marines visibly shift at
      * different times (cooldowns decorrelate as they reset on different shots).
      * Ticked down each tick by {@link com.dillon.starsectormarines.battle.infantry.InfantryUnitPrep#tickCooldowns}.
-     * Canonical storage lives in {@code registry.repositionCooldown[denseIdx]}.
+     * Canonical storage lives in {@code registry.repositionCooldown[idx]}.
      */
     public final float getRepositionCooldown() {
-        return registry.getRepositionCooldown(denseIdx);
+        return registry.getRepositionCooldown(idx());
     }
 
     public final void setRepositionCooldown(float v) {
-        registry.setRepositionCooldown(denseIdx, v);
+        registry.setRepositionCooldown(idx(), v);
     }
 
     /**
      * {@link UnitRole#FLEE} idle pause between wander legs. While &gt;0 the
      * civilian stands at their current cell instead of picking a new
      * destination. Rolled fresh on arrival; ignored when a threat is in range.
-     * Canonical storage lives in {@code registry.wanderDwellTimer[denseIdx]}.
+     * Canonical storage lives in {@code registry.wanderDwellTimer[idx]}.
      */
     public final float getWanderDwellTimer() {
-        return registry.getWanderDwellTimer(denseIdx);
+        return registry.getWanderDwellTimer(idx());
     }
 
     public final void setWanderDwellTimer(float v) {
-        registry.setWanderDwellTimer(denseIdx, v);
+        registry.setWanderDwellTimer(idx(), v);
     }
 
     /**
@@ -360,14 +362,14 @@ public class Unit {
     /**
      * Independent cooldown for the secondary weapon (sim-seconds) so it doesn't
      * share state with the primary's cooldown timer. Canonical storage lives in
-     * {@code registry.secondaryCooldownTimer[denseIdx]}.
+     * {@code registry.secondaryCooldownTimer[idx]}.
      */
     public final float getSecondaryCooldownTimer() {
-        return registry.getSecondaryCooldownTimer(denseIdx);
+        return registry.getSecondaryCooldownTimer(idx());
     }
 
     public final void setSecondaryCooldownTimer(float v) {
-        registry.setSecondaryCooldownTimer(denseIdx, v);
+        registry.setSecondaryCooldownTimer(idx(), v);
     }
 
     /**
@@ -377,11 +379,11 @@ public class Unit {
      * this drops below {@link MarineSecondary#aimDuration}/2.
      */
     public final float getSecondaryActionTimer() {
-        return registry.getSecondaryActionTimer(denseIdx);
+        return registry.getSecondaryActionTimer(idx());
     }
 
     public final void setSecondaryActionTimer(float v) {
-        registry.setSecondaryActionTimer(denseIdx, v);
+        registry.setSecondaryActionTimer(idx(), v);
     }
 
     /**
@@ -392,11 +394,11 @@ public class Unit {
      * Writes go through {@link #setSecondaryAimTarget(Unit)}.
      */
     public final long getSecondaryAimTargetId() {
-        return registry.getSecondaryAimTargetId(denseIdx);
+        return registry.getSecondaryAimTargetId(idx());
     }
 
     public final void setSecondaryAimTargetId(long v) {
-        registry.setSecondaryAimTargetId(denseIdx, v);
+        registry.setSecondaryAimTargetId(idx(), v);
     }
 
     /** Sets {@link #getSecondaryAimTargetId()} from a {@link Unit} ref (null → 0L). */
@@ -408,14 +410,14 @@ public class Unit {
      * Burst rounds queued after the AI's initial primary shot; the sim emits
      * one per {@link MarineWeapon#burstSpacing} interval until exhausted.
      * 0 = single-shot mode. Canonical storage lives in
-     * {@code registry.burstRemaining[denseIdx]}.
+     * {@code registry.burstRemaining[idx]}.
      */
     public final int getBurstRemaining() {
-        return registry.getBurstRemaining(denseIdx);
+        return registry.getBurstRemaining(idx());
     }
 
     public final void setBurstRemaining(int v) {
-        registry.setBurstRemaining(denseIdx, v);
+        registry.setBurstRemaining(idx(), v);
     }
 
     /**
@@ -423,11 +425,11 @@ public class Unit {
      * {@code InfantryWeapons.tick}.
      */
     public final float getBurstTimer() {
-        return registry.getBurstTimer(denseIdx);
+        return registry.getBurstTimer(idx());
     }
 
     public final void setBurstTimer(float v) {
-        registry.setBurstTimer(denseIdx, v);
+        registry.setBurstTimer(idx(), v);
     }
 
     /**
@@ -441,11 +443,11 @@ public class Unit {
      * sets it as part of the trigger).
      */
     public final long getBurstTargetId() {
-        return registry.getBurstTargetId(denseIdx);
+        return registry.getBurstTargetId(idx());
     }
 
     public final void setBurstTargetId(long v) {
-        registry.setBurstTargetId(denseIdx, v);
+        registry.setBurstTargetId(idx(), v);
     }
 
     /** Sets {@link #getBurstTargetId()} from a {@link Unit} ref (null → 0L). */
@@ -465,9 +467,10 @@ public class Unit {
      */
     public void beginBurst(Unit target) {
         if (primaryWeapon == null || primaryWeapon.burstCount <= 1) return;
-        setBurstRemaining(primaryWeapon.burstCount - 1);
-        setBurstTimer(primaryWeapon.burstSpacing);
-        setBurstTarget(target);
+        int idx = idx();
+        registry.setBurstRemaining(idx, primaryWeapon.burstCount - 1);
+        registry.setBurstTimer(idx, primaryWeapon.burstSpacing);
+        registry.setBurstTargetId(idx, (target == null) ? 0L : target.entityId);
     }
 
     /** Random prone-pose index rolled on death. Drives which corpse frame the renderer picks from {@link UnitType#deadSpritePath} so a battlefield has pose variety rather than every body in the same slump. -1 sentinel = unit still alive. */
@@ -516,7 +519,22 @@ public class Unit {
      * yet in the sim isn't alive in it.)
      */
     public boolean isAlive() {
-        return registry != null && registry.getHp(denseIdx) > 0f;
+        return registry != null && registry.isAliveById(entityId);
+    }
+
+    /**
+     * Resolves this unit's current dense slot from {@link #entityId} via the
+     * registry's id→index map — the single source of truth now that the cached
+     * {@code denseIdx} field is gone. Fail-loud on an unregistered/released unit
+     * (the OO accessors below are only valid on a live unit, exactly as before).
+     * The probe is a fastutil primitive long→int lookup; <b>hot bulk loops never
+     * come through here</b> — they iterate the dense columns by loop index
+     * directly, so the cache-locality win is untouched. This routes only the
+     * cold/per-event OO accessor callers (decision-cadence convenience setters,
+     * the movement step, tests).
+     */
+    private int idx() {
+        return registry.requireLiveIndex(entityId);
     }
 
     /**
@@ -529,11 +547,11 @@ public class Unit {
     // subclasses (Drone, DroneHubUnit, MapTurret) — JIT inlines the
     // registry.getHp/setHp dispatch in one virtual call.
     public final float getHp() {
-        return registry.getHp(denseIdx);
+        return registry.getHp(idx());
     }
 
     public final void setHp(float v) {
-        registry.setHp(denseIdx, v);
+        registry.setHp(idx(), v);
     }
 
     // Group-S seed-only stats (maxHp + the three attack stats): canonical
@@ -545,11 +563,11 @@ public class Unit {
     // at update() while the member is still live, so getMaxHp no longer needs the
     // seedMaxHp fallback that c33ba6c6 added.)
     public final float getMaxHp() {
-        return registry.getMaxHp(denseIdx);
+        return registry.getMaxHp(idx());
     }
 
     public final void setMaxHp(float v) {
-        registry.setMaxHp(denseIdx, v);
+        registry.setMaxHp(idx(), v);
     }
 
     // Logical-cell accessors. Canonical storage is the registry's SoA arrays,
@@ -559,11 +577,11 @@ public class Unit {
     // and the post-release death cell now travels on the DeathEvent snapshot, so
     // no corpse reads cell off the released unit. Final for CHA monomorphism.
     public final int getCellX() {
-        return registry.getCellX(denseIdx);
+        return registry.getCellX(idx());
     }
 
     public final int getCellY() {
-        return registry.getCellY(denseIdx);
+        return registry.getCellY(idx());
     }
 
     /**
@@ -573,47 +591,47 @@ public class Unit {
      * both SoA slots without a second method dispatch.
      */
     public final void setCellPos(int x, int y) {
-        registry.setCellPos(denseIdx, x, y);
+        registry.setCellPos(idx(), x, y);
     }
 
     public final float getCooldownTimer() {
-        return registry.getCooldownTimer(denseIdx);
+        return registry.getCooldownTimer(idx());
     }
 
     public final void setCooldownTimer(float v) {
-        registry.setCooldownTimer(denseIdx, v);
+        registry.setCooldownTimer(idx(), v);
     }
 
     public final float getAttackDamage() {
-        return registry.getAttackDamage(denseIdx);
+        return registry.getAttackDamage(idx());
     }
 
     public final void setAttackDamage(float v) {
-        registry.setAttackDamage(denseIdx, v);
+        registry.setAttackDamage(idx(), v);
     }
 
     public final float getAttackRange() {
-        return registry.getAttackRange(denseIdx);
+        return registry.getAttackRange(idx());
     }
 
     public final void setAttackRange(float v) {
-        registry.setAttackRange(denseIdx, v);
+        registry.setAttackRange(idx(), v);
     }
 
     public final float getAccuracy() {
-        return registry.getAccuracy(denseIdx);
+        return registry.getAccuracy(idx());
     }
 
     public final void setAccuracy(float v) {
-        registry.setAccuracy(denseIdx, v);
+        registry.setAccuracy(idx(), v);
     }
 
     public final float getMoveProgress() {
-        return registry.getMoveProgress(denseIdx);
+        return registry.getMoveProgress(idx());
     }
 
     public final void setMoveProgress(float v) {
-        registry.setMoveProgress(denseIdx, v);
+        registry.setMoveProgress(idx(), v);
     }
 
     public final float getRenderX() {

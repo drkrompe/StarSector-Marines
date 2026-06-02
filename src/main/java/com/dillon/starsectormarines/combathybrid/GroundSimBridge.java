@@ -139,7 +139,7 @@ public class GroundSimBridge extends BaseEveryFrameCombatPlugin {
 
         for (Unit u : targetable) {
             Vector2f loc = new Vector2f();
-            cellToWorld(u.getCellX(), u.getCellY(), loc);
+            cellToWorld(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), loc);
             ShipAPI proxy = engine.getFleetManager(FleetSide.ENEMY)
                     .spawnShipOrWing(proxyVariant, loc, 270f);
             proxy.setExtraAlphaMult(0f);                  // invisible; the marker shows its position
@@ -167,7 +167,7 @@ public class GroundSimBridge extends BaseEveryFrameCombatPlugin {
             // Position is sim-owned. Read the live cell only while alive (a released
             // unit's cell accessors are fail-loud); else keep the last-known anchor.
             if (link.unit.isAlive()) {
-                cellToWorld(link.unit.getCellX(), link.unit.getCellY(), link.anchor);
+                cellToWorld(sim.world().cellX(link.unit.entityId), sim.world().cellY(link.unit.entityId), link.anchor);
             }
             proxy.getLocation().set(link.anchor);
             proxy.getVelocity().set(0f, 0f);
@@ -180,7 +180,7 @@ public class GroundSimBridge extends BaseEveryFrameCombatPlugin {
                 sim.applyExternalDamage(link.unit, simDamage);
                 LOG.info("S3a: " + link.unit.id + " vanilla dmg " + (int) vanillaDamage
                         + " -> sim dmg " + String.format("%.1f", simDamage) + "  (hp now "
-                        + String.format("%.1f", link.unit.isAlive() ? link.unit.getHp() : 0f) + ")");
+                        + String.format("%.1f", link.unit.isAlive() ? sim.world().hp(link.unit.entityId) : 0f) + ")");
             }
             // Damage sensor, not a health bar: reset so vanilla never owns the kill.
             proxy.setHitpoints(max);

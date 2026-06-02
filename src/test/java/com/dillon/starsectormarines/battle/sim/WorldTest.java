@@ -45,7 +45,7 @@ public class WorldTest {
         // setHp by id hits the same slot the registry / OO accessor see.
         w.setHp(id, 42f);
         assertEquals(42f, w.hp(id), 1e-6f);
-        assertEquals(42f, r.getHp(u.denseIdx), 1e-6f);
+        assertEquals(42f, r.getHp(r.indexOf(u.entityId)), 1e-6f);
         assertEquals(42f, u.getHp(), 1e-6f);
     }
 

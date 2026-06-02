@@ -227,7 +227,6 @@ public final class UnitRegistry {
         fallbackCellX[liveCount] = -1;
         fallbackCellY[liveCount] = -1;
         wanderDwellTimer[liveCount] = 0f;
-        u.denseIdx = liveCount;
         u.registry = this;
         // Seed + wire the decomposed render-position service. Unlike the dense
         // columns above, this reference is NOT nulled on release — the entry
@@ -265,7 +264,6 @@ public final class UnitRegistry {
         // the RenderPositionService keyed by entityId (not cleared on release, so
         // the corpse's death-pose location survives directly).
         Unit released = dense[idx];
-        released.denseIdx = -1;
         released.registry = null;
         // Deliberately keep released.renderPositions wired — the service entry
         // survives so getRenderX()/getRenderY() still resolve for the corpse.
@@ -293,7 +291,6 @@ public final class UnitRegistry {
             fallbackCellX[idx] = fallbackCellX[last];
             fallbackCellY[idx] = fallbackCellY[last];
             wanderDwellTimer[idx] = wanderDwellTimer[last];
-            tail.denseIdx = idx;
             indexById.put(tail.entityId, idx);
         }
         dense[last] = null;
@@ -308,6 +305,18 @@ public final class UnitRegistry {
     /** True iff {@code id} is currently in the registry (allocated and not yet released). */
     public boolean isLive(long id) {
         return indexById.containsKey(id);
+    }
+
+    /**
+     * Liveness for a held entity id — registered AND hp &gt; 0. Backs
+     * {@link Unit#isAlive()} now that {@code Unit} no longer caches its dense
+     * index: resolve the slot via {@code indexById} (the single source of truth
+     * for id→slot) and short-circuit to {@code false} for a released/unknown id.
+     * A {@code 0L} ("never allocated") id misses the map → {@code false}.
+     */
+    public boolean isAliveById(long id) {
+        int idx = indexById.get(id);
+        return idx != INVALID_INDEX && hp[idx] > 0f;
     }
 
     /**
