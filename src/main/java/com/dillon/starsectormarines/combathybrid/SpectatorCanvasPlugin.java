@@ -21,8 +21,10 @@ import java.util.List;
  * <p>Drives a detached free camera over the spectator battle:
  * <ul>
  *   <li><b>Camera (fact 8):</b> {@code viewport.setExternalControl(true)} each frame,
- *       then {@code setCenter} / {@code setViewMult} from our own state. WASD pans
- *       (polled via {@link Keyboard}), right-mouse drag pans, scroll zooms.</li>
+ *       then own the visible rectangle directly via {@code viewport.set(llx, lly, w, h)}
+ *       — under external control {@code setViewMult} is inert, so we drive w/h from a
+ *       world-width zoom state + the screen aspect. WASD pans (polled via {@link Keyboard}),
+ *       right-mouse drag pans, scroll zooms.</li>
  *   <li><b>Input override (fact 9):</b> WASD / RMB / scroll are consumed in
  *       {@code processInputPreCoreControls} so nothing leaks to a ship or command
  *       action, and player-ship control is disabled defensively each frame.</li>
@@ -38,11 +40,15 @@ import java.util.List;
 @DebugOnly
 public class SpectatorCanvasPlugin extends BaseEveryFrameCombatPlugin {
 
-    /** World units/sec the camera pans at full WASD. */
-    private static final float PAN_UNITS_PER_SEC = 3500f;
-    private static final float ZOOM_STEP = 0.1f;
-    private static final float MIN_ZOOM = 0.05f;
-    private static final float MAX_ZOOM = 4f;
+    /** Camera pan per second as a fraction of the on-screen world width (zoom-aware feel). */
+    private static final float PAN_FRACTION_PER_SEC = 0.8f;
+    /** Per scroll-notch zoom factor. */
+    private static final float ZOOM_STEP = 0.12f;
+    /** World units across the screen at max zoom-in / max zoom-out. */
+    private static final float MIN_VISIBLE_WIDTH = 600f;
+    private static final float MAX_VISIBLE_WIDTH = 40000f;
+    /** Initial view: a touch wider than the ~7200u MEDIUM plate so it's fully in frame. */
+    private static final float INITIAL_VISIBLE_WIDTH = 9000f;
 
     /**
      * Seconds into the battle before re-attaching the stashed player fleet. Must be
@@ -54,8 +60,13 @@ public class SpectatorCanvasPlugin extends BaseEveryFrameCombatPlugin {
 
     private CombatEngineAPI engine;
     private final Vector2f center = new Vector2f(0f, 0f);
-    private float zoom = 0.4f; // < 1 = zoomed out, to take in the whole plate
-    private boolean initialized;
+    /**
+     * World units spanned by the screen width — our single zoom state. Under
+     * {@code setExternalControl(true)}, {@code setViewMult} does NOT recompute the
+     * visible rectangle, so we own w/h explicitly via {@code viewport.set(...)} and
+     * treat this width (plus the screen aspect) as the source of truth.
+     */
+    private float visibleWidth = INITIAL_VISIBLE_WIDTH;
     private float combatTime;
     private boolean fleetRestored;
 
@@ -68,27 +79,25 @@ public class SpectatorCanvasPlugin extends BaseEveryFrameCombatPlugin {
         ViewportAPI vp = engine.getViewport();
         if (vp != null) {
             vp.setExternalControl(true);
-            zoom = vp.getViewMult();
-            initialized = true;
         }
     }
 
     @Override
     public void processInputPreCoreControls(float amount, List<InputEventAPI> events) {
-        ViewportAPI vp = engine != null ? engine.getViewport() : null;
+        float worldPerPixel = visibleWidth / Math.max(1, Display.getWidth());
         for (InputEventAPI e : events) {
             if (e.isConsumed()) continue;
 
             if (e.isMouseScrollEvent()) {
+                // Scroll up (+) = zoom in = fewer world units across the screen.
                 float dir = Math.signum(e.getEventValue());
-                zoom = clamp(zoom * (1f + dir * ZOOM_STEP), MIN_ZOOM, MAX_ZOOM);
+                visibleWidth = clamp(visibleWidth * (1f - dir * ZOOM_STEP),
+                        MIN_VISIBLE_WIDTH, MAX_VISIBLE_WIDTH);
                 e.consume();
-            } else if (e.isRMBDownEvent() || (e.isMouseEvent() && Mouse_isRMBHeld())) {
-                // RMB-drag pan: move the world opposite the cursor delta.
-                if (vp != null) {
-                    center.x -= vp.convertScreenWidthToWorldWidth(e.getDX());
-                    center.y += vp.convertScreenHeightToWorldHeight(e.getDY());
-                }
+            } else if (e.isRMBDownEvent() || (e.isMouseEvent() && isRmbHeld())) {
+                // RMB-drag pan: grab the world and pull it with the cursor.
+                center.x -= e.getDX() * worldPerPixel;
+                center.y -= e.getDY() * worldPerPixel;
                 e.consume();
             } else if (isPanKey(e)) {
                 e.consume(); // movement itself is polled in advance(); just stop the leak
@@ -101,12 +110,6 @@ public class SpectatorCanvasPlugin extends BaseEveryFrameCombatPlugin {
         if (engine == null) return;
         ViewportAPI vp = engine.getViewport();
         if (vp == null) return;
-
-        if (!initialized) {
-            vp.setExternalControl(true);
-            zoom = vp.getViewMult();
-            initialized = true;
-        }
 
         // Re-attach the stashed player fleet a beat in — after the deploy-skip is
         // locked, before the player can end the fight — so the post-battle resolution
@@ -122,15 +125,20 @@ public class SpectatorCanvasPlugin extends BaseEveryFrameCombatPlugin {
             engine.getCombatUI().setDisablePlayerShipControlOneFrame(true);
         }
 
-        float pan = PAN_UNITS_PER_SEC * amount;
+        // Pan speed scales with zoom so it feels constant on screen at any zoom level.
+        float pan = visibleWidth * PAN_FRACTION_PER_SEC * amount;
         if (Keyboard.isKeyDown(Keyboard.KEY_W)) center.y += pan;
         if (Keyboard.isKeyDown(Keyboard.KEY_S)) center.y -= pan;
         if (Keyboard.isKeyDown(Keyboard.KEY_A)) center.x -= pan;
         if (Keyboard.isKeyDown(Keyboard.KEY_D)) center.x += pan;
 
+        // Own the viewport rectangle explicitly: setViewMult is inert under external
+        // control, so derive visible height from the screen aspect and set() the box.
+        float aspect = (float) Display.getHeight() / Math.max(1, Display.getWidth());
+        float visibleHeight = visibleWidth * aspect;
         vp.setExternalControl(true);
-        vp.setCenter(center);
-        vp.setViewMult(zoom);
+        vp.set(center.x - visibleWidth * 0.5f, center.y - visibleHeight * 0.5f,
+                visibleWidth, visibleHeight);
     }
 
     @Override
@@ -155,7 +163,7 @@ public class SpectatorCanvasPlugin extends BaseEveryFrameCombatPlugin {
                 || v == Keyboard.KEY_S || v == Keyboard.KEY_D;
     }
 
-    private static boolean Mouse_isRMBHeld() {
+    private static boolean isRmbHeld() {
         return org.lwjgl.input.Mouse.isButtonDown(1);
     }
 

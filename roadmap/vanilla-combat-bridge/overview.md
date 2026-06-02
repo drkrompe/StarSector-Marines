@@ -120,10 +120,15 @@ we can bend (the gating questions for turning a combat instance into a sim-drive
 canvas). Citations are file:line in `.api/com/fs/starfarer/api/combat/`.
 
 8. **Free camera is a first-class hook.** `ViewportAPI.setExternalControl(true)`
-   tells the engine to stop setting viewport params each frame; then
-   `setCenter(Vector2f)` + `setViewMult(zoom)` drive it (`ViewportAPI.java:43-53`).
-   WASD via `Keyboard.isKeyDown`, RMB-drag via `InputEventAPI.getDX/getDY` on
-   `isRMBDownEvent`. Detach from the ship by running spectator (no player ship) or
+   tells the engine to stop setting viewport params each frame. *Playtest correction:*
+   under external control **`setViewMult` is inert** — it does not recompute the
+   visible rectangle, so a camera built on `setCenter` + `setViewMult` reads as fixed
+   and zoomed-in. Own the rectangle explicitly with **`set(llx, lly, visibleWidth,
+   visibleHeight)`** each frame, deriving height from the screen aspect
+   (`Display.getHeight()/getWidth()`) and treating *visibleWidth in world units* as the
+   zoom state (`ViewportAPI.java:43-53`). WASD via `Keyboard.isKeyDown`, RMB-drag via
+   `InputEventAPI.getDX/getDY` (world delta = pixels × visibleWidth/screenWidth), scroll
+   to change visibleWidth. Detach from the ship by running spectator (no player ship) or
    `CombatUIAPI.setDisablePlayerShipControlOneFrame(true)` each frame.
 9. **Full input override.** `EveryFrameCombatPlugin.processInputPreCoreControls(
    amount, events)` runs *before* core controls; `event.consume()` swallows any
