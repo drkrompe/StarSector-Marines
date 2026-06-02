@@ -96,6 +96,9 @@ public interface BattleView {
     /** Resolve a unit id through the registry, or {@code null} if no live unit holds it. */
     Unit resolveUnit(long id);
 
+    /** Entity-access facade — by-id hot primitives ({@code world().hp(id)}) over the dense SoA + cold {@code world().id(id).getOrNull(Cmp.class)} component projection. See {@link World}. */
+    World world();
+
     /** Doodad-provided cover at a cell against fire incoming from {@code (fromDx, fromDy)}. */
     int getDoodadCoverAt(int x, int y, int fromDx, int fromDy);
 

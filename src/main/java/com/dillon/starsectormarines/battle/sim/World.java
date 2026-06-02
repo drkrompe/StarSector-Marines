@@ -57,12 +57,71 @@ public final class World {
     }
 
     // ---- hot face: primitive by-id accessors over the dense SoA ----
+    //
+    // Each resolves the dense index once via UnitRegistry.requireLiveIndex(id)
+    // (fail-loud on a dead/unknown id — these serve live entities; use isAlive()/getOrNull
+    // for liveness on a maybe-released id) then reads the existing by-idx column
+    // accessor. No Unit dereference. Bulk per-tick systems do NOT use these —
+    // they iterate the dense arrays over [0, liveCount()).
 
-    /** Current hp of the live entity {@code id}. Fail-loud on a dead/unknown id (see {@link UnitRegistry#hpById}). */
-    public float hp(long id) { return registry.hpById(id); }
+    public float hp(long id) { return registry.getHp(registry.requireLiveIndex(id)); }
+    public void setHp(long id, float v) { registry.setHp(registry.requireLiveIndex(id), v); }
 
-    /** Sets the hp of the live entity {@code id}. Fail-loud on a dead/unknown id. */
-    public void setHp(long id, float v) { registry.setHpById(id, v); }
+    public float maxHp(long id) { return registry.getMaxHp(registry.requireLiveIndex(id)); }
+    public void setMaxHp(long id, float v) { registry.setMaxHp(registry.requireLiveIndex(id), v); }
+
+    public int cellX(long id) { return registry.getCellX(registry.requireLiveIndex(id)); }
+    public int cellY(long id) { return registry.getCellY(registry.requireLiveIndex(id)); }
+    public void setCellPos(long id, int x, int y) { registry.setCellPos(registry.requireLiveIndex(id), x, y); }
+
+    public float cooldownTimer(long id) { return registry.getCooldownTimer(registry.requireLiveIndex(id)); }
+    public void setCooldownTimer(long id, float v) { registry.setCooldownTimer(registry.requireLiveIndex(id), v); }
+
+    public float moveProgress(long id) { return registry.getMoveProgress(registry.requireLiveIndex(id)); }
+    public void setMoveProgress(long id, float v) { registry.setMoveProgress(registry.requireLiveIndex(id), v); }
+
+    public float attackDamage(long id) { return registry.getAttackDamage(registry.requireLiveIndex(id)); }
+    public void setAttackDamage(long id, float v) { registry.setAttackDamage(registry.requireLiveIndex(id), v); }
+
+    public float attackRange(long id) { return registry.getAttackRange(registry.requireLiveIndex(id)); }
+    public void setAttackRange(long id, float v) { registry.setAttackRange(registry.requireLiveIndex(id), v); }
+
+    public float accuracy(long id) { return registry.getAccuracy(registry.requireLiveIndex(id)); }
+    public void setAccuracy(long id, float v) { registry.setAccuracy(registry.requireLiveIndex(id), v); }
+
+    public long targetId(long id) { return registry.getTargetId(registry.requireLiveIndex(id)); }
+    public void setTargetId(long id, long v) { registry.setTargetId(registry.requireLiveIndex(id), v); }
+
+    public int burstRemaining(long id) { return registry.getBurstRemaining(registry.requireLiveIndex(id)); }
+    public void setBurstRemaining(long id, int v) { registry.setBurstRemaining(registry.requireLiveIndex(id), v); }
+
+    public float burstTimer(long id) { return registry.getBurstTimer(registry.requireLiveIndex(id)); }
+    public void setBurstTimer(long id, float v) { registry.setBurstTimer(registry.requireLiveIndex(id), v); }
+
+    public long burstTargetId(long id) { return registry.getBurstTargetId(registry.requireLiveIndex(id)); }
+    public void setBurstTargetId(long id, long v) { registry.setBurstTargetId(registry.requireLiveIndex(id), v); }
+
+    public float secondaryCooldownTimer(long id) { return registry.getSecondaryCooldownTimer(registry.requireLiveIndex(id)); }
+    public void setSecondaryCooldownTimer(long id, float v) { registry.setSecondaryCooldownTimer(registry.requireLiveIndex(id), v); }
+
+    public float secondaryActionTimer(long id) { return registry.getSecondaryActionTimer(registry.requireLiveIndex(id)); }
+    public void setSecondaryActionTimer(long id, float v) { registry.setSecondaryActionTimer(registry.requireLiveIndex(id), v); }
+
+    public long secondaryAimTargetId(long id) { return registry.getSecondaryAimTargetId(registry.requireLiveIndex(id)); }
+    public void setSecondaryAimTargetId(long id, long v) { registry.setSecondaryAimTargetId(registry.requireLiveIndex(id), v); }
+
+    public float repositionCooldown(long id) { return registry.getRepositionCooldown(registry.requireLiveIndex(id)); }
+    public void setRepositionCooldown(long id, float v) { registry.setRepositionCooldown(registry.requireLiveIndex(id), v); }
+
+    public float fallbackTimer(long id) { return registry.getFallbackTimer(registry.requireLiveIndex(id)); }
+    public void setFallbackTimer(long id, float v) { registry.setFallbackTimer(registry.requireLiveIndex(id), v); }
+
+    public int fallbackCellX(long id) { return registry.getFallbackCellX(registry.requireLiveIndex(id)); }
+    public int fallbackCellY(long id) { return registry.getFallbackCellY(registry.requireLiveIndex(id)); }
+    public void setFallbackCell(long id, int x, int y) { registry.setFallbackCell(registry.requireLiveIndex(id), x, y); }
+
+    public float wanderDwellTimer(long id) { return registry.getWanderDwellTimer(registry.requireLiveIndex(id)); }
+    public void setWanderDwellTimer(long id, float v) { registry.setWanderDwellTimer(registry.requireLiveIndex(id), v); }
 
     // ---- cold face: projected component access ----
 

@@ -346,22 +346,24 @@ public final class UnitRegistry {
 
     /**
      * Resolves a live entity id to its dense slot, fail-loud on an
-     * unknown/released id. Backs the {@code *ById} hot-face accessors: those
-     * serve random-access reads of live entities, so a dead id is a programming
-     * error (unlike {@link #getOrNull}, whose null is a defined "dead/never"
-     * answer for held-ref liveness).
+     * unknown/released id. Backs the {@link World}-facade by-id accessors (the
+     * hot face): {@code world.hp(id)} resolves the index once here, then reads
+     * the existing by-idx column accessor. Those serve random-access reads of
+     * <em>live</em> entities, so a dead id is a programming error (unlike
+     * {@link #getOrNull}, whose null is a defined "dead/never" answer for
+     * held-ref liveness).
      */
-    private int requireIndex(long id) {
+    public int requireLiveIndex(long id) {
         int idx = indexById.get(id);
         if (idx == INVALID_INDEX) throw new IllegalArgumentException("no live entity for id " + id);
         return idx;
     }
 
-    // By-id hot-face accessors — one map probe + array read, no Unit deref. The
-    // World facade's primitive face (world.hp(id) &c.) routes here; bulk systems
-    // still iterate the dense arrays directly over [0, liveCount()).
-    public float hpById(long id) { return hp[requireIndex(id)]; }
-    public void setHpById(long id, float v) { hp[requireIndex(id)] = v; }
+    // By-id hp accessors — one map probe + array read, no Unit deref. (The other
+    // columns are reached the same way: World does requireLiveIndex(id) once then
+    // calls the by-idx accessor; hp keeps a dedicated pair as the hottest case.)
+    public float hpById(long id) { return hp[requireLiveIndex(id)]; }
+    public void setHpById(long id, float v) { hp[requireLiveIndex(id)] = v; }
 
     /**
      * Raw {@code float[]} hp view for bulk iteration over
