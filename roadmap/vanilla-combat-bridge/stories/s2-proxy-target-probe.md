@@ -1,5 +1,32 @@
 # S2 — Proxy-target probe
 
+> **Built, awaiting playtest.** Answers: does vanilla carrier/fighter AI engage a
+> sim-slaved proxy entity sensibly? If yes, "the fleet above reacts to the ground
+> battle below" is mostly plumbing.
+
+## Trigger / what shipped
+
+**Ctrl+Shift+J** on the campaign map. Rides the S0b spectator canvas (empty player
+fleet, free cam, starved HUD) and adds:
+- `S0BattleProbe.Mode.PROXY_TARGET` + `launchProxyTarget()`.
+- `S0BattleCreationPlugin.setupProxyTarget`: spawns AI carriers (`heron_Strike`,
+  `drover_Strike`) on the player side and one **invisible owner-1 proxy**
+  (`vigilance_Standard`, sprite hidden) on the enemy side, then installs
+  `ProxyTargetPlugin`.
+- `ProxyTargetPlugin`: pins the proxy's position/velocity each frame, holds its fire,
+  `setExtraAlphaMult(0)`, logs the HP delta, despawns at zero, and draws a red
+  crosshair marker at the (invisible) proxy so you can see what the fighters attack.
+
+### Playtest checklist
+- [ ] Ctrl+Shift+J: carriers spawn, launch fighters, and the fighters **fly to and
+      strafe the marker** (the invisible proxy) — native AI, zero targeting code from us.
+- [ ] `S2 proxy: HP …` log lines tick down as it's hit; `destroyed by vanilla AI` at zero.
+- [ ] Proxy stays pinned (doesn't drift/get knocked away under fire).
+- [ ] F10 still exits cleanly with the fleet restored (carry-over from S0b).
+- [ ] Verdict: **does native AI engage the slaved proxy well enough to build on?**
+
+---
+
 > The recommended first probe. Answers: does vanilla carrier/fighter AI engage a
 > sim-slaved proxy entity sensibly? If yes, "carrier reacts to ground entities"
 > is mostly plumbing.

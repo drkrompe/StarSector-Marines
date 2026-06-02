@@ -7,6 +7,7 @@ import com.fs.starfarer.api.campaign.BattleCreationPlugin;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.combat.BattleCreationContext;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
+import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.mission.FleetSide;
 import com.fs.starfarer.api.mission.MissionDefinitionAPI;
@@ -14,20 +15,20 @@ import org.apache.log4j.Logger;
 import org.lwjgl.util.vector.Vector2f;
 
 /**
- * Minimal, campaign-location-independent battle definition for the S0 probes.
- * Selected by {@link CombatHybridCampaignPlugin} only while {@link S0BattleProbe}
- * has armed it. Branches on {@link S0BattleProbe#mode()}:
+ * Minimal, campaign-location-independent battle definition for the combat-bridge probes.
+ * Selected by {@link CombatHybridCampaignPlugin} only for a tagged probe battle. Branches
+ * on {@link S0BattleProbe#mode()}:
  *
  * <ul>
  *   <li><b>BASIC</b> — S0. Adds the context's fleet members as reserves
  *       ({@code addFleetMember}) so the player pilots/commands through the normal
  *       deploy flow, and installs {@link S0CompletionPlugin} for mod-owned end.</li>
- *   <li><b>SPECTATOR_CANVAS</b> — S0b. Fields both sides as AI ({@code useDefaultAI})
- *       with zero command points, spawns ships <em>directly</em> in
- *       {@link #afterDefinitionLoad} via the fleet manager (so the deploy dialog
- *       never appears — verified fact 11), sizes the vanilla map to the sim grid at
- *       {@link S0BattleProbe#WORLD_UNITS_PER_CELL}, and installs the
- *       {@link SpectatorCanvasPlugin} + below-ships {@link CanvasBackdropRenderer}.</li>
+ *   <li><b>SPECTATOR_CANVAS</b> — S0b. Empty player fleet + zero CP (no deploy dialog,
+ *       starved HUD), map sized to the sim grid, ships spawned directly in
+ *       {@link #afterDefinitionLoad}, free camera + below-ships backdrop.</li>
+ *   <li><b>PROXY_TARGET</b> — S2. Same spectator host, but spawns an AI carrier on the
+ *       player side and a single invisible owner-1 proxy ({@link ProxyTargetPlugin}) to
+ *       test whether native carrier/fighter AI engages a slaved sim avatar.</li>
  * </ul>
  */
 @DebugOnly
@@ -38,21 +39,24 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
     /** Canvas demo grid (the MEDIUM mission tier). */
     private static final MapScale CANVAS_GRID = MapScale.MEDIUM;
 
-    /** Stock variants spawned for the spectator canvas (throwaway; roster isn't the point of S0b).
-     *  Must be real variant ids from data/variants — validated before spawn. */
+    /** Throwaway stock variants — must be real ids from data/variants (validated before spawn). */
     private static final String[] CANVAS_PLAYER_SHIPS = {"vigilance_Standard", "brawler_Assault"};
     private static final String[] CANVAS_ENEMY_SHIPS = {"tempest_Attack", "shrike_Attack"};
+    /** S2: carriers on the player side whose fighters should engage the proxy. */
+    private static final String[] PROXY_CARRIER_SHIPS = {"heron_Strike", "drover_Strike"};
+    /** S2: the hull behind the invisible proxy (sprite hidden; any small hull works). */
+    private static final String PROXY_VARIANT = "vigilance_Standard";
 
-    private boolean spectator;
+    private boolean canvas;
 
     @Override
     public void initBattle(BattleCreationContext context, MissionDefinitionAPI loader) {
-        spectator = S0BattleProbe.mode() == S0BattleProbe.Mode.SPECTATOR_CANVAS;
+        canvas = S0BattleProbe.isCanvasMode(S0BattleProbe.mode());
         LOG.info("S0BattleCreationPlugin SELECTED — building probe battle [mode="
                 + S0BattleProbe.mode() + "]");
 
-        if (spectator) {
-            initSpectatorCanvas(context, loader);
+        if (canvas) {
+            initCanvas(context, loader);
         } else {
             initBasic(context, loader);
         }
@@ -80,7 +84,7 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
         loader.addPlugin(new S0CompletionPlugin());
     }
 
-    private void initSpectatorCanvas(BattleCreationContext context, MissionDefinitionAPI loader) {
+    private void initCanvas(BattleCreationContext context, MissionDefinitionAPI loader) {
         // Both sides AI, zero command points -> no player flagship, empty HUD.
         loader.initFleet(FleetSide.PLAYER, "ISS", context.getPlayerGoal(), true, 0);
         loader.initFleet(FleetSide.ENEMY, "", context.getOtherGoal(), true, 0);
@@ -100,38 +104,58 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
 
     @Override
     public void afterDefinitionLoad(CombatEngineAPI engine) {
-        if (!spectator) {
+        if (!canvas) {
             return; // BASIC: S0CompletionPlugin handles everything.
         }
 
-        float halfH = CANVAS_GRID.height * S0BattleProbe.WORLD_UNITS_PER_CELL * 0.5f;
-        float spawnY = halfH * 0.6f;
-        float spacing = 600f;
-
-        spawnRow(engine, FleetSide.PLAYER, CANVAS_PLAYER_SHIPS, -spawnY, 90f, spacing);
-        spawnRow(engine, FleetSide.ENEMY, CANVAS_ENEMY_SHIPS, spawnY, 270f, spacing);
-
         // Spectator: detach the camera's owner so no ship is player-piloted.
         engine.setPlayerShipExternal(null);
-
         // Backdrop plate under the ships (verified fact 10).
         engine.addLayeredRenderingPlugin(new CanvasBackdropRenderer(
                 CANVAS_GRID.width, CANVAS_GRID.height, S0BattleProbe.WORLD_UNITS_PER_CELL));
+
+        float halfH = CANVAS_GRID.height * S0BattleProbe.WORLD_UNITS_PER_CELL * 0.5f;
+        if (S0BattleProbe.mode() == S0BattleProbe.Mode.PROXY_TARGET) {
+            setupProxyTarget(engine, halfH);
+        } else {
+            float spawnY = halfH * 0.6f;
+            spawnRow(engine, FleetSide.PLAYER, CANVAS_PLAYER_SHIPS, -spawnY, 90f, 600f);
+            spawnRow(engine, FleetSide.ENEMY, CANVAS_ENEMY_SHIPS, spawnY, 270f, 600f);
+        }
+    }
+
+    /** S2: AI carrier(s) on the player side + one invisible slaved proxy on the enemy side. */
+    private void setupProxyTarget(CombatEngineAPI engine, float halfH) {
+        spawnRow(engine, FleetSide.PLAYER, PROXY_CARRIER_SHIPS, -halfH * 0.6f, 90f, 900f);
+
+        Vector2f anchor = new Vector2f(0f, halfH * 0.4f);
+        ShipAPI proxy = spawnValidated(engine, FleetSide.ENEMY, PROXY_VARIANT, anchor, 270f);
+        if (proxy != null) {
+            engine.addPlugin(new ProxyTargetPlugin(proxy, anchor));
+        } else {
+            LOG.warn("S2: proxy variant [" + PROXY_VARIANT + "] missing; no proxy spawned.");
+        }
     }
 
     private static void spawnRow(CombatEngineAPI engine, FleetSide side, String[] variantIds,
                                  float y, float facing, float spacing) {
         float startX = -((variantIds.length - 1) * spacing) * 0.5f;
         for (int i = 0; i < variantIds.length; i++) {
-            String id = variantIds[i];
-            // Validate first — a bad id throws inside spawnShipOrWing and aborts the
-            // whole launch (it runs in startBattle). Skip + log instead.
-            if (Global.getSettings().getVariant(id) == null) {
-                LOG.warn("S0b: skipping unknown variant id [" + id + "] for side " + side);
-                continue;
-            }
-            float x = startX + i * spacing;
-            engine.getFleetManager(side).spawnShipOrWing(id, new Vector2f(x, y), facing);
+            spawnValidated(engine, side, variantIds[i], new Vector2f(startX + i * spacing, y), facing);
         }
+    }
+
+    /**
+     * Spawn one ship, validating the variant id first. {@code spawnShipOrWing} resolves
+     * ids eagerly and throws on a bad one — which would abort the whole launch (it runs
+     * inside startBattle) — so a miss logs + returns null instead.
+     */
+    private static ShipAPI spawnValidated(CombatEngineAPI engine, FleetSide side, String id,
+                                          Vector2f loc, float facing) {
+        if (Global.getSettings().getVariant(id) == null) {
+            LOG.warn("combat-bridge: skipping unknown variant id [" + id + "] for side " + side);
+            return null;
+        }
+        return engine.getFleetManager(side).spawnShipOrWing(id, loc, facing);
     }
 }

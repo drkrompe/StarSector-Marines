@@ -38,7 +38,14 @@ public final class S0BattleProbe {
         /** S0: player-piloted battle from a chosen fleet subset (requirements 1 + 2). */
         BASIC,
         /** S0b: spectator canvas — no player ship, free cam, below-ships backdrop, no deploy dialog. */
-        SPECTATOR_CANVAS
+        SPECTATOR_CANVAS,
+        /** S2: spectator canvas + an AI carrier vs an invisible slaved proxy (proxy/avatar pattern). */
+        PROXY_TARGET
+    }
+
+    /** Modes that use the spectator-canvas host (empty player fleet, free cam, starved HUD). */
+    public static boolean isCanvasMode(Mode m) {
+        return m == Mode.SPECTATOR_CANVAS || m == Mode.PROXY_TARGET;
     }
 
     /** How many of the player's combat-ready ships the probe fields. */
@@ -92,6 +99,11 @@ public final class S0BattleProbe {
         launch(Mode.SPECTATOR_CANVAS);
     }
 
+    /** S2 entry point — spectator canvas with an AI carrier vs an invisible slaved proxy. */
+    public static void launchProxyTarget() {
+        launch(Mode.PROXY_TARGET);
+    }
+
     /**
      * Builds the rosters and hands them to {@code startBattle}. Must be called on
      * the campaign map (not from inside an open dialog/menu); the input listener
@@ -106,7 +118,7 @@ public final class S0BattleProbe {
     private static void launch(Mode requested) {
         if (Global.getSector() == null) return;
         mode = requested;
-        boolean spectator = requested == Mode.SPECTATOR_CANVAS;
+        boolean spectator = isCanvasMode(requested);
 
         // startBattle sources the player's deployable ships from the REAL player fleet,
         // ignoring the context's player fleet (an empty context fleet still showed the

@@ -243,12 +243,18 @@ cheaply, before any real feature investment ([[feedback_ship_then_optimize]]):
   ground-below with cross-interaction (the proxy framing). Walls stay in the headless
   sim. Kept as a documented technique only. See
   [`stories/s1-wall-clamp-probe.md`](stories/s1-wall-clamp-probe.md).
-- **S2 — Proxy-target probe.** Spawn one invisible `owner = enemy` `ShipAPI`
-  proxy at a fixed point, drain its HP to a log line, and watch whether a player
-  carrier's fighters strafe it. Answers: **does vanilla carrier/fighter AI engage
-  a slaved proxy sensibly?** If yes, "carrier reacts to ground entities" is mostly
-  plumbing from there. See
-  [`stories/s2-proxy-target-probe.md`](stories/s2-proxy-target-probe.md).
+- **S2 — Proxy-target probe.** 🔨 *built, awaiting playtest.* Ctrl+Shift+J: an AI
+  carrier vs one invisible `owner=enemy` `ShipAPI` proxy (sim-slaved, HP-drain logged,
+  crosshair marker). Answers: **does vanilla carrier/fighter AI engage a slaved proxy
+  sensibly?** If yes, "the fleet above reacts to the ground battle below" is mostly
+  plumbing. See [`stories/s2-proxy-target-probe.md`](stories/s2-proxy-target-probe.md).
+- **S3 (hypothetical) — inject the 2nd engine layer.** Once proxies prove cross-engine
+  targeting works, S3 starts rendering/simulating our *actual* ground battle "below" the
+  vanilla fleet fight: the headless `battle/` sim driving a fleet of proxies (one per
+  squad/turret) on the combat plane, our renderer drawing the real ground scene on the
+  below-ships layer, and the fleet-above ⇄ ground-below cross-interaction (air-to-ground
+  strafes drain sim HP; the sim's AA fires back). This is where the two engines actually
+  co-exist. Scope it for real once S2's verdict is in.
 
 Sequencing: ~~**S0 first**~~ ✅ done (S0 + S0b shipped — a campaign-launched combat
 instance that hosts a sim-driven spectator canvas). Next: **S2** — the chosen direction

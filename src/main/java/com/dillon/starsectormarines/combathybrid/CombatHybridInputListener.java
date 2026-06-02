@@ -14,6 +14,8 @@ import java.util.List;
  *       battle from a chosen fleet subset).</li>
  *   <li><b>Ctrl+Shift+N</b> → {@link S0BattleProbe#launchSpectatorCanvas()} (S0b:
  *       spectator canvas — free cam, below-ships backdrop, no deploy dialog).</li>
+ *   <li><b>Ctrl+Shift+J</b> → {@link S0BattleProbe#launchProxyTarget()} (S2: AI carrier
+ *       vs an invisible slaved proxy).</li>
  * </ul>
  *
  * <p>A {@link CampaignInputListener} (rather than an intel button) so the trigger
@@ -46,6 +48,11 @@ public class CombatHybridInputListener implements CampaignInputListener {
             if (e.getEventValue() == Keyboard.KEY_N) {
                 e.consume();
                 S0BattleProbe.launchSpectatorCanvas();
+                break;
+            }
+            if (e.getEventValue() == Keyboard.KEY_J) {
+                e.consume();
+                S0BattleProbe.launchProxyTarget();
                 break;
             }
         }
