@@ -118,7 +118,10 @@ local planner for reverse / 3-point extraction.
       ([`stories/slice-3-recovery-ladder.md`](stories/slice-3-recovery-ladder.md))
 - [~] **Slice 4** — tuning & feel (absorbs `../stories/driving-feel-tuning.md`).
       Corner-speed governor + speed-scaled look-ahead landed early (see State of
-      play); remaining constant-tuning open.
+      play); remaining: constant tuning, and **shortening the ~4s recovery
+      reaction pause** (3 options written up in the story — lower `STALL_SECONDS`,
+      a sharper orbit signal, or prevent orbits up front) + the per-stall vs.
+      cumulative avoid-disc follow-up.
       ([`stories/slice-4-tuning-feel.md`](stories/slice-4-tuning-feel.md))
 - [ ] **Slice 5** — perf budget (deferred until multi-truck). ([`stories/slice-5-perf-budget.md`](stories/slice-5-perf-budget.md))
 
