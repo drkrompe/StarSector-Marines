@@ -1,7 +1,40 @@
-# Slice 0 — Terrain cost field + vehicle clearance mask
+# Slice 0 — Terrain cost field + vehicle clearance mask  ✅ SHIPPED
 
 > The two pure inputs the router needs, built and tested in isolation before
 > anything consumes them. De-risks slice 1.
+
+## Shipped
+
+Commit: _(this commit)_ — both classes pure + unit-tested (9 tests green). Not
+wired into spawn (slice 2).
+
+What actually landed vs. planned:
+
+- **`TerrainCostField`** (`battle/vehicle`) — `from(CellTopology)` bakes a
+  per-cell `float[]` cost via `costFor(GroundKind)`. Weights (named constants,
+  multiplicative, road baseline 1.0): `COST_ROAD=1.0` (STREET/SIDEWALK/LZ_MARKER/
+  STRIPED), `COST_HARDSCAPE=1.5` (COURTYARD/BRICK/STONE/TILE), `COST_OPEN_GROUND=3`
+  (GRASS/DIRT/SAND/SNOW), `COST_RUBBLE=5`, `COST_AVOID=8` (INDOOR/WATER + OOB).
+  All finite — the field is preference, not passability.
+- **`VehicleClearance`** (`battle/vehicle`) — `erode(grid, radiusCells)` →
+  boolean mask, a cell passable iff its `(2r+1)²` Chebyshev block is in-bounds +
+  walkable. `radiusForWidth(visualWidth)` = `round(width/2)` (HEAVY_APC 1.4 → r1).
+  `radius 0` reproduces raw walkability.
+- **Storage decision:** `float[]` for the cost field, `boolean[]` for the mask —
+  clarity over compactness; the value count is one-per-cell and the slice-1 A\*
+  reads each once per edge. Revisit a scaled `byte[]` only if perf flags it
+  (slice 5).
+
+**Flag for slice 2 (perimeter erosion):** because `NavigationGrid.isWalkable`
+reads false out-of-bounds, erosion at radius ≥1 excludes every cell within `r`
+of the map border. The convoy entry/exit are *perimeter* cells, so they'll be
+eroded out — slice 2's endpoint selection must snap the route start/goal to the
+nearest in-mask cell (or relax clearance at the endpoints) rather than feeding a
+border cell straight in. The off-map staging/exit waypoints are handled
+separately by the controller's `exitingOffMap` gate, so this is purely about
+where the *on-grid* route terminates.
+
+---
 
 ## Goal
 
