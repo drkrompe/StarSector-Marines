@@ -59,8 +59,33 @@ Decomposition:
 - `NeverEndObjective` — keeps an all-DEFENDER sim from auto-completing (else `advance()`
   early-returns and death events never drain).
 - `BattleSimulation.subscribeDeath(Consumer<DeathEvent>)` — new one-way sim→adapter seam.
-- `S0BattleCreationPlugin.setupSimCoupled` builds the sim + a row of mixed-kind turrets
+- `S0BattleCreationPlugin.setupSimCoupled` builds the real Conquest map (LARGE) into a sim
   *outside* the plugin. Mode `SIM_COUPLED` on `S0BattleProbe`; hotkey Ctrl+Shift+K.
+
+## Two entrypoints — verified working + code-sharing status
+
+Both ways to stand up a ground battle are confirmed green (full test suite passes):
+- **A — standalone** (the game): BriefingScreen → `MissionLaunch.buildSimulation` →
+  `BattleSetup.createX` → `ctx.setBattleSimulation` → `BattleScreen` owns advance+render
+  (full scene, input, FBO accumulators, own sim lifecycle).
+- **B — combat-bridge overlay** (the spike): `S0BattleProbe`/`S0BattleCreationPlugin` →
+  sim built in `setupSimCoupled` → `GroundSceneBackdrop` (subset render on combat layer) +
+  `GroundSimBridge` (ticks sim + proxy coupling). Hotkey Ctrl+Shift+K.
+
+**Already shared:** `BattleSimulation` (+ the `advance(dt)` tick contract), `BattleRenderer`
++ all `RenderSystem`s (B uses the additive `renderWorld(rc, EnumSet)` subset; A's no-arg call
+delegates to `allOf` — unchanged), `BspCityGenerator`, `BattleSprites`, `BattleCamera`
+(screen-viewport for A, world-viewport for B), and now `BattleSetup.spawnDefensePostTurrets`
+(public, returns the spawned structures — B mirrors them; killed B's drifted copy).
+
+**Remaining duplication (small, low priority):** the map-install setters
+(`setTacticalMap`/`setBuildings`/`setDefensePosts` + doodad loop) appear in both `createX` and
+`setupSimCoupled`. The clean long-term seam is to split BattleSetup's `createX` into
+**build-the-map** (terrain + structures, shared by A and B) vs **populate-live-scenario**
+(marines/defenders/shuttles/reinforcement, A-only), so both call one `buildMapInto(sim, map)`.
+⚠ Watch the ordering: A spawns defense-post turrets *after* `stampVehicles` (cover recompute
+reads vehicle-occupied neighbors) — a naive extraction that reorders turret-vs-vehicle would
+subtly change A's cover bake. Preserve order when extracting.
 
 **Next up:** the ground/ship **scaling pass** (lower `WORLD_UNITS_PER_CELL`, dial in-game),
 then **S3c — airspace banding / AI gating** (watch unmodified ship AI against the ground
@@ -71,11 +96,11 @@ Overview open question #2 is answered: the external-damage path is `applyExterna
 ## Reusable combathybrid pieces
 
 - `CombatHybridCampaignPlugin` — tag-armed `BattleCreationPlugin` selection (`PROBE_FLAG`).
-- `S0BattleProbe` — launch + `Mode` {BASIC, SPECTATOR_CANVAS, PROXY_TARGET} + `PlayerFleetStash`.
+- `S0BattleProbe` — launch + `Mode` {BASIC, SPECTATOR_CANVAS, PROXY_TARGET, SIM_COUPLED} + `PlayerFleetStash`.
 - `SpectatorCanvasPlugin` — free cam (`viewport.set()`-based), HUD starve, fleet restore.
 - `CanvasBackdropRenderer` — below-ships render layer (`SolidQuadBatch` + `GlStateBracket`).
 - `ProxyTargetPlugin` — the proxy/avatar pattern (pin + invisible + HP drain + marker).
-- Scale: `WORLD_UNITS_PER_CELL = 50`. Real variant ids validated before spawn.
+- Scale: `WORLD_UNITS_PER_CELL = 20` (lowered from 50 after S3b playtest). Real variant ids validated before spawn.
 
 ## Gotchas (also in the `startbattle_plugin_pick_deferred` memory + overview facts)
 
