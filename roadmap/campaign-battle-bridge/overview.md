@@ -73,7 +73,7 @@ reads only `defenseLevel`), so the extraction is stable as consumers opt in:
 2. **Urban composition.** `functions` (+ `marketSize` / `spaceportTier`) →
    `DistrictMap` / `BiomeMap` theme weighting: a mining world reads industrial, a
    farming colony rural, a trade hub civic. Grew into its own feature —
-   [`../economic-districts/overview.md`](../economic-districts/overview.md) —
+   [`../mapgen/economic-districts/overview.md`](../mapgen/economic-districts/overview.md) —
    since doing it justice means designing new district archetypes, not just
    reweighting. **Substrate shipped** (slice 0): `EconomicFunction` +
    `TargetProfile.functions` + economy-weighted CITY band / interior rolls.

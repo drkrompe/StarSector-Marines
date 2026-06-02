@@ -1,6 +1,6 @@
 # Economic districts — the city looks like its economy
 
-> Bridge consumer #2 (see [`../campaign-battle-bridge/overview.md`](../campaign-battle-bridge/overview.md)
+> Bridge consumer #2 (see [`../../campaign-battle-bridge/overview.md`](../../campaign-battle-bridge/overview.md)
 > § "urban composition"), scoped up from "reweight the existing themes" to its
 > true size: a **district vocabulary** where a mining world *reads and fights*
 > like a mining world, a spaceport like a spaceport. Districts become
@@ -41,7 +41,7 @@ is the hard part:
 
 ## Dependency — extend the bridge to carry the economy
 
-`TargetProfile` (the [campaign → battle bridge](../campaign-battle-bridge/overview.md))
+`TargetProfile` (the [campaign → battle bridge](../../campaign-battle-bridge/overview.md))
 distills only `defenseLevel` + `spaceportTier` today. This feature needs the
 planet's **economic function mix**. To keep `battle.world.gen` campaign-free,
 introduce a stable, vanilla-decoupled enum in `battle.world.gen`:
@@ -163,10 +163,10 @@ cell stamps, per "identity lives in the nav layout" above).
 Until then these read as generic crates / grates / rocks from the shared sheets.
 
 ## Cross-refs
-- [`../campaign-battle-bridge/overview.md`](../campaign-battle-bridge/overview.md)
+- [`../../campaign-battle-bridge/overview.md`](../../campaign-battle-bridge/overview.md)
   — this is consumer #2; slice 0 extends `TargetProfile`.
-- [`../mapgen/overview.md`](../mapgen/overview.md) + the `bsp/fill/` filler family
+- [`../overview.md`](../overview.md) + the `bsp/fill/` filler family
   — the content layer this expands.
-- [`../mapgen/stories/structural-taxonomy.md`](../mapgen/stories/structural-taxonomy.md)
+- [`../stories/structural-taxonomy.md`](../stories/structural-taxonomy.md)
   — the `TacticalRegion` segmentation will read these new districts for free
   (a pit-ringed mining block is just a low-enclosure, low-cover region).
