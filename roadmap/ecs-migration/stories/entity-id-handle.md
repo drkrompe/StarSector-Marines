@@ -122,9 +122,12 @@ Held-ref → id, smallest-blast-radius first; each independently shippable + gre
    early-out (`if (!wasAlive) return`) still holds — its `isAlive()` is now
    registry-null-safe rather than `localHp`-dependent. Full suite green at 689.
 
-**Terminal phase (separate, large):** relocate self-accessors → delete
-`Unit.registry` → `Unit` → `Entity` rename. Pervasive `u.getX()` call churn;
-staged per accessor group, fan-out-able to Sonnet. Not in this story's first pass.
+**Terminal phase (separate, large): now its own story —
+[`world-facade`](world-facade.md).** Two-faced `World` access (hot primitive
+`world.hp(id)` over the dense SoA + opt-in cold `world.id(id).getOrNull(Cmp.class)`
+projection), then relocate self-accessors → delete `Unit.registry` → `Unit` →
+`Entity` rename. Pervasive `u.getX()` churn (~516 sites / 72 files); staged per
+accessor group, fan-out-able to Sonnet.
 
 ## Guardrails
 

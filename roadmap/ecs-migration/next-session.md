@@ -106,10 +106,21 @@ reference `entityId` instead** (the dangling-ref NPE class). New story:
   suite green at 689.
 
 **Next (in priority order):**
-1. **Endgame: delete `Unit.registry`.** Relocate `Unit`'s self-accessors
-   (`getHp/getCellX/…`) to a registry/`World` API addressed by id (or dense idx
-   for hot walks). Pervasive `u.getX()` churn — stage per accessor group,
-   fan-out to Sonnet. Then `Unit` → `Entity` rename.
+1. **Endgame: [`world-facade`](stories/world-facade.md) — delete `Unit.registry`.**
+   Design LOCKED with the user (2026-06-02): a **two-faced `World`** facade over
+   the existing stores. **Hot face** = primitive by-id accessors (`world.hp(id)`,
+   `cellX/Y`, `renderX/Y`, combat stats) backed directly by the dense SoA — zero
+   alloc, cache-locality preserved; bulk systems keep iterating dense arrays.
+   **Cold face** = `world.id(id).get/getOrNull(Cmp.class)` projection, OPT-IN
+   convenience only (debug/UI/held-ref/optional capabilities) — sparse object
+   components are real store lookups, dense groups are views constructed from the
+   arrays (allocates → never in a hot loop). **Constraint from the user: never
+   materialize a component in a per-tick bulk loop** (protects the primitives /
+   cache-locality win). Relocate `u.getX()` (~516 sites / 72 files) per accessor
+   group, fan mechanical sweeps to Sonnet; model remaining optional fields as
+   presence components; then delete `Unit.registry` + `denseIdx`; then `Unit` →
+   `Entity`. First slice: introduce `World`, prove both faces on one group each
+   (`hp` primitive + `mech` → `getOrNull`), leave the rest on `Unit` accessors.
 
 ## State of play
 
