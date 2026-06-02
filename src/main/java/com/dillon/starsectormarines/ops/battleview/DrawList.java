@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.render2d.ContrailTrail;
 import com.dillon.starsectormarines.render2d.DrawCommand;
+import com.dillon.starsectormarines.render2d.PolyMesh;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
 import java.util.Arrays;
@@ -97,6 +98,11 @@ public final class DrawList {
     /** Queue a contrail ribbon; the drain expands {@code trail}'s samples cell→screen at draw time. */
     public void addRibbon(RenderLayer layer, ContrailTrail trail, float alphaMult) {
         slot(layer).setRibbon(trail, alphaMult);
+    }
+
+    /** Queue a filled-poly fan (annulus / arc); the drain replays {@code mesh} into the shared solid batch. */
+    public void addPoly(RenderLayer layer, PolyMesh mesh) {
+        slot(layer).setPoly(mesh);
     }
 
     public void addCustom(RenderLayer layer, Runnable draw) {

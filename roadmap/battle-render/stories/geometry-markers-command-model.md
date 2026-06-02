@@ -1,6 +1,39 @@
 # Phase 3b — objective + compound markers → command model (Bucket B)
 
-> **Status: design-stage / blocked on a decision.** The two gameplay-geometry
+> **Status: DECISIONS RESOLVED — implementing.** Bucket A is shipped. The two
+> design questions are answered (2026-06-02):
+> - **Viz direction:** *keep the vector ring/arc/glyph language* (permanent, not
+>   reworked to sprites). So we build the arc primitive and migrate both passes
+>   fully.
+> - **Arc approach:** *Option A — `POLY` primitive*, realized leanly. Key finding:
+>   `SolidQuadBatch` already stores 4 free `(x,y)` verts per quad (`appendRect` is
+>   just an axis-aligned convenience), so a filled annulus/arc (a fan of
+>   trapezoids) routes through the **existing `solidBatch`** via a new
+>   `appendQuad(8 free coords)` — no duplicate `PolyBatch` class, and the drain
+>   signature is unchanged. `POLY` is a distinct command **kind** carrying a
+>   per-frame geometry mesh (RIBBON-style heap-object carrier — sidesteps the
+>   pooled-fixed-field concern); one `POLY` command per marker-group, not N
+>   quad-commands. The "PolyBatch" is the generalized `SolidQuadBatch`.
+>
+> **Slices:**
+> 1. **Engine** — `SolidQuadBatch.appendQuad` (free corners; `appendRect`
+>    delegates); `PolyMesh` (per-frame vertex carrier in `render2d`); `PolyTess`
+>    (shared `appendAnnulus`/`appendArc` — dedups the duplicated arc math);
+>    `DrawCommand.POLY` + `setPoly` + `DrawList.addPoly`; drain `POLY` case
+>    (coalesces with `SOLID_RECT` through `solidBatch`). Unit-test the
+>    tessellation. No game consumer yet.
+> 2. **Game** — `renderObjectiveMarkers` → `collectObjectiveMarkers`: icons emit
+>    `SPRITE`, progress arc emits `POLY`. Repoint the `OBJECTIVES` producer; delete
+>    inline `drawProgressArc`/`drawTintedIcon`. Verify in-game.
+> 3. **Game** — `CompoundMarkerRenderer.render` emits commands: ring+arc as
+>    `POLY`, hairline rim as `LINE`, all kind-glyphs as one `CUSTOM` (bitmap text
+>    is a legit foreign-subsystem escape). Repoint the `COMPOUND` producer; delete
+>    inline `drawAnnulus`/`drawProgressArc`. Verify in-game.
+>
+> ---
+> *Original design analysis below (kept for context).*
+
+> The two gameplay-geometry
 > passes that draw **arc/ring geometry**, which the current `DrawCommand` set
 > can't express. Grouped because they share the same blocker and the same shapes.
 > Do **after** Bucket A ([`geometry-fog-roofs-command-model.md`](geometry-fog-roofs-command-model.md))

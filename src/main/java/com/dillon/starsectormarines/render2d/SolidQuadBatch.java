@@ -65,12 +65,26 @@ public final class SolidQuadBatch {
      */
     public void appendRect(float x0, float y0, float x1, float y1,
                            float r, float g, float b, float a) {
+        appendQuad(x0, y0, x1, y0, x1, y1, x0, y1, r, g, b, a);
+    }
+
+    /**
+     * Queue one solid-color quad with four arbitrary screen-space corners
+     * (CCW or CW; {@code GL_QUADS} doesn't care for a flat fill). The general
+     * primitive {@link #appendRect} is the axis-aligned special case of — used
+     * by {@code POLY} command geometry (annulus / arc fans, where each segment
+     * is a non-axis-aligned trapezoid). Corner order is the GL vertex order:
+     * {@code (0,1)→(2,3)→(4,5)→(6,7)}.
+     */
+    public void appendQuad(float x0, float y0, float x1, float y1,
+                           float x2, float y2, float x3, float y3,
+                           float r, float g, float b, float a) {
         ensureCapacity(quadCount + 1);
         int o = quadCount * FLOATS_PER_QUAD;
         data[o++] = x0; data[o++] = y0; data[o++] = r; data[o++] = g; data[o++] = b; data[o++] = a;
-        data[o++] = x1; data[o++] = y0; data[o++] = r; data[o++] = g; data[o++] = b; data[o++] = a;
         data[o++] = x1; data[o++] = y1; data[o++] = r; data[o++] = g; data[o++] = b; data[o++] = a;
-        data[o++] = x0; data[o++] = y1; data[o++] = r; data[o++] = g; data[o++] = b; data[o]   = a;
+        data[o++] = x2; data[o++] = y2; data[o++] = r; data[o++] = g; data[o++] = b; data[o++] = a;
+        data[o++] = x3; data[o++] = y3; data[o++] = r; data[o++] = g; data[o++] = b; data[o]   = a;
         quadCount++;
     }
 

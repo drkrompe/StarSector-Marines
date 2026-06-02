@@ -26,10 +26,14 @@
 >   Moved to [`complete/geometry-fog-roofs-command-model.md`](complete/geometry-fog-roofs-command-model.md).
 >   ⚠️ Verify surfaced a **sim** follow-up (not render): roof reveal under-reveals
 >   vs. shooting LoS — logged in fog-of-war backlog.
-> - **3b — objective + compound markers — design-stage, BLOCKED on an arc primitive.**
->   Both draw ring/arc geometry the command set can't express; needs a `POLY` kind
->   (Option A) or tessellation (Option B). `compoundMarkers` is also self-described
->   provisional v1 viz — confirm sprites-vs-arcs before building arc infra.
+> - **3b — objective + compound markers — DECISIONS RESOLVED, implementing.**
+>   Viz stays vector ring/arc/glyph; arc approach is Option A (`POLY` kind) realized
+>   leanly — `SolidQuadBatch.appendQuad` (free corners) + a `PolyMesh` carrier
+>   routed through the existing `solidBatch` (no duplicate batch class). **Slice 1
+>   (engine) SHIPPED**: `POLY` command + `PolyMesh` + `PolyTess` (shared
+>   annulus/arc tessellation) + `PolyTessTest` (passing). Next: slice 2 (objective
+>   markers → SPRITE+POLY, in-game verify), slice 3 (compound markers → POLY+LINE+
+>   glyph CUSTOM, in-game verify).
 >   Story: [`stories/geometry-markers-command-model.md`](stories/geometry-markers-command-model.md).
 > - **3c — highlight overlay — design-stage, mixed debug/gameplay fate.** Serves a
 >   debug source (`SRC_ACTION_CELLS`) and a gameplay source (`SRC_SELECTED_SQUAD`);

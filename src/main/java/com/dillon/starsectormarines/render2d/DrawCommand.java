@@ -37,6 +37,12 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
  *       pre-converted screen-space coords), the ribbon's vertices are expanded
  *       cell→screen at drain time, so the drain feeds it the camera. Batched
  *       through a {@link RibbonBatch}.</li>
+ *   <li>{@code POLY} — a filled solid-color shape (annulus / progress arc) too
+ *       big for inline fields; {@code poly} = the {@link PolyMesh} of trapezoid
+ *       quads the producer tessellated this frame. Like {@code RIBBON}, a
+ *       variable-length geometry carrier rather than inline fields. Replayed into
+ *       the shared {@link SolidQuadBatch} at drain (coalesces with
+ *       {@code SOLID_RECT}).</li>
  *   <li>{@code CUSTOM} — {@code custom} owns its own GL state (FBO blits, the
  *       lightmap multiply); the drain just runs it.</li>
  * </ul>
@@ -46,7 +52,7 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
  */
 public final class DrawCommand {
 
-    public enum Kind { SHEET_QUAD, SPRITE, SOLID_RECT, LINE, RIBBON, CUSTOM }
+    public enum Kind { SHEET_QUAD, SPRITE, SOLID_RECT, LINE, RIBBON, POLY, CUSTOM }
 
     Kind kind;
     SpriteAPI sprite;
@@ -58,6 +64,8 @@ public final class DrawCommand {
     float r, g, b, a;
     /** {@code RIBBON} only: the contrail sample history the drain expands. */
     ContrailTrail trail;
+    /** {@code POLY} only: the tessellated solid-quad fan (annulus / arc) the drain replays. */
+    PolyMesh poly;
     Runnable custom;
 
     public void setSheetQuad(SpriteAPI sheet, int srcX, int srcY, int srcW, int srcH,
@@ -83,6 +91,7 @@ public final class DrawCommand {
         this.flipV = false;
         this.r = r; this.g = g; this.b = b; this.a = a;
         this.trail = null;
+        this.poly = null;
         this.custom = null;
     }
 
@@ -106,6 +115,7 @@ public final class DrawCommand {
         this.cx = cx; this.cy = cy; this.w = w; this.h = h; this.angleDeg = angleDeg;
         this.r = r; this.g = g; this.b = b; this.a = a;
         this.trail = null;
+        this.poly = null;
         this.custom = null;
     }
 
@@ -117,6 +127,7 @@ public final class DrawCommand {
         this.cx = x0; this.cy = y0; this.w = x1; this.h = y1;
         this.r = r; this.g = g; this.b = b; this.a = a;
         this.trail = null;
+        this.poly = null;
         this.custom = null;
     }
 
@@ -132,6 +143,7 @@ public final class DrawCommand {
         this.angleDeg = width;
         this.r = r; this.g = g; this.b = b; this.a = a;
         this.trail = null;
+        this.poly = null;
         this.custom = null;
     }
 
@@ -145,6 +157,16 @@ public final class DrawCommand {
         this.sprite = null;
         this.trail = trail;
         this.a = alphaMult;
+        this.poly = null;
+        this.custom = null;
+    }
+
+    /** {@code mesh} is the producer-owned tessellated fan, replayed into the shared solid batch at drain. */
+    public void setPoly(PolyMesh mesh) {
+        this.kind = Kind.POLY;
+        this.sprite = null;
+        this.trail = null;
+        this.poly = mesh;
         this.custom = null;
     }
 
@@ -152,6 +174,7 @@ public final class DrawCommand {
         this.kind = Kind.CUSTOM;
         this.sprite = null;
         this.trail = null;
+        this.poly = null;
         this.custom = custom;
     }
 }

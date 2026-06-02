@@ -12,8 +12,9 @@ import java.util.Map;
  * holds no per-layer config; the collecting system owns the order.
  *
  * <p>It coalesces consecutive same-sheet {@code SHEET_QUAD}s into one
- * {@link QuadBatch} flush, consecutive {@code SOLID_RECT}s into one
- * {@link SolidQuadBatch} flush, consecutive same-width {@code LINE}s into one
+ * {@link QuadBatch} flush, consecutive {@code SOLID_RECT}s <em>and</em>
+ * {@code POLY}s (both solid fills) into one {@link SolidQuadBatch} flush,
+ * consecutive same-width {@code LINE}s into one
  * {@link LineBatch} flush, and consecutive {@code RIBBON}s into one
  * {@link RibbonBatch} flush, flipping the active batch (and flushing the previous)
  * whenever the sheet, line width, or command kind changes — so anything submitted
@@ -118,6 +119,18 @@ public final class DrawListRenderer {
                     // style would need its own additiveBlend() bracket, which this shared run can't give.
                     ribbonBatch.append(c.trail, camera, c.a);
                     ribbonPending = true;
+                    break;
+                }
+                case POLY: {
+                    // Solid-fill geometry — shares solidBatch with SOLID_RECT so a
+                    // mixed fill run (rect + arc + rect) coalesces into one flush.
+                    if (activeSheet != null) { activeSheet.flush(); activeSheet = null; activeSheetKey = null; }
+                    if (linePending) { lineBatch.flush(); linePending = false; }
+                    if (ribbonPending) { ribbonBatch.flush(); ribbonPending = false; }
+                    if (bracket == null) bracket = GlStateBracket.textured2D();
+                    else if (spritePolluted) { GlStateBracket.applyTextured2DState(); spritePolluted = false; }
+                    if (c.poly != null) c.poly.appendTo(solidBatch);
+                    solidPending = true;
                     break;
                 }
                 case SPRITE: {
