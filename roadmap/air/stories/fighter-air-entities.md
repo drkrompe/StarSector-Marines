@@ -131,6 +131,18 @@ when `flyby/` folds into `air/`; until then `FlybyOverlay`'s draw is reused.
 - **(Future) 4e — Fighters take fire / get shot down.** Wire `hp` + the AA path
   through the same death seam; land at bases. Gated on the AA work.
 
+## Lifecycle — cycling SHIPPED `d63d03f`
+
+Fighters that clear the map now **re-enter for another pass instead of retiring**
+(`enterFromEdge` re-rolls a fresh entry/exit + resets strafe/burst/aggro on the
+existing entity; identity — profile/side/handling/voice — is preserved). A wing's
+spawned fighters become a persistent cycling presence rather than a finite
+trickle. The `Fighter.alive` flag is the gate: alive → cycle, dead → remove —
+nothing clears it yet, so all fighters cycle today; the AA work (4e) flips it on a
+kill and the wreck retires on its next off-map exit. Re-entry is off-screen so it
+reads as the fighter banking back around. (Open: an optional off-screen turnaround
+delay if instant re-entry reads too eager.)
+
 ## Calibration tooling — SHIPPED `12c5cb0`
 
 A dev-gated **briefing aircraft picker** (`DevConfig.DEBUG_AIRCRAFT_PICKER`) drives
