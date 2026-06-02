@@ -154,13 +154,34 @@ the engine might balk at a player fleet with zero ships, or treat it as an insta
 loss — `setDoNotEndCombat` should hold it, and the spawned owner-0 ships keep the
 player side non-empty in combat, but this is the thing to watch on re-test.
 
+## Fourth playtest: empty CONTEXT fleet ignored → stash the REAL fleet
+
+The empty context player fleet still showed the picker: `startBattle` sources the
+player's deployable ships from the **real** player fleet, ignoring the context fleet
+entirely. So the only lever is to empty the real fleet for the battle's duration.
+
+Implemented `PlayerFleetStash`: on spectator launch it detaches every member (and
+remembers the flagship) from `Global.getSector().getPlayerFleet()`, passes the
+now-empty real fleet as the context fleet, and a transient `RestoreScript` re-attaches
+them once combat ends. Safety: restores on an 8s timeout if combat never starts
+(so the fleet can't be stranded empty); idempotent; flagship preserved.
+`SpectatorCanvasPlugin.init` calls `markCombatEntered()` so the restore fires on the
+first campaign frame after the battle. **Compiles clean (full `compileJava` green).**
+
+### S0b re-playtest checklist
+- [ ] Ctrl+Shift+N: no deployment picker, no "press Tab" prompt — straight into the
+      watched battle.
+- [ ] Two AI sides fight under our free camera; HUD effectively empty.
+- [ ] **On exit (F10), the player fleet is fully restored** — same ships, same
+      flagship, correct count. (Check the `PlayerFleetStash: restored N` log.)
+- [ ] Backdrop plate under ships; F10 ends combat.
+- [ ] Risk: empty real fleet might make `startBattle` refuse / instant-end — watch for
+      it. `setDoNotEndCombat` + spawned owner-0 ships should keep the side alive.
+
 ## Immediate next-up
 
-- **Re-playtest S0b (Ctrl+Shift+N)** — confirm the deployment picker + Tab prompt are
-  gone with the empty player fleet, and the two AI sides still fight under our camera.
-  If the empty fleet causes startBattle to refuse / instant-end, fall back to a
-  1-ship player fleet and explore other deployment-suppression levers.
-- Then S0 BASIC (Ctrl+Shift+B) end-to-end with F10 (unaffected by this change).
+- **Re-playtest S0b**, focus on the picker being gone AND the fleet restoring cleanly.
+- Then S0 BASIC (Ctrl+Shift+B) end-to-end with F10 (unaffected by the stash).
 - After S0b verdict: **S2 — proxy-target probe** (spawn the proxy into the now-proven
   combat instance), then wire HP drain into the sim's external-damage path (open
   question #2).

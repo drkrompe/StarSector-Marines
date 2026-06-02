@@ -108,12 +108,19 @@ public final class S0BattleProbe {
         mode = requested;
         boolean spectator = requested == Mode.SPECTATOR_CANVAS;
 
-        // When launched via startBattle, the player's deployable ships come from the
-        // CONTEXT player fleet (not from the BattleCreationPlugin's loader). So a true
-        // spectator needs an EMPTY player fleet: nothing to deploy → no deployment
-        // picker and no "press Tab to deploy" prompt. The owner-0 combatants are
-        // spawned directly by S0BattleCreationPlugin instead.
-        CampaignFleetAPI player = spectator ? buildSpectatorPlayerFleet() : buildPlayerSubset();
+        // startBattle sources the player's deployable ships from the REAL player fleet,
+        // ignoring the context's player fleet (an empty context fleet still showed the
+        // deploy picker). So for a true spectator we detach the real fleet's members for
+        // the duration of the battle (restored on combat end by PlayerFleetStash), and
+        // pass the now-empty real fleet as the context fleet. The owner-0 combatants the
+        // player watches are spawned directly by S0BattleCreationPlugin.
+        CampaignFleetAPI player;
+        if (spectator) {
+            PlayerFleetStash.stashAndScheduleRestore();
+            player = Global.getSector().getPlayerFleet();
+        } else {
+            player = buildPlayerSubset();
+        }
         CampaignFleetAPI enemy = buildEnemyFleet();
 
         if (!spectator && player.getFleetData().getNumMembers() == 0) {
@@ -132,19 +139,6 @@ public final class S0BattleProbe {
                 + player.getFleetData().getNumMembers()
                 + " vs enemy=" + enemy.getFleetData().getNumMembers());
         Global.getSector().getCampaignUI().startBattle(ctx);
-    }
-
-    /**
-     * Empty player fleet for spectator mode: nothing for the player to deploy, so
-     * the deployment picker and "press Tab" reinforcement prompt don't appear. The
-     * owner-0 combatants the player watches are spawned directly by
-     * {@link S0BattleCreationPlugin#afterDefinitionLoad}.
-     */
-    private static CampaignFleetAPI buildSpectatorPlayerFleet() {
-        FactoryAPI f = Global.getFactory();
-        CampaignFleetAPI fleet = f.createEmptyFleet(Global.getSector().getPlayerFaction(), false);
-        fleet.setCommander(f.createPerson());
-        return fleet;
     }
 
     /** Synthetic player fleet from copies of the first N combat-ready real ships. */

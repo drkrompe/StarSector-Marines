@@ -52,6 +52,9 @@ public class SpectatorCanvasPlugin extends BaseEveryFrameCombatPlugin {
     @Override
     public void init(CombatEngineAPI engine) {
         this.engine = engine;
+        // Tells PlayerFleetStash the probe battle is live, so its restore script
+        // re-attaches the player fleet once we're back on the campaign map.
+        PlayerFleetStash.markCombatEntered();
         ViewportAPI vp = engine.getViewport();
         if (vp != null) {
             vp.setExternalControl(true);
