@@ -12,7 +12,6 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.model.TimeOfDay;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.ui.compound.CompoundMarkerRenderer;
 import com.dillon.starsectormarines.render2d.DrawCommand;
 import com.dillon.starsectormarines.render2d.DrawListRenderer;
 import com.dillon.starsectormarines.render2d.GlStateBracket;
@@ -224,8 +223,8 @@ public class BattleRenderer {
                 RenderSystem.of(RenderLayer.OBJECTIVES, (ctx, out) ->
                         collectObjectiveMarkers(ctx.sim, out, ctx.alphaMult)),
                 RenderSystem.of(RenderLayer.COMPOUND, (ctx, out) ->
-                        out.addCustom(RenderLayer.COMPOUND, () -> compoundMarkers.render(
-                                ctx.sim, ctx.sim.getCompoundService(), ctx.camera, ctx.alphaMult))),
+                        compoundMarkers.collect(
+                                ctx.sim, ctx.sim.getCompoundService(), ctx.camera, out, ctx.alphaMult)),
                 new ConvoyRenderSystem(sprites),
                 // Convoy debug overlays (own-GL line passes) paint over the convoy sprites.
                 RenderSystem.of(RenderLayer.CONVOY, (ctx, out) ->

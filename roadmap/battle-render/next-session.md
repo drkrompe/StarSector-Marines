@@ -26,14 +26,18 @@
 >   Moved to [`complete/geometry-fog-roofs-command-model.md`](complete/geometry-fog-roofs-command-model.md).
 >   ⚠️ Verify surfaced a **sim** follow-up (not render): roof reveal under-reveals
 >   vs. shooting LoS — logged in fog-of-war backlog.
-> - **3b — objective + compound markers — DECISIONS RESOLVED, implementing.**
+> - **3b — objective + compound markers — CODE-COMPLETE, in-game verify pending.**
 >   Viz stays vector ring/arc/glyph; arc approach is Option A (`POLY` kind) realized
 >   leanly — `SolidQuadBatch.appendQuad` (free corners) + a `PolyMesh` carrier
->   routed through the existing `solidBatch` (no duplicate batch class). **Slice 1
->   (engine) SHIPPED**: `POLY` command + `PolyMesh` + `PolyTess` (shared
->   annulus/arc tessellation) + `PolyTessTest` (passing). Next: slice 2 (objective
->   markers → SPRITE+POLY, in-game verify), slice 3 (compound markers → POLY+LINE+
->   glyph CUSTOM, in-game verify).
+>   routed through the existing `solidBatch` (no duplicate batch class). All three
+>   slices shipped: **S1 (engine)** `POLY` command + `PolyMesh` + `PolyTess` (shared
+>   annulus/arc tess) + `PolyTessTest` (passing); **S2** objective markers →
+>   `SPRITE`+`POLY` (inline `drawTintedIcon`/`drawProgressArc`/`fillRect` deleted);
+>   **S3** compound markers → `POLY`+`LINE`+glyph `CUSTOM` — and
+>   `CompoundMarkerRenderer` **moved** `battle.ui.compound` → `ops.battleview` (it's
+>   now a command-emitting producer; the move avoids a new ops.battleview ↔
+>   battle.ui.compound package cycle). Pending: in-game verify of both markers
+>   (charge-site icons+arc; compound rings/arcs/rims/glyphs).
 >   Story: [`stories/geometry-markers-command-model.md`](stories/geometry-markers-command-model.md).
 > - **3c — highlight overlay — design-stage, mixed debug/gameplay fate.** Serves a
 >   debug source (`SRC_ACTION_CELLS`) and a gameplay source (`SRC_SELECTED_SQUAD`);

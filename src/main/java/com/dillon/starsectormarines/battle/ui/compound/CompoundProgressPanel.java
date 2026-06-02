@@ -34,7 +34,8 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
  *
  * <p>Pure decoration; no input handled. Hides when no compounds are
  * registered (non-Conquest missions) so it doesn't clutter the HUD on
- * other mission types. Sibling to {@link CompoundMarkerRenderer} which
+ * other mission types. Sibling to
+ * {@link com.dillon.starsectormarines.ops.battleview.CompoundMarkerRenderer} which
  * renders the per-compound world-anchored markers — together they form
  * the slice-2 visibility layer (primary read = world, at-a-glance =
  * this strip).

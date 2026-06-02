@@ -34,7 +34,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.ui.BattleHud;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
-import com.dillon.starsectormarines.battle.ui.compound.CompoundMarkerRenderer;
+import com.dillon.starsectormarines.ops.battleview.CompoundMarkerRenderer;
 import com.dillon.starsectormarines.battle.ui.compound.CompoundProgressPanel;
 import com.dillon.starsectormarines.battle.ui.panel.DebugTogglesPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TurretAuthorPanel;
