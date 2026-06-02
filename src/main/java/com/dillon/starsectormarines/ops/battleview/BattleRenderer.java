@@ -190,6 +190,9 @@ public class BattleRenderer {
     /** Reused per-frame fan for the charge-site progress arcs (one POLY for all sites). */
     private final PolyMesh objectiveArcMesh = new PolyMesh(64);
 
+    /** Cell-highlight overlay renderer (selected-squad cue + debug sources). */
+    private final HighlightRenderer highlightRenderer = new HighlightRenderer();
+
     // ---- constructor ---------------------------------------------------------
 
     public BattleRenderer(BattleSprites sprites) {
@@ -213,7 +216,7 @@ public class BattleRenderer {
                 new VehicleRenderSystem(sprites),
                 new DoodadRenderSystem(sprites),
                 RenderSystem.of(RenderLayer.HIGHLIGHTS, (ctx, out) ->
-                        out.addCustom(RenderLayer.HIGHLIGHTS, () -> ctx.highlights.render(ctx.camera, ctx.alphaMult))),
+                        highlightRenderer.collect(ctx.highlights, ctx.camera, out, ctx.alphaMult)),
                 RenderSystem.of(RenderLayer.FOG, (ctx, out) ->
                         collectFogOverlay(ctx.sim, out, ctx.alphaMult)),
                 new UnitRenderService(sprites),
