@@ -27,7 +27,14 @@ iterate `sim.getUnits()` for reveal state). See the memory note
 Smaller follow-ups, not yet sliced into stories:
 
 - **Merge `BuildingVisibilityPass` into the fog bitmap** — buildings reveal
-  from cell coverage rather than a parallel pass.
+  from cell coverage rather than a parallel pass. *Forcing function observed:*
+  roof reveal **under-reveals** vs. shooting LoS — a unit can have a clear line
+  into a room (and shoot in) while the roof stays opaque. Cause: the pass reveals
+  via the **single closest** contributor unit + a **5-point** perimeter sample
+  (bbox corners + center), so a farther unit with a clear shot is never tested,
+  and LoS to a non-sampled perimeter cell is missed. Per-cell fog coverage (same
+  source as shooting LoS) would close the divergence. See
+  `battle/vision/BuildingVisibilityPass.computeTargetAlpha`.
 - **Last-known-position ghosts** — faded silhouette at a unit's last seen
   location after it goes HIDDEN.
 - **Shot/projectile visibility gating** — shots are currently always visible

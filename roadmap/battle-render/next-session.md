@@ -18,11 +18,14 @@
 > 🎯 **Phase 3 — remaining gameplay-geometry passes — triaged into three stories.**
 > The leftover `Custom` passes were gut-checked (debug-only / placeholder before
 > investing; `Custom` is a fine home for both). The non-debug, non-FBO passes split:
-> - **3a — fog + roofs — CODE-COMPLETE, in-game verify pending.** The two clean
+ - **3a — fog + roofs — ✅ SHIPPED & VERIFIED** (`d874cf8`). The two clean
 >   wins (already batch-shaped production passes). `collectFogOverlay` emits
 >   `SOLID_RECT`, `collectRoofs` emits `SHEET_QUAD` (floors sheet already registered);
 >   both local `GlStateBracket` flushes deleted, now drained. No engine add.
->   Story: [`stories/geometry-fog-roofs-command-model.md`](stories/geometry-fog-roofs-command-model.md).
+>   In-game verified (roofs render + fade with FoV; fog edge gradient correct).
+>   Moved to [`complete/geometry-fog-roofs-command-model.md`](complete/geometry-fog-roofs-command-model.md).
+>   ⚠️ Verify surfaced a **sim** follow-up (not render): roof reveal under-reveals
+>   vs. shooting LoS — logged in fog-of-war backlog.
 > - **3b — objective + compound markers — design-stage, BLOCKED on an arc primitive.**
 >   Both draw ring/arc geometry the command set can't express; needs a `POLY` kind
 >   (Option A) or tessellation (Option B). `compoundMarkers` is also self-described
@@ -298,12 +301,10 @@ perf spike.
   as `QuadBatch.appendFlippedV` + a `flipV` flag on the `SHEET_QUAD` command
   (`addSheetQuadFlippedV`; drain routes rotated/flipped/plain). Axis-aligned only.
   Canonical `setSheetQuad` resets `flipV=false` so pooled slots can't leak it.
-- **In-game-pending validation**: **Phase 3a (fog + roofs).** They were migrated
-  from inline `Custom`/bracket-flush to drained `SOLID_RECT`/`SHEET_QUAD` commands —
-  visually should be identical (fog edge-darkening gradient; roof fade-in/out over
-  unseen interiors), but confirm in-game. Compile-clean in isolation; full build is
-  currently red on a sibling session's `RenderPositionService` (fastutil), which
-  blocks deploy until that's resolved. Final (collapse) verified in-game
+- **In-game-pending validation**: none — **Phase 3a (fog + roofs) is now verified
+  in-game** (`d874cf8`; roofs render + fade with FoV, fog edge gradient correct).
+  The sibling-session `RenderPositionService` (fastutil) breakage that had blocked
+  deploy is resolved (build green). Final (collapse) verified in-game
   (zones overlay, decals/craters, fog edges, roofs over unseen interiors, objective
   pulses, compound rings, convoy debug paths, shots/contrails, impact FX, flyby,
   day/night lightmap all correct). Every story — SHOTS (C), DOODADS (D), GROUND (E),

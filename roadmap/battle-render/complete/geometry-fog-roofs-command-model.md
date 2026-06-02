@@ -1,6 +1,23 @@
 # Phase 3a — fog + roofs → command model (Bucket A)
 
-> **Status: ready to implement.** The two clean wins from the gameplay-geometry
+> **✅ SHIPPED & VERIFIED** (commit `d874cf8`). Both passes migrated from inline
+> `Custom`/bracket-flush to the strict-painter drain — `collectFogOverlay` emits
+> `SOLID_RECT`, `collectRoofs` emits `SHEET_QUAD` (floors sheet already
+> registered). Two bespoke `GlStateBracket` flushes deleted; collect is now
+> GL-free for both layers. No engine additions. In-game verified: roofs render
+> and fade with character FoV; fog edge-darkening gradient correct.
+>
+> **Follow-up surfaced during verify** (out of this track): roof reveal can
+> *under*-reveal — a unit can shoot into a room without the roof fading, because
+> `BuildingVisibilityPass` reveals via the **single closest** contributor + a
+> **5-point** perimeter sample (corners + center), which diverges from per-shooter
+> per-target-cell shooting LoS. Logged under fog-of-war backlog
+> ("Merge `BuildingVisibilityPass` into the fog bitmap"). Sim concern, not render.
+>
+> ---
+> *Original plan below (kept for context).*
+>
+> The two clean wins from the gameplay-geometry
 > triage (see [`next-session.md`](../next-session.md) "pick from the shelf"). Pure
 > production passes that are *already batch-shaped* — they build a `render2d`
 > batch internally and flush it under their own `GlStateBracket`. Migrating folds
