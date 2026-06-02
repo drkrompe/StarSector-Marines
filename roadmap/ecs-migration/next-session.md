@@ -189,19 +189,27 @@ reference `entityId` instead** (the dangling-ref NPE class). New story:
        grep hits were javadoc/comments. Sibling deleted `SimCoupledProxyPlugin`;
        its replacement `combathybrid/GroundSimBridge` is sibling-owned in-flight
        work — left untouched.)
-     - **SLICE 2d COMPLETE.** All that remains are sites legitimately owned by
-       task #14 (denseIdx deletion) or by a sibling:
-       - `UnitSpatialIndex` (add/gather) — buckets hold `Unit` refs; cell read is a
-         `denseIdx` field deref (no probe). `requireLiveIndex` per candidate would
-         add a probe to THE proximity primitive → **needs a data-structure change**
-         (denormalize cell coords into bucket entries at add-time). Do it in #14.
-       - `UnitRenderService.computeFacing/computeEightWayFacing` — nullable-`sim`
-         statics that also read `pathCell*`.
-       - `TacticalScoring.effectiveAttackRange` (static, tested statically) +
-         `alliesNearForSpread` pass-2 (per-candidate destIndex gather).
-       - `DamageService:248` (`getTargetId`, holds only the resolver),
-         `FireStance:52` (`getMoveProgress`, static).
-       - `combathybrid/GroundSimBridge` — **sibling-owned**, do not touch.
+     - **SLICE 2d COMPLETE.**
+   - **TASK #14 (delete denseIdx) — IN PROGRESS (2026-06-02).** Clearing the last
+     accessor holdouts that block deleting the `Unit.registry`/`denseIdx` fields:
+       - **`UnitSpatialIndex` denormalized (`06cecbd`) — keystone DONE.** Pooled
+         `Bucket` of parallel arrays (`units[]`/`cellX[]`/`cellY[]`) replaces the
+         `ArrayList<Unit>` buckets; `rebuild` stores the SoA cell, `add(registry,u)`
+         resolves once, `gather` filters on the snapshot int — no `denseIdx`, no
+         per-candidate probe, zero-alloc kept. Bucketing+distance now both
+         rebuild-time (was a latent live/snapshot mismatch).
+       - **Low-ripple holdouts cleared (`c884f0b`):** `FireStance.stanceFor(float)`,
+         `alliesNearForSpread` pass-2, `BattleSimulation` reprio/fallback inline.
+       - **Holdouts LEFT (next slice):** `TacticalScoring.effectiveAttackRange`
+         (static; 958/1017 have registry, EngagePosture:84 + 3 `TacticalScoringTest`
+         call it statically), `UnitRenderService.computeFacing/computeEightWayFacing`
+         + `emitLiveSprite` cooldown (thread `uCellX/uCellY`/cooldown from the
+         `i`-indexed `sweepLiveSprites`), `DamageService:248` (`getTargetId` reprio
+         race-check — inject a `World`/by-id reader or pass `expectedTargetId` to the
+         registry-holding applier). `combathybrid/GroundSimBridge` is sibling-owned.
+       - **Then:** rework `isAlive()` off `denseIdx`, delete the no-arg `Unit`
+         accessors + `registry`/`denseIdx` fields, then `Unit`→`Entity` rename
+         (cheap IntelliJ rename; avoid file moves).
    - Then model `mech` & other optional `Unit` fields as `ComponentStore`s (cold
      face); then delete `Unit.registry`+`denseIdx` (mops up the TacticalScoring +
      combat leftovers above); then `Unit`→`Entity`.

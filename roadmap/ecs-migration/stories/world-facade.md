@@ -229,26 +229,39 @@ this is a per-group sweep, not one commit.
        isRoofShielded + targetOf. Narrowed-view sites (`sim.world().<col>(id)`):
        `GarrisonPatrol`, `UnitUpdateSystem`, `SquadDetailPanel`, `DroneSpawner`
        isCellOccupied. Green at 731.
-     - **SLICE 2d (and the slice-2 accessor sweep) COMPLETE.** What's left belongs
-       to task #14 (denseIdx deletion) or a sibling: `UnitSpatialIndex` add/gather
-       (Unit-ref buckets read cells via the `denseIdx` field — converting adds a
-       probe to the proximity primitive; needs cell-coord denormalization into
-       bucket entries), `UnitRenderService.computeFacing/computeEightWayFacing`
-       (nullable-sim statics + `pathCell*`), `TacticalScoring.effectiveAttackRange`
-       + `alliesNearForSpread` pass-2, `DamageService:248`, `FireStance:52`. The
-       new `combathybrid/GroundSimBridge` is sibling-owned — leave it.
+     - **SLICE 2d (and the slice-2 accessor sweep) COMPLETE.**
 3. **Model the remaining optional fields as presence components** as they're
    touched (`secondaryWeapon`/`secondaryAmmo`, `assignedObjective`,
    `equipmentDropTarget`) — `getOrNull` instead of nullable-field + null-check.
-4. **Delete `Unit.registry` + `denseIdx`.** Once no caller self-routes.
+4. **Delete `Unit.registry` + `denseIdx` — task #14, IN PROGRESS (2026-06-02).**
+   Clearing the last accessor holdouts that block the field deletion:
+   - **`UnitSpatialIndex` denormalized (`06cecbd`) — the keystone.** Replaced the
+     `ArrayList<Unit>` buckets with a pooled `Bucket` of parallel arrays
+     (`units[]`/`cellX[]`/`cellY[]`); `rebuild` stores the SoA cell alongside the
+     ref, `add(UnitRegistry,Unit)` resolves it once, `gather` filters on the stored
+     snapshot int. No `denseIdx` read, no per-candidate probe in THE proximity
+     primitive, zero-alloc steady state kept. Side benefit: bucketing + distance
+     now both use rebuild-time positions (was bucket=rebuild-time, distance=live —
+     a latent mismatch), matching the per-tick-snapshot contract.
+   - **Low-ripple holdouts cleared (`c884f0b`):** `FireStance.stanceFor(Unit)`→
+     `stanceFor(float)` (caller passes `getMoveProgress`); `alliesNearForSpread`
+     pass-2 (`requireLiveIndex` per gathered candidate); `BattleSimulation`
+     reprio/fallback inline appliers (by-index setters).
+   - **Remaining holdouts before the field can go (next):**
+     `TacticalScoring.effectiveAttackRange` (static; callers at 958/1017 have the
+     registry, EngagePosture:84 + 3 `TacticalScoringTest` cases call it statically →
+     either make it take the resolved range or go instance), `UnitRenderService`
+     `computeFacing`/`computeEightWayFacing` + `emitLiveSprite` cooldown (thread
+     `uCellX/uCellY`/cooldown down from the `i`-indexed `sweepLiveSprites`; target
+     cell resolves via `sim.getUnitRegistry()` under the existing `sim != null`
+     gate), `DamageService:248` reprio race-check (`getTargetId` — inject a `World`/
+     by-id reader, or pass `expectedTargetId` to the registry-holding applier).
+     `combathybrid/GroundSimBridge` is sibling-owned — coordinate, don't convert.
+   - **Then:** rework `isAlive()` off `denseIdx` (currently
+     `registry != null && getHp(denseIdx) > 0`), delete the no-arg `Unit` accessors
+     + the `registry`/`denseIdx` fields.
 5. **`Unit` → `Entity` rename** (`rename_refactoring`, see
-   [[intellij_mcp_refactor_tools]]).
-3. **Model the remaining optional fields as presence components** as they're
-   touched (`secondaryWeapon`/`secondaryAmmo`, `assignedObjective`,
-   `equipmentDropTarget`) — `getOrNull` instead of nullable-field + null-check.
-4. **Delete `Unit.registry` + `denseIdx`.** Once no caller self-routes.
-5. **`Unit` → `Entity` rename** (`rename_refactoring`, see
-   [[intellij_mcp_refactor_tools]]).
+   [[intellij_mcp_refactor_tools]]). Cheap IntelliJ rename; avoid file moves.
 
 ## Guardrails
 
