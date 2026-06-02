@@ -321,7 +321,14 @@ public final class FlybyOverlay {
         for (int i = fighters.size() - 1; i >= 0; i--) {
             Fighter f = fighters.get(i);
             tickFighter(f, dt, sim);
-            if (isOffMap(f, camera)) fighters.remove(i);
+            if (isOffMap(f, camera)) {
+                // An alive fighter that cleared the map banks back around for
+                // another pass (rejoins) rather than retiring; a dead one (AA,
+                // future) leaves for good. Re-entry from a fresh edge happens
+                // off-screen, so the fighter reads as "coming back around."
+                if (f.alive) enterFromEdge(f, camera);
+                else fighters.remove(i);
+            }
         }
         driveEngineLoops();
 
@@ -1158,18 +1165,39 @@ public final class FlybyOverlay {
     }
 
     /**
-     * Spawns one fighter from a wing — wing dictates profile + side, the rest
-     * (entry edge, exit, speed, weave params) is rolled per-sortie so a wing's
-     * multiple sorties don't trace identical paths.
+     * Spawns one fighter from a wing — wing dictates profile + side and the
+     * persistent identity (handling profile, engine voice); the per-pass flight
+     * state (entry edge, exit, heading, weave) is rolled by {@link #enterFromEdge}.
      */
     private void spawnFromWing(FighterWing wing, BattleCamera camera) {
+        Fighter f = new Fighter();
+        f.profile = wing.profile;
+        f.side = wing.side;
+        f.handling = HullKinematicsResolver.resolve(f.profile.hullId);
+        f.engineVoice = EngineVoiceResolver.resolve(f.profile.hullId);
+        f.enginePitchOffset = (rng.nextFloat() * 2f - 1f) * ENGINE_LOOP_PITCH_JITTER;
+        if (!enterFromEdge(f, camera)) return;   // grid not ready — drop this spawn
+        fighters.add(f);
+    }
+
+    /**
+     * (Re)enters {@code f} from a random map edge for a fresh cross-the-map pass,
+     * rolling entry/exit waypoints, heading, and weave, and resetting the
+     * strafe/burst/aggro state so a recycled pass starts clean. Used both at
+     * spawn and when an alive fighter cycles back after exiting (its identity —
+     * profile, side, handling, engine voice — is preserved). Requires
+     * {@code f.handling} already set (the cruise-speed seed reads its maxSpeed).
+     *
+     * @return false if the grid isn't ready yet (caller drops the spawn)
+     */
+    private boolean enterFromEdge(Fighter f, BattleCamera camera) {
         int gridCellsW = camera.worldCellsW();
         int gridCellsH = camera.worldCellsH();
-        if (gridCellsW <= 0 || gridCellsH <= 0) return;
+        if (gridCellsW <= 0 || gridCellsH <= 0) return false;
 
-        int side = rng.nextInt(4);
+        int edge = rng.nextInt(4);
         float sx, sy, ex, ey;
-        switch (side) {
+        switch (edge) {
             case 0:  sx = rng.nextFloat() * gridCellsW; sy = gridCellsH + OFFMAP_PAD;
                      ex = rng.nextFloat() * gridCellsW; ey = -OFFMAP_PAD; break;
             case 1:  sx = gridCellsW + OFFMAP_PAD; sy = rng.nextFloat() * gridCellsH;
@@ -1180,16 +1208,11 @@ public final class FlybyOverlay {
                      ex = gridCellsW + OFFMAP_PAD; ey = rng.nextFloat() * gridCellsH; break;
         }
 
-        Fighter f = new Fighter();
-        f.profile = wing.profile;
-        f.side = wing.side;
         f.exitX = ex;  f.exitY = ey;
         f.baseHeadingDeg = headingTo(sx, sy, ex, ey);
 
-        // Flight model: scrape the hull's maneuver profile, drop the body at the
-        // entry edge facing the exit, and seed it at cruise speed so the jet
-        // enters fast instead of accelerating from a dead stop off-map.
-        f.handling = HullKinematicsResolver.resolve(f.profile.hullId);
+        // Flight model: drop the body at the entry edge facing the exit and seed
+        // it at cruise speed so the jet enters fast, not from a dead stop off-map.
         float entryFacing = f.baseHeadingDeg - 90f;   // math 0=+X → our 0=+Y
         f.body.teleport(sx, sy, entryFacing);
         float rad = (float) Math.toRadians(entryFacing);
@@ -1206,10 +1229,20 @@ public final class FlybyOverlay {
         f.weavePhase = rng.nextFloat() * (float) (2 * Math.PI);
         f.weaveFreq = WEAVE_FREQ_HZ_MIN + rng.nextFloat() * (WEAVE_FREQ_HZ_MAX - WEAVE_FREQ_HZ_MIN);
         f.weaveAmpDeg = WEAVE_AMP_DEG_MIN + rng.nextFloat() * (WEAVE_AMP_DEG_MAX - WEAVE_AMP_DEG_MIN);
+
+        // Clean slate for the new pass — a cycled fighter must not carry a stale
+        // strafe run / pending burst / aggro from its previous lap.
+        f.runState = RunState.NONE;
+        f.runStateTimer = 0f;
+        f.runRearmTimer = 0f;
+        f.runFireAccumulator = 0f;
         f.runScanTimer = RUN_TRIGGER_INTERVAL_SEC;
-        f.engineVoice = EngineVoiceResolver.resolve(f.profile.hullId);
-        f.enginePitchOffset = (rng.nextFloat() * 2f - 1f) * ENGINE_LOOP_PITCH_JITTER;
-        fighters.add(f);
+        f.burstRemaining = 0;
+        f.burstTarget = null;
+        f.burstNextFireIn = 0f;
+        f.strafeRearmTimer = 0f;
+        f.aggroTimer = 0f;
+        return true;
     }
 
     /** Clears all transient overlay state. Called when the sim instance changes — leftover fighters / sortie counters from the prior battle would otherwise bleed across. */
@@ -1498,6 +1531,15 @@ public final class FlybyOverlay {
         // hull's scraped maneuver profile. This is the source of truth for motion.
         final AirBody body = new AirBody();
         AirHandling handling;
+
+        /**
+         * Lifecycle gate. An alive fighter that reaches its off-map exit cycles
+         * back for another pass (rejoins the fight) instead of retiring; a
+         * dead one is removed. Nothing clears it yet — fighters can't be shot
+         * down today — so all fighters currently cycle; this is the seam the AA
+         * work flips to {@code false} on a kill.
+         */
+        boolean alive = true;
 
         // Legacy read-surface, SYNCED from `body` each tick so the unchanged
         // fire / render / vision / engine-glow code keeps reading the same
