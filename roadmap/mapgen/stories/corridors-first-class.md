@@ -6,16 +6,18 @@
 > the audit ([`../pipeline-audit.md`](../pipeline-audit.md) §
 > "Corridors — the bigger blocker for stations").
 
-**Status:** **slice 1 shipped (`aae4244`)** — see
-[`../complete/station-interiors-slice-1.md`](../complete/station-interiors-slice-1.md).
-The rooms-and-corridors model is proven end to end as a `StationRecipe`
-(InitSolid → StationPartition → RoomCarve → Corridor → StationSpawn) with the
-room/corridor `StationGraph` published and the validation scan gating one-
-component connectivity. The design below is the converged spec (2026-06-01);
-slice 1 realized the "first vertical slice" sketch with the deviations noted
-in the complete doc. Remaining: topological roles on the graph, junction-bulge
-width policy, edge-based doors, and the thematic station kinds
-([`station-interior-fills`](station-interior-fills.md)).
+**Status:** **slices 1–2 shipped.**
+[Slice 1 (`aae4244`)](../complete/station-interiors-slice-1.md) proved the
+rooms-and-corridors model as a `StationRecipe` (InitSolid → StationPartition →
+RoomCarve → Corridor → StationSpawn) with the room/corridor `StationGraph`
+published and the validation scan gating one-component connectivity.
+[Slice 2 — topological roles (`6a07e8f`)](../complete/station-topology-roles.md)
+realized the "structural taxonomy" section below: `StationTopologyStage` derives
+**depth-from-entry, articulation rooms, bridge corridors, and on-spine/on-loop**
+onto the graph (Tarjan + BFS, cross-checked by a brute-force oracle). The design
+below is the converged spec (2026-06-01). Remaining: junction-bulge width policy,
+edge-based doors, the first role-querying placement pass, and the thematic
+station kinds ([`station-interior-fills`](station-interior-fills.md)).
 
 > **Slice-1 deviation from this doc.** Step 1 below ("extract road carving out
 > of `Bsp.partition()`") was **not** done — the station recipe just ignores the

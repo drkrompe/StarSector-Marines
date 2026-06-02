@@ -24,7 +24,8 @@ bf0cf22  mapgen: hoist FortressWallStamper ctx reads to top of run()
 6cdd6c7  mapgen: overwatch-corner overlay in TacticalRegionPreviewTest (positional gut-check)
 3426109  mapgen: promote overwatch-corner scorer to taxonomy package (positional read)
 9320da7  mapgen: OverwatchTowerStage — first taxonomy consumer (corner-tower guns)
-aae4244  mapgen: station interiors slice 1 — rooms + corridors as a recipe  ← latest mapgen work
+aae4244  mapgen: station interiors slice 1 — rooms + corridors as a recipe
+6a07e8f  mapgen: station topological roles — depth / articulation / bridge / on-loop  ← latest mapgen work
 ```
 
 Full per-slice mapping (what landed vs. planned, Slice A critique
@@ -121,13 +122,21 @@ reused verbatim. Candidate next tracks (priority order):
    (InitSolid → StationPartition → RoomCarve → Corridor → StationSpawn), the
    room/corridor `StationGraph` published, validation scan gating one-component
    connectivity. See [`complete/station-interiors-slice-1.md`](complete/station-interiors-slice-1.md).
+   **Topological roles shipped (`6a07e8f`)**: `StationTopologyStage` derives
+   depth-from-entry, articulation rooms, bridge corridors, and on-spine/on-loop
+   onto `StationGraph` (Tarjan + BFS, brute-force-oracle gated). See
+   [`complete/station-topology-roles.md`](complete/station-topology-roles.md).
    **Next on this track** (priority order):
-   - **Topological roles on `StationGraph`** — depth-from-entry (indoor assault
-     gradient), articulation/bridges, on-spine vs on-loop. Degree is already
-     free; this is the layer placement passes query.
+   - **First role-querying placement pass** — the first time the roles drive
+     something player-visible: defensive emplacements biased to
+     `{bridge mouth, high depth, articulation}`, fallbacks to `{deep terminal,
+     low degree}`, flank watch to `{on-loop}`. This is where the foundation
+     becomes gameplay.
    - **Width policy / junction bulges** — degree-≥3 junctions widen to 4–6-wide
      arenas; ban hold-nodes on degree-2 corridor cells, then promote the scan's
-     cramped-garrison finding to a hard assert.
+     cramped-garrison finding to a hard assert. (Also: a loop-budget bump —
+     `CorridorStage.LOOP_FRACTION_DENOM` — to soften the tree-dominant
+     ~half-the-rooms-are-articulation funnel if we want more flank variety.)
    - **Station thematic kinds** — [`stories/station-interior-fills.md`](stories/station-interior-fills.md)
      (`HANGAR / COMMAND / HABITATION`); sits on top of the topological role.
    - **Edge-based doors** — arms the validation scan's (currently no-op)
