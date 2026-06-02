@@ -260,14 +260,29 @@ this is a per-group sweep, not one commit.
      `writeReprioInline` (`ReprioApplier.apply` gains `expectedTargetId`), so the
      flush drain no longer reads `target.getTargetId()`. Also folded in:
      `InfantryWeapons.fireShot` reads accuracy/damage by-index. Green at 733.
-   - **Sole remaining field-deletion blocker: `combathybrid/GroundSimBridge`**
-     (sibling-owned — 3 `getCellX/getCellY/getHp` no-arg calls at lines 142/170/183).
-     Coordinate with the combathybrid session before converting; once it's off the
-     no-arg accessors, NOTHING outside `Unit.java` + tests routes through denseIdx.
-   - **Then:** rework `isAlive()` off `denseIdx` (currently
-     `registry != null && getHp(denseIdx) > 0`), delete the no-arg `Unit` accessors
-     + the `registry`/`denseIdx` fields, then convert the `UnitRegistryTest`/
-     `WorldTest` `u.denseIdx` reads (they assert against the dense slot directly).
+   - **`Unit.denseIdx` DELETED (`9cd7c61`).** The cached dense-index field is gone;
+     `indexById` (the registry's id→index map) is the single source of truth for an
+     entity's slot, so a held `Unit` ref can never carry a stale index. `Unit.idx()`
+     resolves the slot via `registry.requireLiveIndex(entityId)`; every no-arg OO
+     accessor routes through it (hot bulk loops never do — they go by loop index, so
+     the cache-locality win is untouched; only cold/per-event callers pay the
+     fastutil probe). `advanceAlongPath`/`beginBurst` resolve the slot once then go
+     by-index. `isAlive()` → `registry != null && registry.isAliveById(entityId)`
+     (new registry method: `indexById` membership + `hp>0`). `allocate`/`release`
+     drop the three `denseIdx` writes. `GroundSimBridge` (the last external OO-accessor
+     caller) → `sim.world()` by-id. `UnitRegistryTest`/`WorldTest` `u.denseIdx` →
+     `r.indexOf(entityId)`. Green at 734.
+   - **Next — delete `Unit.registry` (the larger sweep).** `registry` stays for now
+     as the allocation/liveness marker + slot-resolution handle. Deleting it means
+     the no-arg OO accessors + the convenience methods (`isAlive`, `setTarget`,
+     `beginBurst`, `advanceAlongPath`, `setSecondaryAimTarget`, `setBurstTarget`)
+     can no longer be self-routing instance methods — their ~100 callers
+     (`isAlive` ×49, `setTarget` ×26, `beginBurst` ×14, …) must convert to by-id
+     forms (`world.isAlive(id)` / `registry.<col>(id)`) reaching a registry/world
+     handle in scope, and the convenience methods move onto the registry/World.
+     Mechanical but design-touched per callsite — fan to Sonnet by disjoint file
+     bucket ([[feedback_delegate_mechanical_sonnet]]). **Then** `Unit`→`Entity`
+     rename (cheap IntelliJ `rename_refactoring`; avoid file moves).
 5. **`Unit` → `Entity` rename** (`rename_refactoring`, see
    [[intellij_mcp_refactor_tools]]). Cheap IntelliJ rename; avoid file moves.
 

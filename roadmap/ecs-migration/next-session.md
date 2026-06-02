@@ -210,14 +210,21 @@ reference `entityId` instead** (the dangling-ref NPE class). New story:
          `DamageService:248` reprio race-check moved registry-side into
          `writeReprioInline` (`ReprioApplier.apply` gains `expectedTargetId`).
          Folded in: `InfantryWeapons.fireShot` accuracy/damage by-index. Green at 733.
-       - **Sole remaining field-deletion blocker: `combathybrid/GroundSimBridge`**
-         (sibling-owned; `getCellX/getCellY/getHp` no-arg at 142/170/183). Coordinate
-         with the combathybrid session before converting — once it's off the no-arg
-         accessors NOTHING outside `Unit.java` + tests touches denseIdx.
-       - **Then:** rework `isAlive()` off `denseIdx`, delete the no-arg `Unit`
-         accessors + `registry`/`denseIdx` fields, convert the `UnitRegistryTest`/
-         `WorldTest` `u.denseIdx` reads (assert the dense slot directly), then
-         `Unit`→`Entity` rename (cheap IntelliJ rename; avoid file moves).
+       - **`Unit.denseIdx` DELETED (`9cd7c61`).** The cached dense-index field is
+         gone — `indexById` is the single source of truth for an entity's slot, so a
+         held ref can't carry a stale index. `Unit.idx()` resolves via
+         `requireLiveIndex(entityId)`; every no-arg accessor routes through it (hot
+         loops still go by loop index — cache-locality untouched; only cold callers
+         pay the probe). `advanceAlongPath`/`beginBurst` resolve once. `isAlive()` →
+         `registry.isAliveById(entityId)` (new method). `GroundSimBridge` → `sim.world()`.
+         `UnitRegistryTest`/`WorldTest` `u.denseIdx` → `r.indexOf(entityId)`. Green at 734.
+       - **NEXT — delete `Unit.registry` (the big sweep).** `registry` stays for now
+         (allocation/liveness marker + slot handle). Deleting it = the no-arg accessors
+         + convenience methods can't self-route → ~100 callers (`isAlive` ×49,
+         `setTarget` ×26, `beginBurst` ×14, …) convert to by-id (`world.isAlive(id)` /
+         `registry.<col>(id)`) with a registry/world handle in scope; convenience
+         methods move onto registry/World. Fan to Sonnet by disjoint file bucket.
+         **Then** `Unit`→`Entity` rename (cheap IntelliJ rename; avoid file moves).
    - Then model `mech` & other optional `Unit` fields as `ComponentStore`s (cold
      face); then delete `Unit.registry`+`denseIdx` (mops up the TacticalScoring +
      combat leftovers above); then `Unit`→`Entity`.
