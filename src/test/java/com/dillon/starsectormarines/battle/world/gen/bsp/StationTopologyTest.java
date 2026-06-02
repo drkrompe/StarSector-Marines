@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
@@ -120,14 +119,13 @@ public class StationTopologyTest {
             }
 
             System.out.printf("seed %d: %d rooms, %d corridors, %d articulation, %d bridges, maxDepth %d%n",
-                    seed, n, edges.size(), count(g, n, true), bridgeCount(g), maxDepth(g, n));
+                    seed, n, edges.size(), articulationCount(g, n), bridgeCount(g), maxDepth(g, n));
         }
 
         if (!failures.isEmpty()) {
             fail("Station topology found " + failures.size() + " violation(s):\n  "
                     + String.join("\n  ", failures));
         }
-        assertTrue(true);
     }
 
     private static List<int[]> edgesOf(StationGraph g) {
@@ -186,9 +184,9 @@ public class StationTopologyTest {
         return !connected(n, edges, -1, room);
     }
 
-    private static int count(StationGraph g, int n, boolean articulation) {
+    private static int articulationCount(StationGraph g, int n) {
         int c = 0;
-        for (int r = 0; r < n; r++) if (g.isArticulation(r) == articulation && articulation) c++;
+        for (int r = 0; r < n; r++) if (g.isArticulation(r)) c++;
         return c;
     }
 
