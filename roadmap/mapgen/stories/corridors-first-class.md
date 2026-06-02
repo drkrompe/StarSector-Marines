@@ -18,10 +18,15 @@ onto the graph (Tarjan + BFS, cross-checked by a brute-force oracle).
 [Concentric "onion" layout (`c447104`)](../complete/station-concentric-rings.md)
 then added the **defense-station** layout — defensive rings around a central
 core — which *consumes* those roles as designed: the inter-ring gates are the
-bridges, depth-from-entry is the radial assault gradient. The design below is the
-converged spec (2026-06-01). Remaining: a junction/gate-bulge width policy,
-edge-based doors, the first role-querying placement pass, and the thematic
-station kinds ([`station-interior-fills`](station-interior-fills.md)).
+bridges, depth-from-entry is the radial assault gradient.
+[Diamond layout (`f04c2d5`)](../complete/station-diamond.md) followed: a
+diamond/cruciform footprint with isolated cardinal **ports** converging inward
+(outer shell all bridges, one connective ring) — a `RingGeometry` extract now
+backs both ring layouts. The design below is the converged spec (2026-06-01).
+Remaining: a junction/gate-bulge width policy, edge-based doors, multi-port
+insertion (battle-system; ports already published), the first role-querying
+placement pass, and the thematic station kinds
+([`station-interior-fills`](station-interior-fills.md)).
 
 > **Slice-1 deviation from this doc.** Step 1 below ("extract road carving out
 > of `Bsp.partition()`") was **not** done — the station recipe just ignores the

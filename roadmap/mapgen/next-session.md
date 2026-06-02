@@ -26,7 +26,8 @@ bf0cf22  mapgen: hoist FortressWallStamper ctx reads to top of run()
 9320da7  mapgen: OverwatchTowerStage — first taxonomy consumer (corner-tower guns)
 aae4244  mapgen: station interiors slice 1 — rooms + corridors as a recipe
 6a07e8f  mapgen: station topological roles — depth / articulation / bridge / on-loop
-c447104  mapgen: concentric "onion" station layout — defensive rings around a core  ← latest mapgen work
+c447104  mapgen: concentric "onion" station layout — defensive rings around a core
+f04c2d5  mapgen: diamond defense station — cardinal ports converging inward  ← latest mapgen work
 ```
 
 Full per-slice mapping (what landed vs. planned, Slice A critique
@@ -131,8 +132,16 @@ reused verbatim. Candidate next tracks (priority order):
    defensive rings around a central control core, inter-ring gates as the topology
    bridges, depth-from-entry as the radial assault gradient. See
    [`complete/station-concentric-rings.md`](complete/station-concentric-rings.md).
-   Previews: `build/map-previews/concentric-*.png` + `concentric-roles-*.png`.
+   **Diamond layout shipped (`f04c2d5`)**: diamond/cruciform footprint, 4 isolated
+   cardinal **ports** converging inward to a besieged core (outer shell all
+   bridges, one connective ring); `RingGeometry` now backs both ring layouts; ports
+   published on `StationGraph` for multi-spawn. See
+   [`complete/station-diamond.md`](complete/station-diamond.md). Previews:
+   `build/map-previews/{concentric,diamond}-*.png` + `*-roles-*.png`.
    **Next on this track** (priority order):
+   - **Multi-port insertion** (battle-system) — land forces at several ports at
+     once (the diamond's ports are already published on `StationGraph`); needs
+     `MapResult`/`BattleSetup` multi-spawn (single-spawn today).
    - **First role-querying placement pass** — the first time the roles drive
      something player-visible: defensive emplacements biased to
      `{bridge mouth, high depth, articulation}`, fallbacks to `{deep terminal,
