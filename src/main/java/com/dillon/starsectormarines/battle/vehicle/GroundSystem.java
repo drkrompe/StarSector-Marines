@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
+import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Unit;
@@ -43,6 +44,7 @@ public class GroundSystem {
     private final UnitRosterService roster;
     private final UnitRegistry registry;
     private final com.dillon.starsectormarines.battle.decision.TacticalScoring tacticalScoring;
+    private final World world;
     private final TurretFireSink fireSink;
     private final Random rng;
     private final Consumer<Unit> addUnitSink;
@@ -51,11 +53,12 @@ public class GroundSystem {
 
     public GroundSystem(NavigationService navigation, UnitRosterService roster,
                         com.dillon.starsectormarines.battle.decision.TacticalScoring tacticalScoring,
-                        TurretFireSink fireSink, Random rng, Consumer<Unit> addUnitSink) {
+                        World world, TurretFireSink fireSink, Random rng, Consumer<Unit> addUnitSink) {
         this.navigation = navigation;
         this.roster = roster;
         this.registry = roster.getRegistry();
         this.tacticalScoring = tacticalScoring;
+        this.world = world;
         this.fireSink = fireSink;
         this.rng = rng;
         this.addUnitSink = addUnitSink;
@@ -259,7 +262,7 @@ public class GroundSystem {
             aim.attackCooldown = kind.cooldown;
             aim.target = (v.turretTargetId != 0L) ? registry.getOrNull(v.turretTargetId) : null;
 
-            TurretAim.tick(aim, tacticalScoring, navigation.getGrid(), dt);
+            TurretAim.tick(aim, tacticalScoring, navigation.getGrid(), world, dt);
 
             v.turretFacingDeg = aim.facingDegrees;
             v.turretCooldownTimer = aim.cooldownTimer;

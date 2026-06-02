@@ -100,7 +100,7 @@ public final class DroneSwarmAction implements Action {
         s.ignoreCloseWalls = true;
         s.closeWallRadius = d.airLosRadius;
 
-        TurretAim.tick(s, sim.getTacticalScoring(), sim.getGrid(), BattleSimulation.TICK_DT);
+        TurretAim.tick(s, sim.getTacticalScoring(), sim.getGrid(), sim.world(), BattleSimulation.TICK_DT);
 
         sim.world().setCooldownTimer(d.entityId, s.cooldownTimer);
         d.setTarget(s.target);

@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.combat.ShotRaycast;
+import com.dillon.starsectormarines.battle.sim.World;
 
 import java.util.Random;
 
@@ -38,6 +39,7 @@ public final class TurretFireService implements TurretFireSink {
     private final DamageService damageService;
     private final DetonationSink detonationSink;
     private final HitResponseService hitResponse;
+    private final World world;
 
     @FunctionalInterface
     public interface DetonationSink {
@@ -47,7 +49,7 @@ public final class TurretFireService implements TurretFireSink {
     public TurretFireService(Random rng, NavigationGrid grid, CellTopology topology,
                              ShotService shots, DamageService damageService,
                              DetonationSink detonationSink,
-                             HitResponseService hitResponse) {
+                             HitResponseService hitResponse, World world) {
         this.rng = rng;
         this.grid = grid;
         this.topology = topology;
@@ -55,14 +57,17 @@ public final class TurretFireService implements TurretFireSink {
         this.damageService = damageService;
         this.detonationSink = detonationSink;
         this.hitResponse = hitResponse;
+        this.world = world;
     }
 
     @Override
     public void fire(float fromX, float fromY, Faction shooterFaction,
                      TurretKind kind, Unit target, boolean aerialShooter, boolean hasLos) {
+        int tcx = world.cellX(target.entityId);
+        int tcy = world.cellY(target.entityId);
         float distToTarget = (float) Math.sqrt(
-                (target.getCellX() + 0.5f - fromX) * (target.getCellX() + 0.5f - fromX) +
-                (target.getCellY() + 0.5f - fromY) * (target.getCellY() + 0.5f - fromY));
+                (tcx + 0.5f - fromX) * (tcx + 0.5f - fromX) +
+                (tcy + 0.5f - fromY) * (tcy + 0.5f - fromY));
         float effectiveAccuracy = kind.accuracy;
         if (kind.indirectFire) {
             float distNorm = Math.min(1f, distToTarget / Math.max(0.0001f, kind.range));
@@ -72,7 +77,7 @@ public final class TurretFireService implements TurretFireSink {
         }
 
         if (kind.cellsPerSec() > 0f) {
-            spawnProjectile(fromX, fromY, shooterFaction, kind, target, aerialShooter,
+            spawnProjectile(fromX, fromY, shooterFaction, kind, tcx, tcy, aerialShooter,
                     distToTarget, effectiveAccuracy);
             return;
         }
@@ -84,8 +89,8 @@ public final class TurretFireService implements TurretFireSink {
 
         float toX, toY;
         if (hit) {
-            toX = target.getCellX() + 0.5f;
-            toY = target.getCellY() + 0.5f;
+            toX = tcx + 0.5f;
+            toY = tcy + 0.5f;
             if (effectiveSpread > 0f) {
                 float angle = rng.nextFloat() * (float) (Math.PI * 2);
                 float r = rng.nextFloat() * effectiveSpread;
@@ -96,8 +101,8 @@ public final class TurretFireService implements TurretFireSink {
             float angle = rng.nextFloat() * (float) (Math.PI * 2);
             float spread = MISS_OFFSET_MIN + rng.nextFloat() * (MISS_OFFSET_MAX - MISS_OFFSET_MIN);
             spread += effectiveSpread;
-            toX = target.getCellX() + 0.5f + (float) Math.cos(angle) * spread;
-            toY = target.getCellY() + 0.5f + (float) Math.sin(angle) * spread;
+            toX = tcx + 0.5f + (float) Math.cos(angle) * spread;
+            toY = tcy + 0.5f + (float) Math.sin(angle) * spread;
         }
 
         ShotRaycast.Result snapped = ShotRaycast.resolve(
@@ -107,7 +112,7 @@ public final class TurretFireService implements TurretFireSink {
         hit = snapped.hit();
 
         if (!isAoe && hit) {
-            if (!aerialDelivery || !topology.isRoofIntact(target.getCellX(), target.getCellY())) {
+            if (!aerialDelivery || !topology.isRoofIntact(tcx, tcy)) {
                 damageService.applyDamage(target, kind.damage, 1f, 1f);
                 hitResponse.rollFallbackOnHit(target);
             }
@@ -127,7 +132,7 @@ public final class TurretFireService implements TurretFireSink {
     }
 
     private void spawnProjectile(float fromX, float fromY, Faction shooterFaction,
-                                 TurretKind kind, Unit target, boolean aerialShooter,
+                                 TurretKind kind, int tcx, int tcy, boolean aerialShooter,
                                  float distToTarget, float effectiveAccuracy) {
         boolean aerialDelivery = aerialShooter || kind.arcHeight > 0f;
 
@@ -136,8 +141,8 @@ public final class TurretFireService implements TurretFireSink {
         float scatterRadius = kind.hitSpread * distScale * accScatterMult;
         float angle = rng.nextFloat() * (float) (Math.PI * 2);
         float r = rng.nextFloat() * scatterRadius;
-        float toX = target.getCellX() + 0.5f + (float) Math.cos(angle) * r;
-        float toY = target.getCellY() + 0.5f + (float) Math.sin(angle) * r;
+        float toX = tcx + 0.5f + (float) Math.cos(angle) * r;
+        float toY = tcy + 0.5f + (float) Math.sin(angle) * r;
 
         float flightTime = distToTarget / kind.cellsPerSec();
 

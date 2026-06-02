@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.sim.World;
 
 /**
  * Shared turret aim/fire loop — used by both static {@link MapTurret}s
@@ -96,7 +97,7 @@ public final class TurretAim {
      * cooldown. The caller fires the actual shot using the appropriate
      * sim path (sim.fireShot for Units; sim.fireShotFrom for mounts).
      */
-    public static void tick(State s, TacticalScoring scoring, NavigationGrid grid, float dt) {
+    public static void tick(State s, TacticalScoring scoring, NavigationGrid grid, World world, float dt) {
         s.fireThisTick = false;
         float shooterAirR = s.ignoreCloseWalls ? s.closeWallRadius : 0f;
 
@@ -108,11 +109,15 @@ public final class TurretAim {
         if (s.cooldownTimer > 0f) s.cooldownTimer -= dt;
         if (s.target == null) return;
 
+        // Target is freshly acquired from findBestTarget this tick (callers
+        // recreate State each tick), so a by-id cell read is always live.
+        int tcx = world.cellX(s.target.entityId);
+        int tcy = world.cellY(s.target.entityId);
         float dist = TacticalScoring.cellDistance(
-                s.originCellX, s.originCellY, s.target.getCellX(), s.target.getCellY());
+                s.originCellX, s.originCellY, tcx, tcy);
         boolean inRange = dist <= s.attackRange && dist >= s.minRange;
         boolean visible = TacticalScoring.canSeePair(grid,
-                s.originCellX, s.originCellY, s.target.getCellX(), s.target.getCellY(),
+                s.originCellX, s.originCellY, tcx, tcy,
                 shooterAirR, s.target.airLosRadius);
         // Direct-fire kinds drop on either out-of-range OR LoS loss; indirect-
         // fire kinds keep the lock when LoS breaks (the kremlin wall doesn't
@@ -126,7 +131,7 @@ public final class TurretAim {
             return;
         }
 
-        float bearing = bearingTo(s.originX, s.originY, s.target.getCellX() + 0.5f, s.target.getCellY() + 0.5f);
+        float bearing = bearingTo(s.originX, s.originY, tcx + 0.5f, tcy + 0.5f);
         float maxStep = s.turnRateDegPerSec * dt;
         s.facingDegrees = slewToward(s.facingDegrees, bearing, maxStep);
 

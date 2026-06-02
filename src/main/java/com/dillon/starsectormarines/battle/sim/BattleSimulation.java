@@ -334,13 +334,13 @@ public class BattleSimulation implements BattleControl {
         this.turretFire = new com.dillon.starsectormarines.battle.turret.TurretFireService(
                 rng, grid, topology, shots, damageService,
                 det -> { synchronized (detonations) { detonations.queue(det); } },
-                hitResponse);
+                hitResponse, world);
         this.infantry = new InfantryWeapons(rosterService.getRegistry(),
                 damageService, hitResponse, shots);
         this.heavy = new HeavyWeapons(rosterService.getRegistry(), grid, damageService, hitResponse,
                 shots, detonations);
-        this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, turretFire, rng, this::addUnit);
-        this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, turretFire, rng, this::addUnit);
+        this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, world, turretFire, rng, this::addUnit);
+        this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, world, turretFire, rng, this::addUnit);
         mapService.setRoofCollapseSink((x, y) -> {
             float jx = x + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
             float jy = y + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;

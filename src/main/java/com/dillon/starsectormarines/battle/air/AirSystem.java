@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.unit.Unit;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
+import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.TurretAim;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
@@ -65,6 +66,7 @@ public class AirSystem {
     private final UnitRosterService roster;
     private final UnitRegistry registry;
     private final TacticalScoring tacticalScoring;
+    private final World world;
     private final TurretFireSink fireSink;
     private final Random rng;
     private final Consumer<Unit> addUnitSink;
@@ -81,12 +83,13 @@ public class AirSystem {
     private long nextAirId = 1L;
 
     public AirSystem(NavigationService navigation, UnitRosterService roster,
-                     TacticalScoring tacticalScoring, TurretFireSink fireSink,
+                     TacticalScoring tacticalScoring, World world, TurretFireSink fireSink,
                      Random rng, Consumer<Unit> addUnitSink) {
         this.navigation = navigation;
         this.roster = roster;
         this.registry = roster.getRegistry();
         this.tacticalScoring = tacticalScoring;
+        this.world = world;
         this.fireSink = fireSink;
         this.rng = rng;
         this.addUnitSink = addUnitSink;
@@ -403,7 +406,7 @@ public class AirSystem {
                 aim.ignoreCloseWalls = true;
                 aim.closeWallRadius = SHUTTLE_AIR_LOS_RADIUS;
 
-                TurretAim.tick(aim, tacticalScoring, navigation.getGrid(), dt);
+                TurretAim.tick(aim, tacticalScoring, navigation.getGrid(), world, dt);
 
                 mt.facingDegrees = aim.facingDegrees;
                 mt.cooldownTimer = aim.cooldownTimer;
