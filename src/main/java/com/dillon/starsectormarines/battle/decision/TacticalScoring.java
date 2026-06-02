@@ -1714,8 +1714,12 @@ public final class TacticalScoring {
         for (int i = 0, n = scratch.size(); i < n; i++) {
             Unit u = scratch.get(i);
             if (u == self || u.faction != self.faction) continue;
-            int dx = u.getCellX() - cx;
-            int dy = u.getCellY() - cy;
+            // Dedupe against Pass 1 on the unit's CURRENT cell. Small gathered
+            // set (path-dest within the spread radius), so the per-candidate
+            // index resolve is decision-cadence, not a hot bulk loop.
+            int idx = registry.requireLiveIndex(u.entityId);
+            int dx = registry.getCellX(idx) - cx;
+            int dy = registry.getCellY(idx) - cy;
             if (dx * dx + dy * dy <= r2) continue; // already counted via Pass 1
             count++;
         }

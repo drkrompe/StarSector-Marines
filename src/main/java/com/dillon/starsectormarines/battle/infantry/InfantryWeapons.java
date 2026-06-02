@@ -94,7 +94,7 @@ public class InfantryWeapons {
             // walked off the firing position mid-burst, the remaining rounds
             // get the MOVING accuracy penalty — same rule a hand-rolled
             // moving-fire callsite gets.
-            fireShot(u, burstTarget, FireStance.stanceFor(u));
+            fireShot(u, burstTarget, FireStance.stanceFor(registry.getMoveProgress(idx)));
             // fireShot resolves damage inline; a killing round releases its
             // target and swap-and-pops the dense registry, which can relocate
             // u's slot — re-resolve before the post-fire burst writes.

@@ -639,13 +639,16 @@ public class BattleSimulation implements BattleControl {
 
     /** Inline reprio write — invoked by the damage service on the serial path AND on the queued path (after the expectedTargetId race-check). The shape stays just "clear the targetId field"; the next behavior tick re-picks via {@code findBestTarget}. */
     private void writeReprioInline(Unit target) {
-        target.setTargetId(0L);
+        UnitRegistry registry = rosterService.getRegistry();
+        registry.setTargetId(registry.requireLiveIndex(target.entityId), 0L);
     }
 
     /** Inline fallback write — invoked by the damage service on the serial path AND from the queued-flush. Writes the 3 fb fields and clears the stale path so the target re-paths to the fall-back cell on its next updateUnit pass. */
     private void writeFallbackInline(Unit target, int fbX, int fbY) {
-        target.setFallbackCell(fbX, fbY);
-        target.setFallbackTimer(com.dillon.starsectormarines.battle.combat.HitResponseService.FALLBACK_DURATION);
+        UnitRegistry registry = rosterService.getRegistry();
+        int idx = registry.requireLiveIndex(target.entityId);
+        registry.setFallbackCell(idx, fbX, fbY);
+        registry.setFallbackTimer(idx, com.dillon.starsectormarines.battle.combat.HitResponseService.FALLBACK_DURATION);
         clearPath(target);
     }
 

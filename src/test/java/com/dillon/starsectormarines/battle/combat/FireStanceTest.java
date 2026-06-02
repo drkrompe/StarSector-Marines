@@ -1,9 +1,5 @@
 package com.dillon.starsectormarines.battle.combat;
 
-import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Unit;
-import com.dillon.starsectormarines.battle.unit.UnitRegistry;
-import com.dillon.starsectormarines.battle.unit.UnitType;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,26 +27,13 @@ public class FireStanceTest {
 
     @Test
     public void stanceForReadsMoveProgress() {
-        // moveProgress is a registry-backed SoA column with no local* shadow, so
-        // the units must be registered before setMoveProgress routes anywhere.
-        UnitRegistry registry = new UnitRegistry();
-
-        Unit stationary = new Unit("s", Faction.MARINE, UnitType.MARINE, 0, 0);
-        registry.allocate(stationary);
-        stationary.setMoveProgress(0f);
-        assertEquals(FireStance.STANCED, FireStance.stanceFor(stationary),
+        // stanceFor takes the caller-resolved moveProgress directly now — the
+        // by-id/by-index read lives at the callsite, this enum just thresholds.
+        assertEquals(FireStance.STANCED, FireStance.stanceFor(0f),
                 "moveProgress == 0 → STANCED");
-
-        Unit walking = new Unit("w", Faction.MARINE, UnitType.MARINE, 0, 0);
-        registry.allocate(walking);
-        walking.setMoveProgress(0.5f);
-        assertEquals(FireStance.MOVING, FireStance.stanceFor(walking),
+        assertEquals(FireStance.MOVING, FireStance.stanceFor(0.5f),
                 "moveProgress > 0 → MOVING (strict rule: any lerp = moving)");
-
-        Unit almostThere = new Unit("a", Faction.MARINE, UnitType.MARINE, 0, 0);
-        registry.allocate(almostThere);
-        almostThere.setMoveProgress(0.95f);
-        assertEquals(FireStance.MOVING, FireStance.stanceFor(almostThere),
+        assertEquals(FireStance.MOVING, FireStance.stanceFor(0.95f),
                 "even a near-arrived unit is still MOVING — visually still lerping");
     }
 }
