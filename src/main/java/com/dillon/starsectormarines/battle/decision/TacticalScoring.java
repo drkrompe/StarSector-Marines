@@ -866,7 +866,8 @@ public final class TacticalScoring {
             if (enemy.faction == self.faction) continue;
             int[] pos = findFiringPositionWithin(self, enemy, anchorX, anchorY, maxDistFromAnchor);
             if (pos == null) continue;
-            float d = cellDistance(sx, sy, enemy.getCellX(), enemy.getCellY());
+            int eIdx = registry.requireLiveIndex(enemy.entityId);
+            float d = cellDistance(sx, sy, registry.getCellX(eIdx), registry.getCellY(eIdx));
             if (d < bestDist) {
                 bestDist = d;
                 best = enemy;
@@ -1340,6 +1341,14 @@ public final class TacticalScoring {
         ArrayList<Unit> threats = new ArrayList<>();
         unitIndex.gather(sx, sy, scanRange + MAX_PLAUSIBLE_ATTACK_RANGE, threats);
         filterEnemyCombatants(threats, self.faction);
+        // Project the threat set into parallel SoA columns once, so the
+        // per-candidate exposure check reads plain arrays — no registry probe
+        // inside the ~1089-candidate scan (cache-locality guardrail).
+        int threatCount = threats.size();
+        int[] threatCellX = new int[threatCount];
+        int[] threatCellY = new int[threatCount];
+        float[] threatRange = new float[threatCount];
+        resolveThreatColumns(threats, threatCount, threatCellX, threatCellY, threatRange);
 
         // Edge-honoring reachability flood from self. Bounded by Chebyshev
         // distance to the scan window so worst-case work is O(scanRange²),
@@ -1359,7 +1368,7 @@ public final class TacticalScoring {
                 int fdy = threatRef[1] - cy;
                 int gridCover   = grid.getCoverAt(cx, cy, fdx, fdy);
                 int doodadCover = doodads.getDoodadCoverAt(cx, cy, fdx, fdy);
-                int exposure = countEnemiesWithLos(cx, cy, threats, grid);
+                int exposure = countEnemiesWithLos(cx, cy, threatCellX, threatCellY, threatRange, threatCount, grid);
                 int zoneId = zones.zoneIdAt(cx, cy);
                 int control = (zoneId >= 0 && zoneId < zoneControl.length) ? zoneControl[zoneId] : 0;
                 float distFromSelf = cellDistance(sx, sy, cx, cy);
@@ -1504,7 +1513,9 @@ public final class TacticalScoring {
             Unit other = scratch.get(i);
             if (other.faction == self.faction) continue;
             if (!other.type.combatant) continue;
-            if (grid.hasLineOfSightWithin(cx, cy, other.getCellX(), other.getCellY(), other.getAttackRange())) return false;
+            int oIdx = registry.requireLiveIndex(other.entityId);
+            if (grid.hasLineOfSightWithin(cx, cy, registry.getCellX(oIdx), registry.getCellY(oIdx),
+                    registry.getAttackRange(oIdx))) return false;
         }
         return true;
     }
@@ -1555,20 +1566,47 @@ public final class TacticalScoring {
         ArrayList<Unit> scratch = new ArrayList<>();
         unitIndex.gather(cx, cy, MAX_PLAUSIBLE_ATTACK_RANGE, scratch);
         filterEnemyCombatants(scratch, self.faction);
-        return countEnemiesWithLos(cx, cy, scratch, grid);
+        int n = scratch.size();
+        int[] tcx = new int[n];
+        int[] tcy = new int[n];
+        float[] trange = new float[n];
+        resolveThreatColumns(scratch, n, tcx, tcy, trange);
+        return countEnemiesWithLos(cx, cy, tcx, tcy, trange, n, grid);
     }
 
     /**
-     * Pre-filtered overload — caller has already gathered enemy combatants
-     * and is asking "how many of these can see {@code (cx, cy)}." Used in
-     * {@link #findFallbackPosition}'s per-cell loop so we don't re-query the
-     * spatial index 1089 times per fallback decision.
+     * Resolves each gathered enemy's cell + attack range into the caller's
+     * parallel SoA scratch arrays via a single {@code requireLiveIndex} probe
+     * per threat. Done once per fall-back decision so the per-candidate
+     * exposure loop ({@link #countEnemiesWithLos(int, int, int[], int[], float[], int, NavigationGrid)})
+     * reads plain arrays with zero map probes — the cache-locality guardrail
+     * for the {@code ~1089}-candidate scan. Threats come straight off a live
+     * spatial gather, so every entry is registered.
      */
-    public static int countEnemiesWithLos(int cx, int cy, List<Unit> threats, NavigationGrid grid) {
+    private void resolveThreatColumns(List<Unit> threats, int count,
+                                      int[] outCellX, int[] outCellY, float[] outRange) {
+        for (int i = 0; i < count; i++) {
+            int idx = registry.requireLiveIndex(threats.get(i).entityId);
+            outCellX[i] = registry.getCellX(idx);
+            outCellY[i] = registry.getCellY(idx);
+            outRange[i] = registry.getAttackRange(idx);
+        }
+    }
+
+    /**
+     * Pre-resolved overload — caller has gathered enemy combatants and
+     * projected their cell + range into parallel arrays (via
+     * {@link #resolveThreatColumns}). Counts how many can see {@code (cx, cy)}.
+     * Used in {@link #findFallbackPosition}'s per-cell loop so we neither
+     * re-query the spatial index nor probe the registry the {@code ~1089}
+     * times per fall-back decision the cell scan would otherwise cost.
+     */
+    public static int countEnemiesWithLos(int cx, int cy,
+                                          int[] threatCellX, int[] threatCellY, float[] threatRange,
+                                          int threatCount, NavigationGrid grid) {
         int count = 0;
-        for (int i = 0, n = threats.size(); i < n; i++) {
-            Unit other = threats.get(i);
-            if (grid.hasLineOfSightWithin(cx, cy, other.getCellX(), other.getCellY(), other.getAttackRange())) count++;
+        for (int i = 0; i < threatCount; i++) {
+            if (grid.hasLineOfSightWithin(cx, cy, threatCellX[i], threatCellY[i], threatRange[i])) count++;
         }
         return count;
     }
