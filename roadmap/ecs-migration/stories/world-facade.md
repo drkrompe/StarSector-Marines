@@ -205,9 +205,29 @@ this is a per-group sweep, not one commit.
        index once), `HeavyWeapons.fireMechWeapon` + LRM-salvo LoS (indices once).
        Deferred to task #14: `FireStance.stanceFor` (static) +
        `DamageService:248` `getTargetId()` (holds only the id resolver by design).
-     - **Part 2 (next) — bulk systems + the rest of the hot path:**
-       `InfantryWeapons` (7), `FlybyOverlay` (15), then renderers + the remaining
-       bulk-iteration sites (`UnitSpatialIndex`, etc.). Same per-site rule.
+     - **Part 2 SHIPPED (2026-06-02, `5c03cc0` + `66f439d`) — infantry + renderers.**
+       `InfantryWeapons` (`5c03cc0`): burst gather → dense-array + by-index
+       `getBurstRemaining(i)`; continuation pass resolves `requireLiveIndex` once
+       per unit and **re-resolves across `fireShot`** (a killing round swap-and-pops
+       and can relocate `u`'s slot); `fireShot` dist read resolves shooter/target
+       index once. **`FlybyOverlay` was a NO-OP** — its apparent "15 sites" are all
+       `getRenderX/getRenderY`, already id-keyed via `RenderPositionService` (the
+       raw grep over-counted; render accessors don't block denseIdx deletion).
+       Renderers (`66f439d`): `UnitRenderService` (5 sweeps) + `DroneRenderSystem`
+       iterate `liveUnitAt(i)` where `i` IS the dense index
+       (`liveUnitAt(i)=registry.get(i)`, `dense[i].denseIdx==i`), so
+       cell/hp/secondaryActionTimer go by-index `registry.<col>(i)` zero-probe and
+       the vision calls drop `u.denseIdx` for loop `i`. Deferred to task #14: the
+       static `computeFacing`/`computeEightWayFacing` (nullable `sim`, touch
+       `pathCell*`) — same awkward-static class as `effectiveAttackRange`.
+     - **Part 3 (next) — remaining systems + spatial index.** Sites left (a
+       sibling deleted `SimCoupledProxyPlugin`, −7): `UnitSpatialIndex`, `AirSystem`,
+       `UnitUpdateSystem`, `DroneSpawner`, `HubDemolitionSystem`,
+       `TurretDemolitionSystem`, `SquadAlertSystem`, `EquipmentDropService`,
+       `GarrisonPatrol`, `WorldStateBuilder`, `SquadDetailPanel`,
+       `PendingTargetMutation`, `BattleSimulation`. Same per-site rule; most are
+       dense iterators (`i`==denseIdx) or per-event held-ref. Sonnet fan-out
+       candidate (rule + deferred-criteria spec), verified on main thread.
 3. **Model the remaining optional fields as presence components** as they're
    touched (`secondaryWeapon`/`secondaryAmmo`, `assignedObjective`,
    `equipmentDropTarget`) — `getOrNull` instead of nullable-field + null-check.

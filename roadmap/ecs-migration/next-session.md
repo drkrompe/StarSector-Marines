@@ -159,8 +159,30 @@ reference `entityId` instead** (the dangling-ref NPE class). New story:
      Done: `DamageResolver` (serial `APPLY_DAMAGE` drain), `Detonations` AoE gather
      (dense-array), `HitResponseService` (parallel), `HeavyWeapons`. Deferred to
      task #14: `FireStance.stanceFor` (static), `DamageService:248` (no registry).
-     - **PART 2 (next):** `InfantryWeapons` (7) + `FlybyOverlay` (15), then
-       renderers + remaining bulk-iteration sites (`UnitSpatialIndex` &c.).
+     - **PART 2 SHIPPED (`5c03cc0` + `66f439d`) — infantry + renderers.**
+       `InfantryWeapons` (`5c03cc0`): burst gather → dense-array + by-index
+       `getBurstRemaining(i)`; continuation pass resolves `requireLiveIndex` once
+       per unit, **re-resolving across `fireShot`** (a killing round swap-and-pops
+       and can relocate `u`'s slot); `fireShot` dist read resolves shooter/target
+       index once. **`FlybyOverlay` needed ZERO changes** — its apparent ~15 sites
+       are all `getRenderX/getRenderY`, already id-keyed via `RenderPositionService`
+       (the raw grep over-counted). Renderers (`66f439d`): `UnitRenderService`
+       (5 sweeps) + `DroneRenderSystem` — render passes iterate `liveUnitAt(i)`
+       where `i` IS the dense index (`liveUnitAt(i)=registry.get(i)`,
+       `dense[i].denseIdx==i`), so cell/hp/secondaryActionTimer go by-index
+       `registry.<col>(i)` zero-probe AND the vision calls drop `u.denseIdx` for
+       loop `i`. Suite green at 727. Deferred to task #14: the static
+       `computeFacing`/`computeEightWayFacing` helpers (nullable `sim`, also touch
+       `pathCell*`) — same awkward-static class as `effectiveAttackRange`.
+     - **PART 3 (next) — remaining systems + spatial index.** Sites left (a
+       sibling deleted `SimCoupledProxyPlugin`, dropping 7): `UnitSpatialIndex`,
+       `AirSystem`, `UnitUpdateSystem`, `DroneSpawner`, `HubDemolitionSystem`,
+       `TurretDemolitionSystem`, `SquadAlertSystem`, `EquipmentDropService`,
+       `GarrisonPatrol`, `WorldStateBuilder`, `SquadDetailPanel`,
+       `PendingTargetMutation`, `BattleSimulation`. Same per-site rule; most are
+       dense iterators (`i`==denseIdx, zero probe) or per-event held-ref
+       (`requireLiveIndex` once). Candidate for a Sonnet fan-out with the rule +
+       deferred-criteria spec, verified on the main thread.
    - Then model `mech` & other optional `Unit` fields as `ComponentStore`s (cold
      face); then delete `Unit.registry`+`denseIdx` (mops up the TacticalScoring +
      combat leftovers above); then `Unit`→`Entity`.
