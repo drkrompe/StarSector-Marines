@@ -69,6 +69,24 @@ public final class VehicleController {
     /** Fraction of the current trajectory's length that may be consumed before a replan is forced (so we plan the next horizon before running out). */
     private static final float REPLAN_CONSUMED_FRACTION = 0.5f;
 
+    /**
+     * Carrot look-ahead floor (cells) — look-ahead shrinks toward this as the
+     * vehicle slows so tight, slow corners are tracked closely instead of cut
+     * (a long fixed look-ahead chord cuts the inside of a sharp turn, so the body
+     * steers tighter than the planned arc and wedges). Grows back to
+     * {@link VehicleType#lookAheadCells} at cruise for smooth straights. ~one
+     * wheelbase, below which pure pursuit oscillates.
+     */
+    private static final float MIN_LOOKAHEAD_CELLS = 1.2f;
+    /** Path-preview window (cells) for the curvature speed governor — how far ahead the upcoming bend is measured. A couple cells past the cruise stopping distance so the truck is already slowed when it reaches the corner. */
+    private static final float CURVE_PREVIEW_CELLS = 4.0f;
+    /** Total heading change (deg) over the preview window below which speed isn't cut — ignores gentle bends and straight-line float wander. */
+    private static final float CURVE_DEADBAND_DEG = 20f;
+    /** Total heading change (deg) at/above which forward speed is cut all the way to {@link #CURVE_MIN_SPEED_FRAC} of cruise — a hard corner. */
+    private static final float CURVE_FULL_DEG = 75f;
+    /** Floor the curvature governor slows to, as a fraction of {@link VehicleType#maxSpeed} — keeps creeping through the corner, never a mid-route stop. */
+    private static final float CURVE_MIN_SPEED_FRAC = 0.35f;
+
     private final Vehicle vehicle;
     private final NavigationService navigation;
 
@@ -216,15 +234,31 @@ public final class VehicleController {
             startIdx = corridor.cursor();
         }
 
-        PurePursuit.Carrot carrot = PurePursuit.pick(body.x, body.y, px, py, startIdx, type.lookAheadCells);
+        // Speed-scaled look-ahead: pull the carrot toward the body as the truck
+        // slows so tight corners track closely; let it stretch back to the cruise
+        // look-ahead on straights for smoothness. Uses last tick's speed (the
+        // one-tick lag is negligible) and the speed is already curvature-limited
+        // below, so approaching a bend naturally tightens tracking.
+        float speedFrac = type.maxSpeed > 0f ? Math.min(1f, Math.abs(body.speed) / type.maxSpeed) : 0f;
+        float lookAhead = Math.min(type.lookAheadCells,
+                MIN_LOOKAHEAD_CELLS + speedFrac * (type.lookAheadCells - MIN_LOOKAHEAD_CELLS));
+
+        PurePursuit.Carrot carrot = PurePursuit.pick(body.x, body.y, px, py, startIdx, lookAhead);
         if (trajectory != null) trajCarrotAtEnd = carrot.atEnd;
 
-        // Brake taper always sizes to the distance still to drive to the LZ
-        // along the corridor, so the truck comes to a clean stop at the end
-        // regardless of where the local horizon currently ends.
+        // Forward speed is the min of two caps:
+        //  - brake taper to the LZ end, so the truck stops cleanly at the corridor
+        //    end regardless of where the local horizon currently ends;
+        //  - a curvature governor that slows for the sharpest bend within
+        //    CURVE_PREVIEW_CELLS ahead. The bicycle's min turn radius is fixed by
+        //    geometry — speed can't tighten it — but entering a corner slow gives
+        //    the bounded steering slew time to reach lock and keeps pursuit on the
+        //    planned arc, instead of overshooting at cruise and reversing out (the
+        //    "tiny reverses at a missed turn" failure).
         float remaining = corridor.remainingLength(body.x, body.y);
         float taper = (float) Math.sqrt(2f * type.brakingAccel * Math.max(0f, remaining));
-        float targetSpeed = Math.min(type.maxSpeed, taper);
+        float curveCap = curvatureSpeedCap(px, py, startIdx, body.x, body.y, type.maxSpeed);
+        float targetSpeed = Math.min(Math.min(type.maxSpeed, taper), curveCap);
 
         float cdx = carrot.x - body.x, cdy = carrot.y - body.y;
         float carrotBearing = AirBody.facingToward(cdx, cdy);
@@ -250,6 +284,55 @@ public final class VehicleController {
         if (!exitingOffMap) {
             wallStuckRecovery(body, type, carrot, prevX, prevY, prevFacing, dt);
         }
+    }
+
+    /**
+     * Forward-speed cap (cells/sec) for the bend in the tracked path within
+     * {@link #CURVE_PREVIEW_CELLS} ahead: full {@code maxSpeed} up to
+     * {@link #CURVE_DEADBAND_DEG} of total heading change, lerping down to
+     * {@link #CURVE_MIN_SPEED_FRAC}·{@code maxSpeed} at {@link #CURVE_FULL_DEG}
+     * and beyond. Package-private for {@code VehicleControllerCurvatureTest}.
+     */
+    static float curvatureSpeedCap(float[] xs, float[] ys, int startIdx,
+                                   float bodyX, float bodyY, float maxSpeed) {
+        float turnDeg = previewTurnDegrees(xs, ys, startIdx, bodyX, bodyY);
+        float t = (turnDeg - CURVE_DEADBAND_DEG) / (CURVE_FULL_DEG - CURVE_DEADBAND_DEG);
+        if (t <= 0f) return maxSpeed;
+        if (t > 1f) t = 1f;
+        return maxSpeed * (1f - t * (1f - CURVE_MIN_SPEED_FRAC));
+    }
+
+    /**
+     * Total absolute heading change (degrees) along the tracked polyline within
+     * {@link #CURVE_PREVIEW_CELLS} of the body — the curvature signal the speed
+     * governor reads. Unified across the dense local trajectory (the sum of small
+     * per-pose deltas approximates the arc sweep) and the sparse coarse corridor
+     * (the vertex angle at the upcoming turn). The first segment runs from the
+     * body to {@code xs[startIdx]}, so a body already mid-corner counts that bend.
+     * Package-private for {@code VehicleControllerCurvatureTest}.
+     */
+    static float previewTurnDegrees(float[] xs, float[] ys, int startIdx,
+                                    float bodyX, float bodyY) {
+        int n = Math.min(xs.length, ys.length);
+        if (n == 0) return 0f;
+        int idx = Math.max(0, Math.min(startIdx, n - 1));
+        float prevX = bodyX, prevY = bodyY;
+        float prevBearing = Float.NaN;
+        float dist = 0f, totalTurn = 0f;
+        for (int i = idx; i < n && dist < CURVE_PREVIEW_CELLS; i++) {
+            float dx = xs[i] - prevX, dy = ys[i] - prevY;
+            float segLen = (float) Math.hypot(dx, dy);
+            if (segLen < 1e-4f) continue;
+            float bearing = AirBody.facingToward(dx, dy);
+            if (!Float.isNaN(prevBearing)) {
+                totalTurn += Math.abs(((bearing - prevBearing + 540f) % 360f) - 180f);
+            }
+            prevBearing = bearing;
+            prevX = xs[i];
+            prevY = ys[i];
+            dist += segLen;
+        }
+        return totalTurn;
     }
 
     /**

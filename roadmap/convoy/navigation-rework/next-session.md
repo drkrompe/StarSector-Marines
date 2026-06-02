@@ -22,6 +22,21 @@ a **convoy-run playtest is still outstanding** (see Next up).
   `HybridAStarPlanner.refine` (which also resolved slice-1 critique #7).
   ([`complete/slice-2-live-tracking.md`](complete/slice-2-live-tracking.md))
 
+**Corner-speed governor landed early (a slice-4 down-payment).** A cost-field
+convoy playtest surfaced trucks taking tight turns at cruise, overshooting, and
+flailing in tiny reverses. Two fixes in `VehicleController.advance`, both applied
+to whichever polyline is tracked (local trajectory *or* coarse corridor):
+- **Curvature speed cap** (`curvatureSpeedCap` / `previewTurnDegrees`) — slows for
+  the sharpest bend within `CURVE_PREVIEW_CELLS` ahead (full cruise below a 20°
+  deadband, lerping to 0.35·maxSpeed at 75°+), so corners are entered slow enough
+  for the bounded steering slew to make them.
+- **Speed-scaled look-ahead** — the carrot shrinks toward `MIN_LOOKAHEAD_CELLS`
+  as the truck slows (tight corners track closely instead of the fixed look-ahead
+  chord cutting the inside of the turn), stretching back to cruise look-ahead on
+  straights.
+Unit-tested (`VehicleControllerCurvatureTest`, 6 green); the rest of slice-4 feel
+tuning (constants) is still open and **wants the same playtest**.
+
 Track: full layered rewrite anchored on a **rolling-horizon local Hybrid A\***
 planner with always-on kinematic tracking. No backward-compat constraint — the
 old `headings != null` dead-reckon fork is deleted, not kept.
@@ -51,7 +66,9 @@ local planner for reverse / 3-point extraction.
       dead in code (playtest pending).**
       ([`complete/slice-2-live-tracking.md`](complete/slice-2-live-tracking.md)) ✅
 - [ ] **Slice 3** — recovery ladder. ([`stories/slice-3-recovery-ladder.md`](stories/slice-3-recovery-ladder.md))
-- [ ] **Slice 4** — tuning & feel (absorbs `../stories/driving-feel-tuning.md`).
+- [~] **Slice 4** — tuning & feel (absorbs `../stories/driving-feel-tuning.md`).
+      Corner-speed governor + speed-scaled look-ahead landed early (see State of
+      play); remaining constant-tuning open.
       ([`stories/slice-4-tuning-feel.md`](stories/slice-4-tuning-feel.md))
 - [ ] **Slice 5** — perf budget (deferred until multi-truck). ([`stories/slice-5-perf-budget.md`](stories/slice-5-perf-budget.md))
 
