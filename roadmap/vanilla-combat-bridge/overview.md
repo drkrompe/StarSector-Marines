@@ -135,12 +135,17 @@ canvas). Citations are file:line in `.api/com/fs/starfarer/api/combat/`.
     `getActiveLayers()` picks from the full stack `BELOW_PLANETS → PLANET_LAYER →
     CLOUD_LAYER → BELOW_SHIPS_LAYER → UNDER_SHIPS_LAYER → … → JUST_BELOW_WIDGETS`
     (`CombatEngineLayers.java`). Plus `setBackgroundColor` / `setRenderStarfield`.
-11. **Skip the deploy/command dialog (workaround).** The dialog appears because
-    player ships sit in *reserves*. Instead of `loader.addFleetMember`, spawn
-    directly onto the field in `afterDefinitionLoad` via
+11. **Skip the deploy/command dialog (workaround).** *Corrected by playtest:* for a
+    battle launched via `CampaignUIAPI.startBattle`, the player's deployable reserves
+    come from **`context.getPlayerFleet()`**, NOT from the `BattleCreationPlugin`'s
+    `loader.addFleetMember` calls (those are for mission-mode). So the lever is the
+    **context fleet**: pass an *empty* player fleet → nothing to deploy → no
+    deployment picker and no "press Tab to deploy" prompt. Spawn the actual owner-0
+    combatants directly in `afterDefinitionLoad` via
     `engine.getFleetManager(side).spawnShipOrWing(specId, loc, facing)`
-    (`CombatFleetManagerAPI.java:39`). Nothing in reserve → no deploy prompt.
-    `setSideDeploymentOverrideSide` / `BattleCreationContext.enemyDeployAll` assist.
+    (`CombatFleetManagerAPI.java:39`). Variant ids must be real (`vigilance_Standard`,
+    `tempest_Attack`, …) and validated — `spawnShipOrWing` resolves eagerly and throws
+    on a bad id (whereas `createFleetMember` resolves lazily).
 12. **You CANNOT draw over the top-level command widgets.** Combat exposes a single
     screen-space hook, `EveryFrameCombatPlugin.renderInUICoords` (no "above-UI"
     variant), and the layer stack caps at `JUST_BELOW_WIDGETS` — both render

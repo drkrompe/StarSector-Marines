@@ -134,12 +134,33 @@ BASIC enemy, `vigilance_Standard`/`brawler_Assault` vs `tempest_Attack`/`shrike_
 for the canvas) and **validate via `Global.getSettings().getVariant(id) != null`
 before use** — a bad id now logs + skips instead of aborting the launch.
 
+## Third playtest: canvas works; deployment picker still shows (fixed, re-test)
+
+Spectator camera + auto-fighting both work — if you don't commit ships, the two AI
+sides fight and our free camera drives. BUT a deployment picker still appeared
+recognizing the player fleet, plus "press Tab to deploy" hints ("like joining a
+battle with two arbitrary fleets fighting").
+
+Root cause (corrects overview fact 11): for a `startBattle`-launched battle, the
+player's deployable reserves come from **`context.getPlayerFleet()`**, not from our
+`loader.addFleetMember` calls (those are mission-mode only). Our "don't addFleetMember"
+never affected the player side — the synthetic 2-ship player fleet was the picker's
+source.
+
+Fix: spectator mode now passes an **empty player fleet** (`buildSpectatorPlayerFleet`)
++ 0 command points. Nothing deployable → no picker, no Tab prompt. The owner-0
+combatants are still spawned directly by `S0BattleCreationPlugin`. **Risk to verify:**
+the engine might balk at a player fleet with zero ships, or treat it as an instant
+loss — `setDoNotEndCombat` should hold it, and the spawned owner-0 ships keep the
+player side non-empty in combat, but this is the thing to watch on re-test.
+
 ## Immediate next-up
 
-- **Re-playtest S0b (Ctrl+Shift+N)** — past the spawn crash now. Fill the spectator
-  checklist above: the high-value unknown is whether `setPlayerShipExternal(null)` +
-  `useDefaultAI=true` actually yields a no-control spectator, or the engine still
-  hands you a ship. Then S0 BASIC (Ctrl+Shift+B) should also work end-to-end with F10.
+- **Re-playtest S0b (Ctrl+Shift+N)** — confirm the deployment picker + Tab prompt are
+  gone with the empty player fleet, and the two AI sides still fight under our camera.
+  If the empty fleet causes startBattle to refuse / instant-end, fall back to a
+  1-ship player fleet and explore other deployment-suppression levers.
+- Then S0 BASIC (Ctrl+Shift+B) end-to-end with F10 (unaffected by this change).
 - After S0b verdict: **S2 — proxy-target probe** (spawn the proxy into the now-proven
   combat instance), then wire HP drain into the sim's external-damage path (open
   question #2).
