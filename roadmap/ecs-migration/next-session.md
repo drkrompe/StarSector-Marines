@@ -86,25 +86,27 @@ reference `entityId` instead** (the dangling-ref NPE class). New story:
 - Slice 2 `5a3ffb3` — `Squad.leader` → `leaderId` (+ `isMechSquad` denormalized
   to a `mechSquad` flag set at mint, survives leader death).
 - Slice 3 `38d25c8` — `Squad.droneHub` → `droneHubId`.
-- Slice 4 — pending-mutation POJOs: `PendingTargetMutation.target` → `targetId`,
-  `PendingOccupancyDelta.u` → `unitId`; `DamageService` takes a
+- Slice 4 `4c19bb7` — pending-mutation POJOs: `PendingTargetMutation.target` →
+  `targetId`, `PendingOccupancyDelta.u` → `unitId`; `DamageService` takes a
   `LongFunction<Unit> resolver` (`registry::getOrNull`) for the two drains.
   **`PendingTargetMutation` was a real post-release reader** — its drain runs
   after `flushPendingDamage`, which releases-inline via `DamageResolver.resolve`,
   so the old `target.isAlive()` was a `localHp`-dependent deref of a released
   unit. Now skips a null resolve. Full suite green at 681.
+- Slice 5 — **`localHp` removed; `getHp`/`setHp` fail-loud. PHASE A DUALITY
+  COLLAPSE COMPLETE.** Field deleted, replaced by write-only `seedHp` (mirrors
+  `seedMaxHp`) for the pre-allocate window. **The collapse finished via a design
+  pivot, not the full held-ref→id conversion the plan assumed:** `isAlive()` was
+  redefined to `registry != null && registry.getHp(denseIdx) > 0f`, short-circuiting
+  on the `registry == null` release marker. That makes every held-ref *liveness*
+  check safe (damage queue `dmgTarget[]`, flyby projectile target, turret/vehicle
+  aim, mech continuation scratch) without converting them — they only ask
+  "alive?". Only a **direct** `getHp()`/`setHp()` on a released ref is now
+  fail-loud; audited all such callers to be on live/dense/resolved units. Full
+  suite green at 689.
 
 **Next (in priority order):**
-1. **Audit the remaining post-release `isAlive()`/`getHp()` readers**, then
-   **remove `localHp`** (make `getHp` fail-loud; `release` stops snapshotting hp)
-   — finishes the Phase A duality collapse. Gate: confirm EVERY `isAlive`/`getHp`
-   caller is on a live dense-iter unit, a `getOrNull`-resolved local, or guarded.
-   The `DamageService` queue readers (Slice 4) are now id-resolved — done. Known
-   leftovers to classify: `Drone.homeHub` (identity-use `d.homeHub == h`, not a
-   deref — likely fine), `TurretAim.State.target` (transient, `getOrNull`-resolved
-   — fine). **Run the FULL suite — these hide in tests that don't `advance()`
-   between a kill and a read.** ([[battle_failloud_accessor_stale_readers]])
-2. **Endgame: delete `Unit.registry`.** Relocate `Unit`'s self-accessors
+1. **Endgame: delete `Unit.registry`.** Relocate `Unit`'s self-accessors
    (`getHp/getCellX/…`) to a registry/`World` API addressed by id (or dense idx
    for hot walks). Pervasive `u.getX()` churn — stage per accessor group,
    fan-out to Sonnet. Then `Unit` → `Entity` rename.
@@ -151,15 +153,14 @@ reference `entityId` instead** (the dangling-ref NPE class). New story:
   `SquadDetailPanel` HUD off post-release reads — it snapshots displayed values
   (`MemberRow`) at `update()` instead of holding live refs, so `getMaxHp`
   reverted to fail-loud (the `33ba6c6` workaround is gone).
-- **`localHp` is the lone surviving `local*` — a pinned minimum, not a loose
-  end.** Audit (2026-06-02): its fallback is load-bearing for every held-`Unit`-ref
-  `isAlive()` check (mech salvo / turret+vehicle aim / flyby / wiped-squad
-  leader) — when the target is released, `isAlive()` (via `getHp`) must return
-  false, not NPE. **Fully removing it needs a separate ref→id migration**
-  (migrate those held refs to `registry.isLive(id)`, the move `targetId` already
-  made); that plus this pinned `localHp` gates the `Unit` → `Entity` rename. See
-  [`collapse-unit-handle`](stories/collapse-unit-handle.md). `localRenderX/Y` are
-  seed-only already (RenderPositionService survives release).
+- **`localHp` is GONE (2026-06-02) — no `local*` shadows remain.** Every
+  `local*` (Group-N/S, the cell pair, and finally hp) is collapsed; `Unit` carries
+  only write-only `seed*` construction inputs that `allocate` copies into the SoA
+  arrays. The held-`Unit`-ref `isAlive()` checks that once needed the `localHp`
+  fallback (mech salvo / turret+vehicle aim / flyby / wiped-squad leader / damage
+  queue) are safe via the redefined `isAlive()` (registry-null short-circuit), not
+  a shadow. `localRenderX/Y` are seed-only (RenderPositionService survives release).
+  See [`entity-id-handle`](stories/entity-id-handle.md) Slice 5.
 - **Full suite green at 592 tests** (after the death-dispatcher foundation
   slice). The earlier sibling compile break in `ShotRenderService.java` has
   since resolved.

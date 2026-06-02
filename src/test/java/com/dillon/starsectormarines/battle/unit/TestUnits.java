@@ -34,7 +34,9 @@ public final class TestUnits {
      * u.entityId)} returns {@code null}, exactly as after a real damage kill;
      * the corpse's post-death state lives in the component stores. A caller
      * still holding the {@code Unit} reference (e.g. from {@link #snapshot})
-     * can read its frozen hp via the release snapshot.
+     * sees {@code isAlive() == false} (the registry pointer is nulled on
+     * release) — but must NOT call {@code getHp()}/{@code getMaxHp()} on it,
+     * which are fail-loud post-release.
      */
     public static void kill(BattleSimulation sim, Unit u) {
         u.setHp(0f);

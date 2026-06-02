@@ -222,7 +222,7 @@ public class Drone extends Unit {
         super(id, faction, UnitType.DRONE, cellX, cellY);
         this.homeHub = homeHub;
         this.seedMaxHp = DRONE_MAX_HP;
-        setHp(DRONE_MAX_HP);
+        this.seedHp = DRONE_MAX_HP;
         this.primaryWeapon = MarineWeapon.DRONE_PULSE;
         this.seedAttackRange = MarineWeapon.DRONE_PULSE.range;
         this.visionRange = 44f;

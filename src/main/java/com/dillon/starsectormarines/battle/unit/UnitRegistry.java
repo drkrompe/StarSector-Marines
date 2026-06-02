@@ -61,15 +61,15 @@ public final class UnitRegistry {
      * Per-unit current HP, keyed by dense index. Grown in lockstep with
      * {@link #dense}; swap-and-pop release moves the tail entry here too.
      * <b>Canonical storage</b> — the {@link Unit#getHp}/{@link Unit#setHp}
-     * accessors route through this array after allocation. Pre-allocation
-     * values live in the unit's transient {@code localHp} field; allocate
-     * seeds the slot, release snapshots back to the field for any reader
-     * that holds the released {@link Unit} reference after the registry
-     * has dropped it (legacy {@code units} list path).
+     * accessors route through this array after allocation. <b>Seed-only</b>
+     * lifecycle like {@link #maxHp}: {@link #allocate} seeds the slot from
+     * {@link Unit#seedHp} and it is canonical thereafter; {@link #release} does
+     * NOT snapshot it back — held-ref liveness goes through {@link Unit#isAlive},
+     * which short-circuits on the {@code registry == null} release marker.
      */
     private float[] hp = new float[INITIAL_CAPACITY];
     /**
-     * Per-unit max HP. <b>Seed-only</b> lifecycle (unlike {@link #hp}):
+     * Per-unit max HP. <b>Seed-only</b> lifecycle (like {@link #hp}):
      * {@link #allocate} seeds it from {@link Unit#seedMaxHp} and it is canonical
      * thereafter, but {@link #release} does NOT snapshot it back — no
      * post-release reader exists.
@@ -196,13 +196,12 @@ public final class UnitRegistry {
         u.entityId = id;
         dense[liveCount] = u;
         // Seed the seed-bearing columns from the unit's pre-allocation transient
-        // fields. After this point these are canonical. hp still keeps its
-        // local* twin so release can snapshot the moment-of-death value back for
-        // the one remaining post-release reader (the HUD reading a member killed
-        // mid-frame). The Group-S stats (maxHp + attack stats) and the cell pair
-        // seed from write-only seed* fields and are never snapshotted back — the
-        // cell's post-release readers now read it off the DeathEvent snapshot.
-        hp[liveCount] = u.localHp;
+        // fields. After this point these are canonical and none is snapshotted
+        // back on release — hp, the Group-S stats (maxHp + attack stats) and the
+        // cell pair all seed from write-only seed* fields. (hp's old post-release
+        // localHp shadow is gone: held-ref liveness goes through isAlive(), which
+        // short-circuits on the registry==null release marker.)
+        hp[liveCount] = u.seedHp;
         maxHp[liveCount] = u.seedMaxHp;
         cellX[liveCount] = u.seedCellX;
         cellY[liveCount] = u.seedCellY;
@@ -258,18 +257,14 @@ public final class UnitRegistry {
         int idx = indexById.remove(id);
         if (idx == INVALID_INDEX) return;
         int last = liveCount - 1;
-        // Snapshot HP back onto the released unit so the one remaining
-        // post-release reader (the HUD reading a member killed mid-frame via
-        // getHp()) sees the moment-of-death value rather than a stale default.
-        // The cell pair is NOT snapshotted anymore: its post-release readers
-        // (the turret/hub demolition + mech wreck handlers) read the death cell
-        // off the DeathEvent snapshot, so the cell carries no local* twin — like
-        // the Group-S stats. Render position is NOT snapshotted here either — it
-        // lives in the decomposed RenderPositionService keyed by entityId, which
-        // is not cleared on release, so the corpse's death-pose location survives
-        // directly.
+        // Nothing is snapshotted back onto the released unit. hp, the cell pair,
+        // and the Group-S stats all carry no post-release shadow: liveness goes
+        // through isAlive() (short-circuits on registry==null), the cell's
+        // post-release readers (turret/hub demolition + mech wreck handlers) read
+        // the death cell off the DeathEvent snapshot, and render position lives in
+        // the RenderPositionService keyed by entityId (not cleared on release, so
+        // the corpse's death-pose location survives directly).
         Unit released = dense[idx];
-        released.localHp = hp[idx];
         released.denseIdx = -1;
         released.registry = null;
         // Deliberately keep released.renderPositions wired — the service entry

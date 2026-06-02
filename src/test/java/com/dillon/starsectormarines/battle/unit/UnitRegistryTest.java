@@ -202,34 +202,34 @@ public class UnitRegistryTest {
     }
 
     @Test
-    public void allocateSeedsHpFromUnitsLocalFieldsAndAccessorsRouteThroughRegistry() {
+    public void allocateSeedsHpFromUnitsSeedFieldsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
         Unit u = unit("u");
-        // Pre-allocate: ctor seeded localHp + seedMaxHp from type.maxHp
-        // (MARINE_BLUE). The Group-S maxHp accessor is fail-loud pre-allocate,
-        // so read the seed field directly here.
+        // Pre-allocate: ctor seeded seedHp + seedMaxHp from type.maxHp
+        // (MARINE_BLUE). The hp/maxHp accessors are fail-loud pre-allocate,
+        // so read the seed fields directly here.
         float typeMaxHp = u.seedMaxHp;
         assertTrue(typeMaxHp > 0f, "test prerequisite: type seeds a non-zero maxHp");
+        assertEquals(typeMaxHp, u.seedHp, 1e-6f);
 
         r.allocate(u);
 
         // Post-allocate: getter reads the registry slot, which should mirror
-        // the localHp / seedMaxHp values from the pre-allocate ctor.
+        // the seedHp / seedMaxHp values from the pre-allocate ctor.
         assertEquals(typeMaxHp, r.getHp(u.denseIdx), 1e-6f);
         assertEquals(typeMaxHp, r.getMaxHp(u.denseIdx), 1e-6f);
         assertEquals(typeMaxHp, u.getHp(), 1e-6f);
         assertSame(r, u.registry);
 
-        // A setHp call routes through the registry, not the now-stale local
-        // field. The two end up disagreeing — that's the whole point of the
-        // accessor; the local field is a pre-/post-life snapshot, not canon.
+        // setHp routes through the registry slot — there is no local hp field
+        // anymore; the registry is the sole canonical store once allocated.
         u.setHp(42f);
         assertEquals(42f, r.getHp(u.denseIdx), 1e-6f);
         assertEquals(42f, u.getHp(), 1e-6f);
     }
 
     @Test
-    public void releaseSnapshotsHpBackToLocalFieldForPostReleaseReaders() {
+    public void releaseMarksUnitDeadViaRegistryNullWithNoHpSnapshot() {
         UnitRegistry r = new UnitRegistry();
         Unit u = unit("u");
         r.allocate(u);
@@ -237,15 +237,15 @@ public class UnitRegistryTest {
         u.setHp(17f);
         r.release(u.entityId);
 
-        // After release: registry no longer holds the slot, but post-release
-        // readers still holding the unit reference (any corpse-side consumer)
-        // can read sane HP because release snapshotted the moment-of-death
-        // value back onto localHp. (maxHp is Group-S — seed-only, never
-        // snapshotted — so getMaxHp() on a released unit is a fail-loud
-        // programming error, not a defined read.)
+        // After release: the registry pointer is nulled and the dense slot is
+        // dropped. There is NO post-release hp snapshot anymore — held-ref
+        // liveness goes through isAlive(), which short-circuits on the
+        // registry==null release marker and reports the corpse dead. getHp()
+        // itself is fail-loud post-release (a programming error to call), just
+        // like getMaxHp().
         assertNull(u.registry);
         assertEquals(-1, u.denseIdx);
-        assertEquals(17f, u.getHp(), 1e-6f);
+        assertFalse(u.isAlive());
     }
 
     @Test

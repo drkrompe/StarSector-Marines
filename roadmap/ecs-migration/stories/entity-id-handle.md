@@ -36,9 +36,15 @@ hold the object.** A released id resolves cleanly to `null`
   `isAlive()` on a stale object. This is **exactly** the pattern the registry's
   SoA `targetId`/`burstTargetId`/`secondaryAimTargetId` columns already use; the
   held off-registry fields are the stragglers.
-- Once no held ref dangles, `localHp` loses its last reader →
-  `getHp` goes fail-loud, `release` stops snapshotting hp (the duality collapse
-  finishes).
+- `localHp` removal (DONE, Slice 5): the duality collapse finished not by
+  converting every held ref to an id first (the original plan), but by
+  redefining `isAlive()` to short-circuit on the `registry == null` release
+  marker — so held-ref *liveness* is safe without a corpse-window hp shadow.
+  `getHp`/`setHp` went fail-loud; `release` snapshots nothing. The persistent
+  dangling refs (mech salvo, Squad leader/hub, pending-mutation queue) were
+  still worth converting to ids (Slices 1–4) — they *use* the resolved unit, not
+  just its liveness — but the transient/within-pass held refs that only ask
+  "alive?" stay object refs, made safe by the new `isAlive()`.
 - **Endgame:** with callers id-based, relocate `Unit`'s self-accessors
   (`getHp/getCellX/…`) to a registry/`World` API addressed by id (or dense idx
   for hot dense walks), then **delete `Unit.registry`** (and `denseIdx`). `Unit`
@@ -92,9 +98,29 @@ Held-ref → id, smallest-blast-radius first; each independently shippable + gre
    atomic, so `getOrNull(id) != null` ⟺ alive). `PendingOccupancyDelta` drains
    in APPLY_OCCUPANCY (before any death this tick) so it never dangled — the
    id-resolve there is the consistency move. Full suite green at 681.
-5. **Remove `localHp`** — with every held ref id-based, `getHp` has no
-   post-release reader. Drop the shadow + fallback; `getHp` fail-loud; `release`
-   stops snapshotting hp. **Phase A duality collapse complete.**
+5. **Remove `localHp` — SHIPPED (2026-06-02). Phase A duality collapse
+   complete.** `localHp` field deleted; replaced by a write-only `seedHp` seed
+   field (mirrors `seedMaxHp`) for the pre-allocate window. `allocate` seeds
+   `hp[]` from `seedHp`; `release` snapshots nothing back. `getHp`/`setHp` are
+   now fail-loud (registry-only), like `getMaxHp`. Subclass ctors (`MapTurret`,
+   `DroneHubUnit`, `Drone`) + the base ctor write `seedHp` directly instead of
+   `setHp`.
+
+   **Key simplification vs the plan:** this did NOT require converting the
+   remaining held-ref readers (the SoA damage queue's `dmgTarget[]`, the flyby
+   projectile target, turret/vehicle aim targets, the mech continuation-pass
+   scratch list). They all learn liveness through **`isAlive()`**, which was
+   redefined to `registry != null && registry.getHp(denseIdx) > 0f` — it
+   short-circuits on the `registry == null` release marker (release already
+   nulls it) *before* touching the dense slot. So a held ref to a released unit
+   reads as dead without a corpse-window hp shadow. The only thing made
+   fail-loud is a **direct** `getHp()`/`setHp()` on a released ref — audited:
+   every direct caller is on a live, dense-iterated, or `getOrNull`-resolved
+   unit (renderers, `SquadDetailPanel`/`SquadStateDumper` over the live
+   registry, `DamageResolver` post-`wasAlive`-guard, `HubDemolitionSystem` over
+   freshly-gathered live drones). The [[deferred_flush_released_target_guard]]
+   early-out (`if (!wasAlive) return`) still holds — its `isAlive()` is now
+   registry-null-safe rather than `localHp`-dependent. Full suite green at 689.
 
 **Terminal phase (separate, large):** relocate self-accessors → delete
 `Unit.registry` → `Unit` → `Entity` rename. Pervasive `u.getX()` call churn;

@@ -94,7 +94,7 @@ public class Unit {
 
     /**
      * <b>Don't read directly. Pre-allocate seed ONLY.</b> The logical death cell
-     * used to have a post-release snapshot like {@link #localHp}, but its three
+     * used to have a post-release snapshot, but its three
      * post-release readers (the turret / hub demolition + mech wreck handlers)
      * now read the cell off the {@link DeathEvent} snapshot instead, so the cell
      * needs no shadow on the corpse — it's pure construction input now, like the
@@ -112,9 +112,8 @@ public class Unit {
      * <b>Don't read directly.</b> Smooth render-position <em>pre-allocate seed
      * only</em>. {@link UnitRegistry#allocate} copies these into the
      * {@link RenderPositionService}, after which that service is canonical and
-     * survives release — there is no post-release snapshot back to these fields
-     * (unlike {@link #localHp}, which still shadows the live-only dense hp
-     * column). Go through {@link #getRenderX} / {@link #getRenderY} /
+     * survives release — there is no post-release snapshot back to these fields.
+     * Go through {@link #getRenderX} / {@link #getRenderY} /
      * {@link #setRenderPos}.
      */
     public float localRenderX;
@@ -164,36 +163,26 @@ public class Unit {
     // and mission modifiers can adjust an individual without changing the archetype.
     public float moveSpeed;
     /**
-     * <b>Don't read directly. The lone surviving {@code local*} shadow</b> — the
-     * pinned minimum the lifecycle still needs (Group N/S and the cell pair are
-     * all fail-loud now). Transient backing storage in two windows: pre-allocation
-     * (before {@link UnitRegistry#allocate} copies the seed into the SoA hp array)
-     * and post-release (release snapshots the moment-of-death value back).
+     * <b>Don't read directly. Pre-allocate seed ONLY.</b> Now identical in shape
+     * to {@link #seedMaxHp} and the cell pair: {@link UnitRegistry#allocate}
+     * copies this into the SoA hp array and the registry is canonical from then
+     * on; {@code release} does NOT snapshot it back. Once allocated, go through
+     * {@link #getHp} / {@link #setHp} (both fail-loud on an unregistered unit).
      *
-     * <p><b>Why hp alone keeps the snapshot.</b> Unlike the cell pair (whose
-     * post-release readers now read the {@code DeathEvent} snapshot), hp has a
-     * pervasive post-release reader that no event can serve: every place that
-     * holds a {@link Unit} reference across ticks and asks {@link #isAlive()} to
-     * learn whether its target died — mech salvo targets
-     * ({@code MechLoadoutState.lrmSalvoTarget} &c.), turret/vehicle aim targets,
-     * the flyby projectile target, a wiped squad's {@code leader}. When such a
-     * target is swap-and-popped from the registry, {@code isAlive()} (chained via
-     * {@link #getHp()}) must return false rather than NPE — the {@code localHp}
-     * fallback (≤0 at death) is what makes that work. Removing this field requires
-     * first migrating those held object-refs to id-based liveness
-     * ({@code registry.isLive(id)} / resolve-by-id), a separate migration.
+     * <p>The post-release hp snapshot ({@code localHp}) that this replaced is
+     * gone: every held-{@link Unit}-ref liveness check now goes through
+     * {@link #isAlive()}, which short-circuits on the {@code registry == null}
+     * release marker before touching the dense hp slot — so a released held ref
+     * reads as dead without a corpse-window hp shadow. (The held refs that once
+     * needed that shadow — mech salvo targets, the pending-mutation queue, a
+     * wiped squad's leader — are id-resolved now anyway. See the
+     * {@code entity-id-handle} story.)
      *
-     * <p>The canonical storage between the two boundaries is
-     * {@code registry.hpArray()[denseIdx]} — go through {@link #getHp} /
-     * {@link #setHp}.
-     *
-     * <p>Public so {@link UnitRegistry} (a sibling package) can seed/snapshot
-     * the slot at allocate/release time. If {@link Unit} is ever promoted to
-     * {@code Serializable} for the campaign tier, this needs {@code transient}
-     * or a package-private accessor on the registry — xstream would otherwise
-     * walk and save a stale post-release snapshot.
+     * <p>Public so {@link UnitRegistry} (a sibling package) can seed the slot at
+     * allocate time. Write-only construction input: the ctor archetype seed and
+     * the subclass overrides (see {@code seed*}).
      */
-    public float localHp;
+    public float seedHp;
     /**
      * <b>Don't read directly. Pre-allocate seed ONLY.</b> The Group-S stat
      * columns (max HP + the three attack stats) differ from {@link #localHp}:
@@ -507,7 +496,7 @@ public class Unit {
         // Pre-allocate seed; UnitRegistry.allocate will read these into the
         // SoA arrays. Use the field directly here because the registry-side
         // setters can't route yet (registry is null).
-        this.localHp = type.maxHp;
+        this.seedHp = type.maxHp;
         this.seedMaxHp = type.maxHp;
         this.seedAttackDamage = type.attackDamage;
         this.seedAttackRange = type.attackRange;
@@ -516,26 +505,35 @@ public class Unit {
         this.attackCooldown = type.attackCooldown;
     }
 
+    /**
+     * Liveness. Checks the {@code registry == null} release marker FIRST, then
+     * the dense hp slot — so a held ref to a released (swap-and-popped) unit
+     * reads as dead without ever touching the now-fail-loud {@link #getHp}. This
+     * is what lets {@code getHp}/{@code setHp} drop the {@code localHp}
+     * corpse-window shadow: nothing chains liveness through {@code getHp} on a
+     * potentially-released unit anymore. (Also false in the pre-allocate window,
+     * before {@link UnitRegistry#allocate} wires {@code registry} — a unit not
+     * yet in the sim isn't alive in it.)
+     */
     public boolean isAlive() {
-        return getHp() > 0f;
+        return registry != null && registry.getHp(denseIdx) > 0f;
     }
 
     /**
-     * Current HP — routes through the registry's SoA hp slot when allocated,
-     * else falls back to {@link #localHp} (pre-allocate, or post-release
-     * snapshot). The branch is one predictable pointer compare; HotSpot
-     * inlines into hot callers.
+     * Current HP — the registry's SoA hp slot. Fail-loud on an unregistered
+     * unit (pre-allocate or post-release), exactly like {@link #getMaxHp}: every
+     * direct reader is on a live, dense-iterated or {@code getOrNull}-resolved
+     * unit. Pre-allocate seeding writes {@link #seedHp} directly.
      */
     // Final so CHA keeps the call monomorphic across all current Unit
-    // subclasses (Drone, DroneHubUnit, MapTurret) — JIT inlines through the
-    // null-check into registry.getHp/setHp in one virtual call.
+    // subclasses (Drone, DroneHubUnit, MapTurret) — JIT inlines the
+    // registry.getHp/setHp dispatch in one virtual call.
     public final float getHp() {
-        return (registry != null) ? registry.getHp(denseIdx) : localHp;
+        return registry.getHp(denseIdx);
     }
 
     public final void setHp(float v) {
-        if (registry != null) registry.setHp(denseIdx, v);
-        else localHp = v;
+        registry.setHp(denseIdx, v);
     }
 
     // Group-S seed-only stats (maxHp + the three attack stats): canonical

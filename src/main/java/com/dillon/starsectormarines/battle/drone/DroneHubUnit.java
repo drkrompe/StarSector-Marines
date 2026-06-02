@@ -69,7 +69,7 @@ public class DroneHubUnit extends Unit {
     public DroneHubUnit(String id, Faction faction, int cellX, int cellY) {
         super(id, faction, UnitType.DRONE_HUB_STRUCTURE, cellX, cellY);
         this.seedMaxHp = HUB_MAX_HP;
-        setHp(HUB_MAX_HP);
+        this.seedHp = HUB_MAX_HP;
         this.seedAttackDamage = 0f;
         this.seedAttackRange = 0f;
         this.attackCooldown = 1f;
