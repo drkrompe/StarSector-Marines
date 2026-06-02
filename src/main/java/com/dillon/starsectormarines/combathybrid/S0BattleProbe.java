@@ -64,14 +64,22 @@ public final class S0BattleProbe {
      * probe battle and only our probe battle. {@code volatile} for visibility;
      * the game loop is single-threaded so no further synchronization is needed.
      */
-    private static volatile boolean armed = false;
+    /**
+     * Memory flag set on the synthetic enemy fleet. {@link CombatHybridCampaignPlugin}
+     * matches on it in {@code pickBattleCreationPlugin} to recognize a probe battle.
+     *
+     * <p>Replaces an earlier "armed for the duration of the {@code startBattle} call"
+     * boolean — that never matched, because {@code startBattle} resolves the
+     * battle-creation plugin on a <em>later</em> frame (after {@code launch()} has
+     * returned and reset the flag), so the core plugin always won and our spectator
+     * path never ran. Tagging the fleet has no timing window: the opponent fleet
+     * carries the marker until the battle is built.
+     */
+    public static final String PROBE_FLAG = "$marines_combathybrid_probe";
+
     private static volatile Mode mode = Mode.BASIC;
 
     private S0BattleProbe() {}
-
-    public static boolean isArmed() {
-        return armed;
-    }
 
     /** Which battle the armed {@link S0BattleCreationPlugin} should build. */
     public static Mode mode() {
@@ -113,15 +121,10 @@ public final class S0BattleProbe {
         ctx.objectivesAllowed = false;  // bare arena; S0BattleCreationPlugin skips objective gen anyway
         ctx.fightToTheLast = true;
 
-        armed = true;
-        try {
-            LOG.info("S0 probe: launching vanilla combat [" + mode + "] — player subset="
-                    + player.getFleetData().getNumMembers()
-                    + " vs enemy=" + enemy.getFleetData().getNumMembers());
-            Global.getSector().getCampaignUI().startBattle(ctx);
-        } finally {
-            armed = false;
-        }
+        LOG.info("S0 probe: launching vanilla combat [" + mode + "] — player subset="
+                + player.getFleetData().getNumMembers()
+                + " vs enemy=" + enemy.getFleetData().getNumMembers());
+        Global.getSector().getCampaignUI().startBattle(ctx);
     }
 
     /** Synthetic player fleet from copies of the first N combat-ready real ships. */
@@ -154,6 +157,7 @@ public final class S0BattleProbe {
     private static CampaignFleetAPI buildEnemyFleet() {
         FactoryAPI f = Global.getFactory();
         CampaignFleetAPI fleet = f.createEmptyFleet(Factions.HEGEMONY, "Test Opposition", true);
+        fleet.getMemoryWithoutUpdate().set(PROBE_FLAG, true);
         for (String variantId : ENEMY_VARIANTS) {
             fleet.getFleetData().addFleetMember(
                     f.createFleetMember(FleetMemberType.SHIP, variantId));

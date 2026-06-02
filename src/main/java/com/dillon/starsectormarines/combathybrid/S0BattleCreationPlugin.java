@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.combathybrid;
 
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.world.model.MapScale;
+import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.BattleCreationPlugin;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.combat.BattleCreationContext;
@@ -9,6 +10,7 @@ import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.mission.FleetSide;
 import com.fs.starfarer.api.mission.MissionDefinitionAPI;
+import org.apache.log4j.Logger;
 import org.lwjgl.util.vector.Vector2f;
 
 /**
@@ -31,6 +33,8 @@ import org.lwjgl.util.vector.Vector2f;
 @DebugOnly
 public class S0BattleCreationPlugin implements BattleCreationPlugin {
 
+    private static final Logger LOG = Global.getLogger(S0BattleCreationPlugin.class);
+
     /** Canvas demo grid (the MEDIUM mission tier). */
     private static final MapScale CANVAS_GRID = MapScale.MEDIUM;
 
@@ -43,6 +47,8 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
     @Override
     public void initBattle(BattleCreationContext context, MissionDefinitionAPI loader) {
         spectator = S0BattleProbe.mode() == S0BattleProbe.Mode.SPECTATOR_CANVAS;
+        LOG.info("S0BattleCreationPlugin SELECTED — building probe battle [mode="
+                + S0BattleProbe.mode() + "]");
 
         if (spectator) {
             initSpectatorCanvas(context, loader);

@@ -98,9 +98,31 @@ New in `combathybrid`:
 - [ ] F10 still ends combat (S0 carry-over).
 - [ ] `spawnShipOrWing` with the stock variant ids resolves (watch the log for spawn failures).
 
+## Plugin-selection bug — found + fixed (re-playtest needed)
+
+First S0b playtest: deploy picker appeared + player piloted a ship — i.e. the **core**
+`BattleCreationPluginImpl` ran, not ours. Root cause: the old "armed boolean for the
+duration of the `startBattle` call" never matched, because `startBattle` resolves the
+battle-creation plugin on a *later* frame (after `launch()` returned and reset the
+flag). So core always won and the spectator path never ran. (S0 BASIC "looked right"
+only because core's output coincidentally matched our BASIC intent — we'd never
+actually confirmed our plugin ran.)
+
+Fix: tag the synthetic enemy fleet with `S0BattleProbe.PROBE_FLAG` in memory and
+match on it in `CombatHybridCampaignPlugin.pickBattleCreationPlugin` — no timing
+window. Added a `LOG.info("S0BattleCreationPlugin SELECTED …")` so the next playtest
+confirms our plugin runs. **This also means S0 BASIC now genuinely runs our plugin
+(F10 completion control included) for the first time.**
+
+Verified: the three changed files pass IntelliJ per-file error analysis. Full
+`gradlew compileJava` is currently red on an *unrelated* concurrent-session refactor
+(`battle/ui/highlight/HighlightOverlay` + `BattleCamera`) — left untouched.
+
 ## Immediate next-up
 
-- **Playtest S0 + S0b**, fill the checklists above.
+- **Re-playtest S0 + S0b** — first confirm the `S0BattleCreationPlugin SELECTED` log
+  line appears (proves the pick fix). Then fill the checklists above; the spectator
+  levers (no-deploy, no player ship) are only now genuinely under test.
 - After S0b verdict: **S2 — proxy-target probe** (spawn the proxy into the now-proven
   combat instance), then wire HP drain into the sim's external-damage path (open
   question #2).
