@@ -16,6 +16,9 @@ import java.util.List;
  *       spectator canvas — free cam, below-ships backdrop, no deploy dialog).</li>
  *   <li><b>Ctrl+Shift+J</b> → {@link S0BattleProbe#launchProxyTarget()} (S2: AI carrier
  *       vs an invisible slaved proxy).</li>
+ *   <li><b>Ctrl+Shift+K</b> → {@link S0BattleProbe#launchSimCoupled()} (S3a: proxy
+ *       backed by a live sim turret — vanilla damage drains the sim, sim death
+ *       despawns the proxy).</li>
  * </ul>
  *
  * <p>A {@link CampaignInputListener} (rather than an intel button) so the trigger
@@ -53,6 +56,11 @@ public class CombatHybridInputListener implements CampaignInputListener {
             if (e.getEventValue() == Keyboard.KEY_J) {
                 e.consume();
                 S0BattleProbe.launchProxyTarget();
+                break;
+            }
+            if (e.getEventValue() == Keyboard.KEY_K) {
+                e.consume();
+                S0BattleProbe.launchSimCoupled();
                 break;
             }
         }

@@ -654,6 +654,22 @@ public class BattleSimulation implements BattleControl {
         objectivesService.addObjective(o);
     }
 
+    /**
+     * Subscribe to the death-event mailbox — the sim→consumer channel for "a unit
+     * died." Forwards to {@link com.dillon.starsectormarines.battle.unit.DeathDispatcher#subscribe};
+     * the handler fires on the per-tick {@code drain()} (the DEMOLISH phase), same
+     * timing the built-in demolition handlers see. Subscribe once at setup — there
+     * is no unsubscribe.
+     *
+     * <p>Exists for out-of-tree consumers (the combat-bridge adapter) that must
+     * react to sim death without importing the dispatcher or scanning the roster,
+     * keeping the dependency one-way: the adapter knows the sim, the sim never
+     * knows the adapter.
+     */
+    public void subscribeDeath(java.util.function.Consumer<com.dillon.starsectormarines.battle.unit.DeathEvent> handler) {
+        deathDispatcher.subscribe(handler);
+    }
+
     /** Install (or replace) the strategic commander for one faction. Pass {@code null} to clear. Typically called once during {@code BattleSetup} per faction that wants the layer. */
     public void setCommander(Faction faction, MissionCommand commander) {
         commanders.setCommander(faction, commander);

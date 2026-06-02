@@ -28,12 +28,21 @@ proxies; area damage for strafes + main-battery fire), and the **spatial fork** 
 ground-band AI-gating vs loose convention — decide at S3c).
 
 Decomposition (stories written):
-- **S3a — sim coupling slice** *(next build).* One real `Unit` behind a proxy; HP-drain
-  via `BattleSimulation.applyExternalDamage` (`BattleSimulation.java:1087`); sim death
-  event despawns the proxy. Smallest end-to-end test of the coupling decision.
+- **S3a — sim coupling slice** *(BUILT — awaiting playtest, Ctrl+Shift+K).* One real
+  `MapTurret` behind the S2 proxy; vanilla damage → `applyExternalDamage` (scaled 0.1×);
+  sim death event (`subscribeDeath`) despawns the proxy. See the story's "Implementation"
+  section for the decisions (HP-as-sensor, NeverEndObjective, tick-with-real-dt, ≤1-tick
+  despawn latency). Verdict pending: is the round-trip clean enough to fan out to many units?
 - **S3b — cityscape backdrop.** Ground renderer → below-ships layer.
 - **S3c — airspace banding / AI gating.** The hard de-risk; resolve the spatial fork.
 - **S3d — shuttle scale-down handoff.** Diegetic bridge between the two scales.
+
+### S3a probe pieces (combathybrid)
+- `SimCoupledProxyPlugin` — owns the one-unit sim, ticks it, closes both event loops.
+- `NeverEndObjective` — keeps a one-DEFENDER sim from auto-completing (else `advance()`
+  early-returns and the death event never drains).
+- `BattleSimulation.subscribeDeath(Consumer<DeathEvent>)` — new one-way sim→adapter seam.
+- Mode `SIM_COUPLED` on `S0BattleProbe`; hotkey Ctrl+Shift+K.
 
 Overview open question #2 is answered: the external-damage path is `applyExternalDamage`.
 

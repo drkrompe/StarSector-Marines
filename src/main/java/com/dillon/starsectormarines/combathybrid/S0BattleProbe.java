@@ -40,12 +40,14 @@ public final class S0BattleProbe {
         /** S0b: spectator canvas — no player ship, free cam, below-ships backdrop, no deploy dialog. */
         SPECTATOR_CANVAS,
         /** S2: spectator canvas + an AI carrier vs an invisible slaved proxy (proxy/avatar pattern). */
-        PROXY_TARGET
+        PROXY_TARGET,
+        /** S3a: like PROXY_TARGET, but the proxy is backed by a live sim turret — the first real coupling. */
+        SIM_COUPLED
     }
 
     /** Modes that use the spectator-canvas host (empty player fleet, free cam, starved HUD). */
     public static boolean isCanvasMode(Mode m) {
-        return m == Mode.SPECTATOR_CANVAS || m == Mode.PROXY_TARGET;
+        return m == Mode.SPECTATOR_CANVAS || m == Mode.PROXY_TARGET || m == Mode.SIM_COUPLED;
     }
 
     /** How many of the player's combat-ready ships the probe fields. */
@@ -102,6 +104,11 @@ public final class S0BattleProbe {
     /** S2 entry point — spectator canvas with an AI carrier vs an invisible slaved proxy. */
     public static void launchProxyTarget() {
         launch(Mode.PROXY_TARGET);
+    }
+
+    /** S3a entry point — proxy target backed by a live sim turret (the first real coupling). */
+    public static void launchSimCoupled() {
+        launch(Mode.SIM_COUPLED);
     }
 
     /**

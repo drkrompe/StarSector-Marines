@@ -115,12 +115,33 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
                 CANVAS_GRID.width, CANVAS_GRID.height, S0BattleProbe.WORLD_UNITS_PER_CELL));
 
         float halfH = CANVAS_GRID.height * S0BattleProbe.WORLD_UNITS_PER_CELL * 0.5f;
-        if (S0BattleProbe.mode() == S0BattleProbe.Mode.PROXY_TARGET) {
+        if (S0BattleProbe.mode() == S0BattleProbe.Mode.SIM_COUPLED) {
+            setupSimCoupled(engine, halfH);
+        } else if (S0BattleProbe.mode() == S0BattleProbe.Mode.PROXY_TARGET) {
             setupProxyTarget(engine, halfH);
         } else {
             float spawnY = halfH * 0.6f;
             spawnRow(engine, FleetSide.PLAYER, CANVAS_PLAYER_SHIPS, -spawnY, 90f, 600f);
             spawnRow(engine, FleetSide.ENEMY, CANVAS_ENEMY_SHIPS, spawnY, 270f, 600f);
+        }
+    }
+
+    /**
+     * S3a: same host as S2 (AI carriers vs an invisible proxy), but the proxy is
+     * backed by a live sim turret. The proxy spawns at world origin — the center
+     * cell of the sim grid, which {@link SimCoupledProxyPlugin} centers there — so
+     * the marker and the sim unit coincide.
+     */
+    private void setupSimCoupled(CombatEngineAPI engine, float halfH) {
+        spawnRow(engine, FleetSide.PLAYER, PROXY_CARRIER_SHIPS, -halfH * 0.6f, 90f, 900f);
+
+        Vector2f anchor = new Vector2f(0f, 0f); // sim grid center -> world origin
+        ShipAPI proxy = spawnValidated(engine, FleetSide.ENEMY, PROXY_VARIANT, anchor, 270f);
+        if (proxy != null) {
+            engine.addPlugin(new SimCoupledProxyPlugin(
+                    proxy, CANVAS_GRID.width, CANVAS_GRID.height, S0BattleProbe.WORLD_UNITS_PER_CELL));
+        } else {
+            LOG.warn("S3a: proxy variant [" + PROXY_VARIANT + "] missing; no sim-coupled proxy spawned.");
         }
     }
 

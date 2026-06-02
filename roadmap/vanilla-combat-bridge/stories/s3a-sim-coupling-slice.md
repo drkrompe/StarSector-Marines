@@ -68,7 +68,40 @@ with one entity instead of a fleet.
 
 ## Acceptance
 
-Ctrl+Shift+ (new mode): a carrier's fighters strafe the proxy; the **sim** turret's HP
-(logged) falls; at zero the sim emits death and the proxy despawns the same beat. Verdict:
-**is the event-translated round-trip clean enough to fan out to many units?** A yes
+Ctrl+Shift+K (new `SIM_COUPLED` mode): a carrier's fighters strafe the proxy; the **sim**
+turret's HP (logged) falls; at zero the sim emits death and the proxy despawns the same beat.
+Verdict: **is the event-translated round-trip clean enough to fan out to many units?** A yes
 green-lights S3b (render it) and the one-proxy-per-entity model.
+
+## Implementation (built — awaiting playtest)
+
+Launch with **Ctrl+Shift+K** on the campaign map. New pieces in `combathybrid`:
+
+- **`SimCoupledProxyPlugin`** — owns a minimal `BattleSimulation` (open MEDIUM grid, one
+  VULCAN `MapTurret` at the center cell), ticked from `advance(amount)`. Closes both loops:
+  vanilla→sim per-frame `applyExternalDamage(turret, delta·scale)`, sim→vanilla via
+  `subscribeDeath`. Proxy pinned to the turret's cell each frame (center cell → world origin).
+- **`NeverEndObjective`** — a `!complete && !failed` DEFENDER objective. Suppresses the
+  eliminate-each-other backstop so a one-DEFENDER sim doesn't auto-complete on tick 1 (a
+  completed sim early-returns from `advance()` and would strand the death event).
+- **`BattleSimulation.subscribeDeath(Consumer<DeathEvent>)`** — new public seam forwarding to
+  the death dispatcher; the sim→adapter channel, one-way (sim never imports the adapter).
+
+Decisions on the design-notes open questions:
+
+- **HP-poll, not a damage listener.** Delta is `maxHp - hp`; the proxy's vanilla HP is reset
+  to full every frame (`setHitpoints(max)`), so it's a pure damage *sensor* and vanilla never
+  owns the kill — the cleanest expression of "proxy HP is a throwaway hittable surface."
+  Revisit only if rapid fire makes the per-frame delta noisy.
+- **Scale.** `SIM_DAMAGE_SCALE = 0.1` (placeholder) maps vanilla ship-gun damage (hundreds/sec)
+  onto VULCAN's 50 HP so a strafe reads as a few seconds of attrition. The real cross-scale
+  damage convention is still the architecture's S3c question — this just keeps the probe legible.
+- **Tick coupling.** Sim is ticked with the real combat-frame `dt`; `BattleSimulation` fixes it
+  to 30Hz internally. Despawn can trail the killing blow by ≤1 sim tick (~33ms) because death is
+  fanned out on the next tick's mailbox drain, not inline. Noted as the honest cost; force-ticking
+  per frame is the lever if it reads as laggy.
+- **Death race.** Despawn is driven *only* by the sim death event (`simTurretDead`), never by the
+  adapter independently — sim authority. Damage fed after the turret dies is a safe no-op
+  (`applyExternalDamage` guards `!isAlive`).
+
+Verdict pending the user's playtest of the strafe → HP-fall → despawn round-trip and its timing.
