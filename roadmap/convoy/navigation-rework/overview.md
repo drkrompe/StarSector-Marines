@@ -158,8 +158,15 @@ Reworked / removed:
 
 Unchanged: `BicycleBody` / `GroundBody` kinematics, `PurePursuit` carrot math
 (now tracking the *local* trajectory, not the coarse polyline), `ReedsShepp`,
-`VehicleFootprint`, the road graph and `ConvoyPlanner.planPath` /
-`expandToWaypoints` route-finding.
+`VehicleFootprint`.
+
+> **Route layer superseded.** The coarse corridor source — `ConvoyPlanner`'s
+> road-graph BFS (`planPath` / `expandToWaypoints`) — is being replaced by
+> cost-field grid search + string-pulling: see
+> [`../cost-field-routing/overview.md`](../cost-field-routing/overview.md).
+> Roads become a cost *bias* over the free grid rather than a topology vehicles
+> are confined to. This track (tracking) and that one (routing) meet at
+> `ReferenceCorridor`, which consumes whatever polyline the route layer emits.
 
 ## Story decomposition
 
