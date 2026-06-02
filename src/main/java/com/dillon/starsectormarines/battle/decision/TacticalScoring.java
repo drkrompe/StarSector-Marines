@@ -731,6 +731,49 @@ public final class TacticalScoring {
     }
 
     /**
+     * Nearest enemy combatant that {@code self} can shoot <em>right now</em> —
+     * within its attack range and in line of sight. Drives opportunistic
+     * return fire while a unit advances toward a different, out-of-range
+     * pursuit target: the assigned target governs movement, this governs the
+     * trigger, so a marine crossing open ground shoots whatever it can
+     * actually hit instead of marching on eating shots. Returns null when
+     * nothing is in range and LoS.
+     *
+     * <p>Distance-only pick — no crowding/affinity scoring. An opportunistic
+     * shot is a free trigger pull with the unit already committed to its
+     * march, so "closest thing I can hit" is the right call and keeps this
+     * off the heavier {@link #findBestTarget} scoring path. Cheap distance and
+     * range tests gate the per-candidate LoS raycast.
+     */
+    public Unit closestEnemyInAttackRange(Unit self) {
+        int selfIdx = registry.requireLiveIndex(self.entityId);
+        int sx = registry.getCellX(selfIdx);
+        int sy = registry.getCellY(selfIdx);
+        float range = registry.getAttackRange(selfIdx);
+
+        Unit[] dense = registry.denseArray();
+        int[] cellX = registry.cellXArray();
+        int[] cellY = registry.cellYArray();
+        int liveCount = registry.liveCount();
+
+        Unit best = null;
+        float bestDist = Float.MAX_VALUE;
+        for (int i = 0; i < liveCount; i++) {
+            Unit other = dense[i];
+            if (other.faction == self.faction) continue;
+            if (!other.type.combatant) continue;
+            int ox = cellX[i];
+            int oy = cellY[i];
+            float d = cellDistance(sx, sy, ox, oy);
+            if (d > range || d >= bestDist) continue;
+            if (!canSeePair(grid, sx, sy, ox, oy, self.airLosRadius, other.airLosRadius)) continue;
+            bestDist = d;
+            best = other;
+        }
+        return best;
+    }
+
+    /**
      * Adds {@link #TARGET_CROWDING_COST} for every ally targeting the same
      * enemy, plus an additional {@link #TARGET_SQUADMATE_EXTRA_COST} when the
      * ally is a squadmate. Reads the precomputed attackers-by-target index

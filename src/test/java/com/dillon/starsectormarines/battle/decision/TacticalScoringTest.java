@@ -924,4 +924,63 @@ public class TacticalScoringTest {
         assertTrue(sim.getTacticalScoring().hasReachableFiringSpot(marine, enemy),
                 "with a doorway the marine can reach a firing position → engageable");
     }
+
+    // ---------------------------------------------------------------------
+    // Part N+1 — closestEnemyInAttackRange (opportunistic return fire)
+    // ---------------------------------------------------------------------
+
+    @Test
+    public void closestEnemyInAttackRangePicksNearestHittable() {
+        // Two enemies in range and LoS; the helper returns the nearer one —
+        // an opportunistic shot is "closest thing I can hit," no scoring.
+        BattleSimulation sim = openArena(40, 10);
+        Unit marine = unit(sim, Faction.MARINE, 5, 5);
+        unit(sim, Faction.DEFENDER, 20, 5);             // distance 15
+        Unit near = unit(sim, Faction.DEFENDER, 12, 5); // distance 7
+
+        assertEquals(near, sim.getTacticalScoring().closestEnemyInAttackRange(marine),
+                "nearest in-range enemy is the opportunistic target");
+    }
+
+    @Test
+    public void closestEnemyInAttackRangeNullWhenAllOutOfRange() {
+        // MARINE attack range is 24; an enemy at distance 30 can't be hit, so
+        // the marching member gets no opportunistic shot and keeps advancing.
+        BattleSimulation sim = openArena(50, 10);
+        Unit marine = unit(sim, Faction.MARINE, 5, 5);
+        unit(sim, Faction.DEFENDER, 35, 5);             // distance 30 > 24
+
+        assertNull(sim.getTacticalScoring().closestEnemyInAttackRange(marine),
+                "enemy beyond attack range yields no opportunistic target");
+    }
+
+    @Test
+    public void closestEnemyInAttackRangeIgnoresFriendliesAndNonCombatants() {
+        // A same-faction marine and an enemy civilian are both in range; neither
+        // draws fire, so the helper returns null.
+        BattleSimulation sim = openArena(40, 10);
+        Unit marine = unit(sim, Faction.MARINE, 5, 5);
+        unit(sim, Faction.MARINE, 8, 5);                       // friendly
+        unit(sim, Faction.DEFENDER, UnitType.CIVILIAN, 10, 5); // non-combatant
+
+        assertNull(sim.getTacticalScoring().closestEnemyInAttackRange(marine),
+                "friendlies and non-combatants are not opportunistic targets");
+    }
+
+    @Test
+    public void closestEnemyInAttackRangeSkipsWalledOffEnemy() {
+        // Enemy in range by distance but behind a solid wall column: no LoS, so
+        // no opportunistic shot. Reuses the two-room geometry (wall at x=11);
+        // marine at (5,4) and enemy at (8,4) are 3 cells apart — well in range —
+        // but a wall at x=7 blocks the lane.
+        BattleSimulation sim = twoRoomsWalledAt11();
+        sim.getGrid().setWalkable(7, 4, false);  // drop a blocker in the lane
+        Unit marine = new Unit("m", Faction.MARINE, UnitType.MARINE, 5, 4);
+        Unit enemy  = new Unit("d", Faction.DEFENDER, UnitType.MARINE, 9, 4);
+        sim.addUnit(marine);
+        sim.addUnit(enemy);
+
+        assertNull(sim.getTacticalScoring().closestEnemyInAttackRange(marine),
+                "in-range but no LoS → no opportunistic shot");
+    }
 }

@@ -100,10 +100,29 @@ abstract class AbstractZoneAction implements Action {
             boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
                     sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
             inContact = d <= sim.world().attackRange(member.entityId) && visible;
-            if (inContact && sim.world().cooldownTimer(member.entityId) <= 0f) {
+        }
+
+        if (sim.world().cooldownTimer(member.entityId) <= 0f) {
+            if (inContact) {
                 sim.fireShot(member, target, haltOnContact ? FireStance.STANCED : FireStance.MOVING);
                 sim.world().setCooldownTimer(member.entityId, member.attackCooldown);
                 member.beginBurst(target);
+            } else {
+                // Opportunistic return fire while advancing. The pursuit target
+                // is out of range/LoS (or absent) — across the open approach
+                // that left members marching past enemies they could hit,
+                // eating shots without returning any. Fire on the nearest enemy
+                // actually in range and LoS, MOVING stance, without halting or
+                // touching the pursuit target: the squad still commits to the
+                // zone push, the trigger just stops it being a sitting duck.
+                // beginBurst keys off a separate burst target, so the follow-up
+                // burst tracks the enemy we shot, not the pursuit target.
+                Unit opportune = sim.getTacticalScoring().closestEnemyInAttackRange(member);
+                if (opportune != null) {
+                    sim.fireShot(member, opportune, FireStance.MOVING);
+                    sim.world().setCooldownTimer(member.entityId, member.attackCooldown);
+                    member.beginBurst(opportune);
+                }
             }
         }
 
