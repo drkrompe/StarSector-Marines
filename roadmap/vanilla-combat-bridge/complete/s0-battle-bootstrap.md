@@ -1,4 +1,19 @@
-# S0 — Battle bootstrap probe
+# S0 — Battle bootstrap probe — ✅ SHIPPED
+
+> **Verified in playtest.** Commit chain: `d48b835` (initial) → `40dccbf` (plugin-pick
+> fix: memory tag, not armed flag) → `c8ce9d4` (real validated variant ids).
+>
+> **Verdict:** both requirements proven. (1) A vanilla `CombatEngineAPI` battle launches
+> from the campaign map (Ctrl+Shift+B) with a roster we choose — a subset of the player
+> fleet. (2) The mod owns completion: `setDoNotEndCombat(true)` + F10 → `endCombat`.
+>
+> **Landed vs planned:** as planned, plus two API facts learned the hard way —
+> `startBattle` resolves the `BattleCreationPlugin` a frame *later* (gate by an
+> opponent-fleet memory tag, not a transient armed flag), and `spawnShipOrWing` resolves
+> variant ids eagerly (validate before use) while `createFleetMember` is lazy. Both
+> recorded in `overview.md` and the `startbattle_plugin_pick_deferred` memory.
+
+---
 
 > The probe that sits *before* S1/S2: both of those assume "a test mission" is
 > already running. S0 answers how we get there from the campaign — can the mod

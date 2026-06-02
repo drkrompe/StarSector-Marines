@@ -1,4 +1,24 @@
-# S0b — Spectator-canvas probe
+# S0b — Spectator-canvas probe — ✅ SHIPPED
+
+> **Verified in playtest.** Commit chain: `21bebd6` (initial) → `cec0580` (empty context
+> fleet — superseded) → `819731b` (stash the real player fleet) → `beb3c2e` (restore
+> *during* combat, not after).
+>
+> **Verdict:** all five canvas facts (8–12) compose cleanly. No deploy picker, free
+> camera (WASD + RMB-drag + scroll), below-ships backdrop renders under the ships, UI
+> overlay is the top visible layer with the HUD starved, and **F10 exits to the campaign
+> with no game-over and the full player fleet restored** (Tab mid-battle does not
+> re-arm/respawn the fleet).
+>
+> **Landed vs planned:** the spectator lever was *not* the in-combat APIs we expected
+> (`setPlayerShipExternal` etc.) — it was the **player fleet itself**. `startBattle`
+> sources deployable ships from the *real* player fleet (ignoring the context fleet), so
+> the working approach is `PlayerFleetStash`: detach the real fleet's members for the
+> battle, then **re-attach them ~0.5s into combat** (not on exit — restoring after
+> combat-end makes the resolution read an empty fleet and declare a defeat/game-over).
+> See the `startbattle_plugin_pick_deferred` memory.
+
+---
 
 > **Built, awaiting playtest.** Builds directly on S0. Proves that a launched vanilla
 > combat instance can be reduced to a **blank, sim-driven canvas** — the host

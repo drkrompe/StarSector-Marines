@@ -223,21 +223,16 @@ combat engine and undo the decoupling the whole project rests on.
 All are throwaway probes whose only job is to answer the load-bearing unknowns
 cheaply, before any real feature investment ([[feedback_ship_then_optimize]]):
 
-- **S0 — Battle bootstrap probe.** *(in progress — code landed, awaiting playtest)*
-  The probe upstream of S1/S2: both of those assume "a test mission" is already
-  running, but the real product launches combat from the *campaign* tied to the
-  player's *actual* fleet. S0 proves we can (1) launch a vanilla `CombatEngineAPI`
-  battle from the campaign with a roster we choose — *some* of the player fleet —
-  and (2) own when that battle is considered complete (suppress vanilla's auto-end;
-  call `endCombat` on our terms). Ctrl+Shift+B on the campaign map; F10 to end.
-  See [`stories/s0-battle-bootstrap.md`](stories/s0-battle-bootstrap.md).
-- **S0b — Spectator-canvas probe.** *(scoped, not built)* Builds on S0. Turns the
-  launched combat into a sim-driven canvas to exercise verified facts 8–12 at once:
-  spectator (no player ship) + zero CP so the HUD is empty, free camera
-  (WASD + RMB-drag via `setExternalControl`), a below-ships `CombatLayeredRenderingPlugin`
-  drawing a backdrop, a `renderInUICoords` overlay, and no-deploy setup via
-  `spawnShipOrWing`. Answers: **can we reduce vanilla combat to a blank host we
-  render and drive ourselves?** See [`stories/s0b-spectator-canvas.md`](stories/s0b-spectator-canvas.md).
+- **S0 — Battle bootstrap probe.** ✅ *shipped + playtested.* Launches a vanilla
+  `CombatEngineAPI` battle from the campaign (Ctrl+Shift+B) with a chosen roster, and
+  the mod owns completion (suppress auto-end; F10 → `endCombat`). Sealed in
+  [`complete/s0-battle-bootstrap.md`](complete/s0-battle-bootstrap.md).
+- **S0b — Spectator-canvas probe.** ✅ *shipped + playtested.* Reduces the launched
+  combat to a blank, sim-driven host: no deploy picker, free camera, below-ships
+  backdrop, starved HUD with our overlay on top, clean F10 exit with the player fleet
+  restored (via `PlayerFleetStash`). Proves facts 8–12 compose. Sealed in
+  [`complete/s0b-spectator-canvas.md`](complete/s0b-spectator-canvas.md). **Answer: yes
+  — vanilla combat can host our sim.**
 - **S1 — Wall-clamp probe.** A ~100-line `EveryFrameCombatPlugin` that draws a
   hardcoded box of wall tiles in `renderInWorldCoords` and clamps any ship out of
   those tiles each frame (position-`set()` + velocity-slide). Fly a ship into it.
@@ -251,10 +246,11 @@ cheaply, before any real feature investment ([[feedback_ship_then_optimize]]):
   plumbing from there. See
   [`stories/s2-proxy-target-probe.md`](stories/s2-proxy-target-probe.md).
 
-Sequencing: **S0 first** (it gates the other two — they need a combat instance to
-live in, launched from the campaign rather than a title-screen mission). Then
-**S2** — the more compelling feature *and* the cheaper de-risk (no terrain mess at
-all). S1 informs whether Direction A is worth pursuing beyond a curiosity.
+Sequencing: ~~**S0 first**~~ ✅ done (S0 + S0b shipped — a campaign-launched combat
+instance that hosts a sim-driven spectator canvas). Next: **S2** — the more compelling
+feature *and* the cheaper de-risk (no terrain mess at all); it now has a proven combat
+host to spawn proxies into. S1 informs whether Direction A is worth pursuing beyond a
+curiosity.
 
 ## Open questions
 
@@ -278,6 +274,6 @@ all). S1 informs whether Direction A is worth pursuing beyond a curiosity.
 ## How this directory is laid out
 
 - **`overview.md`** (this file) — concept, verified facts, architecture, probes.
-- **`stories/`** — the active probe docs (`s0-battle-bootstrap`, `s0b-spectator-canvas`, `s1-wall-clamp-probe`, `s2-proxy-target-probe`).
-- **`complete/`** — sealed shipped work (empty until a probe's verdict lands).
-- **`next-session.md`** — handoff state; S0 code has landed, awaiting playtest.
+- **`stories/`** — the active probe docs (`s1-wall-clamp-probe`, `s2-proxy-target-probe`).
+- **`complete/`** — sealed shipped work (`s0-battle-bootstrap`, `s0b-spectator-canvas`).
+- **`next-session.md`** — handoff state; S0 + S0b shipped & playtested, next is S2.
