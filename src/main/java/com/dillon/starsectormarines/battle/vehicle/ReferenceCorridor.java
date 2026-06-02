@@ -65,8 +65,31 @@ public final class ReferenceCorridor {
      */
     public Pose targetAhead(float poseX, float poseY, float horizon) {
         PurePursuit.Carrot c = PurePursuit.pick(poseX, poseY, xs, ys, cursor, horizon);
-        float facing = AirBody.facingToward(c.x - poseX, c.y - poseY);
+        float dx = c.x - poseX, dy = c.y - poseY;
+        // Near the corridor end the carrot pins to the final vertex; once the
+        // pose sits on it, pose->carrot is a zero vector and facingToward would
+        // collapse to an arbitrary 0deg. Fall back to the final segment's
+        // direction so the goal heading stays meaningful (the planner's RS tail
+        // and turn-cost heuristic key off it).
+        float facing = (dx * dx + dy * dy > 1e-6f)
+                ? AirBody.facingToward(dx, dy)
+                : finalSegmentHeading();
         return new Pose(c.x, c.y, facing);
+    }
+
+    /**
+     * Heading along the last non-degenerate corridor segment (final vertex
+     * minus the nearest preceding distinct vertex), so a trailing duplicate
+     * vertex doesn't yield a zero direction. Defaults to 0deg for a corridor
+     * with no extent.
+     */
+    private float finalSegmentHeading() {
+        int last = xs.length - 1;
+        for (int i = last - 1; i >= 0; i--) {
+            float dx = xs[last] - xs[i], dy = ys[last] - ys[i];
+            if (dx * dx + dy * dy > 1e-6f) return AirBody.facingToward(dx, dy);
+        }
+        return 0f;
     }
 
     /**

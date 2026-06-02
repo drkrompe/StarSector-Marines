@@ -48,6 +48,41 @@ only slightly — the full corner is rounded over several replans as the vehicle
 advances. The slice-2 replan cadence has to be frequent enough that the rolling
 goal keeps marching down the corridor.
 
+## Critique follow-up (post-ship, same slice)
+
+A background critique pass found no correctness bug in the output contract
+(every returned `Trajectory` is feasible-by-construction and ≥2 poses). Fixed
+in-slice:
+
+- **Degenerate end-goal facing** (`ReferenceCorridor.targetAhead`): when the
+  carrot coincides with the pose at the corridor end, facing now falls back to
+  the final-segment direction instead of collapsing to an arbitrary 0°
+  (`facingToward(0,0)`), which had been biasing the RS tail / turn-cost
+  heuristic toward due-north.
+- **Goal-cell-outside-window guard** (`HybridAStarPlanner.planLocal`): a caller
+  passing a window that excludes the goal cell now returns `null` immediately
+  rather than running a heuristic-less uniform-cost search to the iteration cap.
+- **Coincident-pose dedup** (`extractLocal`): consecutive duplicate positions
+  (RS sampling + appended exact goal) are collapsed so `Trajectory.cum` is
+  strictly increasing; the later heading wins so the terminal goal facing isn't
+  lost.
+- **Heuristic admissibility doc**: windowed grid-distance is now documented as a
+  non-admissible *estimate* (a cell whose true path detours outside the window
+  over-estimates) — callers must not assume cost-optimality.
+- **Test rigor**: the tight-corridor test no longer passes trivially — its start
+  was moved to the bend so the rolling goal lands deep in the horizontal leg,
+  out of soft-radius reach from the vertical lane, so a straight stub can't
+  satisfy it (the planner must round the elbow → `null` in a 3-wide corridor);
+  the corner test now asserts the turn goes the *correct* way (toward east, not
+  just >30° magnitude); a new fixture starts 30° off the corridor to exercise
+  the previously-untested start→first-lattice transition.
+
+Routed to **slice 2** (fixes belong in the controller / a later consolidation):
+the near-goal `null` must be read as arrival (check `corridor.atEnd` before
+planning) not as a stuck signal; and `planLocal`/`refine` collapse onto one core
+once full-path `refine` is retired. Both recorded in
+[`../stories/slice-2-live-tracking.md`](../stories/slice-2-live-tracking.md).
+
 ---
 
 ## Original plan (for reference)

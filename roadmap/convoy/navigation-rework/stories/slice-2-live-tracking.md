@@ -48,6 +48,23 @@ the pose — no segment is ever teleported along synthetic-heading rails.
   just means "replan next tick / brake," never a synthetic-heading rail.
 - Docking into the LZ unchanged.
 
+## Carried in from the slice-1 critique
+
+- **Near-goal `null` must not alias "stuck".** `LocalTrajectoryPlanner.plan`
+  returns `null` when the start is already inside the soft goal radius (≈3
+  cells for the APC) — and as a vehicle nears the corridor end the rolling goal
+  pins to the endpoint, so the start sits inside that radius every tick over the
+  last few cells. The tracking loop must **check `corridor.atEnd(pose, …)`
+  (or `dist(pose, goal) ≤ goalRadius`) *before* asking for a plan** and treat
+  that as arrival/idle, never as a failed plan that escalates to recovery.
+  Otherwise every successful LZ approach reads as a false stuck.
+- **Consolidate `planLocal` / `refine` once full-path `refine` is retired.**
+  They share ~120 lines (kinematics unpack, steer-angle table, the whole
+  open/closed A* loop + successor gen + analytic block). When slice 2 stops
+  calling the one-shot `refine`, collapse both onto one private core
+  parameterized by a goal-test + window so the two loops can't drift (e.g. a
+  heuristic fix landing in one but not the other). Deferred, not a blocker.
+
 ## Notes
 
 - This is the slice to attach a **critique-pass background agent**

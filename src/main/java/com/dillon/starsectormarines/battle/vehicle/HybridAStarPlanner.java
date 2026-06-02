@@ -265,6 +265,13 @@ public final class HybridAStarPlanner {
 
         int goalCellX = (int) Math.floor(goal.x);
         int goalCellY = (int) Math.floor(goal.y);
+        // planLocal is public and reused; a caller passing a window that excludes
+        // the goal cell would otherwise get an all-MAX_VALUE grid-distance field
+        // (heuristic-less, degraded to uniform-cost search to the iteration cap).
+        // Fail fast instead -- a goal outside the search window is "no trajectory".
+        if (goalCellX < minX || goalCellX > maxX || goalCellY < minY || goalCellY > maxY) {
+            return null;
+        }
         float[] gridDist = computeGridDistance(goalCellX, goalCellY, grid, gridW, gridH,
                 minX, minY, maxX, maxY);
 
@@ -411,15 +418,30 @@ public final class HybridAStarPlanner {
             poses.add(new float[]{goalPose.x, goalPose.y, goalPose.facingDeg});
         }
 
-        if (poses.size() < 2) return null;
+        // Drop consecutive coincident poses so the Trajectory's cumulative arc
+        // length is strictly increasing (the RS sampling step plus the appended
+        // exact goal can emit a near-duplicate final pair). Keep the later pose's
+        // heading on a collision so the terminal goal facing isn't lost.
+        List<float[]> deduped = new ArrayList<>(poses.size());
+        for (float[] p : poses) {
+            if (deduped.isEmpty()) { deduped.add(p); continue; }
+            float[] prev = deduped.get(deduped.size() - 1);
+            float dx = p[0] - prev[0], dy = p[1] - prev[1];
+            if (dx * dx + dy * dy > 1e-6f) {
+                deduped.add(p);
+            } else {
+                prev[2] = p[2];
+            }
+        }
+        if (deduped.size() < 2) return null;
 
-        float[] outX = new float[poses.size()];
-        float[] outY = new float[poses.size()];
-        float[] outH = new float[poses.size()];
-        for (int i = 0; i < poses.size(); i++) {
-            outX[i] = poses.get(i)[0];
-            outY[i] = poses.get(i)[1];
-            outH[i] = poses.get(i)[2];
+        float[] outX = new float[deduped.size()];
+        float[] outY = new float[deduped.size()];
+        float[] outH = new float[deduped.size()];
+        for (int i = 0; i < deduped.size(); i++) {
+            outX[i] = deduped.get(i)[0];
+            outY[i] = deduped.get(i)[1];
+            outH[i] = deduped.get(i)[2];
         }
         return new float[][]{outX, outY, outH};
     }
@@ -438,6 +460,12 @@ public final class HybridAStarPlanner {
      * them, so their heuristic is irrelevant, and bounding the flood is what
      * keeps {@link #planLocal} cheap. The full-map {@link #refine} path passes
      * the whole grid as the window.
+     *
+     * <p><b>Windowed distances are a heuristic estimate, not admissible:</b> a
+     * cell whose true shortest grid path to the goal detours outside the window
+     * gets an over-estimate (up to {@code MAX_VALUE}). {@link #planLocal} is an
+     * advisory soft-goal planner, so a sub-optimal expansion is acceptable —
+     * callers must not assume the returned trajectory is cost-optimal.
      */
     private static float[] computeGridDistance(int goalX, int goalY,
                                                NavigationGrid grid, int w, int h,

@@ -103,6 +103,25 @@ public class LocalTrajectoryPlannerTest {
     }
 
     @Test
+    public void offsetStartHeadingStillTracksSmoothly() {
+        // Every other fixture starts aligned with the corridor, so the
+        // start→first-lattice transition (poses[0]→poses[1]) is never stressed.
+        // Start 30° off a due-north lane: the first feasible successor can only
+        // bend ~29°, so the planner must ease the heading in rather than snap it.
+        NavigationGrid grid = new NavigationGrid(40, 40);
+        carve(grid, 14, 0, 26, 39);
+
+        Pose start = new Pose(20.5f, 5f, 30f);
+        ReferenceCorridor corr = corridor(20.5f, 5f, 20.5f, 20f, 20.5f, 35f);
+
+        Trajectory t = LocalTrajectoryPlanner.plan(start, corr, TYPE, grid);
+
+        assertNotNull(t, "a slightly mis-aligned start in a clear lane should still plan");
+        assertAllPosesFeasible(t, grid);
+        assertHeadingsSmooth(t);   // includes the start→first-lattice transition
+    }
+
+    @Test
     public void ninetyDegreeCornerWithWidthRoundsFeasibly() {
         NavigationGrid grid = new NavigationGrid(50, 50);
         carve(grid, 14, 0, 26, 26);    // vertical leg
@@ -123,6 +142,14 @@ public class LocalTrajectoryPlannerTest {
         float[] hs = t.headings();
         float netTurn = Math.abs(((hs[hs.length - 1] - hs[0] + 540f) % 360f) - 180f);
         assertTrue(netTurn > 30f, "expected a real corner turn, got net " + netTurn + "°");
+        // ...and it must turn the *right* way. The east leg runs +X, which is
+        // 270° in this facing convention (0°=+Y, +CCW). Guard against a >30°
+        // turn toward west (90°) passing the magnitude check.
+        float finalH = hs[hs.length - 1];
+        float towardEast = Math.abs(((finalH - 270f + 540f) % 360f) - 180f);
+        float towardWest = Math.abs(((finalH - 90f + 540f) % 360f) - 180f);
+        assertTrue(towardEast < towardWest,
+                "corner turn should head east (270°), got final heading " + finalH + "°");
     }
 
     @Test
@@ -148,7 +175,14 @@ public class LocalTrajectoryPlannerTest {
         carve(grid, 10, 0, 12, 20);    // 3-wide vertical
         carve(grid, 10, 10, 25, 12);   // 3-wide horizontal — tight elbow
 
-        Pose start = new Pose(11.5f, 3f, 0f);
+        // Start near the bend so the rolling goal lands DEEP in the horizontal
+        // leg (≈(18,11)), out of soft-goal-radius reach (2.97) from the vertical
+        // lane. That defeats the trivial pass the critique flagged: a straight
+        // northward stub can no longer satisfy the goal by leaking around the
+        // corner — the planner must actually round the elbow, which a 3-wide
+        // corridor can't fit (min turn radius ≈3.96), so the honest answer here
+        // is null. If it ever does return a plan, it must have engaged the elbow.
+        Pose start = new Pose(11.5f, 8f, 0f);
         ReferenceCorridor corr = corridor(11.5f, 3f, 11.5f, 11f, 24f, 11f);
 
         Trajectory t = LocalTrajectoryPlanner.plan(start, corr, TYPE, grid);
@@ -158,6 +192,10 @@ public class LocalTrajectoryPlannerTest {
         if (t != null) {
             assertAllPosesFeasible(t, grid);
             assertHeadingsSmooth(t);
+            float maxX = 0f;
+            for (float x : t.xs()) maxX = Math.max(maxX, x);
+            assertTrue(maxX > 12.5f,
+                    "a non-null tight-corridor plan must engage the elbow, not stop short (maxX=" + maxX + ")");
         }
     }
 }
