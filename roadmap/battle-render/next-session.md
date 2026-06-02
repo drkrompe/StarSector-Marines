@@ -15,10 +15,10 @@
 > pruned, faction-default tracer colors deduped onto `ShotFx.defaultTracerColor`).
 > Full write-up: [`complete/fx-shots-command-model.md`](complete/fx-shots-command-model.md).
 >
-> 🎯 **Phase 3 — remaining gameplay-geometry passes — 3a + 3b SHIPPED; 3c is the
-> only one left (and recommended deferred).** Triaged into three stories; the
-> leftover `Custom` passes were gut-checked (debug-only / placeholder before
-> investing; `Custom` is a fine home for both). The non-debug, non-FBO passes split:
+> 🎯 **Phase 3 — remaining gameplay-geometry passes — ✅ ALL THREE SHIPPED
+> (3a + 3b + 3c).** Triaged into three stories; the leftover `Custom` passes were
+> gut-checked (debug-only / placeholder before investing; `Custom` is a fine home
+> for both). The non-debug, non-FBO passes split — all now migrated:
  - **3a — fog + roofs — ✅ SHIPPED & VERIFIED** (`d874cf8`). The two clean
 >   wins (already batch-shaped production passes). `collectFogOverlay` emits
 >   `SOLID_RECT`, `collectRoofs` emits `SHEET_QUAD` (floors sheet already registered);
@@ -39,10 +39,18 @@
 >   command-emitting producer; avoids a new package cycle). Both markers verified
 >   in-game (arc fill direction, concentric overlap, no blend artifacts).
 >   Moved to [`complete/geometry-markers-command-model.md`](complete/geometry-markers-command-model.md).
-> - **3c — highlight overlay — design-stage, mixed debug/gameplay fate.** Serves a
->   debug source (`SRC_ACTION_CELLS`) and a gameplay source (`SRC_SELECTED_SQUAD`);
->   needs a split-vs-whole-vs-defer decision first.
->   Story: [`stories/geometry-highlights-command-model.md`](stories/geometry-highlights-command-model.md).
+> - **3c — highlight overlay — ✅ SHIPPED & VERIFIED** (`a6e0db3` S1, `f9b419d` S2).
+>   Investigation flipped the premise: all sources were `@DebugOnly`-panel-fed, so
+>   there was no production cue to split. User chose to **build it** — `HighlightRenderer`
+>   (`SOLID_RECT`+`LINE`) + `SelectionHighlightPublisher` (production
+>   `SRC_SELECTED_SQUAD` from `Selection` each frame); captain/action-cells stay
+>   debug. Verified in-game (select squad → green member cells, tracks, clears).
+>   Moved to [`complete/geometry-highlights-command-model.md`](complete/geometry-highlights-command-model.md).
+>   **Follow-up:** promote the captain badge to production when that feature lands.
+>
+> **Battle-render: only the optional ground-FBO perf spike remains
+> ([`stories/perf-ground-fbo-cache.md`](stories/perf-ground-fbo-cache.md)).** Every
+> world pass is command-driven; every gameplay-geometry `Custom` is migrated.
 >
 > **Still `Custom` and staying** — debug-only (all `@DebugOnly`):
 > `renderZoneOverlayDebug` (Z toggle), `renderConvoyDockingPathsDebug`

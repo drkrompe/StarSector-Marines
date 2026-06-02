@@ -1,6 +1,33 @@
 # Phase 3c — highlight overlay → command model (Bucket C)
 
-> **Status: design-stage / needs a fate decision first.** Mixed debug/gameplay
+> **✅ SHIPPED & VERIFIED** (2026-06-02; `a6e0db3` S1, `f9b419d` S2). The fate
+> decision was forced by a finding that **changed the premise**: all three
+> highlight sources (`SRC_SELECTED_SQUAD`, `SRC_CAPTAIN`, `SRC_ACTION_CELLS`) were
+> published **only** by the `@DebugOnly` `SquadPlanDebugPanel` — so in a prod build
+> the overlay was never populated and the pass was dead. The "gameplay source"
+> Option 1 assumed *didn't exist yet*.
+>
+> Resolution (user pick): **build the real selection highlight** — promote the
+> selected-squad cue to a genuine production feature, not just migrate the render.
+> Two slices:
+> - **S1 — render migration.** `HighlightOverlay.render` (own-GL `GL_QUADS` fills +
+>   `GL_LINE_LOOP` outlines) → a `HighlightRenderer` (`ops.battleview`) emitting
+>   `SOLID_RECT` fills + `LINE` outlines (no `POLY` — cells are axis-aligned rects).
+>   `HighlightOverlay` became a pure source-state holder with a `sourceLists()`
+>   accessor (kept in `battle.ui.highlight` to avoid an `ops.battleview` cycle).
+> - **S2 — production publisher.** New `SelectionHighlightPublisher` feeds
+>   `SRC_SELECTED_SQUAD` from the shared `Selection` every frame in
+>   `BattleScreen.advance` (off post-tick positions; self-clears on deselect/wipe).
+>   `SquadPlanDebugPanel` no longer owns that source; the gold captain badge
+>   (`SRC_CAPTAIN`) + cyan action cells (`SRC_ACTION_CELLS`) stay `@DebugOnly`.
+>
+> Verified in-game: selecting a squad (world-click or squad-overview row, both
+> production paths) highlights its members green; tracks movement; clears on
+> deselect. **Follow-up (deferred):** promote the captain badge to production when
+> that feature actually lands — today it stays debug.
+>
+> ---
+> *Original design analysis below (kept for context).* Mixed debug/gameplay
 > pass — *not* cleanly migratable as a whole, and *not* cleanly debug-only either.
 > Resolve the split below before any command-model work. Do after Bucket A
 > ([`geometry-fog-roofs-command-model.md`](geometry-fog-roofs-command-model.md));
