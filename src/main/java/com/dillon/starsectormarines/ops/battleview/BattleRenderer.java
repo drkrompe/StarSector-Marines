@@ -18,6 +18,8 @@ import com.dillon.starsectormarines.render2d.DrawListRenderer;
 import com.dillon.starsectormarines.render2d.GlStateBracket;
 import com.dillon.starsectormarines.render2d.LightAccumulator;
 import com.dillon.starsectormarines.render2d.LineBatch;
+import com.dillon.starsectormarines.render2d.PolyMesh;
+import com.dillon.starsectormarines.render2d.PolyTess;
 import com.dillon.starsectormarines.render2d.QuadBatch;
 import com.dillon.starsectormarines.render2d.RibbonBatch;
 import com.dillon.starsectormarines.render2d.SolidQuadBatch;
@@ -186,6 +188,9 @@ public class BattleRenderer {
     /** World-layer renderer for the compound capture-state markers. */
     private final CompoundMarkerRenderer compoundMarkers = new CompoundMarkerRenderer();
 
+    /** Reused per-frame fan for the charge-site progress arcs (one POLY for all sites). */
+    private final PolyMesh objectiveArcMesh = new PolyMesh(64);
+
     // ---- constructor ---------------------------------------------------------
 
     public BattleRenderer(BattleSprites sprites) {
@@ -217,7 +222,7 @@ public class BattleRenderer {
                         collectRoofs(ctx.sim, out, ctx.alphaMult)),
                 new DroneRenderSystem(sprites),
                 RenderSystem.of(RenderLayer.OBJECTIVES, (ctx, out) ->
-                        out.addCustom(RenderLayer.OBJECTIVES, () -> renderObjectiveMarkers(ctx.sim, ctx.alphaMult))),
+                        collectObjectiveMarkers(ctx.sim, out, ctx.alphaMult)),
                 RenderSystem.of(RenderLayer.COMPOUND, (ctx, out) ->
                         out.addCustom(RenderLayer.COMPOUND, () -> compoundMarkers.render(
                                 ctx.sim, ctx.sim.getCompoundService(), ctx.camera, ctx.alphaMult))),
@@ -604,30 +609,38 @@ public class BattleRenderer {
                 new java.awt.Color(0.6f, 0.6f, 0.6f, 1f), alphaMult * 0.7f);
     }
 
-    private void renderObjectiveMarkers(BattleSimulation sim, float alphaMult) {
+    /**
+     * Charge-site + equipment-drop markers as commands: pulsing icons emit
+     * {@code SPRITE}, the charge-plant progress arc emits one {@code POLY} for all
+     * sites (tessellated into the reused {@link #objectiveArcMesh}). GL-free —
+     * icons are ensured at attach. Emit order: all icons first, then the arc fan,
+     * so progress arcs paint over their (larger) icons as the inline pass did.
+     */
+    private void collectObjectiveMarkers(BattleSimulation sim, DrawList out, float alphaMult) {
         float now = (float) (System.currentTimeMillis() / 1000.0);
-
         float cellPx = rc.camera.cellPxSize();
+        objectiveArcMesh.reset();
+
         for (Objective o : sim.getObjectives()) {
             if (!(o instanceof ChargeSiteObjective)) continue;
             ChargeSiteObjective site = (ChargeSiteObjective) o;
             float cx = rc.camera.cellToScreenX(site.cellX() + 0.5f);
             float cy = rc.camera.cellToScreenY(site.cellY() + 0.5f);
             if (site.isComplete()) {
-                drawTintedIcon(sprites.iconDanger(), cx, cy,
-                        cellPx * CHARGE_ICON_SIZE,
-                        CHARGE_TINT_COMPLETE, alphaMult);
+                emitIcon(out, sprites.iconDanger(), cx, cy,
+                        cellPx * CHARGE_ICON_SIZE, CHARGE_TINT_COMPLETE, alphaMult);
             } else {
                 float pulse = site.planterOnSite()
                         ? 1f + CHARGE_PULSE_AMP * (float) Math.sin(now * 2.0 * Math.PI * CHARGE_PULSE_HZ)
                         : 1f;
-                drawTintedIcon(sprites.iconAlarm(), cx, cy,
-                        cellPx * CHARGE_ICON_SIZE * pulse,
-                        CHARGE_TINT_ACTIVE, alphaMult);
+                emitIcon(out, sprites.iconAlarm(), cx, cy,
+                        cellPx * CHARGE_ICON_SIZE * pulse, CHARGE_TINT_ACTIVE, alphaMult);
                 float progress = site.progress() / Math.max(0.001f, site.plantDuration());
                 float innerR = cellPx * 0.55f;
                 float outerR = innerR + Math.max(3f, cellPx * 0.12f);
-                drawProgressArc(cx, cy, innerR, outerR, progress, CHARGE_TINT_ARC, alphaMult);
+                PolyTess.appendArc(objectiveArcMesh, cx, cy, innerR, outerR, progress, PROGRESS_ARC_SEGMENTS,
+                        CHARGE_TINT_ARC.getRed() / 255f, CHARGE_TINT_ARC.getGreen() / 255f,
+                        CHARGE_TINT_ARC.getBlue() / 255f, alphaMult);
             }
         }
 
@@ -636,64 +649,23 @@ public class BattleRenderer {
             float cx = rc.camera.cellToScreenX(drop.cellX + 0.5f);
             float cy = rc.camera.cellToScreenY(drop.cellY + 0.5f);
             float pulse = 1f + KIT_DROP_PULSE_AMP * (float) Math.sin(now * 2.0 * Math.PI * KIT_DROP_PULSE_HZ);
-            drawTintedIcon(sprites.iconStar(), cx, cy,
-                    cellPx * KIT_DROP_SIZE * pulse,
-                    KIT_DROP_TINT, alphaMult);
+            emitIcon(out, sprites.iconStar(), cx, cy,
+                    cellPx * KIT_DROP_SIZE * pulse, KIT_DROP_TINT, alphaMult);
         }
+
+        if (!objectiveArcMesh.isEmpty()) out.addPoly(RenderLayer.OBJECTIVES, objectiveArcMesh);
     }
 
-    private void drawTintedIcon(SpriteAPI sprite, float cx, float cy, float size, Color tint, float alphaMult) {
+    /** A tinted marker icon → {@code SPRITE}, or a {@code SOLID_RECT} fill if the icon texture is missing. */
+    private static void emitIcon(DrawList out, SpriteAPI sprite, float cx, float cy,
+                                 float size, Color tint, float alphaMult) {
+        float r = tint.getRed() / 255f, g = tint.getGreen() / 255f, b = tint.getBlue() / 255f;
         if (sprite == null) {
-            fillRect(cx - size / 2f, cy - size / 2f, size, size, tint, alphaMult);
-            return;
+            out.addSolidRect(RenderLayer.OBJECTIVES, cx - size / 2f, cy - size / 2f,
+                    cx + size / 2f, cy + size / 2f, r, g, b, alphaMult);
+        } else {
+            out.addSprite(RenderLayer.OBJECTIVES, sprite, cx, cy, size, size, 0f, r, g, b, alphaMult);
         }
-        sprite.setSize(size, size);
-        sprite.setColor(tint);
-        sprite.setAlphaMult(alphaMult);
-        sprite.setNormalBlend();
-        sprite.renderAtCenter(cx, cy);
-        sprite.setColor(Color.WHITE);
-    }
-
-    private void drawProgressArc(float cx, float cy, float innerR, float outerR,
-                                 float progress, Color color, float alphaMult) {
-        progress = Math.max(0f, Math.min(1f, progress));
-        if (progress <= 0f) return;
-        glDisable(GL_TEXTURE_2D);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glColor4f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f, alphaMult);
-
-        int filled = (int) Math.ceil(PROGRESS_ARC_SEGMENTS * progress);
-        glBegin(GL_QUADS);
-        for (int i = 0; i < filled; i++) {
-            float t1 = (float) i / PROGRESS_ARC_SEGMENTS;
-            float t2 = Math.min(progress, (float) (i + 1) / PROGRESS_ARC_SEGMENTS);
-            float a1 = (float) (Math.PI / 2.0) - t1 * (float) (Math.PI * 2.0);
-            float a2 = (float) (Math.PI / 2.0) - t2 * (float) (Math.PI * 2.0);
-            float c1 = (float) Math.cos(a1), s1 = (float) Math.sin(a1);
-            float c2 = (float) Math.cos(a2), s2 = (float) Math.sin(a2);
-            glVertex2f(cx + c1 * innerR, cy + s1 * innerR);
-            glVertex2f(cx + c1 * outerR, cy + s1 * outerR);
-            glVertex2f(cx + c2 * outerR, cy + s2 * outerR);
-            glVertex2f(cx + c2 * innerR, cy + s2 * innerR);
-        }
-        glEnd();
-    }
-
-
-    private static void fillRect(float rx, float ry, float rw, float rh, Color c, float alpha) {
-        if (rw <= 0f || rh <= 0f) return;
-        glDisable(GL_TEXTURE_2D);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glColor4f(c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, alpha);
-        glBegin(GL_QUADS);
-        glVertex2f(rx,      ry);
-        glVertex2f(rx + rw, ry);
-        glVertex2f(rx + rw, ry + rh);
-        glVertex2f(rx,      ry + rh);
-        glEnd();
     }
 
     // ---- draw-list drain ------------------------------------------------------
