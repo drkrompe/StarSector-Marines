@@ -178,12 +178,16 @@ public class Unit {
     /**
      * <b>Don't read directly. Pre-allocate seed ONLY.</b> The Group-S stat
      * columns (max HP + the three attack stats) differ from {@link #localHp}:
-     * they have <em>no</em> post-release reader, so {@link UnitRegistry#allocate}
-     * copies these into the SoA arrays and the registry is canonical from then
-     * on — the accessors read the registry unconditionally (fail-loud on an
-     * unregistered unit, like the mid-combat columns) and {@code release} does
-     * NOT snapshot them back. These fields are write-only <em>construction</em>
-     * input: the ctor archetype seed, the subclass overrides
+     * {@link UnitRegistry#allocate} copies these into the SoA arrays and the
+     * registry is canonical from then on, and {@code release} does NOT snapshot
+     * them back. The three attack-stat accessors read the registry
+     * unconditionally (fail-loud on an unregistered unit, like the mid-combat
+     * columns) since nothing reads them post-release. {@link #getMaxHp} is the
+     * exception: it falls back to {@code seedMaxHp} when unregistered, so
+     * per-frame HUD snapshots can read a member killed mid-frame — exact because
+     * maxHp is never mutated after the seed (see {@link #getMaxHp}). These fields
+     * are write-only <em>construction</em> input: the ctor archetype seed,
+     * the subclass overrides
      * ({@link com.dillon.starsectormarines.battle.drone.Drone} /
      * {@link com.dillon.starsectormarines.battle.drone.DroneHubUnit} /
      * {@link com.dillon.starsectormarines.battle.turret.MapTurret}), and the
@@ -519,12 +523,19 @@ public class Unit {
 
     // Group-S seed-only stats (maxHp + the three attack stats): canonical
     // storage is the registry's SoA arrays, seeded once from the seed* fields
-    // at allocate. No post-release reader, so the accessors read the registry
-    // unconditionally — calling them on an unregistered unit is a programming
-    // error (fail-loud), matching the mid-combat columns. Pre-allocate writers
-    // seed the seed* fields directly.
+    // at allocate. Pre-allocate writers seed the seed* fields directly.
+    //
+    // maxHp carves out a post-release reader: per-frame HUD snapshots (e.g.
+    // SquadDetailPanel) capture squad members BEFORE sim.advance, then read them
+    // for the row's HP bar AFTER advance — by which point a member killed this
+    // frame is already released (registry == null). getHp tolerates that via its
+    // localHp shadow; getMaxHp mirrors it by falling back to seedMaxHp. The
+    // fallback is exact, not an approximation: maxHp is never mutated after the
+    // allocate seed (setMaxHp has no callers), so seedMaxHp == the registry slot
+    // for the unit's whole life. The three attack stats stay fail-loud below —
+    // they have no post-release reader.
     public final float getMaxHp() {
-        return registry.getMaxHp(denseIdx);
+        return (registry != null) ? registry.getMaxHp(denseIdx) : seedMaxHp;
     }
 
     public final void setMaxHp(float v) {
