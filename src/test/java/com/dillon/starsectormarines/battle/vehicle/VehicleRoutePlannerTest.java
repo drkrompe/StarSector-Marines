@@ -267,6 +267,27 @@ public class VehicleRoutePlannerTest {
     }
 
     @Test
+    public void avoidingDiscClippingTheStartStillRoutes() {
+        // The production shape: the avoid disc sits just ahead of the body and
+        // clips the start cell. Without the start-exemption the cloned mask blanks
+        // the start → findPath has no valid start → null and the truck can never
+        // escape. With it, the start stays passable and the search laps around.
+        NavigationGrid grid = new NavigationGrid(12, 12);
+        carve(grid, 0, 0, 11, 11);
+        CellTopology topo = new CellTopology(12, 12);
+        fillKind(topo, GroundKind.GRASS);
+        TerrainCostField cost = TerrainCostField.from(topo);
+        VehicleClearance clr = VehicleClearance.erode(grid, 0);
+
+        // Disc centered at (7,5) r=2 covers the start (5,5) (dx=2 → on the rim),
+        // but the start's left/up/down neighbours stay clear to escape through.
+        float[][] re = VehicleRoutePlanner.routeAvoiding(5, 5, 10, 5, grid, cost, clr, 7, 5, 2f);
+        assertNotNull(re, "the start is exempted from the disc, so a lap exists");
+        assertFalse(routeCovers(re, 7, 5), "the route still avoids the disc centre");
+        assertRouteClear(re, clr);
+    }
+
+    @Test
     public void unreachableGoalGivesNoRoute() {
         NavigationGrid grid = new NavigationGrid(8, 8);
         carve(grid, 1, 1, 2, 2); // isolated pocket

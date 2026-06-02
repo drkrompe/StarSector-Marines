@@ -75,6 +75,12 @@ public final class VehicleRoutePlanner {
                 if (x >= 0 && x < w && y >= 0 && y < h) mask[y * w + x] = false;
             }
         }
+        // Safety net: never blank the route's own start — if the avoid disc clips
+        // it (a small/short-corridor edge case), the search would have no valid
+        // start and return null. Restore it to its original passability.
+        if (startX >= 0 && startX < w && startY >= 0 && startY < h) {
+            mask[startY * w + startX] = clearance.passableArray()[startY * w + startX];
+        }
         return routeMasked(startX, startY, goalX, goalY, grid, costField, mask, w, h);
     }
 

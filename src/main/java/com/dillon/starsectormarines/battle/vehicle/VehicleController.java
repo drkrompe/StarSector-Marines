@@ -244,12 +244,23 @@ public final class VehicleController {
         // the rolling goal measure from the current segment.
         corridor.advance(body.x, body.y);
 
-        // --- Non-convergence detection (runs every tick, before any early
-        // return, so it catches an open-space orbit as well as wall contact).
-        // Progress = corridor remaining-length dropping a margin below the best
-        // reached. No progress for STALL_SECONDS → the truck isn't converging
-        // (orbiting a turn it can't make, or stuck reversing): escalate to a
-        // re-route that laps around the failing spot. ---------------------------
+        // --- Committed reverse recovery ------------------------------------
+        // A backup maneuver owns the pose until it finishes (or backs into
+        // something). This runs before the forward track so the two don't
+        // alternate tick-to-tick — the cancellation that produced the old
+        // tiny-reverse oscillation — and before stall detection so the stall
+        // clock is paused while a committed maneuver is in progress (a reverse
+        // moves away from the goal, which must not itself read as "stalled").
+        if (recovery == Recovery.REVERSING) {
+            advanceReverse(dt);
+            return;
+        }
+
+        // --- Non-convergence detection (runs every forward tick, so it catches
+        // an open-space orbit as well as wall contact). Progress = corridor
+        // remaining-length dropping a margin below the best reached. No progress
+        // for STALL_SECONDS → the truck isn't converging (orbiting a turn it
+        // can't make): escalate to a re-route that laps around the failing spot.
         float rem = corridor.remainingLength(body.x, body.y);
         if (rem < recoveryBestRemaining - RECOVERY_PROGRESS_MARGIN) {
             recoveryBestRemaining = rem;
@@ -262,16 +273,6 @@ public final class VehicleController {
                 timeSinceProgress = 0f; // rate-limit retries whether or not it took
                 if (rerouted) return;   // next tick drives the fresh corridor cleanly
             }
-        }
-
-        // --- Committed reverse recovery ------------------------------------
-        // A backup maneuver owns the pose until it finishes (or backs into
-        // something). This must run before the forward track so the two don't
-        // alternate tick-to-tick — the cancellation that produced the old
-        // tiny-reverse oscillation.
-        if (recovery == Recovery.REVERSING) {
-            advanceReverse(dt);
-            return;
         }
 
         // --- Terminal docking phase (inbound only) -------------------------
@@ -604,9 +605,16 @@ public final class VehicleController {
                 (int) Math.floor(body.x), (int) Math.floor(body.y), REROUTE_SNAP_RADIUS);
         if (goal == null || cur == null) return false;
 
-        int stuckX = (int) Math.floor(body.x), stuckY = (int) Math.floor(body.y);
+        // Avoid the failing spot AHEAD on the corridor (the turn / corridor mouth
+        // it can't get through) — NOT the body's own cell. In an open-space orbit
+        // the body sits on a passable cell, so an under-the-wheels disc would
+        // blank the route's own start and the re-route could never fire. Aiming
+        // the disc a little past the body keeps the start + its retreat clear.
+        Pose ahead = corridor.targetAhead(body.x, body.y, REROUTE_AVOID_RADIUS + 1.5f);
+        int avoidX = (int) Math.floor(ahead.x);
+        int avoidY = (int) Math.floor(ahead.y);
         float[][] re = VehicleRoutePlanner.routeAvoiding(cur[0], cur[1], goal[0], goal[1],
-                grid, cost, clr, stuckX, stuckY, REROUTE_AVOID_RADIUS);
+                grid, cost, clr, avoidX, avoidY, REROUTE_AVOID_RADIUS);
         if (re == null) return false; // boxed in — hold (rung 4)
 
         float[][] full = appendTail(re, xs, ys, goalIdx);
