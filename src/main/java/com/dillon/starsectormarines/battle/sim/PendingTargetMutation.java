@@ -1,7 +1,5 @@
 package com.dillon.starsectormarines.battle.sim;
 
-import com.dillon.starsectormarines.battle.unit.Unit;
-
 /**
  * Target-side mutation queued during a tick's UPDATE_UNITS phase and drained
  * serially by {@code BattleSimulation.flushPendingTargetMutations()} in the
@@ -11,13 +9,19 @@ import com.dillon.starsectormarines.battle.unit.Unit;
  * previously raced with the target's own worker reading {@code path} /
  * {@code pathIdx} / {@code target} concurrently.
  *
+ * <p>The target is held as an entity id, not a {@code Unit} ref — the drain
+ * runs after {@code flushPendingDamage}, which releases units killed this tick.
+ * Resolving {@code targetId} through the registry at drain time yields null for
+ * a just-killed target (no dangling-ref {@code isAlive()} on a released unit).
+ * {@code 0L} = no entity.
+ *
  * <p>Mutable + pooled (see {@code BattleSimulation.pendingTargetMutationsPool})
  * so the steady-state allocation is zero.
  */
 public final class PendingTargetMutation {
     public enum Kind { REPRIORITIZE, FALLBACK }
 
-    public Unit target;
+    public long targetId;
     public Kind kind;
     /** FALLBACK: target cell X computed by the shooter's worker. Unused for REPRIORITIZE. */
     public int fallbackCellX;

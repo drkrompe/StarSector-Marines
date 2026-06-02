@@ -283,7 +283,8 @@ public class BattleSimulation implements BattleControl {
                 damageResolver::resolve,
                 this::writeReprioInline,
                 this::writeFallbackInline,
-                navigation::applyOccupancyDeltaInline);
+                navigation::applyOccupancyDeltaInline,
+                rosterService.getRegistry()::getOrNull);
         // setPath/clearPath bodies live on NavigationService; they enqueue
         // their occupancy/destIndex delta through the damage service's
         // queued (parallel-safe) path. Wired here since the navigation
@@ -709,7 +710,7 @@ public class BattleSimulation implements BattleControl {
         // 30 Hz sim). The render path lerps current→target alpha per frame so
         // this cadence stays invisible. Ephemeral sources (shuttles, fighters)
         // are pushed by BattleScreen.advance() each frame before this call.
-        vision.tick(simTickIndex, grid, rosterService.getRegistry());
+        vision.tick(simTickIndex, rosterService.getRegistry());
         tickProfile.lap(TickProfile.Phase.VISION);
         navigation.rebuildOccupancyMap(rosterService.getRegistry());
         tickProfile.lap(TickProfile.Phase.REBUILD_OCCUPANCY);
@@ -821,9 +822,10 @@ public class BattleSimulation implements BattleControl {
         flushPendingDamage();
         // Drain target-side reprio / fall-back enqueues from this tick's
         // weapon hits. Ordered AFTER flushPendingDamage so we skip mutations
-        // on targets the queued damage just killed (the drain checks
-        // isAlive). Shares the APPLY_DAMAGE phase — both are serial fixups
-        // for state the parallel UPDATE_UNITS dispatch couldn't touch.
+        // on targets the queued damage just killed (the drain resolves each
+        // queued targetId and skips a null/released resolve). Shares the
+        // APPLY_DAMAGE phase — both are serial fixups for state the parallel
+        // UPDATE_UNITS dispatch couldn't touch.
         flushPendingTargetMutations();
         tickProfile.lap(TickProfile.Phase.APPLY_DAMAGE);
         // Drain the death mailbox: fan this tick's deaths out to the

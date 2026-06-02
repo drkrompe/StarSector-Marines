@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.unit.Unit;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.function.LongFunction;
 
 /**
  * Mailbox for damage + parallel-dispatch safety queues. Owns three queues
@@ -63,6 +64,15 @@ public final class DamageService {
     private final ReprioApplier reprioApplier;
     private final FallbackApplier fallbackApplier;
     private final OccupancyApplier occupancyApplier;
+    /**
+     * Entity-id → live {@code Unit} (null if released or never registered) —
+     * the registry's {@code getOrNull}. Used only by the two flush drains to
+     * resolve a queued {@code targetId}/{@code unitId} back to its unit; a null
+     * resolve means the entity was released between enqueue and drain (a target
+     * the queued damage just killed), which replaces the old dangling-ref
+     * {@code isAlive()} check.
+     */
+    private final LongFunction<Unit> resolver;
 
     // ---- SoA damage queue ----
     //
@@ -97,11 +107,13 @@ public final class DamageService {
     public DamageService(DamageApplier damageApplier,
                          ReprioApplier reprioApplier,
                          FallbackApplier fallbackApplier,
-                         OccupancyApplier occupancyApplier) {
+                         OccupancyApplier occupancyApplier,
+                         LongFunction<Unit> resolver) {
         this.damageApplier = damageApplier;
         this.reprioApplier = reprioApplier;
         this.fallbackApplier = fallbackApplier;
         this.occupancyApplier = occupancyApplier;
+        this.resolver = resolver;
     }
 
     public void enterParallel() { insideParallel = true; }
@@ -150,7 +162,7 @@ public final class DamageService {
             PendingTargetMutation m = pendingTargetMutationsPool.isEmpty()
                     ? new PendingTargetMutation()
                     : pendingTargetMutationsPool.remove(pendingTargetMutationsPool.size() - 1);
-            m.target = target;
+            m.targetId = target.entityId;
             m.kind = PendingTargetMutation.Kind.REPRIORITIZE;
             m.expectedTargetId = expectedTargetId;
             pendingTargetMutations.add(m);
@@ -167,7 +179,7 @@ public final class DamageService {
             PendingTargetMutation m = pendingTargetMutationsPool.isEmpty()
                     ? new PendingTargetMutation()
                     : pendingTargetMutationsPool.remove(pendingTargetMutationsPool.size() - 1);
-            m.target = target;
+            m.targetId = target.entityId;
             m.kind = PendingTargetMutation.Kind.FALLBACK;
             m.fallbackCellX = fbX;
             m.fallbackCellY = fbY;
@@ -185,7 +197,7 @@ public final class DamageService {
             PendingOccupancyDelta d = pendingOccupancyPool.isEmpty()
                     ? new PendingOccupancyDelta()
                     : pendingOccupancyPool.remove(pendingOccupancyPool.size() - 1);
-            d.u = u;
+            d.unitId = u.entityId;
             d.oldDestX = oldDestX;
             d.oldDestY = oldDestY;
             d.newDestX = newDestX;
@@ -225,8 +237,12 @@ public final class DamageService {
         if (pendingTargetMutations.isEmpty()) return;
         for (int i = 0, n = pendingTargetMutations.size(); i < n; i++) {
             PendingTargetMutation m = pendingTargetMutations.get(i);
-            Unit target = m.target;
-            if (target.isAlive()) {
+            // Resolve the id rather than holding the unit: null means the target
+            // was released between enqueue and this drain (the preceding
+            // flushPendingDamage killed it), so we skip it — no isAlive() on a
+            // dangling ref.
+            Unit target = resolver.apply(m.targetId);
+            if (target != null) {
                 switch (m.kind) {
                     case REPRIORITIZE:
                         if (target.getTargetId() == m.expectedTargetId) reprioApplier.apply(target);
@@ -236,7 +252,7 @@ public final class DamageService {
                         break;
                 }
             }
-            m.target = null;
+            m.targetId = 0L;
             m.expectedTargetId = 0L;
             pendingTargetMutationsPool.add(m);
         }
@@ -252,8 +268,12 @@ public final class DamageService {
         if (pendingOccupancy.isEmpty()) return;
         for (int i = 0, n = pendingOccupancy.size(); i < n; i++) {
             PendingOccupancyDelta d = pendingOccupancy.get(i);
-            occupancyApplier.apply(d.u, d.oldDestX, d.oldDestY, d.newDestX, d.newDestY);
-            d.u = null;
+            // Resolve the id — this drain runs in APPLY_OCCUPANCY (before any
+            // death/release this tick), so a non-null resolve is expected, but
+            // guard anyway rather than deref a held ref.
+            Unit u = resolver.apply(d.unitId);
+            if (u != null) occupancyApplier.apply(u, d.oldDestX, d.oldDestY, d.newDestX, d.newDestY);
+            d.unitId = 0L;
             pendingOccupancyPool.add(d);
         }
         pendingOccupancy.clear();

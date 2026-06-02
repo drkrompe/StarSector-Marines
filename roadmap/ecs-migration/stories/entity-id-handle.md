@@ -78,9 +78,20 @@ Held-ref → id, smallest-blast-radius first; each independently shippable + gre
    (`v.turretTargetId` / `mt.targetId`), so they never dangle across ticks. Not
    an NPE source; convert only as a consistency pass if/when the static
    `TurretAim.tick` gets a resolver.
-4. **Pending-mutation POJOs** — `PendingTargetMutation.target`,
-   `PendingOccupancyDelta.u`. Drained same-tick, so lower NPE risk; convert for
-   consistency (or document why they stay object refs).
+4. **Pending-mutation POJOs — SHIPPED (2026-06-02).**
+   `PendingTargetMutation.target` → `targetId`, `PendingOccupancyDelta.u` →
+   `unitId` (both `long`, `0L` = none). `DamageService` takes a
+   `LongFunction<Unit> resolver` (`registry::getOrNull`) used only by the two
+   flush drains. **`PendingTargetMutation` was a real post-release reader, not
+   just a consistency item:** its drain (`flushPendingTargetMutations`) runs
+   *after* `flushPendingDamage`, which calls `DamageResolver.resolve` →
+   `releaseFromRegistry` **inline** — so a target killed this tick is already
+   released when the mutation drain reaches it, and the old `target.isAlive()`
+   was a `localHp`-dependent deref of a released `Unit`. Resolving `targetId`
+   and skipping a null is the exact `isAlive()` replacement (death+release are
+   atomic, so `getOrNull(id) != null` ⟺ alive). `PendingOccupancyDelta` drains
+   in APPLY_OCCUPANCY (before any death this tick) so it never dangled — the
+   id-resolve there is the consistency move. Full suite green at 681.
 5. **Remove `localHp`** — with every held ref id-based, `getHp` has no
    post-release reader. Drop the shadow + fallback; `getHp` fail-loud; `release`
    stops snapshotting hp. **Phase A duality collapse complete.**

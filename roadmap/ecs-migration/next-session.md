@@ -86,16 +86,24 @@ reference `entityId` instead** (the dangling-ref NPE class). New story:
 - Slice 2 `5a3ffb3` — `Squad.leader` → `leaderId` (+ `isMechSquad` denormalized
   to a `mechSquad` flag set at mint, survives leader death).
 - Slice 3 `38d25c8` — `Squad.droneHub` → `droneHubId`.
+- Slice 4 — pending-mutation POJOs: `PendingTargetMutation.target` → `targetId`,
+  `PendingOccupancyDelta.u` → `unitId`; `DamageService` takes a
+  `LongFunction<Unit> resolver` (`registry::getOrNull`) for the two drains.
+  **`PendingTargetMutation` was a real post-release reader** — its drain runs
+  after `flushPendingDamage`, which releases-inline via `DamageResolver.resolve`,
+  so the old `target.isAlive()` was a `localHp`-dependent deref of a released
+  unit. Now skips a null resolve. Full suite green at 681.
 
 **Next (in priority order):**
 1. **Audit the remaining post-release `isAlive()`/`getHp()` readers**, then
    **remove `localHp`** (make `getHp` fail-loud; `release` stops snapshotting hp)
    — finishes the Phase A duality collapse. Gate: confirm EVERY `isAlive`/`getHp`
    caller is on a live dense-iter unit, a `getOrNull`-resolved local, or guarded.
-   Known leftovers to classify: `Drone.homeHub` (identity-use `d.homeHub == h`,
-   not a deref — likely fine), `TurretAim.State.target` (transient,
-   `getOrNull`-resolved — fine). **Run the FULL suite — these hide in tests that
-   don't `advance()` between a kill and a read.** ([[battle_failloud_accessor_stale_readers]])
+   The `DamageService` queue readers (Slice 4) are now id-resolved — done. Known
+   leftovers to classify: `Drone.homeHub` (identity-use `d.homeHub == h`, not a
+   deref — likely fine), `TurretAim.State.target` (transient, `getOrNull`-resolved
+   — fine). **Run the FULL suite — these hide in tests that don't `advance()`
+   between a kill and a read.** ([[battle_failloud_accessor_stale_readers]])
 2. **Endgame: delete `Unit.registry`.** Relocate `Unit`'s self-accessors
    (`getHp/getCellX/…`) to a registry/`World` API addressed by id (or dense idx
    for hot walks). Pervasive `u.getX()` churn — stage per accessor group,
