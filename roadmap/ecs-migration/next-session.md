@@ -65,11 +65,41 @@ e038706  battle: SoA Group-S seed-only stats — collapse the local* duality (Ph
 31058bf  battle: collapse cell local* via DeathEvent snapshot (Phase A Slice 3a)  ← 2026-06-02
 2a25347  battle: UnitSpatialIndex.gather skips dead units (fail-loud cell fix)  ← 2026-06-02
 0296579  battle: SquadDetailPanel value-snapshot + getMaxHp re-fail-loud (Phase A Slice 3b)  ← 2026-06-02
+6f4e42b  battle: mech salvo targets -> entityId (entity-id-handle Slice 1)  ← 2026-06-02
+5a3ffb3  battle: Squad.leader -> leaderId (entity-id-handle Slice 2)  ← 2026-06-02
+38d25c8  battle: Squad.droneHub -> droneHubId (entity-id-handle Slice 3)  ← 2026-06-02
 ```
 
 (Sibling tracks interleaved on HEAD, not ECS-migration: `9084ed4` battle-render
 Story B, `31d8b17` goap shared zone-entry rule, plus ongoing battle-render +
 campaign work.)
+
+## NEW PHASE — entity-id handle (2026-06-02, in flight)
+
+User directive: **delete `Unit.registry` and stop holding `Unit` object refs —
+reference `entityId` instead** (the dangling-ref NPE class). New story:
+[`entity-id-handle`](stories/entity-id-handle.md). Pattern = the settled
+`getOrNull(id)` resolve (mirror `targetId`); `0L` = no-entity sentinel.
+
+**Shipped:** held-ref → id for the persistent dangling sources:
+- Slice 1 `6f4e42b` — `MechLoadoutState` salvo/burst targets.
+- Slice 2 `5a3ffb3` — `Squad.leader` → `leaderId` (+ `isMechSquad` denormalized
+  to a `mechSquad` flag set at mint, survives leader death).
+- Slice 3 `38d25c8` — `Squad.droneHub` → `droneHubId`.
+
+**Next (in priority order):**
+1. **Audit the remaining post-release `isAlive()`/`getHp()` readers**, then
+   **remove `localHp`** (make `getHp` fail-loud; `release` stops snapshotting hp)
+   — finishes the Phase A duality collapse. Gate: confirm EVERY `isAlive`/`getHp`
+   caller is on a live dense-iter unit, a `getOrNull`-resolved local, or guarded.
+   Known leftovers to classify: `Drone.homeHub` (identity-use `d.homeHub == h`,
+   not a deref — likely fine), `TurretAim.State.target` (transient,
+   `getOrNull`-resolved — fine). **Run the FULL suite — these hide in tests that
+   don't `advance()` between a kill and a read.** ([[battle_failloud_accessor_stale_readers]])
+2. **Endgame: delete `Unit.registry`.** Relocate `Unit`'s self-accessors
+   (`getHp/getCellX/…`) to a registry/`World` API addressed by id (or dense idx
+   for hot walks). Pervasive `u.getX()` churn — stage per accessor group,
+   fan-out to Sonnet. Then `Unit` → `Entity` rename.
 
 ## State of play
 
