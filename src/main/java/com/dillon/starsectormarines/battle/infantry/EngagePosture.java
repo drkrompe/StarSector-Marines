@@ -81,7 +81,8 @@ public final class EngagePosture implements Action {
         // The inner rocket check (line below) still enforces dist <= rocket
         // range, and the primary-fire branch guards on primary range so we
         // don't fire the rifle from beyond its reach.
-        float effectiveRange = TacticalScoring.effectiveAttackRange(member, target);
+        float effectiveRange = TacticalScoring.effectiveAttackRange(member, target,
+                sim.world().attackRange(member.entityId));
         boolean inRange = dist <= effectiveRange;
         boolean visible = TacticalScoring.canSeePair(sim.getGrid(),
                 sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId),

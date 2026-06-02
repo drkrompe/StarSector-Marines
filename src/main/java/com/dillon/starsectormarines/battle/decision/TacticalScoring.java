@@ -506,11 +506,11 @@ public final class TacticalScoring {
      * act-here gate and the firing-position picker so a rocketeer doesn't have
      * to close to rifle range before firing.
      */
-    public static float effectiveAttackRange(Unit shooter, Unit target) {
+    public static float effectiveAttackRange(Unit shooter, Unit target, float shooterAttackRange) {
         if (canRocketTarget(shooter, target)) {
-            return Math.max(shooter.getAttackRange(), shooter.secondaryWeapon.range);
+            return Math.max(shooterAttackRange, shooter.secondaryWeapon.range);
         }
-        return shooter.getAttackRange();
+        return shooterAttackRange;
     }
 
     /**
@@ -951,18 +951,19 @@ public final class TacticalScoring {
     private int[] findFiringPositionWithinImpl(Unit self, Unit target,
                                                 int anchorX, int anchorY, float maxDistFromAnchor) {
 
-        // Rocketeer-vs-turret pairs search a ring sized to the rocket's range —
-        // otherwise an out-of-rifle-range marine paths into rifle range before
-        // ever firing the rocket. Inner range check uses the same effective
-        // range so candidate cells are valid for whatever weapon will fire.
-        float effectiveRange = effectiveAttackRange(self, target);
-        int range = Math.max(1, (int) Math.floor(effectiveRange));
         int targetIdx = registry.requireLiveIndex(target.entityId);
         int tx = registry.getCellX(targetIdx);
         int ty = registry.getCellY(targetIdx);
         int selfIdx = registry.requireLiveIndex(self.entityId);
         int sx = registry.getCellX(selfIdx);
         int sy = registry.getCellY(selfIdx);
+
+        // Rocketeer-vs-turret pairs search a ring sized to the rocket's range —
+        // otherwise an out-of-rifle-range marine paths into rifle range before
+        // ever firing the rocket. Inner range check uses the same effective
+        // range so candidate cells are valid for whatever weapon will fire.
+        float effectiveRange = effectiveAttackRange(self, target, registry.getAttackRange(selfIdx));
+        int range = Math.max(1, (int) Math.floor(effectiveRange));
 
         int[] best = null;
         float bestScore = Float.MAX_VALUE;
@@ -1013,15 +1014,16 @@ public final class TacticalScoring {
 
     private int[] findFiringPositionImpl(Unit self, Unit target, int rejectX, int rejectY) {
 
-        // See findFiringPositionWithin — rocketeer-vs-turret widens the ring.
-        float effectiveRange = effectiveAttackRange(self, target);
-        int range = Math.max(1, (int) Math.floor(effectiveRange));
         int targetIdx = registry.requireLiveIndex(target.entityId);
         int tx = registry.getCellX(targetIdx);
         int ty = registry.getCellY(targetIdx);
         int selfIdx = registry.requireLiveIndex(self.entityId);
         int sx = registry.getCellX(selfIdx);
         int sy = registry.getCellY(selfIdx);
+
+        // See findFiringPositionWithin — rocketeer-vs-turret widens the ring.
+        float effectiveRange = effectiveAttackRange(self, target, registry.getAttackRange(selfIdx));
+        int range = Math.max(1, (int) Math.floor(effectiveRange));
 
         int[] best = null;
         float bestScore = Float.MAX_VALUE;

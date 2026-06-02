@@ -119,16 +119,16 @@ public class InfantryWeapons {
      * rolled here, which can mutate the target's path via the context.
      */
     public void fireShot(Unit shooter, Unit target, FireStance stance) {
-        float accuracy = shooter.getAccuracy();
-        float damage   = shooter.getAttackDamage();
+        int shooterIdx = registry.requireLiveIndex(shooter.entityId);
+        int targetIdx = registry.requireLiveIndex(target.entityId);
+        float accuracy = registry.getAccuracy(shooterIdx);
+        float damage   = registry.getAttackDamage(shooterIdx);
         float vsTurretMult = 1f;
         // Distance-scaled accuracy + spread only apply when the shooter has
         // a per-weapon profile (marines). Militia / aliens / turrets fall
         // through to their baked Unit stats with flat accuracy and the
         // baseline miss-scatter ring — preserves the legacy behavior for
         // every "no MarineWeapon" caller.
-        int shooterIdx = registry.requireLiveIndex(shooter.entityId);
-        int targetIdx = registry.requireLiveIndex(target.entityId);
         float dist = RangeFalloff.dist(registry.getCellX(shooterIdx), registry.getCellY(shooterIdx),
                 registry.getCellX(targetIdx), registry.getCellY(targetIdx));
         float effectiveSpread = 0f;

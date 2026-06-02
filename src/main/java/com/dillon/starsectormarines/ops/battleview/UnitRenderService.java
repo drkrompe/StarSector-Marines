@@ -289,7 +289,7 @@ public final class UnitRenderService implements RenderSystem {
                 emitSolidQuad(out, cx, cy, half, c, unitAlpha);
                 continue;
             }
-            emitLiveSprite(out, cam, sim, u, cache, unitSize, unitAlpha, inAim);
+            emitLiveSprite(out, cam, sim, u, i, cache, unitSize, unitAlpha, inAim);
         }
     }
 
@@ -298,20 +298,27 @@ public final class UnitRenderService implements RenderSystem {
      * SOUTH-weapon-up pose). Sizing: {@code renderScale}d cell height, width by the
      * frame's aspect — matching the inline {@code renderUnitSprite}.
      */
-    private void emitLiveSprite(DrawList out, BattleCamera cam, BattleSimulation sim, Unit u,
+    private void emitLiveSprite(DrawList out, BattleCamera cam, BattleSimulation sim, Unit u, int idx,
                                 UnitSpriteCache cache, float unitSize, float alphaMult, boolean inAim) {
+        // idx is the dense index from the sweepLiveSprites loop (i == denseIdx);
+        // cooldown + this unit's cell read by-index, zero probe. The target cell
+        // (computeFacing/computeEightWayFacing) resolves by id under the sim gate.
+        UnitRegistry registry = sim.getUnitRegistry();
         SpriteSheetFrames frames = cache.frames;
+        float cooldown = registry.getCooldownTimer(idx);
         boolean weaponUp = inAim || (u.type.combatant
-                && u.getCooldownTimer() > (u.attackCooldown - WEAPON_UP_TIME)
-                && u.getCooldownTimer() > 0f);
+                && cooldown > (u.attackCooldown - WEAPON_UP_TIME)
+                && cooldown > 0f);
+        int selfCellX = registry.getCellX(idx);
+        int selfCellY = registry.getCellY(idx);
 
         int frameIdx;
         boolean flipV;
         if (u.type.frameLayout == UnitType.FrameLayout.EIGHT_WAY_NO_WEAPON_UP) {
-            frameIdx = pickFrameEightWay(computeEightWayFacing(u, sim));
+            frameIdx = pickFrameEightWay(computeEightWayFacing(u, sim, selfCellX, selfCellY));
             flipV = false;
         } else {
-            Facing facing = computeFacing(u, sim);
+            Facing facing = computeFacing(u, sim, selfCellX, selfCellY);
             frameIdx = pickFrame(facing, weaponUp);
             flipV = weaponUp && facing == Facing.SOUTH;
         }
@@ -382,16 +389,18 @@ public final class UnitRenderService implements RenderSystem {
 
     private enum Facing { WEST, NORTH, EAST, SOUTH }
 
-    private static Facing computeFacing(Unit u, BattleSimulation sim) {
+    private static Facing computeFacing(Unit u, BattleSimulation sim, int selfCellX, int selfCellY) {
         Unit target = sim != null ? sim.targetOf(u) : null;
         if (target != null) {
-            int dx = target.getCellX() - u.getCellX();
-            int dy = target.getCellY() - u.getCellY();
+            UnitRegistry registry = sim.getUnitRegistry();
+            int tIdx = registry.requireLiveIndex(target.entityId);
+            int dx = registry.getCellX(tIdx) - selfCellX;
+            int dy = registry.getCellY(tIdx) - selfCellY;
             if (dx != 0 || dy != 0) return facingFromDelta(dx, dy);
         }
         if (u.pathIdx < u.pathCellCount()) {
-            int dx = u.pathCellX(u.pathIdx) - u.getCellX();
-            int dy = u.pathCellY(u.pathIdx) - u.getCellY();
+            int dx = u.pathCellX(u.pathIdx) - selfCellX;
+            int dy = u.pathCellY(u.pathIdx) - selfCellY;
             if (dx != 0 || dy != 0) return facingFromDelta(dx, dy);
         }
         return Facing.SOUTH;
@@ -423,16 +432,18 @@ public final class UnitRenderService implements RenderSystem {
 
     private enum EightWayFacing { W, NW, N, NE, E, SE, S, SW }
 
-    private static EightWayFacing computeEightWayFacing(Unit u, BattleSimulation sim) {
+    private static EightWayFacing computeEightWayFacing(Unit u, BattleSimulation sim, int selfCellX, int selfCellY) {
         Unit target = sim != null ? sim.targetOf(u) : null;
         if (target != null) {
-            int dx = target.getCellX() - u.getCellX();
-            int dy = target.getCellY() - u.getCellY();
+            UnitRegistry registry = sim.getUnitRegistry();
+            int tIdx = registry.requireLiveIndex(target.entityId);
+            int dx = registry.getCellX(tIdx) - selfCellX;
+            int dy = registry.getCellY(tIdx) - selfCellY;
             if (dx != 0 || dy != 0) return eightWayFromDelta(dx, dy);
         }
         if (u.pathIdx < u.pathCellCount()) {
-            int dx = u.pathCellX(u.pathIdx) - u.getCellX();
-            int dy = u.pathCellY(u.pathIdx) - u.getCellY();
+            int dx = u.pathCellX(u.pathIdx) - selfCellX;
+            int dy = u.pathCellY(u.pathIdx) - selfCellY;
             if (dx != 0 || dy != 0) return eightWayFromDelta(dx, dy);
         }
         return EightWayFacing.S;

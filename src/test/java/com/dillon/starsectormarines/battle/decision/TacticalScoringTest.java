@@ -647,15 +647,15 @@ public class TacticalScoringTest {
         Unit infantry = unit(sim, Faction.DEFENDER, 25, 5);
 
         assertEquals(MarineSecondary.ROCKET_LAUNCHER.range,
-                TacticalScoring.effectiveAttackRange(rocketeer, turret),
+                TacticalScoring.effectiveAttackRange(rocketeer, turret, rocketeer.getAttackRange()),
                 0.001f, "rocketeer-vs-turret must widen to rocket range");
         assertEquals(rocketeer.getAttackRange(),
-                TacticalScoring.effectiveAttackRange(rocketeer, infantry),
+                TacticalScoring.effectiveAttackRange(rocketeer, infantry, rocketeer.getAttackRange()),
                 0.001f, "vs soft target stays at primary range");
 
         rocketeer.secondaryAmmo = 0;
         assertEquals(rocketeer.getAttackRange(),
-                TacticalScoring.effectiveAttackRange(rocketeer, turret),
+                TacticalScoring.effectiveAttackRange(rocketeer, turret, rocketeer.getAttackRange()),
                 0.001f, "empty tube falls back to primary range");
     }
 

@@ -50,7 +50,15 @@ public final class DamageService {
         void apply(Unit target, float damage, float vsTurretMult, float moraleImpact);
     }
     @FunctionalInterface public interface ReprioApplier {
-        void apply(Unit target);
+        /**
+         * Clears {@code target}'s target field, but only if it still equals
+         * {@code expectedTargetId} — the compare-and-clear lives registry-side
+         * (the applier holds the registry; this service holds only the id
+         * resolver). On the serial inline path the guard is trivially true
+         * (nothing mutates between snapshot and apply); on the queued flush it
+         * preserves a concurrent self-retarget done during the parallel phase.
+         */
+        void apply(Unit target, long expectedTargetId);
     }
     @FunctionalInterface public interface FallbackApplier {
         void apply(Unit target, int fbX, int fbY);
@@ -155,7 +163,7 @@ public final class DamageService {
     /** Target-reprioritize write. Inline writes unconditionally; queued path snapshots {@code expectedTargetId} so the flush can detect a concurrent self-retarget and preserve the newer choice. */
     public void applyReprio(Unit target, long expectedTargetId) {
         if (!insideParallel) {
-            reprioApplier.apply(target);
+            reprioApplier.apply(target, expectedTargetId);
             return;
         }
         synchronized (pendingTargetMutations) {
@@ -245,7 +253,10 @@ public final class DamageService {
             if (target != null) {
                 switch (m.kind) {
                     case REPRIORITIZE:
-                        if (target.getTargetId() == m.expectedTargetId) reprioApplier.apply(target);
+                        // The expectedTargetId race-check moved registry-side
+                        // (writeReprioInline) so this drain no longer reads
+                        // target.getTargetId() through the no-arg denseIdx accessor.
+                        reprioApplier.apply(target, m.expectedTargetId);
                         break;
                     case FALLBACK:
                         fallbackApplier.apply(target, m.fallbackCellX, m.fallbackCellY);
