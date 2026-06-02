@@ -64,7 +64,7 @@ c1fb304  battle: EquipmentDrop + turret guardpost scan dense; drop DamageResolve
 e038706  battle: SoA Group-S seed-only stats — collapse the local* duality (Phase A Slice 2)  ← 2026-06-01
 31058bf  battle: collapse cell local* via DeathEvent snapshot (Phase A Slice 3a)  ← 2026-06-02
 2a25347  battle: UnitSpatialIndex.gather skips dead units (fail-loud cell fix)  ← 2026-06-02
-<next>    battle: SquadDetailPanel value-snapshot + getMaxHp re-fail-loud (Phase A Slice 3b)  ← 2026-06-02
+0296579  battle: SquadDetailPanel value-snapshot + getMaxHp re-fail-loud (Phase A Slice 3b)  ← 2026-06-02
 ```
 
 (Sibling tracks interleaved on HEAD, not ECS-migration: `9084ed4` battle-render
