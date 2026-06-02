@@ -139,21 +139,21 @@ reference `entityId` instead** (the dangling-ref NPE class). New story:
      dense loop stops re-reading `other.getCellX()`; `projectedRocketDamageOnTarget`
      dense-index timer reads use loop `i`; `occupantsExcludingSelf` takes
      `selfCellX/selfCellY`. Suite green at 723.
-     - **PART 2 (next) — gathered-list held-ref reads.** Cell reads over
-       spatial-gather lists (`enemy` in `findEngageableEnemyWithin`, `other` in
-       `isHiddenFromAllEnemies` + static `countEnemiesWithLos`, `u` in
-       `alliesNearForSpread` pass-2) are zero-probe TODAY via denseIdx →
-       converting to by-id would *inject* probes (the guardrail case). The hot
-       one (static `countEnemiesWithLos`, per-candidate in `findFallbackPosition`)
-       needs the threat set pre-resolved into parallel `int[]` cell + `float[]`
-       range arrays once at gather, then per-cell reads hit arrays.
-       `effectiveAttackRange` is `static` (no `registry`) — make it instance or
-       take a pre-resolved range. Do with perf in view (natural moment denseIdx
-       deletion forces).
-   - Then **2c**: hot loops + render → dense-array/`RenderPositionService` (NOT
-     `world.<col>(id)`). Then model `mech` & other optional `Unit` fields as
-     `ComponentStore`s (cold face); then delete `Unit.registry`+`denseIdx`; then
-     `Unit`→`Entity`.
+     - **PART 2 SHIPPED (`ff105a9`) — gathered-list held-ref reads.**
+       `findEngageableEnemyWithin` + `isHiddenFromAllEnemies` resolve each
+       gathered enemy index once via `requireLiveIndex` (heavy per-element loops;
+       probe negligible). The hot per-candidate path: static `countEnemiesWithLos`
+       now takes pre-resolved parallel SoA columns; `findFallbackPosition`
+       projects the threat set once (`resolveThreatColumns`), so the
+       `~1089`-candidate scan does ZERO registry probes. Green at 724.
+     - **Left for task #14** (denseIdx deletion): static `effectiveAttackRange`
+       (static + tested/called statically → make instance or range-param) and
+       `alliesNearForSpread` pass-2 (per-candidate `destIndex` gather). Both
+       isolated, zero-probe-today, forced when `Unit.getCellX/getAttackRange` go.
+   - Then **2d** (was 2c): hot loops + render → dense-array/`RenderPositionService`
+     (NOT `world.<col>(id)`). Then model `mech` & other optional `Unit` fields as
+     `ComponentStore`s (cold face); then delete `Unit.registry`+`denseIdx` (mops
+     up the two TacticalScoring leftovers above); then `Unit`→`Entity`.
    Design LOCKED with the user (2026-06-02): a **two-faced `World`** facade over
    the existing stores. **Hot face** = primitive by-id accessors (`world.hp(id)`,
    `cellX/Y`, `renderX/Y`, combat stats) backed directly by the dense SoA — zero

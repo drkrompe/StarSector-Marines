@@ -164,17 +164,27 @@ this is a per-group sweep, not one commit.
        `projectedRocketDamageOnTarget`'s dense-index timer reads use loop index
        `i`; `occupantsExcludingSelf` takes `selfCellX/selfCellY` (path-dest reads
        stay — plain `int[]` field, not denseIdx). Suite green at 723.
-     - **Part 2 (remaining) — gathered-list held-ref reads.** The cell reads
-       over spatial-gather result lists (`enemy` in `findEngageableEnemyWithin`,
-       `other` in `isHiddenFromAllEnemies` + the static `countEnemiesWithLos`,
-       `u` in `alliesNearForSpread` pass-2) are zero-probe TODAY via denseIdx, so
-       converting them to by-id would *inject* probes — the guardrail case. The
-       hot one (static `countEnemiesWithLos`, called per-candidate in
-       `findFallbackPosition`) needs the threat set pre-resolved into parallel
-       `int[]` cell + `float[]` range arrays once at gather time, then per-cell
-       reads hit arrays. `effectiveAttackRange` is `static` (no `registry`) —
-       either make it instance or take pre-resolved range. Best done with perf in
-       view; it's also the natural moment denseIdx deletion (task #14) forces.
+     - **Part 2 SHIPPED (2026-06-02, `ff105a9`) — gathered-list held-ref reads.**
+       `findEngageableEnemyWithin` + `isHiddenFromAllEnemies` resolve each
+       gathered enemy index once via `registry.requireLiveIndex` (gather skips
+       dead → every entry live); both loops already do heavy per-element work (a
+       full `findFiringPositionWithin` ring scan / a Bresenham), so the one probe
+       per gathered enemy is negligible. The hot per-candidate path: static
+       `countEnemiesWithLos` now takes pre-resolved parallel SoA columns (`int[]`
+       cell + `float[]` range) instead of `List<Unit>`; `findFallbackPosition`
+       projects the threat set once via a new `resolveThreatColumns` helper (one
+       probe per threat, total), so the `~1089`-candidate scan reads plain arrays
+       with ZERO registry probes — the guardrail honored exactly. Suite green at
+       724.
+     - **Still deferred to task #14** (denseIdx deletion, with perf in view):
+       static `effectiveAttackRange` (only reads `shooter.getAttackRange()`, but
+       it's `static` + called statically from `EngagePosture` and 3 tests, so
+       conversion = make instance or take a range param — a ripple), and
+       `alliesNearForSpread` pass-2 (`u.getCellX()` over a `destIndex` gather
+       that happens *inside* a per-candidate call, so it needs either the dest
+       index to expose cells or an accepted small per-candidate probe). Both are
+       isolated, zero-probe-today via denseIdx, and naturally forced when
+       `Unit.getCellX()`/`getAttackRange()` are deleted.
    - **2c — hot loops + render → dense-array / RenderPositionService**, not
      `world.<col>(id)` (the cache-locality guardrail). Renderers, combat
      resolvers, bulk systems. Careful, possibly per-file.
