@@ -30,9 +30,9 @@ public final class MechCombatantBehavior implements UnitBehavior {
         u.setTarget(target);
         if (target == null) return;
 
-        float dist = TacticalScoring.cellDistance(u.getCellX(), u.getCellY(), target.getCellX(), target.getCellY());
-        boolean inRange = dist <= u.getAttackRange();
-        boolean visible = sim.getGrid().hasLineOfSight(u.getCellX(), u.getCellY(), target.getCellX(), target.getCellY());
+        float dist = TacticalScoring.cellDistance(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+        boolean inRange = dist <= sim.world().attackRange(u.entityId);
+        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
 
         // The fire pass runs OUTSIDE the marine's `inRange && visible` gate
         // because LRMs are indirect-fire-capable: a mech with line of sight
@@ -48,23 +48,23 @@ public final class MechCombatantBehavior implements UnitBehavior {
         // its short-range weapons (LRMs already fire from here via the indirect
         // path above).
         boolean closeEngagement = inRange && visible && dist <= u.mech.srmPod.range;
-        if (!closeEngagement && u.getMoveProgress() == 0f) {
+        if (!closeEngagement && sim.world().moveProgress(u.entityId) == 0f) {
             int[] dest = sim.getTacticalScoring().findFiringPosition(u, target);
             if (dest == null) {
                 // No reachable firing or vantage cell. Drop the target; the
                 // mech's next acquisition cycle picks something it can engage.
                 // LRMs already fired indirectly this tick if range allowed.
-                u.setTargetId(0L);
+                sim.world().setTargetId(u.entityId, 0L);
             } else {
                 sim.setPath(u, GridPathfinder.findPath(sim.getGrid(),
-                        u.getCellX(), u.getCellY(), dest[0], dest[1], sim.getOccupancyMap()));
+                        sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), dest[0], dest[1], sim.getOccupancyMap()));
             }
         }
         if (u.pathIdx < u.pathCellCount()) {
             sim.advanceMovement(u);
         } else {
-            u.setMoveProgress(0f);
-            u.setRenderPos(u.getCellX(), u.getCellY());
+            sim.world().setMoveProgress(u.entityId, 0f);
+            u.setRenderPos(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId));
         }
     }
 

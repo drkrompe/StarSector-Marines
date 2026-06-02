@@ -66,13 +66,13 @@ public final class FleeBehavior implements UnitBehavior {
      * in-flight wander dwell so the civilian doesn't stand around mid-panic.
      */
     private static void updateFleeing(Unit u, Unit threat, BattleSimulation sim) {
-        u.setWanderDwellTimer(0f);
+        sim.world().setWanderDwellTimer(u.entityId, 0f);
         boolean needsRepath = u.pathIdx >= u.pathCellCount()
                 || cellsTraveled(u) >= REPATH_CELL_THRESHOLD;
-        if (needsRepath && u.getMoveProgress() == 0f) {
+        if (needsRepath && sim.world().moveProgress(u.entityId) == 0f) {
             int[] dest = pickFleeDestination(u, threat, sim);
             if (dest != null) {
-                sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), u.getCellX(), u.getCellY(), dest[0], dest[1], sim.getOccupancyMap()));
+                sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), dest[0], dest[1], sim.getOccupancyMap()));
             }
         }
         sim.advanceMovement(u);
@@ -88,28 +88,28 @@ public final class FleeBehavior implements UnitBehavior {
             if (u.pathIdx >= u.pathCellCount()) {
                 // Arrived this tick — clear the path and start dwelling.
                 sim.clearPath(u);
-                u.setWanderDwellTimer(randomDwellSeconds(u.rng));
+                sim.world().setWanderDwellTimer(u.entityId, randomDwellSeconds(u.rng));
             }
             return;
         }
 
-        if (u.getWanderDwellTimer() > 0f) {
-            u.setWanderDwellTimer(u.getWanderDwellTimer() - BattleSimulation.TICK_DT);
-            u.setRenderPos(u.getCellX(), u.getCellY());
-            u.setMoveProgress(0f);
+        if (sim.world().wanderDwellTimer(u.entityId) > 0f) {
+            sim.world().setWanderDwellTimer(u.entityId, sim.world().wanderDwellTimer(u.entityId) - BattleSimulation.TICK_DT);
+            u.setRenderPos(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId));
+            sim.world().setMoveProgress(u.entityId, 0f);
             return;
         }
 
-        if (u.getMoveProgress() != 0f) return;
+        if (sim.world().moveProgress(u.entityId) != 0f) return;
         int[] dest = pickWanderDestination(u, sim);
         if (dest == null) {
-            u.setWanderDwellTimer(FAILED_SAMPLE_DWELL);
+            sim.world().setWanderDwellTimer(u.entityId, FAILED_SAMPLE_DWELL);
             return;
         }
-        sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), u.getCellX(), u.getCellY(), dest[0], dest[1], sim.getOccupancyMap()));
+        sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), dest[0], dest[1], sim.getOccupancyMap()));
         if (u.pathEmpty()) {
             // Pathfinder found no route (isolated room, blocked by walls). Dwell briefly and try elsewhere.
-            u.setWanderDwellTimer(FAILED_SAMPLE_DWELL);
+            sim.world().setWanderDwellTimer(u.entityId, FAILED_SAMPLE_DWELL);
             return;
         }
         sim.advanceMovement(u);
@@ -127,7 +127,7 @@ public final class FleeBehavior implements UnitBehavior {
             Unit u = sim.liveUnitAt(i);
             if (u == self) continue;
             if (!u.type.combatant) continue;
-            float d = TacticalScoring.cellDistance(self.getCellX(), self.getCellY(), u.getCellX(), u.getCellY());
+            float d = TacticalScoring.cellDistance(sim.world().cellX(self.entityId), sim.world().cellY(self.entityId), sim.world().cellX(u.entityId), sim.world().cellY(u.entityId));
             if (d <= bestDist) {
                 bestDist = d;
                 best = u;
@@ -145,8 +145,8 @@ public final class FleeBehavior implements UnitBehavior {
      */
     private static int[] pickFleeDestination(Unit self, Unit threat, BattleSimulation sim) {
         NavigationGrid grid = sim.getGrid();
-        float dx = self.getCellX() - threat.getCellX();
-        float dy = self.getCellY() - threat.getCellY();
+        float dx = sim.world().cellX(self.entityId) - sim.world().cellX(threat.entityId);
+        float dy = sim.world().cellY(self.entityId) - sim.world().cellY(threat.entityId);
         float len = (float) Math.sqrt(dx * dx + dy * dy);
         if (len < 0.001f) {
             // Threat is on the same cell (rare). Pick a random cardinal away.
@@ -160,11 +160,11 @@ public final class FleeBehavior implements UnitBehavior {
         int[] best = null;
         int maxSteps = Math.max(grid.getWidth(), grid.getHeight());
         for (int step = 1; step <= maxSteps; step++) {
-            int cx = self.getCellX() + Math.round(nx * step);
-            int cy = self.getCellY() + Math.round(ny * step);
+            int cx = sim.world().cellX(self.entityId) + Math.round(nx * step);
+            int cy = sim.world().cellY(self.entityId) + Math.round(ny * step);
             if (!grid.inBounds(cx, cy)) break;
             if (!grid.isWalkable(cx, cy)) break;
-            float distFromThreat = TacticalScoring.cellDistance(cx, cy, threat.getCellX(), threat.getCellY());
+            float distFromThreat = TacticalScoring.cellDistance(cx, cy, sim.world().cellX(threat.entityId), sim.world().cellY(threat.entityId));
             if (distFromThreat >= MIN_DISTANCE_FROM_THREAT) {
                 best = new int[]{cx, cy};
             }
@@ -186,11 +186,11 @@ public final class FleeBehavior implements UnitBehavior {
             int dx = rng.nextInt(span) - WANDER_MAX_RADIUS;
             int dy = rng.nextInt(span) - WANDER_MAX_RADIUS;
             if (Math.abs(dx) + Math.abs(dy) < WANDER_MIN_RADIUS) continue;
-            int cx = u.getCellX() + dx;
-            int cy = u.getCellY() + dy;
+            int cx = sim.world().cellX(u.entityId) + dx;
+            int cy = sim.world().cellY(u.entityId) + dy;
             if (!grid.inBounds(cx, cy)) continue;
             if (!grid.isWalkable(cx, cy)) continue;
-            if (cx == u.getCellX() && cy == u.getCellY()) continue;
+            if (cx == sim.world().cellX(u.entityId) && cy == sim.world().cellY(u.entityId)) continue;
             return new int[]{cx, cy};
         }
         return null;

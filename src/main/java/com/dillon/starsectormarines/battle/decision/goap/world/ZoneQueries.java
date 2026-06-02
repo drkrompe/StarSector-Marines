@@ -57,7 +57,7 @@ public final class ZoneQueries {
         if (squad.aliveMembers <= 0) return -1;
         Unit leader = sim.resolveUnit(squad.leaderId);
         if (leader != null) {
-            int zone = sim.getZoneGraph().zoneIdAt(leader.getCellX(), leader.getCellY());
+            int zone = sim.getZoneGraph().zoneIdAt(sim.world().cellX(leader.entityId), sim.world().cellY(leader.entityId));
             if (zone >= 0) return zone;
             // Leader on a wall cell (transient — pathfinder placed them there
             // for a single tick): fall through to the centroid so the goal
@@ -110,7 +110,7 @@ public final class ZoneQueries {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             Unit u = sim.liveUnitAt(i);
             if (u.faction != enemyFaction) continue;
-            if (graph.zoneIdAt(u.getCellX(), u.getCellY()) == zoneId) return false;
+            if (graph.zoneIdAt(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId)) == zoneId) return false;
         }
         return true;
     }

@@ -46,24 +46,24 @@ public final class MechBreakContact implements Action {
     public ActionStatus execute(Unit member, Squad squad, BattleControl sim) {
         if (sim.getTacticalScoring().fallbackDestinationNeedsRefresh(member)) {
             int[] dest = sim.getTacticalScoring().findFallbackPosition(member);
-            member.setFallbackCell(dest[0], dest[1]);
+            sim.world().setFallbackCell(member.entityId, dest[0], dest[1]);
         }
 
-        boolean atDest = member.getCellX() == member.getFallbackCellX()
-                      && member.getCellY() == member.getFallbackCellY();
+        boolean atDest = sim.world().cellX(member.entityId) == sim.world().fallbackCellX(member.entityId)
+                      && sim.world().cellY(member.entityId) == sim.world().fallbackCellY(member.entityId);
         if (!atDest) {
             opportunisticMechFire(member, sim);
-            if (member.getMoveProgress() == 0f) {
+            if (sim.world().moveProgress(member.entityId) == 0f) {
                 sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                        member.getCellX(), member.getCellY(),
-                        member.getFallbackCellX(), member.getFallbackCellY(),
+                        sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+                        sim.world().fallbackCellX(member.entityId), sim.world().fallbackCellY(member.entityId),
                         sim.getOccupancyMap()));
             }
             sim.advanceMovement(member);
         } else {
             if (!member.pathEmpty()) sim.clearPath(member);
-            member.setMoveProgress(0f);
-            member.setRenderPos(member.getCellX(), member.getCellY());
+            sim.world().setMoveProgress(member.entityId, 0f);
+            member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
             opportunisticMechFire(member, sim);
         }
         return ActionStatus.RUNNING;
@@ -84,11 +84,11 @@ public final class MechBreakContact implements Action {
             u.setTarget(target);
         }
         if (target == null) return;
-        float dist = TacticalScoring.cellDistance(u.getCellX(), u.getCellY(),
-                target.getCellX(), target.getCellY());
-        if (dist > u.getAttackRange()) return;
-        boolean visible = sim.getGrid().hasLineOfSight(u.getCellX(), u.getCellY(),
-                target.getCellX(), target.getCellY());
+        float dist = TacticalScoring.cellDistance(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId),
+                sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+        if (dist > sim.world().attackRange(u.entityId)) return;
+        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId),
+                sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
         MechCombatantBehavior.tryFireMechWeapons(u, target, dist, sim, visible);
     }
 }

@@ -108,7 +108,7 @@ public final class RecaptureTargetService {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             Unit u = sim.liveUnitAt(i);
             if (u.faction != Faction.DEFENDER) continue;
-            present.merge(biomeMap.biomeAt(u.getCellX(), u.getCellY()), 1, Integer::sum);
+            present.merge(biomeMap.biomeAt(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId)), 1, Integer::sum);
             totalDefenders++;
         }
         for (BiomeKind b : BiomeKind.values()) {

@@ -111,7 +111,7 @@ public final class BreachAndAdvance implements Action {
             slots.add(new RoleAssigner.Slot<>(
                     "breacher:" + i,
                     1,
-                    c -> -TacticalScoring.cellDistance(c.getCellX(), c.getCellY(), sx, sy)));
+                    c -> -TacticalScoring.cellDistance(sim.world().cellX(c.entityId), sim.world().cellY(c.entityId), sx, sy)));
         }
         return slots;
     }
@@ -150,10 +150,10 @@ public final class BreachAndAdvance implements Action {
             }
         }
 
-        if (member.getCellX() == destX && member.getCellY() == destY) {
+        if (sim.world().cellX(member.entityId) == destX && sim.world().cellY(member.entityId) == destY) {
             if (!member.pathEmpty()) sim.clearPath(member);
-            member.setMoveProgress(0f);
-            member.setRenderPos(member.getCellX(), member.getCellY());
+            sim.world().setMoveProgress(member.entityId, 0f);
+            member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
             // Squad-wide success: all members are at their forward cells.
             // Per-member success would advance the plan after the first
             // arrives, which would let the rest scramble independently.
@@ -170,9 +170,9 @@ public final class BreachAndAdvance implements Action {
             return ActionStatus.RUNNING;
         }
 
-        if (member.getMoveProgress() == 0f) {
+        if (sim.world().moveProgress(member.entityId) == 0f) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                    member.getCellX(), member.getCellY(), destX, destY, sim.getOccupancyMap()));
+                    sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), destX, destY, sim.getOccupancyMap()));
         }
         sim.advanceMovement(member);
         return ActionStatus.RUNNING;
@@ -193,8 +193,8 @@ public final class BreachAndAdvance implements Action {
             if (u.squadId != squad.id) continue;
             alive++;
             for (int i2 = 0; i2 < stackUpX.length; i2++) {
-                float dx = u.getCellX() - stackUpX[i2];
-                float dy = u.getCellY() - stackUpY[i2];
+                float dx = sim.world().cellX(u.entityId) - stackUpX[i2];
+                float dy = sim.world().cellY(u.entityId) - stackUpY[i2];
                 if (dx * dx + dy * dy <= r2) { near++; break; }
             }
         }
@@ -216,7 +216,7 @@ public final class BreachAndAdvance implements Action {
             if (name == null) continue;
             int s = parseSlotIndex(name);
             if (s < 0 || s >= forwardX.length) continue;
-            if (u.getCellX() != forwardX[s] || u.getCellY() != forwardY[s]) return false;
+            if (sim.world().cellX(u.entityId) != forwardX[s] || sim.world().cellY(u.entityId) != forwardY[s]) return false;
         }
         return true;
     }

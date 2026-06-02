@@ -46,22 +46,22 @@ public final class TurretBehavior implements UnitBehavior {
         // Direct id-to-id copy (not setTarget) — both fields are already
         // entity ids in the same id space, no null encoding to apply.
         if (t.burstRemaining > 0) {
-            t.setTargetId(t.burstTargetId);
+            sim.world().setTargetId(t.entityId, t.burstTargetId);
         }
 
         TurretAim.State s = new TurretAim.State();
-        s.originCellX = t.getCellX();
-        s.originCellY = t.getCellY();
-        s.originX = t.getCellX() + 0.5f;
-        s.originY = t.getCellY() + 0.5f;
+        s.originCellX = sim.world().cellX(t.entityId);
+        s.originCellY = sim.world().cellY(t.entityId);
+        s.originX = sim.world().cellX(t.entityId) + 0.5f;
+        s.originY = sim.world().cellY(t.entityId) + 0.5f;
         s.faction = t.faction;
         s.squadId = t.squadId;
         s.excludeFromCrowding = t;
         s.facingDegrees = t.facingDegrees;
         s.turnRateDegPerSec = t.kind.turnRateDegPerSec;
-        s.attackRange = t.getAttackRange();
+        s.attackRange = sim.world().attackRange(t.entityId);
         s.minRange = t.kind.minRange;
-        s.cooldownTimer = t.getCooldownTimer();
+        s.cooldownTimer = sim.world().cooldownTimer(t.entityId);
         s.attackCooldown = t.attackCooldown;
         s.target = sim.targetOf(t);
         s.indirectFire = t.kind.indirectFire;
@@ -69,7 +69,7 @@ public final class TurretBehavior implements UnitBehavior {
         TurretAim.tick(s, sim.getTacticalScoring(), sim.getGrid(), BattleSimulation.TICK_DT);
 
         t.facingDegrees = s.facingDegrees;
-        t.setCooldownTimer(s.cooldownTimer);
+        sim.world().setCooldownTimer(t.entityId, s.cooldownTimer);
         t.setTarget(s.target);
 
         // Burst continuation runs ahead of fresh trigger pulls. A committed
@@ -84,8 +84,8 @@ public final class TurretBehavior implements UnitBehavior {
                 // the burst started, LoS was good; the renderer keeps firing
                 // even if LoS breaks mid-burst, matching the existing behavior.
                 boolean hasLos = sim.getGrid().hasLineOfSight(
-                        t.getCellX(), t.getCellY(), currentBurstTarget.getCellX(), currentBurstTarget.getCellY());
-                sim.fireShotFrom(t.getCellX() + 0.5f, t.getCellY() + 0.5f, t.faction, t.kind, currentBurstTarget,
+                        sim.world().cellX(t.entityId), sim.world().cellY(t.entityId), sim.world().cellX(currentBurstTarget.entityId), sim.world().cellY(currentBurstTarget.entityId));
+                sim.fireShotFrom(sim.world().cellX(t.entityId) + 0.5f, sim.world().cellY(t.entityId) + 0.5f, t.faction, t.kind, currentBurstTarget,
                         /*aerialShooter*/ false, hasLos);
                 t.recoilTimer = 0f;
                 t.burstRemaining--;
@@ -100,7 +100,7 @@ public final class TurretBehavior implements UnitBehavior {
                 // Burst kinds route through fireShotFrom so the scatter / AoE /
                 // raycast pipeline applies. Latch the remaining rounds for the
                 // pump to drain.
-                sim.fireShotFrom(t.getCellX() + 0.5f, t.getCellY() + 0.5f, t.faction, t.kind, s.target,
+                sim.fireShotFrom(sim.world().cellX(t.entityId) + 0.5f, sim.world().cellY(t.entityId) + 0.5f, t.faction, t.kind, s.target,
                         /*aerialShooter*/ false, s.lastFireHadLos);
                 t.recoilTimer = 0f;
                 if (s.target != null) {

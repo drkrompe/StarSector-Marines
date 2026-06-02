@@ -115,8 +115,8 @@ public final class GuardPostPatrol implements Action {
         // Retreating to a new post — every member walks home regardless of alert.
         // updateSquadFallback drops the flag once everyone arrives.
         if (squad.fallbackInProgress) {
-            int homeX = member.homeCellX >= 0 ? member.homeCellX : member.getCellX();
-            int homeY = member.homeCellY >= 0 ? member.homeCellY : member.getCellY();
+            int homeX = member.homeCellX >= 0 ? member.homeCellX : sim.world().cellX(member.entityId);
+            int homeY = member.homeCellY >= 0 ? member.homeCellY : sim.world().cellY(member.entityId);
             return returnTo(member, sim, homeX, homeY);
         }
 
@@ -150,22 +150,22 @@ public final class GuardPostPatrol implements Action {
     private ActionStatus engage(Unit member, Unit target, Squad squad, BattleControl sim) {
         float leash = effectiveLeash(member, squad, sim);
 
-        if (member.getCooldownTimer() > 0f) {
-            member.setCooldownTimer(member.getCooldownTimer() - BattleSimulation.TICK_DT);
+        if (sim.world().cooldownTimer(member.entityId) > 0f) {
+            sim.world().setCooldownTimer(member.entityId, sim.world().cooldownTimer(member.entityId) - BattleSimulation.TICK_DT);
         }
 
-        float dist = TacticalScoring.cellDistance(member.getCellX(), member.getCellY(),
-                target.getCellX(), target.getCellY());
-        boolean inRange = dist <= member.getAttackRange();
-        boolean visible = sim.getGrid().hasLineOfSight(member.getCellX(), member.getCellY(),
-                target.getCellX(), target.getCellY());
+        float dist = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+                sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+        boolean inRange = dist <= sim.world().attackRange(member.entityId);
+        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+                sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
         boolean withinLeash = TacticalScoring.cellDistance(anchorX, anchorY,
-                member.getCellX(), member.getCellY()) <= leash;
+                sim.world().cellX(member.entityId), sim.world().cellY(member.entityId)) <= leash;
 
         if (inRange && visible && withinLeash) {
-            if (member.getCooldownTimer() <= 0f) {
+            if (sim.world().cooldownTimer(member.entityId) <= 0f) {
                 sim.fireShot(member, target);
-                member.setCooldownTimer(member.attackCooldown);
+                sim.world().setCooldownTimer(member.entityId, member.attackCooldown);
                 member.beginBurst(target);
             }
             PatrolMotion.hold(member, sim);
@@ -184,7 +184,7 @@ public final class GuardPostPatrol implements Action {
                         member, target, anchorX, anchorY, leash);
             }
         }
-        if (firingPos == null || (firingPos[0] == member.getCellX() && firingPos[1] == member.getCellY())) {
+        if (firingPos == null || (firingPos[0] == sim.world().cellX(member.entityId) && firingPos[1] == sim.world().cellY(member.entityId))) {
             PatrolMotion.hold(member, sim);
             return ActionStatus.RUNNING;
         }
@@ -287,7 +287,7 @@ public final class GuardPostPatrol implements Action {
     }
 
     private static ActionStatus returnTo(Unit member, BattleControl sim, int tx, int ty) {
-        if (member.getCellX() == tx && member.getCellY() == ty) {
+        if (sim.world().cellX(member.entityId) == tx && sim.world().cellY(member.entityId) == ty) {
             PatrolMotion.hold(member, sim);
             return ActionStatus.RUNNING;
         }

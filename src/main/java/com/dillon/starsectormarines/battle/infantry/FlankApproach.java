@@ -58,16 +58,16 @@ public final class FlankApproach implements Action {
             return ActionStatus.SUCCESS;
         }
 
-        if (member.getMoveProgress() == 0f && member.pathIdx >= member.pathCellCount()) {
+        if (sim.world().moveProgress(member.entityId) == 0f && member.pathIdx >= member.pathCellCount()) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                    member.getCellX(), member.getCellY(),
+                    sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
                     waypointX, waypointY, sim.getOccupancyMap()));
         }
         if (member.pathIdx < member.pathCellCount()) {
             sim.advanceMovement(member);
         } else {
-            member.setMoveProgress(0f);
-            member.setRenderPos(member.getCellX(), member.getCellY());
+            sim.world().setMoveProgress(member.entityId, 0f);
+            member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
         }
         return ActionStatus.RUNNING;
     }

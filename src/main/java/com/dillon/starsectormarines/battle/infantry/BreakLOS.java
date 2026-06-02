@@ -57,15 +57,15 @@ public final class BreakLOS implements Action {
     public ActionStatus execute(Unit member, Squad squad, BattleControl sim) {
         if (sim.getTacticalScoring().fallbackDestinationNeedsRefresh(member)) {
             int[] dest = sim.getTacticalScoring().findFallbackPosition(member);
-            member.setFallbackCell(dest[0], dest[1]);
+            sim.world().setFallbackCell(member.entityId, dest[0], dest[1]);
         }
 
-        boolean atDest = member.getCellX() == member.getFallbackCellX()
-                      && member.getCellY() == member.getFallbackCellY();
+        boolean atDest = sim.world().cellX(member.entityId) == sim.world().fallbackCellX(member.entityId)
+                      && sim.world().cellY(member.entityId) == sim.world().fallbackCellY(member.entityId);
         if (atDest) {
             if (!member.pathEmpty()) sim.clearPath(member);
-            member.setMoveProgress(0f);
-            member.setRenderPos(member.getCellX(), member.getCellY());
+            sim.world().setMoveProgress(member.entityId, 0f);
+            member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
             // Arrived at a hidden cell. The predicate-flip ("no longer in LoS
             // of the threat") is implicit: findFallbackPosition only picks
             // cells hidden from every enemy, so by definition no enemy still
@@ -73,10 +73,10 @@ public final class BreakLOS implements Action {
             // replan picks Overwatch or Engage from this fresh position.
             return ActionStatus.SUCCESS;
         }
-        if (member.getMoveProgress() == 0f) {
+        if (sim.world().moveProgress(member.entityId) == 0f) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                    member.getCellX(), member.getCellY(),
-                    member.getFallbackCellX(), member.getFallbackCellY(),
+                    sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+                    sim.world().fallbackCellX(member.entityId), sim.world().fallbackCellY(member.entityId),
                     sim.getOccupancyMap()));
         }
         sim.advanceMovement(member);

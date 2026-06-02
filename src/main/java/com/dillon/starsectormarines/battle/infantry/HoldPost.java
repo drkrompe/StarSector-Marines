@@ -58,8 +58,8 @@ public final class HoldPost implements Action {
 
     @Override
     public ActionStatus execute(Unit member, Squad squad, BattleControl sim) {
-        int homeX = member.homeCellX >= 0 ? member.homeCellX : member.getCellX();
-        int homeY = member.homeCellY >= 0 ? member.homeCellY : member.getCellY();
+        int homeX = member.homeCellX >= 0 ? member.homeCellX : sim.world().cellX(member.entityId);
+        int homeY = member.homeCellY >= 0 ? member.homeCellY : sim.world().cellY(member.entityId);
 
         // Squad retreating to a new post — every member walks home regardless
         // of alert level. updateSquadFallback drops the flag once everyone
@@ -88,18 +88,18 @@ public final class HoldPost implements Action {
     }
 
     private static ActionStatus executeWithTarget(Unit member, Unit target, BattleControl sim, int homeX, int homeY) {
-        if (member.getCooldownTimer() > 0f) member.setCooldownTimer(member.getCooldownTimer() - BattleSimulation.TICK_DT);
+        if (sim.world().cooldownTimer(member.entityId) > 0f) sim.world().setCooldownTimer(member.entityId, sim.world().cooldownTimer(member.entityId) - BattleSimulation.TICK_DT);
 
-        float dist = TacticalScoring.cellDistance(member.getCellX(), member.getCellY(),
-                target.getCellX(), target.getCellY());
-        boolean inRange = dist <= member.getAttackRange();
-        boolean visible = sim.getGrid().hasLineOfSight(member.getCellX(), member.getCellY(),
-                target.getCellX(), target.getCellY());
+        float dist = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+                sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+        boolean inRange = dist <= sim.world().attackRange(member.entityId);
+        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+                sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
 
         if (inRange && visible) {
-            if (member.getCooldownTimer() <= 0f) {
+            if (sim.world().cooldownTimer(member.entityId) <= 0f) {
                 sim.fireShot(member, target);
-                member.setCooldownTimer(member.attackCooldown);
+                sim.world().setCooldownTimer(member.entityId, member.attackCooldown);
                 member.beginBurst(target);
             }
             hold(member, sim);
@@ -120,7 +120,7 @@ public final class HoldPost implements Action {
                         member, target, homeX, homeY, HOLD_RADIUS);
             }
         }
-        if (firingPos == null || (firingPos[0] == member.getCellX() && firingPos[1] == member.getCellY())) {
+        if (firingPos == null || (firingPos[0] == sim.world().cellX(member.entityId) && firingPos[1] == sim.world().cellY(member.entityId))) {
             hold(member, sim);
             return ActionStatus.RUNNING;
         }
@@ -143,7 +143,7 @@ public final class HoldPost implements Action {
     }
 
     private static ActionStatus returnToHome(Unit member, BattleControl sim, int homeX, int homeY) {
-        if (member.getCellX() == homeX && member.getCellY() == homeY) {
+        if (sim.world().cellX(member.entityId) == homeX && sim.world().cellY(member.entityId) == homeY) {
             hold(member, sim);
             return ActionStatus.RUNNING;
         }
@@ -152,21 +152,21 @@ public final class HoldPost implements Action {
     }
 
     private static void moveToward(Unit member, BattleControl sim, int tx, int ty) {
-        if (member.getMoveProgress() == 0f && member.pathIdx >= member.pathCellCount()) {
+        if (sim.world().moveProgress(member.entityId) == 0f && member.pathIdx >= member.pathCellCount()) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                    member.getCellX(), member.getCellY(), tx, ty, sim.getOccupancyMap()));
+                    sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), tx, ty, sim.getOccupancyMap()));
         }
         if (member.pathIdx < member.pathCellCount()) {
             sim.advanceMovement(member);
         } else {
-            member.setMoveProgress(0f);
-            member.setRenderPos(member.getCellX(), member.getCellY());
+            sim.world().setMoveProgress(member.entityId, 0f);
+            member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
         }
     }
 
     private static void hold(Unit member, BattleControl sim) {
         sim.clearPath(member);
-        member.setMoveProgress(0f);
-        member.setRenderPos(member.getCellX(), member.getCellY());
+        sim.world().setMoveProgress(member.entityId, 0f);
+        member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
     }
 }

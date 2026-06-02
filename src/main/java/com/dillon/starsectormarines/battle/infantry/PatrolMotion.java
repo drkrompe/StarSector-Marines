@@ -113,29 +113,29 @@ public final class PatrolMotion {
 
     /** Path one tick toward {@code (tx,ty)}; on arrival (or no path) park in place. */
     public static void moveToward(Unit member, BattleControl sim, int tx, int ty) {
-        if (member.getMoveProgress() == 0f && member.pathIdx >= member.pathCellCount()) {
+        if (sim.world().moveProgress(member.entityId) == 0f && member.pathIdx >= member.pathCellCount()) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                    member.getCellX(), member.getCellY(), tx, ty, sim.getOccupancyMap()));
+                    sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), tx, ty, sim.getOccupancyMap()));
         }
         if (member.pathIdx < member.pathCellCount()) {
             sim.advanceMovement(member);
         } else {
-            member.setMoveProgress(0f);
-            member.setRenderPos(member.getCellX(), member.getCellY());
+            sim.world().setMoveProgress(member.entityId, 0f);
+            member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
         }
     }
 
     /** Stop and clear any path — park the member on its current cell. */
     public static void hold(Unit member, BattleControl sim) {
         sim.clearPath(member);
-        member.setMoveProgress(0f);
-        member.setRenderPos(member.getCellX(), member.getCellY());
+        sim.world().setMoveProgress(member.entityId, 0f);
+        member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
     }
 
     /** Opportunistic moving-stance shot at a visible in-range enemy; no movement. */
     public static void fireIfAble(Unit member, BattleControl sim) {
-        if (member.getCooldownTimer() > 0f) {
-            member.setCooldownTimer(member.getCooldownTimer() - BattleSimulation.TICK_DT);
+        if (sim.world().cooldownTimer(member.entityId) > 0f) {
+            sim.world().setCooldownTimer(member.entityId, sim.world().cooldownTimer(member.entityId) - BattleSimulation.TICK_DT);
         }
         Unit target = sim.targetOf(member);
         if (target == null || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
@@ -143,13 +143,13 @@ public final class PatrolMotion {
             member.setTarget(target);
         }
         if (target == null) return;
-        float dist = TacticalScoring.cellDistance(member.getCellX(), member.getCellY(),
-                target.getCellX(), target.getCellY());
-        boolean visible = sim.getGrid().hasLineOfSight(member.getCellX(), member.getCellY(),
-                target.getCellX(), target.getCellY());
-        if (dist <= member.getAttackRange() && visible && member.getCooldownTimer() <= 0f) {
+        float dist = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+                sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+                sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+        if (dist <= sim.world().attackRange(member.entityId) && visible && sim.world().cooldownTimer(member.entityId) <= 0f) {
             sim.fireShot(member, target, FireStance.MOVING);
-            member.setCooldownTimer(member.attackCooldown);
+            sim.world().setCooldownTimer(member.entityId, member.attackCooldown);
             member.beginBurst(target);
         }
     }

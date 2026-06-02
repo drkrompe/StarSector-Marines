@@ -184,7 +184,7 @@ public final class ChokePointHold implements Action {
             slots.add(new RoleAssigner.Slot<>(
                     slotName(idx),
                     1,
-                    c -> -TacticalScoring.cellDistance(c.getCellX(), c.getCellY(), cellX, cellY)));
+                    c -> -TacticalScoring.cellDistance(sim.world().cellX(c.entityId), sim.world().cellY(c.entityId), cellX, cellY)));
         }
         return slots;
     }
@@ -218,14 +218,14 @@ public final class ChokePointHold implements Action {
         int targetX = cell[0];
         int targetY = cell[1];
 
-        boolean atPost = (member.getCellX() == targetX && member.getCellY() == targetY);
+        boolean atPost = (sim.world().cellX(member.entityId) == targetX && sim.world().cellY(member.entityId) == targetY);
         if (!atPost) {
             // Transit: walk to the bound LOS cell. No opportunistic fire —
             // single-portal hold is about the concentrated burst, the squad
             // holds discipline en route as well as on-post.
-            if (member.getMoveProgress() == 0f) {
+            if (sim.world().moveProgress(member.entityId) == 0f) {
                 sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                        member.getCellX(), member.getCellY(), targetX, targetY,
+                        sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), targetX, targetY,
                         sim.getOccupancyMap()));
             }
             sim.advanceMovement(member);
@@ -234,8 +234,8 @@ public final class ChokePointHold implements Action {
 
         // On-post — pin in place between bursts.
         if (!member.pathEmpty()) sim.clearPath(member);
-        member.setMoveProgress(0f);
-        member.setRenderPos(member.getCellX(), member.getCellY());
+        sim.world().setMoveProgress(member.entityId, 0f);
+        member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
 
         // Concentrated-fire trigger: ENEMY_IN_PORTAL_CELL true this tick →
         // every on-post member with LoS to the portal cell fires. The
@@ -251,19 +251,19 @@ public final class ChokePointHold implements Action {
         // LoS gate is by-cell: bound cells were picked with LoS at
         // construction, but a movable doodad or transient cover change might
         // have closed it. Re-check before firing.
-        if (!sim.getGrid().hasLineOfSight(member.getCellX(), member.getCellY(), portalX, portalY)) {
+        if (!sim.getGrid().hasLineOfSight(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), portalX, portalY)) {
             return ActionStatus.RUNNING;
         }
-        if (member.getCooldownTimer() > 0f) return ActionStatus.RUNNING;
-        float d = TacticalScoring.cellDistance(member.getCellX(), member.getCellY(), portalX, portalY);
-        if (d > member.getAttackRange()) return ActionStatus.RUNNING;
+        if (sim.world().cooldownTimer(member.entityId) > 0f) return ActionStatus.RUNNING;
+        float d = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), portalX, portalY);
+        if (d > sim.world().attackRange(member.entityId)) return ActionStatus.RUNNING;
 
         // STANCED fire — on-post, deliberate. Full accuracy. Same shape as
         // HoldPortalCordon's on-post branch so burst follow-ups behave
         // identically (machine guns rip a burst when the trigger fires).
         sim.fireShot(member, portalIntruder, FireStance.STANCED);
         member.setTarget(portalIntruder);
-        member.setCooldownTimer(member.attackCooldown);
+        sim.world().setCooldownTimer(member.entityId, member.attackCooldown);
         member.beginBurst(portalIntruder);
         return ActionStatus.RUNNING;
     }
@@ -289,7 +289,7 @@ public final class ChokePointHold implements Action {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Unit u = sim.liveUnitAt(i);
             if (!u.type.combatant) continue;
             if (u.faction == squad.faction) continue;
-            if (u.getCellX() == portalX && u.getCellY() == portalY) return u;
+            if (sim.world().cellX(u.entityId) == portalX && sim.world().cellY(u.entityId) == portalY) return u;
         }
         return null;
     }

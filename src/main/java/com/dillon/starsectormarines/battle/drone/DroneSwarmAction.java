@@ -83,8 +83,8 @@ public final class DroneSwarmAction implements Action {
         int slotCount = Math.max(1, slotMemberCount(squad));
 
         TurretAim.State s = new TurretAim.State();
-        s.originCellX = d.getCellX();
-        s.originCellY = d.getCellY();
+        s.originCellX = sim.world().cellX(d.entityId);
+        s.originCellY = sim.world().cellY(d.entityId);
         s.originX = d.body.x;
         s.originY = d.body.y;
         s.faction = d.faction;
@@ -92,9 +92,9 @@ public final class DroneSwarmAction implements Action {
         s.excludeFromCrowding = d;
         s.facingDegrees = d.body.facingDegrees;
         s.turnRateDegPerSec = Drone.TURN_RATE_DEG_PER_SEC;
-        s.attackRange = d.getAttackRange();
+        s.attackRange = sim.world().attackRange(d.entityId);
         s.minRange = 0f;
-        s.cooldownTimer = d.getCooldownTimer();
+        s.cooldownTimer = sim.world().cooldownTimer(d.entityId);
         s.attackCooldown = d.attackCooldown;
         s.target = sim.targetOf(d);
         s.ignoreCloseWalls = true;
@@ -102,7 +102,7 @@ public final class DroneSwarmAction implements Action {
 
         TurretAim.tick(s, sim.getTacticalScoring(), sim.getGrid(), BattleSimulation.TICK_DT);
 
-        d.setCooldownTimer(s.cooldownTimer);
+        sim.world().setCooldownTimer(d.entityId, s.cooldownTimer);
         d.setTarget(s.target);
 
         float dt = BattleSimulation.TICK_DT;
@@ -115,8 +115,8 @@ public final class DroneSwarmAction implements Action {
             lockedOn = tryAgroScan(d, sim);
         }
         if (lockedOn != null) {
-            d.pursuitGoalX = lockedOn.getCellX() + 0.5f;
-            d.pursuitGoalY = lockedOn.getCellY() + 0.5f;
+            d.pursuitGoalX = sim.world().cellX(lockedOn.entityId) + 0.5f;
+            d.pursuitGoalY = sim.world().cellY(lockedOn.entityId) + 0.5f;
             d.pursuitTimer = Drone.PURSUIT_LATCH_SECONDS;
         }
 
@@ -128,7 +128,7 @@ public final class DroneSwarmAction implements Action {
             tickPatrol(d, sim, slotIdx, slotCount, dt);
         }
 
-        d.setCellPos((int) Math.floor(d.body.x), (int) Math.floor(d.body.y));
+        sim.world().setCellPos(d.entityId, (int) Math.floor(d.body.x), (int) Math.floor(d.body.y));
         // Sync render position so the shot pipeline picks up the drone's actual
         // position. InfantryWeapons.fireShot computes the tracer origin as
         // (shooter.getRenderX() + 0.5, shooter.getRenderY() + 0.5); without this sync
@@ -169,16 +169,16 @@ public final class DroneSwarmAction implements Action {
     private static void tickEngage(Drone d, TurretAim.State s,
                                    int slotIdx, int slotCount,
                                    BattleView sim, float dt) {
-        float tx = s.target.getCellX() + 0.5f;
-        float ty = s.target.getCellY() + 0.5f;
+        float tx = sim.world().cellX(s.target.entityId) + 0.5f;
+        float ty = sim.world().cellY(s.target.entityId) + 0.5f;
         float simTime = sim.getSimTickIndex() * BattleSimulation.TICK_DT;
 
         float baseBearingDeg = (360f * slotIdx) / slotCount;
         float driftDeg = simTime * Drone.ENGAGE_ORBIT_ANGULAR_DEG_PER_SEC;
         float orbitBearingDeg = baseBearingDeg + driftDeg;
 
-        float baseRadius = d.getAttackRange() * Drone.ENGAGE_ORBIT_BASE_FRACTION;
-        float pulseAmplitude = d.getAttackRange() * Drone.ENGAGE_ORBIT_PULSE_FRACTION;
+        float baseRadius = sim.world().attackRange(d.entityId) * Drone.ENGAGE_ORBIT_BASE_FRACTION;
+        float pulseAmplitude = sim.world().attackRange(d.entityId) * Drone.ENGAGE_ORBIT_PULSE_FRACTION;
         float pulsePhase = 2f * (float) Math.PI
                 * (Drone.ENGAGE_ORBIT_PULSE_HZ * simTime + (float) slotIdx / slotCount);
         float orbitRadius = baseRadius + pulseAmplitude * (float) Math.sin(pulsePhase);
@@ -250,13 +250,13 @@ public final class DroneSwarmAction implements Action {
      */
     private static Unit tryAgroScan(Drone d, BattleView sim) {
         Unit candidate = sim.getTacticalScoring().findBestTarget(
-                d.getCellX(), d.getCellY(), d.faction, d.squadId, d, d.airLosRadius);
+                sim.world().cellX(d.entityId), sim.world().cellY(d.entityId), d.faction, d.squadId, d, d.airLosRadius);
         if (candidate == null) return null;
         float dist = TacticalScoring.cellDistance(
-                d.getCellX(), d.getCellY(), candidate.getCellX(), candidate.getCellY());
+                sim.world().cellX(d.entityId), sim.world().cellY(d.entityId), sim.world().cellX(candidate.entityId), sim.world().cellY(candidate.entityId));
         if (dist > Drone.AGGRO_RANGE_CELLS) return null;
         boolean visible = TacticalScoring.canSeePair(sim.getGrid(),
-                d.getCellX(), d.getCellY(), candidate.getCellX(), candidate.getCellY(),
+                sim.world().cellX(d.entityId), sim.world().cellY(d.entityId), sim.world().cellX(candidate.entityId), sim.world().cellY(candidate.entityId),
                 d.airLosRadius, candidate.airLosRadius);
         return visible ? candidate : null;
     }
@@ -302,8 +302,8 @@ public final class DroneSwarmAction implements Action {
         }
         Random rng = d.rng;
         NavigationGrid grid = sim.getGrid();
-        float anchorX = d.homeHub.getCellX() + 0.5f;
-        float anchorY = d.homeHub.getCellY() + 0.5f;
+        float anchorX = sim.world().cellX(d.homeHub.entityId) + 0.5f;
+        float anchorY = sim.world().cellY(d.homeHub.entityId) + 0.5f;
         float sectorSize = 360f / slotCount;
         float sectorStart = sectorSize * slotIdx;
         for (int attempt = 0; attempt < 6; attempt++) {

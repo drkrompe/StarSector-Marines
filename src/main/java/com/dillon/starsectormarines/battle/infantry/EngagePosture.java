@@ -73,8 +73,8 @@ public final class EngagePosture implements Action {
         }
         if (target == null) return ActionStatus.FAILURE;
 
-        float dist = TacticalScoring.cellDistance(member.getCellX(), member.getCellY(),
-                target.getCellX(), target.getCellY());
+        float dist = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+                sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
         // Rocketeers vs turrets use the rocket's longer range as the act-here
         // gate, so a marine inside rocket range but outside rifle range
         // engages from where they stand instead of running into rifle range.
@@ -84,7 +84,7 @@ public final class EngagePosture implements Action {
         float effectiveRange = TacticalScoring.effectiveAttackRange(member, target);
         boolean inRange = dist <= effectiveRange;
         boolean visible = TacticalScoring.canSeePair(sim.getGrid(),
-                member.getCellX(), member.getCellY(), target.getCellX(), target.getCellY(),
+                sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId),
                 member.airLosRadius, target.airLosRadius);
 
         if (inRange && visible) {
@@ -93,19 +93,19 @@ public final class EngagePosture implements Action {
             // target (turrets, drone hubs, heavy mechs) — anything the rocket's
             // vsTurretMult bonus is worth burning a tube on.
             if (member.secondaryWeapon != null && member.secondaryAmmo > 0
-                    && member.getSecondaryCooldownTimer() <= 0f
+                    && sim.world().secondaryCooldownTimer(member.entityId) <= 0f
                     && TacticalScoring.isHardened(target)
                     && dist <= member.secondaryWeapon.range
                     && sim.getTacticalScoring().shouldCommitRocket(member, target)) {
-                member.setSecondaryActionTimer(member.secondaryWeapon.aimDuration);
+                sim.world().setSecondaryActionTimer(member.entityId, member.secondaryWeapon.aimDuration);
                 member.secondaryFiredThisAction = false;
                 member.setSecondaryAimTarget(target);
                 startedSecondary = true;
             }
-            if (!startedSecondary && member.getCooldownTimer() <= 0f
-                    && dist <= member.getAttackRange()) {
+            if (!startedSecondary && sim.world().cooldownTimer(member.entityId) <= 0f
+                    && dist <= sim.world().attackRange(member.entityId)) {
                 sim.fireShot(member, target);
-                member.setCooldownTimer(member.attackCooldown);
+                sim.world().setCooldownTimer(member.entityId, member.attackCooldown);
                 member.beginBurst(target);
                 // Story G — cooldown-gated cover-aware reposition replaces
                 // the old 30% per-shot RNG. A unit in heavy cover whose
@@ -118,8 +118,8 @@ public final class EngagePosture implements Action {
             if (member.pathIdx < member.pathCellCount()) {
                 sim.advanceMovement(member);
             } else {
-                member.setMoveProgress(0f);
-                member.setRenderPos(member.getCellX(), member.getCellY());
+                sim.world().setMoveProgress(member.entityId, 0f);
+                member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
             }
         } else {
             // Stage 1 fallback for members who personally lack LOS or range
@@ -127,18 +127,18 @@ public final class EngagePosture implements Action {
             // otherwise path to a firing position. Stage 2 retires this when
             // per-member action assignment lets us put approach-only members
             // on {@link ApproachPosture} concurrently with engage-only members.
-            if (member.getMoveProgress() == 0f) {
+            if (sim.world().moveProgress(member.entityId) == 0f) {
                 int[] dest = InfantryCohesion.cohesionOverride(member, sim);
                 if (dest == null) dest = sim.getTacticalScoring().findFiringPosition(member, target);
                 if (dest == null) {
                     // Same dead-end as ApproachPosture's else branch — target
                     // has no reachable firing position or vantage from here.
                     // Drop and let findBestTarget re-pick next tick.
-                    member.setTargetId(0L);
+                    sim.world().setTargetId(member.entityId, 0L);
                     return ActionStatus.RUNNING;
                 }
                 sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                        member.getCellX(), member.getCellY(), dest[0], dest[1], sim.getOccupancyMap()));
+                        sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), dest[0], dest[1], sim.getOccupancyMap()));
             }
             sim.advanceMovement(member);
         }

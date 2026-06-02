@@ -64,16 +64,16 @@ public final class RepositionToCover implements Action {
      * read "this tick: shifted vs. held."
      */
     public static boolean tryReposition(Unit member, BattleControl sim) {
-        if (member.getRepositionCooldown() > 0f) return false;
+        if (sim.world().repositionCooldown(member.entityId) > 0f) return false;
         Unit target = sim.targetOf(member);
         if (target == null) return false;
         int[] dest = sim.getTacticalScoring().findFiringPositionCoverPreferred(
-                member, target, member.getCellX(), member.getCellY());
+                member, target, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
         if (dest == null) return false;
-        if (dest[0] == member.getCellX() && dest[1] == member.getCellY()) return false;
+        if (dest[0] == sim.world().cellX(member.entityId) && dest[1] == sim.world().cellY(member.entityId)) return false;
         sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                member.getCellX(), member.getCellY(), dest[0], dest[1], sim.getOccupancyMap()));
-        member.setRepositionCooldown(COOLDOWN_SECONDS);
+                sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), dest[0], dest[1], sim.getOccupancyMap()));
+        sim.world().setRepositionCooldown(member.entityId, COOLDOWN_SECONDS);
         return true;
     }
 

@@ -97,19 +97,19 @@ public final class OverwatchKillZone implements Action {
 
         // Path to the overwatch cell. Idempotent — only requests a new path
         // when the mech isn't already at the cell and isn't already moving.
-        if ((member.getCellX() != m.overwatchCellX || member.getCellY() != m.overwatchCellY)
-                && member.getMoveProgress() == 0f
+        if ((sim.world().cellX(member.entityId) != m.overwatchCellX || sim.world().cellY(member.entityId) != m.overwatchCellY)
+                && sim.world().moveProgress(member.entityId) == 0f
                 && member.pathIdx >= member.pathCellCount()) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                    member.getCellX(), member.getCellY(),
+                    sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
                     m.overwatchCellX, m.overwatchCellY,
                     sim.getOccupancyMap()));
         }
         if (member.pathIdx < member.pathCellCount()) {
             sim.advanceMovement(member);
         } else {
-            member.setMoveProgress(0f);
-            member.setRenderPos(member.getCellX(), member.getCellY());
+            sim.world().setMoveProgress(member.entityId, 0f);
+            member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
         }
 
         // Fire pass — withhold SRM (overwatch doctrine), allow LRM (preferred)
@@ -121,11 +121,11 @@ public final class OverwatchKillZone implements Action {
         Unit target = sim.getTacticalScoring().refreshTargetIfNotShootable(member);
         member.setTarget(target);
         if (target != null) {
-            float dist = TacticalScoring.cellDistance(member.getCellX(), member.getCellY(),
-                    target.getCellX(), target.getCellY());
-            boolean inRange = dist <= member.getAttackRange();
-            boolean visible = sim.getGrid().hasLineOfSight(member.getCellX(), member.getCellY(),
-                    target.getCellX(), target.getCellY());
+            float dist = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+                    sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+            boolean inRange = dist <= sim.world().attackRange(member.entityId);
+            boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+                    sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
             if (inRange) {
                 MechCombatantBehavior.tryFireLrm(member, target, dist, sim, visible);
                 MechCombatantBehavior.tryFireChaingun(member, target, dist, sim, visible);
@@ -166,7 +166,7 @@ public final class OverwatchKillZone implements Action {
                 int fdy = ty - cy;
                 int cover = grid.getCoverAt(cx, cy, fdx, fdy);
                 int doodadCover = sim.getDoodadCoverAt(cx, cy, fdx, fdy);
-                float walk = TacticalScoring.cellDistance(member.getCellX(), member.getCellY(), cx, cy);
+                float walk = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), cx, cy);
                 float score = walk
                         - OVERWATCH_COVER_WEIGHT * cover
                         - OVERWATCH_COVER_WEIGHT * doodadCover;

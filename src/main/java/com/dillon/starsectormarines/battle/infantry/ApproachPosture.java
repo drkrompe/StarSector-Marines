@@ -64,14 +64,14 @@ public final class ApproachPosture implements Action {
         }
         if (target == null) return ActionStatus.FAILURE;
 
-        float dist = TacticalScoring.cellDistance(member.getCellX(), member.getCellY(),
-                target.getCellX(), target.getCellY());
-        boolean inRange = dist <= member.getAttackRange();
-        boolean visible = sim.getGrid().hasLineOfSight(member.getCellX(), member.getCellY(),
-                target.getCellX(), target.getCellY());
+        float dist = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+                sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+        boolean inRange = dist <= sim.world().attackRange(member.entityId);
+        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+                sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
         if (inRange && visible) return ActionStatus.SUCCESS;
 
-        if (member.getMoveProgress() == 0f) {
+        if (sim.world().moveProgress(member.entityId) == 0f) {
             int[] dest = InfantryCohesion.cohesionOverride(member, sim);
             if (dest == null) dest = sim.getTacticalScoring().findFiringPosition(member, target);
             if (dest == null) {
@@ -81,11 +81,11 @@ public final class ApproachPosture implements Action {
                 // unit can actually engage. Returning RUNNING (not FAILURE)
                 // keeps the squad-level Approach plan alive; the re-acquire
                 // happens on the next per-member tick.
-                member.setTargetId(0L);
+                sim.world().setTargetId(member.entityId, 0L);
                 return ActionStatus.RUNNING;
             }
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                    member.getCellX(), member.getCellY(), dest[0], dest[1], sim.getOccupancyMap()));
+                    sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), dest[0], dest[1], sim.getOccupancyMap()));
         }
         sim.advanceMovement(member);
 

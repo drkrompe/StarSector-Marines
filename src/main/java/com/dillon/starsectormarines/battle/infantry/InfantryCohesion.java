@@ -61,34 +61,34 @@ public final class InfantryCohesion {
         Unit target = sim.targetOf(self);
         if (target != null) {
             float td = (float) Math.sqrt(
-                    (float) (target.getCellX() - self.getCellX()) * (target.getCellX() - self.getCellX())
-                  + (float) (target.getCellY() - self.getCellY()) * (target.getCellY() - self.getCellY()));
-            if (td <= self.getAttackRange()
-                    && sim.getGrid().hasLineOfSight(self.getCellX(), self.getCellY(),
-                            target.getCellX(), target.getCellY())) {
+                    (float) (sim.world().cellX(target.entityId) - sim.world().cellX(self.entityId)) * (sim.world().cellX(target.entityId) - sim.world().cellX(self.entityId))
+                  + (float) (sim.world().cellY(target.entityId) - sim.world().cellY(self.entityId)) * (sim.world().cellY(target.entityId) - sim.world().cellY(self.entityId)));
+            if (td <= sim.world().attackRange(self.entityId)
+                    && sim.getGrid().hasLineOfSight(sim.world().cellX(self.entityId), sim.world().cellY(self.entityId),
+                            sim.world().cellX(target.entityId), sim.world().cellY(target.entityId))) {
                 return null;
             }
         }
 
         Unit leader = sim.resolveUnit(squad.leaderId);
         if (leader != null && leader != self) {
-            float dx = leader.getCellX() - self.getCellX();
-            float dy = leader.getCellY() - self.getCellY();
+            float dx = sim.world().cellX(leader.entityId) - sim.world().cellX(self.entityId);
+            float dy = sim.world().cellY(leader.entityId) - sim.world().cellY(self.entityId);
             float dist = (float) Math.sqrt(dx * dx + dy * dy);
             if (dist <= COHESION_RADIUS) return null;
-            return new int[]{leader.getCellX(), leader.getCellY()};
+            return new int[]{sim.world().cellX(leader.entityId), sim.world().cellY(leader.entityId)};
         }
 
         // Leaderless fallback — others-centroid (legacy behavior).
         // squad.centroid is sum/count over all alive members including self.
         // Reconstruct the others-only centroid: (sum - self) / (count - 1).
         int othersCount = squad.aliveMembers - 1;
-        float sumX = squad.centroidX * squad.aliveMembers - self.getCellX();
-        float sumY = squad.centroidY * squad.aliveMembers - self.getCellY();
+        float sumX = squad.centroidX * squad.aliveMembers - sim.world().cellX(self.entityId);
+        float sumY = squad.centroidY * squad.aliveMembers - sim.world().cellY(self.entityId);
         float cx = sumX / othersCount;
         float cy = sumY / othersCount;
-        float dx = cx - self.getCellX();
-        float dy = cy - self.getCellY();
+        float dx = cx - sim.world().cellX(self.entityId);
+        float dy = cy - sim.world().cellY(self.entityId);
         float dist = (float) Math.sqrt(dx * dx + dy * dy);
         if (dist <= COHESION_RADIUS) return null;
         return new int[]{Math.round(cx), Math.round(cy)};

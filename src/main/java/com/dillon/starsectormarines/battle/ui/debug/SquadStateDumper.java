@@ -144,18 +144,18 @@ public final class SquadStateDumper {
             }
             o.put("alive", u.isAlive());
             o.put("role", u.role != null ? u.role.name() : null);
-            o.put("cellX", u.getCellX());
-            o.put("cellY", u.getCellY());
+            o.put("cellX", sim.world().cellX(u.entityId));
+            o.put("cellY", sim.world().cellY(u.entityId));
             // homeCell{X,Y} = -1 sentinel for units without a post (marines,
             // patrols). Emit anyway so the dump distinguishes "no home" from
             // "home but drifted off" — key signal for diagnosing why a
             // garrison unit's findFiringPositionWithin returned null.
             o.put("homeCellX", u.homeCellX);
             o.put("homeCellY", u.homeCellY);
-            o.put("currentZone", sim.getZoneGraph().zoneIdAt(u.getCellX(), u.getCellY()));
-            o.put("hp", u.getHp());
-            o.put("maxHp", u.getMaxHp());
-            o.put("moveProgress", u.getMoveProgress());
+            o.put("currentZone", sim.getZoneGraph().zoneIdAt(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId)));
+            o.put("hp", sim.world().hp(u.entityId));
+            o.put("maxHp", sim.world().maxHp(u.entityId));
+            o.put("moveProgress", sim.world().moveProgress(u.entityId));
             Unit dumpTarget = sim.targetOf(u);
             o.put("targetId", dumpTarget != null ? dumpTarget.id : null);
             // Pathfinder reachability of the unit's current target. False
@@ -165,7 +165,7 @@ public final class SquadStateDumper {
             // Future make-passage actions (breach door, blow wall) should
             // key off this flag. JSONObject.NULL when the unit has no target.
             o.put("targetReachable", computeTargetReachable(u, sim));
-            o.put("cooldownTimer", u.getCooldownTimer());
+            o.put("cooldownTimer", sim.world().cooldownTimer(u.entityId));
             o.put("pathLen", u.path != null ? u.path.length / 2 : 0);
             arr.put(o);
         }
@@ -176,7 +176,8 @@ public final class SquadStateDumper {
         Unit target = sim.targetOf(self);
         if (target == null) return JSONObject.NULL;
         int[] path = GridPathfinder.findPath(sim.getGrid(),
-                self.getCellX(), self.getCellY(), target.getCellX(), target.getCellY());
+                sim.world().cellX(self.entityId), sim.world().cellY(self.entityId),
+                sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
         return path.length > 0;
     }
 
@@ -213,18 +214,19 @@ public final class SquadStateDumper {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             Unit e = sim.liveUnitAt(i);
             if (e.faction != enemyFaction) continue;
-            if (sim.getZoneGraph().zoneIdAt(e.getCellX(), e.getCellY()) != targetZoneId) continue;
+            if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(e.entityId), sim.world().cellY(e.entityId)) != targetZoneId) continue;
             boolean reachable = false;
             for (Unit m : squadmates) {
                 int[] path = GridPathfinder.findPath(sim.getGrid(),
-                        m.getCellX(), m.getCellY(), e.getCellX(), e.getCellY());
+                        sim.world().cellX(m.entityId), sim.world().cellY(m.entityId),
+                        sim.world().cellX(e.entityId), sim.world().cellY(e.entityId));
                 if (path.length > 0) { reachable = true; break; }
             }
             if (!reachable) anyUnreachable = true;
             JSONObject eo = new JSONObject();
             eo.put("id", e.id);
-            eo.put("cellX", e.getCellX());
-            eo.put("cellY", e.getCellY());
+            eo.put("cellX", sim.world().cellX(e.entityId));
+            eo.put("cellY", sim.world().cellY(e.entityId));
             eo.put("reachableFromAnyMember", reachable);
             enemies.put(eo);
         }

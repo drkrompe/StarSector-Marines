@@ -65,7 +65,7 @@ abstract class AbstractZoneAction implements Action {
 
     /** True iff {@code member}'s logical cell lies inside {@link #targetZoneId}. */
     protected final boolean memberInZone(Unit member, BattleView sim) {
-        return sim.getZoneGraph().zoneIdAt(member.getCellX(), member.getCellY()) == targetZoneId;
+        return sim.getZoneGraph().zoneIdAt(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId)) == targetZoneId;
     }
 
     /**
@@ -95,31 +95,31 @@ abstract class AbstractZoneAction implements Action {
 
         boolean inContact = false;
         if (target != null) {
-            float d = TacticalScoring.cellDistance(member.getCellX(), member.getCellY(),
-                    target.getCellX(), target.getCellY());
-            boolean visible = sim.getGrid().hasLineOfSight(member.getCellX(), member.getCellY(),
-                    target.getCellX(), target.getCellY());
-            inContact = d <= member.getAttackRange() && visible;
-            if (inContact && member.getCooldownTimer() <= 0f) {
+            float d = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+                    sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+            boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
+                    sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+            inContact = d <= sim.world().attackRange(member.entityId) && visible;
+            if (inContact && sim.world().cooldownTimer(member.entityId) <= 0f) {
                 sim.fireShot(member, target, haltOnContact ? FireStance.STANCED : FireStance.MOVING);
-                member.setCooldownTimer(member.attackCooldown);
+                sim.world().setCooldownTimer(member.entityId, member.attackCooldown);
                 member.beginBurst(target);
             }
         }
 
         if (haltOnContact && inContact) {
             if (!member.pathEmpty()) sim.clearPath(member);
-            member.setMoveProgress(0f);
-            member.setRenderPos(member.getCellX(), member.getCellY());
+            sim.world().setMoveProgress(member.entityId, 0f);
+            member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
             if (squad.timeSinceReplan >= CONTACT_HALT_REPLAN_THROTTLE) {
                 squad.timeSinceReplan = Planner.REPLAN_PERIOD;
             }
             return;
         }
 
-        if (member.getMoveProgress() == 0f) {
+        if (sim.world().moveProgress(member.entityId) == 0f) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                    member.getCellX(), member.getCellY(), destX, destY, sim.getOccupancyMap()));
+                    sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), destX, destY, sim.getOccupancyMap()));
         }
         sim.advanceMovement(member);
     }

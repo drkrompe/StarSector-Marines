@@ -38,8 +38,8 @@ public final class KitRetrieverBehavior implements UnitBehavior {
 
         fireOpportunistically(u, sim);
 
-        if (u.getMoveProgress() == 0f) {
-            sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), u.getCellX(), u.getCellY(), drop.cellX, drop.cellY, sim.getOccupancyMap()));
+        if (sim.world().moveProgress(u.entityId) == 0f) {
+            sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), drop.cellX, drop.cellY, sim.getOccupancyMap()));
         }
         sim.advanceMovement(u);
     }
@@ -58,16 +58,16 @@ public final class KitRetrieverBehavior implements UnitBehavior {
             target = sim.getTacticalScoring().findBestTarget(u);
             u.setTarget(target);
         }
-        if (u.getCooldownTimer() > 0f) u.setCooldownTimer(u.getCooldownTimer() - BattleSimulation.TICK_DT);
+        if (sim.world().cooldownTimer(u.entityId) > 0f) sim.world().setCooldownTimer(u.entityId, sim.world().cooldownTimer(u.entityId) - BattleSimulation.TICK_DT);
         if (target == null) return;
-        float dist = TacticalScoring.cellDistance(u.getCellX(), u.getCellY(), target.getCellX(), target.getCellY());
-        boolean canFire = dist <= u.getAttackRange()
-                && sim.getGrid().hasLineOfSight(u.getCellX(), u.getCellY(), target.getCellX(), target.getCellY())
-                && u.getCooldownTimer() <= 0f;
+        float dist = TacticalScoring.cellDistance(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+        boolean canFire = dist <= sim.world().attackRange(u.entityId)
+                && sim.getGrid().hasLineOfSight(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId))
+                && sim.world().cooldownTimer(u.entityId) <= 0f;
         if (canFire) {
             // Retriever fires while pathing to a kit — MOVING accuracy penalty.
             sim.fireShot(u, target, FireStance.MOVING);
-            u.setCooldownTimer(u.attackCooldown);
+            sim.world().setCooldownTimer(u.entityId, u.attackCooldown);
             u.beginBurst(target);
         }
     }

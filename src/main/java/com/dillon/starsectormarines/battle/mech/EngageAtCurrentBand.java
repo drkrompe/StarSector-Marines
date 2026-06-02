@@ -52,9 +52,9 @@ public final class EngageAtCurrentBand implements Action {
         u.setTarget(target);
         if (target == null) return ActionStatus.RUNNING;
 
-        float dist = TacticalScoring.cellDistance(u.getCellX(), u.getCellY(), target.getCellX(), target.getCellY());
-        boolean inRange = dist <= u.getAttackRange();
-        boolean visible = sim.getGrid().hasLineOfSight(u.getCellX(), u.getCellY(), target.getCellX(), target.getCellY());
+        float dist = TacticalScoring.cellDistance(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
+        boolean inRange = dist <= sim.world().attackRange(u.entityId);
+        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
 
         // The fire pass runs outside the inRange-and-visible gate because LRMs
         // are indirect-fire capable — a mech with line of sight blocked by a
@@ -69,24 +69,24 @@ public final class EngageAtCurrentBand implements Action {
         // its short-range weapons (LRMs already fire from here via the
         // indirect path above).
         boolean closeEngagement = inRange && visible && dist <= u.mech.srmPod.range;
-        if (!closeEngagement && u.getMoveProgress() == 0f) {
+        if (!closeEngagement && sim.world().moveProgress(u.entityId) == 0f) {
             int[] dest = sim.getTacticalScoring().findFiringPosition(u, target);
             if (dest == null) {
                 // No reachable firing or vantage cell for the current target.
                 // Drop and let the mech's per-tick target acquisition re-pick.
                 // LRM indirect fire above already ran for this tick — chaingun /
                 // SRM stay quiet until a reachable target is acquired.
-                u.setTargetId(0L);
+                sim.world().setTargetId(u.entityId, 0L);
             } else {
                 sim.setPath(u, GridPathfinder.findPath(sim.getGrid(),
-                        u.getCellX(), u.getCellY(), dest[0], dest[1], sim.getOccupancyMap()));
+                        sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), dest[0], dest[1], sim.getOccupancyMap()));
             }
         }
         if (u.pathIdx < u.pathCellCount()) {
             sim.advanceMovement(u);
         } else {
-            u.setMoveProgress(0f);
-            u.setRenderPos(u.getCellX(), u.getCellY());
+            sim.world().setMoveProgress(u.entityId, 0f);
+            u.setRenderPos(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId));
         }
         return ActionStatus.RUNNING;
     }
