@@ -1,96 +1,54 @@
 package com.dillon.starsectormarines.battle.vision;
 
-import com.dillon.starsectormarines.battle.unit.Unit;
-import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.world.model.Building;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
-import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 /**
  * Periodic pass that decides which buildings reveal their interiors to the
- * player. Driven by {@link com.dillon.starsectormarines.battle.sim.BattleSimulation}
- * at roughly 10 Hz (every 3rd 30 Hz tick) — the render path lerps
- * {@code currentAlpha → targetAlpha} per frame so the cadence stutter doesn't
- * pop visibly.
+ * player. Driven by {@link VisionService} at roughly 10 Hz (every 3rd 30 Hz
+ * tick) — the render path lerps {@code currentAlpha → targetAlpha} per frame so
+ * the cadence stutter doesn't pop visibly.
  *
- * <p>Per building, the reveal rule is:
- * <ol>
- *   <li>Any contributor unit (faction in
- *       {@link PlayerVisionState#contributors}) standing inside the building's
- *       bbox → instant reveal. Cheap bbox test, no raycast.</li>
- *   <li>Otherwise, find the closest contributor unit and raycast LOS to a
- *       sparse perimeter sample: bbox corners + bbox center. If any hit, the
- *       building reveals.</li>
- *   <li>No contributor in raycast range or all rays blocked by walls → roof
- *       stays opaque.</li>
- * </ol>
+ * <p><strong>Reveal rule:</strong> a building reveals (roof alpha → 0) iff any of
+ * its <em>interior</em> cells is currently revealed in the fog-of-war bitmap
+ * ({@link VisionService#cellRevealedArray()}) — the same per-cell shadowcast
+ * visibility that gates unit rendering. A building's {@link Building#cellsX}/
+ * {@link Building#cellsY} are interior floor cells only (the flood-fill seed
+ * set, walls excluded), so a cell is revealed exactly when a contributor can
+ * actually see into the room — through a door, a breach, or from inside.
  *
- * <p>The sparse-sample approach trades a fully accurate reveal (would need
- * one ray per perimeter cell) for cheap O(buildings × 1 nearest unit × 5 rays)
- * work that's invisible to the player — a 4×4 room is small enough that
- * "any of 5 sample points visible" is indistinguishable from "any cell
- * visible." For larger buildings the same approximation tends to over-reveal
- * by a tile or two of latency near the perimeter, which reads fine.
+ * <p>This replaced an earlier closest-contributor + 5-perimeter-sample raycast
+ * that <em>under</em>-revealed: it tested only the single nearest unit (a
+ * farther unit with a clear shot into the room never counted) and only five
+ * sample points (a sightline to a non-sampled interior cell was missed), so the
+ * roof could stay opaque while a unit was demonstrably shooting in. Reading the
+ * fog bitmap closes that gap — it's the player's true vision, every contributor
+ * and every visible cell — and is cheaper (an array lookup per interior cell, no
+ * raycasts). Note: air vision sources ({@code airLosRadius} shuttles/fighters)
+ * also populate the bitmap, so a craft overhead can briefly reveal a roof — an
+ * intended consequence of "if the player can see in, the roof opens."
  */
 public final class BuildingVisibilityPass {
 
-    /** Maximum cell distance from a contributor unit at which a building can be revealed by LOS. */
-    private static final int MAX_VISION_RANGE = 18;
-
     private BuildingVisibilityPass() {}
 
-    public static void update(Buildings buildings,
-                              UnitRegistry registry,
-                              NavigationGrid grid,
-                              PlayerVisionState vision) {
-        if (buildings == null || buildings.isEmpty()) return;
+    public static void update(Buildings buildings, boolean[] cellRevealed,
+                              int gridWidth, int gridHeight) {
+        if (buildings == null || buildings.isEmpty() || cellRevealed == null) return;
 
         for (Building b : buildings.all()) {
-            b.targetAlpha = computeTargetAlpha(b, registry, grid, vision);
+            b.targetAlpha = anyInteriorCellRevealed(b, cellRevealed, gridWidth, gridHeight) ? 0f : 1f;
         }
     }
 
-    private static float computeTargetAlpha(Building b,
-                                            UnitRegistry registry,
-                                            NavigationGrid grid,
-                                            PlayerVisionState vision) {
-        // Pass 1 — anyone inside the bbox? Cheap. (Dense registry is live-only.)
-        for (int i = 0, n = registry.liveCount(); i < n; i++) {
-            Unit u = registry.get(i);
-            if (!vision.isContributor(u.faction)) continue;
-            if (b.containsCell(u.getCellX(), u.getCellY())) {
-                return 0f;
-            }
+    private static boolean anyInteriorCellRevealed(Building b, boolean[] cellRevealed,
+                                                   int gridWidth, int gridHeight) {
+        for (int i = 0, n = b.cellCount(); i < n; i++) {
+            int cx = b.cellsX[i];
+            int cy = b.cellsY[i];
+            if (cx < 0 || cx >= gridWidth || cy < 0 || cy >= gridHeight) continue;
+            if (cellRevealed[cy * gridWidth + cx]) return true;
         }
-
-        // Pass 2 — closest outside contributor + perimeter raycast.
-        int cx = (b.minX + b.maxX) >> 1;
-        int cy = (b.minY + b.maxY) >> 1;
-        Unit closest = null;
-        int closestDistSq = MAX_VISION_RANGE * MAX_VISION_RANGE + 1;
-        for (int i = 0, n = registry.liveCount(); i < n; i++) {
-            Unit u = registry.get(i);
-            if (!vision.isContributor(u.faction)) continue;
-            int dx = u.getCellX() - cx;
-            int dy = u.getCellY() - cy;
-            int distSq = dx * dx + dy * dy;
-            if (distSq < closestDistSq) {
-                closestDistSq = distSq;
-                closest = u;
-            }
-        }
-        if (closest == null) return 1f;
-
-        // Five perimeter samples — four bbox corners + center. Cheap to LOS
-        // and covers a wider arc than just the centroid (a unit peeking around
-        // one corner of a long building would otherwise have to walk further
-        // to reveal it).
-        if (grid.hasLineOfSight(closest.getCellX(), closest.getCellY(), cx, cy)) return 0f;
-        if (grid.hasLineOfSight(closest.getCellX(), closest.getCellY(), b.minX, b.minY)) return 0f;
-        if (grid.hasLineOfSight(closest.getCellX(), closest.getCellY(), b.maxX, b.minY)) return 0f;
-        if (grid.hasLineOfSight(closest.getCellX(), closest.getCellY(), b.minX, b.maxY)) return 0f;
-        if (grid.hasLineOfSight(closest.getCellX(), closest.getCellY(), b.maxX, b.maxY)) return 0f;
-
-        return 1f;
+        return false;
     }
 }

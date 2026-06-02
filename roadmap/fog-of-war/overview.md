@@ -26,15 +26,19 @@ iterate `sim.getUnits()` for reveal state). See the memory note
 
 Smaller follow-ups, not yet sliced into stories:
 
-- **Merge `BuildingVisibilityPass` into the fog bitmap** — buildings reveal
-  from cell coverage rather than a parallel pass. *Forcing function observed:*
-  roof reveal **under-reveals** vs. shooting LoS — a unit can have a clear line
-  into a room (and shoot in) while the roof stays opaque. Cause: the pass reveals
-  via the **single closest** contributor unit + a **5-point** perimeter sample
-  (bbox corners + center), so a farther unit with a clear shot is never tested,
-  and LoS to a non-sampled perimeter cell is missed. Per-cell fog coverage (same
-  source as shooting LoS) would close the divergence. See
-  `battle/vision/BuildingVisibilityPass.computeTargetAlpha`.
+- ~~**Merge `BuildingVisibilityPass` into the fog bitmap**~~ — ✅ **DONE.**
+  `BuildingVisibilityPass.update` now reveals a roof iff any of the building's
+  interior cells (`Building.cellsX/cellsY`, walls excluded) is currently revealed
+  in `VisionService.cellRevealedArray()` — the same per-cell shadowcast the player
+  sees with. Closed the under-reveal divergence: the old closest-contributor +
+  5-perimeter-sample raycast missed farther shooters and non-sampled cells, so a
+  roof could stay opaque while a unit was shooting into the room. Now every
+  contributor + every visible interior cell counts, and it's cheaper (array
+  lookups, no raycasts). The `grid`/`registry`/`visionState` params dropped; the
+  `tick(simTickIndex, grid, registry)` signature lost its dead `grid` arg.
+  `BuildingVisibilityPassTest` pins the rule. *Side effect:* air vision sources
+  (`airLosRadius` shuttles/fighters) can briefly reveal a roof from overhead —
+  intended ("if the player can see in, the roof opens").
 - **Last-known-position ghosts** — faded silhouette at a unit's last seen
   location after it goes HIDDEN.
 - **Shot/projectile visibility gating** — shots are currently always visible

@@ -200,19 +200,21 @@ public final class VisionService {
 
     /**
      * VISION-phase tick. Processes one fog cohort, updates unit visibility,
-     * and runs the building visibility pass.
+     * and runs the building visibility pass. Uses the {@code grid} captured in
+     * {@link #init} — callers needn't re-pass it.
      */
-    public void tick(int simTickIndex, NavigationGrid grid, UnitRegistry registry) {
+    public void tick(int simTickIndex, UnitRegistry registry) {
         if (simTickIndex % 3 != 0) return;
 
         if (initialized) {
             tickFogCohort(registry);
             tickEphemeralSources();
             sweepUnitVisibility(registry);
-        }
-
-        if (!buildings.isEmpty()) {
-            BuildingVisibilityPass.update(buildings, registry, grid, visionState);
+            // Building roofs reveal off the same per-cell fog bitmap (post-cohort/
+            // ephemeral, so it reflects this tick's vision) — see BuildingVisibilityPass.
+            if (!buildings.isEmpty()) {
+                BuildingVisibilityPass.update(buildings, cellRevealed, gridWidth, gridHeight);
+            }
         }
     }
 
