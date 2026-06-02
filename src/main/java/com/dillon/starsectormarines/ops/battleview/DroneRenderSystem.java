@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.component.ComponentStore;
 import com.dillon.starsectormarines.battle.component.Crashing;
 import com.dillon.starsectormarines.battle.drone.Drone;
 import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.vision.VisionService;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
@@ -50,6 +51,7 @@ public final class DroneRenderSystem implements RenderSystem {
         if (cache == null) return;
 
         VisionService vis = ctx.sim.getVision();
+        UnitRegistry registry = ctx.sim.getUnitRegistry();
         BattleCamera cam = ctx.camera;
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
@@ -81,14 +83,14 @@ public final class DroneRenderSystem implements RenderSystem {
             Unit u = ctx.sim.liveUnitAt(i);
             if (!(u instanceof Drone)) continue;
             Drone d = (Drone) u;
-            byte uv = vis.getUnitVisibility(d.denseIdx);
+            byte uv = vis.getUnitVisibility(i);
             if (uv == VisionService.VIS_HIDDEN) continue;
 
             float cx = cam.cellToScreenX(d.body.x);
             float cy = cam.cellToScreenY(d.body.y);
             float drawAlpha = alphaMult;
             if (uv == VisionService.VIS_FADING) {
-                drawAlpha *= vis.getFadeAlpha(d.denseIdx);
+                drawAlpha *= vis.getFadeAlpha(i);
             }
 
             out.addSprite(RenderLayer.DRONES, cache.sprite,
@@ -97,7 +99,7 @@ public final class DroneRenderSystem implements RenderSystem {
 
             float barY = cy + pxH / 2f + BattleRenderer.HP_BAR_GAP;
             HpBarDecor.emit(out, RenderLayer.DRONES, cx, barY, barW,
-                    d.getHp() / d.getMaxHp(), drawAlpha);
+                    registry.getHp(i) / registry.getMaxHp(i), drawAlpha);
         }
     }
 }

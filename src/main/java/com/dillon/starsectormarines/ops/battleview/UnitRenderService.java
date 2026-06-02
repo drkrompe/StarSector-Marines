@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.RenderPositionService;
 import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vision.VisionService;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
@@ -82,13 +83,14 @@ public final class UnitRenderService implements RenderSystem {
      */
     private void sweepFootprints(RenderContext ctx, DrawList out) {
         BattleCamera cam = ctx.camera;
+        UnitRegistry registry = ctx.sim.getUnitRegistry();
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
         for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
             Unit u = ctx.sim.liveUnitAt(i);
             if (!RenderAppearance.of(u.type).drawsFootprint) continue;
-            float x0 = cam.cellToScreenX(u.getCellX());
-            float y0 = cam.cellToScreenY(u.getCellY());
+            float x0 = cam.cellToScreenX(registry.getCellX(i));
+            float y0 = cam.cellToScreenY(registry.getCellY(i));
             GroundFootprint.emit(out, RenderLayer.UNITS, x0, y0, cellPx, alphaMult);
         }
     }
@@ -104,14 +106,15 @@ public final class UnitRenderService implements RenderSystem {
      */
     private void sweepTurretBodies(RenderContext ctx, DrawList out) {
         BattleCamera cam = ctx.camera;
+        UnitRegistry registry = ctx.sim.getUnitRegistry();
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
         for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
             Unit u = ctx.sim.liveUnitAt(i);
             if (!(u instanceof MapTurret)) continue;
             MapTurret t = (MapTurret) u;
-            float cx = cam.cellToScreenX(t.getCellX() + 0.5f);
-            float cy = cam.cellToScreenY(t.getCellY() + 0.5f);
+            float cx = cam.cellToScreenX(registry.getCellX(i) + 0.5f);
+            float cy = cam.cellToScreenY(registry.getCellY(i) + 0.5f);
 
             ShuttleSpriteCache base = sprites.turretSprites().get(t.kind);
             if (base == null) {
@@ -147,13 +150,14 @@ public final class UnitRenderService implements RenderSystem {
         ShuttleSpriteCache hub = sprites.droneHubSprite();
         if (hub == null) return;
         BattleCamera cam = ctx.camera;
+        UnitRegistry registry = ctx.sim.getUnitRegistry();
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
         for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
             Unit u = ctx.sim.liveUnitAt(i);
             if (!(u instanceof DroneHubUnit)) continue;
-            float cx = cam.cellToScreenX(u.getCellX() + 0.5f);
-            float cy = cam.cellToScreenY(u.getCellY() + 0.5f);
+            float cx = cam.cellToScreenX(registry.getCellX(i) + 0.5f);
+            float cy = cam.cellToScreenY(registry.getCellY(i) + 0.5f);
             emitWholeSprite(out, hub, 0f, DroneHubUnit.VISUAL_CELLS, cellPx, cx, cy, alphaMult);
         }
     }
@@ -253,6 +257,7 @@ public final class UnitRenderService implements RenderSystem {
     private void sweepLiveSprites(RenderContext ctx, DrawList out) {
         BattleCamera cam = ctx.camera;
         BattleSimulation sim = ctx.sim;
+        UnitRegistry registry = sim.getUnitRegistry();
         float unitSize = cam.cellPxSize() * BattleRenderer.UNIT_FRAC;
         float half = unitSize / 2f;
         float alphaMult = ctx.alphaMult;
@@ -261,12 +266,12 @@ public final class UnitRenderService implements RenderSystem {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             Unit u = sim.liveUnitAt(i);
             if (RenderAppearance.of(u.type).spriteKind != RenderAppearance.SpriteKind.SHEET) continue;
-            byte uv = vis.getUnitVisibility(u.denseIdx);
+            byte uv = vis.getUnitVisibility(i);
             if (uv == VisionService.VIS_HIDDEN) continue;
             float unitAlpha = alphaMult;
-            if (uv == VisionService.VIS_FADING) unitAlpha *= vis.getFadeAlpha(u.denseIdx);
+            if (uv == VisionService.VIS_FADING) unitAlpha *= vis.getFadeAlpha(i);
 
-            boolean inAim = u.getSecondaryActionTimer() > 0f && u.secondaryWeapon != null;
+            boolean inAim = registry.getSecondaryActionTimer(i) > 0f && u.secondaryWeapon != null;
             UnitSpriteCache cache = sprites.unitSprites().get(u.type);
             if (inAim) {
                 UnitSpriteCache aim = sprites.marineSecondaryAimSheets().get(u.secondaryWeapon);
@@ -343,6 +348,7 @@ public final class UnitRenderService implements RenderSystem {
      */
     private void sweepHpBars(RenderContext ctx, DrawList out) {
         BattleCamera cam = ctx.camera;
+        UnitRegistry registry = ctx.sim.getUnitRegistry();
         float cellPx = cam.cellPxSize();
         float unitSize = cellPx * BattleRenderer.UNIT_FRAC;
         float half = unitSize / 2f;
@@ -352,10 +358,10 @@ public final class UnitRenderService implements RenderSystem {
         for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
             Unit u = ctx.sim.liveUnitAt(i);
             if (!RenderAppearance.of(u.type).drawsHpBar) continue;
-            byte uv = vis.getUnitVisibility(u.denseIdx);
+            byte uv = vis.getUnitVisibility(i);
             if (uv == VisionService.VIS_HIDDEN) continue;
             float barAlpha = alphaMult;
-            if (uv == VisionService.VIS_FADING) barAlpha *= vis.getFadeAlpha(u.denseIdx);
+            if (uv == VisionService.VIS_FADING) barAlpha *= vis.getFadeAlpha(i);
 
             float cx = cam.cellToScreenX(u.getRenderX() + 0.5f);
             float cy = cam.cellToScreenY(u.getRenderY() + 0.5f);
@@ -368,7 +374,7 @@ public final class UnitRenderService implements RenderSystem {
                 barY = cy + half + BattleRenderer.HP_BAR_GAP;
             }
             HpBarDecor.emit(out, RenderLayer.UNITS, cx, barY, unitSize,
-                    u.getHp() / u.getMaxHp(), barAlpha);
+                    registry.getHp(i) / registry.getMaxHp(i), barAlpha);
         }
     }
 
