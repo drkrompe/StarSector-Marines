@@ -64,7 +64,7 @@ public final class PatrolMotion {
     public static ActionStatus advance(Unit member, Squad squad, BattleControl sim,
                                        WaypointSource source, boolean fireWhilePatrolling) {
         if (squad.patrolDwellTimer > 0f) {
-            if (member == squad.leader) squad.patrolDwellTimer -= BattleSimulation.TICK_DT;
+            if (member.entityId == squad.leaderId) squad.patrolDwellTimer -= BattleSimulation.TICK_DT;
             onHold(member, sim, fireWhilePatrolling);
             return ActionStatus.RUNNING;
         }

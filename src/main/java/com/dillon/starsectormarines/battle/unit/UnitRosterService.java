@@ -209,7 +209,13 @@ public final class UnitRosterService {
     public int mintSquad(Faction faction, Unit leader) {
         synchronized (squads) {
             Squad squad = new Squad(nextSquadId++, faction);
-            squad.leader = leader;
+            // leader may be null (some callers mint an empty squad first, then
+            // attach members) — 0L is the no-leader sentinel.
+            squad.leaderId = (leader != null) ? leader.entityId : 0L;
+            // Denormalize squad type from the first member (squads are
+            // homogeneous) so isMechSquad() needs no leader deref and survives
+            // leader death.
+            squad.mechSquad = leader != null && leader.mech != null;
             squads.put(squad.id, squad);
             return squad.id;
         }

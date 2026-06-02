@@ -54,8 +54,8 @@ public final class DroneSpawner {
             drone.squadId = squadId;
         } else {
             drone.squadId = hub.droneSquad.id;
-            if (hub.droneSquad.leader == null || !hub.droneSquad.leader.isAlive()) {
-                hub.droneSquad.leader = drone;
+            if (sim.resolveUnit(hub.droneSquad.leaderId) == null) {
+                hub.droneSquad.leaderId = drone.entityId;
             }
         }
         return drone;

@@ -55,8 +55,8 @@ public final class ZoneQueries {
     public static int squadCurrentZone(Squad squad, BattleView sim) {
         if (squad == null || sim == null) return -1;
         if (squad.aliveMembers <= 0) return -1;
-        Unit leader = squad.leader;
-        if (leader != null && leader.isAlive()) {
+        Unit leader = sim.resolveUnit(squad.leaderId);
+        if (leader != null) {
             int zone = sim.getZoneGraph().zoneIdAt(leader.getCellX(), leader.getCellY());
             if (zone >= 0) return zone;
             // Leader on a wall cell (transient — pathfinder placed them there

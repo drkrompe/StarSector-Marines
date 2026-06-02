@@ -71,7 +71,7 @@ public class GarrisonPatrolTest {
         Unit leader = new Unit("L", Faction.MARINE, UnitType.MARINE, 30, 2);
         sim.addUnit(leader);
         Squad squad = new Squad(1, Faction.MARINE);
-        squad.leader = leader;
+        squad.leaderId = leader.entityId;
         squad.aliveMembers = 1;
         squad.centroidX = 30; squad.centroidY = 2;
 

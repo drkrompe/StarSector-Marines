@@ -79,15 +79,23 @@ public final class DamageResolver {
     }
 
     /**
-     * Resolves a damage event. Idempotent w.r.t. already-dead targets — the
-     * HP write still runs (drives the corpse into the negatives, no behavior
-     * change) but the death cascade is gated on the wasAlive→isAlive
-     * transition, so a target killed by a prior queued entry doesn't re-emit
-     * equipment / death-FX / leader-promo when a stacked entry resolves
-     * against it later in the same flush.
+     * Resolves a damage event. Idempotent w.r.t. already-dead targets — a
+     * target killed by a prior queued entry is skipped entirely when a stacked
+     * entry resolves against it later in the same flush, so it doesn't re-emit
+     * equipment / death-FX / leader-promo.
+     *
+     * <p>The early-out is also a fail-loud guard: a lethal entry runs
+     * {@link UnitRosterService#releaseFromRegistry} in the cascade below, which
+     * nulls the unit's registry pointer. Stacked damage against the same target
+     * in one parallel UPDATE_UNITS flush means a later entry sees a released
+     * unit, whose Group-C cell accessors ({@link Unit#getCellX}/{@link
+     * Unit#getCellY}, read just below for the cover lookup) NPE. Death and
+     * registry-release are atomic inside this method, so {@code !wasAlive}
+     * means the target is already dead — and the damage is moot anyway.
      */
     public void resolve(Unit target, float damage, float vsTurretMult, float moraleImpact) {
         boolean wasAlive = target.isAlive();
+        if (!wasAlive) return;
         int targetCover = grid.getCoverAt(target.getCellX(), target.getCellY());
         float dr = COVER_DAMAGE_REDUCTION[Math.min(targetCover, COVER_DAMAGE_REDUCTION.length - 1)];
         // vsTurretMult is misnamed history — it's the "vs hardened" multiplier.
@@ -111,8 +119,9 @@ public final class DamageResolver {
             // (turrets, civilians, etc.) skip — no leader to promote.
             if (target.squadId != Unit.NO_SQUAD) {
                 Squad ls = squads.get(target.squadId);
-                if (ls != null && ls.leader == target) {
-                    ls.leader = pickPromotionCandidate(ls, target);
+                if (ls != null && ls.leaderId == target.entityId) {
+                    Unit promoted = pickPromotionCandidate(ls, target);
+                    ls.leaderId = (promoted != null) ? promoted.entityId : 0L;
                 }
             }
             // Publish the death to the mailbox BEFORE the registry release,

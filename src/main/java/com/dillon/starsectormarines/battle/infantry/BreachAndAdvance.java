@@ -145,7 +145,7 @@ public final class BreachAndAdvance implements Action {
             // timer by ~N× (or drop increments under torn writes), either
             // way mis-tripping the timeout. One canonical writer per tick
             // gives a deterministic timer regardless of worker count.
-            if (member == squad.leader) {
+            if (member.entityId == squad.leaderId) {
                 squad.breachStackupTimer += BattleSimulation.TICK_DT;
             }
         }

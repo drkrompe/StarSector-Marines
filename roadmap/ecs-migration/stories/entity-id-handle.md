@@ -58,12 +58,23 @@ Held-ref → id, smallest-blast-radius first; each independently shippable + gre
    the `HeavyWeapons` continuation pass resolves `registry.getOrNull(id)` — a
    target killed mid-salvo resolves to null and drops the lock, no `isAlive()`
    on a dangling ref. Established the pattern. Full suite green at 677.
-2. **Turret aim** — `TurretAim.State.{target, excludeFromCrowding}` → ids,
-   resolved in `AirSystem`/`GroundSystem` aim.
-3. **`Squad.leader`** → `leaderId`. Highest churn (cohesion, GOAP zone queries,
-   leader promotion, panels) — its own slice. Promotion in
-   `DamageResolver.pickPromotionCandidate` already runs pre-release, so it stores
-   the new leader's id directly.
+2. **`Squad.leader` → `leaderId` — SHIPPED (2026-06-02).** The highest-churn
+   held ref (~13 sites / 12 files). Identity compares → `member.entityId ==
+   squad.leaderId`; `isAlive()`/cell reads → `sim.resolveUnit(leaderId)` (null =
+   dead/none, which *replaces* the isAlive check). `mintSquad` null-guards the
+   leader (`0L` sentinel). **`isMechSquad()` denormalized** — it probed
+   `leader.mech`, which both needed a leader deref and silently flipped a mech
+   squad to "infantry" once leaderless; now a `mechSquad` flag is set once at
+   mint from the first member (squads are homogeneous), so it survives leader
+   death. Full suite green at 677.
+3. **`Squad.droneHub`** (`DroneHubUnit`) → `droneHubId`. Same pattern; smaller
+   (hub goals + spawner). The other persistent-held ref on `Squad`.
+4. **Turret aim (cosmetic, deferred)** — `TurretAim.State.{target,
+   excludeFromCrowding}` are **transient**: the State is rebuilt fresh each tick
+   and `target` is `getOrNull`-resolved from the caller's canonical id field
+   (`v.turretTargetId` / `mt.targetId`), so they never dangle across ticks. Not
+   an NPE source; convert only as a consistency pass if/when the static
+   `TurretAim.tick` gets a resolver.
 4. **Pending-mutation POJOs** — `PendingTargetMutation.target`,
    `PendingOccupancyDelta.u`. Drained same-tick, so lower NPE risk; convert for
    consistency (or document why they stay object refs).

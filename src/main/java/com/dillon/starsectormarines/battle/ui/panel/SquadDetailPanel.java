@@ -128,7 +128,7 @@ public final class SquadDetailPanel implements HudPanel {
         // Leader first (if set + alive), then stable by unit id so the row
         // order is deterministic across frames.
         live.sort(Comparator
-                .comparing((Unit u) -> currentSquad.leader != null && currentSquad.leader == u ? 0 : 1)
+                .comparing((Unit u) -> currentSquad.leaderId == u.entityId ? 0 : 1)
                 .thenComparing(u -> u.id));
         for (Unit u : live) {
             rows.add(new MemberRow(u.getHp(), u.getMaxHp(), u.primaryWeapon,

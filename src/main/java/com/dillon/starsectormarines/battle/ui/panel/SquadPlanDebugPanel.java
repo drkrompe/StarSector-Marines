@@ -669,9 +669,10 @@ public final class SquadPlanDebugPanel implements HudPanel {
      */
     private void publishCaptainHighlight(Squad squad) {
         HighlightOverlay overlay = ctx.getHighlights();
-        if (squad.leader != null && squad.leader.isAlive()) {
+        Unit leaderUnit = ctx.getSim().resolveUnit(squad.leaderId);
+        if (leaderUnit != null) {
             overlay.put(HighlightOverlay.SRC_CAPTAIN, List.of(
-                    new CellHighlight(squad.leader.getCellX(), squad.leader.getCellY(), HighlightOverlay.COLOR_CAPTAIN)));
+                    new CellHighlight(leaderUnit.getCellX(), leaderUnit.getCellY(), HighlightOverlay.COLOR_CAPTAIN)));
         } else {
             overlay.clear(HighlightOverlay.SRC_CAPTAIN);
         }

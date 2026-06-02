@@ -74,7 +74,7 @@ public class GuardPostPatrolTest {
 
         Unit leader = new Unit("L", Faction.DEFENDER, UnitType.MARINE, anchorX, anchorY);
         sim.addUnit(leader);
-        squad.leader = leader;
+        squad.leaderId = leader.entityId;
 
         GuardPostPatrol patrol = new GuardPostPatrol(anchorX, anchorY, radius);
 
@@ -102,7 +102,7 @@ public class GuardPostPatrolTest {
 
         Unit leader = new Unit("L", Faction.DEFENDER, UnitType.MARINE, anchorX, anchorY);
         sim.addUnit(leader);
-        squad.leader = leader;
+        squad.leaderId = leader.entityId;
 
         // Simulate a posture switch: the squad carries a waypoint left by a
         // previous (wider) patrol, well outside this post's box. The squad is

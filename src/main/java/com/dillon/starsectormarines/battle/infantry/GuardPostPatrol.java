@@ -201,7 +201,7 @@ public final class GuardPostPatrol implements Action {
      * the give-ground response.
      */
     private float effectiveLeash(Unit member, Squad squad, BattleControl sim) {
-        if (member == squad.leader || cachedLeashRadius < 0f) {
+        if (member.entityId == squad.leaderId || cachedLeashRadius < 0f) {
             cachedLeashRadius = computeLeash(squad, sim);
         }
         return cachedLeashRadius;

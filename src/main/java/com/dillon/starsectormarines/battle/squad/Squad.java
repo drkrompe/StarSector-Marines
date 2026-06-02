@@ -57,16 +57,24 @@ public final class Squad {
     public final int id;
     public final Faction faction;
     /**
-     * Squad leader. Initially the first marine to deboard (or the first
-     * defender minted into the squad at setup). On leader death,
-     * {@code BattleSimulation.applyDamage} promotes the closest still-alive
-     * squad member to take over — preserves direction of travel through
-     * the badge change. The leader's cell is the cohesion anchor that
+     * Squad leader, by entity id ({@code 0L} = none / fully-wiped squad).
+     * Initially the first marine to deboard (or the first defender minted into
+     * the squad at setup). On leader death,
+     * {@code DamageResolver.resolve} promotes the closest still-alive squad
+     * member to take over — preserves direction of travel through the badge
+     * change. The leader's cell is the cohesion anchor that
      * {@link com.dillon.starsectormarines.battle.infantry.InfantryCohesion#cohesionOverride}
-     * pulls drifting members toward; a fully-wiped squad has a null leader
+     * pulls drifting members toward; a fully-wiped squad has {@code leaderId == 0L}
      * and the cohesion helper falls back to the others-centroid.
+     *
+     * <p>Held as an id, not a {@link Unit} ref: the leader can die and be
+     * released from the registry while the squad lives on, so a held object ref
+     * would dangle (the {@code isAlive()}-on-a-corpse hazard). Resolve to the
+     * live {@link Unit} on demand via {@code sim.resolveUnit(leaderId)} /
+     * {@code registry.getOrNull(leaderId)} — {@code null} means dead-or-none.
+     * Compare membership by id ({@code member.entityId == leaderId}).
      */
-    public Unit leader;
+    public long leaderId;
 
     /** Current awareness state. Bumped by {@code SquadAlertSystem}; behaviors only read. */
     public SquadAlertLevel alertLevel = SquadAlertLevel.UNAWARE;
@@ -332,7 +340,7 @@ public final class Squad {
      * (not per-sim) so different squads don't contend on the same monitor.
      *
      * <p>Idempotent or commutative per-tick writes that are gated to the squad
-     * leader ({@code if (member == squad.leader)}) bypass the lock as a cheaper
+     * leader ({@code if (member.entityId == squad.leaderId)}) bypass the lock as a cheaper
      * alternative — see {@link com.dillon.starsectormarines.battle.infantry.PatrolRoute}'s
      * dwell-timer decrement for the canonical example.
      *
@@ -348,19 +356,18 @@ public final class Squad {
 
     /**
      * True when this squad's combatants are mechs (carry a
-     * {@link MechLoadoutState}). Read by the per-tick replan dispatch in
-     * {@code BattleSimulation.tick} to route mech squads to
+     * {@link MechLoadoutState}). Set once at mint from the first member's
+     * {@code mech} (squads are homogeneous — {@code BattleSetup} never mixes
+     * mech and infantry members), so it's stable for the squad's life and
+     * <b>survives leader death</b> — unlike the old leader-probe, a mech squad
+     * stays a mech squad while leaderless. Read by the per-tick replan dispatch
+     * in {@code BattleSimulation.tick} to route mech squads to
      * {@code GoapMechBehavior} instead of {@code GoapInfantryBehavior}.
-     *
-     * <p>Relies on {@code BattleSetup} producing homogeneous squads — mech
-     * members and infantry members never share a squad. Probes the leader
-     * (set on the first member at mint time) rather than scanning the unit
-     * list, so a leaderless squad — leader dead, promotion logic not yet
-     * landed — returns {@code false} and the squad falls through to the
-     * infantry path harmlessly until the leader pointer is restored.
      */
+    public boolean mechSquad;
+
     public boolean isMechSquad() {
-        return leader != null && leader.mech != null;
+        return mechSquad;
     }
 
     /**

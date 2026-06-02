@@ -113,7 +113,7 @@ public class ZoneQueriesTest {
         squad.centroidY = 2f;
         Unit leader = new Unit("m1", Faction.MARINE, UnitType.MARINE, 8, 3);
         sim.addUnit(leader); // register so getCellX routes through the registry (cell is fail-loud pre-allocate)
-        squad.leader = leader;
+        squad.leaderId = leader.entityId;
         int rightZone = sim.getZoneGraph().zoneIdAt(8, 3);
         int leftZone  = sim.getZoneGraph().zoneIdAt(2, 2);
         assertNotEquals(leftZone, rightZone, "test prerequisite: halves are distinct zones");
@@ -145,11 +145,12 @@ public class ZoneQueriesTest {
         squad.centroidX = 2f;
         squad.centroidY = 2f;
         Unit deadLeader = new Unit("m1", Faction.MARINE, UnitType.MARINE, 8, 3);
-        // Unit was never registered (squad.leader-only use), so the registry
-        // release is a no-op fast-path on the 0L entityId — the hp write is
-        // what the assertion depends on.
+        // Register, point the squad at its id, then kill it — the kill releases
+        // it from the registry, so sim.resolveUnit(leaderId) returns null and the
+        // query must fall back to the centroid instead of anchoring on a corpse.
+        sim.addUnit(deadLeader);
+        squad.leaderId = deadLeader.entityId;
         TestUnits.kill(sim, deadLeader);
-        squad.leader = deadLeader;
         int leftZone = sim.getZoneGraph().zoneIdAt(2, 2);
         assertEquals(leftZone, ZoneQueries.squadCurrentZone(squad, sim),
                 "dead leader should not anchor the query");

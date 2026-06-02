@@ -70,8 +70,8 @@ public final class InfantryCohesion {
             }
         }
 
-        Unit leader = squad.leader;
-        if (leader != null && leader != self && leader.isAlive()) {
+        Unit leader = sim.resolveUnit(squad.leaderId);
+        if (leader != null && leader != self) {
             float dx = leader.getCellX() - self.getCellX();
             float dy = leader.getCellY() - self.getCellY();
             float dist = (float) Math.sqrt(dx * dx + dy * dy);
