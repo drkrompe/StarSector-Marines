@@ -38,6 +38,15 @@ squad; everyone else stays on the strip search-and-destroy push. See
 
 ## Immediate next
 
+00. **Threat-scored engagement leash** (`stories/19-threat-scored-engagement-leash.md`)
+    — replace the binary `haltOnContact` gate in the zone-push family with a
+    per-tick threat-scored commit-vs-press leash that self-releases (generalize
+    `GuardPostPatrol.computeLeash` to the advance axis). Shots-of-opportunity
+    down-payment already shipped (`8d33ca5` — `closestEnemyInAttackRange`).
+    Cheap slice (omniscient force-ratio + retreating-discount + astride-route)
+    is independently shippable; full honest-threat version parked behind the
+    perception layer (story 15).
+
 0. ~~**Garrison zone-clear scoping + multi-building garrison**~~ — **shipped**
    (`2b31af4`, `4cebcb8`, `87cf47c`, `94e3060`, `8e73d0d`, `7fc2415`, `08ef31e`).
    The AABB scoping fix, the 0a exterior-clear guard, the richer
@@ -83,5 +92,9 @@ squad; everyone else stays on the strip search-and-destroy push. See
   scoping + `GarrisonCompound`/`GarrisonPatrol` multi-building garrison + 0a/0b
   command fixes (all shipped; `GarrisonArea` is the reusable gate primitive,
   `TacticalNode.compoundBounds` the persisted footprint)
+- `stories/19-threat-scored-engagement-leash.md` — commit-vs-press during the
+  zone-push advance as a per-tick threat-scored leash with auto-release
+  (shots-of-opportunity slice shipped `8d33ca5`; scored leash designed,
+  generalizes `GuardPostPatrol.computeLeash`)
 - `complete/` — sealed shipped work (Stage 1 tasks 01–09, Stage 2
   foundation 11, mech Stage 1 14)
