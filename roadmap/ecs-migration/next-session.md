@@ -174,15 +174,34 @@ reference `entityId` instead** (the dangling-ref NPE class). New story:
        loop `i`. Suite green at 727. Deferred to task #14: the static
        `computeFacing`/`computeEightWayFacing` helpers (nullable `sim`, also touch
        `pathCell*`) — same awkward-static class as `effectiveAttackRange`.
-     - **PART 3 (next) — remaining systems + spatial index.** Sites left (a
-       sibling deleted `SimCoupledProxyPlugin`, dropping 7): `UnitSpatialIndex`,
-       `AirSystem`, `UnitUpdateSystem`, `DroneSpawner`, `HubDemolitionSystem`,
-       `TurretDemolitionSystem`, `SquadAlertSystem`, `EquipmentDropService`,
-       `GarrisonPatrol`, `WorldStateBuilder`, `SquadDetailPanel`,
-       `PendingTargetMutation`, `BattleSimulation`. Same per-site rule; most are
-       dense iterators (`i`==denseIdx, zero probe) or per-event held-ref
-       (`requireLiveIndex` once). Candidate for a Sonnet fan-out with the rule +
-       deferred-criteria spec, verified on the main thread.
+     - **PART 3 SHIPPED (`fab9d33` + `e092926`) — remaining systems.** Eleven
+       files swept by the per-site rule. Dense iterators (`i`==denseIdx,
+       zero-probe `registry.<col>(i)`): `AirSystem` hover-follow,
+       `TurretDemolition` guardpost, `EquipmentDropService` pickup+nearest,
+       `SquadAlertSystem` fallback gate, `VisionService.sweepUnitVisibility`
+       (`u.denseIdx`→`i` on its vis/fade arrays). Per-event held-refs
+       (`requireLiveIndex` once): `HubDemolition` cascade, `EquipmentDropService`
+       emit (dead still registered pre-release), `DroneSpawner` tryLaunch,
+       `BattleSimulation` isRoofShielded + targetOf. Narrowed-view sites
+       (`sim.world().<col>(id)`, 2a idiom): `GarrisonPatrol`, `UnitUpdateSystem`,
+       `SquadDetailPanel`, `DroneSpawner` isCellOccupied. Suite green at 731.
+       (`WorldStateBuilder`/`PendingTargetMutation`/`SquadAlertSystem` line-299
+       grep hits were javadoc/comments. Sibling deleted `SimCoupledProxyPlugin`;
+       its replacement `combathybrid/GroundSimBridge` is sibling-owned in-flight
+       work — left untouched.)
+     - **SLICE 2d COMPLETE.** All that remains are sites legitimately owned by
+       task #14 (denseIdx deletion) or by a sibling:
+       - `UnitSpatialIndex` (add/gather) — buckets hold `Unit` refs; cell read is a
+         `denseIdx` field deref (no probe). `requireLiveIndex` per candidate would
+         add a probe to THE proximity primitive → **needs a data-structure change**
+         (denormalize cell coords into bucket entries at add-time). Do it in #14.
+       - `UnitRenderService.computeFacing/computeEightWayFacing` — nullable-`sim`
+         statics that also read `pathCell*`.
+       - `TacticalScoring.effectiveAttackRange` (static, tested statically) +
+         `alliesNearForSpread` pass-2 (per-candidate destIndex gather).
+       - `DamageService:248` (`getTargetId`, holds only the resolver),
+         `FireStance:52` (`getMoveProgress`, static).
+       - `combathybrid/GroundSimBridge` — **sibling-owned**, do not touch.
    - Then model `mech` & other optional `Unit` fields as `ComponentStore`s (cold
      face); then delete `Unit.registry`+`denseIdx` (mops up the TacticalScoring +
      combat leftovers above); then `Unit`→`Entity`.

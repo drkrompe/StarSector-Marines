@@ -220,14 +220,23 @@ this is a per-group sweep, not one commit.
        the vision calls drop `u.denseIdx` for loop `i`. Deferred to task #14: the
        static `computeFacing`/`computeEightWayFacing` (nullable `sim`, touch
        `pathCell*`) — same awkward-static class as `effectiveAttackRange`.
-     - **Part 3 (next) — remaining systems + spatial index.** Sites left (a
-       sibling deleted `SimCoupledProxyPlugin`, −7): `UnitSpatialIndex`, `AirSystem`,
-       `UnitUpdateSystem`, `DroneSpawner`, `HubDemolitionSystem`,
-       `TurretDemolitionSystem`, `SquadAlertSystem`, `EquipmentDropService`,
-       `GarrisonPatrol`, `WorldStateBuilder`, `SquadDetailPanel`,
-       `PendingTargetMutation`, `BattleSimulation`. Same per-site rule; most are
-       dense iterators (`i`==denseIdx) or per-event held-ref. Sonnet fan-out
-       candidate (rule + deferred-criteria spec), verified on main thread.
+     - **Part 3 SHIPPED (2026-06-02, `fab9d33` + `e092926`) — remaining systems.**
+       11 files by the per-site rule. Dense iterators (`i`==denseIdx, zero-probe):
+       `AirSystem`, `TurretDemolition`, `EquipmentDropService` (pickup+nearest),
+       `SquadAlertSystem`, `VisionService.sweepUnitVisibility` (`u.denseIdx`→`i`).
+       Per-event held-refs (`requireLiveIndex` once): `HubDemolition` cascade,
+       `EquipmentDropService` emit, `DroneSpawner` tryLaunch, `BattleSimulation`
+       isRoofShielded + targetOf. Narrowed-view sites (`sim.world().<col>(id)`):
+       `GarrisonPatrol`, `UnitUpdateSystem`, `SquadDetailPanel`, `DroneSpawner`
+       isCellOccupied. Green at 731.
+     - **SLICE 2d (and the slice-2 accessor sweep) COMPLETE.** What's left belongs
+       to task #14 (denseIdx deletion) or a sibling: `UnitSpatialIndex` add/gather
+       (Unit-ref buckets read cells via the `denseIdx` field — converting adds a
+       probe to the proximity primitive; needs cell-coord denormalization into
+       bucket entries), `UnitRenderService.computeFacing/computeEightWayFacing`
+       (nullable-sim statics + `pathCell*`), `TacticalScoring.effectiveAttackRange`
+       + `alliesNearForSpread` pass-2, `DamageService:248`, `FireStance:52`. The
+       new `combathybrid/GroundSimBridge` is sibling-owned — leave it.
 3. **Model the remaining optional fields as presence components** as they're
    touched (`secondaryWeapon`/`secondaryAmmo`, `assignedObjective`,
    `equipmentDropTarget`) — `getOrNull` instead of nullable-field + null-check.
