@@ -523,8 +523,8 @@ public final class TacticalScoring {
      * <p>Caller is responsible for {@code target} being a sensible rocket
      * target ({@link #isHardened}) — the gate doesn't re-check eligibility,
      * just the damage projection. Pass any {@link Entity}; the per-target HP
-     * read works on the full unit hierarchy ({@code Entity.getHp()} is the
-     * canonical SoA-routed accessor for both regular units and turrets).
+     * read ({@code registry.hpById}, the world HEALTH column) works on the
+     * full unit hierarchy — regular units and turrets alike.
      *
      * <p>{@code shooter} is excluded from the projection so the same marine
      * re-checking on a later tick (after his own cooldown) isn't blocked by
