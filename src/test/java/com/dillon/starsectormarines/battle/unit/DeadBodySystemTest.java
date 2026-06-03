@@ -1,22 +1,22 @@
 package com.dillon.starsectormarines.battle.unit;
 
-import com.dillon.starsectormarines.battle.unit.components.DeadBodyComponent;
+import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * End-to-end coverage for the corpse home: a unit that dies gets a
- * {@code DeadBodyComponent} component attached off its {@code DeathEvent} (the dead-sprite
- * render reads that store instead of scanning the legacy units list), and the
- * body — like the render position it pairs with — survives release from the
- * live {@link UnitRegistry}.
+ * End-to-end coverage for the corpse home: a unit that dies gets a corpse
+ * entity spawned into the battle {@code EntityWorld} off its {@code DeathEvent}
+ * (the dead-sprite render walks the corpse archetype's columns instead of
+ * scanning the legacy units list), carrying its identity, death cell, the
+ * draw position frozen at the spot it fell, and the authored death pose.
  *
  * <p>The arena parks a live unit of each faction far from the target so the
  * battle stays in progress across the death drain — otherwise the win-check
@@ -44,31 +44,48 @@ public class DeadBodySystemTest {
         return target;
     }
 
+    private static int corpseCount(BattleSimulation sim) {
+        int n = 0;
+        for (ArchetypeTable t : sim.getEntityWorld().matched(sim.getBattleComponents().corpses)) {
+            n += t.rowCount();
+        }
+        return n;
+    }
+
     @Test
-    public void killedUnitGetsADeadBodyOnTheDeathDrain() {
+    public void killedUnitGetsACorpseEntityOnTheDeathDrain() {
         BattleSimulation sim = openArena(40, 40);
         Entity target = parkArenaWithTarget(sim);
         long id = target.entityId;
 
         sim.applyDamage(target, 100_000f, 20f, 20f);
         assertFalse(sim.world().isAlive(id), "lethal hit kills the unit");
-        // Buffered: the body is attached when the death mailbox drains in the tick.
-        assertFalse(sim.getDeadBodies().has(id),
-                "the DeadBodyComponent attaches on the death drain, not inline");
+        // Buffered: the corpse spawns when the death mailbox drains in the tick.
+        assertEquals(0, corpseCount(sim), "the corpse spawns on the death drain, not inline");
 
         sim.advance(BattleSimulation.TICK_DT);
 
-        assertTrue(sim.getDeadBodies().has(id), "drain → the dead unit gets a DeadBodyComponent");
-        DeadBodyComponent body = sim.getDeadBodies().get(id);
-        assertNotNull(body);
-        assertEquals(UnitType.MARINE, body.type, "body carries the dead unit's archetype");
-        assertEquals(Faction.DEFENDER, body.faction, "body carries the dead unit's side");
-        assertTrue(body.deathPoseIdx >= 0 && body.deathPoseIdx < 4,
-                "a damage-resolver death rolls a valid prone-pose frame");
+        assertEquals(1, corpseCount(sim), "drain → the dead unit gets a corpse entity");
+        BattleComponents c = sim.getBattleComponents();
+        for (ArchetypeTable t : sim.getEntityWorld().matched(c.corpses)) {
+            Object[] types = t.objects(c.IDENTITY, BattleComponents.IDENTITY_TYPE).array();
+            Object[] factions = t.objects(c.IDENTITY, BattleComponents.IDENTITY_FACTION).array();
+            int[] cellX = t.ints(c.POSITION, BattleComponents.POSITION_CELL_X).array();
+            int[] cellY = t.ints(c.POSITION, BattleComponents.POSITION_CELL_Y).array();
+            int[] pose = t.ints(c.SPRITE, BattleComponents.SPRITE_INDEX).array();
+            for (int r = 0, n = t.rowCount(); r < n; r++) {
+                assertEquals(UnitType.MARINE, types[r], "corpse carries the dead unit's archetype");
+                assertEquals(Faction.DEFENDER, factions[r], "corpse carries the dead unit's side");
+                assertEquals(20, cellX[r], "corpse keeps the death cell");
+                assertEquals(20, cellY[r]);
+                assertTrue(pose[r] >= 0 && pose[r] < 4,
+                        "a damage-resolver death authors a valid prone-pose frame into SPRITE.index");
+            }
+        }
     }
 
     @Test
-    public void deadBodyAndItsRenderPositionSurviveRegistryRelease() {
+    public void corpseFreezesTheRenderPositionWhereTheUnitFell() {
         BattleSimulation sim = openArena(40, 40);
         Entity target = parkArenaWithTarget(sim);
         long id = target.entityId;
@@ -80,16 +97,23 @@ public class DeadBodySystemTest {
 
         // The unit is gone from the live registry...
         assertFalse(sim.getUnitRegistry().isLive(id), "dead unit released from the dense registry");
-        // ...but the corpse home + its shared render position both persist, keyed
-        // by the same entity id — the composition the dead-sprite render reads.
-        assertTrue(sim.getDeadBodies().has(id), "the body survives release");
-        assertEquals(deathX, sim.getUnitRegistry().getRenderPositions().getX(id), 1e-6f,
-                "the body's render position is the spot it fell");
-        assertEquals(deathY, sim.getUnitRegistry().getRenderPositions().getY(id), 1e-6f);
+        // ...but the corpse entity persists with the draw position snapshotted at
+        // death — composed into its own RENDER_POSITION columns, no released
+        // Entity handle and no shared-store read after the spawn.
+        assertEquals(1, corpseCount(sim));
+        BattleComponents c = sim.getBattleComponents();
+        for (ArchetypeTable t : sim.getEntityWorld().matched(c.corpses)) {
+            float[] rx = t.floats(c.RENDER_POSITION, BattleComponents.RENDER_POSITION_X).array();
+            float[] ry = t.floats(c.RENDER_POSITION, BattleComponents.RENDER_POSITION_Y).array();
+            for (int r = 0, n = t.rowCount(); r < n; r++) {
+                assertEquals(deathX, rx[r], 1e-6f, "the corpse's draw position is the spot it fell");
+                assertEquals(deathY, ry[r], 1e-6f);
+            }
+        }
     }
 
     @Test
-    public void liveUnitsHaveNoDeadBody() {
+    public void liveUnitsHaveNoCorpse() {
         BattleSimulation sim = openArena(40, 40);
         parkArenaWithTarget(sim);
 
@@ -97,6 +121,7 @@ public class DeadBodySystemTest {
             sim.advance(BattleSimulation.TICK_DT);
         }
 
-        assertTrue(sim.getDeadBodies().isEmpty(), "no deaths → no corpse bodies");
+        assertEquals(0, corpseCount(sim), "no deaths → no corpse entities");
+        assertEquals(0, sim.getEntityWorld().entityCount(), "the world holds only corpses for now");
     }
 }

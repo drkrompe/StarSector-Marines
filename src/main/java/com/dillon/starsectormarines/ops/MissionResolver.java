@@ -1,7 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.battle.unit.components.DeadBodyComponent;
+import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.campaign.CampaignState;
@@ -23,7 +24,6 @@ import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import org.apache.log4j.Logger;
 
 import java.text.MessageFormat;
-import java.util.Map;
 import java.util.Random;
 
 /**
@@ -104,17 +104,22 @@ public final class MissionResolver {
 
         // Casualty tally without the legacy units list: survivors come from the
         // dense registry (live-only), casualties from the corpse home — the
-        // DeadBodyComponent store retains every death for the whole battle and carries the
-        // dead unit's faction. A deboarded marine is in exactly one of the two
-        // (live registry or a corpse), so engaged = survivors + casualties.
+        // corpse archetype in the battle EntityWorld retains every death for the
+        // whole battle and carries the dead unit's faction (IDENTITY column). A
+        // deboarded marine is in exactly one of the two (live registry or a
+        // corpse), so engaged = survivors + casualties.
         UnitRegistry registry = sim.getUnitRegistry();
         int marinesAlive = 0;
         for (int i = 0, n = registry.liveCount(); i < n; i++) {
             if (registry.get(i).faction == Faction.MARINE) marinesAlive++;
         }
         int rawMarinesLost = 0;
-        for (Map.Entry<Long, DeadBodyComponent> e : sim.getDeadBodies().entries()) {
-            if (e.getValue().faction == Faction.MARINE) rawMarinesLost++;
+        BattleComponents c = sim.getBattleComponents();
+        for (ArchetypeTable t : sim.getEntityWorld().matched(c.corpses)) {
+            Object[] factions = t.objects(c.IDENTITY, BattleComponents.IDENTITY_FACTION).array();
+            for (int r = 0, n = t.rowCount(); r < n; r++) {
+                if (factions[r] == Faction.MARINE) rawMarinesLost++;
+            }
         }
         int marinesEngaged = marinesAlive + rawMarinesLost;
 

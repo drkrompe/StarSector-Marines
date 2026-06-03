@@ -1,21 +1,19 @@
 package com.dillon.starsectormarines.ops.battleview;
 
-import com.dillon.starsectormarines.battle.component.ComponentStore;
-import com.dillon.starsectormarines.battle.unit.components.DeadBodyComponent;
+import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.RenderPositionService;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vision.VisionService;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
+import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
 import java.awt.Color;
-import java.util.Map;
 
 /**
  * Emits the {@link RenderLayer#UNITS} layer — the heavy world pass. Story J's
@@ -183,60 +181,64 @@ public final class UnitRenderService implements RenderSystem {
      * selection, same aspect-fit into the {@code renderScale}d cell box, no vision
      * gate (corpses persist through fog), no flip, no HP bar.
      *
-     * <p>Sourced from the {@code DeadBodyComponent} corpse store (keyed by entity id),
-     * <em>not</em> the legacy units list — a body is recorded on the death event
-     * and the position comes from the surviving render-position component under
-     * the same id, so the corpse composes its location rather than holding a
-     * released {@link Entity} handle.
+     * <p>Sourced from the corpse archetype in the battle {@code EntityWorld},
+     * <em>not</em> the legacy units list — a corpse entity is spawned on the
+     * death event with its draw position frozen at the spot it fell and its pose
+     * authored into {@code SPRITE.index}, so this sweep is a pure column walk
+     * over the matched tables, no released {@link Entity} handles anywhere.
      *
      * <p>Two gates, both required: {@link RenderAppearance#hasDeathPose} is the
-     * type-level "this type declares a corpse sheet" flag, but {@code deathPoseIdx}
-     * is set to a non-negative pose only for units that died through the damage
-     * resolver (a cascade-killed drone keeps {@code -1}), so the instance
-     * {@code deathPoseIdx >= 0} check is still needed — the flyweight tag does not
-     * subsume it. The cache guard then covers the not-yet-loaded / empty-sheet
-     * case. No vision gate: corpses persist through fog.
+     * type-level "this type declares a corpse sheet" flag, but {@code SPRITE.index}
+     * is a non-negative pose only for units that died through the damage resolver
+     * (a cascade-killed drone keeps {@code -1}), so the per-row {@code index >= 0}
+     * check is still needed — the flyweight tag does not subsume it. The cache
+     * guard then covers the not-yet-loaded / empty-sheet case. The sheet itself
+     * still resolves from {@code IDENTITY.type} until the unified sprite registry
+     * mints handles into {@code SPRITE.sheet}. No vision gate: corpses persist
+     * through fog.
      */
     private void sweepDeadSprites(RenderContext ctx, DrawList out) {
-        ComponentStore<DeadBodyComponent> bodies = ctx.sim.getDeadBodies();
-        if (bodies.isEmpty()) return;
-
+        BattleComponents c = ctx.sim.getBattleComponents();
         BattleCamera cam = ctx.camera;
         // Base cell-sprite size shared across UNITS strata; renderScale applied below.
         float unitSize = cam.cellPxSize() * BattleRenderer.UNIT_FRAC;
         float alphaMult = ctx.alphaMult;
-        RenderPositionService renderPositions = ctx.sim.getUnitRegistry().getRenderPositions();
 
-        for (Map.Entry<Long, DeadBodyComponent> entry : bodies.entries()) {
-            DeadBodyComponent body = entry.getValue();
-            if (body.deathPoseIdx < 0) continue;
-            RenderAppearance app = RenderAppearance.of(body.type);
-            if (!app.hasDeathPose) continue;
-            UnitSpriteCache cache = sprites.unitDeadSprites().get(body.type);
-            if (cache == null || cache.sheet == null || cache.frames == null
-                    || cache.frames.frames.length == 0) continue;
+        for (ArchetypeTable t : ctx.sim.getEntityWorld().matched(c.corpses)) {
+            Object[] types = t.objects(c.IDENTITY, BattleComponents.IDENTITY_TYPE).array();
+            int[] poseIdx = t.ints(c.SPRITE, BattleComponents.SPRITE_INDEX).array();
+            float[] rx = t.floats(c.RENDER_POSITION, BattleComponents.RENDER_POSITION_X).array();
+            float[] ry = t.floats(c.RENDER_POSITION, BattleComponents.RENDER_POSITION_Y).array();
+            for (int r = 0, n = t.rowCount(); r < n; r++) {
+                if (poseIdx[r] < 0) continue;
+                UnitType type = (UnitType) types[r];
+                RenderAppearance app = RenderAppearance.of(type);
+                if (!app.hasDeathPose) continue;
+                UnitSpriteCache cache = sprites.unitDeadSprites().get(type);
+                if (cache == null || cache.sheet == null || cache.frames == null
+                        || cache.frames.frames.length == 0) continue;
 
-            SpriteSheetFrames frames = cache.frames;
-            int frameIdx = ((body.deathPoseIdx % frames.frames.length) + frames.frames.length)
-                    % frames.frames.length;
-            SpriteSheetFrames.Frame f = frames.frames[frameIdx];
+                SpriteSheetFrames frames = cache.frames;
+                int frameIdx = ((poseIdx[r] % frames.frames.length) + frames.frames.length)
+                        % frames.frames.length;
+                SpriteSheetFrames.Frame f = frames.frames[frameIdx];
 
-            float scaledSize = unitSize * app.renderScale;
-            float targetW, targetH;
-            if (f.w >= f.h) {
-                targetW = scaledSize;
-                targetH = scaledSize * f.h / (float) f.w;
-            } else {
-                targetH = scaledSize;
-                targetW = scaledSize * f.w / (float) f.h;
+                float scaledSize = unitSize * app.renderScale;
+                float targetW, targetH;
+                if (f.w >= f.h) {
+                    targetW = scaledSize;
+                    targetH = scaledSize * f.h / (float) f.w;
+                } else {
+                    targetH = scaledSize;
+                    targetW = scaledSize * f.w / (float) f.h;
+                }
+                float cx = cam.cellToScreenX(rx[r] + 0.5f);
+                float cy = cam.cellToScreenY(ry[r] + 0.5f);
+                out.addSheetQuad(RenderLayer.UNITS, cache.sheet,
+                        f.x, f.y, f.w, f.h,
+                        cx, cy, targetW, targetH,
+                        1f, 1f, 1f, alphaMult);
             }
-            long id = entry.getKey();
-            float cx = cam.cellToScreenX(renderPositions.getX(id) + 0.5f);
-            float cy = cam.cellToScreenY(renderPositions.getY(id) + 0.5f);
-            out.addSheetQuad(RenderLayer.UNITS, cache.sheet,
-                    f.x, f.y, f.w, f.h,
-                    cx, cy, targetW, targetH,
-                    1f, 1f, 1f, alphaMult);
         }
     }
 

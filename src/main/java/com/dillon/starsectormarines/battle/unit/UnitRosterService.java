@@ -58,9 +58,10 @@ public final class UnitRosterService {
      * {@link #addUnit}; releases happen out of the death cascade in
      * {@code com.dillon.starsectormarines.battle.combat.DamageResolver#resolve}
      * via {@link #releaseFromRegistry(long)} (swap-and-pop). Post-death state
-     * is carried by the corpse component stores (DeadBodyComponent / CrashingComponent / render
-     * position), keyed by entity id and surviving release — there is no
-     * retained live+dead list (that legacy collection is gone).
+     * is carried by the corpse archetype in the battle {@code EntityWorld} (a
+     * corpse entity spawned per death) plus the surviving id-keyed components
+     * (CrashingComponent / render position) — there is no retained live+dead
+     * list (that legacy collection is gone).
      */
     private final UnitRegistry registry = new UnitRegistry();
     /**

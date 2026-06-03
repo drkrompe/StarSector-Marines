@@ -13,13 +13,13 @@ import com.dillon.starsectormarines.battle.unit.components.RenderPositionCompone
  * its columns are <b>live-only</b>. Render position is the one mandatory column
  * that (a) is never iterated densely — every reader goes through the
  * {@link Entity#getRenderX()} / {@link Entity#getRenderY()} accessor, never a bulk
- * {@code renderXArray()} sweep — and (b) must <b>outlive registry release</b>:
- * a corpse still draws its frozen death pose at the spot it fell for the rest
- * of the battle ({@code UnitRenderService.sweepDeadSprites}). Keying by
- * {@code entityId} instead of dense index gives both for free — the entry
- * simply isn't removed on release, so the released {@link Entity} still resolves
- * its last render position. No perf cost (no hot dense loop reads this) and no
- * behavior change for the living.
+ * {@code renderXArray()} sweep — and (b) must <b>survive into the death drain</b>:
+ * {@code DeadBodySystem} snapshots the entry into the corpse entity's own
+ * {@code RENDER_POSITION} columns (the corpse render no longer reads this store
+ * after that). Keying by {@code entityId} instead of dense index gives both for
+ * free — the entry simply isn't removed on release, so a released {@link Entity}
+ * still resolves its last render position for any remaining legacy reader. No
+ * perf cost (no hot dense loop reads this) and no behavior change for the living.
  *
  * <h2>A real component, wrapped</h2>
  * <p>This service is a thin float-typed API over a

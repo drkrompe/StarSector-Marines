@@ -46,8 +46,9 @@ public final class World {
     /**
      * Component class → its sparse store, for the cold projection face. Wired
      * once at sim construction with the stores that exist today
-     * ({@code CrashingComponent}, {@code DeadBodyComponent}); a group decomposed out of the dense
-     * table registers here as it lands.
+     * ({@code CrashingComponent}, {@code MechLoadoutComponent}); the corpse home
+     * moved to the archetype {@code EntityWorld} (the committed storage target
+     * this facade's stores migrate toward).
      */
     private final Map<Class<?>, ComponentStore<?>> stores;
 
