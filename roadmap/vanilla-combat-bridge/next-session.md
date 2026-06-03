@@ -62,34 +62,37 @@ Decomposition:
 - `S0BattleCreationPlugin.setupSimCoupled` builds the real Conquest map (LARGE) into a sim
   *outside* the plugin. Mode `SIM_COUPLED` on `S0BattleProbe`; hotkey Ctrl+Shift+K.
 
-## Two entrypoints — verified working + code-sharing status
+## S3e — "build a BattleSimulation, then choose a host" ✅ SHIPPED
 
-Both ways to stand up a ground battle are confirmed green (full test suite passes):
-- **A — standalone** (the game): BriefingScreen → `MissionLaunch.buildSimulation` →
-  `BattleSetup.createX` → `ctx.setBattleSimulation` → `BattleScreen` owns advance+render
-  (full scene, input, FBO accumulators, own sim lifecycle).
-- **B — combat-bridge overlay** (the spike): `S0BattleProbe`/`S0BattleCreationPlugin` →
-  sim built in `setupSimCoupled` → `GroundSceneBackdrop` (subset render on combat layer) +
-  `GroundSimBridge` (ticks sim + proxy coupling). Hotkey Ctrl+Shift+K.
+The two-entrypoint convergence is done (`d152441` → `e171d00` → `03dd62f`; full test suite
+green). Sealed: `complete/s3e-build-map-host-seam.md`.
 
-**Already shared:** `BattleSimulation` (+ the `advance(dt)` tick contract), `BattleRenderer`
-+ all `RenderSystem`s (B uses the additive `renderWorld(rc, EnumSet)` subset; A's no-arg call
-delegates to `allOf` — unchanged), `BspCityGenerator`, `BattleSprites`, `BattleCamera`
-(screen-viewport for A, world-viewport for B), and now `BattleSetup.spawnDefensePostTurrets`
-(public, returns the spawned structures — B mirrors them; killed B's drifted copy).
+- **`BattleSetup.buildMap(map, vehicles, defensePosts) → MapBuild{sim, structures}`** is the
+  shared host-agnostic map layer (construct sim + install tactical map/buildings/posts/
+  vehicles/doodads + spawn defense-post structures). All three `createX` factories and the
+  bridge's `setupSimCoupled` now build their sim through it — no inline copies left.
+  Pre-condition: vehicles + posts already stamped into `map.grid` (zone graph reads
+  walkability at construction); `stampVehicles` stays before `spawnDefensePostTurrets` so the
+  cover bake is unchanged. Conquest passes `map.defensePosts` (generator-stamped),
+  non-conquest passes the `stampNonConquest` list.
+- **`AirProvider {INTERNAL, EXTERNAL}` on `BattleSimulation`** (default INTERNAL) is the air
+  ownership seam. EXTERNAL skips `airSystem.tick()` and fail-louds `addShuttle`/
+  `attachAirTurrets`/`setFlybyRoster` (host owns the air). The bridge sets EXTERNAL; every
+  standalone factory + test stays INTERNAL, unchanged.
 
-**Remaining duplication (small, low priority):** the map-install setters
-(`setTacticalMap`/`setBuildings`/`setDefensePosts` + doodad loop) appear in both `createX` and
-`setupSimCoupled`. The clean long-term seam is to split BattleSetup's `createX` into
-**build-the-map** (terrain + structures, shared by A and B) vs **populate-live-scenario**
-(marines/defenders/shuttles/reinforcement, A-only), so both call one `buildMapInto(sim, map)`.
-⚠ Watch the ordering: A spawns defense-post turrets *after* `stampVehicles` (cover recompute
-reads vehicle-occupied neighbors) — a naive extraction that reorders turret-vs-vehicle would
-subtly change A's cover bake. Preserve order when extracting.
+Both entrypoints (A — standalone `BattleScreen`; B — combat-bridge `GroundSceneBackdrop` +
+`GroundSimBridge`, Ctrl+Shift+K) now share: `buildMap`, `BattleSimulation` + the `advance(dt)`
+contract, `BattleRenderer` + all `RenderSystem`s (B uses the `renderWorld(rc, EnumSet)`
+subset), `BspCityGenerator`, `BattleSprites`, `BattleCamera`.
 
-**Next up:** the ground/ship **scaling pass** (lower `WORLD_UNITS_PER_CELL`, dial in-game),
-then **S3c — airspace banding / AI gating** (watch unmodified ship AI against the ground
-band first; only write a `ShipAIPlugin` if it misbehaves).
+**Inherited by S3d:** the external marine-delivery entry point — a `deliverSquad(cellX, cellY,
+MarineLoadout[])` on the sim that asserts `AirProvider.EXTERNAL`, the inverse of the internal
+shuttle deboard. Only the EXTERNAL strafe half exists today (`applyExternalDamage`). S3d's
+open "vanilla entity vs sim AirBody during descent?" question is now framed by `AirProvider`.
+
+**Next up:** the ground/ship **scaling pass** (`WORLD_UNITS_PER_CELL`, dial in-game), then
+**S3c — airspace banding / AI gating** (watch unmodified ship AI against the ground band
+first; only write a `ShipAIPlugin` if it misbehaves), and **S3d** (now unblocked by the seam).
 
 Overview open question #2 is answered: the external-damage path is `applyExternalDamage`.
 
