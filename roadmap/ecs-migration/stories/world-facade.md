@@ -272,19 +272,46 @@ this is a per-group sweep, not one commit.
      drop the three `denseIdx` writes. `GroundSimBridge` (the last external OO-accessor
      caller) → `sim.world()` by-id. `UnitRegistryTest`/`WorldTest` `u.denseIdx` →
      `r.indexOf(entityId)`. Green at 734.
-   - **Next — delete `Unit.registry` (the larger sweep).** `registry` stays for now
-     as the allocation/liveness marker + slot-resolution handle. Deleting it means
-     the no-arg OO accessors + the convenience methods (`isAlive`, `setTarget`,
-     `beginBurst`, `advanceAlongPath`, `setSecondaryAimTarget`, `setBurstTarget`)
-     can no longer be self-routing instance methods — their ~100 callers
-     (`isAlive` ×49, `setTarget` ×26, `beginBurst` ×14, …) must convert to by-id
-     forms (`world.isAlive(id)` / `registry.<col>(id)`) reaching a registry/world
-     handle in scope, and the convenience methods move onto the registry/World.
-     Mechanical but design-touched per callsite — fan to Sonnet by disjoint file
-     bucket ([[feedback_delegate_mechanical_sonnet]]). **Then** `Unit`→`Entity`
-     rename (cheap IntelliJ `rename_refactoring`; avoid file moves).
-5. **`Unit` → `Entity` rename** (`rename_refactoring`, see
-   [[intellij_mcp_refactor_tools]]). Cheap IntelliJ rename; avoid file moves.
+   - **`Unit.registry` DELETED — the back-pointer is GONE (2026-06-02).** Three
+     commits, tree green throughout (old accessors kept during the sweep; the final
+     delete-commit was the compiler completeness backstop):
+     - `4aef28e` **prep (additive):** `World.isAlive(long)` (non-fail-loud, mirrors
+       `isAliveById`), `Unit.idOf(Unit)` static (null-safe ref→id), and the
+       handle-taking overloads `beginBurst(World,Unit)` /
+       `advanceAlongPath(UnitRegistry,float)` coexisting with the self-routing forms.
+     - `65a61f1` **production caller sweep** — ~60 conversions across ~37 files, fanned
+       to 10 Sonnet agents over disjoint package buckets. `u.isAlive()`→
+       `world.isAlive(id)`/`registry.isAliveById(id)`; columns→`world.<col>(id)` or
+       in-scope registry by-index; `u.setTarget(t)`→`world.setTargetId(id, Unit.idOf(t))`
+       (likewise the secondary-aim/burst-target setters); `u.beginBurst(t)`→
+       `u.beginBurst(world,t)`; `advanceMovement`→`u.advanceAlongPath(registry, TICK_DT)`.
+       Two no-handle sites hand-wired: `UnitSpatialIndex` stashes the registry from
+       `rebuild`/`add` so `gather` drops released units via `isAliveById`;
+       `UnitDestinationSpatialIndex.addDestination` took a registry param (mirrors its
+       sister `add(registry,u)`), passed from `NavigationService`. Vanilla
+       `ShipAPI.isAlive()` (combathybrid/flyby) and `MountedTurret`'s own
+       setTarget/setBurstTarget are different methods — left alone.
+     - `335cce8` **THE DELETION** — removed the `registry` field, `idx()`, `isAlive()`,
+       every registry-routed OO accessor (hp/cell/maxHp/attack stats/cooldown/
+       move-progress/target/burst/secondary/fallback/reposition/wander get+set), the
+       null-safe target convenience setters, and the old self-routing
+       `beginBurst(Unit)`/`advanceAlongPath(float)`. `allocate`/`release` drop the two
+       back-pointer writes; `isAliveById` is the sole liveness seam. Test surface
+       converted off the deleted accessors (19 files via 3 Sonnet agents;
+       `UnitRegistryTest` rewritten to the by-index contract — back-pointer asserts →
+       `isLive`/`isAliveById`, post-release cell-throw → `requireLiveIndex` throws IAE;
+       3 straggler test files the compiler surfaced fixed). Suite green at 734.
+
+     **A held `Unit` ref can no longer reach mutable state at all** — the entire
+     dangling-self-route NPE class is structurally gone; `indexById` is the sole
+     id→slot source of truth. `Unit` now = `entityId` + `idOf()` + immutable archetype
+     + POJO fields + path helpers + render accessors (RenderPositionService survives
+     release) + the two handle-taking behavior methods.
+5. **`Unit` → `Entity` rename** — **NEXT (task #15).** Cheap IntelliJ
+   `rename_refactoring` on the `Unit` TYPE symbol only (NOT UnitType/UnitRegistry/
+   UnitRole/UnitSpatialIndex/…); avoid file moves. Large diff, high conflict risk
+   with active sibling sessions — time it. Subclasses Drone/DroneHubUnit/MapTurret
+   extend it. See [[intellij_mcp_refactor_tools]].
 
 ## Guardrails
 

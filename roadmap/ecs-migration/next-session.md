@@ -68,6 +68,10 @@ e038706  battle: SoA Group-S seed-only stats — collapse the local* duality (Ph
 6f4e42b  battle: mech salvo targets -> entityId (entity-id-handle Slice 1)  ← 2026-06-02
 5a3ffb3  battle: Squad.leader -> leaderId (entity-id-handle Slice 2)  ← 2026-06-02
 38d25c8  battle: Squad.droneHub -> droneHubId (entity-id-handle Slice 3)  ← 2026-06-02
+9cd7c61  battle: delete Unit.denseIdx — slot resolved by id (task #14)  ← 2026-06-02
+4aef28e  battle: registry-deletion prep — World.isAlive + Unit.idOf + overloads  ← 2026-06-02
+65a61f1  battle: registry-deletion sweep — production callers off Unit accessors  ← 2026-06-02
+335cce8  battle: DELETE Unit.registry — the back-pointer is gone  ← 2026-06-02
 ```
 
 (Sibling tracks interleaved on HEAD, not ECS-migration: `9084ed4` battle-render
@@ -218,13 +222,39 @@ reference `entityId` instead** (the dangling-ref NPE class). New story:
          pay the probe). `advanceAlongPath`/`beginBurst` resolve once. `isAlive()` →
          `registry.isAliveById(entityId)` (new method). `GroundSimBridge` → `sim.world()`.
          `UnitRegistryTest`/`WorldTest` `u.denseIdx` → `r.indexOf(entityId)`. Green at 734.
-       - **NEXT — delete `Unit.registry` (the big sweep).** `registry` stays for now
-         (allocation/liveness marker + slot handle). Deleting it = the no-arg accessors
-         + convenience methods can't self-route → ~100 callers (`isAlive` ×49,
-         `setTarget` ×26, `beginBurst` ×14, …) convert to by-id (`world.isAlive(id)` /
-         `registry.<col>(id)`) with a registry/world handle in scope; convenience
-         methods move onto registry/World. Fan to Sonnet by disjoint file bucket.
-         **Then** `Unit`→`Entity` rename (cheap IntelliJ rename; avoid file moves).
+       - **`Unit.registry` DELETED — the back-pointer is GONE (2026-06-02).** Three
+         commits, tree green throughout (old accessors kept during the sweep; the
+         final delete-commit was the compiler completeness backstop):
+           - `4aef28e` prep (additive): `World.isAlive(long)`, `Unit.idOf(Unit)`
+             static, and handle-taking overloads `beginBurst(World,Unit)` /
+             `advanceAlongPath(UnitRegistry,float)` coexisting with the old forms.
+           - `65a61f1` production caller sweep (~60 conversions, 10 Sonnet agents,
+             disjoint package buckets) off Unit's self-routing accessors →
+             `world.<col>(id)` / `world.isAlive(id)` / `registry.isAliveById(id)` /
+             by-index. `u.setTarget(t)`→`world.setTargetId(id, Unit.idOf(t))`;
+             `u.beginBurst(t)`→`u.beginBurst(world,t)`; `advanceMovement`→
+             `u.advanceAlongPath(registry, TICK_DT)`. Hand-wired the 2 no-handle
+             sites: `UnitSpatialIndex` stashes the registry from rebuild/add for
+             `gather`'s isAliveById drop; `UnitDestinationSpatialIndex.addDestination`
+             gained a registry param (mirrors `add(registry,u)`).
+           - `335cce8` THE DELETION: removed the `registry` field, `idx()`,
+             `isAlive()`, every registry-routed OO accessor, the null-safe target
+             convenience setters, and the old `beginBurst(Unit)`/`advanceAlongPath(float)`.
+             `allocate`/`release` drop the two back-pointer writes; `isAliveById` is
+             the sole liveness seam. Test surface converted (19 files via 3 Sonnet
+             agents; `UnitRegistryTest` rewritten to the by-index contract; 3
+             straggler test files the compiler surfaced fixed). Suite green at 734.
+         **A held `Unit` ref can no longer reach mutable state at all** — the entire
+         dangling-self-route NPE class is structurally gone; `indexById` is the sole
+         id→slot source of truth. Unit now = `entityId` + `idOf()` + immutable
+         archetype + POJO fields + path helpers + render accessors
+         (RenderPositionService survives release) + the two handle-taking behavior
+         methods.
+       - **NEXT — `Unit`→`Entity` rename (task #15).** Cheap IntelliJ
+         `rename_refactoring` on the `Unit` TYPE symbol only (NOT UnitType/
+         UnitRegistry/UnitRole/UnitSpatialIndex/…); avoid file moves. Large diff,
+         high conflict risk with active sibling sessions — time it. Subclasses
+         Drone/DroneHubUnit/MapTurret extend it.
    - Then model `mech` & other optional `Unit` fields as `ComponentStore`s (cold
      face); then delete `Unit.registry`+`denseIdx` (mops up the TacticalScoring +
      combat leftovers above); then `Unit`→`Entity`.
