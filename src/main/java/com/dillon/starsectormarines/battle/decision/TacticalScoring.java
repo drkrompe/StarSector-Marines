@@ -534,7 +534,7 @@ public final class TacticalScoring {
         if (shooter.secondaryWeapon == null || shooter.secondaryAmmo <= 0) return false;
         if (target == null || !registry.isAliveById(target.entityId)) return false;
         return projectedRocketDamageOnTarget(shooter, target)
-                < registry.getHp(registry.requireLiveIndex(target.entityId));
+                < registry.hpById(target.entityId);
     }
 
     /**

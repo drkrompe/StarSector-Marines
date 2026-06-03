@@ -132,11 +132,11 @@ public class BattleSimulation implements BattleControl {
             new ComponentStore<>();
     /** Drone-crash system — death-event handler that attaches a {@code CrashingComponent} to a dead drone + the per-tick processor that drives the fall/impact lifecycle over {@link #crashing}. Subscribed to {@link #deathDispatcher} in the constructor. */
     private final com.dillon.starsectormarines.battle.drone.DroneCrashSystem droneCrashes;
-    /** The battle's archetype-table entity world — transient per-battle ECS storage ({@code engine.ecs}). Corpses are its first occupants: {@link #deadBodySystem} spawns a corpse entity per death; the dead-sprite render and the mission resolver walk the corpse archetype's columns via {@link #battleComponents}' shared query. Live units migrate in capability by capability ({@code roadmap/ecs-migration/archetype-storage.md}). */
-    private final EntityWorld entityWorld = new EntityWorld();
-    /** Game component-type registrations + shared queries over {@link #entityWorld}. Must be declared after it — the initializer registers into the world. */
-    private final BattleComponents battleComponents = new BattleComponents(entityWorld);
-    /** Dead-body system — death-event handler that spawns a corpse entity (the corpse archetype in {@link #entityWorld}) for every unit that dies. Subscribed to {@link #deathDispatcher} in the constructor. */
+    /** The battle's archetype-table entity world — transient per-battle ECS storage ({@code engine.ecs}), owned by the {@link UnitRegistry} for the transition (allocate is the spawn seam that adopts ids into it). Every unit lives here as {@code {IDENTITY, HEALTH}}; death transmutes it to the corpse archetype; the dead-sprite render and the mission resolver walk the corpse columns via {@link #battleComponents}' shared query. Remaining live capabilities migrate in ({@code roadmap/ecs-migration/archetype-storage.md}). Alias assigned in the ctor from the roster's registry. */
+    private final EntityWorld entityWorld;
+    /** Game component-type registrations + shared queries over {@link #entityWorld}. Alias of the registry's instance. */
+    private final BattleComponents battleComponents;
+    /** Dead-body system — death-event handler that transmutes the dead unit's world entity to the corpse archetype in {@link #entityWorld}. Subscribed to {@link #deathDispatcher} in the constructor. */
     private final DeadBodySystem deadBodySystem;
     /** Mech-loadout component store — the three-weapon chassis state ({@link MechLoadoutComponent}) for every mech-class unit, keyed by entity id. Presence <em>is</em> "this entity is a mech": the mech-fire pass, morale, and the mech GOAP behaviors process the entities in this store instead of null-checking a former {@code Entity.mech} field. Attached at spawn ({@link com.dillon.starsectormarines.battle.setup.BattleSetup}), removed when the wreck spawns ({@link #mechWreckSystem}). Survives registry release (keyed by id) so the wreck handler can read it post-death. */
     private final ComponentStore<MechLoadoutComponent> mechLoadouts = new ComponentStore<>();
@@ -286,6 +286,11 @@ public class BattleSimulation implements BattleControl {
         // which we build right after. We construct the service second and
         // wire it with damageResolver::resolve as the applier method ref.
         this.rosterService = new UnitRosterService(unitIndex, null);
+        // The entity world + component registrations are owned by the registry
+        // (allocate is the spawn seam that adopts ids into the world); the sim
+        // aliases them for its tick barrier + getters.
+        this.entityWorld = rosterService.getRegistry().entityWorld();
+        this.battleComponents = rosterService.getRegistry().components();
         this.equipmentDropService = new EquipmentDropService(rosterService, this::clearPath);
         this.damageResolver = new DamageResolver(
                 navigation, rosterService, equipmentDropService,
@@ -389,7 +394,7 @@ public class BattleSimulation implements BattleControl {
     /** Crash component store — entities falling out of the sky after death (a {@code CrashingComponent} each). Read by the drone renderer to draw the falling sprite + fade; written only by {@link #droneCrashes}. */
     public ComponentStore<CrashingComponent> getCrashing() { return crashing; }
 
-    /** The battle's archetype-table entity world — the corpse archetype today, live units as migration proceeds. Walk it via {@link #getBattleComponents()}' shared queries. */
+    /** The battle's archetype-table entity world — every unit as {@code {IDENTITY, HEALTH}}, corpses as the corpse archetype. Walk it via {@link #getBattleComponents()}' shared queries. */
     public EntityWorld getEntityWorld() { return entityWorld; }
 
     /** Game component-type registrations + shared queries for {@link #getEntityWorld()}. */

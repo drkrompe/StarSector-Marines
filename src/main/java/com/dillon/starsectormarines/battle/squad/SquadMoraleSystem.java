@@ -100,17 +100,15 @@ public final class SquadMoraleSystem {
     }
 
     public void tick(float dt) {
-        // First Phase-3 SoA consumer: hot reads on hp/maxHp go through the
-        // registry's float[] arrays directly, and dense iteration over
-        // [0, liveCount()) implicitly filters out released units — no
-        // .isAlive() guard needed inside the inner loops. The registry
-        // reference is stable within this serial-phase tick (no allocation
-        // happens between here and the next phase boundary), so a once-per-
-        // tick capture of denseArray / hpArray / maxHpArray is safe.
+        // Dense iteration over [0, liveCount()) implicitly filters out released
+        // units — no .isAlive() guard needed inside the inner loops. The
+        // registry reference is stable within this serial-phase tick (no
+        // allocation happens between here and the next phase boundary), so a
+        // once-per-tick capture of denseArray / cell arrays is safe. hp/maxHp
+        // moved to the entity world's HEALTH columns (migration step 3) — the
+        // mech pass reads them by id, a handful of probes per tick.
         UnitRegistry registry = roster.getRegistry();
         Entity[] dense = registry.denseArray();
-        float[] hp = registry.hpArray();
-        float[] maxHp = registry.maxHpArray();
         int[] cellX = registry.cellXArray();
         int[] cellY = registry.cellYArray();
         int liveCount = registry.liveCount();
@@ -151,7 +149,7 @@ public final class SquadMoraleSystem {
             // that isn't read for mech squads (predicate consults
             // {@link Squad#moraleBroken}, not raw morale).
             if (squad.isMechSquad()) {
-                updateMechSquadMorale(squad, dense, hp, maxHp, liveCount, dt);
+                updateMechSquadMorale(squad, dense, registry, liveCount, dt);
                 continue;
             }
 
@@ -222,7 +220,7 @@ public final class SquadMoraleSystem {
      * Today majority is what gives a stable squad-level signal.
      */
     private void updateMechSquadMorale(Squad squad, Entity[] dense,
-                                       float[] hp, float[] maxHp, int liveCount, float dt) {
+                                       UnitRegistry registry, int liveCount, float dt) {
         int aliveMechs = 0;
         int brokenMechs = 0;
         for (int i = 0; i < liveCount; i++) {
@@ -237,10 +235,12 @@ public final class SquadMoraleSystem {
             aliveMechs++;
             if (m.timeSinceUnderFire < 1e9f) m.timeSinceUnderFire += dt;
 
-            // Direct SoA reads — hp[i] / maxHp[i] vs the OO accessor's
-            // null-check-then-array-read. Same value, one fewer indirection.
-            float uMaxHp = maxHp[i];
-            float cap = (uMaxHp > 0f && hp[i] < MECH_MORALE_ARMOR_GONE_HP_FRAC * uMaxHp)
+            // hp lives in the entity world's HEALTH columns — by-id reads via
+            // the registry's transitional adapters. Mechs per squad are few,
+            // so the per-member probe is cold.
+            float uMaxHp = registry.maxHpById(u.entityId);
+            float cap = (uMaxHp > 0f
+                    && registry.hpById(u.entityId) < MECH_MORALE_ARMOR_GONE_HP_FRAC * uMaxHp)
                     ? MECH_MORALE_ARMOR_GONE_CAP
                     : 1.0f;
             if (m.timeSinceUnderFire >= MORALE_RECOVER_AFTER_FIRE_SECONDS) {

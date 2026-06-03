@@ -183,12 +183,12 @@ public class Entity {
     /**
      * <b>Don't read directly. Pre-allocate seed ONLY.</b> Same shape as
      * {@link #seedMaxHp} and the cell pair: {@link UnitRegistry#allocate} copies
-     * this into the SoA hp array and the registry is canonical from then on;
-     * {@code release} does NOT snapshot it back. Once allocated, hp lives in the
-     * registry SoA, reached by id ({@code world.hp(id)} / {@code world.setHp(id, v)});
-     * held-ref liveness goes through {@code world.isAlive(id)} /
-     * {@code registry.isAliveById(id)}, which report a released id as dead without
-     * a corpse-window hp shadow.
+     * this into the entity world's {@code HEALTH} component (migration step 3)
+     * and the world is canonical from then on. Reached by id
+     * ({@code world.hp(id)} / {@code world.setHp(id, v)}); held-ref liveness
+     * goes through {@code world.isAlive(id)} / {@code registry.isAliveById(id)}
+     * — "has {@code HEALTH} with {@code hp > 0}", so a corpse (transmuted on the
+     * death drain) reports dead.
      *
      * <p>Public so {@link UnitRegistry} (a sibling package) can seed the slot at
      * allocate time. Write-only construction input: the ctor archetype seed and

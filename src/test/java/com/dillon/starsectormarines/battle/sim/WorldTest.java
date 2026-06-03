@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -33,30 +34,41 @@ public class WorldTest {
     }
 
     @Test
-    public void hotFaceReadsAndWritesTheDenseHpSlotById() {
+    public void hotFaceReadsAndWritesTheWorldHealthSlotById() {
         UnitRegistry r = new UnitRegistry();
         Entity u = unit("u");
         long id = r.allocate(u);
         World w = new World(r, Map.of());
 
-        // Seeded hp == type.maxHp, readable by id with no Entity deref.
+        // Seeded hp == type.maxHp, readable by id with no Entity deref —
+        // backed by the entity world's HEALTH columns (migration step 3).
         assertEquals(u.seedMaxHp, w.hp(id), 1e-6f);
 
-        // setHp by id hits the same slot the registry sees.
+        // setHp by id hits the same world slot the registry adapters see.
         w.setHp(id, 42f);
         assertEquals(42f, w.hp(id), 1e-6f);
-        assertEquals(42f, r.getHp(r.indexOf(u.entityId)), 1e-6f);
+        assertEquals(42f, r.hpById(id), 1e-6f);
     }
 
     @Test
-    public void hotFaceIsFailLoudOnADeadOrUnknownId() {
+    public void hotFaceIsFailLoudOnceHealthIsGoneOrTheIdIsUnknown() {
         UnitRegistry r = new UnitRegistry();
         Entity u = unit("u");
         long id = r.allocate(u);
         World w = new World(r, Map.of());
 
+        // Registry release alone no longer makes hp unreadable — HEALTH stays
+        // on the world entity until the death drain transmutes it to a corpse
+        // (and every release path zeroes hp first, so liveness reads dead).
+        w.setHp(id, 0f);
         r.release(id);
-        assertThrows(IllegalArgumentException.class, () -> w.hp(id));   // released
+        assertFalse(w.isAlive(id));
+        assertEquals(0f, w.hp(id), 1e-6f, "readable in the release→transmute window");
+
+        // The corpse transmute removes HEALTH — hp is fail-loud from then on,
+        // as is any never-allocated id.
+        r.entityWorld().removeComponent(id, r.components().HEALTH);
+        assertThrows(IllegalArgumentException.class, () -> w.hp(id));   // corpse
         assertThrows(IllegalArgumentException.class, () -> w.hp(999L)); // never allocated
     }
 

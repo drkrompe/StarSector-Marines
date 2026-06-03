@@ -113,8 +113,9 @@ public final class DamageResolver {
         // assuming 3.5×, which suppressed the second/third volley rocket the
         // squad gate actually needed). One contract, one classifier.
         float effectiveMult = TacticalScoring.isHardened(target) ? vsTurretMult : 1f;
-        registry.setHp(tIdx, registry.getHp(tIdx) - damage * effectiveMult * (1f - dr));
-        boolean died = wasAlive && !registry.isAliveById(target.entityId);
+        float newHp = registry.hpById(target.entityId) - damage * effectiveMult * (1f - dr);
+        registry.setHpById(target.entityId, newHp);
+        boolean died = newHp <= 0f;   // wasAlive is guaranteed by the early return above
         if (died) {
             target.deathPoseIdx = rng.nextInt(4);
             deathSink.accept(target);
@@ -166,8 +167,9 @@ public final class DamageResolver {
             if (mechLoadouts.has(target.entityId)) {
                 // Only a SURVIVING mech accrues HP-threshold morale drain. A mech
                 // killed by this very hit was already released from the registry
-                // (above), so getMaxHp() would NPE under the Group-S seed-only
-                // contract — and a dead mech's threshold morale is moot anyway.
+                // (above) — its HEALTH component still reads until the death drain
+                // transmutes it to a corpse, but a dead mech's threshold morale is
+                // moot, so keep the guard.
                 if (!died) applyMechHpThresholdDrain(target);
             } else if (target.squadId != Entity.NO_SQUAD) {
                 applySquadMoraleDrain(target, moraleImpact, died);
@@ -261,10 +263,9 @@ public final class DamageResolver {
         MechLoadoutComponent m = mechLoadouts.get(target.entityId);
         m.timeSinceUnderFire = 0f;
         UnitRegistry registry = roster.getRegistry();
-        int tIdx = registry.requireLiveIndex(target.entityId);
-        float maxHp = registry.getMaxHp(tIdx);
+        float maxHp = registry.maxHpById(target.entityId);
         if (maxHp <= 0f) return;
-        float frac = Math.max(0f, registry.getHp(tIdx)) / maxHp;
+        float frac = Math.max(0f, registry.hpById(target.entityId)) / maxHp;
         int newCount = 0;
         for (float t : SquadMoraleSystem.MECH_HP_DRAIN_THRESHOLDS) {
             if (frac <= t) newCount++;

@@ -12,11 +12,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * End-to-end coverage for the corpse home: a unit that dies gets a corpse
- * entity spawned into the battle {@code EntityWorld} off its {@code DeathEvent}
- * (the dead-sprite render walks the corpse archetype's columns instead of
- * scanning the legacy units list), carrying its identity, death cell, the
- * draw position frozen at the spot it fell, and the authored death pose.
+ * End-to-end coverage for the corpse home: a unit that dies has its world
+ * entity <b>transmuted</b> (one row-move) from the live {@code {IDENTITY,
+ * HEALTH}} archetype to the corpse archetype off its {@code DeathEvent} — same
+ * entity id, identity carried by the row-move (written only at spawn), death
+ * cell from the event snapshot, draw position frozen at the spot it fell, and
+ * the death pose authored into {@code SPRITE.index}.
  *
  * <p>The arena parks a live unit of each faction far from the target so the
  * battle stays in progress across the death drain — otherwise the win-check
@@ -65,7 +66,7 @@ public class DeadBodySystemTest {
 
         sim.advance(BattleSimulation.TICK_DT);
 
-        assertEquals(1, corpseCount(sim), "drain → the dead unit gets a corpse entity");
+        assertEquals(1, corpseCount(sim), "drain → the dead unit's entity is now a corpse");
         BattleComponents c = sim.getBattleComponents();
         for (ArchetypeTable t : sim.getEntityWorld().matched(c.corpses)) {
             Object[] types = t.objects(c.IDENTITY, BattleComponents.IDENTITY_TYPE).array();
@@ -74,14 +75,22 @@ public class DeadBodySystemTest {
             int[] cellY = t.ints(c.POSITION, BattleComponents.POSITION_CELL_Y).array();
             int[] pose = t.ints(c.SPRITE, BattleComponents.SPRITE_INDEX).array();
             for (int r = 0, n = t.rowCount(); r < n; r++) {
-                assertEquals(UnitType.MARINE, types[r], "corpse carries the dead unit's archetype");
-                assertEquals(Faction.DEFENDER, factions[r], "corpse carries the dead unit's side");
+                assertEquals(id, t.entityAt(r), "the corpse IS the dead unit's entity id");
+                // IDENTITY is written once at spawn and never re-written at death
+                // — these values reaching the corpse table proves the transmute's
+                // row-move carried the shared columns.
+                assertEquals(UnitType.MARINE, types[r], "identity rides the row-move");
+                assertEquals(Faction.DEFENDER, factions[r]);
                 assertEquals(20, cellX[r], "corpse keeps the death cell");
                 assertEquals(20, cellY[r]);
                 assertTrue(pose[r] >= 0 && pose[r] < 4,
                         "a damage-resolver death authors a valid prone-pose frame into SPRITE.index");
             }
         }
+        // Health is gone with the live archetype — "lacks HEALTH" is half the
+        // liveness definition, so the corpse reports dead.
+        assertFalse(sim.getEntityWorld().has(id, c.HEALTH), "corpse carries no HEALTH");
+        assertFalse(sim.world().isAlive(id));
     }
 
     @Test
@@ -122,6 +131,7 @@ public class DeadBodySystemTest {
         }
 
         assertEquals(0, corpseCount(sim), "no deaths → no corpse entities");
-        assertEquals(0, sim.getEntityWorld().entityCount(), "the world holds only corpses for now");
+        assertEquals(3, sim.getEntityWorld().entityCount(),
+                "every live unit is a {IDENTITY, HEALTH} entity in the world");
     }
 }

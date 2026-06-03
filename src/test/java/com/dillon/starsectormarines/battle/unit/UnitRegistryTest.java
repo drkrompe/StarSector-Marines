@@ -199,11 +199,11 @@ public class UnitRegistryTest {
     }
 
     @Test
-    public void allocateSeedsHpFromUnitsSeedFieldsAndAccessorsRouteThroughRegistry() {
+    public void allocateSeedsHealthIntoTheEntityWorldFromUnitsSeedFields() {
         UnitRegistry r = new UnitRegistry();
         Entity u = unit("u");
         // Pre-allocate: ctor seeded seedHp + seedMaxHp from type.maxHp
-        // (MARINE_BLUE). The hp/maxHp accessors are fail-loud pre-allocate,
+        // (MARINE_BLUE). hp is unreadable pre-allocate (no world entity yet),
         // so read the seed fields directly here.
         float typeMaxHp = u.seedMaxHp;
         assertTrue(typeMaxHp > 0f, "test prerequisite: type seeds a non-zero maxHp");
@@ -211,36 +211,39 @@ public class UnitRegistryTest {
 
         r.allocate(u);
 
-        // Post-allocate: getter reads the registry slot, which should mirror
-        // the seedHp / seedMaxHp values from the pre-allocate ctor.
-        assertEquals(typeMaxHp, r.getHp(r.indexOf(u.entityId)), 1e-6f);
-        assertEquals(typeMaxHp, r.getMaxHp(r.indexOf(u.entityId)), 1e-6f);
+        // Post-allocate: hp lives in the entity world's HEALTH columns under the
+        // minted id (migration step 3) — the registry's by-id adapters read it.
+        assertEquals(typeMaxHp, r.hpById(u.entityId), 1e-6f);
+        assertEquals(typeMaxHp, r.maxHpById(u.entityId), 1e-6f);
         assertTrue(r.isLive(u.entityId));
+        // And the world entity carries the spawn-written IDENTITY alongside.
+        assertTrue(r.entityWorld().has(u.entityId, r.components().IDENTITY));
 
-        // setHp routes through the registry slot — there is no local hp field
-        // anymore; the registry is the sole canonical store once allocated.
-        r.setHp(r.indexOf(u.entityId), 42f);
-        assertEquals(42f, r.getHp(r.indexOf(u.entityId)), 1e-6f);
+        // setHpById writes the world slot — the world is the sole canonical
+        // store once allocated.
+        r.setHpById(u.entityId, 42f);
+        assertEquals(42f, r.hpById(u.entityId), 1e-6f);
     }
 
     @Test
-    public void releaseMarksUnitDeadViaRegistryNullWithNoHpSnapshot() {
+    public void releaseDropsTheDenseSlotButHpStaysWorldSideUntilTheDeathTransmute() {
         UnitRegistry r = new UnitRegistry();
         Entity u = unit("u");
         r.allocate(u);
 
-        r.setHp(r.indexOf(u.entityId), 17f);
+        // Production order: every release path zeroes hp first (resolve /
+        // cascade / TestUnits.kill), THEN releases the dense slot.
+        r.setHpById(u.entityId, 0f);
         r.release(u.entityId);
 
-        // After release: the registry pointer is nulled and the dense slot is
-        // dropped. There is NO post-release hp snapshot anymore — held-ref
-        // liveness goes through isAlive(), which short-circuits on the
-        // registry==null release marker and reports the corpse dead. getHp()
-        // itself is fail-loud post-release (a programming error to call), just
-        // like getMaxHp().
+        // After release: the dense slot is dropped, and liveness reads the
+        // world HEALTH — dead via hp <= 0 even though the component is still
+        // present (the death drain's corpse transmute removes it later).
         assertFalse(r.isLive(u.entityId));
         assertEquals(-1, r.indexOf(u.entityId));
         assertFalse(r.isAliveById(u.entityId));
+        assertTrue(r.entityWorld().has(u.entityId, r.components().HEALTH),
+                "HEALTH survives release until the corpse transmute");
     }
 
     @Test
@@ -253,14 +256,17 @@ public class UnitRegistryTest {
         r.allocate(b);
         r.allocate(c);
 
-        // Release the head — tail (c) swaps into slot 0; its denseIdx must
-        // update or future getHp/setHp through c would index the wrong slot.
+        // Release the head — tail (c) swaps into slot 0; its index mapping must
+        // update or by-index column reads through c would hit the wrong slot.
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        // And c's hp accessor still resolves through the registry correctly.
-        r.setHp(r.indexOf(c.entityId), 123f);
-        assertEquals(123f, r.getHp(0), 1e-6f);
+        // And c's dense columns still resolve through the swapped slot. (hp is
+        // id-keyed in the entity world now — immune to dense swaps by design —
+        // so the swap proof reads a column that still lives densely.)
+        r.setCellPos(r.indexOf(c.entityId), 123, 45);
+        assertEquals(123, r.getCellX(0));
+        assertEquals(45, r.getCellY(0));
     }
 
     @Test

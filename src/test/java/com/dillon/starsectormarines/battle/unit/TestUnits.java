@@ -28,14 +28,14 @@ public final class TestUnits {
 
     /**
      * Kill {@code u} the same way the production damage path does: drive hp
-     * to 0 and release the dense-registry entry (swap-and-pop). After the call
-     * the unit is gone from the live registry and {@code sim.resolveUnit(
-     * u.entityId)} returns {@code null}, exactly as after a real damage kill;
-     * the corpse's post-death state lives in the component stores. A caller
-     * still holding the {@code Entity} reference (e.g. from {@link #snapshot})
-     * sees {@code isAlive() == false} (the registry pointer is nulled on
-     * release) — but must NOT call {@code getHp()}/{@code getMaxHp()} on it,
-     * which are fail-loud post-release.
+     * to 0 (in the entity world's HEALTH component) and release the
+     * dense-registry entry (swap-and-pop). After the call the unit is gone
+     * from the live registry, {@code sim.resolveUnit(u.entityId)} returns
+     * {@code null}, and {@code world().isAlive(id)} is {@code false} (hp
+     * {@code <= 0}), exactly as after a real damage kill. Unlike production,
+     * no {@code DeathEvent} is published — the world entity stays
+     * {@code {IDENTITY, HEALTH(0)}} rather than transmuting to a corpse, so
+     * corpse-archetype queries won't see it.
      */
     public static void kill(BattleSimulation sim, Entity u) {
         sim.world().setHp(u.entityId, 0f);

@@ -383,7 +383,7 @@ public final class UnitRenderService implements RenderSystem {
                 barY = cy + half + BattleRenderer.HP_BAR_GAP;
             }
             HpBarDecor.emit(out, RenderLayer.UNITS, cx, barY, unitSize,
-                    registry.getHp(i) / registry.getMaxHp(i), barAlpha);
+                    registry.hpById(u.entityId) / registry.maxHpById(u.entityId), barAlpha);
         }
     }
 

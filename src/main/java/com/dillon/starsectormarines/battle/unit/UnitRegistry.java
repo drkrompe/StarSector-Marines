@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.unit;
 
+import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 
 import java.util.Arrays;
@@ -57,26 +59,8 @@ public final class UnitRegistry {
 
     private Entity[] dense = new Entity[INITIAL_CAPACITY];
     /**
-     * Per-unit current HP, keyed by dense index. Grown in lockstep with
-     * {@link #dense}; swap-and-pop release moves the tail entry here too.
-     * <b>Canonical storage</b> — reached by id via {@code world.hp(id)} /
-     * {@link #getHp(int)} after allocation. <b>Seed-only</b>
-     * lifecycle like {@link #maxHp}: {@link #allocate} seeds the slot from
-     * {@link Entity#seedHp} and it is canonical thereafter; {@link #release} does
-     * NOT snapshot it back — held-ref liveness goes through {@link #isAliveById},
-     * which reports a released id as dead (a map miss) without a corpse shadow.
-     */
-    private float[] hp = new float[INITIAL_CAPACITY];
-    /**
-     * Per-unit max HP. <b>Seed-only</b> lifecycle (like {@link #hp}):
-     * {@link #allocate} seeds it from {@link Entity#seedMaxHp} and it is canonical
-     * thereafter, but {@link #release} does NOT snapshot it back — no
-     * post-release reader exists.
-     */
-    private float[] maxHp = new float[INITIAL_CAPACITY];
-    /**
      * Per-unit logical cell X — the pathfinder's domain (integer cells).
-     * <b>Seed-only</b> lifecycle (like {@link #maxHp}, not {@link #hp}):
+     * <b>Seed-only</b> lifecycle (like {@link #attackDamage}, not {@link #cooldownTimer}):
      * {@link #allocate} seeds it from {@link Entity#seedCellX} and it is canonical
      * thereafter, but {@link #release} does NOT snapshot it back — the death cell
      * its post-release readers want now travels on the {@code DeathEvent}.
@@ -90,39 +74,39 @@ public final class UnitRegistry {
     private int[] cellX = new int[INITIAL_CAPACITY];
     /** Per-unit logical cell Y, paired with {@link #cellX}. */
     private int[] cellY = new int[INITIAL_CAPACITY];
-    /** Per-unit primary weapon cooldown (sim-seconds until next fire). Same lifecycle as {@link #hp}. */
+    /** Per-unit primary weapon cooldown (sim-seconds until next fire). Mid-combat-only lifecycle: no pre-allocation seed, reset to default on slot reuse in {@link #allocate}, no post-release reader. */
     private float[] cooldownTimer = new float[INITIAL_CAPACITY];
-    /** Per-unit movement lerp factor [0,1] toward the next path cell. Same lifecycle as {@link #hp}. */
+    /** Per-unit movement lerp factor [0,1] toward the next path cell. Same lifecycle as {@link #cooldownTimer}. */
     private float[] moveProgress = new float[INITIAL_CAPACITY];
-    /** Per-unit base attack damage. Seed-only lifecycle (seeded from {@link Entity#seedAttackDamage}, not snapshotted on release) — see {@link #maxHp}. */
+    /** Per-unit base attack damage. Seed-only lifecycle (seeded from {@link Entity#seedAttackDamage}, not snapshotted on release) — see {@link #cellX}. */
     private float[] attackDamage = new float[INITIAL_CAPACITY];
-    /** Per-unit base attack range in cells. Seed-only lifecycle (seeded from {@link Entity#seedAttackRange}) — see {@link #maxHp}. */
+    /** Per-unit base attack range in cells. Seed-only lifecycle (seeded from {@link Entity#seedAttackRange}) — see {@link #cellX}. */
     private float[] attackRange = new float[INITIAL_CAPACITY];
-    /** Per-unit base accuracy [0,1]. Seed-only lifecycle (seeded from {@link Entity#seedAccuracy}) — see {@link #maxHp}. */
+    /** Per-unit base accuracy [0,1]. Seed-only lifecycle (seeded from {@link Entity#seedAccuracy}) — see {@link #cellX}. */
     private float[] accuracy = new float[INITIAL_CAPACITY];
-    /** Per-unit secondary-weapon cooldown (sim-seconds). Same lifecycle as {@link #hp}. */
+    /** Per-unit secondary-weapon cooldown (sim-seconds). Same lifecycle as {@link #cooldownTimer}. */
     private float[] secondaryCooldownTimer = new float[INITIAL_CAPACITY];
-    /** Per-unit sim-seconds remaining in the secondary aim-then-fire window. Same lifecycle as {@link #hp}. */
+    /** Per-unit sim-seconds remaining in the secondary aim-then-fire window. Same lifecycle as {@link #cooldownTimer}. */
     private float[] secondaryActionTimer = new float[INITIAL_CAPACITY];
-    /** Per-unit entity id locked at secondary aim start (0L = none). Same lifecycle as {@link #hp}. */
+    /** Per-unit entity id locked at secondary aim start (0L = none). Same lifecycle as {@link #cooldownTimer}. */
     private long[] secondaryAimTargetId = new long[INITIAL_CAPACITY];
-    /** Per-unit burst rounds queued after the AI's initial primary shot. Decremented one-per-spacing in {@code InfantryWeapons.tick}. Same lifecycle as {@link #hp}. */
+    /** Per-unit burst rounds queued after the AI's initial primary shot. Decremented one-per-spacing in {@code InfantryWeapons.tick}. Same lifecycle as {@link #cooldownTimer}. */
     private int[] burstRemaining = new int[INITIAL_CAPACITY];
-    /** Per-unit sim-seconds until the next queued burst round fires. Same lifecycle as {@link #hp}. */
+    /** Per-unit sim-seconds until the next queued burst round fires. Same lifecycle as {@link #cooldownTimer}. */
     private float[] burstTimer = new float[INITIAL_CAPACITY];
-    /** Per-unit entity id captured when the burst was queued (0L = idle). Same lifecycle as {@link #hp}. */
+    /** Per-unit entity id captured when the burst was queued (0L = idle). Same lifecycle as {@link #cooldownTimer}. */
     private long[] burstTargetId = new long[INITIAL_CAPACITY];
-    /** Per-unit current-target entity id (0L = no target). Same lifecycle as {@link #hp}. */
+    /** Per-unit current-target entity id (0L = no target). Same lifecycle as {@link #cooldownTimer}. */
     private long[] targetId = new long[INITIAL_CAPACITY];
-    /** Per-unit sim-seconds until the unit may next micro-reposition between shots. Decremented in {@code InfantryUnitPrep.tickCooldowns}. Same lifecycle as {@link #hp}. */
+    /** Per-unit sim-seconds until the unit may next micro-reposition between shots. Decremented in {@code InfantryUnitPrep.tickCooldowns}. Same lifecycle as {@link #cooldownTimer}. */
     private float[] repositionCooldown = new float[INITIAL_CAPACITY];
-    /** Per-unit sim-seconds remaining in break-contact fall-back state (>0 = falling back toward {@link #fallbackCellX}/{@link #fallbackCellY}). Same lifecycle as {@link #hp}. */
+    /** Per-unit sim-seconds remaining in break-contact fall-back state (>0 = falling back toward {@link #fallbackCellX}/{@link #fallbackCellY}). Same lifecycle as {@link #cooldownTimer}. */
     private float[] fallbackTimer = new float[INITIAL_CAPACITY];
-    /** Per-unit cached fall-back destination cell X (-1 = none). Paired with {@link #fallbackCellY}; same int-pair layout as {@link #cellX}. Same lifecycle as {@link #hp}. */
+    /** Per-unit cached fall-back destination cell X (-1 = none). Paired with {@link #fallbackCellY}; same int-pair layout as {@link #cellX}. Same lifecycle as {@link #cooldownTimer}. */
     private int[] fallbackCellX = new int[INITIAL_CAPACITY];
     /** Per-unit cached fall-back destination cell Y, paired with {@link #fallbackCellX}. */
     private int[] fallbackCellY = new int[INITIAL_CAPACITY];
-    /** Per-unit FLEE-role idle pause between wander legs (sim-seconds). Same lifecycle as {@link #hp}. */
+    /** Per-unit FLEE-role idle pause between wander legs (sim-seconds). Same lifecycle as {@link #cooldownTimer}. */
     private float[] wanderDwellTimer = new float[INITIAL_CAPACITY];
     private int liveCount = 0;
     private long nextId = 1L;
@@ -140,6 +124,19 @@ public final class UnitRegistry {
      * rationale.
      */
     private final RenderPositionService renderPositions = new RenderPositionService();
+
+    /**
+     * The battle's archetype-table entity world + its game component
+     * registrations — owned here <em>for the transition</em> (same owned-sub-store
+     * shape as {@link #renderPositions}): {@link #allocate} is the single spawn
+     * seam, so owning the world keeps "mint the id" and "adopt it into the world
+     * as {@code {IDENTITY, HEALTH}}" in one place, and lets every standalone
+     * registry user (tests included) get a coherent world for free.
+     * {@code BattleSimulation} re-exposes both via its getters. When step 4
+     * dissolves this registry, ownership hops up to the sim.
+     */
+    private final EntityWorld entityWorld = new EntityWorld();
+    private final BattleComponents components = new BattleComponents(entityWorld);
 
     public UnitRegistry() {
         // Make missing-key lookups return INVALID_INDEX directly. The remove
@@ -169,8 +166,6 @@ public final class UnitRegistry {
         if (liveCount == dense.length) {
             int newCap = dense.length * 2;
             dense = Arrays.copyOf(dense, newCap);
-            hp = Arrays.copyOf(hp, newCap);
-            maxHp = Arrays.copyOf(maxHp, newCap);
             cellX = Arrays.copyOf(cellX, newCap);
             cellY = Arrays.copyOf(cellY, newCap);
             cooldownTimer = Arrays.copyOf(cooldownTimer, newCap);
@@ -194,14 +189,20 @@ public final class UnitRegistry {
         long id = nextId++;
         u.entityId = id;
         dense[liveCount] = u;
-        // Seed the seed-bearing columns from the unit's pre-allocation transient
-        // fields. After this point these are canonical and none is snapshotted
-        // back on release — hp, the Group-S stats (maxHp + attack stats) and the
-        // cell pair all seed from write-only seed* fields. (hp's old post-release
-        // localHp shadow is gone: held-ref liveness goes through isAliveById(id),
-        // a map miss once the id is released.)
-        hp[liveCount] = u.seedHp;
-        maxHp[liveCount] = u.seedMaxHp;
+        // Adopt the minted id into the entity world as a live {IDENTITY, HEALTH}
+        // entity. Identity is written once here and persists alive→dead (the
+        // corpse transmute's row-move carries it); Health seeds from the
+        // write-only seed* fields and is canonical in the world thereafter —
+        // "has HEALTH with hp > 0" is the liveness definition (isAliveById).
+        entityWorld.createEntity(id, components.IDENTITY, components.HEALTH);
+        entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_TYPE, u.type);
+        entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_FACTION, u.faction);
+        entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_HP, u.seedHp);
+        entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_MAX_HP, u.seedMaxHp);
+        // Seed the remaining dense seed-bearing columns from the unit's
+        // pre-allocation transient fields. After this point these are canonical
+        // and none is snapshotted back on release — the Group-S stats and the
+        // cell pair all seed from write-only seed* fields.
         cellX[liveCount] = u.seedCellX;
         cellY[liveCount] = u.seedCellY;
         attackDamage[liveCount] = u.seedAttackDamage;
@@ -255,19 +256,18 @@ public final class UnitRegistry {
         if (idx == INVALID_INDEX) return;
         int last = liveCount - 1;
         // Nothing is snapshotted back onto the released unit, and there is no
-        // back-pointer to clear (Entity no longer holds one). hp, the cell pair,
-        // and the Group-S stats all carry no post-release shadow: held-ref
-        // liveness goes through isAliveById(id) (a map miss once the id is gone),
-        // the cell's post-release readers (turret/hub demolition + mech wreck
-        // handlers) read the death cell off the DeathEvent snapshot, and render
-        // position lives in the RenderPositionService keyed by entityId — NOT
-        // cleared on release, so the corpse's death-pose location survives and
-        // getRenderX()/getRenderY() still resolve for it.
+        // back-pointer to clear (Entity no longer holds one). The cell pair and
+        // the Group-S stats carry no post-release shadow: the cell's post-release
+        // readers (turret/hub demolition + mech wreck handlers) read the death
+        // cell off the DeathEvent snapshot, and render position lives in the
+        // RenderPositionService keyed by entityId — NOT cleared on release, so
+        // the corpse's death-pose location survives. The world entity is NOT
+        // touched here: hp lives in its HEALTH component (isAliveById reads it,
+        // so a released-pre-transmute id still reports dead via hp <= 0), and
+        // the death drain transmutes it to the corpse archetype.
         if (idx != last) {
             Entity tail = dense[last];
             dense[idx] = tail;
-            hp[idx] = hp[last];
-            maxHp[idx] = maxHp[last];
             cellX[idx] = cellX[last];
             cellY[idx] = cellY[last];
             cooldownTimer[idx] = cooldownTimer[last];
@@ -304,16 +304,17 @@ public final class UnitRegistry {
     }
 
     /**
-     * Liveness for a held entity id — registered AND hp &gt; 0. Backs
-     * {@code World.isAlive(id)} and every held-ref liveness check now that
-     * {@code Entity} holds no registry back-pointer: resolve the slot via
-     * {@code indexById} (the single source of truth for id→slot) and
-     * short-circuit to {@code false} for a released/unknown id.
-     * A {@code 0L} ("never allocated") id misses the map → {@code false}.
+     * Liveness for a held entity id — has a {@code HEALTH} component with
+     * {@code hp > 0}. Backs {@code World.isAlive(id)} and every held-ref
+     * liveness check. The definition is now purely world-side: a corpse fails
+     * it by <em>lacking</em> {@code HEALTH} (the death transmute removed it), a
+     * just-killed-not-yet-transmuted id fails on {@code hp <= 0} (every release
+     * path zeroes hp first), and a never-allocated / {@code 0L} id misses the
+     * world entirely. One tolerant-read location probe, no registry involvement
+     * — this is the end-state liveness the registry's dissolution leaves behind.
      */
     public boolean isAliveById(long id) {
-        int idx = indexById.get(id);
-        return idx != INVALID_INDEX && hp[idx] > 0f;
+        return entityWorld.getFloat(id, components.HEALTH, BattleComponents.HEALTH_HP, 0f) > 0f;
     }
 
     /**
@@ -340,17 +341,6 @@ public final class UnitRegistry {
     }
 
     /**
-     * Direct array access for the SoA hp slot. Used by {@link Entity#getHp}
-     * (the OO-shape accessor every existing call site goes through) and by
-     * any future hot bulk loop that iterates over {@code [0, liveCount())}
-     * without a {@link Entity} dereference.
-     */
-    public float getHp(int idx) { return hp[idx]; }
-    public void setHp(int idx, float v) { hp[idx] = v; }
-    public float getMaxHp(int idx) { return maxHp[idx]; }
-    public void setMaxHp(int idx, float v) { maxHp[idx] = v; }
-
-    /**
      * Resolves a live entity id to its dense slot, fail-loud on an
      * unknown/released id. Backs the {@link World}-facade by-id accessors (the
      * hot face): {@code world.hp(id)} resolves the index once here, then reads
@@ -365,20 +355,15 @@ public final class UnitRegistry {
         return idx;
     }
 
-    // By-id hp accessors — one map probe + array read, no Entity deref. (The other
-    // columns are reached the same way: World does requireLiveIndex(id) once then
-    // calls the by-idx accessor; hp keeps a dedicated pair as the hottest case.)
-    public float hpById(long id) { return hp[requireLiveIndex(id)]; }
-    public void setHpById(long id, float v) { hp[requireLiveIndex(id)] = v; }
-
-    /**
-     * Raw {@code float[]} hp view for bulk iteration over
-     * {@code [0, liveCount())}. Same caveat as {@link #denseArray()} —
-     * the array reference may be replaced by {@link #allocate(Entity)} on
-     * growth, so don't cache across allocations.
-     */
-    public float[] hpArray() { return hp; }
-    public float[] maxHpArray() { return maxHp; }
+    // Transitional by-id hp adapters over the world's HEALTH columns — call
+    // sites keep their registry/World receiver while the storage lives in the
+    // entity world. Strict reads (the engine throws if the entity is gone or
+    // already transmuted to a corpse, i.e. fail-loud after the death drain).
+    // These dissolve with the registry in migration step 4.
+    public float hpById(long id) { return entityWorld.getFloat(id, components.HEALTH, BattleComponents.HEALTH_HP); }
+    public void setHpById(long id, float v) { entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_HP, v); }
+    public float maxHpById(long id) { return entityWorld.getFloat(id, components.HEALTH, BattleComponents.HEALTH_MAX_HP); }
+    public void setMaxHpById(long id, float v) { entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_MAX_HP, v); }
 
     /**
      * Direct array access for the SoA cell-position slots. Sequential dense
@@ -411,6 +396,12 @@ public final class UnitRegistry {
      * longer holds dense {@code renderX/renderY} columns.
      */
     public RenderPositionService getRenderPositions() { return renderPositions; }
+
+    /** The battle's archetype-table entity world — owned here for the transition (see the field doc). */
+    public EntityWorld entityWorld() { return entityWorld; }
+
+    /** Game component-type registrations + shared queries for {@link #entityWorld()}. */
+    public BattleComponents components() { return components; }
 
     public float getAttackDamage(int idx) { return attackDamage[idx]; }
     public void setAttackDamage(int idx, float v) { attackDamage[idx] = v; }

@@ -66,20 +66,24 @@ public final class World {
     // they iterate the dense arrays over [0, liveCount()).
 
     /**
-     * Liveness for a held entity id — registered AND hp &gt; 0; {@code false}
-     * for a released/never-allocated id (including {@code 0L}). The by-id
-     * replacement for {@code Entity.isAlive()} now that {@code Entity} no longer
-     * holds a registry back-pointer: this is the <em>non</em>-fail-loud face
-     * (unlike {@link #hp}), the defined "dead/never" answer for a maybe-released
-     * ref. Mirrors {@link UnitRegistry#isAliveById}.
+     * Liveness for a held entity id — has a {@code HEALTH} component with
+     * {@code hp > 0}; {@code false} for a corpse (the death transmute removed
+     * {@code HEALTH}), a never-allocated id, and {@code 0L}. The by-id
+     * replacement for {@code Entity.isAlive()}: this is the <em>non</em>-fail-loud
+     * face (unlike {@link #hp}), the defined "dead/never" answer for a
+     * maybe-released ref. Mirrors {@link UnitRegistry#isAliveById}.
      */
     public boolean isAlive(long id) { return registry.isAliveById(id); }
 
-    public float hp(long id) { return registry.getHp(registry.requireLiveIndex(id)); }
-    public void setHp(long id, float v) { registry.setHp(registry.requireLiveIndex(id), v); }
+    // hp lives in the entity world's HEALTH columns (migration step 3); these
+    // delegate to the registry's transitional by-id adapters so the facade
+    // surface is unchanged for its callers. Fail-loud once the death drain has
+    // transmuted the entity to a corpse (HEALTH gone).
+    public float hp(long id) { return registry.hpById(id); }
+    public void setHp(long id, float v) { registry.setHpById(id, v); }
 
-    public float maxHp(long id) { return registry.getMaxHp(registry.requireLiveIndex(id)); }
-    public void setMaxHp(long id, float v) { registry.setMaxHp(registry.requireLiveIndex(id), v); }
+    public float maxHp(long id) { return registry.maxHpById(id); }
+    public void setMaxHp(long id, float v) { registry.setMaxHpById(id, v); }
 
     public int cellX(long id) { return registry.getCellX(registry.requireLiveIndex(id)); }
     public int cellY(long id) { return registry.getCellY(registry.requireLiveIndex(id)); }

@@ -11,11 +11,13 @@ import com.dillon.starsectormarines.engine.ecs.Query;
  * them are defined. Constructed once per battle alongside the world it registers
  * into (both transient — battles never save/load mid-fight).
  *
- * <p>Components are grouped by lifecycle-stable capability (Position persists
- * alive→dead; Health will be live-only), per the committed decomposition in
- * {@code roadmap/ecs-migration/archetype-storage.md}. Only the corpse archetype's
- * components are registered so far; live-combat components join as migration
- * step 3 lands, continuing the id space.
+ * <p>Components are grouped by lifecycle-stable capability (Identity persists
+ * alive→dead; Health is live-only), per the committed decomposition in
+ * {@code roadmap/ecs-migration/archetype-storage.md}. Registered so far: the
+ * corpse archetype plus the first live capability ({@link #HEALTH}); every unit
+ * spawns into the world as {@code {IDENTITY, HEALTH}} and death is the
+ * transmute to the corpse archetype. Remaining live-combat components join as
+ * migration step 3 proceeds, continuing the id space.
  *
  * <p>Column access is positional ({@code table.ints(POSITION, POSITION_CELL_X)});
  * the {@code int} constants below are the named field indices per component.
@@ -46,6 +48,11 @@ public final class BattleComponents {
     /** {@link #SPRITE} field 2: vertical flip as 0/1 (INT). */
     public static final int SPRITE_FLIP_V = 2;
 
+    /** {@link #HEALTH} field 0: current hp (FLOAT). */
+    public static final int HEALTH_HP = 0;
+    /** {@link #HEALTH} field 1: max hp (FLOAT). */
+    public static final int HEALTH_MAX_HP = 1;
+
     // ---- component types ----
 
     /** Who/what this entity is — {@code UnitType type, Faction faction}. Persists alive→dead. */
@@ -66,6 +73,15 @@ public final class BattleComponents {
     public final ComponentType SPRITE;
     /** Dead-archetype marker — pure presence tag, no columns. */
     public final ComponentType CORPSE;
+    /**
+     * Live damageable state — {@code float hp, maxHp}. Live-only by design: a
+     * corpse does NOT carry it (death removes it in the corpse transmute), so
+     * "has {@code HEALTH} with {@code hp > 0}" <em>is</em> the liveness
+     * definition ({@code UnitRegistry.isAliveById}). Seeded at spawn by
+     * {@code UnitRegistry.allocate}; damage writes go through the registry's
+     * transitional by-id adapters until step 4 dissolves them.
+     */
+    public final ComponentType HEALTH;
 
     // ---- shared queries (per-world lifecycle, cached matched-table lists) ----
 
@@ -84,6 +100,7 @@ public final class BattleComponents {
         RENDER_POSITION = world.register(2, "RenderPosition", FieldKind.FLOAT, FieldKind.FLOAT);
         SPRITE          = world.register(3, "Sprite", FieldKind.INT, FieldKind.INT, FieldKind.INT);
         CORPSE          = world.register(4, "Corpse");
+        HEALTH          = world.register(5, "Health", FieldKind.FLOAT, FieldKind.FLOAT);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}, null);
     }

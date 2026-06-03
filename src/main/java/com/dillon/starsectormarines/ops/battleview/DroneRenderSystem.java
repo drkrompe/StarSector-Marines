@@ -99,7 +99,7 @@ public final class DroneRenderSystem implements RenderSystem {
 
             float barY = cy + pxH / 2f + BattleRenderer.HP_BAR_GAP;
             HpBarDecor.emit(out, RenderLayer.DRONES, cx, barY, barW,
-                    registry.getHp(i) / registry.getMaxHp(i), drawAlpha);
+                    registry.hpById(d.entityId) / registry.maxHpById(d.entityId), drawAlpha);
         }
     }
 }

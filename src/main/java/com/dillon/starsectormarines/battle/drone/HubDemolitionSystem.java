@@ -113,7 +113,7 @@ public final class HubDemolitionSystem {
         for (int i = 0, n = doomed.size(); i < n; i++) {
             Drone d = doomed.get(i);
             int idx = registry.requireLiveIndex(d.entityId);
-            registry.setHp(idx, 0f);
+            registry.setHpById(d.entityId, 0f);
             // Publish before release, mirroring DamageResolver.resolve's
             // ordering — re-entrant into the in-progress drain, fanned out on
             // the next wave (the dispatcher is wave-drained for exactly this).
