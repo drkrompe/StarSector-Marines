@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.combathybrid;
 
 import com.dillon.starsectormarines.DebugOnly;
+import com.dillon.starsectormarines.battle.air.AirProvider;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -9,7 +10,6 @@ import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
-import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.MapScale;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.BattleCreationPlugin;
@@ -182,16 +182,16 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
         TraversalAxis axis = rng.nextBoolean() ? TraversalAxis.SOUTH_TO_NORTH : TraversalAxis.WEST_TO_EAST;
         MapResult map = new BspCityGenerator().generate(gridW, gridH, SIM_MAP_SEED, axis, TargetProfile.NEUTRAL);
 
-        BattleSimulation sim = new BattleSimulation(map.grid, map.topology);
-        sim.setTacticalMap(map.tacticalMap);
-        sim.setBuildings(map.buildings);
-        sim.setDefensePosts(map.defensePosts);
-        for (Doodad d : map.doodads) sim.addDoodad(d);
-
-        // Spawn the planet's defenses through the SAME path the standalone battle uses
-        // (BattleSetup.spawnDefensePostTurrets), and mirror the returned structures as
-        // proxies — so the fleet strafes real defenses with no reimplementation to drift.
-        List<Unit> targetable = BattleSetup.spawnDefensePostTurrets(sim, map.defensePosts);
+        // Build the host-agnostic map layer through the SAME path the standalone battle
+        // uses (BattleSetup.buildMap) — terrain, structures, and the defense-post turrets,
+        // no reimplementation to drift. No parked vehicles: this is a map-only probe and
+        // they'd be invisible obstacles in the backdrop's GROUND/DOODADS/ROOFS subset.
+        BattleSetup.MapBuild build = BattleSetup.buildMap(map, List.of(), map.defensePosts);
+        BattleSimulation sim = build.sim();
+        // The real vanilla ships above own the air — the sim runs no internal shuttle/flyby.
+        sim.setAirProvider(AirProvider.EXTERNAL);
+        // The defense-post structures, mirrored as proxies so the fleet strafes real defenses.
+        List<Unit> targetable = build.structures();
         LOG.info("S3: loaded Conquest map [" + scale + " " + gridW + "x" + gridH + ", axis=" + axis
                 + "] — " + map.defensePosts.size() + " defense posts, " + targetable.size() + " targetable structures.");
 
