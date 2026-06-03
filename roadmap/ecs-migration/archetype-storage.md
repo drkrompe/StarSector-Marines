@@ -90,6 +90,17 @@ and run a tight row loop — the archetype analog of today's
   gather-then-apply discipline ([[dense_registry_swap_pop_trap]],
   [[deferred_flush_released_target_guard]]). Document per system; never depend on
   raw intra-table row order.
+- **Safe structural change during iteration.** Destroy / add-component /
+  remove-component all swap-pop rows in the table being walked, so a system must
+  **not** apply them mid-query. The engine provides a `CommandBuffer`
+  (`world.cmd().destroy(e)` / `.add(e, ct)` / `.remove(e, ct)`) that records ops
+  into primitive parallel arrays during the walk; `world.flush()` applies them in
+  FIFO order at a tick barrier. This is the gather-then-apply idiom made a first-class
+  engine primitive. **Creates are not buffered** — `createEntity` is walk-safe (a new
+  row only ever lands at/past the iterator's captured `rowCount`, and a grow reallocs
+  away from the captured alias), so spawn child/FX entities inline and set their
+  fields immediately. Apply-time guards: add/remove on an entity destroyed earlier in
+  the same flush is skipped; double-destroy is a no-op.
 - **No persistence — the world is ephemeral.** Marine-ops battles are transient:
   the game does not allow mid-battle save/load ([[battle_transient_no_save_load]]).
   So the world never serializes — the engine carries **no `Serializable` contract**,

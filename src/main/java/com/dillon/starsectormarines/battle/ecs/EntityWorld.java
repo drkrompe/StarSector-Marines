@@ -30,6 +30,7 @@ public final class EntityWorld {
     private final Long2IntOpenHashMap tableIndexByMask = new Long2IntOpenHashMap();
     /** entityId -> {@code (tableIndex << 32) | row}. */
     private final Long2LongOpenHashMap location = new Long2LongOpenHashMap();
+    private final CommandBuffer commands = new CommandBuffer();
 
     private long nextEntityId = 1L;
     private int tableVersion = 0;
@@ -126,6 +127,35 @@ public final class EntityWorld {
     }
 
     public int entityCount() { return location.size(); }
+
+    // ---- deferred structural change (safe mutation during a query walk) ----
+
+    /**
+     * The deferred structural-change buffer. Queue {@code destroy} / {@code add} /
+     * {@code remove} here during a {@link Query} walk — applying them immediately
+     * would swap-pop rows out from under the iterator — then {@link #flush()} at a
+     * tick barrier. Creates are not buffered ({@link #createEntity} is walk-safe).
+     */
+    public CommandBuffer cmd() { return commands; }
+
+    /**
+     * Apply every queued structural change in FIFO order, then clear the buffer.
+     * Call at a tick barrier, never mid-walk. Add/remove on an entity destroyed
+     * earlier in the same flush is skipped; double-destroy is a no-op.
+     */
+    public void flush() {
+        int n = commands.size();
+        for (int i = 0; i < n; i++) {
+            long e = commands.entityAt(i);
+            switch (commands.kindAt(i)) {
+                case CommandBuffer.DESTROY -> destroy(e);
+                case CommandBuffer.ADD    -> { if (isAlive(e)) addComponent(e, typeById.get(commands.componentIdAt(i))); }
+                case CommandBuffer.REMOVE -> { if (isAlive(e)) removeComponent(e, typeById.get(commands.componentIdAt(i))); }
+                default -> throw new IllegalStateException("unknown command kind");
+            }
+        }
+        commands.clear();
+    }
 
     // ---- internals ----
 
