@@ -530,6 +530,9 @@ public class BattleRenderer {
     private void renderSelectedVehicleDebug(
             java.util.List<com.dillon.starsectormarines.battle.vehicle.Vehicle> convoy,
             float alphaMult) {
+        // Hosts without a selection model (the combat bridge passes selection=null) have no
+        // selected vehicle and no use for this dev overlay — skip rather than NPE.
+        if (rc.selection == null) return;
         int idx = rc.selection.getSelectedVehicleIdx();
         if (idx < 0 || idx >= convoy.size()) return;
         com.dillon.starsectormarines.battle.vehicle.Vehicle v = convoy.get(idx);

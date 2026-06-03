@@ -48,3 +48,14 @@ scenario does.
 
 Layers wired + the `selection`-null path guarded; a bridge sim containing parked vehicles / a convoy
 renders them at world scale under the ships with no NPE (including when no vehicle is selected).
+
+## Status
+
+**DONE, build-clean.** `VEHICLES` + `CONVOY` added to `GroundBattleConfig.DEFAULT_SCENE_LAYERS`;
+`ensureVehicleSheets()` + `ensureConvoySprites()` added to `initOnGlThread()`. The NPE gotcha was
+resolved with the **guard option**: `BattleRenderer.renderSelectedVehicleDebug` now early-returns on
+`rc.selection == null` (the `@DebugOnly` overlay has no meaning in the bridge anyway; the guard is a
+no-op for the standalone screen, which always passes a real selection). The other CONVOY overlay
+(`renderConvoyDockingPathsDebug`) reads no null `RenderContext` field. Both layers latent today (the
+probe passes `List.of()` vehicles; convoys are a Sabotage-scenario thing) — wired for when a scenario
+populates them.

@@ -107,6 +107,10 @@ public class GroundSceneBackdrop implements CombatLayeredRenderingPlugin {
         // OBJECTIVES layer (S3g): charge-site / equipment-drop icons (COMPOUND is vector-drawn, no sheet).
         sprites.ensureObjectiveIcons();
 
+        // VEHICLES + CONVOY layers (S3h): parked map vehicles + supply trucks/turrets.
+        sprites.ensureVehicleSheets();
+        sprites.ensureConvoySprites();
+
         renderer = new BattleRenderer(sprites);
         renderer.buildTileBatches();
 

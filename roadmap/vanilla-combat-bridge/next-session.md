@@ -153,8 +153,9 @@ Decomposition doc: [`render-layers.md`](render-layers.md). Stories:
   `complete/` after playtest.
 - **`stories/s3g-objectives-compound.md`** — `OBJECTIVES` + `COMPOUND`. ✅ **DONE, build-clean** —
   added to `DEFAULT_SCENE_LAYERS` + `ensureObjectiveIcons()`; verified no null-`RenderContext` access.
-- **`stories/s3h-vehicles-convoy.md`** — `VEHICLES` + `CONVOY`. Carries the null-`selection`
-  NPE gotcha (CONVOY DebugOnly overlays read `ctx.selection`).
+- **`stories/s3h-vehicles-convoy.md`** — `VEHICLES` + `CONVOY`. ✅ **DONE, build-clean** — added to
+  `DEFAULT_SCENE_LAYERS` + `ensureVehicleSheets()`/`ensureConvoySprites()`; the null-`selection` NPE
+  fixed by guarding `BattleRenderer.renderSelectedVehicleDebug` on `rc.selection == null`.
 - **`stories/s3i-fog-highlights.md`** — `FOG` + `HIGHLIGHTS`. Design calls (fog in a
   fleet-commander view? highlights source with no on-screen selection?).
 - **`stories/s3j-fx-fbo-retarget.md`** — `DECALS`/`LIGHTING`/`IMPACT_FX`. Hard bucket: FBO
