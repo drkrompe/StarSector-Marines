@@ -86,7 +86,7 @@ public final class ClearZone extends AbstractZoneAction {
             Unit inZone = pickInZoneTarget(member, sim);
             if (inZone == null) inZone = pickNearestInZoneEnemy(member, sim);
             target = inZone != null ? inZone : sim.getTacticalScoring().findBestTarget(member);
-            member.setTarget(target);
+            sim.world().setTargetId(member.entityId, Unit.idOf(target));
         }
         if (target == null) return ActionStatus.RUNNING;
 
@@ -98,7 +98,7 @@ public final class ClearZone extends AbstractZoneAction {
         if (inRange && visible && sim.world().cooldownTimer(member.entityId) <= 0f) {
             sim.fireShot(member, target);
             sim.world().setCooldownTimer(member.entityId, member.attackCooldown);
-            member.beginBurst(target);
+            member.beginBurst(sim.world(), target);
             return ActionStatus.RUNNING;
         }
 

@@ -897,7 +897,7 @@ public final class FlybyOverlay {
         }
         // Steer toward target if it's still alive — clamped turn rate, so a fast
         // unit running perpendicular can outrun the lock and force a miss.
-        Unit target = (p.target != null && p.target.isAlive()) ? p.target : null;
+        Unit target = (p.target != null && sim != null && sim.world().isAlive(p.target.entityId)) ? p.target : null;
         if (target != null) {
             float dx = (target.getRenderX() + 0.5f) - p.worldX;
             float dy = (target.getRenderY() + 0.5f) - p.worldY;

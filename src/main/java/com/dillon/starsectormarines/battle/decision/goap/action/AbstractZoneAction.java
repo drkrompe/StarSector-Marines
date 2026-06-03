@@ -90,7 +90,7 @@ abstract class AbstractZoneAction implements Action {
         Unit target = sim.targetOf(member);
         if (target == null || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
             target = sim.getTacticalScoring().findBestTarget(member);
-            member.setTarget(target);
+            sim.world().setTargetId(member.entityId, Unit.idOf(target));
         }
 
         boolean inContact = false;
@@ -106,7 +106,7 @@ abstract class AbstractZoneAction implements Action {
             if (inContact) {
                 sim.fireShot(member, target, haltOnContact ? FireStance.STANCED : FireStance.MOVING);
                 sim.world().setCooldownTimer(member.entityId, member.attackCooldown);
-                member.beginBurst(target);
+                member.beginBurst(sim.world(), target);
             } else {
                 // Opportunistic return fire while advancing. The pursuit target
                 // is out of range/LoS (or absent) — across the open approach
@@ -121,7 +121,7 @@ abstract class AbstractZoneAction implements Action {
                 if (opportune != null) {
                     sim.fireShot(member, opportune, FireStance.MOVING);
                     sim.world().setCooldownTimer(member.entityId, member.attackCooldown);
-                    member.beginBurst(opportune);
+                    member.beginBurst(sim.world(), opportune);
                 }
             }
         }

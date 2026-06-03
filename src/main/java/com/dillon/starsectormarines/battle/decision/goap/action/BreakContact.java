@@ -84,7 +84,7 @@ public final class BreakContact implements Action {
         if (target == null
                 || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
             target = sim.getTacticalScoring().findBestTarget(member);
-            member.setTarget(target);
+            sim.world().setTargetId(member.entityId, Unit.idOf(target));
         }
         if (target == null || sim.world().cooldownTimer(member.entityId) > 0f) return;
         float d = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
@@ -94,6 +94,6 @@ public final class BreakContact implements Action {
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId))) return;
         sim.fireShot(member, target, stance);
         sim.world().setCooldownTimer(member.entityId, member.attackCooldown);
-        member.beginBurst(target);
+        member.beginBurst(sim.world(), target);
     }
 }

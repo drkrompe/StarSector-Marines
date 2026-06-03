@@ -200,7 +200,7 @@ public class HeavyWeapons {
         }
         for (int i = 0, n = mechScratch.size(); i < n; i++) {
             Unit u = mechScratch.get(i);
-            if (!u.isAlive()) continue; // killed earlier in this same pass
+            if (!registry.isAliveById(u.entityId)) continue; // killed earlier in this same pass
             MechLoadoutState m = u.mech;
 
             if (m.chaingunCooldown > 0f) m.chaingunCooldown -= BattleSimulation.TICK_DT;

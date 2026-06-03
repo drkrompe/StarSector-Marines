@@ -60,7 +60,7 @@ public final class ApproachPosture implements Action {
         if (target == null
                 || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
             target = sim.getTacticalScoring().findBestTarget(member);
-            member.setTarget(target);
+            sim.world().setTargetId(member.entityId, Unit.idOf(target));
         }
         if (target == null) return ActionStatus.FAILURE;
 

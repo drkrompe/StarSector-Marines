@@ -316,7 +316,7 @@ public final class VisionService {
             ContributorEntry e = cohort.contributors.get(i);
             Unit u = registry.getOrNull(e.unitId);
 
-            if (u == null || !u.isAlive()) {
+            if (u == null || !registry.isAliveById(e.unitId)) {
                 decrementFootprint(e);
                 cohort.contributors.remove(i);
                 continue;

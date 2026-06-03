@@ -49,7 +49,7 @@ public final class EngageAtCurrentBand implements Action {
     @Override
     public ActionStatus execute(Unit u, Squad squad, BattleControl sim) {
         Unit target = sim.getTacticalScoring().refreshTargetIfNotShootable(u);
-        u.setTarget(target);
+        sim.world().setTargetId(u.entityId, Unit.idOf(target));
         if (target == null) return ActionStatus.RUNNING;
 
         float dist = TacticalScoring.cellDistance(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));

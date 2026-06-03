@@ -234,14 +234,14 @@ public class GroundSystem {
             // commits to its salvo target, matching shuttle turret behavior.
             if (v.turretBurstRemaining > 0) {
                 v.turretBurstTimer -= dt;
-                if (v.turretBurstTimer <= 0f && currentBurstTarget != null && currentBurstTarget.isAlive()) {
+                if (v.turretBurstTimer <= 0f && currentBurstTarget != null && world.isAlive(v.turretBurstTargetId)) {
                     fireSink.fire(mountWorldX, mountWorldY, v.faction, kind, currentBurstTarget, false);
                     v.turretAmmo--;
                     v.turretBurstRemaining--;
                     v.turretBurstTimer = kind.burstSpacing;
                     if (v.turretBurstRemaining == 0) v.turretBurstTargetId = 0L;
                 }
-                if (currentBurstTarget == null || !currentBurstTarget.isAlive()) {
+                if (currentBurstTarget == null || !world.isAlive(v.turretBurstTargetId)) {
                     v.turretBurstRemaining = 0;
                     v.turretBurstTargetId = 0L;
                 }
@@ -272,7 +272,7 @@ public class GroundSystem {
                 fireSink.fire(mountWorldX, mountWorldY, v.faction, kind, aim.target,
                         /*aerialShooter*/ false, aim.lastFireHadLos);
                 v.turretAmmo--;
-                if (kind.burstCount > 1 && aim.target.isAlive()) {
+                if (kind.burstCount > 1 && world.isAlive(aim.target.entityId)) {
                     v.turretBurstRemaining = kind.burstCount - 1;
                     v.turretBurstTimer = kind.burstSpacing;
                     v.turretBurstTargetId = aim.target.entityId;

@@ -22,7 +22,7 @@ public final class DroneHubBehavior implements UnitBehavior {
     public void update(Unit u, BattleSimulation sim) {
         if (!(u instanceof DroneHubUnit)) return;
         DroneHubUnit hub = (DroneHubUnit) u;
-        if (!hub.isAlive()) return;
+        if (!sim.world().isAlive(hub.entityId)) return;
         hub.spawnCooldown -= BattleSimulation.TICK_DT;
         if (hub.spawnCooldown > 0f) return;
         int active = countActiveDrones(sim, hub);

@@ -34,7 +34,7 @@ public final class DroneSpawner {
      * takes over.
      */
     public static Drone tryLaunch(DroneHubUnit hub, BattleSimulation sim) {
-        if (!hub.isAlive()) return null;
+        if (!sim.world().isAlive(hub.entityId)) return null;
         NavigationGrid grid = sim.getGrid();
         UnitRegistry registry = sim.getUnitRegistry();
         int hubIdx = registry.requireLiveIndex(hub.entityId);

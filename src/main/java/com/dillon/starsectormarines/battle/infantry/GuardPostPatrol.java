@@ -123,7 +123,7 @@ public final class GuardPostPatrol implements Action {
         Unit target = sim.targetOf(member);
         if (target == null || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
             target = sim.getTacticalScoring().findBestTarget(member);
-            member.setTarget(target);
+            sim.world().setTargetId(member.entityId, Unit.idOf(target));
         }
         if (target != null) {
             return engage(member, target, squad, sim);
@@ -166,7 +166,7 @@ public final class GuardPostPatrol implements Action {
             if (sim.world().cooldownTimer(member.entityId) <= 0f) {
                 sim.fireShot(member, target);
                 sim.world().setCooldownTimer(member.entityId, member.attackCooldown);
-                member.beginBurst(target);
+                member.beginBurst(sim.world(), target);
             }
             PatrolMotion.hold(member, sim);
             return ActionStatus.RUNNING;
@@ -178,7 +178,7 @@ public final class GuardPostPatrol implements Action {
             Unit alt = sim.getTacticalScoring().findEngageableEnemyWithin(
                     member, anchorX, anchorY, leash);
             if (alt != null) {
-                member.setTarget(alt);
+                sim.world().setTargetId(member.entityId, Unit.idOf(alt));
                 target = alt;
                 firingPos = sim.getTacticalScoring().findFiringPositionWithin(
                         member, target, anchorX, anchorY, leash);

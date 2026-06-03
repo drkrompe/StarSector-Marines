@@ -128,7 +128,7 @@ public final class BackstopAssignedSquad implements Action {
         Unit target = sim.targetOf(member);
         if (target == null) {
             target = sim.getTacticalScoring().findBestTarget(member);
-            member.setTarget(target);
+            sim.world().setTargetId(member.entityId, Unit.idOf(target));
         }
         if (target != null) {
             float dist = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),

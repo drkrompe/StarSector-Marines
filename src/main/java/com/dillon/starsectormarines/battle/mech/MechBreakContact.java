@@ -81,7 +81,7 @@ public final class MechBreakContact implements Action {
         if (target == null
                 || !sim.getTacticalScoring().shouldKeepPursuing(u, target)) {
             target = sim.getTacticalScoring().findBestTarget(u);
-            u.setTarget(target);
+            sim.world().setTargetId(u.entityId, Unit.idOf(target));
         }
         if (target == null) return;
         float dist = TacticalScoring.cellDistance(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId),

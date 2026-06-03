@@ -1023,9 +1023,9 @@ public class BattleSimulation implements BattleControl {
      * overrun. Chained retreats would need explicit gating that we don't
      * have yet.
      */
-    /** Delegates to {@link Unit#advanceAlongPath(float)}. Kept so existing behavior call sites compile unchanged. */
+    /** Delegates to {@link Unit#advanceAlongPath(UnitRegistry, float)}. Kept so existing behavior call sites compile unchanged. */
     public void advanceMovement(Unit u) {
-        u.advanceAlongPath(TICK_DT);
+        u.advanceAlongPath(rosterService.getRegistry(), TICK_DT);
     }
 
     /**
@@ -1108,7 +1108,7 @@ public class BattleSimulation implements BattleControl {
      * skipped (strafes pin you down rather than break contact).
      */
     public void applyExternalDamage(Unit target, float damage) {
-        if (target == null || !target.isAlive() || damage <= 0f) return;
+        if (target == null || !world.isAlive(target.entityId) || damage <= 0f) return;
         damageResolver.resolve(target, damage, 1f, 0f);
     }
 

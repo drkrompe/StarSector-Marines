@@ -80,6 +80,15 @@ public final class UnitSpatialIndex {
     private final int bucketsY;
     private final Bucket[] buckets;
     private final ArrayList<Bucket> pool = new ArrayList<>();
+    /**
+     * The registry the buckets were populated from, stashed by {@link #rebuild}
+     * / {@link #add} so {@link #gather} can drop units released since the last
+     * rebuild ({@code isAliveById}) without taking a registry on its hot
+     * signature (it has many callers). The registry instance is stable for the
+     * battle, so caching the reference is safe; it's only dereferenced inside
+     * the bucket loop, which never runs until a populate path has set it.
+     */
+    private UnitRegistry registry;
 
     public UnitSpatialIndex(int gridWidth, int gridHeight) {
         this.bucketsX = Math.max(1, (gridWidth + BUCKET - 1) / BUCKET);
@@ -99,6 +108,7 @@ public final class UnitSpatialIndex {
      * ref in the bucket so {@link #gather} never has to read them back.
      */
     public void rebuild(UnitRegistry registry) {
+        this.registry = registry;
         for (int i = 0; i < buckets.length; i++) {
             Bucket b = buckets[i];
             if (b != null) {
@@ -133,7 +143,8 @@ public final class UnitSpatialIndex {
      * the cell is denormalized into the bucket, mirroring {@link #rebuild}.
      */
     public void add(UnitRegistry registry, Unit u) {
-        if (!u.isAlive()) return;
+        this.registry = registry;
+        if (!registry.isAliveById(u.entityId)) return;
         int idx = registry.requireLiveIndex(u.entityId);
         int x = registry.getCellX(idx);
         int y = registry.getCellY(idx);
@@ -196,7 +207,7 @@ public final class UnitSpatialIndex {
                     // "alive units only" contract still requires the skip so dead
                     // units aren't handed back. (Callers also filter, but gather
                     // owns the contract.)
-                    if (!u.isAlive()) continue;
+                    if (!registry.isAliveById(u.entityId)) continue;
                     int dx = bcx[i] - cx;
                     int dy = bcy[i] - cy;
                     if (dx * dx + dy * dy <= r2) out.add(u);

@@ -110,7 +110,7 @@ public final class InfantryUnitPrep {
         for (int i = 0, n = scratch.size(); i < n; i++) {
             Unit other = scratch.get(i);
             if (!TacticalScoring.isHardened(other)) continue;
-            if (!other.isAlive()) continue;
+            if (!sim.world().isAlive(other.entityId)) continue;
             if (other.faction == unit.faction) continue;
             float dx = sim.world().cellX(other.entityId) - sim.world().cellX(unit.entityId);
             float dy = sim.world().cellY(other.entityId) - sim.world().cellY(unit.entityId);
@@ -126,7 +126,7 @@ public final class InfantryUnitPrep {
 
         sim.world().setSecondaryActionTimer(unit.entityId, unit.secondaryWeapon.aimDuration);
         unit.secondaryFiredThisAction = false;
-        unit.setSecondaryAimTarget(bestHardened);
+        sim.world().setSecondaryAimTargetId(unit.entityId, Unit.idOf(bestHardened));
         // Freeze movement state for this tick — the next tick's
         // tickAimAndShortCircuit will keep doing it. Mirrors what that method
         // does on its own entry path so the visible behavior is consistent

@@ -105,8 +105,8 @@ public final class UnitDestinationSpatialIndex {
      * at any bucket — pair with {@link #removeDestination} when overwriting
      * an existing path.
      */
-    public void addDestination(Unit u, int destX, int destY) {
-        if (!u.isAlive()) return;
+    public void addDestination(UnitRegistry registry, Unit u, int destX, int destY) {
+        if (!registry.isAliveById(u.entityId)) return;
         int bx = destX / UnitSpatialIndex.BUCKET;
         int by = destY / UnitSpatialIndex.BUCKET;
         if (bx < 0 || bx >= bucketsX || by < 0 || by >= bucketsY) return;

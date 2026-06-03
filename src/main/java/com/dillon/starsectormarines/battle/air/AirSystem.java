@@ -443,7 +443,7 @@ public class AirSystem {
                     // Burst weapons latch the remaining rounds; single-shot
                     // kinds (burstCount == 1) skip this and behave as before.
                     if (mt.mount.kind.burstCount > 1
-                            && aim.target != null && aim.target.isAlive()) {
+                            && aim.target != null && world.isAlive(aim.target.entityId)) {
                         mt.burstRemaining = mt.mount.kind.burstCount - 1;
                         mt.burstTimer = mt.mount.kind.burstSpacing;
                         mt.setBurstTarget(aim.target);

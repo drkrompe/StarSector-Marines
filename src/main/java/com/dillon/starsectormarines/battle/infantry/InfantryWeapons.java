@@ -78,7 +78,7 @@ public class InfantryWeapons {
         }
         for (int i = 0, n = burstScratch.size(); i < n; i++) {
             Unit u = burstScratch.get(i);
-            if (!u.isAlive()) continue; // killed earlier this pass
+            if (!registry.isAliveById(u.entityId)) continue; // killed earlier this pass
             int idx = registry.requireLiveIndex(u.entityId);
             if (registry.getBurstRemaining(idx) <= 0) continue; // cleared earlier this pass
             float timer = registry.getBurstTimer(idx) - BattleSimulation.TICK_DT;

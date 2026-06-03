@@ -70,7 +70,7 @@ public final class TurretBehavior implements UnitBehavior {
 
         t.facingDegrees = s.facingDegrees;
         sim.world().setCooldownTimer(t.entityId, s.cooldownTimer);
-        t.setTarget(s.target);
+        sim.world().setTargetId(t.entityId, Unit.idOf(s.target));
 
         // Burst continuation runs ahead of fresh trigger pulls. A committed
         // salvo finishes its rounds before the aim loop kicks another.

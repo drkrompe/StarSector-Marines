@@ -119,7 +119,7 @@ public final class OverwatchKillZone implements Action {
         // an enemy that's slid behind cover while ignoring a fresh enemy now
         // standing in its kill lane.
         Unit target = sim.getTacticalScoring().refreshTargetIfNotShootable(member);
-        member.setTarget(target);
+        sim.world().setTargetId(member.entityId, Unit.idOf(target));
         if (target != null) {
             float dist = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
                     sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));

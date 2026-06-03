@@ -142,7 +142,7 @@ public final class SquadStateDumper {
             if (selectedUnitId != null && selectedUnitId.equals(u.id)) {
                 o.put("selected", true);
             }
-            o.put("alive", u.isAlive());
+            o.put("alive", sim.world().isAlive(u.entityId));
             o.put("role", u.role != null ? u.role.name() : null);
             o.put("cellX", sim.world().cellX(u.entityId));
             o.put("cellY", sim.world().cellY(u.entityId));

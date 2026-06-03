@@ -180,7 +180,7 @@ public final class PatrolMotion {
         Unit target = sim.targetOf(member);
         if (target == null || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
             target = sim.getTacticalScoring().findBestTarget(member);
-            member.setTarget(target);
+            sim.world().setTargetId(member.entityId, Unit.idOf(target));
         }
         if (target == null) return;
         float dist = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
@@ -190,7 +190,7 @@ public final class PatrolMotion {
         if (dist <= sim.world().attackRange(member.entityId) && visible && sim.world().cooldownTimer(member.entityId) <= 0f) {
             sim.fireShot(member, target, FireStance.MOVING);
             sim.world().setCooldownTimer(member.entityId, member.attackCooldown);
-            member.beginBurst(target);
+            member.beginBurst(sim.world(), target);
         }
     }
 }

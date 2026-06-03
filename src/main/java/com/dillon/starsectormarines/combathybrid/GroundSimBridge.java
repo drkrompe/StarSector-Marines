@@ -166,7 +166,7 @@ public class GroundSimBridge extends BaseEveryFrameCombatPlugin {
 
             // Position is sim-owned. Read the live cell only while alive (a released
             // unit's cell accessors are fail-loud); else keep the last-known anchor.
-            if (link.unit.isAlive()) {
+            if (sim.world().isAlive(link.unit.entityId)) {
                 cellToWorld(sim.world().cellX(link.unit.entityId), sim.world().cellY(link.unit.entityId), link.anchor);
             }
             proxy.getLocation().set(link.anchor);
@@ -175,12 +175,12 @@ public class GroundSimBridge extends BaseEveryFrameCombatPlugin {
 
             float max = proxy.getMaxHitpoints();
             float vanillaDamage = max - proxy.getHitpoints();
-            if (vanillaDamage > 0f && link.unit.isAlive()) {
+            if (vanillaDamage > 0f && sim.world().isAlive(link.unit.entityId)) {
                 float simDamage = vanillaDamage * SIM_DAMAGE_SCALE;
                 sim.applyExternalDamage(link.unit, simDamage);
                 LOG.info("S3a: " + link.unit.id + " vanilla dmg " + (int) vanillaDamage
                         + " -> sim dmg " + String.format("%.1f", simDamage) + "  (hp now "
-                        + String.format("%.1f", link.unit.isAlive() ? sim.world().hp(link.unit.entityId) : 0f) + ")");
+                        + String.format("%.1f", sim.world().isAlive(link.unit.entityId) ? sim.world().hp(link.unit.entityId) : 0f) + ")");
             }
             // Damage sensor, not a health bar: reset so vanilla never owns the kill.
             proxy.setHitpoints(max);

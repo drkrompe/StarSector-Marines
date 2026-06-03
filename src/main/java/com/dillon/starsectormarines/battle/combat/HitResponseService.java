@@ -55,7 +55,7 @@ public final class HitResponseService {
     }
 
     public void rollFallbackOnHit(Unit target) {
-        if (!target.isAlive()) return;
+        if (!registry.isAliveById(target.entityId)) return;
         int tIdx = registry.requireLiveIndex(target.entityId);
         if (registry.getFallbackTimer(tIdx) > 0f) return;
         if (target instanceof MapTurret) return;
@@ -67,7 +67,7 @@ public final class HitResponseService {
     }
 
     public void rollReprioritizeOnHit(Unit target, Unit shooter) {
-        if (!target.isAlive()) return;
+        if (!registry.isAliveById(target.entityId)) return;
         boolean qualifies = target.mech != null || target instanceof MapTurret;
         if (!qualifies) return;
         int simTickIndex = tickIndexSupplier.getAsInt();

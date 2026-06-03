@@ -178,7 +178,7 @@ public final class HoldZone extends AbstractZoneAction {
                 || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
             target = pickInZoneTarget(member, sim, enemy);
             if (target == null) target = sim.getTacticalScoring().findBestTarget(member);
-            member.setTarget(target);
+            sim.world().setTargetId(member.entityId, Unit.idOf(target));
         }
         if (target == null) {
             hold(member, sim);
@@ -193,7 +193,7 @@ public final class HoldZone extends AbstractZoneAction {
         if (inRange && visible && sim.world().cooldownTimer(member.entityId) <= 0f) {
             sim.fireShot(member, target);
             sim.world().setCooldownTimer(member.entityId, member.attackCooldown);
-            member.beginBurst(target);
+            member.beginBurst(sim.world(), target);
             return ActionStatus.RUNNING;
         }
 

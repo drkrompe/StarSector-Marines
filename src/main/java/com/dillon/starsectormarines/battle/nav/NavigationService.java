@@ -225,7 +225,7 @@ public final class NavigationService {
         }
         if (newDestX != Integer.MIN_VALUE) {
             incrementOccupancy(newDestX, newDestY);
-            destIndex.addDestination(u, newDestX, newDestY);
+            destIndex.addDestination(registry, u, newDestX, newDestY);
         }
     }
 

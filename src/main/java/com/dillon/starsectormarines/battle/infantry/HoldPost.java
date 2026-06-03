@@ -72,7 +72,7 @@ public final class HoldPost implements Action {
         if (target == null
                 || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
             target = sim.getTacticalScoring().findBestTarget(member);
-            member.setTarget(target);
+            sim.world().setTargetId(member.entityId, Unit.idOf(target));
         }
 
         if (target != null) {
@@ -100,7 +100,7 @@ public final class HoldPost implements Action {
             if (sim.world().cooldownTimer(member.entityId) <= 0f) {
                 sim.fireShot(member, target);
                 sim.world().setCooldownTimer(member.entityId, member.attackCooldown);
-                member.beginBurst(target);
+                member.beginBurst(sim.world(), target);
             }
             hold(member, sim);
             return ActionStatus.RUNNING;
@@ -114,7 +114,7 @@ public final class HoldPost implements Action {
             Unit alt = sim.getTacticalScoring().findEngageableEnemyWithin(
                     member, homeX, homeY, HOLD_RADIUS);
             if (alt != null) {
-                member.setTarget(alt);
+                sim.world().setTargetId(member.entityId, Unit.idOf(alt));
                 target = alt;
                 firingPos = sim.getTacticalScoring().findFiringPositionWithin(
                         member, target, homeX, homeY, HOLD_RADIUS);

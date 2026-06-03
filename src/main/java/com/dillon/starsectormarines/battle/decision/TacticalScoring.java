@@ -532,7 +532,7 @@ public final class TacticalScoring {
      */
     public boolean shouldCommitRocket(Unit shooter, Unit target) {
         if (shooter.secondaryWeapon == null || shooter.secondaryAmmo <= 0) return false;
-        if (target == null || !target.isAlive()) return false;
+        if (target == null || !registry.isAliveById(target.entityId)) return false;
         return projectedRocketDamageOnTarget(shooter, target)
                 < registry.getHp(registry.requireLiveIndex(target.entityId));
     }
@@ -643,7 +643,7 @@ public final class TacticalScoring {
      * </ul>
      */
     public boolean shouldKeepPursuing(Unit self, Unit currentTarget) {
-        if (currentTarget == null || !currentTarget.isAlive()) return false;
+        if (currentTarget == null || !registry.isAliveById(currentTarget.entityId)) return false;
         int selfIdx = registry.requireLiveIndex(self.entityId);
         int sx = registry.getCellX(selfIdx);
         int sy = registry.getCellY(selfIdx);
@@ -788,7 +788,7 @@ public final class TacticalScoring {
         float cost = 0f;
         for (int i = 0, n = attackers.size(); i < n; i++) {
             Unit u = attackers.get(i);
-            if (u == exclude || !u.isAlive()) continue;
+            if (u == exclude || !registry.isAliveById(u.entityId)) continue;
             if (u.faction != selfFaction) continue;
             cost += TARGET_CROWDING_COST;
             if (selfSquadId != Unit.NO_SQUAD && u.squadId == selfSquadId) {
@@ -905,7 +905,7 @@ public final class TacticalScoring {
         float bestDist = Float.MAX_VALUE;
         for (int i = 0, n = scratch.size(); i < n; i++) {
             Unit enemy = scratch.get(i);
-            if (!enemy.isAlive() || !enemy.type.combatant) continue;
+            if (!registry.isAliveById(enemy.entityId) || !enemy.type.combatant) continue;
             if (enemy.faction == self.faction) continue;
             int[] pos = findFiringPositionWithin(self, enemy, anchorX, anchorY, maxDistFromAnchor);
             if (pos == null) continue;
@@ -932,7 +932,7 @@ public final class TacticalScoring {
         int count = 0;
         for (int i = 0, n = scratch.size(); i < n; i++) {
             Unit u = scratch.get(i);
-            if (u.faction == faction && u.isAlive() && u.type.combatant) count++;
+            if (u.faction == faction && registry.isAliveById(u.entityId) && u.type.combatant) count++;
         }
         return count;
     }

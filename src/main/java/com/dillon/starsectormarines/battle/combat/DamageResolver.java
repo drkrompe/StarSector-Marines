@@ -94,9 +94,9 @@ public final class DamageResolver {
      * means the target is already dead — and the damage is moot anyway.
      */
     public void resolve(Unit target, float damage, float vsTurretMult, float moraleImpact) {
-        boolean wasAlive = target.isAlive();
-        if (!wasAlive) return;
         UnitRegistry registry = roster.getRegistry();
+        boolean wasAlive = registry.isAliveById(target.entityId);
+        if (!wasAlive) return;
         int tIdx = registry.requireLiveIndex(target.entityId);
         int tcx = registry.getCellX(tIdx);
         int tcy = registry.getCellY(tIdx);
@@ -110,7 +110,7 @@ public final class DamageResolver {
         // squad gate actually needed). One contract, one classifier.
         float effectiveMult = TacticalScoring.isHardened(target) ? vsTurretMult : 1f;
         registry.setHp(tIdx, registry.getHp(tIdx) - damage * effectiveMult * (1f - dr));
-        boolean died = wasAlive && !target.isAlive();
+        boolean died = wasAlive && !registry.isAliveById(target.entityId);
         if (died) {
             target.deathPoseIdx = rng.nextInt(4);
             deathSink.accept(target);

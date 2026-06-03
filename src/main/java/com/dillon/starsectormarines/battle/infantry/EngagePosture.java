@@ -69,7 +69,7 @@ public final class EngagePosture implements Action {
         if (target == null
                 || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
             target = sim.getTacticalScoring().findBestTarget(member);
-            member.setTarget(target);
+            sim.world().setTargetId(member.entityId, Unit.idOf(target));
         }
         if (target == null) return ActionStatus.FAILURE;
 
@@ -100,14 +100,14 @@ public final class EngagePosture implements Action {
                     && sim.getTacticalScoring().shouldCommitRocket(member, target)) {
                 sim.world().setSecondaryActionTimer(member.entityId, member.secondaryWeapon.aimDuration);
                 member.secondaryFiredThisAction = false;
-                member.setSecondaryAimTarget(target);
+                sim.world().setSecondaryAimTargetId(member.entityId, Unit.idOf(target));
                 startedSecondary = true;
             }
             if (!startedSecondary && sim.world().cooldownTimer(member.entityId) <= 0f
                     && dist <= sim.world().attackRange(member.entityId)) {
                 sim.fireShot(member, target);
                 sim.world().setCooldownTimer(member.entityId, member.attackCooldown);
-                member.beginBurst(target);
+                member.beginBurst(sim.world(), target);
                 // Story G — cooldown-gated cover-aware reposition replaces
                 // the old 30% per-shot RNG. A unit in heavy cover whose
                 // current cell already wins cover-preferred no-ops out;

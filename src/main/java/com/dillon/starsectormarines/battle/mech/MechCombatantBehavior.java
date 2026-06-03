@@ -27,7 +27,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
     @Override
     public void update(Unit u, BattleSimulation sim) {
         Unit target = sim.getTacticalScoring().refreshTargetIfNotShootable(u);
-        u.setTarget(target);
+        sim.world().setTargetId(u.entityId, Unit.idOf(target));
         if (target == null) return;
 
         float dist = TacticalScoring.cellDistance(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));

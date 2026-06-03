@@ -77,7 +77,7 @@ public final class DroneSwarmAction implements Action {
     public ActionStatus execute(Unit member, Squad squad, BattleControl sim) {
         if (!(member instanceof Drone)) return ActionStatus.FAILURE;
         Drone d = (Drone) member;
-        if (!d.isAlive()) return ActionStatus.RUNNING;
+        if (!sim.world().isAlive(d.entityId)) return ActionStatus.RUNNING;
 
         int slotIdx = resolveSlotIndex(squad, d);
         int slotCount = Math.max(1, slotMemberCount(squad));
@@ -103,7 +103,7 @@ public final class DroneSwarmAction implements Action {
         TurretAim.tick(s, sim.getTacticalScoring(), sim.getGrid(), sim.world(), BattleSimulation.TICK_DT);
 
         sim.world().setCooldownTimer(d.entityId, s.cooldownTimer);
-        d.setTarget(s.target);
+        sim.world().setTargetId(d.entityId, Unit.idOf(s.target));
 
         float dt = BattleSimulation.TICK_DT;
 
@@ -138,7 +138,7 @@ public final class DroneSwarmAction implements Action {
 
         if (s.fireThisTick && s.target != null) {
             sim.fireShot(d, s.target, FireStance.STANCED);
-            d.beginBurst(s.target);
+            d.beginBurst(sim.world(), s.target);
         }
         return ActionStatus.RUNNING;
     }
