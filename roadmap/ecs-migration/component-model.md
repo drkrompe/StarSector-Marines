@@ -1,5 +1,16 @@
 # The component model (ECS migration — Phase B, IN FLIGHT)
 
+> **Storage target updated (2026-06-03) → full archetype tables.** The
+> "keep the single-archetype table" target and the "Phase C — deferred"
+> multi-archetype stance in this doc are **superseded** by
+> [`archetype-storage.md`](archetype-storage.md): the committed end-state is one
+> SoA table per archetype, entity = bare `long` id, per-component primitive
+> columns, structural change = row-move — and the engine core is built + green.
+> This doc remains the **history** of the composition phase and its shipped slices;
+> read `archetype-storage.md` for the live target. The `ComponentStore<T>` those
+> slices shipped on is now **transitional**, to be replaced by archetype tables in
+> the game retrofit.
+
 The composition half of the ECS migration. Read [`overview.md`](overview.md)
 first for the locked-in direction and the SoA design rules.
 
@@ -32,7 +43,9 @@ We've built the **storage + transform** half of ECS and stopped at the
 This is a legitimate **single-archetype SoA table**: one wide table, every
 entity has every column. The hard-to-retrofit part (data layout, dense
 iteration, stateless systems, the [`BattleView`/`BattleControl`
-contract`](../../memory)) is **done**. What remains is a modeling layer.
+contract`](../../memory)) is **done**. What remains is a modeling layer — now the
+committed **archetype-tables** design ([`archetype-storage.md`](archetype-storage.md)):
+the single wide table is the *starting* state we migrate off, not the target.
 
 ## The two frictions driving this now
 
@@ -56,7 +69,15 @@ contract`](../../memory)) is **done**. What remains is a modeling layer.
 
 ## The target
 
-**Keep the single-archetype table** — the population is homogeneous
+> **Reversed (2026-06-03) → one SoA table per archetype**, not a single wide table.
+> Under the build-it-right mandate ([[feedback_storage_foundation_build_right]]) we
+> commit to real archetype tables up front; the original "keep one table" argument
+> is struck through below but kept for the record. See
+> [`archetype-storage.md`](archetype-storage.md). The two *modeling* moves below
+> still hold — they're exactly what archetype tables realize (each component
+> contributes its field-columns to every table whose archetype includes it):
+
+~~**Keep the single-archetype table**~~ — the population is homogeneous
 (infantry / mech / drone / turret / vehicle all share position / hp /
 target / cooldown), so one wide table beats multi-archetype migration
 overhead. The change is *modeling*, not storage strategy:
@@ -120,6 +141,12 @@ Existing components were retrofitted to this convention (2026-06-03):
 `DeadBody → battle.unit.components.DeadBodyComponent`,
 `MechLoadoutState → battle.mech.components.MechLoadoutComponent`.
 
+> Archetype-era note: in [`archetype-storage.md`](archetype-storage.md) a component
+> is a registered `ComponentType` (id + field-kind schema) + field-index constants,
+> **not** an `XxxComponent` POJO. These `XxxComponent` data classes are the
+> **transitional** `ComponentStore<T>` form; the retrofit folds them into archetype
+> columns. The "name it for the capability, place it by domain" intent carries over.
+
 ## Staged plan
 
 - **Phase A — [`collapse-unit-handle`](stories/collapse-unit-handle.md).**
@@ -177,19 +204,23 @@ Existing components were retrofitted to this convention (2026-06-03):
     fail-loud. Plus B1 grouping for the dense columns (Position/Combat/… structs)
     when a consumer pulls it. Remaining optional fields (secondaryWeapon/ammo,
     assignedObjective, equipmentDropTarget) get the `mech` treatment when motivated.
-- **Phase C — deferred (gated on heterogeneity).** Generic aspect /
-  presence-bitset queries and (if ever) multi-archetype storage. Only when
-  branch-on-`role` + sentinel columns measurably cost more than a bitset
-  skip. Until then, "fair, but not yet."
+- **Phase C — archetype tables (COMMITTED 2026-06-03, no longer deferred).** The
+  earlier "defer multi-archetype until heterogeneity proves it" stance was
+  reversed: the committed end-state is **one SoA table per archetype** + a
+  `long`-mask `Query` (cached matched-table list) — see
+  [`archetype-storage.md`](archetype-storage.md); the engine core is built + green.
+  The retrofit moves the game off the transitional `ComponentStore<T>` and the
+  dense `UnitRegistry` onto the archetype world.
 
 ## Guardrails
 
-- **Ship-then-optimize / skip-stopgap** ([`feedback_ship_then_optimize`](../../memory),
-  [`feedback_no_stopgap_dev`](../../memory)). Don't build the generic World
-  / Aspect engine speculatively. **Let the vehicle work pull the component
-  model into existence** — model one optional capability as a component, get
-  it working, generalize only when a second and third capability prove the
-  shape.
+- **Build the storage foundation right, up front** ([[feedback_storage_foundation_build_right]])
+  — a scoped carve-out from ship-then-optimize (2026-06-03). The archetype storage
+  engine is built deliberately as the committed end-state
+  ([`archetype-storage.md`](archetype-storage.md)), not pulled into existence
+  piecemeal. Ship-then-optimize ([`feedback_ship_then_optimize`](../../memory),
+  [`feedback_no_stopgap_dev`](../../memory)) still governs gameplay/feature work;
+  it no longer governs the storage core.
 - **Default to the ECS shape** in new battle-tier work
   ([`feedback_entity_for_loop_endgame`](../../memory)): when the vehicle
   HP/weapons land, reach for "component + system over its set," not "another

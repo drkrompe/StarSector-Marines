@@ -94,6 +94,13 @@ perf-gated on hot loops like `UnitUpdateSystem`), not naming.
 
 ## Next phase: the component model
 
+> **Committed storage target (2026-06-03): archetype tables** —
+> [`archetype-storage.md`](archetype-storage.md) (engine core built + green). One
+> SoA table per archetype, entity = bare `long` id, per-component primitive
+> columns, structural change = row-move. This **supersedes** `component-model.md`'s
+> "keep one wide table" framing below; that doc is now the composition-phase
+> history + shipped slices.
+
 The SoA-peel and the [facade-decoupling](stories/drop-sim-facade-delegators.md)
 work built the **storage + transform** half of ECS. The next phase closes
 the **identity + composition** gap — see [`component-model.md`](component-model.md)
