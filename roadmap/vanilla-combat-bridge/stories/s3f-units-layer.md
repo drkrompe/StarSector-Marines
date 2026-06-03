@@ -66,3 +66,11 @@ Launch the bridge probe (Ctrl+Shift+K, `SIM_COUPLED`); confirm defense-post turr
 render under the ships at correct world scale, with recoil-barrels and HP bars, no NPE, and no frame
 -time regression vs. the terrain-only backdrop. Verdict recorded: turrets visible + scaled; infantry
 path confirmed latent-but-wired.
+
+## Status
+
+**Code-complete, build-clean — awaiting playtest verdict.** The two edits landed in
+`GroundSceneBackdrop`: `RenderLayer.UNITS` added to `SCENE_LAYERS`, and the four unit sheets
+(`ensureUnitSheets`, `ensureMarineSecondarySprites`, `ensureTurretSprites`, `ensureDroneHubSprite`)
+ensured in `initOnGlThread()`. Class Javadoc updated (units no longer "left out"). No pass code
+touched. Move to `complete/` once the Ctrl+Shift+K playtest confirms turret/hub render.

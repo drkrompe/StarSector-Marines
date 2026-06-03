@@ -32,12 +32,14 @@ import java.util.EnumSet;
  * combat layer is just "configure the camera with a world viewport"; no fork of the
  * pass code.
  *
- * <p>This host runs only the projection-agnostic terrain + structure layers
- * ({@link RenderLayer#GROUND}, {@link RenderLayer#DOODADS}, {@link RenderLayer#ROOFS})
- * via {@link BattleRenderer#renderWorld(RenderContext, EnumSet)}. The FBO-backed
- * accumulators (decals, lighting) and the screen-coupled overlays (fog, highlights,
- * units, FX) are left out — units are already shown by the proxy markers, and the
- * accumulators blit in screen space (S3b scope: terrain + structures only).
+ * <p>This host runs the projection-agnostic terrain + structure layers
+ * ({@link RenderLayer#GROUND}, {@link RenderLayer#DOODADS}, {@link RenderLayer#ROOFS},
+ * {@link RenderLayer#UNITS}) via {@link BattleRenderer#renderWorld(RenderContext, EnumSet)}.
+ * UNITS (S3f) draws the only visual for ground forces — the {@link GroundSimBridge}
+ * proxies are invisible targeting avatars, and marines are never proxied at all. The
+ * FBO-backed accumulators (decals, lighting) and the remaining screen-coupled overlays
+ * (fog, highlights, FX) are still left out — the accumulators blit in screen space and
+ * need projection retarget (S3j).
  *
  * <p>Pan/zoom come free: the combat free-cam ({@code SpectatorCanvasPlugin}) moves the
  * combat world projection, which moves where our world-coord geometry lands — so the
@@ -51,9 +53,10 @@ public class GroundSceneBackdrop implements CombatLayeredRenderingPlugin {
     private static final EnumSet<CombatEngineLayers> LAYERS =
             EnumSet.of(CombatEngineLayers.BELOW_SHIPS_LAYER);
 
-    /** Terrain + building structure only — the projection-agnostic subset. */
+    /** Terrain + building structure + ground units — the projection-agnostic subset. */
     private static final EnumSet<RenderLayer> SCENE_LAYERS =
-            EnumSet.of(RenderLayer.GROUND, RenderLayer.DOODADS, RenderLayer.ROOFS);
+            EnumSet.of(RenderLayer.GROUND, RenderLayer.DOODADS, RenderLayer.ROOFS,
+                    RenderLayer.UNITS);
 
     private final BattleSimulation sim;
     private final int gridW;
@@ -97,6 +100,12 @@ public class GroundSceneBackdrop implements CombatLayeredRenderingPlugin {
         sprites.ensureNatureSheet();
         sprites.ensureWaterSheet();
         sprites.ensureUrbanTile3Sheet();
+
+        // UNITS layer (S3f): turret/hub bodies, footprints, dead poses, live infantry, HP bars.
+        sprites.ensureUnitSheets();
+        sprites.ensureMarineSecondarySprites();
+        sprites.ensureTurretSprites();
+        sprites.ensureDroneHubSprite();
 
         renderer = new BattleRenderer(sprites);
         renderer.buildTileBatches();

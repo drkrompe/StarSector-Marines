@@ -104,10 +104,13 @@ the sheets in `initOnGlThread()` + handle that layer's `RenderContext` inputs.
 
 Decomposition doc: [`render-layers.md`](render-layers.md). Stories:
 - **`stories/s3f-units-layer.md`** — `UNITS` (turret/hub bodies, footprints, dead poses, live
-  infantry, HP bars). **ACTIVE / next to build** — highest value (marines have no visual at
-  all otherwise; they're never proxied). Probe shows it on the map's turrets immediately;
+  infantry, HP bars). **CODE-COMPLETE, build-clean — awaiting Ctrl+Shift+K playtest verdict.**
+  Two edits in `GroundSceneBackdrop`: `RenderLayer.UNITS` → `SCENE_LAYERS`; four unit sheets
+  ensured in `initOnGlThread()` (`ensureUnitSheets`/`ensureMarineSecondarySprites`/
+  `ensureTurretSprites`/`ensureDroneHubSprite`). Probe shows it on the map's turrets immediately;
   infantry latent until `deliverSquad`. Confirmed safe: reads only sim/camera/alphaMult,
-  vision returns VIS_VISIBLE uninitialized, proxies are invisible (no double-draw).
+  vision returns VIS_VISIBLE uninitialized, proxies are invisible (no double-draw). Move to
+  `complete/` after playtest.
 - **`stories/s3g-objectives-compound.md`** — `OBJECTIVES` + `COMPOUND`. Drop-in.
 - **`stories/s3h-vehicles-convoy.md`** — `VEHICLES` + `CONVOY`. Carries the null-`selection`
   NPE gotcha (CONVOY DebugOnly overlays read `ctx.selection`).
