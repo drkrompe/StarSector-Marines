@@ -88,6 +88,8 @@ a708ce8  battle: rename Unit -> Entity — the entity is its id (task #15)  ← 
 955b6e5  ecs(engine): deferred CommandBuffer for safe structural change during iteration  ← 2026-06-03
 0faa8bd  ecs(engine): move battle.ecs to engine.ecs — game-agnostic substrate gets an engine-tier home  ← 2026-06-03
 b98c706  battle: corpse path onto the archetype EntityWorld (retrofit step 2)  ← 2026-06-03
+e720e98  ecs(engine): id adoption, transmute, tolerant getFloat — the retrofit seams for live entities  ← 2026-06-03
+adb4bc9  battle: Health onto the EntityWorld — death is a row-move (retrofit step 3a)  ← 2026-06-03
 ```
 
 (Sibling tracks interleaved on HEAD, not ECS-migration: `9084ed4` battle-render
@@ -117,12 +119,27 @@ is now **built and consuming real game state**:
   `MissionResolver` casualty tally are pure column walks; `DeadBodyComponent`
   deleted; `entityWorld.flush()` barrier established at end-of-tick.
 
-**Next: migration step 3 — live combat onto the world**, capability by
-capability per the committed decomposition (`Health` first is the natural
-opener: death then becomes the real `remove(HEALTH)+add(CORPSE)` row-move the
-CommandBuffer test proves). The transitional `ComponentStore`s
-(`Crashing`, `MechLoadout`) and the `UnitRegistry` mega-table dissolve as
-step 3/4 proceed.
+- **Step 3a (Health) SHIPPED** (`adb4bc9`, engine seams `e720e98`): every unit
+  spawns into the world as `{IDENTITY, HEALTH}` — `UnitRegistry.allocate` is
+  the spawn seam (mints the id, **adopts** it via the engine's
+  `createEntity(long id, …)`, writes identity once, seeds hp); the registry's
+  hp/maxHp dense columns are **deleted**. **Death is now the row-move**:
+  `DeadBodySystem` `transmute`s (one move, Artemis-EntityTransmuter-style
+  engine op) the dead entity to the corpse archetype — same entity id,
+  IDENTITY carried by the shared-column copy, HEALTH removed. Liveness is
+  purely world-side: `isAliveById` = has `HEALTH` && hp > 0 (one tolerant-read
+  probe; registry presence dropped out of the definition — every release path
+  zeroes hp first). Transitional registry adapters
+  (`hpById`/`setHpById`/`maxHpById`) keep the ~20 call sites on their existing
+  receivers and die with the registry in step 4. The registry **owns** the
+  world + `BattleComponents` for the transition (the RenderPositionService
+  owned-sub-store precedent); the sim aliases them.
+
+**Next: step 3 continues** — Position (cellX/cellY; biggest consumer surface,
+includes the spatial-index rebuild path), Combat group, Movement, AiState;
+then fold the `Crashing`/`MechLoadout` ComponentStores into archetype
+membership; then step 4 dissolves `UnitRegistry` (id mint + dense Entity[]
+hop to the world / sim).
 
 ## NEW PHASE — entity-id handle (2026-06-02, in flight)
 

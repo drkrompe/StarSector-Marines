@@ -301,6 +301,20 @@ the sim never stores a `SpriteAPI`.
 3. **Migrate live combat** — model the live archetypes; port `UnitUpdateSystem`,
    `DamageResolver`, AI/squad systems to `Query` + column iteration, capability by
    capability, **toward the table model** (no reverting to a mega-table).
+   - **3a SHIPPED (`adb4bc9`): Health.** Every unit spawns into the world as
+     `{Identity, Health}` (`UnitRegistry.allocate` mints the id, adopts it via
+     `createEntity(long id, …)` — engine seam `e720e98` — writes identity once,
+     seeds hp); the registry's hp/maxHp columns are deleted. **Death is now the
+     row-move**: `DeadBodySystem` `transmute`s the dead entity to the corpse
+     archetype — same id, identity carried by the shared-column copy, `Health`
+     removed. Liveness = "has `Health` && hp > 0" (one tolerant-read probe),
+     registry presence dropped out of the definition. Transitional registry
+     adapters (`hpById`/`setHpById`/`maxHpById`) keep call sites on their
+     existing receivers; the registry owns the world for the transition
+     (ownership hops to the sim when step 4 dissolves it).
+   - **Next capabilities:** Position (cellX/cellY — big consumer surface),
+     Combat group, Movement, AiState, then fold `Crashing`/`MechLoadout`
+     ComponentStores into archetype membership.
 4. **Delete** `UnitRegistry`'s mega-table and the `LinkedHashMap`
    `ComponentStore<T>` once all columns/components live on the archetype `World`.
    The four already-migrated components (`Crashing`, `RenderPosition`, `DeadBody`,
