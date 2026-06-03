@@ -52,6 +52,9 @@ public final class EngageAtCurrentBand implements Action {
         sim.world().setTargetId(u.entityId, Entity.idOf(target));
         if (target == null) return ActionStatus.RUNNING;
 
+        // Loadout component reached by id (zero-alloc direct lookup).
+        MechLoadoutState m = sim.world().component(u.entityId, MechLoadoutState.class);
+
         float dist = TacticalScoring.cellDistance(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
         boolean inRange = dist <= sim.world().attackRange(u.entityId);
         boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
@@ -61,14 +64,14 @@ public final class EngageAtCurrentBand implements Action {
         // building still lobs artillery over it (with an accuracy penalty).
         // Chaingun + SRM still need LOS — gated inside tryFireMechWeapons.
         if (inRange) {
-            MechCombatantBehavior.tryFireMechWeapons(u, target, dist, sim, visible);
+            MechCombatantBehavior.tryFireMechWeapons(u, m, target, dist, sim, visible);
         }
 
         // Close engagement = in chaingun range with LOS. Outside that, the
         // mech advances toward a firing position so it can re-acquire LOS for
         // its short-range weapons (LRMs already fire from here via the
         // indirect path above).
-        boolean closeEngagement = inRange && visible && dist <= u.mech.srmPod.range;
+        boolean closeEngagement = inRange && visible && dist <= m.srmPod.range;
         if (!closeEngagement && sim.world().moveProgress(u.entityId) == 0f) {
             int[] dest = sim.getTacticalScoring().findFiringPosition(u, target);
             if (dest == null) {

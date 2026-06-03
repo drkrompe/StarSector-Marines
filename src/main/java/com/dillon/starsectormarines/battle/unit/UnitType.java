@@ -88,6 +88,15 @@ public enum UnitType {
     }
 
     /**
+     * Whether this archetype is a mech-class chassis — the units that carry a
+     * {@link MechLoadoutState} component (attached at spawn). Today just
+     * {@link #HEAVY_MECH}; a future tank/hovercraft chassis joins this predicate.
+     * Used where mech-ness must be known <em>before</em> the loadout component is
+     * attached (squad-type denormalization at mint time).
+     */
+    public boolean isMech() { return this == HEAVY_MECH; }
+
+    /**
      * Sprite-sheet frame indexing convention. Each layout names what indices 0..N
      * represent on its source PNG. The renderer's facing→frame lookup branches on
      * this; adding a new convention is "add an enum value + a switch arm."

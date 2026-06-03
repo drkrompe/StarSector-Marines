@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.combat;
 
+import com.dillon.starsectormarines.battle.component.ComponentStore;
 import com.dillon.starsectormarines.battle.mech.MechLoadoutState;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
@@ -62,13 +63,15 @@ public final class DamageResolver {
     private final Consumer<Entity> deathSink;
     private final DeathDispatcher deathDispatcher;
     private final Random rng;
+    private final ComponentStore<MechLoadoutState> mechLoadouts;
 
     public DamageResolver(NavigationService navigation,
                           UnitRosterService roster,
                           EquipmentDropService equipmentDrops,
                           Consumer<Entity> deathSink,
                           DeathDispatcher deathDispatcher,
-                          Random rng) {
+                          Random rng,
+                          ComponentStore<MechLoadoutState> mechLoadouts) {
         this.grid = navigation.getGrid();
         this.squads = roster.getSquadsMap();
         this.roster = roster;
@@ -76,6 +79,7 @@ public final class DamageResolver {
         this.deathSink = deathSink;
         this.deathDispatcher = deathDispatcher;
         this.rng = rng;
+        this.mechLoadouts = mechLoadouts;
     }
 
     /**
@@ -159,7 +163,7 @@ public final class DamageResolver {
         // event + cap scaling + death bonus). Solo units (turrets, civilians)
         // skip both — their behaviors don't consult MORALE_BROKEN.
         if (wasAlive && moraleImpact > 0f) {
-            if (target.mech != null) {
+            if (mechLoadouts.has(target.entityId)) {
                 // Only a SURVIVING mech accrues HP-threshold morale drain. A mech
                 // killed by this very hit was already released from the registry
                 // (above), so getMaxHp() would NPE under the Group-S seed-only
@@ -254,7 +258,7 @@ public final class DamageResolver {
      * instantaneous HP.
      */
     private void applyMechHpThresholdDrain(Entity target) {
-        MechLoadoutState m = target.mech;
+        MechLoadoutState m = mechLoadouts.get(target.entityId);
         m.timeSinceUnderFire = 0f;
         UnitRegistry registry = roster.getRegistry();
         int tIdx = registry.requireLiveIndex(target.entityId);

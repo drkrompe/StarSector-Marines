@@ -211,8 +211,10 @@ public final class UnitRosterService {
             squad.leaderId = (leader != null) ? leader.entityId : 0L;
             // Denormalize squad type from the first member (squads are
             // homogeneous) so isMechSquad() needs no leader deref and survives
-            // leader death.
-            squad.mechSquad = leader != null && leader.mech != null;
+            // leader death. Keyed off the archetype rather than the loadout
+            // component because the component is attached after the unit is
+            // allocated (post-mint), so the store isn't populated yet here.
+            squad.mechSquad = leader != null && leader.type.isMech();
             squads.put(squad.id, squad);
             return squad.id;
         }

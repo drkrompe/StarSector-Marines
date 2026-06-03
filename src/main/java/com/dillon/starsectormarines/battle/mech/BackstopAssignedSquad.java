@@ -68,11 +68,11 @@ public final class BackstopAssignedSquad implements Action {
     @Override
     public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
         // Non-ARMORED_SUPPORT members fall through to parity (mixed squads).
-        if (member.mech == null || member.mech.role != MechRole.ARMORED_SUPPORT) {
+        // Loadout reached by id (zero-alloc direct lookup).
+        MechLoadoutState m = sim.world().component(member.entityId, MechLoadoutState.class);
+        if (m == null || m.role != MechRole.ARMORED_SUPPORT) {
             return EngageAtCurrentBand.INSTANCE.execute(member, squad, sim);
         }
-
-        MechLoadoutState m = member.mech;
 
         // Pick or refresh the backed squad. Lazy pick on first call;
         // re-pick when the cached assignment is wiped or gone.
@@ -137,7 +137,7 @@ public final class BackstopAssignedSquad implements Action {
             boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
                     sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
             if (inRange) {
-                MechCombatantBehavior.tryFireMechWeapons(member, target, dist, sim, visible);
+                MechCombatantBehavior.tryFireMechWeapons(member, m, target, dist, sim, visible);
             }
         }
         return ActionStatus.RUNNING;

@@ -136,18 +136,39 @@ public final class World {
     // ---- cold face: projected component access ----
 
     /**
-     * An entity handle bound to {@code id} for the cold projection face. A small
-     * allocation per call — acceptable because this face is opt-in and off the
-     * hot path (see class doc). If a projected component ever gets hot, the fix
-     * is a hot-face primitive, not a flyweight band-aid.
+     * Direct, <b>zero-allocation</b> sparse-component lookup — the artemis
+     * {@code ComponentMapper.get} for the cold stores. Returns {@code id}'s
+     * component of {@code type}, or null if it has none / the type has no store.
+     *
+     * <p>This is the hot-path-safe component read: unlike {@link #id(long)}
+     * {@code .getOrNull}, it allocates no handle, so it's the one to use inside
+     * per-tick systems and per-unit decide-phase code (the guardrail is "never
+     * <em>materialize</em> a component in a bulk loop" — a handle is the
+     * materialization, the store lookup itself is fine). Reserve the
+     * {@code id(id).getOrNull} sugar for incidental, off-hot-path reads.
      */
-    public EntityHandle id(long id) { return new EntityHandle(id, this); }
-
-    /** Resolves {@code id}'s component of {@code type}, or null if it has none / the type has no store. */
-    <T> T componentOrNull(long id, Class<T> type) {
+    public <T> T component(long id, Class<T> type) {
         ComponentStore<?> store = stores.get(type);
         return store == null ? null : type.cast(store.get(id));
     }
+
+    /**
+     * Presence check for a sparse component — one store lookup, no cast, no
+     * allocation. The capability-as-presence query that replaces a scattered
+     * nullable-field {@code != null} test (e.g. the former {@code u.mech != null}).
+     */
+    public boolean hasComponent(long id, Class<?> type) {
+        ComponentStore<?> store = stores.get(type);
+        return store != null && store.has(id);
+    }
+
+    /**
+     * An entity handle bound to {@code id} for the cold projection face. A small
+     * allocation per call — acceptable because this face is opt-in and off the
+     * hot path (see class doc). If a projected component ever gets hot, the fix
+     * is {@link #component(long, Class)} (zero-alloc), not a flyweight band-aid.
+     */
+    public EntityHandle id(long id) { return new EntityHandle(id, this); }
 
     /**
      * Cold-face handle: {@code world.id(entityId).getOrNull(Cmp.class)}. Bound to
@@ -155,6 +176,6 @@ public final class World {
      */
     public record EntityHandle(long id, World world) {
         /** This entity's {@code type} component, or null if it doesn't carry one. */
-        public <T> T getOrNull(Class<T> type) { return world.componentOrNull(id, type); }
+        public <T> T getOrNull(Class<T> type) { return world.component(id, type); }
     }
 }

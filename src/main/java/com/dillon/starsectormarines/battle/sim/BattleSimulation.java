@@ -17,6 +17,8 @@ import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
+import com.dillon.starsectormarines.battle.mech.MechLoadoutState;
+import com.dillon.starsectormarines.battle.component.ComponentStore;
 
 import com.dillon.starsectormarines.battle.air.AirProvider;
 import com.dillon.starsectormarines.battle.air.AirSystem;
@@ -131,6 +133,8 @@ public class BattleSimulation implements BattleControl {
             new com.dillon.starsectormarines.battle.component.ComponentStore<>();
     /** Dead-body system — death-event handler that records a {@code DeadBody} component for every unit that dies, over {@link #deadBodies}. Subscribed to {@link #deathDispatcher} in the constructor. */
     private final com.dillon.starsectormarines.battle.unit.DeadBodySystem deadBodySystem;
+    /** Mech-loadout component store — the three-weapon chassis state ({@link com.dillon.starsectormarines.battle.mech.MechLoadoutState}) for every mech-class unit, keyed by entity id. Presence <em>is</em> "this entity is a mech": the mech-fire pass, morale, and the mech GOAP behaviors process the entities in this store instead of null-checking a former {@code Entity.mech} field. Attached at spawn ({@link com.dillon.starsectormarines.battle.setup.BattleSetup}), removed when the wreck spawns ({@link #mechWreckSystem}). Survives registry release (keyed by id) so the wreck handler can read it post-death. */
+    private final ComponentStore<MechLoadoutState> mechLoadouts = new ComponentStore<>();
     /** Mech-wreck system — death-event handler that drops a smoking wreck on a dead chassis unit's cell (replaces the former HeavyWeapons per-tick scan). Subscribed to {@link #deathDispatcher} in the constructor. */
     private final com.dillon.starsectormarines.battle.mech.MechWreckSystem mechWreckSystem;
     /** Entity-access facade — the artemis-shaped by-id read layer over the dense registry (hot primitives) + the sparse component stores (cold projection). Access half of the world-facade endgame; see {@link World}. Constructed in the ctor once the roster + stores exist. */
@@ -280,7 +284,7 @@ public class BattleSimulation implements BattleControl {
         this.equipmentDropService = new EquipmentDropService(rosterService, this::clearPath);
         this.damageResolver = new DamageResolver(
                 navigation, rosterService, equipmentDropService,
-                deathsThisFrame::add, deathDispatcher, rng);
+                deathsThisFrame::add, deathDispatcher, rng, mechLoadouts);
         this.damageService = new DamageService(
                 damageResolver::resolve,
                 this::writeReprioInline,
@@ -300,7 +304,8 @@ public class BattleSimulation implements BattleControl {
         // dense table register here as they land.
         this.world = new World(rosterService.getRegistry(), java.util.Map.of(
                 com.dillon.starsectormarines.battle.component.Crashing.class, crashing,
-                com.dillon.starsectormarines.battle.component.DeadBody.class, deadBodies));
+                com.dillon.starsectormarines.battle.component.DeadBody.class, deadBodies,
+                MechLoadoutState.class, mechLoadouts));
         this.turretDemolition = new com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem(
                 mapService, effects, tactical, rosterService);
         deathDispatcher.subscribe(turretDemolition::onDeath);
@@ -312,14 +317,14 @@ public class BattleSimulation implements BattleControl {
         deathDispatcher.subscribe(droneCrashes::onDeath);
         this.deadBodySystem = new com.dillon.starsectormarines.battle.unit.DeadBodySystem(deadBodies);
         deathDispatcher.subscribe(deadBodySystem::onDeath);
-        this.mechWreckSystem = new com.dillon.starsectormarines.battle.mech.MechWreckSystem(effects);
+        this.mechWreckSystem = new com.dillon.starsectormarines.battle.mech.MechWreckSystem(effects, mechLoadouts);
         deathDispatcher.subscribe(mechWreckSystem::onDeath);
         this.squadFallback = new com.dillon.starsectormarines.battle.squad.SquadFallbackSystem(
                 navigation, rosterService, this::clearPath);
         this.squadAlert = new com.dillon.starsectormarines.battle.squad.SquadAlertSystem(
                 navigation, rosterService, shots);
         this.squadMorale = new com.dillon.starsectormarines.battle.squad.SquadMoraleSystem(
-                rosterService, shots);
+                rosterService, shots, mechLoadouts);
         this.squadReplan = new com.dillon.starsectormarines.battle.squad.SquadReplanSystem(rosterService);
         this.attackerIndex = new com.dillon.starsectormarines.battle.decision.AttackerIndexService(rosterService);
         this.tacticalScoring = new com.dillon.starsectormarines.battle.decision.TacticalScoring(
@@ -328,7 +333,7 @@ public class BattleSimulation implements BattleControl {
                 rosterService.getRegistry(), damageService, tickInnerProfile);
         this.hitResponse = new com.dillon.starsectormarines.battle.combat.HitResponseService(
                 grid, rosterService.getRegistry(), tacticalScoring, damageService,
-                () -> simTickIndex);
+                () -> simTickIndex, mechLoadouts);
         this.detonations = new Detonations(rosterService.getRegistry(), grid, topology, damageService,
                 mapService, effects);
         this.turretFire = new com.dillon.starsectormarines.battle.turret.TurretFireService(
@@ -338,7 +343,7 @@ public class BattleSimulation implements BattleControl {
         this.infantry = new InfantryWeapons(rosterService.getRegistry(),
                 damageService, hitResponse, shots);
         this.heavy = new HeavyWeapons(rosterService.getRegistry(), grid, damageService, hitResponse,
-                shots, detonations);
+                shots, detonations, mechLoadouts);
         this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, world, turretFire, rng, this::addUnit);
         this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, world, turretFire, rng, this::addUnit);
         mapService.setRoofCollapseSink((x, y) -> {
@@ -381,6 +386,9 @@ public class BattleSimulation implements BattleControl {
 
     /** Corpse body store — a {@code DeadBody} component per dead unit. Read by the dead-sprite renderer (paired with the surviving render-position component); written only by {@link #deadBodySystem}. Survives registry release (keyed by entity id). */
     public com.dillon.starsectormarines.battle.component.ComponentStore<com.dillon.starsectormarines.battle.component.DeadBody> getDeadBodies() { return deadBodies; }
+
+    /** Mech-loadout component store — the chassis weapon/morale state for each mech-class entity. Presence marks an entity as a mech. Attached at spawn ({@link com.dillon.starsectormarines.battle.setup.BattleSetup#makeDefender}'s caller), iterated by the mech-fire pass + morale, removed when the wreck spawns. Also reachable through the cold face via {@code world().component(id, MechLoadoutState.class)}. */
+    public ComponentStore<MechLoadoutState> getMechLoadouts() { return mechLoadouts; }
     public List<Shuttle> getShuttles()     { return airSystem.getShuttles(); }
     /** Smoothed per-slot engine-FX demand for a shuttle (by air entity id), or {@code null} if it has no engine plumes. The render + light passes feed it to {@code EngineFxRenderer}; advanced each tick by {@code AirSystem}. */
     public float[] getThrusterGlow(Shuttle s) { return airSystem.thrusterGlow(s.entityId); }

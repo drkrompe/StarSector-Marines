@@ -57,10 +57,10 @@ public class HitResponseServiceTest {
         BattleSimulation sim = openSim();
         HitResponseService hitResponse = sim.getHitResponseService();
         Entity mech = new Entity("mech0", Faction.DEFENDER, UnitType.HEAVY_MECH, 9, 5);
-        mech.mech = MechLoadoutState.defaultLoadout(MechRole.ARMORED_SUPPORT);
         int sid = sim.mintSquad(Faction.DEFENDER, mech);
         mech.squadId = sid;
         sim.addUnit(mech);
+        sim.getMechLoadouts().add(mech.entityId, MechLoadoutState.defaultLoadout(MechRole.ARMORED_SUPPORT));
         sim.addUnit(new Entity("opp", Faction.MARINE, UnitType.MARINE, 11, 5));
 
         for (int i = 0; i < 100; i++) hitResponse.rollFallbackOnHit(mech);

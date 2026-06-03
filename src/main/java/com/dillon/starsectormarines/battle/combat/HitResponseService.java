@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.combat;
 
+import com.dillon.starsectormarines.battle.component.ComponentStore;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
+import com.dillon.starsectormarines.battle.mech.MechLoadoutState;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.unit.Entity;
@@ -42,16 +44,19 @@ public final class HitResponseService {
     private final TacticalScoring tacticalScoring;
     private final DamageService damageService;
     private final IntSupplier tickIndexSupplier;
+    private final ComponentStore<MechLoadoutState> mechLoadouts;
 
     public HitResponseService(NavigationGrid grid, UnitRegistry registry,
                               TacticalScoring tacticalScoring,
                               DamageService damageService,
-                              IntSupplier tickIndexSupplier) {
+                              IntSupplier tickIndexSupplier,
+                              ComponentStore<MechLoadoutState> mechLoadouts) {
         this.grid = grid;
         this.registry = registry;
         this.tacticalScoring = tacticalScoring;
         this.damageService = damageService;
         this.tickIndexSupplier = tickIndexSupplier;
+        this.mechLoadouts = mechLoadouts;
     }
 
     public void rollFallbackOnHit(Entity target) {
@@ -68,7 +73,7 @@ public final class HitResponseService {
 
     public void rollReprioritizeOnHit(Entity target, Entity shooter) {
         if (!registry.isAliveById(target.entityId)) return;
-        boolean qualifies = target.mech != null || target instanceof MapTurret;
+        boolean qualifies = mechLoadouts.has(target.entityId) || target instanceof MapTurret;
         if (!qualifies) return;
         int simTickIndex = tickIndexSupplier.getAsInt();
         int prev = LAST_REPRIO_TICK.get(target);

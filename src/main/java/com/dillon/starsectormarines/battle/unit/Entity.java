@@ -6,7 +6,6 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
-import com.dillon.starsectormarines.battle.mech.MechLoadoutState;
 
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
@@ -292,16 +291,6 @@ public class Entity {
 
     /** Random prone-pose index rolled on death. Drives which corpse frame the renderer picks from {@link UnitType#deadSpritePath} so a battlefield has pose variety rather than every body in the same slump. -1 sentinel = unit still alive. */
     public int deathPoseIdx = -1;
-
-    /**
-     * Mech chassis loadout. Non-null only on mech-class units ({@link UnitType#HEAVY_MECH}
-     * today). When set, the unit fires three concurrent weapon tracks via the
-     * mech-fire pass in {@code BattleSimulation} instead of the marine
-     * primary/secondary path; the unit's base attack-damage / {@link #attackCooldown}
-     * are unused and its attack-range stat only matters for target acquisition
-     * (set wide on {@link UnitType#HEAVY_MECH} to match the LRM's reach).
-     */
-    public MechLoadoutState mech;
 
     public Entity(String id, Faction faction, UnitType type, int cellX, int cellY) {
         this.id = id;

@@ -987,7 +987,7 @@ public final class BattleSetup {
                 if (source.isEmpty()) break;
                 UnitType type = source.poll();
                 MechRole mechRole = (type == mechType) ? nextMechRole(mechSpawnIdx++) : null;
-                Entity unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1], mechRole);
+                Entity unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1]);
                 unit.role = UnitRole.GARRISON;
                 unit.homeCellX = cell[0];
                 unit.homeCellY = cell[1];
@@ -1000,10 +1000,11 @@ public final class BattleSetup {
                     // overwatch discipline lives in their planner-side
                     // doctrine (LR Support withholds short-range weapons),
                     // not in a fire-suppression flag on the squad.
-                    squad.holdsFireUntilKillZone = (unit.mech == null);
+                    squad.holdsFireUntilKillZone = (mechRole == null);
                 }
                 unit.squadId = squad.id;
                 sim.addUnit(unit);
+                attachMechLoadout(sim, unit, mechRole);
                 spawned++;
             }
             if (squad != null) squad.originalSize = spawned;
@@ -1041,7 +1042,7 @@ public final class BattleSetup {
                 if (source.isEmpty()) break;
                 UnitType type = source.poll();
                 MechRole mechRole = (type == mechType) ? nextMechRole(mechSpawnIdx++) : null;
-                Entity unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1], mechRole);
+                Entity unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1]);
                 unit.role = UnitRole.PATROL;
                 if (squad == null) {
                     int sid = sim.mintSquad(Faction.DEFENDER, unit);
@@ -1050,6 +1051,7 @@ public final class BattleSetup {
                 }
                 unit.squadId = squad.id;
                 sim.addUnit(unit);
+                attachMechLoadout(sim, unit, mechRole);
                 spawned++;
             }
             if (squad != null) squad.originalSize = spawned;
@@ -1095,7 +1097,7 @@ public final class BattleSetup {
                 int[] cell = cells.get(cellIdx++);
                 UnitType type = source.poll();
                 MechRole mechRole = (type == mechType) ? nextMechRole(mechSpawnIdx++) : null;
-                Entity unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1], mechRole);
+                Entity unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1]);
                 unit.role = UnitRole.PATROL;
                 if (squad == null) {
                     int sid = sim.mintSquad(Faction.DEFENDER, unit);
@@ -1105,23 +1107,32 @@ public final class BattleSetup {
                 }
                 unit.squadId = squad.id;
                 sim.addUnit(unit);
+                attachMechLoadout(sim, unit, mechRole);
                 spawned++;
             }
             if (squad != null) squad.originalSize = spawned;
         }
     }
 
+    /** Builds a bare defender {@link Entity}. Mech loadout (for mech types) is a
+     * presence component attached <em>after</em> the unit is added to the sim —
+     * see {@link #attachMechLoadout} — because the loadout store is keyed by the
+     * entity id, which isn't assigned until {@code addUnit}. */
+    private static Entity makeDefender(String id, UnitType type, int x, int y) {
+        return new Entity(id, Faction.DEFENDER, type, x, y);
+    }
+
     /**
-     * Builds a defender Entity with the loadout-state attached for mech types.
-     * {@code mechRole} is consumed only when {@code type == HEAVY_MECH} —
-     * non-mech callers pass {@code null}.
+     * Attaches a {@link MechLoadoutState} component to a just-added unit that
+     * spawned as a mech ({@code mechRole != null} — the caller already decided
+     * mech-ness from the source queue). No-op for infantry. <b>Must run after
+     * {@code sim.addUnit}</b>: the component store is keyed by {@code entityId},
+     * which the registry assigns at allocate time.
      */
-    private static Entity makeDefender(String id, UnitType type, int x, int y, MechRole mechRole) {
-        Entity unit = new Entity(id, Faction.DEFENDER, type, x, y);
-        if (type == FactionUnitRoster.forFaction(Faction.DEFENDER).mech()) {
-            unit.mech = MechLoadoutState.defaultLoadout(mechRole);
+    private static void attachMechLoadout(BattleSimulation sim, Entity unit, MechRole mechRole) {
+        if (mechRole != null) {
+            sim.getMechLoadouts().add(unit.entityId, MechLoadoutState.defaultLoadout(mechRole));
         }
-        return unit;
     }
 
     /**

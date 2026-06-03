@@ -34,10 +34,10 @@ public class BackstopAssignedSquadGoalTest {
 
     private static Squad armoredSquadWithFriendlyInfantry(BattleSimulation sim) {
         Entity mech = new Entity("ar0", Faction.MARINE, UnitType.HEAVY_MECH, 3, 3);
-        mech.mech = MechLoadoutState.defaultLoadout(MechRole.ARMORED_SUPPORT);
         int mechSid = sim.mintSquad(Faction.MARINE, mech);
         mech.squadId = mechSid;
         sim.addUnit(mech);
+        sim.getMechLoadouts().add(mech.entityId, MechLoadoutState.defaultLoadout(MechRole.ARMORED_SUPPORT));
         Squad mechSquad = sim.getSquad(mechSid);
         mechSquad.aliveMembers = 1;
 

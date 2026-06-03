@@ -59,7 +59,8 @@ public final class OverwatchKillZoneGoal implements Goal {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             Entity u = sim.liveUnitAt(i);
             if (u.squadId != squad.id) continue;
-            if (u.mech != null && u.mech.role == MechRole.LR_SUPPORT) return 1f;
+            MechLoadoutState m = sim.world().component(u.entityId, MechLoadoutState.class);
+            if (m != null && m.role == MechRole.LR_SUPPORT) return 1f;
         }
         return 0f;
     }

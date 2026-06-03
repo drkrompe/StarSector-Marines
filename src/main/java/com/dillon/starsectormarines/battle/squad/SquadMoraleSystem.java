@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.squad;
 
+import com.dillon.starsectormarines.battle.component.ComponentStore;
 import com.dillon.starsectormarines.battle.mech.MechLoadoutState;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.unit.Entity;
@@ -89,10 +90,13 @@ public final class SquadMoraleSystem {
 
     private final UnitRosterService roster;
     private final ShotService shots;
+    private final ComponentStore<MechLoadoutState> mechLoadouts;
 
-    public SquadMoraleSystem(UnitRosterService roster, ShotService shots) {
+    public SquadMoraleSystem(UnitRosterService roster, ShotService shots,
+                             ComponentStore<MechLoadoutState> mechLoadouts) {
         this.roster = roster;
         this.shots = shots;
+        this.mechLoadouts = mechLoadouts;
     }
 
     public void tick(float dt) {
@@ -224,9 +228,13 @@ public final class SquadMoraleSystem {
         for (int i = 0; i < liveCount; i++) {
             Entity u = dense[i];
             // Dense iteration excludes released units — no isAlive() needed.
-            if (u.squadId != squad.id || u.mech == null) continue;
+            if (u.squadId != squad.id) continue;
+            // Capability-as-presence: a mech is an entity with a loadout
+            // component (was the nullable u.mech field). Direct store lookup,
+            // not the cold-face handle — this is a per-tick bulk path.
+            MechLoadoutState m = mechLoadouts.get(u.entityId);
+            if (m == null) continue;
             aliveMechs++;
-            MechLoadoutState m = u.mech;
             if (m.timeSinceUnderFire < 1e9f) m.timeSinceUnderFire += dt;
 
             // Direct SoA reads — hp[i] / maxHp[i] vs the OO accessor's

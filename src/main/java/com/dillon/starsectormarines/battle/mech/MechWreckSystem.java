@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.battle.component.ComponentStore;
 import com.dillon.starsectormarines.battle.unit.DeathDispatcher;
 import com.dillon.starsectormarines.battle.unit.DeathEvent;
 import com.dillon.starsectormarines.battle.unit.Entity;
@@ -30,9 +31,11 @@ import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 public final class MechWreckSystem {
 
     private final EffectsService effects;
+    private final ComponentStore<MechLoadoutState> mechLoadouts;
 
-    public MechWreckSystem(EffectsService effects) {
+    public MechWreckSystem(EffectsService effects, ComponentStore<MechLoadoutState> mechLoadouts) {
         this.effects = effects;
+        this.mechLoadouts = mechLoadouts;
     }
 
     /**
@@ -43,11 +46,19 @@ public final class MechWreckSystem {
      */
     public void onDeath(DeathEvent event) {
         Entity u = event.unit();
-        MechLoadoutState m = u.mech;
+        // The loadout store survives registry release (keyed by id), so the
+        // mech's component is still here even though the unit is gone. A
+        // non-mech death has no entry → null, and we skip.
+        MechLoadoutState m = mechLoadouts.get(u.entityId);
         if (m == null || m.wreckSpawned) return;
         // Read the death cell off the event snapshot: the unit is released by
         // the time this drains, so its Group-C cell accessors are fail-loud.
         effects.spawnSmokingWreck(event.cellX(), event.cellY());
         m.wreckSpawned = true;
+        // Wreck spawned → the live-combat loadout is done. Detach it so the
+        // mech-fire pass stops iterating a dead entity (the wreck decal is
+        // owned by the effects layer now). Mirrors the Crashing lifecycle:
+        // the component is removed once its terminal event fires.
+        mechLoadouts.remove(u.entityId);
     }
 }

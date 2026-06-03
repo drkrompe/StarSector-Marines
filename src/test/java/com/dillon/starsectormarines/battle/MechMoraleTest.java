@@ -52,19 +52,26 @@ public class MechMoraleTest {
 
     private static Squad mechSquad(BattleSimulation sim, int size, MechRole role) {
         Entity first = new Entity("d0", Faction.DEFENDER, UnitType.HEAVY_MECH, 1, 1);
-        first.mech = MechLoadoutState.defaultLoadout(role);
         int squadId = sim.mintSquad(Faction.DEFENDER, first);
         first.squadId = squadId;
         sim.addUnit(first);
+        // Loadout is a presence component, attached by id after the unit is
+        // added (mirrors BattleSetup's spawn path).
+        sim.getMechLoadouts().add(first.entityId, MechLoadoutState.defaultLoadout(role));
         for (int i = 1; i < size; i++) {
             Entity u = new Entity("d" + i, Faction.DEFENDER, UnitType.HEAVY_MECH, 1 + i, 1);
-            u.mech = MechLoadoutState.defaultLoadout(role);
             u.squadId = squadId;
             sim.addUnit(u);
+            sim.getMechLoadouts().add(u.entityId, MechLoadoutState.defaultLoadout(role));
         }
         Squad sq = sim.getSquad(squadId);
         sq.originalSize = size;
         return sq;
+    }
+
+    /** The mech loadout component for {@code u}, reached by id through the store. */
+    private static MechLoadoutState loadout(BattleSimulation sim, Entity u) {
+        return sim.getMechLoadouts().get(u.entityId);
     }
 
     @Test
@@ -72,15 +79,15 @@ public class MechMoraleTest {
         BattleSimulation sim = openSim();
         Squad sq = mechSquad(sim, 1, MechRole.ARMORED_SUPPORT);
         Entity mech = sim.liveUnitAt(0);
-        float starting = mech.mech.morale;
+        float starting = loadout(sim, mech).morale;
 
         // Damage to 70% HP — crosses the 0.75 threshold once.
         sim.applyDamage(mech, sim.world().maxHp(mech.entityId) * 0.30f, 1f);
 
-        assertEquals(1, mech.mech.hpThresholdsCrossed,
+        assertEquals(1, loadout(sim, mech).hpThresholdsCrossed,
                 "70% HP should have crossed the 0.75 threshold exactly once");
         assertEquals(starting - SquadMoraleSystem.MECH_MORALE_DROP_PER_THRESHOLD,
-                mech.mech.morale, 1e-5f,
+                loadout(sim, mech).morale, 1e-5f,
                 "single threshold crossing drains exactly MECH_MORALE_DROP_PER_THRESHOLD");
     }
 
@@ -93,10 +100,10 @@ public class MechMoraleTest {
         // Damage straight to ~5% HP — crosses 0.75, 0.50, 0.25, 0.10 (4 thresholds).
         sim.applyDamage(mech, sim.world().maxHp(mech.entityId) * 0.95f, 1f);
 
-        assertEquals(4, mech.mech.hpThresholdsCrossed,
+        assertEquals(4, loadout(sim, mech).hpThresholdsCrossed,
                 "5% HP should have crossed all four thresholds");
         assertEquals(Math.max(0f, 1.0f - 4 * SquadMoraleSystem.MECH_MORALE_DROP_PER_THRESHOLD),
-                mech.mech.morale, 1e-5f,
+                loadout(sim, mech).morale, 1e-5f,
                 "4 crossings drains 4× MECH_MORALE_DROP_PER_THRESHOLD (clamped at 0)");
     }
 
@@ -108,14 +115,14 @@ public class MechMoraleTest {
 
         // First hit: cross 0.75 (1 drain).
         sim.applyDamage(mech, sim.world().maxHp(mech.entityId) * 0.30f, 1f);
-        float afterFirst = mech.mech.morale;
+        float afterFirst = loadout(sim, mech).morale;
 
         // Second hit: still above 0.50 — no new threshold crossed.
         sim.applyDamage(mech, sim.world().maxHp(mech.entityId) * 0.05f, 1f);
 
-        assertEquals(1, mech.mech.hpThresholdsCrossed,
+        assertEquals(1, loadout(sim, mech).hpThresholdsCrossed,
                 "no new threshold crossed → counter stays at 1");
-        assertEquals(afterFirst, mech.mech.morale, 1e-5f,
+        assertEquals(afterFirst, loadout(sim, mech).morale, 1e-5f,
                 "no new threshold crossed → morale unchanged by second hit");
     }
 
@@ -143,12 +150,12 @@ public class MechMoraleTest {
         hideEnemy(sim);
         Entity mech = sim.liveUnitAt(0);
         sim.world().setHp(mech.entityId, sim.world().maxHp(mech.entityId) * 0.40f); // below the 0.50 gate
-        mech.mech.morale = 1.0f; // overshoot — caller forced past cap, recovery clamps
-        mech.mech.timeSinceUnderFire = 10f; // out of under-fire window
+        loadout(sim, mech).morale = 1.0f; // overshoot — caller forced past cap, recovery clamps
+        loadout(sim, mech).timeSinceUnderFire = 10f; // out of under-fire window
 
         sim.advance(BattleSimulation.TICK_DT);
 
-        assertEquals(SquadMoraleSystem.MECH_MORALE_ARMOR_GONE_CAP, mech.mech.morale, 1e-5f,
+        assertEquals(SquadMoraleSystem.MECH_MORALE_ARMOR_GONE_CAP, loadout(sim, mech).morale, 1e-5f,
                 "morale must clamp to armor-gone cap once HP drops below MECH_MORALE_ARMOR_GONE_HP_FRAC");
     }
 
@@ -158,12 +165,12 @@ public class MechMoraleTest {
         Squad sq = mechSquad(sim, 1, MechRole.ARMORED_SUPPORT);
         hideEnemy(sim);
         Entity mech = sim.liveUnitAt(0);
-        mech.mech.morale = 0.10f; // below 0.60 broken threshold (cap=1.0)
-        mech.mech.timeSinceUnderFire = 0f; // in under-fire — no recovery
+        loadout(sim, mech).morale = 0.10f; // below 0.60 broken threshold (cap=1.0)
+        loadout(sim, mech).timeSinceUnderFire = 0f; // in under-fire — no recovery
 
         sim.advance(BattleSimulation.TICK_DT);
 
-        assertTrue(mech.mech.moraleBroken,
+        assertTrue(loadout(sim, mech).moraleBroken,
                 "morale 0.10 < MECH_MORALE_BROKEN_THRESHOLD (0.60) → moraleBroken trips");
         assertTrue(sq.moraleBroken,
                 "all-broken single-member mech squad → squad.moraleBroken trips");
@@ -177,13 +184,13 @@ public class MechMoraleTest {
         Squad sq = mechSquad(sim, 1, MechRole.ARMORED_SUPPORT);
         hideEnemy(sim);
         Entity mech = sim.liveUnitAt(0);
-        mech.mech.morale = 0.70f;
-        mech.mech.moraleBroken = true;
-        mech.mech.timeSinceUnderFire = 10f;
+        loadout(sim, mech).morale = 0.70f;
+        loadout(sim, mech).moraleBroken = true;
+        loadout(sim, mech).timeSinceUnderFire = 10f;
 
         sim.advance(BattleSimulation.TICK_DT);
 
-        assertTrue(mech.mech.moraleBroken,
+        assertTrue(loadout(sim, mech).moraleBroken,
                 "morale between 0.60 and 0.85 must hold the broken flag");
     }
 
@@ -193,13 +200,13 @@ public class MechMoraleTest {
         BattleSimulation sim = openSim();
         Squad sq = mechSquad(sim, 4, MechRole.ARMORED_SUPPORT);
         hideEnemy(sim);
-        sim.liveUnitAt(0).mech.morale = 0.05f;
-        sim.liveUnitAt(1).mech.morale = 0.05f;
-        sim.liveUnitAt(2).mech.morale = 1.0f;
-        sim.liveUnitAt(3).mech.morale = 1.0f;
+        loadout(sim, sim.liveUnitAt(0)).morale = 0.05f;
+        loadout(sim, sim.liveUnitAt(1)).morale = 0.05f;
+        loadout(sim, sim.liveUnitAt(2)).morale = 1.0f;
+        loadout(sim, sim.liveUnitAt(3)).morale = 1.0f;
         for (int i = 0; i < sim.liveUnitCount(); i++) {
-            Entity u = sim.liveUnitAt(i);
-            if (u.mech != null) u.mech.timeSinceUnderFire = 0f;
+            MechLoadoutState lm = loadout(sim, sim.liveUnitAt(i));
+            if (lm != null) lm.timeSinceUnderFire = 0f;
         }
 
         sim.advance(BattleSimulation.TICK_DT);
@@ -214,11 +221,11 @@ public class MechMoraleTest {
         BattleSimulation sim = openSim();
         Squad sq = mechSquad(sim, 4, MechRole.ARMORED_SUPPORT);
         hideEnemy(sim);
-        sim.liveUnitAt(0).mech.morale = 0.05f;
-        for (int i = 1; i < 4; i++) sim.liveUnitAt(i).mech.morale = 1.0f;
+        loadout(sim, sim.liveUnitAt(0)).morale = 0.05f;
+        for (int i = 1; i < 4; i++) loadout(sim, sim.liveUnitAt(i)).morale = 1.0f;
         for (int i = 0; i < sim.liveUnitCount(); i++) {
-            Entity u = sim.liveUnitAt(i);
-            if (u.mech != null) u.mech.timeSinceUnderFire = 0f;
+            MechLoadoutState lm = loadout(sim, sim.liveUnitAt(i));
+            if (lm != null) lm.timeSinceUnderFire = 0f;
         }
 
         sim.advance(BattleSimulation.TICK_DT);

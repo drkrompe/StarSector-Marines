@@ -64,10 +64,12 @@ public final class OverwatchKillZone implements Action {
 
     @Override
     public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
-        // Per-member role branching. Non-LR_SUPPORT members fall through to
-        // parity engagement so mixed-role squads have every member doing
-        // something sensible.
-        if (member.mech == null || member.mech.role != MechRole.LR_SUPPORT) {
+        // Per-member role branching. Non-LR_SUPPORT members (and non-mechs that
+        // can't happen here but stay defensive) fall through to parity
+        // engagement so mixed-role squads have every member doing something
+        // sensible. Loadout reached by id (zero-alloc direct lookup).
+        MechLoadoutState m = sim.world().component(member.entityId, MechLoadoutState.class);
+        if (m == null || m.role != MechRole.LR_SUPPORT) {
             return EngageAtCurrentBand.INSTANCE.execute(member, squad, sim);
         }
 
@@ -79,7 +81,6 @@ public final class OverwatchKillZone implements Action {
 
         // Refresh overwatch cell when threat axis shifts or we have no cached
         // pick yet. Pick is per-mech (each LR member gets its own cell).
-        MechLoadoutState m = member.mech;
         if (m.overwatchCellX < 0 ||
             m.overwatchAxisX != squad.lastSeenEnemyX ||
             m.overwatchAxisY != squad.lastSeenEnemyY) {
@@ -127,8 +128,8 @@ public final class OverwatchKillZone implements Action {
             boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
                     sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
             if (inRange) {
-                MechCombatantBehavior.tryFireLrm(member, target, dist, sim, visible);
-                MechCombatantBehavior.tryFireChaingun(member, target, dist, sim, visible);
+                MechCombatantBehavior.tryFireLrm(member, m, target, dist, sim, visible);
+                MechCombatantBehavior.tryFireChaingun(member, m, target, dist, sim, visible);
                 // SRM intentionally withheld — see class doc.
             }
         }
