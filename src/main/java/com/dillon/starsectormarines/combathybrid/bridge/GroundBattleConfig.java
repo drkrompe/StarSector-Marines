@@ -37,11 +37,13 @@ public record GroundBattleConfig(
         float damageScale) {
 
     /**
-     * The render passes the bridge draws today: terrain + structure + ground units (S3f). Grows
-     * as the render-layers thread brings the remaining projection-agnostic passes over.
+     * The render passes the bridge draws today: terrain + structure + ground units (S3f) +
+     * objective / compound capture-state markers (S3g). Grows as the render-layers thread brings the
+     * remaining projection-agnostic passes over.
      */
     public static final EnumSet<RenderLayer> DEFAULT_SCENE_LAYERS =
-            EnumSet.of(RenderLayer.GROUND, RenderLayer.DOODADS, RenderLayer.ROOFS, RenderLayer.UNITS);
+            EnumSet.of(RenderLayer.GROUND, RenderLayer.DOODADS, RenderLayer.ROOFS, RenderLayer.UNITS,
+                    RenderLayer.OBJECTIVES, RenderLayer.COMPOUND);
 
     /**
      * Vanilla-damage → sim-damage divisor: maps ship-gun damage (hundreds/sec, bursty fighter

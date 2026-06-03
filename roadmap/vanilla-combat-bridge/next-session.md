@@ -151,7 +151,8 @@ Decomposition doc: [`render-layers.md`](render-layers.md). Stories:
   infantry latent until `deliverSquad`. Confirmed safe: reads only sim/camera/alphaMult,
   vision returns VIS_VISIBLE uninitialized, proxies are invisible (no double-draw). Move to
   `complete/` after playtest.
-- **`stories/s3g-objectives-compound.md`** — `OBJECTIVES` + `COMPOUND`. Drop-in.
+- **`stories/s3g-objectives-compound.md`** — `OBJECTIVES` + `COMPOUND`. ✅ **DONE, build-clean** —
+  added to `DEFAULT_SCENE_LAYERS` + `ensureObjectiveIcons()`; verified no null-`RenderContext` access.
 - **`stories/s3h-vehicles-convoy.md`** — `VEHICLES` + `CONVOY`. Carries the null-`selection`
   NPE gotcha (CONVOY DebugOnly overlays read `ctx.selection`).
 - **`stories/s3i-fog-highlights.md`** — `FOG` + `HIGHLIGHTS`. Design calls (fog in a

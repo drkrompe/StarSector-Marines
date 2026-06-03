@@ -32,13 +32,13 @@ import java.util.EnumSet;
  * combat layer is just "configure the camera with a world viewport"; no fork of the
  * pass code.
  *
- * <p>This host runs the projection-agnostic terrain + structure layers
- * ({@link RenderLayer#GROUND}, {@link RenderLayer#DOODADS}, {@link RenderLayer#ROOFS},
- * {@link RenderLayer#UNITS}) via {@link BattleRenderer#renderWorld(RenderContext, EnumSet)}.
- * UNITS (S3f) draws the only visual for ground forces — the {@link SimProxyMirror}
- * proxies are invisible targeting avatars, and marines are never proxied at all. The
- * FBO-backed accumulators (decals, lighting) and the remaining screen-coupled overlays
- * (fog, highlights, FX) are still left out — the accumulators blit in screen space and
+ * <p>This host runs the projection-agnostic scene passes named by
+ * {@link GroundBattleConfig#sceneLayers()} via
+ * {@link BattleRenderer#renderWorld(RenderContext, EnumSet)} — the render-layers thread
+ * (S3f–S3j) grows that set one bucket per story. UNITS (S3f) draws the only visual for ground
+ * forces — the {@link SimProxyMirror} proxies are invisible targeting avatars, and marines are
+ * never proxied at all. The FBO-backed accumulators (decals, lighting) and the screen-coupled
+ * overlays that assume a screen projection are still left out — they blit in screen space and
  * need projection retarget (S3j).
  *
  * <p>Pan/zoom come free: the combat free-cam ({@code SpectatorCanvasPlugin}) moves the
@@ -103,6 +103,9 @@ public class GroundSceneBackdrop implements CombatLayeredRenderingPlugin {
         sprites.ensureMarineSecondarySprites();
         sprites.ensureTurretSprites();
         sprites.ensureDroneHubSprite();
+
+        // OBJECTIVES layer (S3g): charge-site / equipment-drop icons (COMPOUND is vector-drawn, no sheet).
+        sprites.ensureObjectiveIcons();
 
         renderer = new BattleRenderer(sprites);
         renderer.buildTileBatches();

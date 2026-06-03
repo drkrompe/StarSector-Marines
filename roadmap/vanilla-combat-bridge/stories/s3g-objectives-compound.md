@@ -44,3 +44,12 @@ renders as soon as the bridge sim has compounds. Both code paths are wired regar
 
 With the layers wired, a bridge sim that contains a charge site / equipment drop / compound shows the
 correct markers (pulsing icon, progress arc, capture ring) at world scale under the ships, no NPE.
+
+## Status
+
+**DONE, build-clean.** `OBJECTIVES` + `COMPOUND` added to `GroundBattleConfig.DEFAULT_SCENE_LAYERS`;
+`sprites.ensureObjectiveIcons()` added to `GroundSceneBackdrop.initOnGlThread()` (COMPOUND is
+vector-drawn, no sheet). Confirmed zero-risk: a grep of `BattleRenderer` for `rc.selection`/
+`rc.highlights`/`rc.layout`/`rc.debugZonesVisible` finds **only** the CONVOY debug overlay (line 533,
+S3h's gotcha) — neither OBJECTIVES nor COMPOUND touches a null `RenderContext` field. Latent on the
+map-only probe (no objectives stamped; compounds render if the generated map has them).
