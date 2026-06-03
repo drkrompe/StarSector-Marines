@@ -53,15 +53,11 @@ public class GroundSceneBackdrop implements CombatLayeredRenderingPlugin {
     private static final EnumSet<CombatEngineLayers> LAYERS =
             EnumSet.of(CombatEngineLayers.BELOW_SHIPS_LAYER);
 
-    /** Terrain + building structure + ground units — the projection-agnostic subset. */
-    private static final EnumSet<RenderLayer> SCENE_LAYERS =
-            EnumSet.of(RenderLayer.GROUND, RenderLayer.DOODADS, RenderLayer.ROOFS,
-                    RenderLayer.UNITS);
-
     private final BattleSimulation sim;
     private final int gridW;
     private final int gridH;
     private final float worldUnitsPerCell;
+    private final EnumSet<RenderLayer> sceneLayers;
     private final float renderRadius;
 
     private BattleSprites sprites;
@@ -70,11 +66,12 @@ public class GroundSceneBackdrop implements CombatLayeredRenderingPlugin {
     private boolean ready;
     private boolean expired;
 
-    public GroundSceneBackdrop(BattleSimulation sim, int gridW, int gridH, float worldUnitsPerCell) {
-        this.sim = sim;
-        this.gridW = gridW;
-        this.gridH = gridH;
-        this.worldUnitsPerCell = worldUnitsPerCell;
+    public GroundSceneBackdrop(GroundBattleConfig cfg) {
+        this.sim = cfg.sim();
+        this.gridW = cfg.gridW();
+        this.gridH = cfg.gridH();
+        this.worldUnitsPerCell = cfg.worldUnitsPerCell();
+        this.sceneLayers = cfg.sceneLayers();
         this.renderRadius = (float) Math.hypot(gridW, gridH) * worldUnitsPerCell * 0.5f + 200f;
     }
 
@@ -87,7 +84,7 @@ public class GroundSceneBackdrop implements CombatLayeredRenderingPlugin {
         RenderContext rc = new RenderContext(
                 sim, worldCamera, /*layout*/ null, /*alphaMult*/ 1f, /*realDt*/ 0f,
                 /*debugZonesVisible*/ false, /*highlights*/ null, /*selection*/ null);
-        renderer.renderWorld(rc, SCENE_LAYERS);
+        renderer.renderWorld(rc, sceneLayers);
     }
 
     /** One-time setup on the GL thread: load terrain/structure sheets, build batches, configure the camera. */

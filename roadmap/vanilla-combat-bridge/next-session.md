@@ -94,7 +94,29 @@ open "vanilla entity vs sim AirBody during descent?" question is now framed by `
 **S3c — airspace banding / AI gating** (watch unmodified ship AI against the ground band
 first; only write a `ShipAIPlugin` if it misbehaves), and **S3d** (now unblocked by the seam).
 
-## S3f–S3j — bridge render layers (NEW thread, stories written)
+## Extraction thread — productionize the bridge before more render layers (NEW, active)
+
+**Decision (2026-06): the bridge is a committed product mode; extract the durable core now,
+then resume the render-layer thread in it.** Full rationale + target shape + slice plan in
+[`production-architecture.md`](production-architecture.md). S3f shipped into the spike; S3g–S3j
+are **paused** until the extraction lands so they target durable, config-driven code.
+
+Slices (each build-clean + committable):
+- **X1 — `GroundBattleConfig` + configurable render layers** ✅ **CODE-COMPLETE** (per-file clean;
+  whole-project build red only from a sibling ecs-migration `Crashing→CrashingComponent` move, not
+  X1). The hardcoded `SCENE_LAYERS` constant is gone — the bridge's render-layer set now comes from
+  `GroundBattleConfig.sceneLayers` (so S3g–S3j become config edits). `GroundSimBridge` reads
+  `damageScale`/`proxyVariant` from the config too. `setupSimCoupled` builds the config once.
+- **X2 — debug strip + rename `GroundSimBridge` → `SimProxyMirror`.** Drop per-frame logging + the
+  amber crosshair markers (S3f UNITS is the real unit visual); IntelliJ `rename_refactoring`.
+- **X3 — `CombatBridgeSession` host object.** Extract the lifecycle/wiring behind one object the
+  creation plugin delegates to; mode branch collapses.
+- **X4 — package reorg** `bridge/` + `host/` + `probe/`; delete `CanvasBackdropRenderer` +
+  `ProxyTargetPlugin` if S0b/S2 are retired.
+
+Then resume S3g–S3j against the config-driven `GroundSceneBackdrop`.
+
+## S3f–S3j — bridge render layers (thread, stories written; PAUSED for the extraction above)
 
 The bridge sink (`GroundSceneBackdrop`) draws only `{GROUND, DOODADS, ROOFS}` today; the
 standalone screen draws all 17. This thread brings the rest over **one layer-bucket per

@@ -199,10 +199,12 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
         // from advance() and would strand the death events).
         sim.addObjective(new NeverEndObjective(Faction.DEFENDER));
 
-        engine.addLayeredRenderingPlugin(new GroundSceneBackdrop(
-                sim, gridW, gridH, S0BattleProbe.WORLD_UNITS_PER_CELL));
-        engine.addPlugin(new GroundSimBridge(
-                sim, targetable, gridW, gridH, S0BattleProbe.WORLD_UNITS_PER_CELL, PROXY_VARIANT));
+        GroundBattleConfig cfg = new GroundBattleConfig(
+                sim, gridW, gridH, S0BattleProbe.WORLD_UNITS_PER_CELL,
+                GroundBattleConfig.DEFAULT_SCENE_LAYERS, targetable, PROXY_VARIANT,
+                GroundBattleConfig.DEFAULT_DAMAGE_SCALE);
+        engine.addLayeredRenderingPlugin(new GroundSceneBackdrop(cfg));
+        engine.addPlugin(new GroundSimBridge(cfg));
     }
 
     /** S2: AI carrier(s) on the player side + one invisible slaved proxy on the enemy side. */
