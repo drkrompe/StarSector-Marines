@@ -84,11 +84,45 @@ e038706  battle: SoA Group-S seed-only stats — collapse the local* duality (Ph
 335cce8  battle: DELETE Unit.registry — the back-pointer is gone  ← 2026-06-02
 a708ce8  battle: rename Unit -> Entity — the entity is its id (task #15)  ← 2026-06-02
 3718047  battle: model mech loadout as a presence component, delete Entity.mech (task #13)  ← 2026-06-02
+88d5511  ecs(engine): archetype-table storage core + contract tests  ← 2026-06-03
+955b6e5  ecs(engine): deferred CommandBuffer for safe structural change during iteration  ← 2026-06-03
+0faa8bd  ecs(engine): move battle.ecs to engine.ecs — game-agnostic substrate gets an engine-tier home  ← 2026-06-03
+b98c706  battle: corpse path onto the archetype EntityWorld (retrofit step 2)  ← 2026-06-03
 ```
 
 (Sibling tracks interleaved on HEAD, not ECS-migration: `9084ed4` battle-render
 Story B, `31d8b17` goap shared zone-entry rule, plus ongoing battle-render +
 campaign work.)
+
+## NEW PHASE — archetype EntityWorld + game retrofit (2026-06-03, in flight)
+
+The committed storage target ([`archetype-storage.md`](archetype-storage.md))
+is now **built and consuming real game state**:
+
+- **Engine layer DONE** (`com.dillon.starsectormarines.engine.ecs` — moved out
+  of `battle.*`; game-agnostic): `EntityWorld` / `ArchetypeTable` / `Column` /
+  `ComponentType` / `FieldKind` / `Query` (`88d5511`) + the deferred
+  `CommandBuffer` (`world.cmd().destroy/add/remove` → `world.flush()` at the
+  tick barrier; creates are walk-safe and NOT buffered) (`955b6e5`). 17 engine
+  tests green, all synthetic components. **No system-runner abstraction built**
+  — deliberate: systems are plain classes over `EntityWorld`; revisit only if
+  retrofit shows a need.
+- **Retrofit step 2 (corpse path) SHIPPED** (`b98c706`,
+  [`complete/corpse-archetype-retrofit.md`](complete/corpse-archetype-retrofit.md)):
+  `BattleSimulation` owns a per-battle `EntityWorld` + `BattleComponents`
+  (the game-side type registry: `IDENTITY`/`POSITION`/`RENDER_POSITION`/
+  `SPRITE`/`CORPSE`, named field indices, shared `corpses` query);
+  `DeadBodySystem` spawns a corpse entity per `DeathEvent` (pose authored into
+  `SPRITE.index` — appearance-as-authored-data); `sweepDeadSprites` + the
+  `MissionResolver` casualty tally are pure column walks; `DeadBodyComponent`
+  deleted; `entityWorld.flush()` barrier established at end-of-tick.
+
+**Next: migration step 3 — live combat onto the world**, capability by
+capability per the committed decomposition (`Health` first is the natural
+opener: death then becomes the real `remove(HEALTH)+add(CORPSE)` row-move the
+CommandBuffer test proves). The transitional `ComponentStore`s
+(`Crashing`, `MechLoadout`) and the `UnitRegistry` mega-table dissolve as
+step 3/4 proceed.
 
 ## NEW PHASE — entity-id handle (2026-06-02, in flight)
 

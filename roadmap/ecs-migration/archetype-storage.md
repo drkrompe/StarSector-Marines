@@ -286,14 +286,18 @@ the sim never stores a `SpriteAPI`.
 
 ## Migration (landable pieces, fixed target — not exploratory nudges)
 
-1. **Build the core** (`Entity` id mint, `ComponentType` registry, `Column`
-   impls, `ArchetypeTable`, `World`, `Query`) as new code with tests:
-   structural-move + swap-and-pop location fixup, query-cache invalidation, and the
-   array lifecycle (grow + shrink). No behavior wired.
-2. **Prove on the corpse path first** — smallest, already partly componentized
-   (`Dead`+`Position`+`RenderPosition`+`Identity`). Death = row-move; corpse keeps
-   its cell; `UnitRenderService.sweepDeadSprites` reads columns. Validates the
-   whole model end-to-end on low-risk surface.
+1. ~~**Build the core**~~ — **SHIPPED** (`88d5511` core + tests, `955b6e5`
+   deferred CommandBuffer, `0faa8bd` move to `engine.ecs`). Structural-move +
+   swap-and-pop location fixup, query-cache invalidation, array lifecycle, and
+   safe structural change during iteration, all engine-tested synthetically.
+2. ~~**Prove on the corpse path first**~~ — **SHIPPED** (`b98c706`, see
+   [`complete/corpse-archetype-retrofit.md`](complete/corpse-archetype-retrofit.md)).
+   Corpse archetype `{Identity, Position, RenderPosition, Sprite, Corpse}` in the
+   per-battle world; `DeadBodySystem` spawns it per DeathEvent with the pose
+   authored into `SPRITE.index`; `sweepDeadSprites` + the MissionResolver tally
+   walk columns; `DeadBodyComponent` deleted. (Death = row-move arrives with
+   step 3 — live units aren't in the world yet, so death is a corpse-create
+   for now.)
 3. **Migrate live combat** — model the live archetypes; port `UnitUpdateSystem`,
    `DamageResolver`, AI/squad systems to `Query` + column iteration, capability by
    capability, **toward the table model** (no reverting to a mega-table).
