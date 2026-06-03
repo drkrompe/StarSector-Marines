@@ -20,21 +20,23 @@ import java.util.Random;
  * <p><b>No registry back-pointer.</b> A {@code Entity} carries its {@link #entityId}
  * (its identity) plus immutable archetype + a handful of POJO fields, but it no
  * longer self-routes into the simulation's mutable state. Every mutable per-unit
- * column (hp, cell, the combat timers, target/burst/fallback ids) lives in the
- * {@link UnitRegistry}'s dense SoA and is reached <em>by id</em> through the
- * {@code World} facade ({@code world.hp(id)}, {@code world.cellX(id)}, …) or the
- * registry's by-index API — never through this object. This is the access shape
- * the {@code world-facade} endgame settled on; the next step renames {@code Entity}
- * → {@code Entity} to match.
+ * column is reached <em>by id</em> through the {@code World} facade
+ * ({@code world.hp(id)}, {@code world.cellX(id)}, …) or the registry's API —
+ * never through this object. Storage is mid-migration: hp and the logical cell
+ * live in the battle {@code EntityWorld}'s HEALTH/POSITION components
+ * (archetype tables, persisting per their capability lifecycle), while the
+ * combat timers + target/burst/fallback ids are still {@link UnitRegistry}
+ * dense-SoA columns until their capabilities migrate.
  *
- * <p>Position is split: the logical cell (what pathfinding sees) is a registry
- * SoA column reached by id ({@code world.cellX(id)} / {@code world.cellY(id)}),
- * while {@link #getRenderX}/{@link #getRenderY} are the smooth-interpolated
- * position inside the cell grid (in cell units, fractional) that the renderer
- * reads — kept on {@code Entity} because they route through the
- * {@link RenderPositionService}, which survives release so a corpse still draws
- * where it fell. The two coincide when the unit is at rest or has just landed in
- * a new cell.
+ * <p>Position is split: the logical cell (what pathfinding sees) is the world
+ * POSITION component reached by id ({@code world.cellX(id)} /
+ * {@code world.cellY(id)}; it persists alive→dead, so the corpse keeps its
+ * cell), while {@link #getRenderX}/{@link #getRenderY} are the
+ * smooth-interpolated position inside the cell grid (in cell units, fractional)
+ * that the renderer reads — kept on {@code Entity} because they route through
+ * the {@link RenderPositionService}, which survives release so a corpse still
+ * draws where it fell. The two coincide when the unit is at rest or has just
+ * landed in a new cell.
  *
  * <p>{@link #path} + {@link #pathIdx} + the move-progress registry column
  * describe the current movement step. {@link #advanceAlongPath(UnitRegistry, float)}

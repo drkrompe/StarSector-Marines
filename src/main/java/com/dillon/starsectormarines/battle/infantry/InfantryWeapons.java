@@ -120,7 +120,6 @@ public class InfantryWeapons {
      */
     public void fireShot(Entity shooter, Entity target, FireStance stance) {
         int shooterIdx = registry.requireLiveIndex(shooter.entityId);
-        int targetIdx = registry.requireLiveIndex(target.entityId);
         float accuracy = registry.getAccuracy(shooterIdx);
         float damage   = registry.getAttackDamage(shooterIdx);
         float vsTurretMult = 1f;
