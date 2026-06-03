@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.ecs;
+package com.dillon.starsectormarines.engine.ecs;
 
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;

@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.ecs;
+package com.dillon.starsectormarines.engine.ecs;
 
 import java.util.Arrays;
 

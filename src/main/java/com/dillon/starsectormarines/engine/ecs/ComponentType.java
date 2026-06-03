@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.ecs;
+package com.dillon.starsectormarines.engine.ecs;
 
 /**
  * Identity + schema of a component: a stable {@code id} (its bit index in the

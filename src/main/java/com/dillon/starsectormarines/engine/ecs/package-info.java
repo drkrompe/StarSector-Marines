@@ -8,10 +8,10 @@
  *           of data (primitive-specialized, no boxing) or a zero-field presence
  *           <b>tag</b>; an archetype is the set of component types an entity has,
  *           identified by a {@code long} bitmask; each archetype owns one SoA
- *           {@link com.dillon.starsectormarines.battle.ecs.ArchetypeTable} of
+ *           {@link com.dillon.starsectormarines.engine.ecs.ArchetypeTable} of
  *           dense, swap-and-pop rows. A structural change (add/remove component)
  *           moves the entity's row between tables. Systems iterate a
- *           {@link com.dillon.starsectormarines.battle.ecs.Query}'s matched tables
+ *           {@link com.dillon.starsectormarines.engine.ecs.Query}'s matched tables
  *           and walk the raw column arrays.
  * <br>Boundary: pure storage + composition mechanism. No game components live here
  *           (the game registers those during the retrofit); no rendering, no
@@ -20,4 +20,4 @@
  *           {@link com.dillon.starsectormarines.battle.component.ComponentStore}.
  * <br>Pointer: {@code roadmap/ecs-migration/archetype-storage.md} (committed design).
  */
-package com.dillon.starsectormarines.battle.ecs;
+package com.dillon.starsectormarines.engine.ecs;

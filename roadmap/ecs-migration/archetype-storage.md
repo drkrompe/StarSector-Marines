@@ -319,7 +319,7 @@ target + Phase C ("deferred, gated on heterogeneity") to point here — the exis
 `LinkedHashMap`-backed `ComponentStore<T>` is now **transitional**, to be replaced
 during retrofit, not extended.
 
-Build order: (1) engine core `com.dillon.starsectormarines.battle.ecs` + tests;
+Build order: (1) engine core `com.dillon.starsectormarines.engine.ecs` + tests;
 (2) retrofit stories move the game onto it per the Migration section above.
 
 ## Cross-refs
