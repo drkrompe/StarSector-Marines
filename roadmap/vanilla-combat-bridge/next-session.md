@@ -130,11 +130,15 @@ Slices (each build-clean + committable):
   touched.
 
 **The extraction is complete (X1–X4b).** The bridge now reads:
-`probe → CombatBridgeSession(GroundBattleConfig) → GroundSceneBackdrop + SimProxyMirror`. Resume
-**S3g–S3j** against the config-driven `bridge/GroundSceneBackdrop` (grow `GroundBattleConfig`'s
-`sceneLayers` / `DEFAULT_SCENE_LAYERS`). S3c (airspace/AI viability) still the independent de-risk.
+`probe → CombatBridgeSession(GroundBattleConfig) → GroundSceneBackdrop + SimProxyMirror`.
 
-## S3f–S3j — bridge render layers (thread, stories written; PAUSED for the extraction above)
+**Render-layers thread resolved (S3f–S3j):** S3f/S3g/S3h wired (build-clean; `DEFAULT_SCENE_LAYERS`
+now = GROUND/DOODADS/ROOFS/UNITS/OBJECTIVES/COMPOUND/VEHICLES/CONVOY), S3i decided-skip (no fog in the
+orbital view; highlights blocked on a selection model), S3j deferred (no source + hard FBO retarget).
+**Open:** S3f's Ctrl+Shift+K playtest verdict (code carried unchanged through the extraction), and
+**S3c — airspace/AI viability**, the independent load-bearing de-risk the render work doesn't touch.
+
+## S3f–S3j — bridge render layers (thread RESOLVED; see per-story `Status`/`Decision` sections)
 
 The bridge sink (`GroundSceneBackdrop`) draws only `{GROUND, DOODADS, ROOFS}` today; the
 standalone screen draws all 17. This thread brings the rest over **one layer-bucket per
@@ -156,10 +160,14 @@ Decomposition doc: [`render-layers.md`](render-layers.md). Stories:
 - **`stories/s3h-vehicles-convoy.md`** — `VEHICLES` + `CONVOY`. ✅ **DONE, build-clean** — added to
   `DEFAULT_SCENE_LAYERS` + `ensureVehicleSheets()`/`ensureConvoySprites()`; the null-`selection` NPE
   fixed by guarding `BattleRenderer.renderSelectedVehicleDebug` on `rc.selection == null`.
-- **`stories/s3i-fog-highlights.md`** — `FOG` + `HIGHLIGHTS`. Design calls (fog in a
-  fleet-commander view? highlights source with no on-screen selection?).
-- **`stories/s3j-fx-fbo-retarget.md`** — `DECALS`/`LIGHTING`/`IMPACT_FX`. Hard bucket: FBO
-  blits are screen-space, need projection retarget. `SHUTTLES`/`FLYBY` are S3d's, not here.
+- **`stories/s3i-fog-highlights.md`** — `FOG` + `HIGHLIGHTS`. ✅ **DONE as a decision-record (no
+  wiring).** FOG skipped — orbital fleet-commander POV reveals the surface; fog stays a
+  ground-commander mechanic on `BattleScreen`. HIGHLIGHTS deferred — no selection model in the bridge
+  to source `ctx.highlights` (its own thread). `DEFAULT_SCENE_LAYERS` unchanged.
+- **`stories/s3j-fx-fbo-retarget.md`** — `DECALS`/`LIGHTING`/`IMPACT_FX`. ⏸ **DEFERRED** (last item).
+  No source in the map-only bridge (all are sim-side shot/lightmap events — nothing until live sim
+  combat post-`deliverSquad`/S3d) **and** it's the hard FBO screen-space retarget bucket with a
+  LIGHTING design call. Pick up when the bridge actually fights. `SHUTTLES`/`FLYBY` are S3d's, not here.
 
 Overview open question #2 is answered: the external-damage path is `applyExternalDamage`.
 

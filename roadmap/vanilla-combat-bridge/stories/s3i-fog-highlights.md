@@ -43,3 +43,20 @@ bridge:
 
 The fog/highlights design calls are recorded (with rationale); whichever layers are kept render
 correctly under the ships with no NPE on the bridge's null `highlights`/uninitialized vision.
+
+## Decision (2026-06) — both layers skipped; no wiring
+
+Resolved as a **decision-record**: neither `FOG` nor `HIGHLIGHTS` joins the bridge scene layers.
+
+- **FOG — skipped.** The bridge is a *fleet-commander / orbital* POV: from above, the player sees
+  the whole battlefield (their forces + the planet's defenses). Fog-of-war is a *ground-commander*
+  mechanic and stays on the standalone `BattleScreen`. (Also a no-op in the bridge today anyway —
+  the FOG collect early-returns on `!vis.isInitialized()` and the map-only sim never inits vision.)
+  Revisit only if a future bridge mode wants squad-scoped recon tension.
+- **HIGHLIGHTS — deferred (no source).** The collect reads `ctx.highlights`, which is sourced from
+  an on-screen squad selection — and the bridge has **no selection/input model**. Building one is
+  its own thread (out of scope here). Left out until the bridge grows a selection model; revisit
+  then.
+
+No code change: `GroundBattleConfig.DEFAULT_SCENE_LAYERS` is unchanged. This story is complete as a
+recorded decision.
