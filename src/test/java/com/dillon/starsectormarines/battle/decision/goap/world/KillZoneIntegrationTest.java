@@ -151,8 +151,8 @@ public class KillZoneIntegrationTest {
         // least one squadmate is alive, and a dead squad short-circuits the
         // sustained-fire scan to nothing. Set after addUnit — hp/maxHp are
         // registry-backed once allocated.
-        defender.setHp(1_000_000f);
-        defender.setMaxHp(1_000_000f);
+        sim.world().setHp(defender.entityId, 1_000_000f);
+        sim.world().setMaxHp(defender.entityId, 1_000_000f);
         // Marine 12 cells away — well outside KILL_ZONE_RANGE_CELLS (8) so
         // the existing proximity gate would never trip. The marine's actual
         // shots don't matter for this test — we control the under-fire signal
@@ -169,8 +169,8 @@ public class KillZoneIntegrationTest {
             // "shot landed near me" distance check miss. Aim at wherever the
             // defender is right now and the LoS test from the marine's cell
             // (17,5) to that point stays clear on this open arena.
-            float toCenterX = defender.getCellX() + 0.5f;
-            float toCenterY = defender.getCellY() + 0.5f;
+            float toCenterX = sim.world().cellX(defender.entityId) + 0.5f;
+            float toCenterY = sim.world().cellY(defender.entityId) + 0.5f;
             sim.postShot(new ShotEvent(17.5f, 5.5f, toCenterX, toCenterY, true, Faction.MARINE, 0.1f));
             sim.advance(dt);
         }

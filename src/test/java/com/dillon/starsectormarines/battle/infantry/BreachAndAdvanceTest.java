@@ -170,7 +170,7 @@ public class BreachAndAdvanceTest {
 
         action.execute(m0, sq, sim);
         assertTrue(m0.pathEmpty(), "arrived members clear their path");
-        assertEquals(0f, m0.getMoveProgress(), 1e-6f);
+        assertEquals(0f, sim.world().moveProgress(m0.entityId), 1e-6f);
         assertEquals(14f, m0.getRenderX(), 1e-6f, "render pinned at the destination cell");
     }
 

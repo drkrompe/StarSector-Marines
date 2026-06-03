@@ -44,7 +44,7 @@ public class HubDemolitionSystemTest {
 
         sim.applyDamage(hub, 100_000f, 3.5f, 0f);
 
-        assertFalse(hub.isAlive(), "the hub should be dead after a lethal hit");
+        assertFalse(sim.world().isAlive(hub.entityId), "the hub should be dead after a lethal hit");
         // Buffered: the handler has NOT run yet — death published, not drained.
         assertFalse(hub.demolished,
                 "demolition must wait for the dispatcher drain, not fire inline at death");
@@ -82,13 +82,13 @@ public class HubDemolitionSystemTest {
         // publishes a DeathEvent that the wave-drain fans out in the same drain,
         // before the drone-crash phase — already carry a Crashing component
         // (entered the crash sequence) on this same tick.
-        assertFalse(d1.isAlive(), "cascade sets hp=0 on the dead hub's drones");
-        assertFalse(d2.isAlive(), "cascade sets hp=0 on the dead hub's drones");
+        assertFalse(sim.world().isAlive(d1.entityId), "cascade sets hp=0 on the dead hub's drones");
+        assertFalse(sim.world().isAlive(d2.entityId), "cascade sets hp=0 on the dead hub's drones");
         assertTrue(sim.getCrashing().has(d1.entityId), "cascaded drone gets a Crashing component the same tick");
         assertTrue(sim.getCrashing().has(d2.entityId), "cascaded drone gets a Crashing component the same tick");
 
         // The other hub's drone is untouched.
-        assertTrue(control.isAlive(), "a drone homed to a live hub is not part of the cascade");
+        assertTrue(sim.world().isAlive(control.entityId), "a drone homed to a live hub is not part of the cascade");
         assertFalse(sim.getCrashing().has(control.entityId), "the untouched drone never starts crashing");
         assertFalse(liveHub.demolished, "the undamaged hub is not demolished");
     }
@@ -101,7 +101,7 @@ public class HubDemolitionSystemTest {
 
         sim.advance(BattleSimulation.TICK_DT);
 
-        assertTrue(hub.isAlive(), "no damage → still alive");
+        assertTrue(sim.world().isAlive(hub.entityId), "no damage → still alive");
         assertFalse(hub.demolished, "a live hub is never demolished");
     }
 }

@@ -156,7 +156,7 @@ public class GarrisonCordonTest {
         // sibling cell two off should usually be in LoS.
         Unit attacker = new Unit("a1", Faction.MARINE, UnitType.MARINE, post.cellX, post.cellY + 2);
         sim.addUnit(attacker);
-        assertTrue(sim.getGrid().hasLineOfSight(d1.getCellX(), d1.getCellY(), attacker.getCellX(), attacker.getCellY()),
+        assertTrue(sim.getGrid().hasLineOfSight(sim.world().cellX(d1.entityId), sim.world().cellY(d1.entityId), sim.world().cellX(attacker.entityId), sim.world().cellY(attacker.entityId)),
                 "test prerequisite: attacker must be visible from the guard cell");
 
         GarrisonCordon cordon = new GarrisonCordon(posts);
@@ -169,7 +169,7 @@ public class GarrisonCordonTest {
 
         cordon.execute(d1, squad, sim);
 
-        assertTrue(d1.getCooldownTimer() > 0f,
+        assertTrue(sim.world().cooldownTimer(d1.entityId) > 0f,
                 "on-post holder with visible enemy in range → must fire (opportunistic, no portal trigger required)");
         assertTrue(sim.getShotsThisFrame().size() > 0,
                 "shot event must be emitted for the opportunistic fire");

@@ -39,7 +39,7 @@ public class InfantryUnitPrepTest {
         sim.addUnit(u);
         // attackRange is a Group-S registry-backed stat — set after the unit is
         // registered (the accessor is fail-loud pre-allocate).
-        u.setAttackRange(u.primaryWeapon.range);
+        sim.world().setAttackRange(u.entityId, u.primaryWeapon.range);
         return u;
     }
 
@@ -59,8 +59,8 @@ public class InfantryUnitPrepTest {
         boolean started = InfantryUnitPrep.tryOpportunityRocket(marine, sim);
         assertTrue(started, "marine in rocket range with LOS should start aim");
         assertEquals(MarineSecondary.ROCKET_LAUNCHER.aimDuration,
-                marine.getSecondaryActionTimer(), 0.001f);
-        assertEquals(turret.entityId, marine.getSecondaryAimTargetId());
+                sim.world().secondaryActionTimer(marine.entityId), 0.001f);
+        assertEquals(turret.entityId, sim.world().secondaryAimTargetId(marine.entityId));
     }
 
     @Test
@@ -71,14 +71,14 @@ public class InfantryUnitPrepTest {
         turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
 
         assertFalse(InfantryUnitPrep.tryOpportunityRocket(marine, sim));
-        assertEquals(0f, marine.getSecondaryActionTimer(), 0.001f);
+        assertEquals(0f, sim.world().secondaryActionTimer(marine.entityId), 0.001f);
     }
 
     @Test
     public void opportunityRocketNoOpsWhenCooldownActive() {
         BattleSimulation sim = openArena(50, 10);
         Unit marine = rocketeer(sim, Faction.MARINE, 5, 5);
-        marine.setSecondaryCooldownTimer(1.0f);
+        sim.world().setSecondaryCooldownTimer(marine.entityId, 1.0f);
         turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
 
         assertFalse(InfantryUnitPrep.tryOpportunityRocket(marine, sim));

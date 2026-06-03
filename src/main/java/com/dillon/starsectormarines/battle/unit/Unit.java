@@ -18,19 +18,30 @@ import java.util.Random;
  * {@link BattleSimulation}. Fields are public for hot-path access from the
  * tick loop; the package keeps the surface narrow.
  *
- * <p>Position is split: {@link #getCellX}/{@link #getCellY} are the logical cell
- * (what pathfinding sees), while {@link #getRenderX}/{@link #getRenderY} are the
- * smooth-interpolated position inside the cell grid (in cell units, fractional)
- * that the renderer reads. The two coincide when the unit is at rest or has
- * just landed in a new cell. (Both pairs are SoA columns now — cell on the
- * registry, render on the {@link RenderPositionService} — reached through these
- * accessors, not direct fields.)
+ * <p><b>No registry back-pointer.</b> A {@code Unit} carries its {@link #entityId}
+ * (its identity) plus immutable archetype + a handful of POJO fields, but it no
+ * longer self-routes into the simulation's mutable state. Every mutable per-unit
+ * column (hp, cell, the combat timers, target/burst/fallback ids) lives in the
+ * {@link UnitRegistry}'s dense SoA and is reached <em>by id</em> through the
+ * {@code World} facade ({@code world.hp(id)}, {@code world.cellX(id)}, …) or the
+ * registry's by-index API — never through this object. This is the access shape
+ * the {@code world-facade} endgame settled on; the next step renames {@code Unit}
+ * → {@code Entity} to match.
  *
- * <p>{@link #path} + {@link #pathIdx} + {@link #getMoveProgress} describe the
- * current movement step. The simulation rebuilds {@code path} when the unit is
- * between cells ({@code moveProgress == 0}) and lerps render position toward
- * {@code path[pathIdx]} as move-progress climbs from 0 to 1; on arrival
- * the logical cell advances and progress resets.
+ * <p>Position is split: the logical cell (what pathfinding sees) is a registry
+ * SoA column reached by id ({@code world.cellX(id)} / {@code world.cellY(id)}),
+ * while {@link #getRenderX}/{@link #getRenderY} are the smooth-interpolated
+ * position inside the cell grid (in cell units, fractional) that the renderer
+ * reads — kept on {@code Unit} because they route through the
+ * {@link RenderPositionService}, which survives release so a corpse still draws
+ * where it fell. The two coincide when the unit is at rest or has just landed in
+ * a new cell.
+ *
+ * <p>{@link #path} + {@link #pathIdx} + the move-progress registry column
+ * describe the current movement step. {@link #advanceAlongPath(UnitRegistry, float)}
+ * rebuilds nothing but lerps render position toward {@code path[pathIdx]} as
+ * move-progress climbs from 0 to 1; on arrival the logical cell advances and
+ * progress resets.
  */
 public class Unit {
 
@@ -41,9 +52,9 @@ public class Unit {
      * Monotonic entity id assigned by {@link com.dillon.starsectormarines.battle.unit.UnitRegistry}
      * on registration. {@code 0} means "not yet allocated" (matches the
      * registry's reserved sentinel); a non-zero value is stable for the
-     * life of the unit and never recycled. Future SoA promotion will key
-     * off this id rather than {@link #id} (the string label, retained for
-     * logs / debug).
+     * life of the unit and never recycled. This is the unit's identity — all
+     * mutable state is keyed off it in the registry / component stores, reached
+     * by id rather than through this object.
      */
     public long entityId = 0L;
 
@@ -61,24 +72,11 @@ public class Unit {
     }
 
     /**
-     * Back-reference to the registry currently holding this unit, or
-     * {@code null} when not allocated. Lets the per-unit accessors resolve
-     * their SoA slot (by {@link #entityId}, via {@link #idx()}) without
-     * threading the registry through every call site, and serves as the
-     * allocation/liveness marker ({@code registry == null} ⇒ released or
-     * pre-allocate). Set by {@link UnitRegistry#allocate}; cleared by release.
-     * (The cached {@code denseIdx} field this used to sit beside is gone — the
-     * slot is now always resolved through the registry's id→index map, the
-     * single source of truth, so a held ref can never carry a stale index.)
-     */
-    public UnitRegistry registry;
-
-    /**
      * The decomposed render-position service this unit's render coordinates
      * live in, keyed by {@link #entityId}. Set once by
-     * {@link UnitRegistry#allocate} and — unlike {@link #registry} — <b>not</b>
-     * cleared on release, so {@link #getRenderX()} / {@link #getRenderY()} keep
-     * resolving the death-pose location for a released corpse. {@code null}
+     * {@link UnitRegistry#allocate} and — unlike the registry's dense slot —
+     * <b>not</b> dropped on release, so {@link #getRenderX()} / {@link #getRenderY()}
+     * keep resolving the death-pose location for a released corpse. {@code null}
      * only in the pre-allocate window, where {@link #localRenderX} /
      * {@link #localRenderY} are the seed.
      */
@@ -110,9 +108,9 @@ public class Unit {
      * needs no shadow on the corpse — it's pure construction input now, like the
      * Group-S {@code seed*} stats. {@link UnitRegistry#allocate} copies these
      * into the SoA cell arrays and the registry is canonical from then on;
-     * {@code release} does NOT snapshot them back. Once allocated, go through
-     * {@link #getCellX} / {@link #getCellY} / {@link #setCellPos} (fail-loud on
-     * an unregistered unit). Public for the same sibling-package seeding reason
+     * {@code release} does NOT snapshot them back. Once allocated, the cell lives
+     * in the registry SoA, reached by id ({@code world.cellX(id)} /
+     * {@code world.cellY(id)}). Public for the same sibling-package seeding reason
      * as {@code seed*}.
      */
     public int seedCellX;
@@ -149,40 +147,13 @@ public class Unit {
     /** True when the unit has no path scheduled. Match for the old {@code path.isEmpty()} check. */
     public boolean pathEmpty() { return path.length == 0; }
 
-    public void advanceAlongPath(float dt) {
-        if (pathIdx >= pathCellCount()) return;
-        // Per-tick movement step: resolve the dense slot once, then read/write
-        // the cell + move-progress columns by index (not through the per-call
-        // OO accessors, which would each re-probe the id→index map).
-        int idx = idx();
-        int nextX = pathCellX(pathIdx);
-        int nextY = pathCellY(pathIdx);
-        int curX = registry.getCellX(idx);
-        int curY = registry.getCellY(idx);
-        float dx = nextX - curX;
-        float dy = nextY - curY;
-        float cellDist = (float) Math.sqrt(dx * dx + dy * dy);
-        if (cellDist < 0.0001f) { pathIdx++; return; }
-        float mp = registry.getMoveProgress(idx) + (moveSpeed * dt) / cellDist;
-        if (mp >= 1f) {
-            registry.setCellPos(idx, nextX, nextY);
-            setRenderPos(nextX, nextY);
-            registry.setMoveProgress(idx, 0f);
-            pathIdx++;
-        } else {
-            registry.setMoveProgress(idx, mp);
-            setRenderPos(curX + dx * mp, curY + dy * mp);
-        }
-    }
-
     /**
-     * Registry-handle twin of {@link #advanceAlongPath(float)} for the
-     * post-{@code Unit.registry} world: resolves the dense slot once off the
-     * passed registry (single probe, same cost as the back-pointer form) and
-     * drives the per-tick movement step by index. Takes the registry rather
-     * than {@link World} because the step touches up to five columns per moving
-     * unit per tick — routing each through {@code world.cellX(id)} etc. would
-     * re-probe the id→index map five times where one suffices.
+     * Per-tick movement step. Resolves this unit's dense slot once off the passed
+     * registry (single probe) and drives the cell + move-progress columns by
+     * index. Takes the registry rather than {@link World} because the step touches
+     * up to five columns per moving unit per tick — routing each through
+     * {@code world.cellX(id)} etc. would re-probe the id→index map five times
+     * where one suffices.
      */
     public void advanceAlongPath(UnitRegistry registry, float dt) {
         if (pathIdx >= pathCellCount()) return;
@@ -211,20 +182,14 @@ public class Unit {
     // and mission modifiers can adjust an individual without changing the archetype.
     public float moveSpeed;
     /**
-     * <b>Don't read directly. Pre-allocate seed ONLY.</b> Now identical in shape
-     * to {@link #seedMaxHp} and the cell pair: {@link UnitRegistry#allocate}
-     * copies this into the SoA hp array and the registry is canonical from then
-     * on; {@code release} does NOT snapshot it back. Once allocated, go through
-     * {@link #getHp} / {@link #setHp} (both fail-loud on an unregistered unit).
-     *
-     * <p>The post-release hp snapshot ({@code localHp}) that this replaced is
-     * gone: every held-{@link Unit}-ref liveness check now goes through
-     * {@link #isAlive()}, which short-circuits on the {@code registry == null}
-     * release marker before touching the dense hp slot — so a released held ref
-     * reads as dead without a corpse-window hp shadow. (The held refs that once
-     * needed that shadow — mech salvo targets, the pending-mutation queue, a
-     * wiped squad's leader — are id-resolved now anyway. See the
-     * {@code entity-id-handle} story.)
+     * <b>Don't read directly. Pre-allocate seed ONLY.</b> Same shape as
+     * {@link #seedMaxHp} and the cell pair: {@link UnitRegistry#allocate} copies
+     * this into the SoA hp array and the registry is canonical from then on;
+     * {@code release} does NOT snapshot it back. Once allocated, hp lives in the
+     * registry SoA, reached by id ({@code world.hp(id)} / {@code world.setHp(id, v)});
+     * held-ref liveness goes through {@code world.isAlive(id)} /
+     * {@code registry.isAliveById(id)}, which report a released id as dead without
+     * a corpse-window hp shadow.
      *
      * <p>Public so {@link UnitRegistry} (a sibling package) can seed the slot at
      * allocate time. Write-only construction input: the ctor archetype seed and
@@ -233,66 +198,26 @@ public class Unit {
     public float seedHp;
     /**
      * <b>Don't read directly. Pre-allocate seed ONLY.</b> The Group-S stat
-     * columns (max HP + the three attack stats) differ from {@link #localHp}:
-     * {@link UnitRegistry#allocate} copies these into the SoA arrays and the
-     * registry is canonical from then on, and {@code release} does NOT snapshot
-     * them back. All four accessors read the registry unconditionally (fail-loud
-     * on an unregistered unit, like the mid-combat columns) since nothing reads
-     * them post-release — the HUD that once read {@code getMaxHp} post-release now
-     * snapshots the row by value at {@code update()} (see {@code SquadDetailPanel}).
-     * These fields are write-only <em>construction</em> input: the ctor archetype seed,
-     * the subclass overrides
+     * columns (max HP + the three attack stats): {@link UnitRegistry#allocate}
+     * copies these into the SoA arrays and the registry is canonical from then
+     * on, and {@code release} does NOT snapshot them back. Reached post-allocate
+     * by id through the registry/World ({@code world.maxHp(id)},
+     * {@code world.attackDamage(id)}, …) since nothing reads them post-release —
+     * the HUD that once read max HP post-release now snapshots the row by value at
+     * {@code update()} (see {@code SquadDetailPanel}). These fields are write-only
+     * <em>construction</em> input: the ctor archetype seed, the subclass overrides
      * ({@link com.dillon.starsectormarines.battle.drone.Drone} /
      * {@link com.dillon.starsectormarines.battle.drone.DroneHubUnit} /
      * {@link com.dillon.starsectormarines.battle.turret.MapTurret}), and the
-     * shuttle/vehicle deboard loadout. Once allocated, go through
-     * {@link #getMaxHp} / {@link #getAttackDamage} / {@link #getAttackRange} /
-     * {@link #getAccuracy}.
+     * shuttle/vehicle deboard loadout.
      */
     public float seedMaxHp;
     public float seedAttackDamage;
     public float seedAttackRange;
     public float seedAccuracy;
-    /** How far this unit can see (cells). Drives fog-of-war shadowcast radius. Initialized from {@link UnitType#visionRange}; 0 falls back to {@link #getAttackRange() attackRange}. */
+    /** How far this unit can see (cells). Drives fog-of-war shadowcast radius. Initialized from {@link UnitType#visionRange}; 0 falls back to the unit's attack-range stat. */
     public float visionRange;
     public float attackCooldown;
-
-    /**
-     * Current-target entity id; {@code 0L} = no target. Canonical storage is
-     * {@code registry.targetId[idx]} — resolve to a {@link Unit} via
-     * {@link BattleSimulation#targetOf(Unit)}.
-     *
-     * <p>The long is generation-free dangling-ref hygiene: a released target id
-     * resolves cleanly to {@code null} via the registry without the holder
-     * needing its own {@code isAlive()} branch. Writes go through
-     * {@link #setTarget(Unit)} so null-vs-instance is handled in one place.
-     *
-     * <p><b>Mid-combat-column contract.</b> Unlike hp/cell, these mid-combat
-     * columns (targetId, cooldown/timers, burst/secondary/fallback/reposition/wander)
-     * carry no {@code local*} shadow on {@link Unit} — their canonical storage is
-     * the registry's SoA arrays and they are only meaningful for a registered, live
-     * unit. The accessors read/write the registry unconditionally; calling them on
-     * an unregistered unit is a programming error (fail-loud) now that the live
-     * registry is the sole roster and no observable unit is ever unregistered.
-     */
-    public final long getTargetId() {
-        return registry.getTargetId(idx());
-    }
-
-    public final void setTargetId(long v) {
-        registry.setTargetId(idx(), v);
-    }
-
-    /**
-     * Convenience setter for the target id: stores {@code t.entityId}, or
-     * {@code 0L} when {@code t == null}. Single chokepoint so every writer
-     * gets identical null-handling, and so a future {@code setTarget} that
-     * also touches sibling state (attacker index hint, hit-streak counters)
-     * only has to grow once.
-     */
-    public void setTarget(Unit t) {
-        setTargetId((t == null) ? 0L : t.entityId);
-    }
 
     /**
      * Close-wall radius for "air" line-of-sight, in cells. When &gt; 0, walls
@@ -314,64 +239,6 @@ public class Unit {
     public Objective assignedObjective;
     /** {@link UnitRole#KIT_RETRIEVER} target — the dropped kit this unit is heading to recover. Cleared when picked up or when the drop is consumed by someone else. */
     public EquipmentDrop equipmentDropTarget;
-
-    /**
-     * Break-contact fall-back state. {@code fallbackTimer} is sim-seconds
-     * remaining in fall-back; &gt;0 means the unit is breaking contact toward
-     * the cached fall-back cell ({@code fallbackCellX}/{@code fallbackCellY},
-     * -1 = none). Canonical storage lives in the registry's SoA arrays.
-     */
-    public final float getFallbackTimer() {
-        return registry.getFallbackTimer(idx());
-    }
-
-    public final void setFallbackTimer(float v) {
-        registry.setFallbackTimer(idx(), v);
-    }
-
-    public final int getFallbackCellX() {
-        return registry.getFallbackCellX(idx());
-    }
-
-    public final int getFallbackCellY() {
-        return registry.getFallbackCellY(idx());
-    }
-
-    /** Every callsite writes the fall-back cell pair together (break-contact pick, inline fallback write), so the paired setter matches access and hits both SoA slots in one dispatch. */
-    public final void setFallbackCell(int x, int y) {
-        registry.setFallbackCell(idx(), x, y);
-    }
-
-    /**
-     * Sim-seconds until this unit is next eligible to micro-reposition
-     * between shots. Story G — replaces the prior per-shot 30% RNG roll with a
-     * real cooldown so a setup machine gunner in heavy cover doesn't twitch
-     * every burst, and the squad's individual marines visibly shift at
-     * different times (cooldowns decorrelate as they reset on different shots).
-     * Ticked down each tick by {@link com.dillon.starsectormarines.battle.infantry.InfantryUnitPrep#tickCooldowns}.
-     * Canonical storage lives in {@code registry.repositionCooldown[idx]}.
-     */
-    public final float getRepositionCooldown() {
-        return registry.getRepositionCooldown(idx());
-    }
-
-    public final void setRepositionCooldown(float v) {
-        registry.setRepositionCooldown(idx(), v);
-    }
-
-    /**
-     * {@link UnitRole#FLEE} idle pause between wander legs. While &gt;0 the
-     * civilian stands at their current cell instead of picking a new
-     * destination. Rolled fresh on arrival; ignored when a threat is in range.
-     * Canonical storage lives in {@code registry.wanderDwellTimer[idx]}.
-     */
-    public final float getWanderDwellTimer() {
-        return registry.getWanderDwellTimer(idx());
-    }
-
-    public final void setWanderDwellTimer(float v) {
-        registry.setWanderDwellTimer(idx(), v);
-    }
 
     /**
      * Sim-tick index of the last {@code rollReprioritizeOnHit} attempt
@@ -396,7 +263,7 @@ public class Unit {
     public int homeCellX = -1;
     public int homeCellY = -1;
 
-    /** Primary handheld weapon. Null for legacy / non-marine units — fire stats fall back to the {@link UnitType} defaults baked into {@link #getAttackRange() attackRange}/{@link #getAttackDamage() attackDamage}/etc. Assigned at deboard time for marines. */
+    /** Primary handheld weapon. Null for legacy / non-marine units — fire stats fall back to the {@link UnitType} attack-stat defaults. Assigned at deboard time for marines. */
     public MarineWeapon primaryWeapon;
     /** Optional secondary slot (rocket launcher, future grenades). Null = no secondary. */
     public MarineSecondary secondaryWeapon;
@@ -406,122 +273,12 @@ public class Unit {
     public boolean secondaryFiredThisAction = false;
 
     /**
-     * Independent cooldown for the secondary weapon (sim-seconds) so it doesn't
-     * share state with the primary's cooldown timer. Canonical storage lives in
-     * {@code registry.secondaryCooldownTimer[idx]}.
-     */
-    public final float getSecondaryCooldownTimer() {
-        return registry.getSecondaryCooldownTimer(idx());
-    }
-
-    public final void setSecondaryCooldownTimer(float v) {
-        registry.setSecondaryCooldownTimer(idx(), v);
-    }
-
-    /**
-     * Sim-seconds remaining in the secondary's aim-then-fire animation. While
-     * &gt;0 the marine is locked in place and the renderer draws the
-     * {@link MarineSecondary#aimSpritePath} pose; the actual shot launches when
-     * this drops below {@link MarineSecondary#aimDuration}/2.
-     */
-    public final float getSecondaryActionTimer() {
-        return registry.getSecondaryActionTimer(idx());
-    }
-
-    public final void setSecondaryActionTimer(float v) {
-        registry.setSecondaryActionTimer(idx(), v);
-    }
-
-    /**
-     * Entity id of the target locked at the start of the aim cycle. The rocket
-     * fires at this entity even if the original target dies mid-aim — the
-     * launcher's already committed. Resolve through
-     * {@link BattleSimulation#resolveUnit(long)}; {@code 0L} = no aim target.
-     * Writes go through {@link #setSecondaryAimTarget(Unit)}.
-     */
-    public final long getSecondaryAimTargetId() {
-        return registry.getSecondaryAimTargetId(idx());
-    }
-
-    public final void setSecondaryAimTargetId(long v) {
-        registry.setSecondaryAimTargetId(idx(), v);
-    }
-
-    /** Sets {@link #getSecondaryAimTargetId()} from a {@link Unit} ref (null → 0L). */
-    public void setSecondaryAimTarget(Unit t) {
-        setSecondaryAimTargetId((t == null) ? 0L : t.entityId);
-    }
-
-    /**
-     * Burst rounds queued after the AI's initial primary shot; the sim emits
-     * one per {@link MarineWeapon#burstSpacing} interval until exhausted.
-     * 0 = single-shot mode. Canonical storage lives in
-     * {@code registry.burstRemaining[idx]}.
-     */
-    public final int getBurstRemaining() {
-        return registry.getBurstRemaining(idx());
-    }
-
-    public final void setBurstRemaining(int v) {
-        registry.setBurstRemaining(idx(), v);
-    }
-
-    /**
-     * Sim-seconds until the next queued burst round fires. Decremented in
-     * {@code InfantryWeapons.tick}.
-     */
-    public final float getBurstTimer() {
-        return registry.getBurstTimer(idx());
-    }
-
-    public final void setBurstTimer(float v) {
-        registry.setBurstTimer(idx(), v);
-    }
-
-    /**
-     * Entity id of the target captured when the burst was queued. Burst rounds
-     * keep firing at this entity even if {@link #getTargetId()} drifts to someone
-     * else, so a burst doesn't smear across multiple enemies. {@code 0L} when
-     * idle (no burst active). Cleared along with {@link #getBurstRemaining}
-     * when the burst ends or the target is released from the registry. Resolve
-     * through {@link BattleSimulation#resolveUnit(long)}; writes go through
-     * {@link #setBurstTarget(Unit)} (or {@link #beginBurst(Unit)}, which
-     * sets it as part of the trigger).
-     */
-    public final long getBurstTargetId() {
-        return registry.getBurstTargetId(idx());
-    }
-
-    public final void setBurstTargetId(long v) {
-        registry.setBurstTargetId(idx(), v);
-    }
-
-    /** Sets {@link #getBurstTargetId()} from a {@link Unit} ref (null → 0L). */
-    public void setBurstTarget(Unit t) {
-        setBurstTargetId((t == null) ? 0L : t.entityId);
-    }
-
-    /**
      * Queue the burst follow-up rounds after the AI has already fired round 1.
      * No-op for single-shot weapons or units without a {@link #primaryWeapon}
      * profile (militia / aliens / turrets — those use their own burst paths or
      * are intrinsically single-shot). Centralizes the trigger pattern so every
      * fireShot callsite — stanced, moving, opportunity, garrison — gets bursts
-     * consistently. Without this, the moving-stance callsites tap once while
-     * stanced callsites rip a full burst, which reads as a bug after
-     * PULSE_RIFLE became a 3-round BR.
-     */
-    public void beginBurst(Unit target) {
-        if (primaryWeapon == null || primaryWeapon.burstCount <= 1) return;
-        int idx = idx();
-        registry.setBurstRemaining(idx, primaryWeapon.burstCount - 1);
-        registry.setBurstTimer(idx, primaryWeapon.burstSpacing);
-        registry.setBurstTargetId(idx, (target == null) ? 0L : target.entityId);
-    }
-
-    /**
-     * World-handle twin of {@link #beginBurst(Unit)} for the post-{@code
-     * Unit.registry} world: reads this unit's own immutable {@link #primaryWeapon}
+     * consistently. Reads this unit's own immutable {@link #primaryWeapon}
      * profile, then writes the three burst columns by id through {@code world}.
      * Called at most once per shot per unit (not a per-tick bulk path), so the
      * three by-id probes are fine.
@@ -540,10 +297,9 @@ public class Unit {
      * Mech chassis loadout. Non-null only on mech-class units ({@link UnitType#HEAVY_MECH}
      * today). When set, the unit fires three concurrent weapon tracks via the
      * mech-fire pass in {@code BattleSimulation} instead of the marine
-     * primary/secondary path; the unit's base {@link #getAttackDamage() attackDamage} /
-     * {@link #attackCooldown} are unused and {@link #getAttackRange() attackRange} only matters
-     * for target acquisition (set wide on {@link UnitType#HEAVY_MECH} to match
-     * the LRM's reach).
+     * primary/secondary path; the unit's base attack-damage / {@link #attackCooldown}
+     * are unused and its attack-range stat only matters for target acquisition
+     * (set wide on {@link UnitType#HEAVY_MECH} to match the LRM's reach).
      */
     public MechLoadoutState mech;
 
@@ -558,7 +314,7 @@ public class Unit {
         this.moveSpeed = type.moveSpeed;
         // Pre-allocate seed; UnitRegistry.allocate will read these into the
         // SoA arrays. Use the field directly here because the registry-side
-        // setters can't route yet (registry is null).
+        // setters can't route yet (the unit isn't registered).
         this.seedHp = type.maxHp;
         this.seedMaxHp = type.maxHp;
         this.seedAttackDamage = type.attackDamage;
@@ -566,132 +322,6 @@ public class Unit {
         this.seedAccuracy = type.accuracy;
         this.visionRange = type.visionRange > 0f ? type.visionRange : type.attackRange;
         this.attackCooldown = type.attackCooldown;
-    }
-
-    /**
-     * Liveness. Checks the {@code registry == null} release marker FIRST, then
-     * the dense hp slot — so a held ref to a released (swap-and-popped) unit
-     * reads as dead without ever touching the now-fail-loud {@link #getHp}. This
-     * is what lets {@code getHp}/{@code setHp} drop the {@code localHp}
-     * corpse-window shadow: nothing chains liveness through {@code getHp} on a
-     * potentially-released unit anymore. (Also false in the pre-allocate window,
-     * before {@link UnitRegistry#allocate} wires {@code registry} — a unit not
-     * yet in the sim isn't alive in it.)
-     */
-    public boolean isAlive() {
-        return registry != null && registry.isAliveById(entityId);
-    }
-
-    /**
-     * Resolves this unit's current dense slot from {@link #entityId} via the
-     * registry's id→index map — the single source of truth now that the cached
-     * {@code denseIdx} field is gone. Fail-loud on an unregistered/released unit
-     * (the OO accessors below are only valid on a live unit, exactly as before).
-     * The probe is a fastutil primitive long→int lookup; <b>hot bulk loops never
-     * come through here</b> — they iterate the dense columns by loop index
-     * directly, so the cache-locality win is untouched. This routes only the
-     * cold/per-event OO accessor callers (decision-cadence convenience setters,
-     * the movement step, tests).
-     */
-    private int idx() {
-        return registry.requireLiveIndex(entityId);
-    }
-
-    /**
-     * Current HP — the registry's SoA hp slot. Fail-loud on an unregistered
-     * unit (pre-allocate or post-release), exactly like {@link #getMaxHp}: every
-     * direct reader is on a live, dense-iterated or {@code getOrNull}-resolved
-     * unit. Pre-allocate seeding writes {@link #seedHp} directly.
-     */
-    // Final so CHA keeps the call monomorphic across all current Unit
-    // subclasses (Drone, DroneHubUnit, MapTurret) — JIT inlines the
-    // registry.getHp/setHp dispatch in one virtual call.
-    public final float getHp() {
-        return registry.getHp(idx());
-    }
-
-    public final void setHp(float v) {
-        registry.setHp(idx(), v);
-    }
-
-    // Group-S seed-only stats (maxHp + the three attack stats): canonical
-    // storage is the registry's SoA arrays, seeded once from the seed* fields
-    // at allocate. Pre-allocate writers seed the seed* fields directly; all four
-    // accessors read the registry unconditionally (fail-loud on an unregistered
-    // unit) since nothing reads them post-release. (SquadDetailPanel used to be
-    // a post-release maxHp reader — it now snapshots the row's hp/maxHp by value
-    // at update() while the member is still live, so getMaxHp no longer needs the
-    // seedMaxHp fallback that c33ba6c6 added.)
-    public final float getMaxHp() {
-        return registry.getMaxHp(idx());
-    }
-
-    public final void setMaxHp(float v) {
-        registry.setMaxHp(idx(), v);
-    }
-
-    // Logical-cell accessors. Canonical storage is the registry's SoA arrays,
-    // seeded once from seedCellX/seedCellY at allocate. Like the Group-N/S
-    // columns these read/write the registry unconditionally (fail-loud on an
-    // unregistered unit) — the seed* fields are the only pre-allocate channel,
-    // and the post-release death cell now travels on the DeathEvent snapshot, so
-    // no corpse reads cell off the released unit. Final for CHA monomorphism.
-    public final int getCellX() {
-        return registry.getCellX(idx());
-    }
-
-    public final int getCellY() {
-        return registry.getCellY(idx());
-    }
-
-    /**
-     * Set both cell coordinates in one call. Every callsite in the codebase
-     * writes the pair together (movement step, drone-body sync), so the
-     * paired setter matches the access pattern and lets the registry hit
-     * both SoA slots without a second method dispatch.
-     */
-    public final void setCellPos(int x, int y) {
-        registry.setCellPos(idx(), x, y);
-    }
-
-    public final float getCooldownTimer() {
-        return registry.getCooldownTimer(idx());
-    }
-
-    public final void setCooldownTimer(float v) {
-        registry.setCooldownTimer(idx(), v);
-    }
-
-    public final float getAttackDamage() {
-        return registry.getAttackDamage(idx());
-    }
-
-    public final void setAttackDamage(float v) {
-        registry.setAttackDamage(idx(), v);
-    }
-
-    public final float getAttackRange() {
-        return registry.getAttackRange(idx());
-    }
-
-    public final void setAttackRange(float v) {
-        registry.setAttackRange(idx(), v);
-    }
-
-    public final float getAccuracy() {
-        return registry.getAccuracy(idx());
-    }
-
-    public final void setAccuracy(float v) {
-        registry.setAccuracy(idx(), v);
-    }
-
-    public final float getMoveProgress() {
-        return registry.getMoveProgress(idx());
-    }
-
-    public final void setMoveProgress(float v) {
-        registry.setMoveProgress(idx(), v);
     }
 
     public final float getRenderX() {

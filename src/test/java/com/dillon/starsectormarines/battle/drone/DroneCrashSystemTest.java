@@ -54,7 +54,7 @@ public class DroneCrashSystemTest {
         int wrecksBefore = sim.getSmokingWrecks().size();
 
         sim.applyDamage(drone, 100_000f, 20f, 20f);
-        assertFalse(drone.isAlive(), "lethal hit kills the drone");
+        assertFalse(sim.world().isAlive(drone.entityId), "lethal hit kills the drone");
         // Buffered: no component until the death mailbox drains in the tick.
         assertFalse(sim.getCrashing().has(drone.entityId),
                 "the Crashing component attaches on the death drain, not inline");
@@ -85,7 +85,7 @@ public class DroneCrashSystemTest {
             sim.advance(BattleSimulation.TICK_DT);
         }
 
-        assertTrue(drone.isAlive(), "no damage → still flying");
+        assertTrue(sim.world().isAlive(drone.entityId), "no damage → still flying");
         assertFalse(sim.getCrashing().has(drone.entityId), "a live drone is never crashing");
         assertTrue(sim.getCrashing().isEmpty(), "no crash components for an undamaged arena");
     }

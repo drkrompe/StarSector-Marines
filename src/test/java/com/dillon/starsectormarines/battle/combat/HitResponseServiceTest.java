@@ -48,7 +48,7 @@ public class HitResponseServiceTest {
 
         for (int i = 0; i < 100; i++) hitResponse.rollFallbackOnHit(marine);
 
-        assertEquals(0f, marine.getFallbackTimer(), 1e-6f,
+        assertEquals(0f, sim.world().fallbackTimer(marine.entityId), 1e-6f,
                 "GOAP-driven infantry must never enter the legacy fall-back state — morale owns retreat");
     }
 
@@ -65,7 +65,7 @@ public class HitResponseServiceTest {
 
         for (int i = 0; i < 100; i++) hitResponse.rollFallbackOnHit(mech);
 
-        assertEquals(0f, mech.getFallbackTimer(), 1e-6f,
+        assertEquals(0f, sim.world().fallbackTimer(mech.entityId), 1e-6f,
                 "mech-squad members must never enter the legacy fall-back — Stage 1 mechs are implacable");
     }
 
@@ -80,9 +80,9 @@ public class HitResponseServiceTest {
 
         boolean rolledAtLeastOnce = false;
         for (int i = 0; i < 100; i++) {
-            civilian.setFallbackTimer(0f);
+            sim.world().setFallbackTimer(civilian.entityId, 0f);
             hitResponse.rollFallbackOnHit(civilian);
-            if (civilian.getFallbackTimer() > 0f) {
+            if (sim.world().fallbackTimer(civilian.entityId) > 0f) {
                 rolledAtLeastOnce = true;
                 break;
             }

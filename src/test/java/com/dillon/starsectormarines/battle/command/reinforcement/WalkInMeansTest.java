@@ -62,9 +62,9 @@ public class WalkInMeansTest {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             Unit u = sim.liveUnitAt(i);
             if (u.faction != Faction.DEFENDER) continue;
-            assertEquals(0, topo.getBuildingId(u.getCellX(), u.getCellY()),
+            assertEquals(0, topo.getBuildingId(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId)),
                     "no walk-in unit may spawn inside a building footprint");
-            assertTrue(sim.getGrid().isWalkable(u.getCellX(), u.getCellY()), "spawn cell is walkable");
+            assertTrue(sim.getGrid().isWalkable(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId)), "spawn cell is walkable");
         }
     }
 }

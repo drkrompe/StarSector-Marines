@@ -42,11 +42,10 @@ public class WorldTest {
         // Seeded hp == type.maxHp, readable by id with no Unit deref.
         assertEquals(u.seedMaxHp, w.hp(id), 1e-6f);
 
-        // setHp by id hits the same slot the registry / OO accessor see.
+        // setHp by id hits the same slot the registry sees.
         w.setHp(id, 42f);
         assertEquals(42f, w.hp(id), 1e-6f);
         assertEquals(42f, r.getHp(r.indexOf(u.entityId)), 1e-6f);
-        assertEquals(42f, u.getHp(), 1e-6f);
     }
 
     @Test

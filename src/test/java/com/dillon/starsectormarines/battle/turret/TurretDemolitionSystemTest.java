@@ -51,7 +51,7 @@ public class TurretDemolitionSystemTest {
         // cascade (and the DeathEvent publish) actually runs.
         sim.applyDamage(turret, 100_000f, 3.5f, 0f);
 
-        assertFalse(turret.isAlive(), "the turret should be dead after a lethal hit");
+        assertFalse(sim.world().isAlive(turret.entityId), "the turret should be dead after a lethal hit");
         // Buffered: the handler has NOT run yet — death published, not drained.
         assertFalse(turret.demolished,
                 "demolition must wait for the dispatcher drain, not fire inline at death");
@@ -114,7 +114,7 @@ public class TurretDemolitionSystemTest {
 
         sim.advance(BattleSimulation.TICK_DT);
 
-        assertTrue(turret.isAlive(), "no damage → still alive");
+        assertTrue(sim.world().isAlive(turret.entityId), "no damage → still alive");
         assertFalse(turret.demolished, "a live turret is never demolished");
     }
 }

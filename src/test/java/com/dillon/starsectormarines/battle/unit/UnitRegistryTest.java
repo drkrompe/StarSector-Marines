@@ -218,14 +218,12 @@ public class UnitRegistryTest {
         // the seedHp / seedMaxHp values from the pre-allocate ctor.
         assertEquals(typeMaxHp, r.getHp(r.indexOf(u.entityId)), 1e-6f);
         assertEquals(typeMaxHp, r.getMaxHp(r.indexOf(u.entityId)), 1e-6f);
-        assertEquals(typeMaxHp, u.getHp(), 1e-6f);
-        assertSame(r, u.registry);
+        assertTrue(r.isLive(u.entityId));
 
         // setHp routes through the registry slot — there is no local hp field
         // anymore; the registry is the sole canonical store once allocated.
-        u.setHp(42f);
+        r.setHp(r.indexOf(u.entityId), 42f);
         assertEquals(42f, r.getHp(r.indexOf(u.entityId)), 1e-6f);
-        assertEquals(42f, u.getHp(), 1e-6f);
     }
 
     @Test
@@ -234,7 +232,7 @@ public class UnitRegistryTest {
         Unit u = unit("u");
         r.allocate(u);
 
-        u.setHp(17f);
+        r.setHp(r.indexOf(u.entityId), 17f);
         r.release(u.entityId);
 
         // After release: the registry pointer is nulled and the dense slot is
@@ -243,9 +241,9 @@ public class UnitRegistryTest {
         // registry==null release marker and reports the corpse dead. getHp()
         // itself is fail-loud post-release (a programming error to call), just
         // like getMaxHp().
-        assertNull(u.registry);
+        assertFalse(r.isLive(u.entityId));
         assertEquals(-1, r.indexOf(u.entityId));
-        assertFalse(u.isAlive());
+        assertFalse(r.isAliveById(u.entityId));
     }
 
     @Test
@@ -264,7 +262,7 @@ public class UnitRegistryTest {
 
         assertEquals(0, r.indexOf(c.entityId));
         // And c's hp accessor still resolves through the registry correctly.
-        c.setHp(123f);
+        r.setHp(r.indexOf(c.entityId), 123f);
         assertEquals(123f, r.getHp(0), 1e-6f);
     }
 
@@ -278,11 +276,9 @@ public class UnitRegistryTest {
 
         assertEquals(7, r.getCellX(r.indexOf(u.entityId)));
         assertEquals(3, r.getCellY(r.indexOf(u.entityId)));
-        assertEquals(7, u.getCellX());
-        assertEquals(3, u.getCellY());
 
         // setCellPos routes through the registry now that the unit is allocated.
-        u.setCellPos(12, 9);
+        r.setCellPos(r.indexOf(u.entityId), 12, 9);
         assertEquals(12, r.getCellX(r.indexOf(u.entityId)));
         assertEquals(9, r.getCellY(r.indexOf(u.entityId)));
     }
@@ -293,7 +289,7 @@ public class UnitRegistryTest {
         Unit u = new Unit("u", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
         r.allocate(u);
 
-        u.setCellPos(42, 17);
+        r.setCellPos(r.indexOf(u.entityId), 42, 17);
         r.release(u.entityId);
 
         // Cell is Group-C seed-only now: release no longer snapshots it back.
@@ -301,10 +297,9 @@ public class UnitRegistryTest {
         // mech wreck) want travels on the DeathEvent snapshot instead, so the
         // cell accessors are fail-loud on a released unit — like the Group-S
         // stats and the mid-combat columns.
-        assertNull(u.registry);
+        assertFalse(r.isLive(u.entityId));
         assertEquals(-1, r.indexOf(u.entityId));
-        assertThrows(NullPointerException.class, u::getCellX);
-        assertThrows(NullPointerException.class, u::getCellY);
+        assertThrows(IllegalArgumentException.class, () -> r.requireLiveIndex(u.entityId));
     }
 
     @Test
@@ -317,7 +312,7 @@ public class UnitRegistryTest {
         r.allocate(b);
         r.allocate(c);
         // Move c so the swap-in carries fresh values, not the ctor seed.
-        c.setCellPos(99, 88);
+        r.setCellPos(r.indexOf(c.entityId), 99, 88);
 
         // Release the head — tail (c) swaps into slot 0; its cellX/Y must
         // follow the swap or future accessor reads through c would index
@@ -327,8 +322,6 @@ public class UnitRegistryTest {
         assertEquals(0, r.indexOf(c.entityId));
         assertEquals(99, r.getCellX(0));
         assertEquals(88, r.getCellY(0));
-        assertEquals(99, c.getCellX());
-        assertEquals(88, c.getCellY());
     }
 
     @Test
@@ -338,12 +331,10 @@ public class UnitRegistryTest {
 
         r.allocate(u);
 
-        assertEquals(0f, u.getCooldownTimer(), 1e-6f);
         assertEquals(0f, r.getCooldownTimer(r.indexOf(u.entityId)), 1e-6f);
 
-        u.setCooldownTimer(0.3f);
+        r.setCooldownTimer(r.indexOf(u.entityId), 0.3f);
         assertEquals(0.3f, r.getCooldownTimer(r.indexOf(u.entityId)), 1e-6f);
-        assertEquals(0.3f, u.getCooldownTimer(), 1e-6f);
     }
 
     @Test
@@ -355,13 +346,12 @@ public class UnitRegistryTest {
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        c.setCooldownTimer(4.2f);
+        r.setCooldownTimer(r.indexOf(c.entityId), 4.2f);
 
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
         assertEquals(4.2f, r.getCooldownTimer(0), 1e-6f);
-        assertEquals(4.2f, c.getCooldownTimer(), 1e-6f);
     }
 
     @Test
@@ -371,12 +361,10 @@ public class UnitRegistryTest {
 
         r.allocate(u);
 
-        assertEquals(0f, u.getMoveProgress(), 1e-6f);
         assertEquals(0f, r.getMoveProgress(r.indexOf(u.entityId)), 1e-6f);
 
-        u.setMoveProgress(0.2f);
+        r.setMoveProgress(r.indexOf(u.entityId), 0.2f);
         assertEquals(0.2f, r.getMoveProgress(r.indexOf(u.entityId)), 1e-6f);
-        assertEquals(0.2f, u.getMoveProgress(), 1e-6f);
     }
 
     @Test
@@ -388,13 +376,12 @@ public class UnitRegistryTest {
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        c.setMoveProgress(0.9f);
+        r.setMoveProgress(r.indexOf(c.entityId), 0.9f);
 
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
         assertEquals(0.9f, r.getMoveProgress(0), 1e-6f);
-        assertEquals(0.9f, c.getMoveProgress(), 1e-6f);
     }
 
     @Test
@@ -427,7 +414,7 @@ public class UnitRegistryTest {
         r.release(u.entityId);
 
         // Dropped from the live dense table...
-        assertNull(u.registry);
+        assertFalse(r.isLive(u.entityId));
         assertEquals(-1, r.indexOf(u.entityId));
         // ...but render position lives in the entity-id-keyed service, which is
         // not cleared on release, so the corpse still resolves where it fell —
@@ -470,11 +457,9 @@ public class UnitRegistryTest {
         r.allocate(u);
 
         assertEquals(typeDmg, r.getAttackDamage(r.indexOf(u.entityId)), 1e-6f);
-        assertEquals(typeDmg, u.getAttackDamage(), 1e-6f);
 
-        u.setAttackDamage(77f);
+        r.setAttackDamage(r.indexOf(u.entityId), 77f);
         assertEquals(77f, r.getAttackDamage(r.indexOf(u.entityId)), 1e-6f);
-        assertEquals(77f, u.getAttackDamage(), 1e-6f);
     }
 
     @Test
@@ -486,13 +471,12 @@ public class UnitRegistryTest {
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        c.setAttackDamage(55f);
+        r.setAttackDamage(r.indexOf(c.entityId), 55f);
 
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
         assertEquals(55f, r.getAttackDamage(0), 1e-6f);
-        assertEquals(55f, c.getAttackDamage(), 1e-6f);
     }
 
     @Test
@@ -505,11 +489,9 @@ public class UnitRegistryTest {
         r.allocate(u);
 
         assertEquals(typeRange, r.getAttackRange(r.indexOf(u.entityId)), 1e-6f);
-        assertEquals(typeRange, u.getAttackRange(), 1e-6f);
 
-        u.setAttackRange(20f);
+        r.setAttackRange(r.indexOf(u.entityId), 20f);
         assertEquals(20f, r.getAttackRange(r.indexOf(u.entityId)), 1e-6f);
-        assertEquals(20f, u.getAttackRange(), 1e-6f);
     }
 
     @Test
@@ -521,13 +503,12 @@ public class UnitRegistryTest {
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        c.setAttackRange(99f);
+        r.setAttackRange(r.indexOf(c.entityId), 99f);
 
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
         assertEquals(99f, r.getAttackRange(0), 1e-6f);
-        assertEquals(99f, c.getAttackRange(), 1e-6f);
     }
 
     @Test
@@ -540,11 +521,9 @@ public class UnitRegistryTest {
         r.allocate(u);
 
         assertEquals(typeAcc, r.getAccuracy(r.indexOf(u.entityId)), 1e-6f);
-        assertEquals(typeAcc, u.getAccuracy(), 1e-6f);
 
-        u.setAccuracy(0.5f);
+        r.setAccuracy(r.indexOf(u.entityId), 0.5f);
         assertEquals(0.5f, r.getAccuracy(r.indexOf(u.entityId)), 1e-6f);
-        assertEquals(0.5f, u.getAccuracy(), 1e-6f);
     }
 
     @Test
@@ -556,13 +535,12 @@ public class UnitRegistryTest {
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        c.setAccuracy(0.95f);
+        r.setAccuracy(r.indexOf(c.entityId), 0.95f);
 
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
         assertEquals(0.95f, r.getAccuracy(0), 1e-6f);
-        assertEquals(0.95f, c.getAccuracy(), 1e-6f);
     }
 
     @Test
@@ -572,12 +550,10 @@ public class UnitRegistryTest {
 
         r.allocate(u);
 
-        assertEquals(0f, u.getSecondaryCooldownTimer(), 1e-6f);
         assertEquals(0f, r.getSecondaryCooldownTimer(r.indexOf(u.entityId)), 1e-6f);
 
-        u.setSecondaryCooldownTimer(0.4f);
+        r.setSecondaryCooldownTimer(r.indexOf(u.entityId), 0.4f);
         assertEquals(0.4f, r.getSecondaryCooldownTimer(r.indexOf(u.entityId)), 1e-6f);
-        assertEquals(0.4f, u.getSecondaryCooldownTimer(), 1e-6f);
     }
 
     @Test
@@ -589,13 +565,12 @@ public class UnitRegistryTest {
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        c.setSecondaryCooldownTimer(5.1f);
+        r.setSecondaryCooldownTimer(r.indexOf(c.entityId), 5.1f);
 
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
         assertEquals(5.1f, r.getSecondaryCooldownTimer(0), 1e-6f);
-        assertEquals(5.1f, c.getSecondaryCooldownTimer(), 1e-6f);
     }
 
     @Test
@@ -605,12 +580,10 @@ public class UnitRegistryTest {
 
         r.allocate(u);
 
-        assertEquals(0f, u.getSecondaryActionTimer(), 1e-6f);
         assertEquals(0f, r.getSecondaryActionTimer(r.indexOf(u.entityId)), 1e-6f);
 
-        u.setSecondaryActionTimer(0.6f);
+        r.setSecondaryActionTimer(r.indexOf(u.entityId), 0.6f);
         assertEquals(0.6f, r.getSecondaryActionTimer(r.indexOf(u.entityId)), 1e-6f);
-        assertEquals(0.6f, u.getSecondaryActionTimer(), 1e-6f);
     }
 
     @Test
@@ -622,13 +595,12 @@ public class UnitRegistryTest {
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        c.setSecondaryActionTimer(0.7f);
+        r.setSecondaryActionTimer(r.indexOf(c.entityId), 0.7f);
 
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
         assertEquals(0.7f, r.getSecondaryActionTimer(0), 1e-6f);
-        assertEquals(0.7f, c.getSecondaryActionTimer(), 1e-6f);
     }
 
     @Test
@@ -638,12 +610,10 @@ public class UnitRegistryTest {
 
         r.allocate(u);
 
-        assertEquals(0L, u.getSecondaryAimTargetId());
         assertEquals(0L, r.getSecondaryAimTargetId(r.indexOf(u.entityId)));
 
-        u.setSecondaryAimTargetId(7L);
+        r.setSecondaryAimTargetId(r.indexOf(u.entityId), 7L);
         assertEquals(7L, r.getSecondaryAimTargetId(r.indexOf(u.entityId)));
-        assertEquals(7L, u.getSecondaryAimTargetId());
     }
 
     @Test
@@ -655,13 +625,12 @@ public class UnitRegistryTest {
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        c.setSecondaryAimTargetId(999L);
+        r.setSecondaryAimTargetId(r.indexOf(c.entityId), 999L);
 
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
         assertEquals(999L, r.getSecondaryAimTargetId(0));
-        assertEquals(999L, c.getSecondaryAimTargetId());
     }
 
     @Test
@@ -671,12 +640,10 @@ public class UnitRegistryTest {
 
         r.allocate(u);
 
-        assertEquals(0, u.getBurstRemaining());
         assertEquals(0, r.getBurstRemaining(r.indexOf(u.entityId)));
 
-        u.setBurstRemaining(1);
+        r.setBurstRemaining(r.indexOf(u.entityId), 1);
         assertEquals(1, r.getBurstRemaining(r.indexOf(u.entityId)));
-        assertEquals(1, u.getBurstRemaining());
     }
 
     @Test
@@ -688,13 +655,12 @@ public class UnitRegistryTest {
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        c.setBurstRemaining(5);
+        r.setBurstRemaining(r.indexOf(c.entityId), 5);
 
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
         assertEquals(5, r.getBurstRemaining(0));
-        assertEquals(5, c.getBurstRemaining());
     }
 
     @Test
@@ -704,12 +670,10 @@ public class UnitRegistryTest {
 
         r.allocate(u);
 
-        assertEquals(0f, u.getBurstTimer(), 1e-6f);
         assertEquals(0f, r.getBurstTimer(r.indexOf(u.entityId)), 1e-6f);
 
-        u.setBurstTimer(0.1f);
+        r.setBurstTimer(r.indexOf(u.entityId), 0.1f);
         assertEquals(0.1f, r.getBurstTimer(r.indexOf(u.entityId)), 1e-6f);
-        assertEquals(0.1f, u.getBurstTimer(), 1e-6f);
     }
 
     @Test
@@ -721,13 +685,12 @@ public class UnitRegistryTest {
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        c.setBurstTimer(0.33f);
+        r.setBurstTimer(r.indexOf(c.entityId), 0.33f);
 
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
         assertEquals(0.33f, r.getBurstTimer(0), 1e-6f);
-        assertEquals(0.33f, c.getBurstTimer(), 1e-6f);
     }
 
     @Test
@@ -737,12 +700,10 @@ public class UnitRegistryTest {
 
         r.allocate(u);
 
-        assertEquals(0L, u.getBurstTargetId());
         assertEquals(0L, r.getBurstTargetId(r.indexOf(u.entityId)));
 
-        u.setBurstTargetId(9L);
+        r.setBurstTargetId(r.indexOf(u.entityId), 9L);
         assertEquals(9L, r.getBurstTargetId(r.indexOf(u.entityId)));
-        assertEquals(9L, u.getBurstTargetId());
     }
 
     @Test
@@ -754,13 +715,12 @@ public class UnitRegistryTest {
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        c.setBurstTargetId(777L);
+        r.setBurstTargetId(r.indexOf(c.entityId), 777L);
 
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
         assertEquals(777L, r.getBurstTargetId(0));
-        assertEquals(777L, c.getBurstTargetId());
     }
 
     @Test
@@ -770,12 +730,10 @@ public class UnitRegistryTest {
 
         r.allocate(u);
 
-        assertEquals(0L, u.getTargetId());
         assertEquals(0L, r.getTargetId(r.indexOf(u.entityId)));
 
-        u.setTargetId(8L);
+        r.setTargetId(r.indexOf(u.entityId), 8L);
         assertEquals(8L, r.getTargetId(r.indexOf(u.entityId)));
-        assertEquals(8L, u.getTargetId());
     }
 
     @Test
@@ -787,13 +745,12 @@ public class UnitRegistryTest {
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        c.setTargetId(642L);
+        r.setTargetId(r.indexOf(c.entityId), 642L);
 
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
         assertEquals(642L, r.getTargetId(0));
-        assertEquals(642L, c.getTargetId());
     }
 
     @Test
@@ -803,12 +760,10 @@ public class UnitRegistryTest {
 
         r.allocate(u);
 
-        assertEquals(0f, u.getRepositionCooldown(), 1e-6f);
         assertEquals(0f, r.getRepositionCooldown(r.indexOf(u.entityId)), 1e-6f);
 
-        u.setRepositionCooldown(0.75f);
+        r.setRepositionCooldown(r.indexOf(u.entityId), 0.75f);
         assertEquals(0.75f, r.getRepositionCooldown(r.indexOf(u.entityId)), 1e-6f);
-        assertEquals(0.75f, u.getRepositionCooldown(), 1e-6f);
     }
 
     @Test
@@ -820,13 +775,12 @@ public class UnitRegistryTest {
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        c.setRepositionCooldown(0.9f);
+        r.setRepositionCooldown(r.indexOf(c.entityId), 0.9f);
 
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
         assertEquals(0.9f, r.getRepositionCooldown(0), 1e-6f);
-        assertEquals(0.9f, c.getRepositionCooldown(), 1e-6f);
     }
 
     @Test
@@ -850,21 +804,21 @@ public class UnitRegistryTest {
         Unit a = unit("a");
         long idA = r.allocate(a);
         // Dirty several mid-combat columns on slot 0.
-        a.setCooldownTimer(2.5f);
-        a.setTargetId(99L);
-        a.setBurstRemaining(3);
-        a.setFallbackCell(7, 8);
+        r.setCooldownTimer(r.indexOf(a.entityId), 2.5f);
+        r.setTargetId(r.indexOf(a.entityId), 99L);
+        r.setBurstRemaining(r.indexOf(a.entityId), 3);
+        r.setFallbackCell(r.indexOf(a.entityId), 7, 8);
         r.release(idA);
 
         // A fresh unit reusing slot 0 must see defaults, not the stale values.
         Unit b = unit("b");
         r.allocate(b);
         assertEquals(0, r.indexOf(b.entityId));
-        assertEquals(0f, b.getCooldownTimer(), 1e-6f);
-        assertEquals(0L, b.getTargetId());
-        assertEquals(0, b.getBurstRemaining());
-        assertEquals(-1, b.getFallbackCellX());
-        assertEquals(-1, b.getFallbackCellY());
+        assertEquals(0f, r.getCooldownTimer(r.indexOf(b.entityId)), 1e-6f);
+        assertEquals(0L, r.getTargetId(r.indexOf(b.entityId)));
+        assertEquals(0, r.getBurstRemaining(r.indexOf(b.entityId)));
+        assertEquals(-1, r.getFallbackCellX(r.indexOf(b.entityId)));
+        assertEquals(-1, r.getFallbackCellY(r.indexOf(b.entityId)));
     }
 
     @Test
@@ -875,14 +829,10 @@ public class UnitRegistryTest {
         r.allocate(u);
         assertEquals(-1, r.getFallbackCellX(r.indexOf(u.entityId)));
         assertEquals(-1, r.getFallbackCellY(r.indexOf(u.entityId)));
-        assertEquals(-1, u.getFallbackCellX());
-        assertEquals(-1, u.getFallbackCellY());
 
-        u.setFallbackCell(12, 9);
+        r.setFallbackCell(r.indexOf(u.entityId), 12, 9);
         assertEquals(12, r.getFallbackCellX(r.indexOf(u.entityId)));
         assertEquals(9, r.getFallbackCellY(r.indexOf(u.entityId)));
-        assertEquals(12, u.getFallbackCellX());
-        assertEquals(9, u.getFallbackCellY());
     }
 
     @Test
@@ -894,15 +844,13 @@ public class UnitRegistryTest {
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        c.setFallbackCell(99, 88);
+        r.setFallbackCell(r.indexOf(c.entityId), 99, 88);
 
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
         assertEquals(99, r.getFallbackCellX(0));
         assertEquals(88, r.getFallbackCellY(0));
-        assertEquals(99, c.getFallbackCellX());
-        assertEquals(88, c.getFallbackCellY());
     }
 
     @Test
@@ -912,12 +860,10 @@ public class UnitRegistryTest {
 
         r.allocate(u);
 
-        assertEquals(0f, u.getFallbackTimer(), 1e-6f);
         assertEquals(0f, r.getFallbackTimer(r.indexOf(u.entityId)), 1e-6f);
 
-        u.setFallbackTimer(1.25f);
+        r.setFallbackTimer(r.indexOf(u.entityId), 1.25f);
         assertEquals(1.25f, r.getFallbackTimer(r.indexOf(u.entityId)), 1e-6f);
-        assertEquals(1.25f, u.getFallbackTimer(), 1e-6f);
     }
 
     @Test
@@ -929,13 +875,12 @@ public class UnitRegistryTest {
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        c.setFallbackTimer(0.4f);
+        r.setFallbackTimer(r.indexOf(c.entityId), 0.4f);
 
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
         assertEquals(0.4f, r.getFallbackTimer(0), 1e-6f);
-        assertEquals(0.4f, c.getFallbackTimer(), 1e-6f);
     }
 
     @Test
@@ -945,12 +890,10 @@ public class UnitRegistryTest {
 
         r.allocate(u);
 
-        assertEquals(0f, u.getWanderDwellTimer(), 1e-6f);
         assertEquals(0f, r.getWanderDwellTimer(r.indexOf(u.entityId)), 1e-6f);
 
-        u.setWanderDwellTimer(0.75f);
+        r.setWanderDwellTimer(r.indexOf(u.entityId), 0.75f);
         assertEquals(0.75f, r.getWanderDwellTimer(r.indexOf(u.entityId)), 1e-6f);
-        assertEquals(0.75f, u.getWanderDwellTimer(), 1e-6f);
     }
 
     @Test
@@ -962,12 +905,11 @@ public class UnitRegistryTest {
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        c.setWanderDwellTimer(0.9f);
+        r.setWanderDwellTimer(r.indexOf(c.entityId), 0.9f);
 
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
         assertEquals(0.9f, r.getWanderDwellTimer(0), 1e-6f);
-        assertEquals(0.9f, c.getWanderDwellTimer(), 1e-6f);
     }
 }

@@ -52,11 +52,11 @@ public class RepositionToCoverTest {
         BattleSimulation sim = openArena(20, 20);
         Unit marine = marineAt(sim, 5, 5);
         Unit threat = enemyAt(sim, 15, 5);
-        marine.setTarget(threat);
+        sim.world().setTargetId(marine.entityId, Unit.idOf(threat));
         // Heavy cover right next to the marine.
         sim.addDoodad(new Doodad(6, 5, new TileManifest.TileFrame(4, 7)));
         // Cooldown set — the action must refuse to move.
-        marine.setRepositionCooldown(0.5f);
+        sim.world().setRepositionCooldown(marine.entityId, 0.5f);
 
         boolean moved = RepositionToCover.tryReposition(marine, sim);
         assertFalse(moved, "cooldown > 0 must block reposition");
@@ -67,8 +67,8 @@ public class RepositionToCoverTest {
     public void noTargetReturnsFalse() {
         BattleSimulation sim = openArena(20, 20);
         Unit marine = marineAt(sim, 5, 5);
-        marine.setTargetId(0L);
-        marine.setRepositionCooldown(0f);
+        sim.world().setTargetId(marine.entityId, 0L);
+        sim.world().setRepositionCooldown(marine.entityId, 0f);
 
         boolean moved = RepositionToCover.tryReposition(marine, sim);
         assertFalse(moved, "reposition needs a target to compute threat direction");
@@ -83,10 +83,10 @@ public class RepositionToCoverTest {
         BattleSimulation sim = openArena(20, 20);
         sim.addDoodad(new Doodad(5, 5, new TileManifest.TileFrame(4, 7)));
         Unit marine = marineAt(sim, 5, 5);
-        marine.setAttackRange(10f);
+        sim.world().setAttackRange(marine.entityId, 10f);
         Unit threat = enemyAt(sim, 12, 5);
-        marine.setTarget(threat);
-        marine.setRepositionCooldown(0f);
+        sim.world().setTargetId(marine.entityId, Unit.idOf(threat));
+        sim.world().setRepositionCooldown(marine.entityId, 0f);
 
         boolean moved = RepositionToCover.tryReposition(marine, sim);
         // Either no move (best cell IS current) or the action stamps a
@@ -106,14 +106,14 @@ public class RepositionToCoverTest {
         // shift one cell east.
         sim.addDoodad(new Doodad(7, 5, new TileManifest.TileFrame(4, 7))); // heavy
         Unit marine = marineAt(sim, 5, 5);
-        marine.setAttackRange(10f);
+        sim.world().setAttackRange(marine.entityId, 10f);
         Unit threat = enemyAt(sim, 12, 5);
-        marine.setTarget(threat);
-        marine.setRepositionCooldown(0f);
+        sim.world().setTargetId(marine.entityId, Unit.idOf(threat));
+        sim.world().setRepositionCooldown(marine.entityId, 0f);
 
         boolean moved = RepositionToCover.tryReposition(marine, sim);
         assertTrue(moved, "open-ground marine within reach of a heavy crate should shift");
-        assertEquals(RepositionToCover.COOLDOWN_SECONDS, marine.getRepositionCooldown(), 1e-6f,
+        assertEquals(RepositionToCover.COOLDOWN_SECONDS, sim.world().repositionCooldown(marine.entityId), 1e-6f,
                 "successful reposition stamps the cooldown so the marine doesn't churn");
         assertFalse(marine.pathEmpty(), "successful reposition queues a path to the new cell");
     }

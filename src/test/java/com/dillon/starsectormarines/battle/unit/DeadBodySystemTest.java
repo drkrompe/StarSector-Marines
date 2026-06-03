@@ -51,7 +51,7 @@ public class DeadBodySystemTest {
         long id = target.entityId;
 
         sim.applyDamage(target, 100_000f, 20f, 20f);
-        assertFalse(target.isAlive(), "lethal hit kills the unit");
+        assertFalse(sim.world().isAlive(id), "lethal hit kills the unit");
         // Buffered: the body is attached when the death mailbox drains in the tick.
         assertFalse(sim.getDeadBodies().has(id),
                 "the DeadBody attaches on the death drain, not inline");

@@ -83,8 +83,8 @@ public class OverwatchPostureTest {
         // Seed a known non-default cooldown (after registration, so it routes
         // through the registry): if any action accidentally fires, cooldownTimer
         // would jump to attackCooldown. We assert it doesn't change.
-        defender.setCooldownTimer(0.1f);
-        float startCooldown = defender.getCooldownTimer();
+        sim.world().setCooldownTimer(defender.entityId, 0.1f);
+        float startCooldown = sim.world().cooldownTimer(defender.entityId);
 
         // Marine in LOS + range, but the squad's holdsFireUntilKillZone gate
         // is closed (killZoneLosTicks defaults to 0). Overwatch must hold.
@@ -93,13 +93,13 @@ public class OverwatchPostureTest {
 
         ActionStatus status = OverwatchPosture.INSTANCE.execute(defender, squad, sim);
         assertEquals(ActionStatus.RUNNING, status);
-        assertEquals(startCooldown, defender.getCooldownTimer(), 1e-6f,
+        assertEquals(startCooldown, sim.world().cooldownTimer(defender.entityId), 1e-6f,
                 "Overwatch must not fire — cooldownTimer should be unchanged from its starting value");
         assertTrue(defender.pathEmpty(), "Overwatch must not queue a path");
-        assertEquals(5, defender.getCellX());
-        assertEquals(5, defender.getCellY());
-        assertEquals(0f, defender.getMoveProgress(), 1e-6f);
-        assertEquals(defender.getCellX(), defender.getRenderX(), 1e-6f);
-        assertEquals(defender.getCellY(), defender.getRenderY(), 1e-6f);
+        assertEquals(5, sim.world().cellX(defender.entityId));
+        assertEquals(5, sim.world().cellY(defender.entityId));
+        assertEquals(0f, sim.world().moveProgress(defender.entityId), 1e-6f);
+        assertEquals(sim.world().cellX(defender.entityId), defender.getRenderX(), 1e-6f);
+        assertEquals(sim.world().cellY(defender.entityId), defender.getRenderY(), 1e-6f);
     }
 }

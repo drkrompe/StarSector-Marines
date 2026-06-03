@@ -206,8 +206,8 @@ public class SecureObjectiveZoneTest {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             Unit u = sim.liveUnitAt(i);
             if (u.role == UnitRole.PLANTER) {
-                u.setCellPos(8, 3);
-                u.setMoveProgress(0f);
+                sim.world().setCellPos(u.entityId, 8, 3);
+                sim.world().setMoveProgress(u.entityId, 0f);
             }
         }
         // Tick the objective enough times to complete.

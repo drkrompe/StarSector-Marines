@@ -159,7 +159,7 @@ public class SabotageCommandTest {
         p.role = UnitRole.PLANTER;
         p.assignedObjective = cs;
         sim.addUnit(p);
-        p.setMoveProgress(0f);
+        sim.world().setMoveProgress(p.entityId, 0f);
         cs.tick(sim);
         return cs;
     }

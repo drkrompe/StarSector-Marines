@@ -32,8 +32,8 @@ import java.util.Arrays;
  * <p>Monotonic {@code long} sequence, no recycling, no generation bits.
  * A released id stays released forever; any stale reference resolves to
  * {@link #INVALID_INDEX} via {@link #indexOf(long)} and {@link #isLive(long)}
- * returns false. Same lazy-validity pattern existing code already uses via
- * {@link Unit#isAlive()}, just centralized at one registry seam. Generation
+ * returns false. Same lazy-validity pattern, centralized at the registry seam
+ * ({@link #isAliveById(long)} / {@link #getOrNull(long)}). Generation
  * bits would only earn their cost under ID recycling, which doesn't happen
  * here — see {@code feedback_skip_generation_bits} memory.
  *
@@ -60,12 +60,12 @@ public final class UnitRegistry {
     /**
      * Per-unit current HP, keyed by dense index. Grown in lockstep with
      * {@link #dense}; swap-and-pop release moves the tail entry here too.
-     * <b>Canonical storage</b> — the {@link Unit#getHp}/{@link Unit#setHp}
-     * accessors route through this array after allocation. <b>Seed-only</b>
+     * <b>Canonical storage</b> — reached by id via {@code world.hp(id)} /
+     * {@link #getHp(int)} after allocation. <b>Seed-only</b>
      * lifecycle like {@link #maxHp}: {@link #allocate} seeds the slot from
      * {@link Unit#seedHp} and it is canonical thereafter; {@link #release} does
-     * NOT snapshot it back — held-ref liveness goes through {@link Unit#isAlive},
-     * which short-circuits on the {@code registry == null} release marker.
+     * NOT snapshot it back — held-ref liveness goes through {@link #isAliveById},
+     * which reports a released id as dead (a map miss) without a corpse shadow.
      */
     private float[] hp = new float[INITIAL_CAPACITY];
     /**
@@ -199,8 +199,8 @@ public final class UnitRegistry {
         // fields. After this point these are canonical and none is snapshotted
         // back on release — hp, the Group-S stats (maxHp + attack stats) and the
         // cell pair all seed from write-only seed* fields. (hp's old post-release
-        // localHp shadow is gone: held-ref liveness goes through isAlive(), which
-        // short-circuits on the registry==null release marker.)
+        // localHp shadow is gone: held-ref liveness goes through isAliveById(id),
+        // a map miss once the id is released.)
         hp[liveCount] = u.seedHp;
         maxHp[liveCount] = u.seedMaxHp;
         cellX[liveCount] = u.seedCellX;
@@ -227,7 +227,6 @@ public final class UnitRegistry {
         fallbackCellX[liveCount] = -1;
         fallbackCellY[liveCount] = -1;
         wanderDwellTimer[liveCount] = 0f;
-        u.registry = this;
         // Seed + wire the decomposed render-position service. Unlike the dense
         // columns above, this reference is NOT nulled on release — the entry
         // survives so a released corpse still resolves its death-pose location.
@@ -256,17 +255,15 @@ public final class UnitRegistry {
         int idx = indexById.remove(id);
         if (idx == INVALID_INDEX) return;
         int last = liveCount - 1;
-        // Nothing is snapshotted back onto the released unit. hp, the cell pair,
-        // and the Group-S stats all carry no post-release shadow: liveness goes
-        // through isAlive() (short-circuits on registry==null), the cell's
-        // post-release readers (turret/hub demolition + mech wreck handlers) read
-        // the death cell off the DeathEvent snapshot, and render position lives in
-        // the RenderPositionService keyed by entityId (not cleared on release, so
-        // the corpse's death-pose location survives directly).
-        Unit released = dense[idx];
-        released.registry = null;
-        // Deliberately keep released.renderPositions wired — the service entry
-        // survives so getRenderX()/getRenderY() still resolve for the corpse.
+        // Nothing is snapshotted back onto the released unit, and there is no
+        // back-pointer to clear (Unit no longer holds one). hp, the cell pair,
+        // and the Group-S stats all carry no post-release shadow: held-ref
+        // liveness goes through isAliveById(id) (a map miss once the id is gone),
+        // the cell's post-release readers (turret/hub demolition + mech wreck
+        // handlers) read the death cell off the DeathEvent snapshot, and render
+        // position lives in the RenderPositionService keyed by entityId — NOT
+        // cleared on release, so the corpse's death-pose location survives and
+        // getRenderX()/getRenderY() still resolve for it.
         if (idx != last) {
             Unit tail = dense[last];
             dense[idx] = tail;
@@ -309,9 +306,10 @@ public final class UnitRegistry {
 
     /**
      * Liveness for a held entity id — registered AND hp &gt; 0. Backs
-     * {@link Unit#isAlive()} now that {@code Unit} no longer caches its dense
-     * index: resolve the slot via {@code indexById} (the single source of truth
-     * for id→slot) and short-circuit to {@code false} for a released/unknown id.
+     * {@code World.isAlive(id)} and every held-ref liveness check now that
+     * {@code Unit} holds no registry back-pointer: resolve the slot via
+     * {@code indexById} (the single source of truth for id→slot) and
+     * short-circuit to {@code false} for a released/unknown id.
      * A {@code 0L} ("never allocated") id misses the map → {@code false}.
      */
     public boolean isAliveById(long id) {

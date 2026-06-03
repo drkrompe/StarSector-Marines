@@ -39,7 +39,7 @@ public final class TestUnits {
      * which are fail-loud post-release.
      */
     public static void kill(BattleSimulation sim, Unit u) {
-        u.setHp(0f);
+        sim.world().setHp(u.entityId, 0f);
         sim.releaseFromRegistry(u.entityId);
     }
 

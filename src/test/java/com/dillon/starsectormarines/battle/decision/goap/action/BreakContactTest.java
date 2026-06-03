@@ -64,14 +64,14 @@ public class BreakContactTest {
 
         Unit marine = marineAt(6, 7, 1);
         sim.addUnit(marine);
-        marine.setFallbackCell(-1, -1);
+        sim.world().setFallbackCell(marine.entityId, -1, -1);
         // One defender on the other side of the wall — gives findFallbackPosition
         // a threat to hide from.
         sim.addUnit(defenderAt(10, 7));
 
         ActionStatus status = BreakContact.INSTANCE.execute(marine, squad, sim);
         assertEquals(ActionStatus.RUNNING, status, "BreakContact runs perpetually");
-        assertTrue(marine.getFallbackCellX() >= 0 && marine.getFallbackCellY() >= 0,
+        assertTrue(sim.world().fallbackCellX(marine.entityId) >= 0 && sim.world().fallbackCellY(marine.entityId) >= 0,
                 "the action must have stashed a destination cell on the unit");
     }
 
@@ -84,12 +84,12 @@ public class BreakContactTest {
         Unit marine = marineAt(2, 2, 1);
         sim.addUnit(marine);
         // Force destination to current cell — simulates "already arrived."
-        marine.setFallbackCell(2, 2);
+        sim.world().setFallbackCell(marine.entityId, 2, 2);
         sim.addUnit(defenderAt(11, 11));
 
         BreakContact.INSTANCE.execute(marine, squad, sim);
         assertTrue(marine.pathEmpty(), "arrived → no path should be queued");
-        assertEquals(0f, marine.getMoveProgress(), 1e-6f,
+        assertEquals(0f, sim.world().moveProgress(marine.entityId), 1e-6f,
                 "arrived → moveProgress reset, render position pinned");
     }
 
@@ -104,13 +104,13 @@ public class BreakContactTest {
         // the cached destination is genuinely hidden and must stick.
         Unit marine = marineAt(10, 7, 1);
         sim.addUnit(marine);
-        marine.setFallbackCell(10, 7);
+        sim.world().setFallbackCell(marine.entityId, 10, 7);
         sim.addUnit(defenderAt(3, 7));
 
         BreakContact.INSTANCE.execute(marine, squad, sim);
-        assertEquals(10, marine.getFallbackCellX(),
+        assertEquals(10, sim.world().fallbackCellX(marine.entityId),
                 "hidden destination must hold — the picker's distFromSelf bias is what prevents churn between equally-good cells");
-        assertEquals(7, marine.getFallbackCellY());
+        assertEquals(7, sim.world().fallbackCellY(marine.entityId));
     }
 
     @Test
@@ -125,11 +125,11 @@ public class BreakContactTest {
         // glue itself into the kill zone.
         Unit marine = marineAt(2, 2, 1);
         sim.addUnit(marine);
-        marine.setFallbackCell(2, 2);
+        sim.world().setFallbackCell(marine.entityId, 2, 2);
         sim.addUnit(defenderAt(5, 2));
 
         BreakContact.INSTANCE.execute(marine, squad, sim);
-        boolean cellChanged = marine.getFallbackCellX() != 2 || marine.getFallbackCellY() != 2;
+        boolean cellChanged = sim.world().fallbackCellX(marine.entityId) != 2 || sim.world().fallbackCellY(marine.entityId) != 2;
         assertTrue(cellChanged,
                 "arrived destination was exposed to (5,2); re-pick should have moved fallbackCellX/Y off (2,2)");
     }
@@ -148,14 +148,14 @@ public class BreakContactTest {
         // patch the defender has LoS to (3, 3), so the action must replace it.
         Unit marine = marineAt(2, 2, 1);
         sim.addUnit(marine);
-        marine.setFallbackCell(3, 3);
+        sim.world().setFallbackCell(marine.entityId, 3, 3);
         sim.addUnit(defenderAt(5, 2));
 
         BreakContact.INSTANCE.execute(marine, squad, sim);
         // Either the cell changed, or it's still visible — but in this layout
         // the defender at (5,2) has LoS to (3,3). The recompute branch should
         // have picked a different cell behind the column-7 wall.
-        boolean changed = (marine.getFallbackCellX() != 3 || marine.getFallbackCellY() != 3);
+        boolean changed = (sim.world().fallbackCellX(marine.entityId) != 3 || sim.world().fallbackCellY(marine.entityId) != 3);
         assertTrue(changed,
                 "cached (3,3) was visible to (5,2); recompute should have moved the destination");
     }
