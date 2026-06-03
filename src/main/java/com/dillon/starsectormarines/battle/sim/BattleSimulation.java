@@ -134,7 +134,7 @@ public class BattleSimulation implements BattleControl {
     private final com.dillon.starsectormarines.battle.drone.DroneCrashSystem droneCrashes;
     /** The battle's archetype-table entity world — transient per-battle ECS storage ({@code engine.ecs}). Corpses are its first occupants: {@link #deadBodySystem} spawns a corpse entity per death; the dead-sprite render and the mission resolver walk the corpse archetype's columns via {@link #battleComponents}' shared query. Live units migrate in capability by capability ({@code roadmap/ecs-migration/archetype-storage.md}). */
     private final EntityWorld entityWorld = new EntityWorld();
-    /** Game component-type registrations + shared queries over {@link #entityWorld}. */
+    /** Game component-type registrations + shared queries over {@link #entityWorld}. Must be declared after it — the initializer registers into the world. */
     private final BattleComponents battleComponents = new BattleComponents(entityWorld);
     /** Dead-body system — death-event handler that spawns a corpse entity (the corpse archetype in {@link #entityWorld}) for every unit that dies. Subscribed to {@link #deathDispatcher} in the constructor. */
     private final DeadBodySystem deadBodySystem;
