@@ -307,11 +307,16 @@ this is a per-group sweep, not one commit.
      id→slot source of truth. `Unit` now = `entityId` + `idOf()` + immutable archetype
      + POJO fields + path helpers + render accessors (RenderPositionService survives
      release) + the two handle-taking behavior methods.
-5. **`Unit` → `Entity` rename** — **NEXT (task #15).** Cheap IntelliJ
-   `rename_refactoring` on the `Unit` TYPE symbol only (NOT UnitType/UnitRegistry/
-   UnitRole/UnitSpatialIndex/…); avoid file moves. Large diff, high conflict risk
-   with active sibling sessions — time it. Subclasses Drone/DroneHubUnit/MapTurret
-   extend it. See [[intellij_mcp_refactor_tools]].
+5. **`Unit` → `Entity` rename — SHIPPED (`a708ce8`, task #15).** IntelliJ
+   `rename_refactoring` on the `Unit` TYPE symbol — 1729 usages, 185 files,
+   `Unit.java`→`Entity.java`. Sibling types kept their names (UnitType /
+   UnitRegistry / UnitRole / UnitSpatialIndex / …) — only their internal `Unit`
+   refs became `Entity`; Drone/DroneHubUnit/MapTurret extend `Entity`. Build clean,
+   suite green at 734. The IDE's rename-in-comments/strings also rewrote ~22
+   roadmap `.md` docs — reverted to keep historical narrative accurate, so the
+   rename commit is code-only. See [[intellij_mcp_refactor_tools]]. **`Entity` is
+   now a bare id + immutable archetype + POJO fields; the world-facade endgame is
+   reached.**
 
 ## Guardrails
 

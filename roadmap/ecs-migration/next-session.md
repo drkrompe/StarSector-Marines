@@ -72,6 +72,7 @@ e038706  battle: SoA Group-S seed-only stats — collapse the local* duality (Ph
 4aef28e  battle: registry-deletion prep — World.isAlive + Unit.idOf + overloads  ← 2026-06-02
 65a61f1  battle: registry-deletion sweep — production callers off Unit accessors  ← 2026-06-02
 335cce8  battle: DELETE Unit.registry — the back-pointer is gone  ← 2026-06-02
+a708ce8  battle: rename Unit -> Entity — the entity is its id (task #15)  ← 2026-06-02
 ```
 
 (Sibling tracks interleaved on HEAD, not ECS-migration: `9084ed4` battle-render
@@ -250,14 +251,21 @@ reference `entityId` instead** (the dangling-ref NPE class). New story:
          archetype + POJO fields + path helpers + render accessors
          (RenderPositionService survives release) + the two handle-taking behavior
          methods.
-       - **NEXT — `Unit`→`Entity` rename (task #15).** Cheap IntelliJ
-         `rename_refactoring` on the `Unit` TYPE symbol only (NOT UnitType/
-         UnitRegistry/UnitRole/UnitSpatialIndex/…); avoid file moves. Large diff,
-         high conflict risk with active sibling sessions — time it. Subclasses
-         Drone/DroneHubUnit/MapTurret extend it.
-   - Then model `mech` & other optional `Unit` fields as `ComponentStore`s (cold
-     face); then delete `Unit.registry`+`denseIdx` (mops up the TacticalScoring +
-     combat leftovers above); then `Unit`→`Entity`.
+       - **`Unit`→`Entity` rename SHIPPED (`a708ce8`, task #15).** IntelliJ
+         `rename_refactoring` on the `Unit` TYPE symbol — 1729 usages, 185 files,
+         `Unit.java`→`Entity.java`. Sibling types kept their names (UnitType /
+         UnitRegistry / UnitRole / UnitSpatialIndex / UnitRosterService /
+         UnitBehavior / UnitUpdateSystem) — only their internal `Unit` refs became
+         `Entity`. Drone/DroneHubUnit/MapTurret extend `Entity`. Build clean, suite
+         green at 734. (Caveat for next time: the IDE's rename-in-comments/strings
+         was on and also rewrote ~22 roadmap `.md` docs — reverted via
+         `git checkout` to keep historical narrative accurate; the rename commit is
+         code-only.)
+   - **Remaining (task #13):** model `mech` & other optional `Entity` fields
+     (secondaryWeapon/secondaryAmmo, assignedObjective, equipmentDropTarget) as
+     `ComponentStore`s (the cold face) — composition by presence, not nullable
+     fields on `Entity`. `denseIdx` + `registry` deletion and the `Entity` rename
+     are all DONE.
    Design LOCKED with the user (2026-06-02): a **two-faced `World`** facade over
    the existing stores. **Hot face** = primitive by-id accessors (`world.hp(id)`,
    `cellX/Y`, `renderX/Y`, combat stats) backed directly by the dense SoA — zero
