@@ -261,70 +261,51 @@ public class UnitRegistryTest {
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        // And c's dense columns still resolve through the swapped slot. (hp is
-        // id-keyed in the entity world now — immune to dense swaps by design —
-        // so the swap proof reads a column that still lives densely.)
-        r.setCellPos(r.indexOf(c.entityId), 123, 45);
-        assertEquals(123, r.getCellX(0));
-        assertEquals(45, r.getCellY(0));
+        // And c's dense columns still resolve through the swapped slot. (hp and
+        // the cell pair are id-keyed in the entity world now — immune to dense
+        // swaps by design — so the swap proof writes a column that still lives
+        // densely.)
+        r.setFallbackCell(r.indexOf(c.entityId), 123, 45);
+        assertEquals(123, r.getFallbackCellX(0));
+        assertEquals(45, r.getFallbackCellY(0));
     }
 
     @Test
-    public void allocateSeedsCellPosFromUnitsSeedFieldsAndAccessorsRouteThroughRegistry() {
+    public void allocateSeedsCellPosIntoTheEntityWorldFromUnitsSeedFields() {
         UnitRegistry r = new UnitRegistry();
         // Entity ctor takes initial cellX/cellY, stamped into seedCellX/Y pre-alloc.
         Entity u = new Entity("u", Faction.MARINE, UnitType.MARINE_BLUE, 7, 3);
 
         r.allocate(u);
 
-        assertEquals(7, r.getCellX(r.indexOf(u.entityId)));
-        assertEquals(3, r.getCellY(r.indexOf(u.entityId)));
+        // The cell pair lives in the world's POSITION columns under the minted
+        // id (migration step 3b) — read/written through the by-id adapters.
+        assertEquals(7, r.cellXById(u.entityId));
+        assertEquals(3, r.cellYById(u.entityId));
 
-        // setCellPos routes through the registry now that the unit is allocated.
-        r.setCellPos(r.indexOf(u.entityId), 12, 9);
-        assertEquals(12, r.getCellX(r.indexOf(u.entityId)));
-        assertEquals(9, r.getCellY(r.indexOf(u.entityId)));
+        r.setCellPosById(u.entityId, 12, 9);
+        assertEquals(12, r.cellXById(u.entityId));
+        assertEquals(9, r.cellYById(u.entityId));
     }
 
     @Test
-    public void releaseDoesNotSnapshotCellPosCellIsSeedOnly() {
+    public void cellSurvivesReleaseAndRidesTheDeathTransmute() {
         UnitRegistry r = new UnitRegistry();
         Entity u = new Entity("u", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
         r.allocate(u);
 
-        r.setCellPos(r.indexOf(u.entityId), 42, 17);
+        r.setCellPosById(u.entityId, 42, 17);
+        r.setHpById(u.entityId, 0f);
         r.release(u.entityId);
 
-        // Cell is Group-C seed-only now: release no longer snapshots it back.
-        // The death cell its former post-release readers (turret/hub demolition,
-        // mech wreck) want travels on the DeathEvent snapshot instead, so the
-        // cell accessors are fail-loud on a released unit — like the Group-S
-        // stats and the mid-combat columns.
+        // POSITION persists alive→dead — "the corpse keeps its cell" is now the
+        // component's own lifecycle, not a DeathEvent re-write: release drops
+        // only the dense slot, the world entity keeps its cell, and the corpse
+        // transmute's row-move carries it.
         assertFalse(r.isLive(u.entityId));
         assertEquals(-1, r.indexOf(u.entityId));
-        assertThrows(IllegalArgumentException.class, () -> r.requireLiveIndex(u.entityId));
-    }
-
-    @Test
-    public void releaseTailSwapMovesCellPosCorrectly() {
-        UnitRegistry r = new UnitRegistry();
-        Entity a = new Entity("a", Faction.MARINE, UnitType.MARINE_BLUE, 1, 1);
-        Entity b = new Entity("b", Faction.MARINE, UnitType.MARINE_BLUE, 2, 2);
-        Entity c = new Entity("c", Faction.MARINE, UnitType.MARINE_BLUE, 3, 3);
-        long idA = r.allocate(a);
-        r.allocate(b);
-        r.allocate(c);
-        // Move c so the swap-in carries fresh values, not the ctor seed.
-        r.setCellPos(r.indexOf(c.entityId), 99, 88);
-
-        // Release the head — tail (c) swaps into slot 0; its cellX/Y must
-        // follow the swap or future accessor reads through c would index
-        // the wrong slot.
-        r.release(idA);
-
-        assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(99, r.getCellX(0));
-        assertEquals(88, r.getCellY(0));
+        assertEquals(42, r.cellXById(u.entityId));
+        assertEquals(17, r.cellYById(u.entityId));
     }
 
     @Test

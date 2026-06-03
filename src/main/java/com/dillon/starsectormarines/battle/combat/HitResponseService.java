@@ -67,7 +67,7 @@ public final class HitResponseService {
         if (target.squadId != Entity.NO_SQUAD) return;
         if (target.rng.nextFloat() >= FALLBACK_CHANCE) return;
         int[] fallback = tacticalScoring.findFallbackPosition(target);
-        if (fallback[0] == registry.getCellX(tIdx) && fallback[1] == registry.getCellY(tIdx)) return;
+        if (fallback[0] == registry.cellXById(target.entityId) && fallback[1] == registry.cellYById(target.entityId)) return;
         damageService.applyFallback(target, fallback[0], fallback[1]);
     }
 
@@ -84,10 +84,9 @@ public final class HitResponseService {
         Entity expectedTarget = registry.getOrNull(expectedTargetId);
         if (expectedTarget == null) return;
         if (shooter != null && expectedTarget == shooter) return;
-        int etIdx = registry.requireLiveIndex(expectedTarget.entityId);
         boolean hasLosToCurrentTarget = TacticalScoring.canSeePair(grid,
-                registry.getCellX(tIdx), registry.getCellY(tIdx),
-                registry.getCellX(etIdx), registry.getCellY(etIdx),
+                registry.cellXById(target.entityId), registry.cellYById(target.entityId),
+                registry.cellXById(expectedTarget.entityId), registry.cellYById(expectedTarget.entityId),
                 target.airLosRadius, expectedTarget.airLosRadius);
         float chance = hasLosToCurrentTarget ? REPRIORITIZE_BASE_CHANCE : REPRIORITIZE_NO_LOS_CHANCE;
         if (target.rng.nextFloat() >= chance) return;

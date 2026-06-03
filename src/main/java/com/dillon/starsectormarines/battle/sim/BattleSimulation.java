@@ -381,8 +381,7 @@ public class BattleSimulation implements BattleControl {
     public boolean isRoofShielded(Entity target) {
         if (target == null) return false;
         UnitRegistry registry = rosterService.getRegistry();
-        int idx = registry.requireLiveIndex(target.entityId);
-        return topology.isRoofIntact(registry.getCellX(idx), registry.getCellY(idx));
+        return topology.isRoofIntact(registry.cellXById(target.entityId), registry.cellYById(target.entityId));
     }
 
     @Override public int liveUnitCount() { return rosterService.getRegistry().liveCount(); }

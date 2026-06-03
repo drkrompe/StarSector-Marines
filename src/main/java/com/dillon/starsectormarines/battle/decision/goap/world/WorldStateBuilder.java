@@ -330,7 +330,7 @@ public final class WorldStateBuilder {
                 float dx = shot.toX - (sim.world().cellX(member.entityId) + 0.5f);
                 float dy = shot.toY - (sim.world().cellY(member.entityId) + 0.5f);
                 if (dx * dx + dy * dy > 4f) continue; // 2 cells squared
-                // Shot fromX/fromY are cell-centers (shooter.getCellX() + 0.5);
+                // Shot fromX/fromY are cell-centers (the shooter's cell + 0.5);
                 // floor recovers the integer cell.
                 int fromCellX = (int) Math.floor(shot.fromX);
                 int fromCellY = (int) Math.floor(shot.fromY);

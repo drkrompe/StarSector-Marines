@@ -252,9 +252,8 @@ public final class TacticalScoring {
      * toward them and visibility eventually opens.
      */
     public Entity findBestTarget(Entity self) {
-        int idx = registry.requireLiveIndex(self.entityId);
-        return findBestTarget(registry.getCellX(idx), registry.getCellY(idx), self.faction, self.squadId, self,
-                self.airLosRadius);
+        return findBestTarget(registry.cellXById(self.entityId), registry.cellYById(self.entityId),
+                self.faction, self.squadId, self, self.airLosRadius);
     }
 
     /**
@@ -278,13 +277,12 @@ public final class TacticalScoring {
      */
     public Entity refreshTargetIfNotShootable(Entity self) {
         int selfIdx = registry.requireLiveIndex(self.entityId);
-        int sx = registry.getCellX(selfIdx);
-        int sy = registry.getCellY(selfIdx);
+        int sx = registry.cellXById(self.entityId);
+        int sy = registry.cellYById(self.entityId);
         Entity cur = registry.getOrNull(registry.getTargetId(selfIdx));
         if (cur != null) {
-            int curIdx = registry.requireLiveIndex(cur.entityId);
-            int cx = registry.getCellX(curIdx);
-            int cy = registry.getCellY(curIdx);
+            int cx = registry.cellXById(cur.entityId);
+            int cy = registry.cellYById(cur.entityId);
             if (cellDistance(sx, sy, cx, cy) <= registry.getAttackRange(selfIdx)
                     && grid.hasLineOfSight(sx, sy, cx, cy)) {
                 return cur;
@@ -375,12 +373,9 @@ public final class TacticalScoring {
                                       int selfSquadId, Entity excludeFromCrowding,
                                       float shooterAirRadius, boolean allowNoLos) {
         // SoA consumer: dense iteration over [0, liveCount()) implicitly
-        // excludes released slots (no isAlive() filter inside the loop), and
-        // cellX/cellY reads stream from the int[] arrays in tandem.
+        // excludes released slots (no isAlive() filter inside the loop).
 
         Entity[] dense = registry.denseArray();
-        int[] cellX = registry.cellXArray();
-        int[] cellY = registry.cellYArray();
         int liveCount = registry.liveCount();
 
         Entity best = null;
@@ -396,8 +391,8 @@ public final class TacticalScoring {
             // this for pirate atrocity scenarios later.
             if (!other.type.combatant) continue;
 
-            int ox = cellX[i];
-            int oy = cellY[i];
+            int ox = registry.cellXById(other.entityId);
+            int oy = registry.cellYById(other.entityId);
             float d = cellDistance(selfCellX, selfCellY, ox, oy);
             if (d < bestAnyDist) {
                 bestAnyDist = d;
@@ -575,9 +570,8 @@ public final class TacticalScoring {
         // Snapshot — runs during parallel UPDATE_UNITS, can't iterate the
         // live projectile list while another worker may queueProjectile.
         // Mirrors the legacy snapshotInflightDetonations path.
-        int targetIdx = registry.requireLiveIndex(target.entityId);
-        float targetCx = registry.getCellX(targetIdx) + 0.5f;
-        float targetCy = registry.getCellY(targetIdx) + 0.5f;
+        float targetCx = registry.cellXById(target.entityId) + 0.5f;
+        float targetCy = registry.cellYById(target.entityId) + 0.5f;
         for (Projectile p : shots.snapshotActiveProjectiles()) {
             if (p.shooterFaction != shooter.faction) continue;
             PendingDetonation det = p.onArrival;
@@ -644,12 +638,10 @@ public final class TacticalScoring {
      */
     public boolean shouldKeepPursuing(Entity self, Entity currentTarget) {
         if (currentTarget == null || !registry.isAliveById(currentTarget.entityId)) return false;
-        int selfIdx = registry.requireLiveIndex(self.entityId);
-        int sx = registry.getCellX(selfIdx);
-        int sy = registry.getCellY(selfIdx);
-        int targetIdx = registry.requireLiveIndex(currentTarget.entityId);
-        int tx = registry.getCellX(targetIdx);
-        int ty = registry.getCellY(targetIdx);
+        int sx = registry.cellXById(self.entityId);
+        int sy = registry.cellYById(self.entityId);
+        int tx = registry.cellXById(currentTarget.entityId);
+        int ty = registry.cellYById(currentTarget.entityId);
         boolean visible = canSeePair(grid, sx, sy, tx, ty,
                 self.airLosRadius, currentTarget.airLosRadius);
 
@@ -661,10 +653,10 @@ public final class TacticalScoring {
         Entity closerVisible = closestVisibleOtherEnemy(self, currentTarget);
         if (closerVisible != null) {
             if (!visible) return false;
-            int cvIdx = registry.requireLiveIndex(closerVisible.entityId);
             float currentDist = cellDistance(sx, sy, tx, ty);
             float candidateDist = cellDistance(sx, sy,
-                    registry.getCellX(cvIdx), registry.getCellY(cvIdx));
+                    registry.cellXById(closerVisible.entityId),
+                    registry.cellYById(closerVisible.entityId));
             if (candidateDist + RETARGET_DISTANCE_MARGIN < currentDist) return false;
         }
 
@@ -677,16 +669,14 @@ public final class TacticalScoring {
         int density = 0;
 
         Entity[] dense = registry.denseArray();
-        int[] cellX = registry.cellXArray();
-        int[] cellY = registry.cellYArray();
         int liveCount = registry.liveCount();
         for (int i = 0; i < liveCount; i++) {
             Entity other = dense[i];
             if (other == currentTarget) continue;
             if (other.faction == self.faction) continue;
             if (!other.type.combatant) continue;
-            int dx = cellX[i] - tx;
-            int dy = cellY[i] - ty;
+            int dx = registry.cellXById(other.entityId) - tx;
+            int dy = registry.cellYById(other.entityId) - ty;
             if (dx * dx + dy * dy <= r2) {
                 density++;
                 if (density > 1) return false;
@@ -705,20 +695,16 @@ public final class TacticalScoring {
         Entity best = null;
         float bestDist = Float.MAX_VALUE;
 
-
         Entity[] dense = registry.denseArray();
-        int[] cellX = registry.cellXArray();
-        int[] cellY = registry.cellYArray();
         int liveCount = registry.liveCount();
-        int selfIdx = registry.requireLiveIndex(self.entityId);
-        int sx = registry.getCellX(selfIdx);
-        int sy = registry.getCellY(selfIdx);
+        int sx = registry.cellXById(self.entityId);
+        int sy = registry.cellYById(self.entityId);
         for (int i = 0; i < liveCount; i++) {
             Entity u = dense[i];
             if (u == exclude || u == self) continue;
             if (u.faction == self.faction || !u.type.combatant) continue;
-            int ux = cellX[i];
-            int uy = cellY[i];
+            int ux = registry.cellXById(u.entityId);
+            int uy = registry.cellYById(u.entityId);
             if (!canSeePair(grid, sx, sy, ux, uy,
                     self.airLosRadius, u.airLosRadius)) continue;
             float d = cellDistance(sx, sy, ux, uy);
@@ -747,13 +733,11 @@ public final class TacticalScoring {
      */
     public Entity closestEnemyInAttackRange(Entity self) {
         int selfIdx = registry.requireLiveIndex(self.entityId);
-        int sx = registry.getCellX(selfIdx);
-        int sy = registry.getCellY(selfIdx);
+        int sx = registry.cellXById(self.entityId);
+        int sy = registry.cellYById(self.entityId);
         float range = registry.getAttackRange(selfIdx);
 
         Entity[] dense = registry.denseArray();
-        int[] cellX = registry.cellXArray();
-        int[] cellY = registry.cellYArray();
         int liveCount = registry.liveCount();
 
         Entity best = null;
@@ -762,8 +746,8 @@ public final class TacticalScoring {
             Entity other = dense[i];
             if (other.faction == self.faction) continue;
             if (!other.type.combatant) continue;
-            int ox = cellX[i];
-            int oy = cellY[i];
+            int ox = registry.cellXById(other.entityId);
+            int oy = registry.cellYById(other.entityId);
             float d = cellDistance(sx, sy, ox, oy);
             if (d > range || d >= bestDist) continue;
             if (!canSeePair(grid, sx, sy, ox, oy, self.airLosRadius, other.airLosRadius)) continue;
@@ -852,8 +836,7 @@ public final class TacticalScoring {
         // only ever fails when findFiringPosition returned a stage-1 (LOS+range)
         // cell that's walled off from self — in which case the vantage probe is
         // the real verdict on whether an approach exists at all.
-        int selfIdx = registry.requireLiveIndex(self.entityId);
-        int[] path = GridPathfinder.findPath(grid, registry.getCellX(selfIdx), registry.getCellY(selfIdx), spot[0], spot[1]);
+        int[] path = GridPathfinder.findPath(grid, registry.cellXById(self.entityId), registry.cellYById(self.entityId), spot[0], spot[1]);
         if (path.length > 0) return true;
         return pickReachableVantage(self, target) != null;
     }
@@ -892,8 +875,8 @@ public final class TacticalScoring {
                                             int anchorX, int anchorY,
                                             float maxDistFromAnchor) {
         int selfIdx = registry.requireLiveIndex(self.entityId);
-        int sx = registry.getCellX(selfIdx);
-        int sy = registry.getCellY(selfIdx);
+        int sx = registry.cellXById(self.entityId);
+        int sy = registry.cellYById(self.entityId);
         float maxWeaponReach = registry.getAttackRange(selfIdx);
         if (self.secondaryWeapon != null && self.secondaryAmmo > 0) {
             maxWeaponReach = Math.max(maxWeaponReach, self.secondaryWeapon.range);
@@ -909,8 +892,7 @@ public final class TacticalScoring {
             if (enemy.faction == self.faction) continue;
             int[] pos = findFiringPositionWithin(self, enemy, anchorX, anchorY, maxDistFromAnchor);
             if (pos == null) continue;
-            int eIdx = registry.requireLiveIndex(enemy.entityId);
-            float d = cellDistance(sx, sy, registry.getCellX(eIdx), registry.getCellY(eIdx));
+            float d = cellDistance(sx, sy, registry.cellXById(enemy.entityId), registry.cellYById(enemy.entityId));
             if (d < bestDist) {
                 bestDist = d;
                 best = enemy;
@@ -951,12 +933,11 @@ public final class TacticalScoring {
     private int[] findFiringPositionWithinImpl(Entity self, Entity target,
                                                int anchorX, int anchorY, float maxDistFromAnchor) {
 
-        int targetIdx = registry.requireLiveIndex(target.entityId);
-        int tx = registry.getCellX(targetIdx);
-        int ty = registry.getCellY(targetIdx);
+        int tx = registry.cellXById(target.entityId);
+        int ty = registry.cellYById(target.entityId);
         int selfIdx = registry.requireLiveIndex(self.entityId);
-        int sx = registry.getCellX(selfIdx);
-        int sy = registry.getCellY(selfIdx);
+        int sx = registry.cellXById(self.entityId);
+        int sy = registry.cellYById(self.entityId);
 
         // Rocketeer-vs-turret pairs search a ring sized to the rocket's range —
         // otherwise an out-of-rifle-range marine paths into rifle range before
@@ -1014,12 +995,11 @@ public final class TacticalScoring {
 
     private int[] findFiringPositionImpl(Entity self, Entity target, int rejectX, int rejectY) {
 
-        int targetIdx = registry.requireLiveIndex(target.entityId);
-        int tx = registry.getCellX(targetIdx);
-        int ty = registry.getCellY(targetIdx);
+        int tx = registry.cellXById(target.entityId);
+        int ty = registry.cellYById(target.entityId);
         int selfIdx = registry.requireLiveIndex(self.entityId);
-        int sx = registry.getCellX(selfIdx);
-        int sy = registry.getCellY(selfIdx);
+        int sx = registry.cellXById(self.entityId);
+        int sy = registry.cellYById(self.entityId);
 
         // See findFiringPositionWithin — rocketeer-vs-turret widens the ring.
         float effectiveRange = effectiveAttackRange(self, target, registry.getAttackRange(selfIdx));
@@ -1080,13 +1060,11 @@ public final class TacticalScoring {
      * dropping the target.
      */
     private int[] pickReachableVantage(Entity self, Entity target) {
-        int targetIdx = registry.requireLiveIndex(target.entityId);
-        int[][] vantages = nav.getVantagePointsFor(registry.getCellX(targetIdx), registry.getCellY(targetIdx));
+        int[][] vantages = nav.getVantagePointsFor(registry.cellXById(target.entityId), registry.cellYById(target.entityId));
         if (vantages.length == 0) return null;
 
-        int selfIdx = registry.requireLiveIndex(self.entityId);
-        int selfCellX = registry.getCellX(selfIdx);
-        int selfCellY = registry.getCellY(selfIdx);
+        int selfCellX = registry.cellXById(self.entityId);
+        int selfCellY = registry.cellYById(self.entityId);
         int n = vantages.length;
         // Sort by Euclidean distance from self. n is bounded by
         // (2 * MAX_VANTAGE_SEARCH_RADIUS + 1)^2 ≈ 1681 worst case but usually
@@ -1238,12 +1216,11 @@ public final class TacticalScoring {
     private int[] findFiringPositionCoverPreferredImpl(Entity self, Entity target,
                                                        int rejectX, int rejectY) {
 
-        int targetIdx = registry.requireLiveIndex(target.entityId);
-        int tx = registry.getCellX(targetIdx);
-        int ty = registry.getCellY(targetIdx);
+        int tx = registry.cellXById(target.entityId);
+        int ty = registry.cellYById(target.entityId);
         int selfIdx = registry.requireLiveIndex(self.entityId);
-        int sx = registry.getCellX(selfIdx);
-        int sy = registry.getCellY(selfIdx);
+        int sx = registry.cellXById(self.entityId);
+        int sy = registry.cellYById(self.entityId);
         float selfRange = registry.getAttackRange(selfIdx);
         int range = Math.max(1, (int) Math.floor(selfRange));
         // Self's current cover against the target — per-facing, so a
@@ -1364,9 +1341,8 @@ public final class TacticalScoring {
     private int[] findFallbackPositionImpl(Entity self) {
 
         ZoneGraph zones = zoneGraph;
-        int selfIdx = registry.requireLiveIndex(self.entityId);
-        int sx = registry.getCellX(selfIdx);
-        int sy = registry.getCellY(selfIdx);
+        int sx = registry.cellXById(self.entityId);
+        int sy = registry.cellYById(self.entityId);
         int[] zoneControl = computeZoneControl(self);
 
         int[] threatRef = averageEnemyCell(self);
@@ -1499,15 +1475,13 @@ public final class TacticalScoring {
         int count = 0;
 
         Entity[] dense = registry.denseArray();
-        int[] cellX = registry.cellXArray();
-        int[] cellY = registry.cellYArray();
         int liveCount = registry.liveCount();
         for (int i = 0; i < liveCount; i++) {
             Entity u = dense[i];
             if (u.faction == self.faction) continue;
             if (!u.type.combatant) continue;
-            sumX += cellX[i];
-            sumY += cellY[i];
+            sumX += registry.cellXById(u.entityId);
+            sumY += registry.cellYById(u.entityId);
             count++;
         }
         if (count == 0) return null;
@@ -1526,12 +1500,10 @@ public final class TacticalScoring {
         int[] control = new int[zones.getZones().size()];
 
         Entity[] dense = registry.denseArray();
-        int[] cellX = registry.cellXArray();
-        int[] cellY = registry.cellYArray();
         int liveCount = registry.liveCount();
         for (int i = 0; i < liveCount; i++) {
             Entity u = dense[i];
-            int zid = zones.zoneIdAt(cellX[i], cellY[i]);
+            int zid = zones.zoneIdAt(registry.cellXById(u.entityId), registry.cellYById(u.entityId));
             if (zid < 0 || zid >= control.length) continue;
             control[zid] += (u.faction == self.faction) ? 1 : -1;
         }
@@ -1559,7 +1531,7 @@ public final class TacticalScoring {
             if (other.faction == self.faction) continue;
             if (!other.type.combatant) continue;
             int oIdx = registry.requireLiveIndex(other.entityId);
-            if (grid.hasLineOfSightWithin(cx, cy, registry.getCellX(oIdx), registry.getCellY(oIdx),
+            if (grid.hasLineOfSightWithin(cx, cy, registry.cellXById(other.entityId), registry.cellYById(other.entityId),
                     registry.getAttackRange(oIdx))) return false;
         }
         return true;
@@ -1631,9 +1603,10 @@ public final class TacticalScoring {
     private void resolveThreatColumns(List<Entity> threats, int count,
                                       int[] outCellX, int[] outCellY, float[] outRange) {
         for (int i = 0; i < count; i++) {
-            int idx = registry.requireLiveIndex(threats.get(i).entityId);
-            outCellX[i] = registry.getCellX(idx);
-            outCellY[i] = registry.getCellY(idx);
+            Entity t = threats.get(i);
+            int idx = registry.requireLiveIndex(t.entityId);
+            outCellX[i] = registry.cellXById(t.entityId);
+            outCellY[i] = registry.cellYById(t.entityId);
             outRange[i] = registry.getAttackRange(idx);
         }
     }
@@ -1719,9 +1692,8 @@ public final class TacticalScoring {
             // Dedupe against Pass 1 on the unit's CURRENT cell. Small gathered
             // set (path-dest within the spread radius), so the per-candidate
             // index resolve is decision-cadence, not a hot bulk loop.
-            int idx = registry.requireLiveIndex(u.entityId);
-            int dx = registry.getCellX(idx) - cx;
-            int dy = registry.getCellY(idx) - cy;
+            int dx = registry.cellXById(u.entityId) - cx;
+            int dy = registry.cellYById(u.entityId) - cy;
             if (dx * dx + dy * dy <= r2) continue; // already counted via Pass 1
             count++;
         }

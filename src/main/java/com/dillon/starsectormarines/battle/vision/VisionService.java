@@ -145,9 +145,8 @@ public final class VisionService {
 
         ContributorEntry entry = new ContributorEntry();
         entry.unitId = u.entityId;
-        int liveIdx = registry.requireLiveIndex(u.entityId);
-        entry.lastCellX = registry.getCellX(liveIdx);
-        entry.lastCellY = registry.getCellY(liveIdx);
+        entry.lastCellX = registry.cellXById(u.entityId);
+        entry.lastCellY = registry.cellYById(u.entityId);
 
         int range = Math.min(MAX_VISION_RANGE, (int) u.visionRange);
         int count = Shadowcast.castFrom(grid, entry.lastCellX, entry.lastCellY,
@@ -322,9 +321,8 @@ public final class VisionService {
                 continue;
             }
 
-            int liveIdx = registry.requireLiveIndex(e.unitId);
-            int cx = registry.getCellX(liveIdx);
-            int cy = registry.getCellY(liveIdx);
+            int cx = registry.cellXById(e.unitId);
+            int cy = registry.cellYById(e.unitId);
             if (cx == e.lastCellX && cy == e.lastCellY) continue;
 
             decrementFootprint(e);
@@ -374,7 +372,7 @@ public final class VisionService {
                 continue;
             }
 
-            boolean revealed = isCellRevealed(registry.getCellX(i), registry.getCellY(i));
+            boolean revealed = isCellRevealed(registry.cellXById(u.entityId), registry.cellYById(u.entityId));
             byte prev = unitVisibility[i];
 
             if (revealed) {

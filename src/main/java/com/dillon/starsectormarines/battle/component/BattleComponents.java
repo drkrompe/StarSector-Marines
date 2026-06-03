@@ -14,10 +14,11 @@ import com.dillon.starsectormarines.engine.ecs.Query;
  * <p>Components are grouped by lifecycle-stable capability (Identity persists
  * alive→dead; Health is live-only), per the committed decomposition in
  * {@code roadmap/ecs-migration/archetype-storage.md}. Registered so far: the
- * corpse archetype plus the first live capability ({@link #HEALTH}); every unit
- * spawns into the world as {@code {IDENTITY, HEALTH}} and death is the
- * transmute to the corpse archetype. Remaining live-combat components join as
- * migration step 3 proceeds, continuing the id space.
+ * corpse archetype plus the first live capabilities ({@link #POSITION},
+ * {@link #HEALTH}); every unit spawns into the world as
+ * {@code {IDENTITY, POSITION, HEALTH}} and death is the transmute to the
+ * corpse archetype (identity + cell ride the row-move). Remaining live-combat
+ * components join as migration step 3 proceeds, continuing the id space.
  *
  * <p>Column access is positional ({@code table.ints(POSITION, POSITION_CELL_X)});
  * the {@code int} constants below are the named field indices per component.

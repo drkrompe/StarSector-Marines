@@ -118,13 +118,11 @@ public class Detonations {
             // (read-only over the live registry), then apply — see aoeScratch.
             aoeScratch.clear();
             Entity[] dense = registry.denseArray();
-            int[] cellX = registry.cellXArray();
-            int[] cellY = registry.cellYArray();
             for (int i = 0, n = registry.liveCount(); i < n; i++) {
                 Entity u = dense[i];
                 if (det.friendlyFireImmune && u.faction == det.shooterFaction) continue;
-                int ucx = cellX[i];
-                int ucy = cellY[i];
+                int ucx = registry.cellXById(u.entityId);
+                int ucy = registry.cellYById(u.entityId);
                 float dx = (ucx + 0.5f) - det.endpointX;
                 float dy = (ucy + 0.5f) - det.endpointY;
                 if (dx * dx + dy * dy > r2) continue;

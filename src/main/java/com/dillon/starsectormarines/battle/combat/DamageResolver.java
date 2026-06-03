@@ -101,9 +101,8 @@ public final class DamageResolver {
         UnitRegistry registry = roster.getRegistry();
         boolean wasAlive = registry.isAliveById(target.entityId);
         if (!wasAlive) return;
-        int tIdx = registry.requireLiveIndex(target.entityId);
-        int tcx = registry.getCellX(tIdx);
-        int tcy = registry.getCellY(tIdx);
+        int tcx = registry.cellXById(target.entityId);
+        int tcy = registry.cellYById(target.entityId);
         int targetCover = grid.getCoverAt(tcx, tcy);
         float dr = COVER_DAMAGE_REDUCTION[Math.min(targetCover, COVER_DAMAGE_REDUCTION.length - 1)];
         // vsTurretMult is misnamed history — it's the "vs hardened" multiplier.
@@ -182,8 +181,8 @@ public final class DamageResolver {
      * the squad has no other survivors — caller will see a leaderless squad
      * on the next tick and the cohesion / GOAP layers handle that gracefully.
      *
-     * <p>Bulk SoA consumer: iterates the registry's dense array directly and
-     * reads positions from {@code cellXArray()/cellYArray()}. The dead leader
+     * <p>Bulk consumer: iterates the registry's dense array directly and
+     * reads positions via {@code cellXById/cellYById}. The dead leader
      * is still present in the dense view at this point (we run BEFORE
      * {@code releaseFromRegistry} in the same resolve() call) — filtered by
      * the {@code u == deadLeader} identity check. Other dead units cannot
@@ -194,18 +193,15 @@ public final class DamageResolver {
         Entity best = null;
         float bestDistSq = Float.MAX_VALUE;
         UnitRegistry registry = roster.getRegistry();
-        int ldrIdx = registry.requireLiveIndex(deadLeader.entityId);
-        int lx = registry.getCellX(ldrIdx);
-        int ly = registry.getCellY(ldrIdx);
+        int lx = registry.cellXById(deadLeader.entityId);
+        int ly = registry.cellYById(deadLeader.entityId);
         Entity[] dense = registry.denseArray();
-        int[] cellX = registry.cellXArray();
-        int[] cellY = registry.cellYArray();
         int liveCount = registry.liveCount();
         for (int i = 0; i < liveCount; i++) {
             Entity u = dense[i];
             if (u == deadLeader || u.squadId != squad.id) continue;
-            int dx = cellX[i] - lx;
-            int dy = cellY[i] - ly;
+            int dx = registry.cellXById(u.entityId) - lx;
+            int dy = registry.cellYById(u.entityId) - ly;
             float d2 = dx * dx + dy * dy;
             if (d2 < bestDistSq) {
                 bestDistSq = d2;

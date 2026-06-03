@@ -85,9 +85,12 @@ public final class World {
     public float maxHp(long id) { return registry.maxHpById(id); }
     public void setMaxHp(long id, float v) { registry.setMaxHpById(id, v); }
 
-    public int cellX(long id) { return registry.getCellX(registry.requireLiveIndex(id)); }
-    public int cellY(long id) { return registry.getCellY(registry.requireLiveIndex(id)); }
-    public void setCellPos(long id, int x, int y) { registry.setCellPos(registry.requireLiveIndex(id), x, y); }
+    // The cell pair lives in the entity world's POSITION columns (migration
+    // step 3b) — same transitional-adapter routing as hp above. POSITION
+    // persists alive→dead, so a corpse still answers cell reads.
+    public int cellX(long id) { return registry.cellXById(id); }
+    public int cellY(long id) { return registry.cellYById(id); }
+    public void setCellPos(long id, int x, int y) { registry.setCellPosById(id, x, y); }
 
     public float cooldownTimer(long id) { return registry.getCooldownTimer(registry.requireLiveIndex(id)); }
     public void setCooldownTimer(long id, float v) { registry.setCooldownTimer(registry.requireLiveIndex(id), v); }

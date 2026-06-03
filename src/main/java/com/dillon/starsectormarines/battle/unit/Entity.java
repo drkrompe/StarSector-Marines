@@ -100,17 +100,15 @@ public class Entity {
     public final Random rng = new Random();
 
     /**
-     * <b>Don't read directly. Pre-allocate seed ONLY.</b> The logical death cell
-     * used to have a post-release snapshot, but its three
-     * post-release readers (the turret / hub demolition + mech wreck handlers)
-     * now read the cell off the {@link DeathEvent} snapshot instead, so the cell
-     * needs no shadow on the corpse — it's pure construction input now, like the
-     * Group-S {@code seed*} stats. {@link UnitRegistry#allocate} copies these
-     * into the SoA cell arrays and the registry is canonical from then on;
-     * {@code release} does NOT snapshot them back. Once allocated, the cell lives
-     * in the registry SoA, reached by id ({@code world.cellX(id)} /
-     * {@code world.cellY(id)}). Public for the same sibling-package seeding reason
-     * as {@code seed*}.
+     * <b>Don't read directly. Pre-allocate seed ONLY.</b>
+     * {@link UnitRegistry#allocate} copies these into the entity world's
+     * {@code POSITION} component (migration step 3b) and the world is canonical
+     * from then on, reached by id ({@code world.cellX(id)} /
+     * {@code world.cellY(id)}). POSITION persists alive→dead — the corpse keeps
+     * its cell via the death transmute's row-move (the demolition / wreck
+     * handlers still read the death cell off the {@link DeathEvent} snapshot,
+     * same value). Public for the same sibling-package seeding reason as
+     * {@code seed*}.
      */
     public int seedCellX;
     public int seedCellY;
@@ -147,27 +145,25 @@ public class Entity {
     public boolean pathEmpty() { return path.length == 0; }
 
     /**
-     * Per-tick movement step. Resolves this unit's dense slot once off the passed
-     * registry (single probe) and drives the cell + move-progress columns by
-     * index. Takes the registry rather than {@link World} because the step touches
-     * up to five columns per moving unit per tick — routing each through
-     * {@code world.cellX(id)} etc. would re-probe the id→index map five times
-     * where one suffices.
+     * Per-tick movement step. The cell pair lives in the entity world's
+     * POSITION columns (read/written by id through the registry's transitional
+     * adapters); move-progress is still a dense registry column driven by
+     * index, resolved once off the passed registry.
      */
     public void advanceAlongPath(UnitRegistry registry, float dt) {
         if (pathIdx >= pathCellCount()) return;
         int idx = registry.requireLiveIndex(entityId);
         int nextX = pathCellX(pathIdx);
         int nextY = pathCellY(pathIdx);
-        int curX = registry.getCellX(idx);
-        int curY = registry.getCellY(idx);
+        int curX = registry.cellXById(entityId);
+        int curY = registry.cellYById(entityId);
         float dx = nextX - curX;
         float dy = nextY - curY;
         float cellDist = (float) Math.sqrt(dx * dx + dy * dy);
         if (cellDist < 0.0001f) { pathIdx++; return; }
         float mp = registry.getMoveProgress(idx) + (moveSpeed * dt) / cellDist;
         if (mp >= 1f) {
-            registry.setCellPos(idx, nextX, nextY);
+            registry.setCellPosById(entityId, nextX, nextY);
             setRenderPos(nextX, nextY);
             registry.setMoveProgress(idx, 0f);
             pathIdx++;

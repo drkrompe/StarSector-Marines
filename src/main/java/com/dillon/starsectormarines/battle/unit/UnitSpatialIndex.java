@@ -17,8 +17,8 @@ import java.util.Arrays;
  * <p><b>Snapshot positions.</b> Each entry denormalizes the unit's cell at
  * insert time into a {@link Bucket}'s parallel {@code cellX}/{@code cellY}
  * arrays, so {@link #gather}'s distance filter reads a stored int rather than
- * the unit's live cell. This (a) keeps the cell read off the dense SoA — no
- * {@code Entity} indirection and no per-candidate registry probe — and (b) makes
+ * the unit's live cell. This (a) avoids a per-candidate by-id probe during gather
+ * — no registry lookup per distance candidate — and (b) makes
  * the index self-consistent: bucketing <em>and</em> the distance test both use
  * the same rebuild-time position. Queries therefore see positions as of the
  * last {@link #rebuild}, which is exactly the per-tick-snapshot contract.
@@ -103,9 +103,10 @@ public final class UnitSpatialIndex {
      * <p>Iterates the {@link UnitRegistry}'s dense {@code [0, liveCount())}
      * range directly — released slots are excluded by the registry, so no
      * per-call {@code isAlive()} branch in the inner loop. Cell positions
-     * are read from the SoA arrays ({@code cellXArray()} / {@code cellYArray()})
-     * with no Entity-object indirection, then stored alongside the {@code Entity}
-     * ref in the bucket so {@link #gather} never has to read them back.
+     * are read via the world POSITION columns by-id adapters
+     * ({@code cellXById} / {@code cellYById}), then stored alongside the
+     * {@code Entity} ref in the bucket so {@link #gather} never has to read
+     * them back.
      */
     public void rebuild(UnitRegistry registry) {
         this.registry = registry;
@@ -118,14 +119,13 @@ public final class UnitSpatialIndex {
             }
         }
         Entity[] dense = registry.denseArray();
-        int[] cellX = registry.cellXArray();
-        int[] cellY = registry.cellYArray();
         int liveCount = registry.liveCount();
         for (int i = 0; i < liveCount; i++) {
-            int x = cellX[i];
-            int y = cellY[i];
+            Entity u = dense[i];
+            int x = registry.cellXById(u.entityId);
+            int y = registry.cellYById(u.entityId);
             Bucket bucket = bucketAt(x, y);
-            if (bucket != null) bucket.add(dense[i], x, y);
+            if (bucket != null) bucket.add(u, x, y);
         }
     }
 
@@ -139,15 +139,15 @@ public final class UnitSpatialIndex {
      * {@link UnitRosterService} is the only caller and is the sole add-path
      * for live units, so the contract holds in practice.
      *
-     * <p>Takes the registry to resolve the unit's cell once (by entity id) —
-     * the cell is denormalized into the bucket, mirroring {@link #rebuild}.
+     * <p>Takes the registry to resolve the unit's cell once (by entity id via
+     * the world POSITION column adapters) — the cell is denormalized into the
+     * bucket, mirroring {@link #rebuild}.
      */
     public void add(UnitRegistry registry, Entity u) {
         this.registry = registry;
         if (!registry.isAliveById(u.entityId)) return;
-        int idx = registry.requireLiveIndex(u.entityId);
-        int x = registry.getCellX(idx);
-        int y = registry.getCellY(idx);
+        int x = registry.cellXById(u.entityId);
+        int y = registry.cellYById(u.entityId);
         Bucket bucket = bucketAt(x, y);
         if (bucket != null) bucket.add(u, x, y);
     }

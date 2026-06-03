@@ -184,8 +184,8 @@ public final class NavigationService {
         Arrays.fill(occupancyMap, (byte) 0);
         for (int i = 0, n = registry.liveCount(); i < n; i++) {
             Entity u = registry.get(i);
-            int curX = registry.getCellX(i);
-            int curY = registry.getCellY(i);
+            int curX = registry.cellXById(u.entityId);
+            int curY = registry.cellYById(u.entityId);
             incrementOccupancy(curX, curY);
             int destX = pathDestX(u);
             if (destX != Integer.MIN_VALUE) {
@@ -257,9 +257,8 @@ public final class NavigationService {
             newDestX = Integer.MIN_VALUE;
             newDestY = Integer.MIN_VALUE;
         }
-        int idx = registry.requireLiveIndex(u.entityId);
-        int curX = registry.getCellX(idx);
-        int curY = registry.getCellY(idx);
+        int curX = registry.cellXById(u.entityId);
+        int curY = registry.cellYById(u.entityId);
         boolean hasOld = oldDestX != Integer.MIN_VALUE && (oldDestX != curX || oldDestY != curY);
         boolean hasNew = newDestX != Integer.MIN_VALUE && (newDestX != curX || newDestY != curY);
         if (!hasOld && !hasNew) return;

@@ -87,8 +87,8 @@ public final class UnitRenderService implements RenderSystem {
         for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
             Entity u = ctx.sim.liveUnitAt(i);
             if (!RenderAppearance.of(u.type).drawsFootprint) continue;
-            float x0 = cam.cellToScreenX(registry.getCellX(i));
-            float y0 = cam.cellToScreenY(registry.getCellY(i));
+            float x0 = cam.cellToScreenX(registry.cellXById(u.entityId));
+            float y0 = cam.cellToScreenY(registry.cellYById(u.entityId));
             GroundFootprint.emit(out, RenderLayer.UNITS, x0, y0, cellPx, alphaMult);
         }
     }
@@ -111,8 +111,8 @@ public final class UnitRenderService implements RenderSystem {
             Entity u = ctx.sim.liveUnitAt(i);
             if (!(u instanceof MapTurret)) continue;
             MapTurret t = (MapTurret) u;
-            float cx = cam.cellToScreenX(registry.getCellX(i) + 0.5f);
-            float cy = cam.cellToScreenY(registry.getCellY(i) + 0.5f);
+            float cx = cam.cellToScreenX(registry.cellXById(t.entityId) + 0.5f);
+            float cy = cam.cellToScreenY(registry.cellYById(t.entityId) + 0.5f);
 
             ShuttleSpriteCache base = sprites.turretSprites().get(t.kind);
             if (base == null) {
@@ -154,8 +154,8 @@ public final class UnitRenderService implements RenderSystem {
         for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
             Entity u = ctx.sim.liveUnitAt(i);
             if (!(u instanceof DroneHubUnit)) continue;
-            float cx = cam.cellToScreenX(registry.getCellX(i) + 0.5f);
-            float cy = cam.cellToScreenY(registry.getCellY(i) + 0.5f);
+            float cx = cam.cellToScreenX(registry.cellXById(u.entityId) + 0.5f);
+            float cy = cam.cellToScreenY(registry.cellYById(u.entityId) + 0.5f);
             emitWholeSprite(out, hub, 0f, DroneHubUnit.VISUAL_CELLS, cellPx, cx, cy, alphaMult);
         }
     }
@@ -303,16 +303,16 @@ public final class UnitRenderService implements RenderSystem {
     private void emitLiveSprite(DrawList out, BattleCamera cam, BattleSimulation sim, Entity u, int idx,
                                 UnitSpriteCache cache, float unitSize, float alphaMult, boolean inAim) {
         // idx is the dense index from the sweepLiveSprites loop (i == denseIdx);
-        // cooldown + this unit's cell read by-index, zero probe. The target cell
-        // (computeFacing/computeEightWayFacing) resolves by id under the sim gate.
+        // cooldown read by dense index; this unit's cell and the target cell both
+        // read via world POSITION by-id adapters.
         UnitRegistry registry = sim.getUnitRegistry();
         SpriteSheetFrames frames = cache.frames;
         float cooldown = registry.getCooldownTimer(idx);
         boolean weaponUp = inAim || (u.type.combatant
                 && cooldown > (u.attackCooldown - WEAPON_UP_TIME)
                 && cooldown > 0f);
-        int selfCellX = registry.getCellX(idx);
-        int selfCellY = registry.getCellY(idx);
+        int selfCellX = registry.cellXById(u.entityId);
+        int selfCellY = registry.cellYById(u.entityId);
 
         int frameIdx;
         boolean flipV;
@@ -395,9 +395,8 @@ public final class UnitRenderService implements RenderSystem {
         Entity target = sim != null ? sim.targetOf(u) : null;
         if (target != null) {
             UnitRegistry registry = sim.getUnitRegistry();
-            int tIdx = registry.requireLiveIndex(target.entityId);
-            int dx = registry.getCellX(tIdx) - selfCellX;
-            int dy = registry.getCellY(tIdx) - selfCellY;
+            int dx = registry.cellXById(target.entityId) - selfCellX;
+            int dy = registry.cellYById(target.entityId) - selfCellY;
             if (dx != 0 || dy != 0) return facingFromDelta(dx, dy);
         }
         if (u.pathIdx < u.pathCellCount()) {
@@ -438,9 +437,8 @@ public final class UnitRenderService implements RenderSystem {
         Entity target = sim != null ? sim.targetOf(u) : null;
         if (target != null) {
             UnitRegistry registry = sim.getUnitRegistry();
-            int tIdx = registry.requireLiveIndex(target.entityId);
-            int dx = registry.getCellX(tIdx) - selfCellX;
-            int dy = registry.getCellY(tIdx) - selfCellY;
+            int dx = registry.cellXById(target.entityId) - selfCellX;
+            int dy = registry.cellYById(target.entityId) - selfCellY;
             if (dx != 0 || dy != 0) return eightWayFromDelta(dx, dy);
         }
         if (u.pathIdx < u.pathCellCount()) {

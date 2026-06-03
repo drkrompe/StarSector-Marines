@@ -58,22 +58,6 @@ public final class UnitRegistry {
     private static final int INITIAL_CAPACITY = 64;
 
     private Entity[] dense = new Entity[INITIAL_CAPACITY];
-    /**
-     * Per-unit logical cell X — the pathfinder's domain (integer cells).
-     * <b>Seed-only</b> lifecycle (like {@link #attackDamage}, not {@link #cooldownTimer}):
-     * {@link #allocate} seeds it from {@link Entity#seedCellX} and it is canonical
-     * thereafter, but {@link #release} does NOT snapshot it back — the death cell
-     * its post-release readers want now travels on the {@code DeathEvent}.
-     * Parallel-array layout (not
-     * interleaved int[] cellXY stride-2) so any future single-axis sweep
-     * (e.g. axis-aligned partition, sort by x) reads at full cache-line
-     * efficiency without striding past the off-axis values. Paired access
-     * patterns still prefetch both lines in tandem under sequential dense
-     * iteration, so we're not paying for that flexibility on the hot rebuild.
-     */
-    private int[] cellX = new int[INITIAL_CAPACITY];
-    /** Per-unit logical cell Y, paired with {@link #cellX}. */
-    private int[] cellY = new int[INITIAL_CAPACITY];
     /** Per-unit primary weapon cooldown (sim-seconds until next fire). Mid-combat-only lifecycle: no pre-allocation seed, reset to default on slot reuse in {@link #allocate}, no post-release reader. */
     private float[] cooldownTimer = new float[INITIAL_CAPACITY];
     /** Per-unit movement lerp factor [0,1] toward the next path cell. Same lifecycle as {@link #cooldownTimer}. */
@@ -166,8 +150,6 @@ public final class UnitRegistry {
         if (liveCount == dense.length) {
             int newCap = dense.length * 2;
             dense = Arrays.copyOf(dense, newCap);
-            cellX = Arrays.copyOf(cellX, newCap);
-            cellY = Arrays.copyOf(cellY, newCap);
             cooldownTimer = Arrays.copyOf(cooldownTimer, newCap);
             moveProgress = Arrays.copyOf(moveProgress, newCap);
             attackDamage = Arrays.copyOf(attackDamage, newCap);
@@ -189,22 +171,24 @@ public final class UnitRegistry {
         long id = nextId++;
         u.entityId = id;
         dense[liveCount] = u;
-        // Adopt the minted id into the entity world as a live {IDENTITY, HEALTH}
-        // entity. Identity is written once here and persists alive→dead (the
-        // corpse transmute's row-move carries it); Health seeds from the
-        // write-only seed* fields and is canonical in the world thereafter —
-        // "has HEALTH with hp > 0" is the liveness definition (isAliveById).
-        entityWorld.createEntity(id, components.IDENTITY, components.HEALTH);
+        // Adopt the minted id into the entity world as a live {IDENTITY,
+        // POSITION, HEALTH} entity. Identity is written once here and persists
+        // alive→dead (the corpse transmute's row-move carries it — as does the
+        // cell, which IS the death cell by the time the corpse forms); Position
+        // and Health seed from the write-only seed* fields and are canonical in
+        // the world thereafter — "has HEALTH with hp > 0" is the liveness
+        // definition (isAliveById).
+        entityWorld.createEntity(id, components.IDENTITY, components.POSITION, components.HEALTH);
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_TYPE, u.type);
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_FACTION, u.faction);
+        entityWorld.setInt(id, components.POSITION, BattleComponents.POSITION_CELL_X, u.seedCellX);
+        entityWorld.setInt(id, components.POSITION, BattleComponents.POSITION_CELL_Y, u.seedCellY);
         entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_HP, u.seedHp);
         entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_MAX_HP, u.seedMaxHp);
         // Seed the remaining dense seed-bearing columns from the unit's
         // pre-allocation transient fields. After this point these are canonical
-        // and none is snapshotted back on release — the Group-S stats and the
-        // cell pair all seed from write-only seed* fields.
-        cellX[liveCount] = u.seedCellX;
-        cellY[liveCount] = u.seedCellY;
+        // and none is snapshotted back on release — the Group-S stats seed from
+        // write-only seed* fields.
         attackDamage[liveCount] = u.seedAttackDamage;
         attackRange[liveCount] = u.seedAttackRange;
         accuracy[liveCount] = u.seedAccuracy;
@@ -268,8 +252,6 @@ public final class UnitRegistry {
         if (idx != last) {
             Entity tail = dense[last];
             dense[idx] = tail;
-            cellX[idx] = cellX[last];
-            cellY[idx] = cellY[last];
             cooldownTimer[idx] = cooldownTimer[last];
             moveProgress[idx] = moveProgress[last];
             attackDamage[idx] = attackDamage[last];
@@ -365,21 +347,15 @@ public final class UnitRegistry {
     public float maxHpById(long id) { return entityWorld.getFloat(id, components.HEALTH, BattleComponents.HEALTH_MAX_HP); }
     public void setMaxHpById(long id, float v) { entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_MAX_HP, v); }
 
-    /**
-     * Direct array access for the SoA cell-position slots. Sequential dense
-     * iteration over {@code [0, liveCount())} streams cellX and cellY in
-     * tandem under prefetch; paired index reads via the OO accessor
-     * ({@link Entity#getCellX} / {@link Entity#getCellY}) route here through
-     * {@code denseIdx}.
-     */
-    public int getCellX(int idx) { return cellX[idx]; }
-    public int getCellY(int idx) { return cellY[idx]; }
-    public void setCellPos(int idx, int x, int y) {
-        cellX[idx] = x;
-        cellY[idx] = y;
+    // Transitional by-id cell adapters over the world's POSITION columns — same
+    // shape and fate as the hp adapters above. Strict reads (fail-loud once the
+    // entity is gone; a corpse still answers — POSITION persists alive→dead).
+    public int cellXById(long id) { return entityWorld.getInt(id, components.POSITION, BattleComponents.POSITION_CELL_X); }
+    public int cellYById(long id) { return entityWorld.getInt(id, components.POSITION, BattleComponents.POSITION_CELL_Y); }
+    public void setCellPosById(long id, int x, int y) {
+        entityWorld.setInt(id, components.POSITION, BattleComponents.POSITION_CELL_X, x);
+        entityWorld.setInt(id, components.POSITION, BattleComponents.POSITION_CELL_Y, y);
     }
-    public int[] cellXArray() { return cellX; }
-    public int[] cellYArray() { return cellY; }
 
     public float getCooldownTimer(int idx) { return cooldownTimer[idx]; }
     public void setCooldownTimer(int idx, float v) { cooldownTimer[idx] = v; }

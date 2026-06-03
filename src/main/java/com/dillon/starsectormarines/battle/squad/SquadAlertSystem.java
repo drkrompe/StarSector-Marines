@@ -103,8 +103,6 @@ public final class SquadAlertSystem {
         NavigationGrid grid = navigation.getGrid();
         UnitRegistry registry = roster.getRegistry();
         Entity[] dense = registry.denseArray();
-        int[] cellX = registry.cellXArray();
-        int[] cellY = registry.cellYArray();
         int liveCount = registry.liveCount();
 
         // Per-tick transient flags. Boxed onto Squad to keep allocation out of
@@ -133,8 +131,8 @@ public final class SquadAlertSystem {
             Squad squad = roster.getSquad(u.squadId);
             if (squad == null) continue;
             squad.aliveMembers++;
-            squad.centroidX += cellX[i];
-            squad.centroidY += cellY[i];
+            squad.centroidX += registry.cellXById(u.entityId);
+            squad.centroidY += registry.cellYById(u.entityId);
             if (registry.getFallbackTimer(i) > 0f) squad._suspiciousThisTick = true;
 
             // Kill-zone LOS scan for garrison squads only. Looks for ANY
@@ -143,14 +141,18 @@ public final class SquadAlertSystem {
             // squad. The scan is keyed on holdsFireUntilKillZone so non-
             // garrison squads pay nothing.
             if (squad.holdsFireUntilKillZone && !squad._killZoneSightedThisTick) {
+                int uCellX = registry.cellXById(u.entityId);
+                int uCellY = registry.cellYById(u.entityId);
                 for (int j = 0; j < liveCount; j++) {
                     Entity other = dense[j];
                     if (other.faction == squad.faction) continue;
                     if (!other.type.combatant) continue;
-                    int dx = cellX[j] - cellX[i];
-                    int dy = cellY[j] - cellY[i];
+                    int otherCellX = registry.cellXById(other.entityId);
+                    int otherCellY = registry.cellYById(other.entityId);
+                    int dx = otherCellX - uCellX;
+                    int dy = otherCellY - uCellY;
                     if (dx * dx + dy * dy > KILL_ZONE_RANGE_CELLS * KILL_ZONE_RANGE_CELLS) continue;
-                    if (!TacticalScoring.canSeePair(grid, cellX[i], cellY[i], cellX[j], cellY[j],
+                    if (!TacticalScoring.canSeePair(grid, uCellX, uCellY, otherCellX, otherCellY,
                             u.airLosRadius, other.airLosRadius)) continue;
                     squad._killZoneSightedThisTick = true;
                     break;
@@ -160,15 +162,19 @@ public final class SquadAlertSystem {
             // LoS scan only if no squadmate has tripped ENGAGED yet this tick —
             // one engaged squadmate is enough to commit the whole squad.
             if (squad._engagedThisTick) continue;
+            int uCellX = registry.cellXById(u.entityId);
+            int uCellY = registry.cellYById(u.entityId);
             for (int j = 0; j < liveCount; j++) {
                 Entity other = dense[j];
                 if (other.faction == squad.faction) continue;
                 if (!other.type.combatant) continue;
-                if (!TacticalScoring.canSeePair(grid, cellX[i], cellY[i], cellX[j], cellY[j],
+                int otherCellX = registry.cellXById(other.entityId);
+                int otherCellY = registry.cellYById(other.entityId);
+                if (!TacticalScoring.canSeePair(grid, uCellX, uCellY, otherCellX, otherCellY,
                         u.airLosRadius, other.airLosRadius)) continue;
                 squad._engagedThisTick = true;
-                squad.lastSeenEnemyX = cellX[j];
-                squad.lastSeenEnemyY = cellY[j];
+                squad.lastSeenEnemyX = otherCellX;
+                squad.lastSeenEnemyY = otherCellY;
                 break;
             }
         }
@@ -184,10 +190,12 @@ public final class SquadAlertSystem {
                 if (u.squadId == Entity.NO_SQUAD) continue;
                 Squad squad = roster.getSquad(u.squadId);
                 if (squad == null || squad._engagedThisTick || squad._suspiciousThisTick) continue;
+                int uCellX = registry.cellXById(u.entityId);
+                int uCellY = registry.cellYById(u.entityId);
                 for (ShotEvent shot : activeShots) {
                     if (shot.shooterFaction == squad.faction) continue;
-                    float dx = shot.fromX - (cellX[i] + 0.5f);
-                    float dy = shot.fromY - (cellY[i] + 0.5f);
+                    float dx = shot.fromX - (uCellX + 0.5f);
+                    float dy = shot.fromY - (uCellY + 0.5f);
                     if (dx * dx + dy * dy <= GUNFIRE_ALERT_RADIUS * GUNFIRE_ALERT_RADIUS) {
                         squad._suspiciousThisTick = true;
                         squad.lastSeenEnemyX = Math.round(shot.fromX);
@@ -211,16 +219,18 @@ public final class SquadAlertSystem {
                 Squad squad = roster.getSquad(u.squadId);
                 if (squad == null || !squad.holdsFireUntilKillZone) continue;
                 if (squad._underFireAtLosThisTick) continue;
+                int uCellX = registry.cellXById(u.entityId);
+                int uCellY = registry.cellYById(u.entityId);
                 for (ShotEvent shot : activeShots) {
                     if (shot.shooterFaction == squad.faction) continue;
-                    float dx = shot.toX - (cellX[i] + 0.5f);
-                    float dy = shot.toY - (cellY[i] + 0.5f);
+                    float dx = shot.toX - (uCellX + 0.5f);
+                    float dy = shot.toY - (uCellY + 0.5f);
                     // Same 2-cell-squared "shot landed near me" gate the
                     // predicate evaluator uses — keeps the two paths in sync.
                     if (dx * dx + dy * dy > 4f) continue;
                     int fromCellX = (int) Math.floor(shot.fromX);
                     int fromCellY = (int) Math.floor(shot.fromY);
-                    if (grid.hasLineOfSight(cellX[i], cellY[i], fromCellX, fromCellY)) {
+                    if (grid.hasLineOfSight(uCellX, uCellY, fromCellX, fromCellY)) {
                         squad._underFireAtLosThisTick = true;
                         break;
                     }

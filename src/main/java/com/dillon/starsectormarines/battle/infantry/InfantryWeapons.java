@@ -129,8 +129,8 @@ public class InfantryWeapons {
         // through to their baked Entity stats with flat accuracy and the
         // baseline miss-scatter ring — preserves the legacy behavior for
         // every "no MarineWeapon" caller.
-        float dist = RangeFalloff.dist(registry.getCellX(shooterIdx), registry.getCellY(shooterIdx),
-                registry.getCellX(targetIdx), registry.getCellY(targetIdx));
+        float dist = RangeFalloff.dist(registry.cellXById(shooter.entityId), registry.cellYById(shooter.entityId),
+                registry.cellXById(target.entityId), registry.cellYById(target.entityId));
         float effectiveSpread = 0f;
         if (shooter.primaryWeapon != null) {
             MarineWeapon w = shooter.primaryWeapon;

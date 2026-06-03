@@ -8,13 +8,14 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * Turns the dead unit's world entity into a corpse — the death-event handler
  * that builds the corpse home. Subscribed to the battle's death dispatcher; on
  * each {@link DeathEvent} it {@code transmute}s the entity (one row-move) from
- * the live {@code {IDENTITY, HEALTH}} archetype to the corpse archetype
- * {@code {IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}}: {@code HEALTH}
- * is removed (a corpse is not damageable — and "lacks HEALTH" is half the
- * liveness definition), {@code IDENTITY} is <b>carried by the row-move</b>
- * (written once at spawn, never re-written here), the logical cell comes from
- * the event's death-cell snapshot, the draw position is frozen at the spot it
- * fell, and the death pose is authored into {@code SPRITE.index} (the
+ * the live {@code {IDENTITY, POSITION, HEALTH}} archetype to the corpse
+ * archetype {@code {IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}}:
+ * {@code HEALTH} is removed (a corpse is not damageable — and "lacks HEALTH"
+ * is half the liveness definition), {@code IDENTITY} <b>and the cell</b> are
+ * carried by the row-move ("the corpse keeps its cell" is literal: nothing
+ * moves a unit after the kill zeroes its hp, so the live POSITION already is
+ * the death cell the event snapshotted), the draw position is frozen at the
+ * spot it fell, and the death pose is authored into {@code SPRITE.index} (the
  * appearance-as-authored-data pattern — the render collector just draws what
  * the sprite says).
  *
@@ -47,7 +48,7 @@ public final class DeadBodySystem {
         this.components = components;
         this.renderPositions = renderPositions;
         this.corpseAdd = new ComponentType[]{
-                components.POSITION, components.RENDER_POSITION, components.SPRITE, components.CORPSE};
+                components.RENDER_POSITION, components.SPRITE, components.CORPSE};
         this.corpseRemove = new ComponentType[]{components.HEALTH};
     }
 
@@ -56,9 +57,10 @@ public final class DeadBodySystem {
         Entity u = event.unit();
         long id = u.entityId;
         BattleComponents c = components;
-        world.transmute(id, corpseAdd, corpseRemove);   // IDENTITY rides the row-move
-        world.setInt(id, c.POSITION, BattleComponents.POSITION_CELL_X, event.cellX());
-        world.setInt(id, c.POSITION, BattleComponents.POSITION_CELL_Y, event.cellY());
+        // IDENTITY and POSITION ride the row-move — the live cell IS the death
+        // cell (the event's snapshot is the same value; demolition handlers
+        // still read it off the event, this transmute just doesn't re-write it).
+        world.transmute(id, corpseAdd, corpseRemove);
         // The render-position entry survives registry release, so this still
         // resolves on the post-release death drain — frozen here, the corpse
         // never reads the shared entry again.

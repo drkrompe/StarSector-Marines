@@ -503,8 +503,8 @@ public class AirSystem {
         for (int i = 0, live = registry.liveCount(); i < live; i++) {
             Entity u = registry.get(i);
             if (u.squadId != s.mission.squadId) continue;
-            sumX += registry.getCellX(i) + 0.5f;
-            sumY += registry.getCellY(i) + 0.5f;
+            sumX += registry.cellXById(u.entityId) + 0.5f;
+            sumY += registry.cellYById(u.entityId) + 0.5f;
             n++;
         }
         if (n == 0) return;  // squad wiped — hold current hover point

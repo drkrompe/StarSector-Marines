@@ -37,9 +37,8 @@ public final class DroneSpawner {
         if (!sim.world().isAlive(hub.entityId)) return null;
         NavigationGrid grid = sim.getGrid();
         UnitRegistry registry = sim.getUnitRegistry();
-        int hubIdx = registry.requireLiveIndex(hub.entityId);
-        int hubX = registry.getCellX(hubIdx);
-        int hubY = registry.getCellY(hubIdx);
+        int hubX = registry.cellXById(hub.entityId);
+        int hubY = registry.cellYById(hub.entityId);
         int[] cell = findFreeCell(grid, sim, hubX, hubY);
         if (cell == null) return null;
         String id = "drone-" + hub.id + "-" + (++hub.dronesLaunched);

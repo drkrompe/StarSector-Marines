@@ -109,8 +109,6 @@ public final class SquadMoraleSystem {
         // mech pass reads them by id, a handful of probes per tick.
         UnitRegistry registry = roster.getRegistry();
         Entity[] dense = registry.denseArray();
-        int[] cellX = registry.cellXArray();
-        int[] cellY = registry.cellYArray();
         int liveCount = registry.liveCount();
 
         // Near-miss drain pass: hostile shots that landed near a squadmate
@@ -121,7 +119,7 @@ public final class SquadMoraleSystem {
         if (!shotsThisFrame.isEmpty()) {
             for (ShotEvent shot : shotsThisFrame) {
                 if (shot.hit) continue;
-                Squad target = squadHitByMiss(shot, dense, cellX, cellY, liveCount);
+                Squad target = squadHitByMiss(shot, dense, registry, liveCount);
                 if (target == null) continue;
                 // Mech squads don't take near-miss morale — their drain model
                 // is HP-threshold only (per roadmap/ai/14-mech-stage1.md). A
@@ -271,7 +269,7 @@ public final class SquadMoraleSystem {
      * two squad members only rattles one of them (the first found), which
      * matches the "single drain event per shot" intent.
      */
-    private Squad squadHitByMiss(ShotEvent shot, Entity[] dense, int[] cellX, int[] cellY, int liveCount) {
+    private Squad squadHitByMiss(ShotEvent shot, Entity[] dense, UnitRegistry registry, int liveCount) {
         for (Squad sq : roster.getSquads()) {
             if (sq.aliveMembers <= 0) continue;
             if (sq.faction == shot.shooterFaction) continue;
@@ -279,8 +277,8 @@ public final class SquadMoraleSystem {
                 Entity member = dense[i];
                 // Dense iteration excludes released units — no isAlive() needed.
                 if (member.squadId != sq.id) continue;
-                float dx = shot.toX - (cellX[i] + 0.5f);
-                float dy = shot.toY - (cellY[i] + 0.5f);
+                float dx = shot.toX - (registry.cellXById(member.entityId) + 0.5f);
+                float dy = shot.toY - (registry.cellYById(member.entityId) + 0.5f);
                 if (dx * dx + dy * dy <= NEAR_MISS_RADIUS_SQ) return sq;
             }
         }

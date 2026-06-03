@@ -50,12 +50,11 @@ public final class UnitDestinationSpatialIndex {
      * destination equals their current cell, are skipped — they're already
      * accounted for by the current-cell index.
      *
-     * <p>Same SoA shape as {@link UnitSpatialIndex#rebuild}: dense iteration
-     * over {@code [0, liveCount())} excludes released slots, and the
-     * stand-still check reads cellX/cellY straight from the SoA arrays.
-     * The path data is still per-Entity (no SoA storage for path arrays),
-     * so the destination read goes through the Entity ref pulled from
-     * {@code dense[i]} — unavoidable until paths themselves move into SoA.
+     * <p>Dense iteration over {@code [0, liveCount())} excludes released slots.
+     * The stand-still check reads current cellX/cellY via the world POSITION
+     * column by-id adapters ({@code cellXById} / {@code cellYById}).
+     * The path data is still per-Entity (no component storage for path arrays),
+     * so the destination read goes through the Entity ref.
      */
     public void rebuild(UnitRegistry registry) {
         for (int i = 0; i < buckets.length; i++) {
@@ -67,8 +66,6 @@ public final class UnitDestinationSpatialIndex {
             }
         }
         Entity[] dense = registry.denseArray();
-        int[] cellX = registry.cellXArray();
-        int[] cellY = registry.cellYArray();
         int liveCount = registry.liveCount();
         for (int i = 0; i < liveCount; i++) {
             Entity u = dense[i];
@@ -76,7 +73,7 @@ public final class UnitDestinationSpatialIndex {
             if (cells <= 0) continue;
             int destX = u.pathCellX(cells - 1);
             int destY = u.pathCellY(cells - 1);
-            if (destX == cellX[i] && destY == cellY[i]) continue;
+            if (destX == registry.cellXById(u.entityId) && destY == registry.cellYById(u.entityId)) continue;
             int bx = destX / UnitSpatialIndex.BUCKET;
             int by = destY / UnitSpatialIndex.BUCKET;
             if (bx < 0 || bx >= bucketsX || by < 0 || by >= bucketsY) continue;
