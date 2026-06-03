@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * End-to-end coverage for the drone crash modelled as a component: a dead
- * {@link Drone} gets a {@code Crashing} component attached off its DeathEvent,
+ * {@link Drone} gets a {@code CrashingComponent} component attached off its DeathEvent,
  * the crash system processes the component-set (not a units-list scan) to spin
  * + count down the fall, and on impact drops a smoking wreck and detaches the
  * component.
@@ -57,11 +57,11 @@ public class DroneCrashSystemTest {
         assertFalse(sim.world().isAlive(drone.entityId), "lethal hit kills the drone");
         // Buffered: no component until the death mailbox drains in the tick.
         assertFalse(sim.getCrashing().has(drone.entityId),
-                "the Crashing component attaches on the death drain, not inline");
+                "the CrashingComponent component attaches on the death drain, not inline");
 
         sim.advance(BattleSimulation.TICK_DT);
         assertTrue(sim.getCrashing().has(drone.entityId),
-                "drain → the dead drone gets a Crashing component (the crash started)");
+                "drain → the dead drone gets a CrashingComponent component (the crash started)");
         assertEquals(wrecksBefore, sim.getSmokingWrecks().size(),
                 "no wreck yet — the drone is still falling");
 
@@ -71,7 +71,7 @@ public class DroneCrashSystemTest {
             sim.advance(BattleSimulation.TICK_DT);
         }
         assertFalse(sim.getCrashing().has(drone.entityId),
-                "on impact the Crashing component is detached (crash done)");
+                "on impact the CrashingComponent component is detached (crash done)");
         assertTrue(sim.getSmokingWrecks().size() > wrecksBefore,
                 "a smoking wreck is dropped at the impact site");
     }

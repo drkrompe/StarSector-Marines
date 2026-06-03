@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.mech;
 
-import com.dillon.starsectormarines.battle.combat.PendingDetonation;
-import com.dillon.starsectormarines.battle.combat.Projectile;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 
 import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
@@ -32,7 +31,7 @@ import java.awt.Color;
  *
  * <p>The "swappable chassis weapons" design pivot the user described — a
  * future {@code MechLoadout} picker — falls out of this naturally: the unit
- * holds its three slots in {@link MechLoadoutState}, so swapping in
+ * holds its three slots in {@link MechLoadoutComponent}, so swapping in
  * different {@code MechWeapon} entries (e.g. AC/20-style heavy autocannon
  * over chainguns) is just a different state-bag at spawn time.
  */

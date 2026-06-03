@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -89,7 +90,7 @@ public final class MechBreakContact implements Action {
         if (dist > sim.world().attackRange(u.entityId)) return;
         boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId),
                 sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
-        MechLoadoutState m = sim.world().component(u.entityId, MechLoadoutState.class);
+        MechLoadoutComponent m = sim.world().component(u.entityId, MechLoadoutComponent.class);
         MechCombatantBehavior.tryFireMechWeapons(u, m, target, dist, sim, visible);
     }
 }

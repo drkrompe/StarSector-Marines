@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.battle.component.DeadBody;
+import com.dillon.starsectormarines.battle.unit.components.DeadBodyComponent;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
@@ -104,7 +104,7 @@ public final class MissionResolver {
 
         // Casualty tally without the legacy units list: survivors come from the
         // dense registry (live-only), casualties from the corpse home — the
-        // DeadBody store retains every death for the whole battle and carries the
+        // DeadBodyComponent store retains every death for the whole battle and carries the
         // dead unit's faction. A deboarded marine is in exactly one of the two
         // (live registry or a corpse), so engaged = survivors + casualties.
         UnitRegistry registry = sim.getUnitRegistry();
@@ -113,7 +113,7 @@ public final class MissionResolver {
             if (registry.get(i).faction == Faction.MARINE) marinesAlive++;
         }
         int rawMarinesLost = 0;
-        for (Map.Entry<Long, DeadBody> e : sim.getDeadBodies().entries()) {
+        for (Map.Entry<Long, DeadBodyComponent> e : sim.getDeadBodies().entries()) {
             if (e.getValue().faction == Faction.MARINE) rawMarinesLost++;
         }
         int marinesEngaged = marinesAlive + rawMarinesLost;

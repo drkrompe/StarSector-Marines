@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -53,7 +54,7 @@ public final class EngageAtCurrentBand implements Action {
         if (target == null) return ActionStatus.RUNNING;
 
         // Loadout component reached by id (zero-alloc direct lookup).
-        MechLoadoutState m = sim.world().component(u.entityId, MechLoadoutState.class);
+        MechLoadoutComponent m = sim.world().component(u.entityId, MechLoadoutComponent.class);
 
         float dist = TacticalScoring.cellDistance(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
         boolean inRange = dist <= sim.world().attackRange(u.entityId);

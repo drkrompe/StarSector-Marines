@@ -6,8 +6,10 @@
  *           goals ({@code Mech*Goal}, {@code BackstopAssignedSquad*},
  *           {@code OverwatchKillZone*}), {@code MechCombatantBehavior} +
  *           {@code MechBreakContact}, and mech weapon config
- *           ({@code MechWeapon}, {@code MechLoadoutState},
- *           {@code MechRole}).
+ *           ({@code MechWeapon}, {@code MechRole}). The mech's optional
+ *           loadout capability is a component, {@code MechLoadoutComponent},
+ *           in the {@code components/} subpackage (per the ECS-migration
+ *           component convention).
  * <br>Boundary: mech-specific GOAP + weapon <em>config</em> here; the
  *           shared {@code HeavyWeapons} firing mechanism lives in
  *           {@code combat/}. Mech and infantry likely share a combatant

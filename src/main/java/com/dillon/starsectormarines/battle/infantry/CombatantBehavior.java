@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.mech.GoapMechBehavior;
-import com.dillon.starsectormarines.battle.mech.MechLoadoutState;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 
 /**
  * Default combat loop dispatcher. Two-way: {@link GoapMechBehavior} for
@@ -28,7 +28,7 @@ public final class CombatantBehavior implements UnitBehavior {
 
     @Override
     public void update(Entity u, BattleSimulation sim) {
-        if (sim.world().hasComponent(u.entityId, MechLoadoutState.class)) {
+        if (sim.world().hasComponent(u.entityId, MechLoadoutComponent.class)) {
             GoapMechBehavior.INSTANCE.update(u, sim);
         } else {
             GoapInfantryBehavior.INSTANCE.update(u, sim);

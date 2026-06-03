@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.component.ComponentStore;
-import com.dillon.starsectormarines.battle.component.Crashing;
-import com.dillon.starsectormarines.battle.component.DeadBody;
+import com.dillon.starsectormarines.battle.air.components.CrashingComponent;
+import com.dillon.starsectormarines.battle.unit.components.DeadBodyComponent;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
@@ -65,18 +65,18 @@ public class WorldTest {
         UnitRegistry r = new UnitRegistry();
         Entity u = unit("u");
         long id = r.allocate(u);
-        ComponentStore<DeadBody> bodies = new ComponentStore<>();
-        World w = new World(r, Map.of(DeadBody.class, bodies));
+        ComponentStore<DeadBodyComponent> bodies = new ComponentStore<>();
+        World w = new World(r, Map.of(DeadBodyComponent.class, bodies));
 
         // Absent component → null (presence is the data).
-        assertNull(w.id(id).getOrNull(DeadBody.class));
+        assertNull(w.id(id).getOrNull(DeadBodyComponent.class));
 
         // Present → the exact instance.
-        DeadBody body = new DeadBody(UnitType.MARINE_BLUE, Faction.MARINE, 2);
+        DeadBodyComponent body = new DeadBodyComponent(UnitType.MARINE_BLUE, Faction.MARINE, 2);
         bodies.add(id, body);
-        assertSame(body, w.id(id).getOrNull(DeadBody.class));
+        assertSame(body, w.id(id).getOrNull(DeadBodyComponent.class));
 
         // A type with no registered store → null, not an error.
-        assertNull(w.id(id).getOrNull(Crashing.class));
+        assertNull(w.id(id).getOrNull(CrashingComponent.class));
     }
 }

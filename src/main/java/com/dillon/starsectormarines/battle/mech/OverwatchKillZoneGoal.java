@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
@@ -59,7 +60,7 @@ public final class OverwatchKillZoneGoal implements Goal {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             Entity u = sim.liveUnitAt(i);
             if (u.squadId != squad.id) continue;
-            MechLoadoutState m = sim.world().component(u.entityId, MechLoadoutState.class);
+            MechLoadoutComponent m = sim.world().component(u.entityId, MechLoadoutComponent.class);
             if (m != null && m.role == MechRole.LR_SUPPORT) return 1f;
         }
         return 0f;

@@ -46,7 +46,7 @@ public final class World {
     /**
      * Component class → its sparse store, for the cold projection face. Wired
      * once at sim construction with the stores that exist today
-     * ({@code Crashing}, {@code DeadBody}); a group decomposed out of the dense
+     * ({@code CrashingComponent}, {@code DeadBodyComponent}); a group decomposed out of the dense
      * table registers here as it lands.
      */
     private final Map<Class<?>, ComponentStore<?>> stores;

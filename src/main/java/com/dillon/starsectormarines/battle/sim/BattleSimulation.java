@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.unit.components.DeadBodyComponent;
 import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
 import com.dillon.starsectormarines.battle.combat.fx.Decal;
@@ -17,7 +18,8 @@ import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
-import com.dillon.starsectormarines.battle.mech.MechLoadoutState;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
+import com.dillon.starsectormarines.battle.air.components.CrashingComponent;
 import com.dillon.starsectormarines.battle.component.ComponentStore;
 
 import com.dillon.starsectormarines.battle.air.AirProvider;
@@ -123,18 +125,18 @@ public class BattleSimulation implements BattleControl {
     private final com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem turretDemolition;
     /** Death-event handler for destroyed {@link DroneHubUnit}s — flips hub cell to walkable rubble + cascade-kills the launched drones. Subscribed to {@link #deathDispatcher} in the constructor; fires on {@link #deathDispatcher}{@code .drain()} at the DEMOLISH phase. */
     private final com.dillon.starsectormarines.battle.drone.HubDemolitionSystem hubDemolition;
-    /** Crash component store — entities currently falling out of the sky after death. Populated by {@link #droneCrashes} on drone death (a {@code Crashing} component), processed by it each tick, and read by the drone renderer to draw the falling sprite. Keyed by entity id, so a crashing drone keeps its component after release from {@link UnitRegistry}. */
-    private final com.dillon.starsectormarines.battle.component.ComponentStore<com.dillon.starsectormarines.battle.component.Crashing> crashing =
-            new com.dillon.starsectormarines.battle.component.ComponentStore<>();
-    /** Drone-crash system — death-event handler that attaches a {@code Crashing} component to a dead drone + the per-tick processor that drives the fall/impact lifecycle over {@link #crashing}. Subscribed to {@link #deathDispatcher} in the constructor. */
+    /** Crash component store — entities currently falling out of the sky after death. Populated by {@link #droneCrashes} on drone death (a {@code CrashingComponent}), processed by it each tick, and read by the drone renderer to draw the falling sprite. Keyed by entity id, so a crashing drone keeps its component after release from {@link UnitRegistry}. */
+    private final ComponentStore<CrashingComponent> crashing =
+            new ComponentStore<>();
+    /** Drone-crash system — death-event handler that attaches a {@code CrashingComponent} to a dead drone + the per-tick processor that drives the fall/impact lifecycle over {@link #crashing}. Subscribed to {@link #deathDispatcher} in the constructor. */
     private final com.dillon.starsectormarines.battle.drone.DroneCrashSystem droneCrashes;
-    /** Corpse body store — a {@code DeadBody} component per dead unit (the corpse home). Populated by {@link #deadBodySystem} on death, read by the dead-sprite renderer (which pairs it with the surviving render-position component to draw the frozen death pose). Keyed by entity id, so a corpse survives release from {@link UnitRegistry}. */
-    private final com.dillon.starsectormarines.battle.component.ComponentStore<com.dillon.starsectormarines.battle.component.DeadBody> deadBodies =
+    /** Corpse body store — a {@code DeadBodyComponent} component per dead unit (the corpse home). Populated by {@link #deadBodySystem} on death, read by the dead-sprite renderer (which pairs it with the surviving render-position component to draw the frozen death pose). Keyed by entity id, so a corpse survives release from {@link UnitRegistry}. */
+    private final com.dillon.starsectormarines.battle.component.ComponentStore<DeadBodyComponent> deadBodies =
             new com.dillon.starsectormarines.battle.component.ComponentStore<>();
-    /** Dead-body system — death-event handler that records a {@code DeadBody} component for every unit that dies, over {@link #deadBodies}. Subscribed to {@link #deathDispatcher} in the constructor. */
+    /** Dead-body system — death-event handler that records a {@code DeadBodyComponent} component for every unit that dies, over {@link #deadBodies}. Subscribed to {@link #deathDispatcher} in the constructor. */
     private final com.dillon.starsectormarines.battle.unit.DeadBodySystem deadBodySystem;
-    /** Mech-loadout component store — the three-weapon chassis state ({@link com.dillon.starsectormarines.battle.mech.MechLoadoutState}) for every mech-class unit, keyed by entity id. Presence <em>is</em> "this entity is a mech": the mech-fire pass, morale, and the mech GOAP behaviors process the entities in this store instead of null-checking a former {@code Entity.mech} field. Attached at spawn ({@link com.dillon.starsectormarines.battle.setup.BattleSetup}), removed when the wreck spawns ({@link #mechWreckSystem}). Survives registry release (keyed by id) so the wreck handler can read it post-death. */
-    private final ComponentStore<MechLoadoutState> mechLoadouts = new ComponentStore<>();
+    /** Mech-loadout component store — the three-weapon chassis state ({@link MechLoadoutComponent}) for every mech-class unit, keyed by entity id. Presence <em>is</em> "this entity is a mech": the mech-fire pass, morale, and the mech GOAP behaviors process the entities in this store instead of null-checking a former {@code Entity.mech} field. Attached at spawn ({@link com.dillon.starsectormarines.battle.setup.BattleSetup}), removed when the wreck spawns ({@link #mechWreckSystem}). Survives registry release (keyed by id) so the wreck handler can read it post-death. */
+    private final ComponentStore<MechLoadoutComponent> mechLoadouts = new ComponentStore<>();
     /** Mech-wreck system — death-event handler that drops a smoking wreck on a dead chassis unit's cell (replaces the former HeavyWeapons per-tick scan). Subscribed to {@link #deathDispatcher} in the constructor. */
     private final com.dillon.starsectormarines.battle.mech.MechWreckSystem mechWreckSystem;
     /** Entity-access facade — the artemis-shaped by-id read layer over the dense registry (hot primitives) + the sparse component stores (cold projection). Access half of the world-facade endgame; see {@link World}. Constructed in the ctor once the roster + stores exist. */
@@ -300,12 +302,12 @@ public class BattleSimulation implements BattleControl {
         rosterService.setDamageService(damageService);
         // Entity-access facade over the dense registry + the sparse stores that
         // exist today. The cold-face type→store map starts with the two raw
-        // ComponentStores (Crashing, DeadBody); groups decomposed out of the
+        // ComponentStores (CrashingComponent, DeadBodyComponent); groups decomposed out of the
         // dense table register here as they land.
         this.world = new World(rosterService.getRegistry(), java.util.Map.of(
-                com.dillon.starsectormarines.battle.component.Crashing.class, crashing,
-                com.dillon.starsectormarines.battle.component.DeadBody.class, deadBodies,
-                MechLoadoutState.class, mechLoadouts));
+                CrashingComponent.class, crashing,
+                DeadBodyComponent.class, deadBodies,
+                MechLoadoutComponent.class, mechLoadouts));
         this.turretDemolition = new com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem(
                 mapService, effects, tactical, rosterService);
         deathDispatcher.subscribe(turretDemolition::onDeath);
@@ -381,14 +383,14 @@ public class BattleSimulation implements BattleControl {
     /** Entity-access facade — by-id hot primitives ({@code world().hp(id)}) over the dense SoA + cold {@code world().id(id).getOrNull(Cmp.class)} projection over the sparse stores. See {@link World}. */
     public World world() { return world; }
 
-    /** Crash component store — entities falling out of the sky after death (a {@code Crashing} component each). Read by the drone renderer to draw the falling sprite + fade; written only by {@link #droneCrashes}. */
-    public com.dillon.starsectormarines.battle.component.ComponentStore<com.dillon.starsectormarines.battle.component.Crashing> getCrashing() { return crashing; }
+    /** Crash component store — entities falling out of the sky after death (a {@code CrashingComponent} each). Read by the drone renderer to draw the falling sprite + fade; written only by {@link #droneCrashes}. */
+    public ComponentStore<CrashingComponent> getCrashing() { return crashing; }
 
-    /** Corpse body store — a {@code DeadBody} component per dead unit. Read by the dead-sprite renderer (paired with the surviving render-position component); written only by {@link #deadBodySystem}. Survives registry release (keyed by entity id). */
-    public com.dillon.starsectormarines.battle.component.ComponentStore<com.dillon.starsectormarines.battle.component.DeadBody> getDeadBodies() { return deadBodies; }
+    /** Corpse body store — a {@code DeadBodyComponent} component per dead unit. Read by the dead-sprite renderer (paired with the surviving render-position component); written only by {@link #deadBodySystem}. Survives registry release (keyed by entity id). */
+    public com.dillon.starsectormarines.battle.component.ComponentStore<DeadBodyComponent> getDeadBodies() { return deadBodies; }
 
-    /** Mech-loadout component store — the chassis weapon/morale state for each mech-class entity. Presence marks an entity as a mech. Attached at spawn ({@link com.dillon.starsectormarines.battle.setup.BattleSetup#makeDefender}'s caller), iterated by the mech-fire pass + morale, removed when the wreck spawns. Also reachable through the cold face via {@code world().component(id, MechLoadoutState.class)}. */
-    public ComponentStore<MechLoadoutState> getMechLoadouts() { return mechLoadouts; }
+    /** Mech-loadout component store — the chassis weapon/morale state for each mech-class entity. Presence marks an entity as a mech. Attached at spawn ({@link com.dillon.starsectormarines.battle.setup.BattleSetup#makeDefender}'s caller), iterated by the mech-fire pass + morale, removed when the wreck spawns. Also reachable through the cold face via {@code world().component(id, MechLoadoutComponent.class)}. */
+    public ComponentStore<MechLoadoutComponent> getMechLoadouts() { return mechLoadouts; }
     public List<Shuttle> getShuttles()     { return airSystem.getShuttles(); }
     /** Smoothed per-slot engine-FX demand for a shuttle (by air entity id), or {@code null} if it has no engine plumes. The render + light passes feed it to {@code EngineFxRenderer}; advanced each tick by {@code AirSystem}. */
     public float[] getThrusterGlow(Shuttle s) { return airSystem.thrusterGlow(s.entityId); }
@@ -856,7 +858,7 @@ public class BattleSimulation implements BattleControl {
         // subsystem; this call drains every unit's burst state.
         infantry.tick();
         tickProfile.lap(TickProfile.Phase.INFANTRY_TICK);
-        // Mech chassis weapons run on their own state bag (MechLoadoutState).
+        // Mech chassis weapons run on their own state bag (MechLoadoutComponent).
         // Continuation handling for chaingun bursts + SRM salvos, plus cooldown
         // tick-down for all three tracks. New triggers (start a burst / salvo /
         // LRM) come from CombatantBehavior. (The dead-mech smoking wreck now
@@ -909,7 +911,7 @@ public class BattleSimulation implements BattleControl {
         // state the old end-of-tick scan did.
         deathDispatcher.drain();
         tickProfile.lap(TickProfile.Phase.DEMOLISH);
-        // Drone crash sequence: advance every entity that has a Crashing
+        // Drone crash sequence: advance every entity that has a CrashingComponent
         // component (attached in the death drain above) — spin the fall, drop a
         // SmokingWreck on impact, detach on settle. Runs after the demolition
         // drain so a hub destruction (which cascade-kills + publishes deaths for

@@ -1,4 +1,6 @@
-package com.dillon.starsectormarines.battle.component;
+package com.dillon.starsectormarines.battle.unit.components;
+
+import com.dillon.starsectormarines.battle.component.ComponentStore;
 
 /**
  * Smooth sub-cell render position ({@code x,y} in cell units) as a composable
@@ -8,15 +10,15 @@ package com.dillon.starsectormarines.battle.component;
  *
  * <p>Stored in a {@link ComponentStore} keyed by entity id, so it survives a
  * unit's release from the live dense registry: a corpse is an entity that still
- * <em>has</em> a {@code RenderPosition} (frozen at the spot it fell) but no
+ * <em>has</em> a {@code RenderPositionComponent} (frozen at the spot it fell) but no
  * longer has health / AI. Wrapped by
  * {@code battle.unit.RenderPositionService} for a primitive float-typed API.
  */
-public final class RenderPosition {
+public final class RenderPositionComponent {
     public float x;
     public float y;
 
-    public RenderPosition(float x, float y) {
+    public RenderPositionComponent(float x, float y) {
         this.x = x;
         this.y = y;
     }

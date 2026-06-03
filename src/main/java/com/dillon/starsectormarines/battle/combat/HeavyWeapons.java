@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
-import com.dillon.starsectormarines.battle.mech.MechLoadoutState;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.component.ComponentStore;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 
@@ -17,7 +17,7 @@ import java.util.Map;
  * Chassis-mounted weapons on motorized / heavy units. Today that's just the
  * HEAVY_MECH walker's three-weapon loadout (chaingun + SRM pod + LRM
  * artillery); future tanks, hovercraft, and additional mech chassis hook in
- * here through the same {@link MechLoadoutState} state bag.
+ * here through the same {@link MechLoadoutComponent} state bag.
  *
  * <p>The split from {@link com.dillon.starsectormarines.battle.infantry.InfantryWeapons} is along the unit's character —
  * handheld squad weapons vs vehicle-mounted hardpoints — not along weapon
@@ -48,7 +48,7 @@ public class HeavyWeapons {
      * (only mech entities occupy it) instead of scanning the whole dense
      * registry for a former {@code u.mech != null} field — capability-as-presence.
      */
-    private final ComponentStore<MechLoadoutState> mechLoadouts;
+    private final ComponentStore<MechLoadoutComponent> mechLoadouts;
 
     /**
      * Reused per-tick gather of the live mechs before the continuation pass.
@@ -62,7 +62,7 @@ public class HeavyWeapons {
     public HeavyWeapons(UnitRegistry registry, NavigationGrid grid,
                         DamageService damageService, HitResponseService hitResponse,
                         ShotService shots, Detonations detonations,
-                        ComponentStore<MechLoadoutState> mechLoadouts) {
+                        ComponentStore<MechLoadoutComponent> mechLoadouts) {
         this.registry = registry;
         this.grid = grid;
         this.damageService = damageService;
@@ -187,7 +187,7 @@ public class HeavyWeapons {
     /**
      * Per-tick mech-weapon continuation — runs the three chassis tracks
      * (chaingun burst, SRM salvo, LRM salvo) for every unit with a
-     * {@link MechLoadoutState}. Mirrors {@link com.dillon.starsectormarines.battle.infantry.InfantryWeapons#tick} for the
+     * {@link MechLoadoutComponent}. Mirrors {@link com.dillon.starsectormarines.battle.infantry.InfantryWeapons#tick} for the
      * marine primary side; lives separate because the mech burst state is on
      * the loadout, not the unit.
      *
@@ -207,14 +207,14 @@ public class HeavyWeapons {
         // released (a just-dead mech still lingers in the store until its wreck
         // drains at DEMOLISH).
         mechScratch.clear();
-        for (Map.Entry<Long, MechLoadoutState> e : mechLoadouts.entries()) {
+        for (Map.Entry<Long, MechLoadoutComponent> e : mechLoadouts.entries()) {
             Entity u = registry.getOrNull(e.getKey());
             if (u != null) mechScratch.add(u);
         }
         for (int i = 0, n = mechScratch.size(); i < n; i++) {
             Entity u = mechScratch.get(i);
             if (!registry.isAliveById(u.entityId)) continue; // killed earlier in this same pass
-            MechLoadoutState m = mechLoadouts.get(u.entityId);
+            MechLoadoutComponent m = mechLoadouts.get(u.entityId);
 
             if (m.chaingunCooldown > 0f) m.chaingunCooldown -= BattleSimulation.TICK_DT;
             if (m.srmCooldown      > 0f) m.srmCooldown      -= BattleSimulation.TICK_DT;

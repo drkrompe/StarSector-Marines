@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.component.ComponentStore;
-import com.dillon.starsectormarines.battle.component.DeadBody;
+import com.dillon.starsectormarines.battle.unit.components.DeadBodyComponent;
 import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
@@ -183,7 +183,7 @@ public final class UnitRenderService implements RenderSystem {
      * selection, same aspect-fit into the {@code renderScale}d cell box, no vision
      * gate (corpses persist through fog), no flip, no HP bar.
      *
-     * <p>Sourced from the {@code DeadBody} corpse store (keyed by entity id),
+     * <p>Sourced from the {@code DeadBodyComponent} corpse store (keyed by entity id),
      * <em>not</em> the legacy units list — a body is recorded on the death event
      * and the position comes from the surviving render-position component under
      * the same id, so the corpse composes its location rather than holding a
@@ -198,7 +198,7 @@ public final class UnitRenderService implements RenderSystem {
      * case. No vision gate: corpses persist through fog.
      */
     private void sweepDeadSprites(RenderContext ctx, DrawList out) {
-        ComponentStore<DeadBody> bodies = ctx.sim.getDeadBodies();
+        ComponentStore<DeadBodyComponent> bodies = ctx.sim.getDeadBodies();
         if (bodies.isEmpty()) return;
 
         BattleCamera cam = ctx.camera;
@@ -207,8 +207,8 @@ public final class UnitRenderService implements RenderSystem {
         float alphaMult = ctx.alphaMult;
         RenderPositionService renderPositions = ctx.sim.getUnitRegistry().getRenderPositions();
 
-        for (Map.Entry<Long, DeadBody> entry : bodies.entries()) {
-            DeadBody body = entry.getValue();
+        for (Map.Entry<Long, DeadBodyComponent> entry : bodies.entries()) {
+            DeadBodyComponent body = entry.getValue();
             if (body.deathPoseIdx < 0) continue;
             RenderAppearance app = RenderAppearance.of(body.type);
             if (!app.hasDeathPose) continue;

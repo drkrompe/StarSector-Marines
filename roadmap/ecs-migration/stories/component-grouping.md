@@ -68,6 +68,15 @@ the pattern on live, motivated work rather than a speculative refactor.
   stateful capability — decide whether it migrates to the new pattern in
   this story or rides along later.
 
+## Naming & placement convention (locked 2026-06-03)
+
+Every component data class is named `XxxComponent` and lives in a per-domain
+`components` subpackage (`battle.<domain>.components`); `ComponentStore<T>`
+infra and the processing systems stay in their existing packages. Full rule +
+the retrofit of the four existing components is in
+[`component-model.md`](../component-model.md#component-class-convention-locked-2026-06-03).
+Apply it to every component extracted from here on.
+
 ## Approach
 
 1. B1 grouping first (vocabulary, no behavior change) — or interleave with

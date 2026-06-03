@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
-import com.dillon.starsectormarines.battle.mech.MechLoadoutState;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
@@ -358,7 +358,7 @@ public final class Squad {
 
     /**
      * True when this squad's combatants are mechs (carry a
-     * {@link MechLoadoutState}). Set once at mint from the first member's
+     * {@link MechLoadoutComponent}). Set once at mint from the first member's
      * {@code mech} (squads are homogeneous — {@code BattleSetup} never mixes
      * mech and infantry members), so it's stable for the squad's life and
      * <b>survives leader death</b> — unlike the old leader-probe, a mech squad

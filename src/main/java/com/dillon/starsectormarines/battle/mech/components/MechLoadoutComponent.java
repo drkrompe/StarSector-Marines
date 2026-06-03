@@ -1,11 +1,15 @@
-package com.dillon.starsectormarines.battle.mech;
+package com.dillon.starsectormarines.battle.mech.components;
 
+import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.unit.Entity;
 
 /**
- * Per-unit mutable state for the three-weapon mech loadout. Set on
- * {@link Entity#mech} when a mech-class unit spawns; null on every other unit.
+ * Per-unit mutable state for the three-weapon mech loadout. Attached as a
+ * presence component (in a {@code ComponentStore<MechLoadoutComponent>}) when a
+ * mech-class unit spawns; absent on every other unit — a mech is an entity that
+ * <em>has</em> this component, not one with a non-null {@code mech} field.
  * Holds the three {@link MechWeapon} slot references plus per-slot
  * ammo / cooldown / salvo trackers — concurrent fire across all three tracks
  * is the whole point of the mech, so each weapon's state is independent.
@@ -18,7 +22,7 @@ import com.dillon.starsectormarines.battle.unit.Entity;
  * so shared fields would collide. Mechs don't carry a {@link com.dillon.starsectormarines.battle.infantry.MarineWeapon}
  * either, so there's no marine fire path to reuse.
  */
-public final class MechLoadoutState {
+public final class MechLoadoutComponent {
 
     public final MechWeapon chaingun;
     public final MechWeapon srmPod;
@@ -128,8 +132,8 @@ public final class MechLoadoutState {
     /** Number of HP thresholds in {@link com.dillon.starsectormarines.battle.squad.SquadMoraleSystem#MECH_HP_DRAIN_THRESHOLDS} this mech has already drained at. Monotonic — a healed mech doesn't refund drains. */
     public int hpThresholdsCrossed = 0;
 
-    public MechLoadoutState(MechWeapon chaingun, MechWeapon srmPod, MechWeapon lrmArtillery,
-                            int srmAmmoSalvos, int lrmAmmoSalvos, MechRole role) {
+    public MechLoadoutComponent(MechWeapon chaingun, MechWeapon srmPod, MechWeapon lrmArtillery,
+                                int srmAmmoSalvos, int lrmAmmoSalvos, MechRole role) {
         this.chaingun = chaingun;
         this.srmPod = srmPod;
         this.lrmArtillery = lrmArtillery;
@@ -139,8 +143,8 @@ public final class MechLoadoutState {
     }
 
     /** Default chassis loadout for a stock HEAVY_MECH — chainguns + SRM pod (6 salvos) + LRM artillery (3 salvos × 5 rockets = 15 rockets). Role is the doctrine slot the planner reads to pick mech goals. */
-    public static MechLoadoutState defaultLoadout(MechRole role) {
-        return new MechLoadoutState(
+    public static MechLoadoutComponent defaultLoadout(MechRole role) {
+        return new MechLoadoutComponent(
                 MechWeapon.CHAINGUN,
                 MechWeapon.SRM_POD,
                 MechWeapon.LRM_ARTILLERY,

@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.component;
+package com.dillon.starsectormarines.battle.unit.components;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 /**
  * The corpse left behind when a unit dies — a composable component attached on
  * the death event, so a dead unit becomes an entity that still <em>has</em> a
- * body (this) and a render position (a shared {@code RenderPosition} in
+ * body (this) and a render position (a shared {@code RenderPositionComponent} in
  * {@code RenderPositionService}) but no longer has health / AI / combat columns
  * in the live {@code UnitRegistry}.
  *
@@ -26,7 +26,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
  * copying it. Cell can be added when a consumer (medic targeting, a diagnostics
  * dump) needs it; kept minimal until then.
  */
-public final class DeadBody {
+public final class DeadBodyComponent {
 
     /** The dead unit's archetype — selects the corpse sprite sheet + render scale. */
     public final UnitType type;
@@ -39,7 +39,7 @@ public final class DeadBody {
      */
     public final int deathPoseIdx;
 
-    public DeadBody(UnitType type, Faction faction, int deathPoseIdx) {
+    public DeadBodyComponent(UnitType type, Faction faction, int deathPoseIdx) {
         this.type = type;
         this.faction = faction;
         this.deathPoseIdx = deathPoseIdx;

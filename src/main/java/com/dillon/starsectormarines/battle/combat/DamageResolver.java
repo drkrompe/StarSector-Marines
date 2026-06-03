@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.combat;
 
 import com.dillon.starsectormarines.battle.component.ComponentStore;
-import com.dillon.starsectormarines.battle.mech.MechLoadoutState;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -29,7 +29,7 @@ import java.util.function.Consumer;
  *       equipment drop, squad-leader promotion if the dead unit led one,
  *       {@link DeathDispatcher#publish death-event publish} for the migrated
  *       post-death handlers, then dense-registry release</li>
- *   <li>Morale drain — per-mech HP threshold drain for {@link MechLoadoutState}
+ *   <li>Morale drain — per-mech HP threshold drain for {@link MechLoadoutComponent}
  *       chassis, per-squad hit/death drain (cooldown-gated) for infantry, no-op
  *       for solo units</li>
  * </ol>
@@ -63,7 +63,7 @@ public final class DamageResolver {
     private final Consumer<Entity> deathSink;
     private final DeathDispatcher deathDispatcher;
     private final Random rng;
-    private final ComponentStore<MechLoadoutState> mechLoadouts;
+    private final ComponentStore<MechLoadoutComponent> mechLoadouts;
 
     public DamageResolver(NavigationService navigation,
                           UnitRosterService roster,
@@ -71,7 +71,7 @@ public final class DamageResolver {
                           Consumer<Entity> deathSink,
                           DeathDispatcher deathDispatcher,
                           Random rng,
-                          ComponentStore<MechLoadoutState> mechLoadouts) {
+                          ComponentStore<MechLoadoutComponent> mechLoadouts) {
         this.grid = navigation.getGrid();
         this.squads = roster.getSquadsMap();
         this.roster = roster;
@@ -155,7 +155,7 @@ public final class DamageResolver {
         // where strafing didn't rattle squads or trip mech HP thresholds.
         //
         // Mech-class targets use per-chassis morale: HP threshold crossings
-        // drain {@link MechLoadoutState#morale} (squad-level aggregation
+        // drain {@link MechLoadoutComponent#morale} (squad-level aggregation
         // happens in {@link SquadMoraleSystem#tick}). The squad's
         // {@link Squad#morale} field is unused for mech squads.
         //
@@ -246,19 +246,19 @@ public final class DamageResolver {
     /**
      * Mech-side morale drain on damage. Counts how many entries in
      * {@link SquadMoraleSystem#MECH_HP_DRAIN_THRESHOLDS} the chassis HP just
-     * crossed and drops {@link MechLoadoutState#morale} by
+     * crossed and drops {@link MechLoadoutComponent#morale} by
      * {@link SquadMoraleSystem#MECH_MORALE_DROP_PER_THRESHOLD} per crossing.
-     * Always resets {@link MechLoadoutState#timeSinceUnderFire} so recovery
+     * Always resets {@link MechLoadoutComponent#timeSinceUnderFire} so recovery
      * pauses through sustained fire — even a hit that didn't cross a fresh
      * threshold counts as "still under fire."
      *
-     * <p>Monotonic via {@link MechLoadoutState#hpThresholdsCrossed} — a healed
+     * <p>Monotonic via {@link MechLoadoutComponent#hpThresholdsCrossed} — a healed
      * mech (none today, but defensive) wouldn't refund drains. The drain is
      * keyed to "how far through this fight have you been damaged," not to
      * instantaneous HP.
      */
     private void applyMechHpThresholdDrain(Entity target) {
-        MechLoadoutState m = mechLoadouts.get(target.entityId);
+        MechLoadoutComponent m = mechLoadouts.get(target.entityId);
         m.timeSinceUnderFire = 0f;
         UnitRegistry registry = roster.getRegistry();
         int tIdx = registry.requireLiveIndex(target.entityId);

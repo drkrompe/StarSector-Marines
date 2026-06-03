@@ -80,12 +80,12 @@ public class HubDemolitionSystemTest {
 
         // The dead hub's drones are killed by the cascade and — because each
         // publishes a DeathEvent that the wave-drain fans out in the same drain,
-        // before the drone-crash phase — already carry a Crashing component
+        // before the drone-crash phase — already carry a CrashingComponent component
         // (entered the crash sequence) on this same tick.
         assertFalse(sim.world().isAlive(d1.entityId), "cascade sets hp=0 on the dead hub's drones");
         assertFalse(sim.world().isAlive(d2.entityId), "cascade sets hp=0 on the dead hub's drones");
-        assertTrue(sim.getCrashing().has(d1.entityId), "cascaded drone gets a Crashing component the same tick");
-        assertTrue(sim.getCrashing().has(d2.entityId), "cascaded drone gets a Crashing component the same tick");
+        assertTrue(sim.getCrashing().has(d1.entityId), "cascaded drone gets a CrashingComponent component the same tick");
+        assertTrue(sim.getCrashing().has(d2.entityId), "cascaded drone gets a CrashingComponent component the same tick");
 
         // The other hub's drone is untouched.
         assertTrue(sim.world().isAlive(control.entityId), "a drone homed to a live hub is not part of the cascade");

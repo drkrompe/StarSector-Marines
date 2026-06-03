@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.combat;
 
 import com.dillon.starsectormarines.battle.component.ComponentStore;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
-import com.dillon.starsectormarines.battle.mech.MechLoadoutState;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.unit.Entity;
@@ -44,13 +44,13 @@ public final class HitResponseService {
     private final TacticalScoring tacticalScoring;
     private final DamageService damageService;
     private final IntSupplier tickIndexSupplier;
-    private final ComponentStore<MechLoadoutState> mechLoadouts;
+    private final ComponentStore<MechLoadoutComponent> mechLoadouts;
 
     public HitResponseService(NavigationGrid grid, UnitRegistry registry,
                               TacticalScoring tacticalScoring,
                               DamageService damageService,
                               IntSupplier tickIndexSupplier,
-                              ComponentStore<MechLoadoutState> mechLoadouts) {
+                              ComponentStore<MechLoadoutComponent> mechLoadouts) {
         this.grid = grid;
         this.registry = registry;
         this.tacticalScoring = tacticalScoring;

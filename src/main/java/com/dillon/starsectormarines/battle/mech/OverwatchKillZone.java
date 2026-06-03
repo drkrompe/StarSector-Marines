@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -16,7 +17,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
  * LR Support doctrine: hold at LR-band cover, lob LRMs at the squad's
  * known threat axis, withhold SRMs. Picks a cover cell ~25–35 cells from
  * {@code squad.lastSeenEnemyX/Y} with LoS to that cell — once per threat
- * axis shift, cached on {@link MechLoadoutState#overwatchCellX} so per-tick
+ * axis shift, cached on {@link MechLoadoutComponent#overwatchCellX} so per-tick
  * re-search doesn't blow the planner budget.
  *
  * <p>Per-member execution branches on role. An LR_SUPPORT member runs the
@@ -68,7 +69,7 @@ public final class OverwatchKillZone implements Action {
         // can't happen here but stay defensive) fall through to parity
         // engagement so mixed-role squads have every member doing something
         // sensible. Loadout reached by id (zero-alloc direct lookup).
-        MechLoadoutState m = sim.world().component(member.entityId, MechLoadoutState.class);
+        MechLoadoutComponent m = sim.world().component(member.entityId, MechLoadoutComponent.class);
         if (m == null || m.role != MechRole.LR_SUPPORT) {
             return EngageAtCurrentBand.INSTANCE.execute(member, squad, sim);
         }

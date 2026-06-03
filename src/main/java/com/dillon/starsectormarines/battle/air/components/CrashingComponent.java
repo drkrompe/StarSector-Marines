@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.component;
+package com.dillon.starsectormarines.battle.air.components;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
 
@@ -20,7 +20,7 @@ import com.dillon.starsectormarines.battle.air.AirBody;
  * attach time, so the crash system stays entity-agnostic — it never has to know
  * a drone from a future fighter, only that the entity has this component.
  */
-public final class Crashing {
+public final class CrashingComponent {
 
     /** The falling entity's body — read for the wreck position, mutated to spin the facing. */
     public final AirBody body;
@@ -31,7 +31,7 @@ public final class Crashing {
     /** Facing spin applied while falling, deg/sec — the out-of-control tumble. */
     public final float spinDegPerSec;
 
-    public Crashing(AirBody body, float timer, float spinDegPerSec) {
+    public CrashingComponent(AirBody body, float timer, float spinDegPerSec) {
         this.body = body;
         this.timer = timer;
         this.spinDegPerSec = spinDegPerSec;

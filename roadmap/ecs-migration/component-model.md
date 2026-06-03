@@ -89,6 +89,37 @@ work is the right shape *today* (logical groups over existing arrays) and
 becomes literally a value-type array later with no API change. We design
 the component boundaries now so Valhalla is a layout swap, not a rewrite.
 
+## Component class convention (locked 2026-06-03)
+
+Pinned with the user before the next wave of extractions, so a component is
+identifiable on sight and lives near what it models:
+
+- **Suffix `Component`.** Every component *data* class is named
+  `XxxComponent` (`CrashingComponent`, `RenderPositionComponent`,
+  `DeadBodyComponent`, `MechLoadoutComponent`). The suffix makes a component
+  recognisable by type name alone, anywhere it appears — even where the
+  package isn't visible. The slight `components.XComponent` stutter is
+  accepted in exchange for that at-a-glance signal.
+- **`components` subpackage, per-domain.** Component data classes live in a
+  `components` subpackage of their *related domain* package
+  (`battle.air.components`, `battle.unit.components`, `battle.mech.components`),
+  not one central bag. Place each by the **capability it models**, not the
+  system that happens to process it today — e.g. `CrashingComponent` is
+  air-generic (composes `AirBody`, drone-agnostic by design) so it lives in
+  `battle.air.components`, even though the only processor today is
+  `DroneCrashSystem` in `battle.drone`.
+- **Infra and processors stay put.** `ComponentStore<T>` is the generic store,
+  not a data component — it remains in `battle.component`. The systems/services
+  that read or mutate a component (`DroneCrashSystem`, `RenderPositionService`,
+  `DeadBodySystem`, `MechWreckSystem`, …) stay in their domain package; only
+  the data class moves into `components`.
+
+Existing components were retrofitted to this convention (2026-06-03):
+`Crashing → battle.air.components.CrashingComponent`,
+`RenderPosition → battle.unit.components.RenderPositionComponent`,
+`DeadBody → battle.unit.components.DeadBodyComponent`,
+`MechLoadoutState → battle.mech.components.MechLoadoutComponent`.
+
 ## Staged plan
 
 - **Phase A — [`collapse-unit-handle`](stories/collapse-unit-handle.md).**

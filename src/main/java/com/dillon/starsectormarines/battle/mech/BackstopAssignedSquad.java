@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -20,7 +21,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
  *
  * <p>"Designated squad" is picked lazily at the first execute tick: the
  * nearest alive same-side infantry squad (any non-mech squad on the
- * mech's faction). Cached on {@link MechLoadoutState#assignedSquadId};
+ * mech's faction). Cached on {@link MechLoadoutComponent#assignedSquadId};
  * cleared back to -1 when the backed squad gets wiped, so the next tick
  * re-picks. The commander tier (future) will overwrite this with
  * explicit assignments via {@code ObjectiveAssignment}; until then this
@@ -69,7 +70,7 @@ public final class BackstopAssignedSquad implements Action {
     public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
         // Non-ARMORED_SUPPORT members fall through to parity (mixed squads).
         // Loadout reached by id (zero-alloc direct lookup).
-        MechLoadoutState m = sim.world().component(member.entityId, MechLoadoutState.class);
+        MechLoadoutComponent m = sim.world().component(member.entityId, MechLoadoutComponent.class);
         if (m == null || m.role != MechRole.ARMORED_SUPPORT) {
             return EngageAtCurrentBand.INSTANCE.execute(member, squad, sim);
         }

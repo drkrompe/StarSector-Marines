@@ -35,7 +35,7 @@ import java.util.List;
  * cascade-killed drone {@link DeathDispatcher#publish publishes} its own
  * {@code DeathEvent} (in addition to the direct hp=0 + release), so the same
  * death-event seam that handles a shot-down drone also starts a cascade-killed
- * drone's crash — the {@code DroneCrashSystem} attaches its {@code Crashing}
+ * drone's crash — the {@code DroneCrashSystem} attaches its {@code CrashingComponent}
  * component off that event, not a list scan. The publish is re-entrant (it
  * happens while the dispatcher is mid-{@code drain()}); the dispatcher drains in
  * waves precisely so these land in the same drain.
@@ -92,7 +92,7 @@ public final class HubDemolitionSystem {
      * <p>Finds the hub's drones in the dense registry (live-only — a dead drone
      * is already gone). Each killed drone publishes a {@code DeathEvent} so the
      * death-event seam starts its crash (the {@code DroneCrashSystem} attaches
-     * its {@code Crashing} component on that event), exactly as a shot-down
+     * its {@code CrashingComponent} component on that event), exactly as a shot-down
      * drone's resolve-published death does.
      *
      * <p>Gather-then-kill: {@code releaseFromRegistry} swap-and-pops the dense

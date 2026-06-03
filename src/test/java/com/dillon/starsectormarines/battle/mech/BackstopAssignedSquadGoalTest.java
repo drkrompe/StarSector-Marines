@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -37,7 +38,7 @@ public class BackstopAssignedSquadGoalTest {
         int mechSid = sim.mintSquad(Faction.MARINE, mech);
         mech.squadId = mechSid;
         sim.addUnit(mech);
-        sim.getMechLoadouts().add(mech.entityId, MechLoadoutState.defaultLoadout(MechRole.ARMORED_SUPPORT));
+        sim.getMechLoadouts().add(mech.entityId, MechLoadoutComponent.defaultLoadout(MechRole.ARMORED_SUPPORT));
         Squad mechSquad = sim.getSquad(mechSid);
         mechSquad.aliveMembers = 1;
 

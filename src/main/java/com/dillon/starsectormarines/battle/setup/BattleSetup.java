@@ -20,7 +20,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
-import com.dillon.starsectormarines.battle.mech.MechLoadoutState;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 
 import com.dillon.starsectormarines.battle.air.MountedTurret;
@@ -1123,7 +1123,7 @@ public final class BattleSetup {
     }
 
     /**
-     * Attaches a {@link MechLoadoutState} component to a just-added unit that
+     * Attaches a {@link MechLoadoutComponent} component to a just-added unit that
      * spawned as a mech ({@code mechRole != null} — the caller already decided
      * mech-ness from the source queue). No-op for infantry. <b>Must run after
      * {@code sim.addUnit}</b>: the component store is keyed by {@code entityId},
@@ -1131,7 +1131,7 @@ public final class BattleSetup {
      */
     private static void attachMechLoadout(BattleSimulation sim, Entity unit, MechRole mechRole) {
         if (mechRole != null) {
-            sim.getMechLoadouts().add(unit.entityId, MechLoadoutState.defaultLoadout(mechRole));
+            sim.getMechLoadouts().add(unit.entityId, MechLoadoutComponent.defaultLoadout(mechRole));
         }
     }
 

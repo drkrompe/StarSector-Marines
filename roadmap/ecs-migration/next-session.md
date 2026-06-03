@@ -3,6 +3,16 @@
 Read [`overview.md`](overview.md) first for design rules.
 Shipped work is in [`complete/`](complete/).
 
+## Component class convention (locked 2026-06-03)
+
+Before extracting any new component: data components are named `XxxComponent`
+and live in a per-domain `components` subpackage (`battle.<domain>.components`);
+`ComponentStore<T>` and processing systems stay put. Full rule in
+[`component-model.md`](component-model.md#component-class-convention-locked-2026-06-03).
+The four existing components were retrofitted to match (`CrashingComponent` →
+`battle.air.components`, `RenderPositionComponent`/`DeadBodyComponent` →
+`battle.unit.components`, `MechLoadoutComponent` → `battle.mech.components`).
+
 ## Commit chain so far
 
 ```

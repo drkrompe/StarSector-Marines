@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -38,7 +39,7 @@ public class OverwatchKillZoneGoalTest {
         int sid = sim.mintSquad(Faction.DEFENDER, mech);
         mech.squadId = sid;
         sim.addUnit(mech);
-        sim.getMechLoadouts().add(mech.entityId, MechLoadoutState.defaultLoadout(MechRole.LR_SUPPORT));
+        sim.getMechLoadouts().add(mech.entityId, MechLoadoutComponent.defaultLoadout(MechRole.LR_SUPPORT));
         Squad squad = sim.getSquad(sid);
         squad.aliveMembers = 1;
         squad.lastSeenEnemyX = 8;

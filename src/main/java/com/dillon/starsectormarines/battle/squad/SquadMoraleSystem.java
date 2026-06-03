@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.squad;
 
 import com.dillon.starsectormarines.battle.component.ComponentStore;
-import com.dillon.starsectormarines.battle.mech.MechLoadoutState;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.combat.ShotService;
@@ -73,7 +73,7 @@ public final class SquadMoraleSystem {
     // by {@link #updateMechSquadMorale} + the HP-drain pass inside
     // {@code damage.DamageResolver.applyMechHpThresholdDrain}.
 
-    /** Fraction-of-maxHp marks where a mech bleeds morale. Crossing each drops {@link #MECH_MORALE_DROP_PER_THRESHOLD} once (monotonic via {@link MechLoadoutState#hpThresholdsCrossed}). Descending order — first entry trips at 75% HP. */
+    /** Fraction-of-maxHp marks where a mech bleeds morale. Crossing each drops {@link #MECH_MORALE_DROP_PER_THRESHOLD} once (monotonic via {@link MechLoadoutComponent#hpThresholdsCrossed}). Descending order — first entry trips at 75% HP. */
     public static final float[] MECH_HP_DRAIN_THRESHOLDS = {0.75f, 0.50f, 0.25f, 0.10f};
     /** Per-threshold morale drop. Sized so all four thresholds drained drops a fresh mech (morale 1.0) to 0.0 — total wipe at 10% HP matches the "wounded mech withdraws" target. */
     public static final float MECH_MORALE_DROP_PER_THRESHOLD = 0.25f;
@@ -90,10 +90,10 @@ public final class SquadMoraleSystem {
 
     private final UnitRosterService roster;
     private final ShotService shots;
-    private final ComponentStore<MechLoadoutState> mechLoadouts;
+    private final ComponentStore<MechLoadoutComponent> mechLoadouts;
 
     public SquadMoraleSystem(UnitRosterService roster, ShotService shots,
-                             ComponentStore<MechLoadoutState> mechLoadouts) {
+                             ComponentStore<MechLoadoutComponent> mechLoadouts) {
         this.roster = roster;
         this.shots = shots;
         this.mechLoadouts = mechLoadouts;
@@ -211,7 +211,7 @@ public final class SquadMoraleSystem {
      * for each alive mech squad. For each member: tick the under-fire timer,
      * derive the cap (1.0 above the armor-gone HP fraction,
      * {@link #MECH_MORALE_ARMOR_GONE_CAP} below), recover passively when out
-     * of fire, apply {@link MechLoadoutState#moraleBroken} hysteresis with
+     * of fire, apply {@link MechLoadoutComponent#moraleBroken} hysteresis with
      * the mech thresholds. Then set {@link Squad#moraleBroken} from the
      * count of broken members — majority-broken trips the squad (one mech
      * cracking out of four isn't enough; two or more is).
@@ -232,7 +232,7 @@ public final class SquadMoraleSystem {
             // Capability-as-presence: a mech is an entity with a loadout
             // component (was the nullable u.mech field). Direct store lookup,
             // not the cold-face handle — this is a per-tick bulk path.
-            MechLoadoutState m = mechLoadouts.get(u.entityId);
+            MechLoadoutComponent m = mechLoadouts.get(u.entityId);
             if (m == null) continue;
             aliveMechs++;
             if (m.timeSinceUnderFire < 1e9f) m.timeSinceUnderFire += dt;

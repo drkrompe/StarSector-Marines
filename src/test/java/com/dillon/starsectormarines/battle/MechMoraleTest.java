@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
-import com.dillon.starsectormarines.battle.mech.MechLoadoutState;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 
 import com.dillon.starsectormarines.battle.mech.GoapMechBehavior;
@@ -57,12 +57,12 @@ public class MechMoraleTest {
         sim.addUnit(first);
         // Loadout is a presence component, attached by id after the unit is
         // added (mirrors BattleSetup's spawn path).
-        sim.getMechLoadouts().add(first.entityId, MechLoadoutState.defaultLoadout(role));
+        sim.getMechLoadouts().add(first.entityId, MechLoadoutComponent.defaultLoadout(role));
         for (int i = 1; i < size; i++) {
             Entity u = new Entity("d" + i, Faction.DEFENDER, UnitType.HEAVY_MECH, 1 + i, 1);
             u.squadId = squadId;
             sim.addUnit(u);
-            sim.getMechLoadouts().add(u.entityId, MechLoadoutState.defaultLoadout(role));
+            sim.getMechLoadouts().add(u.entityId, MechLoadoutComponent.defaultLoadout(role));
         }
         Squad sq = sim.getSquad(squadId);
         sq.originalSize = size;
@@ -70,7 +70,7 @@ public class MechMoraleTest {
     }
 
     /** The mech loadout component for {@code u}, reached by id through the store. */
-    private static MechLoadoutState loadout(BattleSimulation sim, Entity u) {
+    private static MechLoadoutComponent loadout(BattleSimulation sim, Entity u) {
         return sim.getMechLoadouts().get(u.entityId);
     }
 
@@ -205,7 +205,7 @@ public class MechMoraleTest {
         loadout(sim, sim.liveUnitAt(2)).morale = 1.0f;
         loadout(sim, sim.liveUnitAt(3)).morale = 1.0f;
         for (int i = 0; i < sim.liveUnitCount(); i++) {
-            MechLoadoutState lm = loadout(sim, sim.liveUnitAt(i));
+            MechLoadoutComponent lm = loadout(sim, sim.liveUnitAt(i));
             if (lm != null) lm.timeSinceUnderFire = 0f;
         }
 
@@ -224,7 +224,7 @@ public class MechMoraleTest {
         loadout(sim, sim.liveUnitAt(0)).morale = 0.05f;
         for (int i = 1; i < 4; i++) loadout(sim, sim.liveUnitAt(i)).morale = 1.0f;
         for (int i = 0; i < sim.liveUnitCount(); i++) {
-            MechLoadoutState lm = loadout(sim, sim.liveUnitAt(i));
+            MechLoadoutComponent lm = loadout(sim, sim.liveUnitAt(i));
             if (lm != null) lm.timeSinceUnderFire = 0f;
         }
 

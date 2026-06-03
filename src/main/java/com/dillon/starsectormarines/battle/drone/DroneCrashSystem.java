@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.drone;
 
 import com.dillon.starsectormarines.battle.component.ComponentStore;
-import com.dillon.starsectormarines.battle.component.Crashing;
+import com.dillon.starsectormarines.battle.air.components.CrashingComponent;
 import com.dillon.starsectormarines.battle.unit.DeathEvent;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -13,16 +13,16 @@ import java.util.Map;
 
 /**
  * The drone crash, modelled as composition rather than a per-tick type scan.
- * Two halves over a {@link Crashing} {@link ComponentStore}:
+ * Two halves over a {@link CrashingComponent} {@link ComponentStore}:
  *
  * <ol>
  *   <li><b>Attach</b> ({@link #onDeath}) — a death-event handler. When a
  *       {@link Drone} dies (shot down, or hub-cascade-killed), it attaches a
- *       {@code Crashing} component seeded with the drone's body + crash tuning
+ *       {@code CrashingComponent} component seeded with the drone's body + crash tuning
  *       and puffs the initial smoke plume. Attaching the component <em>is</em>
  *       starting the crash.</li>
  *   <li><b>Process</b> ({@link #tick}) — iterates the entities that
- *       <em>have</em> a {@code Crashing} component (not every unit), spinning
+ *       <em>have</em> a {@code CrashingComponent} component (not every unit), spinning
  *       each body's facing and counting its timer down; on impact it drops a
  *       {@link com.dillon.starsectormarines.battle.combat.fx.SmokingWreck} at
  *       the body's floor cell and detaches the component (crash done).</li>
@@ -31,23 +31,23 @@ import java.util.Map;
  * <p>The FX is the side effect of an entity carrying the component — no
  * {@code List<Entity>} scan, no {@code instanceof}/{@code !isAlive()} gating in
  * the hot path. The renderer reads the same store to draw a falling entity (the
- * presence of a {@code Crashing} component) with its tumble + fade. The store
+ * presence of a {@code CrashingComponent} component) with its tumble + fade. The store
  * is keyed by entity id, so a crashing drone keeps its component after release
  * from the live {@code UnitRegistry}.
  *
  * <p>{@link #onDeath} is the only entity-aware part (it knows a {@code Drone}
  * crashes, and its tuning); {@link #tick} is entity-agnostic and processes any
- * future air unit that gets a {@code Crashing} component the same way.
+ * future air unit that gets a {@code CrashingComponent} component the same way.
  */
 public final class DroneCrashSystem {
 
     private final NavigationService navigation;
     private final EffectsService effects;
-    private final ComponentStore<Crashing> crashing;
+    private final ComponentStore<CrashingComponent> crashing;
 
     public DroneCrashSystem(NavigationService navigation,
                             EffectsService effects,
-                            ComponentStore<Crashing> crashing) {
+                            ComponentStore<CrashingComponent> crashing) {
         this.navigation = navigation;
         this.effects = effects;
         this.crashing = crashing;
@@ -55,7 +55,7 @@ public final class DroneCrashSystem {
 
     /**
      * Death-event callback: a dead {@link Drone} starts crashing. Attaches a
-     * {@code Crashing} component (seeded with the drone's body + crash tuning)
+     * {@code CrashingComponent} component (seeded with the drone's body + crash tuning)
      * and puffs the opening smoke plume from the body position. Ignores
      * non-drone deaths and a drone that somehow already carries the component.
      */
@@ -63,7 +63,7 @@ public final class DroneCrashSystem {
         if (!(event.unit() instanceof Drone d)) return;
         if (crashing.has(d.entityId)) return;
         crashing.add(d.entityId,
-                new Crashing(d.body, Drone.CRASH_DURATION_SEC, Drone.CRASH_SPIN_DEG_PER_SEC));
+                new CrashingComponent(d.body, Drone.CRASH_DURATION_SEC, Drone.CRASH_SPIN_DEG_PER_SEC));
         effects.spawnSmokePlume(d.body.x, d.body.y);
     }
 
@@ -77,8 +77,8 @@ public final class DroneCrashSystem {
         if (crashing.isEmpty()) return;
         NavigationGrid grid = navigation.getGrid();
         List<Long> settled = null;
-        for (Map.Entry<Long, Crashing> e : crashing.entries()) {
-            Crashing c = e.getValue();
+        for (Map.Entry<Long, CrashingComponent> e : crashing.entries()) {
+            CrashingComponent c = e.getValue();
             c.timer -= dt;
             c.body.facingDegrees += c.spinDegPerSec * dt;
             if (c.timer <= 0f) {

@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.unit;
 
 import com.dillon.starsectormarines.battle.component.ComponentStore;
-import com.dillon.starsectormarines.battle.component.RenderPosition;
+import com.dillon.starsectormarines.battle.unit.components.RenderPositionComponent;
 
 /**
  * Smooth render position (sub-cell {@code x,y}) for every entity, keyed by
@@ -23,9 +23,9 @@ import com.dillon.starsectormarines.battle.component.RenderPosition;
  *
  * <h2>A real component, wrapped</h2>
  * <p>This service is a thin float-typed API over a
- * {@link ComponentStore}{@code <}{@link RenderPosition}{@code >} — render
+ * {@link ComponentStore}{@code <}{@link RenderPositionComponent}{@code >} — render
  * position is a genuine composable component (the same presence mechanism the
- * drone {@code Crashing} fall uses), so "where do I draw" is shared across
+ * drone {@code CrashingComponent} fall uses), so "where do I draw" is shared across
  * entity categories instead of redefined per type. The wrapper keeps
  * {@link Entity}'s accessors returning primitive {@code float} without exposing
  * the component object. A corpse is an entity <em>present</em> in this store
@@ -43,7 +43,7 @@ import com.dillon.starsectormarines.battle.component.RenderPosition;
  */
 public final class RenderPositionService {
 
-    private final ComponentStore<RenderPosition> store = new ComponentStore<>();
+    private final ComponentStore<RenderPositionComponent> store = new ComponentStore<>();
 
     /**
      * Sets both render axes for {@code entityId} — the paired write every
@@ -51,9 +51,9 @@ public final class RenderPositionService {
      * place (no churn) or attaches one on first write.
      */
     public void set(long entityId, float renderX, float renderY) {
-        RenderPosition p = store.get(entityId);
+        RenderPositionComponent p = store.get(entityId);
         if (p == null) {
-            store.add(entityId, new RenderPosition(renderX, renderY));
+            store.add(entityId, new RenderPositionComponent(renderX, renderY));
         } else {
             p.x = renderX;
             p.y = renderY;
@@ -69,27 +69,27 @@ public final class RenderPositionService {
      * not a supported first-write path.
      */
     public void setX(long entityId, float renderX) {
-        RenderPosition p = store.get(entityId);
-        if (p == null) store.add(entityId, new RenderPosition(renderX, 0f));
+        RenderPositionComponent p = store.get(entityId);
+        if (p == null) store.add(entityId, new RenderPositionComponent(renderX, 0f));
         else p.x = renderX;
     }
 
     /** Sets only the render Y axis (keeps X). Same first-write invariant as {@link #setX}. */
     public void setY(long entityId, float renderY) {
-        RenderPosition p = store.get(entityId);
-        if (p == null) store.add(entityId, new RenderPosition(0f, renderY));
+        RenderPositionComponent p = store.get(entityId);
+        if (p == null) store.add(entityId, new RenderPositionComponent(0f, renderY));
         else p.y = renderY;
     }
 
     /** Render X for {@code entityId}; {@code 0f} if the entity has no render position (never seeded). */
     public float getX(long entityId) {
-        RenderPosition p = store.get(entityId);
+        RenderPositionComponent p = store.get(entityId);
         return p == null ? 0f : p.x;
     }
 
     /** Render Y for {@code entityId}; {@code 0f} if the entity has no render position. */
     public float getY(long entityId) {
-        RenderPosition p = store.get(entityId);
+        RenderPositionComponent p = store.get(entityId);
         return p == null ? 0f : p.y;
     }
 

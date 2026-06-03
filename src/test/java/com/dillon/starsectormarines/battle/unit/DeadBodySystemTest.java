@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.unit;
 
-import com.dillon.starsectormarines.battle.component.DeadBody;
+import com.dillon.starsectormarines.battle.unit.components.DeadBodyComponent;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * End-to-end coverage for the corpse home: a unit that dies gets a
- * {@code DeadBody} component attached off its {@code DeathEvent} (the dead-sprite
+ * {@code DeadBodyComponent} component attached off its {@code DeathEvent} (the dead-sprite
  * render reads that store instead of scanning the legacy units list), and the
  * body — like the render position it pairs with — survives release from the
  * live {@link UnitRegistry}.
@@ -54,12 +54,12 @@ public class DeadBodySystemTest {
         assertFalse(sim.world().isAlive(id), "lethal hit kills the unit");
         // Buffered: the body is attached when the death mailbox drains in the tick.
         assertFalse(sim.getDeadBodies().has(id),
-                "the DeadBody attaches on the death drain, not inline");
+                "the DeadBodyComponent attaches on the death drain, not inline");
 
         sim.advance(BattleSimulation.TICK_DT);
 
-        assertTrue(sim.getDeadBodies().has(id), "drain → the dead unit gets a DeadBody");
-        DeadBody body = sim.getDeadBodies().get(id);
+        assertTrue(sim.getDeadBodies().has(id), "drain → the dead unit gets a DeadBodyComponent");
+        DeadBodyComponent body = sim.getDeadBodies().get(id);
         assertNotNull(body);
         assertEquals(UnitType.MARINE, body.type, "body carries the dead unit's archetype");
         assertEquals(Faction.DEFENDER, body.faction, "body carries the dead unit's side");

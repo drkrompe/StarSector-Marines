@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.component.ComponentStore;
-import com.dillon.starsectormarines.battle.component.Crashing;
+import com.dillon.starsectormarines.battle.air.components.CrashingComponent;
 import com.dillon.starsectormarines.battle.drone.Drone;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
@@ -15,7 +15,7 @@ import java.util.Map;
  * Emits the {@link RenderLayer#DRONES} layer — recon/attack drones that hover at
  * roof altitude (painted above ROOFS so a drone over a building overlays the roof
  * rather than being occluded by it). Two passes: crashing wrecks (read straight
- * from the {@link Crashing} component store, fading hull only, drawn first so they
+ * from the {@link CrashingComponent} component store, fading hull only, drawn first so they
  * sit under the living) then live drones (dense-registry iteration — one rotated
  * {@code SPRITE} hull + an HP bar via the shared {@link HpBarDecor}, placement
  * uses the layer's own {@code HP_BAR_GAP}).
@@ -24,7 +24,7 @@ import java.util.Map;
  * crash/visibility gating and fade-alpha (VIS_FADING fade + crash fade-out), same
  * hull sizing and HP-bar geometry. The single units-list scan (live + dead) split
  * into a corpse pass over the crash store and a live pass over the registry — a
- * crashing drone is an entity with a {@code Crashing} component and no live
+ * crashing drone is an entity with a {@code CrashingComponent} component and no live
  * registry row, so neither pass needs the legacy units list.
  * The hull goes through the whole-texture {@code SPRITE} command (no batch
  * registration), which resets sprite angle after each draw — so the old
@@ -59,15 +59,15 @@ public final class DroneRenderSystem implements RenderSystem {
         float pxW = pxH * cache.aspect;
         float barW = cellPx * 0.9f;
 
-        // Crashing (dead, falling) drones first so their fading wrecks paint
+        // CrashingComponent (dead, falling) drones first so their fading wrecks paint
         // UNDER the live drones. A dead drone is an entity that no longer sits in
-        // the live registry but still carries a Crashing component — read that
+        // the live registry but still carries a CrashingComponent component — read that
         // store directly (no units-list scan, no Entity handle): the component owns
         // the body the wreck tracks and the timer that fades it out. No vision
         // gate, matching the legacy pass (a crash is always shown).
-        ComponentStore<Crashing> crashStore = ctx.sim.getCrashing();
-        for (Map.Entry<Long, Crashing> e : crashStore.entries()) {
-            Crashing crash = e.getValue();
+        ComponentStore<CrashingComponent> crashStore = ctx.sim.getCrashing();
+        for (Map.Entry<Long, CrashingComponent> e : crashStore.entries()) {
+            CrashingComponent crash = e.getValue();
             AirBody body = crash.body;
             float t = Math.max(0f, Math.min(1f, crash.timer / Drone.CRASH_DURATION_SEC));
             float drawAlpha = alphaMult * t;

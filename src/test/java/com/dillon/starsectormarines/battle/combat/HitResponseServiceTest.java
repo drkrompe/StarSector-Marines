@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
-import com.dillon.starsectormarines.battle.mech.MechLoadoutState;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import org.junit.jupiter.api.Test;
 
@@ -60,7 +60,7 @@ public class HitResponseServiceTest {
         int sid = sim.mintSquad(Faction.DEFENDER, mech);
         mech.squadId = sid;
         sim.addUnit(mech);
-        sim.getMechLoadouts().add(mech.entityId, MechLoadoutState.defaultLoadout(MechRole.ARMORED_SUPPORT));
+        sim.getMechLoadouts().add(mech.entityId, MechLoadoutComponent.defaultLoadout(MechRole.ARMORED_SUPPORT));
         sim.addUnit(new Entity("opp", Faction.MARINE, UnitType.MARINE, 11, 5));
 
         for (int i = 0; i < 100; i++) hitResponse.rollFallbackOnHit(mech);
