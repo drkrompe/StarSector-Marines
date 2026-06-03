@@ -90,6 +90,7 @@ a708ce8  battle: rename Unit -> Entity — the entity is its id (task #15)  ← 
 b98c706  battle: corpse path onto the archetype EntityWorld (retrofit step 2)  ← 2026-06-03
 e720e98  ecs(engine): id adoption, transmute, tolerant getFloat — the retrofit seams for live entities  ← 2026-06-03
 adb4bc9  battle: Health onto the EntityWorld — death is a row-move (retrofit step 3a)  ← 2026-06-03
+b92c8bd  battle: Position onto the EntityWorld — the corpse keeps its cell by lifecycle (retrofit step 3b)  ← 2026-06-03
 ```
 
 (Sibling tracks interleaved on HEAD, not ECS-migration: `9084ed4` battle-render
@@ -135,11 +136,23 @@ is now **built and consuming real game state**:
   world + `BattleComponents` for the transition (the RenderPositionService
   owned-sub-store precedent); the sim aliases them.
 
-**Next: step 3 continues** — Position (cellX/cellY; biggest consumer surface,
-includes the spatial-index rebuild path), Combat group, Movement, AiState;
-then fold the `Crashing`/`MechLoadout` ComponentStores into archetype
-membership; then step 4 dissolves `UnitRegistry` (id mint + dense Entity[]
-hop to the world / sim).
+- **Step 3b (Position) SHIPPED** (`b92c8bd`): live archetype
+  `{IDENTITY, POSITION, HEALTH}`; registry cellX/cellY dense arrays deleted;
+  by-id adapters `cellXById`/`cellYById`/`setCellPosById`; ~85 sites across 20
+  consumer files converted (4 Sonnet agents, disjoint buckets: TacticalScoring
+  ~55 sites / combat+infantry / squad+nav+vision+turret+air / spatial
+  indexes+render — compiler-backstop pattern, suite green first try).
+  POSITION persists alive→dead: the corpse keeps its cell **by lifecycle**
+  (death transmute row-move), not by a DeathEvent re-write — DeadBodySystem's
+  corpse-add mask dropped POSITION. Spatial indexes keep their internal
+  snapshot arrays; only their fill-reads changed.
+
+**Next: step 3 continues** — Combat group (targetId/cooldowns/attack stats —
+decide one fat Combat vs split per the open granularity question in
+archetype-storage.md), Movement (moveProgress + path ref), AiState; then fold
+the `Crashing`/`MechLoadout` ComponentStores into archetype membership; then
+step 4 dissolves `UnitRegistry` (id mint + dense Entity[] hop to the world /
+sim).
 
 ## NEW PHASE — entity-id handle (2026-06-02, in flight)
 

@@ -312,9 +312,16 @@ the sim never stores a `SpriteAPI`.
      adapters (`hpById`/`setHpById`/`maxHpById`) keep call sites on their
      existing receivers; the registry owns the world for the transition
      (ownership hops to the sim when step 4 dissolves it).
-   - **Next capabilities:** Position (cellX/cellY — big consumer surface),
-     Combat group, Movement, AiState, then fold `Crashing`/`MechLoadout`
-     ComponentStores into archetype membership.
+   - **3b SHIPPED (`b92c8bd`): Position.** Live archetype is
+     `{Identity, Position, Health}`; the registry's cellX/cellY dense arrays
+     are deleted; ~85 call sites across 20 consumer files converted to the
+     by-id adapters (`cellXById`/`cellYById`/`setCellPosById`) via a 4-agent
+     fan-out. `Position` persists alive→dead, so **"the corpse keeps its
+     cell" is now the component's own lifecycle** — the death transmute's
+     row-move carries it and `DeadBodySystem` stopped re-writing it from the
+     event snapshot.
+   - **Next capabilities:** Combat group, Movement, AiState, then fold
+     `Crashing`/`MechLoadout` ComponentStores into archetype membership.
 4. **Delete** `UnitRegistry`'s mega-table and the `LinkedHashMap`
    `ComponentStore<T>` once all columns/components live on the archetype `World`.
    The four already-migrated components (`Crashing`, `RenderPosition`, `DeadBody`,
