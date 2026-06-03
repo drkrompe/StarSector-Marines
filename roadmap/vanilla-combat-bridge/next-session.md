@@ -94,6 +94,28 @@ open "vanilla entity vs sim AirBody during descent?" question is now framed by `
 **S3c — airspace banding / AI gating** (watch unmodified ship AI against the ground band
 first; only write a `ShipAIPlugin` if it misbehaves), and **S3d** (now unblocked by the seam).
 
+## S3f–S3j — bridge render layers (NEW thread, stories written)
+
+The bridge sink (`GroundSceneBackdrop`) draws only `{GROUND, DOODADS, ROOFS}` today; the
+standalone screen draws all 17. This thread brings the rest over **one layer-bucket per
+story** — and it's *not* new render code: the seam is the already-shipped
+`renderWorld(rc, EnumSet<RenderLayer>)` (S3b). Each story = grow `SCENE_LAYERS` + `ensureX()`
+the sheets in `initOnGlThread()` + handle that layer's `RenderContext` inputs.
+
+Decomposition doc: [`render-layers.md`](render-layers.md). Stories:
+- **`stories/s3f-units-layer.md`** — `UNITS` (turret/hub bodies, footprints, dead poses, live
+  infantry, HP bars). **ACTIVE / next to build** — highest value (marines have no visual at
+  all otherwise; they're never proxied). Probe shows it on the map's turrets immediately;
+  infantry latent until `deliverSquad`. Confirmed safe: reads only sim/camera/alphaMult,
+  vision returns VIS_VISIBLE uninitialized, proxies are invisible (no double-draw).
+- **`stories/s3g-objectives-compound.md`** — `OBJECTIVES` + `COMPOUND`. Drop-in.
+- **`stories/s3h-vehicles-convoy.md`** — `VEHICLES` + `CONVOY`. Carries the null-`selection`
+  NPE gotcha (CONVOY DebugOnly overlays read `ctx.selection`).
+- **`stories/s3i-fog-highlights.md`** — `FOG` + `HIGHLIGHTS`. Design calls (fog in a
+  fleet-commander view? highlights source with no on-screen selection?).
+- **`stories/s3j-fx-fbo-retarget.md`** — `DECALS`/`LIGHTING`/`IMPACT_FX`. Hard bucket: FBO
+  blits are screen-space, need projection retarget. `SHUTTLES`/`FLYBY` are S3d's, not here.
+
 Overview open question #2 is answered: the external-damage path is `applyExternalDamage`.
 
 ## Reusable combathybrid pieces
