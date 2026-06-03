@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.combathybrid;
+package com.dillon.starsectormarines.combathybrid.probe;
 
 import com.dillon.starsectormarines.DebugOnly;
 import com.fs.starfarer.api.campaign.listeners.CampaignInputListener;

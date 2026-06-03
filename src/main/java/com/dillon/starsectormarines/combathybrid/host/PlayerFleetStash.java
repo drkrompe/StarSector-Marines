@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.combathybrid;
+package com.dillon.starsectormarines.combathybrid.host;
 
 import com.dillon.starsectormarines.DebugOnly;
 import com.fs.starfarer.api.EveryFrameScript;

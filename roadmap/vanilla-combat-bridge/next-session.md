@@ -123,10 +123,16 @@ Slices (each build-clean + committable):
   `Mode` values + their `launch*` methods + the Ctrl+Shift+N / Ctrl+Shift+J hotkeys; collapsed
   `S0BattleCreationPlugin` to just BASIC + SIM_COUPLED (no more `initCanvas`/`setupProxyTarget`/
   `canvas` field/CANVAS_* constants). Their verdicts stay sealed in `complete/`.
-- **X4b — package reorg** `bridge/` + `host/` + `probe/` (git-mv + package-infos). Remaining; the
-  mechanical part — delegate to a Sonnet subagent.
+- **X4b — package reorg** ✅ **DONE** (full build green). `combathybrid` split into `bridge/`
+  (durable adapters + config), `host/` (session lifecycle + policy plugins), `probe/` (@DebugOnly
+  dev trigger). Dependency arrow `probe → host → bridge`; package-info charter in each + umbrella
+  refreshed. Only external ref was `StarsectorMarinesModPlugin` (→ `.probe.`). git-mv, no logic
+  touched.
 
-Then resume S3g–S3j against the config-driven `GroundSceneBackdrop`.
+**The extraction is complete (X1–X4b).** The bridge now reads:
+`probe → CombatBridgeSession(GroundBattleConfig) → GroundSceneBackdrop + SimProxyMirror`. Resume
+**S3g–S3j** against the config-driven `bridge/GroundSceneBackdrop` (grow `GroundBattleConfig`'s
+`sceneLayers` / `DEFAULT_SCENE_LAYERS`). S3c (airspace/AI viability) still the independent de-risk.
 
 ## S3f–S3j — bridge render layers (thread, stories written; PAUSED for the extraction above)
 

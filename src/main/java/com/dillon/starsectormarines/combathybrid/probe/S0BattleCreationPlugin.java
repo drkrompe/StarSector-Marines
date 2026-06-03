@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.combathybrid;
+package com.dillon.starsectormarines.combathybrid.probe;
 
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.air.AirProvider;
@@ -10,6 +10,11 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.model.MapScale;
+import com.dillon.starsectormarines.combathybrid.bridge.GroundBattleConfig;
+import com.dillon.starsectormarines.combathybrid.bridge.GroundSceneBackdrop;
+import com.dillon.starsectormarines.combathybrid.bridge.SimProxyMirror;
+import com.dillon.starsectormarines.combathybrid.host.CombatBridgeSession;
+import com.dillon.starsectormarines.combathybrid.host.S0CompletionPlugin;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.BattleCreationPlugin;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;

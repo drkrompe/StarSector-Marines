@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.combathybrid;
+package com.dillon.starsectormarines.combathybrid.bridge;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Entity;

@@ -1,7 +1,10 @@
-package com.dillon.starsectormarines.combathybrid;
+package com.dillon.starsectormarines.combathybrid.host;
 
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.combathybrid.bridge.GroundBattleConfig;
+import com.dillon.starsectormarines.combathybrid.bridge.GroundSceneBackdrop;
+import com.dillon.starsectormarines.combathybrid.bridge.SimProxyMirror;
 import com.fs.starfarer.api.combat.BattleCreationContext;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.mission.FleetSide;
