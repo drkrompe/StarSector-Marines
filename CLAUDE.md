@@ -75,13 +75,17 @@ roadmap/<feature>/
 
 ## Code style
 
-- **Prefer `import` + simple name over inline fully-qualified names** in code
-  you write or edit (`Vehicle v`, not
-  `com.dillon.starsectormarines.battle.vehicle.Vehicle v`). Applies to new code;
-  not enforced retroactively — don't do sweeping FQN→import refactors of
-  existing files unasked, and a mechanical package-move rewrite that preserves a
-  file's pre-existing FQN style is fine. Javadoc `{@link}` FQN is fine — no need
-  to add an import used *solely* for a doc link.
+- **NEVER write an inline fully-qualified name. Use `import` + simple name —
+  always, in every line you write or edit.** (`Vehicle v`, not
+  `com.dillon.starsectormarines.battle.vehicle.Vehicle v`.) The ONLY exception
+  is a Javadoc `{@link}`, where an FQN is fine and needs no import. This is
+  unconditional for new/edited code: **do not "follow context clues."** If the
+  file you're editing is full of inline FQNs, you still add an import and use the
+  simple name for your additions — match the project style, never the file's bad
+  habit. (Two carve-outs that are about *not touching other code*, not about
+  writing FQN: don't do sweeping FQN→import refactors of existing files unasked,
+  and a mechanical package-move rewrite that merely preserves a file's existing
+  FQNs is fine.)
 
 ## Committing (concurrent sessions share this tree)
 
