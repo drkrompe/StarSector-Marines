@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.unit;
 import com.dillon.starsectormarines.battle.drone.Drone;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.mech.MechLoadoutState;
@@ -45,6 +46,19 @@ public class Unit {
      * logs / debug).
      */
     public long entityId = 0L;
+
+    /**
+     * Null-safe entity id of a {@link Unit} ref: {@code u.entityId}, or
+     * {@code 0L} (the "no entity" sentinel) when {@code u == null}. The single
+     * chokepoint for the "ref → id, null → 0L" convention every cross-reference
+     * setter used to hide inside its own convenience overload — now that those
+     * overloads are gone, callers write {@code world.setTargetId(self.entityId,
+     * Unit.idOf(target))}. Survives the eventual {@code Unit} → {@code Entity}
+     * rename unchanged.
+     */
+    public static long idOf(Unit u) {
+        return (u == null) ? 0L : u.entityId;
+    }
 
     /**
      * Back-reference to the registry currently holding this unit, or
@@ -141,6 +155,38 @@ public class Unit {
         // the cell + move-progress columns by index (not through the per-call
         // OO accessors, which would each re-probe the id→index map).
         int idx = idx();
+        int nextX = pathCellX(pathIdx);
+        int nextY = pathCellY(pathIdx);
+        int curX = registry.getCellX(idx);
+        int curY = registry.getCellY(idx);
+        float dx = nextX - curX;
+        float dy = nextY - curY;
+        float cellDist = (float) Math.sqrt(dx * dx + dy * dy);
+        if (cellDist < 0.0001f) { pathIdx++; return; }
+        float mp = registry.getMoveProgress(idx) + (moveSpeed * dt) / cellDist;
+        if (mp >= 1f) {
+            registry.setCellPos(idx, nextX, nextY);
+            setRenderPos(nextX, nextY);
+            registry.setMoveProgress(idx, 0f);
+            pathIdx++;
+        } else {
+            registry.setMoveProgress(idx, mp);
+            setRenderPos(curX + dx * mp, curY + dy * mp);
+        }
+    }
+
+    /**
+     * Registry-handle twin of {@link #advanceAlongPath(float)} for the
+     * post-{@code Unit.registry} world: resolves the dense slot once off the
+     * passed registry (single probe, same cost as the back-pointer form) and
+     * drives the per-tick movement step by index. Takes the registry rather
+     * than {@link World} because the step touches up to five columns per moving
+     * unit per tick — routing each through {@code world.cellX(id)} etc. would
+     * re-probe the id→index map five times where one suffices.
+     */
+    public void advanceAlongPath(UnitRegistry registry, float dt) {
+        if (pathIdx >= pathCellCount()) return;
+        int idx = registry.requireLiveIndex(entityId);
         int nextX = pathCellX(pathIdx);
         int nextY = pathCellY(pathIdx);
         int curX = registry.getCellX(idx);
@@ -471,6 +517,20 @@ public class Unit {
         registry.setBurstRemaining(idx, primaryWeapon.burstCount - 1);
         registry.setBurstTimer(idx, primaryWeapon.burstSpacing);
         registry.setBurstTargetId(idx, (target == null) ? 0L : target.entityId);
+    }
+
+    /**
+     * World-handle twin of {@link #beginBurst(Unit)} for the post-{@code
+     * Unit.registry} world: reads this unit's own immutable {@link #primaryWeapon}
+     * profile, then writes the three burst columns by id through {@code world}.
+     * Called at most once per shot per unit (not a per-tick bulk path), so the
+     * three by-id probes are fine.
+     */
+    public void beginBurst(World world, Unit target) {
+        if (primaryWeapon == null || primaryWeapon.burstCount <= 1) return;
+        world.setBurstRemaining(entityId, primaryWeapon.burstCount - 1);
+        world.setBurstTimer(entityId, primaryWeapon.burstSpacing);
+        world.setBurstTargetId(entityId, Unit.idOf(target));
     }
 
     /** Random prone-pose index rolled on death. Drives which corpse frame the renderer picks from {@link UnitType#deadSpritePath} so a battlefield has pose variety rather than every body in the same slump. -1 sentinel = unit still alive. */

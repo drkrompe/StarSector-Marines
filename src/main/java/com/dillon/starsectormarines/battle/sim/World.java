@@ -64,6 +64,16 @@ public final class World {
     // accessor. No Unit dereference. Bulk per-tick systems do NOT use these —
     // they iterate the dense arrays over [0, liveCount()).
 
+    /**
+     * Liveness for a held entity id — registered AND hp &gt; 0; {@code false}
+     * for a released/never-allocated id (including {@code 0L}). The by-id
+     * replacement for {@code Unit.isAlive()} now that {@code Unit} no longer
+     * holds a registry back-pointer: this is the <em>non</em>-fail-loud face
+     * (unlike {@link #hp}), the defined "dead/never" answer for a maybe-released
+     * ref. Mirrors {@link UnitRegistry#isAliveById}.
+     */
+    public boolean isAlive(long id) { return registry.isAliveById(id); }
+
     public float hp(long id) { return registry.getHp(registry.requireLiveIndex(id)); }
     public void setHp(long id, float v) { registry.setHp(registry.requireLiveIndex(id), v); }
 
