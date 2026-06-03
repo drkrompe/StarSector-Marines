@@ -37,17 +37,14 @@ public final class S0BattleProbe {
     public enum Mode {
         /** S0: player-piloted battle from a chosen fleet subset (requirements 1 + 2). */
         BASIC,
-        /** S0b: spectator canvas — no player ship, free cam, below-ships backdrop, no deploy dialog. */
-        SPECTATOR_CANVAS,
-        /** S2: spectator canvas + an AI carrier vs an invisible slaved proxy (proxy/avatar pattern). */
-        PROXY_TARGET,
-        /** S3a: like PROXY_TARGET, but the proxy is backed by a live sim turret — the first real coupling. */
+        /** The bridge: a spectator canvas hosting a live sim — terrain + units under the ships,
+         *  defense-post proxies the vanilla fighters strafe, sim owns the kills. */
         SIM_COUPLED
     }
 
     /** Modes that use the spectator-canvas host (empty player fleet, free cam, starved HUD). */
     public static boolean isCanvasMode(Mode m) {
-        return m == Mode.SPECTATOR_CANVAS || m == Mode.PROXY_TARGET || m == Mode.SIM_COUPLED;
+        return m == Mode.SIM_COUPLED;
     }
 
     /** How many of the player's combat-ready ships the probe fields. */
@@ -71,12 +68,6 @@ public final class S0BattleProbe {
     private static final String[] ENEMY_VARIANTS = {"vigilance_Standard", "vigilance_Strike"};
 
     /**
-     * Raised for the duration of a single {@link #launch()} so
-     * {@link CombatHybridCampaignPlugin} wins the battle-creation pick for our
-     * probe battle and only our probe battle. {@code volatile} for visibility;
-     * the game loop is single-threaded so no further synchronization is needed.
-     */
-    /**
      * Memory flag set on the synthetic enemy fleet. {@link CombatHybridCampaignPlugin}
      * matches on it in {@code pickBattleCreationPlugin} to recognize a probe battle.
      *
@@ -98,17 +89,7 @@ public final class S0BattleProbe {
         return mode;
     }
 
-    /** S0b entry point — launch the spectator canvas instead of the basic battle. */
-    public static void launchSpectatorCanvas() {
-        launch(Mode.SPECTATOR_CANVAS);
-    }
-
-    /** S2 entry point — spectator canvas with an AI carrier vs an invisible slaved proxy. */
-    public static void launchProxyTarget() {
-        launch(Mode.PROXY_TARGET);
-    }
-
-    /** S3a entry point — proxy target backed by a live sim turret (the first real coupling). */
+    /** Bridge entry point — spectator canvas hosting a live sim (terrain + units + strafable proxies). */
     public static void launchSimCoupled() {
         launch(Mode.SIM_COUPLED);
     }

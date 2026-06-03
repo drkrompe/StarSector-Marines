@@ -12,12 +12,8 @@ import java.util.List;
  * <ul>
  *   <li><b>Ctrl+Shift+B</b> → {@link S0BattleProbe#launch()} (S0: player-piloted
  *       battle from a chosen fleet subset).</li>
- *   <li><b>Ctrl+Shift+N</b> → {@link S0BattleProbe#launchSpectatorCanvas()} (S0b:
- *       spectator canvas — free cam, below-ships backdrop, no deploy dialog).</li>
- *   <li><b>Ctrl+Shift+J</b> → {@link S0BattleProbe#launchProxyTarget()} (S2: AI carrier
- *       vs an invisible slaved proxy).</li>
- *   <li><b>Ctrl+Shift+K</b> → {@link S0BattleProbe#launchSimCoupled()} (S3a: proxy
- *       backed by a live sim turret — vanilla damage drains the sim, sim death
+ *   <li><b>Ctrl+Shift+K</b> → {@link S0BattleProbe#launchSimCoupled()} (the bridge:
+ *       spectator canvas hosting a live sim — vanilla damage drains the sim, sim death
  *       despawns the proxy).</li>
  * </ul>
  *
@@ -46,16 +42,6 @@ public class CombatHybridInputListener implements CampaignInputListener {
             if (e.getEventValue() == Keyboard.KEY_B) {
                 e.consume();
                 S0BattleProbe.launch();
-                break;
-            }
-            if (e.getEventValue() == Keyboard.KEY_N) {
-                e.consume();
-                S0BattleProbe.launchSpectatorCanvas();
-                break;
-            }
-            if (e.getEventValue() == Keyboard.KEY_J) {
-                e.consume();
-                S0BattleProbe.launchProxyTarget();
                 break;
             }
             if (e.getEventValue() == Keyboard.KEY_K) {

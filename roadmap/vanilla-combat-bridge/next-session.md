@@ -118,8 +118,13 @@ Slices (each build-clean + committable):
   the session just wires them to one `GroundBattleConfig`. `S0BattleCreationPlugin` now builds the
   config (`buildSimCoupledConfig`) + routes both phases to the session + spawns scenario carriers;
   the SIM_COUPLED mode-branch collapsed. Throwaway S0b/S2 probe branches untouched.
-- **X4 — package reorg** `bridge/` + `host/` + `probe/`; delete `CanvasBackdropRenderer` +
-  `ProxyTargetPlugin` if S0b/S2 are retired.
+- **X4a — retire the spent S0b/S2 probes** ✅ **DONE** (full build green). Deleted
+  `CanvasBackdropRenderer` + `ProxyTargetPlugin`; dropped the `SPECTATOR_CANVAS`/`PROXY_TARGET`
+  `Mode` values + their `launch*` methods + the Ctrl+Shift+N / Ctrl+Shift+J hotkeys; collapsed
+  `S0BattleCreationPlugin` to just BASIC + SIM_COUPLED (no more `initCanvas`/`setupProxyTarget`/
+  `canvas` field/CANVAS_* constants). Their verdicts stay sealed in `complete/`.
+- **X4b — package reorg** `bridge/` + `host/` + `probe/` (git-mv + package-infos). Remaining; the
+  mechanical part — delegate to a Sonnet subagent.
 
 Then resume S3g–S3j against the config-driven `GroundSceneBackdrop`.
 
@@ -153,11 +158,13 @@ Overview open question #2 is answered: the external-damage path is `applyExterna
 ## Reusable combathybrid pieces
 
 - `CombatHybridCampaignPlugin` — tag-armed `BattleCreationPlugin` selection (`PROBE_FLAG`).
-- `S0BattleProbe` — launch + `Mode` {BASIC, SPECTATOR_CANVAS, PROXY_TARGET, SIM_COUPLED} + `PlayerFleetStash`.
+- `S0BattleProbe` — launch + `Mode` {BASIC, SIM_COUPLED} + `PlayerFleetStash` (S0b/S2 modes retired in X4a).
+- `CombatBridgeSession` — orchestrates the SIM_COUPLED vanilla-side lifecycle (`defineBattle` + `enterEngine`), delegating to the policy/adapter plugins.
+- `GroundBattleConfig` — host-agnostic battle snapshot (sim + grid + scale + render-layer set + targetable + proxy variant + damage scale).
+- `GroundSceneBackdrop` / `SimProxyMirror` — the durable render sink + sim⇄vanilla coupling.
 - `SpectatorCanvasPlugin` — free cam (`viewport.set()`-based), HUD starve, fleet restore.
-- `CanvasBackdropRenderer` — below-ships render layer (`SolidQuadBatch` + `GlStateBracket`).
-- `ProxyTargetPlugin` — the proxy/avatar pattern (pin + invisible + HP drain + marker).
 - Scale: `WORLD_UNITS_PER_CELL = 20` (lowered from 50 after S3b playtest). Real variant ids validated before spawn.
+- *Retired (X4a):* `CanvasBackdropRenderer` (grid plate, superseded by `GroundSceneBackdrop`), `ProxyTargetPlugin` (single-proxy probe, superseded by `SimProxyMirror`). Verdicts sealed in `complete/`.
 
 ## Gotchas (also in the `startbattle_plugin_pick_deferred` memory + overview facts)
 
