@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -199,6 +200,69 @@ public class EntityWorldTest {
         assertEquals(1, world.entityCount());
         assertTrue(world.isAlive(es[0]));
         assertEquals(0, world.getInt(es[0], POSITION, 0));
+    }
+
+    @Test
+    public void adoptedIdCreatesEntityAndProtectsTheInternalMint() {
+        world = fresh();
+        world.createEntity(500L, POSITION, HEALTH);   // externally-minted id
+
+        assertTrue(world.isAlive(500L));
+        assertTrue(world.has(500L, HEALTH));
+        long minted = world.createEntity(POSITION);
+        assertTrue(minted > 500L, "internal mint bumped past the adopted id — no collision");
+
+        assertThrows(IllegalArgumentException.class, () -> world.createEntity(0L, POSITION),
+                "0 is the no-entity sentinel");
+        assertThrows(IllegalStateException.class, () -> world.createEntity(500L, POSITION),
+                "adopting an alive id is a loud setup bug");
+    }
+
+    @Test
+    public void transmuteIsOneMoveToTheCombinedArchetype() {
+        world = fresh();
+        long e = world.createEntity(POSITION, HEALTH);
+        world.setInt(e, POSITION, 0, 11);
+        world.setFloat(e, HEALTH, 0, 3f);
+
+        world.transmute(e, new ComponentType[]{TARGET, CORPSE}, new ComponentType[]{HEALTH});
+
+        assertTrue(world.has(e, TARGET));
+        assertTrue(world.has(e, CORPSE));
+        assertFalse(world.has(e, HEALTH));
+        assertEquals(11, world.getInt(e, POSITION, 0), "shared column survives the single row-move");
+        assertEquals(0L, world.getLong(e, TARGET, 0), "added component starts at default");
+        // No intermediate archetypes were registered: {P,H} -> {P,T,C} directly,
+        // so a {P} or {P,T} table never came into existence for a query to match.
+        Query posOnly = world.query(new ComponentType[]{POSITION}, new ComponentType[]{HEALTH, TARGET});
+        assertEquals(0, rows(posOnly), "no {Position}-only intermediate table holds rows");
+    }
+
+    @Test
+    public void transmuteWithNoMaskChangeIsIdempotentNoOp() {
+        world = fresh();
+        long e = world.createEntity(POSITION, CORPSE);
+        world.setInt(e, POSITION, 0, 4);
+
+        // Removing an absent component + adding a present one — mask unchanged.
+        world.transmute(e, new ComponentType[]{CORPSE}, new ComponentType[]{HEALTH});
+
+        assertEquals(4, world.getInt(e, POSITION, 0), "row untouched by the no-op");
+        assertTrue(world.has(e, CORPSE));
+        assertFalse(world.has(e, HEALTH));
+    }
+
+    @Test
+    public void tolerantGetFloatAnswersForMissingEntityAndMissingComponent() {
+        world = fresh();
+        long e = world.createEntity(POSITION, HEALTH);
+        world.setFloat(e, HEALTH, 0, 7f);
+
+        assertEquals(7f, world.getFloat(e, HEALTH, 0, -1f), "present → real value");
+        assertEquals(-1f, world.getFloat(e, NAME, 0, -1f), "component absent → orElse");
+        assertEquals(-1f, world.getFloat(999L, HEALTH, 0, -1f), "entity missing → orElse");
+        world.destroy(e);
+        assertEquals(-1f, world.getFloat(e, HEALTH, 0, -1f), "destroyed → orElse");
     }
 
     private int rows(Query q) {

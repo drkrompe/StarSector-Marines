@@ -62,6 +62,24 @@ public final class EntityWorld {
         return id;
     }
 
+    /**
+     * Creates an entity under an <b>externally-minted</b> id — the adoption seam
+     * for migration, where another authority (the transitional dense registry)
+     * still mints game entity ids. The internal mint is bumped past {@code id}
+     * so future {@link #createEntity(ComponentType...)} calls can never collide
+     * with an adopted id. {@code id} must be positive ({@code 0} is the no-entity
+     * sentinel) and not already alive.
+     */
+    public void createEntity(long id, ComponentType... comps) {
+        if (id <= 0L) throw new IllegalArgumentException("adopted entity id must be positive: " + id);
+        if (location.get(id) != -1L) throw new IllegalStateException("entity " + id + " already alive");
+        long mask = maskOf(comps);
+        int tableIdx = tableIndexForMask(mask);
+        int row = tables.get(tableIdx).append(id);
+        location.put(id, pack(tableIdx, row));
+        nextEntityId = Math.max(nextEntityId, id + 1);
+    }
+
     public boolean isAlive(long entity) { return location.get(entity) != -1L; }
 
     public void destroy(long entity) {
@@ -90,6 +108,25 @@ public final class EntityWorld {
         transition(entity, loc, newMask);
     }
 
+    /**
+     * Applies several component adds/removes as <b>one</b> row-move to the
+     * combined target archetype (the Artemis {@code EntityTransmuter} analogue) —
+     * a multi-component change via chained {@link #addComponent}/{@link
+     * #removeComponent} would pay one row-move each and register every
+     * intermediate archetype as a permanent table. No-op when the mask doesn't
+     * change, which also makes a repeated transmute (e.g. a double death event)
+     * idempotent. Either array may be null/empty.
+     */
+    public void transmute(long entity, ComponentType[] add, ComponentType[] remove) {
+        long loc = requireLoc(entity);
+        long mask = tables.get(tableIdx(loc)).mask;
+        long newMask = mask;
+        if (add != null) for (ComponentType ct : add) newMask |= ct.bit();
+        if (remove != null) for (ComponentType ct : remove) newMask &= ~ct.bit();
+        if (newMask == mask) return;
+        transition(entity, loc, newMask);
+    }
+
     public boolean has(long entity, ComponentType ct) {
         long loc = location.get(entity);
         return loc != -1L && (tables.get(tableIdx(loc)).mask & ct.bit()) != 0;
@@ -102,6 +139,13 @@ public final class EntityWorld {
     public long   getLong(long e, ComponentType ct, int f)   { long l = requireLoc(e); return tables.get(tableIdx(l)).longs(ct, f).get(row(l)); }
     public void   setLong(long e, ComponentType ct, int f, long v)  { long l = requireLoc(e); tables.get(tableIdx(l)).longs(ct, f).set(row(l), v); }
     public float  getFloat(long e, ComponentType ct, int f)  { long l = requireLoc(e); return tables.get(tableIdx(l)).floats(ct, f).get(row(l)); }
+    /** Tolerant read: {@code orElse} when {@code e} is missing or lacks {@code ct} — one location probe, for liveness-style checks over maybe-dead ids. */
+    public float  getFloat(long e, ComponentType ct, int f, float orElse) {
+        long l = location.get(e);
+        if (l == -1L) return orElse;
+        ArchetypeTable t = tables.get(tableIdx(l));
+        return (t.mask & ct.bit()) == 0L ? orElse : t.floats(ct, f).get(row(l));
+    }
     public void   setFloat(long e, ComponentType ct, int f, float v){ long l = requireLoc(e); tables.get(tableIdx(l)).floats(ct, f).set(row(l), v); }
     public Object getObject(long e, ComponentType ct, int f) { long l = requireLoc(e); return tables.get(tableIdx(l)).objects(ct, f).get(row(l)); }
     public void   setObject(long e, ComponentType ct, int f, Object v) { long l = requireLoc(e); tables.get(tableIdx(l)).objects(ct, f).set(row(l), v); }
