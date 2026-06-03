@@ -111,8 +111,13 @@ Slices (each build-clean + committable):
   log + the amber crosshair markers gone (S3f UNITS is the real unit visual); log prefixes
   `S3a:` → `ground-bridge:`; class Javadoc reframed from probe to durable core. Renamed via IntelliJ
   `rename_refactoring` (22 usages, file + symbol). Per-file clean.
-- **X3 — `CombatBridgeSession` host object.** Extract the lifecycle/wiring behind one object the
-  creation plugin delegates to; mode branch collapses.
+- **X3 — `CombatBridgeSession` host object** ✅ **DONE** (full build green). A thin orchestrator
+  (not a god class): owns the SIM_COUPLED vanilla-side lifecycle across two phases — `defineBattle`
+  (spectator canvas fleets/map + completion + camera policy plugins) and `enterEngine` (detach
+  player ship, never-end objective, backdrop + proxy mirror). Every behavior stays in a delegate;
+  the session just wires them to one `GroundBattleConfig`. `S0BattleCreationPlugin` now builds the
+  config (`buildSimCoupledConfig`) + routes both phases to the session + spawns scenario carriers;
+  the SIM_COUPLED mode-branch collapsed. Throwaway S0b/S2 probe branches untouched.
 - **X4 — package reorg** `bridge/` + `host/` + `probe/`; delete `CanvasBackdropRenderer` +
   `ProxyTargetPlugin` if S0b/S2 are retired.
 

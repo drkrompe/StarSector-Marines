@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.air.AirProvider;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -41,12 +40,12 @@ import java.util.Random;
  *   <li><b>PROXY_TARGET</b> — S2. Same spectator host, but spawns an AI carrier on the
  *       player side and a single invisible owner-1 proxy ({@link ProxyTargetPlugin}) to
  *       test whether native carrier/fighter AI engages a slaved sim avatar.</li>
- *   <li><b>SIM_COUPLED</b> — S3a/S3b. Loads the real Conquest map at LARGE into one
- *       {@link BattleSimulation}, renders its terrain + structures under the ships
- *       ({@link GroundSceneBackdrop}), and mirrors the map's defense-post turrets as
- *       proxies ({@link SimProxyMirror}) so vanilla fighters strafe the planet's actual
- *       defenses — sim deaths despawn the proxies. The sim is built outside the combat
- *       plugins on purpose.</li>
+ *   <li><b>SIM_COUPLED</b> — the durable bridge path. {@link #buildSimCoupledConfig} loads the
+ *       real Conquest map at LARGE into one {@link BattleSimulation} and packs it into a
+ *       {@link GroundBattleConfig}; a {@link CombatBridgeSession} then owns the whole vanilla-side
+ *       lifecycle (spectator canvas + completion, then the backdrop + proxy mirror over the sim).
+ *       This plugin only builds the config, routes the two phases to the session, and spawns the
+ *       scenario carriers. Unlike the throwaway probe branches above, this is the production shape.</li>
  * </ul>
  */
 @DebugOnly
@@ -76,6 +75,8 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
     private static final long SIM_MAP_SEED = 42L;
 
     private boolean canvas;
+    /** Built for SIM_COUPLED: the bridge host orchestrator that owns that mode's vanilla-side lifecycle. */
+    private CombatBridgeSession session;
 
     @Override
     public void initBattle(BattleCreationContext context, MissionDefinitionAPI loader) {
@@ -83,7 +84,12 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
         LOG.info("S0BattleCreationPlugin SELECTED — building probe battle [mode="
                 + S0BattleProbe.mode() + "]");
 
-        if (canvas) {
+        if (S0BattleProbe.mode() == S0BattleProbe.Mode.SIM_COUPLED) {
+            // The durable bridge path: build the sim-coupled config, then let the session
+            // own both combat-side phases (definition here, engine wiring in afterDefinitionLoad).
+            session = new CombatBridgeSession(buildSimCoupledConfig());
+            session.defineBattle(context, loader);
+        } else if (canvas) {
             initCanvas(context, loader);
         } else {
             initBasic(context, loader);
@@ -133,23 +139,28 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
 
     @Override
     public void afterDefinitionLoad(CombatEngineAPI engine) {
+        float halfH = canvasGrid().height * S0BattleProbe.WORLD_UNITS_PER_CELL * 0.5f;
+
+        if (S0BattleProbe.mode() == S0BattleProbe.Mode.SIM_COUPLED) {
+            // Scenario content: the vanilla carriers "above" whose fighters strafe the
+            // planet's defenses. The session owns the durable engine-side wiring (detach,
+            // backdrop, proxy mirror, never-end objective).
+            spawnRow(engine, FleetSide.PLAYER, PROXY_CARRIER_SHIPS, -halfH * 0.6f, 90f, 900f);
+            session.enterEngine(engine);
+            return;
+        }
+
         if (!canvas) {
             return; // BASIC: S0CompletionPlugin handles everything.
         }
 
         // Spectator: detach the camera's owner so no ship is player-piloted.
         engine.setPlayerShipExternal(null);
-        // Placeholder grid plate under the ships (verified fact 10). SIM_COUPLED draws
-        // the real ground scene instead (GroundSceneBackdrop), so skip the grid there.
-        if (S0BattleProbe.mode() != S0BattleProbe.Mode.SIM_COUPLED) {
-            engine.addLayeredRenderingPlugin(new CanvasBackdropRenderer(
-                    CANVAS_GRID.width, CANVAS_GRID.height, S0BattleProbe.WORLD_UNITS_PER_CELL));
-        }
+        // Placeholder grid plate under the ships (verified fact 10).
+        engine.addLayeredRenderingPlugin(new CanvasBackdropRenderer(
+                CANVAS_GRID.width, CANVAS_GRID.height, S0BattleProbe.WORLD_UNITS_PER_CELL));
 
-        float halfH = canvasGrid().height * S0BattleProbe.WORLD_UNITS_PER_CELL * 0.5f;
-        if (S0BattleProbe.mode() == S0BattleProbe.Mode.SIM_COUPLED) {
-            setupSimCoupled(engine, halfH);
-        } else if (S0BattleProbe.mode() == S0BattleProbe.Mode.PROXY_TARGET) {
+        if (S0BattleProbe.mode() == S0BattleProbe.Mode.PROXY_TARGET) {
             setupProxyTarget(engine, halfH);
         } else {
             float spawnY = halfH * 0.6f;
@@ -159,33 +170,30 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
     }
 
     /**
-     * S3a (fan-out) + S3b (backdrop): the real <b>Conquest map at the LARGE tier</b> under
-     * the fleet. We generate the map exactly as
+     * S3a (fan-out) + S3b (backdrop): build the {@link GroundBattleConfig} for the bridge — the real
+     * <b>Conquest map at the LARGE tier</b> under the fleet. We generate the map exactly as
      * {@link com.dillon.starsectormarines.battle.setup.BattleSetup#createConquest} does —
      * biome-banded along a {@link TraversalAxis}, with buildings, doodads, roads, and the
-     * pre-stamped defense-post layout — but stop at the <em>map</em>: no marines,
-     * defenders, shuttles, or reinforcement (that's the battle, not the map). The
-     * defense-post turrets are spawned as real targetable structures and mirrored as
-     * proxies, so the carriers' fighters strafe the planet's actual defenses.
+     * pre-stamped defense-post layout — but stop at the <em>map</em>: no marines, defenders,
+     * shuttles, or reinforcement (that's the battle, not the map). The defense-post turrets become
+     * real targetable structures the {@link SimProxyMirror} mirrors as proxies, so the carriers'
+     * fighters strafe the planet's actual defenses.
      *
-     * <p>One {@link BattleSimulation}, built here outside the combat plugins (so the
-     * engine's repeated {@code init} can't rebuild it); the {@link GroundSceneBackdrop}
-     * renders its terrain + structures and the {@link SimProxyMirror} drives the
-     * proxy/damage coupling — both over the same instance.
+     * <p>One {@link BattleSimulation}, built here in the definition phase (called once) and handed
+     * to the {@link CombatBridgeSession} via the config — never rebuilt by the per-frame plugins'
+     * repeated {@code init}.
      */
-    private void setupSimCoupled(CombatEngineAPI engine, float halfH) {
-        spawnRow(engine, FleetSide.PLAYER, PROXY_CARRIER_SHIPS, -halfH * 0.6f, 90f, 900f);
-
+    private GroundBattleConfig buildSimCoupledConfig() {
         MapScale scale = canvasGrid();           // LARGE for SIM_COUPLED
         int gridW = scale.width, gridH = scale.height;
         Random rng = new Random(SIM_MAP_SEED);
         TraversalAxis axis = rng.nextBoolean() ? TraversalAxis.SOUTH_TO_NORTH : TraversalAxis.WEST_TO_EAST;
         MapResult map = new BspCityGenerator().generate(gridW, gridH, SIM_MAP_SEED, axis, TargetProfile.NEUTRAL);
 
-        // Build the host-agnostic map layer through the SAME path the standalone battle
-        // uses (BattleSetup.buildMap) — terrain, structures, and the defense-post turrets,
-        // no reimplementation to drift. No parked vehicles: this is a map-only probe and
-        // they'd be invisible obstacles in the backdrop's GROUND/DOODADS/ROOFS subset.
+        // Build the host-agnostic map layer through the SAME path the standalone battle uses
+        // (BattleSetup.buildMap) — terrain, structures, and the defense-post turrets, no
+        // reimplementation to drift. No parked vehicles: this is a map-only probe and they'd be
+        // invisible obstacles in the backdrop's GROUND/DOODADS/ROOFS subset.
         BattleSetup.MapBuild build = BattleSetup.buildMap(map, List.of(), map.defensePosts);
         BattleSimulation sim = build.sim();
         // The real vanilla ships above own the air — the sim runs no internal shuttle/flyby.
@@ -195,16 +203,10 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
         LOG.info("S3: loaded Conquest map [" + scale + " " + gridW + "x" + gridH + ", axis=" + axis
                 + "] — " + map.defensePosts.size() + " defense posts, " + targetable.size() + " targetable structures.");
 
-        // Keep the all-DEFENDER sim from auto-completing (a completed sim early-returns
-        // from advance() and would strand the death events).
-        sim.addObjective(new NeverEndObjective(Faction.DEFENDER));
-
-        GroundBattleConfig cfg = new GroundBattleConfig(
+        return new GroundBattleConfig(
                 sim, gridW, gridH, S0BattleProbe.WORLD_UNITS_PER_CELL,
                 GroundBattleConfig.DEFAULT_SCENE_LAYERS, targetable, PROXY_VARIANT,
                 GroundBattleConfig.DEFAULT_DAMAGE_SCALE);
-        engine.addLayeredRenderingPlugin(new GroundSceneBackdrop(cfg));
-        engine.addPlugin(new SimProxyMirror(cfg));
     }
 
     /** S2: AI carrier(s) on the player side + one invisible slaved proxy on the enemy side. */
