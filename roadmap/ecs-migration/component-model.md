@@ -125,10 +125,27 @@ the component boundaries now so Valhalla is a layout swap, not a rewrite.
     entity present in the dead-body + render-position stores and absent from the
     live registry's health/AI — the composition target, realized. All four
     Bucket-B corpse-readers are off the legacy list.
+  - **B2.7 first BEHAVIORAL optional capability SHIPPED — `mech` (2026-06-02).**
+    `Entity.mech` (nullable `MechLoadoutState` field) → a presence component in
+    `ComponentStore<MechLoadoutState>`. Where the corpse/render components were
+    death/draw state, this is the first *live-behavior* capability done as
+    composition: the mech-fire pass iterates the component-set (`HeavyWeapons`
+    over the store's `entries()`, not a registry scan for `u.mech != null`), and
+    every nullable-field null-check (`DamageResolver`, `HitResponseService`,
+    `SquadMoraleSystem`, the mech GOAP behaviors, `CombatantBehavior` dispatch) is
+    now a store presence lookup. Meets the `component-grouping` acceptance: **zero
+    nullable-field if/else for the mech capability.** Validated the cold-face
+    guardrail in practice — added zero-alloc `World.component(id, type)` /
+    `hasComponent(id, type)` for the per-tick decide paths, reserving the
+    allocating `world.id(id).getOrNull` sugar for incidental reads. Field deleted;
+    spawn attaches the component post-`addUnit` (keyed by entity id),
+    `UnitType.isMech()` carries mech-ness where the component isn't attached yet
+    (squad-type at mint), `MechWreckSystem` detaches it on wreck spawn.
   - **Next:** Bucket-A sweep — the ~20 live-iterators move `getUnits()` → dense
     registry; then Bucket-C, delete the list, revert Group-N accessors to
     fail-loud. Plus B1 grouping for the dense columns (Position/Combat/… structs)
-    when a consumer pulls it.
+    when a consumer pulls it. Remaining optional fields (secondaryWeapon/ammo,
+    assignedObjective, equipmentDropTarget) get the `mech` treatment when motivated.
 - **Phase C — deferred (gated on heterogeneity).** Generic aspect /
   presence-bitset queries and (if ever) multi-archetype storage. Only when
   branch-on-`role` + sentinel columns measurably cost more than a bitset

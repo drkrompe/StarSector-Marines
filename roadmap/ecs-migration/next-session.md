@@ -73,6 +73,7 @@ e038706  battle: SoA Group-S seed-only stats — collapse the local* duality (Ph
 65a61f1  battle: registry-deletion sweep — production callers off Unit accessors  ← 2026-06-02
 335cce8  battle: DELETE Unit.registry — the back-pointer is gone  ← 2026-06-02
 a708ce8  battle: rename Unit -> Entity — the entity is its id (task #15)  ← 2026-06-02
+3718047  battle: model mech loadout as a presence component, delete Entity.mech (task #13)  ← 2026-06-02
 ```
 
 (Sibling tracks interleaved on HEAD, not ECS-migration: `9084ed4` battle-render
@@ -261,11 +262,37 @@ reference `entityId` instead** (the dangling-ref NPE class). New story:
          was on and also rewrote ~22 roadmap `.md` docs — reverted via
          `git checkout` to keep historical narrative accurate; the rename commit is
          code-only.)
-   - **Remaining (task #13):** model `mech` & other optional `Entity` fields
-     (secondaryWeapon/secondaryAmmo, assignedObjective, equipmentDropTarget) as
-     `ComponentStore`s (the cold face) — composition by presence, not nullable
-     fields on `Entity`. `denseIdx` + `registry` deletion and the `Entity` rename
-     are all DONE.
+   - **Task #13 — `mech` → `ComponentStore` SHIPPED (2026-06-02).** `Entity.mech`
+     (the nullable `MechLoadoutState` field) is DELETED; the loadout is now a
+     presence component in `ComponentStore<MechLoadoutState>` (owned by
+     `BattleSimulation`, wired into `World`'s cold-face store map, exposed via
+     `getMechLoadouts()`). This is the **first behavioral optional-capability**
+     modeled as composition (after the corpse/render components) — meets the
+     `component-grouping` acceptance ("zero nullable-field if/else for that
+     capability"). Access shapes, by hot/cold split:
+       - **Mech-fire bulk pass** (`HeavyWeapons.advanceMechWeapons`) iterates the
+         store's `entries()` directly — only mech entities, no scan over the whole
+         registry for a former `u.mech != null` (the composition win).
+       - **Systems** (`DamageResolver`, `HitResponseService`, `SquadMoraleSystem`,
+         `MechWreckSystem`) take the concrete store injected and use
+         `store.get(id)` / `.has(id)` — zero-alloc, mirrors how `DroneCrashSystem`
+         takes `crashing`.
+       - **Per-tick decide code** (mech GOAP behaviors/actions/goals,
+         `CombatantBehavior` dispatch) uses the new zero-alloc facade primitives
+         `world.component(id, type)` / `world.hasComponent(id, type)` — NOT the
+         allocating `world.id(id).getOrNull` (honours "never materialize a
+         component in a per-tick bulk loop"). The static mech-fire helpers now take
+         `MechLoadoutState m` as a param (resolved once by the caller).
+       - **Spawn**: `BattleSetup.attachMechLoadout` adds the component AFTER
+         `addUnit` (store keyed by `entityId`, assigned at allocate). `mintSquad`
+         derives `mechSquad` from the new `UnitType.isMech()` (mech-ness known
+         before the component is attached). **Lifecycle**: `MechWreckSystem.onDeath`
+         removes the component when the wreck spawns (mirrors `Crashing`).
+       Build clean, suite green at 734.
+     - **Still open under #13 (optional, lower payoff):** the other nullable
+       `Entity` capability fields — `secondaryWeapon`/`secondaryAmmo`,
+       `assignedObjective`, `equipmentDropTarget`. Same component-as-presence
+       treatment when motivated; `mech` proved the shape.
    Design LOCKED with the user (2026-06-02): a **two-faced `World`** facade over
    the existing stores. **Hot face** = primitive by-id accessors (`world.hp(id)`,
    `cellX/Y`, `renderX/Y`, combat stats) backed directly by the dense SoA — zero
