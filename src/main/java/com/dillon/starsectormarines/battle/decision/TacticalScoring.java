@@ -8,7 +8,7 @@ import com.dillon.starsectormarines.battle.world.model.DoodadService;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
@@ -170,7 +170,7 @@ public final class TacticalScoring {
 
     /**
      * Seconds of unit travel that govern the fall-back candidate scan radius.
-     * Multiplied by {@link Unit#moveSpeed} (cells/sec) and clamped to
+     * Multiplied by {@link Entity#moveSpeed} (cells/sec) and clamped to
      * [{@link #FALLBACK_SCAN_RANGE_MIN}, {@link #FALLBACK_SCAN_RANGE_MAX}].
      * Fast units sprint farther for cover; slow units (mechs) stay short.
      * A baseline 2.0-speed marine lands at 10, slightly farther than the
@@ -251,7 +251,7 @@ public final class TacticalScoring {
      * visible targets; falls back to nearest of any LOS so the unit pathfinds
      * toward them and visibility eventually opens.
      */
-    public Unit findBestTarget(Unit self) {
+    public Entity findBestTarget(Entity self) {
         int idx = registry.requireLiveIndex(self.entityId);
         return findBestTarget(registry.getCellX(idx), registry.getCellY(idx), self.faction, self.squadId, self,
                 self.airLosRadius);
@@ -260,7 +260,7 @@ public final class TacticalScoring {
     /**
      * Stickiness gate for {@code self.target}: keeps the current target only
      * while it's still shootable from {@code self}'s current cell (alive,
-     * within {@link Unit#attackRange}, and with line of sight). Anything
+     * within {@link Entity#attackRange}, and with line of sight). Anything
      * outside that — dead, out of range, behind cover — drops the cached pick
      * and re-runs {@link #findBestTarget}, so a closer visible enemy that
      * stepped into LoS while we were locked onto someone now-unshootable wins
@@ -276,11 +276,11 @@ public final class TacticalScoring {
      * returned target because the per-weapon fire gate handles that downstream;
      * we only ask "is the current pick clearly the wrong choice right now?".
      */
-    public Unit refreshTargetIfNotShootable(Unit self) {
+    public Entity refreshTargetIfNotShootable(Entity self) {
         int selfIdx = registry.requireLiveIndex(self.entityId);
         int sx = registry.getCellX(selfIdx);
         int sy = registry.getCellY(selfIdx);
-        Unit cur = registry.getOrNull(registry.getTargetId(selfIdx));
+        Entity cur = registry.getOrNull(registry.getTargetId(selfIdx));
         if (cur != null) {
             int curIdx = registry.requireLiveIndex(cur.entityId);
             int cx = registry.getCellX(curIdx);
@@ -294,15 +294,15 @@ public final class TacticalScoring {
     }
 
     /**
-     * Primitive-args overload — used by callers that aren't a {@link Unit}
+     * Primitive-args overload — used by callers that aren't a {@link Entity}
      * themselves (today: shuttle-mounted turrets, which live as data on a
      * {@link com.dillon.starsectormarines.battle.air.Shuttle} rather than as
-     * grid entities). The selection logic is identical; pass {@link Unit#NO_SQUAD}
+     * grid entities). The selection logic is identical; pass {@link Entity#NO_SQUAD}
      * for {@code squadId} and {@code null} for {@code excludeFromCrowding}
      * when the caller doesn't squad up and isn't itself in the unit list.
      */
-    public Unit findBestTarget(int selfCellX, int selfCellY, Faction selfFaction,
-                               int selfSquadId, Unit excludeFromCrowding) {
+    public Entity findBestTarget(int selfCellX, int selfCellY, Faction selfFaction,
+                                 int selfSquadId, Entity excludeFromCrowding) {
         return findBestTarget(selfCellX, selfCellY, selfFaction, selfSquadId, excludeFromCrowding,
                 0f);
     }
@@ -311,7 +311,7 @@ public final class TacticalScoring {
      * Air-LoS aware overload — when {@code shooterAirRadius > 0}, walls within
      * that many cells of the shooter's position are treated as transparent
      * (shuttle-mounted turrets hovering above a building's footprint). When
-     * the candidate target has its own {@link Unit#airLosRadius} > 0 (drones),
+     * the candidate target has its own {@link Entity#airLosRadius} > 0 (drones),
      * walls within that radius of the target are also transparent — making
      * the LoS rule symmetric so a marine standing under a drone can fire up
      * at it through the same close-wall band that the drone fires down through.
@@ -329,7 +329,7 @@ public final class TacticalScoring {
      * the picker drops them in favor of an isolated enemy or no-target.
      *
      * <p><b>Weapon affinity</b> — when {@code excludeFromCrowding} is a
-     * {@link Unit} (the marine's own callers pass {@code self} here), hardened
+     * {@link Entity} (the marine's own callers pass {@code self} here), hardened
      * targets (turrets + heavy mechs) get a per-marine score adjustment based
      * on {@code primary.vsTurretMult} / {@code secondary.vsTurretMult}.
      * Rocketeers prefer mechs; rifle/SMG marines prefer infantry. With one
@@ -342,9 +342,9 @@ public final class TacticalScoring {
      * When no enemy combatants remain anywhere the method returns null —
      * caller treats null as "hold position, no target."
      */
-    public Unit findBestTarget(int selfCellX, int selfCellY, Faction selfFaction,
-                               int selfSquadId, Unit excludeFromCrowding,
-                               float shooterAirRadius) {
+    public Entity findBestTarget(int selfCellX, int selfCellY, Faction selfFaction,
+                                 int selfSquadId, Entity excludeFromCrowding,
+                                 float shooterAirRadius) {
         return findBestTarget(selfCellX, selfCellY, selfFaction, selfSquadId,
                 excludeFromCrowding, shooterAirRadius, /*allowNoLos*/ false);
     }
@@ -358,9 +358,9 @@ public final class TacticalScoring {
      * scored; the any-distance bucket still tracks the nearest non-visible
      * enemy for the path-toward-them fallback.
      */
-    public Unit findBestTarget(int selfCellX, int selfCellY, Faction selfFaction,
-                               int selfSquadId, Unit excludeFromCrowding,
-                               float shooterAirRadius, boolean allowNoLos) {
+    public Entity findBestTarget(int selfCellX, int selfCellY, Faction selfFaction,
+                                 int selfSquadId, Entity excludeFromCrowding,
+                                 float shooterAirRadius, boolean allowNoLos) {
         long _profT0 = System.nanoTime();
         try {
             return findBestTargetImpl(selfCellX, selfCellY, selfFaction, selfSquadId,
@@ -371,25 +371,25 @@ public final class TacticalScoring {
         }
     }
 
-    private Unit findBestTargetImpl(int selfCellX, int selfCellY, Faction selfFaction,
-                                     int selfSquadId, Unit excludeFromCrowding,
-                                     float shooterAirRadius, boolean allowNoLos) {
+    private Entity findBestTargetImpl(int selfCellX, int selfCellY, Faction selfFaction,
+                                      int selfSquadId, Entity excludeFromCrowding,
+                                      float shooterAirRadius, boolean allowNoLos) {
         // SoA consumer: dense iteration over [0, liveCount()) implicitly
         // excludes released slots (no isAlive() filter inside the loop), and
         // cellX/cellY reads stream from the int[] arrays in tandem.
 
-        Unit[] dense = registry.denseArray();
+        Entity[] dense = registry.denseArray();
         int[] cellX = registry.cellXArray();
         int[] cellY = registry.cellYArray();
         int liveCount = registry.liveCount();
 
-        Unit best = null;
+        Entity best = null;
         float bestScore = Float.MAX_VALUE;
-        Unit bestAny = null;
+        Entity bestAny = null;
         float bestAnyDist = Float.MAX_VALUE;
 
         for (int i = 0; i < liveCount; i++) {
-            Unit other = dense[i];
+            Entity other = dense[i];
             if (other.faction == selfFaction) continue;
             // Civilians and other non-combatants don't draw fire — they're
             // bystanders. A separate "rules of engagement" toggle could relax
@@ -443,10 +443,10 @@ public final class TacticalScoring {
      * a strong negative adjustment (bonus); rifles (0.3×) earn a positive one
      * (penalty). Soft targets are baseline (no adjustment).
      *
-     * <p>{@code self} is nullable for non-Unit callers (shuttle / static
+     * <p>{@code self} is nullable for non-Entity callers (shuttle / static
      * turrets) — they get no affinity term.
      */
-    private static float scoreWeaponAffinity(Unit self, Unit target) {
+    private static float scoreWeaponAffinity(Entity self, Entity target) {
         if (self == null) return 0f;
         if (!isHardened(target)) return 0f;
         float primary = self.primaryWeapon != null ? self.primaryWeapon.vsTurretMult : 0.3f;
@@ -480,7 +480,7 @@ public final class TacticalScoring {
      * marines burn a rocket on anything that earns the {@code vsTurretMult}
      * (3.5×) bonus payoff.
      */
-    public static boolean isHardened(Unit target) {
+    public static boolean isHardened(Entity target) {
         if (target instanceof MapTurret) return true;
         if (target instanceof DroneHubUnit) return true;
         return target.type == UnitType.HEAVY_MECH;
@@ -492,7 +492,7 @@ public final class TacticalScoring {
      * the pairings where the rocket's {@code vsTurretMult} bonus damage pays
      * off. Centralizes the check used by {@link #effectiveAttackRange}.
      */
-    public static boolean canRocketTarget(Unit shooter, Unit target) {
+    public static boolean canRocketTarget(Entity shooter, Entity target) {
         return isHardened(target)
                 && shooter.secondaryWeapon != null
                 && shooter.secondaryAmmo > 0;
@@ -506,7 +506,7 @@ public final class TacticalScoring {
      * act-here gate and the firing-position picker so a rocketeer doesn't have
      * to close to rifle range before firing.
      */
-    public static float effectiveAttackRange(Unit shooter, Unit target, float shooterAttackRange) {
+    public static float effectiveAttackRange(Entity shooter, Entity target, float shooterAttackRange) {
         if (canRocketTarget(shooter, target)) {
             return Math.max(shooterAttackRange, shooter.secondaryWeapon.range);
         }
@@ -522,15 +522,15 @@ public final class TacticalScoring {
      *
      * <p>Caller is responsible for {@code target} being a sensible rocket
      * target ({@link #isHardened}) — the gate doesn't re-check eligibility,
-     * just the damage projection. Pass any {@link Unit}; the per-target HP
-     * read works on the full unit hierarchy ({@code Unit.getHp()} is the
+     * just the damage projection. Pass any {@link Entity}; the per-target HP
+     * read works on the full unit hierarchy ({@code Entity.getHp()} is the
      * canonical SoA-routed accessor for both regular units and turrets).
      *
      * <p>{@code shooter} is excluded from the projection so the same marine
      * re-checking on a later tick (after his own cooldown) isn't blocked by
      * his own prior contribution.
      */
-    public boolean shouldCommitRocket(Unit shooter, Unit target) {
+    public boolean shouldCommitRocket(Entity shooter, Entity target) {
         if (shooter.secondaryWeapon == null || shooter.secondaryAmmo <= 0) return false;
         if (target == null || !registry.isAliveById(target.entityId)) return false;
         return projectedRocketDamageOnTarget(shooter, target)
@@ -554,11 +554,11 @@ public final class TacticalScoring {
      * the faction match. The squad-aim-window pre-fire half above remains
      * squadId-gated so a sibling squad's pre-launch aim isn't double-counted.
      */
-    private float projectedRocketDamageOnTarget(Unit shooter, Unit target) {
+    private float projectedRocketDamageOnTarget(Entity shooter, Entity target) {
         float total = 0f;
-        if (shooter.squadId != Unit.NO_SQUAD) {
+        if (shooter.squadId != Entity.NO_SQUAD) {
             for (int i = 0, n = registry.liveCount(); i < n; i++) {
-                Unit u = registry.get(i);
+                Entity u = registry.get(i);
                 if (u == shooter) continue;
                 if (u.squadId != shooter.squadId) continue;
                 if (u.secondaryWeapon == null) continue;
@@ -604,12 +604,12 @@ public final class TacticalScoring {
      * per visible target inside {@link #findBestTarget}, so the savings
      * compound when squads pick targets each tick.
      */
-    private float scoreThreatDensity(Unit candidate, int candCellX, int candCellY, Faction selfFaction) {
-        ArrayList<Unit> scratch = new ArrayList<>();
+    private float scoreThreatDensity(Entity candidate, int candCellX, int candCellY, Faction selfFaction) {
+        ArrayList<Entity> scratch = new ArrayList<>();
         unitIndex.gather(candCellX, candCellY, THREAT_DENSITY_RADIUS, scratch);
         int count = 0;
         for (int i = 0, n = scratch.size(); i < n; i++) {
-            Unit other = scratch.get(i);
+            Entity other = scratch.get(i);
             if (other == candidate) continue;
             if (other.faction == selfFaction) continue;
             if (!other.type.combatant) continue;
@@ -642,7 +642,7 @@ public final class TacticalScoring {
      *       to prevent chasing a fleer into their squad.</li>
      * </ul>
      */
-    public boolean shouldKeepPursuing(Unit self, Unit currentTarget) {
+    public boolean shouldKeepPursuing(Entity self, Entity currentTarget) {
         if (currentTarget == null || !registry.isAliveById(currentTarget.entityId)) return false;
         int selfIdx = registry.requireLiveIndex(self.entityId);
         int sx = registry.getCellX(selfIdx);
@@ -658,7 +658,7 @@ public final class TacticalScoring {
         // alternative exists, switch unconditionally. If current is visible,
         // switch only when the alternative is closer by at least
         // RETARGET_DISTANCE_MARGIN to dampen thrashing.
-        Unit closerVisible = closestVisibleOtherEnemy(self, currentTarget);
+        Entity closerVisible = closestVisibleOtherEnemy(self, currentTarget);
         if (closerVisible != null) {
             if (!visible) return false;
             int cvIdx = registry.requireLiveIndex(closerVisible.entityId);
@@ -676,12 +676,12 @@ public final class TacticalScoring {
         int r2 = THREAT_DENSITY_RADIUS * THREAT_DENSITY_RADIUS;
         int density = 0;
 
-        Unit[] dense = registry.denseArray();
+        Entity[] dense = registry.denseArray();
         int[] cellX = registry.cellXArray();
         int[] cellY = registry.cellYArray();
         int liveCount = registry.liveCount();
         for (int i = 0; i < liveCount; i++) {
-            Unit other = dense[i];
+            Entity other = dense[i];
             if (other == currentTarget) continue;
             if (other.faction == self.faction) continue;
             if (!other.type.combatant) continue;
@@ -701,12 +701,12 @@ public final class TacticalScoring {
      * "closer visible target appeared" check. Linear scan; the caller pays
      * once per posture tick.
      */
-    private Unit closestVisibleOtherEnemy(Unit self, Unit exclude) {
-        Unit best = null;
+    private Entity closestVisibleOtherEnemy(Entity self, Entity exclude) {
+        Entity best = null;
         float bestDist = Float.MAX_VALUE;
 
 
-        Unit[] dense = registry.denseArray();
+        Entity[] dense = registry.denseArray();
         int[] cellX = registry.cellXArray();
         int[] cellY = registry.cellYArray();
         int liveCount = registry.liveCount();
@@ -714,7 +714,7 @@ public final class TacticalScoring {
         int sx = registry.getCellX(selfIdx);
         int sy = registry.getCellY(selfIdx);
         for (int i = 0; i < liveCount; i++) {
-            Unit u = dense[i];
+            Entity u = dense[i];
             if (u == exclude || u == self) continue;
             if (u.faction == self.faction || !u.type.combatant) continue;
             int ux = cellX[i];
@@ -745,21 +745,21 @@ public final class TacticalScoring {
      * off the heavier {@link #findBestTarget} scoring path. Cheap distance and
      * range tests gate the per-candidate LoS raycast.
      */
-    public Unit closestEnemyInAttackRange(Unit self) {
+    public Entity closestEnemyInAttackRange(Entity self) {
         int selfIdx = registry.requireLiveIndex(self.entityId);
         int sx = registry.getCellX(selfIdx);
         int sy = registry.getCellY(selfIdx);
         float range = registry.getAttackRange(selfIdx);
 
-        Unit[] dense = registry.denseArray();
+        Entity[] dense = registry.denseArray();
         int[] cellX = registry.cellXArray();
         int[] cellY = registry.cellYArray();
         int liveCount = registry.liveCount();
 
-        Unit best = null;
+        Entity best = null;
         float bestDist = Float.MAX_VALUE;
         for (int i = 0; i < liveCount; i++) {
-            Unit other = dense[i];
+            Entity other = dense[i];
             if (other.faction == self.faction) continue;
             if (!other.type.combatant) continue;
             int ox = cellX[i];
@@ -781,17 +781,17 @@ public final class TacticalScoring {
      * in the small attacker list rather than O(U) over every unit — total
      * target-selection cost drops from O(U³) to O(U² + U·L).
      */
-    private float scoreCrowding(Faction selfFaction, int selfSquadId, Unit target,
-                                Unit exclude) {
-        java.util.ArrayList<Unit> attackers = attackerIndex.getAttackersOf(target);
+    private float scoreCrowding(Faction selfFaction, int selfSquadId, Entity target,
+                                Entity exclude) {
+        java.util.ArrayList<Entity> attackers = attackerIndex.getAttackersOf(target);
         if (attackers == null) return 0f;
         float cost = 0f;
         for (int i = 0, n = attackers.size(); i < n; i++) {
-            Unit u = attackers.get(i);
+            Entity u = attackers.get(i);
             if (u == exclude || !registry.isAliveById(u.entityId)) continue;
             if (u.faction != selfFaction) continue;
             cost += TARGET_CROWDING_COST;
-            if (selfSquadId != Unit.NO_SQUAD && u.squadId == selfSquadId) {
+            if (selfSquadId != Entity.NO_SQUAD && u.squadId == selfSquadId) {
                 cost += TARGET_SQUADMATE_EXTRA_COST;
             }
         }
@@ -820,7 +820,7 @@ public final class TacticalScoring {
      * walk to. Callers treat null as "drop the target and re-acquire," not
      * "stand still."
      */
-    public int[] findFiringPosition(Unit self, Unit target) {
+    public int[] findFiringPosition(Entity self, Entity target) {
         return findFiringPosition(self, target, Integer.MIN_VALUE, Integer.MIN_VALUE);
     }
 
@@ -845,7 +845,7 @@ public final class TacticalScoring {
      * plus at most a couple of pathfinds; invoke only when a cheaper "is anyone
      * even here" gate (e.g. zone-clear) has already passed.
      */
-    public boolean hasReachableFiringSpot(Unit self, Unit target) {
+    public boolean hasReachableFiringSpot(Entity self, Entity target) {
         int[] spot = findFiringPosition(self, target);
         if (spot == null) return false;
         // A stage-2 vantage is already reachability-checked, so this pathfind
@@ -888,9 +888,9 @@ public final class TacticalScoring {
      * invoke this in the fallback path — when {@link #findFiringPositionWithin}
      * for the current target has already returned null.
      */
-    public Unit findEngageableEnemyWithin(Unit self,
-                                          int anchorX, int anchorY,
-                                          float maxDistFromAnchor) {
+    public Entity findEngageableEnemyWithin(Entity self,
+                                            int anchorX, int anchorY,
+                                            float maxDistFromAnchor) {
         int selfIdx = registry.requireLiveIndex(self.entityId);
         int sx = registry.getCellX(selfIdx);
         int sy = registry.getCellY(selfIdx);
@@ -899,12 +899,12 @@ public final class TacticalScoring {
             maxWeaponReach = Math.max(maxWeaponReach, self.secondaryWeapon.range);
         }
         float gatherRadius = maxDistFromAnchor + maxWeaponReach;
-        ArrayList<Unit> scratch = new ArrayList<>();
+        ArrayList<Entity> scratch = new ArrayList<>();
         unitIndex.gather(anchorX, anchorY, gatherRadius, scratch);
-        Unit best = null;
+        Entity best = null;
         float bestDist = Float.MAX_VALUE;
         for (int i = 0, n = scratch.size(); i < n; i++) {
-            Unit enemy = scratch.get(i);
+            Entity enemy = scratch.get(i);
             if (!registry.isAliveById(enemy.entityId) || !enemy.type.combatant) continue;
             if (enemy.faction == self.faction) continue;
             int[] pos = findFiringPositionWithin(self, enemy, anchorX, anchorY, maxDistFromAnchor);
@@ -927,17 +927,17 @@ public final class TacticalScoring {
      * count (they're combatants); civilians don't.
      */
     public int countCombatantsWithin(Faction faction, int cx, int cy, float radius) {
-        ArrayList<Unit> scratch = new ArrayList<>();
+        ArrayList<Entity> scratch = new ArrayList<>();
         unitIndex.gather(cx, cy, radius, scratch);
         int count = 0;
         for (int i = 0, n = scratch.size(); i < n; i++) {
-            Unit u = scratch.get(i);
+            Entity u = scratch.get(i);
             if (u.faction == faction && registry.isAliveById(u.entityId) && u.type.combatant) count++;
         }
         return count;
     }
 
-    public int[] findFiringPositionWithin(Unit self, Unit target,
+    public int[] findFiringPositionWithin(Entity self, Entity target,
                                           int anchorX, int anchorY, float maxDistFromAnchor) {
         long _profT0 = System.nanoTime();
         try {
@@ -948,8 +948,8 @@ public final class TacticalScoring {
         }
     }
 
-    private int[] findFiringPositionWithinImpl(Unit self, Unit target,
-                                                int anchorX, int anchorY, float maxDistFromAnchor) {
+    private int[] findFiringPositionWithinImpl(Entity self, Entity target,
+                                               int anchorX, int anchorY, float maxDistFromAnchor) {
 
         int targetIdx = registry.requireLiveIndex(target.entityId);
         int tx = registry.getCellX(targetIdx);
@@ -1002,7 +1002,7 @@ public final class TacticalScoring {
         return best;
     }
 
-    public int[] findFiringPosition(Unit self, Unit target, int rejectX, int rejectY) {
+    public int[] findFiringPosition(Entity self, Entity target, int rejectX, int rejectY) {
         long _profT0 = System.nanoTime();
         try {
             return findFiringPositionImpl(self, target, rejectX, rejectY);
@@ -1012,7 +1012,7 @@ public final class TacticalScoring {
         }
     }
 
-    private int[] findFiringPositionImpl(Unit self, Unit target, int rejectX, int rejectY) {
+    private int[] findFiringPositionImpl(Entity self, Entity target, int rejectX, int rejectY) {
 
         int targetIdx = registry.requireLiveIndex(target.entityId);
         int tx = registry.getCellX(targetIdx);
@@ -1079,7 +1079,7 @@ public final class TacticalScoring {
      * Caller treats null as "no engageable cell from here," typically by
      * dropping the target.
      */
-    private int[] pickReachableVantage(Unit self, Unit target) {
+    private int[] pickReachableVantage(Entity self, Entity target) {
         int targetIdx = registry.requireLiveIndex(target.entityId);
         int[][] vantages = nav.getVantagePointsFor(registry.getCellX(targetIdx), registry.getCellY(targetIdx));
         if (vantages.length == 0) return null;
@@ -1212,7 +1212,7 @@ public final class TacticalScoring {
     }
 
     /**
-     * Cover-aware variant of {@link #findFiringPosition(Unit, Unit, int, int)} —
+     * Cover-aware variant of {@link #findFiringPosition(Entity, Entity, int, int)} —
      * filters the candidate ring to cells whose combined (cell + doodad) cover
      * meets or exceeds the unit's current combined cover against the same
      * threat direction. When no candidate meets that threshold, returns
@@ -1224,8 +1224,8 @@ public final class TacticalScoring {
      * equal cover. That's the "MG-in-heavy-cover stays cozy" half of Story G,
      * paired with the cooldown gate inside RepositionToCover.
      */
-    public int[] findFiringPositionCoverPreferred(Unit self, Unit target,
-                                                   int rejectX, int rejectY) {
+    public int[] findFiringPositionCoverPreferred(Entity self, Entity target,
+                                                  int rejectX, int rejectY) {
         long _profT0 = System.nanoTime();
         try {
             return findFiringPositionCoverPreferredImpl(self, target, rejectX, rejectY);
@@ -1235,8 +1235,8 @@ public final class TacticalScoring {
         }
     }
 
-    private int[] findFiringPositionCoverPreferredImpl(Unit self, Unit target,
-                                                        int rejectX, int rejectY) {
+    private int[] findFiringPositionCoverPreferredImpl(Entity self, Entity target,
+                                                       int rejectX, int rejectY) {
 
         int targetIdx = registry.requireLiveIndex(target.entityId);
         int tx = registry.getCellX(targetIdx);
@@ -1351,7 +1351,7 @@ public final class TacticalScoring {
      * other reachable candidate exists — caller treats that as "don't
      * enter fall-back."
      */
-    public int[] findFallbackPosition(Unit self) {
+    public int[] findFallbackPosition(Entity self) {
         long _profT0 = System.nanoTime();
         try {
             return findFallbackPositionImpl(self);
@@ -1361,7 +1361,7 @@ public final class TacticalScoring {
         }
     }
 
-    private int[] findFallbackPositionImpl(Unit self) {
+    private int[] findFallbackPositionImpl(Entity self) {
 
         ZoneGraph zones = zoneGraph;
         int selfIdx = registry.requireLiveIndex(self.entityId);
@@ -1383,7 +1383,7 @@ public final class TacticalScoring {
         // in the scan, so excluding them is exact, not approximate. Replaces
         // the O(scanRange² × totalUnits) inner loop with O(K) per candidate
         // where K is the nearby-enemy count.
-        ArrayList<Unit> threats = new ArrayList<>();
+        ArrayList<Entity> threats = new ArrayList<>();
         unitIndex.gather(sx, sy, scanRange + MAX_PLAUSIBLE_ATTACK_RANGE, threats);
         filterEnemyCombatants(threats, self.faction);
         // Project the threat set into parallel SoA columns once, so the
@@ -1494,16 +1494,16 @@ public final class TacticalScoring {
      * null} when there are no enemies. Used as the "don't march toward this"
      * reference for cardinal-neighbor ordering in fall-back consolation.
      */
-    private int[] averageEnemyCell(Unit self) {
+    private int[] averageEnemyCell(Entity self) {
         float sumX = 0f, sumY = 0f;
         int count = 0;
 
-        Unit[] dense = registry.denseArray();
+        Entity[] dense = registry.denseArray();
         int[] cellX = registry.cellXArray();
         int[] cellY = registry.cellYArray();
         int liveCount = registry.liveCount();
         for (int i = 0; i < liveCount; i++) {
-            Unit u = dense[i];
+            Entity u = dense[i];
             if (u.faction == self.faction) continue;
             if (!u.type.combatant) continue;
             sumX += cellX[i];
@@ -1521,16 +1521,16 @@ public final class TacticalScoring {
      * scan does at most O(zones + units) work instead of re-scanning units
      * per cell.
      */
-    private int[] computeZoneControl(Unit self) {
+    private int[] computeZoneControl(Entity self) {
         ZoneGraph zones = zoneGraph;
         int[] control = new int[zones.getZones().size()];
 
-        Unit[] dense = registry.denseArray();
+        Entity[] dense = registry.denseArray();
         int[] cellX = registry.cellXArray();
         int[] cellY = registry.cellYArray();
         int liveCount = registry.liveCount();
         for (int i = 0; i < liveCount; i++) {
-            Unit u = dense[i];
+            Entity u = dense[i];
             int zid = zones.zoneIdAt(cellX[i], cellY[i]);
             if (zid < 0 || zid >= control.length) continue;
             control[zid] += (u.faction == self.faction) ? 1 : -1;
@@ -1541,7 +1541,7 @@ public final class TacticalScoring {
     /**
      * Hidden iff no alive enemy combatant has effective LoS to {@code (cx, cy)}
      * — meaning a clear Bresenham line <em>and</em> the candidate cell within
-     * that enemy's {@link Unit#attackRange}. A 40-cell-range mech threatens
+     * that enemy's {@link Entity#attackRange}. A 40-cell-range mech threatens
      * cells the 18-cell-range militia can't, which is the gameplay axis we
      * want fall-back picking to respect (squads flee mech LoS even if militia
      * LoS reads the same cell as "open").
@@ -1550,12 +1550,12 @@ public final class TacticalScoring {
      * {@link #MAX_PLAUSIBLE_ATTACK_RANGE} of ({@code cx}, {@code cy}). Anyone
      * farther can't threaten the cell by construction.
      */
-    public boolean isHiddenFromAllEnemies(Unit self, int cx, int cy) {
+    public boolean isHiddenFromAllEnemies(Entity self, int cx, int cy) {
 
-        ArrayList<Unit> scratch = new ArrayList<>();
+        ArrayList<Entity> scratch = new ArrayList<>();
         unitIndex.gather(cx, cy, MAX_PLAUSIBLE_ATTACK_RANGE, scratch);
         for (int i = 0, n = scratch.size(); i < n; i++) {
-            Unit other = scratch.get(i);
+            Entity other = scratch.get(i);
             if (other.faction == self.faction) continue;
             if (!other.type.combatant) continue;
             int oIdx = registry.requireLiveIndex(other.entityId);
@@ -1577,13 +1577,13 @@ public final class TacticalScoring {
      * <p>Shared between
      * {@link com.dillon.starsectormarines.battle.decision.goap.action.BreakContact}
      * and {@link com.dillon.starsectormarines.battle.infantry.BreakLOS}
-     * — both stash the picker's result on {@link Unit#getFallbackCellX()}/
-     * {@link Unit#getFallbackCellY()} and need the same "re-roll when stale"
+     * — both stash the picker's result on {@link Entity#getFallbackCellX()}/
+     * {@link Entity#getFallbackCellY()} and need the same "re-roll when stale"
      * invariant. The SQ-17 stuck-defender dump exposed BreakLOS lacking
      * this check: once the cached cell drifted into enemy LoS the unit
      * was glued to it.
      */
-    public boolean fallbackDestinationNeedsRefresh(Unit member) {
+    public boolean fallbackDestinationNeedsRefresh(Entity member) {
         int idx = registry.requireLiveIndex(member.entityId);
         int fx = registry.getFallbackCellX(idx);
         int fy = registry.getFallbackCellY(idx);
@@ -1593,7 +1593,7 @@ public final class TacticalScoring {
 
     /**
      * Count of alive enemy combatants with effective LoS to {@code (cx, cy)} —
-     * clear Bresenham line and within that enemy's {@link Unit#attackRange}.
+     * clear Bresenham line and within that enemy's {@link Entity#attackRange}.
      * Zero means the cell is hidden from every effective threat
      * ({@link #isHiddenFromAllEnemies} returns true).
      *
@@ -1607,8 +1607,8 @@ public final class TacticalScoring {
      * {@link #findFallbackPosition} uses the {@code threats}-list overload
      * to avoid re-gathering inside the cell loop.
      */
-    public int countEnemiesWithLos(Unit self, int cx, int cy) {
-        ArrayList<Unit> scratch = new ArrayList<>();
+    public int countEnemiesWithLos(Entity self, int cx, int cy) {
+        ArrayList<Entity> scratch = new ArrayList<>();
         unitIndex.gather(cx, cy, MAX_PLAUSIBLE_ATTACK_RANGE, scratch);
         filterEnemyCombatants(scratch, self.faction);
         int n = scratch.size();
@@ -1628,7 +1628,7 @@ public final class TacticalScoring {
      * for the {@code ~1089}-candidate scan. Threats come straight off a live
      * spatial gather, so every entry is registered.
      */
-    private void resolveThreatColumns(List<Unit> threats, int count,
+    private void resolveThreatColumns(List<Entity> threats, int count,
                                       int[] outCellX, int[] outCellY, float[] outRange) {
         for (int i = 0; i < count; i++) {
             int idx = registry.requireLiveIndex(threats.get(i).entityId);
@@ -1663,10 +1663,10 @@ public final class TacticalScoring {
      * all units; this trims to "things that could threaten me." Compaction is
      * in-place to avoid a second allocation.
      */
-    public static void filterEnemyCombatants(ArrayList<Unit> units, Faction selfFaction) {
+    public static void filterEnemyCombatants(ArrayList<Entity> units, Faction selfFaction) {
         int write = 0;
         for (int i = 0, n = units.size(); i < n; i++) {
-            Unit u = units.get(i);
+            Entity u = units.get(i);
             if (u.faction == selfFaction) continue;
             if (!u.type.combatant) continue;
             units.set(write++, u);
@@ -1696,14 +1696,14 @@ public final class TacticalScoring {
      * the dest index drops it to the same O(units-with-path-near-radius)
      * complexity as Pass 1.
      */
-    public int alliesNearForSpread(Unit self, int cx, int cy) {
+    public int alliesNearForSpread(Entity self, int cx, int cy) {
         int r2 = FIRING_AOE_SPREAD_RADIUS * FIRING_AOE_SPREAD_RADIUS;
         int count = 0;
-        ArrayList<Unit> scratch = new ArrayList<>();
+        ArrayList<Entity> scratch = new ArrayList<>();
         // Pass 1 — units whose CURRENT cell is in the spread radius.
         unitIndex.gather(cx, cy, FIRING_AOE_SPREAD_RADIUS, scratch);
         for (int i = 0, n = scratch.size(); i < n; i++) {
-            Unit u = scratch.get(i);
+            Entity u = scratch.get(i);
             if (u == self || u.faction != self.faction) continue;
             count++;
         }
@@ -1714,7 +1714,7 @@ public final class TacticalScoring {
         // be near (cx, cy).
         destIndex.gather(cx, cy, FIRING_AOE_SPREAD_RADIUS, scratch);
         for (int i = 0, n = scratch.size(); i < n; i++) {
-            Unit u = scratch.get(i);
+            Entity u = scratch.get(i);
             if (u == self || u.faction != self.faction) continue;
             // Dedupe against Pass 1 on the unit's CURRENT cell. Small gathered
             // set (path-dest within the spread radius), so the per-candidate
@@ -1733,7 +1733,7 @@ public final class TacticalScoring {
      * (current cell + path destination). Used so a unit doesn't penalize
      * itself when scoring its own current/intended position.
      */
-    public int occupantsExcludingSelf(Unit self, int selfCellX, int selfCellY, int cx, int cy) {
+    public int occupantsExcludingSelf(Entity self, int selfCellX, int selfCellY, int cx, int cy) {
 
         if (!grid.inBounds(cx, cy)) return 0;
         int n = occupancyMap[cy * grid.getWidth() + cx] & 0xFF;

@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
@@ -84,7 +84,7 @@ public class CordonForPlantTest {
         sim.addObjective(charge);
         // Squad centroid outside the room (corridor zone).
         Squad squad = marineSquadAt(1, 1f, 1f, 2);
-        Unit planter = new Unit("p1", Faction.MARINE, UnitType.MARINE, 1, 1);
+        Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 1, 1);
         planter.squadId = 1;
         planter.role = UnitRole.PLANTER;
         planter.assignedObjective = charge;
@@ -109,7 +109,7 @@ public class CordonForPlantTest {
         // we just added. Centroid is also inside (the cached aggregate is
         // normally refreshed by BattleSimulation; tests set it directly).
         Squad squad = marineSquadAt(1, 6f, 6f, 2);
-        Unit planter = new Unit("p1", Faction.MARINE, UnitType.MARINE, 5, 6);
+        Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 5, 6);
         planter.squadId = 1;
         planter.role = UnitRole.PLANTER;
         planter.assignedObjective = charge;
@@ -126,7 +126,7 @@ public class CordonForPlantTest {
         sim.addObjective(charge);
 
         Squad squad = marineSquadAt(1, 6f, 6f, 2);
-        Unit planter = new Unit("p1", Faction.MARINE, UnitType.MARINE, 5, 6);
+        Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 5, 6);
         planter.squadId = 1;
         planter.role = UnitRole.PLANTER;
         planter.assignedObjective = charge;
@@ -156,7 +156,7 @@ public class CordonForPlantTest {
     public void customPlanReturnsNullWhenNoPlanter() {
         BattleSimulation sim = roomWithTwoDoorways();
         Squad squad = marineSquadAt(1, 6f, 6f, 2);
-        Unit combatant = new Unit("c1", Faction.MARINE, UnitType.MARINE, 6, 6);
+        Entity combatant = new Entity("c1", Faction.MARINE, UnitType.MARINE, 6, 6);
         combatant.squadId = 1;
         sim.addUnit(combatant);
 
@@ -172,7 +172,7 @@ public class CordonForPlantTest {
         sim.addObjective(charge);
 
         Squad squad = marineSquadAt(1, 6f, 6f, 1);
-        Unit planter = new Unit("p1", Faction.MARINE, UnitType.MARINE, 5, 6);
+        Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 5, 6);
         planter.squadId = 1;
         planter.role = UnitRole.PLANTER;
         planter.assignedObjective = charge;
@@ -190,7 +190,7 @@ public class CordonForPlantTest {
         sim.addObjective(charge);
 
         Squad squad = marineSquadAt(1, 6f, 6f, 1);
-        Unit planter = new Unit("p1", Faction.MARINE, UnitType.MARINE, 6, 6);
+        Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 6, 6);
         planter.squadId = 1;
         planter.role = UnitRole.PLANTER;
         planter.assignedObjective = charge;
@@ -211,7 +211,7 @@ public class CordonForPlantTest {
         sim.addObjective(charge);
 
         Squad squad = marineSquadAt(1, 6f, 6f, 2);
-        Unit planter = new Unit("p1", Faction.MARINE, UnitType.MARINE, 5, 6);
+        Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 5, 6);
         planter.squadId = 1;
         planter.role = UnitRole.PLANTER;
         planter.assignedObjective = charge;
@@ -239,7 +239,7 @@ public class CordonForPlantTest {
         sim.addObjective(charge);
 
         Squad squad = marineSquadAt(1, 6f, 6f, 2);
-        Unit planter = new Unit("p1", Faction.MARINE, UnitType.MARINE, 5, 6);
+        Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 5, 6);
         planter.squadId = 1;
         planter.role = UnitRole.PLANTER;
         planter.assignedObjective = charge;

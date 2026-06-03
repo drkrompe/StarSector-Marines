@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.turret;
 
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 
 /**
  * What a turret is allowed to shoot at. Used to filter target acquisition so
@@ -14,7 +14,7 @@ import com.dillon.starsectormarines.battle.unit.Unit;
  * return empty until anti-air / point-defense entities land.
  */
 public enum TurretRole {
-    /** Anti-ground. Targets enemy combatant {@link Unit}s on the cell grid. */
+    /** Anti-ground. Targets enemy combatant {@link Entity}s on the cell grid. */
     A2G,
     /** Anti-air. Targets shuttles / fighters once those become targetable entities. */
     AA,

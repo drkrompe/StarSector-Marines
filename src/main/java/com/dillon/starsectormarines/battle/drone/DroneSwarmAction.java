@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.air.AirSteeringSystem;
 import com.dillon.starsectormarines.battle.air.SteeringMode;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -74,7 +74,7 @@ public final class DroneSwarmAction implements Action {
     @Override public int requiredMembers() { return 1; }
 
     @Override
-    public ActionStatus execute(Unit member, Squad squad, BattleControl sim) {
+    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
         if (!(member instanceof Drone)) return ActionStatus.FAILURE;
         Drone d = (Drone) member;
         if (!sim.world().isAlive(d.entityId)) return ActionStatus.RUNNING;
@@ -103,14 +103,14 @@ public final class DroneSwarmAction implements Action {
         TurretAim.tick(s, sim.getTacticalScoring(), sim.getGrid(), sim.world(), BattleSimulation.TICK_DT);
 
         sim.world().setCooldownTimer(d.entityId, s.cooldownTimer);
-        sim.world().setTargetId(d.entityId, Unit.idOf(s.target));
+        sim.world().setTargetId(d.entityId, Entity.idOf(s.target));
 
         float dt = BattleSimulation.TICK_DT;
 
         // Determine which target (if any) the drone is committing to. Engagement
         // target wins; absent that, an agro-scan hit promotes to pursuit. Both
         // refresh the pursuit latch.
-        Unit lockedOn = s.target;
+        Entity lockedOn = s.target;
         if (lockedOn == null) {
             lockedOn = tryAgroScan(d, sim);
         }
@@ -248,8 +248,8 @@ public final class DroneSwarmAction implements Action {
      * for its squad-aware crowding + threat-density scoring, then post-filters
      * by {@link Drone#AGGRO_RANGE_CELLS} and an air-LoS check.
      */
-    private static Unit tryAgroScan(Drone d, BattleView sim) {
-        Unit candidate = sim.getTacticalScoring().findBestTarget(
+    private static Entity tryAgroScan(Drone d, BattleView sim) {
+        Entity candidate = sim.getTacticalScoring().findBestTarget(
                 sim.world().cellX(d.entityId), sim.world().cellY(d.entityId), d.faction, d.squadId, d, d.airLosRadius);
         if (candidate == null) return null;
         float dist = TacticalScoring.cellDistance(
@@ -334,13 +334,13 @@ public final class DroneSwarmAction implements Action {
      * filters by slotOf before calling execute, but defensive against
      * mid-tick squad churn).
      */
-    private static int resolveSlotIndex(Squad squad, Unit member) {
+    private static int resolveSlotIndex(Squad squad, Entity member) {
         SquadPlan plan = squad.currentPlan;
         if (plan == null || plan.isComplete()) return 0;
         SquadPlan.Step step = plan.currentStep();
         if (step == null) return 0;
         int i = 0;
-        for (List<Unit> bucket : step.assignments.values()) {
+        for (List<Entity> bucket : step.assignments.values()) {
             int idx = bucket.indexOf(member);
             if (idx >= 0) return i + idx;
             i += bucket.size();
@@ -360,7 +360,7 @@ public final class DroneSwarmAction implements Action {
         SquadPlan.Step step = plan.currentStep();
         if (step == null) return Math.max(1, squad.aliveMembers);
         int total = 0;
-        for (List<Unit> bucket : step.assignments.values()) total += bucket.size();
+        for (List<Entity> bucket : step.assignments.values()) total += bucket.size();
         return Math.max(1, total);
     }
 }

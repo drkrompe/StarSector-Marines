@@ -7,7 +7,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
  * ({@link AirBody}), render state, and a composed {@link ShuttleMission} (the
  * delivery state machine + per-sortie lifecycle). Engine plumes and turrets are
  * components keyed by {@link #entityId} in {@link AirSystem}'s stores, not fields
- * here. Separate from a grid {@code Unit} because shuttles fly in fractional
+ * here. Separate from a grid {@code Entity} because shuttles fly in fractional
  * world space, rotate freely, and don't pathfind or fight on the grid.
  *
  * <p>The shared core (id + body + render) is mission-agnostic so a fighter

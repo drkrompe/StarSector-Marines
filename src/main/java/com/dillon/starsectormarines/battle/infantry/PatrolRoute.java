@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
@@ -57,7 +57,7 @@ public final class PatrolRoute implements Action {
     @Override public int requiredMembers() { return 1; }
 
     @Override
-    public ActionStatus execute(Unit member, Squad squad, BattleControl sim) {
+    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
         if (squad.alertLevel == SquadAlertLevel.SUSPICIOUS
                 && squad.lastSeenEnemyX >= 0 && squad.lastSeenEnemyY >= 0) {
             PatrolMotion.moveToward(member, sim, squad.lastSeenEnemyX, squad.lastSeenEnemyY);
@@ -72,7 +72,7 @@ public final class PatrolRoute implements Action {
      * current waypoint; falls back to a random walkable cell in that radius.
      * Returns null if neither produces a valid cell.
      */
-    private int[] pickWaypoint(Unit member, Squad squad, BattleView sim) {
+    private int[] pickWaypoint(Entity member, Squad squad, BattleView sim) {
         TacticalNode anchor = squad.assignedNode;
         TacticalMap map = sim.getTacticalMap();
         int radius = squad.patrolRadius;

@@ -14,7 +14,7 @@ import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
@@ -139,7 +139,7 @@ public final class BattleSetup {
      * Standalone factories ignore {@code structures}; the combat-bridge host
      * mirrors them as targetable proxies.
      */
-    public record MapBuild(BattleSimulation sim, List<Unit> structures) {}
+    public record MapBuild(BattleSimulation sim, List<Entity> structures) {}
 
     /**
      * Builds the host-agnostic <b>map layer</b> — the part shared by every
@@ -168,7 +168,7 @@ public final class BattleSetup {
         sim.setDefensePosts(defensePosts);
         for (MapVehicle v : vehicles) sim.addVehicle(v);
         for (Doodad d : map.doodads) sim.addDoodad(d);
-        List<Unit> structures = spawnDefensePostTurrets(sim, defensePosts);
+        List<Entity> structures = spawnDefensePostTurrets(sim, defensePosts);
         return new MapBuild(sim, structures);
     }
 
@@ -987,7 +987,7 @@ public final class BattleSetup {
                 if (source.isEmpty()) break;
                 UnitType type = source.poll();
                 MechRole mechRole = (type == mechType) ? nextMechRole(mechSpawnIdx++) : null;
-                Unit unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1], mechRole);
+                Entity unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1], mechRole);
                 unit.role = UnitRole.GARRISON;
                 unit.homeCellX = cell[0];
                 unit.homeCellY = cell[1];
@@ -1041,7 +1041,7 @@ public final class BattleSetup {
                 if (source.isEmpty()) break;
                 UnitType type = source.poll();
                 MechRole mechRole = (type == mechType) ? nextMechRole(mechSpawnIdx++) : null;
-                Unit unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1], mechRole);
+                Entity unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1], mechRole);
                 unit.role = UnitRole.PATROL;
                 if (squad == null) {
                     int sid = sim.mintSquad(Faction.DEFENDER, unit);
@@ -1095,7 +1095,7 @@ public final class BattleSetup {
                 int[] cell = cells.get(cellIdx++);
                 UnitType type = source.poll();
                 MechRole mechRole = (type == mechType) ? nextMechRole(mechSpawnIdx++) : null;
-                Unit unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1], mechRole);
+                Entity unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1], mechRole);
                 unit.role = UnitRole.PATROL;
                 if (squad == null) {
                     int sid = sim.mintSquad(Faction.DEFENDER, unit);
@@ -1112,12 +1112,12 @@ public final class BattleSetup {
     }
 
     /**
-     * Builds a defender Unit with the loadout-state attached for mech types.
+     * Builds a defender Entity with the loadout-state attached for mech types.
      * {@code mechRole} is consumed only when {@code type == HEAVY_MECH} —
      * non-mech callers pass {@code null}.
      */
-    private static Unit makeDefender(String id, UnitType type, int x, int y, MechRole mechRole) {
-        Unit unit = new Unit(id, Faction.DEFENDER, type, x, y);
+    private static Entity makeDefender(String id, UnitType type, int x, int y, MechRole mechRole) {
+        Entity unit = new Entity(id, Faction.DEFENDER, type, x, y);
         if (type == FactionUnitRoster.forFaction(Faction.DEFENDER).mech()) {
             unit.mech = MechLoadoutState.defaultLoadout(mechRole);
         }
@@ -1269,7 +1269,7 @@ public final class BattleSetup {
             int[] cell = findCivilianCell(map.grid, poi.anchorCellX, poi.anchorCellY, claimed, rng);
             if (cell == null) continue;
             UnitType type = roles[rng.nextInt(roles.length)];
-            Unit u = new Unit("c" + spawned, Faction.CIVILIAN, type, cell[0], cell[1]);
+            Entity u = new Entity("c" + spawned, Faction.CIVILIAN, type, cell[0], cell[1]);
             u.role = UnitRole.FLEE;
             sim.addUnit(u);
             claimed.add(key(cell[0], cell[1]));
@@ -1572,8 +1572,8 @@ public final class BattleSetup {
      * recompute). Returns the spawned structure units (turrets + drone hubs) in spawn
      * order, for callers that need to reference them (the bridge mirrors them as proxies).
      */
-    public static List<Unit> spawnDefensePostTurrets(BattleSimulation sim, List<DefensePost> posts) {
-        List<Unit> spawned = new ArrayList<>();
+    public static List<Entity> spawnDefensePostTurrets(BattleSimulation sim, List<DefensePost> posts) {
+        List<Entity> spawned = new ArrayList<>();
         int i = 0;
         int h = 0;
         for (DefensePost post : posts) {

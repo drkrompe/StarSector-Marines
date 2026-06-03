@@ -10,7 +10,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.TestUnits;
 import org.junit.jupiter.api.Test;
@@ -46,7 +46,7 @@ public class CompoundGarrisonSystemTest {
 
     private static void captureCompound(BattleSimulation sim, CompoundService service,
                                          CompoundCaptureSystem capture) {
-        sim.addUnit(new Unit("cap-m", Faction.MARINE, UnitType.MARINE, 5, 5));
+        sim.addUnit(new Entity("cap-m", Faction.MARINE, UnitType.MARINE, 5, 5));
         int ticks = 2 + (int) Math.ceil(
                 CompoundService.MARINE_HOLD_TIME / CompoundCaptureSystem.CAPTURE_TICK_PERIOD);
         for (int i = 0; i < ticks; i++) {
@@ -116,14 +116,14 @@ public class CompoundGarrisonSystemTest {
         // auto-complete the instant capture finishes — otherwise advance() stops
         // ticking and the shuttle never flies in. Added after capture so the
         // capture itself still saw a clear compound.
-        sim.addUnit(new Unit("d-far", Faction.DEFENDER, UnitType.MARINE, 9, 9));
+        sim.addUnit(new Entity("d-far", Faction.DEFENDER, UnitType.MARINE, 9, 9));
 
         // Fly the shuttle in and deboard its first marine (squad minted then).
         int guard = 0;
-        while (shuttle.mission.squadId == Unit.NO_SQUAD && guard++ < 8000) {
+        while (shuttle.mission.squadId == Entity.NO_SQUAD && guard++ < 8000) {
             sim.advance(BattleSimulation.TICK_DT);
         }
-        assertTrue(shuttle.mission.squadId != Unit.NO_SQUAD,
+        assertTrue(shuttle.mission.squadId != Entity.NO_SQUAD,
                 "garrison shuttle should deboard within the tick budget");
 
         Squad gsquad = sim.getSquad(shuttle.mission.squadId);
@@ -226,10 +226,10 @@ public class CompoundGarrisonSystemTest {
                 "no duplicate shuttle while compound stays MARINE_HELD");
 
         // Defender recaptures: kill the marine, add a defender, tick capture system.
-        for (Unit u : TestUnits.snapshot(sim)) {
+        for (Entity u : TestUnits.snapshot(sim)) {
             if (u.faction == Faction.MARINE) TestUnits.kill(sim, u);
         }
-        sim.addUnit(new Unit("def-1", Faction.DEFENDER, UnitType.MILITIA, 5, 5));
+        sim.addUnit(new Entity("def-1", Faction.DEFENDER, UnitType.MILITIA, 5, 5));
         // MARINE_HELD → CONTESTED → DEFENDER_HELD
         int recapTicks = 2 + (int) Math.ceil(
                 CompoundService.DEFENDER_HOLD_TIME / CompoundCaptureSystem.CAPTURE_TICK_PERIOD);
@@ -246,10 +246,10 @@ public class CompoundGarrisonSystemTest {
         tickGarrison(garrison, sim, service, 1);
 
         // Second marine capture → second garrison shuttle.
-        for (Unit u : TestUnits.snapshot(sim)) {
+        for (Entity u : TestUnits.snapshot(sim)) {
             if (u.faction == Faction.DEFENDER) TestUnits.kill(sim, u);
         }
-        sim.addUnit(new Unit("cap-m2", Faction.MARINE, UnitType.MARINE, 5, 5));
+        sim.addUnit(new Entity("cap-m2", Faction.MARINE, UnitType.MARINE, 5, 5));
         int ticks = 2 + (int) Math.ceil(
                 CompoundService.MARINE_HOLD_TIME / CompoundCaptureSystem.CAPTURE_TICK_PERIOD);
         for (int i = 0; i < ticks; i++) {

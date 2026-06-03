@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -48,8 +48,8 @@ public class PatrolMotionTest {
         return new BattleSimulation(grid, topology);
     }
 
-    private static Unit add(BattleSimulation sim, String id, int x, int y) {
-        Unit u = new Unit(id, Faction.MARINE, UnitType.MARINE, x, y);
+    private static Entity add(BattleSimulation sim, String id, int x, int y) {
+        Entity u = new Entity(id, Faction.MARINE, UnitType.MARINE, x, y);
         sim.addUnit(u);
         return u;
     }
@@ -59,8 +59,8 @@ public class PatrolMotionTest {
         // Control: with a live leader, a non-leader member must NOT drain the
         // shared dwell — that's the once-per-tick guarantee the gate exists for.
         BattleSimulation sim = openArena();
-        Unit leader = add(sim, "L", 3, 3);
-        Unit member = add(sim, "m", 4, 3);
+        Entity leader = add(sim, "L", 3, 3);
+        Entity member = add(sim, "m", 4, 3);
         Squad squad = new Squad(1, Faction.MARINE);
         squad.aliveMembers = 2;
         squad.leaderId = leader.entityId;
@@ -82,7 +82,7 @@ public class PatrolMotionTest {
         // matches the leader gate, so without the fallback the dwell would never
         // expire and the squad would park in onHold forever (the SQ-96 stall).
         BattleSimulation sim = openArena();
-        Unit member = add(sim, "m", 4, 3);
+        Entity member = add(sim, "m", 4, 3);
         Squad squad = new Squad(1, Faction.MARINE);
         squad.aliveMembers = 1;
         squad.leaderId = 0L;
@@ -99,7 +99,7 @@ public class PatrolMotionTest {
         // leaderId points at a unit that isn't live (a death path that didn't
         // promote). resolveUnit returns null → same fallback as the 0L case.
         BattleSimulation sim = openArena();
-        Unit member = add(sim, "m", 4, 3);
+        Entity member = add(sim, "m", 4, 3);
         Squad squad = new Squad(1, Faction.MARINE);
         squad.aliveMembers = 1;
         squad.leaderId = 999_999L;   // never-registered id → resolves to null
@@ -118,7 +118,7 @@ public class PatrolMotionTest {
         // invalidate the waypoint so needsNew re-picks next tick rather than
         // leaving the squad parked on an unreachable cell forever.
         BattleSimulation sim = walledRooms();
-        Unit member = add(sim, "m", 2, 4);
+        Entity member = add(sim, "m", 2, 4);
         Squad squad = new Squad(1, Faction.MARINE);
         squad.aliveMembers = 1;
         squad.leaderId = member.entityId;
@@ -137,7 +137,7 @@ public class PatrolMotionTest {
         // Same setup but the waypoint is in the SAME room — reachable. The
         // waypoint must survive (no spurious re-roll) and the member moves.
         BattleSimulation sim = walledRooms();
-        Unit member = add(sim, "m", 2, 4);
+        Entity member = add(sim, "m", 2, 4);
         Squad squad = new Squad(1, Faction.MARINE);
         squad.aliveMembers = 1;
         squad.leaderId = member.entityId;

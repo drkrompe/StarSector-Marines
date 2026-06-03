@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
@@ -36,8 +36,8 @@ public class OverwatchPostureTest {
         return new BattleSimulation(grid, new CellTopology(W, H));
     }
 
-    private static Unit defenderAt(int x, int y, int squadId) {
-        Unit u = new Unit("d", Faction.DEFENDER, UnitType.MARINE, x, y);
+    private static Entity defenderAt(int x, int y, int squadId) {
+        Entity u = new Entity("d", Faction.DEFENDER, UnitType.MARINE, x, y);
         u.squadId = squadId;
         return u;
     }
@@ -78,7 +78,7 @@ public class OverwatchPostureTest {
         squad.holdsFireUntilKillZone = true;
         squad.aliveMembers = 1;
 
-        Unit defender = defenderAt(5, 5, squadId);
+        Entity defender = defenderAt(5, 5, squadId);
         sim.addUnit(defender);
         // Seed a known non-default cooldown (after registration, so it routes
         // through the registry): if any action accidentally fires, cooldownTimer
@@ -88,7 +88,7 @@ public class OverwatchPostureTest {
 
         // Marine in LOS + range, but the squad's holdsFireUntilKillZone gate
         // is closed (killZoneLosTicks defaults to 0). Overwatch must hold.
-        Unit marine = new Unit("m", Faction.MARINE, UnitType.MARINE, 8, 5);
+        Entity marine = new Entity("m", Faction.MARINE, UnitType.MARINE, 8, 5);
         sim.addUnit(marine);
 
         ActionStatus status = OverwatchPosture.INSTANCE.execute(defender, squad, sim);

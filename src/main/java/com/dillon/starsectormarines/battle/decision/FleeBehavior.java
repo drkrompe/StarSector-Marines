@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.decision;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
@@ -52,8 +52,8 @@ public final class FleeBehavior implements UnitBehavior {
     private FleeBehavior() {}
 
     @Override
-    public void update(Unit u, BattleSimulation sim) {
-        Unit threat = findNearestThreat(u, sim);
+    public void update(Entity u, BattleSimulation sim) {
+        Entity threat = findNearestThreat(u, sim);
         if (threat != null) {
             updateFleeing(u, threat, sim);
             return;
@@ -65,7 +65,7 @@ public final class FleeBehavior implements UnitBehavior {
      * Threat present — rebuild the flee path periodically and run. Cancels any
      * in-flight wander dwell so the civilian doesn't stand around mid-panic.
      */
-    private static void updateFleeing(Unit u, Unit threat, BattleSimulation sim) {
+    private static void updateFleeing(Entity u, Entity threat, BattleSimulation sim) {
         sim.world().setWanderDwellTimer(u.entityId, 0f);
         boolean needsRepath = u.pathIdx >= u.pathCellCount()
                 || cellsTraveled(u) >= REPATH_CELL_THRESHOLD;
@@ -82,7 +82,7 @@ public final class FleeBehavior implements UnitBehavior {
      * No threat in range — wander. Advances any active wander path; on arrival
      * starts a dwell, and when dwell expires picks a new destination.
      */
-    private static void updateIdle(Unit u, BattleSimulation sim) {
+    private static void updateIdle(Entity u, BattleSimulation sim) {
         if (u.pathIdx < u.pathCellCount()) {
             sim.advanceMovement(u);
             if (u.pathIdx >= u.pathCellCount()) {
@@ -120,11 +120,11 @@ public final class FleeBehavior implements UnitBehavior {
      * sides spook civilians — they don't know which marines are friendly and
      * gunfire is gunfire regardless of who's behind the trigger.
      */
-    private static Unit findNearestThreat(Unit self, BattleSimulation sim) {
-        Unit best = null;
+    private static Entity findNearestThreat(Entity self, BattleSimulation sim) {
+        Entity best = null;
         float bestDist = PERCEPTION_RADIUS;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Unit u = sim.liveUnitAt(i);
+            Entity u = sim.liveUnitAt(i);
             if (u == self) continue;
             if (!u.type.combatant) continue;
             float d = TacticalScoring.cellDistance(sim.world().cellX(self.entityId), sim.world().cellY(self.entityId), sim.world().cellX(u.entityId), sim.world().cellY(u.entityId));
@@ -143,7 +143,7 @@ public final class FleeBehavior implements UnitBehavior {
      * furthest walkable cell along the ray as the destination. Falls back to
      * the map edge in that direction if the ray is short.
      */
-    private static int[] pickFleeDestination(Unit self, Unit threat, BattleSimulation sim) {
+    private static int[] pickFleeDestination(Entity self, Entity threat, BattleSimulation sim) {
         NavigationGrid grid = sim.getGrid();
         float dx = sim.world().cellX(self.entityId) - sim.world().cellX(threat.entityId);
         float dy = sim.world().cellY(self.entityId) - sim.world().cellY(threat.entityId);
@@ -178,7 +178,7 @@ public final class FleeBehavior implements UnitBehavior {
      * Square-ring sampling is biased toward the corners but is cheap and the
      * bias doesn't read in motion — the destinations still look local.
      */
-    private static int[] pickWanderDestination(Unit u, BattleSimulation sim) {
+    private static int[] pickWanderDestination(Entity u, BattleSimulation sim) {
         NavigationGrid grid = sim.getGrid();
         Random rng = u.rng;
         int span = WANDER_MAX_RADIUS * 2 + 1;
@@ -206,7 +206,7 @@ public final class FleeBehavior implements UnitBehavior {
      * the path is grid-aligned with 1-cell steps so {@code pathIdx} ≈ cells
      * moved, which is good enough to gate re-pathing.
      */
-    private static int cellsTraveled(Unit u) {
+    private static int cellsTraveled(Entity u) {
         return u.pathIdx;
     }
 }

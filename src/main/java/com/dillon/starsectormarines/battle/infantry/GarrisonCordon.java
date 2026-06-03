@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
@@ -72,8 +72,8 @@ public final class GarrisonCordon implements Action {
      * (no planter slot to compete with).
      */
     @Override
-    public List<RoleAssigner.Slot<Unit>> roles(Squad squad, BattleView sim) {
-        List<RoleAssigner.Slot<Unit>> slots = new ArrayList<>(posts.size());
+    public List<RoleAssigner.Slot<Entity>> roles(Squad squad, BattleView sim) {
+        List<RoleAssigner.Slot<Entity>> slots = new ArrayList<>(posts.size());
         for (HoldPortalCordon.GuardPost post : posts) {
             slots.add(new RoleAssigner.Slot<>(
                     post.slotName(),
@@ -84,7 +84,7 @@ public final class GarrisonCordon implements Action {
     }
 
     @Override
-    public ActionStatus execute(Unit member, Squad squad, BattleControl sim) {
+    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
         SquadPlan plan = squad.currentPlan;
         SquadPlan.Step step = plan != null && !plan.isComplete() ? plan.currentStep() : null;
         String slotName = step != null ? step.slotOf(member) : null;
@@ -103,7 +103,7 @@ public final class GarrisonCordon implements Action {
      * {@code moveProgress / renderX / renderY} pins the holder in place
      * between bursts so they don't drift off-post.
      */
-    private ActionStatus executeHolder(Unit member, HoldPortalCordon.GuardPost post, BattleControl sim) {
+    private ActionStatus executeHolder(Entity member, HoldPortalCordon.GuardPost post, BattleControl sim) {
         boolean atPost = (sim.world().cellX(member.entityId) == post.cellX && sim.world().cellY(member.entityId) == post.cellY);
         if (!atPost) {
             opportunisticFire(member, sim, FireStance.MOVING);
@@ -128,12 +128,12 @@ public final class GarrisonCordon implements Action {
      * shape; if a fourth opportunistic-fire caller appears we'll lift this
      * to a shared static.
      */
-    private static void opportunisticFire(Unit member, BattleControl sim, FireStance stance) {
-        Unit target = sim.targetOf(member);
+    private static void opportunisticFire(Entity member, BattleControl sim, FireStance stance) {
+        Entity target = sim.targetOf(member);
         if (target == null
                 || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
             target = sim.getTacticalScoring().findBestTarget(member);
-            sim.world().setTargetId(member.entityId, Unit.idOf(target));
+            sim.world().setTargetId(member.entityId, Entity.idOf(target));
         }
         if (target == null || sim.world().cooldownTimer(member.entityId) > 0f) return;
         float d = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),

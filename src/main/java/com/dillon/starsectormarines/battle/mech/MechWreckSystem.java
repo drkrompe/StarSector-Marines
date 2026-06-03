@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.unit.DeathDispatcher;
 import com.dillon.starsectormarines.battle.unit.DeathEvent;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 
 /**
@@ -13,7 +13,7 @@ import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
  * phase).
  *
  * <p>Replaces the former {@code HeavyWeapons.spawnMechWrecks} per-tick scan,
- * which walked the legacy {@code List<Unit>} every tick for just-died mechs
+ * which walked the legacy {@code List<Entity>} every tick for just-died mechs
  * (gated by the {@link MechLoadoutState#wreckSpawned} latch). Every kill path —
  * primary fire, mech crossfire, marine rockets, flyby strafing — routes through
  * {@code DamageResolver.resolve}, which publishes a {@link DeathEvent}, so the
@@ -42,7 +42,7 @@ public final class MechWreckSystem {
      * once — but the guard keeps the method safe if ever called twice).
      */
     public void onDeath(DeathEvent event) {
-        Unit u = event.unit();
+        Entity u = event.unit();
         MechLoadoutState m = u.mech;
         if (m == null || m.wreckSpawned) return;
         // Read the death cell off the event snapshot: the unit is released by

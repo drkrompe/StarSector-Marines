@@ -1,9 +1,5 @@
 package com.dillon.starsectormarines.battle.unit;
 
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-
-import com.dillon.starsectormarines.battle.unit.UnitRegistry;
-
 import java.util.ArrayList;
 
 /**
@@ -23,7 +19,7 @@ import java.util.ArrayList;
  *
  * <p><b>Bucket sizing + threading + pooling</b> mirror {@link UnitSpatialIndex}.
  * Same {@link UnitSpatialIndex#BUCKET} cell-side, same pool of recycled
- * {@code ArrayList<Unit>} buckets, same gather contract over an output
+ * {@code ArrayList<Entity>} buckets, same gather contract over an output
  * buffer the caller owns. Read {@link UnitSpatialIndex}'s class doc for
  * the full rationale.
  *
@@ -38,14 +34,14 @@ public final class UnitDestinationSpatialIndex {
 
     private final int bucketsX;
     private final int bucketsY;
-    private final ArrayList<Unit>[] buckets;
-    private final ArrayList<ArrayList<Unit>> pool = new ArrayList<>();
+    private final ArrayList<Entity>[] buckets;
+    private final ArrayList<ArrayList<Entity>> pool = new ArrayList<>();
 
     @SuppressWarnings("unchecked")
     public UnitDestinationSpatialIndex(int gridWidth, int gridHeight) {
         this.bucketsX = Math.max(1, (gridWidth + UnitSpatialIndex.BUCKET - 1) / UnitSpatialIndex.BUCKET);
         this.bucketsY = Math.max(1, (gridHeight + UnitSpatialIndex.BUCKET - 1) / UnitSpatialIndex.BUCKET);
-        this.buckets = (ArrayList<Unit>[]) new ArrayList[bucketsX * bucketsY];
+        this.buckets = (ArrayList<Entity>[]) new ArrayList[bucketsX * bucketsY];
     }
 
     /**
@@ -57,25 +53,25 @@ public final class UnitDestinationSpatialIndex {
      * <p>Same SoA shape as {@link UnitSpatialIndex#rebuild}: dense iteration
      * over {@code [0, liveCount())} excludes released slots, and the
      * stand-still check reads cellX/cellY straight from the SoA arrays.
-     * The path data is still per-Unit (no SoA storage for path arrays),
-     * so the destination read goes through the Unit ref pulled from
+     * The path data is still per-Entity (no SoA storage for path arrays),
+     * so the destination read goes through the Entity ref pulled from
      * {@code dense[i]} — unavoidable until paths themselves move into SoA.
      */
     public void rebuild(UnitRegistry registry) {
         for (int i = 0; i < buckets.length; i++) {
-            ArrayList<Unit> b = buckets[i];
+            ArrayList<Entity> b = buckets[i];
             if (b != null) {
                 b.clear();
                 pool.add(b);
                 buckets[i] = null;
             }
         }
-        Unit[] dense = registry.denseArray();
+        Entity[] dense = registry.denseArray();
         int[] cellX = registry.cellXArray();
         int[] cellY = registry.cellYArray();
         int liveCount = registry.liveCount();
         for (int i = 0; i < liveCount; i++) {
-            Unit u = dense[i];
+            Entity u = dense[i];
             int cells = u.pathCellCount();
             if (cells <= 0) continue;
             int destX = u.pathCellX(cells - 1);
@@ -85,7 +81,7 @@ public final class UnitDestinationSpatialIndex {
             int by = destY / UnitSpatialIndex.BUCKET;
             if (bx < 0 || bx >= bucketsX || by < 0 || by >= bucketsY) continue;
             int idx = by * bucketsX + bx;
-            ArrayList<Unit> bucket = buckets[idx];
+            ArrayList<Entity> bucket = buckets[idx];
             if (bucket == null) {
                 bucket = pool.isEmpty()
                         ? new ArrayList<>(8)
@@ -105,13 +101,13 @@ public final class UnitDestinationSpatialIndex {
      * at any bucket — pair with {@link #removeDestination} when overwriting
      * an existing path.
      */
-    public void addDestination(UnitRegistry registry, Unit u, int destX, int destY) {
+    public void addDestination(UnitRegistry registry, Entity u, int destX, int destY) {
         if (!registry.isAliveById(u.entityId)) return;
         int bx = destX / UnitSpatialIndex.BUCKET;
         int by = destY / UnitSpatialIndex.BUCKET;
         if (bx < 0 || bx >= bucketsX || by < 0 || by >= bucketsY) return;
         int idx = by * bucketsX + bx;
-        ArrayList<Unit> bucket = buckets[idx];
+        ArrayList<Entity> bucket = buckets[idx];
         if (bucket == null) {
             bucket = pool.isEmpty()
                     ? new ArrayList<>(8)
@@ -125,16 +121,16 @@ public final class UnitDestinationSpatialIndex {
      * Removes {@code u} from the bucket for ({@code destX}, {@code destY}).
      * Called from {@link com.dillon.starsectormarines.battle.sim.BattleSimulation#setPath}
      * before a path overwrite (using the old destination) and also when
-     * a path is cleared. Unit identity is by reference — {@link Unit}
+     * a path is cleared. Entity identity is by reference — {@link Entity}
      * doesn't override {@code equals}, so {@code ArrayList.remove(Object)}
      * does the right thing. Silent no-op if the unit isn't present.
      */
-    public void removeDestination(Unit u, int destX, int destY) {
+    public void removeDestination(Entity u, int destX, int destY) {
         int bx = destX / UnitSpatialIndex.BUCKET;
         int by = destY / UnitSpatialIndex.BUCKET;
         if (bx < 0 || bx >= bucketsX || by < 0 || by >= bucketsY) return;
         int idx = by * bucketsX + bx;
-        ArrayList<Unit> bucket = buckets[idx];
+        ArrayList<Entity> bucket = buckets[idx];
         if (bucket == null) return;
         bucket.remove(u);
     }
@@ -151,7 +147,7 @@ public final class UnitDestinationSpatialIndex {
      * is the caller's job, matching the primary index's "primitive over
      * all alive units" semantics.
      */
-    public void gather(int cx, int cy, float radius, ArrayList<Unit> out) {
+    public void gather(int cx, int cy, float radius, ArrayList<Entity> out) {
         out.clear();
         if (radius <= 0f) return;
         int r = (int) Math.ceil(radius);
@@ -162,10 +158,10 @@ public final class UnitDestinationSpatialIndex {
         float r2 = radius * radius;
         for (int by = y0; by <= y1; by++) {
             for (int bx = x0; bx <= x1; bx++) {
-                ArrayList<Unit> bucket = buckets[by * bucketsX + bx];
+                ArrayList<Entity> bucket = buckets[by * bucketsX + bx];
                 if (bucket == null) continue;
                 for (int i = 0, n = bucket.size(); i < n; i++) {
-                    Unit u = bucket.get(i);
+                    Entity u = bucket.get(i);
                     // Snapshot the path reference to a local — under the
                     // parallel UPDATE_UNITS dispatch, another worker may
                     // call setPath on this unit and swap u.path mid-loop.

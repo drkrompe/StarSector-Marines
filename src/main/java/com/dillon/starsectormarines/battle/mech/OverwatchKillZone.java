@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.mech;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
@@ -63,7 +63,7 @@ public final class OverwatchKillZone implements Action {
     @Override public int requiredMembers() { return 1; }
 
     @Override
-    public ActionStatus execute(Unit member, Squad squad, BattleControl sim) {
+    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
         // Per-member role branching. Non-LR_SUPPORT members fall through to
         // parity engagement so mixed-role squads have every member doing
         // something sensible.
@@ -118,8 +118,8 @@ public final class OverwatchKillZone implements Action {
         // LR mech parked at its overwatch cell can otherwise stay locked onto
         // an enemy that's slid behind cover while ignoring a fresh enemy now
         // standing in its kill lane.
-        Unit target = sim.getTacticalScoring().refreshTargetIfNotShootable(member);
-        sim.world().setTargetId(member.entityId, Unit.idOf(target));
+        Entity target = sim.getTacticalScoring().refreshTargetIfNotShootable(member);
+        sim.world().setTargetId(member.entityId, Entity.idOf(target));
         if (target != null) {
             float dist = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
                     sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
@@ -144,7 +144,7 @@ public final class OverwatchKillZone implements Action {
      * distance from the mech's current cell. Returns {@code null} when no cell
      * satisfies the filter — caller falls back to parity engagement.
      */
-    private static int[] pickOverwatchCell(Unit member, Squad squad, BattleView sim) {
+    private static int[] pickOverwatchCell(Entity member, Squad squad, BattleView sim) {
         NavigationGrid grid = sim.getGrid();
         int tx = squad.lastSeenEnemyX;
         int ty = squad.lastSeenEnemyY;

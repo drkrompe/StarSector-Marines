@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -110,7 +110,7 @@ public class GarrisonCordonTest {
         var posts = guardPostsForRoom(sim);
         // Pick the first post and place the defender across the room from it.
         var post = posts.get(0);
-        Unit d1 = new Unit("d1", Faction.DEFENDER, UnitType.MARINE, 7, 7);
+        Entity d1 = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 7, 7);
         d1.squadId = squad.id;
         sim.addUnit(d1);
 
@@ -122,7 +122,7 @@ public class GarrisonCordonTest {
         GarrisonCordon cordon = new GarrisonCordon(posts);
         // Attach a plan that puts d1 in the slot for the chosen post.
         SquadPlan.Step step = new SquadPlan.Step(cordon);
-        List<Unit> bucket = new ArrayList<>(1);
+        List<Entity> bucket = new ArrayList<>(1);
         bucket.add(d1);
         step.assignments.put(post.slotName(), bucket);
         // Empty other slot.
@@ -147,21 +147,21 @@ public class GarrisonCordonTest {
         var post = posts.get(0);
 
         // Defender already on the guard cell.
-        Unit d1 = new Unit("d1", Faction.DEFENDER, UnitType.MARINE, post.cellX, post.cellY);
+        Entity d1 = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, post.cellX, post.cellY);
         d1.squadId = squad.id;
         sim.addUnit(d1);
 
         // Place an attacker visible from the guard cell (just inside the room).
         // The guard cell is one cardinal step inside from the doorway, so a
         // sibling cell two off should usually be in LoS.
-        Unit attacker = new Unit("a1", Faction.MARINE, UnitType.MARINE, post.cellX, post.cellY + 2);
+        Entity attacker = new Entity("a1", Faction.MARINE, UnitType.MARINE, post.cellX, post.cellY + 2);
         sim.addUnit(attacker);
         assertTrue(sim.getGrid().hasLineOfSight(sim.world().cellX(d1.entityId), sim.world().cellY(d1.entityId), sim.world().cellX(attacker.entityId), sim.world().cellY(attacker.entityId)),
                 "test prerequisite: attacker must be visible from the guard cell");
 
         GarrisonCordon cordon = new GarrisonCordon(posts);
         SquadPlan.Step step = new SquadPlan.Step(cordon);
-        List<Unit> bucket = new ArrayList<>(1);
+        List<Entity> bucket = new ArrayList<>(1);
         bucket.add(d1);
         step.assignments.put(post.slotName(), bucket);
         step.assignments.put(posts.get(1).slotName(), new ArrayList<>());

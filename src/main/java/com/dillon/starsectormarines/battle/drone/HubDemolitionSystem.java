@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.drone;
 
 import com.dillon.starsectormarines.battle.unit.DeathDispatcher;
 import com.dillon.starsectormarines.battle.unit.DeathEvent;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.world.MapService;
@@ -25,7 +25,7 @@ import java.util.List;
  * the hub dies — an invisible obstacle with no sprite. No guardpost release:
  * hubs have {@code garrisonSize=0} and emit no GUARDPOST tactical node.
  *
- * <p>Migrated off the legacy {@code List<Unit>} scan (the old per-tick
+ * <p>Migrated off the legacy {@code List<Entity>} scan (the old per-tick
  * {@code !isAlive() && !demolished} sweep) to the event seam, following
  * {@code TurretDemolitionSystem}. The {@link DroneHubUnit#demolished} flag
  * stays as a defensive double-fire guard (a death publishes exactly once) and
@@ -103,7 +103,7 @@ public final class HubDemolitionSystem {
         UnitRegistry registry = roster.getRegistry();
         List<Drone> doomed = null;
         for (int i = 0, n = registry.liveCount(); i < n; i++) {
-            Unit u = registry.get(i);
+            Entity u = registry.get(i);
             if (u instanceof Drone d && d.homeHub == h) {
                 if (doomed == null) doomed = new ArrayList<>();
                 doomed.add(d);

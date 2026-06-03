@@ -1,16 +1,11 @@
 package com.dillon.starsectormarines.battle.unit;
 
-import com.dillon.starsectormarines.battle.drone.Drone;
-import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
-import com.dillon.starsectormarines.battle.combat.ShotEvent;
-import com.dillon.starsectormarines.battle.combat.fx.SmokingWreck;
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.mech.MechLoadoutState;
 
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 
 /**
- * Tier / archetype of a {@link Unit}. Bundles its sprite sheet, whether it's a
+ * Tier / archetype of a {@link Entity}. Bundles its sprite sheet, whether it's a
  * combatant, and the base stat block applied at construction. {@link Faction}
  * stays orthogonal — a MARINE_RED unit can spawn as MARINE or DEFENDER faction
  * depending on which side hired the pirates this mission.

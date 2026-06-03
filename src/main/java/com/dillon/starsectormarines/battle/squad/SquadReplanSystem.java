@@ -18,7 +18,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
  * parallelism section) and we'll fork-join here once we feel the cost.
  * When that happens, the for-loop becomes the next entity for-loop seam —
  * sibling shape to {@link com.dillon.starsectormarines.battle.decision.UnitUpdateSystem},
- * just keyed on {@link Squad} instead of {@code Unit}.
+ * just keyed on {@link Squad} instead of {@code Entity}.
  *
  * <p>Sibling System to {@link SquadAlertSystem} / {@link SquadMoraleSystem}
  * / {@link SquadFallbackSystem}.

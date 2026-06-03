@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.StarsectorMarinesModPlugin;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
@@ -104,7 +104,7 @@ public final class SquadStateDumper {
         o.put("moraleBroken", squad.moraleBroken);
         o.put("timeSinceContact", squad.timeSinceContact);
         o.put("timeSinceReplan", squad.timeSinceReplan);
-        Unit leaderUnit = sim.resolveUnit(squad.leaderId);
+        Entity leaderUnit = sim.resolveUnit(squad.leaderId);
         o.put("leaderId", leaderUnit != null ? leaderUnit.id : null);
         o.put("assignedNode", squad.assignedNode != null ? squad.assignedNode.kind.name() : null);
         o.put("assignedObjective", buildAssignmentJson(squad.assignedObjective));
@@ -135,7 +135,7 @@ public final class SquadStateDumper {
         // stuck" diagnostic cares about the survivors; squad-level aliveMembers
         // carries attrition. The per-member "alive" field is now always true.
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Unit u = sim.liveUnitAt(i);
+            Entity u = sim.liveUnitAt(i);
             if (u.squadId != squad.id) continue;
             JSONObject o = new JSONObject();
             o.put("id", u.id);
@@ -156,7 +156,7 @@ public final class SquadStateDumper {
             o.put("hp", sim.world().hp(u.entityId));
             o.put("maxHp", sim.world().maxHp(u.entityId));
             o.put("moveProgress", sim.world().moveProgress(u.entityId));
-            Unit dumpTarget = sim.targetOf(u);
+            Entity dumpTarget = sim.targetOf(u);
             o.put("targetId", dumpTarget != null ? dumpTarget.id : null);
             // Pathfinder reachability of the unit's current target. False
             // here means the squad is fixated on someone the pathfinder
@@ -172,8 +172,8 @@ public final class SquadStateDumper {
         return arr;
     }
 
-    private static Object computeTargetReachable(Unit self, BattleSimulation sim) {
-        Unit target = sim.targetOf(self);
+    private static Object computeTargetReachable(Entity self, BattleSimulation sim) {
+        Entity target = sim.targetOf(self);
         if (target == null) return JSONObject.NULL;
         int[] path = GridPathfinder.findPath(sim.getGrid(),
                 sim.world().cellX(self.entityId), sim.world().cellY(self.entityId),
@@ -203,20 +203,20 @@ public final class SquadStateDumper {
 
         Faction enemyFaction = squad.faction == Faction.MARINE ? Faction.DEFENDER : Faction.MARINE;
 
-        List<Unit> squadmates = new ArrayList<>();
+        List<Entity> squadmates = new ArrayList<>();
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Unit u = sim.liveUnitAt(i);
+            Entity u = sim.liveUnitAt(i);
             if (u.squadId == squad.id) squadmates.add(u);
         }
 
         JSONArray enemies = new JSONArray();
         boolean anyUnreachable = false;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Unit e = sim.liveUnitAt(i);
+            Entity e = sim.liveUnitAt(i);
             if (e.faction != enemyFaction) continue;
             if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(e.entityId), sim.world().cellY(e.entityId)) != targetZoneId) continue;
             boolean reachable = false;
-            for (Unit m : squadmates) {
+            for (Entity m : squadmates) {
                 int[] path = GridPathfinder.findPath(sim.getGrid(),
                         sim.world().cellX(m.entityId), sim.world().cellY(m.entityId),
                         sim.world().cellX(e.entityId), sim.world().cellY(e.entityId));
@@ -272,9 +272,9 @@ public final class SquadStateDumper {
             so.put("isCurrent", i == plan.currentIndex() && !plan.isComplete());
             so.put("action", step.action.name());
             JSONObject slotJson = new JSONObject();
-            for (Map.Entry<String, List<Unit>> e : step.assignments.entrySet()) {
+            for (Map.Entry<String, List<Entity>> e : step.assignments.entrySet()) {
                 JSONArray ids = new JSONArray();
-                for (Unit u : e.getValue()) ids.put(u.id);
+                for (Entity u : e.getValue()) ids.put(u.id);
                 slotJson.put(e.getKey(), ids);
             }
             so.put("assignments", slotJson);

@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.squad;
 
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
@@ -102,7 +102,7 @@ public final class SquadAlertSystem {
     public void tick(float dt) {
         NavigationGrid grid = navigation.getGrid();
         UnitRegistry registry = roster.getRegistry();
-        Unit[] dense = registry.denseArray();
+        Entity[] dense = registry.denseArray();
         int[] cellX = registry.cellXArray();
         int[] cellY = registry.cellYArray();
         int liveCount = registry.liveCount();
@@ -128,8 +128,8 @@ public final class SquadAlertSystem {
         // the ENGAGED scan stops at the first sighted enemy, and we need the
         // tighter "close + visible" predicate for the kill-zone gate.
         for (int i = 0; i < liveCount; i++) {
-            Unit u = dense[i];
-            if (u.squadId == Unit.NO_SQUAD) continue;
+            Entity u = dense[i];
+            if (u.squadId == Entity.NO_SQUAD) continue;
             Squad squad = roster.getSquad(u.squadId);
             if (squad == null) continue;
             squad.aliveMembers++;
@@ -144,7 +144,7 @@ public final class SquadAlertSystem {
             // garrison squads pay nothing.
             if (squad.holdsFireUntilKillZone && !squad._killZoneSightedThisTick) {
                 for (int j = 0; j < liveCount; j++) {
-                    Unit other = dense[j];
+                    Entity other = dense[j];
                     if (other.faction == squad.faction) continue;
                     if (!other.type.combatant) continue;
                     int dx = cellX[j] - cellX[i];
@@ -161,7 +161,7 @@ public final class SquadAlertSystem {
             // one engaged squadmate is enough to commit the whole squad.
             if (squad._engagedThisTick) continue;
             for (int j = 0; j < liveCount; j++) {
-                Unit other = dense[j];
+                Entity other = dense[j];
                 if (other.faction == squad.faction) continue;
                 if (!other.type.combatant) continue;
                 if (!TacticalScoring.canSeePair(grid, cellX[i], cellY[i], cellX[j], cellY[j],
@@ -180,8 +180,8 @@ public final class SquadAlertSystem {
         List<ShotEvent> activeShots = shots.getActiveShots();
         if (!activeShots.isEmpty()) {
             for (int i = 0; i < liveCount; i++) {
-                Unit u = dense[i];
-                if (u.squadId == Unit.NO_SQUAD) continue;
+                Entity u = dense[i];
+                if (u.squadId == Entity.NO_SQUAD) continue;
                 Squad squad = roster.getSquad(u.squadId);
                 if (squad == null || squad._engagedThisTick || squad._suspiciousThisTick) continue;
                 for (ShotEvent shot : activeShots) {
@@ -206,8 +206,8 @@ public final class SquadAlertSystem {
         // because the field is only consumed by their gate override.
         if (!activeShots.isEmpty()) {
             for (int i = 0; i < liveCount; i++) {
-                Unit u = dense[i];
-                if (u.squadId == Unit.NO_SQUAD) continue;
+                Entity u = dense[i];
+                if (u.squadId == Entity.NO_SQUAD) continue;
                 Squad squad = roster.getSquad(u.squadId);
                 if (squad == null || !squad.holdsFireUntilKillZone) continue;
                 if (squad._underFireAtLosThisTick) continue;
@@ -306,7 +306,7 @@ public final class SquadAlertSystem {
      * {@link TacticalScoring#findBestTarget findBestTarget} or holds null if
      * nobody's visible.
      */
-    private void clearSquadMemberTargets(int squadId, UnitRegistry registry, Unit[] dense, int liveCount) {
+    private void clearSquadMemberTargets(int squadId, UnitRegistry registry, Entity[] dense, int liveCount) {
         for (int i = 0; i < liveCount; i++) {
             if (dense[i].squadId == squadId) registry.setTargetId(i, 0L);
         }

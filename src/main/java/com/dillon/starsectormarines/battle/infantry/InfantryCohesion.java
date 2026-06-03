@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 
 /**
  * Squad cohesion math shared by the GOAP infantry postures
@@ -43,13 +43,13 @@ public final class InfantryCohesion {
      * promotion hasn't run yet.
      *
      * <p><b>Engagement override.</b> A member with a live target inside
-     * its {@link Unit#attackRange} and clear LoS ignores cohesion and
+     * its {@link Entity#attackRange} and clear LoS ignores cohesion and
      * stays in the fight — splitting around a building during combat
      * is fine; the failure mode was units stuck navigating <em>to</em>
      * the battlefield. See {@code memory/squad_leader_cohesion.md}.
      */
-    public static int[] cohesionOverride(Unit self, BattleView sim) {
-        if (self.squadId == Unit.NO_SQUAD) return null;
+    public static int[] cohesionOverride(Entity self, BattleView sim) {
+        if (self.squadId == Entity.NO_SQUAD) return null;
         Squad squad = sim.getSquad(self.squadId);
         if (squad == null || squad.aliveMembers <= 1) return null;
 
@@ -58,7 +58,7 @@ public final class InfantryCohesion {
         // engagement-overrides-regroup rule is per-member, not per-squad:
         // one marine peeking from far cover doesn't pull the rest into
         // their lane.
-        Unit target = sim.targetOf(self);
+        Entity target = sim.targetOf(self);
         if (target != null) {
             float td = (float) Math.sqrt(
                     (float) (sim.world().cellX(target.entityId) - sim.world().cellX(self.entityId)) * (sim.world().cellX(target.entityId) - sim.world().cellX(self.entityId))
@@ -70,7 +70,7 @@ public final class InfantryCohesion {
             }
         }
 
-        Unit leader = sim.resolveUnit(squad.leaderId);
+        Entity leader = sim.resolveUnit(squad.leaderId);
         if (leader != null && leader != self) {
             float dx = sim.world().cellX(leader.entityId) - sim.world().cellX(self.entityId);
             float dy = sim.world().cellY(leader.entityId) - sim.world().cellY(self.entityId);

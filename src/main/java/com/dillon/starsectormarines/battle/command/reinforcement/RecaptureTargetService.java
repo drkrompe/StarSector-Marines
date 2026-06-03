@@ -7,7 +7,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -106,7 +106,7 @@ public final class RecaptureTargetService {
         EnumMap<BiomeKind, Integer> present = new EnumMap<>(BiomeKind.class);
         int totalDefenders = 0;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Unit u = sim.liveUnitAt(i);
+            Entity u = sim.liveUnitAt(i);
             if (u.faction != Faction.DEFENDER) continue;
             present.merge(biomeMap.biomeAt(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId)), 1, Integer::sum);
             totalDefenders++;

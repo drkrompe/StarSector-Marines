@@ -36,10 +36,10 @@ public class DeadBodySystemTest {
     }
 
     /** A target DEFENDER to kill, with a live unit of each faction kept far away so the battle doesn't end. */
-    private static Unit parkArenaWithTarget(BattleSimulation sim) {
-        sim.addUnit(new Unit("m0", Faction.MARINE, UnitType.MARINE, 1, 1));
-        sim.addUnit(new Unit("d-keepalive", Faction.DEFENDER, UnitType.MARINE, 38, 38));
-        Unit target = new Unit("d0", Faction.DEFENDER, UnitType.MARINE, 20, 20);
+    private static Entity parkArenaWithTarget(BattleSimulation sim) {
+        sim.addUnit(new Entity("m0", Faction.MARINE, UnitType.MARINE, 1, 1));
+        sim.addUnit(new Entity("d-keepalive", Faction.DEFENDER, UnitType.MARINE, 38, 38));
+        Entity target = new Entity("d0", Faction.DEFENDER, UnitType.MARINE, 20, 20);
         sim.addUnit(target);
         return target;
     }
@@ -47,7 +47,7 @@ public class DeadBodySystemTest {
     @Test
     public void killedUnitGetsADeadBodyOnTheDeathDrain() {
         BattleSimulation sim = openArena(40, 40);
-        Unit target = parkArenaWithTarget(sim);
+        Entity target = parkArenaWithTarget(sim);
         long id = target.entityId;
 
         sim.applyDamage(target, 100_000f, 20f, 20f);
@@ -70,7 +70,7 @@ public class DeadBodySystemTest {
     @Test
     public void deadBodyAndItsRenderPositionSurviveRegistryRelease() {
         BattleSimulation sim = openArena(40, 40);
-        Unit target = parkArenaWithTarget(sim);
+        Entity target = parkArenaWithTarget(sim);
         long id = target.entityId;
         float deathX = target.getRenderX();
         float deathY = target.getRenderY();

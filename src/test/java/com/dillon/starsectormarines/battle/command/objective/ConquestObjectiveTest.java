@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.command.objective;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.command.compound.CompoundCaptureSystem;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
@@ -63,7 +63,7 @@ public class ConquestObjectiveTest {
     private static void captureAll(BattleSimulation sim, CompoundService service,
                                    CompoundCaptureSystem system, int... anchorCells) {
         for (int i = 0; i < anchorCells.length; i += 2) {
-            sim.addUnit(new Unit("cap-m-" + i, Faction.MARINE, UnitType.MARINE,
+            sim.addUnit(new Entity("cap-m-" + i, Faction.MARINE, UnitType.MARINE,
                     anchorCells[i], anchorCells[i + 1]));
         }
         int ticks = 2 + (int) Math.ceil(
@@ -83,7 +83,7 @@ public class ConquestObjectiveTest {
         // screen + the warning lands in the log for diagnosis.
         BattleSimulation sim = openSim();
         ConquestObjective obj = new ConquestObjective(sim.getCompoundService());
-        sim.addUnit(new Unit("m1", Faction.MARINE, UnitType.MARINE, 5, 5));
+        sim.addUnit(new Entity("m1", Faction.MARINE, UnitType.MARINE, 5, 5));
 
         obj.tick(sim);
         assertFalse(obj.isComplete(),
@@ -145,7 +145,7 @@ public class ConquestObjectiveTest {
         // Use a held marine reference so we can kill it after the
         // capture-loop adds its own (and that one too).
         captureAll(sim, service, system, 5, 5);
-        for (Unit u : TestUnits.snapshot(sim)) {
+        for (Entity u : TestUnits.snapshot(sim)) {
             if (u.faction == Faction.MARINE) TestUnits.kill(sim, u);
         }
 
@@ -179,7 +179,7 @@ public class ConquestObjectiveTest {
         // we then kill every marine to simulate the "stormed the keep but
         // got wiped" tick.
         captureAll(sim, service, system, 5, 5);
-        for (Unit u : TestUnits.snapshot(sim)) {
+        for (Entity u : TestUnits.snapshot(sim)) {
             if (u.faction == Faction.MARINE) TestUnits.kill(sim, u);
         }
 

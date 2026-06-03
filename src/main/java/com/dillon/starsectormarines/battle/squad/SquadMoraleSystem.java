@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.squad;
 
 import com.dillon.starsectormarines.battle.mech.MechLoadoutState;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
@@ -104,7 +104,7 @@ public final class SquadMoraleSystem {
         // happens between here and the next phase boundary), so a once-per-
         // tick capture of denseArray / hpArray / maxHpArray is safe.
         UnitRegistry registry = roster.getRegistry();
-        Unit[] dense = registry.denseArray();
+        Entity[] dense = registry.denseArray();
         float[] hp = registry.hpArray();
         float[] maxHp = registry.maxHpArray();
         int[] cellX = registry.cellXArray();
@@ -217,12 +217,12 @@ public final class SquadMoraleSystem {
      * once that lands, this aggregator could be relaxed to "any broken."
      * Today majority is what gives a stable squad-level signal.
      */
-    private void updateMechSquadMorale(Squad squad, Unit[] dense,
+    private void updateMechSquadMorale(Squad squad, Entity[] dense,
                                        float[] hp, float[] maxHp, int liveCount, float dt) {
         int aliveMechs = 0;
         int brokenMechs = 0;
         for (int i = 0; i < liveCount; i++) {
-            Unit u = dense[i];
+            Entity u = dense[i];
             // Dense iteration excludes released units — no isAlive() needed.
             if (u.squadId != squad.id || u.mech == null) continue;
             aliveMechs++;
@@ -263,12 +263,12 @@ public final class SquadMoraleSystem {
      * two squad members only rattles one of them (the first found), which
      * matches the "single drain event per shot" intent.
      */
-    private Squad squadHitByMiss(ShotEvent shot, Unit[] dense, int[] cellX, int[] cellY, int liveCount) {
+    private Squad squadHitByMiss(ShotEvent shot, Entity[] dense, int[] cellX, int[] cellY, int liveCount) {
         for (Squad sq : roster.getSquads()) {
             if (sq.aliveMembers <= 0) continue;
             if (sq.faction == shot.shooterFaction) continue;
             for (int i = 0; i < liveCount; i++) {
-                Unit member = dense[i];
+                Entity member = dense[i];
                 // Dense iteration excludes released units — no isAlive() needed.
                 if (member.squadId != sq.id) continue;
                 float dx = shot.toX - (cellX[i] + 0.5f);

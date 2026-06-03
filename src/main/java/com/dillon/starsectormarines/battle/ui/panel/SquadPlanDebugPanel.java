@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
@@ -490,7 +490,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
                     renderHighlightButton(font, i, x0 + bodyW, lineY, alphaMult);
                 }
                 lineY -= DETAIL_LINE_H;
-                for (Map.Entry<String, List<Unit>> e : step.assignments.entrySet()) {
+                for (Map.Entry<String, List<Entity>> e : step.assignments.entrySet()) {
                     lineY = drawLineIfVisible(font,
                             "    " + e.getKey() + " → " + memberIds(e.getValue()),
                             lineX, lineY, DETAIL_LABEL_FG, alphaMult, vpBottomY, vpTopY);
@@ -583,7 +583,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
     }
 
     /** Comma-joined unit ids, capped so a large slot list doesn't blow the panel. */
-    private static String memberIds(List<Unit> members) {
+    private static String memberIds(List<Entity> members) {
         if (members == null || members.isEmpty()) return "(none)";
         StringBuilder sb = new StringBuilder();
         int max = Math.min(members.size(), 4);
@@ -669,7 +669,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
      */
     private void publishCaptainHighlight(Squad squad) {
         HighlightOverlay overlay = ctx.getHighlights();
-        Unit leaderUnit = ctx.getSim().resolveUnit(squad.leaderId);
+        Entity leaderUnit = ctx.getSim().resolveUnit(squad.leaderId);
         if (leaderUnit != null) {
             overlay.put(HighlightOverlay.SRC_CAPTAIN, List.of(
                     new CellHighlight(ctx.getSim().world().cellX(leaderUnit.entityId), ctx.getSim().world().cellY(leaderUnit.entityId), HighlightOverlay.COLOR_CAPTAIN)));

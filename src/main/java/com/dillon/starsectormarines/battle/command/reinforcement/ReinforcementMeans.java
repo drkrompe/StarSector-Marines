@@ -25,7 +25,7 @@ public interface ReinforcementMeans {
 
     /**
      * Spawn the actual units. May post {@link com.dillon.starsectormarines.battle.Vehicle},
-     * {@code Shuttle}, or {@code Squad}/{@code Unit} into the sim's normal
+     * {@code Shuttle}, or {@code Squad}/{@code Entity} into the sim's normal
      * lists. Called only after {@link #canFulfill} returns {@code true}.
      */
     void dispatch(BattleControl sim, ReinforcementRequest req);

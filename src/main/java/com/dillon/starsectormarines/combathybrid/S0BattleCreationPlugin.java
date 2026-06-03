@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.battle.air.AirProvider;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
@@ -191,7 +191,7 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
         // The real vanilla ships above own the air — the sim runs no internal shuttle/flyby.
         sim.setAirProvider(AirProvider.EXTERNAL);
         // The defense-post structures, mirrored as proxies so the fleet strafes real defenses.
-        List<Unit> targetable = build.structures();
+        List<Entity> targetable = build.structures();
         LOG.info("S3: loaded Conquest map [" + scale + " " + gridW + "x" + gridH + ", axis=" + axis
                 + "] — " + map.defensePosts.size() + " defense posts, " + targetable.size() + " targetable structures.");
 

@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.decision.goap.action;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
@@ -45,14 +45,14 @@ public class BreakContactTest {
         return new BattleSimulation(grid, new CellTopology(W, H));
     }
 
-    private static Unit marineAt(int x, int y, int squadId) {
-        Unit u = new Unit("m", Faction.MARINE, UnitType.MARINE, x, y);
+    private static Entity marineAt(int x, int y, int squadId) {
+        Entity u = new Entity("m", Faction.MARINE, UnitType.MARINE, x, y);
         u.squadId = squadId;
         return u;
     }
 
-    private static Unit defenderAt(int x, int y) {
-        Unit u = new Unit("d", Faction.DEFENDER, UnitType.MARINE, x, y);
+    private static Entity defenderAt(int x, int y) {
+        Entity u = new Entity("d", Faction.DEFENDER, UnitType.MARINE, x, y);
         return u;
     }
 
@@ -62,7 +62,7 @@ public class BreakContactTest {
         Squad squad = new Squad(1, Faction.MARINE);
         squad.aliveMembers = 1;
 
-        Unit marine = marineAt(6, 7, 1);
+        Entity marine = marineAt(6, 7, 1);
         sim.addUnit(marine);
         sim.world().setFallbackCell(marine.entityId, -1, -1);
         // One defender on the other side of the wall — gives findFallbackPosition
@@ -81,7 +81,7 @@ public class BreakContactTest {
         Squad squad = new Squad(1, Faction.MARINE);
         squad.aliveMembers = 1;
 
-        Unit marine = marineAt(2, 2, 1);
+        Entity marine = marineAt(2, 2, 1);
         sim.addUnit(marine);
         // Force destination to current cell — simulates "already arrived."
         sim.world().setFallbackCell(marine.entityId, 2, 2);
@@ -102,7 +102,7 @@ public class BreakContactTest {
         // Marine on the hidden side of the column-7 wall; defender on the
         // other side. Cell (10, 7) is in shadow of the wall from (3, 7), so
         // the cached destination is genuinely hidden and must stick.
-        Unit marine = marineAt(10, 7, 1);
+        Entity marine = marineAt(10, 7, 1);
         sim.addUnit(marine);
         sim.world().setFallbackCell(marine.entityId, 10, 7);
         sim.addUnit(defenderAt(3, 7));
@@ -123,7 +123,7 @@ public class BreakContactTest {
         // LoS along row 2 — the cell isn't a real hide. Used to be sticky;
         // now the action must re-evaluate so the morale-broken squad doesn't
         // glue itself into the kill zone.
-        Unit marine = marineAt(2, 2, 1);
+        Entity marine = marineAt(2, 2, 1);
         sim.addUnit(marine);
         sim.world().setFallbackCell(marine.entityId, 2, 2);
         sim.addUnit(defenderAt(5, 2));
@@ -146,7 +146,7 @@ public class BreakContactTest {
         // findFallbackPosition picks — the only guarantee is "it's different
         // from (3, 3) OR (3, 3) became hidden between ticks." For this open
         // patch the defender has LoS to (3, 3), so the action must replace it.
-        Unit marine = marineAt(2, 2, 1);
+        Entity marine = marineAt(2, 2, 1);
         sim.addUnit(marine);
         sim.world().setFallbackCell(marine.entityId, 3, 3);
         sim.addUnit(defenderAt(5, 2));

@@ -9,7 +9,7 @@ import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -69,7 +69,7 @@ public class AirSystem {
     private final World world;
     private final TurretFireSink fireSink;
     private final Random rng;
-    private final Consumer<Unit> addUnitSink;
+    private final Consumer<Entity> addUnitSink;
 
     private final List<Shuttle> shuttles = new ArrayList<>();
 
@@ -84,7 +84,7 @@ public class AirSystem {
 
     public AirSystem(NavigationService navigation, UnitRosterService roster,
                      TacticalScoring tacticalScoring, World world, TurretFireSink fireSink,
-                     Random rng, Consumer<Unit> addUnitSink) {
+                     Random rng, Consumer<Entity> addUnitSink) {
         this.navigation = navigation;
         this.roster = roster;
         this.registry = roster.getRegistry();
@@ -305,7 +305,7 @@ public class AirSystem {
                             // this reset, marines from cycle N+1 reinforce the
                             // surviving squad from cycle N instead of forming
                             // a fresh fireteam at the LZ.
-                            s.mission.squadId = Unit.NO_SQUAD;
+                            s.mission.squadId = Entity.NO_SQUAD;
                             s.body.teleport(s.mission.entryX, s.mission.entryY,
                                     AirBody.facingToward(s.mission.lzX - s.mission.entryX, s.mission.lzY - s.mission.entryY));
                             s.altitudeT = 1f;
@@ -362,7 +362,7 @@ public class AirSystem {
                 // Resolve the burst victim once per tick — null surfaces both
                 // "released from registry" and "id was 0L all along," same path
                 // as TurretBehavior's MapTurret-shadow read.
-                Unit currentBurstTarget = registry.getOrNull(mt.burstTargetId);
+                Entity currentBurstTarget = registry.getOrNull(mt.burstTargetId);
                 if (mt.burstRemaining > 0 && currentBurstTarget == null) {
                     // A burst whose victim died is dead too — release the lock so
                     // the aim loop can re-acquire a fresh target next tick.
@@ -394,7 +394,7 @@ public class AirSystem {
                 aim.originX = worldX;
                 aim.originY = worldY;
                 aim.faction = s.faction;
-                aim.squadId = Unit.NO_SQUAD;
+                aim.squadId = Entity.NO_SQUAD;
                 aim.excludeFromCrowding = null;
                 aim.facingDegrees = mt.facingDegrees;
                 aim.turnRateDegPerSec = mt.mount.kind.turnRateDegPerSec;
@@ -497,11 +497,11 @@ public class AirSystem {
      * stays where it was supporting.
      */
     private void updateHoverFollow(Shuttle s) {
-        if (s.mission.squadId == Unit.NO_SQUAD) return;
+        if (s.mission.squadId == Entity.NO_SQUAD) return;
         float sumX = 0f, sumY = 0f;
         int n = 0;
         for (int i = 0, live = registry.liveCount(); i < live; i++) {
-            Unit u = registry.get(i);
+            Entity u = registry.get(i);
             if (u.squadId != s.mission.squadId) continue;
             sumX += registry.getCellX(i) + 0.5f;
             sumY += registry.getCellY(i) + 0.5f;
@@ -530,7 +530,7 @@ public class AirSystem {
 
     /**
      * Finds a free cell adjacent to the LZ and spawns a marine there as a fresh
-     * {@link Unit}. Returns {@code false} when no nearby cell is available this
+     * {@link Entity}. Returns {@code false} when no nearby cell is available this
      * tick (rare — only happens if the area around the LZ is fully clogged with
      * units or walls); caller leaves {@code marinesRemaining} unchanged and the
      * shuttle re-tries next interval.
@@ -543,7 +543,7 @@ public class AirSystem {
         UnitType deboardType = (s.mission.deboardUnitType != null)
                 ? s.mission.deboardUnitType
                 : FactionUnitRoster.forFaction(s.faction).infantry();
-        Unit marine = new Unit(roster.nextMarineId(), s.faction, deboardType, cell[0], cell[1]);
+        Entity marine = new Entity(roster.nextMarineId(), s.faction, deboardType, cell[0], cell[1]);
         int slot = s.type.capacity - s.mission.marinesRemaining;
         MarineLoadout loadout = (s.mission.marineLoadout != null && slot < s.mission.marineLoadout.length)
                 ? s.mission.marineLoadout[slot] : null;
@@ -563,7 +563,7 @@ public class AirSystem {
                 marine.secondaryAmmo = loadout.secondaryAmmo;
             }
         }
-        if (s.mission.squadId == Unit.NO_SQUAD) {
+        if (s.mission.squadId == Entity.NO_SQUAD) {
             s.mission.squadId = roster.mintSquad(s.faction, marine);
             // Garrison drops are born holding their compound: stamp HOLD_NODE so
             // the squad runs GarrisonCompound from its first tick rather than

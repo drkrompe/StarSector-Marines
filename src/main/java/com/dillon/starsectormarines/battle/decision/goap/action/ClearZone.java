@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
@@ -44,7 +44,7 @@ public final class ClearZone extends AbstractZoneAction {
     @Override public String name() { return "ClearZone[" + targetZoneId + "]"; }
 
     @Override
-    public ActionStatus execute(Unit member, Squad squad, BattleControl sim) {
+    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
         // Quick exit when the zone reads clear for this squad's enemy faction.
         // Checked from anywhere (global predicate) so an all-outside squad —
         // e.g. the lone in-zone member died — still advances the plan rather
@@ -77,16 +77,16 @@ public final class ClearZone extends AbstractZoneAction {
         // wall via the pathfinder rather than freezing. Falls back to the
         // squad-aware best-target only when zone has no live enemies (rare —
         // zoneClear normally short-circuits first).
-        Unit target = sim.targetOf(member);
+        Entity target = sim.targetOf(member);
         boolean targetOutOfZone = target != null
                 && sim.getZoneGraph().zoneIdAt(sim.world().cellX(target.entityId), sim.world().cellY(target.entityId)) != targetZoneId;
         if (target == null
                 || targetOutOfZone
                 || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
-            Unit inZone = pickInZoneTarget(member, sim);
+            Entity inZone = pickInZoneTarget(member, sim);
             if (inZone == null) inZone = pickNearestInZoneEnemy(member, sim);
             target = inZone != null ? inZone : sim.getTacticalScoring().findBestTarget(member);
-            sim.world().setTargetId(member.entityId, Unit.idOf(target));
+            sim.world().setTargetId(member.entityId, Entity.idOf(target));
         }
         if (target == null) return ActionStatus.RUNNING;
 
@@ -145,12 +145,12 @@ public final class ClearZone extends AbstractZoneAction {
      * exists (caller falls back to {@link #pickNearestInZoneEnemy}, then
      * to the normal squad-aware picker).
      */
-    private Unit pickInZoneTarget(Unit self, BattleView sim) {
+    private Entity pickInZoneTarget(Entity self, BattleView sim) {
         Faction enemy = enemyOf(self.faction);
-        Unit best = null;
+        Entity best = null;
         float bestDist = Float.MAX_VALUE;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Unit other = sim.liveUnitAt(i);
+            Entity other = sim.liveUnitAt(i);
             if (other.faction != enemy) continue;
             if (!other.type.combatant) continue;
             if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(other.entityId), sim.world().cellY(other.entityId)) != targetZoneId) continue;
@@ -180,12 +180,12 @@ public final class ClearZone extends AbstractZoneAction {
      * is geometrically stuck — surfaced via clearZoneReachability in
      * {@link com.dillon.starsectormarines.battle.ui.debug.SquadStateDumper}).
      */
-    private Unit pickNearestInZoneEnemy(Unit self, BattleView sim) {
+    private Entity pickNearestInZoneEnemy(Entity self, BattleView sim) {
         Faction enemy = enemyOf(self.faction);
-        Unit best = null;
+        Entity best = null;
         float bestDist = Float.MAX_VALUE;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Unit other = sim.liveUnitAt(i);
+            Entity other = sim.liveUnitAt(i);
             if (other.faction != enemy) continue;
             if (!other.type.combatant) continue;
             if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(other.entityId), sim.world().cellY(other.entityId)) != targetZoneId) continue;

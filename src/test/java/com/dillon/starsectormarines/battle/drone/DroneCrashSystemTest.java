@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.drone;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -39,7 +39,7 @@ public class DroneCrashSystemTest {
 
     /** A drone homed to a hub kept alive far away — so killing the drone doesn't end the battle. */
     private static Drone parkArenaWithDrone(BattleSimulation sim) {
-        sim.addUnit(new Unit("m0", Faction.MARINE, UnitType.MARINE, 1, 1));
+        sim.addUnit(new Entity("m0", Faction.MARINE, UnitType.MARINE, 1, 1));
         DroneHubUnit keepAlive = new DroneHubUnit("hub", Faction.DEFENDER, 38, 38);
         sim.addUnit(keepAlive);
         Drone drone = new Drone("d0", Faction.DEFENDER, 20, 20, keepAlive);

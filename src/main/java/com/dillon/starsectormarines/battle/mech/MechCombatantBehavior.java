@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 
 /**
@@ -13,7 +13,7 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
  * (chaingun, SRM pod, LRM artillery) with independent gating, and a
  * "stand off at LRM range when not in close engagement" movement pattern.
  * Sibling of {@link com.dillon.starsectormarines.battle.infantry.GoapInfantryBehavior};
- * {@link CombatantBehavior} picks between the two based on {@link Unit#mech}.
+ * {@link CombatantBehavior} picks between the two based on {@link Entity#mech}.
  *
  * <p>No squad cohesion — mechs are typically solo or paired and don't
  * participate in fireteam centroid logic.
@@ -25,9 +25,9 @@ public final class MechCombatantBehavior implements UnitBehavior {
     private MechCombatantBehavior() {}
 
     @Override
-    public void update(Unit u, BattleSimulation sim) {
-        Unit target = sim.getTacticalScoring().refreshTargetIfNotShootable(u);
-        sim.world().setTargetId(u.entityId, Unit.idOf(target));
+    public void update(Entity u, BattleSimulation sim) {
+        Entity target = sim.getTacticalScoring().refreshTargetIfNotShootable(u);
+        sim.world().setTargetId(u.entityId, Entity.idOf(target));
         if (target == null) return;
 
         float dist = TacticalScoring.cellDistance(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
@@ -88,14 +88,14 @@ public final class MechCombatantBehavior implements UnitBehavior {
      *       chunk of the salvo flies wide."</li>
      * </ul>
      */
-    public static void tryFireMechWeapons(Unit u, Unit target, float dist, BattleControl sim, boolean hasLos) {
+    public static void tryFireMechWeapons(Entity u, Entity target, float dist, BattleControl sim, boolean hasLos) {
         tryFireChaingun(u, target, dist, sim, hasLos);
         tryFireSrm(u, target, dist, sim, hasLos);
         tryFireLrm(u, target, dist, sim, hasLos);
     }
 
     /** Chaingun track: close-band sustained fire — needs LOS, fires when target is within chaingun range and the weapon is off cooldown. */
-    public static void tryFireChaingun(Unit u, Unit target, float dist, BattleControl sim, boolean hasLos) {
+    public static void tryFireChaingun(Entity u, Entity target, float dist, BattleControl sim, boolean hasLos) {
         MechLoadoutState m = u.mech;
         if (hasLos && m.chaingunCooldown <= 0f && m.chaingunBurstRemaining <= 0
                 && dist <= m.chaingun.range) {
@@ -110,7 +110,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
     }
 
     /** SRM pod track: mid-close salvo — needs LOS, ammo-limited. Skip this call from any action whose doctrine withholds SRMs (e.g. LR Support overwatch). */
-    public static void tryFireSrm(Unit u, Unit target, float dist, BattleControl sim, boolean hasLos) {
+    public static void tryFireSrm(Entity u, Entity target, float dist, BattleControl sim, boolean hasLos) {
         MechLoadoutState m = u.mech;
         if (hasLos && m.srmCooldown <= 0f && m.srmAmmoSalvos > 0 && m.srmSalvoRemaining <= 0
                 && dist <= m.srmPod.range) {
@@ -131,7 +131,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
      * only fires when not actively in close engagement. No-LOS shots get the
      * indirect-fire accuracy penalty {@link MechWeapon#LRM_NO_LOS_ACC_MULT}.
      */
-    public static void tryFireLrm(Unit u, Unit target, float dist, BattleControl sim, boolean hasLos) {
+    public static void tryFireLrm(Entity u, Entity target, float dist, BattleControl sim, boolean hasLos) {
         MechLoadoutState m = u.mech;
         if (m.lrmCooldown <= 0f && m.lrmAmmoSalvos > 0 && m.lrmSalvoRemaining <= 0
                 && dist <= m.lrmArtillery.range

@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.command;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -45,7 +45,7 @@ public class SabotageCommandTest {
      * {@code SabotageCommand.tick} directly without driving a sim tick.
      */
     private static Squad addSquad(BattleSimulation sim, float centroidX, float centroidY) {
-        Unit leader = new Unit("m", Faction.MARINE, UnitType.MARINE,
+        Entity leader = new Entity("m", Faction.MARINE, UnitType.MARINE,
                 Math.round(centroidX), Math.round(centroidY));
         sim.addUnit(leader);
         int sid = sim.mintSquad(Faction.MARINE, leader);
@@ -84,7 +84,7 @@ public class SabotageCommandTest {
         sim.addObjective(site);
 
         Squad squad = addSquad(sim, 2f, 4f);
-        Unit planter = new Unit("p1", Faction.MARINE, UnitType.MARINE, 2, 4);
+        Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 4);
         planter.squadId = squad.id;
         planter.role = UnitRole.PLANTER;
         planter.assignedObjective = site;
@@ -155,7 +155,7 @@ public class SabotageCommandTest {
         ChargeSiteObjective cs = new ChargeSiteObjective(x, y, 0.0001f, name);
         // Plant a planter on top + tick once so isComplete() flips true
         // without needing the rest of the sim to be set up properly.
-        Unit p = new Unit("complete-" + name, Faction.MARINE, UnitType.MARINE, x, y);
+        Entity p = new Entity("complete-" + name, Faction.MARINE, UnitType.MARINE, x, y);
         p.role = UnitRole.PLANTER;
         p.assignedObjective = cs;
         sim.addUnit(p);

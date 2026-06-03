@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
@@ -57,7 +57,7 @@ public final class HoldPost implements Action {
     @Override public int requiredMembers() { return 1; }
 
     @Override
-    public ActionStatus execute(Unit member, Squad squad, BattleControl sim) {
+    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
         int homeX = member.homeCellX >= 0 ? member.homeCellX : sim.world().cellX(member.entityId);
         int homeY = member.homeCellY >= 0 ? member.homeCellY : sim.world().cellY(member.entityId);
 
@@ -68,11 +68,11 @@ public final class HoldPost implements Action {
             return returnToHome(member, sim, homeX, homeY);
         }
 
-        Unit target = sim.targetOf(member);
+        Entity target = sim.targetOf(member);
         if (target == null
                 || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
             target = sim.getTacticalScoring().findBestTarget(member);
-            sim.world().setTargetId(member.entityId, Unit.idOf(target));
+            sim.world().setTargetId(member.entityId, Entity.idOf(target));
         }
 
         if (target != null) {
@@ -87,7 +87,7 @@ public final class HoldPost implements Action {
         return returnToHome(member, sim, homeX, homeY);
     }
 
-    private static ActionStatus executeWithTarget(Unit member, Unit target, BattleControl sim, int homeX, int homeY) {
+    private static ActionStatus executeWithTarget(Entity member, Entity target, BattleControl sim, int homeX, int homeY) {
         if (sim.world().cooldownTimer(member.entityId) > 0f) sim.world().setCooldownTimer(member.entityId, sim.world().cooldownTimer(member.entityId) - BattleSimulation.TICK_DT);
 
         float dist = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
@@ -111,10 +111,10 @@ public final class HoldPost implements Action {
         if (firingPos == null) {
             // Current target unreachable from any cell within the hold ring.
             // Switch to any engageable enemy that fits and re-pick.
-            Unit alt = sim.getTacticalScoring().findEngageableEnemyWithin(
+            Entity alt = sim.getTacticalScoring().findEngageableEnemyWithin(
                     member, homeX, homeY, HOLD_RADIUS);
             if (alt != null) {
-                sim.world().setTargetId(member.entityId, Unit.idOf(alt));
+                sim.world().setTargetId(member.entityId, Entity.idOf(alt));
                 target = alt;
                 firingPos = sim.getTacticalScoring().findFiringPositionWithin(
                         member, target, homeX, homeY, HOLD_RADIUS);
@@ -128,8 +128,8 @@ public final class HoldPost implements Action {
         return ActionStatus.RUNNING;
     }
 
-    private static ActionStatus investigateClamped(Unit member, BattleControl sim,
-                                                    Squad squad, int homeX, int homeY) {
+    private static ActionStatus investigateClamped(Entity member, BattleControl sim,
+                                                   Squad squad, int homeX, int homeY) {
         int tx = squad.lastSeenEnemyX;
         int ty = squad.lastSeenEnemyY;
         float distHomeToLast = TacticalScoring.cellDistance(homeX, homeY, tx, ty);
@@ -142,7 +142,7 @@ public final class HoldPost implements Action {
         return ActionStatus.RUNNING;
     }
 
-    private static ActionStatus returnToHome(Unit member, BattleControl sim, int homeX, int homeY) {
+    private static ActionStatus returnToHome(Entity member, BattleControl sim, int homeX, int homeY) {
         if (sim.world().cellX(member.entityId) == homeX && sim.world().cellY(member.entityId) == homeY) {
             hold(member, sim);
             return ActionStatus.RUNNING;
@@ -151,7 +151,7 @@ public final class HoldPost implements Action {
         return ActionStatus.RUNNING;
     }
 
-    private static void moveToward(Unit member, BattleControl sim, int tx, int ty) {
+    private static void moveToward(Entity member, BattleControl sim, int tx, int ty) {
         if (sim.world().moveProgress(member.entityId) == 0f && member.pathIdx >= member.pathCellCount()) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), tx, ty, sim.getOccupancyMap()));
@@ -164,7 +164,7 @@ public final class HoldPost implements Action {
         }
     }
 
-    private static void hold(Unit member, BattleControl sim) {
+    private static void hold(Entity member, BattleControl sim) {
         sim.clearPath(member);
         sim.world().setMoveProgress(member.entityId, 0f);
         member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));

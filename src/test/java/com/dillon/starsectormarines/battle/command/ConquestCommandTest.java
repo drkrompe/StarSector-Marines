@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.command;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
@@ -110,7 +110,7 @@ public class ConquestCommandTest {
     }
 
     private static Squad addMarineSquad(BattleSimulation sim, float centroidX, float centroidY) {
-        Unit leader = new Unit("m", Faction.MARINE, UnitType.MARINE,
+        Entity leader = new Entity("m", Faction.MARINE, UnitType.MARINE,
                 Math.round(centroidX), Math.round(centroidY));
         sim.addUnit(leader);
         int sid = sim.mintSquad(Faction.MARINE, leader);
@@ -122,8 +122,8 @@ public class ConquestCommandTest {
         return squad;
     }
 
-    private static Unit addDefender(BattleSimulation sim, int cellX, int cellY) {
-        Unit d = new Unit("d-" + cellX + "-" + cellY, Faction.DEFENDER, UnitType.MARINE, cellX, cellY);
+    private static Entity addDefender(BattleSimulation sim, int cellX, int cellY) {
+        Entity d = new Entity("d-" + cellX + "-" + cellY, Faction.DEFENDER, UnitType.MARINE, cellX, cellY);
         sim.addUnit(d);
         return d;
     }
@@ -403,7 +403,7 @@ public class ConquestCommandTest {
         CompoundService service = sim.getCompoundService();
         service.register(node);
         CompoundCaptureSystem capture = new CompoundCaptureSystem();
-        sim.addUnit(new Unit("cap-m", Faction.MARINE, UnitType.MARINE, node.anchorX, node.anchorY));
+        sim.addUnit(new Entity("cap-m", Faction.MARINE, UnitType.MARINE, node.anchorX, node.anchorY));
         int ticks = 2 + (int) Math.ceil(
                 CompoundService.MARINE_HOLD_TIME / CompoundCaptureSystem.CAPTURE_TICK_PERIOD);
         for (int i = 0; i < ticks; i++) {

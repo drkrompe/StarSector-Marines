@@ -32,7 +32,7 @@ public final class DeadBodySystem {
 
     /** Death-event handler: attach the corpse body for the unit that just died. */
     public void onDeath(DeathEvent event) {
-        Unit u = event.unit();
+        Entity u = event.unit();
         bodies.add(u.entityId, new DeadBody(u.type, u.faction, u.deathPoseIdx));
     }
 }

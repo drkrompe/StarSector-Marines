@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.decision.goap.action;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
@@ -17,7 +17,7 @@ import com.dillon.starsectormarines.battle.combat.FireStance;
  * {@link TacticalScoring#findFallbackPosition}, paths there while firing on
  * the move (MOVING penalty), and on arrival holds position firing stanced at
  * anything that drifts into LOS. The destination is cached on
- * {@link Unit#getFallbackCellX()}/{@link Unit#getFallbackCellY()} — historically shared
+ * {@link Entity#getFallbackCellX()}/{@link Entity#getFallbackCellY()} — historically shared
  * with the per-unit {@code FallbackBehavior}, which now skips GOAP-driven
  * units (squad members without a mech loadout), leaving these fields owned
  * by BreakContact for marines and other infantry squad members.
@@ -45,7 +45,7 @@ public final class BreakContact implements Action {
     @Override public int requiredMembers() { return 1; }
 
     @Override
-    public ActionStatus execute(Unit member, Squad squad, BattleControl sim) {
+    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
         if (sim.getTacticalScoring().fallbackDestinationNeedsRefresh(member)) {
             int[] dest = sim.getTacticalScoring().findFallbackPosition(member);
             sim.world().setFallbackCell(member.entityId, dest[0], dest[1]);
@@ -79,12 +79,12 @@ public final class BreakContact implements Action {
      * shared lift if a fourth caller shows up; for now duplication is cheaper
      * than another helper class.
      */
-    private static void opportunisticFire(Unit member, BattleControl sim, FireStance stance) {
-        Unit target = sim.targetOf(member);
+    private static void opportunisticFire(Entity member, BattleControl sim, FireStance stance) {
+        Entity target = sim.targetOf(member);
         if (target == null
                 || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
             target = sim.getTacticalScoring().findBestTarget(member);
-            sim.world().setTargetId(member.entityId, Unit.idOf(target));
+            sim.world().setTargetId(member.entityId, Entity.idOf(target));
         }
         if (target == null || sim.world().cooldownTimer(member.entityId) > 0f) return;
         float d = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),

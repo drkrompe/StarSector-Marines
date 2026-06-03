@@ -6,7 +6,7 @@
  * <br>Charter:  the generic {@link com.dillon.starsectormarines.battle.component.ComponentStore}
  *           — a presence-based, entity-id-keyed store — plus the concrete
  *           component types that compose onto entities ({@code Crashing},
- *           and more as capabilities migrate off {@code Unit}). A component is
+ *           and more as capabilities migrate off {@code Entity}). A component is
  *           a small bag of state an entity <em>has</em> (or doesn't); a system
  *           processes the entities that have a given component by iterating its
  *           store, never by scanning all units and branching on

@@ -29,7 +29,7 @@ import java.util.Map;
  * </ol>
  *
  * <p>The FX is the side effect of an entity carrying the component — no
- * {@code List<Unit>} scan, no {@code instanceof}/{@code !isAlive()} gating in
+ * {@code List<Entity>} scan, no {@code instanceof}/{@code !isAlive()} gating in
  * the hot path. The renderer reads the same store to draw a falling entity (the
  * presence of a {@code Crashing} component) with its tumble + fade. The store
  * is keyed by entity id, so a crashing drone keeps its component after release

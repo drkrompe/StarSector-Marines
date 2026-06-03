@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.combat;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.mech.MechLoadoutState;
@@ -49,7 +49,7 @@ public class HeavyWeapons {
      * snapshot, so a release doesn't reshuffle the slots out from under it.
      * Only mechs are gathered (a handful per battle), so the copy is cheap.
      */
-    private final List<Unit> mechScratch = new ArrayList<>();
+    private final List<Entity> mechScratch = new ArrayList<>();
 
     public HeavyWeapons(UnitRegistry registry, NavigationGrid grid,
                         DamageService damageService, HitResponseService hitResponse,
@@ -71,14 +71,14 @@ public class HeavyWeapons {
      * Convenience overload — full accuracy. Used by all the precision-fire
      * code paths (chaingun, SRM, line-of-sight LRMs).
      */
-    public void fireMechWeapon(Unit shooter, Unit target, MechWeapon weapon) {
+    public void fireMechWeapon(Entity shooter, Entity target, MechWeapon weapon) {
         fireMechWeapon(shooter, target, weapon, 1.0f);
     }
 
     /**
      * Fires one round of a mech chassis weapon. Damage / accuracy / vsTurret
      * pull from the {@link MechWeapon} parameter rather than the shooter's
-     * baked Unit stats — a single mech runs three concurrent weapon tracks
+     * baked Entity stats — a single mech runs three concurrent weapon tracks
      * with very different numbers, so the weapon's profile drives the math.
      * Caller is responsible for cooldown / ammo / range gating before calling.
      *
@@ -86,7 +86,7 @@ public class HeavyWeapons {
      * roll. Set to 1.0 for line-of-sight fire; the LRM indirect-fire path
      * passes {@link MechWeapon#LRM_NO_LOS_ACC_MULT}.
      */
-    public void fireMechWeapon(Unit shooter, Unit target, MechWeapon weapon, float accuracyMult) {
+    public void fireMechWeapon(Entity shooter, Entity target, MechWeapon weapon, float accuracyMult) {
         boolean hit = shooter.rng.nextFloat() < weapon.accuracy * accuracyMult;
         boolean isAoe = weapon.aoeRadius > 0f;
         float moraleImpact = shooter.type != null ? shooter.type.moraleImpact : 1.0f;
@@ -195,11 +195,11 @@ public class HeavyWeapons {
         // corrupting the pass.
         mechScratch.clear();
         for (int i = 0, n = registry.liveCount(); i < n; i++) {
-            Unit u = registry.get(i);
+            Entity u = registry.get(i);
             if (u.mech != null) mechScratch.add(u);
         }
         for (int i = 0, n = mechScratch.size(); i < n; i++) {
-            Unit u = mechScratch.get(i);
+            Entity u = mechScratch.get(i);
             if (!registry.isAliveById(u.entityId)) continue; // killed earlier in this same pass
             MechLoadoutState m = u.mech;
 
@@ -213,7 +213,7 @@ public class HeavyWeapons {
             if (m.chaingunBurstRemaining > 0) {
                 m.chaingunBurstTimer -= BattleSimulation.TICK_DT;
                 if (m.chaingunBurstTimer <= 0f) {
-                    Unit cgTarget = registry.getOrNull(m.chaingunBurstTargetId);
+                    Entity cgTarget = registry.getOrNull(m.chaingunBurstTargetId);
                     if (cgTarget == null) {
                         m.chaingunBurstRemaining = 0;
                         m.chaingunBurstTargetId = 0L;
@@ -230,7 +230,7 @@ public class HeavyWeapons {
             if (m.srmSalvoRemaining > 0) {
                 m.srmSalvoTimer -= BattleSimulation.TICK_DT;
                 if (m.srmSalvoTimer <= 0f) {
-                    Unit srmTarget = registry.getOrNull(m.srmSalvoTargetId);
+                    Entity srmTarget = registry.getOrNull(m.srmSalvoTargetId);
                     if (srmTarget == null) {
                         m.srmSalvoRemaining = 0;
                         m.srmSalvoTargetId = 0L;
@@ -252,7 +252,7 @@ public class HeavyWeapons {
             if (m.lrmSalvoRemaining > 0) {
                 m.lrmSalvoTimer -= BattleSimulation.TICK_DT;
                 if (m.lrmSalvoTimer <= 0f) {
-                    Unit lrmTarget = registry.getOrNull(m.lrmSalvoTargetId);
+                    Entity lrmTarget = registry.getOrNull(m.lrmSalvoTargetId);
                     if (lrmTarget == null) {
                         m.lrmSalvoRemaining = 0;
                         m.lrmSalvoTargetId = 0L;

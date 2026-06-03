@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.mech.MechLoadoutState;
 import com.dillon.starsectormarines.battle.mech.MechRole;
@@ -46,18 +46,18 @@ public class MechMoraleTest {
     }
 
     private static void hideEnemy(BattleSimulation sim) {
-        Unit d = new Unit("e-hidden", Faction.MARINE, UnitType.MARINE, 18, 6);
+        Entity d = new Entity("e-hidden", Faction.MARINE, UnitType.MARINE, 18, 6);
         sim.addUnit(d);
     }
 
     private static Squad mechSquad(BattleSimulation sim, int size, MechRole role) {
-        Unit first = new Unit("d0", Faction.DEFENDER, UnitType.HEAVY_MECH, 1, 1);
+        Entity first = new Entity("d0", Faction.DEFENDER, UnitType.HEAVY_MECH, 1, 1);
         first.mech = MechLoadoutState.defaultLoadout(role);
         int squadId = sim.mintSquad(Faction.DEFENDER, first);
         first.squadId = squadId;
         sim.addUnit(first);
         for (int i = 1; i < size; i++) {
-            Unit u = new Unit("d" + i, Faction.DEFENDER, UnitType.HEAVY_MECH, 1 + i, 1);
+            Entity u = new Entity("d" + i, Faction.DEFENDER, UnitType.HEAVY_MECH, 1 + i, 1);
             u.mech = MechLoadoutState.defaultLoadout(role);
             u.squadId = squadId;
             sim.addUnit(u);
@@ -71,7 +71,7 @@ public class MechMoraleTest {
     public void crossingFirstHpThresholdDrainsOnePerThreshold() {
         BattleSimulation sim = openSim();
         Squad sq = mechSquad(sim, 1, MechRole.ARMORED_SUPPORT);
-        Unit mech = sim.liveUnitAt(0);
+        Entity mech = sim.liveUnitAt(0);
         float starting = mech.mech.morale;
 
         // Damage to 70% HP — crosses the 0.75 threshold once.
@@ -88,7 +88,7 @@ public class MechMoraleTest {
     public void multipleThresholdsInOneHitDrainMultipleSteps() {
         BattleSimulation sim = openSim();
         Squad sq = mechSquad(sim, 1, MechRole.ARMORED_SUPPORT);
-        Unit mech = sim.liveUnitAt(0);
+        Entity mech = sim.liveUnitAt(0);
 
         // Damage straight to ~5% HP — crosses 0.75, 0.50, 0.25, 0.10 (4 thresholds).
         sim.applyDamage(mech, sim.world().maxHp(mech.entityId) * 0.95f, 1f);
@@ -104,7 +104,7 @@ public class MechMoraleTest {
     public void thresholdsAreMonotonic_reDamageBelowDoesNotDrainAgain() {
         BattleSimulation sim = openSim();
         Squad sq = mechSquad(sim, 1, MechRole.ARMORED_SUPPORT);
-        Unit mech = sim.liveUnitAt(0);
+        Entity mech = sim.liveUnitAt(0);
 
         // First hit: cross 0.75 (1 drain).
         sim.applyDamage(mech, sim.world().maxHp(mech.entityId) * 0.30f, 1f);
@@ -126,7 +126,7 @@ public class MechMoraleTest {
         // stay at its initial 1.0 even after a mech takes a hit.
         BattleSimulation sim = openSim();
         Squad sq = mechSquad(sim, 4, MechRole.ARMORED_SUPPORT);
-        Unit mech = sim.liveUnitAt(0);
+        Entity mech = sim.liveUnitAt(0);
 
         sim.applyDamage(mech, sim.world().maxHp(mech.entityId) * 0.30f, 1f);
 
@@ -141,7 +141,7 @@ public class MechMoraleTest {
         BattleSimulation sim = openSim();
         Squad sq = mechSquad(sim, 1, MechRole.ARMORED_SUPPORT);
         hideEnemy(sim);
-        Unit mech = sim.liveUnitAt(0);
+        Entity mech = sim.liveUnitAt(0);
         sim.world().setHp(mech.entityId, sim.world().maxHp(mech.entityId) * 0.40f); // below the 0.50 gate
         mech.mech.morale = 1.0f; // overshoot — caller forced past cap, recovery clamps
         mech.mech.timeSinceUnderFire = 10f; // out of under-fire window
@@ -157,7 +157,7 @@ public class MechMoraleTest {
         BattleSimulation sim = openSim();
         Squad sq = mechSquad(sim, 1, MechRole.ARMORED_SUPPORT);
         hideEnemy(sim);
-        Unit mech = sim.liveUnitAt(0);
+        Entity mech = sim.liveUnitAt(0);
         mech.mech.morale = 0.10f; // below 0.60 broken threshold (cap=1.0)
         mech.mech.timeSinceUnderFire = 0f; // in under-fire — no recovery
 
@@ -176,7 +176,7 @@ public class MechMoraleTest {
         BattleSimulation sim = openSim();
         Squad sq = mechSquad(sim, 1, MechRole.ARMORED_SUPPORT);
         hideEnemy(sim);
-        Unit mech = sim.liveUnitAt(0);
+        Entity mech = sim.liveUnitAt(0);
         mech.mech.morale = 0.70f;
         mech.mech.moraleBroken = true;
         mech.mech.timeSinceUnderFire = 10f;
@@ -198,7 +198,7 @@ public class MechMoraleTest {
         sim.liveUnitAt(2).mech.morale = 1.0f;
         sim.liveUnitAt(3).mech.morale = 1.0f;
         for (int i = 0; i < sim.liveUnitCount(); i++) {
-            Unit u = sim.liveUnitAt(i);
+            Entity u = sim.liveUnitAt(i);
             if (u.mech != null) u.mech.timeSinceUnderFire = 0f;
         }
 
@@ -217,7 +217,7 @@ public class MechMoraleTest {
         sim.liveUnitAt(0).mech.morale = 0.05f;
         for (int i = 1; i < 4; i++) sim.liveUnitAt(i).mech.morale = 1.0f;
         for (int i = 0; i < sim.liveUnitCount(); i++) {
-            Unit u = sim.liveUnitAt(i);
+            Entity u = sim.liveUnitAt(i);
             if (u.mech != null) u.mech.timeSinceUnderFire = 0f;
         }
 

@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.command.compound;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -63,7 +63,7 @@ public class CompoundCaptureSystemTest {
                 service.getRecord(node).state);
 
         // Marine walks in. One tick later → CONTESTED.
-        sim.addUnit(new Unit("m1", Faction.MARINE, UnitType.MARINE, 5, 5));
+        sim.addUnit(new Entity("m1", Faction.MARINE, UnitType.MARINE, 5, 5));
         tickN(system, sim, service, 1);
         assertEquals(CompoundService.CompoundState.CONTESTED,
                 service.getRecord(node).state);
@@ -88,8 +88,8 @@ public class CompoundCaptureSystemTest {
         TacticalNode node = barracksAt(5, 5);
         service.register(node);
 
-        sim.addUnit(new Unit("m1", Faction.MARINE, UnitType.MARINE, 5, 5));
-        sim.addUnit(new Unit("d1", Faction.DEFENDER, UnitType.MILITIA, 5, 5));
+        sim.addUnit(new Entity("m1", Faction.MARINE, UnitType.MARINE, 5, 5));
+        sim.addUnit(new Entity("d1", Faction.DEFENDER, UnitType.MILITIA, 5, 5));
 
         // First tick: DEFENDER_HELD → CONTESTED (marine present trips the flip).
         tickN(system, sim, service, 1);
@@ -112,7 +112,7 @@ public class CompoundCaptureSystemTest {
         TacticalNode node = barracksAt(5, 5);
         service.register(node);
 
-        Unit marine = new Unit("m1", Faction.MARINE, UnitType.MARINE, 5, 5);
+        Entity marine = new Entity("m1", Faction.MARINE, UnitType.MARINE, 5, 5);
         sim.addUnit(marine);
 
         // Push to CONTESTED.
@@ -122,7 +122,7 @@ public class CompoundCaptureSystemTest {
 
         // Marine dies, defender moves in.
         TestUnits.kill(sim, marine);
-        sim.addUnit(new Unit("d1", Faction.DEFENDER, UnitType.MILITIA, 5, 5));
+        sim.addUnit(new Entity("d1", Faction.DEFENDER, UnitType.MILITIA, 5, 5));
 
         int holdTicks = (int) Math.ceil(
                 CompoundService.DEFENDER_HOLD_TIME / CompoundCaptureSystem.CAPTURE_TICK_PERIOD);
@@ -146,7 +146,7 @@ public class CompoundCaptureSystemTest {
         service.register(node);
 
         // Walk to MARINE_HELD.
-        sim.addUnit(new Unit("m1", Faction.MARINE, UnitType.MARINE, 5, 5));
+        sim.addUnit(new Entity("m1", Faction.MARINE, UnitType.MARINE, 5, 5));
         int ticks = 2 + (int) Math.ceil(
                 CompoundService.MARINE_HOLD_TIME / CompoundCaptureSystem.CAPTURE_TICK_PERIOD);
         tickN(system, sim, service, ticks);
@@ -154,7 +154,7 @@ public class CompoundCaptureSystemTest {
                 service.getRecord(node).state);
 
         // Synthetic v2-style defender ingress.
-        sim.addUnit(new Unit("d1", Faction.DEFENDER, UnitType.MILITIA, 5, 5));
+        sim.addUnit(new Entity("d1", Faction.DEFENDER, UnitType.MILITIA, 5, 5));
         tickN(system, sim, service, 1);
         assertEquals(CompoundService.CompoundState.CONTESTED,
                 service.getRecord(node).state);
@@ -179,7 +179,7 @@ public class CompoundCaptureSystemTest {
                 service.hasAliveCompound(TacticalNode.Kind.BARRACKS, Faction.MARINE));
 
         // Walk to MARINE_HELD.
-        sim.addUnit(new Unit("m1", Faction.MARINE, UnitType.MARINE, 5, 5));
+        sim.addUnit(new Entity("m1", Faction.MARINE, UnitType.MARINE, 5, 5));
         int ticks = 2 + (int) Math.ceil(
                 CompoundService.MARINE_HOLD_TIME / CompoundCaptureSystem.CAPTURE_TICK_PERIOD);
         tickN(system, sim, service, ticks);

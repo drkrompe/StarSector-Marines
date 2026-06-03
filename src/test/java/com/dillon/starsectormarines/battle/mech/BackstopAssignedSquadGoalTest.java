@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.mech;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
@@ -33,7 +33,7 @@ public class BackstopAssignedSquadGoalTest {
     }
 
     private static Squad armoredSquadWithFriendlyInfantry(BattleSimulation sim) {
-        Unit mech = new Unit("ar0", Faction.MARINE, UnitType.HEAVY_MECH, 3, 3);
+        Entity mech = new Entity("ar0", Faction.MARINE, UnitType.HEAVY_MECH, 3, 3);
         mech.mech = MechLoadoutState.defaultLoadout(MechRole.ARMORED_SUPPORT);
         int mechSid = sim.mintSquad(Faction.MARINE, mech);
         mech.squadId = mechSid;
@@ -41,7 +41,7 @@ public class BackstopAssignedSquadGoalTest {
         Squad mechSquad = sim.getSquad(mechSid);
         mechSquad.aliveMembers = 1;
 
-        Unit grunt = new Unit("m0", Faction.MARINE, UnitType.MARINE, 5, 5);
+        Entity grunt = new Entity("m0", Faction.MARINE, UnitType.MARINE, 5, 5);
         int infSid = sim.mintSquad(Faction.MARINE, grunt);
         grunt.squadId = infSid;
         sim.addUnit(grunt);

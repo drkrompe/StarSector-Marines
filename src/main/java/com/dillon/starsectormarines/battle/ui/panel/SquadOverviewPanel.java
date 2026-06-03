@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.SquadMoraleSystem;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
@@ -81,8 +81,8 @@ public final class SquadOverviewPanel implements HudPanel {
         // the unit list rather than nSquads × nUnits.
         Map<Integer, int[]> weaponCounts = new HashMap<>(); // 0: RIF, 1: SMG, 2: DMR, 3: RKT
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Unit u = sim.liveUnitAt(i);
-            if (u.faction != Faction.MARINE || u.squadId == Unit.NO_SQUAD) continue;
+            Entity u = sim.liveUnitAt(i);
+            if (u.faction != Faction.MARINE || u.squadId == Entity.NO_SQUAD) continue;
             int[] counts = weaponCounts.computeIfAbsent(u.squadId, k -> new int[4]);
             if (u.primaryWeapon != null) {
                 switch (u.primaryWeapon) {

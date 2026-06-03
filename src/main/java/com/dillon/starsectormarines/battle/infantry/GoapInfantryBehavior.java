@@ -9,7 +9,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 import com.dillon.starsectormarines.battle.decision.goap.scoring.RoleAssigner;
 import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder;
@@ -21,7 +21,7 @@ import java.util.Map;
 /**
  * Per-unit GOAP dispatch for infantry. Pairs with the squad-level replan
  * pass {@link #replanIfNeeded(Squad, BattleSimulation)} which builds the
- * {@link SquadPlan}; this dispatcher's {@link #update(Unit, BattleSimulation)}
+ * {@link SquadPlan}; this dispatcher's {@link #update(Entity, BattleSimulation)}
  * is the per-tick consumer that executes the current step's action for one
  * assigned member.
  *
@@ -85,7 +85,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
      * when the unit is locked in aim (existing or freshly initiated) — caller
      * should skip {@code action.execute} this frame.
      */
-    public static boolean prepareForAction(Unit unit, BattleControl sim) {
+    public static boolean prepareForAction(Entity unit, BattleControl sim) {
         if (InfantryUnitPrep.tickAimAndShortCircuit(unit, sim)) return false;
         InfantryUnitPrep.tickCooldowns(unit, sim.world());
         if (InfantryUnitPrep.tryOpportunityRocket(unit, sim)) return false;
@@ -93,8 +93,8 @@ public final class GoapInfantryBehavior implements UnitBehavior {
     }
 
     @Override
-    public void update(Unit unit, BattleSimulation sim) {
-        Squad squad = unit.squadId == Unit.NO_SQUAD ? null : sim.getSquad(unit.squadId);
+    public void update(Entity unit, BattleSimulation sim) {
+        Squad squad = unit.squadId == Entity.NO_SQUAD ? null : sim.getSquad(unit.squadId);
         if (squad == null) return;
 
         if (!prepareForAction(unit, sim)) return;
@@ -212,14 +212,14 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             // to expose meaningful partitions (planter+portal-holders for
             // sabotage cordon, suppressor+bounder for bounding overwatch, etc.)
             // and the same call here distributes members per slot.
-            List<Unit> aliveMembers = new ArrayList<>(squad.aliveMembers);
-            for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Unit u = sim.liveUnitAt(i);
+            List<Entity> aliveMembers = new ArrayList<>(squad.aliveMembers);
+            for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Entity u = sim.liveUnitAt(i);
                 if (u.squadId != squad.id) continue;
                 aliveMembers.add(u);
             }
             for (SquadPlan.Step step : plan.steps()) {
-                List<RoleAssigner.Slot<Unit>> slots = step.action.roles(squad, sim);
-                Map<String, List<Unit>> assignment = RoleAssigner.assign(aliveMembers, slots);
+                List<RoleAssigner.Slot<Entity>> slots = step.action.roles(squad, sim);
+                Map<String, List<Entity>> assignment = RoleAssigner.assign(aliveMembers, slots);
                 step.assignments.putAll(assignment);
             }
         }

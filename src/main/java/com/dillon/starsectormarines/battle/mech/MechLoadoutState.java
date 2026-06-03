@@ -1,12 +1,11 @@
 package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
-import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 
 /**
  * Per-unit mutable state for the three-weapon mech loadout. Set on
- * {@link Unit#mech} when a mech-class unit spawns; null on every other unit.
+ * {@link Entity#mech} when a mech-class unit spawns; null on every other unit.
  * Holds the three {@link MechWeapon} slot references plus per-slot
  * ammo / cooldown / salvo trackers — concurrent fire across all three tracks
  * is the whole point of the mech, so each weapon's state is independent.
@@ -14,7 +13,7 @@ import com.dillon.starsectormarines.battle.unit.Unit;
  * <p>Each weapon track keeps its own cooldown + burst/salvo trackers on this
  * class ({@link #chaingunCooldown} / {@link #chaingunBurstRemaining} /
  * {@link #chaingunBurstTimer} / {@link #chaingunBurstTargetId}, and the SRM
- * salvo equivalents below) rather than borrowing the {@link Unit}-level
+ * salvo equivalents below) rather than borrowing the {@link Entity}-level
  * primary-weapon cooldown/burst state — the three tracks fire concurrently,
  * so shared fields would collide. Mechs don't carry a {@link com.dillon.starsectormarines.battle.infantry.MarineWeapon}
  * either, so there's no marine fire path to reuse.
@@ -44,7 +43,7 @@ public final class MechLoadoutState {
     /**
      * Entity id of the target locked at burst start — burst keeps firing here
      * even if the mech's primary target drifts mid-stream. {@code 0L} = no
-     * locked target. Held as an id (not a {@link Unit} ref) so a target killed
+     * locked target. Held as an id (not a {@link Entity} ref) so a target killed
      * mid-burst resolves cleanly to {@code null} via {@code registry.getOrNull}
      * instead of dangling — see {@code entity-id-handle} story. Resolved in the
      * {@code HeavyWeapons} continuation pass; written by {@code MechCombatantBehavior}.

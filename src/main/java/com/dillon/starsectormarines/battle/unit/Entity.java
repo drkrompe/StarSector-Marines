@@ -18,21 +18,21 @@ import java.util.Random;
  * {@link BattleSimulation}. Fields are public for hot-path access from the
  * tick loop; the package keeps the surface narrow.
  *
- * <p><b>No registry back-pointer.</b> A {@code Unit} carries its {@link #entityId}
+ * <p><b>No registry back-pointer.</b> A {@code Entity} carries its {@link #entityId}
  * (its identity) plus immutable archetype + a handful of POJO fields, but it no
  * longer self-routes into the simulation's mutable state. Every mutable per-unit
  * column (hp, cell, the combat timers, target/burst/fallback ids) lives in the
  * {@link UnitRegistry}'s dense SoA and is reached <em>by id</em> through the
  * {@code World} facade ({@code world.hp(id)}, {@code world.cellX(id)}, …) or the
  * registry's by-index API — never through this object. This is the access shape
- * the {@code world-facade} endgame settled on; the next step renames {@code Unit}
+ * the {@code world-facade} endgame settled on; the next step renames {@code Entity}
  * → {@code Entity} to match.
  *
  * <p>Position is split: the logical cell (what pathfinding sees) is a registry
  * SoA column reached by id ({@code world.cellX(id)} / {@code world.cellY(id)}),
  * while {@link #getRenderX}/{@link #getRenderY} are the smooth-interpolated
  * position inside the cell grid (in cell units, fractional) that the renderer
- * reads — kept on {@code Unit} because they route through the
+ * reads — kept on {@code Entity} because they route through the
  * {@link RenderPositionService}, which survives release so a corpse still draws
  * where it fell. The two coincide when the unit is at rest or has just landed in
  * a new cell.
@@ -43,7 +43,7 @@ import java.util.Random;
  * move-progress climbs from 0 to 1; on arrival the logical cell advances and
  * progress resets.
  */
-public class Unit {
+public class Entity {
 
     /** Sentinel value for {@link #squadId} when the unit isn't part of a squad — defenders, solo combatants, anyone not deboarded from a marine shuttle. */
     public static final int NO_SQUAD = -1;
@@ -59,15 +59,15 @@ public class Unit {
     public long entityId = 0L;
 
     /**
-     * Null-safe entity id of a {@link Unit} ref: {@code u.entityId}, or
+     * Null-safe entity id of a {@link Entity} ref: {@code u.entityId}, or
      * {@code 0L} (the "no entity" sentinel) when {@code u == null}. The single
      * chokepoint for the "ref → id, null → 0L" convention every cross-reference
      * setter used to hide inside its own convenience overload — now that those
      * overloads are gone, callers write {@code world.setTargetId(self.entityId,
-     * Unit.idOf(target))}. Survives the eventual {@code Unit} → {@code Entity}
+     * Entity.idOf(target))}. Survives the eventual {@code Entity} → {@code Entity}
      * rename unchanged.
      */
-    public static long idOf(Unit u) {
+    public static long idOf(Entity u) {
         return (u == null) ? 0L : u.entityId;
     }
 
@@ -283,11 +283,11 @@ public class Unit {
      * Called at most once per shot per unit (not a per-tick bulk path), so the
      * three by-id probes are fine.
      */
-    public void beginBurst(World world, Unit target) {
+    public void beginBurst(World world, Entity target) {
         if (primaryWeapon == null || primaryWeapon.burstCount <= 1) return;
         world.setBurstRemaining(entityId, primaryWeapon.burstCount - 1);
         world.setBurstTimer(entityId, primaryWeapon.burstSpacing);
-        world.setBurstTargetId(entityId, Unit.idOf(target));
+        world.setBurstTargetId(entityId, Entity.idOf(target));
     }
 
     /** Random prone-pose index rolled on death. Drives which corpse frame the renderer picks from {@link UnitType#deadSpritePath} so a battlefield has pose variety rather than every body in the same slump. -1 sentinel = unit still alive. */
@@ -303,7 +303,7 @@ public class Unit {
      */
     public MechLoadoutState mech;
 
-    public Unit(String id, Faction faction, UnitType type, int cellX, int cellY) {
+    public Entity(String id, Faction faction, UnitType type, int cellX, int cellY) {
         this.id = id;
         this.faction = faction;
         this.type = type;

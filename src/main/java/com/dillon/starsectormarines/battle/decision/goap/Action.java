@@ -3,7 +3,7 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.goap.scoring.RoleAssigner;
 
 import java.util.List;
@@ -13,7 +13,7 @@ import java.util.List;
  * <b>stateless singletons</b> so the planner can hold a single shared
  * instance per action type and run search in parallel across squads
  * without contention. All per-step state lives on the {@link SquadPlan}
- * step and the assigned {@link Unit}'s fields, never on the action.
+ * step and the assigned {@link Entity}'s fields, never on the action.
  *
  * <p>The {@link #preconditions()} / {@link #effects()} pair is what the
  * planner reasons about; {@link #cost(WorldState, Squad, BattleView)}
@@ -92,7 +92,7 @@ public interface Action {
      * {@code squad.aliveMembers} is fine; the assigner only fills what's
      * available.
      */
-    default List<RoleAssigner.Slot<Unit>> roles(Squad squad, BattleView sim) {
+    default List<RoleAssigner.Slot<Entity>> roles(Squad squad, BattleView sim) {
         return List.of(new RoleAssigner.Slot<>("any", squad.aliveMembers, c -> 0f));
     }
 
@@ -105,7 +105,7 @@ public interface Action {
      *   <li>{@link ActionStatus#FAILURE} — invalidate the plan, trigger replan.</li>
      * </ul>
      */
-    ActionStatus execute(Unit member, Squad squad, BattleControl sim);
+    ActionStatus execute(Entity member, Squad squad, BattleControl sim);
 
     /**
      * Cells this action operates on, for the debug-overlay highlight tool. The

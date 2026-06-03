@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.squad;
 
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
@@ -40,15 +40,15 @@ public final class SquadFallbackSystem {
     private static final float HOME_ARRIVAL_RADIUS_SQ = 2.0f * 2.0f;
 
     /** Reused scratch for a squad's live members, gathered in entityId (= spawn) order before cover redistribution. Serial-phase use only. */
-    private final List<Unit> memberScratch = new ArrayList<>();
+    private final List<Entity> memberScratch = new ArrayList<>();
 
     private final NavigationService navigation;
     private final UnitRosterService roster;
-    private final Consumer<Unit> pathClearer;
+    private final Consumer<Entity> pathClearer;
 
     public SquadFallbackSystem(NavigationService navigation,
                                UnitRosterService roster,
-                               Consumer<Unit> pathClearer) {
+                               Consumer<Entity> pathClearer) {
         this.navigation = navigation;
         this.roster = roster;
         this.pathClearer = pathClearer;
@@ -84,7 +84,7 @@ public final class SquadFallbackSystem {
     /** True when every alive squad member is within {@link #HOME_ARRIVAL_RADIUS_SQ} of their home cell — caller treats that as "the retreat is finished." */
     private boolean allMembersHome(Squad squad, UnitRegistry registry) {
         for (int i = 0, n = registry.liveCount(); i < n; i++) {
-            Unit u = registry.get(i);
+            Entity u = registry.get(i);
             if (u.squadId != squad.id) continue;
             if (u.homeCellX < 0) continue;
             float dx = u.homeCellX - registry.getCellX(i);
@@ -102,10 +102,10 @@ public final class SquadFallbackSystem {
      * order explicitly. Returns the reused scratch list (valid until the next
      * call).
      */
-    private List<Unit> squadMembersInSpawnOrder(Squad squad, UnitRegistry registry) {
+    private List<Entity> squadMembersInSpawnOrder(Squad squad, UnitRegistry registry) {
         memberScratch.clear();
         for (int i = 0, n = registry.liveCount(); i < n; i++) {
-            Unit u = registry.get(i);
+            Entity u = registry.get(i);
             if (u.squadId == squad.id) memberScratch.add(u);
         }
         memberScratch.sort((a, b) -> Long.compare(a.entityId, b.entityId));
@@ -123,10 +123,10 @@ public final class SquadFallbackSystem {
     private void assignFallbackHomes(Squad squad, TacticalNode newNode, UnitRegistry registry) {
         List<int[]> cells = BattleSetup.pickCellsNear(navigation.getGrid(), navigation.getZoneGraph(),
                 newNode.anchorX, newNode.anchorY, 5, squad.aliveMembers);
-        List<Unit> members = squadMembersInSpawnOrder(squad, registry);
+        List<Entity> members = squadMembersInSpawnOrder(squad, registry);
         int idx = 0;
         for (int i = 0, n = members.size(); i < n; i++) {
-            Unit u = members.get(i);
+            Entity u = members.get(i);
             if (idx >= cells.size()) {
                 // Out of cells — keep the survivor's current home so they
                 // don't end up homeless. They'll just hold where they are.

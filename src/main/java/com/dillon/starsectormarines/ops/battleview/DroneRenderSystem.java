@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.component.ComponentStore;
 import com.dillon.starsectormarines.battle.component.Crashing;
 import com.dillon.starsectormarines.battle.drone.Drone;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.vision.VisionService;
 import com.dillon.starsectormarines.render2d.BattleCamera;
@@ -62,7 +62,7 @@ public final class DroneRenderSystem implements RenderSystem {
         // Crashing (dead, falling) drones first so their fading wrecks paint
         // UNDER the live drones. A dead drone is an entity that no longer sits in
         // the live registry but still carries a Crashing component — read that
-        // store directly (no units-list scan, no Unit handle): the component owns
+        // store directly (no units-list scan, no Entity handle): the component owns
         // the body the wreck tracks and the timer that fades it out. No vision
         // gate, matching the legacy pass (a crash is always shown).
         ComponentStore<Crashing> crashStore = ctx.sim.getCrashing();
@@ -80,7 +80,7 @@ public final class DroneRenderSystem implements RenderSystem {
 
         // Live drones — iterate the dense registry; the corpse never appears.
         for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
-            Unit u = ctx.sim.liveUnitAt(i);
+            Entity u = ctx.sim.liveUnitAt(i);
             if (!(u instanceof Drone)) continue;
             Drone d = (Drone) u;
             byte uv = vis.getUnitVisibility(i);

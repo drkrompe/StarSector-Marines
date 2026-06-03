@@ -1,8 +1,5 @@
 package com.dillon.starsectormarines.battle.unit;
 
-import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Unit;
-import com.dillon.starsectormarines.battle.unit.UnitType;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -14,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Unit-tests the {@link UnitRegistry} contract: monotonic id allocation,
+ * Entity-tests the {@link UnitRegistry} contract: monotonic id allocation,
  * dense {@code [0, liveCount())} iteration, swap-and-pop release moving
  * the tail entity into the freed slot, stale-id lookups returning
  * {@link UnitRegistry#INVALID_INDEX}, growth on overflow without index
@@ -22,16 +19,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class UnitRegistryTest {
 
-    private static Unit unit(String label) {
-        return new Unit(label, Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
+    private static Entity unit(String label) {
+        return new Entity(label, Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
     }
 
     @Test
     public void allocateAssignsMonotonicIdsAndPacksDenseSlots() {
         UnitRegistry r = new UnitRegistry();
-        Unit a = unit("a");
-        Unit b = unit("b");
-        Unit c = unit("c");
+        Entity a = unit("a");
+        Entity b = unit("b");
+        Entity c = unit("c");
 
         long idA = r.allocate(a);
         long idB = r.allocate(b);
@@ -52,9 +49,9 @@ public class UnitRegistryTest {
     @Test
     public void releaseSwapsTailIntoFreedSlot() {
         UnitRegistry r = new UnitRegistry();
-        Unit a = unit("a");
-        Unit b = unit("b");
-        Unit c = unit("c");
+        Entity a = unit("a");
+        Entity b = unit("b");
+        Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         long idC = r.allocate(c);
@@ -76,8 +73,8 @@ public class UnitRegistryTest {
     @Test
     public void releaseOfTailEntityIsSimplePop() {
         UnitRegistry r = new UnitRegistry();
-        Unit a = unit("a");
-        Unit b = unit("b");
+        Entity a = unit("a");
+        Entity b = unit("b");
         long idA = r.allocate(a);
         long idB = r.allocate(b);
 
@@ -93,7 +90,7 @@ public class UnitRegistryTest {
     @Test
     public void releaseOfUnknownIdIsNoOp() {
         UnitRegistry r = new UnitRegistry();
-        Unit a = unit("a");
+        Entity a = unit("a");
         long idA = r.allocate(a);
 
         r.release(9999L);   // never allocated
@@ -107,7 +104,7 @@ public class UnitRegistryTest {
     @Test
     public void staleIdAfterReleaseReturnsInvalidIndex() {
         UnitRegistry r = new UnitRegistry();
-        Unit a = unit("a");
+        Entity a = unit("a");
         long idA = r.allocate(a);
         r.release(idA);
 
@@ -123,7 +120,7 @@ public class UnitRegistryTest {
         // the same dense slot.
         int n = 200;
         long[] ids = new long[n];
-        Unit[] units = new Unit[n];
+        Entity[] units = new Entity[n];
         for (int i = 0; i < n; i++) {
             units[i] = unit("u" + i);
             ids[i] = r.allocate(units[i]);
@@ -139,14 +136,14 @@ public class UnitRegistryTest {
     @Test
     public void denseArrayNullsTheFreedTailSlot() {
         UnitRegistry r = new UnitRegistry();
-        Unit a = unit("a");
-        Unit b = unit("b");
+        Entity a = unit("a");
+        Entity b = unit("b");
         r.allocate(a);
         long idB = r.allocate(b);
 
         r.release(idB);
 
-        Unit[] arr = r.denseArray();
+        Entity[] arr = r.denseArray();
         assertSame(a, arr[0]);
         // The just-released tail slot must be nulled so the GC can reclaim
         // the unit even though the array reference outlives the entity.
@@ -166,7 +163,7 @@ public class UnitRegistryTest {
     @Test
     public void allocateRejectsAlreadyAllocatedUnit() {
         UnitRegistry r = new UnitRegistry();
-        Unit a = unit("a");
+        Entity a = unit("a");
         r.allocate(a);
         // Same instance, second allocate — would otherwise mint a new id and
         // leave the old id->slot mapping stale, so a later release on the
@@ -179,8 +176,8 @@ public class UnitRegistryTest {
     @Test
     public void getOrNullResolvesAliveReturnsNullForReleasedAndZeroSentinel() {
         UnitRegistry r = new UnitRegistry();
-        Unit a = unit("a");
-        Unit b = unit("b");
+        Entity a = unit("a");
+        Entity b = unit("b");
         long idA = r.allocate(a);
         long idB = r.allocate(b);
 
@@ -204,7 +201,7 @@ public class UnitRegistryTest {
     @Test
     public void allocateSeedsHpFromUnitsSeedFieldsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
+        Entity u = unit("u");
         // Pre-allocate: ctor seeded seedHp + seedMaxHp from type.maxHp
         // (MARINE_BLUE). The hp/maxHp accessors are fail-loud pre-allocate,
         // so read the seed fields directly here.
@@ -229,7 +226,7 @@ public class UnitRegistryTest {
     @Test
     public void releaseMarksUnitDeadViaRegistryNullWithNoHpSnapshot() {
         UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
+        Entity u = unit("u");
         r.allocate(u);
 
         r.setHp(r.indexOf(u.entityId), 17f);
@@ -249,9 +246,9 @@ public class UnitRegistryTest {
     @Test
     public void releaseUpdatesDenseIdxOfTheSwappedTailUnit() {
         UnitRegistry r = new UnitRegistry();
-        Unit a = unit("a");
-        Unit b = unit("b");
-        Unit c = unit("c");
+        Entity a = unit("a");
+        Entity b = unit("b");
+        Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
@@ -269,8 +266,8 @@ public class UnitRegistryTest {
     @Test
     public void allocateSeedsCellPosFromUnitsSeedFieldsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
-        // Unit ctor takes initial cellX/cellY, stamped into seedCellX/Y pre-alloc.
-        Unit u = new Unit("u", Faction.MARINE, UnitType.MARINE_BLUE, 7, 3);
+        // Entity ctor takes initial cellX/cellY, stamped into seedCellX/Y pre-alloc.
+        Entity u = new Entity("u", Faction.MARINE, UnitType.MARINE_BLUE, 7, 3);
 
         r.allocate(u);
 
@@ -286,7 +283,7 @@ public class UnitRegistryTest {
     @Test
     public void releaseDoesNotSnapshotCellPosCellIsSeedOnly() {
         UnitRegistry r = new UnitRegistry();
-        Unit u = new Unit("u", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
+        Entity u = new Entity("u", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
         r.allocate(u);
 
         r.setCellPos(r.indexOf(u.entityId), 42, 17);
@@ -305,9 +302,9 @@ public class UnitRegistryTest {
     @Test
     public void releaseTailSwapMovesCellPosCorrectly() {
         UnitRegistry r = new UnitRegistry();
-        Unit a = new Unit("a", Faction.MARINE, UnitType.MARINE_BLUE, 1, 1);
-        Unit b = new Unit("b", Faction.MARINE, UnitType.MARINE_BLUE, 2, 2);
-        Unit c = new Unit("c", Faction.MARINE, UnitType.MARINE_BLUE, 3, 3);
+        Entity a = new Entity("a", Faction.MARINE, UnitType.MARINE_BLUE, 1, 1);
+        Entity b = new Entity("b", Faction.MARINE, UnitType.MARINE_BLUE, 2, 2);
+        Entity c = new Entity("c", Faction.MARINE, UnitType.MARINE_BLUE, 3, 3);
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
@@ -327,7 +324,7 @@ public class UnitRegistryTest {
     @Test
     public void allocateCooldownTimerDefaultsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
+        Entity u = unit("u");
 
         r.allocate(u);
 
@@ -340,9 +337,9 @@ public class UnitRegistryTest {
     @Test
     public void releaseTailSwapMovesCooldownTimerCorrectly() {
         UnitRegistry r = new UnitRegistry();
-        Unit a = unit("a");
-        Unit b = unit("b");
-        Unit c = unit("c");
+        Entity a = unit("a");
+        Entity b = unit("b");
+        Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
@@ -357,7 +354,7 @@ public class UnitRegistryTest {
     @Test
     public void allocateMoveProgressDefaultsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
+        Entity u = unit("u");
 
         r.allocate(u);
 
@@ -370,9 +367,9 @@ public class UnitRegistryTest {
     @Test
     public void releaseTailSwapMovesMoveProgressCorrectly() {
         UnitRegistry r = new UnitRegistry();
-        Unit a = unit("a");
-        Unit b = unit("b");
-        Unit c = unit("c");
+        Entity a = unit("a");
+        Entity b = unit("b");
+        Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
@@ -387,7 +384,7 @@ public class UnitRegistryTest {
     @Test
     public void allocateSeedsRenderPosAndAccessorsRouteThroughService() {
         UnitRegistry r = new UnitRegistry();
-        Unit u = new Unit("u", Faction.MARINE, UnitType.MARINE_BLUE, 5, 8);
+        Entity u = new Entity("u", Faction.MARINE, UnitType.MARINE_BLUE, 5, 8);
 
         long id = r.allocate(u);
 
@@ -407,7 +404,7 @@ public class UnitRegistryTest {
     @Test
     public void renderPosSurvivesReleaseForTheCorpse() {
         UnitRegistry r = new UnitRegistry();
-        Unit u = new Unit("u", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
+        Entity u = new Entity("u", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
         long id = r.allocate(u);
 
         u.setRenderPos(3.5f, 7.2f);
@@ -428,9 +425,9 @@ public class UnitRegistryTest {
     @Test
     public void renderPosIsUndisturbedByDenseTailSwap() {
         UnitRegistry r = new UnitRegistry();
-        Unit a = new Unit("a", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
-        Unit b = new Unit("b", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
-        Unit c = new Unit("c", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
+        Entity a = new Entity("a", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
+        Entity b = new Entity("b", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
+        Entity c = new Entity("c", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
         long idA = r.allocate(a);
         r.allocate(b);
         long idC = r.allocate(c);
@@ -450,7 +447,7 @@ public class UnitRegistryTest {
     @Test
     public void allocateSeedsAttackDamageAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
+        Entity u = unit("u");
         float typeDmg = u.seedAttackDamage;
         assertTrue(typeDmg > 0f, "test prerequisite: type seeds a non-zero attackDamage");
 
@@ -465,9 +462,9 @@ public class UnitRegistryTest {
     @Test
     public void releaseTailSwapMovesAttackDamageCorrectly() {
         UnitRegistry r = new UnitRegistry();
-        Unit a = unit("a");
-        Unit b = unit("b");
-        Unit c = unit("c");
+        Entity a = unit("a");
+        Entity b = unit("b");
+        Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
@@ -482,7 +479,7 @@ public class UnitRegistryTest {
     @Test
     public void allocateSeedsAttackRangeAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
+        Entity u = unit("u");
         float typeRange = u.seedAttackRange;
         assertTrue(typeRange > 0f, "test prerequisite: type seeds a non-zero attackRange");
 
@@ -497,9 +494,9 @@ public class UnitRegistryTest {
     @Test
     public void releaseTailSwapMovesAttackRangeCorrectly() {
         UnitRegistry r = new UnitRegistry();
-        Unit a = unit("a");
-        Unit b = unit("b");
-        Unit c = unit("c");
+        Entity a = unit("a");
+        Entity b = unit("b");
+        Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
@@ -514,7 +511,7 @@ public class UnitRegistryTest {
     @Test
     public void allocateSeedsAccuracyAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
+        Entity u = unit("u");
         float typeAcc = u.seedAccuracy;
         assertTrue(typeAcc > 0f, "test prerequisite: type seeds a non-zero accuracy");
 
@@ -529,9 +526,9 @@ public class UnitRegistryTest {
     @Test
     public void releaseTailSwapMovesAccuracyCorrectly() {
         UnitRegistry r = new UnitRegistry();
-        Unit a = unit("a");
-        Unit b = unit("b");
-        Unit c = unit("c");
+        Entity a = unit("a");
+        Entity b = unit("b");
+        Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
@@ -546,7 +543,7 @@ public class UnitRegistryTest {
     @Test
     public void allocateSecondaryCooldownTimerDefaultsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
+        Entity u = unit("u");
 
         r.allocate(u);
 
@@ -559,9 +556,9 @@ public class UnitRegistryTest {
     @Test
     public void releaseTailSwapMovesSecondaryCooldownTimerCorrectly() {
         UnitRegistry r = new UnitRegistry();
-        Unit a = unit("a");
-        Unit b = unit("b");
-        Unit c = unit("c");
+        Entity a = unit("a");
+        Entity b = unit("b");
+        Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
@@ -576,7 +573,7 @@ public class UnitRegistryTest {
     @Test
     public void allocateSecondaryActionTimerDefaultsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
+        Entity u = unit("u");
 
         r.allocate(u);
 
@@ -589,9 +586,9 @@ public class UnitRegistryTest {
     @Test
     public void releaseTailSwapMovesSecondaryActionTimerCorrectly() {
         UnitRegistry r = new UnitRegistry();
-        Unit a = unit("a");
-        Unit b = unit("b");
-        Unit c = unit("c");
+        Entity a = unit("a");
+        Entity b = unit("b");
+        Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
@@ -606,7 +603,7 @@ public class UnitRegistryTest {
     @Test
     public void allocateSecondaryAimTargetIdDefaultsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
+        Entity u = unit("u");
 
         r.allocate(u);
 
@@ -619,9 +616,9 @@ public class UnitRegistryTest {
     @Test
     public void releaseTailSwapMovesSecondaryAimTargetIdCorrectly() {
         UnitRegistry r = new UnitRegistry();
-        Unit a = unit("a");
-        Unit b = unit("b");
-        Unit c = unit("c");
+        Entity a = unit("a");
+        Entity b = unit("b");
+        Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
@@ -636,7 +633,7 @@ public class UnitRegistryTest {
     @Test
     public void allocateBurstRemainingDefaultsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
+        Entity u = unit("u");
 
         r.allocate(u);
 
@@ -649,9 +646,9 @@ public class UnitRegistryTest {
     @Test
     public void releaseTailSwapMovesBurstRemainingCorrectly() {
         UnitRegistry r = new UnitRegistry();
-        Unit a = unit("a");
-        Unit b = unit("b");
-        Unit c = unit("c");
+        Entity a = unit("a");
+        Entity b = unit("b");
+        Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
@@ -666,7 +663,7 @@ public class UnitRegistryTest {
     @Test
     public void allocateBurstTimerDefaultsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
+        Entity u = unit("u");
 
         r.allocate(u);
 
@@ -679,9 +676,9 @@ public class UnitRegistryTest {
     @Test
     public void releaseTailSwapMovesBurstTimerCorrectly() {
         UnitRegistry r = new UnitRegistry();
-        Unit a = unit("a");
-        Unit b = unit("b");
-        Unit c = unit("c");
+        Entity a = unit("a");
+        Entity b = unit("b");
+        Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
@@ -696,7 +693,7 @@ public class UnitRegistryTest {
     @Test
     public void allocateBurstTargetIdDefaultsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
+        Entity u = unit("u");
 
         r.allocate(u);
 
@@ -709,9 +706,9 @@ public class UnitRegistryTest {
     @Test
     public void releaseTailSwapMovesBurstTargetIdCorrectly() {
         UnitRegistry r = new UnitRegistry();
-        Unit a = unit("a");
-        Unit b = unit("b");
-        Unit c = unit("c");
+        Entity a = unit("a");
+        Entity b = unit("b");
+        Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
@@ -726,7 +723,7 @@ public class UnitRegistryTest {
     @Test
     public void allocateTargetIdDefaultsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
+        Entity u = unit("u");
 
         r.allocate(u);
 
@@ -739,9 +736,9 @@ public class UnitRegistryTest {
     @Test
     public void releaseTailSwapMovesTargetIdCorrectly() {
         UnitRegistry r = new UnitRegistry();
-        Unit a = unit("a");
-        Unit b = unit("b");
-        Unit c = unit("c");
+        Entity a = unit("a");
+        Entity b = unit("b");
+        Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
@@ -756,7 +753,7 @@ public class UnitRegistryTest {
     @Test
     public void allocateRepositionCooldownDefaultsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
+        Entity u = unit("u");
 
         r.allocate(u);
 
@@ -769,9 +766,9 @@ public class UnitRegistryTest {
     @Test
     public void releaseTailSwapMovesRepositionCooldownCorrectly() {
         UnitRegistry r = new UnitRegistry();
-        Unit a = unit("a");
-        Unit b = unit("b");
-        Unit c = unit("c");
+        Entity a = unit("a");
+        Entity b = unit("b");
+        Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
@@ -786,7 +783,7 @@ public class UnitRegistryTest {
     @Test
     public void releaseOfReservedZeroSentinelIsNoOp() {
         UnitRegistry r = new UnitRegistry();
-        Unit a = unit("a");
+        Entity a = unit("a");
         long idA = r.allocate(a);
         // Setup-discarded units (constructed but never registered) carry
         // entityId == 0. Routing that into release() must not corrupt the
@@ -801,7 +798,7 @@ public class UnitRegistryTest {
     @Test
     public void allocateResetsMidCombatColumnsWhenReusingAFreedSlot() {
         UnitRegistry r = new UnitRegistry();
-        Unit a = unit("a");
+        Entity a = unit("a");
         long idA = r.allocate(a);
         // Dirty several mid-combat columns on slot 0.
         r.setCooldownTimer(r.indexOf(a.entityId), 2.5f);
@@ -811,7 +808,7 @@ public class UnitRegistryTest {
         r.release(idA);
 
         // A fresh unit reusing slot 0 must see defaults, not the stale values.
-        Unit b = unit("b");
+        Entity b = unit("b");
         r.allocate(b);
         assertEquals(0, r.indexOf(b.entityId));
         assertEquals(0f, r.getCooldownTimer(r.indexOf(b.entityId)), 1e-6f);
@@ -824,7 +821,7 @@ public class UnitRegistryTest {
     @Test
     public void allocateFallbackCellDefaultsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
+        Entity u = unit("u");
         // Default -1/-1 sentinel must ride the seed through allocate.
         r.allocate(u);
         assertEquals(-1, r.getFallbackCellX(r.indexOf(u.entityId)));
@@ -838,9 +835,9 @@ public class UnitRegistryTest {
     @Test
     public void releaseTailSwapMovesFallbackCellCorrectly() {
         UnitRegistry r = new UnitRegistry();
-        Unit a = unit("a");
-        Unit b = unit("b");
-        Unit c = unit("c");
+        Entity a = unit("a");
+        Entity b = unit("b");
+        Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
@@ -856,7 +853,7 @@ public class UnitRegistryTest {
     @Test
     public void allocateFallbackTimerDefaultsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
+        Entity u = unit("u");
 
         r.allocate(u);
 
@@ -869,9 +866,9 @@ public class UnitRegistryTest {
     @Test
     public void releaseTailSwapMovesFallbackTimerCorrectly() {
         UnitRegistry r = new UnitRegistry();
-        Unit a = unit("a");
-        Unit b = unit("b");
-        Unit c = unit("c");
+        Entity a = unit("a");
+        Entity b = unit("b");
+        Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
@@ -886,7 +883,7 @@ public class UnitRegistryTest {
     @Test
     public void allocateWanderDwellTimerDefaultsAndAccessorsRouteThroughRegistry() {
         UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
+        Entity u = unit("u");
 
         r.allocate(u);
 
@@ -899,9 +896,9 @@ public class UnitRegistryTest {
     @Test
     public void releaseTailSwapMovesWanderDwellTimerCorrectly() {
         UnitRegistry r = new UnitRegistry();
-        Unit a = unit("a");
-        Unit b = unit("b");
-        Unit c = unit("c");
+        Entity a = unit("a");
+        Entity b = unit("b");
+        Entity c = unit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);

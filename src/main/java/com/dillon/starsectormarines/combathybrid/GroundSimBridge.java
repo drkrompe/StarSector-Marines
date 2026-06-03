@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.combathybrid;
 
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.render2d.GlStateBracket;
 import com.dillon.starsectormarines.render2d.SolidQuadBatch;
 import com.fs.starfarer.api.Global;
@@ -23,7 +23,7 @@ import java.util.List;
  * S3a (fan-out) — the event-translated coupling generalized to <b>one sim, many
  * proxies</b>. The sim is the source of truth, owned externally and merely
  * <em>referenced</em> here; this bridge spawns one invisible vanilla proxy per
- * targetable sim {@link Unit} and drives them all from a single {@code advance}.
+ * targetable sim {@link Entity} and drives them all from a single {@code advance}.
  * It never constructs the sim — that inverts S3a's throwaway-per-plugin scaffold
  * into the real shape ground combat needs (the mission sim exists independently;
  * proxies are a thin mirror layer over it).
@@ -73,20 +73,20 @@ public class GroundSimBridge extends BaseEveryFrameCombatPlugin {
 
     /** One mirrored sim unit ↔ vanilla proxy pair. */
     private static final class ProxyLink {
-        final Unit unit;
+        final Entity unit;
         final ShipAPI proxy;
         final Vector2f anchor = new Vector2f();
         boolean simDead;   // set by the death subscriber when the sim reports this unit dead
         boolean removed;   // proxy already despawned
 
-        ProxyLink(Unit unit, ShipAPI proxy) {
+        ProxyLink(Entity unit, ShipAPI proxy) {
             this.unit = unit;
             this.proxy = proxy;
         }
     }
 
     private final BattleSimulation sim;
-    private final List<Unit> targetable;
+    private final List<Entity> targetable;
     private final int gridW;
     private final int gridH;
     private final float worldUnitsPerCell;
@@ -104,7 +104,7 @@ public class GroundSimBridge extends BaseEveryFrameCombatPlugin {
      * @param worldUnitsPerCell combat world units per sim cell
      * @param proxyVariant      hull behind each invisible proxy (sprite hidden)
      */
-    public GroundSimBridge(BattleSimulation sim, List<Unit> targetable,
+    public GroundSimBridge(BattleSimulation sim, List<Entity> targetable,
                            int gridW, int gridH, float worldUnitsPerCell, String proxyVariant) {
         this.sim = sim;
         this.targetable = new ArrayList<>(targetable);
@@ -137,7 +137,7 @@ public class GroundSimBridge extends BaseEveryFrameCombatPlugin {
             }
         });
 
-        for (Unit u : targetable) {
+        for (Entity u : targetable) {
             Vector2f loc = new Vector2f();
             cellToWorld(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), loc);
             ShipAPI proxy = engine.getFleetManager(FleetSide.ENEMY)

@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
@@ -36,12 +36,12 @@ public class BreachAndAdvanceTest {
     }
 
     private static Squad squad(BattleSimulation sim, int memberCount, int startX, int startY) {
-        Unit first = new Unit("m0", Faction.MARINE, UnitType.MARINE, startX, startY);
+        Entity first = new Entity("m0", Faction.MARINE, UnitType.MARINE, startX, startY);
         int sid = sim.mintSquad(Faction.MARINE, first);
         first.squadId = sid;
         sim.addUnit(first);
         for (int i = 1; i < memberCount; i++) {
-            Unit u = new Unit("m" + i, Faction.MARINE, UnitType.MARINE, startX + i, startY);
+            Entity u = new Entity("m" + i, Faction.MARINE, UnitType.MARINE, startX + i, startY);
             u.squadId = sid;
             sim.addUnit(u);
         }
@@ -57,7 +57,7 @@ public class BreachAndAdvanceTest {
         SquadPlan.Step step = new SquadPlan.Step(action);
         int slotIdx = 0;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Unit u = sim.liveUnitAt(i);
+            Entity u = sim.liveUnitAt(i);
             if (u.squadId != squad.id) continue;
             step.assignments.put("breacher:" + slotIdx, new java.util.ArrayList<>(List.of(u)));
             slotIdx++;
@@ -81,7 +81,7 @@ public class BreachAndAdvanceTest {
 
         // No members are near the stack-up cells yet → first execute should
         // path members toward the stack-up cell, not the forward cell.
-        Unit m0 = sim.liveUnitAt(0);
+        Entity m0 = sim.liveUnitAt(0);
         action.execute(m0, sq, sim);
         assertNotEquals(0, m0.pathCellCount(), "stack-up phase queues a path");
         // Path destination is the stack-up cell, not the forward cell.
@@ -95,8 +95,8 @@ public class BreachAndAdvanceTest {
     public void advancePhaseRoutesToForwardCell() {
         BattleSimulation sim = openArena(20, 20);
         // Place both members AT their stack-up cells already.
-        Unit m0 = new Unit("m0", Faction.MARINE, UnitType.MARINE, 8, 5);
-        Unit m1 = new Unit("m1", Faction.MARINE, UnitType.MARINE, 8, 6);
+        Entity m0 = new Entity("m0", Faction.MARINE, UnitType.MARINE, 8, 5);
+        Entity m1 = new Entity("m1", Faction.MARINE, UnitType.MARINE, 8, 6);
         int sid = sim.mintSquad(Faction.MARINE, m0);
         m0.squadId = sid;
         m1.squadId = sid;
@@ -137,7 +137,7 @@ public class BreachAndAdvanceTest {
         // timer says we've waited long enough.
         sq.breachStackupTimer = BreachAndAdvance.STACKUP_TIMEOUT_SECONDS + 0.1f;
 
-        Unit m0 = sim.liveUnitAt(0);
+        Entity m0 = sim.liveUnitAt(0);
         action.execute(m0, sq, sim);
         int destX = m0.pathCellX(m0.pathCellCount() - 1);
         assertEquals(14, destX, "timeout commits the breach — path heads for forward cell");
@@ -146,8 +146,8 @@ public class BreachAndAdvanceTest {
     @Test
     public void arrivalAtForwardCellClearsPathAndPinsRender() {
         BattleSimulation sim = openArena(20, 20);
-        Unit m0 = new Unit("m0", Faction.MARINE, UnitType.MARINE, 14, 5);
-        Unit m1 = new Unit("m1", Faction.MARINE, UnitType.MARINE, 14, 6);
+        Entity m0 = new Entity("m0", Faction.MARINE, UnitType.MARINE, 14, 5);
+        Entity m1 = new Entity("m1", Faction.MARINE, UnitType.MARINE, 14, 6);
         int sid = sim.mintSquad(Faction.MARINE, m0);
         m0.squadId = sid;
         m1.squadId = sid;
@@ -177,8 +177,8 @@ public class BreachAndAdvanceTest {
     @Test
     public void successWhenAllMembersAtForward() {
         BattleSimulation sim = openArena(20, 20);
-        Unit m0 = new Unit("m0", Faction.MARINE, UnitType.MARINE, 14, 5);
-        Unit m1 = new Unit("m1", Faction.MARINE, UnitType.MARINE, 14, 6);
+        Entity m0 = new Entity("m0", Faction.MARINE, UnitType.MARINE, 14, 5);
+        Entity m1 = new Entity("m1", Faction.MARINE, UnitType.MARINE, 14, 6);
         int sid = sim.mintSquad(Faction.MARINE, m0);
         m0.squadId = sid;
         m1.squadId = sid;

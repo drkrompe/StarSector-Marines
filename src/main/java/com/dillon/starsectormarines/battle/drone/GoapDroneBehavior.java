@@ -10,7 +10,7 @@ import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 import com.dillon.starsectormarines.battle.decision.goap.scoring.RoleAssigner;
 
@@ -52,8 +52,8 @@ public final class GoapDroneBehavior implements UnitBehavior {
     private GoapDroneBehavior() {}
 
     @Override
-    public void update(Unit unit, BattleSimulation sim) {
-        Squad squad = unit.squadId == Unit.NO_SQUAD ? null : sim.getSquad(unit.squadId);
+    public void update(Entity unit, BattleSimulation sim) {
+        Squad squad = unit.squadId == Entity.NO_SQUAD ? null : sim.getSquad(unit.squadId);
         if (squad == null) return;
 
         SquadPlan plan = squad.currentPlan;
@@ -136,15 +136,15 @@ public final class GoapDroneBehavior implements UnitBehavior {
         }
 
         if (plan != null && !plan.isComplete()) {
-            List<Unit> aliveMembers = new ArrayList<>(squad.aliveMembers);
+            List<Entity> aliveMembers = new ArrayList<>(squad.aliveMembers);
             for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-                Unit u = sim.liveUnitAt(i);
+                Entity u = sim.liveUnitAt(i);
                 if (u.squadId != squad.id) continue;
                 aliveMembers.add(u);
             }
             for (SquadPlan.Step step : plan.steps()) {
-                List<RoleAssigner.Slot<Unit>> slots = step.action.roles(squad, sim);
-                Map<String, List<Unit>> assignment = RoleAssigner.assign(aliveMembers, slots);
+                List<RoleAssigner.Slot<Entity>> slots = step.action.roles(squad, sim);
+                Map<String, List<Entity>> assignment = RoleAssigner.assign(aliveMembers, slots);
                 step.assignments.putAll(assignment);
             }
         }

@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.combat;
 
 import com.dillon.starsectormarines.battle.mech.MechLoadoutState;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -59,14 +59,14 @@ public final class DamageResolver {
     private final Int2ObjectMap<Squad> squads;
     private final UnitRosterService roster;
     private final EquipmentDropService equipmentDrops;
-    private final Consumer<Unit> deathSink;
+    private final Consumer<Entity> deathSink;
     private final DeathDispatcher deathDispatcher;
     private final Random rng;
 
     public DamageResolver(NavigationService navigation,
                           UnitRosterService roster,
                           EquipmentDropService equipmentDrops,
-                          Consumer<Unit> deathSink,
+                          Consumer<Entity> deathSink,
                           DeathDispatcher deathDispatcher,
                           Random rng) {
         this.grid = navigation.getGrid();
@@ -88,12 +88,12 @@ public final class DamageResolver {
      * {@link UnitRosterService#releaseFromRegistry} in the cascade below, which
      * nulls the unit's registry pointer. Stacked damage against the same target
      * in one parallel UPDATE_UNITS flush means a later entry sees a released
-     * unit, whose Group-C cell accessors ({@link Unit#getCellX}/{@link
-     * Unit#getCellY}, read just below for the cover lookup) NPE. Death and
+     * unit, whose Group-C cell accessors ({@link Entity#getCellX}/{@link
+     * Entity#getCellY}, read just below for the cover lookup) NPE. Death and
      * registry-release are atomic inside this method, so {@code !wasAlive}
      * means the target is already dead — and the damage is moot anyway.
      */
-    public void resolve(Unit target, float damage, float vsTurretMult, float moraleImpact) {
+    public void resolve(Entity target, float damage, float vsTurretMult, float moraleImpact) {
         UnitRegistry registry = roster.getRegistry();
         boolean wasAlive = registry.isAliveById(target.entityId);
         if (!wasAlive) return;
@@ -121,10 +121,10 @@ public final class DamageResolver {
             // where the old one fell, so followers don't get yanked
             // sideways when the leader dies mid-maneuver. NO_SQUAD units
             // (turrets, civilians, etc.) skip — no leader to promote.
-            if (target.squadId != Unit.NO_SQUAD) {
+            if (target.squadId != Entity.NO_SQUAD) {
                 Squad ls = squads.get(target.squadId);
                 if (ls != null && ls.leaderId == target.entityId) {
-                    Unit promoted = pickPromotionCandidate(ls, target);
+                    Entity promoted = pickPromotionCandidate(ls, target);
                     ls.leaderId = (promoted != null) ? promoted.entityId : 0L;
                 }
             }
@@ -165,7 +165,7 @@ public final class DamageResolver {
                 // (above), so getMaxHp() would NPE under the Group-S seed-only
                 // contract — and a dead mech's threshold morale is moot anyway.
                 if (!died) applyMechHpThresholdDrain(target);
-            } else if (target.squadId != Unit.NO_SQUAD) {
+            } else if (target.squadId != Entity.NO_SQUAD) {
                 applySquadMoraleDrain(target, moraleImpact, died);
             }
         }
@@ -184,19 +184,19 @@ public final class DamageResolver {
      * appear: prior deaths this frame would have released themselves in
      * their own resolve() calls.
      */
-    private Unit pickPromotionCandidate(Squad squad, Unit deadLeader) {
-        Unit best = null;
+    private Entity pickPromotionCandidate(Squad squad, Entity deadLeader) {
+        Entity best = null;
         float bestDistSq = Float.MAX_VALUE;
         UnitRegistry registry = roster.getRegistry();
         int ldrIdx = registry.requireLiveIndex(deadLeader.entityId);
         int lx = registry.getCellX(ldrIdx);
         int ly = registry.getCellY(ldrIdx);
-        Unit[] dense = registry.denseArray();
+        Entity[] dense = registry.denseArray();
         int[] cellX = registry.cellXArray();
         int[] cellY = registry.cellYArray();
         int liveCount = registry.liveCount();
         for (int i = 0; i < liveCount; i++) {
-            Unit u = dense[i];
+            Entity u = dense[i];
             if (u == deadLeader || u.squadId != squad.id) continue;
             int dx = cellX[i] - lx;
             int dy = cellY[i] - ly;
@@ -220,7 +220,7 @@ public final class DamageResolver {
      * only reset the timer on the first bullet, letting recovery resume
      * mid-volley.
      */
-    private void applySquadMoraleDrain(Unit target, float moraleImpact, boolean died) {
+    private void applySquadMoraleDrain(Entity target, float moraleImpact, boolean died) {
         Squad sq = squads.get(target.squadId);
         if (sq == null) return;
         float cap = (sq.originalSize > 0 && sq.aliveMembers > 0)
@@ -253,7 +253,7 @@ public final class DamageResolver {
      * keyed to "how far through this fight have you been damaged," not to
      * instantaneous HP.
      */
-    private void applyMechHpThresholdDrain(Unit target) {
+    private void applyMechHpThresholdDrain(Entity target) {
         MechLoadoutState m = target.mech;
         m.timeSinceUnderFire = 0f;
         UnitRegistry registry = roster.getRegistry();

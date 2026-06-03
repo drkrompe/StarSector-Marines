@@ -1,14 +1,14 @@
 package com.dillon.starsectormarines.battle.decision;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 
 /**
  * Fall-back state — unit was recently hit and is breaking contact. Paths
- * toward an out-of-LOS cell, then holds until {@link Unit#getFallbackTimer()}
+ * toward an out-of-LOS cell, then holds until {@link Entity#getFallbackTimer()}
  * expires. Applies to every role (the dispatch in
  * {@link BattleSimulation#updateUnit} routes here whenever the timer is
- * positive, regardless of {@link Unit#role}).
+ * positive, regardless of {@link Entity#role}).
  */
 public final class FallbackBehavior implements UnitBehavior {
 
@@ -17,7 +17,7 @@ public final class FallbackBehavior implements UnitBehavior {
     private FallbackBehavior() {}
 
     @Override
-    public void update(Unit u, BattleSimulation sim) {
+    public void update(Entity u, BattleSimulation sim) {
         sim.world().setFallbackTimer(u.entityId, sim.world().fallbackTimer(u.entityId) - BattleSimulation.TICK_DT);
         int fx = sim.world().fallbackCellX(u.entityId);
         int fy = sim.world().fallbackCellY(u.entityId);

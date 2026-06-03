@@ -16,22 +16,22 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class DeathDispatcherTest {
 
-    private static Unit unit(String id) {
-        return new Unit(id, Faction.MARINE, UnitType.MARINE, 0, 0);
+    private static Entity unit(String id) {
+        return new Entity(id, Faction.MARINE, UnitType.MARINE, 0, 0);
     }
 
     /** Death event for {@code u} — cell is irrelevant to dispatcher mechanics. */
-    private static DeathEvent death(Unit u) {
+    private static DeathEvent death(Entity u) {
         return new DeathEvent(u, 0, 0);
     }
 
     @Test
     public void publishDoesNotInvokeHandlersUntilDrain() {
         DeathDispatcher dispatcher = new DeathDispatcher();
-        List<Unit> seen = new ArrayList<>();
+        List<Entity> seen = new ArrayList<>();
         dispatcher.subscribe(e -> seen.add(e.unit()));
 
-        Unit u = unit("a");
+        Entity u = unit("a");
         dispatcher.publish(death(u));
         assertTrue(seen.isEmpty(), "publish must buffer — handlers fire only on drain");
 
@@ -57,7 +57,7 @@ public class DeathDispatcherTest {
     @Test
     public void drainClearsTheBufferSoEventsFireExactlyOnce() {
         DeathDispatcher dispatcher = new DeathDispatcher();
-        List<Unit> seen = new ArrayList<>();
+        List<Entity> seen = new ArrayList<>();
         dispatcher.subscribe(e -> seen.add(e.unit()));
 
         dispatcher.publish(death(unit("a")));

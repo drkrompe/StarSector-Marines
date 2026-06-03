@@ -3,12 +3,11 @@ package com.dillon.starsectormarines.battle.decision.goap.action;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.decision.goap.scoring.RoleAssigner;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
@@ -107,24 +106,24 @@ public class HoldZoneTest {
         squad.aliveMembers = 4;
         // Four members clustered near the doorway — exactly the bunch the old
         // code produced; roles() should fan them out to the four hold cells.
-        List<Unit> members = new ArrayList<>();
+        List<Entity> members = new ArrayList<>();
         for (int i = 0; i < 4; i++) {
-            Unit m = new Unit("m" + i, Faction.MARINE, UnitType.MARINE, 5, 4);
+            Entity m = new Entity("m" + i, Faction.MARINE, UnitType.MARINE, 5, 4);
             sim.addUnit(m); // register so RoleAssigner's getCellX read routes through the registry
             members.add(m);
         }
 
-        List<RoleAssigner.Slot<Unit>> slots = hold.roles(squad, sim);
-        Map<String, List<Unit>> assigned = RoleAssigner.assign(members, slots);
+        List<RoleAssigner.Slot<Entity>> slots = hold.roles(squad, sim);
+        Map<String, List<Entity>> assigned = RoleAssigner.assign(members, slots);
 
         // Every member must land on a distinct "hold:i" cell; overflow stays empty.
         assertTrue(assigned.getOrDefault("hold:overflow", List.of()).isEmpty(),
                 "with enough cells nobody falls through to the anchor overflow");
         Set<Integer> cellIdx = new HashSet<>();
         int placed = 0;
-        for (Map.Entry<String, List<Unit>> e : assigned.entrySet()) {
+        for (Map.Entry<String, List<Entity>> e : assigned.entrySet()) {
             if (!e.getKey().startsWith("hold:") || e.getKey().equals("hold:overflow")) continue;
-            for (Unit ignored : e.getValue()) {
+            for (Entity ignored : e.getValue()) {
                 int idx = Integer.parseInt(e.getKey().substring("hold:".length()));
                 assertTrue(cellIdx.add(idx), "no two members share a hold cell");
                 placed++;

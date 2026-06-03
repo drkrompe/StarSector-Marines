@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.combat;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
@@ -21,7 +21,7 @@ import java.util.function.IntSupplier;
  *       fields; writes go through {@link DamageService#applyFallback} which
  *       handles serial/parallel routing.</li>
  *   <li>{@link #rollReprioritizeOnHit} — CAS on
- *       {@link Unit#lastReprioTickIndex} gates to one roll per (target, tick);
+ *       {@link Entity#lastReprioTickIndex} gates to one roll per (target, tick);
  *       writes go through {@link DamageService#applyReprio}.</li>
  * </ul>
  */
@@ -34,8 +34,8 @@ public final class HitResponseService {
     private static final float REPRIORITIZE_BASE_CHANCE = 0.35f;
     private static final float REPRIORITIZE_NO_LOS_CHANCE = 0.85f;
 
-    private static final AtomicIntegerFieldUpdater<Unit> LAST_REPRIO_TICK =
-            AtomicIntegerFieldUpdater.newUpdater(Unit.class, "lastReprioTickIndex");
+    private static final AtomicIntegerFieldUpdater<Entity> LAST_REPRIO_TICK =
+            AtomicIntegerFieldUpdater.newUpdater(Entity.class, "lastReprioTickIndex");
 
     private final NavigationGrid grid;
     private final UnitRegistry registry;
@@ -54,19 +54,19 @@ public final class HitResponseService {
         this.tickIndexSupplier = tickIndexSupplier;
     }
 
-    public void rollFallbackOnHit(Unit target) {
+    public void rollFallbackOnHit(Entity target) {
         if (!registry.isAliveById(target.entityId)) return;
         int tIdx = registry.requireLiveIndex(target.entityId);
         if (registry.getFallbackTimer(tIdx) > 0f) return;
         if (target instanceof MapTurret) return;
-        if (target.squadId != Unit.NO_SQUAD) return;
+        if (target.squadId != Entity.NO_SQUAD) return;
         if (target.rng.nextFloat() >= FALLBACK_CHANCE) return;
         int[] fallback = tacticalScoring.findFallbackPosition(target);
         if (fallback[0] == registry.getCellX(tIdx) && fallback[1] == registry.getCellY(tIdx)) return;
         damageService.applyFallback(target, fallback[0], fallback[1]);
     }
 
-    public void rollReprioritizeOnHit(Unit target, Unit shooter) {
+    public void rollReprioritizeOnHit(Entity target, Entity shooter) {
         if (!registry.isAliveById(target.entityId)) return;
         boolean qualifies = target.mech != null || target instanceof MapTurret;
         if (!qualifies) return;
@@ -76,7 +76,7 @@ public final class HitResponseService {
         if (!LAST_REPRIO_TICK.compareAndSet(target, prev, simTickIndex)) return;
         int tIdx = registry.requireLiveIndex(target.entityId);
         long expectedTargetId = registry.getTargetId(tIdx);
-        Unit expectedTarget = registry.getOrNull(expectedTargetId);
+        Entity expectedTarget = registry.getOrNull(expectedTargetId);
         if (expectedTarget == null) return;
         if (shooter != null && expectedTarget == shooter) return;
         int etIdx = registry.requireLiveIndex(expectedTarget.entityId);

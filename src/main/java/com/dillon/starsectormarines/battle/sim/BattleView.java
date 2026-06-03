@@ -10,7 +10,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.vehicle.Vehicle;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -66,13 +66,13 @@ public interface BattleView {
      * the parallel replan window (read-only; the dense array is stable across
      * the dispatch since spawns are queued).
      */
-    Unit liveUnitAt(int index);
+    Entity liveUnitAt(int index);
 
     /** Per-cell unit count, indexed by {@link NavigationGrid#index(int, int)}. */
     byte[] getOccupancyMap();
 
     /** The unit {@code u} is currently targeting, resolved through the registry, or {@code null}. */
-    Unit targetOf(Unit u);
+    Entity targetOf(Entity u);
 
     Squad getSquad(int id);
 
@@ -94,7 +94,7 @@ public interface BattleView {
     List<Projectile> getActiveProjectiles();
 
     /** Resolve a unit id through the registry, or {@code null} if no live unit holds it. */
-    Unit resolveUnit(long id);
+    Entity resolveUnit(long id);
 
     /** Entity-access facade — by-id hot primitives ({@code world().hp(id)}) over the dense SoA + cold {@code world().id(id).getOrNull(Cmp.class)} component projection. See {@link World}. */
     World world();

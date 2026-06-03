@@ -1,9 +1,7 @@
 package com.dillon.starsectormarines.battle.drone;
 
-import com.dillon.starsectormarines.battle.combat.fx.SmokingWreck;
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
@@ -27,7 +25,7 @@ import com.dillon.starsectormarines.battle.air.AirHandling;
  * sim's per-tick behavior dispatch a no-op until {@code DroneBehavior} arrives
  * with patrol + engagement.
  */
-public class Drone extends Unit {
+public class Drone extends Entity {
 
     /**
      * Vanilla Terminator-drone sprite — sleek combat drone launched from
@@ -46,7 +44,7 @@ public class Drone extends Unit {
     public static final float TURN_RATE_DEG_PER_SEC = 220f;
 
     /**
-     * Drone {@link Unit#airLosRadius}, in cells. Walls within this many cells
+     * Drone {@link Entity#airLosRadius}, in cells. Walls within this many cells
      * of the drone are transparent for LoS — both for the drone firing down
      * and for ground combatants firing up. Smaller than the shuttle's 3.5
      * because drones are physically smaller and patrol closer to roof level;

@@ -301,7 +301,7 @@ public class BattleRenderer {
         registerSpriteSheetBatches(sprites.vehicleSheets().values());
         registerSpriteSheetBatches(sprites.convoySprites().values());
 
-        // Unit sheets for the UNITS layer (UnitRenderService sprite sweeps) so
+        // Entity sheets for the UNITS layer (UnitRenderService sprite sweeps) so
         // dead + live infantry and secondary-aim poses batch via SHEET_QUAD.
         // Loaded by ensureUnitSheets()/ensureMarineSecondarySprites() before this
         // runs (BattleScreen.attach order).

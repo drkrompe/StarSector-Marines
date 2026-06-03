@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.command;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -52,7 +52,7 @@ public class AssaultCommandTest {
     }
 
     private static Squad addMarineSquad(BattleSimulation sim, float centroidX, float centroidY) {
-        Unit leader = new Unit("m", Faction.MARINE, UnitType.MARINE,
+        Entity leader = new Entity("m", Faction.MARINE, UnitType.MARINE,
                 Math.round(centroidX), Math.round(centroidY));
         sim.addUnit(leader);
         int sid = sim.mintSquad(Faction.MARINE, leader);
@@ -65,7 +65,7 @@ public class AssaultCommandTest {
     }
 
     private static void addDefender(BattleSimulation sim, int cellX, int cellY) {
-        sim.addUnit(new Unit("d-" + cellX + "-" + cellY, Faction.DEFENDER, UnitType.MARINE, cellX, cellY));
+        sim.addUnit(new Entity("d-" + cellX + "-" + cellY, Faction.DEFENDER, UnitType.MARINE, cellX, cellY));
     }
 
     @Test

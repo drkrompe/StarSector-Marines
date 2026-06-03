@@ -1,9 +1,8 @@
 package com.dillon.starsectormarines.battle.drone;
 
-import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 
@@ -25,7 +24,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
  * which counts down {@link #spawnCooldown} and asks {@link DroneSpawner} to
  * launch a new drone whenever the hub is below {@link #MAX_ACTIVE_DRONES}.
  */
-public class DroneHubUnit extends Unit {
+public class DroneHubUnit extends Entity {
 
     /**
      * Vanilla weapon sprite reused as the hub structure — the large Pilum

@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.squad;
 
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -57,7 +57,7 @@ public final class SquadPlan {
          * implementations can index by slot index when natural (e.g. portal[0],
          * portal[1] in a cordon).
          */
-        public final Map<String, List<Unit>> assignments;
+        public final Map<String, List<Entity>> assignments;
 
         public Step(Action action) {
             this.action = action;
@@ -70,17 +70,17 @@ public final class SquadPlan {
          * 8 members and slot counts cap around 4, so this is O(squad size) in
          * the worst case — fine for the per-member dispatch path.
          */
-        public String slotOf(Unit unit) {
-            for (Map.Entry<String, List<Unit>> e : assignments.entrySet()) {
+        public String slotOf(Entity unit) {
+            for (Map.Entry<String, List<Entity>> e : assignments.entrySet()) {
                 if (e.getValue().contains(unit)) return e.getKey();
             }
             return null;
         }
 
         /** Flattened view of every assigned member across all slots. Order is slot-major, member-order-within-slot inside that. */
-        public List<Unit> allAssignedMembers() {
-            List<Unit> out = new ArrayList<>();
-            for (List<Unit> v : assignments.values()) out.addAll(v);
+        public List<Entity> allAssignedMembers() {
+            List<Entity> out = new ArrayList<>();
+            for (List<Entity> v : assignments.values()) out.addAll(v);
             return out;
         }
     }

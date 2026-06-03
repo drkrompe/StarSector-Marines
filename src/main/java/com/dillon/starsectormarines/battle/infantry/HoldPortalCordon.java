@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
@@ -109,8 +109,8 @@ public final class HoldPortalCordon implements Action {
      * nearest doorway.
      */
     @Override
-    public List<RoleAssigner.Slot<Unit>> roles(Squad squad, BattleView sim) {
-        List<RoleAssigner.Slot<Unit>> slots = new ArrayList<>(posts.size() + 1);
+    public List<RoleAssigner.Slot<Entity>> roles(Squad squad, BattleView sim) {
+        List<RoleAssigner.Slot<Entity>> slots = new ArrayList<>(posts.size() + 1);
         slots.add(new RoleAssigner.Slot<>(
                 PLANTER_SLOT,
                 1,
@@ -125,7 +125,7 @@ public final class HoldPortalCordon implements Action {
     }
 
     @Override
-    public ActionStatus execute(Unit member, Squad squad, BattleControl sim) {
+    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
         SquadPlan plan = squad.currentPlan;
         SquadPlan.Step step = plan != null && !plan.isComplete() ? plan.currentStep() : null;
         String slotName = step != null ? step.slotOf(member) : null;
@@ -147,7 +147,7 @@ public final class HoldPortalCordon implements Action {
      * keys off PLANTER role + on-site cell + {@code moveProgress == 0}, all
      * of which this branch maintains.
      */
-    private ActionStatus executePlanter(Unit member, BattleControl sim) {
+    private ActionStatus executePlanter(Entity member, BattleControl sim) {
         boolean onSite = (sim.world().cellX(member.entityId) == chargeCellX && sim.world().cellY(member.entityId) == chargeCellY);
         if (onSite) {
             if (!member.pathEmpty()) sim.clearPath(member);
@@ -172,7 +172,7 @@ public final class HoldPortalCordon implements Action {
      * Stage 2 cordon doesn't reposition (Slice 3's cover-aware reposition
      * is the layer that would change that).
      */
-    private ActionStatus executeHolder(Unit member, GuardPost post, BattleControl sim) {
+    private ActionStatus executeHolder(Entity member, GuardPost post, BattleControl sim) {
         boolean atPost = (sim.world().cellX(member.entityId) == post.cellX && sim.world().cellY(member.entityId) == post.cellY);
         if (!atPost) {
             // Transit fire — MOVING penalty applies; the holder is mid-step.
@@ -204,12 +204,12 @@ public final class HoldPortalCordon implements Action {
      * way EngagePosture does it so machine-gun weapons still rip a burst
      * from the post.
      */
-    private static void opportunisticFire(Unit member, BattleControl sim, FireStance stance) {
-        Unit target = sim.targetOf(member);
+    private static void opportunisticFire(Entity member, BattleControl sim, FireStance stance) {
+        Entity target = sim.targetOf(member);
         if (target == null
                 || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
             target = sim.getTacticalScoring().findBestTarget(member);
-            sim.world().setTargetId(member.entityId, Unit.idOf(target));
+            sim.world().setTargetId(member.entityId, Entity.idOf(target));
         }
         if (target == null || sim.world().cooldownTimer(member.entityId) > 0f) return;
         float d = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),

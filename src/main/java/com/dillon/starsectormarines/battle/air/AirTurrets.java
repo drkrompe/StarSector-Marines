@@ -9,7 +9,7 @@ package com.dillon.starsectormarines.battle.air;
  * scan over every shuttle.
  *
  * <p>Mostly data; {@link #allDry()} is a small pure query over the mounts (the
- * hover-loiter exit trigger), kept here the way {@code Unit#isAlive()} sits on
+ * hover-loiter exit trigger), kept here the way {@code Entity#isAlive()} sits on
  * the unit handle.
  */
 public final class AirTurrets {

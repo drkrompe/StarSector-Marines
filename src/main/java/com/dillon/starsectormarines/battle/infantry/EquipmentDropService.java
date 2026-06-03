@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 
 /**
  * Owns the active equipment-drop list and the per-tick retrieve / pickup
- * sweep. {@link #emitIfApplicable(Unit)} is called by the sim's death
+ * sweep. {@link #emitIfApplicable(Entity)} is called by the sim's death
  * cascade ({@code DamageResolver.resolve} for all damage paths — combat fire,
  * AoE splash, and external strafing all route through it); {@link #tick()}
  * runs once per tick to drive pickups, retriever assignments, and cleanup.
@@ -22,7 +22,7 @@ import java.util.function.Consumer;
  * <p>Constructor-injected dependencies: {@link UnitRosterService} for the
  * dense-registry iteration the pickup + assignment passes do (live marines
  * only), and a
- * {@link Consumer Consumer&lt;Unit&gt;} path-clearer (the sim's
+ * {@link Consumer Consumer&lt;Entity&gt;} path-clearer (the sim's
  * {@code clearPath} method-ref) so a freshly-assigned retriever drops its
  * stale path and re-pathfinds toward the kit on its next behavior tick.
  *
@@ -33,11 +33,11 @@ import java.util.function.Consumer;
 public final class EquipmentDropService {
 
     private final UnitRosterService rosterService;
-    private final Consumer<Unit> pathClearer;
+    private final Consumer<Entity> pathClearer;
 
     private final List<EquipmentDrop> equipmentDrops = new ArrayList<>();
 
-    public EquipmentDropService(UnitRosterService rosterService, Consumer<Unit> pathClearer) {
+    public EquipmentDropService(UnitRosterService rosterService, Consumer<Entity> pathClearer) {
         this.rosterService = rosterService;
         this.pathClearer = pathClearer;
     }
@@ -51,7 +51,7 @@ public final class EquipmentDropService {
      * The drop is placed at the unit's current cell; mission code should
      * ensure the cell is walkable for normal combat, so retrieval is reachable.
      */
-    public void emitIfApplicable(Unit dead) {
+    public void emitIfApplicable(Entity dead) {
         Objective carried = null;
         if (dead.role == UnitRole.PLANTER) {
             carried = dead.assignedObjective;
@@ -95,7 +95,7 @@ public final class EquipmentDropService {
             if (drop.consumed) continue;
             if (drop.objective.isComplete()) { drop.consumed = true; continue; }
             for (int i = 0, n = registry.liveCount(); i < n; i++) {
-                Unit u = registry.get(i);
+                Entity u = registry.get(i);
                 if (u.faction != Faction.MARINE) continue;
                 if (registry.getCellX(i) != drop.cellX || registry.getCellY(i) != drop.cellY) continue;
                 u.role = UnitRole.PLANTER;
@@ -110,7 +110,7 @@ public final class EquipmentDropService {
         for (EquipmentDrop drop : equipmentDrops) {
             if (drop.consumed) continue;
             if (hasLivingRetriever(drop, registry)) continue;
-            Unit nearest = nearestAvailableMarine(drop.cellX, drop.cellY, registry);
+            Entity nearest = nearestAvailableMarine(drop.cellX, drop.cellY, registry);
             if (nearest != null) {
                 nearest.role = UnitRole.KIT_RETRIEVER;
                 nearest.equipmentDropTarget = drop;
@@ -128,7 +128,7 @@ public final class EquipmentDropService {
 
     private boolean hasLivingRetriever(EquipmentDrop drop, UnitRegistry registry) {
         for (int i = 0, n = registry.liveCount(); i < n; i++) {
-            Unit u = registry.get(i);
+            Entity u = registry.get(i);
             if (u.role == UnitRole.KIT_RETRIEVER && u.equipmentDropTarget == drop) return true;
         }
         return false;
@@ -142,11 +142,11 @@ public final class EquipmentDropService {
      * combatant, finished planter, retriever whose kit got picked up — is
      * eligible. Returns null only when every alive marine is genuinely busy.
      */
-    private Unit nearestAvailableMarine(int cx, int cy, UnitRegistry registry) {
-        Unit best = null;
+    private Entity nearestAvailableMarine(int cx, int cy, UnitRegistry registry) {
+        Entity best = null;
         float bestDist = Float.MAX_VALUE;
         for (int i = 0, n = registry.liveCount(); i < n; i++) {
-            Unit u = registry.get(i);
+            Entity u = registry.get(i);
             if (u.faction != Faction.MARINE) continue;
             if (u.role == UnitRole.PLANTER
                     && u.assignedObjective != null

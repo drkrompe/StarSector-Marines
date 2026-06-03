@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.command.reinforcement;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.command.compound.CompoundCaptureSystem;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
@@ -76,7 +76,7 @@ public class CompoundSupplyGatingTest {
     /** Drives the compound to MARINE_HELD by adding a marine to the compound zone and ticking the capture system. */
     private static void captureCompound(BattleSimulation sim, CompoundService service,
                                         CompoundCaptureSystem system, int marineX, int marineY) {
-        sim.addUnit(new Unit("cap-marine", Faction.MARINE, UnitType.MARINE, marineX, marineY));
+        sim.addUnit(new Entity("cap-marine", Faction.MARINE, UnitType.MARINE, marineX, marineY));
         int ticks = 2 + (int) Math.ceil(
                 CompoundService.MARINE_HOLD_TIME / CompoundCaptureSystem.CAPTURE_TICK_PERIOD);
         for (int i = 0; i < ticks; i++) {
@@ -196,7 +196,7 @@ public class CompoundSupplyGatingTest {
         TacticalNode compound = compoundAt(TacticalNode.Kind.BARRACKS, 5, 5);
         service.register(compound);
 
-        Unit defender = new Unit("d1", Faction.DEFENDER, UnitType.MILITIA, 5, 5);
+        Entity defender = new Entity("d1", Faction.DEFENDER, UnitType.MILITIA, 5, 5);
         int sid = sim.mintSquad(Faction.DEFENDER, defender);
         Squad squad = sim.getSquad(sid);
         squad.assignedNode = compound;

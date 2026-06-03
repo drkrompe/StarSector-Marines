@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
@@ -90,7 +90,7 @@ public final class DroneSpawner {
     /** True if any alive unit currently logically occupies {@code (x, y)}. Cheap linear scan — defender + marine rosters cap small enough that this is fine inside an interval-gated tick. */
     private static boolean isCellOccupied(BattleView sim, int x, int y) {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Unit u = sim.liveUnitAt(i);
+            Entity u = sim.liveUnitAt(i);
             if (sim.world().cellX(u.entityId) == x && sim.world().cellY(u.entityId) == y) return true;
         }
         return false;

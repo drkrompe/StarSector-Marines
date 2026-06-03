@@ -5,19 +5,19 @@ import com.dillon.starsectormarines.battle.component.RenderPosition;
 
 /**
  * Smooth render position (sub-cell {@code x,y}) for every entity, keyed by
- * monotonic {@link Unit#entityId} — the first column pulled out of the
+ * monotonic {@link Entity#entityId} — the first column pulled out of the
  * {@link UnitRegistry} kitchen-sink into a standalone per-component service.
  *
  * <h2>Why entity-id-keyed, not dense</h2>
  * <p>The dense {@link UnitRegistry} table swap-and-pops dead entities out, so
  * its columns are <b>live-only</b>. Render position is the one mandatory column
  * that (a) is never iterated densely — every reader goes through the
- * {@link Unit#getRenderX()} / {@link Unit#getRenderY()} accessor, never a bulk
+ * {@link Entity#getRenderX()} / {@link Entity#getRenderY()} accessor, never a bulk
  * {@code renderXArray()} sweep — and (b) must <b>outlive registry release</b>:
  * a corpse still draws its frozen death pose at the spot it fell for the rest
  * of the battle ({@code UnitRenderService.sweepDeadSprites}). Keying by
  * {@code entityId} instead of dense index gives both for free — the entry
- * simply isn't removed on release, so the released {@link Unit} still resolves
+ * simply isn't removed on release, so the released {@link Entity} still resolves
  * its last render position. No perf cost (no hot dense loop reads this) and no
  * behavior change for the living.
  *
@@ -27,7 +27,7 @@ import com.dillon.starsectormarines.battle.component.RenderPosition;
  * position is a genuine composable component (the same presence mechanism the
  * drone {@code Crashing} fall uses), so "where do I draw" is shared across
  * entity categories instead of redefined per type. The wrapper keeps
- * {@link Unit}'s accessors returning primitive {@code float} without exposing
+ * {@link Entity}'s accessors returning primitive {@code float} without exposing
  * the component object. A corpse is an entity <em>present</em> in this store
  * but <em>absent</em> from the live registry's health/AI columns.
  *
@@ -38,7 +38,7 @@ import com.dillon.starsectormarines.battle.component.RenderPosition;
  * <h2>Thread safety</h2>
  * <p>Same single-writer / multi-reader contract as {@link UnitRegistry}:
  * seeded serially in {@link UnitRegistry#allocate}, written from
- * {@link Unit#setRenderPos} in serial movement phases; the parallel
+ * {@link Entity#setRenderPos} in serial movement phases; the parallel
  * UPDATE_UNITS dispatch reads but does not mutate.
  */
 public final class RenderPositionService {

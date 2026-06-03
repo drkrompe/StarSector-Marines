@@ -11,7 +11,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.TestUnits;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import org.junit.jupiter.api.Test;
 
@@ -58,7 +58,7 @@ public class RecaptureTargetServiceTest {
 
     /** A defender garrison squad assigned to {@code node} with {@code alive} live members. The leader unit is killed so it never counts toward biome presence. */
     private static Squad garrison(BattleSimulation sim, TacticalNode node, int alive, int original) {
-        Unit leader = new Unit("garr-" + node.anchorX + "-" + node.anchorY,
+        Entity leader = new Entity("garr-" + node.anchorX + "-" + node.anchorY,
                 Faction.DEFENDER, UnitType.MILITIA, node.anchorX, node.anchorY);
         int sid = sim.mintSquad(Faction.DEFENDER, leader);
         Squad squad = sim.getSquad(sid);
@@ -71,8 +71,8 @@ public class RecaptureTargetServiceTest {
     }
 
     /** A lone alive defender at {@code (x,y)} — contributes biome presence only (no squad/node assignment). */
-    private static Unit presence(BattleSimulation sim, String id, int x, int y) {
-        Unit u = new Unit(id, Faction.DEFENDER, UnitType.MILITIA, x, y);
+    private static Entity presence(BattleSimulation sim, String id, int x, int y) {
+        Entity u = new Entity(id, Faction.DEFENDER, UnitType.MILITIA, x, y);
         sim.addUnit(u);
         return u;
     }
@@ -132,7 +132,7 @@ public class RecaptureTargetServiceTest {
         RecaptureTargetService reg = new RecaptureTargetService(
                 new TacticalMap(List.of(city)), biomes);
 
-        Unit defender = presence(sim, "city-def", 10, 55);
+        Entity defender = presence(sim, "city-def", 10, 55);
         reg.tick(TICK, sim);
         assertTrue(reg.isContested(cs), "slice seeds contested with a defender present");
 

@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
@@ -95,7 +95,7 @@ public final class GuardPostPatrol implements Action {
         this.anchorY = anchorY;
         this.radius = Math.max(1, radius);
         this.waypointSource = new PatrolMotion.WaypointSource() {
-            @Override public int[] next(Unit member, Squad squad, BattleView sim) {
+            @Override public int[] next(Entity member, Squad squad, BattleView sim) {
                 return nextWaypoint(member, squad, sim);
             }
             @Override public boolean needsNew(Squad squad) {
@@ -111,7 +111,7 @@ public final class GuardPostPatrol implements Action {
     @Override public int requiredMembers() { return 1; }
 
     @Override
-    public ActionStatus execute(Unit member, Squad squad, BattleControl sim) {
+    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
         // Retreating to a new post — every member walks home regardless of alert.
         // updateSquadFallback drops the flag once everyone arrives.
         if (squad.fallbackInProgress) {
@@ -120,10 +120,10 @@ public final class GuardPostPatrol implements Action {
             return returnTo(member, sim, homeX, homeY);
         }
 
-        Unit target = sim.targetOf(member);
+        Entity target = sim.targetOf(member);
         if (target == null || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
             target = sim.getTacticalScoring().findBestTarget(member);
-            sim.world().setTargetId(member.entityId, Unit.idOf(target));
+            sim.world().setTargetId(member.entityId, Entity.idOf(target));
         }
         if (target != null) {
             return engage(member, target, squad, sim);
@@ -147,7 +147,7 @@ public final class GuardPostPatrol implements Action {
      * ground — it stops trading shots from the perimeter and paths back toward
      * the strongpoint even if it could still fire from where it stands.
      */
-    private ActionStatus engage(Unit member, Unit target, Squad squad, BattleControl sim) {
+    private ActionStatus engage(Entity member, Entity target, Squad squad, BattleControl sim) {
         float leash = effectiveLeash(member, squad, sim);
 
         if (sim.world().cooldownTimer(member.entityId) > 0f) {
@@ -175,10 +175,10 @@ public final class GuardPostPatrol implements Action {
         int[] firingPos = sim.getTacticalScoring().findFiringPositionWithin(
                 member, target, anchorX, anchorY, leash);
         if (firingPos == null) {
-            Unit alt = sim.getTacticalScoring().findEngageableEnemyWithin(
+            Entity alt = sim.getTacticalScoring().findEngageableEnemyWithin(
                     member, anchorX, anchorY, leash);
             if (alt != null) {
-                sim.world().setTargetId(member.entityId, Unit.idOf(alt));
+                sim.world().setTargetId(member.entityId, Entity.idOf(alt));
                 target = alt;
                 firingPos = sim.getTacticalScoring().findFiringPositionWithin(
                         member, target, anchorX, anchorY, leash);
@@ -200,7 +200,7 @@ public final class GuardPostPatrol implements Action {
      * compute), which is harmless — a stale leash for a few ticks just delays
      * the give-ground response.
      */
-    private float effectiveLeash(Unit member, Squad squad, BattleControl sim) {
+    private float effectiveLeash(Entity member, Squad squad, BattleControl sim) {
         if (member.entityId == squad.leaderId || cachedLeashRadius < 0f) {
             cachedLeashRadius = computeLeash(squad, sim);
         }
@@ -240,7 +240,7 @@ public final class GuardPostPatrol implements Action {
         return inner + (radius - inner) * factor;
     }
 
-    private ActionStatus investigateClamped(Unit member, BattleControl sim, Squad squad) {
+    private ActionStatus investigateClamped(Entity member, BattleControl sim, Squad squad) {
         int tx = squad.lastSeenEnemyX;
         int ty = squad.lastSeenEnemyY;
         float distFromAnchor = TacticalScoring.cellDistance(anchorX, anchorY, tx, ty);
@@ -258,7 +258,7 @@ public final class GuardPostPatrol implements Action {
      * waypoint. Null when no roll lands a new cell this tick — the caller keeps
      * the current waypoint and dwells, re-rolling when the dwell next expires.
      */
-    private int[] nextWaypoint(Unit member, Squad squad, BattleView sim) {
+    private int[] nextWaypoint(Entity member, Squad squad, BattleView sim) {
         NavigationGrid grid = sim.getGrid();
         int span = radius * 2 + 1;
         for (int i = 0; i < WAYPOINT_SAMPLE_ATTEMPTS; i++) {
@@ -286,7 +286,7 @@ public final class GuardPostPatrol implements Action {
                 || Math.abs(squad.patrolWaypointY - anchorY) > radius;
     }
 
-    private static ActionStatus returnTo(Unit member, BattleControl sim, int tx, int ty) {
+    private static ActionStatus returnTo(Entity member, BattleControl sim, int tx, int ty) {
         if (sim.world().cellX(member.entityId) == tx && sim.world().cellY(member.entityId) == ty) {
             PatrolMotion.hold(member, sim);
             return ActionStatus.RUNNING;

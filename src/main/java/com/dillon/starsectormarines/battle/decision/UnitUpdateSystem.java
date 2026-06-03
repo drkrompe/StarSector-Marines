@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.battle.infantry.KitRetrieverBehavior;
 import com.dillon.starsectormarines.battle.turret.StructureBehavior;
 import com.dillon.starsectormarines.battle.turret.TurretBehavior;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.drone.GoapDroneBehavior;
 import com.dillon.starsectormarines.battle.combat.DamageService;
@@ -19,13 +19,13 @@ import java.util.stream.IntStream;
 
 /**
  * Parallel per-unit dispatch — owns the {@code UPDATE_UNITS} phase that
- * routes each alive {@link Unit} to its role-specific {@link UnitBehavior}.
+ * routes each alive {@link Entity} to its role-specific {@link UnitBehavior}.
  * This is the entity for-loop: the hot path that ticks every combatant on
  * the battlefield.
  *
  * <h2>ECS / SoA seam</h2>
  * <p>This class is the load-bearing seam for the eventual move to SoA over
- * {@code Unit}. The current loop body — {@code behaviorFor(u.role).update(u, sim)}
+ * {@code Entity}. The current loop body — {@code behaviorFor(u.role).update(u, sim)}
  * — is the unit of work that, once promoted, becomes a per-System parallel
  * sweep across flat primitive arrays. When that lift happens, each per-role
  * behavior class becomes a System with explicit read/write field decls and
@@ -55,11 +55,11 @@ import java.util.stream.IntStream;
  *
  * <h2>Registry-driven dispatch</h2>
  * <p>Dispatch source is the {@link UnitRegistry} dense array. The legacy
- * {@code List<Unit>} is no longer iterated here. Every production death
+ * {@code List<Entity>} is no longer iterated here. Every production death
  * path now releases from the registry: {@code DamageResolver} on damage
  * kills, and {@code HubDemolitionSystem} on the drone cascade. The
  * dispatch trusts the registry's notion of liveness — there's no
- * {@code .filter(Unit::isAlive)} fallback. If a new direct-hp-write death
+ * {@code .filter(Entity::isAlive)} fallback. If a new direct-hp-write death
  * path lands without registry release, dead units will pass through this
  * loop until the next tick's roster pass catches them.
  *
@@ -103,7 +103,7 @@ public final class UnitUpdateSystem {
      * than the common one.
      */
     public void tick(BattleSimulation sim) {
-        Unit[] snapshot = registry.denseArray();
+        Entity[] snapshot = registry.denseArray();
         int liveCount = registry.liveCount();
         damageService.enterParallel();
         try {
@@ -130,7 +130,7 @@ public final class UnitUpdateSystem {
      * per-system instance state — they're invoked through their static
      * {@code INSTANCE} singletons.
      */
-    private void updateUnit(Unit u, BattleSimulation sim) {
+    private void updateUnit(Entity u, BattleSimulation sim) {
         long t0 = System.nanoTime();
         TickInnerProfile.Bucket bucket;
         if (sim.world().fallbackTimer(u.entityId) > 0f) {

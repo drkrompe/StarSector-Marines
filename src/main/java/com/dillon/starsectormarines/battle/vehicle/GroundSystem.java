@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.turret.TurretAim;
@@ -47,13 +47,13 @@ public class GroundSystem {
     private final World world;
     private final TurretFireSink fireSink;
     private final Random rng;
-    private final Consumer<Unit> addUnitSink;
+    private final Consumer<Entity> addUnitSink;
 
     private final List<Vehicle> vehicles = new ArrayList<>();
 
     public GroundSystem(NavigationService navigation, UnitRosterService roster,
                         com.dillon.starsectormarines.battle.decision.TacticalScoring tacticalScoring,
-                        World world, TurretFireSink fireSink, Random rng, Consumer<Unit> addUnitSink) {
+                        World world, TurretFireSink fireSink, Random rng, Consumer<Entity> addUnitSink) {
         this.navigation = navigation;
         this.roster = roster;
         this.registry = roster.getRegistry();
@@ -138,7 +138,7 @@ public class GroundSystem {
 
     /**
      * Finds a free cell adjacent to the LZ and spawns a militia there as a
-     * fresh {@link Unit}. Same BFS shape as the shuttle deboard — copied
+     * fresh {@link Entity}. Same BFS shape as the shuttle deboard — copied
      * rather than shared so the air/ground split stays clean and the BFS
      * is small enough that duplication isn't a real cost.
      */
@@ -150,7 +150,7 @@ public class GroundSystem {
         UnitType deboardType = (v.deboardUnitType != null)
                 ? v.deboardUnitType
                 : FactionUnitRoster.forFaction(v.faction).infantry();
-        Unit marine = new Unit(roster.nextMarineId(), v.faction, deboardType, cell[0], cell[1]);
+        Entity marine = new Entity(roster.nextMarineId(), v.faction, deboardType, cell[0], cell[1]);
         int slot = v.type.capacity - v.marinesRemaining;
         MarineLoadout loadout = (v.marineLoadout != null && slot < v.marineLoadout.length)
                 ? v.marineLoadout[slot] : null;
@@ -170,7 +170,7 @@ public class GroundSystem {
                 marine.secondaryAmmo = loadout.secondaryAmmo;
             }
         }
-        if (v.squadId == Unit.NO_SQUAD) {
+        if (v.squadId == Entity.NO_SQUAD) {
             v.squadId = roster.mintSquad(v.faction, marine);
         }
         marine.squadId = v.squadId;
@@ -227,7 +227,7 @@ public class GroundSystem {
             float mountWorldX = v.body.x + v.type.turretMountX * cc - v.type.turretMountY * cs;
             float mountWorldY = v.body.y + v.type.turretMountX * cs + v.type.turretMountY * cc;
 
-            Unit currentBurstTarget = (v.turretBurstTargetId != 0L)
+            Entity currentBurstTarget = (v.turretBurstTargetId != 0L)
                     ? registry.getOrNull(v.turretBurstTargetId) : null;
 
             // Burst continuation fires ahead of fresh acquisition — the turret

@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.sim.World;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 
 import java.util.ArrayList;
 
@@ -34,14 +34,14 @@ public final class InfantryUnitPrep {
      * fire, no re-target). Returns {@code false} when the unit is not aiming
      * and the caller should proceed normally.
      */
-    public static boolean tickAimAndShortCircuit(Unit unit, BattleControl sim) {
+    public static boolean tickAimAndShortCircuit(Entity unit, BattleControl sim) {
         if (sim.world().secondaryActionTimer(unit.entityId) <= 0f || unit.secondaryWeapon == null) return false;
         sim.world().setSecondaryActionTimer(unit.entityId, sim.world().secondaryActionTimer(unit.entityId) - BattleSimulation.TICK_DT);
         sim.world().setMoveProgress(unit.entityId, 0f);
         unit.setRenderPos(sim.world().cellX(unit.entityId), sim.world().cellY(unit.entityId));
         float fireAt = unit.secondaryWeapon.aimDuration * 0.5f;
         if (!unit.secondaryFiredThisAction && sim.world().secondaryActionTimer(unit.entityId) <= fireAt) {
-            Unit aimTarget = sim.resolveUnit(sim.world().secondaryAimTargetId(unit.entityId));
+            Entity aimTarget = sim.resolveUnit(sim.world().secondaryAimTargetId(unit.entityId));
             if (aimTarget != null) {
                 sim.fireSecondary(unit, aimTarget);
             }
@@ -62,7 +62,7 @@ public final class InfantryUnitPrep {
      * doesn't freeze cooldown drain (otherwise the marine arrives at firing
      * range with a stale full cooldown and a perceived response lag).
      */
-    public static void tickCooldowns(Unit unit, World world) {
+    public static void tickCooldowns(Entity unit, World world) {
         long id = unit.entityId;
         float cd = world.cooldownTimer(id);
         if (cd > 0f) world.setCooldownTimer(id, cd - BattleSimulation.TICK_DT);
@@ -91,7 +91,7 @@ public final class InfantryUnitPrep {
      * rest of its tick — same convention as {@link #tickAimAndShortCircuit}).
      * Returns {@code false} when nothing changed.
      */
-    public static boolean tryOpportunityRocket(Unit unit, BattleView sim) {
+    public static boolean tryOpportunityRocket(Entity unit, BattleView sim) {
         if (unit.secondaryWeapon == null) return false;
         if (unit.secondaryAmmo <= 0) return false;
         if (sim.world().secondaryCooldownTimer(unit.entityId) > 0f) return false;
@@ -103,12 +103,12 @@ public final class InfantryUnitPrep {
         // block. Closest one wins — tilts toward turrets / hubs (typically
         // closer in a defensive posture) while still letting a near mech
         // earn the shot if it's the nearest hardened threat.
-        Unit bestHardened = null;
+        Entity bestHardened = null;
         float bestDistSq = Float.MAX_VALUE;
-        ArrayList<Unit> scratch = new ArrayList<>();
+        ArrayList<Entity> scratch = new ArrayList<>();
         sim.getUnitIndex().gather(sim.world().cellX(unit.entityId), sim.world().cellY(unit.entityId), range, scratch);
         for (int i = 0, n = scratch.size(); i < n; i++) {
-            Unit other = scratch.get(i);
+            Entity other = scratch.get(i);
             if (!TacticalScoring.isHardened(other)) continue;
             if (!sim.world().isAlive(other.entityId)) continue;
             if (other.faction == unit.faction) continue;
@@ -126,7 +126,7 @@ public final class InfantryUnitPrep {
 
         sim.world().setSecondaryActionTimer(unit.entityId, unit.secondaryWeapon.aimDuration);
         unit.secondaryFiredThisAction = false;
-        sim.world().setSecondaryAimTargetId(unit.entityId, Unit.idOf(bestHardened));
+        sim.world().setSecondaryAimTargetId(unit.entityId, Entity.idOf(bestHardened));
         // Freeze movement state for this tick — the next tick's
         // tickAimAndShortCircuit will keep doing it. Mirrors what that method
         // does on its own entry path so the visible behavior is consistent

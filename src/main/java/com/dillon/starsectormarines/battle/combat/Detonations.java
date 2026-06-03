@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.MapService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
@@ -49,7 +49,7 @@ public class Detonations {
      * gathering the in-range set first makes the apply pass a snapshot so that
      * release can't reshuffle the dense slots mid-loop.
      */
-    private final List<Unit> aoeScratch = new ArrayList<>();
+    private final List<Entity> aoeScratch = new ArrayList<>();
 
     public Detonations(UnitRegistry registry, NavigationGrid grid, CellTopology topology,
                        DamageService damageService, MapService mapService,
@@ -117,11 +117,11 @@ public class Detonations {
             // Gather the in-range, LOS-visible, non-roof-shielded units first
             // (read-only over the live registry), then apply — see aoeScratch.
             aoeScratch.clear();
-            Unit[] dense = registry.denseArray();
+            Entity[] dense = registry.denseArray();
             int[] cellX = registry.cellXArray();
             int[] cellY = registry.cellYArray();
             for (int i = 0, n = registry.liveCount(); i < n; i++) {
-                Unit u = dense[i];
+                Entity u = dense[i];
                 if (det.friendlyFireImmune && u.faction == det.shooterFaction) continue;
                 int ucx = cellX[i];
                 int ucy = cellY[i];

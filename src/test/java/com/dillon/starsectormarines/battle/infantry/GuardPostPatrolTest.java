@@ -7,7 +7,7 @@ import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -72,7 +72,7 @@ public class GuardPostPatrolTest {
         BattleSimulation sim = openArena(40, 40);
         Squad squad = postedSquad(sim, anchorX, anchorY, radius);
 
-        Unit leader = new Unit("L", Faction.DEFENDER, UnitType.MARINE, anchorX, anchorY);
+        Entity leader = new Entity("L", Faction.DEFENDER, UnitType.MARINE, anchorX, anchorY);
         sim.addUnit(leader);
         squad.leaderId = leader.entityId;
 
@@ -100,7 +100,7 @@ public class GuardPostPatrolTest {
         BattleSimulation sim = openArena(40, 40);
         Squad squad = postedSquad(sim, anchorX, anchorY, radius);
 
-        Unit leader = new Unit("L", Faction.DEFENDER, UnitType.MARINE, anchorX, anchorY);
+        Entity leader = new Entity("L", Faction.DEFENDER, UnitType.MARINE, anchorX, anchorY);
         sim.addUnit(leader);
         squad.leaderId = leader.entityId;
 

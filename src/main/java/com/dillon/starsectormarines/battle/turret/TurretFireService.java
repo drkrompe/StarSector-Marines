@@ -9,7 +9,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.combat.ShotRaycast;
 import com.dillon.starsectormarines.battle.sim.World;
 
@@ -62,7 +62,7 @@ public final class TurretFireService implements TurretFireSink {
 
     @Override
     public void fire(float fromX, float fromY, Faction shooterFaction,
-                     TurretKind kind, Unit target, boolean aerialShooter, boolean hasLos) {
+                     TurretKind kind, Entity target, boolean aerialShooter, boolean hasLos) {
         int tcx = world.cellX(target.entityId);
         int tcy = world.cellY(target.entityId);
         float distToTarget = (float) Math.sqrt(

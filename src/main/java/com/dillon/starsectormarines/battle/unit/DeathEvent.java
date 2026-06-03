@@ -9,7 +9,7 @@ package com.dillon.starsectormarines.battle.unit;
  * medic) that decide how to represent the death.
  *
  * <p><b>Self-contained snapshot, growing.</b> The event carries the dead
- * {@link Unit} for handlers that need its concrete subtype ({@code instanceof}
+ * {@link Entity} for handlers that need its concrete subtype ({@code instanceof}
  * for the drone crash / turret + hub demolition / mech wreck), plus a snapshot
  * of the moment-of-death state those handlers read. The snapshot is captured at
  * publish time, while the unit is still live and registered — the unit is
@@ -23,4 +23,4 @@ package com.dillon.starsectormarines.battle.unit;
  * As the corpse grows into a fuller body entity this record grows with it (hp,
  * render pos) only when a handler actually needs the field. Keep it minimal.
  */
-public record DeathEvent(Unit unit, int cellX, int cellY) {}
+public record DeathEvent(Entity unit, int cellX, int cellY) {}

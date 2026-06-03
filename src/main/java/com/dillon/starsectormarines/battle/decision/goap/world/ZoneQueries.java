@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.decision.goap.world;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.goap.action.ClearZone;
@@ -55,7 +55,7 @@ public final class ZoneQueries {
     public static int squadCurrentZone(Squad squad, BattleView sim) {
         if (squad == null || sim == null) return -1;
         if (squad.aliveMembers <= 0) return -1;
-        Unit leader = sim.resolveUnit(squad.leaderId);
+        Entity leader = sim.resolveUnit(squad.leaderId);
         if (leader != null) {
             int zone = sim.getZoneGraph().zoneIdAt(sim.world().cellX(leader.entityId), sim.world().cellY(leader.entityId));
             if (zone >= 0) return zone;
@@ -108,7 +108,7 @@ public final class ZoneQueries {
         ZoneGraph graph = sim.getZoneGraph();
         if (graph.zoneById(zoneId) == null) return true;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Unit u = sim.liveUnitAt(i);
+            Entity u = sim.liveUnitAt(i);
             if (u.faction != enemyFaction) continue;
             if (graph.zoneIdAt(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId)) == zoneId) return false;
         }

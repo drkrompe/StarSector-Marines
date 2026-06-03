@@ -3,7 +3,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
@@ -48,8 +48,8 @@ public class UnderFireAtLosEvaluatorTest {
         return new BattleSimulation(grid, new CellTopology(W, H));
     }
 
-    private static Unit marineAt(int x, int y, int squadId) {
-        Unit u = new Unit("m", Faction.MARINE, UnitType.MARINE, x, y);
+    private static Entity marineAt(int x, int y, int squadId) {
+        Entity u = new Entity("m", Faction.MARINE, UnitType.MARINE, x, y);
         u.squadId = squadId;
         return u;
     }
@@ -61,7 +61,7 @@ public class UnderFireAtLosEvaluatorTest {
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
 
-        Unit marine = marineAt(5, 5, squadId);
+        Entity marine = marineAt(5, 5, squadId);
         sim.addUnit(marine);
 
         WorldState s = WorldStateBuilder.build(squad, sim);
@@ -76,7 +76,7 @@ public class UnderFireAtLosEvaluatorTest {
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
 
-        Unit marine = marineAt(5, 5, squadId);
+        Entity marine = marineAt(5, 5, squadId);
         sim.addUnit(marine);
 
         // Hostile shot from (10.5, 5.5) aimed at the marine's cell (5.5, 5.5).
@@ -95,7 +95,7 @@ public class UnderFireAtLosEvaluatorTest {
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
 
-        Unit marine = marineAt(3, 5, squadId);
+        Entity marine = marineAt(3, 5, squadId);
         sim.addUnit(marine);
 
         // "Shot" originating on the far side of the wall (x=10), targeting near
@@ -117,7 +117,7 @@ public class UnderFireAtLosEvaluatorTest {
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
 
-        Unit marine = marineAt(5, 5, squadId);
+        Entity marine = marineAt(5, 5, squadId);
         sim.addUnit(marine);
 
         // Marine-faction shot near the marine — same faction, shouldn't trip.
@@ -135,7 +135,7 @@ public class UnderFireAtLosEvaluatorTest {
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
 
-        Unit marine = marineAt(5, 5, squadId);
+        Entity marine = marineAt(5, 5, squadId);
         sim.addUnit(marine);
 
         // Hostile shot landing way out of squadmate proximity (target at 14, 14).

@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
@@ -103,8 +103,8 @@ public final class BreachAndAdvance implements Action {
 
     /** One slot per breach position, named "breacher:N". Members are scored by negated distance to their slot's stack-up cell — closest member wins, so the squad's natural order at the door is preserved. */
     @Override
-    public List<RoleAssigner.Slot<Unit>> roles(Squad squad, BattleView sim) {
-        List<RoleAssigner.Slot<Unit>> slots = new ArrayList<>(stackUpX.length);
+    public List<RoleAssigner.Slot<Entity>> roles(Squad squad, BattleView sim) {
+        List<RoleAssigner.Slot<Entity>> slots = new ArrayList<>(stackUpX.length);
         for (int i = 0; i < stackUpX.length; i++) {
             final int sx = stackUpX[i];
             final int sy = stackUpY[i];
@@ -117,7 +117,7 @@ public final class BreachAndAdvance implements Action {
     }
 
     @Override
-    public ActionStatus execute(Unit member, Squad squad, BattleControl sim) {
+    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
         SquadPlan plan = squad.currentPlan;
         SquadPlan.Step step = plan != null && !plan.isComplete() ? plan.currentStep() : null;
         String slotName = step != null ? step.slotOf(member) : null;
@@ -189,7 +189,7 @@ public final class BreachAndAdvance implements Action {
         int alive = 0;
         int near = 0;
         float r2 = STACKUP_ARRIVAL_RADIUS * STACKUP_ARRIVAL_RADIUS;
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Unit u = sim.liveUnitAt(i);
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Entity u = sim.liveUnitAt(i);
             if (u.squadId != squad.id) continue;
             alive++;
             for (int i2 = 0; i2 < stackUpX.length; i2++) {
@@ -210,7 +210,7 @@ public final class BreachAndAdvance implements Action {
         // Sibling worker may have advanced past the end between isComplete()
         // and currentStep() under parallel dispatch.
         if (step == null) return false;
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Unit u = sim.liveUnitAt(i);
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Entity u = sim.liveUnitAt(i);
             if (u.squadId != squad.id) continue;
             String name = step.slotOf(u);
             if (name == null) continue;

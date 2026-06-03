@@ -1,5 +1,5 @@
 package com.dillon.starsectormarines.battle.decision;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
@@ -15,13 +15,13 @@ import java.util.ArrayList;
  * enemy instead of scanning every unit on the map.
  *
  * <p>{@link #rebuild()} is called once at tick top in the serial phase,
- * before UPDATE_UNITS. Reads via {@link #getAttackersOf(Unit)} happen in
+ * before UPDATE_UNITS. Reads via {@link #getAttackersOf(Entity)} happen in
  * parallel during UPDATE_UNITS against the frozen snapshot — same
  * single-pass-per-tick contract as the spatial unit index. Mid-tick target
  * shifts aren't reflected until the next tick's rebuild, which matches the
  * pre-extraction inline behavior.
  *
- * <p>{@link Unit} doesn't override {@code equals/hashCode}, so
+ * <p>{@link Entity} doesn't override {@code equals/hashCode}, so
  * {@link Object2ObjectOpenHashMap} gives identity-key semantics for free.
  * Buckets are recycled through {@link #pool} so steady-state allocation is
  * zero — they grow once and live forever.
@@ -33,8 +33,8 @@ public final class AttackerIndexService {
 
     private final UnitRosterService rosterService;
 
-    private final Object2ObjectMap<Unit, ArrayList<Unit>> attackersByTarget = new Object2ObjectOpenHashMap<>();
-    private final ArrayList<ArrayList<Unit>> pool = new ArrayList<>();
+    private final Object2ObjectMap<Entity, ArrayList<Entity>> attackersByTarget = new Object2ObjectOpenHashMap<>();
+    private final ArrayList<ArrayList<Entity>> pool = new ArrayList<>();
 
     public AttackerIndexService(UnitRosterService rosterService) {
         this.rosterService = rosterService;
@@ -46,12 +46,12 @@ public final class AttackerIndexService {
      * each tick by {@link #rebuild()} — callers must not retain it across
      * tick boundaries.
      */
-    public ArrayList<Unit> getAttackersOf(Unit target) {
+    public ArrayList<Entity> getAttackersOf(Entity target) {
         return attackersByTarget.get(target);
     }
 
     /**
-     * Rebuilds the index from the current {@link Unit#targetId} ids. Recycles
+     * Rebuilds the index from the current {@link Entity#targetId} ids. Recycles
      * bucket lists via {@link #pool} so the steady-state allocation is zero.
      * Skips dead attackers and dead / released targets so a unit holding a
      * stale id at its dying enemy doesn't pollute the next tick's lookup.
@@ -59,17 +59,17 @@ public final class AttackerIndexService {
      * into a single null check — no separate {@code targetId == 0L} branch.
      */
     public void rebuild() {
-        for (ArrayList<Unit> bucket : attackersByTarget.values()) {
+        for (ArrayList<Entity> bucket : attackersByTarget.values()) {
             bucket.clear();
             pool.add(bucket);
         }
         attackersByTarget.clear();
         UnitRegistry registry = rosterService.getRegistry();
         for (int i = 0, n = registry.liveCount(); i < n; i++) {
-            Unit u = registry.get(i);
-            Unit target = registry.getOrNull(registry.getTargetId(i));
+            Entity u = registry.get(i);
+            Entity target = registry.getOrNull(registry.getTargetId(i));
             if (target == null) continue;
-            ArrayList<Unit> bucket = attackersByTarget.get(target);
+            ArrayList<Entity> bucket = attackersByTarget.get(target);
             if (bucket == null) {
                 bucket = pool.isEmpty()
                         ? new ArrayList<>(4)

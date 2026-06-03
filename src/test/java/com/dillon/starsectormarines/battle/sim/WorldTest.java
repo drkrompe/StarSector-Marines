@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.component.ComponentStore;
 import com.dillon.starsectormarines.battle.component.Crashing;
 import com.dillon.starsectormarines.battle.component.DeadBody;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import org.junit.jupiter.api.Test;
@@ -21,25 +21,25 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * a bare {@link UnitRegistry} + a sparse {@link ComponentStore} (no full sim).
  *
  * <p><b>Hot face:</b> {@code world.hp(id)} reads/writes the same dense SoA slot
- * the registry owns, by id, with no {@link Unit} dereference; fail-loud on a
+ * the registry owns, by id, with no {@link Entity} dereference; fail-loud on a
  * dead/unknown id. <b>Cold face:</b> {@code world.id(id).getOrNull(Cmp.class)}
  * is a presence lookup in the type's store — the component instance when present,
  * null when the entity lacks it or the type has no store.
  */
 public class WorldTest {
 
-    private static Unit unit(String label) {
-        return new Unit(label, Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
+    private static Entity unit(String label) {
+        return new Entity(label, Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
     }
 
     @Test
     public void hotFaceReadsAndWritesTheDenseHpSlotById() {
         UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
+        Entity u = unit("u");
         long id = r.allocate(u);
         World w = new World(r, Map.of());
 
-        // Seeded hp == type.maxHp, readable by id with no Unit deref.
+        // Seeded hp == type.maxHp, readable by id with no Entity deref.
         assertEquals(u.seedMaxHp, w.hp(id), 1e-6f);
 
         // setHp by id hits the same slot the registry sees.
@@ -51,7 +51,7 @@ public class WorldTest {
     @Test
     public void hotFaceIsFailLoudOnADeadOrUnknownId() {
         UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
+        Entity u = unit("u");
         long id = r.allocate(u);
         World w = new World(r, Map.of());
 
@@ -63,7 +63,7 @@ public class WorldTest {
     @Test
     public void coldFaceProjectsComponentPresenceByType() {
         UnitRegistry r = new UnitRegistry();
-        Unit u = unit("u");
+        Entity u = unit("u");
         long id = r.allocate(u);
         ComponentStore<DeadBody> bodies = new ComponentStore<>();
         World w = new World(r, Map.of(DeadBody.class, bodies));

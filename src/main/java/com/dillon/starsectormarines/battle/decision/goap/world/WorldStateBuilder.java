@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.decision.goap.world;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.infantry.InfantryCohesion;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
@@ -93,7 +93,7 @@ public final class WorldStateBuilder {
 
     private static boolean evalHasTarget(Squad squad, BattleView sim) {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Unit u = sim.liveUnitAt(i);
+            Entity u = sim.liveUnitAt(i);
             if (!u.type.combatant) continue;
             if (u.faction == squad.faction) continue;
             return true;
@@ -130,9 +130,9 @@ public final class WorldStateBuilder {
 
         // Pre-collect squad members once so the inner loop is O(threat-set × squad-size)
         // instead of O(threat-set × total-units).
-        List<Unit> members = new ArrayList<>(4);
+        List<Entity> members = new ArrayList<>(4);
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Unit u = sim.liveUnitAt(i);
+            Entity u = sim.liveUnitAt(i);
             if (u.squadId == squad.id) members.add(u);
         }
         if (members.isEmpty()) return false;
@@ -140,14 +140,14 @@ public final class WorldStateBuilder {
         // Gather only enemies inside the threat-set window via the per-tick
         // spatial index — eliminates the previous O(total-units) outer scan
         // when the squad's lastSeenEnemy point sits far from most of the map.
-        ArrayList<Unit> threats = new ArrayList<>();
+        ArrayList<Entity> threats = new ArrayList<>();
         sim.getUnitIndex().gather(squad.lastSeenEnemyX, squad.lastSeenEnemyY,
                 HAS_LOS_THREAT_SET_RADIUS, threats);
         for (int i = 0, n = threats.size(); i < n; i++) {
-            Unit enemy = threats.get(i);
+            Entity enemy = threats.get(i);
             if (!enemy.type.combatant) continue;
             if (enemy.faction == squad.faction) continue;
-            for (Unit member : members) {
+            for (Entity member : members) {
                 if (grid.hasLineOfSight(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), sim.world().cellX(enemy.entityId), sim.world().cellY(enemy.entityId))) return true;
             }
         }
@@ -156,10 +156,10 @@ public final class WorldStateBuilder {
 
     private static boolean evalInRangeOfTarget(Squad squad, BattleView sim) {
         for (int mi = 0, n = sim.liveUnitCount(); mi < n; mi++) {
-            Unit member = sim.liveUnitAt(mi);
+            Entity member = sim.liveUnitAt(mi);
             if (member.squadId != squad.id) continue;
             for (int ei = 0; ei < n; ei++) {
-                Unit enemy = sim.liveUnitAt(ei);
+                Entity enemy = sim.liveUnitAt(ei);
                 if (!enemy.type.combatant) continue;
                 if (enemy.faction == squad.faction) continue;
                 float d = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), sim.world().cellX(enemy.entityId), sim.world().cellY(enemy.entityId));
@@ -195,7 +195,7 @@ public final class WorldStateBuilder {
      */
     private static boolean evalCanReposition(Squad squad, BattleView sim) {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Unit u = sim.liveUnitAt(i);
+            Entity u = sim.liveUnitAt(i);
             if (u.squadId != squad.id) continue;
             if (sim.world().repositionCooldown(u.entityId) <= 0f) return true;
         }
@@ -206,7 +206,7 @@ public final class WorldStateBuilder {
         if (squad.aliveMembers <= 1) return true;
         float r2 = InfantryCohesion.COHESION_RADIUS * InfantryCohesion.COHESION_RADIUS;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Unit u = sim.liveUnitAt(i);
+            Entity u = sim.liveUnitAt(i);
             if (u.squadId != squad.id) continue;
             float dx = sim.world().cellX(u.entityId) - squad.centroidX;
             float dy = sim.world().cellY(u.entityId) - squad.centroidY;
@@ -243,7 +243,7 @@ public final class WorldStateBuilder {
         int dwX = dwIdx % w;
         int dwY = dwIdx / w;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Unit u = sim.liveUnitAt(i);
+            Entity u = sim.liveUnitAt(i);
             if (!u.type.combatant) continue;
             if (u.faction == squad.faction) continue;
             if (sim.world().cellX(u.entityId) == dwX && sim.world().cellY(u.entityId) == dwY) return true;
@@ -284,10 +284,10 @@ public final class WorldStateBuilder {
         NavigationGrid grid = sim.getGrid();
         int range2 = SquadAlertSystem.KILL_ZONE_RANGE_CELLS * SquadAlertSystem.KILL_ZONE_RANGE_CELLS;
         for (int mi = 0, n = sim.liveUnitCount(); mi < n; mi++) {
-            Unit member = sim.liveUnitAt(mi);
+            Entity member = sim.liveUnitAt(mi);
             if (member.squadId != squad.id) continue;
             for (int ei = 0; ei < n; ei++) {
-                Unit enemy = sim.liveUnitAt(ei);
+                Entity enemy = sim.liveUnitAt(ei);
                 if (!enemy.type.combatant) continue;
                 if (enemy.faction == squad.faction) continue;
                 int dx = sim.world().cellX(enemy.entityId) - sim.world().cellX(member.entityId);
@@ -325,7 +325,7 @@ public final class WorldStateBuilder {
         for (ShotEvent shot : shots) {
             if (shot.shooterFaction == squad.faction) continue;
             for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-                Unit member = sim.liveUnitAt(i);
+                Entity member = sim.liveUnitAt(i);
                 if (member.squadId != squad.id) continue;
                 float dx = shot.toX - (sim.world().cellX(member.entityId) + 0.5f);
                 float dy = shot.toY - (sim.world().cellY(member.entityId) + 0.5f);

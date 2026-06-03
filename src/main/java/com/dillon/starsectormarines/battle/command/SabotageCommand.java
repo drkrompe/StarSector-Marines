@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.command;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
@@ -22,7 +22,7 @@ import java.util.List;
  * slow tick, find every marine squad without a live planter and route it
  * toward the closest unfinished charge site via {@link AssignmentKind#CLEAR_ZONE}.
  * Squads <em>with</em> a planter are left alone — their unit-level
- * {@code Unit.assignedObjective} already drives
+ * {@code Entity.assignedObjective} already drives
  * {@link com.dillon.starsectormarines.battle.infantry.SecureObjectiveZone}
  * to the right zone, and overwriting their squad assignment would create
  * a goal collision in the MISSION bucket.
@@ -113,7 +113,7 @@ public final class SabotageCommand implements MissionCommand {
      */
     private static boolean hasLivePlanter(Squad squad, BattleView sim) {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Unit u = sim.liveUnitAt(i);
+            Entity u = sim.liveUnitAt(i);
             if (u.squadId != squad.id) continue;
             if (u.role != UnitRole.PLANTER) continue;
             if (u.assignedObjective instanceof ChargeSiteObjective cs && !cs.isComplete()) {

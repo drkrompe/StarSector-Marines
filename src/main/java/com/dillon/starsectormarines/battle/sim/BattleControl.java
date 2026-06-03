@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.sim;
 
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.combat.FireStance;
@@ -24,35 +24,35 @@ import com.dillon.starsectormarines.battle.vehicle.Vehicle;
 public interface BattleControl extends BattleView {
 
     /** Replace a unit's path; queues the occupancy/destIndex delta. Pass an empty path (or {@link #clearPath}) to drop the current path. */
-    void setPath(Unit u, int[] newPath);
+    void setPath(Entity u, int[] newPath);
 
     /** Drop the unit's path. */
-    void clearPath(Unit u);
+    void clearPath(Entity u);
 
     /** Advance the unit one tick along its current path. */
-    void advanceMovement(Unit u);
+    void advanceMovement(Entity u);
 
     /** Stanced-fire convenience (STANCED). */
-    void fireShot(Unit shooter, Unit target);
+    void fireShot(Entity shooter, Entity target);
 
     /** Stance-aware fire — MOVING halves the base accuracy roll. */
-    void fireShot(Unit shooter, Unit target, FireStance stance);
+    void fireShot(Entity shooter, Entity target, FireStance stance);
 
-    void fireSecondary(Unit shooter, Unit target);
+    void fireSecondary(Entity shooter, Entity target);
 
-    void fireMechWeapon(Unit shooter, Unit target, MechWeapon weapon);
+    void fireMechWeapon(Entity shooter, Entity target, MechWeapon weapon);
 
     /** Mech fire with explicit accuracy multiplier (LRM indirect-fire path). */
-    void fireMechWeapon(Unit shooter, Unit target, MechWeapon weapon, float accuracyMult);
+    void fireMechWeapon(Entity shooter, Entity target, MechWeapon weapon, float accuracyMult);
 
     /** Queue a unit spawn for the serial spawn-flush (drone-hub / reinforcement spawns). */
-    void queueSpawn(Unit u);
+    void queueSpawn(Entity u);
 
     /** Mint a new squad for {@code faction} with an optional {@code leader}; returns the new squad id. */
-    int mintSquad(Faction faction, Unit leader);
+    int mintSquad(Faction faction, Entity leader);
 
     /** Add a freshly spawned unit to the roster (walk-in reinforcement). */
-    void addUnit(Unit u);
+    void addUnit(Entity u);
 
     /** Add a shuttle to the air system (shuttle reinforcement / garrison drop). */
     void addShuttle(Shuttle s);

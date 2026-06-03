@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.infantry.PatrolRoute;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -79,7 +79,7 @@ public class TurretDemolitionSystemTest {
         // A lone, far-off MARINE keeps the battle in progress across both ticks
         // — without a live unit on each side the win-check eliminates MARINE
         // after tick 1 and the second advance() would no-op before the drain.
-        sim.addUnit(new Unit("m0", Faction.MARINE, UnitType.MARINE, 1, 1));
+        sim.addUnit(new Entity("m0", Faction.MARINE, UnitType.MARINE, 1, 1));
         DefensePost post = new DefensePost(DefensePostKind.LIGHT, 10, 10, List.of(
                 new DefensePost.TurretSpec(TurretKind.VULCAN, 10, 10),
                 new DefensePost.TurretSpec(TurretKind.VULCAN, 11, 10)));

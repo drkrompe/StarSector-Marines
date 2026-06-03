@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
@@ -54,7 +54,7 @@ public final class EngagePosture implements Action {
     @Override public int requiredMembers() { return 1; }
 
     @Override
-    public ActionStatus execute(Unit member, Squad squad, BattleControl sim) {
+    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
         // Cooldown ticks + mid-aim short-circuit are handled by
         // GoapInfantryBehavior.prepareForAction before this method runs —
         // see InfantryUnitPrep. By the time we get here, the unit is ready
@@ -65,11 +65,11 @@ public final class EngagePosture implements Action {
         // or target drifted out of the squad-cohesion clamp). Story I: dropping
         // a fleer that ran into 3 buddies and picking an isolated target or
         // no-target rather than charging in.
-        Unit target = sim.targetOf(member);
+        Entity target = sim.targetOf(member);
         if (target == null
                 || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
             target = sim.getTacticalScoring().findBestTarget(member);
-            sim.world().setTargetId(member.entityId, Unit.idOf(target));
+            sim.world().setTargetId(member.entityId, Entity.idOf(target));
         }
         if (target == null) return ActionStatus.FAILURE;
 
@@ -100,7 +100,7 @@ public final class EngagePosture implements Action {
                     && sim.getTacticalScoring().shouldCommitRocket(member, target)) {
                 sim.world().setSecondaryActionTimer(member.entityId, member.secondaryWeapon.aimDuration);
                 member.secondaryFiredThisAction = false;
-                sim.world().setSecondaryAimTargetId(member.entityId, Unit.idOf(target));
+                sim.world().setSecondaryAimTargetId(member.entityId, Entity.idOf(target));
                 startedSecondary = true;
             }
             if (!startedSecondary && sim.world().cooldownTimer(member.entityId) <= 0f
@@ -112,7 +112,7 @@ public final class EngagePosture implements Action {
                 // the old 30% per-shot RNG. A unit in heavy cover whose
                 // current cell already wins cover-preferred no-ops out;
                 // exposed members move when their cooldown expires. The
-                // cooldown is per-unit (Unit.getRepositionCooldown()), so squad
+                // cooldown is per-unit (Entity.getRepositionCooldown()), so squad
                 // members visibly shift at different times.
                 RepositionToCover.tryReposition(member, sim);
             }

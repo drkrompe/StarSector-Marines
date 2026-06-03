@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
@@ -39,7 +39,7 @@ public class ReinforceContactTest {
     }
 
     private static Squad addDefenderSquad(BattleSimulation sim, float cx, float cy) {
-        Unit leader = new Unit("d", Faction.DEFENDER, UnitType.MARINE,
+        Entity leader = new Entity("d", Faction.DEFENDER, UnitType.MARINE,
                 Math.round(cx), Math.round(cy));
         sim.addUnit(leader);
         int sid = sim.mintSquad(Faction.DEFENDER, leader);
@@ -70,7 +70,7 @@ public class ReinforceContactTest {
     @Test
     public void relevanceZeroForMarines() {
         BattleSimulation sim = openSim();
-        Unit leader = new Unit("m", Faction.MARINE, UnitType.MARINE, 35, 5);
+        Entity leader = new Entity("m", Faction.MARINE, UnitType.MARINE, 35, 5);
         sim.addUnit(leader);
         int sid = sim.mintSquad(Faction.MARINE, leader);
         leader.squadId = sid;

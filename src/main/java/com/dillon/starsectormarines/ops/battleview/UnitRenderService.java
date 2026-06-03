@@ -7,7 +7,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.RenderPositionService;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vision.VisionService;
@@ -87,7 +87,7 @@ public final class UnitRenderService implements RenderSystem {
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
         for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
-            Unit u = ctx.sim.liveUnitAt(i);
+            Entity u = ctx.sim.liveUnitAt(i);
             if (!RenderAppearance.of(u.type).drawsFootprint) continue;
             float x0 = cam.cellToScreenX(registry.getCellX(i));
             float y0 = cam.cellToScreenY(registry.getCellY(i));
@@ -110,7 +110,7 @@ public final class UnitRenderService implements RenderSystem {
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
         for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
-            Unit u = ctx.sim.liveUnitAt(i);
+            Entity u = ctx.sim.liveUnitAt(i);
             if (!(u instanceof MapTurret)) continue;
             MapTurret t = (MapTurret) u;
             float cx = cam.cellToScreenX(registry.getCellX(i) + 0.5f);
@@ -154,7 +154,7 @@ public final class UnitRenderService implements RenderSystem {
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
         for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
-            Unit u = ctx.sim.liveUnitAt(i);
+            Entity u = ctx.sim.liveUnitAt(i);
             if (!(u instanceof DroneHubUnit)) continue;
             float cx = cam.cellToScreenX(registry.getCellX(i) + 0.5f);
             float cy = cam.cellToScreenY(registry.getCellY(i) + 0.5f);
@@ -187,7 +187,7 @@ public final class UnitRenderService implements RenderSystem {
      * <em>not</em> the legacy units list — a body is recorded on the death event
      * and the position comes from the surviving render-position component under
      * the same id, so the corpse composes its location rather than holding a
-     * released {@link Unit} handle.
+     * released {@link Entity} handle.
      *
      * <p>Two gates, both required: {@link RenderAppearance#hasDeathPose} is the
      * type-level "this type declares a corpse sheet" flag, but {@code deathPoseIdx}
@@ -264,7 +264,7 @@ public final class UnitRenderService implements RenderSystem {
         VisionService vis = sim.getVision();
 
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Unit u = sim.liveUnitAt(i);
+            Entity u = sim.liveUnitAt(i);
             if (RenderAppearance.of(u.type).spriteKind != RenderAppearance.SpriteKind.SHEET) continue;
             byte uv = vis.getUnitVisibility(i);
             if (uv == VisionService.VIS_HIDDEN) continue;
@@ -298,7 +298,7 @@ public final class UnitRenderService implements RenderSystem {
      * SOUTH-weapon-up pose). Sizing: {@code renderScale}d cell height, width by the
      * frame's aspect — matching the inline {@code renderUnitSprite}.
      */
-    private void emitLiveSprite(DrawList out, BattleCamera cam, BattleSimulation sim, Unit u, int idx,
+    private void emitLiveSprite(DrawList out, BattleCamera cam, BattleSimulation sim, Entity u, int idx,
                                 UnitSpriteCache cache, float unitSize, float alphaMult, boolean inAim) {
         // idx is the dense index from the sweepLiveSprites loop (i == denseIdx);
         // cooldown + this unit's cell read by-index, zero probe. The target cell
@@ -363,7 +363,7 @@ public final class UnitRenderService implements RenderSystem {
         VisionService vis = ctx.sim.getVision();
 
         for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
-            Unit u = ctx.sim.liveUnitAt(i);
+            Entity u = ctx.sim.liveUnitAt(i);
             if (!RenderAppearance.of(u.type).drawsHpBar) continue;
             byte uv = vis.getUnitVisibility(i);
             if (uv == VisionService.VIS_HIDDEN) continue;
@@ -389,8 +389,8 @@ public final class UnitRenderService implements RenderSystem {
 
     private enum Facing { WEST, NORTH, EAST, SOUTH }
 
-    private static Facing computeFacing(Unit u, BattleSimulation sim, int selfCellX, int selfCellY) {
-        Unit target = sim != null ? sim.targetOf(u) : null;
+    private static Facing computeFacing(Entity u, BattleSimulation sim, int selfCellX, int selfCellY) {
+        Entity target = sim != null ? sim.targetOf(u) : null;
         if (target != null) {
             UnitRegistry registry = sim.getUnitRegistry();
             int tIdx = registry.requireLiveIndex(target.entityId);
@@ -432,8 +432,8 @@ public final class UnitRenderService implements RenderSystem {
 
     private enum EightWayFacing { W, NW, N, NE, E, SE, S, SW }
 
-    private static EightWayFacing computeEightWayFacing(Unit u, BattleSimulation sim, int selfCellX, int selfCellY) {
-        Unit target = sim != null ? sim.targetOf(u) : null;
+    private static EightWayFacing computeEightWayFacing(Entity u, BattleSimulation sim, int selfCellX, int selfCellY) {
+        Entity target = sim != null ? sim.targetOf(u) : null;
         if (target != null) {
             UnitRegistry registry = sim.getUnitRegistry();
             int tIdx = registry.requireLiveIndex(target.entityId);

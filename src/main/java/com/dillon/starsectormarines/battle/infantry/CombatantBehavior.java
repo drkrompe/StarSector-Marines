@@ -2,12 +2,12 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.mech.GoapMechBehavior;
 
 /**
  * Default combat loop dispatcher. Two-way: {@link GoapMechBehavior} for
- * units carrying a {@link Unit#mech} loadout, {@link GoapInfantryBehavior}
+ * units carrying a {@link Entity#mech} loadout, {@link GoapInfantryBehavior}
  * for everyone else. Both paths run through the squad-level GOAP planner
  * with their own goal + action libraries (see
  * {@code roadmap/ai/14-mech-stage1.md}).
@@ -26,7 +26,7 @@ public final class CombatantBehavior implements UnitBehavior {
     private CombatantBehavior() {}
 
     @Override
-    public void update(Unit u, BattleSimulation sim) {
+    public void update(Entity u, BattleSimulation sim) {
         if (u.mech != null) {
             GoapMechBehavior.INSTANCE.update(u, sim);
         } else {

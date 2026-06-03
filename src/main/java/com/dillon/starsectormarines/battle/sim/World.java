@@ -10,11 +10,11 @@ import java.util.Map;
  * sim already keeps: the dense SoA {@link UnitRegistry} (universal hot columns)
  * and the sparse {@link ComponentStore}s (optional capabilities). The entity is
  * its {@code long} id; you reach its state <em>by id</em> through one receiver,
- * instead of holding a {@code Unit} object that self-routes. This is the access
+ * instead of holding a {@code Entity} object that self-routes. This is the access
  * half of the {@code world-facade} endgame (see
  * {@code roadmap/ecs-migration/stories/world-facade.md}); as call sites migrate
- * onto it, {@code Unit} loses its {@code registry} back-pointer and shrinks to a
- * bare id + immutable archetype ({@code Unit} → {@code Entity}).
+ * onto it, {@code Entity} loses its {@code registry} back-pointer and shrinks to a
+ * bare id + immutable archetype ({@code Entity} → {@code Entity}).
  *
  * <p><b>Two faces, deliberately split</b> — the split is what preserves the
  * ECS primitive / cache-locality win while adding the ergonomic by-id access:
@@ -61,13 +61,13 @@ public final class World {
     // Each resolves the dense index once via UnitRegistry.requireLiveIndex(id)
     // (fail-loud on a dead/unknown id — these serve live entities; use isAlive()/getOrNull
     // for liveness on a maybe-released id) then reads the existing by-idx column
-    // accessor. No Unit dereference. Bulk per-tick systems do NOT use these —
+    // accessor. No Entity dereference. Bulk per-tick systems do NOT use these —
     // they iterate the dense arrays over [0, liveCount()).
 
     /**
      * Liveness for a held entity id — registered AND hp &gt; 0; {@code false}
      * for a released/never-allocated id (including {@code 0L}). The by-id
-     * replacement for {@code Unit.isAlive()} now that {@code Unit} no longer
+     * replacement for {@code Entity.isAlive()} now that {@code Entity} no longer
      * holds a registry back-pointer: this is the <em>non</em>-fail-loud face
      * (unlike {@link #hp}), the defined "dead/never" answer for a maybe-released
      * ref. Mirrors {@link UnitRegistry#isAliveById}.

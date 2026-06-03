@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
@@ -14,7 +14,6 @@ import com.dillon.starsectormarines.battle.decision.goap.scoring.RoleAssigner;
 import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.nav.zone.Portal;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 
 import java.util.ArrayList;
@@ -175,8 +174,8 @@ public final class ChokePointHold implements Action {
      * stable in practice.
      */
     @Override
-    public List<RoleAssigner.Slot<Unit>> roles(Squad squad, BattleView sim) {
-        List<RoleAssigner.Slot<Unit>> slots = new ArrayList<>(losCells.size());
+    public List<RoleAssigner.Slot<Entity>> roles(Squad squad, BattleView sim) {
+        List<RoleAssigner.Slot<Entity>> slots = new ArrayList<>(losCells.size());
         for (int i = 0; i < losCells.size(); i++) {
             final int idx = i;
             final int cellX = losCells.get(i)[0];
@@ -193,7 +192,7 @@ public final class ChokePointHold implements Action {
     public static String slotName(int idx) { return "losCell:" + idx; }
 
     @Override
-    public ActionStatus execute(Unit member, Squad squad, BattleControl sim) {
+    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
         // Stamp portal id idempotently — the predicate evaluator needs to know
         // which portal cell to sample. Writing the same value on every tick is
         // harmless and saves a "has the squad been stamped" flag. Under the
@@ -245,7 +244,7 @@ public final class ChokePointHold implements Action {
         if (!triggerActive(squad, sim)) return ActionStatus.RUNNING;
 
         // Build enemy target — alive combatant standing on the portal cell.
-        Unit portalIntruder = enemyOnPortalCell(squad, sim);
+        Entity portalIntruder = enemyOnPortalCell(squad, sim);
         if (portalIntruder == null) return ActionStatus.RUNNING;
 
         // LoS gate is by-cell: bound cells were picked with LoS at
@@ -262,7 +261,7 @@ public final class ChokePointHold implements Action {
         // HoldPortalCordon's on-post branch so burst follow-ups behave
         // identically (machine guns rip a burst when the trigger fires).
         sim.fireShot(member, portalIntruder, FireStance.STANCED);
-        sim.world().setTargetId(member.entityId, Unit.idOf(portalIntruder));
+        sim.world().setTargetId(member.entityId, Entity.idOf(portalIntruder));
         sim.world().setCooldownTimer(member.entityId, member.attackCooldown);
         member.beginBurst(sim.world(), portalIntruder);
         return ActionStatus.RUNNING;
@@ -285,8 +284,8 @@ public final class ChokePointHold implements Action {
     }
 
     /** First alive enemy combatant standing on the portal cell, or null. Matches the rule the evaluator uses. */
-    private Unit enemyOnPortalCell(Squad squad, BattleView sim) {
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Unit u = sim.liveUnitAt(i);
+    private Entity enemyOnPortalCell(Squad squad, BattleView sim) {
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Entity u = sim.liveUnitAt(i);
             if (!u.type.combatant) continue;
             if (u.faction == squad.faction) continue;
             if (sim.world().cellX(u.entityId) == portalX && sim.world().cellY(u.entityId) == portalY) return u;

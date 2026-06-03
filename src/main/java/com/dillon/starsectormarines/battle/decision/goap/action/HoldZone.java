@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.scoring.RoleAssigner;
@@ -87,12 +87,12 @@ public final class HoldZone extends AbstractZoneAction {
      * ordering, so the spread cells fill first.
      */
     @Override
-    public List<RoleAssigner.Slot<Unit>> roles(Squad squad, BattleView sim) {
+    public List<RoleAssigner.Slot<Entity>> roles(Squad squad, BattleView sim) {
         if (holdX == null || holdX.length == 0) {
             return List.of(new RoleAssigner.Slot<>("hold:overflow",
                     Math.max(1, squad.aliveMembers), c -> 0f));
         }
-        List<RoleAssigner.Slot<Unit>> slots = new ArrayList<>(holdX.length + 1);
+        List<RoleAssigner.Slot<Entity>> slots = new ArrayList<>(holdX.length + 1);
         for (int i = 0; i < holdX.length; i++) {
             final int hx = holdX[i];
             final int hy = holdY[i];
@@ -105,7 +105,7 @@ public final class HoldZone extends AbstractZoneAction {
     }
 
     @Override
-    public ActionStatus execute(Unit member, Squad squad, BattleControl sim) {
+    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
         CompoundService.Record record = sim.getCompoundService().getRecord(compoundNode);
         if (record != null && record.state == CompoundService.CompoundState.MARINE_HELD) {
             return ActionStatus.SUCCESS;
@@ -154,7 +154,7 @@ public final class HoldZone extends AbstractZoneAction {
     }
 
     /** This member's hold-cell index from its {@code "hold:i"} role slot, or {@code -1} for the overflow slot / no binding (→ hold on the anchor). */
-    private static int assignedSlot(Unit member, Squad squad) {
+    private static int assignedSlot(Entity member, Squad squad) {
         SquadPlan plan = squad.currentPlan;
         SquadPlan.Step step = plan != null && !plan.isComplete() ? plan.currentStep() : null;
         if (step == null) return -1;
@@ -169,8 +169,8 @@ public final class HoldZone extends AbstractZoneAction {
         }
     }
 
-    private ActionStatus engageInZone(Unit member, Squad squad, BattleControl sim, Faction enemy) {
-        Unit target = sim.targetOf(member);
+    private ActionStatus engageInZone(Entity member, Squad squad, BattleControl sim, Faction enemy) {
+        Entity target = sim.targetOf(member);
         boolean targetOutOfZone = target != null
                 && sim.getZoneGraph().zoneIdAt(sim.world().cellX(target.entityId), sim.world().cellY(target.entityId)) != targetZoneId;
         if (target == null
@@ -178,7 +178,7 @@ public final class HoldZone extends AbstractZoneAction {
                 || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
             target = pickInZoneTarget(member, sim, enemy);
             if (target == null) target = sim.getTacticalScoring().findBestTarget(member);
-            sim.world().setTargetId(member.entityId, Unit.idOf(target));
+            sim.world().setTargetId(member.entityId, Entity.idOf(target));
         }
         if (target == null) {
             hold(member, sim);
@@ -215,11 +215,11 @@ public final class HoldZone extends AbstractZoneAction {
         return ActionStatus.RUNNING;
     }
 
-    private Unit pickInZoneTarget(Unit self, BattleView sim, Faction enemy) {
-        Unit best = null;
+    private Entity pickInZoneTarget(Entity self, BattleView sim, Faction enemy) {
+        Entity best = null;
         float bestDist = Float.MAX_VALUE;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Unit other = sim.liveUnitAt(i);
+            Entity other = sim.liveUnitAt(i);
             if (other.faction != enemy) continue;
             if (!other.type.combatant) continue;
             if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(other.entityId), sim.world().cellY(other.entityId)) != targetZoneId) continue;
@@ -233,7 +233,7 @@ public final class HoldZone extends AbstractZoneAction {
         return best;
     }
 
-    private static void hold(Unit member, BattleControl sim) {
+    private static void hold(Entity member, BattleControl sim) {
         if (!member.pathEmpty()) sim.clearPath(member);
         sim.world().setMoveProgress(member.entityId, 0f);
         member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));

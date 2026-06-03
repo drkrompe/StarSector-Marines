@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.command.objective;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 
 /**
@@ -49,7 +49,7 @@ public final class ChargeSiteObjective implements Objective {
         if (complete) return;
         planterOnSiteThisTick = false;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Unit u = sim.liveUnitAt(i);
+            Entity u = sim.liveUnitAt(i);
             if (u.role != UnitRole.PLANTER) continue;
             if (u.assignedObjective != this) continue;
             if (sim.world().cellX(u.entityId) == cellX && sim.world().cellY(u.entityId) == cellY && sim.world().moveProgress(u.entityId) == 0f) {

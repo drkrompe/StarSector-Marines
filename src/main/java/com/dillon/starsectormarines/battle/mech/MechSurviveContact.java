@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
+import com.dillon.starsectormarines.battle.unit.Entity;
 
 import java.util.List;
 
@@ -24,7 +25,7 @@ import java.util.List;
  * <p>Custom-plan: single-step {@link MechBreakContact}. The action runs
  * perpetually; the 2s replan window is what re-evaluates morale state.
  * Per-mech HP-threshold drain (see
- * {@link BattleSimulation#applyDamage(com.dillon.starsectormarines.battle.unit.Unit, float, float, float)})
+ * {@link BattleSimulation#applyDamage(Entity, float, float, float)})
  * is monotonic, so a heavily damaged mech stays broken; combined with the
  * armor-gone cap dropping the morale ceiling to
  * {@link com.dillon.starsectormarines.battle.squad.SquadMoraleSystem#MECH_MORALE_ARMOR_GONE_CAP}, the squad is locked

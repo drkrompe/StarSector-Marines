@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.SquadMoraleSystem;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
@@ -62,7 +62,7 @@ public final class SquadDetailPanel implements HudPanel {
      * Per-frame snapshot of the selected squad's marine rows, captured in
      * {@link #update} (pre-advance) and read in {@link #render} (post-advance).
      * Snapshots the displayed <em>values</em> rather than holding live
-     * {@link Unit} refs: a member killed during the frame's {@code advance()} is
+     * {@link Entity} refs: a member killed during the frame's {@code advance()} is
      * released from the registry by render time, and reading its Group-C hp /
      * Group-S maxHp accessors would fail loud. Freezing the row at update keeps
      * the just-killed member's last bar on screen for that frame without any
@@ -119,18 +119,18 @@ public final class SquadDetailPanel implements HudPanel {
         // Gather the live members, sort for stable row order, then freeze each
         // into a MemberRow. All accessor reads happen here, while every unit is
         // still registered — render() touches only the frozen values.
-        List<Unit> live = new ArrayList<>();
+        List<Entity> live = new ArrayList<>();
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Unit u = sim.liveUnitAt(i);
+            Entity u = sim.liveUnitAt(i);
             if (u.squadId != squadId) continue;
             live.add(u);
         }
         // Leader first (if set + alive), then stable by unit id so the row
         // order is deterministic across frames.
         live.sort(Comparator
-                .comparing((Unit u) -> currentSquad.leaderId == u.entityId ? 0 : 1)
+                .comparing((Entity u) -> currentSquad.leaderId == u.entityId ? 0 : 1)
                 .thenComparing(u -> u.id));
-        for (Unit u : live) {
+        for (Entity u : live) {
             rows.add(new MemberRow(sim.world().hp(u.entityId), sim.world().maxHp(u.entityId), u.primaryWeapon,
                     u.secondaryWeapon, u.secondaryAmmo, u.role));
         }

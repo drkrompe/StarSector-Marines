@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -31,8 +31,8 @@ public class InfantryUnitPrepTest {
         return new BattleSimulation(grid, topology);
     }
 
-    private static Unit rocketeer(BattleSimulation sim, Faction f, int x, int y) {
-        Unit u = new Unit("u" + sim.liveUnitCount(), f, UnitType.MARINE, x, y);
+    private static Entity rocketeer(BattleSimulation sim, Faction f, int x, int y) {
+        Entity u = new Entity("u" + sim.liveUnitCount(), f, UnitType.MARINE, x, y);
         u.primaryWeapon = MarineWeapon.PULSE_RIFLE;
         u.secondaryWeapon = MarineSecondary.ROCKET_LAUNCHER;
         u.secondaryAmmo = MarineSecondary.ROCKET_LAUNCHER.startingAmmo;
@@ -52,7 +52,7 @@ public class InfantryUnitPrepTest {
     @Test
     public void opportunityRocketStartsAimWhenTurretInRangeWithLos() {
         BattleSimulation sim = openArena(50, 10);
-        Unit marine = rocketeer(sim, Faction.MARINE, 5, 5);
+        Entity marine = rocketeer(sim, Faction.MARINE, 5, 5);
         // Past pulse-rifle range (24), well inside rocket range (32).
         MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
 
@@ -66,7 +66,7 @@ public class InfantryUnitPrepTest {
     @Test
     public void opportunityRocketNoOpsWithNoAmmo() {
         BattleSimulation sim = openArena(50, 10);
-        Unit marine = rocketeer(sim, Faction.MARINE, 5, 5);
+        Entity marine = rocketeer(sim, Faction.MARINE, 5, 5);
         marine.secondaryAmmo = 0;
         turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
 
@@ -77,7 +77,7 @@ public class InfantryUnitPrepTest {
     @Test
     public void opportunityRocketNoOpsWhenCooldownActive() {
         BattleSimulation sim = openArena(50, 10);
-        Unit marine = rocketeer(sim, Faction.MARINE, 5, 5);
+        Entity marine = rocketeer(sim, Faction.MARINE, 5, 5);
         sim.world().setSecondaryCooldownTimer(marine.entityId, 1.0f);
         turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
 
@@ -87,7 +87,7 @@ public class InfantryUnitPrepTest {
     @Test
     public void opportunityRocketNoOpsWhenTurretBeyondRocketRange() {
         BattleSimulation sim = openArena(80, 10);
-        Unit marine = rocketeer(sim, Faction.MARINE, 5, 5);
+        Entity marine = rocketeer(sim, Faction.MARINE, 5, 5);
         // 50 cells away — well past rocket range (32).
         turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 55, 5);
 
@@ -100,7 +100,7 @@ public class InfantryUnitPrepTest {
         NavigationGrid grid = sim.getGrid();
         // Wall column between marine and turret.
         for (int y = 0; y < 10; y++) grid.setWalkable(15, y, false);
-        Unit marine = rocketeer(sim, Faction.MARINE, 5, 5);
+        Entity marine = rocketeer(sim, Faction.MARINE, 5, 5);
         turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
 
         assertFalse(InfantryUnitPrep.tryOpportunityRocket(marine, sim),
@@ -112,11 +112,11 @@ public class InfantryUnitPrepTest {
         // Hephaestus needs 2 rockets — first two marines commit, third holds.
         BattleSimulation sim = openArena(50, 10);
         int squadId = sim.mintSquad(Faction.MARINE, null);
-        Unit marineA = rocketeer(sim, Faction.MARINE, 5, 5);
+        Entity marineA = rocketeer(sim, Faction.MARINE, 5, 5);
         marineA.squadId = squadId;
-        Unit marineB = rocketeer(sim, Faction.MARINE, 5, 6);
+        Entity marineB = rocketeer(sim, Faction.MARINE, 5, 6);
         marineB.squadId = squadId;
-        Unit marineC = rocketeer(sim, Faction.MARINE, 5, 4);
+        Entity marineC = rocketeer(sim, Faction.MARINE, 5, 4);
         marineC.squadId = squadId;
         turret(sim, Faction.DEFENDER, TurretKind.HEPHAESTUS, 28, 5);
 
@@ -133,9 +133,9 @@ public class InfantryUnitPrepTest {
         // marineB must not also fire.
         BattleSimulation sim = openArena(50, 10);
         int squadId = sim.mintSquad(Faction.MARINE, null);
-        Unit marineA = rocketeer(sim, Faction.MARINE, 5, 5);
+        Entity marineA = rocketeer(sim, Faction.MARINE, 5, 5);
         marineA.squadId = squadId;
-        Unit marineB = rocketeer(sim, Faction.MARINE, 5, 6);
+        Entity marineB = rocketeer(sim, Faction.MARINE, 5, 6);
         marineB.squadId = squadId;
         turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
 
@@ -149,7 +149,7 @@ public class InfantryUnitPrepTest {
         // Defender turret near a defender unit (e.g. a rocketeer enemy).
         // Sanity: the scan filters by enemy faction, not just "is a turret."
         BattleSimulation sim = openArena(50, 10);
-        Unit defenderRocketeer = rocketeer(sim, Faction.DEFENDER, 5, 5);
+        Entity defenderRocketeer = rocketeer(sim, Faction.DEFENDER, 5, 5);
         turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
 
         assertFalse(InfantryUnitPrep.tryOpportunityRocket(defenderRocketeer, sim),

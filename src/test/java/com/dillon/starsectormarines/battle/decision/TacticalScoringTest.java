@@ -8,7 +8,7 @@ import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -47,14 +47,14 @@ public class TacticalScoringTest {
         return new BattleSimulation(grid, topology);
     }
 
-    private static Unit unit(BattleSimulation sim, Faction f, int x, int y) {
-        Unit u = new Unit("u" + sim.liveUnitCount(), f, UnitType.MARINE, x, y);
+    private static Entity unit(BattleSimulation sim, Faction f, int x, int y) {
+        Entity u = new Entity("u" + sim.liveUnitCount(), f, UnitType.MARINE, x, y);
         sim.addUnit(u);
         return u;
     }
 
-    private static Unit unit(BattleSimulation sim, Faction f, UnitType type, int x, int y) {
-        Unit u = new Unit("u" + sim.liveUnitCount(), f, type, x, y);
+    private static Entity unit(BattleSimulation sim, Faction f, UnitType type, int x, int y) {
+        Entity u = new Entity("u" + sim.liveUnitCount(), f, type, x, y);
         sim.addUnit(u);
         return u;
     }
@@ -185,26 +185,26 @@ public class TacticalScoringTest {
         BattleSimulation sim = openArena(40, 20);
 
         // Marine on the left side.
-        Unit marine = unit(sim, Faction.MARINE, 5, 10);
+        Entity marine = unit(sim, Faction.MARINE, 5, 10);
         // No squad for the marine in this test — we isolate the density
         // penalty from the cohesion clamp.
         sim.world().setAttackRange(marine.entityId, 30f);
 
         // Wounded fleer at (15, 10), surrounded by 3 squadmates: a tight
         // cluster well inside THREAT_DENSITY_RADIUS.
-        Unit fleer = unit(sim, Faction.DEFENDER, 15, 10);
+        Entity fleer = unit(sim, Faction.DEFENDER, 15, 10);
         unit(sim, Faction.DEFENDER, 14, 10);
         unit(sim, Faction.DEFENDER, 16, 10);
         unit(sim, Faction.DEFENDER, 15, 11);
 
         // Isolated lone enemy at (20, 10), no other enemies within radius.
-        Unit lone = unit(sim, Faction.DEFENDER, 20, 10);
+        Entity lone = unit(sim, Faction.DEFENDER, 20, 10);
 
         // Both cells visible from the marine in an open arena. With Stage 1's
         // distance-only score, the picker would pick the fleer (distance 10
         // vs 15). With the density penalty (3 neighbors × 5 = 15) the fleer's
         // effective score becomes 25 vs the lone enemy's 15.
-        Unit picked = sim.getTacticalScoring().findBestTarget(marine);
+        Entity picked = sim.getTacticalScoring().findBestTarget(marine);
         assertNotNull(picked);
         assertEquals(lone, picked,
                 "picker should avoid the cluster and pick the isolated lone enemy");
@@ -226,13 +226,13 @@ public class TacticalScoringTest {
         squad.centroidX = 5f;
         squad.centroidY = 10f;
 
-        Unit marine = unit(sim, Faction.MARINE, 5, 10);
+        Entity marine = unit(sim, Faction.MARINE, 5, 10);
         marine.squadId = squadId;
         sim.world().setAttackRange(marine.entityId, 60f);
 
-        Unit farEnemy = unit(sim, Faction.DEFENDER, 45, 10);
+        Entity farEnemy = unit(sim, Faction.DEFENDER, 45, 10);
 
-        Unit picked = sim.getTacticalScoring().findBestTarget(marine);
+        Entity picked = sim.getTacticalScoring().findBestTarget(marine);
         assertEquals(farEnemy, picked,
                 "target selection must not be gated by squad centroid distance");
     }
@@ -254,17 +254,17 @@ public class TacticalScoringTest {
         // Heavy doodad on (10, 10).
         sim.addDoodad(new Doodad(10, 10, new TileManifest.TileFrame(4, 7)));
 
-        Unit threat = unit(sim, Faction.DEFENDER, 18, 10);
+        Entity threat = unit(sim, Faction.DEFENDER, 18, 10);
         sim.world().setAttackRange(threat.entityId, 30f);
 
         // marine0 already standing on the desk cell — counted as both
         // current-cell occupancy AND an AoE-spread ally near (10, 10).
-        Unit m0 = unit(sim, Faction.MARINE, 10, 10);
+        Entity m0 = unit(sim, Faction.MARINE, 10, 10);
         sim.world().setAttackRange(m0.entityId, 30f);
 
         // marine1 picks a firing position now. Choose a setup where the
         // desk cell would otherwise win on cover alone.
-        Unit m1 = unit(sim, Faction.MARINE, 5, 10);
+        Entity m1 = unit(sim, Faction.MARINE, 5, 10);
         sim.world().setAttackRange(m1.entityId, 30f);
 
         int[] pick = sim.getTacticalScoring().findFiringPosition(m1, threat);
@@ -290,12 +290,12 @@ public class TacticalScoringTest {
     @Test
     public void alliesNearForSpreadCountsCurrentAndPathDest() {
         BattleSimulation sim = openArena(15, 15);
-        Unit self = unit(sim, Faction.MARINE, 0, 0);
+        Entity self = unit(sim, Faction.MARINE, 0, 0);
 
         // Ally currently at (5, 5) → within radius 2 of (4, 4)? distance sqrt(2) ≈ 1.4. Yes.
-        Unit a1 = unit(sim, Faction.MARINE, 5, 5);
+        Entity a1 = unit(sim, Faction.MARINE, 5, 5);
         // Ally currently far but path destination at (4, 5) → within radius of (4, 4).
-        Unit a2 = unit(sim, Faction.MARINE, 12, 12);
+        Entity a2 = unit(sim, Faction.MARINE, 12, 12);
         int[] path = new int[]{12, 12, 4, 5};
         sim.setPath(a2, path);
 
@@ -307,7 +307,7 @@ public class TacticalScoringTest {
     @Test
     public void alliesNearForSpreadIgnoresEnemies() {
         BattleSimulation sim = openArena(15, 15);
-        Unit self = unit(sim, Faction.MARINE, 0, 0);
+        Entity self = unit(sim, Faction.MARINE, 0, 0);
         // Enemy literally on the candidate cell.
         unit(sim, Faction.DEFENDER, 4, 4);
         int count = sim.getTacticalScoring().alliesNearForSpread(self, 4, 4);
@@ -340,12 +340,12 @@ public class TacticalScoringTest {
         // wall geometry; with the +8f cross-zone bias the in-zone target
         // wins (adjusted: 4 vs 14).
         BattleSimulation sim = twoZoneSim();
-        Unit marine = unit(sim, Faction.MARINE, 5, 10);
+        Entity marine = unit(sim, Faction.MARINE, 5, 10);
         sim.world().setAttackRange(marine.entityId, 50f);
-        Unit closer = unit(sim, Faction.DEFENDER, 9, 10);
+        Entity closer = unit(sim, Faction.DEFENDER, 9, 10);
         unit(sim, Faction.DEFENDER, 11, 10);
 
-        Unit picked = sim.getTacticalScoring().findBestTarget(marine);
+        Entity picked = sim.getTacticalScoring().findBestTarget(marine);
         assertEquals(closer, picked,
                 "in-zone enemy at dist 4 must beat across-zone enemy at dist 6 (bias > 2)");
     }
@@ -378,12 +378,12 @@ public class TacticalScoringTest {
         grid.setDoorway(20, 10, true);
         BattleSimulation sim = new BattleSimulation(grid, new CellTopology(40, 20));
 
-        Unit marine = unit(sim, Faction.MARINE, 18, 10);
+        Entity marine = unit(sim, Faction.MARINE, 18, 10);
         sim.world().setAttackRange(marine.entityId, 50f);
-        Unit acrossClose = unit(sim, Faction.DEFENDER, 21, 10);   // dist 3, adjusted 11
-        Unit inZoneFar  = unit(sim, Faction.DEFENDER, 2, 10);     // dist 16, adjusted 16
+        Entity acrossClose = unit(sim, Faction.DEFENDER, 21, 10);   // dist 3, adjusted 11
+        Entity inZoneFar  = unit(sim, Faction.DEFENDER, 2, 10);     // dist 16, adjusted 16
 
-        Unit picked = sim.getTacticalScoring().findBestTarget(marine);
+        Entity picked = sim.getTacticalScoring().findBestTarget(marine);
         assertEquals(acrossClose, picked,
                 "very close across-zone enemy (adjusted 11) must beat distant in-zone (16)");
     }
@@ -393,12 +393,12 @@ public class TacticalScoringTest {
         // Open arena with no zones distinguished — both targets in same zone.
         // The bias is 0; nearest wins by raw distance.
         BattleSimulation sim = openArena(20, 20);
-        Unit marine = unit(sim, Faction.MARINE, 5, 5);
+        Entity marine = unit(sim, Faction.MARINE, 5, 5);
         sim.world().setAttackRange(marine.entityId, 50f);
-        Unit near = unit(sim, Faction.DEFENDER, 7, 5);
-        Unit far = unit(sim, Faction.DEFENDER, 15, 5);
+        Entity near = unit(sim, Faction.DEFENDER, 7, 5);
+        Entity far = unit(sim, Faction.DEFENDER, 15, 5);
 
-        Unit picked = sim.getTacticalScoring().findBestTarget(marine);
+        Entity picked = sim.getTacticalScoring().findBestTarget(marine);
         assertEquals(near, picked,
                 "same-zone targets — pick nearest, bias is 0");
     }
@@ -410,8 +410,8 @@ public class TacticalScoringTest {
     @Test
     public void shouldKeepPursuingFalseOnDeadTarget() {
         BattleSimulation sim = openArena(20, 20);
-        Unit marine = unit(sim, Faction.MARINE, 5, 5);
-        Unit enemy = unit(sim, Faction.DEFENDER, 10, 5);
+        Entity marine = unit(sim, Faction.MARINE, 5, 5);
+        Entity enemy = unit(sim, Faction.DEFENDER, 10, 5);
         TestUnits.kill(sim, enemy);
         assertTrue(!sim.getTacticalScoring().shouldKeepPursuing(marine, enemy));
     }
@@ -423,9 +423,9 @@ public class TacticalScoringTest {
         // Wall blocks LOS.
         for (int y = 4; y <= 6; y++) grid.setWalkable(8, y, false);
 
-        Unit marine = unit(sim, Faction.MARINE, 5, 5);
+        Entity marine = unit(sim, Faction.MARINE, 5, 5);
         // Target hidden behind the wall...
-        Unit fleer = unit(sim, Faction.DEFENDER, 12, 5);
+        Entity fleer = unit(sim, Faction.DEFENDER, 12, 5);
         // ...with 2 squadmates around it (density count > 1).
         unit(sim, Faction.DEFENDER, 13, 5);
         unit(sim, Faction.DEFENDER, 12, 6);
@@ -437,8 +437,8 @@ public class TacticalScoringTest {
     @Test
     public void shouldKeepPursuingTrueWhenVisible() {
         BattleSimulation sim = openArena(20, 20);
-        Unit marine = unit(sim, Faction.MARINE, 5, 5);
-        Unit enemy = unit(sim, Faction.DEFENDER, 10, 5);
+        Entity marine = unit(sim, Faction.MARINE, 5, 5);
+        Entity enemy = unit(sim, Faction.DEFENDER, 10, 5);
         // Even surrounded, a *visible* target is still a fine target — the
         // gate only kicks in when LOS is lost. (And the nearby allies of the
         // enemy are within the RETARGET_DISTANCE_MARGIN of the current
@@ -456,9 +456,9 @@ public class TacticalScoringTest {
         // when a mech walks up to distance 2. shouldKeepPursuing must drop the
         // distant target so the marine re-picks the close threat.
         BattleSimulation sim = openArena(30, 10);
-        Unit marine = unit(sim, Faction.MARINE, 5, 5);
-        Unit distantTurret = unit(sim, Faction.DEFENDER, 20, 5);
-        Unit closeMech = unit(sim, Faction.DEFENDER, 7, 5);
+        Entity marine = unit(sim, Faction.MARINE, 5, 5);
+        Entity distantTurret = unit(sim, Faction.DEFENDER, 20, 5);
+        Entity closeMech = unit(sim, Faction.DEFENDER, 7, 5);
 
         assertTrue(!sim.getTacticalScoring().shouldKeepPursuing(marine, distantTurret),
                 "closer visible enemy must trigger re-target");
@@ -476,16 +476,16 @@ public class TacticalScoringTest {
         // A marine carrying a rocket launcher (vsTurretMult 3.5) should pick
         // the mech — the affinity bonus overcomes the distance gap.
         BattleSimulation sim = openArena(30, 10);
-        Unit rocketeer = unit(sim, Faction.MARINE, 5, 5);
+        Entity rocketeer = unit(sim, Faction.MARINE, 5, 5);
         rocketeer.primaryWeapon = com.dillon.starsectormarines.battle.infantry.MarineWeapon.PULSE_RIFLE;
         rocketeer.secondaryWeapon = com.dillon.starsectormarines.battle.infantry.MarineSecondary.ROCKET_LAUNCHER;
         rocketeer.secondaryAmmo = 3;
         sim.world().setAttackRange(rocketeer.entityId, 40f);
 
-        Unit infantry = unit(sim, Faction.DEFENDER, 10, 5);
-        Unit mech = unit(sim, Faction.DEFENDER, UnitType.HEAVY_MECH, 20, 5);
+        Entity infantry = unit(sim, Faction.DEFENDER, 10, 5);
+        Entity mech = unit(sim, Faction.DEFENDER, UnitType.HEAVY_MECH, 20, 5);
 
-        Unit picked = sim.getTacticalScoring().findBestTarget(rocketeer);
+        Entity picked = sim.getTacticalScoring().findBestTarget(rocketeer);
         assertEquals(mech, picked, "rocketeer must prefer the hardened mech over the soft infantry");
     }
 
@@ -494,16 +494,16 @@ public class TacticalScoringTest {
         // Mirror case — an SMG marine (vsTurretMult 0.5) should pick the
         // infantry. No rocket, so suitability against the mech is poor.
         BattleSimulation sim = openArena(30, 10);
-        Unit smg = unit(sim, Faction.MARINE, 5, 5);
+        Entity smg = unit(sim, Faction.MARINE, 5, 5);
         smg.primaryWeapon = com.dillon.starsectormarines.battle.infantry.MarineWeapon.SMG;
         sim.world().setAttackRange(smg.entityId, 40f);
 
-        Unit infantry = unit(sim, Faction.DEFENDER, 10, 5);
-        Unit mech = unit(sim, Faction.DEFENDER, UnitType.HEAVY_MECH, 8, 5);
+        Entity infantry = unit(sim, Faction.DEFENDER, 10, 5);
+        Entity mech = unit(sim, Faction.DEFENDER, UnitType.HEAVY_MECH, 8, 5);
         // Mech is actually CLOSER than the infantry here — without affinity
         // the picker would lock the mech. Affinity must flip it.
 
-        Unit picked = sim.getTacticalScoring().findBestTarget(smg);
+        Entity picked = sim.getTacticalScoring().findBestTarget(smg);
         assertEquals(infantry, picked, "SMG marine must prefer infantry even when mech is closer");
     }
 
@@ -513,16 +513,16 @@ public class TacticalScoringTest {
         // primary's mult only (PULSE_RIFLE 0.3, weak). Now the close
         // infantry wins on distance.
         BattleSimulation sim = openArena(30, 10);
-        Unit dryRocketeer = unit(sim, Faction.MARINE, 5, 5);
+        Entity dryRocketeer = unit(sim, Faction.MARINE, 5, 5);
         dryRocketeer.primaryWeapon = com.dillon.starsectormarines.battle.infantry.MarineWeapon.PULSE_RIFLE;
         dryRocketeer.secondaryWeapon = com.dillon.starsectormarines.battle.infantry.MarineSecondary.ROCKET_LAUNCHER;
         dryRocketeer.secondaryAmmo = 0;
         sim.world().setAttackRange(dryRocketeer.entityId, 40f);
 
-        Unit infantry = unit(sim, Faction.DEFENDER, 10, 5);
-        Unit mech = unit(sim, Faction.DEFENDER, UnitType.HEAVY_MECH, 20, 5);
+        Entity infantry = unit(sim, Faction.DEFENDER, 10, 5);
+        Entity mech = unit(sim, Faction.DEFENDER, UnitType.HEAVY_MECH, 20, 5);
 
-        Unit picked = sim.getTacticalScoring().findBestTarget(dryRocketeer);
+        Entity picked = sim.getTacticalScoring().findBestTarget(dryRocketeer);
         assertEquals(infantry, picked, "no rockets left -> pick the closer infantry, not the distant mech");
     }
 
@@ -532,13 +532,13 @@ public class TacticalScoringTest {
         // Affinity is a tiebreaker when multiple visible candidates compete,
         // not a hard filter.
         BattleSimulation sim = openArena(30, 10);
-        Unit rifleMarine = unit(sim, Faction.MARINE, 5, 5);
+        Entity rifleMarine = unit(sim, Faction.MARINE, 5, 5);
         rifleMarine.primaryWeapon = com.dillon.starsectormarines.battle.infantry.MarineWeapon.PULSE_RIFLE;
         sim.world().setAttackRange(rifleMarine.entityId, 40f);
 
-        Unit mech = unit(sim, Faction.DEFENDER, UnitType.HEAVY_MECH, 15, 5);
+        Entity mech = unit(sim, Faction.DEFENDER, UnitType.HEAVY_MECH, 15, 5);
 
-        Unit picked = sim.getTacticalScoring().findBestTarget(rifleMarine);
+        Entity picked = sim.getTacticalScoring().findBestTarget(rifleMarine);
         assertEquals(mech, picked, "single visible target is picked regardless of weapon affinity");
     }
 
@@ -553,8 +553,8 @@ public class TacticalScoringTest {
         // RETARGET_DISTANCE_MARGIN (5 cells); a 2-cell-closer alternative
         // stays under that.
         BattleSimulation sim = openArena(20, 20);
-        Unit marine = unit(sim, Faction.MARINE, 5, 5);
-        Unit current = unit(sim, Faction.DEFENDER, 15, 5);  // distance 10
+        Entity marine = unit(sim, Faction.MARINE, 5, 5);
+        Entity current = unit(sim, Faction.DEFENDER, 15, 5);  // distance 10
         unit(sim, Faction.DEFENDER, 13, 5);                  // distance 8
 
         assertTrue(sim.getTacticalScoring().shouldKeepPursuing(marine, current),
@@ -581,7 +581,7 @@ public class TacticalScoringTest {
             grid.setEdgePassable(6, y, com.dillon.starsectormarines.battle.nav.Direction.W, false);
         }
 
-        Unit self = unit(sim, Faction.MARINE, 3, 10);
+        Entity self = unit(sim, Faction.MARINE, 3, 10);
         // Enemy on self's side — gives findFallbackPosition a threat to hide
         // from. The picker would prefer cells far from the threat; cells past
         // column 6 are the obvious "far" choice, but they're not reachable.
@@ -607,7 +607,7 @@ public class TacticalScoringTest {
             grid.setWalkable(10, y, false);
         }
 
-        Unit self = unit(sim, Faction.MARINE, 5, 10);
+        Entity self = unit(sim, Faction.MARINE, 5, 10);
         unit(sim, Faction.DEFENDER, 15, 10);
 
         int[] dest = sim.getTacticalScoring().findFallbackPosition(self);
@@ -630,8 +630,8 @@ public class TacticalScoringTest {
         return t;
     }
 
-    private static Unit rocketeer(BattleSimulation sim, Faction f, int x, int y) {
-        Unit u = unit(sim, f, x, y);
+    private static Entity rocketeer(BattleSimulation sim, Faction f, int x, int y) {
+        Entity u = unit(sim, f, x, y);
         u.primaryWeapon = MarineWeapon.PULSE_RIFLE;
         sim.world().setAttackRange(u.entityId, u.primaryWeapon.range);
         u.secondaryWeapon = MarineSecondary.ROCKET_LAUNCHER;
@@ -642,9 +642,9 @@ public class TacticalScoringTest {
     @Test
     public void effectiveAttackRangeWidensForRocketeerVsTurret() {
         BattleSimulation sim = openArena(40, 10);
-        Unit rocketeer = rocketeer(sim, Faction.MARINE, 5, 5);
+        Entity rocketeer = rocketeer(sim, Faction.MARINE, 5, 5);
         MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 25, 5);
-        Unit infantry = unit(sim, Faction.DEFENDER, 25, 5);
+        Entity infantry = unit(sim, Faction.DEFENDER, 25, 5);
 
         assertEquals(MarineSecondary.ROCKET_LAUNCHER.range,
                 TacticalScoring.effectiveAttackRange(rocketeer, turret, sim.world().attackRange(rocketeer.entityId)),
@@ -666,7 +666,7 @@ public class TacticalScoringTest {
         // range. With the rocket-aware ring widening, the picker should
         // return a cell within rocket range that's NOT inside rifle range.
         BattleSimulation sim = openArena(60, 10);
-        Unit rocketeer = rocketeer(sim, Faction.MARINE, 5, 5);
+        Entity rocketeer = rocketeer(sim, Faction.MARINE, 5, 5);
         // Pulse rifle range is much shorter than rocket range (32). The
         // turret sits past pulse range but inside rocket range.
         float primary = sim.world().attackRange(rocketeer.entityId);
@@ -693,7 +693,7 @@ public class TacticalScoringTest {
     @Test
     public void shouldCommitRocketAllowsFirstShot() {
         BattleSimulation sim = openArena(20, 20);
-        Unit rocketeer = rocketeer(sim, Faction.MARINE, 5, 5);
+        Entity rocketeer = rocketeer(sim, Faction.MARINE, 5, 5);
         MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
 
         assertTrue(sim.getTacticalScoring().shouldCommitRocket(rocketeer, turret),
@@ -708,11 +708,11 @@ public class TacticalScoringTest {
         BattleSimulation sim = openArena(20, 20);
         int squadId = sim.mintSquad(Faction.MARINE, null);
 
-        Unit m0 = rocketeer(sim, Faction.MARINE, 5, 5);
+        Entity m0 = rocketeer(sim, Faction.MARINE, 5, 5);
         m0.squadId = squadId;
-        Unit m1 = rocketeer(sim, Faction.MARINE, 5, 6);
+        Entity m1 = rocketeer(sim, Faction.MARINE, 5, 6);
         m1.squadId = squadId;
-        Unit m2 = rocketeer(sim, Faction.MARINE, 5, 7);
+        Entity m2 = rocketeer(sim, Faction.MARINE, 5, 7);
         m2.squadId = squadId;
 
         MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.HEPHAESTUS, 10, 5);
@@ -722,13 +722,13 @@ public class TacticalScoringTest {
                 "test invariant: Hephaestus needs >1 rocket — adjust if balance changed");
 
         sim.world().setSecondaryActionTimer(m0.entityId, MarineSecondary.ROCKET_LAUNCHER.aimDuration);
-        sim.world().setSecondaryAimTargetId(m0.entityId, Unit.idOf(turret));
+        sim.world().setSecondaryAimTargetId(m0.entityId, Entity.idOf(turret));
 
         assertTrue(sim.getTacticalScoring().shouldCommitRocket(m1, turret),
                 "second marine joins when one inbound rocket isn't enough");
 
         sim.world().setSecondaryActionTimer(m1.entityId, MarineSecondary.ROCKET_LAUNCHER.aimDuration);
-        sim.world().setSecondaryAimTargetId(m1.entityId, Unit.idOf(turret));
+        sim.world().setSecondaryAimTargetId(m1.entityId, Entity.idOf(turret));
 
         assertFalse(sim.getTacticalScoring().shouldCommitRocket(m2, turret),
                 "third marine sees two inbound rockets (overkill) and must hold fire");
@@ -741,14 +741,14 @@ public class TacticalScoringTest {
         // marine in the squad should hold fire — the most common volley case.
         BattleSimulation sim = openArena(20, 20);
         int squadId = sim.mintSquad(Faction.MARINE, null);
-        Unit m0 = rocketeer(sim, Faction.MARINE, 5, 5);
+        Entity m0 = rocketeer(sim, Faction.MARINE, 5, 5);
         m0.squadId = squadId;
-        Unit m1 = rocketeer(sim, Faction.MARINE, 5, 6);
+        Entity m1 = rocketeer(sim, Faction.MARINE, 5, 6);
         m1.squadId = squadId;
         MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
 
         sim.world().setSecondaryActionTimer(m0.entityId, MarineSecondary.ROCKET_LAUNCHER.aimDuration);
-        sim.world().setSecondaryAimTargetId(m0.entityId, Unit.idOf(turret));
+        sim.world().setSecondaryAimTargetId(m0.entityId, Entity.idOf(turret));
 
         assertFalse(sim.getTacticalScoring().shouldCommitRocket(m1, turret),
                 "Vulcan only needs one rocket — second marine must hold fire");
@@ -757,7 +757,7 @@ public class TacticalScoringTest {
     @Test
     public void shouldCommitRocketBlocksOnInflightProjectile() {
         BattleSimulation sim = openArena(20, 20);
-        Unit rocketeer = rocketeer(sim, Faction.MARINE, 5, 5);
+        Entity rocketeer = rocketeer(sim, Faction.MARINE, 5, 5);
         MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
 
         // Stuff enough damage into the inflight projectile list to kill the
@@ -789,7 +789,7 @@ public class TacticalScoringTest {
         // commit projection (defenders rocketing their own turret would be a
         // bug, but the gate is per-shooter-faction either way).
         BattleSimulation sim = openArena(20, 20);
-        Unit rocketeer = rocketeer(sim, Faction.MARINE, 5, 5);
+        Entity rocketeer = rocketeer(sim, Faction.MARINE, 5, 5);
         MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
 
         float bigDamage = sim.world().maxHp(turret.entityId) * 2f;
@@ -818,15 +818,15 @@ public class TacticalScoringTest {
         int squadA = sim.mintSquad(Faction.MARINE, null);
         int squadB = sim.mintSquad(Faction.MARINE, null);
 
-        Unit mA = rocketeer(sim, Faction.MARINE, 5, 5);
+        Entity mA = rocketeer(sim, Faction.MARINE, 5, 5);
         mA.squadId = squadA;
-        Unit mB = rocketeer(sim, Faction.MARINE, 5, 6);
+        Entity mB = rocketeer(sim, Faction.MARINE, 5, 6);
         mB.squadId = squadB;
 
         MapTurret turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
 
         sim.world().setSecondaryActionTimer(mA.entityId, MarineSecondary.ROCKET_LAUNCHER.aimDuration);
-        sim.world().setSecondaryAimTargetId(mA.entityId, Unit.idOf(turret));
+        sim.world().setSecondaryAimTargetId(mA.entityId, Entity.idOf(turret));
 
         assertTrue(sim.getTacticalScoring().shouldCommitRocket(mB, turret),
                 "squad coordination is per-squad — different squads don't block each other");
@@ -863,7 +863,7 @@ public class TacticalScoringTest {
     public void countCombatantsWithinDropsDeadUnits() {
         BattleSimulation sim = openArena(30, 30);
         unit(sim, Faction.MARINE, 15, 15);
-        Unit doomed = unit(sim, Faction.MARINE, 16, 15);
+        Entity doomed = unit(sim, Faction.MARINE, 16, 15);
         TacticalScoring s = sim.getTacticalScoring();
         assertEquals(2, s.countCombatantsWithin(Faction.MARINE, 15, 15, 8f), "both alive");
 
@@ -898,8 +898,8 @@ public class TacticalScoringTest {
         // the SQ-96 freeze (findFiringPosition hands back a LOS+range cell that
         // GridPathfinder can't route to).
         BattleSimulation sim = twoRoomsWalledAt11();
-        Unit marine = new Unit("m", Faction.MARINE, UnitType.MARINE, 5, 4);
-        Unit enemy  = new Unit("d", Faction.DEFENDER, UnitType.MARINE, 17, 4);
+        Entity marine = new Entity("m", Faction.MARINE, UnitType.MARINE, 5, 4);
+        Entity enemy  = new Entity("d", Faction.DEFENDER, UnitType.MARINE, 17, 4);
         sim.addUnit(marine);
         sim.addUnit(enemy);
 
@@ -916,8 +916,8 @@ public class TacticalScoringTest {
         BattleSimulation sim = twoRoomsWalledAt11();
         sim.getGrid().setWalkableFloor(11, 4);
         sim.getGrid().setDoorway(11, 4, true);
-        Unit marine = new Unit("m", Faction.MARINE, UnitType.MARINE, 5, 4);
-        Unit enemy  = new Unit("d", Faction.DEFENDER, UnitType.MARINE, 17, 4);
+        Entity marine = new Entity("m", Faction.MARINE, UnitType.MARINE, 5, 4);
+        Entity enemy  = new Entity("d", Faction.DEFENDER, UnitType.MARINE, 17, 4);
         sim.addUnit(marine);
         sim.addUnit(enemy);
 
@@ -934,9 +934,9 @@ public class TacticalScoringTest {
         // Two enemies in range and LoS; the helper returns the nearer one —
         // an opportunistic shot is "closest thing I can hit," no scoring.
         BattleSimulation sim = openArena(40, 10);
-        Unit marine = unit(sim, Faction.MARINE, 5, 5);
+        Entity marine = unit(sim, Faction.MARINE, 5, 5);
         unit(sim, Faction.DEFENDER, 20, 5);             // distance 15
-        Unit near = unit(sim, Faction.DEFENDER, 12, 5); // distance 7
+        Entity near = unit(sim, Faction.DEFENDER, 12, 5); // distance 7
 
         assertEquals(near, sim.getTacticalScoring().closestEnemyInAttackRange(marine),
                 "nearest in-range enemy is the opportunistic target");
@@ -947,7 +947,7 @@ public class TacticalScoringTest {
         // MARINE attack range is 24; an enemy at distance 30 can't be hit, so
         // the marching member gets no opportunistic shot and keeps advancing.
         BattleSimulation sim = openArena(50, 10);
-        Unit marine = unit(sim, Faction.MARINE, 5, 5);
+        Entity marine = unit(sim, Faction.MARINE, 5, 5);
         unit(sim, Faction.DEFENDER, 35, 5);             // distance 30 > 24
 
         assertNull(sim.getTacticalScoring().closestEnemyInAttackRange(marine),
@@ -959,7 +959,7 @@ public class TacticalScoringTest {
         // A same-faction marine and an enemy civilian are both in range; neither
         // draws fire, so the helper returns null.
         BattleSimulation sim = openArena(40, 10);
-        Unit marine = unit(sim, Faction.MARINE, 5, 5);
+        Entity marine = unit(sim, Faction.MARINE, 5, 5);
         unit(sim, Faction.MARINE, 8, 5);                       // friendly
         unit(sim, Faction.DEFENDER, UnitType.CIVILIAN, 10, 5); // non-combatant
 
@@ -975,8 +975,8 @@ public class TacticalScoringTest {
         // but a wall at x=7 blocks the lane.
         BattleSimulation sim = twoRoomsWalledAt11();
         sim.getGrid().setWalkable(7, 4, false);  // drop a blocker in the lane
-        Unit marine = new Unit("m", Faction.MARINE, UnitType.MARINE, 5, 4);
-        Unit enemy  = new Unit("d", Faction.DEFENDER, UnitType.MARINE, 9, 4);
+        Entity marine = new Entity("m", Faction.MARINE, UnitType.MARINE, 5, 4);
+        Entity enemy  = new Entity("d", Faction.DEFENDER, UnitType.MARINE, 9, 4);
         sim.addUnit(marine);
         sim.addUnit(enemy);
 

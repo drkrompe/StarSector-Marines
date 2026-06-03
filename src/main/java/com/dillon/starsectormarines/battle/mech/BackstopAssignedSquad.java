@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.mech;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
@@ -66,7 +66,7 @@ public final class BackstopAssignedSquad implements Action {
     @Override public int requiredMembers() { return 1; }
 
     @Override
-    public ActionStatus execute(Unit member, Squad squad, BattleControl sim) {
+    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
         // Non-ARMORED_SUPPORT members fall through to parity (mixed squads).
         if (member.mech == null || member.mech.role != MechRole.ARMORED_SUPPORT) {
             return EngageAtCurrentBand.INSTANCE.execute(member, squad, sim);
@@ -125,10 +125,10 @@ public final class BackstopAssignedSquad implements Action {
 
         // Fire pass — all three weapons free. Backstop doctrine is "throw
         // everything you have at whatever the marines are shooting at."
-        Unit target = sim.targetOf(member);
+        Entity target = sim.targetOf(member);
         if (target == null) {
             target = sim.getTacticalScoring().findBestTarget(member);
-            sim.world().setTargetId(member.entityId, Unit.idOf(target));
+            sim.world().setTargetId(member.entityId, Entity.idOf(target));
         }
         if (target != null) {
             float dist = TacticalScoring.cellDistance(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
@@ -148,7 +148,7 @@ public final class BackstopAssignedSquad implements Action {
      * target. Returns {@code null} when no friendly infantry squad exists
      * (mech-only side, or all infantry wiped) — caller falls back to parity.
      */
-    private static Squad pickBackedSquad(Unit member, Squad selfSquad, BattleView sim) {
+    private static Squad pickBackedSquad(Entity member, Squad selfSquad, BattleView sim) {
         Squad best = null;
         float bestDist = Float.MAX_VALUE;
         for (Squad other : sim.getSquads()) {
@@ -181,7 +181,7 @@ public final class BackstopAssignedSquad implements Action {
      * cell. Returns {@code null} when no walkable cell exists within a
      * small search radius (essentially never, but defensive).
      */
-    private static int[] pickBackstopCell(Unit member, Squad selfSquad, Squad backed, BattleView sim) {
+    private static int[] pickBackstopCell(Entity member, Squad selfSquad, Squad backed, BattleView sim) {
         NavigationGrid grid = sim.getGrid();
         float cx = backed.centroidX;
         float cy = backed.centroidY;

@@ -21,7 +21,7 @@ package com.dillon.starsectormarines.battle.sim;
  * convergence; the next tick's rebuild resets the picture.
  *
  * <p>The unit is held as an entity id (resolved through the registry at drain
- * time), not a {@code Unit} ref. The drain runs in APPLY_OCCUPANCY, before any
+ * time), not a {@code Entity} ref. The drain runs in APPLY_OCCUPANCY, before any
  * death/release this tick, so a non-null resolve is expected — but going
  * through the id keeps the queue free of held object refs. {@code 0L} = none.
  */

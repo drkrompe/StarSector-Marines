@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
@@ -40,14 +40,14 @@ public class BreakLOSTest {
         return new BattleSimulation(grid, new CellTopology(W, H));
     }
 
-    private static Unit marineAt(int x, int y, int squadId) {
-        Unit u = new Unit("m", Faction.MARINE, UnitType.MARINE, x, y);
+    private static Entity marineAt(int x, int y, int squadId) {
+        Entity u = new Entity("m", Faction.MARINE, UnitType.MARINE, x, y);
         u.squadId = squadId;
         return u;
     }
 
-    private static Unit defenderAt(int x, int y) {
-        return new Unit("d", Faction.DEFENDER, UnitType.MARINE, x, y);
+    private static Entity defenderAt(int x, int y) {
+        return new Entity("d", Faction.DEFENDER, UnitType.MARINE, x, y);
     }
 
     @Test
@@ -75,7 +75,7 @@ public class BreakLOSTest {
         // rows 3..11, so row 2 is open across the entire column). Defender at
         // (10, 2) has LOS to the marine; findFallbackPosition must pick a
         // different (hidden) cell.
-        Unit marine = marineAt(2, 2, squadId);
+        Entity marine = marineAt(2, 2, squadId);
         sim.addUnit(marine);
         sim.world().setFallbackCell(marine.entityId, -1, -1);
         sim.addUnit(defenderAt(11, 7));
@@ -103,7 +103,7 @@ public class BreakLOSTest {
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
 
-        Unit marine = marineAt(2, 2, squadId);
+        Entity marine = marineAt(2, 2, squadId);
         sim.addUnit(marine);
         // Force "arrived" — fallback cell == current cell.
         sim.world().setFallbackCell(marine.entityId, 2, 2);
@@ -128,7 +128,7 @@ public class BreakLOSTest {
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
 
-        Unit marine = marineAt(5, 7, squadId);
+        Entity marine = marineAt(5, 7, squadId);
         sim.addUnit(marine);
         // Pre-cache a destination that's not the current cell.
         sim.world().setFallbackCell(marine.entityId, 4, 7);
@@ -153,7 +153,7 @@ public class BreakLOSTest {
         Squad squad = sim.getSquad(squadId);
         squad.aliveMembers = 1;
 
-        Unit marine = marineAt(2, 2, squadId);
+        Entity marine = marineAt(2, 2, squadId);
         sim.addUnit(marine);
         // Cached destination on the open side of the map — fully visible to
         // the defender at (5, 2). Pre-fix: held this cell forever.

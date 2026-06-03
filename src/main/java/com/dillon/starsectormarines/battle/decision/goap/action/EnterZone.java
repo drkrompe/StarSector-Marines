@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.decision.goap.action;
 
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
@@ -61,7 +61,7 @@ public final class EnterZone extends AbstractZoneAction {
     @Override public String name() { return "EnterZone[" + targetZoneId + "]"; }
 
     @Override
-    public ActionStatus execute(Unit member, Squad squad, BattleControl sim) {
+    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
         if (memberInZone(member, sim)) {
             return ActionStatus.SUCCESS;
         }

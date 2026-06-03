@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.ui.picking;
 
 import com.dillon.starsectormarines.battle.vehicle.Vehicle;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
 import com.dillon.starsectormarines.render2d.BattleCamera;
@@ -63,8 +63,8 @@ public final class WorldPicker implements HudPanel {
                 continue;
             }
 
-            Unit picked = nearestUnit(sim, worldX, worldY);
-            if (picked != null && picked.squadId != Unit.NO_SQUAD) {
+            Entity picked = nearestUnit(sim, worldX, worldY);
+            if (picked != null && picked.squadId != Entity.NO_SQUAD) {
                 ctx.getSelection().selectUnit(picked.squadId, picked.id);
             } else {
                 ctx.getSelection().clear();
@@ -93,11 +93,11 @@ public final class WorldPicker implements HudPanel {
         return bestIdx;
     }
 
-    private static Unit nearestUnit(BattleSimulation sim, float worldX, float worldY) {
-        Unit best = null;
+    private static Entity nearestUnit(BattleSimulation sim, float worldX, float worldY) {
+        Entity best = null;
         float bestDistSq = PICK_RADIUS_CELLS * PICK_RADIUS_CELLS;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Unit u = sim.liveUnitAt(i);
+            Entity u = sim.liveUnitAt(i);
             float dx = u.getRenderX() - worldX;
             float dy = u.getRenderY() - worldY;
             float d2 = dx * dx + dy * dy;

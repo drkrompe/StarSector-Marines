@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.mech;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
@@ -43,7 +43,7 @@ public final class MechBreakContact implements Action {
     @Override public int requiredMembers() { return 1; }
 
     @Override
-    public ActionStatus execute(Unit member, Squad squad, BattleControl sim) {
+    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
         if (sim.getTacticalScoring().fallbackDestinationNeedsRefresh(member)) {
             int[] dest = sim.getTacticalScoring().findFallbackPosition(member);
             sim.world().setFallbackCell(member.entityId, dest[0], dest[1]);
@@ -76,12 +76,12 @@ public final class MechBreakContact implements Action {
      * accuracy penalty — preserves the "arc artillery over cover while
      * pulling back" read.
      */
-    private static void opportunisticMechFire(Unit u, BattleControl sim) {
-        Unit target = sim.targetOf(u);
+    private static void opportunisticMechFire(Entity u, BattleControl sim) {
+        Entity target = sim.targetOf(u);
         if (target == null
                 || !sim.getTacticalScoring().shouldKeepPursuing(u, target)) {
             target = sim.getTacticalScoring().findBestTarget(u);
-            sim.world().setTargetId(u.entityId, Unit.idOf(target));
+            sim.world().setTargetId(u.entityId, Entity.idOf(target));
         }
         if (target == null) return;
         float dist = TacticalScoring.cellDistance(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId),

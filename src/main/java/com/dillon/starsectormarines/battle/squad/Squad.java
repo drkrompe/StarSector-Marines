@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.squad;
 
 import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
-import com.dillon.starsectormarines.battle.drone.DroneSpawner;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
@@ -12,7 +11,7 @@ import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 
 /**
  * A fireteam of marines that deboarded from one shuttle, or a defender squad
@@ -23,7 +22,7 @@ import com.dillon.starsectormarines.battle.unit.Unit;
  * engaged branch in {@link com.dillon.starsectormarines.battle.infantry.HoldPost}
  * and {@link com.dillon.starsectormarines.battle.infantry.PatrolRoute}.
  *
- * <p>Squad identity is just an integer key on {@link Unit#squadId}. The
+ * <p>Squad identity is just an integer key on {@link Entity#squadId}. The
  * {@link Squad} object holds metadata the AI consults — leader pointer,
  * alert state, the assigned tactical node for garrison/patrol squads, and
  * the last cell an enemy was seen at (for SUSPICIOUS-state convergence).
@@ -67,10 +66,10 @@ public final class Squad {
      * pulls drifting members toward; a fully-wiped squad has {@code leaderId == 0L}
      * and the cohesion helper falls back to the others-centroid.
      *
-     * <p>Held as an id, not a {@link Unit} ref: the leader can die and be
+     * <p>Held as an id, not a {@link Entity} ref: the leader can die and be
      * released from the registry while the squad lives on, so a held object ref
      * would dangle (the {@code isAlive()}-on-a-corpse hazard). Resolve to the
-     * live {@link Unit} on demand via {@code sim.resolveUnit(leaderId)} /
+     * live {@link Entity} on demand via {@code sim.resolveUnit(leaderId)} /
      * {@code registry.getOrNull(leaderId)} — {@code null} means dead-or-none.
      * Compare membership by id ({@code member.entityId == leaderId}).
      */

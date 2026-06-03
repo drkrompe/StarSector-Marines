@@ -1,9 +1,6 @@
 package com.dillon.starsectormarines.battle.unit;
 
-import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
-import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.combat.DamageService;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -26,8 +23,8 @@ import java.util.List;
  *       {@link #getSquad(int)} (synchronized to fence against same-tick
  *       {@link #mintSquad} from drone-hub spawns), iteration via
  *       {@link #getSquads()} (live values view; safe in serial phases).</li>
- *   <li>Parallel-safe spawn queue — {@link #queueSpawn(Unit)} routes serial
- *       callers through the inline {@link #addUnit(Unit)} path and parallel
+ *   <li>Parallel-safe spawn queue — {@link #queueSpawn(Entity)} routes serial
+ *       callers through the inline {@link #addUnit(Entity)} path and parallel
  *       callers through {@link #pendingSpawns}, drained by
  *       {@link #flushPendingSpawns()} in the APPLY_SPAWNS phase. Sibling
  *       pattern to {@link DamageService}'s three queues; the in-flight
@@ -87,9 +84,9 @@ public final class UnitRosterService {
      * GROUND_SYSTEM deboard paths stay on inline {@link #addUnit} because
      * they run in serial phases.
      */
-    private final ArrayList<Unit> pendingSpawns = new ArrayList<>();
+    private final ArrayList<Entity> pendingSpawns = new ArrayList<>();
     /** Read-only view for callers that need to inspect pending spawns before the drain (e.g., fog-of-war contributor registration). */
-    public List<Unit> getPendingSpawns() { return pendingSpawns; }
+    public List<Entity> getPendingSpawns() { return pendingSpawns; }
 
     /** Next squad id to assign on shuttle deboard. Monotonically increasing across the battle's lifetime. */
     private int nextSquadId = 0;
@@ -124,7 +121,7 @@ public final class UnitRosterService {
      * still does the full {@link UnitSpatialIndex#rebuild} each frame, so
      * this mirror is purely additive.
      */
-    public void addUnit(Unit u) {
+    public void addUnit(Entity u) {
         registry.allocate(u);
         unitIndex.add(registry, u);
     }
@@ -145,7 +142,7 @@ public final class UnitRosterService {
 
     /**
      * Parallel-safe addition variant for callers running inside UPDATE_UNITS.
-     * Routes serial callers through inline {@link #addUnit(Unit)}; parallel
+     * Routes serial callers through inline {@link #addUnit(Entity)}; parallel
      * callers append to {@link #pendingSpawns}, drained by
      * {@link #flushPendingSpawns()} in the APPLY_SPAWNS phase. The
      * parallel-flag itself lives on {@link DamageService} so the two
@@ -157,7 +154,7 @@ public final class UnitRosterService {
      * first and could pick the same cell. Hub spawn intervals make same-tick
      * double-spawn rare; the next tick's REBUILD_OCCUPANCY restores the picture.
      */
-    public void queueSpawn(Unit u) {
+    public void queueSpawn(Entity u) {
         if (!damageService.isParallel()) {
             addUnit(u);
             return;
@@ -182,7 +179,7 @@ public final class UnitRosterService {
 
     /**
      * Returns the squad with the given id, or {@code null} if
-     * {@code id == Unit.NO_SQUAD} or the squad was never registered.
+     * {@code id == Entity.NO_SQUAD} or the squad was never registered.
      * Synchronized on the same monitor as {@link #mintSquad}'s put — with
      * the pre-sized {@link #squads} (no rehash) the put is a single-slot
      * store, but without happens-before a concurrent get can still see
@@ -190,13 +187,13 @@ public final class UnitRosterService {
      * mid-dispatch caller of mintSquad; everyone else mints at setup.
      */
     public Squad getSquad(int id) {
-        if (id == Unit.NO_SQUAD) return null;
+        if (id == Entity.NO_SQUAD) return null;
         synchronized (squads) {
             return squads.get(id);
         }
     }
 
-    /** All squads currently registered. Used by the per-tick alert update; behaviors should read individual squads via {@link #getSquad(int)} keyed off {@link Unit#squadId}. */
+    /** All squads currently registered. Used by the per-tick alert update; behaviors should read individual squads via {@link #getSquad(int)} keyed off {@link Entity#squadId}. */
     public Collection<Squad> getSquads() { return squads.values(); }
 
     /**
@@ -206,7 +203,7 @@ public final class UnitRosterService {
      * the same tick. The squads map is pre-sized to avoid rehash, so
      * concurrent get() callers see consistent state.
      */
-    public int mintSquad(Faction faction, Unit leader) {
+    public int mintSquad(Faction faction, Entity leader) {
         synchronized (squads) {
             Squad squad = new Squad(nextSquadId++, faction);
             // leader may be null (some callers mint an empty squad first, then

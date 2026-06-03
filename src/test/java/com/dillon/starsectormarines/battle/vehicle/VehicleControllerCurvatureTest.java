@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Unit coverage for {@link VehicleController}'s curvature speed governor —
+ * Entity coverage for {@link VehicleController}'s curvature speed governor —
  * {@link VehicleController#previewTurnDegrees} (the bend signal) and
  * {@link VehicleController#curvatureSpeedCap} (its mapping to a speed cap). These
  * back the fix for "trucks miss a tight turn at cruise and reverse out": the

@@ -18,7 +18,7 @@ import java.util.Arrays;
  * insert time into a {@link Bucket}'s parallel {@code cellX}/{@code cellY}
  * arrays, so {@link #gather}'s distance filter reads a stored int rather than
  * the unit's live cell. This (a) keeps the cell read off the dense SoA — no
- * {@code Unit} indirection and no per-candidate registry probe — and (b) makes
+ * {@code Entity} indirection and no per-candidate registry probe — and (b) makes
  * the index self-consistent: bucketing <em>and</em> the distance test both use
  * the same rebuild-time position. Queries therefore see positions as of the
  * last {@link #rebuild}, which is exactly the per-tick-snapshot contract.
@@ -51,12 +51,12 @@ public final class UnitSpatialIndex {
      * the unit (no SoA indirection, no registry probe per candidate).
      */
     private static final class Bucket {
-        Unit[] units = new Unit[8];
+        Entity[] units = new Entity[8];
         int[] cellX = new int[8];
         int[] cellY = new int[8];
         int size;
 
-        void add(Unit u, int x, int y) {
+        void add(Entity u, int x, int y) {
             if (size == units.length) {
                 int cap = size << 1;
                 units = Arrays.copyOf(units, cap);
@@ -104,7 +104,7 @@ public final class UnitSpatialIndex {
      * range directly — released slots are excluded by the registry, so no
      * per-call {@code isAlive()} branch in the inner loop. Cell positions
      * are read from the SoA arrays ({@code cellXArray()} / {@code cellYArray()})
-     * with no Unit-object indirection, then stored alongside the {@code Unit}
+     * with no Entity-object indirection, then stored alongside the {@code Entity}
      * ref in the bucket so {@link #gather} never has to read them back.
      */
     public void rebuild(UnitRegistry registry) {
@@ -117,7 +117,7 @@ public final class UnitSpatialIndex {
                 buckets[i] = null;
             }
         }
-        Unit[] dense = registry.denseArray();
+        Entity[] dense = registry.denseArray();
         int[] cellX = registry.cellXArray();
         int[] cellY = registry.cellYArray();
         int liveCount = registry.liveCount();
@@ -142,7 +142,7 @@ public final class UnitSpatialIndex {
      * <p>Takes the registry to resolve the unit's cell once (by entity id) —
      * the cell is denormalized into the bucket, mirroring {@link #rebuild}.
      */
-    public void add(UnitRegistry registry, Unit u) {
+    public void add(UnitRegistry registry, Entity u) {
         this.registry = registry;
         if (!registry.isAliveById(u.entityId)) return;
         int idx = registry.requireLiveIndex(u.entityId);
@@ -179,7 +179,7 @@ public final class UnitSpatialIndex {
      * combatant flag, or per-unit attack range is left to the caller: the
      * index is a primitive over <em>all</em> alive units, not a slice.
      */
-    public void gather(int cx, int cy, float radius, ArrayList<Unit> out) {
+    public void gather(int cx, int cy, float radius, ArrayList<Entity> out) {
         out.clear();
         if (radius <= 0f) return;
         int r = (int) Math.ceil(radius);
@@ -195,11 +195,11 @@ public final class UnitSpatialIndex {
             for (int bx = x0; bx <= x1; bx++) {
                 Bucket bucket = buckets[by * bucketsX + bx];
                 if (bucket == null) continue;
-                Unit[] units = bucket.units;
+                Entity[] units = bucket.units;
                 int[] bcx = bucket.cellX;
                 int[] bcy = bucket.cellY;
                 for (int i = 0, n = bucket.size; i < n; i++) {
-                    Unit u = units[i];
+                    Entity u = units[i];
                     // Skip units released since the last rebuild — the index is a
                     // per-tick snapshot, so a unit killed (and registry-released)
                     // mid-tick lingers in its old bucket until then. The snapshot

@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
@@ -23,7 +23,7 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
  * satisfies the desired-state slot and Engage doesn't. Keeping it modest
  * stops the planner from prepending BreakLOS in unrelated plans.
  *
- * <p>Destination caching reuses {@link Unit#getFallbackCellX()}/{@link Unit#getFallbackCellY()}
+ * <p>Destination caching reuses {@link Entity#getFallbackCellX()}/{@link Entity#getFallbackCellY()}
  * — same fields {@link BreakContact} uses. Re-rolls via the shared
  * {@link TacticalScoring#fallbackDestinationNeedsRefresh} when the cached
  * cell is unset or has become visible to an enemy; otherwise holds the cell
@@ -54,7 +54,7 @@ public final class BreakLOS implements Action {
     @Override public int requiredMembers() { return 1; }
 
     @Override
-    public ActionStatus execute(Unit member, Squad squad, BattleControl sim) {
+    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
         if (sim.getTacticalScoring().fallbackDestinationNeedsRefresh(member)) {
             int[] dest = sim.getTacticalScoring().findFallbackPosition(member);
             sim.world().setFallbackCell(member.entityId, dest[0], dest[1]);

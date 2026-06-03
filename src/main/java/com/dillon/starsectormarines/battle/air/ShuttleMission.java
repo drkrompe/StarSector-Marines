@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.air;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.turret.TurretRole;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 
 /**
@@ -73,10 +73,10 @@ public final class ShuttleMission {
 
     /**
      * Squad identity stamped on every marine deboarded this sortie. Lazily set
-     * to a fresh id on the first deboard; {@link Unit#NO_SQUAD} means "no squad
+     * to a fresh id on the first deboard; {@link Entity#NO_SQUAD} means "no squad
      * minted yet."
      */
-    public int squadId = Unit.NO_SQUAD;
+    public int squadId = Entity.NO_SQUAD;
 
     /**
      * Current HP. Seeded from {@link ShuttleType#maxHp}. Drives the

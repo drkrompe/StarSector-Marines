@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Unit tests for {@link RenderPositionService} — the entity-id-keyed render
+ * Entity tests for {@link RenderPositionService} — the entity-id-keyed render
  * position store decomposed out of {@link UnitRegistry}. Covers the float
  * paired/single-axis API, absent-entity reads, presence, and that entries
  * persist (the "survives release" property the corpse relies on is just "we

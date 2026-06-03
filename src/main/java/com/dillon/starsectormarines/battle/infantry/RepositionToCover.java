@@ -3,8 +3,7 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
-import com.dillon.starsectormarines.battle.decision.TacticalScoring;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
@@ -19,7 +18,7 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
  * inter-burst micro-movement happen tick-by-tick the way the story wants
  * ("members shift one or two cells between bursts").
  *
- * <p>Cooldown-gated via {@link Unit#getRepositionCooldown()}: when the per-unit
+ * <p>Cooldown-gated via {@link Entity#getRepositionCooldown()}: when the per-unit
  * timer is ready, look for a cover cell that's strictly better than current
  * (cover-preferred picker won't pick a downgrade), and only path there if
  * one exists. A setup machine gunner in heavy cover whose current cell
@@ -40,7 +39,7 @@ public final class RepositionToCover implements Action {
 
     /**
      * Sim-seconds between successful repositions per unit. Set on
-     * {@link Unit#getRepositionCooldown()} when a move actually fires; gates the
+     * {@link Entity#getRepositionCooldown()} when a move actually fires; gates the
      * next attempt. Decorrelated across squadmates because each member's
      * cooldown only resets when <em>their</em> shot lands the move — so the
      * squad's repositions naturally stagger.
@@ -63,9 +62,9 @@ public final class RepositionToCover implements Action {
      * callers don't have to act on it, but a debug overlay can use it to
      * read "this tick: shifted vs. held."
      */
-    public static boolean tryReposition(Unit member, BattleControl sim) {
+    public static boolean tryReposition(Entity member, BattleControl sim) {
         if (sim.world().repositionCooldown(member.entityId) > 0f) return false;
-        Unit target = sim.targetOf(member);
+        Entity target = sim.targetOf(member);
         if (target == null) return false;
         int[] dest = sim.getTacticalScoring().findFiringPositionCoverPreferred(
                 member, target, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
@@ -78,7 +77,7 @@ public final class RepositionToCover implements Action {
     }
 
     @Override
-    public ActionStatus execute(Unit member, Squad squad, BattleControl sim) {
+    public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
         // Standalone-action path — exists for testability and for future
         // callers that might want to schedule reposition as a planner step.
         // Inline path through tryReposition is the production hot path.

@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
@@ -101,7 +101,7 @@ public class GarrisonAmbushTest {
         // holdsFireUntilKillZone left false — marine-deboard / patrol shape.
 
         // Add an attacker so enemyKnown() would otherwise be true.
-        sim.addUnit(new Unit("a1", Faction.MARINE, UnitType.MARINE, 1, 1));
+        sim.addUnit(new Entity("a1", Faction.MARINE, UnitType.MARINE, 1, 1));
 
         assertEquals(0f, GarrisonAmbush.INSTANCE.relevance(WorldState.EMPTY, squad, sim),
                 "no holdsFireUntilKillZone → goal inactive");
@@ -123,10 +123,10 @@ public class GarrisonAmbushTest {
         // Put a defender member inside the room too, so the live roster reflects
         // a realistic squad layout (the relevance check itself only consults
         // squad.holdsFireUntilKillZone + the live units for "enemy known").
-        Unit defender = new Unit("d1", Faction.DEFENDER, UnitType.MARINE, 5, 6);
+        Entity defender = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 5, 6);
         defender.squadId = squad.id;
         sim.addUnit(defender);
-        sim.addUnit(new Unit("a1", Faction.MARINE, UnitType.MARINE, 1, 1));
+        sim.addUnit(new Entity("a1", Faction.MARINE, UnitType.MARINE, 1, 1));
 
         assertTrue(GarrisonAmbush.INSTANCE.relevance(WorldState.EMPTY, squad, sim) > 0f,
                 "garrison-routed squad in a zone with portals + visible enemy → goal fires");
@@ -140,13 +140,13 @@ public class GarrisonAmbushTest {
         assertEquals(1, portalCount, "test prerequisite: single-portal room");
 
         Squad squad = garrisonSquadAt(1, 6f, 6f, 2);
-        Unit d1 = new Unit("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5);
+        Entity d1 = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5);
         d1.squadId = squad.id;
-        Unit d2 = new Unit("d2", Faction.DEFENDER, UnitType.MARINE, 7, 5);
+        Entity d2 = new Entity("d2", Faction.DEFENDER, UnitType.MARINE, 7, 5);
         d2.squadId = squad.id;
         sim.addUnit(d1);
         sim.addUnit(d2);
-        sim.addUnit(new Unit("a1", Faction.MARINE, UnitType.MARINE, 1, 1));
+        sim.addUnit(new Entity("a1", Faction.MARINE, UnitType.MARINE, 1, 1));
 
         SquadPlan plan = GarrisonAmbush.INSTANCE.customPlan(squad, sim);
         assertNotNull(plan, "single-portal zone should yield a plan");
@@ -167,13 +167,13 @@ public class GarrisonAmbushTest {
         assertEquals(2, portalCount, "test prerequisite: multi-portal room with two doorways");
 
         Squad squad = garrisonSquadAt(1, 6f, 6f, 2);
-        Unit d1 = new Unit("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5);
+        Entity d1 = new Entity("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5);
         d1.squadId = squad.id;
-        Unit d2 = new Unit("d2", Faction.DEFENDER, UnitType.MARINE, 7, 5);
+        Entity d2 = new Entity("d2", Faction.DEFENDER, UnitType.MARINE, 7, 5);
         d2.squadId = squad.id;
         sim.addUnit(d1);
         sim.addUnit(d2);
-        sim.addUnit(new Unit("a1", Faction.MARINE, UnitType.MARINE, 1, 1));
+        sim.addUnit(new Entity("a1", Faction.MARINE, UnitType.MARINE, 1, 1));
 
         SquadPlan plan = GarrisonAmbush.INSTANCE.customPlan(squad, sim);
         assertNotNull(plan, "multi-portal zone should yield a plan");

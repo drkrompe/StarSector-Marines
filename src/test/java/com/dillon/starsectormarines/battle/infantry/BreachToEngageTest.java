@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
@@ -51,12 +51,12 @@ public class BreachToEngageTest {
         // have. Other members nearby in row-major.
         int lx = Math.round(cx);
         int ly = Math.round(cy);
-        Unit first = new Unit("m0", Faction.MARINE, UnitType.MARINE, lx, ly);
+        Entity first = new Entity("m0", Faction.MARINE, UnitType.MARINE, lx, ly);
         int sid = sim.mintSquad(Faction.MARINE, first);
         first.squadId = sid;
         sim.addUnit(first);
         for (int i = 1; i < memberCount; i++) {
-            Unit u = new Unit("m" + i, Faction.MARINE, UnitType.MARINE, lx + i, ly);
+            Entity u = new Entity("m" + i, Faction.MARINE, UnitType.MARINE, lx + i, ly);
             u.squadId = sid;
             sim.addUnit(u);
         }
@@ -79,7 +79,7 @@ public class BreachToEngageTest {
         Squad squad = marineSquadAt(sim, 2, 3f, 6f);
         squad.holdsFireUntilKillZone = true;
         // Across-portal target.
-        sim.addUnit(new Unit("e", Faction.DEFENDER, UnitType.MARINE, 11, 6));
+        sim.addUnit(new Entity("e", Faction.DEFENDER, UnitType.MARINE, 11, 6));
 
         assertEquals(0f, BreachToEngage.INSTANCE.relevance(WorldState.EMPTY, squad, sim),
                 "garrison squads hold position — never breach");
@@ -90,7 +90,7 @@ public class BreachToEngageTest {
         BattleSimulation sim = twoZoneSim();
         Squad squad = marineSquadAt(sim, 2, 3f, 6f);
         squad.moraleBroken = true;
-        sim.addUnit(new Unit("e", Faction.DEFENDER, UnitType.MARINE, 11, 6));
+        sim.addUnit(new Entity("e", Faction.DEFENDER, UnitType.MARINE, 11, 6));
 
         assertEquals(0f, BreachToEngage.INSTANCE.relevance(WorldState.EMPTY, squad, sim),
                 "broken squads pull back via SurviveContact — they don't breach");
@@ -110,7 +110,7 @@ public class BreachToEngageTest {
         BattleSimulation sim = twoZoneSim();
         Squad squad = marineSquadAt(sim, 2, 3f, 6f);
         // Enemy in the squad's zone — should engage normally, not breach.
-        sim.addUnit(new Unit("e", Faction.DEFENDER, UnitType.MARINE, 5, 6));
+        sim.addUnit(new Entity("e", Faction.DEFENDER, UnitType.MARINE, 5, 6));
 
         assertEquals(0f, BreachToEngage.INSTANCE.relevance(WorldState.EMPTY, squad, sim),
                 "in-zone target → EliminateEnemies handles it");
@@ -121,7 +121,7 @@ public class BreachToEngageTest {
         BattleSimulation sim = twoZoneSim();
         Squad squad = marineSquadAt(sim, 2, 3f, 6f);
         // Defender on the far side of the doorway, marines see them.
-        sim.addUnit(new Unit("e", Faction.DEFENDER, UnitType.MARINE, 11, 6));
+        sim.addUnit(new Entity("e", Faction.DEFENDER, UnitType.MARINE, 11, 6));
 
         assertTrue(BreachToEngage.INSTANCE.relevance(WorldState.EMPTY, squad, sim) > 0f,
                 "across-portal target with no in-zone alternative → breach fires");
@@ -132,8 +132,8 @@ public class BreachToEngageTest {
         BattleSimulation sim = twoZoneSim();
         Squad squad = marineSquadAt(sim, 2, 3f, 6f);
         // Two enemies: one in-zone (visible), one across portal.
-        sim.addUnit(new Unit("close", Faction.DEFENDER, UnitType.MARINE, 5, 6));
-        sim.addUnit(new Unit("far",   Faction.DEFENDER, UnitType.MARINE, 11, 6));
+        sim.addUnit(new Entity("close", Faction.DEFENDER, UnitType.MARINE, 5, 6));
+        sim.addUnit(new Entity("far",   Faction.DEFENDER, UnitType.MARINE, 11, 6));
 
         assertEquals(0f, BreachToEngage.INSTANCE.relevance(WorldState.EMPTY, squad, sim),
                 "in-zone enemy takes precedence — engage them first before breaching");
@@ -143,7 +143,7 @@ public class BreachToEngageTest {
     public void customPlanEmitsSingleBreachStep() {
         BattleSimulation sim = twoZoneSim();
         Squad squad = marineSquadAt(sim, 2, 3f, 6f);
-        sim.addUnit(new Unit("e", Faction.DEFENDER, UnitType.MARINE, 11, 6));
+        sim.addUnit(new Entity("e", Faction.DEFENDER, UnitType.MARINE, 11, 6));
 
         SquadPlan plan = BreachToEngage.INSTANCE.customPlan(squad, sim);
         assertNotNull(plan, "breach scenario should yield a plan");
@@ -156,7 +156,7 @@ public class BreachToEngageTest {
     public void customPlanCarriesPortalAndCellArrays() {
         BattleSimulation sim = twoZoneSim();
         Squad squad = marineSquadAt(sim, 3, 3f, 6f);
-        sim.addUnit(new Unit("e", Faction.DEFENDER, UnitType.MARINE, 11, 6));
+        sim.addUnit(new Entity("e", Faction.DEFENDER, UnitType.MARINE, 11, 6));
 
         SquadPlan plan = BreachToEngage.INSTANCE.customPlan(squad, sim);
         BreachAndAdvance action = (BreachAndAdvance) plan.steps().get(0).action;
@@ -175,7 +175,7 @@ public class BreachToEngageTest {
         BattleSimulation sim = twoZoneSim();
         // Squad centroid on the right side of the doorway already.
         Squad squad = marineSquadAt(sim, 2, 11f, 6f);
-        sim.addUnit(new Unit("e", Faction.DEFENDER, UnitType.MARINE, 12, 6));
+        sim.addUnit(new Entity("e", Faction.DEFENDER, UnitType.MARINE, 12, 6));
 
         assertNull(BreachToEngage.INSTANCE.customPlan(squad, sim),
                 "squad already in target zone → no portal hop needed");

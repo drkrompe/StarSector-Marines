@@ -12,7 +12,7 @@ import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.combat.RangeFalloff;
 import com.dillon.starsectormarines.battle.combat.ShotEndpoint;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 
 import java.util.ArrayList;
@@ -25,7 +25,7 @@ import java.util.List;
  * marines, militia, aliens, and any future squaddie wielding a
  * {@link MarineWeapon}.
  *
- * <p>Burst continuation state lives on each {@link Unit}
+ * <p>Burst continuation state lives on each {@link Entity}
  * ({@code burstRemaining} / {@code burstTimer} / {@code burstTargetId}) so a
  * shared subsystem instance can serve every unit without per-shooter scratch
  * space. Services are constructor-injected; the subsystem pushes events
@@ -52,7 +52,7 @@ public class InfantryWeapons {
      * reshuffle the slots out from under it. Only mid-burst units are gathered
      * (a small fraction), so the copy is cheap.
      */
-    private final List<Unit> burstScratch = new ArrayList<>();
+    private final List<Entity> burstScratch = new ArrayList<>();
 
     public InfantryWeapons(UnitRegistry registry,
                            DamageService damageService, HitResponseService hitResponse,
@@ -72,19 +72,19 @@ public class InfantryWeapons {
         // Gather the mid-burst units first (read-only over the dense registry),
         // then run the continuation pass over the snapshot — see burstScratch.
         burstScratch.clear();
-        Unit[] dense = registry.denseArray();
+        Entity[] dense = registry.denseArray();
         for (int i = 0, n = registry.liveCount(); i < n; i++) {
             if (registry.getBurstRemaining(i) > 0) burstScratch.add(dense[i]);
         }
         for (int i = 0, n = burstScratch.size(); i < n; i++) {
-            Unit u = burstScratch.get(i);
+            Entity u = burstScratch.get(i);
             if (!registry.isAliveById(u.entityId)) continue; // killed earlier this pass
             int idx = registry.requireLiveIndex(u.entityId);
             if (registry.getBurstRemaining(idx) <= 0) continue; // cleared earlier this pass
             float timer = registry.getBurstTimer(idx) - BattleSimulation.TICK_DT;
             registry.setBurstTimer(idx, timer);
             if (timer > 0f) continue;
-            Unit burstTarget = registry.getOrNull(registry.getBurstTargetId(idx));
+            Entity burstTarget = registry.getOrNull(registry.getBurstTargetId(idx));
             if (burstTarget == null || u.primaryWeapon == null) {
                 registry.setBurstRemaining(idx, 0);
                 registry.setBurstTargetId(idx, 0L);
@@ -110,7 +110,7 @@ public class InfantryWeapons {
     /**
      * Fires the shooter's primary at the target. Per-shot accuracy / damage /
      * vsTurret pull from the marine's {@link MarineWeapon} when assigned;
-     * otherwise from the {@link Unit}'s baked-in stats (militia, aliens,
+     * otherwise from the {@link Entity}'s baked-in stats (militia, aliens,
      * turrets — all the "no MarineWeapon" callers). Accuracy is multiplied
      * by {@code stance.accuracyMult} — STANCED preserves the base roll,
      * MOVING applies the on-the-move suppression penalty.
@@ -118,7 +118,7 @@ public class InfantryWeapons {
      * <p>Public because behaviors call this when firing; fall-back is also
      * rolled here, which can mutate the target's path via the context.
      */
-    public void fireShot(Unit shooter, Unit target, FireStance stance) {
+    public void fireShot(Entity shooter, Entity target, FireStance stance) {
         int shooterIdx = registry.requireLiveIndex(shooter.entityId);
         int targetIdx = registry.requireLiveIndex(target.entityId);
         float accuracy = registry.getAccuracy(shooterIdx);
@@ -126,7 +126,7 @@ public class InfantryWeapons {
         float vsTurretMult = 1f;
         // Distance-scaled accuracy + spread only apply when the shooter has
         // a per-weapon profile (marines). Militia / aliens / turrets fall
-        // through to their baked Unit stats with flat accuracy and the
+        // through to their baked Entity stats with flat accuracy and the
         // baseline miss-scatter ring — preserves the legacy behavior for
         // every "no MarineWeapon" caller.
         float dist = RangeFalloff.dist(registry.getCellX(shooterIdx), registry.getCellY(shooterIdx),
@@ -195,7 +195,7 @@ public class InfantryWeapons {
      * <p>Caller is responsible for verifying ammo &gt; 0 and within-range
      * before calling.
      */
-    public void fireSecondary(Unit shooter, Unit target) {
+    public void fireSecondary(Entity shooter, Entity target) {
         MarineSecondary sec = shooter.secondaryWeapon;
         if (sec == null || shooter.secondaryAmmo <= 0) return;
         shooter.secondaryAmmo--;

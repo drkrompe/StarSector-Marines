@@ -3,13 +3,13 @@ package com.dillon.starsectormarines.battle.turret;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 
 /**
  * A bolted-down static defense — a {@link TurretKind} mounted on a single
- * non-walkable map cell. Subclass of {@link Unit} so it slots into existing
+ * non-walkable map cell. Subclass of {@link Entity} so it slots into existing
  * code paths for free: target acquisition, line-of-sight, the firing pipeline,
  * the deaths-this-frame list, the renderer's unit pass. The differences are
  * narrow — immobile, custom firing arc, separate sprite path — and isolated
@@ -22,7 +22,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
  * On death, {@link BattleSimulation} flips the cell to walkable + rubble so
  * a destroyed turret stops blocking pathing and LOS.
  */
-public class MapTurret extends Unit {
+public class MapTurret extends Entity {
 
     public final TurretKind kind;
     /** Current barrel facing, degrees. 0° = +Y (north); rotates toward the active target at {@link TurretKind#turnRateDegPerSec}. */
@@ -44,11 +44,11 @@ public class MapTurret extends Unit {
      * Entity id of the target locked when the burst started — held across the
      * salvo so the rounds chase the same victim even if a closer one walks
      * into LOS mid-burst. {@code 0L} when idle. Independent of the inherited
-     * {@link Unit#getBurstTargetId()} SoA slot on purpose: turret burst-tick
+     * {@link Entity#getBurstTargetId()} SoA slot on purpose: turret burst-tick
      * lives in {@link com.dillon.starsectormarines.battle.turret.TurretBehavior}
      * and reads/writes this field directly via a MapTurret-typed reference,
      * while the inherited burst state serves marine-style
-     * {@link Unit#beginBurst(Unit)} callsites the turret never invokes.
+     * {@link Entity#beginBurst(Entity)} callsites the turret never invokes.
      */
     public long burstTargetId = 0L;
     /**

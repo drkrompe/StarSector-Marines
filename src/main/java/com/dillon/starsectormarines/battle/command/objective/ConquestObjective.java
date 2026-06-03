@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.command.objective;
 
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.air.Shuttle;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.fs.starfarer.api.Global;
@@ -82,7 +82,7 @@ public final class ConquestObjective implements Objective {
 
     private static boolean anyMarineInPlay(BattleView sim) {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Unit u = sim.liveUnitAt(i);
+            Entity u = sim.liveUnitAt(i);
             if (u.faction == Faction.MARINE) return true;
         }
         for (Shuttle s : sim.getShuttles()) {

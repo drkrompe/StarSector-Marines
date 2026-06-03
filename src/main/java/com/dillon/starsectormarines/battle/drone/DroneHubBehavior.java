@@ -3,7 +3,7 @@ import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 
 /**
  * Per-tick driver for a {@link DroneHubUnit}: counts down the spawn timer and
@@ -19,7 +19,7 @@ public final class DroneHubBehavior implements UnitBehavior {
     private DroneHubBehavior() {}
 
     @Override
-    public void update(Unit u, BattleSimulation sim) {
+    public void update(Entity u, BattleSimulation sim) {
         if (!(u instanceof DroneHubUnit)) return;
         DroneHubUnit hub = (DroneHubUnit) u;
         if (!sim.world().isAlive(hub.entityId)) return;
@@ -39,7 +39,7 @@ public final class DroneHubBehavior implements UnitBehavior {
     private static int countActiveDrones(BattleView sim, DroneHubUnit hub) {
         int n = 0;
         for (int i = 0, live = sim.liveUnitCount(); i < live; i++) {
-            Unit u = sim.liveUnitAt(i);
+            Entity u = sim.liveUnitAt(i);
             if (!(u instanceof Drone)) continue;
             if (((Drone) u).homeHub == hub) n++;
         }

@@ -3,7 +3,7 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -128,7 +128,7 @@ public class PlannerTest {
             @Override public WorldState effects() { return eff; }
             @Override public float cost(WorldState s, Squad sq, BattleView sim) { return cost; }
             @Override public int requiredMembers() { return 1; }
-            @Override public ActionStatus execute(Unit m, Squad sq, BattleControl sim) {
+            @Override public ActionStatus execute(Entity m, Squad sq, BattleControl sim) {
                 return ActionStatus.SUCCESS;
             }
         };

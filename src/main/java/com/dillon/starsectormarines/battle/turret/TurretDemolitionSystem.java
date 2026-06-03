@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.turret;
 
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.DeathEvent;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.infantry.PatrolRoute;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
@@ -22,7 +22,7 @@ import java.util.List;
  * was guarding the post once every turret on it is dead — is turret-only and
  * would clutter the hub path.
  *
- * <p>Migrated off the legacy {@code List<Unit>} scan (the old per-tick
+ * <p>Migrated off the legacy {@code List<Entity>} scan (the old per-tick
  * {@code !isAlive() && !demolished} sweep) to the event seam — the first
  * handler proving the {@code retire-legacy-units-list} spine. The
  * {@link MapTurret#demolished} flag stays as a defensive double-fire guard
@@ -116,7 +116,7 @@ public final class TurretDemolitionSystem {
         for (DefensePost.TurretSpec spec : owner.turrets) {
             boolean aliveAtSpec = false;
             for (int i = 0, n = registry.liveCount(); i < n; i++) {
-                Unit u = registry.get(i);
+                Entity u = registry.get(i);
                 if (!(u instanceof MapTurret)) continue;
                 if (registry.getCellX(i) != spec.cellX || registry.getCellY(i) != spec.cellY) continue;
                 aliveAtSpec = true;

@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
@@ -68,7 +68,7 @@ public class GarrisonPatrolTest {
         assertEquals(3, zones.size(), "footprint should resolve to the three rooms");
 
         GarrisonPatrol patrol = new GarrisonPatrol(zones);
-        Unit leader = new Unit("L", Faction.MARINE, UnitType.MARINE, 30, 2);
+        Entity leader = new Entity("L", Faction.MARINE, UnitType.MARINE, 30, 2);
         sim.addUnit(leader);
         Squad squad = new Squad(1, Faction.MARINE);
         squad.leaderId = leader.entityId;

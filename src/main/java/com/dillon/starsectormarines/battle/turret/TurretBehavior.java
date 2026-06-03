@@ -3,7 +3,7 @@ import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 import com.dillon.starsectormarines.battle.infantry.CombatantBehavior;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 
 /**
  * Static-defense behavior. Delegates the aim/fire loop to {@link TurretAim} so
@@ -23,7 +23,7 @@ public final class TurretBehavior implements UnitBehavior {
     private TurretBehavior() {}
 
     @Override
-    public void update(Unit u, BattleSimulation sim) {
+    public void update(Entity u, BattleSimulation sim) {
         MapTurret t = (MapTurret) u;
 
         // Age the per-shot recoil timer every tick; reset to 0 on each fired
@@ -34,8 +34,8 @@ public final class TurretBehavior implements UnitBehavior {
         // Drop a stale burst if its victim died — frees the mount to
         // re-acquire, same shape as the shuttle-mounted equivalent in
         // AirSystem.tickShuttleTurrets. Reads the MapTurret-shadow
-        // burstTargetId (not the inherited Unit one — see MapTurret class doc).
-        Unit currentBurstTarget = sim.resolveUnit(t.burstTargetId);
+        // burstTargetId (not the inherited Entity one — see MapTurret class doc).
+        Entity currentBurstTarget = sim.resolveUnit(t.burstTargetId);
         if (t.burstRemaining > 0 && currentBurstTarget == null) {
             t.burstRemaining = 0;
             t.burstTargetId = 0L;
@@ -70,7 +70,7 @@ public final class TurretBehavior implements UnitBehavior {
 
         t.facingDegrees = s.facingDegrees;
         sim.world().setCooldownTimer(t.entityId, s.cooldownTimer);
-        sim.world().setTargetId(t.entityId, Unit.idOf(s.target));
+        sim.world().setTargetId(t.entityId, Entity.idOf(s.target));
 
         // Burst continuation runs ahead of fresh trigger pulls. A committed
         // salvo finishes its rounds before the aim loop kicks another.
@@ -109,7 +109,7 @@ public final class TurretBehavior implements UnitBehavior {
                     t.burstTargetId = s.target.entityId;
                 }
             } else {
-                // Single-shot kinds keep the existing Unit-vs-Unit fire path
+                // Single-shot kinds keep the existing Entity-vs-Entity fire path
                 // so morale impact + ShotEvent tagging stay correct for the
                 // unchanged ground turrets (Arbalest, Hephaestus, etc.).
                 sim.fireShot(t, s.target);

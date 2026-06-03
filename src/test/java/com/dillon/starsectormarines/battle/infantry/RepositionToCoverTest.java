@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -35,14 +35,14 @@ public class RepositionToCoverTest {
         return new BattleSimulation(grid, topology);
     }
 
-    private static Unit marineAt(BattleSimulation sim, int x, int y) {
-        Unit u = new Unit("m" + sim.liveUnitCount(), Faction.MARINE, UnitType.MARINE, x, y);
+    private static Entity marineAt(BattleSimulation sim, int x, int y) {
+        Entity u = new Entity("m" + sim.liveUnitCount(), Faction.MARINE, UnitType.MARINE, x, y);
         sim.addUnit(u);
         return u;
     }
 
-    private static Unit enemyAt(BattleSimulation sim, int x, int y) {
-        Unit u = new Unit("e" + sim.liveUnitCount(), Faction.DEFENDER, UnitType.MARINE, x, y);
+    private static Entity enemyAt(BattleSimulation sim, int x, int y) {
+        Entity u = new Entity("e" + sim.liveUnitCount(), Faction.DEFENDER, UnitType.MARINE, x, y);
         sim.addUnit(u);
         return u;
     }
@@ -50,9 +50,9 @@ public class RepositionToCoverTest {
     @Test
     public void cooldownGatesReposition() {
         BattleSimulation sim = openArena(20, 20);
-        Unit marine = marineAt(sim, 5, 5);
-        Unit threat = enemyAt(sim, 15, 5);
-        sim.world().setTargetId(marine.entityId, Unit.idOf(threat));
+        Entity marine = marineAt(sim, 5, 5);
+        Entity threat = enemyAt(sim, 15, 5);
+        sim.world().setTargetId(marine.entityId, Entity.idOf(threat));
         // Heavy cover right next to the marine.
         sim.addDoodad(new Doodad(6, 5, new TileManifest.TileFrame(4, 7)));
         // Cooldown set — the action must refuse to move.
@@ -66,7 +66,7 @@ public class RepositionToCoverTest {
     @Test
     public void noTargetReturnsFalse() {
         BattleSimulation sim = openArena(20, 20);
-        Unit marine = marineAt(sim, 5, 5);
+        Entity marine = marineAt(sim, 5, 5);
         sim.world().setTargetId(marine.entityId, 0L);
         sim.world().setRepositionCooldown(marine.entityId, 0f);
 
@@ -82,10 +82,10 @@ public class RepositionToCoverTest {
         // MG-in-cover-stays-put property.
         BattleSimulation sim = openArena(20, 20);
         sim.addDoodad(new Doodad(5, 5, new TileManifest.TileFrame(4, 7)));
-        Unit marine = marineAt(sim, 5, 5);
+        Entity marine = marineAt(sim, 5, 5);
         sim.world().setAttackRange(marine.entityId, 10f);
-        Unit threat = enemyAt(sim, 12, 5);
-        sim.world().setTargetId(marine.entityId, Unit.idOf(threat));
+        Entity threat = enemyAt(sim, 12, 5);
+        sim.world().setTargetId(marine.entityId, Entity.idOf(threat));
         sim.world().setRepositionCooldown(marine.entityId, 0f);
 
         boolean moved = RepositionToCover.tryReposition(marine, sim);
@@ -105,10 +105,10 @@ public class RepositionToCoverTest {
         // west-of-crate neighbor and gets E-facing cover 3. Marine should
         // shift one cell east.
         sim.addDoodad(new Doodad(7, 5, new TileManifest.TileFrame(4, 7))); // heavy
-        Unit marine = marineAt(sim, 5, 5);
+        Entity marine = marineAt(sim, 5, 5);
         sim.world().setAttackRange(marine.entityId, 10f);
-        Unit threat = enemyAt(sim, 12, 5);
-        sim.world().setTargetId(marine.entityId, Unit.idOf(threat));
+        Entity threat = enemyAt(sim, 12, 5);
+        sim.world().setTargetId(marine.entityId, Entity.idOf(threat));
         sim.world().setRepositionCooldown(marine.entityId, 0f);
 
         boolean moved = RepositionToCover.tryReposition(marine, sim);

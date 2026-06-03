@@ -27,7 +27,7 @@ import java.util.List;
  * {@link Priority#MISSION} bucket, both synthesize via
  * {@link ZoneQueries#synthesizeZonePushPlan}. The difference is the
  * <em>source</em> of the target zone — {@link SecureObjectiveZone} reads a
- * unit-level planter's {@code Unit.assignedObjective}; this goal reads the
+ * unit-level planter's {@code Entity.assignedObjective}; this goal reads the
  * squad-level commander assignment. A squad can in principle have both;
  * {@link Goal#pickMostRelevant} resolves by raw relevance score within the
  * MISSION bucket (the planter-driven goal currently outscores this one,

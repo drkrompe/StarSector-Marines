@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.vision;
 
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
@@ -24,7 +24,7 @@ import java.util.ArrayList;
  * {@code 10 Hz / COHORT_COUNT}. Contributors that haven't moved since their
  * last shadowcast are skipped (footprint unchanged).
  *
- * <h3>Unit visibility</h3>
+ * <h3>Entity visibility</h3>
  * {@link #unitVisibility} is a {@code byte[]} indexed by dense unit slot.
  * After the cohort update, every non-contributor alive unit is swept: if its
  * cell is revealed → VISIBLE, otherwise FADING (if previously visible) or
@@ -133,7 +133,7 @@ public final class VisionService {
      * on the fog bitmap. Assigned to the smallest cohort. Runs an immediate
      * shadowcast so the unit's surroundings reveal on the spawn frame.
      */
-    public void addContributor(Unit u, UnitRegistry registry) {
+    public void addContributor(Entity u, UnitRegistry registry) {
         if (!initialized) return;
 
         FogCohort smallest = cohorts[0];
@@ -314,7 +314,7 @@ public final class VisionService {
 
         for (int i = cohort.contributors.size() - 1; i >= 0; i--) {
             ContributorEntry e = cohort.contributors.get(i);
-            Unit u = registry.getOrNull(e.unitId);
+            Entity u = registry.getOrNull(e.unitId);
 
             if (u == null || !registry.isAliveById(e.unitId)) {
                 decrementFootprint(e);
@@ -362,7 +362,7 @@ public final class VisionService {
 
     private void sweepUnitVisibility(UnitRegistry registry) {
         for (int i = 0, n = registry.liveCount(); i < n; i++) {
-            Unit u = registry.get(i);
+            Entity u = registry.get(i);
             // i IS the dense index (registry.get(i) == dense[i], dense[i].denseIdx==i),
             // and the visibility/fade arrays are keyed by dense index — so i indexes
             // them directly, no u.denseIdx field read.

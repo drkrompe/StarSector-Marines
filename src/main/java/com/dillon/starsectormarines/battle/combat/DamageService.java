@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.combat;
 
 import com.dillon.starsectormarines.battle.sim.PendingOccupancyDelta;
 import com.dillon.starsectormarines.battle.sim.PendingTargetMutation;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,7 +26,7 @@ import java.util.function.LongFunction;
  * ({@code DamageResolver::resolve}).
  *
  * <p><b>Damage uses SoA, not AoS.</b> Four parallel arrays
- * ({@code Unit[] pendingTargets}, three {@code float[]}s) + an {@code int}
+ * ({@code Entity[] pendingTargets}, three {@code float[]}s) + an {@code int}
  * count is enough state — no {@code DamageEvent} record. The inline path
  * never allocates; the queued path grows the arrays by doubling when full,
  * which steady-state means zero allocation after the first overflow tick.
@@ -47,7 +47,7 @@ import java.util.function.LongFunction;
 public final class DamageService {
 
     @FunctionalInterface public interface DamageApplier {
-        void apply(Unit target, float damage, float vsTurretMult, float moraleImpact);
+        void apply(Entity target, float damage, float vsTurretMult, float moraleImpact);
     }
     @FunctionalInterface public interface ReprioApplier {
         /**
@@ -58,14 +58,14 @@ public final class DamageService {
          * (nothing mutates between snapshot and apply); on the queued flush it
          * preserves a concurrent self-retarget done during the parallel phase.
          */
-        void apply(Unit target, long expectedTargetId);
+        void apply(Entity target, long expectedTargetId);
     }
     @FunctionalInterface public interface FallbackApplier {
-        void apply(Unit target, int fbX, int fbY);
+        void apply(Entity target, int fbX, int fbY);
     }
     @FunctionalInterface public interface OccupancyApplier {
         /** {@code Integer.MIN_VALUE} for an old / new dest coordinate is the "no-op" sentinel — that half of the delta is skipped. */
-        void apply(Unit u, int oldDestX, int oldDestY, int newDestX, int newDestY);
+        void apply(Entity u, int oldDestX, int oldDestY, int newDestX, int newDestY);
     }
 
     private final DamageApplier damageApplier;
@@ -73,14 +73,14 @@ public final class DamageService {
     private final FallbackApplier fallbackApplier;
     private final OccupancyApplier occupancyApplier;
     /**
-     * Entity-id → live {@code Unit} (null if released or never registered) —
+     * Entity-id → live {@code Entity} (null if released or never registered) —
      * the registry's {@code getOrNull}. Used only by the two flush drains to
      * resolve a queued {@code targetId}/{@code unitId} back to its unit; a null
      * resolve means the entity was released between enqueue and drain (a target
      * the queued damage just killed), which replaces the old dangling-ref
      * {@code isAlive()} check.
      */
-    private final LongFunction<Unit> resolver;
+    private final LongFunction<Entity> resolver;
 
     // ---- SoA damage queue ----
     //
@@ -89,7 +89,7 @@ public final class DamageService {
     // contend on one monitor, but the contention window is just a couple of
     // array writes so it's not measurable in practice.
     private static final int INITIAL_DAMAGE_CAPACITY = 64;
-    private Unit[] dmgTarget = new Unit[INITIAL_DAMAGE_CAPACITY];
+    private Entity[] dmgTarget = new Entity[INITIAL_DAMAGE_CAPACITY];
     private float[] dmgDamage = new float[INITIAL_DAMAGE_CAPACITY];
     private float[] dmgVsTurretMult = new float[INITIAL_DAMAGE_CAPACITY];
     private float[] dmgMoraleImpact = new float[INITIAL_DAMAGE_CAPACITY];
@@ -116,7 +116,7 @@ public final class DamageService {
                          ReprioApplier reprioApplier,
                          FallbackApplier fallbackApplier,
                          OccupancyApplier occupancyApplier,
-                         LongFunction<Unit> resolver) {
+                         LongFunction<Entity> resolver) {
         this.damageApplier = damageApplier;
         this.reprioApplier = reprioApplier;
         this.fallbackApplier = fallbackApplier;
@@ -137,7 +137,7 @@ public final class DamageService {
      * {@link #flushPendingDamage()}. No per-call object allocation in either
      * path.
      */
-    public void applyDamage(Unit target, float damage, float vsTurretMult, float moraleImpact) {
+    public void applyDamage(Entity target, float damage, float vsTurretMult, float moraleImpact) {
         if (!insideParallel) {
             damageApplier.apply(target, damage, vsTurretMult, moraleImpact);
             return;
@@ -161,7 +161,7 @@ public final class DamageService {
     }
 
     /** Target-reprioritize write. Inline writes unconditionally; queued path snapshots {@code expectedTargetId} so the flush can detect a concurrent self-retarget and preserve the newer choice. */
-    public void applyReprio(Unit target, long expectedTargetId) {
+    public void applyReprio(Entity target, long expectedTargetId) {
         if (!insideParallel) {
             reprioApplier.apply(target, expectedTargetId);
             return;
@@ -178,7 +178,7 @@ public final class DamageService {
     }
 
     /** Fallback-cell write. Inline applies the 3 field writes + path-clear; queued path drains in {@link #flushPendingTargetMutations()}. */
-    public void applyFallback(Unit target, int fbX, int fbY) {
+    public void applyFallback(Entity target, int fbX, int fbY) {
         if (!insideParallel) {
             fallbackApplier.apply(target, fbX, fbY);
             return;
@@ -196,7 +196,7 @@ public final class DamageService {
     }
 
     /** Occupancy + destIndex delta. Callers pass {@code Integer.MIN_VALUE} for an old / new coord to mark that half as a no-op. Serial callers apply inline; parallel callers queue for {@link #flushPendingOccupancyDeltas()}. */
-    public void applyOccupancyDelta(Unit u, int oldDestX, int oldDestY, int newDestX, int newDestY) {
+    public void applyOccupancyDelta(Entity u, int oldDestX, int oldDestY, int newDestX, int newDestY) {
         if (!insideParallel) {
             occupancyApplier.apply(u, oldDestX, oldDestY, newDestX, newDestY);
             return;
@@ -249,7 +249,7 @@ public final class DamageService {
             // was released between enqueue and this drain (the preceding
             // flushPendingDamage killed it), so we skip it — no isAlive() on a
             // dangling ref.
-            Unit target = resolver.apply(m.targetId);
+            Entity target = resolver.apply(m.targetId);
             if (target != null) {
                 switch (m.kind) {
                     case REPRIORITIZE:
@@ -282,7 +282,7 @@ public final class DamageService {
             // Resolve the id — this drain runs in APPLY_OCCUPANCY (before any
             // death/release this tick), so a non-null resolve is expected, but
             // guard anyway rather than deref a held ref.
-            Unit u = resolver.apply(d.unitId);
+            Entity u = resolver.apply(d.unitId);
             if (u != null) occupancyApplier.apply(u, d.oldDestX, d.oldDestY, d.newDestX, d.newDestY);
             d.unitId = 0L;
             pendingOccupancyPool.add(d);

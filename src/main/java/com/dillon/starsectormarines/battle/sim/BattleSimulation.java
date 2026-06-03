@@ -1,10 +1,8 @@
 package com.dillon.starsectormarines.battle.sim;
 
-import com.dillon.starsectormarines.battle.drone.Drone;
 import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
 import com.dillon.starsectormarines.battle.combat.fx.Decal;
-import com.dillon.starsectormarines.battle.combat.fx.DecalKind;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
@@ -15,10 +13,9 @@ import com.dillon.starsectormarines.battle.vehicle.MapVehicle;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
-import com.dillon.starsectormarines.battle.mech.MechLoadoutState;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 
 import com.dillon.starsectormarines.battle.air.AirProvider;
@@ -32,7 +29,6 @@ import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.vehicle.GroundSystem;
 import com.dillon.starsectormarines.battle.vehicle.Vehicle;
 import com.dillon.starsectormarines.battle.air.Shuttle;
-import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.command.MissionCommand;
 import com.dillon.starsectormarines.battle.combat.DamageResolver;
 import com.dillon.starsectormarines.battle.combat.DamageService;
@@ -79,11 +75,11 @@ import java.util.Random;
  * <p>v1 behavior, each tick:
  * <ul>
  *   <li>Each alive unit refreshes its target to the nearest alive enemy.</li>
- *   <li>If a target is in {@link Unit#attackRange}, the unit stops moving and
- *       fires on {@link Unit#attackCooldown}, dealing {@link Unit#attackDamage}.</li>
+ *   <li>If a target is in {@link Entity#attackRange}, the unit stops moving and
+ *       fires on {@link Entity#attackCooldown}, dealing {@link Entity#attackDamage}.</li>
  *   <li>Otherwise the unit re-pathfinds (only when between cells, to avoid a
  *       visual jump mid-step) and advances {@code moveProgress} along the path
- *       at {@link Unit#moveSpeed} cells/sec.</li>
+ *       at {@link Entity#moveSpeed} cells/sec.</li>
  *   <li>When one faction runs out of alive units, the sim flags
  *       {@link #isComplete()} and records the winner.</li>
  * </ul>
@@ -186,7 +182,7 @@ public class BattleSimulation implements BattleControl {
     private CompoundGarrisonSystem garrisonSystem;
 
     /**
-     * Per-target attacker index — wraps the {@code Unit → attacker list} map
+     * Per-target attacker index — wraps the {@code Entity → attacker list} map
      * that drives O(1)-lookup crowding scoring in
      * {@link com.dillon.starsectormarines.battle.decision.TacticalScoring}. Rebuilt
      * once at tick top in the serial phase; read in parallel during
@@ -207,7 +203,7 @@ public class BattleSimulation implements BattleControl {
     /** Per-hit response logic — fallback rolls + target-reprioritization rolls. Extracted from the sim's former {@code rollFallbackOnHit}/{@code rollReprioritizeOnHit}. */
     private final com.dillon.starsectormarines.battle.combat.HitResponseService hitResponse;
     /** Units that transitioned from alive to dead during the last {@link #advance(float)} call. Same lifecycle as {@link #shotsThisFrame}. */
-    private final List<Unit> deathsThisFrame = new ArrayList<>();
+    private final List<Entity> deathsThisFrame = new ArrayList<>();
     /** Death-event mailbox — {@code DamageResolver} publishes a {@link com.dillon.starsectormarines.battle.unit.DeathEvent} per death; subscribed handlers (turret + hub demolition today) react on {@link com.dillon.starsectormarines.battle.unit.DeathDispatcher#drain()} at the demolition phase. The seam that lets post-death behavior migrate off the legacy units-list scan. */
     private final com.dillon.starsectormarines.battle.unit.DeathDispatcher deathDispatcher =
             new com.dillon.starsectormarines.battle.unit.DeathDispatcher();
@@ -367,7 +363,7 @@ public class BattleSimulation implements BattleControl {
         return mapService.damageWall(x, y, amount);
     }
 
-    public boolean isRoofShielded(Unit target) {
+    public boolean isRoofShielded(Entity target) {
         if (target == null) return false;
         UnitRegistry registry = rosterService.getRegistry();
         int idx = registry.requireLiveIndex(target.entityId);
@@ -375,7 +371,7 @@ public class BattleSimulation implements BattleControl {
     }
 
     @Override public int liveUnitCount() { return rosterService.getRegistry().liveCount(); }
-    @Override public Unit liveUnitAt(int index) { return rosterService.getRegistry().get(index); }
+    @Override public Entity liveUnitAt(int index) { return rosterService.getRegistry().get(index); }
 
     /** Entity-access facade — by-id hot primitives ({@code world().hp(id)}) over the dense SoA + cold {@code world().id(id).getOrNull(Cmp.class)} projection over the sparse stores. See {@link World}. */
     public World world() { return world; }
@@ -482,7 +478,7 @@ public class BattleSimulation implements BattleControl {
     public List<Projectile> snapshotActiveProjectiles() { return shots.snapshotActiveProjectiles(); }
     /** Projectiles that arrived this tick — parallel to {@link #getShotsExpiredThisFrame} for the renderer's impact-FX dispatch. */
     public List<Projectile> getProjectilesArrivedThisFrame() { return shots.getProjectilesArrivedThisFrame(); }
-    public List<Unit> getDeathsThisFrame()     { return deathsThisFrame; }
+    public List<Entity> getDeathsThisFrame()     { return deathsThisFrame; }
     public boolean isComplete()            { return complete; }
     public Faction getWinner()             { return winner; }
     /** Per-cell unit count, indexed by {@link NavigationGrid#index(int, int)}. Exposed for AI scoring; do not mutate directly — go through {@link #setPath}. */
@@ -495,32 +491,32 @@ public class BattleSimulation implements BattleControl {
      * Dense entity registry for SoA consumers — bulk readers that want to
      * iterate {@code [0, liveCount())} over {@link UnitRegistry#denseArray()}
      * and pull cellX/cellY/hp/maxHp from the parallel primitive arrays.
-     * Same registry instance {@link #targetOf(Unit)} and the spatial-index
+     * Same registry instance {@link #targetOf(Entity)} and the spatial-index
      * rebuilds already use; exposed here so static scorers (TacticalScoring,
      * etc.) can match the established consumer pattern without threading
      * the roster service through every helper signature.
      */
     public UnitRegistry getUnitRegistry() { return rosterService.getRegistry(); }
     /**
-     * Resolves a unit's {@link Unit#targetId} to the current target reference,
+     * Resolves a unit's {@link Entity#targetId} to the current target reference,
      * or {@code null} when the target was released / never set. Short delegate
      * over {@link com.dillon.starsectormarines.battle.unit.UnitRegistry#getOrNull(long)};
      * the canonical read path replacing the old {@code u.target} field.
      */
-    public Unit targetOf(Unit u) {
+    public Entity targetOf(Entity u) {
         UnitRegistry registry = rosterService.getRegistry();
         return registry.getOrNull(registry.getTargetId(registry.requireLiveIndex(u.entityId)));
     }
 
     /**
-     * Resolves an arbitrary entity id to its {@link Unit}, or {@code null} when
+     * Resolves an arbitrary entity id to its {@link Entity}, or {@code null} when
      * the id is unknown / released. The generic counterpart to
-     * {@link #targetOf(Unit)} — used by readers of the secondary
-     * id-typed fields ({@link Unit#getBurstTargetId()},
-     * {@link Unit#getSecondaryAimTargetId()}, {@link com.dillon.starsectormarines.battle.turret.MapTurret#burstTargetId})
+     * {@link #targetOf(Entity)} — used by readers of the secondary
+     * id-typed fields ({@link Entity#getBurstTargetId()},
+     * {@link Entity#getSecondaryAimTargetId()}, {@link com.dillon.starsectormarines.battle.turret.MapTurret#burstTargetId})
      * where there's no companion holder unit to thread.
      */
-    public Unit resolveUnit(long id) {
+    public Entity resolveUnit(long id) {
         return rosterService.getRegistry().getOrNull(id);
     }
     /** Bucketed spatial index over alive units keyed on path destination (not current cell). Rebuilt alongside {@link #unitIndex} each tick. */
@@ -537,7 +533,7 @@ public class BattleSimulation implements BattleControl {
     public Squad getSquad(int id) {
         return rosterService.getSquad(id);
     }
-    /** All squads currently registered. Used by the per-tick alert update; behaviors should read individual squads via {@link #getSquad(int)} keyed off {@link Unit#squadId}. */
+    /** All squads currently registered. Used by the per-tick alert update; behaviors should read individual squads via {@link #getSquad(int)} keyed off {@link Entity#squadId}. */
     public Collection<Squad> getSquads()   { return rosterService.getSquads(); }
     /** Tactical hint graph produced by the map generator. Never null; an empty graph for legacy maps. */
     public TacticalMap getTacticalMap()    { return tactical.getTacticalMap(); }
@@ -553,7 +549,7 @@ public class BattleSimulation implements BattleControl {
     /** Stamped defense posts (conquest only). Called once by {@code BattleSetup} right after construction; safe to pass null/empty for missions without posts. */
     public void setDefensePosts(List<DefensePost> posts) { tactical.setDefensePosts(posts); }
 
-    public void addUnit(Unit u) {
+    public void addUnit(Entity u) {
         rosterService.addUnit(u);
         if (vision.getVisionState().isContributor(u.faction)) {
             vision.addContributor(u, rosterService.getRegistry());
@@ -561,13 +557,13 @@ public class BattleSimulation implements BattleControl {
     }
 
     /**
-     * Delegates to {@link UnitRosterService#queueSpawn(Unit)}. Routes serial
+     * Delegates to {@link UnitRosterService#queueSpawn(Entity)}. Routes serial
      * callers through inline addUnit (which allocates the entity immediately)
      * and parallel callers through the spawn queue (drained in APPLY_SPAWNS).
      * Serial-path fog contributor registration is done here after the inline
      * allocation; parallel-path registration is done in {@link #flushPendingSpawns}.
      */
-    public void queueSpawn(Unit u) {
+    public void queueSpawn(Entity u) {
         long idBefore = u.entityId;
         rosterService.queueSpawn(u);
         if (idBefore == 0L && u.entityId != 0L
@@ -578,12 +574,12 @@ public class BattleSimulation implements BattleControl {
 
     /** Mirrors queued drone-hub spawns into the units list. Delegates to {@link UnitRosterService#flushPendingSpawns()}; registers fog-of-war contributors for any player-faction spawns. */
     private void flushPendingSpawns() {
-        List<Unit> pending = rosterService.getPendingSpawns();
+        List<Entity> pending = rosterService.getPendingSpawns();
         int spawnCount = pending.size();
         if (spawnCount == 0) return;
-        Unit[] snapshot = pending.toArray(new Unit[0]);
+        Entity[] snapshot = pending.toArray(new Entity[0]);
         rosterService.flushPendingSpawns();
-        for (Unit u : snapshot) {
+        for (Entity u : snapshot) {
             if (vision.getVisionState().isContributor(u.faction)) {
                 vision.addContributor(u, rosterService.getRegistry());
             }
@@ -615,11 +611,11 @@ public class BattleSimulation implements BattleControl {
         groundSystem.add(v);
     }
 
-    public void applyDamage(Unit target, float damage, float vsTurretMult) {
+    public void applyDamage(Entity target, float damage, float vsTurretMult) {
         applyDamage(target, damage, vsTurretMult, 1.0f);
     }
 
-    public void applyDamage(Unit target, float damage, float vsTurretMult, float moraleImpact) {
+    public void applyDamage(Entity target, float damage, float vsTurretMult, float moraleImpact) {
         damageService.applyDamage(target, damage, vsTurretMult, moraleImpact);
     }
 
@@ -666,14 +662,14 @@ public class BattleSimulation implements BattleControl {
     }
 
     /** Inline reprio write — invoked by the damage service on the serial path AND on the queued path. Clears the targetId only if it still matches {@code expectedTargetId} (the race-check now lives here, registry-side, instead of a no-arg {@code target.getTargetId()} read in the flush drain); the next behavior tick re-picks via {@code findBestTarget}. */
-    private void writeReprioInline(Unit target, long expectedTargetId) {
+    private void writeReprioInline(Entity target, long expectedTargetId) {
         UnitRegistry registry = rosterService.getRegistry();
         int idx = registry.requireLiveIndex(target.entityId);
         if (registry.getTargetId(idx) == expectedTargetId) registry.setTargetId(idx, 0L);
     }
 
     /** Inline fallback write — invoked by the damage service on the serial path AND from the queued-flush. Writes the 3 fb fields and clears the stale path so the target re-paths to the fall-back cell on its next updateUnit pass. */
-    private void writeFallbackInline(Unit target, int fbX, int fbY) {
+    private void writeFallbackInline(Entity target, int fbX, int fbY) {
         UnitRegistry registry = rosterService.getRegistry();
         int idx = registry.requireLiveIndex(target.entityId);
         registry.setFallbackCell(idx, fbX, fbY);
@@ -681,7 +677,7 @@ public class BattleSimulation implements BattleControl {
         clearPath(target);
     }
 
-    public int mintSquad(Faction faction, Unit leader) {
+    public int mintSquad(Faction faction, Entity leader) {
         return rosterService.mintSquad(faction, leader);
     }
 
@@ -972,8 +968,8 @@ public class BattleSimulation implements BattleControl {
         navigation.endTick();
     }
 
-    /** Delegates to {@link com.dillon.starsectormarines.battle.decision.AttackerIndexService#getAttackersOf(Unit)}. The list is mutated in-place each tick — callers must not retain it across tick boundaries. */
-    public ArrayList<Unit> getAttackersOf(Unit target) {
+    /** Delegates to {@link com.dillon.starsectormarines.battle.decision.AttackerIndexService#getAttackersOf(Entity)}. The list is mutated in-place each tick — callers must not retain it across tick boundaries. */
+    public ArrayList<Entity> getAttackersOf(Entity target) {
         return attackerIndex.getAttackersOf(target);
     }
 
@@ -983,13 +979,13 @@ public class BattleSimulation implements BattleControl {
     }
 
     /**
-     * Delegates to {@link NavigationService#setPath(Unit, int[])}. Kept on the
+     * Delegates to {@link NavigationService#setPath(Entity, int[])}. Kept on the
      * sim's surface so AI behaviors in {@code battle.ai} can route movement
      * through {@code sim.setPath(...)} instead of touching {@code u.path}
      * directly. Pass {@link GridPathfinder#EMPTY_PATH} (or call
-     * {@link #clearPath(Unit)}) to drop the current path.
+     * {@link #clearPath(Entity)}) to drop the current path.
      */
-    public void setPath(Unit u, int[] newPath) {
+    public void setPath(Entity u, int[] newPath) {
         navigation.setPath(u, newPath);
     }
 
@@ -998,8 +994,8 @@ public class BattleSimulation implements BattleControl {
         damageService.flushPendingOccupancyDeltas();
     }
 
-    /** Convenience: drop the unit's path. Delegates to {@link NavigationService#clearPath(Unit)}. */
-    public void clearPath(Unit u) {
+    /** Convenience: drop the unit's path. Delegates to {@link NavigationService#clearPath(Entity)}. */
+    public void clearPath(Entity u) {
         navigation.clearPath(u);
     }
 
@@ -1035,7 +1031,7 @@ public class BattleSimulation implements BattleControl {
      * fired its one-shot fallback: if alive-strength drops to or below
      * {@link #FALLBACK_TRIGGER_RATIO} of {@link Squad#originalSize}, the squad
      * reassigns to the first {@link TacticalNode.LinkKind#FALLBACK_TO} target.
-     * Each surviving member gets a new {@link Unit#homeCellX home cell} near
+     * Each surviving member gets a new {@link Entity#homeCellX home cell} near
      * the new anchor (picked via {@link com.dillon.starsectormarines.battle.setup.BattleSetup#pickCellsNear} so cover is
      * preserved at the new post). {@link Squad#fallbackInProgress} is set so
      * {@link com.dillon.starsectormarines.battle.infantry.HoldPost} routes
@@ -1053,21 +1049,21 @@ public class BattleSimulation implements BattleControl {
      * overrun. Chained retreats would need explicit gating that we don't
      * have yet.
      */
-    /** Delegates to {@link Unit#advanceAlongPath(UnitRegistry, float)}. Kept so existing behavior call sites compile unchanged. */
-    public void advanceMovement(Unit u) {
+    /** Delegates to {@link Entity#advanceAlongPath(UnitRegistry, float)}. Kept so existing behavior call sites compile unchanged. */
+    public void advanceMovement(Entity u) {
         u.advanceAlongPath(rosterService.getRegistry(), TICK_DT);
     }
 
     /**
      * Stanced-fire convenience: most callers fire from a stationary position
      * (engage loops, garrisons, turrets, mech chassis) and don't need to
-     * think about stance. Routes to {@link #fireShot(Unit, Unit,
+     * think about stance. Routes to {@link #fireShot(Entity, Entity,
      * com.dillon.starsectormarines.battle.combat.FireStance)} with
      * {@link com.dillon.starsectormarines.battle.combat.FireStance#STANCED}.
      * Callers firing while walking should call the stance-aware overload
      * with {@code MOVING} so the accuracy penalty applies.
      */
-    public void fireShot(Unit shooter, Unit target) {
+    public void fireShot(Entity shooter, Entity target) {
         fireShot(shooter, target, com.dillon.starsectormarines.battle.combat.FireStance.STANCED);
     }
 
@@ -1080,7 +1076,7 @@ public class BattleSimulation implements BattleControl {
      * behaviors can call {@code sim.fireShot(...)} without reaching into the
      * subsystem accessor.
      */
-    public void fireShot(Unit shooter, Unit target,
+    public void fireShot(Entity shooter, Entity target,
                          com.dillon.starsectormarines.battle.combat.FireStance stance) {
         infantry.fireShot(shooter, target, stance);
     }
@@ -1089,19 +1085,19 @@ public class BattleSimulation implements BattleControl {
      * Delegates to {@link InfantryWeapons#fireSecondary}. Same delegation
      * rationale as {@link #fireShot}.
      */
-    public void fireSecondary(Unit shooter, Unit target) {
+    public void fireSecondary(Entity shooter, Entity target) {
         infantry.fireSecondary(shooter, target);
     }
 
     /** Delegates to {@link com.dillon.starsectormarines.battle.turret.TurretFireService}. Kept for TurretBehavior and any remaining sim-surface callers on the deprecation path. */
     public void fireShotFrom(float fromX, float fromY, Faction shooterFaction,
-                             TurretKind kind, Unit target, boolean aerialShooter) {
+                             TurretKind kind, Entity target, boolean aerialShooter) {
         turretFire.fire(fromX, fromY, shooterFaction, kind, target, aerialShooter);
     }
 
     /** Delegates to {@link com.dillon.starsectormarines.battle.turret.TurretFireService}. */
     public void fireShotFrom(float fromX, float fromY, Faction shooterFaction,
-                             TurretKind kind, Unit target, boolean aerialShooter, boolean hasLos) {
+                             TurretKind kind, Entity target, boolean aerialShooter, boolean hasLos) {
         turretFire.fire(fromX, fromY, shooterFaction, kind, target, aerialShooter, hasLos);
     }
 
@@ -1110,7 +1106,7 @@ public class BattleSimulation implements BattleControl {
      * surface because AI behaviors call {@code sim.fireMechWeapon(...)}
      * directly. Implementation lives in {@code battle/weapons/HeavyWeapons.java}.
      */
-    public void fireMechWeapon(Unit shooter, Unit target, MechWeapon weapon) {
+    public void fireMechWeapon(Entity shooter, Entity target, MechWeapon weapon) {
         heavy.fireMechWeapon(shooter, target, weapon);
     }
 
@@ -1118,7 +1114,7 @@ public class BattleSimulation implements BattleControl {
      * Delegates to {@link HeavyWeapons#fireMechWeapon} with explicit accuracy
      * multiplier. Used by the LRM indirect-fire path (no LOS = reduced acc).
      */
-    public void fireMechWeapon(Unit shooter, Unit target, MechWeapon weapon, float accuracyMult) {
+    public void fireMechWeapon(Entity shooter, Entity target, MechWeapon weapon, float accuracyMult) {
         heavy.fireMechWeapon(shooter, target, weapon, accuracyMult);
     }
 
@@ -1137,7 +1133,7 @@ public class BattleSimulation implements BattleControl {
      * not the ground combat tracer pass. Fall-back is also intentionally
      * skipped (strafes pin you down rather than break contact).
      */
-    public void applyExternalDamage(Unit target, float damage) {
+    public void applyExternalDamage(Entity target, float damage) {
         if (target == null || !world.isAlive(target.entityId) || damage <= 0f) return;
         damageResolver.resolve(target, damage, 1f, 0f);
     }

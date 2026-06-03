@@ -16,8 +16,8 @@ package com.dillon.starsectormarines.battle.ui.picking;
  *
  * <p>Squad ids match {@link com.dillon.starsectormarines.battle.squad.Squad#id}.
  * {@link #NONE} (-1) is the sentinel for "nothing selected" — same convention
- * the sim uses for {@code Unit.NO_SQUAD}. Unit ids are {@link String} (matches
- * {@code Unit.id}), null when no unit is pinned.
+ * the sim uses for {@code Entity.NO_SQUAD}. Entity ids are {@link String} (matches
+ * {@code Entity.id}), null when no unit is pinned.
  */
 public final class Selection {
 

@@ -157,7 +157,7 @@ public class UnitSliceDebugScreen implements Screen {
                 backX + 12f, backY + BACK_H - 6f, HEADER_COLOR));
 
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                "Unit Slice Debug — " + UnitType.values().length + " sheets",
+                "Entity Slice Debug — " + UnitType.values().length + " sheets",
                 position.getX() + PAD,
                 position.getY() + position.getHeight() - PAD - 6f,
                 HEADER_COLOR));

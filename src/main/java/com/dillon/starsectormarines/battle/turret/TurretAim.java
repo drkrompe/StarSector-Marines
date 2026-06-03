@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.turret;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.World;
 
@@ -37,10 +37,10 @@ public final class TurretAim {
         public float originX, originY;
         /** Shooter faction — drives the enemy filter in target acquisition. */
         public Faction faction;
-        /** Shooter squad id — feeds crowding logic. {@link Unit#NO_SQUAD} for turrets, which don't squad up. */
-        public int squadId = Unit.NO_SQUAD;
-        /** If the shooter is itself a {@link Unit} on the units list, pass it here so target acquisition's crowding pass doesn't count self. {@code null} for non-Unit shooters. */
-        public Unit excludeFromCrowding;
+        /** Shooter squad id — feeds crowding logic. {@link Entity#NO_SQUAD} for turrets, which don't squad up. */
+        public int squadId = Entity.NO_SQUAD;
+        /** If the shooter is itself a {@link Entity} on the units list, pass it here so target acquisition's crowding pass doesn't count self. {@code null} for non-Entity shooters. */
+        public Entity excludeFromCrowding;
 
         /** Current barrel facing, degrees. Mutated by the slew each tick. */
         public float facingDegrees;
@@ -52,7 +52,7 @@ public final class TurretAim {
         public float cooldownTimer;
         public float attackCooldown;
         /** Active target; null when no enemy is locked. Mutated by the acquisition pass and dropped when out of range / LOS. */
-        public Unit target;
+        public Entity target;
 
         /** Output: true when the caller should fire this tick. Reset every {@link #tick} call. */
         public boolean fireThisTick;

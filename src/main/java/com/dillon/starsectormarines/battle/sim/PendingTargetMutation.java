@@ -9,7 +9,7 @@ package com.dillon.starsectormarines.battle.sim;
  * previously raced with the target's own worker reading {@code path} /
  * {@code pathIdx} / {@code target} concurrently.
  *
- * <p>The target is held as an entity id, not a {@code Unit} ref — the drain
+ * <p>The target is held as an entity id, not a {@code Entity} ref — the drain
  * runs after {@code flushPendingDamage}, which releases units killed this tick.
  * Resolving {@code targetId} through the registry at drain time yields null for
  * a just-killed target (no dangling-ref {@code isAlive()} on a released unit).

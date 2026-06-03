@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.combat;
 
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 
 import java.util.Random;
 
@@ -11,14 +11,14 @@ import java.util.Random;
  * {@link HeavyWeapons#fireMechWeapon} so all three live by the same rules.
  *
  * <ul>
- *   <li><b>Targeting</b> uses the target's {@link Unit#renderX}/
- *       {@link Unit#renderY} (smooth interpolated cell-coords), not the
+ *   <li><b>Targeting</b> uses the target's {@link Entity#renderX}/
+ *       {@link Entity#renderY} (smooth interpolated cell-coords), not the
  *       logical {@code cellX}/{@code cellY}. Tracers terminate on the
  *       sprite, not on the cell the sprite is lerping toward.</li>
  *   <li><b>Hits</b> land near the target with a universal
  *       {@link #HIT_JITTER_BASELINE} plus the weapon's distance-scaled
  *       {@code effectiveSpread}. Damage was already applied against the
- *       target's {@code Unit} reference — this is pure visual, so even
+ *       target's {@code Entity} reference — this is pure visual, so even
  *       tight-spread weapons (DMR, militia single-shot) get organic
  *       near-center variance instead of robotic dead-center hits.</li>
  *   <li><b>Misses</b> scatter in the {@link #MISS_OFFSET_MIN}..
@@ -52,7 +52,7 @@ public final class ShotEndpoint {
      * (see {@link RangeFalloff#spread}); 0 for weapons without a hitSpread
      * profile.
      */
-    public static Endpoint resolve(Unit target, boolean hit, float effectiveSpread, Random rng) {
+    public static Endpoint resolve(Entity target, boolean hit, float effectiveSpread, Random rng) {
         float cx = target.getRenderX() + 0.5f;
         float cy = target.getRenderY() + 0.5f;
         float angle = rng.nextFloat() * (float) (Math.PI * 2);

@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.combat.FireStance;
@@ -27,7 +27,7 @@ public final class KitRetrieverBehavior implements UnitBehavior {
     private KitRetrieverBehavior() {}
 
     @Override
-    public void update(Unit u, BattleSimulation sim) {
+    public void update(Entity u, BattleSimulation sim) {
         EquipmentDrop drop = u.equipmentDropTarget;
         if (drop == null || drop.consumed) {
             u.role = UnitRole.COMBATANT;
@@ -52,11 +52,11 @@ public final class KitRetrieverBehavior implements UnitBehavior {
      * itself (unlike the GOAP path where {@code InfantryUnitPrep.tickCooldowns}
      * does it before {@code Action.execute}).
      */
-    private static void fireOpportunistically(Unit u, BattleControl sim) {
-        Unit target = sim.targetOf(u);
+    private static void fireOpportunistically(Entity u, BattleControl sim) {
+        Entity target = sim.targetOf(u);
         if (target == null) {
             target = sim.getTacticalScoring().findBestTarget(u);
-            sim.world().setTargetId(u.entityId, Unit.idOf(target));
+            sim.world().setTargetId(u.entityId, Entity.idOf(target));
         }
         if (sim.world().cooldownTimer(u.entityId) > 0f) sim.world().setCooldownTimer(u.entityId, sim.world().cooldownTimer(u.entityId) - BattleSimulation.TICK_DT);
         if (target == null) return;

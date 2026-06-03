@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.ui.highlight;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 
 import java.util.ArrayList;
@@ -35,7 +35,7 @@ public final class SelectionHighlightPublisher {
         }
         List<CellHighlight> members = new ArrayList<>();
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Unit u = sim.liveUnitAt(i);
+            Entity u = sim.liveUnitAt(i);
             if (u.squadId != squadId) continue;
             members.add(new CellHighlight(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), HighlightOverlay.COLOR_SELECTED_UNIT));
         }

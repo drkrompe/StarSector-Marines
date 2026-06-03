@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.decision.goap.action;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
@@ -64,7 +64,7 @@ abstract class AbstractZoneAction implements Action {
     @Override public int requiredMembers() { return 1; }
 
     /** True iff {@code member}'s logical cell lies inside {@link #targetZoneId}. */
-    protected final boolean memberInZone(Unit member, BattleView sim) {
+    protected final boolean memberInZone(Entity member, BattleView sim) {
         return sim.getZoneGraph().zoneIdAt(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId)) == targetZoneId;
     }
 
@@ -85,12 +85,12 @@ abstract class AbstractZoneAction implements Action {
      *        goal take over; when false (commitment semantics), the member
      *        keeps pushing into the zone while firing.
      */
-    protected final void advanceIntoZone(Unit member, Squad squad, BattleControl sim,
+    protected final void advanceIntoZone(Entity member, Squad squad, BattleControl sim,
                                          int destX, int destY, boolean haltOnContact) {
-        Unit target = sim.targetOf(member);
+        Entity target = sim.targetOf(member);
         if (target == null || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
             target = sim.getTacticalScoring().findBestTarget(member);
-            sim.world().setTargetId(member.entityId, Unit.idOf(target));
+            sim.world().setTargetId(member.entityId, Entity.idOf(target));
         }
 
         boolean inContact = false;
@@ -117,7 +117,7 @@ abstract class AbstractZoneAction implements Action {
                 // zone push, the trigger just stops it being a sitting duck.
                 // beginBurst keys off a separate burst target, so the follow-up
                 // burst tracks the enemy we shot, not the pursuit target.
-                Unit opportune = sim.getTacticalScoring().closestEnemyInAttackRange(member);
+                Entity opportune = sim.getTacticalScoring().closestEnemyInAttackRange(member);
                 if (opportune != null) {
                     sim.fireShot(member, opportune, FireStance.MOVING);
                     sim.world().setCooldownTimer(member.entityId, member.attackCooldown);

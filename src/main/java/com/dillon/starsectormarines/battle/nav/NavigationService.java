@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.nav;
 
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -74,10 +74,10 @@ public final class NavigationService {
 
     /**
      * Dense entity store, for by-id current-cell reads in {@link #setPath} (the
-     * one occupancy path that holds a {@link Unit} ref without the dense index
+     * one occupancy path that holds a {@link Entity} ref without the dense index
      * in hand). Setter-injected after construction because the registry is built
      * after this service; never null once the sim is wired. Part of the
-     * {@code world-facade} migration off {@code Unit}'s self-routing accessors.
+     * {@code world-facade} migration off {@code Entity}'s self-routing accessors.
      */
     private UnitRegistry registry;
 
@@ -183,7 +183,7 @@ public final class NavigationService {
     public void rebuildOccupancyMap(UnitRegistry registry) {
         Arrays.fill(occupancyMap, (byte) 0);
         for (int i = 0, n = registry.liveCount(); i < n; i++) {
-            Unit u = registry.get(i);
+            Entity u = registry.get(i);
             int curX = registry.getCellX(i);
             int curY = registry.getCellY(i);
             incrementOccupancy(curX, curY);
@@ -218,7 +218,7 @@ public final class NavigationService {
      * applier. {@code Integer.MIN_VALUE} for an old / new coord is the
      * "no-op" sentinel — that half of the delta is skipped.
      */
-    public void applyOccupancyDeltaInline(Unit u, int oldDestX, int oldDestY, int newDestX, int newDestY) {
+    public void applyOccupancyDeltaInline(Entity u, int oldDestX, int oldDestY, int newDestX, int newDestY) {
         if (oldDestX != Integer.MIN_VALUE) {
             decrementOccupancy(oldDestX, oldDestY);
             destIndex.removeDestination(u, oldDestX, oldDestY);
@@ -243,7 +243,7 @@ public final class NavigationService {
      * delta skip them; if neither old nor new destination is occupancy-bearing
      * the sink call is elided entirely.
      */
-    public void setPath(Unit u, int[] newPath) {
+    public void setPath(Entity u, int[] newPath) {
         int oldDestX = pathDestX(u);
         int oldDestY = pathDestY(u);
         u.path = newPath;
@@ -271,7 +271,7 @@ public final class NavigationService {
     }
 
     /** Convenience: drop the unit's path. Equivalent to {@code setPath(u, GridPathfinder.EMPTY_PATH)}. */
-    public void clearPath(Unit u) {
+    public void clearPath(Entity u) {
         setPath(u, GridPathfinder.EMPTY_PATH);
     }
 
@@ -296,11 +296,11 @@ public final class NavigationService {
     }
 
     /** X coordinate of the unit's final path cell, or {@code Integer.MIN_VALUE} if the path is empty. */
-    public static int pathDestX(Unit u) {
+    public static int pathDestX(Entity u) {
         return u.path.length == 0 ? Integer.MIN_VALUE : u.path[u.path.length - 2];
     }
     /** Y coordinate of the unit's final path cell, or {@code Integer.MIN_VALUE} if the path is empty. */
-    public static int pathDestY(Unit u) {
+    public static int pathDestY(Entity u) {
         return u.path.length == 0 ? Integer.MIN_VALUE : u.path[u.path.length - 1];
     }
 

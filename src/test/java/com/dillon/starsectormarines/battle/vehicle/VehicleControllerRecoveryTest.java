@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Unit coverage for {@link VehicleController#maxReverseDistance} — the
+ * Entity coverage for {@link VehicleController#maxReverseDistance} — the
  * "back up to where you actually can, accounting for what's behind you"
  * calculation that bounds the committed reverse recovery. It marches the
  * reverse axis footprint-checking each step, so a clear rear yields the full

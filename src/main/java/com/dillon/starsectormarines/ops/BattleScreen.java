@@ -3,38 +3,19 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
-import com.dillon.starsectormarines.battle.combat.fx.Decal;
-import com.dillon.starsectormarines.battle.world.model.Doodad;
-import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.SmokingWreck;
-import com.dillon.starsectormarines.battle.world.model.TimeOfDay;
 import com.dillon.starsectormarines.battle.air.Shuttle;
-import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.engine.EngineVoice;
 import com.dillon.starsectormarines.battle.air.engine.EngineVoiceResolver;
-import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
-import com.dillon.starsectormarines.battle.world.tiles.UrbanTile3;
-import com.dillon.starsectormarines.battle.turret.MapTurret;
-import com.dillon.starsectormarines.battle.vehicle.MapVehicle;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
-import com.dillon.starsectormarines.battle.world.model.TileManifest;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
-import com.dillon.starsectormarines.battle.unit.Unit;
-import com.dillon.starsectormarines.battle.unit.UnitType;
-import com.dillon.starsectormarines.battle.vehicle.VehicleKind;
-import com.dillon.starsectormarines.battle.world.model.CellTopology;
-import com.dillon.starsectormarines.battle.world.model.WallMasks;
-import com.dillon.starsectormarines.battle.flyby.FlybyOverlay;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementRequest;
 import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementService;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.ui.BattleHud;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
-import com.dillon.starsectormarines.ops.battleview.CompoundMarkerRenderer;
 import com.dillon.starsectormarines.battle.ui.compound.CompoundProgressPanel;
 import com.dillon.starsectormarines.battle.ui.panel.DebugTogglesPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TurretAuthorPanel;
@@ -48,32 +29,18 @@ import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.ui.picking.WorldPicker;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactDecals;
-import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.combat.fx.WeaponLights;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
-import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
-import com.dillon.starsectormarines.ops.battleview.ShuttleSpriteCache;
-import com.dillon.starsectormarines.ops.battleview.UnitSpriteCache;
-import com.dillon.starsectormarines.render2d.ContrailStyle;
-import com.dillon.starsectormarines.render2d.ContrailTrail;
-import com.dillon.starsectormarines.render2d.DecalAccumulator;
-import com.dillon.starsectormarines.render2d.GlStateBracket;
-import com.dillon.starsectormarines.render2d.LightAccumulator;
 import com.dillon.starsectormarines.render2d.LightKernel;
-import com.dillon.starsectormarines.render2d.QuadBatch;
-import com.dillon.starsectormarines.render2d.RibbonBatch;
-import com.dillon.starsectormarines.render2d.SolidQuadBatch;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.LabelWidget;
 import com.dillon.starsectormarines.ui.WidgetRoot;
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.graphics.SpriteAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
 import org.apache.log4j.Logger;
@@ -922,7 +889,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 Global.getSoundPlayer().playSound(SFX_RIFLE, pitch, RIFLE_VOLUME, loc, zeroVel);
             }
         }
-        for (Unit u : sim.getDeathsThisFrame()) {
+        for (Entity u : sim.getDeathsThisFrame()) {
             if (u.faction == Faction.MARINE) {
                 Vector2f loc = new Vector2f(
                         u.getRenderX() * AUDIO_WORLD_UNITS_PER_CELL,

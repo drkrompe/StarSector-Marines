@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.mech.MechLoadoutState;
 import com.dillon.starsectormarines.battle.mech.MechRole;
@@ -41,7 +41,7 @@ public class HitResponseServiceTest {
     public void squadMemberInfantrySkipsLegacyFallback() {
         BattleSimulation sim = openSim();
         HitResponseService hitResponse = sim.getHitResponseService();
-        Unit marine = new Unit("m0", Faction.MARINE, UnitType.MARINE, 3, 5);
+        Entity marine = new Entity("m0", Faction.MARINE, UnitType.MARINE, 3, 5);
         int sid = sim.mintSquad(Faction.MARINE, marine);
         marine.squadId = sid;
         sim.addUnit(marine);
@@ -56,12 +56,12 @@ public class HitResponseServiceTest {
     public void squadMemberMechSkipsLegacyFallback() {
         BattleSimulation sim = openSim();
         HitResponseService hitResponse = sim.getHitResponseService();
-        Unit mech = new Unit("mech0", Faction.DEFENDER, UnitType.HEAVY_MECH, 9, 5);
+        Entity mech = new Entity("mech0", Faction.DEFENDER, UnitType.HEAVY_MECH, 9, 5);
         mech.mech = MechLoadoutState.defaultLoadout(MechRole.ARMORED_SUPPORT);
         int sid = sim.mintSquad(Faction.DEFENDER, mech);
         mech.squadId = sid;
         sim.addUnit(mech);
-        sim.addUnit(new Unit("opp", Faction.MARINE, UnitType.MARINE, 11, 5));
+        sim.addUnit(new Entity("opp", Faction.MARINE, UnitType.MARINE, 11, 5));
 
         for (int i = 0; i < 100; i++) hitResponse.rollFallbackOnHit(mech);
 
@@ -73,10 +73,10 @@ public class HitResponseServiceTest {
     public void civilianKeepsLegacyFallback() {
         BattleSimulation sim = openSim();
         HitResponseService hitResponse = sim.getHitResponseService();
-        Unit civilian = new Unit("c0", Faction.DEFENDER, UnitType.MARINE, 3, 8);
-        civilian.squadId = Unit.NO_SQUAD;
+        Entity civilian = new Entity("c0", Faction.DEFENDER, UnitType.MARINE, 3, 8);
+        civilian.squadId = Entity.NO_SQUAD;
         sim.addUnit(civilian);
-        sim.addUnit(new Unit("opp", Faction.MARINE, UnitType.MARINE, 5, 8));
+        sim.addUnit(new Entity("opp", Faction.MARINE, UnitType.MARINE, 5, 8));
 
         boolean rolledAtLeastOnce = false;
         for (int i = 0; i < 100; i++) {

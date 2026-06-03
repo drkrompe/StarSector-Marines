@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
@@ -93,7 +93,7 @@ public final class SecureObjectiveZone implements Goal {
      * extend under without touching the customPlan logic above.
      */
     private static int findObjectiveZone(Squad squad, BattleView sim) {
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Unit u = sim.liveUnitAt(i);
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Entity u = sim.liveUnitAt(i);
             if (u.squadId != squad.id) continue;
             if (u.assignedObjective instanceof ChargeSiteObjective cs) {
                 if (cs.isComplete()) continue;

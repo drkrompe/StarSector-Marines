@@ -11,7 +11,7 @@ import java.util.function.BiConsumer;
  * <p>Pull model — {@link #collect} runs fresh every frame (render is per-frame,
  * faster than the 30Hz sim, and interpolates), so systems recompute their draw
  * commands rather than caching. The producer lives here, <strong>not</strong> on
- * the domain object: {@code Unit}/{@code Doodad}/etc. stay pure data and never
+ * the domain object: {@code Entity}/{@code Doodad}/etc. stay pure data and never
  * import {@code SpriteAPI}.
  *
  * <p>Systems never touch GL — {@link BattleRenderer#drainLayer} owns batching

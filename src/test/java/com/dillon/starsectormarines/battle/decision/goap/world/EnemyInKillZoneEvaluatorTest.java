@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.decision.goap.world;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
@@ -36,14 +36,14 @@ public class EnemyInKillZoneEvaluatorTest {
         return new BattleSimulation(grid, new CellTopology(W, H));
     }
 
-    private static Unit defenderAt(int x, int y, int squadId) {
-        Unit u = new Unit("d", Faction.DEFENDER, UnitType.MARINE, x, y);
+    private static Entity defenderAt(int x, int y, int squadId) {
+        Entity u = new Entity("d", Faction.DEFENDER, UnitType.MARINE, x, y);
         u.squadId = squadId;
         return u;
     }
 
-    private static Unit marineAt(int x, int y) {
-        return new Unit("m", Faction.MARINE, UnitType.MARINE, x, y);
+    private static Entity marineAt(int x, int y) {
+        return new Entity("m", Faction.MARINE, UnitType.MARINE, x, y);
     }
 
     @Test
@@ -68,7 +68,7 @@ public class EnemyInKillZoneEvaluatorTest {
         squad.holdsFireUntilKillZone = true;
         squad.killZoneLosTicks = 0;
 
-        Unit defender = defenderAt(5, 5, squadId);
+        Entity defender = defenderAt(5, 5, squadId);
         sim.addUnit(defender);
         sim.addUnit(marineAt(8, 5));
 
@@ -86,7 +86,7 @@ public class EnemyInKillZoneEvaluatorTest {
         squad.holdsFireUntilKillZone = true;
         squad.killZoneLosTicks = SquadAlertSystem.KILL_ZONE_LOS_TICKS_THRESHOLD;
 
-        Unit defender = defenderAt(5, 5, squadId);
+        Entity defender = defenderAt(5, 5, squadId);
         sim.addUnit(defender);
         // Marine within kill-zone range (8 cells), LOS clear on open floor.
         sim.addUnit(marineAt(8, 5));
@@ -105,7 +105,7 @@ public class EnemyInKillZoneEvaluatorTest {
         squad.holdsFireUntilKillZone = true;
         squad.killZoneLosTicks = SquadAlertSystem.KILL_ZONE_LOS_TICKS_THRESHOLD;
 
-        Unit defender = defenderAt(2, 2, squadId);
+        Entity defender = defenderAt(2, 2, squadId);
         sim.addUnit(defender);
         // Marine far beyond KILL_ZONE_RANGE_CELLS (8).
         sim.addUnit(marineAt(14, 14));
@@ -124,7 +124,7 @@ public class EnemyInKillZoneEvaluatorTest {
         squad.holdsFireUntilKillZone = true;
         squad.killZoneLosTicks = 1; // one tick, not enough
 
-        Unit defender = defenderAt(5, 5, squadId);
+        Entity defender = defenderAt(5, 5, squadId);
         sim.addUnit(defender);
         sim.addUnit(marineAt(8, 5));
 
@@ -150,7 +150,7 @@ public class EnemyInKillZoneEvaluatorTest {
         // Just past the threshold — the backstop should fire.
         squad.timeUnderSustainedFire = SquadAlertSystem.KILL_ZONE_AMBUSH_BLOWN_SECONDS;
 
-        Unit defender = defenderAt(2, 2, squadId);
+        Entity defender = defenderAt(2, 2, squadId);
         sim.addUnit(defender);
         // Marine WAY beyond kill-zone range; the kill-zone proximity check
         // alone would keep the gate shut.
@@ -174,7 +174,7 @@ public class EnemyInKillZoneEvaluatorTest {
         squad.killZoneLosTicks = 0;
         squad.timeUnderSustainedFire = SquadAlertSystem.KILL_ZONE_AMBUSH_BLOWN_SECONDS - 0.1f;
 
-        Unit defender = defenderAt(2, 2, squadId);
+        Entity defender = defenderAt(2, 2, squadId);
         sim.addUnit(defender);
         sim.addUnit(marineAt(14, 14));
 

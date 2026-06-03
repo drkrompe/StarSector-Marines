@@ -1,15 +1,12 @@
 package com.dillon.starsectormarines.battle.unit;
 
-import com.dillon.starsectormarines.battle.drone.Drone;
-import com.dillon.starsectormarines.battle.drone.DroneHubUnit;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 
 /**
- * What a {@link Unit} is doing this battle. Drives the dispatch in
+ * What a {@link Entity} is doing this battle. Drives the dispatch in
  * {@code BattleSimulation.updateUnit}.
  *
  * <ul>
@@ -60,7 +57,7 @@ import com.dillon.starsectormarines.battle.turret.MapTurret;
  * <p>Mission setup assigns roles when populating the simulation. Roles can
  * change at runtime if a future mission wants it (e.g., capture → switch from
  * COMBATANT to OBJECTIVE_CAMPER once a flag is taken), but nothing in the
- * current code paths writes to {@code Unit.role} after spawn.
+ * current code paths writes to {@code Entity.role} after spawn.
  */
 public enum UnitRole {
     COMBATANT,

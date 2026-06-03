@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
@@ -84,7 +84,7 @@ public final class BreachToEngage implements Goal {
         if (squad.moraleBroken) return 0f;
         int squadZone = ZoneQueries.squadCurrentZone(squad, sim);
         if (squadZone < 0) return 0f;
-        Unit target = effectiveTarget(squad, sim);
+        Entity target = effectiveTarget(squad, sim);
         if (target == null) return 0f;
         int targetZone = sim.getZoneGraph().zoneIdAt(sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
         if (targetZone < 0 || targetZone == squadZone) return 0f;
@@ -108,7 +108,7 @@ public final class BreachToEngage implements Goal {
     @Override
     public SquadPlan customPlan(Squad squad, BattleView sim) {
         int squadZone = ZoneQueries.squadCurrentZone(squad, sim);
-        Unit target = effectiveTarget(squad, sim);
+        Entity target = effectiveTarget(squad, sim);
         if (target == null || squadZone < 0) return null;
         int targetZone = sim.getZoneGraph().zoneIdAt(sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
         if (targetZone < 0 || targetZone == squadZone) return null;
@@ -143,7 +143,7 @@ public final class BreachToEngage implements Goal {
         // Member count — slot count matches alive members so each member has
         // a stack-up + forward cell pair. Slot 0 binds the closest member.
         int aliveCount = 0;
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Unit u = sim.liveUnitAt(i);
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Entity u = sim.liveUnitAt(i);
             if (u.squadId == squad.id) aliveCount++;
         }
         if (aliveCount <= 0) return null;
@@ -303,10 +303,10 @@ public final class BreachToEngage implements Goal {
      * still have an answer for newly-spawned squads that haven't ticked
      * targeting yet.
      */
-    private static Unit effectiveTarget(Squad squad, BattleView sim) {
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Unit u = sim.liveUnitAt(i);
+    private static Entity effectiveTarget(Squad squad, BattleView sim) {
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { Entity u = sim.liveUnitAt(i);
             if (u.squadId != squad.id) continue;
-            Unit t = sim.targetOf(u);
+            Entity t = sim.targetOf(u);
             if (t != null) return t;
         }
         int cx = Math.round(squad.centroidX);
@@ -324,11 +324,11 @@ public final class BreachToEngage implements Goal {
         NavigationGrid grid = sim.getGrid();
         ZoneGraph zones = sim.getZoneGraph();
         int liveN = sim.liveUnitCount();
-        for (int ei = 0; ei < liveN; ei++) { Unit enemy = sim.liveUnitAt(ei);
+        for (int ei = 0; ei < liveN; ei++) { Entity enemy = sim.liveUnitAt(ei);
             if (!enemy.type.combatant) continue;
             if (enemy.faction == squad.faction) continue;
             if (zones.zoneIdAt(sim.world().cellX(enemy.entityId), sim.world().cellY(enemy.entityId)) != squadZone) continue;
-            for (int mi = 0; mi < liveN; mi++) { Unit member = sim.liveUnitAt(mi);
+            for (int mi = 0; mi < liveN; mi++) { Entity member = sim.liveUnitAt(mi);
                 if (member.squadId != squad.id) continue;
                 if (grid.hasLineOfSight(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId), sim.world().cellX(enemy.entityId), sim.world().cellY(enemy.entityId))) {
                     return true;

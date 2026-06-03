@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.mech;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
@@ -13,7 +13,7 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 
 /**
  * Mech parity action — the GOAP-side equivalent of the legacy
- * {@link MechCombatantBehavior#update(Unit, BattleSimulation)} loop. Picks
+ * {@link MechCombatantBehavior#update(Entity, BattleSimulation)} loop. Picks
  * a target, fires all three weapon tracks at whichever bands their targets
  * sit in, and advances toward a firing position when not already in close
  * engagement. No role gating — every mech runs this regardless of doctrine.
@@ -47,9 +47,9 @@ public final class EngageAtCurrentBand implements Action {
     @Override public int requiredMembers() { return 1; }
 
     @Override
-    public ActionStatus execute(Unit u, Squad squad, BattleControl sim) {
-        Unit target = sim.getTacticalScoring().refreshTargetIfNotShootable(u);
-        sim.world().setTargetId(u.entityId, Unit.idOf(target));
+    public ActionStatus execute(Entity u, Squad squad, BattleControl sim) {
+        Entity target = sim.getTacticalScoring().refreshTargetIfNotShootable(u);
+        sim.world().setTargetId(u.entityId, Entity.idOf(target));
         if (target == null) return ActionStatus.RUNNING;
 
         float dist = TacticalScoring.cellDistance(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));

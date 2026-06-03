@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -60,7 +60,7 @@ public class WalkInMeansTest {
         }
         assertTrue(defenders > 0, "walk-in spawned at least one defender");
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Unit u = sim.liveUnitAt(i);
+            Entity u = sim.liveUnitAt(i);
             if (u.faction != Faction.DEFENDER) continue;
             assertEquals(0, topo.getBuildingId(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId)),
                     "no walk-in unit may spawn inside a building footprint");

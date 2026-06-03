@@ -8,7 +8,7 @@ import java.util.EnumMap;
  * Render-side flyweight: the <em>static, type-shared</em> appearance + capability
  * tags for a {@link UnitType}, resolved once at class-load from the sim type. One
  * descriptor is shared by every entity of a type — entities never store render
- * fields, and {@code Unit}/{@code UnitType} never gain {@code SpriteAPI} (the
+ * fields, and {@code Entity}/{@code UnitType} never gain {@code SpriteAPI} (the
  * overview's hard boundary). This is the same flyweight relationship
  * {@link BattleSprites} already has with {@code UnitType}, promoted to carry the
  * capability tags + sprite-kind the Story J sweeps branch on instead of an

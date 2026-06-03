@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
@@ -22,7 +22,6 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 
 /**
  * Always-feasible reinforcement floor. Spawns a fresh squad of infantry on
@@ -103,7 +102,7 @@ public final class WalkInMeans implements ReinforcementMeans {
         Squad squad = null;
         int spawned = 0;
         for (int[] cell : spawnCells) {
-            Unit unit = new Unit("r" + (nextUnitId++), req.side, infantryType, cell[0], cell[1]);
+            Entity unit = new Entity("r" + (nextUnitId++), req.side, infantryType, cell[0], cell[1]);
             unit.role = UnitRole.PATROL;
             if (squad == null) {
                 int sid = sim.mintSquad(req.side, unit);

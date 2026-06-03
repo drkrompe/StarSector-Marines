@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Unit;
+import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
@@ -72,7 +72,7 @@ public class SecureObjectiveZoneTest {
         BattleSimulation sim = singleDoorwaySim();
         Squad squad = squadAt(1, 2f, 2f, 1);
         // Squad member exists but with no assignedObjective.
-        Unit u = new Unit("m1", Faction.MARINE, UnitType.MARINE, 2, 2);
+        Entity u = new Entity("m1", Faction.MARINE, UnitType.MARINE, 2, 2);
         u.squadId = 1;
         sim.addUnit(u);
 
@@ -87,7 +87,7 @@ public class SecureObjectiveZoneTest {
         ChargeSiteObjective charge = new ChargeSiteObjective(3, 3, 5f, "test");
         sim.addObjective(charge);
         Squad squad = squadAt(1, 2f, 2f, 1);
-        Unit planter = new Unit("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
+        Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
         planter.squadId = 1;
         planter.role = UnitRole.PLANTER;
         planter.assignedObjective = charge;
@@ -104,7 +104,7 @@ public class SecureObjectiveZoneTest {
         ChargeSiteObjective charge = new ChargeSiteObjective(8, 3, 5f, "test");
         sim.addObjective(charge);
         Squad squad = squadAt(1, 2f, 2f, 1);
-        Unit planter = new Unit("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
+        Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
         planter.squadId = 1;
         planter.role = UnitRole.PLANTER;
         planter.assignedObjective = charge;
@@ -121,7 +121,7 @@ public class SecureObjectiveZoneTest {
         ChargeSiteObjective charge = new ChargeSiteObjective(8, 3, 5f, "test");
         sim.addObjective(charge);
         Squad squad = squadAt(1, 2f, 2f, 1);
-        Unit planter = new Unit("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
+        Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
         planter.squadId = 1;
         planter.role = UnitRole.PLANTER;
         planter.assignedObjective = charge;
@@ -151,7 +151,7 @@ public class SecureObjectiveZoneTest {
         ChargeSiteObjective charge = new ChargeSiteObjective(8, 3, 5f, "test");
         sim.addObjective(charge);
         Squad squad = squadAt(1, 2f, 2f, 1);
-        Unit planter = new Unit("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
+        Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
         planter.squadId = 1;
         planter.role = UnitRole.PLANTER;
         planter.assignedObjective = charge;
@@ -174,7 +174,7 @@ public class SecureObjectiveZoneTest {
         ChargeSiteObjective charge = new ChargeSiteObjective(3, 3, 5f, "test");
         sim.addObjective(charge);
         Squad squad = squadAt(1, 2f, 2f, 1);
-        Unit planter = new Unit("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
+        Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
         planter.squadId = 1;
         planter.role = UnitRole.PLANTER;
         planter.assignedObjective = charge;
@@ -196,7 +196,7 @@ public class SecureObjectiveZoneTest {
         ChargeSiteObjective charge = new ChargeSiteObjective(8, 3, 5f, "test");
         sim.addObjective(charge);
         Squad squad = squadAt(1, 2f, 2f, 1);
-        Unit planter = new Unit("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
+        Entity planter = new Entity("p1", Faction.MARINE, UnitType.MARINE, 2, 2);
         planter.squadId = 1;
         planter.role = UnitRole.PLANTER;
         planter.assignedObjective = charge;
@@ -204,7 +204,7 @@ public class SecureObjectiveZoneTest {
 
         // Advance objective progress past its duration so isComplete() flips true.
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            Unit u = sim.liveUnitAt(i);
+            Entity u = sim.liveUnitAt(i);
             if (u.role == UnitRole.PLANTER) {
                 sim.world().setCellPos(u.entityId, 8, 3);
                 sim.world().setMoveProgress(u.entityId, 0f);
