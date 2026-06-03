@@ -81,6 +81,27 @@ limit-cycled the `alpha>90` forward/reverse flip making zero net progress. Fix
   `Vehicle` (by `ConvoyMeans`). `snapToMask` moved to `VehicleRoutePlanner`
   (shared spawn + re-route). `routeAvoiding` unit-tested (detour vs. null).
 
+**Proactive turn-feasibility reverse (rung 2.5, landed).** A convoy dump showed
+the open-space orbit reappearing *with a live trajectory* (`hasTrajectory:true`,
+`wallStuckTime:0`): a departing HEAVY_APC overshot a tight bend and limit-cycled
+the `alpha>90` half-reverse flip. Neither rung fired — no wall contact for rung 2,
+and rung 3's re-route just hands back the same path from the same unmakeable pose
+("the new path rescue is not helping"). Per the user's steer ("detectable from the
+kinematic profile, correct without going into the oscillation loop"), the fix is a
+**geometric, timer-free** detector in `VehicleController.advance`: a bicycle can't
+reach a carrot inside either of its two minimum-turn circles by any forward arc, so
+`turnIsInfeasibleForward(pose, carrot, R)` tests the carrot against both circle
+centers `(x ∓ R·cosθ, y ∓ R·sinθ)` and, when it's inside (by `TURN_INFEASIBLE_MARGIN_CELLS`,
+so a perfectly-tracked min-radius corner — carrot riding *on* the circle — doesn't
+false-trip), commits the existing reverse-to-feasible maneuver **on the first tick
+the turn is provably impossible** — no ~4s stall pause, no visible oscillation.
+`beginReverseRecovery` now returns whether it committed; boxed-in/capped declines
+fall through to normal tracking, leaving the stall→re-route ladder as the backstop.
+Unit-tested (`VehicleControllerTurnFeasibilityTest`, 5 green). This is the rung-2.5
+"reverse-to-a-pose-that-makes-the-turn" follow-up AND most of slice-4's "recovery
+reaction latency" item (a kinematic take on options 2+3 — sharper orbit signal /
+prevent orbits up front).
+
 Track: full layered rewrite anchored on a **rolling-horizon local Hybrid A\***
 planner with always-on kinematic tracking. No backward-compat constraint — the
 old `headings != null` dead-reckon fork is deleted, not kept.
@@ -109,9 +130,10 @@ local planner for reverse / 3-point extraction.
       `refineWithFallback` / `deriveSegmentHeadings` / `refine`. **90° snaps
       dead in code (playtest pending).**
       ([`complete/slice-2-live-tracking.md`](complete/slice-2-live-tracking.md)) ✅
-- [~] **Slice 3** — recovery ladder. Rungs 2 (committed reverse backup) and 3
-      (stall detection → cost-router "lap around" re-route) landed; see State of
-      play. Remaining: a real give-up beyond hold-and-retry (deload-in-place?),
+- [~] **Slice 3** — recovery ladder. Rungs 2 (committed reverse backup), 2.5
+      (proactive `turnIsInfeasibleForward` reverse), and 3 (stall detection →
+      cost-router "lap around" re-route) landed; see State of play. Remaining: a
+      real give-up beyond hold-and-retry (deload-in-place?),
       and the deeper cure — turn-aware clearance in `cost-field-routing` so the
       router stops picking gaps the truck can't turn into (rung 3 makes it
       non-fatal meanwhile).
@@ -145,8 +167,10 @@ stack is live: `VehicleController.tick` → `corridor.advance(pose)` → committ
 reverse recovery (if `REVERSING`) → terminal RS docking (inbound) → arrival →
 rolling `LocalTrajectoryPlanner.plan` refresh → speed-scaled `PurePursuit` carrot
 along the trajectory (coarse-corridor fallback when `plan()` is `null`) →
-curvature-capped `body.tick` → `wallStuckRecovery` (now a committed-backup
-trigger). The synthetic-heading fork and the full-path `refine` are gone.
+**proactive `turnIsInfeasibleForward` check on the carrot (commit a reverse if the
+turn is geometrically impossible)** → curvature-capped `body.tick` →
+`wallStuckRecovery` (now a committed-backup trigger). The synthetic-heading fork
+and the full-path `refine` are gone.
 
 **First: playtest** the corner governor + reverse recovery on a cornering convoy
 run (the prior stuck-truck case). Then finish **slice 3 — recovery ladder**.

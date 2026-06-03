@@ -78,6 +78,14 @@ public final class VehicleController {
      * wheelbase, below which pure pursuit oscillates.
      */
     private static final float MIN_LOOKAHEAD_CELLS = 1.2f;
+    /**
+     * Slack (cells) a carrot must clear <em>inside</em> a min-turn circle before
+     * the proactive reverse fires. A carrot tracked perfectly along a min-radius
+     * corner rides exactly on that circle (distance == radius), so without a
+     * margin float jitter would spam the trigger on legitimate tight corners; the
+     * carrot has to be unambiguously unreachable-forward, not merely on the edge.
+     */
+    private static final float TURN_INFEASIBLE_MARGIN_CELLS = 0.25f;
     /** Path-preview window (cells) for the curvature speed governor — how far ahead the upcoming bend is measured. A couple cells past the cruise stopping distance so the truck is already slowed when it reaches the corner. */
     private static final float CURVE_PREVIEW_CELLS = 4.0f;
     /** Total heading change (deg) over the preview window below which speed isn't cut — ignores gentle bends and straight-line float wander. */
@@ -334,6 +342,24 @@ public final class VehicleController {
         PurePursuit.Carrot carrot = PurePursuit.pick(body.x, body.y, px, py, startIdx, lookAhead);
         if (trajectory != null) trajCarrotAtEnd = carrot.atEnd;
 
+        // --- Proactive turn-feasibility check (kinematic, not timer-based) ---
+        // If the carrot sits inside one of the body's two minimum-turn circles,
+        // no forward arc can reach it — the bicycle would orbit (the open-space
+        // limit cycle that no wall-contact recovery catches). Read straight off
+        // the instantaneous pose-vs-carrot geometry and commit to the reverse-to-
+        // feasible maneuver the moment the turn is provably impossible, instead of
+        // grinding through the oscillation until the stall timer trips. The reverse
+        // backs up while aiming the nose at the corridor (a 3-point turn), then
+        // replans forward from the roomier pose. On the boxed-in / capped case
+        // beginReverseRecovery declines and we fall through to normal tracking
+        // (the stall → re-route ladder stays the backstop).
+        if (body instanceof BicycleBody
+                && turnIsInfeasibleForward(body.x, body.y, body.facingDegrees,
+                        carrot.x, carrot.y, ((BicycleBody) body).minTurnRadiusCells())
+                && beginReverseRecovery(body, type)) {
+            return; // committed; next tick drives the backup, then replans forward
+        }
+
         // Forward speed is the min of two caps:
         //  - brake taper to the LZ end, so the truck stops cleanly at the corridor
         //    end regardless of where the local horizon currently ends;
@@ -497,15 +523,41 @@ public final class VehicleController {
      * thrash (a kinematically impossible corridor — the slice-3 give-up rung
      * re-routes or deloads in place).
      */
-    private void beginReverseRecovery(GroundBody body, VehicleType type) {
-        if (recoveryAttempts >= MAX_RECOVERY_ATTEMPTS) return;
+    private boolean beginReverseRecovery(GroundBody body, VehicleType type) {
+        if (recoveryAttempts >= MAX_RECOVERY_ATTEMPTS) return false;
         float achievable = maxReverseDistance(body.x, body.y, body.facingDegrees,
                 type, navigation.getGrid());
         recoveryAttempts++;
-        if (achievable < MIN_USEFUL_REVERSE_CELLS) return; // boxed in — can't gain room
+        if (achievable < MIN_USEFUL_REVERSE_CELLS) return false; // boxed in — can't gain room
         reverseRemaining = achievable;
         recovery = Recovery.REVERSING;
         trajectory = null; // the forward plan is stale; replan after backing up
+        return true;
+    }
+
+    /**
+     * True when {@code (tx,ty)} lies inside one of the body's two minimum-turn
+     * circles — the geometric signature of a carrot no forward arc can reach
+     * (the bicycle would orbit it). Both turn-circle centers sit a min-radius to
+     * either side of the heading: with the facing convention here (0° = +Y,
+     * heading {@code (-sinθ, cosθ)}), the heading-perpendicular is
+     * {@code (∓cosθ, ∓sinθ)}, so the centers are {@code (x ∓ R·cosθ, y ∓ R·sinθ)}.
+     * A target within {@code R − margin} of either center is unreachable forward.
+     * Tested against both sides, so the result is independent of which way the
+     * turn goes. Package-private + static for unit coverage.
+     */
+    static boolean turnIsInfeasibleForward(float x, float y, float facingDeg,
+                                           float tx, float ty, float minRadius) {
+        float inner = minRadius - TURN_INFEASIBLE_MARGIN_CELLS;
+        if (inner <= 0f) return false;
+        double rad = Math.toRadians(facingDeg);
+        float cos = (float) Math.cos(rad), sin = (float) Math.sin(rad);
+        float lcx = x - minRadius * cos, lcy = y - minRadius * sin;
+        float rcx = x + minRadius * cos, rcy = y + minRadius * sin;
+        float dl2 = (tx - lcx) * (tx - lcx) + (ty - lcy) * (ty - lcy);
+        float dr2 = (tx - rcx) * (tx - rcx) + (ty - rcy) * (ty - rcy);
+        float inner2 = inner * inner;
+        return dl2 < inner2 || dr2 < inner2;
     }
 
     /**

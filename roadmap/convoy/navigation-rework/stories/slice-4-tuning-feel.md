@@ -26,6 +26,15 @@ not architecture.
 
 ### Recovery reaction latency (post-S3 playtest)
 
+> **Largely addressed (rung 2.5).** The proactive `turnIsInfeasibleForward`
+> detector in `VehicleController.advance` now catches the unmakeable-turn orbit
+> *geometrically, on the first tick* (carrot inside a min-turn circle) and reverses
+> immediately — no ~4s pause for that case. That's a kinematic blend of options 2
+> (sharper orbit signal) and 3 (prevent orbits up front) below. `STALL_SECONDS` +
+> re-route stay as the backstop for orbits the geometry test misses (e.g. boxed-in
+> reverses). The options below remain available if a residual pause still reads
+> awkward in playtest.
+
 S3's recovery works — no trucks hard-stuck — but the re-route fires only after
 `STALL_SECONDS` (4) of no progress, so a truck that hits an unturnable corner
 visibly **pauses ~4s before lapping around**. The pause reads a little awkward.
