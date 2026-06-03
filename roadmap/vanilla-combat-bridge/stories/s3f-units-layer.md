@@ -40,7 +40,7 @@ Two edits to `GroundSceneBackdrop`, no pass code touched (the seam is `renderWor
 - **Vision uninitialized → fully visible.** The map-only bridge sim may never initialize vision;
   `getUnitVisibility` returns `VIS_VISIBLE` and `getFadeAlpha` returns `1f` when `!initialized`
   (`VisionService.java:121,127`). So the live-sprite + HP-bar sweeps draw everything, no fog gate.
-- **No double-draw.** The structures mirrored by `GroundSimBridge` are **invisible** proxies; the
+- **No double-draw.** The structures mirrored by `SimProxyMirror` are **invisible** proxies; the
   UNITS sprites are their only visual.
 - **World scale is automatic.** All six sweeps size off `cam.cellPxSize()` = `worldUnitsPerCell`
   (20), so turret `visualCells`/infantry `renderScale` land in world units with no extra math.

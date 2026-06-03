@@ -28,14 +28,14 @@ import java.util.EnumSet;
  * map, parameterized by viewport + cell size. Configured with a <b>world-unit
  * viewport</b> centered on the origin ({@link #worldCamera()}), it emits
  * {@code (cell − grid/2)·worldUnitsPerCell} — exactly the combat world coords the
- * proxies use ({@link GroundSimBridge}). So retargeting the whole renderer to the
+ * proxies use ({@link SimProxyMirror}). So retargeting the whole renderer to the
  * combat layer is just "configure the camera with a world viewport"; no fork of the
  * pass code.
  *
  * <p>This host runs the projection-agnostic terrain + structure layers
  * ({@link RenderLayer#GROUND}, {@link RenderLayer#DOODADS}, {@link RenderLayer#ROOFS},
  * {@link RenderLayer#UNITS}) via {@link BattleRenderer#renderWorld(RenderContext, EnumSet)}.
- * UNITS (S3f) draws the only visual for ground forces — the {@link GroundSimBridge}
+ * UNITS (S3f) draws the only visual for ground forces — the {@link SimProxyMirror}
  * proxies are invisible targeting avatars, and marines are never proxied at all. The
  * FBO-backed accumulators (decals, lighting) and the remaining screen-coupled overlays
  * (fog, highlights, FX) are still left out — the accumulators blit in screen space and

@@ -53,7 +53,7 @@ Decomposition:
 ### S3a + S3b probe pieces (combathybrid)
 - `GroundSceneBackdrop` — below-ships plugin; world-configured `BattleCamera` + reused
   `BattleRenderer`; draws GROUND/DOODADS/ROOFS of the bridge's sim. Replaces the grid plate.
-- `GroundSimBridge` — references one externally-owned sim, mirrors N targetable units as
+- `SimProxyMirror` — references one externally-owned sim, mirrors N targetable units as
   proxies, ticks the sim once/frame, despawns proxies on sim death. Idempotent `init`.
   (Supersedes the single-proxy `SimCoupledProxyPlugin`, now deleted.)
 - `NeverEndObjective` — keeps an all-DEFENDER sim from auto-completing (else `advance()`
@@ -81,7 +81,7 @@ green). Sealed: `complete/s3e-build-map-host-seam.md`.
   standalone factory + test stays INTERNAL, unchanged.
 
 Both entrypoints (A — standalone `BattleScreen`; B — combat-bridge `GroundSceneBackdrop` +
-`GroundSimBridge`, Ctrl+Shift+K) now share: `buildMap`, `BattleSimulation` + the `advance(dt)`
+`SimProxyMirror`, Ctrl+Shift+K) now share: `buildMap`, `BattleSimulation` + the `advance(dt)`
 contract, `BattleRenderer` + all `RenderSystem`s (B uses the `renderWorld(rc, EnumSet)`
 subset), `BspCityGenerator`, `BattleSprites`, `BattleCamera`.
 
@@ -105,10 +105,12 @@ Slices (each build-clean + committable):
 - **X1 — `GroundBattleConfig` + configurable render layers** ✅ **CODE-COMPLETE** (per-file clean;
   whole-project build red only from a sibling ecs-migration `Crashing→CrashingComponent` move, not
   X1). The hardcoded `SCENE_LAYERS` constant is gone — the bridge's render-layer set now comes from
-  `GroundBattleConfig.sceneLayers` (so S3g–S3j become config edits). `GroundSimBridge` reads
+  `GroundBattleConfig.sceneLayers` (so S3g–S3j become config edits). `SimProxyMirror` reads
   `damageScale`/`proxyVariant` from the config too. `setupSimCoupled` builds the config once.
-- **X2 — debug strip + rename `GroundSimBridge` → `SimProxyMirror`.** Drop per-frame logging + the
-  amber crosshair markers (S3f UNITS is the real unit visual); IntelliJ `rename_refactoring`.
+- **X2 — debug strip + rename `GroundSimBridge` → `SimProxyMirror`** ✅ **DONE.** Per-frame damage
+  log + the amber crosshair markers gone (S3f UNITS is the real unit visual); log prefixes
+  `S3a:` → `ground-bridge:`; class Javadoc reframed from probe to durable core. Renamed via IntelliJ
+  `rename_refactoring` (22 usages, file + symbol). Per-file clean.
 - **X3 — `CombatBridgeSession` host object.** Extract the lifecycle/wiring behind one object the
   creation plugin delegates to; mode branch collapses.
 - **X4 — package reorg** `bridge/` + `host/` + `probe/`; delete `CanvasBackdropRenderer` +

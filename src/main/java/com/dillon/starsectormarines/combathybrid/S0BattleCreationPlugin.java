@@ -44,7 +44,7 @@ import java.util.Random;
  *   <li><b>SIM_COUPLED</b> — S3a/S3b. Loads the real Conquest map at LARGE into one
  *       {@link BattleSimulation}, renders its terrain + structures under the ships
  *       ({@link GroundSceneBackdrop}), and mirrors the map's defense-post turrets as
- *       proxies ({@link GroundSimBridge}) so vanilla fighters strafe the planet's actual
+ *       proxies ({@link SimProxyMirror}) so vanilla fighters strafe the planet's actual
  *       defenses — sim deaths despawn the proxies. The sim is built outside the combat
  *       plugins on purpose.</li>
  * </ul>
@@ -170,7 +170,7 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
      *
      * <p>One {@link BattleSimulation}, built here outside the combat plugins (so the
      * engine's repeated {@code init} can't rebuild it); the {@link GroundSceneBackdrop}
-     * renders its terrain + structures and the {@link GroundSimBridge} drives the
+     * renders its terrain + structures and the {@link SimProxyMirror} drives the
      * proxy/damage coupling — both over the same instance.
      */
     private void setupSimCoupled(CombatEngineAPI engine, float halfH) {
@@ -204,7 +204,7 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
                 GroundBattleConfig.DEFAULT_SCENE_LAYERS, targetable, PROXY_VARIANT,
                 GroundBattleConfig.DEFAULT_DAMAGE_SCALE);
         engine.addLayeredRenderingPlugin(new GroundSceneBackdrop(cfg));
-        engine.addPlugin(new GroundSimBridge(cfg));
+        engine.addPlugin(new SimProxyMirror(cfg));
     }
 
     /** S2: AI carrier(s) on the player side + one invisible slaved proxy on the enemy side. */

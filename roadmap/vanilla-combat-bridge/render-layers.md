@@ -45,7 +45,7 @@ rendering.
   `VisionService.getUnitVisibility` returns `VIS_VISIBLE` and `getFadeAlpha` returns `1f` when
   `!initialized` (`VisionService.java:121,127`) — so unit passes draw everything fully, no fog gate,
   no NPE. The `FOG` pass itself early-returns on `!isInitialized()`.
-- **No double-draw with proxies.** `GroundSimBridge` mirrors targetable structures as **invisible**
+- **No double-draw with proxies.** `SimProxyMirror` mirrors targetable structures as **invisible**
   vanilla proxies (targeting avatars, `ProxyTargetPlugin` pins invisible). They have no sprite, so
   adding our UNITS/structure sprites is the *only* visual — no overlap.
 - **World scale.** Under the world camera, `cam.cellPxSize()` is `worldUnitsPerCell` (20), so every

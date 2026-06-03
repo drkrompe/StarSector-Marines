@@ -6,7 +6,7 @@
 > **Verdict:** the event-translated coupling holds end to end. A vanilla fighter's fire
 > drains a real `BattleSimulation` turret's HP via `applyExternalDamage`; the *sim*
 > decides death; the death event despawns the proxy — same beat, no lag, no HP mirrored.
-> Generalized to one sim / many proxies (`GroundSimBridge`), each unit's proxy attriting
+> Generalized to one sim / many proxies (`SimProxyMirror`), each unit's proxy attriting
 > and despawning independently. The "individual simulation setup" concern is retired: the
 > sim is built once, outside the plugin, and the bridge only references it.
 
@@ -88,7 +88,7 @@ Launch with **Ctrl+Shift+K** on the campaign map. Shipped as **one sim, many pro
 the start (the single-proxy first cut was generalized before playtest — see "Round-trip
 verdict" below). Pieces in `combathybrid`:
 
-- **`GroundSimBridge`** (`EveryFrameCombatPlugin`) — references an externally-owned
+- **`SimProxyMirror`** (`EveryFrameCombatPlugin`) — references an externally-owned
   `BattleSimulation` and mirrors a passed-in list of targetable `Unit`s, one invisible proxy
   each. Per frame: push every proxy's damage delta into the sim, tick the sim **once**, then
   despawn any proxy whose unit the sim reported dead. It does **not** construct the sim.
@@ -124,5 +124,5 @@ Decisions on the design-notes open questions:
 First run (single VULCAN, scale 0.1) logged the clean round-trip:
 `vanilla dmg 1304 -> sim dmg 130.5 (hp 0.0)` → `SIM death event` → `despawning proxy`, all on the
 same beat. The **sim owned the kill** (no "destroyed by vanilla AI"). That green-lit the fan-out:
-generalized to `GroundSimBridge` (one sim, N proxies) + scale retune, before a fuller playtest.
+generalized to `SimProxyMirror` (one sim, N proxies) + scale retune, before a fuller playtest.
 Remaining playtest check: many proxies attriting and despawning independently over one sim.

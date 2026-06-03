@@ -3,14 +3,11 @@ package com.dillon.starsectormarines.combathybrid;
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Entity;
-import com.dillon.starsectormarines.render2d.GlStateBracket;
-import com.dillon.starsectormarines.render2d.SolidQuadBatch;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin;
 import com.fs.starfarer.api.combat.CollisionClass;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
-import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.mission.FleetSide;
 import org.apache.log4j.Logger;
@@ -20,13 +17,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * S3a (fan-out) — the event-translated coupling generalized to <b>one sim, many
- * proxies</b>. The sim is the source of truth, owned externally and merely
- * <em>referenced</em> here; this bridge spawns one invisible vanilla proxy per
- * targetable sim {@link Entity} and drives them all from a single {@code advance}.
- * It never constructs the sim — that inverts S3a's throwaway-per-plugin scaffold
- * into the real shape ground combat needs (the mission sim exists independently;
- * proxies are a thin mirror layer over it).
+ * The event-translated sim⇄vanilla coupling: <b>one sim, many proxies</b>. The sim is
+ * the source of truth, owned externally and merely <em>referenced</em> here; this bridge
+ * spawns one invisible vanilla proxy per targetable sim {@link Entity} and drives them all
+ * from a single {@code advance}. It never constructs the sim — the mission sim exists
+ * independently and proxies are a thin mirror layer over it.
  *
  * <p>Per the architecture's Decision 1 (event-translated, not state-mirrored):
  * <ul>
@@ -52,16 +47,14 @@ import java.util.List;
  * attrits over several passes rather than dying on the first salvo. Placeholder for the
  * real cross-scale damage convention deferred to S3c.
  *
- * <p>Throwaway dev scaffolding; gated by {@code DevConfig.S0_COMBAT_PROBE}.
+ * <p>Durable coupling core (see {@code roadmap/vanilla-combat-bridge/production-architecture.md}).
+ * Reachable only via the dev probe today ({@code DevConfig.S0_COMBAT_PROBE}); production triggers
+ * it through the mission flow once that seam lands.
  */
 @DebugOnly
-public class GroundSimBridge extends BaseEveryFrameCombatPlugin {
+public class SimProxyMirror extends BaseEveryFrameCombatPlugin {
 
-    private static final Logger LOG = Global.getLogger(GroundSimBridge.class);
-
-    /** Half-size of the per-proxy world-space crosshair marker (proxies are invisible). */
-    private static final float MARKER_HALF = 55f;
-    private static final float MARKER_THICK = 7f;
+    private static final Logger LOG = Global.getLogger(SimProxyMirror.class);
 
     /** One mirrored sim unit ↔ vanilla proxy pair. */
     private static final class ProxyLink {
@@ -89,7 +82,7 @@ public class GroundSimBridge extends BaseEveryFrameCombatPlugin {
     private CombatEngineAPI engine;
     private boolean initialized;
 
-    public GroundSimBridge(GroundBattleConfig cfg) {
+    public SimProxyMirror(GroundBattleConfig cfg) {
         this.sim = cfg.sim();
         this.targetable = new ArrayList<>(cfg.targetable());
         this.gridW = cfg.gridW();
@@ -106,7 +99,7 @@ public class GroundSimBridge extends BaseEveryFrameCombatPlugin {
         this.engine = engine;
 
         if (sim == null || Global.getSettings().getVariant(proxyVariant) == null) {
-            LOG.warn("S3a: missing sim or proxy variant [" + proxyVariant + "]; no proxies spawned.");
+            LOG.warn("ground-bridge: missing sim or proxy variant [" + proxyVariant + "]; no proxies spawned.");
             return;
         }
 
@@ -115,8 +108,6 @@ public class GroundSimBridge extends BaseEveryFrameCombatPlugin {
             for (ProxyLink link : links) {
                 if (link.unit == event.unit()) {
                     link.simDead = true;
-                    LOG.info("S3a: SIM death event for unit " + link.unit.id
-                            + " (cell " + event.cellX() + "," + event.cellY() + ") — proxy will despawn.");
                     break;
                 }
             }
@@ -127,7 +118,7 @@ public class GroundSimBridge extends BaseEveryFrameCombatPlugin {
             cellToWorld(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), loc);
             ShipAPI proxy = engine.getFleetManager(FleetSide.ENEMY)
                     .spawnShipOrWing(proxyVariant, loc, 270f);
-            proxy.setExtraAlphaMult(0f);                  // invisible; the marker shows its position
+            proxy.setExtraAlphaMult(0f);                  // invisible; the scene's UNITS layer draws it
             proxy.setCollisionClass(CollisionClass.SHIP); // hittable by weapons (explicit)
             proxy.setShipAI(null);                         // no brain — we pin it each frame
             proxy.getLocation().set(loc);
@@ -135,7 +126,7 @@ public class GroundSimBridge extends BaseEveryFrameCombatPlugin {
             link.anchor.set(loc);
             links.add(link);
         }
-        LOG.info("S3a: ground-sim bridge up. " + links.size() + " proxy/unit links over one sim; "
+        LOG.info("ground-bridge: up. " + links.size() + " proxy/unit links over one sim; "
                 + "dmg scale=" + damageScale + ", proxy maxHp="
                 + (links.isEmpty() ? -1 : (int) links.get(0).proxy.getMaxHitpoints()) + ".");
     }
@@ -161,11 +152,7 @@ public class GroundSimBridge extends BaseEveryFrameCombatPlugin {
             float max = proxy.getMaxHitpoints();
             float vanillaDamage = max - proxy.getHitpoints();
             if (vanillaDamage > 0f && sim.world().isAlive(link.unit.entityId)) {
-                float simDamage = vanillaDamage * damageScale;
-                sim.applyExternalDamage(link.unit, simDamage);
-                LOG.info("S3a: " + link.unit.id + " vanilla dmg " + (int) vanillaDamage
-                        + " -> sim dmg " + String.format("%.1f", simDamage) + "  (hp now "
-                        + String.format("%.1f", sim.world().isAlive(link.unit.entityId) ? sim.world().hp(link.unit.entityId) : 0f) + ")");
+                sim.applyExternalDamage(link.unit, vanillaDamage * damageScale);
             }
             // Damage sensor, not a health bar: reset so vanilla never owns the kill.
             proxy.setHitpoints(max);
@@ -181,7 +168,7 @@ public class GroundSimBridge extends BaseEveryFrameCombatPlugin {
             if (link.simDead || !link.proxy.isAlive()) {
                 engine.removeEntity(link.proxy);
                 link.removed = true;
-                LOG.info("S3a: despawned proxy for " + link.unit.id
+                LOG.info("ground-bridge: despawned proxy for " + link.unit.id
                         + (link.simDead ? " (sim owned the death)." : " (vanilla destroyed it)."));
             }
         }
@@ -191,27 +178,5 @@ public class GroundSimBridge extends BaseEveryFrameCombatPlugin {
     private void cellToWorld(int cellX, int cellY, Vector2f out) {
         out.set((cellX - gridW / 2f) * worldUnitsPerCell,
                 (cellY - gridH / 2f) * worldUnitsPerCell);
-    }
-
-    @Override
-    public void renderInWorldCoords(ViewportAPI viewport) {
-        if (!initialized) return;
-        SolidQuadBatch batch = new SolidQuadBatch(links.size() * 4 + 4);
-        float h = MARKER_HALF, t = MARKER_THICK;
-        float r = 1f, g = 0.75f, b = 0.15f, a = 0.9f; // amber while the sim unit lives
-        boolean any = false;
-        for (ProxyLink link : links) {
-            if (link.removed) continue;
-            any = true;
-            float x = link.anchor.x, y = link.anchor.y;
-            batch.appendRect(x - h, y - h, x + h, y - h + t, r, g, b, a); // bottom
-            batch.appendRect(x - h, y + h - t, x + h, y + h, r, g, b, a); // top
-            batch.appendRect(x - h, y - h, x - h + t, y + h, r, g, b, a); // left
-            batch.appendRect(x + h - t, y - h, x + h, y + h, r, g, b, a); // right
-        }
-        if (!any) return;
-        try (GlStateBracket gl = GlStateBracket.textured2D()) {
-            batch.flush();
-        }
     }
 }

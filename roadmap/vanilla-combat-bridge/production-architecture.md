@@ -11,7 +11,7 @@
 
 The fleet-above / ground-below bridge is a **committed product mode**, not just an
 exploration. So: **extract the durable core now, then resume render layers in it.** The
-durable adapters (`GroundSceneBackdrop`, `GroundSimBridge`) are already close — the throwaway
+durable adapters (`GroundSceneBackdrop`, `SimProxyMirror`) are already close — the throwaway
 part is the *launcher / mode-global / hardcoded rosters*, not the coupling itself.
 
 This does **not** demote `BattleScreen`: the standalone full-canvas takeover stays the mature
@@ -27,7 +27,7 @@ second host for that same sim — "build a `BattleSimulation`, then choose a hos
    player-fleet stash/restore (`SpectatorCanvasPlugin`, `S0CompletionPlugin`,
    `PlayerFleetStash`), plus the `setupSimCoupled` wiring blob in the creation plugin.
 3. **The sim⇄vanilla bridge** (the durable core) — `GroundSceneBackdrop` (render sink) +
-   `GroundSimBridge` (proxy mirror: damage-in via `applyExternalDamage`, death-out via
+   `SimProxyMirror` (proxy mirror: damage-in via `applyExternalDamage`, death-out via
    `subscribeDeath`, position-slaving).
 
 The `mode` enum + the 4-way branch in `S0BattleCreationPlugin.afterDefinitionLoad` is the
@@ -44,7 +44,7 @@ ground battle) parameterized by a config object — the branch dies.
 | `PlayerFleetStash`, `SpectatorCanvasPlugin`, `S0CompletionPlugin`, `NeverEndObjective` | **Durable-ish** — lifecycle / camera / completion *policy*; folded behind the session. |
 | `S0BattleCreationPlugin` | **Split** — thin `BattleCreationPlugin` (durable) + `setupSimCoupled` wiring (→ session/config) + mode branch (dies). |
 | `S0BattleProbe`, `CombatHybridInputListener`, `CombatHybridCampaignPlugin` | **Throwaway** dev trigger — stays `@DebugOnly`; production trigger is the mission flow. |
-| `CanvasBackdropRenderer`, `ProxyTargetPlugin` | **Deletable** — superseded by `GroundSceneBackdrop` / `GroundSimBridge` (only S0b/S2 probe modes still reach them). |
+| `CanvasBackdropRenderer`, `ProxyTargetPlugin` | **Deletable** — superseded by `GroundSceneBackdrop` / `SimProxyMirror` (only S0b/S2 probe modes still reach them). |
 
 ## Target shape
 
