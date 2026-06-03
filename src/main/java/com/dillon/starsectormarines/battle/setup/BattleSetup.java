@@ -133,6 +133,45 @@ public final class BattleSetup {
 
     private BattleSetup() {}
 
+    /**
+     * Result of {@link #buildMap}: the constructed sim plus the structure units
+     * spawned for its defense posts (turrets + drone hubs, in spawn order).
+     * Standalone factories ignore {@code structures}; the combat-bridge host
+     * mirrors them as targetable proxies.
+     */
+    public record MapBuild(BattleSimulation sim, List<Unit> structures) {}
+
+    /**
+     * Builds the host-agnostic <b>map layer</b> — the part shared by every
+     * {@code createX} factory and the combat-bridge host. Constructs the sim
+     * from the grid, installs the tactical map / buildings / defense posts /
+     * parked vehicles / doodads, and spawns the defense-post structure units.
+     *
+     * <p>This is the "build a {@link BattleSimulation}, then choose a host" seam:
+     * the standalone path follows this with live-scenario population (defenders,
+     * objectives, commander, reinforcement) + internal air; the bridge follows it
+     * with {@code setAirProvider(EXTERNAL)} + proxy wiring.
+     *
+     * <p><b>Pre-condition:</b> {@code vehicles} and {@code defensePosts} must
+     * already be stamped into {@code map.grid} — both flip cell walkability that
+     * the zone graph reads when the sim is constructed here. Callers stamp them
+     * (via {@link #stampVehicles} and either the generator's conquest recipe or
+     * {@link DefensePostStamper#stampNonConquest}) <em>before</em> calling this,
+     * then hand the resolved lists in. {@code spawnDefensePostTurrets} runs after
+     * construction (it flips the turret-pad cells non-walkable post-bake), so the
+     * historical turret-after-vehicle cover-bake ordering is preserved.
+     */
+    public static MapBuild buildMap(MapResult map, List<MapVehicle> vehicles, List<DefensePost> defensePosts) {
+        BattleSimulation sim = new BattleSimulation(map.grid, map.topology);
+        sim.setTacticalMap(map.tacticalMap);
+        sim.setBuildings(map.buildings);
+        sim.setDefensePosts(defensePosts);
+        for (MapVehicle v : vehicles) sim.addVehicle(v);
+        for (Doodad d : map.doodads) sim.addDoodad(d);
+        List<Unit> structures = spawnDefensePostTurrets(sim, defensePosts);
+        return new MapBuild(sim, structures);
+    }
+
     public static BattleSimulation createPlaceholder() {
         return createPlaceholder(System.currentTimeMillis(), defaultManifest(), false);
     }
@@ -204,13 +243,7 @@ public final class BattleSetup {
         DefensePostStamper.stampNonConquest(map.grid, map.topology,
                 RoadReservation.mask(map.roadGraph, map.grid.getWidth(), map.grid.getHeight()),
                 map.pointsOfInterest, map.doodads, defensePosts, rng);
-        BattleSimulation sim = new BattleSimulation(map.grid, map.topology);
-        sim.setTacticalMap(map.tacticalMap);
-        sim.setBuildings(map.buildings);
-        sim.setDefensePosts(defensePosts);
-        for (MapVehicle v : vehiclePlacements) sim.addVehicle(v);
-        for (Doodad d : map.doodads) sim.addDoodad(d);
-        spawnDefensePostTurrets(sim, defensePosts);
+        BattleSimulation sim = buildMap(map, vehiclePlacements, defensePosts).sim();
 
         // Pick charge sites: prefer high-value POIs (lab/comms/depot) in the
         // defender half of the map. Fall back to any POI if not enough qualify.
@@ -430,13 +463,7 @@ public final class BattleSetup {
         DefensePostStamper.stampNonConquest(map.grid, map.topology,
                 RoadReservation.mask(map.roadGraph, map.grid.getWidth(), map.grid.getHeight()),
                 map.pointsOfInterest, map.doodads, defensePosts, rng);
-        BattleSimulation sim = new BattleSimulation(map.grid, map.topology);
-        sim.setTacticalMap(map.tacticalMap);
-        sim.setBuildings(map.buildings);
-        sim.setDefensePosts(defensePosts);
-        for (MapVehicle v : vehiclePlacements) sim.addVehicle(v);
-        for (Doodad d : map.doodads) sim.addDoodad(d);
-        spawnDefensePostTurrets(sim, defensePosts);
+        BattleSimulation sim = buildMap(map, vehiclePlacements, defensePosts).sim();
 
         // Default ASSAULT objectives — eliminate the other side. Mission-specific
         // setups (sabotage, raid, extraction) will swap or add to this pair.
@@ -514,19 +541,14 @@ public final class BattleSetup {
         MapResult map = MAP_GEN.generate(scale.width, scale.height, seed, axis, profile);
 
         List<MapVehicle> vehiclePlacements = stampVehicles(map.grid, map.topology, rng);
-        BattleSimulation sim = new BattleSimulation(map.grid, map.topology);
-        sim.setTacticalMap(map.tacticalMap);
-        sim.setBuildings(map.buildings);
-        sim.setDefensePosts(map.defensePosts);
-        for (MapVehicle v : vehiclePlacements) sim.addVehicle(v);
-        for (Doodad d : map.doodads) sim.addDoodad(d);
         // Conquest defense posts come pre-stamped by the biome-aware
         // DefensePostStamper inside BspCityGenerator (BEACH→PORT→kill-zone
-        // tiers + rear ARTILLERY battery). Each post is paired with a manned
-        // GUARDPOST squad via {@link #linkGuardpostSquads} below — that's the
-        // difference from the non-conquest path, which stamps the same shapes
-        // unmanned via {@code DefensePostStamper.stampNonConquest}.
-        spawnDefensePostTurrets(sim, map.defensePosts);
+        // tiers + rear ARTILLERY battery), so buildMap consumes map.defensePosts
+        // directly. Each post is paired with a manned GUARDPOST squad via
+        // {@link #linkGuardpostSquads} below — that's the difference from the
+        // non-conquest path, which stamps the same shapes unmanned via
+        // {@code DefensePostStamper.stampNonConquest}.
+        BattleSimulation sim = buildMap(map, vehiclePlacements, map.defensePosts).sim();
 
         // Conquest win condition: marines dismantle defender supply
         // structures, not "kill every defender." Pre-slice-4 this was
