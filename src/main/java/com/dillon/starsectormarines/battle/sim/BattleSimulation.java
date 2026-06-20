@@ -531,10 +531,11 @@ public class BattleSimulation implements BattleControl {
     /**
      * Resolves an arbitrary entity id to its {@link Entity}, or {@code null} when
      * the id is unknown / released. The generic counterpart to
-     * {@link #targetOf(Entity)} — used by readers of the secondary
-     * id-typed fields ({@link Entity#getBurstTargetId()},
-     * {@link Entity#getSecondaryAimTargetId()}, {@link com.dillon.starsectormarines.battle.turret.MapTurret#burstTargetId})
-     * where there's no companion holder unit to thread.
+     * {@link #targetOf(Entity)} — used by readers of id-typed combat/secondary
+     * cross-references (the {@code COMBAT.burstTargetId} / {@code
+     * SECONDARY_WEAPON.aimTargetId} world columns, {@link
+     * com.dillon.starsectormarines.battle.turret.MapTurret#burstTargetId}) where
+     * there's no companion holder unit to thread.
      */
     public Entity resolveUnit(long id) {
         return rosterService.getRegistry().getOrNull(id);
