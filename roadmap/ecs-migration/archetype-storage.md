@@ -166,7 +166,7 @@ by lifecycle-stable capability ([[feedback_components_by_capability_not_store]])
 | `RenderPosition` | `float x, y` | every drawn entity (interpolation; distinct from int cell) |
 | `Health` | `float hp, maxHp` | live damageable (NOT corpse) |
 | `Combat` | `float attackDamage, range, accuracy, cooldownTimer` + burst scalars (`int burstRemaining; float burstTimer; long burstTargetId`); `long targetId` | combatants (universal; SHIPPED 3c) |
-| `SecondaryWeapon` | secondary cooldown/action timers + aim target id; (later) weapon def + ammo | units with a secondary (optional presence; next slice) |
+| `SecondaryWeapon` | `MarineSecondary spec; int ammo; float cooldownTimer, actionTimer; long aimTargetId; int fired` | units with a secondary (optional presence; SHIPPED 3d) |
 | `Movement` | `moveProgress`, path ref | path-executing entities (kinematic) |
 | `AiState` | fallback cell + timer, reposition cooldown, wander dwell | thinking entities (AI decision cadence) |
 | `MechLoadout` | (existing `MechLoadoutComponent`) | mechs |
@@ -343,9 +343,30 @@ the sim never stores a `SpriteAPI`.
      fields). COMBAT is universal to every allocated unit (mirrors the old
      universal dense arrays — behavior-preserving); combatant-gated membership
      is a deferred refinement.
-   - **Next capabilities:** `SecondaryWeapon` (optional presence), Movement,
-     AiState, then fold `Crashing`/`MechLoadout` ComponentStores into archetype
-     membership.
+   - **3d SHIPPED (`a5da51a`): SecondaryWeapon — the FIRST optional capability
+     as archetype presence.** A unit carries `SECONDARY_WEAPON`
+     `{spec(OBJECT), ammo(INT), cooldownTimer, actionTimer(FLOAT),
+     aimTargetId(LONG), fired(INT 0/1)}` iff it has a secondary, so "has a
+     secondary" IS the archetype membership — no nullable field. Entity's
+     nullable `secondaryWeapon`/`secondaryAmmo`/`secondaryFiredThisAction` and
+     the three formerly-universal registry timer arrays are deleted. **Two grant
+     paths:** born-with-it seeds via `Entity.seedSecondaryWeapon`/`seedSecondaryAmmo`
+     (allocate adds the component to the spawn archetype); runtime acquisition
+     uses `attachSecondaryWeapon` (an `addComponent` row-move — the model seam for
+     a future pick-up-a-launcher mechanic, and how tests grant it post-spawn). The
+     corpse transmute removes it (no-op for units that never had it). Consumers
+     **presence-gate** on `hasSecondaryWeapon` before any secondary read (the
+     reads are fail-loud without the component) — three timer-first reads were
+     reordered. `TacticalScoring.canRocketTarget`/`effectiveAttackRange`/
+     `scoreWeaponAffinity` became instance methods (they need `registry`). This
+     proves the conditional-membership path the `Crashing`/`MechLoadout` fold-in
+     will follow. **Future (not built):** more secondary weapon types will join
+     the `spec` flyweight; richer AI may query the equipped weapon to decide
+     what the unit can do at any moment ("rocketeer" is not an archetype — "has a
+     secondary" is). Suite green at 757.
+   - **Next capabilities:** Movement (`moveProgress` + path ref), AiState
+     (reposition/fallback/wander), then fold `Crashing`/`MechLoadout`
+     ComponentStores into archetype membership.
 4. **Delete** `UnitRegistry`'s mega-table and the `LinkedHashMap`
    `ComponentStore<T>` once all columns/components live on the archetype `World`.
    The four already-migrated components (`Crashing`, `RenderPosition`, `DeadBody`,

@@ -92,6 +92,7 @@ e720e98  ecs(engine): id adoption, transmute, tolerant getFloat — the retrofit
 adb4bc9  battle: Health onto the EntityWorld — death is a row-move (retrofit step 3a)  ← 2026-06-03
 b92c8bd  battle: Position onto the EntityWorld — the corpse keeps its cell by lifecycle (retrofit step 3b)  ← 2026-06-03
 a390b79  battle: Combat onto the EntityWorld — primary-weapon capability as a component (retrofit step 3c)  ← 2026-06-20
+a5da51a  battle: SecondaryWeapon onto the EntityWorld — first OPTIONAL capability as archetype presence (retrofit step 3d)  ← 2026-06-20
 ```
 
 (Sibling tracks interleaved on HEAD, not ECS-migration: `9084ed4` battle-render
@@ -166,12 +167,28 @@ is now **built and consuming real game state**:
   component (next slice). COMBAT universal (mirrors old dense arrays —
   behavior-preserving); combatant-gated membership deferred. Suite green at 759.
 
-**Next: step 3 continues** — `SecondaryWeapon` (optional presence component:
-secondary cooldown/action timers + aim target id, folding in the `#13` nullable
-`secondaryWeapon`/`secondaryAmmo` fields), then Movement (moveProgress + path
-ref), AiState; then fold the `Crashing`/`MechLoadout` ComponentStores into
-archetype membership; then step 4 dissolves `UnitRegistry` (id mint + dense
-Entity[] hop to the world / sim).
+- **Step 3d (SecondaryWeapon) SHIPPED** (`a5da51a`): the **first optional**
+  capability as archetype presence — `SECONDARY_WEAPON` `{spec, ammo,
+  cooldownTimer, actionTimer, aimTargetId, fired}` is added at spawn only for
+  units carrying a secondary, so "has a secondary" IS the archetype membership
+  (no nullable field). Entity's nullable `secondaryWeapon`/`secondaryAmmo`/
+  `secondaryFiredThisAction` + the 3 formerly-universal registry timer arrays
+  deleted. Born-with-it via `seedSecondaryWeapon`/`seedSecondaryAmmo` (allocate
+  adds the component); runtime via new `attachSecondaryWeapon` (`addComponent`
+  row-move — future launcher-pickup seam, and how tests grant post-spawn). 14
+  consumer files converted, **presence-gated** on `hasSecondaryWeapon` (reads are
+  fail-loud without the component; 3 timer-first reads reordered).
+  `TacticalScoring.canRocketTarget`/`effectiveAttackRange`/`scoreWeaponAffinity`
+  → instance methods (need `registry`); 2 external callers use
+  `sim.getTacticalScoring()`. Corpse transmute drops it (no-op if absent). Proves
+  the conditional-membership path for the pending `Crashing`/`MechLoadout` fold-in.
+  **Future (docs only):** more secondary types join the `spec` flyweight; AI may
+  query the equipped weapon to know its options. Suite green at 757.
+
+**Next: step 3 continues** — Movement (`moveProgress` + path ref), then AiState
+(repositionCooldown + fallback group + wanderDwell); then fold the
+`Crashing`/`MechLoadout` ComponentStores into archetype membership; then step 4
+dissolves `UnitRegistry` (id mint + dense Entity[] hop to the world / sim).
 
 ## NEW PHASE — entity-id handle (2026-06-02, in flight)
 
