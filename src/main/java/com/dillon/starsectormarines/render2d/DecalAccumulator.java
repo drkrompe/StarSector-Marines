@@ -9,7 +9,6 @@ import org.apache.log4j.Logger;
 import org.lwjgl.BufferUtils;
 
 import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 
 import static org.lwjgl.opengl.GL11.GL_ALL_ATTRIB_BITS;
 import static org.lwjgl.opengl.GL11.GL_BLEND;
@@ -25,13 +24,11 @@ import static org.lwjgl.opengl.GL11.GL_RGBA8;
 import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_BINDING_2D;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_MAG_FILTER;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_S;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_T;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
-import static org.lwjgl.opengl.GL11.GL_VIEWPORT;
 import static org.lwjgl.opengl.GL11.glBegin;
 import static org.lwjgl.opengl.GL11.glBindTexture;
 import static org.lwjgl.opengl.GL11.glBlendFunc;
@@ -60,11 +57,8 @@ import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
 import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
 import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
-import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER_BINDING;
 import static org.lwjgl.opengl.GL15.GL_ELEMENT_ARRAY_BUFFER;
-import static org.lwjgl.opengl.GL15.GL_ELEMENT_ARRAY_BUFFER_BINDING;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
-import static org.lwjgl.opengl.GL20.GL_CURRENT_PROGRAM;
 import static org.lwjgl.opengl.GL20.glUseProgram;
 import static org.lwjgl.opengl.GL30.GL_COLOR_ATTACHMENT0;
 import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER;
@@ -100,8 +94,13 @@ import static org.lwjgl.opengl.GL11.glGenTextures;
  * a 100×100 grid. Adjust via the constructor if needed.
  *
  * <p>Modeled on {@link com.dillon.starsectormarines.render.BridgeRenderer}'s
- * state-save/restore pattern (push GL attribs, save program/buffers/FBO/
- * texture/viewport, restore in finally). No depth attachment — 2D only.
+ * state-save/restore pattern: push GL attribs for everything {@code glPopAttrib}
+ * can restore (texture binding, viewport, blend, …), restore the non-attrib
+ * bindings (program, array/element buffers) to the fixed-function defaults the
+ * UI pass runs under, and rebind the inherited draw-FBO sampled once at
+ * {@link #uiFboBinding}. We deliberately do NOT read GL state back per frame —
+ * a {@code glGet*} forces a synchronous round-trip that stalls async-renderer
+ * bridge mods (e.g. genir's). No depth attachment — 2D only.
  */
 public final class DecalAccumulator {
 
@@ -127,6 +126,17 @@ public final class DecalAccumulator {
     private int gridCellsH;
 
     private boolean broken;
+
+    /**
+     * The UI's draw-FBO binding, sampled once on the first bracketed render and
+     * reused every frame after. We restore to this instead of reading
+     * {@code GL_FRAMEBUFFER_BINDING} back each frame, because that readback is
+     * the call that stalls async-renderer bridges. The target is stable for the
+     * lifetime of a screen, so a one-shot sample is safe; a new battle/screen
+     * builds a fresh accumulator and re-samples. {@code -1} = not yet sampled.
+     */
+    private int uiFboBinding = -1;
+    private boolean uiFboSampled;
 
     /** QuadBatch bound to the decal sheet — created lazily on first stamp so we can wait for the sheet's lazy load. */
     private QuadBatch decalBatch;
@@ -284,15 +294,14 @@ public final class DecalAccumulator {
         glMatrixMode(GL_MODELVIEW);  glPushMatrix();
         glMatrixMode(GL_TEXTURE);    glPushMatrix();
 
-        int prevProgram  = glGetInteger(GL_CURRENT_PROGRAM);
-        int prevArrayBuf = glGetInteger(GL_ARRAY_BUFFER_BINDING);
-        int prevElemBuf  = glGetInteger(GL_ELEMENT_ARRAY_BUFFER_BINDING);
-        int prevFbo      = glGetInteger(GL_FRAMEBUFFER_BINDING);
-        int prevTex      = glGetInteger(GL_TEXTURE_BINDING_2D);
-
-        IntBuffer vpBuf = BufferUtils.createIntBuffer(16);
-        glGetInteger(GL_VIEWPORT, vpBuf);
-        int vpX = vpBuf.get(0), vpY = vpBuf.get(1), vpW = vpBuf.get(2), vpH = vpBuf.get(3);
+        // Sample the inherited UI draw-FBO once (see uiFboBinding). Texture
+        // binding and viewport come back via glPopAttrib; program + buffer
+        // bindings restore to the fixed-function defaults below. No per-frame
+        // glGet*, which would stall async-renderer bridge mods.
+        if (!uiFboSampled) {
+            uiFboBinding = glGetInteger(GL_FRAMEBUFFER_BINDING);
+            uiFboSampled = true;
+        }
 
         try {
             glBindFramebuffer(GL_FRAMEBUFFER, fbo);
@@ -315,12 +324,10 @@ public final class DecalAccumulator {
             LOG.error("DecalAccumulator FBO body failed; disabling further stamps", e);
             broken = true;
         } finally {
-            glBindTexture(GL_TEXTURE_2D, prevTex);
-            glBindFramebuffer(GL_FRAMEBUFFER, prevFbo);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, prevElemBuf);
-            glBindBuffer(GL_ARRAY_BUFFER, prevArrayBuf);
-            glUseProgram(prevProgram);
-            glViewport(vpX, vpY, vpW, vpH);
+            glBindFramebuffer(GL_FRAMEBUFFER, uiFboBinding);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glUseProgram(0);
             glMatrixMode(GL_TEXTURE);    glPopMatrix();
             glMatrixMode(GL_MODELVIEW);  glPopMatrix();
             glMatrixMode(GL_PROJECTION); glPopMatrix();
@@ -340,9 +347,10 @@ public final class DecalAccumulator {
         float x1 = camera.cellToScreenX(gridCellsW);
         float y1 = camera.cellToScreenY(gridCellsH);
 
+        // glPushAttrib restores the texture binding on pop; we only need to put
+        // the shader program back to the fixed-function default (not attrib
+        // state) afterward. No glGet* readback — see uiFboBinding.
         glPushAttrib(GL_ALL_ATTRIB_BITS);
-        int prevProgram = glGetInteger(GL_CURRENT_PROGRAM);
-        int prevTex     = glGetInteger(GL_TEXTURE_BINDING_2D);
         try {
             glUseProgram(0);
             glColorMask(true, true, true, true);
@@ -362,8 +370,7 @@ public final class DecalAccumulator {
             glTexCoord2f(0f, 1f); glVertex2f(x0, y1);
             glEnd();
         } finally {
-            glBindTexture(GL_TEXTURE_2D, prevTex);
-            glUseProgram(prevProgram);
+            glUseProgram(0);
             glPopAttrib();
         }
     }

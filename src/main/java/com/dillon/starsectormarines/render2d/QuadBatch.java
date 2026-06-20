@@ -15,13 +15,11 @@ import static org.lwjgl.opengl.GL11.glColorPointer;
 import static org.lwjgl.opengl.GL11.glDrawArrays;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glEnableClientState;
-import static org.lwjgl.opengl.GL11.glGetInteger;
 import static org.lwjgl.opengl.GL11.glPopClientAttrib;
 import static org.lwjgl.opengl.GL11.glPushClientAttrib;
 import static org.lwjgl.opengl.GL11.glTexCoordPointer;
 import static org.lwjgl.opengl.GL11.glVertexPointer;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
-import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER_BINDING;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
 
 /**
@@ -266,10 +264,12 @@ public final class QuadBatch {
         // LWJGL's gl*Pointer(FloatBuffer) overloads throw OpenGLException if a VBO
         // is bound to GL_ARRAY_BUFFER (its ensureArrayVBOdisabled check, on by
         // default). Starsector hands us a polluted GL state and a co-loaded mod may
-        // leave one bound — unbind for our client-array draw, restore after. (The
-        // client-attrib bracket does NOT cover the array-buffer binding.)
-        int prevArrayBuffer = glGetInteger(GL_ARRAY_BUFFER_BINDING);
-        if (prevArrayBuffer != 0) glBindBuffer(GL_ARRAY_BUFFER, 0);
+        // leave one bound — unbind for our client-array draw. We leave it at 0 (the
+        // fixed-function default the UI pass runs under) rather than reading the
+        // prior binding back and restoring it: a glGet* here forces a synchronous
+        // round-trip that stalls async-renderer bridge mods (e.g. genir's). The
+        // client-attrib bracket does NOT cover the array-buffer binding.
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         // Interleaved layout: (x, y, u, v, r, g, b, a), stride = 8 floats.
         int strideBytes = 8 * 4;
@@ -282,8 +282,6 @@ public final class QuadBatch {
         buf.position(4); glColorPointer(4, strideBytes, buf);
         glDrawArrays(GL_QUADS, 0, verts);
         glPopClientAttrib();
-
-        if (prevArrayBuffer != 0) glBindBuffer(GL_ARRAY_BUFFER, prevArrayBuffer);
 
         quadCount = 0;
     }

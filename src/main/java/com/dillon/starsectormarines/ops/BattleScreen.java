@@ -176,6 +176,16 @@ public class BattleScreen implements Screen, BattleUiContext {
     private MarineOpsContext ctx;
     private BattleLayout layout;
     private BattleCamera camera;
+    /**
+     * Inherited dialog scissor box (= dialog rect in framebuffer px), sampled
+     * once on the first world render and reused to derive the UI→FB scale. We
+     * cache rather than read {@code GL_SCISSOR_BOX} every frame: a {@code glGet*}
+     * forces a synchronous round-trip that stalls async-renderer bridge mods
+     * (e.g. genir's). The dialog is a stable full-takeover, so a one-shot sample
+     * holds for its lifetime. {@code uiScissorSampled} guards the read.
+     */
+    private boolean uiScissorSampled;
+    private int uiDialogFbX, uiDialogFbY, uiDialogFbW, uiDialogFbH;
     /** Pan-drag state: true while RMB is held (without shift, which routes to debug damage). */
     private boolean panDragging;
     private int lastDragX;
@@ -1076,18 +1086,23 @@ public class BattleScreen implements Screen, BattleUiContext {
             // Push SCISSOR_BIT so we restore both the prior box and the
             // enable state on pop.
             glPushAttrib(GL_SCISSOR_BIT);
-            java.nio.IntBuffer scissorBuf = org.lwjgl.BufferUtils.createIntBuffer(16);
-            org.lwjgl.opengl.GL11.glGetInteger(org.lwjgl.opengl.GL11.GL_SCISSOR_BOX, scissorBuf);
-            int dialogFbX = scissorBuf.get(0);
-            int dialogFbY = scissorBuf.get(1);
-            int dialogFbW = scissorBuf.get(2);
-            int dialogFbH = scissorBuf.get(3);
+            // Sample the inherited dialog scissor box once (see uiScissorSampled);
+            // a per-frame glGet* here stalls async-renderer bridge mods.
+            if (!uiScissorSampled) {
+                java.nio.IntBuffer scissorBuf = org.lwjgl.BufferUtils.createIntBuffer(16);
+                org.lwjgl.opengl.GL11.glGetInteger(org.lwjgl.opengl.GL11.GL_SCISSOR_BOX, scissorBuf);
+                uiDialogFbX = scissorBuf.get(0);
+                uiDialogFbY = scissorBuf.get(1);
+                uiDialogFbW = scissorBuf.get(2);
+                uiDialogFbH = scissorBuf.get(3);
+                uiScissorSampled = true;
+            }
             float uiDialogW = Math.max(0.001f, position.getWidth());
             float uiDialogH = Math.max(0.001f, position.getHeight());
-            float sx = dialogFbW / uiDialogW;
-            float sy = dialogFbH / uiDialogH;
-            int gridFbX = dialogFbX + Math.round((layout.gridX - position.getX()) * sx);
-            int gridFbY = dialogFbY + Math.round((layout.gridY - position.getY()) * sy);
+            float sx = uiDialogFbW / uiDialogW;
+            float sy = uiDialogFbH / uiDialogH;
+            int gridFbX = uiDialogFbX + Math.round((layout.gridX - position.getX()) * sx);
+            int gridFbY = uiDialogFbY + Math.round((layout.gridY - position.getY()) * sy);
             int gridFbW = Math.round(layout.gridW * sx);
             int gridFbH = Math.round(layout.gridH * sy);
             glEnable(GL_SCISSOR_TEST);

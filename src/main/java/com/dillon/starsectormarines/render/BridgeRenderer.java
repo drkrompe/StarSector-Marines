@@ -48,6 +48,17 @@ public class BridgeRenderer {
     private int fboWidth;
     private int fboHeight;
 
+    /**
+     * Inherited UI draw-FBO + viewport, sampled once on the first render and
+     * reused every frame after. We restore to these instead of reading GL state
+     * back each frame: a {@code glGet*} forces a synchronous round-trip that
+     * stalls async-renderer bridge mods (e.g. genir's). Stable for the lifetime
+     * of the screen; {@code -1} = not yet sampled.
+     */
+    private boolean uiStateSampled;
+    private int uiFboBinding = -1;
+    private int uiVpX, uiVpY, uiVpW, uiVpH;
+
     private SceneNode sceneRoot;
     private Camera    camera;
 
@@ -97,20 +108,22 @@ public class BridgeRenderer {
         }
 
         // ---- Save Starsector UI GL state ----
+        // Sample the inherited draw-FBO + viewport once, reuse every frame; we
+        // restore program/buffer bindings to fixed-function defaults and let
+        // glPopAttrib restore texture + viewport. No per-frame glGet*, which
+        // would stall async-renderer bridge mods (e.g. genir's).
         glPushAttrib(GL_ALL_ATTRIB_BITS);
         glMatrixMode(GL_PROJECTION); glPushMatrix();
         glMatrixMode(GL_MODELVIEW);  glPushMatrix();
         glMatrixMode(GL_TEXTURE);    glPushMatrix();
 
-        int prevProgram  = glGetInteger(GL_CURRENT_PROGRAM);
-        int prevArrayBuf = glGetInteger(GL_ARRAY_BUFFER_BINDING);
-        int prevElemBuf  = glGetInteger(GL_ELEMENT_ARRAY_BUFFER_BINDING);
-        int prevFbo      = glGetInteger(GL_FRAMEBUFFER_BINDING);
-        int prevTex      = glGetInteger(GL_TEXTURE_BINDING_2D);
-
-        IntBuffer vpBuf = BufferUtils.createIntBuffer(16);
-        glGetInteger(GL_VIEWPORT, vpBuf);
-        int vpX = vpBuf.get(0), vpY = vpBuf.get(1), vpW = vpBuf.get(2), vpH = vpBuf.get(3);
+        if (!uiStateSampled) {
+            uiFboBinding = glGetInteger(GL_FRAMEBUFFER_BINDING);
+            IntBuffer vpBuf = BufferUtils.createIntBuffer(16);
+            glGetInteger(GL_VIEWPORT, vpBuf);
+            uiVpX = vpBuf.get(0); uiVpY = vpBuf.get(1); uiVpW = vpBuf.get(2); uiVpH = vpBuf.get(3);
+            uiStateSampled = true;
+        }
 
         try {
             if (DEBUG_QUADRANTS) {
@@ -118,17 +131,18 @@ public class BridgeRenderer {
             } else {
                 renderSceneToFbo();
             }
-            glViewport(vpX, vpY, vpW, vpH);
+            // renderSceneToFbo rebinds the UI FBO and leaves its own viewport —
+            // restore the UI viewport before blitting the panel quad.
+            glViewport(uiVpX, uiVpY, uiVpW, uiVpH);
             blitFboToPanel(panelX, panelY, panelW, panelH, alphaMult);
         } catch (RuntimeException e) {
             LOG.error("Bridge render failed; disabling further attempts", e);
             broken = true;
         } finally {
-            glBindTexture(GL_TEXTURE_2D, prevTex);
-            glBindFramebuffer(GL_FRAMEBUFFER, prevFbo);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, prevElemBuf);
-            glBindBuffer(GL_ARRAY_BUFFER, prevArrayBuf);
-            glUseProgram(prevProgram);
+            glBindFramebuffer(GL_FRAMEBUFFER, uiFboBinding);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glUseProgram(0);
             glMatrixMode(GL_TEXTURE);    glPopMatrix();
             glMatrixMode(GL_MODELVIEW);  glPopMatrix();
             glMatrixMode(GL_PROJECTION); glPopMatrix();
@@ -159,7 +173,9 @@ public class BridgeRenderer {
             renderNode(sceneRoot, viewProj, Mat4.identity());
         }
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        // Back to the inherited UI draw-FBO (sampled in render()), not a
+        // hardcoded 0 — the UI may be rendering into an offscreen target.
+        glBindFramebuffer(GL_FRAMEBUFFER, uiFboBinding);
     }
 
     private static void renderNode(SceneNode node, float[] viewProj, float[] parentWorld) {
