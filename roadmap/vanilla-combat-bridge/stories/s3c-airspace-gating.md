@@ -14,17 +14,20 @@ skittish by design (they expect the enemy to come to them). So the fleet has no 
 the band at all. The fork therefore resolves toward **steering the fleet in**, not gating
 it out — and the cheapest lever is a vanilla assignment, not a `ShipAIPlugin`.
 
-## Lever 1 — ENGAGE assignment at the ground band ✅ BUILT (playtest pending)
+## Lever 1 — ASSAULT assignment at the ground band ✅ BUILT (playtest pending)
 
 `CarrierEngagementPlugin` (host/): on the first frame a carrier is deployed, drop a
 waypoint at the live targetable-entities' centroid (projected via
 `GroundBattleConfig.cellToWorld`) and give every deployed PLAYER carrier an
-`CombatAssignmentType.ENGAGE` assignment toward it (`useCommandPoint=false`, so the
-spectator side's zero-CP budget is irrelevant). ENGAGE respects "carriers stand off by
-design" — they advance to fighter standoff from the waypoint and let wings do the
-air-to-ground, rather than ramming the defenses (which a blunt `setFullAssault` would
-risk). Issued once; if the admiral reassigns ships off the waypoint, the fallback is to
-re-issue when `getAssignmentFor` goes null (held out to read raw stickiness first).
+`CombatAssignmentType.ASSAULT` assignment toward it (`useCommandPoint=false`, so the
+spectator side's zero-CP budget is irrelevant). **`ASSAULT`, not `ENGAGE`:** ENGAGE
+requires a specific enemy *entity* as its target and the engine throws `Invalid engage
+target` if handed a waypoint; ASSAULT is the "move to this location and fight" order that
+accepts a waypoint. It pulls the fleet to the band while leaving each ship its own
+piloting — carriers advance to fighter standoff and let wings do the air-to-ground, rather
+than ramming the defenses (which a blunt `setFullAssault` would risk). Issued once; if the
+admiral reassigns ships off the waypoint, the fallback is to re-issue when
+`getAssignmentFor` goes null (held out to read raw stickiness first).
 
 **Next if Lever 1 is insufficient:** `ShipAIConfig.personalityOverride` bump, then a full
 `setShipAI` takeover. The takeover is being built anyway as the **S3d landing/descent

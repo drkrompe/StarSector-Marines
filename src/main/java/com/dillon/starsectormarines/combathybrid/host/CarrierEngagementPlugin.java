@@ -27,9 +27,11 @@ import java.util.List;
  * <em>toward</em> it. Here the ground proxies are stationary and never advance, so carriers — which
  * are skittish by design and expect the enemy to come to them — idle at their spawn row and rarely
  * commit. The fix is the vanilla-native steering lever, not an AI rewrite: drop a waypoint at the
- * ground-band centroid and give every deployed carrier an {@link CombatAssignmentType#ENGAGE}
- * assignment toward it. ENGAGE respects the "carriers stand off" intent — they advance to fighter
- * standoff from the waypoint and let their wings do the air-to-ground, rather than ramming the
+ * ground-band centroid and give every deployed carrier an {@link CombatAssignmentType#ASSAULT}
+ * assignment toward it. ASSAULT is the "move to this location and fight" order — the type that
+ * accepts a waypoint target ({@code ENGAGE} requires a specific enemy entity and is rejected for a
+ * waypoint). It pulls the fleet to the band while leaving each ship its own piloting, so carriers
+ * advance to fighter standoff and let their wings do the air-to-ground, rather than ramming the
  * defenses (which a blunt {@code setFullAssault} would risk).
  *
  * <p>Issued <b>once</b>, on the first frame a carrier is deployed (the scenario carriers are spawned
@@ -69,12 +71,12 @@ public final class CarrierEngagementPlugin extends BaseEveryFrameCombatPlugin {
         Vector2f band = groundBandCentroid();
         CombatTaskManagerAPI tm = fm.getTaskManager(false);
         AssignmentTargetAPI waypoint = fm.createWaypoint(band, false);
-        AssignmentInfo engage = tm.createAssignment(CombatAssignmentType.ENGAGE, waypoint, false);
+        AssignmentInfo assault = tm.createAssignment(CombatAssignmentType.ASSAULT, waypoint, false);
         for (DeployedFleetMemberAPI carrier : carriers) {
-            tm.giveAssignment(carrier, engage, false);
+            tm.giveAssignment(carrier, assault, false);
         }
         assigned = true;
-        LOG.info("ground-bridge: ENGAGE assignment issued to " + carriers.size()
+        LOG.info("ground-bridge: ASSAULT assignment issued to " + carriers.size()
                 + " carrier(s) at ground band (" + (int) band.x + ", " + (int) band.y + ").");
     }
 

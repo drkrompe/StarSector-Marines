@@ -140,10 +140,13 @@ targets natively. Two pieces of feedback drove the current work:
 ### Thread 1 — carrier engagement (S3c, first lever BUILT)
 Carriers idle at spawn and rarely commit: vanilla AI only advances when an enemy fleet
 pushes toward it, and the ground proxies are stationary + carriers are skittish by design.
-**Built `CarrierEngagementPlugin`** (host/) — issues a one-shot `ENGAGE` assignment to every
+**Built `CarrierEngagementPlugin`** (host/) — issues a one-shot `ASSAULT` assignment to every
 deployed PLAYER carrier toward the live targetable centroid (waypoint via the new shared
 `GroundBattleConfig.cellToWorld`; `useCommandPoint=false`). Wired in `CombatBridgeSession.
-enterEngine`. Build-clean. **Awaiting Ctrl+Shift+K playtest verdict.** See
+enterEngine`. **Gotcha (crash-fixed):** must be `ASSAULT`, not `ENGAGE` — ENGAGE requires a
+specific enemy *entity* target and the engine throws `Invalid engage target` on a waypoint;
+ASSAULT is the move-to-location-and-fight order that takes a waypoint. Build-clean.
+**Awaiting Ctrl+Shift+K playtest verdict.** See
 [`stories/s3c-airspace-gating.md`](stories/s3c-airspace-gating.md) for the lever ladder
 (assignment → personality override → `setShipAI` takeover).
 
