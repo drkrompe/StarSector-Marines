@@ -14,11 +14,12 @@ import com.dillon.starsectormarines.engine.ecs.Query;
  * <p>Components are grouped by lifecycle-stable capability (Identity persists
  * alive→dead; Health is live-only), per the committed decomposition in
  * {@code roadmap/ecs-migration/archetype-storage.md}. Registered so far: the
- * corpse archetype plus the first live capabilities ({@link #POSITION},
- * {@link #HEALTH}); every unit spawns into the world as
- * {@code {IDENTITY, POSITION, HEALTH}} and death is the transmute to the
- * corpse archetype (identity + cell ride the row-move). Remaining live-combat
- * components join as migration step 3 proceeds, continuing the id space.
+ * corpse archetype plus the live capabilities ({@link #POSITION},
+ * {@link #HEALTH}, {@link #COMBAT}); every unit spawns into the world as
+ * {@code {IDENTITY, POSITION, HEALTH, COMBAT}} and death is the transmute to the
+ * corpse archetype (identity + cell ride the row-move; health + combat are
+ * removed). Remaining live components (movement, ai-state, the optional
+ * secondary weapon) join as migration step 3 proceeds, continuing the id space.
  *
  * <p>Column access is positional ({@code table.ints(POSITION, POSITION_CELL_X)});
  * the {@code int} constants below are the named field indices per component.
@@ -54,6 +55,23 @@ public final class BattleComponents {
     /** {@link #HEALTH} field 1: max hp (FLOAT). */
     public static final int HEALTH_MAX_HP = 1;
 
+    /** {@link #COMBAT} field 0: base attack damage (FLOAT). */
+    public static final int COMBAT_ATTACK_DAMAGE = 0;
+    /** {@link #COMBAT} field 1: base attack range in cells (FLOAT). */
+    public static final int COMBAT_ATTACK_RANGE = 1;
+    /** {@link #COMBAT} field 2: base accuracy [0,1] (FLOAT). */
+    public static final int COMBAT_ACCURACY = 2;
+    /** {@link #COMBAT} field 3: primary-weapon cooldown, sim-seconds until next fire (FLOAT). */
+    public static final int COMBAT_COOLDOWN_TIMER = 3;
+    /** {@link #COMBAT} field 4: current-target entity id, 0L = none (LONG). */
+    public static final int COMBAT_TARGET_ID = 4;
+    /** {@link #COMBAT} field 5: burst rounds queued after the initial primary shot (INT). */
+    public static final int COMBAT_BURST_REMAINING = 5;
+    /** {@link #COMBAT} field 6: sim-seconds until the next queued burst round fires (FLOAT). */
+    public static final int COMBAT_BURST_TIMER = 6;
+    /** {@link #COMBAT} field 7: entity id captured when the burst was queued, 0L = idle (LONG). */
+    public static final int COMBAT_BURST_TARGET_ID = 7;
+
     // ---- component types ----
 
     /** Who/what this entity is — {@code UnitType type, Faction faction}. Persists alive→dead. */
@@ -83,6 +101,18 @@ public final class BattleComponents {
      * transitional by-id adapters until step 4 dissolves them.
      */
     public final ComponentType HEALTH;
+    /**
+     * Live-combat state — {@code float attackDamage, attackRange, accuracy,
+     * cooldownTimer; long targetId; int burstRemaining; float burstTimer; long
+     * burstTargetId}. The primary-weapon capability, universal to every live unit
+     * (seeded at spawn like {@link #HEALTH}); the attack stats are seed-only, the
+     * rest are mid-combat scalars that start at zero. Removed in the corpse
+     * transmute (a corpse does not fight), so a live unit is
+     * {@code {IDENTITY, POSITION, HEALTH, COMBAT}}. The optional <em>secondary</em>
+     * weapon is a separate presence component (a later migration slice), not a
+     * field here — see {@code roadmap/ecs-migration/archetype-storage.md}.
+     */
+    public final ComponentType COMBAT;
 
     // ---- shared queries (per-world lifecycle, cached matched-table lists) ----
 
@@ -102,6 +132,9 @@ public final class BattleComponents {
         SPRITE          = world.register(3, "Sprite", FieldKind.INT, FieldKind.INT, FieldKind.INT);
         CORPSE          = world.register(4, "Corpse");
         HEALTH          = world.register(5, "Health", FieldKind.FLOAT, FieldKind.FLOAT);
+        COMBAT          = world.register(6, "Combat",
+                FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT,
+                FieldKind.LONG, FieldKind.INT, FieldKind.FLOAT, FieldKind.LONG);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}, null);
     }

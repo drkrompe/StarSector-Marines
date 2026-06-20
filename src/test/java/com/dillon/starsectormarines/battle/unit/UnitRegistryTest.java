@@ -309,20 +309,20 @@ public class UnitRegistryTest {
     }
 
     @Test
-    public void allocateCooldownTimerDefaultsAndAccessorsRouteThroughRegistry() {
+    public void allocateCooldownTimerDefaultsAndAccessorsRouteThroughWorld() {
         UnitRegistry r = new UnitRegistry();
         Entity u = unit("u");
 
         r.allocate(u);
 
-        assertEquals(0f, r.getCooldownTimer(r.indexOf(u.entityId)), 1e-6f);
+        assertEquals(0f, r.cooldownTimerById(u.entityId), 1e-6f);
 
-        r.setCooldownTimer(r.indexOf(u.entityId), 0.3f);
-        assertEquals(0.3f, r.getCooldownTimer(r.indexOf(u.entityId)), 1e-6f);
+        r.setCooldownTimerById(u.entityId, 0.3f);
+        assertEquals(0.3f, r.cooldownTimerById(u.entityId), 1e-6f);
     }
 
     @Test
-    public void releaseTailSwapMovesCooldownTimerCorrectly() {
+    public void cooldownTimerIsUndisturbedByDenseTailSwap() {
         UnitRegistry r = new UnitRegistry();
         Entity a = unit("a");
         Entity b = unit("b");
@@ -330,12 +330,14 @@ public class UnitRegistryTest {
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        r.setCooldownTimer(r.indexOf(c.entityId), 4.2f);
+        r.setCooldownTimerById(c.entityId, 4.2f);
 
+        // Releasing a swap-pops c into a's old dense slot — COMBAT is keyed by
+        // entity id in the world, not by dense index, so c's value is untouched.
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(4.2f, r.getCooldownTimer(0), 1e-6f);
+        assertEquals(4.2f, r.cooldownTimerById(c.entityId), 1e-6f);
     }
 
     @Test
@@ -432,7 +434,7 @@ public class UnitRegistryTest {
     }
 
     @Test
-    public void allocateSeedsAttackDamageAndAccessorsRouteThroughRegistry() {
+    public void allocateSeedsAttackDamageAndAccessorsRouteThroughWorld() {
         UnitRegistry r = new UnitRegistry();
         Entity u = unit("u");
         float typeDmg = u.seedAttackDamage;
@@ -440,14 +442,14 @@ public class UnitRegistryTest {
 
         r.allocate(u);
 
-        assertEquals(typeDmg, r.getAttackDamage(r.indexOf(u.entityId)), 1e-6f);
+        assertEquals(typeDmg, r.attackDamageById(u.entityId), 1e-6f);
 
-        r.setAttackDamage(r.indexOf(u.entityId), 77f);
-        assertEquals(77f, r.getAttackDamage(r.indexOf(u.entityId)), 1e-6f);
+        r.setAttackDamageById(u.entityId, 77f);
+        assertEquals(77f, r.attackDamageById(u.entityId), 1e-6f);
     }
 
     @Test
-    public void releaseTailSwapMovesAttackDamageCorrectly() {
+    public void attackDamageIsUndisturbedByDenseTailSwap() {
         UnitRegistry r = new UnitRegistry();
         Entity a = unit("a");
         Entity b = unit("b");
@@ -455,16 +457,16 @@ public class UnitRegistryTest {
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        r.setAttackDamage(r.indexOf(c.entityId), 55f);
+        r.setAttackDamageById(c.entityId, 55f);
 
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(55f, r.getAttackDamage(0), 1e-6f);
+        assertEquals(55f, r.attackDamageById(c.entityId), 1e-6f);
     }
 
     @Test
-    public void allocateSeedsAttackRangeAndAccessorsRouteThroughRegistry() {
+    public void allocateSeedsAttackRangeAndAccessorsRouteThroughWorld() {
         UnitRegistry r = new UnitRegistry();
         Entity u = unit("u");
         float typeRange = u.seedAttackRange;
@@ -472,14 +474,14 @@ public class UnitRegistryTest {
 
         r.allocate(u);
 
-        assertEquals(typeRange, r.getAttackRange(r.indexOf(u.entityId)), 1e-6f);
+        assertEquals(typeRange, r.attackRangeById(u.entityId), 1e-6f);
 
-        r.setAttackRange(r.indexOf(u.entityId), 20f);
-        assertEquals(20f, r.getAttackRange(r.indexOf(u.entityId)), 1e-6f);
+        r.setAttackRangeById(u.entityId, 20f);
+        assertEquals(20f, r.attackRangeById(u.entityId), 1e-6f);
     }
 
     @Test
-    public void releaseTailSwapMovesAttackRangeCorrectly() {
+    public void attackRangeIsUndisturbedByDenseTailSwap() {
         UnitRegistry r = new UnitRegistry();
         Entity a = unit("a");
         Entity b = unit("b");
@@ -487,16 +489,16 @@ public class UnitRegistryTest {
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        r.setAttackRange(r.indexOf(c.entityId), 99f);
+        r.setAttackRangeById(c.entityId, 99f);
 
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(99f, r.getAttackRange(0), 1e-6f);
+        assertEquals(99f, r.attackRangeById(c.entityId), 1e-6f);
     }
 
     @Test
-    public void allocateSeedsAccuracyAndAccessorsRouteThroughRegistry() {
+    public void allocateSeedsAccuracyAndAccessorsRouteThroughWorld() {
         UnitRegistry r = new UnitRegistry();
         Entity u = unit("u");
         float typeAcc = u.seedAccuracy;
@@ -504,14 +506,14 @@ public class UnitRegistryTest {
 
         r.allocate(u);
 
-        assertEquals(typeAcc, r.getAccuracy(r.indexOf(u.entityId)), 1e-6f);
+        assertEquals(typeAcc, r.accuracyById(u.entityId), 1e-6f);
 
-        r.setAccuracy(r.indexOf(u.entityId), 0.5f);
-        assertEquals(0.5f, r.getAccuracy(r.indexOf(u.entityId)), 1e-6f);
+        r.setAccuracyById(u.entityId, 0.5f);
+        assertEquals(0.5f, r.accuracyById(u.entityId), 1e-6f);
     }
 
     @Test
-    public void releaseTailSwapMovesAccuracyCorrectly() {
+    public void accuracyIsUndisturbedByDenseTailSwap() {
         UnitRegistry r = new UnitRegistry();
         Entity a = unit("a");
         Entity b = unit("b");
@@ -519,12 +521,12 @@ public class UnitRegistryTest {
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        r.setAccuracy(r.indexOf(c.entityId), 0.95f);
+        r.setAccuracyById(c.entityId, 0.95f);
 
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(0.95f, r.getAccuracy(0), 1e-6f);
+        assertEquals(0.95f, r.accuracyById(c.entityId), 1e-6f);
     }
 
     @Test
@@ -618,20 +620,20 @@ public class UnitRegistryTest {
     }
 
     @Test
-    public void allocateBurstRemainingDefaultsAndAccessorsRouteThroughRegistry() {
+    public void allocateBurstRemainingDefaultsAndAccessorsRouteThroughWorld() {
         UnitRegistry r = new UnitRegistry();
         Entity u = unit("u");
 
         r.allocate(u);
 
-        assertEquals(0, r.getBurstRemaining(r.indexOf(u.entityId)));
+        assertEquals(0, r.burstRemainingById(u.entityId));
 
-        r.setBurstRemaining(r.indexOf(u.entityId), 1);
-        assertEquals(1, r.getBurstRemaining(r.indexOf(u.entityId)));
+        r.setBurstRemainingById(u.entityId, 1);
+        assertEquals(1, r.burstRemainingById(u.entityId));
     }
 
     @Test
-    public void releaseTailSwapMovesBurstRemainingCorrectly() {
+    public void burstRemainingIsUndisturbedByDenseTailSwap() {
         UnitRegistry r = new UnitRegistry();
         Entity a = unit("a");
         Entity b = unit("b");
@@ -639,29 +641,29 @@ public class UnitRegistryTest {
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        r.setBurstRemaining(r.indexOf(c.entityId), 5);
+        r.setBurstRemainingById(c.entityId, 5);
 
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(5, r.getBurstRemaining(0));
+        assertEquals(5, r.burstRemainingById(c.entityId));
     }
 
     @Test
-    public void allocateBurstTimerDefaultsAndAccessorsRouteThroughRegistry() {
+    public void allocateBurstTimerDefaultsAndAccessorsRouteThroughWorld() {
         UnitRegistry r = new UnitRegistry();
         Entity u = unit("u");
 
         r.allocate(u);
 
-        assertEquals(0f, r.getBurstTimer(r.indexOf(u.entityId)), 1e-6f);
+        assertEquals(0f, r.burstTimerById(u.entityId), 1e-6f);
 
-        r.setBurstTimer(r.indexOf(u.entityId), 0.1f);
-        assertEquals(0.1f, r.getBurstTimer(r.indexOf(u.entityId)), 1e-6f);
+        r.setBurstTimerById(u.entityId, 0.1f);
+        assertEquals(0.1f, r.burstTimerById(u.entityId), 1e-6f);
     }
 
     @Test
-    public void releaseTailSwapMovesBurstTimerCorrectly() {
+    public void burstTimerIsUndisturbedByDenseTailSwap() {
         UnitRegistry r = new UnitRegistry();
         Entity a = unit("a");
         Entity b = unit("b");
@@ -669,29 +671,29 @@ public class UnitRegistryTest {
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        r.setBurstTimer(r.indexOf(c.entityId), 0.33f);
+        r.setBurstTimerById(c.entityId, 0.33f);
 
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(0.33f, r.getBurstTimer(0), 1e-6f);
+        assertEquals(0.33f, r.burstTimerById(c.entityId), 1e-6f);
     }
 
     @Test
-    public void allocateBurstTargetIdDefaultsAndAccessorsRouteThroughRegistry() {
+    public void allocateBurstTargetIdDefaultsAndAccessorsRouteThroughWorld() {
         UnitRegistry r = new UnitRegistry();
         Entity u = unit("u");
 
         r.allocate(u);
 
-        assertEquals(0L, r.getBurstTargetId(r.indexOf(u.entityId)));
+        assertEquals(0L, r.burstTargetIdById(u.entityId));
 
-        r.setBurstTargetId(r.indexOf(u.entityId), 9L);
-        assertEquals(9L, r.getBurstTargetId(r.indexOf(u.entityId)));
+        r.setBurstTargetIdById(u.entityId, 9L);
+        assertEquals(9L, r.burstTargetIdById(u.entityId));
     }
 
     @Test
-    public void releaseTailSwapMovesBurstTargetIdCorrectly() {
+    public void burstTargetIdIsUndisturbedByDenseTailSwap() {
         UnitRegistry r = new UnitRegistry();
         Entity a = unit("a");
         Entity b = unit("b");
@@ -699,29 +701,29 @@ public class UnitRegistryTest {
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        r.setBurstTargetId(r.indexOf(c.entityId), 777L);
+        r.setBurstTargetIdById(c.entityId, 777L);
 
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(777L, r.getBurstTargetId(0));
+        assertEquals(777L, r.burstTargetIdById(c.entityId));
     }
 
     @Test
-    public void allocateTargetIdDefaultsAndAccessorsRouteThroughRegistry() {
+    public void allocateTargetIdDefaultsAndAccessorsRouteThroughWorld() {
         UnitRegistry r = new UnitRegistry();
         Entity u = unit("u");
 
         r.allocate(u);
 
-        assertEquals(0L, r.getTargetId(r.indexOf(u.entityId)));
+        assertEquals(0L, r.targetIdById(u.entityId));
 
-        r.setTargetId(r.indexOf(u.entityId), 8L);
-        assertEquals(8L, r.getTargetId(r.indexOf(u.entityId)));
+        r.setTargetIdById(u.entityId, 8L);
+        assertEquals(8L, r.targetIdById(u.entityId));
     }
 
     @Test
-    public void releaseTailSwapMovesTargetIdCorrectly() {
+    public void targetIdIsUndisturbedByDenseTailSwap() {
         UnitRegistry r = new UnitRegistry();
         Entity a = unit("a");
         Entity b = unit("b");
@@ -729,12 +731,12 @@ public class UnitRegistryTest {
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        r.setTargetId(r.indexOf(c.entityId), 642L);
+        r.setTargetIdById(c.entityId, 642L);
 
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(642L, r.getTargetId(0));
+        assertEquals(642L, r.targetIdById(c.entityId));
     }
 
     @Test
@@ -787,20 +789,23 @@ public class UnitRegistryTest {
         UnitRegistry r = new UnitRegistry();
         Entity a = unit("a");
         long idA = r.allocate(a);
-        // Dirty several mid-combat columns on slot 0.
-        r.setCooldownTimer(r.indexOf(a.entityId), 2.5f);
-        r.setTargetId(r.indexOf(a.entityId), 99L);
-        r.setBurstRemaining(r.indexOf(a.entityId), 3);
+        // Dirty several mid-combat columns: COMBAT scalars (world, by id) and a
+        // registry-dense fallback cell (by index).
+        r.setCooldownTimerById(a.entityId, 2.5f);
+        r.setTargetIdById(a.entityId, 99L);
+        r.setBurstRemainingById(a.entityId, 3);
         r.setFallbackCell(r.indexOf(a.entityId), 7, 8);
         r.release(idA);
 
-        // A fresh unit reusing slot 0 must see defaults, not the stale values.
+        // A fresh unit must see defaults: its COMBAT columns are a fresh,
+        // zero-initialised world row (a's stale row persists under its own id),
+        // and the reused dense slot 0 reset its fallback cell to the sentinel.
         Entity b = unit("b");
         r.allocate(b);
         assertEquals(0, r.indexOf(b.entityId));
-        assertEquals(0f, r.getCooldownTimer(r.indexOf(b.entityId)), 1e-6f);
-        assertEquals(0L, r.getTargetId(r.indexOf(b.entityId)));
-        assertEquals(0, r.getBurstRemaining(r.indexOf(b.entityId)));
+        assertEquals(0f, r.cooldownTimerById(b.entityId), 1e-6f);
+        assertEquals(0L, r.targetIdById(b.entityId));
+        assertEquals(0, r.burstRemainingById(b.entityId));
         assertEquals(-1, r.getFallbackCellX(r.indexOf(b.entityId)));
         assertEquals(-1, r.getFallbackCellY(r.indexOf(b.entityId)));
     }

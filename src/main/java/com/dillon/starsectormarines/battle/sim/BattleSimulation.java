@@ -525,7 +525,7 @@ public class BattleSimulation implements BattleControl {
      */
     public Entity targetOf(Entity u) {
         UnitRegistry registry = rosterService.getRegistry();
-        return registry.getOrNull(registry.getTargetId(registry.requireLiveIndex(u.entityId)));
+        return registry.getOrNull(registry.targetIdById(u.entityId));
     }
 
     /**
@@ -684,8 +684,7 @@ public class BattleSimulation implements BattleControl {
     /** Inline reprio write — invoked by the damage service on the serial path AND on the queued path. Clears the targetId only if it still matches {@code expectedTargetId} (the race-check now lives here, registry-side, instead of a no-arg {@code target.getTargetId()} read in the flush drain); the next behavior tick re-picks via {@code findBestTarget}. */
     private void writeReprioInline(Entity target, long expectedTargetId) {
         UnitRegistry registry = rosterService.getRegistry();
-        int idx = registry.requireLiveIndex(target.entityId);
-        if (registry.getTargetId(idx) == expectedTargetId) registry.setTargetId(idx, 0L);
+        if (registry.targetIdById(target.entityId) == expectedTargetId) registry.setTargetIdById(target.entityId, 0L);
     }
 
     /** Inline fallback write — invoked by the damage service on the serial path AND from the queued-flush. Writes the 3 fb fields and clears the stale path so the target re-paths to the fall-back cell on its next updateUnit pass. */

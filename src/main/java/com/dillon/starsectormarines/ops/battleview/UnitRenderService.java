@@ -291,7 +291,7 @@ public final class UnitRenderService implements RenderSystem {
                 emitSolidQuad(out, cx, cy, half, c, unitAlpha);
                 continue;
             }
-            emitLiveSprite(out, cam, sim, u, i, cache, unitSize, unitAlpha, inAim);
+            emitLiveSprite(out, cam, sim, u, cache, unitSize, unitAlpha, inAim);
         }
     }
 
@@ -300,14 +300,13 @@ public final class UnitRenderService implements RenderSystem {
      * SOUTH-weapon-up pose). Sizing: {@code renderScale}d cell height, width by the
      * frame's aspect — matching the inline {@code renderUnitSprite}.
      */
-    private void emitLiveSprite(DrawList out, BattleCamera cam, BattleSimulation sim, Entity u, int idx,
+    private void emitLiveSprite(DrawList out, BattleCamera cam, BattleSimulation sim, Entity u,
                                 UnitSpriteCache cache, float unitSize, float alphaMult, boolean inAim) {
-        // idx is the dense index from the sweepLiveSprites loop (i == denseIdx);
-        // cooldown read by dense index; this unit's cell and the target cell both
-        // read via world POSITION by-id adapters.
+        // cooldown, this unit's cell, and the target cell all read via world by-id
+        // adapters (COMBAT cooldown + POSITION cells).
         UnitRegistry registry = sim.getUnitRegistry();
         SpriteSheetFrames frames = cache.frames;
-        float cooldown = registry.getCooldownTimer(idx);
+        float cooldown = registry.cooldownTimerById(u.entityId);
         boolean weaponUp = inAim || (u.type.combatant
                 && cooldown > (u.attackCooldown - WEAPON_UP_TIME)
                 && cooldown > 0f);

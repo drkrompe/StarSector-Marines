@@ -58,39 +58,28 @@ public final class UnitRegistry {
     private static final int INITIAL_CAPACITY = 64;
 
     private Entity[] dense = new Entity[INITIAL_CAPACITY];
-    /** Per-unit primary weapon cooldown (sim-seconds until next fire). Mid-combat-only lifecycle: no pre-allocation seed, reset to default on slot reuse in {@link #allocate}, no post-release reader. */
-    private float[] cooldownTimer = new float[INITIAL_CAPACITY];
-    /** Per-unit movement lerp factor [0,1] toward the next path cell. Same lifecycle as {@link #cooldownTimer}. */
+    /**
+     * Per-unit movement lerp factor [0,1] toward the next path cell.
+     * <b>Mid-combat-only lifecycle</b> (the anchor the other such columns point
+     * to): no pre-allocation seed, reset to its default on slot reuse in
+     * {@link #allocate}, no post-release reader.
+     */
     private float[] moveProgress = new float[INITIAL_CAPACITY];
-    /** Per-unit base attack damage. Seed-only lifecycle (seeded from {@link Entity#seedAttackDamage}, not snapshotted on release) — see {@link #cellX}. */
-    private float[] attackDamage = new float[INITIAL_CAPACITY];
-    /** Per-unit base attack range in cells. Seed-only lifecycle (seeded from {@link Entity#seedAttackRange}) — see {@link #cellX}. */
-    private float[] attackRange = new float[INITIAL_CAPACITY];
-    /** Per-unit base accuracy [0,1]. Seed-only lifecycle (seeded from {@link Entity#seedAccuracy}) — see {@link #cellX}. */
-    private float[] accuracy = new float[INITIAL_CAPACITY];
-    /** Per-unit secondary-weapon cooldown (sim-seconds). Same lifecycle as {@link #cooldownTimer}. */
+    /** Per-unit secondary-weapon cooldown (sim-seconds). Same lifecycle as {@link #moveProgress}. */
     private float[] secondaryCooldownTimer = new float[INITIAL_CAPACITY];
-    /** Per-unit sim-seconds remaining in the secondary aim-then-fire window. Same lifecycle as {@link #cooldownTimer}. */
+    /** Per-unit sim-seconds remaining in the secondary aim-then-fire window. Same lifecycle as {@link #moveProgress}. */
     private float[] secondaryActionTimer = new float[INITIAL_CAPACITY];
-    /** Per-unit entity id locked at secondary aim start (0L = none). Same lifecycle as {@link #cooldownTimer}. */
+    /** Per-unit entity id locked at secondary aim start (0L = none). Same lifecycle as {@link #moveProgress}. */
     private long[] secondaryAimTargetId = new long[INITIAL_CAPACITY];
-    /** Per-unit burst rounds queued after the AI's initial primary shot. Decremented one-per-spacing in {@code InfantryWeapons.tick}. Same lifecycle as {@link #cooldownTimer}. */
-    private int[] burstRemaining = new int[INITIAL_CAPACITY];
-    /** Per-unit sim-seconds until the next queued burst round fires. Same lifecycle as {@link #cooldownTimer}. */
-    private float[] burstTimer = new float[INITIAL_CAPACITY];
-    /** Per-unit entity id captured when the burst was queued (0L = idle). Same lifecycle as {@link #cooldownTimer}. */
-    private long[] burstTargetId = new long[INITIAL_CAPACITY];
-    /** Per-unit current-target entity id (0L = no target). Same lifecycle as {@link #cooldownTimer}. */
-    private long[] targetId = new long[INITIAL_CAPACITY];
-    /** Per-unit sim-seconds until the unit may next micro-reposition between shots. Decremented in {@code InfantryUnitPrep.tickCooldowns}. Same lifecycle as {@link #cooldownTimer}. */
+    /** Per-unit sim-seconds until the unit may next micro-reposition between shots. Decremented in {@code InfantryUnitPrep.tickCooldowns}. Same lifecycle as {@link #moveProgress}. */
     private float[] repositionCooldown = new float[INITIAL_CAPACITY];
-    /** Per-unit sim-seconds remaining in break-contact fall-back state (>0 = falling back toward {@link #fallbackCellX}/{@link #fallbackCellY}). Same lifecycle as {@link #cooldownTimer}. */
+    /** Per-unit sim-seconds remaining in break-contact fall-back state (>0 = falling back toward {@link #fallbackCellX}/{@link #fallbackCellY}). Same lifecycle as {@link #moveProgress}. */
     private float[] fallbackTimer = new float[INITIAL_CAPACITY];
     /** Per-unit cached fall-back destination cell X (-1 = none). Paired with {@link #fallbackCellY}; same int-pair layout as {@link #cellX}. Same lifecycle as {@link #cooldownTimer}. */
     private int[] fallbackCellX = new int[INITIAL_CAPACITY];
     /** Per-unit cached fall-back destination cell Y, paired with {@link #fallbackCellX}. */
     private int[] fallbackCellY = new int[INITIAL_CAPACITY];
-    /** Per-unit FLEE-role idle pause between wander legs (sim-seconds). Same lifecycle as {@link #cooldownTimer}. */
+    /** Per-unit FLEE-role idle pause between wander legs (sim-seconds). Same lifecycle as {@link #moveProgress}. */
     private float[] wanderDwellTimer = new float[INITIAL_CAPACITY];
     private int liveCount = 0;
     private long nextId = 1L;
@@ -150,18 +139,10 @@ public final class UnitRegistry {
         if (liveCount == dense.length) {
             int newCap = dense.length * 2;
             dense = Arrays.copyOf(dense, newCap);
-            cooldownTimer = Arrays.copyOf(cooldownTimer, newCap);
             moveProgress = Arrays.copyOf(moveProgress, newCap);
-            attackDamage = Arrays.copyOf(attackDamage, newCap);
-            attackRange = Arrays.copyOf(attackRange, newCap);
-            accuracy = Arrays.copyOf(accuracy, newCap);
             secondaryCooldownTimer = Arrays.copyOf(secondaryCooldownTimer, newCap);
             secondaryActionTimer = Arrays.copyOf(secondaryActionTimer, newCap);
             secondaryAimTargetId = Arrays.copyOf(secondaryAimTargetId, newCap);
-            burstRemaining = Arrays.copyOf(burstRemaining, newCap);
-            burstTimer = Arrays.copyOf(burstTimer, newCap);
-            burstTargetId = Arrays.copyOf(burstTargetId, newCap);
-            targetId = Arrays.copyOf(targetId, newCap);
             repositionCooldown = Arrays.copyOf(repositionCooldown, newCap);
             fallbackTimer = Arrays.copyOf(fallbackTimer, newCap);
             fallbackCellX = Arrays.copyOf(fallbackCellX, newCap);
@@ -172,40 +153,38 @@ public final class UnitRegistry {
         u.entityId = id;
         dense[liveCount] = u;
         // Adopt the minted id into the entity world as a live {IDENTITY,
-        // POSITION, HEALTH} entity. Identity is written once here and persists
-        // alive→dead (the corpse transmute's row-move carries it — as does the
-        // cell, which IS the death cell by the time the corpse forms); Position
-        // and Health seed from the write-only seed* fields and are canonical in
-        // the world thereafter — "has HEALTH with hp > 0" is the liveness
-        // definition (isAliveById).
-        entityWorld.createEntity(id, components.IDENTITY, components.POSITION, components.HEALTH);
+        // POSITION, HEALTH, COMBAT} entity. Identity is written once here and
+        // persists alive→dead (the corpse transmute's row-move carries it — as
+        // does the cell, which IS the death cell by the time the corpse forms);
+        // Position, Health and Combat seed from the write-only seed* fields and
+        // are canonical in the world thereafter — "has HEALTH with hp > 0" is the
+        // liveness definition (isAliveById). The corpse transmute removes HEALTH
+        // and COMBAT (a corpse neither lives nor fights).
+        entityWorld.createEntity(id, components.IDENTITY, components.POSITION,
+                components.HEALTH, components.COMBAT);
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_TYPE, u.type);
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_FACTION, u.faction);
         entityWorld.setInt(id, components.POSITION, BattleComponents.POSITION_CELL_X, u.seedCellX);
         entityWorld.setInt(id, components.POSITION, BattleComponents.POSITION_CELL_Y, u.seedCellY);
         entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_HP, u.seedHp);
         entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_MAX_HP, u.seedMaxHp);
-        // Seed the remaining dense seed-bearing columns from the unit's
-        // pre-allocation transient fields. After this point these are canonical
-        // and none is snapshotted back on release — the Group-S stats seed from
-        // write-only seed* fields.
-        attackDamage[liveCount] = u.seedAttackDamage;
-        attackRange[liveCount] = u.seedAttackRange;
-        accuracy[liveCount] = u.seedAccuracy;
-        // Reset the mid-combat-only columns to their defaults. These have no
-        // pre-allocation seed (a fresh unit starts at rest) and no post-release
-        // reader, so they carry no local* twin on Entity; the explicit reset
-        // clears any stale value left in a dense slot reused after a
-        // swap-and-pop release.
-        cooldownTimer[liveCount] = 0f;
+        // Seed the COMBAT stat columns from the unit's pre-allocation seed*
+        // fields; the mid-combat COMBAT scalars (cooldownTimer, targetId, burst*)
+        // start at zero — a fresh world row is zero-initialised by append, so no
+        // explicit reset is needed (unlike the registry-resident columns below,
+        // whose dense slot may be reused after a swap-and-pop release).
+        entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_DAMAGE, u.seedAttackDamage);
+        entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_RANGE, u.seedAttackRange);
+        entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ACCURACY, u.seedAccuracy);
+        // Reset the mid-combat-only registry columns to their defaults. These
+        // have no pre-allocation seed (a fresh unit starts at rest) and no
+        // post-release reader, so they carry no local* twin on Entity; the
+        // explicit reset clears any stale value left in a dense slot reused after
+        // a swap-and-pop release.
         moveProgress[liveCount] = 0f;
         secondaryCooldownTimer[liveCount] = 0f;
         secondaryActionTimer[liveCount] = 0f;
         secondaryAimTargetId[liveCount] = 0L;
-        burstRemaining[liveCount] = 0;
-        burstTimer[liveCount] = 0f;
-        burstTargetId[liveCount] = 0L;
-        targetId[liveCount] = 0L;
         repositionCooldown[liveCount] = 0f;
         fallbackTimer[liveCount] = 0f;
         fallbackCellX[liveCount] = -1;
@@ -247,23 +226,16 @@ public final class UnitRegistry {
         // RenderPositionService keyed by entityId — NOT cleared on release, so
         // the corpse's death-pose location survives. The world entity is NOT
         // touched here: hp lives in its HEALTH component (isAliveById reads it,
-        // so a released-pre-transmute id still reports dead via hp <= 0), and
-        // the death drain transmutes it to the corpse archetype.
+        // so a released-pre-transmute id still reports dead via hp <= 0) and the
+        // combat stats/scalars in its COMBAT component; the death drain
+        // transmutes the entity to the corpse archetype, which removes both.
         if (idx != last) {
             Entity tail = dense[last];
             dense[idx] = tail;
-            cooldownTimer[idx] = cooldownTimer[last];
             moveProgress[idx] = moveProgress[last];
-            attackDamage[idx] = attackDamage[last];
-            attackRange[idx] = attackRange[last];
-            accuracy[idx] = accuracy[last];
             secondaryCooldownTimer[idx] = secondaryCooldownTimer[last];
             secondaryActionTimer[idx] = secondaryActionTimer[last];
             secondaryAimTargetId[idx] = secondaryAimTargetId[last];
-            burstRemaining[idx] = burstRemaining[last];
-            burstTimer[idx] = burstTimer[last];
-            burstTargetId[idx] = burstTargetId[last];
-            targetId[idx] = targetId[last];
             repositionCooldown[idx] = repositionCooldown[last];
             fallbackTimer[idx] = fallbackTimer[last];
             fallbackCellX[idx] = fallbackCellX[last];
@@ -357,9 +329,26 @@ public final class UnitRegistry {
         entityWorld.setInt(id, components.POSITION, BattleComponents.POSITION_CELL_Y, y);
     }
 
-    public float getCooldownTimer(int idx) { return cooldownTimer[idx]; }
-    public void setCooldownTimer(int idx, float v) { cooldownTimer[idx] = v; }
-    public float[] cooldownTimerArray() { return cooldownTimer; }
+    // Transitional by-id combat adapters over the world's COMBAT columns — same
+    // shape and fate as the hp/cell adapters above. Strict reads (fail-loud once
+    // the entity is gone OR transmuted to a corpse — a corpse lacks COMBAT). The
+    // attack stats are seed-only; the rest are mid-combat scalars.
+    public float attackDamageById(long id) { return entityWorld.getFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_DAMAGE); }
+    public void setAttackDamageById(long id, float v) { entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_DAMAGE, v); }
+    public float attackRangeById(long id) { return entityWorld.getFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_RANGE); }
+    public void setAttackRangeById(long id, float v) { entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_RANGE, v); }
+    public float accuracyById(long id) { return entityWorld.getFloat(id, components.COMBAT, BattleComponents.COMBAT_ACCURACY); }
+    public void setAccuracyById(long id, float v) { entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ACCURACY, v); }
+    public float cooldownTimerById(long id) { return entityWorld.getFloat(id, components.COMBAT, BattleComponents.COMBAT_COOLDOWN_TIMER); }
+    public void setCooldownTimerById(long id, float v) { entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_COOLDOWN_TIMER, v); }
+    public long targetIdById(long id) { return entityWorld.getLong(id, components.COMBAT, BattleComponents.COMBAT_TARGET_ID); }
+    public void setTargetIdById(long id, long v) { entityWorld.setLong(id, components.COMBAT, BattleComponents.COMBAT_TARGET_ID, v); }
+    public int burstRemainingById(long id) { return entityWorld.getInt(id, components.COMBAT, BattleComponents.COMBAT_BURST_REMAINING); }
+    public void setBurstRemainingById(long id, int v) { entityWorld.setInt(id, components.COMBAT, BattleComponents.COMBAT_BURST_REMAINING, v); }
+    public float burstTimerById(long id) { return entityWorld.getFloat(id, components.COMBAT, BattleComponents.COMBAT_BURST_TIMER); }
+    public void setBurstTimerById(long id, float v) { entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_BURST_TIMER, v); }
+    public long burstTargetIdById(long id) { return entityWorld.getLong(id, components.COMBAT, BattleComponents.COMBAT_BURST_TARGET_ID); }
+    public void setBurstTargetIdById(long id, long v) { entityWorld.setLong(id, components.COMBAT, BattleComponents.COMBAT_BURST_TARGET_ID, v); }
 
     public float getMoveProgress(int idx) { return moveProgress[idx]; }
     public void setMoveProgress(int idx, float v) { moveProgress[idx] = v; }
@@ -379,18 +368,6 @@ public final class UnitRegistry {
     /** Game component-type registrations + shared queries for {@link #entityWorld()}. */
     public BattleComponents components() { return components; }
 
-    public float getAttackDamage(int idx) { return attackDamage[idx]; }
-    public void setAttackDamage(int idx, float v) { attackDamage[idx] = v; }
-    public float[] attackDamageArray() { return attackDamage; }
-
-    public float getAttackRange(int idx) { return attackRange[idx]; }
-    public void setAttackRange(int idx, float v) { attackRange[idx] = v; }
-    public float[] attackRangeArray() { return attackRange; }
-
-    public float getAccuracy(int idx) { return accuracy[idx]; }
-    public void setAccuracy(int idx, float v) { accuracy[idx] = v; }
-    public float[] accuracyArray() { return accuracy; }
-
     public float getSecondaryCooldownTimer(int idx) { return secondaryCooldownTimer[idx]; }
     public void setSecondaryCooldownTimer(int idx, float v) { secondaryCooldownTimer[idx] = v; }
     public float[] secondaryCooldownTimerArray() { return secondaryCooldownTimer; }
@@ -402,22 +379,6 @@ public final class UnitRegistry {
     public long getSecondaryAimTargetId(int idx) { return secondaryAimTargetId[idx]; }
     public void setSecondaryAimTargetId(int idx, long v) { secondaryAimTargetId[idx] = v; }
     public long[] secondaryAimTargetIdArray() { return secondaryAimTargetId; }
-
-    public int getBurstRemaining(int idx) { return burstRemaining[idx]; }
-    public void setBurstRemaining(int idx, int v) { burstRemaining[idx] = v; }
-    public int[] burstRemainingArray() { return burstRemaining; }
-
-    public float getBurstTimer(int idx) { return burstTimer[idx]; }
-    public void setBurstTimer(int idx, float v) { burstTimer[idx] = v; }
-    public float[] burstTimerArray() { return burstTimer; }
-
-    public long getBurstTargetId(int idx) { return burstTargetId[idx]; }
-    public void setBurstTargetId(int idx, long v) { burstTargetId[idx] = v; }
-    public long[] burstTargetIdArray() { return burstTargetId; }
-
-    public long getTargetId(int idx) { return targetId[idx]; }
-    public void setTargetId(int idx, long v) { targetId[idx] = v; }
-    public long[] targetIdArray() { return targetId; }
 
     public float getRepositionCooldown(int idx) { return repositionCooldown[idx]; }
     public void setRepositionCooldown(int idx, float v) { repositionCooldown[idx] = v; }

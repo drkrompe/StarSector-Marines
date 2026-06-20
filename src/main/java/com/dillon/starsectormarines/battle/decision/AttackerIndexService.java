@@ -67,7 +67,7 @@ public final class AttackerIndexService {
         UnitRegistry registry = rosterService.getRegistry();
         for (int i = 0, n = registry.liveCount(); i < n; i++) {
             Entity u = registry.get(i);
-            Entity target = registry.getOrNull(registry.getTargetId(i));
+            Entity target = registry.getOrNull(registry.targetIdById(u.entityId));
             if (target == null) continue;
             ArrayList<Entity> bucket = attackersByTarget.get(target);
             if (bucket == null) {

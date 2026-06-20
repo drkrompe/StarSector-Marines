@@ -318,7 +318,7 @@ public final class SquadAlertSystem {
      */
     private void clearSquadMemberTargets(int squadId, UnitRegistry registry, Entity[] dense, int liveCount) {
         for (int i = 0; i < liveCount; i++) {
-            if (dense[i].squadId == squadId) registry.setTargetId(i, 0L);
+            if (dense[i].squadId == squadId) registry.setTargetIdById(dense[i].entityId, 0L);
         }
     }
 }

@@ -92,32 +92,35 @@ public final class World {
     public int cellY(long id) { return registry.cellYById(id); }
     public void setCellPos(long id, int x, int y) { registry.setCellPosById(id, x, y); }
 
-    public float cooldownTimer(long id) { return registry.getCooldownTimer(registry.requireLiveIndex(id)); }
-    public void setCooldownTimer(long id, float v) { registry.setCooldownTimer(registry.requireLiveIndex(id), v); }
+    // Combat lives in the entity world's COMBAT columns (migration step 3) —
+    // same transitional by-id adapter routing as hp/cell above. Fail-loud once
+    // the death drain has transmuted the entity to a corpse (COMBAT gone).
+    public float cooldownTimer(long id) { return registry.cooldownTimerById(id); }
+    public void setCooldownTimer(long id, float v) { registry.setCooldownTimerById(id, v); }
 
     public float moveProgress(long id) { return registry.getMoveProgress(registry.requireLiveIndex(id)); }
     public void setMoveProgress(long id, float v) { registry.setMoveProgress(registry.requireLiveIndex(id), v); }
 
-    public float attackDamage(long id) { return registry.getAttackDamage(registry.requireLiveIndex(id)); }
-    public void setAttackDamage(long id, float v) { registry.setAttackDamage(registry.requireLiveIndex(id), v); }
+    public float attackDamage(long id) { return registry.attackDamageById(id); }
+    public void setAttackDamage(long id, float v) { registry.setAttackDamageById(id, v); }
 
-    public float attackRange(long id) { return registry.getAttackRange(registry.requireLiveIndex(id)); }
-    public void setAttackRange(long id, float v) { registry.setAttackRange(registry.requireLiveIndex(id), v); }
+    public float attackRange(long id) { return registry.attackRangeById(id); }
+    public void setAttackRange(long id, float v) { registry.setAttackRangeById(id, v); }
 
-    public float accuracy(long id) { return registry.getAccuracy(registry.requireLiveIndex(id)); }
-    public void setAccuracy(long id, float v) { registry.setAccuracy(registry.requireLiveIndex(id), v); }
+    public float accuracy(long id) { return registry.accuracyById(id); }
+    public void setAccuracy(long id, float v) { registry.setAccuracyById(id, v); }
 
-    public long targetId(long id) { return registry.getTargetId(registry.requireLiveIndex(id)); }
-    public void setTargetId(long id, long v) { registry.setTargetId(registry.requireLiveIndex(id), v); }
+    public long targetId(long id) { return registry.targetIdById(id); }
+    public void setTargetId(long id, long v) { registry.setTargetIdById(id, v); }
 
-    public int burstRemaining(long id) { return registry.getBurstRemaining(registry.requireLiveIndex(id)); }
-    public void setBurstRemaining(long id, int v) { registry.setBurstRemaining(registry.requireLiveIndex(id), v); }
+    public int burstRemaining(long id) { return registry.burstRemainingById(id); }
+    public void setBurstRemaining(long id, int v) { registry.setBurstRemainingById(id, v); }
 
-    public float burstTimer(long id) { return registry.getBurstTimer(registry.requireLiveIndex(id)); }
-    public void setBurstTimer(long id, float v) { registry.setBurstTimer(registry.requireLiveIndex(id), v); }
+    public float burstTimer(long id) { return registry.burstTimerById(id); }
+    public void setBurstTimer(long id, float v) { registry.setBurstTimerById(id, v); }
 
-    public long burstTargetId(long id) { return registry.getBurstTargetId(registry.requireLiveIndex(id)); }
-    public void setBurstTargetId(long id, long v) { registry.setBurstTargetId(registry.requireLiveIndex(id), v); }
+    public long burstTargetId(long id) { return registry.burstTargetIdById(id); }
+    public void setBurstTargetId(long id, long v) { registry.setBurstTargetIdById(id, v); }
 
     public float secondaryCooldownTimer(long id) { return registry.getSecondaryCooldownTimer(registry.requireLiveIndex(id)); }
     public void setSecondaryCooldownTimer(long id, float v) { registry.setSecondaryCooldownTimer(registry.requireLiveIndex(id), v); }

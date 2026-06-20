@@ -74,35 +74,35 @@ public class InfantryWeapons {
         burstScratch.clear();
         Entity[] dense = registry.denseArray();
         for (int i = 0, n = registry.liveCount(); i < n; i++) {
-            if (registry.getBurstRemaining(i) > 0) burstScratch.add(dense[i]);
+            if (registry.burstRemainingById(dense[i].entityId) > 0) burstScratch.add(dense[i]);
         }
         for (int i = 0, n = burstScratch.size(); i < n; i++) {
             Entity u = burstScratch.get(i);
             if (!registry.isAliveById(u.entityId)) continue; // killed earlier this pass
-            int idx = registry.requireLiveIndex(u.entityId);
-            if (registry.getBurstRemaining(idx) <= 0) continue; // cleared earlier this pass
-            float timer = registry.getBurstTimer(idx) - BattleSimulation.TICK_DT;
-            registry.setBurstTimer(idx, timer);
+            long id = u.entityId;
+            if (registry.burstRemainingById(id) <= 0) continue; // cleared earlier this pass
+            float timer = registry.burstTimerById(id) - BattleSimulation.TICK_DT;
+            registry.setBurstTimerById(id, timer);
             if (timer > 0f) continue;
-            Entity burstTarget = registry.getOrNull(registry.getBurstTargetId(idx));
+            Entity burstTarget = registry.getOrNull(registry.burstTargetIdById(id));
             if (burstTarget == null || u.primaryWeapon == null) {
-                registry.setBurstRemaining(idx, 0);
-                registry.setBurstTargetId(idx, 0L);
+                registry.setBurstRemainingById(id, 0);
+                registry.setBurstTargetIdById(id, 0L);
                 continue;
             }
             // Burst follow-up: use the unit's current motion state. If they
             // walked off the firing position mid-burst, the remaining rounds
             // get the MOVING accuracy penalty — same rule a hand-rolled
-            // moving-fire callsite gets.
-            fireShot(u, burstTarget, FireStance.stanceFor(registry.getMoveProgress(idx)));
-            // fireShot resolves damage inline; a killing round releases its
-            // target and swap-and-pops the dense registry, which can relocate
-            // u's slot — re-resolve before the post-fire burst writes.
-            idx = registry.requireLiveIndex(u.entityId);
-            int remaining = registry.getBurstRemaining(idx) - 1;
-            registry.setBurstRemaining(idx, remaining);
-            registry.setBurstTimer(idx, u.primaryWeapon.burstSpacing);
-            if (remaining == 0) registry.setBurstTargetId(idx, 0L);
+            // moving-fire callsite gets. moveProgress is still a registry-dense
+            // column, so resolve the live index for that one read.
+            fireShot(u, burstTarget, FireStance.stanceFor(registry.getMoveProgress(registry.requireLiveIndex(id))));
+            // Combat state is keyed by entity id, so a killing round that
+            // swap-and-pops the dense registry (relocating u's slot) can't
+            // invalidate these post-fire writes — no slot re-resolve needed.
+            int remaining = registry.burstRemainingById(id) - 1;
+            registry.setBurstRemainingById(id, remaining);
+            registry.setBurstTimerById(id, u.primaryWeapon.burstSpacing);
+            if (remaining == 0) registry.setBurstTargetIdById(id, 0L);
         }
         burstScratch.clear();
     }
@@ -119,9 +119,8 @@ public class InfantryWeapons {
      * rolled here, which can mutate the target's path via the context.
      */
     public void fireShot(Entity shooter, Entity target, FireStance stance) {
-        int shooterIdx = registry.requireLiveIndex(shooter.entityId);
-        float accuracy = registry.getAccuracy(shooterIdx);
-        float damage   = registry.getAttackDamage(shooterIdx);
+        float accuracy = registry.accuracyById(shooter.entityId);
+        float damage   = registry.attackDamageById(shooter.entityId);
         float vsTurretMult = 1f;
         // Distance-scaled accuracy + spread only apply when the shooter has
         // a per-weapon profile (marines). Militia / aliens / turrets fall
