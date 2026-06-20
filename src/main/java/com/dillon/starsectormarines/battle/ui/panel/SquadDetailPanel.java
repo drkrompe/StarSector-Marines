@@ -131,8 +131,10 @@ public final class SquadDetailPanel implements HudPanel {
                 .comparing((Entity u) -> currentSquad.leaderId == u.entityId ? 0 : 1)
                 .thenComparing(u -> u.id));
         for (Entity u : live) {
+            boolean hasSec = sim.world().hasSecondaryWeapon(u.entityId);
             rows.add(new MemberRow(sim.world().hp(u.entityId), sim.world().maxHp(u.entityId), u.primaryWeapon,
-                    u.secondaryWeapon, u.secondaryAmmo, u.role));
+                    hasSec ? sim.world().secondaryWeapon(u.entityId) : null,
+                    hasSec ? sim.world().secondaryAmmo(u.entityId) : 0, u.role));
         }
     }
 

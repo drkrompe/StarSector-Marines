@@ -559,8 +559,9 @@ public class AirSystem {
                 marine.attackCooldown = loadout.primary.cooldown;
             }
             if (loadout.secondary != null && loadout.secondaryAmmo > 0) {
-                marine.secondaryWeapon = loadout.secondary;
-                marine.secondaryAmmo = loadout.secondaryAmmo;
+                // Pre-allocate seed — allocate adds the SECONDARY_WEAPON component.
+                marine.seedSecondaryWeapon = loadout.secondary;
+                marine.seedSecondaryAmmo = loadout.secondaryAmmo;
             }
         }
         if (s.mission.squadId == Entity.NO_SQUAD) {

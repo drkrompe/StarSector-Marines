@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.unit;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 
@@ -65,12 +66,6 @@ public final class UnitRegistry {
      * {@link #allocate}, no post-release reader.
      */
     private float[] moveProgress = new float[INITIAL_CAPACITY];
-    /** Per-unit secondary-weapon cooldown (sim-seconds). Same lifecycle as {@link #moveProgress}. */
-    private float[] secondaryCooldownTimer = new float[INITIAL_CAPACITY];
-    /** Per-unit sim-seconds remaining in the secondary aim-then-fire window. Same lifecycle as {@link #moveProgress}. */
-    private float[] secondaryActionTimer = new float[INITIAL_CAPACITY];
-    /** Per-unit entity id locked at secondary aim start (0L = none). Same lifecycle as {@link #moveProgress}. */
-    private long[] secondaryAimTargetId = new long[INITIAL_CAPACITY];
     /** Per-unit sim-seconds until the unit may next micro-reposition between shots. Decremented in {@code InfantryUnitPrep.tickCooldowns}. Same lifecycle as {@link #moveProgress}. */
     private float[] repositionCooldown = new float[INITIAL_CAPACITY];
     /** Per-unit sim-seconds remaining in break-contact fall-back state (>0 = falling back toward {@link #fallbackCellX}/{@link #fallbackCellY}). Same lifecycle as {@link #moveProgress}. */
@@ -140,9 +135,6 @@ public final class UnitRegistry {
             int newCap = dense.length * 2;
             dense = Arrays.copyOf(dense, newCap);
             moveProgress = Arrays.copyOf(moveProgress, newCap);
-            secondaryCooldownTimer = Arrays.copyOf(secondaryCooldownTimer, newCap);
-            secondaryActionTimer = Arrays.copyOf(secondaryActionTimer, newCap);
-            secondaryAimTargetId = Arrays.copyOf(secondaryAimTargetId, newCap);
             repositionCooldown = Arrays.copyOf(repositionCooldown, newCap);
             fallbackTimer = Arrays.copyOf(fallbackTimer, newCap);
             fallbackCellX = Arrays.copyOf(fallbackCellX, newCap);
@@ -153,15 +145,23 @@ public final class UnitRegistry {
         u.entityId = id;
         dense[liveCount] = u;
         // Adopt the minted id into the entity world as a live {IDENTITY,
-        // POSITION, HEALTH, COMBAT} entity. Identity is written once here and
-        // persists alive→dead (the corpse transmute's row-move carries it — as
-        // does the cell, which IS the death cell by the time the corpse forms);
-        // Position, Health and Combat seed from the write-only seed* fields and
-        // are canonical in the world thereafter — "has HEALTH with hp > 0" is the
-        // liveness definition (isAliveById). The corpse transmute removes HEALTH
-        // and COMBAT (a corpse neither lives nor fights).
-        entityWorld.createEntity(id, components.IDENTITY, components.POSITION,
-                components.HEALTH, components.COMBAT);
+        // POSITION, HEALTH, COMBAT} entity — plus SECONDARY_WEAPON iff this unit
+        // carries one, so the optional capability IS its archetype membership (no
+        // nullable field). Identity is written once here and persists alive→dead
+        // (the corpse transmute's row-move carries it — as does the cell, which
+        // IS the death cell by the time the corpse forms); Position, Health and
+        // Combat seed from the write-only seed* fields and are canonical in the
+        // world thereafter — "has HEALTH with hp > 0" is the liveness definition
+        // (isAliveById). The corpse transmute removes HEALTH, COMBAT, and any
+        // SECONDARY_WEAPON (a corpse neither lives nor fights).
+        boolean hasSecondary = u.seedSecondaryWeapon != null;
+        if (hasSecondary) {
+            entityWorld.createEntity(id, components.IDENTITY, components.POSITION,
+                    components.HEALTH, components.COMBAT, components.SECONDARY_WEAPON);
+        } else {
+            entityWorld.createEntity(id, components.IDENTITY, components.POSITION,
+                    components.HEALTH, components.COMBAT);
+        }
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_TYPE, u.type);
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_FACTION, u.faction);
         entityWorld.setInt(id, components.POSITION, BattleComponents.POSITION_CELL_X, u.seedCellX);
@@ -176,15 +176,19 @@ public final class UnitRegistry {
         entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_DAMAGE, u.seedAttackDamage);
         entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_RANGE, u.seedAttackRange);
         entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ACCURACY, u.seedAccuracy);
+        // Seed the SECONDARY_WEAPON spec + ammo when present; its mid-combat
+        // scalars (cooldown/action timers, aim target, fired latch) start at zero
+        // by the world's row append.
+        if (hasSecondary) {
+            entityWorld.setObject(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC, u.seedSecondaryWeapon);
+            entityWorld.setInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AMMO, u.seedSecondaryAmmo);
+        }
         // Reset the mid-combat-only registry columns to their defaults. These
         // have no pre-allocation seed (a fresh unit starts at rest) and no
         // post-release reader, so they carry no local* twin on Entity; the
         // explicit reset clears any stale value left in a dense slot reused after
         // a swap-and-pop release.
         moveProgress[liveCount] = 0f;
-        secondaryCooldownTimer[liveCount] = 0f;
-        secondaryActionTimer[liveCount] = 0f;
-        secondaryAimTargetId[liveCount] = 0L;
         repositionCooldown[liveCount] = 0f;
         fallbackTimer[liveCount] = 0f;
         fallbackCellX[liveCount] = -1;
@@ -227,15 +231,13 @@ public final class UnitRegistry {
         // the corpse's death-pose location survives. The world entity is NOT
         // touched here: hp lives in its HEALTH component (isAliveById reads it,
         // so a released-pre-transmute id still reports dead via hp <= 0) and the
-        // combat stats/scalars in its COMBAT component; the death drain
-        // transmutes the entity to the corpse archetype, which removes both.
+        // combat stats/scalars in its COMBAT component and any SECONDARY_WEAPON;
+        // the death drain transmutes the entity to the corpse archetype, which
+        // removes all of them.
         if (idx != last) {
             Entity tail = dense[last];
             dense[idx] = tail;
             moveProgress[idx] = moveProgress[last];
-            secondaryCooldownTimer[idx] = secondaryCooldownTimer[last];
-            secondaryActionTimer[idx] = secondaryActionTimer[last];
-            secondaryAimTargetId[idx] = secondaryAimTargetId[last];
             repositionCooldown[idx] = repositionCooldown[last];
             fallbackTimer[idx] = fallbackTimer[last];
             fallbackCellX[idx] = fallbackCellX[last];
@@ -350,6 +352,40 @@ public final class UnitRegistry {
     public long burstTargetIdById(long id) { return entityWorld.getLong(id, components.COMBAT, BattleComponents.COMBAT_BURST_TARGET_ID); }
     public void setBurstTargetIdById(long id, long v) { entityWorld.setLong(id, components.COMBAT, BattleComponents.COMBAT_BURST_TARGET_ID, v); }
 
+    // Transitional by-id secondary-weapon adapters over the world's optional
+    // SECONDARY_WEAPON component. hasSecondaryWeapon is the presence check that
+    // replaces the old `u.secondaryWeapon != null`; every field read below is
+    // fail-loud on a unit that lacks the component, so callers MUST gate on
+    // hasSecondaryWeapon first.
+    public boolean hasSecondaryWeapon(long id) { return entityWorld.has(id, components.SECONDARY_WEAPON); }
+    public MarineSecondary secondaryWeaponOf(long id) { return (MarineSecondary) entityWorld.getObject(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC); }
+    public int secondaryAmmoById(long id) { return entityWorld.getInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AMMO); }
+    public void setSecondaryAmmoById(long id, int v) { entityWorld.setInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AMMO, v); }
+    public float secondaryCooldownTimerById(long id) { return entityWorld.getFloat(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_COOLDOWN_TIMER); }
+    public void setSecondaryCooldownTimerById(long id, float v) { entityWorld.setFloat(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_COOLDOWN_TIMER, v); }
+    public float secondaryActionTimerById(long id) { return entityWorld.getFloat(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_ACTION_TIMER); }
+    public void setSecondaryActionTimerById(long id, float v) { entityWorld.setFloat(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_ACTION_TIMER, v); }
+    public long secondaryAimTargetIdById(long id) { return entityWorld.getLong(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AIM_TARGET_ID); }
+    public void setSecondaryAimTargetIdById(long id, long v) { entityWorld.setLong(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AIM_TARGET_ID, v); }
+    public boolean secondaryFiredById(long id) { return entityWorld.getInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_FIRED) != 0; }
+    public void setSecondaryFiredById(long id, boolean v) { entityWorld.setInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_FIRED, v ? 1 : 0); }
+
+    /**
+     * Grants the secondary-weapon capability to an already-live unit — the
+     * runtime counterpart to seeding it pre-{@link #allocate} (the born-with-it
+     * path AirSystem/GroundSystem use). Adds the {@code SECONDARY_WEAPON}
+     * component (a one-time archetype row-move) and writes the spec + ammo; the
+     * mid-combat scalars start zeroed by the moved row. The model seam for a
+     * future "pick up a dropped launcher" mechanic. Serial-only — being a
+     * structural change, never call it mid-{@link Query} walk (use the
+     * world's command buffer there).
+     */
+    public void attachSecondaryWeapon(long id, MarineSecondary spec, int ammo) {
+        entityWorld.addComponent(id, components.SECONDARY_WEAPON);
+        entityWorld.setObject(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC, spec);
+        entityWorld.setInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AMMO, ammo);
+    }
+
     public float getMoveProgress(int idx) { return moveProgress[idx]; }
     public void setMoveProgress(int idx, float v) { moveProgress[idx] = v; }
     public float[] moveProgressArray() { return moveProgress; }
@@ -367,18 +403,6 @@ public final class UnitRegistry {
 
     /** Game component-type registrations + shared queries for {@link #entityWorld()}. */
     public BattleComponents components() { return components; }
-
-    public float getSecondaryCooldownTimer(int idx) { return secondaryCooldownTimer[idx]; }
-    public void setSecondaryCooldownTimer(int idx, float v) { secondaryCooldownTimer[idx] = v; }
-    public float[] secondaryCooldownTimerArray() { return secondaryCooldownTimer; }
-
-    public float getSecondaryActionTimer(int idx) { return secondaryActionTimer[idx]; }
-    public void setSecondaryActionTimer(int idx, float v) { secondaryActionTimer[idx] = v; }
-    public float[] secondaryActionTimerArray() { return secondaryActionTimer; }
-
-    public long getSecondaryAimTargetId(int idx) { return secondaryAimTargetId[idx]; }
-    public void setSecondaryAimTargetId(int idx, long v) { secondaryAimTargetId[idx] = v; }
-    public long[] secondaryAimTargetIdArray() { return secondaryAimTargetId; }
 
     public float getRepositionCooldown(int idx) { return repositionCooldown[idx]; }
     public void setRepositionCooldown(int idx, float v) { repositionCooldown[idx] = v; }

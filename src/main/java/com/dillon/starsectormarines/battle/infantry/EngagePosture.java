@@ -81,7 +81,7 @@ public final class EngagePosture implements Action {
         // The inner rocket check (line below) still enforces dist <= rocket
         // range, and the primary-fire branch guards on primary range so we
         // don't fire the rifle from beyond its reach.
-        float effectiveRange = TacticalScoring.effectiveAttackRange(member, target,
+        float effectiveRange = sim.getTacticalScoring().effectiveAttackRange(member, target,
                 sim.world().attackRange(member.entityId));
         boolean inRange = dist <= effectiveRange;
         boolean visible = TacticalScoring.canSeePair(sim.getGrid(),
@@ -93,14 +93,15 @@ public final class EngagePosture implements Action {
             // Rocket eligibility broadened from MapTurret-only to any hardened
             // target (turrets, drone hubs, heavy mechs) — anything the rocket's
             // vsTurretMult bonus is worth burning a tube on.
-            if (member.secondaryWeapon != null && member.secondaryAmmo > 0
-                    && sim.world().secondaryCooldownTimer(member.entityId) <= 0f
+            long mid = member.entityId;
+            if (sim.world().hasSecondaryWeapon(mid) && sim.world().secondaryAmmo(mid) > 0
+                    && sim.world().secondaryCooldownTimer(mid) <= 0f
                     && TacticalScoring.isHardened(target)
-                    && dist <= member.secondaryWeapon.range
+                    && dist <= sim.world().secondaryWeapon(mid).range
                     && sim.getTacticalScoring().shouldCommitRocket(member, target)) {
-                sim.world().setSecondaryActionTimer(member.entityId, member.secondaryWeapon.aimDuration);
-                member.secondaryFiredThisAction = false;
-                sim.world().setSecondaryAimTargetId(member.entityId, Entity.idOf(target));
+                sim.world().setSecondaryActionTimer(mid, sim.world().secondaryWeapon(mid).aimDuration);
+                sim.world().setSecondaryFired(mid, false);
+                sim.world().setSecondaryAimTargetId(mid, Entity.idOf(target));
                 startedSecondary = true;
             }
             if (!startedSecondary && sim.world().cooldownTimer(member.entityId) <= 0f

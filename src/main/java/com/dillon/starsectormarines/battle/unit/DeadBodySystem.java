@@ -8,11 +8,12 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * Turns the dead unit's world entity into a corpse — the death-event handler
  * that builds the corpse home. Subscribed to the battle's death dispatcher; on
  * each {@link DeathEvent} it {@code transmute}s the entity (one row-move) from
- * the live {@code {IDENTITY, POSITION, HEALTH, COMBAT}} archetype to the corpse
- * archetype {@code {IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}}:
- * {@code HEALTH} and {@code COMBAT} are removed (a corpse neither lives nor
- * fights — and "lacks HEALTH" is half the liveness definition), {@code IDENTITY}
- * <b>and the cell</b> are
+ * the live {@code {IDENTITY, POSITION, HEALTH, COMBAT}} archetype (plus an
+ * optional {@code SECONDARY_WEAPON}) to the corpse archetype
+ * {@code {IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}}: {@code HEALTH},
+ * {@code COMBAT}, and any {@code SECONDARY_WEAPON} are removed (a corpse neither
+ * lives nor fights — and "lacks HEALTH" is half the liveness definition),
+ * {@code IDENTITY} <b>and the cell</b> are
  * carried by the row-move ("the corpse keeps its cell" is literal: nothing
  * moves a unit after the kill zeroes its hp, so the live POSITION already is
  * the death cell the event snapshotted), the draw position is frozen at the
@@ -50,7 +51,11 @@ public final class DeadBodySystem {
         this.renderPositions = renderPositions;
         this.corpseAdd = new ComponentType[]{
                 components.RENDER_POSITION, components.SPRITE, components.CORPSE};
-        this.corpseRemove = new ComponentType[]{components.HEALTH, components.COMBAT};
+        // SECONDARY_WEAPON is removed too when present; transmute treats a
+        // remove of a component the entity lacks as a no-op, so listing it
+        // unconditionally is safe for units that never carried a secondary.
+        this.corpseRemove = new ComponentType[]{
+                components.HEALTH, components.COMBAT, components.SECONDARY_WEAPON};
     }
 
     /** Death-event handler: transmute the dead unit's entity to the corpse archetype. */

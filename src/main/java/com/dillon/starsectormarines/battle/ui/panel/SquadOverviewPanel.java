@@ -93,7 +93,7 @@ public final class SquadOverviewPanel implements HudPanel {
             } else {
                 counts[0]++;
             }
-            if (u.secondaryWeapon != null && u.secondaryAmmo > 0) counts[3]++;
+            if (sim.world().hasSecondaryWeapon(u.entityId) && sim.world().secondaryAmmo(u.entityId) > 0) counts[3]++;
         }
 
         for (Squad s : sim.getSquads()) {

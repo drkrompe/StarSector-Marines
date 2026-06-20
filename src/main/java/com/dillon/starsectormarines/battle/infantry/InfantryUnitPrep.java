@@ -35,22 +35,27 @@ public final class InfantryUnitPrep {
      * and the caller should proceed normally.
      */
     public static boolean tickAimAndShortCircuit(Entity unit, BattleControl sim) {
-        if (sim.world().secondaryActionTimer(unit.entityId) <= 0f || unit.secondaryWeapon == null) return false;
-        sim.world().setSecondaryActionTimer(unit.entityId, sim.world().secondaryActionTimer(unit.entityId) - BattleSimulation.TICK_DT);
-        sim.world().setMoveProgress(unit.entityId, 0f);
-        unit.setRenderPos(sim.world().cellX(unit.entityId), sim.world().cellY(unit.entityId));
-        float fireAt = unit.secondaryWeapon.aimDuration * 0.5f;
-        if (!unit.secondaryFiredThisAction && sim.world().secondaryActionTimer(unit.entityId) <= fireAt) {
-            Entity aimTarget = sim.resolveUnit(sim.world().secondaryAimTargetId(unit.entityId));
+        World w = sim.world();
+        long id = unit.entityId;
+        // Presence-gate before any SECONDARY_WEAPON read: a unit without the
+        // capability lacks the component (the timer read would fail loud).
+        if (!w.hasSecondaryWeapon(id) || w.secondaryActionTimer(id) <= 0f) return false;
+        MarineSecondary sec = w.secondaryWeapon(id);
+        w.setSecondaryActionTimer(id, w.secondaryActionTimer(id) - BattleSimulation.TICK_DT);
+        w.setMoveProgress(id, 0f);
+        unit.setRenderPos(w.cellX(id), w.cellY(id));
+        float fireAt = sec.aimDuration * 0.5f;
+        if (!w.secondaryFired(id) && w.secondaryActionTimer(id) <= fireAt) {
+            Entity aimTarget = sim.resolveUnit(w.secondaryAimTargetId(id));
             if (aimTarget != null) {
                 sim.fireSecondary(unit, aimTarget);
             }
-            unit.secondaryFiredThisAction = true;
-            sim.world().setSecondaryCooldownTimer(unit.entityId, unit.secondaryWeapon.cooldown);
+            w.setSecondaryFired(id, true);
+            w.setSecondaryCooldownTimer(id, sec.cooldown);
         }
-        if (sim.world().secondaryActionTimer(unit.entityId) <= 0f) {
-            sim.world().setSecondaryActionTimer(unit.entityId, 0f);
-            sim.world().setSecondaryAimTargetId(unit.entityId, 0L);
+        if (w.secondaryActionTimer(id) <= 0f) {
+            w.setSecondaryActionTimer(id, 0f);
+            w.setSecondaryAimTargetId(id, 0L);
         }
         return true;
     }
@@ -66,8 +71,10 @@ public final class InfantryUnitPrep {
         long id = unit.entityId;
         float cd = world.cooldownTimer(id);
         if (cd > 0f) world.setCooldownTimer(id, cd - BattleSimulation.TICK_DT);
-        float scd = world.secondaryCooldownTimer(id);
-        if (scd > 0f) world.setSecondaryCooldownTimer(id, scd - BattleSimulation.TICK_DT);
+        if (world.hasSecondaryWeapon(id)) {
+            float scd = world.secondaryCooldownTimer(id);
+            if (scd > 0f) world.setSecondaryCooldownTimer(id, scd - BattleSimulation.TICK_DT);
+        }
         float rcd = world.repositionCooldown(id);
         if (rcd > 0f) world.setRepositionCooldown(id, rcd - BattleSimulation.TICK_DT);
     }
@@ -92,12 +99,14 @@ public final class InfantryUnitPrep {
      * Returns {@code false} when nothing changed.
      */
     public static boolean tryOpportunityRocket(Entity unit, BattleView sim) {
-        if (unit.secondaryWeapon == null) return false;
-        if (unit.secondaryAmmo <= 0) return false;
-        if (sim.world().secondaryCooldownTimer(unit.entityId) > 0f) return false;
-        if (sim.world().secondaryActionTimer(unit.entityId) > 0f) return false;
+        long id = unit.entityId;
+        if (!sim.world().hasSecondaryWeapon(id)) return false;
+        if (sim.world().secondaryAmmo(id) <= 0) return false;
+        if (sim.world().secondaryCooldownTimer(id) > 0f) return false;
+        if (sim.world().secondaryActionTimer(id) > 0f) return false;
 
-        float range = unit.secondaryWeapon.range;
+        MarineSecondary sec = sim.world().secondaryWeapon(id);
+        float range = sec.range;
         // Hardened-target scan: any MapTurret, DroneHubUnit, or HEAVY_MECH in
         // rocket range with LoS that the squad-coordination gate doesn't
         // block. Closest one wins — tilts toward turrets / hubs (typically
@@ -124,9 +133,9 @@ public final class InfantryUnitPrep {
         }
         if (bestHardened == null) return false;
 
-        sim.world().setSecondaryActionTimer(unit.entityId, unit.secondaryWeapon.aimDuration);
-        unit.secondaryFiredThisAction = false;
-        sim.world().setSecondaryAimTargetId(unit.entityId, Entity.idOf(bestHardened));
+        sim.world().setSecondaryActionTimer(id, sec.aimDuration);
+        sim.world().setSecondaryFired(id, false);
+        sim.world().setSecondaryAimTargetId(id, Entity.idOf(bestHardened));
         // Freeze movement state for this tick — the next tick's
         // tickAimAndShortCircuit will keep doing it. Mirrors what that method
         // does on its own entry path so the visible behavior is consistent

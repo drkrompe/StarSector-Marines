@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.unit;
 
+import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -21,6 +22,14 @@ public class UnitRegistryTest {
 
     private static Entity unit(String label) {
         return new Entity(label, Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
+    }
+
+    /** A marine pre-seeded with a secondary weapon, so allocate gives it the optional SECONDARY_WEAPON component. */
+    private static Entity secondaryUnit(String label) {
+        Entity u = unit(label);
+        u.seedSecondaryWeapon = MarineSecondary.ROCKET_LAUNCHER;
+        u.seedSecondaryAmmo = MarineSecondary.ROCKET_LAUNCHER.startingAmmo;
+        return u;
     }
 
     @Test
@@ -530,93 +539,73 @@ public class UnitRegistryTest {
     }
 
     @Test
-    public void allocateSecondaryCooldownTimerDefaultsAndAccessorsRouteThroughRegistry() {
+    public void allocateWithoutSecondaryLacksTheSecondaryWeaponComponent() {
         UnitRegistry r = new UnitRegistry();
         Entity u = unit("u");
 
         r.allocate(u);
 
-        assertEquals(0f, r.getSecondaryCooldownTimer(r.indexOf(u.entityId)), 1e-6f);
-
-        r.setSecondaryCooldownTimer(r.indexOf(u.entityId), 0.4f);
-        assertEquals(0.4f, r.getSecondaryCooldownTimer(r.indexOf(u.entityId)), 1e-6f);
+        // No seedSecondaryWeapon → the optional capability isn't in the unit's
+        // archetype. Presence IS the capability — there's nothing else to check.
+        assertFalse(r.hasSecondaryWeapon(u.entityId));
     }
 
     @Test
-    public void releaseTailSwapMovesSecondaryCooldownTimerCorrectly() {
+    public void allocateWithSecondarySeedsSpecAmmoAndDefaultTimers() {
         UnitRegistry r = new UnitRegistry();
-        Entity a = unit("a");
-        Entity b = unit("b");
-        Entity c = unit("c");
-        long idA = r.allocate(a);
-        r.allocate(b);
-        r.allocate(c);
-        r.setSecondaryCooldownTimer(r.indexOf(c.entityId), 5.1f);
-
-        r.release(idA);
-
-        assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(5.1f, r.getSecondaryCooldownTimer(0), 1e-6f);
-    }
-
-    @Test
-    public void allocateSecondaryActionTimerDefaultsAndAccessorsRouteThroughRegistry() {
-        UnitRegistry r = new UnitRegistry();
-        Entity u = unit("u");
+        Entity u = secondaryUnit("u");
 
         r.allocate(u);
 
-        assertEquals(0f, r.getSecondaryActionTimer(r.indexOf(u.entityId)), 1e-6f);
-
-        r.setSecondaryActionTimer(r.indexOf(u.entityId), 0.6f);
-        assertEquals(0.6f, r.getSecondaryActionTimer(r.indexOf(u.entityId)), 1e-6f);
+        assertTrue(r.hasSecondaryWeapon(u.entityId));
+        assertSame(MarineSecondary.ROCKET_LAUNCHER, r.secondaryWeaponOf(u.entityId));
+        assertEquals(MarineSecondary.ROCKET_LAUNCHER.startingAmmo, r.secondaryAmmoById(u.entityId));
+        // Mid-combat scalars start zeroed by the world's row append.
+        assertEquals(0f, r.secondaryCooldownTimerById(u.entityId), 1e-6f);
+        assertEquals(0f, r.secondaryActionTimerById(u.entityId), 1e-6f);
+        assertEquals(0L, r.secondaryAimTargetIdById(u.entityId));
+        assertFalse(r.secondaryFiredById(u.entityId));
     }
 
     @Test
-    public void releaseTailSwapMovesSecondaryActionTimerCorrectly() {
+    public void secondaryScalarsRoundTripThroughByIdAccessors() {
         UnitRegistry r = new UnitRegistry();
-        Entity a = unit("a");
-        Entity b = unit("b");
-        Entity c = unit("c");
-        long idA = r.allocate(a);
-        r.allocate(b);
-        r.allocate(c);
-        r.setSecondaryActionTimer(r.indexOf(c.entityId), 0.7f);
-
-        r.release(idA);
-
-        assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(0.7f, r.getSecondaryActionTimer(0), 1e-6f);
-    }
-
-    @Test
-    public void allocateSecondaryAimTargetIdDefaultsAndAccessorsRouteThroughRegistry() {
-        UnitRegistry r = new UnitRegistry();
-        Entity u = unit("u");
-
+        Entity u = secondaryUnit("u");
         r.allocate(u);
+        long id = u.entityId;
 
-        assertEquals(0L, r.getSecondaryAimTargetId(r.indexOf(u.entityId)));
+        r.setSecondaryAmmoById(id, 2);
+        r.setSecondaryCooldownTimerById(id, 0.4f);
+        r.setSecondaryActionTimerById(id, 0.6f);
+        r.setSecondaryAimTargetIdById(id, 7L);
+        r.setSecondaryFiredById(id, true);
 
-        r.setSecondaryAimTargetId(r.indexOf(u.entityId), 7L);
-        assertEquals(7L, r.getSecondaryAimTargetId(r.indexOf(u.entityId)));
+        assertEquals(2, r.secondaryAmmoById(id));
+        assertEquals(0.4f, r.secondaryCooldownTimerById(id), 1e-6f);
+        assertEquals(0.6f, r.secondaryActionTimerById(id), 1e-6f);
+        assertEquals(7L, r.secondaryAimTargetIdById(id));
+        assertTrue(r.secondaryFiredById(id));
     }
 
     @Test
-    public void releaseTailSwapMovesSecondaryAimTargetIdCorrectly() {
+    public void secondaryStateIsUndisturbedByDenseTailSwap() {
         UnitRegistry r = new UnitRegistry();
         Entity a = unit("a");
         Entity b = unit("b");
-        Entity c = unit("c");
+        Entity c = secondaryUnit("c");
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        r.setSecondaryAimTargetId(r.indexOf(c.entityId), 999L);
+        r.setSecondaryActionTimerById(c.entityId, 0.7f);
+        r.setSecondaryAimTargetIdById(c.entityId, 999L);
 
+        // Releasing a swap-pops c into a's old dense slot — SECONDARY_WEAPON is a
+        // world component keyed by entity id, untouched by the dense reshuffle.
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(999L, r.getSecondaryAimTargetId(0));
+        assertEquals(0.7f, r.secondaryActionTimerById(c.entityId), 1e-6f);
+        assertEquals(999L, r.secondaryAimTargetIdById(c.entityId));
     }
 
     @Test

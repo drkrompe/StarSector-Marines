@@ -478,9 +478,8 @@ public class TacticalScoringTest {
         BattleSimulation sim = openArena(30, 10);
         Entity rocketeer = unit(sim, Faction.MARINE, 5, 5);
         rocketeer.primaryWeapon = com.dillon.starsectormarines.battle.infantry.MarineWeapon.PULSE_RIFLE;
-        rocketeer.secondaryWeapon = com.dillon.starsectormarines.battle.infantry.MarineSecondary.ROCKET_LAUNCHER;
-        rocketeer.secondaryAmmo = 3;
         sim.world().setAttackRange(rocketeer.entityId, 40f);
+        sim.world().attachSecondaryWeapon(rocketeer.entityId, MarineSecondary.ROCKET_LAUNCHER, 3);
 
         Entity infantry = unit(sim, Faction.DEFENDER, 10, 5);
         Entity mech = unit(sim, Faction.DEFENDER, UnitType.HEAVY_MECH, 20, 5);
@@ -515,9 +514,8 @@ public class TacticalScoringTest {
         BattleSimulation sim = openArena(30, 10);
         Entity dryRocketeer = unit(sim, Faction.MARINE, 5, 5);
         dryRocketeer.primaryWeapon = com.dillon.starsectormarines.battle.infantry.MarineWeapon.PULSE_RIFLE;
-        dryRocketeer.secondaryWeapon = com.dillon.starsectormarines.battle.infantry.MarineSecondary.ROCKET_LAUNCHER;
-        dryRocketeer.secondaryAmmo = 0;
         sim.world().setAttackRange(dryRocketeer.entityId, 40f);
+        sim.world().attachSecondaryWeapon(dryRocketeer.entityId, MarineSecondary.ROCKET_LAUNCHER, 0);
 
         Entity infantry = unit(sim, Faction.DEFENDER, 10, 5);
         Entity mech = unit(sim, Faction.DEFENDER, UnitType.HEAVY_MECH, 20, 5);
@@ -634,8 +632,8 @@ public class TacticalScoringTest {
         Entity u = unit(sim, f, x, y);
         u.primaryWeapon = MarineWeapon.PULSE_RIFLE;
         sim.world().setAttackRange(u.entityId, u.primaryWeapon.range);
-        u.secondaryWeapon = MarineSecondary.ROCKET_LAUNCHER;
-        u.secondaryAmmo = MarineSecondary.ROCKET_LAUNCHER.startingAmmo;
+        sim.world().attachSecondaryWeapon(u.entityId, MarineSecondary.ROCKET_LAUNCHER,
+                MarineSecondary.ROCKET_LAUNCHER.startingAmmo);
         return u;
     }
 
@@ -647,15 +645,15 @@ public class TacticalScoringTest {
         Entity infantry = unit(sim, Faction.DEFENDER, 25, 5);
 
         assertEquals(MarineSecondary.ROCKET_LAUNCHER.range,
-                TacticalScoring.effectiveAttackRange(rocketeer, turret, sim.world().attackRange(rocketeer.entityId)),
+                sim.getTacticalScoring().effectiveAttackRange(rocketeer, turret, sim.world().attackRange(rocketeer.entityId)),
                 0.001f, "rocketeer-vs-turret must widen to rocket range");
         assertEquals(sim.world().attackRange(rocketeer.entityId),
-                TacticalScoring.effectiveAttackRange(rocketeer, infantry, sim.world().attackRange(rocketeer.entityId)),
+                sim.getTacticalScoring().effectiveAttackRange(rocketeer, infantry, sim.world().attackRange(rocketeer.entityId)),
                 0.001f, "vs soft target stays at primary range");
 
-        rocketeer.secondaryAmmo = 0;
+        sim.world().setSecondaryAmmo(rocketeer.entityId, 0);
         assertEquals(sim.world().attackRange(rocketeer.entityId),
-                TacticalScoring.effectiveAttackRange(rocketeer, turret, sim.world().attackRange(rocketeer.entityId)),
+                sim.getTacticalScoring().effectiveAttackRange(rocketeer, turret, sim.world().attackRange(rocketeer.entityId)),
                 0.001f, "empty tube falls back to primary range");
     }
 

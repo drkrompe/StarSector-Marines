@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.component.ComponentStore;
+import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 
 import java.util.Map;
@@ -122,14 +123,30 @@ public final class World {
     public long burstTargetId(long id) { return registry.burstTargetIdById(id); }
     public void setBurstTargetId(long id, long v) { registry.setBurstTargetIdById(id, v); }
 
-    public float secondaryCooldownTimer(long id) { return registry.getSecondaryCooldownTimer(registry.requireLiveIndex(id)); }
-    public void setSecondaryCooldownTimer(long id, float v) { registry.setSecondaryCooldownTimer(registry.requireLiveIndex(id), v); }
+    // Secondary weapon is an OPTIONAL capability living in the world's
+    // SECONDARY_WEAPON component (migration step 3 — first optional live
+    // capability). hasSecondaryWeapon is the presence check that replaces the old
+    // `secondaryWeapon != null`; every other accessor is fail-loud on a unit that
+    // lacks the component, so callers MUST gate on hasSecondaryWeapon first.
+    public boolean hasSecondaryWeapon(long id) { return registry.hasSecondaryWeapon(id); }
+    public MarineSecondary secondaryWeapon(long id) { return registry.secondaryWeaponOf(id); }
+    public int secondaryAmmo(long id) { return registry.secondaryAmmoById(id); }
+    public void setSecondaryAmmo(long id, int v) { registry.setSecondaryAmmoById(id, v); }
 
-    public float secondaryActionTimer(long id) { return registry.getSecondaryActionTimer(registry.requireLiveIndex(id)); }
-    public void setSecondaryActionTimer(long id, float v) { registry.setSecondaryActionTimer(registry.requireLiveIndex(id), v); }
+    public float secondaryCooldownTimer(long id) { return registry.secondaryCooldownTimerById(id); }
+    public void setSecondaryCooldownTimer(long id, float v) { registry.setSecondaryCooldownTimerById(id, v); }
 
-    public long secondaryAimTargetId(long id) { return registry.getSecondaryAimTargetId(registry.requireLiveIndex(id)); }
-    public void setSecondaryAimTargetId(long id, long v) { registry.setSecondaryAimTargetId(registry.requireLiveIndex(id), v); }
+    public float secondaryActionTimer(long id) { return registry.secondaryActionTimerById(id); }
+    public void setSecondaryActionTimer(long id, float v) { registry.setSecondaryActionTimerById(id, v); }
+
+    public long secondaryAimTargetId(long id) { return registry.secondaryAimTargetIdById(id); }
+    public void setSecondaryAimTargetId(long id, long v) { registry.setSecondaryAimTargetIdById(id, v); }
+
+    public boolean secondaryFired(long id) { return registry.secondaryFiredById(id); }
+    public void setSecondaryFired(long id, boolean v) { registry.setSecondaryFiredById(id, v); }
+
+    /** Grant the secondary capability to a live unit at runtime (archetype row-move). Serial-only; see {@link UnitRegistry#attachSecondaryWeapon}. */
+    public void attachSecondaryWeapon(long id, MarineSecondary spec, int ammo) { registry.attachSecondaryWeapon(id, spec, ammo); }
 
     public float repositionCooldown(long id) { return registry.getRepositionCooldown(registry.requireLiveIndex(id)); }
     public void setRepositionCooldown(long id, float v) { registry.setRepositionCooldown(registry.requireLiveIndex(id), v); }

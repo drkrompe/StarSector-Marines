@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.world.model.DoodadService;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.combat.ShotService;
+import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
@@ -440,12 +441,12 @@ public final class TacticalScoring {
      * <p>{@code self} is nullable for non-Entity callers (shuttle / static
      * turrets) — they get no affinity term.
      */
-    private static float scoreWeaponAffinity(Entity self, Entity target) {
+    private float scoreWeaponAffinity(Entity self, Entity target) {
         if (self == null) return 0f;
         if (!isHardened(target)) return 0f;
         float primary = self.primaryWeapon != null ? self.primaryWeapon.vsTurretMult : 0.3f;
-        float secondary = (self.secondaryWeapon != null && self.secondaryAmmo > 0)
-                ? self.secondaryWeapon.vsTurretMult : 0f;
+        float secondary = (registry.hasSecondaryWeapon(self.entityId) && registry.secondaryAmmoById(self.entityId) > 0)
+                ? registry.secondaryWeaponOf(self.entityId).vsTurretMult : 0f;
         float bestMult = Math.max(primary, secondary);
         return WEAPON_AFFINITY_WEIGHT * (1f - bestMult);
     }
@@ -486,10 +487,10 @@ public final class TacticalScoring {
      * the pairings where the rocket's {@code vsTurretMult} bonus damage pays
      * off. Centralizes the check used by {@link #effectiveAttackRange}.
      */
-    public static boolean canRocketTarget(Entity shooter, Entity target) {
+    public boolean canRocketTarget(Entity shooter, Entity target) {
         return isHardened(target)
-                && shooter.secondaryWeapon != null
-                && shooter.secondaryAmmo > 0;
+                && registry.hasSecondaryWeapon(shooter.entityId)
+                && registry.secondaryAmmoById(shooter.entityId) > 0;
     }
 
     /**
@@ -500,9 +501,9 @@ public final class TacticalScoring {
      * act-here gate and the firing-position picker so a rocketeer doesn't have
      * to close to rifle range before firing.
      */
-    public static float effectiveAttackRange(Entity shooter, Entity target, float shooterAttackRange) {
+    public float effectiveAttackRange(Entity shooter, Entity target, float shooterAttackRange) {
         if (canRocketTarget(shooter, target)) {
-            return Math.max(shooterAttackRange, shooter.secondaryWeapon.range);
+            return Math.max(shooterAttackRange, registry.secondaryWeaponOf(shooter.entityId).range);
         }
         return shooterAttackRange;
     }
@@ -525,7 +526,7 @@ public final class TacticalScoring {
      * his own prior contribution.
      */
     public boolean shouldCommitRocket(Entity shooter, Entity target) {
-        if (shooter.secondaryWeapon == null || shooter.secondaryAmmo <= 0) return false;
+        if (!registry.hasSecondaryWeapon(shooter.entityId) || registry.secondaryAmmoById(shooter.entityId) <= 0) return false;
         if (target == null || !registry.isAliveById(target.entityId)) return false;
         return projectedRocketDamageOnTarget(shooter, target)
                 < registry.hpById(target.entityId);
@@ -555,10 +556,11 @@ public final class TacticalScoring {
                 Entity u = registry.get(i);
                 if (u == shooter) continue;
                 if (u.squadId != shooter.squadId) continue;
-                if (u.secondaryWeapon == null) continue;
-                if (registry.getSecondaryActionTimer(i) <= 0f) continue;
-                if (registry.getSecondaryAimTargetId(i) != target.entityId) continue;
-                total += u.secondaryWeapon.damage * u.secondaryWeapon.vsTurretMult;
+                if (!registry.hasSecondaryWeapon(u.entityId)) continue;
+                if (registry.secondaryActionTimerById(u.entityId) <= 0f) continue;
+                if (registry.secondaryAimTargetIdById(u.entityId) != target.entityId) continue;
+                MarineSecondary sw = registry.secondaryWeaponOf(u.entityId);
+                total += sw.damage * sw.vsTurretMult;
             }
         }
         // Inflight rocket entities owned by the sim. The Projectile carries
@@ -875,8 +877,8 @@ public final class TacticalScoring {
         int sx = registry.cellXById(self.entityId);
         int sy = registry.cellYById(self.entityId);
         float maxWeaponReach = registry.attackRangeById(self.entityId);
-        if (self.secondaryWeapon != null && self.secondaryAmmo > 0) {
-            maxWeaponReach = Math.max(maxWeaponReach, self.secondaryWeapon.range);
+        if (registry.hasSecondaryWeapon(self.entityId) && registry.secondaryAmmoById(self.entityId) > 0) {
+            maxWeaponReach = Math.max(maxWeaponReach, registry.secondaryWeaponOf(self.entityId).range);
         }
         float gatherRadius = maxDistFromAnchor + maxWeaponReach;
         ArrayList<Entity> scratch = new ArrayList<>();

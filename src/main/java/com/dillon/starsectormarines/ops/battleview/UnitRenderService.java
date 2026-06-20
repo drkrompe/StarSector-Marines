@@ -273,10 +273,10 @@ public final class UnitRenderService implements RenderSystem {
             float unitAlpha = alphaMult;
             if (uv == VisionService.VIS_FADING) unitAlpha *= vis.getFadeAlpha(i);
 
-            boolean inAim = registry.getSecondaryActionTimer(i) > 0f && u.secondaryWeapon != null;
+            boolean inAim = registry.hasSecondaryWeapon(u.entityId) && registry.secondaryActionTimerById(u.entityId) > 0f;
             UnitSpriteCache cache = sprites.unitSprites().get(u.type);
             if (inAim) {
-                UnitSpriteCache aim = sprites.marineSecondaryAimSheets().get(u.secondaryWeapon);
+                UnitSpriteCache aim = sprites.marineSecondaryAimSheets().get(registry.secondaryWeaponOf(u.entityId));
                 if (aim != null && aim.sheet != null && aim.frames != null
                         && aim.frames.frames.length > 0) {
                     cache = aim;

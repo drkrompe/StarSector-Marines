@@ -15,11 +15,14 @@ import com.dillon.starsectormarines.engine.ecs.Query;
  * alive→dead; Health is live-only), per the committed decomposition in
  * {@code roadmap/ecs-migration/archetype-storage.md}. Registered so far: the
  * corpse archetype plus the live capabilities ({@link #POSITION},
- * {@link #HEALTH}, {@link #COMBAT}); every unit spawns into the world as
- * {@code {IDENTITY, POSITION, HEALTH, COMBAT}} and death is the transmute to the
- * corpse archetype (identity + cell ride the row-move; health + combat are
- * removed). Remaining live components (movement, ai-state, the optional
- * secondary weapon) join as migration step 3 proceeds, continuing the id space.
+ * {@link #HEALTH}, {@link #COMBAT}) and the first <em>optional</em> live
+ * capability ({@link #SECONDARY_WEAPON}). Every unit spawns into the world as
+ * {@code {IDENTITY, POSITION, HEALTH, COMBAT}}, plus {@link #SECONDARY_WEAPON}
+ * iff it carries one (so presence <em>is</em> the capability — no nullable
+ * field); death is the transmute to the corpse archetype (identity + cell ride
+ * the row-move; health, combat, and any secondary are removed). Remaining live
+ * components (movement, ai-state) join as migration step 3 proceeds, continuing
+ * the id space.
  *
  * <p>Column access is positional ({@code table.ints(POSITION, POSITION_CELL_X)});
  * the {@code int} constants below are the named field indices per component.
@@ -72,6 +75,19 @@ public final class BattleComponents {
     /** {@link #COMBAT} field 7: entity id captured when the burst was queued, 0L = idle (LONG). */
     public static final int COMBAT_BURST_TARGET_ID = 7;
 
+    /** {@link #SECONDARY_WEAPON} field 0: the {@link com.dillon.starsectormarines.battle.infantry.MarineSecondary} flyweight (OBJECT). */
+    public static final int SECONDARY_WEAPON_SPEC = 0;
+    /** {@link #SECONDARY_WEAPON} field 1: rounds remaining on the secondary (INT). */
+    public static final int SECONDARY_WEAPON_AMMO = 1;
+    /** {@link #SECONDARY_WEAPON} field 2: secondary cooldown, sim-seconds (FLOAT). */
+    public static final int SECONDARY_WEAPON_COOLDOWN_TIMER = 2;
+    /** {@link #SECONDARY_WEAPON} field 3: sim-seconds remaining in the aim-then-fire window (FLOAT). */
+    public static final int SECONDARY_WEAPON_ACTION_TIMER = 3;
+    /** {@link #SECONDARY_WEAPON} field 4: entity id locked at aim start, 0L = none (LONG). */
+    public static final int SECONDARY_WEAPON_AIM_TARGET_ID = 4;
+    /** {@link #SECONDARY_WEAPON} field 5: one-shot-per-aim-cycle latch as 0/1 (INT). */
+    public static final int SECONDARY_WEAPON_FIRED = 5;
+
     // ---- component types ----
 
     /** Who/what this entity is — {@code UnitType type, Faction faction}. Persists alive→dead. */
@@ -113,6 +129,19 @@ public final class BattleComponents {
      * field here — see {@code roadmap/ecs-migration/archetype-storage.md}.
      */
     public final ComponentType COMBAT;
+    /**
+     * Optional secondary weapon — {@code MarineSecondary spec; int ammo; float
+     * cooldownTimer, actionTimer; long aimTargetId; int fired}. The first
+     * <em>optional</em> live capability modeled as archetype presence: added at
+     * spawn only for units that carry a secondary (a rocket launcher today;
+     * other secondary types later), absent on everyone else — so "has a
+     * secondary" is the archetype membership, not a nullable field. The
+     * {@code spec} flyweight is weapon-type-agnostic; richer AI may later query
+     * it to decide what the unit can do. Removed in the corpse transmute (no-op
+     * for units that never had it). See
+     * {@code roadmap/ecs-migration/archetype-storage.md}.
+     */
+    public final ComponentType SECONDARY_WEAPON;
 
     // ---- shared queries (per-world lifecycle, cached matched-table lists) ----
 
@@ -135,6 +164,9 @@ public final class BattleComponents {
         COMBAT          = world.register(6, "Combat",
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT,
                 FieldKind.LONG, FieldKind.INT, FieldKind.FLOAT, FieldKind.LONG);
+        SECONDARY_WEAPON = world.register(7, "SecondaryWeapon",
+                FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT, FieldKind.FLOAT,
+                FieldKind.LONG, FieldKind.INT);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}, null);
     }

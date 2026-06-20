@@ -34,8 +34,8 @@ public class InfantryUnitPrepTest {
     private static Entity rocketeer(BattleSimulation sim, Faction f, int x, int y) {
         Entity u = new Entity("u" + sim.liveUnitCount(), f, UnitType.MARINE, x, y);
         u.primaryWeapon = MarineWeapon.PULSE_RIFLE;
-        u.secondaryWeapon = MarineSecondary.ROCKET_LAUNCHER;
-        u.secondaryAmmo = MarineSecondary.ROCKET_LAUNCHER.startingAmmo;
+        u.seedSecondaryWeapon = MarineSecondary.ROCKET_LAUNCHER;
+        u.seedSecondaryAmmo = MarineSecondary.ROCKET_LAUNCHER.startingAmmo;
         sim.addUnit(u);
         // attackRange is a Group-S registry-backed stat — set after the unit is
         // registered (the accessor is fail-loud pre-allocate).
@@ -67,7 +67,7 @@ public class InfantryUnitPrepTest {
     public void opportunityRocketNoOpsWithNoAmmo() {
         BattleSimulation sim = openArena(50, 10);
         Entity marine = rocketeer(sim, Faction.MARINE, 5, 5);
-        marine.secondaryAmmo = 0;
+        sim.world().setSecondaryAmmo(marine.entityId, 0);
         turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
 
         assertFalse(InfantryUnitPrep.tryOpportunityRocket(marine, sim));

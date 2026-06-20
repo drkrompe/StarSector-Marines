@@ -194,9 +194,12 @@ public class InfantryWeapons {
      * before calling.
      */
     public void fireSecondary(Entity shooter, Entity target) {
-        MarineSecondary sec = shooter.secondaryWeapon;
-        if (sec == null || shooter.secondaryAmmo <= 0) return;
-        shooter.secondaryAmmo--;
+        long shooterId = shooter.entityId;
+        if (!registry.hasSecondaryWeapon(shooterId)) return;
+        MarineSecondary sec = registry.secondaryWeaponOf(shooterId);
+        int ammo = registry.secondaryAmmoById(shooterId);
+        if (ammo <= 0) return;
+        registry.setSecondaryAmmoById(shooterId, ammo - 1);
         boolean hit = shooter.rng.nextFloat() < sec.accuracy;
         // Rocket launches from the marine's current sprite position so the
         // launch FX glue to the sprite if the marine is mid-step. Endpoint

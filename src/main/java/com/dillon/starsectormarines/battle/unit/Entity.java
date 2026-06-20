@@ -212,6 +212,18 @@ public class Entity {
     public float seedAttackDamage;
     public float seedAttackRange;
     public float seedAccuracy;
+    /**
+     * <b>Don't read directly. Pre-allocate seed ONLY.</b> The optional secondary
+     * weapon a unit deboards with (null = no secondary). {@link UnitRegistry#allocate}
+     * consumes it: a non-null value makes the unit spawn with the
+     * {@code SECONDARY_WEAPON} component (its capability IS that archetype
+     * membership), seeded with this spec + {@link #seedSecondaryAmmo}. The live
+     * secondary state thereafter lives in the world component, read via
+     * {@code world.hasSecondaryWeapon}/{@code secondaryWeapon}/{@code secondaryAmmo}.
+     */
+    public MarineSecondary seedSecondaryWeapon;
+    /** <b>Pre-allocate seed ONLY.</b> Starting rounds for {@link #seedSecondaryWeapon}; consumed by {@link UnitRegistry#allocate}. */
+    public int seedSecondaryAmmo;
     /** How far this unit can see (cells). Drives fog-of-war shadowcast radius. Initialized from {@link UnitType#visionRange}; 0 falls back to the unit's attack-range stat. */
     public float visionRange;
     public float attackCooldown;
@@ -262,12 +274,6 @@ public class Entity {
 
     /** Primary handheld weapon. Null for legacy / non-marine units — fire stats fall back to the {@link UnitType} attack-stat defaults. Assigned at deboard time for marines. */
     public MarineWeapon primaryWeapon;
-    /** Optional secondary slot (rocket launcher, future grenades). Null = no secondary. */
-    public MarineSecondary secondaryWeapon;
-    /** Rounds remaining on the {@link #secondaryWeapon}. Decremented on each secondary shot; once zero the marine reverts to primary fire. */
-    public int secondaryAmmo;
-    /** Latched on launch within the current aim cycle so we only emit one shot per cycle, even though the trigger condition holds for several ticks past launch. */
-    public boolean secondaryFiredThisAction = false;
 
     /**
      * Queue the burst follow-up rounds after the AI has already fired round 1.
