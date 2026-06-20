@@ -75,7 +75,7 @@ public final class UnitRegistry {
     private float[] repositionCooldown = new float[INITIAL_CAPACITY];
     /** Per-unit sim-seconds remaining in break-contact fall-back state (>0 = falling back toward {@link #fallbackCellX}/{@link #fallbackCellY}). Same lifecycle as {@link #moveProgress}. */
     private float[] fallbackTimer = new float[INITIAL_CAPACITY];
-    /** Per-unit cached fall-back destination cell X (-1 = none). Paired with {@link #fallbackCellY}; same int-pair layout as {@link #cellX}. Same lifecycle as {@link #cooldownTimer}. */
+    /** Per-unit cached fall-back destination cell X (-1 = none). Paired with {@link #fallbackCellY}. Same lifecycle as {@link #moveProgress}. */
     private int[] fallbackCellX = new int[INITIAL_CAPACITY];
     /** Per-unit cached fall-back destination cell Y, paired with {@link #fallbackCellX}. */
     private int[] fallbackCellY = new int[INITIAL_CAPACITY];
