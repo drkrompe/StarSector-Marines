@@ -52,13 +52,15 @@ public class BridgeRenderer {
     private int fboHeight;
 
     /**
-     * Inherited UI draw-FBO + viewport, sampled once on the first render and
-     * reused every frame after. We restore to these instead of reading GL state
-     * back each frame: a {@code glGet*} forces a synchronous round-trip that
-     * stalls async-renderer bridge mods (e.g. genir's). Stable for the lifetime
-     * of the screen; {@code -1} = not yet sampled.
+     * Inherited UI draw-FBO + viewport, cached instead of read back each frame:
+     * a {@code glGet*} forces a synchronous round-trip that stalls async-renderer
+     * bridge mods (e.g. genir's). The viewport is in framebuffer px, so we
+     * re-sample whenever the drawable size changes (window resize / fullscreen
+     * toggle), keyed off {@link Display#getWidth()}/{@link Display#getHeight()} —
+     * cached LWJGL values, NOT a GL readback. {@code uiSampledFbW < 0} = unsampled.
      */
-    private boolean uiStateSampled;
+    private int uiSampledFbW = -1;
+    private int uiSampledFbH = -1;
     private int uiFboBinding = -1;
     private int uiVpX, uiVpY, uiVpW, uiVpH;
 
@@ -111,21 +113,22 @@ public class BridgeRenderer {
         }
 
         // ---- Save Starsector UI GL state ----
-        // Sample the inherited draw-FBO + viewport once, reuse every frame; we
-        // restore program/buffer bindings to fixed-function defaults and let
-        // glPopAttrib restore texture + viewport. No per-frame glGet*, which
-        // would stall async-renderer bridge mods (e.g. genir's).
+        // Sample the inherited draw-FBO + viewport once per drawable size (re-
+        // sampled on resize); we restore program/buffer bindings to fixed-function
+        // defaults and let glPopAttrib restore texture + viewport. No per-frame
+        // glGet*, which would stall async-renderer bridge mods (e.g. genir's).
         glPushAttrib(GL_ALL_ATTRIB_BITS);
         glMatrixMode(GL_PROJECTION); glPushMatrix();
         glMatrixMode(GL_MODELVIEW);  glPushMatrix();
         glMatrixMode(GL_TEXTURE);    glPushMatrix();
 
-        if (!uiStateSampled) {
+        int fbW = Display.getWidth(), fbH = Display.getHeight();
+        if (fbW != uiSampledFbW || fbH != uiSampledFbH) {
             uiFboBinding = glGetInteger(GL_FRAMEBUFFER_BINDING);
             IntBuffer vpBuf = BufferUtils.createIntBuffer(16);
             glGetInteger(GL_VIEWPORT, vpBuf);
             uiVpX = vpBuf.get(0); uiVpY = vpBuf.get(1); uiVpW = vpBuf.get(2); uiVpH = vpBuf.get(3);
-            uiStateSampled = true;
+            uiSampledFbW = fbW; uiSampledFbH = fbH;
         }
 
         try {

@@ -44,6 +44,7 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
 import org.apache.log4j.Logger;
+import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector2f;
 
 import java.awt.Color;
@@ -177,14 +178,16 @@ public class BattleScreen implements Screen, BattleUiContext {
     private BattleLayout layout;
     private BattleCamera camera;
     /**
-     * Inherited dialog scissor box (= dialog rect in framebuffer px), sampled
-     * once on the first world render and reused to derive the UI→FB scale. We
-     * cache rather than read {@code GL_SCISSOR_BOX} every frame: a {@code glGet*}
-     * forces a synchronous round-trip that stalls async-renderer bridge mods
-     * (e.g. genir's). The dialog is a stable full-takeover, so a one-shot sample
-     * holds for its lifetime. {@code uiScissorSampled} guards the read.
+     * Inherited dialog scissor box (= dialog rect in framebuffer px), cached to
+     * derive the UI→FB scale instead of reading {@code GL_SCISSOR_BOX} every
+     * frame: a {@code glGet*} forces a synchronous round-trip that stalls
+     * async-renderer bridge mods (e.g. genir's). The box is in framebuffer px, so
+     * we re-sample whenever the drawable size changes (window resize / fullscreen
+     * toggle), keyed off {@link Display#getWidth()}/{@link Display#getHeight()} —
+     * cached LWJGL values, NOT a GL readback. {@code uiSampledFbW < 0} = unsampled.
      */
-    private boolean uiScissorSampled;
+    private int uiSampledFbW = -1;
+    private int uiSampledFbH = -1;
     private int uiDialogFbX, uiDialogFbY, uiDialogFbW, uiDialogFbH;
     /** Pan-drag state: true while RMB is held (without shift, which routes to debug damage). */
     private boolean panDragging;
@@ -1086,16 +1089,18 @@ public class BattleScreen implements Screen, BattleUiContext {
             // Push SCISSOR_BIT so we restore both the prior box and the
             // enable state on pop.
             glPushAttrib(GL_SCISSOR_BIT);
-            // Sample the inherited dialog scissor box once (see uiScissorSampled);
-            // a per-frame glGet* here stalls async-renderer bridge mods.
-            if (!uiScissorSampled) {
+            // Sample the inherited dialog scissor box once per drawable size (re-
+            // sampled on resize); a per-frame glGet* here stalls async-renderer
+            // bridge mods.
+            int fbW = Display.getWidth(), fbH = Display.getHeight();
+            if (fbW != uiSampledFbW || fbH != uiSampledFbH) {
                 java.nio.IntBuffer scissorBuf = org.lwjgl.BufferUtils.createIntBuffer(16);
                 org.lwjgl.opengl.GL11.glGetInteger(org.lwjgl.opengl.GL11.GL_SCISSOR_BOX, scissorBuf);
                 uiDialogFbX = scissorBuf.get(0);
                 uiDialogFbY = scissorBuf.get(1);
                 uiDialogFbW = scissorBuf.get(2);
                 uiDialogFbH = scissorBuf.get(3);
-                uiScissorSampled = true;
+                uiSampledFbW = fbW; uiSampledFbH = fbH;
             }
             float uiDialogW = Math.max(0.001f, position.getWidth());
             float uiDialogH = Math.max(0.001f, position.getHeight());
