@@ -1,9 +1,35 @@
-# S3c — Airspace banding / AI gating (stub)
+# S3c — Airspace banding / AI gating
 
 > The hard de-risk. Vanilla ship AI dogpiles all enemies in a flat 2D plane; the vision
 > wants the fleet to fight *above* and skirt planetary defenses rather than charge into
-> the ground band. Scoped, not built. The one piece where "it just works natively"
-> stops being true.
+> the ground band. **First lever built (assignment-based engagement); playtest pending.**
+
+## Playtest finding (2026-06-20, Ctrl+Shift+K)
+
+Unmodified AI does **not** behave acceptably, but not in the "dogpiles the band" way the
+stub feared — the opposite. **Carriers idle at their spawn row and rarely commit.** The
+root cause: vanilla ship AI advances onto a target only when an enemy fleet pushes
+*toward* it; the ground proxies are stationary and never advance, and carriers are
+skittish by design (they expect the enemy to come to them). So the fleet has no pull into
+the band at all. The fork therefore resolves toward **steering the fleet in**, not gating
+it out — and the cheapest lever is a vanilla assignment, not a `ShipAIPlugin`.
+
+## Lever 1 — ENGAGE assignment at the ground band ✅ BUILT (playtest pending)
+
+`CarrierEngagementPlugin` (host/): on the first frame a carrier is deployed, drop a
+waypoint at the live targetable-entities' centroid (projected via
+`GroundBattleConfig.cellToWorld`) and give every deployed PLAYER carrier an
+`CombatAssignmentType.ENGAGE` assignment toward it (`useCommandPoint=false`, so the
+spectator side's zero-CP budget is irrelevant). ENGAGE respects "carriers stand off by
+design" — they advance to fighter standoff from the waypoint and let wings do the
+air-to-ground, rather than ramming the defenses (which a blunt `setFullAssault` would
+risk). Issued once; if the admiral reassigns ships off the waypoint, the fallback is to
+re-issue when `getAssignmentFor` goes null (held out to read raw stickiness first).
+
+**Next if Lever 1 is insufficient:** `ShipAIConfig.personalityOverride` bump, then a full
+`setShipAI` takeover. The takeover is being built anyway as the **S3d landing/descent
+foundation** (mid-combat AI swap is confirmed supported) — so the heavy lever arrives via
+that thread regardless.
 
 ## Goal
 

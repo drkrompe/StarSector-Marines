@@ -70,11 +70,9 @@ public class SimProxyMirror extends BaseEveryFrameCombatPlugin {
         }
     }
 
+    private final GroundBattleConfig cfg;
     private final BattleSimulation sim;
     private final List<Entity> targetable;
-    private final int gridW;
-    private final int gridH;
-    private final float worldUnitsPerCell;
     private final String proxyVariant;
     private final float damageScale;
 
@@ -83,11 +81,9 @@ public class SimProxyMirror extends BaseEveryFrameCombatPlugin {
     private boolean initialized;
 
     public SimProxyMirror(GroundBattleConfig cfg) {
+        this.cfg = cfg;
         this.sim = cfg.sim();
         this.targetable = new ArrayList<>(cfg.targetable());
-        this.gridW = cfg.gridW();
-        this.gridH = cfg.gridH();
-        this.worldUnitsPerCell = cfg.worldUnitsPerCell();
         this.proxyVariant = cfg.proxyVariant();
         this.damageScale = cfg.damageScale();
     }
@@ -115,7 +111,7 @@ public class SimProxyMirror extends BaseEveryFrameCombatPlugin {
 
         for (Entity u : targetable) {
             Vector2f loc = new Vector2f();
-            cellToWorld(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), loc);
+            cfg.cellToWorld(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), loc);
             ShipAPI proxy = engine.getFleetManager(FleetSide.ENEMY)
                     .spawnShipOrWing(proxyVariant, loc, 270f);
             proxy.setExtraAlphaMult(0f);                  // invisible; the scene's UNITS layer draws it
@@ -143,7 +139,7 @@ public class SimProxyMirror extends BaseEveryFrameCombatPlugin {
             // Position is sim-owned. Read the live cell only while alive (a released
             // unit's cell accessors are fail-loud); else keep the last-known anchor.
             if (sim.world().isAlive(link.unit.entityId)) {
-                cellToWorld(sim.world().cellX(link.unit.entityId), sim.world().cellY(link.unit.entityId), link.anchor);
+                cfg.cellToWorld(sim.world().cellX(link.unit.entityId), sim.world().cellY(link.unit.entityId), link.anchor);
             }
             proxy.getLocation().set(link.anchor);
             proxy.getVelocity().set(0f, 0f);
@@ -172,11 +168,5 @@ public class SimProxyMirror extends BaseEveryFrameCombatPlugin {
                         + (link.simDead ? " (sim owned the death)." : " (vanilla destroyed it)."));
             }
         }
-    }
-
-    /** Center-grid projection: the center cell maps to combat world origin. */
-    private void cellToWorld(int cellX, int cellY, Vector2f out) {
-        out.set((cellX - gridW / 2f) * worldUnitsPerCell,
-                (cellY - gridH / 2f) * worldUnitsPerCell);
     }
 }

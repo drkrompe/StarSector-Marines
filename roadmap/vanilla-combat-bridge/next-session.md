@@ -132,6 +132,46 @@ Slices (each build-clean + committable):
 **The extraction is complete (X1–X4b).** The bridge now reads:
 `probe → CombatBridgeSession(GroundBattleConfig) → GroundSceneBackdrop + SimProxyMirror`.
 
+## Post-vacation playtest pass (2026-06-20) — S3f works; two tuning threads opened
+
+Ctrl+Shift+K playtested: **S3f confirmed** — vanilla ships engage the ground (turret)
+targets natively. Two pieces of feedback drove the current work:
+
+### Thread 1 — carrier engagement (S3c, first lever BUILT)
+Carriers idle at spawn and rarely commit: vanilla AI only advances when an enemy fleet
+pushes toward it, and the ground proxies are stationary + carriers are skittish by design.
+**Built `CarrierEngagementPlugin`** (host/) — issues a one-shot `ENGAGE` assignment to every
+deployed PLAYER carrier toward the live targetable centroid (waypoint via the new shared
+`GroundBattleConfig.cellToWorld`; `useCommandPoint=false`). Wired in `CombatBridgeSession.
+enterEngine`. Build-clean. **Awaiting Ctrl+Shift+K playtest verdict.** See
+[`stories/s3c-airspace-gating.md`](stories/s3c-airspace-gating.md) for the lever ladder
+(assignment → personality override → `setShipAI` takeover).
+
+### Thread 2 — mid-combat AI takeover = S3d landing foundation (NEXT, user-prioritized)
+User confirmed the goal: take over a real vanilla ship mid-combat to **fly it down to the
+ground layer for troop drops** (landings). **Mid-combat AI swap is supported** — `ship.
+setShipAI(plugin)` is callable any frame (we already null proxies' AI); `ShipAIPlugin` is an
+8-method interface (mostly no-op), so a takeover brain is light. Three grip tiers:
+assignment (ship keeps its AI) → `setShipAI` (own the brain, vanilla physics still flies it)
+→ per-frame `getLocation().set` puppet (what proxies do). The descent/landing wants tier
+2/3. **Next slice: a `setShipAI` takeover probe** that scripts one carrier's descent to the
+ground band — the S3d handoff mechanism. (`deliverSquad(cellX,cellY,MarineLoadout[])` on the
+sim — `AirProvider.EXTERNAL` — is the already-framed sim-side receiver.)
+
+### Thread 3 — proxy hitbox / fighter-wing proxies (S3f follow-up, parallel)
+Two sub-points. (a) **Hitbox size/shape**: `setCollisionRadius(float)` is mutable at runtime
+→ size each proxy to its ground footprint (turrets small). True polygon *shape* comes from
+the hull variant bounds (not cheaply settable) — pick a small-bounds variant if shape
+matters. (b) **"Smaller target PD prioritizes"**: PD prioritization most likely keys off
+`isFighter()` (hull-type), NOT `CollisionClass.FIGHTER` — so the reliable path is to spawn an
+actual **fighter wing** as the proxy, not flip the collision class on a ship hull. User's
+extension idea: **ground bases (defense structures) launch their own fighter wings** — a
+sim→vanilla spawn turning a defense post into a carrier-like entity. Scope as a proxy-model
+slice after the engage + takeover threads. **Architectural line to hold:** marines/infantry
+never get a direct 1:1 proxy — they take *area* damage (architecture.md Decision 2); the
+"projectile hits the proxy boundary" weirdness is exactly why infantry are area-only. The
+current proxies are turrets/structures (genuinely solid), so today's boundary model is fine.
+
 **Render-layers thread resolved (S3f–S3j):** S3f/S3g/S3h wired (build-clean; `DEFAULT_SCENE_LAYERS`
 now = GROUND/DOODADS/ROOFS/UNITS/OBJECTIVES/COMPOUND/VEHICLES/CONVOY), S3i decided-skip (no fog in the
 orbital view; highlights blocked on a selection model), S3j deferred (no source + hard FBO retarget).

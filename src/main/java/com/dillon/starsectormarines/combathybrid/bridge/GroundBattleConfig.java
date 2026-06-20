@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.combathybrid.bridge;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.ops.battleview.RenderLayer;
+import org.lwjgl.util.vector.Vector2f;
 
 import java.util.EnumSet;
 import java.util.List;
@@ -58,5 +59,16 @@ public record GroundBattleConfig(
     public GroundBattleConfig {
         sceneLayers = EnumSet.copyOf(sceneLayers);
         targetable = List.copyOf(targetable);
+    }
+
+    /**
+     * The shared cell→combat-world projection: the grid's center cell maps to the combat world
+     * origin, so {@code (cell − grid/2)·worldUnitsPerCell}. Both the proxy mirror (per-frame, hot)
+     * and the carrier-engagement waypoint use it, so it lives here next to the grid/scale knobs.
+     * Writes into {@code out} (no allocation) for the hot caller.
+     */
+    public void cellToWorld(int cellX, int cellY, Vector2f out) {
+        out.set((cellX - gridW / 2f) * worldUnitsPerCell,
+                (cellY - gridH / 2f) * worldUnitsPerCell);
     }
 }

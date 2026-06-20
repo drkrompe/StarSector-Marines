@@ -74,5 +74,7 @@ public final class CombatBridgeSession {
         config.sim().addObjective(new NeverEndObjective(Faction.DEFENDER));
         engine.addLayeredRenderingPlugin(new GroundSceneBackdrop(config));
         engine.addPlugin(new SimProxyMirror(config));
+        // S3c: steer the carriers "above" (PLAYER side) onto the ground band so they engage.
+        engine.addPlugin(new CarrierEngagementPlugin(config, FleetSide.PLAYER));
     }
 }
