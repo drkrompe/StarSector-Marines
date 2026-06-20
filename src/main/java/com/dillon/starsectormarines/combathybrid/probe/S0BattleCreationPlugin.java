@@ -2,15 +2,15 @@ package com.dillon.starsectormarines.combathybrid.probe;
 
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.air.AirProvider;
+import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Entity;
-import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
-import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
-import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.model.MapScale;
 import com.dillon.starsectormarines.combathybrid.bridge.GroundBattleConfig;
+import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.combathybrid.bridge.GroundSceneBackdrop;
 import com.dillon.starsectormarines.combathybrid.bridge.SimProxyMirror;
 import com.dillon.starsectormarines.combathybrid.host.CombatBridgeSession;
@@ -27,7 +27,6 @@ import org.apache.log4j.Logger;
 import org.lwjgl.util.vector.Vector2f;
 
 import java.util.List;
-import java.util.Random;
 
 /**
  * Minimal, campaign-location-independent battle definition for the combat-bridge probe.
@@ -38,8 +37,8 @@ import java.util.Random;
  *   <li><b>BASIC</b> — S0. Adds the context's fleet members as reserves
  *       ({@code addFleetMember}) so the player pilots/commands through the normal
  *       deploy flow, and installs {@link S0CompletionPlugin} for mod-owned end.</li>
- *   <li><b>SIM_COUPLED</b> — the durable bridge path. {@link #buildSimCoupledConfig} loads the
- *       real Conquest map at LARGE into one {@link BattleSimulation} and packs it into a
+ *   <li><b>SIM_COUPLED</b> — the durable bridge path. {@link #buildSimCoupledConfig} builds a live
+ *       Conquest battle at LARGE into one {@link BattleSimulation} and packs it into a
  *       {@link GroundBattleConfig}; a {@link CombatBridgeSession} then owns the whole vanilla-side
  *       lifecycle (spectator canvas + completion, then the backdrop + proxy mirror over the sim).
  *       This plugin only builds the config, routes the two phases to the session, and spawns the
@@ -53,6 +52,8 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
 
     /** The bridge loads the real Conquest map at the LARGE (HIGH-risk siege) tier we actually play. */
     private static final MapScale SIM_GRID = MapScale.LARGE;
+    /** Risk tier for the coupled battle; HIGH → {@link MapScale#LARGE}, kept in lockstep with {@link #SIM_GRID}. */
+    private static final RiskLevel SIM_RISK = RiskLevel.HIGH;
 
     /** The vanilla carriers "above" whose fighters strafe the planet's defenses. */
     private static final String[] PROXY_CARRIER_SHIPS = {"heron_Strike", "drover_Strike"};
@@ -116,43 +117,47 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
     }
 
     /**
-     * S3a (fan-out) + S3b (backdrop): build the {@link GroundBattleConfig} for the bridge — the real
-     * <b>Conquest map at the LARGE tier</b> under the fleet. We generate the map exactly as
-     * {@link com.dillon.starsectormarines.battle.setup.BattleSetup#createConquest} does —
-     * biome-banded along a {@link TraversalAxis}, with buildings, doodads, roads, and the
-     * pre-stamped defense-post layout — but stop at the <em>map</em>: no marines, defenders,
-     * shuttles, or reinforcement (that's the battle, not the map). The defense-post turrets become
-     * real targetable structures the {@link SimProxyMirror} mirrors as proxies, so the carriers'
-     * fighters strafe the planet's actual defenses.
+     * Build the {@link GroundBattleConfig} for the bridge — a <b>live Conquest battle</b> under the
+     * fleet, not a static map. We call {@link BattleSetup#createConquestBuild} (the same factory the
+     * standalone screen and the campaign mission flow use), so defenders, manned guardposts, marines
+     * arriving via internal shuttles, objectives, and the reinforcement layer all run as a real
+     * battle that the backdrop renders below the ships.
+     *
+     * <p><b>Air stays {@link AirProvider#INTERNAL}</b> (the default): the sim owns its own shuttles
+     * and flyby. The vanilla carriers' air-to-ground is <em>additive</em> pressure on a
+     * self-contained battle — unifying air ownership (EXTERNAL + the external-landing handoff) is
+     * S3d's job. The targetable tier is the defense-post structures (turrets + drone hubs) that
+     * {@link SimProxyMirror} mirrors as proxies; defender/marine infantry are never directly proxied
+     * (architecture Decision 2 — infantry take area damage, not lock-on).
      *
      * <p>One {@link BattleSimulation}, built here in the definition phase (called once) and handed
      * to the {@link CombatBridgeSession} via the config — never rebuilt by the per-frame plugins'
      * repeated {@code init}.
      */
     private GroundBattleConfig buildSimCoupledConfig() {
-        MapScale scale = SIM_GRID;
+        MapScale scale = SIM_GRID;   // must equal MapScale.forRisk(SIM_RISK)
         int gridW = scale.width, gridH = scale.height;
-        Random rng = new Random(SIM_MAP_SEED);
-        TraversalAxis axis = rng.nextBoolean() ? TraversalAxis.SOUTH_TO_NORTH : TraversalAxis.WEST_TO_EAST;
-        MapResult map = new BspCityGenerator().generate(gridW, gridH, SIM_MAP_SEED, axis, TargetProfile.NEUTRAL);
 
-        // Build the host-agnostic map layer through the SAME path the standalone battle uses
-        // (BattleSetup.buildMap) — terrain, structures, and the defense-post turrets, no
-        // reimplementation to drift. No parked vehicles: this is a map-only probe and they'd be
-        // invisible obstacles in the backdrop's GROUND/DOODADS/ROOFS subset.
-        BattleSetup.MapBuild build = BattleSetup.buildMap(map, List.of(), map.defensePosts);
+        BattleSetup.MapBuild build = BattleSetup.createConquestBuild(
+                SIM_MAP_SEED, simManifest(), false, SIM_RISK, TargetProfile.NEUTRAL);
         BattleSimulation sim = build.sim();
-        // The real vanilla ships above own the air — the sim runs no internal shuttle/flyby.
-        sim.setAirProvider(AirProvider.EXTERNAL);
-        // The defense-post structures, mirrored as proxies so the fleet strafes real defenses.
         List<Entity> targetable = build.structures();
-        LOG.info("S3: loaded Conquest map [" + scale + " " + gridW + "x" + gridH + ", axis=" + axis
-                + "] — " + map.defensePosts.size() + " defense posts, " + targetable.size() + " targetable structures.");
+        LOG.info("S3: live Conquest battle [" + scale + " " + gridW + "x" + gridH + "] — "
+                + targetable.size() + " targetable structures, INTERNAL air.");
 
         return new GroundBattleConfig(
                 sim, gridW, gridH, S0BattleProbe.WORLD_UNITS_PER_CELL,
                 GroundBattleConfig.DEFAULT_SCENE_LAYERS, targetable, PROXY_VARIANT,
                 GroundBattleConfig.DEFAULT_DAMAGE_SCALE);
+    }
+
+    /** A small fixed marine drop manifest for the probe battle — four single-cycle Aeroshuttles. */
+    private static List<ShuttleAssignment> simManifest() {
+        return List.of(
+                new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1),
+                new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1),
+                new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1),
+                new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1));
     }
 
     private static void spawnRow(CombatEngineAPI engine, FleetSide side, String[] variantIds,

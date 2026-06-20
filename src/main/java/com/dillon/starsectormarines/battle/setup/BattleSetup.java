@@ -526,10 +526,15 @@ public final class BattleSetup {
      * <p>Marines and defenders pin to their respective biome anchors instead
      * of the legacy left/right halves — marine LZ in BEACH, defender garrison
      * in FORTRESS_DISTRICT (with garrison squads at the wall's tactical nodes).
+     *
+     * <p>Returns the full {@link MapBuild} (sim + the spawned defense-post
+     * structures). Most callers want just the sim — {@link #createConquest} is
+     * the thin delegating overload for them. The combat bridge needs the
+     * structures list to mirror them as targetable proxies, so it calls this.
      */
-    public static BattleSimulation createConquest(long seed, List<ShuttleAssignment> manifest,
-                                                  boolean enemyHasHeavyArmor, RiskLevel risk,
-                                                  TargetProfile profile) {
+    public static MapBuild createConquestBuild(long seed, List<ShuttleAssignment> manifest,
+                                               boolean enemyHasHeavyArmor, RiskLevel risk,
+                                               TargetProfile profile) {
         MapScale scale = MapScale.forRisk(risk);
         Random rng = new Random(seed);
         TraversalAxis axis = rng.nextBoolean() ? TraversalAxis.SOUTH_TO_NORTH : TraversalAxis.WEST_TO_EAST;
@@ -548,7 +553,8 @@ public final class BattleSetup {
         // {@link #linkGuardpostSquads} below — that's the difference from the
         // non-conquest path, which stamps the same shapes unmanned via
         // {@code DefensePostStamper.stampNonConquest}.
-        BattleSimulation sim = buildMap(map, vehiclePlacements, map.defensePosts).sim();
+        MapBuild build = buildMap(map, vehiclePlacements, map.defensePosts);
+        BattleSimulation sim = build.sim();
 
         // Conquest win condition: marines dismantle defender supply
         // structures, not "kill every defender." Pre-slice-4 this was
@@ -604,7 +610,17 @@ public final class BattleSetup {
         sim.setCommander(Faction.MARINE, new ConquestCommand(axis));
         sim.setGarrisonSystem(new CompoundGarrisonSystem(axis));
         installReinforcementLayer(sim, map, axis);
-        return sim;
+        return new MapBuild(sim, build.structures());
+    }
+
+    /**
+     * Thin overload: a live Conquest battle for callers that only need the sim
+     * (the campaign mission flow). Delegates to {@link #createConquestBuild}.
+     */
+    public static BattleSimulation createConquest(long seed, List<ShuttleAssignment> manifest,
+                                                  boolean enemyHasHeavyArmor, RiskLevel risk,
+                                                  TargetProfile profile) {
+        return createConquestBuild(seed, manifest, enemyHasHeavyArmor, risk, profile).sim();
     }
 
     /**

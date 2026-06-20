@@ -8,8 +8,8 @@
  * map, and on engine-ready installs the backdrop + proxy mirror — collapsing the
  * creation-plugin's two phases ({@code initBattle}/{@code afterDefinitionLoad}) to two
  * delegation calls. {@code PlayerFleetStash} handles the stash/restore handshake that
- * gives the spectator battle an empty deploy roster. {@code NeverEndObjective} pins the
- * all-DEFENDER sim so it keeps ticking while the combat instance lives.
+ * gives the spectator battle an empty deploy roster. The coupled sim is a live Conquest
+ * battle that governs its own completion (no never-end pin).
  *
  * <p><b>Boundary (change guidance):</b> imports {@code bridge} types (config + adapters)
  * and {@code battle/} sim types; must not import {@code probe} (probe is a dev-only

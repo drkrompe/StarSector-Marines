@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.combathybrid.host;
 
 import com.dillon.starsectormarines.DebugOnly;
-import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.combathybrid.bridge.GroundBattleConfig;
 import com.dillon.starsectormarines.combathybrid.bridge.GroundSceneBackdrop;
 import com.dillon.starsectormarines.combathybrid.bridge.SimProxyMirror;
@@ -22,8 +21,8 @@ import com.fs.starfarer.api.mission.MissionDefinitionAPI;
  *       HUD; map sized to the sim grid) plus the completion ({@link S0CompletionPlugin}) and
  *       free-camera ({@link SpectatorCanvasPlugin}) policy plugins.</li>
  *   <li><b>{@link #enterEngine}</b> — engine-ready phase ({@code afterDefinitionLoad}): detach the
- *       player ship, pin the never-end objective on the sim, and install the ground-scene backdrop
- *       ({@link GroundSceneBackdrop}) + the proxy mirror ({@link SimProxyMirror}).</li>
+ *       player ship and install the ground-scene backdrop ({@link GroundSceneBackdrop}) + the proxy
+ *       mirror ({@link SimProxyMirror}) over the live sim.</li>
  * </ul>
  *
  * <p><b>Thin orchestrator, not a god class.</b> Every behavior lives in a delegate — this session
@@ -69,12 +68,11 @@ public final class CombatBridgeSession {
     /** Engine-ready phase: detach the player ship, install the backdrop + proxy mirror over the sim. */
     public void enterEngine(CombatEngineAPI engine) {
         engine.setPlayerShipExternal(null);   // spectator: no ship is player-piloted
-        // Keep the all-DEFENDER sim from auto-completing (a completed sim early-returns from
-        // advance() and would strand the death events).
-        config.sim().addObjective(new NeverEndObjective(Faction.DEFENDER));
+        // The sim is a live Conquest battle with its own win conditions — it governs its own
+        // completion exactly as the standalone flow does; no never-end pin needed.
         engine.addLayeredRenderingPlugin(new GroundSceneBackdrop(config));
         engine.addPlugin(new SimProxyMirror(config));
-        // S3c: steer the carriers "above" (PLAYER side) onto the ground band so they engage.
+        // S3c (parked): a harmless one-shot ASSAULT order nudges the carriers onto the band.
         engine.addPlugin(new CarrierEngagementPlugin(config, FleetSide.PLAYER));
     }
 }

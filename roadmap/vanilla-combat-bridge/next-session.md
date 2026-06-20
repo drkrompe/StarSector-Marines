@@ -157,6 +157,23 @@ assignment (ship keeps its AI) → `setShipAI` (own the brain, vanilla physics s
 ground band — the S3d handoff mechanism. (`deliverSquad(cellX,cellY,MarineLoadout[])` on the
 sim — `AirProvider.EXTERNAL` — is the already-framed sim-side receiver.)
 
+### Live battle below the fleet ✅ SHIPPED (2026-06-20) — the chosen "bridge the sim over" slice
+The coupled sim was **map-only** (terrain + static defense-post turrets). Swapped it to a **live
+Conquest battle**: `buildSimCoupledConfig` now calls `BattleSetup.createConquestBuild(...)` (HIGH
+risk → LARGE) instead of `buildMap`, so defenders, manned guardposts, marines via internal
+shuttles, objectives, and reinforcement all run as a real battle rendered below the ships.
+- **`BattleSetup.createConquestBuild(...) → MapBuild`** is a behavior-preserving extraction of
+  `createConquest`'s body that *keeps* the spawned-structures list (the proxy mirror needs it);
+  `createConquest` is now a thin `.sim()` delegate. Only prod caller (`MissionLaunch`) unchanged.
+- **Air stays `INTERNAL`** (the chosen tradeoff): the sim owns its shuttles/flyby; the vanilla
+  carriers' strafing is *additive* pressure. EXTERNAL + the external-landing handoff is S3d.
+- **Targetable = defense-post structures only** (turrets + drone hubs); defender/marine infantry
+  are never directly proxied (architecture Decision 2 — area damage, not lock-on).
+- **`NeverEndObjective` deleted**: it was a crutch for the map-only sim; the live battle has real
+  win conditions and governs its own completion exactly as the standalone/production flow does.
+- **Pending Ctrl+Shift+K playtest:** confirm a real ground battle plays out under the fleet (marines
+  land + fight defenders), structures still proxy + take strafe damage, battle resolves normally.
+
 ### Thread 3 — proxy hitbox / fighter-wing proxies (S3f follow-up, parallel)
 Two sub-points. (a) **Hitbox size/shape**: `setCollisionRadius(float)` is mutable at runtime
 → size each proxy to its ground footprint (turrets small). True polygon *shape* comes from
