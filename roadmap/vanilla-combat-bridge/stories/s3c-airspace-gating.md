@@ -14,7 +14,17 @@ skittish by design (they expect the enemy to come to them). So the fleet has no 
 the band at all. The fork therefore resolves toward **steering the fleet in**, not gating
 it out — and the cheapest lever is a vanilla assignment, not a `ShipAIPlugin`.
 
-## Lever 1 — ASSAULT assignment at the ground band ✅ BUILT (playtest pending)
+## ⏸ PARKED (2026-06-20) — moved to the skybattle feature
+
+Playtest verdict on lever 1: **carriers commit briefly, then drift back** — a one-shot
+`ASSAULT` order doesn't stick against the side's admiral/caution. Per the user, fleet-AI
+depth is not a probe-stage concern; it belongs with the real **skybattle / fleet-control
+feature** (the fleet fight over the city). The mechanism is proven (vanilla ships engage
+sim proxies natively); the *behaviour tuning* is parked. The lever ladder and carry-over
+live in [`skybattle-fleet-control.md`](skybattle-fleet-control.md). `CarrierEngagementPlugin`
+stays wired (harmless one-shot ASSAULT) as the starting point for that story.
+
+## Lever 1 — ASSAULT assignment at the ground band ✅ BUILT (parked; drifts back)
 
 `CarrierEngagementPlugin` (host/): on the first frame a carrier is deployed, drop a
 waypoint at the live targetable-entities' centroid (projected via

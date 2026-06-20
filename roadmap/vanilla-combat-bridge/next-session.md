@@ -137,18 +137,14 @@ Slices (each build-clean + committable):
 Ctrl+Shift+K playtested: **S3f confirmed** — vanilla ships engage the ground (turret)
 targets natively. Two pieces of feedback drove the current work:
 
-### Thread 1 — carrier engagement (S3c, first lever BUILT)
-Carriers idle at spawn and rarely commit: vanilla AI only advances when an enemy fleet
-pushes toward it, and the ground proxies are stationary + carriers are skittish by design.
-**Built `CarrierEngagementPlugin`** (host/) — issues a one-shot `ASSAULT` assignment to every
-deployed PLAYER carrier toward the live targetable centroid (waypoint via the new shared
-`GroundBattleConfig.cellToWorld`; `useCommandPoint=false`). Wired in `CombatBridgeSession.
-enterEngine`. **Gotcha (crash-fixed):** must be `ASSAULT`, not `ENGAGE` — ENGAGE requires a
-specific enemy *entity* target and the engine throws `Invalid engage target` on a waypoint;
-ASSAULT is the move-to-location-and-fight order that takes a waypoint. Build-clean.
-**Awaiting Ctrl+Shift+K playtest verdict.** See
-[`stories/s3c-airspace-gating.md`](stories/s3c-airspace-gating.md) for the lever ladder
-(assignment → personality override → `setShipAI` takeover).
+### Thread 1 — carrier engagement (S3c) ⏸ PARKED → skybattle feature
+Carriers idle at spawn and rarely commit. **Built `CarrierEngagementPlugin`** (host/, one-shot
+`ASSAULT` assignment toward the targetable centroid; crash-fixed from `ENGAGE` — see
+[[combat_assignment_target_types]]). **Playtest verdict: carriers commit briefly then drift
+back** — a one-shot order doesn't stick against the admiral. Per the user, fleet-AI depth isn't
+a probe concern; **parked into the new [`stories/skybattle-fleet-control.md`](stories/skybattle-fleet-control.md)**
+story (the fleet fight over the city, where fleet control + the air⇄ground economy live). The
+plugin stays wired (harmless) as that story's starting point; lever ladder documented there.
 
 ### Thread 2 — mid-combat AI takeover = S3d landing foundation (NEXT, user-prioritized)
 User confirmed the goal: take over a real vanilla ship mid-combat to **fly it down to the
