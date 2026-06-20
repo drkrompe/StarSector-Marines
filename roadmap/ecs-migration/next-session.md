@@ -91,6 +91,7 @@ b98c706  battle: corpse path onto the archetype EntityWorld (retrofit step 2)  �
 e720e98  ecs(engine): id adoption, transmute, tolerant getFloat — the retrofit seams for live entities  ← 2026-06-03
 adb4bc9  battle: Health onto the EntityWorld — death is a row-move (retrofit step 3a)  ← 2026-06-03
 b92c8bd  battle: Position onto the EntityWorld — the corpse keeps its cell by lifecycle (retrofit step 3b)  ← 2026-06-03
+a390b79  battle: Combat onto the EntityWorld — primary-weapon capability as a component (retrofit step 3c)  ← 2026-06-20
 ```
 
 (Sibling tracks interleaved on HEAD, not ECS-migration: `9084ed4` battle-render
@@ -147,12 +148,30 @@ is now **built and consuming real game state**:
   corpse-add mask dropped POSITION. Spatial indexes keep their internal
   snapshot arrays; only their fill-reads changed.
 
-**Next: step 3 continues** — Combat group (targetId/cooldowns/attack stats —
-decide one fat Combat vs split per the open granularity question in
-archetype-storage.md), Movement (moveProgress + path ref), AiState; then fold
-the `Crashing`/`MechLoadout` ComponentStores into archetype membership; then
-step 4 dissolves `UnitRegistry` (id mint + dense Entity[] hop to the world /
-sim).
+- **Step 3c (Combat) SHIPPED** (`a390b79`): live archetype
+  `{IDENTITY, POSITION, HEALTH, COMBAT}`; the registry's 8 combat dense arrays
+  (attackDamage/attackRange/accuracy + cooldownTimer + targetId +
+  burst{Remaining,Timer,TargetId}) deleted; by-id adapters
+  `attackDamageById`…`burstTargetIdById` over the world COMBAT columns; `World`
+  facade rerouted (signatures unchanged). ~17 by-index sites across 7 files
+  converted to by-id (InfantryWeapons burst+fireShot, TacticalScoring ×9,
+  AttackerIndexService, SquadAlertSystem, BattleSimulation ×2, HitResponseService,
+  UnitRenderService) — done on the main thread (small surface; most files
+  ≤2 sites). Dead `selfIdx`/`oIdx` locals fell out (cells went by-id in 3b); the
+  InfantryWeapons post-fire slot re-resolve is gone (combat is id-stable). The
+  death transmute removes COMBAT (corpse archetype unchanged). Mid-combat scalars
+  rely on the world row's zero-init append (no explicit reset). **Granularity
+  decided with the user:** `Combat` = universal primary capability *with burst
+  folded in*; the optional secondary weapon → its own `SecondaryWeapon` presence
+  component (next slice). COMBAT universal (mirrors old dense arrays —
+  behavior-preserving); combatant-gated membership deferred. Suite green at 759.
+
+**Next: step 3 continues** — `SecondaryWeapon` (optional presence component:
+secondary cooldown/action timers + aim target id, folding in the `#13` nullable
+`secondaryWeapon`/`secondaryAmmo` fields), then Movement (moveProgress + path
+ref), AiState; then fold the `Crashing`/`MechLoadout` ComponentStores into
+archetype membership; then step 4 dissolves `UnitRegistry` (id mint + dense
+Entity[] hop to the world / sim).
 
 ## NEW PHASE — entity-id handle (2026-06-02, in flight)
 

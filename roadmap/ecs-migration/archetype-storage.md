@@ -165,7 +165,8 @@ by lifecycle-stable capability ([[feedback_components_by_capability_not_store]])
 | `Position` | `int cellX, cellY` | every spatially-present entity (incl. corpse) |
 | `RenderPosition` | `float x, y` | every drawn entity (interpolation; distinct from int cell) |
 | `Health` | `float hp, maxHp` | live damageable (NOT corpse) |
-| `Combat` | `float attackDamage, range, accuracy, cooldownTimer, attackCooldown` + burst + secondary-weapon scalars; `long targetId` | combatants |
+| `Combat` | `float attackDamage, range, accuracy, cooldownTimer` + burst scalars (`int burstRemaining; float burstTimer; long burstTargetId`); `long targetId` | combatants (universal; SHIPPED 3c) |
+| `SecondaryWeapon` | secondary cooldown/action timers + aim target id; (later) weapon def + ammo | units with a secondary (optional presence; next slice) |
 | `Movement` | `moveProgress`, path ref | path-executing entities (kinematic) |
 | `AiState` | fallback cell + timer, reposition cooldown, wander dwell | thinking entities (AI decision cadence) |
 | `MechLoadout` | (existing `MechLoadoutComponent`) | mechs |
@@ -176,12 +177,16 @@ Resulting real archetypes: live-infantry `{Identity,Position,RenderPosition,Heal
 live-mech (+`MechLoadout`), turret `{…,Combat}` (no Movement/AiState), drone, drone-hub,
 **corpse `{Identity,Position,RenderPosition,Corpse}`**, crashing-drone. ~8–12 total.
 
-Open granularity questions for you: (a) is one fat `Combat` right, or split
-primary/secondary/burst? (b) does `Identity.type` stay (pragmatic flyweight key
-for `RenderAppearance` + lots of existing branches) or do we push toward "the
-component set *is* the type" and shrink `type`'s role over time? (c) `RenderPosition`
-stays its own component vs. folding into `Position` (I'd keep separate: int-logical
-vs float-interpolated, different update cadence).
+Open granularity questions for you: ~~(a) is one fat `Combat` right, or split
+primary/secondary/burst?~~ **DECIDED (3c, `a390b79`):** split by
+capability-optionality, not by weapon-subsystem — `Combat` is the universal
+primary capability *with burst folded in* (burst is never independent of
+primary), and the optional secondary weapon is its own `SecondaryWeapon`
+presence component. (b) does `Identity.type` stay (pragmatic flyweight key for
+`RenderAppearance` + lots of existing branches) or do we push toward "the
+component set *is* the type" and shrink `type`'s role over time? (c)
+`RenderPosition` stays its own component vs. folding into `Position` (I'd keep
+separate: int-logical vs float-interpolated, different update cadence).
 
 ### Appearance is authored component data
 
@@ -320,8 +325,27 @@ the sim never stores a `SpriteAPI`.
      cell" is now the component's own lifecycle** — the death transmute's
      row-move carries it and `DeadBodySystem` stopped re-writing it from the
      event snapshot.
-   - **Next capabilities:** Combat group, Movement, AiState, then fold
-     `Crashing`/`MechLoadout` ComponentStores into archetype membership.
+   - **3c SHIPPED (`a390b79`): Combat.** Live archetype is
+     `{IDENTITY, POSITION, HEALTH, COMBAT}`; the registry's 8 combat dense
+     arrays (attackDamage/attackRange/accuracy + cooldownTimer + targetId +
+     burst{Remaining,Timer,TargetId}) are deleted; by-id adapters
+     (`attackDamageById` … `burstTargetIdById`) read the world COMBAT columns
+     and the `World` facade reroutes through them (signatures unchanged). ~17
+     by-index call sites across 7 files converted to by-id; the dead
+     `selfIdx`/`oIdx` locals fell out (cells already went by-id in 3b). The
+     death transmute removes COMBAT (a corpse neither lives nor fights), so the
+     corpse archetype is unchanged. **Granularity decided with the user:** the
+     fat-vs-split question (a) is answered by capability-optionality, not by
+     weapon-subsystem — `Combat` is the *universal* primary-weapon capability
+     **with burst folded in** (burst is never independent of primary), and the
+     *optional* secondary weapon is its own `SecondaryWeapon` presence component
+     (the next slice, folding in the `#13` nullable `secondaryWeapon`/`ammo`
+     fields). COMBAT is universal to every allocated unit (mirrors the old
+     universal dense arrays — behavior-preserving); combatant-gated membership
+     is a deferred refinement.
+   - **Next capabilities:** `SecondaryWeapon` (optional presence), Movement,
+     AiState, then fold `Crashing`/`MechLoadout` ComponentStores into archetype
+     membership.
 4. **Delete** `UnitRegistry`'s mega-table and the `LinkedHashMap`
    `ComponentStore<T>` once all columns/components live on the archetype `World`.
    The four already-migrated components (`Crashing`, `RenderPosition`, `DeadBody`,
