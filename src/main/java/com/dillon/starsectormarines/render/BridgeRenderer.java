@@ -21,8 +21,11 @@ import static org.lwjgl.opengl.GL30.*;
  * each frame into the FBO, then blits the FBO over the panel rectangle.
  *
  * Isolates 3D GL state from Starsector's UI render pass via {@code glPushAttrib} + matrix
- * push-pop, plus explicit bind-restore for state outside the attrib stack
- * ({@code GL_CURRENT_PROGRAM}, buffer bindings, FBO binding, texture binding, viewport).
+ * push-pop. Texture binding and viewport are restored by {@code glPopAttrib}; the bindings
+ * outside the attrib stack (shader program, array/element buffers) restore to the
+ * fixed-function defaults the UI pass runs under, and the inherited draw-FBO + viewport are
+ * sampled once and cached ({@link #uiFboBinding}). No per-frame {@code glGet*} — that
+ * readback stalls async-renderer bridge mods; see the async-renderer-bridge-glget-stall note.
  *
  * See [[gl-state-gotchas]] in project memory for the specific landmines this isolates against.
  */
