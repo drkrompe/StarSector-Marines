@@ -1,0 +1,13 @@
+{
+  "sheet": "graphics/tilesets/urban-tileset-3.png",
+  "slice": { "mode": "auto-strip", "alphaThreshold": 16, "minGap": 4 },
+  "tiles": [
+    { "id": "urban3.street-square", "frame": 0, "layer": "ground", "name": "street-square", "description": "uniform square paver — primary road surface" },
+    { "id": "urban3.street-irregular", "frame": 1, "layer": "ground", "name": "street-irregular", "description": "irregular cobbled paver — alt road surface (use one or the other per road, mixing reads as patchy)" },
+    { "id": "urban3.sidewalk", "frame": 2, "layer": "ground", "name": "sidewalk", "description": "plain sidewalk slab — straight runs" },
+    { "id": "urban3.sidewalk-corner", "frame": 3, "layer": "ground", "name": "sidewalk-corner", "description": "alt sidewalk slab — corners (two perpendicular non-sidewalk neighbors)" },
+    { "id": "urban3.culvert", "frame": 4, "layer": "overlay", "name": "culvert", "description": "drain culvert doodad — placed at curb edge" },
+    { "id": "urban3.bench-s", "frame": 5, "layer": "overlay", "name": "bench-s", "description": "bench facing south — back of seat read from north sidewalk" },
+    { "id": "urban3.bench-e", "frame": 6, "layer": "overlay", "name": "bench-e", "description": "bench facing east — mirror at render time for a west-facing variant" }
+  ]
+}

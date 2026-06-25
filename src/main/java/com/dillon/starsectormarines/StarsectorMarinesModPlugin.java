@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.HouseSeeder;
 import com.dillon.starsectormarines.combathybrid.probe.CombatHybridCampaignPlugin;
 import com.dillon.starsectormarines.combathybrid.probe.CombatHybridInputListener;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.intel.BridgeIntel;
 import com.dillon.starsectormarines.intel.CampaignDebugIntel;
 import com.dillon.starsectormarines.marine.MarineCaptain;
@@ -26,6 +27,9 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
     @Override
     public void onApplicationLoad() throws Exception {
         LOG.info("Starsector Marines: jar loaded");
+        // Tile catalog → id-addressed registry (moddable-tilesets Phase 1). Loaded
+        // once, before any save; self-defensive so a bad sheet never blocks startup.
+        TileRegistry.loadBuiltins();
     }
 
     @Override

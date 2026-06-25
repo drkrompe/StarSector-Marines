@@ -1,0 +1,28 @@
+{
+  "sheet": "graphics/tilesets/nature-tiles.png",
+  "slice": { "mode": "auto-strip", "alphaThreshold": 16, "minGap": 4 },
+  "tiles": [
+    { "id": "nature.grass-1", "frame": 0, "layer": "ground", "name": "grass" },
+    { "id": "nature.grass-2", "frame": 1, "layer": "ground", "name": "grass-alt" },
+    { "id": "nature.dirt-1", "frame": 2, "layer": "ground", "name": "dirt" },
+    { "id": "nature.dirt-2", "frame": 3, "layer": "ground", "name": "dirt-alt" },
+    { "id": "nature.sand", "frame": 4, "layer": "ground", "name": "sand" },
+    { "id": "nature.water-1", "frame": 5, "layer": "ground", "name": "water" },
+    { "id": "nature.water-2", "frame": 6, "layer": "ground", "name": "water-alt" },
+
+    { "id": "nature.shrub-1", "frame": 7, "layer": "plant", "validOn": ["nature.grass-1", "nature.grass-2"], "name": "shrub" },
+    { "id": "nature.shrub-2", "frame": 8, "layer": "plant", "validOn": ["nature.grass-1", "nature.grass-2"], "name": "shrub-alt" },
+    { "id": "nature.tuft-1", "frame": 9, "layer": "plant", "validOn": ["nature.grass-1", "nature.grass-2"], "name": "grass-tuft" },
+    { "id": "nature.tuft-2", "frame": 10, "layer": "plant", "validOn": ["nature.grass-1", "nature.grass-2"], "name": "grass-tuft-alt" },
+    { "id": "nature.shrub-3", "frame": 11, "layer": "plant", "validOn": ["nature.grass-1", "nature.grass-2"], "name": "shrub-variant" },
+
+    { "id": "nature.rock-small-1", "frame": 12, "layer": "rock", "validOn": ["layer:ground", "!nature.water-1", "!nature.water-2"], "name": "rocks-small" },
+    { "id": "nature.rock-small-2", "frame": 13, "layer": "rock", "validOn": ["layer:ground", "!nature.water-1", "!nature.water-2"], "name": "rocks-small-2" },
+    { "id": "nature.rock-small-3", "frame": 14, "layer": "rock", "validOn": ["layer:ground", "!nature.water-1", "!nature.water-2"], "name": "rocks-small-3" },
+    { "id": "nature.rock-medium-1", "frame": 15, "layer": "rock", "cover": "light", "validOn": ["layer:ground", "!nature.water-1", "!nature.water-2"], "name": "rock-medium" },
+    { "id": "nature.rock-medium-2", "frame": 16, "layer": "rock", "cover": "light", "validOn": ["layer:ground", "!nature.water-1", "!nature.water-2"], "name": "rock-medium-2" },
+    { "id": "nature.rock-large-1", "frame": 17, "layer": "rock", "passable": false, "validOn": ["layer:ground", "!nature.water-1", "!nature.water-2"], "name": "rock-large" },
+    { "id": "nature.rock-large-2", "frame": 18, "layer": "rock", "passable": false, "validOn": ["layer:ground", "!nature.water-1", "!nature.water-2"], "name": "rock-large-2" },
+    { "id": "nature.rock-large-3", "frame": 19, "layer": "rock", "passable": false, "validOn": ["layer:ground", "!nature.water-1", "!nature.water-2"], "name": "rock-large-3" }
+  ]
+}
