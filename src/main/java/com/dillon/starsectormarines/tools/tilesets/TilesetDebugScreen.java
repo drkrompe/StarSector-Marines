@@ -1,11 +1,11 @@
 package com.dillon.starsectormarines.tools.tilesets;
 
 import com.dillon.starsectormarines.DebugOnly;
-import com.dillon.starsectormarines.battle.world.tiles.NatureTile;
 import com.dillon.starsectormarines.battle.world.tiles.NatureTileset;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetSlicer;
-import com.dillon.starsectormarines.battle.world.tiles.UrbanTile3;
+import com.dillon.starsectormarines.battle.world.tiles.TileDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.UrbanTile3Tileset;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.MarineOpsContext;
@@ -362,17 +362,19 @@ public class TilesetDebugScreen implements Screen {
         if (selCol < 0) {
             coord = "(none)";
         } else if (activeSheet != null && activeSheet.isSliced()) {
-            // Sliced sheets share the SpriteSheetSlicer pipeline but each has
-            // its own semantic enum — dispatch by sheet path so the label
-            // lookup uses the right one. Falls back to a bare frame index
-            // when no enum matches (new sliced sheet added without wiring).
+            // Resolve the label from the TileRegistry by matching sheet + frame.
+            // Falls back to a bare frame index when the registry is unavailable
+            // (e.g. launched outside the game) or no tile maps to this frame.
             String label = null;
-            if (activeSheet.path.equals(NatureTileset.SHEET_PATH)) {
-                NatureTile nt = NatureTile.byFrame(selCol);
-                if (nt != null) label = nt.label;
-            } else if (activeSheet.path.equals(UrbanTile3Tileset.SHEET_PATH)) {
-                UrbanTile3 ut = UrbanTile3.byFrame(selCol);
-                if (ut != null) label = ut.label;
+            TileRegistry reg = TileRegistry.installed();
+            if (reg != null && activeSheet != null) {
+                final String sheetPath = activeSheet.path;
+                final int frameIdx = selCol;
+                label = reg.all().stream()
+                        .filter(d -> sheetPath.equals(d.sheetPath) && d.frame == frameIdx)
+                        .map(d -> d.id)
+                        .findFirst()
+                        .orElse(null);
             }
             coord = "frame " + selCol + (label != null ? " — " + label : "");
         } else {

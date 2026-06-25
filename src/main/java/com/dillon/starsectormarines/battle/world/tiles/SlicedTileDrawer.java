@@ -1,12 +1,12 @@
 package com.dillon.starsectormarines.battle.world.tiles;
 
 /**
- * Renders one {@link NatureTile} through a {@link TileSink}. Owns the
+ * Renders one {@link TileDef} through a {@link TileSink}. Owns the
  * frame-index lookup and the ground-vs-overlay edge-inset rule so both
  * the preview test and the in-game renderer execute the same source-rect
  * computation — only the pixel-push backend behind the sink differs.
  *
- * <p>Edge inset is applied to {@link NatureTile.Kind#GROUND} tiles only.
+ * <p>Edge inset is applied to {@link TileLayer#GROUND} tiles only.
  * Overlay tiles (plants, rocks — the doodad-style layer) pass through
  * with their full sliced bbox because cropping a standalone sprite's
  * edge would visibly chop the art. This matches the rule the in-game
@@ -44,13 +44,13 @@ public final class SlicedTileDrawer {
      * Draw {@code tile} centered at {@code (dstCx, dstCy)} sized
      * {@code (dstW, dstH)}. No-op if {@code tile} is null or its frame
      * index falls outside the slicer's detected range — keeps callers
-     * from having to guard for a sheet/enum drift.
+     * from having to guard for a sheet/registry drift.
      */
-    public void draw(TileSink sink, NatureTile tile,
+    public void draw(TileSink sink, TileDef tile,
                      float dstCx, float dstCy, float dstW, float dstH,
                      float alphaMult) {
         if (sink == null || tile == null) return;
-        int idx = tile.frameIndex();
+        int idx = tile.frame;
         if (idx < 0 || idx >= frames.frames.length) return;
         SpriteSheetFrames.Frame f = frames.frames[idx];
         int inset = tile.isGround() ? groundInsetPx : 0;

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.tiles;
 
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
 import javax.imageio.ImageIO;
@@ -166,11 +167,16 @@ public class FixedGridZonePreviewTest {
         assertNotNull(floors, "failed to load " + FLOORS_SHEET);
         assertNotNull(nature, "failed to load " + NATURE_SHEET);
 
-        // Water cells render through the nature-tiles sheet (WATER_1 / WATER_2
-        // picked by per-cell hash) — see memory note "water-uses-nature-tile".
-        // The dedicated Water_tiles.png sheet was orphaned by that decision +
-        // the flat-edges rule. Sand cells still use the Floors_Tiles sheet.
+        // Water cells render through the nature-tiles sheet (nature.water-1 /
+        // nature.water-2 picked by per-cell hash) — see memory note
+        // "water-uses-nature-tile". Sand cells still use the Floors_Tiles sheet.
         SpriteSheetFrames natureFrames = SpriteSheetSlicer.slice(nature);
+
+        // Load a disk registry so we can resolve tile ids → TileDef.
+        TileRegistry reg = new TileRegistry();
+        for (String p : TileRegistry.BUILTIN_TILESETS) {
+            reg.ingestSheet(new JSONObject(Files.readString(Paths.get("mod/" + p))));
+        }
 
         int zoneW = 14;
         int zoneH = 10;
@@ -192,7 +198,7 @@ public class FixedGridZonePreviewTest {
         for (int x = 0; x < zoneW; x++) {
             for (int y = 0; y < zoneH; y++) {
                 if (isWater[x][y]) {
-                    NatureTile water = pickWaterVariant(x, y);
+                    TileDef water = reg.tile(pickWaterVariantId(x, y));
                     float dstCx = x * DISPLAY_CELL_PX + DISPLAY_CELL_PX / 2f;
                     float dstCy = (zoneH - 1 - y) * DISPLAY_CELL_PX + DISPLAY_CELL_PX / 2f;
                     natureDrawer.draw(natureSink, water,
@@ -212,10 +218,10 @@ public class FixedGridZonePreviewTest {
         System.out.println("  wrote " + out.toAbsolutePath());
     }
 
-    /** Per-cell hash pick between the two nature water variants for visual variety. Same shape the nature ground tiles use. */
-    private static NatureTile pickWaterVariant(int x, int y) {
+    /** Per-cell hash pick between the two nature water variant ids for visual variety. Same shape the nature ground tiles use. */
+    private static String pickWaterVariantId(int x, int y) {
         int h = (x * 73856093) ^ (y * 19349663);
-        return ((h & 1) == 0) ? NatureTile.WATER_1 : NatureTile.WATER_2;
+        return ((h & 1) == 0) ? "nature.water-1" : "nature.water-2";
     }
 
     // ---- helpers ----------------------------------------------------------

@@ -20,10 +20,11 @@ import java.io.InputStream;
  * handles the variable widths the same way it does for AI-generated unit
  * sprites.
  *
- * <p>Frame index ↔ semantic tile is the {@link NatureTile} enum's declaration
- * order. The slicer is expected to return exactly {@link NatureTile#values()
- * NatureTile.values().length} frames; a mismatch means the source art and the
- * enum have drifted, which the in-game tileset debug screen surfaces visually.
+ * <p>Frame index ↔ semantic tile is the registry's ingest order for this sheet.
+ * The slicer is expected to return exactly the number of tiles the
+ * {@link TileRegistry} has for {@link #SHEET_PATH}; a mismatch means the source
+ * art and the registry are out of sync, which the in-game tileset debug screen
+ * surfaces visually.
  */
 public final class NatureTileset {
 
@@ -42,14 +43,6 @@ public final class NatureTileset {
     public SpriteSheetFrames frames() { return frames; }
     public int sheetPxW() { return sheetPxW; }
     public int sheetPxH() { return sheetPxH; }
-
-    /** Bounding box for {@code tile}, or {@code null} if the sheet failed to load or the slicer produced fewer frames than expected. */
-    public SpriteSheetFrames.Frame frameOf(NatureTile tile) {
-        if (frames == null) return null;
-        int idx = tile.frameIndex();
-        if (idx < 0 || idx >= frames.frames.length) return null;
-        return frames.frames[idx];
-    }
 
     /**
      * Idempotent load — calling more than once is a no-op. Failure leaves
@@ -76,11 +69,15 @@ public final class NatureTileset {
                 sheetPxW = img.getWidth();
                 sheetPxH = img.getHeight();
                 frames = SpriteSheetSlicer.slice(img);
-                int expected = NatureTile.values().length;
-                if (frames.frames.length != expected) {
+                TileRegistry r = TileRegistry.installed();
+                int expected = (r == null) ? frames.frames.length
+                        : (int) r.all().stream()
+                                .filter(d -> SHEET_PATH.equals(d.sheetPath))
+                                .count();
+                if (r != null && frames.frames.length != expected) {
                     LOG.warn("NatureTileset: slicer returned " + frames.frames.length
-                            + " frames but NatureTile expects " + expected
-                            + " — sheet art and enum are out of sync");
+                            + " frames but TileRegistry expects " + expected
+                            + " tiles for this sheet — art and registry are out of sync");
                 } else {
                     LOG.info("NatureTileset: loaded " + SHEET_PATH
                             + " (" + sheetPxW + "x" + sheetPxH + "), sliced into "

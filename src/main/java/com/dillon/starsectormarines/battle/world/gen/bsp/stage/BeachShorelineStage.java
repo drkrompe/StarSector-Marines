@@ -107,7 +107,7 @@ public final class BeachShorelineStage implements GenStage {
         topology.setWallDirMask(x, y, 0);
         topology.setBuildingId(x, y, 0);
         topology.setBuildingKindHint(x, y, null);
-        topology.setNatureOverlay(x, y, null);
+        topology.setNatureOverlayIndex(x, y, -1);
         // Water is non-walkable but see-through — matches WaterfrontFiller /
         // NatureZoneFiller convention. setWalkable preserves any existing
         // floor flags we don't care about here.

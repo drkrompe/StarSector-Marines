@@ -70,6 +70,14 @@ public final class TileRegistry {
     public static TileRegistry installed() { return installed; }
 
     /**
+     * Installs {@code reg} as the process-wide registry. Intended for tests that
+     * need {@link #installed()} populated before calling gen code that reads it
+     * (e.g. {@link com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator}
+     * via {@code NatureZoneFiller}). Production code uses {@link #loadBuiltins()}.
+     */
+    public static void install(TileRegistry reg) { installed = reg; }
+
+    /**
      * Parses one tileset JSON document and adds its tiles. Fails loud on a
      * duplicate id — the registry is authoritative, so a colliding sheet is a
      * bug to surface, not a tile to silently drop. (Submod <em>override</em>

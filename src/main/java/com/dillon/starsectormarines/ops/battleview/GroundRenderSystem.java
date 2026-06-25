@@ -5,9 +5,9 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.model.WallMasks;
 import com.dillon.starsectormarines.battle.world.tiles.FixedGridTileDrawer;
-import com.dillon.starsectormarines.battle.world.tiles.NatureTile;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
-import com.dillon.starsectormarines.battle.world.tiles.UrbanTile3;
+import com.dillon.starsectormarines.battle.world.tiles.TileDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
@@ -58,6 +58,7 @@ public final class GroundRenderSystem implements RenderSystem {
     private float alpha;
     private SpriteAPI urban, road, floors, water, urbanTile3, nature;
     private SpriteSheetFrames urbanTile3Frames, natureFrames;
+    private TileRegistry tileReg;
 
     public GroundRenderSystem(BattleSprites sprites) {
         this.sprites = sprites;
@@ -81,6 +82,7 @@ public final class GroundRenderSystem implements RenderSystem {
         this.nature = sprites.natureSheet();
         this.urbanTile3Frames = sprites.urbanTile3Frames();
         this.natureFrames = sprites.natureFrames();
+        this.tileReg = TileRegistry.installed();
 
         NavigationGrid grid = ctx.sim.getGrid();
         CellTopology topology = ctx.sim.getTopology();
@@ -129,13 +131,13 @@ public final class GroundRenderSystem implements RenderSystem {
                     case STREET:
                         if (urbanTile3 != null) {
                             if (isSidewalkCell(grid, topology, x, y)) {
-                                urbanTile3Frame(TileManifest.pickStreet3SidewalkFrame(
+                                if (tileReg != null) urbanTile3Frame(tileReg.tile(TileManifest.pickStreet3SidewalkFrame(
                                         !isSidewalkLikeCell(grid, topology, x, y + 1),
                                         !isSidewalkLikeCell(grid, topology, x, y - 1),
                                         !isSidewalkLikeCell(grid, topology, x + 1, y),
-                                        !isSidewalkLikeCell(grid, topology, x - 1, y)), x, y);
+                                        !isSidewalkLikeCell(grid, topology, x - 1, y))), x, y);
                             } else {
-                                urbanTile3Frame(UrbanTile3.STREET_SQUARE, x, y);
+                                if (tileReg != null) urbanTile3Frame(tileReg.tile("urban3.street-square"), x, y);
                                 if (topology.isCrosswalk(x, y)) {
                                     crosswalkStripes(x, y, topology.isCrosswalkStripesHorizontal(x, y));
                                 }
@@ -179,11 +181,11 @@ public final class GroundRenderSystem implements RenderSystem {
                         floorsTile(TileManifest.pickBrickTile(x, y), x, y);
                         break;
                     case SIDEWALK:
-                        urbanTile3Frame(TileManifest.pickStreet3SidewalkFrame(
+                        if (tileReg != null) urbanTile3Frame(tileReg.tile(TileManifest.pickStreet3SidewalkFrame(
                                 !isSidewalkLikeCell(grid, topology, x, y + 1),
                                 !isSidewalkLikeCell(grid, topology, x, y - 1),
                                 !isSidewalkLikeCell(grid, topology, x + 1, y),
-                                !isSidewalkLikeCell(grid, topology, x - 1, y)), x, y);
+                                !isSidewalkLikeCell(grid, topology, x - 1, y))), x, y);
                         break;
                     case STRIPED:
                         if (road != null) roadTile(TileManifest.pickStripedTile(nWall, sWall, eWall, wWall), x, y, GROUND_TILE_EDGE_INSET_PX);
@@ -197,8 +199,8 @@ public final class GroundRenderSystem implements RenderSystem {
                         break;
                 }
 
-                NatureTile overlay = topology.getNatureOverlay(x, y);
-                if (overlay != null) natureTile(overlay, x, y);
+                int oi = topology.getNatureOverlayIndex(x, y);
+                if (oi >= 0 && tileReg != null) natureTile(tileReg.byIndex(oi), x, y);
 
                 if (grid.isDoorway(x, y) && !topology.isRubble(x, y)) {
                     urbanTile(TileManifest.DOOR_OPEN, x, y, 0);
@@ -261,16 +263,16 @@ public final class GroundRenderSystem implements RenderSystem {
         emitSheetCell(sheet, srcX, srcY, srcW, srcH, gridX, gridY);
     }
 
-    private void urbanTile3Frame(UrbanTile3 frame, int gridX, int gridY) {
+    private void urbanTile3Frame(TileDef frame, int gridX, int gridY) {
         if (urbanTile3 == null || urbanTile3Frames == null || frame == null) return;
-        int idx = frame.frameIndex();
+        int idx = frame.frame;
         if (idx < 0 || idx >= urbanTile3Frames.frames.length) return;
         emitFrame(urbanTile3, urbanTile3Frames.frames[idx], frame.isGround(), gridX, gridY);
     }
 
-    private void natureTile(NatureTile tile, int gridX, int gridY) {
+    private void natureTile(TileDef tile, int gridX, int gridY) {
         if (nature == null || natureFrames == null || tile == null) return;
-        int idx = tile.frameIndex();
+        int idx = tile.frame;
         if (idx < 0 || idx >= natureFrames.frames.length) return;
         emitFrame(nature, natureFrames.frames[idx], tile.isGround(), gridX, gridY);
     }
@@ -295,8 +297,14 @@ public final class GroundRenderSystem implements RenderSystem {
 
     private void sameKindAutotile(CellTopology.GroundKind kind, int x, int y) {
         if (nature != null) {
-            if (kind == CellTopology.GroundKind.GRASS) { natureTile(TileManifest.pickNatureGrassTile(x, y), x, y); return; }
-            if (kind == CellTopology.GroundKind.DIRT)  { natureTile(TileManifest.pickNatureDirtTile(x, y), x, y);  return; }
+            if (kind == CellTopology.GroundKind.GRASS) {
+                if (tileReg != null) natureTile(tileReg.tile(TileManifest.pickNatureGrassTileId(x, y)), x, y);
+                return;
+            }
+            if (kind == CellTopology.GroundKind.DIRT) {
+                if (tileReg != null) natureTile(tileReg.tile(TileManifest.pickNatureDirtTileId(x, y)), x, y);
+                return;
+            }
         }
         TileManifest.TileFrame f;
         switch (kind) {

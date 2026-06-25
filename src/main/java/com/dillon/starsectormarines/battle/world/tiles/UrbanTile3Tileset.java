@@ -15,11 +15,11 @@ import java.io.InputStream;
  * {@link SpriteSheetSlicer} on first {@link #ensureLoaded} and cache the
  * resulting frame bounding boxes alongside the SpriteAPI handle for reuse.
  *
- * <p>Frame index ↔ semantic tile is the {@link UrbanTile3} enum's
- * declaration order. The slicer is expected to return exactly
- * {@link UrbanTile3#values() UrbanTile3.values().length} frames; a mismatch
- * means the source art and the enum have drifted, which the in-game
- * tileset debug screen surfaces visually.
+ * <p>Frame index ↔ semantic tile is the registry's ingest order for this sheet.
+ * The slicer is expected to return exactly the number of tiles the
+ * {@link TileRegistry} has for {@link #SHEET_PATH}; a mismatch means the source
+ * art and the registry are out of sync, which the in-game tileset debug screen
+ * surfaces visually.
  */
 public final class UrbanTile3Tileset {
 
@@ -38,14 +38,6 @@ public final class UrbanTile3Tileset {
     public SpriteSheetFrames frames() { return frames; }
     public int sheetPxW() { return sheetPxW; }
     public int sheetPxH() { return sheetPxH; }
-
-    /** Bounding box for {@code tile}, or {@code null} if the sheet failed to load or the slicer produced fewer frames than expected. */
-    public SpriteSheetFrames.Frame frameOf(UrbanTile3 tile) {
-        if (frames == null) return null;
-        int idx = tile.frameIndex();
-        if (idx < 0 || idx >= frames.frames.length) return null;
-        return frames.frames[idx];
-    }
 
     /**
      * Idempotent load — calling more than once is a no-op. Failure leaves
@@ -72,11 +64,15 @@ public final class UrbanTile3Tileset {
                 sheetPxW = img.getWidth();
                 sheetPxH = img.getHeight();
                 frames = SpriteSheetSlicer.slice(img);
-                int expected = UrbanTile3.values().length;
-                if (frames.frames.length != expected) {
+                TileRegistry r = TileRegistry.installed();
+                int expected = (r == null) ? frames.frames.length
+                        : (int) r.all().stream()
+                                .filter(d -> SHEET_PATH.equals(d.sheetPath))
+                                .count();
+                if (r != null && frames.frames.length != expected) {
                     LOG.warn("UrbanTile3Tileset: slicer returned " + frames.frames.length
-                            + " frames but UrbanTile3 expects " + expected
-                            + " — sheet art and enum are out of sync");
+                            + " frames but TileRegistry expects " + expected
+                            + " tiles for this sheet — art and registry are out of sync");
                 } else {
                     LOG.info("UrbanTile3Tileset: loaded " + SHEET_PATH
                             + " (" + sheetPxW + "x" + sheetPxH + "), sliced into "

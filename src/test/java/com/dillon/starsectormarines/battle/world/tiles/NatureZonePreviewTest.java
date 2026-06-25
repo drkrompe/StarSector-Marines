@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.tiles;
 
+import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
 import javax.imageio.ImageIO;
@@ -20,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Dev tool dressed as a test. Generates a small zone, then skins each cell
- * with the actual {@link NatureTile} sprite art so visual issues (wrong
+ * with the actual {@link TileDef} sprite art so visual issues (wrong
  * frame index, bad overlay placement, sheet drift after a re-export) surface
  * without launching the game.
  *
@@ -28,14 +29,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * generate → render → write PNG. The difference is scope — this runs on a
  * small zone (~24x16 cells) using the real PNG tiles via
  * {@link SpriteSheetSlicer}, instead of full-city dimensions using flat color
- * quads. Iteration loop is: edit the slicer / enum / placement rules →
+ * quads. Iteration loop is: edit the slicer / registry / placement rules →
  * {@code gradlew :test --tests "*NatureZonePreviewTest*"} → eyeball the PNG.
  *
  * <p>Output: {@code build/zone-previews/nature-zone-NNNN.png} (one per seed)
  * plus a contact sheet at {@code build/zone-previews/nature-zone-contact.png}.
- * Also fails loudly if the slicer doesn't return exactly
- * {@link NatureTile#values() NatureTile.values().length} frames — that's
- * almost always a sheet/art drift bug.
+ * Also fails loudly if the slicer doesn't return the expected number of frames
+ * per the registry — that's almost always a sheet/art drift bug.
  */
 public class NatureZonePreviewTest {
 
@@ -46,43 +46,52 @@ public class NatureZonePreviewTest {
     private static final int ZONE_H = 16;
     private static final long[] SEEDS = { 1L, 42L, 100L, 777L };
 
-    // Inset is now owned by SlicedTileDrawer.DEFAULT_GROUND_INSET_PX so the
-    // test and the eventual in-game wiring share one source of truth. The
-    // drawer also handles the ground-only rule — overlays (plants, rocks)
-    // automatically pass through at inset=0 because their Kind isn't GROUND.
-
     private static final Color CHECKER_A = new Color(0x18, 0x1F, 0x2A);
     private static final Color CHECKER_B = new Color(0x22, 0x2A, 0x36);
     private static final Color LABEL_BG  = new Color(0, 0, 0, 200);
     private static final Color LABEL_FG  = new Color(0xE0, 0xE8, 0xF4);
 
+    /** Loads a TileRegistry from the on-disk tileset JSON files (mirrors TileRegistryParityTest). */
+    private static TileRegistry loadRegistry() throws Exception {
+        TileRegistry reg = new TileRegistry();
+        for (String path : TileRegistry.BUILTIN_TILESETS) {
+            String text = Files.readString(Paths.get("mod/" + path));
+            reg.ingestSheet(new JSONObject(text));
+        }
+        reg.validateReferences();
+        return reg;
+    }
+
     @Test
     void slicerReturnsExpectedFrameCount() throws Exception {
+        TileRegistry reg = loadRegistry();
         BufferedImage sheetImg = ImageIO.read(Files.newInputStream(SHEET));
         assertNotNull(sheetImg, "failed to load " + SHEET);
         SpriteSheetFrames sliced = SpriteSheetSlicer.slice(sheetImg);
 
+        int expected = (int) reg.all().stream()
+                .filter(d -> NatureTileset.SHEET_PATH.equals(d.sheetPath))
+                .count();
+
         // Always write the debug overlay first — even on assertion failure
-        // we want a visual record of what the slicer detected so the user
-        // can eyeball which frame got split or merged.
+        // we want a visual record of what the slicer detected.
         Files.createDirectories(OUT_DIR);
         Path debugPath = OUT_DIR.resolve("nature-slicer-debug.png");
-        ImageIO.write(renderSlicerDebug(sheetImg, sliced), "PNG", debugPath.toFile());
+        ImageIO.write(renderSlicerDebug(sheetImg, sliced, expected), "PNG", debugPath.toFile());
         System.out.println("  wrote " + debugPath.toAbsolutePath());
 
-        assertEquals(NatureTile.values().length, sliced.frames.length,
+        assertEquals(expected, sliced.frames.length,
                 () -> "slicer detected " + sliced.frames.length
-                        + " frames but NatureTile expects " + NatureTile.values().length
-                        + " — sheet art and enum are out of sync"
+                        + " frames but TileRegistry expects " + expected
+                        + " — sheet art and registry are out of sync"
                         + " (see " + debugPath + " for the per-frame bounding boxes)");
     }
 
     /**
      * Renders the source sheet with each detected frame's bounding box outlined
-     * and its index labeled. Lets you eyeball which frames the slicer split
-     * or merged when the count doesn't match the enum.
+     * and its index labeled.
      */
-    private static BufferedImage renderSlicerDebug(BufferedImage sheet, SpriteSheetFrames sliced) {
+    private static BufferedImage renderSlicerDebug(BufferedImage sheet, SpriteSheetFrames sliced, int expected) {
         int scale = 2;
         int padTop = 24;
         BufferedImage img = new BufferedImage(
@@ -97,8 +106,8 @@ public class NatureZonePreviewTest {
 
         g.setColor(LABEL_FG);
         g.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        g.drawString("slicer-debug — " + sliced.frames.length + " frames detected (enum expects "
-                + NatureTile.values().length + ")", 8, 16);
+        g.drawString("slicer-debug — " + sliced.frames.length + " frames detected (registry expects "
+                + expected + ")", 8, 16);
 
         // Source sheet scaled up.
         g.drawImage(sheet, 0, padTop,
@@ -126,19 +135,16 @@ public class NatureZonePreviewTest {
     /**
      * Renders each parsed frame in slicer order through the same
      * {@link SlicedTileDrawer} the zone preview uses, with the
-     * {@link NatureTile} name and index labelled. Lets you cross-reference
-     * "which frame is the odd tile I'm seeing in the zone" without having
-     * to count bounding boxes in {@code nature-slicer-debug.png}.
-     *
-     * <p>Cells follow the in-game render rule (ground tiles get the inset,
-     * overlays don't) — so the gallery's per-frame appearance matches
-     * what'll actually show up in a zone.
+     * tile id and index labelled. Lets you cross-reference "which frame
+     * is the odd tile I'm seeing in the zone" without counting bounding
+     * boxes in {@code nature-slicer-debug.png}.
      *
      * <p>Output: {@code build/zone-previews/nature-tile-gallery.png}.
      */
     @Test
     void renderTileGallery() throws Exception {
         Files.createDirectories(OUT_DIR);
+        TileRegistry reg = loadRegistry();
         BufferedImage sheetImg = ImageIO.read(Files.newInputStream(SHEET));
         assertNotNull(sheetImg, "failed to load " + SHEET);
         SpriteSheetFrames sliced = SpriteSheetSlicer.slice(sheetImg);
@@ -149,7 +155,7 @@ public class NatureZonePreviewTest {
             if (f.h > cellH) cellH = f.h;
         }
 
-        int cols = 7; // matches the ground-tile run width; overlay rows wrap
+        int cols = 7;
         int rows = (sliced.frames.length + cols - 1) / cols;
         int labelH = 32;
         int cellPad = 6;
@@ -169,10 +175,13 @@ public class NatureZonePreviewTest {
         g.setColor(new Color(0x12, 0x18, 0x22));
         g.fillRect(0, 0, imgW, imgH);
 
+        int regCount = (int) reg.all().stream()
+                .filter(d -> NatureTileset.SHEET_PATH.equals(d.sheetPath))
+                .count();
         g.setColor(LABEL_FG);
         g.setFont(new Font("SansSerif", Font.BOLD, 16));
         g.drawString("nature-tiles.png — " + sliced.frames.length
-                        + " frames parsed, " + NatureTile.values().length + " enum entries",
+                        + " frames parsed, " + regCount + " registry entries",
                 12, 24);
 
         SlicedTileDrawer drawer = new SlicedTileDrawer(sliced);
@@ -193,15 +202,18 @@ public class NatureZonePreviewTest {
                 }
             }
 
-            NatureTile tile = NatureTile.byFrame(i);
+            // Resolve by frame index from the registry.
+            final int frameIdx = i;
+            TileDef tile = reg.all().stream()
+                    .filter(d -> NatureTileset.SHEET_PATH.equals(d.sheetPath) && d.frame == frameIdx)
+                    .findFirst()
+                    .orElse(null);
+
             if (tile != null) {
                 drawer.draw(sink, tile,
                         x0 + cellW / 2f, y0 + cellH / 2f, cellW, cellH, 1f);
             } else {
-                // Frame parsed but no enum entry — render the raw bbox so a
-                // sheet-vs-enum drift is visible. Bypasses the drawer's
-                // inset rule on purpose: we want to see what the slicer
-                // actually found, unmodified.
+                // Frame parsed but no registry entry — render the raw bbox.
                 SpriteSheetFrames.Frame f = sliced.frames[i];
                 sink.drawSlice(f.x, f.y, f.w, f.h,
                         x0 + cellW / 2f, y0 + cellH / 2f, cellW, cellH, 1f);
@@ -211,17 +223,17 @@ public class NatureZonePreviewTest {
             g.setColor(new Color(0x4A, 0x6B, 0x8C));
             g.drawRect(x0, y0, cellW, cellH);
 
-            // Index + enum name on the first label line, Kind + raw bbox on the second.
+            // Index + tile id on the first label line, layer + raw bbox on the second.
             g.setColor(LABEL_FG);
             g.setFont(new Font("SansSerif", Font.PLAIN, 11));
             String topLabel = tile != null
-                    ? (i + ": " + tile.name())
-                    : (i + ": (no enum mapping)");
+                    ? (i + ": " + tile.id)
+                    : (i + ": (no registry mapping)");
             g.drawString(topLabel, x0, y0 + cellH + 14);
 
             SpriteSheetFrames.Frame f = sliced.frames[i];
             g.setColor(new Color(0xA8, 0xC0, 0xE0));
-            String bottomLabel = (tile != null ? tile.kind.name() + " · " : "")
+            String bottomLabel = (tile != null ? tile.layer.name() + " · " : "")
                     + f.w + "x" + f.h + "px";
             g.drawString(bottomLabel, x0, y0 + cellH + 26);
         }
@@ -235,6 +247,7 @@ public class NatureZonePreviewTest {
     @Test
     void renderZoneBatch() throws Exception {
         Files.createDirectories(OUT_DIR);
+        TileRegistry reg = loadRegistry();
         BufferedImage sheetImg = ImageIO.read(Files.newInputStream(SHEET));
         assertNotNull(sheetImg, "failed to load " + SHEET);
         SpriteSheetFrames sliced = SpriteSheetSlicer.slice(sheetImg);
@@ -242,7 +255,7 @@ public class NatureZonePreviewTest {
         BufferedImage[] perSeed = new BufferedImage[SEEDS.length];
         for (int i = 0; i < SEEDS.length; i++) {
             long seed = SEEDS[i];
-            Zone zone = generateZone(seed);
+            Zone zone = generateZone(seed, reg);
             BufferedImage img = renderZone(zone, sheetImg, sliced, seed);
             perSeed[i] = img;
             Path out = OUT_DIR.resolve(String.format("nature-zone-%04d.png", (int) seed));
@@ -259,9 +272,9 @@ public class NatureZonePreviewTest {
 
     /** Per-cell base + optional overlay. Mirrors what a real mapgen layer would emit. */
     private static final class Zone {
-        final NatureTile[][] base;     // [x][y]
-        final NatureTile[][] overlay;  // [x][y], nullable
-        Zone(NatureTile[][] base, NatureTile[][] overlay) {
+        final TileDef[][] base;     // [x][y]
+        final TileDef[][] overlay;  // [x][y], nullable
+        Zone(TileDef[][] base, TileDef[][] overlay) {
             this.base = base;
             this.overlay = overlay;
         }
@@ -272,20 +285,20 @@ public class NatureZonePreviewTest {
      * sand, water) so every ground type appears with neighbors on every side,
      * then overlays scattered by per-cell hash so the same seed reproduces.
      *
-     * <p>Placement obeys {@link NatureTile#canOverlay} — plants only on grass,
+     * <p>Placement obeys {@link TileDef#canOverlayOn} — plants only on grass,
      * rocks on any non-water surface. Density is intentionally high enough
      * that overlay clusters appear in every render but low enough that the
      * underlying ground stays readable.
      */
-    private static Zone generateZone(long seed) {
+    private static Zone generateZone(long seed, TileRegistry reg) {
         Random rng = new Random(seed);
-        NatureTile[][] base = new NatureTile[ZONE_W][ZONE_H];
-        NatureTile[][] overlay = new NatureTile[ZONE_W][ZONE_H];
+        TileDef[][] base = new TileDef[ZONE_W][ZONE_H];
+        TileDef[][] overlay = new TileDef[ZONE_W][ZONE_H];
 
-        NatureTile[] grassPool = { NatureTile.GRASS_1, NatureTile.GRASS_2 };
-        NatureTile[] dirtPool  = { NatureTile.DIRT_1,  NatureTile.DIRT_2  };
-        NatureTile[] sandPool  = { NatureTile.SAND };
-        NatureTile[] waterPool = { NatureTile.WATER_1, NatureTile.WATER_2 };
+        TileDef[] grassPool = { reg.tile("nature.grass-1"), reg.tile("nature.grass-2") };
+        TileDef[] dirtPool  = { reg.tile("nature.dirt-1"),  reg.tile("nature.dirt-2")  };
+        TileDef[] sandPool  = { reg.tile("nature.sand") };
+        TileDef[] waterPool = { reg.tile("nature.water-1"), reg.tile("nature.water-2") };
 
         int halfX = ZONE_W / 2;
         int halfY = ZONE_H / 2;
@@ -293,7 +306,7 @@ public class NatureZonePreviewTest {
             for (int y = 0; y < ZONE_H; y++) {
                 boolean west  = x < halfX;
                 boolean south = y < halfY;
-                NatureTile[] pool;
+                TileDef[] pool;
                 if (west &&  south) pool = sandPool;
                 else if (west)      pool = grassPool;
                 else if (south)     pool = waterPool;
@@ -302,34 +315,32 @@ public class NatureZonePreviewTest {
             }
         }
 
-        // Plant overlays — only on grass cells. Density chosen so a typical
-        // grass quadrant gets ~25% coverage, enough to spot misplacement.
-        NatureTile[] plantPool = {
-                NatureTile.SHRUB_1, NatureTile.SHRUB_2,
-                NatureTile.GRASS_TUFT_1, NatureTile.GRASS_TUFT_2,
-                NatureTile.SHRUB_3,
+        // Plant overlays — only on grass cells.
+        TileDef[] plantPool = {
+                reg.tile("nature.shrub-1"), reg.tile("nature.shrub-2"),
+                reg.tile("nature.tuft-1"),  reg.tile("nature.tuft-2"),
+                reg.tile("nature.shrub-3"),
         };
-        // Rock overlays — valid on any non-water surface. Lower density than
-        // plants so the two layers are visually distinct in the output.
-        NatureTile[] rockPool = {
-                NatureTile.ROCKS_SMALL_1, NatureTile.ROCKS_SMALL_2, NatureTile.ROCKS_SMALL_3,
-                NatureTile.ROCK_MEDIUM_1, NatureTile.ROCK_MEDIUM_2,
-                NatureTile.ROCK_LARGE_1,  NatureTile.ROCK_LARGE_2,
+        // Rock overlays — valid on any non-water surface.
+        TileDef[] rockPool = {
+                reg.tile("nature.rock-small-1"), reg.tile("nature.rock-small-2"), reg.tile("nature.rock-small-3"),
+                reg.tile("nature.rock-medium-1"), reg.tile("nature.rock-medium-2"),
+                reg.tile("nature.rock-large-1"),  reg.tile("nature.rock-large-2"),
         };
         for (int x = 0; x < ZONE_W; x++) {
             for (int y = 0; y < ZONE_H; y++) {
-                NatureTile b = base[x][y];
+                TileDef b = base[x][y];
                 // Try plant first; if it can't overlay this base, fall through to rock.
                 if (rng.nextFloat() < 0.25f) {
-                    NatureTile p = plantPool[rng.nextInt(plantPool.length)];
-                    if (p.canOverlay(b)) {
+                    TileDef p = plantPool[rng.nextInt(plantPool.length)];
+                    if (p.canOverlayOn(b)) {
                         overlay[x][y] = p;
                         continue;
                     }
                 }
                 if (rng.nextFloat() < 0.12f) {
-                    NatureTile r = rockPool[rng.nextInt(rockPool.length)];
-                    if (r.canOverlay(b)) {
+                    TileDef r = rockPool[rng.nextInt(rockPool.length)];
+                    if (r.canOverlayOn(b)) {
                         overlay[x][y] = r;
                     }
                 }
@@ -342,11 +353,6 @@ public class NatureZonePreviewTest {
 
     private static BufferedImage renderZone(Zone zone, BufferedImage sheet,
                                              SpriteSheetFrames sliced, long seed) {
-        // Uniform cell = the widest × tallest frame across the whole sheet.
-        // Every cell in the output is exactly this size; each frame's raw
-        // bbox is bilinear-stretched to fill it (the AI-generated source has
-        // enough detail to "make up" the stretch — sharper than NEAREST for
-        // non-integer ratios, no seams from per-frame aspect drift).
         int cellW = 0, cellH = 0;
         for (SpriteSheetFrames.Frame f : sliced.frames) {
             if (f.w > cellW) cellW = f.w;
@@ -354,26 +360,18 @@ public class NatureZonePreviewTest {
         }
 
         int imgW = ZONE_W * cellW;
-        int imgH = ZONE_H * cellH + 28; // bottom strip for seed label
+        int imgH = ZONE_H * cellH + 28;
 
         BufferedImage img = new BufferedImage(imgW, imgH, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = img.createGraphics();
-        // BILINEAR — every tile renders at the uniform cell size regardless
-        // of its source bbox, so source/dst ratios are non-integer. NEAREST
-        // there produces stair-step pixel-skip artifacts at edges (the
-        // "tiny edge" seam that motivated this normalization).
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                 RenderingHints.VALUE_INTERPOLATION_BILINEAR);
         g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 
-        // Route every tile through SlicedTileDrawer so the test exercises
-        // the same source-rect math the in-game renderer will use. Overlay
-        // tiles (plants, rocks) automatically pass through at inset=0 — the
-        // drawer applies the ground-only inset rule from their Kind.
         SlicedTileDrawer drawer = new SlicedTileDrawer(sliced);
         TileSink sink = new Graphics2DTileSink(g, sheet);
 
-        // Pass 1 — checker backdrop so transparency in the art reads.
+        // Pass 1 — checker backdrop.
         for (int x = 0; x < ZONE_W; x++) {
             for (int y = 0; y < ZONE_H; y++) {
                 g.setColor(((x + y) % 2 == 0) ? CHECKER_A : CHECKER_B);
@@ -391,21 +389,19 @@ public class NatureZonePreviewTest {
         // Pass 3 — overlay tiles (plants, rocks).
         for (int x = 0; x < ZONE_W; x++) {
             for (int y = 0; y < ZONE_H; y++) {
-                NatureTile o = zone.overlay[x][y];
+                TileDef o = zone.overlay[x][y];
                 if (o != null) stampTile(drawer, sink, o, x, y, cellW, cellH);
             }
         }
 
-        // Pass 4 — overlay rule violations (defensive — shouldn't happen, but
-        // if generateZone ever drifts from canOverlay, paint a red X so it's
-        // obvious in the PNG).
+        // Pass 4 — overlay rule violations (defensive).
         g.setStroke(new BasicStroke(2f));
         g.setColor(new Color(255, 60, 60));
         for (int x = 0; x < ZONE_W; x++) {
             for (int y = 0; y < ZONE_H; y++) {
-                NatureTile o = zone.overlay[x][y];
+                TileDef o = zone.overlay[x][y];
                 if (o == null) continue;
-                if (o.canOverlay(zone.base[x][y])) continue;
+                if (o.canOverlayOn(zone.base[x][y])) continue;
                 int sx = x * cellW;
                 int sy = (ZONE_H - 1 - y) * cellH;
                 g.drawLine(sx, sy, sx + cellW, sy + cellH);
@@ -427,15 +423,8 @@ public class NatureZonePreviewTest {
         return img;
     }
 
-    /**
-     * Translate grid coordinates into uniform-cell centers and hand off to
-     * the shared drawer. The drawer routes through {@link TileSink} so the
-     * source-rect computation (inset rule, frame lookup) is the same one
-     * that will run in-game; only the {@code drawImage} call inside
-     * {@link Graphics2DTileSink} is test-specific.
-     */
     private static void stampTile(SlicedTileDrawer drawer, TileSink sink,
-                                  NatureTile tile,
+                                  TileDef tile,
                                   int gridX, int gridY, int cellW, int cellH) {
         float dstCx = gridX * cellW + cellW / 2f;
         float dstCy = (ZONE_H - 1 - gridY) * cellH + cellH / 2f;

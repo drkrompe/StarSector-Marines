@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.world.model;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.world.tiles.NatureTile;
 
 /**
  * Per-cell rendering / categorization state — what kind of cell is this
@@ -139,15 +138,15 @@ public class CellTopology {
     private final byte[] buildingKindHint;
     /**
      * Per-cell nature-tile overlay (plants, rocks). Stored as
-     * {@code NatureTile.ordinal() + 1} so the implicit zero reads as "no
-     * overlay." Set by nature-zone fillers (grassland / wetland / beach)
-     * during gen; read by the renderer's nature-overlay pass after the
-     * ground-tile flush so plant + rock sprites stack on top of the painted
-     * surface. Only meaningful on walkable cells whose {@link GroundKind} is
-     * a nature kind ({@link GroundKind#GRASS} / {@link GroundKind#DIRT} /
+     * {@code TileDef.index + 1} so the implicit zero reads as "no overlay."
+     * Set by nature-zone fillers (grassland / wetland / beach) during gen;
+     * read by the renderer's nature-overlay pass after the ground-tile flush
+     * so plant + rock sprites stack on top of the painted surface. Only
+     * meaningful on walkable cells whose {@link GroundKind} is a nature kind
+     * ({@link GroundKind#GRASS} / {@link GroundKind#DIRT} /
      * {@link GroundKind#SAND}) — wall + water cells ignore the slot.
      */
-    private final byte[] natureOverlay;
+    private final short[] natureOverlay;
     /**
      * Per-cell {@link RoomPurpose} label. Stored as {@code ordinal() + 1} so
      * the implicit zero reads as "no carver labeled this cell." Written by
@@ -167,7 +166,7 @@ public class CellTopology {
         this.wallDir = new byte[width * height];
         this.buildingId = new short[width * height];
         this.buildingKindHint = new byte[width * height];
-        this.natureOverlay = new byte[width * height];
+        this.natureOverlay = new short[width * height];
         this.roomPurpose = new byte[width * height];
         // ground[i] == 0 == GroundKind.INDOOR.ordinal() — implicit default.
     }
@@ -302,29 +301,30 @@ public class CellTopology {
     // ----- Nature overlay -----
 
     /**
-     * Returns the nature overlay tile at this cell, or {@code null} if no
-     * overlay is set. Stored as {@code ordinal()+1} so the implicit zero
-     * means "unset."
+     * Returns the dense registry index of the nature overlay tile at this cell,
+     * or {@code -1} if no overlay is set. Stored as {@code TileDef.index + 1}
+     * so the implicit zero means "unset." Resolve to a tile via
+     * {@code TileRegistry.installed().byIndex(getNatureOverlayIndex(x, y))}.
      */
-    public NatureTile getNatureOverlay(int x, int y) {
-        if (!inBounds(x, y)) return null;
-        int raw = natureOverlay[index(x, y)] & 0xFF;
-        if (raw == 0) return null;
-        NatureTile[] vals = NatureTile.values();
-        int idx = raw - 1;
-        return (idx >= 0 && idx < vals.length) ? vals[idx] : null;
+    public int getNatureOverlayIndex(int x, int y) {
+        if (!inBounds(x, y)) return -1;
+        int raw = natureOverlay[index(x, y)] & 0xFFFF;
+        if (raw == 0) return -1;
+        return raw - 1;
     }
 
     /**
-     * Stamps a nature overlay tile at this cell. Pass {@code null} to clear.
-     * Caller is expected to have validated placement via
-     * {@link NatureTile#canOverlay(NatureTile)} against the current ground
-     * kind — the topology doesn't re-check here so a leaf-edge filler can
-     * stamp atomically without per-cell predicate overhead.
+     * Stamps a nature overlay tile at this cell by dense registry index.
+     * Pass {@code -1} (or any negative value) to clear. Caller is expected
+     * to have validated placement via {@link
+     * com.dillon.starsectormarines.battle.world.tiles.TileDef#canOverlayOn}
+     * against the current ground kind — the topology doesn't re-check here
+     * so a leaf-edge filler can stamp atomically without per-cell predicate
+     * overhead.
      */
-    public void setNatureOverlay(int x, int y, NatureTile tile) {
+    public void setNatureOverlayIndex(int x, int y, int tileIndex) {
         if (!inBounds(x, y)) return;
-        natureOverlay[index(x, y)] = (byte) (tile == null ? 0 : (tile.ordinal() + 1));
+        natureOverlay[index(x, y)] = (short) (tileIndex < 0 ? 0 : tileIndex + 1);
     }
 
     // ----- Room purpose -----

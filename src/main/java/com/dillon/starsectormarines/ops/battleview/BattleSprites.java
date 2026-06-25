@@ -6,10 +6,12 @@ import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKind;
+import com.dillon.starsectormarines.battle.world.model.TileManifest;
+import com.dillon.starsectormarines.battle.world.tiles.NatureTileset;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetSlicer;
-import com.dillon.starsectormarines.battle.world.tiles.UrbanTile3;
-import com.dillon.starsectormarines.battle.world.model.TileManifest;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+import com.dillon.starsectormarines.battle.world.tiles.UrbanTile3Tileset;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.apache.log4j.Logger;
@@ -331,36 +333,36 @@ public class BattleSprites {
         if (natureSheetLoadAttempted) return;
         natureSheetLoadAttempted = true;
         try {
-            Global.getSettings().loadTexture(com.dillon.starsectormarines.battle.world.tiles.NatureTileset.SHEET_PATH);
-            natureSheet = Global.getSettings().getSprite(com.dillon.starsectormarines.battle.world.tiles.NatureTileset.SHEET_PATH);
+            Global.getSettings().loadTexture(NatureTileset.SHEET_PATH);
+            natureSheet = Global.getSettings().getSprite(NatureTileset.SHEET_PATH);
             if (natureSheet == null) {
-                LOG.warn("BattleSprites: getSprite returned null for "
-                        + com.dillon.starsectormarines.battle.world.tiles.NatureTileset.SHEET_PATH);
+                LOG.warn("BattleSprites: getSprite returned null for " + NatureTileset.SHEET_PATH);
                 return;
             }
-            try (InputStream stream = Global.getSettings().openStream(
-                    com.dillon.starsectormarines.battle.world.tiles.NatureTileset.SHEET_PATH)) {
+            try (InputStream stream = Global.getSettings().openStream(NatureTileset.SHEET_PATH)) {
                 BufferedImage img = ImageIO.read(stream);
                 if (img == null) {
-                    LOG.warn("BattleSprites: ImageIO.read returned null for "
-                            + com.dillon.starsectormarines.battle.world.tiles.NatureTileset.SHEET_PATH);
+                    LOG.warn("BattleSprites: ImageIO.read returned null for " + NatureTileset.SHEET_PATH);
                     natureSheet = null;
                     return;
                 }
                 natureSheetPxW = img.getWidth();
                 natureSheetPxH = img.getHeight();
                 natureFrames = SpriteSheetSlicer.slice(img);
-                int expected = com.dillon.starsectormarines.battle.world.tiles.NatureTile.values().length;
-                if (natureFrames.frames.length != expected) {
+                TileRegistry reg = TileRegistry.installed();
+                int expected = (reg == null) ? natureFrames.frames.length
+                        : (int) reg.all().stream()
+                                .filter(d -> NatureTileset.SHEET_PATH.equals(d.sheetPath))
+                                .count();
+                if (reg != null && natureFrames.frames.length != expected) {
                     LOG.warn("BattleSprites: nature-tiles slicer returned "
-                            + natureFrames.frames.length + " frames but NatureTile expects "
+                            + natureFrames.frames.length + " frames but TileRegistry expects "
                             + expected + " — falling back to legacy Floors_Tiles grass/dirt");
                     natureSheet = null;
                     natureFrames = null;
                     return;
                 }
-                LOG.info("BattleSprites: loaded nature-tiles "
-                        + com.dillon.starsectormarines.battle.world.tiles.NatureTileset.SHEET_PATH
+                LOG.info("BattleSprites: loaded nature-tiles " + NatureTileset.SHEET_PATH
                         + " (" + natureSheetPxW + "x" + natureSheetPxH + "), "
                         + natureFrames.frames.length + " frames sliced");
             }
@@ -400,10 +402,14 @@ public class BattleSprites {
                 urbanTile3SheetPxW = img.getWidth();
                 urbanTile3SheetPxH = img.getHeight();
                 urbanTile3Frames = SpriteSheetSlicer.slice(img);
-                int expected = UrbanTile3.values().length;
-                if (urbanTile3Frames.frames.length != expected) {
+                TileRegistry reg = TileRegistry.installed();
+                int expected = (reg == null) ? urbanTile3Frames.frames.length
+                        : (int) reg.all().stream()
+                                .filter(d -> UrbanTile3Tileset.SHEET_PATH.equals(d.sheetPath))
+                                .count();
+                if (reg != null && urbanTile3Frames.frames.length != expected) {
                     LOG.warn("BattleSprites: urban-tileset-3 slicer returned "
-                            + urbanTile3Frames.frames.length + " frames but UrbanTile3 expects "
+                            + urbanTile3Frames.frames.length + " frames but TileRegistry expects "
                             + expected + " — falling back to legacy road autotile");
                     urbanTile3Sheet = null;
                     urbanTile3Frames = null;

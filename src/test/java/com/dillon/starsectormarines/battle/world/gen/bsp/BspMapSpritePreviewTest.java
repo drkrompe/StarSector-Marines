@@ -8,10 +8,15 @@ import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.tiles.FixedGridTileDrawer;
 import com.dillon.starsectormarines.battle.world.tiles.Graphics2DTileSink;
+import com.dillon.starsectormarines.battle.world.tiles.NatureTileset;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetSlicer;
+import com.dillon.starsectormarines.battle.world.tiles.TileDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.TileSink;
-import com.dillon.starsectormarines.battle.world.tiles.UrbanTile3;
+import com.dillon.starsectormarines.battle.world.tiles.UrbanTile3Tileset;
+import org.json.JSONObject;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import javax.imageio.ImageIO;
@@ -72,6 +77,19 @@ public class BspMapSpritePreviewTest {
     private static final Color MARINE_FG   = new Color(80, 220, 100);
     private static final Color DEFENDER_FG = new Color(220, 80, 80);
 
+    @BeforeAll
+    static void installRegistry() throws Exception {
+        // NatureZoneFiller reads TileRegistry.installed() during gen. Install a
+        // disk-loaded registry so overlays are stamped (not silently skipped).
+        TileRegistry reg = new TileRegistry();
+        for (String path : TileRegistry.BUILTIN_TILESETS) {
+            String text = Files.readString(Paths.get("mod/" + path));
+            reg.ingestSheet(new JSONObject(text));
+        }
+        reg.validateReferences();
+        TileRegistry.install(reg);
+    }
+
     @Test
     void renderSpriteBatch() throws Exception {
         Files.createDirectories(OUT_DIR);
@@ -118,6 +136,7 @@ public class BspMapSpritePreviewTest {
                                             BufferedImage nature, SpriteSheetFrames natureFrames) {
         NavigationGrid grid = map.grid;
         CellTopology topo = map.topology;
+        TileRegistry reg = TileRegistry.installed();
         int gw = grid.getWidth();
         int gh = grid.getHeight();
         int labelH = 24;
@@ -151,26 +170,17 @@ public class BspMapSpritePreviewTest {
                 GroundKind kind = topo.getGroundKind(x, y);
                 switch (kind) {
                     case STREET:
-                        // STREET cells dispatch through urban-tileset-3 — same
-                        // path BattleScreen takes when urbanTile3Batch is loaded.
-                        // No legacy ROAD_SHEET fallback here: the test always
-                        // has urban-3 available, so reproducing the fallback
-                        // would be dead code that doesn't match what ships.
+                        // STREET cells dispatch through urban-tileset-3.
                         if (isSidewalkCell(grid, topo, x, y)) {
-                            // Use isSidewalkLike on neighbors so an explicit
-                            // GroundKind.SIDEWALK (trunk flank) butting up
-                            // against a wall-adjacent STREET sidewalk reads
-                            // as one continuous strip — matches BattleScreen.
                             boolean nNotSw = !isSidewalkLike(grid, topo, x, y + 1);
                             boolean sNotSw = !isSidewalkLike(grid, topo, x, y - 1);
                             boolean eNotSw = !isSidewalkLike(grid, topo, x + 1, y);
                             boolean wNotSw = !isSidewalkLike(grid, topo, x - 1, y);
-                            UrbanTile3 f = TileManifest.pickStreet3SidewalkFrame(
-                                    nNotSw, sNotSw, eNotSw, wNotSw);
-                            stampSlicedFrame(street3Sink, street3Frames, f, x, y, gh);
+                            String id = TileManifest.pickStreet3SidewalkFrame(nNotSw, sNotSw, eNotSw, wNotSw);
+                            if (reg != null) stampSlicedFrame(street3Sink, street3Frames, reg.tile(id), x, y, gh);
                         } else {
-                            stampSlicedFrame(street3Sink, street3Frames,
-                                    UrbanTile3.STREET_SQUARE, x, y, gh);
+                            if (reg != null) stampSlicedFrame(street3Sink, street3Frames,
+                                    reg.tile("urban3.street-square"), x, y, gh);
                         }
                         break;
                     case BRICK:
@@ -178,25 +188,21 @@ public class BspMapSpritePreviewTest {
                                 TileManifest.pickBrickTile(x, y), x, y, gh, floorsInset);
                         break;
                     case SIDEWALK: {
-                        // Curb-side sidewalk strip — urban-tileset-3 with
-                        // corner-aware picker. Mirrors BattleScreen's SIDEWALK
-                        // case so the preview reflects production dispatch.
                         boolean nNotSw = !isSidewalkLike(grid, topo, x, y + 1);
                         boolean sNotSw = !isSidewalkLike(grid, topo, x, y - 1);
                         boolean eNotSw = !isSidewalkLike(grid, topo, x + 1, y);
                         boolean wNotSw = !isSidewalkLike(grid, topo, x - 1, y);
-                        UrbanTile3 f = TileManifest.pickStreet3SidewalkFrame(
-                                nNotSw, sNotSw, eNotSw, wNotSw);
-                        stampSlicedFrame(street3Sink, street3Frames, f, x, y, gh);
+                        String id = TileManifest.pickStreet3SidewalkFrame(nNotSw, sNotSw, eNotSw, wNotSw);
+                        if (reg != null) stampSlicedFrame(street3Sink, street3Frames, reg.tile(id), x, y, gh);
                         break;
                     }
                     case GRASS:
-                        stampNatureFrame(natureSink, natureFrames,
-                                TileManifest.pickNatureGrassTile(x, y), x, y, gh);
+                        if (reg != null) stampNatureFrame(natureSink, natureFrames,
+                                reg.tile(TileManifest.pickNatureGrassTileId(x, y)), x, y, gh);
                         break;
                     case DIRT:
-                        stampNatureFrame(natureSink, natureFrames,
-                                TileManifest.pickNatureDirtTile(x, y), x, y, gh);
+                        if (reg != null) stampNatureFrame(natureSink, natureFrames,
+                                reg.tile(TileManifest.pickNatureDirtTileId(x, y)), x, y, gh);
                         break;
                     case STONE:
                         stampFrame(floorsDrawer, floorsSink,
@@ -214,11 +220,6 @@ public class BspMapSpritePreviewTest {
                                 x, y, gh, floorsInset);
                         break;
                     case WATER:
-                        // Same caveat as production: pickWaterTile returns a
-                        // frame that's read off the Water_tiles sheet. Per the
-                        // memory note water_uses_nature_tile.md the dedicated
-                        // sheet is mostly orphaned now, but the picker still
-                        // points there — render whatever the picker says.
                         stampFrame(floorsDrawer, waterSink,
                                 TileManifest.pickWaterTile(false, false, false, false, x, y),
                                 x, y, gh, floorsInset);
@@ -252,6 +253,12 @@ public class BspMapSpritePreviewTest {
                                 TileManifest.pickFloorTile(nWall, sWall, eWall, wWall),
                                 x, y, gh, urbanInset);
                         break;
+                }
+
+                // Nature overlay pass.
+                int oi = topo.getNatureOverlayIndex(x, y);
+                if (oi >= 0 && reg != null) {
+                    stampNatureFrame(natureSink, natureFrames, reg.byIndex(oi), x, y, gh);
                 }
 
                 if (grid.isDoorway(x, y) && !topo.isRubble(x, y)) {
@@ -304,10 +311,10 @@ public class BspMapSpritePreviewTest {
     }
 
     private void stampNatureFrame(TileSink sink, SpriteSheetFrames frames,
-                                   com.dillon.starsectormarines.battle.world.tiles.NatureTile tile,
+                                   TileDef tile,
                                    int gridX, int gridY, int gridH) {
         if (tile == null) return;
-        int idx = tile.frameIndex();
+        int idx = tile.frame;
         if (idx < 0 || idx >= frames.frames.length) return;
         SpriteSheetFrames.Frame f = frames.frames[idx];
         int inset = tile.isGround() ? 2 : 0;
@@ -321,9 +328,9 @@ public class BspMapSpritePreviewTest {
     }
 
     private void stampSlicedFrame(TileSink sink, SpriteSheetFrames frames,
-                                  UrbanTile3 tile, int gridX, int gridY, int gridH) {
+                                  TileDef tile, int gridX, int gridY, int gridH) {
         if (tile == null) return;
-        int idx = tile.frameIndex();
+        int idx = tile.frame;
         if (idx < 0 || idx >= frames.frames.length) return;
         SpriteSheetFrames.Frame f = frames.frames[idx];
         // Same inset rule as SlicedTileDrawer — ground tiles take the 2px
