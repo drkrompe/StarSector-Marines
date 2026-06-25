@@ -260,7 +260,7 @@ public final class TacticalScoring {
     /**
      * Stickiness gate for {@code self.target}: keeps the current target only
      * while it's still shootable from {@code self}'s current cell (alive,
-     * within {@link Entity#attackRange}, and with line of sight). Anything
+     * within {@code world.attackRange(id)}, and with line of sight). Anything
      * outside that — dead, out of range, behind cover — drops the cached pick
      * and re-runs {@link #findBestTarget}, so a closer visible enemy that
      * stepped into LoS while we were locked onto someone now-unshootable wins
@@ -1509,7 +1509,7 @@ public final class TacticalScoring {
     /**
      * Hidden iff no alive enemy combatant has effective LoS to {@code (cx, cy)}
      * — meaning a clear Bresenham line <em>and</em> the candidate cell within
-     * that enemy's {@link Entity#attackRange}. A 40-cell-range mech threatens
+     * that enemy's {@code world.attackRange(id)}. A 40-cell-range mech threatens
      * cells the 18-cell-range militia can't, which is the gameplay axis we
      * want fall-back picking to respect (squads flee mech LoS even if militia
      * LoS reads the same cell as "open").
@@ -1544,8 +1544,9 @@ public final class TacticalScoring {
      * <p>Shared between
      * {@link com.dillon.starsectormarines.battle.decision.goap.action.BreakContact}
      * and {@link com.dillon.starsectormarines.battle.infantry.BreakLOS}
-     * — both stash the picker's result on {@link Entity#getFallbackCellX()}/
-     * {@link Entity#getFallbackCellY()} and need the same "re-roll when stale"
+     * — both stash the picker's result on the AI_STATE fall-back cell
+     * ({@code world.fallbackCellX(id)}/{@code world.fallbackCellY(id)}) and need
+     * the same "re-roll when stale"
      * invariant. The SQ-17 stuck-defender dump exposed BreakLOS lacking
      * this check: once the cached cell drifted into enemy LoS the unit
      * was glued to it.
@@ -1559,7 +1560,7 @@ public final class TacticalScoring {
 
     /**
      * Count of alive enemy combatants with effective LoS to {@code (cx, cy)} —
-     * clear Bresenham line and within that enemy's {@link Entity#attackRange}.
+     * clear Bresenham line and within that enemy's {@code world.attackRange(id)}.
      * Zero means the cell is hidden from every effective threat
      * ({@link #isHiddenFromAllEnemies} returns true).
      *

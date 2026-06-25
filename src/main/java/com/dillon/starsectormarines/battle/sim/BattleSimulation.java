@@ -82,8 +82,8 @@ import java.util.Random;
  * <p>v1 behavior, each tick:
  * <ul>
  *   <li>Each alive unit refreshes its target to the nearest alive enemy.</li>
- *   <li>If a target is in {@link Entity#attackRange}, the unit stops moving and
- *       fires on {@link Entity#attackCooldown}, dealing {@link Entity#attackDamage}.</li>
+ *   <li>If a target is in {@code world.attackRange(id)}, the unit stops moving and
+ *       fires on {@link Entity#attackCooldown}, dealing {@code world.attackDamage(id)}.</li>
  *   <li>Otherwise the unit re-pathfinds (only when between cells, to avoid a
  *       visual jump mid-step) and advances {@code moveProgress} along the path
  *       at {@link Entity#moveSpeed} cells/sec.</li>
@@ -519,7 +519,7 @@ public class BattleSimulation implements BattleControl {
      */
     public UnitRegistry getUnitRegistry() { return rosterService.getRegistry(); }
     /**
-     * Resolves a unit's {@link Entity#targetId} to the current target reference,
+     * Resolves a unit's {@code world.targetId(id)} to the current target reference,
      * or {@code null} when the target was released / never set. Short delegate
      * over {@link com.dillon.starsectormarines.battle.unit.UnitRegistry#getOrNull(long)};
      * the canonical read path replacing the old {@code u.target} field.

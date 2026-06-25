@@ -16,11 +16,11 @@ import com.dillon.starsectormarines.battle.combat.FireStance;
  * out-of-LOS, cover-biased cell via
  * {@link TacticalScoring#findFallbackPosition}, paths there while firing on
  * the move (MOVING penalty), and on arrival holds position firing stanced at
- * anything that drifts into LOS. The destination is cached on
- * {@link Entity#getFallbackCellX()}/{@link Entity#getFallbackCellY()} — historically shared
- * with the per-unit {@code FallbackBehavior}, which now skips GOAP-driven
- * units (squad members without a mech loadout), leaving these fields owned
- * by BreakContact for marines and other infantry squad members.
+ * anything that drifts into LOS. The destination is cached in the AI_STATE
+ * fall-back cell ({@code world.fallbackCellX(id)}/{@code world.fallbackCellY(id)})
+ * — historically shared with the per-unit {@code FallbackBehavior}, which now
+ * skips GOAP-driven units (squad members without a mech loadout), leaving that
+ * column owned by BreakContact for marines and other infantry squad members.
  *
  * <p>Runs perpetually ({@link ActionStatus#RUNNING}). A below-half-strength
  * squad doesn't recover above half, so {@link

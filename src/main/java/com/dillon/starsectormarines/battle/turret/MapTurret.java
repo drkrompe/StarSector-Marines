@@ -44,11 +44,11 @@ public class MapTurret extends Entity {
      * Entity id of the target locked when the burst started — held across the
      * salvo so the rounds chase the same victim even if a closer one walks
      * into LOS mid-burst. {@code 0L} when idle. Independent of the inherited
-     * {@link Entity#getBurstTargetId()} SoA slot on purpose: turret burst-tick
-     * lives in {@link com.dillon.starsectormarines.battle.turret.TurretBehavior}
+     * burst-target column ({@code world.burstTargetId(id)}) on purpose: turret
+     * burst-tick lives in {@link com.dillon.starsectormarines.battle.turret.TurretBehavior}
      * and reads/writes this field directly via a MapTurret-typed reference,
-     * while the inherited burst state serves marine-style
-     * {@link Entity#beginBurst(Entity)} callsites the turret never invokes.
+     * while the inherited burst state serves marine-style {@code beginBurst}
+     * callsites the turret never invokes.
      */
     public long burstTargetId = 0L;
     /**

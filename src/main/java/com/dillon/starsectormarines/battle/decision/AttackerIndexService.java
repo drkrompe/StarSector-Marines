@@ -51,7 +51,7 @@ public final class AttackerIndexService {
     }
 
     /**
-     * Rebuilds the index from the current {@link Entity#targetId} ids. Recycles
+     * Rebuilds the index from the current {@code world.targetId(id)} ids. Recycles
      * bucket lists via {@link #pool} so the steady-state allocation is zero.
      * Skips dead attackers and dead / released targets so a unit holding a
      * stale id at its dying enemy doesn't pollute the next tick's lookup.

@@ -66,12 +66,12 @@ public final class MountedTurret {
         this.ammo = mount.kind.startingAmmo;
     }
 
-    /** Null-safe write into {@link #targetId} — same shape as {@link Entity#setTarget}. */
+    /** Null-safe write into {@link #targetId} — same {@code null}→{@code 0L} convention as {@link Entity#idOf}. */
     public void setTarget(Entity t) {
         this.targetId = (t == null) ? 0L : t.entityId;
     }
 
-    /** Null-safe write into {@link #burstTargetId} — same shape as {@link Entity#setBurstTarget}. */
+    /** Null-safe write into {@link #burstTargetId} — same {@code null}→{@code 0L} convention as {@link Entity#idOf}. */
     public void setBurstTarget(Entity t) {
         this.burstTargetId = (t == null) ? 0L : t.entityId;
     }

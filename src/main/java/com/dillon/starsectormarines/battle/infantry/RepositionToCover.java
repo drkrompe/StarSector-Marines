@@ -18,7 +18,7 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
  * inter-burst micro-movement happen tick-by-tick the way the story wants
  * ("members shift one or two cells between bursts").
  *
- * <p>Cooldown-gated via {@link Entity#getRepositionCooldown()}: when the per-unit
+ * <p>Cooldown-gated via {@code world.repositionCooldown(id)}: when the per-unit
  * timer is ready, look for a cover cell that's strictly better than current
  * (cover-preferred picker won't pick a downgrade), and only path there if
  * one exists. A setup machine gunner in heavy cover whose current cell
@@ -38,8 +38,8 @@ public final class RepositionToCover implements Action {
     public static final RepositionToCover INSTANCE = new RepositionToCover();
 
     /**
-     * Sim-seconds between successful repositions per unit. Set on
-     * {@link Entity#getRepositionCooldown()} when a move actually fires; gates the
+     * Sim-seconds between successful repositions per unit. Set via
+     * {@code world.setRepositionCooldown(id, …)} when a move actually fires; gates the
      * next attempt. Decorrelated across squadmates because each member's
      * cooldown only resets when <em>their</em> shot lands the move — so the
      * squad's repositions naturally stagger.

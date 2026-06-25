@@ -43,7 +43,7 @@ public final class InfantryCohesion {
      * promotion hasn't run yet.
      *
      * <p><b>Engagement override.</b> A member with a live target inside
-     * its {@link Entity#attackRange} and clear LoS ignores cohesion and
+     * its {@code world.attackRange(id)} and clear LoS ignores cohesion and
      * stays in the fight — splitting around a building during combat
      * is fine; the failure mode was units stuck navigating <em>to</em>
      * the battlefield. See {@code memory/squad_leader_cohesion.md}.

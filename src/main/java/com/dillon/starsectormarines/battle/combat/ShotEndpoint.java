@@ -11,8 +11,8 @@ import java.util.Random;
  * {@link HeavyWeapons#fireMechWeapon} so all three live by the same rules.
  *
  * <ul>
- *   <li><b>Targeting</b> uses the target's {@link Entity#renderX}/
- *       {@link Entity#renderY} (smooth interpolated cell-coords), not the
+ *   <li><b>Targeting</b> uses the target's {@link Entity#getRenderX()}/
+ *       {@link Entity#getRenderY()} (smooth interpolated cell-coords), not the
  *       logical {@code cellX}/{@code cellY}. Tracers terminate on the
  *       sprite, not on the cell the sprite is lerping toward.</li>
  *   <li><b>Hits</b> land near the target with a universal

@@ -23,8 +23,9 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
  * satisfies the desired-state slot and Engage doesn't. Keeping it modest
  * stops the planner from prepending BreakLOS in unrelated plans.
  *
- * <p>Destination caching reuses {@link Entity#getFallbackCellX()}/{@link Entity#getFallbackCellY()}
- * — same fields {@link BreakContact} uses. Re-rolls via the shared
+ * <p>Destination caching reuses the AI_STATE fall-back cell
+ * ({@code world.fallbackCellX(id)}/{@code world.fallbackCellY(id)}) — the same
+ * columns {@link BreakContact} uses. Re-rolls via the shared
  * {@link TacticalScoring#fallbackDestinationNeedsRefresh} when the cached
  * cell is unset or has become visible to an enemy; otherwise holds the cell
  * and walks toward it. On arrival the member returns {@link ActionStatus#SUCCESS}

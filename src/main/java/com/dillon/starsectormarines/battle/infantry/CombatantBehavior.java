@@ -8,7 +8,7 @@ import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 
 /**
  * Default combat loop dispatcher. Two-way: {@link GoapMechBehavior} for
- * units carrying a {@link Entity#mech} loadout, {@link GoapInfantryBehavior}
+ * units carrying a {@link MechLoadoutComponent} loadout, {@link GoapInfantryBehavior}
  * for everyone else. Both paths run through the squad-level GOAP planner
  * with their own goal + action libraries (see
  * {@code roadmap/ai/14-mech-stage1.md}).
