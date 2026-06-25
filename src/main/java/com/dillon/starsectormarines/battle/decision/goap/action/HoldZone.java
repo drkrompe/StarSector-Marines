@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.decision.goap.world.GarrisonArea;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
@@ -234,7 +235,7 @@ public final class HoldZone extends AbstractZoneAction {
     }
 
     private static void hold(Entity member, BattleControl sim) {
-        if (!member.pathEmpty()) sim.clearPath(member);
+        if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member);
         sim.world().setMoveProgress(member.entityId, 0f);
         member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
     }

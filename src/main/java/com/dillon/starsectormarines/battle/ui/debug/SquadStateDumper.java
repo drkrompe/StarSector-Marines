@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.decision.goap.action.ClearZone;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -166,7 +167,7 @@ public final class SquadStateDumper {
             // key off this flag. JSONObject.NULL when the unit has no target.
             o.put("targetReachable", computeTargetReachable(u, sim));
             o.put("cooldownTimer", sim.world().cooldownTimer(u.entityId));
-            o.put("pathLen", u.path != null ? u.path.length / 2 : 0);
+            o.put("pathLen", Paths.cellCount(sim.world().path(u.entityId)));
             arr.put(o);
         }
         return arr;

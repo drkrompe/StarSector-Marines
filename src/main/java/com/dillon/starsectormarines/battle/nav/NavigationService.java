@@ -187,9 +187,10 @@ public final class NavigationService {
             int curX = registry.cellXById(u.entityId);
             int curY = registry.cellYById(u.entityId);
             incrementOccupancy(curX, curY);
-            int destX = pathDestX(u);
+            int[] path = registry.pathById(u.entityId);
+            int destX = Paths.destX(path);
             if (destX != Integer.MIN_VALUE) {
-                int destY = pathDestY(u);
+                int destY = Paths.destY(path);
                 if (destX != curX || destY != curY) {
                     incrementOccupancy(destX, destY);
                 }
@@ -244,10 +245,11 @@ public final class NavigationService {
      * the sink call is elided entirely.
      */
     public void setPath(Entity u, int[] newPath) {
-        int oldDestX = pathDestX(u);
-        int oldDestY = pathDestY(u);
-        u.path = newPath;
-        u.pathIdx = newPath.length == 0 ? 0 : 1;
+        int[] oldPath = registry.pathById(u.entityId);
+        int oldDestX = Paths.destX(oldPath);
+        int oldDestY = Paths.destY(oldPath);
+        registry.setPathRefById(u.entityId, newPath);
+        registry.setPathIdxById(u.entityId, newPath.length == 0 ? 0 : 1);
         int newDestX;
         int newDestY;
         if (newPath.length > 0) {
@@ -294,13 +296,13 @@ public final class NavigationService {
         LosCache.disable();
     }
 
-    /** X coordinate of the unit's final path cell, or {@code Integer.MIN_VALUE} if the path is empty. */
-    public static int pathDestX(Entity u) {
-        return Paths.destX(u.path);
+    /** X coordinate of {@code u}'s final path cell, or {@code Integer.MIN_VALUE} if empty. Reads the path off the MOVEMENT component by id. */
+    public int pathDestX(Entity u) {
+        return Paths.destX(registry.pathById(u.entityId));
     }
-    /** Y coordinate of the unit's final path cell, or {@code Integer.MIN_VALUE} if the path is empty. */
-    public static int pathDestY(Entity u) {
-        return Paths.destY(u.path);
+    /** Y coordinate of {@code u}'s final path cell, or {@code Integer.MIN_VALUE} if empty. Reads the path off the MOVEMENT component by id. */
+    public int pathDestY(Entity u) {
+        return Paths.destY(registry.pathById(u.entityId));
     }
 
     private void incrementOccupancy(int x, int y) {

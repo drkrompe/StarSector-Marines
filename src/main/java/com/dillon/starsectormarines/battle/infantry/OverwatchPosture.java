@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
+import com.dillon.starsectormarines.battle.nav.Paths;
 
 /**
  * <b>Squad posture: silent overwatch.</b> Story A — a garrison squad with LOS
@@ -53,7 +54,7 @@ public final class OverwatchPosture implements Action {
     @Override
     public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
         // Drop any in-flight path — the squad is on overwatch, not moving.
-        if (!member.pathEmpty()) sim.clearPath(member);
+        if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member);
         sim.world().setMoveProgress(member.entityId, 0f);
         member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
         // Deliberately do NOT fire and do NOT touch cooldownTimer — the

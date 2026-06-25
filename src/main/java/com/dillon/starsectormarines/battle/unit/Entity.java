@@ -39,11 +39,12 @@ import java.util.Random;
  * draws where it fell. The two coincide when the unit is at rest or has just
  * landed in a new cell.
  *
- * <p>{@link #path} + {@link #pathIdx} + the move-progress field of the world's
- * MOVEMENT component (reached by id) describe the current movement step.
- * {@link #advanceAlongPath(UnitRegistry, float)} rebuilds nothing but lerps
- * render position toward {@code path[pathIdx]} as move-progress climbs from 0
- * to 1; on arrival the logical cell advances and progress resets.
+ * <p>The world's MOVEMENT component (reached by id) holds the whole movement
+ * step — the flat {@code int[]} path, the {@code pathIdx} cursor, and
+ * move-progress. {@link #advanceAlongPath(UnitRegistry, float)} rebuilds nothing
+ * but lerps render position toward the next path cell as move-progress climbs
+ * from 0 to 1; on arrival the logical cell advances, progress resets, and the
+ * cursor steps forward.
  */
 public class Entity {
 
@@ -128,46 +129,33 @@ public class Entity {
     public float localRenderY;
 
     /**
-     * Current path as a flat {@code int[]} of interleaved {@code x,y} pairs —
-     * cell {@code i} sits at {@code (path[i*2], path[i*2+1])}. Empty
-     * ({@link GridPathfinder#EMPTY_PATH}) when the unit has nothing scheduled.
-     * Flattened from the old {@code List<int[]>} to drop the per-cell
-     * {@code int[2]} allocations on each pathfind.
-     */
-    public int[] path = GridPathfinder.EMPTY_PATH;
-    /** Index of the next cell along {@link #path} to step into — addresses cells, not raw int positions (i.e. path slots {@code [pathIdx*2, pathIdx*2+1]}). */
-    public int pathIdx = 0;
-
-    /** Convenience accessor — number of cells in {@link #path}. */
-    public int pathCellCount() { return Paths.cellCount(path); }
-    /** Convenience accessor — x coordinate of the i-th cell along {@link #path}. */
-    public int pathCellX(int i) { return Paths.cellX(path, i); }
-    /** Convenience accessor — y coordinate of the i-th cell along {@link #path}. */
-    public int pathCellY(int i) { return Paths.cellY(path, i); }
-    /** True when the unit has no path scheduled. Match for the old {@code path.isEmpty()} check. */
-    public boolean pathEmpty() { return Paths.isEmpty(path); }
-
-    /**
-     * Per-tick movement step. The cell pair lives in the entity world's
-     * POSITION columns and move-progress in its MOVEMENT component — both
-     * read/written by id through the registry's transitional adapters.
+     * Per-tick movement step. Every piece of per-unit movement state now lives
+     * in the entity world's components, read/written by id through the registry's
+     * transitional adapters: the cell pair in POSITION, move-progress + the path
+     * reference + the path cursor in MOVEMENT. The flat {@code int[]} path (cell
+     * {@code i} at {@code (path[i*2], path[i*2+1])},
+     * {@link GridPathfinder#EMPTY_PATH} when nothing is scheduled) is fetched
+     * once and interrogated through {@link Paths}; the cursor advances as the
+     * unit lands in each next cell.
      */
     public void advanceAlongPath(UnitRegistry registry, float dt) {
-        if (pathIdx >= pathCellCount()) return;
-        int nextX = pathCellX(pathIdx);
-        int nextY = pathCellY(pathIdx);
+        int[] path = registry.pathById(entityId);
+        int pathIdx = registry.pathIdxById(entityId);
+        if (pathIdx >= Paths.cellCount(path)) return;
+        int nextX = Paths.cellX(path, pathIdx);
+        int nextY = Paths.cellY(path, pathIdx);
         int curX = registry.cellXById(entityId);
         int curY = registry.cellYById(entityId);
         float dx = nextX - curX;
         float dy = nextY - curY;
         float cellDist = (float) Math.sqrt(dx * dx + dy * dy);
-        if (cellDist < 0.0001f) { pathIdx++; return; }
+        if (cellDist < 0.0001f) { registry.setPathIdxById(entityId, pathIdx + 1); return; }
         float mp = registry.moveProgressById(entityId) + (moveSpeed * dt) / cellDist;
         if (mp >= 1f) {
             registry.setCellPosById(entityId, nextX, nextY);
             setRenderPos(nextX, nextY);
             registry.setMoveProgressById(entityId, 0f);
-            pathIdx++;
+            registry.setPathIdxById(entityId, pathIdx + 1);
         } else {
             registry.setMoveProgressById(entityId, mp);
             setRenderPos(curX + dx * mp, curY + dy * mp);

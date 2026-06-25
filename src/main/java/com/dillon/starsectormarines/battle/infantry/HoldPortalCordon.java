@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.goap.scoring.RoleAssigner;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 
 import java.util.ArrayList;
@@ -150,7 +151,7 @@ public final class HoldPortalCordon implements Action {
     private ActionStatus executePlanter(Entity member, BattleControl sim) {
         boolean onSite = (sim.world().cellX(member.entityId) == chargeCellX && sim.world().cellY(member.entityId) == chargeCellY);
         if (onSite) {
-            if (!member.pathEmpty()) sim.clearPath(member);
+            if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member);
             sim.world().setMoveProgress(member.entityId, 0f);
             member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
             return ActionStatus.RUNNING;
@@ -185,7 +186,7 @@ public final class HoldPortalCordon implements Action {
             sim.advanceMovement(member);
             return ActionStatus.RUNNING;
         }
-        if (!member.pathEmpty()) sim.clearPath(member);
+        if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member);
         sim.world().setMoveProgress(member.entityId, 0f);
         member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
         // On-post fire — STANCED, full accuracy. This is the whole reason

@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vision.VisionService;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
@@ -398,10 +399,15 @@ public final class UnitRenderService implements RenderSystem {
             int dy = registry.cellYById(target.entityId) - selfCellY;
             if (dx != 0 || dy != 0) return facingFromDelta(dx, dy);
         }
-        if (u.pathIdx < u.pathCellCount()) {
-            int dx = u.pathCellX(u.pathIdx) - selfCellX;
-            int dy = u.pathCellY(u.pathIdx) - selfCellY;
-            if (dx != 0 || dy != 0) return facingFromDelta(dx, dy);
+        UnitRegistry registry = sim != null ? sim.getUnitRegistry() : null;
+        if (registry != null) {
+            int[] path = registry.pathById(u.entityId);
+            int pathIdx = registry.pathIdxById(u.entityId);
+            if (pathIdx < Paths.cellCount(path)) {
+                int dx = Paths.cellX(path, pathIdx) - selfCellX;
+                int dy = Paths.cellY(path, pathIdx) - selfCellY;
+                if (dx != 0 || dy != 0) return facingFromDelta(dx, dy);
+            }
         }
         return Facing.SOUTH;
     }
@@ -440,10 +446,15 @@ public final class UnitRenderService implements RenderSystem {
             int dy = registry.cellYById(target.entityId) - selfCellY;
             if (dx != 0 || dy != 0) return eightWayFromDelta(dx, dy);
         }
-        if (u.pathIdx < u.pathCellCount()) {
-            int dx = u.pathCellX(u.pathIdx) - selfCellX;
-            int dy = u.pathCellY(u.pathIdx) - selfCellY;
-            if (dx != 0 || dy != 0) return eightWayFromDelta(dx, dy);
+        UnitRegistry registry = sim != null ? sim.getUnitRegistry() : null;
+        if (registry != null) {
+            int[] path = registry.pathById(u.entityId);
+            int pathIdx = registry.pathIdxById(u.entityId);
+            if (pathIdx < Paths.cellCount(path)) {
+                int dx = Paths.cellX(path, pathIdx) - selfCellX;
+                int dy = Paths.cellY(path, pathIdx) - selfCellY;
+                if (dx != 0 || dy != 0) return eightWayFromDelta(dx, dy);
+            }
         }
         return EightWayFacing.S;
     }

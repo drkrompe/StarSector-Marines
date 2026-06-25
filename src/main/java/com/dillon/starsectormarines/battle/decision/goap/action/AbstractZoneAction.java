@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.Planner;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
 
@@ -127,7 +128,7 @@ abstract class AbstractZoneAction implements Action {
         }
 
         if (haltOnContact && inContact) {
-            if (!member.pathEmpty()) sim.clearPath(member);
+            if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member);
             sim.world().setMoveProgress(member.entityId, 0f);
             member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
             if (squad.timeSinceReplan >= CONTACT_HALT_REPLAN_THROTTLE) {

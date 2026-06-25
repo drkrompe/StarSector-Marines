@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
@@ -112,7 +113,7 @@ public class BreakLOSTest {
         ActionStatus status = BreakLOS.INSTANCE.execute(marine, squad, sim);
         assertEquals(ActionStatus.SUCCESS, status,
                 "arrived → BreakLOS returns SUCCESS so the plan advances and the next replan can pick Overwatch/Engage");
-        assertTrue(marine.pathEmpty(), "arrived → no path");
+        assertTrue(Paths.isEmpty(sim.world().path(marine.entityId)), "arrived → no path");
         assertEquals(0f, sim.world().moveProgress(marine.entityId), 1e-6f);
         assertEquals(sim.world().cellX(marine.entityId), marine.getRenderX(), 1e-6f);
         assertEquals(sim.world().cellY(marine.entityId), marine.getRenderY(), 1e-6f);

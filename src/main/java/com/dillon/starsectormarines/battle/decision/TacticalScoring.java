@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
@@ -1679,7 +1680,7 @@ public final class TacticalScoring {
         // units; the per-unit current-cell radius check below dedupes
         // against Pass 1 for moving units whose current happens to also
         // be near (cx, cy).
-        destIndex.gather(cx, cy, FIRING_AOE_SPREAD_RADIUS, scratch);
+        destIndex.gather(registry, cx, cy, FIRING_AOE_SPREAD_RADIUS, scratch);
         for (int i = 0, n = scratch.size(); i < n; i++) {
             Entity u = scratch.get(i);
             if (u == self || u.faction != self.faction) continue;
@@ -1704,10 +1705,11 @@ public final class TacticalScoring {
         if (!grid.inBounds(cx, cy)) return 0;
         int n = occupancyMap[cy * grid.getWidth() + cx] & 0xFF;
         if (cx == selfCellX && cy == selfCellY) n--;
-        int cells = self.pathCellCount();
+        int[] path = registry.pathById(self.entityId);
+        int cells = Paths.cellCount(path);
         if (cells > 0) {
-            int destX = self.pathCellX(cells - 1);
-            int destY = self.pathCellY(cells - 1);
+            int destX = Paths.cellX(path, cells - 1);
+            int destY = Paths.cellY(path, cells - 1);
             if (destX == cx && destY == cy && (destX != selfCellX || destY != selfCellY)) {
                 n--;
             }

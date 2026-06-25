@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.unit;
 
+import com.dillon.starsectormarines.battle.nav.Paths;
 import java.util.ArrayList;
 
 /**
@@ -69,10 +70,11 @@ public final class UnitDestinationSpatialIndex {
         int liveCount = registry.liveCount();
         for (int i = 0; i < liveCount; i++) {
             Entity u = dense[i];
-            int cells = u.pathCellCount();
+            int[] path = registry.pathById(u.entityId);
+            int cells = Paths.cellCount(path);
             if (cells <= 0) continue;
-            int destX = u.pathCellX(cells - 1);
-            int destY = u.pathCellY(cells - 1);
+            int destX = Paths.cellX(path, cells - 1);
+            int destY = Paths.cellY(path, cells - 1);
             if (destX == registry.cellXById(u.entityId) && destY == registry.cellYById(u.entityId)) continue;
             int bx = destX / UnitSpatialIndex.BUCKET;
             int by = destY / UnitSpatialIndex.BUCKET;
@@ -144,7 +146,7 @@ public final class UnitDestinationSpatialIndex {
      * is the caller's job, matching the primary index's "primitive over
      * all alive units" semantics.
      */
-    public void gather(int cx, int cy, float radius, ArrayList<Entity> out) {
+    public void gather(UnitRegistry registry, int cx, int cy, float radius, ArrayList<Entity> out) {
         out.clear();
         if (radius <= 0f) return;
         int r = (int) Math.ceil(radius);
@@ -159,17 +161,15 @@ public final class UnitDestinationSpatialIndex {
                 if (bucket == null) continue;
                 for (int i = 0, n = bucket.size(); i < n; i++) {
                     Entity u = bucket.get(i);
-                    // Snapshot the path reference to a local — under the
-                    // parallel UPDATE_UNITS dispatch, another worker may
-                    // call setPath on this unit and swap u.path mid-loop.
-                    // Reading u.path twice (length + indexed access) could
-                    // see the new shorter array indexed at the old longer
-                    // count → AIOOBE. One load → consistent view.
-                    int[] p = u.path;
-                    int cells = p.length >> 1;
+                    // Fetch-once: snapshot the path array from the registry
+                    // to a local — under the parallel UPDATE_UNITS dispatch,
+                    // another worker may call setPath on this unit. One load
+                    // → consistent view for the length + index accesses below.
+                    int[] p = registry.pathById(u.entityId);
+                    int cells = Paths.cellCount(p);
                     if (cells <= 0) continue;
-                    int dx = p[(cells - 1) << 1] - cx;
-                    int dy = p[((cells - 1) << 1) | 1] - cy;
+                    int dx = Paths.cellX(p, cells - 1) - cx;
+                    int dy = Paths.cellY(p, cells - 1) - cy;
                     if (dx * dx + dy * dy <= r2) out.add(u);
                 }
             }

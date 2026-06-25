@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.Paths;
 
 /**
  * <b>Squad posture: duck around a corner.</b> Story A re-trigger — when a
@@ -64,7 +65,7 @@ public final class BreakLOS implements Action {
         boolean atDest = sim.world().cellX(member.entityId) == sim.world().fallbackCellX(member.entityId)
                       && sim.world().cellY(member.entityId) == sim.world().fallbackCellY(member.entityId);
         if (atDest) {
-            if (!member.pathEmpty()) sim.clearPath(member);
+            if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member);
             sim.world().setMoveProgress(member.entityId, 0f);
             member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
             // Arrived at a hidden cell. The predicate-flip ("no longer in LoS

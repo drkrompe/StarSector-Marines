@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -208,7 +209,7 @@ public class ChokePointHoldTest {
         ChokePointHold hold = (ChokePointHold) squad.currentPlan.currentStep().action;
         hold.execute(d1, squad, sim);
 
-        assertTrue(d1.pathEmpty(), "on-post member should have its path cleared");
+        assertTrue(Paths.isEmpty(sim.world().path(d1.entityId)), "on-post member should have its path cleared");
         assertEquals(0f, sim.world().moveProgress(d1.entityId), 1e-6f);
     }
 
@@ -231,7 +232,7 @@ public class ChokePointHoldTest {
         assertEquals(portalId, squad.chokePointPortalId,
                 "portal id is stamped even on transit ticks (idempotent)");
         // A path must be queued (member isn't at the LOS cell yet).
-        assertNotEquals(0, d1.pathCellCount(),
+        assertNotEquals(0, Paths.cellCount(sim.world().path(d1.entityId)),
                 "transit branch must queue a path toward the bound LOS cell");
     }
 }

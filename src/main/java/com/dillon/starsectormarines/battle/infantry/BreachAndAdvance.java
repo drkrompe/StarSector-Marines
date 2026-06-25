@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.goap.scoring.RoleAssigner;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.Paths;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -151,7 +152,7 @@ public final class BreachAndAdvance implements Action {
         }
 
         if (sim.world().cellX(member.entityId) == destX && sim.world().cellY(member.entityId) == destY) {
-            if (!member.pathEmpty()) sim.clearPath(member);
+            if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member);
             sim.world().setMoveProgress(member.entityId, 0f);
             member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
             // Squad-wide success: all members are at their forward cells.

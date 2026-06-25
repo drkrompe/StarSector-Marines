@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.unit;
 
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -377,6 +378,47 @@ public class UnitRegistryTest {
 
         assertEquals(0, r.indexOf(c.entityId));
         assertEquals(0.9f, r.moveProgressById(c.entityId), 1e-6f);
+    }
+
+    @Test
+    public void allocatePathDefaultsToEmptySentinelAndAccessorsRouteThroughWorld() {
+        UnitRegistry r = new UnitRegistry();
+        Entity u = unit("u");
+
+        r.allocate(u);
+
+        // The OBJECT path column seeds to the shared empty-path sentinel (a null
+        // append would NPE every path reader); the cursor zero-inits.
+        assertSame(GridPathfinder.EMPTY_PATH, r.pathById(u.entityId));
+        assertEquals(0, r.pathIdxById(u.entityId));
+
+        int[] p = {3, 4, 5, 6};
+        r.setPathRefById(u.entityId, p);
+        r.setPathIdxById(u.entityId, 1);
+        assertSame(p, r.pathById(u.entityId));
+        assertEquals(1, r.pathIdxById(u.entityId));
+    }
+
+    @Test
+    public void pathIsUndisturbedByDenseTailSwap() {
+        UnitRegistry r = new UnitRegistry();
+        Entity a = unit("a");
+        Entity b = unit("b");
+        Entity c = unit("c");
+        long idA = r.allocate(a);
+        r.allocate(b);
+        r.allocate(c);
+        int[] p = {7, 8};
+        r.setPathRefById(c.entityId, p);
+        r.setPathIdxById(c.entityId, 1);
+
+        // Releasing a swap-pops c into a's old dense slot — MOVEMENT is id-keyed
+        // in the world, immune to the dense reshuffle.
+        r.release(idA);
+
+        assertEquals(0, r.indexOf(c.entityId));
+        assertSame(p, r.pathById(c.entityId));
+        assertEquals(1, r.pathIdxById(c.entityId));
     }
 
     @Test

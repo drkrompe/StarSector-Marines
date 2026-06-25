@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.unit;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 
@@ -178,6 +179,11 @@ public final class UnitRegistry {
         // means no slot-reuse reset is needed (unlike the old dense columns).
         entityWorld.setInt(id, components.AI_STATE, BattleComponents.AI_STATE_FALLBACK_CELL_X, -1);
         entityWorld.setInt(id, components.AI_STATE, BattleComponents.AI_STATE_FALLBACK_CELL_Y, -1);
+        // Seed the MOVEMENT path reference to the shared empty-path sentinel — an
+        // OBJECT column appends as null, and every path reader dereferences it
+        // (length / Paths helpers), so the unit must spawn with a real array.
+        // pathIdx + moveProgress start at zero by the row append.
+        entityWorld.setObject(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH, GridPathfinder.EMPTY_PATH);
         // Seed + wire the decomposed render-position service. Unlike the world
         // entity, this reference is NOT nulled on release — the entry survives so
         // a released corpse still resolves its death-pose location.
@@ -371,6 +377,10 @@ public final class UnitRegistry {
     // lacks MOVEMENT). Universal on every live unit today, so no presence gate.
     public float moveProgressById(long id) { return entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_PROGRESS); }
     public void setMoveProgressById(long id, float v) { entityWorld.setFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_PROGRESS, v); }
+    public int[] pathById(long id) { return (int[]) entityWorld.getObject(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH); }
+    public void setPathRefById(long id, int[] path) { entityWorld.setObject(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH, path); }
+    public int pathIdxById(long id) { return entityWorld.getInt(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH_IDX); }
+    public void setPathIdxById(long id, int v) { entityWorld.setInt(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH_IDX, v); }
 
     /**
      * The decomposed render-position service this registry seeds + wires on

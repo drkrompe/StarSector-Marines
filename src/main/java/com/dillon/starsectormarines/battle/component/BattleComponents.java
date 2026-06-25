@@ -79,6 +79,10 @@ public final class BattleComponents {
 
     /** {@link #MOVEMENT} field 0: movement lerp factor [0,1] toward the next path cell (FLOAT). */
     public static final int MOVEMENT_MOVE_PROGRESS = 0;
+    /** {@link #MOVEMENT} field 1: the flat {@code int[]} path reference (OBJECT); {@link com.dillon.starsectormarines.battle.nav.GridPathfinder#EMPTY_PATH} = nothing scheduled. */
+    public static final int MOVEMENT_PATH = 1;
+    /** {@link #MOVEMENT} field 2: index of the next cell along the path to step into (INT). */
+    public static final int MOVEMENT_PATH_IDX = 2;
 
     /** {@link #AI_STATE} field 0: sim-seconds until the unit may next micro-reposition between shots (FLOAT). */
     public static final int AI_STATE_REPOSITION_COOLDOWN = 0;
@@ -147,15 +151,16 @@ public final class BattleComponents {
     public final ComponentType COMBAT;
     /**
      * Movement state — {@code float moveProgress} (the [0,1] lerp factor toward
-     * the next path cell). Universal on every live unit today (seeded zero at
-     * spawn like the mid-combat {@link #COMBAT} scalars), so this slice is
-     * behavior-preserving — even a turret carries a {@code moveProgress} of 0 it
-     * never advances, exactly as the old universal registry column did. The
-     * designed end-state narrows membership to path-executing (kinematic)
-     * entities only and folds in the path reference ({@code int[] path; int
-     * pathIdx}, still {@code Entity} fields); both are deferred to the slice that
-     * brings the path in, where "has a path capability" is what truly defines a
-     * mover. Removed in the corpse transmute (a corpse does not move). See
+     * the next path cell), {@code int[] path} (the flat path reference), and
+     * {@code int pathIdx} (the cursor along it). Universal on every live unit
+     * today (seeded at spawn like the mid-combat {@link #COMBAT} scalars — the
+     * timers zero, the path the empty-path sentinel), so this slice stays
+     * behavior-preserving: even a turret carries an empty path it never advances,
+     * exactly as the old universal {@code Entity} fields + registry column did.
+     * The designed end-state narrows membership to path-executing (kinematic)
+     * entities only, where "has a path capability" is what truly defines a mover;
+     * that narrowing is the remaining deferred step. Removed in the corpse
+     * transmute (a corpse does not move). See
      * {@code roadmap/ecs-migration/archetype-storage.md}.
      */
     public final ComponentType MOVEMENT;
@@ -212,7 +217,8 @@ public final class BattleComponents {
         SECONDARY_WEAPON = world.register(7, "SecondaryWeapon",
                 FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT, FieldKind.FLOAT,
                 FieldKind.LONG, FieldKind.INT);
-        MOVEMENT        = world.register(8, "Movement", FieldKind.FLOAT);
+        MOVEMENT        = world.register(8, "Movement",
+                FieldKind.FLOAT, FieldKind.OBJECT, FieldKind.INT);
         AI_STATE        = world.register(9, "AiState",
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.INT, FieldKind.INT, FieldKind.FLOAT);
         corpses = world.query(

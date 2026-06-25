@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.Paths;
 
 /**
  * Mech slice of the combatant loop: three concurrent weapon tracks
@@ -66,7 +67,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
                         sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), dest[0], dest[1], sim.getOccupancyMap()));
             }
         }
-        if (u.pathIdx < u.pathCellCount()) {
+        if (sim.world().pathIdx(u.entityId) < Paths.cellCount(sim.world().path(u.entityId))) {
             sim.advanceMovement(u);
         } else {
             sim.world().setMoveProgress(u.entityId, 0f);

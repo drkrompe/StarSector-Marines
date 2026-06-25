@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -131,12 +132,13 @@ public class GarrisonCordonTest {
 
         cordon.execute(d1, squad, sim);
 
-        assertNotEquals(0, d1.pathCellCount(),
+        int[] path = sim.world().path(d1.entityId);
+        assertNotEquals(0, Paths.cellCount(path),
                 "transit branch must queue a path toward the guard cell");
         // Final cell of the path should be the guard cell.
-        int last = d1.pathCellCount() - 1;
-        assertEquals(post.cellX, d1.pathCellX(last));
-        assertEquals(post.cellY, d1.pathCellY(last));
+        int last = Paths.cellCount(path) - 1;
+        assertEquals(post.cellX, Paths.cellX(path, last));
+        assertEquals(post.cellY, Paths.cellY(path, last));
     }
 
     @Test

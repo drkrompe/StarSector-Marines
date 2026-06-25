@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.Paths;
 
 /**
  * Mech parity action — the GOAP-side equivalent of the legacy
@@ -86,7 +87,7 @@ public final class EngageAtCurrentBand implements Action {
                         sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), dest[0], dest[1], sim.getOccupancyMap()));
             }
         }
-        if (u.pathIdx < u.pathCellCount()) {
+        if (sim.world().pathIdx(u.entityId) < Paths.cellCount(sim.world().path(u.entityId))) {
             sim.advanceMovement(u);
         } else {
             sim.world().setMoveProgress(u.entityId, 0f);

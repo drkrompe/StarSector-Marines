@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.Paths;
 
 /**
  * LR Support doctrine: hold at LR-band cover, lob LRMs at the squad's
@@ -99,15 +100,19 @@ public final class OverwatchKillZone implements Action {
 
         // Path to the overwatch cell. Idempotent — only requests a new path
         // when the mech isn't already at the cell and isn't already moving.
+        int[] path = sim.world().path(member.entityId);
+        int pathIdx = sim.world().pathIdx(member.entityId);
         if ((sim.world().cellX(member.entityId) != m.overwatchCellX || sim.world().cellY(member.entityId) != m.overwatchCellY)
                 && sim.world().moveProgress(member.entityId) == 0f
-                && member.pathIdx >= member.pathCellCount()) {
+                && pathIdx >= Paths.cellCount(path)) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
                     m.overwatchCellX, m.overwatchCellY,
                     sim.getOccupancyMap()));
+            path = sim.world().path(member.entityId);
+            pathIdx = sim.world().pathIdx(member.entityId);
         }
-        if (member.pathIdx < member.pathCellCount()) {
+        if (pathIdx < Paths.cellCount(path)) {
             sim.advanceMovement(member);
         } else {
             sim.world().setMoveProgress(member.entityId, 0f);

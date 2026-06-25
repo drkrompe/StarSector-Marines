@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.Paths;
 
 import java.util.List;
 
@@ -58,12 +59,16 @@ public final class FlankApproach implements Action {
             return ActionStatus.SUCCESS;
         }
 
-        if (sim.world().moveProgress(member.entityId) == 0f && member.pathIdx >= member.pathCellCount()) {
+        int[] path = sim.world().path(member.entityId);
+        int pathIdx = sim.world().pathIdx(member.entityId);
+        if (sim.world().moveProgress(member.entityId) == 0f && pathIdx >= Paths.cellCount(path)) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member.entityId), sim.world().cellY(member.entityId),
                     waypointX, waypointY, sim.getOccupancyMap()));
+            path = sim.world().path(member.entityId);
+            pathIdx = sim.world().pathIdx(member.entityId);
         }
-        if (member.pathIdx < member.pathCellCount()) {
+        if (pathIdx < Paths.cellCount(path)) {
             sim.advanceMovement(member);
         } else {
             sim.world().setMoveProgress(member.entityId, 0f);

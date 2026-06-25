@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
@@ -88,7 +89,7 @@ public class BreakContactTest {
         sim.addUnit(defenderAt(11, 11));
 
         BreakContact.INSTANCE.execute(marine, squad, sim);
-        assertTrue(marine.pathEmpty(), "arrived → no path should be queued");
+        assertTrue(Paths.isEmpty(sim.world().path(marine.entityId)), "arrived → no path should be queued");
         assertEquals(0f, sim.world().moveProgress(marine.entityId), 1e-6f,
                 "arrived → moveProgress reset, render position pinned");
     }

@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.goap.scoring.RoleAssigner;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 
 import java.util.ArrayList;
@@ -115,7 +116,7 @@ public final class GarrisonCordon implements Action {
             sim.advanceMovement(member);
             return ActionStatus.RUNNING;
         }
-        if (!member.pathEmpty()) sim.clearPath(member);
+        if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member);
         sim.world().setMoveProgress(member.entityId, 0f);
         member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
         opportunisticFire(member, sim, FireStance.STANCED);

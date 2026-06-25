@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 
 /**
@@ -65,7 +66,7 @@ public final class BreakContact implements Action {
             sim.advanceMovement(member);
         } else {
             // In position — hold and fire stanced at anything that drifts in.
-            if (!member.pathEmpty()) sim.clearPath(member);
+            if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member);
             sim.world().setMoveProgress(member.entityId, 0f);
             member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
             opportunisticFire(member, sim, FireStance.STANCED);

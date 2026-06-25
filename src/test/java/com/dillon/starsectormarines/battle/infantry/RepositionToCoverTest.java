@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -60,7 +61,7 @@ public class RepositionToCoverTest {
 
         boolean moved = RepositionToCover.tryReposition(marine, sim);
         assertFalse(moved, "cooldown > 0 must block reposition");
-        assertTrue(marine.pathEmpty(), "no path queued when cooldown blocks the move");
+        assertTrue(Paths.isEmpty(sim.world().path(marine.entityId)), "no path queued when cooldown blocks the move");
     }
 
     @Test
@@ -115,6 +116,6 @@ public class RepositionToCoverTest {
         assertTrue(moved, "open-ground marine within reach of a heavy crate should shift");
         assertEquals(RepositionToCover.COOLDOWN_SECONDS, sim.world().repositionCooldown(marine.entityId), 1e-6f,
                 "successful reposition stamps the cooldown so the marine doesn't churn");
-        assertFalse(marine.pathEmpty(), "successful reposition queues a path to the new cell");
+        assertFalse(Paths.isEmpty(sim.world().path(marine.entityId)), "successful reposition queues a path to the new cell");
     }
 }

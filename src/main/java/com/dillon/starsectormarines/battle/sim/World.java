@@ -105,6 +105,14 @@ public final class World {
     public float moveProgress(long id) { return registry.moveProgressById(id); }
     public void setMoveProgress(long id, float v) { registry.setMoveProgressById(id, v); }
 
+    // The path reference + cursor live in the MOVEMENT component too. setPathRef
+    // is the raw column write; the occupancy-bookkeeping path change goes through
+    // BattleControl.setPath (NavigationService), which calls this under the hood.
+    public int[] path(long id) { return registry.pathById(id); }
+    public void setPathRef(long id, int[] p) { registry.setPathRefById(id, p); }
+    public int pathIdx(long id) { return registry.pathIdxById(id); }
+    public void setPathIdx(long id, int v) { registry.setPathIdxById(id, v); }
+
     public float attackDamage(long id) { return registry.attackDamageById(id); }
     public void setAttackDamage(long id, float v) { registry.setAttackDamageById(id, v); }
 

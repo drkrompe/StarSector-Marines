@@ -3,6 +3,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.Paths;
 
 import java.util.Random;
 
@@ -67,8 +68,10 @@ public final class FleeBehavior implements UnitBehavior {
      */
     private static void updateFleeing(Entity u, Entity threat, BattleSimulation sim) {
         sim.world().setWanderDwellTimer(u.entityId, 0f);
-        boolean needsRepath = u.pathIdx >= u.pathCellCount()
-                || cellsTraveled(u) >= REPATH_CELL_THRESHOLD;
+        int[] path = sim.world().path(u.entityId);
+        int pathIdx = sim.world().pathIdx(u.entityId);
+        boolean needsRepath = pathIdx >= Paths.cellCount(path)
+                || cellsTraveled(pathIdx) >= REPATH_CELL_THRESHOLD;
         if (needsRepath && sim.world().moveProgress(u.entityId) == 0f) {
             int[] dest = pickFleeDestination(u, threat, sim);
             if (dest != null) {
@@ -83,9 +86,12 @@ public final class FleeBehavior implements UnitBehavior {
      * starts a dwell, and when dwell expires picks a new destination.
      */
     private static void updateIdle(Entity u, BattleSimulation sim) {
-        if (u.pathIdx < u.pathCellCount()) {
+        int[] path = sim.world().path(u.entityId);
+        int pathIdx = sim.world().pathIdx(u.entityId);
+        if (pathIdx < Paths.cellCount(path)) {
             sim.advanceMovement(u);
-            if (u.pathIdx >= u.pathCellCount()) {
+            // Re-fetch after advance — pathIdx may have incremented.
+            if (sim.world().pathIdx(u.entityId) >= Paths.cellCount(sim.world().path(u.entityId))) {
                 // Arrived this tick — clear the path and start dwelling.
                 sim.clearPath(u);
                 sim.world().setWanderDwellTimer(u.entityId, randomDwellSeconds(u.rng));
@@ -107,7 +113,7 @@ public final class FleeBehavior implements UnitBehavior {
             return;
         }
         sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), dest[0], dest[1], sim.getOccupancyMap()));
-        if (u.pathEmpty()) {
+        if (Paths.isEmpty(sim.world().path(u.entityId))) {
             // Pathfinder found no route (isolated room, blocked by walls). Dwell briefly and try elsewhere.
             sim.world().setWanderDwellTimer(u.entityId, FAILED_SAMPLE_DWELL);
             return;
@@ -206,7 +212,7 @@ public final class FleeBehavior implements UnitBehavior {
      * the path is grid-aligned with 1-cell steps so {@code pathIdx} ≈ cells
      * moved, which is good enough to gate re-pathing.
      */
-    private static int cellsTraveled(Entity u) {
-        return u.pathIdx;
+    private static int cellsTraveled(int pathIdx) {
+        return pathIdx;
     }
 }

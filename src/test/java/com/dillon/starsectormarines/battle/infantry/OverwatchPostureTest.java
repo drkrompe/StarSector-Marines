@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
@@ -95,7 +96,7 @@ public class OverwatchPostureTest {
         assertEquals(ActionStatus.RUNNING, status);
         assertEquals(startCooldown, sim.world().cooldownTimer(defender.entityId), 1e-6f,
                 "Overwatch must not fire — cooldownTimer should be unchanged from its starting value");
-        assertTrue(defender.pathEmpty(), "Overwatch must not queue a path");
+        assertTrue(Paths.isEmpty(sim.world().path(defender.entityId)), "Overwatch must not queue a path");
         assertEquals(5, sim.world().cellX(defender.entityId));
         assertEquals(5, sim.world().cellY(defender.entityId));
         assertEquals(0f, sim.world().moveProgress(defender.entityId), 1e-6f);

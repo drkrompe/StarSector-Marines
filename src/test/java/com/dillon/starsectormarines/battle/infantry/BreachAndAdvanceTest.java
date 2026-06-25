@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
@@ -83,10 +84,11 @@ public class BreachAndAdvanceTest {
         // path members toward the stack-up cell, not the forward cell.
         Entity m0 = sim.liveUnitAt(0);
         action.execute(m0, sq, sim);
-        assertNotEquals(0, m0.pathCellCount(), "stack-up phase queues a path");
+        int[] path = sim.world().path(m0.entityId);
+        assertNotEquals(0, Paths.cellCount(path), "stack-up phase queues a path");
         // Path destination is the stack-up cell, not the forward cell.
-        int destX = m0.pathCellX(m0.pathCellCount() - 1);
-        int destY = m0.pathCellY(m0.pathCellCount() - 1);
+        int destX = Paths.cellX(path, Paths.cellCount(path) - 1);
+        int destY = Paths.cellY(path, Paths.cellCount(path) - 1);
         assertEquals(8, destX, "stack-up dest x");
         assertEquals(5, destY, "stack-up dest y");
     }
@@ -116,8 +118,9 @@ public class BreachAndAdvanceTest {
 
         action.execute(m0, sq, sim);
         // Squad is stacked → advance phase → path to forward cell.
-        int destX = m0.pathCellX(m0.pathCellCount() - 1);
-        int destY = m0.pathCellY(m0.pathCellCount() - 1);
+        int[] path = sim.world().path(m0.entityId);
+        int destX = Paths.cellX(path, Paths.cellCount(path) - 1);
+        int destY = Paths.cellY(path, Paths.cellCount(path) - 1);
         assertEquals(14, destX, "advance phase dest x");
         assertEquals(5, destY, "advance phase dest y");
     }
@@ -139,7 +142,8 @@ public class BreachAndAdvanceTest {
 
         Entity m0 = sim.liveUnitAt(0);
         action.execute(m0, sq, sim);
-        int destX = m0.pathCellX(m0.pathCellCount() - 1);
+        int[] path = sim.world().path(m0.entityId);
+        int destX = Paths.cellX(path, Paths.cellCount(path) - 1);
         assertEquals(14, destX, "timeout commits the breach — path heads for forward cell");
     }
 
@@ -169,7 +173,7 @@ public class BreachAndAdvanceTest {
         attach(sim, sq, action);
 
         action.execute(m0, sq, sim);
-        assertTrue(m0.pathEmpty(), "arrived members clear their path");
+        assertTrue(Paths.isEmpty(sim.world().path(m0.entityId)), "arrived members clear their path");
         assertEquals(0f, sim.world().moveProgress(m0.entityId), 1e-6f);
         assertEquals(14f, m0.getRenderX(), 1e-6f, "render pinned at the destination cell");
     }

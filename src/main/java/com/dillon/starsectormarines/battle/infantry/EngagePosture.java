@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.Paths;
 
 /**
  * <b>Squad posture: actively engage.</b> The planner picks this when the
@@ -117,7 +118,8 @@ public final class EngagePosture implements Action {
                 // members visibly shift at different times.
                 RepositionToCover.tryReposition(member, sim);
             }
-            if (member.pathIdx < member.pathCellCount()) {
+            int[] memberPath = sim.world().path(member.entityId);
+            if (sim.world().pathIdx(member.entityId) < Paths.cellCount(memberPath)) {
                 sim.advanceMovement(member);
             } else {
                 sim.world().setMoveProgress(member.entityId, 0f);
