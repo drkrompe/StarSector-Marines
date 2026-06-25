@@ -77,7 +77,7 @@ public class StreetZonePreviewTest {
 
     /**
      * Symbolic name for each frame the slicer pulls off urban-tileset-3.
-     * Ordinal == slicer index — matches the {@link NatureTile} convention.
+     * Ordinal == slicer index — matches the sliced-sheet frame convention.
      * Kept inside the test for now: the production wiring (a real enum +
      * picker + integration into the map renderer) only makes sense once
      * the preview confirms the art fits, so we don't pay enum/wiring cost

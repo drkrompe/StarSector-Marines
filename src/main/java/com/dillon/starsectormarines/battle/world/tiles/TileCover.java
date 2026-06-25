@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.world.tiles;
 
 /**
  * Gameplay cover bucket of a {@link TileDef} — the registry counterpart to
- * {@link NatureTile.Cover}. {@link #LIGHT} reads as partial cover (fire-through
+ * the former {@code NatureTile.Cover}. {@link #LIGHT} reads as partial cover (fire-through
  * with an accuracy penalty, when wired); {@link #NONE} is fully open.
  */
 public enum TileCover {

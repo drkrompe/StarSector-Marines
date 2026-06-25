@@ -6,7 +6,7 @@ import java.util.List;
  * One tile's authoritative definition, loaded from a {@code *.tileset.json} into
  * the {@link TileRegistry} and addressed by its stable string {@link #id}. This
  * is the data half of the moddable-tilesets split — it replaces the per-tile
- * semantics the {@link NatureTile} / {@link UrbanTile3} enums hardcode (layer,
+ * semantics the former {@code NatureTile} / {@code UrbanTile3} enums hardcoded (layer,
  * cover, passability, overlay legality), so a submod can extend the catalog by
  * dropping JSON rather than recompiling.
  *
@@ -14,7 +14,7 @@ import java.util.List;
  * data-vs-algorithm seam (tiles are pure data; gen carving stays in code).
  *
  * <p>Sliced sheets pin a {@link #frame} (the slicer's left-to-right ordinal —
- * what {@link NatureTile#frameIndex()} used to derive from enum order). Grid
+ * what the former {@code NatureTile.frameIndex()} derived from enum order). Grid
  * autotile <em>blocks</em> (origin + named layout) arrive in Phase 1c and will
  * leave {@code frame == -1}.
  */
@@ -25,7 +25,7 @@ public final class TileDef {
     /**
      * Dense registry index assigned at ingest order — the opaque tile handle a
      * cell stores (as {@code index + 1}, with 0 reading as "none") once the
-     * {@link NatureTile} ordinal it replaces is gone. Stable within one load;
+     * {@code NatureTile} ordinal it replaced is gone. Stable within one load;
      * never persisted ([[battle_transient_no_save_load]] — battles don't save,
      * so the index need not survive a reload).
      */
@@ -60,7 +60,7 @@ public final class TileDef {
 
     /**
      * Whether this overlay tile may be drawn on top of {@code base}. Faithful
-     * port of {@link NatureTile#canOverlay(NatureTile)}: valid when at least one
+     * port of the former {@code NatureTile.canOverlay}: valid when at least one
      * positive selector in {@link #validOn} matches {@code base} AND no
      * exclusion selector matches it. Ground tiles (empty {@code validOn}) never
      * overlay anything.

@@ -139,8 +139,8 @@ public enum BlockKind {
     /**
      * Open beach — sand-dominant ground with the occasional dirt patch,
      * scattered rocks of mixed sizes (small/medium decorative, large
-     * impassable). No plants — sand can't host the plant overlays per
-     * {@link com.dillon.starsectormarines.battle.world.tiles.NatureTile#canOverlay}.
+     * impassable). No plants — sand can't host the plant overlays per the
+     * tile's {@code validOn} rule (see {@link com.dillon.starsectormarines.battle.world.tiles.TileDef#canOverlayOn}).
      * Replaces the v1 beachhead approach (BEACH biome blanket-paints SAND
      * over PARK/WASTELAND_RUBBLE leaves) with a deliberate beach filler
      * that scatters cover-relevant rocks across the landing zone.

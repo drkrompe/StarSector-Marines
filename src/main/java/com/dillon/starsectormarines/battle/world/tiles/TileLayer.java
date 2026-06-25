@@ -2,9 +2,9 @@ package com.dillon.starsectormarines.battle.world.tiles;
 
 /**
  * Render / placement layer of a {@link TileDef}. Unifies the per-tileset
- * {@code Kind} enums the JSON registry replaces: {@link NatureTile.Kind}'s
+ * {@code Kind} enums the JSON registry replaced: the former {@code NatureTile.Kind}'s
  * {@code GROUND / PLANT_OVERLAY / ROCK_OVERLAY} map to {@link #GROUND} /
- * {@link #PLANT} / {@link #ROCK}; {@link UrbanTile3.Kind}'s {@code GROUND /
+ * {@link #PLANT} / {@link #ROCK}; the former {@code UrbanTile3.Kind}'s {@code GROUND /
  * OVERLAY} map to {@link #GROUND} / {@link #OVERLAY}.
  *
  * <p>{@link #GROUND} is the base surface drawn under everything. {@link #PLANT}

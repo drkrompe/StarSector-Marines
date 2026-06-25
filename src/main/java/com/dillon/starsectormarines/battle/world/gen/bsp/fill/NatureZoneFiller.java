@@ -358,7 +358,7 @@ public final class NatureZoneFiller implements BlockFiller {
 
     private static TileDef pickPlant(Random rng, TileRegistry reg) {
         // BEHAVIOR-CRITICAL: pool order and rng.nextInt(pool.length) draw must
-        // match the old NatureTile[] pool exactly so seeded RNG sequences are
+        // match the pre-migration pool exactly so seeded RNG sequences are
         // preserved after migration.
         String[] pool = {
                 "nature.shrub-1",
@@ -375,7 +375,7 @@ public final class NatureZoneFiller implements BlockFiller {
         // breakwater boulders and add real cover. Grassland / wetland keep
         // to smaller decorative rocks; large boulders mid-meadow look odd.
         // BEHAVIOR-CRITICAL: pool order and rng.nextInt(pool.length) draw must
-        // match the old NatureTile[] pool exactly so seeded RNG sequences are
+        // match the pre-migration pool exactly so seeded RNG sequences are
         // preserved after migration.
         if (kind == BlockKind.NATURE_BEACH) {
             String[] pool = {
