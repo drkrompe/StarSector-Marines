@@ -9,7 +9,12 @@ the data/algorithm seam, both schemas). Active story:
 ```
 91ee3f2  docs(moddable-tilesets): new track — dual-JSON, id-addressed TileRegistry
 99de776  moddable-tilesets: Phase 1a — id-addressed TileRegistry (sliced sheets)
+2859234  moddable-tilesets: Phase 1a critique fixes — pin id→frame, fail-loud guards
 ```
+
+Critique-deferred design items (don't lose) are in the story's "1a critique
+follow-ups": `!layer:` exclusion form → Phase 2; strict unknown-key schema →
+Phase 3; enum `label` round-trip → 1c viewer cutover.
 
 ## State of play
 

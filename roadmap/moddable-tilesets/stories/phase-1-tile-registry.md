@@ -59,6 +59,32 @@ Out (later phases):
 > deletion is part of 1c (when grid sheets also get `.tileset.json`).
 > `nature-tiles` never had a catalog, so no duplication there.
 
+#### 1a critique follow-ups
+
+Background critique of `99de776` (fix-before-1b verdict). Resolved in `2859234`:
+
+- **[parity hole, fixed]** The oracle looked tiles up *by* `frame`, so a frame
+  swap between two same-semantics tiles passed green — the silent-shift this
+  track exists to kill, relocated into the JSON. Now pinned via an explicit
+  enum→id table with `def.frame == frameIndex()` asserted.
+- **[fixed]** Missing `frame` now fails loud (was silently `-1`); `layer:`
+  selector tokens validated against `TileLayer` at load.
+
+Deferred (not blockers — carry into the noted slice):
+
+- **`validOn` exclusion is id-only, no `!layer:` form.** "Non-water ground" is
+  only expressible by enumerating `!water` ids, so adding a third water tile
+  forces hand-editing every rock's `validOn`. Revisit in **Phase 2** with a
+  tile `tag`/kind so `!tag:water` works; until then the redundancy is tolerable
+  (two water tiles).
+- **No strict unknown-key validation.** A typo'd field key (`"layr"`) defaults
+  silently rather than failing. A strict-schema pass is **Phase 3** hardening
+  (mod-facing diagnostics), disproportionate for the built-in sheets now.
+- **Enum `label` not carried into `name`/`description`.** The JSON uses its own
+  short names; the enums' human labels ("sand-ish", "medium rock (light
+  cover)") aren't round-tripped. Debug-only; fold into the **1c** viewer cutover
+  when `.catalog.json` is promoted/deleted.
+
 ### 1b — sliced consumers read by id
 
 - `NatureTile` / `UrbanTile3` keep `frameIndex()` (the slicer contract is
