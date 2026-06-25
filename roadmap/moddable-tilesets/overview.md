@@ -196,7 +196,7 @@ its param block and resolves pools against the `TileRegistry`.
 
 | Phase | Story | What | Value without a submod |
 | --- | --- | --- | --- |
-| **1** *(1a ✅ `99de776`)* | [`stories/phase-1-tile-registry.md`](stories/phase-1-tile-registry.md) | Promote `.catalog.json` → `.tileset.json`; build `TileRegistry`; render + `NatureTile`/`UrbanTile3` read by id. Behavior-preserving. | Kills "enum order = PNG order" + hardcoded `(col,row)` fragility. **This is the "tiles within a tileset" JSON.** |
+| **1** *(1a, 1b ✅; 1c grid sheets pending)* | [`stories/phase-1-tile-registry.md`](stories/phase-1-tile-registry.md) | Build `TileRegistry`; render + gen read tiles by id. **1b done: sliced sheets fully data-driven, `NatureTile`/`UrbanTile3` deleted.** 1c = grid-sheet autotile blocks. | Kills "enum order = PNG order" + hardcoded `(col,row)` fragility. **This is the "tiles within a tileset" JSON.** |
 | **2** | _(to author)_ | Extract filler pools/chances + `GroundKind` render dispatch into the mapping JSON + `GenMappingRegistry`; fillers read params. | Tile recipes become data; re-tuning densities is a JSON edit. **This is the "mapping to generated things" JSON.** |
 | **3** | _(to author, deferred)_ | Mod-merge load order, id-override semantics, validation/diagnostics. | The actual submod story. Deferred until a second consumer exists. |
 
