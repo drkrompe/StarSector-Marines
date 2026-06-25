@@ -41,14 +41,36 @@ Key decisions as shipped:
 > `NavigationService` changes, NOT this work (none of our files touch that code;
 > our domain's tests all pass in isolation). Leave their files alone.
 
-## Next up
+## Phase 1c — in progress (SCOPED: live blocks)
 
-**Phase 1c — grid sheets** (`TileManifest` autotile origins → id-addressed
-`blocks` with named layout resolvers; migrate `TilesetDebugScreen`/the catalog
-to `.tileset.json` and delete the `.catalog.json` duplication; carry the enum
-`label`s into the JSON). This is the heavier half — autotile blocks (3×3/5×5)
-with named layout conventions. Then **Phase 2** (gen mapping as data) and
-**Phase 3** (mod-merge, deferred until a real submod exists).
+User scoped 1c to the **live grid blocks + dead-code cleanup** (not a full
+`TileManifest` port). Gut-check correction: genuine dead code is minimal —
+`pickWallTile` is live via `WallMasks`, and the Floors/Water edge resolvers are
+dev-tool-live (`FixedGridZonePreviewTest`). So 1c is a faithful port of legacy
+resolvers. Doodad pools + turret embankment are *gen mapping* → Phase 2.
+
+- **Foundation ✅ `6d30f529`** — `GridLayout` (SINGLE/FLOOR_3X3/WALL_3X3) +
+  `GridBlockDef` + registry `blocks` ingest + `urban-tileset.tileset.json`
+  (wall/floor/rubble/door) + `GridBlockParityTest` (resolvers pinned to the
+  `TileManifest` pickers, all 16 masks). Additive — no consumer reads blocks
+  yet. Verified green (via the init-script workaround — see below).
+- **Next:** flip consumers — `GroundRenderSystem` floor/rubble/door + `WallMasks`
+  wall → `registry.block(id).resolve(...)`; remember to add `urban-tileset` to
+  the test bootstrap's load list (`TileRegistryTestInstaller`) once a consumer
+  needs blocks installed. Then sheet-by-sheet: urban-2 (road/courtyard/striped),
+  Floors/Water center grounds + brick/tile. Then `TilesetDebugScreen` →
+  `.tileset.json` + delete `.catalog.json` dupes. Full plan in the story's 1c.
+
+Then **Phase 2** (gen mapping as data — incl. the doodad pools) and **Phase 3**
+(mod-merge, deferred).
+
+> **Concurrent-session friction (recurring):** another session's drone/turret/
+> sim refactor has repeatedly left `battle/` main OR its test files
+> non-compiling. When `compileTestJava` is blocked by THEIR test files
+> (`DroneCrashSystemTest`/`HubDemolitionSystemTest`/`TurretDemolitionSystemTest`),
+> run with `--init-script` excluding those files (see
+> [[concurrent-session-broken-test-workaround]]); don't touch their files. Verify
+> our own files via IntelliJ `get_file_problems` when gradle is wedged.
 
 ## State of play
 

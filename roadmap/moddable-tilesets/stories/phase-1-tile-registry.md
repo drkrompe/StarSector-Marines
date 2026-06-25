@@ -136,21 +136,45 @@ order untouched. Tile/gen/map suite green (`TileRegistry*`, `NatureZone`/
 
 **1b is DONE.** The sliced sheets are fully data-driven; no enum remains.
 
-### 1c — grid sheets as named-layout blocks *(may split into its own story)*
+### 1c — grid sheets as named-layout blocks (SCOPED — live blocks only)
 
-- `TileManifest`'s private `(col,row)` origins → `blocks` entries
-  (`{id, origin, layout, fillRgb?}`); the `pickXxxTile` resolver families
-  become **named layouts** (`facing-outward-5x5`, `standard-3x3`,
-  `hollow-perimeter-3x3`, …) selected by the block's `layout`, **resolver
-  geometry unchanged**.
-- `GroundRenderSystem.sameKindAutotile` (and the wall/road/floor pickers)
-  resolve a block id → origin + layout instead of calling the static
-  `TileManifest.pickXxx` directly. The 9-case neighbor→cell math stays in
-  the layout resolver.
-- This slice is heavier (autotile layouts, multiple sheets, the
-  `nature` vs. `floors` grass fork at `GroundRenderSystem.java:296-313`).
-  If it grows, split into its own story and ship 1a+1b first — they
-  already deliver the headline win for the sliced sheets.
+Decision (user): **scoped to the live grid blocks + dead-code cleanup**, not a
+full `TileManifest` port.
+
+**Gut-check correction (don't re-derive).** The "lots of dead code" premise was
+wrong: `pickWallTile` is **live** via `WallMasks.pickTileFromMask`; the Floors/
+Water *edge* resolvers (`pickGrass/Stone/Dirt/Sand/Snow/WaterTile`) are
+production-center-only BUT exercised by the dev-tool preview tests
+(`FixedGridZonePreviewTest` renders the full autotile). So genuine dead code is
+minimal — 1c is a **faithful port of working (legacy) resolvers**, not a purge.
+The doodad pools + turret-embankment helpers (woven through ~15 fillers/stampers)
+are *gen mapping*, not tile defs → **Phase 2**, not 1c.
+
+**Model (`battle/world/tiles/`):** `GridBlockDef` (sheet, `cellPx`, origin,
+`GridLayout`, optional `fillRgb`) is the grid counterpart to the sliced
+`TileDef`; `GridLayout` is the named resolver enum (`SINGLE`, `FLOOR_3X3`,
+`WALL_3X3`, …) — faithful ports of the `pickXxx` geometry, parameterized by
+origin. JSON `blocks` array + `cellPx`; ids share the tile namespace.
+
+**Foundation — ✅ shipped `6d30f529`** (additive, no consumer reads it yet,
+mirrors 1b step i): `GridLayout`/`GridBlockDef` + registry `blocks` ingest +
+`urban-tileset.tileset.json` (wall/floor/rubble + door-open) + `GridBlockParityTest`
+(each resolver pinned to its `TileManifest` picker across all 16 masks, incl. the
+wall enclosed/null + `0x060A10` fill). Verified green.
+
+**Remaining (consumer migration, per sheet):**
+- `GroundRenderSystem` floor (INDOOR) / rubble / door dispatch → resolve block id;
+  `WallMasks.pickTileFromMask` → `block("urban.wall").resolve(...)`.
+- Next sheets: `urban-tileset-2` (road / courtyard / striped), then the Floors/
+  Water center grounds + brick/tile single tiles. Each adds its `GridLayout`(s) +
+  `.tileset.json` blocks, parity-pinned to the picker, then flips the consumer.
+- Migrate `TilesetDebugScreen` to `.tileset.json`; delete the `.catalog.json`
+  duplication; carry the catalog labels.
+- The dev-tool preview tests (`FixedGridZonePreviewTest`) move to block ids too.
+
+> The `nature` vs. `floors` grass fork at `GroundRenderSystem` GRASS/DIRT is
+> already on registry ids (Phase 1b); the `floors.*-center` blocks only need to
+> cover STONE/SAND/SNOW/WATER + the legacy fallback.
 
 ## Verification
 
