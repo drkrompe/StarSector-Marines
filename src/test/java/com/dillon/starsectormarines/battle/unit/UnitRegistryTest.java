@@ -270,13 +270,11 @@ public class UnitRegistryTest {
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        // And c's dense columns still resolve through the swapped slot. (hp and
-        // the cell pair are id-keyed in the entity world now — immune to dense
-        // swaps by design — so the swap proof writes a column that still lives
-        // densely.)
-        r.setFallbackCell(r.indexOf(c.entityId), 123, 45);
-        assertEquals(123, r.getFallbackCellX(0));
-        assertEquals(45, r.getFallbackCellY(0));
+        // Every per-unit column is now id-keyed in the entity world (immune to
+        // dense swaps by design), so the swap-and-pop moves only the dense
+        // Entity[] slot + its id↔index mapping: the tail (c) must now occupy
+        // slot 0 and resolve there.
+        assertSame(c, r.get(0));
     }
 
     @Test
@@ -731,20 +729,20 @@ public class UnitRegistryTest {
     }
 
     @Test
-    public void allocateRepositionCooldownDefaultsAndAccessorsRouteThroughRegistry() {
+    public void allocateRepositionCooldownDefaultsAndAccessorsRouteThroughWorld() {
         UnitRegistry r = new UnitRegistry();
         Entity u = unit("u");
 
         r.allocate(u);
 
-        assertEquals(0f, r.getRepositionCooldown(r.indexOf(u.entityId)), 1e-6f);
+        assertEquals(0f, r.repositionCooldownById(u.entityId), 1e-6f);
 
-        r.setRepositionCooldown(r.indexOf(u.entityId), 0.75f);
-        assertEquals(0.75f, r.getRepositionCooldown(r.indexOf(u.entityId)), 1e-6f);
+        r.setRepositionCooldownById(u.entityId, 0.75f);
+        assertEquals(0.75f, r.repositionCooldownById(u.entityId), 1e-6f);
     }
 
     @Test
-    public void releaseTailSwapMovesRepositionCooldownCorrectly() {
+    public void repositionCooldownIsUndisturbedByDenseTailSwap() {
         UnitRegistry r = new UnitRegistry();
         Entity a = unit("a");
         Entity b = unit("b");
@@ -752,12 +750,14 @@ public class UnitRegistryTest {
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        r.setRepositionCooldown(r.indexOf(c.entityId), 0.9f);
+        r.setRepositionCooldownById(c.entityId, 0.9f);
 
+        // Releasing a swap-pops c into a's old dense slot — AI_STATE is keyed by
+        // entity id in the world, not by dense index, so c's value is untouched.
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(0.9f, r.getRepositionCooldown(0), 1e-6f);
+        assertEquals(0.9f, r.repositionCooldownById(c.entityId), 1e-6f);
     }
 
     @Test
@@ -776,47 +776,50 @@ public class UnitRegistryTest {
     }
 
     @Test
-    public void allocateResetsMidCombatColumnsWhenReusingAFreedSlot() {
+    public void allocateGivesAFreshUnitDefaultsAfterReusingAFreedSlot() {
         UnitRegistry r = new UnitRegistry();
         Entity a = unit("a");
         long idA = r.allocate(a);
-        // Dirty several mid-combat columns: COMBAT scalars (world, by id) and a
-        // registry-dense fallback cell (by index).
+        // Dirty several mid-combat columns — all now id-keyed in the world:
+        // COMBAT scalars and the AI_STATE fall-back cell.
         r.setCooldownTimerById(a.entityId, 2.5f);
         r.setTargetIdById(a.entityId, 99L);
         r.setBurstRemainingById(a.entityId, 3);
-        r.setFallbackCell(r.indexOf(a.entityId), 7, 8);
+        r.setFallbackCellById(a.entityId, 7, 8);
         r.release(idA);
 
-        // A fresh unit must see defaults: its COMBAT columns are a fresh,
-        // zero-initialised world row (a's stale row persists under its own id),
-        // and the reused dense slot 0 reset its fallback cell to the sentinel.
+        // A fresh unit reusing the freed dense slot 0 must see defaults: its
+        // world row is a fresh per-id append (a's stale row persists under a's
+        // own id), so COMBAT scalars are zero-init and allocate re-seeds the
+        // AI_STATE fall-back cell to the -1/-1 sentinel (the one non-zero
+        // default).
         Entity b = unit("b");
         r.allocate(b);
         assertEquals(0, r.indexOf(b.entityId));
         assertEquals(0f, r.cooldownTimerById(b.entityId), 1e-6f);
         assertEquals(0L, r.targetIdById(b.entityId));
         assertEquals(0, r.burstRemainingById(b.entityId));
-        assertEquals(-1, r.getFallbackCellX(r.indexOf(b.entityId)));
-        assertEquals(-1, r.getFallbackCellY(r.indexOf(b.entityId)));
+        assertEquals(-1, r.fallbackCellXById(b.entityId));
+        assertEquals(-1, r.fallbackCellYById(b.entityId));
     }
 
     @Test
-    public void allocateFallbackCellDefaultsAndAccessorsRouteThroughRegistry() {
+    public void allocateFallbackCellDefaultsAndAccessorsRouteThroughWorld() {
         UnitRegistry r = new UnitRegistry();
         Entity u = unit("u");
-        // Default -1/-1 sentinel must ride the seed through allocate.
+        // The -1/-1 "no cached cell" sentinel must be seeded by allocate (a
+        // zero-init world row would otherwise read (0,0) as a live destination).
         r.allocate(u);
-        assertEquals(-1, r.getFallbackCellX(r.indexOf(u.entityId)));
-        assertEquals(-1, r.getFallbackCellY(r.indexOf(u.entityId)));
+        assertEquals(-1, r.fallbackCellXById(u.entityId));
+        assertEquals(-1, r.fallbackCellYById(u.entityId));
 
-        r.setFallbackCell(r.indexOf(u.entityId), 12, 9);
-        assertEquals(12, r.getFallbackCellX(r.indexOf(u.entityId)));
-        assertEquals(9, r.getFallbackCellY(r.indexOf(u.entityId)));
+        r.setFallbackCellById(u.entityId, 12, 9);
+        assertEquals(12, r.fallbackCellXById(u.entityId));
+        assertEquals(9, r.fallbackCellYById(u.entityId));
     }
 
     @Test
-    public void releaseTailSwapMovesFallbackCellCorrectly() {
+    public void fallbackCellIsUndisturbedByDenseTailSwap() {
         UnitRegistry r = new UnitRegistry();
         Entity a = unit("a");
         Entity b = unit("b");
@@ -824,30 +827,32 @@ public class UnitRegistryTest {
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        r.setFallbackCell(r.indexOf(c.entityId), 99, 88);
+        r.setFallbackCellById(c.entityId, 99, 88);
 
+        // Releasing a swap-pops c into a's old dense slot — AI_STATE is id-keyed
+        // in the world, immune to the dense reshuffle.
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(99, r.getFallbackCellX(0));
-        assertEquals(88, r.getFallbackCellY(0));
+        assertEquals(99, r.fallbackCellXById(c.entityId));
+        assertEquals(88, r.fallbackCellYById(c.entityId));
     }
 
     @Test
-    public void allocateFallbackTimerDefaultsAndAccessorsRouteThroughRegistry() {
+    public void allocateFallbackTimerDefaultsAndAccessorsRouteThroughWorld() {
         UnitRegistry r = new UnitRegistry();
         Entity u = unit("u");
 
         r.allocate(u);
 
-        assertEquals(0f, r.getFallbackTimer(r.indexOf(u.entityId)), 1e-6f);
+        assertEquals(0f, r.fallbackTimerById(u.entityId), 1e-6f);
 
-        r.setFallbackTimer(r.indexOf(u.entityId), 1.25f);
-        assertEquals(1.25f, r.getFallbackTimer(r.indexOf(u.entityId)), 1e-6f);
+        r.setFallbackTimerById(u.entityId, 1.25f);
+        assertEquals(1.25f, r.fallbackTimerById(u.entityId), 1e-6f);
     }
 
     @Test
-    public void releaseTailSwapMovesFallbackTimerCorrectly() {
+    public void fallbackTimerIsUndisturbedByDenseTailSwap() {
         UnitRegistry r = new UnitRegistry();
         Entity a = unit("a");
         Entity b = unit("b");
@@ -855,29 +860,31 @@ public class UnitRegistryTest {
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        r.setFallbackTimer(r.indexOf(c.entityId), 0.4f);
+        r.setFallbackTimerById(c.entityId, 0.4f);
 
+        // Releasing a swap-pops c into a's old dense slot — AI_STATE is id-keyed
+        // in the world, immune to the dense reshuffle.
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(0.4f, r.getFallbackTimer(0), 1e-6f);
+        assertEquals(0.4f, r.fallbackTimerById(c.entityId), 1e-6f);
     }
 
     @Test
-    public void allocateWanderDwellTimerDefaultsAndAccessorsRouteThroughRegistry() {
+    public void allocateWanderDwellTimerDefaultsAndAccessorsRouteThroughWorld() {
         UnitRegistry r = new UnitRegistry();
         Entity u = unit("u");
 
         r.allocate(u);
 
-        assertEquals(0f, r.getWanderDwellTimer(r.indexOf(u.entityId)), 1e-6f);
+        assertEquals(0f, r.wanderDwellTimerById(u.entityId), 1e-6f);
 
-        r.setWanderDwellTimer(r.indexOf(u.entityId), 0.75f);
-        assertEquals(0.75f, r.getWanderDwellTimer(r.indexOf(u.entityId)), 1e-6f);
+        r.setWanderDwellTimerById(u.entityId, 0.75f);
+        assertEquals(0.75f, r.wanderDwellTimerById(u.entityId), 1e-6f);
     }
 
     @Test
-    public void releaseTailSwapMovesWanderDwellTimerCorrectly() {
+    public void wanderDwellTimerIsUndisturbedByDenseTailSwap() {
         UnitRegistry r = new UnitRegistry();
         Entity a = unit("a");
         Entity b = unit("b");
@@ -885,11 +892,13 @@ public class UnitRegistryTest {
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        r.setWanderDwellTimer(r.indexOf(c.entityId), 0.9f);
+        r.setWanderDwellTimerById(c.entityId, 0.9f);
 
+        // Releasing a swap-pops c into a's old dense slot — AI_STATE is id-keyed
+        // in the world, immune to the dense reshuffle.
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(0.9f, r.getWanderDwellTimer(0), 1e-6f);
+        assertEquals(0.9f, r.wanderDwellTimerById(c.entityId), 1e-6f);
     }
 }

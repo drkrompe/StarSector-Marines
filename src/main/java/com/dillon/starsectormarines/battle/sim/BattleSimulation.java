@@ -61,6 +61,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.vision.VisionService;
 import com.dillon.starsectormarines.battle.combat.Detonations;
 import com.dillon.starsectormarines.battle.combat.HeavyWeapons;
+import com.dillon.starsectormarines.battle.combat.HitResponseService;
 import com.dillon.starsectormarines.battle.infantry.InfantryWeapons;
 
 import java.util.ArrayList;
@@ -691,9 +692,8 @@ public class BattleSimulation implements BattleControl {
     /** Inline fallback write — invoked by the damage service on the serial path AND from the queued-flush. Writes the 3 fb fields and clears the stale path so the target re-paths to the fall-back cell on its next updateUnit pass. */
     private void writeFallbackInline(Entity target, int fbX, int fbY) {
         UnitRegistry registry = rosterService.getRegistry();
-        int idx = registry.requireLiveIndex(target.entityId);
-        registry.setFallbackCell(idx, fbX, fbY);
-        registry.setFallbackTimer(idx, com.dillon.starsectormarines.battle.combat.HitResponseService.FALLBACK_DURATION);
+        registry.setFallbackCellById(target.entityId, fbX, fbY);
+        registry.setFallbackTimerById(target.entityId, HitResponseService.FALLBACK_DURATION);
         clearPath(target);
     }
 

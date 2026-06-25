@@ -1551,9 +1551,8 @@ public final class TacticalScoring {
      * was glued to it.
      */
     public boolean fallbackDestinationNeedsRefresh(Entity member) {
-        int idx = registry.requireLiveIndex(member.entityId);
-        int fx = registry.getFallbackCellX(idx);
-        int fy = registry.getFallbackCellY(idx);
+        int fx = registry.fallbackCellXById(member.entityId);
+        int fy = registry.fallbackCellYById(member.entityId);
         if (fx < 0 || fy < 0) return true;
         return !isHiddenFromAllEnemies(member, fx, fy);
     }

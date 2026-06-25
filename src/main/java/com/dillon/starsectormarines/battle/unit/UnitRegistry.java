@@ -59,24 +59,10 @@ public final class UnitRegistry {
     private static final int INITIAL_CAPACITY = 64;
 
     private Entity[] dense = new Entity[INITIAL_CAPACITY];
-    /**
-     * Per-unit sim-seconds until the unit may next micro-reposition between
-     * shots. Decremented in {@code InfantryUnitPrep.tickCooldowns}.
-     * <b>Mid-combat-only lifecycle</b> (the anchor the other such columns point
-     * to): no pre-allocation seed, reset to its default on slot reuse in
-     * {@link #allocate}, no post-release reader. (Movement's {@code moveProgress}
-     * shared this lifecycle until step 3e lifted it into the world's
-     * {@code MOVEMENT} component; these are the AiState cluster that follows.)
-     */
-    private float[] repositionCooldown = new float[INITIAL_CAPACITY];
-    /** Per-unit sim-seconds remaining in break-contact fall-back state (>0 = falling back toward {@link #fallbackCellX}/{@link #fallbackCellY}). Same lifecycle as {@link #repositionCooldown}. */
-    private float[] fallbackTimer = new float[INITIAL_CAPACITY];
-    /** Per-unit cached fall-back destination cell X (-1 = none). Paired with {@link #fallbackCellY}. Same lifecycle as {@link #repositionCooldown}. */
-    private int[] fallbackCellX = new int[INITIAL_CAPACITY];
-    /** Per-unit cached fall-back destination cell Y, paired with {@link #fallbackCellX}. */
-    private int[] fallbackCellY = new int[INITIAL_CAPACITY];
-    /** Per-unit FLEE-role idle pause between wander legs (sim-seconds). Same lifecycle as {@link #repositionCooldown}. */
-    private float[] wanderDwellTimer = new float[INITIAL_CAPACITY];
+    // The per-unit AI-cadence columns (repositionCooldown, fallbackTimer,
+    // fallbackCellX/Y, wanderDwellTimer) left these dense arrays for the world's
+    // AI_STATE component in step 3f — the last dense SoA columns to migrate, so
+    // the registry now holds only the dense Entity[] + its id↔slot map.
     private int liveCount = 0;
     private long nextId = 1L;
 
@@ -135,11 +121,6 @@ public final class UnitRegistry {
         if (liveCount == dense.length) {
             int newCap = dense.length * 2;
             dense = Arrays.copyOf(dense, newCap);
-            repositionCooldown = Arrays.copyOf(repositionCooldown, newCap);
-            fallbackTimer = Arrays.copyOf(fallbackTimer, newCap);
-            fallbackCellX = Arrays.copyOf(fallbackCellX, newCap);
-            fallbackCellY = Arrays.copyOf(fallbackCellY, newCap);
-            wanderDwellTimer = Arrays.copyOf(wanderDwellTimer, newCap);
         }
         long id = nextId++;
         u.entityId = id;
@@ -152,19 +133,20 @@ public final class UnitRegistry {
         // does the cell, which IS the death cell by the time the corpse forms);
         // Position, Health and Combat seed from the write-only seed* fields and
         // are canonical in the world thereafter — "has HEALTH with hp > 0" is the
-        // liveness definition (isAliveById). MOVEMENT is universal for now
-        // (behavior-preserving: moveProgress was a universal registry column),
-        // its lone moveProgress scalar starting at zero. The corpse transmute
-        // removes HEALTH, COMBAT, MOVEMENT, and any SECONDARY_WEAPON (a corpse
-        // neither lives, fights, nor moves).
+        // liveness definition (isAliveById). MOVEMENT and AI_STATE are universal
+        // for now (behavior-preserving: moveProgress + the AI-cadence columns
+        // were universal registry columns); their scalars start at zero. The
+        // corpse transmute removes HEALTH, COMBAT, MOVEMENT, AI_STATE, and any
+        // SECONDARY_WEAPON (a corpse neither lives, fights, moves, nor thinks).
         boolean hasSecondary = u.seedSecondaryWeapon != null;
         if (hasSecondary) {
             entityWorld.createEntity(id, components.IDENTITY, components.POSITION,
                     components.HEALTH, components.COMBAT, components.MOVEMENT,
-                    components.SECONDARY_WEAPON);
+                    components.AI_STATE, components.SECONDARY_WEAPON);
         } else {
             entityWorld.createEntity(id, components.IDENTITY, components.POSITION,
-                    components.HEALTH, components.COMBAT, components.MOVEMENT);
+                    components.HEALTH, components.COMBAT, components.MOVEMENT,
+                    components.AI_STATE);
         }
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_TYPE, u.type);
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_FACTION, u.faction);
@@ -187,21 +169,18 @@ public final class UnitRegistry {
             entityWorld.setObject(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC, u.seedSecondaryWeapon);
             entityWorld.setInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AMMO, u.seedSecondaryAmmo);
         }
-        // Reset the mid-combat-only registry columns to their defaults. These
-        // have no pre-allocation seed (a fresh unit starts at rest) and no
-        // post-release reader, so they carry no local* twin on Entity; the
-        // explicit reset clears any stale value left in a dense slot reused after
-        // a swap-and-pop release. (moveProgress moved to the world's MOVEMENT
-        // component in step 3e — a fresh world row is zero-init by append, so it
-        // needs no reset here.)
-        repositionCooldown[liveCount] = 0f;
-        fallbackTimer[liveCount] = 0f;
-        fallbackCellX[liveCount] = -1;
-        fallbackCellY[liveCount] = -1;
-        wanderDwellTimer[liveCount] = 0f;
-        // Seed + wire the decomposed render-position service. Unlike the dense
-        // columns above, this reference is NOT nulled on release — the entry
-        // survives so a released corpse still resolves its death-pose location.
+        // Seed the AI_STATE fall-back cell to its -1/-1 "no cached cell"
+        // sentinel — the one mid-combat scalar whose default isn't zero, so the
+        // zero-init world row append can't supply it (readers treat a non-negative
+        // cell as a live cached destination). The other four AI_STATE scalars
+        // (reposition/fallback/wander timers) start at zero by the row append, as
+        // do all the MOVEMENT/COMBAT mid-combat scalars — a fresh per-id world row
+        // means no slot-reuse reset is needed (unlike the old dense columns).
+        entityWorld.setInt(id, components.AI_STATE, BattleComponents.AI_STATE_FALLBACK_CELL_X, -1);
+        entityWorld.setInt(id, components.AI_STATE, BattleComponents.AI_STATE_FALLBACK_CELL_Y, -1);
+        // Seed + wire the decomposed render-position service. Unlike the world
+        // entity, this reference is NOT nulled on release — the entry survives so
+        // a released corpse still resolves its death-pose location.
         renderPositions.set(id, u.localRenderX, u.localRenderY);
         u.renderPositions = renderPositions;
         indexById.put(id, liveCount);
@@ -228,25 +207,21 @@ public final class UnitRegistry {
         if (idx == INVALID_INDEX) return;
         int last = liveCount - 1;
         // Nothing is snapshotted back onto the released unit, and there is no
-        // back-pointer to clear (Entity no longer holds one). The cell pair and
-        // the Group-S stats carry no post-release shadow: the cell's post-release
-        // readers (turret/hub demolition + mech wreck handlers) read the death
-        // cell off the DeathEvent snapshot, and render position lives in the
-        // RenderPositionService keyed by entityId — NOT cleared on release, so
-        // the corpse's death-pose location survives. The world entity is NOT
-        // touched here: hp lives in its HEALTH component (isAliveById reads it,
-        // so a released-pre-transmute id still reports dead via hp <= 0), the
-        // combat stats/scalars in its COMBAT component, moveProgress in MOVEMENT,
-        // and any SECONDARY_WEAPON; the death drain transmutes the entity to the
-        // corpse archetype, which removes all of them.
+        // back-pointer to clear (Entity no longer holds one). No per-unit state
+        // is moved by the swap any more — every column lives in the entity world
+        // keyed by id, immune to the dense reshuffle: the cell pair + Group-S
+        // stats persist (the cell's post-release readers — turret/hub demolition
+        // + mech wreck handlers — read the death cell off the DeathEvent
+        // snapshot, render position lives in the RenderPositionService keyed by
+        // entityId, NOT cleared on release), and hp (HEALTH), the combat
+        // stats/scalars (COMBAT), moveProgress (MOVEMENT), the AI-cadence scalars
+        // (AI_STATE), and any SECONDARY_WEAPON all stay under the entity's id
+        // until the death drain transmutes it to the corpse archetype, which
+        // removes the live-only ones. So the swap-and-pop only moves the dense
+        // Entity[] slot + fixes the tail's id↔slot mapping.
         if (idx != last) {
             Entity tail = dense[last];
             dense[idx] = tail;
-            repositionCooldown[idx] = repositionCooldown[last];
-            fallbackTimer[idx] = fallbackTimer[last];
-            fallbackCellX[idx] = fallbackCellX[last];
-            fallbackCellY[idx] = fallbackCellY[last];
-            wanderDwellTimer[idx] = wanderDwellTimer[last];
             indexById.put(tail.entityId, idx);
         }
         dense[last] = null;
@@ -411,26 +386,24 @@ public final class UnitRegistry {
     /** Game component-type registrations + shared queries for {@link #entityWorld()}. */
     public BattleComponents components() { return components; }
 
-    public float getRepositionCooldown(int idx) { return repositionCooldown[idx]; }
-    public void setRepositionCooldown(int idx, float v) { repositionCooldown[idx] = v; }
-    public float[] repositionCooldownArray() { return repositionCooldown; }
-
-    public float getFallbackTimer(int idx) { return fallbackTimer[idx]; }
-    public void setFallbackTimer(int idx, float v) { fallbackTimer[idx] = v; }
-    public float[] fallbackTimerArray() { return fallbackTimer; }
-
-    public int getFallbackCellX(int idx) { return fallbackCellX[idx]; }
-    public int getFallbackCellY(int idx) { return fallbackCellY[idx]; }
-    public void setFallbackCell(int idx, int x, int y) {
-        fallbackCellX[idx] = x;
-        fallbackCellY[idx] = y;
+    // Transitional by-id AI-state adapters over the world's AI_STATE component —
+    // same shape and fate as the hp/cell/combat/movement adapters above. Strict
+    // reads (fail-loud once the entity is gone OR transmuted to a corpse — a
+    // corpse lacks AI_STATE). Universal on every live unit today, so no presence
+    // gate. The fall-back cell pair seeds -1/-1 at allocate (the one non-zero
+    // default); the timers start zeroed by the world row append.
+    public float repositionCooldownById(long id) { return entityWorld.getFloat(id, components.AI_STATE, BattleComponents.AI_STATE_REPOSITION_COOLDOWN); }
+    public void setRepositionCooldownById(long id, float v) { entityWorld.setFloat(id, components.AI_STATE, BattleComponents.AI_STATE_REPOSITION_COOLDOWN, v); }
+    public float fallbackTimerById(long id) { return entityWorld.getFloat(id, components.AI_STATE, BattleComponents.AI_STATE_FALLBACK_TIMER); }
+    public void setFallbackTimerById(long id, float v) { entityWorld.setFloat(id, components.AI_STATE, BattleComponents.AI_STATE_FALLBACK_TIMER, v); }
+    public int fallbackCellXById(long id) { return entityWorld.getInt(id, components.AI_STATE, BattleComponents.AI_STATE_FALLBACK_CELL_X); }
+    public int fallbackCellYById(long id) { return entityWorld.getInt(id, components.AI_STATE, BattleComponents.AI_STATE_FALLBACK_CELL_Y); }
+    public void setFallbackCellById(long id, int x, int y) {
+        entityWorld.setInt(id, components.AI_STATE, BattleComponents.AI_STATE_FALLBACK_CELL_X, x);
+        entityWorld.setInt(id, components.AI_STATE, BattleComponents.AI_STATE_FALLBACK_CELL_Y, y);
     }
-    public int[] fallbackCellXArray() { return fallbackCellX; }
-    public int[] fallbackCellYArray() { return fallbackCellY; }
-
-    public float getWanderDwellTimer(int idx) { return wanderDwellTimer[idx]; }
-    public void setWanderDwellTimer(int idx, float v) { wanderDwellTimer[idx] = v; }
-    public float[] wanderDwellTimerArray() { return wanderDwellTimer; }
+    public float wanderDwellTimerById(long id) { return entityWorld.getFloat(id, components.AI_STATE, BattleComponents.AI_STATE_WANDER_DWELL_TIMER); }
+    public void setWanderDwellTimerById(long id, float v) { entityWorld.setFloat(id, components.AI_STATE, BattleComponents.AI_STATE_WANDER_DWELL_TIMER, v); }
 
     public int liveCount() {
         return liveCount;

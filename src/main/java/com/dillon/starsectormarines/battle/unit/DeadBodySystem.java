@@ -8,12 +8,13 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * Turns the dead unit's world entity into a corpse — the death-event handler
  * that builds the corpse home. Subscribed to the battle's death dispatcher; on
  * each {@link DeathEvent} it {@code transmute}s the entity (one row-move) from
- * the live {@code {IDENTITY, POSITION, HEALTH, COMBAT, MOVEMENT}} archetype
- * (plus an optional {@code SECONDARY_WEAPON}) to the corpse archetype
+ * the live {@code {IDENTITY, POSITION, HEALTH, COMBAT, MOVEMENT, AI_STATE}}
+ * archetype (plus an optional {@code SECONDARY_WEAPON}) to the corpse archetype
  * {@code {IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}}: {@code HEALTH},
- * {@code COMBAT}, {@code MOVEMENT}, and any {@code SECONDARY_WEAPON} are removed
- * (a corpse neither lives, fights, nor moves — and "lacks HEALTH" is half the
- * liveness definition), {@code IDENTITY} <b>and the cell</b> are
+ * {@code COMBAT}, {@code MOVEMENT}, {@code AI_STATE}, and any
+ * {@code SECONDARY_WEAPON} are removed (a corpse neither lives, fights, moves,
+ * nor thinks — and "lacks HEALTH" is half the liveness definition),
+ * {@code IDENTITY} <b>and the cell</b> are
  * carried by the row-move ("the corpse keeps its cell" is literal: nothing
  * moves a unit after the kill zeroes its hp, so the live POSITION already is
  * the death cell the event snapshotted), the draw position is frozen at the
@@ -51,13 +52,13 @@ public final class DeadBodySystem {
         this.renderPositions = renderPositions;
         this.corpseAdd = new ComponentType[]{
                 components.RENDER_POSITION, components.SPRITE, components.CORPSE};
-        // MOVEMENT is removed too (a corpse does not move). SECONDARY_WEAPON is
-        // removed when present; transmute treats a remove of a component the
-        // entity lacks as a no-op, so listing it unconditionally is safe for
-        // units that never carried a secondary.
+        // MOVEMENT and AI_STATE are removed too (a corpse neither moves nor
+        // thinks). SECONDARY_WEAPON is removed when present; transmute treats a
+        // remove of a component the entity lacks as a no-op, so listing it
+        // unconditionally is safe for units that never carried a secondary.
         this.corpseRemove = new ComponentType[]{
                 components.HEALTH, components.COMBAT, components.MOVEMENT,
-                components.SECONDARY_WEAPON};
+                components.AI_STATE, components.SECONDARY_WEAPON};
     }
 
     /** Death-event handler: transmute the dead unit's entity to the corpse archetype. */

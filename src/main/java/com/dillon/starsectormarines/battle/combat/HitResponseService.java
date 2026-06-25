@@ -61,8 +61,7 @@ public final class HitResponseService {
 
     public void rollFallbackOnHit(Entity target) {
         if (!registry.isAliveById(target.entityId)) return;
-        int tIdx = registry.requireLiveIndex(target.entityId);
-        if (registry.getFallbackTimer(tIdx) > 0f) return;
+        if (registry.fallbackTimerById(target.entityId) > 0f) return;
         if (target instanceof MapTurret) return;
         if (target.squadId != Entity.NO_SQUAD) return;
         if (target.rng.nextFloat() >= FALLBACK_CHANCE) return;

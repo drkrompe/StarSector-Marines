@@ -151,18 +151,22 @@ public final class World {
     /** Grant the secondary capability to a live unit at runtime (archetype row-move). Serial-only; see {@link UnitRegistry#attachSecondaryWeapon}. */
     public void attachSecondaryWeapon(long id, MarineSecondary spec, int ammo) { registry.attachSecondaryWeapon(id, spec, ammo); }
 
-    public float repositionCooldown(long id) { return registry.getRepositionCooldown(registry.requireLiveIndex(id)); }
-    public void setRepositionCooldown(long id, float v) { registry.setRepositionCooldown(registry.requireLiveIndex(id), v); }
+    // AI-cadence state lives in the entity world's AI_STATE component (migration
+    // step 3f) — same transitional by-id adapter routing as combat/movement
+    // above. Fail-loud once the death drain has transmuted the entity to a
+    // corpse (AI_STATE gone).
+    public float repositionCooldown(long id) { return registry.repositionCooldownById(id); }
+    public void setRepositionCooldown(long id, float v) { registry.setRepositionCooldownById(id, v); }
 
-    public float fallbackTimer(long id) { return registry.getFallbackTimer(registry.requireLiveIndex(id)); }
-    public void setFallbackTimer(long id, float v) { registry.setFallbackTimer(registry.requireLiveIndex(id), v); }
+    public float fallbackTimer(long id) { return registry.fallbackTimerById(id); }
+    public void setFallbackTimer(long id, float v) { registry.setFallbackTimerById(id, v); }
 
-    public int fallbackCellX(long id) { return registry.getFallbackCellX(registry.requireLiveIndex(id)); }
-    public int fallbackCellY(long id) { return registry.getFallbackCellY(registry.requireLiveIndex(id)); }
-    public void setFallbackCell(long id, int x, int y) { registry.setFallbackCell(registry.requireLiveIndex(id), x, y); }
+    public int fallbackCellX(long id) { return registry.fallbackCellXById(id); }
+    public int fallbackCellY(long id) { return registry.fallbackCellYById(id); }
+    public void setFallbackCell(long id, int x, int y) { registry.setFallbackCellById(id, x, y); }
 
-    public float wanderDwellTimer(long id) { return registry.getWanderDwellTimer(registry.requireLiveIndex(id)); }
-    public void setWanderDwellTimer(long id, float v) { registry.setWanderDwellTimer(registry.requireLiveIndex(id), v); }
+    public float wanderDwellTimer(long id) { return registry.wanderDwellTimerById(id); }
+    public void setWanderDwellTimer(long id, float v) { registry.setWanderDwellTimerById(id, v); }
 
     // ---- cold face: projected component access ----
 

@@ -17,12 +17,14 @@ import com.dillon.starsectormarines.engine.ecs.Query;
  * corpse archetype plus the live capabilities ({@link #POSITION},
  * {@link #HEALTH}, {@link #COMBAT}, {@link #MOVEMENT}) and the first
  * <em>optional</em> live capability ({@link #SECONDARY_WEAPON}). Every unit
- * spawns into the world as {@code {IDENTITY, POSITION, HEALTH, COMBAT,
- * MOVEMENT}}, plus {@link #SECONDARY_WEAPON} iff it carries one (so presence
+ * spawns into the world as {@code {IDENTITY, POSITION, HEALTH, COMBAT, MOVEMENT,
+ * AI_STATE}}, plus {@link #SECONDARY_WEAPON} iff it carries one (so presence
  * <em>is</em> the capability — no nullable field); death is the transmute to
  * the corpse archetype (identity + cell ride the row-move; health, combat,
- * movement, and any secondary are removed). The remaining live component
- * (ai-state) joins as migration step 3 proceeds, continuing the id space.
+ * movement, ai-state, and any secondary are removed). With {@link #AI_STATE}
+ * the registry holds no per-unit dense column at all — the remaining migration
+ * work folds the standalone {@code Crashing}/{@code MechLoadout} component
+ * stores into archetype membership, then dissolves {@code UnitRegistry}.
  *
  * <p>Column access is positional ({@code table.ints(POSITION, POSITION_CELL_X)});
  * the {@code int} constants below are the named field indices per component.
@@ -77,6 +79,17 @@ public final class BattleComponents {
 
     /** {@link #MOVEMENT} field 0: movement lerp factor [0,1] toward the next path cell (FLOAT). */
     public static final int MOVEMENT_MOVE_PROGRESS = 0;
+
+    /** {@link #AI_STATE} field 0: sim-seconds until the unit may next micro-reposition between shots (FLOAT). */
+    public static final int AI_STATE_REPOSITION_COOLDOWN = 0;
+    /** {@link #AI_STATE} field 1: sim-seconds remaining in break-contact fall-back state, &gt;0 = falling back (FLOAT). */
+    public static final int AI_STATE_FALLBACK_TIMER = 1;
+    /** {@link #AI_STATE} field 2: cached fall-back destination cell x, {@code -1} = none (INT). */
+    public static final int AI_STATE_FALLBACK_CELL_X = 2;
+    /** {@link #AI_STATE} field 3: cached fall-back destination cell y, paired with {@link #AI_STATE_FALLBACK_CELL_X} (INT). */
+    public static final int AI_STATE_FALLBACK_CELL_Y = 3;
+    /** {@link #AI_STATE} field 4: FLEE-role idle pause between wander legs, sim-seconds (FLOAT). */
+    public static final int AI_STATE_WANDER_DWELL_TIMER = 4;
 
     /** {@link #SECONDARY_WEAPON} field 0: the {@link com.dillon.starsectormarines.battle.infantry.MarineSecondary} flyweight (OBJECT). */
     public static final int SECONDARY_WEAPON_SPEC = 0;
@@ -147,6 +160,21 @@ public final class BattleComponents {
      */
     public final ComponentType MOVEMENT;
     /**
+     * AI decision-cadence state — {@code float repositionCooldown; float
+     * fallbackTimer; int fallbackCellX, fallbackCellY; float wanderDwellTimer}.
+     * The per-unit countdowns + cached fall-back cell the decision tier drives:
+     * reposition gating, break-contact fall-back (timer + its destination cell,
+     * {@code -1/-1} = none — the one field pair whose default is <em>not</em>
+     * zero, so {@code allocate} explicitly seeds the sentinel since a fresh world
+     * row appends as zero), and the FLEE wander dwell. Universal on every live
+     * unit today (behavior-preserving — these were universal registry columns),
+     * so this slice empties the last of {@code UnitRegistry}'s dense columns; the
+     * designed end-state narrows membership to thinking entities (a turret has no
+     * decision cadence). Removed in the corpse transmute (a corpse does not
+     * think). See {@code roadmap/ecs-migration/archetype-storage.md}.
+     */
+    public final ComponentType AI_STATE;
+    /**
      * Optional secondary weapon — {@code MarineSecondary spec; int ammo; float
      * cooldownTimer, actionTimer; long aimTargetId; int fired}. The first
      * <em>optional</em> live capability modeled as archetype presence: added at
@@ -185,6 +213,8 @@ public final class BattleComponents {
                 FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT, FieldKind.FLOAT,
                 FieldKind.LONG, FieldKind.INT);
         MOVEMENT        = world.register(8, "Movement", FieldKind.FLOAT);
+        AI_STATE        = world.register(9, "AiState",
+                FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.INT, FieldKind.INT, FieldKind.FLOAT);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}, null);
     }
