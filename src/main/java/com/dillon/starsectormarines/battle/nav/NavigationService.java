@@ -232,9 +232,9 @@ public final class NavigationService {
 
     /**
      * Replaces a unit's path and queues a deferred {@link #occupancyMap} +
-     * {@link #destIndex} update. {@code u.path} / {@code u.pathIdx} are
-     * unit-local and mutated inline; the shared spatial-state change goes
-     * through the queued {@link #occupancyDeltaSink} so the parallel
+     * {@link #destIndex} update. The path ref + cursor are the unit's own
+     * MOVEMENT-component state, written by id here; the shared spatial-state
+     * change goes through the queued {@link #occupancyDeltaSink} so the parallel
      * UPDATE_UNITS dispatch never races on the occupancy map or destIndex
      * (the delta drains in APPLY_OCCUPANCY at the end of the dispatch).
      * Pass {@link GridPathfinder#EMPTY_PATH} (or call {@link #clearPath})

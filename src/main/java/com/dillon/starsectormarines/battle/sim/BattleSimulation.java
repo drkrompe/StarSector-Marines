@@ -852,8 +852,8 @@ public class BattleSimulation implements BattleControl {
         // subsequent serial phase reads the spatial state. None of the
         // post-UPDATE_UNITS phases call setPath today, so a single drain
         // here keeps the bookkeeping consistent for the rest of the tick
-        // (and the next tick's REBUILD_OCCUPANCY rebuilds from u.path
-        // regardless).
+        // (and the next tick's REBUILD_OCCUPANCY rebuilds from each unit's
+        // MOVEMENT path regardless).
         flushPendingOccupancyDeltas();
         tickProfile.lap(TickProfile.Phase.APPLY_OCCUPANCY);
         // Mirror queued drone-hub spawns into the units list. Only callers
@@ -1006,8 +1006,9 @@ public class BattleSimulation implements BattleControl {
     /**
      * Delegates to {@link NavigationService#setPath(Entity, int[])}. Kept on the
      * sim's surface so AI behaviors in {@code battle.ai} can route movement
-     * through {@code sim.setPath(...)} instead of touching {@code u.path}
-     * directly. Pass {@link GridPathfinder#EMPTY_PATH} (or call
+     * through {@code sim.setPath(...)} — which keeps the occupancy/destIndex
+     * bookkeeping in sync — rather than writing the MOVEMENT path by id directly.
+     * Pass {@link GridPathfinder#EMPTY_PATH} (or call
      * {@link #clearPath(Entity)}) to drop the current path.
      */
     public void setPath(Entity u, int[] newPath) {
