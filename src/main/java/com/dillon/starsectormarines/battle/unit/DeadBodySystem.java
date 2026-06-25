@@ -8,10 +8,11 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * Turns the dead unit's world entity into a corpse — the death-event handler
  * that builds the corpse home. Subscribed to the battle's death dispatcher; on
  * each {@link DeathEvent} it {@code transmute}s the entity (one row-move) from
- * the live {@code {IDENTITY, POSITION, HEALTH, COMBAT, MOVEMENT, AI_STATE}}
- * archetype (plus an optional {@code SECONDARY_WEAPON}) to the corpse archetype
+ * the live {@code {IDENTITY, POSITION, HEALTH, COMBAT}} archetype (plus the
+ * optional {@code MOVEMENT}, {@code AI_STATE}, and {@code SECONDARY_WEAPON} a
+ * mobile/armed unit carries) to the corpse archetype
  * {@code {IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}}: {@code HEALTH},
- * {@code COMBAT}, {@code MOVEMENT}, {@code AI_STATE}, and any
+ * {@code COMBAT}, and any {@code MOVEMENT}, {@code AI_STATE}, or
  * {@code SECONDARY_WEAPON} are removed (a corpse neither lives, fights, moves,
  * nor thinks — and "lacks HEALTH" is half the liveness definition),
  * {@code IDENTITY} <b>and the cell</b> are
@@ -52,10 +53,10 @@ public final class DeadBodySystem {
         this.renderPositions = renderPositions;
         this.corpseAdd = new ComponentType[]{
                 components.RENDER_POSITION, components.SPRITE, components.CORPSE};
-        // MOVEMENT and AI_STATE are removed too (a corpse neither moves nor
-        // thinks). SECONDARY_WEAPON is removed when present; transmute treats a
-        // remove of a component the entity lacks as a no-op, so listing it
-        // unconditionally is safe for units that never carried a secondary.
+        // MOVEMENT, AI_STATE, and SECONDARY_WEAPON are all optional (a static
+        // turret/hub has no MOVEMENT/AI_STATE; only armed units carry a secondary)
+        // and removed when present — transmute treats a remove of a component the
+        // entity lacks as a no-op, so listing them unconditionally is safe.
         this.corpseRemove = new ComponentType[]{
                 components.HEALTH, components.COMBAT, components.MOVEMENT,
                 components.AI_STATE, components.SECONDARY_WEAPON};

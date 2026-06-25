@@ -99,9 +99,12 @@ public final class World {
     public float cooldownTimer(long id) { return registry.cooldownTimerById(id); }
     public void setCooldownTimer(long id, float v) { registry.setCooldownTimerById(id, v); }
 
-    // Movement lives in the entity world's MOVEMENT component (migration step
-    // 3e) — same transitional by-id adapter routing as combat above. Fail-loud
-    // once the death drain has transmuted the entity to a corpse (MOVEMENT gone).
+    // Movement lives in the entity world's OPTIONAL MOVEMENT component (migration
+    // step 3e) — same transitional by-id adapter routing as combat above, but
+    // narrowed to movers: a static emplacement (turret, drone hub) has no MOVEMENT.
+    // hasMovement is the presence check; the field accessors are fail-loud on a
+    // unit that lacks it (and once the death drain has transmuted to a corpse).
+    public boolean hasMovement(long id) { return registry.hasMovement(id); }
     public float moveProgress(long id) { return registry.moveProgressById(id); }
     public void setMoveProgress(long id, float v) { registry.setMoveProgressById(id, v); }
 
@@ -159,10 +162,13 @@ public final class World {
     /** Grant the secondary capability to a live unit at runtime (archetype row-move). Serial-only; see {@link UnitRegistry#attachSecondaryWeapon}. */
     public void attachSecondaryWeapon(long id, MarineSecondary spec, int ammo) { registry.attachSecondaryWeapon(id, spec, ammo); }
 
-    // AI-cadence state lives in the entity world's AI_STATE component (migration
-    // step 3f) — same transitional by-id adapter routing as combat/movement
-    // above. Fail-loud once the death drain has transmuted the entity to a
-    // corpse (AI_STATE gone).
+    // AI-cadence state lives in the entity world's OPTIONAL AI_STATE component
+    // (migration step 3f) — same transitional by-id adapter routing as movement
+    // above, and likewise narrowed to thinkers: a static emplacement (turret,
+    // drone hub) has no decision cadence. hasAiState is the presence check; the
+    // field accessors are fail-loud on a unit that lacks it (and once the death
+    // drain has transmuted to a corpse).
+    public boolean hasAiState(long id) { return registry.hasAiState(id); }
     public float repositionCooldown(long id) { return registry.repositionCooldownById(id); }
     public void setRepositionCooldown(long id, float v) { registry.setRepositionCooldownById(id, v); }
 

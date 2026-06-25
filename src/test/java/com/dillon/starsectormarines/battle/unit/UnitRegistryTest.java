@@ -881,6 +881,35 @@ public class UnitRegistryTest {
     }
 
     @Test
+    public void staticEmplacementsGetNoMovementOrAiStateComponents() {
+        UnitRegistry r = new UnitRegistry();
+        Entity marine = new Entity("m", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
+        Entity turret = new Entity("t", Faction.MARINE, UnitType.TURRET, 1, 1);
+        Entity hub = new Entity("h", Faction.MARINE, UnitType.DRONE_HUB_STRUCTURE, 2, 2);
+        r.allocate(marine);
+        r.allocate(turret);
+        r.allocate(hub);
+
+        // A mobile unit is a mover AND a thinker; a static emplacement (turret,
+        // drone hub; UnitType.isStatic) is neither — presence IS the capability.
+        assertTrue(r.hasMovement(marine.entityId));
+        assertTrue(r.hasAiState(marine.entityId));
+        assertFalse(r.hasMovement(turret.entityId));
+        assertFalse(r.hasAiState(turret.entityId));
+        assertFalse(r.hasMovement(hub.entityId));
+        assertFalse(r.hasAiState(hub.entityId));
+
+        // The mobile unit's non-zero seeds still run (the mobile-gated allocate
+        // block): the empty-path sentinel and the -1/-1 fall-back cell.
+        assertSame(GridPathfinder.EMPTY_PATH, r.pathById(marine.entityId));
+        assertEquals(-1, r.fallbackCellXById(marine.entityId));
+
+        // The field accessors are fail-loud on a unit that lacks the component.
+        assertThrows(RuntimeException.class, () -> r.moveProgressById(turret.entityId));
+        assertThrows(RuntimeException.class, () -> r.repositionCooldownById(hub.entityId));
+    }
+
+    @Test
     public void allocateFallbackTimerDefaultsAndAccessorsRouteThroughWorld() {
         UnitRegistry r = new UnitRegistry();
         Entity u = unit("u");

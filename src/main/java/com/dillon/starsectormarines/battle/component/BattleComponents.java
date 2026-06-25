@@ -14,17 +14,17 @@ import com.dillon.starsectormarines.engine.ecs.Query;
  * <p>Components are grouped by lifecycle-stable capability (Identity persists
  * alive→dead; Health is live-only), per the committed decomposition in
  * {@code roadmap/ecs-migration/archetype-storage.md}. Registered so far: the
- * corpse archetype plus the live capabilities ({@link #POSITION},
- * {@link #HEALTH}, {@link #COMBAT}, {@link #MOVEMENT}) and the first
- * <em>optional</em> live capability ({@link #SECONDARY_WEAPON}). Every unit
- * spawns into the world as {@code {IDENTITY, POSITION, HEALTH, COMBAT, MOVEMENT,
- * AI_STATE}}, plus {@link #SECONDARY_WEAPON} iff it carries one (so presence
- * <em>is</em> the capability — no nullable field); death is the transmute to
- * the corpse archetype (identity + cell ride the row-move; health, combat,
- * movement, ai-state, and any secondary are removed). With {@link #AI_STATE}
- * the registry holds no per-unit dense column at all — the remaining migration
- * work folds the standalone {@code Crashing}/{@code MechLoadout} component
- * stores into archetype membership, then dissolves {@code UnitRegistry}.
+ * corpse archetype plus the mandatory live capabilities ({@link #POSITION},
+ * {@link #HEALTH}, {@link #COMBAT}) and the optional ones ({@link #MOVEMENT},
+ * {@link #AI_STATE}, {@link #SECONDARY_WEAPON}). Every unit spawns into the world
+ * as {@code {IDENTITY, POSITION, HEALTH, COMBAT}}, plus {@link #MOVEMENT} +
+ * {@link #AI_STATE} iff it is mobile (a static turret/hub carries neither) and
+ * {@link #SECONDARY_WEAPON} iff it carries one — so presence <em>is</em> the
+ * capability, no nullable field. Death is the transmute to the corpse archetype
+ * (identity + cell ride the row-move; health, combat, and any movement, ai-state,
+ * or secondary are removed). The remaining migration work folds the standalone
+ * {@code Crashing}/{@code MechLoadout} component stores into archetype
+ * membership, then dissolves {@code UnitRegistry}.
  *
  * <p>Column access is positional ({@code table.ints(POSITION, POSITION_CELL_X)});
  * the {@code int} constants below are the named field indices per component.
@@ -152,14 +152,13 @@ public final class BattleComponents {
     /**
      * Movement state — {@code float moveProgress} (the [0,1] lerp factor toward
      * the next path cell), {@code int[] path} (the flat path reference), and
-     * {@code int pathIdx} (the cursor along it). Universal on every live unit
-     * today (seeded at spawn like the mid-combat {@link #COMBAT} scalars — the
-     * timers zero, the path the empty-path sentinel), so this slice stays
-     * behavior-preserving: even a turret carries an empty path it never advances,
-     * exactly as the old universal {@code Entity} fields + registry column did.
-     * The designed end-state narrows membership to path-executing (kinematic)
-     * entities only, where "has a path capability" is what truly defines a mover;
-     * that narrowing is the remaining deferred step. Removed in the corpse
+     * {@code int pathIdx} (the cursor along it). <em>Optional</em>: added at spawn
+     * only for mobile units, so "has MOVEMENT" defines a mover. A static
+     * emplacement (a turret or drone hub;
+     * {@link com.dillon.starsectormarines.battle.unit.UnitType#isStatic}) never
+     * paths and carries no MOVEMENT — the few all-unit readers (the occupancy-map
+     * and destination-index rebuilds) gate on {@code UnitRegistry.hasMovement};
+     * per-unit movement code only ever runs for movers. Removed in the corpse
      * transmute (a corpse does not move). See
      * {@code roadmap/ecs-migration/archetype-storage.md}.
      */
@@ -171,12 +170,16 @@ public final class BattleComponents {
      * reposition gating, break-contact fall-back (timer + its destination cell,
      * {@code -1/-1} = none — the one field pair whose default is <em>not</em>
      * zero, so {@code allocate} explicitly seeds the sentinel since a fresh world
-     * row appends as zero), and the FLEE wander dwell. Universal on every live
-     * unit today (behavior-preserving — these were universal registry columns),
-     * so this slice empties the last of {@code UnitRegistry}'s dense columns; the
-     * designed end-state narrows membership to thinking entities (a turret has no
-     * decision cadence). Removed in the corpse transmute (a corpse does not
-     * think). See {@code roadmap/ecs-migration/archetype-storage.md}.
+     * row appends as zero), and the FLEE wander dwell. <em>Optional</em>: added at
+     * spawn only for thinking units, so "has AI_STATE" defines a thinker. A static
+     * emplacement (a turret or drone hub;
+     * {@link com.dillon.starsectormarines.battle.unit.UnitType#isStatic}) has no
+     * decision cadence and carries no AI_STATE — the per-tick dispatch
+     * ({@code UnitUpdateSystem}) and the per-hit fall-back roll
+     * ({@code HitResponseService}) gate on {@code UnitRegistry.hasAiState};
+     * per-unit decision code only ever runs for thinkers. Removed in the corpse
+     * transmute (a corpse does not think). See
+     * {@code roadmap/ecs-migration/archetype-storage.md}.
      */
     public final ComponentType AI_STATE;
     /**

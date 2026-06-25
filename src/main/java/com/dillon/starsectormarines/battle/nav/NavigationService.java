@@ -187,6 +187,9 @@ public final class NavigationService {
             int curX = registry.cellXById(u.entityId);
             int curY = registry.cellYById(u.entityId);
             incrementOccupancy(curX, curY);
+            // Static emplacements (turrets, hubs) have no MOVEMENT — they claim
+            // their current cell above but carry no path destination to reserve.
+            if (!registry.hasMovement(u.entityId)) continue;
             int[] path = registry.pathById(u.entityId);
             int destX = Paths.destX(path);
             if (destX != Integer.MIN_VALUE) {

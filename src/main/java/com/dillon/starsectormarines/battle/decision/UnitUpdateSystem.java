@@ -125,15 +125,18 @@ public final class UnitUpdateSystem {
 
     /**
      * Routes the per-tick update for one unit. Fall-back is a pre-dispatch
-     * override so it applies regardless of role; otherwise the per-role
-     * behavior instance handles the unit. Behavior classes hold no
-     * per-system instance state — they're invoked through their static
-     * {@code INSTANCE} singletons.
+     * override that applies to any <em>thinking</em> unit (one carrying
+     * {@code AI_STATE}) regardless of its role; static emplacements (turrets,
+     * hubs) have no AI_STATE and never fall back, so they skip the check and
+     * route straight to their per-role behavior. The {@code hasAiState} guard
+     * short-circuits before the fail-loud {@code fallbackTimer} read. Behavior
+     * classes hold no per-system instance state — they're invoked through their
+     * static {@code INSTANCE} singletons.
      */
     private void updateUnit(Entity u, BattleSimulation sim) {
         long t0 = System.nanoTime();
         TickInnerProfile.Bucket bucket;
-        if (sim.world().fallbackTimer(u.entityId) > 0f) {
+        if (sim.world().hasAiState(u.entityId) && sim.world().fallbackTimer(u.entityId) > 0f) {
             FallbackBehavior.INSTANCE.update(u, sim);
             bucket = TickInnerProfile.Bucket.BEHAVIOR_FALLBACK;
         } else {

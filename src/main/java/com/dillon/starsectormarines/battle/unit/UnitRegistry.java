@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.unit;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 
@@ -126,29 +127,37 @@ public final class UnitRegistry {
         long id = nextId++;
         u.entityId = id;
         dense[liveCount] = u;
-        // Adopt the minted id into the entity world as a live {IDENTITY,
-        // POSITION, HEALTH, COMBAT, MOVEMENT} entity — plus SECONDARY_WEAPON iff
-        // this unit carries one, so the optional capability IS its archetype
-        // membership (no nullable field). Identity is written once here and
-        // persists alive→dead (the corpse transmute's row-move carries it — as
-        // does the cell, which IS the death cell by the time the corpse forms);
-        // Position, Health and Combat seed from the write-only seed* fields and
-        // are canonical in the world thereafter — "has HEALTH with hp > 0" is the
-        // liveness definition (isAliveById). MOVEMENT and AI_STATE are universal
-        // for now (behavior-preserving: moveProgress + the AI-cadence columns
-        // were universal registry columns); their scalars start at zero. The
-        // corpse transmute removes HEALTH, COMBAT, MOVEMENT, AI_STATE, and any
-        // SECONDARY_WEAPON (a corpse neither lives, fights, moves, nor thinks).
+        // Adopt the minted id into the entity world. Every live unit is at least
+        // {IDENTITY, POSITION, HEALTH, COMBAT}; on top of that:
+        //   - MOVEMENT + AI_STATE iff the unit is mobile. A static emplacement (a
+        //     turret or drone hub; UnitType.isStatic) neither paths nor decides, so
+        //     "has MOVEMENT" defines a mover and "has AI_STATE" a thinker — presence
+        //     IS the capability (like SECONDARY_WEAPON; no inert path/cadence columns
+        //     on a turret). The handful of all-unit readers gate on hasMovement /
+        //     hasAiState; per-unit behavior code only ever runs for movers/thinkers.
+        //   - SECONDARY_WEAPON iff the unit carries one.
+        // Identity is written once here and persists alive→dead (the corpse
+        // transmute's row-move carries it — as does the cell, which IS the death
+        // cell by the time the corpse forms); Position, Health and Combat seed from
+        // the write-only seed* fields and are canonical in the world thereafter —
+        // "has HEALTH with hp > 0" is the liveness definition (isAliveById). The
+        // corpse transmute removes HEALTH, COMBAT, and any MOVEMENT / AI_STATE /
+        // SECONDARY_WEAPON (a remove of a component a static unit never had is a
+        // no-op).
+        boolean mobile = !u.type.isStatic();
         boolean hasSecondary = u.seedSecondaryWeapon != null;
-        if (hasSecondary) {
-            entityWorld.createEntity(id, components.IDENTITY, components.POSITION,
-                    components.HEALTH, components.COMBAT, components.MOVEMENT,
-                    components.AI_STATE, components.SECONDARY_WEAPON);
-        } else {
-            entityWorld.createEntity(id, components.IDENTITY, components.POSITION,
-                    components.HEALTH, components.COMBAT, components.MOVEMENT,
-                    components.AI_STATE);
+        ComponentType[] archetype = new ComponentType[4 + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0)];
+        int c = 0;
+        archetype[c++] = components.IDENTITY;
+        archetype[c++] = components.POSITION;
+        archetype[c++] = components.HEALTH;
+        archetype[c++] = components.COMBAT;
+        if (mobile) {
+            archetype[c++] = components.MOVEMENT;
+            archetype[c++] = components.AI_STATE;
         }
+        if (hasSecondary) archetype[c++] = components.SECONDARY_WEAPON;
+        entityWorld.createEntity(id, archetype);
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_TYPE, u.type);
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_FACTION, u.faction);
         entityWorld.setInt(id, components.POSITION, BattleComponents.POSITION_CELL_X, u.seedCellX);
@@ -170,20 +179,22 @@ public final class UnitRegistry {
             entityWorld.setObject(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC, u.seedSecondaryWeapon);
             entityWorld.setInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AMMO, u.seedSecondaryAmmo);
         }
-        // Seed the AI_STATE fall-back cell to its -1/-1 "no cached cell"
-        // sentinel — the one mid-combat scalar whose default isn't zero, so the
-        // zero-init world row append can't supply it (readers treat a non-negative
-        // cell as a live cached destination). The other four AI_STATE scalars
-        // (reposition/fallback/wander timers) start at zero by the row append, as
-        // do all the MOVEMENT/COMBAT mid-combat scalars — a fresh per-id world row
-        // means no slot-reuse reset is needed (unlike the old dense columns).
-        entityWorld.setInt(id, components.AI_STATE, BattleComponents.AI_STATE_FALLBACK_CELL_X, -1);
-        entityWorld.setInt(id, components.AI_STATE, BattleComponents.AI_STATE_FALLBACK_CELL_Y, -1);
-        // Seed the MOVEMENT path reference to the shared empty-path sentinel — an
-        // OBJECT column appends as null, and every path reader dereferences it
-        // (length / Paths helpers), so the unit must spawn with a real array.
-        // pathIdx + moveProgress start at zero by the row append.
-        entityWorld.setObject(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH, GridPathfinder.EMPTY_PATH);
+        // Seed the non-zero defaults of the mobile-only components (a static unit
+        // carries neither, so there's nothing to seed). AI_STATE's fall-back cell
+        // is the one mid-combat scalar whose default isn't zero (-1/-1 = "no cached
+        // cell"; readers treat a non-negative cell as a live cached destination),
+        // and MOVEMENT's path is an OBJECT column that appends as null while every
+        // path reader dereferences it (length / Paths helpers) — both must be seeded
+        // since a fresh world row can't supply them. The remaining AI_STATE/MOVEMENT
+        // scalars (reposition/fallback/wander timers, pathIdx, moveProgress) start
+        // at zero by the row append, as do all the COMBAT mid-combat scalars — a
+        // fresh per-id world row means no slot-reuse reset is needed (unlike the old
+        // dense columns).
+        if (mobile) {
+            entityWorld.setInt(id, components.AI_STATE, BattleComponents.AI_STATE_FALLBACK_CELL_X, -1);
+            entityWorld.setInt(id, components.AI_STATE, BattleComponents.AI_STATE_FALLBACK_CELL_Y, -1);
+            entityWorld.setObject(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH, GridPathfinder.EMPTY_PATH);
+        }
         // Seed + wire the decomposed render-position service. Unlike the world
         // entity, this reference is NOT nulled on release — the entry survives so
         // a released corpse still resolves its death-pose location.
@@ -371,10 +382,14 @@ public final class UnitRegistry {
         entityWorld.setInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AMMO, ammo);
     }
 
-    // Transitional by-id movement adapters over the world's MOVEMENT component —
-    // same shape and fate as the hp/cell/combat adapters above. Strict reads
-    // (fail-loud once the entity is gone OR transmuted to a corpse — a corpse
-    // lacks MOVEMENT). Universal on every live unit today, so no presence gate.
+    // Transitional by-id movement adapters over the world's optional MOVEMENT
+    // component — same shape and fate as the hp/cell/combat adapters above, but
+    // OPTIONAL (mirrors SECONDARY_WEAPON): a static emplacement (turret, drone hub)
+    // has no MOVEMENT, so hasMovement is the presence check, and every field read
+    // below is fail-loud on a unit that lacks the component (also fail-loud once
+    // the entity is gone OR transmuted to a corpse). Per-unit movement code only
+    // runs for movers; the few all-unit readers gate on hasMovement first.
+    public boolean hasMovement(long id) { return entityWorld.has(id, components.MOVEMENT); }
     public float moveProgressById(long id) { return entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_PROGRESS); }
     public void setMoveProgressById(long id, float v) { entityWorld.setFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_PROGRESS, v); }
     public int[] pathById(long id) { return (int[]) entityWorld.getObject(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH); }
@@ -396,12 +411,16 @@ public final class UnitRegistry {
     /** Game component-type registrations + shared queries for {@link #entityWorld()}. */
     public BattleComponents components() { return components; }
 
-    // Transitional by-id AI-state adapters over the world's AI_STATE component —
-    // same shape and fate as the hp/cell/combat/movement adapters above. Strict
-    // reads (fail-loud once the entity is gone OR transmuted to a corpse — a
-    // corpse lacks AI_STATE). Universal on every live unit today, so no presence
-    // gate. The fall-back cell pair seeds -1/-1 at allocate (the one non-zero
-    // default); the timers start zeroed by the world row append.
+    // Transitional by-id AI-state adapters over the world's optional AI_STATE
+    // component — same shape and fate as the movement adapters above, and likewise
+    // OPTIONAL: a static emplacement (turret, drone hub) has no decision cadence,
+    // so hasAiState is the presence check and every field read below is fail-loud
+    // on a unit that lacks the component (also fail-loud once the entity is gone OR
+    // transmuted to a corpse). Per-unit decision code only runs for thinkers; the
+    // few all-unit readers gate on hasAiState first. The fall-back cell pair seeds
+    // -1/-1 at allocate (the one non-zero default); the timers start zeroed by the
+    // world row append.
+    public boolean hasAiState(long id) { return entityWorld.has(id, components.AI_STATE); }
     public float repositionCooldownById(long id) { return entityWorld.getFloat(id, components.AI_STATE, BattleComponents.AI_STATE_REPOSITION_COOLDOWN); }
     public void setRepositionCooldownById(long id, float v) { entityWorld.setFloat(id, components.AI_STATE, BattleComponents.AI_STATE_REPOSITION_COOLDOWN, v); }
     public float fallbackTimerById(long id) { return entityWorld.getFloat(id, components.AI_STATE, BattleComponents.AI_STATE_FALLBACK_TIMER); }

@@ -61,8 +61,13 @@ public final class HitResponseService {
 
     public void rollFallbackOnHit(Entity target) {
         if (!registry.isAliveById(target.entityId)) return;
+        // Static emplacements (turrets, drone hubs) have no AI_STATE — they don't
+        // fall back. This presence gate replaces the old `instanceof MapTurret`
+        // check and also (correctly) covers drone hubs, which previously could roll
+        // a fall-back they had no behavior to execute. It must precede the
+        // fallbackTimer read below, which is fail-loud without AI_STATE.
+        if (!registry.hasAiState(target.entityId)) return;
         if (registry.fallbackTimerById(target.entityId) > 0f) return;
-        if (target instanceof MapTurret) return;
         if (target.squadId != Entity.NO_SQUAD) return;
         if (target.rng.nextFloat() >= FALLBACK_CHANCE) return;
         int[] fallback = tacticalScoring.findFallbackPosition(target);

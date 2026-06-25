@@ -97,6 +97,19 @@ public enum UnitType {
     public boolean isMech() { return this == HEAVY_MECH; }
 
     /**
+     * Whether this archetype is a static emplacement — a {@link #TURRET} or a
+     * {@link #DRONE_HUB_STRUCTURE}. These are combatants (targetable, damageable)
+     * but immobile and mindless: they neither path nor run a decision cadence, so
+     * {@code UnitRegistry.allocate} omits the {@code MOVEMENT} and {@code AI_STATE}
+     * components for them (presence <em>is</em> the capability — "has MOVEMENT" =
+     * mover, "has AI_STATE" = thinker). Every other type moves and decides
+     * (infantry, mechs, wandering civilians, patrolling drones). If a future type
+     * ever splits these — mobile-but-mindless, or static-but-thinking — this one
+     * predicate becomes two.
+     */
+    public boolean isStatic() { return this == TURRET || this == DRONE_HUB_STRUCTURE; }
+
+    /**
      * Sprite-sheet frame indexing convention. Each layout names what indices 0..N
      * represent on its source PNG. The renderer's facing→frame lookup branches on
      * this; adding a new convention is "add an enum value + a switch arm."

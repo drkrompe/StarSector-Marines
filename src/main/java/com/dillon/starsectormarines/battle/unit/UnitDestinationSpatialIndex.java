@@ -70,6 +70,10 @@ public final class UnitDestinationSpatialIndex {
         int liveCount = registry.liveCount();
         for (int i = 0; i < liveCount; i++) {
             Entity u = dense[i];
+            // Static emplacements (turrets, hubs) have no MOVEMENT component and
+            // never path — skip before the fail-loud path read (an empty path
+            // would be filtered by the cells<=0 check below anyway).
+            if (!registry.hasMovement(u.entityId)) continue;
             int[] path = registry.pathById(u.entityId);
             int cells = Paths.cellCount(path);
             if (cells <= 0) continue;
