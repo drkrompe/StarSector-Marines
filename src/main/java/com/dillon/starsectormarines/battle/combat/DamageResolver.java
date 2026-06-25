@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.combat;
 
-import com.dillon.starsectormarines.battle.component.ComponentStore;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Entity;
@@ -63,15 +62,13 @@ public final class DamageResolver {
     private final Consumer<Entity> deathSink;
     private final DeathDispatcher deathDispatcher;
     private final Random rng;
-    private final ComponentStore<MechLoadoutComponent> mechLoadouts;
 
     public DamageResolver(NavigationService navigation,
                           UnitRosterService roster,
                           EquipmentDropService equipmentDrops,
                           Consumer<Entity> deathSink,
                           DeathDispatcher deathDispatcher,
-                          Random rng,
-                          ComponentStore<MechLoadoutComponent> mechLoadouts) {
+                          Random rng) {
         this.grid = navigation.getGrid();
         this.squads = roster.getSquadsMap();
         this.roster = roster;
@@ -79,7 +76,6 @@ public final class DamageResolver {
         this.deathSink = deathSink;
         this.deathDispatcher = deathDispatcher;
         this.rng = rng;
-        this.mechLoadouts = mechLoadouts;
     }
 
     /**
@@ -164,7 +160,7 @@ public final class DamageResolver {
         // event + cap scaling + death bonus). Solo units (turrets, civilians)
         // skip both — their behaviors don't consult MORALE_BROKEN.
         if (wasAlive && moraleImpact > 0f) {
-            if (mechLoadouts.has(target.entityId)) {
+            if (roster.getRegistry().hasMechLoadout(target.entityId)) {
                 // Only a SURVIVING mech accrues HP-threshold morale drain. A mech
                 // killed by this very hit was already released from the registry
                 // (above) — its HEALTH component still reads until the death drain
@@ -257,9 +253,9 @@ public final class DamageResolver {
      * instantaneous HP.
      */
     private void applyMechHpThresholdDrain(Entity target) {
-        MechLoadoutComponent m = mechLoadouts.get(target.entityId);
-        m.timeSinceUnderFire = 0f;
         UnitRegistry registry = roster.getRegistry();
+        MechLoadoutComponent m = registry.mechLoadoutOf(target.entityId);
+        m.timeSinceUnderFire = 0f;
         float maxHp = registry.maxHpById(target.entityId);
         if (maxHp <= 0f) return;
         float frac = Math.max(0f, registry.hpById(target.entityId)) / maxHp;

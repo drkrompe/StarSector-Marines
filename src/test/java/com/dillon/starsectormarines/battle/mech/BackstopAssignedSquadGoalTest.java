@@ -38,7 +38,7 @@ public class BackstopAssignedSquadGoalTest {
         int mechSid = sim.mintSquad(Faction.MARINE, mech);
         mech.squadId = mechSid;
         sim.addUnit(mech);
-        sim.getMechLoadouts().add(mech.entityId, MechLoadoutComponent.defaultLoadout(MechRole.ARMORED_SUPPORT));
+        sim.world().attachMechLoadout(mech.entityId, MechLoadoutComponent.defaultLoadout(MechRole.ARMORED_SUPPORT));
         Squad mechSquad = sim.getSquad(mechSid);
         mechSquad.aliveMembers = 1;
 

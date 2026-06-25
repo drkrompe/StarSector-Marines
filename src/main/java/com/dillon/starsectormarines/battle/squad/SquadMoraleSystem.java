@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.squad;
 
-import com.dillon.starsectormarines.battle.component.ComponentStore;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.unit.Entity;
@@ -90,13 +89,10 @@ public final class SquadMoraleSystem {
 
     private final UnitRosterService roster;
     private final ShotService shots;
-    private final ComponentStore<MechLoadoutComponent> mechLoadouts;
 
-    public SquadMoraleSystem(UnitRosterService roster, ShotService shots,
-                             ComponentStore<MechLoadoutComponent> mechLoadouts) {
+    public SquadMoraleSystem(UnitRosterService roster, ShotService shots) {
         this.roster = roster;
         this.shots = shots;
-        this.mechLoadouts = mechLoadouts;
     }
 
     public void tick(float dt) {
@@ -226,9 +222,9 @@ public final class SquadMoraleSystem {
             // Dense iteration excludes released units — no isAlive() needed.
             if (u.squadId != squad.id) continue;
             // Capability-as-presence: a mech is an entity with a loadout
-            // component (was the nullable u.mech field). Direct store lookup,
-            // not the cold-face handle — this is a per-tick bulk path.
-            MechLoadoutComponent m = mechLoadouts.get(u.entityId);
+            // component (was the nullable u.mech field). Null-safe by-id read off
+            // the MECH_LOADOUT world component — registry is the dense-walk handle.
+            MechLoadoutComponent m = registry.mechLoadoutOf(u.entityId);
             if (m == null) continue;
             aliveMechs++;
             if (m.timeSinceUnderFire < 1e9f) m.timeSinceUnderFire += dt;

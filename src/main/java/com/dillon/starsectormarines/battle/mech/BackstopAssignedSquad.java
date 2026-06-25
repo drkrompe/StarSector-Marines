@@ -71,7 +71,7 @@ public final class BackstopAssignedSquad implements Action {
     public ActionStatus execute(Entity member, Squad squad, BattleControl sim) {
         // Non-ARMORED_SUPPORT members fall through to parity (mixed squads).
         // Loadout reached by id (zero-alloc direct lookup).
-        MechLoadoutComponent m = sim.world().component(member.entityId, MechLoadoutComponent.class);
+        MechLoadoutComponent m = sim.world().mechLoadout(member.entityId);
         if (m == null || m.role != MechRole.ARMORED_SUPPORT) {
             return EngageAtCurrentBand.INSTANCE.execute(member, squad, sim);
         }

@@ -70,7 +70,7 @@ public final class OverwatchKillZone implements Action {
         // can't happen here but stay defensive) fall through to parity
         // engagement so mixed-role squads have every member doing something
         // sensible. Loadout reached by id (zero-alloc direct lookup).
-        MechLoadoutComponent m = sim.world().component(member.entityId, MechLoadoutComponent.class);
+        MechLoadoutComponent m = sim.world().mechLoadout(member.entityId);
         if (m == null || m.role != MechRole.LR_SUPPORT) {
             return EngageAtCurrentBand.INSTANCE.execute(member, squad, sim);
         }

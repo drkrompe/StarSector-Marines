@@ -35,7 +35,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
 
         // The mech's loadout is a component, reached by id (zero-alloc direct
         // store lookup, not the cold-face handle — this is per-tick decide work).
-        MechLoadoutComponent m = sim.world().component(u.entityId, MechLoadoutComponent.class);
+        MechLoadoutComponent m = sim.world().mechLoadout(u.entityId);
 
         float dist = TacticalScoring.cellDistance(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId), sim.world().cellX(target.entityId), sim.world().cellY(target.entityId));
         boolean inRange = dist <= sim.world().attackRange(u.entityId);

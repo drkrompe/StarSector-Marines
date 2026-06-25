@@ -113,6 +113,9 @@ public final class BattleComponents {
     /** {@link #CRASHING} field 0: the {@link com.dillon.starsectormarines.battle.air.components.CrashingComponent} payload (OBJECT) — the falling body, fall timer, and spin. */
     public static final int CRASHING_STATE = 0;
 
+    /** {@link #MECH_LOADOUT} field 0: the {@link com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent} payload (OBJECT) — the chassis weapon/morale state bag. */
+    public static final int MECH_LOADOUT_STATE = 0;
+
     // ---- component types ----
 
     /** Who/what this entity is — {@code UnitType type, Faction faction}. Persists alive→dead. */
@@ -213,6 +216,19 @@ public final class BattleComponents {
      * {@code roadmap/ecs-migration/archetype-storage.md}.
      */
     public final ComponentType CRASHING;
+    /**
+     * Optional mech-chassis loadout — one OBJECT field holding the
+     * {@link com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent}
+     * (the three weapon tracks + per-mech morale state). Added at spawn only for
+     * mech-class units, so "has {@code MECH_LOADOUT}" IS "is a mech" — no nullable
+     * field. The mech-fire pass walks the live-mech query; the per-mech morale +
+     * the wreck handler read it by id. <b>Survives the corpse transmute</b> (kept
+     * off the {@code corpseRemove} mask) so {@code MechWreckSystem} can read the
+     * dead mech's loadout to drop a wreck, then detaches it — mirroring how the old
+     * {@code ComponentStore} entry outlived the unit's registry release. See
+     * {@code roadmap/ecs-migration/archetype-storage.md}.
+     */
+    public final ComponentType MECH_LOADOUT;
 
     // ---- shared queries (per-world lifecycle, cached matched-table lists) ----
 
@@ -233,6 +249,14 @@ public final class BattleComponents {
      */
     public final Query crashing;
 
+    /**
+     * Every <em>live</em> mech ({@code {MECH_LOADOUT}} minus {@code {CORPSE}}) — the
+     * mech-fire continuation pass walks these. {@code CORPSE} is excluded so a
+     * dead mech that still carries its loadout (until the wreck handler detaches
+     * it) doesn't fire; the wreck handler reads that dead loadout by id instead.
+     */
+    public final Query mechLoadouts;
+
     public BattleComponents(EntityWorld world) {
         IDENTITY        = world.register(0, "Identity", FieldKind.OBJECT, FieldKind.OBJECT);
         POSITION        = world.register(1, "Position", FieldKind.INT, FieldKind.INT);
@@ -251,8 +275,10 @@ public final class BattleComponents {
         AI_STATE        = world.register(9, "AiState",
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.INT, FieldKind.INT, FieldKind.FLOAT);
         CRASHING        = world.register(10, "Crashing", FieldKind.OBJECT);
+        MECH_LOADOUT    = world.register(11, "MechLoadout", FieldKind.OBJECT);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}, null);
         crashing = world.query(new ComponentType[]{CRASHING}, null);
+        mechLoadouts = world.query(new ComponentType[]{MECH_LOADOUT}, new ComponentType[]{CORPSE});
     }
 }

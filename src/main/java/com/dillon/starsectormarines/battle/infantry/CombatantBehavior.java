@@ -28,7 +28,7 @@ public final class CombatantBehavior implements UnitBehavior {
 
     @Override
     public void update(Entity u, BattleSimulation sim) {
-        if (sim.world().hasComponent(u.entityId, MechLoadoutComponent.class)) {
+        if (sim.world().hasMechLoadout(u.entityId)) {
             GoapMechBehavior.INSTANCE.update(u, sim);
         } else {
             GoapInfantryBehavior.INSTANCE.update(u, sim);

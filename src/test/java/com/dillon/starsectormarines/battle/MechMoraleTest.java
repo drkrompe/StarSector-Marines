@@ -57,12 +57,12 @@ public class MechMoraleTest {
         sim.addUnit(first);
         // Loadout is a presence component, attached by id after the unit is
         // added (mirrors BattleSetup's spawn path).
-        sim.getMechLoadouts().add(first.entityId, MechLoadoutComponent.defaultLoadout(role));
+        sim.world().attachMechLoadout(first.entityId, MechLoadoutComponent.defaultLoadout(role));
         for (int i = 1; i < size; i++) {
             Entity u = new Entity("d" + i, Faction.DEFENDER, UnitType.HEAVY_MECH, 1 + i, 1);
             u.squadId = squadId;
             sim.addUnit(u);
-            sim.getMechLoadouts().add(u.entityId, MechLoadoutComponent.defaultLoadout(role));
+            sim.world().attachMechLoadout(u.entityId, MechLoadoutComponent.defaultLoadout(role));
         }
         Squad sq = sim.getSquad(squadId);
         sq.originalSize = size;
@@ -71,7 +71,7 @@ public class MechMoraleTest {
 
     /** The mech loadout component for {@code u}, reached by id through the store. */
     private static MechLoadoutComponent loadout(BattleSimulation sim, Entity u) {
-        return sim.getMechLoadouts().get(u.entityId);
+        return sim.world().mechLoadout(u.entityId);
     }
 
     @Test

@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.unit;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
@@ -433,6 +434,25 @@ public final class UnitRegistry {
     }
     public float wanderDwellTimerById(long id) { return entityWorld.getFloat(id, components.AI_STATE, BattleComponents.AI_STATE_WANDER_DWELL_TIMER); }
     public void setWanderDwellTimerById(long id, float v) { entityWorld.setFloat(id, components.AI_STATE, BattleComponents.AI_STATE_WANDER_DWELL_TIMER, v); }
+
+    // Transitional by-id mech-loadout adapters over the world's optional
+    // MECH_LOADOUT component — presence IS "is a mech". mechLoadoutOf is null-safe
+    // (returns null when absent, matching the old store.get); attach/remove mirror
+    // attachSecondaryWeapon. The dead mech keeps the component (off the corpse
+    // remove mask) until the wreck handler detaches it.
+    public boolean hasMechLoadout(long id) { return entityWorld.has(id, components.MECH_LOADOUT); }
+    public MechLoadoutComponent mechLoadoutOf(long id) {
+        return entityWorld.has(id, components.MECH_LOADOUT)
+                ? (MechLoadoutComponent) entityWorld.getObject(id, components.MECH_LOADOUT, BattleComponents.MECH_LOADOUT_STATE)
+                : null;
+    }
+    /** Grant the mech-loadout capability (an {@code addComponent} row-move), mirroring {@link #attachSecondaryWeapon}. Serial-only. */
+    public void attachMechLoadout(long id, MechLoadoutComponent loadout) {
+        entityWorld.addComponent(id, components.MECH_LOADOUT);
+        entityWorld.setObject(id, components.MECH_LOADOUT, BattleComponents.MECH_LOADOUT_STATE, loadout);
+    }
+    /** Detach the loadout when the wreck spawns (a {@code removeComponent} row-move back to a plain corpse). Serial-only. */
+    public void removeMechLoadout(long id) { entityWorld.removeComponent(id, components.MECH_LOADOUT); }
 
     public int liveCount() {
         return liveCount;

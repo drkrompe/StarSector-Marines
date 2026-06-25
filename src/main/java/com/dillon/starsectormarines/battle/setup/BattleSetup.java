@@ -1139,15 +1139,16 @@ public final class BattleSetup {
     }
 
     /**
-     * Attaches a {@link MechLoadoutComponent} component to a just-added unit that
-     * spawned as a mech ({@code mechRole != null} — the caller already decided
-     * mech-ness from the source queue). No-op for infantry. <b>Must run after
-     * {@code sim.addUnit}</b>: the component store is keyed by {@code entityId},
-     * which the registry assigns at allocate time.
+     * Attaches a {@link MechLoadoutComponent} (the world's {@code MECH_LOADOUT}
+     * component) to a just-added unit that spawned as a mech ({@code mechRole !=
+     * null} — the caller already decided mech-ness from the source queue). No-op
+     * for infantry. <b>Must run after {@code sim.addUnit}</b>: the attach is an
+     * {@code addComponent} row-move keyed by {@code entityId}, which the registry
+     * assigns at allocate time.
      */
     private static void attachMechLoadout(BattleSimulation sim, Entity unit, MechRole mechRole) {
         if (mechRole != null) {
-            sim.getMechLoadouts().add(unit.entityId, MechLoadoutComponent.defaultLoadout(mechRole));
+            sim.world().attachMechLoadout(unit.entityId, MechLoadoutComponent.defaultLoadout(mechRole));
         }
     }
 

@@ -1,10 +1,10 @@
 package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
-import com.dillon.starsectormarines.battle.component.ComponentStore;
 import com.dillon.starsectormarines.battle.unit.DeathDispatcher;
 import com.dillon.starsectormarines.battle.unit.DeathEvent;
 import com.dillon.starsectormarines.battle.unit.Entity;
+import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 
 /**
@@ -32,11 +32,11 @@ import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 public final class MechWreckSystem {
 
     private final EffectsService effects;
-    private final ComponentStore<MechLoadoutComponent> mechLoadouts;
+    private final UnitRegistry registry;
 
-    public MechWreckSystem(EffectsService effects, ComponentStore<MechLoadoutComponent> mechLoadouts) {
+    public MechWreckSystem(EffectsService effects, UnitRegistry registry) {
         this.effects = effects;
-        this.mechLoadouts = mechLoadouts;
+        this.registry = registry;
     }
 
     /**
@@ -47,19 +47,20 @@ public final class MechWreckSystem {
      */
     public void onDeath(DeathEvent event) {
         Entity u = event.unit();
-        // The loadout store survives registry release (keyed by id), so the
-        // mech's component is still here even though the unit is gone. A
-        // non-mech death has no entry → null, and we skip.
-        MechLoadoutComponent m = mechLoadouts.get(u.entityId);
+        // MECH_LOADOUT rides the corpse archetype (kept off the corpse-remove
+        // mask), so the dead mech's loadout is still readable here even though the
+        // unit left the live registry. A non-mech death has none → null, and we
+        // skip. (mechLoadoutOf is the null-safe by-id read.)
+        MechLoadoutComponent m = registry.mechLoadoutOf(u.entityId);
         if (m == null || m.wreckSpawned) return;
         // Read the death cell off the event snapshot: the unit is released by
         // the time this drains, so its Group-C cell accessors are fail-loud.
         effects.spawnSmokingWreck(event.cellX(), event.cellY());
         m.wreckSpawned = true;
-        // Wreck spawned → the live-combat loadout is done. Detach it so the
-        // mech-fire pass stops iterating a dead entity (the wreck decal is
-        // owned by the effects layer now). Mirrors the CrashingComponent lifecycle:
-        // the component is removed once its terminal event fires.
-        mechLoadouts.remove(u.entityId);
+        // Wreck spawned → the live-combat loadout is done. Detach it (a
+        // removeComponent row-move back to a plain corpse) so the mech-fire query
+        // stops seeing it. Mirrors the CrashingComponent lifecycle: the component
+        // is removed once its terminal event fires.
+        registry.removeMechLoadout(u.entityId);
     }
 }

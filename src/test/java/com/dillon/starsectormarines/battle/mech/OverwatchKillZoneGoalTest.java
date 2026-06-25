@@ -39,7 +39,7 @@ public class OverwatchKillZoneGoalTest {
         int sid = sim.mintSquad(Faction.DEFENDER, mech);
         mech.squadId = sid;
         sim.addUnit(mech);
-        sim.getMechLoadouts().add(mech.entityId, MechLoadoutComponent.defaultLoadout(MechRole.LR_SUPPORT));
+        sim.world().attachMechLoadout(mech.entityId, MechLoadoutComponent.defaultLoadout(MechRole.LR_SUPPORT));
         Squad squad = sim.getSquad(sid);
         squad.aliveMembers = 1;
         squad.lastSeenEnemyX = 8;

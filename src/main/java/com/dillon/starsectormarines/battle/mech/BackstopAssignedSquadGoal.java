@@ -57,7 +57,7 @@ public final class BackstopAssignedSquadGoal implements Goal {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             Entity u = sim.liveUnitAt(i);
             if (u.squadId != squad.id) continue;
-            MechLoadoutComponent m = sim.world().component(u.entityId, MechLoadoutComponent.class);
+            MechLoadoutComponent m = sim.world().mechLoadout(u.entityId);
             if (m != null && m.role == MechRole.ARMORED_SUPPORT) {
                 hasArmored = true;
                 break;

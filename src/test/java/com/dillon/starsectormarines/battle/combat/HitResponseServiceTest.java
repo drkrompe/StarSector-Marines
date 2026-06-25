@@ -60,7 +60,7 @@ public class HitResponseServiceTest {
         int sid = sim.mintSquad(Faction.DEFENDER, mech);
         mech.squadId = sid;
         sim.addUnit(mech);
-        sim.getMechLoadouts().add(mech.entityId, MechLoadoutComponent.defaultLoadout(MechRole.ARMORED_SUPPORT));
+        sim.world().attachMechLoadout(mech.entityId, MechLoadoutComponent.defaultLoadout(MechRole.ARMORED_SUPPORT));
         sim.addUnit(new Entity("opp", Faction.MARINE, UnitType.MARINE, 11, 5));
 
         for (int i = 0; i < 100; i++) hitResponse.rollFallbackOnHit(mech);

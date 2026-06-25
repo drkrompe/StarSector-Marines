@@ -6,12 +6,13 @@ import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitRegistry;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
-import com.dillon.starsectormarines.battle.component.ComponentStore;
+import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
+import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
+import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Chassis-mounted weapons on motorized / heavy units. Today that's just the
@@ -43,12 +44,6 @@ public class HeavyWeapons {
     private final HitResponseService hitResponse;
     private final ShotService shots;
     private final Detonations detonations;
-    /**
-     * Mech-loadout component store. The continuation pass iterates this directly
-     * (only mech entities occupy it) instead of scanning the whole dense
-     * registry for a former {@code u.mech != null} field — capability-as-presence.
-     */
-    private final ComponentStore<MechLoadoutComponent> mechLoadouts;
 
     /**
      * Reused per-tick gather of the live mechs before the continuation pass.
@@ -61,15 +56,13 @@ public class HeavyWeapons {
 
     public HeavyWeapons(UnitRegistry registry, NavigationGrid grid,
                         DamageService damageService, HitResponseService hitResponse,
-                        ShotService shots, Detonations detonations,
-                        ComponentStore<MechLoadoutComponent> mechLoadouts) {
+                        ShotService shots, Detonations detonations) {
         this.registry = registry;
         this.grid = grid;
         this.damageService = damageService;
         this.hitResponse = hitResponse;
         this.shots = shots;
         this.detonations = detonations;
-        this.mechLoadouts = mechLoadouts;
     }
 
     /** Per-tick pass: drains queued chaingun / SRM / LRM rounds for every mech. */
@@ -196,23 +189,26 @@ public class HeavyWeapons {
      * decision sees the right gating.
      */
     private void advanceMechWeapons() {
-        // Gather the live mechs first (iterating the loadout store — only mech
-        // entities occupy it, so no scan over the whole registry), then run the
+        // Gather the live mechs first (walking the MECH_LOADOUT query — only mech
+        // entities match it, so no scan over the whole registry), then run the
         // continuation pass over the snapshot. fireMechWeapon resolves damage
         // inline in this serial phase, so a kill releases its target and
         // swap-and-pops the registry; iterating a snapshot keeps that from
-        // corrupting the pass. getOrNull filters entries whose entity is already
-        // released (a just-dead mech still lingers in the store until its wreck
-        // drains at DEMOLISH).
+        // corrupting the pass. The query excludes CORPSE (live mechs only), and
+        // getOrNull still guards an entity released earlier this same drain.
         mechScratch.clear();
-        for (Map.Entry<Long, MechLoadoutComponent> e : mechLoadouts.entries()) {
-            Entity u = registry.getOrNull(e.getKey());
-            if (u != null) mechScratch.add(u);
+        EntityWorld world = registry.entityWorld();
+        BattleComponents components = registry.components();
+        for (ArchetypeTable t : world.matched(components.mechLoadouts)) {
+            for (int r = 0, n = t.rowCount(); r < n; r++) {
+                Entity u = registry.getOrNull(t.entityAt(r));
+                if (u != null) mechScratch.add(u);
+            }
         }
         for (int i = 0, n = mechScratch.size(); i < n; i++) {
             Entity u = mechScratch.get(i);
             if (!registry.isAliveById(u.entityId)) continue; // killed earlier in this same pass
-            MechLoadoutComponent m = mechLoadouts.get(u.entityId);
+            MechLoadoutComponent m = registry.mechLoadoutOf(u.entityId);
 
             if (m.chaingunCooldown > 0f) m.chaingunCooldown -= BattleSimulation.TICK_DT;
             if (m.srmCooldown      > 0f) m.srmCooldown      -= BattleSimulation.TICK_DT;
