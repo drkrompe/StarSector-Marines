@@ -95,6 +95,9 @@ a390b79  battle: Combat onto the EntityWorld — primary-weapon capability as a 
 a5da51a  battle: SecondaryWeapon onto the EntityWorld — first OPTIONAL capability as archetype presence (retrofit step 3d)  ← 2026-06-20
 42cc723  battle: Movement onto the EntityWorld — moveProgress as a MOVEMENT component (retrofit step 3e)  ← 2026-06-25
 8001f78  battle: AiState onto the EntityWorld — empties the registry's last dense columns (retrofit step 3f)  ← 2026-06-25
+1ceab84  docs(battle): repoint stale {@link Entity#...} javadoc to current by-id accessors  ← 2026-06-25
+5ee1090  battle: extract Paths static helpers over the flat int[] path (path-ref fold-in, foundation)  ← 2026-06-25
+688a7568 battle: fold the path ref + cursor into MOVEMENT — Entity carries no movement state (path-ref cutover)  ← 2026-06-25
 ```
 
 (Sibling tracks interleaved on HEAD, not ECS-migration: `9084ed4` battle-render
@@ -225,15 +228,30 @@ is now **built and consuming real game state**:
   `BattleSimulation.writeFallbackInline`). Keystone tail-swap test re-proves the
   swap via the dense `Entity[]` slot (no column left to move). Suite green at 761.
 
-**Next: step 3 wrap-up + step 4.** Two threads remain:
-- **Movement path-ref fold-in** (deferred from 3e) — bring `int[] path` + `int
-  pathIdx` (still `Entity` fields, ~66 sites/28 files incl. hot nav loops +
-  static `NavigationService.pathDestX/Y`) into `MOVEMENT` and narrow its
-  membership to actual movers (the optional kinematic capability the design
-  intends). Pairs naturally with the AI_STATE membership-narrowing to thinkers.
-- **Step 4 — dissolve `UnitRegistry`.** With every dense column gone, fold the
-  standalone `Crashing`/`MechLoadout` ComponentStores into archetype membership,
-  then hop id-mint + the dense `Entity[]` to the world / sim.
+- **Movement path-ref fold-in SHIPPED** (foundation `5ee1090` + cutover
+  `688a7568`, [`complete/movement-path-ref.md`](complete/movement-path-ref.md)):
+  `int[] path` + `int pathIdx` left `Entity` for `MOVEMENT`'s OBJECT+INT columns;
+  `Entity.path`/`pathIdx` + the `pathCellCount/pathCellX/pathCellY/pathEmpty`
+  convenience methods **deleted** — an `Entity` now carries NO mutable movement
+  state. New pure `battle.nav.Paths` helpers (over a flat `int[]`); ~40 reader
+  sites across 23 files fetch the path once by id (`sim.world().path(id)` /
+  `registry.pathById(id)`) then use `Paths`. `allocate` seeds
+  `GridPathfinder.EMPTY_PATH` (OBJECT appends null; readers deref it). Reader
+  sweep fanned to 4 Sonnet agents (compiler backstop); 8 test files + 2 new
+  MOVEMENT parity tests main-thread. Suite green at 768.
+
+**Next: membership-narrowing + step 4.** Two threads remain:
+- **MOVEMENT + AI_STATE membership-narrowing** — both shipped universal
+  (behavior-preserving). Now restrict each to the entities that actually have the
+  capability: `MOVEMENT` to movers (turrets/hubs don't path — "has a path
+  capability" now genuinely defines a mover), `AI_STATE` to thinking entities.
+  Needs a reader audit (gate on `hasMovement`/`hasAiState`; the all-units debug
+  dump in `SquadStateDumper` reads them unconditionally). Lower-payoff polish, not
+  blocking.
+- **Step 4 — dissolve `UnitRegistry`.** With every dense column gone (the
+  registry is now id-mint + dense `Entity[]` + id↔slot map), fold the standalone
+  `Crashing`/`MechLoadout` ComponentStores into archetype membership, then hop
+  id-mint + the dense `Entity[]` to the world / sim.
 
 ## NEW PHASE — entity-id handle (2026-06-02, in flight)
 
