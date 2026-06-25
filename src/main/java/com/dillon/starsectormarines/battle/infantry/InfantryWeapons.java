@@ -95,6 +95,16 @@ public class InfantryWeapons {
             // get the MOVING accuracy penalty — same rule a hand-rolled
             // moving-fire callsite gets. moveProgress lives in the world's
             // MOVEMENT component, read by id.
+            //
+            // Invariant: this read is unguarded but safe under MOVEMENT
+            // membership-narrowing because only a mover reaches this pass. A
+            // static emplacement (turret/hub) has no MOVEMENT, but it also never
+            // writes the COMBAT burst columns — Entity.beginBurst is infantry/
+            // mech/drone-only, and a MapTurret tracks its burst on its own shadow
+            // fields — so its burstRemaining stays 0 and it never enters
+            // burstScratch above. If turrets are ever rewired to burst via the
+            // COMBAT columns, gate this on registry.hasMovement(id) (a non-mover
+            // is always STANCED).
             fireShot(u, burstTarget, FireStance.stanceFor(registry.moveProgressById(id)));
             // Combat state is keyed by entity id, so a killing round that
             // swap-and-pops the dense registry (relocating u's slot) can't
