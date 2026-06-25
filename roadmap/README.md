@@ -63,6 +63,14 @@ universe over time, not retrofitted into intel slots.
 - **Map generation** — room-purpose refactor complete (Slices A–D);
   partition strategies + per-cell labels now generalize past the keep
   toward station / ship interiors. See [`mapgen/`](mapgen/).
+- **Moddable tilesets** *(design stage)* — move tile definitions and their
+  gen→tile mappings out of hardcoded Java (`NatureTile`, `TileManifest`,
+  per-`BlockKind` filler presets) into a dual-JSON, id-addressed
+  `TileRegistry` so a submod can extend the tile catalog without
+  recompiling. Phase 1 (id-registry, behavior-preserving) is the headline
+  win even pre-submod: it kills the "enum order = PNG order" + hardcoded
+  `(col,row)` fragility. Nests under `mapgen`'s shipped `GenRecipe`. See
+  [`moddable-tilesets/`](moddable-tilesets/overview.md).
 
 ## Immediate next-up
 
