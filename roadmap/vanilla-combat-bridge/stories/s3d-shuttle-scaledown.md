@@ -1,127 +1,149 @@
-# S3d — Shuttle scale-down handoff
+# S3d — Drop-ship invasion (the fleet-to-ground landing)
 
-> Shuttles fly from the fleet layer and "scale down" to land on the surface, dropping off
-> ground forces. A presentation transition + a gameplay handoff between the two engines.
-> Design refined (API-confirmed); **the takeover/fly-to-handoff phase is now built** (see
-> below). Unblocked by S3e (`AirProvider`).
+> The cinematic *and* systemic core of the combat bridge. A combat-worthy transport breaks from
+> the fleet fight and **establishes a stable orbit** over a drop zone the commander paints; swarms
+> of sim-native dropships fall through atmosphere, scatter marines across the DZ, and the marines
+> fight as the auto-battler already knows how. **Continuous** (waves over the whole battle),
+> **diegetic** (the fleet you brought is the only currency), and **emergent** (one threat-scoring
+> spine, never scripted modes). Vision locked 2026-06-25; **D1 is the next build.** Unblocked by
+> S3e (`AirProvider`).
+>
+> *(This story was originally "shuttle scale-down handoff" — a vanilla-ship-descends-and-shrinks
+> mechanic. That approach is superseded; see § Superseded alternative for why and what it taught us.)*
 
-## Built so far — the `setShipAI` takeover (descent step 1: schedule/fly)
+## The scene (north star)
 
-The first S3d step — *take over a real vanilla carrier mid-combat and fly it to the handoff
-point* — is built and wired into the bridge (`CombatBridgeSession.enterEngine`):
+> The player's invasion fleet arrives over a contested city. A combat-worthy transport breaks off
+> and establishes a stable orbit over a drop zone the commander paints. Swarms of sim-native
+> dropships fall through atmosphere, scattering across the DZ — tight and clean if it's cold, wide
+> and ugly if it's hot — and pour marines onto the ground, who fight as the auto-battler already
+> knows how. Waves continue as long as the transport holds orbit and the fleet still has marines
+> aboard. The enemy contests **both** the airspace (AA that taxes the loiter and shreds dropships)
+> **and** the ground (forces near the DZ). How it goes — clean beachhead, scattered fight-to-the-end,
+> transport lost with its marines still aboard — is **emergent, never scripted.** The currency is
+> logistics: the fleet you brought.
 
-- **`CarrierDescentBrain implements ShipAIPlugin`** (host/) — grip **tier 2**: owns the brain,
-  vanilla physics still flies the ship. Each frame it turns toward the target, thrusts only
-  inside a heading cone, and bleeds speed while turning / near the target so it arrives instead
-  of orbiting. Settles + logs "handoff point reached" within `ARRIVE_RADIUS` once slow. Never
-  issues `FIRE` (a ship leaving the fight to land).
-- **`CarrierDescentPlugin`** (host/) — press **L** in a SIM_COUPLED bridge battle to pick the
-  first live carrier-side ship and `setShipAI` the brain onto it. One takeover per battle. Target
-  = the live ground-band centroid via the new shared `GroundBattleConfig.targetableCentroid(...)`
-  (the same band notion `CarrierEngagementPlugin` steers the fleet toward).
+The Starship-Troopers beat sheet:
+1. **The mothership commits** — breaks from the fleet, lumbers into a stable orbit over the DZ.
+   It stops being a free-floating asset and becomes a fixed, vulnerable thing. The commitment is the drama.
+2. **Bay doors — the swarm** — a *cluster* of small dropships ejects and falls through atmosphere,
+   scaling down as they descend. Staggered, each its own gamble.
+3. **Touchdown — the pour-out** — ramps drop, squads spill out across the scattered landing cells.
+4. **The mothership can't stay forever** — it holds the orbit window, then peels off (or dies trying).
+   What got on the ground is what you've got.
 
-This de-risks the load-bearing tier-2 question — *can a custom `ShipAIPlugin` reliably steer a
-live vanilla ship to a chosen point, against the admiral?* Playtest verdict pending (press L,
-watch the carrier peel off and settle over the band). **Still to build:** the `removeEntity` →
-owned-sprite scale-down → `sim.deliverSquad` swap at the handoff threshold, and the remove→add
-resurrection probe below.
+## Design pillars
 
-**Critique pass (`996ce08` → fix in follow-up):** one real bug caught + fixed — the heading-error
-cone used `Math.abs(normalizeAngle(...))`, but `Misc.normalizeAngle` returns `[0,360)` (not
-±180), so a small clockwise error read as ~350° and the ship *braked* instead of thrusting on the
-CW half of the cone. Now uses `Misc.getAngleDiff` (true `[0,180]`) and `Misc.turnTowardsFacingV2`
-(vanilla's overshoot-damped turn) — fixes the asymmetry and the turn-oscillation. **Left as
-playtest watch-items (convergence/robustness, fine for a `@DebugOnly` probe):**
-- *Orbit/stall at the boundary* — steering is bang-bang ACCEL/DECEL with no closing-velocity gate;
-  a fast straight approach could overshoot the 400u `ARRIVE_RADIUS` and loop. If the playtest shows
-  it, gate ACCELERATE on `velocity·toTarget` (brake when closing too fast).
-- *Stale target* — the band centroid is snapshotted at takeover; it drifts as structures die. Fine
-  for a seconds-long descent; recompute on a cadence if the landing point matters.
-- *Admiral co-existence* — the parked `CarrierEngagementPlugin` still issues an ASSAULT to the
-  taken-over carrier. `setShipAI` should win (the brain issues `giveCommand` directly and ignores
-  assignments), but confirm no tug-of-war; if there is, clear that ship's assignment on takeover.
+1. **Commander agency, not piloting.** The player decides *when* to commit and *where* to drop; the
+   sim flies the dropships and the ground AI fights the squads. The fun is the commander role +
+   spectacle, never micro-piloting a craft.
+2. **Diegetic logistics currency — no points.** Two independent dials, both set by fleet composition:
+   **depth** = total marines aboard the fleet (how many squads you can ever land); **throughput** =
+   transport/dropship capacity + re-arm cadence (how many at once, how fast). An "unstoppable invasion
+   fleet" is a legitimate engineered achievement — the game never caps it; the *antagonism* taxes it.
+3. **Scored hot/cold LZ, not a gate.** Every candidate landing carries one threat number
+   (AA coverage × loiter exposure × distance-to-objective × landing cover). Hot drop = skip the ground
+   march but run the AA gauntlet + land scattered; cold drop = land clean but fight across the map. The
+   player reads the board and picks their poison ([[feedback_scored_over_binary_gates]]).
+4. **The orbit window is the stake.** Holding orbit is exposed, and the transport carries your invasion
+   capacity in its belly — lose it and you lose **every marine still aboard.** This is the diegetic hard
+   failure ([[feedback_hard_failure_preference]]) that finally makes the **sky fight** matter (air
+   superiority / AA suppression is the price of the drop — the tie-in to [`skybattle-fleet-control.md`]).
+5. **Scatter into a painted zone.** The commander paints a DZ; the sim samples landing cells within it,
+   spread **scaled by threat** — tight when cold, wide and isolating when hot (paratrooper chaos). The
+   *aftermath* (isolated squads consolidating, breaking contact, regrouping) is handled by the ground
+   GOAP brain that already exists — the drop creates the mess, the tactical AI resolves it.
+6. **Emergent outcomes, never modes.** Clean beachhead, scattered desperation, lost transport,
+   fight-to-the-end-with-what-landed — all fall out of the same scoring + logistics, situational per map.
 
-## Goal
+## Why this is cheaper than it looks — reuse map
 
-A real fleet ship peels off, descends toward the surface, visibly shrinks ("scale down" to
-fake altitude/landing), rotates to a cardinal grid heading, and on touchdown the troops
-appear as a squad in the ground `BattleSimulation`. The reverse plays for takeoff/extraction.
+The vision rides on machinery that **already exists and runs in the bridge today** (the SIM_COUPLED
+sim already ticks 4 Aeroshuttles). Net-new work is small and additive:
 
-## Why this exists
+| Beat | Already have | Net-new |
+| --- | --- | --- |
+| Dropship as a sim-native craft | `Shuttle` + `ShuttleMission` + `AirSystem` state machine (INCOMING→LANDED→deboard→mint squad→DEPARTING→GONE); invisible to vanilla, drawn by our backdrop | — |
+| "Scale down through atmosphere" | `ShuttleMission` altitude lerp (`altitudeT = distRemaining/legStartDist`) already shrinks the craft on the descent leg | — |
+| Wave cadence / throughput | `totalCycles` + `rearmDelay` already cycle sorties offstage | drive count/cadence from fleet, not a fixed manifest (D5) |
+| Mothership establishes orbit | `CarrierDescentBrain` (the tier-2 `setShipAI` takeover, already built) | retarget from "land" to "hold orbit over DZ" |
+| DZ scatter scoring | `TacticalScoring` (threat/cover spine the ground AI uses) | sample landing cells in the painted zone, spread ∝ threat |
+| AA that shoots dropships | defense-post structures already proxy into vanilla + take strafes; `ShuttleMission.hp` is wired-forward (no damage source yet) | give posts an air-threat radius that drains shuttle hp |
+| Spawn point | `sim.addShuttle(s)` (INTERNAL) | construct a `Shuttle` mid-battle with entry = carrier position projected to a cell (`worldToCell`, inverse of `cellToWorld`) |
+| Draw the dropships | `RenderLayer.SHUTTLES` exists | add it to `GroundBattleConfig.sceneLayers` + ensure shuttle sprites (same wiring as S3f–S3h) |
 
-The diegetic bridge between the two scales — how player ground forces *get* into the ground
-battle the rest of S3 renders and couples. The most expressive moment of fleet⇄ground interaction.
+**Air stays `INTERNAL`.** The dropships are the sim's own shuttles — no `AirProvider.EXTERNAL` and no
+`deliverSquad` needed (those were the *superseded* path). The carrier never leaves the vanilla layer.
 
-## Approach — representation handoff (the agreed design)
+## Build ladder (D1–D5) — each rung adds one pillar, no rework
 
-The descending shuttle cannot be a vanilla ship we shrink in place: **there is no ship-level
-render-scale in the combat API** (no `setRenderScale`/`setScale` on `ShipAPI`/`FighterWingAPI`;
-`getSpriteAPI()` returns a fresh per-call wrapper and scaling it desyncs weapons/engines/shield/
-bounds). We only get free runtime scale over sprites *we* draw (`SpriteAPI.setSize` +
-`renderAtCenter`/`renderWithCorners` in a `CombatLayeredRenderingPlugin`) — which is exactly why
-we can scale our own shuttles/Valks but not a live vanilla ship. So the descent is **our owned
-sprite**, with a clean swap at the handoff threshold:
+- **D1 — the core handoff + the shot (MVP of the *scene*).** Trigger → carrier establishes orbit over a
+  painted point (reuse `CarrierDescentBrain`) → spawn sim dropships from its projected cell → they
+  descend (altitude-scale, free) → deboard squads. Render the `SHUTTLES` layer. *The whole cinematic at
+  its simplest — no AA yet.*
+- **D2 — painted DZ + scatter** via `TacticalScoring` sampling landing cells in the zone (cold spread first).
+- **D3 — AA / hot drops.** Defense posts get an air-threat radius draining `ShuttleMission.hp`; scatter
+  widens with threat; dropships can be shot down → partial-success waves. **The hot/cold curve goes live.**
+- **D4 — the orbit window + the stake.** Holding orbit is exposed; losing the transport loses the marines
+  aboard → AA-suppression / air superiority becomes prep (ties to the skybattle feature).
+- **D5 — continuous logistics.** Fleet marine pool (depth) + transport capacity & cycling (throughput) →
+  waves over time replacing the fixed manifest; running-out → fight-to-the-end *emerges*.
+- *(later)* **Extraction / dustoff** — the inverse: board squads, lift them out under fire ("hold until evac").
 
-1. **Schedule** — pick a fleet ship; fly it (its own AI / a move order) to the handoff point.
-2. **Remove** — `engine.removeEntity(ship)`. This *is* the inert/invulnerable mechanism: out of
-   the vanilla sim means no collision, no AI, no damage, no draw. Hold the `ShipAPI` ref + snapshot
-   **only the restore transform** (`getLocation`, `getFacing`).
-3. **Animate (ours)** — draw our sprite (borrowing the hull texture, like sim shuttles already do):
-   swoop down, `SpriteAPI.setSize` shrink toward ground-read, rotate to a cardinal grid heading.
-   At touchdown → `sim.deliverSquad(cell, loadout)` (the EXTERNAL marine-delivery entry, S3d's to add).
-4. **Restore (takeoff/return)** — our sprite climbs out; `engine.addEntity(ship)` puts the **same
-   instance** back (all combat state preserved — same object), `setFacing(...)` to the chosen heading.
+## Built so far — the orbit-positioning takeover (D1, part 1)
 
-**Nothing can hurt the shuttle mid-animation, for free, two ways over:** the real ship is gone from
-the vanilla sim, and our fake shuttle was never a damageable entity in *either* engine (the sim
-gives shuttles no HP today — shuttles can't be shot down yet).
+The mothership-positioning half of D1 is built + wired into the bridge (`CombatBridgeSession.enterEngine`),
+originally as the "fly-to-handoff" probe and now repurposed as "establish orbit over the DZ":
 
-## State ownership
+- **`CarrierDescentBrain implements ShipAIPlugin`** (host/) — grip **tier 2**: owns the brain, vanilla
+  physics flies the ship. Turns toward the target, thrusts only inside a heading cone, bleeds speed while
+  turning / near the target so it arrives instead of orbiting; settles + logs at the target. Never fires.
+- **`CarrierDescentPlugin`** (host/) — press **L** in a SIM_COUPLED battle to take over the first live
+  carrier and steer it to the live ground-band centroid (`GroundBattleConfig.targetableCentroid`).
 
-The whole handoff lives in `combathybrid`, **outside `BattleSimulation`** — exactly the
-`AirProvider.EXTERNAL` contract (the host owns the air). The sim learns of the drop only via
-`deliverSquad`. A host-side `EveryFrameCombatPlugin` (the external air provider) owns the in-flight
-list and ticks the animation:
+This proved the load-bearing tier-2 question — *a custom `ShipAIPlugin` can steer a live vanilla ship to a
+chosen point against the admiral* (playtest 2026-06-25: the ship hard-moved to the target). **D1's remaining
+half:** the sim-dropship spawn from the carrier's projected cell + the `SHUTTLES` render layer.
 
-```
-final class ShipHandoff {           // shim-owned; sim never sees it
-    final ShipAPI ship;             // held ref — the SAME instance we re-add
-    final Vector2f savedLoc;        // restore transform only (not ship internals;
-    final float    savedFacing;     //   addEntity preserves HP/flux/ammo/CR/officer)
-    // animation state: phase, t, target landing cell, chosen cardinal facing
-}
-```
+**Critique fix (`70f3d0a`):** the heading-cone used `Math.abs(normalizeAngle(...))`, but `Misc.normalizeAngle`
+returns `[0,360)` — so a small CW error read as ~350° and the ship braked instead of thrusting. Now uses
+`Misc.getAngleDiff` (true `[0,180]`) + `Misc.turnTowardsFacingV2` (vanilla's overshoot-damped turn).
+**Playtest watch-items** (fine for a `@DebugOnly` probe): orbit/stall at the arrival boundary (no
+closing-velocity gate); target snapshotted at takeover (drifts as structures die); the parked
+`CarrierEngagementPlugin` ASSAULT co-existing with the takeover (`setShipAI` should win — confirm no tug-of-war).
 
-`deliverSquad(cellX, cellY, MarineLoadout[])` on the sim is the inverse of the internal shuttle
-deboard; it asserts `AirProvider.EXTERNAL`. (The takeoff/extraction inverse — "board a squad, remove
-it from the sim" — can come later; landing is the first cut.)
+## Superseded alternative — kept for the reasoning
 
-## Load-bearing unknown — de-risk first (S0–S2 spirit probe)
+The original S3d was a **vanilla-ship-descends** handoff: fly the real ship to a threshold, `removeEntity` it,
+animate **our owned sprite** swooping + shrinking (`SpriteAPI.setSize`) down to a cardinal grid heading, call a
+new `sim.deliverSquad(cell, loadout)` (`AirProvider.EXTERNAL`), then `addEntity` the same instance back for
+takeoff. Its load-bearing unknown was *"does `addEntity` cleanly resurrect a `removeEntity`'d ship?"*
 
-Everything else is proven (we own the scale/rotate draw; `deliverSquad` is a small sim addition).
-The one thing the API can't confirm on its own: **does `engine.addEntity` cleanly resurrect a
-`removeEntity`'d `ShipAPI` with AI/fleet wiring intact?** First probe: remove a ship, wait a beat,
-`addEntity` it back, confirm it resumes flying + fighting normally (re-poke `setShipAI`/loc/facing/
-velocity if needed). If flaky, the fallback is hide-in-place (`setCollisionClass(NONE)` +
-`setControlsLocked(true)` + park velocity), but removal is the clean first choice.
+**Why it's superseded:** the sim-native-dropship path makes all of that unnecessary —
+- the sim shuttle **already scales down** on its descent leg, so no owned-sprite animation;
+- the carrier **never leaves the vanilla layer**, so no `removeEntity`/`addEntity` resurrection probe;
+- dropships are **INTERNAL sim shuttles**, so no `EXTERNAL` / `deliverSquad` and no cross-engine damage immunity hack;
+- it's also better fiction — carriers *launch craft*, they don't land.
 
-## Out of scope
+What it taught us and we keep: there is **no ship-level render-scale** in the combat API
+(`getSpriteAPI()` is a fresh per-call wrapper; scaling it desyncs weapons/engines/bounds), which is exactly
+why we don't try to shrink a vanilla ship and instead let the *sim* own the descending craft. `deliverSquad`
++ `AirProvider.EXTERNAL` remain framed (S3e) for any *future* direct squad-injection variant, but are off the
+critical path for this vision.
 
-- Full LOD pipeline for everything (just enough scale to read the landing).
-- Follow-cam vs. stay-at-fleet during descent — UX decision at build (note both). Camera zoom is
-  *not* a substitute for the per-sprite shrink: zoom scales the whole scene, so it only works if
-  the player follows the shuttle down; a shuttle peeling off while the fight continues above needs
-  the owned-sprite shrink.
-- Combat consequences of the shuttle being shot down en route (ties to giving shuttles HP + the
-  proxy/area-damage model — later).
+## Open questions (resolve at the relevant rung)
 
-## Fragile-surface additions (for `architecture.md` at build time)
+- **DZ painting UX** — how the commander designates the zone in the spectator canvas (cell paint vs. a
+  radius brush). The fact-12 "starve, don't cover" overlay constraint applies (overview § round 2).
+- **Carrier→cell projection origin** — `worldToCell` is a trivial inverse, but the "airspace band" the
+  carrier orbits in vs. the ground plane is a convention to pin (overview open question #1; S3c spatial fork).
+- **Marine pool plumbing** — the per-battle marine count rides the campaign→battle bridge
+  ([[campaign_battle_bridge]] — `TargetProfile`); confirm the field + how depletion reads back to the fleet (D5).
+- **Camera during a drop** — follow the swarm down vs. stay at fleet altitude (note both; decide at D1 build).
 
-New `combathybrid`-only calls beyond today's enumerated set: `addEntity` (the re-add), `setFacing`.
-Already listed: `removeEntity`, `getLocation`/`getVelocity().set`. Keep the list honest when this lands.
+## Acceptance (per rung)
 
-## Acceptance
-
-A real fleet ship peels off, descends, visibly scales down, and on touchdown the troops exist in the
-ground sim as a squad; `addEntity` restores the same ship for takeoff. Verdict recorded: did
-remove→add resurrect cleanly, and follow-cam vs. stay-at-fleet.
+- **D1:** trigger → carrier orbits the painted point → dropships spawn from it, visibly descend, and deboard
+  squads that appear + fight in the sim; the `SHUTTLES` layer draws them. The scene reads.
+- **D3:** a hot DZ measurably costs dropships/scatter vs. a cold one — the curve is felt, not gated.
+- **D5:** waves continue from the fleet pool until marines or transports run out; a fight-to-the-end can emerge.

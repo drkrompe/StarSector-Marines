@@ -247,13 +247,14 @@ cheaply, before any real feature investment ([[feedback_ship_then_optimize]]):
   carrier/fighter AI strafes a sim-slaved invisible proxy with zero targeting code from
   us. The cross-engine bridge is validated. Sealed in
   [`complete/s2-proxy-target-probe.md`](complete/s2-proxy-target-probe.md).
-- **S3 (hypothetical) — inject the 2nd engine layer.** Once proxies prove cross-engine
-  targeting works, S3 starts rendering/simulating our *actual* ground battle "below" the
-  vanilla fleet fight: the headless `battle/` sim driving a fleet of proxies (one per
-  squad/turret) on the combat plane, our renderer drawing the real ground scene on the
-  below-ships layer, and the fleet-above ⇄ ground-below cross-interaction (air-to-ground
-  strafes drain sim HP; the sim's AA fires back). This is where the two engines actually
-  co-exist. Scope it for real once S2's verdict is in.
+- **S3 — inject the 2nd engine layer.** ✅ *shipped through S3b/S3e/S3f–S3j + a live Conquest
+  battle under the fleet.* The headless `battle/` sim runs below the vanilla fleet fight: our
+  renderer draws the real ground scene on the below-ships layer, defense-post proxies take
+  air-to-ground strafes that drain sim HP, and the sim owns its kills. The two engines co-exist.
+  **The realized product the bridge delivers is now specified in S3d — the drop-ship invasion**
+  (a transport establishes orbit over a painted DZ; sim-native dropships descend and land
+  marines; continuous, diegetic fleet-as-currency, scored hot/cold LZ). See
+  [`stories/s3d-shuttle-scaledown.md`](stories/s3d-shuttle-scaledown.md).
 
 Sequencing: ~~**S0 first**~~ ✅ done (S0 + S0b shipped — a campaign-launched combat
 instance that hosts a sim-driven spectator canvas). Next: **S2** — the chosen direction
@@ -286,7 +287,10 @@ product direction; walls stay in the headless sim.
 - **`architecture.md`** — post-S2 north star: the event-adapter coupling decision,
   proxy/targetability model, spatial fork, and the S3a–d decomposition. **Read this
   before building any S3 story.**
-- **`stories/`** — `s3a-sim-coupling-slice` (next build), `s3b-cityscape-backdrop`,
-  `s3c-airspace-gating`, `s3d-shuttle-scaledown` (stubs); `s1-wall-clamp-probe` (shelved).
-- **`complete/`** — sealed shipped work (`s0-battle-bootstrap`, `s0b-spectator-canvas`, `s2-proxy-target-probe`).
-- **`next-session.md`** — handoff state; S0 / S0b / S2 shipped & playtested. Next: S3a sim-coupling slice.
+- **`stories/`** — `s3d-shuttle-scaledown` (**the drop-ship invasion — full vision + D1–D5 ladder, next build**),
+  `s3c-airspace-gating` + `skybattle-fleet-control` (parked), `s3f`–`s3j` render layers (resolved);
+  `s3a`/`s3b` shipped, `s1-wall-clamp-probe` shelved.
+- **`complete/`** — sealed shipped work (`s0-battle-bootstrap`, `s0b-spectator-canvas`, `s2-proxy-target-probe`,
+  `s3a-sim-coupling-slice`, `s3b-cityscape-backdrop`, `s3e-build-map-host-seam`).
+- **`next-session.md`** — handoff state; S0/S0b/S2/S3a/S3b/S3e shipped, the X1–X4b extraction done, render
+  layers resolved. Next: **S3d D1** — the drop-ship invasion core (sim-dropship spawn from the orbiting carrier).

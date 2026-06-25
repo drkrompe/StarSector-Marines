@@ -45,11 +45,13 @@ universe over time, not retrofitted into intel slots.
   track — [`command-powers/`](command-powers/overview.md) — brainstorms the
   player-agency layer (orbital strikes, marine drops, recon) and its
   between-battle meta-progression spine; powers are sourced diegetically from
-  the player's fleet (ship + hull-mod flavor). A second **design-stage** track —
-  [`vanilla-combat-bridge/`](vanilla-combat-bridge/overview.md) — explores
-  hooking the headless sim and vanilla `CombatEngineAPI` together (the reverse of
-  how the mod is built); the near-term thread is sim-authoritative *proxy targets*
-  vanilla carriers/fighters can engage, with two throwaway de-risking probes.
+  the player's fleet (ship + hull-mod flavor). A second, now **active** track —
+  [`vanilla-combat-bridge/`](vanilla-combat-bridge/overview.md) — hooks the headless
+  sim and vanilla `CombatEngineAPI` together (the reverse of how the mod is built).
+  Past its probes: sim-authoritative *proxy targets* are proven, and a live Conquest
+  ground battle now runs below a real vanilla fleet fight. The product it builds toward
+  is the **drop-ship invasion** (S3d) — a transport establishes orbit over a painted
+  drop zone and sim-native dropships land marines; vision + D1–D5 ladder spec'd, D1 in build.
   A third **design-stage** track — [`air/`](air/overview.md) — recaptures
   vanilla/modded airborne craft (fighters and overhead ships) as sim entities
   via a shared `ShipHullSpecAPI`-sourced hull-extraction pipeline (kinematics +

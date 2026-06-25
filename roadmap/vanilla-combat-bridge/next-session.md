@@ -36,8 +36,10 @@ Decomposition:
   structures render under the ships. **Render-target seam = the camera, already present** —
   a world-configured `BattleCamera` makes the existing `BattleRenderer` draw in combat world
   coords; no `SceneCamera` interface / no sweep. Sealed: `complete/s3b-cityscape-backdrop.md`.
-- **S3c — airspace banding / AI gating.** The hard de-risk; resolve the spatial fork.
-- **S3d — shuttle scale-down handoff.** Diegetic bridge between the two scales.
+- **S3c — airspace banding / AI gating.** Parked → folded into the skybattle feature.
+- **S3d — drop-ship invasion.** Re-spec'd 2026-06-25 into the bridge's product core (transport
+  orbits, sim-native dropships land marines, diegetic/scored/emergent). Vision + D1–D5 ladder
+  written; **D1 is the next build.** See the S3d story.
 
 ### Scale + real-map pass (done after S3b playtest)
 - `WORLD_UNITS_PER_CELL` lowered **50 → 20** (ground cells read too large vs ships at 50;
@@ -146,26 +148,32 @@ a probe concern; **parked into the new [`stories/skybattle-fleet-control.md`](st
 story (the fleet fight over the city, where fleet control + the air⇄ground economy live). The
 plugin stays wired (harmless) as that story's starting point; lever ladder documented there.
 
-### Thread 2 — mid-combat AI takeover = S3d landing foundation ✅ takeover BUILT (playtest pending)
-User confirmed the goal: take over a real vanilla ship mid-combat to **fly it down to the
-ground layer for troop drops** (landings). **Mid-combat AI swap is supported** — `ship.
-setShipAI(plugin)` is callable any frame (we already null proxies' AI); `ShipAIPlugin` is an
-8-method interface (mostly no-op), so a takeover brain is light. Three grip tiers:
-assignment (ship keeps its AI) → `setShipAI` (own the brain, vanilla physics still flies it)
-→ per-frame `getLocation().set` puppet (what proxies do). The descent/landing wants tier 2/3.
+### S3d — DROP-SHIP INVASION: vision locked + spec'd (2026-06-25); D1 is the next build
+S3d was re-spec'd from a "vanilla-ship scales down and lands" handoff into the **drop-ship
+invasion** — the cinematic+systemic core of the bridge. Full vision, design pillars, reuse map,
+and the D1–D5 build ladder are written in [`stories/s3d-shuttle-scaledown.md`](stories/s3d-shuttle-scaledown.md).
+**Read that story before building D1.** The scene: a transport **establishes a stable orbit** over
+a commander-painted DZ; **sim-native dropships** fall through atmosphere, scatter marines across the
+zone, and the ground AI fights them. Continuous waves, **diegetic currency** (fleet marines = depth,
+transport capacity + cycling = throughput — no points), **scored hot/cold LZ** (one threat number,
+not a gate), **emergent** outcomes (fight-to-the-end / lost transport with marines aboard).
 
-**Built this session — the `setShipAI` takeover (tier 2):** `CarrierDescentBrain` (a
-`ShipAIPlugin` that steers a ship to a point via `ShipCommand`s — turn-toward + cone-gated
-thrust + speed-bleed-while-turning so it arrives, not orbits) + `CarrierDescentPlugin` (press
-**L** in a SIM_COUPLED battle → takes over the first live carrier and flies it to the ground
-band). Wired into `CombatBridgeSession.enterEngine`. Target = the new shared
-`GroundBattleConfig.targetableCentroid(...)` (dedup'd from `CarrierEngagementPlugin`). Build
-green. **Playtest pending:** press L, confirm the carrier peels off and settles over the band
-against the admiral (the tier-2 de-risk). See [`stories/s3d-shuttle-scaledown.md`](stories/s3d-shuttle-scaledown.md).
+**Key pivot — the dropships are the sim's own `Shuttle`s, air stays `INTERNAL`.** This *deletes* the
+old hard parts: sim shuttles already altitude-scale (no owned-sprite anim), the carrier never leaves
+vanilla (no `removeEntity`/`addEntity` resurrection probe), and no `EXTERNAL`/`deliverSquad` is needed.
+The vision rides machinery that already runs in the bridge (the 4 Aeroshuttles + `totalCycles`/`rearmDelay`
+cadence + `TacticalScoring` + defense-post proxies + the wired-forward `ShuttleMission.hp` for AA).
 
-**Still to build (S3d, in order):** the `removeEntity` → owned-sprite scale-down →
-`sim.deliverSquad(cellX,cellY,MarineLoadout[])` (the `AirProvider.EXTERNAL` sim-side receiver,
-already framed) swap at the handoff threshold; and the remove→add resurrection probe.
+**Built (D1, part 1) — the orbit-positioning takeover (`996ce08`, fix `70f3d0a`):** `CarrierDescentBrain`
+(`ShipAIPlugin`, tier 2 — turn-toward + cone-gated thrust + speed-bleed) + `CarrierDescentPlugin` (press
+**L** → take over the first live carrier, steer it to `GroundBattleConfig.targetableCentroid`). Repurposed
+from "fly down to land" to "establish orbit over the DZ." **Playtested 2026-06-25: the ship hard-moves to
+the target** (tier-2 de-risk passed). Watch-items in the story (orbit/stall, stale target, ASSAULT co-existence).
+
+**Next build — D1, part 2:** spawn a sim `Shuttle` mid-battle whose entry = the carrier's position
+projected to a cell (`worldToCell`, inverse of `cellToWorld`) via `sim.addShuttle(s)`; add `RenderLayer.SHUTTLES`
+to `GroundBattleConfig.sceneLayers` + ensure shuttle sprites (same wiring as S3f–S3h). Then D2 (painted DZ +
+scatter), D3 (AA/hot drops), D4 (orbit window stake), D5 (continuous logistics).
 
 ### Live battle below the fleet ✅ SHIPPED (2026-06-20) — the chosen "bridge the sim over" slice
 The coupled sim was **map-only** (terrain + static defense-post turrets). Swapped it to a **live
