@@ -93,6 +93,7 @@ adb4bc9  battle: Health onto the EntityWorld — death is a row-move (retrofit s
 b92c8bd  battle: Position onto the EntityWorld — the corpse keeps its cell by lifecycle (retrofit step 3b)  ← 2026-06-03
 a390b79  battle: Combat onto the EntityWorld — primary-weapon capability as a component (retrofit step 3c)  ← 2026-06-20
 a5da51a  battle: SecondaryWeapon onto the EntityWorld — first OPTIONAL capability as archetype presence (retrofit step 3d)  ← 2026-06-20
+42cc723  battle: Movement onto the EntityWorld — moveProgress as a MOVEMENT component (retrofit step 3e)  ← 2026-06-25
 ```
 
 (Sibling tracks interleaved on HEAD, not ECS-migration: `9084ed4` battle-render
@@ -185,10 +186,32 @@ is now **built and consuming real game state**:
   **Future (docs only):** more secondary types join the `spec` flyweight; AI may
   query the equipped weapon to know its options. Suite green at 757.
 
-**Next: step 3 continues** — Movement (`moveProgress` + path ref), then AiState
-(repositionCooldown + fallback group + wanderDwell); then fold the
-`Crashing`/`MechLoadout` ComponentStores into archetype membership; then step 4
-dissolves `UnitRegistry` (id mint + dense Entity[] hop to the world / sim).
+- **Step 3e (Movement) SHIPPED** (`42cc723`,
+  [`complete/movement-onto-world.md`](complete/movement-onto-world.md)): the
+  per-unit `moveProgress` lerp factor left `UnitRegistry`'s dense float column
+  for the world's new `MOVEMENT` component (single `FLOAT`); live archetype is
+  now `{IDENTITY, POSITION, HEALTH, COMBAT, MOVEMENT}` (+ optional
+  `SECONDARY_WEAPON`). Shipped **universal** (every live unit, zero by row
+  append) — behavior-preserving, the Combat-3c precedent — even though the
+  design has Movement as optional/kinematic-only; the membership-narrowing is
+  deferred to the **path-ref** fold-in (a turret has no path; that's what truly
+  defines a mover). Registry dense field + grow/reset/tail-swap + by-index
+  accessors (incl. zero-caller `moveProgressArray`) deleted; by-id
+  `moveProgressById`/`setMoveProgressById` adapters added; the mid-combat
+  lifecycle anchor doc re-anchored from `moveProgress` onto `repositionCooldown`.
+  `World` facade reroutes by id (signatures unchanged → ~40 consumers untouched);
+  only `Entity.advanceAlongPath` (drops its now-unused `requireLiveIndex`) and
+  `InfantryWeapons` burst continuation went by-id. Corpse transmute removes
+  `MOVEMENT`. Suite green at 757.
+
+**Next: step 3 continues** — fold the **path ref** (`int[] path` + `int pathIdx`,
+still `Entity` fields, ~66 sites/28 files incl. hot nav loops + static
+`NavigationService.pathDestX/Y`) into `MOVEMENT` and narrow its membership to
+actual movers (the optional kinematic capability the design intends); then
+AiState (repositionCooldown + fallback group + wanderDwell — the last registry
+dense columns); then fold the `Crashing`/`MechLoadout` ComponentStores into
+archetype membership; then step 4 dissolves `UnitRegistry` (id mint + dense
+Entity[] hop to the world / sim).
 
 ## NEW PHASE — entity-id handle (2026-06-02, in flight)
 
