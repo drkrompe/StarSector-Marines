@@ -94,6 +94,7 @@ b92c8bd  battle: Position onto the EntityWorld — the corpse keeps its cell by 
 a390b79  battle: Combat onto the EntityWorld — primary-weapon capability as a component (retrofit step 3c)  ← 2026-06-20
 a5da51a  battle: SecondaryWeapon onto the EntityWorld — first OPTIONAL capability as archetype presence (retrofit step 3d)  ← 2026-06-20
 42cc723  battle: Movement onto the EntityWorld — moveProgress as a MOVEMENT component (retrofit step 3e)  ← 2026-06-25
+8001f78  battle: AiState onto the EntityWorld — empties the registry's last dense columns (retrofit step 3f)  ← 2026-06-25
 ```
 
 (Sibling tracks interleaved on HEAD, not ECS-migration: `9084ed4` battle-render
@@ -204,14 +205,35 @@ is now **built and consuming real game state**:
   `InfantryWeapons` burst continuation went by-id. Corpse transmute removes
   `MOVEMENT`. Suite green at 757.
 
-**Next: step 3 continues** — fold the **path ref** (`int[] path` + `int pathIdx`,
-still `Entity` fields, ~66 sites/28 files incl. hot nav loops + static
-`NavigationService.pathDestX/Y`) into `MOVEMENT` and narrow its membership to
-actual movers (the optional kinematic capability the design intends); then
-AiState (repositionCooldown + fallback group + wanderDwell — the last registry
-dense columns); then fold the `Crashing`/`MechLoadout` ComponentStores into
-archetype membership; then step 4 dissolves `UnitRegistry` (id mint + dense
-Entity[] hop to the world / sim).
+- **Step 3f (AiState) SHIPPED** (`8001f78`,
+  [`complete/aistate-onto-world.md`](complete/aistate-onto-world.md)): the AI
+  decision-cadence cluster (`repositionCooldown`, `fallbackTimer`,
+  `fallbackCellX/Y`, `wanderDwellTimer`) left `UnitRegistry`'s dense SoA arrays
+  for the world's new `AI_STATE` component `{FLOAT, FLOAT, INT, INT, FLOAT}`;
+  live archetype is now `{IDENTITY, POSITION, HEALTH, COMBAT, MOVEMENT,
+  AI_STATE}` (+ optional `SECONDARY_WEAPON`). **This was the LAST per-unit dense
+  column** — `UnitRegistry` now holds only the dense `Entity[]` + id↔slot map
+  (the step-4 shape). Universal/behavior-preserving (Combat/Movement precedent);
+  membership-narrowing to thinkers deferred. The one subtlety: the fall-back
+  cell defaults to **−1/−1** (readers treat `≥0` as a live cached cell), so
+  `allocate` explicitly seeds it (a fresh world row appends zero) — the other
+  four scalars zero-init, so the slot-reuse reset block is gone. By-id adapters
+  added, by-index + `*Array` accessors (zero callers) deleted; `release`'s
+  swap-and-pop now moves only the `Entity[]` slot. `World` reroutes all 9
+  methods by id (consumers untouched); 4 by-index prod sites went by-id
+  (`TacticalScoring`, `HitResponseService`, `SquadAlertSystem` dense loop,
+  `BattleSimulation.writeFallbackInline`). Keystone tail-swap test re-proves the
+  swap via the dense `Entity[]` slot (no column left to move). Suite green at 761.
+
+**Next: step 3 wrap-up + step 4.** Two threads remain:
+- **Movement path-ref fold-in** (deferred from 3e) — bring `int[] path` + `int
+  pathIdx` (still `Entity` fields, ~66 sites/28 files incl. hot nav loops +
+  static `NavigationService.pathDestX/Y`) into `MOVEMENT` and narrow its
+  membership to actual movers (the optional kinematic capability the design
+  intends). Pairs naturally with the AI_STATE membership-narrowing to thinkers.
+- **Step 4 — dissolve `UnitRegistry`.** With every dense column gone, fold the
+  standalone `Crashing`/`MechLoadout` ComponentStores into archetype membership,
+  then hop id-mint + the dense `Entity[]` to the world / sim.
 
 ## NEW PHASE — entity-id handle (2026-06-02, in flight)
 
