@@ -38,11 +38,11 @@ import java.util.Random;
  * draws where it fell. The two coincide when the unit is at rest or has just
  * landed in a new cell.
  *
- * <p>{@link #path} + {@link #pathIdx} + the move-progress registry column
- * describe the current movement step. {@link #advanceAlongPath(UnitRegistry, float)}
- * rebuilds nothing but lerps render position toward {@code path[pathIdx]} as
- * move-progress climbs from 0 to 1; on arrival the logical cell advances and
- * progress resets.
+ * <p>{@link #path} + {@link #pathIdx} + the move-progress field of the world's
+ * MOVEMENT component (reached by id) describe the current movement step.
+ * {@link #advanceAlongPath(UnitRegistry, float)} rebuilds nothing but lerps
+ * render position toward {@code path[pathIdx]} as move-progress climbs from 0
+ * to 1; on arrival the logical cell advances and progress resets.
  */
 public class Entity {
 
@@ -148,13 +148,11 @@ public class Entity {
 
     /**
      * Per-tick movement step. The cell pair lives in the entity world's
-     * POSITION columns (read/written by id through the registry's transitional
-     * adapters); move-progress is still a dense registry column driven by
-     * index, resolved once off the passed registry.
+     * POSITION columns and move-progress in its MOVEMENT component — both
+     * read/written by id through the registry's transitional adapters.
      */
     public void advanceAlongPath(UnitRegistry registry, float dt) {
         if (pathIdx >= pathCellCount()) return;
-        int idx = registry.requireLiveIndex(entityId);
         int nextX = pathCellX(pathIdx);
         int nextY = pathCellY(pathIdx);
         int curX = registry.cellXById(entityId);
@@ -163,14 +161,14 @@ public class Entity {
         float dy = nextY - curY;
         float cellDist = (float) Math.sqrt(dx * dx + dy * dy);
         if (cellDist < 0.0001f) { pathIdx++; return; }
-        float mp = registry.getMoveProgress(idx) + (moveSpeed * dt) / cellDist;
+        float mp = registry.moveProgressById(entityId) + (moveSpeed * dt) / cellDist;
         if (mp >= 1f) {
             registry.setCellPosById(entityId, nextX, nextY);
             setRenderPos(nextX, nextY);
-            registry.setMoveProgress(idx, 0f);
+            registry.setMoveProgressById(entityId, 0f);
             pathIdx++;
         } else {
-            registry.setMoveProgress(idx, mp);
+            registry.setMoveProgressById(entityId, mp);
             setRenderPos(curX + dx * mp, curY + dy * mp);
         }
     }

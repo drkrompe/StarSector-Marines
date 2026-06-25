@@ -93,9 +93,9 @@ public class InfantryWeapons {
             // Burst follow-up: use the unit's current motion state. If they
             // walked off the firing position mid-burst, the remaining rounds
             // get the MOVING accuracy penalty — same rule a hand-rolled
-            // moving-fire callsite gets. moveProgress is still a registry-dense
-            // column, so resolve the live index for that one read.
-            fireShot(u, burstTarget, FireStance.stanceFor(registry.getMoveProgress(registry.requireLiveIndex(id))));
+            // moving-fire callsite gets. moveProgress lives in the world's
+            // MOVEMENT component, read by id.
+            fireShot(u, burstTarget, FireStance.stanceFor(registry.moveProgressById(id)));
             // Combat state is keyed by entity id, so a killing round that
             // swap-and-pops the dense registry (relocating u's slot) can't
             // invalidate these post-fire writes — no slot re-resolve needed.

@@ -350,20 +350,20 @@ public class UnitRegistryTest {
     }
 
     @Test
-    public void allocateMoveProgressDefaultsAndAccessorsRouteThroughRegistry() {
+    public void allocateMoveProgressDefaultsAndAccessorsRouteThroughWorld() {
         UnitRegistry r = new UnitRegistry();
         Entity u = unit("u");
 
         r.allocate(u);
 
-        assertEquals(0f, r.getMoveProgress(r.indexOf(u.entityId)), 1e-6f);
+        assertEquals(0f, r.moveProgressById(u.entityId), 1e-6f);
 
-        r.setMoveProgress(r.indexOf(u.entityId), 0.2f);
-        assertEquals(0.2f, r.getMoveProgress(r.indexOf(u.entityId)), 1e-6f);
+        r.setMoveProgressById(u.entityId, 0.2f);
+        assertEquals(0.2f, r.moveProgressById(u.entityId), 1e-6f);
     }
 
     @Test
-    public void releaseTailSwapMovesMoveProgressCorrectly() {
+    public void moveProgressIsUndisturbedByDenseTailSwap() {
         UnitRegistry r = new UnitRegistry();
         Entity a = unit("a");
         Entity b = unit("b");
@@ -371,12 +371,14 @@ public class UnitRegistryTest {
         long idA = r.allocate(a);
         r.allocate(b);
         r.allocate(c);
-        r.setMoveProgress(r.indexOf(c.entityId), 0.9f);
+        r.setMoveProgressById(c.entityId, 0.9f);
 
+        // Releasing a swap-pops c into a's old dense slot — MOVEMENT is keyed by
+        // entity id in the world, not by dense index, so c's value is untouched.
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(0.9f, r.getMoveProgress(0), 1e-6f);
+        assertEquals(0.9f, r.moveProgressById(c.entityId), 1e-6f);
     }
 
     @Test

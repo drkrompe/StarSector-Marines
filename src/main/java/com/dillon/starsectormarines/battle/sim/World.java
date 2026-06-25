@@ -99,8 +99,11 @@ public final class World {
     public float cooldownTimer(long id) { return registry.cooldownTimerById(id); }
     public void setCooldownTimer(long id, float v) { registry.setCooldownTimerById(id, v); }
 
-    public float moveProgress(long id) { return registry.getMoveProgress(registry.requireLiveIndex(id)); }
-    public void setMoveProgress(long id, float v) { registry.setMoveProgress(registry.requireLiveIndex(id), v); }
+    // Movement lives in the entity world's MOVEMENT component (migration step
+    // 3e) — same transitional by-id adapter routing as combat above. Fail-loud
+    // once the death drain has transmuted the entity to a corpse (MOVEMENT gone).
+    public float moveProgress(long id) { return registry.moveProgressById(id); }
+    public void setMoveProgress(long id, float v) { registry.setMoveProgressById(id, v); }
 
     public float attackDamage(long id) { return registry.attackDamageById(id); }
     public void setAttackDamage(long id, float v) { registry.setAttackDamageById(id, v); }

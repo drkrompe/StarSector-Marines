@@ -60,21 +60,22 @@ public final class UnitRegistry {
 
     private Entity[] dense = new Entity[INITIAL_CAPACITY];
     /**
-     * Per-unit movement lerp factor [0,1] toward the next path cell.
+     * Per-unit sim-seconds until the unit may next micro-reposition between
+     * shots. Decremented in {@code InfantryUnitPrep.tickCooldowns}.
      * <b>Mid-combat-only lifecycle</b> (the anchor the other such columns point
      * to): no pre-allocation seed, reset to its default on slot reuse in
-     * {@link #allocate}, no post-release reader.
+     * {@link #allocate}, no post-release reader. (Movement's {@code moveProgress}
+     * shared this lifecycle until step 3e lifted it into the world's
+     * {@code MOVEMENT} component; these are the AiState cluster that follows.)
      */
-    private float[] moveProgress = new float[INITIAL_CAPACITY];
-    /** Per-unit sim-seconds until the unit may next micro-reposition between shots. Decremented in {@code InfantryUnitPrep.tickCooldowns}. Same lifecycle as {@link #moveProgress}. */
     private float[] repositionCooldown = new float[INITIAL_CAPACITY];
-    /** Per-unit sim-seconds remaining in break-contact fall-back state (>0 = falling back toward {@link #fallbackCellX}/{@link #fallbackCellY}). Same lifecycle as {@link #moveProgress}. */
+    /** Per-unit sim-seconds remaining in break-contact fall-back state (>0 = falling back toward {@link #fallbackCellX}/{@link #fallbackCellY}). Same lifecycle as {@link #repositionCooldown}. */
     private float[] fallbackTimer = new float[INITIAL_CAPACITY];
-    /** Per-unit cached fall-back destination cell X (-1 = none). Paired with {@link #fallbackCellY}. Same lifecycle as {@link #moveProgress}. */
+    /** Per-unit cached fall-back destination cell X (-1 = none). Paired with {@link #fallbackCellY}. Same lifecycle as {@link #repositionCooldown}. */
     private int[] fallbackCellX = new int[INITIAL_CAPACITY];
     /** Per-unit cached fall-back destination cell Y, paired with {@link #fallbackCellX}. */
     private int[] fallbackCellY = new int[INITIAL_CAPACITY];
-    /** Per-unit FLEE-role idle pause between wander legs (sim-seconds). Same lifecycle as {@link #moveProgress}. */
+    /** Per-unit FLEE-role idle pause between wander legs (sim-seconds). Same lifecycle as {@link #repositionCooldown}. */
     private float[] wanderDwellTimer = new float[INITIAL_CAPACITY];
     private int liveCount = 0;
     private long nextId = 1L;
@@ -134,7 +135,6 @@ public final class UnitRegistry {
         if (liveCount == dense.length) {
             int newCap = dense.length * 2;
             dense = Arrays.copyOf(dense, newCap);
-            moveProgress = Arrays.copyOf(moveProgress, newCap);
             repositionCooldown = Arrays.copyOf(repositionCooldown, newCap);
             fallbackTimer = Arrays.copyOf(fallbackTimer, newCap);
             fallbackCellX = Arrays.copyOf(fallbackCellX, newCap);
@@ -145,22 +145,26 @@ public final class UnitRegistry {
         u.entityId = id;
         dense[liveCount] = u;
         // Adopt the minted id into the entity world as a live {IDENTITY,
-        // POSITION, HEALTH, COMBAT} entity — plus SECONDARY_WEAPON iff this unit
-        // carries one, so the optional capability IS its archetype membership (no
-        // nullable field). Identity is written once here and persists alive→dead
-        // (the corpse transmute's row-move carries it — as does the cell, which
-        // IS the death cell by the time the corpse forms); Position, Health and
-        // Combat seed from the write-only seed* fields and are canonical in the
-        // world thereafter — "has HEALTH with hp > 0" is the liveness definition
-        // (isAliveById). The corpse transmute removes HEALTH, COMBAT, and any
-        // SECONDARY_WEAPON (a corpse neither lives nor fights).
+        // POSITION, HEALTH, COMBAT, MOVEMENT} entity — plus SECONDARY_WEAPON iff
+        // this unit carries one, so the optional capability IS its archetype
+        // membership (no nullable field). Identity is written once here and
+        // persists alive→dead (the corpse transmute's row-move carries it — as
+        // does the cell, which IS the death cell by the time the corpse forms);
+        // Position, Health and Combat seed from the write-only seed* fields and
+        // are canonical in the world thereafter — "has HEALTH with hp > 0" is the
+        // liveness definition (isAliveById). MOVEMENT is universal for now
+        // (behavior-preserving: moveProgress was a universal registry column),
+        // its lone moveProgress scalar starting at zero. The corpse transmute
+        // removes HEALTH, COMBAT, MOVEMENT, and any SECONDARY_WEAPON (a corpse
+        // neither lives, fights, nor moves).
         boolean hasSecondary = u.seedSecondaryWeapon != null;
         if (hasSecondary) {
             entityWorld.createEntity(id, components.IDENTITY, components.POSITION,
-                    components.HEALTH, components.COMBAT, components.SECONDARY_WEAPON);
+                    components.HEALTH, components.COMBAT, components.MOVEMENT,
+                    components.SECONDARY_WEAPON);
         } else {
             entityWorld.createEntity(id, components.IDENTITY, components.POSITION,
-                    components.HEALTH, components.COMBAT);
+                    components.HEALTH, components.COMBAT, components.MOVEMENT);
         }
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_TYPE, u.type);
         entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_FACTION, u.faction);
@@ -187,8 +191,9 @@ public final class UnitRegistry {
         // have no pre-allocation seed (a fresh unit starts at rest) and no
         // post-release reader, so they carry no local* twin on Entity; the
         // explicit reset clears any stale value left in a dense slot reused after
-        // a swap-and-pop release.
-        moveProgress[liveCount] = 0f;
+        // a swap-and-pop release. (moveProgress moved to the world's MOVEMENT
+        // component in step 3e — a fresh world row is zero-init by append, so it
+        // needs no reset here.)
         repositionCooldown[liveCount] = 0f;
         fallbackTimer[liveCount] = 0f;
         fallbackCellX[liveCount] = -1;
@@ -230,14 +235,13 @@ public final class UnitRegistry {
         // RenderPositionService keyed by entityId — NOT cleared on release, so
         // the corpse's death-pose location survives. The world entity is NOT
         // touched here: hp lives in its HEALTH component (isAliveById reads it,
-        // so a released-pre-transmute id still reports dead via hp <= 0) and the
-        // combat stats/scalars in its COMBAT component and any SECONDARY_WEAPON;
-        // the death drain transmutes the entity to the corpse archetype, which
-        // removes all of them.
+        // so a released-pre-transmute id still reports dead via hp <= 0), the
+        // combat stats/scalars in its COMBAT component, moveProgress in MOVEMENT,
+        // and any SECONDARY_WEAPON; the death drain transmutes the entity to the
+        // corpse archetype, which removes all of them.
         if (idx != last) {
             Entity tail = dense[last];
             dense[idx] = tail;
-            moveProgress[idx] = moveProgress[last];
             repositionCooldown[idx] = repositionCooldown[last];
             fallbackTimer[idx] = fallbackTimer[last];
             fallbackCellX[idx] = fallbackCellX[last];
@@ -386,9 +390,12 @@ public final class UnitRegistry {
         entityWorld.setInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AMMO, ammo);
     }
 
-    public float getMoveProgress(int idx) { return moveProgress[idx]; }
-    public void setMoveProgress(int idx, float v) { moveProgress[idx] = v; }
-    public float[] moveProgressArray() { return moveProgress; }
+    // Transitional by-id movement adapters over the world's MOVEMENT component —
+    // same shape and fate as the hp/cell/combat adapters above. Strict reads
+    // (fail-loud once the entity is gone OR transmuted to a corpse — a corpse
+    // lacks MOVEMENT). Universal on every live unit today, so no presence gate.
+    public float moveProgressById(long id) { return entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_PROGRESS); }
+    public void setMoveProgressById(long id, float v) { entityWorld.setFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_PROGRESS, v); }
 
     /**
      * The decomposed render-position service this registry seeds + wires on

@@ -15,14 +15,14 @@ import com.dillon.starsectormarines.engine.ecs.Query;
  * alive→dead; Health is live-only), per the committed decomposition in
  * {@code roadmap/ecs-migration/archetype-storage.md}. Registered so far: the
  * corpse archetype plus the live capabilities ({@link #POSITION},
- * {@link #HEALTH}, {@link #COMBAT}) and the first <em>optional</em> live
- * capability ({@link #SECONDARY_WEAPON}). Every unit spawns into the world as
- * {@code {IDENTITY, POSITION, HEALTH, COMBAT}}, plus {@link #SECONDARY_WEAPON}
- * iff it carries one (so presence <em>is</em> the capability — no nullable
- * field); death is the transmute to the corpse archetype (identity + cell ride
- * the row-move; health, combat, and any secondary are removed). Remaining live
- * components (movement, ai-state) join as migration step 3 proceeds, continuing
- * the id space.
+ * {@link #HEALTH}, {@link #COMBAT}, {@link #MOVEMENT}) and the first
+ * <em>optional</em> live capability ({@link #SECONDARY_WEAPON}). Every unit
+ * spawns into the world as {@code {IDENTITY, POSITION, HEALTH, COMBAT,
+ * MOVEMENT}}, plus {@link #SECONDARY_WEAPON} iff it carries one (so presence
+ * <em>is</em> the capability — no nullable field); death is the transmute to
+ * the corpse archetype (identity + cell ride the row-move; health, combat,
+ * movement, and any secondary are removed). The remaining live component
+ * (ai-state) joins as migration step 3 proceeds, continuing the id space.
  *
  * <p>Column access is positional ({@code table.ints(POSITION, POSITION_CELL_X)});
  * the {@code int} constants below are the named field indices per component.
@@ -74,6 +74,9 @@ public final class BattleComponents {
     public static final int COMBAT_BURST_TIMER = 6;
     /** {@link #COMBAT} field 7: entity id captured when the burst was queued, 0L = idle (LONG). */
     public static final int COMBAT_BURST_TARGET_ID = 7;
+
+    /** {@link #MOVEMENT} field 0: movement lerp factor [0,1] toward the next path cell (FLOAT). */
+    public static final int MOVEMENT_MOVE_PROGRESS = 0;
 
     /** {@link #SECONDARY_WEAPON} field 0: the {@link com.dillon.starsectormarines.battle.infantry.MarineSecondary} flyweight (OBJECT). */
     public static final int SECONDARY_WEAPON_SPEC = 0;
@@ -130,6 +133,20 @@ public final class BattleComponents {
      */
     public final ComponentType COMBAT;
     /**
+     * Movement state — {@code float moveProgress} (the [0,1] lerp factor toward
+     * the next path cell). Universal on every live unit today (seeded zero at
+     * spawn like the mid-combat {@link #COMBAT} scalars), so this slice is
+     * behavior-preserving — even a turret carries a {@code moveProgress} of 0 it
+     * never advances, exactly as the old universal registry column did. The
+     * designed end-state narrows membership to path-executing (kinematic)
+     * entities only and folds in the path reference ({@code int[] path; int
+     * pathIdx}, still {@code Entity} fields); both are deferred to the slice that
+     * brings the path in, where "has a path capability" is what truly defines a
+     * mover. Removed in the corpse transmute (a corpse does not move). See
+     * {@code roadmap/ecs-migration/archetype-storage.md}.
+     */
+    public final ComponentType MOVEMENT;
+    /**
      * Optional secondary weapon — {@code MarineSecondary spec; int ammo; float
      * cooldownTimer, actionTimer; long aimTargetId; int fired}. The first
      * <em>optional</em> live capability modeled as archetype presence: added at
@@ -167,6 +184,7 @@ public final class BattleComponents {
         SECONDARY_WEAPON = world.register(7, "SecondaryWeapon",
                 FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT, FieldKind.FLOAT,
                 FieldKind.LONG, FieldKind.INT);
+        MOVEMENT        = world.register(8, "Movement", FieldKind.FLOAT);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}, null);
     }
