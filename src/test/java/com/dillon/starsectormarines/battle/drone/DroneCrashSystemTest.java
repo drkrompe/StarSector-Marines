@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -47,6 +48,20 @@ public class DroneCrashSystemTest {
         return drone;
     }
 
+    /** Whether {@code id} carries the world's CRASHING component (the post-fold presence check). */
+    private static boolean isCrashing(BattleSimulation sim, long id) {
+        return sim.getEntityWorld().has(id, sim.getBattleComponents().CRASHING);
+    }
+
+    /** Total rows across the CRASHING query — the world equivalent of the old store's size. */
+    private static int crashingCount(BattleSimulation sim) {
+        int n = 0;
+        for (ArchetypeTable t : sim.getEntityWorld().matched(sim.getBattleComponents().crashing)) {
+            n += t.rowCount();
+        }
+        return n;
+    }
+
     @Test
     public void shotDownDroneGetsACrashingComponentThenSettlesIntoAWreck() {
         BattleSimulation sim = openArena(40, 40);
@@ -56,11 +71,11 @@ public class DroneCrashSystemTest {
         sim.applyDamage(drone, 100_000f, 20f, 20f);
         assertFalse(sim.world().isAlive(drone.entityId), "lethal hit kills the drone");
         // Buffered: no component until the death mailbox drains in the tick.
-        assertFalse(sim.getCrashing().has(drone.entityId),
+        assertFalse(isCrashing(sim, drone.entityId),
                 "the CrashingComponent component attaches on the death drain, not inline");
 
         sim.advance(BattleSimulation.TICK_DT);
-        assertTrue(sim.getCrashing().has(drone.entityId),
+        assertTrue(isCrashing(sim, drone.entityId),
                 "drain → the dead drone gets a CrashingComponent component (the crash started)");
         assertEquals(wrecksBefore, sim.getSmokingWrecks().size(),
                 "no wreck yet — the drone is still falling");
@@ -70,7 +85,7 @@ public class DroneCrashSystemTest {
         for (int i = 0; i < 30; i++) {
             sim.advance(BattleSimulation.TICK_DT);
         }
-        assertFalse(sim.getCrashing().has(drone.entityId),
+        assertFalse(isCrashing(sim, drone.entityId),
                 "on impact the CrashingComponent component is detached (crash done)");
         assertTrue(sim.getSmokingWrecks().size() > wrecksBefore,
                 "a smoking wreck is dropped at the impact site");
@@ -86,7 +101,7 @@ public class DroneCrashSystemTest {
         }
 
         assertTrue(sim.world().isAlive(drone.entityId), "no damage → still flying");
-        assertFalse(sim.getCrashing().has(drone.entityId), "a live drone is never crashing");
-        assertTrue(sim.getCrashing().isEmpty(), "no crash components for an undamaged arena");
+        assertFalse(isCrashing(sim, drone.entityId), "a live drone is never crashing");
+        assertEquals(0, crashingCount(sim), "no crash components for an undamaged arena");
     }
 }

@@ -21,7 +21,6 @@ import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
-import com.dillon.starsectormarines.battle.air.components.CrashingComponent;
 import com.dillon.starsectormarines.battle.component.ComponentStore;
 
 import com.dillon.starsectormarines.battle.air.AirProvider;
@@ -128,10 +127,7 @@ public class BattleSimulation implements BattleControl {
     private final com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem turretDemolition;
     /** Death-event handler for destroyed {@link DroneHubUnit}s — flips hub cell to walkable rubble + cascade-kills the launched drones. Subscribed to {@link #deathDispatcher} in the constructor; fires on {@link #deathDispatcher}{@code .drain()} at the DEMOLISH phase. */
     private final com.dillon.starsectormarines.battle.drone.HubDemolitionSystem hubDemolition;
-    /** Crash component store — entities currently falling out of the sky after death. Populated by {@link #droneCrashes} on drone death (a {@code CrashingComponent}), processed by it each tick, and read by the drone renderer to draw the falling sprite. Keyed by entity id, so a crashing drone keeps its component after release from {@link UnitRegistry}. */
-    private final ComponentStore<CrashingComponent> crashing =
-            new ComponentStore<>();
-    /** Drone-crash system — death-event handler that attaches a {@code CrashingComponent} to a dead drone + the per-tick processor that drives the fall/impact lifecycle over {@link #crashing}. Subscribed to {@link #deathDispatcher} in the constructor. */
+    /** Drone-crash system — death-event handler that attaches a {@code CRASHING} component to a dead drone + the per-tick processor that drives the fall/impact lifecycle over the world's {@code CRASHING} query. Subscribed to {@link #deathDispatcher} in the constructor. */
     private final com.dillon.starsectormarines.battle.drone.DroneCrashSystem droneCrashes;
     /** The battle's archetype-table entity world — transient per-battle ECS storage ({@code engine.ecs}), owned by the {@link UnitRegistry} for the transition (allocate is the spawn seam that adopts ids into it). Every unit lives here as {@code {IDENTITY, HEALTH}}; death transmutes it to the corpse archetype; the dead-sprite render and the mission resolver walk the corpse columns via {@link #battleComponents}' shared query. Remaining live capabilities migrate in ({@code roadmap/ecs-migration/archetype-storage.md}). Alias assigned in the ctor from the roster's registry. */
     private final EntityWorld entityWorld;
@@ -314,7 +310,6 @@ public class BattleSimulation implements BattleControl {
         // ComponentStores (the corpse home moved to the archetype entityWorld);
         // groups decomposed out of the dense table register here as they land.
         this.world = new World(rosterService.getRegistry(), java.util.Map.of(
-                CrashingComponent.class, crashing,
                 MechLoadoutComponent.class, mechLoadouts));
         this.turretDemolition = new com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem(
                 mapService, effects, tactical, rosterService);
@@ -323,7 +318,7 @@ public class BattleSimulation implements BattleControl {
                 mapService, effects, rosterService, deathDispatcher);
         deathDispatcher.subscribe(hubDemolition::onDeath);
         this.droneCrashes = new com.dillon.starsectormarines.battle.drone.DroneCrashSystem(
-                navigation, effects, crashing);
+                navigation, effects, entityWorld, battleComponents);
         deathDispatcher.subscribe(droneCrashes::onDeath);
         this.deadBodySystem = new DeadBodySystem(
                 entityWorld, battleComponents, rosterService.getRegistry().getRenderPositions());
@@ -390,9 +385,6 @@ public class BattleSimulation implements BattleControl {
 
     /** Entity-access facade — by-id hot primitives ({@code world().hp(id)}) over the dense SoA + cold {@code world().id(id).getOrNull(Cmp.class)} projection over the sparse stores. See {@link World}. */
     public World world() { return world; }
-
-    /** Crash component store — entities falling out of the sky after death (a {@code CrashingComponent} each). Read by the drone renderer to draw the falling sprite + fade; written only by {@link #droneCrashes}. */
-    public ComponentStore<CrashingComponent> getCrashing() { return crashing; }
 
     /** The battle's archetype-table entity world — every unit as {@code {IDENTITY, HEALTH}}, corpses as the corpse archetype. Walk it via {@link #getBattleComponents()}' shared queries. */
     public EntityWorld getEntityWorld() { return entityWorld; }

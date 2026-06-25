@@ -35,6 +35,11 @@ public class HubDemolitionSystemTest {
         return new BattleSimulation(grid, topology);
     }
 
+    /** Whether {@code id} carries the world's CRASHING component (the post-fold presence check). */
+    private static boolean isCrashing(BattleSimulation sim, long id) {
+        return sim.getEntityWorld().has(id, sim.getBattleComponents().CRASHING);
+    }
+
     @Test
     public void deadHubIsDemolishedWhenTheMailboxDrains() {
         BattleSimulation sim = openArena(20, 20);
@@ -84,12 +89,12 @@ public class HubDemolitionSystemTest {
         // (entered the crash sequence) on this same tick.
         assertFalse(sim.world().isAlive(d1.entityId), "cascade sets hp=0 on the dead hub's drones");
         assertFalse(sim.world().isAlive(d2.entityId), "cascade sets hp=0 on the dead hub's drones");
-        assertTrue(sim.getCrashing().has(d1.entityId), "cascaded drone gets a CrashingComponent component the same tick");
-        assertTrue(sim.getCrashing().has(d2.entityId), "cascaded drone gets a CrashingComponent component the same tick");
+        assertTrue(isCrashing(sim, d1.entityId), "cascaded drone gets a CRASHING component the same tick");
+        assertTrue(isCrashing(sim, d2.entityId), "cascaded drone gets a CRASHING component the same tick");
 
         // The other hub's drone is untouched.
         assertTrue(sim.world().isAlive(control.entityId), "a drone homed to a live hub is not part of the cascade");
-        assertFalse(sim.getCrashing().has(control.entityId), "the untouched drone never starts crashing");
+        assertFalse(isCrashing(sim, control.entityId), "the untouched drone never starts crashing");
         assertFalse(liveHub.demolished, "the undamaged hub is not demolished");
     }
 

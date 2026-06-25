@@ -15,16 +15,18 @@ import com.dillon.starsectormarines.engine.ecs.Query;
  * alive→dead; Health is live-only), per the committed decomposition in
  * {@code roadmap/ecs-migration/archetype-storage.md}. Registered so far: the
  * corpse archetype plus the mandatory live capabilities ({@link #POSITION},
- * {@link #HEALTH}, {@link #COMBAT}) and the optional ones ({@link #MOVEMENT},
- * {@link #AI_STATE}, {@link #SECONDARY_WEAPON}). Every unit spawns into the world
- * as {@code {IDENTITY, POSITION, HEALTH, COMBAT}}, plus {@link #MOVEMENT} +
+ * {@link #HEALTH}, {@link #COMBAT}), the optional live ones ({@link #MOVEMENT},
+ * {@link #AI_STATE}, {@link #SECONDARY_WEAPON}), and the optional post-death
+ * {@link #CRASHING}. Every unit spawns into the world as
+ * {@code {IDENTITY, POSITION, HEALTH, COMBAT}}, plus {@link #MOVEMENT} +
  * {@link #AI_STATE} iff it is mobile (a static turret/hub carries neither) and
  * {@link #SECONDARY_WEAPON} iff it carries one — so presence <em>is</em> the
  * capability, no nullable field. Death is the transmute to the corpse archetype
  * (identity + cell ride the row-move; health, combat, and any movement, ai-state,
- * or secondary are removed). The remaining migration work folds the standalone
- * {@code Crashing}/{@code MechLoadout} component stores into archetype
- * membership, then dissolves {@code UnitRegistry}.
+ * or secondary are removed); a crashing air unit then carries {@link #CRASHING}
+ * over the corpse while it falls. The remaining migration work folds the
+ * standalone {@code MechLoadout} component store into archetype membership (the
+ * {@code Crashing} fold is done), then dissolves {@code UnitRegistry}.
  *
  * <p>Column access is positional ({@code table.ints(POSITION, POSITION_CELL_X)});
  * the {@code int} constants below are the named field indices per component.
@@ -107,6 +109,9 @@ public final class BattleComponents {
     public static final int SECONDARY_WEAPON_AIM_TARGET_ID = 4;
     /** {@link #SECONDARY_WEAPON} field 5: one-shot-per-aim-cycle latch as 0/1 (INT). */
     public static final int SECONDARY_WEAPON_FIRED = 5;
+
+    /** {@link #CRASHING} field 0: the {@link com.dillon.starsectormarines.battle.air.components.CrashingComponent} payload (OBJECT) — the falling body, fall timer, and spin. */
+    public static final int CRASHING_STATE = 0;
 
     // ---- component types ----
 
@@ -195,6 +200,19 @@ public final class BattleComponents {
      * {@code roadmap/ecs-migration/archetype-storage.md}.
      */
     public final ComponentType SECONDARY_WEAPON;
+    /**
+     * Optional crash state — one OBJECT field holding the
+     * {@link com.dillon.starsectormarines.battle.air.components.CrashingComponent}
+     * (the falling body + fall timer + tumble spin). Attached on an air unit's
+     * death (a shot-down or cascade-killed drone), so "is crashing" IS the
+     * archetype membership; the crash system spins + counts each one down and
+     * detaches it on impact. <b>Survives the corpse transmute</b> (kept off the
+     * {@code corpseRemove} mask) — the dead drone is a corpse that also carries
+     * {@code CRASHING} while it falls, mirroring how the old {@code ComponentStore}
+     * entry outlived the unit's registry release. See
+     * {@code roadmap/ecs-migration/archetype-storage.md}.
+     */
+    public final ComponentType CRASHING;
 
     // ---- shared queries (per-world lifecycle, cached matched-table lists) ----
 
@@ -206,6 +224,14 @@ public final class BattleComponents {
      * that lacks one of these components actually exists.
      */
     public final Query corpses;
+
+    /**
+     * Every entity currently crashing ({@code {CRASHING}}) — the falling drones the
+     * crash system advances each tick and the drone renderer draws as fading hulls.
+     * Required-only on {@code CRASHING}; the carrier is a corpse-archetype entity
+     * (it died) that additionally carries the crash component while it falls.
+     */
+    public final Query crashing;
 
     public BattleComponents(EntityWorld world) {
         IDENTITY        = world.register(0, "Identity", FieldKind.OBJECT, FieldKind.OBJECT);
@@ -224,7 +250,9 @@ public final class BattleComponents {
                 FieldKind.FLOAT, FieldKind.OBJECT, FieldKind.INT);
         AI_STATE        = world.register(9, "AiState",
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.INT, FieldKind.INT, FieldKind.FLOAT);
+        CRASHING        = world.register(10, "Crashing", FieldKind.OBJECT);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}, null);
+        crashing = world.query(new ComponentType[]{CRASHING}, null);
     }
 }
