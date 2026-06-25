@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Runtime catalog of {@link TileDef}s loaded from {@code data/tilesets/*.tileset.json},
@@ -44,11 +45,26 @@ public final class TileRegistry {
     private static volatile TileRegistry installed;
 
     private final Map<String, TileDef> byId = new LinkedHashMap<>();
+    /** Parallel to {@link #byId} insertion order — {@code byIndex.get(i).index == i}. The dense-handle reverse lookup. */
+    private final List<TileDef> byIndex = new ArrayList<>();
 
     public TileDef tile(String id)      { return byId.get(id); }
     public boolean has(String id)       { return byId.containsKey(id); }
     public Collection<TileDef> all()    { return byId.values(); }
     public int size()                   { return byId.size(); }
+
+    /** Reverse lookup by dense {@link TileDef#index}. Throws on an out-of-range handle — a stale index is a bug, not a silent miss. */
+    public TileDef byIndex(int index) {
+        if (index < 0 || index >= byIndex.size()) {
+            throw new IndexOutOfBoundsException("TileRegistry: no tile at index " + index + " (size " + byIndex.size() + ")");
+        }
+        return byIndex.get(index);
+    }
+
+    /** Dense index for {@code id}. Throws if unknown — callers resolving a built-in id should never miss. */
+    public int indexOf(String id) {
+        return Objects.requireNonNull(byId.get(id), () -> "TileRegistry: unknown tile id '" + id + "'").index;
+    }
 
     /** The registry installed at application load, or {@code null} if load failed / hasn't run. */
     public static TileRegistry installed() { return installed; }
@@ -87,7 +103,9 @@ public final class TileRegistry {
             if (vo != null) {
                 for (int k = 0; k < vo.length(); k++) validOn.add(vo.getString(k));
             }
-            byId.put(id, new TileDef(id, sheet, frame, layer, cover, passable, validOn));
+            TileDef def = new TileDef(id, sheet, byIndex.size(), frame, layer, cover, passable, validOn);
+            byId.put(id, def);
+            byIndex.add(def);
         }
     }
 

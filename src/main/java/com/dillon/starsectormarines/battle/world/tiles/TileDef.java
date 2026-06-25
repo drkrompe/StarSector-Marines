@@ -22,6 +22,14 @@ public final class TileDef {
 
     public final String id;
     public final String sheetPath;
+    /**
+     * Dense registry index assigned at ingest order — the opaque tile handle a
+     * cell stores (as {@code index + 1}, with 0 reading as "none") once the
+     * {@link NatureTile} ordinal it replaces is gone. Stable within one load;
+     * never persisted ([[battle_transient_no_save_load]] — battles don't save,
+     * so the index need not survive a reload).
+     */
+    public final int index;
     /** Slicer frame index for sliced sheets; {@code -1} for block-based grid tiles (Phase 1c). */
     public final int frame;
     public final TileLayer layer;
@@ -36,10 +44,11 @@ public final class TileDef {
      */
     public final List<String> validOn;
 
-    public TileDef(String id, String sheetPath, int frame, TileLayer layer,
+    public TileDef(String id, String sheetPath, int index, int frame, TileLayer layer,
                    TileCover cover, boolean passable, List<String> validOn) {
         this.id = id;
         this.sheetPath = sheetPath;
+        this.index = index;
         this.frame = frame;
         this.layer = layer;
         this.cover = cover;

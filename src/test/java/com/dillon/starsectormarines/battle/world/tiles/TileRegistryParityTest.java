@@ -6,7 +6,9 @@ import org.junit.jupiter.api.Test;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static java.util.Map.entry;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -169,6 +171,20 @@ public class TileRegistryParityTest {
         TileRegistry reg = new TileRegistry();
         reg.ingestSheet(root);
         assertThrows(IllegalStateException.class, reg::validateReferences);
+    }
+
+    @Test
+    void indexingIsDenseAndRoundTrips() throws Exception {
+        TileRegistry reg = loadRegistry();
+        int n = reg.size();
+        Set<Integer> seen = new HashSet<>();
+        for (TileDef d : reg.all()) {
+            assertTrue(d.index >= 0 && d.index < n, "index out of range for " + d.id);
+            assertTrue(seen.add(d.index), "duplicate index " + d.index + " at " + d.id);
+            assertEquals(d, reg.byIndex(d.index), "byIndex round-trip failed for " + d.id);
+            assertEquals(d.index, reg.indexOf(d.id), "indexOf mismatch for " + d.id);
+        }
+        assertEquals(n, seen.size(), "indices are not dense 0..n-1");
     }
 
     @Test
