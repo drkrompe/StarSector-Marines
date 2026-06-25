@@ -98,6 +98,7 @@ a5da51a  battle: SecondaryWeapon onto the EntityWorld — first OPTIONAL capabil
 1ceab84  docs(battle): repoint stale {@link Entity#...} javadoc to current by-id accessors  ← 2026-06-25
 5ee1090  battle: extract Paths static helpers over the flat int[] path (path-ref fold-in, foundation)  ← 2026-06-25
 688a7568 battle: fold the path ref + cursor into MOVEMENT — Entity carries no movement state (path-ref cutover)  ← 2026-06-25
+91380de4 battle: narrow MOVEMENT/AI_STATE to mobile units — static emplacements carry neither (membership-narrowing)  ← 2026-06-25
 ```
 
 (Sibling tracks interleaved on HEAD, not ECS-migration: `9084ed4` battle-render
@@ -240,14 +241,22 @@ is now **built and consuming real game state**:
   sweep fanned to 4 Sonnet agents (compiler backstop); 8 test files + 2 new
   MOVEMENT parity tests main-thread. Suite green at 768.
 
-**Next: membership-narrowing + step 4.** Two threads remain:
-- **MOVEMENT + AI_STATE membership-narrowing** — both shipped universal
-  (behavior-preserving). Now restrict each to the entities that actually have the
-  capability: `MOVEMENT` to movers (turrets/hubs don't path — "has a path
-  capability" now genuinely defines a mover), `AI_STATE` to thinking entities.
-  Needs a reader audit (gate on `hasMovement`/`hasAiState`; the all-units debug
-  dump in `SquadStateDumper` reads them unconditionally). Lower-payoff polish, not
-  blocking.
+- **MOVEMENT + AI_STATE membership-narrowing SHIPPED** (`91380de4`,
+  [`complete/movement-aistate-membership-narrowing.md`](complete/movement-aistate-membership-narrowing.md)):
+  both were shipped universal (behavior-preserving) in 3e/3f; now restricted to
+  the units that use them. A static emplacement (`UnitType.isStatic` — `TURRET`,
+  `DRONE_HUB_STRUCTURE`) carries neither — presence IS the capability (the
+  `SECONDARY_WEAPON` pattern). `allocate` builds the live archetype conditionally;
+  new `hasMovement`/`hasAiState` presence checks. A full reader audit found only
+  **four** genuinely all-unit readers needing a gate (occupancy-map +
+  destination-index rebuilds → `hasMovement`; `UnitUpdateSystem` dispatch +
+  `HitResponseService.rollFallbackOnHit` → `hasAiState`); every other reader is
+  per-mover-behavior or squad-filtered (turrets/hubs are `NO_SQUAD` and route to
+  `TurretBehavior`/`DroneHubBehavior`). One intended behavior change: a damaged
+  drone hub can no longer roll a fall-back it had no behavior to execute (the old
+  gate only excluded `MapTurret`). Suite green at 772.
+
+**Next: step 4 — the finale.**
 - **Step 4 — dissolve `UnitRegistry`.** With every dense column gone (the
   registry is now id-mint + dense `Entity[]` + id↔slot map), fold the standalone
   `Crashing`/`MechLoadout` ComponentStores into archetype membership, then hop
