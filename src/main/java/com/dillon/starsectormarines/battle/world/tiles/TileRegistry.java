@@ -40,13 +40,16 @@ public final class TileRegistry {
      */
     public static final List<String> BUILTIN_TILESETS = List.of(
             "data/tilesets/nature-tiles.tileset.json",
-            "data/tilesets/urban-tileset-3.tileset.json");
+            "data/tilesets/urban-tileset-3.tileset.json",
+            "data/tilesets/urban-tileset.tileset.json");
 
     private static volatile TileRegistry installed;
 
     private final Map<String, TileDef> byId = new LinkedHashMap<>();
     /** Parallel to {@link #byId} insertion order — {@code byIndex.get(i).index == i}. The dense-handle reverse lookup. */
     private final List<TileDef> byIndex = new ArrayList<>();
+    /** Fixed-grid autotile/single blocks (grid sheets), addressed by id — separate namespace from the sliced {@link TileDef}s. */
+    private final Map<String, GridBlockDef> blocksById = new LinkedHashMap<>();
 
     public TileDef tile(String id)      { return byId.get(id); }
     public boolean has(String id)       { return byId.containsKey(id); }
@@ -65,6 +68,11 @@ public final class TileRegistry {
     public int indexOf(String id) {
         return Objects.requireNonNull(byId.get(id), () -> "TileRegistry: unknown tile id '" + id + "'").index;
     }
+
+    /** Grid block by id (fixed-grid sheets), or {@code null} if unknown. */
+    public GridBlockDef block(String id)        { return blocksById.get(id); }
+    public boolean hasBlock(String id)          { return blocksById.containsKey(id); }
+    public Collection<GridBlockDef> blocks()    { return blocksById.values(); }
 
     /** The registry installed at application load, or {@code null} if load failed / hasn't run. */
     public static TileRegistry installed() { return installed; }
@@ -87,17 +95,20 @@ public final class TileRegistry {
     public void ingestSheet(JSONObject root) throws JSONException {
         String sheet = root.getString("sheet");
         JSONArray tiles = root.optJSONArray("tiles");
-        if (tiles == null) return;
+        if (tiles != null) ingestTiles(tiles, sheet);
+        JSONArray blocks = root.optJSONArray("blocks");
+        if (blocks != null) ingestBlocks(blocks, sheet, root.optInt("cellPx", 0));
+    }
+
+    /** Sliced-sheet tiles (frame-indexed). See {@link #ingestSheet}. */
+    private void ingestTiles(JSONArray tiles, String sheet) throws JSONException {
         for (int i = 0; i < tiles.length(); i++) {
             JSONObject o = tiles.getJSONObject(i);
             String id = o.getString("id");
-            if (byId.containsKey(id)) {
-                throw new IllegalStateException("TileRegistry: duplicate tile id '" + id
-                        + "' (sheet " + sheet + ")");
-            }
+            requireUniqueId(id, sheet);
             // Sliced tiles must pin a frame explicitly — a missing 'frame' must
-            // fail loud, not silently default to the -1 block sentinel (Phase 1c
-            // block tiles will carry origin+layout instead and relax this).
+            // fail loud, not silently default to the -1 block sentinel (grid
+            // blocks carry origin+layout instead, parsed by ingestBlocks).
             if (!o.has("frame")) {
                 throw new IllegalStateException("TileRegistry: tile '" + id
                         + "' is missing 'frame' (sheet " + sheet + ")");
@@ -114,6 +125,31 @@ public final class TileRegistry {
             TileDef def = new TileDef(id, sheet, byIndex.size(), frame, layer, cover, passable, validOn);
             byId.put(id, def);
             byIndex.add(def);
+        }
+    }
+
+    /** Fixed-grid autotile/single blocks (origin + named {@link GridLayout}). See {@link #ingestSheet}. */
+    private void ingestBlocks(JSONArray blocks, String sheet, int cellPx) throws JSONException {
+        if (cellPx <= 0) {
+            throw new IllegalStateException("TileRegistry: sheet '" + sheet + "' has blocks but no positive 'cellPx'");
+        }
+        for (int i = 0; i < blocks.length(); i++) {
+            JSONObject o = blocks.getJSONObject(i);
+            String id = o.getString("id");
+            requireUniqueId(id, sheet);
+            JSONArray origin = o.getJSONArray("origin");
+            int oc = origin.getInt(0);
+            int or = origin.getInt(1);
+            GridLayout layout = GridLayout.fromJson(o.getString("layout"));
+            Integer fillRgb = o.has("fillRgb") ? Integer.decode(o.getString("fillRgb")) : null;
+            blocksById.put(id, new GridBlockDef(id, sheet, cellPx, oc, or, layout, fillRgb));
+        }
+    }
+
+    /** Ids share one namespace across sliced tiles and grid blocks — a collision is a bug to surface. */
+    private void requireUniqueId(String id, String sheet) {
+        if (byId.containsKey(id) || blocksById.containsKey(id)) {
+            throw new IllegalStateException("TileRegistry: duplicate id '" + id + "' (sheet " + sheet + ")");
         }
     }
 

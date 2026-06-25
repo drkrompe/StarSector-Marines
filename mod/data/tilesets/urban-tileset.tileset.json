@@ -1,0 +1,10 @@
+{
+  "sheet": "graphics/tilesets/urban-tileset.png",
+  "cellPx": 32,
+  "blocks": [
+    { "id": "urban.wall",      "origin": [3, 0], "layout": "wall-3x3", "fillRgb": "0x060A10" },
+    { "id": "urban.floor",     "origin": [0, 0], "layout": "floor-3x3" },
+    { "id": "urban.rubble",    "origin": [0, 4], "layout": "floor-3x3" },
+    { "id": "urban.door-open", "origin": [7, 2], "layout": "single" }
+  ]
+}
