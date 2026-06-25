@@ -10,11 +10,26 @@ the data/algorithm seam, both schemas). Active story:
 91ee3f2  docs(moddable-tilesets): new track — dual-JSON, id-addressed TileRegistry
 99de776  moddable-tilesets: Phase 1a — id-addressed TileRegistry (sliced sheets)
 2859234  moddable-tilesets: Phase 1a critique fixes — pin id→frame, fail-loud guards
+1b308ba  moddable-tilesets: Phase 1b step 1 — dense tile index on the registry
 ```
 
 Critique-deferred design items (don't lose) are in the story's "1a critique
 follow-ups": `!layer:` exclusion form → Phase 2; strict unknown-key schema →
 Phase 3; enum `label` round-trip → 1c viewer cutover.
+
+## ⛔ Blocked right now (2026-06-25)
+
+**Phase 1b cutover (steps ii–v) is on hold.** The user chose **full cutover**
+(delete `NatureTile`/`UrbanTile3`, call sites resolve `TileDef` by id). Step (i)
+— dense `TileDef.index` + `byIndex`/`indexOf` — shipped (`1b308ba`, additive,
+IntelliJ-verified). The behavior-affecting steps are blocked because a
+**concurrent session left `battle/` main source non-compiling** (`Entity`/
+`UnitRegistry` `pathIdx`/`pathCellCount` refactor, ~30 errors across
+TacticalScoring/FleeBehavior/UnitRenderService/etc.) → `compileJava`/`:test`
+fail, and the cutover's parity gate is `BspMapPreviewTest` (needs a compiling
+module). Resume the moment the tree is green. Full ii–v sequence + the storage
+(dense int handle on `CellTopology`) and DI (registry via `GenContext` +
+`GroundRenderSystem` ctor) decisions are in the story's **1b section**.
 
 ## State of play
 

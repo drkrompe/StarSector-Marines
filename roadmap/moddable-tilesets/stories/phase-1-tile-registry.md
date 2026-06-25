@@ -85,17 +85,57 @@ Deferred (not blockers — carry into the noted slice):
   cover)") aren't round-tripped. Debug-only; fold into the **1c** viewer cutover
   when `.catalog.json` is promoted/deleted.
 
-### 1b — sliced consumers read by id
+### 1b — sliced consumers read by id (FULL CUTOVER — delete the enums)
 
-- `NatureTile` / `UrbanTile3` keep `frameIndex()` (the slicer contract is
-  unchanged) but their **semantic** fields (`kind`/`cover`/`passable`,
-  `canOverlay`) resolve from the registry by a constant→id binding. Net:
-  the enum becomes a typed convenience over the built-in set; the data
-  lives in JSON.
-- `canOverlay` → `validOn` resolution (explicit id list + `!water` kind
-  token). `NatureZoneFiller`'s overlay-legality check reads the registry
-  rule; its pools/chances stay hardcoded (Phase 2).
-- Parity gate: `BspMapPreviewTest` + `TilesetDebugScreen` A/B unchanged.
+Decision (user, full cutover over thin-delegation): call sites resolve
+`TileDef` by id; `NatureTile` / `UrbanTile3` are **deleted this slice**, not
+kept as a thin façade.
+
+**Storage decision (the load-bearing one).** With the ordinal gone, a cell
+can't store `NatureTile.ordinal()+1`. `CellTopology` stores the **dense
+registry index** as an opaque tile handle (`short`, `index+1`, 0 = none —
+future-proof past a `byte` as 1c adds grid tiles). `getNatureOverlayIndex` /
+`setNatureOverlayIndex` (int handle, <0 = none); CellTopology stays
+**registry-free** — callers resolve `reg.byIndex(handle)`. (Step 1 —
+`TileDef.index` + `byIndex`/`indexOf` — shipped `1b308ba`.)
+
+**DI decision.** The registry is injected, not reached statically (so the
+preview tests can load it from disk):
+- **Gen** — inject via `GenContext` (spine field or `BspKeys.TILE_REGISTRY`);
+  `BspCityGenerator`/`BattleSetup` put `TileRegistry.installed()`,
+  `NatureZoneFiller` reads it. Pools resolve `TileDef`s by id; chances stay
+  hardcoded (Phase 2).
+- **Render** — `GroundRenderSystem` takes a `TileRegistry` ctor arg (it
+  already holds the `NatureTileset` handle); the render setup passes
+  `installed()`.
+
+**Cutover sequence (each a commit, parity-gated):**
+- **(i) ✅ `1b308ba`** — dense `TileDef.index` + `byIndex`/`indexOf` (additive).
+- **(ii)** `CellTopology` overlay storage → int handle; `NatureZoneFiller`
+  (set) + `GroundRenderSystem` (get) move together; registry injected.
+- **(iii)** gen/render tile decisions → `TileDef`: `NatureZoneFiller` pools,
+  `TileManifest.pickNature{Grass,Dirt}Tile` (inline the hash-pick over
+  `nature.grass-1/2` ids in the render path), `SlicedTileDrawer.draw(TileDef…)`
+  (frame + `layer.isGround()` inset).
+- **(iv)** loaders + tooling: `NatureTileset`/`UrbanTile3Tileset.frameOf(TileDef)`
+  + registry-count self-check (the deferred-from-1a guard); `TilesetDebugScreen`
+  iterates registry tiles; `TileManifest.pickStreet3SidewalkFrame` → id.
+- **(v)** delete `NatureTile` + `UrbanTile3`; fix `{@link}`s
+  (`TileDef`/`TileLayer`/`TileCover`/`BlockKind`/`CellTopology`). **Convert
+  `TileRegistryParityTest` from "registry == enum" to a frozen golden-value
+  table** (the enum it compares against is gone; the golden values become the
+  spec + regression guard).
+
+**Parity gate:** `BspMapPreviewTest` (same seed → byte-identical PNG) +
+`NatureZonePreviewTest` + `TilesetDebugScreen` A/B. Storage int changes; the
+drawn frame must not.
+
+> **⛔ BLOCKED (2026-06-25):** steps ii–v are on hold — a concurrent session
+> left `battle/` main source mid-refactor (`Entity`/`UnitRegistry`
+> `pathIdx`/`pathCellCount`, ~30 compile errors), so `compileJava`/`:test`
+> can't run and the parity gate is unusable. Step (i) was additive and
+> IntelliJ-verified clean. Resume ii–v once the tree is green. Mechanical
+> call-site sweeps (iii) are good Sonnet-delegate material once ii lands.
 
 ### 1c — grid sheets as named-layout blocks *(may split into its own story)*
 
