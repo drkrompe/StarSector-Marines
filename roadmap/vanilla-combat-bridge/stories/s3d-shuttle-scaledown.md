@@ -26,6 +26,21 @@ watch the carrier peel off and settle over the band). **Still to build:** the `r
 owned-sprite scale-down → `sim.deliverSquad` swap at the handoff threshold, and the remove→add
 resurrection probe below.
 
+**Critique pass (`996ce08` → fix in follow-up):** one real bug caught + fixed — the heading-error
+cone used `Math.abs(normalizeAngle(...))`, but `Misc.normalizeAngle` returns `[0,360)` (not
+±180), so a small clockwise error read as ~350° and the ship *braked* instead of thrusting on the
+CW half of the cone. Now uses `Misc.getAngleDiff` (true `[0,180]`) and `Misc.turnTowardsFacingV2`
+(vanilla's overshoot-damped turn) — fixes the asymmetry and the turn-oscillation. **Left as
+playtest watch-items (convergence/robustness, fine for a `@DebugOnly` probe):**
+- *Orbit/stall at the boundary* — steering is bang-bang ACCEL/DECEL with no closing-velocity gate;
+  a fast straight approach could overshoot the 400u `ARRIVE_RADIUS` and loop. If the playtest shows
+  it, gate ACCELERATE on `velocity·toTarget` (brake when closing too fast).
+- *Stale target* — the band centroid is snapshotted at takeover; it drifts as structures die. Fine
+  for a seconds-long descent; recompute on a cadence if the landing point matters.
+- *Admiral co-existence* — the parked `CarrierEngagementPlugin` still issues an ASSAULT to the
+  taken-over carrier. `setShipAI` should win (the brain issues `giveCommand` directly and ignores
+  assignments), but confirm no tug-of-war; if there is, clear that ship's assignment on takeover.
+
 ## Goal
 
 A real fleet ship peels off, descends toward the surface, visibly shrinks ("scale down" to

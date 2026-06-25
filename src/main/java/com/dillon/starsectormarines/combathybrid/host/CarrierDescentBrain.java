@@ -66,18 +66,17 @@ public final class CarrierDescentBrain implements ShipAIPlugin {
             return;
         }
 
+        // Overshoot-aware turn toward the target: vanilla's own helper issues the TURN commands
+        // and damps the approach so the ship doesn't oscillate around the heading.
         float desiredFacing = Misc.getAngleInDegrees(loc, target);
-        float turn = Misc.getClosestTurnDirection(ship.getFacing(), desiredFacing);
-        if (turn > 0) {
-            ship.giveCommand(ShipCommand.TURN_LEFT, null, 0);
-        } else if (turn < 0) {
-            ship.giveCommand(ShipCommand.TURN_RIGHT, null, 0);
-        }
+        Misc.turnTowardsFacingV2(ship, desiredFacing, 0f);
 
-        float headingErr = Math.abs(Misc.normalizeAngle(desiredFacing - ship.getFacing()));
+        // getAngleDiff is the true [0,180] heading-error magnitude. normalizeAngle alone returns
+        // [0,360), so a 10° clockwise error reads as 350° — which would brake instead of thrust.
+        float headingErr = Misc.getAngleDiff(desiredFacing, ship.getFacing());
         if (dist > ARRIVE_RADIUS) {
-            // Thrust only when roughly pointed at the target; bleed speed while turning so the
-            // ship cuts toward the point instead of carving a wide orbit around it.
+            // Thrust only when roughly pointed at the target; brake while still turning so the ship
+            // bleeds tangential speed and cuts toward the point instead of carving a wide orbit.
             ship.giveCommand(headingErr < ACCEL_CONE_DEG
                     ? ShipCommand.ACCELERATE : ShipCommand.DECELERATE, null, 0);
         } else {
