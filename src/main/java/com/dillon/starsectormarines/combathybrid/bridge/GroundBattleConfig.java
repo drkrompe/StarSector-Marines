@@ -71,4 +71,25 @@ public record GroundBattleConfig(
         out.set((cellX - gridW / 2f) * worldUnitsPerCell,
                 (cellY - gridH / 2f) * worldUnitsPerCell);
     }
+
+    /**
+     * Centroid of the live {@link #targetable} entities in combat-world coords — the "ground band"
+     * the carriers steer toward (S3c {@code CarrierEngagementPlugin}) and a taken-over carrier
+     * descends to (S3d {@code CarrierDescentPlugin}). Released units are skipped (their cell
+     * accessors are fail-loud); empty / all-dead falls back to the world origin (grid center), a
+     * sane default. Writes into {@code out} (no allocation for the hot caller).
+     */
+    public void targetableCentroid(Vector2f out) {
+        Vector2f tmp = new Vector2f();
+        float ax = 0f, ay = 0f;
+        int n = 0;
+        for (Entity e : targetable) {
+            if (!sim.world().isAlive(e.entityId)) continue;
+            cellToWorld(sim.world().cellX(e.entityId), sim.world().cellY(e.entityId), tmp);
+            ax += tmp.x;
+            ay += tmp.y;
+            n++;
+        }
+        out.set(n > 0 ? ax / n : 0f, n > 0 ? ay / n : 0f);
+    }
 }

@@ -2,7 +2,29 @@
 
 > Shuttles fly from the fleet layer and "scale down" to land on the surface, dropping off
 > ground forces. A presentation transition + a gameplay handoff between the two engines.
-> Design refined (API-confirmed); not yet built. Unblocked by S3e (`AirProvider`).
+> Design refined (API-confirmed); **the takeover/fly-to-handoff phase is now built** (see
+> below). Unblocked by S3e (`AirProvider`).
+
+## Built so far — the `setShipAI` takeover (descent step 1: schedule/fly)
+
+The first S3d step — *take over a real vanilla carrier mid-combat and fly it to the handoff
+point* — is built and wired into the bridge (`CombatBridgeSession.enterEngine`):
+
+- **`CarrierDescentBrain implements ShipAIPlugin`** (host/) — grip **tier 2**: owns the brain,
+  vanilla physics still flies the ship. Each frame it turns toward the target, thrusts only
+  inside a heading cone, and bleeds speed while turning / near the target so it arrives instead
+  of orbiting. Settles + logs "handoff point reached" within `ARRIVE_RADIUS` once slow. Never
+  issues `FIRE` (a ship leaving the fight to land).
+- **`CarrierDescentPlugin`** (host/) — press **L** in a SIM_COUPLED bridge battle to pick the
+  first live carrier-side ship and `setShipAI` the brain onto it. One takeover per battle. Target
+  = the live ground-band centroid via the new shared `GroundBattleConfig.targetableCentroid(...)`
+  (the same band notion `CarrierEngagementPlugin` steers the fleet toward).
+
+This de-risks the load-bearing tier-2 question — *can a custom `ShipAIPlugin` reliably steer a
+live vanilla ship to a chosen point, against the admiral?* Playtest verdict pending (press L,
+watch the carrier peel off and settle over the band). **Still to build:** the `removeEntity` →
+owned-sprite scale-down → `sim.deliverSquad` swap at the handoff threshold, and the remove→add
+resurrection probe below.
 
 ## Goal
 

@@ -146,16 +146,26 @@ a probe concern; **parked into the new [`stories/skybattle-fleet-control.md`](st
 story (the fleet fight over the city, where fleet control + the air⇄ground economy live). The
 plugin stays wired (harmless) as that story's starting point; lever ladder documented there.
 
-### Thread 2 — mid-combat AI takeover = S3d landing foundation (NEXT, user-prioritized)
+### Thread 2 — mid-combat AI takeover = S3d landing foundation ✅ takeover BUILT (playtest pending)
 User confirmed the goal: take over a real vanilla ship mid-combat to **fly it down to the
 ground layer for troop drops** (landings). **Mid-combat AI swap is supported** — `ship.
 setShipAI(plugin)` is callable any frame (we already null proxies' AI); `ShipAIPlugin` is an
 8-method interface (mostly no-op), so a takeover brain is light. Three grip tiers:
 assignment (ship keeps its AI) → `setShipAI` (own the brain, vanilla physics still flies it)
-→ per-frame `getLocation().set` puppet (what proxies do). The descent/landing wants tier
-2/3. **Next slice: a `setShipAI` takeover probe** that scripts one carrier's descent to the
-ground band — the S3d handoff mechanism. (`deliverSquad(cellX,cellY,MarineLoadout[])` on the
-sim — `AirProvider.EXTERNAL` — is the already-framed sim-side receiver.)
+→ per-frame `getLocation().set` puppet (what proxies do). The descent/landing wants tier 2/3.
+
+**Built this session — the `setShipAI` takeover (tier 2):** `CarrierDescentBrain` (a
+`ShipAIPlugin` that steers a ship to a point via `ShipCommand`s — turn-toward + cone-gated
+thrust + speed-bleed-while-turning so it arrives, not orbits) + `CarrierDescentPlugin` (press
+**L** in a SIM_COUPLED battle → takes over the first live carrier and flies it to the ground
+band). Wired into `CombatBridgeSession.enterEngine`. Target = the new shared
+`GroundBattleConfig.targetableCentroid(...)` (dedup'd from `CarrierEngagementPlugin`). Build
+green. **Playtest pending:** press L, confirm the carrier peels off and settles over the band
+against the admiral (the tier-2 de-risk). See [`stories/s3d-shuttle-scaledown.md`](stories/s3d-shuttle-scaledown.md).
+
+**Still to build (S3d, in order):** the `removeEntity` → owned-sprite scale-down →
+`sim.deliverSquad(cellX,cellY,MarineLoadout[])` (the `AirProvider.EXTERNAL` sim-side receiver,
+already framed) swap at the handoff threshold; and the remove→add resurrection probe.
 
 ### Live battle below the fleet ✅ SHIPPED (2026-06-20) — the chosen "bridge the sim over" slice
 The coupled sim was **map-only** (terrain + static defense-post turrets). Swapped it to a **live
@@ -171,8 +181,19 @@ shuttles, objectives, and reinforcement all run as a real battle rendered below 
   are never directly proxied (architecture Decision 2 — area damage, not lock-on).
 - **`NeverEndObjective` deleted**: it was a crutch for the map-only sim; the live battle has real
   win conditions and governs its own completion exactly as the standalone/production flow does.
-- **Pending Ctrl+Shift+K playtest:** confirm a real ground battle plays out under the fleet (marines
-  land + fight defenders), structures still proxy + take strafe damage, battle resolves normally.
+- **Playtest verdict (2026-06-25, partial):** ✅ a real ground battle **does play out under the
+  fleet** (marines land + fight defenders, structures proxy + take strafe damage). ⚠️ but three
+  things look broken in the bridge host — **follow-ups, not this slice's scope** ([[feedback_followup_tasks]]):
+    1. **Sound / SFX** — sim combat audio doesn't play (or vanilla audio misbehaves) under the
+       bridge host. The standalone `BattleScreen` drives positional audio; the bridge path may not
+       wire it (cf. [[starsector_positional_audio]] — listener-pos override outside CombatEngine).
+    2. **Roof LoS hide / re-add** — the `ROOFS` layer's reveal-on-enter / re-cover-on-leave behavior
+       (interiors hidden until a unit enters, roof re-added when it leaves) appears broken in
+       `GroundSceneBackdrop`. Likely the bridge backdrop doesn't feed roof-occlusion the per-unit
+       occupancy the standalone screen does (or the spectator camera has no "viewer" unit to drive it).
+    3. (Carried) the older audio observation folds into #1.
+  These are render/audio-host gaps in `GroundSceneBackdrop` / the bridge audio path, distinct from
+  the S3d descent thread. Capture before they're forgotten; scope a dedicated bridge-host-parity pass.
 
 ### Thread 3 — proxy hitbox / fighter-wing proxies (S3f follow-up, parallel)
 Two sub-points. (a) **Hitbox size/shape**: `setCollisionRadius(float)` is mutable at runtime
@@ -235,6 +256,9 @@ Overview open question #2 is answered: the external-damage path is `applyExterna
 - `GroundBattleConfig` — host-agnostic battle snapshot (sim + grid + scale + render-layer set + targetable + proxy variant + damage scale).
 - `GroundSceneBackdrop` / `SimProxyMirror` — the durable render sink + sim⇄vanilla coupling.
 - `SpectatorCanvasPlugin` — free cam (`viewport.set()`-based), HUD starve, fleet restore.
+- `CarrierDescentBrain` / `CarrierDescentPlugin` — S3d takeover: press **L** in-combat to `setShipAI`
+  a tier-2 steering brain onto one carrier and fly it to the ground band (the descent "schedule" phase).
+- `GroundBattleConfig.targetableCentroid(out)` — the shared "ground band" point (engagement + descent).
 - Scale: `WORLD_UNITS_PER_CELL = 20` (lowered from 50 after S3b playtest). Real variant ids validated before spawn.
 - *Retired (X4a):* `CanvasBackdropRenderer` (grid plate, superseded by `GroundSceneBackdrop`), `ProxyTargetPlugin` (single-proxy probe, superseded by `SimProxyMirror`). Verdicts sealed in `complete/`.
 

@@ -74,5 +74,7 @@ public final class CombatBridgeSession {
         engine.addPlugin(new SimProxyMirror(config));
         // S3c (parked): a harmless one-shot ASSAULT order nudges the carriers onto the band.
         engine.addPlugin(new CarrierEngagementPlugin(config, FleetSide.PLAYER));
+        // S3d foundation: press L in-combat to take over one carrier and fly it down to the band.
+        engine.addPlugin(new CarrierDescentPlugin(config, FleetSide.PLAYER));
     }
 }

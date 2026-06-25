@@ -1,8 +1,6 @@
 package com.dillon.starsectormarines.combathybrid.host;
 
 import com.dillon.starsectormarines.DebugOnly;
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.unit.Entity;
 import com.dillon.starsectormarines.combathybrid.bridge.GroundBattleConfig;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.AssignmentTargetAPI;
@@ -82,18 +80,8 @@ public final class CarrierEngagementPlugin extends BaseEveryFrameCombatPlugin {
 
     /** Centroid of the live targetable sim entities, projected into combat world coords. */
     private Vector2f groundBandCentroid() {
-        BattleSimulation sim = config.sim();
-        Vector2f acc = new Vector2f();
-        Vector2f tmp = new Vector2f();
-        int n = 0;
-        for (Entity e : config.targetable()) {
-            if (!sim.world().isAlive(e.entityId)) continue;
-            config.cellToWorld(sim.world().cellX(e.entityId), sim.world().cellY(e.entityId), tmp);
-            acc.x += tmp.x;
-            acc.y += tmp.y;
-            n++;
-        }
-        if (n > 0) acc.scale(1f / n);
-        return acc;   // empty/all-dead -> world origin (grid center), a sane fallback
+        Vector2f band = new Vector2f();
+        config.targetableCentroid(band);   // shared with CarrierDescentPlugin (one band notion)
+        return band;
     }
 }
