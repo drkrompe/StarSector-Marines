@@ -71,7 +71,14 @@ public final class TileRegistry {
                 throw new IllegalStateException("TileRegistry: duplicate tile id '" + id
                         + "' (sheet " + sheet + ")");
             }
-            int frame = o.optInt("frame", -1);
+            // Sliced tiles must pin a frame explicitly — a missing 'frame' must
+            // fail loud, not silently default to the -1 block sentinel (Phase 1c
+            // block tiles will carry origin+layout instead and relax this).
+            if (!o.has("frame")) {
+                throw new IllegalStateException("TileRegistry: tile '" + id
+                        + "' is missing 'frame' (sheet " + sheet + ")");
+            }
+            int frame = o.getInt("frame");
             TileLayer layer = TileLayer.fromJson(o.optString("layer", "ground"));
             TileCover cover = TileCover.fromJson(o.optString("cover", "none"));
             boolean passable = o.optBoolean("passable", true);
@@ -94,7 +101,19 @@ public final class TileRegistry {
         for (TileDef def : byId.values()) {
             for (String sel : def.validOn) {
                 String ref = sel.startsWith("!") ? sel.substring(1) : sel;
-                if (ref.startsWith("layer:")) continue;
+                if (ref.startsWith("layer:")) {
+                    // A bad layer token (e.g. "layer:grund") silently degrades the
+                    // tile to "overlays nothing" at eval time — validate it here so
+                    // the typo fails at load, not as an unexplained render diff.
+                    String token = ref.substring("layer:".length());
+                    try {
+                        TileLayer.fromJson(token);
+                    } catch (RuntimeException e) {
+                        throw new IllegalStateException("TileRegistry: tile '" + def.id
+                                + "' validOn has unknown layer token '" + ref + "'");
+                    }
+                    continue;
+                }
                 if (!byId.containsKey(ref)) {
                     throw new IllegalStateException("TileRegistry: tile '" + def.id
                             + "' validOn references unknown tile '" + ref + "'");
