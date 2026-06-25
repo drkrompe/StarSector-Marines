@@ -296,11 +296,11 @@ public final class NavigationService {
 
     /** X coordinate of the unit's final path cell, or {@code Integer.MIN_VALUE} if the path is empty. */
     public static int pathDestX(Entity u) {
-        return u.path.length == 0 ? Integer.MIN_VALUE : u.path[u.path.length - 2];
+        return Paths.destX(u.path);
     }
     /** Y coordinate of the unit's final path cell, or {@code Integer.MIN_VALUE} if the path is empty. */
     public static int pathDestY(Entity u) {
-        return u.path.length == 0 ? Integer.MIN_VALUE : u.path[u.path.length - 1];
+        return Paths.destY(u.path);
     }
 
     private void incrementOccupancy(int x, int y) {

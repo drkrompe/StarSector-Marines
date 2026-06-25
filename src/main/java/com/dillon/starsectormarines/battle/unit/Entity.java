@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 
 import java.util.Random;
@@ -138,13 +139,13 @@ public class Entity {
     public int pathIdx = 0;
 
     /** Convenience accessor — number of cells in {@link #path}. */
-    public int pathCellCount() { return path.length >> 1; }
+    public int pathCellCount() { return Paths.cellCount(path); }
     /** Convenience accessor — x coordinate of the i-th cell along {@link #path}. */
-    public int pathCellX(int i) { return path[i << 1]; }
+    public int pathCellX(int i) { return Paths.cellX(path, i); }
     /** Convenience accessor — y coordinate of the i-th cell along {@link #path}. */
-    public int pathCellY(int i) { return path[(i << 1) | 1]; }
+    public int pathCellY(int i) { return Paths.cellY(path, i); }
     /** True when the unit has no path scheduled. Match for the old {@code path.isEmpty()} check. */
-    public boolean pathEmpty() { return path.length == 0; }
+    public boolean pathEmpty() { return Paths.isEmpty(path); }
 
     /**
      * Per-tick movement step. The cell pair lives in the entity world's
