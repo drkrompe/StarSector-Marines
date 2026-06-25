@@ -31,22 +31,33 @@ Out (later phases):
 
 ## Slices
 
-### 1a — schema + registry + load (registry built, not yet consumed)
+### 1a — schema + registry + load (registry built, not yet consumed) — ✅ shipped (`99de776`)
 
-- `TileDef` (sheet handle, `frame` *or* `(origin, layout)`, `layer`,
-  `cover`, `passable`, `validOn`) and `TileRegistry` (`Map<String,TileDef>`
-  + `tile(id)` / `has(id)`).
-- Author `nature-tiles.tileset.json` and `urban-tileset-3.tileset.json` as
-  a **superset** of the existing `.catalog.json` (keep `name`/`description`
-  for the debug viewer; add `id`/`frame`/`layer`/semantics). The two
-  sliced sheets first — they're the cleanest (ordered list = the enum).
-- Load in `onApplicationLoad`; **self-check**: the slicer's detected frame
-  count must equal the sheet's tile-entry count (the guard
-  `NatureTileset` / `UrbanTile3Tileset` do today, moved into the registry
-  and made fail-loud at load, not per-frame).
-- **No consumer changes.** A test asserts the registry's per-id semantics
-  equal the current enum fields for every `NatureTile` / `UrbanTile3`
-  constant — the migration's parity oracle.
+- ✅ `TileDef` + `TileLayer` + `TileCover` + `TileRegistry`
+  (`Map<String,TileDef>`, `tile(id)` / `has(id)` / `all()`). `TileDef.frame`
+  is the sliced-sheet index; `(origin, layout)` block fields land in 1c.
+- ✅ `nature-tiles.tileset.json` + `urban-tileset-3.tileset.json` (the two
+  sliced sheets). `canOverlay` ported to `validOn` selectors (`"<id>"`,
+  `"layer:ground"`, `"!<id>"`); `TileDef.canOverlayOn` evaluates them.
+- ✅ Loaded in `onApplicationLoad` via `TileRegistry.loadBuiltins()`
+  (defensive — never throws out of startup). Internal self-checks:
+  duplicate-id fail-loud (`ingestSheet`), cross-tile `validOn` resolution
+  (`validateReferences`).
+- ✅ **No consumer changes.** `TileRegistryParityTest` is the oracle:
+  registry semantics == `NatureTile`/`UrbanTile3` fields for every constant,
+  plus the full `canOverlay` cross product, plus per-sheet count parity.
+
+> **Deferred from 1a — frame-count vs. slicer self-check.** The "slicer
+> output count == JSON tile count" guard needs the loaded texture, which
+> isn't available at `onApplicationLoad`. Left as a runtime cross-check for
+> when the `*Tileset` loaders consume the registry (1b). 1a validates
+> JSON-internal invariants only.
+>
+> **Transitional dual-file.** `.tileset.json` (registry, authoritative) and
+> `.catalog.json` (debug viewer) coexist for now — `urban-tileset-3` has
+> both; their content is kept identical. The viewer migration + `.catalog`
+> deletion is part of 1c (when grid sheets also get `.tileset.json`).
+> `nature-tiles` never had a catalog, so no duplication there.
 
 ### 1b — sliced consumers read by id
 

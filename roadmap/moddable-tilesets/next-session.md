@@ -4,32 +4,42 @@ Read [`overview.md`](overview.md) first (concept, the three tile systems,
 the data/algorithm seam, both schemas). Active story:
 [`stories/phase-1-tile-registry.md`](stories/phase-1-tile-registry.md).
 
+## Commit chain so far
+
+```
+91ee3f2  docs(moddable-tilesets): new track — dual-JSON, id-addressed TileRegistry
+99de776  moddable-tilesets: Phase 1a — id-addressed TileRegistry (sliced sheets)
+```
+
 ## State of play
 
-- **Design captured; no code yet.** This is a fresh design-stage track.
-  Approach agreed with the user: dual-JSON (tileset def ↔ gen mapping) fed
-  into an id-addressed `TileRegistry`.
-- The headline constraint to keep in front of mind: **tiles are pure data
-  (fully JSON-able); generation is data + algorithm** (pools/chances are
-  data, the wetland carve is not). The mapping JSON names a *code* filler
-  and supplies its tunables — it is not "the generator in JSON."
-- We are **not starting from zero**: `tools/tilesets/TilesetCatalog.java`
-  already loads a per-sheet `data/tilesets/<basename>.catalog.json` at
-  runtime (sandbox-safe `SettingsAPI` path, saves/common round-trip).
-  Phase 1 promotes that file from labels to authoritative tile defs.
+- **Phase 1a shipped (`99de776`).** `TileRegistry` (id → `TileDef`) loaded
+  in `onApplicationLoad`, fed from `data/tilesets/{nature-tiles,urban-tileset-3}.tileset.json`.
+  `TileDef`/`TileLayer`/`TileCover` carry the per-tile semantics the enums
+  hardcode; `canOverlay` → `validOn` selectors. **Not yet consumed** by
+  render/gen — that's 1b/1c. `TileRegistryParityTest` (green) pins registry
+  semantics to the `NatureTile`/`UrbanTile3` fields so the migration is
+  provably behavior-preserving.
+- **The headline constraint** (keep in front of mind for Phase 2): tiles
+  are pure data; generation is data + algorithm (pools/chances are data,
+  the wetland carve is not). The mapping JSON names a *code* filler and
+  supplies its tunables — not "the generator in JSON."
+- **Transitional dual-file:** `urban-tileset-3` now has both `.tileset.json`
+  (authoritative, registry) and `.catalog.json` (debug viewer), content kept
+  identical. The viewer cutover + `.catalog` deletion is 1c work.
 
 ## Next up (priority order)
 
-1. **Phase 1, Slice 1a** — `TileDef` + `TileRegistry` + the load hook in
-   `onApplicationLoad`; author `nature-tiles.tileset.json` +
-   `urban-tileset-3.tileset.json` as a superset of their `.catalog.json`;
-   registry self-check (frame count == entry count). **No consumer changes
-   yet** — add the parity test (registry semantics == enum fields) as the
-   oracle. See the story for the full slice breakdown.
-2. **Slice 1b** — sliced consumers (`NatureTile`/`UrbanTile3`) read
-   semantics by id; `canOverlay` → `validOn`.
-3. **Slice 1c** — grid sheets (`TileManifest` origins → named-layout
-   blocks). Heavier; may split into its own story — ship 1a+1b first.
+1. **Slice 1b** — sliced consumers read by id. Migrate `NatureTile` /
+   `UrbanTile3` semantic fields (`kind`/`cover`/`passable`, `canOverlay`) to
+   resolve from `TileRegistry.installed()`; `NatureZoneFiller`'s overlay-
+   legality check reads `TileDef.canOverlayOn` (pools/chances stay hardcoded
+   until Phase 2). Move the `*Tileset` loaders' frame-count guard to cross-
+   check the registry (the self-check deferred from 1a). Parity gate:
+   `BspMapPreviewTest` + `TilesetDebugScreen` A/B unchanged.
+2. **Slice 1c** — grid sheets (`TileManifest` origins → named-layout
+   blocks); migrate `TilesetDebugScreen` to `.tileset.json` and delete the
+   `.catalog.json` files. Heavier; may split into its own story.
 
 Then **Phase 2** (gen mapping as data) and **Phase 3** (mod-merge,
 deferred until a real submod exists).
