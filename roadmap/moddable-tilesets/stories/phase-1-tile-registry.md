@@ -162,15 +162,22 @@ mirrors 1b step i): `GridLayout`/`GridBlockDef` + registry `blocks` ingest +
 (each resolver pinned to its `TileManifest` picker across all 16 masks, incl. the
 wall enclosed/null + `0x060A10` fill). Verified green.
 
-**Remaining (consumer migration, per sheet):**
-- `GroundRenderSystem` floor (INDOOR) / rubble / door dispatch → resolve block id;
-  `WallMasks.pickTileFromMask` → `block("urban.wall").resolve(...)`.
-- Next sheets: `urban-tileset-2` (road / courtyard / striped), then the Floors/
+**Consumer migration (per sheet):**
+- **`urban-tileset` — ✅ shipped `7fba02f4`.** `GroundRenderSystem` floor (INDOOR)
+  / rubble / doorway resolve `urban.floor`/`urban.rubble`/`urban.door-open`;
+  `WallMasks.pickTileFromMask` resolves `urban.wall` (shared by production + the
+  preview tests, picker fallback); `emitWalls` fill from the block's `fillRgb`;
+  bootstrap loads `urban-tileset`. Parity-pinned, green.
+- **Next sheets:** `urban-tileset-2` (road / courtyard / striped), then the Floors/
   Water center grounds + brick/tile single tiles. Each adds its `GridLayout`(s) +
   `.tileset.json` blocks, parity-pinned to the picker, then flips the consumer.
+  NOTE: urban-2 / Floors are 32px / 16px — `blockFrame` currently draws via the
+  urban (32px) path; the Floors/Water blocks will need a `cellPx`-aware draw
+  (the block carries `cellPx`; wire `FixedGridTileDrawer`/`emitSmallTile`).
 - Migrate `TilesetDebugScreen` to `.tileset.json`; delete the `.catalog.json`
   duplication; carry the catalog labels.
-- The dev-tool preview tests (`FixedGridZonePreviewTest`) move to block ids too.
+- The dev-tool preview tests (`FixedGridZonePreviewTest`) still call the pickers
+  directly — move them to block ids too (then the pickers can retire).
 
 > The `nature` vs. `floors` grass fork at `GroundRenderSystem` GRASS/DIRT is
 > already on registry ids (Phase 1b); the `floors.*-center` blocks only need to
