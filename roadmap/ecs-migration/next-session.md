@@ -99,6 +99,9 @@ a5da51a  battle: SecondaryWeapon onto the EntityWorld — first OPTIONAL capabil
 5ee1090  battle: extract Paths static helpers over the flat int[] path (path-ref fold-in, foundation)  ← 2026-06-25
 688a7568 battle: fold the path ref + cursor into MOVEMENT — Entity carries no movement state (path-ref cutover)  ← 2026-06-25
 91380de4 battle: narrow MOVEMENT/AI_STATE to mobile units — static emplacements carry neither (membership-narrowing)  ← 2026-06-25
+dafaacaf battle: fold Crashing onto the EntityWorld — CRASHING component (step-4 store fold)  ← 2026-06-25
+8f8a0d76 battle: fold MechLoadout onto the EntityWorld + delete the World cold face  ← 2026-06-25
+1cbf5b03 battle: relocate render position off Entity to the world RENDER_POSITION component  ← 2026-06-25
 ```
 
 (Sibling tracks interleaved on HEAD, not ECS-migration: `9084ed4` battle-render
@@ -266,9 +269,16 @@ dissolution:
   membership. With both folded, the `World`'s generic Class→`ComponentStore` cold
   face (`component`/`hasComponent`/`id`/`EntityHandle` + the stores map) is
   **deleted**; consumers use typed accessors (`world.mechLoadout(id)` etc.).
-  **Remaining fold: `RenderPositionService` → world `RENDER_POSITION`** — the last
-  *battle-unit* `ComponentStore` user; unifies live render-pos with the corpse's
-  existing `RENDER_POSITION` (universal, off `corpseRemove`).
+  **RenderPosition fold ✓ (`1cbf5b03`)** — `Entity.getRenderX/getRenderY/setRenderPos`
+  + the `Entity.renderPositions` service ref **deleted**; render position is the
+  universal `RENDER_POSITION` world component (off `corpseRemove`, rides the
+  transmute), read by id via `world.renderX(id)` / `registry.renderXById(id)`
+  (tolerant). ~28 caller files swept (3 Sonnet agents); `RenderPositionService` +
+  component + test deleted. **Every battle-unit component now lives in the
+  EntityWorld** — the full Part A (folds + cold-face removal) is done; see
+  [`complete/store-folds-and-render-position.md`](complete/store-folds-and-render-position.md).
+  `ComponentStore<T>` now backs ONLY the air-FX stores (`ThrusterFx`/`AirTurrets`),
+  a separate entity space — it dies in the air-into-world epic, not here.
 - **Step 4 proper — dissolve `UnitRegistry`.** With every dense column gone (the
   registry is now id-mint + dense `Entity[]` + id↔slot map + the
   owned-for-transition `EntityWorld`/`BattleComponents`/`RenderPositionService`),
