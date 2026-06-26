@@ -1,0 +1,11 @@
+{
+  "sheet": "graphics/tilesets/Floors_Tiles.png",
+  "cellPx": 16,
+  "blocks": [
+    { "id": "floors.grass", "cells": [[1, 10], [2, 10], [3, 10]] },
+    { "id": "floors.dirt",  "cells": [[11, 10], [12, 10], [13, 10]] },
+    { "id": "floors.stone", "cells": [[6, 10], [7, 10], [8, 10]] },
+    { "id": "floors.sand",  "cells": [[6, 14], [7, 14], [8, 14]] },
+    { "id": "floors.brick", "cells": [[17, 1], [16, 2], [17, 2], [18, 2], [17, 3]] }
+  ]
+}

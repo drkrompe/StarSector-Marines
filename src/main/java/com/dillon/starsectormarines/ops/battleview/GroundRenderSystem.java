@@ -179,7 +179,7 @@ public final class GroundRenderSystem implements RenderSystem {
                         if (road != null && tileReg != null) roadTile(blockFrame("road.tile", false, false, false, false), x, y, GROUND_TILE_EDGE_INSET_PX);
                         break;
                     case BRICK:
-                        floorsTile(TileManifest.pickBrickTile(x, y), x, y);
+                        if (tileReg != null) floorsTile(variantCell("floors.brick", x, y), x, y);
                         break;
                     case SIDEWALK:
                         if (tileReg != null) urbanTile3Frame(tileReg.tile(TileManifest.pickStreet3SidewalkFrame(
@@ -329,28 +329,36 @@ public final class GroundRenderSystem implements RenderSystem {
     }
 
     private void sameKindAutotile(CellTopology.GroundKind kind, int x, int y) {
+        if (tileReg == null) return;
+        // GRASS/DIRT prefer the sliced nature sheet; the Floors variant pool is
+        // the fallback when the nature sheet isn't loaded.
         if (nature != null) {
             if (kind == CellTopology.GroundKind.GRASS) {
-                if (tileReg != null) natureTile(tileReg.tile(TileManifest.pickNatureGrassTileId(x, y)), x, y);
+                natureTile(tileReg.tile(TileManifest.pickNatureGrassTileId(x, y)), x, y);
                 return;
             }
             if (kind == CellTopology.GroundKind.DIRT) {
-                if (tileReg != null) natureTile(tileReg.tile(TileManifest.pickNatureDirtTileId(x, y)), x, y);
+                natureTile(tileReg.tile(TileManifest.pickNatureDirtTileId(x, y)), x, y);
                 return;
             }
         }
-        TileManifest.TileFrame f;
+        String blockId;
         switch (kind) {
-            case GRASS: f = TileManifest.pickGrassTile(false, false, false, false, x, y); break;
-            case DIRT:  f = TileManifest.pickDirtTile (false, false, false, false, x, y); break;
-            case STONE: f = TileManifest.pickStoneTile(false, false, false, false, x, y); break;
-            case SAND:  f = TileManifest.pickSandTile (false, false, false, false, x, y); break;
-            case SNOW:  f = TileManifest.pickSnowTile (false, false, false, false, x, y); break;
-            case WATER: f = TileManifest.pickWaterTile(false, false, false, false, x, y); break;
-            default: return;
+            case GRASS: blockId = "floors.grass"; break;
+            case DIRT:  blockId = "floors.dirt";  break;
+            case STONE: blockId = "floors.stone"; break;
+            case SAND:  blockId = "floors.sand";  break;
+            case WATER: blockId = "water.water";  break;
+            default: return; // SNOW is defined in GroundKind but no generator emits it (dead)
         }
-        if (kind == CellTopology.GroundKind.WATER) waterTile(f, x, y);
-        else floorsTile(f, x, y);
+        if (kind == CellTopology.GroundKind.WATER) waterTile(variantCell(blockId, x, y), x, y);
+        else floorsTile(variantCell(blockId, x, y), x, y);
+    }
+
+    /** Variant-pool block (Floors/Water center grounds) → its {@code (x,y)}-hashed cell. */
+    private TileManifest.TileFrame variantCell(String blockId, int x, int y) {
+        int[] c = tileReg.block(blockId).resolve(false, false, false, false, x, y);
+        return new TileManifest.TileFrame(c[0], c[1]);
     }
 
     // ---- solid fills ---------------------------------------------------------

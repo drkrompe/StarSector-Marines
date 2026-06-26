@@ -42,7 +42,9 @@ public final class TileRegistry {
             "data/tilesets/nature-tiles.tileset.json",
             "data/tilesets/urban-tileset-3.tileset.json",
             "data/tilesets/urban-tileset.tileset.json",
-            "data/tilesets/urban-tileset-2.tileset.json");
+            "data/tilesets/urban-tileset-2.tileset.json",
+            "data/tilesets/Floors_Tiles.tileset.json",
+            "data/tilesets/Water_tiles.tileset.json");
 
     private static volatile TileRegistry installed;
 
@@ -138,6 +140,20 @@ public final class TileRegistry {
             JSONObject o = blocks.getJSONObject(i);
             String id = o.getString("id");
             requireUniqueId(id, sheet);
+            JSONArray cellsArr = o.optJSONArray("cells");
+            if (cellsArr != null) {
+                // Variant pool — explicit {col,row} cells, hash-picked.
+                if (cellsArr.length() == 0) {
+                    throw new IllegalStateException("TileRegistry: block '" + id + "' has empty 'cells' (sheet " + sheet + ")");
+                }
+                int[][] cells = new int[cellsArr.length()][];
+                for (int k = 0; k < cellsArr.length(); k++) {
+                    JSONArray cell = cellsArr.getJSONArray(k);
+                    cells[k] = new int[]{cell.getInt(0), cell.getInt(1)};
+                }
+                blocksById.put(id, GridBlockDef.variantPool(id, sheet, cellPx, cells));
+                continue;
+            }
             JSONArray origin = o.getJSONArray("origin");
             int oc = origin.getInt(0);
             int or = origin.getInt(1);

@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Parity oracle for moddable-tilesets Phase 1c (grid blocks): pins each
@@ -136,5 +137,33 @@ public class GridBlockParityTest {
         int[] lz = reg.block("road.lz-marker").resolve(false, false, false, false);
         assertEquals(TileManifest.pickLzMarkerTile().col, lz[0]);
         assertEquals(TileManifest.pickLzMarkerTile().row, lz[1]);
+    }
+
+    // ----- Floors_Tiles + Water_tiles (16px variant pools) --------------------
+
+    private static void assertCell(GridBlockDef block, TileManifest.TileFrame want, int x, int y) {
+        int[] got = block.resolve(false, false, false, false, x, y);
+        assertEquals(want.col, got[0], "col @" + x + "," + y + " for " + block.id);
+        assertEquals(want.row, got[1], "row @" + x + "," + y + " for " + block.id);
+    }
+
+    @Test
+    void floorsAndWaterVariantPoolsMatchCenterPickers() throws Exception {
+        TileRegistry reg = new TileRegistry();
+        reg.ingestSheet(new JSONObject(Files.readString(Paths.get("mod/data/tilesets/Floors_Tiles.tileset.json"))));
+        reg.ingestSheet(new JSONObject(Files.readString(Paths.get("mod/data/tilesets/Water_tiles.tileset.json"))));
+        assertTrue(reg.block("floors.stone").isVariantPool(), "floors.stone should be a variant pool");
+        // The production render only ever uses the center (all-false) pick; the
+        // hash-picked pool must match that branch for every cell coordinate.
+        for (int x = 0; x < 24; x++) {
+            for (int y = 0; y < 24; y++) {
+                assertCell(reg.block("floors.grass"), TileManifest.pickGrassTile(false, false, false, false, x, y), x, y);
+                assertCell(reg.block("floors.dirt"),  TileManifest.pickDirtTile (false, false, false, false, x, y), x, y);
+                assertCell(reg.block("floors.stone"), TileManifest.pickStoneTile(false, false, false, false, x, y), x, y);
+                assertCell(reg.block("floors.sand"),  TileManifest.pickSandTile (false, false, false, false, x, y), x, y);
+                assertCell(reg.block("floors.brick"), TileManifest.pickBrickTile(x, y), x, y);
+                assertCell(reg.block("water.water"),  TileManifest.pickWaterTile(false, false, false, false, x, y), x, y);
+            }
+        }
     }
 }
