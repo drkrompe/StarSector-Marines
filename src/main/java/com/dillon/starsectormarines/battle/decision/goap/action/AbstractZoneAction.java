@@ -130,7 +130,7 @@ abstract class AbstractZoneAction implements Action {
         if (haltOnContact && inContact) {
             if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member);
             sim.world().setMoveProgress(member.entityId, 0f);
-            member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
+            sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
             if (squad.timeSinceReplan >= CONTACT_HALT_REPLAN_THROTTLE) {
                 squad.timeSinceReplan = Planner.REPLAN_PERIOD;
             }

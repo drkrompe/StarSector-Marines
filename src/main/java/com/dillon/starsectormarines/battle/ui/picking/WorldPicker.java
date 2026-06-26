@@ -98,8 +98,8 @@ public final class WorldPicker implements HudPanel {
         float bestDistSq = PICK_RADIUS_CELLS * PICK_RADIUS_CELLS;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             Entity u = sim.liveUnitAt(i);
-            float dx = u.getRenderX() - worldX;
-            float dy = u.getRenderY() - worldY;
+            float dx = sim.world().renderX(u.entityId) - worldX;
+            float dy = sim.world().renderY(u.entityId) - worldY;
             float d2 = dx * dx + dy * dy;
             if (d2 < bestDistSq) {
                 bestDistSq = d2;

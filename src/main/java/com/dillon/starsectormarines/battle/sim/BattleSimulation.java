@@ -315,8 +315,7 @@ public class BattleSimulation implements BattleControl {
         this.droneCrashes = new com.dillon.starsectormarines.battle.drone.DroneCrashSystem(
                 navigation, effects, entityWorld, battleComponents);
         deathDispatcher.subscribe(droneCrashes::onDeath);
-        this.deadBodySystem = new DeadBodySystem(
-                entityWorld, battleComponents, rosterService.getRegistry().getRenderPositions());
+        this.deadBodySystem = new DeadBodySystem(entityWorld, battleComponents);
         deathDispatcher.subscribe(deadBodySystem::onDeath);
         this.mechWreckSystem = new com.dillon.starsectormarines.battle.mech.MechWreckSystem(effects, rosterService.getRegistry());
         deathDispatcher.subscribe(mechWreckSystem::onDeath);

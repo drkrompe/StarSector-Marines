@@ -8,18 +8,18 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * Turns the dead unit's world entity into a corpse — the death-event handler
  * that builds the corpse home. Subscribed to the battle's death dispatcher; on
  * each {@link DeathEvent} it {@code transmute}s the entity (one row-move) from
- * the live {@code {IDENTITY, POSITION, HEALTH, COMBAT}} archetype (plus the
- * optional {@code MOVEMENT}, {@code AI_STATE}, and {@code SECONDARY_WEAPON} a
- * mobile/armed unit carries) to the corpse archetype
+ * the live {@code {IDENTITY, POSITION, RENDER_POSITION, HEALTH, COMBAT}}
+ * archetype (plus the optional {@code MOVEMENT}, {@code AI_STATE}, and
+ * {@code SECONDARY_WEAPON} a mobile/armed unit carries) to the corpse archetype
  * {@code {IDENTITY, POSITION, RENDER_POSITION, SPRITE, CORPSE}}: {@code HEALTH},
  * {@code COMBAT}, and any {@code MOVEMENT}, {@code AI_STATE}, or
  * {@code SECONDARY_WEAPON} are removed (a corpse neither lives, fights, moves,
- * nor thinks — and "lacks HEALTH" is half the liveness definition),
- * {@code IDENTITY} <b>and the cell</b> are
- * carried by the row-move ("the corpse keeps its cell" is literal: nothing
- * moves a unit after the kill zeroes its hp, so the live POSITION already is
- * the death cell the event snapshotted), the draw position is frozen at the
- * spot it fell, and the death pose is authored into {@code SPRITE.index} (the
+ * nor thinks — and "lacks HEALTH" is half the liveness definition);
+ * {@code IDENTITY}, the cell, <b>and the render position</b> are carried by the
+ * row-move ("the corpse keeps its cell" is literal: nothing moves a unit after
+ * the kill zeroes its hp, so the live POSITION + RENDER_POSITION already are the
+ * death cell + frozen draw spot), and the death pose is authored into
+ * {@code SPRITE.index} (the
  * appearance-as-authored-data pattern — the render collector just draws what
  * the sprite says).
  *
@@ -41,18 +41,16 @@ public final class DeadBodySystem {
 
     private final EntityWorld world;
     private final BattleComponents components;
-    private final RenderPositionService renderPositions;
     /** Cached transmute masks — no per-death array garbage. */
     private final ComponentType[] corpseAdd;
     private final ComponentType[] corpseRemove;
 
-    public DeadBodySystem(EntityWorld world, BattleComponents components,
-                          RenderPositionService renderPositions) {
+    public DeadBodySystem(EntityWorld world, BattleComponents components) {
         this.world = world;
         this.components = components;
-        this.renderPositions = renderPositions;
-        this.corpseAdd = new ComponentType[]{
-                components.RENDER_POSITION, components.SPRITE, components.CORPSE};
+        // RENDER_POSITION is universal on the live archetype now, so it rides the
+        // row-move (no add) — the corpse only gains SPRITE + the CORPSE tag.
+        this.corpseAdd = new ComponentType[]{components.SPRITE, components.CORPSE};
         // MOVEMENT, AI_STATE, and SECONDARY_WEAPON are all optional (a static
         // turret/hub has no MOVEMENT/AI_STATE; only armed units carry a secondary)
         // and removed when present — transmute treats a remove of a component the
@@ -71,13 +69,9 @@ public final class DeadBodySystem {
         // cell (the event's snapshot is the same value; demolition handlers
         // still read it off the event, this transmute just doesn't re-write it).
         world.transmute(id, corpseAdd, corpseRemove);
-        // The render-position entry survives registry release, so this still
-        // resolves on the post-release death drain — frozen here, the corpse
-        // never reads the shared entry again.
-        world.setFloat(id, c.RENDER_POSITION, BattleComponents.RENDER_POSITION_X,
-                renderPositions.getX(id));
-        world.setFloat(id, c.RENDER_POSITION, BattleComponents.RENDER_POSITION_Y,
-                renderPositions.getY(id));
+        // RENDER_POSITION rides the row-move (it's on the live archetype too, kept
+        // off the corpse-remove mask), so the corpse already draws where it fell —
+        // no post-release snapshot needed.
         // SPRITE.sheet / flipV stay 0 — sheet resolves from IDENTITY.type until
         // the unified sprite registry mints handles (see BattleComponents.SPRITE).
         world.setInt(id, c.SPRITE, BattleComponents.SPRITE_INDEX, u.deathPoseIdx);

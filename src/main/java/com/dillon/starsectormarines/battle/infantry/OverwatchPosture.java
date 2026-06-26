@@ -56,7 +56,7 @@ public final class OverwatchPosture implements Action {
         // Drop any in-flight path — the squad is on overwatch, not moving.
         if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member);
         sim.world().setMoveProgress(member.entityId, 0f);
-        member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
+        sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
         // Deliberately do NOT fire and do NOT touch cooldownTimer — the
         // ambush's first shot is owned by EngagePosture on the next replan
         // after the kill-zone gate flips.

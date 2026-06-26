@@ -43,7 +43,7 @@ public final class InfantryUnitPrep {
         MarineSecondary sec = w.secondaryWeapon(id);
         w.setSecondaryActionTimer(id, w.secondaryActionTimer(id) - BattleSimulation.TICK_DT);
         w.setMoveProgress(id, 0f);
-        unit.setRenderPos(w.cellX(id), w.cellY(id));
+        w.setRenderPos(id, w.cellX(id), w.cellY(id));
         float fireAt = sec.aimDuration * 0.5f;
         if (!w.secondaryFired(id) && w.secondaryActionTimer(id) <= fireAt) {
             Entity aimTarget = sim.resolveUnit(w.secondaryAimTargetId(id));
@@ -141,7 +141,7 @@ public final class InfantryUnitPrep {
         // does on its own entry path so the visible behavior is consistent
         // from the first frame of the aim window.
         sim.world().setMoveProgress(unit.entityId, 0f);
-        unit.setRenderPos(sim.world().cellX(unit.entityId), sim.world().cellY(unit.entityId));
+        sim.world().setRenderPos(unit.entityId, sim.world().cellX(unit.entityId), sim.world().cellY(unit.entityId));
         return true;
     }
 }

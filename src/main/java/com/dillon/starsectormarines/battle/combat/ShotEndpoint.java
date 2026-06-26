@@ -1,7 +1,5 @@
 package com.dillon.starsectormarines.battle.combat;
 
-import com.dillon.starsectormarines.battle.unit.Entity;
-
 import java.util.Random;
 
 /**
@@ -11,8 +9,8 @@ import java.util.Random;
  * {@link HeavyWeapons#fireMechWeapon} so all three live by the same rules.
  *
  * <ul>
- *   <li><b>Targeting</b> uses the target's {@link Entity#getRenderX()}/
- *       {@link Entity#getRenderY()} (smooth interpolated cell-coords), not the
+ *   <li><b>Targeting</b> uses the target's smooth render position (the world
+ *       {@code RENDER_POSITION} component, passed in by the caller), not the
  *       logical {@code cellX}/{@code cellY}. Tracers terminate on the
  *       sprite, not on the cell the sprite is lerping toward.</li>
  *   <li><b>Hits</b> land near the target with a universal
@@ -47,14 +45,16 @@ public final class ShotEndpoint {
     private ShotEndpoint() {}
 
     /**
-     * Resolve the visual endpoint for a shot at {@code target}.
+     * Resolve the visual endpoint for a shot around a target whose sprite center
+     * is ({@code targetRenderX} + 0.5, {@code targetRenderY} + 0.5) — the caller
+     * passes the target's smooth render position (its world {@code RENDER_POSITION}
+     * read by id), so tracers terminate on the sprite, not the logical cell.
      * {@code effectiveSpread} is the weapon's distance-scaled scatter radius
-     * (see {@link RangeFalloff#spread}); 0 for weapons without a hitSpread
-     * profile.
+     * (see {@link RangeFalloff#spread}); 0 for weapons without a hitSpread profile.
      */
-    public static Endpoint resolve(Entity target, boolean hit, float effectiveSpread, Random rng) {
-        float cx = target.getRenderX() + 0.5f;
-        float cy = target.getRenderY() + 0.5f;
+    public static Endpoint resolve(float targetRenderX, float targetRenderY, boolean hit, float effectiveSpread, Random rng) {
+        float cx = targetRenderX + 0.5f;
+        float cy = targetRenderY + 0.5f;
         float angle = rng.nextFloat() * (float) (Math.PI * 2);
         float radius;
         if (hit) {

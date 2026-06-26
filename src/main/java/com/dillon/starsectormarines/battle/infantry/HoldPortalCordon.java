@@ -153,7 +153,7 @@ public final class HoldPortalCordon implements Action {
         if (onSite) {
             if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member);
             sim.world().setMoveProgress(member.entityId, 0f);
-            member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
+            sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
             return ActionStatus.RUNNING;
         }
         if (sim.world().moveProgress(member.entityId) == 0f) {
@@ -188,7 +188,7 @@ public final class HoldPortalCordon implements Action {
         }
         if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member);
         sim.world().setMoveProgress(member.entityId, 0f);
-        member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
+        sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
         // On-post fire — STANCED, full accuracy. This is the whole reason
         // we stop and hold: the cordon's lethality comes from stanced shots.
         opportunisticFire(member, sim, FireStance.STANCED);

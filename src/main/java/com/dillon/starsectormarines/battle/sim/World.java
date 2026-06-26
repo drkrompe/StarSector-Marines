@@ -68,6 +68,16 @@ public final class World {
     public int cellY(long id) { return registry.cellYById(id); }
     public void setCellPos(long id, int x, int y) { registry.setCellPosById(id, x, y); }
 
+    // Smooth render position — the world's universal RENDER_POSITION component
+    // (survives the death transmute, so a corpse draws where it fell). Reads are
+    // TOLERANT (0 when the entity is gone / lacks it) — render code must not
+    // fail-loud on a maybe-released ref, unlike the strict hp/cell accessors.
+    public float renderX(long id) { return registry.renderXById(id); }
+    public float renderY(long id) { return registry.renderYById(id); }
+    public void setRenderPos(long id, float x, float y) { registry.setRenderPosById(id, x, y); }
+    public void setRenderX(long id, float v) { registry.setRenderXById(id, v); }
+    public void setRenderY(long id, float v) { registry.setRenderYById(id, v); }
+
     // Combat lives in the entity world's COMBAT columns (migration step 3) —
     // same transitional by-id adapter routing as hp/cell above. Fail-loud once
     // the death drain has transmuted the entity to a corpse (COMBAT gone).

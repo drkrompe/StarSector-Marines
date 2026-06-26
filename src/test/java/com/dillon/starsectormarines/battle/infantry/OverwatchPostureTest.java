@@ -100,7 +100,7 @@ public class OverwatchPostureTest {
         assertEquals(5, sim.world().cellX(defender.entityId));
         assertEquals(5, sim.world().cellY(defender.entityId));
         assertEquals(0f, sim.world().moveProgress(defender.entityId), 1e-6f);
-        assertEquals(sim.world().cellX(defender.entityId), defender.getRenderX(), 1e-6f);
-        assertEquals(sim.world().cellY(defender.entityId), defender.getRenderY(), 1e-6f);
+        assertEquals(sim.world().cellX(defender.entityId), sim.world().renderX(defender.entityId), 1e-6f);
+        assertEquals(sim.world().cellY(defender.entityId), sim.world().renderY(defender.entityId), 1e-6f);
     }
 }

@@ -98,8 +98,8 @@ public class DeadBodySystemTest {
         BattleSimulation sim = openArena(40, 40);
         Entity target = parkArenaWithTarget(sim);
         long id = target.entityId;
-        float deathX = target.getRenderX();
-        float deathY = target.getRenderY();
+        float deathX = sim.world().renderX(target.entityId);
+        float deathY = sim.world().renderY(target.entityId);
 
         sim.applyDamage(target, 100_000f, 20f, 20f);
         sim.advance(BattleSimulation.TICK_DT);

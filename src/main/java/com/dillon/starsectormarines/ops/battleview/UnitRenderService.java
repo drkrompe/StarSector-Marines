@@ -287,8 +287,8 @@ public final class UnitRenderService implements RenderSystem {
                     || cache.frames.frames.length == 0) {
                 Color c = u.faction == Faction.MARINE ? MARINE_COLOR
                         : u.faction == Faction.DEFENDER ? DEFENDER_COLOR : CIVILIAN_COLOR;
-                float cx = cam.cellToScreenX(u.getRenderX() + 0.5f);
-                float cy = cam.cellToScreenY(u.getRenderY() + 0.5f);
+                float cx = cam.cellToScreenX(registry.renderXById(u.entityId) + 0.5f);
+                float cy = cam.cellToScreenY(registry.renderYById(u.entityId) + 0.5f);
                 emitSolidQuad(out, cx, cy, half, c, unitAlpha);
                 continue;
             }
@@ -329,8 +329,8 @@ public final class UnitRenderService implements RenderSystem {
 
         float targetH = unitSize * u.type.renderScale;
         float targetW = targetH * f.w / (float) f.h;
-        float cx = cam.cellToScreenX(u.getRenderX() + 0.5f);
-        float cy = cam.cellToScreenY(u.getRenderY() + 0.5f);
+        float cx = cam.cellToScreenX(registry.renderXById(u.entityId) + 0.5f);
+        float cy = cam.cellToScreenY(registry.renderYById(u.entityId) + 0.5f);
         if (flipV) {
             out.addSheetQuadFlippedV(RenderLayer.UNITS, cache.sheet, f.x, f.y, f.w, f.h,
                     cx, cy, targetW, targetH, 1f, 1f, 1f, alphaMult);
@@ -372,8 +372,8 @@ public final class UnitRenderService implements RenderSystem {
             float barAlpha = alphaMult;
             if (uv == VisionService.VIS_FADING) barAlpha *= vis.getFadeAlpha(i);
 
-            float cx = cam.cellToScreenX(u.getRenderX() + 0.5f);
-            float cy = cam.cellToScreenY(u.getRenderY() + 0.5f);
+            float cx = cam.cellToScreenX(registry.renderXById(u.entityId) + 0.5f);
+            float cy = cam.cellToScreenY(registry.renderYById(u.entityId) + 0.5f);
             float barY;
             if (u instanceof MapTurret) {
                 barY = cy + ((MapTurret) u).kind.visualCells * cellPx / 2f + BattleRenderer.HP_BAR_GAP;

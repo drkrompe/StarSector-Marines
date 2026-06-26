@@ -115,8 +115,8 @@ public class BreakLOSTest {
                 "arrived → BreakLOS returns SUCCESS so the plan advances and the next replan can pick Overwatch/Engage");
         assertTrue(Paths.isEmpty(sim.world().path(marine.entityId)), "arrived → no path");
         assertEquals(0f, sim.world().moveProgress(marine.entityId), 1e-6f);
-        assertEquals(sim.world().cellX(marine.entityId), marine.getRenderX(), 1e-6f);
-        assertEquals(sim.world().cellY(marine.entityId), marine.getRenderY(), 1e-6f);
+        assertEquals(sim.world().cellX(marine.entityId), sim.world().renderX(marine.entityId), 1e-6f);
+        assertEquals(sim.world().cellY(marine.entityId), sim.world().renderY(marine.entityId), 1e-6f);
     }
 
     @Test

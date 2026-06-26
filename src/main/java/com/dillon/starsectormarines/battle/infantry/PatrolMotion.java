@@ -166,7 +166,7 @@ public final class PatrolMotion {
             return true;
         }
         sim.world().setMoveProgress(member.entityId, 0f);
-        member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
+        sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
         return false;
     }
 
@@ -174,7 +174,7 @@ public final class PatrolMotion {
     public static void hold(Entity member, BattleControl sim) {
         sim.clearPath(member);
         sim.world().setMoveProgress(member.entityId, 0f);
-        member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
+        sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
     }
 
     /** Opportunistic moving-stance shot at a visible in-range enemy; no movement. */

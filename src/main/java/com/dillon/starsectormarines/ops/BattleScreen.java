@@ -905,8 +905,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         for (Entity u : sim.getDeathsThisFrame()) {
             if (u.faction == Faction.MARINE) {
                 Vector2f loc = new Vector2f(
-                        u.getRenderX() * AUDIO_WORLD_UNITS_PER_CELL,
-                        u.getRenderY() * AUDIO_WORLD_UNITS_PER_CELL);
+                        sim.world().renderX(u.entityId) * AUDIO_WORLD_UNITS_PER_CELL,
+                        sim.world().renderY(u.entityId) * AUDIO_WORLD_UNITS_PER_CELL);
                 Global.getSoundPlayer().playSound(SFX_VOICE_DEAD, 1f, 1f, loc, zeroVel);
                 break;  // one voice per frame
             }

@@ -24,7 +24,7 @@ public final class FallbackBehavior implements UnitBehavior {
         if (sim.world().cellX(u.entityId) == fx && sim.world().cellY(u.entityId) == fy) {
             sim.clearPath(u);
             sim.world().setMoveProgress(u.entityId, 0f);
-            u.setRenderPos(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId));
+            sim.world().setRenderPos(u.entityId, sim.world().cellX(u.entityId), sim.world().cellY(u.entityId));
             return;
         }
         if (sim.world().moveProgress(u.entityId) == 0f) {

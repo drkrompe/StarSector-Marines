@@ -72,26 +72,16 @@ public final class UnitRegistry {
     private final Long2IntOpenHashMap indexById = new Long2IntOpenHashMap();
 
     /**
-     * Smooth render position, decomposed out of the dense table into a
-     * standalone entity-id-keyed service so it survives release (the corpse
-     * draws its frozen death pose where it fell). The registry owns the
-     * instance and seeds it in {@link #allocate}; {@link Entity#getRenderX()} /
-     * {@link Entity#setRenderPos} route through the per-unit
-     * {@link Entity#renderPositions} reference, which is <b>not</b> nulled on
-     * release. See {@link RenderPositionService} for the entity-id-keyed
-     * rationale.
-     */
-    private final RenderPositionService renderPositions = new RenderPositionService();
-
-    /**
      * The battle's archetype-table entity world + its game component
-     * registrations — owned here <em>for the transition</em> (same owned-sub-store
-     * shape as {@link #renderPositions}): {@link #allocate} is the single spawn
-     * seam, so owning the world keeps "mint the id" and "adopt it into the world
-     * as {@code {IDENTITY, HEALTH}}" in one place, and lets every standalone
-     * registry user (tests included) get a coherent world for free.
-     * {@code BattleSimulation} re-exposes both via its getters. When step 4
-     * dissolves this registry, ownership hops up to the sim.
+     * registrations — owned here <em>for the transition</em>: {@link #allocate} is
+     * the single spawn seam, so owning the world keeps "mint the id" and "adopt it
+     * into the world" in one place, and lets every standalone registry user (tests
+     * included) get a coherent world for free. {@code BattleSimulation} re-exposes
+     * both via its getters. When step 4 dissolves this registry, ownership hops up
+     * to the sim. Smooth render position is now a universal world
+     * {@code RENDER_POSITION} component (kept off the corpse-remove mask, so it
+     * survives the death transmute) — read by id via {@link #renderXById}, no
+     * separate standalone service.
      */
     private final EntityWorld entityWorld = new EntityWorld();
     private final BattleComponents components = new BattleComponents(entityWorld);
@@ -147,10 +137,11 @@ public final class UnitRegistry {
         // no-op).
         boolean mobile = !u.type.isStatic();
         boolean hasSecondary = u.seedSecondaryWeapon != null;
-        ComponentType[] archetype = new ComponentType[4 + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0)];
+        ComponentType[] archetype = new ComponentType[5 + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0)];
         int c = 0;
         archetype[c++] = components.IDENTITY;
         archetype[c++] = components.POSITION;
+        archetype[c++] = components.RENDER_POSITION;
         archetype[c++] = components.HEALTH;
         archetype[c++] = components.COMBAT;
         if (mobile) {
@@ -196,11 +187,12 @@ public final class UnitRegistry {
             entityWorld.setInt(id, components.AI_STATE, BattleComponents.AI_STATE_FALLBACK_CELL_Y, -1);
             entityWorld.setObject(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH, GridPathfinder.EMPTY_PATH);
         }
-        // Seed + wire the decomposed render-position service. Unlike the world
-        // entity, this reference is NOT nulled on release — the entry survives so
-        // a released corpse still resolves its death-pose location.
-        renderPositions.set(id, u.localRenderX, u.localRenderY);
-        u.renderPositions = renderPositions;
+        // Seed the smooth render position from the unit's pre-allocation seed.
+        // RENDER_POSITION is universal and kept OFF the corpse-remove mask, so it
+        // rides the death transmute — a released corpse still resolves its
+        // death-pose location with no post-release snapshot.
+        entityWorld.setFloat(id, components.RENDER_POSITION, BattleComponents.RENDER_POSITION_X, u.localRenderX);
+        entityWorld.setFloat(id, components.RENDER_POSITION, BattleComponents.RENDER_POSITION_Y, u.localRenderY);
         indexById.put(id, liveCount);
         liveCount++;
         return id;
@@ -230,8 +222,9 @@ public final class UnitRegistry {
         // keyed by id, immune to the dense reshuffle: the cell pair + Group-S
         // stats persist (the cell's post-release readers — turret/hub demolition
         // + mech wreck handlers — read the death cell off the DeathEvent
-        // snapshot, render position lives in the RenderPositionService keyed by
-        // entityId, NOT cleared on release), and hp (HEALTH), the combat
+        // snapshot, render position is the universal RENDER_POSITION component
+        // kept off the corpse-remove mask, so it rides the transmute), and hp
+        // (HEALTH), the combat
         // stats/scalars (COMBAT), moveProgress (MOVEMENT), the AI-cadence scalars
         // (AI_STATE), and any SECONDARY_WEAPON all stay under the entity's id
         // until the death drain transmutes it to the corpse archetype, which
@@ -398,13 +391,19 @@ public final class UnitRegistry {
     public int pathIdxById(long id) { return entityWorld.getInt(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH_IDX); }
     public void setPathIdxById(long id, int v) { entityWorld.setInt(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH_IDX, v); }
 
-    /**
-     * The decomposed render-position service this registry seeds + wires on
-     * {@link #allocate}. Render position is keyed by {@link Entity#entityId} and
-     * survives release (see {@link RenderPositionService}); the registry no
-     * longer holds dense {@code renderX/renderY} columns.
-     */
-    public RenderPositionService getRenderPositions() { return renderPositions; }
+    // Transitional by-id render-position adapters over the world's universal
+    // RENDER_POSITION component (kept off the corpse-remove mask, so it survives
+    // the death transmute — the corpse draws where it fell). Reads are TOLERANT
+    // (0 when the entity is gone / lacks the component) — render code must never
+    // fail-loud on a maybe-released ref; writes are strict (a live or corpse row).
+    public float renderXById(long id) { return entityWorld.getFloat(id, components.RENDER_POSITION, BattleComponents.RENDER_POSITION_X, 0f); }
+    public float renderYById(long id) { return entityWorld.getFloat(id, components.RENDER_POSITION, BattleComponents.RENDER_POSITION_Y, 0f); }
+    public void setRenderPosById(long id, float x, float y) {
+        entityWorld.setFloat(id, components.RENDER_POSITION, BattleComponents.RENDER_POSITION_X, x);
+        entityWorld.setFloat(id, components.RENDER_POSITION, BattleComponents.RENDER_POSITION_Y, y);
+    }
+    public void setRenderXById(long id, float v) { entityWorld.setFloat(id, components.RENDER_POSITION, BattleComponents.RENDER_POSITION_X, v); }
+    public void setRenderYById(long id, float v) { entityWorld.setFloat(id, components.RENDER_POSITION, BattleComponents.RENDER_POSITION_Y, v); }
 
     /** The battle's archetype-table entity world — owned here for the transition (see the field doc). */
     public EntityWorld entityWorld() { return entityWorld; }

@@ -422,23 +422,20 @@ public class UnitRegistryTest {
     }
 
     @Test
-    public void allocateSeedsRenderPosAndAccessorsRouteThroughService() {
+    public void allocateSeedsRenderPosIntoTheWorldComponent() {
         UnitRegistry r = new UnitRegistry();
         Entity u = new Entity("u", Faction.MARINE, UnitType.MARINE_BLUE, 5, 8);
 
         long id = r.allocate(u);
 
-        // Seeded from the unit's pre-allocate cell into the decomposed service.
-        assertEquals(5f, u.getRenderX(), 1e-6f);
-        assertEquals(8f, u.getRenderY(), 1e-6f);
-        assertEquals(5f, r.getRenderPositions().getX(id), 1e-6f);
-        assertEquals(8f, r.getRenderPositions().getY(id), 1e-6f);
+        // Seeded from the unit's pre-allocate cell into the universal
+        // RENDER_POSITION world component, read by id.
+        assertEquals(5f, r.renderXById(id), 1e-6f);
+        assertEquals(8f, r.renderYById(id), 1e-6f);
 
-        u.setRenderPos(5.3f, 8.7f);
-        assertEquals(5.3f, r.getRenderPositions().getX(id), 1e-6f);
-        assertEquals(8.7f, r.getRenderPositions().getY(id), 1e-6f);
-        assertEquals(5.3f, u.getRenderX(), 1e-6f);
-        assertEquals(8.7f, u.getRenderY(), 1e-6f);
+        r.setRenderPosById(id, 5.3f, 8.7f);
+        assertEquals(5.3f, r.renderXById(id), 1e-6f);
+        assertEquals(8.7f, r.renderYById(id), 1e-6f);
     }
 
     @Test
@@ -447,19 +444,19 @@ public class UnitRegistryTest {
         Entity u = new Entity("u", Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);
         long id = r.allocate(u);
 
-        u.setRenderPos(3.5f, 7.2f);
+        r.setRenderPosById(id, 3.5f, 7.2f);
         r.release(u.entityId);
 
         // Dropped from the live dense table...
         assertFalse(r.isLive(u.entityId));
         assertEquals(-1, r.indexOf(u.entityId));
-        // ...but render position lives in the entity-id-keyed service, which is
-        // not cleared on release, so the corpse still resolves where it fell —
-        // directly through the service, no local* snapshot involved.
-        assertTrue(r.getRenderPositions().has(id));
-        assertEquals(3.5f, u.getRenderX(), 1e-6f);
-        assertEquals(7.2f, u.getRenderY(), 1e-6f);
-        assertEquals(3.5f, r.getRenderPositions().getX(id), 1e-6f);
+        // ...but RENDER_POSITION is a universal world component kept off the
+        // corpse-remove mask, so the dense-table release alone leaves it intact
+        // (it rides the death transmute when the corpse forms — see
+        // DeadBodySystemTest) and the entity still resolves where it fell.
+        assertTrue(r.entityWorld().has(id, r.components().RENDER_POSITION));
+        assertEquals(3.5f, r.renderXById(id), 1e-6f);
+        assertEquals(7.2f, r.renderYById(id), 1e-6f);
     }
 
     @Test
@@ -471,17 +468,15 @@ public class UnitRegistryTest {
         long idA = r.allocate(a);
         r.allocate(b);
         long idC = r.allocate(c);
-        c.setRenderPos(11.5f, 22.3f);
+        r.setRenderPosById(idC, 11.5f, 22.3f);
 
         // Releasing a swap-pops c into a's old dense slot — render position is
-        // keyed by entity id, not dense index, so c's render pos is untouched.
+        // id-keyed in the world, not dense index, so c's render pos is untouched.
         r.release(idA);
 
         assertEquals(0, r.indexOf(c.entityId));
-        assertEquals(11.5f, r.getRenderPositions().getX(idC), 1e-6f);
-        assertEquals(22.3f, r.getRenderPositions().getY(idC), 1e-6f);
-        assertEquals(11.5f, c.getRenderX(), 1e-6f);
-        assertEquals(22.3f, c.getRenderY(), 1e-6f);
+        assertEquals(11.5f, r.renderXById(idC), 1e-6f);
+        assertEquals(22.3f, r.renderYById(idC), 1e-6f);
     }
 
     @Test

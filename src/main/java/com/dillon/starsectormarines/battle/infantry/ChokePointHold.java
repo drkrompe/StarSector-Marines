@@ -235,7 +235,7 @@ public final class ChokePointHold implements Action {
         // On-post — pin in place between bursts.
         if (!Paths.isEmpty(sim.world().path(member.entityId))) sim.clearPath(member);
         sim.world().setMoveProgress(member.entityId, 0f);
-        member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
+        sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
 
         // Concentrated-fire trigger: ENEMY_IN_PORTAL_CELL true this tick →
         // every on-post member with LoS to the portal cell fires. The

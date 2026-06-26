@@ -98,8 +98,8 @@ public class HeavyWeapons {
         // chaingun burst follows the walking mech instead of pinning the
         // muzzle flash to the cell where the burst started. Mirrors the
         // infantry-side fix in InfantryWeapons.fireShot.
-        float fromX = shooter.getRenderX() + 0.5f;
-        float fromY = shooter.getRenderY() + 0.5f;
+        float fromX = registry.renderXById(shooter.entityId) + 0.5f;
+        float fromY = registry.renderYById(shooter.entityId) + 0.5f;
         // Distance-scaled spread — see RangeFalloff for the physical model.
         // Shared with the infantry-side primaries so chaingun saturation and
         // SMG burst-spread use the same math, just with different per-weapon
@@ -113,7 +113,9 @@ public class HeavyWeapons {
         // the chaingun/LRM saturation widening; AoE weapons get their splash
         // center scattered through the same machinery so a salvo sprays the
         // impact zone instead of stacking on one cell.
-        ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(target, hit, effectiveSpread, shooter.rng);
+        ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(
+                registry.renderXById(target.entityId), registry.renderYById(target.entityId),
+                hit, effectiveSpread, shooter.rng);
         float toX = ep.x();
         float toY = ep.y();
 

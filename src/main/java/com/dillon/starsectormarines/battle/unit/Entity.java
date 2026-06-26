@@ -32,12 +32,11 @@ import java.util.Random;
  * <p>Position is split: the logical cell (what pathfinding sees) is the world
  * POSITION component reached by id ({@code world.cellX(id)} /
  * {@code world.cellY(id)}; it persists alive→dead, so the corpse keeps its
- * cell), while {@link #getRenderX}/{@link #getRenderY} are the
- * smooth-interpolated position inside the cell grid (in cell units, fractional)
- * that the renderer reads — kept on {@code Entity} because they route through
- * the {@link RenderPositionService}, which survives release so a corpse still
- * draws where it fell. The two coincide when the unit is at rest or has just
- * landed in a new cell.
+ * cell), while the smooth-interpolated render position (cell units, fractional)
+ * is the world's universal {@code RENDER_POSITION} component, read by id
+ * ({@code world.renderX(id)} / {@code world.renderY(id)}); it survives release
+ * (rides the death transmute) so a corpse still draws where it fell. The two
+ * coincide when the unit is at rest or has just landed in a new cell.
  *
  * <p>The world's MOVEMENT component (reached by id) holds the whole movement
  * step — the flat {@code int[]} path, the {@code pathIdx} cursor, and
@@ -74,17 +73,6 @@ public class Entity {
         return (u == null) ? 0L : u.entityId;
     }
 
-    /**
-     * The decomposed render-position service this unit's render coordinates
-     * live in, keyed by {@link #entityId}. Set once by
-     * {@link UnitRegistry#allocate} and — unlike the registry's dense slot —
-     * <b>not</b> dropped on release, so {@link #getRenderX()} / {@link #getRenderY()}
-     * keep resolving the death-pose location for a released corpse. {@code null}
-     * only in the pre-allocate window, where {@link #localRenderX} /
-     * {@link #localRenderY} are the seed.
-     */
-    public RenderPositionService renderPositions;
-
     public final String id;
     public final Faction faction;
     /** Archetype — drives sprite + base stat block. Set once at construction. */
@@ -119,11 +107,11 @@ public class Entity {
 
     /**
      * <b>Don't read directly.</b> Smooth render-position <em>pre-allocate seed
-     * only</em>. {@link UnitRegistry#allocate} copies these into the
-     * {@link RenderPositionService}, after which that service is canonical and
-     * survives release — there is no post-release snapshot back to these fields.
-     * Go through {@link #getRenderX} / {@link #getRenderY} /
-     * {@link #setRenderPos}.
+     * only</em>. {@link UnitRegistry#allocate} copies these into the entity
+     * world's universal {@code RENDER_POSITION} component, which is canonical from
+     * then on and survives release (it rides the death transmute) — there is no
+     * post-release snapshot back to these fields. Read/write by id via
+     * {@code world.renderX(id)} / {@code world.setRenderPos(id, x, y)}.
      */
     public float localRenderX;
     public float localRenderY;
@@ -153,12 +141,12 @@ public class Entity {
         float mp = registry.moveProgressById(entityId) + (moveSpeed * dt) / cellDist;
         if (mp >= 1f) {
             registry.setCellPosById(entityId, nextX, nextY);
-            setRenderPos(nextX, nextY);
+            registry.setRenderPosById(entityId, nextX, nextY);
             registry.setMoveProgressById(entityId, 0f);
             registry.setPathIdxById(entityId, pathIdx + 1);
         } else {
             registry.setMoveProgressById(entityId, mp);
-            setRenderPos(curX + dx * mp, curY + dy * mp);
+            registry.setRenderPosById(entityId, curX + dx * mp, curY + dy * mp);
         }
     }
 
@@ -304,30 +292,4 @@ public class Entity {
         this.attackCooldown = type.attackCooldown;
     }
 
-    public final float getRenderX() {
-        return (renderPositions != null) ? renderPositions.getX(entityId) : localRenderX;
-    }
-
-    public final float getRenderY() {
-        return (renderPositions != null) ? renderPositions.getY(entityId) : localRenderY;
-    }
-
-    public final void setRenderX(float v) {
-        if (renderPositions != null) renderPositions.setX(entityId, v);
-        else localRenderX = v;
-    }
-
-    public final void setRenderY(float v) {
-        if (renderPositions != null) renderPositions.setY(entityId, v);
-        else localRenderY = v;
-    }
-
-    public final void setRenderPos(float x, float y) {
-        if (renderPositions != null) {
-            renderPositions.set(entityId, x, y);
-        } else {
-            localRenderX = x;
-            localRenderY = y;
-        }
-    }
 }

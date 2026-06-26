@@ -91,7 +91,7 @@ public final class EngageAtCurrentBand implements Action {
             sim.advanceMovement(u);
         } else {
             sim.world().setMoveProgress(u.entityId, 0f);
-            u.setRenderPos(sim.world().cellX(u.entityId), sim.world().cellY(u.entityId));
+            sim.world().setRenderPos(u.entityId, sim.world().cellX(u.entityId), sim.world().cellY(u.entityId));
         }
         return ActionStatus.RUNNING;
     }

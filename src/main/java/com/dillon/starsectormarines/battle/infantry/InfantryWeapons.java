@@ -161,9 +161,11 @@ public class InfantryWeapons {
         // miss-scatter both resolve through ShotEndpoint so all three
         // weapon paths (infantry primary / secondary / mech) live by the
         // same hit-jitter + miss-ring rules.
-        float fromX = shooter.getRenderX() + 0.5f;
-        float fromY = shooter.getRenderY() + 0.5f;
-        ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(target, hit, effectiveSpread, shooter.rng);
+        float fromX = registry.renderXById(shooter.entityId) + 0.5f;
+        float fromY = registry.renderYById(shooter.entityId) + 0.5f;
+        ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(
+                registry.renderXById(target.entityId), registry.renderYById(target.entityId),
+                hit, effectiveSpread, shooter.rng);
         float toX = ep.x();
         float toY = ep.y();
         TurretKind tk = (shooter instanceof MapTurret) ? ((MapTurret) shooter).kind : null;
@@ -216,9 +218,11 @@ public class InfantryWeapons {
         // resolves through ShotEndpoint with effectiveSpread=0 — secondaries
         // don't carry their own hitSpread today, so the universal hit-jitter
         // + miss-ring still apply but no weapon-specific scatter.
-        float fromX = shooter.getRenderX() + 0.5f;
-        float fromY = shooter.getRenderY() + 0.5f;
-        ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(target, hit, 0f, shooter.rng);
+        float fromX = registry.renderXById(shooter.entityId) + 0.5f;
+        float fromY = registry.renderYById(shooter.entityId) + 0.5f;
+        ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(
+                registry.renderXById(target.entityId), registry.renderYById(target.entityId),
+                hit, 0f, shooter.rng);
         float toX = ep.x();
         float toY = ep.y();
         // Marine handheld rocket is direct-fire (no arc) — explodes wherever

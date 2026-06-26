@@ -123,7 +123,7 @@ public final class EngagePosture implements Action {
                 sim.advanceMovement(member);
             } else {
                 sim.world().setMoveProgress(member.entityId, 0f);
-                member.setRenderPos(sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
+                sim.world().setRenderPos(member.entityId, sim.world().cellX(member.entityId), sim.world().cellY(member.entityId));
             }
         } else {
             // Stage 1 fallback for members who personally lack LOS or range

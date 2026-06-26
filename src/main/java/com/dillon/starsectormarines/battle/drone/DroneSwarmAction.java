@@ -134,7 +134,7 @@ public final class DroneSwarmAction implements Action {
         // (shooter.getRenderX() + 0.5, shooter.getRenderY() + 0.5); without this sync
         // the tracers fire from the drone's spawn cell while the sprite
         // visually orbits the target.
-        d.setRenderPos(d.body.x - 0.5f, d.body.y - 0.5f);
+        sim.world().setRenderPos(d.entityId, d.body.x - 0.5f, d.body.y - 0.5f);
 
         if (s.fireThisTick && s.target != null) {
             sim.fireShot(d, s.target, FireStance.STANCED);
