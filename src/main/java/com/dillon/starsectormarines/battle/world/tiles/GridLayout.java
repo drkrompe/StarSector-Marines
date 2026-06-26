@@ -47,6 +47,44 @@ public enum GridLayout {
             int row = n ? 0 : (s ? 2 : 1);
             return new int[]{oc + col, or + row};
         }
+    },
+
+    /**
+     * Hollow-perimeter 3×3 whose <em>open</em> case is null (ports
+     * {@code pickRoadTile} / {@code pickCourtyardTile}) — same edge offsets as
+     * {@link #FLOOR_3X3}, but a cell with no wall neighbor returns {@code null}
+     * so the caller paints the block's {@link GridBlockDef#fillRgb} (the open
+     * road/courtyard interior). The inverse null-trigger of {@link #WALL_3X3}.
+     */
+    PERIMETER_3X3 {
+        @Override public int[] resolve(int oc, int or, boolean n, boolean s, boolean e, boolean w) {
+            if (!n && !s && !e && !w) return null;
+            int col = w ? 0 : (e ? 2 : 1);
+            int row = n ? 0 : (s ? 2 : 1);
+            return new int[]{oc + col, or + row};
+        }
+    },
+
+    /**
+     * Standard 3×3 (port of {@code pickStripedTile}) — the named-direction edge
+     * sits on that side (N edge = top row), corners on the diagonals. The
+     * fully-open case has no center art on the sheet, so it falls back to the
+     * south-edge cell {@code (origin + (1,2))}. Never null.
+     */
+    STRIPED_3X3 {
+        @Override public int[] resolve(int oc, int or, boolean n, boolean s, boolean e, boolean w) {
+            int col, row;
+            if (!n && !s && !e && !w) { col = 1; row = 2; }   // open → south-edge stand-in
+            else if (n && w)         { col = 0; row = 0; }
+            else if (n && e)         { col = 2; row = 0; }
+            else if (s && w)         { col = 0; row = 2; }
+            else if (s && e)         { col = 2; row = 2; }
+            else if (n)              { col = 1; row = 0; }
+            else if (s)              { col = 1; row = 2; }
+            else if (w)              { col = 0; row = 1; }
+            else /* e */             { col = 2; row = 1; }
+            return new int[]{oc + col, or + row};
+        }
     };
 
     /**
@@ -59,9 +97,11 @@ public enum GridLayout {
     /** Parse from the tileset JSON {@code layout} field. */
     public static GridLayout fromJson(String s) {
         switch (s.trim().toLowerCase()) {
-            case "single":    return SINGLE;
-            case "floor-3x3": return FLOOR_3X3;
-            case "wall-3x3":  return WALL_3X3;
+            case "single":        return SINGLE;
+            case "floor-3x3":     return FLOOR_3X3;
+            case "wall-3x3":      return WALL_3X3;
+            case "perimeter-3x3": return PERIMETER_3X3;
+            case "striped-3x3":   return STRIPED_3X3;
             default: throw new IllegalArgumentException("unknown grid layout '" + s + "'");
         }
     }

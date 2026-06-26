@@ -1,0 +1,12 @@
+{
+  "sheet": "graphics/tilesets/urban-tileset-2.png",
+  "cellPx": 32,
+  "blocks": [
+    { "id": "road.road",      "origin": [12, 0], "layout": "perimeter-3x3", "fillRgb": "0x7983A1" },
+    { "id": "road.courtyard", "origin": [0, 0],  "layout": "perimeter-3x3", "fillRgb": "0x555A74" },
+    { "id": "road.striped",   "origin": [6, 0],  "layout": "striped-3x3" },
+    { "id": "road.tile",      "origin": [11, 0], "layout": "single" },
+    { "id": "road.sidewalk",  "origin": [11, 1], "layout": "single" },
+    { "id": "road.lz-marker", "origin": [16, 2], "layout": "single" }
+  ]
+}

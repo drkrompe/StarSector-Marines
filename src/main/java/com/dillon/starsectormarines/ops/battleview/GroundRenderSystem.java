@@ -116,6 +116,10 @@ public final class GroundRenderSystem implements RenderSystem {
     // ---- floor + overlay pass ------------------------------------------------
 
     private void emitFloors(NavigationGrid grid, CellTopology topology) {
+        // Open-interior fills for the road/courtyard perimeter blocks, resolved
+        // once (data-driven from each block's fillRgb; static-color fallback).
+        Color roadFill = blockFill("road.road", ROAD_FILL);
+        Color courtyardFill = blockFill("road.courtyard", COURTYARD_FILL);
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
                 if (topology.isWall(x, y)) continue;
@@ -143,17 +147,15 @@ public final class GroundRenderSystem implements RenderSystem {
                                     crosswalkStripes(x, y, topology.isCrosswalkStripesHorizontal(x, y));
                                 }
                             }
-                        } else if (road != null) {
+                        } else if (road != null && tileReg != null) {
                             if (isSidewalkCell(grid, topology, x, y)) {
-                                roadTile(TileManifest.SIDEWALK, x, y, GROUND_TILE_EDGE_INSET_PX);
+                                roadTile(blockFrame("road.sidewalk", false, false, false, false), x, y, GROUND_TILE_EDGE_INSET_PX);
                             } else {
-                                TileManifest.TileFrame f = TileManifest.pickRoadTile(
+                                roadPerimeter("road.road", roadFill,
                                         isRoadBoundary(grid, topology, x, y + 1),
                                         isRoadBoundary(grid, topology, x, y - 1),
                                         isRoadBoundary(grid, topology, x + 1, y),
-                                        isRoadBoundary(grid, topology, x - 1, y));
-                                if (f == null) fillCell(x, y, ROAD_FILL);
-                                else roadTile(f, x, y, GROUND_TILE_EDGE_INSET_PX);
+                                        isRoadBoundary(grid, topology, x - 1, y), x, y);
                                 if (topology.isCrosswalk(x, y)) {
                                     crosswalkStripes(x, y, topology.isCrosswalkStripesHorizontal(x, y));
                                 }
@@ -161,10 +163,8 @@ public final class GroundRenderSystem implements RenderSystem {
                         }
                         break;
                     case COURTYARD:
-                        if (road != null) {
-                            TileManifest.TileFrame f = TileManifest.pickCourtyardTile(nWall, sWall, eWall, wWall);
-                            if (f == null) fillCell(x, y, COURTYARD_FILL);
-                            else roadTile(f, x, y, GROUND_TILE_EDGE_INSET_PX);
+                        if (road != null && tileReg != null) {
+                            roadPerimeter("road.courtyard", courtyardFill, nWall, sWall, eWall, wWall, x, y);
                         }
                         break;
                     case GRASS:
@@ -176,7 +176,7 @@ public final class GroundRenderSystem implements RenderSystem {
                         sameKindAutotile(kind, x, y);
                         break;
                     case TILE:
-                        if (road != null) roadTile(TileManifest.pickTileGroundTile(x, y), x, y, GROUND_TILE_EDGE_INSET_PX);
+                        if (road != null && tileReg != null) roadTile(blockFrame("road.tile", false, false, false, false), x, y, GROUND_TILE_EDGE_INSET_PX);
                         break;
                     case BRICK:
                         floorsTile(TileManifest.pickBrickTile(x, y), x, y);
@@ -189,10 +189,10 @@ public final class GroundRenderSystem implements RenderSystem {
                                 !isSidewalkLikeCell(grid, topology, x - 1, y))), x, y);
                         break;
                     case STRIPED:
-                        if (road != null) roadTile(TileManifest.pickStripedTile(nWall, sWall, eWall, wWall), x, y, GROUND_TILE_EDGE_INSET_PX);
+                        if (road != null && tileReg != null) roadTile(blockFrame("road.striped", nWall, sWall, eWall, wWall), x, y, GROUND_TILE_EDGE_INSET_PX);
                         break;
                     case LZ_MARKER:
-                        if (road != null) roadTile(TileManifest.pickLzMarkerTile(), x, y, GROUND_TILE_EDGE_INSET_PX);
+                        if (road != null && tileReg != null) roadTile(blockFrame("road.lz-marker", false, false, false, false), x, y, GROUND_TILE_EDGE_INSET_PX);
                         break;
                     case INDOOR:
                     default:
@@ -236,6 +236,23 @@ public final class GroundRenderSystem implements RenderSystem {
     private TileManifest.TileFrame blockFrame(String blockId, boolean n, boolean s, boolean e, boolean w) {
         int[] c = tileReg.block(blockId).resolve(n, s, e, w);
         return c == null ? null : new TileManifest.TileFrame(c[0], c[1]);
+    }
+
+    /**
+     * Fill color for a perimeter block's open (null-resolve) case, from its
+     * {@code fillRgb} ({@code fallback} when unset / no registry). Resolve once
+     * per pass — avoids per-cell {@link Color} allocation in the dense loop.
+     */
+    private Color blockFill(String blockId, Color fallback) {
+        GridBlockDef b = (tileReg == null) ? null : tileReg.block(blockId);
+        return (b != null && b.fillRgb != null) ? new Color(b.fillRgb) : fallback;
+    }
+
+    /** Draw a road-sheet perimeter block (caller ensures {@code tileReg != null}); the open (null) case paints {@code fill}. */
+    private void roadPerimeter(String blockId, Color fill, boolean n, boolean s, boolean e, boolean w, int gridX, int gridY) {
+        int[] c = tileReg.block(blockId).resolve(n, s, e, w);
+        if (c == null) fillCell(gridX, gridY, fill);
+        else roadTile(new TileManifest.TileFrame(c[0], c[1]), gridX, gridY, GROUND_TILE_EDGE_INSET_PX);
     }
 
     // ---- tile emitters (port of BattleRenderer's draw* helpers) --------------

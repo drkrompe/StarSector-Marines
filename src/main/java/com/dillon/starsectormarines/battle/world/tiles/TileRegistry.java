@@ -41,7 +41,8 @@ public final class TileRegistry {
     public static final List<String> BUILTIN_TILESETS = List.of(
             "data/tilesets/nature-tiles.tileset.json",
             "data/tilesets/urban-tileset-3.tileset.json",
-            "data/tilesets/urban-tileset.tileset.json");
+            "data/tilesets/urban-tileset.tileset.json",
+            "data/tilesets/urban-tileset-2.tileset.json");
 
     private static volatile TileRegistry installed;
 

@@ -82,4 +82,59 @@ public class GridBlockParityTest {
         assertArrayEquals(door.resolve(false, false, false, false), door.resolve(true, true, true, true),
                 "single cell is neighbor-independent");
     }
+
+    // ----- urban-tileset-2 (road sheet) ---------------------------------------
+
+    private static TileRegistry loadUrban2() throws Exception {
+        TileRegistry reg = new TileRegistry();
+        reg.ingestSheet(new JSONObject(Files.readString(Paths.get("mod/data/tilesets/urban-tileset-2.tileset.json"))));
+        return reg;
+    }
+
+    /** A 4-neighbor-mask picker (the {@code TileManifest.pickXxxTile} shape) for cross-checking. */
+    private interface MaskPicker {
+        TileManifest.TileFrame pick(boolean n, boolean s, boolean e, boolean w);
+    }
+
+    private static void assertMatchesPicker(GridBlockDef block, MaskPicker picker, String label) {
+        for (int m = 0; m < 16; m++) {
+            boolean n = (m & 1) != 0, s = (m & 2) != 0, e = (m & 4) != 0, w = (m & 8) != 0;
+            int[] got = block.resolve(n, s, e, w);
+            TileManifest.TileFrame want = picker.pick(n, s, e, w);
+            if (want == null) {
+                assertNull(got, label + " mask " + m + " should be null/fill");
+            } else {
+                assertNotNull(got, label + " mask " + m);
+                assertEquals(want.col, got[0], label + " col, mask " + m);
+                assertEquals(want.row, got[1], label + " row, mask " + m);
+            }
+        }
+    }
+
+    @Test
+    void urban2AutotileBlocksMatchPickers() throws Exception {
+        TileRegistry reg = loadUrban2();
+        assertMatchesPicker(reg.block("road.road"),      TileManifest::pickRoadTile,      "road.road");
+        assertMatchesPicker(reg.block("road.courtyard"), TileManifest::pickCourtyardTile, "road.courtyard");
+        assertMatchesPicker(reg.block("road.striped"),   TileManifest::pickStripedTile,   "road.striped");
+        assertEquals(Integer.valueOf(TileManifest.ROAD_FILL_RGB), reg.block("road.road").fillRgb);
+        assertEquals(Integer.valueOf(TileManifest.COURTYARD_FILL_RGB), reg.block("road.courtyard").fillRgb);
+        assertNull(reg.block("road.striped").fillRgb, "striped never returns the null case");
+    }
+
+    @Test
+    void urban2SingleBlocksMatch() throws Exception {
+        TileRegistry reg = loadUrban2();
+        int[] tile = reg.block("road.tile").resolve(false, false, false, false);
+        assertEquals(TileManifest.pickTileGroundTile(0, 0).col, tile[0]);
+        assertEquals(TileManifest.pickTileGroundTile(0, 0).row, tile[1]);
+
+        int[] sidewalk = reg.block("road.sidewalk").resolve(false, false, false, false);
+        assertEquals(TileManifest.SIDEWALK.col, sidewalk[0]);
+        assertEquals(TileManifest.SIDEWALK.row, sidewalk[1]);
+
+        int[] lz = reg.block("road.lz-marker").resolve(false, false, false, false);
+        assertEquals(TileManifest.pickLzMarkerTile().col, lz[0]);
+        assertEquals(TileManifest.pickLzMarkerTile().row, lz[1]);
+    }
 }
