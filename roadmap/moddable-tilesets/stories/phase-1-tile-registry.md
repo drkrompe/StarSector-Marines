@@ -141,14 +141,23 @@ order untouched. Tile/gen/map suite green (`TileRegistry*`, `NatureZone`/
 Decision (user): **scoped to the live grid blocks + dead-code cleanup**, not a
 full `TileManifest` port.
 
-**Gut-check correction (don't re-derive).** The "lots of dead code" premise was
-wrong: `pickWallTile` is **live** via `WallMasks.pickTileFromMask`; the Floors/
-Water *edge* resolvers (`pickGrass/Stone/Dirt/Sand/Snow/WaterTile`) are
-production-center-only BUT exercised by the dev-tool preview tests
-(`FixedGridZonePreviewTest` renders the full autotile). So genuine dead code is
-minimal — 1c is a **faithful port of working (legacy) resolvers**, not a purge.
-The doodad pools + turret-embankment helpers (woven through ~15 fillers/stampers)
-are *gen mapping*, not tile defs → **Phase 2**, not 1c.
+**Gut-check correction (don't re-derive).** "Legacy" here means the older
+fixed-grid autotile *style* (vs the newer sliced sheets) — **NOT unused.** These
+sheets render **every battle** (evidence-checked 2026-06-25): urban-tileset
+(walls/floors/rubble/doors), urban-tileset-2 (`COURTYARD`, `STRIPED`, `TILE`,
+turret embankments, LZ marker), Floors_Tiles (`STONE` — plazas/parade grounds/
+turret pads, heavily; `SAND`; `BRICK`), Water_tiles (`WATER` via `pickWaterTile`
+— **live, not orphaned**; the earlier "water uses the nature sheet" claim was an
+unshipped preview-only preference). The "lots of dead code" premise was also
+wrong: `pickWallTile` is live via `WallMasks`; the Floors/Water *edge* resolvers
+are production-center-only BUT exercised by the dev-tool preview tests
+(`FixedGridZonePreviewTest`). **Genuinely unused** = only `SNOW` (defined in
+`CellTopology`, no generator emits it) + those edge branches + the fallback-only
+paths (urban-2 road autotile and Floors grass/dirt, where the sliced sheets are
+primary). So 1c is a faithful port of **live** resolvers — its moddability value
+is real (re-skinnable surface), not gold-plating. The doodad pools +
+turret-embankment helpers (woven through ~15 fillers/stampers) are *gen mapping*,
+not tile defs → **Phase 2**, not 1c.
 
 **Model (`battle/world/tiles/`):** `GridBlockDef` (sheet, `cellPx`, origin,
 `GridLayout`, optional `fillRgb`) is the grid counterpart to the sliced
