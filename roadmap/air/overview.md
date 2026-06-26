@@ -55,6 +55,11 @@ are the design-stage members that extend it.
 
 ## Cross-references
 
+- [`air-entities-into-world.md`](air-entities-into-world.md) — the storage/
+  entity-world dimension: **one `EntityWorld`, not a separate air id space.** Air
+  craft become real entities in the same archetype world as battle units
+  (kinematics as a component, air FX re-keyed off their `ComponentStore`s).
+  Decision captured 2026-06-25; gated on `ecs-migration` step 4.
 - [`hull-extraction.md`](hull-extraction.md) — the shared vanilla-hull →
   sim-entity pipeline (kinematics + geometry).
 - [`vanilla-kinematics-reference.md`](vanilla-kinematics-reference.md) — scraped

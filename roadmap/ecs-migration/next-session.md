@@ -256,11 +256,34 @@ is now **built and consuming real game state**:
   drone hub can no longer roll a fall-back it had no behavior to execute (the old
   gate only excluded `MapTurret`). Suite green at 772.
 
-**Next: step 4 — the finale.**
-- **Step 4 — dissolve `UnitRegistry`.** With every dense column gone (the
-  registry is now id-mint + dense `Entity[]` + id↔slot map), fold the standalone
-  `Crashing`/`MechLoadout` ComponentStores into archetype membership, then hop
-  id-mint + the dense `Entity[]` to the world / sim.
+**Step 4 — IN PROGRESS (2026-06-25).** The store folds first, then the registry
+dissolution:
+- **Store folds — Crashing ✓ (`dafaacaf`), MechLoadout ✓ (`8f8a0d76`).** Both
+  optional rich-payload capabilities are now world OBJECT components (`CRASHING`
+  id 10, `MECH_LOADOUT` id 11), each holding the existing component object. Kept
+  **off** the `corpseRemove` mask so they ride the corpse through the death
+  transmute — the store's "survives release," re-expressed as archetype
+  membership. With both folded, the `World`'s generic Class→`ComponentStore` cold
+  face (`component`/`hasComponent`/`id`/`EntityHandle` + the stores map) is
+  **deleted**; consumers use typed accessors (`world.mechLoadout(id)` etc.).
+  **Remaining fold: `RenderPositionService` → world `RENDER_POSITION`** — the last
+  *battle-unit* `ComponentStore` user; unifies live render-pos with the corpse's
+  existing `RENDER_POSITION` (universal, off `corpseRemove`).
+- **Step 4 proper — dissolve `UnitRegistry`.** With every dense column gone (the
+  registry is now id-mint + dense `Entity[]` + id↔slot map + the
+  owned-for-transition `EntityWorld`/`BattleComponents`/`RenderPositionService`),
+  hop id-mint + the `Entity[]` + the world ownership up to the sim and delete
+  `UnitRegistry`.
+
+**After step 4 — air entities into the world (new epic, captured 2026-06-25).**
+`ComponentStore<T>` legitimately survives step 4 for the **air** subsystem
+(`ThrusterFx`/`AirTurrets`), which keys a *separate* entity space (`Shuttle` +
+`AirSystem.nextAirId`), not the battle world. The decision — **unify air into the
+one `EntityWorld`** (air-vs-ground is a component difference, not a separate
+world; drones already straddle) — is captured in
+[`roadmap/air/air-entities-into-world.md`](../air/air-entities-into-world.md). It
+is **gated on step 4**: it adopts air craft into the sim-owned world step 4
+creates. That epic is where `ComponentStore<T>` finally dies.
 
 ## NEW PHASE — entity-id handle (2026-06-02, in flight)
 
