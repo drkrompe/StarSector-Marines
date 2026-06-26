@@ -54,16 +54,17 @@ resolvers. Doodad pools + turret embankment are *gen mapping* → Phase 2.
   (wall/floor/rubble/door) + `GridBlockParityTest` (resolvers pinned to the
   `TileManifest` pickers, all 16 masks). Additive — no consumer reads blocks
   yet. Verified green (via the init-script workaround — see below).
-- **urban-tileset render flip ✅ `7fba02f4`** — `GroundRenderSystem` floor/rubble/
-  door + `WallMasks` wall resolve `urban.*` blocks; bootstrap loads urban-tileset;
-  `emitWalls` fill from the block. Parity-pinned, green (preview tests included).
-- **Next:** sheet-by-sheet — urban-2 (road/courtyard/striped), then Floors/Water
-  center grounds + brick/tile. **Heads-up:** Floors/Water are 16px; `blockFrame`
-  draws via the urban 32px path today, so those need a `cellPx`-aware draw (block
-  carries `cellPx`; wire it through `emitSmallTile`/`FixedGridTileDrawer`). Then
-  `TilesetDebugScreen` → `.tileset.json` + delete `.catalog.json` dupes; move the
-  `FixedGridZonePreviewTest` dev tools to block ids (then the pickers retire).
-  Full plan in the story's 1c.
+- **urban-tileset render flip ✅ `7fba02f4`** — floor/rubble/door + `WallMasks`
+  wall resolve `urban.*` blocks; `emitWalls` fill from the block.
+- **urban-tileset-2 (road sheet) ✅ `5a9402d2`** — `PERIMETER_3X3` + `STRIPED_3X3`
+  layouts; STREET-fallback/COURTYARD/STRIPED/TILE/LZ_MARKER resolve `road.*`
+  blocks; perimeter fill hoisted from `fillRgb`. 32px → road draw path.
+- **Next:** Floors/Water (`STONE`/`SAND`/`BRICK` live; `GRASS`/`DIRT` fallback;
+  **`SNOW` is dead — no emitter, skip it**). These are **16px** → need a
+  `cellPx`-aware draw (`blockFrame`/`roadTile` are 32px; wire the block's `cellPx`
+  through an `emitSmallTile`-style emitter). Then `TilesetDebugScreen` →
+  `.tileset.json` + delete `.catalog.json` dupes; move `FixedGridZonePreviewTest`
+  dev tools to block ids (then the pickers retire). Full plan in the story's 1c.
 
 Then **Phase 2** (gen mapping as data — incl. the doodad pools) and **Phase 3**
 (mod-merge, deferred).

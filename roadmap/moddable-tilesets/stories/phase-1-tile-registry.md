@@ -177,12 +177,19 @@ wall enclosed/null + `0x060A10` fill). Verified green.
   `WallMasks.pickTileFromMask` resolves `urban.wall` (shared by production + the
   preview tests, picker fallback); `emitWalls` fill from the block's `fillRgb`;
   bootstrap loads `urban-tileset`. Parity-pinned, green.
-- **Next sheets:** `urban-tileset-2` (road / courtyard / striped), then the Floors/
-  Water center grounds + brick/tile single tiles. Each adds its `GridLayout`(s) +
-  `.tileset.json` blocks, parity-pinned to the picker, then flips the consumer.
-  NOTE: urban-2 / Floors are 32px / 16px — `blockFrame` currently draws via the
-  urban (32px) path; the Floors/Water blocks will need a `cellPx`-aware draw
-  (the block carries `cellPx`; wire `FixedGridTileDrawer`/`emitSmallTile`).
+- **`urban-tileset-2` (road sheet) — ✅ shipped `5a9402d2`.** Added `GridLayout`
+  `PERIMETER_3X3` (null on the OPEN case — inverse of `WALL_3X3`) + `STRIPED_3X3`;
+  `road.{road,courtyard}` (perimeter, fillRgb), `road.striped`, `road.{tile,
+  sidewalk,lz-marker}` (single). `GroundRenderSystem` STREET-fallback / COURTYARD
+  / STRIPED / TILE / LZ_MARKER resolve via blocks; open-interior fill from
+  `fillRgb` hoisted once per pass (`blockFill`, no per-cell alloc). 32px → reuses
+  the road draw path. Parity-pinned, green.
+- **Next sheets:** the Floors/Water center grounds (`STONE`/`SAND`/`BRICK` live;
+  `GRASS`/`DIRT` fallback; `SNOW` dead — skip) + brick/tile. These are **16px**,
+  so they need a `cellPx`-aware draw — `blockFrame`/`roadTile` use the 32px path;
+  wire the block's `cellPx` through an `emitSmallTile`-style emitter
+  (`FixedGridTileDrawer`). Each adds its `GridLayout`(s) + `.tileset.json` blocks,
+  parity-pinned, then flips the consumer.
 - Migrate `TilesetDebugScreen` to `.tileset.json`; delete the `.catalog.json`
   duplication; carry the catalog labels.
 - The dev-tool preview tests (`FixedGridZonePreviewTest`) still call the pickers
