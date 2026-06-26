@@ -59,12 +59,18 @@ resolvers. Doodad pools + turret embankment are *gen mapping* → Phase 2.
 - **urban-tileset-2 (road sheet) ✅ `5a9402d2`** — `PERIMETER_3X3` + `STRIPED_3X3`
   layouts; STREET-fallback/COURTYARD/STRIPED/TILE/LZ_MARKER resolve `road.*`
   blocks; perimeter fill hoisted from `fillRgb`. 32px → road draw path.
-- **Next:** Floors/Water (`STONE`/`SAND`/`BRICK` live; `GRASS`/`DIRT` fallback;
-  **`SNOW` is dead — no emitter, skip it**). These are **16px** → need a
-  `cellPx`-aware draw (`blockFrame`/`roadTile` are 32px; wire the block's `cellPx`
-  through an `emitSmallTile`-style emitter). Then `TilesetDebugScreen` →
-  `.tileset.json` + delete `.catalog.json` dupes; move `FixedGridZonePreviewTest`
-  dev tools to block ids (then the pickers retire). Full plan in the story's 1c.
+- **Floors_Tiles + Water_tiles ✅ `0e1df6c9`** (parity gradle run PENDING — tree
+  was red on a sibling refactor at commit time; verified via IntelliJ). Insight:
+  production is center-only → **variant pools** (`GridBlockDef` cells, hashed),
+  NOT autotiles; reuse the existing 16px `floorsTile`/`waterTile` path (no new
+  emitter). `SNOW` dropped (dead). **All four grid sheets flipped.**
+  → **First thing next session: run `GridBlockParityTest` once the tree compiles**
+  (`gradlew :test --tests "*GridBlockParityTest*"`, with the init-script if a
+  sibling's tests are red) to confirm the variant-pool hash parity.
+- **Next (cleanup tail):** `TilesetDebugScreen` → `.tileset.json`; delete the
+  `.catalog.json` dupes (carry labels); move the dev-tool preview tests
+  (`FixedGridZonePreviewTest` etc.) off `TileManifest.pickXxx` onto block ids;
+  then retire the pickers + dead `pickSnowTile` + unused edge resolvers. Story's 1c.
 
 Then **Phase 2** (gen mapping as data — incl. the doodad pools) and **Phase 3**
 (mod-merge, deferred).

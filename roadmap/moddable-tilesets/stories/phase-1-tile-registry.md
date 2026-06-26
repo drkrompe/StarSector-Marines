@@ -184,12 +184,21 @@ wall enclosed/null + `0x060A10` fill). Verified green.
   / STRIPED / TILE / LZ_MARKER resolve via blocks; open-interior fill from
   `fillRgb` hoisted once per pass (`blockFill`, no per-cell alloc). 32px → reuses
   the road draw path. Parity-pinned, green.
-- **Next sheets:** the Floors/Water center grounds (`STONE`/`SAND`/`BRICK` live;
-  `GRASS`/`DIRT` fallback; `SNOW` dead — skip) + brick/tile. These are **16px**,
-  so they need a `cellPx`-aware draw — `blockFrame`/`roadTile` use the 32px path;
-  wire the block's `cellPx` through an `emitSmallTile`-style emitter
-  (`FixedGridTileDrawer`). Each adds its `GridLayout`(s) + `.tileset.json` blocks,
-  parity-pinned, then flips the consumer.
+- **Floors_Tiles + Water_tiles (16px) — ✅ shipped `0e1df6c9`** (parity gradle
+  run pending — see below). Key insight: production renders these **center-only**
+  (flat-edges), so they're **variant pools**, not autotiles. `GridBlockDef` gained
+  a variant-pool form (explicit `cells`, picked by the same `stableHash(x,y)`);
+  `floors.{grass,dirt,stone,sand,brick}` + `water.water`. `GroundRenderSystem.
+  sameKindAutotile` + BRICK resolve them via the **existing 16px** `floorsTile`/
+  `waterTile` path — no new `cellPx`-aware emitter needed (cellPx already matches).
+  `SNOW` dropped (no emitter → dead). GRASS/DIRT keep nature primary, Floors pool
+  as fallback. `GridBlockParityTest` pins pools to the picker center branch over a
+  24×24 grid. **All four grid sheets are now flipped.**
+- **Remaining (cleanup tail):** migrate `TilesetDebugScreen` to `.tileset.json`;
+  delete the `.catalog.json` duplication (carry labels); move the dev-tool
+  `FixedGridZonePreviewTest`/`BuildingZonePreviewTest`/`BspMapSpritePreviewTest`
+  off the `TileManifest.pickXxx` pickers onto block ids — after which the pickers
+  (and the dead `pickSnowTile` + the unused 5×5/3×3 edge resolvers) can retire.
 - Migrate `TilesetDebugScreen` to `.tileset.json`; delete the `.catalog.json`
   duplication; carry the catalog labels.
 - The dev-tool preview tests (`FixedGridZonePreviewTest`) still call the pickers
