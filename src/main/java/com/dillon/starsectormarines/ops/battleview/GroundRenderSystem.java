@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.model.WallMasks;
 import com.dillon.starsectormarines.battle.world.tiles.FixedGridTileDrawer;
+import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.world.tiles.TileDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
@@ -126,7 +127,7 @@ public final class GroundRenderSystem implements RenderSystem {
                 CellTopology.GroundKind kind = topology.getGroundKind(x, y);
                 switch (kind) {
                     case RUBBLE:
-                        urbanTile(TileManifest.pickRubbleTile(nWall, sWall, eWall, wWall), x, y, GROUND_TILE_EDGE_INSET_PX);
+                        if (tileReg != null) urbanTile(blockFrame("urban.rubble", nWall, sWall, eWall, wWall), x, y, GROUND_TILE_EDGE_INSET_PX);
                         break;
                     case STREET:
                         if (urbanTile3 != null) {
@@ -195,15 +196,15 @@ public final class GroundRenderSystem implements RenderSystem {
                         break;
                     case INDOOR:
                     default:
-                        urbanTile(TileManifest.pickFloorTile(nWall, sWall, eWall, wWall), x, y, GROUND_TILE_EDGE_INSET_PX);
+                        if (tileReg != null) urbanTile(blockFrame("urban.floor", nWall, sWall, eWall, wWall), x, y, GROUND_TILE_EDGE_INSET_PX);
                         break;
                 }
 
                 int oi = topology.getNatureOverlayIndex(x, y);
                 if (oi >= 0 && tileReg != null) natureTile(tileReg.byIndex(oi), x, y);
 
-                if (grid.isDoorway(x, y) && !topology.isRubble(x, y)) {
-                    urbanTile(TileManifest.DOOR_OPEN, x, y, 0);
+                if (grid.isDoorway(x, y) && !topology.isRubble(x, y) && tileReg != null) {
+                    urbanTile(blockFrame("urban.door-open", false, false, false, false), x, y, 0);
                 }
             }
         }
@@ -212,14 +213,29 @@ public final class GroundRenderSystem implements RenderSystem {
     // ---- wall pass -----------------------------------------------------------
 
     private void emitWalls(NavigationGrid grid, CellTopology topology) {
+        // Fill color for the enclosed (no-frame) wall cell comes from the
+        // urban.wall block's fillRgb — data-driven, falling back to WALL_COLOR.
+        GridBlockDef wallBlock = (tileReg == null) ? null : tileReg.block("urban.wall");
+        Color wallFill = (wallBlock != null && wallBlock.fillRgb != null) ? new Color(wallBlock.fillRgb) : WALL_COLOR;
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
                 if (!topology.isWall(x, y)) continue;
                 TileManifest.TileFrame tile = WallMasks.pickTileFromMask(topology.getWallDirMask(x, y));
-                if (tile == null) fillCell(x, y, WALL_COLOR);
+                if (tile == null) fillCell(x, y, wallFill);
                 else urbanTile(tile, x, y, 0);
             }
         }
+    }
+
+    /**
+     * Resolves a fixed-grid block (caller ensures {@code tileReg != null}) to
+     * its {@link TileManifest.TileFrame} source cell for the given wall-neighbor
+     * mask; {@code null} is the block's enclosed/fill case (only WALL_3X3
+     * returns it — the floor/rubble/door blocks never do).
+     */
+    private TileManifest.TileFrame blockFrame(String blockId, boolean n, boolean s, boolean e, boolean w) {
+        int[] c = tileReg.block(blockId).resolve(n, s, e, w);
+        return c == null ? null : new TileManifest.TileFrame(c[0], c[1]);
     }
 
     // ---- tile emitters (port of BattleRenderer's draw* helpers) --------------

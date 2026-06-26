@@ -27,7 +27,7 @@ public final class TileRegistryTestInstaller implements BeforeAllCallback {
     public void beforeAll(ExtensionContext context) throws Exception {
         if (TileRegistry.installed() != null) return;
         TileRegistry reg = new TileRegistry();
-        for (String name : new String[]{"nature-tiles.tileset.json", "urban-tileset-3.tileset.json"}) {
+        for (String name : new String[]{"nature-tiles.tileset.json", "urban-tileset-3.tileset.json", "urban-tileset.tileset.json"}) {
             reg.ingestSheet(new JSONObject(Files.readString(Paths.get("mod/data/tilesets", name))));
         }
         reg.validateReferences();

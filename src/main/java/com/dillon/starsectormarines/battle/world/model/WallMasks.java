@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world.model;
 
+import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 /**
  * Shared utilities for the per-cell wall-direction mask carried by
@@ -54,14 +56,21 @@ public final class WallMasks {
      * from the wall 3×3 autotile block. Returns {@code null} when the
      * cell is fully enclosed (no exterior face) — caller paints a
      * solid fill there because the source's center cell is transparent.
-     * Equivalent to calling {@link TileManifest#pickWallTile} with the
-     * four cardinal bits unpacked.
+     *
+     * <p>Resolves the {@code urban.wall} {@link GridBlockDef} from the
+     * {@link TileRegistry} (moddable-tilesets Phase 1c); falls back to the
+     * static {@link TileManifest#pickWallTile} when the registry isn't
+     * installed (the two agree by construction — {@code GridBlockParityTest}).
      */
     public static TileManifest.TileFrame pickTileFromMask(int wallDirMask) {
-        return TileManifest.pickWallTile(
-                (wallDirMask & CellTopology.WALL_DIR_N) != 0,
-                (wallDirMask & CellTopology.WALL_DIR_S) != 0,
-                (wallDirMask & CellTopology.WALL_DIR_E) != 0,
-                (wallDirMask & CellTopology.WALL_DIR_W) != 0);
+        boolean n = (wallDirMask & CellTopology.WALL_DIR_N) != 0;
+        boolean s = (wallDirMask & CellTopology.WALL_DIR_S) != 0;
+        boolean e = (wallDirMask & CellTopology.WALL_DIR_E) != 0;
+        boolean w = (wallDirMask & CellTopology.WALL_DIR_W) != 0;
+        TileRegistry reg = TileRegistry.installed();
+        GridBlockDef wall = (reg == null) ? null : reg.block("urban.wall");
+        if (wall == null) return TileManifest.pickWallTile(n, s, e, w);
+        int[] c = wall.resolve(n, s, e, w);
+        return c == null ? null : new TileManifest.TileFrame(c[0], c[1]);
     }
 }
