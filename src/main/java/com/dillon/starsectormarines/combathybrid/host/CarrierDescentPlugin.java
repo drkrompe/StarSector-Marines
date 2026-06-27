@@ -37,16 +37,18 @@ import java.util.Set;
  * SIM_COUPLED bridge battle to designate a wide landing zone: this picks the first live carrier-side
  * ship, {@code setShipAI}s a {@link CarrierDescentBrain} onto it aimed at the clicked point, and
  * flies it there to establish orbit. Once it settles ({@link CarrierDescentBrain#hasArrived()}), the
- * plugin scatters a wave of sim-native dropships ({@code Shuttle}s) across the zone ({@link
- * DropZoneScatter}) — they descend, land, and pour their squads onto the ground. Re-clicking before
- * arrival re-aims the landing zone ("no — land <em>there</em>").
+ * transport deploys its invasion as a sequence of scattered dropship waves ({@link DropZoneScatter})
+ * over the orbit window, then peels off when the manifest empties — and if it's lost mid-window the
+ * undeployed waves go with it (D4, the stake). Re-clicking before the first wave re-aims the landing
+ * zone ("no — land <em>there</em>").
  *
  * <p>The trigger rides an in-combat input event ({@code processInputPreCoreControls}) because it only
  * makes sense once the combat instance is live. Left-click is safe in the spectator canvas: there is
  * no player ship (player-ship control is disabled each frame) and {@link SpectatorCanvasPlugin}
  * consumes only WASD / RMB / scroll, so LMB passes through to here. One <em>active</em> takeover at a
- * time (a probe demonstrates the mechanism, not a fleet-wide descent): clicks are ignored once the
- * carrier has dropped; once it dies, a fresh click can take over another (and drop again).
+ * time (a probe demonstrates the mechanism, not a fleet-wide descent): re-clicks are ignored while a
+ * carrier is deploying its invasion; once the orbit window closes (it peels off) or the carrier dies,
+ * a fresh click can launch another.
  *
  * <p>Session-policy plugin, installed by {@link CombatBridgeSession#enterEngine}. Reachable only via
  * the dev probe today.
@@ -277,6 +279,13 @@ public final class CarrierDescentPlugin extends BaseEveryFrameCombatPlugin {
         brain.setTarget(exit);
         LOG.info("ground-bridge(descent): orbit window closed — " + INVASION_WAVES
                 + " waves deployed; transport peeling off.");
+        // Release the takeover so a fresh click can launch another invasion (with this carrier or a
+        // sibling) — otherwise, with no carrier-death source in the probe, you'd get exactly one
+        // invasion per battle. The carrier keeps its installed brain steering it off-grid; we just stop
+        // tracking it, so trailing drops egress off-grid (retargetDropExit's carrier-gone branch)
+        // rather than chasing a transport we've let go.
+        descending = null;
+        brain = null;
     }
 
     /**
